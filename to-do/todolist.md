@@ -1,0 +1,3 @@
+- my yt channel anaylysis
+- script writer
+- script critquer
