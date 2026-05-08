@@ -1,4 +1,11 @@
 node_modules/
 .DS_Store
 *.env
+.env
 .env.local
+
+# Python
+venv/
+__pycache__/
+*.pyc
+credentials.json
