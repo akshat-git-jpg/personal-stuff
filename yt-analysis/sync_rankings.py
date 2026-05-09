@@ -18,10 +18,11 @@ import os
 import sys
 from datetime import datetime
 
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from googleapiclient.discovery import build  # noqa: E402
+from googleapiclient.errors import HttpError  # noqa: E402
 
-from _common import col_letter, extract_video_id, get_gspread_client
+from common.sheets import col_letter, extract_video_id, get_gspread_client  # noqa: E402
 
 MAX_RESULTS = 50  # YouTube search depth — beyond this we report "Not in Top N"
 

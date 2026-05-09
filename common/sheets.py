@@ -1,21 +1,11 @@
-"""Shared utilities for yt-analysis scripts.
+"""Google Sheets + YouTube URL helpers."""
 
-Importing this module:
-  - Loads myproj/.env into os.environ
-  - Exposes get_gspread_client(), col_letter(), extract_video_id()
-"""
-
-import os
 import re
 
 import gspread
-from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-MYPROJ_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
-
-load_dotenv(dotenv_path=os.path.join(MYPROJ_ROOT, ".env"))
+from .env import get_credentials_path
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -30,10 +20,7 @@ _YT_ID_PATTERNS = [
     re.compile(r"youtube\.com/live/([A-Za-z0-9_-]{11})"),
 ]
 
-
-def get_credentials_path():
-    name = os.getenv("CREDENTIALS_FILE", "credentials.json")
-    return name if os.path.isabs(name) else os.path.join(MYPROJ_ROOT, name)
+_SHEET_ID_RE = re.compile(r"/spreadsheets/d/([A-Za-z0-9_-]+)")
 
 
 def get_gspread_client():
@@ -48,6 +35,20 @@ def col_letter(idx_zero_based):
         n, r = divmod(n - 1, 26)
         out = chr(65 + r) + out
     return out
+
+
+def extract_sheet_id(url):
+    """Pull the sheet ID out of any Google Sheets URL like
+    https://docs.google.com/spreadsheets/d/<ID>/edit?... -> '<ID>'.
+
+    Raises ValueError if the URL is empty or doesn't match.
+    """
+    if not url:
+        raise ValueError("Sheet URL is empty or None")
+    m = _SHEET_ID_RE.search(url)
+    if not m:
+        raise ValueError(f"Could not extract sheet ID from URL: {url!r}")
+    return m.group(1)
 
 
 def extract_video_id(url):
