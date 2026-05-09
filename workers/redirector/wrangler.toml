@@ -1,0 +1,15 @@
+name = "redirector"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+
+[[kv_namespaces]]
+binding = "CLICKS_KV"
+id = "5d39bf8966014043a2bf7de3ac93fc2b"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "clicks-db"
+database_id = "3415a408-ccc9-49e2-8fe1-60009dfd83ce"
+
+[observability]
+enabled = true
