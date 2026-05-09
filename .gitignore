@@ -9,3 +9,12 @@ venv/
 __pycache__/
 *.pyc
 credentials.json
+
+# keyword-research runtime artifacts
+keyword-research/output/
+keyword-research/channel_cache.json
+
+# Worker (workers/redirector)
+workers/redirector/node_modules/
+workers/redirector/.wrangler/
+workers/redirector/.dev.vars
