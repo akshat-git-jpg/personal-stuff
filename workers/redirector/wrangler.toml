@@ -11,5 +11,9 @@ binding = "DB"
 database_name = "clicks-db"
 database_id = "3415a408-ccc9-49e2-8fe1-60009dfd83ce"
 
+[[routes]]
+pattern = "go.agrolloo.com/*"
+zone_name = "agrolloo.com"
+
 [observability]
 enabled = true
