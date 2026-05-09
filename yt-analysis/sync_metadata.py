@@ -1,31 +1,33 @@
-"""
-Sync video metadata from YT tracker (Master tab) into the Analysis sheet
+"""Sync metadata from YT tracker (Master tab) into the Analysis sheet
 ("Per video cost,views and clicks" tab).
 
-Match rows by video_title:
-  - Source row found in dest -> update cols A-F (source-fed fields)
+Only syncs source rows where yt_upload_status="uploaded".
+
+Match by video_title:
+  - Source row found in dest -> update mapped cols
   - Source row NOT in dest    -> append a new row
   - Dest row not in source    -> left alone (preserves manual entries)
 
-Cols H-O in dest (cost / views / affiliate clicks) are NEVER touched.
-Re-run anytime; manual edits to cost/views columns are preserved.
+Re-runnable; safe to call repeatedly.
 """
 
+import os
 import sys
 
-from _common import col_letter, get_gspread_client
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from common.sheets import col_letter, extract_sheet_id, get_gspread_client  # noqa: E402
 
-SOURCE_SHEET_ID = "1_r0MchKeAyWlp_g4ESe3IlxZJ1Djx0WAOMTeVWjh_4E"  # YT tracker
 SOURCE_TAB = "Master"
-DEST_SHEET_ID = "13H88Z_4f58lHB0xsRXKPaZ7qagMyvXxZdJ1S-szH18c"  # Analysis
 DEST_TAB = "Per video cost,views and clicks"
 
 # Source header -> dest header mapping (only fields we copy)
 FIELD_MAP = [
     ("video_title", "video_title"),
+    ("video_notes", "video_notes"),
     ("video_description", "video_description"),
     ("category", "category"),
     ("subcategory", "sub_category"),
+    ("yt_upload_status", "yt_upload_status"),
     ("yt_upload_date", "yt_upload_date"),
     ("yt_link", "yt_link"),
 ]
@@ -40,6 +42,10 @@ DROPDOWN_FIELDS = [
 DROPDOWN_END_ROW = 500  # apply down this far so manually-added rows also get the dropdown
 
 
+def is_uploaded(status: str) -> bool:
+    return (status or "").strip().lower() == "uploaded"
+
+
 def read_tab(ws):
     rows = ws.get_all_values()
     if not rows:
@@ -47,7 +53,7 @@ def read_tab(ws):
     return rows[0], rows[1:]
 
 
-def read_source_dropdowns(client, src_idx):
+def read_source_dropdowns(client, src_idx, source_sheet_id):
     """Fetch the data validation rule for each source dropdown column.
     Returns dict: source_header -> validation rule dict (Sheets API shape) or None.
     """
@@ -56,7 +62,7 @@ def read_source_dropdowns(client, src_idx):
         return {}
     # Read row 2 of each source dropdown column (the first data row, where the rule lives)
     ranges = [f"{SOURCE_TAB}!{c}2" for c in cols_letters]
-    url = f"https://sheets.googleapis.com/v4/spreadsheets/{SOURCE_SHEET_ID}"
+    url = f"https://sheets.googleapis.com/v4/spreadsheets/{source_sheet_id}"
     params = [("includeGridData", "true"), ("fields", "sheets.data(startColumn,rowData.values.dataValidation)")]
     for r in ranges:
         params.append(("ranges", r))
@@ -72,8 +78,8 @@ def read_source_dropdowns(client, src_idx):
     return {h: rules_by_col.get(src_idx[h]) for h, _ in DROPDOWN_FIELDS if src_idx[h] in rules_by_col}
 
 
-def sync_dropdowns(client, src_idx, dst_idx, dst_sheet_gid):
-    rules_by_src_header = read_source_dropdowns(client, src_idx)
+def sync_dropdowns(client, src_idx, dst_idx, dst_sheet_gid, source_sheet_id, dest_sheet_id):
+    rules_by_src_header = read_source_dropdowns(client, src_idx, source_sheet_id)
     requests = []
     applied = []
     for src_h, dst_h in DROPDOWN_FIELDS:
@@ -95,12 +101,12 @@ def sync_dropdowns(client, src_idx, dst_idx, dst_sheet_gid):
         })
         applied.append(dst_h)
     if requests:
-        url = f"https://sheets.googleapis.com/v4/spreadsheets/{DEST_SHEET_ID}:batchUpdate"
+        url = f"https://sheets.googleapis.com/v4/spreadsheets/{dest_sheet_id}:batchUpdate"
         client.http_client.request("post", url, json={"requests": requests})
     return applied
 
 
-def read_source_cell_formats(client, src_idx, mapped_src_headers):
+def read_source_cell_formats(client, src_idx, mapped_src_headers, source_sheet_id):
     """Read userEnteredFormat for source row 1 (header) and row 2 (sample data row)
     for each mapped column. Returns dict: src_header -> {"header": fmt, "data": fmt}.
     """
@@ -108,7 +114,7 @@ def read_source_cell_formats(client, src_idx, mapped_src_headers):
     if not cols:
         return {}
     ranges = [f"{SOURCE_TAB}!{col_letter(c)}1:{col_letter(c)}2" for c in cols]
-    url = f"https://sheets.googleapis.com/v4/spreadsheets/{SOURCE_SHEET_ID}"
+    url = f"https://sheets.googleapis.com/v4/spreadsheets/{source_sheet_id}"
     params = [("includeGridData", "true"), ("fields", "sheets.data(startColumn,rowData.values.userEnteredFormat)")]
     for r in ranges:
         params.append(("ranges", r))
@@ -129,13 +135,13 @@ def read_source_cell_formats(client, src_idx, mapped_src_headers):
     return result
 
 
-def sync_formatting(client, src_idx, dst_idx, dst_sheet_gid):
+def sync_formatting(client, src_idx, dst_idx, dst_sheet_gid, source_sheet_id, dest_sheet_id):
     """Mirror source's per-column header + data-row formatting onto dest's mapped cols.
     Header range: dest row 1 of each mapped col.
     Data range:   dest rows 3..DROPDOWN_END_ROW of each mapped col (skips header + stray row 2).
     """
     src_headers_used = [s for s, _ in FIELD_MAP]
-    fmts = read_source_cell_formats(client, src_idx, src_headers_used)
+    fmts = read_source_cell_formats(client, src_idx, src_headers_used, source_sheet_id)
     requests = []
     fields = "userEnteredFormat(backgroundColor,backgroundColorStyle,horizontalAlignment,verticalAlignment,wrapStrategy,padding,textFormat)"
     for src_h, dst_h in FIELD_MAP:
@@ -170,16 +176,20 @@ def sync_formatting(client, src_idx, dst_idx, dst_sheet_gid):
                 }
             })
     if requests:
-        url = f"https://sheets.googleapis.com/v4/spreadsheets/{DEST_SHEET_ID}:batchUpdate"
+        url = f"https://sheets.googleapis.com/v4/spreadsheets/{dest_sheet_id}:batchUpdate"
         client.http_client.request("post", url, json={"requests": requests})
     return len(requests)
 
 
-def main():
+def sync_metadata() -> dict:
+    # Resolve env vars inside the function so import doesn't crash when vars are unset
+    source_sheet_id = extract_sheet_id(os.getenv("YT_TRACKER_SHEET_URL", ""))
+    dest_sheet_id = extract_sheet_id(os.getenv("ANALYSIS_INCOME_SHEET_URL", ""))
+
     client = get_gspread_client()
 
-    src_ws = client.open_by_key(SOURCE_SHEET_ID).worksheet(SOURCE_TAB)
-    dst_ws = client.open_by_key(DEST_SHEET_ID).worksheet(DEST_TAB)
+    src_ws = client.open_by_key(source_sheet_id).worksheet(SOURCE_TAB)
+    dst_ws = client.open_by_key(dest_sheet_id).worksheet(DEST_TAB)
 
     src_header, src_rows = read_tab(src_ws)
     dst_header, dst_rows = read_tab(dst_ws)
@@ -189,11 +199,9 @@ def main():
     dst_idx = {h: i for i, h in enumerate(dst_header)}
     for src_h, dst_h in FIELD_MAP:
         if src_h not in src_idx:
-            print(f"ERROR: source missing column {src_h!r}")
-            sys.exit(1)
+            raise RuntimeError(f"source missing column {src_h!r}")
         if dst_h not in dst_idx:
-            print(f"ERROR: dest missing column {dst_h!r}")
-            sys.exit(1)
+            raise RuntimeError(f"dest missing column {dst_h!r}")
 
     src_title_col = src_idx["video_title"]
     dst_title_col = dst_idx["video_title"]
@@ -214,10 +222,18 @@ def main():
 
     updates = []        # list of {"range", "values"} for batch_update (matched rows)
     new_row_count = 0   # count of titles that didn't exist in dest
+    skipped_not_uploaded = 0
 
     for src_row in src_rows:
         if not any(c.strip() for c in src_row):
             continue
+
+        # Filter: only process rows where yt_upload_status == "uploaded"
+        upload_status = src_row[src_idx["yt_upload_status"]] if src_idx["yt_upload_status"] < len(src_row) else ""
+        if not is_uploaded(upload_status):
+            skipped_not_uploaded += 1
+            continue
+
         title = src_row[src_title_col].strip() if len(src_row) > src_title_col else ""
         if not title:
             continue
@@ -239,16 +255,37 @@ def main():
     if updates:
         dst_ws.batch_update(updates, value_input_option="USER_ENTERED")
 
-    applied_dropdowns = sync_dropdowns(client, src_idx, dst_idx, dst_ws.id)
-    fmt_request_count = sync_formatting(client, src_idx, dst_idx, dst_ws.id)
+    applied_dropdowns = sync_dropdowns(client, src_idx, dst_idx, dst_ws.id, source_sheet_id, dest_sheet_id)
+    fmt_request_count = sync_formatting(client, src_idx, dst_idx, dst_ws.id, source_sheet_id, dest_sheet_id)
 
-    matched_count = len([r for r in src_rows if any(c.strip() for c in r)]) - new_row_count
-    print(f"Matched & updated rows:    {matched_count}")
-    print(f"Appended new rows:         {new_row_count}")
-    print(f"Total source rows scanned: {len([r for r in src_rows if any(c.strip() for c in r)])}")
-    print(f"Dropdowns applied to dest: {applied_dropdowns or '(none)'}")
-    print(f"Formatting requests sent:  {fmt_request_count}")
+    total_non_empty = len([r for r in src_rows if any(c.strip() for c in r)])
+    matched_count = total_non_empty - skipped_not_uploaded - new_row_count
+
+    return {
+        "matched": matched_count,
+        "appended": new_row_count,
+        "skipped_not_uploaded": skipped_not_uploaded,
+        "total_scanned": total_non_empty,
+        "dropdowns_applied": applied_dropdowns,
+        "formatting_requests": fmt_request_count,
+    }
+
+
+def main():
+    try:
+        summary = sync_metadata()
+    except RuntimeError as e:
+        print(f"ERROR: {e}")
+        return 2
+
+    print(f"Matched & updated rows:    {summary['matched']}")
+    print(f"Appended new rows:         {summary['appended']}")
+    print(f"Skipped (not uploaded):    {summary['skipped_not_uploaded']}")
+    print(f"Total source rows scanned: {summary['total_scanned']}")
+    print(f"Dropdowns applied to dest: {summary['dropdowns_applied'] or '(none)'}")
+    print(f"Formatting requests sent:  {summary['formatting_requests']}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
