@@ -1,25 +1,71 @@
 # myproj — project guide
 
-## Project structure rules
+A single git repo holding everything related to my YouTube channel: niche research, script generation, tracker syncs, competitor research, and the affiliate-link tracker. Each top-level folder is one use case and has its own `CLAUDE.md` describing it.
 
-- **Single git repo:** `myproj/` is one git repository. All subfolders (`yt-analysis/`, `yt-research/`, `yt-script/`, etc.) are part of it — they are NOT separate repos.
-- **Shared config lives at root only:**
-  - `.env` — API keys (`YT_API_KEY`, `GEMINI_API_KEY`), service account (`CREDENTIALS_FILE`), and sheet URLs from the YT Main index (`YT_MAIN_SHEET_URL`, `YT_TRACKER_SHEET_URL`, `WORKFLOW_DEADLINES_SHEET_URL`, `KEYWORD_RESEARCH_SHEET_URL`, `AFFILIATE_PROGRAMS_SHEET_URL`, `ANALYSIS_INCOME_SHEET_URL`, `GOOGLE_SHEET_URL` *(= Yt Rank Analysis on keywords)*, `RANDOM_NOTES_SHEET_URL`, `PROBLEMS_AUTOMATIONS_SHEET_URL`, `MISC_CHANNELS_SHEET_URL`)
-  - `credentials.json` — Google service account, gitignored
-  - `.gitignore` — single source of truth for ignore rules
-  - `requirements.txt` + `venv/` — shared Python environment
-  - `common/` — shared Python helpers (`common.sheets`, `common.gemini`, `common.env`); imported by every Python script via a `sys.path` prelude
-- **Python folders:** `yt-analysis/` and `keyword-research/` (both import from `common/`).
-- **Subfolders contain code, not config.** Do NOT create per-folder `.env`, `credentials.json`, `.gitignore`, `venv/`, or `requirements.txt`. Scripts in subfolders read the root config via paths like `os.path.join(SCRIPT_DIR, "..", ".env")` and `os.path.join(SCRIPT_DIR, "..", "credentials.json")`.
-- **Exception — language-native tooling that must live next to source.** `yt-research/` is a Node project, so it keeps its own `package.json` + `node_modules/` because npm expects them there. This is the only allowed exception.
+## Folder map
 
-## Running Python scripts
+| Folder | Purpose | Stack |
+|---|---|---|
+| [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script. | Python |
+| [`yt-analysis/`](yt-analysis/CLAUDE.md) | YT tracker sheet sync + LLM-driven affiliate-link workflow | Python |
+| [`keyword-research/`](keyword-research/CLAUDE.md) | Scan competitor channels for affiliate opportunities | Python |
+| [`yt-research/`](yt-research/CLAUDE.md) | Niche → knowledge-base pipeline (Phase 1, Gemini) | TypeScript |
+| [`yt-script/`](yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2) | Markdown workflow |
+| [`workers/redirector/`](workers/redirector/CLAUDE.md) | Cloudflare Worker for `go.agrolloo.com/*` short links | TypeScript (CF Worker) |
+| [`docs/`](docs/CLAUDE.md) | Repo-wide docs and workflows | Markdown |
+| [`my-yt/`](my-yt/CLAUDE.md) | Personal channel notes (free-form) | Markdown |
+| [`to-do/`](to-do/CLAUDE.md) | Running TODO list | Markdown |
+| [`n8n-website/`](n8n-website/CLAUDE.md) | Static "coming soon" landing page | HTML |
+
+## Getting started
+
+One-time setup:
 
 ```bash
-cd /Users/kbtg/codebase/myproj && source venv/bin/activate && python3 yt-analysis/<script>.py
+# 1. Python environment
+cd /Users/kbtg/codebase/myproj
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Secrets (already present locally — don't commit)
+#    - .env  (copy from .env.example, fill in keys)
+#    - credentials.json  (Google service account)
+
+# 3. Share each Google Sheet with the service-account email (client_email in credentials.json) as Editor
+
+# 4. Node subprojects (only for the ones you'll touch)
+cd yt-research && npm install
+cd ../workers/redirector && npm install
 ```
 
-The `yt-analysis/` scripts (`sync_analysis.py`, `sync_views.py`, `sync_rankings.py`) and the `keyword-research/` scripts (`extract.py`, `aggregate.py`, `run.py`) automatically load `.env` and `credentials.json` from the root via the `common/` package.
+Run a Python script (always from the repo root with venv active):
+
+```bash
+source venv/bin/activate
+python3 yt-analysis/yt_analysis.py            # interactive orchestrator
+python3 keyword-research/run.py               # competitor research
+```
+
+Run the Phase 1 niche pipeline (TS):
+
+```bash
+cd yt-research
+npx ts-node run.ts --niche <slug>
+```
+
+## Project structure rules
+
+- **Single git repo.** All subfolders are part of it — never `git init` inside one.
+- **Shared config lives at root only:**
+  - `.env` — all API keys, sheet URLs, Cloudflare creds (see `.env.example` for the full list)
+  - `credentials.json` — Google service account (gitignored)
+  - `.gitignore` — single source of truth
+  - `.npmrc` — single source of truth (forces public registry)
+  - `requirements.txt` + `venv/` — shared Python environment
+- **Python scripts** import `common.*` (e.g. `from common.sheets import ...`). The `common/` package side-effect-loads `.env` from the repo root on import — you don't have to load it yourself.
+- **Node subprojects** (`yt-research/`, `workers/redirector/`) keep their own `package.json` + `node_modules/` because npm expects them there. They do NOT keep their own `.npmrc` or `.gitignore`.
+- **No per-folder `.env`, `credentials.json`, `venv/`, or `requirements.txt`.** Ever.
 
 ## Workflows
 
