@@ -13,8 +13,8 @@ __pycache__/
 *.pyc
 
 # keyword-research runtime artifacts
-keyword-research/output/
-keyword-research/channel_cache.json
+youtube/keyword-research/output/
+youtube/keyword-research/channel_cache.json
 
 # Cloudflare Workers
 .wrangler/

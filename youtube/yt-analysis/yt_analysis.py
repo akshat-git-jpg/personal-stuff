@@ -11,7 +11,7 @@ import os
 import sys
 
 # Make `from common.x import y` work
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 # Make sibling modules in this folder importable by name
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 

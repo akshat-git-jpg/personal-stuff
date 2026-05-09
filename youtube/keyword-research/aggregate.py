@@ -16,7 +16,7 @@ import sys
 from collections import Counter, defaultdict
 from datetime import datetime
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from common.gemini import generate_text  # noqa: E402
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))

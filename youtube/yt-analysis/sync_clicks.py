@@ -13,7 +13,7 @@ import os
 import sys
 import time
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from common.cloudflare import D1Client  # noqa: E402
 from common.sheets import col_letter, extract_sheet_id, get_gspread_client  # noqa: E402

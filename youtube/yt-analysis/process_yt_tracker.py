@@ -15,7 +15,7 @@ import sys
 import time
 from dataclasses import dataclass
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from common.affiliate import load_affiliate_records  # noqa: E402
 from common.cloudflare import D1Client, KVClient  # noqa: E402

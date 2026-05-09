@@ -27,23 +27,23 @@ From the repo root:
 
 ```bash
 # Full pipeline (extract + aggregate), 3 videos per channel
-python keyword-research/run.py
+python youtube/keyword-research/run.py
 
 # Just stage 1 (RSS + Gemini extraction → sheet + raw.json checkpoint)
-python keyword-research/extract.py --limit 3
+python youtube/keyword-research/extract.py --limit 3
 
 # Just stage 2 (counts + Gemini synthesis → summary.md)
-python keyword-research/aggregate.py             # uses latest raw.json
+python youtube/keyword-research/aggregate.py             # uses latest raw.json
 
 # Iterate on synthesis prompt without re-paying for extraction
-python keyword-research/aggregate.py --input keyword-research/output/<run>/raw.json
-python keyword-research/aggregate.py --no-synthesis    # print counts only
+python youtube/keyword-research/aggregate.py --input youtube/keyword-research/output/<run>/raw.json
+python youtube/keyword-research/aggregate.py --no-synthesis    # print counts only
 
 # Dry run (no sheet writes, raw.json still saved)
-python keyword-research/extract.py --dry-run
+python youtube/keyword-research/extract.py --dry-run
 
 # Limit to specific channels (overrides the sheet)
-python keyword-research/extract.py --channels "https://www.youtube.com/@foo,https://www.youtube.com/@bar"
+python youtube/keyword-research/extract.py --channels "https://www.youtube.com/@foo,https://www.youtube.com/@bar"
 ```
 
 ## What each video produces
@@ -64,8 +64,8 @@ The aggregation in Stage 2 ranks by **affiliated softwares**, not by all-mention
 ## What you get
 
 - **`Videos` sheet tab** — fresh snapshot each run. The header row is preserved; all data rows below are wiped and rewritten with the current run's results.
-- **`keyword-research/output/<run_id>/raw.json`** — full structured output of the run (channel + per-video metadata + extractions). Stage 2 reads from this.
-- **`keyword-research/output/<run_id>/summary.md`** — Gemini's narrative report:
+- **`youtube/keyword-research/output/<run_id>/raw.json`** — full structured output of the run (channel + per-video metadata + extractions). Stage 2 reads from this.
+- **`youtube/keyword-research/output/<run_id>/summary.md`** — Gemini's narrative report:
   - Headline (single biggest signal in this run)
   - Top affiliated softwares (the leaderboard you're actually picking from)
   - Top topics
@@ -97,8 +97,8 @@ output/<run_id>/summary.md
 ## Files
 
 ```
-keyword-research/
-├── README.md
+youtube/keyword-research/
+├── CLAUDE.md
 ├── extract.py            # Stage 1
 ├── aggregate.py          # Stage 2
 ├── run.py                # convenience wrapper (extract → aggregate)

@@ -18,7 +18,7 @@ import sys
 import time
 from datetime import datetime, timezone
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from gspread.exceptions import WorksheetNotFound  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 

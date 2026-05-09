@@ -29,8 +29,8 @@ common/
 
 ## Used by
 
-- `yt-analysis/` — every script
-- `keyword-research/` — every script
+- `youtube/yt-analysis/` — every script
+- `youtube/keyword-research/` — every script
 
 ## Adding a new helper
 

@@ -8,15 +8,15 @@ From the repo root with venv active:
 
 ```bash
 source venv/bin/activate
-python3 yt-analysis/yt_analysis.py            # interactive orchestrator
-python3 yt-analysis/process_yt_tracker.py     # tracker LLM workflow
-python3 yt-analysis/sync_rankings.py          # rank analysis (separate)
+python3 youtube/yt-analysis/yt_analysis.py            # interactive orchestrator
+python3 youtube/yt-analysis/process_yt_tracker.py     # tracker LLM workflow
+python3 youtube/yt-analysis/sync_rankings.py          # rank analysis (separate)
 ```
 
 ## Layout
 
 ```
-yt-analysis/
+youtube/yt-analysis/
 ├── yt_analysis.py           # interactive orchestrator — prompts you to pick metadata/views/clicks
 ├── process_yt_tracker.py    # tracker rows with topic_status="To Process" → detect tools (Gemini),
 │                            # register short URLs in D1+KV, write video_description/actual_links/
@@ -41,7 +41,7 @@ All scripts are re-runnable; failed rows are skipped with stderr messages, not c
 
 ```bash
 source venv/bin/activate
-pytest yt-analysis/tests
+pytest youtube/yt-analysis/tests
 ```
 
 ## Related
