@@ -23,4 +23,4 @@ The `yt-analysis/` scripts (`sync_analysis.py`, `sync_views.py`, `sync_rankings.
 
 ## Workflows
 
-@research-and-script-workflow.md
+@docs/research-and-script-workflow.md

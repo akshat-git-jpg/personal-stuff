@@ -1,20 +1,30 @@
 node_modules/
 .DS_Store
-*.env
+
+# Env / secrets
 .env
 .env.local
+*.env
+credentials.json
 
 # Python
 venv/
 __pycache__/
 *.pyc
-credentials.json
 
 # keyword-research runtime artifacts
 keyword-research/output/
 keyword-research/channel_cache.json
 
-# Worker (workers/redirector)
-workers/redirector/node_modules/
-workers/redirector/.wrangler/
-workers/redirector/.dev.vars
+# Cloudflare Workers
+.wrangler/
+.dev.vars
+
+# IDE / agent scratch dirs
+.cursor/
+.gemini/
+.agent/
+brain/
+
+# Logs
+*.log
