@@ -1,61 +1,66 @@
-# SETUP — getting this running on your PC (Windows)
+# SETUP — getting myproj running on a fresh Windows PC
 
-This is a one-time setup. After this, running any script takes 2 commands.
+## Quick start (with Claude Code)
 
-Kushal will send you two files separately on Google Drive — keep them safe and don't share them:
+The easiest way to set this up is to let **Claude Code** do it. Steps:
 
-- `.env`
-- `credentials.json`
+1. **Install Claude Code** (one-time) — download from https://claude.com/download and run the installer.
+2. **Open Claude Code** in any folder (Documents is fine).
+3. **Paste this prompt**:
 
----
+   > Set up the myproj repo from https://github.com/akshat-git-jpg/myproj. My `.env` and `credentials.json` are in my Downloads folder. Follow the SETUP.md in the repo.
 
-## Step 1 — Install Git
+4. **Approve commands as Claude runs them.** Each step asks once before doing anything.
 
-1. Go to https://git-scm.com/download/win and download the installer.
-2. Run it. Click **Next** through all the screens — defaults are fine.
-3. Open a new **PowerShell** window (press the Windows key, type "PowerShell", hit Enter).
-4. Type this and press Enter:
+That's it. Claude follows the steps below, asks you anything it needs (mostly: "where are your secret files?"), and runs everything else itself.
 
-   ```powershell
-   git --version
-   ```
-
-   You should see something like `git version 2.45.x`. If yes, Git is installed. ✓
+> **What you need ready before pasting the prompt:**
+> - A working internet connection
+> - `.env` and `credentials.json` downloaded from the Google Drive folder Kushal shared (put them anywhere — Downloads is the default)
 
 ---
 
-## Step 2 — Install Python 3.12
+## Steps Claude follows (also the manual fallback)
 
-1. Go to https://www.python.org/downloads/windows/ and download **Windows installer (64-bit)** for the latest 3.12.x.
-2. Run the installer. **Important:** before clicking "Install Now", check the box at the bottom that says **"Add python.exe to PATH"**.
-3. Click **Install Now**, wait for it to finish, close the installer.
-4. In a **new** PowerShell window, run:
+If you're doing this without Claude Code (or Claude is following these directly), run each block in **PowerShell** from the start menu.
 
-   ```powershell
-   python --version
-   ```
+### Step 1 — Install Git, Python 3.12, and Node.js via winget
 
-   You should see `Python 3.12.x`. If yes, Python is installed. ✓
+winget is Windows' built-in package manager (Windows 10 1809+ and Windows 11). Run:
 
----
+```powershell
+winget install --id Git.Git -e --source winget --accept-source-agreements --accept-package-agreements
+winget install --id Python.Python.3.12 -e --source winget --accept-source-agreements --accept-package-agreements
+winget install --id OpenJS.NodeJS.LTS -e --source winget --accept-source-agreements --accept-package-agreements
+```
 
-## Step 3 — Install Node.js
+UAC may prompt — accept.
 
-1. Go to https://nodejs.org/en/download and download the **Windows Installer (LTS)**.
-2. Run it. Click **Next** through everything. Defaults are fine.
-3. In a new PowerShell window:
+**Refresh PATH in the current shell** (otherwise the new tools aren't visible until you restart PowerShell):
 
-   ```powershell
-   node --version
-   ```
+```powershell
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+```
 
-   You should see `v20.x.x` or higher. ✓
+**Verify**:
 
----
+```powershell
+git --version
+python --version
+node --version
+```
 
-## Step 4 — Clone the repo
+All three should print versions. If one doesn't, close PowerShell, open a new window, and re-run the verify lines.
 
-Pick a folder for your code. We'll use `Documents`.
+### Step 2 — Allow PowerShell to run local scripts (one-time)
+
+Needed so the Python venv's `Activate.ps1` script can run:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
+```
+
+### Step 3 — Clone the repo
 
 ```powershell
 cd $HOME\Documents
@@ -63,26 +68,21 @@ git clone https://github.com/akshat-git-jpg/myproj.git
 cd myproj
 ```
 
-This downloads the code into a `myproj` folder inside your Documents.
+### Step 4 — Move the secret files into place
 
----
+If you (the user) are doing this manually: drag `.env` and `credentials.json` from `Downloads` into the `myproj` folder using File Explorer.
 
-## Step 5 — Drop in the secret files
+If Claude is doing this: ask the user where the files are, then move them:
 
-1. Open the Google Drive folder Kushal shared with you.
-2. Download both files:
-   - `.env`
-   - `credentials.json`
-3. Open File Explorer, go to `Documents\myproj`.
-4. Drag both files into that folder. They should sit at the top level, next to `CLAUDE.md` and `SETUP.md`.
+```powershell
+# Default: Downloads. Adjust path if user keeps them elsewhere.
+Move-Item $HOME\Downloads\.env .\
+Move-Item $HOME\Downloads\credentials.json .\
+```
 
-> **Why this matters:** these two files hold all the API keys and Google access. The code won't run without them. Don't ever upload them anywhere or commit them to git — they're already in `.gitignore` so git will skip them automatically.
+Both files should now sit at the top level of `myproj`, next to `CLAUDE.md` and this `SETUP.md`. They're already in `.gitignore` so git will skip them.
 
----
-
-## Step 6 — Set up the Python environment
-
-From the `myproj` folder, in PowerShell:
+### Step 5 — Set up the Python environment
 
 ```powershell
 python -m venv venv
@@ -90,68 +90,52 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-If PowerShell shows an error like **"running scripts is disabled on this system"** when you try to activate the venv, run this **once**:
+The prompt should start with `(venv)` after activation. `pip install` takes a minute or two.
 
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-```
-
-Type **Y** and press Enter. Then re-run the `Activate.ps1` line above.
-
-After `pip install` finishes (takes a minute or two), your PowerShell prompt should start with `(venv)`. That means the Python environment is active.
-
----
-
-## Step 7 — Test that everything works
-
-With the venv still active (prompt shows `(venv)`):
+### Step 6 — Verify everything works
 
 ```powershell
 python youtube\yt-analysis\sync_metadata.py
 ```
 
-This connects to the Google Sheets and copies any newly-uploaded videos from the YT Tracker sheet into the Analysis sheet. You should see a summary like `✓ Synced N rows` at the end.
-
-If you see that, **everything is working.** 🎉
+This connects to the Google Sheets and copies newly-uploaded videos from the YT Tracker sheet into the Analysis sheet. If you see a summary like `✓ Synced N rows`, setup is complete.
 
 ---
 
 ## Day-to-day usage
 
-Every time you open a new PowerShell window to run something, do these two things first:
+Every time you open a new PowerShell window:
 
 ```powershell
 cd $HOME\Documents\myproj
 .\venv\Scripts\Activate.ps1
 ```
 
-(Your prompt should now show `(venv)`.)
+(Prompt should show `(venv)`.) Then run any script:
 
-Then run whichever script you need:
+| What | Command |
+|---|---|
+| Process new "To Process" rows in the YT Tracker | `python youtube\yt-analysis\process_yt_tracker.py` |
+| Sync views / clicks / rankings (interactive) | `python youtube\yt-analysis\yt_analysis.py` |
+| Sync just metadata Tracker → Analysis | `python youtube\yt-analysis\sync_metadata.py` |
+| Sync just views | `python youtube\yt-analysis\sync_views.py` |
+| Sync just affiliate clicks | `python youtube\yt-analysis\sync_clicks.py` |
+| Sync just rankings | `python youtube\yt-analysis\sync_rankings.py` |
 
-| What you want to do                                                                   | Command                                            |
-| ------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| Process new "To Process" rows in the YT Tracker (generates short links + description) | `python youtube\yt-analysis\process_yt_tracker.py` |
-| Sync views, affiliate clicks, and/or rankings to the Analysis sheet                   | `python youtube\yt-analysis\yt_analysis.py`        |
-| Sync just metadata from Tracker → Analysis                                            | `python youtube\yt-analysis\sync_metadata.py`      |
-| Sync just views                                                                       | `python youtube\yt-analysis\sync_views.py`         |
-| Sync just affiliate clicks                                                            | `python youtube\yt-analysis\sync_clicks.py`        |
-| Sync just rankings                                                                    | `python youtube\yt-analysis\sync_rankings.py`      |
-
-The interactive `yt_analysis.py` asks you which sub-syncs to run — easiest one to start with.
+For most days, `yt_analysis.py` is the easiest — it asks which sub-syncs to run.
 
 ---
 
 ## Updating the code later
 
-Whenever Kushal updates the repo on GitHub, pull the latest version:
+When Kushal pushes changes:
 
 ```powershell
 cd $HOME\Documents\myproj
 git pull
 ```
 
-If `requirements.txt` changed (new Python packages), also re-run:
+If `requirements.txt` changed:
 
 ```powershell
 .\venv\Scripts\Activate.ps1
@@ -162,10 +146,12 @@ pip install -r requirements.txt
 
 ## If something goes wrong
 
-| Problem                                          | Fix                                                                                                                                             |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `git` / `python` / `node` "is not recognized"    | The program isn't installed or isn't on PATH. Redo Step 1/2/3 and make sure you tick "Add to PATH" during install. Close and reopen PowerShell. |
-| `credentials.json not found` or `.env not found` | Step 5 — the files need to be in the `myproj` folder at the top level, not inside a subfolder.                                                  |
-| `pip install` errors out                         | Make sure the venv is active (prompt shows `(venv)`). Re-run `.\venv\Scripts\Activate.ps1`.                                                     |
-| Google Sheet "permission denied"                 | Kushal needs to share that specific sheet with your Gmail as Editor. Send him the sheet name.                                                   |
-| Anything else                                    | Screenshot the error and send to Kushal.                                                                                                        |
+| Problem | Fix |
+|---|---|
+| `winget` not recognized | Open **Microsoft Store**, search for "App Installer", click Update. Or update Windows itself — winget ships with Windows 10 1809+ and Windows 11. |
+| `git` / `python` / `node` not recognized after install | Close PowerShell, open a new window. PATH only refreshes for new shells. Or run the PATH-refresh line from Step 1 in your current shell. |
+| Venv activation fails: "running scripts is disabled" | Re-run Step 2: `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force` |
+| `pip install` errors | Make sure venv is active (prompt shows `(venv)`). Re-run `.\venv\Scripts\Activate.ps1` if not. |
+| `credentials.json not found` / `.env not found` | They should be at the top level of `myproj`, not in a subfolder. Open File Explorer and move them. |
+| Google Sheet "permission denied" | Send Kushal the sheet name. He needs to share it with your Gmail as Editor. |
+| Anything else | Paste the error into Claude Code and ask for help, or screenshot it to Kushal. |
