@@ -15,6 +15,7 @@ A single git repo holding everything related to my YouTube channel: niche resear
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script under `youtube/`. | Python |
 | [`workers/redirector/`](workers/redirector/CLAUDE.md) | Cloudflare Worker for `go.agrolloo.com/*` short links | TypeScript (CF Worker) |
 | [`docs/`](docs/CLAUDE.md) | Repo-wide docs and workflows | Markdown |
+| [`upwork-hiring/`](upwork-hiring/CLAUDE.md) | Turn jumbled hiring thoughts into a ready-to-paste Upwork job post | Claude workflow |
 | [`to-do/`](to-do/CLAUDE.md) | Running TODO list | Markdown |
 | [`n8n-website/`](n8n-website/CLAUDE.md) | Static "coming soon" landing page | HTML |
 
@@ -73,3 +74,4 @@ npx ts-node run.ts --niche <slug>
 @docs/research-and-script-workflow.md
 @docs/yt-tracker-workflow.md
 @docs/yt-analysis-workflow.md
+@upwork-hiring/CLAUDE.md
