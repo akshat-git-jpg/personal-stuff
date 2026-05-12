@@ -11,12 +11,23 @@ common/
 ├── env.py                 # MYPROJ_ROOT resolver, get_credentials_path()
 ├── sheets.py              # gspread client + YouTube/Sheet ID extractors
 ├── gemini.py              # Gemini client wrapper (generate_text, generate_json)
-├── llm.py                 # tool detection + YT description prompts (uses common/prompts/)
+├── llm.py                 # tool detection + YT description prompts (uses common/prompts/tracker/)
 ├── affiliate.py           # Affiliate Programs sheet reader + tool-name normalization
 ├── cloudflare.py          # D1Client + KVClient REST wrappers (used by sync scripts, not the Worker)
-└── prompts/
-    ├── detect-tools.md           # used by llm.detect_tools()
-    └── generate-description.md   # used by llm.generate_description()
+└── prompts/               # all Gemini prompts for the whole repo live here, grouped by use case
+    ├── tracker/                          # used by common.llm
+    │   ├── detect-tools.md
+    │   └── generate-description.md
+    ├── keyword-research/                 # used by youtube/keyword-research/{extract,aggregate}.py
+    │   ├── extract.md
+    │   └── synthesize.md
+    └── yt-research/                      # used by youtube/yt-research/steps/*.ts + Phase 2 Claude
+        ├── validation.md
+        ├── transcript-extraction.md
+        ├── pricing-extraction.md
+        ├── profile-building.md
+        ├── comparative-insights.md
+        └── kb-synthesis.md
 ```
 
 ## Inputs

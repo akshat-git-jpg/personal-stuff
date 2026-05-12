@@ -8,7 +8,7 @@ export function appendLog(logPath: string, content: string): void {
 }
 
 export function readPrompt(promptName: string): string {
-  const promptPath = path.join(__dirname, "..", "prompts", `${promptName}.md`);
+  const promptPath = path.join(__dirname, "..", "..", "..", "common", "prompts", "yt-research", `${promptName}.md`);
   return fs.readFileSync(promptPath, "utf-8");
 }
 

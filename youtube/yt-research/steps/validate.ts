@@ -63,7 +63,7 @@ export async function validate(nicheDir: string): Promise<string[]> {
   const geminiResearch = fs.readFileSync(geminiResearchPath, "utf-8");
   const geminiWordCount = geminiResearch.split(/\s+/).length;
 
-  const promptPath = path.join(__dirname, "..", "prompts", "validation.md");
+  const promptPath = path.join(__dirname, "..", "..", "..", "common", "prompts", "yt-research", "validation.md");
   const systemPrompt = fs.readFileSync(promptPath, "utf-8");
 
   const userPrompt = `## Niche Brief (niche.md)

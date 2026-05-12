@@ -14,7 +14,7 @@ YouTube niche research pipeline. Produces a knowledge base used as input for com
 
 Do these in order:
 
-1. Read the system prompt: `prompts/kb-synthesis.md`. This defines the exact output format, source-priority rules, and deterministic tone. Follow it strictly.
+1. Read the system prompt: `common/prompts/yt-research/kb-synthesis.md` (path from repo root). This defines the exact output format, source-priority rules, and deterministic tone. Follow it strictly.
 2. Read the niche context:
    - `niches/<name>/niche.md`
    - `niches/<name>/gemini-research.md`

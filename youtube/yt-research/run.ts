@@ -130,7 +130,7 @@ directory and ask:
   "Synthesize the KB for niche ${niche}"
 
 Claude Code will read the outputs above, apply
-prompts/kb-synthesis.md, and write:
+common/prompts/yt-research/kb-synthesis.md, and write:
   output/knowledge-base.md
   output/knowledge-base-compact.md
 ═══════════════════════════════════════════════`);

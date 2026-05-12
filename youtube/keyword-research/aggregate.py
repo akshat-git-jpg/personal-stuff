@@ -17,11 +17,12 @@ from collections import Counter, defaultdict
 from datetime import datetime
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from common.env import MYPROJ_ROOT  # noqa: E402
 from common.gemini import generate_text  # noqa: E402
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_ROOT = os.path.join(SCRIPT_DIR, "output")
-PROMPT_PATH = os.path.join(SCRIPT_DIR, "prompts", "synthesize.md")
+PROMPT_PATH = os.path.join(MYPROJ_ROOT, "common", "prompts", "keyword-research", "synthesize.md")
 
 SYNTHESIS_MODEL = "gemini-2.5-pro"
 TOP_N = 20

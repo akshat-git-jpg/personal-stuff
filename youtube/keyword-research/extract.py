@@ -22,13 +22,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 from gspread.exceptions import WorksheetNotFound  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 
+from common.env import MYPROJ_ROOT  # noqa: E402
 from common.sheets import col_letter, get_gspread_client  # noqa: E402
 
 import youtube  # noqa: E402  (sibling module in this folder; on sys.path because we're the entrypoint)
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_ROOT = os.path.join(SCRIPT_DIR, "output")
-PROMPT_PATH = os.path.join(SCRIPT_DIR, "prompts", "extract.md")
+PROMPT_PATH = os.path.join(MYPROJ_ROOT, "common", "prompts", "keyword-research", "extract.md")
 
 CHANNELS_TAB = "Channels"
 VIDEOS_TAB = "Videos"

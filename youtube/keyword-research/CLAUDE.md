@@ -103,15 +103,14 @@ youtube/keyword-research/
 ├── aggregate.py          # Stage 2
 ├── run.py                # convenience wrapper (extract → aggregate)
 ├── youtube.py            # RSS + handle resolution + videos.list helpers
-├── prompts/
-│   ├── extract.md        # per-video extraction prompt (incl. affiliate detection)
-│   └── synthesize.md     # cross-channel synthesis prompt
 ├── channel_cache.json    # gitignored — handle → channel_id cache
 └── output/               # gitignored — one folder, replaced each run
     └── <run_id>/
         ├── raw.json
         └── summary.md
 ```
+
+Prompts live at the repo root in `common/prompts/keyword-research/{extract,synthesize}.md`.
 
 ## Costs / quota
 

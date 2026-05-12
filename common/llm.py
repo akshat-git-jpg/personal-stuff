@@ -1,6 +1,6 @@
 """LLM helpers for tool detection + YT description generation.
 
-Reads prompt templates from common/prompts/.
+Reads prompt templates from common/prompts/tracker/.
 Built on top of common.gemini.
 """
 
@@ -10,7 +10,7 @@ from . import gemini
 
 DEFAULT_MODEL = "gemini-2.5-flash"
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROMPTS_DIR = os.path.join(PACKAGE_DIR, "prompts")
+PROMPTS_DIR = os.path.join(PACKAGE_DIR, "prompts", "tracker")
 
 
 def _load_prompt(filename: str) -> str:
