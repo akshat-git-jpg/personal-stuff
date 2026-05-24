@@ -1,4 +1,4 @@
-# SETUP — getting myproj running on a fresh Windows PC
+# SETUP — getting TY running on a fresh Windows PC
 
 ## Quick start (with Claude Code)
 
@@ -8,7 +8,7 @@ The easiest way to set this up is to let **Claude Code** do it. Steps:
 2. **Open Claude Code** in any folder (Documents is fine).
 3. **Paste this prompt**:
 
-   > Set up the myproj repo from https://github.com/akshat-git-jpg/myproj. My `.env` and `credentials.json` are in my Downloads folder. Follow the SETUP.md in the repo.
+   > Set up the TY repo from https://github.com/akshat-git-jpg/TY. My `.env` and `credentials.json` are in my Downloads folder. Follow the SETUP.md in the repo.
 
 4. **Approve commands as Claude runs them.** Each step asks once before doing anything.
 
@@ -64,13 +64,13 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
 
 ```powershell
 cd $HOME\Documents
-git clone https://github.com/akshat-git-jpg/myproj.git
-cd myproj
+git clone https://github.com/akshat-git-jpg/TY.git
+cd TY
 ```
 
 ### Step 4 — Move the secret files into place
 
-If you (the user) are doing this manually: drag `.env` and `credentials.json` from `Downloads` into the `myproj` folder using File Explorer.
+If you (the user) are doing this manually: drag `.env` and `credentials.json` from `Downloads` into the `TY` folder using File Explorer.
 
 If Claude is doing this: ask the user where the files are, then move them:
 
@@ -80,7 +80,7 @@ Move-Item $HOME\Downloads\.env .\
 Move-Item $HOME\Downloads\credentials.json .\
 ```
 
-Both files should now sit at the top level of `myproj`, next to `CLAUDE.md` and this `SETUP.md`. They're already in `.gitignore` so git will skip them.
+Both files should now sit at the top level of `TY`, next to `CLAUDE.md` and this `SETUP.md`. They're already in `.gitignore` so git will skip them.
 
 ### Step 5 — Set up the Python environment
 
@@ -107,7 +107,7 @@ This connects to the Google Sheets and copies newly-uploaded videos from the YT 
 Every time you open a new PowerShell window:
 
 ```powershell
-cd $HOME\Documents\myproj
+cd $HOME\Documents\TY
 .\venv\Scripts\Activate.ps1
 ```
 
@@ -131,7 +131,7 @@ For most days, `yt_analysis.py` is the easiest — it asks which sub-syncs to ru
 When Kushal pushes changes:
 
 ```powershell
-cd $HOME\Documents\myproj
+cd $HOME\Documents\TY
 git pull
 ```
 
@@ -152,6 +152,6 @@ pip install -r requirements.txt
 | `git` / `python` / `node` not recognized after install | Close PowerShell, open a new window. PATH only refreshes for new shells. Or run the PATH-refresh line from Step 1 in your current shell. |
 | Venv activation fails: "running scripts is disabled" | Re-run Step 2: `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force` |
 | `pip install` errors | Make sure venv is active (prompt shows `(venv)`). Re-run `.\venv\Scripts\Activate.ps1` if not. |
-| `credentials.json not found` / `.env not found` | They should be at the top level of `myproj`, not in a subfolder. Open File Explorer and move them. |
+| `credentials.json not found` / `.env not found` | They should be at the top level of `TY`, not in a subfolder. Open File Explorer and move them. |
 | Google Sheet "permission denied" | Send Kushal the sheet name. He needs to share it with your Gmail as Editor. |
 | Anything else | Paste the error into Claude Code and ask for help, or screenshot it to Kushal. |
