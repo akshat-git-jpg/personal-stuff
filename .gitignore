@@ -7,6 +7,11 @@ secrets/
 **/service_account.json
 mcp/google-shared/tokens/
 
+# Local MCP config — paths inside are absolute to this machine, so
+# committing would break other clones. Each machine generates its own
+# from ~/.claude-personal/.claude.json's mcpServers block.
+.mcp.json
+
 # Python
 __pycache__/
 *.pyc
