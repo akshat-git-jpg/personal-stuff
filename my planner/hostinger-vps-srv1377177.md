@@ -97,7 +97,7 @@ historical record, what it had been:
   returned "Could not resolve to a Repository". This is also why the cron pull failed
   (`fatal: could not read Username` — GitHub returns the same for a missing private repo).
 - **Real source:** the content (`CLAUDE.md` + `index.html`, a Tailwind-CDN "coming soon" page)
-  lived as the `n8n-website/` folder inside the `akshat-git-jpg/myproj` repo
+  lived as the `n8n-website/` folder inside the `akshat-git-jpg/TY` repo
   (`/Users/kbtg/codebase/TY`), not as a standalone repo.
 - **Deploy mechanism:** two near-duplicate root cron lines pulling every minute (both failing).
 - **Serving:** nothing served it (no web container, no Traefik route).
@@ -105,8 +105,8 @@ historical record, what it had been:
 **Removal actions performed:**
 - VPS: deleted `/var/www/n8n-website`, removed both cron lines, deleted `/var/log/git-deploy.log`.
   (`/var/www` now contains only the default `html`; no active cron jobs remain.)
-- GitHub + local: `git rm -r n8n-website/` in `myproj`, committed (`150cf56`, scoped to that folder
-  only — unrelated working-tree changes were left untouched) and pushed to `akshat-git-jpg/myproj` main.
+- GitHub + local: `git rm -r n8n-website/` in `TY`, committed (`150cf56`, scoped to that folder
+  only — unrelated working-tree changes were left untouched) and pushed to `akshat-git-jpg/TY` main.
 - The local folder `/Users/kbtg/codebase/TY/n8n-website` is gone (removed from the working tree).
 
 ### System-level scheduled jobs / services (beyond stock OS)
