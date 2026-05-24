@@ -151,8 +151,10 @@ full removal record. No further action pending.
 
 The "Good morning" Google Calendar → Telegram digest now runs from THIS VPS via cron, because
 GitHub Actions' scheduled cron was firing 3–5 hours late (and skipping days). Source repo is
-still `akshat-git-jpg/kb-daily-planner` (private); the VPS copy was deployed by scp from the
-local Mac working copy (`tools/google-calendar-telegram/`), not a git pull.
+part of `akshat-git-jpg/personal-stuff` (private monorepo, absorbed from the now-archived
+`kb-daily-planner` repo). The VPS copy is deployed by scp from the local Mac working copy
+(`my planner/tools/daily-digest/`), not a git pull. Use `./deploy.sh` (or `./deploy.sh
+--run-now`) from that folder to re-vendor the shared token and push to the VPS.
 
 | Item | Value |
 |---|---|
@@ -170,10 +172,10 @@ ssh -i ~/.ssh/hostinger_vps root@72.61.241.170 '/opt/kb-daily-planner/run.sh'   
 ssh -i ~/.ssh/hostinger_vps root@72.61.241.170 'tail -30 /var/log/kb-daily-planner.log'
 ```
 
-**PENDING (as of 2026-05-24):** GitHub Actions `schedule:` trigger in
-`tools/google-calendar-telegram/.github/workflows/daily-digest.yml` is still ON as a fallback.
-Once the VPS cron is confirmed firing at 6 AM IST (morning of 2026-05-25), remove the
-`schedule:` trigger (keep `workflow_dispatch`) so you don't get duplicate digests.
+**GitHub Actions:** the standalone `kb-daily-planner` workflow was removed on 2026-05-24
+(repo absorbed into `personal-stuff` monorepo). VPS cron is the sole scheduler; no CI
+fallback exists. To verify nightly delivery, tail the log:
+`ssh -i ~/.ssh/hostinger_vps root@72.61.241.170 'tail -30 /var/log/kb-daily-planner.log'`.
 
 **Low-priority note:** `config.py` (tracked in the private repo) hardcodes the Telegram bot
 token as a default. It's only exposed to your own private GitHub repo, so low risk. If you ever
