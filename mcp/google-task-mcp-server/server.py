@@ -12,7 +12,8 @@ from mcp.server.models import InitializationOptions
 from mcp.server.lowlevel.server import NotificationOptions
 
 BASE_DIR = Path(__file__).parent
-PROJECT_ROOT = BASE_DIR.parent.parent  # mcp/google-task-mcp-server -> mcp -> personal stuff/
+REPO_ROOT = BASE_DIR.parent.parent  # mcp/google-task-mcp-server -> mcp -> repo root
+PREFS_DIR = REPO_ROOT / "my planner"  # prefs live next to the consuming project
 
 app = Server("google-tasks")
 
@@ -28,7 +29,7 @@ def get_service(account: str):
 
 
 def prefs_path(account: str) -> Path:
-    return PROJECT_ROOT / f"preferences-tasks-{account}.md"
+    return PREFS_DIR / f"preferences-tasks-{account}.md"
 
 
 def find_list_id(service, list_name: str) -> Optional[str]:
