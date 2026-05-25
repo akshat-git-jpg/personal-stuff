@@ -1,4 +1,4 @@
-# myproj — project guide
+# TY — project guide
 
 A single git repo holding everything related to my YouTube channel: niche research, script generation, tracker syncs, competitor research, and the affiliate-link tracker. Each top-level folder is one use case and has its own `CLAUDE.md` describing it.
 
@@ -25,7 +25,7 @@ One-time setup:
 
 ```bash
 # 1. Python environment
-cd /Users/kbtg/codebase/myproj
+cd /Users/kbtg/codebase/TY
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
