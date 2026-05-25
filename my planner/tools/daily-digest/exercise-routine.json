@@ -1,0 +1,241 @@
+{
+  "muscle_colors": {
+    "Back": "#60a5fa",
+    "Chest": "#f87171",
+    "Biceps": "#4ade80",
+    "Triceps": "#fb923c",
+    "Delts": "#c084fc",
+    "Forearms": "#d6a472",
+    "Abs": "#f472b6",
+    "Neck": "#94a3b8",
+    "Cardio": "#22d3ee"
+  },
+  "week": {
+    "Monday": {
+      "focus": "Back / Side Delts",
+      "location": "FitX1",
+      "exercises": [
+        {
+          "muscle": "Back",
+          "name": "Wide Grip Machine Pull Ups"
+        },
+        {
+          "muscle": "Back",
+          "name": "Wide Grip Lat Pull Down"
+        },
+        {
+          "muscle": "Back",
+          "name": "Bent Over Rows"
+        },
+        {
+          "muscle": "Back",
+          "name": "Lat Pull Over"
+        },
+        {
+          "muscle": "Biceps",
+          "name": "Heavy Barbell Curl"
+        },
+        {
+          "muscle": "Side Delts",
+          "name": "Upright Row"
+        },
+        {
+          "muscle": "Side Delts",
+          "name": "Cable Lateral Raises"
+        },
+        {
+          "muscle": "Side Delts",
+          "name": "Machine Lateral Raise"
+        }
+      ]
+    },
+    "Tuesday": {
+      "focus": "Chest / Forearms",
+      "location": "FitX1",
+      "exercises": [
+        {
+          "muscle": "Chest",
+          "name": "Flat Dumbbell Press"
+        },
+        {
+          "muscle": "Chest",
+          "name": "Dips"
+        },
+        {
+          "muscle": "Chest",
+          "name": "Bench - Cable - Fly"
+        },
+        {
+          "muscle": "Chest",
+          "name": "Bench - Cable - Upper Press"
+        },
+        {
+          "muscle": "Triceps",
+          "name": "Close Grip Bench Press"
+        },
+        {
+          "muscle": "Forearms",
+          "name": "Ez bar - Reverse Curl"
+        },
+        {
+          "muscle": "Forearms",
+          "name": "Rod - Behind the back - wrist curl"
+        },
+        {
+          "muscle": "Forearms",
+          "name": "Farmers Carry"
+        }
+      ]
+    },
+    "Wednesday": {
+      "focus": "Arms & Shoulders",
+      "location": "Society Gym",
+      "exercises": [
+        {
+          "muscle": "Biceps",
+          "name": "Back Support - Dumbbell Curl"
+        },
+        {
+          "muscle": "Biceps",
+          "name": "Hammer Curl - Dumbbell / Cable"
+        },
+        {
+          "muscle": "Biceps",
+          "name": "Cable Curl"
+        },
+        {
+          "muscle": "Triceps",
+          "name": "Cable Overhead bottom-to-top / Dumbbell Overhead"
+        },
+        {
+          "muscle": "Triceps",
+          "name": "Cable Pushdown, top-to-bottom"
+        },
+        {
+          "muscle": "Side Delts",
+          "name": "Dumbbell Lateral Raises and variations"
+        },
+        {
+          "muscle": "Rear Delts",
+          "name": "Cable Face Pull"
+        },
+        {
+          "muscle": "Forearms",
+          "name": "Dumbbell Wrist Curl"
+        }
+      ]
+    },
+    "Thursday": {
+      "rest": true
+    },
+    "Friday": {
+      "focus": "Back / Biceps / Forearms",
+      "location": "FitX1",
+      "exercises": [
+        {
+          "muscle": "Back",
+          "name": "Cable Narrow v-bar Row"
+        },
+        {
+          "muscle": "Back",
+          "name": "Machine Pull Ups"
+        },
+        {
+          "muscle": "Back",
+          "name": "Kelso Shrugs"
+        },
+        {
+          "muscle": "Biceps",
+          "name": "Barbell Curl - Standing Heavy"
+        },
+        {
+          "muscle": "Biceps",
+          "name": "Barbell Curl - Preacher"
+        },
+        {
+          "muscle": "Rear Delts",
+          "name": "Face Pulls"
+        },
+        {
+          "muscle": "Rear Delts",
+          "name": "Reverse Pec Deck"
+        },
+        {
+          "muscle": "Forearms",
+          "name": "Reverse Curl / Hammer Curl"
+        },
+        {
+          "muscle": "Forearms",
+          "name": "Farmers Carry"
+        }
+      ]
+    },
+    "Saturday": {
+      "focus": "Chest / Triceps / Delts",
+      "location": "FitX1",
+      "exercises": [
+        {
+          "muscle": "Chest",
+          "name": "Smith Machine Incline Press"
+        },
+        {
+          "muscle": "Chest",
+          "name": "Flat Dumbbell Press"
+        },
+        {
+          "muscle": "Chest",
+          "name": "Bench - Cable - Fly"
+        },
+        {
+          "muscle": "Chest",
+          "name": "Bench - Cable - Upper Press"
+        },
+        {
+          "muscle": "Triceps",
+          "name": "Skull Crushers"
+        },
+        {
+          "muscle": "Triceps",
+          "name": "Cable Overhead bottom-to-top"
+        },
+        {
+          "muscle": "Front Delts",
+          "name": "Smith Machine Shoulder Press"
+        },
+        {
+          "muscle": "Side Delts",
+          "name": "Dumbbell Variations"
+        }
+      ]
+    },
+    "Sunday": {
+      "rest": true
+    }
+  },
+  "daily_extras": [
+    {
+      "muscle": "Back",
+      "name": "Pull Ups"
+    },
+    {
+      "muscle": "Forearms",
+      "name": "Dead Hangs"
+    },
+    {
+      "muscle": "Chest",
+      "name": "Push Ups"
+    },
+    {
+      "muscle": "Neck",
+      "name": "Neck Exercises"
+    },
+    {
+      "muscle": "Abs",
+      "name": "Abs"
+    },
+    {
+      "muscle": "Cardio",
+      "name": "Running"
+    }
+  ]
+}

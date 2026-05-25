@@ -5,6 +5,8 @@ it to Telegram. Phase 1: run manually. Phase 2: cron-scheduled each morning.
 from __future__ import annotations
 
 import datetime
+import json
+import os
 import requests
 from zoneinfo import ZoneInfo
 from googleapiclient.discovery import build
@@ -12,8 +14,10 @@ from googleapiclient.discovery import build
 from auth import get_credentials
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TIMEZONE, CALENDAR_ID
 import renderer
+import workout_renderer
 
 DAY_START_HOUR = 6
+ROUTINE_PATH   = os.path.join(os.path.dirname(__file__), "exercise-routine.json")
 
 
 def get_todays_events() -> tuple[list[dict], str]:
@@ -85,6 +89,32 @@ def send_photo(png_bytes: bytes) -> None:
     print(f"  Photo sent ({len(png_bytes) // 1024} KB)")
 
 
+def send_album(photos: list[tuple[str, bytes]]) -> None:
+    """Send several PNGs as one Telegram media group. photos: [(name, bytes)]."""
+    if not TELEGRAM_CHAT_ID:
+        raise ValueError("TELEGRAM_CHAT_ID not set in config.py")
+    media = [{"type": "photo", "media": f"attach://{name}"} for name, _ in photos]
+    files = {name: (f"{name}.png", data, "image/png") for name, data in photos}
+    url   = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMediaGroup"
+    resp  = requests.post(url, data={"chat_id": TELEGRAM_CHAT_ID,
+                                     "media": json.dumps(media)}, files=files)
+    result = resp.json()
+    if not result.get("ok"):
+        raise RuntimeError(f"Telegram error: {result}")
+    kb = sum(len(d) for _, d in photos) // 1024
+    print(f"  Album sent ({len(photos)} photos, {kb} KB)")
+
+
+def render_workout(weekday: str) -> bytes:
+    """Render today's workout card from exercise-routine.json."""
+    with open(ROUTINE_PATH, encoding="utf-8") as f:
+        routine = json.load(f)
+    day = routine["week"].get(weekday, {"rest": True})
+    return workout_renderer.render(
+        weekday, day, routine.get("daily_extras", []), routine["muscle_colors"],
+    )
+
+
 if __name__ == "__main__":
     tz       = ZoneInfo(TIMEZONE)
     now      = datetime.datetime.now(tz)
@@ -100,5 +130,12 @@ if __name__ == "__main__":
     print("Rendering image...")
     png = renderer.render(timed, allday, date_str, len(timed) + len(allday))
 
-    print("Sending to Telegram...")
-    send_photo(png)
+    weekday = now.strftime("%A")
+    print(f"Rendering workout card ({weekday})...")
+    try:
+        workout_png = render_workout(weekday)
+        print("Sending album to Telegram...")
+        send_album([("schedule", png), ("workout", workout_png)])
+    except Exception as exc:
+        print(f"  Workout card failed ({exc}); sending schedule only.")
+        send_photo(png)
