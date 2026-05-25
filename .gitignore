@@ -26,5 +26,9 @@ youtube/keyword-research/channel_cache.json
 .agent/
 brain/
 
+# Local MCP config (symlinked to ../personal stuff/.mcp.json — absolute
+# paths inside, machine-specific, don't commit)
+.mcp.json
+
 # Logs
 *.log
