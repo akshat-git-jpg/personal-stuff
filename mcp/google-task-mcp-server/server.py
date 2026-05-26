@@ -137,6 +137,18 @@ async def list_tools() -> list[types.Tool]:
                 ["content"],
             ),
         ),
+        types.Tool(
+            name="add_task",
+            description="Adds a new task to a named list (defaults to 'My Tasks' if list_name omitted).",
+            inputSchema=_schema(
+                {
+                    "task_title": {"type": "string", "description": "Title of the new task"},
+                    "list_name": {"type": "string", "description": "Target list name (default: 'My Tasks')"},
+                    "notes": {"type": "string", "description": "Optional notes/description"},
+                },
+                ["task_title"],
+            ),
+        ),
     ]
 
 
@@ -241,6 +253,19 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
 
             service.tasks().delete(tasklist=list_id, task=task["id"]).execute()
             return [types.TextContent(type="text", text=f"Completed and removed '{task_title}'.")]
+
+        if name == "add_task":
+            task_title = arguments["task_title"]
+            list_name = arguments.get("list_name", "My Tasks")
+            notes = arguments.get("notes", "")
+            list_id = find_list_id(service, list_name)
+            if not list_id:
+                return [types.TextContent(type="text", text=f"List '{list_name}' not found.")]
+            body = {"title": task_title, "status": "needsAction"}
+            if notes:
+                body["notes"] = notes
+            service.tasks().insert(tasklist=list_id, body=body).execute()
+            return [types.TextContent(type="text", text=f"Added '{task_title}' to '{list_name}'.")]
 
         return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
 
