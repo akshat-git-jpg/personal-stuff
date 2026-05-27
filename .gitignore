@@ -47,3 +47,7 @@ htmlcov/
 # IDE
 .idea/
 .vscode/
+
+# ntfy runtime data — caches, attachments, user db (server.yml is checked in)
+docker/ntfy/data/cache/
+docker/ntfy/data/etc/users.db

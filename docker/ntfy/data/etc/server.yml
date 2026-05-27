@@ -1,0 +1,13 @@
+# ntfy self-hosted config
+base-url: "http://srv1377177.hstgr.cloud:8888"
+listen-http: ":80"
+cache-file: "/var/cache/ntfy/cache.db"
+cache-duration: "12h"
+attachment-cache-dir: "/var/cache/ntfy/attachments"
+behind-proxy: false
+auth-default-access: "read-write"
+
+# iOS push: forward a ping (NOT the message content) to ntfy.sh so APNS
+# delivers a real-time push to the iOS app. The app then fetches the
+# actual message from THIS server. Content stays on the self-host.
+upstream-base-url: "https://ntfy.sh"

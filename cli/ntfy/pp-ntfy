@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# pp-ntfy — wrapper that resolves the right Python interpreter, then runs
+# the CLI. Mirrors cli/gmail/pp-gmail so both Mac and VPS work with no
+# per-machine config. Stdlib-only — no venv strictly needed, but if the
+# shared venv exists we use it for consistency.
+set -euo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$DIR/../.." && pwd)"
+
+if [[ -x "$REPO_ROOT/mcp/.venv/bin/python3" ]]; then
+  PYTHON_BIN="$REPO_ROOT/mcp/.venv/bin/python3"
+else
+  PYTHON_BIN="python3"
+fi
+
+exec "$PYTHON_BIN" "$DIR/pp_ntfy.py" "$@"
