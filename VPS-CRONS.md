@@ -22,6 +22,24 @@ Last updated: 2026-05-27.
 | Telegram delivery | Each cron has its own `.env` with `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` |
 | Auth model for LLM crons | Personal Claude Pro plan (`kushalbakliwal25@gmail.com`) via `claude -p` |
 
+## The decision rule (read this first)
+
+**Code = git. Wiring = SSH.**
+
+Every cron's `run.sh` starts with `git pull` of `personal-stuff`. So the VPS picks up your latest code automatically on every cron run — no manual pull needed.
+
+You only have to SSH to the VPS in exactly these **5 situations**:
+
+| Situation | One-time SSH action |
+|---|---|
+| 🆕 Adding a brand-new cron | create `.env`, set up `.venv`, `crontab /srv/crons/crontab.txt` |
+| ⏰ Changing a cron's schedule (`crontab.txt` edited) | `crontab /srv/crons/crontab.txt` (cron only reloads when told) |
+| 📦 New pip dep added (changed `requirements.txt`) | `cd /srv/projects/personal-stuff/<path> && .venv/bin/pip install -r requirements.txt` |
+| 🔐 Secret changed (Telegram token, OAuth token expired) | edit `.env` or scp the new token |
+| 🗑️ Removing/disabling a cron | edit `crontab.txt`, run `crontab /srv/crons/crontab.txt` |
+
+Anything else — code, prompts, preferences, new files inside a project — is **just `git push` on the Mac**. The VPS catches up on the next cron tick.
+
 ---
 
 ## The mental model
