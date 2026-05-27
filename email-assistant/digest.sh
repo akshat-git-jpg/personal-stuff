@@ -94,14 +94,18 @@ FULL_PROMPT="$(cat "$PROMPT_FILE")${RUN_CONTEXT}"
 # Resolve claude binary — works on Mac (homebrew) and VPS (~/.local/bin/claude)
 CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude || echo /root/.local/bin/claude)}"
 
-# Run Claude non-interactively. bypassPermissions so MCP tool calls + file reads
-# proceed without hanging on permission prompts in a non-TTY environment.
+# Run Claude non-interactively.
+#
+# permission-mode notes:
+#   - bypassPermissions is blocked when running as root (VPS cron context).
+#   - acceptEdits is safer and lets MCP tool calls + Read tool calls proceed
+#     in --print mode without TTY prompts.
 #
 # Prompt is piped via stdin to avoid claude's variadic --add-dir / --mcp-config
 # greedily consuming the positional prompt arg.
 exec "$CLAUDE_BIN" -p \
   --output-format text \
-  --permission-mode bypassPermissions \
+  --permission-mode acceptEdits \
   --mcp-config "$MCP_JSON" \
   --add-dir "$ASSISTANT_DIR" \
   <<< "$FULL_PROMPT"
