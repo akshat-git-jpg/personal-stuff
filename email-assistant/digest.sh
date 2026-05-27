@@ -96,10 +96,19 @@ CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude || echo /root/.local/bin/claude)}"
 
 # Run Claude non-interactively.
 #
-# permission-mode notes:
+# permission-mode + allowed-tools notes:
 #   - bypassPermissions is blocked when running as root (VPS cron context).
-#   - acceptEdits is safer and lets MCP tool calls + Read tool calls proceed
-#     in --print mode without TTY prompts.
+#   - acceptEdits alone auto-accepts file edits but NOT MCP tool calls — so
+#     mcp__gmail__search_emails would be denied in non-interactive mode.
+#   - The fix: explicitly whitelist the tools the digest needs via
+#     --allowed-tools. That works even under root and bypasses prompts for
+#     exactly the tools we list.
+#
+# Allowed tools (everything else is denied in --print):
+#   - Read                                 : prefs file
+#   - mcp__gmail__search_emails            : fetch list of recent emails
+#   - mcp__gmail__get_thread               : drill into a specific thread
+#   - mcp__gmail__read_email_preferences   : alternative way to read prefs
 #
 # Prompt is piped via stdin to avoid claude's variadic --add-dir / --mcp-config
 # greedily consuming the positional prompt arg.
@@ -108,4 +117,5 @@ exec "$CLAUDE_BIN" -p \
   --permission-mode acceptEdits \
   --mcp-config "$MCP_JSON" \
   --add-dir "$ASSISTANT_DIR" \
+  --allowed-tools "Read,mcp__gmail__search_emails,mcp__gmail__get_thread,mcp__gmail__read_email_preferences" \
   <<< "$FULL_PROMPT"
