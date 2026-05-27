@@ -1,16 +1,24 @@
 #!/usr/bin/env bash
-# Gmail digest — generate a daily summary for one Gmail account.
+# Gmail digest — generate a two-part daily summary for one Gmail account.
+#
+# This is the PROJECT script. It does the actual work: invokes Claude with the
+# Gmail MCP, runs the digest prompt against the given account's inbox, and
+# prints the formatted summary to stdout.
+#
+# Cron is separate: a wrapper in vps-crons/gmail-digest/ will eventually call
+# this script and pipe its stdout to Telegram. Run this directly from a Mac or
+# VPS terminal anytime; it doesn't know or care about cron.
 #
 # Usage:
-#   ./run.sh <email>
-#   ./run.sh kushalbakliwal25@gmail.com
+#   ./digest.sh <email>
+#   ./digest.sh kushalbakliwal25@gmail.com
 #
 # Optional env vars:
 #   WINDOW    Gmail query for the time window (default: newer_than:2d)
 #             Examples: newer_than:1d, newer_than:12h, after:2026/05/25
 #
-# Output: the formatted digest text to stdout. Pipe wherever (Telegram, file, etc.).
-# Errors: a single line starting with "ERROR: " to stdout, exit 1.
+# Output: the formatted digest text to stdout.
+# Errors: a single line starting with "ERROR: " to stdout/stderr, exit 1.
 
 set -euo pipefail
 
@@ -21,13 +29,18 @@ if [[ -z "$EMAIL" ]]; then
   exit 1
 fi
 
-DIGEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ASSISTANT_DIR="$(cd "$DIGEST_DIR/.." && pwd)"
+ASSISTANT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$ASSISTANT_DIR/.." && pwd)"
 
 PREFS_FILE="$ASSISTANT_DIR/email-preferences-${EMAIL}.md"
 if [[ ! -f "$PREFS_FILE" ]]; then
   echo "ERROR: preferences not found for $EMAIL at $PREFS_FILE" >&2
+  exit 1
+fi
+
+PROMPT_FILE="$ASSISTANT_DIR/digest-prompt.md"
+if [[ ! -f "$PROMPT_FILE" ]]; then
+  echo "ERROR: prompt file missing at $PROMPT_FILE" >&2
   exit 1
 fi
 
@@ -53,7 +66,7 @@ MCP_JSON=$(cat <<EOF
 EOF
 )
 
-# Compose the full prompt: base prompt.md + run context appended.
+# Compose the full prompt: digest-prompt.md + run context appended.
 RUN_CONTEXT=$(cat <<EOF
 
 ---
@@ -66,13 +79,13 @@ RUN_CONTEXT=$(cat <<EOF
 EOF
 )
 
-FULL_PROMPT="$(cat "$DIGEST_DIR/prompt.md")${RUN_CONTEXT}"
+FULL_PROMPT="$(cat "$PROMPT_FILE")${RUN_CONTEXT}"
 
 # Resolve claude binary — works on Mac (homebrew) and VPS (~/.local/bin/claude)
 CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude || echo /root/.local/bin/claude)}"
 
 # Run Claude non-interactively. bypassPermissions so MCP tool calls + file reads
-# proceed without hanging on prompts in a non-TTY environment.
+# proceed without hanging on permission prompts in a non-TTY environment.
 #
 # Prompt is piped via stdin to avoid claude's variadic --add-dir / --mcp-config
 # greedily consuming the positional prompt arg.
