@@ -37,11 +37,19 @@ Personal AI assistant running on the Hostinger VPS. This doc is the source of tr
 
 - **LLM provider**: OpenRouter (`https://openrouter.ai/api/v1`)
 - **Default model**: `deepseek/deepseek-v4-flash` (paid, $0.10/$0.20 per M tokens, 284B MoE, 1M context)
-- **Reasoning effort**: `high` (Hermes' agent-level setting)
-- **Max completion tokens**: 8000
+- **Reasoning effort**: `medium` (was `high` — `high` caused 64k token reservations that hit 402s on low credit)
+- **Max tokens / completion tokens**: 4000 (cap output to fit OpenRouter promotional grace; raise after topping up if needed)
+- **Agent loop caps**: `max_turns: 15`, `max_iterations: 20` (was 60/50 — runaway loops were burning credit, single setup conversation cost 22 API calls)
+- **Auxiliary providers** (vision/title_generation/web_extract): all pinned to `openrouter` (was `auto`, kept trying Nous Inference → unauthorized → noise)
 - **Telegram bot**: `@hermes_kb_pa_bot` (token in `.env`)
 - **Allowed user**: `1912944391` (Kushal) — only this Telegram user can talk to the bot
 - **Home channel** (for cron deliveries): same user ID
+
+### MCP servers
+- `google-tasks` — wraps `/opt/data/mcp/google-task-mcp-server/server.py` (mirror of `mcp/google-task-mcp-server/` in personal-stuff repo). 8 tools: `list_task_lists`, `list_tasks`, `add_task`, `move_task`, `complete_task`, `reorder_tasks`, `read_preferences`, `update_preferences`. Defaults all calls to `account="akshatpatidar17@gmail.com"`. Preferences file at `/opt/data/my planner/preferences-tasks-akshatpatidar17@gmail.com.md` drives smart-categorization.
+
+### Google Workspace skill
+- Bundled `productivity/google-workspace` skill is authed for `akshatpatidar17@gmail.com`. Token at `/opt/data/google_token.json`, client secret at `/opt/data/google_client_secret.json`. Scopes: Gmail (r/send/modify), Calendar, Drive, Contacts (r), Sheets, Docs. **No Tasks scope here** — Tasks goes via the MCP above, which uses the separate token under `/opt/data/mcp/google-shared/tokens/`.
 
 Secrets live in `/root/.hermes/.env` on host (= `/opt/data/.env` in container):
 - `TELEGRAM_BOT_TOKEN`
