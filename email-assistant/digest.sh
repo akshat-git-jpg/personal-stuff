@@ -50,6 +50,16 @@ if [[ ! -f "$GMAIL_MCP" ]]; then
   exit 1
 fi
 
+# Pick a python that has the MCP deps installed.
+#   - On the VPS we create a shared venv at mcp/.venv (mcp + google-api-python-client + ...).
+#   - On Mac the deps live in the system python3.
+# Auto-detect the venv; fall back to system python3.
+if [[ -x "$REPO_ROOT/mcp/.venv/bin/python3" ]]; then
+  PYTHON_BIN="$REPO_ROOT/mcp/.venv/bin/python3"
+else
+  PYTHON_BIN="python3"
+fi
+
 WINDOW="${WINDOW:-newer_than:2d}"
 
 # Inline MCP config so we don't have to maintain a per-machine .mcp.json file.
@@ -58,7 +68,7 @@ MCP_JSON=$(cat <<EOF
   "mcpServers": {
     "gmail": {
       "type": "stdio",
-      "command": "python3",
+      "command": "${PYTHON_BIN}",
       "args": ["${GMAIL_MCP}"]
     }
   }
