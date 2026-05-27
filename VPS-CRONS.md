@@ -424,32 +424,24 @@ Should always match `/srv/crons/crontab.txt`. If it diverges, someone edited via
 
 ## Active crons
 
-### kb-daily-planner
+### my-planner
 
 - **What:** Calendar + workout digest → Telegram image album
 - **When:** 06:00 IST daily (`30 0 * * *` UTC)
-- **Wrapper:** `/srv/crons/kb-daily-planner/run.sh`
+- **Wrapper:** `/srv/crons/my-planner/run.sh`
 - **Project code:** `/srv/projects/personal-stuff/my-planner/tools/daily-digest/`
 - **Account:** Google Calendar for `akshatpatidar17@gmail.com` (OAuth via vendored `token.json`)
 - **Telegram dest:** `@hermes_kb_pa_bot`, chat_id `1912944391` (set in `.env`)
 
 This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you want a working reference.
 
-### gmail-digest (scaffolded, not yet active)
+## Planned crons (not yet scaffolded)
+
+### gmail-digest
 
 - **What:** Claude-Code-driven Gmail summary → Telegram text
-- **When:** target 07:30 IST daily (`0 2 * * *` UTC)
-- **Wrapper:** `/srv/crons/gmail-digest/run.sh`
-- **Project code:** `/srv/projects/personal-stuff/email-assistant/` (prefs only; no code yet — the cron *is* the work, via Claude)
-- **MCP:** Gmail MCP from `/srv/projects/personal-stuff/mcp/gmail-mcp-server/`
+- **Plan:** Build the project code first under `personal-stuff/email-assistant/` (preferences file is already there). Once the logic is finalized and works standalone on Mac, scaffold the cron wrapper in `vps-crons/gmail-digest/`.
 - **Account:** Gmail for `kushal.b@zluri.com`
-- **Telegram dest:** TBD (configure in `.env` when enabling)
-
-Open TODOs to enable (see `/srv/crons/gmail-digest/README.md`):
-1. Fill in `.env` with Telegram bot + chat
-2. scp `mcp/google-shared/credentials.json` + `tokens/` to the VPS clone
-3. Install MCP Python deps (`mcp`, `google-api-python-client`, etc.)
-4. Smoke test, then add the schedule line and apply
 
 ---
 
