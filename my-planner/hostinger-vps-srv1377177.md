@@ -153,7 +153,7 @@ The "Good morning" Google Calendar → Telegram digest now runs from THIS VPS vi
 GitHub Actions' scheduled cron was firing 3–5 hours late (and skipping days). Source repo is
 part of `akshat-git-jpg/personal-stuff` (private monorepo, absorbed from the now-archived
 `kb-daily-planner` repo). The VPS copy is deployed by scp from the local Mac working copy
-(`my planner/tools/daily-digest/`), not a git pull. Use `./deploy.sh` (or `./deploy.sh
+(`my-planner/tools/daily-digest/`), not a git pull. Use `./deploy.sh` (or `./deploy.sh
 --run-now`) from that folder to re-vendor the shared token and push to the VPS.
 
 | Item | Value |

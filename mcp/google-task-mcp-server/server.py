@@ -13,7 +13,7 @@ from mcp.server.lowlevel.server import NotificationOptions
 
 BASE_DIR = Path(__file__).parent
 REPO_ROOT = BASE_DIR.parent.parent  # mcp/google-task-mcp-server -> mcp -> repo root
-PREFS_DIR = REPO_ROOT / "my planner"  # prefs live next to the consuming project
+PREFS_DIR = REPO_ROOT / "my-planner"  # prefs live next to the consuming project
 
 app = Server("google-tasks")
 

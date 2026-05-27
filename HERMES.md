@@ -46,7 +46,7 @@ Personal AI assistant running on the Hostinger VPS. This doc is the source of tr
 - **Home channel** (for cron deliveries): same user ID
 
 ### MCP servers
-- `google-tasks` — wraps `/opt/data/mcp/google-task-mcp-server/server.py` (mirror of `mcp/google-task-mcp-server/` in personal-stuff repo). 8 tools: `list_task_lists`, `list_tasks`, `add_task`, `move_task`, `complete_task`, `reorder_tasks`, `read_preferences`, `update_preferences`. Defaults all calls to `account="akshatpatidar17@gmail.com"`. Preferences file at `/opt/data/my planner/preferences-tasks-akshatpatidar17@gmail.com.md` drives smart-categorization.
+- `google-tasks` — wraps `/opt/data/mcp/google-task-mcp-server/server.py` (mirror of `mcp/google-task-mcp-server/` in personal-stuff repo). 8 tools: `list_task_lists`, `list_tasks`, `add_task`, `move_task`, `complete_task`, `reorder_tasks`, `read_preferences`, `update_preferences`. Defaults all calls to `account="akshatpatidar17@gmail.com"`. Preferences file at `/opt/data/my-planner/preferences-tasks-akshatpatidar17@gmail.com.md` drives smart-categorization.
 
 ### Google Workspace skill
 - Bundled `productivity/google-workspace` skill is authed for `akshatpatidar17@gmail.com`. Token at `/opt/data/google_token.json`, client secret at `/opt/data/google_client_secret.json`. Scopes: Gmail (r/send/modify), Calendar, Drive, Contacts (r), Sheets, Docs. **No Tasks scope here** — Tasks goes via the MCP above, which uses the separate token under `/opt/data/mcp/google-shared/tokens/`.
