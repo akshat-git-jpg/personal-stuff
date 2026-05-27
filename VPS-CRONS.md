@@ -435,13 +435,17 @@ Should always match `/srv/crons/crontab.txt`. If it diverges, someone edited via
 
 This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you want a working reference.
 
-## Planned crons (not yet scaffolded)
-
 ### gmail-digest
 
-- **What:** Claude-Code-driven Gmail summary → Telegram text
-- **Plan:** Build the project code first under `personal-stuff/email-assistant/` (preferences file is already there). Once the logic is finalized and works standalone on Mac, scaffold the cron wrapper in `vps-crons/gmail-digest/`.
-- **Account:** Gmail for `kushal.b@zluri.com`
+- **What:** Two-part Gmail digest via Claude Code + Gmail MCP → Telegram text
+- **When:** 06:00 IST daily (`30 0 * * *` UTC)
+- **Wrapper:** `/srv/crons/gmail-digest/run.sh`
+- **Project code:** `/srv/projects/personal-stuff/email-assistant/digest.sh` (+ `digest-prompt.md`)
+- **MCP:** Gmail MCP at `/srv/projects/personal-stuff/mcp/gmail-mcp-server/server.py` running under shared venv at `/srv/projects/personal-stuff/mcp/.venv/`
+- **OAuth:** `/srv/projects/personal-stuff/mcp/google-shared/credentials.json` + `tokens/kushalbakliwal25@gmail.com.json` (gitignored, scp'd from Mac)
+- **Account:** `kushalbakliwal25@gmail.com` (configurable via `DIGEST_EMAIL` in `.env`)
+- **Telegram dest:** `@hermes_kb_pa_bot`, chat_id `1912944391` (same as my-planner)
+- **Output format:** Part 1 (Claude's judgment of what matters) + Part 2 (matches against "Digest focus areas" in the per-account preferences file)
 
 ---
 
