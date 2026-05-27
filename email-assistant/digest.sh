@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
 # Gmail digest — generate a two-part daily summary for one Gmail account.
 #
-# This is the PROJECT script. It does the actual work: invokes Claude with the
-# Gmail MCP, runs the digest prompt against the given account's inbox, and
-# prints the formatted summary to stdout.
+# How it works (CLI-first; MCP is no longer used here):
+#   1. Bash uses `cli/gmail/pp-gmail` to deterministically fetch the email
+#      list + bodies for the time window. No Claude in this phase.
+#   2. Bash reads the preferences file.
+#   3. ONE `claude -p` call summarizes the pre-fetched text. No MCP tools
+#      attached — Claude only produces the digest.
 #
-# Cron is separate: a wrapper in vps-crons/gmail-digest/ will eventually call
-# this script and pipe its stdout to Telegram. Run this directly from a Mac or
-# VPS terminal anytime; it doesn't know or care about cron.
+# This trades ~5-8 in-session MCP tool calls (each shoveling JSON into
+# context) for one summarization pass over pre-cleaned plain text — same
+# output, far fewer tokens, more predictable failure modes.
 #
 # Usage:
 #   ./digest.sh <email>
 #   ./digest.sh kushalbakliwal25@gmail.com
 #
 # Optional env vars:
-#   WINDOW    Gmail query for the time window (default: newer_than:2d)
-#             Examples: newer_than:1d, newer_than:12h, after:2026/05/25
+#   WINDOW       Gmail query for the time window (default: newer_than:2d)
+#                Examples: newer_than:1d, newer_than:12h, after:2026/05/25
+#   MAX_EMAILS   Cap on threads fetched (default: 50)
 #
 # Output: the formatted digest text to stdout.
 # Errors: a single line starting with "ERROR: " to stdout/stderr, exit 1.
@@ -44,78 +48,69 @@ if [[ ! -f "$PROMPT_FILE" ]]; then
   exit 1
 fi
 
-GMAIL_MCP="$REPO_ROOT/mcp/gmail-mcp-server/server.py"
-if [[ ! -f "$GMAIL_MCP" ]]; then
-  echo "ERROR: gmail MCP not found at $GMAIL_MCP" >&2
+PP_GMAIL="$REPO_ROOT/cli/gmail/pp-gmail"
+if [[ ! -x "$PP_GMAIL" ]]; then
+  echo "ERROR: pp-gmail not executable at $PP_GMAIL" >&2
   exit 1
 fi
 
-# Pick a python that has the MCP deps installed.
-#   - On the VPS we create a shared venv at mcp/.venv (mcp + google-api-python-client + ...).
-#   - On Mac the deps live in the system python3.
-# Auto-detect the venv; fall back to system python3.
-if [[ -x "$REPO_ROOT/mcp/.venv/bin/python3" ]]; then
-  PYTHON_BIN="$REPO_ROOT/mcp/.venv/bin/python3"
-else
-  PYTHON_BIN="python3"
+WINDOW="${WINDOW:-newer_than:2d}"
+MAX_EMAILS="${MAX_EMAILS:-50}"
+
+# Phase 1 — fetch thread IDs for the window (deterministic, no Claude).
+THREAD_IDS=$("$PP_GMAIL" --account "$EMAIL" search "$WINDOW" --max "$MAX_EMAILS" --format ids)
+THREAD_COUNT=$(printf '%s\n' "$THREAD_IDS" | grep -c . || true)
+
+if [[ "$THREAD_COUNT" -eq 0 ]]; then
+  echo "ERROR: no emails matched window '$WINDOW' for $EMAIL"
+  exit 1
 fi
 
-WINDOW="${WINDOW:-newer_than:2d}"
+# Phase 2 — fetch the full plain-text bodies for those threads.
+# shellcheck disable=SC2086
+EMAIL_BODIES=$("$PP_GMAIL" --account "$EMAIL" get $THREAD_IDS --format plain)
 
-# Inline MCP config so we don't have to maintain a per-machine .mcp.json file.
-MCP_JSON=$(cat <<EOF
-{
-  "mcpServers": {
-    "gmail": {
-      "type": "stdio",
-      "command": "${PYTHON_BIN}",
-      "args": ["${GMAIL_MCP}"]
-    }
-  }
-}
-EOF
-)
+# Phase 3 — read preferences inline.
+PREFS_CONTENT=$(cat "$PREFS_FILE")
 
-# Compose the full prompt: digest-prompt.md + run context appended.
-RUN_CONTEXT=$(cat <<EOF
+# Build the prompt. The digest-prompt.md still owns the output format spec;
+# we just neutralize its "Fetch emails" step (no MCP available) by inlining
+# the data and prefs above and adding an override note.
+FULL_PROMPT=$(cat <<EOF
+$(cat "$PROMPT_FILE")
 
 ---
 
-## Run context
+## Run context (CLI-fetched — DO NOT call any tools)
 
-- **Email account to summarize**: \`${EMAIL}\`
-- **Preferences file**: \`${PREFS_FILE}\` (read this first via the Read tool or directly)
-- **Time window**: \`${WINDOW}\` (use this as the Gmail query, e.g., \`search_emails(account="${EMAIL}", query="${WINDOW}")\`)
+- **Email account**: \`${EMAIL}\`
+- **Time window covered**: \`${WINDOW}\` (${THREAD_COUNT} threads fetched)
+- All emails and preferences are inlined below. The "Fetch emails" step in
+  the task spec above is **already done** — do not attempt any tool calls;
+  none are available in this run. Just read the data below and produce the
+  formatted digest per the Output format section.
+
+## Preferences (already read for you)
+
+\`\`\`
+${PREFS_CONTENT}
+\`\`\`
+
+## Emails (${THREAD_COUNT} threads, plain text — already fetched)
+
+\`\`\`
+${EMAIL_BODIES}
+\`\`\`
 EOF
 )
 
-FULL_PROMPT="$(cat "$PROMPT_FILE")${RUN_CONTEXT}"
-
-# Resolve claude binary — works on Mac (homebrew) and VPS (~/.local/bin/claude)
+# Resolve claude binary — works on Mac (homebrew) and VPS (~/.local/bin/claude).
 CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude || echo /root/.local/bin/claude)}"
 
-# Run Claude non-interactively.
-#
-# permission-mode + allowed-tools notes:
-#   - bypassPermissions is blocked when running as root (VPS cron context).
-#   - acceptEdits alone auto-accepts file edits but NOT MCP tool calls — so
-#     mcp__gmail__search_emails would be denied in non-interactive mode.
-#   - The fix: explicitly whitelist the tools the digest needs via
-#     --allowed-tools. That works even under root and bypasses prompts for
-#     exactly the tools we list.
-#
-# Allowed tools (everything else is denied in --print):
-#   - Read                                 : prefs file
-#   - mcp__gmail__search_emails            : fetch list of recent emails
-#   - mcp__gmail__get_thread               : drill into a specific thread
-#   - mcp__gmail__read_email_preferences   : alternative way to read prefs
-#
-# Prompt is piped via stdin to avoid claude's variadic --add-dir / --mcp-config
-# greedily consuming the positional prompt arg.
+# Run Claude non-interactively. No --mcp-config, no --allowed-tools for MCP.
+# acceptEdits handles any incidental file writes but Claude isn't expected
+# to need any tools — just produce the digest text.
 exec "$CLAUDE_BIN" -p \
   --output-format text \
   --permission-mode acceptEdits \
-  --mcp-config "$MCP_JSON" \
-  --add-dir "$ASSISTANT_DIR" \
-  --allowed-tools "Read,mcp__gmail__search_emails,mcp__gmail__get_thread,mcp__gmail__read_email_preferences" \
   <<< "$FULL_PROMPT"
