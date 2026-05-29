@@ -338,10 +338,16 @@ body {
   height: 100%; width: min(430px, 100vw); z-index: 201;
   background: var(--bg-2);
   border-left: 1px solid var(--line-2);
-  padding: 22px 22px 30px;
-  overflow-y: auto;
-  display: flex; flex-direction: column; gap: 14px;
+  overflow: hidden;                 /* the inner body scrolls, not the shell */
+  display: flex; flex-direction: column;
   animation: slideIn .18s ease;
+}
+.detail-body {
+  flex: 1 1 auto;
+  min-height: 0;                    /* critical: lets the flex child actually scroll */
+  overflow-y: auto;
+  padding: 22px 22px 40px;
+  display: flex; flex-direction: column; gap: 14px;
 }
 @keyframes slideIn {
   from { transform: translateX(100%); }

@@ -208,6 +208,7 @@ export function CardDetail({ row, columns, role, laneStatus, readOnly, onClose, 
       <div className="detail-panel" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
         <button className="panel__close" onClick={onClose} aria-label="Close">×</button>
 
+        <div className="detail-body">
         <h2>{title}</h2>
 
         {/* ── FOCUSED REVIEW MODE (Feature 2) ── */}
@@ -379,6 +380,7 @@ export function CardDetail({ row, columns, role, laneStatus, readOnly, onClose, 
             )}
           </>
         )}
+        </div>
       </div>
     </>
   );
