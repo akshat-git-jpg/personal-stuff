@@ -97,6 +97,8 @@ export async function ensureRowIds(token: string, sheetId: string): Promise<void
     rowIdColLetter = colLetter(rowIdColIdx);
   }
 
+  const titleColIdx = headerRow.findIndex((h) => h.trim() === "video_title");
+
   // Counter for row_ids — pad to 4 digits
   let counter = 1;
   // Pre-scan existing ids to initialise counter past them
@@ -115,9 +117,9 @@ export async function ensureRowIds(token: string, sheetId: string): Promise<void
   // Write row_ids for rows that need them
   for (let i = 1; i < rows.length; i++) {
     const dataRow = rows[i];
-    // Check if row has any non-empty cell
-    const hasContent = dataRow.some((cell) => cell.trim() !== "");
-    if (!hasContent) continue;
+    // A real video must have a title — skip stray/blank rows so they don't get IDs.
+    const title = titleColIdx === -1 ? "" : (dataRow[titleColIdx] ?? "").trim();
+    if (title === "") continue;
 
     const existingId = (dataRow[rowIdColIdx] ?? "").trim();
     if (existingId !== "") continue; // Already has a row_id
@@ -145,9 +147,11 @@ export async function readRows(token: string, sheetId: string): Promise<Row[]> {
 
   // Build a mapping: colIndex → Column name (only known COLUMNS + non-blank headers)
   const colMap: Array<{ idx: number; name: Column }> = [];
+  let titleColIdx = -1;
   for (let i = 0; i < headerRow.length; i++) {
     const h = headerRow[i].trim();
     if (h === "") continue;
+    if (h === "video_title") titleColIdx = i;
     if ((COLUMNS as readonly string[]).includes(h)) {
       colMap.push({ idx: i, name: h as Column });
     }
@@ -156,8 +160,9 @@ export async function readRows(token: string, sheetId: string): Promise<Row[]> {
   const result: Row[] = [];
   for (let i = 1; i < raw.length; i++) {
     const dataRow = raw[i];
-    // Skip fully-empty rows
-    if (!dataRow.some((cell) => cell.trim() !== "")) continue;
+    // A real video must have a title — skip stray/blank rows entirely.
+    const title = titleColIdx === -1 ? "" : (dataRow[titleColIdx] ?? "").trim();
+    if (title === "") continue;
 
     const row: Row = {};
     for (const { idx, name } of colMap) {
