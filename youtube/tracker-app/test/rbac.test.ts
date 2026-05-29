@@ -1,14 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { visibleColumns, canEdit, filterRows, projectRow, isApprover, canSetValue, isRowLockedFor } from "../src/shared/rbac";
+import { COLUMNS } from "../src/shared/columns";
 
 describe("RBAC", () => {
   it("Tutorial Maker cannot see editor columns", () => {
     expect(visibleColumns("Tutorial Maker")).not.toContain("video_editor_link");
   });
-  it("Editor sees tutorial columns but cannot edit them", () => {
-    expect(visibleColumns("Editor")).toContain("tutorial_status");
-    expect(canEdit("Editor", "tutorial_status")).toBe(false);
+  it("Editor sees tutorial_link (script) but cannot edit it, and can edit video_editor_status", () => {
+    expect(visibleColumns("Editor")).toContain("tutorial_link");
+    expect(canEdit("Editor", "tutorial_link")).toBe(false);
     expect(canEdit("Editor", "video_editor_status")).toBe(true);
+  });
+  it("Editor does NOT see tutorial_status (need-to-know: only the script link, not full tutorial meta)", () => {
+    expect(visibleColumns("Editor")).not.toContain("tutorial_status");
   });
   it("Admin can edit anything", () => {
     expect(canEdit("Admin", "tutorial_status")).toBe(true);
@@ -119,13 +123,59 @@ describe("RBAC", () => {
     expect(tmCols).not.toContain("editor_feedback");
   });
 
-  it("feedback col visibility: Editor sees editor_feedback but not tutorial_feedback", () => {
+  it("feedback col visibility: Editor sees editor_feedback but NOT tutorial_feedback (need-to-know)", () => {
     const edCols = visibleColumns("Editor");
     expect(edCols).toContain("editor_feedback");
-    // Editor's visibleGroups includes "tutorial" group — tutorial_feedback is now in that group
-    // Editor CAN see tutorial_feedback (read-only — tutorial group is in readonlyGroups for Editor)
-    // but tutorial_feedback is in the tutorial group which Editor can see
-    expect(edCols).toContain("tutorial_feedback");
-    expect(canEdit("Editor", "tutorial_feedback")).toBe(false);
+    expect(edCols).not.toContain("tutorial_feedback");
+    expect(canEdit("Editor", "editor_feedback")).toBe(false);
+  });
+
+  // --- Need-to-know access assertions ---
+
+  it("Editor visibleColumns: includes tutorial_link, video_editor_link, editor_feedback, video_title, video_notes", () => {
+    const edCols = visibleColumns("Editor");
+    expect(edCols).toContain("tutorial_link");
+    expect(edCols).toContain("video_editor_link");
+    expect(edCols).toContain("editor_feedback");
+    expect(edCols).toContain("video_title");
+    expect(edCols).toContain("video_notes");
+  });
+
+  it("Editor visibleColumns: excludes tutorial_maker_email, tutorial_instruction, tutorial_status, tutorial_feedback, video_description, video_editor_email, topic_status", () => {
+    const edCols = visibleColumns("Editor");
+    expect(edCols).not.toContain("tutorial_maker_email");
+    expect(edCols).not.toContain("tutorial_instruction");
+    expect(edCols).not.toContain("tutorial_status");
+    expect(edCols).not.toContain("tutorial_feedback");
+    expect(edCols).not.toContain("video_description");
+    expect(edCols).not.toContain("video_editor_email");
+    expect(edCols).not.toContain("topic_status");
+  });
+
+  it("Tutorial Maker visibleColumns: includes tutorial_link, tutorial_status, tutorial_feedback, video_notes", () => {
+    const tmCols = visibleColumns("Tutorial Maker");
+    expect(tmCols).toContain("tutorial_link");
+    expect(tmCols).toContain("tutorial_status");
+    expect(tmCols).toContain("tutorial_feedback");
+    expect(tmCols).toContain("video_notes");
+  });
+
+  it("Tutorial Maker visibleColumns: excludes video_description, topic_status, tutorial_maker_email, video_editor_link, video_editor_status", () => {
+    const tmCols = visibleColumns("Tutorial Maker");
+    expect(tmCols).not.toContain("video_description");
+    expect(tmCols).not.toContain("topic_status");
+    expect(tmCols).not.toContain("tutorial_maker_email");
+    expect(tmCols).not.toContain("video_editor_link");
+    expect(tmCols).not.toContain("video_editor_status");
+  });
+
+  it("canEdit edge cases: Editor can edit video_editor_link, not tutorial_link; Tutorial Maker can edit tutorial_link", () => {
+    expect(canEdit("Editor", "video_editor_link")).toBe(true);
+    expect(canEdit("Editor", "tutorial_link")).toBe(false);
+    expect(canEdit("Tutorial Maker", "tutorial_link")).toBe(true);
+  });
+
+  it("visibleColumns('Admin') === all COLUMNS", () => {
+    expect(visibleColumns("Admin")).toEqual([...COLUMNS]);
   });
 });

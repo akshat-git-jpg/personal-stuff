@@ -66,10 +66,11 @@ export function Card({ row, onClick, isDragging = false, laneStatus, visibleCols
       : { ok: false, label: "○ No link yet" };
   }
 
-  // Avatar from relevant email
+  // Avatar from relevant email — fall back to video_title initials when the
+  // email column is hidden for this role (e.g. Editor doesn't see video_editor_email).
   const emailCol = laneStatus ? (EMAIL_FOR_STATUS[laneStatus] ?? "admin_email") : "admin_email";
   const email = row[emailCol as keyof Row] ?? "";
-  const avatar = initials(email);
+  const avatar = email ? initials(email) : (row.video_title ? initials(row.video_title.replace(/[^a-zA-Z0-9 ]/g, " ")) : "?");
 
   // Feedback note for the doer (if the status col has a feedback col)
   const feedbackNote = laneStatus && FEEDBACK_COL[laneStatus]
