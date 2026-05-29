@@ -1,0 +1,12 @@
+name = "tracker-app"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "c08b498509f740dabdf74c2d8f02a106"
