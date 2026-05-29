@@ -1,3 +1,10 @@
+// ── Stage → feedback column map ───────────────────────────────────────────
+// Maps a doer's owned status column to the feedback column they can read.
+export const FEEDBACK_COL: Record<string, string> = {
+  tutorial_status:     "tutorial_feedback",
+  video_editor_status: "editor_feedback",
+};
+
 // ── Human-readable labels ─────────────────────────────────────────────────
 
 export const FIELD_LABELS: Record<string, string> = {

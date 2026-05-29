@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import type { Column } from "../shared/columns";
 import type { Row } from "../shared/rbac";
-import { canEdit } from "../shared/rbac";
+import { canEdit, isApprover, canSetValue } from "../shared/rbac";
 import { updateCell, ForbiddenError } from "./api";
+import { POLICY } from "../shared/policy";
 import { LANES } from "./lanes";
-import { FIELD_LABELS, LANE_LABELS } from "./labels";
+import { FIELD_LABELS, LANE_LABELS, FEEDBACK_COL } from "./labels";
 
 interface CardDetailProps {
   row: Row;
@@ -18,10 +19,15 @@ interface CardDetailProps {
 
 const LANE_COLUMNS = new Set(["topic_status","tutorial_status","video_editor_status","yt_upload_status"]);
 
-export function CardDetail({ row, columns, role, readOnly, onClose, onSaved }: CardDetailProps) {
+export function CardDetail({ row, columns, role, laneStatus, readOnly, onClose, onSaved }: CardDetailProps) {
   const [draft, setDraft] = useState<Partial<Record<Column, string>>>({});
   const [errors, setErrors] = useState<Partial<Record<Column, string>>>({});
   const [saving, setSaving] = useState(false);
+
+  // Approver action state
+  const [approverAction, setApproverAction] = useState<"none" | "sendback">("none");
+  const [sendBackNote, setSendBackNote] = useState("");
+  const [approverBusy, setApproverBusy] = useState(false);
 
   useEffect(() => {
     const init: Partial<Record<Column, string>> = {};
@@ -75,6 +81,47 @@ export function CardDetail({ row, columns, role, readOnly, onClose, onSaved }: C
     ? []
     : columns.filter(c => c !== "row_id" && canEdit(role, c));
 
+  // Derived: the board's laneStatus (the status col that drives the current board view).
+  // Used for approver actions and feedback display.
+  const boardLaneStatus = laneStatus ?? POLICY[role]?.laneStatus ?? "";
+
+  // Doer feedback: show the feedback column for this role's owned stage
+  const doerFeedbackCol = !isApprover(role) ? FEEDBACK_COL[POLICY[role]?.laneStatus ?? ""] : undefined;
+  const doerFeedbackText = doerFeedbackCol ? (row[doerFeedbackCol as Column] ?? "") : "";
+
+  // Approver: show approve/send-back only when card is "In Review" on the board's laneStatus
+  const showApproverActions =
+    !readOnly &&
+    isApprover(role) &&
+    boardLaneStatus !== "" &&
+    (row[boardLaneStatus as Column] ?? "") === "In Review";
+
+  async function handleApprove() {
+    if (!row.row_id) return;
+    setApproverBusy(true);
+    try {
+      await updateCell(row.row_id, boardLaneStatus as Column, "Done");
+    } catch { /* server will enforce */ }
+    setApproverBusy(false);
+    onSaved();
+    onClose();
+  }
+
+  async function handleSendBack() {
+    if (!row.row_id) return;
+    setApproverBusy(true);
+    try {
+      await updateCell(row.row_id, boardLaneStatus as Column, "In Progress");
+      const fbCol = FEEDBACK_COL[boardLaneStatus];
+      if (fbCol && sendBackNote.trim()) {
+        await updateCell(row.row_id, fbCol as Column, sendBackNote.trim());
+      }
+    } catch { /* server will enforce */ }
+    setApproverBusy(false);
+    onSaved();
+    onClose();
+  }
+
   const title = row.video_title ?? "(no title)";
 
   return (
@@ -86,6 +133,55 @@ export function CardDetail({ row, columns, role, readOnly, onClose, onSaved }: C
         <button className="panel__close" onClick={onClose} aria-label="Close">×</button>
 
         <h2>{title}</h2>
+
+        {/* Doer: feedback note from reviewer (shown prominently when non-empty) */}
+        {doerFeedbackText && (
+          <div className="detail-feedback-note">
+            <span className="detail-feedback-note__icon">⚠</span>
+            <div>
+              <div className="detail-feedback-note__label">Reviewer note</div>
+              <div className="detail-feedback-note__text">{doerFeedbackText}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Approver actions (only for In-Review cards) */}
+        {showApproverActions && (
+          <div className="approver-actions">
+            <button
+              className="btn-approve"
+              onClick={() => void handleApprove()}
+              disabled={approverBusy}
+            >
+              {approverBusy && approverAction === "none" ? "…" : "✓ Approve"}
+            </button>
+            <button
+              className="btn-sendback"
+              onClick={() => setApproverAction(a => a === "sendback" ? "none" : "sendback")}
+              disabled={approverBusy}
+            >
+              ↩ Send back
+            </button>
+            {approverAction === "sendback" && (
+              <div className="sendback-form">
+                <textarea
+                  className="sendback-textarea"
+                  placeholder="Feedback for the freelancer…"
+                  value={sendBackNote}
+                  onChange={e => setSendBackNote(e.target.value)}
+                  rows={3}
+                />
+                <button
+                  className="btn-sendback-confirm"
+                  onClick={() => void handleSendBack()}
+                  disabled={approverBusy}
+                >
+                  {approverBusy ? "…" : "Confirm send back"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* THE BRIEF — read-only */}
         {briefCols.length > 0 && (
@@ -137,9 +233,11 @@ export function CardDetail({ row, columns, role, readOnly, onClose, onSaved }: C
                       {value && !rawLaneValues.includes(value) && (
                         <option value={value}>{friendlyMap[value] ?? value}</option>
                       )}
-                      {rawLaneValues.map(v => (
-                        <option key={v} value={v}>{friendlyMap[v] ?? v}</option>
-                      ))}
+                      {rawLaneValues
+                        .filter(v => canSetValue(role, col, v))
+                        .map(v => (
+                          <option key={v} value={v}>{friendlyMap[v] ?? v}</option>
+                        ))}
                     </select>
                   ) : (
                     <input

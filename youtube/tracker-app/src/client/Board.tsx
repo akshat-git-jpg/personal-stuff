@@ -11,13 +11,13 @@ import {
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import type { Column } from "../shared/columns";
 import type { Row } from "../shared/rbac";
-import { canEdit } from "../shared/rbac";
+import { canEdit, canSetValue, isRowLockedFor } from "../shared/rbac";
 import { POLICY } from "../shared/policy";
 import { updateCell, ForbiddenError, type BoardData } from "./api";
 import { LANES, ADMIN_LANE_OPTIONS, groupByLane } from "./lanes";
 import { Card } from "./Card";
 import { CardDetail } from "./CardDetail";
-import { laneLabel, laneColor, FIELD_LABELS } from "./labels";
+import { laneLabel, laneColor, FIELD_LABELS, FEEDBACK_COL } from "./labels";
 
 // ── Role banner text ───────────────────────────────────────────────────────
 
@@ -61,15 +61,18 @@ interface DraggableCardProps {
   row: Row;
   onCardClick: (row: Row) => void;
   canDrag: boolean;
+  locked: boolean;
   laneStatus: string;
   visibleCols: string[];
 }
 
-function DraggableCard({ row, onCardClick, canDrag, laneStatus, visibleCols }: DraggableCardProps) {
+function DraggableCard({ row, onCardClick, canDrag, locked, laneStatus, visibleCols }: DraggableCardProps) {
   const id = row.row_id ?? "";
+  // Locked cards are never draggable even if editAllowed is true
+  const draggable = canDrag && !locked;
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id,
-    disabled: !canDrag,
+    disabled: !draggable,
     data: { row },
   });
 
@@ -77,8 +80,8 @@ function DraggableCard({ row, onCardClick, canDrag, laneStatus, visibleCols }: D
     <div
       ref={setNodeRef}
       style={{ opacity: isDragging ? 0.35 : 1 }}
-      {...(canDrag ? listeners : {})}
-      {...(canDrag ? attributes : {})}
+      {...(draggable ? listeners : {})}
+      {...(draggable ? attributes : {})}
     >
       <Card
         row={row}
@@ -86,6 +89,7 @@ function DraggableCard({ row, onCardClick, canDrag, laneStatus, visibleCols }: D
         isDragging={isDragging}
         laneStatus={laneStatus}
         visibleCols={visibleCols}
+        locked={locked}
       />
     </div>
   );
@@ -105,6 +109,146 @@ interface BoardProps extends Omit<BoardData, "viewingAs" | "readOnly" | "notice"
   readOnly?: boolean;
 }
 
+// ── Awaiting Approval list (Admin full view only) ──────────────────────────
+
+const STAGE_LABEL: Record<string, string> = {
+  tutorial_status:     "Script",
+  video_editor_status: "Editing",
+};
+
+const ASSIGNEE_FOR_STATUS: Record<string, string> = {
+  tutorial_status:     "tutorial_maker_email",
+  video_editor_status: "video_editor_email",
+};
+
+interface AwaitingItem {
+  row: Row;
+  stageCol: string;
+  stageLabel: string;
+  assigneeEmail: string;
+}
+
+function buildAwaitingList(rows: Row[]): AwaitingItem[] {
+  const items: AwaitingItem[] = [];
+  for (const row of rows) {
+    for (const col of ["tutorial_status", "video_editor_status"] as const) {
+      if ((row[col] ?? "") === "In Review") {
+        const assigneeCol = ASSIGNEE_FOR_STATUS[col];
+        items.push({
+          row,
+          stageCol: col,
+          stageLabel: STAGE_LABEL[col],
+          assigneeEmail: (row[assigneeCol as keyof Row] ?? "") as string,
+        });
+      }
+    }
+  }
+  return items;
+}
+
+interface AwaitingListProps {
+  items: AwaitingItem[];
+  onDone: () => void;
+}
+
+function AwaitingList({ items, onDone }: AwaitingListProps) {
+  const [actingOn, setActingOn] = useState<string | null>(null); // "<row_id>:<col>"
+  const [sendBackNote, setSendBackNote] = useState<Record<string, string>>({});
+  const [showSendBack, setShowSendBack] = useState<Record<string, boolean>>({});
+  const [busy, setBusy] = useState(false);
+
+  async function approve(row: Row, stageCol: string) {
+    if (!row.row_id) return;
+    const key = `${row.row_id}:${stageCol}`;
+    setActingOn(key); setBusy(true);
+    try {
+      await updateCell(row.row_id, stageCol as Column, "Done");
+      onDone();
+    } catch {
+      // ignore, reload anyway
+      onDone();
+    }
+    setBusy(false); setActingOn(null);
+  }
+
+  async function sendBack(row: Row, stageCol: string) {
+    if (!row.row_id) return;
+    const key = `${row.row_id}:${stageCol}`;
+    setActingOn(key); setBusy(true);
+    const note = sendBackNote[key] ?? "";
+    try {
+      await updateCell(row.row_id, stageCol as Column, "In Progress");
+      const fbCol = FEEDBACK_COL[stageCol];
+      if (fbCol && note.trim()) {
+        await updateCell(row.row_id, fbCol as Column, note.trim());
+      }
+      onDone();
+    } catch {
+      onDone();
+    }
+    setBusy(false); setActingOn(null);
+  }
+
+  if (items.length === 0) {
+    return <div className="awaiting-empty">No items awaiting approval.</div>;
+  }
+
+  return (
+    <div className="awaiting-list">
+      {items.map(({ row, stageCol, stageLabel, assigneeEmail }) => {
+        const key = `${row.row_id}:${stageCol}`;
+        const isActing = actingOn === key;
+        const isSendBack = showSendBack[key];
+        return (
+          <div key={key} className="awaiting-item">
+            <div className="awaiting-item__meta">
+              <span className="awaiting-item__title">{row.video_title ?? "(no title)"}</span>
+              <span className="awaiting-item__stage">{stageLabel}</span>
+              {assigneeEmail && (
+                <span className="awaiting-item__assignee">{assigneeEmail}</span>
+              )}
+            </div>
+            <div className="awaiting-item__actions">
+              <button
+                className="btn-approve"
+                onClick={() => void approve(row, stageCol)}
+                disabled={busy}
+              >
+                {isActing && !isSendBack ? "…" : "✓ Approve"}
+              </button>
+              <button
+                className="btn-sendback"
+                onClick={() => setShowSendBack(s => ({ ...s, [key]: !s[key] }))}
+                disabled={busy}
+              >
+                ↩ Send back
+              </button>
+            </div>
+            {isSendBack && (
+              <div className="awaiting-item__sendback">
+                <textarea
+                  className="sendback-textarea"
+                  placeholder="Feedback for the freelancer…"
+                  value={sendBackNote[key] ?? ""}
+                  onChange={e => setSendBackNote(n => ({ ...n, [key]: e.target.value }))}
+                  rows={3}
+                />
+                <button
+                  className="btn-sendback-confirm"
+                  onClick={() => void sendBack(row, stageCol)}
+                  disabled={busy}
+                >
+                  {isActing ? "…" : "Confirm send back"}
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, reload }: BoardProps) {
   const isPreview = !!viewingAs;
   const defaultLane = (role === "Admin"
@@ -116,10 +260,15 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
   const [activeRow, setActiveRow] = useState<Row | null>(null);
   const [detailRow, setDetailRow] = useState<Row | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [showAwaiting, setShowAwaiting] = useState(false);
 
   const lanes = LANES[laneStatus] ?? [];
   // In read-only preview mode, dragging is never allowed regardless of role.
   const editAllowed = !readOnly && canEdit(role, laneStatus);
+
+  // Awaiting approval count (Admin full view only)
+  const awaitingItems = (role === "Admin" && !isPreview) ? buildAwaitingList(rows) : [];
+  const awaitingCount = awaitingItems.length;
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -149,6 +298,12 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
     const newLane = over.id as string;
     const oldLane = draggedRow[laneStatus] ?? "";
     if (newLane === oldLane) return;
+
+    // Client-side guard: prevent doers from dragging into lanes they can't set
+    if (!canSetValue(role, laneStatus, newLane)) {
+      showToast("Only an admin/reviewer can approve. Drag to 'Submitted for review' to submit it.");
+      return;
+    }
 
     // Optimistic update
     setRows(prev => prev.map(r =>
@@ -182,66 +337,85 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
         </div>
       )}
 
-      {/* Admin lane picker — only in full admin view (not in per-user preview) */}
+      {/* Admin lane picker + awaiting-approval toggle — only in full admin view */}
       {role === "Admin" && !isPreview && (
         <div className="board-controls">
           <label htmlFor="lane-select">Board view:</label>
           <select
             id="lane-select"
             value={laneStatus}
-            onChange={e => setLaneStatus(e.target.value as Column)}
+            onChange={e => { setLaneStatus(e.target.value as Column); setShowAwaiting(false); }}
           >
             {ADMIN_LANE_OPTIONS.map(col => (
               <option key={col} value={col}>{FIELD_LABELS[col] ?? col.replace(/_/g, " ")}</option>
             ))}
           </select>
+          <button
+            className={`btn-awaiting${showAwaiting ? " btn-awaiting--active" : ""}`}
+            onClick={() => setShowAwaiting(v => !v)}
+            aria-pressed={showAwaiting}
+          >
+            Awaiting approval ({awaitingCount})
+          </button>
         </div>
       )}
 
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="board">
-          {laneGroups.map(({ lane, rows: laneRows }, idx) => {
-            // Only apply stage color to "real" lanes (not OTHER_LANE), and only within normal range
-            const isKnownLane = idx < lanes.length;
-            const stage = isKnownLane ? laneColor(idx, lanes.length) : null;
-            return (
-              <LaneColumn
-                key={lane}
-                lane={lane}
-                stageKey={stage}
-                laneStatusCol={laneStatus}
-                count={laneRows.length}
-              >
-                {laneRows.map(row => (
-                  <DraggableCard
-                    key={row.row_id}
-                    row={row}
-                    canDrag={editAllowed}
-                    onCardClick={setDetailRow}
-                    laneStatus={laneStatus}
-                    visibleCols={visibleCols}
-                  />
-                ))}
-                {laneRows.length === 0 && (
-                  <div className="lane__empty">No items</div>
-                )}
-              </LaneColumn>
-            );
-          })}
-        </div>
+      {/* Awaiting approval list (Admin only, toggleable) */}
+      {showAwaiting ? (
+        <AwaitingList
+          items={awaitingItems}
+          onDone={() => { reload(); setShowAwaiting(false); }}
+        />
+      ) : (
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <div className="board">
+            {laneGroups.map(({ lane, rows: laneRows }, idx) => {
+              // Only apply stage color to "real" lanes (not OTHER_LANE), and only within normal range
+              const isKnownLane = idx < lanes.length;
+              const stage = isKnownLane ? laneColor(idx, lanes.length) : null;
+              return (
+                <LaneColumn
+                  key={lane}
+                  lane={lane}
+                  stageKey={stage}
+                  laneStatusCol={laneStatus}
+                  count={laneRows.length}
+                >
+                  {laneRows.map(row => {
+                    const locked = isRowLockedFor(role, row);
+                    return (
+                      <DraggableCard
+                        key={row.row_id}
+                        row={row}
+                        canDrag={editAllowed}
+                        locked={locked}
+                        onCardClick={r => setDetailRow(r)}
+                        laneStatus={laneStatus}
+                        visibleCols={visibleCols}
+                      />
+                    );
+                  })}
+                  {laneRows.length === 0 && (
+                    <div className="lane__empty">No items</div>
+                  )}
+                </LaneColumn>
+              );
+            })}
+          </div>
 
-        <DragOverlay>
-          {activeRow && (
-            <Card
-              row={activeRow}
-              onClick={() => undefined}
-              isDragging
-              laneStatus={laneStatus}
-              visibleCols={visibleCols}
-            />
-          )}
-        </DragOverlay>
-      </DndContext>
+          <DragOverlay>
+            {activeRow && (
+              <Card
+                row={activeRow}
+                onClick={() => undefined}
+                isDragging
+                laneStatus={laneStatus}
+                visibleCols={visibleCols}
+              />
+            )}
+          </DragOverlay>
+        </DndContext>
+      )}
 
       {detailRow && (
         <CardDetail
