@@ -101,7 +101,7 @@ export async function getAccessToken(saJson: string): Promise<string> {
 
   // Import PKCS8 private key
   const derBuffer = pemToDer(sa.private_key);
-  const cryptoKey = await globalThis.crypto.subtle.importKey(
+  const cryptoKey = await crypto.subtle.importKey(
     "pkcs8",
     derBuffer,
     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
@@ -111,7 +111,7 @@ export async function getAccessToken(saJson: string): Promise<string> {
 
   // Sign
   const sigBytes = new Uint8Array(
-    await globalThis.crypto.subtle.sign(
+    await crypto.subtle.sign(
       "RSASSA-PKCS1-v1_5",
       cryptoKey,
       new TextEncoder().encode(signingInput),
