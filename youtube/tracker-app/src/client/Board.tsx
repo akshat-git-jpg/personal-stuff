@@ -1,4 +1,4 @@
-import { useState, useCallback, Fragment } from "react";
+import { useState, useCallback, useEffect, Fragment } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -11,13 +11,13 @@ import {
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import type { Column } from "../shared/columns";
 import type { Row } from "../shared/rbac";
-import { canEdit, canSetValue, isRowLockedFor } from "../shared/rbac";
+import { canEdit, canSetValue, isRowLockedFor, isApprover } from "../shared/rbac";
 import { POLICY, APPROVER_ONLY_VALUES } from "../shared/policy";
-import { updateCell, ForbiddenError, type BoardData } from "./api";
+import { updateCell, ForbiddenError, getApprovals, type BoardData, type ApprovalItem } from "./api";
 import { LANES, ADMIN_LANE_OPTIONS, groupByLane } from "./lanes";
 import { Card } from "./Card";
 import { CardDetail } from "./CardDetail";
-import { laneLabel, laneColor, FIELD_LABELS, FEEDBACK_COL } from "./labels";
+import { laneLabel, laneColor, FIELD_LABELS } from "./labels";
 
 // ── Role banner text ───────────────────────────────────────────────────────
 
@@ -111,139 +111,39 @@ interface BoardProps extends Omit<BoardData, "viewingAs" | "readOnly" | "notice"
   readOnly?: boolean;
 }
 
-// ── Awaiting Approval list (Admin full view only) ──────────────────────────
+// ── Awaiting Approval queue (approver-driven, endpoint-sourced) ────────────
 
-const STAGE_LABEL: Record<string, string> = {
-  tutorial_status:     "Script",
-  video_editor_status: "Editing",
-};
-
-const ASSIGNEE_FOR_STATUS: Record<string, string> = {
-  tutorial_status:     "tutorial_maker_email",
-  video_editor_status: "video_editor_email",
-};
-
-interface AwaitingItem {
-  row: Row;
-  stageCol: string;
-  stageLabel: string;
-  assigneeEmail: string;
+interface ApprovalQueueProps {
+  items: ApprovalItem[];
+  onOpenCard: (item: ApprovalItem) => void;
 }
 
-function buildAwaitingList(rows: Row[]): AwaitingItem[] {
-  const items: AwaitingItem[] = [];
-  for (const row of rows) {
-    for (const col of ["tutorial_status", "video_editor_status"] as const) {
-      if ((row[col] ?? "") === "In Review") {
-        const assigneeCol = ASSIGNEE_FOR_STATUS[col];
-        items.push({
-          row,
-          stageCol: col,
-          stageLabel: STAGE_LABEL[col],
-          assigneeEmail: (row[assigneeCol as keyof Row] ?? "") as string,
-        });
-      }
-    }
-  }
-  return items;
-}
-
-interface AwaitingListProps {
-  items: AwaitingItem[];
-  onDone: () => void;
-}
-
-function AwaitingList({ items, onDone }: AwaitingListProps) {
-  const [actingOn, setActingOn] = useState<string | null>(null); // "<row_id>:<col>"
-  const [sendBackNote, setSendBackNote] = useState<Record<string, string>>({});
-  const [showSendBack, setShowSendBack] = useState<Record<string, boolean>>({});
-  const [busy, setBusy] = useState(false);
-
-  async function approve(row: Row, stageCol: string) {
-    if (!row.row_id) return;
-    const key = `${row.row_id}:${stageCol}`;
-    setActingOn(key); setBusy(true);
-    try {
-      await updateCell(row.row_id, stageCol as Column, "Done");
-      onDone();
-    } catch {
-      // ignore, reload anyway
-      onDone();
-    }
-    setBusy(false); setActingOn(null);
-  }
-
-  async function sendBack(row: Row, stageCol: string) {
-    if (!row.row_id) return;
-    const key = `${row.row_id}:${stageCol}`;
-    setActingOn(key); setBusy(true);
-    const note = sendBackNote[key] ?? "";
-    try {
-      await updateCell(row.row_id, stageCol as Column, "In Progress");
-      const fbCol = FEEDBACK_COL[stageCol];
-      if (fbCol && note.trim()) {
-        await updateCell(row.row_id, fbCol as Column, note.trim());
-      }
-      onDone();
-    } catch {
-      onDone();
-    }
-    setBusy(false); setActingOn(null);
-  }
-
+function ApprovalQueue({ items, onOpenCard }: ApprovalQueueProps) {
   if (items.length === 0) {
     return <div className="awaiting-empty">No items awaiting approval.</div>;
   }
 
   return (
     <div className="awaiting-list">
-      {items.map(({ row, stageCol, stageLabel, assigneeEmail }) => {
-        const key = `${row.row_id}:${stageCol}`;
-        const isActing = actingOn === key;
-        const isSendBack = showSendBack[key];
+      {items.map((item) => {
+        const key = `${item.row_id}:${item.stageCol}`;
         return (
-          <div key={key} className="awaiting-item">
+          <div
+            key={key}
+            className="awaiting-item awaiting-item--clickable"
+            onClick={() => onOpenCard(item)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") onOpenCard(item); }}
+          >
             <div className="awaiting-item__meta">
-              <span className="awaiting-item__title">{row.video_title ?? "(no title)"}</span>
-              <span className="awaiting-item__stage">{stageLabel}</span>
-              {assigneeEmail && (
-                <span className="awaiting-item__assignee">{assigneeEmail}</span>
+              <span className="awaiting-item__title">{item.video_title || "(no title)"}</span>
+              <span className="awaiting-item__stage">{item.stage}</span>
+              {item.assigneeEmail && (
+                <span className="awaiting-item__assignee">{item.assigneeEmail}</span>
               )}
             </div>
-            <div className="awaiting-item__actions">
-              <button
-                className="btn-approve"
-                onClick={() => void approve(row, stageCol)}
-                disabled={busy}
-              >
-                {isActing && !isSendBack ? "…" : "✓ Approve"}
-              </button>
-              <button
-                className="btn-sendback"
-                onClick={() => setShowSendBack(s => ({ ...s, [key]: !s[key] }))}
-                disabled={busy}
-              >
-                ↩ Send back
-              </button>
-            </div>
-            {isSendBack && (
-              <div className="awaiting-item__sendback">
-                <textarea
-                  className="sendback-textarea"
-                  placeholder="Feedback for the freelancer…"
-                  value={sendBackNote[key] ?? ""}
-                  onChange={e => setSendBackNote(n => ({ ...n, [key]: e.target.value }))}
-                  rows={3}
-                />
-                <button
-                  className="btn-sendback-confirm"
-                  onClick={() => void sendBack(row, stageCol)}
-                  disabled={busy}
-                >
-                  {isActing ? "…" : "Confirm send back"}
-                </button>
-              </div>
-            )}
+            <div className="awaiting-item__hint">Click to review →</div>
           </div>
         );
       })}
@@ -261,16 +161,32 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
   const [rows, setRows] = useState<Row[]>(initialRows);
   const [activeRow, setActiveRow] = useState<Row | null>(null);
   const [detailRow, setDetailRow] = useState<Row | null>(null);
+  // detailLaneStatus overrides the board laneStatus when opening a card from the approvals queue
+  const [detailLaneStatus, setDetailLaneStatus] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [showAwaiting, setShowAwaiting] = useState(false);
+
+  // Approvals queue — fetched from the server for approver roles
+  const [approvalItems, setApprovalItems] = useState<ApprovalItem[]>([]);
+  const approverMode = isApprover(role) && !isPreview;
+
+  async function fetchApprovals() {
+    if (!approverMode) return;
+    const data = await getApprovals();
+    setApprovalItems(data.items);
+  }
+
+  // Fetch on mount and whenever reload is triggered (parent bumps a key or similar)
+  useEffect(() => {
+    void fetchApprovals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role, isPreview]);
+
+  const awaitingCount = approvalItems.length;
 
   const lanes = LANES[laneStatus] ?? [];
   // In read-only preview mode, dragging is never allowed regardless of role.
   const editAllowed = !readOnly && canEdit(role, laneStatus);
-
-  // Awaiting approval count (Admin full view only)
-  const awaitingItems = (role === "Admin" && !isPreview) ? buildAwaitingList(rows) : [];
-  const awaitingCount = awaitingItems.length;
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -339,7 +255,7 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
         </div>
       )}
 
-      {/* Admin lane picker + awaiting-approval toggle — only in full admin view */}
+      {/* Admin lane picker + awaiting-approval toggle — full admin view */}
       {role === "Admin" && !isPreview && (
         <div className="board-controls">
           <label htmlFor="lane-select">Board view:</label>
@@ -362,11 +278,27 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
         </div>
       )}
 
-      {/* Awaiting approval list (Admin only, toggleable) */}
+      {/* Reviewer awaiting-approval toggle — Reviewer has no lane picker, so just the button */}
+      {role === "Reviewer" && !isPreview && (
+        <div className="board-controls">
+          <button
+            className={`btn-awaiting${showAwaiting ? " btn-awaiting--active" : ""}`}
+            onClick={() => setShowAwaiting(v => !v)}
+            aria-pressed={showAwaiting}
+          >
+            Awaiting approval ({awaitingCount})
+          </button>
+        </div>
+      )}
+
+      {/* Awaiting approval queue (approvers only, endpoint-sourced, click-to-open-card) */}
       {showAwaiting ? (
-        <AwaitingList
-          items={awaitingItems}
-          onDone={() => { reload(); setShowAwaiting(false); }}
+        <ApprovalQueue
+          items={approvalItems}
+          onOpenCard={item => {
+            setDetailRow(item.row);
+            setDetailLaneStatus(item.stageCol);
+          }}
         />
       ) : (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -401,7 +333,7 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
                         row={row}
                         canDrag={editAllowed}
                         locked={locked}
-                        onCardClick={r => setDetailRow(r)}
+                        onCardClick={r => { setDetailRow(r); setDetailLaneStatus(null); }}
                         laneStatus={laneStatus}
                         visibleCols={visibleCols}
                       />
@@ -435,10 +367,16 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
           row={detailRow}
           columns={columns}
           role={role}
-          laneStatus={laneStatus}
+          laneStatus={detailLaneStatus ?? laneStatus}
           readOnly={readOnly}
-          onClose={() => setDetailRow(null)}
-          onSaved={() => { reload(); setDetailRow(null); }}
+          onClose={() => { setDetailRow(null); setDetailLaneStatus(null); }}
+          onSaved={() => {
+            void fetchApprovals();
+            reload();
+            setDetailRow(null);
+            setDetailLaneStatus(null);
+            if (detailLaneStatus) setShowAwaiting(false);
+          }}
         />
       )}
 

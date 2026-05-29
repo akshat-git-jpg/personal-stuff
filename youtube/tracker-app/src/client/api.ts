@@ -31,6 +31,20 @@ export interface MeData {
   role: string;
 }
 
+export interface ApprovalItem {
+  row_id: string;
+  video_title: string;
+  stageCol: string;
+  stage: string;
+  assigneeEmail: string;
+  row: Row;
+}
+
+export interface ApprovalsData {
+  count: number;
+  items: ApprovalItem[];
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 async function throwOnError(res: Response): Promise<void> {
@@ -89,4 +103,10 @@ export async function getAuthMode(): Promise<{ dev: boolean }> {
   const res = await fetch("/api/auth-mode", { credentials: "same-origin" });
   if (!res.ok) return { dev: false };
   return res.json() as Promise<{ dev: boolean }>;
+}
+
+export async function getApprovals(): Promise<ApprovalsData> {
+  const res = await fetch("/api/approvals", { credentials: "same-origin" });
+  if (!res.ok) return { count: 0, items: [] };
+  return res.json() as Promise<ApprovalsData>;
 }

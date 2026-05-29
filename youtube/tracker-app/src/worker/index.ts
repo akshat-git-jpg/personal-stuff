@@ -21,7 +21,7 @@ import {
   requireSession,
 } from "./auth";
 import { getAccessToken, readRows, updateCell } from "./sheets";
-import { filterRows, projectRow, visibleColumns, canEdit, peopleFor, isRowLockedFor, canSetValue } from "../shared/rbac";
+import { filterRows, projectRow, visibleColumns, canEdit, peopleFor, isRowLockedFor, canSetValue, isApprover } from "../shared/rbac";
 import { loadTeam, lookupRole } from "./roles";
 import { COLUMNS } from "../shared/columns";
 import type { Column } from "../shared/columns";
@@ -179,6 +179,54 @@ app.get("/api/board", async (c) => {
     // Legacy fields kept for any existing clients that read them:
     people: viewingAs ? peopleFor(effectiveRole, allRows) : [],
   });
+});
+
+// GET /api/approvals
+// Returns items currently awaiting approval (tutorial or editing stages at "In Review").
+// Available to Approver roles (Admin, Reviewer) only; returns empty for everyone else.
+app.get("/api/approvals", async (c) => {
+  const { role } = getUser(c);
+  if (!isApprover(role)) {
+    return c.json({ count: 0, items: [] }, 200);
+  }
+
+  const allRows = await cachedReadRows(c.env);
+
+  const STAGE_COLS = ["tutorial_status", "video_editor_status"] as const;
+  const ASSIGNEE_COL: Record<string, string> = {
+    tutorial_status:     "tutorial_maker_email",
+    video_editor_status: "video_editor_email",
+  };
+  const STAGE_LABEL: Record<string, string> = {
+    tutorial_status:     "Script",
+    video_editor_status: "Editing",
+  };
+
+  const items: {
+    row_id: string;
+    video_title: string;
+    stageCol: string;
+    stage: string;
+    assigneeEmail: string;
+    row: ReturnType<typeof projectRow>;
+  }[] = [];
+
+  for (const row of allRows) {
+    for (const stageCol of STAGE_COLS) {
+      if ((row[stageCol] ?? "") === "In Review") {
+        items.push({
+          row_id:        (row.row_id ?? "") as string,
+          video_title:   (row.video_title ?? "") as string,
+          stageCol,
+          stage:         STAGE_LABEL[stageCol],
+          assigneeEmail: (row[ASSIGNEE_COL[stageCol] as keyof typeof row] ?? "") as string,
+          row:           projectRow(role, row),
+        });
+      }
+    }
+  }
+
+  return c.json({ count: items.length, items });
 });
 
 // POST /api/update
