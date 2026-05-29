@@ -19,7 +19,14 @@ export function filterRows(role: string, email: string, rows: Row[]): Row[] {
   const p = POLICY[role]; if (!p) return [];
   if (p.rows === "all") return rows;
   const col = p.rows.match;
-  return rows.filter(r => (r[col] || "").trim().toLowerCase() === email.trim().toLowerCase());
+  const gate = p.rows.gate;
+  const want = email.trim().toLowerCase();
+  return rows.filter(r => {
+    if ((r[col] || "").trim().toLowerCase() !== want) return false;
+    // Gated handoff: only show the row once the upstream stage is complete.
+    if (gate && (r[gate.col] || "").trim() !== gate.equals) return false;
+    return true;
+  });
 }
 export function projectRow(role: string, row: Row): Row {
   const out: Row = {};
