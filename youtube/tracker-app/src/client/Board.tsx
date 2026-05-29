@@ -157,6 +157,9 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
     ? "topic_status"
     : (POLICY[role]?.laneStatus ?? "topic_status")) as Column;
 
+  // Hoist approverMode before state so useState initial value can use it.
+  const approverMode = isApprover(role) && !isPreview;
+
   const [laneStatus, setLaneStatus] = useState<Column>(defaultLane);
   const [rows, setRows] = useState<Row[]>(initialRows);
   const [activeRow, setActiveRow] = useState<Row | null>(null);
@@ -164,11 +167,11 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
   // detailLaneStatus overrides the board laneStatus when opening a card from the approvals queue
   const [detailLaneStatus, setDetailLaneStatus] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [showAwaiting, setShowAwaiting] = useState(false);
+  // Reviewer defaults to the approvals queue; Admin defaults to board view.
+  const [showAwaiting, setShowAwaiting] = useState(approverMode && role === "Reviewer");
 
   // Approvals queue — fetched from the server for approver roles
   const [approvalItems, setApprovalItems] = useState<ApprovalItem[]>([]);
-  const approverMode = isApprover(role) && !isPreview;
 
   async function fetchApprovals() {
     if (!approverMode) return;

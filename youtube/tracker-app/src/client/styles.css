@@ -605,3 +605,101 @@ body {
   border: 1px solid rgba(251,146,60,0.30);
   color: var(--t2); font-size: 13px; line-height: 1.45;
 }
+
+/* ── Clickable external links (Feature 1) ────────────────────────────────── */
+.ext-link {
+  display: inline-flex; align-items: center;
+  font-size: 12px; font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  gap: 3px;
+  transition: opacity .12s;
+}
+.ext-link:hover { opacity: .75; text-decoration: underline; }
+
+/* Inline open-link next to read-only value */
+.ro--link {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  flex-wrap: wrap;
+}
+.ro__link-text {
+  font-size: 12px; color: var(--t3);
+  word-break: break-all; flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Open link that appears below an editable input */
+.ext-link--below-input {
+  margin-top: 2px; align-self: flex-start;
+}
+
+/* ── Focused review mode (Feature 2) ─────────────────────────────────────── */
+.review-header {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255,240,224,0.03);
+  border: 1px solid var(--line);
+}
+.review-stage-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 13px; font-weight: 700; color: var(--t1);
+}
+.review-stage-chip__dot {
+  width: 9px; height: 9px; border-radius: 999px; flex-shrink: 0;
+}
+.review-stage-chip__label { letter-spacing: .1px; }
+.review-submitted-by {
+  font-size: 12px; color: var(--t3); padding-left: 16px;
+}
+.review-submitted-by strong { color: var(--t2); font-weight: 600; }
+
+.review-artifact {
+  display: flex; flex-direction: column;
+}
+.btn-artifact {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 13px 16px;
+  border-radius: 10px;
+  background: var(--accent-dim);
+  border: 1.5px solid rgba(251,146,60,0.38);
+  color: var(--accent);
+  font-size: 14px; font-weight: 700;
+  text-decoration: none;
+  transition: background .14s, border-color .14s;
+  text-align: center;
+}
+.btn-artifact:hover {
+  background: rgba(251,146,60,0.22);
+  border-color: rgba(251,146,60,0.60);
+}
+.review-artifact__no-link {
+  font-size: 13px; color: var(--t4); font-style: italic;
+  padding: 12px; text-align: center;
+  border: 1px dashed var(--line-2); border-radius: 8px;
+}
+
+/* Collapsible details in review mode */
+.review-details {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.review-details__summary {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  color: var(--t4); text-transform: uppercase;
+  padding: 9px 12px; cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.review-details__summary::-webkit-details-marker { display: none; }
+.review-details__summary::before {
+  content: "▶ ";
+  font-size: 9px; color: var(--t4);
+}
+details[open] .review-details__summary::before { content: "▼ "; }
+.review-details__body {
+  padding: 10px 12px 14px;
+  display: flex; flex-direction: column; gap: 12px;
+  border-top: 1px solid var(--line);
+}

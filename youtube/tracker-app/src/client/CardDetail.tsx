@@ -5,7 +5,7 @@ import { canEdit, isApprover, canSetValue } from "../shared/rbac";
 import { updateCell, ForbiddenError } from "./api";
 import { POLICY } from "../shared/policy";
 import { LANES } from "./lanes";
-import { FIELD_LABELS, LANE_LABELS, FEEDBACK_COL, LINK_HINTS } from "./labels";
+import { FIELD_LABELS, LANE_LABELS, FEEDBACK_COL, LINK_HINTS, LINK_COLS, isUrl, STAGE_NAME, ARTIFACT_COL, EMAIL_FOR_STAGE } from "./labels";
 
 interface CardDetailProps {
   row: Row;
@@ -124,6 +124,82 @@ export function CardDetail({ row, columns, role, laneStatus, readOnly, onClose, 
 
   const title = row.video_title ?? "(no title)";
 
+  // ── Focused review mode (Feature 2) ──────────────────────────────────────
+  const isReviewMode = showApproverActions; // same gate: approver + !readOnly + "In Review"
+  const stageName = STAGE_NAME[boardLaneStatus] ?? boardLaneStatus;
+  const artifactCol = ARTIFACT_COL[boardLaneStatus] ?? "";
+  const artifactValue = artifactCol ? (row[artifactCol as Column] ?? "") : "";
+  const artifactIsUrl = isUrl(artifactValue);
+  const assigneeEmailCol = EMAIL_FOR_STAGE[boardLaneStatus] ?? "";
+  const assigneeEmail = assigneeEmailCol ? (row[assigneeEmailCol as Column] ?? "") : "";
+  const assigneeDisplay = assigneeEmail ? (assigneeEmail.includes("@") ? assigneeEmail.split("@")[0] : assigneeEmail) : "";
+
+  // Stage dot color: tutorial=prog(blue), video_editor=review(amber), yt_upload=done(green)
+  const STAGE_DOT_COLOR: Record<string, string> = {
+    tutorial_status:     "var(--prog)",
+    video_editor_status: "var(--review)",
+    yt_upload_status:    "var(--done)",
+  };
+  const stageDotColor = STAGE_DOT_COLOR[boardLaneStatus] ?? "var(--accent)";
+
+  // ── Helper: render a read-only field value (with clickable link if applicable) ──
+  function renderReadOnlyValue(col: string, value: string) {
+    if (LINK_COLS.has(col) && isUrl(value)) {
+      return (
+        <div className="ro ro--link">
+          <span className="ro__link-text">{value}</span>
+          <a
+            href={value}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ext-link"
+          >
+            Open ↗
+          </a>
+        </div>
+      );
+    }
+    return <div className="ro">{value}</div>;
+  }
+
+  // ── Approver actions block (shared, rendered in two places depending on mode) ──
+  const approverActionsBlock = showApproverActions ? (
+    <div className="approver-actions">
+      <button
+        className="btn-approve"
+        onClick={() => void handleApprove()}
+        disabled={approverBusy}
+      >
+        {approverBusy && approverAction === "none" ? "…" : "✓ Approve"}
+      </button>
+      <button
+        className="btn-sendback"
+        onClick={() => setApproverAction(a => a === "sendback" ? "none" : "sendback")}
+        disabled={approverBusy}
+      >
+        ↩ Send back
+      </button>
+      {approverAction === "sendback" && (
+        <div className="sendback-form">
+          <textarea
+            className="sendback-textarea"
+            placeholder="Feedback for the freelancer…"
+            value={sendBackNote}
+            onChange={e => setSendBackNote(e.target.value)}
+            rows={3}
+          />
+          <button
+            className="btn-sendback-confirm"
+            onClick={() => void handleSendBack()}
+            disabled={approverBusy}
+          >
+            {approverBusy ? "…" : "Confirm send back"}
+          </button>
+        </div>
+      )}
+    </div>
+  ) : null;
+
   return (
     <>
       {/* Scrim — click outside to close */}
@@ -134,140 +210,174 @@ export function CardDetail({ row, columns, role, laneStatus, readOnly, onClose, 
 
         <h2>{title}</h2>
 
-        {/* Doer: feedback note from reviewer (shown prominently when non-empty) */}
-        {doerFeedbackText && (
-          <div className="detail-feedback-note">
-            <span className="detail-feedback-note__icon">⚠</span>
-            <div>
-              <div className="detail-feedback-note__label">Reviewer note</div>
-              <div className="detail-feedback-note__text">{doerFeedbackText}</div>
+        {/* ── FOCUSED REVIEW MODE (Feature 2) ── */}
+        {isReviewMode ? (
+          <>
+            {/* 1. Stage chip + submitted-by header */}
+            <div className="review-header">
+              <div className="review-stage-chip">
+                <span className="review-stage-chip__dot" style={{ background: stageDotColor }} />
+                <span className="review-stage-chip__label">Reviewing: {stageName}</span>
+              </div>
+              {assigneeDisplay && (
+                <div className="review-submitted-by">
+                  submitted by <strong>{assigneeDisplay}</strong>
+                </div>
+              )}
             </div>
-          </div>
-        )}
 
-        {/* Approver actions (only for In-Review cards) */}
-        {showApproverActions && (
-          <div className="approver-actions">
-            <button
-              className="btn-approve"
-              onClick={() => void handleApprove()}
-              disabled={approverBusy}
-            >
-              {approverBusy && approverAction === "none" ? "…" : "✓ Approve"}
-            </button>
-            <button
-              className="btn-sendback"
-              onClick={() => setApproverAction(a => a === "sendback" ? "none" : "sendback")}
-              disabled={approverBusy}
-            >
-              ↩ Send back
-            </button>
-            {approverAction === "sendback" && (
-              <div className="sendback-form">
-                <textarea
-                  className="sendback-textarea"
-                  placeholder="Feedback for the freelancer…"
-                  value={sendBackNote}
-                  onChange={e => setSendBackNote(e.target.value)}
-                  rows={3}
-                />
-                <button
-                  className="btn-sendback-confirm"
-                  onClick={() => void handleSendBack()}
-                  disabled={approverBusy}
+            {/* 2. Prominent artifact link */}
+            <div className="review-artifact">
+              {artifactIsUrl ? (
+                <a
+                  href={artifactValue}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-artifact"
                 >
-                  {approverBusy ? "…" : "Confirm send back"}
+                  ▶ Open the {stageName.toLowerCase()} ↗
+                </a>
+              ) : (
+                <div className="review-artifact__no-link">(no link provided)</div>
+              )}
+            </div>
+
+            {/* 3. Approve / Send back — right after the artifact */}
+            {approverActionsBlock}
+
+            {/* 4. Details (brief) — de-emphasized, lower priority */}
+            {briefCols.length > 0 && (
+              <details className="review-details">
+                <summary className="review-details__summary">Details</summary>
+                <div className="review-details__body">
+                  {briefCols.map(col => {
+                    const value = draft[col] ?? "";
+                    const label = FIELD_LABELS[col] ?? col.replace(/_/g, " ");
+                    return (
+                      <div key={col} className="field">
+                        <label>{label}</label>
+                        {renderReadOnlyValue(col, value)}
+                      </div>
+                    );
+                  })}
+                </div>
+              </details>
+            )}
+          </>
+        ) : (
+          <>
+            {/* ── NORMAL MODE (non-review opens) ── */}
+
+            {/* Doer: feedback note from reviewer (shown prominently when non-empty) */}
+            {doerFeedbackText && (
+              <div className="detail-feedback-note">
+                <span className="detail-feedback-note__icon">⚠</span>
+                <div>
+                  <div className="detail-feedback-note__label">Reviewer note</div>
+                  <div className="detail-feedback-note__text">{doerFeedbackText}</div>
+                </div>
+              </div>
+            )}
+
+            {/* THE BRIEF — read-only */}
+            {briefCols.length > 0 && (
+              <>
+                <div className="ctx-label">The brief — read only</div>
+                {briefCols.map(col => {
+                  const value = draft[col] ?? "";
+                  const label = FIELD_LABELS[col] ?? col.replace(/_/g, " ");
+                  return (
+                    <div key={col} className="field">
+                      <label>{label}</label>
+                      {renderReadOnlyValue(col, value)}
+                    </div>
+                  );
+                })}
+              </>
+            )}
+
+            {/* Divider before YOUR PART */}
+            {briefCols.length > 0 && editCols.length > 0 && (
+              <div className="divider-line" />
+            )}
+
+            {/* YOUR PART — editable */}
+            {editCols.length > 0 && (
+              <div className="yours">
+                <div className="yours-tag">YOUR PART</div>
+                {editCols.map(col => {
+                  const editable = canEdit(role, col);
+                  const value = draft[col] ?? "";
+                  const err = errors[col];
+                  const isLaneCol = LANE_COLUMNS.has(col);
+                  const rawLaneValues = isLaneCol ? (LANES[col] ?? []) : [];
+                  const label = FIELD_LABELS[col] ?? col.replace(/_/g, " ");
+                  // lane labels for this col
+                  const friendlyMap = LANE_LABELS[col] ?? {};
+
+                  if (!editable) return null; // shouldn't happen but guard
+
+                  return (
+                    <div key={col} className="field">
+                      <label htmlFor={`field-${col}`}>{label}</label>
+                      {isLaneCol ? (
+                        <select
+                          id={`field-${col}`}
+                          value={value}
+                          onChange={e => handleChange(col, e.target.value)}
+                        >
+                          {value && !rawLaneValues.includes(value) && (
+                            <option value={value}>{friendlyMap[value] ?? value}</option>
+                          )}
+                          {rawLaneValues
+                            .filter(v => canSetValue(role, col, v))
+                            .map(v => (
+                              <option key={v} value={v}>{friendlyMap[v] ?? v}</option>
+                            ))}
+                        </select>
+                      ) : (
+                        <>
+                          <input
+                            id={`field-${col}`}
+                            type="text"
+                            value={value}
+                            placeholder={`Paste your ${label.toLowerCase()}…`}
+                            onChange={e => handleChange(col, e.target.value)}
+                          />
+                          {LINK_COLS.has(col) && isUrl(value) && (
+                            <a
+                              href={value}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ext-link ext-link--below-input"
+                            >
+                              Open ↗
+                            </a>
+                          )}
+                        </>
+                      )}
+                      {LINK_HINTS[col] && (
+                        <div className="field-hint">🔗 {LINK_HINTS[col]}</div>
+                      )}
+                      {err && <div className="field-error">{err}</div>}
+                    </div>
+                  );
+                })}
+                <button
+                  className="btn-save"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? "Saving…" : "Save"}
                 </button>
               </div>
             )}
-          </div>
-        )}
 
-        {/* THE BRIEF — read-only */}
-        {briefCols.length > 0 && (
-          <>
-            <div className="ctx-label">The brief — read only</div>
-            {briefCols.map(col => {
-              const value = draft[col] ?? "";
-              const label = FIELD_LABELS[col] ?? col.replace(/_/g, " ");
-              return (
-                <div key={col} className="field">
-                  <label>{label}</label>
-                  <div className="ro">{value}</div>
-                </div>
-              );
-            })}
+            {/* Admin: if all columns are editable, show them without the brief/yours split */}
+            {briefCols.length === 0 && editCols.length === 0 && (
+              <p style={{ color: "var(--t4)", fontSize: "13px" }}>No editable fields.</p>
+            )}
           </>
-        )}
-
-        {/* Divider before YOUR PART */}
-        {briefCols.length > 0 && editCols.length > 0 && (
-          <div className="divider-line" />
-        )}
-
-        {/* YOUR PART — editable */}
-        {editCols.length > 0 && (
-          <div className="yours">
-            <div className="yours-tag">YOUR PART</div>
-            {editCols.map(col => {
-              const editable = canEdit(role, col);
-              const value = draft[col] ?? "";
-              const err = errors[col];
-              const isLaneCol = LANE_COLUMNS.has(col);
-              const rawLaneValues = isLaneCol ? (LANES[col] ?? []) : [];
-              const label = FIELD_LABELS[col] ?? col.replace(/_/g, " ");
-              // lane labels for this col
-              const friendlyMap = LANE_LABELS[col] ?? {};
-
-              if (!editable) return null; // shouldn't happen but guard
-
-              return (
-                <div key={col} className="field">
-                  <label htmlFor={`field-${col}`}>{label}</label>
-                  {isLaneCol ? (
-                    <select
-                      id={`field-${col}`}
-                      value={value}
-                      onChange={e => handleChange(col, e.target.value)}
-                    >
-                      {value && !rawLaneValues.includes(value) && (
-                        <option value={value}>{friendlyMap[value] ?? value}</option>
-                      )}
-                      {rawLaneValues
-                        .filter(v => canSetValue(role, col, v))
-                        .map(v => (
-                          <option key={v} value={v}>{friendlyMap[v] ?? v}</option>
-                        ))}
-                    </select>
-                  ) : (
-                    <input
-                      id={`field-${col}`}
-                      type="text"
-                      value={value}
-                      placeholder={`Paste your ${label.toLowerCase()}…`}
-                      onChange={e => handleChange(col, e.target.value)}
-                    />
-                  )}
-                  {LINK_HINTS[col] && (
-                    <div className="field-hint">🔗 {LINK_HINTS[col]}</div>
-                  )}
-                  {err && <div className="field-error">{err}</div>}
-                </div>
-              );
-            })}
-            <button
-              className="btn-save"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? "Saving…" : "Save"}
-            </button>
-          </div>
-        )}
-
-        {/* Admin: if all columns are editable, show them without the brief/yours split */}
-        {briefCols.length === 0 && editCols.length === 0 && (
-          <p style={{ color: "var(--t4)", fontSize: "13px" }}>No editable fields.</p>
         )}
       </div>
     </>

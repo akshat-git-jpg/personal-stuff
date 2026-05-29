@@ -14,6 +14,32 @@ export const LINK_HINTS: Record<string, string> = {
   yt_link:           PUBLIC_LINK_HINT,
 };
 
+// ── Columns that hold a URL to open ──────────────────────────────────────
+export const LINK_COLS = new Set(["tutorial_link", "video_editor_link", "yt_link", "short_links", "actual_links"]);
+export function isUrl(v: string): boolean { return /^https?:\/\//i.test((v ?? "").trim()); }
+
+// ── Focused review card: stage/artifact/email maps ───────────────────────
+// Maps laneStatus column → human-readable stage name
+export const STAGE_NAME: Record<string, string> = {
+  tutorial_status:     "Script",
+  video_editor_status: "Editing",
+  yt_upload_status:    "Upload",
+};
+
+// Maps laneStatus column → artifact link column
+export const ARTIFACT_COL: Record<string, string> = {
+  tutorial_status:     "tutorial_link",
+  video_editor_status: "video_editor_link",
+  yt_upload_status:    "yt_link",
+};
+
+// Maps laneStatus column → assignee email column
+export const EMAIL_FOR_STAGE: Record<string, string> = {
+  tutorial_status:     "tutorial_maker_email",
+  video_editor_status: "video_editor_email",
+  yt_upload_status:    "reviewer_email",
+};
+
 // ── Human-readable labels ─────────────────────────────────────────────────
 
 export const FIELD_LABELS: Record<string, string> = {
