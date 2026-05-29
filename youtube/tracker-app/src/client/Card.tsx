@@ -66,11 +66,12 @@ export function Card({ row, onClick, isDragging = false, laneStatus, visibleCols
       : { ok: false, label: "○ No link yet" };
   }
 
-  // Avatar from relevant email — fall back to video_title initials when the
-  // email column is hidden for this role (e.g. Editor doesn't see video_editor_email).
-  const emailCol = laneStatus ? (EMAIL_FOR_STATUS[laneStatus] ?? "admin_email") : "admin_email";
-  const email = row[emailCol as keyof Row] ?? "";
-  const avatar = email ? initials(email) : (row.video_title ? initials(row.video_title.replace(/[^a-zA-Z0-9 ]/g, " ")) : "?");
+  // Avatar = assignee initials, shown ONLY when the assignee email is actually
+  // visible to this role (Admin/Reviewer views where many people's cards mix).
+  // On a freelancer's own board the email is hidden, so we show no avatar.
+  const emailCol = laneStatus ? (EMAIL_FOR_STATUS[laneStatus] ?? "") : "";
+  const email = emailCol ? (row[emailCol as keyof Row] ?? "") : "";
+  const avatar = email ? initials(email) : null;
 
   // Feedback note for the doer (if the status col has a feedback col)
   const feedbackNote = laneStatus && FEEDBACK_COL[laneStatus]
@@ -100,14 +101,16 @@ export function Card({ row, onClick, isDragging = false, laneStatus, visibleCols
           ⚠ Reviewer note: {feedbackNote}
         </div>
       )}
-      <div className="card__foot">
-        {signal && (
-          <span className={`sig ${signal.ok ? "sig--ok" : "sig--warn"}`}>
-            {signal.label}
-          </span>
-        )}
-        <div className="card__avatar">{avatar}</div>
-      </div>
+      {(signal || avatar) && (
+        <div className="card__foot">
+          {signal && (
+            <span className={`sig ${signal.ok ? "sig--ok" : "sig--warn"}`}>
+              {signal.label}
+            </span>
+          )}
+          {avatar && <div className="card__avatar">{avatar}</div>}
+        </div>
+      )}
     </div>
   );
 }
