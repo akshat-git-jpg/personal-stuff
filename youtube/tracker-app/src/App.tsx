@@ -78,7 +78,7 @@ export default function App() {
   if (state.status === "unauthenticated") {
     return (
       <div className="signin-screen">
-        <div className="signin-screen__title">YT Tracker</div>
+        <div className="signin-screen__title">Tutorials Tracker</div>
         <div className="signin-screen__sub">Sign in to view your kanban board</div>
 
         <button
@@ -159,8 +159,8 @@ export default function App() {
     <>
       {/* Topbar */}
       <header className="topbar">
-        <div className="logo">Y</div>
-        <h1>YT Tracker</h1>
+        <div className="logo">T</div>
+        <h1>Tutorials Tracker</h1>
         <div className="spacer" />
         {/* "View as" dropdown — Admin session only */}
         {showViewAs && (
