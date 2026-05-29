@@ -19,6 +19,38 @@ import {
   oauthCallback,
   requireSession,
 } from "./auth";
+import { getAccessToken, readRows, updateCell } from "./sheets";
+import { filterRows, projectRow, visibleColumns, canEdit } from "../shared/rbac";
+import { COLUMNS } from "../shared/columns";
+import type { Column } from "../shared/columns";
+
+// ---------------------------------------------------------------------------
+// KV-backed read cache for board rows (~15 s TTL)
+// ---------------------------------------------------------------------------
+
+const BOARD_CACHE_KEY = "board:rows";
+const BOARD_CACHE_TTL = 60; // seconds (KV minimum is 60; acceptable staleness for board reads)
+
+async function cachedReadRows(env: Env): Promise<ReturnType<typeof readRows>> {
+  const cached = await env.SESSIONS.get(BOARD_CACHE_KEY);
+  if (cached) {
+    try {
+      return JSON.parse(cached) as Awaited<ReturnType<typeof readRows>>;
+    } catch {
+      // Corrupt cache entry — fall through to fresh read
+    }
+  }
+  const token = await getAccessToken(env.GOOGLE_SA_JSON);
+  const rows = await readRows(token, env.SHEET_ID);
+  await env.SESSIONS.put(BOARD_CACHE_KEY, JSON.stringify(rows), {
+    expirationTtl: BOARD_CACHE_TTL,
+  });
+  return rows;
+}
+
+async function bustBoardCache(env: Env): Promise<void> {
+  await env.SESSIONS.delete(BOARD_CACHE_KEY);
+}
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -38,6 +70,57 @@ app.use("/api/*", requireSession);
 
 app.get("/api/me", (c) => {
   return c.json(getUser(c));
+});
+
+// GET /api/board
+// Returns the filtered, projected board for the current user's role.
+// Restricted columns are stripped by projectRow — that is the security boundary.
+app.get("/api/board", async (c) => {
+  const { email, role } = getUser(c);
+  const rows = await cachedReadRows(c.env);
+  const mine = filterRows(role, email, rows);
+  const projected = mine.map((r) => projectRow(role, r));
+  return c.json({ role, columns: visibleColumns(role), rows: projected });
+});
+
+// POST /api/update
+// Body: { row_id: string, col: Column, value: string }
+// Server-side enforces RBAC — do NOT trust the client.
+app.post("/api/update", async (c) => {
+  const { role } = getUser(c);
+
+  let body: { row_id?: string; col?: string; value?: string };
+  try {
+    body = await c.req.json<{ row_id?: string; col?: string; value?: string }>();
+  } catch {
+    return c.json({ error: "invalid JSON body" }, 400);
+  }
+
+  const { row_id, col, value } = body;
+
+  if (!row_id || !col || value === undefined) {
+    return c.json({ error: "missing required fields: row_id, col, value" }, 400);
+  }
+
+  // Validate col is a known column
+  if (!(COLUMNS as readonly string[]).includes(col)) {
+    return c.json({ error: "unknown column", col }, 400);
+  }
+
+  const typedCol = col as Column;
+
+  // RBAC: server-side edit-lock — do NOT trust the client
+  if (!canEdit(role, typedCol)) {
+    return c.json({ error: "forbidden", col }, 403);
+  }
+
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  await updateCell(token, c.env.SHEET_ID, row_id, typedCol, value);
+
+  // Cache bust so next board fetch sees the updated value
+  await bustBoardCache(c.env);
+
+  return c.json({ ok: true });
 });
 
 // ---------------------------------------------------------------------------

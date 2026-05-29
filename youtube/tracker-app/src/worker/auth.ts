@@ -32,6 +32,8 @@ export type Env = {
   SHEET_ID: string;
   SESSION_SECRET: string;
   GOOGLE_SA_JSON: string;
+  /** Set to "1" in .dev.vars only. Unset in production — branch is dead in prod. */
+  DEV_AUTH?: string;
 };
 
 export type Variables = {
@@ -203,6 +205,18 @@ export async function requireSession(
   c: Context<{ Bindings: Env; Variables: Variables }>,
   next: Next,
 ): Promise<Response | void> {
+  // Dev-only auth bypass: DEV_AUTH is never set in production, so this branch
+  // is dead in prod. Allows curl with arbitrary roles during local development.
+  if (c.env.DEV_AUTH === "1") {
+    const devEmail = c.req.header("X-Dev-Email");
+    const devRole = c.req.header("X-Dev-Role");
+    if (devEmail && devRole) {
+      c.set("user", { email: devEmail, role: devRole });
+      await next();
+      return;
+    }
+  }
+
   const sessionId = getCookie(c, "session");
   if (!sessionId) {
     return c.json({ error: "unauthorized" }, 401);
