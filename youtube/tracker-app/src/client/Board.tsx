@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, Fragment } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -12,7 +12,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import type { Column } from "../shared/columns";
 import type { Row } from "../shared/rbac";
 import { canEdit, canSetValue, isRowLockedFor } from "../shared/rbac";
-import { POLICY } from "../shared/policy";
+import { POLICY, APPROVER_ONLY_VALUES } from "../shared/policy";
 import { updateCell, ForbiddenError, type BoardData } from "./api";
 import { LANES, ADMIN_LANE_OPTIONS, groupByLane } from "./lanes";
 import { Card } from "./Card";
@@ -35,19 +35,21 @@ interface LaneColumnProps {
   stageKey: "todo" | "prog" | "review" | "done" | null;
   laneStatusCol: string;
   count: number;
+  gated?: boolean;
   children: React.ReactNode;
 }
 
-function LaneColumn({ lane, stageKey, laneStatusCol, count, children }: LaneColumnProps) {
+function LaneColumn({ lane, stageKey, laneStatusCol, count, gated, children }: LaneColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: lane });
   const stageClass = stageKey ? ` lane--${stageKey}` : "";
   const friendlyLabel = laneLabel(laneStatusCol, lane);
 
   return (
-    <div ref={setNodeRef} className={`lane${stageClass}${isOver ? " lane--over" : ""}`}>
+    <div ref={setNodeRef} className={`lane${stageClass}${gated ? " lane--gated" : ""}${isOver && !gated ? " lane--over" : ""}`}>
       <div className="lane__bar" />
       <div className="lane__head">
         <span className="lane__title">{friendlyLabel}</span>
+        {gated && <span className="lane__lock" title="Only an admin or reviewer can move cards here">🔒 Approver only</span>}
         <span className="lane__count">{count}</span>
       </div>
       <div className="lane__cards">{children}</div>
@@ -373,13 +375,23 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
               // Only apply stage color to "real" lanes (not OTHER_LANE), and only within normal range
               const isKnownLane = idx < lanes.length;
               const stage = isKnownLane ? laneColor(idx, lanes.length) : null;
+              // A lane is "gated" (approver-only) when the viewer can't set its value
+              // (e.g. the Done lane for a Tutorial Maker / Editor). Approvers never see this.
+              const gated = (APPROVER_ONLY_VALUES[laneStatus] ?? []).includes(lane)
+                && !canSetValue(role, laneStatus, lane);
               return (
+                <Fragment key={lane}>
+                  {gated && (
+                    <div className="board-divider" aria-hidden="true">
+                      <span>approver only</span>
+                    </div>
+                  )}
                 <LaneColumn
-                  key={lane}
                   lane={lane}
                   stageKey={stage}
                   laneStatusCol={laneStatus}
                   count={laneRows.length}
+                  gated={gated}
                 >
                   {laneRows.map(row => {
                     const locked = isRowLockedFor(role, row);
@@ -399,6 +411,7 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
                     <div className="lane__empty">No items</div>
                   )}
                 </LaneColumn>
+                </Fragment>
               );
             })}
           </div>

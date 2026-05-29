@@ -175,6 +175,37 @@ body {
 /* Drag-over highlight */
 .lane--over { outline: 2px dashed var(--accent); outline-offset: -2px; }
 
+/* ── Approver-only divider + gated (Done) lane ───────────────────────────── */
+.board-divider {
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 1px;
+  margin: 6px 14px;
+  border-left: 2px dashed var(--line-2);
+  position: relative;
+  min-height: 220px;
+}
+.board-divider span {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(180deg);
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+  font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--t4);
+}
+/* The Done lane, when the viewer can't set it: dashed + dimmed + locked look */
+.lane--gated {
+  border-style: dashed;
+  background: rgba(255,240,224,0.015);
+}
+.lane--gated .lane__cards { opacity: 0.8; }
+.lane--gated .lane__lock {
+  margin-left: auto;
+  font-size: 10.5px; color: var(--t3);
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.lane--gated .lane__count { margin-left: 8px; }
+
 /* ── Card ────────────────────────────────────────────────────────────────── */
 .card {
   background: linear-gradient(var(--c-c), var(--c-c)), var(--card);
