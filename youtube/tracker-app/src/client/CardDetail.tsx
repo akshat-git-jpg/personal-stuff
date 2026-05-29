@@ -248,7 +248,7 @@ export function CardDetail({ row, columns, role, laneStatus, readOnly, onClose, 
 
             {/* 4. Details (brief) — de-emphasized, lower priority */}
             {briefCols.length > 0 && (
-              <details className="review-details">
+              <details className="review-details" open>
                 <summary className="review-details__summary">Details</summary>
                 <div className="review-details__body">
                   {briefCols.map(col => {
