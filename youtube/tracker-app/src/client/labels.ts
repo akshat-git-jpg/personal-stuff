@@ -5,6 +5,15 @@ export const FEEDBACK_COL: Record<string, string> = {
   video_editor_status: "editor_feedback",
 };
 
+// ── Always-visible reminder under link fields (paste a PUBLIC link) ───────
+// Keyed by column; an editable field whose column is here shows the hint.
+const PUBLIC_LINK_HINT = 'Make sure this link is shared publicly — set it to "Anyone with the link can view"';
+export const LINK_HINTS: Record<string, string> = {
+  tutorial_link:     PUBLIC_LINK_HINT,
+  video_editor_link: PUBLIC_LINK_HINT,
+  yt_link:           PUBLIC_LINK_HINT,
+};
+
 // ── Human-readable labels ─────────────────────────────────────────────────
 
 export const FIELD_LABELS: Record<string, string> = {

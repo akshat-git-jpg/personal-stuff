@@ -390,6 +390,14 @@ body {
 
 .field .field-error { font-size: 11.5px; color: var(--danger); }
 
+.field .field-hint {
+  font-size: 11.5px; line-height: 1.4; color: var(--warn);
+  background: rgba(230,184,96,0.08);
+  border-left: 2px solid var(--warn);
+  border-radius: 4px;
+  padding: 6px 9px; margin-top: 2px;
+}
+
 .divider-line { height: 1px; background: var(--line); }
 
 /* YOUR PART highlighted box */

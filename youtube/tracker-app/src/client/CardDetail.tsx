@@ -5,7 +5,7 @@ import { canEdit, isApprover, canSetValue } from "../shared/rbac";
 import { updateCell, ForbiddenError } from "./api";
 import { POLICY } from "../shared/policy";
 import { LANES } from "./lanes";
-import { FIELD_LABELS, LANE_LABELS, FEEDBACK_COL } from "./labels";
+import { FIELD_LABELS, LANE_LABELS, FEEDBACK_COL, LINK_HINTS } from "./labels";
 
 interface CardDetailProps {
   row: Row;
@@ -247,6 +247,9 @@ export function CardDetail({ row, columns, role, laneStatus, readOnly, onClose, 
                       placeholder={`Paste your ${label.toLowerCase()}…`}
                       onChange={e => handleChange(col, e.target.value)}
                     />
+                  )}
+                  {LINK_HINTS[col] && (
+                    <div className="field-hint">🔗 {LINK_HINTS[col]}</div>
                   )}
                   {err && <div className="field-error">{err}</div>}
                 </div>
