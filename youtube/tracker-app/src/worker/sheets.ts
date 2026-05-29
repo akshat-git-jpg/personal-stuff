@@ -30,7 +30,7 @@ interface SheetValuesResponse {
   values?: string[][];
 }
 
-async function sheetsGet(token: string, sheetId: string, range: string): Promise<string[][]> {
+export async function sheetsGet(token: string, sheetId: string, range: string): Promise<string[][]> {
   const url = `${SHEETS_BASE}/${sheetId}/values/${encodeURIComponent(range)}`;
   const resp = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
