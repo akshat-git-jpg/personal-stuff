@@ -1,6 +1,6 @@
 import type { Column } from "./columns";
 import { COLUMNS, GROUPS } from "./columns";
-import { POLICY } from "./policy";
+import { POLICY, APPROVER_ROLES, APPROVER_ONLY_VALUES } from "./policy";
 export type Row = Partial<Record<Column, string>>;
 
 export function visibleColumns(role: string): Column[] {
@@ -54,4 +54,25 @@ export function peopleFor(role: string, rows: Row[]): string[] {
   const set = new Set<string>();
   for (const r of rows) { const v = (r[col] || "").trim(); if (v) set.add(v); }
   return [...set].sort();
+}
+
+export function isApprover(role: string): boolean {
+  return APPROVER_ROLES.has(role);
+}
+
+// Can this role set this column to this specific value?
+export function canSetValue(role: string, col: Column, value: string): boolean {
+  if (!canEdit(role, col)) return false;
+  const restricted = APPROVER_ONLY_VALUES[col];
+  if (restricted && restricted.includes(value) && !isApprover(role)) return false;
+  return true;
+}
+
+// Is this row locked for this role? (a doer's row is locked once their owned
+// stage is approved = "Done"). Approvers are never locked.
+export function isRowLockedFor(role: string, row: Row): boolean {
+  if (isApprover(role)) return false;
+  const p = POLICY[role]; if (!p) return true;
+  const owned = p.laneStatus; // tutorial_status / video_editor_status
+  return (row[owned] || "").trim() === "Done";
 }

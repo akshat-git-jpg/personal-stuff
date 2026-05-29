@@ -21,7 +21,7 @@ import {
   requireSession,
 } from "./auth";
 import { getAccessToken, readRows, updateCell } from "./sheets";
-import { filterRows, projectRow, visibleColumns, canEdit, peopleFor } from "../shared/rbac";
+import { filterRows, projectRow, visibleColumns, canEdit, peopleFor, isRowLockedFor, canSetValue } from "../shared/rbac";
 import { loadTeam, lookupRole } from "./roles";
 import { COLUMNS } from "../shared/columns";
 import type { Column } from "../shared/columns";
@@ -207,9 +207,27 @@ app.post("/api/update", async (c) => {
 
   const typedCol = col as Column;
 
-  // RBAC: server-side edit-lock — do NOT trust the client
+  // RBAC check 1: column-level edit permission
   if (!canEdit(role, typedCol)) {
     return c.json({ error: "forbidden", col }, 403);
+  }
+
+  // RBAC check 2: row-level lock (doer cannot edit a row that is already "Done")
+  const allRows = await cachedReadRows(c.env);
+  const targetRow = allRows.find((r) => (r.row_id || "").trim() === row_id);
+  if (targetRow && isRowLockedFor(role, targetRow)) {
+    return c.json(
+      { error: "locked", message: "This item is approved and locked. Ask an admin/reviewer to reopen it." },
+      403,
+    );
+  }
+
+  // RBAC check 3: approver-only values (e.g. only approvers can set status to "Done")
+  if (!canSetValue(role, typedCol, value)) {
+    return c.json(
+      { error: "approver_only", message: "Only an admin or reviewer can mark this Done." },
+      403,
+    );
   }
 
   const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
