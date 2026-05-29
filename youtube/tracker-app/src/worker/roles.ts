@@ -71,3 +71,40 @@ export async function lookupRole(
   const map = await loadRoleMap(token, sheetId);
   return map.get(email.toLowerCase().trim()) ?? null;
 }
+
+// ---------------------------------------------------------------------------
+// loadTeam
+// ---------------------------------------------------------------------------
+
+export interface TeamMember {
+  name: string;
+  email: string;
+  role: string;
+}
+
+/**
+ * Read the Employes tab (columns: Name, Email, Role) and return an array of
+ * team members — only rows with a non-empty email AND a role that exists in
+ * POLICY. The email is trimmed/lowercased.
+ */
+export async function loadTeam(
+  token: string,
+  sheetId: string,
+): Promise<TeamMember[]> {
+  const rows = await sheetsGet(token, sheetId, EMPLOYEES_RANGE);
+  const members: TeamMember[] = [];
+
+  for (const row of rows) {
+    // Columns: A=Name (0), B=Email (1), C=Role (2)
+    const name  = (row[0] ?? "").trim();
+    const email = (row[1] ?? "").trim();
+    const role  = (row[2] ?? "").trim();
+
+    if (email === "" || role === "") continue;
+    if (!VALID_ROLES.has(role)) continue;
+
+    members.push({ name, email: email.toLowerCase(), role });
+  }
+
+  return members;
+}

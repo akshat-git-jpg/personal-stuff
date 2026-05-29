@@ -15,6 +15,15 @@ export interface BoardData {
   role: string;
   columns: Column[];
   rows: Row[];
+  viewingAs: { email: string; role: string | null } | null;
+  readOnly?: boolean;
+  notice?: string;
+}
+
+export interface TeamMember {
+  name: string;
+  email: string;
+  role: string;
 }
 
 export interface MeData {
@@ -34,10 +43,19 @@ async function throwOnError(res: Response): Promise<void> {
 
 // ── API wrappers ───────────────────────────────────────────────────────────
 
-export async function getBoard(): Promise<BoardData> {
-  const res = await fetch("/api/board", { credentials: "same-origin" });
+export async function getBoard(asUser?: string): Promise<BoardData> {
+  const url = asUser
+    ? `/api/board?asUser=${encodeURIComponent(asUser)}`
+    : "/api/board";
+  const res = await fetch(url, { credentials: "same-origin" });
   await throwOnError(res);
   return res.json() as Promise<BoardData>;
+}
+
+export async function getTeam(): Promise<TeamMember[]> {
+  const res = await fetch("/api/team", { credentials: "same-origin" });
+  if (!res.ok) return [];
+  return res.json() as Promise<TeamMember[]>;
 }
 
 export async function updateCell(row_id: string, col: Column, value: string): Promise<void> {

@@ -99,11 +99,14 @@ function Toast({ message }: { message: string }) {
 
 // ── Board ──────────────────────────────────────────────────────────────────
 
-interface BoardProps extends BoardData {
+interface BoardProps extends Omit<BoardData, "viewingAs" | "readOnly" | "notice"> {
   reload: () => void;
+  viewingAs?: { email: string; role: string | null } | null;
+  readOnly?: boolean;
 }
 
-export function Board({ role, columns, rows: initialRows, reload }: BoardProps) {
+export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, reload }: BoardProps) {
+  const isPreview = !!viewingAs;
   const defaultLane = (role === "Admin"
     ? "topic_status"
     : (POLICY[role]?.laneStatus ?? "topic_status")) as Column;
@@ -115,7 +118,8 @@ export function Board({ role, columns, rows: initialRows, reload }: BoardProps) 
   const [toast, setToast] = useState<string | null>(null);
 
   const lanes = LANES[laneStatus] ?? [];
-  const editAllowed = canEdit(role, laneStatus);
+  // In read-only preview mode, dragging is never allowed regardless of role.
+  const editAllowed = !readOnly && canEdit(role, laneStatus);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -178,8 +182,8 @@ export function Board({ role, columns, rows: initialRows, reload }: BoardProps) 
         </div>
       )}
 
-      {/* Admin lane picker */}
-      {role === "Admin" && (
+      {/* Admin lane picker — only in full admin view (not in per-user preview) */}
+      {role === "Admin" && !isPreview && (
         <div className="board-controls">
           <label htmlFor="lane-select">Board view:</label>
           <select
@@ -245,6 +249,7 @@ export function Board({ role, columns, rows: initialRows, reload }: BoardProps) 
           columns={columns}
           role={role}
           laneStatus={laneStatus}
+          readOnly={readOnly}
           onClose={() => setDetailRow(null)}
           onSaved={() => { reload(); setDetailRow(null); }}
         />

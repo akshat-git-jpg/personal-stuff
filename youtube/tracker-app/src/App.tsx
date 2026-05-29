@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Board } from "./client/Board";
-import { getBoard, logout, UnauthorizedError, type BoardData } from "./client/api";
+import { getBoard, getTeam, logout, UnauthorizedError, type BoardData, type TeamMember } from "./client/api";
 
 // Dev preview emails per role
 const DEV_EMAILS: Record<string, string> = {
@@ -8,6 +8,13 @@ const DEV_EMAILS: Record<string, string> = {
   "Editor":         "akshatpatidar17@gmail.com",
   "Tutorial Maker": "kushalbakliwal25@gmail.com",
   "Reviewer":       "seankerman25@gmail.com",
+};
+
+export const FRIENDLY_ROLE: Record<string, string> = {
+  "Editor":         "Video Editor",
+  "Tutorial Maker": "Tutorial Maker",
+  "Reviewer":       "Reviewer",
+  "Admin":          "Admin",
 };
 
 type AppState =
@@ -29,11 +36,13 @@ async function fetchDevMode(): Promise<boolean> {
 
 export default function App() {
   const [state, setState] = useState<AppState>({ status: "loading" });
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [viewAsEmail, setViewAsEmail] = useState<string>("");
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (asUser?: string) => {
     setState({ status: "loading" });
     try {
-      const data = await getBoard();
+      const data = await getBoard(asUser);
       setState({ status: "ok", data });
     } catch (err) {
       if (err instanceof UnauthorizedError) {
@@ -47,10 +56,22 @@ export default function App() {
 
   useEffect(() => { void load(); }, [load]);
 
+  // Load team list once admin board is confirmed
+  useEffect(() => {
+    if (state.status === "ok" && state.data.role === "Admin" && team.length === 0) {
+      void getTeam().then(setTeam);
+    }
+  }, [state, team.length]);
+
   async function handleLogout() {
     try { await logout(); } catch { /* ignore */ }
     const devMode = await fetchDevMode();
     setState({ status: "unauthenticated", devMode });
+  }
+
+  async function handleViewAsChange(email: string) {
+    setViewAsEmail(email);
+    void load(email || undefined);
   }
 
   // ── Sign-in screen ──────────────────────────────────────────────────────
@@ -117,6 +138,23 @@ export default function App() {
 
   const { data } = state;
 
+  // Build friendly preview banner
+  let previewBanner: string | null = null;
+  if (data.viewingAs) {
+    if (data.viewingAs.role === null) {
+      previewBanner = data.notice ?? `No role mapping found for ${data.viewingAs.email}.`;
+    } else {
+      const memberName = team.find(m => m.email === data.viewingAs!.email)?.name ?? data.viewingAs.email;
+      const friendlyRole = FRIENDLY_ROLE[data.viewingAs.role] ?? data.viewingAs.role;
+      previewBanner = `\u{1F441}️ Previewing ${memberName}'s board (${friendlyRole}) — read-only. Switch to “Full admin (me)” to edit.`;
+    }
+  }
+
+  // Show View-as dropdown if the SESSION role is Admin (role === "Admin" when viewingAs is null,
+  // or when viewingAs is set the returned role is the target's role — so check viewingAs existence
+  // or session-level: if team was loaded, this is definitely an admin session).
+  const showViewAs = data.role === "Admin" || data.viewingAs !== null;
+
   return (
     <>
       {/* Topbar */}
@@ -124,6 +162,22 @@ export default function App() {
         <div className="logo">Y</div>
         <h1>YT Tracker</h1>
         <div className="spacer" />
+        {/* "View as" dropdown — Admin session only */}
+        {showViewAs && (
+          <select
+            className="view-as-select"
+            value={viewAsEmail}
+            onChange={e => void handleViewAsChange(e.target.value)}
+            aria-label="View as team member"
+          >
+            <option value="">Full admin (me)</option>
+            {team.map(m => (
+              <option key={m.email} value={m.email}>
+                {m.name} — {FRIENDLY_ROLE[m.role] ?? m.role}
+              </option>
+            ))}
+          </select>
+        )}
         <span className="who">{data.role}</span>
         <span className="role-badge">{data.role}</span>
         <button className="btn-ghost" onClick={() => void handleLogout()}>
@@ -131,11 +185,18 @@ export default function App() {
         </button>
       </header>
 
+      {/* Preview banner */}
+      {previewBanner && (
+        <div className="preview-banner">{previewBanner}</div>
+      )}
+
       <Board
         role={data.role}
         columns={data.columns}
         rows={data.rows}
-        reload={() => void load()}
+        viewingAs={data.viewingAs ?? null}
+        readOnly={data.readOnly ?? false}
+        reload={() => void load(viewAsEmail || undefined)}
       />
     </>
   );

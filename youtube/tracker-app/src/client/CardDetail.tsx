@@ -11,13 +11,14 @@ interface CardDetailProps {
   columns: Column[];
   role: string;
   laneStatus: string;
+  readOnly?: boolean;
   onClose: () => void;
   onSaved: () => void;
 }
 
 const LANE_COLUMNS = new Set(["topic_status","tutorial_status","video_editor_status","yt_upload_status"]);
 
-export function CardDetail({ row, columns, role, onClose, onSaved }: CardDetailProps) {
+export function CardDetail({ row, columns, role, readOnly, onClose, onSaved }: CardDetailProps) {
   const [draft, setDraft] = useState<Partial<Record<Column, string>>>({});
   const [errors, setErrors] = useState<Partial<Record<Column, string>>>({});
   const [saving, setSaving] = useState(false);
@@ -66,9 +67,13 @@ export function CardDetail({ row, columns, role, onClose, onSaved }: CardDetailP
     }
   }
 
-  // Split columns into read-only brief vs editable "YOUR PART"
-  const briefCols = columns.filter(c => c !== "row_id" && !canEdit(role, c));
-  const editCols  = columns.filter(c => c !== "row_id" &&  canEdit(role, c));
+  // In read-only preview mode, ALL columns become brief (read-only).
+  const briefCols = readOnly
+    ? columns.filter(c => c !== "row_id")
+    : columns.filter(c => c !== "row_id" && !canEdit(role, c));
+  const editCols = readOnly
+    ? []
+    : columns.filter(c => c !== "row_id" && canEdit(role, c));
 
   const title = row.video_title ?? "(no title)";
 

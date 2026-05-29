@@ -33,3 +33,25 @@ export function projectRow(role: string, row: Row): Row {
   for (const c of visibleColumns(role)) out[c] = row[c];
   return out;
 }
+
+// Rows currently AT a role's stage, ignoring which specific person is assigned:
+// the role's match column must be non-empty AND the upstream gate (if any) must pass.
+export function stageRows(role: string, rows: Row[]): Row[] {
+  const p = POLICY[role]; if (!p) return [];
+  if (p.rows === "all") return rows;
+  const col = p.rows.match; const gate = p.rows.gate;
+  return rows.filter(r => {
+    if (!(r[col] || "").trim()) return false;
+    if (gate && (r[gate.col] || "").trim() !== gate.equals) return false;
+    return true;
+  });
+}
+
+// Distinct non-empty assignee emails for a role (for the person filter):
+export function peopleFor(role: string, rows: Row[]): string[] {
+  const p = POLICY[role]; if (!p || p.rows === "all") return [];
+  const col = p.rows.match;
+  const set = new Set<string>();
+  for (const r of rows) { const v = (r[col] || "").trim(); if (v) set.add(v); }
+  return [...set].sort();
+}

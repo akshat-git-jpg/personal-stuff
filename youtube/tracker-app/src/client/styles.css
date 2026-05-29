@@ -380,3 +380,24 @@ body {
 }
 .btn-save:hover { filter: brightness(1.06); }
 .btn-save:disabled { opacity: .55; cursor: default; }
+
+/* ── View-as dropdown (Admin topbar) ────────────────────────────────────── */
+.view-as-select {
+  font: inherit; font-size: 12.5px; color: var(--t1);
+  background: rgba(255,240,224,0.04);
+  border: 1px solid var(--line-2);
+  border-radius: 7px; padding: 5px 10px; cursor: pointer;
+  max-width: 220px;
+}
+.view-as-select:focus { outline: none; border-color: var(--accent); }
+.view-as-select option { background: #1e1809; color: var(--t1); }
+
+/* ── Preview banner ──────────────────────────────────────────────────────── */
+.preview-banner {
+  margin: 12px 26px 0;
+  padding: 11px 16px;
+  border-radius: 9px;
+  background: rgba(251,146,60,0.08);
+  border: 1px solid rgba(251,146,60,0.30);
+  color: var(--t2); font-size: 13px; line-height: 1.45;
+}

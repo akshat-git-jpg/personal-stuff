@@ -21,7 +21,8 @@ import {
   requireSession,
 } from "./auth";
 import { getAccessToken, readRows, updateCell } from "./sheets";
-import { filterRows, projectRow, visibleColumns, canEdit } from "../shared/rbac";
+import { filterRows, projectRow, visibleColumns, canEdit, peopleFor } from "../shared/rbac";
+import { loadTeam, lookupRole } from "./roles";
 import { COLUMNS } from "../shared/columns";
 import type { Column } from "../shared/columns";
 
@@ -118,15 +119,66 @@ app.get("/api/me", (c) => {
   return c.json(getUser(c));
 });
 
+// GET /api/team
+// Admin-only: returns list of all team members with name, email, role.
+app.get("/api/team", async (c) => {
+  const { role } = getUser(c);
+  if (role !== "Admin") {
+    return c.json([], 200);
+  }
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const team = await loadTeam(token, c.env.SHEET_ID);
+  return c.json(team);
+});
+
 // GET /api/board
 // Returns the filtered, projected board for the current user's role.
 // Restricted columns are stripped by projectRow — that is the security boundary.
+// Admins may pass ?asUser=<email> to preview a specific team member's exact view.
 app.get("/api/board", async (c) => {
   const { email, role } = getUser(c);
-  const rows = await cachedReadRows(c.env);
-  const mine = filterRows(role, email, rows);
-  const projected = mine.map((r) => projectRow(role, r));
-  return c.json({ role, columns: visibleColumns(role), rows: projected });
+  const isAdmin = role === "Admin";
+
+  const asUser = c.req.query("asUser");
+
+  let effectiveRole = role;
+  let effectiveEmail = email;
+  let viewingAs: { email: string; role: string | null } | null = null;
+
+  // Honor asUser ONLY when the session user is an Admin.
+  if (isAdmin && asUser) {
+    const saToken = await getAccessToken(c.env.GOOGLE_SA_JSON);
+    const targetRole = await lookupRole(saToken, c.env.SHEET_ID, asUser);
+    if (!targetRole) {
+      // User exists in no role mapping — return an empty informational response.
+      return c.json({
+        role: effectiveRole,
+        viewingAs: { email: asUser, role: null },
+        readOnly: true,
+        columns: [],
+        rows: [],
+        notice: "This user has no role mapping in the Employes tab.",
+      });
+    }
+    effectiveRole = targetRole;
+    effectiveEmail = asUser.trim().toLowerCase();
+    viewingAs = { email: asUser, role: effectiveRole };
+  }
+
+  const allRows = await cachedReadRows(c.env);
+
+  const filteredRows = filterRows(effectiveRole, effectiveEmail, allRows);
+  const projected = filteredRows.map((r) => projectRow(effectiveRole, r));
+
+  return c.json({
+    role: effectiveRole,
+    viewingAs,
+    readOnly: !!viewingAs,
+    columns: visibleColumns(effectiveRole),
+    rows: projected,
+    // Legacy fields kept for any existing clients that read them:
+    people: viewingAs ? peopleFor(effectiveRole, allRows) : [],
+  });
 });
 
 // POST /api/update
