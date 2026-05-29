@@ -1,6 +1,6 @@
 /**
  * smoke-sheets.ts — throwaway smoke test for the Google Sheets adapter.
- * Reads credentials from /Users/kbtg/codebase/TY/credentials.json (repo file, no secret inline).
+ * reads SA creds from the gitignored credentials.json path — nothing secret is hard-coded here
  *
  * Run with:   npx tsx scripts/smoke-sheets.ts
  *

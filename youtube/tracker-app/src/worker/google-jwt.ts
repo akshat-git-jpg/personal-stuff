@@ -142,5 +142,3 @@ export async function getAccessToken(saJson: string): Promise<string> {
   return _tokenCache.accessToken;
 }
 
-// Re-export for sheets.ts convenience
-export { getAccessToken as mintAccessToken };

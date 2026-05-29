@@ -7,15 +7,12 @@
 import type { Column } from "../shared/columns";
 import { COLUMNS } from "../shared/columns";
 import type { Row } from "../shared/rbac";
-import { getAccessToken as _mintToken, colLetter } from "./google-jwt";
+import { colLetter } from "./google-jwt";
 
 // ---------------------------------------------------------------------------
 // Re-export getAccessToken so callers can import from this module
 // ---------------------------------------------------------------------------
 export { getAccessToken } from "./google-jwt";
-
-// Alias for internal use
-const mintToken = _mintToken;
 
 // ---------------------------------------------------------------------------
 // Internal Sheets API helpers
@@ -23,8 +20,11 @@ const mintToken = _mintToken;
 
 const SHEETS_BASE = "https://sheets.googleapis.com/v4/spreadsheets";
 const TAB = "Master";
-/** The read range covers columns A-Z rows 1-999 — enough for current schema. */
-const READ_RANGE = `${TAB}!A1:Z999`;
+/**
+ * Read range derived from COLUMNS length so a future column past Z never falls
+ * outside the read window. +2 = safety for an appended row_id beyond the schema.
+ */
+const READ_RANGE = `${TAB}!A1:${colLetter(COLUMNS.length + 2)}999`;
 
 interface SheetValuesResponse {
   values?: string[][];
@@ -134,7 +134,7 @@ export async function ensureRowIds(token: string, sheetId: string): Promise<void
 // ---------------------------------------------------------------------------
 
 /**
- * Read Master!A1:Z999, map headers → values.
+ * Read the Master tab using the schema-derived READ_RANGE, map headers → values.
  * Returns one Row per data row; skips fully-empty rows and columns with blank headers.
  */
 export async function readRows(token: string, sheetId: string): Promise<Row[]> {
