@@ -11,6 +11,7 @@
  */
 
 import { Hono } from "hono";
+import { setCookie } from "hono/cookie";
 import type { Env, Variables } from "./auth";
 import {
   getUser,
@@ -61,6 +62,51 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 app.get("/auth/login", loginRedirect);
 app.get("/auth/callback", oauthCallback);
 app.post("/auth/logout", logout);
+
+// ---------------------------------------------------------------------------
+// Dev mode routes (unauthenticated; only active when DEV_AUTH=1)
+// ---------------------------------------------------------------------------
+
+// GET /api/auth-mode → { dev: boolean }
+// Always public — lets the frontend know if dev-login buttons should be shown.
+app.get("/api/auth-mode", (c) => {
+  return c.json({ dev: c.env.DEV_AUTH === "1" });
+});
+
+// GET /dev-login?role=<role>&email=<email>
+// Creates a real KV session and 302-redirects to /.
+// Only available when DEV_AUTH=1; otherwise 404.
+app.get("/dev-login", async (c) => {
+  if (c.env.DEV_AUTH !== "1") {
+    return c.text("Not found", 404);
+  }
+
+  const role  = c.req.query("role")  ?? "";
+  const email = c.req.query("email") ?? "";
+
+  if (!role || !email) {
+    return c.text("Missing role or email query param", 400);
+  }
+
+  const SESSION_TTL = 604800; // 7 days (matches oauthCallback)
+  const sessionId   = crypto.randomUUID();
+  const sessionData = JSON.stringify({ email, role, createdAt: new Date().toISOString() });
+
+  await c.env.SESSIONS.put(`session:${sessionId}`, sessionData, {
+    expirationTtl: SESSION_TTL,
+  });
+
+  // Set HttpOnly session cookie (mirrors oauthCallback)
+  setCookie(c, "session", sessionId, {
+    httpOnly: true,
+    secure: false, // localhost — not https
+    sameSite: "Lax",
+    path: "/",
+    maxAge: SESSION_TTL,
+  });
+
+  return c.redirect("/", 302);
+});
 
 // ---------------------------------------------------------------------------
 // API routes (session required)

@@ -2,11 +2,30 @@ import { useState, useEffect, useCallback } from "react";
 import { Board } from "./client/Board";
 import { getBoard, logout, UnauthorizedError, type BoardData } from "./client/api";
 
+// Dev preview emails per role
+const DEV_EMAILS: Record<string, string> = {
+  "Admin":          "seankerman25@gmail.com",
+  "Editor":         "akshatpatidar17@gmail.com",
+  "Tutorial Maker": "kushalbakliwal25@gmail.com",
+  "Reviewer":       "seankerman25@gmail.com",
+};
+
 type AppState =
   | { status: "loading" }
-  | { status: "unauthenticated" }
+  | { status: "unauthenticated"; devMode: boolean }
   | { status: "error"; message: string }
   | { status: "ok"; data: BoardData };
+
+async function fetchDevMode(): Promise<boolean> {
+  try {
+    const res = await fetch("/api/auth-mode", { credentials: "same-origin" });
+    if (!res.ok) return false;
+    const json = await res.json() as { dev?: boolean };
+    return json.dev === true;
+  } catch {
+    return false;
+  }
+}
 
 export default function App() {
   const [state, setState] = useState<AppState>({ status: "loading" });
@@ -18,7 +37,8 @@ export default function App() {
       setState({ status: "ok", data });
     } catch (err) {
       if (err instanceof UnauthorizedError) {
-        setState({ status: "unauthenticated" });
+        const devMode = await fetchDevMode();
+        setState({ status: "unauthenticated", devMode });
       } else {
         setState({ status: "error", message: (err as Error).message ?? "Unknown error" });
       }
@@ -29,14 +49,17 @@ export default function App() {
 
   async function handleLogout() {
     try { await logout(); } catch { /* ignore */ }
-    setState({ status: "unauthenticated" });
+    const devMode = await fetchDevMode();
+    setState({ status: "unauthenticated", devMode });
   }
 
+  // ── Sign-in screen ──────────────────────────────────────────────────────
   if (state.status === "unauthenticated") {
     return (
       <div className="signin-screen">
         <div className="signin-screen__title">YT Tracker</div>
         <div className="signin-screen__sub">Sign in to view your kanban board</div>
+
         <button
           className="btn-google"
           onClick={() => { window.location.href = "/auth/login"; }}
@@ -49,6 +72,25 @@ export default function App() {
           </svg>
           Sign in with Google
         </button>
+
+        {state.devMode && (
+          <div className="dev-preview">
+            <div className="dev-preview__label">Preview (dev only)</div>
+            <div className="dev-preview__buttons">
+              {Object.entries(DEV_EMAILS).map(([role, email]) => (
+                <button
+                  key={role}
+                  className="btn-dev"
+                  onClick={() => {
+                    window.location.href = `/dev-login?role=${encodeURIComponent(role)}&email=${encodeURIComponent(email)}`;
+                  }}
+                >
+                  {role}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -63,7 +105,12 @@ export default function App() {
         <strong>Something went wrong</strong><br />
         {state.message}
         <br /><br />
-        <button className="btn btn-primary" onClick={() => void load()}>Retry</button>
+        <button
+          style={{ marginTop: "8px", padding: "8px 18px", background: "var(--accent)", border: "none", borderRadius: "8px", color: "#1a0e03", fontWeight: 700, cursor: "pointer" }}
+          onClick={() => void load()}
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -72,13 +119,18 @@ export default function App() {
 
   return (
     <>
-      <header className="app-header">
-        <div className="app-header__title">YT Tracker</div>
-        <span className="app-header__role">{data.role}</span>
-        <button className="btn btn-secondary" onClick={() => void handleLogout()}>
+      {/* Topbar */}
+      <header className="topbar">
+        <div className="logo">Y</div>
+        <h1>YT Tracker</h1>
+        <div className="spacer" />
+        <span className="who">{data.role}</span>
+        <span className="role-badge">{data.role}</span>
+        <button className="btn-ghost" onClick={() => void handleLogout()}>
           Sign out
         </button>
       </header>
+
       <Board
         role={data.role}
         columns={data.columns}

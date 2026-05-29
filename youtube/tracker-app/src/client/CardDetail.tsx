@@ -1,33 +1,27 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import type { Column } from "../shared/columns";
 import type { Row } from "../shared/rbac";
 import { canEdit } from "../shared/rbac";
 import { updateCell, ForbiddenError } from "./api";
 import { LANES } from "./lanes";
+import { FIELD_LABELS, LANE_LABELS } from "./labels";
 
 interface CardDetailProps {
   row: Row;
   columns: Column[];
   role: string;
+  laneStatus: string;
   onClose: () => void;
   onSaved: () => void;
 }
 
-const LANE_COLUMNS = new Set(["topic_status", "tutorial_status", "video_editor_status", "yt_upload_status"]);
-
-function fieldLabel(col: Column): string {
-  return col
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, c => c.toUpperCase());
-}
+const LANE_COLUMNS = new Set(["topic_status","tutorial_status","video_editor_status","yt_upload_status"]);
 
 export function CardDetail({ row, columns, role, onClose, onSaved }: CardDetailProps) {
   const [draft, setDraft] = useState<Partial<Record<Column, string>>>({});
   const [errors, setErrors] = useState<Partial<Record<Column, string>>>({});
   const [saving, setSaving] = useState(false);
-  const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Initialise draft from row
   useEffect(() => {
     const init: Partial<Record<Column, string>> = {};
     for (const col of columns) init[col] = row[col] ?? "";
@@ -72,67 +66,104 @@ export function CardDetail({ row, columns, role, onClose, onSaved }: CardDetailP
     }
   }
 
-  function handleOverlayClick(e: React.MouseEvent) {
-    if (e.target === overlayRef.current) onClose();
-  }
+  // Split columns into read-only brief vs editable "YOUR PART"
+  const briefCols = columns.filter(c => c !== "row_id" && !canEdit(role, c));
+  const editCols  = columns.filter(c => c !== "row_id" &&  canEdit(role, c));
+
+  const title = row.video_title ?? "(no title)";
 
   return (
-    <div className="detail-overlay" ref={overlayRef} onClick={handleOverlayClick} role="dialog" aria-modal="true">
-      <div className="detail-panel">
-        <div className="detail-header">
-          <h2 className="detail-title">{row.video_title ?? "(no title)"}</h2>
-          <button className="detail-close" onClick={onClose} aria-label="Close">&#x2715;</button>
-        </div>
-        <div className="detail-fields">
-          {columns.filter(c => c !== "row_id").map(col => {
-            const editable = canEdit(role, col);
-            const value = draft[col] ?? "";
-            const err = errors[col];
-            const isLaneCol = LANE_COLUMNS.has(col);
-            const laneValues = isLaneCol ? (LANES[col] ?? []) : [];
+    <>
+      {/* Scrim — click outside to close */}
+      <div className="detail-overlay" onClick={onClose} />
 
-            return (
-              <div key={col} className={`detail-field${editable ? "" : " detail-field--readonly"}`}>
-                <label className="detail-label" htmlFor={`field-${col}`}>{fieldLabel(col)}</label>
-                {editable ? (
-                  isLaneCol ? (
+      <div className="detail-panel" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+        <button className="panel__close" onClick={onClose} aria-label="Close">×</button>
+
+        <h2>{title}</h2>
+
+        {/* THE BRIEF — read-only */}
+        {briefCols.length > 0 && (
+          <>
+            <div className="ctx-label">The brief — read only</div>
+            {briefCols.map(col => {
+              const value = draft[col] ?? "";
+              const label = FIELD_LABELS[col] ?? col.replace(/_/g, " ");
+              return (
+                <div key={col} className="field">
+                  <label>{label}</label>
+                  <div className="ro">{value}</div>
+                </div>
+              );
+            })}
+          </>
+        )}
+
+        {/* Divider before YOUR PART */}
+        {briefCols.length > 0 && editCols.length > 0 && (
+          <div className="divider-line" />
+        )}
+
+        {/* YOUR PART — editable */}
+        {editCols.length > 0 && (
+          <div className="yours">
+            <div className="yours-tag">YOUR PART</div>
+            {editCols.map(col => {
+              const editable = canEdit(role, col);
+              const value = draft[col] ?? "";
+              const err = errors[col];
+              const isLaneCol = LANE_COLUMNS.has(col);
+              const rawLaneValues = isLaneCol ? (LANES[col] ?? []) : [];
+              const label = FIELD_LABELS[col] ?? col.replace(/_/g, " ");
+              // lane labels for this col
+              const friendlyMap = LANE_LABELS[col] ?? {};
+
+              if (!editable) return null; // shouldn't happen but guard
+
+              return (
+                <div key={col} className="field">
+                  <label htmlFor={`field-${col}`}>{label}</label>
+                  {isLaneCol ? (
                     <select
                       id={`field-${col}`}
-                      className="detail-input"
                       value={value}
                       onChange={e => handleChange(col, e.target.value)}
                     >
-                      {value && !laneValues.includes(value) && (
-                        <option value={value}>{value}</option>
+                      {value && !rawLaneValues.includes(value) && (
+                        <option value={value}>{friendlyMap[value] ?? value}</option>
                       )}
-                      {laneValues.map(v => (
-                        <option key={v} value={v}>{v}</option>
+                      {rawLaneValues.map(v => (
+                        <option key={v} value={v}>{friendlyMap[v] ?? v}</option>
                       ))}
                     </select>
                   ) : (
                     <input
                       id={`field-${col}`}
-                      className="detail-input"
                       type="text"
                       value={value}
+                      placeholder={`Paste your ${label.toLowerCase()}…`}
                       onChange={e => handleChange(col, e.target.value)}
                     />
-                  )
-                ) : (
-                  <div id={`field-${col}`} className="detail-value">{value || <em>—</em>}</div>
-                )}
-                {err && <div className="detail-error">{err}</div>}
-              </div>
-            );
-          })}
-        </div>
-        <div className="detail-footer">
-          <button className="btn btn-secondary" onClick={onClose} disabled={saving}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-            {saving ? "Saving…" : "Save"}
-          </button>
-        </div>
+                  )}
+                  {err && <div className="field-error">{err}</div>}
+                </div>
+              );
+            })}
+            <button
+              className="btn-save"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        )}
+
+        {/* Admin: if all columns are editable, show them without the brief/yours split */}
+        {briefCols.length === 0 && editCols.length === 0 && (
+          <p style={{ color: "var(--t4)", fontSize: "13px" }}>No editable fields.</p>
+        )}
       </div>
-    </div>
+    </>
   );
 }

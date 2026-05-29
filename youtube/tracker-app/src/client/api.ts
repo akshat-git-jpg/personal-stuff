@@ -66,3 +66,9 @@ export async function logout(): Promise<void> {
     throw new Error(`Logout failed: ${res.status}`);
   }
 }
+
+export async function getAuthMode(): Promise<{ dev: boolean }> {
+  const res = await fetch("/api/auth-mode", { credentials: "same-origin" });
+  if (!res.ok) return { dev: false };
+  return res.json() as Promise<{ dev: boolean }>;
+}
