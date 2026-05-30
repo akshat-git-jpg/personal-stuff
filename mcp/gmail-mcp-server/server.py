@@ -21,7 +21,7 @@ from auth import get_credentials
 
 BASE_DIR = Path(__file__).parent
 REPO_ROOT = BASE_DIR.parent.parent  # mcp/gmail-mcp-server -> mcp -> repo root
-PREFS_DIR = REPO_ROOT / "email assistant"  # prefs live next to the consuming project
+PREFS_DIR = REPO_ROOT / "email-assistant"  # prefs live next to the consuming project
 
 app = Server("gmail")
 
