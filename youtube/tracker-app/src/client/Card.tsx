@@ -1,5 +1,5 @@
 import type { Row } from "../shared/rbac";
-import { FEEDBACK_COL } from "./labels";
+import { FEEDBACK_COL, ARTIFACT_COL } from "./labels";
 
 interface CardProps {
   row: Row;
@@ -13,16 +13,9 @@ interface CardProps {
   locked?: boolean;
 }
 
-// Link column to check for each role's status column
-const LINK_FOR_STATUS: Record<string, string> = {
-  tutorial_status:     "tutorial_link",
-  video_editor_status: "video_editor_link",
-  yt_upload_status:    "yt_link",
-  // topic_status → no signal
-};
-
 // Assignee email column for each status column
 const EMAIL_FOR_STATUS: Record<string, string> = {
+  script_status:       "script_writer_email",
   tutorial_status:     "tutorial_maker_email",
   video_editor_status: "video_editor_email",
   yt_upload_status:    "reviewer_email",
@@ -56,10 +49,10 @@ export function Card({ row, onClick, isDragging = false, laneStatus, visibleCols
   const notes = row.video_notes ?? "";
   const showBrief = notes.length > 0 && (!visibleCols || visible.has("video_notes"));
 
-  // Signal: check if the link column has a value
+  // Signal: check if the artifact link column has a value (uses ARTIFACT_COL map)
   let signal: { ok: boolean; label: string } | null = null;
-  if (laneStatus && laneStatus in LINK_FOR_STATUS) {
-    const linkCol = LINK_FOR_STATUS[laneStatus];
+  if (laneStatus && laneStatus in ARTIFACT_COL) {
+    const linkCol = ARTIFACT_COL[laneStatus];
     const hasLink = !!(row[linkCol as keyof Row]);
     signal = hasLink
       ? { ok: true,  label: "● Link added" }
@@ -68,7 +61,6 @@ export function Card({ row, onClick, isDragging = false, laneStatus, visibleCols
 
   // Avatar = assignee initials, shown ONLY when the assignee email is actually
   // visible to this role (Admin/Reviewer views where many people's cards mix).
-  // On a freelancer's own board the email is hidden, so we show no avatar.
   const emailCol = laneStatus ? (EMAIL_FOR_STATUS[laneStatus] ?? "") : "";
   const email = emailCol ? (row[emailCol as keyof Row] ?? "") : "";
   const avatar = email ? initials(email) : null;

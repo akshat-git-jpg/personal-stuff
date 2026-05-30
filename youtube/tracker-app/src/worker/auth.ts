@@ -11,13 +11,13 @@
  *   requireSession → validates session cookie, sets c.var.user
  *
  * Helper:
- *   getUser(c) → { email, role }
+ *   getUser(c) → { email, roles }
  */
 
 import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { getAccessToken } from "./sheets";
-import { lookupRole } from "./roles";
+import { lookupRoles } from "./roles";
 
 // ---------------------------------------------------------------------------
 // Env / variable types (shared across auth + index)
@@ -34,10 +34,17 @@ export type Env = {
   GOOGLE_SA_JSON: string;
   /** Set to "1" in .dev.vars only. Unset in production — branch is dead in prod. */
   DEV_AUTH?: string;
+  // Gmail notification credentials (optional; notifications silently no-op if absent)
+  GMAIL_CLIENT_ID?: string;
+  GMAIL_CLIENT_SECRET?: string;
+  GMAIL_REFRESH_TOKEN?: string;
+  GMAIL_SENDER_EMAIL?: string;
+  NOTIFY_REDIRECT?: string;
+  APP_URL?: string;
 };
 
 export type Variables = {
-  user: { email: string; role: string };
+  user: { email: string; roles: string[] };
 };
 
 // ---------------------------------------------------------------------------
@@ -158,17 +165,17 @@ export async function oauthCallback(c: Context<{ Bindings: Env }>): Promise<Resp
     return c.text("Email not verified", 403);
   }
 
-  // Look up role in the Employes sheet
-  let role: string | null;
+  // Look up roles in the Employes sheet
+  let roles: string[];
   try {
     const saToken = await getAccessToken(c.env.GOOGLE_SA_JSON);
-    role = await lookupRole(saToken, c.env.SHEET_ID, email);
+    roles = await lookupRoles(saToken, c.env.SHEET_ID, email);
   } catch (err) {
     console.error("[auth] Role lookup failed:", err);
     return c.text("Role lookup failed", 502);
   }
 
-  if (role === null) {
+  if (roles.length === 0) {
     return c.html(
       `<!DOCTYPE html><html><body>
       <p>No access &mdash; your email <strong>${email}</strong> isn&rsquo;t registered.</p>
@@ -180,7 +187,7 @@ export async function oauthCallback(c: Context<{ Bindings: Env }>): Promise<Resp
 
   // Create opaque session in KV
   const sessionId = crypto.randomUUID();
-  const sessionData = JSON.stringify({ email, role, createdAt: new Date().toISOString() });
+  const sessionData = JSON.stringify({ email, roles, createdAt: new Date().toISOString() });
   await c.env.SESSIONS.put(`session:${sessionId}`, sessionData, {
     expirationTtl: SESSION_TTL,
   });
@@ -209,9 +216,9 @@ export async function requireSession(
   // is dead in prod. Allows curl with arbitrary roles during local development.
   if (c.env.DEV_AUTH === "1") {
     const devEmail = c.req.header("X-Dev-Email");
-    const devRole = c.req.header("X-Dev-Role");
-    if (devEmail && devRole) {
-      c.set("user", { email: devEmail, role: devRole });
+    const devRoles = c.req.header("X-Dev-Roles");
+    if (devEmail && devRoles) {
+      c.set("user", { email: devEmail, roles: devRoles.split(",").map(r => r.trim()).filter(Boolean) });
       await next();
       return;
     }
@@ -227,14 +234,16 @@ export async function requireSession(
     return c.json({ error: "unauthorized" }, 401);
   }
 
-  let session: { email: string; role: string };
+  let session: { email: string; roles?: string[]; role?: string };
   try {
-    session = JSON.parse(raw) as { email: string; role: string };
+    session = JSON.parse(raw) as { email: string; roles?: string[]; role?: string };
   } catch {
     return c.json({ error: "unauthorized" }, 401);
   }
 
-  c.set("user", { email: session.email, role: session.role });
+  // Support both old sessions (role: string) and new (roles: string[])
+  const roles = session.roles ?? (session.role ? [session.role] : []);
+  c.set("user", { email: session.email, roles });
   await next();
 }
 
@@ -244,7 +253,7 @@ export async function requireSession(
 
 export function getUser(c: Context<{ Bindings: Env; Variables: Variables }>): {
   email: string;
-  role: string;
+  roles: string[];
 } {
   return c.get("user");
 }

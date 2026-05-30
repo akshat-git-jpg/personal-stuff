@@ -217,3 +217,46 @@ export async function updateCell(
   const cell = `${TAB}!${colLetter(colIdx)}${targetRowNum}`;
   await sheetsPut(token, sheetId, cell, value);
 }
+
+// ---------------------------------------------------------------------------
+// touchRow
+// ---------------------------------------------------------------------------
+
+/**
+ * Best-effort: write the current ISO timestamp into the `last_updated` cell for
+ * the given rowId. If the `last_updated` header isn't found in the sheet, this
+ * is a silent no-op — it never throws.
+ *
+ * Call immediately after a successful updateCell to timestamp the mutation.
+ */
+export async function touchRow(
+  token: string,
+  sheetId: string,
+  rowId: string,
+): Promise<void> {
+  const raw = await sheetsGet(token, sheetId, READ_RANGE);
+  if (raw.length < 1) return;
+
+  const headerRow = raw[0];
+
+  // Locate last_updated column — no-op if not present
+  const colIdx = headerRow.findIndex((h) => h.trim() === "last_updated");
+  if (colIdx === -1) return;
+
+  // Locate row_id column
+  const rowIdColIdx = headerRow.findIndex((h) => h.trim() === "row_id");
+  if (rowIdColIdx === -1) return;
+
+  // Find the target data row
+  let targetRowNum: number | null = null;
+  for (let i = 1; i < raw.length; i++) {
+    if ((raw[i][rowIdColIdx] ?? "").trim() === rowId) {
+      targetRowNum = i + 1; // 1-indexed
+      break;
+    }
+  }
+  if (targetRowNum === null) return;
+
+  const cell = `${TAB}!${colLetter(colIdx)}${targetRowNum}`;
+  await sheetsPut(token, sheetId, cell, new Date().toISOString());
+}

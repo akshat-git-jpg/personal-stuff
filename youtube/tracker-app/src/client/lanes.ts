@@ -2,10 +2,11 @@ import type { Column } from "../shared/columns";
 import type { Row } from "../shared/rbac";
 
 export const LANES: Record<string, string[]> = {
+  script_status:       ["To Do","In Progress","In Review","Done"],
   tutorial_status:     ["To Do","In Progress","In Review","Done"],
   video_editor_status: ["To Do","In Progress","In Review","Done"],
-  yt_upload_status:    ["To Do","Draft","Uploaded"],
-  topic_status:        ["To Do","To Process","To Review"],
+  yt_upload_status:    ["To Do","Draft","Published"],
+  topic_status:        ["To Do","Ready"],
 };
 
 export const OTHER_LANE = "Other / needs fixing";
@@ -13,6 +14,7 @@ export const OTHER_LANE = "Other / needs fixing";
 // Admin can switch which status column drives the board:
 export const ADMIN_LANE_OPTIONS: Column[] = [
   "topic_status",
+  "script_status",
   "tutorial_status",
   "video_editor_status",
   "yt_upload_status",

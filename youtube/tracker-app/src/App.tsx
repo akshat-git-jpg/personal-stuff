@@ -1,21 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { Board } from "./client/Board";
 import { getBoard, getTeam, logout, UnauthorizedError, type BoardData, type TeamMember } from "./client/api";
+import { displayName } from "./client/api";
 
-// Dev preview emails per role
-const DEV_EMAILS: Record<string, string> = {
-  "Admin":          "seankerman25@gmail.com",
-  "Editor":         "akshatpatidar17@gmail.com",
-  "Tutorial Maker": "kushalbakliwal25@gmail.com",
-  "Reviewer":       "seankerman25@gmail.com",
-};
-
-export const FRIENDLY_ROLE: Record<string, string> = {
-  "Editor":         "Video Editor",
-  "Tutorial Maker": "Tutorial Maker",
-  "Reviewer":       "Reviewer",
-  "Admin":          "Admin",
-};
+// Dev preview personas — linked by email
+const DEV_PERSONAS: { label: string; email: string }[] = [
+  { label: "Sean (Admin)",            email: "seankerman25@gmail.com"    },
+  { label: "John (Video Editor)",     email: "akshatpatidar17@gmail.com"  },
+  { label: "Sam (Script + Recordings)", email: "kushalbakliwal25@gmail.com" },
+  { label: "Anusha (Recordings)",     email: "khushibakliwal125@gmail.com" },
+];
 
 type AppState =
   | { status: "loading" }
@@ -43,6 +37,13 @@ export default function App() {
     setState({ status: "loading" });
     try {
       const data = await getBoard(asUser);
+      // Back-compat: ensure roles[] is always present
+      if (!data.roles) {
+        (data as BoardData).roles = data.role ? [data.role] : [];
+      }
+      if (!data.stages) {
+        (data as BoardData).stages = [];
+      }
       setState({ status: "ok", data });
     } catch (err) {
       if (err instanceof UnauthorizedError) {
@@ -58,7 +59,7 @@ export default function App() {
 
   // Load team list once admin board is confirmed
   useEffect(() => {
-    if (state.status === "ok" && state.data.role === "Admin" && team.length === 0) {
+    if (state.status === "ok" && state.data.roles.includes("Admin") && team.length === 0) {
       void getTeam().then(setTeam);
     }
   }, [state, team.length]);
@@ -98,15 +99,15 @@ export default function App() {
           <div className="dev-preview">
             <div className="dev-preview__label">Preview (dev only)</div>
             <div className="dev-preview__buttons">
-              {Object.entries(DEV_EMAILS).map(([role, email]) => (
+              {DEV_PERSONAS.map(({ label, email }) => (
                 <button
-                  key={role}
+                  key={email}
                   className="btn-dev"
                   onClick={() => {
-                    window.location.href = `/dev-login?role=${encodeURIComponent(role)}&email=${encodeURIComponent(email)}`;
+                    window.location.href = `/dev-login?email=${encodeURIComponent(email)}`;
                   }}
                 >
-                  {role}
+                  {label}
                 </button>
               ))}
             </div>
@@ -137,6 +138,17 @@ export default function App() {
   }
 
   const { data } = state;
+  const roles = data.roles ?? (data.role ? [data.role] : []);
+  const isAdmin = roles.includes("Admin");
+
+  // Role badge: show joined roles or single role
+  const roleBadgeText = roles.length > 1
+    ? roles.join(" · ")
+    : (roles[0] ?? data.role ?? "");
+
+  // "Who am I" display name
+  const myEmail = data.viewingAs?.email ?? "";
+  const myName = myEmail ? displayName(myEmail, data.names ?? {}) : "";
 
   // Build friendly preview banner
   let previewBanner: string | null = null;
@@ -145,15 +157,13 @@ export default function App() {
       previewBanner = data.notice ?? `No role mapping found for ${data.viewingAs.email}.`;
     } else {
       const memberName = team.find(m => m.email === data.viewingAs!.email)?.name ?? data.viewingAs.email;
-      const friendlyRole = FRIENDLY_ROLE[data.viewingAs.role] ?? data.viewingAs.role;
-      previewBanner = `\u{1F441}️ Previewing ${memberName}'s board (${friendlyRole}) — read-only. Switch to “Full admin (me)” to edit.`;
+      const friendlyRole = data.viewingAs.role;
+      previewBanner = `\u{1F441}️ Previewing ${memberName}'s board (${friendlyRole}) — read-only. Switch to "Full admin (me)" to edit.`;
     }
   }
 
-  // Show View-as dropdown if the SESSION role is Admin (role === "Admin" when viewingAs is null,
-  // or when viewingAs is set the returned role is the target's role — so check viewingAs existence
-  // or session-level: if team was loaded, this is definitely an admin session).
-  const showViewAs = data.role === "Admin" || data.viewingAs !== null;
+  // Show View-as dropdown if the SESSION role is Admin
+  const showViewAs = isAdmin || data.viewingAs !== null;
 
   return (
     <>
@@ -173,13 +183,13 @@ export default function App() {
             <option value="">Full admin (me)</option>
             {team.map(m => (
               <option key={m.email} value={m.email}>
-                {m.name} — {FRIENDLY_ROLE[m.role] ?? m.role}
+                {m.name} — {m.role}
               </option>
             ))}
           </select>
         )}
-        <span className="who">{data.role}</span>
-        <span className="role-badge">{data.role}</span>
+        {myName && <span className="who">{myName}</span>}
+        <span className="role-badge">{roleBadgeText}</span>
         <button className="btn-ghost" onClick={() => void handleLogout()}>
           Sign out
         </button>
@@ -192,8 +202,11 @@ export default function App() {
 
       <Board
         role={data.role}
+        roles={roles}
+        stages={data.stages ?? []}
         columns={data.columns}
         rows={data.rows}
+        names={data.names ?? {}}
         viewingAs={data.viewingAs ?? null}
         readOnly={data.readOnly ?? false}
         reload={() => void load(viewAsEmail || undefined)}

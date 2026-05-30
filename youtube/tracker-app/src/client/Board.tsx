@@ -11,21 +11,42 @@ import {
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import type { Column } from "../shared/columns";
 import type { Row } from "../shared/rbac";
-import { canEdit, canSetValue, isRowLockedFor, isApprover } from "../shared/rbac";
-import { POLICY, APPROVER_ONLY_VALUES } from "../shared/policy";
-import { updateCell, ForbiddenError, getApprovals, type BoardData, type ApprovalItem } from "./api";
+import {
+  canEditForRoles,
+  canSetValueForRoles,
+  isFieldLocked,
+  isApproverRoles,
+} from "../shared/rbac";
+import { APPROVER_ONLY_VALUES } from "../shared/policy";
+import { updateCell, ForbiddenError, getApprovals, displayName, type BoardData, type ApprovalItem } from "./api";
 import { LANES, ADMIN_LANE_OPTIONS, groupByLane } from "./lanes";
 import { Card } from "./Card";
 import { CardDetail } from "./CardDetail";
 import { laneLabel, laneColor, FIELD_LABELS } from "./labels";
+import { AdminOverview } from "./AdminOverview";
+import { PipelineBoard } from "./PipelineBoard";
+import { Filters, EMPTY_FILTERS, type AdminFilters } from "./Filters";
+import { overallStage, type OverallStage } from "./pipeline";
+
+// ── Admin view tabs ────────────────────────────────────────────────────────
+
+type AdminTab = "overview" | "pipeline" | "board" | "awaiting";
 
 // ── Role banner text ───────────────────────────────────────────────────────
 
 const ROLE_BANNER: Record<string, string> = {
-  "Tutorial Maker": "These are the tutorials assigned to you. Drag a card right as you make progress. Open a card to read the brief and paste your tutorial / script link.",
-  "Editor":         "These are the videos assigned to you for editing. Drag a card as you progress. Open a card to read the script and paste your edited video link.",
+  "Script Writer":  "These are the scripts assigned to you. Drag a card right as you make progress. Open a card to read the brief and paste your script link.",
+  "Tutorial Maker": "These are the tutorials assigned to you. Drag a card right as you make progress. Open a card to read the script and paste your recording link.",
+  "Video Editor":   "These are the videos assigned to you for editing. Drag a card as you progress. Open a card to read the recording and paste your edited video link.",
   "Reviewer":       "Videos awaiting your review and upload. Open a card to review and add the YouTube link.",
   "Admin":          "All videos across the pipeline. Use the board-view selector to switch the grouping. You can edit any field.",
+};
+
+// Stage switcher labels
+const STAGE_SWITCHER_LABEL: Record<string, string> = {
+  script_status:       "Script",
+  tutorial_status:     "Recording",
+  video_editor_status: "Editing",
 };
 
 // ── Droppable lane column ──────────────────────────────────────────────────
@@ -36,23 +57,34 @@ interface LaneColumnProps {
   laneStatusCol: string;
   count: number;
   gated?: boolean;
+  collapsible?: boolean;
+  collapsed?: boolean;
+  onToggle?: () => void;
   children: React.ReactNode;
 }
 
-function LaneColumn({ lane, stageKey, laneStatusCol, count, gated, children }: LaneColumnProps) {
+function LaneColumn({ lane, stageKey, laneStatusCol, count, gated, collapsible, collapsed, onToggle, children }: LaneColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: lane });
   const stageClass = stageKey ? ` lane--${stageKey}` : "";
   const friendlyLabel = laneLabel(laneStatusCol, lane);
+  const isCollapsed = !!collapsible && !!collapsed;
 
   return (
-    <div ref={setNodeRef} className={`lane${stageClass}${gated ? " lane--gated" : ""}${isOver && !gated ? " lane--over" : ""}`}>
+    <div ref={setNodeRef} className={`lane${stageClass}${gated ? " lane--gated" : ""}${isOver && !gated ? " lane--over" : ""}${isCollapsed ? " lane--collapsed" : ""}`}>
       <div className="lane__bar" />
-      <div className="lane__head">
+      <div
+        className={`lane__head${collapsible ? " lane__head--toggle" : ""}`}
+        onClick={collapsible ? onToggle : undefined}
+        role={collapsible ? "button" : undefined}
+        tabIndex={collapsible ? 0 : undefined}
+        onKeyDown={collapsible ? (e => { if (e.key === "Enter" || e.key === " ") onToggle?.(); }) : undefined}
+      >
+        {collapsible && <span className="lane__caret">{isCollapsed ? "▸" : "▾"}</span>}
         <span className="lane__title">{friendlyLabel}</span>
         {gated && <span className="lane__lock" title="Only an admin or reviewer can move cards here">🔒 Approver only</span>}
         <span className="lane__count">{count}</span>
       </div>
-      <div className="lane__cards">{children}</div>
+      {!isCollapsed && <div className="lane__cards">{children}</div>}
     </div>
   );
 }
@@ -109,16 +141,20 @@ interface BoardProps extends Omit<BoardData, "viewingAs" | "readOnly" | "notice"
   reload: () => void;
   viewingAs?: { email: string; role: string | null } | null;
   readOnly?: boolean;
+  names: Record<string, string>;
+  roles: string[];
+  stages: { statusCol: string; role: string }[];
 }
 
 // ── Awaiting Approval queue (approver-driven, endpoint-sourced) ────────────
 
 interface ApprovalQueueProps {
   items: ApprovalItem[];
+  names: Record<string, string>;
   onOpenCard: (item: ApprovalItem) => void;
 }
 
-function ApprovalQueue({ items, onOpenCard }: ApprovalQueueProps) {
+function ApprovalQueue({ items, names, onOpenCard }: ApprovalQueueProps) {
   if (items.length === 0) {
     return <div className="awaiting-empty">No items awaiting approval.</div>;
   }
@@ -140,7 +176,7 @@ function ApprovalQueue({ items, onOpenCard }: ApprovalQueueProps) {
               <span className="awaiting-item__title">{item.video_title || "(no title)"}</span>
               <span className="awaiting-item__stage">{item.stage}</span>
               {item.assigneeEmail && (
-                <span className="awaiting-item__assignee">{item.assigneeEmail}</span>
+                <span className="awaiting-item__assignee">{displayName(item.assigneeEmail, names)}</span>
               )}
             </div>
             <div className="awaiting-item__hint">Click to review →</div>
@@ -151,14 +187,34 @@ function ApprovalQueue({ items, onOpenCard }: ApprovalQueueProps) {
   );
 }
 
-export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, reload }: BoardProps) {
+export function Board({ role, roles, stages, columns, rows: initialRows, names, viewingAs, readOnly, reload }: BoardProps) {
   const isPreview = !!viewingAs;
-  const defaultLane = (role === "Admin"
-    ? "topic_status"
-    : (POLICY[role]?.laneStatus ?? "topic_status")) as Column;
 
-  // Hoist approverMode before state so useState initial value can use it.
-  const approverMode = isApprover(role) && !isPreview;
+  // Multi-role derived flags
+  const isApprover = isApproverRoles(roles);
+  const isAdmin = roles.includes("Admin");
+
+  // Worker stages from the API (each {statusCol, role})
+  const workerStages = stages ?? [];
+
+  // For a worker with multiple stages, default to the first one
+  const defaultWorkerStageIdx = 0;
+  const [workerStageIdx, setWorkerStageIdx] = useState(defaultWorkerStageIdx);
+
+  // Derive the laneStatus from the active worker stage (or legacy fallback)
+  const activeWorkerStage = workerStages[workerStageIdx];
+  const defaultLane = isAdmin
+    ? ("topic_status" as Column)
+    : isApprover
+    ? ("yt_upload_status" as Column)
+    : activeWorkerStage
+    ? (activeWorkerStage.statusCol as Column)
+    : ("topic_status" as Column);
+
+  // Admin view switcher state — only used when isAdmin && !isPreview
+  const isFullAdmin = isAdmin && !isPreview;
+  const [adminTab, setAdminTab] = useState<AdminTab>("overview");
+  const [adminFilters, setAdminFilters] = useState<AdminFilters>(EMPTY_FILTERS);
 
   const [laneStatus, setLaneStatus] = useState<Column>(defaultLane);
   const [rows, setRows] = useState<Row[]>(initialRows);
@@ -167,29 +223,43 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
   // detailLaneStatus overrides the board laneStatus when opening a card from the approvals queue
   const [detailLaneStatus, setDetailLaneStatus] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  // Reviewer defaults to the approvals queue; Admin defaults to board view.
-  const [showAwaiting, setShowAwaiting] = useState(approverMode && role === "Reviewer");
+
+  // Approver-mode: non-admin approvers default to awaiting queue
+  const approverMode = isApprover && !isPreview;
+  const [showAwaiting, setShowAwaiting] = useState(approverMode && !isAdmin);
+
+  // Freelancers' "Done" (approved) lane is collapsed by default
+  const [doneOpen, setDoneOpen] = useState(false);
 
   // Approvals queue — fetched from the server for approver roles
   const [approvalItems, setApprovalItems] = useState<ApprovalItem[]>([]);
+  const [approvalNames, setApprovalNames] = useState<Record<string, string>>(names);
 
   async function fetchApprovals() {
     if (!approverMode) return;
     const data = await getApprovals();
     setApprovalItems(data.items);
+    if (data.names) setApprovalNames(data.names);
   }
 
-  // Fetch on mount and whenever reload is triggered (parent bumps a key or similar)
   useEffect(() => {
     void fetchApprovals();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role, isPreview]);
 
+  // When the worker stage switcher changes, update laneStatus
+  useEffect(() => {
+    if (!isAdmin && !isApprover && activeWorkerStage) {
+      setLaneStatus(activeWorkerStage.statusCol as Column);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workerStageIdx]);
+
   const awaitingCount = approvalItems.length;
 
   const lanes = LANES[laneStatus] ?? [];
   // In read-only preview mode, dragging is never allowed regardless of role.
-  const editAllowed = !readOnly && canEdit(role, laneStatus);
+  const editAllowed = !readOnly && canEditForRoles(roles, laneStatus);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -221,7 +291,7 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
     if (newLane === oldLane) return;
 
     // Client-side guard: prevent doers from dragging into lanes they can't set
-    if (!canSetValue(role, laneStatus, newLane)) {
+    if (!canSetValueForRoles(roles, laneStatus, newLane)) {
       showToast("Only an admin/reviewer can approve. Drag to 'Submitted for review' to submit it.");
       return;
     }
@@ -246,8 +316,226 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
   }
 
   const laneGroups = groupByLane(rows, laneStatus, lanes);
-  const bannerText = ROLE_BANNER[role] ?? "";
   const visibleCols = columns as string[];
+
+  // ── Helper: open card from Pipeline/Overview ──────────────────────────────
+  function openRowFromPipeline(row: Row) {
+    let ls: string = laneStatus;
+    if ((row.yt_upload_status ?? "") === "In Review") ls = "yt_upload_status";
+    else if ((row.video_editor_status ?? "") === "In Review") ls = "video_editor_status";
+    else if ((row.tutorial_status ?? "") === "In Review") ls = "tutorial_status";
+    else if ((row.script_status ?? "") === "In Review") ls = "script_status";
+    else {
+      const stage = overallStage(row as Record<string, string>);
+      if (stage === "Published" || stage === "Upload") ls = "yt_upload_status";
+      else if (stage === "Editing") ls = "video_editor_status";
+      else if (stage === "Tutorial") ls = "tutorial_status";
+      else ls = "script_status";
+    }
+    setDetailRow(row);
+    setDetailLaneStatus(ls);
+  }
+
+  // ── Full Admin rendering ───────────────────────────────────────────────────
+
+  if (isFullAdmin) {
+    function goToPipeline(stage?: OverallStage) {
+      setAdminFilters(stage ? { ...EMPTY_FILTERS, stage } : EMPTY_FILTERS);
+      setAdminTab("pipeline");
+    }
+
+    const showFilters = adminTab === "pipeline" || adminTab === "board";
+
+    return (
+      <div className="board-root">
+        {/* ── Admin view switcher ── */}
+        <div className="admin-tabs">
+          {(["overview", "pipeline", "board", "awaiting"] as AdminTab[]).map(tab => {
+            const label =
+              tab === "overview"  ? "Overview"
+              : tab === "pipeline" ? "Pipeline"
+              : tab === "board"    ? "Board"
+              : `Awaiting (${awaitingCount})`;
+            return (
+              <button
+                key={tab}
+                type="button"
+                className={`admin-tab${adminTab === tab ? " admin-tab--active" : ""}`}
+                onClick={() => {
+                  setAdminTab(tab);
+                  if (tab !== "board") setShowAwaiting(false);
+                }}
+                aria-pressed={adminTab === tab}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Filter bar (Pipeline + Board) ── */}
+        {showFilters && (
+          <Filters
+            rows={rows}
+            names={names}
+            filters={adminFilters}
+            onChange={setAdminFilters}
+          />
+        )}
+
+        {/* ── Overview tab ── */}
+        {adminTab === "overview" && (
+          <AdminOverview
+            rows={rows as Row[]}
+            names={names}
+            awaitingCount={awaitingCount}
+            onGoPipeline={goToPipeline}
+            onGoAwaiting={() => setAdminTab("awaiting")}
+            onOpenRow={openRowFromPipeline}
+          />
+        )}
+
+        {/* ── Pipeline tab ── */}
+        {adminTab === "pipeline" && (
+          <PipelineBoard
+            rows={rows}
+            names={names}
+            filters={adminFilters}
+            onOpen={openRowFromPipeline}
+          />
+        )}
+
+        {/* ── Board tab (existing kanban + lane picker) ── */}
+        {adminTab === "board" && (
+          <>
+            <div className="board-controls">
+              <label htmlFor="lane-select">Board view:</label>
+              <select
+                id="lane-select"
+                value={laneStatus}
+                onChange={e => { setLaneStatus(e.target.value as Column); }}
+              >
+                {ADMIN_LANE_OPTIONS.map(col => (
+                  <option key={col} value={col}>{FIELD_LABELS[col] ?? col.replace(/_/g, " ")}</option>
+                ))}
+              </select>
+            </div>
+            <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+              <div className="board">
+                {(() => {
+                  // Apply filters to board rows too
+                  const filteredRows = rows.filter(row => {
+                    if (adminFilters.stage && overallStage(row as Record<string,string>) !== adminFilters.stage) return false;
+                    if (adminFilters.assignee) {
+                      const sw = (row.script_writer_email ?? "").trim().toLowerCase();
+                      const tm = (row.tutorial_maker_email ?? "").trim().toLowerCase();
+                      const ve = (row.video_editor_email ?? "").trim().toLowerCase();
+                      if (sw !== adminFilters.assignee && tm !== adminFilters.assignee && ve !== adminFilters.assignee) return false;
+                    }
+                    if (adminFilters.category) {
+                      if ((row.category ?? "") !== adminFilters.category) return false;
+                    }
+                    return true;
+                  });
+                  const filteredGroups = groupByLane(filteredRows, laneStatus, lanes);
+                  return filteredGroups.map(({ lane, rows: laneRows }, idx) => {
+                    const isKnownLane = idx < lanes.length;
+                    const stageKey = isKnownLane ? laneColor(idx, lanes.length) : null;
+                    const gated = (APPROVER_ONLY_VALUES[laneStatus] ?? []).includes(lane)
+                      && !canSetValueForRoles(roles, laneStatus, lane);
+                    return (
+                      <Fragment key={lane}>
+                        {gated && (
+                          <div className="board-divider" aria-hidden="true">
+                            <span>approver only</span>
+                          </div>
+                        )}
+                        <LaneColumn
+                          lane={lane}
+                          stageKey={stageKey}
+                          laneStatusCol={laneStatus}
+                          count={laneRows.length}
+                          gated={gated}
+                        >
+                          {laneRows.map(row => {
+                            const locked = isFieldLocked(roles, laneStatus, row);
+                            return (
+                              <DraggableCard
+                                key={row.row_id}
+                                row={row}
+                                canDrag={editAllowed}
+                                locked={locked}
+                                onCardClick={r => { setDetailRow(r); setDetailLaneStatus(null); }}
+                                laneStatus={laneStatus}
+                                visibleCols={visibleCols}
+                              />
+                            );
+                          })}
+                          {laneRows.length === 0 && (
+                            <div className="lane__empty">No items</div>
+                          )}
+                        </LaneColumn>
+                      </Fragment>
+                    );
+                  });
+                })()}
+              </div>
+              <DragOverlay>
+                {activeRow && (
+                  <Card
+                    row={activeRow}
+                    onClick={() => undefined}
+                    isDragging
+                    laneStatus={laneStatus}
+                    visibleCols={visibleCols}
+                  />
+                )}
+              </DragOverlay>
+            </DndContext>
+          </>
+        )}
+
+        {/* ── Awaiting tab ── */}
+        {adminTab === "awaiting" && (
+          <ApprovalQueue
+            items={approvalItems}
+            names={approvalNames}
+            onOpenCard={item => {
+              setDetailRow(item.row);
+              setDetailLaneStatus(item.stageCol);
+            }}
+          />
+        )}
+
+        {detailRow && (
+          <CardDetail
+            row={detailRow}
+            columns={columns}
+            role={role}
+            roles={roles}
+            names={names}
+            laneStatus={detailLaneStatus ?? laneStatus}
+            readOnly={readOnly}
+            onClose={() => { setDetailRow(null); setDetailLaneStatus(null); }}
+            onSaved={() => {
+              void fetchApprovals();
+              reload();
+              setDetailRow(null);
+              setDetailLaneStatus(null);
+            }}
+          />
+        )}
+
+        {toast && <Toast message={toast} />}
+      </div>
+    );
+  }
+
+  // ── Non-admin (Reviewer / worker roles / preview) rendering ─────────────
+
+  // Role banner: for multi-role workers, use the active stage's role banner
+  const primaryRole = activeWorkerStage?.role ?? role;
+  const bannerText = ROLE_BANNER[primaryRole] ?? "";
 
   return (
     <div className="board-root">
@@ -258,19 +546,9 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
         </div>
       )}
 
-      {/* Admin lane picker + awaiting-approval toggle — full admin view */}
-      {role === "Admin" && !isPreview && (
+      {/* Reviewer awaiting-approval toggle */}
+      {isApprover && !isAdmin && !isPreview && (
         <div className="board-controls">
-          <label htmlFor="lane-select">Board view:</label>
-          <select
-            id="lane-select"
-            value={laneStatus}
-            onChange={e => { setLaneStatus(e.target.value as Column); setShowAwaiting(false); }}
-          >
-            {ADMIN_LANE_OPTIONS.map(col => (
-              <option key={col} value={col}>{FIELD_LABELS[col] ?? col.replace(/_/g, " ")}</option>
-            ))}
-          </select>
           <button
             className={`btn-awaiting${showAwaiting ? " btn-awaiting--active" : ""}`}
             onClick={() => setShowAwaiting(v => !v)}
@@ -281,16 +559,20 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
         </div>
       )}
 
-      {/* Reviewer awaiting-approval toggle — Reviewer has no lane picker, so just the button */}
-      {role === "Reviewer" && !isPreview && (
-        <div className="board-controls">
-          <button
-            className={`btn-awaiting${showAwaiting ? " btn-awaiting--active" : ""}`}
-            onClick={() => setShowAwaiting(v => !v)}
-            aria-pressed={showAwaiting}
-          >
-            Awaiting approval ({awaitingCount})
-          </button>
+      {/* Worker stage switcher (shown for multi-role non-approver workers) */}
+      {!isApprover && !isPreview && workerStages.length > 1 && (
+        <div className="board-controls stage-switcher">
+          {workerStages.map((ws, idx) => (
+            <button
+              key={ws.statusCol}
+              type="button"
+              className={`stage-switch-btn${workerStageIdx === idx ? " stage-switch-btn--active" : ""}`}
+              onClick={() => setWorkerStageIdx(idx)}
+              aria-pressed={workerStageIdx === idx}
+            >
+              {STAGE_SWITCHER_LABEL[ws.statusCol] ?? ws.statusCol}
+            </button>
+          ))}
         </div>
       )}
 
@@ -298,6 +580,7 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
       {showAwaiting ? (
         <ApprovalQueue
           items={approvalItems}
+          names={approvalNames}
           onOpenCard={item => {
             setDetailRow(item.row);
             setDetailLaneStatus(item.stageCol);
@@ -307,13 +590,10 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div className="board">
             {laneGroups.map(({ lane, rows: laneRows }, idx) => {
-              // Only apply stage color to "real" lanes (not OTHER_LANE), and only within normal range
               const isKnownLane = idx < lanes.length;
               const stage = isKnownLane ? laneColor(idx, lanes.length) : null;
-              // A lane is "gated" (approver-only) when the viewer can't set its value
-              // (e.g. the Done lane for a Tutorial Maker / Editor). Approvers never see this.
               const gated = (APPROVER_ONLY_VALUES[laneStatus] ?? []).includes(lane)
-                && !canSetValue(role, laneStatus, lane);
+                && !canSetValueForRoles(roles, laneStatus, lane);
               return (
                 <Fragment key={lane}>
                   {gated && (
@@ -327,9 +607,12 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
                   laneStatusCol={laneStatus}
                   count={laneRows.length}
                   gated={gated}
+                  collapsible={gated}
+                  collapsed={gated && !doneOpen}
+                  onToggle={() => setDoneOpen(o => !o)}
                 >
                   {laneRows.map(row => {
-                    const locked = isRowLockedFor(role, row);
+                    const locked = isFieldLocked(roles, laneStatus, row);
                     return (
                       <DraggableCard
                         key={row.row_id}
@@ -370,6 +653,8 @@ export function Board({ role, columns, rows: initialRows, viewingAs, readOnly, r
           row={detailRow}
           columns={columns}
           role={role}
+          roles={roles}
+          names={names}
           laneStatus={detailLaneStatus ?? laneStatus}
           readOnly={readOnly}
           onClose={() => { setDetailRow(null); setDetailLaneStatus(null); }}
