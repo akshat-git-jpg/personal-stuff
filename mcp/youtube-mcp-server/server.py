@@ -257,11 +257,73 @@ def _parse_vtt(vtt_text: str) -> str:
     return "\n".join(out)
 
 
+def _lang_priority(want: str) -> list[str]:
+    """Build a sensible language fallback list around the requested code."""
+    want = want.lower()
+    base = want.split("-")[0]
+    order = [want]
+    for c in (base, f"{base}-US", f"{base}-GB", "en", "en-US", "en-GB"):
+        if c not in order:
+            order.append(c)
+    return order
+
+
 def _fetch_transcript(video_id: str, lang: str) -> tuple[str, str]:
+    """Return (clean_text, used_lang) for a video's captions.
+
+    Primary path is youtube-transcript-api, which hits YouTube's timedtext
+    endpoint (the one the web player uses) and succeeds from a residential IP
+    where yt-dlp's caption extractor currently returns "no captions". Falls
+    back to the yt-dlp path (_fetch_transcript_ytdlp) only if the primary
+    errors. Mirrors cli/youtube/pp-yt-transcript.
+
+    NOTE: run from a residential IP — YouTube blocks datacenter IPs for
+    transcript fetches with no free workaround.
+    """
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+
+        api = YouTubeTranscriptApi()
+        langs = _lang_priority(lang)
+        try:
+            fetched = api.fetch(video_id, languages=langs)
+        except Exception:
+            # exact language absent → pick best available track (manual over
+            # auto), translating to the requested language when possible.
+            transcripts = list(api.list(video_id))
+            if not transcripts:
+                raise
+            transcripts.sort(key=lambda t: t.is_generated)
+            base = transcripts[0]
+            target = lang.split("-")[0]
+            if base.language_code.split("-")[0] != target and base.is_translatable:
+                try:
+                    fetched = base.translate(target).fetch()
+                except Exception:
+                    fetched = base.fetch()
+            else:
+                fetched = base.fetch()
+        text = "\n".join(s.text.strip() for s in fetched if s.text.strip())
+        if not text:
+            raise RuntimeError("empty transcript")
+        return text, getattr(fetched, "language_code", lang)
+    except Exception as primary_err:
+        try:
+            return _fetch_transcript_ytdlp(video_id, lang)
+        except Exception as fb_err:
+            raise RuntimeError(
+                f"No captions available for {video_id} in lang '{lang}'. "
+                f"primary (youtube-transcript-api): {primary_err}; "
+                f"yt-dlp fallback: {fb_err}"
+            )
+
+
+def _fetch_transcript_ytdlp(video_id: str, lang: str) -> tuple[str, str]:
     """Download a video's caption track via yt-dlp and return (clean_text, used_lang).
 
-    Uses the same anti-429 flags as TY's yt-research/fetch-transcripts.ts:
-    Chrome impersonation, browser cookies, retries, and json3 format.
+    Fallback path only (see _fetch_transcript). Uses the same anti-429 flags as
+    TY's yt-research/fetch-transcripts.ts: Chrome impersonation, browser
+    cookies, retries, and json3 format.
     """
     ytdlp = _find_ytdlp()
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -559,9 +621,11 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="get_video_transcript",
             description=(
-                "Downloads a video's captions via yt-dlp and returns the cleaned text "
-                "(timestamps/tags stripped). Tries manual captions first, falls back to "
-                "auto-generated. No OAuth needed — works for any public video."
+                "Returns a video's transcript as cleaned text. Uses youtube-transcript-api "
+                "(the timedtext endpoint the web player uses), falling back to yt-dlp. Gets "
+                "manual or auto-generated captions and translates to the requested language "
+                "when needed. No OAuth needed — works for any public video. Run from a "
+                "residential IP; datacenter IPs are blocked by YouTube."
             ),
             inputSchema=_public_schema(
                 {
