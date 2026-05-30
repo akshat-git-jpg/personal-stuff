@@ -12,6 +12,7 @@ A single git repo holding everything related to my YouTube channel: niche resear
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-research/`](youtube/yt-research/CLAUDE.md) | Niche → knowledge-base pipeline (Phase 1, Gemini) | TypeScript |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-script/`](youtube/yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2) | Markdown workflow |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/my-yt/`](youtube/my-yt/CLAUDE.md) | Personal channel notes (free-form) | Markdown |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/tracker-app/`](youtube/tracker-app/CLAUDE.md) | Role-aware Kanban web app over the YT tracker sheet (5-stage pipeline, RBAC, approvals, notifications) | Vite+React+Hono on Cloudflare Workers |
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script under `youtube/`. | Python |
 | [`workers/redirector/`](workers/redirector/CLAUDE.md) | Cloudflare Worker for `go.agrolloo.com/*` short links | TypeScript (CF Worker) |
 | [`docs/`](docs/CLAUDE.md) | Repo-wide docs and workflows | Markdown |
