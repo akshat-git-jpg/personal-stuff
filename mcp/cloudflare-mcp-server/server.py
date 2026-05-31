@@ -219,6 +219,73 @@ async def list_tools() -> list[types.Tool]:
             description="Lists all KV namespaces on the account.",
             inputSchema=_schema({}, []),
         ),
+        # ----- DNS -----
+        types.Tool(
+            name="dns_list_zones",
+            description="Lists all zones (domains) on the account with id + status.",
+            inputSchema=_schema({}, []),
+        ),
+        types.Tool(
+            name="dns_list_records",
+            description=(
+                "Lists DNS records for a zone. 'zone' may be the domain name "
+                "(e.g. 'agrolloo.com') or a zone id. Optional 'type' (A/AAAA/CNAME/TXT/MX/...) "
+                "and 'name' (full record name) filters. Returns each record's id, type, name, content."
+            ),
+            inputSchema=_schema(
+                {"zone": {"type": "string"}, "type": {"type": "string"}, "name": {"type": "string"}},
+                ["zone"],
+            ),
+        ),
+        types.Tool(
+            name="dns_create_record",
+            description=(
+                "Creates a DNS record. 'zone' = domain name or zone id. 'name' is the FULL record "
+                "name (e.g. 'send.notifications.agrolloo.com', or '@' for the root). Pass 'priority' "
+                "for MX/SRV. 'proxied' (orange-cloud) only applies to A/AAAA/CNAME (default false). "
+                "'ttl' default 1 (=automatic)."
+            ),
+            inputSchema=_schema(
+                {
+                    "zone": {"type": "string"},
+                    "type": {"type": "string", "description": "A, AAAA, CNAME, TXT, MX, NS, SRV, CAA, ..."},
+                    "name": {"type": "string"},
+                    "content": {"type": "string"},
+                    "priority": {"type": "integer", "description": "Required for MX/SRV"},
+                    "ttl": {"type": "integer", "default": 1, "description": "Seconds; 1 = automatic"},
+                    "proxied": {"type": "boolean", "default": False, "description": "Only A/AAAA/CNAME"},
+                },
+                ["zone", "type", "name", "content"],
+            ),
+        ),
+        types.Tool(
+            name="dns_update_record",
+            description=(
+                "Updates a DNS record (PATCH) by record_id in a zone. Pass only the fields to "
+                "change: type / name / content / priority / ttl / proxied. Use dns_list_records to find the id."
+            ),
+            inputSchema=_schema(
+                {
+                    "zone": {"type": "string"},
+                    "record_id": {"type": "string"},
+                    "type": {"type": "string"},
+                    "name": {"type": "string"},
+                    "content": {"type": "string"},
+                    "priority": {"type": "integer"},
+                    "ttl": {"type": "integer"},
+                    "proxied": {"type": "boolean"},
+                },
+                ["zone", "record_id"],
+            ),
+        ),
+        types.Tool(
+            name="dns_delete_record",
+            description="Deletes a DNS record by record_id from a zone. Find the id via dns_list_records.",
+            inputSchema=_schema(
+                {"zone": {"type": "string"}, "record_id": {"type": "string"}},
+                ["zone", "record_id"],
+            ),
+        ),
         types.Tool(
             name="show_config",
             description=(
@@ -247,6 +314,19 @@ def _kv_value_url(account_id: str, namespace_id: str, key: str) -> str:
         f"{CF_API_BASE}/accounts/{account_id}"
         f"/storage/kv/namespaces/{namespace_id}/values/{quote(key, safe='')}"
     )
+
+
+def _resolve_zone_id(token: str, zone: str) -> str:
+    """Accept a zone name (e.g. 'agrolloo.com') or a 32-hex zone id; return the id."""
+    import re
+    z = (zone or "").strip()
+    if re.fullmatch(r"[0-9a-fA-F]{32}", z):
+        return z
+    data = _cf_request("GET", f"{CF_API_BASE}/zones?name={quote(z)}", token=token)
+    res = data.get("result") or []
+    if not res:
+        raise RuntimeError(f"Zone '{zone}' not found on this account")
+    return res[0]["id"]
 
 
 def _d1_run(sql: str, params: list | None, database_id: str | None) -> dict:
@@ -376,6 +456,65 @@ def _handle(name: str, args: dict) -> list[types.TextContent]:
             for n in data.get("result", [])
         ]
         return _text(json.dumps(out, indent=2))
+
+    if name == "dns_list_zones":
+        token = _required_env("CF_API_TOKEN")
+        data = _cf_request("GET", f"{CF_API_BASE}/zones?per_page=50", token=token)
+        out = [
+            {"name": z.get("name"), "id": z.get("id"), "status": z.get("status")}
+            for z in data.get("result", [])
+        ]
+        return _text(json.dumps(out, indent=2))
+
+    if name == "dns_list_records":
+        token = _required_env("CF_API_TOKEN")
+        zid = _resolve_zone_id(token, args["zone"])
+        q = ["per_page=100"]
+        if args.get("type"):
+            q.append(f"type={quote(args['type'])}")
+        if args.get("name"):
+            q.append(f"name={quote(args['name'])}")
+        data = _cf_request("GET", f"{CF_API_BASE}/zones/{zid}/dns_records?" + "&".join(q), token=token)
+        out = [
+            {
+                "id": r.get("id"), "type": r.get("type"), "name": r.get("name"),
+                "content": r.get("content"), "priority": r.get("priority"),
+                "proxied": r.get("proxied"), "ttl": r.get("ttl"),
+            }
+            for r in data.get("result", [])
+        ]
+        return _text(f"{len(out)} record(s)\n" + json.dumps(out, indent=2))
+
+    if name == "dns_create_record":
+        token = _required_env("CF_API_TOKEN")
+        zid = _resolve_zone_id(token, args["zone"])
+        body = {
+            "type": args["type"], "name": args["name"],
+            "content": args["content"], "ttl": int(args.get("ttl", 1)),
+        }
+        if args.get("priority") is not None:
+            body["priority"] = int(args["priority"])
+        if args.get("proxied") is not None:
+            body["proxied"] = bool(args["proxied"])
+        data = _cf_request("POST", f"{CF_API_BASE}/zones/{zid}/dns_records", token=token, json_body=body)
+        r = data.get("result", {})
+        return _text(f"Created {r.get('type')} {r.get('name')} (id {r.get('id')}).")
+
+    if name == "dns_update_record":
+        token = _required_env("CF_API_TOKEN")
+        zid = _resolve_zone_id(token, args["zone"])
+        body = {k: args[k] for k in ("type", "name", "content", "priority", "ttl", "proxied") if args.get(k) is not None}
+        if not body:
+            return _text("Error: nothing to update — pass at least one of type/name/content/priority/ttl/proxied.")
+        data = _cf_request("PATCH", f"{CF_API_BASE}/zones/{zid}/dns_records/{args['record_id']}", token=token, json_body=body)
+        r = data.get("result", {})
+        return _text(f"Updated {r.get('type')} {r.get('name')} (id {r.get('id')}).")
+
+    if name == "dns_delete_record":
+        token = _required_env("CF_API_TOKEN")
+        zid = _resolve_zone_id(token, args["zone"])
+        _cf_request("DELETE", f"{CF_API_BASE}/zones/{zid}/dns_records/{args['record_id']}", token=token)
+        return _text(f"Deleted record {args['record_id']}.")
 
     return _text(f"Unknown tool: {name}")
 
