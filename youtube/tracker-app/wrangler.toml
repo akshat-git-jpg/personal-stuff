@@ -10,3 +10,8 @@ binding = "ASSETS"
 [[kv_namespaces]]
 binding = "SESSIONS"
 id = "c08b498509f740dabdf74c2d8f02a106"
+
+# Custom domain (Cloudflare auto-provisions DNS + SSL on the agrolloo.com zone)
+[[routes]]
+pattern = "tutorials-tracker.agrolloo.com"
+custom_domain = true
