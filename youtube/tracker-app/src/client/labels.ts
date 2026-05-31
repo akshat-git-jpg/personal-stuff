@@ -1,0 +1,133 @@
+// ── Stage → feedback column map ───────────────────────────────────────────
+// Maps a doer's owned status column to the feedback column they can read.
+export const FEEDBACK_COL: Record<string, string> = {
+  script_status:        "script_feedback",
+  tutorial_status:      "tutorial_feedback",
+  video_editor_status:  "editor_feedback",
+};
+
+// ── Always-visible reminder under link fields (paste a PUBLIC link) ───────
+// Keyed by column; an editable field whose column is here shows the hint.
+const PUBLIC_LINK_HINT = 'Make sure this link is shared publicly — set it to "Anyone with the link can view"';
+export const LINK_HINTS: Record<string, string> = {
+  script_link:        PUBLIC_LINK_HINT,
+  tutorial_link:      PUBLIC_LINK_HINT,
+  video_editor_link:  PUBLIC_LINK_HINT,
+  yt_link:            PUBLIC_LINK_HINT,
+};
+
+// ── Columns that hold a URL to open ──────────────────────────────────────
+export const LINK_COLS = new Set(["script_link", "tutorial_link", "video_editor_link", "yt_link", "short_links", "actual_links"]);
+export function isUrl(v: string): boolean { return /^https?:\/\//i.test((v ?? "").trim()); }
+
+// ── Focused review card: stage/artifact/email maps ───────────────────────
+// Maps laneStatus column → human-readable stage name
+export const STAGE_NAME: Record<string, string> = {
+  script_status:        "Script",
+  tutorial_status:      "Recording",
+  video_editor_status:  "Editing",
+  yt_upload_status:     "Upload",
+};
+
+// Maps laneStatus column → artifact link column
+export const ARTIFACT_COL: Record<string, string> = {
+  script_status:        "script_link",
+  tutorial_status:      "tutorial_link",
+  video_editor_status:  "video_editor_link",
+  yt_upload_status:     "yt_link",
+};
+
+// Maps laneStatus column → assignee email column
+export const EMAIL_FOR_STAGE: Record<string, string> = {
+  script_status:        "script_writer_email",
+  tutorial_status:      "tutorial_maker_email",
+  video_editor_status:  "video_editor_email",
+  yt_upload_status:     "reviewer_email",
+};
+
+// ── Human-readable labels ─────────────────────────────────────────────────
+
+export const FIELD_LABELS: Record<string, string> = {
+  video_title:               "Video title",
+  video_notes:               "Notes / brief",
+  video_description:         "Description",
+  category:                  "Category",
+  subcategory:               "Subcategory",
+  topic_status:              "Topic status",
+  topic_date:                "Topic date",
+  admin_email:               "Admin",
+  script_writer_email:       "Script writer",
+  script_instruction:        "Script instructions",
+  script_link:               "Script",
+  script_status:             "Script status",
+  script_feedback:           "Script feedback",
+  tutorial_maker_email:      "Tutorial maker",
+  tutorial_instruction:      "Recording instructions",
+  tutorial_link:             "Tutorial / recording",
+  tutorial_status:           "Recording status",
+  tutorial_feedback:         "Recording feedback",
+  video_editor_email:        "Video editor",
+  video_editor_instruction:  "Editor instructions",
+  video_editor_link:         "Final video",
+  video_editor_status:       "Editing status",
+  editor_feedback:           "Editor feedback",
+  yt_upload_status:          "Upload status",
+  yt_upload_date:            "Upload date",
+  yt_link:                   "YouTube link",
+  short_links:               "Short links",
+  actual_links:              "Actual links",
+  reviewer_email:            "Reviewer",
+  row_id:                    "ID",
+};
+
+// LANE_LABELS: keyed by status column → raw value → friendly label
+// The friendly label is DISPLAY-ONLY; values written to the sheet stay raw.
+export const LANE_LABELS: Record<string, Record<string, string>> = {
+  script_status: {
+    "To Do":       "To Do",
+    "In Progress": "Working on it",
+    "In Review":   "Submitted for review",
+    "Done":        "Done",
+  },
+  tutorial_status: {
+    "To Do":       "To Do",
+    "In Progress": "Working on it",
+    "In Review":   "Submitted for review",
+    "Done":        "Done",
+  },
+  video_editor_status: {
+    "To Do":       "To Do",
+    "In Progress": "Working on it",
+    "In Review":   "Submitted for review",
+    "Done":        "Done",
+  },
+  yt_upload_status: {
+    "To Do":       "To Do",
+    "Draft":       "Draft",
+    "Published":   "Published",
+  },
+  topic_status: {
+    "To Do": "Drafting topic",
+    "Ready": "Ready for script",
+  },
+};
+
+/** Return the friendly label for a lane value (falls back to raw value). */
+export function laneLabel(laneStatusCol: string, rawValue: string): string {
+  return LANE_LABELS[laneStatusCol]?.[rawValue] ?? rawValue;
+}
+
+/**
+ * Maps lane index → stage key ("todo" | "prog" | "review" | "done").
+ * Index 0 → todo, last → done, middle ones cycle prog/review.
+ *   4 lanes: [todo, prog, review, done]
+ *   3 lanes: [todo, prog, done]
+ */
+export function laneColor(index: number, total: number): "todo" | "prog" | "review" | "done" {
+  if (index === 0) return "todo";
+  if (index === total - 1) return "done";
+  // For middle indices
+  const middleIndex = index - 1; // 0-based among middle lanes
+  if (middleIndex % 2 === 0) return "prog";
+  return "review";
+}
