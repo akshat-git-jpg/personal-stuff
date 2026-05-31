@@ -177,10 +177,23 @@ export async function oauthCallback(c: Context<{ Bindings: Env }>): Promise<Resp
 
   if (roles.length === 0) {
     return c.html(
-      `<!DOCTYPE html><html><body>
-      <p>No access &mdash; your email <strong>${email}</strong> isn&rsquo;t registered.</p>
-      <p>Ask your admin to add you to the <em>Employes</em> tab.</p>
-      </body></html>`,
+      `<!DOCTYPE html><html><head><meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <style>
+        body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0a0806;
+             color:rgba(255,247,238,0.92);font-family:Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+        .box{max-width:420px;text-align:center;padding:32px}
+        h1{font-size:20px;font-weight:700;margin:0 0 10px}
+        p{font-size:14px;line-height:1.6;color:rgba(255,243,230,0.6);margin:0 0 6px}
+        .email{color:rgba(255,243,230,0.85)}
+        a{color:#fb923c;text-decoration:none}
+      </style></head><body>
+      <div class="box">
+        <h1>Not authorized</h1>
+        <p>This account (<span class="email">${email}</span>) doesn&rsquo;t have access yet.</p>
+        <p>Please contact your admin to be granted access.</p>
+        <p style="margin-top:18px"><a href="/auth/login">Try a different account</a></p>
+      </div></body></html>`,
       403,
     );
   }
