@@ -1,4 +1,4 @@
-name = "tracker-app"
+name = "yt-tutorials-tracker"
 main = "src/worker/index.ts"
 compatibility_date = "2026-05-01"
 compatibility_flags = ["nodejs_compat"]
