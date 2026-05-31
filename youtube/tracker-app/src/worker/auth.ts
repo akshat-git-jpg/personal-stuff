@@ -34,11 +34,9 @@ export type Env = {
   GOOGLE_SA_JSON: string;
   /** Set to "1" in .dev.vars only. Unset in production — branch is dead in prod. */
   DEV_AUTH?: string;
-  // Gmail notification credentials (optional; notifications silently no-op if absent)
-  GMAIL_CLIENT_ID?: string;
-  GMAIL_CLIENT_SECRET?: string;
-  GMAIL_REFRESH_TOKEN?: string;
-  GMAIL_SENDER_EMAIL?: string;
+  // Email notifications via Resend (optional; silently no-op if absent)
+  RESEND_API_KEY?: string;
+  RESEND_FROM?: string;
   NOTIFY_REDIRECT?: string;
   APP_URL?: string;
 };
