@@ -1,0 +1,17 @@
+{
+  "name": "yt-claude",
+  "displayName": "YT → Claude",
+  "description": "Opens an integrated terminal tab per YouTube video queued by the yt-claude relay.",
+  "version": "1.1.0",
+  "publisher": "kushal",
+  "engines": { "vscode": "^1.70.0" },
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "ytClaude.claimHere", "title": "YT→Claude: Open videos in THIS window" },
+      { "command": "ytClaude.release", "title": "YT→Claude: Stop pinning window" },
+      { "command": "ytClaude.poll", "title": "YT→Claude: Check queue now" }
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# yt-claude — control the YouTube→Claude relay.
+#
+#   yt-claude serve      run the relay in the foreground (POST target for the userscript)
+#   yt-claude ls         list recently opened videos (most recent last)
+#   yt-claude log        tail the relay log
+set -euo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIR="${YT_CLAUDE_DIR:-$HOME/yt-claude}"
+
+cmd="${1:-help}"
+case "$cmd" in
+  serve)
+    exec python3 "$HERE/relay.py"
+    ;;
+  ls)
+    if [[ -f "$DIR/index.log" ]]; then
+      echo "Recently opened videos (most recent last):"
+      nl -w3 -s'  ' "$DIR/index.log" | sed 's/\t/  /g'
+    else
+      echo "no videos opened yet ($DIR/index.log not found)"
+    fi
+    ;;
+  log)
+    exec tail -f /tmp/yt-claude-relay.log
+    ;;
+  help|-h|--help)
+    sed -n '2,7p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    ;;
+  *)
+    echo "unknown command: $cmd" >&2
+    exec "$0" help
+    ;;
+esac
