@@ -1,0 +1,4 @@
+# Installed deps for skills that ship a script (e.g. pinterest-research/research.mjs).
+# Run `npm install` inside the skill folder on a fresh clone.
+node_modules/
+.DS_Store

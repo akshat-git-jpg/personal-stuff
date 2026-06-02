@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root { --c1:#1B4332; --c2:#FFB703; --c3:#fff; --hf:'Poppins'; --bf:'Inter'; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1000px; height:1500px; }
+  #pin { position:relative; width:1000px; height:1500px; overflow:hidden;
+    font-family:var(--bf), system-ui, sans-serif; color:#fff; }
+  #bg { position:absolute; inset:0; background-size:cover; background-position:center; z-index:0; }
+  #bg:not(.has-img) { } /* gradient already applied inline */
+  .scrim { position:absolute; inset:0; z-index:1;
+    background:linear-gradient(180deg, rgba(0,0,0,.30) 0%, rgba(0,0,0,0) 32%, rgba(0,0,0,0) 50%, rgba(0,0,0,.86) 100%); }
+  .badge { position:absolute; top:64px; left:64px; z-index:2;
+    background:var(--c2); color:#1a1a1a; font-family:var(--hf); font-weight:800;
+    font-size:30px; letter-spacing:.05em; text-transform:uppercase;
+    padding:14px 28px; border-radius:999px; box-shadow:0 8px 26px rgba(0,0,0,.28); }
+  .bar { position:absolute; left:0; right:0; bottom:0; z-index:2; padding:0 70px 84px; }
+  .kicker { display:inline-block; font-weight:700; font-size:30px; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--c2); margin-bottom:18px; }
+  h1 { font-family:var(--hf); font-weight:900; font-size:84px; line-height:1.04;
+    text-shadow:0 4px 28px rgba(0,0,0,.5); }
+  .accent { height:10px; width:140px; background:var(--c2); border-radius:999px; margin:34px 0 26px; }
+  .handle { font-weight:600; font-size:32px; opacity:.95; }
+</style>
+</head>
+<body>
+  <div id="pin">
+    <div id="bg"></div>
+    <div class="scrim"></div>
+    <div class="badge" id="badge"></div>
+    <div class="bar">
+      <span class="kicker" id="kicker"></span>
+      <h1 id="title"></h1>
+      <div class="accent"></div>
+      <div class="handle" id="handle"></div>
+    </div>
+  </div>
+<script>
+window.PIN = __PIN_DATA__;
+(function () {
+  const P = window.PIN || {};
+  const r = document.documentElement;
+  const pal = P.palette || ['#1B4332','#FFB703','#FFFFFF'];
+  r.style.setProperty('--c1', pal[0]);
+  r.style.setProperty('--c2', pal[1] || '#FFB703');
+  r.style.setProperty('--c3', pal[2] || '#FFFFFF');
+  r.style.setProperty('--hf', "'" + (P.headlineFont || 'Poppins') + "'");
+  r.style.setProperty('--bf', "'" + (P.bodyFont || 'Inter') + "'");
+  const link = document.createElement('link'); link.rel = 'stylesheet';
+  const hf = (P.headlineFont || 'Poppins').replace(/ /g, '+');
+  const bf = (P.bodyFont || 'Inter').replace(/ /g, '+');
+  link.href = `https://fonts.googleapis.com/css2?family=${hf}:wght@600;700;800;900&family=${bf}:wght@400;500;600;700&display=swap`;
+  document.head.appendChild(link);
+  const bg = document.getElementById('bg');
+  if (P.bgImage) { bg.style.backgroundImage = `url("${P.bgImage}")`; bg.classList.add('has-img'); }
+  else { bg.style.background = P.bgCss || ('linear-gradient(150deg,' + pal[0] + ',#000)'); }
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || ''; };
+  if (P.badge) set('badge', P.badge); else document.getElementById('badge').style.display = 'none';
+  if (P.subtitle) set('kicker', P.subtitle); else document.getElementById('kicker').style.display = 'none';
+  set('title', P.title);
+  set('handle', P.handle);
+})();
+</script>
+</body>
+</html>

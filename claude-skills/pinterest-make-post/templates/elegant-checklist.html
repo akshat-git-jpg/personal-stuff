@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root { --cream:#FBF7F0; --ink:#2E2A26; --sage:#7C8C6A; --gold:#C9A24B;
+          --hf:'Playfair Display'; --bf:'Lato'; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1000px; }
+  /* Light, elegant base — the locked wedding theme. Attention via a big serif headline +
+     one accent, NOT a dark background. */
+  #pin { position:relative; width:1000px; min-height:1500px; background:var(--cream);
+    font-family:var(--bf), system-ui, sans-serif; color:var(--ink); padding:84px 78px 70px; }
+  .eyebrow { text-align:center; font-family:var(--bf); font-weight:700; font-size:25px;
+    letter-spacing:.34em; text-transform:uppercase; color:var(--gold); margin-bottom:16px; }
+  h1 { font-family:var(--hf); font-weight:800; font-size:82px; line-height:1.05; text-align:center;
+    color:var(--ink); letter-spacing:.005em; }
+  .script { font-family:var(--hf); font-style:italic; font-weight:500; font-size:52px;
+    text-align:center; color:var(--sage); margin-top:4px; }
+  .divider { width:120px; height:3px; background:var(--gold); margin:34px auto 52px; }
+  .groups { column-count:2; column-gap:60px; }
+  .group { break-inside:avoid; margin-bottom:40px; }
+  .label { font-family:var(--bf); font-weight:800; font-size:27px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--sage); margin-bottom:18px; }
+  ul { list-style:none; }
+  li { display:flex; align-items:flex-start; gap:18px; margin-bottom:15px;
+    font-size:30px; line-height:1.26; font-weight:400; }
+  .box { flex:none; width:26px; height:26px; margin-top:5px; border:2.5px solid var(--gold);
+    border-radius:5px; }
+  .footer { display:flex; align-items:center; justify-content:space-between; margin-top:34px;
+    padding-top:28px; border-top:2px solid rgba(46,42,38,.12); }
+  .handle { font-family:var(--bf); font-weight:700; font-size:28px; color:var(--ink);
+    display:flex; align-items:center; gap:12px; }
+  .dot { width:11px; height:11px; border-radius:50%; background:var(--sage); }
+  .cta { font-family:var(--bf); font-weight:800; font-size:27px; color:#fff;
+    background:var(--sage); padding:14px 28px; border-radius:999px; }
+</style>
+</head>
+<body>
+  <div id="pin">
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1 id="title"></h1>
+    <div class="script" id="script"></div>
+    <div class="divider"></div>
+    <div class="groups" id="groups"></div>
+    <div class="footer">
+      <div class="handle"><span class="dot"></span><span id="handle"></span></div>
+      <div class="cta" id="cta"></div>
+    </div>
+  </div>
+<script>
+window.PIN = __PIN_DATA__;
+(function () {
+  var P = window.PIN || {};
+  var r = document.documentElement;
+  var pal = P.palette || ['#7C8C6A', '#C9A24B', '#FBF7F0'];
+  r.style.setProperty('--sage', pal[0]);
+  r.style.setProperty('--gold', pal[1] || '#C9A24B');
+  r.style.setProperty('--cream', pal[2] || '#FBF7F0');
+  r.style.setProperty('--hf', "'" + (P.headlineFont || 'Playfair Display') + "'");
+  r.style.setProperty('--bf', "'" + (P.bodyFont || 'Lato') + "'");
+  var l = document.createElement('link'); l.rel = 'stylesheet';
+  var hf = (P.headlineFont || 'Playfair Display').replace(/ /g, '+');
+  var bf = (P.bodyFont || 'Lato').replace(/ /g, '+');
+  l.href = 'https://fonts.googleapis.com/css2?family=' + hf +
+    ':ital,wght@0,500;0,700;0,800;1,500&family=' + bf + ':wght@400;700;800&display=swap';
+  document.head.appendChild(l);
+  function set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v || ''; }
+  if (P.eyebrow) set('eyebrow', P.eyebrow); else document.getElementById('eyebrow').style.display = 'none';
+  set('title', P.title);
+  if (P.scriptWord) set('script', P.scriptWord); else document.getElementById('script').style.display = 'none';
+  set('handle', P.handle);
+  set('cta', P.cta || 'Get the planner →');
+  var g = document.getElementById('groups');
+  (P.groups || []).forEach(function (grp) {
+    var d = document.createElement('div'); d.className = 'group';
+    var lab = document.createElement('div'); lab.className = 'label'; lab.textContent = grp.label || ''; d.appendChild(lab);
+    var ul = document.createElement('ul');
+    (grp.items || []).forEach(function (it) {
+      var li = document.createElement('li');
+      var b = document.createElement('span'); b.className = 'box';
+      var t = document.createElement('span'); t.textContent = it;
+      li.appendChild(b); li.appendChild(t); ul.appendChild(li);
+    });
+    d.appendChild(ul); g.appendChild(d);
+  });
+})();
+</script>
+</body>
+</html>

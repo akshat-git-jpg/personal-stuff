@@ -1,0 +1,10 @@
+{
+  "name": "pinterest-make-post",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Render Pinterest pin images from a JSON spec via Playwright.",
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}

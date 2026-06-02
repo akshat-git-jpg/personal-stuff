@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root { --c1:#1B4332; --c2:#FFB703; --c3:#fff; --hf:'Poppins'; --bf:'Inter'; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1000px; height:1500px; }
+  #pin { position:relative; width:1000px; height:1500px; overflow:hidden;
+    font-family:var(--bf), system-ui, sans-serif; }
+  #pagebg { position:absolute; inset:0; z-index:0; }
+  .card { position:absolute; z-index:1; inset:70px; background:#fff; border-radius:32px;
+    overflow:hidden; box-shadow:0 40px 90px rgba(0,0,0,.32); display:flex; flex-direction:column; }
+  #bg { height:720px; background-size:cover; background-position:center; flex:none; position:relative; }
+  #bg:not(.has-img)::after { content:""; position:absolute; inset:0;
+    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.18), transparent 60%); }
+  .badge { position:absolute; top:34px; left:34px; background:var(--c2); color:#1a1a1a;
+    font-family:var(--hf); font-weight:800; font-size:26px; letter-spacing:.05em;
+    text-transform:uppercase; padding:12px 24px; border-radius:999px; }
+  .body { flex:1; padding:56px 60px 50px; display:flex; flex-direction:column; color:#1a1a1a; }
+  h1 { font-family:var(--hf); font-weight:900; font-size:66px; line-height:1.05; color:var(--c1); }
+  .chips { display:flex; gap:16px; margin-top:34px; flex-wrap:wrap; }
+  .chip { background:#f1f4f1; color:#1a1a1a; font-weight:700; font-size:30px;
+    padding:14px 26px; border-radius:14px; }
+  .cta { margin-top:auto; align-self:flex-start; background:var(--c1); color:#fff;
+    font-family:var(--hf); font-weight:800; font-size:38px; padding:24px 46px; border-radius:16px; }
+  .handle { position:absolute; bottom:30px; right:40px; z-index:2; color:#1a1a1a;
+    font-weight:700; font-size:28px; opacity:.7; }
+</style>
+</head>
+<body>
+  <div id="pin">
+    <div id="pagebg"></div>
+    <div class="card">
+      <div id="bg"><div class="badge" id="badge"></div></div>
+      <div class="body">
+        <h1 id="title"></h1>
+        <div class="chips" id="chips"></div>
+        <div class="cta" id="cta"></div>
+      </div>
+      <div class="handle" id="handle"></div>
+    </div>
+  </div>
+<script>
+window.PIN = __PIN_DATA__;
+(function () {
+  const P = window.PIN || {};
+  const r = document.documentElement;
+  const pal = P.palette || ['#1B4332','#FFB703','#FFFFFF'];
+  r.style.setProperty('--c1', pal[0]);
+  r.style.setProperty('--c2', pal[1] || '#FFB703');
+  r.style.setProperty('--c3', pal[2] || '#FFFFFF');
+  r.style.setProperty('--hf', "'" + (P.headlineFont || 'Poppins') + "'");
+  r.style.setProperty('--bf', "'" + (P.bodyFont || 'Inter') + "'");
+  const link = document.createElement('link'); link.rel = 'stylesheet';
+  const hf = (P.headlineFont || 'Poppins').replace(/ /g, '+');
+  const bf = (P.bodyFont || 'Inter').replace(/ /g, '+');
+  link.href = `https://fonts.googleapis.com/css2?family=${hf}:wght@600;700;800;900&family=${bf}:wght@400;500;600;700&display=swap`;
+  document.head.appendChild(link);
+  // page background = soft tint of palette
+  document.getElementById('pagebg').style.background =
+    P.bgCss || ('linear-gradient(150deg,' + pal[0] + ',#000)');
+  const bg = document.getElementById('bg');
+  if (P.bgImage) { bg.style.backgroundImage = `url("${P.bgImage}")`; bg.classList.add('has-img'); }
+  else { bg.style.background = 'linear-gradient(150deg,' + pal[0] + ',' + (pal[1] || '#888') + ')'; }
+  const set = (id, v, hide) => {
+    const el = document.getElementById(id); if (!el) return;
+    if (!v && hide) { el.style.display = 'none'; return; }
+    el.textContent = v || '';
+  };
+  if (P.badge) set('badge', P.badge); else document.getElementById('badge').style.display = 'none';
+  set('title', P.title);
+  set('cta', P.cta || 'Full recipe →');
+  set('handle', P.handle, true);
+  const chips = document.getElementById('chips');
+  (P.meta || []).slice(0, 4).forEach((m) => {
+    const d = document.createElement('div'); d.className = 'chip'; d.textContent = m; chips.appendChild(d);
+  });
+})();
+</script>
+</body>
+</html>

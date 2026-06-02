@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root { --c1:#1B4332; --c2:#FFB703; --c3:#fff; --hf:'Poppins'; --bf:'Inter'; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1000px; height:1500px; }
+  #pin { position:relative; width:1000px; height:1500px; overflow:hidden;
+    font-family:var(--bf), system-ui, sans-serif; color:#fff; }
+  #bg { position:absolute; inset:0; background-size:cover; background-position:center; z-index:0; }
+  #bg.has-img::after { content:""; position:absolute; inset:0;
+    background:linear-gradient(160deg, rgba(0,0,0,.74), rgba(0,0,0,.5)); }
+  .wrap { position:relative; z-index:1; height:100%; padding:96px 80px;
+    display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .badge { background:var(--c2); color:#1a1a1a; font-family:var(--hf); font-weight:800;
+    font-size:32px; letter-spacing:.08em; text-transform:uppercase;
+    padding:16px 34px; border-radius:999px; }
+  h1 { font-family:var(--hf); font-weight:900; font-size:82px; line-height:1.04;
+    margin-top:40px; text-shadow:0 4px 24px rgba(0,0,0,.35); }
+  .sub { font-size:40px; font-weight:500; opacity:.92; margin-top:24px; line-height:1.25; max-width:760px; }
+  /* PDF mockup */
+  .mock { margin:64px 0; width:420px; height:560px; border-radius:18px;
+    background:linear-gradient(160deg, #fff, #eef1ee); color:#1a1a1a;
+    box-shadow:0 40px 80px rgba(0,0,0,.45); transform:rotate(-4deg);
+    padding:46px 38px; display:flex; flex-direction:column; }
+  .mock .m-eyebrow { font-family:var(--hf); font-weight:800; font-size:22px;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--c1); }
+  .mock .m-title { font-family:var(--hf); font-weight:900; font-size:46px;
+    line-height:1.05; margin-top:18px; color:#1a1a1a; }
+  .mock .m-bar { height:8px; width:90px; background:var(--c2); border-radius:999px; margin:24px 0; }
+  .mock .m-lines { display:flex; flex-direction:column; gap:14px; margin-top:auto; }
+  .mock .m-lines span { height:14px; background:#d9ddd9; border-radius:6px; }
+  .mock .m-lines span:nth-child(2){ width:80%; } .mock .m-lines span:nth-child(3){ width:60%; }
+  .cta { background:var(--c2); color:#1a1a1a; font-family:var(--hf); font-weight:800;
+    font-size:42px; padding:28px 56px; border-radius:18px; box-shadow:0 16px 40px rgba(0,0,0,.3); }
+  .handle { margin-top:auto; font-weight:600; font-size:32px; opacity:.92; }
+</style>
+</head>
+<body>
+  <div id="pin">
+    <div id="bg"></div>
+    <div class="wrap">
+      <div class="badge" id="badge">FREE GUIDE</div>
+      <h1 id="title"></h1>
+      <div class="sub" id="sub"></div>
+      <div class="mock">
+        <div class="m-eyebrow" id="m-eyebrow"></div>
+        <div class="m-title" id="m-title"></div>
+        <div class="m-bar"></div>
+        <div class="m-lines"><span></span><span></span><span></span></div>
+      </div>
+      <div class="cta" id="cta"></div>
+      <div class="handle" id="handle"></div>
+    </div>
+  </div>
+<script>
+window.PIN = __PIN_DATA__;
+(function () {
+  const P = window.PIN || {};
+  const r = document.documentElement;
+  const pal = P.palette || ['#1B4332','#FFB703','#FFFFFF'];
+  r.style.setProperty('--c1', pal[0]);
+  r.style.setProperty('--c2', pal[1] || '#FFB703');
+  r.style.setProperty('--c3', pal[2] || '#FFFFFF');
+  r.style.setProperty('--hf', "'" + (P.headlineFont || 'Poppins') + "'");
+  r.style.setProperty('--bf', "'" + (P.bodyFont || 'Inter') + "'");
+  const link = document.createElement('link'); link.rel = 'stylesheet';
+  const hf = (P.headlineFont || 'Poppins').replace(/ /g, '+');
+  const bf = (P.bodyFont || 'Inter').replace(/ /g, '+');
+  link.href = `https://fonts.googleapis.com/css2?family=${hf}:wght@600;700;800;900&family=${bf}:wght@400;500;600;700&display=swap`;
+  document.head.appendChild(link);
+  const bg = document.getElementById('bg');
+  if (P.bgImage) { bg.style.backgroundImage = `url("${P.bgImage}")`; bg.classList.add('has-img'); }
+  else { bg.style.background = P.bgCss || ('linear-gradient(150deg,' + pal[0] + ',#000)'); }
+  const set = (id, v, hideIfEmpty) => {
+    const el = document.getElementById(id); if (!el) return;
+    if (!v && hideIfEmpty) { el.style.display = 'none'; return; }
+    el.textContent = v || '';
+  };
+  set('badge', P.badge || 'FREE GUIDE');
+  set('title', P.title);
+  set('sub', P.subtitle, true);
+  set('m-eyebrow', P.handle ? 'Free Download' : 'Guide');
+  set('m-title', P.title);
+  set('cta', P.cta || 'Grab the plan →');
+  set('handle', P.handle, true);
+})();
+</script>
+</body>
+</html>

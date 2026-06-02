@@ -1,0 +1,31 @@
+import {
+	KeyMapValueCustomFunctionParameters,
+	KeyMapValueCustomFunctionReturns,
+} from '../../../libs/query-builder/interface';
+
+const {{FUNCTION_NAME}} = ({
+	org_id,
+	local_conditions,
+	main_table,
+	filters,
+}: KeyMapValueCustomFunctionParameters): KeyMapValueCustomFunctionReturns => {
+	// TODO: Implement business logic for {{FUNCTION_NAME}}.
+	// {{SEMANTICS_HINT}}
+	// Reachable entities (from relation graph): {{REACHABLE}}
+	// Standard pattern: return a CTE selecting main_table.id AS id and the
+	// computed columns, with main_table org_id/is_deleted defaults applied.
+
+	const with_clause = `
+		SELECT ${main_table}.id AS id,
+			NULL::{{DEFAULT_CAST}} AS {{FUNCTION_NAME}}
+		FROM zluri_schema.${main_table} ${main_table}
+		WHERE ${main_table}.org_id = '${org_id}'
+			AND ${main_table}.is_deleted = false
+			${local_conditions ? `AND ${local_conditions}` : ''}
+	`;
+
+	const select_clause = '{{FUNCTION_NAME}}.{{FUNCTION_NAME}} AS {{FUNCTION_NAME}}';
+	return { with_clause, select_clause };
+};
+
+export default {{FUNCTION_NAME}};

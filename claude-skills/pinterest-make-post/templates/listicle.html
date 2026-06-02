@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root { --c1:#1B4332; --c2:#FFB703; --c3:#fff; --hf:'Poppins'; --bf:'Inter'; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1000px; height:1500px; }
+  #pin {
+    position:relative; width:1000px; height:1500px; overflow:hidden;
+    font-family:var(--bf), system-ui, sans-serif; color:#fff;
+  }
+  #bg { position:absolute; inset:0; background-size:cover; background-position:center; z-index:0; }
+  #bg.has-img::after { content:""; position:absolute; inset:0;
+    background:linear-gradient(150deg, rgba(0,0,0,.78), rgba(0,0,0,.55)); }
+  .wrap { position:relative; z-index:1; height:100%; padding:90px 80px;
+    display:flex; flex-direction:column; }
+  .eyebrow { align-self:flex-start; background:var(--c2); color:#1a1a1a;
+    font-family:var(--hf); font-weight:800; font-size:30px; letter-spacing:.06em;
+    text-transform:uppercase; padding:14px 28px; border-radius:999px; margin-bottom:34px; }
+  h1 { font-family:var(--hf); font-weight:900; font-size:88px; line-height:1.02;
+    text-shadow:0 4px 24px rgba(0,0,0,.35); margin-bottom:48px; }
+  ol { list-style:none; display:flex; flex-direction:column; gap:22px; }
+  li { display:flex; align-items:center; gap:26px;
+    background:rgba(255,255,255,.12); backdrop-filter:blur(2px);
+    border:1px solid rgba(255,255,255,.18); border-radius:22px; padding:24px 30px; }
+  .num { flex:none; width:64px; height:64px; border-radius:50%;
+    background:var(--c2); color:#1a1a1a; font-family:var(--hf); font-weight:800;
+    font-size:36px; display:flex; align-items:center; justify-content:center; }
+  .txt { font-size:42px; font-weight:600; line-height:1.12; }
+  .handle { margin-top:auto; font-weight:600; font-size:32px; opacity:.92;
+    display:flex; align-items:center; gap:14px; }
+  .dot { width:12px; height:12px; border-radius:50%; background:var(--c2); }
+</style>
+</head>
+<body>
+  <div id="pin">
+    <div id="bg"></div>
+    <div class="wrap">
+      <div class="eyebrow" id="eyebrow"></div>
+      <h1 id="title"></h1>
+      <ol id="items"></ol>
+      <div class="handle"><span class="dot"></span><span id="handle"></span></div>
+    </div>
+  </div>
+<script>
+window.PIN = __PIN_DATA__;
+(function () {
+  const P = window.PIN || {};
+  const r = document.documentElement;
+  const pal = P.palette || ['#1B4332','#FFB703','#FFFFFF'];
+  r.style.setProperty('--c1', pal[0]);
+  r.style.setProperty('--c2', pal[1] || '#FFB703');
+  r.style.setProperty('--c3', pal[2] || '#FFFFFF');
+  r.style.setProperty('--hf', "'" + (P.headlineFont || 'Poppins') + "'");
+  r.style.setProperty('--bf', "'" + (P.bodyFont || 'Inter') + "'");
+  const link = document.createElement('link'); link.rel = 'stylesheet';
+  const hf = (P.headlineFont || 'Poppins').replace(/ /g, '+');
+  const bf = (P.bodyFont || 'Inter').replace(/ /g, '+');
+  link.href = `https://fonts.googleapis.com/css2?family=${hf}:wght@600;700;800;900&family=${bf}:wght@400;500;600;700&display=swap`;
+  document.head.appendChild(link);
+  const bg = document.getElementById('bg');
+  if (P.bgImage) { bg.style.backgroundImage = `url("${P.bgImage}")`; bg.classList.add('has-img'); }
+  else { bg.style.background = P.bgCss || ('linear-gradient(150deg,' + pal[0] + ',#000)'); }
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || ''; };
+  const eb = P.badge || P.subtitle || '';
+  if (eb) set('eyebrow', eb); else document.getElementById('eyebrow').style.display = 'none';
+  set('title', P.title);
+  set('handle', P.handle);
+  const ol = document.getElementById('items');
+  (P.items || []).slice(0, 8).forEach((t, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="num">${i + 1}</span><span class="txt"></span>`;
+    li.querySelector('.txt').textContent = t;
+    ol.appendChild(li);
+  });
+})();
+</script>
+</body>
+</html>
