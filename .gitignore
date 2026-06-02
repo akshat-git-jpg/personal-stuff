@@ -16,6 +16,13 @@ __pycache__/
 youtube/keyword-research/output/
 youtube/keyword-research/channel_cache.json
 
+# yt-visuals runtime artifacts (rendered MP4s, stills, Remotion bundle cache)
+youtube/yt-visuals/cutaways/
+youtube/yt-visuals/.cache/
+
+# superpowers brainstorm mockups (per-session HTML, local-only)
+.superpowers/
+
 # Cloudflare Workers
 .wrangler/
 .dev.vars
