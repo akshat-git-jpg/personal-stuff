@@ -116,6 +116,31 @@ and write scored briefs (Greenlight / Reshape / Skip) for `pinterest-make-post`.
 
 ---
 
+### 2026-06-02 — wedding deep-scan (chosen niche)
+5 keywords (`wedding planning checklist`, `wedding planner printable`, `wedding budget tracker`,
+`wedding timeline`, `how to plan a wedding`), 513 wedding-relevant unique pins. Raw data:
+`wedding/research/2026-06-02-*.json`.
+
+- **Hero format = the Wedding Planning Checklist.** Owns the top of every search. Fresh winner:
+  "The Ultimate Wedding Planning Checklist" — 277 saves in 11 days (≈755/mo) → links to a **paid
+  Payhip product**. A brand-new pin already winning = niche is open NOW.
+- **Monetization confirmed:** top product-linked pins go to Etsy + Payhip (e.g. "Printable My Wedding
+  Checklist" 984/mo on Etsy).
+- **Sub-products (the product line):** checklist (anchor) · budget breakdown ("$10K/$20k wedding") ·
+  day-of timeline ("for a 2PM ceremony") · decor checklist · guest/RSVP · name-change guide · the
+  all-in-one **Wedding Planner Binder** (the $19–29 hero bundle).
+- **THE WEDGE:** the biggest-save magnet pins (Comprehensive Checklist 1,296 saves; Budget Breakdown
+  1,470 saves; multiple "wedding planning boards") **link to nothing / sell nothing.** Brides save them
+  en masse with no funnel. Play = make the same magnet → free mini-checklist → email → paid planner PDF.
+- **Winning title patterns:** "Ultimate/Complete Wedding Planning Checklist", "...You'll Actually Use",
+  "$X Wedding Budget Breakdown", "X Steps + Timeline", "for a 2PM Ceremony".
+- **Keywords:** wedding planning checklist · ultimate/complete · printable · bride/bridal · wedding
+  budget breakdown · wedding day timeline · order of events · ceremony to reception · name change.
+- **First briefs:** (1) Ultimate Wedding Planning Checklist [free-guide, lead magnet] · (2) How to
+  Budget a $10k Wedding [listicle] · (3) 12-Month Wedding Timeline [weekly-grid] · (4) The Checklist
+  You'll Actually Use [listicle]. **Product:** "The Ultimate Wedding Planner" PDF bundle (~$19–29) +
+  free 1-page checklist lead magnet. Timing: engagement season Nov–Feb → Dec–Mar peak search.
+
 ## Gotchas
 - Numbers are **directional** (Pinterest's own fields, fuzzy labels) — rank by them, don't quote as gospel.
 - Run from the **Mac** (residential IP). If a run returns 0 pins, the session expired → re-login.

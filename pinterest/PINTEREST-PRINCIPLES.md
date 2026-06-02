@@ -68,6 +68,29 @@ Distilled from current (2026) Pinterest-marketing best practice. Keep it short; 
   happens after the click) + ~2 hashtags + a **CTA**; correct **destination link**; the **right
   board**; **3–5 tags**; **alt text** describing the visuals (**under 500 chars**).
 
+## Copywriting spec (titles · descriptions · hashtags · alt)
+The exact rules for writing each field. The critic checks against these.
+
+- **Title (on-image + Pinterest title field):** ≤ ~100 chars; **front-load the keyword** (it must appear,
+  ideally in the first half). Benefit/number/curiosity-driven. On the image keep it short & punchy
+  (≤ ~7 words) so it reads at thumbnail size; the full Pinterest title field can be a touch longer.
+  Formula: `[Number/Adjective] + [Keyword] + [Payoff/Hook]` →
+  "The Ultimate Wedding Planning Checklist (Free Printable)".
+- **Description:** 2–4 natural sentences, **150–400 chars**. Lead with the keyword phrase, weave in
+  1–2 related keywords (no stuffing/comma-lists), say what they GET, end with a **CTA** ("Get the full
+  printable planner →"). Explain what happens *after the click*.
+- **Hashtags:** **3–5**, specific and relevant (e.g. `#weddingplanningchecklist #weddingplanner
+  #bridetobe`). Not 10+, not generic spam. (This supersedes any older "2" or "5–8" guidance.)
+- **Alt text:** one plain, literal sentence describing the image (accessibility + SEO), ≤ 500 chars.
+- **Alignment:** the SAME keyword phrase across title, description, board, and on-image text.
+- **Sound human, not AI (but stay benefit-driven):** write like a real, helpful friend — not a
+  chatbot. Avoid AI tells: em-dash overuse, chatbot vocab (*delve, elevate, unlock, seamless,
+  effortless(ly), testament, leverage, tapestry, crucial, robust*), "not just X — it's Y" parallelism,
+  forced rule-of-three, and robotic same-length sentences. Vary your rhythm, use concrete specifics,
+  use contractions. KEEP benefit/promotional language and tasteful emojis — this is Pinterest, not
+  Wikipedia; the goal is *human*, not *neutral*. (For long-form copy — product descriptions, emails,
+  the PDF — run the `humanizer` skill.)
+
 ## Mistakes to avoid (hard rules)
 - ❌ Treating Pinterest like social media / chasing views.
 - ❌ Keyword stuffing or comma-separated keyword lists.
