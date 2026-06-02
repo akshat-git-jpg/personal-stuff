@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>hyperframes vs remotion · comparison gallery</title>
+<style>
+  :root {
+    --bg: #0a0805;
+    --bg-card: #14110d;
+    --text: #f8f3ea;
+    --text-dim: rgba(248,243,234,0.55);
+    --accent: #fb923c;
+    --gold: #facc15;
+    --border: rgba(255,200,100,0.10);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: radial-gradient(ellipse at 30% 20%, #3a1f08 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", system-ui, sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    padding: 48px 56px 24px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: linear-gradient(to bottom, var(--bg) 0%, rgba(10,8,5,0.92) 100%);
+    backdrop-filter: blur(16px);
+    z-index: 10;
+  }
+  header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  header p { margin: 6px 0 0; color: var(--text-dim); font-size: 14px; }
+  header .tools {
+    margin-top: 14px;
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  }
+  header label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-dim); cursor: pointer;
+  }
+  header input[type="checkbox"] { accent-color: var(--accent); }
+  header button {
+    background: var(--accent); color: #1a0f04;
+    border: 0; padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  header button:hover { filter: brightness(1.1); }
+
+  main { padding: 32px 56px 80px; }
+  section { margin-bottom: 56px; }
+  section h2 {
+    font-size: 18px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--accent);
+    margin: 0 0 6px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  section h2 .engine {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    padding: 3px 8px; border-radius: 4px;
+  }
+  section h2 .hf { background: var(--gold); color: #1a0f04; }
+  section h2 .rm { background: rgba(255,255,255,0.12); color: var(--text); }
+  section .blurb { margin: 0 0 20px; color: var(--text-dim); font-size: 13px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    margin: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .card.feature { border-color: rgba(250,204,21,0.4); }
+  .card.feature:hover { border-color: var(--gold); }
+
+  .cutaway-card video {
+    width: 100%; aspect-ratio: 16 / 9; background: #000; display: block;
+  }
+
+  figcaption {
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text-dim);
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .badge {
+    background: var(--accent);
+    color: #1a0f04;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: inherit;
+  }
+  .badge.gold { background: var(--gold); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>hyperframes vs remotion · comparison gallery</h1>
+  <p>Same n8n head-to-head scene, two engines. Top = the new Hyperframes (HTML/CSS/GSAP) render; below = the Remotion (React) versions for reference.</p>
+  <div class="tools">
+    <label><input type="checkbox" id="autoplay" /> autoplay on hover</label>
+    <label><input type="checkbox" id="loopAll" checked /> loop</label>
+    <button id="playAll">▶ play all</button>
+    <button id="pauseAll">⏸ pause all</button>
+  </div>
+</header>
+
+<main>
+
+  <section>
+    <h2><span class="engine hf">HYPERFRAMES</span> comparison · head to head</h2>
+    <p class="blurb">Authored in plain HTML + CSS + one GSAP timeline. 12s · 1920×1080 · rendered via <code>npm run render</code>.</p>
+    <div class="grid">
+      <figure class="card cutaway-card feature">
+        <video src="hyperframes/renders/comparison-table.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption><span class="badge gold">HYPERFRAMES</span> comparison-table</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="engine rm">REMOTION</span> comparison · head to head (reference)</h2>
+    <p class="blurb">Your existing Remotion render of the same plan.json comparison scene.</p>
+    <div class="grid">
+      <figure class="card cutaway-card">
+        <video src="../youtube/yt-visuals/cutaways/n8n-hosting/04-comparison.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption><span class="badge">REMOTION</span> 04-comparison</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="engine rm">REMOTION</span> comparison variants (reference)</h2>
+    <p class="blurb">The other treatments you built in Remotion — bracket, radar, tier-list, etc. Candidates to port into Hyperframes next.</p>
+    <div class="grid">
+      <figure class="card cutaway-card">
+        <video src="../youtube/yt-visuals/cutaways/n8n-hosting/comparison-variants/comparison-bracket.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption><span class="badge">REMOTION</span> comparison-bracket</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="../youtube/yt-visuals/cutaways/n8n-hosting/comparison-variants/comparison-radar.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption><span class="badge">REMOTION</span> comparison-radar</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="../youtube/yt-visuals/cutaways/n8n-hosting/comparison-variants/comparison-tier-list.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption><span class="badge">REMOTION</span> comparison-tier-list</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="../youtube/yt-visuals/cutaways/n8n-hosting/comparison-variants/comparison-survival.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption><span class="badge">REMOTION</span> comparison-survival</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="../youtube/yt-visuals/cutaways/n8n-hosting/comparison-variants/comparison-light-scan.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption><span class="badge">REMOTION</span> comparison-light-scan</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="../youtube/yt-visuals/cutaways/n8n-hosting/comparison-variants/comparison-spotlight.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption><span class="badge">REMOTION</span> comparison-spotlight</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="../youtube/yt-visuals/cutaways/n8n-hosting/comparison-variants/comparison-storm-cascade.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption><span class="badge">REMOTION</span> comparison-storm-cascade</figcaption>
+      </figure>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const videos = () => Array.from(document.querySelectorAll("video"));
+  document.getElementById("playAll").onclick = () => videos().forEach((v) => v.play().catch(() => {}));
+  document.getElementById("pauseAll").onclick = () => videos().forEach((v) => v.pause());
+  document.getElementById("loopAll").onchange = (e) => videos().forEach((v) => (v.loop = e.target.checked));
+
+  const autoplayBox = document.getElementById("autoplay");
+  videos().forEach((v) => {
+    v.addEventListener("mouseenter", () => { if (autoplayBox.checked) v.play().catch(() => {}); });
+    v.addEventListener("mouseleave", () => { if (autoplayBox.checked) v.pause(); });
+  });
+</script>
+
+</body>
+</html>
