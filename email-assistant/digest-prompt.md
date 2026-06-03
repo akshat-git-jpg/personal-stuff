@@ -12,13 +12,13 @@ The interactive rules in `../CLAUDE.md` (which govern reply drafting) do **not**
 - **Email account**: provided in the Run context section appended to this prompt by the wrapper.
 - **Preferences file path**: provided in Run context. Read it before producing Part 2.
 - **Time window** (Gmail query): provided in Run context (e.g., `newer_than:2d`).
-- **Gmail MCP tools** available: `mcp__gmail__search_emails`, `mcp__gmail__get_thread`, `mcp__gmail__read_email_preferences`, etc. Always pass `account=<email>` to every call.
+- **Gmail CLI** available: `cli/gmail/pp-gmail` (run via Bash from the repo root). Key commands: `pp-gmail --account <email> search '<query>'`, `pp-gmail --account <email> get <thread_id>`, `pp-gmail --account <email> prefs`. Always pass `--account <email>` to every call.
 
 ## Task
 
 1. **Read the preferences file.** Look for any section that hints at what the user wants surfaced in a daily digest (sections explicitly titled "Digest focus areas", "Always surface", "Watch for", etc., or — if none exists — infer from any other rules present). Reply-tone / signature / sign-off rules are NOT relevant for this task.
 
-2. **Fetch emails.** Call `search_emails(account="<email>", query="<window>")`. If you need more detail on specific emails (sender, subject hints not enough), use `get_thread`.
+2. **Fetch emails.** Run `pp-gmail --account <email> search '<window>'`. If you need more detail on specific emails (sender, subject hints not enough), use `pp-gmail --account <email> get <thread_id>`.
 
 3. **Produce a two-part summary** in the exact format below.
 
@@ -70,5 +70,5 @@ The interactive rules in `../CLAUDE.md` (which govern reply drafting) do **not**
 - Total length: under 3000 characters (Telegram-friendly).
 - Sender names only, not full email addresses.
 - Don't quote subject lines verbatim if long — paraphrase.
-- If Gmail fetch fails (auth error, MCP unavailable, no emails found): output a single line starting with `ERROR: ` and the reason. Nothing else.
+- If Gmail fetch fails (auth error, CLI unavailable, no emails found): output a single line starting with `ERROR: ` and the reason. Nothing else.
 - Don't include any preamble like "Here is your digest:". Emit the formatted output directly.

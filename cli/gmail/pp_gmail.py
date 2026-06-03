@@ -11,8 +11,13 @@ Subcommands:
   search QUERY [--account EMAIL] [--max N] [--format ids|short|json]
   get THREAD_ID [THREAD_ID ...] [--account EMAIL] [--format plain|json]
   prefs [--account EMAIL]
+  prefs-set [--account EMAIL] --content TEXT|@file|-     overwrite prefs file
   archive THREAD_ID [THREAD_ID ...] [--account EMAIL]
   count QUERY [--account EMAIL]
+  send --to X --subject S --body TEXT|@file|- [--cc] [--bcc]
+  reply THREAD_ID --body TEXT|@file|- [--reply-all]
+  draft --to X --subject S --body TEXT|@file|- [--cc] [--bcc]
+  reply-draft THREAD_ID --body TEXT|@file|- [--reply-all]
 """
 from __future__ import annotations
 
@@ -20,6 +25,7 @@ import argparse
 import base64
 import json
 import sys
+from email.message import EmailMessage
 from email.utils import getaddresses, parseaddr
 from pathlib import Path
 from typing import Optional
@@ -63,6 +69,89 @@ def _decode_body(payload: dict) -> str:
     if data:
         return base64.urlsafe_b64decode(data).decode("utf-8", errors="replace").strip()
     return ""
+
+
+def _read_text_arg(raw: str) -> str:
+    """Accept inline text, '@path' to read a file, or '-' for stdin."""
+    if raw == "-":
+        return sys.stdin.read()
+    if raw.startswith("@"):
+        return Path(raw[1:]).read_text()
+    return raw
+
+
+def _encode_message(msg: EmailMessage) -> str:
+    return base64.urlsafe_b64encode(msg.as_bytes()).decode()
+
+
+def _build_message(
+    to: str,
+    subject: str,
+    body: str,
+    cc: Optional[str] = None,
+    bcc: Optional[str] = None,
+    extra_headers: Optional[dict] = None,
+) -> EmailMessage:
+    msg = EmailMessage()
+    msg["To"] = to
+    if cc:
+        msg["Cc"] = cc
+    if bcc:
+        msg["Bcc"] = bcc
+    msg["Subject"] = subject
+    for key, value in (extra_headers or {}).items():
+        if value:
+            msg[key] = value
+    msg.set_content(body)
+    return msg
+
+
+def _reply_fields(thread: dict, self_email: str, reply_all: bool) -> dict:
+    """Compute To/Cc/Subject and threading headers for a reply to the latest
+    message in a thread."""
+    messages = thread.get("messages", [])
+    if not messages:
+        raise ValueError("Thread has no messages to reply to.")
+    last = messages[-1]
+    headers = last.get("payload", {}).get("headers", [])
+
+    orig_subject = _header(headers, "Subject")
+    subject = orig_subject if orig_subject.lower().startswith("re:") else f"Re: {orig_subject}"
+
+    from_addr = _header(headers, "From")
+    to_field = from_addr
+
+    cc_field = None
+    if reply_all:
+        pool = []
+        for hname in ("From", "To", "Cc"):
+            pool.extend(addr for _, addr in getaddresses([_header(headers, hname)]) if addr)
+        seen = set()
+        recipients = []
+        for addr in pool:
+            low = addr.lower()
+            if low == self_email.lower() or low in seen:
+                continue
+            seen.add(low)
+            recipients.append(addr)
+        if recipients:
+            to_field = recipients[0]
+            if len(recipients) > 1:
+                cc_field = ", ".join(recipients[1:])
+
+    message_id = _header(headers, "Message-ID")
+    references = _header(headers, "References")
+    new_references = (references + " " + message_id).strip() if message_id else references
+
+    return {
+        "to": to_field,
+        "cc": cc_field,
+        "subject": subject,
+        "extra_headers": {
+            "In-Reply-To": message_id,
+            "References": new_references,
+        },
+    }
 
 
 def _short_from(addr: str) -> str:
@@ -177,6 +266,78 @@ def cmd_prefs(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_prefs_set(args: argparse.Namespace) -> int:
+    path = PREFS_DIR / f"email-preferences-{args.account}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(_read_text_arg(args.content))
+    print(f"Preferences saved to {path.name}.")
+    return 0
+
+
+def cmd_send(args: argparse.Namespace) -> int:
+    svc = _service(args.account)
+    msg = _build_message(
+        to=args.to, subject=args.subject, body=_read_text_arg(args.body),
+        cc=args.cc, bcc=args.bcc,
+    )
+    sent = svc.users().messages().send(
+        userId="me", body={"raw": _encode_message(msg)}
+    ).execute()
+    print(f"Sent. message id={sent.get('id')}, thread id={sent.get('threadId')}.")
+    return 0
+
+
+def cmd_reply(args: argparse.Namespace) -> int:
+    svc = _service(args.account)
+    thread = svc.users().threads().get(
+        userId="me", id=args.thread_id, format="full"
+    ).execute()
+    fields = _reply_fields(thread, args.account, args.reply_all)
+    msg = _build_message(
+        to=fields["to"], subject=fields["subject"], body=_read_text_arg(args.body),
+        cc=fields["cc"], extra_headers=fields["extra_headers"],
+    )
+    sent = svc.users().messages().send(
+        userId="me", body={"raw": _encode_message(msg), "threadId": args.thread_id}
+    ).execute()
+    print(
+        f"Reply sent to {fields['to']}. message id={sent.get('id')}, "
+        f"thread id={sent.get('threadId')}."
+    )
+    return 0
+
+
+def cmd_draft(args: argparse.Namespace) -> int:
+    svc = _service(args.account)
+    msg = _build_message(
+        to=args.to, subject=args.subject, body=_read_text_arg(args.body),
+        cc=args.cc, bcc=args.bcc,
+    )
+    draft = svc.users().drafts().create(
+        userId="me", body={"message": {"raw": _encode_message(msg)}}
+    ).execute()
+    print(f"Draft created (in Gmail Drafts). draft id={draft.get('id')}.")
+    return 0
+
+
+def cmd_reply_draft(args: argparse.Namespace) -> int:
+    svc = _service(args.account)
+    thread = svc.users().threads().get(
+        userId="me", id=args.thread_id, format="full"
+    ).execute()
+    fields = _reply_fields(thread, args.account, args.reply_all)
+    msg = _build_message(
+        to=fields["to"], subject=fields["subject"], body=_read_text_arg(args.body),
+        cc=fields["cc"], extra_headers=fields["extra_headers"],
+    )
+    draft = svc.users().drafts().create(
+        userId="me",
+        body={"message": {"raw": _encode_message(msg), "threadId": args.thread_id}},
+    ).execute()
+    print(f"Reply draft created (in Gmail Drafts). draft id={draft.get('id')}.")
+    return 0
+
+
 def cmd_archive(args: argparse.Namespace) -> int:
     svc = _service(args.account)
     for tid in args.thread_ids:
@@ -241,6 +402,38 @@ def build_parser() -> argparse.ArgumentParser:
 
     pr = sub.add_parser("prefs", help="Print the email-preferences file for the account.")
     pr.set_defaults(func=cmd_prefs)
+
+    ps = sub.add_parser("prefs-set", help="Overwrite the email-preferences file for the account.")
+    ps.add_argument("--content", required=True, help="Full new content (or @file, or '-' for stdin).")
+    ps.set_defaults(func=cmd_prefs_set)
+
+    se = sub.add_parser("send", help="Send a NEW email (only after explicit user approval).")
+    se.add_argument("--to", required=True, help="Recipient(s), comma-separated.")
+    se.add_argument("--subject", required=True)
+    se.add_argument("--body", required=True, help="Body text (or @file, or '-' for stdin).")
+    se.add_argument("--cc")
+    se.add_argument("--bcc")
+    se.set_defaults(func=cmd_send)
+
+    rp = sub.add_parser("reply", help="Send a reply in an existing thread (proper threading headers).")
+    rp.add_argument("thread_id")
+    rp.add_argument("--body", required=True, help="Body text (or @file, or '-' for stdin).")
+    rp.add_argument("--reply-all", action="store_true")
+    rp.set_defaults(func=cmd_reply)
+
+    dr = sub.add_parser("draft", help="Create a NEW draft in Gmail Drafts (does not send).")
+    dr.add_argument("--to", required=True)
+    dr.add_argument("--subject", required=True)
+    dr.add_argument("--body", required=True, help="Body text (or @file, or '-' for stdin).")
+    dr.add_argument("--cc")
+    dr.add_argument("--bcc")
+    dr.set_defaults(func=cmd_draft)
+
+    rd = sub.add_parser("reply-draft", help="Create a reply draft in an existing thread (does not send).")
+    rd.add_argument("thread_id")
+    rd.add_argument("--body", required=True, help="Body text (or @file, or '-' for stdin).")
+    rd.add_argument("--reply-all", action="store_true")
+    rd.set_defaults(func=cmd_reply_draft)
 
     a = sub.add_parser("archive", help="Remove INBOX label from one or more threads.")
     a.add_argument("thread_ids", nargs="+")

@@ -27,3 +27,5 @@ valyu-best-practices
 worktree-cleanup
 worktree-manager
 pinterest-analyze
+google-sheets
+gmail
