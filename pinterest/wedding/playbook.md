@@ -41,18 +41,22 @@ weddings (budgets, sizes, couples).
 - Wedding Day Timeline for a 2PM Ceremony
 
 ## Visual theme (LOCKED — backed by analysis of the 9 top wedding pins, 2026-06-02)
+> **Accent = blush/dusty-rose + gold** (chosen 2026-06-03). Color analysis of the top 60 pins: ~82%
+> light base, and the feed is warm-dominant (45% peach/beige, 13% blush). Blush = "closest to wedding
+> feel" but it BLENDS in — so we stand out via **execution** (oversized serif, max whitespace,
+> high-contrast on-image text, curiosity copy), not color. (Cooler sage/blue would pop more if we ever
+> want a pattern-interrupt test.)
 **Light, elegant, airy — NOT dark.** 8 of 9 top wedding pins are light (cream/ivory/white) with dark
 text. Dark backgrounds underperform here: the product is a *printable* (light = looks printable),
 the emotion is dreamy/soft, and dark text on cream is most legible at thumbnail size. So we go light
 — but engineer ATTENTION through contrast, not darkness:
 
-- **Base:** cream / ivory (`#FBF7F0`). Soft, premium, prints clean.
-- **Headline:** oversized elegant serif (Playfair Display) in **deep charcoal or deep forest-green** —
+- **Base:** warm ivory (`#FBF5F2`). Soft, premium, prints clean.
+- **Headline:** oversized elegant serif (Playfair Display) in **deep charcoal (`#34302B`)** —
   this high-contrast headline is the scroll-stopper. Keyword goes IN the headline (on-image text).
-- **One accent for pop:** a single **sage (`#7C8C6A`) or gold (`#C9A24B`) band/strip** behind the
-  title or as the CTA strip (our equivalent of the lavender band on the "12 Things Brides Regret" pin).
-  One accent only — don't rainbow it.
-- **Show the product:** a printed checklist/planner on a pretty surface — eucalyptus sprigs, neutral
+- **One accent for pop:** a single **dusty-rose / blush (`#C58A86`) or gold (`#C9A24B`) band/strip**
+  behind the title or as the CTA strip. One accent only — don't rainbow it.
+- **Show the product:** a printed checklist/planner on a pretty surface — soft blush florals, neutral
   linen, soft natural light. It must read as "a real thing I get."
 - **Airy beats crammed:** the #1 pin was the MOST minimal (giant serif + lots of cream space). Dense
   text-walls rank lower. Out-class competitors by being the cleanest, most premium pin in the feed.

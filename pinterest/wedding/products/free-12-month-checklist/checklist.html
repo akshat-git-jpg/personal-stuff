@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The 12-Month Wedding Planning Checklist — Bride Bestie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Lato:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF5F2; --charcoal:#34302B; --sage:#C58A86; --gold:#C9A24B;
+    --line:rgba(52,48,43,.16); --soft:#6f6a62;
+  }
+  @page{ size:Letter; margin:0; }
+  *{ box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:'Lato',sans-serif; color:var(--charcoal); }
+  .page{
+    width:8.5in; height:11in; background:var(--cream);
+    padding:0.72in 0.78in; page-break-after:always; position:relative; overflow:hidden;
+  }
+  .page:last-child{ page-break-after:auto; }
+  .eyebrow{ font-size:11px; letter-spacing:.34em; text-transform:uppercase; color:var(--sage); font-weight:700; }
+  h1{ font-family:'Playfair Display',serif; font-weight:600; color:var(--charcoal); margin:0; }
+  .rule{ height:2px; width:64px; background:var(--gold); border:0; margin:18px 0; }
+
+  /* ---- Cover ---- */
+  .cover{ display:flex; flex-direction:column; align-items:center; text-align:center; justify-content:center; }
+  .cover .eyebrow{ margin-bottom:30px; }
+  .cover h1{ font-size:50px; line-height:1.08; max-width:6.2in; }
+  .cover h1 .script{ font-style:italic; color:var(--sage); }
+  .cover .sub{ font-size:16px; color:var(--soft); max-width:4.7in; line-height:1.55; margin-top:6px; }
+  .cover .frame{ position:absolute; inset:0.34in; border:1px solid var(--line); pointer-events:none; }
+  .cover .corner{ position:absolute; width:16px; height:16px; border:1.5px solid var(--gold); }
+  .cover .footer{ position:absolute; bottom:0.62in; left:0; right:0; text-align:center; font-size:12px; letter-spacing:.04em; color:var(--soft); }
+  .cover .footer b{ color:var(--charcoal); }
+
+  /* ---- Generic page header ---- */
+  .ph{ margin-bottom:6px; }
+  .ph .eyebrow{ font-size:10px; }
+  .ph h2{ font-family:'Playfair Display',serif; font-weight:600; font-size:30px; margin:4px 0 0; }
+
+  /* ---- Intro ---- */
+  .intro p{ font-size:13.5px; line-height:1.62; color:#46413a; margin:0 0 13px; max-width:6.3in; }
+  .intro .how{ background:#fff; border:1px solid var(--line); border-radius:10px; padding:20px 24px; margin-top:6px; }
+  .intro .how h3{ font-family:'Playfair Display',serif; font-weight:600; font-size:18px; margin:0 0 12px; }
+  .intro .how ul{ margin:0; padding-left:0; list-style:none; }
+  .intro .how li{ font-size:12.8px; line-height:1.5; margin-bottom:9px; padding-left:24px; position:relative; }
+  .intro .how li::before{ content:"✦"; color:var(--gold); position:absolute; left:0; top:0; font-size:12px; }
+  .sign{ font-family:'Playfair Display',serif; font-style:italic; font-size:15px; color:var(--sage); margin-top:18px; }
+
+  /* ---- Phase blocks ---- */
+  .phase{ margin-bottom:26px; }
+  .phase .tf{ display:flex; align-items:baseline; gap:14px; border-bottom:1.5px solid var(--gold); padding-bottom:7px; margin-bottom:13px; }
+  .phase .tf .when{ font-family:'Playfair Display',serif; font-size:22px; font-weight:600; color:var(--charcoal); }
+  .phase .tf .tag{ font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--sage); font-weight:700; }
+  .items{ display:grid; grid-template-columns:1fr 1fr; gap:9px 30px; }
+  .item{ display:flex; align-items:flex-start; font-size:12.4px; line-height:1.34; color:#3c3833; }
+  .cb{ flex:0 0 auto; width:13px; height:13px; border:1.5px solid var(--charcoal); border-radius:3px; margin-right:11px; margin-top:1px; }
+  .pageno{ position:absolute; bottom:0.46in; right:0.78in; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--soft); }
+  .brandmark{ position:absolute; bottom:0.46in; left:0.78in; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--sage); font-weight:700; }
+
+  /* ---- Upsell ---- */
+  .upsell{ display:flex; flex-direction:column; }
+  .upsell .card{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:34px 38px; margin-top:8px; }
+  .upsell h2{ font-family:'Playfair Display',serif; font-weight:600; font-size:32px; margin:0 0 6px; line-height:1.12; }
+  .upsell .lead{ font-size:14px; line-height:1.6; color:#46413a; max-width:5.6in; margin:0 0 22px; }
+  .feat{ display:grid; grid-template-columns:1fr 1fr; gap:12px 30px; margin-bottom:26px; }
+  .feat div{ font-size:13px; line-height:1.4; padding-left:24px; position:relative; color:#3c3833; }
+  .feat div::before{ content:"♥"; color:var(--gold); position:absolute; left:0; top:1px; font-size:12px; }
+  .cta{ display:inline-block; background:var(--sage); color:#fff; text-decoration:none; font-weight:700;
+        font-size:14px; letter-spacing:.04em; padding:15px 34px; border-radius:40px; }
+  .cta-note{ font-size:12px; color:var(--soft); margin-top:14px; }
+  .upsell .end{ text-align:center; margin-top:42px; }
+  .upsell .end .big{ font-family:'Playfair Display',serif; font-style:italic; font-size:22px; color:var(--charcoal); }
+  .upsell .end .site{ font-size:12px; letter-spacing:.05em; color:var(--soft); margin-top:8px; }
+</style>
+</head>
+<body>
+
+<!-- 1. COVER -->
+<section class="page cover">
+  <div class="frame"></div>
+  <div class="corner" style="top:0.3in;left:0.3in;border-right:0;border-bottom:0;"></div>
+  <div class="corner" style="top:0.3in;right:0.3in;border-left:0;border-bottom:0;"></div>
+  <div class="corner" style="bottom:0.3in;left:0.3in;border-right:0;border-top:0;"></div>
+  <div class="corner" style="bottom:0.3in;right:0.3in;border-left:0;border-top:0;"></div>
+  <div class="eyebrow">Bride Bestie</div>
+  <h1>The 12-Month Wedding<br>Planning <span class="script">Checklist</span></h1>
+  <hr class="rule">
+  <p class="sub">Your month-by-month guide to planning the whole day — without losing your mind.</p>
+  <div class="footer">A free gift from your <b>Bride Bestie</b> 💍 &nbsp;·&nbsp; bridebestie.com</div>
+</section>
+
+<!-- 2. INTRO -->
+<section class="page intro">
+  <div class="ph">
+    <div class="eyebrow">Start here</div>
+    <h2>Hey, bride-to-be 👋</h2>
+  </div>
+  <hr class="rule">
+  <p>First — congratulations! You're engaged, and somewhere between the happy tears and the
+    "wait, where do I even start?" panic, you found this. Take a breath. You've got a whole year
+    (or however long you've got), and you do not have to figure it all out today.</p>
+  <p>I built this checklist to break the entire wedding down into small, doable steps, spread across
+    the months ahead — so instead of one terrifying to-do list, you just handle a little at a time.
+    Work top to bottom, tick things off as you go, and let the rest wait its turn.</p>
+  <div class="how">
+    <h3>How to use this checklist</h3>
+    <ul>
+      <li>The timeframes are <b>guidelines, not rules</b> — planning in 6 months? Just start at the top and move faster.</li>
+      <li>Tick the box once something's <b>booked or done</b>, not just researched.</li>
+      <li>Print it and stick it on the fridge, or keep the PDF on your phone — whatever keeps you looking at it.</li>
+      <li>Money and guest count come first on purpose: <b>almost every other decision depends on them.</b></li>
+    </ul>
+  </div>
+  <p class="sign">You've got this — I'm right here with you. xo, your Bride Bestie</p>
+  <div class="brandmark">Bride Bestie</div>
+  <div class="pageno">bridebestie.com</div>
+</section>
+
+<!-- 3. 12+ and 10-12 -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">The timeline</div><h2>The first few months</h2></div>
+  <hr class="rule">
+
+  <div class="phase">
+    <div class="tf"><span class="when">12+ months out</span><span class="tag">Just engaged</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Celebrate &amp; share the news with your people</div>
+      <div class="item"><span class="cb"></span>Set your overall budget &amp; who's contributing</div>
+      <div class="item"><span class="cb"></span>Decide on a rough date or season</div>
+      <div class="item"><span class="cb"></span>Draft an early guest-count range</div>
+      <div class="item"><span class="cb"></span>Choose your wedding party</div>
+      <div class="item"><span class="cb"></span>Start an inspiration board (hi, Pinterest)</div>
+      <div class="item"><span class="cb"></span>Settle on a vibe: formal, rustic, modern…</div>
+      <div class="item"><span class="cb"></span>Tour venues &amp; book the one — lock the date</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="tf"><span class="when">10–12 months</span><span class="tag">Lock the big vendors</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Hire a planner or day-of coordinator</div>
+      <div class="item"><span class="cb"></span>Book your photographer</div>
+      <div class="item"><span class="cb"></span>Book your videographer</div>
+      <div class="item"><span class="cb"></span>Book your caterer (if separate from venue)</div>
+      <div class="item"><span class="cb"></span>Start the dress search; book appointments</div>
+      <div class="item"><span class="cb"></span>Build your full guest list with addresses</div>
+      <div class="item"><span class="cb"></span>Reserve a hotel room block for guests</div>
+      <div class="item"><span class="cb"></span>Create your wedding website</div>
+    </div>
+  </div>
+  <div class="brandmark">Bride Bestie</div>
+  <div class="pageno">Page 1 of 5</div>
+</section>
+
+<!-- 4. 8-10 and 6-8 -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">The timeline</div><h2>Getting into the details</h2></div>
+  <hr class="rule">
+
+  <div class="phase">
+    <div class="tf"><span class="when">8–10 months</span><span class="tag">Style &amp; save-the-dates</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Order your dress (alterations take time)</div>
+      <div class="item"><span class="cb"></span>Book your florist</div>
+      <div class="item"><span class="cb"></span>Book your band or DJ</div>
+      <div class="item"><span class="cb"></span>Book your officiant</div>
+      <div class="item"><span class="cb"></span>Choose &amp; order save-the-dates</div>
+      <div class="item"><span class="cb"></span>Send your save-the-dates</div>
+      <div class="item"><span class="cb"></span>Decide on bridesmaid dresses</div>
+      <div class="item"><span class="cb"></span>Sketch your ceremony details</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="tf"><span class="when">6–8 months</span><span class="tag">Food, looks &amp; logistics</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Book your cake baker; schedule tastings</div>
+      <div class="item"><span class="cb"></span>Arrange transportation (shuttle, car)</div>
+      <div class="item"><span class="cb"></span>Set up your gift registry</div>
+      <div class="item"><span class="cb"></span>Book the honeymoon; check passports</div>
+      <div class="item"><span class="cb"></span>Reserve rentals (linens, chairs, decor)</div>
+      <div class="item"><span class="cb"></span>Shop groom &amp; groomsmen attire</div>
+      <div class="item"><span class="cb"></span>Book hair &amp; makeup; schedule a trial</div>
+      <div class="item"><span class="cb"></span>Plan the rehearsal dinner</div>
+    </div>
+  </div>
+  <div class="brandmark">Bride Bestie</div>
+  <div class="pageno">Page 2 of 5</div>
+</section>
+
+<!-- 5. 4-6 and 2-4 -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">The timeline</div><h2>Pulling it together</h2></div>
+  <hr class="rule">
+
+  <div class="phase">
+    <div class="tf"><span class="when">4–6 months</span><span class="tag">Paper &amp; promises</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Finalize the menu &amp; do a tasting</div>
+      <div class="item"><span class="cb"></span>Order invitations &amp; stationery</div>
+      <div class="item"><span class="cb"></span>Choose your wedding rings</div>
+      <div class="item"><span class="cb"></span>Plan ceremony readings &amp; vows</div>
+      <div class="item"><span class="cb"></span>Confirm honeymoon bookings</div>
+      <div class="item"><span class="cb"></span>Plan the bachelorette / bachelor party</div>
+      <div class="item"><span class="cb"></span>Book any extras (photo booth, late-night snacks)</div>
+      <div class="item"><span class="cb"></span>Start a day-of timeline draft</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="tf"><span class="when">2–4 months</span><span class="tag">Send &amp; confirm</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Mail your invitations (about 8 weeks out)</div>
+      <div class="item"><span class="cb"></span>Finalize the playlist &amp; do-not-play list</div>
+      <div class="item"><span class="cb"></span>First dress fitting</div>
+      <div class="item"><span class="cb"></span>Purchase wedding favors</div>
+      <div class="item"><span class="cb"></span>Write your vows</div>
+      <div class="item"><span class="cb"></span>Buy gifts for the wedding party &amp; parents</div>
+      <div class="item"><span class="cb"></span>Apply for your marriage license</div>
+      <div class="item"><span class="cb"></span>Confirm details with every vendor</div>
+    </div>
+  </div>
+  <div class="brandmark">Bride Bestie</div>
+  <div class="pageno">Page 3 of 5</div>
+</section>
+
+<!-- 6. 6-8 wks and 1-2 wks -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">The timeline</div><h2>The final stretch</h2></div>
+  <hr class="rule">
+
+  <div class="phase">
+    <div class="tf"><span class="when">6–8 weeks</span><span class="tag">Numbers &amp; seating</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Track RSVPs; chase the stragglers</div>
+      <div class="item"><span class="cb"></span>Give final guest count to caterer/venue</div>
+      <div class="item"><span class="cb"></span>Build your seating chart</div>
+      <div class="item"><span class="cb"></span>Final dress fitting</div>
+      <div class="item"><span class="cb"></span>Break in your wedding shoes</div>
+      <div class="item"><span class="cb"></span>Confirm the timeline with photographer &amp; planner</div>
+      <div class="item"><span class="cb"></span>Pick up your marriage license</div>
+      <div class="item"><span class="cb"></span>Write thank-you notes as gifts arrive</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="tf"><span class="when">1–2 weeks</span><span class="tag">Hand it off</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Confirm arrival times with all vendors</div>
+      <div class="item"><span class="cb"></span>Delegate day-of tasks to your crew</div>
+      <div class="item"><span class="cb"></span>Prepare final payments &amp; tip envelopes</div>
+      <div class="item"><span class="cb"></span>Assemble a day-of emergency kit</div>
+      <div class="item"><span class="cb"></span>Pack for the honeymoon</div>
+      <div class="item"><span class="cb"></span>Confirm transport &amp; hotel details</div>
+      <div class="item"><span class="cb"></span>Rehearse your vows out loud</div>
+      <div class="item"><span class="cb"></span>Plan something relaxing for yourself</div>
+    </div>
+  </div>
+  <div class="brandmark">Bride Bestie</div>
+  <div class="pageno">Page 4 of 5</div>
+</section>
+
+<!-- 7. day before / day of -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">The timeline</div><h2>The big day</h2></div>
+  <hr class="rule">
+
+  <div class="phase">
+    <div class="tf"><span class="when">Day before</span><span class="tag">Set the stage</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Attend the rehearsal &amp; rehearsal dinner</div>
+      <div class="item"><span class="cb"></span>Drop off decor &amp; items at the venue</div>
+      <div class="item"><span class="cb"></span>Hand rings, vows &amp; payments to your point person</div>
+      <div class="item"><span class="cb"></span>Lay out everything you'll need tomorrow</div>
+      <div class="item"><span class="cb"></span>Eat well &amp; hydrate</div>
+      <div class="item"><span class="cb"></span>Get a real night's sleep</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="tf"><span class="when">Wedding day</span><span class="tag">Soak it in</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Eat a proper breakfast</div>
+      <div class="item"><span class="cb"></span>Hair &amp; makeup with your people around you</div>
+      <div class="item"><span class="cb"></span>Take a quiet minute before it all begins</div>
+      <div class="item"><span class="cb"></span>Trust your team — you've planned for this</div>
+      <div class="item"><span class="cb"></span>Marry your favorite person 💍</div>
+      <div class="item"><span class="cb"></span>Dance, eat your cake, and be present</div>
+    </div>
+  </div>
+  <div class="brandmark">Bride Bestie</div>
+  <div class="pageno">Page 5 of 5</div>
+</section>
+
+<!-- 8. UPSELL -->
+<section class="page upsell">
+  <div class="ph"><div class="eyebrow">One more thing</div></div>
+  <div class="card">
+    <h2>Want every detail in one place?</h2>
+    <p class="lead">This checklist keeps you on schedule — but the day itself has a thousand moving
+      pieces. <b>The Ultimate Wedding Planner</b> turns this whole list into a full workbook, so your
+      budget, guests, vendors, and timeline all live in one beautiful, organized place.</p>
+    <div class="feat">
+      <div>The full 12-month checklist, expanded</div>
+      <div>Budget tracker that adds up for you</div>
+      <div>Guest list &amp; RSVP manager</div>
+      <div>Vendor contacts &amp; payment tracker</div>
+      <div>Hour-by-hour day-of timeline</div>
+      <div>Seating chart &amp; menu planner</div>
+    </div>
+    <a class="cta" href="https://bridebestie.gumroad.com/l/wedding-planner">Get the full planner →</a>
+    <div class="cta-note">Instant download · print at home or use on any device.</div>
+  </div>
+  <div class="end">
+    <div class="big">Happy planning, bestie.</div>
+    <div class="site">bridebestie.com &nbsp;·&nbsp; @bridebestie</div>
+  </div>
+</section>
+
+</body>
+</html>

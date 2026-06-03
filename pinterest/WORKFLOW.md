@@ -9,6 +9,9 @@ Ask Claude to **find a niche**: it runs `niche-scan` across candidates → score
 to confirm and get the product + first pin ideas.
 
 ## Phase 1 — Set up the niche (once)
+0. **Brand = name + domain + email.** Pick a niche-obvious, brandable name whose `.com` + Pinterest +
+   Instagram are all free, buy the `.com` at Cloudflare, and set up catch-all email to the hub.
+   Full repeatable playbook (research methods, goals, the one-command email setup): **`BRAND-SETUP.md`**.
 1. Create a **Pinterest business account** for the niche (one per niche).
 2. With Claude, SEO the **profile** — keyworded name, bio, and ~5 keyword boards (per principles §5).
 3. Create the **product** (the PDF), list on **Gumroad**, grab the offer URL.
@@ -47,7 +50,7 @@ Append the result to a weekly **`<niche>/ANALYSIS-LOG.md`** (changelog style).
 ## File map
 `<niche>/` → `config.json`, `playbook.md`, `posts/<slug>/{image.png, post.md, post.json, notes.md}`,
 `research/`, `ANALYSIS-LOG.md`
-Shared → `PINTEREST-PRINCIPLES.md`, `NICHE-RESEARCH.md`, `WORKFLOW.md`
+Shared → `PINTEREST-PRINCIPLES.md`, `NICHE-RESEARCH.md`, `WORKFLOW.md`, `BRAND-SETUP.md` (domain+email)
 
 ## Status
 - **Built:** `pinterest-research`, `pinterest-make-post` (+ critic), `pinterest-board`.
