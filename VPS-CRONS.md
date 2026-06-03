@@ -442,8 +442,8 @@ This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you 
 - **Wrapper:** `/srv/crons/gmail-digest/run.sh`
 - **Project code:** `/srv/projects/personal-stuff/email-assistant/digest.sh` (+ `digest-prompt.md`)
 - **MCP:** Gmail MCP at `/srv/projects/personal-stuff/mcp/gmail-mcp-server/server.py` running under shared venv at `/srv/projects/personal-stuff/mcp/.venv/`
-- **OAuth:** `/srv/projects/personal-stuff/mcp/google-shared/credentials.json` + `tokens/kushalbakliwal25@gmail.com.json` (gitignored, scp'd from Mac)
-- **Account:** `kushalbakliwal25@gmail.com` (configurable via `DIGEST_EMAIL` in `.env`)
+- **OAuth:** `/srv/projects/personal-stuff/mcp/google-shared/credentials.json` + `tokens/<email>.json` per account (gitignored, scp'd from Mac)
+- **Accounts:** all four — `kushalbakliwal25`, `seankerman25`, `jessicap123k`, `akshatpatidar17` (@gmail.com) — set via space-separated `DIGEST_EMAILS` in `.env`; one Telegram message per account, per-account soft-fail, "no emails in window" sends a 📭 note instead of an error
 - **Telegram dest:** `@hermes_kb_pa_bot`, chat_id `1912944391` (same as my-planner)
 - **Output format:** Part 1 (Claude's judgment of what matters) + Part 2 (matches against "Digest focus areas" in the per-account preferences file)
 
