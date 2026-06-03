@@ -20,6 +20,17 @@ youtube/keyword-research/channel_cache.json
 youtube/yt-visuals/cutaways/
 youtube/yt-visuals/.cache/
 
+# Pinterest intermediate tiles — regenerable from post.json + the pin skill.
+# Final composite (image.png) and the recipe (post.json/post.md) ARE kept.
+pinterest/**/cells/
+
+# Rendered brand/product outputs — regenerable from the HTML sources
+# (brand-assets.html, render-pdf.mjs / build.mjs). Sources + specs ARE kept.
+pinterest/*/brand/*.png
+pinterest/*/products/**/*.pdf
+pinterest/*/products/**/*.png
+pinterest/*/products/**/*.jpg
+
 # superpowers brainstorm mockups (per-session HTML, local-only)
 .superpowers/
 
