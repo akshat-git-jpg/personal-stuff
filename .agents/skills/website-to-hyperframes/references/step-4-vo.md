@@ -71,8 +71,8 @@ After the provider is selected, audition at least 2 voices with the first senten
 
 **ElevenLabs:**
 
-- If the ElevenLabs MCP is available: use `mcp__elevenlabs__search_voices` to browse, `mcp__elevenlabs__text_to_speech` to generate.
-- If no MCP: call the REST API directly:
+- Preferred: the `pp-elevenlabs` skill/CLI (the ElevenLabs MCP was removed from .mcp.json to save context).
+- Or call the REST API directly:
 
   ```bash
   # List voices
