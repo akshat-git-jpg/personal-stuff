@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:apps="http://schemas.google.com/apps/2006">
+  <title>Mail Filters — akshatpatidar17 inbox cleanup</title>
+
+  <!-- 1. OTPs & login codes — KEEP IN INBOX, star, never spam, important -->
+  <entry>
+    <category term="filter"></category>
+    <title>Filter: OTPs &amp; login codes</title>
+    <content></content>
+    <apps:property name="hasTheWord" value="subject:(OTP OR &quot;verification code&quot; OR &quot;login code&quot; OR &quot;login token&quot; OR &quot;security code&quot; OR &quot;one-time&quot; OR &quot;2FA&quot; OR passcode OR &quot;your code&quot;)"/>
+    <apps:property name="label" value="🔐 Codes"/>
+    <apps:property name="shouldStar" value="true"/>
+    <apps:property name="shouldNeverSpam" value="true"/>
+    <apps:property name="shouldAlwaysMarkAsImportant" value="true"/>
+    <apps:property name="sizeOperator" value="s_sl"/>
+    <apps:property name="sizeUnit" value="s_smb"/>
+  </entry>
+
+  <!-- 2. Billing & finance — KEEP IN INBOX, important, never spam -->
+  <entry>
+    <category term="filter"></category>
+    <title>Filter: Billing &amp; finance</title>
+    <content></content>
+    <apps:property name="hasTheWord" value="subject:(invoice OR receipt OR &quot;payment declined&quot; OR &quot;past due&quot; OR &quot;your bill&quot; OR &quot;low balance&quot; OR billing OR &quot;auto-renew&quot;) -from:(tatacliq.com OR tataneu.com OR 1mg.com OR bigbasket.com OR tajhotels.com)"/>
+    <apps:property name="label" value="💳 Billing"/>
+    <apps:property name="shouldNeverSpam" value="true"/>
+    <apps:property name="shouldAlwaysMarkAsImportant" value="true"/>
+    <apps:property name="sizeOperator" value="s_sl"/>
+    <apps:property name="sizeUnit" value="s_smb"/>
+  </entry>
+
+  <!-- 3. Shopping / promotions — skip inbox, keep unread -->
+  <entry>
+    <category term="filter"></category>
+    <title>Filter: Shopping / promotions</title>
+    <content></content>
+    <apps:property name="hasTheWord" value="from:(tatacliq.com OR tataneu.com OR 1mg.com OR bigbasket.com OR tajhotels.com OR skyscanner.com OR mail.adobe.com OR engage.canva.com)"/>
+    <apps:property name="label" value="🛍️ Shopping"/>
+    <apps:property name="shouldArchive" value="true"/>
+    <apps:property name="sizeOperator" value="s_sl"/>
+    <apps:property name="sizeUnit" value="s_smb"/>
+  </entry>
+
+  <!-- 4. Social notifications — skip inbox, keep unread -->
+  <entry>
+    <category term="filter"></category>
+    <title>Filter: Social notifications</title>
+    <content></content>
+    <apps:property name="hasTheWord" value="from:(instagram.com OR facebookmail.com OR linkedin.com OR quora.com OR skool.com)"/>
+    <apps:property name="label" value="👥 Social"/>
+    <apps:property name="shouldArchive" value="true"/>
+    <apps:property name="sizeOperator" value="s_sl"/>
+    <apps:property name="sizeUnit" value="s_smb"/>
+  </entry>
+
+  <!-- 5. Newsletters & digests — skip inbox, keep unread -->
+  <entry>
+    <category term="filter"></category>
+    <title>Filter: Newsletters &amp; digests</title>
+    <content></content>
+    <apps:property name="hasTheWord" value="from:(substack.com OR medium.com OR podcastnotes.org OR coinbureau.com OR jointaro.com OR starterstory.com OR nl.technologyadvice.com OR educative.io OR algozenith.com)"/>
+    <apps:property name="label" value="📰 Newsletters"/>
+    <apps:property name="shouldArchive" value="true"/>
+    <apps:property name="sizeOperator" value="s_sl"/>
+    <apps:property name="sizeUnit" value="s_smb"/>
+  </entry>
+
+  <!-- 6. Dev / AI tool updates — skip inbox, keep unread -->
+  <entry>
+    <category term="filter"></category>
+    <title>Filter: Dev / AI tool updates</title>
+    <content></content>
+    <apps:property name="hasTheWord" value="from:(openrouter.ai OR modal.com OR napkin.ai OR pexels.com OR codepen.io OR mermaid.ai OR vercel.com)"/>
+    <apps:property name="label" value="🛠️ Tools"/>
+    <apps:property name="shouldArchive" value="true"/>
+    <apps:property name="sizeOperator" value="s_sl"/>
+    <apps:property name="sizeUnit" value="s_smb"/>
+  </entry>
+
+  <!-- 7. Cold "make money" senders — skip inbox + mark read -->
+  <entry>
+    <category term="filter"></category>
+    <title>Filter: Cold marketing senders</title>
+    <content></content>
+    <apps:property name="hasTheWord" value="from:(growchannels.com OR primalvideo.com OR coursesfast.com)"/>
+    <apps:property name="label" value="🗑️ Junk"/>
+    <apps:property name="shouldArchive" value="true"/>
+    <apps:property name="shouldMarkAsRead" value="true"/>
+    <apps:property name="sizeOperator" value="s_sl"/>
+    <apps:property name="sizeUnit" value="s_smb"/>
+  </entry>
+
+</feed>
