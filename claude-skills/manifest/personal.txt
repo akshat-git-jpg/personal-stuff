@@ -29,3 +29,5 @@ worktree-manager
 pinterest-analyze
 google-sheets
 gmail
+hostinger
+youtube

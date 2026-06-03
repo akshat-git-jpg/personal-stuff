@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# pp-hostinger — wrapper. Stdlib-only Python, so any python3 works.
+set -euo pipefail
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec python3 "$DIR/pp_hostinger.py" "$@"
