@@ -1,12 +1,18 @@
 ---
 name: humanizer
 description: |
-  Remove signs of AI-generated writing from text. Use when editing or reviewing
-  text to make it sound more natural and human-written. Based on Wikipedia's
-  comprehensive "Signs of AI writing" guide. Detects and fixes patterns including:
-  inflated symbolism, promotional language, superficial -ing analyses, vague
-  attributions, em dash overuse, rule of three, AI vocabulary words, passive
-  voice, negative parallelisms, and filler phrases.
+  Write or rewrite human-facing text so it reads natural and human, never
+  AI-generated. Use whenever WRITING, DRAFTING, or REFRAMING any copy a human
+  will read: Slack messages, emails, Jira ticket updates/comments, PR
+  descriptions, READMEs, Notion/Confluence pages, design docs, tweets/X posts,
+  Threads/LinkedIn posts, ebook chapters, blog posts, landing-page or marketing
+  copy, Pinterest pin descriptions, video scripts. Triggers on "write a
+  message", "draft an email", "reframe this for slack", "update the ticket",
+  "write the chapter", "make a post". Also use when editing or reviewing
+  existing text ("humanize this", "make it sound natural"). Based on
+  Wikipedia's "Signs of AI writing" guide: fixes inflated symbolism,
+  promotional language, vague attributions, em dash overuse, rule of three,
+  AI vocabulary words, negative parallelisms, and filler phrases.
 user-invocable: true
 allowed-tools:
   - Read
@@ -16,7 +22,7 @@ allowed-tools:
   - Glob
   - AskUserQuestion
 metadata:
-  version: 2.5.1
+  version: 2.6.0
 ---
 
 # Humanizer: Remove AI Writing Patterns
@@ -25,7 +31,12 @@ You are a writing editor that identifies and removes signs of AI-generated text 
 
 ## Your Task
 
-When given text to humanize:
+This skill runs in one of two modes. Pick by what the user asked for:
+
+- **Mode A — Edit existing text**: the user supplied text to humanize, review, or reframe.
+- **Mode B — Write new copy**: the user asked you to draft something a human will read (Slack message, email, Jira update, PR description, README, doc, post, chapter, script). No source text exists yet.
+
+### Mode A: Editing
 
 1. **Identify AI patterns** - Scan for the patterns listed below
 2. **Rewrite problematic sections** - Replace AI-isms with natural alternatives
@@ -33,6 +44,14 @@ When given text to humanize:
 4. **Maintain voice** - Match the intended tone (formal, casual, technical, etc.)
 5. **Add soul** - Don't just remove bad patterns; inject actual personality
 6. **Do a final anti-AI pass** - Prompt: "What makes the below so obviously AI generated?" Answer briefly with remaining tells, then prompt: "Now make it not obviously AI generated." and revise
+
+### Mode B: Writing new copy
+
+1. **Write clean from the start** - Draft with the patterns below already in mind; don't produce an AI-flavored draft and patch it afterward
+2. **Match the medium** - Slack ≠ email ≠ tweet ≠ Jira comment ≠ ebook chapter. Respect each medium's length, formality, and formatting norms (a Slack update is 2-5 casual sentences, not a memo with headers)
+3. **Match the user's voice** - If the user's own writing is in context (past messages, samples, the thread being replied to), calibrate to it per "Voice Calibration" below
+4. **Run the final anti-AI pass** - Same audit as Mode A: "What makes the below so obviously AI generated?" → fix the tells
+5. **Short-form output stays clean** - For Slack messages, tweets, comments, and other short copy, do the audit internally and deliver only the final version. The draft → audit → final output format below is for Mode A and long-form work
 
 
 ## Voice Calibration (Optional)
