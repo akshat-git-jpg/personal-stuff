@@ -1,0 +1,33 @@
+# Personal Dashboard — Docker Compose, routed by the existing Traefik v3 on this VPS.
+#
+# Traefik (container n8n-traefik-1) lives on the `n8n_default` network and uses
+# the `mytlschallenge` ACME resolver. This service joins that network so Traefik
+# can discover and route to it, and gets a Let's Encrypt cert automatically.
+#
+# Deploy dir on VPS: /docker/personal-dashboard/
+#   - .env                  (real secrets; OPENROUTER key, SESSION_SECRET, etc.)
+#   - secrets/google-token.json  (the kushalbakliwal25 calendar token, bind-mounted)
+#   - data/                 (sqlite db, persisted)
+
+services:
+  personal-dashboard:
+    build: .
+    container_name: personal-dashboard
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./secrets:/app/secrets:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mydash.rule=Host(`my-dashboard.agrolloo.com`) || Host(`my-dashboard.srv1377177.hstgr.cloud`)"
+      - "traefik.http.routers.mydash.entrypoints=websecure"
+      - "traefik.http.routers.mydash.tls=true"
+      - "traefik.http.routers.mydash.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.mydash.loadbalancer.server.port=8787"
+    networks:
+      - n8n_default
+
+networks:
+  n8n_default:
+    external: true

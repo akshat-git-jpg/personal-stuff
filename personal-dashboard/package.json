@@ -1,0 +1,21 @@
+{
+  "name": "personal-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mobile-first personal dashboard: to-dos, habits/streaks, remembers, Google Calendar view, LLM-assisted capture.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.3.0",
+    "chrono-node": "^2.7.7",
+    "cookie-session": "^2.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "googleapis": "^144.0.0"
+  }
+}
