@@ -1,6 +1,6 @@
 // Todos view
 
-import { api, toast, formatDate, showModal, closeModal, makeSortable } from '../app.js';
+import { api, toast, formatDate, showModal, closeModal, makeSortable, wireCheckbox } from '../app.js';
 
 const DRAG_HANDLE = `<span class="drag-handle" aria-label="Drag to reorder"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></span>`;
 
@@ -101,17 +101,12 @@ export async function render(container) {
     }, 300);
   });
 
-  // Wire checkboxes
+  // Wire checkboxes — optimistic (no full re-render on toggle)
   container.querySelectorAll('.todo-check').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const id = btn.dataset.id;
-      const done = btn.classList.contains('checked') ? 0 : 1;
-      try {
-        await api(`/api/todos/${id}`, 'PATCH', { done });
-        render(container);
-      } catch (e) {
-        toast(e.message, 'error');
-      }
+    const li = btn.closest('.todo-item');
+    wireCheckbox(btn, {
+      rowEl: li,
+      request: (done) => api(`/api/todos/${btn.dataset.id}`, 'PATCH', { done }),
     });
   });
 

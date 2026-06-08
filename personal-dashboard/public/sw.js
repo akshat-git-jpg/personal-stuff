@@ -1,6 +1,6 @@
 // Service Worker — cache app shell, network-first for /api/
 
-const CACHE_NAME = 'pd-v2';
+const CACHE_NAME = 'pd-v4';
 const SHELL_ASSETS = [
   '/',
   '/index.html',
@@ -13,6 +13,7 @@ const SHELL_ASSETS = [
   '/js/views/settings.js',
   '/manifest.webmanifest',
   '/js/views/notes.js',
+  '/fonts/fraunces.woff2',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
   'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js',
 ];

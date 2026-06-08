@@ -91,6 +91,25 @@ export function closeModal() {
   document.getElementById('modal-container').innerHTML = '';
 }
 
+// Optimistic checkbox toggle: flips UI immediately, calls API in background,
+// reverts on failure. Avoids a full re-render on every check.
+export function wireCheckbox(btn, { rowEl = null, request, onChange } = {}) {
+  btn.addEventListener('click', async () => {
+    const next = !btn.classList.contains('checked');
+    btn.classList.toggle('checked', next);
+    if (rowEl) rowEl.classList.toggle('done', next);
+    onChange?.(next);
+    try {
+      await request(next ? 1 : 0);
+    } catch (e) {
+      btn.classList.toggle('checked', !next);
+      if (rowEl) rowEl.classList.toggle('done', !next);
+      onChange?.(!next);
+      toast(e.message, 'error');
+    }
+  });
+}
+
 // ============================================================
 // App state
 // ============================================================
@@ -159,13 +178,10 @@ async function startApp(appEl, loginScreen) {
   loginScreen.style.display = 'none';
   appEl.style.display = '';
 
-  // Apply dark mode from settings
-  try {
-    const settings = await api('/api/settings');
-    applyDarkMode(settings.dark_mode);
-  } catch {
-    // ignore
-  }
+  // Theme: localStorage is the source of truth (default dark). The inline head
+  // script already applied it pre-paint; re-assert here for SPA navigations.
+  const storedTheme = localStorage.getItem('pd-theme');
+  applyDarkMode(storedTheme ? storedTheme === 'dark' : true);
 
   // Tab bar
   document.querySelectorAll('.tab-btn').forEach((btn) => {
@@ -175,6 +191,17 @@ async function startApp(appEl, loginScreen) {
   // Quick-add
   const quickInput = document.getElementById('quick-add-input');
   const quickBtn = document.getElementById('quick-add-btn');
+  const quickWrap = quickInput.closest('.quick-add-wrap');
+
+  // Collapsible category selector: expand on focus, collapse on blur if empty
+  quickInput.addEventListener('focus', () => {
+    quickWrap.classList.add('expanded');
+  });
+  quickInput.addEventListener('blur', () => {
+    if (!quickInput.value.trim()) {
+      quickWrap.classList.remove('expanded');
+    }
+  });
 
   // Category selector — explicit type for every capture.
   let captureCat = 'todo';

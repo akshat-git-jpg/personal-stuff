@@ -54,7 +54,7 @@ export async function render(container) {
         <div class="settings-row">
           <div class="settings-row-label">Dark mode</div>
           <label class="toggle">
-            <input type="checkbox" id="dark-toggle" ${dark_mode ? 'checked' : ''} />
+            <input type="checkbox" id="dark-toggle" ${(localStorage.getItem('pd-theme') || 'dark') !== 'light' ? 'checked' : ''} />
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -145,9 +145,12 @@ export async function render(container) {
   // Dark mode toggle
   container.querySelector('#dark-toggle')?.addEventListener('change', async (e) => {
     const val = e.target.checked;
+    // localStorage is the source of truth for the theme; apply immediately.
+    localStorage.setItem('pd-theme', val ? 'dark' : 'light');
+    applyDarkMode(val);
+    // Mirror to the server too (keeps the JSON export accurate).
     try {
       await api('/api/settings', 'PATCH', { dark_mode: val });
-      applyDarkMode(val);
     } catch (err) {
       toast(err.message, 'error');
     }

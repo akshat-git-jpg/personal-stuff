@@ -74,7 +74,7 @@ function migrate() {
       openrouter_model TEXT,
       capture_rules_md TEXT,
       timezone TEXT,
-      dark_mode INTEGER NOT NULL DEFAULT 0,
+      dark_mode INTEGER NOT NULL DEFAULT 1,
       calendar_last_synced TEXT,
       carryover_last_run TEXT
     );
@@ -106,7 +106,7 @@ function migrate() {
     const hash = bcrypt.hashSync(initialPassword, 10);
     db.prepare(`
       INSERT INTO app (id, password_hash, openrouter_key, openrouter_model, capture_rules_md, timezone, dark_mode)
-      VALUES (1, ?, ?, ?, ?, ?, 0)
+      VALUES (1, ?, ?, ?, ?, ?, 1)
     `).run(
       hash,
       process.env.OPENROUTER_API_KEY || '',

@@ -1,54 +1,91 @@
 /* ============================================================
    Personal Dashboard — Mobile-first styles
-   Accent: #6366f1 (indigo)
+   Theme: Plum Noir (dark-first) · accent #a78bfa
    ============================================================ */
 
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/fraunces.woff2') format('woff2');
+}
+
 :root {
-  --accent: #6366f1;
-  --accent-light: #818cf8;
-  --accent-dim: rgba(99, 102, 241, 0.15);
-  --bg: #f8f9fa;
+  /* Light variant — lavender-tinted, pairs with the Plum Noir dark theme */
+  --accent: #7c3aed;
+  --accent-light: #9b6bf0;
+  --accent-dim: rgba(124, 58, 237, 0.12);
+  --bg: #f7f5fa;
   --surface: #ffffff;
-  --surface-2: #f1f3f5;
-  --border: #dee2e6;
-  --text: #212529;
-  --text-muted: #6c757d;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --success: #22c55e;
+  --surface-2: #f1edf6;
+  --border: #e4ddec;
+  --text: #241f2b;
+  --text-muted: #7d7488;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --success: #16a34a;
   --tab-height: 60px;
   --quick-add-height: 56px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --radius: 12px;
+  --radius: 14px;
   --radius-sm: 8px;
-  --shadow: 0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.05);
+  --shadow: 0 1px 2px rgba(40,20,60,.05), 0 6px 20px rgba(40,20,60,.07);
+  --shadow-sm: 0 1px 2px rgba(40,20,60,.06);
+  --grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* domain hues */
+  --c-todo: #7c3aed;
+  --c-habit: #16a34a;
+  --c-mindset: #c026d3;
+  --c-calendar: #d97706;
 }
 
+/* Plum Noir — primary dark theme */
 html.dark {
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --surface-2: #22263a;
-  --border: #2d3148;
-  --text: #e8eaf0;
-  --text-muted: #8b8fa8;
-  --accent: #818cf8;
-  --accent-light: #a5b4fc;
-  --accent-dim: rgba(129, 140, 248, 0.18);
-  --shadow: 0 1px 4px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+  --bg: #120f18;
+  --surface: #1c1726;
+  --surface-2: #261f33;
+  --border: #352b45;
+  --text: #ece6f2;
+  --text-muted: #9a8fab;
+  --accent: #a78bfa;
+  --accent-light: #c4b5fd;
+  --accent-dim: rgba(167, 139, 250, 0.16);
+  --danger: #fb7185;
+  --warning: #fbbf24;
+  --success: #34d399;
+  --shadow: 0 1px 2px rgba(0,0,0,.45), 0 8px 26px rgba(0,0,0,.4);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --grad: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+  --c-todo: #a78bfa;
+  --c-habit: #34d399;
+  --c-mindset: #f0abfc;
+  --c-calendar: #fbbf24;
 }
 
 @media (prefers-color-scheme: dark) {
   html:not(.light) {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface-2: #22263a;
-    --border: #2d3148;
-    --text: #e8eaf0;
-    --text-muted: #8b8fa8;
-    --accent: #818cf8;
-    --accent-light: #a5b4fc;
-    --accent-dim: rgba(129, 140, 248, 0.18);
-    --shadow: 0 1px 4px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+    --bg: #120f18;
+    --surface: #1c1726;
+    --surface-2: #261f33;
+    --border: #352b45;
+    --text: #ece6f2;
+    --text-muted: #9a8fab;
+    --accent: #a78bfa;
+    --accent-light: #c4b5fd;
+    --accent-dim: rgba(167, 139, 250, 0.16);
+    --danger: #fb7185;
+    --warning: #fbbf24;
+    --success: #34d399;
+    --shadow: 0 1px 2px rgba(0,0,0,.45), 0 8px 26px rgba(0,0,0,.4);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+    --grad: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+    --c-todo: #a78bfa;
+    --c-habit: #34d399;
+    --c-mindset: #f0abfc;
+    --c-calendar: #fbbf24;
   }
 }
 
@@ -60,7 +97,7 @@ html.dark {
 
 html, body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.5;
   background: var(--bg);
@@ -89,8 +126,10 @@ html, body {
 }
 
 .auth-card h1 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 8px;
   color: var(--accent);
 }
@@ -116,7 +155,7 @@ html, body {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--quick-add-height) + 40px + var(--tab-height) + var(--safe-bottom) + 16px);
+  padding-bottom: calc(var(--quick-add-height) + var(--tab-height) + var(--safe-bottom) + 16px);
 }
 
 /* ============================================================
@@ -142,7 +181,7 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  font-size: 0.6rem;
+  font-size: 0.66rem;
   font-weight: 500;
   white-space: nowrap;
   color: var(--text-muted);
@@ -153,10 +192,22 @@ html, body {
   padding: 6px 2px;
   transition: color .15s;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
 
 .tab-btn.active {
   color: var(--accent);
+}
+
+/* Accent pill at top of active tab */
+.tab-btn.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 22px;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--accent);
 }
 
 .tab-btn svg {
@@ -177,10 +228,22 @@ html, body {
   z-index: 99;
 }
 
+/* Collapsed by default; expanded when .quick-add-wrap.expanded */
 .cat-selector {
   display: flex;
   gap: 6px;
-  padding: 8px 12px 0;
+  padding: 0 12px;
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  overflow: hidden;
+  transition: max-height .25s ease, opacity .2s, padding .25s;
+}
+
+.quick-add-wrap.expanded .cat-selector {
+  max-height: 48px;
+  opacity: 1;
+  padding-top: 8px;
 }
 
 .cat-chip {
@@ -284,8 +347,10 @@ html, body {
 }
 
 .page-header h2 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
   font-size: 1.3rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* ============================================================
@@ -294,7 +359,8 @@ html, body {
 .card {
   background: var(--surface);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   margin: 8px 12px;
   padding: 14px 16px;
 }
@@ -400,10 +466,11 @@ textarea {
   gap: 10px;
   background: var(--surface);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   margin: 6px 12px;
   padding: 12px 14px;
-  transition: opacity .2s;
+  transition: opacity .2s, transform .1s;
 }
 
 .todo-item.done {
@@ -428,6 +495,7 @@ textarea {
   justify-content: center;
   transition: background .15s, border-color .15s;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
 
 .todo-check.checked {
@@ -484,18 +552,18 @@ textarea {
 }
 
 .tag.overdue {
-  background: rgba(239,68,68,.15);
+  background: rgba(192,73,47,.15);
   color: var(--danger);
 }
 
 .tag.warn {
-  background: rgba(245,158,11,.18);
+  background: rgba(201,138,43,.18);
   color: var(--warning);
   font-weight: 600;
 }
 
-.tag.priority-high { background: rgba(239,68,68,.12); color: var(--danger); }
-.tag.priority-normal { background: rgba(245,158,11,.12); color: var(--warning); }
+.tag.priority-high { background: rgba(192,73,47,.12); color: var(--danger); }
+.tag.priority-normal { background: rgba(201,138,43,.12); color: var(--warning); }
 .tag.priority-low { background: var(--surface-2); color: var(--text-muted); }
 
 .todo-actions {
@@ -532,9 +600,11 @@ textarea {
   gap: 12px;
   background: var(--surface);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   margin: 6px 12px;
   padding: 12px 14px;
+  transition: transform .1s;
 }
 
 .habit-check {
@@ -550,6 +620,7 @@ textarea {
   justify-content: center;
   transition: background .15s, border-color .15s;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
 
 .habit-check.checked {
@@ -579,6 +650,8 @@ textarea {
 }
 
 .habit-streak {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
   font-size: 0.8rem;
   color: var(--accent);
   margin-top: 2px;
@@ -593,7 +666,9 @@ textarea {
    Remember card
    ============================================================ */
 .remember-card {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  background: var(--grad);
   border-radius: var(--radius);
   margin: 8px 12px;
   padding: 20px 18px;
@@ -601,7 +676,7 @@ textarea {
   font-size: 1.05rem;
   font-weight: 500;
   line-height: 1.4;
-  box-shadow: 0 4px 16px rgba(99,102,241,.25);
+  box-shadow: var(--shadow);
 }
 
 .remember-card .card-label {
@@ -639,12 +714,54 @@ textarea {
    Section headers
    ============================================================ */
 .section-title {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: .07em;
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: .04em;
   text-transform: uppercase;
   color: var(--text-muted);
   padding: 12px 16px 4px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* SVG section icons */
+.section-icon {
+  display: inline-flex;
+}
+
+.section-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.c-todo    { color: var(--c-todo); }
+.c-habit   { color: var(--c-habit); }
+.c-mindset { color: var(--c-mindset); }
+.c-calendar { color: var(--c-calendar); }
+
+/* ============================================================
+   Greeting / date header (Today view)
+   ============================================================ */
+.day-header {
+  padding: 22px 16px 6px;
+}
+
+.day-greeting {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.day-date {
+  font-size: .85rem;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
 /* ============================================================
@@ -726,7 +843,9 @@ textarea {
 }
 
 .done-banner span {
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
   color: var(--success);
 }
 
@@ -749,6 +868,7 @@ textarea {
   padding: 20px 16px calc(20px + var(--safe-bottom));
   max-height: 90dvh;
   overflow-y: auto;
+  box-shadow: var(--shadow);
 }
 
 .modal-header {
@@ -759,8 +879,10 @@ textarea {
 }
 
 .modal-title {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .modal-close {
@@ -797,7 +919,8 @@ textarea {
 .settings-card {
   background: var(--surface);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
@@ -978,6 +1101,61 @@ textarea {
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   Micro-motion (GPU transforms, reduced-motion safe)
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .todo-item,
+  .habit-item,
+  .card,
+  .section-title,
+  .remember-card,
+  .day-header {
+    animation: rise .4s ease both;
+  }
+
+  /* Staggered delays */
+  .todo-item:nth-child(1),  .habit-item:nth-child(1),  .card:nth-child(1)  { animation-delay: .00s; }
+  .todo-item:nth-child(2),  .habit-item:nth-child(2),  .card:nth-child(2)  { animation-delay: .03s; }
+  .todo-item:nth-child(3),  .habit-item:nth-child(3),  .card:nth-child(3)  { animation-delay: .06s; }
+  .todo-item:nth-child(4),  .habit-item:nth-child(4),  .card:nth-child(4)  { animation-delay: .09s; }
+  .todo-item:nth-child(5),  .habit-item:nth-child(5),  .card:nth-child(5)  { animation-delay: .12s; }
+  .todo-item:nth-child(6),  .habit-item:nth-child(6),  .card:nth-child(6)  { animation-delay: .15s; }
+  .todo-item:nth-child(7),  .habit-item:nth-child(7),  .card:nth-child(7)  { animation-delay: .18s; }
+  .todo-item:nth-child(8),  .habit-item:nth-child(8),  .card:nth-child(8)  { animation-delay: .21s; }
+  .todo-item:nth-child(9),  .habit-item:nth-child(9),  .card:nth-child(9)  { animation-delay: .24s; }
+  .todo-item:nth-child(10), .habit-item:nth-child(10), .card:nth-child(10) { animation-delay: .27s; }
+
+  /* Checkmark pop animation */
+  @keyframes pop {
+    0%   { transform: rotate(45deg) translate(-1px,-1px) scale(0); }
+    60%  { transform: rotate(45deg) translate(-1px,-1px) scale(1.15); }
+    100% { transform: rotate(45deg) translate(-1px,-1px) scale(1); }
+  }
+
+  .todo-check.checked::after,
+  .habit-check.checked::after {
+    animation: pop .25s ease both;
+  }
+
+  /* Press feedback */
+  .todo-item:active,
+  .habit-item:active,
+  .card:active {
+    transform: scale(.995);
+  }
+
+  .tab-btn:active svg,
+  .cat-chip:active {
+    transform: scale(.94);
+  }
 }
 
 /* ============================================================

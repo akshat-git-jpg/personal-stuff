@@ -1,6 +1,6 @@
 // Habits view
 
-import { api, toast, formatDate, makeSortable } from '../app.js';
+import { api, toast, formatDate, makeSortable, wireCheckbox } from '../app.js';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DRAG_HANDLE = `<span class="drag-handle" aria-label="Drag to reorder" style="margin-top:2px"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg></span>`;
@@ -66,7 +66,8 @@ export async function render(container) {
   html += `</div>`;
 
   if (archived.length > 0) {
-    html += `<div class="section-title">🗄 Archived</div>`;
+    const ICON_ARCHIVE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>`;
+    html += `<div class="section-title"><span class="section-icon" style="color:var(--text-muted)">${ICON_ARCHIVE}</span>Archived</div>`;
     for (const h of archived) {
       html += renderHabitCard(h, true);
     }
@@ -89,17 +90,10 @@ export async function render(container) {
     openHabitModal(null, container);
   });
 
-  // Wire log checkboxes (today)
+  // Wire log checkboxes (today) — optimistic (no full re-render on toggle)
   container.querySelectorAll('.habit-check').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const id = btn.dataset.id;
-      const done = btn.classList.contains('checked') ? 0 : 1;
-      try {
-        await api(`/api/habits/${id}/log`, 'POST', { done });
-        render(container);
-      } catch (e) {
-        toast(e.message, 'error');
-      }
+    wireCheckbox(btn, {
+      request: (done) => api(`/api/habits/${btn.dataset.id}/log`, 'POST', { done }),
     });
   });
 
@@ -196,7 +190,7 @@ function renderChart(canvas, series, habit) {
 
   const labels = series.map((s) => s.date.slice(5));
   const data = series.map((s) => s.done ? 1 : (s.scheduled ? 0.3 : 0));
-  const colors = series.map((s) => s.done ? '#6366f1' : (s.scheduled ? '#dee2e6' : 'transparent'));
+  const colors = series.map((s) => s.done ? '#8b5cf6' : (s.scheduled ? 'rgba(150,130,180,.28)' : 'transparent'));
 
   chartInstances[habit.id] = new Chart(canvas, {
     type: 'bar',

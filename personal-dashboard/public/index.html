@@ -1,15 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Dashboard" />
-  <meta name="theme-color" content="#6366f1" />
+  <meta name="theme-color" content="#120f18" />
   <title>Dashboard</title>
+  <script>
+    // Default to dark; honor an explicit light choice. Runs before paint to avoid a flash.
+    (function () {
+      var t = localStorage.getItem('pd-theme');
+      var dark = t ? t === 'dark' : true;
+      var el = document.documentElement;
+      el.classList.toggle('dark', dark);
+      el.classList.toggle('light', !dark);
+    })();
+  </script>
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="preload" href="/fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
