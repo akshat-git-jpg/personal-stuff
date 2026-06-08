@@ -3,7 +3,6 @@
 
 import * as chrono from 'chrono-node';
 import { todayISO } from './dates.js';
-import { normalizeTags } from './tags.js';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -14,18 +13,31 @@ function buildTagInstruction(existingTags) {
   return `Assign 0–3 short lowercase tags. Reuse an existing tag when it fits; only invent a new short tag if none fit. Tags are like: work, gf, skills, bank, home, health. ${tagList} Return tags as a JSON array of strings.`;
 }
 
+// Shared cleanup contract: the model returns the user's OWN words, in order,
+// minus only filler + words already captured as metadata. Never reword/add/reorder.
+// `field` is the JSON key (title/name/text); `alsoRemove` describes the
+// category-specific metadata words that are safe to drop.
+function cleanupContract(field, alsoRemove) {
+  return `## ${field} text (IMPORTANT — preserve the user's wording)
+Build "${field}" from the user's input using ONLY their own words, in their original order. Remove only:
+- throat-clearing / filler (e.g. "remind me to", "I need to", "don't forget to", "gonna", "ugh", "just", "like")${alsoRemove ? `, and\n- ${alsoRemove}` : '.'}
+Do NOT reword, paraphrase, fix grammar, expand abbreviations, translate, or reorder words. Never add a word that is not in the input. When unsure whether a word matters, keep it. It should read like the user wrote it, minus the cruft.`;
+}
+
 function buildSystemPrompt(captureRules, todayStr, tz, existingTags) {
   return `You are a to-do capture parser. Convert the user's single line of input into a structured JSON object.
 
 Today's date is ${todayStr} (timezone: ${tz}). Resolve all relative dates (tomorrow, next Monday, etc.) against this date.
 
-${captureRules ? `## User capture rules\n\n${captureRules}\n\n` : ''}## Tagging
+${captureRules ? `## User capture rules\n\n${captureRules}\n\n` : ''}${cleanupContract('title', 'any date/time words you captured into deadline/time_start/time_end (e.g. drop "tomorrow", "next Monday", "at 5pm")')}
+
+## Tagging
 ${buildTagInstruction(existingTags)}
 
 ## Output format (strict JSON only, no markdown fences, no extra text)
 
 {
-  "title": "string — cleaned task title (required)",
+  "title": "string — the user's words minus cruft (required)",
   "deadline": "YYYY-MM-DD or null",
   "time_start": "HH:MM (24h) or null",
   "time_end": "HH:MM (24h) or null",
@@ -41,7 +53,11 @@ Rules:
 - priority must be exactly "low", "normal", or "high", or null.
 - area must be a short lowercase slug (e.g. "home", "zluri", "health") or null.
 - tags must be a JSON array of 0–3 lowercase slug strings (e.g. ["work","bank"]) — never null.
-- Remove filler words like "remind me to", "don't forget to" from the title.`;
+
+## Examples
+- "remind me to call the bank tomorrow about the loan" → title "call the bank about the loan", deadline = tomorrow's date
+- "ugh I really need to finally book the dentist" → title "book the dentist"
+- "submit zluri report by friday 5pm" → title "submit zluri report", deadline = Friday, time_start "17:00"`;
 }
 
 // Detect a type from the FIRST WORD so we can route without an LLM classify call.
@@ -68,14 +84,16 @@ Types:
 - "habit": a recurring thing the user wants to do regularly / keep a streak on (e.g. "drink 4L water every day", "no cigarettes", "gym daily").
 - "remember": a mindset note, mantra, or motivational line to resurface (e.g. "be social", "you are the best", "stay patient").
 
-${captureRules ? `## User capture rules (apply to to-dos)\n\n${captureRules}\n\n` : ''}## Tagging
+${captureRules ? `## User capture rules (apply to to-dos)\n\n${captureRules}\n\n` : ''}${cleanupContract('title', 'for to-dos only, any date/time words you captured into deadline/time_start/time_end')}
+
+## Tagging
 ${buildTagInstruction(existingTags)}
 
 ## Output (strict JSON only, no markdown fences, no extra text)
 
 {
   "type": "todo | habit | remember",
-  "title": "cleaned text (task title, habit name, or the remember line)",
+  "title": "the user's words minus cruft (task title, habit name, or the remember line)",
   "deadline": "YYYY-MM-DD or null",
   "time_start": "HH:MM 24h or null",
   "time_end": "HH:MM 24h or null",
@@ -87,8 +105,7 @@ ${buildTagInstruction(existingTags)}
 Rules:
 - Respond with ONLY the JSON object.
 - For habit/remember, set deadline/time/area/priority to null.
-- tags must be a JSON array of 0–3 lowercase slug strings — never null.
-- Remove filler like "remind me to", "don't forget to" from the title.`;
+- tags must be a JSON array of 0–3 lowercase slug strings — never null.`;
 }
 
 /**
@@ -157,13 +174,15 @@ function buildHabitPrompt(todayStr, tz, existingTags) {
 
 Today's date is ${todayStr} (timezone: ${tz}). Resolve durations against this date.
 
+${cleanupContract('name', 'the schedule words you captured into weekdays/mode/dates (e.g. drop "every day", "daily", "mon wed fri", "for 30 days", "this month")')}
+
 ## Tagging
 ${buildTagInstruction(existingTags)}
 
 ## Output (strict JSON only, no markdown fences, no extra text)
 
 {
-  "name": "short habit name",
+  "name": "the user's words minus cruft (the thing being done, no schedule words)",
   "weekdays": "comma-separated days 0-6 where 0=Sun..6=Sat (e.g. '1,3,5'); use '0,1,2,3,4,5,6' for daily",
   "mode": "forever | fixed",
   "start_date": "YYYY-MM-DD or null",
@@ -175,8 +194,12 @@ Rules:
 - "daily" / "every day" / no day mentioned => weekdays "0,1,2,3,4,5,6".
 - Specific days ("mon wed fri", "weekends", "weekdays") => only those day numbers.
 - A duration ("for 30 days", "this month", "in June", "next 2 weeks", "30-day") => mode "fixed", start_date = today (or the stated start), end_date computed accordingly. Otherwise mode "forever" with null dates.
-- Strip duration/day words from the name.
-- tags must be a JSON array of 0–3 lowercase slug strings — never null.`;
+- tags must be a JSON array of 0–3 lowercase slug strings — never null.
+
+## Examples
+- "gym every mon wed fri" → name "gym", weekdays "1,3,5"
+- "drink 4L water every day" → name "drink 4L water", weekdays "0,1,2,3,4,5,6"
+- "no sugar for 30 days" → name "no sugar", mode "fixed"`;
 }
 
 /**
@@ -250,11 +273,11 @@ export async function parseRemember(text, { model, key, existingTags } = {}) {
           {
             role: 'system',
             content:
-              `You turn a rambled thought into a single concise "remember" line — a mantra, principle, or reminder to resurface later. Keep the original meaning and voice; cut filler. One short line, no quotes.\n\nAlso assign tags: ${tagInstruction}\n\nRespond as strict JSON only: {"text": "...", "tags": ["tag1"]}`,
+              `You tidy a captured "remember" line (a mantra, principle, or reminder to resurface later).\n\n${cleanupContract('text', '')}\n\nAlso assign tags: ${tagInstruction}\n\nRespond as strict JSON only: {"text": "...", "tags": ["tag1"]}`,
           },
           { role: 'user', content: fallbackText },
         ],
-        temperature: 0.2,
+        temperature: 0,
         max_tokens: 120,
         response_format: { type: 'json_object' },
       }),
@@ -358,12 +381,14 @@ export async function parseCapture(text, { model, key, captureRules, tz, existin
 }
 
 /**
- * deriveTags(text, {model, key, captureRules, existingTags})
- *   → string[] of tags (for notes, which are stored verbatim)
- * Non-throwing; returns [] on any failure or no key.
+ * parseNote(text, {model, key, captureRules, existingTags}) → {text, tags}
+ * Notes are factual jottings — change as little as possible (filler only) and
+ * assign tags. Non-throwing; fallback = {text: trimmed raw, tags: []}.
  */
-export async function deriveTags(text, { model, key, captureRules, existingTags } = {}) {
-  if (!text || !text.trim() || !key || !key.trim()) return [];
+export async function parseNote(text, { model, key, captureRules, existingTags } = {}) {
+  const fallbackText = String(text || '').trim();
+  if (!fallbackText) return { text: '', tags: [] };
+  if (!key || !key.trim()) return { text: fallbackText, tags: [] };
   try {
     const tagInstruction = buildTagInstruction(existingTags || []);
     const response = await fetch(OPENROUTER_URL, {
@@ -378,24 +403,30 @@ export async function deriveTags(text, { model, key, captureRules, existingTags 
         messages: [
           {
             role: 'system',
-            content: `Assign 0–3 short lowercase tags to the given text. ${tagInstruction}${captureRules ? `\n\nContext rules:\n${captureRules}` : ''}\n\nRespond with strict JSON only: {"tags": ["tag1", "tag2"]}`,
+            content: `You file a captured note — a fact or jotting to keep. Notes are reference material, so change as little as possible.\n\n${cleanupContract('text', '')}\n\nAlso assign tags: ${tagInstruction}${captureRules ? `\n\nContext rules:\n${captureRules}` : ''}\n\nRespond with strict JSON only: {"text": "...", "tags": ["tag1"]}`,
           },
-          { role: 'user', content: String(text).trim() },
+          { role: 'user', content: fallbackText },
         ],
         temperature: 0,
-        max_tokens: 80,
+        max_tokens: 200,
         response_format: { type: 'json_object' },
       }),
       signal: AbortSignal.timeout(8000),
     });
-    if (!response.ok) return [];
+    if (!response.ok) {
+      console.error('[capture] parseNote error:', response.status, await response.text());
+      return { text: fallbackText, tags: [] };
+    }
     const data = await response.json();
     const raw = data?.choices?.[0]?.message?.content;
-    if (!raw) return [];
+    if (!raw) return { text: fallbackText, tags: [] };
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
     const p = JSON.parse(cleaned);
-    return Array.isArray(p.tags) ? p.tags : [];
-  } catch {
-    return [];
+    const parsedText = (p.text && String(p.text).trim()) || fallbackText;
+    const rawTags = Array.isArray(p.tags) ? p.tags : [];
+    return { text: parsedText, tags: rawTags };
+  } catch (err) {
+    console.error('[capture] parseNote failed, using fallback:', err.message);
+    return { text: fallbackText, tags: [] };
   }
 }

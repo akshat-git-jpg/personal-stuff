@@ -2,7 +2,7 @@ import { Router } from 'express';
 import db from '../db.js';
 import { requireAuth } from '../auth.js';
 import { getConfig, getTimezone } from '../config.js';
-import { parseCapture, parseHabit, parseRemember, classifyCapture, detectPrefix, deriveTags } from '../lib/capture.js';
+import { parseCapture, parseHabit, parseRemember, classifyCapture, detectPrefix, parseNote } from '../lib/capture.js';
 import { normalizeTags, getAllTags } from '../lib/tags.js';
 
 const router = Router();
@@ -93,38 +93,37 @@ router.post('/', async (req, res) => {
   const body = detected.body;
 
   try {
-    // Notes are stored verbatim (facts/raw jottings — no LLM rewrite).
-    // Tags are derived separately so the text stays untouched.
+    // The LLM cleans the text (filler + extracted metadata words removed) while
+    // keeping the user's own words — see the cleanup contract in capture.js.
+    // On no-key/error every parser falls back to the verbatim line.
     if (routeType === 'note') {
-      const tags = await deriveTags(body, llmOpts);
-      return res.status(201).json({ type: 'note', item: createNote(body, tags) });
+      const r = await parseNote(body, llmOpts);
+      return res.status(201).json({ type: 'note', item: createNote(r.text, r.tags) });
     }
-    // For all types the user's text is kept VERBATIM (no LLM rephrasing).
-    // The LLM is used only for metadata: dates/times/weekdays/duration + tags.
     if (routeType === 'remember') {
       const result = await parseRemember(body, llmOpts);
-      return res.status(201).json({ type: 'remember', item: createRemember(body, result.tags) });
+      return res.status(201).json({ type: 'remember', item: createRemember(result.text, result.tags) });
     }
     if (routeType === 'habit') {
       const h = await parseHabit(body, llmOpts);
-      return res.status(201).json({ type: 'habit', item: createHabit({ ...h, name: body }) });
+      return res.status(201).json({ type: 'habit', item: createHabit(h) });
     }
     if (routeType === 'todo') {
       const parsed = await parseCapture(body, llmOpts);
-      return res.status(201).json({ type: 'todo', item: createTodo({ ...parsed, title: body }) });
+      return res.status(201).json({ type: 'todo', item: createTodo(parsed) });
     }
 
-    // No type and no prefix — classify (for routing) but keep text verbatim.
+    // No type and no prefix — one classify+parse call decides type and cleans text.
     const c = await classifyCapture(text.trim(), llmOpts);
     if (c.type === 'remember') {
       const result = await parseRemember(text.trim(), llmOpts);
-      return res.status(201).json({ type: 'remember', item: createRemember(text.trim(), result.tags) });
+      return res.status(201).json({ type: 'remember', item: createRemember(result.text, result.tags) });
     }
     if (c.type === 'habit') {
       const h = await parseHabit(text.trim(), llmOpts);
-      return res.status(201).json({ type: 'habit', item: createHabit({ ...h, name: text.trim() }) });
+      return res.status(201).json({ type: 'habit', item: createHabit(h) });
     }
-    return res.status(201).json({ type: 'todo', item: createTodo({ ...c, title: text.trim() }) });
+    return res.status(201).json({ type: 'todo', item: createTodo(c) });
   } catch (err) {
     console.error('[capture] route error:', err.message);
     return res.status(500).json({ error: 'capture failed' });
