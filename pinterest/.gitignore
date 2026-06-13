@@ -1,1 +1,6 @@
 .auth/
+
+# Generated landing-page output — regenerate with landing-pages/bridebestie/build-pages.mjs
+# (covers come from wedding/products). The generator is committed; built pages are not.
+landing-pages/bridebestie/public/*/
+landing-pages/*/.wrangler/
