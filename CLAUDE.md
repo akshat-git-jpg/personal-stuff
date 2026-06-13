@@ -1,6 +1,6 @@
 # TY — project guide
 
-A single git repo holding everything related to my YouTube channel: niche research, script generation, tracker syncs, competitor research, and the affiliate-link tracker. Each top-level folder is one use case and has its own `CLAUDE.md` describing it.
+A single git repo for my online business: YouTube (niche research, script generation, tracker syncs, competitor research, affiliate tracker), the Pinterest PDF business, plus a few related personal tools (e.g. bank-statement-parser). Each top-level folder is one use case and has its own `CLAUDE.md`/README describing it.
 
 ## Folder map
 
