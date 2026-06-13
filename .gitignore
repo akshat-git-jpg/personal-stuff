@@ -20,6 +20,9 @@ youtube/keyword-research/channel_cache.json
 youtube/yt-visuals/cutaways/
 youtube/yt-visuals/.cache/
 
+# hyperframes-vs-remotion render output — regenerable from the HTML sources
+hyperframes-vs-remotion/**/renders/
+
 # Pinterest intermediate tiles — regenerable from post.json + the pin skill.
 # Final composite (image.png) and the recipe (post.json/post.md) ARE kept.
 pinterest/**/cells/
