@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Sync MCP server code between personal stuff/mcp/ and TY/mcp/.
+# Sync MCP server code between personal-stuff/tooling/mcp/ and TY/mcp/.
 #
 # These two trees are intentionally duplicated (see memory:
 # mcp-shared-across-personal-and-ty). Edit MCPs in either side, then run
 # this script to mirror to the other side.
 #
 # Usage:
-#   ./sync-mcps.sh                  # personal stuff/mcp/  --> TY/mcp/   (default)
-#   ./sync-mcps.sh --reverse        # TY/mcp/              --> personal stuff/mcp/
+#   ./sync-mcps.sh                  # personal-stuff/tooling/mcp/  --> TY/mcp/   (default)
+#   ./sync-mcps.sh --reverse        # TY/mcp/              --> personal-stuff/tooling/mcp/
 #   ./sync-mcps.sh --dry-run        # preview without copying
 #
 # Always-excluded paths (never overwrite on either side, since they're
@@ -18,19 +18,19 @@
 
 set -euo pipefail
 
-PERSONAL="/Users/kbtg/codebase/personal stuff/mcp/"
+PERSONAL="/Users/kbtg/codebase/personal-stuff/mcp/"
 TY="/Users/kbtg/codebase/TY/mcp/"
 
 SRC="$PERSONAL"
 DST="$TY"
-DIRECTION="personal stuff/mcp/ → TY/mcp/"
+DIRECTION="personal-stuff/tooling/mcp/ → TY/mcp/"
 DRY=""
 
 for arg in "$@"; do
   case "$arg" in
     --reverse)
       SRC="$TY"; DST="$PERSONAL"
-      DIRECTION="TY/mcp/ → personal stuff/mcp/"
+      DIRECTION="TY/mcp/ → personal-stuff/tooling/mcp/"
       ;;
     --dry-run)
       DRY="--dry-run"
