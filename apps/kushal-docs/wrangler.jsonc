@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kushal-docs",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [{ "pattern": "kushal-docs.agrolloo.com", "custom_domain": true }],
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "r2_buckets": [{ "binding": "DOCS", "bucket_name": "kushal-docs" }],
+  "observability": {
+    "enabled": true
+  }
+  // Secrets (set via `wrangler secret put` or .dev.vars for local):
+  //   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SESSION_SECRET, ALLOWED_EMAIL
+}
