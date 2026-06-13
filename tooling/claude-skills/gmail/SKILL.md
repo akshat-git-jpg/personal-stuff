@@ -8,7 +8,7 @@ description: Read, search, send, and draft Gmail via the pp-gmail CLI (no MCP ne
 All Gmail work goes through the `pp-gmail` CLI — do NOT look for a gmail MCP server (it was removed to save context).
 
 ```
-CLI: "/Users/kbtg/codebase/personal stuff/tooling/cli/gmail/pp-gmail"
+CLI: "/Users/kbtg/codebase/personal-stuff/tooling/cli/gmail/pp-gmail"
 ```
 
 `--account <full-email>` selects the Google account (default: kushalbakliwal25@gmail.com). Tokens live in `mcp/google-shared/tokens/`.

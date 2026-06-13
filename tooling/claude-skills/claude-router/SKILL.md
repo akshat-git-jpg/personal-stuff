@@ -35,7 +35,7 @@ version-controlled store and are symlinked into each account's `skills/` dir. A 
 skill is indistinguishable from a real one — it appears in `/skills`, the slash/dropdown
 menu, and auto-invokes on its description exactly like a local skill.
 
-- **Store:** `/Users/kbtg/codebase/personal stuff/tooling/claude-skills/` (the only real copies; in git, private repo `akshat-git-jpg/personal-stuff`)
+- **Store:** `/Users/kbtg/codebase/personal-stuff/tooling/claude-skills/` (the only real copies; in git, private repo `akshat-git-jpg/personal-stuff`)
 - **Relink script:** `claude-skills/relink.sh` — idempotent; (re)creates every symlink from the manifests. Run it after any membership change and on a new laptop.
 - **Membership manifests** (`claude-skills/manifest/`, one skill name per line):
   - `work.txt`     → linked into `~/.claude-work/skills/` (sourced from the store)
@@ -61,7 +61,7 @@ The user's npm registry points at AWS CodeArtifact (Zluri). Tokens expire ~12hr 
 | Folder | Claude account |
 |---|---|
 | `/Users/kbtg/codebase/TY` | `claude-personal` |
-| `/Users/kbtg/codebase/personal stuff/` | `claude-personal` |
+| `/Users/kbtg/codebase/personal-stuff/` | `claude-personal` |
 | `/Users/kbtg/codebase/IT` | `claude-personal` |
 | `/Users/kbtg/codebase/personal projects/` | `claude-personal` |
 | `/Users/kbtg/codebase/` (all other Zluri/work repos) | `claude-work` |
@@ -115,13 +115,13 @@ metadata:
 3. Create the skill folder ONCE in the store:
 
    ```bash
-   mkdir -p "/Users/kbtg/codebase/personal stuff/tooling/claude-skills/<name>"
+   mkdir -p "/Users/kbtg/codebase/personal-stuff/tooling/claude-skills/<name>"
    ```
 
 4. Write `SKILL.md` (and optionally `references/`, `scripts/`, `assets/`) into the store folder, then add `<name>` to the chosen manifest(s) and relink:
 
    ```bash
-   cd "/Users/kbtg/codebase/personal stuff/claude-skills"
+   cd "/Users/kbtg/codebase/personal-stuff/claude-skills"
    echo <name> >> manifest/work.txt        # if work
    echo <name> >> manifest/personal.txt    # if personal  (both => both lines)
    ./relink.sh
@@ -175,8 +175,8 @@ The installer is interactive. Tell the user:
 
 After install completes, the skill lands at `~/.agents/skills/<skill-name>/`. Bring it into the store, add to manifest(s), and relink:
 ```bash
-cp -R ~/.agents/skills/<skill-name> "/Users/kbtg/codebase/personal stuff/tooling/claude-skills/<skill-name>"
-cd "/Users/kbtg/codebase/personal stuff/claude-skills"
+cp -R ~/.agents/skills/<skill-name> "/Users/kbtg/codebase/personal-stuff/tooling/claude-skills/<skill-name>"
+cd "/Users/kbtg/codebase/personal-stuff/claude-skills"
 echo <skill-name> >> manifest/work.txt       # and/or manifest/personal.txt
 ./relink.sh
 ```
@@ -251,7 +251,7 @@ now-unlisted symlink from that account (e.g. removing it from `personal.txt` onl
 out of personal but keeps it in work):
 
 ```bash
-cd "/Users/kbtg/codebase/personal stuff/claude-skills"
+cd "/Users/kbtg/codebase/personal-stuff/claude-skills"
 # edit manifest/work.txt and/or manifest/personal.txt to delete the line(s)
 ./relink.sh
 ```
@@ -327,12 +327,12 @@ npx --registry=https://registry.npmjs.org <command>
 1. Run `npx --registry=https://registry.npmjs.org skills add valyuAI/skills`. Tell user: select "Claude Code" in agent picker, choose "user scope".
 2. After it lands at `~/.agents/skills/valyu-best-practices/`, copy it into the store once:
    ```bash
-   cp -R ~/.agents/skills/valyu-best-practices "/Users/kbtg/codebase/personal stuff/tooling/claude-skills/"
+   cp -R ~/.agents/skills/valyu-best-practices "/Users/kbtg/codebase/personal-stuff/tooling/claude-skills/"
    ```
 3. Validate frontmatter in the store copy — strip `license`, `compatibility`; ensure `metadata.version: 1.0.0` unquoted; add `user-invocable: true`.
 4. Add to both manifests and relink:
    ```bash
-   cd "/Users/kbtg/codebase/personal stuff/claude-skills"
+   cd "/Users/kbtg/codebase/personal-stuff/claude-skills"
    echo valyu-best-practices >> manifest/work.txt
    echo valyu-best-practices >> manifest/personal.txt
    ./relink.sh
@@ -354,7 +354,7 @@ Same as the "both" dialogue, but add `valyu-best-practices` to `manifest/persona
 ## Maintaining this skill
 
 `claude-router` now lives in the store at
-`/Users/kbtg/codebase/personal stuff/tooling/claude-skills/claude-router/SKILL.md` and is symlinked
+`/Users/kbtg/codebase/personal-stuff/tooling/claude-skills/claude-router/SKILL.md` and is symlinked
 into BOTH accounts. **Edit that one file — both accounts update at once. No manual sync.**
 (Run `claude-skills/relink.sh` only if the symlinks are missing.) Commit the change to the
 `personal-stuff` repo. Bump `metadata.version` on non-trivial changes.

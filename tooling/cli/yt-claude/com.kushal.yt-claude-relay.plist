@@ -9,7 +9,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/usr/bin/python3</string>
-    <string>/Users/kbtg/codebase/personal stuff/tooling/cli/yt-claude/relay.py</string>
+    <string>/Users/kbtg/codebase/personal-stuff/tooling/cli/yt-claude/relay.py</string>
   </array>
 
   <key>EnvironmentVariables</key>

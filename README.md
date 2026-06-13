@@ -1,4 +1,4 @@
-# personal stuff
+# personal-stuff
 
 Single repo for personal projects, the tooling that lets Claude Code drive them, and the infra they run on. Most of it deploys to Cloudflare or a Hostinger VPS; the VPS pulls this repo on every cron tick, so paths here are load-bearing.
 

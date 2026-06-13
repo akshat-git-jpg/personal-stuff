@@ -19,7 +19,7 @@ your behalf when launching projects.
 Registered as the MCP server **`hostinger`** at user scope:
 
 ```bash
-claude mcp add hostinger -s user -- "/Users/kbtg/codebase/personal stuff/hostinger mcp/run.sh"
+claude mcp add hostinger -s user -- "/Users/kbtg/codebase/personal-stuff/hostinger mcp/run.sh"
 ```
 
 The token lives only in `.env`; the launcher sources it at startup, so it's

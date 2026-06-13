@@ -8,7 +8,7 @@ description: Manage Hostinger VPS, domains, DNS, firewall, and snapshots via the
 All Hostinger work goes through the `pp-hostinger` CLI — do NOT look for a hostinger MCP server (it was removed to save ~18k context tokens/session).
 
 ```
-CLI: "/Users/kbtg/codebase/personal stuff/tooling/cli/hostinger/pp-hostinger"
+CLI: "/Users/kbtg/codebase/personal-stuff/tooling/cli/hostinger/pp-hostinger"
 ```
 
 Auth is automatic (Bearer `API_TOKEN` from `mcp/hostinger/.env`). The main VPS is `1377177` (srv1377177.hstgr.cloud / hostinger-vps).

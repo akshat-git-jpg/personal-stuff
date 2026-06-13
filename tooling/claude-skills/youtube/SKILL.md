@@ -8,8 +8,8 @@ description: Look up YouTube videos, channels, comments, subscriptions, and sear
 All YouTube Data API work goes through the `pp-youtube` CLI — do NOT look for a youtube MCP server (it was removed to save context).
 
 ```
-CLI:        "/Users/kbtg/codebase/personal stuff/tooling/cli/youtube/pp-youtube"
-Transcripts: "/Users/kbtg/codebase/personal stuff/tooling/cli/youtube/pp-yt-transcript" VIDEO_ID_OR_URL [--lang en]
+CLI:        "/Users/kbtg/codebase/personal-stuff/tooling/cli/youtube/pp-youtube"
+Transcripts: "/Users/kbtg/codebase/personal-stuff/tooling/cli/youtube/pp-yt-transcript" VIDEO_ID_OR_URL [--lang en]
 ```
 
 Most commands need `--account <full-email>` (token accounts: `pp-youtube accounts`). Video/channel args accept raw IDs, URLs, or @handles.

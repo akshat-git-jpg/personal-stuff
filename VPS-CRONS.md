@@ -49,7 +49,7 @@ Three computers in play:
 ```
 ┌────────────────────────────┐              ┌────────────────────────────────┐
 │  Mac                       │              │  VPS (Hostinger, always on)    │
-│  ~/codebase/personal stuff │  push        │  /srv/projects/personal-stuff  │
+│  ~/codebase/personal-stuff │  push        │  /srv/projects/personal-stuff  │
 │  (project code — Pattern B │ ──── GH ───► │  ← clone of personal-stuff     │
 │   source of truth)         │              │     (read-only deploy key)     │
 │                            │              │                                │

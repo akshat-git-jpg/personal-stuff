@@ -8,7 +8,7 @@ description: Read and write Google Sheets via the pp-sheets CLI (no MCP needed).
 All Google Sheets work goes through the `pp-sheets` CLI — do NOT look for a sheets MCP server (it was removed to save context).
 
 ```
-CLI: "/Users/kbtg/codebase/personal stuff/tooling/cli/sheets/pp-sheets"
+CLI: "/Users/kbtg/codebase/personal-stuff/tooling/cli/sheets/pp-sheets"
 ```
 
 Every command requires `--account <full-email>` (which Google account's token to use). List available accounts with `pp-sheets accounts`. SPREADSHEET accepts a raw ID or a full pasted URL.

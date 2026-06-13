@@ -6,8 +6,8 @@
 # this script to mirror to the other side.
 #
 # Usage:
-#   ./sync-mcps.sh                  # personal stuff/tooling/mcp/  --> TY/mcp/   (default)
-#   ./sync-mcps.sh --reverse        # TY/mcp/              --> personal stuff/tooling/mcp/
+#   ./sync-mcps.sh                  # personal-stuff/tooling/mcp/  --> TY/mcp/   (default)
+#   ./sync-mcps.sh --reverse        # TY/mcp/              --> personal-stuff/tooling/mcp/
 #   ./sync-mcps.sh --dry-run        # preview without copying
 #
 # Always-excluded paths (never overwrite on either side, since they're
@@ -23,14 +23,14 @@ TY="/Users/kbtg/codebase/TY/mcp/"
 
 SRC="$PERSONAL"
 DST="$TY"
-DIRECTION="personal stuff/tooling/mcp/ → TY/mcp/"
+DIRECTION="personal-stuff/tooling/mcp/ → TY/mcp/"
 DRY=""
 
 for arg in "$@"; do
   case "$arg" in
     --reverse)
       SRC="$TY"; DST="$PERSONAL"
-      DIRECTION="TY/mcp/ → personal stuff/tooling/mcp/"
+      DIRECTION="TY/mcp/ → personal-stuff/tooling/mcp/"
       ;;
     --dry-run)
       DRY="--dry-run"
