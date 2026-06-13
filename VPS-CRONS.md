@@ -67,7 +67,7 @@ GitHub is the bridge. The Mac never SSHes code into the VPS — everything goes 
 |---|---|
 | Project code (Python/JS/whatever) — also runnable on Mac without cron | `personal-stuff` |
 | Project preferences (workout-routine.json, email-preferences.md) | `personal-stuff` |
-| MCP servers — shared across many crons | `personal-stuff/mcp/` |
+| MCP servers — shared across many crons | `personal-stuff/tooling/mcp/` |
 | Cron schedule + crontab line | `vps-crons/crontab.txt` |
 | Cron wrapper (`run.sh`) — orchestrates one cron run | `vps-crons/<job>/run.sh` |
 | Telegram bot token + chat_id (per-cron, may differ per job) | `vps-crons/<job>/.env` (gitignored) |
@@ -90,27 +90,29 @@ personal-stuff/
 ├── README.md                          ← repo map (start here)
 ├── INFRA.md                           ← what runs where
 ├── VPS-CRONS.md                       ← this file (one of three copies)
-├── my-planner/
-│   ├── tools/daily-digest/            ← kb-daily-planner project lives here
-│   │   ├── notifier.py, renderer.py, auth.py, config.py, …
-│   │   ├── exercise-routine.json      ← prefs lives next to code
-│   │   ├── requirements.txt
-│   │   ├── deploy.sh                  ← legacy scp deploy (Pattern A); superseded
-│   │   ├── .venv/                     ← (gitignored — per-machine)
-│   │   └── token.json                 ← (gitignored — vendored OAuth)
-│   ├── exercise-routine/
-│   └── preferences-tasks-akshatpatidar17@gmail.com.md
-├── email-assistant/                    ← gmail-digest preferences (and future code)
-│   └── email-preferences-kushalbakliwal25@gmail.com.md
-├── mcp/                                ← MCP servers, used by Hermes AND by Claude-driven crons
-│   ├── gmail-mcp-server/
-│   ├── google-task-mcp-server/
-│   ├── google-shared/                  ← shared OAuth code + tokens (tokens gitignored)
-│   └── ...
-└── secrets/                            ← gitignored
+├── apps/
+│   ├── my-planner/
+│   │   ├── tools/daily-digest/        ← kb-daily-planner project lives here
+│   │   │   ├── notifier.py, renderer.py, auth.py, config.py, …
+│   │   │   ├── exercise-routine.json  ← prefs lives next to code
+│   │   │   ├── requirements.txt
+│   │   │   ├── .venv/                 ← (gitignored — per-machine)
+│   │   │   └── token.json             ← (gitignored — vendored OAuth)
+│   │   ├── exercise-routine/
+│   │   └── preferences-tasks-akshatpatidar17@gmail.com.md
+│   └── email-assistant/               ← gmail-digest prefs + digest.sh
+│       └── email-preferences-kushalbakliwal25@gmail.com.md
+├── tooling/
+│   └── mcp/                           ← MCP servers + shared OAuth (used by Claude-driven crons)
+│       ├── gmail-mcp-server/
+│       ├── google-task-mcp-server/
+│       ├── google-shared/             ← shared OAuth code + tokens (tokens gitignored)
+│       └── ...
+└── infra/
+    └── secrets/                       ← gitignored
 ```
 
-Naming convention: **all directory names are hyphenated, no spaces.** Renamed from `my planner/`, `email assistant/`, `exercise routine/` on 2026-05-27 to remove shell-quoting friction.
+Naming convention: **all directory names are hyphenated, no spaces.** Top level is grouped into `apps/`, `tooling/`, `marketing/`, `infra/`, `learning/`, `docs/`, `scripts/` (see the repo `README.md`).
 
 ---
 
@@ -410,7 +412,7 @@ VPS:
 ```bash
 # Copy fresh token to wherever the project expects it
 scp /Users/kbtg/codebase/personal\ stuff/mcp/google-shared/tokens/akshatpatidar17@gmail.com.json \
-    root@72.61.241.170:'/srv/projects/personal-stuff/my-planner/tools/daily-digest/token.json'
+    root@72.61.241.170:'/srv/projects/personal-stuff/apps/my-planner/tools/daily-digest/token.json'
 ```
 
 ### View the active crontab
@@ -430,7 +432,7 @@ Should always match `/srv/crons/crontab.txt`. If it diverges, someone edited via
 - **What:** Calendar + workout digest → Telegram image album
 - **When:** 06:00 IST daily (`30 0 * * *` UTC)
 - **Wrapper:** `/srv/crons/my-planner/run.sh`
-- **Project code:** `/srv/projects/personal-stuff/my-planner/tools/daily-digest/`
+- **Project code:** `/srv/projects/personal-stuff/apps/my-planner/tools/daily-digest/`
 - **Account:** Google Calendar for `akshatpatidar17@gmail.com` (OAuth via vendored `token.json`)
 - **Telegram dest:** `@hermes_kb_pa_bot`, chat_id `1912944391` (set in `.env`)
 
@@ -441,9 +443,9 @@ This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you 
 - **What:** Two-part Gmail digest via Claude Code + Gmail MCP → Telegram text
 - **When:** 06:00 IST daily (`30 0 * * *` UTC)
 - **Wrapper:** `/srv/crons/gmail-digest/run.sh`
-- **Project code:** `/srv/projects/personal-stuff/email-assistant/digest.sh` (+ `digest-prompt.md`)
-- **MCP:** Gmail MCP at `/srv/projects/personal-stuff/mcp/gmail-mcp-server/server.py` running under shared venv at `/srv/projects/personal-stuff/mcp/.venv/`
-- **OAuth:** `/srv/projects/personal-stuff/mcp/google-shared/credentials.json` + `tokens/<email>.json` per account (gitignored, scp'd from Mac)
+- **Project code:** `/srv/projects/personal-stuff/apps/email-assistant/digest.sh` (+ `digest-prompt.md`)
+- **MCP:** Gmail MCP at `/srv/projects/personal-stuff/tooling/mcp/gmail-mcp-server/server.py` running under shared venv at `/srv/projects/personal-stuff/tooling/mcp/.venv/`
+- **OAuth:** `/srv/projects/personal-stuff/tooling/mcp/google-shared/credentials.json` + `tokens/<email>.json` per account (gitignored, scp'd from Mac)
 - **Accounts:** all four — `kushalbakliwal25`, `seankerman25`, `jessicap123k`, `akshatpatidar17` (@gmail.com) — set via space-separated `DIGEST_EMAILS` in `.env`; one Telegram message per account, per-account soft-fail, "no emails in window" sends a 📭 note instead of an error
 - **Telegram dest:** `@hermes_kb_pa_bot`, chat_id `1912944391` (same as my-planner)
 - **Output format:** Part 1 (Claude's judgment of what matters) + Part 2 (matches against "Digest focus areas" in the per-account preferences file)
@@ -454,9 +456,9 @@ This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you 
 
 ### 1. Hermes container has its own copy of the MCPs
 
-The Hermes Docker container at `/docker/hermes/` mounts `/root/.hermes/` as `/opt/data/` inside the container. Its `google-tasks` MCP reads from inside the container's bundled code. **It does not consume the `/srv/projects/personal-stuff/mcp/` tree.**
+The Hermes Docker container at `/docker/hermes/` mounts `/root/.hermes/` as `/opt/data/` inside the container. Its `google-tasks` MCP reads from inside the container's bundled code. **It does not consume the `/srv/projects/personal-stuff/tooling/mcp/` tree.**
 
-What this means in practice: if you rename a path in `personal-stuff/mcp/<server>/server.py`, you must also keep `/root/.hermes/` consistent — Hermes runtime expects paths like `/opt/data/my-planner/preferences-*.md` (note: hyphenated after the 2026-05-27 rename — `/root/.hermes/my planner/` was renamed to `/root/.hermes/my-planner/` at the same time).
+What this means in practice: if you rename a path in `personal-stuff/tooling/mcp/<server>/server.py`, you must also keep `/root/.hermes/` consistent — Hermes runtime expects paths like `/opt/data/my-planner/preferences-*.md` (note: hyphenated after the 2026-05-27 rename — `/root/.hermes/my planner/` was renamed to `/root/.hermes/my-planner/` at the same time).
 
 ### 2. VPS is UTC
 

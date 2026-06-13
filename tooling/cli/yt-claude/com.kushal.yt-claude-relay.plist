@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kushal.yt-claude-relay</string>
+
+  <!-- Run the relay. Edit the path if you move the repo. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>/Users/kbtg/codebase/personal stuff/tooling/cli/yt-claude/relay.py</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- claude + node live in these dirs; launchd has a bare PATH otherwise -->
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/Users/kbtg/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <!-- "cursor" = open each video as an integrated terminal tab in Cursor
+         (needs the yt-claude Cursor extension). Use "terminal" for new
+         macOS Terminal windows instead. -->
+    <key>YT_CLAUDE_TARGET</key>
+    <string>cursor</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/yt-claude-relay.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/yt-claude-relay.log</string>
+</dict>
+</plist>

@@ -5,7 +5,7 @@ secrets/
 **/token.json
 **/token_*.json
 **/service_account.json
-mcp/google-shared/tokens/
+**/google-shared/tokens/
 
 # Local MCP config — paths inside are absolute to this machine, so
 # committing would break other clones. Each machine generates its own
@@ -49,5 +49,5 @@ htmlcov/
 .vscode/
 
 # ntfy runtime data — caches, attachments, user db (server.yml is checked in)
-docker/ntfy/data/cache/
-docker/ntfy/data/etc/users.db
+infra/docker/ntfy/data/cache/
+infra/docker/ntfy/data/etc/users.db
