@@ -34,7 +34,7 @@ if [[ -z "$EMAIL" ]]; then
 fi
 
 ASSISTANT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# apps/email-assistant -> repo root is two levels up
+# apps/telegram-email-assistant -> repo root is two levels up
 REPO_ROOT="$(cd "$ASSISTANT_DIR/../.." && pwd)"
 
 PREFS_FILE="$ASSISTANT_DIR/email-preferences-${EMAIL}.md"

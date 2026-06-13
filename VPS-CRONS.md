@@ -91,7 +91,7 @@ personal-stuff/
 ├── INFRA.md                           ← what runs where
 ├── VPS-CRONS.md                       ← this file (one of three copies)
 ├── apps/
-│   ├── my-planner/
+│   ├── telegram-my-planner/
 │   │   ├── tools/daily-digest/        ← kb-daily-planner project lives here
 │   │   │   ├── notifier.py, renderer.py, auth.py, config.py, …
 │   │   │   ├── exercise-routine.json  ← prefs lives next to code
@@ -100,7 +100,7 @@ personal-stuff/
 │   │   │   └── token.json             ← (gitignored — vendored OAuth)
 │   │   ├── exercise-routine/
 │   │   └── preferences-tasks-akshatpatidar17@gmail.com.md
-│   └── email-assistant/               ← gmail-digest prefs + digest.sh
+│   └── telegram-email-assistant/      ← gmail-digest prefs + digest.sh
 │       └── email-preferences-kushalbakliwal25@gmail.com.md
 ├── tooling/
 │   └── mcp/                           ← MCP servers + shared OAuth (used by Claude-driven crons)
@@ -410,7 +410,7 @@ VPS:
 ```bash
 # Copy fresh token to wherever the project expects it
 scp /Users/kbtg/codebase/personal\ stuff/mcp/google-shared/tokens/akshatpatidar17@gmail.com.json \
-    root@72.61.241.170:'/srv/projects/personal-stuff/apps/my-planner/tools/daily-digest/token.json'
+    root@72.61.241.170:'/srv/projects/personal-stuff/apps/telegram-my-planner/tools/daily-digest/token.json'
 ```
 
 ### View the active crontab
@@ -430,7 +430,7 @@ Should always match `/srv/crons/crontab.txt`. If it diverges, someone edited via
 - **What:** Calendar + workout digest → Telegram image album
 - **When:** 06:00 IST daily (`30 0 * * *` UTC)
 - **Wrapper:** `/srv/crons/my-planner/run.sh`
-- **Project code:** `/srv/projects/personal-stuff/apps/my-planner/tools/daily-digest/`
+- **Project code:** `/srv/projects/personal-stuff/apps/telegram-my-planner/tools/daily-digest/`
 - **Account:** Google Calendar for `akshatpatidar17@gmail.com` (OAuth via vendored `token.json`)
 - **Telegram dest:** `@hermes_kb_pa_bot`, chat_id `1912944391` (set in `.env`)
 
@@ -441,7 +441,7 @@ This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you 
 - **What:** Two-part Gmail digest via Claude Code + Gmail MCP → Telegram text
 - **When:** 06:00 IST daily (`30 0 * * *` UTC)
 - **Wrapper:** `/srv/crons/gmail-digest/run.sh`
-- **Project code:** `/srv/projects/personal-stuff/apps/email-assistant/digest.sh` (+ `digest-prompt.md`)
+- **Project code:** `/srv/projects/personal-stuff/apps/telegram-email-assistant/digest.sh` (+ `digest-prompt.md`)
 - **MCP:** Gmail MCP at `/srv/projects/personal-stuff/tooling/mcp/gmail-mcp-server/server.py` running under shared venv at `/srv/projects/personal-stuff/tooling/mcp/.venv/`
 - **OAuth:** `/srv/projects/personal-stuff/tooling/mcp/google-shared/credentials.json` + `tokens/<email>.json` per account (gitignored, scp'd from Mac)
 - **Accounts:** all four — `kushalbakliwal25`, `seankerman25`, `jessicap123k`, `akshatpatidar17` (@gmail.com) — set via space-separated `DIGEST_EMAILS` in `.env`; one Telegram message per account, per-account soft-fail, "no emails in window" sends a 📭 note instead of an error

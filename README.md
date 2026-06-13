@@ -16,8 +16,8 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 ### `apps/` — personal apps
 - `gym-app/` — Mobile gym PWA, live at `kushal-gym.agrolloo.com`. Vite + React + Hono on a Cloudflare Worker, backed by a Google Sheet.
 - `personal-dashboard/` — Mobile dashboard PWA at `my-dashboard.agrolloo.com`, running as a Docker container on the VPS.
-- `my-planner/` — Daily routine, to-do list, and exercise routine. Feeds the morning digest cron on the VPS.
-- `email-assistant/` — Per-account Gmail digest preferences and `digest.sh` (runs on a VPS cron).
+- `telegram-my-planner/` — Daily routine, to-do list, and exercise routine. Feeds the morning Telegram digest cron on the VPS.
+- `telegram-email-assistant/` — Per-account Gmail digest preferences and `digest.sh` (runs on a VPS cron, sends to Telegram).
 
 ### `infra/`
 - `docker/` — Compose files for the VPS containers (currently `ntfy`).

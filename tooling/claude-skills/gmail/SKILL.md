@@ -32,5 +32,5 @@ pp-gmail --account EMAIL reply-draft THREAD_ID --body TEXT|@file|- [--reply-all]
 
 - **Never `send` or `reply` without showing the user the full composed message and getting explicit approval in the same turn.** Drafts don't send but show them too.
 - Read `prefs` before composing anything; apply tone/sign-off/signature.
-- For the email-assistant project flows, follow `email-assistant/CLAUDE.md`.
+- For the email-assistant project flows, follow `apps/telegram-email-assistant/CLAUDE.md`.
 - `invalid_grant` error = that account's token is revoked; fix with `python3 mcp/google-shared/setup_auth.py` (interactive browser).

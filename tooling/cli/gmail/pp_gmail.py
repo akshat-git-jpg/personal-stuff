@@ -37,7 +37,7 @@ from googleapiclient.errors import HttpError
 from auth import get_credentials
 
 REPO_ROOT = Path(__file__).resolve().parents[3]  # tooling/cli/gmail -> repo root
-PREFS_DIR = REPO_ROOT / "apps" / "email-assistant"
+PREFS_DIR = REPO_ROOT / "apps" / "telegram-email-assistant"
 
 
 def _service(account: str):

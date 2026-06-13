@@ -12,8 +12,8 @@ from mcp.server.models import InitializationOptions
 from mcp.server.lowlevel.server import NotificationOptions
 
 BASE_DIR = Path(__file__).parent
-REPO_ROOT = BASE_DIR.parent.parent  # mcp/google-task-mcp-server -> mcp -> repo root
-PREFS_DIR = REPO_ROOT / "my-planner"  # prefs live next to the consuming project
+REPO_ROOT = BASE_DIR.parent.parent.parent  # tooling/mcp/google-task-mcp-server -> tooling/mcp -> tooling -> repo root
+PREFS_DIR = REPO_ROOT / "apps" / "telegram-my-planner"  # prefs live next to the consuming project
 
 app = Server("google-tasks")
 

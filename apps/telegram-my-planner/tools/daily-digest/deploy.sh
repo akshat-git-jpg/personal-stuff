@@ -12,7 +12,7 @@ set -euo pipefail
 
 # --- config ----------------------------------------------------------------
 TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# repo root is 4 levels up: apps/my-planner/tools/daily-digest/ -> ... -> repo root
+# repo root is 4 levels up: apps/telegram-my-planner/tools/daily-digest/ -> ... -> repo root
 SHARED_DIR="$(cd "$TOOL_DIR/../../../../tooling/mcp/google-shared" && pwd)"
 ACCOUNT="${ACCOUNT:-akshatpatidar17@gmail.com}"
 SHARED_TOKEN="$SHARED_DIR/tokens/$ACCOUNT.json"
