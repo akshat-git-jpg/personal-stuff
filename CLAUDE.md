@@ -1,6 +1,6 @@
 # TY — project guide
 
-A single git repo for my online business: YouTube (niche research, script generation, tracker syncs, competitor research, affiliate tracker), the Pinterest PDF business, plus a few related personal tools (e.g. bank-statement-parser). Each top-level folder is one use case and has its own `CLAUDE.md`/README describing it.
+A single git repo for my money-making / business projects: YouTube (niche research, script generation, tracker syncs, competitor research, affiliate tracker), the Pinterest PDF business, and monetizable tools (e.g. bank-statement-parser, headed for a paid RapidAPI product). Each top-level folder is one use case and has its own `CLAUDE.md`/README describing it.
 
 ## Folder map
 
@@ -20,7 +20,7 @@ A single git repo for my online business: YouTube (niche research, script genera
 | [`to-do/`](to-do/CLAUDE.md) | Running TODO list | Markdown |
 | [`pinterest/`](pinterest/PLAN.md) | Per-niche Pinterest PDF business (keto, wedding) + landing pages | Python + HTML |
 | [`hyperframes-vs-remotion/`](hyperframes-vs-remotion/) | HTML→video tooling experiment (Hyperframes vs Remotion) | Node |
-| [`bank-statement-parser/`](bank-statement-parser/README.md) | Python tool that parses and reconciles bank statements | Python |
+| [`bank-statement-parser/`](bank-statement-parser/README.md) | Parses + reconciles bank statements — building toward a paid RapidAPI product | Python |
 | [`docs/research/`](docs/research/) | Business/income-strategy research (RapidAPI ideas, passive marketplaces) | Markdown |
 
 ## Getting started
