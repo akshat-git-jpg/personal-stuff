@@ -31,3 +31,4 @@ google-sheets
 gmail
 hostinger
 youtube
+research-critic
