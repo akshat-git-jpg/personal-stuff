@@ -18,7 +18,6 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 - `personal-dashboard/` — Mobile dashboard PWA at `my-dashboard.agrolloo.com`, running as a Docker container on the VPS.
 - `my-planner/` — Daily routine, to-do list, and exercise routine. Feeds the morning digest cron on the VPS.
 - `email-assistant/` — Per-account Gmail digest preferences and `digest.sh` (runs on a VPS cron).
-- `bank-statement-parser/` — Python tool that parses and reconciles bank statements.
 
 ### `infra/`
 - `docker/` — Compose files for the VPS containers (currently `ntfy`).
@@ -29,7 +28,7 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 - `DSA/` — Data structures and algorithms practice: notes plus solutions, one folder per topic.
 
 ### Top level
-- `scripts/` — Repo-wide orchestration (`relink.sh`, `sync-mcps.sh`, `regen-mcp-json.sh`) plus an index of everything outside the repo that depends on its layout. See `scripts/README.md`.
+- `scripts/` — Repo-wide orchestration (`relink.sh`, `regen-mcp-json.sh`) plus an index of everything outside the repo that depends on its layout. See `scripts/README.md`.
 - `docs/` — Research notes and design specs.
 - `.claude/` — Repo-level Claude settings (`settings.json`, `settings.local.json`).
 - `INFRA.md` — Canonical inventory of Cloudflare + VPS + DNS.

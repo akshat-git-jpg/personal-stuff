@@ -5,7 +5,6 @@ Repo-wide orchestration scripts in one place, plus an index of everything *outsi
 ## Scripts here
 
 - `relink.sh` — recreates the per-account skill symlinks in `~/.claude-work/skills` and `~/.claude-personal/skills` from the manifests in `tooling/claude-skills/manifest/`. Idempotent. Run it after cloning, after moving the repo, or after changing skill membership. Resolves the skill store relative to itself, so a repo rename doesn't break it — but the symlinks it already created point at absolute paths, so you must re-run it after a move.
-- `sync-mcps.sh` — mirrors `tooling/mcp/` to the TY repo's `mcp/` (the two are intentionally duplicated). Source path is resolved relative to this script; the TY path is absolute.
 - `regen-mcp-json.sh` — rewrites the gitignored `.mcp.json` at the repo root with this machine's `tooling/mcp` server paths. Run after cloning or moving the repo.
 
 ## External touchpoints (things that hardcode this repo's path)

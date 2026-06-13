@@ -1,8 +1,8 @@
 # pp-yt-transcript
 
 Agent-native YouTube **transcript** CLI. Fetches a video's captions with no
-API key, no MCP, and no Claude in the loop — built so bash crons / Hermes /
-agents can pull a transcript and pipe compact text into a single `claude -p`
+API key, no MCP, and no Claude in the loop — built so bash crons and agents
+can pull a transcript and pipe compact text into a single `claude -p`
 call.
 
 ```bash

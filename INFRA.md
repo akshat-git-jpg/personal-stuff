@@ -53,11 +53,10 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - SSH: key-only (`ssh -i ~/.ssh/hostinger_vps root@72.61.241.170`). Firewall `kb-vps-default`: inbound 22/80/443 only.
 - Claude auth on box: `kushalbakliwal25@gmail.com` (Pro). Weekly Hostinger backups.
 
-### Docker containers (7, all up)
+### Docker containers (5, all up)
 - **n8n-traefik-1** (traefik) — reverse proxy + Let's Encrypt TLS; the box's public edge. Ports `:80`, `:443`.
 - **n8n-n8n-1** (n8nio/n8n) — workflow automation. Internal `:5678`.
 - **personal-dashboard** (local build) — mobile dashboard PWA at `my-dashboard.agrolloo.com`. Internal `:8787`.
-- **hermes** + **hermes-dashboard** (nousresearch/hermes-agent) — AI personal assistant gateway + dashboard UI. Loopback `:9119`.
 - **minio** (minio) — S3-style asset storage. **Loopback only** `:9000/9001`.
 - **ntfy** (ntfy) — push-notification server. **Public `:8888`, no TLS.**
 
@@ -69,8 +68,7 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 ### Key paths
 - `/srv/projects/personal-stuff` — code clone (read-only deploy key).
 - `/srv/crons` — cron orchestration (read-write deploy key).
-- `/docker/{n8n,hermes,minio,personal-dashboard}` — compose projects.
-- `/root/.hermes` — Hermes runtime state (UID 10000).
+- `/docker/{n8n,minio,personal-dashboard}` — compose projects.
 
 ### Services
 - `claude-rc.service` — Claude Code Remote Control (personal Pro).
@@ -81,8 +79,8 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 ## Cleanup / confirm
 
 - [x] Removed stale nginx vhost `n8n-website` (sites-enabled + sites-available). Backup: `/root/cleanup-backup-20260613/`. nginx still disabled.
-- [x] Removed `/docker/hermes/docker-compose.yml.bak`.
+- [x] Decommissioned Hermes entirely on 2026-06-14 — removed the `hermes` + `hermes-dashboard` containers, the `nousresearch/hermes-agent` image (~4.8GB), `/docker/hermes`, and `/root/.hermes`.
 - ntfy public on `:8888` HTTP is **by design** — `docker/ntfy/README.md` threat model is "topic name = the secret" (keeps payloads off public ntfy.sh). No action.
 - [x] Purged nginx entirely (`nginx`, `nginx-common`, `python3-certbot-nginx`); `/etc/nginx` removed. Traefik still owns 80/443; dashboard + n8n verified 200.
 - `send.notifications.agrolloo.com` + `resend._domainkey` DNS — **kept** (no app in this repo, but may be used externally). Revisit if confirmed unused.
-- Swap — **left off** by choice. Watch if Hermes + n8n + MinIO spike together.
+- Swap — **left off** by choice. Watch if n8n + MinIO spike together.

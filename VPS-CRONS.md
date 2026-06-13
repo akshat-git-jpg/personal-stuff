@@ -159,9 +159,7 @@ vps-crons/
 ```
 /srv/projects/personal-stuff/             ← clone of personal-stuff
 /srv/crons/                               ← clone of vps-crons
-/docker/hermes/                           ← Hermes (separate concern)
 /docker/n8n/                              ← n8n (separate concern)
-/root/.hermes/                            ← Hermes runtime data (uid 10000)
 /root/.claude/                            ← Claude Code creds (Pro plan, kushalbakliwal25@gmail.com)
 /root/.local/bin/claude                   ← Claude Code binary
 /root/.ssh/                               ← SSH keys (see below)
@@ -454,13 +452,7 @@ This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you 
 
 ## Gotchas / things to remember
 
-### 1. Hermes container has its own copy of the MCPs
-
-The Hermes Docker container at `/docker/hermes/` mounts `/root/.hermes/` as `/opt/data/` inside the container. Its `google-tasks` MCP reads from inside the container's bundled code. **It does not consume the `/srv/projects/personal-stuff/tooling/mcp/` tree.**
-
-What this means in practice: if you rename a path in `personal-stuff/tooling/mcp/<server>/server.py`, you must also keep `/root/.hermes/` consistent — Hermes runtime expects paths like `/opt/data/my-planner/preferences-*.md` (note: hyphenated after the 2026-05-27 rename — `/root/.hermes/my planner/` was renamed to `/root/.hermes/my-planner/` at the same time).
-
-### 2. VPS is UTC
+### 1. VPS is UTC
 
 ```
 IST hour − 5.5 = UTC hour
@@ -472,27 +464,27 @@ IST hour − 5.5 = UTC hour
 
 If you forget which way to subtract: India is *ahead* of UTC, so a 6am IST cron fires at UTC's `00:30`, not at `11:30`.
 
-### 3. Cron has a stripped PATH
+### 2. Cron has a stripped PATH
 
 When a cron line fires, `$PATH` is typically `/usr/bin:/bin`. Anything you need from `/root/.local/bin/`, `nvm`, `homebrew`, etc. must be referenced by absolute path or sourced explicitly.
 
 Why `_shared/claude-env.sh` exists: to set `CLAUDE_BIN=/root/.local/bin/claude` so LLM crons don't fail with "claude: command not found."
 
-### 4. Secrets never go to git
+### 3. Secrets never go to git
 
 `.env`, `token.json`, `credentials.json`, `*.venv/` are all gitignored. They live on the VPS only. If the VPS dies, you must rebuild secrets from your Mac sources (`scp` tokens, recreate venvs).
 
-### 5. The cron pulls; it does not push
+### 4. The cron pulls; it does not push
 
 `/srv/projects/personal-stuff/` is cloned with a read-only deploy key. Any `git commit` on the VPS for that repo will succeed but `git push` will be rejected. This is intentional — production crons should never write back to the project source.
 
 `/srv/crons/` has read-write so emergency fixes from the VPS are possible — but the convention is "edit on Mac, push, pull on VPS."
 
-### 6. Pro plan rate limits apply to cron use
+### 5. Pro plan rate limits apply to cron use
 
 Cron jobs running `claude -p` count against the personal Pro plan limits (`kushalbakliwal25@gmail.com`). A few daily cron invocations are noise; aggressive sub-hourly LLM crons would throttle. If you ever build a cron that's heavy on Claude usage, watch quota.
 
-### 7. The personal-Pro account is on the VPS, the work-Team account is on the Mac
+### 6. The personal-Pro account is on the VPS, the work-Team account is on the Mac
 
 `claude auth status` on each:
 - **VPS** (`ssh root@72.61.241.170 'export PATH=/root/.local/bin:$PATH; claude auth status'`) → `kushalbakliwal25@gmail.com`, `subscriptionType: pro`

@@ -1,18 +1,16 @@
 # MCPs for Claude Code
 
-> **Status (2026):** Mostly legacy. The Gmail / Sheets / YouTube / Hostinger work moved to plain CLIs in `../cli`, which cost tokens only when they run. Only `drive` and `cloudflare` are still used as MCPs. This folder stays in place because `cli/` borrows its Google OAuth from `mcp/google-shared`, and `sync-mcps.sh` mirrors the code to the TY repo. Don't move it without updating both.
+> **Status (2026):** Mostly legacy. The Gmail / Sheets / YouTube / Hostinger work moved to plain CLIs in `../cli`, which cost tokens only when they run. Only `drive` and `cloudflare` are still wired into the active `.mcp.json`. This folder stays in place for two reasons: the CLIs in `../cli` borrow their Google OAuth from `mcp/google-shared`, and the VPS `gmail-digest` cron runs `gmail-mcp-server/server.py` directly (see `../../VPS-CRONS.md`). Don't move it without updating those.
 
 A bundle of MCP (Model Context Protocol) servers that Claude Code can call as tools while you work in this repo. Examples: read/write Google Sheets, query a Cloudflare D1 database, search YouTube, send a Gmail draft.
 
-These are **optional**. The TY scripts (`youtube/`, `common/`, `workers/`) all work without them. MCPs only matter when you're driving Claude Code interactively and want it to do things for you instead of running scripts yourself.
+These are **optional** for interactive use. The CLIs in `../cli` and the VPS cron scripts work without them. MCPs only matter when you're driving Claude Code interactively and want it to do things for you instead of running a CLI yourself.
 
-If you've never used Claude Code, you can ignore this folder entirely.
+This is the single source of truth for the MCP code. (It used to be mirrored into the TY repo; that copy was removed — TY's Python scripts authenticate with their own service-account `credentials.json` and never needed it.)
 
-## Why MCPs (when scripts already exist)?
+## Why MCPs (when CLIs already exist)?
 
-The pro of MCPs over scripts isn't "they replace scripts" — it's that they make the questions that aren't worth writing a script for suddenly answerable in seconds. That's the real value-add.
-
-TY's actual workflows still run on scripts (not MCPs) by design; MCPs add an interactive Claude Code layer on top — useful for one-off questions, cross-tool chains, and reasoning tasks, but not a replacement for the batch scripts.
+The pro of MCPs over CLIs isn't "they replace them" — it's that they make the questions that aren't worth a dedicated command suddenly answerable in seconds. That's the real value-add. Most actual workflows run on CLIs/scripts by design; MCPs add an interactive layer on top.
 
 ---
 
@@ -23,7 +21,7 @@ TY's actual workflows still run on scripts (not MCPs) by design; MCPs add an int
 Each MCP server has its own `requirements.txt`. Easiest:
 
 ```bash
-cd /path/to/TY/mcp
+cd /path/to/personal-stuff/tooling/mcp
 for d in */; do
   pip3 install --user -r "$d/requirements.txt" 2>/dev/null || true
 done
@@ -36,21 +34,21 @@ The packages are small — `mcp`, `requests`, `google-api-python-client`, etc.
 The Gmail / Sheets / Drive / Calendar / Docs / Tasks / YouTube MCPs all share `google-shared/`. You'll need:
 
 1. An OAuth Desktop client `credentials.json` from Google Cloud Console.
-   Put it at `mcp/google-shared/credentials.json` (gitignored, won't leak).
+   Put it at `google-shared/credentials.json` (gitignored, won't leak).
 2. For each Google account you want to use, run the consent flow once:
 
 ```bash
-cd mcp/google-shared
+cd google-shared
 python3 setup_auth.py your_email@gmail.com
 ```
 
-That'll pop a browser, you accept the scopes, and it saves a token at `mcp/google-shared/tokens/your_email@gmail.com.json` (gitignored).
+That'll pop a browser, you accept the scopes, and it saves a token at `google-shared/tokens/your_email@gmail.com.json` (gitignored).
 
 After that, every tool call takes an `account: "your_email@gmail.com"` arg so it knows which account to act as.
 
 ### 3. Cloudflare MCP — env vars
 
-Reads from `TY/.env`. You need:
+Reads from the project `.env`. You need:
 
 ```
 CF_API_TOKEN=...           # token with D1 + KV read/write
@@ -59,18 +57,16 @@ CF_D1_DATABASE_ID=...
 CF_KV_NAMESPACE_ID=...
 ```
 
-These should already be in TY's `.env` if the rest of TY is set up.
-
 ### 4. Hostinger / ElevenLabs MCPs — env vars
 
 Each of those folders has its own `.env` file (gitignored). See the per-folder README or just skip them if you don't use those services.
 
 ### 5. Register with Claude Code
 
-Create `TY/.mcp.json` (gitignored) with the path to each MCP server. Copy `mcp/.mcp.json.template` and replace `<PATH_TO_TY>` with your absolute path:
+Create `.mcp.json` (gitignored) with the path to each MCP server you want. Copy `.mcp.json.template` and replace `<PATH_TO_TY>` with your absolute path to this folder, then trim it down to the servers you actually use (the active setup is just `google-drive` + `cloudflare`):
 
 ```bash
-sed "s|<PATH_TO_TY>|$(pwd)|g" mcp/.mcp.json.template > .mcp.json
+sed "s|<PATH_TO_TY>|$(pwd)|g" .mcp.json.template > /path/to/repo/.mcp.json
 ```
 
 Restart Claude Code. The MCPs should show up in the `/mcp` list.
@@ -79,16 +75,4 @@ Restart Claude Code. The MCPs should show up in the `/mcp` list.
 
 ## Optional MCPs (skip if you don't need them)
 
-If you don't want all 11 servers registered, just delete entries from your `.mcp.json` for ones you don't use. Each entry is independent.
-
-## Maintenance
-
-Code lives in both this repo (`TY/mcp/`) and `personal-stuff/tooling/mcp/` on the maintainer's machine. To keep them in sync after edits (run from the repo root):
-
-```bash
-./scripts/sync-mcps.sh             # personal-stuff → TY
-./scripts/sync-mcps.sh --reverse   # TY → personal-stuff
-./scripts/sync-mcps.sh --dry-run   # preview
-```
-
-Tokens, credentials, and `.env` files are excluded from sync (machine-specific).
+Each entry in `.mcp.json` is independent — delete the ones you don't use. The active default is just `google-drive` + `cloudflare`.
