@@ -63,6 +63,7 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 ### Cron jobs (Pattern B; canonical `/srv/crons/crontab.txt`)
 - `06:00 IST` (`30 0 * * *` UTC) → `my-planner` — Calendar + workout digest → Telegram.
 - `06:00 IST` (`30 0 * * *` UTC) → `gmail-digest` — Gmail summary → Telegram.
+- Every 15 min (`*/15 * * * *`) → `repo-sync` — pull personal-stuff + relink Claude skills so interactive Claude (Remote Control / mobile) stays current.
 - Stock: daily Docker image prune (`8 0 * * *`), certbot renewal, sysstat.
 
 ### Key paths

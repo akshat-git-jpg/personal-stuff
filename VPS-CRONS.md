@@ -448,6 +448,14 @@ This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you 
 - **Telegram dest:** `@hermes_kb_pa_bot`, chat_id `1912944391` (same as my-planner)
 - **Output format:** Part 1 (Claude's judgment of what matters) + Part 2 (matches against "Digest focus areas" in the per-account preferences file)
 
+### repo-sync
+
+- **What:** keeps the VPS current for **interactive** Claude (Remote Control / Claude mobile) — `git pull` `personal-stuff` + rebuild `~/.claude/skills` from `manifest/personal.txt`
+- **When:** every 15 min (`*/15 * * * *` UTC)
+- **Wrapper:** `/srv/crons/repo-sync/run.sh`
+- **Project code:** `/srv/projects/personal-stuff/scripts/vps-sync.sh`
+- **Why separate from the digests:** the digest crons only pull when they fire (06:00). This keeps code + skills fresh all day so Claude mobile isn't stale. Push from the Mac → live on the VPS within 15 min.
+
 ---
 
 ## Gotchas / things to remember

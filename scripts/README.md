@@ -6,6 +6,7 @@ Repo-wide orchestration scripts in one place, plus an index of everything *outsi
 
 - `relink.sh` — recreates the per-account skill symlinks in `~/.claude-work/skills` and `~/.claude-personal/skills` from the manifests in `tooling/claude-skills/manifest/`. Idempotent. Run it after cloning, after moving the repo, or after changing skill membership. Resolves the skill store relative to itself, so a repo rename doesn't break it — but the symlinks it already created point at absolute paths, so you must re-run it after a move.
 - `regen-mcp-json.sh` — rewrites the gitignored `.mcp.json` at the repo root with this machine's `tooling/mcp` server paths. Run after cloning or moving the repo.
+- `vps-sync.sh` — **VPS only.** `git pull`s the VPS clone and rebuilds `~/.claude/skills` (single root account) from `manifest/personal.txt`. The VPS counterpart to `relink.sh`. A `repo-sync` cron runs it every 15 min so interactive Claude (Remote Control / mobile) on the VPS stays current with what you push. Safe to run by hand for an instant sync.
 
 ## External touchpoints (things that hardcode this repo's path)
 
