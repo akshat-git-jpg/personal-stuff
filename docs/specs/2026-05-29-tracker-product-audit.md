@@ -73,7 +73,7 @@ Severity: **P0** = confusing/blocking now · **P1** = needed for real daily use 
 ### D. Cross-cutting (system / trust / scale)
 
 - **[P0 for go-live] `DEV_AUTH` bypass must be OFF in production.** The preview/dev-login must never ship enabled. (A pre-deploy checklist item.)
-- **[P1] Notifications, generally.** The whole loop assumes people open the app. For a low-frequency tool, they won't. Notifications (you already run ntfy/Hermes/Telegram) are the highest-leverage fix for end-to-end flow.
+- **[P1] Notifications, generally.** The whole loop assumes people open the app. For a low-frequency tool, they won't. Notifications (you already run ntfy/Telegram) are the highest-leverage fix for end-to-end flow.
 - **[P1] No timestamps means no staleness signal** (see admin).
 - **[P2] Mobile.** Freelancers will check on phones; a horizontal drag-kanban is rough on mobile. A simple list/stacked view on small screens.
 - **[P2] Search / filter at scale.** The sheet has ~1000 rows. As real volume grows, the board needs filter (by category, assignee, date) and/or search.
