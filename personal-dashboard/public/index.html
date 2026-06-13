@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Dashboard" />
+  <meta name="apple-mobile-web-app-title" content="Kushal Daily Dashboard" />
   <meta name="theme-color" content="#120f18" />
-  <title>Dashboard</title>
+  <title>Kushal Daily Dashboard</title>
   <script>
     // Default to dark; honor an explicit light choice. Runs before paint to avoid a flash.
     (function () {
@@ -24,22 +24,6 @@
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
-
-<!-- Login screen -->
-<div id="login-screen" class="auth-screen" style="display:none">
-  <div class="auth-card">
-    <h1>Dashboard</h1>
-    <p>Enter your password to continue</p>
-    <form id="login-form">
-      <div class="form-group">
-        <label for="login-pw">Password</label>
-        <input type="password" id="login-pw" autocomplete="current-password" autofocus />
-      </div>
-      <div id="login-error" style="color:var(--danger);font-size:.85rem;margin-bottom:12px;display:none"></div>
-      <button type="submit" class="btn btn-primary btn-full">Sign in</button>
-    </form>
-  </div>
-</div>
 
 <!-- Main app -->
 <div id="app" style="display:none">
@@ -115,10 +99,10 @@
 <!-- Modal container -->
 <div id="modal-container"></div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<!-- SortableJS (touch-friendly drag-to-reorder) -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<!-- Chart.js (self-hosted; defer so a slow lib can't block first paint) -->
+<script defer src="/js/vendor/chart.umd.min.js"></script>
+<!-- SortableJS (touch-friendly drag-to-reorder; self-hosted) -->
+<script defer src="/js/vendor/Sortable.min.js"></script>
 <!-- App -->
 <script type="module" src="/js/app.js"></script>
 </body>

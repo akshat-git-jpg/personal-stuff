@@ -1,6 +1,6 @@
 // Service Worker — cache app shell, network-first for /api/
 
-const CACHE_NAME = 'pd-v4';
+const CACHE_NAME = 'pd-v6';
 const SHELL_ASSETS = [
   '/',
   '/index.html',
@@ -14,13 +14,17 @@ const SHELL_ASSETS = [
   '/manifest.webmanifest',
   '/js/views/notes.js',
   '/fonts/fraunces.woff2',
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js',
+  '/js/vendor/chart.umd.min.js',
+  '/js/vendor/Sortable.min.js',
 ];
 
 self.addEventListener('install', (event) => {
+  // Cache each asset independently — one failed fetch must not abort the whole
+  // precache (the old addAll was all-or-nothing and left the cache empty).
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)).catch(() => {})
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.all(SHELL_ASSETS.map((url) => cache.add(url).catch(() => {})))
+    )
   );
   self.skipWaiting();
 });

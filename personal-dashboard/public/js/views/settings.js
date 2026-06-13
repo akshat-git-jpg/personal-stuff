@@ -80,24 +80,6 @@ export async function render(container) {
       </div>
     </div>
 
-    <!-- Account -->
-    <div class="settings-section">
-      <h3>Account</h3>
-      <div class="settings-card">
-        <form id="pw-form" style="padding:14px 16px">
-          <div class="form-group">
-            <label>Current password</label>
-            <input type="password" name="current" autocomplete="current-password" />
-          </div>
-          <div class="form-group">
-            <label>New password</label>
-            <input type="password" name="next" autocomplete="new-password" />
-          </div>
-          <button type="submit" class="btn btn-outline btn-sm">Change password</button>
-        </form>
-      </div>
-    </div>
-
     <!-- Data -->
     <div class="settings-section">
       <h3>Data</h3>
@@ -167,18 +149,6 @@ export async function render(container) {
     }
   });
 
-  // Password change
-  container.querySelector('#pw-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    try {
-      await api('/api/auth/change-password', 'POST', { current: fd.get('current'), next: fd.get('next') });
-      toast('Password changed!');
-      e.target.reset();
-    } catch (err) {
-      toast(err.message, 'error');
-    }
-  });
 }
 
 function applyDarkMode(enabled) {

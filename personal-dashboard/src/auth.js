@@ -12,10 +12,10 @@ export function sessionMiddleware() {
   });
 }
 
-// Guard for API routes. Login route is mounted before this.
+// Auth removed — this is a single-user dashboard with no password gate.
+// Kept as a no-op so existing route mounts don't need to change.
 export function requireAuth(req, res, next) {
-  if (req.session && req.session.authed) return next();
-  return res.status(401).json({ error: 'unauthorized' });
+  return next();
 }
 
 export function login(req, res) {

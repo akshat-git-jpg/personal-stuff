@@ -1,6 +1,6 @@
 {
-  "name": "Personal Dashboard",
-  "short_name": "Dashboard",
+  "name": "Kushal Daily Dashboard",
+  "short_name": "Daily Dashboard",
   "description": "Mobile-first personal dashboard: to-dos, habits, remembers.",
   "start_url": "/",
   "display": "standalone",

@@ -152,30 +152,12 @@ function applyDarkMode(enabled) {
 // ============================================================
 
 async function boot() {
-  const loginScreen = document.getElementById('login-screen');
+  // No auth gate — go straight to the app.
   const appEl = document.getElementById('app');
-
-  // Check auth
-  let authed = false;
-  try {
-    const me = await api('/api/auth/me');
-    authed = me.authed;
-  } catch {
-    authed = false;
-  }
-
-  if (!authed) {
-    loginScreen.style.display = '';
-    appEl.style.display = 'none';
-    setupLogin(loginScreen, appEl);
-    return;
-  }
-
-  await startApp(appEl, loginScreen);
+  await startApp(appEl);
 }
 
-async function startApp(appEl, loginScreen) {
-  loginScreen.style.display = 'none';
+async function startApp(appEl) {
   appEl.style.display = '';
 
   // Theme: localStorage is the source of truth (default dark). The inline head
@@ -259,24 +241,6 @@ async function startApp(appEl, loginScreen) {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
-}
-
-function setupLogin(loginScreen, appEl) {
-  const form = document.getElementById('login-form');
-  const errorEl = document.getElementById('login-error');
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    errorEl.style.display = 'none';
-    const pw = document.getElementById('login-pw').value;
-    try {
-      await api('/api/auth/login', 'POST', { password: pw });
-      await startApp(appEl, loginScreen);
-    } catch (err) {
-      errorEl.textContent = err.message || 'Invalid password';
-      errorEl.style.display = '';
-    }
-  });
 }
 
 boot();
