@@ -17,7 +17,7 @@ function table(headers, rows, widths = []) {
   const tr = rows
     .map(
       (r) =>
-        `<tr>${headers.map((_, i) => `<td>${(r && r[i] != null ? r[i] : "")}</td>`).join("")}</tr>`
+        `<tr>${headers.map((_, i) => `<td>${(r && r[i] != null && r[i] !== "" ? r[i] : "&nbsp;")}</td>`).join("")}</tr>`
     )
     .join("");
   return `<table class="tbl"><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>`;
@@ -53,7 +53,7 @@ pages.push(
 // 2. WELCOME
 pages.push(
   page(
-    "",
+    "welcome",
     head("Start here", "Hey, bride-to-be 👋") +
       `<p class="body">Congratulations — you're getting married! Planning a wedding has a thousand
        moving parts, and this planner exists to hold all of them so your brain doesn't have to. Work
@@ -63,19 +63,24 @@ pages.push(
         <h3>What's inside</h3>
         <div class="howcols">
           <ul>
-            <li>Your wedding at a glance + vision</li>
-            <li>The full 12-month checklist</li>
+            <li>Your wedding at a glance + key dates</li>
+            <li>A page for your vision, style &amp; colors</li>
+            <li>The full 12-month planning checklist</li>
             <li>Budget tracker (every category)</li>
             <li>Guest list &amp; RSVP tracker</li>
           </ul>
           <ul>
             <li>Vendor contacts &amp; payments</li>
+            <li>Wedding party details</li>
             <li>Day-of timeline + ceremony &amp; reception</li>
-            <li>Seating chart &amp; menu</li>
-            <li>Final-week checklist + notes</li>
+            <li>Seating chart &amp; menu planner</li>
+            <li>Final-week checklist, emergency kit &amp; notes</li>
           </ul>
         </div>
       </div>
+      <p class="body">However you use it, take it at your own pace. Book the big things first, let the
+       little details fall into place, and come back to these pages whenever your head feels full.
+       Everything you decide has a home in here.</p>
       <p class="sign">You've got this — I'm right here with you. xo, your Bride Bestie</p>`
   )
 );
@@ -96,11 +101,19 @@ pages.push(
       ]) +
       `<div class="spacer"></div>` +
       head("", "Key dates to remember") +
-      table(["Milestone", "Date"], [
-        ["Engagement", ""], ["Save-the-dates sent", ""], ["Invitations sent", ""],
-        ["RSVP deadline", ""], ["Final headcount due", ""], ["Rehearsal dinner", ""],
-        ["Wedding day", ""], ["Honeymoon", ""],
-      ], ["55%", "45%"])
+      table(["Milestone", "Date", "Done"], [
+        ["Engagement", "", ""], ["Booked the venue", "", ""], ["Save-the-dates sent", "", ""],
+        ["Invitations sent", "", ""], ["RSVP deadline", "", ""], ["Final headcount due", "", ""],
+        ["Final dress fitting", "", ""], ["Marriage license", "", ""], ["Rehearsal dinner", "", ""],
+        ["Wedding day", "", ""], ["Honeymoon", "", ""], ["", "", ""], ["", "", ""],
+      ], ["58%", "30%", "12%"]) +
+      `<div class="spacer-sm"></div>` +
+      head("", "Our wedding countdown") +
+      `<div class="countdown">
+        <div class="cdbox"><span class="cdnum"></span><span class="cdlab">months to go</span></div>
+        <div class="cdbox"><span class="cdnum"></span><span class="cdlab">weeks to go</span></div>
+        <div class="cdbox"><span class="cdnum"></span><span class="cdlab">days to go</span></div>
+      </div>`
   )
 );
 
@@ -110,19 +123,23 @@ pages.push(
     "",
     head("The dream", "Our wedding vision", "Before the logistics — capture the feeling you want.") +
       `<div class="vis">
-        <div class="vblock"><h3>Three words for our day</h3>${lines(1)}</div>
+        <div class="vblock"><h3>Three words for our day</h3>${lines(2)}</div>
         <div class="vblock"><h3>Our color palette</h3>
           <div class="swatches"><span></span><span></span><span></span><span></span><span></span></div>
           <div class="hint">color in or label each swatch</div>
         </div>
       </div>
       <div class="vis">
-        <div class="vblock"><h3>Absolute must-haves</h3>${lines(4)}</div>
-        <div class="vblock"><h3>Nice-to-haves</h3>${lines(4)}</div>
+        <div class="vblock"><h3>The feeling we want</h3>${lines(7)}</div>
+        <div class="vblock"><h3>Our style &amp; theme</h3>${lines(7)}</div>
       </div>
       <div class="vis">
-        <div class="vblock"><h3>Definitely not</h3>${lines(3)}</div>
-        <div class="vblock"><h3>Inspiration &amp; ideas</h3>${lines(3)}</div>
+        <div class="vblock"><h3>Absolute must-haves</h3>${lines(8)}</div>
+        <div class="vblock"><h3>Nice-to-haves</h3>${lines(8)}</div>
+      </div>
+      <div class="vis">
+        <div class="vblock"><h3>Definitely not</h3>${lines(6)}</div>
+        <div class="vblock"><h3>Inspiration &amp; ideas</h3>${lines(6)}</div>
       </div>`
   )
 );
@@ -138,42 +155,47 @@ const phases = [
   ["6–8 weeks", "Numbers &amp; seating", ["Track RSVPs; chase stragglers", "Final headcount to caterer", "Build seating chart", "Final dress fitting", "Break in your shoes", "Confirm timeline w/ vendors", "Pick up marriage license", "Write thank-yous as gifts arrive"]],
   ["1–2 weeks", "Hand it off", ["Confirm arrival times", "Delegate day-of tasks", "Final payments + tip envelopes", "Assemble emergency kit", "Pack for honeymoon", "Confirm transport &amp; hotel", "Rehearse vows", "Plan something relaxing"]],
 ];
-const cl = (a, b, title) => page("", head("The timeline", title) + phases.slice(a, b).map((p) => phase(...p)).join(""));
+const cl = (a, b, title, extra = "") => page("", head("The timeline", title) + phases.slice(a, b).map((p) => phase(...p)).join("") + extra);
 pages.push(cl(0, 3, "12-month checklist · part 1"));
 pages.push(cl(3, 6, "12-month checklist · part 2"));
-pages.push(cl(6, 8, "12-month checklist · part 3"));
+pages.push(cl(6, 8, "12-month checklist · part 3",
+  `<div class="spacer"></div>` + head("", "Notes &amp; reminders for the final stretch") + lines(8)));
 
 // 8-9. BUDGET
-const budgetCats = ["Venue", "Catering &amp; bar", "Photography", "Videography", "Flowers", "Music / DJ / band",
-  "Bride attire &amp; alterations", "Groom attire", "Hair &amp; makeup", "Cake / dessert", "Stationery &amp; invites",
-  "Wedding rings", "Decor &amp; rentals", "Transportation", "Favors &amp; gifts", "Officiant",
-  "Planner / coordinator", "Beauty &amp; prep", "Honeymoon", "Miscellaneous"];
+const budgetCats = ["Venue", "Catering &amp; bar", "Photography", "Videography", "Flowers &amp; florals",
+  "Music / DJ / band", "Bride attire &amp; alterations", "Groom attire", "Hair &amp; makeup",
+  "Cake / dessert", "Stationery &amp; invites", "Wedding rings", "Decor &amp; rentals", "Transportation",
+  "Favors &amp; gifts", "Officiant", "Marriage license", "Planner / coordinator", "Beauty &amp; prep",
+  "Photo booth / extras", "Ceremony fees", "Welcome / rehearsal dinner", "Honeymoon", "Vendor tips",
+  "Miscellaneous"];
+const budgetCols = ["Category", "Estimated", "Actual", "Deposit paid", "Balance due"];
+const budgetW = ["32%", "17%", "17%", "17%", "17%"];
 pages.push(
   page(
     "",
     head("Money", "Wedding budget tracker", "Set a number first — almost everything else flexes around it.") +
       fgrid(["Total budget", "Total spent", "Remaining", "Who's contributing"]) +
       `<div class="spacer-sm"></div>` +
-      table(["Category", "Estimated", "Actual", "Deposit paid", "Balance due"],
-        budgetCats.slice(0, 12).map((c) => [c, "", "", "", ""]),
-        ["32%", "17%", "17%", "17%", "17%"])
+      table(budgetCols,
+        [...budgetCats.slice(0, 18).map((c) => [c, "", "", "", ""]), ...blanks(4).map(() => ["", "", "", "", ""])],
+        budgetW)
   )
 );
 pages.push(
   page(
     "",
     head("Money", "Budget tracker (continued)") +
-      table(["Category", "Estimated", "Actual", "Deposit paid", "Balance due"],
-        [...budgetCats.slice(12).map((c) => [c, "", "", "", ""]), ...blanks(4).map(() => ["", "", "", "", ""]), ["TOTAL", "", "", "", ""]],
-        ["32%", "17%", "17%", "17%", "17%"])
+      table(budgetCols,
+        [...budgetCats.slice(18).map((c) => [c, "", "", "", ""]), ...blanks(17).map(() => ["", "", "", "", ""]), ["TOTAL", "", "", "", ""]],
+        budgetW)
   )
 );
 
 // 10-11. GUEST LIST
 const guestHdr = ["Name", "# in party", "Address", "RSVP", "Meal", "Gift", "Thank-you"];
 const guestW = ["24%", "9%", "27%", "8%", "12%", "10%", "10%"];
-pages.push(page("", head("Guests", "Guest list &amp; RSVP tracker") + table(guestHdr, blanks(20).map(() => []), guestW)));
-pages.push(page("", head("Guests", "Guest list (continued)") + table(guestHdr, blanks(20).map(() => []), guestW)));
+pages.push(page("", head("Guests", "Guest list &amp; RSVP tracker") + table(guestHdr, blanks(28).map(() => []), guestW)));
+pages.push(page("", head("Guests", "Guest list (continued)") + table(guestHdr, blanks(28).map(() => []), guestW)));
 
 // 12. VENDORS
 pages.push(
@@ -181,9 +203,10 @@ pages.push(
     "",
     head("Vendors", "Vendor contacts &amp; payments") +
       table(["Vendor type", "Company / name", "Phone / email", "Total", "Deposit", "Balance", "Due"],
-        ["Venue", "Caterer", "Photographer", "Videographer", "Florist", "DJ / band", "Baker",
-         "Hair &amp; makeup", "Officiant", "Rentals", "Transport", "Stationery", "Planner"].map((v) => [v, "", "", "", "", "", ""])
-          .concat(blanks(3).map(() => ["", "", "", "", "", "", ""])),
+        ["Venue", "Caterer", "Bar service", "Photographer", "Videographer", "Florist", "DJ / band",
+         "Baker", "Hair &amp; makeup", "Officiant", "Rentals", "Transport", "Stationery",
+         "Photo booth", "Planner"].map((v) => [v, "", "", "", "", "", ""])
+          .concat(blanks(11).map(() => ["", "", "", "", "", "", ""])),
         ["16%", "21%", "21%", "11%", "11%", "11%", "9%"])
   )
 );
@@ -195,8 +218,10 @@ pages.push(
     head("Your people", "Wedding party") +
       table(["Role", "Name", "Phone", "Attire / notes"],
         ["Maid / matron of honor", "Best man", "Bridesmaid", "Bridesmaid", "Bridesmaid", "Bridesmaid",
-         "Groomsman", "Groomsman", "Groomsman", "Groomsman", "Flower girl", "Ring bearer", "Ushers", "Officiant"].map((r) => [r, "", "", ""])
-          .concat(blanks(2).map(() => ["", "", "", ""])),
+         "Bridesmaid", "Groomsman", "Groomsman", "Groomsman", "Groomsman", "Groomsman",
+         "Flower girl", "Ring bearer", "Ushers", "Officiant", "Parents of the bride",
+         "Parents of the groom"].map((r) => [r, "", "", ""])
+          .concat(blanks(8).map(() => ["", "", "", ""])),
         ["26%", "27%", "20%", "27%"])
   )
 );
@@ -207,10 +232,11 @@ pages.push(
     "",
     head("The big day", "Wedding day timeline", "Block out the hours — share this with every vendor.") +
       table(["Time", "What's happening", "Who / where"],
-        ["Hair &amp; makeup begins", "Photographer arrives", "Getting dressed", "First look",
+        [...["Hair &amp; makeup begins", "Photographer arrives", "Getting dressed", "First look",
          "Wedding party photos", "Family photos", "Guests arrive", "Ceremony begins", "Cocktail hour",
          "Grand entrance", "First dance", "Welcome &amp; dinner", "Toasts", "Parent dances",
          "Cake cutting", "Open dancing", "Bouquet / garter", "Last dance", "Send-off"].map((e) => ["", e, ""]),
+         ...blanks(7).map(() => ["", "", ""])],
         ["16%", "50%", "34%"])
   )
 );
@@ -220,11 +246,13 @@ pages.push(
   page(
     "",
     head("Ceremony", "Ceremony planner") +
-      `<div class="vis"><div class="vblock"><h3>Order of events</h3>${lines(8)}</div>
-       <div class="vblock"><h3>Processional order</h3>${lines(8)}</div></div>` +
+      `<div class="vis"><div class="vblock"><h3>Order of events</h3>${lines(13)}</div>
+       <div class="vblock"><h3>Processional order</h3>${lines(13)}</div></div>` +
       head("", "Music") +
       fgrid(["Prelude", "Processional", "Bride's entrance", "Recessional"]) +
-      head("", "Readings &amp; readers") + lines(3)
+      `<div class="spacer"></div>` +
+      `<div class="vis"><div class="vblock"><h3>Readings &amp; readers</h3>${lines(11)}</div>
+       <div class="vblock"><h3>Vows &amp; special touches</h3>${lines(11)}</div></div>`
   )
 );
 
@@ -233,30 +261,32 @@ pages.push(
   page(
     "",
     head("Reception", "Reception planner") +
-      `<div class="vis"><div class="vblock"><h3>Must-play songs</h3>${lines(8)}</div>
-       <div class="vblock"><h3>Do NOT play</h3>${lines(8)}</div></div>` +
+      `<div class="vis"><div class="vblock"><h3>Must-play songs</h3>${lines(13)}</div>
+       <div class="vblock"><h3>Do NOT play</h3>${lines(13)}</div></div>` +
       head("", "Special moments &amp; songs") +
       fgrid(["First dance song", "Father–daughter song", "Mother–son song", "Cake-cutting song", "Bouquet toss song", "Last dance song"]) +
-      head("", "Toast order") + lines(3)
+      `<div class="spacer"></div>` +
+      `<div class="vis"><div class="vblock"><h3>Toast order</h3>${lines(11)}</div>
+       <div class="vblock"><h3>Reception flow &amp; reminders</h3>${lines(11)}</div></div>`
   )
 );
 
 // 17. SEATING
 const tableBox = (n) => `<div class="seat"><div class="seathd">Table ${n}</div>${lines(8)}</div>`;
-pages.push(page("", head("Seating", "Seating chart") + `<div class="seatgrid">${Array.from({ length: 9 }, (_, i) => tableBox(i + 1)).join("")}</div>`));
+pages.push(page("", head("Seating", "Seating chart", "One card per table — list every guest seated there.") + `<div class="seatgrid">${Array.from({ length: 12 }, (_, i) => tableBox(i + 1)).join("")}</div>`));
 
 // 18. MENU
 pages.push(
   page(
     "",
     head("Food", "Menu &amp; catering") +
-      `<div class="vis"><div class="vblock"><h3>Cocktail hour</h3>${lines(3)}</div>
-       <div class="vblock"><h3>Appetizers</h3>${lines(3)}</div></div>
-      <div class="vis"><div class="vblock"><h3>Main course(s)</h3>${lines(4)}</div>
-       <div class="vblock"><h3>Sides</h3>${lines(4)}</div></div>
-      <div class="vis"><div class="vblock"><h3>Cake &amp; dessert</h3>${lines(3)}</div>
-       <div class="vblock"><h3>Bar &amp; drinks</h3>${lines(3)}</div></div>` +
-      head("", "Dietary needs &amp; allergies") + lines(2)
+      `<div class="vis"><div class="vblock"><h3>Cocktail hour</h3>${lines(6)}</div>
+       <div class="vblock"><h3>Appetizers</h3>${lines(6)}</div></div>
+      <div class="vis"><div class="vblock"><h3>Main course(s)</h3>${lines(7)}</div>
+       <div class="vblock"><h3>Sides</h3>${lines(7)}</div></div>
+      <div class="vis"><div class="vblock"><h3>Cake &amp; dessert</h3>${lines(6)}</div>
+       <div class="vblock"><h3>Bar &amp; drinks</h3>${lines(6)}</div></div>` +
+      head("", "Dietary needs &amp; allergies") + lines(5)
   )
 );
 
@@ -272,12 +302,15 @@ pages.push(
       head("", "Day-of emergency kit") +
       checks(["Sewing kit &amp; safety pins", "Stain remover (Tide pen)", "Band-aids &amp; pain reliever", "Deodorant &amp; mints",
         "Makeup for touch-ups", "Bobby pins &amp; hairspray", "Tissues", "Phone charger", "Snacks &amp; water", "Flat shoes",
-        "Comfortable socks", "Cash for tips"])
+        "Comfortable socks", "Cash for tips", "Lint roller", "Clear nail polish", "Eye drops &amp; allergy meds", "Straws (for lipstick)",
+        "Umbrella, just in case", "Copy of the day-of timeline"]) +
+      head("", "Who to call if something comes up") +
+      fgrid(["Planner / coordinator", "Maid of honor", "Best man", "Venue contact"])
   )
 );
 
 // 20. NOTES
-pages.push(page("", head("Notes", "Notes &amp; ideas") + lines(20)));
+pages.push(page("", head("Notes", "Notes &amp; ideas") + lines(40)));
 
 // 21. BACK / UPSELL
 pages.push(
@@ -314,6 +347,15 @@ h1,h2,h3{ font-family:'Playfair Display',serif; font-weight:600; }
 .foot .bm{ color:var(--blush); font-weight:700; }
 .spacer{ height:24px; } .spacer-sm{ height:13px; }
 
+/* welcome — vertically balance the airy page */
+.welcome{ display:flex; flex-direction:column; justify-content:center; }
+
+/* countdown */
+.countdown{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:8px; }
+.cdbox{ background:#fff; border:1px solid var(--line); border-radius:11px; padding:22px 12px 16px; text-align:center; display:flex; flex-direction:column; gap:14px; }
+.cdnum{ height:34px; border-bottom:1px solid rgba(52,48,43,.3); margin:0 14px; }
+.cdlab{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--soft); font-weight:700; }
+
 /* cover */
 .cover{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
 .cover .frame{ position:absolute; inset:0.34in; border:1px solid var(--line); }
@@ -329,7 +371,7 @@ h1,h2,h3{ font-family:'Playfair Display',serif; font-weight:600; }
 .fld{ display:flex; flex-direction:column; gap:5px; }
 .flab{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--soft); font-weight:700; }
 .fline{ height:1px; background:rgba(52,48,43,.32); }
-.ln{ height:1px; background:rgba(52,48,43,.26); margin:13px 0; }
+.ln{ height:1px; background:rgba(52,48,43,.26); margin:16px 0; }
 
 /* how */
 .how{ background:#fff; border:1px solid var(--line); border-radius:11px; padding:18px 22px; margin-top:4px; }
@@ -341,11 +383,11 @@ h1,h2,h3{ font-family:'Playfair Display',serif; font-weight:600; }
 .sign{ font-family:'Playfair Display',serif; font-style:italic; font-size:14px; color:var(--blush); margin-top:16px; }
 
 /* checklist */
-.phase{ margin-bottom:20px; }
-.phase .tf{ display:flex; align-items:baseline; gap:12px; border-bottom:1.5px solid var(--gold); padding-bottom:6px; margin-bottom:11px; }
+.phase{ margin-bottom:30px; }
+.phase .tf{ display:flex; align-items:baseline; gap:12px; border-bottom:1.5px solid var(--gold); padding-bottom:6px; margin-bottom:14px; }
 .phase .when{ font-family:'Playfair Display',serif; font-size:19px; font-weight:600; }
 .phase .tag{ font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--blush); font-weight:700; }
-.items{ display:grid; grid-template-columns:1fr 1fr; gap:8px 26px; }
+.items{ display:grid; grid-template-columns:1fr 1fr; gap:13px 26px; }
 .item{ display:flex; align-items:flex-start; font-size:11.6px; line-height:1.3; color:#3c3833; }
 .cb{ flex:0 0 auto; width:12px; height:12px; border:1.4px solid var(--charcoal); border-radius:3px; margin-right:9px; margin-top:1px; }
 

@@ -11,7 +11,7 @@ own pins = a second funnel entry into Bride Bestie.
 ## What's inside (5 pages)
 1 Cover · 2 How to build a timeline that flows (pro tips: anchor to ceremony, 15-min padding, first
 look, golden hour) · 3 A worked **4:00 PM ceremony** sample timeline (elegant vertical timeline, 19
-moments, key beats gold-dotted) · 4 Build-your-own blank template (16 fill-in rows) · 5 Upsell → Ultimate Planner.
+moments, key beats gold-dotted) · 4 Build-your-own blank template (26 fill-in rows) · 5 Upsell → Ultimate Planner.
 
 ## Why it over-delivers (free)
 - A *real* worked example (not a blank) for the most common ceremony time, plus the "why" tips that

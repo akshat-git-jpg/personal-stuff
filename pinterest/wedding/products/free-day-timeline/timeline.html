@@ -43,7 +43,7 @@
   /* timeline */
   .badge{ display:inline-block; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#fff; background:var(--blush); padding:5px 14px; border-radius:30px; font-weight:700; margin-bottom:14px; }
   .tl{ margin-top:2px; }
-  .row{ display:grid; grid-template-columns:1.05in 1fr; column-gap:20px; padding:6.5px 0; }
+  .row{ display:grid; grid-template-columns:1.05in 1fr; column-gap:20px; padding:10.5px 0; }
   .row .time{ text-align:right; font-weight:700; font-size:12px; color:var(--charcoal); padding-top:1px; }
   .row .ev{ font-size:12.5px; color:#3c3833; padding-left:22px; border-left:2px solid rgba(197,138,134,.4); position:relative; padding-bottom:2px; }
   .row .ev::before{ content:""; position:absolute; left:-6px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--blush); }
@@ -51,7 +51,7 @@
   .row.big .ev::before{ background:var(--gold); width:12px; height:12px; left:-7px; }
 
   /* blank build-your-own */
-  .brow{ display:grid; grid-template-columns:1.05in 1fr; column-gap:20px; padding:9px 0; align-items:flex-end; }
+  .brow{ display:grid; grid-template-columns:1.05in 1fr; column-gap:20px; padding:12.5px 0; align-items:flex-end; }
   .brow .tline{ height:1px; background:rgba(52,48,43,.3); }
   .brow .eline{ height:1px; background:rgba(52,48,43,.26); }
 
@@ -59,7 +59,10 @@
   .upsell{ display:flex; flex-direction:column; justify-content:center; }
   .ucard{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:32px 38px; }
   .ucard h2{ font-size:29px; margin:6px 0 8px; }
-  .ucard p{ font-size:13.5px; line-height:1.6; color:#46413a; max-width:5.3in; margin:0 0 22px; }
+  .ucard p{ font-size:13.5px; line-height:1.6; color:#46413a; max-width:5.3in; margin:0 0 20px; }
+  .ufeat{ display:grid; grid-template-columns:1fr 1fr; gap:12px 30px; margin:0 0 26px; }
+  .ufeat div{ font-size:12.8px; line-height:1.4; padding-left:23px; position:relative; color:#3c3833; }
+  .ufeat div::before{ content:"♥"; color:var(--gold); position:absolute; left:0; top:1px; font-size:12px; }
   .cta{ display:inline-block; background:var(--blush); color:#fff; text-decoration:none; font-weight:700; font-size:14px; padding:14px 32px; border-radius:40px; }
   .uend{ text-align:center; margin-top:40px; }
   .uend .big{ font-family:'Playfair Display',serif; font-style:italic; font-size:22px; }
@@ -75,7 +78,7 @@
   <h1>The Wedding<br>Day <span class="script">Timeline</span></h1>
   <hr class="rule" style="margin:22px auto;">
   <p class="sub">A sample hour-by-hour timeline + a build-your-own template, so your day flows perfectly.</p>
-  <div class="gift">A free gift from your <b>Bride Bestie</b> 💍 &nbsp;·&nbsp; bridebestie.com</div>
+  <div class="gift">From your <b>Bride Bestie</b> 💍 &nbsp;·&nbsp; bridebestie.com</div>
 </section>
 
 <!-- 2 HOW TO BUILD -->
@@ -92,10 +95,26 @@
        ceremony, so you actually enjoy your cocktail hour.</li>
     <li><b>Chase the golden hour.</b> Slip away for couple portraits ~30–45 min before sunset — the light is unreal.</li>
     <li><b>Feed your people.</b> Build in time for the wedding party (and you!) to eat.</li>
+    <li><b>Build in travel time.</b> If photos, ceremony, and reception are in different spots, add the
+       drive <i>plus</i> parking and loading — it always takes longer than the map says.</li>
+    <li><b>Name a point person.</b> Hand the timeline to a planner or a take-charge friend so you're
+       never the one being asked "what's next?" on your own wedding day.</li>
     <li><b>Share it with everyone.</b> Give the final timeline to every vendor and the whole party.</li>
   </ul>
   <div class="note"><p>The next page is a real, worked example for a <b>4:00 PM ceremony</b> — the most
     common start time. Shift every block earlier or later to match your own ceremony hour.</p></div>
+
+  <h3 style="font-size:18px; margin:26px 0 12px;">A few timing mistakes to dodge</h3>
+  <ul class="tips">
+    <li><b>Booking hair &amp; makeup too tight.</b> It runs over more than any other vendor — start
+       earlier than feels necessary and you'll thank yourself.</li>
+    <li><b>Forgetting "getting from A to B" time.</b> Walking the party to the photo spot and back
+       eats real minutes; account for it.</li>
+    <li><b>Stacking every photo after the ceremony.</b> Your guests are at cocktail hour and you're
+       missing it — a first look spreads photos out so you don't.</li>
+    <li><b>No buffer before the ceremony.</b> Leave 20–30 quiet minutes to breathe, touch up, and
+       actually take it in before you walk down the aisle.</li>
+  </ul>
   <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
 </section>
 
@@ -132,8 +151,19 @@
 <section class="page">
   <div class="ph"><div class="eyebrow">Your day</div><h2>Build your own timeline</h2></div>
   <hr class="rule">
-  <p class="lead">Fill in your times — start from the ceremony and work outward.</p>
+  <p class="lead">Fill in your times — start from the ceremony and work outward. There's room for the
+    whole day, from the first cup of coffee to the grand send-off.</p>
   <div class="tl">
+    <div class="brow"><div class="tline"></div><div class="eline"></div></div>
+    <div class="brow"><div class="tline"></div><div class="eline"></div></div>
+    <div class="brow"><div class="tline"></div><div class="eline"></div></div>
+    <div class="brow"><div class="tline"></div><div class="eline"></div></div>
+    <div class="brow"><div class="tline"></div><div class="eline"></div></div>
+    <div class="brow"><div class="tline"></div><div class="eline"></div></div>
+    <div class="brow"><div class="tline"></div><div class="eline"></div></div>
+    <div class="brow"><div class="tline"></div><div class="eline"></div></div>
+    <div class="brow"><div class="tline"></div><div class="eline"></div></div>
+    <div class="brow"><div class="tline"></div><div class="eline"></div></div>
     <div class="brow"><div class="tline"></div><div class="eline"></div></div>
     <div class="brow"><div class="tline"></div><div class="eline"></div></div>
     <div class="brow"><div class="tline"></div><div class="eline"></div></div>
@@ -162,9 +192,24 @@
     <p>This timeline is one piece of the puzzle. <b>The Ultimate Wedding Planner</b> keeps everything
        together — checklist, budget, guests, vendors, ceremony &amp; reception planners, and this
        day-of timeline — in one beautiful printable.</p>
+    <div class="ufeat">
+      <div>The full 12-month planning checklist</div>
+      <div>Budget tracker that adds up for you</div>
+      <div>Guest list &amp; RSVP manager</div>
+      <div>Vendor contacts &amp; payment tracker</div>
+      <div>Ceremony &amp; reception detail planners</div>
+      <div>This hour-by-hour day-of timeline</div>
+    </div>
     <a class="cta" href="https://bridebestie.gumroad.com/l/wedding-planner">Get the full planner →</a>
+    <div style="font-size:12px; color:var(--soft); margin-top:14px;">Instant download · print at home or use on any device.</div>
   </div>
-  <div class="uend"><div class="big">Here's to your perfect day.</div><div class="site">bridebestie.com · @bridebestie</div></div>
+  <div class="uend">
+    <div class="big">Here's to your perfect day.</div>
+    <p style="font-size:12.5px; line-height:1.6; color:var(--soft); max-width:5in; margin:14px auto 8px;">
+      However your day flows, I hope this takes one worry off your plate. You've got this — and I'm
+      cheering you on every step of the way.</p>
+    <div class="site">bridebestie.com · @bridebestie</div>
+  </div>
 </section>
 
 </body>

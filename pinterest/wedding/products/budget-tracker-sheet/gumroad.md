@@ -1,6 +1,6 @@
 # Gumroad listing — The Wedding Budget Tracker (Google Sheet)
 
-**Price:** $9 · **Delivery:** the Google Sheet **/copy** link (buyers make their own copy)
+**Price:** $9 · **URL slug:** `wedding-budget-tracker` · **Delivery:** the Google Sheet **/copy** link (buyers make their own copy)
 **Cover:** a screenshot of the sheet, or a styled mockup on the blush theme.
 
 ## Product name

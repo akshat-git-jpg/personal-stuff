@@ -2,6 +2,7 @@
 
 **Brand:** Bride Bestie · **Price:** ~$29 · **Format:** Gumroad bundle (multiple files + 1 sheet link)
 **Index PDF:** `out/00-welcome-to-your-vault.pdf` (3pp — ships as the first file) · **Source:** `vault-welcome.html`
+**Welcome PDF contents:** 1 Cover · 2 What's inside (7 product entries) + a "not sure where to begin?" suggested-order list · 3 How to use + a "how the pieces fit together by stage" walkthrough + Google-Sheet copy note.
 
 ## What it is
 The high-ticket anchor — every Bride Bestie product in one purchase. No new content to create; it's

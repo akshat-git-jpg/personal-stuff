@@ -15,9 +15,13 @@ cake/dessert, lighting/dance floor, extras · 6 "Don't forget these" (cords, lig
 ## Why it over-delivers at $5
 Organized by **physical zone** (ceremony → cocktail → reception → extras) the way a real setup
 happens, with the easy-to-miss items competitors skip (extension cords, cake knife, teardown crew).
+Each zone now carries extra real items (unity candle stand, kneeling bench, high-top linens, drink
+stirrers, menu easel, dance-floor decal, etc.), a **qty · setup · teardown** note line, and blank
+**add-your-own** rows. The upsell page lists what's inside the full planner.
 
 ## Notes
-QA: 0 pages overflow.
+QA (re-verified): every page renders clean, no clipping. Content pages fill ~62–73% with airy,
+completeness-friendly spacing; cover + upsell vertically balanced.
 
 ## Pending
 - [ ] Review + approve  · [ ] List on Gumroad ($5)

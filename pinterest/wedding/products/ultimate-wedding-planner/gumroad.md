@@ -20,7 +20,7 @@ with a beautiful page for every part of planning:
 • A space to capture your vision, style & colors
 • The full 12-month planning checklist
 • A budget tracker with every category (estimated, actual, deposits & balances)
-• Guest list & RSVP tracker (40 spots)
+• Guest list & RSVP tracker (56 spots)
 • Vendor contacts & payment tracker
 • Wedding party details
 • An hour-by-hour day-of timeline

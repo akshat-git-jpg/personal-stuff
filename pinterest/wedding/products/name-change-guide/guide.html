@@ -39,6 +39,14 @@
   .step .c h3{ font-size:16px; margin:2px 0 4px; }
   .step .c p{ font-size:12.3px; line-height:1.5; color:#46413a; margin:0; }
   .step .c .tip{ font-size:11.5px; color:var(--blush); font-style:italic; margin-top:4px; }
+  .step .c .track{ font-size:11px; color:var(--soft); margin-top:7px; display:flex; gap:22px; }
+  .step .c .track span{ border-bottom:1px solid var(--line); flex:1; padding-bottom:2px; }
+  .step0{ display:flex; gap:16px; background:#fff; border:1px solid var(--line); border-left:3px solid var(--gold);
+          border-radius:10px; padding:14px 18px; margin-bottom:6px; }
+  .step0 .lbl{ flex:0 0 auto; font-family:'Playfair Display',serif; font-size:13px; color:var(--gold);
+          letter-spacing:.04em; padding-top:1px; }
+  .step0 .c h3{ font-size:14.5px; margin:0 0 4px; }
+  .step0 .c p{ font-size:11.8px; line-height:1.5; color:#46413a; margin:0; }
 
   /* checklist groups */
   .grp{ margin-bottom:16px; }
@@ -97,6 +105,22 @@
   <p class="body" style="margin-top:14px;">Set aside about <b>6–8 weeks</b> start to finish — most of
     that is just waiting for new cards to arrive. You can knock out the rest in an afternoon once your
     Social Security card and license are updated.</p>
+  <p class="body">A few things make it painless: do them <b>one at a time</b>, keep every document in
+    one folder so you're never hunting for a certificate, and don't start the DMV step until your new
+    Social Security card is physically in hand. Skip ahead and you'll just be repeating the trip.</p>
+  <div class="callout" style="border-left-color:var(--gold); margin-top:16px;">
+    <h3>What to expect at each stop</h3>
+    <p><b>By mail or online:</b> Social Security and (often) your passport — fill in the form, send it
+       with a certified certificate, wait for the new card.<br>
+       <b>In person:</b> the DMV — bring everything and budget an hour.<br>
+       <b>A quick call or login:</b> banks, insurance, employer, memberships — usually done from your couch.</p>
+  </div>
+  <p class="body" style="margin-top:16px;">One small thing that saves a lot of stress: until your new
+    documents arrive, keep using your <b>current</b> name on anything time-sensitive — flights, hotel
+    bookings, reservations. The legal name on your ticket has to match the ID you'll show, so there's no
+    rush to change those before your cards catch up.</p>
+  <p class="body">That's the whole map. The next page turns it into five clear steps you can work through
+    one at a time, with space to jot the date you finish each one.</p>
   <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
 </section>
 
@@ -104,32 +128,43 @@
 <section class="page">
   <div class="ph"><div class="eyebrow">The order</div><h2>Do it in this order</h2></div>
   <hr class="rule">
+  <div class="step0"><div class="lbl">First</div><div class="c">
+    <h3>Before you start: have these in hand</h3>
+    <p>Your certified marriage certificates, current driver's license, current passport, your Social
+       Security card, and proof of address. Keep them together in one folder — you'll reach for the same
+       few documents at every step.</p>
+  </div></div>
   <div class="step"><div class="num">1</div><div class="c">
     <h3>Order certified marriage certificates</h3>
     <p>Request them from your county clerk / vital records office. You'll show these as proof everywhere.</p>
     <div class="tip">Tip: order 3–5 certified copies — several places want an original.</div>
+    <div class="track"><span>ordered on</span><span>received on</span></div>
   </div></div>
   <div class="step"><div class="num">2</div><div class="c">
     <h3>Update your Social Security card</h3>
     <p>Do this first — everything else keys off your SSA record. File Form SS-5 (free) by mail or at your
        local SSA office with your marriage certificate. Your new card arrives in ~2 weeks.</p>
     <div class="tip">Tip: wait for the new card before the DMV — they'll ask for it.</div>
+    <div class="track"><span>filed on</span><span>new card received</span></div>
   </div></div>
   <div class="step"><div class="num">3</div><div class="c">
     <h3>Update your driver's license / state ID</h3>
     <p>Visit the DMV with your new Social Security card, a certified marriage certificate, and proof of
        address. You'll get a new license with your married name.</p>
+    <div class="track"><span>visited on</span><span>new ID received</span></div>
   </div></div>
   <div class="step"><div class="num">4</div><div class="c">
     <h3>Update your U.S. passport</h3>
     <p>Use Form DS-5504 (free) if your passport is less than a year old, otherwise DS-82 (standard fee),
        with a certified marriage certificate.</p>
     <div class="tip">Tip: book honeymoon flights in the name that matches your current passport.</div>
+    <div class="track"><span>filed on</span><span>new passport received</span></div>
   </div></div>
   <div class="step"><div class="num">5</div><div class="c">
     <h3>Update everything else</h3>
     <p>With your new license + SS card in hand, update banks, cards, employer, insurance and the rest —
        use the master checklist on the next pages so nothing slips.</p>
+    <div class="track"><span>started on</span><span>finished on</span></div>
   </div></div>
   <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
 </section>
@@ -148,6 +183,10 @@
       <div class="item"><span class="cb"></span>Vehicle title &amp; registration</div>
       <div class="item"><span class="cb"></span>Will &amp; estate documents</div>
       <div class="item"><span class="cb"></span>IRS / tax records</div>
+      <div class="item"><span class="cb"></span>Power of attorney</div>
+      <div class="item"><span class="cb"></span>Beneficiary designations</div>
+      <div class="item"><span class="cb"></span>Military / VA records</div>
+      <div class="item"><span class="cb"></span>Immigration documents</div>
     </div>
   </div>
   <div class="grp"><div class="gh"><span class="t">Financial</span></div>
@@ -162,7 +201,29 @@
       <div class="item"><span class="cb"></span>Home / renters insurance</div>
       <div class="item"><span class="cb"></span>Life insurance</div>
       <div class="item"><span class="cb"></span>Health insurance</div>
+      <div class="item"><span class="cb"></span>Credit bureaus / credit report</div>
+      <div class="item"><span class="cb"></span>Tax preparer / accountant</div>
+      <div class="item"><span class="cb"></span>Safe-deposit box</div>
+      <div class="item"><span class="cb"></span>Financial advisor</div>
     </div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Add your own</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+    </div>
+  </div>
+  <div class="callout" style="border-left-color:var(--gold);">
+    <h3>How to work this list</h3>
+    <p>You won't have every one of these — tick what applies, cross out what doesn't, and add anything
+       specific to your life in the blanks. Knock out Government &amp; Legal first; the rest can happen in
+       any order once your new ID is in hand.</p>
   </div>
   <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
 </section>
@@ -179,6 +240,8 @@
       <div class="item"><span class="cb"></span>LinkedIn &amp; profiles</div>
       <div class="item"><span class="cb"></span>Business cards</div>
       <div class="item"><span class="cb"></span>Direct-deposit details</div>
+      <div class="item"><span class="cb"></span>Email signature &amp; out-of-office</div>
+      <div class="item"><span class="cb"></span>Freelance / client invoices</div>
     </div>
   </div>
   <div class="grp"><div class="gh"><span class="t">Home &amp; utilities</span></div>
@@ -188,6 +251,7 @@
       <div class="item"><span class="cb"></span>Internet &amp; phone</div>
       <div class="item"><span class="cb"></span>Trash / HOA</div>
       <div class="item"><span class="cb"></span>Landlord contact</div>
+      <div class="item"><span class="cb"></span>Home security / alarm</div>
     </div>
   </div>
   <div class="grp"><div class="gh"><span class="t">Health</span></div>
@@ -196,6 +260,8 @@
       <div class="item"><span class="cb"></span>Dentist</div>
       <div class="item"><span class="cb"></span>Pharmacy</div>
       <div class="item"><span class="cb"></span>Medical records</div>
+      <div class="item"><span class="cb"></span>Vision / eye care</div>
+      <div class="item"><span class="cb"></span>Therapist / specialists</div>
     </div>
   </div>
   <div class="grp"><div class="gh"><span class="t">Digital &amp; memberships</span></div>
@@ -206,6 +272,16 @@
       <div class="item"><span class="cb"></span>Streaming services</div>
       <div class="item"><span class="cb"></span>Gym &amp; memberships</div>
       <div class="item"><span class="cb"></span>Social media</div>
+      <div class="item"><span class="cb"></span>Subscription boxes</div>
+      <div class="item"><span class="cb"></span>Library card</div>
+    </div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Add your own</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
     </div>
   </div>
   <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
@@ -225,6 +301,14 @@
     <div class="a">About 6–8 weeks, mostly waiting on the new Social Security card and license. The rest is quick once those arrive.</div></div>
   <div class="qa"><div class="q">What do I do first?</div>
     <div class="a">Social Security, always. Many other updates ask for your updated SS record or new license.</div></div>
+  <div class="qa"><div class="q">Can I keep my maiden name at work but change it everywhere else?</div>
+    <div class="a">Yes. Plenty of people use their maiden name professionally and their married name legally — just keep your legal documents (ID, SS card, taxes) consistent so they match each other.</div></div>
+  <div class="qa"><div class="q">Do I need a lawyer or a court order?</div>
+    <div class="a">For a name change through marriage, no — your marriage certificate is the legal proof. A court order is only needed for a name that isn't your maiden, spouse's, or a simple combination of the two.</div></div>
+  <div class="qa"><div class="q">What about my email address and logins?</div>
+    <div class="a">Those don't have to change at all. Update the display name where it matters; your actual email and usernames can stay exactly as they are.</div></div>
+  <div class="qa"><div class="q">My documents have a typo — now what?</div>
+    <div class="a">Fix it at the source first (the marriage certificate or SS card), then carry the corrected version forward. Catching it early saves you from re-doing the steps that follow.</div></div>
   <div class="callout">
     <h3>✈️ Before the honeymoon</h3>
     <p>Your flight booking must match the name on the ID/passport you'll travel with. If you haven't
@@ -244,13 +328,22 @@
     <div class="item"><span class="cb"></span>Social Security card</div>
     <div class="item"><span class="cb"></span>Proof of address (for the DMV)</div>
     <div class="item"><span class="cb"></span>A second form of ID (just in case)</div>
+    <div class="item"><span class="cb"></span>Birth certificate</div>
+    <div class="item"><span class="cb"></span>Completed SS-5 form</div>
+    <div class="item"><span class="cb"></span>Passport form (DS-5504 or DS-82)</div>
+    <div class="item"><span class="cb"></span>A folder to keep it all together</div>
   </div></div>
-  <div style="height:14px;"></div>
+  <div style="height:16px;"></div>
   <div class="ph"><h2 style="font-size:22px;">Notes &amp; to-dos</h2></div>
   <hr class="rule">
   <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
   <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
-  <div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
   <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
 </section>
 
@@ -261,7 +354,7 @@
     <h2>Planning the rest of the wedding too?</h2>
     <p>The name change is just one box to tick. <b>The Ultimate Wedding Planner</b> keeps your whole
        day organized — checklist, budget, guests, vendors, and the day-of timeline — all in one
-       beautiful printable.</p>
+       beautiful printable. Everything in one place, so nothing slips through the cracks.</p>
     <a class="cta" href="https://bridebestie.gumroad.com/l/wedding-planner">Get the full planner →</a>
   </div>
   <div class="uend"><div class="big">Congratulations, you two.</div><div class="site">bridebestie.com · @bridebestie</div></div>

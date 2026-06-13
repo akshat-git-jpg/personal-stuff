@@ -15,8 +15,8 @@ Just got engaged and have no idea where to start? Same — that's exactly why th
 
 This free printable breaks the entire wedding down into small, month-by-month steps, so instead of
 one overwhelming to-do list you just handle a little at a time. From locking your venue 12 months
-out to handing off the rings the night before, it's all here — about 110 real tasks across 8
-beautifully designed pages.
+out to handing off the rings the night before, it's all here — about 90 real tasks across 8
+beautifully designed pages, with room on every page to jot your own.
 
 What's inside:
 • A complete 12-month timeline (12+ months → wedding day)

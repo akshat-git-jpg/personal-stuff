@@ -9,11 +9,13 @@ Wide-open, high-intent demand with no one capturing it. Low competition, easy $5
 fresh funnel entry (its own pins) into the Bride Bestie ecosystem.
 
 ## What's inside (8 pages)
-1 Cover · 2 How a name change works (order matters + timeline) · 3 The 5-step order (certificates →
-SSA → DMV → passport → everything else, with what you need + tips) · 4–5 Master checklist —
-everywhere to update your name (Government/legal, Financial, Work, Home/utilities, Health,
-Digital/memberships) · 6 Tips & FAQ + a "before the honeymoon" travel-name callout · 7 Documents to
-gather + notes · 8 Upsell → Ultimate Planner.
+1 Cover · 2 How a name change works (order matters + timeline + a "what to expect at each stop" box) ·
+3 Before-you-start box + the 5-step order (certificates → SSA → DMV → passport → everything else, with
+what you need, tips, and an "ordered on / received on" date-tracking line per step) · 4–5 Master
+checklist — everywhere to update your name (Government/legal, Financial, Work, Home/utilities, Health,
+Digital/memberships, each with blank "add your own" rows) · 6 Tips & FAQ (9 quick answers) + a "before
+the honeymoon" travel-name callout · 7 Documents to gather + a full notes/to-dos page · 8 Upsell →
+Ultimate Planner.
 
 ## Why it over-delivers at $5
 - It's the *only* organized answer to a thing brides actively search and stress about.

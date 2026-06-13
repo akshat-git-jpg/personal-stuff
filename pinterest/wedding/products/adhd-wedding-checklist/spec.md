@@ -11,8 +11,9 @@ little competition and high emotional resonance. Differentiated by *approach*, n
 - **Tiny, concrete next-steps** ("pick a season — just the season", "email 2–3 venues") instead of big vague tasks.
 - **Brain-dump page** to externalize the mental load.
 - **Single-column, low-clutter** checklist (less visual overwhelm).
-- A page of **real ADHD systems** (2-min rule, alarms-not-memory, body-doubling, delegate-one-thing, limit choices).
-- **"Today's one thing" + reward** tracker for momentum.
+- A page of **real ADHD systems** (2-min rule, alarms-not-memory, body-doubling, delegate-one-thing, limit choices,
+  the 15-min timer date, park-on-a-downhill-slope, pair-planning-with-a-treat — 10 in all).
+- **"Today's one thing" + reward** tracker plus a **one-tiny-thing-a-day week** strip for momentum.
 - Warm, shame-free voice ("for brains that get overwhelmed").
 
 ## 8 pages
@@ -24,7 +25,9 @@ It's not the generic checklist reskinned — it's genuinely designed for executi
 is exactly why this buyer searches for it and why a normal planner fails them.
 
 ## Notes
-- Supportive aid, not medical advice — language kept warm/general. QA: 0 pages overflow.
+- Supportive aid, not medical advice — language kept warm/general.
+- QA (re-verified): every page renders clean, no clipping. Content pages fill ~72–85% with generous,
+  on-brand spacing; cover + upsell balanced (upsell now carries a 5-item "what's inside" list).
 
 ## Pending
 - [ ] Review + approve  · [ ] List on Gumroad ($5)

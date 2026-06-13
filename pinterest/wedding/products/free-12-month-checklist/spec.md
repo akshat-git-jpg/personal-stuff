@@ -10,7 +10,8 @@ the final page upsells the paid Ultimate Wedding Planner.
 
 ## Why it over-delivers (more value than its $0)
 - **8 pages, genuinely complete:** a real month-by-month timeline from "just engaged" (12+ months)
-  all the way to the wedding day — ~110 actual tasks, not a thin teaser.
+  all the way to the wedding day — ~90 actual tasks (plus a "notes & my own to-dos" block on every
+  timeline page), not a thin teaser.
 - **Designed, not generic:** elegant cream/charcoal/sage theme, Playfair serif, gold accents,
   framed cover — looks like a $15 Etsy product, given free.
 - **Genuinely usable:** print-friendly checkboxes, two-column layout, "how to use it" guidance,
