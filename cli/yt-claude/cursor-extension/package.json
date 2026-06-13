@@ -2,16 +2,28 @@
   "name": "yt-claude",
   "displayName": "YT → Claude",
   "description": "Opens an integrated terminal tab per YouTube video queued by the yt-claude relay.",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "publisher": "kushal",
   "engines": { "vscode": "^1.70.0" },
   "activationEvents": ["onStartupFinished"],
   "main": "./extension.js",
   "contributes": {
     "commands": [
+      { "command": "ytClaude.startHere", "title": "YT→Claude: Open videos in THIS window (pick account)" },
+      { "command": "ytClaude.switchAccount", "title": "YT→Claude: Switch Claude account" },
       { "command": "ytClaude.claimHere", "title": "YT→Claude: Open videos in THIS window" },
       { "command": "ytClaude.release", "title": "YT→Claude: Stop pinning window" },
       { "command": "ytClaude.poll", "title": "YT→Claude: Check queue now" }
-    ]
+    ],
+    "configuration": {
+      "title": "YT → Claude",
+      "properties": {
+        "ytClaude.claudeCommand": {
+          "type": "string",
+          "default": "claude",
+          "description": "Claude CLI command to use in this workspace (e.g. claude-personal, claude-work)"
+        }
+      }
+    }
   }
 }

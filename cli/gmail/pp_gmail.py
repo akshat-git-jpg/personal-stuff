@@ -14,16 +14,17 @@ Subcommands:
   prefs-set [--account EMAIL] --content TEXT|@file|-     overwrite prefs file
   archive THREAD_ID [THREAD_ID ...] [--account EMAIL]
   count QUERY [--account EMAIL]
-  send --to X --subject S --body TEXT|@file|- [--cc] [--bcc]
-  reply THREAD_ID --body TEXT|@file|- [--reply-all]
-  draft --to X --subject S --body TEXT|@file|- [--cc] [--bcc]
-  reply-draft THREAD_ID --body TEXT|@file|- [--reply-all]
+  send --to X --subject S --body TEXT|@file|- [--cc] [--bcc] [--attach FILE ...]
+  reply THREAD_ID --body TEXT|@file|- [--reply-all] [--attach FILE ...]
+  draft --to X --subject S --body TEXT|@file|- [--cc] [--bcc] [--attach FILE ...]
+  reply-draft THREAD_ID --body TEXT|@file|- [--reply-all] [--attach FILE ...]
 """
 from __future__ import annotations
 
 import argparse
 import base64
 import json
+import mimetypes
 import sys
 from email.message import EmailMessage
 from email.utils import getaddresses, parseaddr
@@ -91,6 +92,7 @@ def _build_message(
     cc: Optional[str] = None,
     bcc: Optional[str] = None,
     extra_headers: Optional[dict] = None,
+    attachments: Optional[list[str]] = None,
 ) -> EmailMessage:
     msg = EmailMessage()
     msg["To"] = to
@@ -103,6 +105,15 @@ def _build_message(
         if value:
             msg[key] = value
     msg.set_content(body)
+    for path_str in (attachments or []):
+        path = Path(path_str).expanduser().resolve()
+        data = path.read_bytes()
+        mime_type, _ = mimetypes.guess_type(str(path))
+        if mime_type and "/" in mime_type:
+            main_type, sub_type = mime_type.split("/", 1)
+        else:
+            main_type, sub_type = "application", "octet-stream"
+        msg.add_attachment(data, maintype=main_type, subtype=sub_type, filename=path.name)
     return msg
 
 
@@ -112,7 +123,14 @@ def _reply_fields(thread: dict, self_email: str, reply_all: bool) -> dict:
     messages = thread.get("messages", [])
     if not messages:
         raise ValueError("Thread has no messages to reply to.")
+    # prefer the last message NOT sent by self (avoids replying to yourself)
     last = messages[-1]
+    for msg in reversed(messages):
+        hdrs = msg.get("payload", {}).get("headers", [])
+        from_val = next((h["value"] for h in hdrs if h["name"].lower() == "from"), "")
+        if self_email.lower() not in from_val.lower():
+            last = msg
+            break
     headers = last.get("payload", {}).get("headers", [])
 
     orig_subject = _header(headers, "Subject")
@@ -278,7 +296,7 @@ def cmd_send(args: argparse.Namespace) -> int:
     svc = _service(args.account)
     msg = _build_message(
         to=args.to, subject=args.subject, body=_read_text_arg(args.body),
-        cc=args.cc, bcc=args.bcc,
+        cc=args.cc, bcc=args.bcc, attachments=args.attachments,
     )
     sent = svc.users().messages().send(
         userId="me", body={"raw": _encode_message(msg)}
@@ -296,6 +314,7 @@ def cmd_reply(args: argparse.Namespace) -> int:
     msg = _build_message(
         to=fields["to"], subject=fields["subject"], body=_read_text_arg(args.body),
         cc=fields["cc"], extra_headers=fields["extra_headers"],
+        attachments=args.attachments,
     )
     sent = svc.users().messages().send(
         userId="me", body={"raw": _encode_message(msg), "threadId": args.thread_id}
@@ -311,7 +330,7 @@ def cmd_draft(args: argparse.Namespace) -> int:
     svc = _service(args.account)
     msg = _build_message(
         to=args.to, subject=args.subject, body=_read_text_arg(args.body),
-        cc=args.cc, bcc=args.bcc,
+        cc=args.cc, bcc=args.bcc, attachments=args.attachments,
     )
     draft = svc.users().drafts().create(
         userId="me", body={"message": {"raw": _encode_message(msg)}}
@@ -329,6 +348,7 @@ def cmd_reply_draft(args: argparse.Namespace) -> int:
     msg = _build_message(
         to=fields["to"], subject=fields["subject"], body=_read_text_arg(args.body),
         cc=fields["cc"], extra_headers=fields["extra_headers"],
+        attachments=args.attachments,
     )
     draft = svc.users().drafts().create(
         userId="me",
@@ -413,12 +433,14 @@ def build_parser() -> argparse.ArgumentParser:
     se.add_argument("--body", required=True, help="Body text (or @file, or '-' for stdin).")
     se.add_argument("--cc")
     se.add_argument("--bcc")
+    se.add_argument("--attach", action="append", metavar="FILE", dest="attachments", default=[], help="Attach a file (repeat for multiple).")
     se.set_defaults(func=cmd_send)
 
     rp = sub.add_parser("reply", help="Send a reply in an existing thread (proper threading headers).")
     rp.add_argument("thread_id")
     rp.add_argument("--body", required=True, help="Body text (or @file, or '-' for stdin).")
     rp.add_argument("--reply-all", action="store_true")
+    rp.add_argument("--attach", action="append", metavar="FILE", dest="attachments", default=[], help="Attach a file (repeat for multiple).")
     rp.set_defaults(func=cmd_reply)
 
     dr = sub.add_parser("draft", help="Create a NEW draft in Gmail Drafts (does not send).")
@@ -427,12 +449,14 @@ def build_parser() -> argparse.ArgumentParser:
     dr.add_argument("--body", required=True, help="Body text (or @file, or '-' for stdin).")
     dr.add_argument("--cc")
     dr.add_argument("--bcc")
+    dr.add_argument("--attach", action="append", metavar="FILE", dest="attachments", default=[], help="Attach a file (repeat for multiple).")
     dr.set_defaults(func=cmd_draft)
 
     rd = sub.add_parser("reply-draft", help="Create a reply draft in an existing thread (does not send).")
     rd.add_argument("thread_id")
     rd.add_argument("--body", required=True, help="Body text (or @file, or '-' for stdin).")
     rd.add_argument("--reply-all", action="store_true")
+    rd.add_argument("--attach", action="append", metavar="FILE", dest="attachments", default=[], help="Attach a file (repeat for multiple).")
     rd.set_defaults(func=cmd_reply_draft)
 
     a = sub.add_parser("archive", help="Remove INBOX label from one or more threads.")

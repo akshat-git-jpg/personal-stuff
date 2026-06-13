@@ -21,10 +21,41 @@ const DIR = process.env.YT_CLAUDE_DIR || path.join(os.homedir(), "yt-claude");
 const PENDING = path.join(DIR, "pending");
 const OWNER = path.join(DIR, ".owner.json");   // focus-election heartbeat
 const TARGET = path.join(DIR, ".target");        // pinned workspace key
+const CMD_FILE = path.join(DIR, ".claude-cmd"); // active account override
 const LOGF = path.join(DIR, "extension.log");
 const STALE_MS = 3000;
 const POLL_MS = 700;
 const WIN_ID = Math.random().toString(36).slice(2, 8);
+
+const ACCOUNTS = ["claude-personal", "claude-work", "claude"];
+
+let statusBar;
+
+function readCmdOverride() {
+  try { return fs.readFileSync(CMD_FILE, "utf8").trim() || null; } catch (e) { return null; }
+}
+
+function writeCmdOverride(cmd) {
+  fs.writeFileSync(CMD_FILE, cmd);
+}
+
+function activeClaudeCmd() {
+  return (
+    readCmdOverride() ||
+    vscode.workspace.getConfiguration("ytClaude").get("claudeCommand", "claude")
+  );
+}
+
+function updateStatusBar() {
+  if (!statusBar) return;
+  const cmd = activeClaudeCmd();
+  const pinnedHere = readTarget() === wsKey();
+  const icon = pinnedHere ? "$(check)" : "$(circle-outline)";
+  statusBar.text = icon + " YT→" + cmd;
+  statusBar.tooltip = pinnedHere
+    ? "YT→Claude: videos open HERE as " + cmd + "\nClick to change account / re-pin"
+    : "YT→Claude: this window is NOT receiving videos\nClick to pick account + open videos here";
+}
 
 function log(msg) {
   try {
@@ -106,10 +137,12 @@ function poll() {
       continue;
     }
     try {
+      const claudeCmd = activeClaudeCmd();
+      const cmd = job.cmd.replace(/^claude\b/, claudeCmd);
       const term = vscode.window.createTerminal({ name: job.name || "yt", cwd: job.cwd });
       term.show(false); // reveal panel without stealing editor focus
-      term.sendText(job.cmd);
-      log("opened " + job.id + "  " + (job.name || ""));
+      term.sendText(cmd);
+      log("opened " + job.id + "  " + (job.name || "") + "  cmd=" + claudeCmd);
     } catch (e) {
       log("ERROR opening " + job.id + ": " + (e && e.message));
     }
@@ -121,10 +154,50 @@ function activate(context) {
   try { fs.mkdirSync(PENDING, { recursive: true }); } catch (e) {}
   log("activated  ws=" + wsKey());
 
-  const timer = setInterval(poll, POLL_MS);
+  statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
+  statusBar.command = "ytClaude.startHere";
+  updateStatusBar();
+  statusBar.show();
+  context.subscriptions.push(statusBar);
+
+  const timer = setInterval(() => { poll(); updateStatusBar(); }, POLL_MS);
   context.subscriptions.push({ dispose: () => clearInterval(timer) });
 
   context.subscriptions.push(
+    // One-click setup: pick the account AND pin this window to receive videos.
+    vscode.commands.registerCommand("ytClaude.startHere", async () => {
+      const current = activeClaudeCmd();
+      const items = ACCOUNTS.map((a) => ({
+        label: a,
+        description: a === current ? "● current" : "",
+      }));
+      const pick = await vscode.window.showQuickPick(items, {
+        placeHolder: "Open YouTube videos in THIS window using which Claude account?",
+      });
+      if (!pick) return;
+      writeCmdOverride(pick.label);
+      try { fs.writeFileSync(TARGET, wsKey()); } catch (e) {}
+      updateStatusBar();
+      log("startHere: account=" + pick.label + " pinned=" + wsKey());
+      vscode.window.showInformationMessage(
+        "YT→Claude: videos will open HERE as " + pick.label + "."
+      );
+    }),
+    vscode.commands.registerCommand("ytClaude.switchAccount", async () => {
+      const current = activeClaudeCmd();
+      const items = ACCOUNTS.map((a) => ({
+        label: a,
+        description: a === current ? "● active" : "",
+      }));
+      const pick = await vscode.window.showQuickPick(items, {
+        placeHolder: "Select Claude account for video tabs",
+      });
+      if (!pick) return;
+      writeCmdOverride(pick.label);
+      updateStatusBar();
+      log("switched account to " + pick.label);
+      vscode.window.showInformationMessage("YT→Claude: using " + pick.label);
+    }),
     vscode.commands.registerCommand("ytClaude.poll", poll),
     vscode.commands.registerCommand("ytClaude.claimHere", () => {
       try {
