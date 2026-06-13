@@ -1,6 +1,6 @@
 # VPS Cron Architecture (Pattern B)
 
-Operational reference for every scheduled job running on the Hostinger VPS (`srv1377177.hstgr.cloud` / `72.61.241.170`). For what runs where overall, see [INFRA.md](./INFRA.md). (The retired Hermes agent reference now lives at [docs/archive/HERMES.md](./docs/archive/HERMES.md).)
+Operational reference for every scheduled job running on the Hostinger VPS (`srv1377177.hstgr.cloud` / `72.61.241.170`). For what runs where overall, see [INFRA.md](./INFRA.md).
 
 This file is mirrored to three locations so it's findable wherever you are:
 - `akshat-git-jpg/personal-stuff` → `VPS-CRONS.md` (root)

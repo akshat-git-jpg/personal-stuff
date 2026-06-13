@@ -30,7 +30,7 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 
 ### Top level
 - `scripts/` — Repo-wide orchestration (`relink.sh`, `sync-mcps.sh`, `regen-mcp-json.sh`) plus an index of everything outside the repo that depends on its layout. See `scripts/README.md`.
-- `docs/` — Research notes and design specs. `docs/archive/` holds retired references (e.g. the deprecated Hermes agent).
+- `docs/` — Research notes and design specs.
 - `.claude/` — Repo-level Claude settings (`settings.json`, `settings.local.json`).
 - `INFRA.md` — Canonical inventory of Cloudflare + VPS + DNS.
 - `VPS-CRONS.md` — Full cron architecture (Pattern B).
