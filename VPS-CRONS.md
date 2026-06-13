@@ -1,6 +1,6 @@
 # VPS Cron Architecture (Pattern B)
 
-Operational reference for every scheduled job running on the Hostinger VPS (`srv1377177.hstgr.cloud` / `72.61.241.170`). Companion to [HERMES.md](./HERMES.md) — Hermes covers the always-on AI assistant, this doc covers cron jobs.
+Operational reference for every scheduled job running on the Hostinger VPS (`srv1377177.hstgr.cloud` / `72.61.241.170`). For what runs where overall, see [INFRA.md](./INFRA.md). (The retired Hermes agent reference now lives at [docs/archive/HERMES.md](./docs/archive/HERMES.md).)
 
 This file is mirrored to three locations so it's findable wherever you are:
 - `akshat-git-jpg/personal-stuff` → `VPS-CRONS.md` (root)
@@ -87,7 +87,8 @@ Layout (only the cron-relevant pieces):
 
 ```
 personal-stuff/
-├── HERMES.md
+├── README.md                          ← repo map (start here)
+├── INFRA.md                           ← what runs where
 ├── VPS-CRONS.md                       ← this file (one of three copies)
 ├── my-planner/
 │   ├── tools/daily-digest/            ← kb-daily-planner project lives here

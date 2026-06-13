@@ -1,6 +1,6 @@
 # Infrastructure Inventory
 
-Canonical map of what runs where. Audited 2026-06-13. Supersedes `my-planner/hostinger-vps-srv1377177.md` (stale).
+Canonical map of what runs where. Audited 2026-06-13. The single infra reference (the old `my-planner/hostinger-vps-srv1377177.md` was stale and has been removed).
 
 Three places: **Cloudflare** (public edge), **Hostinger VPS** (always-on box), **GitHub** (source of truth; VPS pulls on every cron tick).
 

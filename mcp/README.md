@@ -1,5 +1,7 @@
 # MCPs for Claude Code
 
+> **Status (2026):** Mostly legacy. The Gmail / Sheets / YouTube / Hostinger work moved to plain CLIs in `../cli`, which cost tokens only when they run. Only `drive` and `cloudflare` are still used as MCPs. This folder stays in place because `cli/` borrows its Google OAuth from `mcp/google-shared`, and `sync-mcps.sh` mirrors the code to the TY repo. Don't move it without updating both.
+
 A bundle of MCP (Model Context Protocol) servers that Claude Code can call as tools while you work in this repo. Examples: read/write Google Sheets, query a Cloudflare D1 database, search YouTube, send a Gmail draft.
 
 These are **optional**. The TY scripts (`youtube/`, `common/`, `workers/`) all work without them. MCPs only matter when you're driving Claude Code interactively and want it to do things for you instead of running scripts yourself.
