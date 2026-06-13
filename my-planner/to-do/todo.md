@@ -8,3 +8,6 @@ threads traffic
 twitter
 substack
 newsletter like Linas Beliūnas - linkdein,twitter,substack
+education videos production team like wscubes a nd website learners
+
+marketplace - just upload and upload. poeple will check and use
