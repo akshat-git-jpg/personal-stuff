@@ -1,0 +1,22 @@
+{
+  // VPS watchdog — runs on Cloudflare (off the VPS), pings the dashboard every
+  // 2 minutes, and reboots the Hostinger VPS via API if the origin is truly down.
+  "name": "vps-watchdog",
+  "main": "src/index.js",
+  "compatibility_date": "2024-11-01",
+  "triggers": {
+    "crons": ["*/2 * * * *"]
+  },
+  "kv_namespaces": [
+    { "binding": "WATCHDOG_KV", "id": "1e4a93d897d74c339490f3bf4cbc1570" }
+  ],
+  "vars": {
+    "TARGET_URL": "https://my-dashboard.agrolloo.com",
+    "VPS_ID": "1377177",
+    "COOLDOWN_SECONDS": "900",
+    "FAIL_THRESHOLD": "3"
+  }
+  // Secrets (set via `wrangler secret put`):
+  //   HOSTINGER_API_TOKEN  — Bearer token for the Hostinger API (VPS restart)
+  //   STATUS_SECRET        — guards the GET status/dry-run endpoint
+}
