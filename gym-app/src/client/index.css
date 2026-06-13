@@ -112,6 +112,55 @@ textarea {
   }
 }
 
+/* ---- Interactive iOS-style back-swipe ---- */
+.viewport {
+  position: relative;
+  min-height: 100dvh;
+}
+/* The committed view lives here in normal flow when no swipe is happening, so
+   the page scrolls and the .screen fade plays as usual on forward nav. */
+.nav-top {
+  background: var(--bg);
+}
+/* During a back-swipe both screens are stacked as fixed, finger-driven layers. */
+.viewport.swiping {
+  height: 100dvh;
+  overflow: hidden;
+}
+.viewport.swiping > .nav-layer {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  pointer-events: none; /* layers are visual-only mid-gesture */
+}
+.viewport.swiping .nav-under {
+  z-index: 1;
+  background: var(--bg);
+}
+.viewport.swiping .nav-top {
+  z-index: 3;
+  /* edge shadow on the screen being dragged away — the iOS tell */
+  box-shadow: -10px 0 26px rgba(0, 0, 0, 0.55);
+  will-change: transform;
+}
+.viewport.swiping .nav-under {
+  will-change: transform;
+}
+.nav-dim {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
+}
+/* Skip the fade on the view we just popped to — it already slid in. */
+.viewport.no-anim .screen {
+  animation: none;
+}
+
 .topbar {
   display: flex;
   align-items: center;
