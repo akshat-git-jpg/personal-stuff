@@ -1,6 +1,6 @@
 // Service Worker — cache app shell, network-first for /api/
 
-const CACHE_NAME = 'pd-v6';
+const CACHE_NAME = 'pd-v7';
 const SHELL_ASSETS = [
   '/',
   '/index.html',
@@ -16,6 +16,9 @@ const SHELL_ASSETS = [
   '/fonts/fraunces.woff2',
   '/js/vendor/chart.umd.min.js',
   '/js/vendor/Sortable.min.js',
+  '/icons/icon-180.png',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
 ];
 
 self.addEventListener('install', (event) => {
