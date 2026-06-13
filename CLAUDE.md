@@ -18,7 +18,9 @@ A single git repo holding everything related to my YouTube channel: niche resear
 | [`docs/`](docs/CLAUDE.md) | Repo-wide docs and workflows | Markdown |
 | [`upwork-hiring/`](upwork-hiring/CLAUDE.md) | Turn jumbled hiring thoughts into a ready-to-paste Upwork job post | Claude workflow |
 | [`to-do/`](to-do/CLAUDE.md) | Running TODO list | Markdown |
-| [`n8n-website/`](n8n-website/CLAUDE.md) | Static "coming soon" landing page | HTML |
+| [`pinterest/`](pinterest/PLAN.md) | Per-niche Pinterest PDF business (keto, wedding) + landing pages | Python + HTML |
+| [`mcp/`](mcp/README.md) | MCP servers (Google-shared OAuth, Cloudflare, ElevenLabs, Hostinger); mirrored to personal-stuff | Node + Python |
+| [`hyperframes-vs-remotion/`](hyperframes-vs-remotion/) | HTML→video tooling experiment (Hyperframes vs Remotion) | Node |
 
 ## Getting started
 
