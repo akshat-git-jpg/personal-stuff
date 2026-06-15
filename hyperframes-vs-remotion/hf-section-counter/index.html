@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+    <style>
+      /* Inter self-hosted so the big number never falls back to a system face */
+      @font-face {
+        font-family: "Inter";
+        font-weight: 600;
+        font-display: block;
+        src: url("assets/fonts/inter-600.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Inter";
+        font-weight: 700;
+        font-display: block;
+        src: url("assets/fonts/inter-700.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Inter";
+        font-weight: 800;
+        font-display: block;
+        src: url("assets/fonts/inter-800.woff2") format("woff2");
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #000;
+        font-family: "Inter", sans-serif;
+        font-feature-settings: "tnum";
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Stage = animatable root, lives INSIDE the clip shell (never a clip itself) */
+      .stage {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      /* Warm-amber backdrop — matches the Remotion SectionDivider gradient */
+      .bg {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at 30% 20%,
+          #3a1f08 0%,
+          #0a0805 60%
+        );
+      }
+
+      .content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #number {
+        font-size: 220px;
+        font-weight: 800;
+        line-height: 0.9;
+        letter-spacing: -10px;
+        background: linear-gradient(180deg, #ffffff 0%, #fb923c 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-feature-settings: "tnum";
+        transform-origin: center;
+        /* NOTE: deliberately NO will-change — that's what blurred the DIY port. */
+      }
+      #sectionLabel {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 6px;
+        color: rgba(255, 239, 219, 0.4);
+        text-transform: uppercase;
+        margin-top: -6px;
+      }
+      #title {
+        font-size: 56px;
+        font-weight: 700;
+        letter-spacing: -2px;
+        color: #ffffff;
+        margin-top: 14px;
+      }
+      #dots {
+        display: flex;
+        gap: 14px;
+        margin-top: 18px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+      }
+      .dot.active {
+        width: 12px;
+        height: 12px;
+        background: #fb923c;
+        box-shadow: 0 0 16px #fb923c;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="5"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- Single scene clip-shell. GSAP animates ONLY inner .stage children. -->
+      <div
+        id="scene"
+        class="clip"
+        data-start="0"
+        data-duration="5"
+        data-track-index="1"
+      >
+        <div class="stage">
+          <div class="bg"></div>
+          <div class="content">
+            <div id="number">00</div>
+            <div id="sectionLabel">Section</div>
+            <div id="title">The Winners</div>
+            <div id="dots">
+              <div class="dot"></div>
+              <div class="dot active"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ---- Faithful port of Remotion SectionDividerB (Rapid Counter + Scale) ----
+      // 30fps, 5s. All timing mirrors the original's frame math, expressed in seconds.
+      const FPS = 30;
+      const TARGET = 2; // counts 00 -> 02
+      const COUNTER_START = 6;
+      const STEP = 4;
+      const COUNTER_END = COUNTER_START + STEP * (TARGET + 1); // 18
+      const TITLE_START = COUNTER_END + 16; // 34
+      const DOTS_START = TITLE_START + 16; // 50
+
+      gsap.registerPlugin(CustomEase);
+      // Same curve as the Remotion original: Easing.bezier(0.16, 1, 0.3, 1)
+      const HOP = CustomEase.create("hop", "M0,0 C0.16,1 0.3,1 1,1");
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Initial states (the counter text is driven by onUpdate below)
+      gsap.set("#number", { scale: 2.4 });
+      gsap.set("#sectionLabel", { opacity: 0 });
+      gsap.set("#title", { opacity: 0, y: 20 });
+      gsap.set(".dot", { opacity: 0 });
+
+      // Number settles 2.4 -> 1 after the count finishes.
+      // force3D:false => glyph re-rasterizes crisp at every scale (no cached-layer blur).
+      tl.to(
+        "#number",
+        { scale: 1, duration: 24 / FPS, ease: HOP, force3D: false },
+        COUNTER_END / FPS
+      );
+
+      // "SECTION" label fades in (linear, like the original interp)
+      tl.to(
+        "#sectionLabel",
+        { opacity: 1, duration: 14 / FPS, ease: "none" },
+        (COUNTER_END - 6) / FPS
+      );
+
+      // Title slides up + fades
+      tl.to(
+        "#title",
+        { opacity: 1, y: 0, duration: 24 / FPS, ease: HOP },
+        TITLE_START / FPS
+      );
+
+      // Dots ripple in, one after another
+      tl.to(
+        ".dot",
+        { opacity: 1, duration: 12 / FPS, stagger: 4 / FPS, ease: "none" },
+        DOTS_START / FPS
+      );
+
+      // Counter text as a pure function of timeline time (deterministic on seek,
+      // exactly like Remotion's renderFrame). No tweened text, no callbacks.
+      const numberEl = document.getElementById("number");
+      tl.eventCallback("onUpdate", () => {
+        const f = tl.time() * FPS;
+        const displayed = Math.min(
+          Math.max(0, Math.floor((f - COUNTER_START) / STEP)),
+          TARGET
+        );
+        numberEl.textContent = String(displayed).padStart(2, "0");
+      });
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
