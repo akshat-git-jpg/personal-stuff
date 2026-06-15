@@ -105,8 +105,11 @@ function stageCellState(
   if (stageIdx < overallIdx) return "done";
   if (stageIdx === overallIdx) {
     const raw = (row as Record<string, string>)[stageMeta.statusField] ?? "";
+    // A topic still being drafted hasn't entered this stage yet, so it has no
+    // status set — show the pending dot instead of an empty pill.
+    if (!raw.trim()) return "pending";
     const s = stageState(raw);
-    return s === "active" ? "active" : s === "done" ? "done" : "active";
+    return s === "done" ? "done" : "active";
   }
   return "pending";
 }
