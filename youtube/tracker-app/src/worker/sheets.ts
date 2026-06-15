@@ -260,3 +260,62 @@ export async function touchRow(
   const cell = `${TAB}!${colLetter(colIdx)}${targetRowNum}`;
   await sheetsPut(token, sheetId, cell, new Date().toISOString());
 }
+
+// ---------------------------------------------------------------------------
+// appendRow
+// ---------------------------------------------------------------------------
+
+/** Compute the next r#### id by scanning existing row_ids. */
+function nextRowId(rows: string[][], rowIdColIdx: number): string {
+  let counter = 1;
+  for (let i = 1; i < rows.length; i++) {
+    const m = (rows[i][rowIdColIdx] ?? "").trim().match(/^r(\d+)$/);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (n >= counter) counter = n + 1;
+    }
+  }
+  return `r${String(counter).padStart(4, "0")}`;
+}
+
+/**
+ * Append a new Master row. `values` maps known Column → value; missing columns are blank.
+ * Generates and returns the new row_id. Stamps last_updated.
+ */
+export async function appendRow(
+  token: string,
+  sheetId: string,
+  values: Partial<Record<Column, string>>,
+): Promise<string> {
+  const raw = await sheetsGet(token, sheetId, READ_RANGE);
+  if (raw.length < 1) throw new Error("Sheet has no header row");
+  const header = raw[0].map((h) => h.trim());
+
+  const rowIdColIdx = header.indexOf("row_id");
+  if (rowIdColIdx === -1) throw new Error('"row_id" column not found — run ensureRowIds first');
+
+  const rowId = nextRowId(raw, rowIdColIdx);
+  const full: Record<string, string> = {
+    ...values,
+    row_id: rowId,
+    last_updated: new Date().toISOString(),
+  };
+
+  // Build a row array aligned to the sheet header order.
+  const rowArray = header.map((h) => full[h] ?? "");
+
+  const range = `${TAB}!A1`;
+  const url =
+    `${SHEETS_BASE}/${sheetId}/values/${encodeURIComponent(range)}:append` +
+    `?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ values: [rowArray] }),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`Sheets append failed (${resp.status}): ${text}`);
+  }
+  return rowId;
+}

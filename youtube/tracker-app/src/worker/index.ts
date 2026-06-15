@@ -24,7 +24,11 @@ import {
   oauthCallback,
   requireSession,
 } from "./auth";
-import { getAccessToken, readRows, updateCell, touchRow } from "./sheets";
+import { getAccessToken, readRows, updateCell, touchRow, appendRow } from "./sheets";
+import { createGeminiClient } from "./gemini";
+import { loadAffiliateRecords } from "./affiliate";
+import { processVideo } from "./linkgen";
+import * as clickstore from "./clickstore";
 import {
   visibleColumnsForRoles,
   canEditForRoles,
@@ -541,6 +545,108 @@ app.post("/api/review", async (c) => {
   }
 
   return c.json({ ok: true });
+});
+
+// ---------------------------------------------------------------------------
+// Affiliate-link generation (App A) — Admin-only
+// ---------------------------------------------------------------------------
+
+// POST /api/video  — create a new Master row.
+// Body: { video_title, video_notes?, category?, subcategory?, topic_status? }
+app.post("/api/video", async (c) => {
+  const { roles } = getUser(c);
+  if (!roles.includes("Admin")) return c.json({ error: "forbidden" }, 403);
+
+  let body: {
+    video_title?: string;
+    video_notes?: string;
+    category?: string;
+    subcategory?: string;
+    topic_status?: string;
+  };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid JSON body" }, 400);
+  }
+  const title = (body.video_title ?? "").trim();
+  if (!title) return c.json({ error: "video_title is required" }, 400);
+
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const today = new Date().toISOString().slice(0, 10);
+  const rowId = await appendRow(token, c.env.SHEET_ID, {
+    video_title: title,
+    video_notes: (body.video_notes ?? "").trim(),
+    category: (body.category ?? "").trim(),
+    subcategory: (body.subcategory ?? "").trim(),
+    topic_status: (body.topic_status ?? "Draft").trim(),
+    topic_date: today,
+  });
+
+  await bustBoardCache(c.env);
+  return c.json({ row_id: rowId });
+});
+
+// POST /api/generate-links — generate short links + description for a row.
+// Body: { row_id }
+app.post("/api/generate-links", async (c) => {
+  const { roles } = getUser(c);
+  if (!roles.includes("Admin")) return c.json({ error: "forbidden" }, 403);
+
+  let body: { row_id?: string };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid JSON body" }, 400);
+  }
+  const rowId = (body.row_id ?? "").trim();
+  if (!rowId) return c.json({ error: "row_id is required" }, 400);
+
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const allRows = await cachedReadRows(c.env);
+  const target = allRows.find((r) => ((r.row_id as string) || "").trim() === rowId);
+  if (!target) return c.json({ error: "row not found", row_id: rowId }, 404);
+  const title = ((target.video_title as string) ?? "").trim();
+  if (!title) return c.json({ error: "row has no video_title" }, 400);
+  const notes = ((target.video_notes as string) ?? "").trim();
+
+  try {
+    const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+    const gemini = createGeminiClient(c.env.GEMINI_API_KEY);
+    const db = c.env.DB;
+
+    const result = await processVideo(title, notes, {
+      gemini,
+      affiliates,
+      linkDomain: c.env.LINK_DOMAIN,
+      existingCodes: () => clickstore.existingCodes(db),
+      videoCodeForTitle: (t) => clickstore.videoCodeForTitle(db, t),
+      existingSlugs: (code) => clickstore.existingSlugs(db, code),
+      insertVideo: (code, t) => clickstore.insertVideo(db, code, t),
+      insertLink: (slug, code, tool, url) => clickstore.insertLink(db, slug, code, tool, url),
+      kvPut: (k, v) => c.env.CLICKS_KV.put(k, v),
+    });
+
+    // Write the three publish-asset cells back onto the row.
+    await updateCell(token, c.env.SHEET_ID, rowId, "video_description", result.description);
+    await updateCell(token, c.env.SHEET_ID, rowId, "actual_links", result.actual_links_text);
+    await updateCell(token, c.env.SHEET_ID, rowId, "short_links", result.short_links_text);
+    try {
+      await touchRow(token, c.env.SHEET_ID, rowId);
+    } catch {
+      /* no-op */
+    }
+    await bustBoardCache(c.env);
+
+    return c.json({
+      description: result.description,
+      links: result.links,
+      non_affiliate_tools: result.non_affiliate_tools,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return c.json({ error: "generation_failed", message: msg }, 500);
+  }
 });
 
 // ---------------------------------------------------------------------------

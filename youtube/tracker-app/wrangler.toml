@@ -11,6 +11,22 @@ binding = "ASSETS"
 binding = "SESSIONS"
 id = "c08b498509f740dabdf74c2d8f02a106"
 
+# Affiliate-link generation (App A): reuse the redirector's KV + D1 so links
+# created here are served by go.agrolloo.com and counted by sync_clicks.py.
+[[kv_namespaces]]
+binding = "CLICKS_KV"
+id = "5d39bf8966014043a2bf7de3ac93fc2b"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "clicks-db"
+database_id = "3415a408-ccc9-49e2-8fe1-60009dfd83ce"
+
+[vars]
+LINK_DOMAIN = "go.agrolloo.com"
+AFFILIATE_PROGRAMS_SHEET_URL = "https://docs.google.com/spreadsheets/d/1dl_nj9djJuXuwwE_5qTnZkS0Y9VW6MmkMxuYNL92tsQ/edit?usp=sharing"
+# GEMINI_API_KEY is a secret: `npx wrangler secret put GEMINI_API_KEY` (+ add to .dev.vars locally).
+
 # Custom domain (Cloudflare auto-provisions DNS + SSL on the agrolloo.com zone)
 [[routes]]
 pattern = "tutorials-tracker.agrolloo.com"

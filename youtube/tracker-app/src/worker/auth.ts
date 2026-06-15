@@ -39,6 +39,12 @@ export type Env = {
   RESEND_FROM?: string;
   NOTIFY_REDIRECT?: string;
   APP_URL?: string;
+  // Affiliate-link generation (App A) — shares the redirector's KV + D1.
+  CLICKS_KV: KVNamespace;
+  DB: D1Database;
+  GEMINI_API_KEY: string;
+  LINK_DOMAIN: string;
+  AFFILIATE_PROGRAMS_SHEET_URL: string;
 };
 
 export type Variables = {
