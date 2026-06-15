@@ -254,7 +254,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
 
   // Admin view switcher state — only used when isAdmin && !isPreview
   const isFullAdmin = isAdmin && !isPreview;
-  const [adminTab, setAdminTab] = useState<AdminTab>("pipeline");
+  const [adminTab, setAdminTab] = useState<AdminTab>("board");
   const [adminFilters, setAdminFilters] = useState<AdminFilters>(EMPTY_FILTERS);
 
   const [laneStatus, setLaneStatus] = useState<Column>(defaultLane);
@@ -309,7 +309,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
       });
       setShowNewVideo(false);
       setNvTitle(""); setNvNotes(""); setNvCategory(""); setNvSubcategory("");
-      setAdminTab("pipeline");
+      setAdminTab("board");
       setShowAwaiting(false);
       reload();
     } catch (err) {
@@ -498,7 +498,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
       <div className="board-root">
         {/* ── Admin view switcher ── */}
         <div className="admin-tabs">
-          {(["pipeline", "board", "awaiting"] as AdminTab[]).map(tab => {
+          {(["board", "pipeline", "awaiting"] as AdminTab[]).map(tab => {
             const label =
               tab === "pipeline" ? "Pipeline"
               : tab === "board"    ? "Board"

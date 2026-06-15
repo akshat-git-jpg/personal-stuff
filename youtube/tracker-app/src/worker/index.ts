@@ -586,7 +586,7 @@ app.post("/api/video", async (c) => {
     video_notes: (body.video_notes ?? "").trim(),
     category: (body.category ?? "").trim(),
     subcategory: (body.subcategory ?? "").trim(),
-    topic_status: (body.topic_status ?? "Draft").trim(),
+    topic_status: (body.topic_status ?? "To Do").trim(),
     topic_date: today,
   });
 

@@ -932,6 +932,7 @@ details[open] .review-details__summary::before { content: "▼ "; }
 .nv-form .field textarea::placeholder { color: var(--t4); }
 .nv-form .field textarea:focus { outline: none; border-color: var(--accent); }
 .nv-form__error { margin: 12px 0 0; font-size: 12.5px; color: var(--danger); }
+.nv-dialog .confirm-dialog__actions { margin-top: 22px; }
 
 /* ── Admin filter bar ────────────────────────────────────────────────────── */
 .admin-filters {
