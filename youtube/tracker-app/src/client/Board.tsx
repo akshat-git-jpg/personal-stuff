@@ -23,14 +23,13 @@ import { LANES, ADMIN_LANE_OPTIONS, groupByLane } from "./lanes";
 import { Card } from "./Card";
 import { CardDetail } from "./CardDetail";
 import { laneLabel, laneColor, FIELD_LABELS } from "./labels";
-import { AdminOverview } from "./AdminOverview";
 import { PipelineBoard } from "./PipelineBoard";
 import { Filters, EMPTY_FILTERS, type AdminFilters } from "./Filters";
-import { overallStage, type OverallStage } from "./pipeline";
+import { overallStage } from "./pipeline";
 
 // ── Admin view tabs ────────────────────────────────────────────────────────
 
-type AdminTab = "overview" | "pipeline" | "board" | "awaiting";
+type AdminTab = "pipeline" | "board" | "awaiting";
 
 // ── Role banner text ───────────────────────────────────────────────────────
 
@@ -255,7 +254,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
 
   // Admin view switcher state — only used when isAdmin && !isPreview
   const isFullAdmin = isAdmin && !isPreview;
-  const [adminTab, setAdminTab] = useState<AdminTab>("overview");
+  const [adminTab, setAdminTab] = useState<AdminTab>("pipeline");
   const [adminFilters, setAdminFilters] = useState<AdminFilters>(EMPTY_FILTERS);
 
   const [laneStatus, setLaneStatus] = useState<Column>(defaultLane);
@@ -310,6 +309,8 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
       });
       setShowNewVideo(false);
       setNvTitle(""); setNvNotes(""); setNvCategory(""); setNvSubcategory("");
+      setAdminTab("pipeline");
+      setShowAwaiting(false);
       reload();
     } catch (err) {
       setNvError(err instanceof Error ? err.message : String(err));
@@ -319,44 +320,57 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
   }
 
   const newVideoModal = showNewVideo ? (
-    <div
-      className="detail-overlay"
-      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}
-      onClick={() => !nvBusy && setShowNewVideo(false)}
-    >
-      <div
-        className="detail-panel"
-        role="dialog"
-        aria-modal="true"
-        onClick={e => e.stopPropagation()}
-        style={{ background: "var(--bg, #1e1e1e)", padding: 20, borderRadius: 10, width: 480, maxWidth: "90vw" }}
-      >
-        <h2>New Video</h2>
-        <div className="field">
-          <label htmlFor="nv-title">Title</label>
-          <input id="nv-title" type="text" value={nvTitle} onChange={e => setNvTitle(e.target.value)} />
+    <>
+      <div className="confirm-overlay" onClick={() => !nvBusy && setShowNewVideo(false)} />
+      <div className="confirm-dialog nv-dialog" role="dialog" aria-modal="true">
+        <h3 className="confirm-dialog__title">New video</h3>
+        <p className="confirm-dialog__body" style={{ marginBottom: 16 }}>
+          Adds a topic to the pipeline. You can generate its links &amp; description from the card afterward.
+        </p>
+        <div className="nv-form">
+          <div className="field">
+            <label htmlFor="nv-title">Title</label>
+            <input
+              id="nv-title"
+              type="text"
+              value={nvTitle}
+              placeholder="e.g. Best AI video editors in 2026"
+              autoFocus
+              onChange={e => setNvTitle(e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="nv-notes">Notes</label>
+            <textarea
+              id="nv-notes"
+              rows={4}
+              value={nvNotes}
+              placeholder="Tools to cover, the angle, anything the script writer needs…"
+              onChange={e => setNvNotes(e.target.value)}
+            />
+          </div>
+          <div className="nv-form__row">
+            <div className="field">
+              <label htmlFor="nv-category">Category</label>
+              <input id="nv-category" type="text" value={nvCategory} onChange={e => setNvCategory(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="nv-subcategory">Subcategory</label>
+              <input id="nv-subcategory" type="text" value={nvSubcategory} onChange={e => setNvSubcategory(e.target.value)} />
+            </div>
+          </div>
         </div>
-        <div className="field">
-          <label htmlFor="nv-notes">Notes</label>
-          <textarea id="nv-notes" value={nvNotes} onChange={e => setNvNotes(e.target.value)} rows={4} style={{ width: "100%" }} />
-        </div>
-        <div className="field">
-          <label htmlFor="nv-category">Category</label>
-          <input id="nv-category" type="text" value={nvCategory} onChange={e => setNvCategory(e.target.value)} />
-        </div>
-        <div className="field">
-          <label htmlFor="nv-subcategory">Subcategory</label>
-          <input id="nv-subcategory" type="text" value={nvSubcategory} onChange={e => setNvSubcategory(e.target.value)} />
-        </div>
-        {nvError && <p style={{ color: "var(--review, #e06c75)" }}>{nvError}</p>}
-        <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "flex-end" }}>
-          <button type="button" onClick={() => setShowNewVideo(false)} disabled={nvBusy}>Cancel</button>
-          <button type="button" className="btn-save" onClick={() => void submitNewVideo()} disabled={nvBusy}>
-            {nvBusy ? "Creating…" : "Create"}
+        {nvError && <p className="nv-form__error">{nvError}</p>}
+        <div className="confirm-dialog__actions">
+          <button type="button" className="confirm-dialog__cancel" onClick={() => setShowNewVideo(false)} disabled={nvBusy}>
+            Cancel
+          </button>
+          <button type="button" className="confirm-dialog__confirm" onClick={() => void submitNewVideo()} disabled={nvBusy}>
+            {nvBusy ? "Creating…" : "Create video"}
           </button>
         </div>
       </div>
-    </div>
+    </>
   ) : null;
 
   useEffect(() => {
@@ -478,21 +492,15 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
   // ── Full Admin rendering ───────────────────────────────────────────────────
 
   if (isFullAdmin) {
-    function goToPipeline(stage?: OverallStage) {
-      setAdminFilters(stage ? { ...EMPTY_FILTERS, stage } : EMPTY_FILTERS);
-      setAdminTab("pipeline");
-    }
-
     const showFilters = adminTab === "pipeline" || adminTab === "board";
 
     return (
       <div className="board-root">
         {/* ── Admin view switcher ── */}
         <div className="admin-tabs">
-          {(["overview", "pipeline", "board", "awaiting"] as AdminTab[]).map(tab => {
+          {(["pipeline", "board", "awaiting"] as AdminTab[]).map(tab => {
             const label =
-              tab === "overview"  ? "Overview"
-              : tab === "pipeline" ? "Pipeline"
+              tab === "pipeline" ? "Pipeline"
               : tab === "board"    ? "Board"
               : `Awaiting (${awaitingCount})`;
             return (
@@ -512,11 +520,10 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
           })}
           <button
             type="button"
-            className="admin-tab"
-            style={{ marginLeft: "auto" }}
+            className="btn-newvideo"
             onClick={() => setShowNewVideo(true)}
           >
-            + New Video
+            + New video
           </button>
         </div>
 
@@ -527,18 +534,6 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
             names={names}
             filters={adminFilters}
             onChange={setAdminFilters}
-          />
-        )}
-
-        {/* ── Overview tab ── */}
-        {adminTab === "overview" && (
-          <AdminOverview
-            rows={rows as Row[]}
-            names={names}
-            awaitingCount={awaitingCount}
-            onGoPipeline={goToPipeline}
-            onGoAwaiting={() => setAdminTab("awaiting")}
-            onOpenRow={openRowFromPipeline}
           />
         )}
 
