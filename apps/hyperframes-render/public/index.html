@@ -37,6 +37,8 @@
     font-family: var(--font); font-size: 15px; font-weight: 600; border: none; border-radius: 10px;
     padding: 13px 22px; cursor: pointer; transition: 0.15s;
   }
+  .opt { display: flex; gap: 12px; align-items: flex-start; margin-top: 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; line-height: 1.5; color: var(--dim); cursor: pointer; }
+  .opt input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--accent); flex: 0 0 auto; cursor: pointer; }
   .primary { background: var(--accent); color: #1a0f05; flex: 1; }
   .primary:disabled { opacity: 0.4; cursor: not-allowed; }
   .ghost { background: transparent; color: var(--dim); border: 1px solid var(--line); }
@@ -99,6 +101,11 @@
       <div class="iframeBox"><iframe id="preview"></iframe></div>
     </div>
 
+    <label class="opt" id="movOpt">
+      <input type="checkbox" id="transparent" />
+      <span>Transparent overlay (.mov) — for graphics that sit on top of footage (lower-thirds, callouts, arrows). Drop straight onto a track above your video in Premiere; no green-screen needed. Leave off for full-screen cards.</span>
+    </label>
+
     <div class="row">
       <button class="primary" id="render" disabled>Render to MP4</button>
     </div>
@@ -115,6 +122,10 @@
   const fileInput = document.getElementById("file");
   const filenameEl = document.getElementById("filename");
   const renderBtn = document.getElementById("render");
+  const transparentEl = document.getElementById("transparent");
+  transparentEl.addEventListener("change", () => {
+    renderBtn.textContent = transparentEl.checked ? "Render transparent .mov" : "Render to MP4";
+  });
   const previewWrap = document.getElementById("previewWrap");
   const preview = document.getElementById("preview");
   const progress = document.getElementById("progress");
@@ -145,7 +156,7 @@
     return text.includes("</body>") ? text.replace("</body>", inject + "</body>") : text + inject;
   }
 
-  // scale the 1920px preview iframe to its box — ResizeObserver fires after layout
+  // scale the 1920px preview iframe to its 16:9 box — ResizeObserver fires after layout
   new ResizeObserver((entries) => {
     for (const e of entries) preview.style.transform = "scale(" + (e.contentRect.width / 1920) + ")";
   }).observe(preview.parentElement);
@@ -219,7 +230,7 @@
     const res = await fetch("/api/render", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ html: htmlText, name: fileName }),
+      body: JSON.stringify({ html: htmlText, name: fileName, format: transparentEl.checked ? "mov" : "mp4" }),
     });
     if (!res.ok) {
       const e = await res.json().catch(() => ({}));
@@ -245,7 +256,7 @@
         statusEl.className = "status ok";
         statusEl.textContent = "Done.";
         dl.href = d.downloadUrl;
-        dl.setAttribute("download", fileName + ".mp4");
+        dl.setAttribute("download", fileName + (transparentEl.checked ? ".mov" : ".mp4"));
         downloadEl.style.display = "block";
         renderBtn.disabled = false;
         es.close();

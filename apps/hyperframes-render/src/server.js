@@ -63,23 +63,22 @@ async function runRender(job, html) {
     JSON.stringify({ id: job.name || "video", name: job.name || "video" }),
   );
 
-  const mp4 = path.join(dir, "output.mp4");
+  // mov = transparent ProRes 4444 overlay (for compositing over footage in an editor);
+  // mp4 = opaque full-screen card.
+  const isMov = job.format === "mov";
+  const out = path.join(dir, isMov ? "output.mov" : "output.mp4");
+  job.out = out;
+  job.ext = isMov ? "mov" : "mp4";
   job.status = "rendering";
 
   await new Promise((resolve) => {
     // `npx --yes` so the pinned Hyperframes is fetched/cached without a global install.
-    const args = [
-      "--yes",
-      `hyperframes@${HF_VERSION}`,
-      "render",
-      ".",
-      "-o",
-      mp4,
-      "--fps",
-      String(DEFAULT_FPS),
-      "--quality",
-      QUALITY,
-    ];
+    const args = ["--yes", `hyperframes@${HF_VERSION}`, "render", ".", "-o", out, "--fps", String(DEFAULT_FPS)];
+    // Transparent ProRes 4444 MOV (alpha) for overlays. Hyperframes renders alpha at
+    // composition resolution (1920x1080) and rejects --quality/--resolution on the
+    // alpha path, so only pass --quality for the opaque MP4 path.
+    if (isMov) args.push("--format", "mov");
+    else args.push("--quality", QUALITY);
     // Force the public npm registry so `npx hyperframes` resolves even when the
     // host npm is pointed at a private registry (e.g. a work CodeArtifact).
     const hf = spawn("npx", args, {
@@ -110,8 +109,7 @@ async function runRender(job, html) {
     });
     hf.on("close", (code) => {
       if (job.status === "error") return resolve();
-      if (code === 0 && fs.existsSync(mp4)) {
-        job.mp4 = mp4;
+      if (code === 0 && fs.existsSync(out)) {
         job.status = "done";
       } else {
         job.status = "error";
@@ -159,8 +157,9 @@ app.post("/api/render", requireAuth, (req, res) => {
   if (!html || typeof html !== "string") return res.status(400).json({ error: "No HTML provided" });
   if (Buffer.byteLength(html, "utf8") > MAX_HTML_BYTES) return res.status(400).json({ error: "HTML too large" });
 
+  const format = req.body.format === "mov" ? "mov" : "mp4";
   const id = crypto.randomBytes(8).toString("hex");
-  const job = { id, status: "queued", frame: 0, total: 0, name };
+  const job = { id, status: "queued", frame: 0, total: 0, name, format };
   jobs.set(id, job);
   runRender(job, html); // fire and forget
   res.json({ jobId: id });
@@ -193,11 +192,11 @@ app.get("/api/progress/:id", requireAuth, (req, res) => {
   req.on("close", () => clearInterval(tick));
 });
 
-// download the finished mp4
+// download the finished file (mp4 or transparent mov)
 app.get("/api/download/:id", requireAuth, (req, res) => {
   const job = jobs.get(req.params.id);
-  if (!job || job.status !== "done" || !fs.existsSync(job.mp4)) return res.status(404).end();
-  res.download(job.mp4, `${job.name}.mp4`);
+  if (!job || job.status !== "done" || !job.out || !fs.existsSync(job.out)) return res.status(404).end();
+  res.download(job.out, `${job.name}.${job.ext}`);
 });
 
 app.use(requireAuth, express.static(path.join(__dirname, "..", "public")));
