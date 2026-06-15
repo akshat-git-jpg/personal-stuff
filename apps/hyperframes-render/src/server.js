@@ -28,9 +28,47 @@ const HF_VERSION = process.env.HF_VERSION || "0.6.97";
 const DEFAULT_FPS = parseInt(process.env.FPS || "30", 10);
 const QUALITY = process.env.QUALITY || "high"; // draft | standard | high
 const MAX_HTML_BYTES = 12 * 1024 * 1024;
+// Folder of template cards for the Templates tab (auto-synced from the TY repo on
+// the VPS). Each card is <type>/<card>/index.html. If it doesn't exist, the
+// Templates tab just shows empty.
+const CARDS_DIR = process.env.CARDS_DIR || "/cards";
 
 const WORK_DIR = path.join(os.tmpdir(), "hyperframes-render");
 fs.mkdirSync(WORK_DIR, { recursive: true });
+
+// ---- template cards (Templates tab) ----
+const CARD_IGNORE = new Set(["node_modules", "assets", "compositions", ".git"]);
+function listCards() {
+  const out = [];
+  let types;
+  try { types = fs.readdirSync(CARDS_DIR); } catch { return out; }
+  for (const type of types) {
+    const typeDir = path.join(CARDS_DIR, type);
+    if (CARD_IGNORE.has(type) || !safeDir(typeDir)) continue;
+    for (const card of fs.readdirSync(typeDir)) {
+      const file = path.join(typeDir, card, "index.html");
+      if (!safeFile(file)) continue;
+      const html = fs.readFileSync(file, "utf8");
+      const m = html.match(/<title>([^<]*)<\/title>/i);
+      const pretty = card.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      out.push({ type, card, rel: `${type}/${card}/index.html`, title: (m && m[1].trim()) || pretty });
+    }
+  }
+  return out.sort((a, b) => (a.type + a.card).localeCompare(b.type + b.card));
+}
+const safeDir = (p) => { try { return fs.statSync(p).isDirectory(); } catch { return false; } };
+const safeFile = (p) => { try { return fs.statSync(p).isFile(); } catch { return false; } };
+// resolve a requested card rel to an absolute path inside CARDS_DIR (no traversal)
+function cardPath(rel) {
+  const abs = path.normalize(path.join(CARDS_DIR, rel || ""));
+  if (!abs.startsWith(path.normalize(CARDS_DIR))) return null;
+  return abs;
+}
+// preview-only script: loop the paused timeline so motion shows (never touches the file used to render)
+const PLAY_SCRIPT =
+  "<scr" + "ipt>(function(){function play(){var t=window.__timelines||{};" +
+  "Object.keys(t).forEach(function(k){var tl=t[k];if(tl&&tl.play){tl.repeat(-1);tl.repeatDelay(0.8);tl.play();}});}" +
+  "play();[100,400,900].forEach(function(d){setTimeout(play,d);});})();</scr" + "ipt>";
 
 // ---- tiny auth (signed cookie) ----
 const authToken = crypto.createHmac("sha256", SESSION_SECRET).update("ok").digest("hex");
@@ -197,6 +235,21 @@ app.get("/api/download/:id", requireAuth, (req, res) => {
   const job = jobs.get(req.params.id);
   if (!job || job.status !== "done" || !job.out || !fs.existsSync(job.out)) return res.status(404).end();
   res.download(job.out, `${job.name}.${job.ext}`);
+});
+
+// ---- Templates tab: list cards + serve one card (raw for Copy, ?play for preview) ----
+app.get("/api/cards", requireAuth, (req, res) => res.json(listCards()));
+
+app.get("/api/card", requireAuth, (req, res) => {
+  const abs = cardPath(req.query.rel);
+  if (!abs || !safeFile(abs)) return res.status(404).end();
+  let html = fs.readFileSync(abs, "utf8");
+  if (req.query.play !== undefined) {
+    html = html.includes("</body>") ? html.replace("</body>", PLAY_SCRIPT + "</body>") : html + PLAY_SCRIPT;
+  }
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.set("Cache-Control", "no-store");
+  res.end(html);
 });
 
 app.use(requireAuth, express.static(path.join(__dirname, "..", "public")));

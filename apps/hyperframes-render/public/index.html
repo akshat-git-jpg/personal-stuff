@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Hyperframes → Video</title>
+<title>Video Studio</title>
 <style>
   :root {
     --bg: #0f0b07; --panel: #181210; --line: rgba(255,255,255,0.10);
@@ -20,9 +20,28 @@
   h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
   header p { color: var(--dim); margin-top: 8px; font-size: 15px; }
   .card {
-    width: 100%; max-width: 760px; background: var(--panel);
+    width: 100%; max-width: 820px; background: var(--panel);
     border: 1px solid var(--line); border-radius: 18px; padding: 28px; margin-bottom: 22px;
   }
+  /* top tabs (Templates / Render) */
+  .toptabs { width: 100%; max-width: 820px; display: flex; gap: 10px; margin-bottom: 20px; }
+  .toptab { flex: 1; text-align: center; padding: 14px; border-radius: 12px; border: 1px solid var(--line);
+    background: transparent; color: var(--dim); cursor: pointer; font: inherit; font-weight: 700; font-size: 15px; transition: 0.15s; }
+  .toptab.active { background: rgba(251,146,60,0.14); border-color: var(--accent); color: var(--text); }
+  #pane-templates, #pane-render { width: 100%; max-width: 820px; }
+  .galleryNote { color: var(--dim); font-size: 13px; line-height: 1.5; margin-bottom: 18px; }
+  .cardsRoot { display: flex; flex-direction: column; gap: 30px; }
+  .gsec h2 { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+  .ggrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(370px, 1fr)); gap: 16px; }
+  .gcard { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .gprev { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .gmeta { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; }
+  .gname { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gfile { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: var(--dim); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gactions { display: flex; gap: 8px; flex-shrink: 0; }
+  .gbtn { font: inherit; font-size: 13px; font-weight: 600; border-radius: 9px; padding: 9px 13px; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--text); white-space: nowrap; }
+  .gbtn.copy { background: var(--accent); color: #1a0f05; border-color: transparent; }
+  .gbtn.copy.done { background: var(--ok); color: #042b1c; }
   #drop {
     border: 2px dashed var(--line); border-radius: 14px; padding: 44px 24px; text-align: center;
     cursor: pointer; transition: 0.15s; color: var(--dim);
@@ -73,10 +92,23 @@
 <body>
   <div class="topbar"><button class="ghost" id="logout">Log out</button></div>
   <header>
-    <h1>Hyperframes → Video</h1>
-    <p>Paste your card's HTML, give it a quick look, render it to MP4. No installs.</p>
+    <h1>Video Studio</h1>
+    <p>Browse templates, copy one, render it to MP4. No installs.</p>
   </header>
 
+  <div class="toptabs">
+    <button class="toptab active" id="topTemplates">Templates</button>
+    <button class="toptab" id="topRender">Render</button>
+  </div>
+
+  <!-- ===== TEMPLATES TAB ===== -->
+  <div id="pane-templates">
+    <div class="galleryNote">Preview a template, then <strong>Copy HTML</strong> to edit it with Gemini, or <strong>Use in Render →</strong> to load it straight into the Render tab. The list updates automatically as templates are added.</div>
+    <div id="cardsRoot" class="cardsRoot"></div>
+  </div>
+
+  <!-- ===== RENDER TAB ===== -->
+  <div id="pane-render" class="hidden">
   <div class="card">
     <div class="tabs">
       <button class="tab active" id="tabPaste">Paste code</button>
@@ -116,6 +148,7 @@
       <div class="download" id="download"><a class="dl" id="dl" href="#">Download MP4</a></div>
     </div>
   </div>
+  </div><!-- /pane-render -->
 
 <script>
   const drop = document.getElementById("drop");
@@ -282,6 +315,101 @@
   });
 
   setTab("paste");
+
+  // ===== top tabs: Templates / Render =====
+  const paneT = document.getElementById("pane-templates");
+  const paneR = document.getElementById("pane-render");
+  const topT = document.getElementById("topTemplates");
+  const topR = document.getElementById("topRender");
+  let templatesLoaded = false;
+  function showTop(which) {
+    const t = which === "templates";
+    topT.classList.toggle("active", t);
+    topR.classList.toggle("active", !t);
+    paneT.classList.toggle("hidden", !t);
+    paneR.classList.toggle("hidden", t);
+    if (t && !templatesLoaded) loadTemplates();
+  }
+  topT.addEventListener("click", () => showTop("templates"));
+  topR.addEventListener("click", () => showTop("render"));
+
+  // ===== templates gallery (cards served from /api/cards, kept current from git) =====
+  const cardFetch = (rel) => fetch("/api/card?rel=" + encodeURIComponent(rel), { cache: "no-store" }).then((r) => r.text());
+  const galleryRO = new ResizeObserver((entries) => {
+    for (const e of entries) {
+      const f = e.target.querySelector("iframe");
+      if (f) f.style.transform = "scale(" + (e.contentRect.width / 1920) + ")";
+    }
+  });
+  async function loadTemplates() {
+    templatesLoaded = true;
+    const root = document.getElementById("cardsRoot");
+    let cards = [];
+    try { cards = await fetch("/api/cards", { cache: "no-store" }).then((r) => r.json()); } catch {}
+    if (!cards.length) {
+      root.innerHTML = '<p style="color:var(--dim)">No templates available yet.</p>';
+      templatesLoaded = false;
+      return;
+    }
+    const byType = {};
+    for (const c of cards) (byType[c.type] = byType[c.type] || []).push(c);
+    root.innerHTML = "";
+    for (const type of Object.keys(byType).sort()) {
+      const sec = document.createElement("div");
+      sec.className = "gsec";
+      sec.innerHTML = "<h2>" + type + "</h2>";
+      const grid = document.createElement("div");
+      grid.className = "ggrid";
+      for (const c of byType[type]) {
+        const el = document.createElement("div");
+        el.className = "gcard";
+        const prev = document.createElement("div");
+        prev.className = "gprev";
+        const f = document.createElement("iframe");
+        f.setAttribute("scrolling", "no");
+        f.src = "/api/card?rel=" + encodeURIComponent(c.rel) + "&play";
+        prev.appendChild(f);
+        const meta = document.createElement("div");
+        meta.className = "gmeta";
+        meta.innerHTML = '<div style="min-width:0"><div class="gname">' + c.title + '</div><div class="gfile">' + c.rel + "</div></div>";
+        const act = document.createElement("div");
+        act.className = "gactions";
+        const copy = document.createElement("button");
+        copy.className = "gbtn copy";
+        copy.textContent = "Copy HTML";
+        copy.onclick = async () => {
+          const html = await cardFetch(c.rel);
+          try { await navigator.clipboard.writeText(html); }
+          catch { const ta = document.createElement("textarea"); ta.value = html; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+          copy.classList.add("done"); copy.textContent = "Copied ✓";
+          setTimeout(() => { copy.classList.remove("done"); copy.textContent = "Copy HTML"; }, 1400);
+        };
+        const use = document.createElement("button");
+        use.className = "gbtn";
+        use.textContent = "Use in Render →";
+        use.onclick = async () => {
+          const html = await cardFetch(c.rel);
+          setTab("paste");
+          paste.value = html;
+          useHtml(html, c.card);
+          // overlays auto-select the transparent .mov output
+          transparentEl.checked = c.rel.startsWith("overlay/");
+          renderBtn.textContent = transparentEl.checked ? "Render transparent .mov" : "Render to MP4";
+          showTop("render");
+          window.scrollTo(0, 0);
+        };
+        act.append(copy, use);
+        meta.appendChild(act);
+        el.append(prev, meta);
+        grid.appendChild(el);
+        galleryRO.observe(prev);
+      }
+      sec.appendChild(grid);
+      root.appendChild(sec);
+    }
+  }
+
+  showTop("templates"); // land on the Templates gallery by default
 </script>
 </body>
 </html>

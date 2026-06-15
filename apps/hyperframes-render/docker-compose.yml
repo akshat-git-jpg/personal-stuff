@@ -14,6 +14,12 @@ services:
     env_file: .env
     # Chrome needs more shared memory than Docker's 64MB default.
     shm_size: "1gb"
+    # Template cards for the Templates tab, read live from the auto-pulled TY checkout
+    # (cron `git pull` every 15 min). Add a template + push → it appears here, no redeploy.
+    environment:
+      - CARDS_DIR=/cards
+    volumes:
+      - /srv/projects/TY/yt-visuals-hyperframe:/cards:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.hfr.rule=Host(`render2.agrolloo.com`)"
