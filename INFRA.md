@@ -1,6 +1,6 @@
 # Infrastructure Inventory
 
-Canonical map of what runs where. Audited 2026-06-13. The single infra reference (the old `my-planner/hostinger-vps-srv1377177.md` was stale and has been removed).
+Canonical map of what runs where. Audited 2026-06-13; Cloudflare Workers + agrolloo.com DNS re-verified 2026-06-16 (added kushal-docs, yt-analytics, render2). The single infra reference (the old `my-planner/hostinger-vps-srv1377177.md` was stale and has been removed).
 
 Three places: **Cloudflare** (public edge), **Hostinger VPS** (always-on box), **GitHub** (source of truth; VPS pulls on every cron tick).
 
@@ -14,10 +14,12 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - `agrolloo.com` — main personal domain (apps + landing pages).
 - `bridebestie.com` — wedding-niche brand domain.
 
-### Workers (6 deployed, no Pages projects)
+### Workers (8 deployed, no Pages projects)
 - **redirector** — `go.agrolloo.com/*` — URL shortener + click tracking. Bindings: `CLICKS_KV`, `clicks-db` (D1).
 - **kushal-gym** — `kushal-gym.agrolloo.com` — gym PWA, Google Sheet-backed via OAuth refresh token.
-- **yt-tutorials-tracker** — `tutorials-tracker.agrolloo.com` — YouTube tutorials Kanban app. Binding: `SESSIONS` (KV).
+- **kushal-docs** — `kushal-docs.agrolloo.com` — document-vault PWA, R2-backed (bucket `kushal-docs`), Google sign-in allow-listed to one email.
+- **yt-tutorials-tracker** — `tutorials-tracker.agrolloo.com` — YouTube tutorials Kanban app; also mints go.agrolloo.com short links. Bindings: `SESSIONS` (KV), `CLICKS_KV`, `clicks-db` (D1).
+- **yt-analytics** — `yt-analytics.agrolloo.com` — read-only click dashboard (per-video/per-link counts) over `clicks-db`. Shared-password gate (stateless signed cookie, no KV). Binding: `clicks-db` (D1, read-only).
 - **keto-kitchen** — `keto-kitchen.agrolloo.com` — static landing page (assets-only).
 - **bridebestie** — `bridebestie.com` + `www` — static landing page (assets-only).
 - **vps-watchdog** — cron `*/2 * * * *`, no HTTP route — pings the dashboard; reboots VPS via Hostinger API if down. Binding: `WATCHDOG_KV`.
@@ -28,12 +30,13 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - `SESSIONS` — tutorials-tracker logins.
 
 ### D1 databases (1)
-- `clicks-db` — redirector click store.
+- `clicks-db` — redirector click store. Written by redirector + yt-tutorials-tracker; read by yt-analytics (read-only) and by `yt-analysis/sync_clicks.py`.
 
 ### DNS — agrolloo.com
 - `agrolloo.com` + `www` → `191.101.230.133` (Hostinger shared hosting, proxied) — NOT the VPS, NOT a Worker.
 - `my-dashboard.agrolloo.com` → `72.61.241.170` (VPS, proxied) — personal-dashboard container via Traefik.
-- `go` / `keto-kitchen` / `kushal-gym` / `tutorials-tracker` → the 4 routed Workers above.
+- `render2.agrolloo.com` → `72.61.241.170` (VPS, proxied) — Hyperframes → MP4 renderer behind Traefik (added after the 2026-06-13 audit).
+- `go` / `keto-kitchen` / `kushal-gym` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` → the 6 routed Workers above (custom domains show as proxied `AAAA 100::`).
 - `ftp.agrolloo.com` → `191.101.230.133` (Hostinger hosting).
 - MX + `autoconfig` / `autodiscover` / DKIM → Hostinger mail.
 - `send.notifications.agrolloo.com` + `resend._domainkey` → Amazon SES / Resend (transactional email sending).
