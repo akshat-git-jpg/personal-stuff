@@ -140,3 +140,46 @@ export async function getApprovals(): Promise<ApprovalsData> {
   if (!res.ok) return { count: 0, items: [], names: {} };
   return res.json() as Promise<ApprovalsData>;
 }
+
+// ── Affiliate-link generation (App A) ────────────────────────────────────────
+
+export interface GeneratedLink {
+  tool: string;
+  short_url: string;
+  target_url: string;
+  has_affiliate: boolean;
+  coupon: string;
+}
+
+export interface GenerateLinksResult {
+  description: string;
+  links: GeneratedLink[];
+  non_affiliate_tools: string[];
+}
+
+export async function createVideo(input: {
+  video_title: string;
+  video_notes?: string;
+  category?: string;
+  subcategory?: string;
+}): Promise<{ row_id: string }> {
+  const res = await fetch("/api/video", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  await throwOnError(res);
+  return res.json() as Promise<{ row_id: string }>;
+}
+
+export async function generateLinks(row_id: string): Promise<GenerateLinksResult> {
+  const res = await fetch("/api/generate-links", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ row_id }),
+  });
+  await throwOnError(res);
+  return res.json() as Promise<GenerateLinksResult>;
+}

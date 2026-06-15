@@ -18,7 +18,7 @@ import {
   isApproverRoles,
 } from "../shared/rbac";
 import { APPROVER_ONLY_VALUES } from "../shared/policy";
-import { updateCell, ForbiddenError, getApprovals, displayName, type BoardData, type ApprovalItem } from "./api";
+import { updateCell, ForbiddenError, getApprovals, displayName, createVideo, type BoardData, type ApprovalItem } from "./api";
 import { LANES, ADMIN_LANE_OPTIONS, groupByLane } from "./lanes";
 import { Card } from "./Card";
 import { CardDetail } from "./CardDetail";
@@ -242,6 +242,77 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
     if (data.names) setApprovalNames(data.names);
   }
 
+  // New Video modal (Admin-only)
+  const [showNewVideo, setShowNewVideo] = useState(false);
+  const [nvTitle, setNvTitle] = useState("");
+  const [nvNotes, setNvNotes] = useState("");
+  const [nvCategory, setNvCategory] = useState("");
+  const [nvSubcategory, setNvSubcategory] = useState("");
+  const [nvBusy, setNvBusy] = useState(false);
+  const [nvError, setNvError] = useState<string | null>(null);
+
+  async function submitNewVideo() {
+    if (!nvTitle.trim()) { setNvError("Title is required"); return; }
+    setNvBusy(true);
+    setNvError(null);
+    try {
+      await createVideo({
+        video_title: nvTitle.trim(),
+        video_notes: nvNotes.trim(),
+        category: nvCategory.trim(),
+        subcategory: nvSubcategory.trim(),
+      });
+      setShowNewVideo(false);
+      setNvTitle(""); setNvNotes(""); setNvCategory(""); setNvSubcategory("");
+      reload();
+    } catch (err) {
+      setNvError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setNvBusy(false);
+    }
+  }
+
+  const newVideoModal = showNewVideo ? (
+    <div
+      className="detail-overlay"
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}
+      onClick={() => !nvBusy && setShowNewVideo(false)}
+    >
+      <div
+        className="detail-panel"
+        role="dialog"
+        aria-modal="true"
+        onClick={e => e.stopPropagation()}
+        style={{ background: "var(--bg, #1e1e1e)", padding: 20, borderRadius: 10, width: 480, maxWidth: "90vw" }}
+      >
+        <h2>New Video</h2>
+        <div className="field">
+          <label htmlFor="nv-title">Title</label>
+          <input id="nv-title" type="text" value={nvTitle} onChange={e => setNvTitle(e.target.value)} />
+        </div>
+        <div className="field">
+          <label htmlFor="nv-notes">Notes</label>
+          <textarea id="nv-notes" value={nvNotes} onChange={e => setNvNotes(e.target.value)} rows={4} style={{ width: "100%" }} />
+        </div>
+        <div className="field">
+          <label htmlFor="nv-category">Category</label>
+          <input id="nv-category" type="text" value={nvCategory} onChange={e => setNvCategory(e.target.value)} />
+        </div>
+        <div className="field">
+          <label htmlFor="nv-subcategory">Subcategory</label>
+          <input id="nv-subcategory" type="text" value={nvSubcategory} onChange={e => setNvSubcategory(e.target.value)} />
+        </div>
+        {nvError && <p style={{ color: "var(--review, #e06c75)" }}>{nvError}</p>}
+        <div style={{ marginTop: 12, display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button type="button" onClick={() => setShowNewVideo(false)} disabled={nvBusy}>Cancel</button>
+          <button type="button" className="btn-save" onClick={() => void submitNewVideo()} disabled={nvBusy}>
+            {nvBusy ? "Creating…" : "Create"}
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   useEffect(() => {
     void fetchApprovals();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -371,6 +442,14 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
               </button>
             );
           })}
+          <button
+            type="button"
+            className="admin-tab"
+            style={{ marginLeft: "auto" }}
+            onClick={() => setShowNewVideo(true)}
+          >
+            + New Video
+          </button>
         </div>
 
         {/* ── Filter bar (Pipeline + Board) ── */}
@@ -525,6 +604,8 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
             }}
           />
         )}
+
+        {newVideoModal}
 
         {toast && <Toast message={toast} />}
       </div>

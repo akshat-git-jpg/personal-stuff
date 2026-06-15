@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import type { Column } from "../shared/columns";
 import type { Row } from "../shared/rbac";
 import { canEditForRoles, isApproverRoles, canSetValueForRoles, isFieldLocked } from "../shared/rbac";
-import { updateCell, review, displayName, ForbiddenError } from "./api";
+import { updateCell, review, displayName, ForbiddenError, generateLinks } from "./api";
+import type { GenerateLinksResult } from "./api";
 import { LANES } from "./lanes";
 import { FIELD_LABELS, LANE_LABELS, FEEDBACK_COL, LINK_HINTS, LINK_COLS, isUrl, STAGE_NAME, ARTIFACT_COL, EMAIL_FOR_STAGE } from "./labels";
 
@@ -133,6 +134,27 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, o
   const [approverAction, setApproverAction] = useState<"none" | "sendback">("none");
   const [sendBackNote, setSendBackNote] = useState("");
   const [approverBusy, setApproverBusy] = useState(false);
+
+  // Link generation (Admin-only)
+  const isAdmin = roles.includes("Admin");
+  const [genLoading, setGenLoading] = useState(false);
+  const [genResult, setGenResult] = useState<GenerateLinksResult | null>(null);
+  const [genError, setGenError] = useState<string | null>(null);
+
+  async function handleGenerate() {
+    if (!row.row_id) return;
+    setGenLoading(true);
+    setGenError(null);
+    try {
+      const r = await generateLinks(row.row_id);
+      setGenResult(r);
+      onSaved(); // refresh the board so the saved cells show
+    } catch (err) {
+      setGenError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setGenLoading(false);
+    }
+  }
 
   // Derived: the board's laneStatus
   const boardLaneStatus = laneStatus ?? "";
@@ -532,6 +554,51 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, o
               <div className="sec-sections">
                 {renderSections(false)}
               </div>
+
+              {/* Admin: generate go.agrolloo short links + YouTube description */}
+              {isAdmin && (
+                <div className="generate-links-panel" style={{ marginTop: 16, padding: 14, border: "1px solid var(--border, #333)", borderRadius: 10 }}>
+                  <button className="btn-save" onClick={() => void handleGenerate()} disabled={genLoading}>
+                    {genLoading ? "Generating…" : "Generate links & description"}
+                  </button>
+                  {genError && <p style={{ color: "var(--review, #e06c75)", marginTop: 8 }}>{genError}</p>}
+                  {genResult && (
+                    <div style={{ marginTop: 12 }}>
+                      <label style={{ fontWeight: 600 }}>Description</label>
+                      <textarea readOnly value={genResult.description} rows={6} style={{ width: "100%", marginTop: 4 }} />
+                      <button
+                        type="button"
+                        onClick={() => void navigator.clipboard.writeText(genResult.description)}
+                        style={{ marginTop: 4 }}
+                      >
+                        Copy description
+                      </button>
+
+                      <label style={{ fontWeight: 600, display: "block", marginTop: 12 }}>Short links</label>
+                      <ul style={{ listStyle: "none", padding: 0, margin: "4px 0 0" }}>
+                        {genResult.links.map((l) => (
+                          <li key={l.tool} style={{ marginBottom: 6 }}>
+                            <code>{l.tool}</code>:{" "}
+                            <a href={l.short_url} target="_blank" rel="noopener noreferrer">{l.short_url}</a>
+                            {!l.has_affiliate && (
+                              <span style={{ color: "var(--review, #e5c07b)" }}> (no affiliate — verify URL)</span>
+                            )}{" "}
+                            <button type="button" onClick={() => void navigator.clipboard.writeText(l.short_url)}>
+                              Copy
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {genResult.non_affiliate_tools.length > 0 && (
+                        <p style={{ color: "var(--review, #e5c07b)", marginTop: 8 }}>
+                          Verify these non-affiliate URLs: {genResult.non_affiliate_tools.join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Global Save button at the bottom */}
               {hasAnyEditable && (
