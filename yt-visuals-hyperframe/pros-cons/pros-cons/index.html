@@ -1,0 +1,91 @@
+<!doctype html>
+<!--
+  PROS & CONS   (Hyperframes card)
+  Card springs up; two columns (green pros / orange cons) reveal; rows stagger in.
+  1920x1080, 30fps, 6 seconds.
+
+  EDITOR: change only the ===== CONTENT ===== block (title, pros[], cons[]) and the
+  :root colors. Do NOT touch ===== TIMELINE (LOCKED). Or render-time:
+    --variables '{"title":"Vercel","pros":["Fast","Free tier"],"cons":["Pricey at scale"]}'
+  Render:  npx hyperframes@latest render pros-cons/pros-cons -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --pro: #34d399; --con: #fb7185;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      /* centering wrapper that is ACTUALLY used in markup */
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
+      #card { width: 100%; max-width: 1560px; }
+      .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 56px; }
+      .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+      .col { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 40px 44px; }
+      .colHead { display: flex; align-items: center; gap: 16px; font-size: 34px; font-weight: 800; margin-bottom: 28px; }
+      .colHead .pill { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 900; }
+      .pros .pill { background: rgba(52,211,153,0.16); color: var(--pro); }
+      .cons .pill { background: rgba(251,113,133,0.16); color: var(--con); }
+      .pros .colHead { color: var(--pro); }
+      .cons .colHead { color: var(--con); }
+      .row { display: flex; align-items: flex-start; gap: 16px; font-size: 28px; line-height: 1.35; padding: 14px 0; color: var(--text); }
+      .row .ic { flex: 0 0 auto; font-size: 26px; font-weight: 900; margin-top: 2px; }
+      .pros .ic { color: var(--pro); }
+      .cons .ic { color: var(--con); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="proscons" data-start="0" data-duration="6" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Hostinger","pros":["Cheapest n8n hosting","One-click install","Great support"],"cons":["No EU-only region","Scales slower than VPS"]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div id="card">
+          <div class="title" id="title"></div>
+          <div class="cols">
+            <div class="col pros"><div class="colHead"><span class="pill">+</span><span>Pros</span></div><div id="prosList"></div></div>
+            <div class="col cons"><div class="colHead"><span class="pill">–</span><span>Cons</span></div><div id="consList"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        title: VARS.title ?? 'Hostinger',
+        pros: VARS.pros ?? ['Cheapest n8n hosting', 'One-click install', 'Great support'],
+        cons: VARS.cons ?? ['No EU-only region', 'Scales slower than VPS'],
+      };
+
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
+      const $ = (id) => document.getElementById(id);
+      function build() {
+        $('title').textContent = DATA.title;
+        $('prosList').innerHTML = DATA.pros.map((t) => `<div class="row"><span class="ic">✓</span><span>${t}</span></div>`).join('');
+        $('consList').innerHTML = DATA.cons.map((t) => `<div class="row"><span class="ic">✕</span><span>${t}</span></div>`).join('');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#card .title', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, 0.1);
+      tl.from('.pros', { opacity: 0, x: -40, duration: 0.6, ease: 'power3.out' }, 0.4);
+      tl.from('.cons', { opacity: 0, x: 40, duration: 0.6, ease: 'power3.out' }, 0.4);
+      tl.from('.pros .row', { opacity: 0, y: 16, duration: 0.45, ease: 'power2.out', stagger: 0.12 }, 0.8);
+      tl.from('.cons .row', { opacity: 0, y: 16, duration: 0.45, ease: 'power2.out', stagger: 0.12 }, 0.95);
+      window.__timelines['proscons'] = tl;
+    </script>
+  </body>
+</html>

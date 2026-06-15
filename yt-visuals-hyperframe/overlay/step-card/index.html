@@ -1,0 +1,60 @@
+<!doctype html>
+<!--
+  STEP CARD   (Hyperframes OVERLAY — transparent background)
+  "Step 2 of 5 · Configure DNS" with a progress-dot row. Slides in at top-center
+  and holds. Sits on top of tutorial footage. 1920x1080, 30fps, 5 seconds.
+
+  ⚠ OVERLAY: render as a TRANSPARENT WebM:
+    npx hyperframes@latest render overlay/step-card -o step.webm --format webm --fps 30
+  EDITOR: edit only ===== CONTENT ===== (step, total, label) + :root colors.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root { --accent: #fb923c; --panel: rgba(15, 11, 7, 0.86); --text: #ffffff; --dot: rgba(255,255,255,0.22); --font: 'Inter', system-ui, sans-serif; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #step { position: absolute; top: 90px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 26px;
+        background: var(--panel); border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; padding: 18px 36px; backdrop-filter: blur(14px); }
+      .badge { font-size: 22px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+      .label { font-size: 34px; font-weight: 700; letter-spacing: -0.5px; }
+      .dots { display: flex; gap: 12px; margin-left: 8px; }
+      .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--dot); }
+      .dot.on { background: var(--accent); box-shadow: 0 0 14px var(--accent); }
+      .sep { width: 1px; height: 36px; background: rgba(255,255,255,0.16); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="stepcard" data-start="0" data-duration="5" data-width="1920" data-height="1080"
+      data-composition-variables='{"step":2,"total":5,"label":"Configure your DNS"}'>
+      <div id="step" class="clip" data-start="0" data-duration="5" data-track-index="0">
+        <span class="badge" id="badge"></span>
+        <div class="dots" id="dots"></div>
+        <span class="sep"></span>
+        <span class="label" id="label"></span>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = { step: Number(VARS.step ?? 2), total: Number(VARS.total ?? 5), label: VARS.label ?? 'Configure your DNS' };
+      document.getElementById('badge').textContent = `Step ${DATA.step} / ${DATA.total}`;
+      document.getElementById('label').textContent = DATA.label;
+      document.getElementById('dots').innerHTML = Array.from({ length: DATA.total })
+        .map((_, i) => `<span class="dot ${i < DATA.step ? 'on' : ''}"></span>`).join('');
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#step', { opacity: 0, y: -40, duration: 0.6, ease: 'power3.out' }, 0.1);
+      tl.from('#dots .dot.on', { scale: 0, duration: 0.4, ease: 'back.out(2.5)', stagger: 0.08 }, 0.45);
+      window.__timelines['stepcard'] = tl;
+    </script>
+  </body>
+</html>
