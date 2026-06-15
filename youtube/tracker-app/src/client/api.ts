@@ -17,8 +17,9 @@ export interface BoardData {
   stages: { statusCol: string; role: string }[]; // worker stages for this user
   columns: Column[];
   rows: Row[];
-  viewingAs: { email: string; role: string | null } | null;
+  viewingAs: { email: string; role: string | null; roles?: string[] } | null;
   readOnly?: boolean;
+  canEditAll?: boolean;             // session user is an admin → full edit authority, even while previewing
   notice?: string;
   names?: Record<string, string>;
 }

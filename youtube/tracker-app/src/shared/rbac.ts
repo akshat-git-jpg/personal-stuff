@@ -170,12 +170,19 @@ export function workerStagesForRoles(roles: string[]): { statusCol: Column; role
 
 /**
  * Field-level lock for multi-role correctness.
- * Returns true if the user is NOT an approver AND STAGE_OF_COL[col] exists
- * AND row[STAGE_OF_COL[col]] === "Done".
+ * For a non-approver doer, a field is locked when its governing stage is:
+ *   • "Done"      — approved work is frozen entirely (incl. the status column).
+ *   • "In Review" — submitted-for-review work is frozen, EXCEPT the stage's own
+ *                   status column, so the doer can still move the card back to
+ *                   "In Progress" (drag) to reopen the rest for editing.
+ * Approvers (Admin/Reviewer) are never locked.
  */
 export function isFieldLocked(roles: string[], col: Column, row: Row): boolean {
   if (isApproverRoles(roles)) return false;
   const stageCol = STAGE_OF_COL[col];
   if (!stageCol) return false;
-  return (row[stageCol] || "").trim() === "Done";
+  const stage = (row[stageCol] || "").trim();
+  if (stage === "Done") return true;
+  if (stage === "In Review" && col !== stageCol) return true;
+  return false;
 }

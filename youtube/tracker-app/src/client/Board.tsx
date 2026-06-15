@@ -135,12 +135,49 @@ function Toast({ message }: { message: string }) {
   return <div className="toast">{message}</div>;
 }
 
+// ── Confirm-move dialog (freelancer submit / pull-back guardrail) ───────────
+
+type MoveKind = "submit" | "pullback";
+
+const MOVE_DIALOG: Record<MoveKind, { title: string; body: string; confirm: string; cancel: string }> = {
+  submit: {
+    title: "Submit for review?",
+    body: "Once you submit, the reviewer is notified and this card locks — you won't be able to edit it until they approve or send it back.",
+    confirm: "Submit for review",
+    cancel: "Not yet",
+  },
+  pullback: {
+    title: "Pull back to edit?",
+    body: "This removes the card from the reviewer's queue and unlocks it so you can make changes.",
+    confirm: "Move back",
+    cancel: "Cancel",
+  },
+};
+
+function ConfirmMoveDialog({ kind, onConfirm, onCancel }: { kind: MoveKind; onConfirm: () => void; onCancel: () => void }) {
+  const copy = MOVE_DIALOG[kind];
+  return (
+    <>
+      <div className="confirm-overlay" onClick={onCancel} />
+      <div className="confirm-dialog" role="dialog" aria-modal="true">
+        <h3 className="confirm-dialog__title">{copy.title}</h3>
+        <p className="confirm-dialog__body">{copy.body}</p>
+        <div className="confirm-dialog__actions">
+          <button className="confirm-dialog__cancel" onClick={onCancel}>{copy.cancel}</button>
+          <button className="confirm-dialog__confirm" onClick={onConfirm}>{copy.confirm}</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ── Board ──────────────────────────────────────────────────────────────────
 
-interface BoardProps extends Omit<BoardData, "viewingAs" | "readOnly" | "notice"> {
+interface BoardProps extends Omit<BoardData, "viewingAs" | "readOnly" | "canEditAll" | "notice"> {
   reload: () => void;
   viewingAs?: { email: string; role: string | null } | null;
   readOnly?: boolean;
+  canEditAll?: boolean;
   names: Record<string, string>;
   roles: string[];
   stages: { statusCol: string; role: string }[];
@@ -187,10 +224,15 @@ function ApprovalQueue({ items, names, onOpenCard }: ApprovalQueueProps) {
   );
 }
 
-export function Board({ role, roles, stages, columns, rows: initialRows, names, viewingAs, readOnly, reload }: BoardProps) {
+export function Board({ role, roles, stages, columns, rows: initialRows, names, viewingAs, readOnly, canEditAll, reload }: BoardProps) {
   const isPreview = !!viewingAs;
 
-  // Multi-role derived flags
+  // Edit authority is separate from the board VIEW. When an admin previews a
+  // member's board, `roles` reflects the member (so the view/lanes match what
+  // they see) but `editRoles` keeps the admin's full edit power.
+  const editRoles = canEditAll ? [...roles, "Admin"] : roles;
+
+  // Multi-role derived flags — VIEW roles (drive layout, lanes, stages).
   const isApprover = isApproverRoles(roles);
   const isAdmin = roles.includes("Admin");
 
@@ -223,6 +265,10 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
   // detailLaneStatus overrides the board laneStatus when opening a card from the approvals queue
   const [detailLaneStatus, setDetailLaneStatus] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  // Pending freelancer move awaiting confirmation (submit / pull-back)
+  const [pendingMove, setPendingMove] = useState<
+    { row: Row; oldLane: string; newLane: string; statusCol: Column; kind: MoveKind } | null
+  >(null);
 
   // Approver-mode: non-admin approvers default to awaiting queue
   const approverMode = isApprover && !isPreview;
@@ -259,7 +305,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
 
   const lanes = LANES[laneStatus] ?? [];
   // In read-only preview mode, dragging is never allowed regardless of role.
-  const editAllowed = !readOnly && canEditForRoles(roles, laneStatus);
+  const editAllowed = !readOnly && canEditForRoles(editRoles, laneStatus);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -273,6 +319,36 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
   function handleDragStart(event: DragStartEvent) {
     const row = event.active.data.current?.row as Row | undefined;
     if (row) setActiveRow(row);
+  }
+
+  // Whether this lane move needs a freelancer confirmation, and which kind.
+  // Only on the doer stage columns, and only for the submit / pull-back moves.
+  function moveKind(statusCol: Column, oldLane: string, newLane: string): MoveKind | null {
+    const stageCols = ["script_status", "tutorial_status", "video_editor_status"];
+    if (!stageCols.includes(statusCol)) return null;
+    if (newLane === "In Review") return "submit";
+    if (oldLane === "In Review") return "pullback";
+    return null;
+  }
+
+  // Apply a lane move (optimistic + persist + rollback on failure).
+  async function commitMove(draggedRow: Row, oldLane: string, newLane: string, statusCol: Column) {
+    if (!draggedRow.row_id) return;
+    setRows(prev => prev.map(r =>
+      r.row_id === draggedRow.row_id ? { ...r, [statusCol]: newLane } : r
+    ));
+    try {
+      await updateCell(draggedRow.row_id, statusCol, newLane);
+    } catch (err) {
+      setRows(prev => prev.map(r =>
+        r.row_id === draggedRow.row_id ? { ...r, [statusCol]: oldLane } : r
+      ));
+      if (err instanceof ForbiddenError) {
+        showToast("You can't move this card");
+      } else {
+        showToast((err as Error).message ?? "Move failed");
+      }
+    }
   }
 
   async function handleDragEnd(event: DragEndEvent) {
@@ -291,28 +367,20 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
     if (newLane === oldLane) return;
 
     // Client-side guard: prevent doers from dragging into lanes they can't set
-    if (!canSetValueForRoles(roles, laneStatus, newLane)) {
+    if (!canSetValueForRoles(editRoles, laneStatus, newLane)) {
       showToast("Only an admin/reviewer can approve. Drag to 'Submitted for review' to submit it.");
       return;
     }
 
-    // Optimistic update
-    setRows(prev => prev.map(r =>
-      r.row_id === draggedRow.row_id ? { ...r, [laneStatus]: newLane } : r
-    ));
-
-    try {
-      await updateCell(draggedRow.row_id, laneStatus, newLane);
-    } catch (err) {
-      setRows(prev => prev.map(r =>
-        r.row_id === draggedRow.row_id ? { ...r, [laneStatus]: oldLane } : r
-      ));
-      if (err instanceof ForbiddenError) {
-        showToast("You can't move this card");
-      } else {
-        showToast((err as Error).message ?? "Move failed");
-      }
+    // Freelancers confirm before submitting or pulling back from review.
+    const isFreelancer = !isApproverRoles(editRoles);
+    const kind = isFreelancer ? moveKind(laneStatus, oldLane, newLane) : null;
+    if (kind) {
+      setPendingMove({ row: draggedRow, oldLane, newLane, statusCol: laneStatus, kind });
+      return;
     }
+
+    await commitMove(draggedRow, oldLane, newLane, laneStatus);
   }
 
   const laneGroups = groupByLane(rows, laneStatus, lanes);
@@ -442,7 +510,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
                     const isKnownLane = idx < lanes.length;
                     const stageKey = isKnownLane ? laneColor(idx, lanes.length) : null;
                     const gated = (APPROVER_ONLY_VALUES[laneStatus] ?? []).includes(lane)
-                      && !canSetValueForRoles(roles, laneStatus, lane);
+                      && !canSetValueForRoles(editRoles, laneStatus, lane);
                     return (
                       <Fragment key={lane}>
                         {gated && (
@@ -458,7 +526,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
                           gated={gated}
                         >
                           {laneRows.map(row => {
-                            const locked = isFieldLocked(roles, laneStatus, row);
+                            const locked = isFieldLocked(editRoles, laneStatus, row);
                             return (
                               <DraggableCard
                                 key={row.row_id}
@@ -593,7 +661,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
               const isKnownLane = idx < lanes.length;
               const stage = isKnownLane ? laneColor(idx, lanes.length) : null;
               const gated = (APPROVER_ONLY_VALUES[laneStatus] ?? []).includes(lane)
-                && !canSetValueForRoles(roles, laneStatus, lane);
+                && !canSetValueForRoles(editRoles, laneStatus, lane);
               return (
                 <Fragment key={lane}>
                   {gated && (
@@ -612,7 +680,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
                   onToggle={() => setDoneOpen(o => !o)}
                 >
                   {laneRows.map(row => {
-                    const locked = isFieldLocked(roles, laneStatus, row);
+                    const locked = isFieldLocked(editRoles, laneStatus, row);
                     return (
                       <DraggableCard
                         key={row.row_id}
@@ -657,6 +725,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
           names={names}
           laneStatus={detailLaneStatus ?? laneStatus}
           readOnly={readOnly}
+          canEditAll={canEditAll}
           onClose={() => { setDetailRow(null); setDetailLaneStatus(null); }}
           onSaved={() => {
             void fetchApprovals();
@@ -665,6 +734,18 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
             setDetailLaneStatus(null);
             if (detailLaneStatus) setShowAwaiting(false);
           }}
+        />
+      )}
+
+      {pendingMove && (
+        <ConfirmMoveDialog
+          kind={pendingMove.kind}
+          onConfirm={() => {
+            const m = pendingMove;
+            setPendingMove(null);
+            void commitMove(m.row, m.oldLane, m.newLane, m.statusCol);
+          }}
+          onCancel={() => setPendingMove(null)}
         />
       )}
 

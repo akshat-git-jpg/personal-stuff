@@ -225,8 +225,12 @@ app.get("/api/board", async (c) => {
 
   let effRoles = roles;
   let effEmail = email;
-  let viewingAs: { email: string; roles: string[] } | null = null;
+  let viewingAs: { email: string; role: string | null; roles: string[] } | null = null;
   let readOnly = false;
+  // Admins keep full edit authority everywhere — including while previewing a
+  // team member's board. The board VIEW (columns/rows) follows the previewed
+  // member; edit permission is governed separately on the client via canEditAll.
+  const canEditAll = isAdmin;
 
   // Honor asUser ONLY when the session user is an Admin.
   if (isAdmin && asUser) {
@@ -237,8 +241,9 @@ app.get("/api/board", async (c) => {
       return c.json({
         role: roles.includes("Admin") ? "Admin" : (roles[0] ?? ""),
         roles,
-        viewingAs: { email: asUser, roles: [] },
+        viewingAs: { email: asUser, role: null, roles: [] },
         readOnly: true,
+        canEditAll: false,
         columns: [],
         rows: [],
         names: {},
@@ -248,8 +253,9 @@ app.get("/api/board", async (c) => {
     }
     effRoles = asRoles;
     effEmail = asUser.trim().toLowerCase();
-    viewingAs = { email: asUser, roles: asRoles };
-    readOnly = true;
+    viewingAs = { email: asUser, role: asRoles[0] ?? null, roles: asRoles };
+    // Not read-only for an admin — admins can edit while previewing.
+    readOnly = false;
   }
 
   const saToken = await getAccessToken(c.env.GOOGLE_SA_JSON);
@@ -268,6 +274,7 @@ app.get("/api/board", async (c) => {
     roles: effRoles,
     viewingAs,
     readOnly,
+    canEditAll,
     columns: visibleColumnsForRoles(effRoles),
     rows: projected,
     names,
