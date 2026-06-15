@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hyperframes → Video</title>
+<style>
+  :root {
+    --bg: #0f0b07; --panel: #181210; --line: rgba(255,255,255,0.10);
+    --text: #f5ede2; --dim: rgba(245,237,226,0.55); --accent: #fb923c; --ok: #34d399; --err: #ff6b6b;
+    --font: "Inter", -apple-system, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font); background: radial-gradient(ellipse at 50% -10%, #2a1708, var(--bg) 55%);
+    color: var(--text); min-height: 100vh; padding: 40px 20px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  header { text-align: center; margin-bottom: 32px; }
+  h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+  header p { color: var(--dim); margin-top: 8px; font-size: 15px; }
+  .card {
+    width: 100%; max-width: 760px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 18px; padding: 28px; margin-bottom: 22px;
+  }
+  #drop {
+    border: 2px dashed var(--line); border-radius: 14px; padding: 44px 24px; text-align: center;
+    cursor: pointer; transition: 0.15s; color: var(--dim);
+  }
+  #drop.hover { border-color: var(--accent); background: rgba(251,146,60,0.06); color: var(--text); }
+  #drop strong { color: var(--text); }
+  #drop .hint { font-size: 13px; margin-top: 8px; }
+  .filename { margin-top: 16px; font-size: 14px; color: var(--accent); display: none; }
+
+  .row { display: flex; gap: 12px; margin-top: 20px; }
+  button {
+    font-family: var(--font); font-size: 15px; font-weight: 600; border: none; border-radius: 10px;
+    padding: 13px 22px; cursor: pointer; transition: 0.15s;
+  }
+  .primary { background: var(--accent); color: #1a0f05; flex: 1; }
+  .primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .ghost { background: transparent; color: var(--dim); border: 1px solid var(--line); }
+
+  #previewWrap { display: none; margin-top: 22px; }
+  #previewWrap .label { font-size: 13px; color: var(--dim); margin-bottom: 8px; }
+  .iframeBox { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid var(--line); }
+  iframe { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; border: 0; transform-origin: top left; }
+
+  #progress { display: none; }
+  .bar { height: 10px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; margin: 14px 0 10px; }
+  .fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.2s; }
+  .status { font-size: 14px; color: var(--dim); }
+  .status.ok { color: var(--ok); } .status.err { color: var(--err); white-space: pre-wrap; }
+  .download { display: none; margin-top: 16px; }
+  a.dl { display: inline-block; background: var(--ok); color: #042b1c; font-weight: 700; padding: 13px 22px; border-radius: 10px; text-decoration: none; }
+  .topbar { width: 100%; max-width: 760px; display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  .topbar button { padding: 7px 14px; font-size: 13px; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab { flex: 1; text-align: center; padding: 11px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--dim); cursor: pointer; font: inherit; font-weight: 600; font-size: 14px; }
+  .tab.active { background: rgba(251,146,60,0.12); border-color: var(--accent); color: var(--text); }
+  textarea#paste {
+    width: 100%; min-height: 200px; resize: vertical; padding: 14px; border-radius: 12px;
+    border: 1px solid var(--line); background: #0f0b07; color: var(--text);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; line-height: 1.5;
+  }
+  textarea#paste::placeholder { color: rgba(245,237,226,0.35); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="topbar"><button class="ghost" id="logout">Log out</button></div>
+  <header>
+    <h1>Hyperframes → Video</h1>
+    <p>Paste your card's HTML, give it a quick look, render it to MP4. No installs.</p>
+  </header>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" id="tabPaste">Paste code</button>
+      <button class="tab" id="tabDrop">Drop file</button>
+    </div>
+
+    <div id="pastePane">
+      <textarea id="paste" placeholder="Paste your full HTML here (the whole &lt;!DOCTYPE html&gt; … &lt;/html&gt;)…"></textarea>
+    </div>
+
+    <div id="dropPane" class="hidden">
+      <div id="drop">
+        <strong>Drop your .html file here</strong>
+        <div class="hint">or click to choose</div>
+        <div class="filename" id="filename"></div>
+      </div>
+      <input type="file" id="file" accept=".html,text/html" hidden />
+    </div>
+
+    <div id="previewWrap">
+      <div class="label">Preview (loops — roughly what the rendered video will look like)</div>
+      <div class="iframeBox"><iframe id="preview"></iframe></div>
+    </div>
+
+    <div class="row">
+      <button class="primary" id="render" disabled>Render to MP4</button>
+    </div>
+
+    <div id="progress">
+      <div class="bar"><div class="fill" id="fill"></div></div>
+      <div class="status" id="status">Starting…</div>
+      <div class="download" id="download"><a class="dl" id="dl" href="#">Download MP4</a></div>
+    </div>
+  </div>
+
+<script>
+  const drop = document.getElementById("drop");
+  const fileInput = document.getElementById("file");
+  const filenameEl = document.getElementById("filename");
+  const renderBtn = document.getElementById("render");
+  const previewWrap = document.getElementById("previewWrap");
+  const preview = document.getElementById("preview");
+  const progress = document.getElementById("progress");
+  const fill = document.getElementById("fill");
+  const statusEl = document.getElementById("status");
+  const downloadEl = document.getElementById("download");
+  const dl = document.getElementById("dl");
+
+  const paste = document.getElementById("paste");
+  const tabDrop = document.getElementById("tabDrop");
+  const tabPaste = document.getElementById("tabPaste");
+  const dropPane = document.getElementById("dropPane");
+  const pastePane = document.getElementById("pastePane");
+
+  let htmlText = null, fileName = "video";
+  let activeTab = "paste";
+  let fileHtml = null, fileBaseName = "video";
+
+  // Cards are a fixed 1920x1080 page with a PAUSED timeline (for deterministic
+  // render). For the PREVIEW we only inject a loop that plays the timeline — we do
+  // NOT touch the card's CSS (that would break its centering). The 1920x1080 iframe
+  // is scaled to fit the box from the outside (see the ResizeObserver below).
+  function previewHtml(text) {
+    const inject =
+      "<scr" + "ipt>(function(){function play(){var t=window.__timelines||{};" +
+      "Object.keys(t).forEach(function(k){var tl=t[k];if(tl&&tl.play){tl.repeat(-1);tl.repeatDelay(0.8);tl.play();}});}" +
+      "play();[100,400,900].forEach(function(d){setTimeout(play,d);});})();</scr" + "ipt>";
+    return text.includes("</body>") ? text.replace("</body>", inject + "</body>") : text + inject;
+  }
+
+  // scale the 1920px preview iframe to its box — ResizeObserver fires after layout
+  new ResizeObserver((entries) => {
+    for (const e of entries) preview.style.transform = "scale(" + (e.contentRect.width / 1920) + ")";
+  }).observe(preview.parentElement);
+  function scalePreview() {}
+
+  function useHtml(text, name) {
+    htmlText = text;
+    fileName = name || "video";
+    const hasContent = !!(text && text.trim());
+    renderBtn.disabled = !hasContent;
+    if (hasContent) {
+      preview.srcdoc = previewHtml(text);
+      previewWrap.style.display = "block";
+      setTimeout(scalePreview, 50);
+    } else {
+      previewWrap.style.display = "none";
+    }
+    progress.style.display = "none";
+    downloadEl.style.display = "none";
+  }
+
+  function setTab(which) {
+    activeTab = which;
+    const onPaste = which === "paste";
+    tabPaste.classList.toggle("active", onPaste);
+    tabDrop.classList.toggle("active", !onPaste);
+    pastePane.classList.toggle("hidden", !onPaste);
+    dropPane.classList.toggle("hidden", onPaste);
+    if (onPaste) useHtml(paste.value, "pasted");
+    else useHtml(fileHtml, fileBaseName);
+  }
+  tabDrop.addEventListener("click", () => setTab("drop"));
+  tabPaste.addEventListener("click", () => setTab("paste"));
+
+  let pasteTimer;
+  paste.addEventListener("input", () => {
+    clearTimeout(pasteTimer);
+    pasteTimer = setTimeout(() => { if (activeTab === "paste") useHtml(paste.value, "pasted"); }, 400);
+  });
+
+  function loadFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      fileHtml = reader.result;
+      fileBaseName = file.name.replace(/\.html?$/i, "");
+      filenameEl.textContent = "✓ " + file.name;
+      filenameEl.style.display = "block";
+      useHtml(fileHtml, fileBaseName);
+    };
+    reader.readAsText(file);
+  }
+
+  drop.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", (e) => loadFile(e.target.files[0]));
+  ["dragenter", "dragover"].forEach((ev) =>
+    drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("hover"); }));
+  ["dragleave", "drop"].forEach((ev) =>
+    drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("hover"); }));
+  drop.addEventListener("drop", (e) => loadFile(e.dataTransfer.files[0]));
+
+  renderBtn.addEventListener("click", async () => {
+    if (!htmlText) return;
+    renderBtn.disabled = true;
+    progress.style.display = "block";
+    downloadEl.style.display = "none";
+    fill.style.width = "0%";
+    statusEl.className = "status";
+    statusEl.textContent = "Starting the renderer… (first render of the day is slower)";
+
+    const res = await fetch("/api/render", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ html: htmlText, name: fileName }),
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      statusEl.className = "status err";
+      statusEl.textContent = e.error || "Failed to start.";
+      renderBtn.disabled = false;
+      return;
+    }
+    const { jobId } = await res.json();
+
+    const es = new EventSource(`/api/progress/${jobId}`);
+    es.onmessage = (m) => {
+      const d = JSON.parse(m.data);
+      if (d.status === "error") {
+        statusEl.className = "status err";
+        statusEl.textContent = "Error:\n" + (d.error || "render failed");
+        renderBtn.disabled = false;
+        es.close();
+        return;
+      }
+      if (d.status === "done") {
+        fill.style.width = "100%";
+        statusEl.className = "status ok";
+        statusEl.textContent = "Done.";
+        dl.href = d.downloadUrl;
+        dl.setAttribute("download", fileName + ".mp4");
+        downloadEl.style.display = "block";
+        renderBtn.disabled = false;
+        es.close();
+        return;
+      }
+      if (d.status === "encoding") {
+        fill.style.width = "100%";
+        statusEl.textContent = "Encoding video…";
+      } else if (d.total) {
+        const pct = Math.round((d.frame / d.total) * 100);
+        fill.style.width = pct + "%";
+        statusEl.textContent = `Rendering frame ${d.frame} / ${d.total} (${pct}%)`;
+      } else {
+        statusEl.textContent = "Preparing the render…";
+      }
+    };
+    es.onerror = () => { es.close(); };
+  });
+
+  document.getElementById("logout").addEventListener("click", async () => {
+    await fetch("/api/logout", { method: "POST" });
+    location.href = "/login";
+  });
+
+  setTab("paste");
+</script>
+</body>
+</html>

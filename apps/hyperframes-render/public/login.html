@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Log in · Hyperframes → Video</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", -apple-system, system-ui, sans-serif;
+    background: radial-gradient(ellipse at 50% -10%, #2a1708, #0f0b07 55%);
+    color: #f5ede2; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  }
+  .box { background: #181210; border: 1px solid rgba(255,255,255,0.10); border-radius: 16px; padding: 36px; width: 340px; text-align: center; }
+  h1 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  p { color: rgba(245,237,226,0.55); font-size: 14px; margin-bottom: 22px; }
+  input { width: 100%; padding: 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); background: #0f0b07; color: #f5ede2; font-size: 15px; }
+  button { width: 100%; margin-top: 14px; padding: 13px; border: none; border-radius: 10px; background: #fb923c; color: #1a0f05; font-weight: 700; font-size: 15px; cursor: pointer; }
+  .err { color: #ff6b6b; font-size: 13px; margin-top: 12px; min-height: 16px; }
+</style>
+</head>
+<body>
+  <form class="box" id="form">
+    <h1>Hyperframes → Video</h1>
+    <p>Enter the shared password to continue.</p>
+    <input type="password" id="pw" placeholder="Password" autofocus />
+    <button type="submit">Log in</button>
+    <div class="err" id="err"></div>
+  </form>
+<script>
+  document.getElementById("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: document.getElementById("pw").value }),
+    });
+    if (res.ok) location.href = "/";
+    else document.getElementById("err").textContent = "Wrong password";
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# hyperframes-render — routed by the existing Traefik v3 on the Hostinger VPS,
+# same pattern as html-to-video / personal-dashboard.
+#
+# Deploy dir on VPS: /docker/hyperframes-render/
+#   - .env   (APP_PASSWORD, SESSION_SECRET)
+#
+# Change the Host(...) rule below to whatever subdomain you point at the VPS.
+
+services:
+  hyperframes-render:
+    build: .
+    container_name: hyperframes-render
+    restart: unless-stopped
+    env_file: .env
+    # Chrome needs more shared memory than Docker's 64MB default.
+    shm_size: "1gb"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hfr.rule=Host(`render2.agrolloo.com`)"
+      - "traefik.http.routers.hfr.entrypoints=websecure"
+      - "traefik.http.routers.hfr.tls=true"
+      - "traefik.http.routers.hfr.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.hfr.loadbalancer.server.port=8080"
+    networks:
+      - n8n_default
+
+networks:
+  n8n_default:
+    external: true

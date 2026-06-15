@@ -1,0 +1,15 @@
+{
+  "name": "hyperframes-render",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Paste-and-render web tool for Hyperframes compositions. Editor pastes HTML, gets an MP4. No terminal.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2"
+  }
+}
