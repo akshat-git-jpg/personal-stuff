@@ -400,6 +400,14 @@ body {
 .field input:focus, .field select:focus {
   outline: none; border-color: var(--accent);
 }
+.field textarea {
+  font: inherit; font-size: 13.5px; color: var(--t1);
+  background: rgba(255,240,224,0.04); border: 1px solid var(--line-2);
+  border-radius: 8px; padding: 10px 11px; width: 100%;
+  resize: vertical; min-height: 88px; line-height: 1.5;
+}
+.field textarea::placeholder { color: var(--t4); }
+.field textarea:focus { outline: none; border-color: var(--accent); }
 
 .field .field-error { font-size: 11.5px; color: var(--danger); }
 
@@ -933,6 +941,32 @@ details[open] .review-details__summary::before { content: "▼ "; }
 .nv-form .field textarea:focus { outline: none; border-color: var(--accent); }
 .nv-form__error { margin: 12px 0 0; font-size: 12.5px; color: var(--danger); }
 .nv-dialog .confirm-dialog__actions { margin-top: 22px; }
+
+/* ── Generate links & description panel (card detail, top) ───────────────── */
+.gen-panel {
+  margin: 0 0 18px;
+  padding: 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: rgba(255,240,224,0.02);
+}
+.gen-panel__error { margin: 8px 0 0; font-size: 12.5px; color: var(--danger); }
+.gen-panel__result { margin-top: 12px; }
+.gen-panel__label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .4px; color: var(--t3); margin-bottom: 4px; }
+.gen-panel__desc {
+  font: inherit; font-size: 13px; color: var(--t1); line-height: 1.5;
+  background: rgba(255,240,224,0.04); border: 1px solid var(--line-2);
+  border-radius: 8px; padding: 10px 11px; width: 100%; resize: vertical;
+}
+.gen-panel__copy {
+  margin-top: 6px; font: inherit; font-size: 12px; font-weight: 600;
+  color: var(--t2); background: transparent; border: 1px solid var(--line-2);
+  border-radius: 7px; padding: 4px 10px; cursor: pointer;
+}
+.gen-panel__copy:hover { color: var(--t1); border-color: var(--accent); }
+.gen-panel__links { list-style: none; padding: 0; margin: 4px 0 0; font-size: 13px; }
+.gen-panel__links li { margin-bottom: 8px; word-break: break-all; }
+.gen-panel__warn { color: var(--warn, #e5c07b); }
 
 /* ── Admin filter bar ────────────────────────────────────────────────────── */
 .admin-filters {

@@ -22,6 +22,9 @@ interface CardDetailProps {
 
 const LANE_COLUMNS = new Set(["topic_status","script_status","tutorial_status","video_editor_status","yt_upload_status"]);
 
+// Columns rendered as multi-line paragraphs (textarea / pre-wrap), not single-line inputs.
+const MULTILINE_COLS = new Set(["video_notes","video_description"]);
+
 // Columns whose values are email addresses — show resolved name + small email hint.
 const EMAIL_COLS = new Set([
   "script_writer_email",
@@ -328,6 +331,9 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, c
         </div>
       );
     }
+    if (MULTILINE_COLS.has(col)) {
+      return <div className="ro" style={{ whiteSpace: "pre-wrap" }}>{value}</div>;
+    }
     return <div className="ro">{value}</div>;
   }
 
@@ -372,6 +378,14 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, c
                 <option key={v} value={v}>{friendlyMap[v] ?? v}</option>
               ))}
           </select>
+        ) : MULTILINE_COLS.has(col) ? (
+          <textarea
+            id={`field-${col}`}
+            value={value}
+            rows={4}
+            placeholder={`Write the ${label.toLowerCase()}…`}
+            onChange={e => handleChange(col, e.target.value)}
+          />
         ) : (
           <>
             <input
@@ -550,6 +564,47 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, c
             <>
               {/* ── NORMAL MODE (non-review opens) ── */}
 
+              {/* Admin: generate go.agrolloo short links + YouTube description (top — primary action) */}
+              {isAdmin && (
+                <div className="gen-panel">
+                  <button className="btn-save" onClick={() => void handleGenerate()} disabled={genLoading}>
+                    {genLoading ? "Generating…" : "Generate links & description"}
+                  </button>
+                  {genError && <p className="gen-panel__error">{genError}</p>}
+                  {genResult && (
+                    <div className="gen-panel__result">
+                      <label className="gen-panel__label">Description</label>
+                      <textarea readOnly value={genResult.description} rows={6} className="gen-panel__desc" />
+                      <button type="button" className="gen-panel__copy" onClick={() => void navigator.clipboard.writeText(genResult.description)}>
+                        Copy description
+                      </button>
+
+                      <label className="gen-panel__label" style={{ marginTop: 12 }}>Short links</label>
+                      <ul className="gen-panel__links">
+                        {genResult.links.map((l) => (
+                          <li key={l.tool}>
+                            <code>{l.tool}</code>:{" "}
+                            <a href={l.short_url} target="_blank" rel="noopener noreferrer">{l.short_url}</a>
+                            {!l.has_affiliate && (
+                              <span className="gen-panel__warn"> (no affiliate — verify URL)</span>
+                            )}{" "}
+                            <button type="button" className="gen-panel__copy" onClick={() => void navigator.clipboard.writeText(l.short_url)}>
+                              Copy
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {genResult.non_affiliate_tools.length > 0 && (
+                        <p className="gen-panel__warn">
+                          Verify these non-affiliate URLs: {genResult.non_affiliate_tools.join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Doer: submitted-for-review freeze notice */}
               {submittedLocked && (
                 <div className="detail-locked-note">
@@ -579,51 +634,6 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, c
               <div className="sec-sections">
                 {renderSections(false)}
               </div>
-
-              {/* Admin: generate go.agrolloo short links + YouTube description */}
-              {isAdmin && (
-                <div className="generate-links-panel" style={{ marginTop: 16, padding: 14, border: "1px solid var(--border, #333)", borderRadius: 10 }}>
-                  <button className="btn-save" onClick={() => void handleGenerate()} disabled={genLoading}>
-                    {genLoading ? "Generating…" : "Generate links & description"}
-                  </button>
-                  {genError && <p style={{ color: "var(--review, #e06c75)", marginTop: 8 }}>{genError}</p>}
-                  {genResult && (
-                    <div style={{ marginTop: 12 }}>
-                      <label style={{ fontWeight: 600 }}>Description</label>
-                      <textarea readOnly value={genResult.description} rows={6} style={{ width: "100%", marginTop: 4 }} />
-                      <button
-                        type="button"
-                        onClick={() => void navigator.clipboard.writeText(genResult.description)}
-                        style={{ marginTop: 4 }}
-                      >
-                        Copy description
-                      </button>
-
-                      <label style={{ fontWeight: 600, display: "block", marginTop: 12 }}>Short links</label>
-                      <ul style={{ listStyle: "none", padding: 0, margin: "4px 0 0" }}>
-                        {genResult.links.map((l) => (
-                          <li key={l.tool} style={{ marginBottom: 6 }}>
-                            <code>{l.tool}</code>:{" "}
-                            <a href={l.short_url} target="_blank" rel="noopener noreferrer">{l.short_url}</a>
-                            {!l.has_affiliate && (
-                              <span style={{ color: "var(--review, #e5c07b)" }}> (no affiliate — verify URL)</span>
-                            )}{" "}
-                            <button type="button" onClick={() => void navigator.clipboard.writeText(l.short_url)}>
-                              Copy
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-
-                      {genResult.non_affiliate_tools.length > 0 && (
-                        <p style={{ color: "var(--review, #e5c07b)", marginTop: 8 }}>
-                          Verify these non-affiliate URLs: {genResult.non_affiliate_tools.join(", ")}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
 
               {/* Global Save button at the bottom */}
               {hasAnyEditable && (
