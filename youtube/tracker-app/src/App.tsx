@@ -157,8 +157,10 @@ export default function App() {
       previewBanner = data.notice ?? `No role mapping found for ${data.viewingAs.email}.`;
     } else {
       const memberName = team.find(m => m.email === data.viewingAs!.email)?.name ?? data.viewingAs.email;
-      const friendlyRole = data.viewingAs.role;
-      previewBanner = `\u{1F441}️ Previewing ${memberName}'s board (${friendlyRole}) — read-only. Switch to "Full admin (me)" to edit.`;
+      const friendlyRole = data.viewingAs.role ?? data.viewingAs.roles?.[0] ?? "no role";
+      previewBanner = data.canEditAll
+        ? `\u{1F441}️ Previewing ${memberName}'s board (${friendlyRole}) — you can edit as admin. Switch to "Full admin (me)" for the full pipeline.`
+        : `\u{1F441}️ Previewing ${memberName}'s board (${friendlyRole}) — read-only. Switch to "Full admin (me)" to edit.`;
     }
   }
 
@@ -209,6 +211,7 @@ export default function App() {
         names={data.names ?? {}}
         viewingAs={data.viewingAs ?? null}
         readOnly={data.readOnly ?? false}
+        canEditAll={data.canEditAll ?? false}
         reload={() => void load(viewAsEmail || undefined)}
       />
     </>

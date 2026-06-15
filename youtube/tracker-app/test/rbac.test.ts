@@ -540,8 +540,16 @@ describe("isFieldLocked", () => {
     expect(isFieldLocked(["Script Writer"], "script_link", { script_status: "Done" } as any)).toBe(true);
   });
 
-  it("Script Writer: script_link NOT locked when script_status is In Review", () => {
-    expect(isFieldLocked(["Script Writer"], "script_link", { script_status: "In Review" } as any)).toBe(false);
+  it("Script Writer: script_link IS locked when script_status is In Review (submitted)", () => {
+    expect(isFieldLocked(["Script Writer"], "script_link", { script_status: "In Review" } as any)).toBe(true);
+  });
+
+  it("Script Writer: script_status itself NOT locked when In Review (can drag back to In Progress)", () => {
+    expect(isFieldLocked(["Script Writer"], "script_status", { script_status: "In Review" } as any)).toBe(false);
+  });
+
+  it("Script Writer: script_link editable again when status In Progress", () => {
+    expect(isFieldLocked(["Script Writer"], "script_link", { script_status: "In Progress" } as any)).toBe(false);
   });
 
   it("Admin: never locked (isApprover)", () => {

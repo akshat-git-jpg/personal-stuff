@@ -15,6 +15,7 @@ interface CardDetailProps {
   names: Record<string, string>;
   laneStatus: string;
   readOnly?: boolean;
+  canEditAll?: boolean;   // session user is an admin → full edit authority even while previewing
   onClose: () => void;
   onSaved: () => void;
 }
@@ -125,7 +126,11 @@ function SectionAccordion({ sectionKey: _sectionKey, label, icon, isOpen, isActi
   );
 }
 
-export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, onClose, onSaved }: CardDetailProps) {
+export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, canEditAll, onClose, onSaved }: CardDetailProps) {
+  // Edit authority is separate from the field VIEW: an admin previewing a
+  // member's card sees the member's fields but edits with full admin power.
+  const editRoles = canEditAll ? [...roles, "Admin"] : roles;
+
   const [draft, setDraft] = useState<Partial<Record<Column, string>>>({});
   const [errors, setErrors] = useState<Partial<Record<Column, string>>>({});
   const [saving, setSaving] = useState(false);
@@ -202,8 +207,8 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, o
       const updated = draft[col] ?? "";
       if (updated === original) continue;
       // Only save if the role(s) can edit AND the field isn't locked
-      if (!canEditForRoles(roles, col)) continue;
-      if (isFieldLocked(roles, col, row)) continue;
+      if (!canEditForRoles(editRoles, col)) continue;
+      if (isFieldLocked(editRoles, col, row)) continue;
       if (!row.row_id) continue;
 
       try {
@@ -227,7 +232,13 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, o
     }
   }
 
-  const isApprover = isApproverRoles(roles);
+  const isApprover = isApproverRoles(editRoles);
+
+  // A doer's submitted-for-review card is frozen: show it fully read-only (incl.
+  // the status dropdown) so the only way back is dragging it to "Working on it".
+  const submittedLocked =
+    !isApprover && (row[boardLaneStatus as Column] ?? "").toString().trim() === "In Review";
+  const effReadOnly = readOnly || submittedLocked;
 
   // Doer feedback: show feedback cols for any stages the user is a doer of
   const doerFeedbackEntries: { col: string; text: string }[] = [];
@@ -325,7 +336,7 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, o
     const value = draft[col] ?? "";
     const err = errors[col];
     const label = FIELD_LABELS[col] ?? col.replace(/_/g, " ");
-    const canEdit = !readOnly && canEditForRoles(roles, col) && !isFieldLocked(roles, col, row);
+    const canEdit = !effReadOnly && canEditForRoles(editRoles, col) && !isFieldLocked(editRoles, col, row);
 
     if (!canEdit) {
       // read-only
@@ -356,7 +367,7 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, o
               <option value={value}>{friendlyMap[value] ?? value}</option>
             )}
             {rawLaneValues
-              .filter(v => canSetValueForRoles(roles, col, v))
+              .filter(v => canSetValueForRoles(editRoles, col, v))
               .map(v => (
                 <option key={v} value={v}>{friendlyMap[v] ?? v}</option>
               ))}
@@ -400,8 +411,8 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, o
   const colSet = new Set<string>(columns);
 
   // Check whether any section has editable fields (for Save button display)
-  const hasAnyEditable = !readOnly && columns.some(
-    col => canEditForRoles(roles, col) && !isFieldLocked(roles, col, row)
+  const hasAnyEditable = !effReadOnly && columns.some(
+    col => canEditForRoles(editRoles, col) && !isFieldLocked(editRoles, col, row)
   );
 
   // ── Approver actions block ────────────────────────────────────────────────
@@ -538,6 +549,20 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, o
           ) : (
             <>
               {/* ── NORMAL MODE (non-review opens) ── */}
+
+              {/* Doer: submitted-for-review freeze notice */}
+              {submittedLocked && (
+                <div className="detail-locked-note">
+                  <span className="detail-locked-note__icon">⏳</span>
+                  <div>
+                    <div className="detail-locked-note__label">Submitted for review</div>
+                    <div className="detail-locked-note__text">
+                      This card is locked while the reviewer checks it. To make changes,
+                      drag it back to “Working on it” on the board.
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Doer: feedback notes from reviewer (shown prominently when non-empty) */}
               {doerFeedbackEntries.map(({ col, text }) => (

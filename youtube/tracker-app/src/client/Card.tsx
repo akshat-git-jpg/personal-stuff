@@ -65,6 +65,10 @@ export function Card({ row, onClick, isDragging = false, laneStatus, visibleCols
   const email = emailCol ? (row[emailCol as keyof Row] ?? "") : "";
   const avatar = email ? initials(email) : null;
 
+  // Submitted-for-review signal: frozen for the doer until the reviewer acts.
+  const stageVal = laneStatus ? String(row[laneStatus as keyof Row] ?? "") : "";
+  const inReview = stageVal === "In Review";
+
   // Feedback note for the doer (if the status col has a feedback col)
   const feedbackNote = laneStatus && FEEDBACK_COL[laneStatus]
     ? (row[FEEDBACK_COL[laneStatus] as keyof Row] ?? "")
@@ -83,6 +87,11 @@ export function Card({ row, onClick, isDragging = false, laneStatus, visibleCols
       {locked && (
         <div className="card__lock">
           <span>🔒</span> Approved
+        </div>
+      )}
+      {!locked && inReview && (
+        <div className="card__review">
+          <span>⏳</span> In review
         </div>
       )}
       {showTitle && <div className="card__title">{title}</div>}
