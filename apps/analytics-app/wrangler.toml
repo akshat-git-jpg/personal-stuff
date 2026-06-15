@@ -1,0 +1,27 @@
+name = "yt-analytics"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# Read-only access to the redirector's click database. This app NEVER writes
+# to clicks-db — it only aggregates clicks for display.
+[[d1_databases]]
+binding = "DB"
+database_name = "clicks-db"
+database_id = "3415a408-ccc9-49e2-8fe1-60009dfd83ce"
+
+[vars]
+LINK_DOMAIN = "go.agrolloo.com"
+# Secrets (set with `npx wrangler secret put <NAME>`, and mirror in .dev.vars for local):
+#   APP_PASSWORD    — the shared password for the gate
+#   SESSION_SECRET  — random string used to sign the auth cookie
+
+# Custom domain (Cloudflare auto-provisions DNS + SSL on the agrolloo.com zone)
+[[routes]]
+pattern = "yt-analytics.agrolloo.com"
+custom_domain = true

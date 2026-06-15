@@ -16,6 +16,7 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 ### `apps/` — personal apps
 - `gym-app/` — Mobile gym PWA, live at `kushal-gym.agrolloo.com`. Vite + React + Hono on a Cloudflare Worker, backed by a Google Sheet.
 - `kushal-docs/` — Personal document-vault PWA at `kushal-docs.agrolloo.com`. Upload/name/tag/filter PDFs + images. Vite + React + Hono on a Cloudflare Worker, files in R2, Google sign-in locked to one email.
+- `analytics-app/` — YT Analytics dashboard at `yt-analytics.agrolloo.com`. Per-video, per-link click counts for the `go.agrolloo.com` shortener. Vite + React + Hono on a Cloudflare Worker, reading the shortener's `clicks-db` D1 read-only, password-gated. The shortener itself lives in the TY repo.
 - `personal-dashboard/` — Mobile dashboard PWA at `my-dashboard.agrolloo.com`, running as a Docker container on the VPS.
 - `telegram-my-planner/` — Daily routine, to-do list, and exercise routine. Feeds the morning Telegram digest cron on the VPS.
 - `telegram-email-assistant/` — Per-account Gmail digest preferences and `digest.sh` (runs on a VPS cron, sends to Telegram).
