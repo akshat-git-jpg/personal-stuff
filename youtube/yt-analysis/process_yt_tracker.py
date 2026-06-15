@@ -9,6 +9,12 @@ Re-runnable. Errors leave the row's status unchanged and skip with a stderr
 message.
 """
 
+# DEPRECATED (2026-06-15): This workflow now lives in the tracker-app UI
+# (Admin -> New Video -> "Generate links & description"). The canonical logic is
+# ported to youtube/tracker-app/src/worker/linkgen.ts. This script is retained
+# for reference only and is no longer maintained. See
+# docs/superpowers/specs/2026-06-15-tracker-link-generation-design.md.
+
 import os
 import secrets
 import sys

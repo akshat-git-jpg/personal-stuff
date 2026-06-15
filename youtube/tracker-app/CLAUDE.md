@@ -2,7 +2,7 @@
 
 A role-aware **Kanban web app over the "YT tracker" Google Sheet** for the YouTube tutorial-production pipeline. It replaces a clunky Google App Script UI: nicer board, server-enforced role-based access (column + row level), an approval/QC flow, email notifications, and admin dashboards. The **Google Sheet stays the source of truth** so existing Python automations keep working.
 
-> **Status:** built + tested locally; **NOT deployed**. All work runs against a **TEST COPY** of the sheet. Deploy only when the owner says "final" (see Deploy below).
+> **Status:** **deployed** at https://tutorials-tracker.agrolloo.com (Cloudflare Worker, custom domain). The Google Sheet stays the source of truth.
 
 ---
 
@@ -72,9 +72,14 @@ src/worker/        # Cloudflare Worker (Hono)
   index.ts         # routes: /api/board, /api/update, /api/review, /api/approvals, /api/team, /api/me
   auth.ts          # Google OAuth + KV sessions (store {email, roles[]}), requireSession, /dev-login
   roles.ts         # Employes → email→roles[] (parseRoles, lookupRoles, loadTeam)
-  sheets.ts        # the ONLY Sheets API caller: readRows, updateCell, touchRow, ensureRowIds
+  sheets.ts        # the ONLY Sheets API caller: readRows, updateCell, touchRow, ensureRowIds, appendRow
   google-jwt.ts    # service-account JWT mint (RS256 via WebCrypto), base64url helpers
   notify.ts        # Gmail send (refresh-token flow) + NOTIFY_REDIRECT safety
+  gemini.ts        # minimal Gemini REST client (generateText/generateJSON) — link-gen
+  prompts.ts       # detect-tools + describe prompt templates (ported from common/prompts/tracker/)
+  affiliate.ts     # Affiliate Programs sheet reader + normalizeToolName
+  clickstore.ts    # native D1/KV adapters (videos/links tables in clicks-db) for link-gen
+  linkgen.ts       # process_yt_tracker.py port: detect → resolve → mint code → KV+D1 → describe
 src/client/        # React SPA
   App.tsx          # auth gate, sign-in screen + dev preview buttons, topbar
   Board.tsx        # worker kanban + multi-role stage switcher + Admin tab bar (Overview/Pipeline/Board/Awaiting)
@@ -94,6 +99,8 @@ scripts/           # one-off Node smoke tests (run with `npx tsx scripts/<x>.ts`
 - `POST /api/update {row_id, col, value}` → gated by canEdit + field-lock + canSetValue; stamps `last_updated`; fires submit/assign emails.
 - `POST /api/review {row_id, stage, action, feedback?}` → approver-only; `stage` ∈ script|tutorial|editor|upload; approve→Done/Published, sendback→In Progress(+feedback); emails the assignee.
 - `GET /api/approvals` → approver queue across Script/Recording/Editing In-Review items.
+- `POST /api/video {video_title, video_notes?, category?, subcategory?}` → Admin-only; appends a Master row, returns `{row_id}`.
+- `POST /api/generate-links {row_id}` → Admin-only; ports `process_yt_tracker.py` — detects tools (Gemini), mints go.agrolloo short links into `CLICKS_KV` + `clicks-db` D1, writes `video_description`/`actual_links`/`short_links` back, returns `{description, links, non_affiliate_tools}`.
 - `GET /api/team` (admin), `GET /api/me`, `GET /api/auth-mode`.
 - `GET /auth/login` · `GET /auth/callback` · `POST /auth/logout` · `GET /dev-login?email=…` (dev only).
 
@@ -131,5 +138,5 @@ npx wrangler dev --port 8787
 5. **Cutover to the live sheet:** run `ensureRowIds` against the live sheet, add the `last_updated`/`script_*`/feedback columns + the `Employes`/`Access` tabs, then point `SHEET_ID` at the live sheet and redeploy. Add real teammates to `Employes`.
 
 ## Roadmap (from the product audit at `TY/docs/specs/2026-05-29-tracker-product-audit.md`)
-- Done: focused review card, clickable links, reviewer-defaults-to-queue, email notifications, names, timestamps, admin Overview/Pipeline/filters, collapsed Done lane, collapsible stage sections.
-- Next: **search by title** (admin scale), **archive** old published, mobile list view, teammate-picker assignment, in-app "new video", wiring the `Access` tab as the live RBAC source.
+- Done: focused review card, clickable links, reviewer-defaults-to-queue, email notifications, names, timestamps, admin Overview/Pipeline/filters, collapsed Done lane, collapsible stage sections, in-app "new video", in-app go.agrolloo link + description generation.
+- Next: **search by title** (admin scale), **archive** old published, mobile list view, teammate-picker assignment, wiring the `Access` tab as the live RBAC source, separate yt-analytics dashboard (App B: clicks/views/rankings).

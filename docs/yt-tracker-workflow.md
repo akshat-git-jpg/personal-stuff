@@ -1,5 +1,11 @@
 # YT Tracker Processing Workflow
 
+> **Superseded (2026-06-15):** Tracker processing now runs in the tracker-app UI
+> (Admin → New Video → "Generate links & description"), not this script. The
+> canonical logic lives in `youtube/tracker-app/src/worker/linkgen.ts`. This doc
+> and `process_yt_tracker.py` are kept for historical reference. See
+> `docs/superpowers/specs/2026-06-15-tracker-link-generation-design.md`.
+
 Run `process_yt_tracker.py` to convert "To Process" rows in the YT tracker into "To Review" rows with short links, actual links, and a generated description.
 
 ---
