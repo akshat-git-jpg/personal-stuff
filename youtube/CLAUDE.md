@@ -7,6 +7,8 @@ Wrapper for everything that directly produces or operates on YouTube channel con
 | Folder | Purpose | Stack |
 |---|---|---|
 | [`yt-analysis/`](yt-analysis/CLAUDE.md) | YT tracker sheet sync + LLM-driven affiliate-link workflow | Python |
+| [`tracker-app/`](tracker-app/CLAUDE.md) | Role-aware Kanban over the tracker sheet; also mints go.agrolloo.com short links | TypeScript (CF Worker + React) |
+| [`analytics-app/`](analytics-app/CLAUDE.md) | YT Analytics dashboard — per-video/per-link click counts over go.agrolloo.com | TypeScript (CF Worker + React) |
 | [`keyword-research/`](keyword-research/CLAUDE.md) | Scan competitor channels for affiliate opportunities | Python |
 | [`yt-research/`](yt-research/CLAUDE.md) | Niche → knowledge-base pipeline (Phase 1, Gemini) | TypeScript |
 | [`yt-script/`](yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2) | Markdown workflow |
@@ -21,7 +23,7 @@ Wrapper for everything that directly produces or operates on YouTube channel con
 ## Pipeline relationships
 
 - **Niche → script:** `yt-research/` (Phase 1, TS) → `yt-script/` (Phase 2, markdown). See [`docs/research-and-script-workflow.md`](../docs/research-and-script-workflow.md) for the master flow.
-- **Affiliate tracking:** `yt-analysis/process_yt_tracker.py` writes short URLs to KV/D1; `workers/redirector/` (root) serves the redirects; `yt-analysis/sync_clicks.py` reads click data back.
+- **Affiliate tracking:** `tracker-app/` (or legacy `yt-analysis/process_yt_tracker.py`) writes short URLs to KV/D1; `workers/redirector/` (root) serves the redirects; `yt-analysis/sync_clicks.py` syncs dedup'd counts back to the sheet, and `analytics-app/` reads the same D1 read-only to show a live click dashboard at yt-analytics.agrolloo.com.
 - **Competitor research:** `keyword-research/` is standalone — feeds the human's decision on which tools to make videos about.
 
 ## Python imports
