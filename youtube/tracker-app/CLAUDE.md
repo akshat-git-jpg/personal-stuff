@@ -128,6 +128,7 @@ npx wrangler dev --port 8787
 - **`wrangler dev` serves a STALE snapshot of `dist/`.** After ANY client (SPA) rebuild you MUST **restart `wrangler dev`** (`pkill -f "wrangler dev"`; `npm run build`; restart) or the browser shows old UI. Worker-only changes hot-reload fine.
 - The local `.npmrc` pins the public registry — keep it (home `~/.npmrc` points at Zluri CodeArtifact which 401s on public packages).
 - Sheets read range is bounded (`A1:…999`); fine now, but archive/scale needed past ~1000 rows.
+- **Link generation needs the D1 schema in the LOCAL D1.** `wrangler dev` uses an empty *local* D1, not the remote `clicks-db`, so `/api/generate-links` errors with `no such table: videos` until you seed it once: `npx wrangler d1 execute clicks-db --local --file=../../workers/redirector/migrations/0001_init.sql`. Production uses the remote `clicks-db` (already has the tables from `workers/redirector`).
 
 ## Deploy (only on owner's "final")
 

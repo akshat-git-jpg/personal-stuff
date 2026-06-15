@@ -181,6 +181,15 @@ export async function generateLinks(row_id: string): Promise<GenerateLinksResult
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ row_id }),
   });
-  await throwOnError(res);
+  if (!res.ok) {
+    if (res.status === 401) throw new UnauthorizedError();
+    // Surface the worker's friendly message ({error, message}) instead of a raw HTTP dump.
+    let msg = `Couldn't generate links (HTTP ${res.status})`;
+    try {
+      const body = (await res.json()) as { message?: string };
+      if (body?.message) msg = body.message;
+    } catch { /* non-JSON body — keep the generic message */ }
+    throw new Error(msg);
+  }
   return res.json() as Promise<GenerateLinksResult>;
 }

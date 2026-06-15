@@ -652,7 +652,13 @@ app.post("/api/generate-links", async (c) => {
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    return c.json({ error: "generation_failed", message: msg }, 500);
+    // "No tools" is a content issue (the notes don't name any tools), not a
+    // server fault — return 422 so it isn't treated/alerted as a 500.
+    const isContentIssue = /no tools/i.test(msg);
+    return c.json(
+      { error: isContentIssue ? "no_tools" : "generation_failed", message: msg },
+      isContentIssue ? 422 : 500,
+    );
   }
 });
 

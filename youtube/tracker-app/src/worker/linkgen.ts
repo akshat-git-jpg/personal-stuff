@@ -126,10 +126,14 @@ export async function processVideo(
       display_name: (t.display_name || t.slug).trim(),
       homepage_url: (t.homepage_url || "").trim(),
     }));
-  if (detected.length === 0) throw new Error("LLM returned no tools — refine notes and try again");
+  if (detected.length === 0) {
+    throw new Error("No tools detected in this video's notes. Add the tools/products you'll link to, then try again.");
+  }
 
   const resolved = resolveTools(detected, deps.affiliates);
-  if (resolved.length === 0) throw new Error("No tools resolved — all detected tools failed URL resolution");
+  if (resolved.length === 0) {
+    throw new Error("No tools could be linked — none of the detected tools had a usable URL.");
+  }
 
   const existingCode = await deps.videoCodeForTitle(videoTitle);
   let videoCode: string;

@@ -883,7 +883,7 @@ details[open] .review-details__summary::before { content: "▼ "; }
 /* ── Admin view switcher (segmented tabs) ────────────────────────────────── */
 .admin-tabs {
   display: flex; align-items: center; gap: 4px;
-  padding: 14px 26px 0;
+  padding: 14px 26px 14px;
   border-bottom: 1px solid var(--line);
   margin-bottom: 0;
 }
