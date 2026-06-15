@@ -1,0 +1,157 @@
+<!doctype html>
+<!--
+  TABLE OF CONTENTS   (Hyperframes port of table-of-contents)
+  Eyebrow + a numbered list that fades/slides in one item at a time.
+  1920x1080, 30fps, 9 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change eyebrow / items / colors there.        │
+  │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
+  │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  This is a Hyperframes composition: HTML + GSAP. Render it with
+    npx hyperframes@latest render table-of-contents/table-of-contents -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --text: #ffffff;
+        --accent: #fb923c;
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: #000; font-family: var(--font); color: var(--text);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%);
+      }
+
+      /* clip shells are positioned; GSAP animates the inner divs */
+      #content {
+        position: absolute; inset: 0; padding: 140px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      #inner { display: flex; flex-direction: column; gap: 56px; max-width: 1400px; width: 100%; }
+
+      .eyebrow { font-size: 18px; font-weight: 600; letter-spacing: 6px; color: var(--accent); text-transform: uppercase; will-change: transform, opacity; }
+      ol { list-style: none; display: flex; flex-direction: column; gap: 28px; }
+      li { will-change: transform, opacity; }
+      .item { display: flex; align-items: baseline; gap: 36px; }
+      .num { font-variant-numeric: tabular-nums; font-size: 36px; font-weight: 500; color: var(--accent); min-width: 64px; }
+      .label { font-size: 52px; font-weight: 600; letter-spacing: -1.5px; color: var(--text); line-height: 1.1; }
+    </style>
+  </head>
+  <body>
+    <!--
+      Composition root. data-composition-id "toc" is the timeline key.
+      data-duration is the total length in seconds (9s @ 30fps = 270 frames).
+    -->
+    <div
+      id="root"
+      data-composition-id="toc"
+      data-start="0"
+      data-duration="9"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"eyebrow":"In this video","items":[{"label":"Eliminated — and why"},{"label":"Situational picks"},{"label":"Worth considering"},{"label":"The four winners"}]}'
+    >
+      <!-- Track 0: background (static, always on) -->
+      <div id="bg" class="clip" data-start="0" data-duration="9" data-track-index="0"></div>
+
+      <!--
+        Track 1: content shell (static clip; GSAP animates the children, never the .clip itself).
+        The eyebrow + every list row live inside this single shell so layout (flex/gap) is
+        preserved. The rows do NOT visually overlap (they stack), so they can share this clip;
+        the staggered tween targets the inner elements directly.
+      -->
+      <div id="content" class="clip" data-start="0" data-duration="9" data-track-index="1">
+        <div id="inner">
+          <div class="eyebrow" id="eyebrow"></div>
+          <ol id="list"></ol>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      // Per-video values can ALSO be passed at render time with
+      //   --variables '{"eyebrow":"In this video","items":[{"label":"..."}]}'
+      // (no code editing needed). Those override the defaults below.
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'In this video', // the small uppercase label up top
+        items: VARS.items ?? [
+          { label: 'Eliminated — and why' },
+          { label: 'Situational picks' },
+          { label: 'Worth considering' },
+          { label: 'The four winners' },
+        ],
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED — do not edit) =====
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         Easing comes free from GSAP — this is what makes the motion smooth.
+         ===================================================== */
+      const $ = (id) => document.getElementById(id);
+
+      // build the DOM that depends on DATA (must exist before the timeline targets it)
+      function build() {
+        $('eyebrow').textContent = DATA.eyebrow;
+        $('list').innerHTML = DATA.items
+          .map(
+            (it, i) =>
+              `<li><div class="item">
+                 <span class="num">${String(i + 1).padStart(2, '0')}</span>
+                 <span class="label">${it.label}</span>
+               </div></li>`,
+          )
+          .join('');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // entrance ease ~ cubic-bezier(0.16,1,0.3,1) (original enterEase) → power4.out
+      // entrance length 28 frames ≈ 0.933s; stagger step = 12 frames = 0.4s; first item at 0.4s
+
+      // 1) Eyebrow fades + slides up (delay 0, yOffset 18)
+      tl.from('#eyebrow', { opacity: 0, y: 18, duration: 0.933, ease: 'power4.out' }, 0);
+
+      // 2) List rows stagger in (yOffset 24); first at 0.4s, then +0.4s each
+      tl.from(
+        '#list li',
+        { opacity: 0, y: 24, duration: 0.933, ease: 'power4.out', stagger: 0.4 },
+        0.4,
+      );
+
+      window.__timelines['toc'] = tl;
+    </script>
+  </body>
+</html>

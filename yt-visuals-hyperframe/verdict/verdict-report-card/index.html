@@ -1,0 +1,308 @@
+<!doctype html>
+<!--
+  VERDICT · REPORT CARD   (Hyperframes port of verdict-report-card)
+  Glass card springs up; big gold grade scales in with a glow pulse; six
+  sub-grades stagger in; an italic verdict quote fades in late.
+  1920x1080, 30fps, 7 seconds (210 frames).
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change eyebrow / winner / grade / reason /     │
+  │  the six sub-grades there. Do NOT touch the  ===== TIMELINE (LOCKED) =====│
+  │  script — that's the motion. Ask Gemini: "only change DATA and :root,     │
+  │  never the timeline."                                                     │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  This is a Hyperframes composition: HTML + GSAP. Render it with
+    npx hyperframes@latest render verdict/verdict-report-card -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ============================================================
+         THEME — Warm-Amber (editor may change these colors)
+         ============================================================ */
+      :root {
+        --bg-from:        #3a1f08;             /* radial gradient origin (burnt amber) */
+        --bg-to:          #0a0805;             /* near-black warm undertone            */
+        --text-primary:   #ffffff;
+        --text-secondary: rgba(255, 239, 219, 0.65);
+        --accent-solid:   #fb923c;             /* orange accent (eyebrow, reason bar)  */
+        --win:            #facc15;             /* gold (grade A+)                       */
+        --grade-from:     #facc15;             /* A+ gradient start */
+        --grade-to:       #fb923c;             /* A+ gradient end   */
+        --card-bg:        rgba(255, 255, 255, 0.05);
+        --card-border:    rgba(255, 255, 255, 0.14);
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: #000; font-family: var(--font); color: var(--text-primary);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%);
+      }
+
+      /* SlideFrame: centered content with 140px frame padding */
+      #frame {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        padding: 140px;
+      }
+
+      /* ---- the glass card ---- */
+      #card {
+        width: 100%; max-width: 1400px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 28px;
+        padding: 44px 56px;
+        backdrop-filter: blur(20px);
+        will-change: transform, opacity;
+      }
+
+      /* header row: tool name (left) + big grade (right) */
+      .header { display: flex; align-items: center; justify-content: space-between; gap: 36px; }
+
+      .eyebrow {
+        font-size: 16px; font-weight: 700; letter-spacing: 6px;
+        text-transform: uppercase; color: var(--accent-solid);
+      }
+      .winnerRow { display: flex; align-items: center; gap: 18px; margin-top: 16px; }
+      .logoBox {
+        width: 80px; height: 80px; background: #fff; border-radius: 16px;
+        padding: 10px; display: flex; flex: 0 0 auto;
+      }
+      .logoBox svg { width: 100%; height: 100%; }
+      .winnerName {
+        font-size: 68px; font-weight: 800; color: var(--text-primary);
+        letter-spacing: -2.5px; line-height: 1;
+      }
+
+      .grade {
+        font-size: 220px; font-weight: 900; line-height: 0.85; letter-spacing: -10px;
+        background: linear-gradient(135deg, var(--grade-from) 0%, var(--grade-to) 100%);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+        will-change: transform, opacity, filter;
+      }
+
+      .divider { height: 1px; background: rgba(255, 255, 255, 0.12); margin: 28px 0; }
+
+      /* sub-grades grid */
+      .subgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+      .sub {
+        display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+        padding: 14px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        will-change: transform, opacity;
+      }
+      .sub .subject { font-size: 22px; color: var(--text-secondary); font-weight: 500; }
+      .sub .mark    { font-size: 38px; font-weight: 800; letter-spacing: -1px; }
+
+      .reason {
+        margin-top: 36px; font-size: 22px; font-style: italic;
+        color: var(--text-secondary); line-height: 1.5;
+        padding-left: 18px; border-left: 3px solid var(--accent-solid);
+        will-change: opacity;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!--
+      Composition root. data-composition-id "verdict" is the timeline key.
+      data-duration is the total length in seconds (7s @ 30fps = 210 frames).
+      The six sub-grades are visible at the same time, so each gets its OWN
+      track index (Hyperframes rule: visually-overlapping clips must not share
+      a track). The card / grade / reason also get their own tracks.
+    -->
+    <div
+      id="root"
+      data-composition-id="verdict"
+      data-start="0"
+      data-duration="7"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"eyebrow":"Winner #1","winner":"Hostinger","grade":"A+","reason":"Easiest setup, lowest cost, built for n8n. Right for most people.","subgrades":[{"subject":"Setup","grade":"A+","color":"#facc15"},{"subject":"Price","grade":"A+","color":"#facc15"},{"subject":"Performance","grade":"A","color":"#fb923c"},{"subject":"Support","grade":"A+","color":"#facc15"},{"subject":"Scale","grade":"A","color":"#fb923c"},{"subject":"Ease of use","grade":"A+","color":"#facc15"}]}'
+    >
+      <!-- Track 0: background (static, always on) -->
+      <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
+
+      <!-- Track 1: card shell (static clip; GSAP animates #cardInner, never the .clip) -->
+      <div id="card" class="clip" data-start="0" data-duration="7" data-track-index="1">
+        <div id="cardInner">
+          <div class="header">
+            <div>
+              <div class="eyebrow" id="eyebrow"></div>
+              <div class="winnerRow">
+                <div class="logoBox" id="logoBox"></div>
+                <div class="winnerName" id="winnerName"></div>
+              </div>
+            </div>
+            <!-- grade lives inside the card shell but is animated independently -->
+            <div class="grade" id="grade">A+</div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- the six sub-grade rows are injected here as clips on tracks 2..7 -->
+          <div class="subgrid" id="subgrid"></div>
+
+          <div class="reason" id="reason"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      // Per-video values can ALSO be passed at render time with
+      //   --variables '{"winner":"Vercel","grade":"A"}'
+      // (no code editing needed). Those override the defaults below.
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'Winner #1', // shown as: "<eyebrow> · 2026 Report Card"
+        winner: VARS.winner ?? 'Hostinger', // the tool / brand name
+        grade: VARS.grade ?? 'A+', // the big gold letter grade
+        reason:
+          VARS.reason ??
+          'Easiest setup, lowest cost, built for n8n. Right for most people.',
+        // logo SVG, inlined so the file is fully self-contained.
+        // To swap brands, paste a new <svg>...</svg> here.
+        logoSvg:
+          VARS.logoSvg ??
+          `<svg fill="#673DE6" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Hostinger</title><path d="M16.415 0v7.16l5.785 3.384V2.949L16.415 0ZM1.8 0v11.237h18.815L14.89 8.09l-7.457-.003V3.024L1.8 0Zm14.615 20.894v-5.019l-7.514-.005c.007.033-5.82-3.197-5.82-3.197l19.119.091V24l-5.785-3.106ZM1.8 13.551v7.343l5.633 2.949v-6.988L1.8 13.551Z"/></svg>`,
+        // six sub-grades. color: gold (#facc15 = A+) or orange (#fb923c = A).
+        subgrades: VARS.subgrades ?? [
+          { subject: 'Setup', grade: 'A+', color: '#facc15' },
+          { subject: 'Price', grade: 'A+', color: '#facc15' },
+          { subject: 'Performance', grade: 'A', color: '#fb923c' },
+          { subject: 'Support', grade: 'A+', color: '#facc15' },
+          { subject: 'Scale', grade: 'A', color: '#fb923c' },
+          { subject: 'Ease of use', grade: 'A+', color: '#facc15' },
+        ],
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED — do not edit) =====
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         Easing comes free from GSAP — this is what makes the motion smooth.
+         Frame->seconds: the original ran at 30fps, so secs = frames / 30.
+         ===================================================== */
+      const $ = (id) => document.getElementById(id);
+
+      // build the DOM that depends on DATA (must exist before the timeline targets it)
+      function build() {
+        $('eyebrow').textContent = DATA.eyebrow + ' · 2026 Report Card';
+        $('winnerName').textContent = DATA.winner;
+        $('grade').textContent = DATA.grade;
+        $('logoBox').innerHTML = DATA.logoSvg;
+        $('reason').textContent = '"' + DATA.reason + '"';
+
+        // Each sub-grade row is its OWN clip (own track index) so the six
+        // visible-at-once rows never collide on a single track. The inner
+        // <div class="subInner"> is what GSAP staggers in — the .clip stays static.
+        $('subgrid').innerHTML = DATA.subgrades
+          .map(
+            (sg, i) => `
+            <div id="sub-${i + 1}" class="sub clip" data-start="0" data-duration="7" data-track-index="${2 + i}">
+              <div id="subInner-${i + 1}" class="subInner" style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;width:100%;">
+                <span class="subject">${sg.subject}</span>
+                <span class="mark" style="color:${sg.color}; text-shadow:0 0 18px ${sg.color}66;">${sg.grade}</span>
+              </div>
+            </div>`,
+          )
+          .join('');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // 1) Card entrance — spring up + fade (orig CARD_SPRING startFrame 4 = 0.133s,
+      //    damping 14 / stiffness 110 / mass 0.6 = a soft, near-critical settle).
+      tl.from(
+        '#cardInner',
+        { opacity: 0, y: 30, duration: 0.85, ease: 'power3.out' },
+        0.133,
+      );
+
+      // 2) Big grade scales in with a bouncy spring (orig GRADE_SPRING startFrame 22
+      //    = 0.733s, low damping 9 -> overshoot). 0.2 -> 1 scale + fade.
+      tl.from(
+        '#grade',
+        { opacity: 0, scale: 0.2, duration: 0.9, ease: 'back.out(2)' },
+        0.733,
+      );
+
+      // 2b) Continuous gold glow pulse on the grade (orig Math.sin(t*1.4) loop).
+      //     Deterministic finite yoyo — no repeat:-1. Period ~ 2*pi/1.4 = 4.49s,
+      //     so one out-and-back over the remaining clip reads the same on screen.
+      const glow = { v: 0.6 }; // matches orig base 0.6 + sin*0.3 range [0.3 .. 0.9]
+      tl.set('#grade', {
+        textShadow: '0 0 28.8px rgba(250,204,21,0.3)',
+        filter: 'drop-shadow(0 0 16.8px rgba(250,204,21,0.24))',
+      }, 0.733);
+      tl.to(
+        glow,
+        {
+          v: 0.9,
+          duration: 2.2,
+          ease: 'sine.inOut',
+          yoyo: true,
+          repeat: 1,
+          onUpdate: () => {
+            const g = glow.v;
+            $('grade').style.textShadow =
+              `0 0 ${(48 * g).toFixed(2)}px rgba(250,204,21,${(0.5 * g).toFixed(3)})`;
+            $('grade').style.filter =
+              `drop-shadow(0 0 ${(28 * g).toFixed(2)}px rgba(250,204,21,${(0.4 * g).toFixed(3)}))`;
+          },
+        },
+        0.733,
+      );
+
+      // 3) Sub-grades stagger in (orig SUB_START 46 = 1.533s, stagger 6f = 0.2s,
+      //    fade 16f = 0.533s per row, slide up 12 -> 0).
+      tl.from(
+        '[data-composition-id="verdict"] .subInner',
+        {
+          opacity: 0,
+          y: 12,
+          duration: 0.533,
+          ease: 'power2.out',
+          stagger: 0.2,
+        },
+        1.533,
+      );
+
+      // 4) Reason quote fades in late (orig REASON_IN [88,110] = 2.933s over 0.733s).
+      tl.from(
+        '#reason',
+        { opacity: 0, duration: 0.733, ease: 'none' },
+        2.933,
+      );
+
+      window.__timelines['verdict'] = tl;
+    </script>
+  </body>
+</html>

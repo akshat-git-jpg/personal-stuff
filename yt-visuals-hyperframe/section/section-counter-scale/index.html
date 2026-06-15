@@ -1,0 +1,179 @@
+<!doctype html>
+<!--
+  SECTION DIVIDER · Rapid Counter + Scale   (Hyperframes port of section-counter-scale)
+  Big number counts 00 -> target then scales down; "SECTION" + title slide up; dots ripple in.
+  1920x1080, 30fps, 5 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change number / title / colors there.         │
+  │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
+  │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  This is a Hyperframes composition: HTML + GSAP. Render it with
+    npx hyperframes@latest render section/section-counter-scale.html -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --text: #ffffff;
+        --text-ter: rgba(255, 239, 219, 0.4);
+        --accent: #fb923c;
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: #000; font-family: var(--font); color: var(--text);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%);
+      }
+
+      #content {
+        position: absolute; inset: 0; padding: 140px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      }
+      #number {
+        font-size: 220px; font-weight: 800; line-height: 0.9; letter-spacing: -10px;
+        background: linear-gradient(180deg, #ffffff 0%, var(--accent) 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        font-feature-settings: 'tnum'; transform-origin: center; will-change: transform;
+      }
+      #sectionLabel {
+        font-size: 18px; font-weight: 600; letter-spacing: 6px; color: var(--text-ter);
+        text-transform: uppercase; margin-top: -6px;
+      }
+      #title {
+        font-size: 56px; font-weight: 700; letter-spacing: -2px; color: var(--text);
+        margin-top: 14px; will-change: transform, opacity;
+      }
+      #dots { display: flex; gap: 14px; margin-top: 18px; }
+      .dot { border-radius: 50%; }
+    </style>
+  </head>
+  <body>
+    <!--
+      Composition root. data-composition-id "counter" is the timeline key.
+      data-duration is the total length in seconds (5s @ 30fps = 150 frames).
+    -->
+    <div
+      id="root"
+      data-composition-id="counter"
+      data-start="0"
+      data-duration="5"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"number":"02","title":"The Winners","dots":6}'
+    >
+      <!-- Track 0: background (static, always on) -->
+      <div id="bg" class="clip" data-start="0" data-duration="5" data-track-index="0"></div>
+
+      <!-- Track 1: content (static clip shell; GSAP animates the children, never the .clip itself) -->
+      <div id="content" class="clip" data-start="0" data-duration="5" data-track-index="1">
+        <div id="number">00</div>
+        <div id="sectionLabel">Section</div>
+        <div id="title"></div>
+        <div id="dots"></div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      // Per-video values can ALSO be passed at render time with
+      //   --variables '{"number":"03","title":"Final Verdict"}'
+      // (no code editing needed). Those override the defaults below.
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        number: VARS.number ?? '02', // the section number it counts up to
+        title: VARS.title ?? 'The Winners', // the section title
+        dots: VARS.dots ?? 6, // how many progress dots
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED — do not edit) =====
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         Easing comes free from GSAP — this is what makes the motion smooth.
+         ===================================================== */
+      const $ = (id) => document.getElementById(id);
+      const TARGET = parseInt(DATA.number, 10) || 0;
+      const ACTIVE = TARGET - 1; // which dot is highlighted
+
+      // build the DOM that depends on DATA (must exist before the timeline targets it)
+      function build() {
+        $('title').textContent = DATA.title;
+        $('number').textContent = '00';
+        $('dots').innerHTML = Array.from({ length: DATA.dots })
+          .map((_, i) => {
+            const active = i === ACTIVE;
+            return `<div class="dot" style="
+              width:${active ? 12 : 8}px;height:${active ? 12 : 8}px;
+              background:${active ? 'var(--accent)' : 'rgba(255,255,255,0.25)'};
+              box-shadow:${active ? '0 0 16px var(--accent)' : 'none'};"></div>`;
+          })
+          .join('');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // 1) Number counts 00 -> TARGET (0.2s -> 0.7s), held big at scale 2.4
+      const counter = { v: 0 };
+      tl.set('#number', { scale: 2.4 }, 0);
+      tl.to(
+        counter,
+        {
+          v: TARGET,
+          duration: 0.5,
+          ease: 'none',
+          roundProps: 'v',
+          onUpdate: () => {
+            $('number').textContent = String(Math.round(counter.v)).padStart(2, '0');
+          },
+        },
+        0.2,
+      );
+
+      // 2) Number settles down to scale 1 once the count finishes
+      tl.to('#number', { scale: 1, duration: 0.8, ease: 'expo.out' }, 0.7);
+
+      // 3) "SECTION" label fades in
+      tl.from('#sectionLabel', { opacity: 0, duration: 0.4, ease: 'power2.out' }, 0.65);
+
+      // 4) Title slides up + fades in
+      tl.from('#title', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, 1.15);
+
+      // 5) Dots ripple in with a staggered overshoot
+      tl.from(
+        '.dot',
+        { opacity: 0, scale: 0.4, duration: 0.45, ease: 'back.out(2)', stagger: 0.08 },
+        1.7,
+      );
+
+      window.__timelines['counter'] = tl;
+    </script>
+  </body>
+</html>

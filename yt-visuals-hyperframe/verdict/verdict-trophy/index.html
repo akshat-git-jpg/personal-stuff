@@ -1,0 +1,220 @@
+<!doctype html>
+<!--
+  VERDICT · Trophy Ceremony   (Hyperframes port of verdict-trophy)
+  Gold-tinted stage, confetti falls, the trophy drops in with a bounce, then the
+  winner card lifts up with a continuous gold pulse. 1920x1080, 30fps, 7 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change winner / reason / colors there.         │
+  │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
+  │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  This is a Hyperframes composition: HTML + GSAP. Render it with
+    npx hyperframes@latest render verdict/verdict-trophy -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --text: #ffffff;
+        --text-sec: rgba(255, 239, 219, 0.65);
+        --gold: #facc15;
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: #000; font-family: var(--font); color: var(--text);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 50% 100%, rgba(250, 204, 21, 0.25) -10%, #3a1f08 30%, #0a0805 75%);
+      }
+
+      #confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+      .conf { position: absolute; border-radius: 2px; opacity: 0.85; will-change: transform, top, left; }
+
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 140px; }
+      #content { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+
+      #trophy { font-size: 160px; line-height: 1; will-change: transform, opacity, filter; }
+      .eyebrow { font-size: 18px; font-weight: 700; letter-spacing: 8px; color: var(--gold); text-transform: uppercase; }
+
+      #winnerCard {
+        background: #fff; padding: 26px 44px; border-radius: 22px;
+        display: flex; align-items: center; gap: 22px; will-change: transform, opacity;
+      }
+      #winnerCard .logo { width: 84px; height: 84px; background: #fff; border-radius: 16px; padding: 8px; display: flex; align-items: center; justify-content: center; }
+      #winnerCard .logo svg { width: 100%; height: 100%; object-fit: contain; }
+      #winnerCard .name { font-size: 64px; font-weight: 800; color: #0a0805; letter-spacing: -2px; line-height: 1; }
+
+      #reason { font-size: 24px; color: var(--text-sec); margin-top: 12px; text-align: center; max-width: 1000px; line-height: 1.4; will-change: opacity; }
+    </style>
+  </head>
+  <body>
+    <!--
+      Composition root. data-composition-id "verdict-trophy" is the timeline key.
+      data-duration is the total length in seconds (7s @ 30fps = 210 frames).
+    -->
+    <div
+      id="root"
+      data-composition-id="verdict-trophy"
+      data-start="0"
+      data-duration="7"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"eyebrow":"Winner #1","winner":"Hostinger","reason":"Easiest setup, lowest cost, built for n8n. Right for most people."}'
+    >
+      <!-- Track 0: background (static, always on) -->
+      <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
+
+      <!-- Track 1: confetti overlay (static clip shell; GSAP animates the .conf children) -->
+      <div id="confetti" class="clip" data-start="0" data-duration="7" data-track-index="1"></div>
+
+      <!-- Track 2: content column (static clip shell; GSAP animates the children, never the .clip) -->
+      <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="2">
+        <div id="content">
+          <div id="trophy">🏆</div>
+          <div class="eyebrow" id="eyebrow"></div>
+          <div id="winnerCard">
+            <div class="logo" id="logo"></div>
+            <div class="name" id="winnerName"></div>
+          </div>
+          <div id="reason"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      // Per-video values can ALSO be passed at render time with
+      //   --variables '{"winner":"Hostinger","reason":"..."}'
+      // (no code editing needed). Those override the defaults below.
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'Winner #1', // shown as "<eyebrow> · 2026"
+        winner: VARS.winner ?? 'Hostinger',
+        reason: VARS.reason ?? 'Easiest setup, lowest cost, built for n8n. Right for most people.',
+        logoSvg:
+          VARS.logoSvg ??
+          `<svg fill="#673DE6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.415 0v7.16l5.785 3.384V2.949L16.415 0ZM1.8 0v11.237h18.815L14.89 8.09l-7.457-.003V3.024L1.8 0Zm14.615 20.894v-5.019l-7.514-.005c.007.033-5.82-3.197-5.82-3.197l19.119.091V24l-5.785-3.106ZM1.8 13.551v7.343l5.633 2.949v-6.988L1.8 13.551Z"/></svg>`,
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED — do not edit) =====
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         Entrances use GSAP springs/easing; the continuous gold pulse + confetti
+         are recomputed each tick from the timeline time (no rAF, no random).
+         ===================================================== */
+      const FPS = 30;
+      const DURATION = 7;
+      const TOTAL = DURATION * FPS;
+      const $ = (id) => document.getElementById(id);
+      const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+
+      // deterministic confetti field (40 pieces) — LCG-style seeding, ported as-is
+      const CONFETTI = Array.from({ length: 40 }).map((_, i) => {
+        const h = (i * 9301 + 49297) % 233280;
+        const r = h / 233280;
+        return {
+          startX: r * 1920,
+          startY: -50 - (((h * 7) % 233280) / 233280) * 200,
+          fallSpeed: 1.5 + (((h * 11) % 233280) / 233280) * 2.5,
+          swayPhase: (((h * 13) % 233280) / 233280) * Math.PI * 2,
+          color: ['#facc15', '#fb923c', '#fff', '#c2410c'][
+            Math.floor((((h * 17) % 233280) / 233280) * 4)
+          ],
+          size: 6 + (((h * 19) % 233280) / 233280) * 6,
+          rotation: (((h * 23) % 233280) / 233280) * 360,
+        };
+      });
+
+      function build() {
+        $('eyebrow').textContent = DATA.eyebrow + ' · 2026';
+        $('winnerName').textContent = DATA.winner;
+        $('logo').innerHTML = DATA.logoSvg;
+        $('reason').textContent = DATA.reason;
+        $('confetti').innerHTML = CONFETTI.map(
+          (c) =>
+            `<div class="conf" style="width:${c.size}px;height:${c.size * 0.6}px;background:${c.color};"></div>`,
+        ).join('');
+      }
+      build();
+
+      const confEls = Array.from(document.querySelectorAll('#confetti .conf'));
+
+      // Continuous, deterministic per-tick recompute (gold pulse + confetti),
+      // identical to the original renderFrame math, driven by timeline time.
+      function tick() {
+        const f = tl.time() * FPS; // current frame (deterministic, seek-driven)
+        const t = f / FPS;
+        const gold = 0.7 + Math.sin(t * 1.5) * 0.3;
+
+        // trophy gold glow (entrance transform/opacity handled by GSAP below)
+        $('trophy').style.filter = `drop-shadow(0 0 ${24 * gold}px #facc15)`;
+
+        // eyebrow gold text glow
+        $('eyebrow').style.textShadow = `0 0 ${14 * gold}px #facc15`;
+
+        // winner card gold pulse shadow (lift handled by GSAP below)
+        $('winnerCard').style.boxShadow =
+          `0 24px 60px rgba(250,204,21,${0.35 * gold}), 0 0 ${48 * gold}px rgba(250,204,21,${0.28 * gold})`;
+
+        // confetti falls + sways + spins
+        for (let i = 0; i < confEls.length; i++) {
+          const el = confEls[i];
+          const c = CONFETTI[i];
+          el.style.left = c.startX + Math.sin(t * 1.2 + c.swayPhase) * 30 + 'px';
+          el.style.top = c.startY + f * c.fallSpeed + 'px';
+          el.style.transform = `rotate(${c.rotation + f * 2}deg)`;
+        }
+      }
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true, onUpdate: tick });
+
+      // 1) Trophy drops in with a bouncy spring + scale up (orig: spring @ frame 6)
+      tl.from(
+        '#trophy',
+        { opacity: 0, y: -200, scale: 0.4, transformOrigin: 'center center', duration: 1.0, ease: 'back.out(2.2)' },
+        0.2,
+      );
+
+      // 2) Eyebrow fades in (orig: frames 24->40)
+      tl.from('#eyebrow', { opacity: 0, duration: 0.53, ease: 'power2.out' }, 0.8);
+
+      // 3) Winner card lifts up (orig: spring @ frame 30)
+      tl.from('#winnerCard', { opacity: 0, y: 80, duration: 0.9, ease: 'power3.out' }, 1.0);
+
+      // 4) Reason fades in (orig: frames 50->70)
+      tl.from('#reason', { opacity: 0, duration: 0.67, ease: 'power2.out' }, 1.67);
+
+      // ensure the continuous layer is correct at the final frame too
+      tl.to({}, { duration: 0.001 }, DURATION - 0.001);
+
+      // paint the initial (frame 0) state of the continuous layer
+      tick();
+
+      window.__timelines['verdict-trophy'] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,260 @@
+<!doctype html>
+<!--
+  SECTION DIVIDER · Particle Storm + Elastic Pop   (Hyperframes port of section-particle-storm)
+  Light streaks drift across, eyebrow fades in, title pops with an elastic
+  overshoot, an accent line draws then pulses; particles drift the whole hold.
+  1920x1080, 30fps, 5 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change number / title / colors there.         │
+  │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
+  │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  This is a Hyperframes composition: HTML + GSAP. Render it with
+    npx hyperframes@latest render section/section-particle-storm -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --text: #fff;
+        --accent: #fb923c;
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: #000; font-family: var(--font); color: var(--text);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%);
+      }
+      #streaks, #particles { position: absolute; inset: 0; pointer-events: none; }
+      .streak { position: absolute; height: 2px; filter: blur(0.5px); will-change: transform, opacity, left; }
+      .particle { position: absolute; border-radius: 50%; will-change: top, opacity; }
+      #frame {
+        position: absolute; inset: 0; padding: 140px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      #content {
+        display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+      }
+      #eyebrow {
+        font-size: 18px; font-weight: 700; letter-spacing: 6px; color: var(--accent);
+        text-transform: uppercase;
+      }
+      #title {
+        font-size: 96px; font-weight: 800; letter-spacing: -3px; color: var(--text); line-height: 1.02;
+        text-shadow: 0 0 40px rgba(167, 139, 250, 0.45); margin-top: 18px;
+        will-change: transform, opacity;
+      }
+      #line {
+        height: 3px; margin-top: 28px; width: 0;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        box-shadow: 0 0 20px var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Composition root. data-composition-id "particlestorm" is the timeline key.
+      data-duration is the total length in seconds (5s @ 30fps = 150 frames).
+    -->
+    <div
+      id="root"
+      data-composition-id="particlestorm"
+      data-start="0"
+      data-duration="5"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"number":"02","title":"The Winners"}'
+    >
+      <!-- Track 0: background (static, always on) -->
+      <div id="bg" class="clip" data-start="0" data-duration="5" data-track-index="0"></div>
+
+      <!-- Track 1: streaks layer (static shell; GSAP animates the child .streak nodes) -->
+      <div id="streaks" class="clip" data-start="0" data-duration="5" data-track-index="1"></div>
+
+      <!-- Track 2: particles layer (static shell; particles driven on the timeline tick) -->
+      <div id="particles" class="clip" data-start="0" data-duration="5" data-track-index="2"></div>
+
+      <!-- Track 3: content (static clip shell; GSAP animates the children, never the .clip itself) -->
+      <div id="frame" class="clip" data-start="0" data-duration="5" data-track-index="3">
+        <div id="content">
+          <div id="eyebrow"></div>
+          <div id="title"></div>
+          <div id="line"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      // Per-video values can ALSO be passed at render time with
+      //   --variables '{"number":"03","title":"Final Verdict"}'
+      // (no code editing needed). Those override the defaults below.
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        number: VARS.number ?? '02', // the eyebrow number ("Section · 02")
+        title: VARS.title ?? 'The Winners', // the section title
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED — do not edit) =====
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         Easing comes free from GSAP — this is what makes the motion smooth.
+         ===================================================== */
+      const FPS = 30;
+      const $ = (id) => document.getElementById(id);
+      const ACCENT = '#fb923c';
+
+      const STREAKS = [
+        { y: 280, len: 380, angle: -8, delay: 4, color: ACCENT },
+        { y: 520, len: 460, angle: 6, delay: 10, color: '#ffffff' },
+        { y: 760, len: 320, angle: -10, delay: 16, color: ACCENT },
+      ];
+
+      // Deterministic particle seeding via the original LCG (keep exact constants).
+      const PARTICLES = Array.from({ length: 18 }).map((_, i) => {
+        const h = (i * 9301 + 49297) % 233280,
+          r = h / 233280;
+        return {
+          startX: r * 1920,
+          startY: (((h * 7) % 233280) / 233280) * 1080,
+          drift: 80 + (((h * 11) % 233280) / 233280) * 160,
+          size: 2 + (((h * 13) % 233280) / 233280) * 5,
+          glow: ((h * 17) % 233280) / 233280 > 0.5 ? ACCENT : '#ffffff',
+          duration: 60 + (((h * 19) % 233280) / 233280) * 60,
+          delay: (((h * 23) % 233280) / 233280) * 40,
+        };
+      });
+
+      function build() {
+        $('eyebrow').textContent = 'Section · ' + DATA.number;
+        $('title').textContent = DATA.title;
+        $('streaks').innerHTML = STREAKS.map(
+          (s) =>
+            '<div class="streak" style="top:' +
+            s.y +
+            'px;width:' +
+            s.len +
+            'px;transform:rotate(' +
+            s.angle +
+            'deg);background:linear-gradient(90deg, transparent, ' +
+            s.color +
+            ', transparent);"></div>',
+        ).join('');
+        $('particles').innerHTML = PARTICLES.map(
+          (p) =>
+            '<div class="particle" style="left:' +
+            p.startX +
+            'px;width:' +
+            p.size +
+            'px;height:' +
+            p.size +
+            'px;background:' +
+            p.glow +
+            ';box-shadow:0 0 ' +
+            p.size * 3 +
+            'px ' +
+            p.glow +
+            ';"></div>',
+        ).join('');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // 1) Eyebrow fades in (original: frames 4..16 → 0.133s..0.533s).
+      tl.fromTo('#eyebrow', { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'none' }, 0.133);
+
+      // 2) Title elastic pop (original: spring damping 9 / stiffness 100 / mass 0.6
+      //    from frame 8 → scale 1.4 -> 1 with overshoot, opacity ramps in).
+      tl.set('#title', { scale: 1.4, opacity: 0 }, 0.267);
+      tl.to('#title', { opacity: 1, duration: 0.4, ease: 'power2.out' }, 0.267);
+      tl.to('#title', { scale: 1, duration: 1.1, ease: 'elastic.out(1, 0.45)' }, 0.267);
+
+      // 3) Accent line draws (original: ease cubic-bezier(0.16,1,0.3,1) over
+      //    frames 28..52, width 0 -> 160px).
+      tl.fromTo('#line', { width: 0 }, { width: 160, duration: 0.8, ease: 'power3.out' }, 0.933);
+
+      // 4) Accent line pulses after it's drawn (original: opacity 0.8 + sin*0.2
+      //    from frame 52 to 150 → sine over ~3.27s at period PI*1.4/sec).
+      //    Mid 0.8, amp 0.2; yoyo sine. HOLD = 150-52 = 98f = 3.267s.
+      //    CYCLE (full sine) = 2/1.4 = ~1.429s → half-cycle ~0.714s.
+      //    repeats = floor(HOLD / HALFCYCLE) yoyo segments to cover the hold.
+      const HOLD = (150 - 52) / FPS; // 3.267s
+      const HALF = 1 / 1.4; // 0.714s per yoyo half-cycle
+      const lineRepeats = Math.max(0, Math.floor(HOLD / HALF) - 1);
+      tl.set('#line', { opacity: 1 }, 52 / FPS);
+      tl.fromTo(
+        '#line',
+        { opacity: 1 },
+        { opacity: 0.6, duration: HALF, ease: 'sine.inOut', yoyo: true, repeat: lineRepeats },
+        52 / FPS,
+      );
+
+      // 5) Streaks sweep across (original: ease over frames delay..delay+28,
+      //    left -500 -> 2200, opacity 0 -> 1 -> 0).
+      gsap.utils.toArray('#streaks .streak').forEach((el, i) => {
+        const s = STREAKS[i];
+        const at = s.delay / FPS;
+        const dur = 28 / FPS;
+        tl.fromTo(el, { left: -500 }, { left: 2200, duration: dur, ease: 'power3.out' }, at);
+        // opacity 0 -> 1 (first 40%) -> 0 (last 60%); overwrite:auto so the
+        // back-to-back segments don't register as an overlap at the seam.
+        tl.fromTo(
+          el,
+          { opacity: 0 },
+          { opacity: 1, duration: dur * 0.4, ease: 'none', overwrite: 'auto' },
+          at,
+        );
+        tl.to(el, { opacity: 0, duration: dur * 0.6, ease: 'none', overwrite: 'auto' }, at + dur * 0.4);
+      });
+
+      // 6) Particles drift up the whole hold. The original is a per-particle
+      //    looping sawtooth (top = startY - t*drift, opacity = sin(t*PI)*0.6,
+      //    t = ((f - delay) % duration) / duration) — an instant reset each loop.
+      //    Reproduced deterministically by recomputing from the paused timeline
+      //    time on every tick (frame-seekable, no rAF/random). This matches the
+      //    canvas-on-tick pattern in HYPERFRAMES.md.
+      const particleEls = gsap.utils.toArray('#particles .particle');
+      function drawParticles(timeSec) {
+        const f = timeSec * FPS;
+        for (let i = 0; i < particleEls.length; i++) {
+          const p = PARTICLES[i];
+          const t = (((f - p.delay) % p.duration) + p.duration) % p.duration / p.duration;
+          particleEls[i].style.top = p.startY - t * p.drift + 'px';
+          particleEls[i].style.opacity = Math.sin(t * Math.PI) * 0.6;
+        }
+      }
+      tl.eventCallback('onUpdate', () => drawParticles(tl.time()));
+      drawParticles(0); // seed frame 0 state
+
+      window.__timelines['particlestorm'] = tl;
+    </script>
+  </body>
+</html>

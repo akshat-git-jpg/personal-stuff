@@ -1,0 +1,215 @@
+<!doctype html>
+<!--
+  VERDICT · Achievement Badges   (Hyperframes port of verdict-badges)
+  Winner card slides in from the left; five colored "why it wins" badges pop in
+  one by one on the right. 1920x1080, 30fps, 8 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change winner / reason / badges / colors there.│
+  │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
+  │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  This is a Hyperframes composition: HTML + GSAP. Render it with
+    npx hyperframes@latest render verdict/verdict-badges -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --text: #ffffff;
+        --text-sec: rgba(255, 239, 219, 0.65);
+        --text-ter: rgba(255, 239, 219, 0.4);
+        --accent: #fb923c;
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: #000; font-family: var(--font); color: var(--text);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%);
+      }
+
+      /* the side-by-side layout columns are positioned absolutely so each can be
+         its own static .clip shell (background / winner / badges on 3 tracks) */
+      #frame {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 140px;
+        pointer-events: none;
+      }
+      .col-wrap {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 140px;
+      }
+      .content-row { display: flex; align-items: center; gap: 64px; width: 100%; max-width: 1700px; }
+
+      #winner { flex-shrink: 0; display: flex; flex-direction: column; gap: 18px; will-change: transform, opacity; }
+      #winner .eyebrow { font-size: 16px; font-weight: 700; letter-spacing: 6px; color: var(--accent); text-transform: uppercase; }
+      #winner .logo {
+        width: 280px; height: 280px; background: #fff; border-radius: 32px; padding: 36px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 24px 80px rgba(167, 139, 250, 0.35), 0 0 48px rgba(167, 139, 250, 0.22);
+      }
+      #winner .logo svg { width: 100%; height: 100%; object-fit: contain; }
+      #winner .name { font-size: 64px; font-weight: 800; color: var(--text); letter-spacing: -2.5px; line-height: 1; }
+      #winner .reason { font-size: 20px; color: var(--text-sec); line-height: 1.4; max-width: 340px; }
+
+      #badges { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+      #badges .head { font-size: 16px; font-weight: 700; letter-spacing: 5px; color: var(--text-ter); text-transform: uppercase; margin-bottom: 4px; }
+      .badge { display: flex; align-items: center; gap: 18px; padding: 16px 24px; border-radius: 16px; will-change: transform, opacity; }
+      .badge .ic { font-size: 38px; line-height: 1; }
+      .badge .label { font-size: 22px; font-weight: 800; letter-spacing: 1.5px; }
+
+      /* layout helpers so the two columns sit in the same row geometry as the
+         original even though they are split across separate clip shells */
+      .col-wrap .content-row { justify-content: flex-start; }
+      #winnerCol .content-row { padding-right: 0; }
+      #badgesCol .content-row { padding-left: calc(280px + 64px); }
+      #badgesCol #winnerSpacer { width: 280px; flex-shrink: 0; }
+    </style>
+  </head>
+  <body>
+    <!--
+      Composition root. data-composition-id "verdict-badges" is the timeline key.
+      data-duration is the total length in seconds (8s @ 30fps = 240 frames).
+    -->
+    <div
+      id="root"
+      data-composition-id="verdict-badges"
+      data-start="0"
+      data-duration="8"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"eyebrow":"Winner #1","winner":"Hostinger","reason":"Easiest setup, lowest cost, built for n8n. Right for most people.","badgesHead":"Why it wins"}'
+    >
+      <!-- Track 0: background (static, always on) -->
+      <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+
+      <!-- Track 1: winner card column (static clip shell; GSAP animates #winner, not the .clip) -->
+      <div id="winnerCol" class="col-wrap clip" data-start="0" data-duration="8" data-track-index="1">
+        <div class="content-row">
+          <div id="winner">
+            <div class="eyebrow" id="eyebrow"></div>
+            <div class="logo" id="logo"></div>
+            <div class="name" id="winnerName"></div>
+            <div class="reason" id="reason"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Track 2: badges column (static clip shell; GSAP animates the children) -->
+      <div id="badgesCol" class="col-wrap clip" data-start="0" data-duration="8" data-track-index="2">
+        <div class="content-row">
+          <div id="winnerSpacer"></div>
+          <div id="badges">
+            <div class="head" id="badgesHead">Why it wins</div>
+            <div id="badgeList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      // Per-video values can ALSO be passed at render time with
+      //   --variables '{"winner":"Hostinger","reason":"..."}'
+      // (no code editing needed). Those override the defaults below.
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'Winner #1',
+        winner: VARS.winner ?? 'Hostinger',
+        reason: VARS.reason ?? 'Easiest setup, lowest cost, built for n8n. Right for most people.',
+        badgesHead: VARS.badgesHead ?? 'Why it wins',
+        // brand logo (inline SVG)
+        logoSvg:
+          VARS.logoSvg ??
+          `<svg fill="#673DE6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.415 0v7.16l5.785 3.384V2.949L16.415 0ZM1.8 0v11.237h18.815L14.89 8.09l-7.457-.003V3.024L1.8 0Zm14.615 20.894v-5.019l-7.514-.005c.007.033-5.82-3.197-5.82-3.197l19.119.091V24l-5.785-3.106ZM1.8 13.551v7.343l5.633 2.949v-6.988L1.8 13.551Z"/></svg>`,
+        // five "why it wins" badges. icon = emoji, color = hex.
+        badges: VARS.badges ?? [
+          { icon: '🏆', label: 'BEST PRICE', color: '#facc15' },
+          { icon: '⚡', label: 'FASTEST SETUP', color: '#fde047' },
+          { icon: '🎯', label: 'BUILT FOR N8N', color: '#fef3c7' },
+          { icon: '💬', label: '24/7 SUPPORT', color: '#fb923c' },
+          { icon: '🚀', label: 'PRODUCTION READY', color: '#c2410c' },
+        ],
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED — do not edit) =====
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         Easing comes free from GSAP — this is what makes the motion smooth.
+         ===================================================== */
+      const $ = (id) => document.getElementById(id);
+
+      // build the DOM that depends on DATA (must exist before the timeline targets it)
+      function build() {
+        $('eyebrow').textContent = DATA.eyebrow;
+        $('winnerName').textContent = DATA.winner;
+        $('logo').innerHTML = DATA.logoSvg;
+        $('reason').textContent = DATA.reason;
+        $('badgesHead').textContent = DATA.badgesHead;
+        $('badgeList').innerHTML = DATA.badges
+          .map(
+            (b) => `
+            <div class="badge" style="background:${b.color}1c;border:1px solid ${b.color}66;box-shadow:0 8px 24px ${b.color}20;">
+              <div class="ic">${b.icon}</div>
+              <div class="label" style="color:${b.color};">${b.label}</div>
+            </div>`,
+          )
+          .join('');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // 1) Winner card slides in from the left (orig: spring @ frame 4 = 0.13s)
+      tl.from(
+        '#winner',
+        { opacity: 0, x: -30, duration: 0.8, ease: 'power3.out' },
+        0.13,
+      );
+
+      // 2) "Why it wins" heading fades in (orig: frames 20->34)
+      tl.from('#badgesHead', { opacity: 0, duration: 0.47, ease: 'power2.out' }, 0.67);
+
+      // 3) Badges pop in one by one (orig: spring @ frame 32 + i*10, slide + scale)
+      tl.from(
+        '#badgeList .badge',
+        {
+          opacity: 0,
+          x: 20,
+          scale: 0.7,
+          transformOrigin: 'left center',
+          duration: 0.7,
+          ease: 'back.out(1.7)',
+          stagger: 0.333,
+        },
+        1.07,
+      );
+
+      window.__timelines['verdict-badges'] = tl;
+    </script>
+  </body>
+</html>
