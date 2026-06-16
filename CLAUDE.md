@@ -12,14 +12,14 @@ A single git repo for my money-making / business projects: YouTube (niche resear
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-research/`](youtube/yt-research/CLAUDE.md) | Niche → knowledge-base pipeline (Phase 1, Gemini) | TypeScript |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-script/`](youtube/yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2) | Markdown workflow |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/my-yt/`](youtube/my-yt/CLAUDE.md) | Personal channel notes (free-form) | Markdown |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/tracker-app/`](youtube/tracker-app/CLAUDE.md) | Role-aware Kanban web app over the YT tracker sheet (5-stage pipeline, RBAC, approvals, notifications) | Vite+React+Hono on Cloudflare Workers |
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script under `youtube/`. | Python |
 | [`workers/redirector/`](workers/redirector/CLAUDE.md) | Cloudflare Worker for `go.agrolloo.com/*` short links | TypeScript (CF Worker) |
 | [`docs/`](docs/CLAUDE.md) | Repo-wide docs and workflows | Markdown |
 | [`upwork-hiring/`](upwork-hiring/CLAUDE.md) | Turn jumbled hiring thoughts into a ready-to-paste Upwork job post | Claude workflow |
 | [`to-do/`](to-do/CLAUDE.md) | Running TODO list | Markdown |
 | [`pinterest/`](pinterest/PLAN.md) | Per-niche Pinterest PDF business (keto, wedding) + landing pages | Python + HTML |
-| [`hyperframes-vs-remotion/`](hyperframes-vs-remotion/) | HTML→video tooling experiment (Hyperframes vs Remotion) | Node |
+| [`yt-visuals-hyperframe/`](yt-visuals-hyperframe/README.md) | **Live** HTML→video card tool (Video Studio); the card templates render2.agrolloo.com pulls from | Node |
+| [`hyperframes-vs-remotion/`](hyperframes-vs-remotion/CLAUDE.md) | Prior experiment (Hyperframes vs Remotion) — superseded by `yt-visuals-hyperframe/` | Node |
 | [`bank-statement-parser/`](bank-statement-parser/README.md) | Parses + reconciles bank statements — building toward a paid RapidAPI product | Python |
 | [`docs/research/`](docs/research/) | Business/income-strategy research (RapidAPI ideas, passive marketplaces) | Markdown |
 
@@ -73,9 +73,9 @@ npx ts-node run.ts --niche <slug>
 - **Node subprojects** (`youtube/yt-research/`, `workers/redirector/`) keep their own `package.json` + `node_modules/` because npm expects them there. They do NOT keep their own `.npmrc` or `.gitignore`.
 - **No per-folder `.env`, `credentials.json`, `venv/`, or `requirements.txt`.** Ever.
 
-## Workflows
+## Workflows (open when relevant — not auto-loaded)
 
-@docs/research-and-script-workflow.md
-@docs/yt-tracker-workflow.md
-@docs/yt-analysis-workflow.md
-@upwork-hiring/CLAUDE.md
+- [research → script workflow](docs/research-and-script-workflow.md)
+- [yt-tracker workflow](docs/yt-tracker-workflow.md)
+- [yt-analysis workflow](docs/yt-analysis-workflow.md)
+- [upwork hiring-post generator](upwork-hiring/CLAUDE.md)

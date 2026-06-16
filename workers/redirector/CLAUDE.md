@@ -37,7 +37,7 @@ INSERT INTO clicks (slug, clicked_at, ip_hash, ua_hash, referer)
 
 ## Related
 
-- KV is populated by `youtube/tracker-app/` (or legacy `yt-analysis/process_yt_tracker.py` via `common.cloudflare.KVClient`)
+- KV is populated by the `tracker-app/` UI (now in the **personal-stuff** repo at `apps/tracker-app/`) (or legacy `yt-analysis/process_yt_tracker.py` via `common.cloudflare.KVClient`)
 - D1 is read by `yt-analysis/sync_clicks.py` (via `common.cloudflare.D1Client`) and, read-only, by the `analytics-app` dashboard (binds the same `clicks-db`) for yt-analytics.agrolloo.com — that app lives in the **personal-stuff** repo at `apps/analytics-app/`, not in this repo
 - Schema is applied via `migrations/` — `analytics-app` does NOT own or migrate this schema; it only reads it
 - This Worker owns the schema; any reader (analytics-app) must treat new columns as additive

@@ -2,7 +2,8 @@
 
 > **Superseded (2026-06-15):** Tracker processing now runs in the tracker-app UI
 > (Admin → New Video → "Generate links & description"), not this script. The
-> canonical logic lives in `youtube/tracker-app/src/worker/linkgen.ts`. This doc
+> canonical logic lives in `src/worker/linkgen.ts` inside the tracker-app, which
+> now lives in the personal-stuff repo at `apps/tracker-app/`. This doc
 > and `process_yt_tracker.py` are kept for historical reference. See
 > `docs/superpowers/specs/2026-06-15-tracker-link-generation-design.md`.
 
