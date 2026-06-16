@@ -2,7 +2,7 @@
 
 Read-only click dashboard for the `go.agrolloo.com` shortener. Shows, per video, each affiliate/tool link and its de-duplicated click counts (30d + all-time). Live at `yt-analytics.agrolloo.com`. Worker name `yt-analytics`.
 
-Same stack as the sibling `gym-app/` / `kushal-docs/`: Vite + React (client) + Hono on a Cloudflare Worker, SPA served via the `ASSETS` binding. The shortener it reads (redirector Worker + `tracker-app`) lives in the **TY** repo (`../../../TY/`, a sibling checkout under `~/codebase/`).
+Same stack as the sibling `gym-app/` / `kushal-docs/` / `tracker-app/`: Vite + React (client) + Hono on a Cloudflare Worker, SPA served via the `ASSETS` binding. The `clicks-db` D1 it reads is written by the sibling `tracker-app/` (link generation) and by the redirector Worker, which still lives in the **TY** repo (`../../../TY/`, a sibling checkout under `~/codebase/`).
 
 ## Layout
 
