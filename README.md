@@ -14,6 +14,7 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 - `mcp/` — MCP servers. Mostly legacy — only `drive` and `cloudflare` are still used. Shares Google OAuth with `cli/` through `mcp/google-shared` (kept a sibling of `cli/` so that relative path resolves). See `tooling/mcp/README.md`.
 
 ### `apps/` — personal apps
+- `kushal-tools/` — KushalTools hub at `kushal-tools.agrolloo.com`. A card launcher linking every live agrolloo.com site; behind a shared-password gate. A single Hono Worker that renders the hub + login pages itself (no assets binding, no build step) so the PIN protects the page.
 - `gym-app/` — Mobile gym PWA, live at `kushal-gym.agrolloo.com`. Vite + React + Hono on a Cloudflare Worker, backed by a Google Sheet.
 - `kushal-docs/` — Personal document-vault PWA at `kushal-docs.agrolloo.com`. Upload/name/tag/filter PDFs + images. Vite + React + Hono on a Cloudflare Worker, files in R2, Google sign-in locked to one email.
 - `analytics-app/` — YT Analytics dashboard at `yt-analytics.agrolloo.com`. Per-video, per-link click counts for the `go.agrolloo.com` shortener. Vite + React + Hono on a Cloudflare Worker, reading the shortener's `clicks-db` D1 read-only, password-gated. The shortener itself lives in the TY repo.
