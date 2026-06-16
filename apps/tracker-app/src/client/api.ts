@@ -28,6 +28,7 @@ export interface TeamMember {
   name: string;
   email: string;
   role: string;
+  roles?: string[];
 }
 
 export interface MeData {
@@ -86,6 +87,32 @@ export async function getTeam(): Promise<TeamMember[]> {
   const res = await fetch("/api/team", { credentials: "same-origin" });
   if (!res.ok) return [];
   return res.json() as Promise<TeamMember[]>;
+}
+
+export async function getRoleOptions(): Promise<string[]> {
+  const res = await fetch("/api/roles", { credentials: "same-origin" });
+  if (!res.ok) return [];
+  return res.json() as Promise<string[]>;
+}
+
+export async function saveTeamMember(input: { name: string; email: string; roles: string[] }): Promise<void> {
+  const res = await fetch("/api/team", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  await throwOnError(res);
+}
+
+export async function deleteTeamMember(email: string): Promise<void> {
+  const res = await fetch("/api/team/delete", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  await throwOnError(res);
 }
 
 export async function updateCell(row_id: string, col: Column, value: string): Promise<void> {

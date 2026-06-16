@@ -1515,3 +1515,69 @@ details[open] .review-details__summary::before { content: "▼ "; }
   background: rgba(138,160,184,0.10);
   border: 1px solid rgba(138,160,184,0.25);
 }
+
+/* ── Buttons used by the Team panel ── */
+.btn-primary {
+  background: var(--accent);
+  color: #1a1206;
+  border: none;
+  border-radius: 9px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.btn-primary:disabled { opacity: 0.5; cursor: default; }
+.btn-danger { color: var(--danger, #f87171); }
+
+/* ── Team & access panel ── */
+.team-panel { max-width: 760px; margin: 0 auto; padding: 4px; }
+.team-panel__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.team-panel__title { font-size: 17px; font-weight: 700; color: var(--t1); margin: 0; }
+.team-panel__hint { font-size: 13px; color: var(--t3); margin: 6px 0 16px; line-height: 1.5; }
+.team-panel__empty { color: var(--t3); font-size: 14px; padding: 20px 0; text-align: center; }
+.team-list { display: flex; flex-direction: column; gap: 8px; }
+
+.team-row {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 12px 14px;
+}
+.team-row__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.team-row__name { font-size: 14px; font-weight: 600; color: var(--t1); }
+.team-row__email { font-size: 12px; color: var(--t3); }
+.team-row__roles { display: flex; flex-wrap: wrap; gap: 5px; }
+.team-row__actions { display: flex; gap: 4px; flex-shrink: 0; }
+.role-tag {
+  font-size: 11px; font-weight: 600; color: var(--t2);
+  background: var(--bg-2); border: 1px solid var(--line-2);
+  border-radius: 999px; padding: 2px 9px; white-space: nowrap;
+}
+
+.team-form {
+  background: var(--card-hi); border: 1px solid var(--accent-dim);
+  border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px;
+}
+.team-form__row { display: flex; flex-direction: column; gap: 5px; }
+.team-form__row > label { font-size: 12px; font-weight: 600; color: var(--t3); text-transform: uppercase; letter-spacing: .4px; }
+.team-form__row input {
+  background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 9px;
+  padding: 8px 11px; font-size: 14px; color: var(--t1);
+}
+.team-form__row input:disabled { opacity: 0.55; }
+.team-form__roles { display: flex; flex-wrap: wrap; gap: 7px; }
+.role-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--t2); cursor: pointer;
+  background: var(--bg-2); border: 1px solid var(--line-2);
+  border-radius: 999px; padding: 5px 11px; user-select: none;
+}
+.role-chip--on { color: var(--t1); border-color: var(--accent); background: var(--accent-dim); }
+.team-form__actions { display: flex; gap: 8px; }
+
+@media (max-width: 640px) {
+  .team-row { flex-wrap: wrap; }
+  .team-row__roles { order: 3; width: 100%; }
+}

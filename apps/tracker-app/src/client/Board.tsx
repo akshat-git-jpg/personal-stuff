@@ -24,12 +24,13 @@ import { Card } from "./Card";
 import { CardDetail } from "./CardDetail";
 import { laneLabel, laneColor, FIELD_LABELS } from "./labels";
 import { PipelineBoard } from "./PipelineBoard";
+import { TeamPanel } from "./TeamPanel";
 import { Filters, EMPTY_FILTERS, type AdminFilters } from "./Filters";
 import { overallStage } from "./pipeline";
 
 // ── Admin view tabs ────────────────────────────────────────────────────────
 
-type AdminTab = "pipeline" | "board" | "awaiting";
+type AdminTab = "pipeline" | "board" | "awaiting" | "team";
 
 // ── Role banner text ───────────────────────────────────────────────────────
 
@@ -498,10 +499,11 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
       <div className="board-root">
         {/* ── Admin view switcher ── */}
         <div className="admin-tabs">
-          {(["board", "pipeline", "awaiting"] as AdminTab[]).map(tab => {
+          {(["board", "pipeline", "awaiting", "team"] as AdminTab[]).map(tab => {
             const label =
               tab === "pipeline" ? "Pipeline"
               : tab === "board"    ? "Board"
+              : tab === "team"     ? "Team"
               : `Awaiting (${awaitingCount})`;
             return (
               <button
@@ -536,6 +538,9 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
             onChange={setAdminFilters}
           />
         )}
+
+        {/* ── Team tab ── */}
+        {adminTab === "team" && <TeamPanel onChanged={reload} />}
 
         {/* ── Pipeline tab ── */}
         {adminTab === "pipeline" && (

@@ -24,7 +24,7 @@ import {
   oauthCallback,
   requireSession,
 } from "./auth";
-import { getAccessToken, readRows, updateCell, touchRow, appendRow, deleteRowById } from "./sheets";
+import { getAccessToken, readRows, updateCell, touchRow, appendRow, deleteRowById, upsertEmployee, deleteEmployee } from "./sheets";
 import { createGeminiClient } from "./gemini";
 import { loadAffiliateRecords } from "./affiliate";
 import { processVideo } from "./linkgen";
@@ -40,7 +40,7 @@ import {
   isFieldLocked,
   isApprover,
 } from "../shared/rbac";
-import { loadTeam, lookupRoles } from "./roles";
+import { loadTeam, lookupRoles, VALID_ROLE_NAMES } from "./roles";
 import { COLUMNS } from "../shared/columns";
 import type { Column } from "../shared/columns";
 import { notify } from "./notify";
@@ -215,6 +215,55 @@ app.get("/api/team", async (c) => {
   const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
   const team = await loadTeam(token, c.env.SHEET_ID);
   return c.json(team);
+});
+
+// GET /api/roles — the valid role names (POLICY keys) for the Team panel selector.
+app.get("/api/roles", (c) => c.json(VALID_ROLE_NAMES));
+
+// POST /api/team {name, email, roles[]} — Admin-only; upsert a teammate in the Employes tab.
+app.post("/api/team", async (c) => {
+  const { roles } = getUser(c);
+  if (!roles.includes("Admin")) return c.json({ error: "forbidden" }, 403);
+
+  let body: { name?: string; email?: string; roles?: string[] };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid JSON body" }, 400);
+  }
+  const name = (body.name ?? "").trim();
+  const email = (body.email ?? "").trim();
+  const memberRoles = Array.isArray(body.roles)
+    ? body.roles.map((r) => r.trim()).filter((r) => VALID_ROLE_NAMES.includes(r))
+    : [];
+  if (!name) return c.json({ error: "name is required" }, 400);
+  if (!email || !email.includes("@")) return c.json({ error: "a valid email is required" }, 400);
+  if (memberRoles.length === 0) return c.json({ error: "at least one valid role is required" }, 400);
+
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const result = await upsertEmployee(token, c.env.SHEET_ID, name, email, memberRoles.join(", "));
+  await bustBoardCache(c.env);
+  return c.json({ ok: true, result });
+});
+
+// POST /api/team/delete {email} — Admin-only; remove a teammate from the Employes tab.
+app.post("/api/team/delete", async (c) => {
+  const { roles } = getUser(c);
+  if (!roles.includes("Admin")) return c.json({ error: "forbidden" }, 403);
+
+  let body: { email?: string };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid JSON body" }, 400);
+  }
+  const email = (body.email ?? "").trim();
+  if (!email) return c.json({ error: "email is required" }, 400);
+
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const removed = await deleteEmployee(token, c.env.SHEET_ID, email);
+  await bustBoardCache(c.env);
+  return c.json({ ok: removed });
 });
 
 // GET /api/board

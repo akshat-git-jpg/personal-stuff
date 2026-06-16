@@ -100,8 +100,10 @@ scripts/           # one-off Node smoke tests (run with `npx tsx scripts/<x>.ts`
 - `POST /api/review {row_id, stage, action, feedback?}` → approver-only; `stage` ∈ script|tutorial|editor|upload; approve→Done/Published, sendback→In Progress(+feedback); emails the assignee.
 - `GET /api/approvals` → approver queue across Script/Recording/Editing In-Review items.
 - `POST /api/video {video_title, video_notes?, category?, subcategory?}` → Admin-only; appends a Master row, returns `{row_id}`.
+- `POST /api/delete {row_id}` → Admin-only; deletes the Master row (`deleteRowById` → Sheets `deleteDimension`), busts the board cache. Surfaced as a per-row 🗑 button in the admin Pipeline matrix.
 - `POST /api/generate-links {row_id}` → Admin-only; ports `process_yt_tracker.py` — detects tools (Gemini), mints go.agrolloo short links into `CLICKS_KV` + `clicks-db` D1, writes `video_description`/`actual_links`/`short_links` back, returns `{description, links, non_affiliate_tools}`.
-- `GET /api/team` (admin), `GET /api/me`, `GET /api/auth-mode`.
+- `GET /api/team` (admin/approver), `GET /api/roles` (valid role names), `GET /api/me`, `GET /api/auth-mode`.
+- `POST /api/team {name, email, roles[]}` → Admin-only; upsert a teammate in the `Employes` tab (by email). `POST /api/team/delete {email}` → Admin-only; remove one. Both bust the board cache. Backs the admin **Team** tab (`TeamPanel.tsx`). Editing the `Employes` tab IS editing both assignment options and login access.
 - `GET /auth/login` · `GET /auth/callback` · `POST /auth/logout` · `GET /dev-login?email=…` (dev only).
 
 ## Notifications (email)
@@ -139,5 +141,9 @@ npx wrangler dev --port 8787
 5. **Cutover to the live sheet:** run `ensureRowIds` against the live sheet, add the `last_updated`/`script_*`/feedback columns + the `Employes`/`Access` tabs, then point `SHEET_ID` at the live sheet and redeploy. Add real teammates to `Employes`.
 
 ## Roadmap (from the product audit at `../../../TY/docs/specs/2026-05-29-tracker-product-audit.md` in the sibling TY repo)
-- Done: focused review card, clickable links, reviewer-defaults-to-queue, email notifications, names, timestamps, admin Overview/Pipeline/filters, collapsed Done lane, collapsible stage sections, in-app "new video", in-app go.agrolloo link + description generation.
-- Next: **search by title** (admin scale), **archive** old published, mobile list view, teammate-picker assignment, wiring the `Access` tab as the live RBAC source, separate yt-analytics dashboard (App B: clicks/views/rankings).
+- Done: focused review card, clickable links, reviewer-defaults-to-queue, email notifications, names, timestamps, admin Overview/Pipeline/filters, collapsed Done lane, collapsible stage sections, in-app "new video", in-app go.agrolloo link + description generation, **Readiness column** (topic_status-backed first stage in the Pipeline matrix; topic lanes renamed "Readiness in progress"/"Ready"), **click-to-sort on every Pipeline column** (Topic A–Z; stages by done→active→pending), **pending cells show a cross** (not a dot), **per-row delete** (Admin), **teammate-picker assignment** (assignment fields are dropdowns of the team, not free-text email), **admin Team tab** (manage the `Employes` tab in-app — add/edit roles/remove).
+- Next: **search by title** (admin scale), **archive** old published, mobile list view, wiring the `Access` tab as the live RBAC source. (The yt-analytics dashboard — App B — now exists in `personal-stuff/apps/analytics-app/`.)
+
+## Access / onboarding
+
+Login = Google OAuth → email verified → roles looked up in the `Employes` tab; no row with a valid role = "no access yet". Manage people via the admin **Team** tab (or the `Employes` tab directly). The OAuth app (project `n8n-workflows-454504`) is **already published / "In production"** with only non-sensitive scopes (`openid email profile`), so onboarding is *just* adding the person to the team — no GCP console step. The console's "requires verification" banner does NOT apply to non-sensitive scopes (no review needed, no user cap). Don't click "Back to testing" — that re-locks logins to console test-users.

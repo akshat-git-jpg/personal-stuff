@@ -391,3 +391,68 @@ export async function deleteRowById(
     throw new Error(`Sheets delete-row failed (${resp.status}): ${text}`);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Employes tab (team) writes — columns A=Name, B=Email, C=Role
+// ---------------------------------------------------------------------------
+
+const EMPLOYES_TAB = "Employes";
+
+/** Upsert a teammate by email (case-insensitive): update Name+Role if present, else append. */
+export async function upsertEmployee(
+  token: string,
+  sheetId: string,
+  name: string,
+  email: string,
+  roleCell: string,
+): Promise<"updated" | "added"> {
+  const raw = await sheetsGet(token, sheetId, `${EMPLOYES_TAB}!A1:C999`);
+  const target = email.trim().toLowerCase();
+  for (let i = 1; i < raw.length; i++) {
+    if ((raw[i]?.[1] ?? "").trim().toLowerCase() === target) {
+      const range = `${EMPLOYES_TAB}!A${i + 1}:C${i + 1}`;
+      const url = `${SHEETS_BASE}/${sheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`;
+      const resp = await fetch(url, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ values: [[name, email, roleCell]] }),
+      });
+      if (!resp.ok) throw new Error(`Sheets team update failed (${resp.status}): ${await resp.text()}`);
+      return "updated";
+    }
+  }
+  const appendUrl =
+    `${SHEETS_BASE}/${sheetId}/values/${encodeURIComponent(`${EMPLOYES_TAB}!A1`)}:append` +
+    `?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+  const resp = await fetch(appendUrl, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ values: [[name, email, roleCell]] }),
+  });
+  if (!resp.ok) throw new Error(`Sheets team append failed (${resp.status}): ${await resp.text()}`);
+  return "added";
+}
+
+/** Remove a teammate from the Employes tab (matched by email). Returns true if a row was deleted. */
+export async function deleteEmployee(token: string, sheetId: string, email: string): Promise<boolean> {
+  const raw = await sheetsGet(token, sheetId, `${EMPLOYES_TAB}!A1:C999`);
+  const target = email.trim().toLowerCase();
+  for (let i = 1; i < raw.length; i++) {
+    if ((raw[i]?.[1] ?? "").trim().toLowerCase() === target) {
+      const gridId = await getTabGridId(token, sheetId, EMPLOYES_TAB);
+      const url = `${SHEETS_BASE}/${sheetId}:batchUpdate`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requests: [
+            { deleteDimension: { range: { sheetId: gridId, dimension: "ROWS", startIndex: i, endIndex: i + 1 } } },
+          ],
+        }),
+      });
+      if (!resp.ok) throw new Error(`Sheets team delete failed (${resp.status}): ${await resp.text()}`);
+      return true;
+    }
+  }
+  return false;
+}

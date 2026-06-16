@@ -17,6 +17,8 @@ import { sheetsGet } from "./sheets";
 
 // The set of valid role names comes from POLICY keys.
 const VALID_ROLES = new Set(Object.keys(POLICY));
+/** Valid role names (POLICY keys), in declaration order — for team-management validation + UI. */
+export const VALID_ROLE_NAMES: string[] = Object.keys(POLICY);
 
 const EMPLOYEES_RANGE = "Employes!A2:C";
 

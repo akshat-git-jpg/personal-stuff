@@ -386,20 +386,38 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, c
             placeholder={`Write the ${label.toLowerCase()}…`}
             onChange={e => handleChange(col, e.target.value)}
           />
+        ) : isEmailCol ? (
+          // Assignment field — pick a teammate (from the Employes tab) instead of typing an email.
+          <select
+            id={`field-${col}`}
+            value={value}
+            onChange={e => handleChange(col, e.target.value)}
+          >
+            <option value="">— Unassigned —</option>
+            {value && !(value.toLowerCase() in names) && (
+              <option value={value}>{value}</option>
+            )}
+            {Object.entries(names)
+              .sort((a, b) => a[1].localeCompare(b[1]))
+              .map(([email, name]) => (
+                <option key={email} value={email}>
+                  {name} · {email}
+                </option>
+              ))}
+          </select>
         ) : (
           <>
             <input
               id={`field-${col}`}
               type="text"
               value={value}
-              placeholder={`Paste your ${label.toLowerCase()}…`}
+              placeholder={
+                LINK_COLS.has(col)
+                  ? `Paste the ${label.toLowerCase()} link…`
+                  : `Enter the ${label.toLowerCase()}…`
+              }
               onChange={e => handleChange(col, e.target.value)}
             />
-            {isEmailCol && value && (
-              <div className="field-hint" style={{ color: "var(--t3)" }}>
-                → {displayName(value, names)}
-              </div>
-            )}
             {LINK_COLS.has(col) && isUrl(value) && (
               <a
                 href={value}
