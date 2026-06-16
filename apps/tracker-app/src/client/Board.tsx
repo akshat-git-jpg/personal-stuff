@@ -17,7 +17,7 @@ import {
   isFieldLocked,
   isApproverRoles,
 } from "../shared/rbac";
-import { APPROVER_ONLY_VALUES } from "../shared/policy";
+import { APPROVER_ONLY_VALUES, POLICY } from "../shared/policy";
 import { updateCell, ForbiddenError, getApprovals, displayName, createVideo, deleteVideo, type BoardData, type ApprovalItem } from "./api";
 import { LANES, ADMIN_LANE_OPTIONS, groupByLane } from "./lanes";
 import { Card } from "./Card";
@@ -492,7 +492,23 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
     await commitMove(draggedRow, oldLane, newLane, laneStatus);
   }
 
-  const laneGroups = groupByLane(rows, laneStatus, lanes);
+  // A multi-role doer (e.g. Script Writer + Tutorial Maker) sees a row across BOTH
+  // their stages via the union filter. When viewing one worker stage, only show rows
+  // that have actually reached it — i.e. that satisfy the stage's upstream gate
+  // (Tutorial Maker → script_status "Done", etc.). Falls back to no filtering when the
+  // gate column isn't visible, so single-role boards are unaffected.
+  const stageRows = (() => {
+    if (isAdmin || isApprover || !activeWorkerStage) return rows;
+    const pol = POLICY[activeWorkerStage.role];
+    const gate = pol && typeof pol.rows === "object" ? pol.rows.gate : undefined;
+    if (!gate) return rows;
+    return rows.filter(r => {
+      const v = (r as Record<string, string>)[gate.col];
+      return v === undefined ? true : v.trim() === gate.equals;
+    });
+  })();
+
+  const laneGroups = groupByLane(stageRows, laneStatus, lanes);
   const visibleCols = columns as string[];
 
   // ── Helper: open card from Pipeline/Overview ──────────────────────────────
