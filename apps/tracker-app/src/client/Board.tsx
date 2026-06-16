@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, Fragment } from "react";
+import { useState, useCallback, useEffect, useMemo, Fragment } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -21,7 +21,7 @@ import { APPROVER_ONLY_VALUES } from "../shared/policy";
 import { updateCell, ForbiddenError, getApprovals, displayName, createVideo, deleteVideo, type BoardData, type ApprovalItem } from "./api";
 import { LANES, ADMIN_LANE_OPTIONS, groupByLane } from "./lanes";
 import { Card } from "./Card";
-import { CardDetail } from "./CardDetail";
+import { CardDetail, ComboSelect } from "./CardDetail";
 import { laneLabel, laneColor, FIELD_LABELS } from "./labels";
 import { PipelineBoard } from "./PipelineBoard";
 import { TeamPanel } from "./TeamPanel";
@@ -260,6 +260,14 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
 
   const [laneStatus, setLaneStatus] = useState<Column>(defaultLane);
   const [rows, setRows] = useState<Row[]>(initialRows);
+
+  // Distinct existing category / subcategory values, for the card's combobox fields.
+  const distinctValues = (col: string) =>
+    [...new Set(rows.map(r => ((r as Record<string, string>)[col] ?? "").trim()).filter(Boolean))].sort((a, b) =>
+      a.localeCompare(b),
+    );
+  const categoryOptions = useMemo(() => distinctValues("category"), [rows]);
+  const subcategoryOptions = useMemo(() => distinctValues("subcategory"), [rows]);
   const [activeRow, setActiveRow] = useState<Row | null>(null);
   const [detailRow, setDetailRow] = useState<Row | null>(null);
   // detailLaneStatus overrides the board laneStatus when opening a card from the approvals queue
@@ -299,6 +307,9 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
 
   async function submitNewVideo() {
     if (!nvTitle.trim()) { setNvError("Title is required"); return; }
+    if (!nvCategory.trim()) { setNvError("Category is required"); return; }
+    if (!nvSubcategory.trim()) { setNvError("Subcategory is required"); return; }
+    if (!nvNotes.trim()) { setNvError("A brief (notes) is required"); return; }
     setNvBusy(true);
     setNvError(null);
     try {
@@ -330,7 +341,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
         </p>
         <div className="nv-form">
           <div className="field">
-            <label htmlFor="nv-title">Title</label>
+            <label htmlFor="nv-title">Title <span className="req">*</span></label>
             <input
               id="nv-title"
               type="text"
@@ -341,7 +352,7 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
             />
           </div>
           <div className="field">
-            <label htmlFor="nv-notes">Notes</label>
+            <label htmlFor="nv-notes">Notes / brief <span className="req">*</span></label>
             <textarea
               id="nv-notes"
               rows={4}
@@ -352,12 +363,24 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
           </div>
           <div className="nv-form__row">
             <div className="field">
-              <label htmlFor="nv-category">Category</label>
-              <input id="nv-category" type="text" value={nvCategory} onChange={e => setNvCategory(e.target.value)} />
+              <label htmlFor="nv-category">Category <span className="req">*</span></label>
+              <ComboSelect
+                id="nv-category"
+                value={nvCategory}
+                options={categoryOptions}
+                placeholder="New category…"
+                onChange={setNvCategory}
+              />
             </div>
             <div className="field">
-              <label htmlFor="nv-subcategory">Subcategory</label>
-              <input id="nv-subcategory" type="text" value={nvSubcategory} onChange={e => setNvSubcategory(e.target.value)} />
+              <label htmlFor="nv-subcategory">Subcategory <span className="req">*</span></label>
+              <ComboSelect
+                id="nv-subcategory"
+                value={nvSubcategory}
+                options={subcategoryOptions}
+                placeholder="New subcategory…"
+                onChange={setNvSubcategory}
+              />
             </div>
           </div>
         </div>
@@ -674,6 +697,8 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
             names={names}
             laneStatus={detailLaneStatus ?? laneStatus}
             readOnly={readOnly}
+            categoryOptions={categoryOptions}
+            subcategoryOptions={subcategoryOptions}
             onClose={() => { setDetailRow(null); setDetailLaneStatus(null); }}
             onSaved={() => {
               void fetchApprovals();
@@ -818,6 +843,8 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
           laneStatus={detailLaneStatus ?? laneStatus}
           readOnly={readOnly}
           canEditAll={canEditAll}
+          categoryOptions={categoryOptions}
+          subcategoryOptions={subcategoryOptions}
           onClose={() => { setDetailRow(null); setDetailLaneStatus(null); }}
           onSaved={() => {
             void fetchApprovals();

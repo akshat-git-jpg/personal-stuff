@@ -16,8 +16,75 @@ interface CardDetailProps {
   laneStatus: string;
   readOnly?: boolean;
   canEditAll?: boolean;   // session user is an admin → full edit authority even while previewing
+  categoryOptions?: string[];     // distinct existing categories (for the combobox)
+  subcategoryOptions?: string[];  // distinct existing subcategories
   onClose: () => void;
   onSaved: () => void;
+}
+
+// A select of existing values + an "Add new…" escape hatch to a free-text input.
+export function ComboSelect({
+  id,
+  value,
+  options,
+  placeholder,
+  onChange,
+}: {
+  id: string;
+  value: string;
+  options: string[];
+  placeholder: string;
+  onChange: (v: string) => void;
+}) {
+  const ADD = "__add_new__";
+  const [adding, setAdding] = useState(false);
+
+  if (adding) {
+    return (
+      <div className="combo">
+        <input
+          id={id}
+          type="text"
+          autoFocus
+          value={value}
+          placeholder={placeholder}
+          onChange={e => onChange(e.target.value)}
+        />
+        <button
+          type="button"
+          className="combo__toggle"
+          title="Pick from the list instead"
+          onClick={() => setAdding(false)}
+        >
+          ⌄
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <select
+      id={id}
+      value={value}
+      onChange={e => {
+        if (e.target.value === ADD) {
+          onChange("");
+          setAdding(true);
+        } else {
+          onChange(e.target.value);
+        }
+      }}
+    >
+      <option value="">— None —</option>
+      {value && !options.includes(value) && <option value={value}>{value}</option>}
+      {options.map(o => (
+        <option key={o} value={o}>
+          {o}
+        </option>
+      ))}
+      <option value={ADD}>➕ Add new…</option>
+    </select>
+  );
 }
 
 const LANE_COLUMNS = new Set(["topic_status","script_status","tutorial_status","video_editor_status","yt_upload_status"]);
@@ -129,13 +196,23 @@ function SectionAccordion({ sectionKey: _sectionKey, label, icon, isOpen, isActi
   );
 }
 
-export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, canEditAll, onClose, onSaved }: CardDetailProps) {
+// Required before a freelancer can be assigned to any stage.
+const BRIEF_REQUIRED: Column[] = ["video_title", "category", "subcategory", "video_notes"];
+// Assignee column → the stage instruction that must be filled + the section to open on error.
+const ASSIGN_GATE: Record<string, { instruction: Column; label: string; section: string }> = {
+  script_writer_email:  { instruction: "script_instruction",       label: "Script",    section: "script" },
+  tutorial_maker_email: { instruction: "tutorial_instruction",     label: "Recording", section: "recording" },
+  video_editor_email:   { instruction: "video_editor_instruction", label: "Editing",   section: "editing" },
+};
+
+export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, canEditAll, categoryOptions = [], subcategoryOptions = [], onClose, onSaved }: CardDetailProps) {
   // Edit authority is separate from the field VIEW: an admin previewing a
   // member's card sees the member's fields but edits with full admin power.
   const editRoles = canEditAll ? [...roles, "Admin"] : roles;
 
   const [draft, setDraft] = useState<Partial<Record<Column, string>>>({});
   const [errors, setErrors] = useState<Partial<Record<Column, string>>>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Approver action state
@@ -198,9 +275,40 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, c
   function handleChange(col: Column, value: string) {
     setDraft(d => ({ ...d, [col]: value }));
     setErrors(e => ({ ...e, [col]: undefined }));
+    setFormError(null);
   }
 
   async function handleSave() {
+    // Required-field gate: can't assign a freelancer to a stage without a complete
+    // brief AND that stage's instructions.
+    const eff = (col: Column) => ((draft[col] ?? row[col] ?? "") as string).toString().trim();
+    const gateErrors: Partial<Record<Column, string>> = {};
+    const openTheseSections: string[] = [];
+    for (const [assigneeCol, meta] of Object.entries(ASSIGN_GATE)) {
+      const col = assigneeCol as Column;
+      const assigningNow = col in draft && eff(col) !== "" && (draft[col] ?? "") !== (row[col] ?? "");
+      if (!assigningNow) continue;
+      for (const bf of BRIEF_REQUIRED) {
+        if (!eff(bf)) gateErrors[bf] = "Required before you can assign";
+      }
+      if (!eff(meta.instruction)) {
+        gateErrors[meta.instruction] = `${meta.label} instructions are required before assigning`;
+        openTheseSections.push(meta.section);
+      }
+    }
+    if (Object.keys(gateErrors).length > 0) {
+      setErrors(gateErrors);
+      // Open the brief + affected stage sections so the errors are visible.
+      setOpenSections(prev => {
+        const next: Record<string, boolean> = { ...prev, brief: true };
+        for (const s of openTheseSections) next[s] = true;
+        return next;
+      });
+      setFormError("Fill the required fields (marked) before assigning a freelancer.");
+      return;
+    }
+    setFormError(null);
+
     setSaving(true);
     const newErrors: Partial<Record<Column, string>> = {};
     let anyError = false;
@@ -342,7 +450,12 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, c
     const value = draft[col] ?? "";
     const err = errors[col];
     const label = FIELD_LABELS[col] ?? col.replace(/_/g, " ");
-    const canEdit = !effReadOnly && canEditForRoles(editRoles, col) && !isFieldLocked(editRoles, col, row);
+    // admin_email is fixed (the founding admin) — never editable from the card.
+    const canEdit =
+      col !== "admin_email" &&
+      !effReadOnly &&
+      canEditForRoles(editRoles, col) &&
+      !isFieldLocked(editRoles, col, row);
 
     if (!canEdit) {
       // read-only
@@ -359,11 +472,20 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, c
     const rawLaneValues = isLaneCol ? (LANES[col] ?? []) : [];
     const friendlyMap = LANE_LABELS[col] ?? {};
     const isEmailCol = EMAIL_COLS.has(col);
+    const isComboCol = col === "category" || col === "subcategory";
 
     return (
       <div key={col} className="field">
         <label htmlFor={`field-${col}`}>{label}</label>
-        {isLaneCol ? (
+        {isComboCol ? (
+          <ComboSelect
+            id={`field-${col}`}
+            value={value}
+            options={col === "category" ? categoryOptions : subcategoryOptions}
+            placeholder={`New ${label.toLowerCase()}…`}
+            onChange={v => handleChange(col, v)}
+          />
+        ) : isLaneCol ? (
           <select
             id={`field-${col}`}
             value={value}
@@ -654,6 +776,7 @@ export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, c
               </div>
 
               {/* Global Save button at the bottom */}
+              {formError && <div className="field-error detail-form-error">{formError}</div>}
               {hasAnyEditable && (
                 <button
                   className="btn-save"

@@ -1530,6 +1530,25 @@ details[open] .review-details__summary::before { content: "▼ "; }
 .btn-primary:disabled { opacity: 0.5; cursor: default; }
 .btn-danger { color: var(--danger, #f87171); }
 
+.req { color: var(--danger, #f87171); font-weight: 700; }
+.detail-form-error { margin: 4px 0 10px; }
+
+/* ── Combo (select + add-new) ── */
+.combo { display: flex; gap: 6px; align-items: stretch; }
+.combo input { flex: 1; min-width: 0; }
+.combo__toggle {
+  flex-shrink: 0;
+  background: var(--bg-2); border: 1px solid var(--line-2);
+  border-radius: 9px; color: var(--t3); cursor: pointer;
+  padding: 0 12px; font-size: 14px;
+}
+.combo__toggle:hover { color: var(--t1); border-color: var(--accent); }
+
+.team-row__locked {
+  font-size: 12px; font-weight: 600; color: var(--t3);
+  padding: 4px 10px; white-space: nowrap;
+}
+
 /* ── Team & access panel ── */
 .team-panel { max-width: 760px; margin: 0 auto; padding: 4px; }
 .team-panel__head {

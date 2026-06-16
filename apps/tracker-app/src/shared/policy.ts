@@ -11,6 +11,10 @@ export interface RolePolicy {
 
 export const APPROVER_ROLES = new Set(["Admin", "Reviewer"]);
 
+// The founding admin — fixed. Can't be edited/removed from the Team panel or the
+// card's Admin field (enforced in the UI and the team-management worker routes).
+export const PROTECTED_ADMIN_EMAIL = "seankerman25@gmail.com";
+
 export const APPROVER_ONLY_VALUES: Partial<Record<Column, string[]>> = {
   script_status:       ["Done"],
   tutorial_status:     ["Done"],

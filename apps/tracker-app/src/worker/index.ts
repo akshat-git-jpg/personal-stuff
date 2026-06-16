@@ -41,6 +41,7 @@ import {
   isApprover,
 } from "../shared/rbac";
 import { loadTeam, lookupRoles, VALID_ROLE_NAMES } from "./roles";
+import { PROTECTED_ADMIN_EMAIL } from "../shared/policy";
 import { COLUMNS } from "../shared/columns";
 import type { Column } from "../shared/columns";
 import { notify } from "./notify";
@@ -238,6 +239,9 @@ app.post("/api/team", async (c) => {
     : [];
   if (!name) return c.json({ error: "name is required" }, 400);
   if (!email || !email.includes("@")) return c.json({ error: "a valid email is required" }, 400);
+  if (email.toLowerCase() === PROTECTED_ADMIN_EMAIL) {
+    return c.json({ error: "the founding admin is fixed and can't be edited" }, 403);
+  }
   if (memberRoles.length === 0) return c.json({ error: "at least one valid role is required" }, 400);
 
   const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
@@ -259,6 +263,9 @@ app.post("/api/team/delete", async (c) => {
   }
   const email = (body.email ?? "").trim();
   if (!email) return c.json({ error: "email is required" }, 400);
+  if (email.toLowerCase() === PROTECTED_ADMIN_EMAIL) {
+    return c.json({ error: "the founding admin is fixed and can't be removed" }, 403);
+  }
 
   const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
   const removed = await deleteEmployee(token, c.env.SHEET_ID, email);
@@ -339,10 +346,14 @@ app.get("/api/board", async (c) => {
 // Returns items currently awaiting approval (script, tutorial, or editing stages at "In Review").
 // Available to Approver roles (Admin, Reviewer) only.
 app.get("/api/approvals", async (c) => {
-  const { roles } = getUser(c);
+  const { email, roles } = getUser(c);
   if (!isApproverRoles(roles)) {
     return c.json({ count: 0, items: [], names: {} }, 200);
   }
+  // Scope: Admin sees every in-review item; a (non-admin) Reviewer sees only items for
+  // videos assigned to them (reviewer_email) plus videos with no reviewer assigned.
+  const isAdmin = roles.includes("Admin");
+  const myEmail = email.trim().toLowerCase();
 
   const saToken = await getAccessToken(c.env.GOOGLE_SA_JSON);
   const [allRows, team] = await Promise.all([
@@ -374,6 +385,11 @@ app.get("/api/approvals", async (c) => {
   }[] = [];
 
   for (const row of allRows) {
+    // Reviewers only see their assigned videos (+ unassigned); admins see all.
+    if (!isAdmin) {
+      const rowReviewer = ((row.reviewer_email ?? "") as string).trim().toLowerCase();
+      if (rowReviewer && rowReviewer !== myEmail) continue;
+    }
     for (const stageCol of STAGE_COLS) {
       if ((row[stageCol] ?? "") === "In Review") {
         items.push({
@@ -626,15 +642,21 @@ app.post("/api/video", async (c) => {
     return c.json({ error: "invalid JSON body" }, 400);
   }
   const title = (body.video_title ?? "").trim();
+  const notes = (body.video_notes ?? "").trim();
+  const category = (body.category ?? "").trim();
+  const subcategory = (body.subcategory ?? "").trim();
   if (!title) return c.json({ error: "video_title is required" }, 400);
+  if (!category) return c.json({ error: "category is required" }, 400);
+  if (!subcategory) return c.json({ error: "subcategory is required" }, 400);
+  if (!notes) return c.json({ error: "a brief (video_notes) is required" }, 400);
 
   const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
   const today = new Date().toISOString().slice(0, 10);
   const rowId = await appendRow(token, c.env.SHEET_ID, {
     video_title: title,
-    video_notes: (body.video_notes ?? "").trim(),
-    category: (body.category ?? "").trim(),
-    subcategory: (body.subcategory ?? "").trim(),
+    video_notes: notes,
+    category: category,
+    subcategory: subcategory,
     topic_status: (body.topic_status ?? "To Do").trim(),
     topic_date: today,
   });

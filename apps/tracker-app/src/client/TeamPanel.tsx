@@ -13,6 +13,7 @@ import {
   deleteTeamMember,
   type TeamMember,
 } from "./api";
+import { PROTECTED_ADMIN_EMAIL } from "../shared/policy";
 
 interface TeamPanelProps {
   /** Called after a successful add/edit/remove so the parent can refresh the board's names. */
@@ -80,10 +81,15 @@ export function TeamPanel({ onChanged }: TeamPanelProps) {
     if (!draft.name.trim()) return setError("Name is required");
     if (!draft.email.includes("@")) return setError("A valid email is required");
     if (draft.roles.length === 0) return setError("Pick at least one role");
+    // Admin always implies Reviewer — persist it so the sheet is explicit.
+    const rolesToSave =
+      draft.roles.includes("Admin") && !draft.roles.includes("Reviewer")
+        ? [...draft.roles, "Reviewer"]
+        : draft.roles;
     setBusy(true);
     setError(null);
     try {
-      await saveTeamMember({ name: draft.name.trim(), email: draft.email.trim(), roles: draft.roles });
+      await saveTeamMember({ name: draft.name.trim(), email: draft.email.trim(), roles: rolesToSave });
       setEditing(null);
       await load();
       onChanged?.();
@@ -133,16 +139,23 @@ export function TeamPanel({ onChanged }: TeamPanelProps) {
         <div className="team-form__row">
           <label>Roles</label>
           <div className="team-form__roles">
-            {roleOptions.map(r => (
-              <label key={r} className={`role-chip${draft.roles.includes(r) ? " role-chip--on" : ""}`}>
-                <input
-                  type="checkbox"
-                  checked={draft.roles.includes(r)}
-                  onChange={() => toggleRole(r)}
-                />
-                {r}
-              </label>
-            ))}
+            {roleOptions.map(r => {
+              // Admin always implies Reviewer — show it checked + locked when Admin is selected.
+              const impliedByAdmin = r === "Reviewer" && draft.roles.includes("Admin");
+              const checked = draft.roles.includes(r) || impliedByAdmin;
+              return (
+                <label key={r} className={`role-chip${checked ? " role-chip--on" : ""}`}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={impliedByAdmin}
+                    onChange={() => toggleRole(r)}
+                  />
+                  {r}
+                  {impliedByAdmin ? " (via Admin)" : ""}
+                </label>
+              );
+            })}
           </div>
         </div>
         <div className="team-form__actions">
@@ -194,12 +207,20 @@ export function TeamPanel({ onChanged }: TeamPanelProps) {
                   ))}
                 </div>
                 <div className="team-row__actions">
-                  <button className="btn-ghost" onClick={() => startEdit(m)} disabled={busy}>
-                    Edit
-                  </button>
-                  <button className="btn-ghost btn-danger" onClick={() => void remove(m)} disabled={busy}>
-                    Remove
-                  </button>
+                  {m.email.toLowerCase() === PROTECTED_ADMIN_EMAIL ? (
+                    <span className="team-row__locked" title="The founding admin is fixed">
+                      🔒 Founder
+                    </span>
+                  ) : (
+                    <>
+                      <button className="btn-ghost" onClick={() => startEdit(m)} disabled={busy}>
+                        Edit
+                      </button>
+                      <button className="btn-ghost btn-danger" onClick={() => void remove(m)} disabled={busy}>
+                        Remove
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ),
