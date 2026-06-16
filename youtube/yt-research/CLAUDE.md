@@ -10,6 +10,8 @@ YouTube niche research pipeline. Produces a knowledge base used as input for com
 - **Phase 2 (Claude Code, this terminal)** — triggered by the user, not by `run.ts`.
   You synthesize the knowledge base directly from Phase 1 outputs.
 
+> **`niches/*/output/` are static Phase-1 archives** (transcripts, profiles, pricing, large knowledge-base dumps — ~400 KB per niche). They feed Phase 2 synthesis only. Don't read them on routine/broad searches; open a specific file only when synthesizing that niche.
+
 ## When the user says "Synthesize the KB for niche <name>"
 
 Do these in order:

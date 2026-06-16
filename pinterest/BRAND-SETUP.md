@@ -26,7 +26,7 @@ We batch-check many candidates because catchy `.com`s are mostly taken — expec
 
 **a) `.com` availability** (pp-hostinger CLI — rate limit 10/min, so batch ≤10):
 ```
-"/Users/kbtg/codebase/personal stuff/cli/hostinger/pp-hostinger" domains check thebridehandbook --tlds com
+"/Users/kbtg/codebase/personal-stuff/tooling/cli/hostinger/pp-hostinger" domains check thebridehandbook --tlds com
 ```
 Keep only `.com` (or `.net`). **Avoid:** `.xyz/.online/.site/.club/.info/.top` (spammy, hurt
 deliverability) and `.co/.shop/.io/.ai` (cheap year 1, expensive renewal).
@@ -69,9 +69,9 @@ We use **Cloudflare Email Routing**: a free **catch-all** that forwards every `*
 shared hub Gmail. No paid mailbox. (Sending marketing later = an ESP like MailerLite with SPF/DKIM;
 1:1 replies = Gmail "Send as". Both reuse the same `hello@<brand>.com` address.)
 
-**The tool:** `personal-stuff/cli/cf-email/setup-routing.mjs` (see its README).
+**The tool:** `personal-stuff/tooling/cli/cf-email/setup-routing.mjs` (see its README).
 ```bash
-node "/Users/kbtg/codebase/personal stuff/cli/cf-email/setup-routing.mjs" <brand>.com
+node "/Users/kbtg/codebase/personal-stuff/tooling/cli/cf-email/setup-routing.mjs" <brand>.com
 # defaults the hub to jessicap123k@gmail.com; pass a 2nd arg to override
 ```
 It resolves the zone, **enables** Email Routing, provisions MX + SPF, registers the hub destination,
