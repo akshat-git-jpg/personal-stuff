@@ -8,7 +8,8 @@ Short-link redirector. KV lookup → 302; click logged to D1 in the background v
 workers/redirector/
 ├── src/index.ts          # Worker handler (KV lookup, slug validation, D1 click insert)
 ├── migrations/
-│   └── 0001_init.sql     # videos / links / clicks tables
+│   ├── 0001_init.sql     # videos / links / clicks tables
+│   └── 0002_video_yt_id.sql  # adds videos.yt_video_id (nullable; for yt-analytics view lookups)
 ├── wrangler.toml         # KV binding CLICKS_KV, D1 binding DB, route go.agrolloo.com/*
 ├── package.json
 └── tsconfig.json
