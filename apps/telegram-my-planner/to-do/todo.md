@@ -19,3 +19,12 @@ Every app that i use eventually makes me want to do my own customized version, s
 fix/clean memory. make peesonal memory..
 
 voice over changer
+
+make more html tempaltes
+make easy video editor flow - 1 click, all relevant templates done.
+
+voice male to female
+
+remove gemini call from yt-analytics
+
+screeen recorder guidance to tutorial makers..

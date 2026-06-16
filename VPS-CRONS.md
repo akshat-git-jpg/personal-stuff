@@ -112,7 +112,7 @@ personal-stuff/
     └── secrets/                       ← gitignored
 ```
 
-Naming convention: **all directory names are hyphenated, no spaces.** Top level is grouped into `apps/`, `tooling/`, `marketing/`, `infra/`, `learning/`, `docs/`, `scripts/` (see the repo `README.md`).
+Naming convention: **all directory names are hyphenated, no spaces.** Top level is grouped into `apps/`, `tooling/`, `infra/`, `learning/`, `docs/`, `scripts/` (see the repo `README.md`).
 
 ---
 
