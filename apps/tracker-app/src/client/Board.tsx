@@ -494,15 +494,19 @@ export function Board({ role, roles, stages, columns, rows: initialRows, names, 
 
   // A multi-role doer (e.g. Script Writer + Tutorial Maker) sees a row across BOTH
   // their stages via the union filter. When viewing one worker stage, only show rows
-  // that have actually reached it — i.e. that satisfy the stage's upstream gate
-  // (Tutorial Maker → script_status "Done", etc.). Falls back to no filtering when the
-  // gate column isn't visible, so single-role boards are unaffected.
+  // that actually belong to it. The server tags each row with `_stages` (its true
+  // per-role membership — match + gate), which is authoritative. If that's missing
+  // for any reason, fall back to the stage's upstream gate; and if even the gate
+  // column isn't visible, don't filter — so single-role boards are never affected.
   const stageRows = (() => {
     if (isAdmin || isApprover || !activeWorkerStage) return rows;
+    const active = activeWorkerStage.statusCol;
     const pol = POLICY[activeWorkerStage.role];
     const gate = pol && typeof pol.rows === "object" ? pol.rows.gate : undefined;
-    if (!gate) return rows;
     return rows.filter(r => {
+      const tagged = (r as { _stages?: string[] })._stages;
+      if (tagged) return tagged.includes(active);
+      if (!gate) return true;
       const v = (r as Record<string, string>)[gate.col];
       return v === undefined ? true : v.trim() === gate.equals;
     });

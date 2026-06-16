@@ -35,6 +35,7 @@ import {
   canSetValueForRoles,
   isApproverRoles,
   filterRowsForRoles,
+  filterRows,
   projectRowForRoles,
   workerStagesForRoles,
   isFieldLocked,
@@ -325,7 +326,22 @@ app.get("/api/board", async (c) => {
   ]);
 
   const filteredRows = filterRowsForRoles(effRoles, effEmail, allRows);
-  const projected = filteredRows.map((r) => projectRowForRoles(effRoles, r));
+  // Tag each row with the user's worker stages it actually belongs to (per-role
+  // match + gate), so a multi-role doer's board can show a row only on the stage(s)
+  // it has truly reached — assignee emails are projected away, so the client can't
+  // derive this itself. Empty for admins/approvers (they use a different view).
+  const workerStages = workerStagesForRoles(effRoles);
+  const projected = filteredRows.map((r) => {
+    const proj = projectRowForRoles(effRoles, r) as ReturnType<typeof projectRowForRoles> & {
+      _stages?: string[];
+    };
+    if (workerStages.length > 0) {
+      proj._stages = workerStages
+        .filter((ws) => filterRows(ws.role, effEmail, [r]).length > 0)
+        .map((ws) => ws.statusCol);
+    }
+    return proj;
+  });
   const names = buildNamesMap(team);
 
   return c.json({

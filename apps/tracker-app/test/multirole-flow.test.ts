@@ -80,4 +80,15 @@ describe("multi-role flow: one person is both Script Writer and Tutorial Maker",
     expect(isFieldLocked(ROLES, "tutorial_link", row)).toBe(true);
     expect(isFieldLocked(ROLES, "tutorial_status", row)).toBe(false);
   });
+
+  it("airtight: a video Sam wrote but does NOT record is not in his Tutorial stage", () => {
+    // Sam is the script writer; someone else records it; script is Done.
+    const row = makeRow({ script_status: "Done", tutorial_maker_email: "bob@example.com" });
+    // Visible to Sam overall (he wrote it)...
+    expect(filterRowsForRoles(ROLES, SAM, [row]).length).toBe(1);
+    // ...but it does NOT belong to his Tutorial Maker stage (he isn't the recorder).
+    // This is exactly the per-row `_stages` membership the server sends to the client.
+    expect(filterRows("Tutorial Maker", SAM, [row]).length).toBe(0);
+    expect(filterRows("Script Writer", SAM, [row]).length).toBe(1);
+  });
 });

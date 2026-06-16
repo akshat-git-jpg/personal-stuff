@@ -16,7 +16,8 @@ export interface BoardData {
   roles: string[];                      // multi-role array
   stages: { statusCol: string; role: string }[]; // worker stages for this user
   columns: Column[];
-  rows: Row[];
+  /** `_stages`: worker-stage status cols this row belongs to (server-tagged, for multi-role boards). */
+  rows: (Row & { _stages?: string[] })[];
   viewingAs: { email: string; role: string | null; roles?: string[] } | null;
   readOnly?: boolean;
   canEditAll?: boolean;             // session user is an admin → full edit authority, even while previewing
