@@ -22,6 +22,9 @@ export interface LinkStat {
 export interface VideoStat {
   video_code: string;
   video_title: string;
+  yt_video_id: string | null;
+  /** Live YouTube view count; null if unknown (no yt id or API key/lookup failed). */
+  views: number | null;
   total_30d: number;
   total_all: number;
   links: LinkStat[];
@@ -31,6 +34,7 @@ interface LinkRow {
   video_code: string;
   video_title: string;
   video_created: number;
+  yt_video_id: string | null;
   slug: string | null;
   tool: string | null;
   target_url: string | null;
@@ -52,6 +56,7 @@ export async function getVideoStats(env: Env): Promise<VideoStat[]> {
         `SELECT v.video_code   AS video_code,
                 v.video_title  AS video_title,
                 v.created_at   AS video_created,
+                v.yt_video_id  AS yt_video_id,
                 l.slug         AS slug,
                 l.tool         AS tool,
                 l.target_url   AS target_url
@@ -92,6 +97,8 @@ export async function getVideoStats(env: Env): Promise<VideoStat[]> {
       video = {
         video_code: row.video_code,
         video_title: row.video_title,
+        yt_video_id: row.yt_video_id ?? null,
+        views: null,
         total_30d: 0,
         total_all: 0,
         links: [],
@@ -117,6 +124,46 @@ export async function getVideoStats(env: Env): Promise<VideoStat[]> {
   for (const v of videos) {
     v.links.sort((a, b) => b.clicks_all - a.clicks_all || a.tool.localeCompare(b.tool));
   }
+
+  // 4) Live YouTube view counts (best-effort; never blocks the response on failure).
+  await attachViewCounts(env, videos);
+
   videos.sort((a, b) => b.total_all - a.total_all || b.total_30d - a.total_30d);
   return videos;
+}
+
+/**
+ * Fetch viewCount for every video that has a yt_video_id and fold it into `views`.
+ * Batches by 50 (YouTube videos.list limit). Silent no-op if no API key is set;
+ * any API failure leaves `views` null rather than throwing.
+ */
+async function attachViewCounts(env: Env, videos: VideoStat[]): Promise<void> {
+  if (!env.YT_API_KEY) return;
+  const ids = videos.map((v) => v.yt_video_id).filter((x): x is string => !!x);
+  if (ids.length === 0) return;
+
+  const views = new Map<string, number>();
+  for (let i = 0; i < ids.length; i += 50) {
+    const batch = ids.slice(i, i + 50);
+    const url =
+      `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${batch.join(",")}` +
+      `&key=${env.YT_API_KEY}`;
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) continue;
+      const json = (await resp.json()) as {
+        items?: { id: string; statistics?: { viewCount?: string } }[];
+      };
+      for (const it of json.items ?? []) {
+        const n = Number(it.statistics?.viewCount ?? NaN);
+        if (!Number.isNaN(n)) views.set(it.id, n);
+      }
+    } catch {
+      /* network/API error — leave these videos' views null */
+    }
+  }
+
+  for (const v of videos) {
+    if (v.yt_video_id && views.has(v.yt_video_id)) v.views = views.get(v.yt_video_id)!;
+  }
 }

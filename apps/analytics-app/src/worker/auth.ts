@@ -21,6 +21,8 @@ export type Env = {
   LINK_DOMAIN: string;
   APP_PASSWORD: string;
   SESSION_SECRET: string;
+  /** YouTube Data API key — used to fetch live view counts. Optional; views are omitted if unset. */
+  YT_API_KEY?: string;
 };
 
 const COOKIE = "yta_auth";

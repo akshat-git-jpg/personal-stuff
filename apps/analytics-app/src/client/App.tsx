@@ -15,7 +15,6 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,19 +60,11 @@ export function App() {
     return {
       videos: list.length,
       links: list.reduce((n, v) => n + v.links.length, 0),
+      views: list.reduce((n, v) => n + (v.views ?? 0), 0),
       clicks30: list.reduce((n, v) => n + v.total_30d, 0),
       clicksAll: list.reduce((n, v) => n + v.total_all, 0),
     };
   }, [videos]);
-
-  function toggle(code: string) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(code)) next.delete(code);
-      else next.add(code);
-      return next;
-    });
-  }
 
   if (needsAuth) {
     return <Login onDone={() => void load()} />;
@@ -109,6 +100,7 @@ export function App() {
 
       <section className="summary">
         <Stat label="Videos" value={totals.videos} />
+        <Stat label="Views" value={totals.views} />
         <Stat label="Links" value={totals.links} />
         <Stat label="Clicks · 30d" value={totals.clicks30} accent />
         <Stat label="Clicks · all-time" value={totals.clicksAll} accent />
@@ -146,12 +138,7 @@ export function App() {
         )}
 
         {filtered.map((v) => (
-          <VideoCard
-            key={v.video_code}
-            video={v}
-            open={expanded.has(v.video_code)}
-            onToggle={() => toggle(v.video_code)}
-          />
+          <VideoCard key={v.video_code} video={v} />
         ))}
       </main>
     </div>
@@ -167,97 +154,92 @@ function Stat({ label, value, accent }: { label: string; value: number; accent?:
   );
 }
 
-function VideoCard({
-  video,
-  open,
-  onToggle,
-}: {
-  video: VideoStat;
-  open: boolean;
-  onToggle: () => void;
-}) {
+function compact(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}k`;
+  return n.toLocaleString();
+}
+
+// Dense, always-expanded card: title + live views + totals, with every link
+// rendered inline as its own row — no click-to-expand.
+function VideoCard({ video }: { video: VideoStat }) {
+  const watchUrl = video.yt_video_id
+    ? `https://www.youtube.com/watch?v=${video.yt_video_id}`
+    : null;
   return (
-    <article className={`card ${open ? "card-open" : ""}`}>
-      <button className="card-head" onClick={onToggle}>
-        <span className={`chevron ${open ? "chevron-open" : ""}`}>›</span>
-        <span className="card-title">{video.video_title}</span>
-        <span className="card-counts">
-          <span className="pill">
+    <article className="vcard">
+      <div className="vcard-head">
+        {watchUrl ? (
+          <a className="vcard-title" href={watchUrl} target="_blank" rel="noreferrer">
+            {video.video_title}
+          </a>
+        ) : (
+          <span className="vcard-title">{video.video_title}</span>
+        )}
+        <div className="vcard-metrics">
+          <span className="metric metric-views" title="YouTube views">
+            {video.views == null ? "—" : compact(video.views)} <em>views</em>
+          </span>
+          <span className="metric">
             {video.total_30d.toLocaleString()} <em>30d</em>
           </span>
-          <span className="pill pill-strong">
-            {video.total_all.toLocaleString()} <em>all</em>
+          <span className="metric metric-strong">
+            {video.total_all.toLocaleString()} <em>clicks</em>
           </span>
-          <span className="pill pill-quiet">
-            {video.links.length} {video.links.length === 1 ? "link" : "links"}
-          </span>
-        </span>
-      </button>
+        </div>
+      </div>
 
-      {open && (
-        <div className="card-body">
-          {video.links.length === 0 ? (
-            <div className="no-links">No links generated for this video.</div>
-          ) : (
-            <table className="links-table">
-              <thead>
-                <tr>
-                  <th>Software</th>
-                  <th>Links</th>
-                  <th className="num">30d</th>
-                  <th className="num">All-time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {video.links.map((l) => (
-                  <LinkRow key={l.slug} link={l} />
-                ))}
-              </tbody>
-            </table>
-          )}
+      {video.links.length === 0 ? (
+        <div className="vcard-nolinks">No links for this video.</div>
+      ) : (
+        <div className="vcard-links">
+          {video.links.map((l) => (
+            <LinkLine key={l.slug} link={l} />
+          ))}
         </div>
       )}
     </article>
   );
 }
 
-function LinkRow({ link }: { link: LinkStat }) {
+function LinkLine({ link }: { link: LinkStat }) {
   return (
-    <tr>
-      <td className="tool">{link.tool || "—"}</td>
-      <td className="urls">
-        <CopyLink label="short" url={link.short_url} />
-        <CopyLink label="target" url={link.target_url} />
-      </td>
-      <td className="num">{link.clicks_30d.toLocaleString()}</td>
-      <td className="num num-strong">{link.clicks_all.toLocaleString()}</td>
-    </tr>
-  );
-}
-
-function CopyLink({ label, url }: { label: string; url: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <div className="url-line">
-      <span className="url-tag">{label}</span>
-      <a href={url} target="_blank" rel="noreferrer" className="url-text" title={url}>
-        {url.replace(/^https?:\/\//, "")}
-      </a>
-      <button
-        className="copy-btn"
-        title="Copy"
-        onClick={async () => {
-          try {
-            await navigator.clipboard.writeText(url);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1200);
-          } catch {
-            /* clipboard blocked — ignore */
-          }
-        }}
-      >
-        {copied ? "✓" : "⧉"}
-      </button>
+    <div className="lline">
+      <span className="lline-tool">{link.tool || "—"}</span>
+      <span className="lline-url">
+        <a href={link.short_url} target="_blank" rel="noreferrer" title={link.target_url}>
+          {link.short_url.replace(/^https?:\/\//, "")}
+        </a>
+        <CopyButton url={link.short_url} />
+      </span>
+      <span className="lline-num">
+        {link.clicks_30d.toLocaleString()} <em>30d</em>
+      </span>
+      <span className="lline-num lline-num-strong">
+        {link.clicks_all.toLocaleString()} <em>all</em>
+      </span>
     </div>
   );
 }
+
+function CopyButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      className="copy-btn"
+      title="Copy short link"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(url);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1200);
+        } catch {
+          /* clipboard blocked — ignore */
+        }
+      }}
+    >
+      {copied ? "✓" : "⧉"}
+    </button>
+  );
+}
+
