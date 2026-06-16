@@ -1,0 +1,99 @@
+<!doctype html>
+<!--
+  TIP / WARNING BANNER   (Hyperframes OVERLAY — transparent background)
+  A full-width strip slides in along the bottom (or top) with an icon + label + text
+  and an accent bar that wipes across. A louder cousin of the corner callout — good
+  for "watch out", "pro tip", "heads up". 1920x1080, 30fps, 5 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block + :root. kind sets the │
+  │  colour + icon (tip|warning|danger|info). edge = bottom|top. Never touch  │
+  │  the TIMELINE.                                                            │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  ⚠ OVERLAY: render TRANSPARENT (alpha) so it composites over footage. In the render
+  tool, pick the transparent/MOV toggle. From the CLI use --format mov (ProRes 4444
+  carries alpha; plain WebM/MP4 here come out opaque on a black frame):
+    npx hyperframes@latest render overlay/tip-banner -o banner.mov --format mov --fps 30
+  Override: --variables '{"kind":"warning","label":"Watch out","text":"...","edge":"bottom"}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --tip: #34d399; --warning: #fb923c; --danger: #f43f5e; --info: #38bdf8;
+        --panel: rgba(15, 11, 7, 0.92); --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.82);
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #band { position: absolute; left: 110px; right: 110px; will-change: transform, opacity; }
+      #root[data-edge="bottom"] #band { bottom: 90px; }
+      #root[data-edge="top"] #band { top: 90px; }
+
+      .bar { position: relative; display: flex; align-items: center; gap: 30px; background: var(--panel);
+        border: 1px solid rgba(255,255,255,0.12); border-radius: 22px; padding: 30px 40px; overflow: hidden;
+        backdrop-filter: blur(14px); box-shadow: 0 26px 60px rgba(0,0,0,0.45); }
+      /* accent edge that wipes across the left */
+      .accentbar { position: absolute; left: 0; top: 0; bottom: 0; width: 12px; background: var(--accent);
+        transform: scaleY(0); transform-origin: center; will-change: transform; }
+      .ic { flex: 0 0 auto; width: 78px; height: 78px; border-radius: 18px; display: flex; align-items: center; justify-content: center;
+        font-size: 42px; font-weight: 900; background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent);
+        will-change: transform, opacity; }
+      .copy { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+      .label { font-size: 30px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent);
+        will-change: transform, opacity; }
+      .text { font-size: 34px; font-weight: 600; line-height: 1.3; color: var(--text); will-change: transform, opacity; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="banner" data-start="0" data-duration="5" data-width="1920" data-height="1080" data-edge="bottom"
+      data-composition-variables='{"kind":"warning","label":"Watch out","text":"The free tier caps you at 100 runs/day — easy to blow past on a busy workflow.","edge":"bottom"}'>
+      <div id="band" class="clip" data-start="0" data-duration="5" data-track-index="0">
+        <div class="bar">
+          <div class="accentbar" id="accentbar"></div>
+          <div class="ic" id="ic"></div>
+          <div class="copy"><span class="label" id="label"></span><span class="text" id="text"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        kind: VARS.kind ?? 'warning', // tip | warning | danger | info
+        label: VARS.label ?? 'Watch out',
+        text: VARS.text ?? 'The free tier caps you at 100 runs/day — easy to blow past on a busy workflow.',
+        edge: VARS.edge ?? 'bottom',  // bottom | top
+      };
+      const ICONS = { tip: '💡', warning: '⚠', danger: '✕', info: 'i' };
+      const root = document.getElementById('root');
+      root.dataset.edge = DATA.edge;
+      root.style.setProperty('--accent', `var(--${DATA.kind})`);
+      document.getElementById('ic').textContent = ICONS[DATA.kind] || '!';
+      document.getElementById('label').textContent = DATA.label;
+      document.getElementById('text').textContent = DATA.text;
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const fromY = DATA.edge === 'top' ? -60 : 60;
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // band slides in off its edge
+      tl.fromTo('#band', { opacity: 0, y: fromY }, { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 0.1);
+      // accent edge wipes down
+      tl.to('#accentbar', { scaleY: 1, duration: 0.4, ease: 'power2.out' }, 0.4);
+      // icon pops
+      tl.from('#ic', { opacity: 0, scale: 0.5, duration: 0.5, ease: 'back.out(2.4)', transformOrigin: '50% 50%' }, 0.45);
+      // copy stacks in
+      tl.from('#label', { opacity: 0, x: -16, duration: 0.4, ease: 'power2.out' }, 0.5);
+      tl.from('#text', { opacity: 0, x: -16, duration: 0.45, ease: 'power2.out' }, 0.6);
+      window.__timelines['banner'] = tl;
+    </script>
+  </body>
+</html>

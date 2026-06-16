@@ -1,0 +1,109 @@
+<!doctype html>
+<!--
+  BILLING DISCOUNT   (Hyperframes card)
+  Monthly vs Yearly side by side; the yearly card lifts, gets an accent border and a
+  "save X%" stamp, with the effective monthly price big and the real monthly struck
+  through. For "yearly gives you an extra __% off". 1920x1080, 30fps, 7 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block + :root. Never touch    │
+  │  the TIMELINE.                                                            │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render comparison/billing-discount -o out.mp4 --fps 30
+  Override: --variables '{"yearly":{"price":"$9","was":"$12","save":"25% off","note":"billed $108/yr"}}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c; --card: rgba(255, 255, 255, 0.04); --card-line: rgba(255, 255, 255, 0.1);
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 18%, var(--bg-from) 0%, var(--bg-to) 62%); }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px; gap: 60px; }
+      #title { font-size: 58px; font-weight: 900; letter-spacing: -1.5px; text-align: center; will-change: transform, opacity; }
+      #cards { display: flex; align-items: stretch; justify-content: center; gap: 46px; }
+
+      .card { position: relative; width: 460px; background: var(--card); border: 1px solid var(--card-line); border-radius: 28px;
+        padding: 48px 44px; display: flex; flex-direction: column; gap: 16px; align-items: flex-start; will-change: transform, opacity; }
+      .card.best { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent);
+        box-shadow: 0 0 56px color-mix(in srgb, var(--accent) 24%, transparent); }
+      .plan { font-size: 28px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); }
+      .card.best .plan { color: var(--accent); }
+      .priceRow { display: flex; align-items: baseline; gap: 12px; will-change: transform, opacity; }
+      .price { font-size: 88px; font-weight: 900; letter-spacing: -2.5px; line-height: 1; }
+      .per { font-size: 28px; font-weight: 600; color: var(--text-dim); }
+      .was { font-size: 34px; font-weight: 700; color: var(--text-dim); text-decoration: line-through; }
+      .note { font-size: 25px; font-weight: 500; color: var(--text-dim); margin-top: 4px; }
+      .stamp { position: absolute; top: -26px; right: -26px; width: 132px; height: 132px; border-radius: 50%; background: var(--accent);
+        color: #1a0d02; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.05;
+        font-size: 30px; font-weight: 900; padding: 12px; transform: rotate(-10deg);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.45), inset 0 0 0 4px rgba(255,255,255,0.35); will-change: transform, opacity; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="billing" data-start="0" data-duration="7" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Go yearly, pay less","monthly":{"plan":"Monthly","price":"$12","per":"/mo","note":"billed every month"},"yearly":{"plan":"Yearly","price":"$9","per":"/mo","was":"$12","note":"billed $108/year","save":"25% off"}}'>
+      <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
+        <div id="title"></div>
+        <div id="cards">
+          <div class="card" id="cMonthly">
+            <span class="plan" id="mPlan"></span>
+            <div class="priceRow"><span class="price" id="mPrice"></span><span class="per" id="mPer"></span></div>
+            <span class="note" id="mNote"></span>
+          </div>
+          <div class="card best" id="cYearly">
+            <div class="stamp" id="stamp"></div>
+            <span class="plan" id="yPlan"></span>
+            <div class="priceRow"><span class="price" id="yPrice"></span><span class="per" id="yPer"></span><span class="was" id="yWas"></span></div>
+            <span class="note" id="yNote"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        title: VARS.title ?? 'Go yearly, pay less',
+        monthly: VARS.monthly ?? { plan: 'Monthly', price: '$12', per: '/mo', note: 'billed every month' },
+        yearly: VARS.yearly ?? { plan: 'Yearly', price: '$9', per: '/mo', was: '$12', note: 'billed $108/year', save: '25% off' },
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      $('title').textContent = DATA.title;
+      const m = DATA.monthly, y = DATA.yearly;
+      $('mPlan').textContent = m.plan || 'Monthly'; $('mPrice').textContent = m.price || ''; $('mPer').textContent = m.per || ''; $('mNote').textContent = m.note || '';
+      $('yPlan').textContent = y.plan || 'Yearly'; $('yPrice').textContent = y.price || ''; $('yPer').textContent = y.per || '';
+      $('yWas').textContent = y.was || ''; $('yNote').textContent = y.note || ''; $('stamp').textContent = y.save || '';
+      if (!y.save) $('stamp').style.display = 'none';
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#title', { opacity: 0, y: -22, duration: 0.5, ease: 'power3.out' }, 0.1);
+      tl.from('#cMonthly', { opacity: 0, y: 44, duration: 0.6, ease: 'power3.out' }, 0.35);
+      tl.from('#cYearly', { opacity: 0, y: 44, duration: 0.6, ease: 'power3.out' }, 0.5);
+      // yearly lifts above monthly to draw the eye (after its entrance finishes at 1.1s)
+      tl.to('#cYearly', { y: -22, duration: 0.5, ease: 'power2.out' }, 1.15);
+      // prices punch
+      tl.from('#cMonthly .priceRow', { scale: 0.6, opacity: 0, duration: 0.5, ease: 'back.out(2)', transformOrigin: '0% 50%' }, 0.7);
+      tl.from('#cYearly .priceRow', { scale: 0.6, opacity: 0, duration: 0.5, ease: 'back.out(2)', transformOrigin: '0% 50%' }, 0.85);
+      // save stamp thumps down
+      if (y.save) tl.fromTo('#stamp', { opacity: 0, scale: 2, rotation: 12 }, { opacity: 1, scale: 1, rotation: -10, duration: 0.7, ease: 'elastic.out(1, 0.6)', transformOrigin: '50% 50%' }, 1.25);
+      window.__timelines['billing'] = tl;
+    </script>
+  </body>
+</html>

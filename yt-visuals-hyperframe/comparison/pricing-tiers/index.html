@@ -1,0 +1,114 @@
+<!doctype html>
+<!--
+  PRICING TIERS   (Hyperframes card)
+  2–3 plan columns: name, hero price, period, tagline, feature list, CTA. One plan
+  can be flagged "recommended" — it lifts, gets an accent border + a badge.
+  Cards stagger in, the recommended one pops, prices scale-punch. 1920x1080, 30fps, 8s.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block (plans[]) and :root.   │
+  │  Each plan: { name, price, period, tagline, features[], cta, best }.      │
+  │  Set best:true on ONE plan to highlight it. Never touch the TIMELINE.     │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render comparison/pricing-tiers -o out.mp4 --fps 30
+  Override: --variables '{"plans":[{"name":"Pro","price":"$29","period":"/mo","features":["A","B"],"best":true}]}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c; --yes: #34d399;
+        --card: rgba(255, 255, 255, 0.04); --card-line: rgba(255, 255, 255, 0.1);
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 18%, var(--bg-from) 0%, var(--bg-to) 62%); }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px 120px; gap: 56px; }
+      #heading { font-size: 56px; font-weight: 900; letter-spacing: -1.5px; text-align: center; will-change: transform, opacity; }
+      #cards { display: flex; align-items: stretch; justify-content: center; gap: 36px; width: 100%; }
+
+      .card { position: relative; flex: 1; max-width: 440px; background: var(--card); border: 1px solid var(--card-line);
+        border-radius: 26px; padding: 44px 40px; display: flex; flex-direction: column; gap: 22px; backdrop-filter: blur(8px);
+        will-change: transform, opacity; }
+      .card.best { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent);
+        box-shadow: 0 0 50px color-mix(in srgb, var(--accent) 22%, transparent); }
+      .badge { position: absolute; top: -20px; left: 50%; background: var(--accent); color: #1a0d02;
+        font-size: 20px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; padding: 9px 22px; border-radius: 999px;
+        white-space: nowrap; box-shadow: 0 10px 26px rgba(0,0,0,0.4); will-change: transform, opacity; }
+      .pname { font-size: 26px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
+      .priceRow { display: flex; align-items: baseline; gap: 8px; will-change: transform, opacity; }
+      .price { font-size: 76px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+      .period { font-size: 28px; font-weight: 600; color: var(--text-dim); }
+      .tagline { font-size: 24px; color: var(--text-dim); line-height: 1.4; min-height: 34px; }
+      .feats { display: flex; flex-direction: column; gap: 16px; margin-top: 4px; }
+      .feat { display: flex; align-items: flex-start; gap: 14px; font-size: 25px; font-weight: 500; line-height: 1.35; will-change: transform, opacity; }
+      .tick { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--yes) 20%, transparent);
+        color: var(--yes); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; margin-top: 2px; }
+      .cta { margin-top: auto; text-align: center; font-size: 26px; font-weight: 800; padding: 18px; border-radius: 14px;
+        border: 1.5px solid var(--card-line); color: var(--text); }
+      .card.best .cta { background: var(--accent); color: #1a0d02; border-color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="pricing" data-start="0" data-duration="8" data-width="1920" data-height="1080"
+      data-composition-variables='{"heading":"Pricing","plans":[{"name":"Free","price":"$0","period":"/mo","tagline":"Kick the tyres.","features":["3 projects","Community support","1 GB storage"],"cta":"Get started","best":false},{"name":"Pro","price":"$29","period":"/mo","tagline":"For solo builders.","features":["Unlimited projects","Priority support","100 GB storage","Custom domains"],"cta":"Start free trial","best":true},{"name":"Team","price":"$99","period":"/mo","tagline":"For growing teams.","features":["Everything in Pro","5 seats included","SSO & audit logs","SLA"],"cta":"Contact sales","best":false}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="8" data-track-index="1">
+        <div id="heading"></div>
+        <div id="cards"></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        heading: VARS.heading ?? 'Pricing',
+        plans: VARS.plans ?? [
+          { name: 'Free', price: '$0', period: '/mo', tagline: 'Kick the tyres.', features: ['3 projects', 'Community support', '1 GB storage'], cta: 'Get started', best: false },
+          { name: 'Pro', price: '$29', period: '/mo', tagline: 'For solo builders.', features: ['Unlimited projects', 'Priority support', '100 GB storage', 'Custom domains'], cta: 'Start free trial', best: true },
+          { name: 'Team', price: '$99', period: '/mo', tagline: 'For growing teams.', features: ['Everything in Pro', '5 seats included', 'SSO & audit logs', 'SLA'], cta: 'Contact sales', best: false },
+        ],
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      document.getElementById('heading').textContent = DATA.heading;
+      const cards = document.getElementById('cards');
+      cards.innerHTML = DATA.plans
+        .map((p) => `
+          <div class="card${p.best ? ' best' : ''}">
+            ${p.best ? '<div class="badge">Most popular</div>' : ''}
+            <div class="pname">${p.name}</div>
+            <div class="priceRow"><span class="price">${p.price}</span><span class="period">${p.period || ''}</span></div>
+            <div class="tagline">${p.tagline || ''}</div>
+            <div class="feats">${(p.features || []).map((f) => `<div class="feat"><span class="tick">✓</span><span>${f}</span></div>`).join('')}</div>
+            <div class="cta">${p.cta || 'Choose'}</div>
+          </div>`)
+        .join('');
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#heading', { opacity: 0, y: -24, duration: 0.5, ease: 'power3.out' }, 0.1);
+      // cards rise + fade, staggered left→right
+      tl.from('.card', { opacity: 0, y: 46, duration: 0.6, ease: 'power3.out', stagger: 0.13 }, 0.35);
+      // the recommended card lifts a touch above the rest
+      tl.to('.card.best', { y: -18, duration: 0.5, ease: 'power2.out' }, 0.95);
+      // badge pop (xPercent keeps it centred — GSAP owns the transform now)
+      tl.fromTo('.badge', { xPercent: -50, opacity: 0, scale: 0.4, y: 10 }, { xPercent: -50, opacity: 1, scale: 1, y: 0, duration: 0.5, ease: 'back.out(2.4)', transformOrigin: '50% 50%' }, 1.2);
+      // prices punch in
+      tl.from('.priceRow', { scale: 0.6, opacity: 0, duration: 0.55, ease: 'back.out(2)', stagger: 0.13, transformOrigin: '0% 50%' }, 0.7);
+      // feature rows cascade across all cards
+      tl.from('.feat', { opacity: 0, x: -14, duration: 0.4, ease: 'power2.out', stagger: 0.05 }, 1.0);
+      window.__timelines['pricing'] = tl;
+    </script>
+  </body>
+</html>

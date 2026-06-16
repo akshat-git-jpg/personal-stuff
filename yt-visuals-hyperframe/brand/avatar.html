@@ -1,0 +1,33 @@
+<!doctype html>
+<!--
+  AGROLLO REVIEWS · AVATAR  (800x800, exported to avatar.png)
+  AR monogram: white A + amber R on near-black, soft amber glow, thin ring.
+  Designed for YouTube's circle crop (key content well inside a 400px radius).
+  Edit the :root colors or the font size, then re-export.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet" />
+    <style>
+      :root { --accent: #fb923c; --bg: #0a0805; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 800px; height: 800px; overflow: hidden; background: var(--bg); font-family: 'Archivo Black', system-ui, sans-serif; }
+      #wrap { position: relative; width: 800px; height: 800px; display: flex; align-items: center; justify-content: center; }
+      #glow { position: absolute; inset: 0; background: radial-gradient(circle at 50% 44%, color-mix(in srgb, var(--accent) 32%, transparent) 0%, transparent 58%); }
+      #ring { position: absolute; inset: 40px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--accent) 32%, transparent); }
+      #mono { position: relative; font-size: 360px; line-height: 1; letter-spacing: -10px; display: flex; }
+      #mono .a { color: #ffffff; }
+      #mono .r { color: var(--accent); text-shadow: 0 0 54px color-mix(in srgb, var(--accent) 65%, transparent); }
+    </style>
+  </head>
+  <body>
+    <div id="wrap">
+      <div id="glow"></div>
+      <div id="ring"></div>
+      <div id="mono"><span class="a">A</span><span class="r">R</span></div>
+    </div>
+  </body>
+</html>

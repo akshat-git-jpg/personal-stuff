@@ -1,0 +1,147 @@
+<!doctype html>
+<!--
+  SAVINGS STACKER   (Hyperframes card)
+  A full-price bar; each discount chunk slices off the right (yearly, then coupon),
+  the price counts down, and it lands on a glowing final price + "you save" badge.
+  Shows discounts stacking. 1920x1080, 30fps, 8 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block + :root. Each step is  │
+  │  { label, percent } (percent OFF the original) — or use { label, amount } │
+  │  for a flat $ amount. Steps slice off in the order listed. Use whole       │
+  │  numbers for prices. Never touch the TIMELINE.                            │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render comparison/savings-stacker -o out.mp4 --fps 30
+  Override: --variables '{"original":120,"steps":[{"label":"Yearly","percent":20},{"label":"Code SAVE15","percent":15}]}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.55);
+        --accent: #fb923c; --yes: #34d399;
+        --track: rgba(255, 255, 255, 0.06);
+        --chunk-a: rgba(244, 63, 94, 0.55); --chunk-b: rgba(251, 146, 60, 0.5); /* slices */
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 18%, var(--bg-from) 0%, var(--bg-to) 62%); }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px; }
+      #title { font-size: 56px; font-weight: 900; letter-spacing: -1.5px; text-align: center; margin-bottom: 70px; will-change: transform, opacity; }
+
+      #priceWrap { display: flex; align-items: baseline; gap: 22px; margin-bottom: 40px; will-change: transform, opacity; }
+      #was { font-size: 44px; font-weight: 700; color: var(--text-dim); text-decoration: line-through; }
+      #bigPrice { font-size: 110px; font-weight: 900; letter-spacing: -3px; line-height: 1; }
+      #per { font-size: 36px; font-weight: 600; color: var(--text-dim); }
+
+      #barWrap { width: 1300px; position: relative; height: 200px; }
+      #track { position: absolute; top: 84px; left: 0; width: 100%; height: 76px; background: var(--track); border-radius: 38px; }
+      .seg { position: absolute; top: 84px; height: 76px; will-change: transform, opacity; }
+      #finalFill { left: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 80%, #fff 0%), var(--accent)); border-radius: 38px 0 0 38px;
+        box-shadow: 0 0 36px color-mix(in srgb, var(--accent) 40%, transparent); }
+      .chunk { display: flex; align-items: center; justify-content: center; }
+      .clabel { position: absolute; top: -64px; left: 50%; transform: translateX(-50%); white-space: nowrap; text-align: center;
+        font-size: 26px; font-weight: 800; color: var(--text); }
+      .clabel .camt { display: block; font-size: 22px; font-weight: 700; color: #fff; opacity: 0.85; margin-top: 2px; }
+
+      #savedBadge { margin-top: 16px; display: inline-flex; align-items: center; gap: 14px; background: color-mix(in srgb, var(--yes) 16%, transparent);
+        border: 1.5px solid color-mix(in srgb, var(--yes) 55%, transparent); color: var(--yes); font-size: 34px; font-weight: 800;
+        padding: 16px 30px; border-radius: 999px; will-change: transform, opacity; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="stacker" data-start="0" data-duration="8" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Stack the discounts","currency":"$","original":120,"period":"/yr","steps":[{"label":"Yearly plan","percent":20},{"label":"Code SAVE15","percent":15}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="8" data-track-index="1">
+        <div id="title"></div>
+        <div id="priceWrap"><span id="was"></span><span id="bigPrice"></span><span id="per"></span></div>
+        <div id="barWrap"><div id="track"></div><div id="bar"></div></div>
+        <div id="savedBadge"></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        title: VARS.title ?? 'Stack the discounts',
+        currency: VARS.currency ?? '$',
+        original: VARS.original ?? 120,
+        period: VARS.period ?? '/yr',
+        steps: VARS.steps ?? [
+          { label: 'Yearly plan', percent: 20 },
+          { label: 'Code SAVE15', percent: 15 },
+        ],
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      const cur = DATA.currency, orig = DATA.original;
+      const steps = DATA.steps.map((s) => {
+        const amt = s.amount != null ? s.amount : Math.round((orig * (s.percent || 0)) / 100);
+        return { label: s.label, amt, pct: (amt / orig) * 100 };
+      });
+      const totalSaved = steps.reduce((a, s) => a + s.amt, 0);
+      const finalPrice = orig - totalSaved;
+      const finalPct = (finalPrice / orig) * 100;
+      const savedPct = Math.round((totalSaved / orig) * 100);
+
+      // position chunks so steps[0] sits at the far right (sliced first), no gaps
+      const lefts = new Array(steps.length);
+      let cum = finalPct;
+      for (let i = steps.length - 1; i >= 0; i--) { lefts[i] = cum; cum += steps[i].pct; }
+
+      $('title').textContent = DATA.title;
+      $('was').textContent = cur + orig;
+      $('bigPrice').textContent = cur + orig;
+      $('per').textContent = DATA.period;
+      $('bar').innerHTML =
+        `<div class="seg" id="finalFill" style="width:${finalPct}%"></div>` +
+        steps.map((s, i) => {
+          const last = i === 0; // steps[0] is the far-right slice
+          const radius = last ? '0 38px 38px 0' : '0';
+          const bg = i % 2 === 0 ? 'var(--chunk-a)' : 'var(--chunk-b)';
+          return `<div class="seg chunk" id="chunk-${i}" style="left:${lefts[i]}%;width:${s.pct}%;background:${bg};border-radius:${radius}">
+            <div class="clabel">${s.label}<span class="camt">−${cur}${s.amt}</span></div></div>`;
+        }).join('');
+      $('savedBadge').innerHTML = `✓ You save ${cur}${totalSaved} · ${savedPct}% off`;
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#title', { opacity: 0, y: -24, duration: 0.5, ease: 'power3.out' }, 0.1);
+      tl.from('#priceWrap', { opacity: 0, y: 16, duration: 0.5, ease: 'power3.out' }, 0.35);
+      tl.from('#bar .seg, #track', { opacity: 0, scaleX: 0.4, duration: 0.6, ease: 'power3.out', transformOrigin: 'left center' }, 0.5);
+      // 'was' strike only matters once the price drops — keep it subtle at start
+      tl.from('#was', { opacity: 0, duration: 0.4 }, 0.5);
+
+      // slice each chunk off the right in turn; the price counts down with it
+      const counter = { v: orig };
+      let rem = orig;
+      let t = 1.6;
+      steps.forEach((s, i) => {
+        rem -= s.amt;
+        const target = rem;
+        tl.to(`#chunk-${i}`, { y: -150, opacity: 0, duration: 0.55, ease: 'power2.in' }, t);
+        tl.to(counter, { v: target, duration: 0.55, ease: 'power2.out', roundProps: 'v',
+          onUpdate: () => { $('bigPrice').textContent = cur + Math.round(counter.v); } }, t);
+        t += 1.15;
+      });
+
+      // land on the final price: round the bar's right edge, glow-pop, reveal the badge
+      tl.to('#finalFill', { borderTopRightRadius: 38, borderBottomRightRadius: 38, duration: 0.3, ease: 'power2.out' }, t);
+      tl.to('#bigPrice', { scale: 1.12, duration: 0.3, ease: 'back.out(2.5)', transformOrigin: '50% 100%' }, t);
+      tl.to('#bigPrice', { color: 'var(--accent)', duration: 0.3 }, t);
+      tl.from('#savedBadge', { opacity: 0, scale: 0.4, y: 14, duration: 0.55, ease: 'back.out(2.4)', transformOrigin: '50% 50%' }, t + 0.15);
+      window.__timelines['stacker'] = tl;
+    </script>
+  </body>
+</html>

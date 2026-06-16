@@ -1,0 +1,120 @@
+<!doctype html>
+<!--
+  DEAL STAMP   (Hyperframes OVERLAY — transparent background)
+  A price / discount / coupon "slams" in: old price strikes through, the new big
+  price punches in, a round "save %" stamp thumps down, and a CODE chip pops.
+  Drop it over a demo or sponsor read. 1920x1080, 30fps, 5 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block + :root. Leave any     │
+  │  field empty ('') to hide it — no original = no strike, no code = no chip.│
+  │  pos = where the card sits. Never touch the TIMELINE.                     │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  ⚠ OVERLAY: render TRANSPARENT (alpha) so it composites over footage. In the render
+  tool, pick the transparent/MOV toggle. From the CLI use --format mov (ProRes 4444
+  carries alpha; plain WebM/MP4 here come out opaque on a black frame):
+    npx hyperframes@latest render overlay/deal-stamp -o deal.mov --format mov --fps 30
+  Override: --variables '{"price":"$49","original":"$99","save":"50% OFF","code":"LAUNCH50"}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --panel: rgba(15, 11, 7, 0.9); --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.62);
+        --accent: #fb923c; --stamp: #f43f5e; /* save-badge colour */
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #card { position: absolute; }
+      #root[data-pos="center"] #card { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+      #root[data-pos="bottom-right"] #card { bottom: 130px; right: 130px; }
+      #root[data-pos="bottom-left"] #card { bottom: 130px; left: 130px; }
+      #root[data-pos="top-right"] #card { top: 130px; right: 130px; }
+
+      .panel { position: relative; background: var(--panel); border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 26px; padding: 44px 58px; backdrop-filter: blur(14px); box-shadow: 0 28px 70px rgba(0,0,0,0.5);
+        will-change: transform, opacity; }
+      .eyebrow { font-size: 24px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: var(--accent);
+        margin-bottom: 16px; will-change: transform, opacity; }
+      .priceRow { display: flex; align-items: baseline; gap: 20px; }
+      .orig { position: relative; font-size: 52px; font-weight: 700; color: var(--text-dim); }
+      .orig .strike { position: absolute; left: -4px; top: 52%; width: calc(100% + 8px); height: 5px; background: var(--stamp);
+        border-radius: 3px; transform: scaleX(0); transform-origin: left center; will-change: transform; }
+      .price { font-size: 104px; font-weight: 900; letter-spacing: -3px; line-height: 0.95; will-change: transform, opacity; }
+      .period { font-size: 32px; font-weight: 600; color: var(--text-dim); }
+      .codeRow { margin-top: 26px; display: flex; align-items: center; gap: 14px; will-change: transform, opacity; }
+      .codeLabel { font-size: 24px; font-weight: 600; color: var(--text-dim); }
+      .codeChip { font-size: 30px; font-weight: 900; letter-spacing: 2px; padding: 12px 22px; border-radius: 12px;
+        border: 2px dashed var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+
+      /* round "save" stamp, overlapping the top-right corner */
+      .stamp { position: absolute; top: -38px; right: -38px; width: 150px; height: 150px; border-radius: 50%;
+        background: var(--stamp); color: #fff; display: flex; align-items: center; justify-content: center; text-align: center;
+        font-size: 30px; font-weight: 900; line-height: 1.05; padding: 14px; transform: rotate(-12deg);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.45), inset 0 0 0 4px rgba(255,255,255,0.35); will-change: transform, opacity; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="deal" data-start="0" data-duration="5" data-width="1920" data-height="1080" data-pos="center"
+      data-composition-variables='{"eyebrow":"Limited-time deal","original":"$99","price":"$49","period":"/mo","save":"50% OFF","code":"LAUNCH50","pos":"center"}'>
+      <div id="card" class="clip" data-start="0" data-duration="5" data-track-index="0">
+        <div class="panel" id="panel">
+          <div class="eyebrow" id="eyebrow"></div>
+          <div class="priceRow">
+            <span class="orig" id="orig"><span id="origVal"></span><span class="strike" id="strike"></span></span>
+            <span class="price" id="price"></span>
+            <span class="period" id="period"></span>
+          </div>
+          <div class="codeRow" id="codeRow"><span class="codeLabel">Use code</span><span class="codeChip" id="code"></span></div>
+          <div class="stamp" id="stamp"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'Limited-time deal',
+        original: VARS.original ?? '$99', // '' to hide (no strikethrough)
+        price: VARS.price ?? '$49',
+        period: VARS.period ?? '/mo',     // '' to hide
+        save: VARS.save ?? '50% OFF',     // '' to hide the round stamp
+        code: VARS.code ?? 'LAUNCH50',    // '' to hide the code chip
+        pos: VARS.pos ?? 'center',        // center | bottom-right | bottom-left | top-right
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      document.getElementById('root').dataset.pos = DATA.pos;
+      $('eyebrow').textContent = DATA.eyebrow;
+      $('price').textContent = DATA.price;
+      $('period').textContent = DATA.period;
+      if (DATA.original) { $('origVal').textContent = DATA.original; } else { $('orig').style.display = 'none'; }
+      if (DATA.save) { $('stamp').textContent = DATA.save; } else { $('stamp').style.display = 'none'; }
+      if (DATA.code) { $('code').textContent = DATA.code; } else { $('codeRow').style.display = 'none'; }
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // panel slams in (slight rotate settle)
+      tl.fromTo('#panel', { opacity: 0, scale: 1.28, rotation: -3 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.55, ease: 'back.out(1.5)', transformOrigin: '50% 50%' }, 0.1);
+      tl.from('#eyebrow', { opacity: 0, y: -12, duration: 0.4, ease: 'power2.out' }, 0.35);
+      // big price punch
+      tl.fromTo('#price', { scale: 0.55, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2.2)', transformOrigin: '0% 100%' }, 0.5);
+      // strike the original price
+      if (DATA.original) tl.to('#strike', { scaleX: 1, duration: 0.32, ease: 'power2.inOut' }, 0.95);
+      // round save-stamp thumps down with an elastic settle
+      if (DATA.save) tl.fromTo('#stamp', { opacity: 0, scale: 2.1, rotation: 14 }, { opacity: 1, scale: 1, rotation: -12, duration: 0.7, ease: 'elastic.out(1, 0.6)', transformOrigin: '50% 50%' }, 1.05);
+      // code chip pops
+      if (DATA.code) tl.from('#codeRow', { opacity: 0, y: 14, scale: 0.85, duration: 0.45, ease: 'back.out(2)', transformOrigin: '0% 50%' }, 1.25);
+      window.__timelines['deal'] = tl;
+    </script>
+  </body>
+</html>

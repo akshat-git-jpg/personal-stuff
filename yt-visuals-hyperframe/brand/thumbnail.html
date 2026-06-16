@@ -1,0 +1,56 @@
+<!doctype html>
+<!--
+  AGROLLO REVIEWS · THUMBNAIL TEMPLATE  (1280x720, exported to thumbnail.png)
+  Reusable on-brand thumbnail: brand pill, big headline with an amber verdict word,
+  a star rating, and a product slot on the right (drop in a logo/screenshot). Edit
+  the ===== CONTENT ===== block + :root, swap the product image, re-export per video.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root { --accent: #fb923c; --bg-from: #2a1606; --bg-to: #0a0805; --text: #ffffff; --text-dim: rgba(255,239,219,0.7);
+        --star: #fbbf24; --grid: rgba(255,239,219,0.05); }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1280px; height: 720px; overflow: hidden; background: #000; font-family: 'Inter', system-ui, sans-serif; }
+      #root { position: relative; width: 1280px; height: 720px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 80% at 28% 40%, var(--bg-from) 0%, var(--bg-to) 62%); }
+      #grid { position: absolute; inset: 0;
+        background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size: 64px 64px;
+        -webkit-mask-image: radial-gradient(ellipse 80% 90% at 30% 45%, #000 30%, transparent 80%);
+        mask-image: radial-gradient(ellipse 80% 90% at 30% 45%, #000 30%, transparent 80%); }
+      #pad { position: absolute; inset: 0; display: flex; align-items: center; padding: 64px; gap: 40px; }
+      #left { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
+      #brand { display: inline-flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); }
+      #brand .dot { font-family: 'Archivo Black', sans-serif; color: var(--text); }
+      #brand .dot b { color: var(--accent); }
+      #headline { font-family: 'Archivo Black', system-ui, sans-serif; font-size: 92px; line-height: 0.98; letter-spacing: -2px; color: var(--text); }
+      #headline .hl { color: var(--accent); text-shadow: 0 0 40px color-mix(in srgb, var(--accent) 50%, transparent); }
+      #stars { display: flex; align-items: center; gap: 10px; font-size: 42px; color: var(--star); }
+      #stars .score { font-family: 'Archivo Black', sans-serif; font-size: 38px; color: var(--text); margin-left: 10px; }
+      /* product slot — replace the inner with <img> of a logo/screenshot */
+      #product { flex: 0 0 360px; height: 480px; border-radius: 28px; border: 2px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent); display: flex; align-items: center; justify-content: center;
+        color: var(--text-dim); font-size: 26px; font-weight: 700; text-align: center; padding: 24px; }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div id="bg"></div>
+      <div id="grid"></div>
+      <div id="pad">
+        <div id="left">
+          <!-- ===== CONTENT ===== -->
+          <div id="brand"><span class="dot">A<b>R</b></span> AGROLLO REVIEWS</div>
+          <div id="headline">Is Notion<br />actually <span class="hl">worth it?</span></div>
+          <div id="stars">★★★★<span style="opacity:.3">★</span><span class="score">4.0 / 5</span></div>
+        </div>
+        <div id="product">LOGO / SCREENSHOT<br />goes here</div>
+      </div>
+    </div>
+  </body>
+</html>

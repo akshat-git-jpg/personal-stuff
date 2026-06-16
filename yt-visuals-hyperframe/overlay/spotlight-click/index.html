@@ -1,0 +1,146 @@
+<!doctype html>
+<!--
+  SPOTLIGHT + CLICK   (Hyperframes OVERLAY — transparent background)
+  Dims the whole screen EXCEPT a rectangular hole, draws a glowing ring around it,
+  and fires a cursor + click-ripple inside it — to focus one button/menu mid-demo.
+  Sits on top of your screen recording. 1920x1080, 30fps, 5 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. The region is x / y / w / h (pixels on a       │
+  │  1920x1080 frame, top-left origin). The click point cx / cy defaults to   │
+  │  the centre of the region. Never touch the TIMELINE — that's the motion.  │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  ⚠ OVERLAY: render TRANSPARENT (alpha) so the dim composites over footage. In the
+  render tool, pick the transparent/MOV toggle. From the CLI use --format mov (ProRes
+  4444 carries alpha; plain WebM/MP4 here come out opaque on a black frame):
+    npx hyperframes@latest render overlay/spotlight-click -o spotlight.mov --format mov --fps 30
+  Render-time override (no editing):
+    --variables '{"x":700,"y":300,"w":520,"h":160,"label":"Click here"}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --dim: rgba(6, 4, 2, 0.72); /* how dark everything OUTSIDE the hole gets */
+        --accent: #fb923c;          /* ring + ripple colour */
+        --text: #ffffff;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      /* the dim mask is the hole element itself: a huge box-shadow paints everything
+         around the hole, leaving the hole transparent. opacity fades the whole dim in. */
+      #mask { position: absolute; box-shadow: 0 0 0 9999px var(--dim); border-radius: 18px; will-change: opacity; }
+
+      /* highlight ring hugging the hole */
+      #ring { position: absolute; border: 4px solid var(--accent); border-radius: 22px;
+        box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 55%, transparent), inset 0 0 18px color-mix(in srgb, var(--accent) 30%, transparent);
+        will-change: transform, opacity; }
+
+      /* click ripples + dot */
+      #fx { position: absolute; will-change: transform; }
+      .ripple { position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px;
+        border: 4px solid var(--accent); border-radius: 50%; opacity: 0; will-change: transform, opacity; }
+      .dot { position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px;
+        background: var(--accent); border-radius: 50%; box-shadow: 0 0 22px var(--accent); will-change: transform, opacity; }
+
+      /* cursor (arrow) — tip sits at the click point */
+      #cursor { position: absolute; width: 52px; height: 52px; transform-origin: 6px 6px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5)); will-change: transform, opacity; }
+
+      /* optional label pill above the region */
+      #label { position: absolute; background: var(--accent); color: #1a0d02; font-size: 26px; font-weight: 800;
+        letter-spacing: 0.4px; padding: 12px 22px; border-radius: 12px; white-space: nowrap;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4); will-change: transform, opacity; }
+      #label::after { content: ''; position: absolute; left: 50%; bottom: -9px; width: 18px; height: 18px;
+        margin-left: -9px; background: var(--accent); transform: rotate(45deg); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="spotlight" data-start="0" data-duration="5" data-width="1920" data-height="1080"
+      data-composition-variables='{"x":710,"y":465,"w":500,"h":150,"radius":18,"label":"Click here"}'>
+      <!-- Track 0: dim mask (static clip shell; GSAP fades the inner #mask) -->
+      <div class="clip" data-start="0" data-duration="5" data-track-index="0"><div id="mask"></div></div>
+      <!-- Track 1: highlight ring -->
+      <div class="clip" data-start="0" data-duration="5" data-track-index="1"><div id="ring"></div></div>
+      <!-- Track 2: cursor + click fx -->
+      <div class="clip" data-start="0" data-duration="5" data-track-index="2">
+        <div id="fx"><div class="ripple" id="r1"></div><div class="ripple" id="r2"></div><div class="dot" id="dot"></div></div>
+        <svg id="cursor" viewBox="0 0 24 24" fill="#ffffff" stroke="#1a0d02" stroke-width="1.2"><path d="M5 3l14 8.5-6.2 1.3 3.4 6.6-2.7 1.4-3.4-6.6L5 19z"/></svg>
+      </div>
+      <!-- Track 3: label pill -->
+      <div class="clip" data-start="0" data-duration="5" data-track-index="3"><div id="label"></div></div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        x: VARS.x ?? 710,           // region left (px on 1920x1080)
+        y: VARS.y ?? 465,           // region top
+        w: VARS.w ?? 500,           // region width
+        h: VARS.h ?? 150,           // region height
+        radius: VARS.radius ?? 18,  // corner radius of the hole/ring
+        label: VARS.label ?? 'Click here', // pill text; '' to hide
+        cx: VARS.cx,                // click x — defaults to region centre
+        cy: VARS.cy,                // click y — defaults to region centre
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      const cx = DATA.cx ?? DATA.x + DATA.w / 2;
+      const cy = DATA.cy ?? DATA.y + DATA.h / 2;
+
+      // place the hole
+      const mask = $('mask');
+      mask.style.left = DATA.x + 'px'; mask.style.top = DATA.y + 'px';
+      mask.style.width = DATA.w + 'px'; mask.style.height = DATA.h + 'px';
+      mask.style.borderRadius = DATA.radius + 'px';
+      // ring hugs the hole (6px outside on each edge)
+      const ring = $('ring');
+      ring.style.left = (DATA.x - 6) + 'px'; ring.style.top = (DATA.y - 6) + 'px';
+      ring.style.width = (DATA.w + 12) + 'px'; ring.style.height = (DATA.h + 12) + 'px';
+      ring.style.borderRadius = (DATA.radius + 4) + 'px';
+      // click fx anchored at the click point
+      $('fx').style.left = cx + 'px'; $('fx').style.top = cy + 'px';
+      // cursor: tip at the click point
+      $('cursor').style.left = cx + 'px'; $('cursor').style.top = cy + 'px';
+      // label pill centred above the region
+      const label = $('label');
+      if (DATA.label) { label.textContent = DATA.label; label.style.left = (DATA.x + DATA.w / 2) + 'px'; label.style.top = (DATA.y - 78) + 'px'; }
+      else { label.style.display = 'none'; }
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // dim sweeps in, revealing the hole
+      tl.fromTo('#mask', { opacity: 0 }, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0);
+      // ring snaps in around the region, then breathes
+      tl.fromTo('#ring', { opacity: 0, scale: 1.12 }, { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(2)', transformOrigin: '50% 50%' }, 0.25);
+      tl.to('#ring', { scale: 1.04, duration: 0.7, ease: 'sine.inOut', repeat: 3, yoyo: true, transformOrigin: '50% 50%' }, 0.8);
+      // label drops in above
+      if (DATA.label) tl.fromTo('#label', { xPercent: -50, opacity: 0, y: -14 }, { xPercent: -50, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.6)' }, 0.45);
+
+      // cursor glides in toward the click point, then taps twice
+      tl.fromTo('#cursor', { opacity: 0, x: 70, y: 70 }, { opacity: 1, x: 0, y: 0, duration: 0.6, ease: 'power3.out' }, 0.55);
+      function tap(t) {
+        tl.to('#cursor', { scale: 0.82, duration: 0.09, ease: 'power2.in', transformOrigin: '6px 6px', overwrite: 'auto' }, t);
+        tl.to('#cursor', { scale: 1, duration: 0.18, ease: 'back.out(3)', transformOrigin: '6px 6px', overwrite: 'auto' }, t + 0.09);
+        tl.fromTo('#dot', { scale: 0.2, opacity: 0.9 }, { scale: 1, opacity: 0, duration: 0.45, ease: 'power2.out', transformOrigin: '50% 50%' }, t + 0.02);
+      }
+      // two click pulses (ripple rings expand + fade)
+      tl.fromTo('#r1', { scale: 0.25, opacity: 0.75 }, { scale: 2.2, opacity: 0, duration: 0.7, ease: 'power2.out', transformOrigin: '50% 50%' }, 1.25);
+      tl.fromTo('#r2', { scale: 0.25, opacity: 0.75 }, { scale: 2.2, opacity: 0, duration: 0.7, ease: 'power2.out', transformOrigin: '50% 50%' }, 2.35);
+      tap(1.25); tap(2.35);
+
+      window.__timelines['spotlight'] = tl;
+    </script>
+  </body>
+</html>
