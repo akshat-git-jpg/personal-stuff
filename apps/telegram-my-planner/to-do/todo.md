@@ -28,3 +28,5 @@ voice male to female
 remove gemini call from yt-analytics
 
 screeen recorder guidance to tutorial makers..
+
+category/subcateogry cleanup
