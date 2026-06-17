@@ -1,116 +1,79 @@
-import type { Row } from "../shared/rbac";
-import { FEEDBACK_COL, ARTIFACT_COL } from "./labels";
+import type { Row, Transition } from "../shared/rbac";
+import { stageByStatusCol, normalizeStatus } from "../shared/pipeline";
+import { displayName } from "./api";
+import { statusMeta } from "./status";
+import { FEEDBACK_COL, EMAIL_FOR_STAGE } from "./labels";
 
 interface CardProps {
   row: Row;
-  onClick: () => void;
-  isDragging?: boolean;
-  /** The lane-status column that drives this board (e.g. "tutorial_status") */
-  laneStatus?: string;
-  /** Which columns are visible for this role */
-  visibleCols?: string[];
-  /** If true, card is locked (approved) — show lock badge, no drag cursor */
-  locked?: boolean;
+  statusCol: string;             // the lane/status column this card is shown under
+  transitions?: Transition[];    // allowed transitions for this stage + user
+  names?: Record<string, string>;
+  readOnly?: boolean;
+  showAssignee?: boolean;        // admin/reviewer views where many people mix
+  onOpen: () => void;
+  onAction?: (t: Transition) => void;
 }
 
-// Assignee email column for each status column
-const EMAIL_FOR_STATUS: Record<string, string> = {
-  script_status:       "script_writer_email",
-  tutorial_status:     "tutorial_maker_email",
-  video_editor_status: "video_editor_email",
-  yt_upload_status:    "reviewer_email",
-  topic_status:        "admin_email",
-};
+export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, onOpen, onAction }: CardProps) {
+  const stage = stageByStatusCol(statusCol);
+  const status = stage ? normalizeStatus(stage, row[statusCol as keyof Row] as string) : "To Do";
+  const meta = statusMeta(status);
 
-function initials(email: string): string {
-  if (!email) return "?";
-  const name = email.split("@")[0];
-  const parts = name.split(/[._-]/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
-}
-
-export function Card({ row, onClick, isDragging = false, laneStatus, visibleCols, locked = false }: CardProps) {
-  const visible = new Set(visibleCols ?? []);
-
-  // Title
-  const showTitle = !visibleCols || visible.has("video_title");
   const title = row.video_title ?? "(no title)";
-
-  // Category chip
   const cat = row.category ?? "";
   const sub = row.subcategory ?? "";
   const catLabel = cat && sub ? `${cat} · ${sub}` : cat || sub;
-  const showCat = catLabel.length > 0 && (!visibleCols || visible.has("category") || visible.has("subcategory"));
-
-  // Brief (2-line excerpt from video_notes)
   const notes = row.video_notes ?? "";
-  const showBrief = notes.length > 0 && (!visibleCols || visible.has("video_notes"));
 
-  // Signal: check if the artifact link column has a value (uses ARTIFACT_COL map)
-  let signal: { ok: boolean; label: string } | null = null;
-  if (laneStatus && laneStatus in ARTIFACT_COL) {
-    const linkCol = ARTIFACT_COL[laneStatus];
-    const hasLink = !!(row[linkCol as keyof Row]);
-    signal = hasLink
-      ? { ok: true,  label: "● Link added" }
-      : { ok: false, label: "○ No link yet" };
-  }
+  // Need-Changes reason (always present by construction when status is Need Changes).
+  const feedbackCol = FEEDBACK_COL[statusCol];
+  const feedback = feedbackCol ? ((row[feedbackCol as keyof Row] as string) ?? "").trim() : "";
 
-  // Avatar = assignee initials, shown ONLY when the assignee email is actually
-  // visible to this role (Admin/Reviewer views where many people's cards mix).
-  const emailCol = laneStatus ? (EMAIL_FOR_STATUS[laneStatus] ?? "") : "";
-  const email = emailCol ? (row[emailCol as keyof Row] ?? "") : "";
-  const avatar = email ? initials(email) : null;
-
-  // Submitted-for-review signal: frozen for the doer until the reviewer acts.
-  const stageVal = laneStatus ? String(row[laneStatus as keyof Row] ?? "") : "";
-  const inReview = stageVal === "In Review";
-
-  // Feedback note for the doer (if the status col has a feedback col)
-  const feedbackNote = laneStatus && FEEDBACK_COL[laneStatus]
-    ? (row[FEEDBACK_COL[laneStatus] as keyof Row] ?? "")
-    : "";
+  const assigneeCol = EMAIL_FOR_STAGE[statusCol];
+  const assignee = assigneeCol ? ((row[assigneeCol as keyof Row] as string) ?? "") : "";
 
   return (
-    <div
-      className={`card${isDragging ? " card--dragging" : ""}${locked ? " card--locked" : ""}`}
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={e => e.key === "Enter" && onClick()}
-      aria-label={title}
-      style={locked ? { cursor: "pointer" } : undefined}
-    >
-      {locked && (
-        <div className="card__lock">
-          <span>🔒</span> Approved
+    <div className="card" role="button" tabIndex={0} aria-label={title}
+      onClick={onOpen} onKeyDown={(e) => e.key === "Enter" && onOpen()}>
+      <div className="card__top">
+        <span className={`pill pill--${meta.tone}`}>{meta.label}</span>
+        {showAssignee && assignee && <span className="card__who">{displayName(assignee, names)}</span>}
+      </div>
+      <div className="card__title">{title}</div>
+      {catLabel && <span className="card__cat">{catLabel}</span>}
+      {notes && <div className="card__brief">{notes}</div>}
+
+      {status === "Need Changes" && feedback && (
+        <div className="card__needs">
+          <strong>Needs changes:</strong> {feedback}
         </div>
       )}
-      {!locked && inReview && (
-        <div className="card__review">
-          <span>⏳</span> In review
-        </div>
-      )}
-      {showTitle && <div className="card__title">{title}</div>}
-      {showCat && <span className="card__cat">{catLabel}</span>}
-      {showBrief && <div className="card__brief">{notes}</div>}
-      {feedbackNote && (
-        <div className="card__feedback-note">
-          ⚠ Reviewer note: {feedbackNote}
-        </div>
-      )}
-      {(signal || avatar) && (
-        <div className="card__foot">
-          {signal && (
-            <span className={`sig ${signal.ok ? "sig--ok" : "sig--warn"}`}>
-              {signal.label}
-            </span>
+
+      {!readOnly && transitions.length > 0 && (
+        <>
+          <div className="card__actions" onClick={(e) => e.stopPropagation()}>
+            {transitions.map((t) => (
+              <button
+                key={t.to + t.kind}
+                type="button"
+                className={`act act--${t.kind}`}
+                disabled={!!t.disabledReason}
+                title={t.disabledReason ?? ""}
+                onClick={() => { if (t.disabledReason) return; if (t.requiresFeedback) onOpen(); else onAction?.(t); }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {transitions.find((t) => t.disabledReason) && (
+            <div className="card__needhint">{transitions.find((t) => t.disabledReason)!.disabledReason}</div>
           )}
-          {avatar && <div className="card__avatar">{avatar}</div>}
-        </div>
+        </>
+      )}
+
+      {!readOnly && status === "In Review" && transitions.length === 0 && (
+        <div className="card__waiting">⏳ Waiting for review</div>
       )}
     </div>
   );

@@ -17,33 +17,38 @@ A role-aware **Kanban web app over the "YT tracker" Google Sheet** for the YouTu
 
 ---
 
-## The pipeline (5 stages)
+## The pipeline (single source of truth: `src/shared/pipeline.ts`)
+
+The whole app is **derived from `STAGES` in `src/shared/pipeline.ts`** — column access, row gates, the lifecycle state machine, allowed transitions, lane bucketing, and the auto-generated `Access` tab. Change a stage there; everything follows. Nothing about stages/roles is hardcoded elsewhere.
 
 ```
-Topic (Admin)
-  → Script (Script Writer)            gate: topic_status == "Ready"
-  → Tutorial / recording (Tutorial Maker)  gate: script_status == "Done"
-  → Editing (Video Editor)            gate: tutorial_status == "Done"
-  → Upload & Publish (Admin/Reviewer) gate: video_editor_status == "Done"
+Topic     (Admin)         gate: —                       reviewable  (assignee = admin_email)
+  → Script    (Scriptwriter)  gate: topic_status == "Done"  reviewable
+  → Recording (Recorder)      gate: script_status == "Done" reviewable
+  → Editing   (Video Editor)  gate: tutorial_status == "Done" reviewable
+  → Upload    (Uploader)      gate: video_editor_status == "Done"  TERMINAL (no review)
 ```
 
-- **Tutorial Maker** = the person who makes the **screen recordings** (NOT the script). The **Script Writer** writes the script. They are separate roles (one person can hold both — see multi-role).
-- **Gated handoffs:** a downstream role only sees a video once the upstream stage is approved (`Done`). Implemented in `filterRows*`'s `gate`.
-- **One approval per work stage.**
+- **Uniform lifecycle** on every reviewable stage: `To Do → In Progress → In Review → Done`, with `Need Changes` as the bounce-back. Upload is terminal: `To Do → In Progress → Uploaded`.
+- **Gated handoffs:** a stage opens only once the previous stage is `Done` (Upload is `Uploaded`). `isGateOpen` / `prevStage` in `pipeline.ts`.
+- **Total lane normalization:** `normalizeStatus` maps blank/unknown → `To Do`, NEVER `Need Changes`. Fresh cards are created explicitly at `Topic=To Do`. This is why a new card can't mysteriously land in "Requires Fix".
 
 ## Roles & RBAC
 
-Roles (from the `Employes` tab `Role` column, **comma-separated for multi-role**, e.g. `Script Writer, Tutorial Maker`):
-`Admin`, `Reviewer`, `Script Writer`, `Tutorial Maker`, `Video Editor`.
+Roles (from the `Employes` tab `Role` column, **comma-separated for multi-role**), all derived from the pipeline:
+`Scriptwriter`, `Recorder`, `Video Editor`, `Uploader`, `Reviewer`, `Admin` (no Ideator — Topic is the Admin's job). A person can hold any combination; their view is the union of all roles. Person→role assignment lives ONLY in the admin **Team** tab, resolved **live on every request** (auth.ts) so changes apply with no re-login.
 
-- **Need-to-know column access** per role lives in `src/shared/policy.ts` (`POLICY[role].access` = `{column: "view"|"edit"}`; `Admin` = `all`). e.g. a Tutorial Maker sees the approved **script** read-only (to record from) + edits the recording fields; she does NOT see the editor/publish columns.
-- **Row access:** `POLICY[role].rows` = `"all"` or `{match: <assignee email col>, gate?: {col, equals}}`.
-- **Submit vs approve:** doers can move their status up to **"In Review"** only; **"Done" is approver-only** (`APPROVER_ONLY_VALUES` on `script_status`/`tutorial_status`/`video_editor_status`; approvers = `APPROVER_ROLES` = Admin + Reviewer). Enforced server-side in `POST /api/update` + `POST /api/review`.
-- **Lock after approval:** once a stage's status is `Done`, its fields are read-only for non-approvers (`isFieldLocked` + `STAGE_OF_COL`). Field-level (multi-role safe).
-- **Send-back:** an approver sets status back to `In Progress` and writes the per-stage feedback column (`script_feedback` / `tutorial_feedback` / `editor_feedback`); the freelancer sees it on the card.
-- **Multi-role:** a user can hold several roles; the worker uses the **union** helpers in `src/shared/rbac.ts` (`visibleColumnsForRoles`, `canEditForRoles`, `canSetValueForRoles`, `filterRowsForRoles`, `isApproverRoles`, `workerStagesForRoles`, `isFieldLocked`). The board offers a **stage switcher** when a worker holds >1 worker stage.
+**Who does what:** the **Admin** creates topics, writes the description/links, and **assigns everyone** (all assignee columns, incl. `reviewer_email`) — assigning is admin-only. The card's **Reviewer** writes the per-stage **starting instructions** (`*_instruction`, granted `edit` in `reviewerAccess`) and reviews In-Review items → Done / Need Changes; reviewers do NOT assign people. Reviewing requires the Reviewer role + being the card's assigned reviewer (NOT an Admin default) and never on your own submission (`canReview`).
 
-Everything is **enforced server-side** — restricted columns never leave the Worker (`projectRowForRoles`).
+- **Column access** per role is **generated** from `STAGES` in `src/shared/policy.ts` (`POLICY[role].access`; `Admin` = all). Don't hand-edit per-role access.
+- **Row access:** `POLICY[role].rows` = `"all"` or `{match: <assignee email col>, gate?}`.
+- **Per-card reviewer:** `reviewer_email` is the single reviewer for ALL of a card's reviewable stages. **Approving / requesting changes is card-specific** — only the card's assigned reviewer (or Admin) can, and never on work they submitted themselves (`canReview` in `rbac.ts`).
+- **Submit vs approve:** doers move `To Do→In Progress→In Review` (and `Need Changes→…`); only the reviewer sets `Done` / `Need Changes` (`APPROVER_ONLY_VALUES`). `Need Changes` writes status + feedback atomically, so a card in Need Changes ALWAYS carries its reason.
+- **Single enforcement point:** `authorizeWrite(roles, email, col, value, row)` in `rbac.ts` is the only authorization the worker calls; it returns `{ok, reason}` and the reason is surfaced in the UI as the lock tooltip.
+- **Transitions as data:** `transitionsForStage` / `transitionsForCard` return the allowed status moves for a (user, card); the client renders its action buttons straight from these. `fieldLockReason` drives disabled-with-reason inputs.
+- **Multi-role union** helpers in `rbac.ts` (`visibleColumnsForRoles`, `filterRowsForRoles`, `cardStagesForUser`, `reviewQueueForUser`, …).
+
+Everything is **enforced server-side** — restricted columns never leave the Worker (`projectRowForRoles`), and the board response carries per-row `_stages` / `_actions` / `_locks` so the **client never re-derives permissions** (one rendering path → admin "view as" can't diverge from the real user).
 
 ---
 
@@ -52,9 +57,9 @@ Everything is **enforced server-side** — restricted columns never leave the Wo
 - **TEST copy (current target):** `1jlogtb33vjgjvKMHZjrEs3M9lV8Jg3zWSv0wzp6xAmI` ("YT tracker (TEST COPY - app dev)", owned by `akshatpatidar17`). The SA is shared as writer.
 - **LIVE sheet (untouched until cutover):** `1_r0MchKeAyWlp_g4ESe3IlxZJ1Djx0WAOMTeVWjh_4E`.
 - **Tabs:**
-  - `Master` — one row per video. 31 columns (see `src/shared/columns.ts`). A hidden stable `row_id` (`r0001…`) addresses rows; `last_updated` is an ISO timestamp the app stamps on every change. Real videos must have a `video_title` (title-less rows are ignored).
+  - `Master` — one row per video. 34 columns (see `src/shared/columns.ts`). Each stage has exactly one assignee column (`ideator_email`, `script_writer_email`, `tutorial_maker_email`, `video_editor_email`, `uploader_email`) and a feedback column (`topic_feedback`, `script_feedback`, `tutorial_feedback`, `editor_feedback`); `reviewer_email` is the single card-level reviewer. All Sheets I/O is keyed by **header name**, so column order is irrelevant and `ensureColumns` can append new headers without disturbing data. A hidden stable `row_id` (`r0001…`) addresses rows; `last_updated` stamps every change. Title-less rows are ignored.
   - `Employes` — `Name, Email, Role` (Role comma-separated for multi-role). This is the **access list**: no row = no access.
-  - `Access` — a human-readable **mirror** of the RBAC matrix (col A = field label, col B = real column key, then a column per role with Hidden/View/Edit). NOTE: the app currently reads `policy.ts`, not this tab — keep them in sync by hand; wiring the app to read it is a future option.
+  - `Access` — a read-only **mirror** of the code policy, **auto-generated** by `scripts/migrate-pipeline.ts` (one row per column, one Hidden/View/Edit cell per role). The app reads `policy.ts` (which is itself derived from `pipeline.ts`); regenerate the Access tab by re-running the migration. Do not hand-edit it.
   - `Existing`, `Formulas` — not used by the app.
 - **Column groups** (Master): Topic/meta · Script (`script_*`) · Tutorial/recording (`tutorial_*`) · Editing (`video_editor_*` + `editor_feedback`) · Publish (`yt_*`, `short_links`, `actual_links`, `reviewer_email`) · system (`row_id`, `last_updated`).
 
@@ -64,10 +69,12 @@ Everything is **enforced server-side** — restricted columns never leave the Wo
 
 ```
 src/shared/        # pure, runs in both Worker and Node — the RBAC brain
-  columns.ts       # COLUMNS (31) + Column type
-  policy.ts        # POLICY (per-role access + rows/gates + laneStatus), APPROVER_ROLES,
-                   #   APPROVER_ONLY_VALUES, STAGE_OF_COL (field-lock map)
-  rbac.ts          # per-role fns + *ForRoles union helpers + isFieldLocked + filter/project
+  pipeline.ts      # ★ SINGLE SOURCE OF TRUTH: STAGES, roles, lifecycle states, gates,
+                   #   normalizeStatus, statusOf, isGateOpen. Everything else derives from this.
+  columns.ts       # COLUMNS (34) + Column type
+  policy.ts        # POLICY/APPROVER_ONLY_VALUES/STAGE_OF_COL — all DERIVED from pipeline.ts
+  rbac.ts          # union helpers + authorizeWrite (single enforcement) + transitionsFor*
+                   #   + canReview + cardStagesForUser + reviewQueueForUser + fieldLockReason
 src/worker/        # Cloudflare Worker (Hono)
   index.ts         # routes: /api/board, /api/update, /api/review, /api/approvals, /api/team, /api/me
   auth.ts          # Google OAuth + KV sessions (store {email, roles[]}), requireSession, /dev-login
@@ -80,25 +87,31 @@ src/worker/        # Cloudflare Worker (Hono)
   affiliate.ts     # Affiliate Programs sheet reader + normalizeToolName
   clickstore.ts    # native D1/KV adapters (videos/links tables in clicks-db) for link-gen
   linkgen.ts       # process_yt_tracker.py port: detect → resolve → mint code → KV+D1 → describe
-src/client/        # React SPA
-  App.tsx          # auth gate, sign-in screen + dev preview buttons, topbar
-  Board.tsx        # worker kanban + multi-role stage switcher + Admin tab bar (Overview/Pipeline/Board/Awaiting)
-  Card.tsx, CardDetail.tsx   # card + collapsible stage-section detail panel (Brief/Script/Recording/Editing/Publish)
-  AdminOverview.tsx, PipelineBoard.tsx, Filters.tsx   # admin dashboards (funnel, row-per-topic matrix, filters)
-  api.ts           # fetch wrappers + displayName + types
-  labels.ts        # FIELD_LABELS, LANE_LABELS, stage maps (STAGE_NAME/ARTIFACT_COL/EMAIL_FOR_STAGE/FEEDBACK_COL), LINK_COLS/HINTS
-  lanes.ts         # LANES per status column + groupByLane
-  pipeline.ts      # overallStage/progress/isStalled/isStuck (admin Overview + Pipeline)
-test/              # vitest: rbac.test.ts, pipeline.test.ts, lanes.test.ts  (129 tests)
-scripts/           # one-off Node smoke tests (run with `npx tsx scripts/<x>.ts`)
+src/client/        # React SPA — RENDER-ONLY. No drag-drop; status changes via action buttons.
+  App.tsx          # auth gate, sign-in + dev preview, topbar, read-only view-as picker
+  Board.tsx        # role-adaptive tabs (My work / Review queue / Board / Pipeline / Team);
+                   #   lane boards group by status; cards render server `_actions` as buttons
+  Card.tsx         # status pill + Need-Changes banner + inline next-action button(s)
+  CardDetail.tsx   # stage sections; fields editable or disabled-with-reason (from `_locks`);
+                   #   action buttons (from `_actions`); reviewer approve/request-changes
+  ReviewQueue.tsx  # reviewer inbox (who submitted what, on which stage)
+  PipelineBoard.tsx, Filters.tsx   # admin matrix (one col per STAGE) + filters
+  TeamPanel.tsx    # the ONLY place roles are assigned to people (Employes tab)
+  api.ts           # fetch wrappers, applyTransition, BoardRow/Transition types
+  status.ts        # STATUS_META (label + colour tone) + legend — one colour system everywhere
+  labels.ts        # FIELD_LABELS + stage maps, all derived from STAGES
+  lanes.ts         # lanesFor(statusCol) + groupByLane (total: blank→To Do)
+  pipeline.ts      # admin matrix helpers (progress/activeStage/isStuck) derived from STAGES
+test/              # vitest: rbac.test.ts (new-model authority), affiliate, linkgen
+scripts/           # migrate-pipeline.ts (idempotent 2026 migration) + `npx tsx scripts/<x>.ts`
 ```
 
 ## API (all behind a session except auth/auth-mode)
 
-- `GET /api/board[?asUser=email]` → `{roles, stages, columns, rows, names, viewingAs, readOnly}` (admin `asUser` = read-only "view as that person").
-- `POST /api/update {row_id, col, value}` → gated by canEdit + field-lock + canSetValue; stamps `last_updated`; fires submit/assign emails.
-- `POST /api/review {row_id, stage, action, feedback?}` → approver-only; `stage` ∈ script|tutorial|editor|upload; approve→Done/Published, sendback→In Progress(+feedback); emails the assignee.
-- `GET /api/approvals` → approver queue across Script/Recording/Editing In-Review items.
+- `GET /api/board[?asUser=email]` → `{roles, stages, columns, rows, names, viewingAs, readOnly}`. Each row carries `_stages` (lane membership), `_actions` (allowed transitions), `_locks` (col→reason). Admin `asUser` is a **pure read-only mirror** (no edit elevation; `readOnly:true`) → identical to the real user's view.
+- `POST /api/update {row_id, col, value, prev?}` → single check `authorizeWrite`; doer status transitions + content edits; `prev` enables optimistic-concurrency (409 on conflict). Fires submit/assign emails.
+- `POST /api/review {row_id, stage, action, feedback?}` → card's assigned reviewer (or admin) only; `stage` = a reviewable stage id (topic|script|recording|editing); approve→Done, sendback→Need Changes (feedback required, written atomically); emails the submitter.
+- `GET /api/review-queue` → cards In-Review that THIS user is the assigned reviewer for (admins see all), with submitter name + stage.
 - `POST /api/video {video_title, video_notes?, category?, subcategory?}` → Admin-only; appends a Master row, returns `{row_id}`.
 - `POST /api/delete {row_id}` → Admin-only; deletes the Master row (`deleteRowById` → Sheets `deleteDimension`), busts the board cache. Surfaced as a per-row 🗑 button in the admin Pipeline matrix.
 - `POST /api/generate-links {row_id}` → Admin-only; ports `process_yt_tracker.py` — detects tools (Gemini), mints go.agrolloo short links into `CLICKS_KV` + `clicks-db` D1, writes `video_description`/`actual_links`/`short_links` back, returns `{description, links, non_affiliate_tools}`.
@@ -138,7 +151,8 @@ npx wrangler dev --port 8787
 2. `npx wrangler deploy` → get the `*.workers.dev` URL.
 3. Add `<url>/auth/callback` to the OAuth client's **Authorized redirect URIs** (Google Cloud console — manual, no API).
 4. Set secrets: `npx wrangler secret put GOOGLE_CLIENT_ID|GOOGLE_CLIENT_SECRET|SESSION_SECRET|GOOGLE_SA_JSON|GMAIL_*`; set `SHEET_ID`, `GOOGLE_REDIRECT_URI`. **Do NOT set `DEV_AUTH` or `NOTIFY_REDIRECT`** in prod.
-5. **Cutover to the live sheet:** run `ensureRowIds` against the live sheet, add the `last_updated`/`script_*`/feedback columns + the `Employes`/`Access` tabs, then point `SHEET_ID` at the live sheet and redeploy. Add real teammates to `Employes`.
+5. **Schema migration (run once per sheet, idempotent):** `npx tsx scripts/migrate-pipeline.ts` (reads `SHEET_ID` + `GOOGLE_SA_JSON` from `.dev.vars`, or `SHEET_ID=<id> npx tsx …`). It adds the new columns, maps legacy statuses (`topic_status` Ready→Done; `yt_upload_status` Published→Uploaded/Draft→In Progress), renames legacy roles (`Script Writer`→`Scriptwriter`, `Tutorial Maker`→`Recorder`), and regenerates the `Access` tab. After migrating, assign the new **Ideator**/**Uploader** roles to people via the admin Team tab.
+6. **Cutover to the live sheet:** run `ensureRowIds` then `scripts/migrate-pipeline.ts` against the live sheet, point `SHEET_ID` at it, redeploy.
 
 ## Roadmap (from the product audit at `../../../TY/docs/specs/2026-05-29-tracker-product-audit.md` in the sibling TY repo)
 - Done: focused review card, clickable links, reviewer-defaults-to-queue, email notifications, names, timestamps, admin Overview/Pipeline/filters, collapsed Done lane, collapsible stage sections, in-app "new video", in-app go.agrolloo link + description generation, **Readiness column** (topic_status-backed first stage in the Pipeline matrix; topic lanes renamed "Readiness in progress"/"Ready"), **click-to-sort on every Pipeline column** (Topic A–Z; stages by done→active→pending), **pending cells show a cross** (not a dot), **per-row delete** (Admin), **teammate-picker assignment** (assignment fields are dropdowns of the team, not free-text email), **admin Team tab** (manage the `Employes` tab in-app — add/edit roles/remove).

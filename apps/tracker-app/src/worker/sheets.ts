@@ -132,6 +132,30 @@ export async function ensureRowIds(token: string, sheetId: string): Promise<void
 }
 
 // ---------------------------------------------------------------------------
+// ensureColumns
+// ---------------------------------------------------------------------------
+
+/**
+ * Idempotent migration: ensure every column in COLUMNS has a header in the
+ * Master tab. Missing headers are appended as new rightmost columns (existing
+ * data is never shifted — all I/O is keyed by header name, so physical order is
+ * irrelevant). Returns the list of headers that were added.
+ */
+export async function ensureColumns(token: string, sheetId: string): Promise<string[]> {
+  const raw = await sheetsGet(token, sheetId, READ_RANGE);
+  const header = (raw[0] ?? []).map((h) => h.trim());
+  const present = new Set(header.filter(Boolean));
+  const missing = (COLUMNS as readonly string[]).filter((c) => !present.has(c));
+  let nextIdx = header.length;
+  for (const col of missing) {
+    const cell = `${TAB}!${colLetter(nextIdx)}1`;
+    await sheetsPut(token, sheetId, cell, col);
+    nextIdx++;
+  }
+  return missing;
+}
+
+// ---------------------------------------------------------------------------
 // readRows
 // ---------------------------------------------------------------------------
 
@@ -178,10 +202,22 @@ export async function readRows(token: string, sheetId: string): Promise<Row[]> {
 // updateCell
 // ---------------------------------------------------------------------------
 
+/** Thrown by updateCell when an optimistic-concurrency `expected` check fails. */
+export class ConflictError extends Error {
+  constructor(public readonly current: string, public readonly expected: string) {
+    super("conflict: the value changed since you last loaded it");
+    this.name = "ConflictError";
+  }
+}
+
 /**
  * Update a single cell identified by (rowId, col).
  * Re-reads the sheet to locate the exact A1 cell, then PUTs the new value.
  * Throws a clear Error if rowId or col is not found.
+ *
+ * Optimistic concurrency: if `expected` is provided, the FRESH cell value (read
+ * here, not from any cache) must equal it, otherwise a ConflictError is thrown
+ * and nothing is written. This prevents two people clobbering each other.
  */
 export async function updateCell(
   token: string,
@@ -189,6 +225,7 @@ export async function updateCell(
   rowId: string,
   col: Column,
   value: string,
+  expected?: string,
 ): Promise<void> {
   const raw = await sheetsGet(token, sheetId, READ_RANGE);
   if (raw.length < 1) throw new Error("Sheet is empty");
@@ -205,17 +242,88 @@ export async function updateCell(
 
   // Find the data row by rowId
   let targetRowNum: number | null = null;
+  let targetRowArr: string[] | null = null;
   for (let i = 1; i < raw.length; i++) {
     const cellId = (raw[i][rowIdColIdx] ?? "").trim();
     if (cellId === rowId) {
       targetRowNum = i + 1; // 1-indexed sheet row number (header is row 1)
+      targetRowArr = raw[i];
       break;
     }
   }
-  if (targetRowNum === null) throw new Error(`Row with row_id "${rowId}" not found`);
+  if (targetRowNum === null || targetRowArr === null) throw new Error(`Row with row_id "${rowId}" not found`);
+
+  if (expected !== undefined) {
+    const current = (targetRowArr[colIdx] ?? "").trim();
+    if (current !== expected.trim()) throw new ConflictError(current, expected);
+  }
 
   const cell = `${TAB}!${colLetter(colIdx)}${targetRowNum}`;
   await sheetsPut(token, sheetId, cell, value);
+}
+
+// ---------------------------------------------------------------------------
+// updateCells — one read + one batched write for several cells of a row
+// ---------------------------------------------------------------------------
+
+/**
+ * Write multiple cells of the row identified by `rowId` in a SINGLE read + a
+ * SINGLE batched write, and stamp `last_updated` automatically. This replaces
+ * doing updateCell()+touchRow() (two full-sheet reads + two writes) per action.
+ *
+ * Optional optimistic concurrency: if `expected` is given, that column's FRESH
+ * value must equal it, else a ConflictError is thrown and nothing is written.
+ */
+export async function updateCells(
+  token: string,
+  sheetId: string,
+  rowId: string,
+  values: Partial<Record<Column, string>>,
+  expected?: { col: Column; value: string },
+): Promise<void> {
+  const raw = await sheetsGet(token, sheetId, READ_RANGE);
+  if (raw.length < 1) throw new Error("Sheet is empty");
+  const header = raw[0].map((h) => h.trim());
+
+  const rowIdColIdx = header.indexOf("row_id");
+  if (rowIdColIdx === -1) throw new Error(`"row_id" column not found — run ensureRowIds first`);
+
+  let targetRowNum: number | null = null;
+  let targetRowArr: string[] | null = null;
+  for (let i = 1; i < raw.length; i++) {
+    if ((raw[i][rowIdColIdx] ?? "").trim() === rowId) {
+      targetRowNum = i + 1; targetRowArr = raw[i]; break;
+    }
+  }
+  if (targetRowNum === null || targetRowArr === null) throw new Error(`Row with row_id "${rowId}" not found`);
+
+  if (expected !== undefined) {
+    const ci = header.indexOf(expected.col);
+    if (ci === -1) throw new Error(`Column "${expected.col}" not found in sheet header`);
+    const current = (targetRowArr[ci] ?? "").trim();
+    if (current !== expected.value.trim()) throw new ConflictError(current, expected.value);
+  }
+
+  const data: { range: string; values: string[][] }[] = [];
+  for (const [col, val] of Object.entries(values)) {
+    const ci = header.indexOf(col);
+    if (ci === -1) throw new Error(`Column "${col}" not found in sheet header`);
+    data.push({ range: `${TAB}!${colLetter(ci)}${targetRowNum}`, values: [[val ?? ""]] });
+  }
+  // Auto-stamp last_updated (skip silently if the column isn't present).
+  const luIdx = header.indexOf("last_updated");
+  if (luIdx !== -1 && !("last_updated" in values)) {
+    data.push({ range: `${TAB}!${colLetter(luIdx)}${targetRowNum}`, values: [[new Date().toISOString()]] });
+  }
+  if (data.length === 0) return;
+
+  const url = `${SHEETS_BASE}/${sheetId}/values:batchUpdate`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ valueInputOption: "USER_ENTERED", data }),
+  });
+  if (!resp.ok) throw new Error(`Sheets batchUpdate failed (${resp.status}): ${await resp.text()}`);
 }
 
 // ---------------------------------------------------------------------------

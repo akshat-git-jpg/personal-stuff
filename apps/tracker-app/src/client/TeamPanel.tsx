@@ -81,15 +81,10 @@ export function TeamPanel({ onChanged }: TeamPanelProps) {
     if (!draft.name.trim()) return setError("Name is required");
     if (!draft.email.includes("@")) return setError("A valid email is required");
     if (draft.roles.length === 0) return setError("Pick at least one role");
-    // Admin always implies Reviewer — persist it so the sheet is explicit.
-    const rolesToSave =
-      draft.roles.includes("Admin") && !draft.roles.includes("Reviewer")
-        ? [...draft.roles, "Reviewer"]
-        : draft.roles;
     setBusy(true);
     setError(null);
     try {
-      await saveTeamMember({ name: draft.name.trim(), email: draft.email.trim(), roles: rolesToSave });
+      await saveTeamMember({ name: draft.name.trim(), email: draft.email.trim(), roles: draft.roles });
       setEditing(null);
       await load();
       onChanged?.();
@@ -116,6 +111,7 @@ export function TeamPanel({ onChanged }: TeamPanelProps) {
   }
 
   function renderForm(isNew: boolean) {
+    const isFounder = editing !== null && editing !== "__new__" && editing.toLowerCase() === PROTECTED_ADMIN_EMAIL;
     return (
       <div className="team-form">
         <div className="team-form__row">
@@ -123,6 +119,8 @@ export function TeamPanel({ onChanged }: TeamPanelProps) {
           <input
             value={draft.name}
             placeholder="Full name"
+            disabled={isFounder}
+            title={isFounder ? "The founding admin's name is fixed" : ""}
             onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
           />
         </div>
@@ -140,19 +138,22 @@ export function TeamPanel({ onChanged }: TeamPanelProps) {
           <label>Roles</label>
           <div className="team-form__roles">
             {roleOptions.map(r => {
-              // Admin always implies Reviewer — show it checked + locked when Admin is selected.
-              const impliedByAdmin = r === "Reviewer" && draft.roles.includes("Admin");
-              const checked = draft.roles.includes(r) || impliedByAdmin;
+              // Admin is reserved for the founding admin — don't offer it to anyone else.
+              if (r === "Admin" && !isFounder) return null;
+              // The founding admin can't drop the Admin role (would lock everyone out);
+              // every other role (incl. Reviewer) is a free, independent toggle.
+              const lockedAdmin = isFounder && r === "Admin";
+              const checked = draft.roles.includes(r) || lockedAdmin;
               return (
                 <label key={r} className={`role-chip${checked ? " role-chip--on" : ""}`}>
                   <input
                     type="checkbox"
                     checked={checked}
-                    disabled={impliedByAdmin}
+                    disabled={lockedAdmin}
                     onChange={() => toggleRole(r)}
                   />
                   {r}
-                  {impliedByAdmin ? " (via Admin)" : ""}
+                  {lockedAdmin ? " (required)" : ""}
                 </label>
               );
             })}
@@ -208,9 +209,14 @@ export function TeamPanel({ onChanged }: TeamPanelProps) {
                 </div>
                 <div className="team-row__actions">
                   {m.email.toLowerCase() === PROTECTED_ADMIN_EMAIL ? (
-                    <span className="team-row__locked" title="The founding admin is fixed">
-                      🔒 Founder
-                    </span>
+                    <>
+                      <span className="team-row__locked" title="The founding admin's name and access are fixed — you can still adjust roles">
+                        🔒 Founder
+                      </span>
+                      <button className="btn-ghost" onClick={() => startEdit(m)} disabled={busy}>
+                        Edit roles
+                      </button>
+                    </>
                   ) : (
                     <>
                       <button className="btn-ghost" onClick={() => startEdit(m)} disabled={busy}>

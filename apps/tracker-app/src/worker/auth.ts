@@ -17,7 +17,7 @@
 import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { getAccessToken } from "./sheets";
-import { lookupRoles } from "./roles";
+import { lookupRoles, cachedRolesMap } from "./roles";
 
 // ---------------------------------------------------------------------------
 // Env / variable types (shared across auth + index)
@@ -258,8 +258,19 @@ export async function requireSession(
     return c.json({ error: "unauthorized" }, 401);
   }
 
-  // Support both old sessions (role: string) and new (roles: string[])
-  const roles = session.roles ?? (session.role ? [session.role] : []);
+  // Roles are resolved LIVE from the Employes tab on every request — the session
+  // only proves identity (email). This is the single source of truth, so adding
+  // or removing a role in the Team tab takes effect immediately, with no re-login,
+  // for the person who changed AND for anyone else. If the live lookup fails, fall
+  // back to the roles snapshotted in the session at login.
+  let roles: string[];
+  try {
+    const map = await cachedRolesMap(c.env);
+    roles = map.get(session.email.toLowerCase().trim()) ?? [];
+  } catch (err) {
+    console.warn("[auth] role lookup failed; using session roles:", err);
+    roles = session.roles ?? (session.role ? [session.role] : []);
+  }
   c.set("user", { email: session.email, roles });
   await next();
 }

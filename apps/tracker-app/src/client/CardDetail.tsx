@@ -1,798 +1,443 @@
 import { useState, useEffect } from "react";
 import type { Column } from "../shared/columns";
-import type { Row } from "../shared/rbac";
-import { canEditForRoles, isApproverRoles, canSetValueForRoles, isFieldLocked } from "../shared/rbac";
-import { updateCell, review, displayName, ForbiddenError, generateLinks } from "./api";
-import type { GenerateLinksResult } from "./api";
-import { LANES } from "./lanes";
-import { FIELD_LABELS, LANE_LABELS, FEEDBACK_COL, LINK_HINTS, LINK_COLS, isUrl, STAGE_NAME, ARTIFACT_COL, EMAIL_FOR_STAGE } from "./labels";
+import type { Row, Transition } from "../shared/rbac";
+import { canEditForRoles, isAdminRoles } from "../shared/rbac";
+import { STAGES, stageById, statusOf, cardFieldsFor, missingRequired, PROTECTED_ADMIN_EMAIL } from "../shared/pipeline";
+import {
+  applyTransition, updateCell, generateLinks, displayName, personLabel,
+  type BoardRow, type GenerateLinksResult,
+} from "./api";
+import { statusMeta } from "./status";
+import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl } from "./labels";
 
 interface CardDetailProps {
-  row: Row;
+  row: BoardRow;
   columns: Column[];
-  role: string;        // legacy single role (kept for back-compat)
-  roles: string[];     // multi-role array
+  roles: string[];
   names: Record<string, string>;
-  laneStatus: string;
+  memberRoles?: Record<string, string>;
   readOnly?: boolean;
-  canEditAll?: boolean;   // session user is an admin → full edit authority even while previewing
-  categoryOptions?: string[];     // distinct existing categories (for the combobox)
-  subcategoryOptions?: string[];  // distinct existing subcategories
+  /** Which stage the card was opened while working — scopes the fields/actions shown. */
+  contextStageId?: string;
+  /** Whose actions to show: doer (My work), reviewer (Review queue), or all (Pipeline). */
+  perspective?: "doer" | "reviewer" | "all";
+  categoryOptions?: string[];
+  subcategoryOptions?: string[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-// A select of existing values + an "Add new…" escape hatch to a free-text input.
-export function ComboSelect({
-  id,
-  value,
-  options,
-  placeholder,
-  onChange,
-}: {
-  id: string;
-  value: string;
-  options: string[];
-  placeholder: string;
-  onChange: (v: string) => void;
+// A select of existing values + an "Add new…" escape hatch.
+export function ComboSelect({ id, value, options, placeholder, onChange }: {
+  id: string; value: string; options: string[]; placeholder: string; onChange: (v: string) => void;
 }) {
   const ADD = "__add_new__";
   const [adding, setAdding] = useState(false);
-
   if (adding) {
     return (
       <div className="combo">
-        <input
-          id={id}
-          type="text"
-          autoFocus
-          value={value}
-          placeholder={placeholder}
-          onChange={e => onChange(e.target.value)}
-        />
-        <button
-          type="button"
-          className="combo__toggle"
-          title="Pick from the list instead"
-          onClick={() => setAdding(false)}
-        >
-          ⌄
-        </button>
+        <input id={id} type="text" autoFocus value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+        <button type="button" className="combo__toggle" title="Pick from the list instead" onClick={() => setAdding(false)}>⌄</button>
       </div>
     );
   }
-
   return (
-    <select
-      id={id}
-      value={value}
-      onChange={e => {
-        if (e.target.value === ADD) {
-          onChange("");
-          setAdding(true);
-        } else {
-          onChange(e.target.value);
-        }
-      }}
-    >
+    <select id={id} value={value} onChange={(e) => {
+      if (e.target.value === ADD) { onChange(""); setAdding(true); } else onChange(e.target.value);
+    }}>
       <option value="">— None —</option>
       {value && !options.includes(value) && <option value={value}>{value}</option>}
-      {options.map(o => (
-        <option key={o} value={o}>
-          {o}
-        </option>
-      ))}
+      {options.map((o) => <option key={o} value={o}>{o}</option>)}
       <option value={ADD}>➕ Add new…</option>
     </select>
   );
 }
 
-const LANE_COLUMNS = new Set(["topic_status","script_status","tutorial_status","video_editor_status","yt_upload_status"]);
+const STATUS_COLS = new Set(STAGES.map((s) => s.statusCol));
+const ASSIGNEE_COLS = new Set([...STAGES.map((s) => s.assigneeCol), "reviewer_email", "admin_email"]);
 
-// Columns rendered as multi-line paragraphs (textarea / pre-wrap), not single-line inputs.
-const MULTILINE_COLS = new Set(["video_notes","video_description"]);
-
-// Columns whose values are email addresses — show resolved name + small email hint.
-const EMAIL_COLS = new Set([
-  "script_writer_email",
-  "tutorial_maker_email",
-  "video_editor_email",
-  "reviewer_email",
-  "admin_email",
+// Which role each assignee field requires, so its dropdown only lists people who
+// actually hold that role. Derived from the pipeline (+ the card-level reviewer).
+const ASSIGNEE_ROLE: Record<string, string> = { reviewer_email: "Reviewer", admin_email: "Admin" };
+for (const s of STAGES) ASSIGNEE_ROLE[s.assigneeCol] = s.ownerRole;
+const MULTILINE_COLS = new Set<string>([
+  "video_notes", "video_description",
+  ...STAGES.flatMap((s) => [s.instructionCol, s.feedbackCol].filter(Boolean) as string[]),
 ]);
+const COMBO_COLS = new Set(["category", "subcategory"]);
 
-// ── Section definitions ───────────────────────────────────────────────────────
-// Order matters: sections are rendered top-to-bottom in this order.
-interface SectionDef {
-  key: string;
-  label: string;
-  icon: string;
-  cols: Column[];
-}
-
-const SECTIONS: SectionDef[] = [
-  {
-    key: "brief",
-    label: "Brief",
-    icon: "📋",
-    cols: [
-      "video_title","video_notes","video_description","category","subcategory",
-      "topic_status","topic_date","admin_email",
-    ],
-  },
-  {
-    key: "script",
-    label: "Script",
-    icon: "✍️",
-    cols: ["script_writer_email","script_instruction","script_link","script_status","script_feedback"],
-  },
-  {
-    key: "recording",
-    label: "Recording",
-    icon: "🎬",
-    cols: ["tutorial_maker_email","tutorial_instruction","tutorial_link","tutorial_status","tutorial_feedback"],
-  },
-  {
-    key: "editing",
-    label: "Editing",
-    icon: "✂️",
-    cols: ["video_editor_email","video_editor_instruction","video_editor_link","video_editor_status","editor_feedback"],
-  },
-  {
-    key: "publish",
-    label: "Publish",
-    icon: "🚀",
-    cols: ["reviewer_email","yt_upload_status","yt_upload_date","yt_link","short_links","actual_links"],
-  },
+// All assignee fields, in pipeline sequence, grouped right after the brief so the
+// admin sets them in one place: Scriptwriter → Recorder → Video Editor → Uploader
+// → Reviewer → Admin. (Topic's assignee is admin_email, shown once as "Admin".)
+const ASSIGNEE_SEQUENCE: Column[] = [
+  ...new Set<Column>([
+    ...STAGES.filter((s) => s.id !== "topic").map((s) => s.assigneeCol),
+    "reviewer_email",
+    "admin_email",
+  ]),
 ];
 
-// Maps a board laneStatus column → section key (the "active section").
-const LANE_STATUS_TO_SECTION: Record<string, string> = {
-  topic_status:        "brief",
-  script_status:       "script",
-  tutorial_status:     "recording",
-  video_editor_status: "editing",
-  yt_upload_status:    "publish",
-};
+// Section per stage. "Brief" (topic) carries the meta + the whole assignee block.
+// Stage sections hold only the work fields (instructions, links, feedback).
+interface SectionDef { id: string; label: string; cols: Column[]; }
+const SECTIONS: SectionDef[] = STAGES.map((s) => ({
+  id: s.id,
+  label: s.id === "topic" ? "Brief & assignments" : s.label,
+  cols: (s.id === "topic"
+    ? ["video_title", "video_notes", "video_description", "category", "subcategory", "topic_date", ...ASSIGNEE_SEQUENCE]
+    : [s.instructionCol, ...s.editFields]
+  ).filter(Boolean) as Column[],
+}));
 
-/** Derive /api/review stage from the boardLaneStatus column key */
-function stageFromLaneStatus(laneStatus: string): "script" | "tutorial" | "editor" | "upload" {
-  if (laneStatus === "script_status")        return "script";
-  if (laneStatus === "tutorial_status")      return "tutorial";
-  if (laneStatus === "video_editor_status")  return "editor";
-  return "upload";
-}
+export function CardDetail({ row, columns, roles, names, memberRoles = {}, readOnly, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved }: CardDetailProps) {
+  const locks = row._locks ?? {};
+  const actionGroups = row._actions ?? [];
+  const isAdmin = isAdminRoles(roles);
+  const colSet = new Set<string>(columns);
 
-// ── SectionAccordion component ────────────────────────────────────────────────
-interface SectionAccordionProps {
-  sectionKey: string;
-  label: string;
-  icon: string;
-  isOpen: boolean;
-  isActive: boolean;  // visually accent if this is the active/relevant section
-  onToggle: () => void;
-  children: React.ReactNode;
-}
-
-function SectionAccordion({ sectionKey: _sectionKey, label, icon, isOpen, isActive, onToggle, children }: SectionAccordionProps) {
-  return (
-    <div className={`sec-accordion${isActive ? " sec-accordion--active" : ""}${isOpen ? " sec-accordion--open" : ""}`}>
-      <button
-        type="button"
-        className="sec-accordion__header"
-        onClick={onToggle}
-        aria-expanded={isOpen}
-      >
-        <span className="sec-accordion__icon">{icon}</span>
-        <span className="sec-accordion__label">{label}</span>
-        <span className="sec-accordion__caret">{isOpen ? "▾" : "▸"}</span>
-      </button>
-      {isOpen && (
-        <div className="sec-accordion__body">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Required before a freelancer can be assigned to any stage.
-const BRIEF_REQUIRED: Column[] = ["video_title", "category", "subcategory", "video_notes"];
-// Assignee column → the stage instruction that must be filled + the section to open on error.
-const ASSIGN_GATE: Record<string, { instruction: Column; label: string; section: string }> = {
-  script_writer_email:  { instruction: "script_instruction",       label: "Script",    section: "script" },
-  tutorial_maker_email: { instruction: "tutorial_instruction",     label: "Recording", section: "recording" },
-  video_editor_email:   { instruction: "video_editor_instruction", label: "Editing",   section: "editing" },
-};
-
-export function CardDetail({ row, columns, roles, names, laneStatus, readOnly, canEditAll, categoryOptions = [], subcategoryOptions = [], onClose, onSaved }: CardDetailProps) {
-  // Edit authority is separate from the field VIEW: an admin previewing a
-  // member's card sees the member's fields but edits with full admin power.
-  const editRoles = canEditAll ? [...roles, "Admin"] : roles;
+  // The card is scoped to the stage it was opened from: only that stage's curated
+  // fields + actions show. Admins get a "Show all fields" escape hatch.
+  const contextStage = stageById(contextStageId ?? "") ?? STAGES[0];
+  const [showAll, setShowAll] = useState(false);
 
   const [draft, setDraft] = useState<Partial<Record<Column, string>>>({});
+  const [savedMap, setSavedMap] = useState<Partial<Record<Column, string>>>({}); // last value persisted to the sheet
+  const [fieldStatus, setFieldStatus] = useState<Partial<Record<Column, "saving" | "saved" | "error">>>({});
+  const [touched, setTouched] = useState(false); // did we auto-save anything this session?
   const [errors, setErrors] = useState<Partial<Record<Column, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
 
-  // Approver action state
-  const [approverAction, setApproverAction] = useState<"none" | "sendback">("none");
-  const [sendBackNote, setSendBackNote] = useState("");
-  const [approverBusy, setApproverBusy] = useState(false);
+  // "Request changes" note (the box is always shown for a reviewer; the button
+  // commits the send-back and is enabled once a note is typed).
+  const [feedbackText, setFeedbackText] = useState("");
+  const [actingId, setActingId] = useState<string | null>(null);
 
-  // Link generation (Admin-only)
-  const isAdmin = roles.includes("Admin");
+  // Link generation (admin).
   const [genLoading, setGenLoading] = useState(false);
   const [genResult, setGenResult] = useState<GenerateLinksResult | null>(null);
   const [genError, setGenError] = useState<string | null>(null);
 
-  async function handleGenerate() {
-    if (!row.row_id) return;
-    setGenLoading(true);
-    setGenError(null);
-    try {
-      const r = await generateLinks(row.row_id);
-      setGenResult(r);
-      onSaved(); // refresh the board so the saved cells show
-    } catch (err) {
-      setGenError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setGenLoading(false);
-    }
-  }
-
-  // Derived: the board's laneStatus
-  const boardLaneStatus = laneStatus ?? "";
-  const activeSection = LANE_STATUS_TO_SECTION[boardLaneStatus] ?? "brief";
-
-  // Default-open state: active section + brief always open (unless active IS brief)
-  const defaultOpen = (): Record<string, boolean> => {
-    const init: Record<string, boolean> = {};
-    for (const s of SECTIONS) {
-      init[s.key] = s.key === activeSection || s.key === "brief";
-    }
-    return init;
-  };
-
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>(defaultOpen);
-
-  // Re-compute open sections if laneStatus changes (e.g. parent re-uses component)
-  useEffect(() => {
-    setOpenSections(defaultOpen());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [boardLaneStatus]);
-
   useEffect(() => {
     const init: Partial<Record<Column, string>> = {};
-    for (const col of columns) init[col] = row[col] ?? "";
+    for (const col of columns) init[col] = (row[col] as string) ?? "";
     setDraft(init);
+    setSavedMap(init);
+    setFieldStatus({});
+    setTouched(false);
   }, [row, columns]);
 
-  function toggleSection(key: string) {
-    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+  function editableNow(col: Column): boolean {
+    if (readOnly) return false;
+    if (STATUS_COLS.has(col)) return false;       // driven by action buttons
+    if (col === "admin_email") return false;       // founding admin is fixed
+    if (!canEditForRoles(roles, col)) return false;
+    return !(col in locks);
   }
+
+  // The card's values as they'd be after saving the current edits — used to
+  // evaluate the required-field gate against what's typed, not just what's saved.
+  const effectiveRow = { ...row, ...draft } as BoardRow;
 
   function handleChange(col: Column, value: string) {
-    setDraft(d => ({ ...d, [col]: value }));
-    setErrors(e => ({ ...e, [col]: undefined }));
+    setDraft((d) => ({ ...d, [col]: value }));
+    setErrors((e) => ({ ...e, [col]: undefined }));
     setFormError(null);
   }
 
-  async function handleSave() {
-    // Required-field gate: can't assign a freelancer to a stage without a complete
-    // brief AND that stage's instructions.
-    const eff = (col: Column) => ((draft[col] ?? row[col] ?? "") as string).toString().trim();
-    const gateErrors: Partial<Record<Column, string>> = {};
-    const openTheseSections: string[] = [];
-    for (const [assigneeCol, meta] of Object.entries(ASSIGN_GATE)) {
-      const col = assigneeCol as Column;
-      const assigningNow = col in draft && eff(col) !== "" && (draft[col] ?? "") !== (row[col] ?? "");
-      if (!assigningNow) continue;
-      for (const bf of BRIEF_REQUIRED) {
-        if (!eff(bf)) gateErrors[bf] = "Required before you can assign";
-      }
-      if (!eff(meta.instruction)) {
-        gateErrors[meta.instruction] = `${meta.label} instructions are required before assigning`;
-        openTheseSections.push(meta.section);
-      }
+  // Auto-save a single field (on blur / change). No "Save" button — fields persist
+  // themselves, and `savedMap` tracks what's on the sheet so the optimistic-lock
+  // check uses the right expected value.
+  async function autoSaveField(col: Column, value: string) {
+    if (!row.row_id || !editableNow(col)) return;
+    const prev = savedMap[col] ?? "";
+    if (value === prev) return;
+    setFieldStatus((s) => ({ ...s, [col]: "saving" }));
+    try {
+      await updateCell(row.row_id, col, value, prev);
+      setSavedMap((m) => ({ ...m, [col]: value }));
+      setFieldStatus((s) => ({ ...s, [col]: "saved" }));
+      setErrors((e) => ({ ...e, [col]: undefined }));
+      setTouched(true);
+    } catch (err) {
+      setFieldStatus((s) => ({ ...s, [col]: "error" }));
+      setErrors((e) => ({ ...e, [col]: err instanceof Error ? err.message : "Save failed" }));
     }
-    if (Object.keys(gateErrors).length > 0) {
-      setErrors(gateErrors);
-      // Open the brief + affected stage sections so the errors are visible.
-      setOpenSections(prev => {
-        const next: Record<string, boolean> = { ...prev, brief: true };
-        for (const s of openTheseSections) next[s] = true;
-        return next;
-      });
-      setFormError("Fill the required fields (marked) before assigning a freelancer.");
-      return;
-    }
-    setFormError(null);
+  }
 
-    setSaving(true);
+  // Flush any field not yet auto-saved (e.g. a status action fired before a blur).
+  // Returns false on error. Compares against savedMap (what's really on the sheet).
+  async function flushPending(): Promise<boolean> {
     const newErrors: Partial<Record<Column, string>> = {};
     let anyError = false;
-
     for (const col of columns) {
-      const original = row[col] ?? "";
       const updated = draft[col] ?? "";
-      if (updated === original) continue;
-      // Only save if the role(s) can edit AND the field isn't locked
-      if (!canEditForRoles(editRoles, col)) continue;
-      if (isFieldLocked(editRoles, col, row)) continue;
-      if (!row.row_id) continue;
-
+      const prev = savedMap[col] ?? "";
+      if (updated === prev || !editableNow(col) || !row.row_id) continue;
       try {
-        await updateCell(row.row_id, col, updated);
+        await updateCell(row.row_id, col, updated, prev);
+        setSavedMap((m) => ({ ...m, [col]: updated }));
+        setTouched(true);
       } catch (err) {
         anyError = true;
-        if (err instanceof ForbiddenError) {
-          newErrors[col] = "Permission denied";
-        } else {
-          newErrors[col] = (err as Error).message ?? "Save failed";
-        }
+        newErrors[col] = err instanceof Error ? err.message : "Save failed";
       }
     }
+    if (anyError) { setErrors(newErrors); return false; }
+    return true;
+  }
 
-    setSaving(false);
-    if (anyError) {
-      setErrors(newErrors);
-    } else {
+  // Closing the card: if we auto-saved anything, refresh the board (via onSaved)
+  // so it reflects the edits; otherwise just close.
+  function closeCard() { (touched ? onSaved : onClose)(); }
+
+  async function runTransition(t: Transition, currentStatus: string, feedback?: string) {
+    if (!row.row_id) return;
+    setActingId(t.stageId + t.to);
+    // Flush any not-yet-saved field FIRST, so the status change carries it along.
+    if (!(await flushPending())) {
+      setActingId(null);
+      setFormError("Couldn't save your changes — fix the highlighted fields and try again.");
+      return;
+    }
+    try {
+      await applyTransition(row.row_id, t, currentStatus, feedback);
       onSaved();
       onClose();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Action failed");
+      setActingId(null);
     }
   }
 
-  const isApprover = isApproverRoles(editRoles);
-
-  // A doer's submitted-for-review card is frozen: show it fully read-only (incl.
-  // the status dropdown) so the only way back is dragging it to "Working on it".
-  const submittedLocked =
-    !isApprover && (row[boardLaneStatus as Column] ?? "").toString().trim() === "In Review";
-  const effReadOnly = readOnly || submittedLocked;
-
-  // Doer feedback: show feedback cols for any stages the user is a doer of
-  const doerFeedbackEntries: { col: string; text: string }[] = [];
-  if (!isApprover) {
-    for (const [statusCol, feedbackCol] of Object.entries(FEEDBACK_COL)) {
-      if (statusCol === boardLaneStatus) {
-        const text = (row[feedbackCol as Column] ?? "").trim();
-        if (text) doerFeedbackEntries.push({ col: feedbackCol, text });
-      }
-    }
-  }
-
-  // Approver: show approve/send-back only when card is "In Review" on the board's laneStatus
-  const showApproverActions =
-    !readOnly &&
-    isApprover &&
-    boardLaneStatus !== "" &&
-    (row[boardLaneStatus as Column] ?? "") === "In Review";
-
-  async function handleApprove() {
+  async function handleGenerate() {
     if (!row.row_id) return;
-    setApproverBusy(true);
-    try {
-      await review(row.row_id, stageFromLaneStatus(boardLaneStatus), "approve");
-    } catch { /* server will enforce */ }
-    setApproverBusy(false);
-    onSaved();
-    onClose();
+    setGenLoading(true); setGenError(null);
+    try { setGenResult(await generateLinks(row.row_id)); onSaved(); }
+    catch (err) { setGenError(err instanceof Error ? err.message : String(err)); }
+    finally { setGenLoading(false); }
   }
 
-  async function handleSendBack() {
-    if (!row.row_id) return;
-    setApproverBusy(true);
-    try {
-      await review(row.row_id, stageFromLaneStatus(boardLaneStatus), "sendback", sendBackNote.trim() || undefined);
-    } catch { /* server will enforce */ }
-    setApproverBusy(false);
-    onSaved();
-    onClose();
-  }
-
-  const title = row.video_title ?? "(no title)";
-
-  // ── Focused review mode ───────────────────────────────────────────────────
-  const isReviewMode = showApproverActions;
-  const stageName = STAGE_NAME[boardLaneStatus] ?? boardLaneStatus;
-  const artifactCol = ARTIFACT_COL[boardLaneStatus] ?? "";
-  const artifactValue = artifactCol ? (row[artifactCol as Column] ?? "") : "";
-  const artifactIsUrl = isUrl(artifactValue);
-  const assigneeEmailCol = EMAIL_FOR_STAGE[boardLaneStatus] ?? "";
-  const assigneeEmail = assigneeEmailCol ? (row[assigneeEmailCol as Column] ?? "") : "";
-  const assigneeDisplay = assigneeEmail ? displayName(assigneeEmail, names) : "";
-
-  // Stage dot color: script=todo(slate), tutorial=prog(blue), video_editor=review(amber), yt_upload=done(green)
-  const STAGE_DOT_COLOR: Record<string, string> = {
-    script_status:        "var(--todo, #64748b)",
-    tutorial_status:      "var(--prog)",
-    video_editor_status:  "var(--review)",
-    yt_upload_status:     "var(--done)",
-  };
-  const stageDotColor = STAGE_DOT_COLOR[boardLaneStatus] ?? "var(--accent)";
-
-  // ── Helper: render a read-only field value ────────────────────────────────
-  function renderReadOnlyValue(col: string, value: string) {
-    if (EMAIL_COLS.has(col) && value) {
-      const name = displayName(value, names);
-      const isDifferent = name !== value;
-      return (
-        <div className="ro">
-          <span>{name}</span>
-          {isDifferent && <span style={{ color: "var(--t4)", fontSize: "11px", marginLeft: "6px" }}>{value}</span>}
-        </div>
-      );
-    }
-    if (LINK_COLS.has(col) && isUrl(value)) {
-      return (
-        <div className="ro ro--link">
-          <span className="ro__link-text">{value}</span>
-          <a
-            href={value}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ext-link"
-          >
-            Open ↗
-          </a>
-        </div>
-      );
-    }
-    if (MULTILINE_COLS.has(col)) {
-      return <div className="ro" style={{ whiteSpace: "pre-wrap" }}>{value}</div>;
-    }
-    return <div className="ro">{value}</div>;
-  }
-
-  // ── Helper: render a single field (read-only or editable) ────────────────
+  // ── Field renderer ─────────────────────────────────────────────────────────
   function renderField(col: Column) {
-    const value = draft[col] ?? "";
-    const err = errors[col];
-    const label = FIELD_LABELS[col] ?? col.replace(/_/g, " ");
-    // admin_email is fixed (the founding admin) — never editable from the card.
-    const canEdit =
-      col !== "admin_email" &&
-      !effReadOnly &&
-      canEditForRoles(editRoles, col) &&
-      !isFieldLocked(editRoles, col, row);
+    // Admin is always the founding admin — show it prefilled and read-only even
+    // when the cell is blank.
+    const value = col === "admin_email" ? (draft[col] || PROTECTED_ADMIN_EMAIL) : (draft[col] ?? "");
+    const label = fieldLabel(col);
+    const lockReason = locks[col];
+    const editable = editableNow(col);
 
-    if (!canEdit) {
-      // read-only
+    if (!editable) {
       return (
         <div key={col} className="field">
-          <label>{label}</label>
-          {renderReadOnlyValue(col, value)}
+          <label>{label}{lockReason && <span className="lock-tag" title={lockReason}>🔒</span>}</label>
+          {ASSIGNEE_COLS.has(col) && value
+            ? <div className="ro">{displayName(value, names)} <span className="ro__sub">{value}</span></div>
+            : LINK_COLS.has(col) && isUrl(value)
+            ? <div className="ro ro--link"><span className="ro__link-text">{value}</span><a href={value} target="_blank" rel="noopener noreferrer" className="ext-link">Open ↗</a></div>
+            : <div className={`ro${MULTILINE_COLS.has(col) ? " ro--para" : ""}`}>{value || <span className="ro--empty">—</span>}</div>}
+          {lockReason && <div className="field-lock-note">{lockReason}</div>}
         </div>
       );
     }
 
-    // editable
-    const isLaneCol = LANE_COLUMNS.has(col);
-    const rawLaneValues = isLaneCol ? (LANES[col] ?? []) : [];
-    const friendlyMap = LANE_LABELS[col] ?? {};
-    const isEmailCol = EMAIL_COLS.has(col);
-    const isComboCol = col === "category" || col === "subcategory";
-
+    const err = errors[col];
+    const st = fieldStatus[col];
+    const indicator =
+      st === "saving" ? <span className="save-ind">Saving…</span>
+      : st === "saved" ? <span className="save-ind save-ind--ok">Saved ✓</span>
+      : null;
     return (
       <div key={col} className="field">
-        <label htmlFor={`field-${col}`}>{label}</label>
-        {isComboCol ? (
-          <ComboSelect
-            id={`field-${col}`}
-            value={value}
-            options={col === "category" ? categoryOptions : subcategoryOptions}
-            placeholder={`New ${label.toLowerCase()}…`}
-            onChange={v => handleChange(col, v)}
-          />
-        ) : isLaneCol ? (
-          <select
-            id={`field-${col}`}
-            value={value}
-            onChange={e => handleChange(col, e.target.value)}
-          >
-            {value && !rawLaneValues.includes(value) && (
-              <option value={value}>{friendlyMap[value] ?? value}</option>
-            )}
-            {rawLaneValues
-              .filter(v => canSetValueForRoles(editRoles, col, v))
-              .map(v => (
-                <option key={v} value={v}>{friendlyMap[v] ?? v}</option>
-              ))}
-          </select>
+        <label htmlFor={`f-${col}`}>{label}{indicator}</label>
+        {COMBO_COLS.has(col) ? (
+          <ComboSelect id={`f-${col}`} value={value} options={col === "category" ? categoryOptions : subcategoryOptions}
+            placeholder={`New ${label.toLowerCase()}…`} onChange={(v) => { handleChange(col, v); void autoSaveField(col, v); }} />
+        ) : ASSIGNEE_COLS.has(col) ? (
+          (() => {
+            const requiredRole = ASSIGNEE_ROLE[col];
+            const hasRole = (email: string) =>
+              !requiredRole || (memberRoles[email] ?? "").split(",").map((r) => r.trim()).includes(requiredRole);
+            const people = Object.keys(names).filter(hasRole).sort((a, b) => names[a].localeCompare(names[b]));
+            const cur = value.toLowerCase();
+            return (
+              <select id={`f-${col}`} value={value} onChange={(e) => { handleChange(col, e.target.value); void autoSaveField(col, e.target.value); }}>
+                <option value="">— Unassigned —</option>
+                {value && !people.includes(cur) && <option value={value}>{personLabel(value, names, memberRoles)}</option>}
+                {people.map((email) => (
+                  <option key={email} value={email}>{personLabel(email, names, memberRoles)}</option>
+                ))}
+              </select>
+            );
+          })()
         ) : MULTILINE_COLS.has(col) ? (
-          <textarea
-            id={`field-${col}`}
-            value={value}
-            rows={4}
-            placeholder={`Write the ${label.toLowerCase()}…`}
-            onChange={e => handleChange(col, e.target.value)}
-          />
-        ) : isEmailCol ? (
-          // Assignment field — pick a teammate (from the Employes tab) instead of typing an email.
-          <select
-            id={`field-${col}`}
-            value={value}
-            onChange={e => handleChange(col, e.target.value)}
-          >
-            <option value="">— Unassigned —</option>
-            {value && !(value.toLowerCase() in names) && (
-              <option value={value}>{value}</option>
-            )}
-            {Object.entries(names)
-              .sort((a, b) => a[1].localeCompare(b[1]))
-              .map(([email, name]) => (
-                <option key={email} value={email}>
-                  {name} · {email}
-                </option>
-              ))}
-          </select>
+          <textarea id={`f-${col}`} className="field-para" value={value} rows={5} placeholder={`Write the ${label.toLowerCase()}…`}
+            onChange={(e) => handleChange(col, e.target.value)} onBlur={(e) => void autoSaveField(col, e.target.value)} />
         ) : (
           <>
-            <input
-              id={`field-${col}`}
-              type="text"
-              value={value}
-              placeholder={
-                LINK_COLS.has(col)
-                  ? `Paste the ${label.toLowerCase()} link…`
-                  : `Enter the ${label.toLowerCase()}…`
-              }
-              onChange={e => handleChange(col, e.target.value)}
-            />
-            {LINK_COLS.has(col) && isUrl(value) && (
-              <a
-                href={value}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ext-link ext-link--below-input"
-              >
-                Open ↗
-              </a>
-            )}
+            <input id={`f-${col}`} type="text" value={value}
+              placeholder={LINK_COLS.has(col) ? `Paste the ${label.toLowerCase()} link…` : `Enter the ${label.toLowerCase()}…`}
+              onChange={(e) => handleChange(col, e.target.value)} onBlur={(e) => void autoSaveField(col, e.target.value)} />
+            {LINK_COLS.has(col) && isUrl(value) && <a href={value} target="_blank" rel="noopener noreferrer" className="ext-link ext-link--below-input">Open ↗</a>}
           </>
         )}
-        {LINK_HINTS[col] && (
-          <div className="field-hint">🔗 {LINK_HINTS[col]}</div>
-        )}
+        {LINK_HINTS[col] && <div className="field-hint">🔗 {LINK_HINTS[col]}</div>}
         {err && <div className="field-error">{err}</div>}
       </div>
     );
   }
 
-  // ── Compute visible sections ──────────────────────────────────────────────
-  // A section is visible if at least one of its cols appears in user's columns list.
-  const colSet = new Set<string>(columns);
-
-  // Check whether any section has editable fields (for Save button display)
-  const hasAnyEditable = !effReadOnly && columns.some(
-    col => canEditForRoles(editRoles, col) && !isFieldLocked(editRoles, col, row)
-  );
-
-  // ── Approver actions block ────────────────────────────────────────────────
-  const approverActionsBlock = showApproverActions ? (
-    <div className="approver-actions">
-      <button
-        className="btn-approve"
-        onClick={() => void handleApprove()}
-        disabled={approverBusy}
-      >
-        {approverBusy && approverAction === "none" ? "…" : "✓ Approve"}
-      </button>
-      <button
-        className="btn-sendback"
-        onClick={() => setApproverAction(a => a === "sendback" ? "none" : "sendback")}
-        disabled={approverBusy}
-      >
-        ↩ Send back
-      </button>
-      {approverAction === "sendback" && (
-        <div className="sendback-form">
-          <textarea
-            className="sendback-textarea"
-            placeholder="Feedback for the freelancer…"
-            value={sendBackNote}
-            onChange={e => setSendBackNote(e.target.value)}
-            rows={3}
-          />
-          <button
-            className="btn-sendback-confirm"
-            onClick={() => void handleSendBack()}
-            disabled={approverBusy}
-          >
-            {approverBusy ? "…" : "Confirm send back"}
-          </button>
-        </div>
-      )}
-    </div>
-  ) : null;
-
-  // ── Section rendering helper ──────────────────────────────────────────────
-  function renderSections(forReviewMode: boolean) {
-    return SECTIONS.map(sec => {
-      // Filter to cols visible to this user
-      const visibleCols = sec.cols.filter(c => colSet.has(c as Column));
-      if (visibleCols.length === 0) return null;
-
-      const isActive = sec.key === activeSection;
-      // In review mode: open = active section OR brief (same logic as normal mode)
-      const isOpen = openSections[sec.key] ?? false;
-
-      return (
-        <SectionAccordion
-          key={sec.key}
-          sectionKey={sec.key}
-          label={sec.label}
-          icon={sec.icon}
-          isOpen={isOpen}
-          isActive={isActive}
-          onToggle={() => toggleSection(sec.key)}
-        >
-          <div className="sec-accordion__fields">
-            {visibleCols.map(c => {
-              // In review mode, all fields are read-only (approver sees details, not edit)
-              if (forReviewMode) {
-                const value = draft[c as Column] ?? "";
-                const label = FIELD_LABELS[c] ?? c.replace(/_/g, " ");
-                return (
-                  <div key={c} className="field">
-                    <label>{label}</label>
-                    {renderReadOnlyValue(c, value)}
-                  </div>
-                );
-              }
-              return renderField(c as Column);
-            })}
-          </div>
-        </SectionAccordion>
-      );
-    }).filter(Boolean);
+  // ── Action area (scoped to the context stage + the viewer's perspective) ─────
+  function renderActions() {
+    const inPerspective = (t: Transition) => perspective === "all" || t.by === perspective;
+    const groups = (showAll ? actionGroups : actionGroups.filter((g) => g.stageId === contextStage.id))
+      .map((g) => ({ ...g, transitions: g.transitions.filter(inPerspective) }))
+      .filter((g) => g.transitions.length > 0);
+    if (readOnly || groups.length === 0) return null;
+    return (
+      <div className="detail-actions">
+        {groups.map((g) => {
+          const stage = stageById(g.stageId);
+          if (!stage) return null;
+          const status = statusOf(stage, row);
+          const meta = statusMeta(status);
+          // Raw stored value for the optimistic-lock check (blank stays blank).
+          const rawStatus = (row[g.statusCol as Column] as string) ?? "";
+          // Re-evaluate the required-field gate against what's TYPED (draft), not
+          // just what's saved — so pasting the link enables Submit immediately
+          // (clicking it then saves the link + moves the status in one go).
+          const blockReason = (t: Transition): string | undefined => {
+            if (t.kind !== "submit" && t.kind !== "advance") return undefined;
+            const m = missingRequired(stage, effectiveRow);
+            return m.length ? `Add the ${m.map((f) => f.label).join(", ")} first.` : undefined;
+          };
+          const hint = g.transitions.map(blockReason).find(Boolean);
+          return (
+            <div key={g.stageId} className="detail-action-row">
+              <div className="detail-action-row__label">
+                <strong>{stage.label}</strong> <span className={`pill pill--${meta.tone}`}>{meta.label}</span>
+              </div>
+              {/* Non-feedback actions (Approve / Start / Submit / Mark uploaded) */}
+              {g.transitions.some((t) => !t.requiresFeedback) && (
+                <div className="detail-action-row__btns">
+                  {g.transitions.filter((t) => !t.requiresFeedback).map((t) => {
+                    const reason = blockReason(t);
+                    return (
+                      <button key={t.to + t.kind} type="button" className={`act act--${t.kind}`}
+                        disabled={actingId !== null || !!reason} title={reason ?? ""}
+                        onClick={() => { if (!reason) void runTransition(t, rawStatus); }}>{t.label}</button>
+                    );
+                  })}
+                </div>
+              )}
+              {hint && <div className="detail-action-row__hint">{hint}</div>}
+              {/* Send-back: the box is always shown; the button IS the action, enabled once a note is typed. */}
+              {g.transitions.filter((t) => t.requiresFeedback).map((t) => (
+                <div key={"fb" + t.to} className="sendback-form">
+                  <label className="sendback-label">Or send it back — say what to change:</label>
+                  <textarea className="sendback-textarea" rows={3} placeholder="What needs to change?"
+                    value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} />
+                  <button className="act act--reject" disabled={actingId !== null || !feedbackText.trim()}
+                    onClick={() => void runTransition(t, rawStatus, feedbackText.trim())}>{t.label}</button>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    );
   }
+
+  // ── Feedback banners: show the reviewer's note while the stage is being
+  //    reworked (Need Changes → In Progress → resubmit), i.e. any time feedback
+  //    exists and the stage isn't yet approved. This is the ONLY place feedback
+  //    is shown (it's no longer an editable field). ──────────────────────────
+  const feedbackBanners = STAGES
+    .filter((s) => (showAll || s.id === contextStage.id) && s.reviewable && s.feedbackCol && colSet.has(s.feedbackCol) && statusOf(s, row) !== "Done")
+    .map((s) => ({ stage: s, text: ((row[s.feedbackCol as Column] as string) ?? "").trim() }))
+    .filter((b) => b.text);
+
+  const title = row.video_title ?? "(no title)";
+
+  // Default: the context stage's curated fields. "Show all fields" (admin) falls
+  // back to the full per-stage section breakdown.
+  const contextCols = cardFieldsFor(contextStage).filter((c) => colSet.has(c));
+  const fullSections = SECTIONS
+    .map((sec) => ({ ...sec, cols: sec.cols.filter((c) => colSet.has(c)) }))
+    .filter((sec) => sec.cols.length > 0);
+  const sectionsToShow = showAll
+    ? fullSections
+    : [{ id: contextStage.id, label: contextStage.id === "topic" ? "Brief & assignments" : contextStage.label, cols: contextCols }]
+        .filter((sec) => sec.cols.length > 0);
 
   return (
     <>
-      {/* Scrim — click outside to close */}
-      <div className="detail-overlay" onClick={onClose} />
-
-      <div className="detail-panel" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
-        <button className="panel__close" onClick={onClose} aria-label="Close">×</button>
-
+      <div className="detail-overlay" onClick={closeCard} />
+      <div className="detail-panel" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <button className="panel__close" onClick={closeCard} aria-label="Close">×</button>
         <div className="detail-body">
           <h2>{title}</h2>
 
-          {/* ── FOCUSED REVIEW MODE ── */}
-          {isReviewMode ? (
-            <>
-              {/* 1. Stage chip + submitted-by header */}
-              <div className="review-header">
-                <div className="review-stage-chip">
-                  <span className="review-stage-chip__dot" style={{ background: stageDotColor }} />
-                  <span className="review-stage-chip__label">Reviewing: {stageName}</span>
-                </div>
-                {assigneeDisplay && (
-                  <div className="review-submitted-by">
-                    submitted by <strong>{assigneeDisplay}</strong>
-                  </div>
-                )}
-              </div>
+          {/* Stage status overview */}
+          <div className="detail-status-row">
+            {STAGES.filter((s) => colSet.has(s.statusCol) || isAdmin).map((s) => {
+              const m = statusMeta(statusOf(s, row as Row));
+              return <span key={s.id} className="detail-status-chip"><span className="detail-status-chip__stage">{s.label}</span><span className={`pill pill--${m.tone}`}>{m.label}</span></span>;
+            })}
+          </div>
 
-              {/* 2. Prominent artifact link */}
-              <div className="review-artifact">
-                {artifactIsUrl ? (
-                  <a
-                    href={artifactValue}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-artifact"
-                  >
-                    ▶ Open the {stageName.toLowerCase()} ↗
-                  </a>
-                ) : (
-                  <div className="review-artifact__no-link">(no link provided)</div>
-                )}
-              </div>
+          {feedbackBanners.map(({ stage, text }) => (
+            <div key={stage.id} className="needs-banner">
+              <span className="needs-banner__icon">⚠</span>
+              <div><div className="needs-banner__label">{stage.label} — changes requested</div><div className="needs-banner__text">{text}</div></div>
+            </div>
+          ))}
 
-              {/* 3. Approve / Send back */}
-              {approverActionsBlock}
-
-              {/* 4. Grouped collapsible sections (review mode: all read-only) */}
-              <div className="sec-sections">
-                {renderSections(true)}
-              </div>
-            </>
-          ) : (
-            <>
-              {/* ── NORMAL MODE (non-review opens) ── */}
-
-              {/* Admin: generate go.agrolloo short links + YouTube description (top — primary action) */}
-              {isAdmin && (
-                <div className="gen-panel">
-                  <button className="btn-save" onClick={() => void handleGenerate()} disabled={genLoading}>
-                    {genLoading ? "Generating…" : "Generate links & description"}
-                  </button>
-                  {genError && <p className="gen-panel__error">{genError}</p>}
-                  {genResult && (
-                    <div className="gen-panel__result">
-                      <label className="gen-panel__label">Description</label>
-                      <textarea readOnly value={genResult.description} rows={6} className="gen-panel__desc" />
-                      <button type="button" className="gen-panel__copy" onClick={() => void navigator.clipboard.writeText(genResult.description)}>
-                        Copy description
-                      </button>
-
-                      <label className="gen-panel__label" style={{ marginTop: 12 }}>Short links</label>
-                      <ul className="gen-panel__links">
-                        {genResult.links.map((l) => (
-                          <li key={l.tool}>
-                            <code>{l.tool}</code>:{" "}
-                            <a href={l.short_url} target="_blank" rel="noopener noreferrer">{l.short_url}</a>
-                            {!l.has_affiliate && (
-                              <span className="gen-panel__warn"> (no affiliate — verify URL)</span>
-                            )}{" "}
-                            <button type="button" className="gen-panel__copy" onClick={() => void navigator.clipboard.writeText(l.short_url)}>
-                              Copy
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-
-                      {genResult.non_affiliate_tools.length > 0 && (
-                        <p className="gen-panel__warn">
-                          Verify these non-affiliate URLs: {genResult.non_affiliate_tools.join(", ")}
-                        </p>
-                      )}
-                    </div>
-                  )}
+          {/* Admin: generate links */}
+          {isAdmin && !readOnly && (
+            <div className="gen-panel">
+              <button className="btn-save" onClick={() => void handleGenerate()} disabled={genLoading}>
+                {genLoading ? "Generating…" : "Generate links & description"}
+              </button>
+              {genError && <p className="gen-panel__error">{genError}</p>}
+              {genResult && (
+                <div className="gen-panel__result">
+                  <label className="gen-panel__label">Description</label>
+                  <textarea readOnly value={genResult.description} rows={6} className="gen-panel__desc" />
+                  <button type="button" className="gen-panel__copy" onClick={() => void navigator.clipboard.writeText(genResult.description)}>Copy description</button>
+                  <ul className="gen-panel__links">
+                    {genResult.links.map((l) => (
+                      <li key={l.tool}><code>{l.tool}</code>: <a href={l.short_url} target="_blank" rel="noopener noreferrer">{l.short_url}</a>{!l.has_affiliate && <span className="gen-panel__warn"> (no affiliate — verify URL)</span>}</li>
+                    ))}
+                  </ul>
                 </div>
               )}
+            </div>
+          )}
 
-              {/* Doer: submitted-for-review freeze notice */}
-              {submittedLocked && (
-                <div className="detail-locked-note">
-                  <span className="detail-locked-note__icon">⏳</span>
-                  <div>
-                    <div className="detail-locked-note__label">Submitted for review</div>
-                    <div className="detail-locked-note__text">
-                      This card is locked while the reviewer checks it. To make changes,
-                      drag it back to “Working on it” on the board.
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Doer: feedback notes from reviewer (shown prominently when non-empty) */}
-              {doerFeedbackEntries.map(({ col, text }) => (
-                <div key={col} className="detail-feedback-note">
-                  <span className="detail-feedback-note__icon">⚠</span>
-                  <div>
-                    <div className="detail-feedback-note__label">Reviewer note</div>
-                    <div className="detail-feedback-note__text">{text}</div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Grouped collapsible sections */}
-              <div className="sec-sections">
-                {renderSections(false)}
+          {/* Field sections — scoped to the context stage; admins can expand to all */}
+          <div className="sec-sections">
+            {sectionsToShow.map((sec) => (
+              <div key={sec.id} className="detail-section">
+                <div className="detail-section__title">{sec.label}</div>
+                <div className="detail-section__fields">{sec.cols.map((c) => renderField(c))}</div>
               </div>
+            ))}
+          </div>
 
-              {/* Global Save button at the bottom */}
-              {formError && <div className="field-error detail-form-error">{formError}</div>}
-              {hasAnyEditable && (
-                <button
-                  className="btn-save"
-                  onClick={handleSave}
-                  disabled={saving}
-                >
-                  {saving ? "Saving…" : "Save"}
-                </button>
-              )}
-
-              {columns.length === 0 && (
-                <p style={{ color: "var(--t4)", fontSize: "13px" }}>No editable fields.</p>
-              )}
-            </>
+          {isAdmin && (
+            <button type="button" className="show-all-toggle" onClick={() => setShowAll((v) => !v)}>
+              {showAll ? "Show only this stage's fields" : "Show all fields"}
+            </button>
           )}
         </div>
+
+        {/* Single action footer — fields above auto-save; this is the one CTA. */}
+        {(renderActions() || formError) && (
+          <div className="detail-footer">
+            {formError && <div className="field-error detail-form-error">{formError}</div>}
+            {renderActions()}
+          </div>
+        )}
       </div>
     </>
   );

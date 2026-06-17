@@ -1,71 +1,72 @@
 import type { Column } from "../shared/columns";
-import type { Row } from "../shared/rbac";
+import type { Row, Transition } from "../shared/rbac";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
 export class UnauthorizedError extends Error {
   constructor() { super("Not authenticated"); this.name = "UnauthorizedError"; }
 }
-
 export class ForbiddenError extends Error {
-  constructor() { super("You don't have permission to edit this field"); this.name = "ForbiddenError"; }
+  constructor(message?: string) { super(message || "You don't have permission to do this"); this.name = "ForbiddenError"; }
 }
+export class ConflictError extends Error {
+  constructor() { super("Someone else changed this just now"); this.name = "ConflictError"; }
+}
+
+/** Per-stage allowed transitions the server computed for this card + user. */
+export interface CardActionGroup {
+  stageId: string;
+  statusCol: string;
+  transitions: Transition[];
+}
+
+/** A board row plus the server-computed authority meta. */
+export type BoardRow = Row & {
+  _stages?: string[];                 // status cols this card belongs to (in user's lanes)
+  _actions?: CardActionGroup[];       // allowed status transitions, per stage
+  _locks?: Record<string, string>;    // editable col -> lock reason (absent = editable)
+};
 
 export interface BoardData {
-  role: string;                         // legacy single role string
-  roles: string[];                      // multi-role array
-  stages: { statusCol: string; role: string }[]; // worker stages for this user
+  roles: string[];
+  viewerEmail?: string;
+  stages: { statusCol: string; role: string }[];
   columns: Column[];
-  /** `_stages`: worker-stage status cols this row belongs to (server-tagged, for multi-role boards). */
-  rows: (Row & { _stages?: string[] })[];
-  viewingAs: { email: string; role: string | null; roles?: string[] } | null;
+  rows: BoardRow[];
+  viewingAs: { email: string; roles: string[] } | null;
   readOnly?: boolean;
-  canEditAll?: boolean;             // session user is an admin → full edit authority, even while previewing
   notice?: string;
   names?: Record<string, string>;
+  memberRoles?: Record<string, string>;   // email -> comma-joined roles, for "Name — Role" labels
 }
 
-export interface TeamMember {
-  name: string;
-  email: string;
-  role: string;
-  roles?: string[];
-}
+export interface TeamMember { name: string; email: string; role: string; roles?: string[]; }
+export interface MeData { email: string; roles: string[]; }
 
-export interface MeData {
-  email: string;
-  role: string;
-}
-
-export interface ApprovalItem {
+export interface ReviewItem {
   row_id: string;
   video_title: string;
-  stageCol: string;
+  stageId: string;
   stage: string;
-  assigneeEmail: string;
-  row: Row;
+  statusCol: string;
+  submittedBy: string;
+  submittedByName: string;
+  row: BoardRow;
 }
-
-export interface ApprovalsData {
-  count: number;
-  items: ApprovalItem[];
-  names?: Record<string, string>;
-}
+export interface ReviewQueueData { count: number; items: ReviewItem[]; names?: Record<string, string>; }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 async function throwOnError(res: Response): Promise<void> {
   if (res.ok) return;
   if (res.status === 401) throw new UnauthorizedError();
-  if (res.status === 403) throw new ForbiddenError();
-  const text = await res.text().catch(() => res.statusText);
-  throw new Error(`HTTP ${res.status}: ${text}`);
+  let message = "";
+  try { message = ((await res.json()) as { message?: string }).message ?? ""; } catch { /* ignore */ }
+  if (res.status === 409) throw new ConflictError();
+  if (res.status === 403) throw new ForbiddenError(message);
+  throw new Error(message || `HTTP ${res.status}`);
 }
 
-/**
- * Resolve a human-readable display name from the names map.
- * Falls back to the username part of the email, then the raw value.
- */
 export function displayName(email: string, names?: Record<string, string>): string {
   if (!email) return "";
   const key = email.trim().toLowerCase();
@@ -73,15 +74,35 @@ export function displayName(email: string, names?: Record<string, string>): stri
   return (email.includes("@") ? email.split("@")[0] : email) || email;
 }
 
+/** "Name — Role(s)" for dropdowns, so the role is shown automatically. */
+export function personLabel(email: string, names?: Record<string, string>, memberRoles?: Record<string, string>): string {
+  const name = displayName(email, names);
+  const roles = memberRoles?.[email.trim().toLowerCase()];
+  return roles ? `${name} — ${roles}` : name;
+}
+
+async function postJSON(url: string, body: unknown): Promise<Response> {
+  return fetch(url, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 // ── API wrappers ───────────────────────────────────────────────────────────
 
 export async function getBoard(asUser?: string): Promise<BoardData> {
-  const url = asUser
-    ? `/api/board?asUser=${encodeURIComponent(asUser)}`
-    : "/api/board";
+  const url = asUser ? `/api/board?asUser=${encodeURIComponent(asUser)}` : "/api/board";
   const res = await fetch(url, { credentials: "same-origin" });
   await throwOnError(res);
   return res.json() as Promise<BoardData>;
+}
+
+export async function getMe(): Promise<MeData> {
+  const res = await fetch("/api/me", { credentials: "same-origin" });
+  await throwOnError(res);
+  return res.json() as Promise<MeData>;
 }
 
 export async function getTeam(): Promise<TeamMember[]> {
@@ -97,65 +118,51 @@ export async function getRoleOptions(): Promise<string[]> {
 }
 
 export async function saveTeamMember(input: { name: string; email: string; roles: string[] }): Promise<void> {
-  const res = await fetch("/api/team", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-  await throwOnError(res);
+  await throwOnError(await postJSON("/api/team", input));
 }
-
 export async function deleteTeamMember(email: string): Promise<void> {
-  const res = await fetch("/api/team/delete", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  await throwOnError(res);
+  await throwOnError(await postJSON("/api/team/delete", { email }));
 }
 
-export async function updateCell(row_id: string, col: Column, value: string): Promise<void> {
-  const res = await fetch("/api/update", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ row_id, col, value }),
-  });
-  await throwOnError(res);
+/** Doer cell write — status transition or content edit. `prev` enables optimistic concurrency. */
+export async function updateCell(row_id: string, col: Column, value: string, prev?: string): Promise<void> {
+  await throwOnError(await postJSON("/api/update", { row_id, col, value, prev }));
 }
 
+/** Reviewer action on a reviewable stage. */
 export async function review(
   row_id: string,
-  stage: "script" | "tutorial" | "editor" | "upload",
+  stageId: string,
   action: "approve" | "sendback",
   feedback?: string,
 ): Promise<void> {
-  const res = await fetch("/api/review", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ row_id, stage, action, feedback }),
-  });
-  await throwOnError(res);
+  await throwOnError(await postJSON("/api/review", { row_id, stage: stageId, action, feedback }));
 }
 
-export async function getMe(): Promise<MeData> {
-  const res = await fetch("/api/me", { credentials: "same-origin" });
-  await throwOnError(res);
-  return res.json() as Promise<MeData>;
+/**
+ * Apply a server-issued transition. Reviewer actions (approve / request-changes)
+ * go through /api/review; everything else is a plain status write.
+ */
+export async function applyTransition(
+  row_id: string,
+  t: Transition,
+  currentStatus: string,
+  feedback?: string,
+): Promise<void> {
+  if (t.kind === "approve") return review(row_id, t.stageId, "approve");
+  if (t.kind === "reject" || t.kind === "reopen") return review(row_id, t.stageId, "sendback", feedback);
+  return updateCell(row_id, t.statusCol as Column, t.to, currentStatus);
+}
+
+export async function getReviewQueue(): Promise<ReviewQueueData> {
+  const res = await fetch("/api/review-queue", { credentials: "same-origin" });
+  if (!res.ok) return { count: 0, items: [], names: {} };
+  return res.json() as Promise<ReviewQueueData>;
 }
 
 export async function logout(): Promise<void> {
-  const res = await fetch("/auth/logout", {
-    method: "POST",
-    credentials: "same-origin",
-  });
-  // 302/redirect is fine; just ignore body
-  if (!res.ok && res.status !== 302) {
-    throw new Error(`Logout failed: ${res.status}`);
-  }
+  const res = await fetch("/auth/logout", { method: "POST", credentials: "same-origin" });
+  if (!res.ok && res.status !== 302) throw new Error(`Logout failed: ${res.status}`);
 }
 
 export async function getAuthMode(): Promise<{ dev: boolean }> {
@@ -164,69 +171,34 @@ export async function getAuthMode(): Promise<{ dev: boolean }> {
   return res.json() as Promise<{ dev: boolean }>;
 }
 
-export async function getApprovals(): Promise<ApprovalsData> {
-  const res = await fetch("/api/approvals", { credentials: "same-origin" });
-  if (!res.ok) return { count: 0, items: [], names: {} };
-  return res.json() as Promise<ApprovalsData>;
-}
-
-// ── Affiliate-link generation (App A) ────────────────────────────────────────
+// ── Affiliate-link generation ────────────────────────────────────────────────
 
 export interface GeneratedLink {
-  tool: string;
-  short_url: string;
-  target_url: string;
-  has_affiliate: boolean;
-  coupon: string;
+  tool: string; short_url: string; target_url: string; has_affiliate: boolean; coupon: string;
 }
-
 export interface GenerateLinksResult {
-  description: string;
-  links: GeneratedLink[];
-  non_affiliate_tools: string[];
+  description: string; links: GeneratedLink[]; non_affiliate_tools: string[];
 }
 
 export async function createVideo(input: {
-  video_title: string;
-  video_notes?: string;
-  category?: string;
-  subcategory?: string;
+  video_title: string; video_notes?: string; category?: string; subcategory?: string;
+  ideator_email?: string; reviewer_email?: string;
 }): Promise<{ row_id: string }> {
-  const res = await fetch("/api/video", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
+  const res = await postJSON("/api/video", input);
   await throwOnError(res);
   return res.json() as Promise<{ row_id: string }>;
 }
 
 export async function deleteVideo(row_id: string): Promise<void> {
-  const res = await fetch("/api/delete", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ row_id }),
-  });
-  await throwOnError(res);
+  await throwOnError(await postJSON("/api/delete", { row_id }));
 }
 
 export async function generateLinks(row_id: string): Promise<GenerateLinksResult> {
-  const res = await fetch("/api/generate-links", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ row_id }),
-  });
+  const res = await postJSON("/api/generate-links", { row_id });
   if (!res.ok) {
     if (res.status === 401) throw new UnauthorizedError();
-    // Surface the worker's friendly message ({error, message}) instead of a raw HTTP dump.
     let msg = `Couldn't generate links (HTTP ${res.status})`;
-    try {
-      const body = (await res.json()) as { message?: string };
-      if (body?.message) msg = body.message;
-    } catch { /* non-JSON body — keep the generic message */ }
+    try { const b = (await res.json()) as { message?: string }; if (b?.message) msg = b.message; } catch { /* ignore */ }
     throw new Error(msg);
   }
   return res.json() as Promise<GenerateLinksResult>;

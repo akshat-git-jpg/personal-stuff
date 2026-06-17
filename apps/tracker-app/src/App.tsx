@@ -1,14 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { Board } from "./client/Board";
-import { getBoard, getTeam, logout, UnauthorizedError, type BoardData, type TeamMember } from "./client/api";
-import { displayName } from "./client/api";
+import { getBoard, getTeam, logout, displayName, UnauthorizedError, type BoardData, type TeamMember } from "./client/api";
 
 // Dev preview personas — linked by email
 const DEV_PERSONAS: { label: string; email: string }[] = [
-  { label: "Sean (Admin)",            email: "seankerman25@gmail.com"    },
-  { label: "John (Video Editor)",     email: "akshatpatidar17@gmail.com"  },
+  { label: "Sean (Admin)", email: "seankerman25@gmail.com" },
+  { label: "John (Video Editor)", email: "akshatpatidar17@gmail.com" },
   { label: "Sam (Script + Recordings)", email: "kushalbakliwal25@gmail.com" },
-  { label: "Anusha (Recordings)",     email: "khushibakliwal125@gmail.com" },
+  { label: "Anusha (Recordings)", email: "khushibakliwal125@gmail.com" },
 ];
 
 type AppState =
@@ -21,11 +20,8 @@ async function fetchDevMode(): Promise<boolean> {
   try {
     const res = await fetch("/api/auth-mode", { credentials: "same-origin" });
     if (!res.ok) return false;
-    const json = await res.json() as { dev?: boolean };
-    return json.dev === true;
-  } catch {
-    return false;
-  }
+    return ((await res.json()) as { dev?: boolean }).dev === true;
+  } catch { return false; }
 }
 
 export default function App() {
@@ -33,22 +29,17 @@ export default function App() {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [viewAsEmail, setViewAsEmail] = useState<string>("");
 
-  const load = useCallback(async (asUser?: string) => {
-    setState({ status: "loading" });
+  // `silent` refreshes (after an action) keep the current view on screen and just
+  // swap in fresh data, so the Board component never unmounts and the user stays
+  // on their tab. Only the initial load / view-as switch shows the loading screen.
+  const load = useCallback(async (asUser?: string, opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setState({ status: "loading" });
     try {
       const data = await getBoard(asUser);
-      // Back-compat: ensure roles[] is always present
-      if (!data.roles) {
-        (data as BoardData).roles = data.role ? [data.role] : [];
-      }
-      if (!data.stages) {
-        (data as BoardData).stages = [];
-      }
       setState({ status: "ok", data });
     } catch (err) {
       if (err instanceof UnauthorizedError) {
-        const devMode = await fetchDevMode();
-        setState({ status: "unauthenticated", devMode });
+        setState({ status: "unauthenticated", devMode: await fetchDevMode() });
       } else {
         setState({ status: "error", message: (err as Error).message ?? "Unknown error" });
       }
@@ -57,7 +48,7 @@ export default function App() {
 
   useEffect(() => { void load(); }, [load]);
 
-  // Load team list once admin board is confirmed
+  // Load team once (for the view-as picker + name resolution) when an admin session is confirmed.
   useEffect(() => {
     if (state.status === "ok" && state.data.roles.includes("Admin") && team.length === 0) {
       void getTeam().then(setTeam);
@@ -66,26 +57,20 @@ export default function App() {
 
   async function handleLogout() {
     try { await logout(); } catch { /* ignore */ }
-    const devMode = await fetchDevMode();
-    setState({ status: "unauthenticated", devMode });
+    setState({ status: "unauthenticated", devMode: await fetchDevMode() });
   }
 
-  async function handleViewAsChange(email: string) {
+  function handleViewAsChange(email: string) {
     setViewAsEmail(email);
     void load(email || undefined);
   }
 
-  // ── Sign-in screen ──────────────────────────────────────────────────────
   if (state.status === "unauthenticated") {
     return (
       <div className="signin-screen">
         <div className="signin-screen__title">Tutorials Tracker</div>
-        <div className="signin-screen__sub">Sign in to view your kanban board</div>
-
-        <button
-          className="btn-google"
-          onClick={() => { window.location.href = "/auth/login"; }}
-        >
+        <div className="signin-screen__sub">Sign in to view your board</div>
+        <button className="btn-google" onClick={() => { window.location.href = "/auth/login"; }}>
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
             <path d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.86-1.6 2.44v2h2.6c1.52-1.4 2.4-3.46 2.4-5.88 0-.4-.04-.8-.1-1.16z" fill="#4285F4"/>
             <path d="M8.98 17c2.16 0 3.97-.71 5.3-1.94l-2.6-2c-.71.48-1.63.76-2.7.76-2.08 0-3.84-1.4-4.47-3.29H1.84v2.07C3.16 15.28 5.9 17 8.98 17z" fill="#34A853"/>
@@ -94,21 +79,13 @@ export default function App() {
           </svg>
           Sign in with Google
         </button>
-
         {state.devMode && (
           <div className="dev-preview">
             <div className="dev-preview__label">Preview (dev only)</div>
             <div className="dev-preview__buttons">
               {DEV_PERSONAS.map(({ label, email }) => (
-                <button
-                  key={email}
-                  className="btn-dev"
-                  onClick={() => {
-                    window.location.href = `/dev-login?email=${encodeURIComponent(email)}`;
-                  }}
-                >
-                  {label}
-                </button>
+                <button key={email} className="btn-dev"
+                  onClick={() => { window.location.href = `/dev-login?email=${encodeURIComponent(email)}`; }}>{label}</button>
               ))}
             </div>
           </div>
@@ -117,102 +94,63 @@ export default function App() {
     );
   }
 
-  if (state.status === "loading") {
-    return <div className="app-loading">Loading board…</div>;
-  }
-
+  if (state.status === "loading") return <div className="app-loading">Loading board…</div>;
   if (state.status === "error") {
     return (
       <div className="app-error">
-        <strong>Something went wrong</strong><br />
-        {state.message}
-        <br /><br />
-        <button
-          style={{ marginTop: "8px", padding: "8px 18px", background: "var(--accent)", border: "none", borderRadius: "8px", color: "#1a0e03", fontWeight: 700, cursor: "pointer" }}
-          onClick={() => void load()}
-        >
-          Retry
-        </button>
+        <strong>Something went wrong</strong><br />{state.message}<br /><br />
+        <button className="btn-newvideo" onClick={() => void load()}>Retry</button>
       </div>
     );
   }
 
   const { data } = state;
-  const roles = data.roles ?? (data.role ? [data.role] : []);
+  const roles = data.roles ?? [];
   const isAdmin = roles.includes("Admin");
-
-  // Role badge: show joined roles or single role
-  const roleBadgeText = roles.length > 1
-    ? roles.join(" · ")
-    : (roles[0] ?? data.role ?? "");
-
-  // "Who am I" display name
-  const myEmail = data.viewingAs?.email ?? "";
+  const viewing = data.viewingAs;
+  // Always show who you are at the top — the effective viewer (you, or the person
+  // you're previewing).
+  const myEmail = viewing?.email ?? data.viewerEmail ?? "";
   const myName = myEmail ? displayName(myEmail, data.names ?? {}) : "";
+  const roleBadge = (viewing?.roles ?? roles).join(" · ");
 
-  // Build friendly preview banner
   let previewBanner: string | null = null;
-  if (data.viewingAs) {
-    if (data.viewingAs.role === null) {
-      previewBanner = data.notice ?? `No role mapping found for ${data.viewingAs.email}.`;
-    } else {
-      const memberName = team.find(m => m.email === data.viewingAs!.email)?.name ?? data.viewingAs.email;
-      const friendlyRole = data.viewingAs.role ?? data.viewingAs.roles?.[0] ?? "no role";
-      previewBanner = data.canEditAll
-        ? `\u{1F441}️ Previewing ${memberName}'s board (${friendlyRole}) — you can edit as admin. Switch to "Full admin (me)" for the full pipeline.`
-        : `\u{1F441}️ Previewing ${memberName}'s board (${friendlyRole}) — read-only. Switch to "Full admin (me)" to edit.`;
-    }
+  if (viewing) {
+    const memberName = team.find((m) => m.email === viewing.email)?.name ?? viewing.email;
+    previewBanner = viewing.roles.length === 0
+      ? (data.notice ?? `No role mapping found for ${viewing.email}.`)
+      : `👁️ Viewing ${memberName}'s board exactly as they see it (read-only). Switch back to "Me" to make changes.`;
   }
-
-  // Show View-as dropdown if the SESSION role is Admin
-  const showViewAs = isAdmin || data.viewingAs !== null;
 
   return (
     <>
-      {/* Topbar */}
       <header className="topbar">
         <div className="logo">T</div>
         <h1>Tutorials Tracker</h1>
         <div className="spacer" />
-        {/* "View as" dropdown — Admin session only */}
-        {showViewAs && (
-          <select
-            className="view-as-select"
-            value={viewAsEmail}
-            onChange={e => void handleViewAsChange(e.target.value)}
-            aria-label="View as team member"
-          >
-            <option value="">Full admin (me)</option>
-            {team.map(m => (
-              <option key={m.email} value={m.email}>
-                {m.name} — {m.role}
-              </option>
-            ))}
+        {(isAdmin || viewing) && (
+          <select className="view-as-select" value={viewAsEmail} aria-label="View as team member"
+            onChange={(e) => handleViewAsChange(e.target.value)}>
+            <option value="">Me (full access)</option>
+            {team.map((m) => <option key={m.email} value={m.email}>{m.name} — {(m.roles ?? [m.role]).join(", ")}</option>)}
           </select>
         )}
         {myName && <span className="who">{myName}</span>}
-        <span className="role-badge">{roleBadgeText}</span>
-        <button className="btn-ghost" onClick={() => void handleLogout()}>
-          Sign out
-        </button>
+        {roleBadge && <span className="role-badge">{roleBadge}</span>}
+        <button className="btn-ghost" onClick={() => void handleLogout()}>Sign out</button>
       </header>
 
-      {/* Preview banner */}
-      {previewBanner && (
-        <div className="preview-banner">{previewBanner}</div>
-      )}
+      {previewBanner && <div className="preview-banner">{previewBanner}</div>}
 
       <Board
-        role={data.role}
-        roles={roles}
+        roles={viewing?.roles ?? roles}
         stages={data.stages ?? []}
         columns={data.columns}
         rows={data.rows}
         names={data.names ?? {}}
-        viewingAs={data.viewingAs ?? null}
+        memberRoles={data.memberRoles ?? {}}
         readOnly={data.readOnly ?? false}
-        canEditAll={data.canEditAll ?? false}
-        reload={() => void load(viewAsEmail || undefined)}
+        reload={() => void load(viewAsEmail || undefined, { silent: true })}
       />
     </>
   );

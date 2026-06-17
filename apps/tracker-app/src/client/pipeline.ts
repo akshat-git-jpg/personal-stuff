@@ -1,87 +1,41 @@
 /**
- * pipeline.ts — pure helpers for the Admin pipeline/overview views.
- * No React imports; unit-testable in isolation.
+ * pipeline.ts — pure helpers for the admin Pipeline matrix, derived from the
+ * shared pipeline definition. No hardcoded stage names.
  */
+import {
+  STAGES, isStageComplete, isGateOpen, statusOf, type StageDef,
+} from "../shared/pipeline";
 
-export type OverallStage = "Script" | "Tutorial" | "Editing" | "Upload" | "Published";
 export type StepState = "done" | "active" | "pending";
 
-export interface ProgressStep {
-  key: "Script" | "Tutorial" | "Editing" | "Upload" | "Published";
-  state: StepState;
-}
-
-// ── overallStage ─────────────────────────────────────────────────────────────
-
-export function overallStage(row: Record<string, string>): OverallStage {
-  if (row.yt_upload_status === "Published") return "Published";
-  if (row.video_editor_status === "Done") return "Upload";
-  if (row.tutorial_status === "Done") return "Editing";
-  if (row.script_status === "Done") return "Tutorial";
-  return "Script";
-}
-
-// ── stageState ───────────────────────────────────────────────────────────────
-
-export function stageState(status: string): StepState {
-  if (!status) return "pending";
-  if (status === "Done" || status === "Published") return "done";
-  if (
-    status === "In Progress" ||
-    status === "In Review" ||
-    status === "Draft"
-  )
-    return "active";
+/** A stage is done when complete, active when reachable-but-not-done, else pending. */
+export function stageStepState(stage: StageDef, row: Record<string, string>): StepState {
+  if (isStageComplete(stage, row)) return "done";
+  if (isGateOpen(stage, row)) return "active";
   return "pending";
 }
 
-// ── progress ──────────────────────────────────────────────────────────────────
-
+export interface ProgressStep { stage: StageDef; state: StepState; }
 export function progress(row: Record<string, string>): ProgressStep[] {
-  const scriptState = stageState(row.script_status ?? "");
-
-  // Tutorial is only active/done if Script is done
-  const tutorialRaw = row.tutorial_status ?? "";
-  const tutorialState: StepState =
-    scriptState !== "done" ? "pending" : stageState(tutorialRaw);
-
-  // Editing is only active/done if Tutorial is done
-  const editRaw = row.video_editor_status ?? "";
-  const editState: StepState =
-    tutorialState !== "done" ? "pending" : stageState(editRaw);
-
-  // Upload is only active/done if Editing is done
-  const uploadRaw = row.yt_upload_status ?? "";
-  const uploadState: StepState =
-    editState !== "done" ? "pending" : stageState(uploadRaw);
-
-  // Published = done iff yt_upload_status === "Published", else pending
-  const publishedState: StepState =
-    row.yt_upload_status === "Published" ? "done" : "pending";
-
-  return [
-    { key: "Script",    state: scriptState    },
-    { key: "Tutorial",  state: tutorialState  },
-    { key: "Editing",   state: editState      },
-    { key: "Upload",    state: uploadState    },
-    { key: "Published", state: publishedState },
-  ];
+  return STAGES.map((s) => ({ stage: s, state: stageStepState(s, row) }));
 }
 
-// ── isStalled ─────────────────────────────────────────────────────────────────
-// A row is stalled if it was sent back and is being reworked.
+/** The single stage a card currently sits in (null when everything is complete). */
+export function activeStage(row: Record<string, string>): StageDef | null {
+  return STAGES.find((s) => stageStepState(s, row) === "active") ?? null;
+}
+export function overallLabel(row: Record<string, string>): string {
+  return activeStage(row)?.label ?? "Done";
+}
+export function activeAssigneeEmail(row: Record<string, string>): string {
+  const a = activeStage(row);
+  return a ? (row[a.assigneeCol] ?? "") : (row.uploader_email ?? "");
+}
 
+/** Sent back: any reviewable stage currently needs changes. */
 export function isStalled(row: Record<string, string>): boolean {
-  const scriptStalled =
-    row.script_status === "In Progress" && !!row.script_feedback;
-  const tutStalled =
-    row.tutorial_status === "In Progress" && !!row.tutorial_feedback;
-  const editStalled =
-    row.video_editor_status === "In Progress" && !!row.editor_feedback;
-  return scriptStalled || tutStalled || editStalled;
+  return STAGES.some((s) => s.reviewable && statusOf(s, row) === "Need Changes");
 }
-
-// ── daysSince ─────────────────────────────────────────────────────────────────
 
 export function daysSince(iso: string | undefined): number | null {
   if (!iso) return null;
@@ -90,53 +44,9 @@ export function daysSince(iso: string | undefined): number | null {
   return Math.floor((Date.now() - ts) / 86_400_000);
 }
 
-// ── isStuck ───────────────────────────────────────────────────────────────────
-
+/** Stuck: still in flight and untouched for >3 days. */
 export function isStuck(row: Record<string, string>): boolean {
-  if (overallStage(row) === "Published") return false;
+  if (!activeStage(row)) return false;
   const d = daysSince(row.last_updated);
   return d !== null && d > 3;
 }
-
-// ── assigneeFor ───────────────────────────────────────────────────────────────
-
-export function assigneeFor(
-  row: Record<string, string>,
-  stageOrStatusCol: string
-): string {
-  if (stageOrStatusCol === "Script Writer" || stageOrStatusCol === "script_status") {
-    return row.script_writer_email ?? "";
-  }
-  if (stageOrStatusCol === "Tutorial Maker" || stageOrStatusCol === "tutorial_status") {
-    return row.tutorial_maker_email ?? "";
-  }
-  if (stageOrStatusCol === "Video Editor" || stageOrStatusCol === "video_editor_status") {
-    return row.video_editor_email ?? "";
-  }
-  return "";
-}
-
-// ── Stage display metadata ────────────────────────────────────────────────────
-
-export interface StageInfo {
-  label: OverallStage;
-  color: string;       // CSS variable name (without "var(…)")
-  colorVar: string;    // ready-to-use CSS var string
-}
-
-export const STAGE_INFO: Record<OverallStage, StageInfo> = {
-  Script:    { label: "Script",    color: "--todo",   colorVar: "var(--todo)"   },
-  Tutorial:  { label: "Tutorial",  color: "--prog",   colorVar: "var(--prog)"   },
-  Editing:   { label: "Editing",   color: "--review", colorVar: "var(--review)" },
-  Upload:    { label: "Upload",    color: "--warn",   colorVar: "var(--warn)"   },
-  Published: { label: "Published", color: "--done",   colorVar: "var(--done)"   },
-};
-
-// ── OVERALL_STAGES ordered list ───────────────────────────────────────────────
-export const OVERALL_STAGES: OverallStage[] = [
-  "Script",
-  "Tutorial",
-  "Editing",
-  "Upload",
-  "Published",
-];

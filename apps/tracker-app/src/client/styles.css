@@ -121,15 +121,19 @@ body {
 .board-root { display: flex; flex-direction: column; }
 
 .board {
-  display: flex; gap: 16px;
+  /* All lanes share the width so every lane (incl. Done) is visible at once.
+     They grow to fill when there's room, and only scroll horizontally on a
+     screen too narrow to fit them at their min width. */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(210px, 1fr);
+  gap: 16px;
   padding: 20px 26px 40px;
-  overflow-x: auto; align-items: flex-start;
-  min-height: calc(100vh - 160px);
+  overflow-x: auto; align-items: start;
 }
 
 /* ── Lane ────────────────────────────────────────────────────────────────── */
 .lane {
-  flex: 0 0 296px; max-width: 296px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -169,7 +173,12 @@ body {
   font-size: 11.5px; font-weight: 700; color: var(--c);
   background: var(--c-t); border-radius: 6px; padding: 1px 8px;
 }
-.lane__cards { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.lane__cards {
+  padding: 12px; display: flex; flex-direction: column; gap: 10px;
+  /* Each lane scrolls its own cards, so a lane with many items (e.g. Done)
+     doesn't push the board tall — all lane headers stay visible at once. */
+  max-height: calc(100vh - 320px); overflow-y: auto;
+}
 .lane__empty { font-size: 12px; color: var(--t4); text-align: center; padding: 16px 0; }
 
 /* Drag-over highlight */
@@ -345,14 +354,29 @@ body {
   height: 100vh; width: min(430px, 100vw); z-index: 201;
   background: var(--bg-2);
   border-left: 1px solid var(--line-2);
-  overflow-y: auto;                 /* the panel itself scrolls (block, definite height) */
-  -webkit-overflow-scrolling: touch;
+  display: flex; flex-direction: column;   /* body scrolls; footer stays pinned */
+  overflow: hidden;
   animation: slideIn .18s ease;
 }
 .detail-body {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex; flex-direction: column; gap: 14px;
-  padding: 22px 22px 40px;          /* just a spacing wrapper; the panel scrolls */
+  padding: 22px 22px 32px;
 }
+/* The single action footer, pinned to the bottom of the panel. */
+.detail-footer {
+  flex: 0 0 auto;
+  padding: 14px 22px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.detail-footer .detail-actions { margin: 0; padding: 0; background: transparent; border: none; }
+
+/* Inline auto-save indicator next to a field label */
+.save-ind { font-size: 11px; font-weight: 500; color: var(--t4); margin-left: 8px; }
+.save-ind--ok { color: var(--done); }
 .detail-panel .panel__close {
   position: fixed; top: 14px; right: 18px; z-index: 202;
 }
@@ -1599,4 +1623,148 @@ details[open] .review-details__summary::before { content: "▼ "; }
 @media (max-width: 640px) {
   .team-row { flex-wrap: wrap; }
   .team-row__roles { order: 3; width: 100%; }
+}
+
+/* ===========================================================================
+   Refactor 2026: status pills, action buttons, lanes, banners, detail sections
+   =========================================================================== */
+
+:root { --pub: #c4a0f0; }
+
+/* Status pills — one consistent colour system everywhere */
+.pill {
+  display: inline-block; padding: 2px 9px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; line-height: 1.5; white-space: nowrap;
+  border: 1px solid transparent;
+}
+.pill--todo   { color: var(--todo);   background: var(--todo-t);   border-color: var(--todo-b); }
+.pill--prog   { color: var(--prog);   background: var(--prog-t);   border-color: var(--prog-b); }
+.pill--review { color: var(--review); background: var(--review-t); border-color: var(--review-b); }
+.pill--done   { color: var(--done);   background: var(--done-t);   border-color: var(--done-b); }
+.pill--warn   { color: var(--warn);   background: rgba(230,184,96,0.12); border-color: rgba(230,184,96,0.36); }
+.pill--pub    { color: var(--pub);    background: rgba(196,160,240,0.12); border-color: rgba(196,160,240,0.36); }
+
+/* Legend — aligned with the board's 26px gutter, with breathing room below the topbar */
+.legend { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 18px 26px 0; margin: 0; }
+
+/* Single-board heading in "My work" (when there's only one stage to label) */
+.work-heading { padding: 12px 26px 0; font-size: 15px; font-weight: 700; color: var(--t1); }
+
+/* "What you do here" help banner */
+.help { margin: 10px 26px 0; }
+.help__toggle {
+  font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; border: none; color: var(--t3); padding: 2px 0;
+}
+.help__toggle:hover { color: var(--t1); }
+.help__icon { color: var(--accent); font-size: 14px; }
+.help__caret { color: var(--t4); font-size: 11px; }
+.help__body {
+  margin: 6px 0 0; max-width: 760px; font-size: 13px; line-height: 1.55; color: var(--t2);
+  background: var(--bg-2); border: 1px solid var(--line); border-left: 2px solid var(--accent);
+  border-radius: 8px; padding: 10px 12px;
+}
+
+/* Stage switcher (a worker's multiple stages) — a proper segmented control */
+.stage-switcher { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 26px 0; }
+.stage-switch-btn {
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--t3); background: rgba(255,240,224,0.04);
+  border: 1px solid var(--line-2); border-radius: 9px; padding: 7px 16px;
+  transition: color .14s, border-color .14s, background .14s;
+}
+.stage-switch-btn:hover { color: var(--t1); border-color: var(--t3); }
+.stage-switch-btn--active {
+  color: var(--accent); border-color: var(--accent); background: var(--accent-dim);
+}
+
+/* Action buttons (the one-clear-next-step) */
+.act {
+  font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;
+  padding: 7px 14px; border-radius: 9px; border: 1px solid var(--line-2);
+  background: rgba(255,240,224,0.05); color: var(--t1); transition: all .12s ease;
+}
+.act:hover:not(:disabled) { border-color: var(--t3); }
+.act:disabled { opacity: .5; cursor: default; }
+.act--start, .act--submit, .act--advance {
+  background: var(--accent); border-color: var(--accent); color: #1a0e03;
+}
+.act--approve { background: var(--done); border-color: var(--done); color: #06180e; }
+.act--reject, .act--reopen { background: transparent; color: var(--warn); border-color: rgba(230,184,96,0.5); }
+
+/* Cards — top row (pill + assignee), Need-Changes banner, waiting note, actions */
+.card__top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.card__who { font-size: 11px; color: var(--t3); }
+.card__needs {
+  margin-top: 8px; padding: 8px 10px; border-radius: 8px; font-size: 12px; line-height: 1.45;
+  background: rgba(230,96,96,0.10); border: 1px solid rgba(230,96,96,0.30); color: #f3b4b4;
+}
+.card__needs strong { color: #ffc9c9; }
+.card__waiting { margin-top: 8px; font-size: 12px; color: var(--t3); }
+.card__needhint { margin-top: 6px; font-size: 11.5px; color: var(--warn); }
+.detail-action-row__hint { margin-top: 6px; font-size: 12px; color: var(--warn); }
+.card__actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+/* Lanes grouped by status — top accent per tone */
+.lane--todo   { border-top: 2px solid var(--todo); }
+.lane--prog   { border-top: 2px solid var(--prog); }
+.lane--review { border-top: 2px solid var(--review); }
+.lane--done   { border-top: 2px solid var(--done); }
+.lane--warn   { border-top: 2px solid var(--warn); }
+.lane--pub    { border-top: 2px solid var(--pub); }
+
+/* Detail: status overview + Need-Changes banner */
+.detail-status-row { display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0 16px; }
+.detail-status-chip { display: flex; align-items: center; gap: 6px; }
+.detail-status-chip__stage { font-size: 11px; color: var(--t3); }
+
+.needs-banner {
+  display: flex; gap: 10px; padding: 12px 14px; border-radius: 10px; margin: 10px 0;
+  background: rgba(230,96,96,0.10); border: 1px solid rgba(230,96,96,0.30);
+}
+.needs-banner__icon { color: #f08585; font-size: 16px; }
+.needs-banner__label { font-weight: 700; color: #ffc9c9; font-size: 13px; margin-bottom: 2px; }
+.needs-banner__text { color: var(--t2); font-size: 13px; line-height: 1.45; white-space: pre-wrap; }
+
+/* Detail: action area */
+.detail-actions {
+  display: flex; flex-direction: column; gap: 12px; margin: 12px 0 18px;
+  padding: 14px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px;
+}
+.detail-action-row__label { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--t2); }
+.detail-action-row__btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Admin "show all fields" toggle in the card detail */
+.show-all-toggle {
+  font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+  background: transparent; border: none; color: var(--t3); padding: 4px 0; margin-top: 4px;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.show-all-toggle:hover { color: var(--t1); }
+
+/* Detail: field sections */
+.detail-section { margin: 16px 0; }
+.detail-section__title {
+  font-size: 12px; font-weight: 700; color: var(--t3); text-transform: uppercase;
+  letter-spacing: .05em; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid var(--line);
+}
+.detail-section__fields { display: flex; flex-direction: column; gap: 13px; }
+
+/* Paragraph (multi-line) fields: notes, description, and all instructions */
+.field-para { min-height: 110px; line-height: 1.5; resize: vertical; }
+.ro--para { white-space: pre-wrap; line-height: 1.55; }
+
+/* Locked-with-reason field affordances */
+.lock-tag { margin-left: 6px; font-size: 11px; cursor: help; }
+.field-lock-note { font-size: 11px; color: var(--t4); margin-top: 4px; }
+.ro__sub { color: var(--t4); font-size: 11px; margin-left: 6px; }
+.ro--empty { color: var(--t4); }
+
+/* Sendback feedback box */
+.sendback-form { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.sendback-label { font-size: 12px; color: var(--t3); }
+.sendback-textarea {
+  width: 100%; font: inherit; font-size: 13px; padding: 8px 10px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--line-2); color: var(--t1); resize: vertical;
 }

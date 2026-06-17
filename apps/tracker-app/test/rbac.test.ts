@@ -1,621 +1,172 @@
 import { describe, it, expect } from "vitest";
 import {
-  visibleColumns, canEdit, filterRows, projectRow,
-  isApprover, canSetValue, isRowLockedFor,
-  visibleColumnsForRoles, canEditForRoles, canSetValueForRoles,
-  isApproverRoles, filterRowsForRoles, projectRowForRoles,
-  workerStagesForRoles, isFieldLocked,
+  ALL_ROLES, stageById, normalizeStatus, statusOf,
+} from "../src/shared/pipeline";
+import {
+  filterRowsForRoles, transitionsForStage, authorizeWrite, canReview,
+  cardStagesForUser, reviewQueueForUser, fieldLockReason, type Row,
 } from "../src/shared/rbac";
-import { COLUMNS } from "../src/shared/columns";
 import { parseRoles } from "../src/worker/roles";
 
-// ---------------------------------------------------------------------------
-// Single-role: Admin
-// ---------------------------------------------------------------------------
+const SCRIPT = stageById("script")!;
+const TOPIC = stageById("topic")!;
 
-describe("Admin", () => {
-  it("can edit anything", () => {
-    expect(canEdit("Admin", "tutorial_status")).toBe(true);
-    expect(canEdit("Admin", "script_status")).toBe(true);
-    expect(canEdit("Admin", "video_editor_status")).toBe(true);
-    expect(canEdit("Admin", "script_link")).toBe(true);
-  });
+// A card that has cleared Topic and is at the Script stage, assigned to sw@x,
+// reviewed by rv@x.
+function scriptCard(script_status: string): Row {
+  return {
+    row_id: "r1", video_title: "T",
+    topic_status: "Done",
+    script_writer_email: "sw@x.com",
+    reviewer_email: "rv@x.com",
+    script_status,
+  };
+}
 
-  it("visibleColumns === all COLUMNS", () => {
-    expect(visibleColumns("Admin")).toEqual([...COLUMNS]);
-  });
-
-  it("last_updated is visible to Admin", () => {
-    expect(visibleColumns("Admin")).toContain("last_updated");
-  });
-
-  it("isApprover: Admin is an approver", () => {
-    expect(isApprover("Admin")).toBe(true);
-  });
-
-  it("canSetValue: Admin can set status to Done", () => {
-    expect(canSetValue("Admin", "script_status", "Done")).toBe(true);
-    expect(canSetValue("Admin", "tutorial_status", "Done")).toBe(true);
-    expect(canSetValue("Admin", "video_editor_status", "Done")).toBe(true);
+describe("role roster", () => {
+  it("has no Ideator role — Topic is the Admin's job", () => {
+    expect(ALL_ROLES).not.toContain("Ideator");
+    expect(ALL_ROLES.slice().sort()).toEqual(
+      ["Admin", "Recorder", "Reviewer", "Scriptwriter", "Uploader", "Video Editor"],
+    );
   });
 });
 
-// ---------------------------------------------------------------------------
-// Single-role: Reviewer
-// ---------------------------------------------------------------------------
-
-describe("Reviewer", () => {
-  it("sees all but can only edit its listed columns", () => {
-    expect(visibleColumns("Reviewer")).toContain("video_editor_link");
-    expect(canEdit("Reviewer", "yt_upload_status")).toBe(true);
-    expect(canEdit("Reviewer", "video_editor_status")).toBe(true);
-    expect(canEdit("Reviewer", "tutorial_status")).toBe(true);
-    expect(canEdit("Reviewer", "script_status")).toBe(true);
-    expect(canEdit("Reviewer", "tutorial_feedback")).toBe(true);
-    expect(canEdit("Reviewer", "editor_feedback")).toBe(true);
-    // Reviewer cannot edit doer-private fields
-    expect(canEdit("Reviewer", "video_editor_link")).toBe(false);
-    expect(canEdit("Reviewer", "script_link")).toBe(false);
-    expect(canEdit("Reviewer", "tutorial_link")).toBe(false);
+describe("lane normalization (the Need-Changes-on-create guard)", () => {
+  it("maps blank/unknown to To Do, never to Need Changes", () => {
+    expect(normalizeStatus(TOPIC, "")).toBe("To Do");
+    expect(normalizeStatus(TOPIC, undefined)).toBe("To Do");
+    expect(normalizeStatus(TOPIC, "garbage")).toBe("To Do");
+    expect(normalizeStatus(SCRIPT, "")).toBe("To Do");
   });
-
-  it("isApprover: Reviewer is an approver", () => {
-    expect(isApprover("Reviewer")).toBe(true);
-  });
-
-  it("canSetValue: Reviewer can set status to Done", () => {
-    expect(canSetValue("Reviewer", "tutorial_status", "Done")).toBe(true);
-    expect(canSetValue("Reviewer", "video_editor_status", "Done")).toBe(true);
-    expect(canSetValue("Reviewer", "script_status", "Done")).toBe(true);
-  });
-
-  it("gated handoff: Reviewer only sees rows where video_editor_status is Done", () => {
-    const rows = [
-      { reviewer_email: "r@x.com", video_editor_status: "Done", video_title: "ready" },
-      { reviewer_email: "r@x.com", video_editor_status: "In Review", video_title: "not ready" },
-    ] as any;
-    const seen = filterRows("Reviewer", "r@x.com", rows);
-    expect(seen).toHaveLength(1);
-    expect(seen[0].video_title).toBe("ready");
-  });
-
-  it("last_updated is visible to Reviewer", () => {
-    expect(visibleColumns("Reviewer")).toContain("last_updated");
+  it("a freshly created Topic=To Do card is in the To Do lane", () => {
+    const row: Row = { row_id: "r9", video_title: "New", topic_status: "To Do" };
+    expect(statusOf(TOPIC, row)).toBe("To Do");
   });
 });
 
-// ---------------------------------------------------------------------------
-// Single-role: Script Writer
-// ---------------------------------------------------------------------------
-
-describe("Script Writer", () => {
-  it("sees script_link (edit), script_status (edit), video_notes (view)", () => {
-    expect(visibleColumns("Script Writer")).toContain("script_link");
-    expect(canEdit("Script Writer", "script_link")).toBe(true);
-    expect(visibleColumns("Script Writer")).toContain("script_status");
-    expect(canEdit("Script Writer", "script_status")).toBe(true);
-    expect(visibleColumns("Script Writer")).toContain("video_notes");
-    expect(canEdit("Script Writer", "video_notes")).toBe(false);
-  });
-
-  it("does NOT see tutorial_link, video_editor_link, yt_upload_status", () => {
-    const cols = visibleColumns("Script Writer");
-    expect(cols).not.toContain("tutorial_link");
-    expect(cols).not.toContain("video_editor_link");
-    expect(cols).not.toContain("yt_upload_status");
-  });
-
-  it("does NOT see last_updated", () => {
-    expect(visibleColumns("Script Writer")).not.toContain("last_updated");
-  });
-
-  it("cannot set script_status to Done (approver-only)", () => {
-    expect(canSetValue("Script Writer", "script_status", "Done")).toBe(false);
-    expect(canSetValue("Script Writer", "script_status", "In Review")).toBe(true);
-  });
-
-  it("isApprover: Script Writer is NOT an approver", () => {
-    expect(isApprover("Script Writer")).toBe(false);
-  });
-
-  it("gated handoff: Script Writer only sees rows where topic_status is Ready", () => {
-    const rows = [
-      { script_writer_email: "sw@x.com", topic_status: "Ready", video_title: "go" },
-      { script_writer_email: "sw@x.com", topic_status: "To Do", video_title: "blocked" },
-      { script_writer_email: "sw@x.com", topic_status: "", video_title: "no status" },
-    ] as any;
-    const seen = filterRows("Script Writer", "sw@x.com", rows);
-    expect(seen).toHaveLength(1);
-    expect(seen[0].video_title).toBe("go");
-  });
-
-  it("row filter matches assignee email case-insensitively", () => {
-    const rows = [
-      { script_writer_email: "SW@x.com", topic_status: "Ready" },
-      { script_writer_email: "other@x.com", topic_status: "Ready" },
-    ] as any;
-    expect(filterRows("Script Writer", "sw@x.com", rows)).toHaveLength(1);
-  });
-
-  it("cannot edit columns it does not own", () => {
-    expect(canSetValue("Script Writer", "tutorial_status", "In Progress")).toBe(false);
-    expect(canSetValue("Script Writer", "video_editor_status", "In Progress")).toBe(false);
-  });
-
-  it("row_id is always included for addressing", () => {
-    expect(visibleColumns("Script Writer")).toContain("row_id");
+describe("gated handoff", () => {
+  it("a scriptwriter only sees a card once Topic is Done", () => {
+    const blocked: Row = { row_id: "a", video_title: "A", topic_status: "In Progress", script_writer_email: "sw@x.com" };
+    const open: Row = { row_id: "b", video_title: "B", topic_status: "Done", script_writer_email: "sw@x.com" };
+    const visible = filterRowsForRoles(["Scriptwriter"], "sw@x.com", [blocked, open]);
+    expect(visible.map((r) => r.row_id)).toEqual(["b"]);
   });
 });
 
-// ---------------------------------------------------------------------------
-// Single-role: Tutorial Maker
-// ---------------------------------------------------------------------------
+describe("doer transitions", () => {
+  const roles = ["Scriptwriter"];
+  const email = "sw@x.com";
+  const tos = (status: string) => transitionsForStage(roles, email, SCRIPT, scriptCard(status)).map((t) => t.to);
 
-describe("Tutorial Maker", () => {
-  it("sees script_link (view, read-only) and tutorial_link (edit)", () => {
-    expect(visibleColumns("Tutorial Maker")).toContain("script_link");
-    expect(canEdit("Tutorial Maker", "script_link")).toBe(false);
-    expect(visibleColumns("Tutorial Maker")).toContain("tutorial_link");
-    expect(canEdit("Tutorial Maker", "tutorial_link")).toBe(true);
+  it("To Do -> Start (In Progress)", () => expect(tos("To Do")).toEqual(["In Progress"]));
+  it("In Progress -> Submit (In Review)", () => expect(tos("In Progress")).toEqual(["In Review"]));
+  it("In Review -> nothing (the doer waits)", () => expect(tos("In Review")).toEqual([]));
+  it("Need Changes -> resume or resubmit", () => expect(tos("Need Changes")).toEqual(["In Progress", "In Review"]));
+});
+
+describe("reviewer transitions + can't-review-own-work", () => {
+  it("the assigned reviewer can approve / request changes on In Review", () => {
+    const tos = transitionsForStage(["Reviewer"], "rv@x.com", SCRIPT, scriptCard("In Review")).map((t) => t.to);
+    expect(tos).toEqual(["Done", "Need Changes"]);
+  });
+  it("a reviewer who is also the submitter cannot review their own work", () => {
+    const row = { ...scriptCard("In Review"), reviewer_email: "sw@x.com" };
+    expect(canReview(["Reviewer", "Scriptwriter"], "sw@x.com", SCRIPT, row)).toBe(false);
+    expect(transitionsForStage(["Reviewer", "Scriptwriter"], "sw@x.com", SCRIPT, row)).toEqual([]);
+  });
+  it("tags transitions by doer/reviewer so each context shows only its own (the My-work-vs-queue fix)", () => {
+    // Sean is admin (owns Topic) AND the topic's reviewer — the exact multi-role case.
+    const topicRow: Row = {
+      row_id: "t1", video_title: "T", topic_status: "In Review",
+      admin_email: "sean@x.com", reviewer_email: "sean@x.com",
+    };
+    const ts = transitionsForStage(["Admin", "Reviewer"], "sean@x.com", TOPIC, topicRow);
+    // The only action (Approve) is a reviewer action — so My work (doer) shows nothing…
+    expect(ts.filter((t) => t.by === "doer").map((t) => t.to)).toEqual([]);
+    // …and the Review queue (reviewer) shows Approve.
+    expect(ts.filter((t) => t.by === "reviewer").map((t) => t.to)).toEqual(["Done"]);
   });
 
-  it("does NOT see video_editor_link", () => {
-    expect(visibleColumns("Tutorial Maker")).not.toContain("video_editor_link");
+  it("the admin can review their own Topic (owner == reviewer is allowed for Topic only)", () => {
+    const topicRow: Row = {
+      row_id: "t1", video_title: "T", topic_status: "In Review",
+      admin_email: "sean@x.com", reviewer_email: "sean@x.com",
+    };
+    expect(canReview(["Admin", "Reviewer"], "sean@x.com", TOPIC, topicRow)).toBe(true);
+    // …but on a producing stage, owner == reviewer is still blocked.
+    const ownRow = { ...scriptCard("In Review"), reviewer_email: "sw@x.com" };
+    expect(canReview(["Reviewer", "Scriptwriter"], "sw@x.com", SCRIPT, ownRow)).toBe(false);
   });
 
-  it("tutorial_maker_email is NOT visible (need-to-know)", () => {
-    expect(visibleColumns("Tutorial Maker")).not.toContain("tutorial_maker_email");
-  });
-
-  it("sees tutorial_status (edit), tutorial_feedback (view)", () => {
-    expect(visibleColumns("Tutorial Maker")).toContain("tutorial_status");
-    expect(canEdit("Tutorial Maker", "tutorial_status")).toBe(true);
-    expect(visibleColumns("Tutorial Maker")).toContain("tutorial_feedback");
-    expect(canEdit("Tutorial Maker", "tutorial_feedback")).toBe(false);
-  });
-
-  it("cannot set tutorial_status to Done (approver-only)", () => {
-    expect(canSetValue("Tutorial Maker", "tutorial_status", "Done")).toBe(false);
-    expect(canSetValue("Tutorial Maker", "tutorial_status", "In Review")).toBe(true);
-  });
-
-  it("isApprover: Tutorial Maker is NOT an approver", () => {
-    expect(isApprover("Tutorial Maker")).toBe(false);
-  });
-
-  it("does NOT see video_editor_status, video_editor_link, yt_upload_status", () => {
-    const cols = visibleColumns("Tutorial Maker");
-    expect(cols).not.toContain("video_editor_status");
-    expect(cols).not.toContain("video_editor_link");
-    expect(cols).not.toContain("yt_upload_status");
-  });
-
-  it("does NOT see video_description, topic_status", () => {
-    const cols = visibleColumns("Tutorial Maker");
-    expect(cols).not.toContain("video_description");
-    expect(cols).not.toContain("topic_status");
-  });
-
-  it("does NOT see last_updated", () => {
-    expect(visibleColumns("Tutorial Maker")).not.toContain("last_updated");
-  });
-
-  it("sees video_notes (view)", () => {
-    expect(visibleColumns("Tutorial Maker")).toContain("video_notes");
-  });
-
-  it("gated handoff: Tutorial Maker only sees rows where script_status is Done", () => {
-    const rows = [
-      { tutorial_maker_email: "tm@x.com", script_status: "Done", video_title: "ready" },
-      { tutorial_maker_email: "tm@x.com", script_status: "In Review", video_title: "blocked" },
-      { tutorial_maker_email: "tm@x.com", script_status: "", video_title: "no script" },
-    ] as any;
-    const seen = filterRows("Tutorial Maker", "tm@x.com", rows);
-    expect(seen).toHaveLength(1);
-    expect(seen[0].video_title).toBe("ready");
-  });
-
-  it("projectRow returns only visible columns", () => {
-    const row = { row_id: "1", video_title: "t", video_editor_link: "secret", script_link: "ok" } as any;
-    const proj = projectRow("Tutorial Maker", row);
-    expect(proj).not.toHaveProperty("video_editor_link");
-    expect(proj.video_title).toBe("t");
-    expect(proj.script_link).toBe("ok");
-  });
-
-  it("cannot edit columns it does not own", () => {
-    expect(canSetValue("Tutorial Maker", "video_editor_status", "In Progress")).toBe(false);
-    expect(canSetValue("Tutorial Maker", "script_status", "In Progress")).toBe(false);
+  it("Admin is NOT a default reviewer — it needs the Reviewer role + assignment", () => {
+    // A plain Admin who isn't the assigned reviewer gets no approve/reject.
+    expect(transitionsForStage(["Admin"], "boss@x.com", SCRIPT, scriptCard("In Review"))).toEqual([]);
+    expect(canReview(["Admin"], "rv@x.com", SCRIPT, scriptCard("In Review"))).toBe(false);
+    // An Admin who also holds Reviewer AND is the card's assigned reviewer qualifies.
+    const tos = transitionsForStage(["Admin", "Reviewer"], "rv@x.com", SCRIPT, scriptCard("In Review")).map((t) => t.to);
+    expect(tos).toEqual(["Done", "Need Changes"]);
   });
 });
 
-// ---------------------------------------------------------------------------
-// Single-role: Video Editor
-// ---------------------------------------------------------------------------
-
-describe("Video Editor", () => {
-  it("sees tutorial_link (view) + video_editor_link (edit)", () => {
-    expect(visibleColumns("Video Editor")).toContain("tutorial_link");
-    expect(canEdit("Video Editor", "tutorial_link")).toBe(false);
-    expect(visibleColumns("Video Editor")).toContain("video_editor_link");
-    expect(canEdit("Video Editor", "video_editor_link")).toBe(true);
+describe("required fields gate submit/advance", () => {
+  it("a scriptwriter can't submit without a script link, and the transition says why", () => {
+    const noLink = scriptCard("In Progress"); // script_link empty
+    const ts = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, noLink);
+    const submit = ts.find((t) => t.kind === "submit")!;
+    expect(submit.disabledReason).toMatch(/script link/i);
+    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Review", noLink).ok).toBe(false);
   });
-
-  it("does NOT see script_link", () => {
-    expect(visibleColumns("Video Editor")).not.toContain("script_link");
-  });
-
-  it("does NOT see tutorial_status (need-to-know: only the recording link, not full tutorial meta)", () => {
-    expect(visibleColumns("Video Editor")).not.toContain("tutorial_status");
-  });
-
-  it("sees video_editor_status (edit), editor_feedback (view)", () => {
-    expect(visibleColumns("Video Editor")).toContain("video_editor_status");
-    expect(canEdit("Video Editor", "video_editor_status")).toBe(true);
-    expect(visibleColumns("Video Editor")).toContain("editor_feedback");
-    expect(canEdit("Video Editor", "editor_feedback")).toBe(false);
-  });
-
-  it("cannot set video_editor_status to Done (approver-only)", () => {
-    expect(canSetValue("Video Editor", "video_editor_status", "Done")).toBe(false);
-    expect(canSetValue("Video Editor", "video_editor_status", "In Review")).toBe(true);
-  });
-
-  it("isApprover: Video Editor is NOT an approver", () => {
-    expect(isApprover("Video Editor")).toBe(false);
-  });
-
-  it("does NOT see tutorial_maker_email, tutorial_instruction, tutorial_feedback, video_description, video_editor_email, topic_status", () => {
-    const cols = visibleColumns("Video Editor");
-    expect(cols).not.toContain("tutorial_maker_email");
-    expect(cols).not.toContain("tutorial_instruction");
-    expect(cols).not.toContain("tutorial_feedback");
-    expect(cols).not.toContain("video_description");
-    expect(cols).not.toContain("video_editor_email");
-    expect(cols).not.toContain("topic_status");
-  });
-
-  it("does NOT see last_updated", () => {
-    expect(visibleColumns("Video Editor")).not.toContain("last_updated");
-  });
-
-  it("gated handoff: Video Editor only sees rows where tutorial_status is Done", () => {
-    const rows = [
-      { video_editor_email: "john@x.com", tutorial_status: "Done", video_title: "ready" },
-      { video_editor_email: "john@x.com", tutorial_status: "In Progress", video_title: "not ready" },
-      { video_editor_email: "john@x.com", tutorial_status: "", video_title: "blank" },
-    ] as any;
-    const seen = filterRows("Video Editor", "john@x.com", rows);
-    expect(seen).toHaveLength(1);
-    expect(seen[0].video_title).toBe("ready");
-  });
-
-  it("cannot edit columns it does not own", () => {
-    expect(canSetValue("Video Editor", "tutorial_status", "In Progress")).toBe(false);
-    expect(canSetValue("Video Editor", "script_status", "In Progress")).toBe(false);
+  it("…and can once the link is filled", () => {
+    const withLink = { ...scriptCard("In Progress"), script_link: "https://x.com/s" };
+    const submit = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, withLink).find((t) => t.kind === "submit")!;
+    expect(submit.disabledReason).toBeUndefined();
+    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Review", withLink).ok).toBe(true);
   });
 });
 
-// ---------------------------------------------------------------------------
-// Approver-only canSetValue
-// ---------------------------------------------------------------------------
-
-describe("canSetValue approver-only values", () => {
-  it("Admin can set all status cols to Done", () => {
-    expect(canSetValue("Admin", "script_status", "Done")).toBe(true);
-    expect(canSetValue("Admin", "tutorial_status", "Done")).toBe(true);
-    expect(canSetValue("Admin", "video_editor_status", "Done")).toBe(true);
+describe("authorizeWrite (single enforcement point)", () => {
+  it("a doer cannot set Done or Need Changes (approver-only)", () => {
+    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "Done", scriptCard("In Review")).ok).toBe(false);
+    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "Need Changes", scriptCard("In Progress")).ok).toBe(false);
   });
-
-  it("Reviewer can set all status cols to Done", () => {
-    expect(canSetValue("Reviewer", "script_status", "Done")).toBe(true);
-    expect(canSetValue("Reviewer", "tutorial_status", "Done")).toBe(true);
-    expect(canSetValue("Reviewer", "video_editor_status", "Done")).toBe(true);
+  it("a doer can submit for review (once the required link is filled)", () => {
+    const ready = { ...scriptCard("In Progress"), script_link: "https://x.com/s" };
+    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Review", ready).ok).toBe(true);
   });
-
-  it("Script Writer cannot set script_status to Done", () => {
-    expect(canSetValue("Script Writer", "script_status", "Done")).toBe(false);
+  it("the assigned reviewer can approve", () => {
+    expect(authorizeWrite(["Reviewer"], "rv@x.com", "script_status", "Done", scriptCard("In Review")).ok).toBe(true);
   });
-
-  it("Tutorial Maker cannot set tutorial_status to Done", () => {
-    expect(canSetValue("Tutorial Maker", "tutorial_status", "Done")).toBe(false);
+  it("content fields lock once submitted / approved", () => {
+    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_link", "x", scriptCard("In Progress")).ok).toBe(true);
+    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_link", "x", scriptCard("In Review")).ok).toBe(false);
+    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_link", "x", scriptCard("Done")).ok).toBe(false);
   });
-
-  it("Video Editor cannot set video_editor_status to Done", () => {
-    expect(canSetValue("Video Editor", "video_editor_status", "Done")).toBe(false);
+  it("admin bypasses content locks", () => {
+    expect(authorizeWrite(["Admin"], "boss@x.com", "script_link", "x", scriptCard("Done")).ok).toBe(true);
+  });
+  it("fieldLockReason explains why a locked field is locked", () => {
+    expect(fieldLockReason(["Scriptwriter"], "sw@x.com", "script_link", scriptCard("In Review"))).toMatch(/review/i);
+    expect(fieldLockReason(["Scriptwriter"], "sw@x.com", "script_link", scriptCard("In Progress"))).toBeNull();
   });
 });
 
-// ---------------------------------------------------------------------------
-// isRowLockedFor (back-compat)
-// ---------------------------------------------------------------------------
-
-describe("isRowLockedFor (back-compat)", () => {
-  it("doer row is locked when their owned status is Done", () => {
-    expect(isRowLockedFor("Script Writer", { script_status: "Done" } as any)).toBe(true);
-    expect(isRowLockedFor("Script Writer", { script_status: "In Review" } as any)).toBe(false);
-    expect(isRowLockedFor("Script Writer", { script_status: "" } as any)).toBe(false);
-    expect(isRowLockedFor("Tutorial Maker", { tutorial_status: "Done" } as any)).toBe(true);
-    expect(isRowLockedFor("Tutorial Maker", { tutorial_status: "In Review" } as any)).toBe(false);
-    expect(isRowLockedFor("Video Editor", { video_editor_status: "Done" } as any)).toBe(true);
-    expect(isRowLockedFor("Video Editor", { video_editor_status: "In Progress" } as any)).toBe(false);
+describe("board membership + review queue", () => {
+  it("a card belongs to the doer's stage lane only when assigned + gate open", () => {
+    expect(cardStagesForUser(["Scriptwriter"], "sw@x.com", scriptCard("To Do"))).toEqual(["script_status"]);
+    const notMine = { ...scriptCard("To Do"), script_writer_email: "other@x.com" };
+    expect(cardStagesForUser(["Scriptwriter"], "sw@x.com", notMine)).toEqual([]);
   });
-
-  it("approvers are never locked", () => {
-    expect(isRowLockedFor("Admin", { tutorial_status: "Done" } as any)).toBe(false);
-    expect(isRowLockedFor("Admin", { script_status: "Done" } as any)).toBe(false);
-    expect(isRowLockedFor("Reviewer", { video_editor_status: "Done" } as any)).toBe(false);
+  it("the review queue shows In-Review cards assigned to that reviewer", () => {
+    const q = reviewQueueForUser(["Reviewer"], "rv@x.com", [scriptCard("In Review"), scriptCard("In Progress")]);
+    expect(q).toHaveLength(1);
+    expect(q[0].stage.id).toBe("script");
+    expect(q[0].submittedBy).toBe("sw@x.com");
   });
 });
 
-// ---------------------------------------------------------------------------
-// Unknown role
-// ---------------------------------------------------------------------------
-
-describe("unknown role", () => {
-  it("gets nothing", () => {
-    expect(visibleColumns("Nope")).toEqual([]);
-    expect(canEdit("Nope", "video_title")).toBe(false);
-    expect(filterRows("Nope", "x@y.com", [{} as any])).toEqual([]);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Multi-role union helpers
-// ---------------------------------------------------------------------------
-
-describe("visibleColumnsForRoles", () => {
-  it("Script Writer + Tutorial Maker union includes BOTH script_link and tutorial_link", () => {
-    const cols = visibleColumnsForRoles(["Script Writer", "Tutorial Maker"]);
-    expect(cols).toContain("script_link");
-    expect(cols).toContain("tutorial_link");
-  });
-
-  it("preserves COLUMNS order", () => {
-    const cols = visibleColumnsForRoles(["Script Writer", "Tutorial Maker"]);
-    const scriptIdx = cols.indexOf("script_link");
-    const tutorialIdx = cols.indexOf("tutorial_link");
-    expect(scriptIdx).toBeGreaterThanOrEqual(0);
-    expect(tutorialIdx).toBeGreaterThanOrEqual(0);
-    expect(scriptIdx).toBeLessThan(tutorialIdx);
-  });
-
-  it("Admin in list → all columns", () => {
-    const cols = visibleColumnsForRoles(["Admin", "Script Writer"]);
-    expect(cols).toEqual([...COLUMNS]);
-  });
-
-  it("Tutorial Maker + Video Editor includes both tutorial_link and video_editor_link; TM contributes script_link (view)", () => {
-    const cols = visibleColumnsForRoles(["Tutorial Maker", "Video Editor"]);
-    expect(cols).toContain("tutorial_link");
-    expect(cols).toContain("video_editor_link");
-    // Tutorial Maker can view script_link, so the union includes it
-    expect(cols).toContain("script_link");
-    // Video Editor alone does NOT see script_link
-    expect(visibleColumns("Video Editor")).not.toContain("script_link");
-  });
-});
-
-describe("canEditForRoles", () => {
-  it("Script Writer + Tutorial Maker: can edit script_link (SW) AND tutorial_link (TM)", () => {
-    expect(canEditForRoles(["Script Writer", "Tutorial Maker"], "script_link")).toBe(true);
-    expect(canEditForRoles(["Script Writer", "Tutorial Maker"], "tutorial_link")).toBe(true);
-  });
-
-  it("Tutorial Maker alone cannot edit script_link", () => {
-    expect(canEditForRoles(["Tutorial Maker"], "script_link")).toBe(false);
-  });
-
-  it("Script Writer alone cannot edit tutorial_link", () => {
-    expect(canEditForRoles(["Script Writer"], "tutorial_link")).toBe(false);
-  });
-
-  it("any role with Admin can edit anything", () => {
-    expect(canEditForRoles(["Admin", "Script Writer"], "video_editor_status")).toBe(true);
-  });
-});
-
-describe("canSetValueForRoles", () => {
-  it("Script Writer + Reviewer: can set script_status to Done (Reviewer is approver)", () => {
-    expect(canSetValueForRoles(["Script Writer", "Reviewer"], "script_status", "Done")).toBe(true);
-  });
-
-  it("Script Writer alone cannot set script_status to Done", () => {
-    expect(canSetValueForRoles(["Script Writer"], "script_status", "Done")).toBe(false);
-  });
-
-  it("Admin always can", () => {
-    expect(canSetValueForRoles(["Admin"], "script_status", "Done")).toBe(true);
-  });
-});
-
-describe("isApproverRoles", () => {
-  it("Admin → true", () => expect(isApproverRoles(["Admin"])).toBe(true));
-  it("Reviewer → true", () => expect(isApproverRoles(["Reviewer"])).toBe(true));
-  it("Script Writer → false", () => expect(isApproverRoles(["Script Writer"])).toBe(false));
-  it("Script Writer + Tutorial Maker → false", () => expect(isApproverRoles(["Script Writer", "Tutorial Maker"])).toBe(false));
-  it("Script Writer + Admin → true", () => expect(isApproverRoles(["Script Writer", "Admin"])).toBe(true));
-});
-
-describe("filterRowsForRoles", () => {
-  const rows = [
-    { row_id: "1", script_writer_email: "sam@x.com", topic_status: "Ready", video_title: "script-row" },
-    { row_id: "2", tutorial_maker_email: "sam@x.com", script_status: "Done", video_title: "tutorial-row" },
-    { row_id: "3", script_writer_email: "other@x.com", topic_status: "Ready", video_title: "other-script" },
-    { row_id: "4", tutorial_maker_email: "other@x.com", script_status: "Done", video_title: "other-tutorial" },
-    // sam is SW but topic not Ready → blocked
-    { row_id: "5", script_writer_email: "sam@x.com", topic_status: "To Do", video_title: "sw-blocked" },
-    // sam is TM but script not Done → blocked
-    { row_id: "6", tutorial_maker_email: "sam@x.com", script_status: "In Review", video_title: "tm-blocked" },
-  ] as any;
-
-  it("SW + TM for sam: sees rows where sam is SW (topic Ready) OR TM (script Done), deduped", () => {
-    const seen = filterRowsForRoles(["Script Writer", "Tutorial Maker"], "sam@x.com", rows);
-    const titles = seen.map((r: any) => r.video_title);
-    expect(titles).toContain("script-row");
-    expect(titles).toContain("tutorial-row");
-    expect(titles).not.toContain("other-script");
-    expect(titles).not.toContain("other-tutorial");
-    expect(titles).not.toContain("sw-blocked");
-    expect(titles).not.toContain("tm-blocked");
-    // No duplicates
-    expect(seen).toHaveLength(2);
-  });
-
-  it("Admin in roles → returns all rows", () => {
-    const seen = filterRowsForRoles(["Admin", "Script Writer"], "sam@x.com", rows);
-    expect(seen).toHaveLength(rows.length);
-  });
-
-  it("unknown role → returns nothing", () => {
-    const seen = filterRowsForRoles(["Nope"], "sam@x.com", rows);
-    expect(seen).toHaveLength(0);
-  });
-});
-
-describe("projectRowForRoles", () => {
-  it("SW + TM: row includes script_link and tutorial_link but not video_editor_link", () => {
-    const row = {
-      row_id: "1",
-      video_title: "t",
-      script_link: "s-link",
-      tutorial_link: "t-link",
-      video_editor_link: "secret",
-    } as any;
-    const proj = projectRowForRoles(["Script Writer", "Tutorial Maker"], row);
-    expect(proj.script_link).toBe("s-link");
-    expect(proj.tutorial_link).toBe("t-link");
-    expect(proj).not.toHaveProperty("video_editor_link");
-  });
-});
-
-describe("workerStagesForRoles", () => {
-  it("Script Writer → script_status", () => {
-    const stages = workerStagesForRoles(["Script Writer"]);
-    expect(stages.map(s => s.statusCol)).toContain("script_status");
-    expect(stages).toHaveLength(1);
-  });
-
-  it("Tutorial Maker → tutorial_status", () => {
-    const stages = workerStagesForRoles(["Tutorial Maker"]);
-    expect(stages.map(s => s.statusCol)).toContain("tutorial_status");
-    expect(stages).toHaveLength(1);
-  });
-
-  it("Script Writer + Tutorial Maker → script_status AND tutorial_status", () => {
-    const stages = workerStagesForRoles(["Script Writer", "Tutorial Maker"]);
-    const cols = stages.map(s => s.statusCol);
-    expect(cols).toContain("script_status");
-    expect(cols).toContain("tutorial_status");
-    expect(stages).toHaveLength(2);
-  });
-
-  it("Video Editor → video_editor_status", () => {
-    const stages = workerStagesForRoles(["Video Editor"]);
-    expect(stages.map(s => s.statusCol)).toContain("video_editor_status");
-  });
-
-  it("Admin → empty (handled separately)", () => {
-    expect(workerStagesForRoles(["Admin"])).toHaveLength(0);
-  });
-
-  it("Reviewer → empty (handled separately)", () => {
-    expect(workerStagesForRoles(["Reviewer"])).toHaveLength(0);
-  });
-
-  it("Admin + Script Writer → only script_status (Admin excluded)", () => {
-    const stages = workerStagesForRoles(["Admin", "Script Writer"]);
-    const cols = stages.map(s => s.statusCol);
-    expect(cols).toContain("script_status");
-    expect(cols).not.toContain("topic_status"); // Admin's laneStatus, but excluded
-  });
-});
-
-// ---------------------------------------------------------------------------
-// isFieldLocked
-// ---------------------------------------------------------------------------
-
-describe("isFieldLocked", () => {
-  it("Script Writer: script_link locked when script_status is Done", () => {
-    expect(isFieldLocked(["Script Writer"], "script_link", { script_status: "Done" } as any)).toBe(true);
-  });
-
-  it("Script Writer: script_link IS locked when script_status is In Review (submitted)", () => {
-    expect(isFieldLocked(["Script Writer"], "script_link", { script_status: "In Review" } as any)).toBe(true);
-  });
-
-  it("Script Writer: script_status itself NOT locked when In Review (can drag back to In Progress)", () => {
-    expect(isFieldLocked(["Script Writer"], "script_status", { script_status: "In Review" } as any)).toBe(false);
-  });
-
-  it("Script Writer: script_link editable again when status In Progress", () => {
-    expect(isFieldLocked(["Script Writer"], "script_link", { script_status: "In Progress" } as any)).toBe(false);
-  });
-
-  it("Admin: never locked (isApprover)", () => {
-    expect(isFieldLocked(["Admin"], "script_link", { script_status: "Done" } as any)).toBe(false);
-  });
-
-  it("Reviewer: never locked (isApprover)", () => {
-    expect(isFieldLocked(["Reviewer"], "tutorial_link", { tutorial_status: "Done" } as any)).toBe(false);
-  });
-
-  it("SW + TM: tutorial_link NOT locked when tutorial_status is In Progress (even though script is done)", () => {
-    // The lock is governed by tutorial_status for tutorial_link, not script_status
-    expect(isFieldLocked(
-      ["Script Writer", "Tutorial Maker"],
-      "tutorial_link",
-      { script_status: "Done", tutorial_status: "In Progress" } as any,
-    )).toBe(false);
-  });
-
-  it("SW + TM: tutorial_link IS locked when tutorial_status is Done", () => {
-    expect(isFieldLocked(
-      ["Script Writer", "Tutorial Maker"],
-      "tutorial_link",
-      { script_status: "Done", tutorial_status: "Done" } as any,
-    )).toBe(true);
-  });
-
-  it("col with no STAGE_OF_COL entry → never locked", () => {
-    expect(isFieldLocked(["Script Writer"], "video_title", { script_status: "Done" } as any)).toBe(false);
-  });
-
-  it("SW + Admin: never locked (Admin is approver)", () => {
-    expect(isFieldLocked(["Script Writer", "Admin"], "script_link", { script_status: "Done" } as any)).toBe(false);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// parseRoles (from roles.ts)
-// ---------------------------------------------------------------------------
-
-describe("parseRoles", () => {
-  it("single valid role", () => {
-    expect(parseRoles("Script Writer")).toEqual(["Script Writer"]);
-  });
-
-  it("comma-separated multiple valid roles", () => {
-    expect(parseRoles("Script Writer, Tutorial Maker")).toEqual(["Script Writer", "Tutorial Maker"]);
-  });
-
-  it("trims whitespace", () => {
-    expect(parseRoles("  Admin , Reviewer  ")).toEqual(["Admin", "Reviewer"]);
-  });
-
-  it("drops invalid roles", () => {
-    expect(parseRoles("Script Writer, InvalidRole, Tutorial Maker")).toEqual(["Script Writer", "Tutorial Maker"]);
-  });
-
-  it("empty string → []", () => {
-    expect(parseRoles("")).toEqual([]);
-  });
-
-  it("all invalid → []", () => {
-    expect(parseRoles("Typo, BadRole")).toEqual([]);
-  });
-
-  it("Video Editor is a valid role", () => {
-    expect(parseRoles("Video Editor")).toEqual(["Video Editor"]);
+describe("parseRoles validates against the new roster", () => {
+  it("keeps valid roles, drops unknown", () => {
+    expect(parseRoles("Scriptwriter, Nope, Recorder")).toEqual(["Scriptwriter", "Recorder"]);
   });
 });
