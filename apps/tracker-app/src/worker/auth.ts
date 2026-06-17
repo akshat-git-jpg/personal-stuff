@@ -17,7 +17,7 @@
 import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { getAccessToken } from "./sheets";
-import { lookupRoles, cachedRolesMap } from "./roles";
+import { lookupRoles } from "./roles";
 
 // ---------------------------------------------------------------------------
 // Env / variable types (shared across auth + index)
@@ -263,12 +263,15 @@ export async function requireSession(
   // or removing a role in the Team tab takes effect immediately, with no re-login,
   // for the person who changed AND for anyone else. If the live lookup fails, fall
   // back to the roles snapshotted in the session at login.
+  // Roles are read LIVE from the Employes tab every request, so adding/removing a
+  // role takes effect immediately (no re-login, no cache lag). The session only
+  // proves identity.
   let roles: string[];
   try {
-    const map = await cachedRolesMap(c.env);
-    roles = map.get(session.email.toLowerCase().trim()) ?? [];
+    const saToken = await getAccessToken(c.env.GOOGLE_SA_JSON);
+    roles = await lookupRoles(saToken, c.env.SHEET_ID, session.email);
   } catch (err) {
-    console.warn("[auth] role lookup failed; using session roles:", err);
+    console.warn("[auth] live role lookup failed; using session roles:", err);
     roles = session.roles ?? (session.role ? [session.role] : []);
   }
   c.set("user", { email: session.email, roles });

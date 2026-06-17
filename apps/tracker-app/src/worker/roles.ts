@@ -13,33 +13,7 @@
  */
 
 import { POLICY } from "../shared/policy";
-import { sheetsGet, getAccessToken } from "./sheets";
-
-// ---------------------------------------------------------------------------
-// cachedRolesMap — roles read on every request, so cache it briefly (KV) to
-// avoid a Sheets round-trip per call. Busted instantly when the Team tab changes
-// (see /api/team), so admin role edits still apply immediately; only raw-sheet
-// edits to the Employes tab lag by up to the TTL.
-// ---------------------------------------------------------------------------
-const ROLES_CACHE_KEY = "roles:map";
-const ROLES_CACHE_TTL = 30; // seconds
-
-interface RolesEnv { SESSIONS: KVNamespace; GOOGLE_SA_JSON: string; SHEET_ID: string }
-
-export async function cachedRolesMap(env: RolesEnv): Promise<Map<string, string[]>> {
-  const cached = await env.SESSIONS.get(ROLES_CACHE_KEY);
-  if (cached) {
-    try { return new Map(Object.entries(JSON.parse(cached) as Record<string, string[]>)); } catch { /* fall through */ }
-  }
-  const token = await getAccessToken(env.GOOGLE_SA_JSON);
-  const map = await loadRolesMap(token, env.SHEET_ID);
-  await env.SESSIONS.put(ROLES_CACHE_KEY, JSON.stringify(Object.fromEntries(map)), { expirationTtl: ROLES_CACHE_TTL });
-  return map;
-}
-
-export async function bustRolesCache(env: RolesEnv): Promise<void> {
-  await env.SESSIONS.delete(ROLES_CACHE_KEY);
-}
+import { sheetsGet } from "./sheets";
 
 // The set of valid role names comes from POLICY keys.
 const VALID_ROLES = new Set(Object.keys(POLICY));

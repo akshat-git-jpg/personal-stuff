@@ -40,7 +40,7 @@ import {
 import {
   STAGES, stageById, stageByStatusCol, statusOf, PROTECTED_ADMIN_EMAIL,
 } from "../shared/pipeline";
-import { loadTeam, lookupRoles, bustRolesCache, VALID_ROLE_NAMES } from "./roles";
+import { loadTeam, lookupRoles, VALID_ROLE_NAMES } from "./roles";
 import { COLUMNS } from "../shared/columns";
 import type { Column } from "../shared/columns";
 import { notify } from "./notify";
@@ -191,7 +191,6 @@ app.post("/api/team", async (c) => {
   const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
   const result = await upsertEmployee(token, c.env.SHEET_ID, name, email, finalRoles.join(", "));
   await bustBoardCache(c.env);
-  await bustRolesCache(c.env);
   return c.json({ ok: true, result });
 });
 
@@ -208,7 +207,6 @@ app.post("/api/team/delete", async (c) => {
   const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
   const removed = await deleteEmployee(token, c.env.SHEET_ID, email);
   await bustBoardCache(c.env);
-  await bustRolesCache(c.env);
   return c.json({ ok: removed });
 });
 
