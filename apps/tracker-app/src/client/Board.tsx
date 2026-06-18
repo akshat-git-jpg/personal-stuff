@@ -66,6 +66,13 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
   const canReview = roles.includes("Reviewer");
   const workerStages = stages ?? [];
 
+  // Time-in-status chip audience. "everyone" = freelancers see it on their own
+  // board AND admins see it in view-as. Flip to "admin" to restrict it to admins
+  // / view-as only — that's the only change needed.
+  const SHOW_DWELL: "everyone" | "admin" = "everyone";
+  const adminViewing = isAdmin || !!readOnly; // readOnly board = an admin's view-as mirror
+  const showDwell = SHOW_DWELL === "everyone" || adminViewing;
+
   // Build the tab set from what this user actually has.
   const tabs: { key: TabKey; label: string }[] = [];
   const [queueCount, setQueueCount] = useState(0);
@@ -158,7 +165,7 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
               <div className="lane__cards">
                 {laneRows.map((row) => (
                   <Card key={row.row_id} row={row} statusCol={statusCol} names={names} readOnly={readOnly}
-                    showAssignee={isAdmin}
+                    showAssignee={isAdmin} showDwell={showDwell}
                     /* My work is the doer's board — never show reviewer actions here */
                     transitions={transitionsForStageCol(row, statusCol).filter((t) => t.by === "doer")}
                     onOpen={() => openDetail(row, stageByStatusCol(statusCol)?.id, "doer")}

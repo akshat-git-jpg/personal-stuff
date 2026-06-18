@@ -9,7 +9,7 @@
 // ---------------------------------------------------------------------------
 import type { Column } from "./columns";
 
-export type StageId = "topic" | "script" | "recording" | "editing" | "upload";
+export type StageId = "topic" | "script" | "recording" | "editing" | "thumbnail" | "upload";
 
 export interface StageDef {
   id: StageId;
@@ -70,7 +70,7 @@ export const STAGES: StageDef[] = [
     id: "script", label: "Script", ownerRole: "Scriptwriter",
     statusCol: "script_status", assigneeCol: "script_writer_email",
     reviewable: true, terminal: false, order: 1,
-    editFields: ["script_link"],
+    editFields: ["script_link", "script_eta"],
     viewFields: ["video_title", "video_notes", "category", "subcategory"],
     instructionCol: "script_instruction",
     feedbackCol: "script_feedback",
@@ -80,7 +80,7 @@ export const STAGES: StageDef[] = [
     id: "recording", label: "Recording", ownerRole: "Recorder",
     statusCol: "tutorial_status", assigneeCol: "tutorial_maker_email",
     reviewable: true, terminal: false, order: 2,
-    editFields: ["tutorial_link"],
+    editFields: ["tutorial_link", "tutorial_eta"],
     viewFields: ["video_title", "video_notes", "script_link"],
     instructionCol: "tutorial_instruction",
     feedbackCol: "tutorial_feedback",
@@ -90,18 +90,28 @@ export const STAGES: StageDef[] = [
     id: "editing", label: "Editing", ownerRole: "Video Editor",
     statusCol: "video_editor_status", assigneeCol: "video_editor_email",
     reviewable: true, terminal: false, order: 3,
-    editFields: ["video_editor_link"],
+    editFields: ["video_editor_link", "video_editor_eta"],
     viewFields: ["video_title", "video_notes", "tutorial_link"],
     instructionCol: "video_editor_instruction",
     feedbackCol: "editor_feedback",
     requiredFields: [{ col: "video_editor_link", label: "final video link" }],
   },
   {
+    id: "thumbnail", label: "Thumbnail", ownerRole: "Thumbnail Maker",
+    statusCol: "thumbnail_status", assigneeCol: "thumbnail_maker_email",
+    reviewable: true, terminal: false, order: 4,
+    editFields: ["thumbnail_link", "thumbnail_eta"],
+    viewFields: ["video_title", "video_notes", "video_editor_link"],
+    instructionCol: "thumbnail_instruction",
+    feedbackCol: "thumbnail_feedback",
+    requiredFields: [{ col: "thumbnail_link", label: "thumbnail link" }],
+  },
+  {
     id: "upload", label: "Upload", ownerRole: "Uploader",
     statusCol: "yt_upload_status", assigneeCol: "uploader_email",
-    reviewable: false, terminal: true, order: 4,
-    editFields: ["yt_link", "yt_upload_date", "short_links", "actual_links"],
-    viewFields: ["video_title", "video_description", "video_editor_link"],
+    reviewable: false, terminal: true, order: 5,
+    editFields: ["yt_link", "yt_upload_date", "short_links", "actual_links", "yt_eta"],
+    viewFields: ["video_title", "video_description", "video_editor_link", "thumbnail_link"],
     requiredFields: [{ col: "yt_link", label: "YouTube link" }],
   },
 ];

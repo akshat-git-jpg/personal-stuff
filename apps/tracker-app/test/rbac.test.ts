@@ -27,7 +27,7 @@ describe("role roster", () => {
   it("has no Ideator role — Topic is the Admin's job", () => {
     expect(ALL_ROLES).not.toContain("Ideator");
     expect(ALL_ROLES.slice().sort()).toEqual(
-      ["Admin", "Recorder", "Reviewer", "Scriptwriter", "Uploader", "Video Editor"],
+      ["Admin", "Recorder", "Reviewer", "Scriptwriter", "Thumbnail Maker", "Uploader", "Video Editor"],
     );
   });
 });
@@ -125,6 +125,39 @@ describe("required fields gate submit/advance", () => {
   });
 });
 
+describe("ETA gate — Start requires the stage's ETA (control.ts mustFill on To Do)", () => {
+  it("a scriptwriter can't Start until the ETA is set, and the transition says why", () => {
+    const noEta = scriptCard("To Do"); // script_eta empty
+    const start = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, noEta).find((t) => t.kind === "start")!;
+    expect(start.disabledReason).toMatch(/ETA/i);
+    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Progress", noEta).ok).toBe(false);
+  });
+  it("…and can once the ETA is filled", () => {
+    const withEta = { ...scriptCard("To Do"), script_eta: "2026-07-01" };
+    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Progress", withEta).ok).toBe(true);
+  });
+});
+
+describe("reviewer must brief the next worker before approving (control.ts toApprove)", () => {
+  it("approving Script is blocked until the Recorder's instruction is written", () => {
+    const noInstr = scriptCard("In Review"); // tutorial_instruction empty
+    const approve = transitionsForStage(["Reviewer"], "rv@x.com", SCRIPT, noInstr).find((t) => t.kind === "approve")!;
+    expect(approve.disabledReason).toMatch(/tutorial instruction/i);
+    expect(authorizeWrite(["Reviewer"], "rv@x.com", "script_status", "Done", noInstr).ok).toBe(false);
+    const briefed = { ...noInstr, tutorial_instruction: "Record at 1080p" };
+    expect(authorizeWrite(["Reviewer"], "rv@x.com", "script_status", "Done", briefed).ok).toBe(true);
+  });
+});
+
+describe("thumbnail stage", () => {
+  it("sits between Editing and Upload, reviewable, and Upload now gates on it", () => {
+    const thumb = stageById("thumbnail")!;
+    expect(thumb.order).toBe(4);
+    expect(thumb.reviewable).toBe(true);
+    expect(stageById("upload")!.order).toBe(5);
+  });
+});
+
 describe("authorizeWrite (single enforcement point)", () => {
   it("a doer cannot set Done or Need Changes (approver-only)", () => {
     expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "Done", scriptCard("In Review")).ok).toBe(false);
@@ -134,8 +167,9 @@ describe("authorizeWrite (single enforcement point)", () => {
     const ready = { ...scriptCard("In Progress"), script_link: "https://x.com/s" };
     expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Review", ready).ok).toBe(true);
   });
-  it("the assigned reviewer can approve", () => {
-    expect(authorizeWrite(["Reviewer"], "rv@x.com", "script_status", "Done", scriptCard("In Review")).ok).toBe(true);
+  it("the assigned reviewer can approve (once the next worker's instruction is written)", () => {
+    const ready = { ...scriptCard("In Review"), tutorial_instruction: "Record at 1080p" };
+    expect(authorizeWrite(["Reviewer"], "rv@x.com", "script_status", "Done", ready).ok).toBe(true);
   });
   it("content fields lock once submitted / approved", () => {
     expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_link", "x", scriptCard("In Progress")).ok).toBe(true);

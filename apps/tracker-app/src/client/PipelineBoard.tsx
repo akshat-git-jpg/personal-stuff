@@ -8,7 +8,7 @@ import { STAGES, statusOf, type StageDef } from "../shared/pipeline";
 import { displayName } from "./api";
 import { statusMeta } from "./status";
 import {
-  stageStepState, activeAssigneeEmail, isStuck, daysSince,
+  stageStepState, activeAssigneeEmail,
 } from "./pipeline";
 import { rowMatchesFilters, type AdminFilters } from "./Filters";
 
@@ -23,13 +23,10 @@ function StageCell({ row, stage }: { row: Row; stage: StageDef }) {
   }
   const status = statusOf(stage, r);
   const meta = statusMeta(status);
-  const stuck = isStuck(r);
-  const d = stuck ? daysSince(r.last_updated) : null;
   return (
     <td className="ptable__cell ptable__cell--active">
       <div className="ptable__active-wrap">
         <span className={`pill pill--${meta.tone}`}>{meta.label}</span>
-        {stuck && d !== null && <span className="ptable__badge ptable__badge--stuck" title={`No update in ${d} days`}>⚠ {d}d</span>}
       </div>
     </td>
   );

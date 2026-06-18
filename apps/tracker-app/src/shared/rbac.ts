@@ -2,9 +2,12 @@ import type { Column } from "./columns";
 import { COLUMNS } from "./columns";
 import { POLICY, APPROVER_ROLES, APPROVER_ONLY_VALUES, STAGE_OF_COL } from "./policy";
 import {
-  STAGES, stageByStatusCol, statusOf, isGateOpen, missingRequired,
+  STAGES, stageByStatusCol, statusOf, isGateOpen,
   ADMIN_ROLE, REVIEWER_ROLE, type StageDef,
 } from "./pipeline";
+import {
+  requiredToSubmitFrom, requiredToApprove, missingColumns, columnLabel,
+} from "./control";
 
 export type Row = Partial<Record<Column, string>>;
 
@@ -195,7 +198,18 @@ export interface Transition {
   disabledReason?: string;
 }
 
-/** Allowed status transitions for ONE stage of a card, for this user. */
+// Build the "Add the X, Y first." reason for a set of required-but-empty columns.
+function blockReasonFor(cols: Column[], row: Row): string | undefined {
+  const missing = missingColumns(cols, row);
+  return missing.length ? `Add the ${missing.map(columnLabel).join(", ")} first.` : undefined;
+}
+
+/** Allowed status transitions for ONE stage of a card, for this user.
+ *  Required-field gates come from the control tables (control.ts):
+ *   • Start / Submit / Mark-uploaded → worker `mustFill` for the FROM status
+ *     (so the To Do ETA gate and the In-Progress link gate both flow from here).
+ *   • Approve → reviewer `toApprove` (e.g. the next worker's instruction).
+ *   • Resume editing (Need Changes → In Progress) is never gated. */
 export function transitionsForStage(roles: string[], email: string, stage: StageDef, row: Row): Transition[] {
   const out: Transition[] = [];
   const status = statusOf(stage, row);
@@ -205,18 +219,16 @@ export function transitionsForStage(roles: string[], email: string, stage: Stage
   const gateOpen = isGateOpen(stage, row);
   const doer = { stageId: stage.id, statusCol: stage.statusCol, by: "doer" as const };
   const rev = { stageId: stage.id, statusCol: stage.statusCol, by: "reviewer" as const };
-
-  // Submitting / completing a stage is blocked until its required fields are filled.
-  const missing = missingRequired(stage, row);
-  const blockReason = missing.length ? `Add the ${missing.map((f) => f.label).join(", ")} first.` : undefined;
+  // The forward-move gate from a given status = that status's worker `mustFill`.
+  const submitGate = (from: string) => blockReasonFor(requiredToSubmitFrom(stage.id, from), row);
 
   if (stage.reviewable) {
     if (owner && gateOpen) {
-      if (status === "To Do") out.push({ ...doer, to: "In Progress", label: "Start", kind: "start" });
-      if (status === "In Progress") out.push({ ...doer, to: "In Review", label: "Submit for review", kind: "submit", disabledReason: blockReason });
+      if (status === "To Do") out.push({ ...doer, to: "In Progress", label: "Start", kind: "start", disabledReason: submitGate("To Do") });
+      if (status === "In Progress") out.push({ ...doer, to: "In Review", label: "Submit for review", kind: "submit", disabledReason: submitGate("In Progress") });
       if (status === "Need Changes") {
         out.push({ ...doer, to: "In Progress", label: "Resume editing", kind: "start" });
-        out.push({ ...doer, to: "In Review", label: "Resubmit for review", kind: "submit", disabledReason: blockReason });
+        out.push({ ...doer, to: "In Review", label: "Resubmit for review", kind: "submit", disabledReason: submitGate("Need Changes") });
       }
     }
     if (reviewer) {
@@ -224,7 +236,7 @@ export function transitionsForStage(roles: string[], email: string, stage: Stage
       // Done but never send it back (e.g. Topic).
       const canSendBack = !!stage.feedbackCol;
       if (status === "In Review") {
-        out.push({ ...rev, to: "Done", label: "Approve", kind: "approve" });
+        out.push({ ...rev, to: "Done", label: "Approve", kind: "approve", disabledReason: blockReasonFor(requiredToApprove(stage.id), row) });
         if (canSendBack) out.push({ ...rev, to: "Need Changes", label: "Request changes", kind: "reject", requiresFeedback: true });
       }
       if (status === "Done" && canSendBack) out.push({ ...rev, to: "Need Changes", label: "Reopen (request changes)", kind: "reopen", requiresFeedback: true });
@@ -232,8 +244,8 @@ export function transitionsForStage(roles: string[], email: string, stage: Stage
   } else {
     // Terminal upload stage — no review.
     if (owner && gateOpen) {
-      if (status === "To Do") out.push({ ...doer, to: "In Progress", label: "Start upload", kind: "start" });
-      if (status === "In Progress") out.push({ ...doer, to: "Uploaded", label: "Mark uploaded", kind: "advance", disabledReason: blockReason });
+      if (status === "To Do") out.push({ ...doer, to: "In Progress", label: "Start upload", kind: "start", disabledReason: submitGate("To Do") });
+      if (status === "In Progress") out.push({ ...doer, to: "Uploaded", label: "Mark uploaded", kind: "advance", disabledReason: submitGate("In Progress") });
     }
   }
   return out;

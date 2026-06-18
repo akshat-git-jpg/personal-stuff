@@ -1768,3 +1768,29 @@ details[open] .review-details__summary::before { content: "▼ "; }
   width: 100%; font: inherit; font-size: 13px; padding: 8px 10px; border-radius: 8px;
   background: var(--bg); border: 1px solid var(--line-2); color: var(--t1); resize: vertical;
 }
+
+/* ── Time-in-status (dwell) chip on board cards ───────────────────────────── */
+.card__dwell {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #555;
+  background: #f0f0f3;
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+  margin-left: 0.35rem;
+  white-space: nowrap;
+}
+
+/* ── ETA date field + countdown badge ─────────────────────────────────────── */
+.date-field { display: flex; align-items: center; gap: 0.5rem; }
+.ro--eta { display: flex; align-items: center; gap: 0.5rem; }
+.eta-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  white-space: nowrap;
+}
+.eta-badge--eta-ok   { background: #e6f6ec; color: #1a7f3c; }   /* runway left  */
+.eta-badge--eta-due  { background: #fff4e0; color: #9a6700; }   /* due today    */
+.eta-badge--eta-late { background: #fde7e7; color: #b3261e; }   /* overdue      */

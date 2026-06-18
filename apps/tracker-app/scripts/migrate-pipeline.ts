@@ -124,7 +124,8 @@ async function main() {
     console.warn(`! skipped Access tab (${e instanceof Error ? e.message : e}) — create an "Access" tab to enable the mirror`);
   }
 
-  console.log("\nDone. NOTE: assign the new Ideator / Uploader roles to people via the admin Team tab.");
+  console.log("\nDone. NOTE: ensureColumns adds any new headers (thumbnail_*, *_eta, status_since).");
+  console.log("Assign the new Thumbnail Maker role to someone via the admin Team tab.");
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

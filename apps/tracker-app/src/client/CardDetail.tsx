@@ -2,13 +2,18 @@ import { useState, useEffect } from "react";
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
 import { canEditForRoles, isAdminRoles } from "../shared/rbac";
-import { STAGES, stageById, statusOf, cardFieldsFor, missingRequired, PROTECTED_ADMIN_EMAIL } from "../shared/pipeline";
+import { STAGES, stageById, statusOf, PROTECTED_ADMIN_EMAIL } from "../shared/pipeline";
+import { DATE_COLUMNS, ETA_COLUMNS } from "../shared/columns";
+import {
+  showColumns, editColumns, requiredToApprove, requiredToSubmitFrom,
+  missingColumns, columnLabel, type RoleKind,
+} from "../shared/control";
 import {
   applyTransition, updateCell, generateLinks, displayName, personLabel,
   type BoardRow, type GenerateLinksResult,
 } from "./api";
 import { statusMeta } from "./status";
-import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl } from "./labels";
+import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl, etaBadge } from "./labels";
 
 interface CardDetailProps {
   row: BoardRow;
@@ -65,6 +70,8 @@ const MULTILINE_COLS = new Set<string>([
   ...STAGES.flatMap((s) => [s.instructionCol, s.feedbackCol].filter(Boolean) as string[]),
 ]);
 const COMBO_COLS = new Set(["category", "subcategory"]);
+const DATE_COLS = new Set<string>(DATE_COLUMNS);
+const ETA_COLS = new Set<string>(ETA_COLUMNS);
 
 // All assignee fields, in pipeline sequence, grouped right after the brief so the
 // admin sets them in one place: Scriptwriter → Recorder → Video Editor → Uploader
@@ -100,6 +107,13 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
   const contextStage = stageById(contextStageId ?? "") ?? STAGES[0];
   const [showAll, setShowAll] = useState(false);
 
+  // The form is driven by the control tables: which columns show / are editable
+  // depends on (stage, role-kind, current status). `worker` = the stage owner's
+  // view (My work); `reviewer` = the card reviewer's view (Review queue).
+  const kind: RoleKind = perspective === "reviewer" ? "reviewer" : "worker";
+  const ctxStatus = statusOf(contextStage, row);
+  const editSet = new Set<string>(editColumns(contextStage.id, kind, ctxStatus));
+
   const [draft, setDraft] = useState<Partial<Record<Column, string>>>({});
   const [savedMap, setSavedMap] = useState<Partial<Record<Column, string>>>({}); // last value persisted to the sheet
   const [fieldStatus, setFieldStatus] = useState<Partial<Record<Column, "saving" | "saved" | "error">>>({});
@@ -130,8 +144,11 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
     if (readOnly) return false;
     if (STATUS_COLS.has(col)) return false;       // driven by action buttons
     if (col === "admin_email") return false;       // founding admin is fixed
+    if (col in locks) return false;                // server says it's locked (submitted/approved/gate)
     if (!canEditForRoles(roles, col)) return false;
-    return !(col in locks);
+    if (isAdmin) return true;                      // admin edits everything the policy allows
+    // Everyone else: only what the control table marks editable at THIS status.
+    return editSet.has(col);
   }
 
   // The card's values as they'd be after saving the current edits — used to
@@ -230,7 +247,9 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
       return (
         <div key={col} className="field">
           <label>{label}{lockReason && <span className="lock-tag" title={lockReason}>🔒</span>}</label>
-          {ASSIGNEE_COLS.has(col) && value
+          {ETA_COLS.has(col)
+            ? <div className="ro ro--eta">{value || <span className="ro--empty">—</span>}{etaBadge(value) && <span className={`eta-badge eta-badge--${etaBadge(value)!.tone}`}>{etaBadge(value)!.text}</span>}</div>
+            : ASSIGNEE_COLS.has(col) && value
             ? <div className="ro">{displayName(value, names)} <span className="ro__sub">{value}</span></div>
             : LINK_COLS.has(col) && isUrl(value)
             ? <div className="ro ro--link"><span className="ro__link-text">{value}</span><a href={value} target="_blank" rel="noopener noreferrer" className="ext-link">Open ↗</a></div>
@@ -269,6 +288,12 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
               </select>
             );
           })()
+        ) : DATE_COLS.has(col) ? (
+          <div className="date-field">
+            <input id={`f-${col}`} type="date" value={value}
+              onChange={(e) => { handleChange(col, e.target.value); void autoSaveField(col, e.target.value); }} />
+            {ETA_COLS.has(col) && etaBadge(value) && <span className={`eta-badge eta-badge--${etaBadge(value)!.tone}`}>{etaBadge(value)!.text}</span>}
+          </div>
         ) : MULTILINE_COLS.has(col) ? (
           <textarea id={`f-${col}`} className="field-para" value={value} rows={5} placeholder={`Write the ${label.toLowerCase()}…`}
             onChange={(e) => handleChange(col, e.target.value)} onBlur={(e) => void autoSaveField(col, e.target.value)} />
@@ -305,10 +330,17 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
           // Re-evaluate the required-field gate against what's TYPED (draft), not
           // just what's saved — so pasting the link enables Submit immediately
           // (clicking it then saves the link + moves the status in one go).
+          // Required-field gate, re-evaluated against TYPED values (effectiveRow):
+          //  • Start (To Do→In Progress) / Submit / Mark-uploaded → worker mustFill
+          //  • Approve → reviewer toApprove (e.g. the next worker's instruction)
           const blockReason = (t: Transition): string | undefined => {
-            if (t.kind !== "submit" && t.kind !== "advance") return undefined;
-            const m = missingRequired(stage, effectiveRow);
-            return m.length ? `Add the ${m.map((f) => f.label).join(", ")} first.` : undefined;
+            let cols: Column[];
+            if (t.kind === "approve") cols = requiredToApprove(stage.id);
+            else if (t.kind === "submit" || t.kind === "advance") cols = requiredToSubmitFrom(stage.id, status);
+            else if (t.kind === "start" && status === "To Do") cols = requiredToSubmitFrom(stage.id, "To Do");
+            else return undefined;
+            const missing = missingColumns(cols, effectiveRow as Record<string, unknown>);
+            return missing.length ? `Add the ${missing.map(columnLabel).join(", ")} first.` : undefined;
           };
           const hint = g.transitions.map(blockReason).find(Boolean);
           return (
@@ -358,9 +390,10 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
 
   const title = row.video_title ?? "(no title)";
 
-  // Default: the context stage's curated fields. "Show all fields" (admin) falls
-  // back to the full per-stage section breakdown.
-  const contextCols = cardFieldsFor(contextStage).filter((c) => colSet.has(c));
+  // Default: the columns the control table shows for this stage + role-kind at
+  // the current status. "Show all fields" (admin) falls back to the full per-stage
+  // section breakdown.
+  const contextCols = showColumns(contextStage.id, kind, ctxStatus).filter((c) => colSet.has(c));
   const fullSections = SECTIONS
     .map((sec) => ({ ...sec, cols: sec.cols.filter((c) => colSet.has(c)) }))
     .filter((sec) => sec.cols.length > 0);

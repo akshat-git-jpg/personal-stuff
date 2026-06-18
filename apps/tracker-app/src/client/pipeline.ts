@@ -37,16 +37,10 @@ export function isStalled(row: Record<string, string>): boolean {
   return STAGES.some((s) => s.reviewable && statusOf(s, row) === "Need Changes");
 }
 
+/** Whole days elapsed since an ISO timestamp (null when blank/unparseable). */
 export function daysSince(iso: string | undefined): number | null {
   if (!iso) return null;
   const ts = Date.parse(iso);
   if (isNaN(ts)) return null;
   return Math.floor((Date.now() - ts) / 86_400_000);
-}
-
-/** Stuck: still in flight and untouched for >3 days. */
-export function isStuck(row: Record<string, string>): boolean {
-  if (!activeStage(row)) return false;
-  const d = daysSince(row.last_updated);
-  return d !== null && d > 3;
 }

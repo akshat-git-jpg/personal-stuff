@@ -1,6 +1,7 @@
 import type { Row, Transition } from "../shared/rbac";
 import { stageByStatusCol, normalizeStatus } from "../shared/pipeline";
 import { displayName } from "./api";
+import { daysSince } from "./pipeline";
 import { statusMeta } from "./status";
 import { FEEDBACK_COL, EMAIL_FOR_STAGE } from "./labels";
 
@@ -11,14 +12,19 @@ interface CardProps {
   names?: Record<string, string>;
   readOnly?: boolean;
   showAssignee?: boolean;        // admin/reviewer views where many people mix
+  showDwell?: boolean;           // show "in <status> since N days"
   onOpen: () => void;
   onAction?: (t: Transition) => void;
 }
 
-export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, onOpen, onAction }: CardProps) {
+export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, showDwell, onOpen, onAction }: CardProps) {
   const stage = stageByStatusCol(statusCol);
   const status = stage ? normalizeStatus(stage, row[statusCol as keyof Row] as string) : "To Do";
   const meta = statusMeta(status);
+
+  // Days the card has sat in its current status (from status_since, stamped on
+  // every status change). Blank until the card's next status change.
+  const dwell = showDwell ? daysSince((row as Record<string, string>).status_since) : null;
 
   const title = row.video_title ?? "(no title)";
   const cat = row.category ?? "";
@@ -38,6 +44,11 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
       onClick={onOpen} onKeyDown={(e) => e.key === "Enter" && onOpen()}>
       <div className="card__top">
         <span className={`pill pill--${meta.tone}`}>{meta.label}</span>
+        {dwell !== null && (
+          <span className="card__dwell" title={`In ${meta.label} since ${dwell} day${dwell === 1 ? "" : "s"}`}>
+            ⏱ {dwell === 0 ? "today" : `${dwell}d`}
+          </span>
+        )}
         {showAssignee && assignee && <span className="card__who">{displayName(assignee, names)}</span>}
       </div>
       <div className="card__title">{title}</div>

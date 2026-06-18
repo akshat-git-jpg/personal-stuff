@@ -267,7 +267,13 @@ app.get("/api/board", async (c) => {
   ]);
 
   const filteredRows = filterRowsForRoles(effRoles, effEmail, allRows);
-  const rows = filteredRows.map((r) => ({ ...projectRowForRoles(effRoles, r), ...rowMeta(effRoles, effEmail, r) }));
+  // status_since is always attached (outside the per-role column policy) so the
+  // board can show "in <status> since N days" for every card.
+  const rows = filteredRows.map((r) => ({
+    ...projectRowForRoles(effRoles, r),
+    ...rowMeta(effRoles, effEmail, r),
+    status_since: (r.status_since as string) ?? "",
+  }));
 
   return c.json({
     roles: effRoles,
@@ -337,8 +343,13 @@ app.post("/api/update", async (c) => {
 
   const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
   try {
-    // One read + one batched write (also stamps last_updated).
-    await updateCells(token, c.env.SHEET_ID, row_id, { [typedCol]: value },
+    // One read + one batched write (also stamps last_updated). When the column
+    // being written is a STATUS column, also stamp status_since so we can show
+    // "in <status> since N days" — last_updated changes on any edit, status_since
+    // only on a status change.
+    const writeValues: Partial<Record<Column, string>> = { [typedCol]: value };
+    if (STATUS_COLS.has(typedCol)) writeValues.status_since = new Date().toISOString();
+    await updateCells(token, c.env.SHEET_ID, row_id, writeValues,
       prev !== undefined ? { col: typedCol, value: prev } : undefined);
   } catch (err) {
     if (err instanceof ConflictError) {
@@ -420,16 +431,23 @@ app.post("/api/review", async (c) => {
     return c.json({ error: "forbidden", message: "Only this card's assigned reviewer can review it." }, 403);
   }
   const newStatus = action === "approve" ? "Done" : "Need Changes";
-  const allowed = transitionsForStage(roles, email, stage, targetRow).some((t) => t.to === newStatus);
-  if (!allowed) {
+  const transition = transitionsForStage(roles, email, stage, targetRow).find((t) => t.to === newStatus);
+  if (!transition) {
     return c.json({ error: "invalid_transition", message: `Can't ${action} from "${statusOf(stage, targetRow)}".` }, 409);
+  }
+  // Required-field gate (e.g. approving requires the next worker's instruction).
+  if (transition.disabledReason) {
+    return c.json({ error: "blocked", message: transition.disabledReason }, 400);
   }
   if (action === "sendback" && stage.feedbackCol && !feedback?.trim()) {
     return c.json({ error: "feedback_required", message: "Tell the freelancer what to change." }, 400);
   }
 
-  // One read + one batched write for status (+ feedback) and last_updated.
-  const updates: Partial<Record<Column, string>> = { [stage.statusCol]: newStatus };
+  // One read + one batched write for status (+ feedback), last_updated, status_since.
+  const updates: Partial<Record<Column, string>> = {
+    [stage.statusCol]: newStatus,
+    status_since: new Date().toISOString(),
+  };
   if (action === "sendback" && stage.feedbackCol) updates[stage.feedbackCol] = feedback!.trim();
   await updateCells(token, c.env.SHEET_ID, row_id, updates);
   await bustBoardCache(c.env);
