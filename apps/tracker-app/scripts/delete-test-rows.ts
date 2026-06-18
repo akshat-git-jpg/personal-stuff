@@ -1,4 +1,8 @@
 /**
+ * [DEPRECATED 2026-06-19] Operates directly on the Google SHEET (Master tab).
+ * The app moved to D1 (DATA_BACKEND=d1) — delete cards via the app's 🗑 button
+ * instead. Only relevant if you flip back to the Sheets fallback backend.
+ *
  * Delete every Master row whose video_title starts with "test" (case-insensitive).
  *   npx tsx scripts/delete-test-rows.ts            # dry run — lists matches
  *   npx tsx scripts/delete-test-rows.ts --apply    # actually delete

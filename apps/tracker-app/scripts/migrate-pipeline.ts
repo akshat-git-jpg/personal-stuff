@@ -1,4 +1,8 @@
 /**
+ * [DEPRECATED 2026-06-19] Migrates the Google SHEET schema (+ Access mirror tab).
+ * The app moved to D1 (DATA_BACKEND=d1); this only matters in the Sheets fallback
+ * mode, and the sheet is already migrated. Kept for that fallback case only.
+ *
  * One-shot migration for the 2026 pipeline refactor. Idempotent — safe to re-run.
  *
  *   npx tsx scripts/migrate-pipeline.ts          # against SHEET_ID in .dev.vars
