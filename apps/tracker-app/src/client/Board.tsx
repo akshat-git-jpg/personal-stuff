@@ -75,16 +75,15 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
   const adminViewing = isAdmin || !!readOnly; // readOnly board = an admin's view-as mirror
   const showDwell = SHOW_DWELL === "everyone" || adminViewing;
 
-  // Build the tab set: one tab per work board (each stage the user owns, named by
-  // the stage), then the Review queue, then admin tabs — all peers at the top.
-  // Review is the default whenever the user is a reviewer; otherwise their first
-  // work board.
+  // Build the tab set, all peers at the top. Review queue comes FIRST (and is the
+  // default) whenever the user is a reviewer; then one tab per work board (each
+  // stage the user owns, named by the stage); then admin tabs.
   const [queueCount, setQueueCount] = useState(0);
   const tabs: { key: TabKey; label: string }[] = [];
+  if (canReview) tabs.push({ key: "review", label: `Review queue${queueCount ? ` (${queueCount})` : ""}` });
   for (const ws of workerStages) {
     tabs.push({ key: ws.statusCol, label: stageByStatusCol(ws.statusCol)?.label ?? ws.statusCol });
   }
-  if (canReview) tabs.push({ key: "review", label: `Review queue${queueCount ? ` (${queueCount})` : ""}` });
   if (isAdmin) {
     tabs.push({ key: "pipeline", label: "Pipeline" });
     tabs.push({ key: "team", label: "Team" });
