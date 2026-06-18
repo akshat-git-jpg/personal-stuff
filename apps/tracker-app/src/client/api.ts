@@ -180,10 +180,9 @@ export interface GenerateLinksResult {
   description: string; links: GeneratedLink[]; non_affiliate_tools: string[];
 }
 
-export async function createVideo(input: {
-  video_title: string; video_notes?: string; category?: string; subcategory?: string;
-  ideator_email?: string; reviewer_email?: string;
-}): Promise<{ row_id: string }> {
+// Column-keyed creation payload (the fields come from NEW_VIDEO_FIELDS in
+// shared/control.ts, plus optional reviewer_email).
+export async function createVideo(input: Record<string, string>): Promise<{ row_id: string }> {
   const res = await postJSON("/api/video", input);
   await throwOnError(res);
   return res.json() as Promise<{ row_id: string }>;

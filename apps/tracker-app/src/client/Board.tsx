@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import type { Column } from "../shared/columns";
 import type { Transition } from "../shared/rbac";
 import { stageByStatusCol } from "../shared/pipeline";
+import { NEW_VIDEO_FIELDS } from "../shared/control";
 import {
   applyTransition, getReviewQueue, createVideo, deleteVideo,
   type BoardRow, type ReviewItem,
@@ -145,20 +146,21 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
     }
   }
 
-  // ── New-video modal (admin) ────────────────────────────────────────────────
+  // ── New-video modal (admin) — fields come from NEW_VIDEO_FIELDS (control.ts) ──
+  const blankNv = () => Object.fromEntries(NEW_VIDEO_FIELDS.map((f) => [f.col, ""])) as Record<string, string>;
   const [showNewVideo, setShowNewVideo] = useState(false);
-  const [nv, setNv] = useState({ title: "", notes: "", category: "", subcategory: "" });
+  const [nv, setNv] = useState<Record<string, string>>(blankNv);
   const [nvBusy, setNvBusy] = useState(false);
   const [nvError, setNvError] = useState<string | null>(null);
 
   async function submitNewVideo() {
-    if (!nv.title.trim() || !nv.category.trim() || !nv.subcategory.trim() || !nv.notes.trim()) {
-      setNvError("All fields are required."); return;
-    }
+    const missing = NEW_VIDEO_FIELDS.filter((f) => !(nv[f.col] ?? "").trim());
+    if (missing.length) { setNvError(`${missing.map((f) => f.label).join(", ")} ${missing.length === 1 ? "is" : "are"} required.`); return; }
     setNvBusy(true); setNvError(null);
     try {
-      await createVideo({ video_title: nv.title.trim(), video_notes: nv.notes.trim(), category: nv.category.trim(), subcategory: nv.subcategory.trim() });
-      setShowNewVideo(false); setNv({ title: "", notes: "", category: "", subcategory: "" });
+      const payload = Object.fromEntries(NEW_VIDEO_FIELDS.map((f) => [f.col, (nv[f.col] ?? "").trim()]));
+      await createVideo(payload);
+      setShowNewVideo(false); setNv(blankNv());
       setTab("work"); reload();
     } catch (err) { setNvError(err instanceof Error ? err.message : String(err)); }
     finally { setNvBusy(false); }
@@ -234,16 +236,23 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
         <h3 className="confirm-dialog__title">New video</h3>
         <p className="confirm-dialog__body">Adds a topic at the start of the pipeline (Topic → To Do).</p>
         <div className="nv-form">
-          <div className="field"><label>Title *</label>
-            <input value={nv.title} autoFocus placeholder="e.g. Best AI video editors in 2026" onChange={(e) => setNv({ ...nv, title: e.target.value })} /></div>
-          <div className="field"><label>Notes / brief *</label>
-            <textarea rows={4} value={nv.notes} placeholder="Angle, tools to cover, anything the ideator/scriptwriter needs…" onChange={(e) => setNv({ ...nv, notes: e.target.value })} /></div>
-          <div className="nv-form__row">
-            <div className="field"><label>Category *</label>
-              <ComboSelect id="nv-cat" value={nv.category} options={categoryOptions} placeholder="New category…" onChange={(v) => setNv({ ...nv, category: v })} /></div>
-            <div className="field"><label>Subcategory *</label>
-              <ComboSelect id="nv-sub" value={nv.subcategory} options={subcategoryOptions} placeholder="New subcategory…" onChange={(v) => setNv({ ...nv, subcategory: v })} /></div>
-          </div>
+          {NEW_VIDEO_FIELDS.map((f, i) => {
+            const set = (v: string) => setNv((prev) => ({ ...prev, [f.col]: v }));
+            return (
+              <div className="field" key={f.col}>
+                <label>{f.label} *</label>
+                {f.type === "textarea" ? (
+                  <textarea rows={4} value={nv[f.col] ?? ""} onChange={(e) => set(e.target.value)} />
+                ) : f.type === "combo" ? (
+                  <ComboSelect id={`nv-${f.col}`} value={nv[f.col] ?? ""}
+                    options={f.options === "subcategory" ? subcategoryOptions : categoryOptions}
+                    placeholder={`New ${f.label.toLowerCase()}…`} onChange={set} />
+                ) : (
+                  <input value={nv[f.col] ?? ""} autoFocus={i === 0} onChange={(e) => set(e.target.value)} />
+                )}
+              </div>
+            );
+          })}
         </div>
         {nvError && <p className="nv-form__error">{nvError}</p>}
         <div className="confirm-dialog__actions">

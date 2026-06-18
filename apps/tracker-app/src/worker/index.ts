@@ -41,6 +41,7 @@ import {
   STAGES, stageById, stageByStatusCol, statusOf, PROTECTED_ADMIN_EMAIL,
 } from "../shared/pipeline";
 import { loadTeam, lookupRoles, VALID_ROLE_NAMES } from "./roles";
+import { NEW_VIDEO_FIELDS } from "../shared/control";
 import { COLUMNS } from "../shared/columns";
 import type { Column } from "../shared/columns";
 import { sendNotification } from "./notifications";
@@ -471,28 +472,23 @@ app.post("/api/video", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
 
-  let body: {
-    video_title?: string; video_notes?: string; category?: string; subcategory?: string;
-    reviewer_email?: string;
-  };
+  let body: Record<string, string>;
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
-  const title = (body.video_title ?? "").trim();
-  const notes = (body.video_notes ?? "").trim();
-  const category = (body.category ?? "").trim();
-  const subcategory = (body.subcategory ?? "").trim();
-  if (!title) return c.json({ error: "video_title is required" }, 400);
-  if (!category) return c.json({ error: "category is required" }, 400);
-  if (!subcategory) return c.json({ error: "subcategory is required" }, 400);
-  if (!notes) return c.json({ error: "a brief (video_notes) is required" }, 400);
+
+  // Validate + collect the creation fields from the shared config (control.ts),
+  // so the required set can't drift from the client modal.
+  const values: Partial<Record<Column, string>> = {};
+  for (const f of NEW_VIDEO_FIELDS) {
+    const v = (body[f.col] ?? "").trim();
+    if (!v) return c.json({ error: `${f.label} is required`, col: f.col }, 400);
+    values[f.col] = v;
+  }
 
   const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
   const today = new Date().toISOString().slice(0, 10);
   const firstStage = STAGES[0]; // topic
   const rowId = await appendRow(token, c.env.SHEET_ID, {
-    video_title: title,
-    video_notes: notes,
-    category,
-    subcategory,
+    ...values,
     [firstStage.statusCol]: "To Do", // explicit — never blank
     topic_date: today,
     admin_email: PROTECTED_ADMIN_EMAIL, // admin owns the Topic stage

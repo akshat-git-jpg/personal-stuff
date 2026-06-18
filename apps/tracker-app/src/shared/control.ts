@@ -111,6 +111,24 @@ export interface StageControl {
 /** Which table a viewer reads: the stage owner ("worker") or the card Reviewer. */
 export type RoleKind = "worker" | "reviewer";
 
+// ---------------------------------------------------------------------------
+// New-video creation form. The fields required to create a card, shared by the
+// client modal (renders + validates) and the worker (/api/video validates +
+// writes). Add a field here once and it shows up + is enforced on both sides.
+// ---------------------------------------------------------------------------
+export interface NewVideoField {
+  col: Column;
+  label: string;
+  type: "text" | "textarea" | "combo";
+  options?: "category" | "subcategory"; // for combo
+}
+export const NEW_VIDEO_FIELDS: NewVideoField[] = [
+  { col: "video_title", label: "Title", type: "text" },
+  { col: "video_notes", label: "Notes / brief", type: "textarea" },
+  { col: "category", label: "Category", type: "combo", options: "category" },
+  { col: "subcategory", label: "Subcategory", type: "combo", options: "subcategory" },
+];
+
 export const CONTROL: Record<string, StageControl> = {
   // =========================================================================
   // TOPIC  ·  worker = Admin  ·  approve-only (no "Need Changes")  ·  no ETA
