@@ -43,7 +43,7 @@ import {
 import { loadTeam, lookupRoles, VALID_ROLE_NAMES } from "./roles";
 import { COLUMNS } from "../shared/columns";
 import type { Column } from "../shared/columns";
-import { notify } from "./notify";
+import { sendNotification } from "./notifications";
 
 // ---------------------------------------------------------------------------
 // KV-backed read cache for board rows (~60 s TTL)
@@ -375,23 +375,13 @@ app.post("/api/update", async (c) => {
         const recipients = rowReviewer
           ? [rowReviewer]
           : team.filter((m) => (m.roles ?? [m.role]).some(isApprover)).map((m) => m.email);
-        for (const to of [...new Set(recipients.filter(Boolean))]) {
-          await notify(c.env, {
-            to,
-            subject: `🔔 ${stage.label} submitted for review: ${videoTitle}`,
-            text: `${submitterName} submitted the ${stage.label} for "${videoTitle}" for your review.\n\nOpen the tracker: ${appUrl}`,
-          });
-        }
+        await sendNotification(c.env, "submitted", recipients, { title: videoTitle, appUrl, stageLabel: stage.label, actorName: submitterName });
       }
 
       // Assignment → notify the newly-assigned person.
       const assigneeRole = ASSIGNEE_COL_ROLE[typedCol];
       if (assigneeRole && isAdminRoles(roles) && value.trim() !== "" && value.trim().toLowerCase() !== oldValue) {
-        await notify(c.env, {
-          to: value.trim(),
-          subject: `📋 You've been assigned: ${videoTitle}`,
-          text: `You've been assigned to "${videoTitle}" as ${assigneeRole}.\n\nOpen the tracker: ${appUrl}`,
-        });
+        await sendNotification(c.env, "assigned", value.trim(), { title: videoTitle, appUrl, stageLabel: assigneeRole });
       }
     } catch (e) { console.warn("[notify] update notifications failed:", e); }
   })());
@@ -460,19 +450,9 @@ app.post("/api/review", async (c) => {
     c.executionCtx.waitUntil((async () => {
       try {
         const assigneeName = displayName(assigneeEmail, buildNamesMap(await loadTeam(token, c.env.SHEET_ID)));
-        if (action === "approve") {
-          await notify(c.env, {
-            to: assigneeEmail,
-            subject: `✅ Approved: ${videoTitle}`,
-            text: `Hi ${assigneeName},\n\nYour ${stage.label} for "${videoTitle}" was approved.\n\n${appUrl}`,
-          });
-        } else {
-          await notify(c.env, {
-            to: assigneeEmail,
-            subject: `✏️ Changes requested: ${videoTitle}`,
-            text: `Hi ${assigneeName},\n\nYour ${stage.label} for "${videoTitle}" needs changes:\n\n"${feedback!.trim()}"\n\nOpen the tracker to revise: ${appUrl}`,
-          });
-        }
+        await sendNotification(c.env, action === "approve" ? "approved" : "sentBack", assigneeEmail, {
+          title: videoTitle, appUrl, stageLabel: stage.label, recipientName: assigneeName, feedback: feedback?.trim(),
+        });
       } catch (e) { console.warn("[notify] review notification failed:", e); }
     })());
   }
