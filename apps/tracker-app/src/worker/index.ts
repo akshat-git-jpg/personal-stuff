@@ -22,10 +22,8 @@ import { Hono } from "hono";
 import { setCookie } from "hono/cookie";
 import type { Env, Variables } from "./auth";
 import { getUser, loginRedirect, logout, oauthCallback, requireSession } from "./auth";
-import {
-  getAccessToken, readRows, updateCells, appendRow, deleteRowById,
-  upsertEmployee, deleteEmployee, ConflictError,
-} from "./sheets";
+import { getAccessToken, ConflictError } from "./sheets";
+import { getStore } from "./datastore";
 import { createGeminiClient } from "./gemini";
 import { loadAffiliateRecords } from "./affiliate";
 import { processVideo } from "./linkgen";
@@ -40,7 +38,7 @@ import {
 import {
   STAGES, stageById, stageByStatusCol, statusOf, PROTECTED_ADMIN_EMAIL,
 } from "../shared/pipeline";
-import { loadTeam, lookupRoles, VALID_ROLE_NAMES } from "./roles";
+import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
 import { NEW_VIDEO_FIELDS } from "../shared/control";
 import { COLUMNS } from "../shared/columns";
 import type { Column } from "../shared/columns";
@@ -58,8 +56,7 @@ async function cachedReadRows(env: Env): Promise<Row[]> {
   if (cached) {
     try { return JSON.parse(cached) as Row[]; } catch { /* fall through */ }
   }
-  const token = await getAccessToken(env.GOOGLE_SA_JSON);
-  const rows = await readRows(token, env.SHEET_ID);
+  const rows = await getStore(env).readRows();
   await env.SESSIONS.put(BOARD_CACHE_KEY, JSON.stringify(rows), { expirationTtl: BOARD_CACHE_TTL });
   return rows;
 }
@@ -72,7 +69,7 @@ async function bustBoardCache(env: Env): Promise<void> {
 // Name helpers
 // ---------------------------------------------------------------------------
 
-function buildNamesMap(team: Awaited<ReturnType<typeof loadTeam>>): Record<string, string> {
+function buildNamesMap(team: TeamMember[]): Record<string, string> {
   const names: Record<string, string> = {};
   for (const m of team) names[m.email.toLowerCase()] = m.name;
   return names;
@@ -80,7 +77,7 @@ function buildNamesMap(team: Awaited<ReturnType<typeof loadTeam>>): Record<strin
 
 // email -> comma-joined roles, so dropdowns can show "Name — Role(s)" without
 // anyone hand-stuffing the role into the name field.
-function buildRolesMap(team: Awaited<ReturnType<typeof loadTeam>>): Record<string, string> {
+function buildRolesMap(team: TeamMember[]): Record<string, string> {
   const roles: Record<string, string> = {};
   for (const m of team) roles[m.email.toLowerCase()] = (m.roles ?? [m.role]).filter(Boolean).join(", ");
   return roles;
@@ -120,8 +117,7 @@ app.get("/dev-login", async (c) => {
   const SESSION_TTL = 604800;
   let roles: string[] = [];
   try {
-    const saToken = await getAccessToken(c.env.GOOGLE_SA_JSON);
-    roles = await lookupRoles(saToken, c.env.SHEET_ID, email);
+    roles = await getStore(c.env).lookupRoles(email);
   } catch (err) {
     console.warn("[dev-login] lookupRoles failed:", err);
   }
@@ -158,8 +154,7 @@ app.get("/api/me", (c) => c.json(getUser(c)));
 app.get("/api/team", async (c) => {
   const { roles } = getUser(c);
   if (!isApproverRoles(roles)) return c.json([], 200);
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  return c.json(await loadTeam(token, c.env.SHEET_ID));
+  return c.json(await getStore(c.env).loadTeam());
 });
 
 app.get("/api/roles", (c) => c.json(VALID_ROLE_NAMES));
@@ -189,8 +184,7 @@ app.post("/api/team", async (c) => {
     : memberRoles.filter((r) => r !== "Admin");
   if (finalRoles.length === 0) return c.json({ error: "at least one valid role is required" }, 400);
 
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const result = await upsertEmployee(token, c.env.SHEET_ID, name, email, finalRoles.join(", "));
+  const result = await getStore(c.env).upsertEmployee(name, email, finalRoles.join(", "));
   await bustBoardCache(c.env);
   return c.json({ ok: true, result });
 });
@@ -205,8 +199,7 @@ app.post("/api/team/delete", async (c) => {
   if (email.toLowerCase() === PROTECTED_ADMIN_EMAIL) {
     return c.json({ error: "the founding admin is fixed and can't be removed" }, 403);
   }
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
-  const removed = await deleteEmployee(token, c.env.SHEET_ID, email);
+  const removed = await getStore(c.env).deleteEmployee(email);
   await bustBoardCache(c.env);
   return c.json({ ok: removed });
 });
@@ -239,6 +232,7 @@ app.get("/api/board", async (c) => {
   const { email, roles } = getUser(c);
   const isAdmin = isAdminRoles(roles);
   const asUser = c.req.query("asUser");
+  const store = getStore(c.env);
 
   let effRoles = roles;
   let effEmail = email;
@@ -246,8 +240,7 @@ app.get("/api/board", async (c) => {
   let readOnly = false;
 
   if (isAdmin && asUser) {
-    const saToken = await getAccessToken(c.env.GOOGLE_SA_JSON);
-    const asRoles = await lookupRoles(saToken, c.env.SHEET_ID, asUser);
+    const asRoles = await store.lookupRoles(asUser);
     if (asRoles.length === 0) {
       return c.json({
         roles, viewingAs: { email: asUser, roles: [] }, readOnly: true,
@@ -261,10 +254,9 @@ app.get("/api/board", async (c) => {
     readOnly = true; // mirror only — never editable
   }
 
-  const saToken = await getAccessToken(c.env.GOOGLE_SA_JSON);
   const [allRows, team] = await Promise.all([
     cachedReadRows(c.env),
-    loadTeam(saToken, c.env.SHEET_ID),
+    store.loadTeam(),
   ]);
 
   const filteredRows = filterRowsForRoles(effRoles, effEmail, allRows);
@@ -294,10 +286,9 @@ app.get("/api/board", async (c) => {
 // (or all, for admins). Each item shows who submitted it + which stage.
 app.get("/api/review-queue", async (c) => {
   const { email, roles } = getUser(c);
-  const saToken = await getAccessToken(c.env.GOOGLE_SA_JSON);
   const [allRows, team] = await Promise.all([
     cachedReadRows(c.env),
-    loadTeam(saToken, c.env.SHEET_ID),
+    getStore(c.env).loadTeam(),
   ]);
   const names = buildNamesMap(team);
 
@@ -342,7 +333,7 @@ app.post("/api/update", async (c) => {
   const check = authorizeWrite(roles, email, typedCol, value, targetRow);
   if (!check.ok) return c.json({ error: "forbidden", message: check.reason }, 403);
 
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const store = getStore(c.env);
   try {
     // One read + one batched write (also stamps last_updated). When the column
     // being written is a STATUS column, also stamp status_since so we can show
@@ -350,7 +341,7 @@ app.post("/api/update", async (c) => {
     // only on a status change.
     const writeValues: Partial<Record<Column, string>> = { [typedCol]: value };
     if (STATUS_COLS.has(typedCol)) writeValues.status_since = new Date().toISOString();
-    await updateCells(token, c.env.SHEET_ID, row_id, writeValues,
+    await store.updateCells(row_id, writeValues,
       prev !== undefined ? { col: typedCol, value: prev } : undefined);
   } catch (err) {
     if (err instanceof ConflictError) {
@@ -370,7 +361,7 @@ app.post("/api/update", async (c) => {
 
       // Submitted for review → notify the card's assigned reviewer (fallback: approvers).
       if (stage && stage.reviewable && value === "In Review") {
-        const team = await loadTeam(token, c.env.SHEET_ID);
+        const team = await store.loadTeam();
         const submitterName = displayName(email, buildNamesMap(team));
         const rowReviewer = ((targetRow.reviewer_email ?? "") as string).trim();
         const recipients = rowReviewer
@@ -412,7 +403,7 @@ app.post("/api/review", async (c) => {
     return c.json({ error: `invalid stage; must be one of ${STAGES.filter((s) => s.reviewable).map((s) => s.id).join("|")}` }, 400);
   }
 
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const store = getStore(c.env);
   const allRows = await cachedReadRows(c.env);
   const targetRow = allRows.find((r) => (r.row_id || "").trim() === row_id);
   if (!targetRow) return c.json({ error: "row not found", row_id }, 404);
@@ -440,7 +431,7 @@ app.post("/api/review", async (c) => {
     status_since: new Date().toISOString(),
   };
   if (action === "sendback" && stage.feedbackCol) updates[stage.feedbackCol] = feedback!.trim();
-  await updateCells(token, c.env.SHEET_ID, row_id, updates);
+  await store.updateCells(row_id, updates);
   await bustBoardCache(c.env);
 
   // Notify the submitter (the stage assignee) AFTER the response.
@@ -450,7 +441,7 @@ app.post("/api/review", async (c) => {
     const appUrl = c.env.APP_URL ?? "";
     c.executionCtx.waitUntil((async () => {
       try {
-        const assigneeName = displayName(assigneeEmail, buildNamesMap(await loadTeam(token, c.env.SHEET_ID)));
+        const assigneeName = displayName(assigneeEmail, buildNamesMap(await store.loadTeam()));
         await sendNotification(c.env, action === "approve" ? "approved" : "sentBack", assigneeEmail, {
           title: videoTitle, appUrl, stageLabel: stage.label, recipientName: assigneeName, feedback: feedback?.trim(),
         });
@@ -484,10 +475,9 @@ app.post("/api/video", async (c) => {
     values[f.col] = v;
   }
 
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
   const today = new Date().toISOString().slice(0, 10);
   const firstStage = STAGES[0]; // topic
-  const rowId = await appendRow(token, c.env.SHEET_ID, {
+  const rowId = await getStore(c.env).appendRow({
     ...values,
     [firstStage.statusCol]: "To Do", // explicit — never blank
     topic_date: today,
@@ -507,9 +497,8 @@ app.post("/api/delete", async (c) => {
   const rowId = (body.row_id ?? "").trim();
   if (!rowId) return c.json({ error: "row_id is required" }, 400);
 
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
   try {
-    await deleteRowById(token, c.env.SHEET_ID, rowId);
+    await getStore(c.env).deleteRowById(rowId);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (msg.includes("not found")) return c.json({ error: "row not found", row_id: rowId }, 404);
@@ -527,7 +516,7 @@ app.post("/api/generate-links", async (c) => {
   const rowId = (body.row_id ?? "").trim();
   if (!rowId) return c.json({ error: "row_id is required" }, 400);
 
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON); // for the (separate) affiliate-programs sheet
   const allRows = await cachedReadRows(c.env);
   const target = allRows.find((r) => ((r.row_id as string) || "").trim() === rowId);
   if (!target) return c.json({ error: "row not found", row_id: rowId }, 404);
@@ -548,7 +537,7 @@ app.post("/api/generate-links", async (c) => {
       insertLink: (slug, code, tool, url) => clickstore.insertLink(db, slug, code, tool, url),
       kvPut: (k, v) => c.env.CLICKS_KV.put(k, v),
     });
-    await updateCells(token, c.env.SHEET_ID, rowId, {
+    await getStore(c.env).updateCells(rowId, {
       video_description: result.description,
       actual_links: result.actual_links_text,
       short_links: result.short_links_text,

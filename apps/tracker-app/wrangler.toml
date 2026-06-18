@@ -22,7 +22,15 @@ binding = "DB"
 database_name = "clicks-db"
 database_id = "3415a408-ccc9-49e2-8fe1-60009dfd83ce"
 
+# Tracker's own data (cards + employees), used when DATA_BACKEND="d1".
+[[d1_databases]]
+binding = "TRACKER_DB"
+database_name = "tracker-db"
+database_id = "1562469d-ffd1-4cc2-b9f7-7095b84128ad"
+
 [vars]
+# Data backend: "d1" (Cloudflare D1) or "sheets" (Google Sheets fallback). Flip + redeploy to switch.
+DATA_BACKEND = "d1"
 LINK_DOMAIN = "go.agrolloo.com"
 AFFILIATE_PROGRAMS_SHEET_URL = "https://docs.google.com/spreadsheets/d/1dl_nj9djJuXuwwE_5qTnZkS0Y9VW6MmkMxuYNL92tsQ/edit?usp=sharing"
 # GEMINI_API_KEY is a secret: `npx wrangler secret put GEMINI_API_KEY` (+ add to .dev.vars locally).

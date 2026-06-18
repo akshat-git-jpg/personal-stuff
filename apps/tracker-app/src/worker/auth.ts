@@ -16,8 +16,7 @@
 
 import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
-import { getAccessToken } from "./sheets";
-import { lookupRoles } from "./roles";
+import { getStore } from "./datastore";
 
 // ---------------------------------------------------------------------------
 // Env / variable types (shared across auth + index)
@@ -32,6 +31,10 @@ export type Env = {
   SHEET_ID: string;
   SESSION_SECRET: string;
   GOOGLE_SA_JSON: string;
+  /** Which data backend to use: "d1" or "sheets" (default). Flip + redeploy to switch. */
+  DATA_BACKEND?: string;
+  /** D1 database for the "d1" backend (cards + employees tables). */
+  TRACKER_DB: D1Database;
   /** Set to "1" in .dev.vars only. Unset in production — branch is dead in prod. */
   DEV_AUTH?: string;
   // Email notifications via Resend (optional; silently no-op if absent)
@@ -169,11 +172,10 @@ export async function oauthCallback(c: Context<{ Bindings: Env }>): Promise<Resp
     return c.text("Email not verified", 403);
   }
 
-  // Look up roles in the Employes sheet
+  // Look up roles from the active backend (Sheets Employes tab or D1 employees).
   let roles: string[];
   try {
-    const saToken = await getAccessToken(c.env.GOOGLE_SA_JSON);
-    roles = await lookupRoles(saToken, c.env.SHEET_ID, email);
+    roles = await getStore(c.env).lookupRoles(email);
   } catch (err) {
     console.error("[auth] Role lookup failed:", err);
     return c.text("Role lookup failed", 502);
@@ -268,8 +270,7 @@ export async function requireSession(
   // proves identity.
   let roles: string[];
   try {
-    const saToken = await getAccessToken(c.env.GOOGLE_SA_JSON);
-    roles = await lookupRoles(saToken, c.env.SHEET_ID, session.email);
+    roles = await getStore(c.env).lookupRoles(session.email);
   } catch (err) {
     console.warn("[auth] live role lookup failed; using session roles:", err);
     roles = session.roles ?? (session.role ? [session.role] : []);
