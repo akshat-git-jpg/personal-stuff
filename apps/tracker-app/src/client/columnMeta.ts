@@ -1,15 +1,14 @@
 // ===========================================================================
-// COLUMN METADATA — one descriptor per column: its label, the input widget it
-// renders as, and an optional hint. This is the single place that decides how a
-// column appears on the form. Adding a column = add one entry here (plus the
-// column name in shared/columns.ts and its show/edit rules in shared/control.ts).
+// COLUMN METADATA — the input WIDGET + hint per column. Labels are NOT here:
+// they live once in shared/columns.ts (COLUMN_LABELS / columnLabel), so the
+// form's field label and the gate messages ("Add the X first.") can never
+// diverge. This file only decides how a column renders.
 //
-// Date / ETA-ness is NOT duplicated here — it stays canonical in
-// shared/columns.ts (DATE_COLUMNS / ETA_COLUMNS), because the worker + control
-// logic need it too. `fieldType()` resolves those first, then this map.
+// Date / ETA-ness stays canonical in shared/columns.ts (DATE_COLUMNS /
+// ETA_COLUMNS); `fieldType()` resolves those first, then this map.
 // ===========================================================================
 import type { Column } from "../shared/columns";
-import { DATE_COLUMNS, ETA_COLUMNS } from "../shared/columns";
+import { DATE_COLUMNS, ETA_COLUMNS, columnLabel } from "../shared/columns";
 
 export type FieldType =
   | "text"      // single-line text input
@@ -21,7 +20,6 @@ export type FieldType =
   | "eta";      // calendar date picker + "days left / late" countdown badge
 
 export interface ColMeta {
-  label: string;
   type: FieldType;
   hint?: string;
   /** For `combo`: which option list to draw from. */
@@ -31,57 +29,56 @@ export interface ColMeta {
 export const PUBLIC_LINK_HINT =
   'Make sure this link is shared publicly — set it to "Anyone with the link can view"';
 
-// Every column that can appear on the card form. Status/system columns
-// (*_status, row_id, last_updated, status_since) are intentionally absent —
-// status is driven by action buttons, and system columns are never shown.
+// Widget + hint per renderable column. Status/system columns are absent (never
+// shown as fields). Labels come from columnLabel() in shared/columns.ts.
 export const COLUMN_META: Partial<Record<Column, ColMeta>> = {
   // Brief / meta
-  video_title:       { label: "Video title",   type: "text" },
-  video_notes:       { label: "Notes / brief",  type: "textarea" },
-  video_description: { label: "Description",     type: "textarea" },
-  category:          { label: "Category",        type: "combo", options: "category" },
-  subcategory:       { label: "Subcategory",     type: "combo", options: "subcategory" },
-  topic_date:        { label: "Topic date",      type: "date" },
+  video_title:       { type: "text" },
+  video_notes:       { type: "textarea" },
+  video_description: { type: "textarea" },
+  category:          { type: "combo", options: "category" },
+  subcategory:       { type: "combo", options: "subcategory" },
+  topic_date:        { type: "date" },
 
   // Assignments
-  admin_email:          { label: "Admin",        type: "assignee" },
-  reviewer_email:       { label: "Reviewer",     type: "assignee" },
-  script_writer_email:  { label: "Scriptwriter", type: "assignee" },
-  tutorial_maker_email: { label: "Recorder",     type: "assignee" },
-  video_editor_email:   { label: "Video editor", type: "assignee" },
-  thumbnail_maker_email:{ label: "Thumbnail maker", type: "assignee" },
-  uploader_email:       { label: "Uploader",     type: "assignee" },
+  admin_email:          { type: "assignee" },
+  reviewer_email:       { type: "assignee" },
+  script_writer_email:  { type: "assignee" },
+  tutorial_maker_email: { type: "assignee" },
+  video_editor_email:   { type: "assignee" },
+  thumbnail_maker_email:{ type: "assignee" },
+  uploader_email:       { type: "assignee" },
 
   // Script
-  script_instruction: { label: "Script instructions", type: "textarea" },
-  script_link:        { label: "Script",              type: "link", hint: PUBLIC_LINK_HINT },
-  script_eta:         { label: "Script ETA",          type: "eta" },
-  script_feedback:    { label: "Script feedback",     type: "textarea" },
+  script_instruction: { type: "textarea" },
+  script_link:        { type: "link", hint: PUBLIC_LINK_HINT },
+  script_eta:         { type: "eta" },
+  script_feedback:    { type: "textarea" },
 
   // Recording
-  tutorial_instruction: { label: "Recording instructions", type: "textarea" },
-  tutorial_link:        { label: "Recording",              type: "link", hint: PUBLIC_LINK_HINT },
-  tutorial_eta:         { label: "Recording ETA",          type: "eta" },
-  tutorial_feedback:    { label: "Recording feedback",     type: "textarea" },
+  tutorial_instruction: { type: "textarea" },
+  tutorial_link:        { type: "link", hint: PUBLIC_LINK_HINT },
+  tutorial_eta:         { type: "eta" },
+  tutorial_feedback:    { type: "textarea" },
 
   // Editing
-  video_editor_instruction: { label: "Editor instructions", type: "textarea" },
-  video_editor_link:        { label: "Final video",         type: "link", hint: PUBLIC_LINK_HINT },
-  video_editor_eta:         { label: "Editing ETA",         type: "eta" },
-  editor_feedback:          { label: "Editor feedback",     type: "textarea" },
+  video_editor_instruction: { type: "textarea" },
+  video_editor_link:        { type: "link", hint: PUBLIC_LINK_HINT },
+  video_editor_eta:         { type: "eta" },
+  editor_feedback:          { type: "textarea" },
 
   // Thumbnail
-  thumbnail_instruction: { label: "Thumbnail instructions", type: "textarea" },
-  thumbnail_link:        { label: "Thumbnail",              type: "link", hint: PUBLIC_LINK_HINT },
-  thumbnail_eta:         { label: "Thumbnail ETA",          type: "eta" },
-  thumbnail_feedback:    { label: "Thumbnail feedback",     type: "textarea" },
+  thumbnail_instruction: { type: "textarea" },
+  thumbnail_link:        { type: "link", hint: PUBLIC_LINK_HINT },
+  thumbnail_eta:         { type: "eta" },
+  thumbnail_feedback:    { type: "textarea" },
 
   // Upload
-  yt_eta:         { label: "Upload ETA",  type: "eta" },
-  yt_upload_date: { label: "Upload date", type: "date" },
-  yt_link:        { label: "YouTube link", type: "link", hint: PUBLIC_LINK_HINT },
-  short_links:    { label: "Short links",  type: "link" },
-  actual_links:   { label: "Actual links", type: "link" },
+  yt_eta:         { type: "eta" },
+  yt_upload_date: { type: "date" },
+  yt_link:        { type: "link", hint: PUBLIC_LINK_HINT },
+  short_links:    { type: "link" },
+  actual_links:   { type: "link" },
 };
 
 const DATE_SET = new Set<string>(DATE_COLUMNS);
@@ -94,9 +91,9 @@ export function fieldType(col: string): FieldType {
   return COLUMN_META[col as Column]?.type ?? "text";
 }
 
-/** Display label for a column (falls back to a humanised column name). */
+/** Display label for a column — delegates to the single shared source. */
 export function colLabel(col: string): string {
-  return COLUMN_META[col as Column]?.label ?? col.replace(/_/g, " ");
+  return columnLabel(col);
 }
 
 /** Public-share / format hint for a column, if any. */

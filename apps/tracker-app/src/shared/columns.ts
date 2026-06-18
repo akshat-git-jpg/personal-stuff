@@ -38,6 +38,61 @@ export const ETA_OF_STAGE: Record<string, Column> = {
   editing: "video_editor_eta", thumbnail: "thumbnail_eta", upload: "yt_eta",
 };
 
+// ---------------------------------------------------------------------------
+// COLUMN LABELS — the SINGLE source for the human name of a column. Used by the
+// form (field labels) AND by gate messages ("Add the X first."), so the two can
+// never diverge. NB: several column NAMES are legacy ("tutorial_*") while the
+// product term is "Recording" — that mapping lives here, once.
+// ---------------------------------------------------------------------------
+export const COLUMN_LABELS: Partial<Record<Column, string>> = {
+  video_title: "Video title",
+  video_notes: "Notes / brief",
+  video_description: "Description",
+  category: "Category",
+  subcategory: "Subcategory",
+  topic_status: "Topic status",
+  topic_date: "Topic date",
+  admin_email: "Admin",
+  reviewer_email: "Reviewer",
+  script_writer_email: "Scriptwriter",
+  tutorial_maker_email: "Recorder",
+  video_editor_email: "Video editor",
+  thumbnail_maker_email: "Thumbnail maker",
+  uploader_email: "Uploader",
+  script_instruction: "Script instructions",
+  script_link: "Script",
+  script_status: "Script status",
+  script_eta: "Script ETA",
+  script_feedback: "Script feedback",
+  tutorial_instruction: "Recording instructions",
+  tutorial_link: "Recording",
+  tutorial_status: "Recording status",
+  tutorial_eta: "Recording ETA",
+  tutorial_feedback: "Recording feedback",
+  video_editor_instruction: "Editor instructions",
+  video_editor_link: "Final video",
+  video_editor_status: "Editing status",
+  video_editor_eta: "Editing ETA",
+  editor_feedback: "Editor feedback",
+  thumbnail_instruction: "Thumbnail instructions",
+  thumbnail_link: "Thumbnail",
+  thumbnail_status: "Thumbnail status",
+  thumbnail_eta: "Thumbnail ETA",
+  thumbnail_feedback: "Thumbnail feedback",
+  yt_upload_status: "Upload status",
+  yt_eta: "Upload ETA",
+  yt_upload_date: "Upload date",
+  yt_link: "YouTube link",
+  short_links: "Short links",
+  actual_links: "Actual links",
+  row_id: "ID",
+};
+
+/** Human label for a column — the one true source (falls back to a humanised name). */
+export function columnLabel(col: string): string {
+  return COLUMN_LABELS[col as Column] ?? col.replace(/_/g, " ").replace(/\beta\b/i, "ETA");
+}
+
 // GROUPS kept for any importers that still reference it; not used by rbac.
 export const GROUPS = {
   meta:     ["video_title","video_notes","video_description","category","subcategory","topic_status","topic_date"],

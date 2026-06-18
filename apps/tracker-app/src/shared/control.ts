@@ -418,7 +418,6 @@ export const CONTROL: Record<string, StageControl> = {
           "script_instruction",
           "script_eta",
           "script_link",
-          "script_feedback",
         ],
         edit: ["script_link"],
         mustFill: ["script_link"],
@@ -479,14 +478,12 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "script_link",
-            "script_feedback",
           ],
           edit: [
             "script_instruction",
             "tutorial_instruction",
             "video_editor_instruction",
             "thumbnail_instruction",
-            "script_feedback",
           ],
         },
         "Need Changes": {
@@ -500,7 +497,6 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "script_link",
-            "script_feedback",
           ],
           edit: [
             "script_instruction",
@@ -517,7 +513,6 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "script_link",
-            "script_feedback",
           ],
           edit: [],
         },
@@ -576,7 +571,6 @@ export const CONTROL: Record<string, StageControl> = {
           "tutorial_instruction",
           "tutorial_eta",
           "tutorial_link",
-          "tutorial_feedback",
         ],
         edit: ["tutorial_link"],
         mustFill: ["tutorial_link"],
@@ -634,14 +628,12 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "tutorial_link",
-            "tutorial_feedback",
           ],
           edit: [
             "script_instruction",
             "tutorial_instruction",
             "video_editor_instruction",
             "thumbnail_instruction",
-            "tutorial_feedback",
           ],
         },
         "Need Changes": {
@@ -654,7 +646,6 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "tutorial_link",
-            "tutorial_feedback",
           ],
           edit: [
             "script_instruction",
@@ -671,7 +662,6 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "tutorial_link",
-            "tutorial_feedback",
           ],
           edit: [],
         },
@@ -731,7 +721,6 @@ export const CONTROL: Record<string, StageControl> = {
           "video_editor_instruction",
           "video_editor_eta",
           "video_editor_link",
-          "editor_feedback",
         ],
         edit: ["video_editor_link"],
         mustFill: ["video_editor_link"],
@@ -789,14 +778,12 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "video_editor_link",
-            "editor_feedback",
           ],
           edit: [
             "script_instruction",
             "tutorial_instruction",
             "video_editor_instruction",
             "thumbnail_instruction",
-            "editor_feedback",
           ],
         },
         "Need Changes": {
@@ -809,7 +796,6 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "video_editor_link",
-            "editor_feedback",
           ],
           edit: [
             "script_instruction",
@@ -826,7 +812,6 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "video_editor_link",
-            "editor_feedback",
           ],
           edit: [],
         },
@@ -886,7 +871,6 @@ export const CONTROL: Record<string, StageControl> = {
           "thumbnail_instruction",
           "thumbnail_eta",
           "thumbnail_link",
-          "thumbnail_feedback",
         ],
         edit: ["thumbnail_link"],
         mustFill: ["thumbnail_link"],
@@ -944,14 +928,12 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "thumbnail_link",
-            "thumbnail_feedback",
           ],
           edit: [
             "script_instruction",
             "tutorial_instruction",
             "video_editor_instruction",
             "thumbnail_instruction",
-            "thumbnail_feedback",
           ],
         },
         "Need Changes": {
@@ -964,7 +946,6 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "thumbnail_link",
-            "thumbnail_feedback",
           ],
           edit: [
             "script_instruction",
@@ -981,7 +962,6 @@ export const CONTROL: Record<string, StageControl> = {
             "video_editor_instruction",
             "thumbnail_instruction",
             "thumbnail_link",
-            "thumbnail_feedback",
           ],
           edit: [],
         },
@@ -1135,10 +1115,9 @@ export function requiredToSendBack(stageId: string): Column[] {
   return CONTROL[stageId]?.reviewer.toSendBack ?? [];
 }
 
-/** A human label for a column, used in "Add the … first." messages. */
-export function columnLabel(col: string): string {
-  return col.replace(/_/g, " ").replace(/\beta\b/i, "ETA");
-}
+/** A human label for a column, used in "Add the … first." messages.
+ *  Re-exported from columns.ts so gate messages use the SAME labels as the form. */
+export { columnLabel } from "./columns";
 
 /** The subset of `cols` that are still empty on `row`. */
 export function missingColumns(

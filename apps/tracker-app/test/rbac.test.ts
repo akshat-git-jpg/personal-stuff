@@ -114,7 +114,7 @@ describe("required fields gate submit/advance", () => {
     const noLink = scriptCard("In Progress"); // script_link empty
     const ts = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, noLink);
     const submit = ts.find((t) => t.kind === "submit")!;
-    expect(submit.disabledReason).toMatch(/script link/i);
+    expect(submit.disabledReason).toMatch(/script/i); // label for script_link is "Script"
     expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "In Review", noLink).ok).toBe(false);
   });
   it("…and can once the link is filled", () => {
@@ -142,7 +142,7 @@ describe("reviewer must brief the next worker before approving (control.ts toApp
   it("approving Script is blocked until the Recorder's instruction is written", () => {
     const noInstr = scriptCard("In Review"); // tutorial_instruction empty
     const approve = transitionsForStage(["Reviewer"], "rv@x.com", SCRIPT, noInstr).find((t) => t.kind === "approve")!;
-    expect(approve.disabledReason).toMatch(/tutorial instruction/i);
+    expect(approve.disabledReason).toMatch(/recording instruction/i); // tutorial_instruction's label is "Recording instructions"
     expect(authorizeWrite(["Reviewer"], "rv@x.com", "script_status", "Done", noInstr).ok).toBe(false);
     const briefed = { ...noInstr, tutorial_instruction: "Record at 1080p" };
     expect(authorizeWrite(["Reviewer"], "rv@x.com", "script_status", "Done", briefed).ok).toBe(true);
