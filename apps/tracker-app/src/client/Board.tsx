@@ -114,6 +114,22 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
   const subcategoryOptions = useMemo(
     () => [...new Set(rows.map((r) => (r.subcategory ?? "").trim()).filter(Boolean))].sort(), [rows]);
 
+  // Single delete path used by every admin surface (Pipeline matrix, board card
+  // tiles, and the card detail panel). Confirms, deletes, closes any open detail,
+  // toasts, and reloads.
+  async function handleDelete(rowId: string, title: string) {
+    if (!rowId) return;
+    if (!confirm(`Delete "${title || rowId}"? This removes the row from the sheet and can't be undone.`)) return;
+    try {
+      await deleteVideo(rowId);
+      showToast("Video deleted");
+      setDetailRow(null); setDetailStageId(undefined);
+      reload();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Couldn't delete the row");
+    }
+  }
+
   async function doAction(row: BoardRow, t: Transition) {
     if (!row.row_id) return;
     if (t.requiresFeedback) { openDetail(row, stageByStatusCol(t.statusCol)?.id, "reviewer"); return; }
@@ -166,6 +182,8 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
                 {laneRows.map((row) => (
                   <Card key={row.row_id} row={row} statusCol={statusCol} names={names} readOnly={readOnly}
                     showAssignee={isAdmin} showDwell={showDwell}
+                    canDelete={isAdmin && !readOnly}
+                    onDelete={() => void handleDelete(row.row_id ?? "", row.video_title ?? "")}
                     /* My work is the doer's board — never show reviewer actions here */
                     transitions={transitionsForStageCol(row, statusCol).filter((t) => t.by === "doer")}
                     onOpen={() => openDetail(row, stageByStatusCol(statusCol)?.id, "doer")}
@@ -265,11 +283,7 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
           <PipelineBoard rows={rows} names={names} filters={adminFilters}
             onOpen={(r) => openDetail(r as BoardRow, activeStage(r as Record<string, string>)?.id, "all")}
             canDelete={isAdmin}
-            onDelete={async (rowId, title) => {
-              if (!confirm(`Delete "${title || rowId}"? This removes the row from the sheet and can't be undone.`)) return;
-              try { await deleteVideo(rowId); showToast("Video deleted"); reload(); }
-              catch (err) { showToast(err instanceof Error ? err.message : "Couldn't delete the row"); }
-            }} />
+            onDelete={(rowId, title) => void handleDelete(rowId, title)} />
         </>
       )}
       {activeTab === "team" && <TeamPanel onChanged={reload} />}
@@ -277,6 +291,7 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
       {detailRow && (
         <CardDetail row={detailRow} columns={columns} roles={roles} names={names} memberRoles={memberRoles} readOnly={readOnly}
           contextStageId={detailStageId} perspective={detailPerspective}
+          onDelete={() => void handleDelete(detailRow.row_id ?? "", detailRow.video_title ?? "")}
           categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions}
           onClose={() => { setDetailRow(null); setDetailStageId(undefined); }}
           onSaved={() => { reload(); void refreshQueue(); setDetailRow(null); setDetailStageId(undefined); }} />

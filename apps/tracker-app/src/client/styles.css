@@ -1794,3 +1794,33 @@ details[open] .review-details__summary::before { content: "▼ "; }
 .eta-badge--eta-ok   { background: #e6f6ec; color: #1a7f3c; }   /* runway left  */
 .eta-badge--eta-due  { background: #fff4e0; color: #9a6700; }   /* due today    */
 .eta-badge--eta-late { background: #fde7e7; color: #b3261e; }   /* overdue      */
+
+/* ── Delete affordances (admin) ───────────────────────────────────────────── */
+.card__delete {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0.1rem 0.2rem;
+  border-radius: 6px;
+  opacity: 0.45;
+}
+.card__delete:hover { opacity: 1; background: #fde7e7; }
+
+.detail-danger {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+.btn-delete {
+  border: 1px solid #e6b8b8;
+  background: #fdf1f1;
+  color: #b3261e;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+}
+.btn-delete:hover { background: #fde0e0; }

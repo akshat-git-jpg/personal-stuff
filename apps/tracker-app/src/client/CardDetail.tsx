@@ -30,6 +30,7 @@ interface CardDetailProps {
   subcategoryOptions?: string[];
   onClose: () => void;
   onSaved: () => void;
+  onDelete?: () => void;        // admin: delete this video (confirm handled by caller)
 }
 
 // A select of existing values + an "Add new…" escape hatch.
@@ -96,7 +97,7 @@ const SECTIONS: SectionDef[] = STAGES.map((s) => ({
   ).filter(Boolean) as Column[],
 }));
 
-export function CardDetail({ row, columns, roles, names, memberRoles = {}, readOnly, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved }: CardDetailProps) {
+export function CardDetail({ row, columns, roles, names, memberRoles = {}, readOnly, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved, onDelete }: CardDetailProps) {
   const locks = row._locks ?? {};
   const actionGroups = row._actions ?? [];
   const isAdmin = isAdminRoles(roles);
@@ -461,6 +462,12 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
             <button type="button" className="show-all-toggle" onClick={() => setShowAll((v) => !v)}>
               {showAll ? "Show only this stage's fields" : "Show all fields"}
             </button>
+          )}
+
+          {isAdmin && !readOnly && onDelete && (
+            <div className="detail-danger">
+              <button type="button" className="btn-delete" onClick={onDelete}>🗑 Delete video</button>
+            </div>
           )}
         </div>
 

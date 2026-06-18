@@ -13,11 +13,13 @@ interface CardProps {
   readOnly?: boolean;
   showAssignee?: boolean;        // admin/reviewer views where many people mix
   showDwell?: boolean;           // show "in <status> since N days"
+  canDelete?: boolean;           // admin: show the delete affordance
+  onDelete?: () => void;
   onOpen: () => void;
   onAction?: (t: Transition) => void;
 }
 
-export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, showDwell, onOpen, onAction }: CardProps) {
+export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, showDwell, canDelete, onDelete, onOpen, onAction }: CardProps) {
   const stage = stageByStatusCol(statusCol);
   const status = stage ? normalizeStatus(stage, row[statusCol as keyof Row] as string) : "To Do";
   const meta = statusMeta(status);
@@ -50,6 +52,10 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
           </span>
         )}
         {showAssignee && assignee && <span className="card__who">{displayName(assignee, names)}</span>}
+        {canDelete && onDelete && (
+          <button type="button" className="card__delete" title="Delete this video" aria-label={`Delete ${title}`}
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}>🗑</button>
+        )}
       </div>
       <div className="card__title">{title}</div>
       {catLabel && <span className="card__cat">{catLabel}</span>}
