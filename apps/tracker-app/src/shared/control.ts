@@ -126,7 +126,12 @@ export const NEW_VIDEO_FIELDS: NewVideoField[] = [
   { col: "video_title", label: "Title", type: "text" },
   { col: "video_notes", label: "Notes / brief", type: "textarea" },
   { col: "category", label: "Category", type: "combo", options: "category" },
-  { col: "subcategory", label: "Subcategory", type: "combo", options: "subcategory" },
+  {
+    col: "subcategory",
+    label: "Subcategory",
+    type: "combo",
+    options: "subcategory",
+  },
 ];
 
 export const CONTROL: Record<string, StageControl> = {
@@ -140,42 +145,130 @@ export const CONTROL: Record<string, StageControl> = {
     worker: {
       "To Do": {
         show: [
-          "video_title", "video_notes", "video_description", "category", "subcategory", "topic_date",
-          "admin_email", "reviewer_email", "script_writer_email", "tutorial_maker_email", "video_editor_email", "thumbnail_maker_email", "uploader_email",
-          "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction",
+          "video_title",
+          "video_notes",
+          "video_description",
+          "category",
+          "subcategory",
+          "topic_date",
+          "admin_email",
+          "reviewer_email",
+          "script_writer_email",
+          "tutorial_maker_email",
+          "video_editor_email",
+          "thumbnail_maker_email",
+          "uploader_email",
+          "script_instruction",
+          "tutorial_instruction",
+          "video_editor_instruction",
+          "thumbnail_instruction",
         ],
         edit: [
-          "video_title", "video_notes", "video_description", "category", "subcategory",
-          "reviewer_email", "script_writer_email", "tutorial_maker_email", "video_editor_email", "thumbnail_maker_email", "uploader_email",
+          "video_title",
+          "video_notes",
+          "video_description",
+          "category",
+          "subcategory",
+          "reviewer_email",
+          "script_writer_email",
+          "tutorial_maker_email",
+          "video_editor_email",
+          "thumbnail_maker_email",
+          "uploader_email",
         ],
         mustFill: [],
       },
       "In Progress": {
         show: [
-          "video_title", "video_notes", "video_description", "category", "subcategory", "topic_date",
-          "admin_email", "reviewer_email", "script_writer_email", "tutorial_maker_email", "video_editor_email", "thumbnail_maker_email", "uploader_email",
-          "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction",
+          "video_title",
+          "video_notes",
+          "video_description",
+          "category",
+          "subcategory",
+          "topic_date",
+          "admin_email",
+          "reviewer_email",
+          "script_writer_email",
+          "tutorial_maker_email",
+          "video_editor_email",
+          "thumbnail_maker_email",
+          "uploader_email",
+          "script_instruction",
+          "tutorial_instruction",
+          "video_editor_instruction",
+          "thumbnail_instruction",
         ],
         edit: [
-          "video_title", "video_notes", "video_description", "category", "subcategory",
-          "reviewer_email", "script_writer_email", "tutorial_maker_email", "video_editor_email", "thumbnail_maker_email", "uploader_email",
+          "video_title",
+          "video_notes",
+          "video_description",
+          "category",
+          "subcategory",
+          "reviewer_email",
+          "script_writer_email",
+          "tutorial_maker_email",
+          "video_editor_email",
+          "thumbnail_maker_email",
+          "uploader_email",
         ],
-        mustFill: ["video_title", "video_notes"],
+        mustFill: [
+          "video_title",
+          "video_notes",
+          "video_description",
+          "category",
+          "subcategory",
+          "topic_date",
+          "admin_email",
+          "reviewer_email",
+          "script_writer_email",
+          "tutorial_maker_email",
+          "video_editor_email",
+          "thumbnail_maker_email",
+          "uploader_email",
+        ],
       },
       "In Review": {
         show: [
-          "video_title", "video_notes", "video_description", "category", "subcategory", "topic_date",
-          "admin_email", "reviewer_email", "script_writer_email", "tutorial_maker_email", "video_editor_email", "thumbnail_maker_email", "uploader_email",
-          "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction",
+          "video_title",
+          "video_notes",
+          "video_description",
+          "category",
+          "subcategory",
+          "topic_date",
+          "admin_email",
+          "reviewer_email",
+          "script_writer_email",
+          "tutorial_maker_email",
+          "video_editor_email",
+          "thumbnail_maker_email",
+          "uploader_email",
+          "script_instruction",
+          "tutorial_instruction",
+          "video_editor_instruction",
+          "thumbnail_instruction",
         ],
         edit: [],
         mustFill: [],
       },
-      "Done": {
+      Done: {
         show: [
-          "video_title", "video_notes", "video_description", "category", "subcategory", "topic_date",
-          "admin_email", "reviewer_email", "script_writer_email", "tutorial_maker_email", "video_editor_email", "thumbnail_maker_email", "uploader_email",
-          "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction",
+          "video_title",
+          "video_notes",
+          "video_description",
+          "category",
+          "subcategory",
+          "topic_date",
+          "admin_email",
+          "reviewer_email",
+          "script_writer_email",
+          "tutorial_maker_email",
+          "video_editor_email",
+          "thumbnail_maker_email",
+          "uploader_email",
+          "script_instruction",
+          "tutorial_instruction",
+          "video_editor_instruction",
+          "thumbnail_instruction",
         ],
         edit: [],
         mustFill: [],
@@ -185,37 +278,90 @@ export const CONTROL: Record<string, StageControl> = {
       byStatus: {
         "To Do": {
           show: [
-            "video_title", "video_notes", "video_description", "category", "subcategory",
-            "reviewer_email", "script_writer_email", "tutorial_maker_email", "video_editor_email", "thumbnail_maker_email", "uploader_email",
-            "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction",
+            "video_title",
+            "video_notes",
+            "video_description",
+            "category",
+            "subcategory",
+            "reviewer_email",
+            "script_writer_email",
+            "tutorial_maker_email",
+            "video_editor_email",
+            "thumbnail_maker_email",
+            "uploader_email",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
           ],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
         "In Progress": {
           show: [
-            "video_title", "video_notes", "video_description", "category", "subcategory",
-            "reviewer_email", "script_writer_email", "tutorial_maker_email", "video_editor_email", "thumbnail_maker_email", "uploader_email",
-            "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction",
+            "video_title",
+            "video_notes",
+            "video_description",
+            "category",
+            "subcategory",
+            "reviewer_email",
+            "script_writer_email",
+            "tutorial_maker_email",
+            "video_editor_email",
+            "thumbnail_maker_email",
+            "uploader_email",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
           ],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
         "In Review": {
           show: [
-            "video_title", "video_notes", "video_description", "category", "subcategory",
-            "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction",
+            "video_title",
+            "video_notes",
+            "video_description",
+            "category",
+            "subcategory",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
           ],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
-        "Done": {
+        Done: {
           show: [
-            "video_title", "video_notes", "video_description", "category", "subcategory",
-            "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction",
+            "video_title",
+            "video_notes",
+            "video_description",
+            "category",
+            "subcategory",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
           ],
           edit: [],
         },
       },
       toApprove: ["script_instruction"], // must brief the Scriptwriter before approving the Topic
-      toSendBack: [],                     // Topic is approve-only — can't be sent back
+      toSendBack: [], // Topic is approve-only — can't be sent back
     },
   },
 
@@ -226,26 +372,58 @@ export const CONTROL: Record<string, StageControl> = {
   script: {
     worker: {
       "To Do": {
-        show: ["video_title", "video_notes", "category", "subcategory", "script_instruction", "script_eta"],
+        show: [
+          "video_title",
+          "video_notes",
+          "category",
+          "subcategory",
+          "script_instruction",
+          "script_eta",
+        ],
         edit: ["script_eta"],
         mustFill: ["script_eta"],
       },
       "In Progress": {
-        show: ["video_title", "video_notes", "category", "subcategory", "script_instruction", "script_eta", "script_link"],
+        show: [
+          "video_title",
+          "video_notes",
+          "category",
+          "subcategory",
+          "script_instruction",
+          "script_eta",
+          "script_link",
+        ],
         edit: ["script_link"],
         mustFill: ["script_link"],
       },
       "In Review": {
-        show: ["video_title", "video_notes", "category", "subcategory", "script_instruction", "script_eta", "script_link"],
+        show: [
+          "video_title",
+          "video_notes",
+          "category",
+          "subcategory",
+          "script_instruction",
+          "script_eta",
+          "script_link",
+        ],
         edit: [],
         mustFill: [],
       },
       "Need Changes": {
-        show: ["video_title", "video_notes", "category", "subcategory", "script_instruction", "script_eta", "script_link", "script_feedback"],
+        show: [
+          "video_title",
+          "video_notes",
+          "category",
+          "subcategory",
+          "script_instruction",
+          "script_eta",
+          "script_link",
+          "script_feedback",
+        ],
         edit: ["script_link"],
         mustFill: ["script_link"],
       },
-      "Done": {
+      Done: {
         show: ["video_title", "script_eta", "script_link"],
         edit: [],
         mustFill: [],
@@ -254,23 +432,93 @@ export const CONTROL: Record<string, StageControl> = {
     reviewer: {
       byStatus: {
         "To Do": {
-          show: ["video_title", "video_notes", "category", "subcategory", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "category",
+            "subcategory",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
         "In Progress": {
-          show: ["video_title", "video_notes", "category", "subcategory", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "script_link"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "category",
+            "subcategory",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "script_link",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
         "In Review": {
-          show: ["video_title", "video_notes", "category", "subcategory", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "script_link", "script_feedback"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "script_feedback"],
+          show: [
+            "video_title",
+            "video_notes",
+            "category",
+            "subcategory",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "script_link",
+            "script_feedback",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "script_feedback",
+          ],
         },
         "Need Changes": {
-          show: ["video_title", "video_notes", "category", "subcategory", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "script_link", "script_feedback"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "category",
+            "subcategory",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "script_link",
+            "script_feedback",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
-        "Done": {
-          show: ["video_title", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "script_link", "script_feedback"],
+        Done: {
+          show: [
+            "video_title",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "script_link",
+            "script_feedback",
+          ],
           edit: [],
         },
       },
@@ -286,26 +534,54 @@ export const CONTROL: Record<string, StageControl> = {
   recording: {
     worker: {
       "To Do": {
-        show: ["video_title", "video_notes", "script_link", "tutorial_instruction", "tutorial_eta"],
+        show: [
+          "video_title",
+          "video_notes",
+          "script_link",
+          "tutorial_instruction",
+          "tutorial_eta",
+        ],
         edit: ["tutorial_eta"],
         mustFill: ["tutorial_eta"],
       },
       "In Progress": {
-        show: ["video_title", "video_notes", "script_link", "tutorial_instruction", "tutorial_eta", "tutorial_link"],
+        show: [
+          "video_title",
+          "video_notes",
+          "script_link",
+          "tutorial_instruction",
+          "tutorial_eta",
+          "tutorial_link",
+        ],
         edit: ["tutorial_link"],
         mustFill: ["tutorial_link"],
       },
       "In Review": {
-        show: ["video_title", "video_notes", "script_link", "tutorial_instruction", "tutorial_eta", "tutorial_link"],
+        show: [
+          "video_title",
+          "video_notes",
+          "script_link",
+          "tutorial_instruction",
+          "tutorial_eta",
+          "tutorial_link",
+        ],
         edit: [],
         mustFill: [],
       },
       "Need Changes": {
-        show: ["video_title", "video_notes", "script_link", "tutorial_instruction", "tutorial_eta", "tutorial_link", "tutorial_feedback"],
+        show: [
+          "video_title",
+          "video_notes",
+          "script_link",
+          "tutorial_instruction",
+          "tutorial_eta",
+          "tutorial_link",
+          "tutorial_feedback",
+        ],
         edit: ["tutorial_link"],
         mustFill: ["tutorial_link"],
       },
-      "Done": {
+      Done: {
         show: ["video_title", "tutorial_eta", "tutorial_link"],
         edit: [],
         mustFill: [],
@@ -314,23 +590,89 @@ export const CONTROL: Record<string, StageControl> = {
     reviewer: {
       byStatus: {
         "To Do": {
-          show: ["video_title", "video_notes", "script_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "script_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
         "In Progress": {
-          show: ["video_title", "video_notes", "script_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "tutorial_link"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "script_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "tutorial_link",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
         "In Review": {
-          show: ["video_title", "video_notes", "script_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "tutorial_link", "tutorial_feedback"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "tutorial_feedback"],
+          show: [
+            "video_title",
+            "video_notes",
+            "script_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "tutorial_link",
+            "tutorial_feedback",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "tutorial_feedback",
+          ],
         },
         "Need Changes": {
-          show: ["video_title", "video_notes", "script_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "tutorial_link", "tutorial_feedback"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "script_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "tutorial_link",
+            "tutorial_feedback",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
-        "Done": {
-          show: ["video_title", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "tutorial_link", "tutorial_feedback"],
+        Done: {
+          show: [
+            "video_title",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "tutorial_link",
+            "tutorial_feedback",
+          ],
           edit: [],
         },
       },
@@ -347,26 +689,54 @@ export const CONTROL: Record<string, StageControl> = {
   editing: {
     worker: {
       "To Do": {
-        show: ["video_title", "video_notes", "tutorial_link", "video_editor_instruction", "video_editor_eta"],
+        show: [
+          "video_title",
+          "video_notes",
+          "tutorial_link",
+          "video_editor_instruction",
+          "video_editor_eta",
+        ],
         edit: ["video_editor_eta"],
         mustFill: ["video_editor_eta"],
       },
       "In Progress": {
-        show: ["video_title", "video_notes", "tutorial_link", "video_editor_instruction", "video_editor_eta", "video_editor_link"],
+        show: [
+          "video_title",
+          "video_notes",
+          "tutorial_link",
+          "video_editor_instruction",
+          "video_editor_eta",
+          "video_editor_link",
+        ],
         edit: ["video_editor_link"],
         mustFill: ["video_editor_link"],
       },
       "In Review": {
-        show: ["video_title", "video_notes", "tutorial_link", "video_editor_instruction", "video_editor_eta", "video_editor_link"],
+        show: [
+          "video_title",
+          "video_notes",
+          "tutorial_link",
+          "video_editor_instruction",
+          "video_editor_eta",
+          "video_editor_link",
+        ],
         edit: [],
         mustFill: [],
       },
       "Need Changes": {
-        show: ["video_title", "video_notes", "tutorial_link", "video_editor_instruction", "video_editor_eta", "video_editor_link", "editor_feedback"],
+        show: [
+          "video_title",
+          "video_notes",
+          "tutorial_link",
+          "video_editor_instruction",
+          "video_editor_eta",
+          "video_editor_link",
+          "editor_feedback",
+        ],
         edit: ["video_editor_link"],
         mustFill: ["video_editor_link"],
       },
-      "Done": {
+      Done: {
         show: ["video_title", "video_editor_eta", "video_editor_link"],
         edit: [],
         mustFill: [],
@@ -375,23 +745,89 @@ export const CONTROL: Record<string, StageControl> = {
     reviewer: {
       byStatus: {
         "To Do": {
-          show: ["video_title", "video_notes", "tutorial_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "tutorial_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
         "In Progress": {
-          show: ["video_title", "video_notes", "tutorial_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "video_editor_link"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "tutorial_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "video_editor_link",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
         "In Review": {
-          show: ["video_title", "video_notes", "tutorial_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "video_editor_link", "editor_feedback"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "editor_feedback"],
+          show: [
+            "video_title",
+            "video_notes",
+            "tutorial_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "video_editor_link",
+            "editor_feedback",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "editor_feedback",
+          ],
         },
         "Need Changes": {
-          show: ["video_title", "video_notes", "tutorial_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "video_editor_link", "editor_feedback"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "tutorial_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "video_editor_link",
+            "editor_feedback",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
-        "Done": {
-          show: ["video_title", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "video_editor_link", "editor_feedback"],
+        Done: {
+          show: [
+            "video_title",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "video_editor_link",
+            "editor_feedback",
+          ],
           edit: [],
         },
       },
@@ -408,26 +844,54 @@ export const CONTROL: Record<string, StageControl> = {
   thumbnail: {
     worker: {
       "To Do": {
-        show: ["video_title", "video_notes", "video_editor_link", "thumbnail_instruction", "thumbnail_eta"],
+        show: [
+          "video_title",
+          "video_notes",
+          "video_editor_link",
+          "thumbnail_instruction",
+          "thumbnail_eta",
+        ],
         edit: ["thumbnail_eta"],
         mustFill: ["thumbnail_eta"],
       },
       "In Progress": {
-        show: ["video_title", "video_notes", "video_editor_link", "thumbnail_instruction", "thumbnail_eta", "thumbnail_link"],
+        show: [
+          "video_title",
+          "video_notes",
+          "video_editor_link",
+          "thumbnail_instruction",
+          "thumbnail_eta",
+          "thumbnail_link",
+        ],
         edit: ["thumbnail_link"],
         mustFill: ["thumbnail_link"],
       },
       "In Review": {
-        show: ["video_title", "video_notes", "video_editor_link", "thumbnail_instruction", "thumbnail_eta", "thumbnail_link"],
+        show: [
+          "video_title",
+          "video_notes",
+          "video_editor_link",
+          "thumbnail_instruction",
+          "thumbnail_eta",
+          "thumbnail_link",
+        ],
         edit: [],
         mustFill: [],
       },
       "Need Changes": {
-        show: ["video_title", "video_notes", "video_editor_link", "thumbnail_instruction", "thumbnail_eta", "thumbnail_link", "thumbnail_feedback"],
+        show: [
+          "video_title",
+          "video_notes",
+          "video_editor_link",
+          "thumbnail_instruction",
+          "thumbnail_eta",
+          "thumbnail_link",
+          "thumbnail_feedback",
+        ],
         edit: ["thumbnail_link"],
         mustFill: ["thumbnail_link"],
       },
-      "Done": {
+      Done: {
         show: ["video_title", "thumbnail_eta", "thumbnail_link"],
         edit: [],
         mustFill: [],
@@ -436,23 +900,89 @@ export const CONTROL: Record<string, StageControl> = {
     reviewer: {
       byStatus: {
         "To Do": {
-          show: ["video_title", "video_notes", "video_editor_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "video_editor_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
         "In Progress": {
-          show: ["video_title", "video_notes", "video_editor_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "thumbnail_link"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "video_editor_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "thumbnail_link",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
         "In Review": {
-          show: ["video_title", "video_notes", "video_editor_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "thumbnail_link", "thumbnail_feedback"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "thumbnail_feedback"],
+          show: [
+            "video_title",
+            "video_notes",
+            "video_editor_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "thumbnail_link",
+            "thumbnail_feedback",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "thumbnail_feedback",
+          ],
         },
         "Need Changes": {
-          show: ["video_title", "video_notes", "video_editor_link", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "thumbnail_link", "thumbnail_feedback"],
-          edit: ["script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction"],
+          show: [
+            "video_title",
+            "video_notes",
+            "video_editor_link",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "thumbnail_link",
+            "thumbnail_feedback",
+          ],
+          edit: [
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+          ],
         },
-        "Done": {
-          show: ["video_title", "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction", "thumbnail_link", "thumbnail_feedback"],
+        Done: {
+          show: [
+            "video_title",
+            "script_instruction",
+            "tutorial_instruction",
+            "video_editor_instruction",
+            "thumbnail_instruction",
+            "thumbnail_link",
+            "thumbnail_feedback",
+          ],
           edit: [],
         },
       },
@@ -469,17 +999,41 @@ export const CONTROL: Record<string, StageControl> = {
   upload: {
     worker: {
       "To Do": {
-        show: ["video_title", "video_description", "video_editor_link", "thumbnail_link", "yt_eta"],
+        show: [
+          "video_title",
+          "video_description",
+          "video_editor_link",
+          "thumbnail_link",
+          "yt_eta",
+        ],
         edit: ["yt_eta"],
         mustFill: ["yt_eta"],
       },
       "In Progress": {
-        show: ["video_title", "video_description", "video_editor_link", "thumbnail_link", "yt_eta", "yt_link", "yt_upload_date", "short_links", "actual_links"],
+        show: [
+          "video_title",
+          "video_description",
+          "video_editor_link",
+          "thumbnail_link",
+          "yt_eta",
+          "yt_link",
+          "yt_upload_date",
+          "short_links",
+          "actual_links",
+        ],
         edit: ["yt_link", "yt_upload_date", "short_links", "actual_links"],
         mustFill: ["yt_link"],
       },
-      "Uploaded": {
-        show: ["video_title", "thumbnail_link", "yt_eta", "yt_link", "yt_upload_date", "short_links", "actual_links"],
+      Uploaded: {
+        show: [
+          "video_title",
+          "thumbnail_link",
+          "yt_eta",
+          "yt_link",
+          "yt_upload_date",
+          "short_links",
+          "actual_links",
+        ],
         edit: [],
         mustFill: [],
       },
@@ -487,15 +1041,36 @@ export const CONTROL: Record<string, StageControl> = {
     reviewer: {
       byStatus: {
         "To Do": {
-          show: ["video_title", "video_description", "video_editor_link", "thumbnail_link"],
+          show: [
+            "video_title",
+            "video_description",
+            "video_editor_link",
+            "thumbnail_link",
+          ],
           edit: [],
         },
         "In Progress": {
-          show: ["video_title", "video_description", "video_editor_link", "thumbnail_link", "yt_link", "yt_upload_date", "short_links", "actual_links"],
+          show: [
+            "video_title",
+            "video_description",
+            "video_editor_link",
+            "thumbnail_link",
+            "yt_link",
+            "yt_upload_date",
+            "short_links",
+            "actual_links",
+          ],
           edit: [],
         },
-        "Uploaded": {
-          show: ["video_title", "thumbnail_link", "yt_link", "yt_upload_date", "short_links", "actual_links"],
+        Uploaded: {
+          show: [
+            "video_title",
+            "thumbnail_link",
+            "yt_link",
+            "yt_upload_date",
+            "short_links",
+            "actual_links",
+          ],
           edit: [],
         },
       },
@@ -512,26 +1087,41 @@ export const CONTROL: Record<string, StageControl> = {
 // must be filled. Nothing re-derives these rules elsewhere.
 // ===========================================================================
 
-function ruleFor(stageId: string, kind: RoleKind, status: string): FieldView | FormRule | undefined {
+function ruleFor(
+  stageId: string,
+  kind: RoleKind,
+  status: string
+): FieldView | FormRule | undefined {
   const sc = CONTROL[stageId];
   if (!sc) return undefined;
   return kind === "worker" ? sc.worker[status] : sc.reviewer.byStatus[status];
 }
 
 /** Columns shown on the form for (stage, role, status). Anything else is hidden. */
-export function showColumns(stageId: string, kind: RoleKind, status: string): Column[] {
+export function showColumns(
+  stageId: string,
+  kind: RoleKind,
+  status: string
+): Column[] {
   return ruleFor(stageId, kind, status)?.show ?? [];
 }
 
 /** Columns editable on the form for (stage, role, status). The rest are read-only. */
-export function editColumns(stageId: string, kind: RoleKind, status: string): Column[] {
+export function editColumns(
+  stageId: string,
+  kind: RoleKind,
+  status: string
+): Column[] {
   return ruleFor(stageId, kind, status)?.edit ?? [];
 }
 
 /** Columns a worker must fill to make the forward move FROM `status`
  *  (To Do→In Progress "Start", In Progress/Need Changes→In Review "Submit",
  *  In Progress→Uploaded "Mark uploaded"). */
-export function requiredToSubmitFrom(stageId: string, status: string): Column[] {
+export function requiredToSubmitFrom(
+  stageId: string,
+  status: string
+): Column[] {
   return CONTROL[stageId]?.worker[status]?.mustFill ?? [];
 }
 
@@ -551,6 +1141,9 @@ export function columnLabel(col: string): string {
 }
 
 /** The subset of `cols` that are still empty on `row`. */
-export function missingColumns(cols: Column[], row: Record<string, unknown>): Column[] {
+export function missingColumns(
+  cols: Column[],
+  row: Record<string, unknown>
+): Column[] {
   return cols.filter((c) => !String(row[c] ?? "").trim());
 }
