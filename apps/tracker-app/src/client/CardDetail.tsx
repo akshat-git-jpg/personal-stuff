@@ -362,7 +362,12 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
                   })}
                 </div>
               )}
-              {hint && <div className="detail-action-row__hint">{hint}</div>}
+              {hint && (
+                <div className="detail-action-row__hint" role="status">
+                  <span className="hint-icon" aria-hidden="true">⚠</span>
+                  <span>{hint}</span>
+                </div>
+              )}
               {/* Send-back: the box is always shown; the button IS the action, enabled once a note is typed. */}
               {g.transitions.filter((t) => t.requiresFeedback).map((t) => (
                 <div key={"fb" + t.to} className="sendback-form">

@@ -84,7 +84,10 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
             ))}
           </div>
           {transitions.find((t) => t.disabledReason) && (
-            <div className="card__needhint">{transitions.find((t) => t.disabledReason)!.disabledReason}</div>
+            <div className="card__needhint" role="status">
+              <span className="hint-icon" aria-hidden="true">⚠</span>
+              <span>{transitions.find((t) => t.disabledReason)!.disabledReason}</span>
+            </div>
           )}
         </>
       )}
