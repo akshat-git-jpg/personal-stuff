@@ -3,7 +3,8 @@ import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
 import { canEditForRoles, isAdminRoles } from "../shared/rbac";
 import { STAGES, stageById, statusOf, PROTECTED_ADMIN_EMAIL } from "../shared/pipeline";
-import { DATE_COLUMNS, ETA_COLUMNS } from "../shared/columns";
+import { COLUMNS, DATE_COLUMNS, ETA_COLUMNS } from "../shared/columns";
+import { fieldType } from "./columnMeta";
 import {
   showColumns, editColumns, requiredToApprove, requiredToSubmitFrom,
   missingColumns, columnLabel, type RoleKind,
@@ -60,19 +61,18 @@ export function ComboSelect({ id, value, options, placeholder, onChange }: {
 }
 
 const STATUS_COLS = new Set(STAGES.map((s) => s.statusCol));
-const ASSIGNEE_COLS = new Set([...STAGES.map((s) => s.assigneeCol), "reviewer_email", "admin_email"]);
+// Widget membership is derived from the column metadata (columnMeta.ts), so a new
+// column's input type is set in ONE place, not re-listed here.
+const ASSIGNEE_COLS = new Set(COLUMNS.filter((c) => fieldType(c) === "assignee"));
+const MULTILINE_COLS = new Set(COLUMNS.filter((c) => fieldType(c) === "textarea"));
+const COMBO_COLS = new Set(COLUMNS.filter((c) => fieldType(c) === "combo"));
+const DATE_COLS = new Set<string>(DATE_COLUMNS);
+const ETA_COLS = new Set<string>(ETA_COLUMNS);
 
 // Which role each assignee field requires, so its dropdown only lists people who
 // actually hold that role. Derived from the pipeline (+ the card-level reviewer).
 const ASSIGNEE_ROLE: Record<string, string> = { reviewer_email: "Reviewer", admin_email: "Admin" };
 for (const s of STAGES) ASSIGNEE_ROLE[s.assigneeCol] = s.ownerRole;
-const MULTILINE_COLS = new Set<string>([
-  "video_notes", "video_description",
-  ...STAGES.flatMap((s) => [s.instructionCol, s.feedbackCol].filter(Boolean) as string[]),
-]);
-const COMBO_COLS = new Set(["category", "subcategory"]);
-const DATE_COLS = new Set<string>(DATE_COLUMNS);
-const ETA_COLS = new Set<string>(ETA_COLUMNS);
 
 // All assignee fields, in pipeline sequence, grouped right after the brief so the
 // admin sets them in one place: Scriptwriter → Recorder → Video Editor → Uploader

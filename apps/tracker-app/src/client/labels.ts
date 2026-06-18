@@ -1,4 +1,5 @@
 import { STAGES, stageByStatusCol } from "../shared/pipeline";
+import { COLUMN_META, colLabel, colHint, LINK_COLS } from "./columnMeta";
 
 // ── Stage maps, derived from the pipeline (single source of truth) ──────────
 
@@ -19,18 +20,13 @@ export function stageLabelForStatusCol(col: string): string {
   return stageByStatusCol(col)?.label ?? col;
 }
 
-// ── Link helpers ────────────────────────────────────────────────────────────
+// ── Link helpers (link columns + per-column hints come from columnMeta) ──────
 
-const PUBLIC_LINK_HINT = 'Make sure this link is shared publicly — set it to "Anyone with the link can view"';
-export const LINK_HINTS: Record<string, string> = {
-  script_link: PUBLIC_LINK_HINT,
-  tutorial_link: PUBLIC_LINK_HINT,
-  video_editor_link: PUBLIC_LINK_HINT,
-  thumbnail_link: PUBLIC_LINK_HINT,
-  yt_link: PUBLIC_LINK_HINT,
-};
+export { LINK_COLS };
+export const LINK_HINTS: Record<string, string> = Object.fromEntries(
+  Object.keys(COLUMN_META).map((c) => [c, colHint(c)]).filter(([, h]) => h),
+) as Record<string, string>;
 
-export const LINK_COLS = new Set(["script_link", "tutorial_link", "video_editor_link", "thumbnail_link", "yt_link", "short_links", "actual_links"]);
 export function isUrl(v: string): boolean { return /^https?:\/\//i.test((v ?? "").trim()); }
 
 // ── ETA countdown badge ──────────────────────────────────────────────────────
@@ -48,52 +44,7 @@ export function etaBadge(value: string | undefined): { text: string; tone: strin
   return { text: `${-days}d late`, tone: "eta-late" };
 }
 
-// ── Human-readable field labels ──────────────────────────────────────────────
-
-export const FIELD_LABELS: Record<string, string> = {
-  video_title: "Video title",
-  video_notes: "Notes / brief",
-  video_description: "Description",
-  category: "Category",
-  subcategory: "Subcategory",
-  topic_status: "Topic status",
-  topic_date: "Topic date",
-  admin_email: "Admin",
-  script_writer_email: "Scriptwriter",
-  script_instruction: "Script instructions",
-  script_link: "Script",
-  script_status: "Script status",
-  script_feedback: "Script feedback",
-  tutorial_maker_email: "Recorder",
-  tutorial_instruction: "Recording instructions",
-  tutorial_link: "Recording",
-  tutorial_status: "Recording status",
-  tutorial_feedback: "Recording feedback",
-  video_editor_email: "Video editor",
-  video_editor_instruction: "Editor instructions",
-  video_editor_link: "Final video",
-  video_editor_status: "Editing status",
-  video_editor_eta: "Editing ETA",
-  editor_feedback: "Editor feedback",
-  script_eta: "Script ETA",
-  tutorial_eta: "Recording ETA",
-  thumbnail_maker_email: "Thumbnail maker",
-  thumbnail_instruction: "Thumbnail instructions",
-  thumbnail_link: "Thumbnail",
-  thumbnail_status: "Thumbnail status",
-  thumbnail_eta: "Thumbnail ETA",
-  thumbnail_feedback: "Thumbnail feedback",
-  reviewer_email: "Reviewer",
-  uploader_email: "Uploader",
-  yt_upload_status: "Upload status",
-  yt_eta: "Upload ETA",
-  yt_upload_date: "Upload date",
-  yt_link: "YouTube link",
-  short_links: "Short links",
-  actual_links: "Actual links",
-  row_id: "ID",
-};
-
+// ── Human-readable field label (sourced from columnMeta) ─────────────────────
 export function fieldLabel(col: string): string {
-  return FIELD_LABELS[col] ?? col.replace(/_/g, " ");
+  return colLabel(col);
 }
