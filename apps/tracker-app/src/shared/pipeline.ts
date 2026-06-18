@@ -8,6 +8,7 @@
 // the rest of the app follows.
 // ---------------------------------------------------------------------------
 import type { Column } from "./columns";
+import { lifecycleFor } from "./lifecycle";
 
 export type StageId = "topic" | "script" | "recording" | "editing" | "thumbnail" | "upload";
 
@@ -36,14 +37,8 @@ export interface StageDef {
   requiredFields?: { col: Column; label: string }[];
 }
 
-// Status names. Reviewable stages share one lifecycle; the terminal upload stage
-// has its own (no review).
-export const REVIEW_STATES = ["To Do", "In Progress", "In Review", "Need Changes", "Done"] as const;
-// A reviewable stage with no feedback column is approve-only: the reviewer can
-// mark it Done but never send it back, so it has no "Need Changes" state.
-export const APPROVE_ONLY_STATES = ["To Do", "In Progress", "In Review", "Done"] as const;
-export const TERMINAL_STATES = ["To Do", "In Progress", "Uploaded"] as const;
-export type ReviewState = typeof REVIEW_STATES[number];
+// Status lifecycles (which statuses exist + the transitions between them) live in
+// lifecycle.ts. `statesFor` derives a stage's lanes from there.
 export const DONE = "Done";
 
 export const STAGES: StageDef[] = [
@@ -143,8 +138,7 @@ export function nextStage(stage: StageDef): StageDef | undefined {
 }
 
 export function statesFor(stage: StageDef): readonly string[] {
-  if (!stage.reviewable) return TERMINAL_STATES;
-  return stage.feedbackCol ? REVIEW_STATES : APPROVE_ONLY_STATES;
+  return lifecycleFor(stage.reviewable, !!stage.feedbackCol).statuses;
 }
 
 // Required fields for `stage` that are still empty on `row`. Empty list = the

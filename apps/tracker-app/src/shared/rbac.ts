@@ -8,6 +8,7 @@ import {
 import {
   requiredToSubmitFrom, requiredToApprove, missingColumns, columnLabel,
 } from "./control";
+import { lifecycleFor } from "./lifecycle";
 
 export type Row = Partial<Record<Column, string>>;
 
@@ -205,48 +206,37 @@ function blockReasonFor(cols: Column[], row: Row): string | undefined {
 }
 
 /** Allowed status transitions for ONE stage of a card, for this user.
- *  Required-field gates come from the control tables (control.ts):
- *   • Start / Submit / Mark-uploaded → worker `mustFill` for the FROM status
- *     (so the To Do ETA gate and the In-Progress link gate both flow from here).
- *   • Approve → reviewer `toApprove` (e.g. the next worker's instruction).
- *   • Resume editing (Need Changes → In Progress) is never gated. */
+ *  The transition GRAPH is data (lifecycle.ts) — this just filters it by who the
+ *  user is and applies the required-field gates from the control tables:
+ *   • doer moves need stage ownership + the upstream gate open;
+ *   • reviewer moves need canReview;
+ *   • `gate: "submit"` → worker `mustFill` for the FROM status (the To Do ETA
+ *     gate and the In-Progress link gate both flow from here);
+ *   • `gate: "approve"` → reviewer `toApprove` (e.g. the next worker's instruction).
+ *  Which transitions a stage has (e.g. send-back only when there's a feedback
+ *  column) is decided by `lifecycleFor`, not by branching here. */
 export function transitionsForStage(roles: string[], email: string, stage: StageDef, row: Row): Transition[] {
-  const out: Transition[] = [];
   const status = statusOf(stage, row);
   const admin = isAdminRoles(roles);
   const owner = admin || ownsStage(roles, email, stage, row);
   const reviewer = canReview(roles, email, stage, row);
   const gateOpen = isGateOpen(stage, row);
-  const doer = { stageId: stage.id, statusCol: stage.statusCol, by: "doer" as const };
-  const rev = { stageId: stage.id, statusCol: stage.statusCol, by: "reviewer" as const };
-  // The forward-move gate from a given status = that status's worker `mustFill`.
-  const submitGate = (from: string) => blockReasonFor(requiredToSubmitFrom(stage.id, from), row);
+  const lifecycle = lifecycleFor(stage.reviewable, !!stage.feedbackCol);
 
-  if (stage.reviewable) {
-    if (owner && gateOpen) {
-      if (status === "To Do") out.push({ ...doer, to: "In Progress", label: "Start", kind: "start", disabledReason: submitGate("To Do") });
-      if (status === "In Progress") out.push({ ...doer, to: "In Review", label: "Submit for review", kind: "submit", disabledReason: submitGate("In Progress") });
-      if (status === "Need Changes") {
-        out.push({ ...doer, to: "In Progress", label: "Resume editing", kind: "start" });
-        out.push({ ...doer, to: "In Review", label: "Resubmit for review", kind: "submit", disabledReason: submitGate("Need Changes") });
-      }
-    }
-    if (reviewer) {
-      // A stage with no feedback column is approve-only — the reviewer can mark it
-      // Done but never send it back (e.g. Topic).
-      const canSendBack = !!stage.feedbackCol;
-      if (status === "In Review") {
-        out.push({ ...rev, to: "Done", label: "Approve", kind: "approve", disabledReason: blockReasonFor(requiredToApprove(stage.id), row) });
-        if (canSendBack) out.push({ ...rev, to: "Need Changes", label: "Request changes", kind: "reject", requiresFeedback: true });
-      }
-      if (status === "Done" && canSendBack) out.push({ ...rev, to: "Need Changes", label: "Reopen (request changes)", kind: "reopen", requiresFeedback: true });
-    }
-  } else {
-    // Terminal upload stage — no review.
-    if (owner && gateOpen) {
-      if (status === "To Do") out.push({ ...doer, to: "In Progress", label: "Start upload", kind: "start", disabledReason: submitGate("To Do") });
-      if (status === "In Progress") out.push({ ...doer, to: "Uploaded", label: "Mark uploaded", kind: "advance", disabledReason: submitGate("In Progress") });
-    }
+  const out: Transition[] = [];
+  for (const tr of lifecycle.transitions) {
+    if (tr.from !== status) continue;
+    // Authority for this move.
+    if (tr.by === "doer" ? !(owner && gateOpen) : !reviewer) continue;
+    // Required-field gate, if any.
+    const disabledReason =
+      tr.gate === "submit" ? blockReasonFor(requiredToSubmitFrom(stage.id, status), row)
+      : tr.gate === "approve" ? blockReasonFor(requiredToApprove(stage.id), row)
+      : undefined;
+    out.push({
+      stageId: stage.id, statusCol: stage.statusCol, to: tr.to, label: tr.label,
+      kind: tr.kind, by: tr.by, requiresFeedback: tr.needsFeedback, disabledReason,
+    });
   }
   return out;
 }
