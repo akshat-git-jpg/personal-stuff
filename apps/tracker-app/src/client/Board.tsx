@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import type { Column } from "../shared/columns";
 import type { Transition } from "../shared/rbac";
-import { stageByStatusCol } from "../shared/pipeline";
+import { stageByStatusCol, stageById } from "../shared/pipeline";
 import { NEW_VIDEO_FIELDS } from "../shared/control";
 import {
   applyTransition, getReviewQueue, createVideo, deleteVideo,
@@ -29,7 +29,8 @@ interface BoardProps {
   reload: () => void;
 }
 
-type TabKey = "work" | "review" | "pipeline" | "team";
+// Work-board tabs are keyed by their stage's statusCol; plus the fixed tabs below.
+type TabKey = string; // "<statusCol>" | "review" | "pipeline" | "team"
 
 function transitionsForStageCol(row: BoardRow, statusCol: string): Transition[] {
   return row._actions?.find((g) => g.statusCol === statusCol)?.transitions ?? [];
@@ -74,19 +75,22 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
   const adminViewing = isAdmin || !!readOnly; // readOnly board = an admin's view-as mirror
   const showDwell = SHOW_DWELL === "everyone" || adminViewing;
 
-  // Build the tab set from what this user actually has.
-  const tabs: { key: TabKey; label: string }[] = [];
+  // Build the tab set: one tab per work board (each stage the user owns, named by
+  // the stage), then the Review queue, then admin tabs — all peers at the top.
+  // Review is the default whenever the user is a reviewer; otherwise their first
+  // work board.
   const [queueCount, setQueueCount] = useState(0);
-  if (workerStages.length > 0) tabs.push({ key: "work", label: "My work" });
+  const tabs: { key: TabKey; label: string }[] = [];
+  for (const ws of workerStages) {
+    tabs.push({ key: ws.statusCol, label: stageByStatusCol(ws.statusCol)?.label ?? ws.statusCol });
+  }
   if (canReview) tabs.push({ key: "review", label: `Review queue${queueCount ? ` (${queueCount})` : ""}` });
   if (isAdmin) {
     tabs.push({ key: "pipeline", label: "Pipeline" });
     tabs.push({ key: "team", label: "Team" });
   }
-  const defaultTab: TabKey = workerStages.length > 0 ? "work" : "review";
+  const defaultTab: TabKey = canReview ? "review" : (workerStages[0]?.statusCol ?? tabs[0]?.key ?? "review");
   const [tab, setTab] = useState<TabKey>(defaultTab);
-
-  const [workerIdx, setWorkerIdx] = useState(0);
   const [adminFilters, setAdminFilters] = useState<AdminFilters>(EMPTY_FILTERS);
   const [detailRow, setDetailRow] = useState<BoardRow | null>(null);
   const [detailStageId, setDetailStageId] = useState<string | undefined>(undefined);
@@ -161,7 +165,7 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
       const payload = Object.fromEntries(NEW_VIDEO_FIELDS.map((f) => [f.col, (nv[f.col] ?? "").trim()]));
       await createVideo(payload);
       setShowNewVideo(false); setNv(blankNv());
-      setTab("work"); reload();
+      setTab(stageById("topic")?.statusCol ?? defaultTab); reload(); // jump to the Topic board
     } catch (err) { setNvError(err instanceof Error ? err.message : String(err)); }
     finally { setNvBusy(false); }
   }
@@ -186,7 +190,7 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
                     showAssignee={isAdmin} showDwell={showDwell}
                     canDelete={isAdmin && !readOnly}
                     onDelete={() => void handleDelete(row.row_id ?? "", row.video_title ?? "")}
-                    /* My work is the doer's board — never show reviewer actions here */
+                    /* A work board is the doer's view — never show reviewer actions here */
                     transitions={transitionsForStageCol(row, statusCol).filter((t) => t.by === "doer")}
                     onOpen={() => openDetail(row, stageByStatusCol(statusCol)?.id, "doer")}
                     onAction={(t) => void doAction(row, t)} />
@@ -200,28 +204,13 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
     );
   }
 
-  // ── My work tab ──────────────────────────────────────────────────────────────
-  function renderWork() {
-    const ws = workerStages[Math.min(workerIdx, workerStages.length - 1)];
-    if (!ws) return <div className="awaiting-empty">Nothing assigned to you yet.</div>;
-    const statusCol = ws.statusCol as Column;
+  // ── A single work board (one stage the user owns; one tab each) ──────────────
+  function renderWork(statusCol: Column) {
+    const stageId = stageByStatusCol(statusCol)?.id ?? "";
     const mine = rows.filter((r) => (r._stages ?? []).includes(statusCol));
     return (
       <>
-        {workerStages.length > 1 ? (
-          <div className="stage-switcher">
-            {workerStages.map((s, i) => (
-              <button key={s.statusCol} type="button"
-                className={`stage-switch-btn${i === workerIdx ? " stage-switch-btn--active" : ""}`}
-                onClick={() => setWorkerIdx(i)}>{stageByStatusCol(s.statusCol)?.label ?? s.statusCol}</button>
-            ))}
-          </div>
-        ) : (
-          <div className="work-heading">{stageByStatusCol(statusCol)?.label ?? statusCol}</div>
-        )}
-        {STAGE_GUIDE[stageByStatusCol(statusCol)?.id ?? ""] && (
-          <HelpBanner text={STAGE_GUIDE[stageByStatusCol(statusCol)!.id]} />
-        )}
+        {STAGE_GUIDE[stageId] && <HelpBanner text={STAGE_GUIDE[stageId]} />}
         {mine.length === 0
           ? <div className="awaiting-empty">Nothing in your {stageByStatusCol(statusCol)?.label ?? "queue"} right now.</div>
           : renderLaneBoard(statusCol, mine)}
@@ -264,6 +253,8 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
   ) : null;
 
   const activeTab = tabs.some((t) => t.key === tab) ? tab : (tabs[0]?.key ?? "review");
+  // A work-board tab is active when the active key is one of the user's stages.
+  const activeWorkerStatusCol = workerStages.find((ws) => ws.statusCol === activeTab)?.statusCol as Column | undefined;
 
   return (
     <div className="board-root">
@@ -277,9 +268,9 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
         </div>
       )}
 
-      {activeTab === "work" && <StatusLegend />}
+      {activeWorkerStatusCol && <StatusLegend />}
 
-      {activeTab === "work" && renderWork()}
+      {activeWorkerStatusCol && renderWork(activeWorkerStatusCol)}
       {activeTab === "review" && (
         <>
           <HelpBanner text={REVIEWER_GUIDE} />
