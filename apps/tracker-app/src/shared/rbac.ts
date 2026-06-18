@@ -2,7 +2,7 @@ import type { Column } from "./columns";
 import { COLUMNS } from "./columns";
 import { POLICY, APPROVER_ROLES, APPROVER_ONLY_VALUES, STAGE_OF_COL } from "./policy";
 import {
-  STAGES, stageByStatusCol, statusOf, isGateOpen,
+  STAGES, stageByStatusCol, statusOf, isGateOpen, stageHasReviewer, DONE,
   ADMIN_ROLE, REVIEWER_ROLE, type StageDef,
 } from "./pipeline";
 import {
@@ -35,9 +35,14 @@ export function canEdit(role: string, col: Column): boolean {
 export function filterRows(role: string, email: string, rows: Row[]): Row[] {
   const p = POLICY[role]; if (!p) return [];
   if (p.rows === "all") return rows;
+  const want = norm(email);
+  // Reviewer: matches cards they review on ANY stage.
+  if ("anyMatch" in p.rows) {
+    const cols = p.rows.anyMatch;
+    return rows.filter(r => cols.some(c => norm(r[c]) === want));
+  }
   const col = p.rows.match;
   const gate = p.rows.gate;
-  const want = norm(email);
   return rows.filter(r => {
     if (norm(r[col]) !== want) return false;
     if (gate && (r[gate.col] || "").trim() !== gate.equals) return false;
@@ -54,6 +59,10 @@ export function projectRow(role: string, row: Row): Row {
 export function stageRows(role: string, rows: Row[]): Row[] {
   const p = POLICY[role]; if (!p) return [];
   if (p.rows === "all") return rows;
+  if ("anyMatch" in p.rows) {
+    const cols = p.rows.anyMatch;
+    return rows.filter(r => cols.some(c => (r[c] || "").trim()));
+  }
   const col = p.rows.match; const gate = p.rows.gate;
   return rows.filter(r => {
     if (!(r[col] || "").trim()) return false;
@@ -64,9 +73,9 @@ export function stageRows(role: string, rows: Row[]): Row[] {
 
 export function peopleFor(role: string, rows: Row[]): string[] {
   const p = POLICY[role]; if (!p || p.rows === "all") return [];
-  const col = p.rows.match;
+  const cols = "anyMatch" in p.rows ? p.rows.anyMatch : [p.rows.match];
   const set = new Set<string>();
-  for (const r of rows) { const v = (r[col] || "").trim(); if (v) set.add(v); }
+  for (const r of rows) for (const col of cols) { const v = (r[col] || "").trim(); if (v) set.add(v); }
   return [...set].sort();
 }
 
@@ -175,7 +184,8 @@ export function ownsStage(roles: string[], email: string, stage: StageDef, row: 
 export function canReview(roles: string[], email: string, stage: StageDef, row: Row): boolean {
   if (!stage.reviewable) return false;
   if (!roles.includes(REVIEWER_ROLE)) return false;
-  if (norm(row.reviewer_email) !== norm(email)) return false;
+  // The reviewer is now PER-STAGE: the user must be this stage's assigned reviewer.
+  if (!stage.reviewerCol || norm(row[stage.reviewerCol]) !== norm(email)) return false;
   // Can't review your own work — EXCEPT the admin-owned Topic stage, where the
   // owner (admin) and the reviewer can legitimately be the same person.
   if (stage.ownerRole !== ADMIN_ROLE && norm(row[stage.assigneeCol]) === norm(email)) return false;
@@ -222,10 +232,25 @@ export function transitionsForStage(roles: string[], email: string, stage: Stage
   const reviewer = canReview(roles, email, stage, row);
   const gateOpen = isGateOpen(stage, row);
   const lifecycle = lifecycleFor(stage.reviewable, !!stage.feedbackCol);
+  // A reviewable stage with NO reviewer assigned is auto-approved: the doer's
+  // "submit" completes it (→ Done) and there is no reviewer side at all.
+  const autoComplete = stage.reviewable && !stageHasReviewer(stage, row);
 
   const out: Transition[] = [];
   for (const tr of lifecycle.transitions) {
     if (tr.from !== status) continue;
+    if (autoComplete) {
+      if (tr.by === "reviewer") continue;                 // no reviewer → drop approve/reject/reopen
+      if (tr.kind === "submit") {                          // submit goes straight to Done
+        if (owner && gateOpen) {
+          out.push({
+            stageId: stage.id, statusCol: stage.statusCol, to: DONE, label: "Submit & complete",
+            kind: "advance", by: "doer", disabledReason: blockReasonFor(requiredToSubmitFrom(stage.id, status), row),
+          });
+        }
+        continue;
+      }
+    }
     // Authority for this move.
     if (tr.by === "doer" ? !(owner && gateOpen) : !reviewer) continue;
     // Required-field gate, if any.
@@ -330,7 +355,9 @@ export function authorizeWrite(roles: string[], email: string, col: Column, valu
   //    the card's assigned reviewer can edit the fields their role grants (so they
   //    can route work — set the downstream freelancers + write their instructions).
   if (admin) return { ok: true };
-  const isCardReviewer = roles.includes(REVIEWER_ROLE) && norm(row.reviewer_email) === norm(email);
+  // The card's reviewer = a Reviewer who's assigned to review ANY stage of this card.
+  const isCardReviewer = roles.includes(REVIEWER_ROLE)
+    && STAGES.some((s) => s.reviewerCol && norm(row[s.reviewerCol]) === norm(email));
   if (isCardReviewer && canEditForRoles(roles, col)) return { ok: true };
   return { ok: false, reason: "Only an admin or the card's reviewer can edit this." };
 }

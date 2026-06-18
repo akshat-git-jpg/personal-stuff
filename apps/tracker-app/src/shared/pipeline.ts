@@ -25,6 +25,8 @@ export interface StageDef {
   viewFields: Column[];     // read-only upstream context the owner needs to do the work
   instructionCol?: Column;  // a brief authored for the doer (read-only to them)
   feedbackCol?: Column;     // review send-back note column (reviewable stages only)
+  reviewerCol?: Column;     // per-stage reviewer email (reviewable stages). Empty on a
+                            // card ⇒ that stage skips review and submitting completes it.
   // Which columns the card detail SHOWS when a card is opened while working this
   // stage (presentation only — RBAC still decides what's editable). Omit to use
   // the derived default (brief context + this stage's own fields). This is the
@@ -46,7 +48,7 @@ export const STAGES: StageDef[] = [
     // The Topic stage is the Admin's job — there is no separate "Ideator" role.
     // Its assignee is the founding admin (admin_email), so admin owns/drives it.
     id: "topic", label: "Topic", ownerRole: "Admin",
-    statusCol: "topic_status", assigneeCol: "admin_email",
+    statusCol: "topic_status", assigneeCol: "admin_email", reviewerCol: "topic_reviewer_email",
     reviewable: true, terminal: false, order: 0,
     editFields: ["video_title", "video_notes", "video_description", "category", "subcategory"],
     viewFields: [],
@@ -63,7 +65,7 @@ export const STAGES: StageDef[] = [
   },
   {
     id: "script", label: "Script", ownerRole: "Scriptwriter",
-    statusCol: "script_status", assigneeCol: "script_writer_email",
+    statusCol: "script_status", assigneeCol: "script_writer_email", reviewerCol: "script_reviewer_email",
     reviewable: true, terminal: false, order: 1,
     editFields: ["script_link", "script_eta"],
     viewFields: ["video_title", "video_notes", "category", "subcategory"],
@@ -73,7 +75,7 @@ export const STAGES: StageDef[] = [
   },
   {
     id: "recording", label: "Recording", ownerRole: "Recorder",
-    statusCol: "tutorial_status", assigneeCol: "tutorial_maker_email",
+    statusCol: "tutorial_status", assigneeCol: "tutorial_maker_email", reviewerCol: "tutorial_reviewer_email",
     reviewable: true, terminal: false, order: 2,
     editFields: ["tutorial_link", "tutorial_eta"],
     viewFields: ["video_title", "video_notes", "script_link"],
@@ -83,7 +85,7 @@ export const STAGES: StageDef[] = [
   },
   {
     id: "editing", label: "Editing", ownerRole: "Video Editor",
-    statusCol: "video_editor_status", assigneeCol: "video_editor_email",
+    statusCol: "video_editor_status", assigneeCol: "video_editor_email", reviewerCol: "video_editor_reviewer_email",
     reviewable: true, terminal: false, order: 3,
     editFields: ["video_editor_link", "video_editor_eta"],
     viewFields: ["video_title", "video_notes", "tutorial_link"],
@@ -93,7 +95,7 @@ export const STAGES: StageDef[] = [
   },
   {
     id: "thumbnail", label: "Thumbnail", ownerRole: "Thumbnail Maker",
-    statusCol: "thumbnail_status", assigneeCol: "thumbnail_maker_email",
+    statusCol: "thumbnail_status", assigneeCol: "thumbnail_maker_email", reviewerCol: "thumbnail_reviewer_email",
     reviewable: true, terminal: false, order: 4,
     editFields: ["thumbnail_link", "thumbnail_eta"],
     viewFields: ["video_title", "video_notes", "video_editor_link"],
@@ -180,6 +182,15 @@ type CellLookup = Record<string, unknown>;
 
 export function statusOf(stage: StageDef, row: CellLookup): string {
   return normalizeStatus(stage, row[stage.statusCol] as string | undefined);
+}
+
+// Every per-stage reviewer column (for row filtering / projection).
+export const REVIEWER_COLS: Column[] = STAGES.map((s) => s.reviewerCol).filter(Boolean) as Column[];
+
+/** Does this stage have a reviewer assigned on this card? If not, the stage is
+ *  auto-approved: submitting it completes it (skips In Review). */
+export function stageHasReviewer(stage: StageDef, row: CellLookup): boolean {
+  return !!stage.reviewerCol && String(row[stage.reviewerCol] ?? "").trim() !== "";
 }
 
 // A stage is "complete" (gates the next stage open) when its status is Done, or

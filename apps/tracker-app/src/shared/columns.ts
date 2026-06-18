@@ -17,9 +17,12 @@ export const COLUMNS = [
   "tutorial_maker_email","tutorial_instruction","tutorial_link","tutorial_status","tutorial_eta","tutorial_feedback",
   "video_editor_email","video_editor_instruction","video_editor_link","video_editor_status","video_editor_eta","editor_feedback",
   "thumbnail_maker_email","thumbnail_instruction","thumbnail_link","thumbnail_status","thumbnail_eta","thumbnail_feedback",
+  "topic_reviewer_email","script_reviewer_email","tutorial_reviewer_email","video_editor_reviewer_email","thumbnail_reviewer_email",
   "reviewer_email","uploader_email","yt_upload_status","yt_eta","yt_upload_date","yt_link","short_links","actual_links",
   "row_id","last_updated","status_since",
 ] as const;
+// NB: `reviewer_email` is the LEGACY single card-level reviewer (kept for back-compat /
+// migration seed). Reviews are now per-stage via the `*_reviewer_email` columns above.
 export type Column = typeof COLUMNS[number];
 
 // Columns the card form renders as a calendar date picker (not a text box).
@@ -54,6 +57,11 @@ export const COLUMN_LABELS: Partial<Record<Column, string>> = {
   topic_date: "Topic date",
   admin_email: "Admin",
   reviewer_email: "Reviewer",
+  topic_reviewer_email: "Topic reviewer",
+  script_reviewer_email: "Script reviewer",
+  tutorial_reviewer_email: "Recording reviewer",
+  video_editor_reviewer_email: "Editing reviewer",
+  thumbnail_reviewer_email: "Thumbnail reviewer",
   script_writer_email: "Scriptwriter",
   tutorial_maker_email: "Recorder",
   video_editor_email: "Video editor",

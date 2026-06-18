@@ -8,12 +8,12 @@
 // ---------------------------------------------------------------------------
 import type { Column } from "./columns";
 import {
-  STAGES, prevStage, ADMIN_ROLE, REVIEWER_ROLE,
+  STAGES, prevStage, ADMIN_ROLE, REVIEWER_ROLE, REVIEWER_COLS,
   type StageDef,
 } from "./pipeline";
 
 export type Access = "view" | "edit";
-type RowRule = "all" | { match: Column; gate?: { col: Column; equals: string } };
+type RowRule = "all" | { match: Column; gate?: { col: Column; equals: string } } | { anyMatch: Column[] };
 export interface RolePolicy {
   all?: boolean;                                   // Admin: sees + edits everything
   access?: Partial<Record<Column, Access>>;        // columns not listed = hidden
@@ -83,6 +83,7 @@ function reviewerAccess(): Partial<Record<Column, Access>> {
   };
   for (const s of STAGES) {
     acc[s.assigneeCol] = "view";                 // sees who's assigned (admin does the assigning)
+    if (s.reviewerCol) acc[s.reviewerCol] = "view"; // who reviews each stage
     for (const c of s.viewFields) acc[c] ??= "view";
     for (const c of s.editFields) acc[c] = "view";
     if (s.instructionCol) acc[s.instructionCol] = "edit"; // reviewer writes the starting instructions
@@ -101,7 +102,7 @@ export const POLICY: Record<string, RolePolicy> = (() => {
     [ADMIN_ROLE]: { all: true, rows: "all", laneStatus: "topic_status" },
     [REVIEWER_ROLE]: {
       access: reviewerAccess(),
-      rows: { match: "reviewer_email" },
+      rows: { anyMatch: REVIEWER_COLS }, // sees cards they review on ANY stage
       laneStatus: STAGES[0].statusCol,
     },
   };

@@ -48,6 +48,12 @@ export const COLUMN_META: Partial<Record<Column, ColMeta>> = {
   video_editor_email:   { type: "assignee" },
   thumbnail_maker_email:{ type: "assignee" },
   uploader_email:       { type: "assignee" },
+  // Per-stage reviewers (assignee dropdowns filtered to the Reviewer role; blank = no review)
+  topic_reviewer_email:        { type: "assignee" },
+  script_reviewer_email:       { type: "assignee" },
+  tutorial_reviewer_email:     { type: "assignee" },
+  video_editor_reviewer_email: { type: "assignee" },
+  thumbnail_reviewer_email:    { type: "assignee" },
 
   // Script
   script_instruction: { type: "textarea" },

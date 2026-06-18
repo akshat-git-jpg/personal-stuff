@@ -363,9 +363,10 @@ app.post("/api/update", async (c) => {
       if (stage && stage.reviewable && value === "In Review") {
         const team = await store.loadTeam();
         const submitterName = displayName(email, buildNamesMap(team));
-        const rowReviewer = ((targetRow.reviewer_email ?? "") as string).trim();
-        const recipients = rowReviewer
-          ? [rowReviewer]
+        // Notify THIS stage's assigned reviewer (per-stage). Fallback: all approvers.
+        const stageReviewer = stage.reviewerCol ? ((targetRow[stage.reviewerCol] ?? "") as string).trim() : "";
+        const recipients = stageReviewer
+          ? [stageReviewer]
           : team.filter((m) => (m.roles ?? [m.role]).some(isApprover)).map((m) => m.email);
         await sendNotification(c.env, "submitted", recipients, { title: videoTitle, appUrl, stageLabel: stage.label, actorName: submitterName });
       }

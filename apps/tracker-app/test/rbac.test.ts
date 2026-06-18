@@ -18,7 +18,7 @@ function scriptCard(script_status: string): Row {
     row_id: "r1", video_title: "T",
     topic_status: "Done",
     script_writer_email: "sw@x.com",
-    reviewer_email: "rv@x.com",
+    script_reviewer_email: "rv@x.com",
     script_status,
   };
 }
@@ -65,13 +65,32 @@ describe("doer transitions", () => {
   it("Need Changes -> resume or resubmit", () => expect(tos("Need Changes")).toEqual(["In Progress", "In Review"]));
 });
 
+describe("optional review — no reviewer ⇒ submit completes the stage", () => {
+  // Script card with NO script_reviewer_email assigned, link filled.
+  const noReviewer = (): Row => {
+    const r = { ...scriptCard("In Progress"), script_link: "https://x.com/s" };
+    delete r.script_reviewer_email;
+    return r;
+  };
+  it("submitting goes straight to Done (skips In Review)", () => {
+    const ts = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, noReviewer());
+    expect(ts.map((t) => t.to)).toEqual(["Done"]);
+    expect(ts[0].label).toMatch(/complete/i);
+    expect(authorizeWrite(["Scriptwriter"], "sw@x.com", "script_status", "Done", noReviewer()).ok).toBe(true);
+  });
+  it("with a reviewer assigned, it still goes through In Review", () => {
+    const ts = transitionsForStage(["Scriptwriter"], "sw@x.com", SCRIPT, { ...scriptCard("In Progress"), script_link: "https://x.com/s" });
+    expect(ts.map((t) => t.to)).toEqual(["In Review"]);
+  });
+});
+
 describe("reviewer transitions + can't-review-own-work", () => {
   it("the assigned reviewer can approve / request changes on In Review", () => {
     const tos = transitionsForStage(["Reviewer"], "rv@x.com", SCRIPT, scriptCard("In Review")).map((t) => t.to);
     expect(tos).toEqual(["Done", "Need Changes"]);
   });
   it("a reviewer who is also the submitter cannot review their own work", () => {
-    const row = { ...scriptCard("In Review"), reviewer_email: "sw@x.com" };
+    const row = { ...scriptCard("In Review"), script_reviewer_email: "sw@x.com" };
     expect(canReview(["Reviewer", "Scriptwriter"], "sw@x.com", SCRIPT, row)).toBe(false);
     expect(transitionsForStage(["Reviewer", "Scriptwriter"], "sw@x.com", SCRIPT, row)).toEqual([]);
   });
@@ -79,7 +98,7 @@ describe("reviewer transitions + can't-review-own-work", () => {
     // Sean is admin (owns Topic) AND the topic's reviewer — the exact multi-role case.
     const topicRow: Row = {
       row_id: "t1", video_title: "T", topic_status: "In Review",
-      admin_email: "sean@x.com", reviewer_email: "sean@x.com",
+      admin_email: "sean@x.com", topic_reviewer_email: "sean@x.com",
     };
     const ts = transitionsForStage(["Admin", "Reviewer"], "sean@x.com", TOPIC, topicRow);
     // The only action (Approve) is a reviewer action — so My work (doer) shows nothing…
@@ -91,11 +110,11 @@ describe("reviewer transitions + can't-review-own-work", () => {
   it("the admin can review their own Topic (owner == reviewer is allowed for Topic only)", () => {
     const topicRow: Row = {
       row_id: "t1", video_title: "T", topic_status: "In Review",
-      admin_email: "sean@x.com", reviewer_email: "sean@x.com",
+      admin_email: "sean@x.com", topic_reviewer_email: "sean@x.com",
     };
     expect(canReview(["Admin", "Reviewer"], "sean@x.com", TOPIC, topicRow)).toBe(true);
     // …but on a producing stage, owner == reviewer is still blocked.
-    const ownRow = { ...scriptCard("In Review"), reviewer_email: "sw@x.com" };
+    const ownRow = { ...scriptCard("In Review"), script_reviewer_email: "sw@x.com" };
     expect(canReview(["Reviewer", "Scriptwriter"], "sw@x.com", SCRIPT, ownRow)).toBe(false);
   });
 

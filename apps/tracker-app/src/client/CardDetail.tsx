@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
 import { canEditForRoles, isAdminRoles } from "../shared/rbac";
-import { STAGES, stageById, statusOf, PROTECTED_ADMIN_EMAIL } from "../shared/pipeline";
+import { STAGES, stageById, statusOf, PROTECTED_ADMIN_EMAIL, REVIEWER_COLS } from "../shared/pipeline";
 import { COLUMNS, DATE_COLUMNS, ETA_COLUMNS } from "../shared/columns";
 import { fieldType } from "./columnMeta";
 import {
@@ -72,7 +72,12 @@ const ETA_COLS = new Set<string>(ETA_COLUMNS);
 // Which role each assignee field requires, so its dropdown only lists people who
 // actually hold that role. Derived from the pipeline (+ the card-level reviewer).
 const ASSIGNEE_ROLE: Record<string, string> = { reviewer_email: "Reviewer", admin_email: "Admin" };
-for (const s of STAGES) ASSIGNEE_ROLE[s.assigneeCol] = s.ownerRole;
+for (const s of STAGES) {
+  ASSIGNEE_ROLE[s.assigneeCol] = s.ownerRole;
+  if (s.reviewerCol) ASSIGNEE_ROLE[s.reviewerCol] = "Reviewer"; // per-stage reviewer dropdowns
+}
+// Per-stage reviewer fields: blank means "no review — auto-approve on submit".
+const REVIEWER_COL_SET = new Set<string>(REVIEWER_COLS);
 
 // All assignee fields, in pipeline sequence, grouped right after the brief so the
 // admin sets them in one place: Scriptwriter → Recorder → Video Editor → Uploader
@@ -281,7 +286,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
             const cur = value.toLowerCase();
             return (
               <select id={`f-${col}`} value={value} onChange={(e) => { handleChange(col, e.target.value); void autoSaveField(col, e.target.value); }}>
-                <option value="">— Unassigned —</option>
+                <option value="">{REVIEWER_COL_SET.has(col) ? "— No review (auto-approve) —" : "— Unassigned —"}</option>
                 {value && !people.includes(cur) && <option value={value}>{personLabel(value, names, memberRoles)}</option>}
                 {people.map((email) => (
                   <option key={email} value={email}>{personLabel(email, names, memberRoles)}</option>
