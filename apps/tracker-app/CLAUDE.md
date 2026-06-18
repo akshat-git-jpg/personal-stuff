@@ -1,8 +1,8 @@
 # Tutorials Tracker — project guide
 
-A role-aware **Kanban web app over the "YT tracker" Google Sheet** for the YouTube tutorial-production pipeline. It replaces a clunky Google App Script UI: nicer board, server-enforced role-based access (column + row level), an approval/QC flow, email notifications, and admin dashboards. The **Google Sheet stays the source of truth** so existing Python automations keep working.
+A role-aware **Kanban web app** for the YouTube tutorial-production pipeline. It replaces a clunky Google App Script UI: nicer board, server-enforced role-based access (column + row level), an approval/QC flow, email notifications, and admin dashboards. Data lives in **Cloudflare D1** by default, with a **Google Sheets fallback** selectable via the `DATA_BACKEND` env var (see "Data backend" below).
 
-> **Status:** **deployed** at https://tutorials-tracker.agrolloo.com (Cloudflare Worker, custom domain). The Google Sheet stays the source of truth.
+> **Status:** **deployed** at https://tutorials-tracker.agrolloo.com (Cloudflare Worker, custom domain). Backend: **D1** (`DATA_BACKEND=d1`); Sheets is a fallback (flip the flag + redeploy).
 
 ---
 
@@ -10,8 +10,10 @@ A role-aware **Kanban web app over the "YT tracker" Google Sheet** for the YouTu
 
 - **Frontend:** Vite + React + TypeScript SPA (`dnd-kit` for drag-drop).
 - **Backend:** [Hono](https://hono.dev) app on a **Cloudflare Worker**; `SESSIONS` **KV** namespace for login sessions + a short board-rows cache.
-- **Data:** Google Sheets API v4 via the **service account** `n8n-google-sa@n8n-workflows-454504.iam.gserviceaccount.com` (creds in the sibling TY repo's `credentials.json` at `../../../TY/credentials.json`, passed to the Worker as `GOOGLE_SA_JSON`).
-- **Auth:** Google OAuth **Web** client (project `n8n-workflows-454504`); verified email → role looked up in the sheet's `Employes` tab.
+- **Data backend (swappable):** chosen by the `DATA_BACKEND` env var ("d1" | "sheets") via `src/worker/datastore.ts` (one `DataStore` interface; all callers go through it).
+  - **D1 (default):** Cloudflare D1 database `tracker-db` (binding `TRACKER_DB`) — `cards` + `employees` tables. Fast, queryable; the basis for future analytics.
+  - **Sheets (fallback):** Google Sheets API v4 via the **service account** `n8n-google-sa@n8n-workflows-454504.iam.gserviceaccount.com` (creds in the sibling TY repo's `credentials.json` at `../../../TY/credentials.json`, passed as `GOOGLE_SA_JSON`). NO auto-sync between the two — flip + redeploy to switch; whichever backend you point at is read/written directly.
+- **Auth:** Google OAuth **Web** client (project `n8n-workflows-454504`); verified email → role looked up in the active backend (D1 `employees` table, or the sheet's `Employes` tab in fallback mode).
 - **Email:** Gmail API using `seankerman25@gmail.com`'s OAuth refresh token (from the shared `mcp/google-shared` setup).
 - Served as one Worker: API on `/api/*` + `/auth/*`, everything else serves the built SPA from `dist/` via the `ASSETS` binding.
 
@@ -52,7 +54,9 @@ Everything is **enforced server-side** — restricted columns never leave the Wo
 
 ---
 
-## The Google Sheet
+## The Google Sheet (fallback backend)
+
+> Now the **fallback** backend — used only when `DATA_BACKEND=sheets`. D1 is the default. The D1 `cards`/`employees` tables mirror the `Master`/`Employes` tabs below; the one-time Sheets→D1 copy is `scripts/migrate-to-d1.ts`.
 
 - **TEST copy (current target):** `1jlogtb33vjgjvKMHZjrEs3M9lV8Jg3zWSv0wzp6xAmI` ("YT tracker (TEST COPY - app dev)", owned by `akshatpatidar17`). The SA is shared as writer.
 - **LIVE sheet (untouched until cutover):** `1_r0MchKeAyWlp_g4ESe3IlxZJ1Djx0WAOMTeVWjh_4E`.
