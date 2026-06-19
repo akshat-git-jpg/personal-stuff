@@ -10,6 +10,7 @@ pinterest-board
 pinterest-make-post
 pinterest-research
 pp-elevenlabs
+pp-impact
 pp-linear
 pp-openrouter
 pp-sentry
