@@ -648,16 +648,17 @@ a.vcard-title:hover {
   display: flex;
   align-items: flex-end;
   gap: 4px;
-  height: 200px;
-  padding: 10px 4px 0;
+  height: 230px;
+  padding: 12px 14px 46px;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow-x: auto;
+  overflow-y: hidden;
 }
 .up-bar-col {
   flex: 1 1 0;
-  min-width: 22px;
+  min-width: 26px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -671,6 +672,9 @@ a.vcard-title:hover {
   height: 14px;
   line-height: 14px;
 }
+.up-bar-val-zero {
+  color: var(--faint);
+}
 .up-bar {
   width: 70%;
   max-width: 34px;
@@ -680,13 +684,14 @@ a.vcard-title:hover {
   transition: height 0.2s;
 }
 .up-bar-label {
-  margin-top: 6px;
+  position: relative;
+  height: 0;
+  margin-top: 8px;
   font-size: 10px;
   color: var(--faint);
   white-space: nowrap;
-  transform: rotate(-35deg);
+  transform: rotate(-45deg);
   transform-origin: top right;
-  height: 22px;
 }
 
 .up-list {

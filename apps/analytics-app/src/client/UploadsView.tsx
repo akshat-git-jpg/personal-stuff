@@ -255,7 +255,7 @@ export function UploadsView({ videos }: { videos: VideoStat[] }) {
       <div className="up-chart" role="img" aria-label="uploads per period">
         {buckets.map((b) => (
           <div className="up-bar-col" key={b.start.getTime()} title={`${b.label}: ${b.count}`}>
-            <div className="up-bar-val">{b.count || ""}</div>
+            <div className={`up-bar-val ${b.count === 0 ? "up-bar-val-zero" : ""}`}>{b.count}</div>
             <div
               className="up-bar"
               style={{ height: maxCount ? `${Math.round((b.count / maxCount) * 100)}%` : "0%" }}
