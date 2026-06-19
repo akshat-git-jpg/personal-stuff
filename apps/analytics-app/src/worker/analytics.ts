@@ -25,6 +25,8 @@ export interface VideoStat {
   yt_video_id: string | null;
   /** Live YouTube view count; null if unknown (no yt id or API key/lookup failed). */
   views: number | null;
+  /** Real YouTube upload date (ISO 8601 publishedAt); null if no yt id or lookup failed. */
+  published_at: string | null;
   total_30d: number;
   total_all: number;
   links: LinkStat[];
@@ -99,6 +101,7 @@ export async function getVideoStats(env: Env): Promise<VideoStat[]> {
         video_title: row.video_title,
         yt_video_id: row.yt_video_id ?? null,
         views: null,
+        published_at: null,
         total_30d: 0,
         total_all: 0,
         links: [],
@@ -133,9 +136,10 @@ export async function getVideoStats(env: Env): Promise<VideoStat[]> {
 }
 
 /**
- * Fetch viewCount for every video that has a yt_video_id and fold it into `views`.
- * Batches by 50 (YouTube videos.list limit). Silent no-op if no API key is set;
- * any API failure leaves `views` null rather than throwing.
+ * Fetch viewCount + publishedAt for every video that has a yt_video_id and fold
+ * them into `views` / `published_at`. Batches by 50 (YouTube videos.list limit).
+ * Silent no-op if no API key is set; any API failure leaves these fields null
+ * rather than throwing.
  */
 async function attachViewCounts(env: Env, videos: VideoStat[]): Promise<void> {
   if (!env.YT_API_KEY) return;
@@ -143,27 +147,35 @@ async function attachViewCounts(env: Env, videos: VideoStat[]): Promise<void> {
   if (ids.length === 0) return;
 
   const views = new Map<string, number>();
+  const published = new Map<string, string>();
   for (let i = 0; i < ids.length; i += 50) {
     const batch = ids.slice(i, i + 50);
     const url =
-      `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${batch.join(",")}` +
+      `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${batch.join(",")}` +
       `&key=${env.YT_API_KEY}`;
     try {
       const resp = await fetch(url);
       if (!resp.ok) continue;
       const json = (await resp.json()) as {
-        items?: { id: string; statistics?: { viewCount?: string } }[];
+        items?: {
+          id: string;
+          statistics?: { viewCount?: string };
+          snippet?: { publishedAt?: string };
+        }[];
       };
       for (const it of json.items ?? []) {
         const n = Number(it.statistics?.viewCount ?? NaN);
         if (!Number.isNaN(n)) views.set(it.id, n);
+        if (it.snippet?.publishedAt) published.set(it.id, it.snippet.publishedAt);
       }
     } catch {
-      /* network/API error — leave these videos' views null */
+      /* network/API error — leave these videos' views/published_at null */
     }
   }
 
   for (const v of videos) {
-    if (v.yt_video_id && views.has(v.yt_video_id)) v.views = views.get(v.yt_video_id)!;
+    if (!v.yt_video_id) continue;
+    if (views.has(v.yt_video_id)) v.views = views.get(v.yt_video_id)!;
+    if (published.has(v.yt_video_id)) v.published_at = published.get(v.yt_video_id)!;
   }
 }

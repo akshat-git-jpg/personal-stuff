@@ -1,6 +1,6 @@
 # apps/analytics-app — YT Analytics dashboard
 
-Click dashboard for the `go.agrolloo.com` shortener. Shows, per video, its **live YouTube view count**, de-duplicated click counts (30d + all-time), and each affiliate/tool link with its own counts. One dense card per video — everything is rendered upfront, no expand/collapse. Live at `yt-analytics.agrolloo.com`. Worker name `yt-analytics`.
+Click dashboard for the `go.agrolloo.com` shortener. Two tabs (`App.tsx`, client-side state): **Clicks** — per video, its **live YouTube view count**, de-duplicated click counts (30d + all-time), and each affiliate/tool link with its own counts (one dense card per video, all rendered upfront, no expand/collapse); **Uploads** (`UploadsView.tsx`) — upload-frequency bar chart (week/month toggle) over each video's real YouTube publish date, with preset + custom date ranges and a list of videos uploaded in the selected window. Live at `yt-analytics.agrolloo.com`. Worker name `yt-analytics`.
 
 Same stack as the sibling `gym-app/` / `kushal-docs/` / `tracker-app/`: Vite + React (client) + Hono on a Cloudflare Worker, SPA served via the `ASSETS` binding. The `clicks-db` D1 it reads is written by the sibling `tracker-app/` (link generation) and by the redirector Worker, which still lives in the **TY** repo (`../../../TY/`, a sibling checkout under `~/codebase/`).
 
@@ -26,7 +26,7 @@ The tracker sheet is NOT used. Link data is already structured in D1.
 
 ## Views (live YouTube)
 
-`analytics.ts` batch-fetches `statistics.viewCount` from the YouTube Data API v3 for every video that has a `yt_video_id` (50 ids/request) and folds it into each `VideoStat.views`. Best-effort: if `YT_API_KEY` is unset or the API call fails, `views` is left `null` and the UI shows `—` — it never blocks the dashboard. The key is a YouTube Data API v3 key from GCP project `n8n-workflows-454504` (display name `yt-analytics-views`).
+`analytics.ts` batch-fetches `part=statistics,snippet` from the YouTube Data API v3 for every video that has a `yt_video_id` (50 ids/request) and folds `statistics.viewCount` into `VideoStat.views` and `snippet.publishedAt` (real upload date) into `VideoStat.published_at`. Best-effort: if `YT_API_KEY` is unset or the API call fails, both are left `null` — the Clicks tab shows `—` for views and the Uploads tab excludes videos with no `published_at` (it surfaces the excluded count). It never blocks the dashboard. The key is a YouTube Data API v3 key from GCP project `n8n-workflows-454504` (display name `yt-analytics-views`).
 
 ## Click counting
 

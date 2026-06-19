@@ -14,6 +14,8 @@ export interface VideoStat {
   video_title: string;
   yt_video_id: string | null;
   views: number | null;
+  /** Real YouTube upload date (ISO 8601 publishedAt); null if unknown. */
+  published_at: string | null;
   total_30d: number;
   total_all: number;
   links: LinkStat[];

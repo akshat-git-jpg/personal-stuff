@@ -7,6 +7,9 @@ import {
   type VideoStat,
 } from "./api";
 import { Login } from "./Login";
+import { UploadsView } from "./UploadsView";
+
+type Tab = "clicks" | "uploads";
 
 export function App() {
   const [videos, setVideos] = useState<VideoStat[] | null>(null);
@@ -15,6 +18,7 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [tab, setTab] = useState<Tab>("clicks");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -98,49 +102,76 @@ export function App() {
         </div>
       </header>
 
-      <section className="summary">
-        <Stat label="Videos" value={totals.videos} />
-        <Stat label="Views" value={totals.views} />
-        <Stat label="Links" value={totals.links} />
-        <Stat label="Clicks · 30d" value={totals.clicks30} accent />
-        <Stat label="Clicks · all-time" value={totals.clicksAll} accent />
-      </section>
-
-      <div className="toolbar">
-        <input
-          className="search"
-          placeholder="Search by video or software…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </div>
+      <nav className="tabs">
+        <button
+          className={`tab ${tab === "clicks" ? "tab-on" : ""}`}
+          onClick={() => setTab("clicks")}
+        >
+          Clicks
+        </button>
+        <button
+          className={`tab ${tab === "uploads" ? "tab-on" : ""}`}
+          onClick={() => setTab("uploads")}
+        >
+          Uploads
+        </button>
+      </nav>
 
       {error && <div className="banner-error">{error}</div>}
 
-      <main className="list">
-        {loading && !videos && <div className="empty">Loading…</div>}
+      {tab === "clicks" ? (
+        <>
+          <section className="summary">
+            <Stat label="Videos" value={totals.videos} />
+            <Stat label="Views" value={totals.views} />
+            <Stat label="Links" value={totals.links} />
+            <Stat label="Clicks · 30d" value={totals.clicks30} accent />
+            <Stat label="Clicks · all-time" value={totals.clicksAll} accent />
+          </section>
 
-        {!loading && videos && filtered.length === 0 && (
-          <div className="empty">
-            {videos.length === 0 ? (
-              <>
-                <p className="empty-title">No clicks yet</p>
-                <p>
-                  Once links are generated in the tracker and people start
-                  clicking <code>go.agrolloo.com</code> links, videos will show
-                  up here.
-                </p>
-              </>
-            ) : (
-              <p>No videos match “{query}”.</p>
-            )}
+          <div className="toolbar">
+            <input
+              className="search"
+              placeholder="Search by video or software…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
           </div>
-        )}
 
-        {filtered.map((v) => (
-          <VideoCard key={v.video_code} video={v} />
-        ))}
-      </main>
+          <main className="list">
+            {loading && !videos && <div className="empty">Loading…</div>}
+
+            {!loading && videos && filtered.length === 0 && (
+              <div className="empty">
+                {videos.length === 0 ? (
+                  <>
+                    <p className="empty-title">No clicks yet</p>
+                    <p>
+                      Once links are generated in the tracker and people start
+                      clicking <code>go.agrolloo.com</code> links, videos will show
+                      up here.
+                    </p>
+                  </>
+                ) : (
+                  <p>No videos match “{query}”.</p>
+                )}
+              </div>
+            )}
+
+            {filtered.map((v) => (
+              <VideoCard key={v.video_code} video={v} />
+            ))}
+          </main>
+        </>
+      ) : (
+        <main className="list">
+          {loading && !videos ? (
+            <div className="empty">Loading…</div>
+          ) : (
+            <UploadsView videos={videos ?? []} />
+          )}
+        </main>
+      )}
     </div>
   );
 }
