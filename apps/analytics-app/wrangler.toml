@@ -15,6 +15,14 @@ binding = "DB"
 database_name = "clicks-db"
 database_id = "3415a408-ccc9-49e2-8fe1-60009dfd83ce"
 
+# This app's OWN database for keyword rank tracking (read + write). Schema in
+# migrations/. Unrelated to clicks-db.
+[[d1_databases]]
+binding = "RANKINGS_DB"
+database_name = "yt-rankings"
+database_id = "e44e2c68-937c-4915-bf7e-7490213ed3cf"
+migrations_dir = "migrations"
+
 [vars]
 LINK_DOMAIN = "go.agrolloo.com"
 # Channel whose PUBLIC uploads are the source of truth for the video list

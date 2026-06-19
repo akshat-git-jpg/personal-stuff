@@ -8,8 +8,9 @@ import {
 } from "./api";
 import { Login } from "./Login";
 import { UploadsView } from "./UploadsView";
+import { RankingsView } from "./RankingsView";
 
-type Tab = "clicks" | "uploads";
+type Tab = "clicks" | "uploads" | "rankings";
 
 export function App() {
   const [videos, setVideos] = useState<VideoStat[] | null>(null);
@@ -117,6 +118,12 @@ export function App() {
         >
           Uploads
         </button>
+        <button
+          className={`tab ${tab === "rankings" ? "tab-on" : ""}`}
+          onClick={() => setTab("rankings")}
+        >
+          Rankings
+        </button>
       </nav>
 
       {error && <div className="banner-error">{error}</div>}
@@ -171,12 +178,20 @@ export function App() {
             ))}
           </main>
         </>
-      ) : (
+      ) : tab === "uploads" ? (
         <main className="list">
           {loading && !videos ? (
             <div className="empty">Loading…</div>
           ) : (
             <UploadsView videos={videos ?? []} />
+          )}
+        </main>
+      ) : (
+        <main className="list">
+          {loading && !videos ? (
+            <div className="empty">Loading…</div>
+          ) : (
+            <RankingsView videos={videos ?? []} onAuthLost={() => setNeedsAuth(true)} />
           )}
         </main>
       )}

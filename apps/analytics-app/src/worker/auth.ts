@@ -18,6 +18,8 @@ import { getCookie, setCookie } from "hono/cookie";
 export type Env = {
   ASSETS: Fetcher;
   DB: D1Database;
+  /** This app's own DB for keyword rank tracking (read + write). */
+  RANKINGS_DB: D1Database;
   LINK_DOMAIN: string;
   APP_PASSWORD: string;
   SESSION_SECRET: string;

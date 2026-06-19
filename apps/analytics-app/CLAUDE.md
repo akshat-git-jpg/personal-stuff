@@ -1,6 +1,6 @@
 # apps/analytics-app — YT Analytics dashboard
 
-Per-video analytics dashboard for the `@AgrolloReviews` channel + the `go.agrolloo.com` shortener. **YouTube is the source of truth for the video list** — the dashboard shows the channel's public long-form uploads (Shorts excluded), and each one is enriched with click data from D1 where it exists. A video with no shortener link still shows (0 clicks). Two tabs (`App.tsx`, client-side state): **Clicks** — per video, its **live YouTube view count**, de-duplicated click counts (30d + all-time), and each affiliate/tool link with its own counts (one dense card per video, all rendered upfront, no expand/collapse); **Uploads** (`UploadsView.tsx`) — upload-frequency bar chart (week/month toggle) over each video's real YouTube publish date, with preset + custom date ranges and a list of videos uploaded in the selected window. Live at `yt-analytics.agrolloo.com`. Worker name `yt-analytics`.
+Per-video analytics dashboard for the `@AgrolloReviews` channel + the `go.agrolloo.com` shortener. **YouTube is the source of truth for the video list** — the dashboard shows the channel's public long-form uploads (Shorts excluded), and each one is enriched with click data from D1 where it exists. A video with no shortener link still shows (0 clicks). Three tabs (`App.tsx`, client-side state): **Clicks** — per video, its **live YouTube view count**, de-duplicated click counts (30d + all-time), and each affiliate/tool link with its own counts (one dense card per video, all rendered upfront, no expand/collapse); **Uploads** (`UploadsView.tsx`) — upload-frequency bar chart (week/month toggle) over each video's real YouTube publish date, with preset + custom date ranges and a list of videos uploaded in the selected window; **Rankings** (`RankingsView.tsx`) — per-video keyword rank tracking via a manual YouTube-search check, with rank-over-time line charts (see the Rankings section). Live at `yt-analytics.agrolloo.com`. Worker name `yt-analytics`.
 
 Same stack as the sibling `gym-app/` / `kushal-docs/` / `tracker-app/`: Vite + React (client) + Hono on a Cloudflare Worker, SPA served via the `ASSETS` binding. The `clicks-db` D1 it reads is written by the sibling `tracker-app/` (link generation) and by the redirector Worker, which still lives in the **TY** repo (`../../../TY/`, a sibling checkout under `~/codebase/`).
 
@@ -9,12 +9,14 @@ Same stack as the sibling `gym-app/` / `kushal-docs/` / `tracker-app/`: Vite + R
 ```
 apps/analytics-app/
 ├── src/worker/
-│   ├── index.ts       # Hono routes: /api/login, /api/logout, /api/videos, SPA fallback
+│   ├── index.ts       # Hono routes: /api/login, /api/logout, /api/videos, /api/rankings*, SPA fallback
 │   ├── auth.ts        # shared-password gate + stateless signed cookie
-│   └── analytics.ts   # YouTube uploads = video list (Shorts filtered) + D1 click/link join
-├── src/client/        # React SPA (App = dense no-expand cards, Login, api)
+│   ├── analytics.ts   # YouTube uploads = video list (Shorts filtered) + D1 click/link join
+│   └── rankings.ts    # keyword rank tracking — own DB (RANKINGS_DB) + YouTube search.list
+├── src/client/        # React SPA (App, Clicks cards, UploadsView, RankingsView, Login, api)
 ├── src/index.css      # dark theme
-├── wrangler.toml      # DB binding clicks-db, route yt-analytics.agrolloo.com
+├── migrations/        # schema for RANKINGS_DB (this app's own D1)
+├── wrangler.toml      # DB bindings clicks-db + yt-rankings, route yt-analytics.agrolloo.com
 └── .dev.vars(.example)
 ```
 
@@ -30,6 +32,16 @@ If `YT_API_KEY`/`CHANNEL_ID` are missing or YouTube errors, the response is `{ v
 ### D1 — DO NOT WRITE
 
 Binds the redirector's `clicks-db` D1 (id `3415a408-…`, schema owned by the TY repo at `TY/workers/redirector/migrations/`). This app ONLY reads `videos`/`links`/`clicks` and ONLY for click data — never INSERT/UPDATE/migrate here. D1 is account-level, so the binding works even though the schema source is in another repo. The join hinges on the additive `videos.yt_video_id` column (redirector migration `0002`); treat new columns as additive. The tracker sheet is NOT used.
+
+## Rankings (keyword rank tracking)
+
+Third tab (`RankingsView.tsx`). Lists **all** videos; each lets you add/delete keywords and run a manual per-video "Check". A check calls YouTube `search.list` (top `SEARCH_DEPTH`=50) once per keyword and appends a timestamped `rank_checks` row — history accrues, never overwritten. Each keyword shows current rank, Δ vs previous, and an expandable SVG line chart (inverted axis, ">50" at the bottom). No Sheets, no Python, no AI — this replaces the old `TY/youtube/yt-analysis/sync_rankings.py` sheet flow.
+
+**Quota**: each keyword check = 1 `search.list` = **100 units** (vs 1 unit for the videos.list calls); default daily quota 10,000 ≈ 100 checks/day. So checks are manual + per-video by design, never on page load. A 403 quotaExceeded stops the run, keeps partial results, and flags `quota_exhausted` for the UI.
+
+### RANKINGS_DB — this app's OWN database (read + write)
+
+Separate D1 `yt-rankings` (id `e44e2c68-…`), bound as `RANKINGS_DB`. Schema in `migrations/0001_rankings.sql`: `keywords (id, yt_video_id, keyword, created_at, UNIQUE(video,keyword))` + `rank_checks (id, keyword_id→keywords ON DELETE CASCADE, rank, not_in_top, checked_at)`. Unlike `clicks-db`, this app DOES write here. Apply migrations with `wrangler d1 migrations apply yt-rankings --local|--remote`. Endpoints (all auth-gated): `GET /api/rankings`, `POST /api/rankings/keywords`, `DELETE /api/rankings/keywords/:id`, `POST /api/rankings/check`.
 
 ## Click counting
 

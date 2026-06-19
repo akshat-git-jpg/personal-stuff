@@ -731,3 +731,190 @@ a.up-row-title:hover {
     margin-left: 0;
   }
 }
+
+/* ── Rankings tab ─────────────────────────────────────────────── */
+.rk {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rk-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rk-sub {
+  color: var(--faint);
+  font-size: 12px;
+}
+.rk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rk-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.rk-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.rk-title {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.rk-title:hover {
+  color: var(--accent-soft);
+}
+.rk-card-actions {
+  flex-shrink: 0;
+}
+.rk-nokw {
+  color: var(--faint);
+  font-size: 13px;
+  padding: 4px 0 10px;
+}
+.rk-kws {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+.rk-kw {
+  border-top: 1px solid var(--line);
+  padding: 8px 0;
+}
+.rk-kw-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rk-kw-name {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+}
+.rk-kw-name:hover {
+  color: var(--accent-soft);
+}
+.rk-caret {
+  color: var(--faint);
+  font-size: 11px;
+  transition: transform 0.15s;
+  display: inline-block;
+}
+.rk-caret-open {
+  transform: rotate(90deg);
+}
+.rk-now {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--accent-soft);
+  min-width: 42px;
+  text-align: right;
+}
+.rk-delta {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  min-width: 34px;
+}
+.rk-delta-up {
+  color: #4ade80;
+}
+.rk-delta-down {
+  color: var(--danger);
+}
+.rk-delta-flat {
+  color: var(--faint);
+}
+.rk-del {
+  background: transparent;
+  border: none;
+  color: var(--faint);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.rk-del:hover {
+  color: var(--danger);
+}
+.rk-chart-wrap {
+  padding: 10px 4px 4px;
+}
+.rk-faint {
+  color: var(--faint);
+  font-size: 12px;
+}
+.rk-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rk-svg {
+  width: 100%;
+  height: 60px;
+  display: block;
+  overflow: visible;
+}
+.rk-grid {
+  stroke: var(--line);
+  stroke-width: 0.5;
+}
+.rk-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+.rk-dot {
+  fill: var(--accent-soft);
+}
+.rk-dot-out {
+  fill: var(--danger);
+}
+.rk-chart-axis,
+.rk-chart-dates {
+  display: flex;
+  justify-content: space-between;
+  color: var(--faint);
+  font-size: 10px;
+}
+.rk-add {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.rk-add input {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+  color: var(--text);
+  font-size: 13px;
+}
+.rk-add input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.rk-msg {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}

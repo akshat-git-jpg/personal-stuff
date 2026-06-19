@@ -45,6 +45,73 @@ export async function fetchVideos(): Promise<VideosResponse> {
   return (await res.json()) as VideosResponse;
 }
 
+// ── Rankings ────────────────────────────────────────────────────────────────
+
+export interface RankCheck {
+  rank: number | null;
+  not_in_top: boolean;
+  checked_at: number;
+}
+
+export interface KeywordStat {
+  id: number;
+  keyword: string;
+  created_at: number;
+  history: RankCheck[];
+}
+
+/** Tracked keywords grouped by yt_video_id. */
+export type KeywordsByVideo = Record<string, KeywordStat[]>;
+
+export interface CheckResult {
+  checked: { id: number; keyword: string; rank: number | null; not_in_top: boolean }[];
+  quota_exhausted: boolean;
+  error: string | null;
+}
+
+export async function fetchRankings(): Promise<KeywordsByVideo> {
+  const res = await fetch("/api/rankings", { credentials: "same-origin" });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error(`Failed to load rankings (${res.status})`);
+  return ((await res.json()) as { byVideo: KeywordsByVideo }).byVideo;
+}
+
+export async function addKeyword(ytVideoId: string, keyword: string): Promise<{ id: number }> {
+  const res = await fetch("/api/rankings/keywords", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ yt_video_id: ytVideoId, keyword }),
+    credentials: "same-origin",
+  });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) {
+    const msg = ((await res.json().catch(() => ({}))) as { error?: string }).error;
+    throw new Error(msg ?? `Failed to add keyword (${res.status})`);
+  }
+  return (await res.json()) as { id: number };
+}
+
+export async function deleteKeyword(id: number): Promise<void> {
+  const res = await fetch(`/api/rankings/keywords/${id}`, {
+    method: "DELETE",
+    credentials: "same-origin",
+  });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error(`Failed to delete keyword (${res.status})`);
+}
+
+export async function checkVideoRankings(ytVideoId: string): Promise<CheckResult> {
+  const res = await fetch("/api/rankings/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ yt_video_id: ytVideoId }),
+    credentials: "same-origin",
+  });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error(`Check failed (${res.status})`);
+  return (await res.json()) as CheckResult;
+}
+
 export async function login(password: string): Promise<void> {
   const res = await fetch("/api/login", {
     method: "POST",
