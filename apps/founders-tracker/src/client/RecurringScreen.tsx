@@ -58,7 +58,7 @@ function TemplateForm({ initial, onClose, onSaved }: {
   initial: Template | null; onClose: () => void; onSaved: () => void;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
-  const [owner, setOwner] = useState<Owner>(initial?.owner ?? "kushal");
+  const [owner, setOwner] = useState<Owner>(initial?.owner ?? "khushi");
   const [cadence, setCadence] = useState<Cadence>(initial?.cadence ?? "monthly");
   const [dueDay, setDueDay] = useState<number>(initial?.dueDay ?? (initial?.cadence === "weekly" ? 4 : 1));
   const [notes, setNotes] = useState(initial?.notes ?? "");

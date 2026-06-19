@@ -1,5 +1,5 @@
-import type { Cadence, Owner, Template } from "../shared";
-import { listTemplates } from "./db";
+import type { Cadence, Template } from "../shared";
+import { etaSortKey, listTemplates } from "./db";
 import { nowIso, todayIST } from "./dates";
 
 function parseYmd(ymd: string): { y: number; m: number; d: number } {
@@ -46,14 +46,6 @@ export function resolveEta(template: Template, ymd: string): string {
   return `${date.getUTCFullYear()}-${pad2(date.getUTCMonth() + 1)}-${pad2(date.getUTCDate())}`;
 }
 
-async function ownerOpenMaxSort(db: D1Database, owner: Owner): Promise<number> {
-  const row = await db
-    .prepare("SELECT COALESCE(MAX(sort_order), 0) AS m FROM tasks WHERE owner = ? AND status = 'open'")
-    .bind(owner)
-    .first<{ m: number }>();
-  return (row?.m ?? 0) + 1;
-}
-
 /** Insert any missing recurring instances for "today". Idempotent: the unique
  *  index on (template_id, period_key) makes a duplicate insert a no-op. */
 export async function runGenerator(db: D1Database): Promise<number> {
@@ -68,7 +60,7 @@ export async function runGenerator(db: D1Database): Promise<number> {
       .first();
     if (exists) continue;
     const eta = resolveEta(t, today);
-    const sort = await ownerOpenMaxSort(db, t.owner);
+    const sort = etaSortKey(eta);
     try {
       await db
         .prepare(

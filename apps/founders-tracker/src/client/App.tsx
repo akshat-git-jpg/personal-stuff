@@ -12,7 +12,7 @@ export function App() {
   const [data, setData] = useState<BootstrapData | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>("tracker");
-  const [tab, setTab] = useState<Owner>("kushal");
+  const [tab, setTab] = useState<Owner>("khushi");
   const [adding, setAdding] = useState(false);
 
   async function reload() {
@@ -59,7 +59,7 @@ export function App() {
 
   return (
     <div className="app">
-      <div className="topbar">
+      <div className="topbar" style={{ marginBottom: 20 }}>
         <h1>🚀 Founders Tracker</h1>
         <div className="row">
           <span className={`alarm ${noEtaCount === 0 ? "hidden" : ""}`}>⚠ {noEtaCount} no ETA</span>

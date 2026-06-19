@@ -8,7 +8,7 @@ export function AddTaskForm({ onClose, onCreated }: {
   onClose: () => void; onCreated: (t: Task) => void;
 }) {
   const [title, setTitle] = useState("");
-  const [owner, setOwner] = useState<Owner>("kushal");
+  const [owner, setOwner] = useState<Owner>("khushi");
   const [eta, setEta] = useState("");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);

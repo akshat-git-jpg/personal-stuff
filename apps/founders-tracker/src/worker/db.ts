@@ -49,16 +49,17 @@ async function getTask(db: D1Database, id: number): Promise<Task> {
   return rowToTask(row as Row);
 }
 
-async function nextSortOrder(db: D1Database, owner: Owner, status: TaskStatus): Promise<number> {
-  const row = await db
-    .prepare("SELECT COALESCE(MAX(sort_order), 0) AS m FROM tasks WHERE owner = ? AND status = ?")
-    .bind(owner, status)
-    .first<{ m: number }>();
-  return (row?.m ?? 0) + 1;
+/** Default ordering key: ascending = fewest days left first. A dated task's key
+ *  is its day-number (earlier deadline -> smaller -> higher in the list); a
+ *  no-ETA task gets 0 so it floats to the very top (it needs an ETA set). Manual
+ *  drags overwrite sort_order with a 1..N sequence, which then wins. */
+export function etaSortKey(eta: string | null): number {
+  if (!eta) return 0;
+  return Math.round(Date.parse(`${eta}T12:00:00Z`) / 86_400_000);
 }
 
 export async function createTask(db: D1Database, input: TaskInput): Promise<Task> {
-  const sortOrder = await nextSortOrder(db, input.owner, "open");
+  const sortOrder = etaSortKey(input.eta ?? null);
   const res = await db
     .prepare(
       `INSERT INTO tasks (title, owner, eta, notes, status, sort_order, created_at)
@@ -76,7 +77,10 @@ export async function patchTask(db: D1Database, id: number, patch: TaskPatch): P
 
   if (patch.title !== undefined) { sets.push("title = ?"); vals.push(patch.title); }
   if (patch.owner !== undefined) { sets.push("owner = ?"); vals.push(patch.owner); }
-  if (patch.eta !== undefined) { sets.push("eta = ?"); vals.push(patch.eta); }
+  if (patch.eta !== undefined) {
+    sets.push("eta = ?"); vals.push(patch.eta);
+    sets.push("sort_order = ?"); vals.push(etaSortKey(patch.eta ?? null));
+  }
   if (patch.notes !== undefined) { sets.push("notes = ?"); vals.push(patch.notes); }
   if (patch.status !== undefined && patch.status !== cur.status) {
     sets.push("status = ?"); vals.push(patch.status);
