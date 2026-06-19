@@ -22,6 +22,7 @@ const APPS: App[] = [
   { name: "Personal Dashboard", host: "my-dashboard.agrolloo.com", url: "https://my-dashboard.agrolloo.com", kind: "app" },
   { name: "Tutorials Tracker", host: "tutorials-tracker.agrolloo.com", url: "https://tutorials-tracker.agrolloo.com", kind: "app" },
   { name: "YT Analytics", host: "yt-analytics.agrolloo.com", url: "https://yt-analytics.agrolloo.com", kind: "app" },
+  { name: "Founders Tracker", host: "founders.agrolloo.com", url: "https://founders.agrolloo.com", kind: "app" },
   { name: "URL Shortener", host: "go.agrolloo.com", url: "https://go.agrolloo.com", kind: "infra" },
   { name: "Hyperframes Renderer", host: "render2.agrolloo.com", url: "https://render2.agrolloo.com", kind: "infra" },
   { name: "Keto Kitchen", host: "keto-kitchen.agrolloo.com", url: "https://keto-kitchen.agrolloo.com", kind: "page" },
