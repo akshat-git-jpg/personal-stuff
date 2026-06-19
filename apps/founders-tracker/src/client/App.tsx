@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Owner, Task } from "../shared";
 import { api, type BootstrapData } from "./api";
 import { Scoreboard } from "./Scoreboard";
@@ -20,13 +20,8 @@ export function App() {
   }
   useEffect(() => { reload(); }, []);
 
-  const noEtaCount = useMemo(
-    () => data?.tasks.filter((t) => t.status === "open" && !t.eta).length ?? 0,
-    [data],
-  );
-
-  if (err) return <div className="app"><p style={{ color: "#f87171" }}>{err}</p></div>;
-  if (!data) return <div className="app"><p style={{ color: "var(--muted)" }}>Loading…</p></div>;
+  if (err) return <div className="app"><div className="errbox">{err}</div></div>;
+  if (!data) return <div className="app"><p className="empty">Opening the ledger…</p></div>;
 
   const ownTasks = data.tasks.filter((t) => t.owner === tab);
 
@@ -37,10 +32,8 @@ export function App() {
   function toggleDone(t: Task) {
     patchAndReload(t.id, { status: t.status === "done" ? "open" : "done" });
   }
-  function setEta(t: Task) {
-    const v = prompt("Set ETA (YYYY-MM-DD), blank to clear:", t.eta ?? "");
-    if (v === null) return;
-    patchAndReload(t.id, { eta: v.trim() || null });
+  function setEta(t: Task, value: string | null) {
+    patchAndReload(t.id, { eta: value });
   }
   async function del(t: Task) {
     if (!confirm(`Delete "${t.title}"?`)) return;
@@ -59,30 +52,42 @@ export function App() {
 
   return (
     <div className="app">
-      <div className="topbar" style={{ marginBottom: 20 }}>
-        <h1>🚀 Founders Tracker</h1>
-        <div className="row">
-          <span className={`alarm ${noEtaCount === 0 ? "hidden" : ""}`}>⚠ {noEtaCount} no ETA</span>
-          <button className="btn" onClick={() => setScreen(screen === "tracker" ? "recurring" : "tracker")}>
-            {screen === "tracker" ? "↻ Repeat jobs" : "← Tracker"}
-          </button>
+      <header className="masthead">
+        <div className="crown-row">
+          <div className="wordmark">
+            <span className="kicker">Khushi &amp; Kushal</span>
+            <h1>Founders <em>Ledger</em></h1>
+          </div>
           {screen === "tracker" && (
-            <button className="btn btn-primary" onClick={() => setAdding(true)}>+ Add</button>
+            <button className="btn btn-primary btn-add" onClick={() => setAdding(true)}>
+              <span className="plus">+</span> New task
+            </button>
           )}
         </div>
-      </div>
+        <div className="rule" />
+      </header>
+
+      <nav className="segnav" style={{ marginBottom: 18 }}>
+        <button className={screen === "tracker" ? "active" : ""} onClick={() => setScreen("tracker")}>
+          Tracker
+        </button>
+        <button className={screen === "recurring" ? "active" : ""} onClick={() => setScreen("recurring")}>
+          Repeats
+        </button>
+      </nav>
 
       {screen === "recurring" ? (
         <RecurringScreen templates={data.templates} onChanged={reload} />
       ) : (
         <>
           <Scoreboard data={data.scoreboard} />
-          <div className="tabbar">
+          <div className="ownerbar">
             {(["khushi", "kushal"] as Owner[]).map((o) => {
               const openCount = data.tasks.filter((t) => t.owner === o && t.status === "open").length;
               return (
-                <div key={o} className={`tab ${tab === o ? "active" : ""}`} onClick={() => setTab(o)}>
-                  {o[0].toUpperCase() + o.slice(1)} ({openCount})
+                <div key={o} className={`ownertab ${tab === o ? "active" : ""}`} onClick={() => setTab(o)}>
+                  {o[0].toUpperCase() + o.slice(1)}
+                  <span className="count">{openCount}</span>
                 </div>
               );
             })}
@@ -92,7 +97,7 @@ export function App() {
         </>
       )}
 
-      {adding && <AddTaskForm onClose={() => setAdding(false)} onCreated={reload} />}
+      {adding && <AddTaskForm defaultOwner={tab} onClose={() => setAdding(false)} onCreated={reload} />}
     </div>
   );
 }

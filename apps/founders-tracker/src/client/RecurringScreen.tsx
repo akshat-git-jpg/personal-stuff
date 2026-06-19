@@ -25,22 +25,30 @@ export function RecurringScreen({ templates, onChanged }: {
 
   return (
     <div>
-      <div className="topbar" style={{ marginBottom: 12 }}>
-        <h1>Repeat jobs</h1>
-        <button className="btn btn-primary" onClick={() => setEditing("new")}>+ New</button>
+      <div className="crown-row" style={{ marginBottom: 16 }}>
+        <span className="kicker" style={{ letterSpacing: ".18em" }}>Auto-generated tasks</span>
+        <button className="btn btn-primary btn-add" onClick={() => setEditing("new")}>
+          <span className="plus">+</span> New repeat
+        </button>
       </div>
-      {templates.length === 0 && <p style={{ color: "var(--muted)" }}>No repeat jobs yet.</p>}
+      {templates.length === 0 && (
+        <p className="empty">No repeating jobs yet — add one to have it appear on schedule.</p>
+      )}
       {templates.map((t) => (
-        <div className="card" key={t.id}>
+        <div className="card rec-card" key={t.id}>
           <div className="body">
-            <div className="title">{t.title} {!t.active && <span style={{ color: "var(--muted)" }}>(paused)</span>}</div>
-            <div className="notes">
-              {t.owner[0].toUpperCase() + t.owner.slice(1)} · {t.cadence} · due {dueLabel(t)}
+            <div className="title">{t.title}</div>
+            <div className="meta">
+              <span className="cadence-chip">{t.cadence}</span>
+              {!t.active && <span className="paused-chip">paused</span>}
+              <span>{t.owner[0].toUpperCase() + t.owner.slice(1)} · due {dueLabel(t)}</span>
             </div>
           </div>
-          <button className="btn" onClick={() => toggleActive(t)}>{t.active ? "Pause" : "Resume"}</button>
-          <button className="btn" onClick={() => setEditing(t)}>Edit</button>
-          <button className="btn" onClick={() => remove(t)}>✕</button>
+          <div className="rec-actions">
+            <button className="icon-btn" onClick={() => toggleActive(t)}>{t.active ? "Pause" : "Resume"}</button>
+            <button className="icon-btn" onClick={() => setEditing(t)}>Edit</button>
+            <button className="icon-btn danger" onClick={() => remove(t)} aria-label="delete">✕</button>
+          </div>
         </div>
       ))}
       {editing && (
@@ -78,6 +86,8 @@ function TemplateForm({ initial, onClose, onSaved }: {
   return (
     <div className="modal-back" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="grip" />
+        <h2>{initial ? "Edit repeat job" : "New repeat job"}</h2>
         <div className="field">
           <label>Title</label>
           <input value={title} autoFocus onChange={(e) => setTitle(e.target.value)} />

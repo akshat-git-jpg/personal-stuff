@@ -1,57 +1,89 @@
+import { useRef } from "react";
 import type { Task } from "../shared";
 import { daysLeft, etaUrgency, fmtEta } from "./dates";
 
 interface Props {
   task: Task;
   onToggleDone: (t: Task) => void;
-  onSetEta: (t: Task) => void;
+  onSetEta: (t: Task, value: string | null) => void;
   onDelete: (t: Task) => void;
   /** dnd-kit listeners for the drag handle; omitted for done cards. */
   handleProps?: Record<string, unknown>;
 }
 
 export function TaskCard({ task, onToggleDone, onSetEta, onDelete, handleProps }: Props) {
-  const hazard = task.status === "open" && !task.eta;
+  const dateRef = useRef<HTMLInputElement>(null);
+  const open = task.status === "open";
+
+  function pickDeadline() {
+    const el = dateRef.current;
+    if (!el) return;
+    el.value = task.eta ?? "";
+    // showPicker is the clean native path; fall back to focus on older engines.
+    try { (el as HTMLInputElement & { showPicker?: () => void }).showPicker?.() ?? el.focus(); }
+    catch { el.focus(); }
+  }
 
   return (
-    <div className={`card ${hazard ? "hazard" : ""} ${task.status === "done" ? "done" : ""}`}>
-      {task.status === "open" && (
-        <div className="handle" {...handleProps} aria-label="drag">⠿</div>
-      )}
+    <div className={`card ${task.status === "done" ? "done" : ""}`}>
+      {open && <div className="handle" {...handleProps} aria-label="reorder">⠿</div>}
       <input
+        className="check"
         type="checkbox"
         checked={task.status === "done"}
         onChange={() => onToggleDone(task)}
-        aria-label="done"
+        aria-label={open ? "mark done" : "mark open"}
       />
       <div className="body">
-        {hazard && <div className="banner">⚠ NO DEADLINE SET</div>}
         <div className="title">{task.title}</div>
         {task.notes && <div className="notes">{task.notes}</div>}
-        {hazard ? (
-          <button className="btn btn-primary" style={{ marginTop: 8 }} onClick={() => onSetEta(task)}>
-            SET AN ETA
-          </button>
-        ) : task.eta ? (
-          <Countdown eta={task.eta} />
+
+        {task.eta ? (
+          <Deadline
+            eta={task.eta}
+            editable={open}
+            onEdit={pickDeadline}
+            onClear={() => onSetEta(task, null)}
+          />
+        ) : open ? (
+          <button className="add-deadline" onClick={pickDeadline}>+ Add deadline</button>
         ) : null}
+
+        {/* hidden native date control, driven by pickDeadline() */}
+        <input
+          ref={dateRef}
+          className="eta-input"
+          type="date"
+          tabIndex={-1}
+          aria-hidden
+          defaultValue={task.eta ?? ""}
+          onChange={(e) => onSetEta(task, e.target.value || null)}
+        />
       </div>
-      <button className="btn" onClick={() => onDelete(task)} aria-label="delete">✕</button>
+      <button className="del" onClick={() => onDelete(task)} aria-label="delete">✕</button>
     </div>
   );
 }
 
-function Countdown({ eta }: { eta: string }) {
+function Deadline({ eta, editable, onEdit, onClear }: {
+  eta: string; editable: boolean; onEdit: () => void; onClear: () => void;
+}) {
   const d = daysLeft(eta);
   const u = etaUrgency(d);
-  // fill: 100% at >=14 days out, shrinking toward the deadline.
-  const fill = u === "overdue" ? 100 : Math.max(8, Math.min(100, Math.round((d / 14) * 100)));
-  const label = d < 0 ? "OVERDUE" : d === 0 ? "DUE TODAY" : `${d} DAY${d === 1 ? "" : "S"} LEFT`;
+  // bar fills as the deadline approaches: ~full 14+ days out, empty at the wire.
+  const fill = d < 0 ? 100 : Math.max(6, Math.min(100, Math.round((d / 14) * 100)));
+  const label = d < 0 ? `${-d}d overdue` : d === 0 ? "due today" : `${d} day${d === 1 ? "" : "s"} left`;
+
   return (
-    <div className="countdown">
-      <span className="date">📅 {fmtEta(eta)}</span>
+    <div className="deadline">
+      <button className="date" onClick={editable ? onEdit : undefined} disabled={!editable}>
+        <span className="ic">◷</span>{fmtEta(eta)}
+      </button>
       <span className={`bar ${u}`}><span style={{ width: `${fill}%` }} /></span>
       <span className={`days ${u}`}>{label}</span>
+      {editable && (
+        <button className="clear-eta" onClick={onClear} aria-label="clear deadline" title="clear deadline">✕</button>
+      )}
     </div>
   );
 }

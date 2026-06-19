@@ -49,12 +49,14 @@ async function getTask(db: D1Database, id: number): Promise<Task> {
   return rowToTask(row as Row);
 }
 
-/** Default ordering key: ascending = fewest days left first. A dated task's key
- *  is its day-number (earlier deadline -> smaller -> higher in the list); a
- *  no-ETA task gets 0 so it floats to the very top (it needs an ETA set). Manual
- *  drags overwrite sort_order with a 1..N sequence, which then wins. */
+/** Default ordering key: ascending = soonest deadline first. A dated task's key
+ *  is its day-number (earlier deadline -> smaller -> higher in the list). A
+ *  no-deadline task is a legitimate, non-urgent item, so it sinks below every
+ *  dated task (large key) rather than floating to the top. Manual drags
+ *  overwrite sort_order with a 1..N sequence, which then wins. */
+const NO_DEADLINE_KEY = 9_999_999;
 export function etaSortKey(eta: string | null): number {
-  if (!eta) return 0;
+  if (!eta) return NO_DEADLINE_KEY;
   return Math.round(Date.parse(`${eta}T12:00:00Z`) / 86_400_000);
 }
 

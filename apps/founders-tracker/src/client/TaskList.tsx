@@ -15,7 +15,7 @@ interface Props {
   tasks: Task[];
   onReorder: (owner: Owner, orderedIds: number[]) => void;
   onToggleDone: (t: Task) => void;
-  onSetEta: (t: Task) => void;
+  onSetEta: (t: Task, value: string | null) => void;
   onDelete: (t: Task) => void;
 }
 
@@ -47,12 +47,13 @@ export function TaskList({ owner, tasks, onReorder, onToggleDone, onSetEta, onDe
           ))}
         </SortableContext>
       </DndContext>
-      {open.length === 0 && <p style={{ color: "var(--muted)" }}>No open tasks.</p>}
+      {open.length === 0 && <p className="empty">Nothing open here — a clear slate.</p>}
 
       {done.length > 0 && (
         <div className="done-section">
           <div className="done-head" onClick={() => setShowDone((v) => !v)}>
-            {showDone ? "▾" : "▸"} Done ({done.length})
+            <span className="caret" style={{ transform: showDone ? "rotate(90deg)" : "none" }}>▶</span>
+            Done · {done.length}
           </div>
           {showDone && done.map((t) => (
             <TaskCard key={t.id} task={t}
@@ -67,7 +68,7 @@ export function TaskList({ owner, tasks, onReorder, onToggleDone, onSetEta, onDe
 function SortableRow({ task, onToggleDone, onSetEta, onDelete }: {
   task: Task;
   onToggleDone: (t: Task) => void;
-  onSetEta: (t: Task) => void;
+  onSetEta: (t: Task, value: string | null) => void;
   onDelete: (t: Task) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
