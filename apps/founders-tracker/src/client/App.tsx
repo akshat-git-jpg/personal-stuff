@@ -66,6 +66,9 @@ export function App() {
           <button className="btn" onClick={() => setScreen(screen === "tracker" ? "recurring" : "tracker")}>
             {screen === "tracker" ? "↻ Repeat jobs" : "← Tracker"}
           </button>
+          {screen === "tracker" && (
+            <button className="btn btn-primary" onClick={() => setAdding(true)}>+ Add</button>
+          )}
         </div>
       </div>
 
@@ -86,8 +89,6 @@ export function App() {
           </div>
           <TaskList owner={tab} tasks={ownTasks}
             onReorder={reorder} onToggleDone={toggleDone} onSetEta={setEta} onDelete={del} />
-          <button className="btn btn-primary" style={{ position: "fixed", right: 18, bottom: 18, borderRadius: 999, padding: "14px 18px" }}
-            onClick={() => setAdding(true)}>+ Add</button>
         </>
       )}
 
