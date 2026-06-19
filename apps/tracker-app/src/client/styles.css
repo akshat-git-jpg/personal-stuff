@@ -1840,3 +1840,11 @@ details[open] .review-details__summary::before { content: "▼ "; }
 .defaults-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 16px; margin: 8px 0 4px; }
 .apply-defaults-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
 .apply-defaults-hint { font-size: 12px; color: var(--t3); }
+
+/* ── Assignment-default set rows (stacked, so wide role tags don't overlap) ── */
+.def-set { display: flex; flex-direction: column; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.def-set__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.def-set__name { font-size: 14px; font-weight: 700; color: var(--t1); min-width: 0; }
+.def-set__scope-note { font-weight: 400; color: var(--t3); font-size: 12px; }
+.def-set__actions { display: flex; gap: 4px; flex-shrink: 0; }
+.def-set__tags { display: flex; flex-wrap: wrap; gap: 6px; }
