@@ -54,7 +54,7 @@ export function App() {
       const order = new Map(orderedIds.map((id, i) => [id, i + 1]));
       return { ...d, tasks: d.tasks.map((t) => order.has(t.id) ? { ...t, sortOrder: order.get(t.id)! } : t) };
     });
-    try { await api.reorder(owner, "open", orderedIds); } catch (e) { setErr(String(e)); }
+    try { await api.reorder(owner, "open", orderedIds); } catch (e) { alert(String(e)); reload(); }
   }
 
   return (

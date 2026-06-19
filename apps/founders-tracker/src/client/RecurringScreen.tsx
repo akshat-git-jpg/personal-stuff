@@ -16,13 +16,11 @@ export function RecurringScreen({ templates, onChanged }: {
   const [editing, setEditing] = useState<Template | "new" | null>(null);
 
   async function toggleActive(t: Template) {
-    await api.patchTemplate(t.id, { active: !t.active });
-    onChanged();
+    try { await api.patchTemplate(t.id, { active: !t.active }); onChanged(); } catch (e) { alert(String(e)); }
   }
   async function remove(t: Template) {
     if (!confirm(`Delete repeat job "${t.title}"? Already-generated tasks stay.`)) return;
-    await api.deleteTemplate(t.id);
-    onChanged();
+    try { await api.deleteTemplate(t.id); onChanged(); } catch (e) { alert(String(e)); }
   }
 
   return (
