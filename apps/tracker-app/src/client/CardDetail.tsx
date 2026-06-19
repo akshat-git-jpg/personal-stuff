@@ -32,6 +32,7 @@ interface CardDetailProps {
   onClose: () => void;
   onSaved: () => void;
   onDelete?: () => void;        // admin: delete this video (confirm handled by caller)
+  onApplyDefaults?: () => void; // admin: fill blank assignees/reviewers from the category/subcategory defaults
 }
 
 // A select of existing values + an "Add new…" escape hatch.
@@ -102,7 +103,7 @@ const SECTIONS: SectionDef[] = STAGES.map((s) => ({
   ).filter(Boolean) as Column[],
 }));
 
-export function CardDetail({ row, columns, roles, names, memberRoles = {}, readOnly, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved, onDelete }: CardDetailProps) {
+export function CardDetail({ row, columns, roles, names, memberRoles = {}, readOnly, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved, onDelete, onApplyDefaults }: CardDetailProps) {
   const locks = row._locks ?? {};
   const actionGroups = row._actions ?? [];
   const isAdmin = isAdminRoles(roles);
@@ -435,6 +436,14 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
               <div><div className="needs-banner__label">{stage.label} — changes requested</div><div className="needs-banner__text">{text}</div></div>
             </div>
           ))}
+
+          {/* Admin: apply assignment defaults for this card's category × subcategory */}
+          {isAdmin && !readOnly && onApplyDefaults && (
+            <div className="apply-defaults-row">
+              <button type="button" className="btn-ghost" onClick={onApplyDefaults}>↺ Apply assignment defaults</button>
+              <span className="apply-defaults-hint">Fills blank assignees/reviewers from this card&rsquo;s category × subcategory.</span>
+            </div>
+          )}
 
           {/* Admin: generate links */}
           {isAdmin && !readOnly && (

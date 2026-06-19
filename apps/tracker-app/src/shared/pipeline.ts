@@ -187,6 +187,13 @@ export function statusOf(stage: StageDef, row: CellLookup): string {
 // Every per-stage reviewer column (for row filtering / projection).
 export const REVIEWER_COLS: Column[] = STAGES.map((s) => s.reviewerCol).filter(Boolean) as Column[];
 
+// Columns an "assignment default" can fill — each stage's doer (except the fixed
+// founding Admin) and its reviewer, in pipeline order (doer then reviewer).
+export const ASSIGNABLE_COLS: Column[] = STAGES.flatMap((s) => [
+  ...(s.assigneeCol !== "admin_email" ? [s.assigneeCol] : []),
+  ...(s.reviewerCol ? [s.reviewerCol] : []),
+]);
+
 /** Does this stage have a reviewer assigned on this card? If not, the stage is
  *  auto-approved: submitting it completes it (skips In Review). */
 export function stageHasReviewer(stage: StageDef, row: CellLookup): boolean {

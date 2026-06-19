@@ -4,7 +4,7 @@ import type { Transition } from "../shared/rbac";
 import { stageByStatusCol, stageById } from "../shared/pipeline";
 import { NEW_VIDEO_FIELDS } from "../shared/control";
 import {
-  applyTransition, getReviewQueue, createVideo, deleteVideo,
+  applyTransition, getReviewQueue, createVideo, deleteVideo, applyDefaults,
   type BoardRow, type ReviewItem,
 } from "./api";
 import { lanesFor, groupByLane } from "./lanes";
@@ -131,6 +131,19 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
       reload();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Couldn't delete the row");
+    }
+  }
+
+  async function handleApplyDefaults(rowId: string) {
+    if (!rowId) return;
+    try {
+      const { applied } = await applyDefaults(rowId);
+      const n = Object.keys(applied).length;
+      showToast(n ? `Filled ${n} field${n === 1 ? "" : "s"} from defaults` : "No blank fields to fill");
+      setDetailRow(null); setDetailStageId(undefined);
+      reload();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Couldn't apply defaults");
     }
   }
 
@@ -285,12 +298,13 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
             onDelete={(rowId, title) => void handleDelete(rowId, title)} />
         </>
       )}
-      {activeTab === "team" && <TeamPanel onChanged={reload} />}
+      {activeTab === "team" && <TeamPanel onChanged={reload} categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions} />}
 
       {detailRow && (
         <CardDetail row={detailRow} columns={columns} roles={roles} names={names} memberRoles={memberRoles} readOnly={readOnly}
           contextStageId={detailStageId} perspective={detailPerspective}
           onDelete={() => void handleDelete(detailRow.row_id ?? "", detailRow.video_title ?? "")}
+          onApplyDefaults={() => void handleApplyDefaults(detailRow.row_id ?? "")}
           categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions}
           onClose={() => { setDetailRow(null); setDetailStageId(undefined); }}
           onSaved={() => { reload(); void refreshQueue(); setDetailRow(null); setDetailStageId(undefined); }} />

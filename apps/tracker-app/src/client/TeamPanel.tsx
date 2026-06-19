@@ -14,10 +14,13 @@ import {
   type TeamMember,
 } from "./api";
 import { PROTECTED_ADMIN_EMAIL } from "../shared/policy";
+import { AssignmentDefaults } from "./AssignmentDefaults";
 
 interface TeamPanelProps {
   /** Called after a successful add/edit/remove so the parent can refresh the board's names. */
   onChanged?: () => void;
+  categoryOptions?: string[];
+  subcategoryOptions?: string[];
 }
 
 interface Draft {
@@ -28,7 +31,7 @@ interface Draft {
 
 const EMPTY: Draft = { name: "", email: "", roles: [] };
 
-export function TeamPanel({ onChanged }: TeamPanelProps) {
+export function TeamPanel({ onChanged, categoryOptions = [], subcategoryOptions = [] }: TeamPanelProps) {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [roleOptions, setRoleOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -236,6 +239,9 @@ export function TeamPanel({ onChanged }: TeamPanelProps) {
           )}
         </div>
       )}
+
+      <div className="team-panel__divider" />
+      <AssignmentDefaults categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions} />
     </div>
   );
 }

@@ -192,6 +192,32 @@ export async function deleteVideo(row_id: string): Promise<void> {
   await throwOnError(await postJSON("/api/delete", { row_id }));
 }
 
+// ── Assignment defaults (admin) ──────────────────────────────────────────────
+
+export interface AssignmentDefaultRow { category: string; subcategory: string; col: string; email: string; }
+
+export async function getDefaults(): Promise<AssignmentDefaultRow[]> {
+  const res = await fetch("/api/defaults", { credentials: "same-origin" });
+  if (!res.ok) return [];
+  return res.json() as Promise<AssignmentDefaultRow[]>;
+}
+export async function getDefaultCols(): Promise<string[]> {
+  const res = await fetch("/api/defaults/cols", { credentials: "same-origin" });
+  if (!res.ok) return [];
+  return res.json() as Promise<string[]>;
+}
+export async function saveDefaults(input: { category: string; subcategory: string; assignments: Record<string, string> }): Promise<void> {
+  await throwOnError(await postJSON("/api/defaults", input));
+}
+export async function deleteDefault(category: string, subcategory: string): Promise<void> {
+  await throwOnError(await postJSON("/api/defaults/delete", { category, subcategory }));
+}
+export async function applyDefaults(row_id: string): Promise<{ applied: Record<string, string> }> {
+  const res = await postJSON("/api/apply-defaults", { row_id });
+  await throwOnError(res);
+  return res.json() as Promise<{ applied: Record<string, string> }>;
+}
+
 export async function generateLinks(row_id: string): Promise<GenerateLinksResult> {
   const res = await postJSON("/api/generate-links", { row_id });
   if (!res.ok) {

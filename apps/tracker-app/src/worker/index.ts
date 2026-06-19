@@ -36,10 +36,11 @@ import {
   type Row,
 } from "../shared/rbac";
 import {
-  STAGES, stageById, stageByStatusCol, statusOf, PROTECTED_ADMIN_EMAIL,
+  STAGES, stageById, stageByStatusCol, statusOf, PROTECTED_ADMIN_EMAIL, ASSIGNABLE_COLS,
 } from "../shared/pipeline";
 import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
 import { NEW_VIDEO_FIELDS } from "../shared/control";
+import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
 import { COLUMNS } from "../shared/columns";
 import type { Column } from "../shared/columns";
 import { sendNotification } from "./notifications";
@@ -202,6 +203,72 @@ app.post("/api/team/delete", async (c) => {
   const removed = await getStore(c.env).deleteEmployee(email);
   await bustBoardCache(c.env);
   return c.json({ ok: removed });
+});
+
+// ---------------------------------------------------------------------------
+// Assignment defaults (admin) — default people per (category, subcategory) combo.
+// Stored in D1 (TRACKER_DB) regardless of the card backend.
+// ---------------------------------------------------------------------------
+
+app.get("/api/defaults", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json([], 200);
+  return c.json(await loadDefaults(c.env.TRACKER_DB));
+});
+
+// The columns a default set can fill (doers + per-stage reviewers).
+app.get("/api/defaults/cols", (c) => c.json(ASSIGNABLE_COLS));
+
+app.post("/api/defaults", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: { category?: string; subcategory?: string; assignments?: Record<string, string> };
+  try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
+  const category = (body.category ?? "").trim();
+  if (!category) return c.json({ error: "category is required" }, 400);
+  // Keep only valid assignable columns.
+  const assignments: Record<string, string> = {};
+  for (const [col, email] of Object.entries(body.assignments ?? {})) {
+    if ((ASSIGNABLE_COLS as readonly string[]).includes(col)) assignments[col] = (email ?? "").trim();
+  }
+  await setDefaults(c.env.TRACKER_DB, category, body.subcategory ?? "", assignments);
+  return c.json({ ok: true });
+});
+
+app.post("/api/defaults/delete", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: { category?: string; subcategory?: string };
+  try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
+  if (!(body.category ?? "").trim()) return c.json({ error: "category is required" }, 400);
+  await deleteDefaults(c.env.TRACKER_DB, body.category!.trim(), body.subcategory ?? "");
+  return c.json({ ok: true });
+});
+
+// POST /api/apply-defaults {row_id} — fill this card's BLANK assignee/reviewer
+// fields from the defaults for its (category, subcategory). Never overwrites.
+app.post("/api/apply-defaults", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: { row_id?: string };
+  try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
+  const rowId = (body.row_id ?? "").trim();
+  if (!rowId) return c.json({ error: "row_id is required" }, 400);
+
+  const store = getStore(c.env);
+  const allRows = await cachedReadRows(c.env);
+  const target = allRows.find((r) => (r.row_id || "").trim() === rowId);
+  if (!target) return c.json({ error: "row not found", row_id: rowId }, 404);
+
+  const defaults = await resolveDefaults(c.env.TRACKER_DB, (target.category as string) ?? "", (target.subcategory as string) ?? "");
+  const updates: Partial<Record<Column, string>> = {};
+  for (const [col, email] of Object.entries(defaults)) {
+    if (!(ASSIGNABLE_COLS as readonly string[]).includes(col)) continue;
+    if (String(target[col as Column] ?? "").trim()) continue; // fill blanks only
+    updates[col as Column] = email;
+  }
+  if (Object.keys(updates).length) { await store.updateCells(rowId, updates); await bustBoardCache(c.env); }
+  return c.json({ applied: updates });
 });
 
 // ---------------------------------------------------------------------------
@@ -478,9 +545,12 @@ app.post("/api/video", async (c) => {
 
   const today = new Date().toISOString().slice(0, 10);
   const firstStage = STAGES[0]; // topic
+  // Pre-fill assignees/reviewers from the defaults for this (category, subcategory).
+  const defaults = await resolveDefaults(c.env.TRACKER_DB, values.category ?? "", values.subcategory ?? "");
   const rowId = await getStore(c.env).appendRow({
-    ...values,
-    [firstStage.statusCol]: "To Do", // explicit — never blank
+    ...defaults,                        // default assignees/reviewers for the combo
+    ...values,                          // the brief fields (win on any overlap)
+    [firstStage.statusCol]: "To Do",    // explicit — never blank
     topic_date: today,
     admin_email: PROTECTED_ADMIN_EMAIL, // admin owns the Topic stage
     reviewer_email: (body.reviewer_email ?? "").trim(),

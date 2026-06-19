@@ -1834,3 +1834,9 @@ details[open] .review-details__summary::before { content: "▼ "; }
   cursor: pointer;
 }
 .btn-delete:hover { background: #fde0e0; }
+
+/* ── Assignment defaults (Team tab) ───────────────────────────────────────── */
+.team-panel__divider { height: 1px; background: var(--line); margin: 28px 0 20px; }
+.defaults-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 16px; margin: 8px 0 4px; }
+.apply-defaults-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
+.apply-defaults-hint { font-size: 12px; color: var(--t3); }
