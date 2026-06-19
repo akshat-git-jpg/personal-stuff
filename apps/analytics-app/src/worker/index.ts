@@ -19,7 +19,7 @@ import {
   setAuthCookie,
 } from "./auth";
 import { getVideoStats } from "./analytics";
-import { addKeyword, checkVideo, deleteKeyword, getRankings } from "./rankings";
+import { addKeyword, checkVideo, deleteKeyword, getQuota, getRankings } from "./rankings";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -49,7 +49,8 @@ app.get("/api/videos", requireAuth, async (c) => {
 
 // ── Keyword rank tracking (this app's own RANKINGS_DB) ──────────────────────
 app.get("/api/rankings", requireAuth, async (c) => {
-  return c.json({ byVideo: await getRankings(c.env) });
+  const [byVideo, quota] = await Promise.all([getRankings(c.env), getQuota(c.env)]);
+  return c.json({ byVideo, quota });
 });
 
 app.post("/api/rankings/keywords", requireAuth, async (c) => {

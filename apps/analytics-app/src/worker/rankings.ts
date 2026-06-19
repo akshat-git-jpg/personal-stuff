@@ -16,6 +16,58 @@ import type { Env } from "./auth";
 /** Search depth — beyond this the video is reported as "not in top N". */
 const SEARCH_DEPTH = 50;
 
+/** One keyword check = one search.list call = this many YouTube quota units. */
+const UNITS_PER_CHECK = 100;
+/** YouTube Data API default daily quota (units). Resets at midnight Pacific. */
+const DAILY_QUOTA = 10_000;
+
+export interface QuotaInfo {
+  /** Units spent today by rank checks run in this app (100 per keyword). */
+  spent_today: number;
+  daily_limit: number;
+  /** Units left today (never negative). */
+  remaining: number;
+  /** Whole keyword-checks still affordable today. */
+  checks_remaining: number;
+}
+
+/**
+ * Estimated quota left today, derived from rank_checks logged since the last
+ * Pacific-time midnight (when YouTube resets the quota). NOTE: this counts only
+ * checks run here — other YouTube API usage on the same key (dashboard loads,
+ * the TY sync scripts) isn't included, so real remaining may be a bit lower.
+ */
+export async function getQuota(env: Env): Promise<QuotaInfo> {
+  const dayStart = ptMidnightEpochSeconds(Date.now());
+  const row = await env.RANKINGS_DB.prepare(
+    `SELECT COUNT(*) AS n FROM rank_checks WHERE checked_at >= ?`,
+  )
+    .bind(dayStart)
+    .first<{ n: number }>();
+  const spent = (row?.n ?? 0) * UNITS_PER_CHECK;
+  const remaining = Math.max(0, DAILY_QUOTA - spent);
+  return {
+    spent_today: spent,
+    daily_limit: DAILY_QUOTA,
+    remaining,
+    checks_remaining: Math.floor(remaining / UNITS_PER_CHECK),
+  };
+}
+
+/** Epoch (seconds) of the most recent midnight in America/Los_Angeles. */
+function ptMidnightEpochSeconds(nowMs: number): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    hourCycle: "h23",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(nowMs));
+  const val = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+  const secsSinceMidnight = val("hour") * 3600 + val("minute") * 60 + val("second");
+  return Math.floor(nowMs / 1000) - secsSinceMidnight;
+}
+
 export interface RankCheck {
   rank: number | null;
   not_in_top: boolean;

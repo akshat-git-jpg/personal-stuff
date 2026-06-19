@@ -11,6 +11,7 @@ import {
   UnauthorizedError,
   type KeywordsByVideo,
   type KeywordStat,
+  type QuotaInfo,
   type RankCheck,
   type VideoStat,
 } from "./api";
@@ -25,6 +26,7 @@ export function RankingsView({
   onAuthLost: () => void;
 }) {
   const [byVideo, setByVideo] = useState<KeywordsByVideo>({});
+  const [quota, setQuota] = useState<QuotaInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -33,7 +35,9 @@ export function RankingsView({
     setLoading(true);
     setError(null);
     try {
-      setByVideo(await fetchRankings());
+      const r = await fetchRankings();
+      setByVideo(r.byVideo);
+      setQuota(r.quota);
     } catch (e) {
       if (e instanceof UnauthorizedError) onAuthLost();
       else setError(e instanceof Error ? e.message : "Failed to load rankings");
@@ -75,9 +79,22 @@ export function RankingsView({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <span className="rk-sub">
-          {trackedCount} keyword{trackedCount === 1 ? "" : "s"} tracked · each check = 100 quota
-          units (~100/day)
+        <span
+          className="rk-sub"
+          title="Counts rank checks run here since midnight Pacific (when YouTube resets the daily quota). Other YouTube API usage on the same key isn't included, so the real figure may be slightly lower."
+        >
+          {quota ? (
+            <>
+              <strong className="rk-quota-left">{quota.remaining.toLocaleString()}</strong> of{" "}
+              {quota.daily_limit.toLocaleString()} daily quota units left —{" "}
+              <strong>{quota.checks_remaining.toLocaleString()}</strong> more keyword check
+              {quota.checks_remaining === 1 ? "" : "s"} today (resets midnight PT)
+            </>
+          ) : (
+            "Loading quota…"
+          )}
+          {" · "}
+          {trackedCount} keyword{trackedCount === 1 ? "" : "s"} tracked
         </span>
       </div>
 
@@ -208,36 +225,33 @@ function KeywordRow({
   onDelete: () => void;
   disabled: boolean;
 }) {
-  const [open, setOpen] = useState(false);
   const last = kw.history[kw.history.length - 1] ?? null;
   const prev = kw.history[kw.history.length - 2] ?? null;
 
   return (
     <div className="rk-kw">
       <div className="rk-kw-main">
-        <button
-          className="rk-kw-name"
-          onClick={() => setOpen((o) => !o)}
-          title="Show rank history"
-        >
-          <span className={`rk-caret ${open ? "rk-caret-open" : ""}`}>▸</span>
-          {kw.keyword}
-        </button>
+        <span className="rk-kw-name">{kw.keyword}</span>
         <span className="rk-now">{fmtRank(last)}</span>
         <Delta last={last} prev={prev} />
         <button className="rk-del" onClick={onDelete} disabled={disabled} title="Delete keyword">
           ×
         </button>
       </div>
-      {open && (
-        <div className="rk-chart-wrap">
-          {kw.history.length === 0 ? (
-            <span className="rk-faint">Not checked yet.</span>
-          ) : (
+      <div className="rk-chart-wrap">
+        {kw.history.length === 0 ? (
+          <span className="rk-faint">Not checked yet — run a check to start the graph.</span>
+        ) : kw.history.length === 1 ? (
+          <div className="rk-chart-one">
             <RankChart history={kw.history} />
-          )}
-        </div>
-      )}
+            <span className="rk-faint">
+              One data point so far ({fmtRank(last)}). The line fills in as you check on more days.
+            </span>
+          </div>
+        ) : (
+          <RankChart history={kw.history} />
+        )}
+      </div>
     </div>
   );
 }

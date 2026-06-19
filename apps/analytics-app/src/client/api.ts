@@ -69,11 +69,23 @@ export interface CheckResult {
   error: string | null;
 }
 
-export async function fetchRankings(): Promise<KeywordsByVideo> {
+export interface QuotaInfo {
+  spent_today: number;
+  daily_limit: number;
+  remaining: number;
+  checks_remaining: number;
+}
+
+export interface RankingsResponse {
+  byVideo: KeywordsByVideo;
+  quota: QuotaInfo;
+}
+
+export async function fetchRankings(): Promise<RankingsResponse> {
   const res = await fetch("/api/rankings", { credentials: "same-origin" });
   if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) throw new Error(`Failed to load rankings (${res.status})`);
-  return ((await res.json()) as { byVideo: KeywordsByVideo }).byVideo;
+  return (await res.json()) as RankingsResponse;
 }
 
 export async function addKeyword(ytVideoId: string, keyword: string): Promise<{ id: number }> {

@@ -801,25 +801,15 @@ a.up-row-title:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: transparent;
-  border: none;
   color: var(--text);
   font-size: 14px;
   text-align: left;
-  cursor: pointer;
   padding: 0;
 }
-.rk-kw-name:hover {
-  color: var(--accent-soft);
-}
-.rk-caret {
-  color: var(--faint);
-  font-size: 11px;
-  transition: transform 0.15s;
-  display: inline-block;
-}
-.rk-caret-open {
-  transform: rotate(90deg);
+.rk-chart-one {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 .rk-now {
   font-variant-numeric: tabular-nums;
@@ -917,4 +907,11 @@ a.up-row-title:hover {
   margin-top: 8px;
   color: var(--muted);
   font-size: 12px;
+}
+.rk-sub strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.rk-sub .rk-quota-left {
+  color: var(--accent-soft);
 }
