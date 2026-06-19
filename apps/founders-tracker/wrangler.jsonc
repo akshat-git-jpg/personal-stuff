@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "founders-tracker",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [{ "pattern": "founders.agrolloo.com", "custom_domain": true }],
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "founders-db", "database_id": "PLACEHOLDER_SET_IN_TASK_12" }
+  ],
+  "triggers": { "crons": ["35 18 * * *"] },
+  "observability": { "enabled": true }
+  // Secrets (wrangler secret put / .dev.vars): APP_PIN, SESSION_SECRET
+}
