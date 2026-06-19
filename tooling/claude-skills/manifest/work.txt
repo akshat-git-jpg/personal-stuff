@@ -32,3 +32,4 @@ worktree-manager
 zluri-release
 pinterest-analyze
 research-critic
+improve
