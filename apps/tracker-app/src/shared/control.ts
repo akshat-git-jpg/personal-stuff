@@ -227,23 +227,19 @@ export const CONTROL: Record<string, StageControl> = {
           "thumbnail_reviewer_email",
           "uploader_email",
         ],
+        // Required to submit the Topic: the brief + the DOER assignees. Reviewers are
+        // intentionally NOT here — leaving a reviewer blank means "no review", which
+        // is a valid choice, so requiring them would contradict optional review.
         mustFill: [
           "video_title",
           "video_notes",
           "video_description",
           "category",
           "subcategory",
-          "topic_date",
-          "admin_email",
-          "topic_reviewer_email",
           "script_writer_email",
-          "script_reviewer_email",
           "tutorial_maker_email",
-          "tutorial_reviewer_email",
           "video_editor_email",
-          "video_editor_reviewer_email",
           "thumbnail_maker_email",
-          "thumbnail_reviewer_email",
           "uploader_email",
         ],
       },
