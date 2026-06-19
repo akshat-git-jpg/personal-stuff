@@ -8,9 +8,8 @@ import type { VideoStat } from "./api";
 type Bucket = "week" | "month";
 
 interface DatedVideo {
-  video_code: string;
   title: string;
-  yt_video_id: string | null;
+  yt_video_id: string;
   date: Date; // parsed published_at
 }
 
@@ -100,7 +99,6 @@ export function UploadsView({ videos }: { videos: VideoStat[] }) {
       const date = new Date(v.published_at);
       if (Number.isNaN(date.getTime())) continue;
       out.push({
-        video_code: v.video_code,
         title: v.video_title,
         yt_video_id: v.yt_video_id,
         date,
@@ -174,11 +172,11 @@ export function UploadsView({ videos }: { videos: VideoStat[] }) {
   if (span === null) {
     return (
       <div className="empty">
-        <p className="empty-title">No upload dates yet</p>
+        <p className="empty-title">No uploads to show</p>
         <p>
-          This view uses each video&apos;s real YouTube publish date. None of your videos have a
-          linked YouTube id with a reachable publish date yet — once <code>YT_API_KEY</code> is set
-          and videos have a YouTube id, uploads will show up here.
+          This view lists your channel&apos;s public long-form uploads by their real YouTube
+          publish date. Nothing came back from YouTube — if the list failed to load, see the
+          message at the top of the page.
         </p>
       </div>
     );
@@ -276,7 +274,7 @@ export function UploadsView({ videos }: { videos: VideoStat[] }) {
               ? `https://www.youtube.com/watch?v=${v.yt_video_id}`
               : null;
             return (
-              <div className="up-row" key={v.video_code}>
+              <div className="up-row" key={v.yt_video_id}>
                 {url ? (
                   <a className="up-row-title" href={url} target="_blank" rel="noreferrer">
                     {v.title}

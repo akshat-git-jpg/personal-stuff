@@ -42,8 +42,8 @@ app.post("/api/logout", (c) => {
 });
 
 app.get("/api/videos", requireAuth, async (c) => {
-  const videos = await getVideoStats(c.env);
-  return c.json({ videos, generated_at: Math.floor(Date.now() / 1000) });
+  const result = await getVideoStats(c.env);
+  return c.json({ ...result, generated_at: Math.floor(Date.now() / 1000) });
 });
 
 // Everything else → static assets / SPA fallback.

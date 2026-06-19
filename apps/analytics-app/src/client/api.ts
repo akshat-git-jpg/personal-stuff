@@ -10,9 +10,11 @@ export interface LinkStat {
 }
 
 export interface VideoStat {
-  video_code: string;
+  /** YouTube video id — always present; the stable key for a video. */
+  yt_video_id: string;
+  /** Shortener video_code, if this video has go.agrolloo links; else null. */
+  video_code: string | null;
   video_title: string;
-  yt_video_id: string | null;
   views: number | null;
   /** Real YouTube upload date (ISO 8601 publishedAt); null if unknown. */
   published_at: string | null;
@@ -23,6 +25,9 @@ export interface VideoStat {
 
 export interface VideosResponse {
   videos: VideoStat[];
+  /** False if YouTube was unconfigured or its API errored — list is then empty. */
+  youtube_ok: boolean;
+  youtube_error: string | null;
   generated_at: number;
 }
 

@@ -17,9 +17,13 @@ database_id = "3415a408-ccc9-49e2-8fe1-60009dfd83ce"
 
 [vars]
 LINK_DOMAIN = "go.agrolloo.com"
+# Channel whose PUBLIC uploads are the source of truth for the video list
+# (@AgrolloReviews). Uploads playlist is derived as "UU" + id.slice(2).
+CHANNEL_ID = "UCXuXNNuyhtdsiw9bZr0pUxw"
 # Secrets (set with `npx wrangler secret put <NAME>`, and mirror in .dev.vars for local):
 #   APP_PASSWORD    — the shared password for the gate
 #   SESSION_SECRET  — random string used to sign the auth cookie
+#   YT_API_KEY      — YouTube Data API v3 key (lists uploads + fetches views)
 
 # Custom domain (Cloudflare auto-provisions DNS + SSL on the agrolloo.com zone)
 [[routes]]

@@ -1,14 +1,27 @@
 /**
  * analytics.ts
- * Read-only aggregation over the redirector's clicks-db (D1).
+ * Per-video analytics with YouTube as the source of truth for the video list.
+ *
+ * The list of videos = the channel's PUBLIC uploads (YouTube Data API), Shorts
+ * excluded. Each video is enriched with live view count + real publish date
+ * from YouTube, and — where the video has go.agrolloo links — with de-duplicated
+ * click counts from the redirector's clicks-db (D1). A video with no shortener
+ * links still shows (0 clicks). D1 is read-only and is the source ONLY for
+ * link/click data; it never decides which videos exist.
  *
  * Click counts use the SAME de-duplication as sync_clicks.py: a click is keyed
  * by (slug, ip_hash, ua_hash, hour-bucket), so one person clicking the same
- * link repeatedly within an hour counts once. We compute all-time and 30-day
- * counts per slug, then fold them into a per-video tree.
+ * link repeatedly within an hour counts once.
+ *
+ * If YouTube is unconfigured (no API key / channel id) or the API errors, the
+ * result carries youtube_ok=false + a message and an empty video list — the UI
+ * surfaces that rather than silently showing nothing.
  */
 
 import type { Env } from "./auth";
+
+/** Videos at or under this duration are treated as Shorts and excluded. */
+const SHORTS_MAX_SECONDS = 60;
 
 export interface LinkStat {
   slug: string;
@@ -20,22 +33,31 @@ export interface LinkStat {
 }
 
 export interface VideoStat {
-  video_code: string;
+  /** YouTube video id — always present; the stable key for a video. */
+  yt_video_id: string;
+  /** Shortener video_code, if this video has any go.agrolloo links; else null. */
+  video_code: string | null;
+  /** Live YouTube title. */
   video_title: string;
-  yt_video_id: string | null;
-  /** Live YouTube view count; null if unknown (no yt id or API key/lookup failed). */
+  /** Live YouTube view count; null if the lookup didn't return it. */
   views: number | null;
-  /** Real YouTube upload date (ISO 8601 publishedAt); null if no yt id or lookup failed. */
+  /** Real YouTube upload date (ISO 8601 publishedAt); null if unknown. */
   published_at: string | null;
   total_30d: number;
   total_all: number;
   links: LinkStat[];
 }
 
+export interface VideoStatsResult {
+  videos: VideoStat[];
+  /** False if YouTube was unconfigured or the API call failed. */
+  youtube_ok: boolean;
+  /** Human-readable reason when youtube_ok is false; null otherwise. */
+  youtube_error: string | null;
+}
+
 interface LinkRow {
   video_code: string;
-  video_title: string;
-  video_created: number;
   yt_video_id: string | null;
   slug: string | null;
   tool: string | null;
@@ -48,27 +70,103 @@ interface CountRow {
   clicks_30d: number;
 }
 
-export async function getVideoStats(env: Env): Promise<VideoStat[]> {
+interface YtVideo {
+  id: string;
+  title: string;
+  published_at: string | null;
+  views: number | null;
+  /** Duration in seconds; NaN if it couldn't be parsed (then kept as long-form). */
+  duration_seconds: number;
+}
+
+export async function getVideoStats(env: Env): Promise<VideoStatsResult> {
+  // D1 link/click data, keyed by YouTube video id. D1 is the click source only.
+  const linksByYt = await loadLinksByYouTubeId(env);
+
+  // YouTube uploads are the source of truth for which videos exist.
+  if (!env.YT_API_KEY || !env.CHANNEL_ID) {
+    return {
+      videos: [],
+      youtube_ok: false,
+      youtube_error: "YouTube isn't configured (missing API key or channel id).",
+    };
+  }
+
+  // Uploads playlist id = channel id with the "UC" prefix swapped to "UU".
+  const uploadsPlaylist = "UU" + env.CHANNEL_ID.slice(2);
+  let ytVideos: YtVideo[];
+  try {
+    const ids = await fetchUploadVideoIds(env, uploadsPlaylist);
+    ytVideos = await fetchVideoDetails(env, ids);
+  } catch (e) {
+    return {
+      videos: [],
+      youtube_ok: false,
+      youtube_error:
+        e instanceof Error ? `Couldn't reach YouTube: ${e.message}` : "Couldn't reach YouTube.",
+    };
+  }
+
+  // Long-form only — drop Shorts (keep anything we couldn't measure).
+  const longform = ytVideos.filter(
+    (v) => Number.isNaN(v.duration_seconds) || v.duration_seconds > SHORTS_MAX_SECONDS,
+  );
+
+  const videos: VideoStat[] = longform.map((v) => {
+    const entry = linksByYt.get(v.id);
+    const links = entry?.links ?? [];
+    return {
+      yt_video_id: v.id,
+      video_code: entry?.video_code ?? null,
+      video_title: v.title,
+      views: v.views,
+      published_at: v.published_at,
+      total_30d: links.reduce((n, l) => n + l.clicks_30d, 0),
+      total_all: links.reduce((n, l) => n + l.clicks_all, 0),
+      links,
+    };
+  });
+
+  // Most-clicked first; ties broken by newest upload.
+  videos.sort(
+    (a, b) => b.total_all - a.total_all || dateMs(b.published_at) - dateMs(a.published_at),
+  );
+
+  return { videos, youtube_ok: true, youtube_error: null };
+}
+
+function dateMs(iso: string | null): number {
+  if (!iso) return 0;
+  const t = Date.parse(iso);
+  return Number.isNaN(t) ? 0 : t;
+}
+
+/**
+ * Read every go.agrolloo link + its de-duplicated click counts from D1 and group
+ * by the video's YouTube id. Only videos that carry a yt_video_id are included
+ * (videos without one can never match a YouTube upload). Returns a map of
+ * yt_video_id → { video_code, links } sorted by all-time clicks desc.
+ */
+async function loadLinksByYouTubeId(
+  env: Env,
+): Promise<Map<string, { video_code: string; links: LinkStat[] }>> {
   const cutoffHour = Math.floor((Math.floor(Date.now() / 1000) - 30 * 86400) / 3600);
 
-  // 1) Every video and its links (LEFT JOIN so videos with no links still show).
   const linkRows =
     (
       await env.DB.prepare(
-        `SELECT v.video_code   AS video_code,
-                v.video_title  AS video_title,
-                v.created_at   AS video_created,
-                v.yt_video_id  AS yt_video_id,
-                l.slug         AS slug,
-                l.tool         AS tool,
-                l.target_url   AS target_url
+        `SELECT v.video_code  AS video_code,
+                v.yt_video_id AS yt_video_id,
+                l.slug        AS slug,
+                l.tool        AS tool,
+                l.target_url  AS target_url
          FROM videos v
          LEFT JOIN links l ON l.video_code = v.video_code
-         ORDER BY v.created_at DESC, l.tool ASC`,
+         WHERE v.yt_video_id IS NOT NULL
+         ORDER BY l.tool ASC`,
       ).all<LinkRow>()
     ).results ?? [];
 
-  // 2) De-duplicated per-slug click counts (all-time + last 30 days).
   const countRows =
     (
       await env.DB.prepare(
@@ -91,26 +189,17 @@ export async function getVideoStats(env: Env): Promise<VideoStat[]> {
     counts.set(r.slug, { all: r.clicks_all ?? 0, d30: r.clicks_30d ?? 0 });
   }
 
-  // 3) Fold into a per-video tree.
-  const byVideo = new Map<string, VideoStat>();
+  const byYt = new Map<string, { video_code: string; links: LinkStat[] }>();
   for (const row of linkRows) {
-    let video = byVideo.get(row.video_code);
-    if (!video) {
-      video = {
-        video_code: row.video_code,
-        video_title: row.video_title,
-        yt_video_id: row.yt_video_id ?? null,
-        views: null,
-        published_at: null,
-        total_30d: 0,
-        total_all: 0,
-        links: [],
-      };
-      byVideo.set(row.video_code, video);
+    const ytId = row.yt_video_id!;
+    let entry = byYt.get(ytId);
+    if (!entry) {
+      entry = { video_code: row.video_code, links: [] };
+      byYt.set(ytId, entry);
     }
     if (row.slug) {
       const c = counts.get(row.slug) ?? { all: 0, d30: 0 };
-      video.links.push({
+      entry.links.push({
         slug: row.slug,
         tool: row.tool ?? "",
         target_url: row.target_url ?? "",
@@ -118,64 +207,78 @@ export async function getVideoStats(env: Env): Promise<VideoStat[]> {
         clicks_30d: c.d30,
         clicks_all: c.all,
       });
-      video.total_30d += c.d30;
-      video.total_all += c.all;
     }
   }
 
-  const videos = [...byVideo.values()];
-  for (const v of videos) {
-    v.links.sort((a, b) => b.clicks_all - a.clicks_all || a.tool.localeCompare(b.tool));
+  for (const entry of byYt.values()) {
+    entry.links.sort((a, b) => b.clicks_all - a.clicks_all || a.tool.localeCompare(b.tool));
   }
-
-  // 4) Live YouTube view counts (best-effort; never blocks the response on failure).
-  await attachViewCounts(env, videos);
-
-  videos.sort((a, b) => b.total_all - a.total_all || b.total_30d - a.total_30d);
-  return videos;
+  return byYt;
 }
 
-/**
- * Fetch viewCount + publishedAt for every video that has a yt_video_id and fold
- * them into `views` / `published_at`. Batches by 50 (YouTube videos.list limit).
- * Silent no-op if no API key is set; any API failure leaves these fields null
- * rather than throwing.
- */
-async function attachViewCounts(env: Env, videos: VideoStat[]): Promise<void> {
-  if (!env.YT_API_KEY) return;
-  const ids = videos.map((v) => v.yt_video_id).filter((x): x is string => !!x);
-  if (ids.length === 0) return;
+/** Page through the uploads playlist and collect every video id (50/page). */
+async function fetchUploadVideoIds(env: Env, playlistId: string): Promise<string[]> {
+  const ids: string[] = [];
+  let pageToken = "";
+  // Hard cap on pages (50 × 40 = 2000 videos) so a bad token can't loop forever.
+  for (let page = 0; page < 40; page++) {
+    const url =
+      `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails` +
+      `&maxResults=50&playlistId=${playlistId}&key=${env.YT_API_KEY}` +
+      (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : "");
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`playlistItems ${resp.status}`);
+    const json = (await resp.json()) as {
+      items?: { contentDetails?: { videoId?: string } }[];
+      nextPageToken?: string;
+    };
+    for (const it of json.items ?? []) {
+      const id = it.contentDetails?.videoId;
+      if (id) ids.push(id);
+    }
+    pageToken = json.nextPageToken ?? "";
+    if (!pageToken) break;
+  }
+  return ids;
+}
 
-  const views = new Map<string, number>();
-  const published = new Map<string, string>();
+/** Fetch title, publish date, view count, and duration for each id (50/request). */
+async function fetchVideoDetails(env: Env, ids: string[]): Promise<YtVideo[]> {
+  const out: YtVideo[] = [];
   for (let i = 0; i < ids.length; i += 50) {
     const batch = ids.slice(i, i + 50);
     const url =
-      `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${batch.join(",")}` +
-      `&key=${env.YT_API_KEY}`;
-    try {
-      const resp = await fetch(url);
-      if (!resp.ok) continue;
-      const json = (await resp.json()) as {
-        items?: {
-          id: string;
-          statistics?: { viewCount?: string };
-          snippet?: { publishedAt?: string };
-        }[];
-      };
-      for (const it of json.items ?? []) {
-        const n = Number(it.statistics?.viewCount ?? NaN);
-        if (!Number.isNaN(n)) views.set(it.id, n);
-        if (it.snippet?.publishedAt) published.set(it.id, it.snippet.publishedAt);
-      }
-    } catch {
-      /* network/API error — leave these videos' views/published_at null */
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails` +
+      `&id=${batch.join(",")}&key=${env.YT_API_KEY}`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`videos ${resp.status}`);
+    const json = (await resp.json()) as {
+      items?: {
+        id: string;
+        snippet?: { title?: string; publishedAt?: string };
+        statistics?: { viewCount?: string };
+        contentDetails?: { duration?: string };
+      }[];
+    };
+    for (const it of json.items ?? []) {
+      const views = Number(it.statistics?.viewCount ?? NaN);
+      out.push({
+        id: it.id,
+        title: it.snippet?.title ?? "(untitled)",
+        published_at: it.snippet?.publishedAt ?? null,
+        views: Number.isNaN(views) ? null : views,
+        duration_seconds: parseIso8601Duration(it.contentDetails?.duration),
+      });
     }
   }
+  return out;
+}
 
-  for (const v of videos) {
-    if (!v.yt_video_id) continue;
-    if (views.has(v.yt_video_id)) v.views = views.get(v.yt_video_id)!;
-    if (published.has(v.yt_video_id)) v.published_at = published.get(v.yt_video_id)!;
-  }
+/** Parse an ISO-8601 duration (e.g. "PT1H2M3S") to seconds; NaN if unparseable. */
+function parseIso8601Duration(d: string | undefined): number {
+  if (!d) return NaN;
+  const m = /^P(?:\d+D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(d);
+  if (!m) return NaN;
+  const [, h, min, s] = m;
+  return (Number(h) || 0) * 3600 + (Number(min) || 0) * 60 + (Number(s) || 0);
 }

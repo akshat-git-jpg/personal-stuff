@@ -14,6 +14,7 @@ type Tab = "clicks" | "uploads";
 export function App() {
   const [videos, setVideos] = useState<VideoStat[] | null>(null);
   const [generatedAt, setGeneratedAt] = useState<number | null>(null);
+  const [ytError, setYtError] = useState<string | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +28,7 @@ export function App() {
       const data = await fetchVideos();
       setVideos(data.videos);
       setGeneratedAt(data.generated_at);
+      setYtError(data.youtube_ok ? null : (data.youtube_error ?? "YouTube unavailable."));
       setNeedsAuth(false);
     } catch (err) {
       if (err instanceof UnauthorizedError) {
@@ -118,6 +120,12 @@ export function App() {
       </nav>
 
       {error && <div className="banner-error">{error}</div>}
+      {!error && ytError && (
+        <div className="banner-error">
+          Couldn&apos;t load videos from YouTube — {ytError} The video list comes from your
+          channel&apos;s uploads, so nothing is shown until YouTube responds.
+        </div>
+      )}
 
       {tab === "clicks" ? (
         <>
@@ -145,11 +153,11 @@ export function App() {
               <div className="empty">
                 {videos.length === 0 ? (
                   <>
-                    <p className="empty-title">No clicks yet</p>
+                    <p className="empty-title">No videos</p>
                     <p>
-                      Once links are generated in the tracker and people start
-                      clicking <code>go.agrolloo.com</code> links, videos will show
-                      up here.
+                      {ytError
+                        ? "The video list couldn't be loaded from YouTube — see the message above."
+                        : "No public long-form uploads were found on the channel."}
                     </p>
                   </>
                 ) : (
@@ -159,7 +167,7 @@ export function App() {
             )}
 
             {filtered.map((v) => (
-              <VideoCard key={v.video_code} video={v} />
+              <VideoCard key={v.yt_video_id} video={v} />
             ))}
           </main>
         </>
