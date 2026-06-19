@@ -11,7 +11,7 @@
     "not_found_handling": "single-page-application"
   },
   "d1_databases": [
-    { "binding": "DB", "database_name": "founders-db", "database_id": "PLACEHOLDER_SET_IN_TASK_12" }
+    { "binding": "DB", "database_name": "founders-db", "database_id": "ccd722c2-4911-4337-aaa7-60c1e5cd273b" }
   ],
   "triggers": { "crons": ["35 18 * * *"] },
   "observability": { "enabled": true }
