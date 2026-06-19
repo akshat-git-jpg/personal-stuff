@@ -30,7 +30,8 @@ remove gemini call from yt-analytics
 screeen recorder guidance to tutorial makers..
 
 category/subcateogry cleanup
-breakdown of freelancer/system different based on system. Need to build tutorial tracker scalable.
+
+rank analysis
 
 check and use loom
 
