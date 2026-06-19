@@ -4,8 +4,8 @@ import type { Transition } from "../shared/rbac";
 import { stageByStatusCol, stageById } from "../shared/pipeline";
 import { NEW_VIDEO_FIELDS } from "../shared/control";
 import {
-  applyTransition, getReviewQueue, createVideo, deleteVideo, applyDefaults,
-  type BoardRow, type ReviewItem,
+  applyTransition, getReviewQueue, createVideo, deleteVideo, applyDefaults, getDefaults,
+  type BoardRow, type ReviewItem, type AssignmentDefaultRow,
 } from "./api";
 import { lanesFor, groupByLane } from "./lanes";
 import { activeStage } from "./pipeline";
@@ -113,10 +113,24 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
 
   useEffect(() => { void refreshQueue(); }, [refreshQueue, rows]);
 
+  // Category/subcategory options come from existing cards AND the assignment
+  // defaults (so a category created only in a default still shows up everywhere).
+  const [defaultRows, setDefaultRows] = useState<AssignmentDefaultRow[]>([]);
+  useEffect(() => {
+    if (!isAdmin) return;
+    void getDefaults().then(setDefaultRows).catch(() => {});
+  }, [isAdmin, rows]);
+
   const categoryOptions = useMemo(
-    () => [...new Set(rows.map((r) => (r.category ?? "").trim()).filter(Boolean))].sort(), [rows]);
+    () => [...new Set([
+      ...rows.map((r) => (r.category ?? "").trim()),
+      ...defaultRows.map((d) => (d.category ?? "").trim()),
+    ].filter(Boolean))].sort(), [rows, defaultRows]);
   const subcategoryOptions = useMemo(
-    () => [...new Set(rows.map((r) => (r.subcategory ?? "").trim()).filter(Boolean))].sort(), [rows]);
+    () => [...new Set([
+      ...rows.map((r) => (r.subcategory ?? "").trim()),
+      ...defaultRows.map((d) => (d.subcategory ?? "").trim()),
+    ].filter(Boolean))].sort(), [rows, defaultRows]);
 
   // Single delete path used by every admin surface (Pipeline matrix, board card
   // tiles, and the card detail panel). Confirms, deletes, closes any open detail,

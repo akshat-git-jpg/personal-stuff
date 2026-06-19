@@ -241,7 +241,7 @@ export function TeamPanel({ onChanged, categoryOptions = [], subcategoryOptions 
       )}
 
       <div className="team-panel__divider" />
-      <AssignmentDefaults categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions} />
+      <AssignmentDefaults categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions} onChanged={onChanged} />
     </div>
   );
 }
