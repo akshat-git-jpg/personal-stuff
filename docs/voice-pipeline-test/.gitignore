@@ -1,0 +1,5 @@
+# Heavy / regenerable — keep transcribe.py + transcripts, ignore the rest
+models/
+.venv/
+work/
+*.log

@@ -1,0 +1,93 @@
+[00:00.00 -> 00:04.10] So now before we get into the demo, I just want to share with you a quick overview of each tool.
+[00:04.26 -> 00:10.04] So first up is the OpenArt AI. So OpenArt is a browser-based creative hub giving you access to
+[00:10.04 -> 00:17.42] over 100 AI models, including Flux 1.1, Nano Banana 2, Clang, and more, all under one subscription.
+[00:17.84 -> 00:23.58] It also covers image generation, video creation, character consistency, custom model training,
+[00:23.92 -> 00:28.24] story-telling workflows, and audio. It is built for creators who want a full creative workspace
+[00:28.24 -> 00:34.22] rather than a single-purpose tool. Now on the other hand, Higgs Field is a video-first platform
+[00:34.22 -> 00:39.72] built around cinematic quality and camera control, which is why their dashboard is more on videos
+[00:39.72 -> 00:45.34] rather than photos, because they are more aggressive towards creating videos. It aggregates
+[00:45.34 -> 00:52.74] premium video models like Soro 2, Clang 3.0, Google View 3.1 under one interface, and wraps them in
+[00:52.74 -> 00:57.94] professional cinematography tools, including Cinema Studio, with over 70 camera presets and
+[00:57.94 -> 00:58.22] characters. So it's a great tool to use for creating videos, and it's a great tool to use
+[00:58.24 -> 01:04.06] for creating videos. Now it is built for creators who want director-level control over their video
+[01:04.06 -> 01:09.72] output. Synthesia is an AI avatar video platform built specifically for professional and corporate
+[01:09.72 -> 01:16.44] use. You just have to write a script, pick from over 240 lifelike AI avatars, and the platform
+[01:16.44 -> 01:22.48] generates a polished talking head video in over 140 languages. It is built for businesses, L&D
+[01:22.48 -> 01:27.40] teams, HR departments, and marketers who need consistent professional presenter-style video
+[01:27.40 -> 01:28.54] content at a scale.
+[01:29.04 -> 01:34.30] Alright, let's start with Open Art AI. So what we're going to do is you're just going to head over to
+[01:34.30 -> 01:39.68] openart.ai, and then from your dashboard, you're going to head over to the left side panel. You will
+[01:39.68 -> 01:44.60] see this create section. So you can just click on video right here, but if you're on your dashboard,
+[01:44.72 -> 01:48.50] you can also find the video right here. And then you're just going to have to choose whether you
+[01:48.50 -> 01:53.66] want to do frame-to-video, text-to-video, edit-to-video, and all of these stuff. But for this
+[01:53.66 -> 01:57.38] tutorial, we are going to use this text-to-video. Now, before we get started, let's go ahead and
+[01:57.38 -> 01:59.94] see what we're going to do. So before typing anything, we're going to look at the model
+[01:59.94 -> 02:05.82] selector right here at the top of the prompt box. And then from the model right here, you can see
+[02:05.82 -> 02:12.26] all of the models that they have here available, all in the same platform. So let's talk about the
+[02:12.26 -> 02:17.86] good ones first. So you can see the Seedance. This is actually their newest model, wherein you
+[02:17.86 -> 02:23.68] can do cinematic videos with audio and multi-shots. And then you also have this Kling 3.0 Omni,
+[02:23.72 -> 02:27.34] 1.2.7, Vue 3.1, Kling 3.0.
+[02:27.38 -> 02:34.56] So you can find all of these new tags with the fast tags as well. These are usually the most
+[02:34.56 -> 02:40.28] good or the best ones where you could produce videos because you can see that you can produce
+[02:40.28 -> 02:44.96] cinematic videos with them. And then you can control it the way you want to. And then you
+[02:44.96 -> 02:50.50] also have here the control of how many seconds you can generate with it. And if you're trying
+[02:50.50 -> 02:56.74] to produce a 4K type of video, I think I would recommend Vue 3.1 because this one actually
+[02:56.74 -> 03:03.14] produces high fidelity videos with audio and 4K. But for this tutorial, we are just going to use a
+[03:03.14 -> 03:10.48] much cheaper one. So let's just use this Vue 3.1. This one is also new. And like I said,
+[03:10.60 -> 03:17.54] it produces 4K videos. So we're just going to click on it. And then you can already see how
+[03:17.54 -> 03:22.68] much credits we're going to have to spend in order to create a video out of Vue 3.1. Now,
+[03:22.72 -> 03:26.44] what you're going to do next is you just have to describe the action in detail. You can also
+[03:26.44 -> 03:31.68] add reference images to generate video, but consistent subjects. So as you can see, I already
+[03:31.68 -> 03:37.46] have typed in the prompt that I want to use the main character preparing breakfast early in the
+[03:37.46 -> 03:42.60] morning. Now you can find all of the tools right here if you just scroll down. So you can find the
+[03:42.60 -> 03:47.26] audio right here. So if you want to produce a video with an audio, you can definitely just
+[03:47.26 -> 03:51.90] toggle this on. And then you can also choose the mode right here if you want it to be light,
+[03:51.94 -> 03:56.08] fast, or if you want to have a better quality than
+[03:56.44 -> 04:01.12] choose quality right here. And then you can also choose the output type. So you can do vertical
+[04:01.12 -> 04:07.38] videos, or if you're going to post it on YouTube, then you can do 16 by 9. The resolution as well,
+[04:07.40 -> 04:15.56] you can choose whether you want it to be in 720p or 180p. Take note that in every tool that you or
+[04:15.56 -> 04:21.74] like every feature that you alter, your credits will either increase or decrease. So as you can
+[04:21.74 -> 04:25.40] see here, since we're producing a video in only 720p resolution,
+[04:26.44 -> 04:30.54] you are using much less credits. So what you're going to do next is you're just going to click on
+[04:30.54 -> 04:35.52] generate right here, and then we're going to wait for the video to be generated. And now we can see
+[04:35.52 -> 04:45.57] the generated video right here. So you can also hear the sound of it. It's very crisp. And the
+[04:45.57 -> 04:51.65] character also looks very realistic. It literally just looks like it came out from a movie. Now in
+[04:51.65 -> 04:56.87] order for you to edit this, if you want to edit some of the components of the video, you can just
+[04:56.87 -> 04:59.49] click on modify video right here. And then you can see that the video is generated. So you can
+[04:59.51 -> 05:04.85] then you can choose a video to edit, which is this one, you can describe how you want to edit the
+[05:04.85 -> 05:10.89] video. For example, you want to, like change some text, or you want to add some text images or
+[05:10.89 -> 05:16.65] elements or any of the instructions that you want. And you can also have the audio turned off
+[05:16.65 -> 05:23.47] if you want, you can change the output. And of course, you can change the model right here. So
+[05:23.47 -> 05:28.49] for example, the model that you previously chose doesn't really satisfy you, then you can change
+[05:29.51 -> 05:34.55] it. And then you can also upload a reference video right here if you want. And yeah, that's
+[05:34.55 -> 05:39.21] basically how you're going to edit it. I think that this tool is actually very, very helpful,
+[05:39.33 -> 05:45.07] especially with most AI is not offering this feature, like being able to just edit or like,
+[05:45.09 -> 05:49.95] you know, add more instructions or like modify some of the elements in the video. I think it's
+[05:49.95 -> 05:55.81] very helpful that you don't have to redo the prompt once again, or like adjust it every time
+[05:55.81 -> 05:58.21] you try to edit some components.
+[05:59.51 -> 06:04.75] I think on the creative workspace side, open art is in category of its own among these five tools,
+[06:04.97 -> 06:10.29] the model variety that we have right here, like the several types of models that we can choose
+[06:10.29 -> 06:16.89] from. It's very, it's very good in terms of variety, the editing layer as well. And then
+[06:16.89 -> 06:23.15] there's also a character consistency system within this app. And you know what, video isn't the only
+[06:23.15 -> 06:27.29] thing that you can do with it, you can see that we have more options, like we can create videos,
+[06:27.39 -> 06:29.47] images, world, audio, as well.
+[06:29.51 -> 06:33.89] As well as character. And aside from that, it gives you a level of creative control that none
+[06:33.89 -> 06:40.15] of the others come close to matching. So if you need a full video or like text to video creative
+[06:40.15 -> 06:45.65] workflow, this is definitely where you should come. And now that we're done with open art AI,
+[06:45.83 -> 06:51.69] let's now move over to Higgs field AI. So from here, we are just going to test out its strongest
+[06:51.69 -> 06:56.43] feature, which is cinema studio. Now what you're going to do is you're just going to head over to
+[06:56.43 -> 06:59.49] the video tab right here at the top, you can just hover your mouse over it. And then you're going
+[06:59.51 -> 07:05.61] to click on cinema studio video right here. Now you can also opt to generate AI videos by clicking on
+[07:05.61 -> 07:11.07] create video, but I suggest that you use the cinema studio video feature. So we're just going to click
+[07:11.07 -> 07:16.69] on that. Now from here, you will immediately notice what sets this platform apart with this
+[07:16.69 -> 07:22.29] director panel. So from here, you can already see that you have the options for movement, you have
+[07:22.29 -> 07:27.77] their auto, static, handheld, zoom out, zoom in, and all of the stuff that you can find right here
+[07:27.77 -> 07:29.49] that you can use. So you can already see that you have the options for movement, you have the
+[07:29.51 -> 07:29.71] auto, static, handheld, zoom in, and all of the stuff that you can find right here. So you can
+[07:29.71 -> 07:35.99] also do crane shots, crash zooms, dolly moves, rack focus. And you can also see here that you have
+[07:35.99 -> 07:41.33] this single shots, multi shot audio, multi shot manual, depending on what you need. And you can
+[07:41.33 -> 07:46.91] also have the option here to set the aspect aspect ratio. So you have the option to set it to
+[07:46.91 -> 07:52.15] cinematic. And then also if you're maybe doing this for TikTok, you can set it to nine by 16.
+[07:52.39 -> 07:57.61] And then you have here the genre. So you can choose whether you want it to be a general genre,
+[07:57.69 -> 07:59.49] it really depends on what you're going to do.
+[07:59.51 -> 07:59.95] Or what you'll

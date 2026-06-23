@@ -36,3 +36,29 @@ rank analysis
 check and use loom
 
 skill for worktree
+
+personal avatart content creation like vaibhav sisenty/ varun maya
+
+tutorial maker + reviewer vs just tutorial maker...
+
+- up the quality. focus on yt only. exhaust niches
+- reviewer is imp long term, otherwise it will increase dependency on your/khushi
+
+avatar uping th equality
+
+claude api no, claude vps listening to a wbhook/change event and then makign changes/send response with my web app button clicks
+
+male to female voice
+
+mandir anusha
+
+browser automation to login to affiliates and do revenue analysis.
+
+Voiceover:
+Tutorial maker freestyles the video and give video and audio file
+Make transcript from audio file
+Edit/fix transcription mistakes
+
+Locally make voicover in batches.
+Club full voice over file in 1 file
+Club in a single video

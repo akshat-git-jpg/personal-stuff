@@ -1,0 +1,8557 @@
+{
+  "language": "en",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 4.1,
+      "text": "So now before we get into the demo, I just want to share with you a quick overview of each tool."
+    },
+    {
+      "start": 4.26,
+      "end": 10.04,
+      "text": "So first up is the OpenArt AI. So OpenArt is a browser-based creative hub giving you access to"
+    },
+    {
+      "start": 10.04,
+      "end": 17.42,
+      "text": "over 100 AI models, including Flux 1.1, Nano Banana 2, Clang, and more, all under one subscription."
+    },
+    {
+      "start": 17.84,
+      "end": 23.58,
+      "text": "It also covers image generation, video creation, character consistency, custom model training,"
+    },
+    {
+      "start": 23.92,
+      "end": 28.24,
+      "text": "story-telling workflows, and audio. It is built for creators who want a full creative workspace"
+    },
+    {
+      "start": 28.24,
+      "end": 34.22,
+      "text": "rather than a single-purpose tool. Now on the other hand, Higgs Field is a video-first platform"
+    },
+    {
+      "start": 34.22,
+      "end": 39.72,
+      "text": "built around cinematic quality and camera control, which is why their dashboard is more on videos"
+    },
+    {
+      "start": 39.72,
+      "end": 45.34,
+      "text": "rather than photos, because they are more aggressive towards creating videos. It aggregates"
+    },
+    {
+      "start": 45.34,
+      "end": 52.74,
+      "text": "premium video models like Soro 2, Clang 3.0, Google View 3.1 under one interface, and wraps them in"
+    },
+    {
+      "start": 52.74,
+      "end": 57.94,
+      "text": "professional cinematography tools, including Cinema Studio, with over 70 camera presets and"
+    },
+    {
+      "start": 57.94,
+      "end": 58.22,
+      "text": "characters. So it's a great tool to use for creating videos, and it's a great tool to use"
+    },
+    {
+      "start": 58.24,
+      "end": 64.06,
+      "text": "for creating videos. Now it is built for creators who want director-level control over their video"
+    },
+    {
+      "start": 64.06,
+      "end": 69.72,
+      "text": "output. Synthesia is an AI avatar video platform built specifically for professional and corporate"
+    },
+    {
+      "start": 69.72,
+      "end": 76.44,
+      "text": "use. You just have to write a script, pick from over 240 lifelike AI avatars, and the platform"
+    },
+    {
+      "start": 76.44,
+      "end": 82.48,
+      "text": "generates a polished talking head video in over 140 languages. It is built for businesses, L&D"
+    },
+    {
+      "start": 82.48,
+      "end": 87.4,
+      "text": "teams, HR departments, and marketers who need consistent professional presenter-style video"
+    },
+    {
+      "start": 87.4,
+      "end": 88.54,
+      "text": "content at a scale."
+    },
+    {
+      "start": 89.04,
+      "end": 94.3,
+      "text": "Alright, let's start with Open Art AI. So what we're going to do is you're just going to head over to"
+    },
+    {
+      "start": 94.3,
+      "end": 99.68,
+      "text": "openart.ai, and then from your dashboard, you're going to head over to the left side panel. You will"
+    },
+    {
+      "start": 99.68,
+      "end": 104.6,
+      "text": "see this create section. So you can just click on video right here, but if you're on your dashboard,"
+    },
+    {
+      "start": 104.72,
+      "end": 108.5,
+      "text": "you can also find the video right here. And then you're just going to have to choose whether you"
+    },
+    {
+      "start": 108.5,
+      "end": 113.66,
+      "text": "want to do frame-to-video, text-to-video, edit-to-video, and all of these stuff. But for this"
+    },
+    {
+      "start": 113.66,
+      "end": 117.38,
+      "text": "tutorial, we are going to use this text-to-video. Now, before we get started, let's go ahead and"
+    },
+    {
+      "start": 117.38,
+      "end": 119.94,
+      "text": "see what we're going to do. So before typing anything, we're going to look at the model"
+    },
+    {
+      "start": 119.94,
+      "end": 125.82,
+      "text": "selector right here at the top of the prompt box. And then from the model right here, you can see"
+    },
+    {
+      "start": 125.82,
+      "end": 132.26,
+      "text": "all of the models that they have here available, all in the same platform. So let's talk about the"
+    },
+    {
+      "start": 132.26,
+      "end": 137.86,
+      "text": "good ones first. So you can see the Seedance. This is actually their newest model, wherein you"
+    },
+    {
+      "start": 137.86,
+      "end": 143.68,
+      "text": "can do cinematic videos with audio and multi-shots. And then you also have this Kling 3.0 Omni,"
+    },
+    {
+      "start": 143.72,
+      "end": 147.34,
+      "text": "1.2.7, Vue 3.1, Kling 3.0."
+    },
+    {
+      "start": 147.38,
+      "end": 154.56,
+      "text": "So you can find all of these new tags with the fast tags as well. These are usually the most"
+    },
+    {
+      "start": 154.56,
+      "end": 160.28,
+      "text": "good or the best ones where you could produce videos because you can see that you can produce"
+    },
+    {
+      "start": 160.28,
+      "end": 164.96,
+      "text": "cinematic videos with them. And then you can control it the way you want to. And then you"
+    },
+    {
+      "start": 164.96,
+      "end": 170.5,
+      "text": "also have here the control of how many seconds you can generate with it. And if you're trying"
+    },
+    {
+      "start": 170.5,
+      "end": 176.74,
+      "text": "to produce a 4K type of video, I think I would recommend Vue 3.1 because this one actually"
+    },
+    {
+      "start": 176.74,
+      "end": 183.14,
+      "text": "produces high fidelity videos with audio and 4K. But for this tutorial, we are just going to use a"
+    },
+    {
+      "start": 183.14,
+      "end": 190.48,
+      "text": "much cheaper one. So let's just use this Vue 3.1. This one is also new. And like I said,"
+    },
+    {
+      "start": 190.6,
+      "end": 197.54,
+      "text": "it produces 4K videos. So we're just going to click on it. And then you can already see how"
+    },
+    {
+      "start": 197.54,
+      "end": 202.68,
+      "text": "much credits we're going to have to spend in order to create a video out of Vue 3.1. Now,"
+    },
+    {
+      "start": 202.72,
+      "end": 206.44,
+      "text": "what you're going to do next is you just have to describe the action in detail. You can also"
+    },
+    {
+      "start": 206.44,
+      "end": 211.68,
+      "text": "add reference images to generate video, but consistent subjects. So as you can see, I already"
+    },
+    {
+      "start": 211.68,
+      "end": 217.46,
+      "text": "have typed in the prompt that I want to use the main character preparing breakfast early in the"
+    },
+    {
+      "start": 217.46,
+      "end": 222.6,
+      "text": "morning. Now you can find all of the tools right here if you just scroll down. So you can find the"
+    },
+    {
+      "start": 222.6,
+      "end": 227.26,
+      "text": "audio right here. So if you want to produce a video with an audio, you can definitely just"
+    },
+    {
+      "start": 227.26,
+      "end": 231.9,
+      "text": "toggle this on. And then you can also choose the mode right here if you want it to be light,"
+    },
+    {
+      "start": 231.94,
+      "end": 236.08,
+      "text": "fast, or if you want to have a better quality than"
+    },
+    {
+      "start": 236.44,
+      "end": 241.12,
+      "text": "choose quality right here. And then you can also choose the output type. So you can do vertical"
+    },
+    {
+      "start": 241.12,
+      "end": 247.38,
+      "text": "videos, or if you're going to post it on YouTube, then you can do 16 by 9. The resolution as well,"
+    },
+    {
+      "start": 247.4,
+      "end": 255.56,
+      "text": "you can choose whether you want it to be in 720p or 180p. Take note that in every tool that you or"
+    },
+    {
+      "start": 255.56,
+      "end": 261.74,
+      "text": "like every feature that you alter, your credits will either increase or decrease. So as you can"
+    },
+    {
+      "start": 261.74,
+      "end": 265.4,
+      "text": "see here, since we're producing a video in only 720p resolution,"
+    },
+    {
+      "start": 266.44,
+      "end": 270.54,
+      "text": "you are using much less credits. So what you're going to do next is you're just going to click on"
+    },
+    {
+      "start": 270.54,
+      "end": 275.52,
+      "text": "generate right here, and then we're going to wait for the video to be generated. And now we can see"
+    },
+    {
+      "start": 275.52,
+      "end": 285.57,
+      "text": "the generated video right here. So you can also hear the sound of it. It's very crisp. And the"
+    },
+    {
+      "start": 285.57,
+      "end": 291.65,
+      "text": "character also looks very realistic. It literally just looks like it came out from a movie. Now in"
+    },
+    {
+      "start": 291.65,
+      "end": 296.87,
+      "text": "order for you to edit this, if you want to edit some of the components of the video, you can just"
+    },
+    {
+      "start": 296.87,
+      "end": 299.49,
+      "text": "click on modify video right here. And then you can see that the video is generated. So you can"
+    },
+    {
+      "start": 299.51,
+      "end": 304.85,
+      "text": "then you can choose a video to edit, which is this one, you can describe how you want to edit the"
+    },
+    {
+      "start": 304.85,
+      "end": 310.89,
+      "text": "video. For example, you want to, like change some text, or you want to add some text images or"
+    },
+    {
+      "start": 310.89,
+      "end": 316.65,
+      "text": "elements or any of the instructions that you want. And you can also have the audio turned off"
+    },
+    {
+      "start": 316.65,
+      "end": 323.47,
+      "text": "if you want, you can change the output. And of course, you can change the model right here. So"
+    },
+    {
+      "start": 323.47,
+      "end": 328.49,
+      "text": "for example, the model that you previously chose doesn't really satisfy you, then you can change"
+    },
+    {
+      "start": 329.51,
+      "end": 334.55,
+      "text": "it. And then you can also upload a reference video right here if you want. And yeah, that's"
+    },
+    {
+      "start": 334.55,
+      "end": 339.21,
+      "text": "basically how you're going to edit it. I think that this tool is actually very, very helpful,"
+    },
+    {
+      "start": 339.33,
+      "end": 345.07,
+      "text": "especially with most AI is not offering this feature, like being able to just edit or like,"
+    },
+    {
+      "start": 345.09,
+      "end": 349.95,
+      "text": "you know, add more instructions or like modify some of the elements in the video. I think it's"
+    },
+    {
+      "start": 349.95,
+      "end": 355.81,
+      "text": "very helpful that you don't have to redo the prompt once again, or like adjust it every time"
+    },
+    {
+      "start": 355.81,
+      "end": 358.21,
+      "text": "you try to edit some components."
+    },
+    {
+      "start": 359.51,
+      "end": 364.75,
+      "text": "I think on the creative workspace side, open art is in category of its own among these five tools,"
+    },
+    {
+      "start": 364.97,
+      "end": 370.29,
+      "text": "the model variety that we have right here, like the several types of models that we can choose"
+    },
+    {
+      "start": 370.29,
+      "end": 376.89,
+      "text": "from. It's very, it's very good in terms of variety, the editing layer as well. And then"
+    },
+    {
+      "start": 376.89,
+      "end": 383.15,
+      "text": "there's also a character consistency system within this app. And you know what, video isn't the only"
+    },
+    {
+      "start": 383.15,
+      "end": 387.29,
+      "text": "thing that you can do with it, you can see that we have more options, like we can create videos,"
+    },
+    {
+      "start": 387.39,
+      "end": 389.47,
+      "text": "images, world, audio, as well."
+    },
+    {
+      "start": 389.51,
+      "end": 393.89,
+      "text": "As well as character. And aside from that, it gives you a level of creative control that none"
+    },
+    {
+      "start": 393.89,
+      "end": 400.15,
+      "text": "of the others come close to matching. So if you need a full video or like text to video creative"
+    },
+    {
+      "start": 400.15,
+      "end": 405.65,
+      "text": "workflow, this is definitely where you should come. And now that we're done with open art AI,"
+    },
+    {
+      "start": 405.83,
+      "end": 411.69,
+      "text": "let's now move over to Higgs field AI. So from here, we are just going to test out its strongest"
+    },
+    {
+      "start": 411.69,
+      "end": 416.43,
+      "text": "feature, which is cinema studio. Now what you're going to do is you're just going to head over to"
+    },
+    {
+      "start": 416.43,
+      "end": 419.49,
+      "text": "the video tab right here at the top, you can just hover your mouse over it. And then you're going"
+    },
+    {
+      "start": 419.51,
+      "end": 425.61,
+      "text": "to click on cinema studio video right here. Now you can also opt to generate AI videos by clicking on"
+    },
+    {
+      "start": 425.61,
+      "end": 431.07,
+      "text": "create video, but I suggest that you use the cinema studio video feature. So we're just going to click"
+    },
+    {
+      "start": 431.07,
+      "end": 436.69,
+      "text": "on that. Now from here, you will immediately notice what sets this platform apart with this"
+    },
+    {
+      "start": 436.69,
+      "end": 442.29,
+      "text": "director panel. So from here, you can already see that you have the options for movement, you have"
+    },
+    {
+      "start": 442.29,
+      "end": 447.77,
+      "text": "their auto, static, handheld, zoom out, zoom in, and all of the stuff that you can find right here"
+    },
+    {
+      "start": 447.77,
+      "end": 449.49,
+      "text": "that you can use. So you can already see that you have the options for movement, you have the"
+    },
+    {
+      "start": 449.51,
+      "end": 449.71,
+      "text": "auto, static, handheld, zoom in, and all of the stuff that you can find right here. So you can"
+    },
+    {
+      "start": 449.71,
+      "end": 455.99,
+      "text": "also do crane shots, crash zooms, dolly moves, rack focus. And you can also see here that you have"
+    },
+    {
+      "start": 455.99,
+      "end": 461.33,
+      "text": "this single shots, multi shot audio, multi shot manual, depending on what you need. And you can"
+    },
+    {
+      "start": 461.33,
+      "end": 466.91,
+      "text": "also have the option here to set the aspect aspect ratio. So you have the option to set it to"
+    },
+    {
+      "start": 466.91,
+      "end": 472.15,
+      "text": "cinematic. And then also if you're maybe doing this for TikTok, you can set it to nine by 16."
+    },
+    {
+      "start": 472.39,
+      "end": 477.61,
+      "text": "And then you have here the genre. So you can choose whether you want it to be a general genre,"
+    },
+    {
+      "start": 477.69,
+      "end": 479.49,
+      "text": "it really depends on what you're going to do."
+    },
+    {
+      "start": 479.51,
+      "end": 479.95,
+      "text": "Or what you'll"
+    }
+  ],
+  "words": [
+    {
+      "start": 0.0,
+      "end": 0.08,
+      "word": " So"
+    },
+    {
+      "start": 0.08,
+      "end": 0.14,
+      "word": " now"
+    },
+    {
+      "start": 0.14,
+      "end": 0.34,
+      "word": " before"
+    },
+    {
+      "start": 0.34,
+      "end": 0.6,
+      "word": " we"
+    },
+    {
+      "start": 0.6,
+      "end": 0.74,
+      "word": " get"
+    },
+    {
+      "start": 0.74,
+      "end": 0.92,
+      "word": " into"
+    },
+    {
+      "start": 0.92,
+      "end": 1.08,
+      "word": " the"
+    },
+    {
+      "start": 1.08,
+      "end": 1.36,
+      "word": " demo,"
+    },
+    {
+      "start": 1.46,
+      "end": 1.54,
+      "word": " I"
+    },
+    {
+      "start": 1.54,
+      "end": 1.68,
+      "word": " just"
+    },
+    {
+      "start": 1.68,
+      "end": 1.8,
+      "word": " want"
+    },
+    {
+      "start": 1.8,
+      "end": 1.96,
+      "word": " to"
+    },
+    {
+      "start": 1.96,
+      "end": 2.16,
+      "word": " share"
+    },
+    {
+      "start": 2.16,
+      "end": 2.34,
+      "word": " with"
+    },
+    {
+      "start": 2.34,
+      "end": 2.48,
+      "word": " you"
+    },
+    {
+      "start": 2.48,
+      "end": 2.6,
+      "word": " a"
+    },
+    {
+      "start": 2.6,
+      "end": 2.84,
+      "word": " quick"
+    },
+    {
+      "start": 2.84,
+      "end": 3.2,
+      "word": " overview"
+    },
+    {
+      "start": 3.2,
+      "end": 3.5,
+      "word": " of"
+    },
+    {
+      "start": 3.5,
+      "end": 3.74,
+      "word": " each"
+    },
+    {
+      "start": 3.74,
+      "end": 4.1,
+      "word": " tool."
+    },
+    {
+      "start": 4.26,
+      "end": 4.68,
+      "word": " So"
+    },
+    {
+      "start": 4.68,
+      "end": 4.9,
+      "word": " first"
+    },
+    {
+      "start": 4.9,
+      "end": 5.18,
+      "word": " up"
+    },
+    {
+      "start": 5.18,
+      "end": 5.44,
+      "word": " is"
+    },
+    {
+      "start": 5.44,
+      "end": 5.6,
+      "word": " the"
+    },
+    {
+      "start": 5.6,
+      "end": 6.08,
+      "word": " OpenArt"
+    },
+    {
+      "start": 6.08,
+      "end": 6.34,
+      "word": " AI."
+    },
+    {
+      "start": 6.64,
+      "end": 6.84,
+      "word": " So"
+    },
+    {
+      "start": 6.84,
+      "end": 7.3,
+      "word": " OpenArt"
+    },
+    {
+      "start": 7.3,
+      "end": 7.6,
+      "word": " is"
+    },
+    {
+      "start": 7.6,
+      "end": 7.78,
+      "word": " a"
+    },
+    {
+      "start": 7.78,
+      "end": 8.16,
+      "word": " browser"
+    },
+    {
+      "start": 8.16,
+      "end": 8.44,
+      "word": "-based"
+    },
+    {
+      "start": 8.44,
+      "end": 8.76,
+      "word": " creative"
+    },
+    {
+      "start": 8.76,
+      "end": 9.12,
+      "word": " hub"
+    },
+    {
+      "start": 9.12,
+      "end": 9.42,
+      "word": " giving"
+    },
+    {
+      "start": 9.42,
+      "end": 9.54,
+      "word": " you"
+    },
+    {
+      "start": 9.54,
+      "end": 9.76,
+      "word": " access"
+    },
+    {
+      "start": 9.76,
+      "end": 10.04,
+      "word": " to"
+    },
+    {
+      "start": 10.04,
+      "end": 10.24,
+      "word": " over"
+    },
+    {
+      "start": 10.24,
+      "end": 10.7,
+      "word": " 100"
+    },
+    {
+      "start": 10.7,
+      "end": 11.22,
+      "word": " AI"
+    },
+    {
+      "start": 11.22,
+      "end": 11.56,
+      "word": " models,"
+    },
+    {
+      "start": 11.76,
+      "end": 12.26,
+      "word": " including"
+    },
+    {
+      "start": 12.26,
+      "end": 13.1,
+      "word": " Flux"
+    },
+    {
+      "start": 13.1,
+      "end": 13.3,
+      "word": " 1"
+    },
+    {
+      "start": 13.3,
+      "end": 13.8,
+      "word": ".1,"
+    },
+    {
+      "start": 13.98,
+      "end": 14.42,
+      "word": " Nano"
+    },
+    {
+      "start": 14.42,
+      "end": 14.68,
+      "word": " Banana"
+    },
+    {
+      "start": 14.68,
+      "end": 15.04,
+      "word": " 2,"
+    },
+    {
+      "start": 15.28,
+      "end": 15.84,
+      "word": " Clang,"
+    },
+    {
+      "start": 15.84,
+      "end": 16.02,
+      "word": " and"
+    },
+    {
+      "start": 16.02,
+      "end": 16.24,
+      "word": " more,"
+    },
+    {
+      "start": 16.38,
+      "end": 16.58,
+      "word": " all"
+    },
+    {
+      "start": 16.58,
+      "end": 16.84,
+      "word": " under"
+    },
+    {
+      "start": 16.84,
+      "end": 17.06,
+      "word": " one"
+    },
+    {
+      "start": 17.06,
+      "end": 17.42,
+      "word": " subscription."
+    },
+    {
+      "start": 17.84,
+      "end": 18.24,
+      "word": " It"
+    },
+    {
+      "start": 18.24,
+      "end": 18.44,
+      "word": " also"
+    },
+    {
+      "start": 18.44,
+      "end": 19.0,
+      "word": " covers"
+    },
+    {
+      "start": 19.0,
+      "end": 19.42,
+      "word": " image"
+    },
+    {
+      "start": 19.42,
+      "end": 19.86,
+      "word": " generation,"
+    },
+    {
+      "start": 20.34,
+      "end": 20.8,
+      "word": " video"
+    },
+    {
+      "start": 20.8,
+      "end": 21.18,
+      "word": " creation,"
+    },
+    {
+      "start": 21.52,
+      "end": 21.78,
+      "word": " character"
+    },
+    {
+      "start": 21.78,
+      "end": 22.2,
+      "word": " consistency,"
+    },
+    {
+      "start": 22.8,
+      "end": 23.1,
+      "word": " custom"
+    },
+    {
+      "start": 23.1,
+      "end": 23.3,
+      "word": " model"
+    },
+    {
+      "start": 23.3,
+      "end": 23.58,
+      "word": " training,"
+    },
+    {
+      "start": 23.92,
+      "end": 24.2,
+      "word": " story"
+    },
+    {
+      "start": 24.2,
+      "end": 24.44,
+      "word": "-telling"
+    },
+    {
+      "start": 24.44,
+      "end": 24.76,
+      "word": " workflows,"
+    },
+    {
+      "start": 25.04,
+      "end": 25.22,
+      "word": " and"
+    },
+    {
+      "start": 25.22,
+      "end": 25.54,
+      "word": " audio."
+    },
+    {
+      "start": 25.78,
+      "end": 26.22,
+      "word": " It"
+    },
+    {
+      "start": 26.22,
+      "end": 26.32,
+      "word": " is"
+    },
+    {
+      "start": 26.32,
+      "end": 26.48,
+      "word": " built"
+    },
+    {
+      "start": 26.48,
+      "end": 26.66,
+      "word": " for"
+    },
+    {
+      "start": 26.66,
+      "end": 26.9,
+      "word": " creators"
+    },
+    {
+      "start": 26.9,
+      "end": 27.1,
+      "word": " who"
+    },
+    {
+      "start": 27.1,
+      "end": 27.26,
+      "word": " want"
+    },
+    {
+      "start": 27.26,
+      "end": 27.38,
+      "word": " a"
+    },
+    {
+      "start": 27.38,
+      "end": 27.54,
+      "word": " full"
+    },
+    {
+      "start": 27.54,
+      "end": 27.86,
+      "word": " creative"
+    },
+    {
+      "start": 27.86,
+      "end": 28.24,
+      "word": " workspace"
+    },
+    {
+      "start": 28.24,
+      "end": 28.52,
+      "word": " rather"
+    },
+    {
+      "start": 28.52,
+      "end": 28.82,
+      "word": " than"
+    },
+    {
+      "start": 28.82,
+      "end": 28.94,
+      "word": " a"
+    },
+    {
+      "start": 28.94,
+      "end": 29.28,
+      "word": " single"
+    },
+    {
+      "start": 29.28,
+      "end": 29.62,
+      "word": "-purpose"
+    },
+    {
+      "start": 29.62,
+      "end": 30.04,
+      "word": " tool."
+    },
+    {
+      "start": 30.36,
+      "end": 30.86,
+      "word": " Now"
+    },
+    {
+      "start": 30.86,
+      "end": 31.02,
+      "word": " on"
+    },
+    {
+      "start": 31.02,
+      "end": 31.16,
+      "word": " the"
+    },
+    {
+      "start": 31.16,
+      "end": 31.34,
+      "word": " other"
+    },
+    {
+      "start": 31.34,
+      "end": 31.78,
+      "word": " hand,"
+    },
+    {
+      "start": 31.92,
+      "end": 32.22,
+      "word": " Higgs"
+    },
+    {
+      "start": 32.22,
+      "end": 32.48,
+      "word": " Field"
+    },
+    {
+      "start": 32.48,
+      "end": 32.76,
+      "word": " is"
+    },
+    {
+      "start": 32.76,
+      "end": 32.96,
+      "word": " a"
+    },
+    {
+      "start": 32.96,
+      "end": 33.34,
+      "word": " video"
+    },
+    {
+      "start": 33.34,
+      "end": 33.76,
+      "word": "-first"
+    },
+    {
+      "start": 33.76,
+      "end": 34.22,
+      "word": " platform"
+    },
+    {
+      "start": 34.22,
+      "end": 34.6,
+      "word": " built"
+    },
+    {
+      "start": 34.6,
+      "end": 34.8,
+      "word": " around"
+    },
+    {
+      "start": 34.8,
+      "end": 35.16,
+      "word": " cinematic"
+    },
+    {
+      "start": 35.16,
+      "end": 35.6,
+      "word": " quality"
+    },
+    {
+      "start": 35.6,
+      "end": 35.98,
+      "word": " and"
+    },
+    {
+      "start": 35.98,
+      "end": 36.28,
+      "word": " camera"
+    },
+    {
+      "start": 36.28,
+      "end": 36.78,
+      "word": " control,"
+    },
+    {
+      "start": 36.94,
+      "end": 37.36,
+      "word": " which"
+    },
+    {
+      "start": 37.36,
+      "end": 37.5,
+      "word": " is"
+    },
+    {
+      "start": 37.5,
+      "end": 37.68,
+      "word": " why"
+    },
+    {
+      "start": 37.68,
+      "end": 37.88,
+      "word": " their"
+    },
+    {
+      "start": 37.88,
+      "end": 38.24,
+      "word": " dashboard"
+    },
+    {
+      "start": 38.24,
+      "end": 38.66,
+      "word": " is"
+    },
+    {
+      "start": 38.66,
+      "end": 38.96,
+      "word": " more"
+    },
+    {
+      "start": 38.96,
+      "end": 39.22,
+      "word": " on"
+    },
+    {
+      "start": 39.22,
+      "end": 39.72,
+      "word": " videos"
+    },
+    {
+      "start": 39.72,
+      "end": 40.02,
+      "word": " rather"
+    },
+    {
+      "start": 40.02,
+      "end": 40.38,
+      "word": " than"
+    },
+    {
+      "start": 40.38,
+      "end": 40.9,
+      "word": " photos,"
+    },
+    {
+      "start": 41.06,
+      "end": 41.34,
+      "word": " because"
+    },
+    {
+      "start": 41.34,
+      "end": 41.76,
+      "word": " they"
+    },
+    {
+      "start": 41.76,
+      "end": 42.0,
+      "word": " are"
+    },
+    {
+      "start": 42.0,
+      "end": 42.26,
+      "word": " more"
+    },
+    {
+      "start": 42.26,
+      "end": 42.68,
+      "word": " aggressive"
+    },
+    {
+      "start": 42.68,
+      "end": 43.02,
+      "word": " towards"
+    },
+    {
+      "start": 43.02,
+      "end": 43.44,
+      "word": " creating"
+    },
+    {
+      "start": 43.44,
+      "end": 44.06,
+      "word": " videos."
+    },
+    {
+      "start": 44.32,
+      "end": 44.76,
+      "word": " It"
+    },
+    {
+      "start": 44.76,
+      "end": 45.34,
+      "word": " aggregates"
+    },
+    {
+      "start": 45.34,
+      "end": 45.54,
+      "word": " premium"
+    },
+    {
+      "start": 45.54,
+      "end": 45.88,
+      "word": " video"
+    },
+    {
+      "start": 45.88,
+      "end": 46.36,
+      "word": " models"
+    },
+    {
+      "start": 46.36,
+      "end": 46.72,
+      "word": " like"
+    },
+    {
+      "start": 46.72,
+      "end": 47.04,
+      "word": " Soro"
+    },
+    {
+      "start": 47.04,
+      "end": 47.32,
+      "word": " 2,"
+    },
+    {
+      "start": 48.0,
+      "end": 48.3,
+      "word": " Clang"
+    },
+    {
+      "start": 48.3,
+      "end": 48.4,
+      "word": " 3"
+    },
+    {
+      "start": 48.4,
+      "end": 48.92,
+      "word": ".0,"
+    },
+    {
+      "start": 49.04,
+      "end": 49.3,
+      "word": " Google"
+    },
+    {
+      "start": 49.3,
+      "end": 49.62,
+      "word": " View"
+    },
+    {
+      "start": 49.62,
+      "end": 49.9,
+      "word": " 3"
+    },
+    {
+      "start": 49.9,
+      "end": 50.72,
+      "word": ".1"
+    },
+    {
+      "start": 50.72,
+      "end": 51.06,
+      "word": " under"
+    },
+    {
+      "start": 51.06,
+      "end": 51.24,
+      "word": " one"
+    },
+    {
+      "start": 51.24,
+      "end": 51.66,
+      "word": " interface,"
+    },
+    {
+      "start": 51.88,
+      "end": 52.06,
+      "word": " and"
+    },
+    {
+      "start": 52.06,
+      "end": 52.36,
+      "word": " wraps"
+    },
+    {
+      "start": 52.36,
+      "end": 52.54,
+      "word": " them"
+    },
+    {
+      "start": 52.54,
+      "end": 52.74,
+      "word": " in"
+    },
+    {
+      "start": 52.74,
+      "end": 53.16,
+      "word": " professional"
+    },
+    {
+      "start": 53.16,
+      "end": 53.82,
+      "word": " cinematography"
+    },
+    {
+      "start": 53.82,
+      "end": 54.28,
+      "word": " tools,"
+    },
+    {
+      "start": 54.4,
+      "end": 54.64,
+      "word": " including"
+    },
+    {
+      "start": 54.64,
+      "end": 55.06,
+      "word": " Cinema"
+    },
+    {
+      "start": 55.06,
+      "end": 55.3,
+      "word": " Studio,"
+    },
+    {
+      "start": 55.64,
+      "end": 56.02,
+      "word": " with"
+    },
+    {
+      "start": 56.02,
+      "end": 56.2,
+      "word": " over"
+    },
+    {
+      "start": 56.2,
+      "end": 56.66,
+      "word": " 70"
+    },
+    {
+      "start": 56.66,
+      "end": 57.16,
+      "word": " camera"
+    },
+    {
+      "start": 57.16,
+      "end": 57.62,
+      "word": " presets"
+    },
+    {
+      "start": 57.62,
+      "end": 57.94,
+      "word": " and"
+    },
+    {
+      "start": 57.94,
+      "end": 58.12,
+      "word": " characters."
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " So"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " it's"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " a"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " great"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " tool"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " to"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " use"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " for"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " creating"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " videos,"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " and"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " it's"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " a"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " great"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " tool"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " to"
+    },
+    {
+      "start": 58.22,
+      "end": 58.22,
+      "word": " use"
+    },
+    {
+      "start": 58.24,
+      "end": 58.42,
+      "word": " for"
+    },
+    {
+      "start": 58.42,
+      "end": 58.82,
+      "word": " creating"
+    },
+    {
+      "start": 58.82,
+      "end": 59.12,
+      "word": " videos."
+    },
+    {
+      "start": 59.12,
+      "end": 59.38,
+      "word": " Now"
+    },
+    {
+      "start": 59.38,
+      "end": 61.06,
+      "word": " it"
+    },
+    {
+      "start": 61.06,
+      "end": 61.22,
+      "word": " is"
+    },
+    {
+      "start": 61.22,
+      "end": 61.44,
+      "word": " built"
+    },
+    {
+      "start": 61.44,
+      "end": 61.62,
+      "word": " for"
+    },
+    {
+      "start": 61.62,
+      "end": 61.94,
+      "word": " creators"
+    },
+    {
+      "start": 61.94,
+      "end": 62.1,
+      "word": " who"
+    },
+    {
+      "start": 62.1,
+      "end": 62.26,
+      "word": " want"
+    },
+    {
+      "start": 62.26,
+      "end": 62.58,
+      "word": " director"
+    },
+    {
+      "start": 62.58,
+      "end": 62.78,
+      "word": "-level"
+    },
+    {
+      "start": 62.78,
+      "end": 63.22,
+      "word": " control"
+    },
+    {
+      "start": 63.22,
+      "end": 63.58,
+      "word": " over"
+    },
+    {
+      "start": 63.58,
+      "end": 63.8,
+      "word": " their"
+    },
+    {
+      "start": 63.8,
+      "end": 64.06,
+      "word": " video"
+    },
+    {
+      "start": 64.06,
+      "end": 64.5,
+      "word": " output."
+    },
+    {
+      "start": 64.86,
+      "end": 65.46,
+      "word": " Synthesia"
+    },
+    {
+      "start": 65.46,
+      "end": 65.66,
+      "word": " is"
+    },
+    {
+      "start": 65.66,
+      "end": 65.82,
+      "word": " an"
+    },
+    {
+      "start": 65.82,
+      "end": 66.1,
+      "word": " AI"
+    },
+    {
+      "start": 66.1,
+      "end": 66.46,
+      "word": " avatar"
+    },
+    {
+      "start": 66.46,
+      "end": 66.8,
+      "word": " video"
+    },
+    {
+      "start": 66.8,
+      "end": 67.3,
+      "word": " platform"
+    },
+    {
+      "start": 67.3,
+      "end": 67.64,
+      "word": " built"
+    },
+    {
+      "start": 67.64,
+      "end": 68.1,
+      "word": " specifically"
+    },
+    {
+      "start": 68.1,
+      "end": 68.52,
+      "word": " for"
+    },
+    {
+      "start": 68.52,
+      "end": 68.98,
+      "word": " professional"
+    },
+    {
+      "start": 68.98,
+      "end": 69.44,
+      "word": " and"
+    },
+    {
+      "start": 69.44,
+      "end": 69.72,
+      "word": " corporate"
+    },
+    {
+      "start": 69.72,
+      "end": 70.22,
+      "word": " use."
+    },
+    {
+      "start": 70.36,
+      "end": 70.72,
+      "word": " You"
+    },
+    {
+      "start": 70.72,
+      "end": 70.88,
+      "word": " just"
+    },
+    {
+      "start": 70.88,
+      "end": 71.12,
+      "word": " have"
+    },
+    {
+      "start": 71.12,
+      "end": 71.34,
+      "word": " to"
+    },
+    {
+      "start": 71.34,
+      "end": 71.52,
+      "word": " write"
+    },
+    {
+      "start": 71.52,
+      "end": 71.66,
+      "word": " a"
+    },
+    {
+      "start": 71.66,
+      "end": 72.06,
+      "word": " script,"
+    },
+    {
+      "start": 72.22,
+      "end": 72.44,
+      "word": " pick"
+    },
+    {
+      "start": 72.44,
+      "end": 72.66,
+      "word": " from"
+    },
+    {
+      "start": 72.66,
+      "end": 72.96,
+      "word": " over"
+    },
+    {
+      "start": 72.96,
+      "end": 73.62,
+      "word": " 240"
+    },
+    {
+      "start": 73.62,
+      "end": 74.76,
+      "word": " lifelike"
+    },
+    {
+      "start": 74.76,
+      "end": 75.06,
+      "word": " AI"
+    },
+    {
+      "start": 75.06,
+      "end": 75.66,
+      "word": " avatars,"
+    },
+    {
+      "start": 75.78,
+      "end": 76.1,
+      "word": " and"
+    },
+    {
+      "start": 76.1,
+      "end": 76.22,
+      "word": " the"
+    },
+    {
+      "start": 76.22,
+      "end": 76.44,
+      "word": " platform"
+    },
+    {
+      "start": 76.44,
+      "end": 76.98,
+      "word": " generates"
+    },
+    {
+      "start": 76.98,
+      "end": 77.22,
+      "word": " a"
+    },
+    {
+      "start": 77.22,
+      "end": 77.52,
+      "word": " polished"
+    },
+    {
+      "start": 77.52,
+      "end": 77.88,
+      "word": " talking"
+    },
+    {
+      "start": 77.88,
+      "end": 78.14,
+      "word": " head"
+    },
+    {
+      "start": 78.14,
+      "end": 78.52,
+      "word": " video"
+    },
+    {
+      "start": 78.52,
+      "end": 78.76,
+      "word": " in"
+    },
+    {
+      "start": 78.76,
+      "end": 78.94,
+      "word": " over"
+    },
+    {
+      "start": 78.94,
+      "end": 79.46,
+      "word": " 140"
+    },
+    {
+      "start": 79.46,
+      "end": 80.08,
+      "word": " languages."
+    },
+    {
+      "start": 80.46,
+      "end": 80.84,
+      "word": " It"
+    },
+    {
+      "start": 80.84,
+      "end": 80.92,
+      "word": " is"
+    },
+    {
+      "start": 80.92,
+      "end": 81.18,
+      "word": " built"
+    },
+    {
+      "start": 81.18,
+      "end": 81.34,
+      "word": " for"
+    },
+    {
+      "start": 81.34,
+      "end": 81.68,
+      "word": " businesses,"
+    },
+    {
+      "start": 82.08,
+      "end": 82.24,
+      "word": " L"
+    },
+    {
+      "start": 82.24,
+      "end": 82.48,
+      "word": "&D"
+    },
+    {
+      "start": 82.48,
+      "end": 82.86,
+      "word": " teams,"
+    },
+    {
+      "start": 83.18,
+      "end": 83.56,
+      "word": " HR"
+    },
+    {
+      "start": 83.56,
+      "end": 84.06,
+      "word": " departments,"
+    },
+    {
+      "start": 84.32,
+      "end": 84.42,
+      "word": " and"
+    },
+    {
+      "start": 84.42,
+      "end": 84.72,
+      "word": " marketers"
+    },
+    {
+      "start": 84.72,
+      "end": 85.08,
+      "word": " who"
+    },
+    {
+      "start": 85.08,
+      "end": 85.28,
+      "word": " need"
+    },
+    {
+      "start": 85.28,
+      "end": 85.84,
+      "word": " consistent"
+    },
+    {
+      "start": 85.84,
+      "end": 86.3,
+      "word": " professional"
+    },
+    {
+      "start": 86.3,
+      "end": 86.78,
+      "word": " presenter"
+    },
+    {
+      "start": 86.78,
+      "end": 87.1,
+      "word": "-style"
+    },
+    {
+      "start": 87.1,
+      "end": 87.4,
+      "word": " video"
+    },
+    {
+      "start": 87.4,
+      "end": 87.68,
+      "word": " content"
+    },
+    {
+      "start": 87.68,
+      "end": 88.14,
+      "word": " at"
+    },
+    {
+      "start": 88.14,
+      "end": 88.26,
+      "word": " a"
+    },
+    {
+      "start": 88.26,
+      "end": 88.54,
+      "word": " scale."
+    },
+    {
+      "start": 89.04,
+      "end": 89.44,
+      "word": " Alright,"
+    },
+    {
+      "start": 89.54,
+      "end": 89.86,
+      "word": " let's"
+    },
+    {
+      "start": 89.86,
+      "end": 90.02,
+      "word": " start"
+    },
+    {
+      "start": 90.02,
+      "end": 90.18,
+      "word": " with"
+    },
+    {
+      "start": 90.18,
+      "end": 90.56,
+      "word": " Open"
+    },
+    {
+      "start": 90.56,
+      "end": 90.9,
+      "word": " Art"
+    },
+    {
+      "start": 90.9,
+      "end": 91.3,
+      "word": " AI."
+    },
+    {
+      "start": 91.76,
+      "end": 92.14,
+      "word": " So"
+    },
+    {
+      "start": 92.14,
+      "end": 92.54,
+      "word": " what"
+    },
+    {
+      "start": 92.54,
+      "end": 92.74,
+      "word": " we're"
+    },
+    {
+      "start": 92.74,
+      "end": 92.82,
+      "word": " going"
+    },
+    {
+      "start": 92.82,
+      "end": 92.96,
+      "word": " to"
+    },
+    {
+      "start": 92.96,
+      "end": 93.14,
+      "word": " do"
+    },
+    {
+      "start": 93.14,
+      "end": 93.28,
+      "word": " is"
+    },
+    {
+      "start": 93.28,
+      "end": 93.44,
+      "word": " you're"
+    },
+    {
+      "start": 93.44,
+      "end": 93.54,
+      "word": " just"
+    },
+    {
+      "start": 93.54,
+      "end": 93.66,
+      "word": " going"
+    },
+    {
+      "start": 93.66,
+      "end": 93.78,
+      "word": " to"
+    },
+    {
+      "start": 93.78,
+      "end": 93.92,
+      "word": " head"
+    },
+    {
+      "start": 93.92,
+      "end": 94.1,
+      "word": " over"
+    },
+    {
+      "start": 94.1,
+      "end": 94.3,
+      "word": " to"
+    },
+    {
+      "start": 94.3,
+      "end": 94.76,
+      "word": " openart"
+    },
+    {
+      "start": 94.76,
+      "end": 95.24,
+      "word": ".ai,"
+    },
+    {
+      "start": 95.4,
+      "end": 95.66,
+      "word": " and"
+    },
+    {
+      "start": 95.66,
+      "end": 95.82,
+      "word": " then"
+    },
+    {
+      "start": 95.82,
+      "end": 96.12,
+      "word": " from"
+    },
+    {
+      "start": 96.12,
+      "end": 96.38,
+      "word": " your"
+    },
+    {
+      "start": 96.38,
+      "end": 96.78,
+      "word": " dashboard,"
+    },
+    {
+      "start": 96.98,
+      "end": 97.12,
+      "word": " you're"
+    },
+    {
+      "start": 97.12,
+      "end": 97.22,
+      "word": " going"
+    },
+    {
+      "start": 97.22,
+      "end": 97.34,
+      "word": " to"
+    },
+    {
+      "start": 97.34,
+      "end": 97.52,
+      "word": " head"
+    },
+    {
+      "start": 97.52,
+      "end": 97.72,
+      "word": " over"
+    },
+    {
+      "start": 97.72,
+      "end": 97.92,
+      "word": " to"
+    },
+    {
+      "start": 97.92,
+      "end": 98.04,
+      "word": " the"
+    },
+    {
+      "start": 98.04,
+      "end": 98.34,
+      "word": " left"
+    },
+    {
+      "start": 98.34,
+      "end": 98.58,
+      "word": " side"
+    },
+    {
+      "start": 98.58,
+      "end": 98.88,
+      "word": " panel."
+    },
+    {
+      "start": 99.14,
+      "end": 99.54,
+      "word": " You"
+    },
+    {
+      "start": 99.54,
+      "end": 99.68,
+      "word": " will"
+    },
+    {
+      "start": 99.68,
+      "end": 99.86,
+      "word": " see"
+    },
+    {
+      "start": 99.86,
+      "end": 100.1,
+      "word": " this"
+    },
+    {
+      "start": 100.1,
+      "end": 100.48,
+      "word": " create"
+    },
+    {
+      "start": 100.48,
+      "end": 100.92,
+      "word": " section."
+    },
+    {
+      "start": 101.26,
+      "end": 101.6,
+      "word": " So"
+    },
+    {
+      "start": 101.6,
+      "end": 101.7,
+      "word": " you"
+    },
+    {
+      "start": 101.7,
+      "end": 101.82,
+      "word": " can"
+    },
+    {
+      "start": 101.82,
+      "end": 101.98,
+      "word": " just"
+    },
+    {
+      "start": 101.98,
+      "end": 102.2,
+      "word": " click"
+    },
+    {
+      "start": 102.2,
+      "end": 102.38,
+      "word": " on"
+    },
+    {
+      "start": 102.38,
+      "end": 102.64,
+      "word": " video"
+    },
+    {
+      "start": 102.64,
+      "end": 102.86,
+      "word": " right"
+    },
+    {
+      "start": 102.86,
+      "end": 103.12,
+      "word": " here,"
+    },
+    {
+      "start": 103.2,
+      "end": 103.36,
+      "word": " but"
+    },
+    {
+      "start": 103.36,
+      "end": 103.6,
+      "word": " if"
+    },
+    {
+      "start": 103.6,
+      "end": 103.76,
+      "word": " you're"
+    },
+    {
+      "start": 103.76,
+      "end": 104.06,
+      "word": " on"
+    },
+    {
+      "start": 104.06,
+      "end": 104.24,
+      "word": " your"
+    },
+    {
+      "start": 104.24,
+      "end": 104.6,
+      "word": " dashboard,"
+    },
+    {
+      "start": 104.72,
+      "end": 104.84,
+      "word": " you"
+    },
+    {
+      "start": 104.84,
+      "end": 104.92,
+      "word": " can"
+    },
+    {
+      "start": 104.92,
+      "end": 105.18,
+      "word": " also"
+    },
+    {
+      "start": 105.18,
+      "end": 105.54,
+      "word": " find"
+    },
+    {
+      "start": 105.54,
+      "end": 105.7,
+      "word": " the"
+    },
+    {
+      "start": 105.7,
+      "end": 105.92,
+      "word": " video"
+    },
+    {
+      "start": 105.92,
+      "end": 106.12,
+      "word": " right"
+    },
+    {
+      "start": 106.12,
+      "end": 106.38,
+      "word": " here."
+    },
+    {
+      "start": 106.46,
+      "end": 106.54,
+      "word": " And"
+    },
+    {
+      "start": 106.54,
+      "end": 106.64,
+      "word": " then"
+    },
+    {
+      "start": 106.64,
+      "end": 106.78,
+      "word": " you're"
+    },
+    {
+      "start": 106.78,
+      "end": 106.94,
+      "word": " just"
+    },
+    {
+      "start": 106.94,
+      "end": 107.02,
+      "word": " going"
+    },
+    {
+      "start": 107.02,
+      "end": 107.12,
+      "word": " to"
+    },
+    {
+      "start": 107.12,
+      "end": 107.28,
+      "word": " have"
+    },
+    {
+      "start": 107.28,
+      "end": 107.42,
+      "word": " to"
+    },
+    {
+      "start": 107.42,
+      "end": 107.72,
+      "word": " choose"
+    },
+    {
+      "start": 107.72,
+      "end": 108.26,
+      "word": " whether"
+    },
+    {
+      "start": 108.26,
+      "end": 108.5,
+      "word": " you"
+    },
+    {
+      "start": 108.5,
+      "end": 108.72,
+      "word": " want"
+    },
+    {
+      "start": 108.72,
+      "end": 108.88,
+      "word": " to"
+    },
+    {
+      "start": 108.88,
+      "end": 109.3,
+      "word": " do"
+    },
+    {
+      "start": 109.3,
+      "end": 109.7,
+      "word": " frame"
+    },
+    {
+      "start": 109.7,
+      "end": 109.84,
+      "word": "-to"
+    },
+    {
+      "start": 109.84,
+      "end": 110.04,
+      "word": "-video,"
+    },
+    {
+      "start": 110.28,
+      "end": 110.5,
+      "word": " text"
+    },
+    {
+      "start": 110.5,
+      "end": 110.68,
+      "word": "-to"
+    },
+    {
+      "start": 110.68,
+      "end": 110.86,
+      "word": "-video,"
+    },
+    {
+      "start": 111.04,
+      "end": 111.22,
+      "word": " edit"
+    },
+    {
+      "start": 111.22,
+      "end": 111.48,
+      "word": "-to"
+    },
+    {
+      "start": 111.48,
+      "end": 111.66,
+      "word": "-video,"
+    },
+    {
+      "start": 111.74,
+      "end": 111.9,
+      "word": " and"
+    },
+    {
+      "start": 111.9,
+      "end": 112.16,
+      "word": " all"
+    },
+    {
+      "start": 112.16,
+      "end": 112.28,
+      "word": " of"
+    },
+    {
+      "start": 112.28,
+      "end": 112.42,
+      "word": " these"
+    },
+    {
+      "start": 112.42,
+      "end": 112.7,
+      "word": " stuff."
+    },
+    {
+      "start": 112.9,
+      "end": 113.24,
+      "word": " But"
+    },
+    {
+      "start": 113.24,
+      "end": 113.44,
+      "word": " for"
+    },
+    {
+      "start": 113.44,
+      "end": 113.66,
+      "word": " this"
+    },
+    {
+      "start": 113.66,
+      "end": 113.98,
+      "word": " tutorial,"
+    },
+    {
+      "start": 114.14,
+      "end": 114.26,
+      "word": " we"
+    },
+    {
+      "start": 114.26,
+      "end": 114.36,
+      "word": " are"
+    },
+    {
+      "start": 114.36,
+      "end": 114.54,
+      "word": " going"
+    },
+    {
+      "start": 114.54,
+      "end": 114.8,
+      "word": " to"
+    },
+    {
+      "start": 114.8,
+      "end": 115.02,
+      "word": " use"
+    },
+    {
+      "start": 115.02,
+      "end": 115.24,
+      "word": " this"
+    },
+    {
+      "start": 115.24,
+      "end": 115.62,
+      "word": " text"
+    },
+    {
+      "start": 115.62,
+      "end": 115.86,
+      "word": "-to"
+    },
+    {
+      "start": 115.86,
+      "end": 116.06,
+      "word": "-video."
+    },
+    {
+      "start": 116.76,
+      "end": 117.16,
+      "word": " Now,"
+    },
+    {
+      "start": 117.2,
+      "end": 117.38,
+      "word": " before"
+    },
+    {
+      "start": 117.38,
+      "end": 117.38,
+      "word": " we"
+    },
+    {
+      "start": 117.38,
+      "end": 117.38,
+      "word": " get"
+    },
+    {
+      "start": 117.38,
+      "end": 117.38,
+      "word": " started,"
+    },
+    {
+      "start": 117.38,
+      "end": 117.38,
+      "word": " let's"
+    },
+    {
+      "start": 117.38,
+      "end": 117.38,
+      "word": " go"
+    },
+    {
+      "start": 117.38,
+      "end": 117.38,
+      "word": " ahead"
+    },
+    {
+      "start": 117.38,
+      "end": 117.38,
+      "word": " and"
+    },
+    {
+      "start": 117.38,
+      "end": 117.5,
+      "word": " see"
+    },
+    {
+      "start": 117.5,
+      "end": 117.5,
+      "word": " what"
+    },
+    {
+      "start": 117.5,
+      "end": 117.5,
+      "word": " we're"
+    },
+    {
+      "start": 117.5,
+      "end": 117.5,
+      "word": " going"
+    },
+    {
+      "start": 117.5,
+      "end": 117.5,
+      "word": " to"
+    },
+    {
+      "start": 117.5,
+      "end": 117.5,
+      "word": " do."
+    },
+    {
+      "start": 117.5,
+      "end": 117.5,
+      "word": " So"
+    },
+    {
+      "start": 117.5,
+      "end": 117.5,
+      "word": " before"
+    },
+    {
+      "start": 117.5,
+      "end": 117.7,
+      "word": " typing"
+    },
+    {
+      "start": 117.7,
+      "end": 118.26,
+      "word": " anything,"
+    },
+    {
+      "start": 118.52,
+      "end": 118.72,
+      "word": " we're"
+    },
+    {
+      "start": 118.72,
+      "end": 118.9,
+      "word": " going"
+    },
+    {
+      "start": 118.9,
+      "end": 119.12,
+      "word": " to"
+    },
+    {
+      "start": 119.12,
+      "end": 119.28,
+      "word": " look"
+    },
+    {
+      "start": 119.28,
+      "end": 119.44,
+      "word": " at"
+    },
+    {
+      "start": 119.44,
+      "end": 119.56,
+      "word": " the"
+    },
+    {
+      "start": 119.56,
+      "end": 119.94,
+      "word": " model"
+    },
+    {
+      "start": 119.94,
+      "end": 120.68,
+      "word": " selector"
+    },
+    {
+      "start": 120.68,
+      "end": 120.9,
+      "word": " right"
+    },
+    {
+      "start": 120.9,
+      "end": 121.14,
+      "word": " here"
+    },
+    {
+      "start": 121.14,
+      "end": 121.28,
+      "word": " at"
+    },
+    {
+      "start": 121.28,
+      "end": 121.4,
+      "word": " the"
+    },
+    {
+      "start": 121.4,
+      "end": 121.64,
+      "word": " top"
+    },
+    {
+      "start": 121.64,
+      "end": 121.8,
+      "word": " of"
+    },
+    {
+      "start": 121.8,
+      "end": 121.92,
+      "word": " the"
+    },
+    {
+      "start": 121.92,
+      "end": 122.32,
+      "word": " prompt"
+    },
+    {
+      "start": 122.32,
+      "end": 122.7,
+      "word": " box."
+    },
+    {
+      "start": 122.96,
+      "end": 123.3,
+      "word": " And"
+    },
+    {
+      "start": 123.3,
+      "end": 123.48,
+      "word": " then"
+    },
+    {
+      "start": 123.48,
+      "end": 123.74,
+      "word": " from"
+    },
+    {
+      "start": 123.74,
+      "end": 123.96,
+      "word": " the"
+    },
+    {
+      "start": 123.96,
+      "end": 124.44,
+      "word": " model"
+    },
+    {
+      "start": 124.44,
+      "end": 124.76,
+      "word": " right"
+    },
+    {
+      "start": 124.76,
+      "end": 125.12,
+      "word": " here,"
+    },
+    {
+      "start": 125.22,
+      "end": 125.44,
+      "word": " you"
+    },
+    {
+      "start": 125.44,
+      "end": 125.68,
+      "word": " can"
+    },
+    {
+      "start": 125.68,
+      "end": 125.82,
+      "word": " see"
+    },
+    {
+      "start": 125.82,
+      "end": 126.14,
+      "word": " all"
+    },
+    {
+      "start": 126.14,
+      "end": 126.86,
+      "word": " of"
+    },
+    {
+      "start": 126.86,
+      "end": 127.1,
+      "word": " the"
+    },
+    {
+      "start": 127.1,
+      "end": 127.48,
+      "word": " models"
+    },
+    {
+      "start": 127.48,
+      "end": 127.66,
+      "word": " that"
+    },
+    {
+      "start": 127.66,
+      "end": 127.76,
+      "word": " they"
+    },
+    {
+      "start": 127.76,
+      "end": 127.94,
+      "word": " have"
+    },
+    {
+      "start": 127.94,
+      "end": 128.08,
+      "word": " here"
+    },
+    {
+      "start": 128.08,
+      "end": 128.62,
+      "word": " available,"
+    },
+    {
+      "start": 128.84,
+      "end": 129.46,
+      "word": " all"
+    },
+    {
+      "start": 129.46,
+      "end": 129.76,
+      "word": " in"
+    },
+    {
+      "start": 129.76,
+      "end": 129.9,
+      "word": " the"
+    },
+    {
+      "start": 129.9,
+      "end": 130.22,
+      "word": " same"
+    },
+    {
+      "start": 130.22,
+      "end": 130.82,
+      "word": " platform."
+    },
+    {
+      "start": 131.12,
+      "end": 131.52,
+      "word": " So"
+    },
+    {
+      "start": 131.52,
+      "end": 131.76,
+      "word": " let's"
+    },
+    {
+      "start": 131.76,
+      "end": 131.86,
+      "word": " talk"
+    },
+    {
+      "start": 131.86,
+      "end": 132.1,
+      "word": " about"
+    },
+    {
+      "start": 132.1,
+      "end": 132.26,
+      "word": " the"
+    },
+    {
+      "start": 132.26,
+      "end": 132.48,
+      "word": " good"
+    },
+    {
+      "start": 132.48,
+      "end": 132.76,
+      "word": " ones"
+    },
+    {
+      "start": 132.76,
+      "end": 133.1,
+      "word": " first."
+    },
+    {
+      "start": 133.24,
+      "end": 133.38,
+      "word": " So"
+    },
+    {
+      "start": 133.38,
+      "end": 133.52,
+      "word": " you"
+    },
+    {
+      "start": 133.52,
+      "end": 133.66,
+      "word": " can"
+    },
+    {
+      "start": 133.66,
+      "end": 133.82,
+      "word": " see"
+    },
+    {
+      "start": 133.82,
+      "end": 134.0,
+      "word": " the"
+    },
+    {
+      "start": 134.0,
+      "end": 134.64,
+      "word": " Seedance."
+    },
+    {
+      "start": 134.74,
+      "end": 134.84,
+      "word": " This"
+    },
+    {
+      "start": 134.84,
+      "end": 134.96,
+      "word": " is"
+    },
+    {
+      "start": 134.96,
+      "end": 135.26,
+      "word": " actually"
+    },
+    {
+      "start": 135.26,
+      "end": 135.52,
+      "word": " their"
+    },
+    {
+      "start": 135.52,
+      "end": 135.9,
+      "word": " newest"
+    },
+    {
+      "start": 135.9,
+      "end": 136.86,
+      "word": " model,"
+    },
+    {
+      "start": 137.02,
+      "end": 137.44,
+      "word": " wherein"
+    },
+    {
+      "start": 137.44,
+      "end": 137.86,
+      "word": " you"
+    },
+    {
+      "start": 137.86,
+      "end": 138.06,
+      "word": " can"
+    },
+    {
+      "start": 138.06,
+      "end": 138.62,
+      "word": " do"
+    },
+    {
+      "start": 138.62,
+      "end": 138.98,
+      "word": " cinematic"
+    },
+    {
+      "start": 138.98,
+      "end": 139.46,
+      "word": " videos"
+    },
+    {
+      "start": 139.46,
+      "end": 139.74,
+      "word": " with"
+    },
+    {
+      "start": 139.74,
+      "end": 140.0,
+      "word": " audio"
+    },
+    {
+      "start": 140.0,
+      "end": 140.22,
+      "word": " and"
+    },
+    {
+      "start": 140.22,
+      "end": 140.48,
+      "word": " multi"
+    },
+    {
+      "start": 140.48,
+      "end": 140.74,
+      "word": "-shots."
+    },
+    {
+      "start": 140.92,
+      "end": 141.0,
+      "word": " And"
+    },
+    {
+      "start": 141.0,
+      "end": 141.06,
+      "word": " then"
+    },
+    {
+      "start": 141.06,
+      "end": 141.16,
+      "word": " you"
+    },
+    {
+      "start": 141.16,
+      "end": 141.34,
+      "word": " also"
+    },
+    {
+      "start": 141.34,
+      "end": 141.62,
+      "word": " have"
+    },
+    {
+      "start": 141.62,
+      "end": 141.8,
+      "word": " this"
+    },
+    {
+      "start": 141.8,
+      "end": 142.16,
+      "word": " Kling"
+    },
+    {
+      "start": 142.16,
+      "end": 142.46,
+      "word": " 3"
+    },
+    {
+      "start": 142.46,
+      "end": 143.04,
+      "word": ".0"
+    },
+    {
+      "start": 143.04,
+      "end": 143.68,
+      "word": " Omni,"
+    },
+    {
+      "start": 143.72,
+      "end": 144.16,
+      "word": " 1"
+    },
+    {
+      "start": 144.16,
+      "end": 144.38,
+      "word": ".2"
+    },
+    {
+      "start": 144.38,
+      "end": 145.04,
+      "word": ".7,"
+    },
+    {
+      "start": 145.08,
+      "end": 145.44,
+      "word": " Vue"
+    },
+    {
+      "start": 145.44,
+      "end": 145.62,
+      "word": " 3"
+    },
+    {
+      "start": 145.62,
+      "end": 146.14,
+      "word": ".1,"
+    },
+    {
+      "start": 146.24,
+      "end": 146.5,
+      "word": " Kling"
+    },
+    {
+      "start": 146.5,
+      "end": 146.66,
+      "word": " 3"
+    },
+    {
+      "start": 146.66,
+      "end": 147.34,
+      "word": ".0."
+    },
+    {
+      "start": 147.38,
+      "end": 147.84,
+      "word": " So"
+    },
+    {
+      "start": 147.84,
+      "end": 148.0,
+      "word": " you"
+    },
+    {
+      "start": 148.0,
+      "end": 148.14,
+      "word": " can"
+    },
+    {
+      "start": 148.14,
+      "end": 148.5,
+      "word": " find"
+    },
+    {
+      "start": 148.5,
+      "end": 148.8,
+      "word": " all"
+    },
+    {
+      "start": 148.8,
+      "end": 149.06,
+      "word": " of"
+    },
+    {
+      "start": 149.06,
+      "end": 149.4,
+      "word": " these"
+    },
+    {
+      "start": 149.4,
+      "end": 149.9,
+      "word": " new"
+    },
+    {
+      "start": 149.9,
+      "end": 150.48,
+      "word": " tags"
+    },
+    {
+      "start": 150.48,
+      "end": 150.94,
+      "word": " with"
+    },
+    {
+      "start": 150.94,
+      "end": 151.3,
+      "word": " the"
+    },
+    {
+      "start": 151.3,
+      "end": 151.64,
+      "word": " fast"
+    },
+    {
+      "start": 151.64,
+      "end": 152.02,
+      "word": " tags"
+    },
+    {
+      "start": 152.02,
+      "end": 152.36,
+      "word": " as"
+    },
+    {
+      "start": 152.36,
+      "end": 152.54,
+      "word": " well."
+    },
+    {
+      "start": 152.7,
+      "end": 153.12,
+      "word": " These"
+    },
+    {
+      "start": 153.12,
+      "end": 153.36,
+      "word": " are"
+    },
+    {
+      "start": 153.36,
+      "end": 153.7,
+      "word": " usually"
+    },
+    {
+      "start": 153.7,
+      "end": 154.02,
+      "word": " the"
+    },
+    {
+      "start": 154.02,
+      "end": 154.56,
+      "word": " most"
+    },
+    {
+      "start": 154.56,
+      "end": 155.24,
+      "word": " good"
+    },
+    {
+      "start": 155.24,
+      "end": 155.58,
+      "word": " or"
+    },
+    {
+      "start": 155.58,
+      "end": 155.8,
+      "word": " the"
+    },
+    {
+      "start": 155.8,
+      "end": 156.38,
+      "word": " best"
+    },
+    {
+      "start": 156.38,
+      "end": 157.02,
+      "word": " ones"
+    },
+    {
+      "start": 157.02,
+      "end": 157.5,
+      "word": " where"
+    },
+    {
+      "start": 157.5,
+      "end": 157.68,
+      "word": " you"
+    },
+    {
+      "start": 157.68,
+      "end": 157.82,
+      "word": " could"
+    },
+    {
+      "start": 157.82,
+      "end": 158.22,
+      "word": " produce"
+    },
+    {
+      "start": 158.22,
+      "end": 158.56,
+      "word": " videos"
+    },
+    {
+      "start": 158.56,
+      "end": 158.86,
+      "word": " because"
+    },
+    {
+      "start": 158.86,
+      "end": 159.06,
+      "word": " you"
+    },
+    {
+      "start": 159.06,
+      "end": 159.2,
+      "word": " can"
+    },
+    {
+      "start": 159.2,
+      "end": 159.38,
+      "word": " see"
+    },
+    {
+      "start": 159.38,
+      "end": 159.52,
+      "word": " that"
+    },
+    {
+      "start": 159.52,
+      "end": 159.66,
+      "word": " you"
+    },
+    {
+      "start": 159.66,
+      "end": 159.8,
+      "word": " can"
+    },
+    {
+      "start": 159.8,
+      "end": 160.28,
+      "word": " produce"
+    },
+    {
+      "start": 160.28,
+      "end": 160.92,
+      "word": " cinematic"
+    },
+    {
+      "start": 160.92,
+      "end": 161.54,
+      "word": " videos"
+    },
+    {
+      "start": 161.54,
+      "end": 161.92,
+      "word": " with"
+    },
+    {
+      "start": 161.92,
+      "end": 162.1,
+      "word": " them."
+    },
+    {
+      "start": 162.18,
+      "end": 162.28,
+      "word": " And"
+    },
+    {
+      "start": 162.28,
+      "end": 162.38,
+      "word": " then"
+    },
+    {
+      "start": 162.38,
+      "end": 162.52,
+      "word": " you"
+    },
+    {
+      "start": 162.52,
+      "end": 162.7,
+      "word": " can"
+    },
+    {
+      "start": 162.7,
+      "end": 163.16,
+      "word": " control"
+    },
+    {
+      "start": 163.16,
+      "end": 163.34,
+      "word": " it"
+    },
+    {
+      "start": 163.34,
+      "end": 163.44,
+      "word": " the"
+    },
+    {
+      "start": 163.44,
+      "end": 163.6,
+      "word": " way"
+    },
+    {
+      "start": 163.6,
+      "end": 163.72,
+      "word": " you"
+    },
+    {
+      "start": 163.72,
+      "end": 163.96,
+      "word": " want"
+    },
+    {
+      "start": 163.96,
+      "end": 164.16,
+      "word": " to."
+    },
+    {
+      "start": 164.34,
+      "end": 164.74,
+      "word": " And"
+    },
+    {
+      "start": 164.74,
+      "end": 164.86,
+      "word": " then"
+    },
+    {
+      "start": 164.86,
+      "end": 164.96,
+      "word": " you"
+    },
+    {
+      "start": 164.96,
+      "end": 165.24,
+      "word": " also"
+    },
+    {
+      "start": 165.24,
+      "end": 165.52,
+      "word": " have"
+    },
+    {
+      "start": 165.52,
+      "end": 165.96,
+      "word": " here"
+    },
+    {
+      "start": 165.96,
+      "end": 166.42,
+      "word": " the"
+    },
+    {
+      "start": 166.42,
+      "end": 166.82,
+      "word": " control"
+    },
+    {
+      "start": 166.82,
+      "end": 167.16,
+      "word": " of"
+    },
+    {
+      "start": 167.16,
+      "end": 167.3,
+      "word": " how"
+    },
+    {
+      "start": 167.3,
+      "end": 167.52,
+      "word": " many"
+    },
+    {
+      "start": 167.52,
+      "end": 167.86,
+      "word": " seconds"
+    },
+    {
+      "start": 167.86,
+      "end": 168.36,
+      "word": " you"
+    },
+    {
+      "start": 168.36,
+      "end": 168.56,
+      "word": " can"
+    },
+    {
+      "start": 168.56,
+      "end": 168.92,
+      "word": " generate"
+    },
+    {
+      "start": 168.92,
+      "end": 169.18,
+      "word": " with"
+    },
+    {
+      "start": 169.18,
+      "end": 169.38,
+      "word": " it."
+    },
+    {
+      "start": 169.54,
+      "end": 169.74,
+      "word": " And"
+    },
+    {
+      "start": 169.74,
+      "end": 169.94,
+      "word": " if"
+    },
+    {
+      "start": 169.94,
+      "end": 170.16,
+      "word": " you're"
+    },
+    {
+      "start": 170.16,
+      "end": 170.5,
+      "word": " trying"
+    },
+    {
+      "start": 170.5,
+      "end": 170.76,
+      "word": " to"
+    },
+    {
+      "start": 170.76,
+      "end": 171.14,
+      "word": " produce"
+    },
+    {
+      "start": 171.14,
+      "end": 171.38,
+      "word": " a"
+    },
+    {
+      "start": 171.38,
+      "end": 172.02,
+      "word": " 4K"
+    },
+    {
+      "start": 172.02,
+      "end": 172.36,
+      "word": " type"
+    },
+    {
+      "start": 172.36,
+      "end": 172.54,
+      "word": " of"
+    },
+    {
+      "start": 172.54,
+      "end": 172.82,
+      "word": " video,"
+    },
+    {
+      "start": 172.96,
+      "end": 173.22,
+      "word": " I"
+    },
+    {
+      "start": 173.22,
+      "end": 173.64,
+      "word": " think"
+    },
+    {
+      "start": 173.64,
+      "end": 173.86,
+      "word": " I"
+    },
+    {
+      "start": 173.86,
+      "end": 174.02,
+      "word": " would"
+    },
+    {
+      "start": 174.02,
+      "end": 174.36,
+      "word": " recommend"
+    },
+    {
+      "start": 174.36,
+      "end": 174.7,
+      "word": " Vue"
+    },
+    {
+      "start": 174.7,
+      "end": 174.9,
+      "word": " 3"
+    },
+    {
+      "start": 174.9,
+      "end": 175.36,
+      "word": ".1"
+    },
+    {
+      "start": 175.36,
+      "end": 175.58,
+      "word": " because"
+    },
+    {
+      "start": 175.58,
+      "end": 175.84,
+      "word": " this"
+    },
+    {
+      "start": 175.84,
+      "end": 176.02,
+      "word": " one"
+    },
+    {
+      "start": 176.02,
+      "end": 176.74,
+      "word": " actually"
+    },
+    {
+      "start": 176.74,
+      "end": 177.08,
+      "word": " produces"
+    },
+    {
+      "start": 177.08,
+      "end": 177.5,
+      "word": " high"
+    },
+    {
+      "start": 177.5,
+      "end": 177.8,
+      "word": " fidelity"
+    },
+    {
+      "start": 177.8,
+      "end": 178.3,
+      "word": " videos"
+    },
+    {
+      "start": 178.3,
+      "end": 178.56,
+      "word": " with"
+    },
+    {
+      "start": 178.56,
+      "end": 178.86,
+      "word": " audio"
+    },
+    {
+      "start": 178.86,
+      "end": 179.32,
+      "word": " and"
+    },
+    {
+      "start": 179.32,
+      "end": 180.0,
+      "word": " 4K."
+    },
+    {
+      "start": 180.22,
+      "end": 180.62,
+      "word": " But"
+    },
+    {
+      "start": 180.62,
+      "end": 180.72,
+      "word": " for"
+    },
+    {
+      "start": 180.72,
+      "end": 180.88,
+      "word": " this"
+    },
+    {
+      "start": 180.88,
+      "end": 181.22,
+      "word": " tutorial,"
+    },
+    {
+      "start": 181.4,
+      "end": 181.52,
+      "word": " we"
+    },
+    {
+      "start": 181.52,
+      "end": 181.64,
+      "word": " are"
+    },
+    {
+      "start": 181.64,
+      "end": 181.84,
+      "word": " just"
+    },
+    {
+      "start": 181.84,
+      "end": 181.98,
+      "word": " going"
+    },
+    {
+      "start": 181.98,
+      "end": 182.14,
+      "word": " to"
+    },
+    {
+      "start": 182.14,
+      "end": 182.46,
+      "word": " use"
+    },
+    {
+      "start": 182.46,
+      "end": 183.14,
+      "word": " a"
+    },
+    {
+      "start": 183.14,
+      "end": 183.98,
+      "word": " much"
+    },
+    {
+      "start": 183.98,
+      "end": 184.7,
+      "word": " cheaper"
+    },
+    {
+      "start": 184.7,
+      "end": 185.26,
+      "word": " one."
+    },
+    {
+      "start": 185.64,
+      "end": 186.08,
+      "word": " So"
+    },
+    {
+      "start": 186.08,
+      "end": 186.34,
+      "word": " let's"
+    },
+    {
+      "start": 186.34,
+      "end": 186.44,
+      "word": " just"
+    },
+    {
+      "start": 186.44,
+      "end": 186.72,
+      "word": " use"
+    },
+    {
+      "start": 186.72,
+      "end": 187.0,
+      "word": " this"
+    },
+    {
+      "start": 187.0,
+      "end": 187.4,
+      "word": " Vue"
+    },
+    {
+      "start": 187.4,
+      "end": 187.74,
+      "word": " 3"
+    },
+    {
+      "start": 187.74,
+      "end": 188.18,
+      "word": ".1."
+    },
+    {
+      "start": 188.28,
+      "end": 188.42,
+      "word": " This"
+    },
+    {
+      "start": 188.42,
+      "end": 188.56,
+      "word": " one"
+    },
+    {
+      "start": 188.56,
+      "end": 188.68,
+      "word": " is"
+    },
+    {
+      "start": 188.68,
+      "end": 189.0,
+      "word": " also"
+    },
+    {
+      "start": 189.0,
+      "end": 189.32,
+      "word": " new."
+    },
+    {
+      "start": 189.42,
+      "end": 189.68,
+      "word": " And"
+    },
+    {
+      "start": 189.68,
+      "end": 190.18,
+      "word": " like"
+    },
+    {
+      "start": 190.18,
+      "end": 190.3,
+      "word": " I"
+    },
+    {
+      "start": 190.3,
+      "end": 190.48,
+      "word": " said,"
+    },
+    {
+      "start": 190.6,
+      "end": 190.68,
+      "word": " it"
+    },
+    {
+      "start": 190.68,
+      "end": 191.36,
+      "word": " produces"
+    },
+    {
+      "start": 191.36,
+      "end": 191.9,
+      "word": " 4K"
+    },
+    {
+      "start": 191.9,
+      "end": 192.24,
+      "word": " videos."
+    },
+    {
+      "start": 192.42,
+      "end": 192.68,
+      "word": " So"
+    },
+    {
+      "start": 192.68,
+      "end": 193.96,
+      "word": " we're"
+    },
+    {
+      "start": 193.96,
+      "end": 194.12,
+      "word": " just"
+    },
+    {
+      "start": 194.12,
+      "end": 194.24,
+      "word": " going"
+    },
+    {
+      "start": 194.24,
+      "end": 194.38,
+      "word": " to"
+    },
+    {
+      "start": 194.38,
+      "end": 194.78,
+      "word": " click"
+    },
+    {
+      "start": 194.78,
+      "end": 195.14,
+      "word": " on"
+    },
+    {
+      "start": 195.14,
+      "end": 195.48,
+      "word": " it."
+    },
+    {
+      "start": 195.6,
+      "end": 195.78,
+      "word": " And"
+    },
+    {
+      "start": 195.78,
+      "end": 195.96,
+      "word": " then"
+    },
+    {
+      "start": 195.96,
+      "end": 196.5,
+      "word": " you"
+    },
+    {
+      "start": 196.5,
+      "end": 196.68,
+      "word": " can"
+    },
+    {
+      "start": 196.68,
+      "end": 196.96,
+      "word": " already"
+    },
+    {
+      "start": 196.96,
+      "end": 197.34,
+      "word": " see"
+    },
+    {
+      "start": 197.34,
+      "end": 197.54,
+      "word": " how"
+    },
+    {
+      "start": 197.54,
+      "end": 197.78,
+      "word": " much"
+    },
+    {
+      "start": 197.78,
+      "end": 198.1,
+      "word": " credits"
+    },
+    {
+      "start": 198.1,
+      "end": 198.34,
+      "word": " we're"
+    },
+    {
+      "start": 198.34,
+      "end": 198.36,
+      "word": " going"
+    },
+    {
+      "start": 198.36,
+      "end": 198.5,
+      "word": " to"
+    },
+    {
+      "start": 198.5,
+      "end": 198.66,
+      "word": " have"
+    },
+    {
+      "start": 198.66,
+      "end": 198.82,
+      "word": " to"
+    },
+    {
+      "start": 198.82,
+      "end": 199.12,
+      "word": " spend"
+    },
+    {
+      "start": 199.12,
+      "end": 199.28,
+      "word": " in"
+    },
+    {
+      "start": 199.28,
+      "end": 199.5,
+      "word": " order"
+    },
+    {
+      "start": 199.5,
+      "end": 199.72,
+      "word": " to"
+    },
+    {
+      "start": 199.72,
+      "end": 199.96,
+      "word": " create"
+    },
+    {
+      "start": 199.96,
+      "end": 200.16,
+      "word": " a"
+    },
+    {
+      "start": 200.16,
+      "end": 200.48,
+      "word": " video"
+    },
+    {
+      "start": 200.48,
+      "end": 200.82,
+      "word": " out"
+    },
+    {
+      "start": 200.82,
+      "end": 201.02,
+      "word": " of"
+    },
+    {
+      "start": 201.02,
+      "end": 201.22,
+      "word": " Vue"
+    },
+    {
+      "start": 201.22,
+      "end": 201.46,
+      "word": " 3"
+    },
+    {
+      "start": 201.46,
+      "end": 202.0,
+      "word": ".1."
+    },
+    {
+      "start": 202.24,
+      "end": 202.68,
+      "word": " Now,"
+    },
+    {
+      "start": 202.72,
+      "end": 202.86,
+      "word": " what"
+    },
+    {
+      "start": 202.86,
+      "end": 203.06,
+      "word": " you're"
+    },
+    {
+      "start": 203.06,
+      "end": 203.14,
+      "word": " going"
+    },
+    {
+      "start": 203.14,
+      "end": 203.26,
+      "word": " to"
+    },
+    {
+      "start": 203.26,
+      "end": 203.42,
+      "word": " do"
+    },
+    {
+      "start": 203.42,
+      "end": 203.64,
+      "word": " next"
+    },
+    {
+      "start": 203.64,
+      "end": 203.82,
+      "word": " is"
+    },
+    {
+      "start": 203.82,
+      "end": 203.94,
+      "word": " you"
+    },
+    {
+      "start": 203.94,
+      "end": 204.16,
+      "word": " just"
+    },
+    {
+      "start": 204.16,
+      "end": 204.4,
+      "word": " have"
+    },
+    {
+      "start": 204.4,
+      "end": 204.6,
+      "word": " to"
+    },
+    {
+      "start": 204.6,
+      "end": 204.92,
+      "word": " describe"
+    },
+    {
+      "start": 204.92,
+      "end": 205.12,
+      "word": " the"
+    },
+    {
+      "start": 205.12,
+      "end": 205.38,
+      "word": " action"
+    },
+    {
+      "start": 205.38,
+      "end": 205.54,
+      "word": " in"
+    },
+    {
+      "start": 205.54,
+      "end": 205.84,
+      "word": " detail."
+    },
+    {
+      "start": 205.96,
+      "end": 206.08,
+      "word": " You"
+    },
+    {
+      "start": 206.08,
+      "end": 206.2,
+      "word": " can"
+    },
+    {
+      "start": 206.2,
+      "end": 206.44,
+      "word": " also"
+    },
+    {
+      "start": 206.44,
+      "end": 206.56,
+      "word": " add"
+    },
+    {
+      "start": 206.56,
+      "end": 206.94,
+      "word": " reference"
+    },
+    {
+      "start": 206.94,
+      "end": 207.32,
+      "word": " images"
+    },
+    {
+      "start": 207.32,
+      "end": 207.6,
+      "word": " to"
+    },
+    {
+      "start": 207.6,
+      "end": 207.88,
+      "word": " generate"
+    },
+    {
+      "start": 207.88,
+      "end": 208.3,
+      "word": " video,"
+    },
+    {
+      "start": 208.36,
+      "end": 208.72,
+      "word": " but"
+    },
+    {
+      "start": 208.72,
+      "end": 209.16,
+      "word": " consistent"
+    },
+    {
+      "start": 209.16,
+      "end": 209.7,
+      "word": " subjects."
+    },
+    {
+      "start": 210.12,
+      "end": 210.58,
+      "word": " So"
+    },
+    {
+      "start": 210.58,
+      "end": 210.72,
+      "word": " as"
+    },
+    {
+      "start": 210.72,
+      "end": 210.82,
+      "word": " you"
+    },
+    {
+      "start": 210.82,
+      "end": 210.96,
+      "word": " can"
+    },
+    {
+      "start": 210.96,
+      "end": 211.14,
+      "word": " see,"
+    },
+    {
+      "start": 211.22,
+      "end": 211.4,
+      "word": " I"
+    },
+    {
+      "start": 211.4,
+      "end": 211.68,
+      "word": " already"
+    },
+    {
+      "start": 211.68,
+      "end": 212.0,
+      "word": " have"
+    },
+    {
+      "start": 212.0,
+      "end": 212.68,
+      "word": " typed"
+    },
+    {
+      "start": 212.68,
+      "end": 213.08,
+      "word": " in"
+    },
+    {
+      "start": 213.08,
+      "end": 213.4,
+      "word": " the"
+    },
+    {
+      "start": 213.4,
+      "end": 213.8,
+      "word": " prompt"
+    },
+    {
+      "start": 213.8,
+      "end": 214.02,
+      "word": " that"
+    },
+    {
+      "start": 214.02,
+      "end": 214.1,
+      "word": " I"
+    },
+    {
+      "start": 214.1,
+      "end": 214.28,
+      "word": " want"
+    },
+    {
+      "start": 214.28,
+      "end": 214.38,
+      "word": " to"
+    },
+    {
+      "start": 214.38,
+      "end": 214.62,
+      "word": " use"
+    },
+    {
+      "start": 214.62,
+      "end": 215.02,
+      "word": " the"
+    },
+    {
+      "start": 215.02,
+      "end": 215.24,
+      "word": " main"
+    },
+    {
+      "start": 215.24,
+      "end": 215.58,
+      "word": " character"
+    },
+    {
+      "start": 215.58,
+      "end": 215.92,
+      "word": " preparing"
+    },
+    {
+      "start": 215.92,
+      "end": 216.58,
+      "word": " breakfast"
+    },
+    {
+      "start": 216.58,
+      "end": 217.06,
+      "word": " early"
+    },
+    {
+      "start": 217.06,
+      "end": 217.34,
+      "word": " in"
+    },
+    {
+      "start": 217.34,
+      "end": 217.46,
+      "word": " the"
+    },
+    {
+      "start": 217.46,
+      "end": 217.8,
+      "word": " morning."
+    },
+    {
+      "start": 217.94,
+      "end": 218.36,
+      "word": " Now"
+    },
+    {
+      "start": 218.36,
+      "end": 218.5,
+      "word": " you"
+    },
+    {
+      "start": 218.5,
+      "end": 218.64,
+      "word": " can"
+    },
+    {
+      "start": 218.64,
+      "end": 218.92,
+      "word": " find"
+    },
+    {
+      "start": 218.92,
+      "end": 219.14,
+      "word": " all"
+    },
+    {
+      "start": 219.14,
+      "end": 219.26,
+      "word": " of"
+    },
+    {
+      "start": 219.26,
+      "end": 219.32,
+      "word": " the"
+    },
+    {
+      "start": 219.32,
+      "end": 219.6,
+      "word": " tools"
+    },
+    {
+      "start": 219.6,
+      "end": 219.86,
+      "word": " right"
+    },
+    {
+      "start": 219.86,
+      "end": 220.24,
+      "word": " here"
+    },
+    {
+      "start": 220.24,
+      "end": 220.64,
+      "word": " if"
+    },
+    {
+      "start": 220.64,
+      "end": 220.72,
+      "word": " you"
+    },
+    {
+      "start": 220.72,
+      "end": 220.88,
+      "word": " just"
+    },
+    {
+      "start": 220.88,
+      "end": 221.16,
+      "word": " scroll"
+    },
+    {
+      "start": 221.16,
+      "end": 221.5,
+      "word": " down."
+    },
+    {
+      "start": 221.66,
+      "end": 222.02,
+      "word": " So"
+    },
+    {
+      "start": 222.02,
+      "end": 222.14,
+      "word": " you"
+    },
+    {
+      "start": 222.14,
+      "end": 222.26,
+      "word": " can"
+    },
+    {
+      "start": 222.26,
+      "end": 222.5,
+      "word": " find"
+    },
+    {
+      "start": 222.5,
+      "end": 222.6,
+      "word": " the"
+    },
+    {
+      "start": 222.6,
+      "end": 222.8,
+      "word": " audio"
+    },
+    {
+      "start": 222.8,
+      "end": 223.02,
+      "word": " right"
+    },
+    {
+      "start": 223.02,
+      "end": 223.22,
+      "word": " here."
+    },
+    {
+      "start": 223.3,
+      "end": 223.4,
+      "word": " So"
+    },
+    {
+      "start": 223.4,
+      "end": 223.54,
+      "word": " if"
+    },
+    {
+      "start": 223.54,
+      "end": 223.66,
+      "word": " you"
+    },
+    {
+      "start": 223.66,
+      "end": 223.84,
+      "word": " want"
+    },
+    {
+      "start": 223.84,
+      "end": 223.96,
+      "word": " to"
+    },
+    {
+      "start": 223.96,
+      "end": 224.22,
+      "word": " produce"
+    },
+    {
+      "start": 224.22,
+      "end": 224.4,
+      "word": " a"
+    },
+    {
+      "start": 224.4,
+      "end": 224.72,
+      "word": " video"
+    },
+    {
+      "start": 224.72,
+      "end": 224.96,
+      "word": " with"
+    },
+    {
+      "start": 224.96,
+      "end": 225.1,
+      "word": " an"
+    },
+    {
+      "start": 225.1,
+      "end": 225.54,
+      "word": " audio,"
+    },
+    {
+      "start": 225.72,
+      "end": 225.9,
+      "word": " you"
+    },
+    {
+      "start": 225.9,
+      "end": 226.1,
+      "word": " can"
+    },
+    {
+      "start": 226.1,
+      "end": 226.58,
+      "word": " definitely"
+    },
+    {
+      "start": 226.58,
+      "end": 227.26,
+      "word": " just"
+    },
+    {
+      "start": 227.26,
+      "end": 227.54,
+      "word": " toggle"
+    },
+    {
+      "start": 227.54,
+      "end": 227.74,
+      "word": " this"
+    },
+    {
+      "start": 227.74,
+      "end": 228.02,
+      "word": " on."
+    },
+    {
+      "start": 228.22,
+      "end": 228.52,
+      "word": " And"
+    },
+    {
+      "start": 228.52,
+      "end": 228.64,
+      "word": " then"
+    },
+    {
+      "start": 228.64,
+      "end": 228.76,
+      "word": " you"
+    },
+    {
+      "start": 228.76,
+      "end": 228.88,
+      "word": " can"
+    },
+    {
+      "start": 228.88,
+      "end": 229.2,
+      "word": " also"
+    },
+    {
+      "start": 229.2,
+      "end": 229.68,
+      "word": " choose"
+    },
+    {
+      "start": 229.68,
+      "end": 229.94,
+      "word": " the"
+    },
+    {
+      "start": 229.94,
+      "end": 230.16,
+      "word": " mode"
+    },
+    {
+      "start": 230.16,
+      "end": 230.34,
+      "word": " right"
+    },
+    {
+      "start": 230.34,
+      "end": 230.62,
+      "word": " here"
+    },
+    {
+      "start": 230.62,
+      "end": 230.9,
+      "word": " if"
+    },
+    {
+      "start": 230.9,
+      "end": 230.98,
+      "word": " you"
+    },
+    {
+      "start": 230.98,
+      "end": 231.2,
+      "word": " want"
+    },
+    {
+      "start": 231.2,
+      "end": 231.34,
+      "word": " it"
+    },
+    {
+      "start": 231.34,
+      "end": 231.44,
+      "word": " to"
+    },
+    {
+      "start": 231.44,
+      "end": 231.52,
+      "word": " be"
+    },
+    {
+      "start": 231.52,
+      "end": 231.9,
+      "word": " light,"
+    },
+    {
+      "start": 231.94,
+      "end": 232.32,
+      "word": " fast,"
+    },
+    {
+      "start": 232.6,
+      "end": 232.76,
+      "word": " or"
+    },
+    {
+      "start": 232.76,
+      "end": 232.96,
+      "word": " if"
+    },
+    {
+      "start": 232.96,
+      "end": 233.08,
+      "word": " you"
+    },
+    {
+      "start": 233.08,
+      "end": 233.36,
+      "word": " want"
+    },
+    {
+      "start": 233.36,
+      "end": 234.6,
+      "word": " to"
+    },
+    {
+      "start": 234.6,
+      "end": 234.78,
+      "word": " have"
+    },
+    {
+      "start": 234.78,
+      "end": 235.06,
+      "word": " a"
+    },
+    {
+      "start": 235.06,
+      "end": 235.36,
+      "word": " better"
+    },
+    {
+      "start": 235.36,
+      "end": 235.72,
+      "word": " quality"
+    },
+    {
+      "start": 235.72,
+      "end": 236.08,
+      "word": " than"
+    },
+    {
+      "start": 236.44,
+      "end": 236.56,
+      "word": " choose"
+    },
+    {
+      "start": 236.56,
+      "end": 236.98,
+      "word": " quality"
+    },
+    {
+      "start": 236.98,
+      "end": 237.24,
+      "word": " right"
+    },
+    {
+      "start": 237.24,
+      "end": 237.6,
+      "word": " here."
+    },
+    {
+      "start": 237.74,
+      "end": 238.08,
+      "word": " And"
+    },
+    {
+      "start": 238.08,
+      "end": 238.24,
+      "word": " then"
+    },
+    {
+      "start": 238.24,
+      "end": 238.36,
+      "word": " you"
+    },
+    {
+      "start": 238.36,
+      "end": 238.44,
+      "word": " can"
+    },
+    {
+      "start": 238.44,
+      "end": 238.72,
+      "word": " also"
+    },
+    {
+      "start": 238.72,
+      "end": 239.1,
+      "word": " choose"
+    },
+    {
+      "start": 239.1,
+      "end": 239.28,
+      "word": " the"
+    },
+    {
+      "start": 239.28,
+      "end": 239.6,
+      "word": " output"
+    },
+    {
+      "start": 239.6,
+      "end": 239.96,
+      "word": " type."
+    },
+    {
+      "start": 240.02,
+      "end": 240.18,
+      "word": " So"
+    },
+    {
+      "start": 240.18,
+      "end": 240.34,
+      "word": " you"
+    },
+    {
+      "start": 240.34,
+      "end": 240.54,
+      "word": " can"
+    },
+    {
+      "start": 240.54,
+      "end": 240.78,
+      "word": " do"
+    },
+    {
+      "start": 240.78,
+      "end": 241.12,
+      "word": " vertical"
+    },
+    {
+      "start": 241.12,
+      "end": 241.62,
+      "word": " videos,"
+    },
+    {
+      "start": 241.7,
+      "end": 242.06,
+      "word": " or"
+    },
+    {
+      "start": 242.06,
+      "end": 242.3,
+      "word": " if"
+    },
+    {
+      "start": 242.3,
+      "end": 242.46,
+      "word": " you're"
+    },
+    {
+      "start": 242.46,
+      "end": 242.54,
+      "word": " going"
+    },
+    {
+      "start": 242.54,
+      "end": 242.7,
+      "word": " to"
+    },
+    {
+      "start": 242.7,
+      "end": 242.92,
+      "word": " post"
+    },
+    {
+      "start": 242.92,
+      "end": 243.28,
+      "word": " it"
+    },
+    {
+      "start": 243.28,
+      "end": 243.52,
+      "word": " on"
+    },
+    {
+      "start": 243.52,
+      "end": 243.86,
+      "word": " YouTube,"
+    },
+    {
+      "start": 244.02,
+      "end": 244.38,
+      "word": " then"
+    },
+    {
+      "start": 244.38,
+      "end": 244.56,
+      "word": " you"
+    },
+    {
+      "start": 244.56,
+      "end": 244.76,
+      "word": " can"
+    },
+    {
+      "start": 244.76,
+      "end": 245.0,
+      "word": " do"
+    },
+    {
+      "start": 245.0,
+      "end": 245.46,
+      "word": " 16"
+    },
+    {
+      "start": 245.46,
+      "end": 245.74,
+      "word": " by"
+    },
+    {
+      "start": 245.74,
+      "end": 246.08,
+      "word": " 9."
+    },
+    {
+      "start": 246.2,
+      "end": 246.54,
+      "word": " The"
+    },
+    {
+      "start": 246.54,
+      "end": 246.82,
+      "word": " resolution"
+    },
+    {
+      "start": 246.82,
+      "end": 247.18,
+      "word": " as"
+    },
+    {
+      "start": 247.18,
+      "end": 247.38,
+      "word": " well,"
+    },
+    {
+      "start": 247.4,
+      "end": 247.54,
+      "word": " you"
+    },
+    {
+      "start": 247.54,
+      "end": 247.7,
+      "word": " can"
+    },
+    {
+      "start": 247.7,
+      "end": 247.96,
+      "word": " choose"
+    },
+    {
+      "start": 247.96,
+      "end": 248.16,
+      "word": " whether"
+    },
+    {
+      "start": 248.16,
+      "end": 248.32,
+      "word": " you"
+    },
+    {
+      "start": 248.32,
+      "end": 248.54,
+      "word": " want"
+    },
+    {
+      "start": 248.54,
+      "end": 248.66,
+      "word": " it"
+    },
+    {
+      "start": 248.66,
+      "end": 248.74,
+      "word": " to"
+    },
+    {
+      "start": 248.74,
+      "end": 248.88,
+      "word": " be"
+    },
+    {
+      "start": 248.88,
+      "end": 249.16,
+      "word": " in"
+    },
+    {
+      "start": 249.16,
+      "end": 249.96,
+      "word": " 720p"
+    },
+    {
+      "start": 249.96,
+      "end": 250.46,
+      "word": " or"
+    },
+    {
+      "start": 250.46,
+      "end": 251.58,
+      "word": " 180p."
+    },
+    {
+      "start": 251.74,
+      "end": 252.16,
+      "word": " Take"
+    },
+    {
+      "start": 252.16,
+      "end": 252.48,
+      "word": " note"
+    },
+    {
+      "start": 252.48,
+      "end": 253.0,
+      "word": " that"
+    },
+    {
+      "start": 253.0,
+      "end": 253.26,
+      "word": " in"
+    },
+    {
+      "start": 253.26,
+      "end": 253.76,
+      "word": " every"
+    },
+    {
+      "start": 253.76,
+      "end": 254.24,
+      "word": " tool"
+    },
+    {
+      "start": 254.24,
+      "end": 254.62,
+      "word": " that"
+    },
+    {
+      "start": 254.62,
+      "end": 255.0,
+      "word": " you"
+    },
+    {
+      "start": 255.0,
+      "end": 255.56,
+      "word": " or"
+    },
+    {
+      "start": 255.56,
+      "end": 255.74,
+      "word": " like"
+    },
+    {
+      "start": 255.74,
+      "end": 256.16,
+      "word": " every"
+    },
+    {
+      "start": 256.16,
+      "end": 256.64,
+      "word": " feature"
+    },
+    {
+      "start": 256.64,
+      "end": 257.16,
+      "word": " that"
+    },
+    {
+      "start": 257.16,
+      "end": 257.4,
+      "word": " you"
+    },
+    {
+      "start": 257.4,
+      "end": 257.78,
+      "word": " alter,"
+    },
+    {
+      "start": 258.0,
+      "end": 258.26,
+      "word": " your"
+    },
+    {
+      "start": 258.26,
+      "end": 258.76,
+      "word": " credits"
+    },
+    {
+      "start": 258.76,
+      "end": 259.04,
+      "word": " will"
+    },
+    {
+      "start": 259.04,
+      "end": 259.46,
+      "word": " either"
+    },
+    {
+      "start": 259.46,
+      "end": 260.02,
+      "word": " increase"
+    },
+    {
+      "start": 260.02,
+      "end": 260.52,
+      "word": " or"
+    },
+    {
+      "start": 260.52,
+      "end": 260.88,
+      "word": " decrease."
+    },
+    {
+      "start": 261.06,
+      "end": 261.34,
+      "word": " So"
+    },
+    {
+      "start": 261.34,
+      "end": 261.46,
+      "word": " as"
+    },
+    {
+      "start": 261.46,
+      "end": 261.56,
+      "word": " you"
+    },
+    {
+      "start": 261.56,
+      "end": 261.74,
+      "word": " can"
+    },
+    {
+      "start": 261.74,
+      "end": 261.92,
+      "word": " see"
+    },
+    {
+      "start": 261.92,
+      "end": 262.12,
+      "word": " here,"
+    },
+    {
+      "start": 262.18,
+      "end": 262.34,
+      "word": " since"
+    },
+    {
+      "start": 262.34,
+      "end": 262.56,
+      "word": " we're"
+    },
+    {
+      "start": 262.56,
+      "end": 262.96,
+      "word": " producing"
+    },
+    {
+      "start": 262.96,
+      "end": 263.34,
+      "word": " a"
+    },
+    {
+      "start": 263.34,
+      "end": 263.72,
+      "word": " video"
+    },
+    {
+      "start": 263.72,
+      "end": 263.9,
+      "word": " in"
+    },
+    {
+      "start": 263.9,
+      "end": 264.24,
+      "word": " only"
+    },
+    {
+      "start": 264.24,
+      "end": 265.04,
+      "word": " 720p"
+    },
+    {
+      "start": 265.04,
+      "end": 265.4,
+      "word": " resolution,"
+    },
+    {
+      "start": 266.44,
+      "end": 266.44,
+      "word": " you"
+    },
+    {
+      "start": 266.44,
+      "end": 266.44,
+      "word": " are"
+    },
+    {
+      "start": 266.44,
+      "end": 266.84,
+      "word": " using"
+    },
+    {
+      "start": 266.84,
+      "end": 267.24,
+      "word": " much"
+    },
+    {
+      "start": 267.24,
+      "end": 267.56,
+      "word": " less"
+    },
+    {
+      "start": 267.56,
+      "end": 268.1,
+      "word": " credits."
+    },
+    {
+      "start": 268.28,
+      "end": 268.62,
+      "word": " So"
+    },
+    {
+      "start": 268.62,
+      "end": 268.8,
+      "word": " what"
+    },
+    {
+      "start": 268.8,
+      "end": 268.96,
+      "word": " you're"
+    },
+    {
+      "start": 268.96,
+      "end": 269.02,
+      "word": " going"
+    },
+    {
+      "start": 269.02,
+      "end": 269.12,
+      "word": " to"
+    },
+    {
+      "start": 269.12,
+      "end": 269.26,
+      "word": " do"
+    },
+    {
+      "start": 269.26,
+      "end": 269.46,
+      "word": " next"
+    },
+    {
+      "start": 269.46,
+      "end": 269.6,
+      "word": " is"
+    },
+    {
+      "start": 269.6,
+      "end": 269.8,
+      "word": " you're"
+    },
+    {
+      "start": 269.8,
+      "end": 269.88,
+      "word": " just"
+    },
+    {
+      "start": 269.88,
+      "end": 269.96,
+      "word": " going"
+    },
+    {
+      "start": 269.96,
+      "end": 270.06,
+      "word": " to"
+    },
+    {
+      "start": 270.06,
+      "end": 270.34,
+      "word": " click"
+    },
+    {
+      "start": 270.34,
+      "end": 270.54,
+      "word": " on"
+    },
+    {
+      "start": 270.54,
+      "end": 270.88,
+      "word": " generate"
+    },
+    {
+      "start": 270.88,
+      "end": 271.16,
+      "word": " right"
+    },
+    {
+      "start": 271.16,
+      "end": 271.38,
+      "word": " here,"
+    },
+    {
+      "start": 271.44,
+      "end": 271.54,
+      "word": " and"
+    },
+    {
+      "start": 271.54,
+      "end": 271.66,
+      "word": " then"
+    },
+    {
+      "start": 271.66,
+      "end": 271.8,
+      "word": " we're"
+    },
+    {
+      "start": 271.8,
+      "end": 271.88,
+      "word": " going"
+    },
+    {
+      "start": 271.88,
+      "end": 272.02,
+      "word": " to"
+    },
+    {
+      "start": 272.02,
+      "end": 272.3,
+      "word": " wait"
+    },
+    {
+      "start": 272.3,
+      "end": 272.56,
+      "word": " for"
+    },
+    {
+      "start": 272.56,
+      "end": 272.78,
+      "word": " the"
+    },
+    {
+      "start": 272.78,
+      "end": 273.04,
+      "word": " video"
+    },
+    {
+      "start": 273.04,
+      "end": 273.2,
+      "word": " to"
+    },
+    {
+      "start": 273.2,
+      "end": 273.32,
+      "word": " be"
+    },
+    {
+      "start": 273.32,
+      "end": 273.8,
+      "word": " generated."
+    },
+    {
+      "start": 274.42,
+      "end": 274.9,
+      "word": " And"
+    },
+    {
+      "start": 274.9,
+      "end": 275.02,
+      "word": " now"
+    },
+    {
+      "start": 275.02,
+      "end": 275.16,
+      "word": " we"
+    },
+    {
+      "start": 275.16,
+      "end": 275.3,
+      "word": " can"
+    },
+    {
+      "start": 275.3,
+      "end": 275.52,
+      "word": " see"
+    },
+    {
+      "start": 275.52,
+      "end": 275.66,
+      "word": " the"
+    },
+    {
+      "start": 275.66,
+      "end": 276.0,
+      "word": " generated"
+    },
+    {
+      "start": 276.0,
+      "end": 276.52,
+      "word": " video"
+    },
+    {
+      "start": 276.52,
+      "end": 277.02,
+      "word": " right"
+    },
+    {
+      "start": 277.02,
+      "end": 277.38,
+      "word": " here."
+    },
+    {
+      "start": 281.25,
+      "end": 281.73,
+      "word": " So"
+    },
+    {
+      "start": 281.73,
+      "end": 282.01,
+      "word": " you"
+    },
+    {
+      "start": 282.01,
+      "end": 282.17,
+      "word": " can"
+    },
+    {
+      "start": 282.17,
+      "end": 282.57,
+      "word": " also"
+    },
+    {
+      "start": 282.57,
+      "end": 283.03,
+      "word": " hear"
+    },
+    {
+      "start": 283.03,
+      "end": 283.17,
+      "word": " the"
+    },
+    {
+      "start": 283.17,
+      "end": 283.57,
+      "word": " sound"
+    },
+    {
+      "start": 283.57,
+      "end": 283.71,
+      "word": " of"
+    },
+    {
+      "start": 283.71,
+      "end": 283.87,
+      "word": " it."
+    },
+    {
+      "start": 283.97,
+      "end": 284.13,
+      "word": " It's"
+    },
+    {
+      "start": 284.13,
+      "end": 284.39,
+      "word": " very"
+    },
+    {
+      "start": 284.39,
+      "end": 284.87,
+      "word": " crisp."
+    },
+    {
+      "start": 285.05,
+      "end": 285.31,
+      "word": " And"
+    },
+    {
+      "start": 285.31,
+      "end": 285.57,
+      "word": " the"
+    },
+    {
+      "start": 285.57,
+      "end": 285.89,
+      "word": " character"
+    },
+    {
+      "start": 285.89,
+      "end": 286.19,
+      "word": " also"
+    },
+    {
+      "start": 286.19,
+      "end": 286.51,
+      "word": " looks"
+    },
+    {
+      "start": 286.51,
+      "end": 286.75,
+      "word": " very"
+    },
+    {
+      "start": 286.75,
+      "end": 287.21,
+      "word": " realistic."
+    },
+    {
+      "start": 287.45,
+      "end": 287.79,
+      "word": " It"
+    },
+    {
+      "start": 287.79,
+      "end": 288.03,
+      "word": " literally"
+    },
+    {
+      "start": 288.03,
+      "end": 288.31,
+      "word": " just"
+    },
+    {
+      "start": 288.31,
+      "end": 288.65,
+      "word": " looks"
+    },
+    {
+      "start": 288.65,
+      "end": 288.91,
+      "word": " like"
+    },
+    {
+      "start": 288.91,
+      "end": 289.17,
+      "word": " it"
+    },
+    {
+      "start": 289.17,
+      "end": 289.63,
+      "word": " came"
+    },
+    {
+      "start": 289.63,
+      "end": 289.97,
+      "word": " out"
+    },
+    {
+      "start": 289.97,
+      "end": 290.37,
+      "word": " from"
+    },
+    {
+      "start": 290.37,
+      "end": 290.49,
+      "word": " a"
+    },
+    {
+      "start": 290.49,
+      "end": 290.87,
+      "word": " movie."
+    },
+    {
+      "start": 290.99,
+      "end": 291.45,
+      "word": " Now"
+    },
+    {
+      "start": 291.45,
+      "end": 291.65,
+      "word": " in"
+    },
+    {
+      "start": 291.65,
+      "end": 291.91,
+      "word": " order"
+    },
+    {
+      "start": 291.91,
+      "end": 292.11,
+      "word": " for"
+    },
+    {
+      "start": 292.11,
+      "end": 292.31,
+      "word": " you"
+    },
+    {
+      "start": 292.31,
+      "end": 292.51,
+      "word": " to"
+    },
+    {
+      "start": 292.51,
+      "end": 292.89,
+      "word": " edit"
+    },
+    {
+      "start": 292.89,
+      "end": 293.13,
+      "word": " this,"
+    },
+    {
+      "start": 293.21,
+      "end": 293.35,
+      "word": " if"
+    },
+    {
+      "start": 293.35,
+      "end": 293.49,
+      "word": " you"
+    },
+    {
+      "start": 293.49,
+      "end": 293.81,
+      "word": " want"
+    },
+    {
+      "start": 293.81,
+      "end": 294.05,
+      "word": " to"
+    },
+    {
+      "start": 294.05,
+      "end": 294.59,
+      "word": " edit"
+    },
+    {
+      "start": 294.59,
+      "end": 294.89,
+      "word": " some"
+    },
+    {
+      "start": 294.89,
+      "end": 295.01,
+      "word": " of"
+    },
+    {
+      "start": 295.01,
+      "end": 295.09,
+      "word": " the"
+    },
+    {
+      "start": 295.09,
+      "end": 295.41,
+      "word": " components"
+    },
+    {
+      "start": 295.41,
+      "end": 295.71,
+      "word": " of"
+    },
+    {
+      "start": 295.71,
+      "end": 295.81,
+      "word": " the"
+    },
+    {
+      "start": 295.81,
+      "end": 296.09,
+      "word": " video,"
+    },
+    {
+      "start": 296.21,
+      "end": 296.55,
+      "word": " you"
+    },
+    {
+      "start": 296.55,
+      "end": 296.71,
+      "word": " can"
+    },
+    {
+      "start": 296.71,
+      "end": 296.87,
+      "word": " just"
+    },
+    {
+      "start": 296.87,
+      "end": 297.17,
+      "word": " click"
+    },
+    {
+      "start": 297.17,
+      "end": 297.45,
+      "word": " on"
+    },
+    {
+      "start": 297.45,
+      "end": 297.83,
+      "word": " modify"
+    },
+    {
+      "start": 297.83,
+      "end": 298.21,
+      "word": " video"
+    },
+    {
+      "start": 298.21,
+      "end": 298.51,
+      "word": " right"
+    },
+    {
+      "start": 298.51,
+      "end": 298.81,
+      "word": " here."
+    },
+    {
+      "start": 298.87,
+      "end": 299.35,
+      "word": " And"
+    },
+    {
+      "start": 299.35,
+      "end": 299.49,
+      "word": " then"
+    },
+    {
+      "start": 299.49,
+      "end": 299.49,
+      "word": " you"
+    },
+    {
+      "start": 299.49,
+      "end": 299.49,
+      "word": " can"
+    },
+    {
+      "start": 299.49,
+      "end": 299.49,
+      "word": " see"
+    },
+    {
+      "start": 299.49,
+      "end": 299.49,
+      "word": " that"
+    },
+    {
+      "start": 299.49,
+      "end": 299.49,
+      "word": " the"
+    },
+    {
+      "start": 299.49,
+      "end": 299.49,
+      "word": " video"
+    },
+    {
+      "start": 299.49,
+      "end": 299.49,
+      "word": " is"
+    },
+    {
+      "start": 299.49,
+      "end": 299.49,
+      "word": " generated."
+    },
+    {
+      "start": 299.49,
+      "end": 299.49,
+      "word": " So"
+    },
+    {
+      "start": 299.49,
+      "end": 299.49,
+      "word": " you"
+    },
+    {
+      "start": 299.49,
+      "end": 299.49,
+      "word": " can"
+    },
+    {
+      "start": 299.51,
+      "end": 299.57,
+      "word": " then"
+    },
+    {
+      "start": 299.57,
+      "end": 300.05,
+      "word": " you"
+    },
+    {
+      "start": 300.05,
+      "end": 300.33,
+      "word": " can"
+    },
+    {
+      "start": 300.33,
+      "end": 300.69,
+      "word": " choose"
+    },
+    {
+      "start": 300.69,
+      "end": 300.89,
+      "word": " a"
+    },
+    {
+      "start": 300.89,
+      "end": 301.15,
+      "word": " video"
+    },
+    {
+      "start": 301.15,
+      "end": 301.35,
+      "word": " to"
+    },
+    {
+      "start": 301.35,
+      "end": 301.61,
+      "word": " edit,"
+    },
+    {
+      "start": 301.69,
+      "end": 301.81,
+      "word": " which"
+    },
+    {
+      "start": 301.81,
+      "end": 301.93,
+      "word": " is"
+    },
+    {
+      "start": 301.93,
+      "end": 302.11,
+      "word": " this"
+    },
+    {
+      "start": 302.11,
+      "end": 302.43,
+      "word": " one,"
+    },
+    {
+      "start": 302.55,
+      "end": 302.93,
+      "word": " you"
+    },
+    {
+      "start": 302.93,
+      "end": 303.17,
+      "word": " can"
+    },
+    {
+      "start": 303.17,
+      "end": 303.73,
+      "word": " describe"
+    },
+    {
+      "start": 303.73,
+      "end": 304.05,
+      "word": " how"
+    },
+    {
+      "start": 304.05,
+      "end": 304.17,
+      "word": " you"
+    },
+    {
+      "start": 304.17,
+      "end": 304.33,
+      "word": " want"
+    },
+    {
+      "start": 304.33,
+      "end": 304.47,
+      "word": " to"
+    },
+    {
+      "start": 304.47,
+      "end": 304.69,
+      "word": " edit"
+    },
+    {
+      "start": 304.69,
+      "end": 304.85,
+      "word": " the"
+    },
+    {
+      "start": 304.85,
+      "end": 305.13,
+      "word": " video."
+    },
+    {
+      "start": 305.21,
+      "end": 305.29,
+      "word": " For"
+    },
+    {
+      "start": 305.29,
+      "end": 305.73,
+      "word": " example,"
+    },
+    {
+      "start": 305.85,
+      "end": 306.13,
+      "word": " you"
+    },
+    {
+      "start": 306.13,
+      "end": 306.51,
+      "word": " want"
+    },
+    {
+      "start": 306.51,
+      "end": 306.83,
+      "word": " to,"
+    },
+    {
+      "start": 306.83,
+      "end": 307.49,
+      "word": " like"
+    },
+    {
+      "start": 307.49,
+      "end": 307.85,
+      "word": " change"
+    },
+    {
+      "start": 307.85,
+      "end": 308.11,
+      "word": " some"
+    },
+    {
+      "start": 308.11,
+      "end": 308.55,
+      "word": " text,"
+    },
+    {
+      "start": 308.63,
+      "end": 308.79,
+      "word": " or"
+    },
+    {
+      "start": 308.79,
+      "end": 308.95,
+      "word": " you"
+    },
+    {
+      "start": 308.95,
+      "end": 309.15,
+      "word": " want"
+    },
+    {
+      "start": 309.15,
+      "end": 309.31,
+      "word": " to"
+    },
+    {
+      "start": 309.31,
+      "end": 309.49,
+      "word": " add"
+    },
+    {
+      "start": 309.49,
+      "end": 309.69,
+      "word": " some"
+    },
+    {
+      "start": 309.69,
+      "end": 310.09,
+      "word": " text"
+    },
+    {
+      "start": 310.09,
+      "end": 310.51,
+      "word": " images"
+    },
+    {
+      "start": 310.51,
+      "end": 310.89,
+      "word": " or"
+    },
+    {
+      "start": 310.89,
+      "end": 311.33,
+      "word": " elements"
+    },
+    {
+      "start": 311.33,
+      "end": 311.69,
+      "word": " or"
+    },
+    {
+      "start": 311.69,
+      "end": 311.99,
+      "word": " any"
+    },
+    {
+      "start": 311.99,
+      "end": 312.19,
+      "word": " of"
+    },
+    {
+      "start": 312.19,
+      "end": 312.35,
+      "word": " the"
+    },
+    {
+      "start": 312.35,
+      "end": 312.73,
+      "word": " instructions"
+    },
+    {
+      "start": 312.73,
+      "end": 313.11,
+      "word": " that"
+    },
+    {
+      "start": 313.11,
+      "end": 313.25,
+      "word": " you"
+    },
+    {
+      "start": 313.25,
+      "end": 313.53,
+      "word": " want."
+    },
+    {
+      "start": 313.71,
+      "end": 314.17,
+      "word": " And"
+    },
+    {
+      "start": 314.17,
+      "end": 314.49,
+      "word": " you"
+    },
+    {
+      "start": 314.49,
+      "end": 314.63,
+      "word": " can"
+    },
+    {
+      "start": 314.63,
+      "end": 314.93,
+      "word": " also"
+    },
+    {
+      "start": 314.93,
+      "end": 315.33,
+      "word": " have"
+    },
+    {
+      "start": 315.33,
+      "end": 315.59,
+      "word": " the"
+    },
+    {
+      "start": 315.59,
+      "end": 315.97,
+      "word": " audio"
+    },
+    {
+      "start": 315.97,
+      "end": 316.29,
+      "word": " turned"
+    },
+    {
+      "start": 316.29,
+      "end": 316.65,
+      "word": " off"
+    },
+    {
+      "start": 316.65,
+      "end": 316.95,
+      "word": " if"
+    },
+    {
+      "start": 316.95,
+      "end": 317.03,
+      "word": " you"
+    },
+    {
+      "start": 317.03,
+      "end": 317.25,
+      "word": " want,"
+    },
+    {
+      "start": 317.29,
+      "end": 317.41,
+      "word": " you"
+    },
+    {
+      "start": 317.41,
+      "end": 317.53,
+      "word": " can"
+    },
+    {
+      "start": 317.53,
+      "end": 317.81,
+      "word": " change"
+    },
+    {
+      "start": 317.81,
+      "end": 317.97,
+      "word": " the"
+    },
+    {
+      "start": 317.97,
+      "end": 318.39,
+      "word": " output."
+    },
+    {
+      "start": 318.67,
+      "end": 319.21,
+      "word": " And"
+    },
+    {
+      "start": 319.21,
+      "end": 319.63,
+      "word": " of"
+    },
+    {
+      "start": 319.63,
+      "end": 320.09,
+      "word": " course,"
+    },
+    {
+      "start": 320.11,
+      "end": 320.91,
+      "word": " you"
+    },
+    {
+      "start": 320.91,
+      "end": 321.11,
+      "word": " can"
+    },
+    {
+      "start": 321.11,
+      "end": 321.69,
+      "word": " change"
+    },
+    {
+      "start": 321.69,
+      "end": 321.95,
+      "word": " the"
+    },
+    {
+      "start": 321.95,
+      "end": 322.43,
+      "word": " model"
+    },
+    {
+      "start": 322.43,
+      "end": 322.77,
+      "word": " right"
+    },
+    {
+      "start": 322.77,
+      "end": 323.21,
+      "word": " here."
+    },
+    {
+      "start": 323.31,
+      "end": 323.47,
+      "word": " So"
+    },
+    {
+      "start": 323.47,
+      "end": 323.71,
+      "word": " for"
+    },
+    {
+      "start": 323.71,
+      "end": 324.11,
+      "word": " example,"
+    },
+    {
+      "start": 324.11,
+      "end": 324.53,
+      "word": " the"
+    },
+    {
+      "start": 324.53,
+      "end": 324.85,
+      "word": " model"
+    },
+    {
+      "start": 324.85,
+      "end": 325.01,
+      "word": " that"
+    },
+    {
+      "start": 325.01,
+      "end": 325.17,
+      "word": " you"
+    },
+    {
+      "start": 325.17,
+      "end": 325.65,
+      "word": " previously"
+    },
+    {
+      "start": 325.65,
+      "end": 326.05,
+      "word": " chose"
+    },
+    {
+      "start": 326.05,
+      "end": 326.43,
+      "word": " doesn't"
+    },
+    {
+      "start": 326.43,
+      "end": 326.61,
+      "word": " really"
+    },
+    {
+      "start": 326.61,
+      "end": 326.97,
+      "word": " satisfy"
+    },
+    {
+      "start": 326.97,
+      "end": 327.49,
+      "word": " you,"
+    },
+    {
+      "start": 327.51,
+      "end": 327.87,
+      "word": " then"
+    },
+    {
+      "start": 327.87,
+      "end": 328.01,
+      "word": " you"
+    },
+    {
+      "start": 328.01,
+      "end": 328.17,
+      "word": " can"
+    },
+    {
+      "start": 328.17,
+      "end": 328.49,
+      "word": " change"
+    },
+    {
+      "start": 329.51,
+      "end": 329.65,
+      "word": " it."
+    },
+    {
+      "start": 329.65,
+      "end": 329.97,
+      "word": " And"
+    },
+    {
+      "start": 329.97,
+      "end": 330.09,
+      "word": " then"
+    },
+    {
+      "start": 330.09,
+      "end": 330.21,
+      "word": " you"
+    },
+    {
+      "start": 330.21,
+      "end": 330.33,
+      "word": " can"
+    },
+    {
+      "start": 330.33,
+      "end": 330.61,
+      "word": " also"
+    },
+    {
+      "start": 330.61,
+      "end": 330.99,
+      "word": " upload"
+    },
+    {
+      "start": 330.99,
+      "end": 331.11,
+      "word": " a"
+    },
+    {
+      "start": 331.11,
+      "end": 331.47,
+      "word": " reference"
+    },
+    {
+      "start": 331.47,
+      "end": 331.95,
+      "word": " video"
+    },
+    {
+      "start": 331.95,
+      "end": 332.31,
+      "word": " right"
+    },
+    {
+      "start": 332.31,
+      "end": 332.59,
+      "word": " here"
+    },
+    {
+      "start": 332.59,
+      "end": 332.83,
+      "word": " if"
+    },
+    {
+      "start": 332.83,
+      "end": 332.93,
+      "word": " you"
+    },
+    {
+      "start": 332.93,
+      "end": 333.19,
+      "word": " want."
+    },
+    {
+      "start": 333.39,
+      "end": 333.69,
+      "word": " And"
+    },
+    {
+      "start": 333.69,
+      "end": 334.27,
+      "word": " yeah,"
+    },
+    {
+      "start": 334.33,
+      "end": 334.55,
+      "word": " that's"
+    },
+    {
+      "start": 334.55,
+      "end": 334.83,
+      "word": " basically"
+    },
+    {
+      "start": 334.83,
+      "end": 335.09,
+      "word": " how"
+    },
+    {
+      "start": 335.09,
+      "end": 335.27,
+      "word": " you're"
+    },
+    {
+      "start": 335.27,
+      "end": 335.45,
+      "word": " going"
+    },
+    {
+      "start": 335.45,
+      "end": 335.65,
+      "word": " to"
+    },
+    {
+      "start": 335.65,
+      "end": 335.95,
+      "word": " edit"
+    },
+    {
+      "start": 335.95,
+      "end": 336.15,
+      "word": " it."
+    },
+    {
+      "start": 336.21,
+      "end": 336.51,
+      "word": " I"
+    },
+    {
+      "start": 336.51,
+      "end": 336.77,
+      "word": " think"
+    },
+    {
+      "start": 336.77,
+      "end": 336.91,
+      "word": " that"
+    },
+    {
+      "start": 336.91,
+      "end": 337.21,
+      "word": " this"
+    },
+    {
+      "start": 337.21,
+      "end": 337.51,
+      "word": " tool"
+    },
+    {
+      "start": 337.51,
+      "end": 337.73,
+      "word": " is"
+    },
+    {
+      "start": 337.73,
+      "end": 338.01,
+      "word": " actually"
+    },
+    {
+      "start": 338.01,
+      "end": 338.45,
+      "word": " very,"
+    },
+    {
+      "start": 338.49,
+      "end": 338.77,
+      "word": " very"
+    },
+    {
+      "start": 338.77,
+      "end": 339.21,
+      "word": " helpful,"
+    },
+    {
+      "start": 339.33,
+      "end": 339.59,
+      "word": " especially"
+    },
+    {
+      "start": 339.59,
+      "end": 339.95,
+      "word": " with"
+    },
+    {
+      "start": 339.95,
+      "end": 340.29,
+      "word": " most"
+    },
+    {
+      "start": 340.29,
+      "end": 340.53,
+      "word": " AI"
+    },
+    {
+      "start": 340.53,
+      "end": 340.73,
+      "word": " is"
+    },
+    {
+      "start": 340.73,
+      "end": 340.87,
+      "word": " not"
+    },
+    {
+      "start": 340.87,
+      "end": 341.27,
+      "word": " offering"
+    },
+    {
+      "start": 341.27,
+      "end": 341.53,
+      "word": " this"
+    },
+    {
+      "start": 341.53,
+      "end": 341.85,
+      "word": " feature,"
+    },
+    {
+      "start": 342.05,
+      "end": 342.57,
+      "word": " like"
+    },
+    {
+      "start": 342.57,
+      "end": 342.85,
+      "word": " being"
+    },
+    {
+      "start": 342.85,
+      "end": 343.23,
+      "word": " able"
+    },
+    {
+      "start": 343.23,
+      "end": 343.55,
+      "word": " to"
+    },
+    {
+      "start": 343.55,
+      "end": 343.79,
+      "word": " just"
+    },
+    {
+      "start": 343.79,
+      "end": 344.31,
+      "word": " edit"
+    },
+    {
+      "start": 344.31,
+      "end": 344.73,
+      "word": " or"
+    },
+    {
+      "start": 344.73,
+      "end": 345.07,
+      "word": " like,"
+    },
+    {
+      "start": 345.09,
+      "end": 345.47,
+      "word": " you"
+    },
+    {
+      "start": 345.47,
+      "end": 345.69,
+      "word": " know,"
+    },
+    {
+      "start": 345.69,
+      "end": 346.21,
+      "word": " add"
+    },
+    {
+      "start": 346.21,
+      "end": 346.45,
+      "word": " more"
+    },
+    {
+      "start": 346.45,
+      "end": 347.03,
+      "word": " instructions"
+    },
+    {
+      "start": 347.03,
+      "end": 347.39,
+      "word": " or"
+    },
+    {
+      "start": 347.39,
+      "end": 347.53,
+      "word": " like"
+    },
+    {
+      "start": 347.53,
+      "end": 347.83,
+      "word": " modify"
+    },
+    {
+      "start": 347.83,
+      "end": 348.31,
+      "word": " some"
+    },
+    {
+      "start": 348.31,
+      "end": 348.51,
+      "word": " of"
+    },
+    {
+      "start": 348.51,
+      "end": 348.59,
+      "word": " the"
+    },
+    {
+      "start": 348.59,
+      "end": 348.93,
+      "word": " elements"
+    },
+    {
+      "start": 348.93,
+      "end": 349.15,
+      "word": " in"
+    },
+    {
+      "start": 349.15,
+      "end": 349.25,
+      "word": " the"
+    },
+    {
+      "start": 349.25,
+      "end": 349.51,
+      "word": " video."
+    },
+    {
+      "start": 349.57,
+      "end": 349.65,
+      "word": " I"
+    },
+    {
+      "start": 349.65,
+      "end": 349.81,
+      "word": " think"
+    },
+    {
+      "start": 349.81,
+      "end": 349.95,
+      "word": " it's"
+    },
+    {
+      "start": 349.95,
+      "end": 350.15,
+      "word": " very"
+    },
+    {
+      "start": 350.15,
+      "end": 350.69,
+      "word": " helpful"
+    },
+    {
+      "start": 350.69,
+      "end": 350.97,
+      "word": " that"
+    },
+    {
+      "start": 350.97,
+      "end": 351.25,
+      "word": " you"
+    },
+    {
+      "start": 351.25,
+      "end": 351.51,
+      "word": " don't"
+    },
+    {
+      "start": 351.51,
+      "end": 351.67,
+      "word": " have"
+    },
+    {
+      "start": 351.67,
+      "end": 351.95,
+      "word": " to"
+    },
+    {
+      "start": 351.95,
+      "end": 352.53,
+      "word": " redo"
+    },
+    {
+      "start": 352.53,
+      "end": 352.73,
+      "word": " the"
+    },
+    {
+      "start": 352.73,
+      "end": 353.05,
+      "word": " prompt"
+    },
+    {
+      "start": 353.05,
+      "end": 353.35,
+      "word": " once"
+    },
+    {
+      "start": 353.35,
+      "end": 353.61,
+      "word": " again,"
+    },
+    {
+      "start": 353.67,
+      "end": 353.81,
+      "word": " or"
+    },
+    {
+      "start": 353.81,
+      "end": 353.99,
+      "word": " like"
+    },
+    {
+      "start": 353.99,
+      "end": 354.45,
+      "word": " adjust"
+    },
+    {
+      "start": 354.45,
+      "end": 354.91,
+      "word": " it"
+    },
+    {
+      "start": 354.91,
+      "end": 355.53,
+      "word": " every"
+    },
+    {
+      "start": 355.53,
+      "end": 355.81,
+      "word": " time"
+    },
+    {
+      "start": 355.81,
+      "end": 356.23,
+      "word": " you"
+    },
+    {
+      "start": 356.23,
+      "end": 356.61,
+      "word": " try"
+    },
+    {
+      "start": 356.61,
+      "end": 356.87,
+      "word": " to"
+    },
+    {
+      "start": 356.87,
+      "end": 357.19,
+      "word": " edit"
+    },
+    {
+      "start": 357.19,
+      "end": 357.49,
+      "word": " some"
+    },
+    {
+      "start": 357.49,
+      "end": 358.21,
+      "word": " components."
+    },
+    {
+      "start": 359.51,
+      "end": 359.59,
+      "word": " I"
+    },
+    {
+      "start": 359.59,
+      "end": 359.59,
+      "word": " think"
+    },
+    {
+      "start": 359.59,
+      "end": 359.85,
+      "word": " on"
+    },
+    {
+      "start": 359.85,
+      "end": 360.05,
+      "word": " the"
+    },
+    {
+      "start": 360.05,
+      "end": 360.47,
+      "word": " creative"
+    },
+    {
+      "start": 360.47,
+      "end": 360.83,
+      "word": " workspace"
+    },
+    {
+      "start": 360.83,
+      "end": 361.49,
+      "word": " side,"
+    },
+    {
+      "start": 361.63,
+      "end": 361.87,
+      "word": " open"
+    },
+    {
+      "start": 361.87,
+      "end": 362.17,
+      "word": " art"
+    },
+    {
+      "start": 362.17,
+      "end": 362.39,
+      "word": " is"
+    },
+    {
+      "start": 362.39,
+      "end": 362.49,
+      "word": " in"
+    },
+    {
+      "start": 362.49,
+      "end": 362.81,
+      "word": " category"
+    },
+    {
+      "start": 362.81,
+      "end": 363.19,
+      "word": " of"
+    },
+    {
+      "start": 363.19,
+      "end": 363.39,
+      "word": " its"
+    },
+    {
+      "start": 363.39,
+      "end": 363.55,
+      "word": " own"
+    },
+    {
+      "start": 363.55,
+      "end": 363.81,
+      "word": " among"
+    },
+    {
+      "start": 363.81,
+      "end": 364.07,
+      "word": " these"
+    },
+    {
+      "start": 364.07,
+      "end": 364.31,
+      "word": " five"
+    },
+    {
+      "start": 364.31,
+      "end": 364.75,
+      "word": " tools,"
+    },
+    {
+      "start": 364.97,
+      "end": 365.33,
+      "word": " the"
+    },
+    {
+      "start": 365.33,
+      "end": 365.65,
+      "word": " model"
+    },
+    {
+      "start": 365.65,
+      "end": 365.97,
+      "word": " variety"
+    },
+    {
+      "start": 365.97,
+      "end": 366.45,
+      "word": " that"
+    },
+    {
+      "start": 366.45,
+      "end": 366.79,
+      "word": " we"
+    },
+    {
+      "start": 366.79,
+      "end": 367.11,
+      "word": " have"
+    },
+    {
+      "start": 367.11,
+      "end": 367.39,
+      "word": " right"
+    },
+    {
+      "start": 367.39,
+      "end": 367.69,
+      "word": " here,"
+    },
+    {
+      "start": 367.81,
+      "end": 367.97,
+      "word": " like"
+    },
+    {
+      "start": 367.97,
+      "end": 368.13,
+      "word": " the"
+    },
+    {
+      "start": 368.13,
+      "end": 368.45,
+      "word": " several"
+    },
+    {
+      "start": 368.45,
+      "end": 369.01,
+      "word": " types"
+    },
+    {
+      "start": 369.01,
+      "end": 369.25,
+      "word": " of"
+    },
+    {
+      "start": 369.25,
+      "end": 369.55,
+      "word": " models"
+    },
+    {
+      "start": 369.55,
+      "end": 369.75,
+      "word": " that"
+    },
+    {
+      "start": 369.75,
+      "end": 369.87,
+      "word": " we"
+    },
+    {
+      "start": 369.87,
+      "end": 370.01,
+      "word": " can"
+    },
+    {
+      "start": 370.01,
+      "end": 370.29,
+      "word": " choose"
+    },
+    {
+      "start": 370.29,
+      "end": 370.69,
+      "word": " from."
+    },
+    {
+      "start": 371.01,
+      "end": 371.49,
+      "word": " It's"
+    },
+    {
+      "start": 371.49,
+      "end": 371.95,
+      "word": " very,"
+    },
+    {
+      "start": 372.07,
+      "end": 372.87,
+      "word": " it's"
+    },
+    {
+      "start": 372.87,
+      "end": 373.03,
+      "word": " very"
+    },
+    {
+      "start": 373.03,
+      "end": 373.61,
+      "word": " good"
+    },
+    {
+      "start": 373.61,
+      "end": 373.97,
+      "word": " in"
+    },
+    {
+      "start": 373.97,
+      "end": 374.25,
+      "word": " terms"
+    },
+    {
+      "start": 374.25,
+      "end": 374.47,
+      "word": " of"
+    },
+    {
+      "start": 374.47,
+      "end": 374.73,
+      "word": " variety,"
+    },
+    {
+      "start": 374.99,
+      "end": 375.25,
+      "word": " the"
+    },
+    {
+      "start": 375.25,
+      "end": 375.61,
+      "word": " editing"
+    },
+    {
+      "start": 375.61,
+      "end": 375.79,
+      "word": " layer"
+    },
+    {
+      "start": 375.79,
+      "end": 376.17,
+      "word": " as"
+    },
+    {
+      "start": 376.17,
+      "end": 376.45,
+      "word": " well."
+    },
+    {
+      "start": 376.59,
+      "end": 376.71,
+      "word": " And"
+    },
+    {
+      "start": 376.71,
+      "end": 376.89,
+      "word": " then"
+    },
+    {
+      "start": 376.89,
+      "end": 377.53,
+      "word": " there's"
+    },
+    {
+      "start": 377.53,
+      "end": 377.73,
+      "word": " also"
+    },
+    {
+      "start": 377.73,
+      "end": 377.91,
+      "word": " a"
+    },
+    {
+      "start": 377.91,
+      "end": 378.25,
+      "word": " character"
+    },
+    {
+      "start": 378.25,
+      "end": 379.09,
+      "word": " consistency"
+    },
+    {
+      "start": 379.09,
+      "end": 379.87,
+      "word": " system"
+    },
+    {
+      "start": 379.87,
+      "end": 380.19,
+      "word": " within"
+    },
+    {
+      "start": 380.19,
+      "end": 380.45,
+      "word": " this"
+    },
+    {
+      "start": 380.45,
+      "end": 380.71,
+      "word": " app."
+    },
+    {
+      "start": 380.79,
+      "end": 380.99,
+      "word": " And"
+    },
+    {
+      "start": 380.99,
+      "end": 381.13,
+      "word": " you"
+    },
+    {
+      "start": 381.13,
+      "end": 381.33,
+      "word": " know"
+    },
+    {
+      "start": 381.33,
+      "end": 381.53,
+      "word": " what,"
+    },
+    {
+      "start": 381.61,
+      "end": 382.37,
+      "word": " video"
+    },
+    {
+      "start": 382.37,
+      "end": 382.83,
+      "word": " isn't"
+    },
+    {
+      "start": 382.83,
+      "end": 382.91,
+      "word": " the"
+    },
+    {
+      "start": 382.91,
+      "end": 383.15,
+      "word": " only"
+    },
+    {
+      "start": 383.15,
+      "end": 383.41,
+      "word": " thing"
+    },
+    {
+      "start": 383.41,
+      "end": 383.57,
+      "word": " that"
+    },
+    {
+      "start": 383.57,
+      "end": 383.65,
+      "word": " you"
+    },
+    {
+      "start": 383.65,
+      "end": 383.79,
+      "word": " can"
+    },
+    {
+      "start": 383.79,
+      "end": 383.97,
+      "word": " do"
+    },
+    {
+      "start": 383.97,
+      "end": 384.09,
+      "word": " with"
+    },
+    {
+      "start": 384.09,
+      "end": 384.21,
+      "word": " it,"
+    },
+    {
+      "start": 384.29,
+      "end": 384.31,
+      "word": " you"
+    },
+    {
+      "start": 384.31,
+      "end": 384.45,
+      "word": " can"
+    },
+    {
+      "start": 384.45,
+      "end": 384.71,
+      "word": " see"
+    },
+    {
+      "start": 384.71,
+      "end": 384.95,
+      "word": " that"
+    },
+    {
+      "start": 384.95,
+      "end": 385.09,
+      "word": " we"
+    },
+    {
+      "start": 385.09,
+      "end": 385.33,
+      "word": " have"
+    },
+    {
+      "start": 385.33,
+      "end": 385.59,
+      "word": " more"
+    },
+    {
+      "start": 385.59,
+      "end": 386.17,
+      "word": " options,"
+    },
+    {
+      "start": 386.19,
+      "end": 386.41,
+      "word": " like"
+    },
+    {
+      "start": 386.41,
+      "end": 386.49,
+      "word": " we"
+    },
+    {
+      "start": 386.49,
+      "end": 386.63,
+      "word": " can"
+    },
+    {
+      "start": 386.63,
+      "end": 386.87,
+      "word": " create"
+    },
+    {
+      "start": 386.87,
+      "end": 387.29,
+      "word": " videos,"
+    },
+    {
+      "start": 387.39,
+      "end": 387.71,
+      "word": " images,"
+    },
+    {
+      "start": 387.79,
+      "end": 388.21,
+      "word": " world,"
+    },
+    {
+      "start": 388.37,
+      "end": 389.01,
+      "word": " audio,"
+    },
+    {
+      "start": 389.13,
+      "end": 389.33,
+      "word": " as"
+    },
+    {
+      "start": 389.33,
+      "end": 389.47,
+      "word": " well."
+    },
+    {
+      "start": 389.51,
+      "end": 389.65,
+      "word": " As"
+    },
+    {
+      "start": 389.65,
+      "end": 389.65,
+      "word": " well"
+    },
+    {
+      "start": 389.65,
+      "end": 389.71,
+      "word": " as"
+    },
+    {
+      "start": 389.71,
+      "end": 389.89,
+      "word": " character."
+    },
+    {
+      "start": 390.39,
+      "end": 390.83,
+      "word": " And"
+    },
+    {
+      "start": 390.83,
+      "end": 391.05,
+      "word": " aside"
+    },
+    {
+      "start": 391.05,
+      "end": 391.29,
+      "word": " from"
+    },
+    {
+      "start": 391.29,
+      "end": 391.53,
+      "word": " that,"
+    },
+    {
+      "start": 391.63,
+      "end": 391.69,
+      "word": " it"
+    },
+    {
+      "start": 391.69,
+      "end": 391.99,
+      "word": " gives"
+    },
+    {
+      "start": 391.99,
+      "end": 392.21,
+      "word": " you"
+    },
+    {
+      "start": 392.21,
+      "end": 392.33,
+      "word": " a"
+    },
+    {
+      "start": 392.33,
+      "end": 392.71,
+      "word": " level"
+    },
+    {
+      "start": 392.71,
+      "end": 392.89,
+      "word": " of"
+    },
+    {
+      "start": 392.89,
+      "end": 393.11,
+      "word": " creative"
+    },
+    {
+      "start": 393.11,
+      "end": 393.43,
+      "word": " control"
+    },
+    {
+      "start": 393.43,
+      "end": 393.71,
+      "word": " that"
+    },
+    {
+      "start": 393.71,
+      "end": 393.89,
+      "word": " none"
+    },
+    {
+      "start": 393.89,
+      "end": 394.03,
+      "word": " of"
+    },
+    {
+      "start": 394.03,
+      "end": 394.09,
+      "word": " the"
+    },
+    {
+      "start": 394.09,
+      "end": 394.37,
+      "word": " others"
+    },
+    {
+      "start": 394.37,
+      "end": 394.59,
+      "word": " come"
+    },
+    {
+      "start": 394.59,
+      "end": 394.95,
+      "word": " close"
+    },
+    {
+      "start": 394.95,
+      "end": 395.19,
+      "word": " to"
+    },
+    {
+      "start": 395.19,
+      "end": 395.53,
+      "word": " matching."
+    },
+    {
+      "start": 395.79,
+      "end": 396.07,
+      "word": " So"
+    },
+    {
+      "start": 396.07,
+      "end": 396.19,
+      "word": " if"
+    },
+    {
+      "start": 396.19,
+      "end": 396.27,
+      "word": " you"
+    },
+    {
+      "start": 396.27,
+      "end": 396.45,
+      "word": " need"
+    },
+    {
+      "start": 396.45,
+      "end": 396.57,
+      "word": " a"
+    },
+    {
+      "start": 396.57,
+      "end": 396.95,
+      "word": " full"
+    },
+    {
+      "start": 396.95,
+      "end": 398.17,
+      "word": " video"
+    },
+    {
+      "start": 398.17,
+      "end": 398.63,
+      "word": " or"
+    },
+    {
+      "start": 398.63,
+      "end": 398.87,
+      "word": " like"
+    },
+    {
+      "start": 398.87,
+      "end": 399.47,
+      "word": " text"
+    },
+    {
+      "start": 399.47,
+      "end": 399.59,
+      "word": " to"
+    },
+    {
+      "start": 399.59,
+      "end": 399.79,
+      "word": " video"
+    },
+    {
+      "start": 399.79,
+      "end": 400.15,
+      "word": " creative"
+    },
+    {
+      "start": 400.15,
+      "end": 400.67,
+      "word": " workflow,"
+    },
+    {
+      "start": 400.95,
+      "end": 401.37,
+      "word": " this"
+    },
+    {
+      "start": 401.37,
+      "end": 401.69,
+      "word": " is"
+    },
+    {
+      "start": 401.69,
+      "end": 402.13,
+      "word": " definitely"
+    },
+    {
+      "start": 402.13,
+      "end": 402.65,
+      "word": " where"
+    },
+    {
+      "start": 402.65,
+      "end": 402.83,
+      "word": " you"
+    },
+    {
+      "start": 402.83,
+      "end": 403.01,
+      "word": " should"
+    },
+    {
+      "start": 403.01,
+      "end": 403.29,
+      "word": " come."
+    },
+    {
+      "start": 403.63,
+      "end": 404.01,
+      "word": " And"
+    },
+    {
+      "start": 404.01,
+      "end": 404.17,
+      "word": " now"
+    },
+    {
+      "start": 404.17,
+      "end": 404.29,
+      "word": " that"
+    },
+    {
+      "start": 404.29,
+      "end": 404.47,
+      "word": " we're"
+    },
+    {
+      "start": 404.47,
+      "end": 404.71,
+      "word": " done"
+    },
+    {
+      "start": 404.71,
+      "end": 404.91,
+      "word": " with"
+    },
+    {
+      "start": 404.91,
+      "end": 405.17,
+      "word": " open"
+    },
+    {
+      "start": 405.17,
+      "end": 405.43,
+      "word": " art"
+    },
+    {
+      "start": 405.43,
+      "end": 405.65,
+      "word": " AI,"
+    },
+    {
+      "start": 405.83,
+      "end": 406.11,
+      "word": " let's"
+    },
+    {
+      "start": 406.11,
+      "end": 406.17,
+      "word": " now"
+    },
+    {
+      "start": 406.17,
+      "end": 406.43,
+      "word": " move"
+    },
+    {
+      "start": 406.43,
+      "end": 406.63,
+      "word": " over"
+    },
+    {
+      "start": 406.63,
+      "end": 406.89,
+      "word": " to"
+    },
+    {
+      "start": 406.89,
+      "end": 407.27,
+      "word": " Higgs"
+    },
+    {
+      "start": 407.27,
+      "end": 407.57,
+      "word": " field"
+    },
+    {
+      "start": 407.57,
+      "end": 408.05,
+      "word": " AI."
+    },
+    {
+      "start": 408.45,
+      "end": 408.89,
+      "word": " So"
+    },
+    {
+      "start": 408.89,
+      "end": 409.31,
+      "word": " from"
+    },
+    {
+      "start": 409.31,
+      "end": 409.61,
+      "word": " here,"
+    },
+    {
+      "start": 409.69,
+      "end": 409.85,
+      "word": " we"
+    },
+    {
+      "start": 409.85,
+      "end": 409.99,
+      "word": " are"
+    },
+    {
+      "start": 409.99,
+      "end": 410.21,
+      "word": " just"
+    },
+    {
+      "start": 410.21,
+      "end": 410.39,
+      "word": " going"
+    },
+    {
+      "start": 410.39,
+      "end": 410.63,
+      "word": " to"
+    },
+    {
+      "start": 410.63,
+      "end": 410.85,
+      "word": " test"
+    },
+    {
+      "start": 410.85,
+      "end": 411.11,
+      "word": " out"
+    },
+    {
+      "start": 411.11,
+      "end": 411.31,
+      "word": " its"
+    },
+    {
+      "start": 411.31,
+      "end": 411.69,
+      "word": " strongest"
+    },
+    {
+      "start": 411.69,
+      "end": 412.05,
+      "word": " feature,"
+    },
+    {
+      "start": 412.29,
+      "end": 412.47,
+      "word": " which"
+    },
+    {
+      "start": 412.47,
+      "end": 412.61,
+      "word": " is"
+    },
+    {
+      "start": 412.61,
+      "end": 413.07,
+      "word": " cinema"
+    },
+    {
+      "start": 413.07,
+      "end": 413.37,
+      "word": " studio."
+    },
+    {
+      "start": 413.83,
+      "end": 414.27,
+      "word": " Now"
+    },
+    {
+      "start": 414.27,
+      "end": 414.59,
+      "word": " what"
+    },
+    {
+      "start": 414.59,
+      "end": 414.77,
+      "word": " you're"
+    },
+    {
+      "start": 414.77,
+      "end": 414.87,
+      "word": " going"
+    },
+    {
+      "start": 414.87,
+      "end": 414.97,
+      "word": " to"
+    },
+    {
+      "start": 414.97,
+      "end": 415.09,
+      "word": " do"
+    },
+    {
+      "start": 415.09,
+      "end": 415.23,
+      "word": " is"
+    },
+    {
+      "start": 415.23,
+      "end": 415.39,
+      "word": " you're"
+    },
+    {
+      "start": 415.39,
+      "end": 415.51,
+      "word": " just"
+    },
+    {
+      "start": 415.51,
+      "end": 415.71,
+      "word": " going"
+    },
+    {
+      "start": 415.71,
+      "end": 415.93,
+      "word": " to"
+    },
+    {
+      "start": 415.93,
+      "end": 416.09,
+      "word": " head"
+    },
+    {
+      "start": 416.09,
+      "end": 416.27,
+      "word": " over"
+    },
+    {
+      "start": 416.27,
+      "end": 416.43,
+      "word": " to"
+    },
+    {
+      "start": 416.43,
+      "end": 416.53,
+      "word": " the"
+    },
+    {
+      "start": 416.53,
+      "end": 416.83,
+      "word": " video"
+    },
+    {
+      "start": 416.83,
+      "end": 417.11,
+      "word": " tab"
+    },
+    {
+      "start": 417.11,
+      "end": 417.29,
+      "word": " right"
+    },
+    {
+      "start": 417.29,
+      "end": 417.45,
+      "word": " here"
+    },
+    {
+      "start": 417.45,
+      "end": 417.59,
+      "word": " at"
+    },
+    {
+      "start": 417.59,
+      "end": 417.61,
+      "word": " the"
+    },
+    {
+      "start": 417.61,
+      "end": 417.83,
+      "word": " top,"
+    },
+    {
+      "start": 417.85,
+      "end": 417.97,
+      "word": " you"
+    },
+    {
+      "start": 417.97,
+      "end": 418.05,
+      "word": " can"
+    },
+    {
+      "start": 418.05,
+      "end": 418.21,
+      "word": " just"
+    },
+    {
+      "start": 418.21,
+      "end": 418.45,
+      "word": " hover"
+    },
+    {
+      "start": 418.45,
+      "end": 418.59,
+      "word": " your"
+    },
+    {
+      "start": 418.59,
+      "end": 418.81,
+      "word": " mouse"
+    },
+    {
+      "start": 418.81,
+      "end": 419.01,
+      "word": " over"
+    },
+    {
+      "start": 419.01,
+      "end": 419.27,
+      "word": " it."
+    },
+    {
+      "start": 419.31,
+      "end": 419.39,
+      "word": " And"
+    },
+    {
+      "start": 419.39,
+      "end": 419.47,
+      "word": " then"
+    },
+    {
+      "start": 419.47,
+      "end": 419.49,
+      "word": " you're"
+    },
+    {
+      "start": 419.49,
+      "end": 419.49,
+      "word": " going"
+    },
+    {
+      "start": 419.51,
+      "end": 419.59,
+      "word": " to"
+    },
+    {
+      "start": 419.59,
+      "end": 420.15,
+      "word": " click"
+    },
+    {
+      "start": 420.15,
+      "end": 420.45,
+      "word": " on"
+    },
+    {
+      "start": 420.45,
+      "end": 420.77,
+      "word": " cinema"
+    },
+    {
+      "start": 420.77,
+      "end": 421.07,
+      "word": " studio"
+    },
+    {
+      "start": 421.07,
+      "end": 421.71,
+      "word": " video"
+    },
+    {
+      "start": 421.71,
+      "end": 422.01,
+      "word": " right"
+    },
+    {
+      "start": 422.01,
+      "end": 422.27,
+      "word": " here."
+    },
+    {
+      "start": 422.33,
+      "end": 422.73,
+      "word": " Now"
+    },
+    {
+      "start": 422.73,
+      "end": 422.91,
+      "word": " you"
+    },
+    {
+      "start": 422.91,
+      "end": 423.05,
+      "word": " can"
+    },
+    {
+      "start": 423.05,
+      "end": 423.35,
+      "word": " also"
+    },
+    {
+      "start": 423.35,
+      "end": 423.65,
+      "word": " opt"
+    },
+    {
+      "start": 423.65,
+      "end": 423.81,
+      "word": " to"
+    },
+    {
+      "start": 423.81,
+      "end": 424.17,
+      "word": " generate"
+    },
+    {
+      "start": 424.17,
+      "end": 424.49,
+      "word": " AI"
+    },
+    {
+      "start": 424.49,
+      "end": 424.95,
+      "word": " videos"
+    },
+    {
+      "start": 424.95,
+      "end": 425.15,
+      "word": " by"
+    },
+    {
+      "start": 425.15,
+      "end": 425.41,
+      "word": " clicking"
+    },
+    {
+      "start": 425.41,
+      "end": 425.61,
+      "word": " on"
+    },
+    {
+      "start": 425.61,
+      "end": 425.87,
+      "word": " create"
+    },
+    {
+      "start": 425.87,
+      "end": 426.21,
+      "word": " video,"
+    },
+    {
+      "start": 426.41,
+      "end": 426.57,
+      "word": " but"
+    },
+    {
+      "start": 426.57,
+      "end": 426.79,
+      "word": " I"
+    },
+    {
+      "start": 426.79,
+      "end": 427.19,
+      "word": " suggest"
+    },
+    {
+      "start": 427.19,
+      "end": 427.45,
+      "word": " that"
+    },
+    {
+      "start": 427.45,
+      "end": 427.55,
+      "word": " you"
+    },
+    {
+      "start": 427.55,
+      "end": 427.79,
+      "word": " use"
+    },
+    {
+      "start": 427.79,
+      "end": 427.93,
+      "word": " the"
+    },
+    {
+      "start": 427.93,
+      "end": 428.25,
+      "word": " cinema"
+    },
+    {
+      "start": 428.25,
+      "end": 428.53,
+      "word": " studio"
+    },
+    {
+      "start": 428.53,
+      "end": 429.01,
+      "word": " video"
+    },
+    {
+      "start": 429.01,
+      "end": 429.53,
+      "word": " feature."
+    },
+    {
+      "start": 429.79,
+      "end": 430.27,
+      "word": " So"
+    },
+    {
+      "start": 430.27,
+      "end": 430.43,
+      "word": " we're"
+    },
+    {
+      "start": 430.43,
+      "end": 430.57,
+      "word": " just"
+    },
+    {
+      "start": 430.57,
+      "end": 430.69,
+      "word": " going"
+    },
+    {
+      "start": 430.69,
+      "end": 430.81,
+      "word": " to"
+    },
+    {
+      "start": 430.81,
+      "end": 431.07,
+      "word": " click"
+    },
+    {
+      "start": 431.07,
+      "end": 431.25,
+      "word": " on"
+    },
+    {
+      "start": 431.25,
+      "end": 431.55,
+      "word": " that."
+    },
+    {
+      "start": 431.75,
+      "end": 432.11,
+      "word": " Now"
+    },
+    {
+      "start": 432.11,
+      "end": 432.31,
+      "word": " from"
+    },
+    {
+      "start": 432.31,
+      "end": 432.57,
+      "word": " here,"
+    },
+    {
+      "start": 432.63,
+      "end": 432.73,
+      "word": " you"
+    },
+    {
+      "start": 432.73,
+      "end": 432.87,
+      "word": " will"
+    },
+    {
+      "start": 432.87,
+      "end": 433.21,
+      "word": " immediately"
+    },
+    {
+      "start": 433.21,
+      "end": 433.77,
+      "word": " notice"
+    },
+    {
+      "start": 433.77,
+      "end": 434.03,
+      "word": " what"
+    },
+    {
+      "start": 434.03,
+      "end": 434.25,
+      "word": " sets"
+    },
+    {
+      "start": 434.25,
+      "end": 434.61,
+      "word": " this"
+    },
+    {
+      "start": 434.61,
+      "end": 435.03,
+      "word": " platform"
+    },
+    {
+      "start": 435.03,
+      "end": 435.35,
+      "word": " apart"
+    },
+    {
+      "start": 435.35,
+      "end": 436.21,
+      "word": " with"
+    },
+    {
+      "start": 436.21,
+      "end": 436.69,
+      "word": " this"
+    },
+    {
+      "start": 436.69,
+      "end": 437.17,
+      "word": " director"
+    },
+    {
+      "start": 437.17,
+      "end": 437.53,
+      "word": " panel."
+    },
+    {
+      "start": 437.87,
+      "end": 438.23,
+      "word": " So"
+    },
+    {
+      "start": 438.23,
+      "end": 438.45,
+      "word": " from"
+    },
+    {
+      "start": 438.45,
+      "end": 438.67,
+      "word": " here,"
+    },
+    {
+      "start": 438.71,
+      "end": 438.79,
+      "word": " you"
+    },
+    {
+      "start": 438.79,
+      "end": 438.95,
+      "word": " can"
+    },
+    {
+      "start": 438.95,
+      "end": 439.23,
+      "word": " already"
+    },
+    {
+      "start": 439.23,
+      "end": 439.61,
+      "word": " see"
+    },
+    {
+      "start": 439.61,
+      "end": 439.79,
+      "word": " that"
+    },
+    {
+      "start": 439.79,
+      "end": 439.91,
+      "word": " you"
+    },
+    {
+      "start": 439.91,
+      "end": 440.17,
+      "word": " have"
+    },
+    {
+      "start": 440.17,
+      "end": 440.31,
+      "word": " the"
+    },
+    {
+      "start": 440.31,
+      "end": 440.97,
+      "word": " options"
+    },
+    {
+      "start": 440.97,
+      "end": 441.41,
+      "word": " for"
+    },
+    {
+      "start": 441.41,
+      "end": 441.75,
+      "word": " movement,"
+    },
+    {
+      "start": 441.95,
+      "end": 442.11,
+      "word": " you"
+    },
+    {
+      "start": 442.11,
+      "end": 442.29,
+      "word": " have"
+    },
+    {
+      "start": 442.29,
+      "end": 442.49,
+      "word": " their"
+    },
+    {
+      "start": 442.49,
+      "end": 442.97,
+      "word": " auto,"
+    },
+    {
+      "start": 443.09,
+      "end": 443.81,
+      "word": " static,"
+    },
+    {
+      "start": 444.13,
+      "end": 444.47,
+      "word": " handheld,"
+    },
+    {
+      "start": 444.75,
+      "end": 444.95,
+      "word": " zoom"
+    },
+    {
+      "start": 444.95,
+      "end": 445.19,
+      "word": " out,"
+    },
+    {
+      "start": 445.23,
+      "end": 445.47,
+      "word": " zoom"
+    },
+    {
+      "start": 445.47,
+      "end": 445.75,
+      "word": " in,"
+    },
+    {
+      "start": 445.77,
+      "end": 445.89,
+      "word": " and"
+    },
+    {
+      "start": 445.89,
+      "end": 446.09,
+      "word": " all"
+    },
+    {
+      "start": 446.09,
+      "end": 446.25,
+      "word": " of"
+    },
+    {
+      "start": 446.25,
+      "end": 446.35,
+      "word": " the"
+    },
+    {
+      "start": 446.35,
+      "end": 446.63,
+      "word": " stuff"
+    },
+    {
+      "start": 446.63,
+      "end": 446.87,
+      "word": " that"
+    },
+    {
+      "start": 446.87,
+      "end": 446.99,
+      "word": " you"
+    },
+    {
+      "start": 446.99,
+      "end": 447.11,
+      "word": " can"
+    },
+    {
+      "start": 447.11,
+      "end": 447.39,
+      "word": " find"
+    },
+    {
+      "start": 447.39,
+      "end": 447.55,
+      "word": " right"
+    },
+    {
+      "start": 447.55,
+      "end": 447.77,
+      "word": " here"
+    },
+    {
+      "start": 447.77,
+      "end": 447.97,
+      "word": " that"
+    },
+    {
+      "start": 447.97,
+      "end": 448.11,
+      "word": " you"
+    },
+    {
+      "start": 448.11,
+      "end": 448.27,
+      "word": " can"
+    },
+    {
+      "start": 448.27,
+      "end": 448.59,
+      "word": " use."
+    },
+    {
+      "start": 448.71,
+      "end": 449.07,
+      "word": " So"
+    },
+    {
+      "start": 449.07,
+      "end": 449.17,
+      "word": " you"
+    },
+    {
+      "start": 449.17,
+      "end": 449.31,
+      "word": " can"
+    },
+    {
+      "start": 449.31,
+      "end": 449.49,
+      "word": " already"
+    },
+    {
+      "start": 449.49,
+      "end": 449.49,
+      "word": " see"
+    },
+    {
+      "start": 449.49,
+      "end": 449.49,
+      "word": " that"
+    },
+    {
+      "start": 449.49,
+      "end": 449.49,
+      "word": " you"
+    },
+    {
+      "start": 449.49,
+      "end": 449.49,
+      "word": " have"
+    },
+    {
+      "start": 449.49,
+      "end": 449.49,
+      "word": " the"
+    },
+    {
+      "start": 449.49,
+      "end": 449.49,
+      "word": " options"
+    },
+    {
+      "start": 449.49,
+      "end": 449.49,
+      "word": " for"
+    },
+    {
+      "start": 449.49,
+      "end": 449.49,
+      "word": " movement,"
+    },
+    {
+      "start": 449.49,
+      "end": 449.49,
+      "word": " you"
+    },
+    {
+      "start": 449.49,
+      "end": 449.49,
+      "word": " have"
+    },
+    {
+      "start": 449.49,
+      "end": 449.49,
+      "word": " the"
+    },
+    {
+      "start": 449.51,
+      "end": 449.51,
+      "word": " auto,"
+    },
+    {
+      "start": 449.69,
+      "end": 449.71,
+      "word": " static,"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " handheld,"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " zoom"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " in,"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " and"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " all"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " of"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " the"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " stuff"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " that"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " you"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " can"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " find"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " right"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " here."
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " So"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " you"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " can"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " also"
+    },
+    {
+      "start": 449.71,
+      "end": 449.71,
+      "word": " do"
+    },
+    {
+      "start": 449.71,
+      "end": 450.05,
+      "word": " crane"
+    },
+    {
+      "start": 450.05,
+      "end": 450.39,
+      "word": " shots,"
+    },
+    {
+      "start": 450.57,
+      "end": 450.87,
+      "word": " crash"
+    },
+    {
+      "start": 450.87,
+      "end": 451.47,
+      "word": " zooms,"
+    },
+    {
+      "start": 451.49,
+      "end": 451.91,
+      "word": " dolly"
+    },
+    {
+      "start": 451.91,
+      "end": 452.11,
+      "word": " moves,"
+    },
+    {
+      "start": 452.29,
+      "end": 452.53,
+      "word": " rack"
+    },
+    {
+      "start": 452.53,
+      "end": 452.89,
+      "word": " focus."
+    },
+    {
+      "start": 453.11,
+      "end": 453.59,
+      "word": " And"
+    },
+    {
+      "start": 453.59,
+      "end": 453.95,
+      "word": " you"
+    },
+    {
+      "start": 453.95,
+      "end": 454.09,
+      "word": " can"
+    },
+    {
+      "start": 454.09,
+      "end": 454.39,
+      "word": " also"
+    },
+    {
+      "start": 454.39,
+      "end": 454.65,
+      "word": " see"
+    },
+    {
+      "start": 454.65,
+      "end": 454.91,
+      "word": " here"
+    },
+    {
+      "start": 454.91,
+      "end": 455.25,
+      "word": " that"
+    },
+    {
+      "start": 455.25,
+      "end": 455.67,
+      "word": " you"
+    },
+    {
+      "start": 455.67,
+      "end": 455.99,
+      "word": " have"
+    },
+    {
+      "start": 455.99,
+      "end": 456.23,
+      "word": " this"
+    },
+    {
+      "start": 456.23,
+      "end": 456.71,
+      "word": " single"
+    },
+    {
+      "start": 456.71,
+      "end": 457.25,
+      "word": " shots,"
+    },
+    {
+      "start": 457.27,
+      "end": 457.49,
+      "word": " multi"
+    },
+    {
+      "start": 457.49,
+      "end": 457.79,
+      "word": " shot"
+    },
+    {
+      "start": 457.79,
+      "end": 458.13,
+      "word": " audio,"
+    },
+    {
+      "start": 458.29,
+      "end": 458.47,
+      "word": " multi"
+    },
+    {
+      "start": 458.47,
+      "end": 458.75,
+      "word": " shot"
+    },
+    {
+      "start": 458.75,
+      "end": 459.25,
+      "word": " manual,"
+    },
+    {
+      "start": 459.41,
+      "end": 459.67,
+      "word": " depending"
+    },
+    {
+      "start": 459.67,
+      "end": 459.93,
+      "word": " on"
+    },
+    {
+      "start": 459.93,
+      "end": 460.13,
+      "word": " what"
+    },
+    {
+      "start": 460.13,
+      "end": 460.25,
+      "word": " you"
+    },
+    {
+      "start": 460.25,
+      "end": 460.61,
+      "word": " need."
+    },
+    {
+      "start": 460.67,
+      "end": 461.03,
+      "word": " And"
+    },
+    {
+      "start": 461.03,
+      "end": 461.19,
+      "word": " you"
+    },
+    {
+      "start": 461.19,
+      "end": 461.33,
+      "word": " can"
+    },
+    {
+      "start": 461.33,
+      "end": 461.67,
+      "word": " also"
+    },
+    {
+      "start": 461.67,
+      "end": 461.93,
+      "word": " have"
+    },
+    {
+      "start": 461.93,
+      "end": 462.09,
+      "word": " the"
+    },
+    {
+      "start": 462.09,
+      "end": 462.39,
+      "word": " option"
+    },
+    {
+      "start": 462.39,
+      "end": 462.65,
+      "word": " here"
+    },
+    {
+      "start": 462.65,
+      "end": 462.95,
+      "word": " to"
+    },
+    {
+      "start": 462.95,
+      "end": 463.59,
+      "word": " set"
+    },
+    {
+      "start": 463.59,
+      "end": 463.81,
+      "word": " the"
+    },
+    {
+      "start": 463.81,
+      "end": 464.09,
+      "word": " aspect"
+    },
+    {
+      "start": 464.09,
+      "end": 464.73,
+      "word": " aspect"
+    },
+    {
+      "start": 464.73,
+      "end": 465.25,
+      "word": " ratio."
+    },
+    {
+      "start": 465.49,
+      "end": 465.65,
+      "word": " So"
+    },
+    {
+      "start": 465.65,
+      "end": 465.81,
+      "word": " you"
+    },
+    {
+      "start": 465.81,
+      "end": 466.05,
+      "word": " have"
+    },
+    {
+      "start": 466.05,
+      "end": 466.17,
+      "word": " the"
+    },
+    {
+      "start": 466.17,
+      "end": 466.39,
+      "word": " option"
+    },
+    {
+      "start": 466.39,
+      "end": 466.63,
+      "word": " to"
+    },
+    {
+      "start": 466.63,
+      "end": 466.75,
+      "word": " set"
+    },
+    {
+      "start": 466.75,
+      "end": 466.87,
+      "word": " it"
+    },
+    {
+      "start": 466.87,
+      "end": 466.91,
+      "word": " to"
+    },
+    {
+      "start": 466.91,
+      "end": 467.27,
+      "word": " cinematic."
+    },
+    {
+      "start": 467.47,
+      "end": 467.91,
+      "word": " And"
+    },
+    {
+      "start": 467.91,
+      "end": 468.01,
+      "word": " then"
+    },
+    {
+      "start": 468.01,
+      "end": 468.29,
+      "word": " also"
+    },
+    {
+      "start": 468.29,
+      "end": 468.45,
+      "word": " if"
+    },
+    {
+      "start": 468.45,
+      "end": 468.63,
+      "word": " you're"
+    },
+    {
+      "start": 468.63,
+      "end": 468.85,
+      "word": " maybe"
+    },
+    {
+      "start": 468.85,
+      "end": 469.35,
+      "word": " doing"
+    },
+    {
+      "start": 469.35,
+      "end": 469.63,
+      "word": " this"
+    },
+    {
+      "start": 469.63,
+      "end": 469.81,
+      "word": " for"
+    },
+    {
+      "start": 469.81,
+      "end": 470.05,
+      "word": " TikTok,"
+    },
+    {
+      "start": 470.23,
+      "end": 470.35,
+      "word": " you"
+    },
+    {
+      "start": 470.35,
+      "end": 470.47,
+      "word": " can"
+    },
+    {
+      "start": 470.47,
+      "end": 470.75,
+      "word": " set"
+    },
+    {
+      "start": 470.75,
+      "end": 470.91,
+      "word": " it"
+    },
+    {
+      "start": 470.91,
+      "end": 471.13,
+      "word": " to"
+    },
+    {
+      "start": 471.13,
+      "end": 471.49,
+      "word": " nine"
+    },
+    {
+      "start": 471.49,
+      "end": 471.73,
+      "word": " by"
+    },
+    {
+      "start": 471.73,
+      "end": 472.15,
+      "word": " 16."
+    },
+    {
+      "start": 472.39,
+      "end": 472.85,
+      "word": " And"
+    },
+    {
+      "start": 472.85,
+      "end": 472.99,
+      "word": " then"
+    },
+    {
+      "start": 472.99,
+      "end": 473.13,
+      "word": " you"
+    },
+    {
+      "start": 473.13,
+      "end": 473.37,
+      "word": " have"
+    },
+    {
+      "start": 473.37,
+      "end": 473.75,
+      "word": " here"
+    },
+    {
+      "start": 473.75,
+      "end": 474.23,
+      "word": " the"
+    },
+    {
+      "start": 474.23,
+      "end": 474.69,
+      "word": " genre."
+    },
+    {
+      "start": 474.87,
+      "end": 475.25,
+      "word": " So"
+    },
+    {
+      "start": 475.25,
+      "end": 475.37,
+      "word": " you"
+    },
+    {
+      "start": 475.37,
+      "end": 475.51,
+      "word": " can"
+    },
+    {
+      "start": 475.51,
+      "end": 475.67,
+      "word": " choose"
+    },
+    {
+      "start": 475.67,
+      "end": 475.87,
+      "word": " whether"
+    },
+    {
+      "start": 475.87,
+      "end": 476.05,
+      "word": " you"
+    },
+    {
+      "start": 476.05,
+      "end": 476.31,
+      "word": " want"
+    },
+    {
+      "start": 476.31,
+      "end": 476.47,
+      "word": " it"
+    },
+    {
+      "start": 476.47,
+      "end": 476.61,
+      "word": " to"
+    },
+    {
+      "start": 476.61,
+      "end": 476.75,
+      "word": " be"
+    },
+    {
+      "start": 476.75,
+      "end": 476.83,
+      "word": " a"
+    },
+    {
+      "start": 476.83,
+      "end": 477.15,
+      "word": " general"
+    },
+    {
+      "start": 477.15,
+      "end": 477.61,
+      "word": " genre,"
+    },
+    {
+      "start": 477.69,
+      "end": 477.77,
+      "word": " it"
+    },
+    {
+      "start": 477.77,
+      "end": 477.95,
+      "word": " really"
+    },
+    {
+      "start": 477.95,
+      "end": 478.27,
+      "word": " depends"
+    },
+    {
+      "start": 478.27,
+      "end": 478.67,
+      "word": " on"
+    },
+    {
+      "start": 478.67,
+      "end": 478.93,
+      "word": " what"
+    },
+    {
+      "start": 478.93,
+      "end": 479.07,
+      "word": " you're"
+    },
+    {
+      "start": 479.07,
+      "end": 479.19,
+      "word": " going"
+    },
+    {
+      "start": 479.19,
+      "end": 479.31,
+      "word": " to"
+    },
+    {
+      "start": 479.31,
+      "end": 479.49,
+      "word": " do."
+    },
+    {
+      "start": 479.51,
+      "end": 479.63,
+      "word": " Or"
+    },
+    {
+      "start": 479.63,
+      "end": 479.79,
+      "word": " what"
+    },
+    {
+      "start": 479.79,
+      "end": 479.95,
+      "word": " you'll"
+    }
+  ]
+}

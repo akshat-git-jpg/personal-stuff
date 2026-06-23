@@ -34,3 +34,4 @@ zluri-release
 pinterest-analyze
 research-critic
 improve
+tts-transcript-prep
