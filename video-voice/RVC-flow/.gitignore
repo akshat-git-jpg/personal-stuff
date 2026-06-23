@@ -1,0 +1,5 @@
+# Heavy / regenerable artifacts — keep code, ignore binaries
+rvc-venv/
+models/
+work/
+*.log
