@@ -62,3 +62,8 @@ Edit/fix transcription mistakes
 Locally make voicover in batches.
 Club full voice over file in 1 file
 Club in a single video
+
+https://youtu.be/j9tAj7bkDR4?si=wID6XKuFLYCnrt-c
+youri uses clone
+
+make channel like ai search
