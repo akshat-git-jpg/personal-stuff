@@ -1,0 +1,1197 @@
+{
+ "video_id": "__VIDEO_ID__",
+ "text_draft": {
+  "script": {
+   "elements": {
+    "ohy4XfAC": {
+     "id": "ohy4XfAC",
+     "type": "audio",
+     "text": "So after going through all five, here is exactly where we land use case by case. If you're a content creator, digital artist, or marketer who needs a full creative workflow with images, video, characters, custom models, and audio all in one place, I think that Openart is definitely your tool. Now, the breadth of what it covers at the annual price point is genuinely hard to argue with and once you invest and the time to learn it, it pays you back. If you want to try it, I have linked it in the description where you can also grab the best discount available and, of course, it applies to every single tool here as well. Now, let's say that cinematic video is your primary output and your forte. I think that if you want to create director-level camera control with access to top-tier video models, Higgs Field does that better than anyone else in this group. Just go in knowing that outside of video, you will need other tools alongside it. And if you are in a professional or corporate environment producing training, onboarding, or multilingual pr-",
+     "attributes": {
+      "src": "https://resource2.heygen.ai/audio/a99e1af21a9048d0a10ac2d47f98d0dc/transcode.mp3?response-content-disposition=attachment%3B+filename%2A%3DUTF-8%27%27FULLTEST_indextts2_jamila_SYNCED_voiceover_1min.mp3%3B",
+      "voice_id": "42d00d4aac5441279d8536cd6b52c53c",
+      "voice_settings": {
+       "locale": "",
+       "pitch": 0,
+       "speed": 1,
+       "volume": 1,
+       "voice_engine_settings": {
+        "engine_type": "elevenLabsV3",
+        "seed": 25741861
+       }
+      }
+     },
+     "voice_mirroring": false
+    }
+   },
+   "timeline": [
+    "ohy4XfAC"
+   ],
+   "brand_kit_id": "d4b4e72235224eb486f5066139cfa60d"
+  },
+  "captions": {
+   "elements": {},
+   "remove_punctuation": false
+  },
+  "background_audio": {
+   "elements": {}
+  },
+  "visual": {
+   "elements": {
+    "mvCsnrn0": {
+     "id": "mvCsnrn0",
+     "type": "scene",
+     "content": {
+      "elements": [
+       "aeyxXpod"
+      ],
+      "background_color": "#FFFFFF"
+     }
+    },
+    "aeyxXpod": {
+     "id": "aeyxXpod",
+     "type": "avatar",
+     "attributes": {
+      "animations": [],
+      "opacity": 1,
+      "position": {
+       "offset": {
+        "x": 0,
+        "y": 0
+       },
+       "type": "center"
+      },
+      "size": {
+       "fit": "none",
+       "scale": {
+        "x": 0.8,
+        "y": 0.8
+       },
+       "crop": {
+        "top": 0,
+        "left": 0,
+        "bottom": 0,
+        "right": 0
+       }
+      },
+      "transformation": {
+       "rotate": {
+        "angle": 0
+       }
+      },
+      "rounded_corners": {
+       "top_left": 0,
+       "top_right": 0,
+       "bottom_right": 0,
+       "bottom_left": 0
+      }
+     },
+     "content": {
+      "avatar_id": "__AVATAR_ID__",
+      "avatar_state_id": "__AVATAR_ID__",
+      "render_type": "normal",
+      "avatar_type": "photo_avatar",
+      "avatar_group_id": "__AVATAR_ID__",
+      "matting": false,
+      "talking_photo": {
+       "enhance": false
+      },
+      "gesture_mp4": "",
+      "gesture_webm": "",
+      "use_avatar_iv_model": false,
+      "use_unlimited_mode": true,
+      "engine": "avatar_iii",
+      "engine_settings": {
+       "engine_type": "avatar_iii"
+      },
+      "inference_job_id": "",
+      "inference_mp4": "",
+      "inference_webm": "",
+      "inference_packed_mp4": null
+     }
+    }
+   },
+   "layout": [
+    "mvCsnrn0"
+   ]
+  },
+  "alignments": {
+   "mvCsnrn0": {
+    "element_id": "mvCsnrn0",
+    "alignment_info": {
+     "start": {
+      "script_id": "ohy4XfAC",
+      "word_index": 0
+     },
+     "end": {
+      "script_id": "ohy4XfAC",
+      "word_index": -1
+     }
+    }
+   },
+   "aeyxXpod": {
+    "element_id": "aeyxXpod",
+    "alignment_info": {
+     "start": {
+      "script_id": "ohy4XfAC",
+      "word_index": 0
+     },
+     "end": {
+      "script_id": "ohy4XfAC",
+      "word_index": -1
+     }
+    },
+    "gesture_alignments": []
+   }
+  }
+ },
+ "video_output": {
+  "resolution": {
+   "width": 1080,
+   "height": 1920
+  },
+  "fps": 25,
+  "caption": false
+ },
+ "metadata": [
+  {
+   "element_id": "ohy4XfAC",
+   "type": "audio",
+   "seed": 25741861,
+   "url": "https://resource2.heygen.ai/audio/a99e1af21a9048d0a10ac2d47f98d0dc/transcode.mp3?response-content-disposition=attachment%3B+filename%2A%3DUTF-8%27%27FULLTEST_indextts2_jamila_SYNCED_voiceover_1min.mp3%3B",
+   "duration": 59.982396,
+   "words": [
+    {
+     "word": "<start>",
+     "start_time": 0,
+     "end_time": 0
+    },
+    {
+     "word": "So",
+     "start_time": 0.099,
+     "end_time": 0.28
+    },
+    {
+     "word": "after",
+     "start_time": 0.359,
+     "end_time": 0.62
+    },
+    {
+     "word": "going",
+     "start_time": 0.68,
+     "end_time": 0.839
+    },
+    {
+     "word": "through",
+     "start_time": 0.919,
+     "end_time": 1.059
+    },
+    {
+     "word": "all",
+     "start_time": 1.199,
+     "end_time": 1.399
+    },
+    {
+     "word": "five,",
+     "start_time": 1.48,
+     "end_time": 1.779
+    },
+    {
+     "word": "here",
+     "start_time": 1.899,
+     "end_time": 2.099
+    },
+    {
+     "word": "is",
+     "start_time": 2.139,
+     "end_time": 2.259
+    },
+    {
+     "word": "exactly",
+     "start_time": 2.339,
+     "end_time": 2.799
+    },
+    {
+     "word": "where",
+     "start_time": 2.839,
+     "end_time": 2.959
+    },
+    {
+     "word": "we",
+     "start_time": 3.019,
+     "end_time": 3.139
+    },
+    {
+     "word": "land",
+     "start_time": 3.24,
+     "end_time": 3.599
+    },
+    {
+     "word": "use",
+     "start_time": 3.72,
+     "end_time": 3.939
+    },
+    {
+     "word": "case",
+     "start_time": 3.98,
+     "end_time": 4.199
+    },
+    {
+     "word": "by",
+     "start_time": 4.259,
+     "end_time": 4.42
+    },
+    {
+     "word": "case.",
+     "start_time": 4.46,
+     "end_time": 4.779
+    },
+    {
+     "word": "If",
+     "start_time": 4.88,
+     "end_time": 4.98
+    },
+    {
+     "word": "you're",
+     "start_time": 5,
+     "end_time": 5.099
+    },
+    {
+     "word": "a",
+     "start_time": 5.099,
+     "end_time": 5.179
+    },
+    {
+     "word": "content",
+     "start_time": 5.239,
+     "end_time": 5.599
+    },
+    {
+     "word": "creator,",
+     "start_time": 5.679,
+     "end_time": 6.019
+    },
+    {
+     "word": "digital",
+     "start_time": 6.379,
+     "end_time": 6.739
+    },
+    {
+     "word": "artist,",
+     "start_time": 6.819,
+     "end_time": 7.179
+    },
+    {
+     "word": "or",
+     "start_time": 7.319,
+     "end_time": 7.359
+    },
+    {
+     "word": "marketer",
+     "start_time": 7.5,
+     "end_time": 7.859
+    },
+    {
+     "word": "who",
+     "start_time": 7.96,
+     "end_time": 8.079
+    },
+    {
+     "word": "needs",
+     "start_time": 8.119,
+     "end_time": 8.3
+    },
+    {
+     "word": "a",
+     "start_time": 8.359,
+     "end_time": 8.439
+    },
+    {
+     "word": "full",
+     "start_time": 8.539,
+     "end_time": 8.679
+    },
+    {
+     "word": "creative",
+     "start_time": 8.819,
+     "end_time": 9.119
+    },
+    {
+     "word": "workflow",
+     "start_time": 9.199,
+     "end_time": 9.599
+    },
+    {
+     "word": "with",
+     "start_time": 9.679,
+     "end_time": 9.84
+    },
+    {
+     "word": "images,",
+     "start_time": 9.899,
+     "end_time": 10.34
+    },
+    {
+     "word": "video,",
+     "start_time": 10.719,
+     "end_time": 11.079
+    },
+    {
+     "word": "characters,",
+     "start_time": 11.259,
+     "end_time": 11.819
+    },
+    {
+     "word": "custom",
+     "start_time": 12.139,
+     "end_time": 12.42
+    },
+    {
+     "word": "models,",
+     "start_time": 12.479,
+     "end_time": 12.86
+    },
+    {
+     "word": "and",
+     "start_time": 12.96,
+     "end_time": 13.059
+    },
+    {
+     "word": "audio",
+     "start_time": 13.219,
+     "end_time": 13.479
+    },
+    {
+     "word": "all",
+     "start_time": 13.639,
+     "end_time": 13.739
+    },
+    {
+     "word": "in",
+     "start_time": 13.799,
+     "end_time": 13.899
+    },
+    {
+     "word": "one",
+     "start_time": 13.96,
+     "end_time": 14.039
+    },
+    {
+     "word": "place,",
+     "start_time": 14.159,
+     "end_time": 14.42
+    },
+    {
+     "word": "I",
+     "start_time": 14.579,
+     "end_time": 14.6
+    },
+    {
+     "word": "think",
+     "start_time": 14.679,
+     "end_time": 14.799
+    },
+    {
+     "word": "that",
+     "start_time": 14.859,
+     "end_time": 14.96
+    },
+    {
+     "word": "Openart",
+     "start_time": 15.059,
+     "end_time": 15.579
+    },
+    {
+     "word": "is",
+     "start_time": 15.619,
+     "end_time": 15.759
+    },
+    {
+     "word": "definitely",
+     "start_time": 15.799,
+     "end_time": 16.219
+    },
+    {
+     "word": "your",
+     "start_time": 16.299,
+     "end_time": 16.479
+    },
+    {
+     "word": "tool.",
+     "start_time": 16.559,
+     "end_time": 16.819
+    },
+    {
+     "word": "Now,",
+     "start_time": 18.539,
+     "end_time": 18.76
+    },
+    {
+     "word": "the",
+     "start_time": 18.939,
+     "end_time": 19.059
+    },
+    {
+     "word": "breadth",
+     "start_time": 19.119,
+     "end_time": 19.419
+    },
+    {
+     "word": "of",
+     "start_time": 19.459,
+     "end_time": 19.579
+    },
+    {
+     "word": "what",
+     "start_time": 19.639,
+     "end_time": 19.739
+    },
+    {
+     "word": "it",
+     "start_time": 19.799,
+     "end_time": 19.939
+    },
+    {
+     "word": "covers",
+     "start_time": 20,
+     "end_time": 20.319
+    },
+    {
+     "word": "at",
+     "start_time": 20.379,
+     "end_time": 20.439
+    },
+    {
+     "word": "the",
+     "start_time": 20.5,
+     "end_time": 20.639
+    },
+    {
+     "word": "annual",
+     "start_time": 20.739,
+     "end_time": 21.019
+    },
+    {
+     "word": "price",
+     "start_time": 21.079,
+     "end_time": 21.339
+    },
+    {
+     "word": "point",
+     "start_time": 21.399,
+     "end_time": 21.639
+    },
+    {
+     "word": "is",
+     "start_time": 21.699,
+     "end_time": 21.879
+    },
+    {
+     "word": "genuinely",
+     "start_time": 21.959,
+     "end_time": 22.42
+    },
+    {
+     "word": "hard",
+     "start_time": 22.5,
+     "end_time": 22.699
+    },
+    {
+     "word": "to",
+     "start_time": 22.76,
+     "end_time": 22.859
+    },
+    {
+     "word": "argue",
+     "start_time": 22.959,
+     "end_time": 23.199
+    },
+    {
+     "word": "with",
+     "start_time": 23.26,
+     "end_time": 23.739
+    },
+    {
+     "word": "and",
+     "start_time": 23.799,
+     "end_time": 23.939
+    },
+    {
+     "word": "once",
+     "start_time": 24,
+     "end_time": 24.219
+    },
+    {
+     "word": "you",
+     "start_time": 24.26,
+     "end_time": 24.319
+    },
+    {
+     "word": "invest",
+     "start_time": 24.399,
+     "end_time": 24.799
+    },
+    {
+     "word": "and",
+     "start_time": 24.859,
+     "end_time": 24.92
+    },
+    {
+     "word": "the",
+     "start_time": 24.939,
+     "end_time": 25.039
+    },
+    {
+     "word": "time",
+     "start_time": 25.119,
+     "end_time": 25.339
+    },
+    {
+     "word": "to",
+     "start_time": 25.379,
+     "end_time": 25.479
+    },
+    {
+     "word": "learn",
+     "start_time": 25.539,
+     "end_time": 25.699
+    },
+    {
+     "word": "it,",
+     "start_time": 25.76,
+     "end_time": 25.879
+    },
+    {
+     "word": "it",
+     "start_time": 25.979,
+     "end_time": 26.139
+    },
+    {
+     "word": "pays",
+     "start_time": 26.199,
+     "end_time": 26.399
+    },
+    {
+     "word": "you",
+     "start_time": 26.439,
+     "end_time": 26.539
+    },
+    {
+     "word": "back.",
+     "start_time": 26.599,
+     "end_time": 26.899
+    },
+    {
+     "word": "If",
+     "start_time": 27.219,
+     "end_time": 27.299
+    },
+    {
+     "word": "you",
+     "start_time": 27.319,
+     "end_time": 27.379
+    },
+    {
+     "word": "want",
+     "start_time": 27.439,
+     "end_time": 27.559
+    },
+    {
+     "word": "to",
+     "start_time": 27.599,
+     "end_time": 27.719
+    },
+    {
+     "word": "try",
+     "start_time": 27.799,
+     "end_time": 28.019
+    },
+    {
+     "word": "it,",
+     "start_time": 28.079,
+     "end_time": 28.219
+    },
+    {
+     "word": "I",
+     "start_time": 28.379,
+     "end_time": 28.439
+    },
+    {
+     "word": "have",
+     "start_time": 28.5,
+     "end_time": 28.599
+    },
+    {
+     "word": "linked",
+     "start_time": 28.719,
+     "end_time": 28.959
+    },
+    {
+     "word": "it",
+     "start_time": 29.019,
+     "end_time": 29.179
+    },
+    {
+     "word": "in",
+     "start_time": 29.219,
+     "end_time": 29.279
+    },
+    {
+     "word": "the",
+     "start_time": 29.319,
+     "end_time": 29.399
+    },
+    {
+     "word": "description",
+     "start_time": 29.459,
+     "end_time": 30.019
+    },
+    {
+     "word": "where",
+     "start_time": 30.099,
+     "end_time": 30.199
+    },
+    {
+     "word": "you",
+     "start_time": 30.239,
+     "end_time": 30.299
+    },
+    {
+     "word": "can",
+     "start_time": 30.359,
+     "end_time": 30.519
+    },
+    {
+     "word": "also",
+     "start_time": 30.599,
+     "end_time": 30.84
+    },
+    {
+     "word": "grab",
+     "start_time": 30.959,
+     "end_time": 31.199
+    },
+    {
+     "word": "the",
+     "start_time": 31.26,
+     "end_time": 31.359
+    },
+    {
+     "word": "best",
+     "start_time": 31.42,
+     "end_time": 31.619
+    },
+    {
+     "word": "discount",
+     "start_time": 31.679,
+     "end_time": 32.04
+    },
+    {
+     "word": "available",
+     "start_time": 32.159,
+     "end_time": 32.639
+    },
+    {
+     "word": "and,",
+     "start_time": 32.959,
+     "end_time": 33.04
+    },
+    {
+     "word": "of",
+     "start_time": 33.119,
+     "end_time": 33.18
+    },
+    {
+     "word": "course,",
+     "start_time": 33.239,
+     "end_time": 33.459
+    },
+    {
+     "word": "it",
+     "start_time": 33.52,
+     "end_time": 33.579
+    },
+    {
+     "word": "applies",
+     "start_time": 33.719,
+     "end_time": 34.04
+    },
+    {
+     "word": "to",
+     "start_time": 34.099,
+     "end_time": 34.259
+    },
+    {
+     "word": "every",
+     "start_time": 34.38,
+     "end_time": 34.659
+    },
+    {
+     "word": "single",
+     "start_time": 34.719,
+     "end_time": 35.079
+    },
+    {
+     "word": "tool",
+     "start_time": 35.139,
+     "end_time": 35.399
+    },
+    {
+     "word": "here",
+     "start_time": 35.479,
+     "end_time": 35.659
+    },
+    {
+     "word": "as",
+     "start_time": 35.719,
+     "end_time": 35.84
+    },
+    {
+     "word": "well.",
+     "start_time": 35.899,
+     "end_time": 36.259
+    },
+    {
+     "word": "Now,",
+     "start_time": 36.319,
+     "end_time": 36.5
+    },
+    {
+     "word": "let's",
+     "start_time": 36.86,
+     "end_time": 37.079
+    },
+    {
+     "word": "say",
+     "start_time": 37.119,
+     "end_time": 37.279
+    },
+    {
+     "word": "that",
+     "start_time": 37.34,
+     "end_time": 37.539
+    },
+    {
+     "word": "cinematic",
+     "start_time": 37.68,
+     "end_time": 38.2
+    },
+    {
+     "word": "video",
+     "start_time": 38.239,
+     "end_time": 38.68
+    },
+    {
+     "word": "is",
+     "start_time": 38.739,
+     "end_time": 38.88
+    },
+    {
+     "word": "your",
+     "start_time": 38.919,
+     "end_time": 39.119
+    },
+    {
+     "word": "primary",
+     "start_time": 39.18,
+     "end_time": 39.619
+    },
+    {
+     "word": "output",
+     "start_time": 39.7,
+     "end_time": 40.239
+    },
+    {
+     "word": "and",
+     "start_time": 40.299,
+     "end_time": 40.419
+    },
+    {
+     "word": "your",
+     "start_time": 40.459,
+     "end_time": 40.599
+    },
+    {
+     "word": "forte.",
+     "start_time": 40.639,
+     "end_time": 41.18
+    },
+    {
+     "word": "I",
+     "start_time": 41.259,
+     "end_time": 41.34
+    },
+    {
+     "word": "think",
+     "start_time": 41.399,
+     "end_time": 41.56
+    },
+    {
+     "word": "that",
+     "start_time": 41.599,
+     "end_time": 41.7
+    },
+    {
+     "word": "if",
+     "start_time": 41.759,
+     "end_time": 41.88
+    },
+    {
+     "word": "you",
+     "start_time": 41.899,
+     "end_time": 42
+    },
+    {
+     "word": "want",
+     "start_time": 42.04,
+     "end_time": 42.2
+    },
+    {
+     "word": "to",
+     "start_time": 42.239,
+     "end_time": 42.36
+    },
+    {
+     "word": "create",
+     "start_time": 42.399,
+     "end_time": 42.659
+    },
+    {
+     "word": "director-level",
+     "start_time": 42.7,
+     "end_time": 43.459
+    },
+    {
+     "word": "camera",
+     "start_time": 43.52,
+     "end_time": 43.799
+    },
+    {
+     "word": "control",
+     "start_time": 43.84,
+     "end_time": 44.519
+    },
+    {
+     "word": "with",
+     "start_time": 44.579,
+     "end_time": 44.759
+    },
+    {
+     "word": "access",
+     "start_time": 44.84,
+     "end_time": 45.239
+    },
+    {
+     "word": "to",
+     "start_time": 45.259,
+     "end_time": 45.399
+    },
+    {
+     "word": "top-tier",
+     "start_time": 45.439,
+     "end_time": 45.919
+    },
+    {
+     "word": "video",
+     "start_time": 45.979,
+     "end_time": 46.239
+    },
+    {
+     "word": "models,",
+     "start_time": 46.279,
+     "end_time": 46.639
+    },
+    {
+     "word": "Higgs",
+     "start_time": 46.739,
+     "end_time": 47.039
+    },
+    {
+     "word": "Field",
+     "start_time": 47.099,
+     "end_time": 47.439
+    },
+    {
+     "word": "does",
+     "start_time": 47.539,
+     "end_time": 47.72
+    },
+    {
+     "word": "that",
+     "start_time": 47.739,
+     "end_time": 47.939
+    },
+    {
+     "word": "better",
+     "start_time": 47.959,
+     "end_time": 48.2
+    },
+    {
+     "word": "than",
+     "start_time": 48.299,
+     "end_time": 48.419
+    },
+    {
+     "word": "anyone",
+     "start_time": 48.539,
+     "end_time": 48.86
+    },
+    {
+     "word": "else",
+     "start_time": 48.899,
+     "end_time": 49.139
+    },
+    {
+     "word": "in",
+     "start_time": 49.159,
+     "end_time": 49.259
+    },
+    {
+     "word": "this",
+     "start_time": 49.279,
+     "end_time": 49.419
+    },
+    {
+     "word": "group.",
+     "start_time": 49.5,
+     "end_time": 49.819
+    },
+    {
+     "word": "Just",
+     "start_time": 49.899,
+     "end_time": 50.02
+    },
+    {
+     "word": "go",
+     "start_time": 50.099,
+     "end_time": 50.2
+    },
+    {
+     "word": "in",
+     "start_time": 50.239,
+     "end_time": 50.36
+    },
+    {
+     "word": "knowing",
+     "start_time": 50.399,
+     "end_time": 50.659
+    },
+    {
+     "word": "that",
+     "start_time": 50.68,
+     "end_time": 50.86
+    },
+    {
+     "word": "outside",
+     "start_time": 50.939,
+     "end_time": 51.299
+    },
+    {
+     "word": "of",
+     "start_time": 51.319,
+     "end_time": 51.419
+    },
+    {
+     "word": "video,",
+     "start_time": 51.439,
+     "end_time": 51.799
+    },
+    {
+     "word": "you",
+     "start_time": 51.86,
+     "end_time": 51.959
+    },
+    {
+     "word": "will",
+     "start_time": 51.959,
+     "end_time": 52.159
+    },
+    {
+     "word": "need",
+     "start_time": 52.18,
+     "end_time": 52.419
+    },
+    {
+     "word": "other",
+     "start_time": 52.459,
+     "end_time": 52.599
+    },
+    {
+     "word": "tools",
+     "start_time": 52.739,
+     "end_time": 53.099
+    },
+    {
+     "word": "alongside",
+     "start_time": 53.199,
+     "end_time": 53.7
+    },
+    {
+     "word": "it.",
+     "start_time": 53.719,
+     "end_time": 53.999
+    },
+    {
+     "word": "And",
+     "start_time": 54.02,
+     "end_time": 54.119
+    },
+    {
+     "word": "if",
+     "start_time": 54.159,
+     "end_time": 54.299
+    },
+    {
+     "word": "you",
+     "start_time": 54.319,
+     "end_time": 54.439
+    },
+    {
+     "word": "are",
+     "start_time": 54.479,
+     "end_time": 54.659
+    },
+    {
+     "word": "in",
+     "start_time": 54.659,
+     "end_time": 54.739
+    },
+    {
+     "word": "a",
+     "start_time": 54.759,
+     "end_time": 54.819
+    },
+    {
+     "word": "professional",
+     "start_time": 54.879,
+     "end_time": 55.559
+    },
+    {
+     "word": "or",
+     "start_time": 55.619,
+     "end_time": 55.7
+    },
+    {
+     "word": "corporate",
+     "start_time": 55.86,
+     "end_time": 56.699
+    },
+    {
+     "word": "environment",
+     "start_time": 56.759,
+     "end_time": 57.339
+    },
+    {
+     "word": "producing",
+     "start_time": 57.379,
+     "end_time": 57.899
+    },
+    {
+     "word": "training,",
+     "start_time": 57.959,
+     "end_time": 58.439
+    },
+    {
+     "word": "onboarding,",
+     "start_time": 58.5,
+     "end_time": 59.079
+    },
+    {
+     "word": "or",
+     "start_time": 59.139,
+     "end_time": 59.2
+    },
+    {
+     "word": "multilingual",
+     "start_time": 59.34,
+     "end_time": 59.939
+    },
+    {
+     "word": "pr-",
+     "start_time": 59.959,
+     "end_time": 59.959
+    },
+    {
+     "word": "<end>",
+     "start_time": 59.982396,
+     "end_time": 59.982396
+    }
+   ],
+   "text": "So after going through all five, here is exactly where we land use case by case. If you're a content creator, digital artist, or marketer who needs a full creative workflow with images, video, characters, custom models, and audio all in one place, I think that Openart is definitely your tool. Now, the breadth of what it covers at the annual price point is genuinely hard to argue with and once you invest and the time to learn it, it pays you back. If you want to try it, I have linked it in the description where you can also grab the best discount available and, of course, it applies to every single tool here as well. Now, let's say that cinematic video is your primary output and your forte. I think that if you want to create director-level camera control with access to top-tier video models, Higgs Field does that better than anyone else in this group. Just go in knowing that outside of video, you will need other tools alongside it. And if you are in a professional or corporate environment producing training, onboarding, or multilingual pr-",
+   "name": "FULLTEST_indextts2_jamila_SYNCED_voiceover_1min.mp3",
+   "fileType": "upload",
+   "source_audio_url": "https://resource2.heygen.ai/audio/a99e1af21a9048d0a10ac2d47f98d0dc/transcode.mp3?response-content-disposition=attachment%3B+filename%2A%3DUTF-8%27%27FULLTEST_indextts2_jamila_SYNCED_voiceover_1min.mp3%3B"
+  },
+  {
+   "element_id": "aeyxXpod",
+   "type": "avatar",
+   "avatar_type": "photo_avatar",
+   "name": "girl looking down test 3",
+   "pose_name": "girl looking down test 3",
+   "avatar_name": "girl looking down test 3",
+   "avatar_group_name": "girl looking down test 3",
+   "is_motion": false,
+   "is_avatar_iv_motion": false,
+   "crop_box_crop_x": {},
+   "preview_image_url": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783253982&Signature=dw8lsBVmCtU2fDcKLDrrqvs9pwip9kix1yD1sw-PVvXPuSCWtAVJ883LglHzDhC31J9yHFkXLJ0OWrcUgRqk9QRg1IF4kMJm9pyG5Ve~0VFujJ3yfiG2sPGObIiW0xcw0nqSu5uCGIIjf5U~BsLwJwXD5EMPufxLpmGB~boMnr4KbMS2euAzpzAU56GxR~WTSQOBPqTWNw9MKaik36GDydovf0cvcOGWz~qvVJiJV87XYKzVIkRC5NC8GebGNFEH4vtERz~qoVGcmGI135ptUrOYeHZqZZeiQnflq30OldghjPSJFGx554BClL3nhi-4bZi9ji0SB4wwfP4j4HLP1g__&Key-Pair-Id=K38HBHX5LX3X2H",
+   "preview_video_url": "",
+   "blurred_lips_mp4": "",
+   "blurred_lips_webm": "",
+   "fps": null,
+   "avatar_state_id": "__AVATAR_ID__",
+   "available_style": {
+    "normal": true,
+    "circle": true,
+    "close_up": true,
+    "closeUp": true
+   },
+   "enable_matting": true,
+   "has_alpha": false,
+   "enable_enhance": true,
+   "enable_4k": false,
+   "enable_eye_contact": false,
+   "preview": {
+    "normal": {
+     "size": {
+      "width": 1792,
+      "height": 2400
+     },
+     "src": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783253982&Signature=dw8lsBVmCtU2fDcKLDrrqvs9pwip9kix1yD1sw-PVvXPuSCWtAVJ883LglHzDhC31J9yHFkXLJ0OWrcUgRqk9QRg1IF4kMJm9pyG5Ve~0VFujJ3yfiG2sPGObIiW0xcw0nqSu5uCGIIjf5U~BsLwJwXD5EMPufxLpmGB~boMnr4KbMS2euAzpzAU56GxR~WTSQOBPqTWNw9MKaik36GDydovf0cvcOGWz~qvVJiJV87XYKzVIkRC5NC8GebGNFEH4vtERz~qoVGcmGI135ptUrOYeHZqZZeiQnflq30OldghjPSJFGx554BClL3nhi-4bZi9ji0SB4wwfP4j4HLP1g__&Key-Pair-Id=K38HBHX5LX3X2H"
+    }
+   },
+   "crop_rect": {
+    "circle": {
+     "x": 85.06378173828125,
+     "y": 94.99530029296875,
+     "width": 1457.6680908203125,
+     "height": 1457.6680908203125
+    },
+    "close_up": {
+     "x": 0,
+     "y": 0,
+     "width": 1792,
+     "height": 2400
+    }
+   },
+   "is_private": true,
+   "support_avatar_iv": true,
+   "unlimited_mode_disabled": false,
+   "unlimited_mode_disabled_reason": null,
+   "photo_avatar_metadata": {
+    "photar_version": "V3"
+   },
+   "width": 1792,
+   "height": 2400,
+   "natural_width": 1792,
+   "natural_height": 2400,
+   "processed_image_url": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783253982&Signature=dw8lsBVmCtU2fDcKLDrrqvs9pwip9kix1yD1sw-PVvXPuSCWtAVJ883LglHzDhC31J9yHFkXLJ0OWrcUgRqk9QRg1IF4kMJm9pyG5Ve~0VFujJ3yfiG2sPGObIiW0xcw0nqSu5uCGIIjf5U~BsLwJwXD5EMPufxLpmGB~boMnr4KbMS2euAzpzAU56GxR~WTSQOBPqTWNw9MKaik36GDydovf0cvcOGWz~qvVJiJV87XYKzVIkRC5NC8GebGNFEH4vtERz~qoVGcmGI135ptUrOYeHZqZZeiQnflq30OldghjPSJFGx554BClL3nhi-4bZi9ji0SB4wwfP4j4HLP1g__&Key-Pair-Id=K38HBHX5LX3X2H"
+  },
+  {
+   "type": "scene",
+   "element_id": "mvCsnrn0"
+  }
+ ],
+ "title": "Untitled Video",
+ "skip_rate_limit": false,
+ "has_faceswap": false
+}
