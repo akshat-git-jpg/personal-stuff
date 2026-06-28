@@ -1167,15 +1167,14 @@ textarea {
     margin: 0 auto;
   }
 
-  .tab-bar {
+  /* Centre the fixed bottom bars as a single 680px column. width:100% + right:auto
+     keeps them centred at every width from 600px up (not just past ~1360px). */
+  .tab-bar,
+  .quick-add-wrap {
+    width: 100%;
     max-width: 680px;
     left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .quick-add-bar {
-    max-width: 680px;
-    left: 50%;
+    right: auto;
     transform: translateX(-50%);
   }
 }
