@@ -6,7 +6,11 @@ import {
   handleCallback,
   startLogin,
 } from "./auth";
-import { INDEX_KEY, blobKey, thumbKey } from "../shared";
+import { INDEX_KEY, blobKey, thumbKey, viewKey } from "../shared";
+
+// Blobs/thumbs/views are keyed by a client-generated UUID and never mutate, so
+// they can be cached aggressively on the user's own device (private, immutable).
+const IMMUTABLE = "private, max-age=31536000, immutable";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -74,9 +78,11 @@ app.get("/api/blob/:id", async (c) => {
   if (!obj) return c.json({ error: "not found" }, 404);
   const headers = new Headers();
   obj.writeHttpMetadata(headers);
-  headers.set("Cache-Control", "private, no-store");
   headers.set("ETag", obj.httpEtag);
-  if (c.req.query("download")) {
+  const download = c.req.query("download");
+  // Don't let a download response poison the inline-view cache entry.
+  headers.set("Cache-Control", download ? "private, no-store" : IMMUTABLE);
+  if (download) {
     const name = c.req.query("name") || id;
     headers.set("Content-Disposition", `attachment; filename="${name.replace(/"/g, "")}"`);
   }
@@ -85,7 +91,7 @@ app.get("/api/blob/:id", async (c) => {
 
 app.delete("/api/blob/:id", async (c) => {
   const id = c.req.param("id");
-  await c.env.DOCS.delete([blobKey(id), thumbKey(id)]);
+  await c.env.DOCS.delete([blobKey(id), thumbKey(id), viewKey(id)]);
   return c.json({ ok: true });
 });
 
@@ -106,7 +112,29 @@ app.get("/api/thumb/:id", async (c) => {
   if (!obj) return c.json({ error: "not found" }, 404);
   const headers = new Headers();
   obj.writeHttpMetadata(headers);
-  headers.set("Cache-Control", "private, max-age=86400");
+  headers.set("Cache-Control", IMMUTABLE);
+  headers.set("ETag", obj.httpEtag);
+  return new Response(obj.body, { headers });
+});
+
+// ---- View derivatives (medium-res, for the detail viewer) ------------------
+
+app.put("/api/view/:id", async (c) => {
+  const id = c.req.param("id");
+  if (!c.req.raw.body) return c.json({ error: "empty body" }, 400);
+  await c.env.DOCS.put(viewKey(id), c.req.raw.body, {
+    httpMetadata: { contentType: c.req.header("Content-Type") || "image/jpeg" },
+  });
+  return c.json({ ok: true });
+});
+
+app.get("/api/view/:id", async (c) => {
+  const id = c.req.param("id");
+  const obj = await c.env.DOCS.get(viewKey(id));
+  if (!obj) return c.json({ error: "not found" }, 404);
+  const headers = new Headers();
+  obj.writeHttpMetadata(headers);
+  headers.set("Cache-Control", IMMUTABLE);
   headers.set("ETag", obj.httpEtag);
   return new Response(obj.body, { headers });
 });

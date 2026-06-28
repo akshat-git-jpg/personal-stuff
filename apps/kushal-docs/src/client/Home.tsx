@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { DocItem } from "../shared";
-import { isImage } from "../shared";
+import { coverPage, isImage } from "../shared";
 import { logout, thumbSrc } from "./api";
 import { FileIcon } from "./FileIcon";
 
@@ -70,19 +70,27 @@ export function Home({ items, loaded, onOpen, onAdd }: Props) {
         </p>
       ) : (
         <div className="grid">
-          {filtered.map((it) => (
-            <button key={it.id} className="card" onClick={() => onOpen(it.id)}>
-              <div className="thumb">
-                {it.hasThumb && isImage(it.mime) ? (
-                  <img src={thumbSrc(it.id)} alt="" loading="lazy" />
-                ) : (
-                  <FileIcon mime={it.mime} />
-                )}
-              </div>
-              <div className="card-name">{it.name}</div>
-              {it.tags.length > 0 && <div className="card-tags">{it.tags.join(" · ")}</div>}
-            </button>
-          ))}
+          {filtered.map((it) => {
+            const cover = coverPage(it);
+            return (
+              <button key={it.id} className="card" onClick={() => onOpen(it.id)}>
+                <div className="thumb">
+                  {cover.hasThumb && isImage(cover.mime) ? (
+                    <img src={thumbSrc(cover.id)} alt="" loading="lazy" />
+                  ) : (
+                    <FileIcon mime={cover.mime} />
+                  )}
+                  {it.pages.length > 1 && (
+                    <span className="page-badge" aria-label={`${it.pages.length} pages`}>
+                      ⧉ {it.pages.length}
+                    </span>
+                  )}
+                </div>
+                <div className="card-name">{it.name}</div>
+                {it.tags.length > 0 && <div className="card-tags">{it.tags.join(" · ")}</div>}
+              </button>
+            );
+          })}
         </div>
       )}
 

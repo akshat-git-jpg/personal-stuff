@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import type { DocItem } from "../shared";
-import { addDoc } from "./api";
-import { makeThumbnail } from "./thumbnail";
+import { addDoc, type StagedPage } from "./api";
 import { TagEditor } from "./TagEditor";
+import { FileIcon } from "./FileIcon";
 
 interface Props {
   items: DocItem[];
@@ -10,11 +10,16 @@ interface Props {
   onCancel: () => void;
 }
 
+interface Staged {
+  key: string;
+  file: File;
+  preview: string | null;
+}
+
 const stripExt = (name: string) => name.replace(/\.[^.]+$/, "");
 
 export function AddSheet({ items, onSaved, onCancel }: Props) {
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [pages, setPages] = useState<Staged[]>([]);
   const [name, setName] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -28,31 +33,46 @@ export function AddSheet({ items, onSaved, onCancel }: Props) {
     return [...set].sort((a, b) => a.localeCompare(b));
   }, [items]);
 
-  const pick = (f: File | undefined) => {
-    if (!f) return;
-    setFile(f);
-    if (!name) setName(stripExt(f.name));
-    setPreview(f.type.startsWith("image/") ? URL.createObjectURL(f) : null);
+  const pick = (list: FileList | null) => {
+    const files = list ? [...list] : [];
+    if (!files.length) return;
+    if (!name) setName(stripExt(files[0].name));
+    setPages((prev) => [
+      ...prev,
+      ...files.map((file) => ({
+        key: crypto.randomUUID(),
+        file,
+        preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : null,
+      })),
+    ]);
+  };
+
+  const removePage = (key: string) => {
+    setPages((prev) => {
+      const gone = prev.find((p) => p.key === key);
+      if (gone?.preview) URL.revokeObjectURL(gone.preview);
+      return prev.filter((p) => p.key !== key);
+    });
+  };
+
+  const move = (key: string, dir: -1 | 1) => {
+    setPages((prev) => {
+      const i = prev.findIndex((p) => p.key === key);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
   };
 
   const save = async () => {
-    if (!file || !name.trim() || busy) return;
+    if (!pages.length || !name.trim() || busy) return;
     setBusy(true);
     setError(null);
     try {
-      const id = crypto.randomUUID();
-      const thumb = await makeThumbnail(file);
-      const item: DocItem = {
-        id,
-        name: name.trim(),
-        tags,
-        mime: file.type || "application/octet-stream",
-        filename: file.name,
-        size: file.size,
-        hasThumb: !!thumb,
-        createdAt: new Date().toISOString(),
-      };
-      const next = await addDoc(item, file, thumb, items);
+      const staged: StagedPage[] = pages.map((p) => ({ file: p.file }));
+      const next = await addDoc({ name: name.trim(), tags }, staged, items);
       onSaved(next);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
@@ -66,39 +86,51 @@ export function AddSheet({ items, onSaved, onCancel }: Props) {
         <button className="link" onClick={onCancel} disabled={busy}>
           Cancel
         </button>
-        <h1>Add document</h1>
-        <button className="link strong" onClick={save} disabled={!file || !name.trim() || busy}>
+        <h1>New document</h1>
+        <button className="link strong" onClick={save} disabled={!pages.length || !name.trim() || busy}>
           {busy ? "Saving…" : "Save"}
         </button>
       </header>
 
       <div className="sheet-body">
-        {!file ? (
-          <div className="picker">
-            <button className="big-btn" onClick={() => cameraRef.current?.click()}>
-              📷 Take a photo
-            </button>
-            <button className="big-btn" onClick={() => fileRef.current?.click()}>
-              🗂 Choose photo or PDF
-            </button>
-          </div>
-        ) : (
-          <div className="preview">
-            {preview ? (
-              <img src={preview} alt="preview" />
-            ) : (
-              <div className="preview-file">{file.name}</div>
-            )}
-            <button className="link" onClick={() => { setFile(null); setPreview(null); }} disabled={busy}>
-              Change file
-            </button>
-          </div>
-        )}
-
-        <label className="field">
+        <div className="field">
           <span>Name</span>
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Aadhaar card" />
-        </label>
+        </div>
+
+        <div className="field">
+          <span>
+            Pages{pages.length > 0 && <em className="count"> · {pages.length}</em>}
+          </span>
+          <div className="page-strip">
+            {pages.map((p, i) => (
+              <div key={p.key} className="page-cell">
+                <div className="page-thumb">
+                  {p.preview ? <img src={p.preview} alt="" /> : <FileIcon mime={p.file.type} />}
+                  <span className="page-num">{i + 1}</span>
+                </div>
+                <div className="page-ctrls">
+                  <button onClick={() => move(p.key, -1)} disabled={i === 0 || busy} aria-label="Move left">‹</button>
+                  <button className="del" onClick={() => removePage(p.key)} disabled={busy} aria-label="Remove">×</button>
+                  <button onClick={() => move(p.key, 1)} disabled={i === pages.length - 1 || busy} aria-label="Move right">›</button>
+                </div>
+              </div>
+            ))}
+            <button className="page-add" onClick={() => fileRef.current?.click()} disabled={busy}>
+              <span className="plus">+</span>
+              <span>Add page</span>
+            </button>
+          </div>
+          <div className="add-actions">
+            <button className="ghost-btn" onClick={() => cameraRef.current?.click()} disabled={busy}>
+              📷 Camera
+            </button>
+            <button className="ghost-btn" onClick={() => fileRef.current?.click()} disabled={busy}>
+              🗂 Files
+            </button>
+          </div>
+          <p className="hint">Add front &amp; back, or every page of a doc — they’re grouped under one name.</p>
+        </div>
 
         <div className="field">
           <span>Tags</span>
@@ -114,14 +146,15 @@ export function AddSheet({ items, onSaved, onCancel }: Props) {
         accept="image/*"
         capture="environment"
         hidden
-        onChange={(e) => pick(e.target.files?.[0])}
+        onChange={(e) => { pick(e.target.files); e.target.value = ""; }}
       />
       <input
         ref={fileRef}
         type="file"
         accept="image/*,application/pdf"
+        multiple
         hidden
-        onChange={(e) => pick(e.target.files?.[0])}
+        onChange={(e) => { pick(e.target.files); e.target.value = ""; }}
       />
     </div>
   );
