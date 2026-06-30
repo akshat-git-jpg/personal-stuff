@@ -16,6 +16,14 @@ dist-ssr
 # Cloudflare dev secrets
 .dev.vars
 
+# Playwright + ad-hoc screenshots
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
+/docs/shots
+/e2e/__screenshots__
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

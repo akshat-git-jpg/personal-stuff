@@ -5,6 +5,9 @@ import type { Row } from "../shared/rbac";
 import { personLabel } from "./api";
 import { activeStage } from "./pipeline";
 import { stagesOf, assigneeColOf, type PipelineDef } from "./stages";
+import { Button } from "@/components/ui/button";
+
+const selectCls = "h-8 rounded-md border border-input bg-transparent px-2 text-xs shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40";
 
 export interface AdminFilters {
   assignee: string;   // email (lowercase) or ""
@@ -56,36 +59,36 @@ export function Filters({ rows, pipeline, names, memberRoles = {}, filters, onCh
   const totalCount = pRows.length;
 
   return (
-    <div className="admin-filters">
-      <div className="admin-filters__group">
-        <label className="admin-filters__label" htmlFor="f-assignee">Assignee</label>
-        <select id="f-assignee" className="admin-filters__select" value={filters.assignee}
+    <div className="mb-3 flex flex-wrap items-end gap-3">
+      <div className="flex flex-col gap-1">
+        <label className="text-[11px] font-medium text-muted-foreground" htmlFor="f-assignee">Assignee</label>
+        <select id="f-assignee" className={selectCls} value={filters.assignee}
           onChange={(e) => onChange({ ...filters, assignee: e.target.value })}>
           <option value="">All</option>
           {assignees.map(([email, name]) => <option key={email} value={email}>{name}</option>)}
         </select>
       </div>
-      <div className="admin-filters__group">
-        <label className="admin-filters__label" htmlFor="f-category">Category</label>
-        <select id="f-category" className="admin-filters__select" value={filters.category}
+      <div className="flex flex-col gap-1">
+        <label className="text-[11px] font-medium text-muted-foreground" htmlFor="f-category">Category</label>
+        <select id="f-category" className={selectCls} value={filters.category}
           onChange={(e) => onChange({ ...filters, category: e.target.value })}>
           <option value="">All</option>
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
-      <div className="admin-filters__group">
-        <label className="admin-filters__label" htmlFor="f-stage">Stage</label>
-        <select id="f-stage" className="admin-filters__select" value={filters.stage}
+      <div className="flex flex-col gap-1">
+        <label className="text-[11px] font-medium text-muted-foreground" htmlFor="f-stage">Stage</label>
+        <select id="f-stage" className={selectCls} value={filters.stage}
           onChange={(e) => onChange({ ...filters, stage: e.target.value })}>
           <option value="">All</option>
           {pipeline.stages.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
           <option value="done">Done</option>
         </select>
       </div>
-      <div className="admin-filters__meta">
-        <span className="admin-filters__count">{filteredCount} / {totalCount}</span>
+      <div className="ml-auto flex items-center gap-2 pb-1">
+        <span className="text-xs tabular-nums text-muted-foreground">{filteredCount} / {totalCount}</span>
         {hasFilters && (
-          <button className="admin-filters__clear" type="button" onClick={() => onChange(EMPTY_FILTERS)}>Clear</button>
+          <Button variant="ghost" size="sm" className="h-7" type="button" onClick={() => onChange(EMPTY_FILTERS)}>Clear</Button>
         )}
       </div>
     </div>

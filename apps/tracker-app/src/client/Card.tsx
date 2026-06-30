@@ -1,8 +1,11 @@
+import { Clock, Trash2, AlertTriangle, Hourglass } from "lucide-react";
 import type { Row, Transition } from "../shared/rbac";
 import { pipeOf, stageByStatusColIn, normalizeStatusIn, feedbackColOf, assigneeColOf } from "./stages";
 import { displayName } from "./api";
 import { daysSince } from "./pipeline";
-import { statusMeta } from "./status";
+import { statusMeta, toneBadge, toneDot } from "./status";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface CardProps {
   row: Row;
@@ -16,6 +19,17 @@ interface CardProps {
   onDelete?: () => void;
   onOpen: () => void;
   onAction?: (t: Transition) => void;
+}
+
+// One status pill, identical on cards / lanes / legend.
+export function StatusPill({ status, className }: { status: string; className?: string }) {
+  const meta = statusMeta(status);
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset", toneBadge(meta.tone), className)}>
+      <span className={cn("size-1.5 rounded-full", toneDot(meta.tone))} />
+      {meta.label}
+    </span>
+  );
 }
 
 export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, showDwell, canDelete, onDelete, onOpen, onAction }: CardProps) {
@@ -42,51 +56,67 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
   const assignee = assigneeCol ? ((row[assigneeCol as keyof Row] as string) ?? "") : "";
 
   return (
-    <div className="card" role="button" tabIndex={0} aria-label={title}
-      onClick={onOpen} onKeyDown={(e) => e.key === "Enter" && onOpen()}>
-      <div className="card__top">
-        <span className={`pill pill--${meta.tone}`}>{meta.label}</span>
-        <span className="sys-chip">{p.name}</span>
+    <article
+      role="button" tabIndex={0} aria-label={title}
+      onClick={onOpen} onKeyDown={(e) => e.key === "Enter" && onOpen()}
+      className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-card p-3 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+    >
+      <div className="flex items-center gap-1.5">
+        <StatusPill status={status} />
+        <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{p.name}</span>
         {dwell !== null && (
-          <span className="card__dwell" title={`In ${meta.label} since ${dwell} day${dwell === 1 ? "" : "s"}`}>
-            ⏱ {dwell === 0 ? "today" : `${dwell}d`}
+          <span className="inline-flex items-center gap-1 text-[11px] tabular-nums text-muted-foreground"
+            title={`In ${meta.label} since ${dwell} day${dwell === 1 ? "" : "s"}`}>
+            <Clock className="size-3" /> {dwell === 0 ? "today" : `${dwell}d`}
           </span>
         )}
-        {showAssignee && assignee && <span className="card__who">{displayName(assignee, names)}</span>}
+        {showAssignee && assignee && <span className="truncate text-[11px] text-muted-foreground">{displayName(assignee, names)}</span>}
         {canDelete && onDelete && (
-          <button type="button" className="card__delete" title="Delete this video" aria-label={`Delete ${title}`}
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}>🗑</button>
+          <button type="button" title="Delete this video" aria-label={`Delete ${title}`}
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="ml-auto rounded-md p-1 text-muted-foreground/40 opacity-0 transition group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <Trash2 className="size-3.5" />
+          </button>
         )}
       </div>
-      <div className="card__title">{title}</div>
-      {catLabel && <span className="card__cat">{catLabel}</span>}
-      {notes && <div className="card__brief">{notes}</div>}
+
+      <div className="space-y-0.5">
+        <h3 className="text-sm font-semibold leading-snug tracking-tight text-foreground text-balance">{title}</h3>
+        {catLabel && <div className="text-xs text-muted-foreground">{catLabel}</div>}
+      </div>
+
+      {notes && <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground/80">{notes}</p>}
 
       {status === "Need Changes" && feedback && (
-        <div className="card__needs">
-          <strong>Needs changes:</strong> {feedback}
+        <div className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs leading-relaxed text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+          <span className="font-semibold">Needs changes:</span> {feedback}
         </div>
       )}
 
       {!readOnly && transitions.length > 0 && (
         <>
-          <div className="card__actions" onClick={(e) => e.stopPropagation()}>
-            {transitions.map((t) => (
-              <button
-                key={t.to + t.kind}
-                type="button"
-                className={`act act--${t.kind}`}
-                disabled={!!t.disabledReason}
-                title={t.disabledReason ?? ""}
-                onClick={() => { if (t.disabledReason) return; if (t.requiresFeedback) onOpen(); else onAction?.(t); }}
-              >
-                {t.label}
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-1.5 pt-0.5" onClick={(e) => e.stopPropagation()}>
+            {transitions.map((t) => {
+              const reject = t.kind === "reject";
+              const reopen = t.kind === "reopen";
+              return (
+                <Button
+                  key={t.to + t.kind}
+                  size="sm"
+                  variant={reject ? "outline" : reopen ? "ghost" : "default"}
+                  disabled={!!t.disabledReason}
+                  title={t.disabledReason ?? ""}
+                  className={cn("h-7 px-2.5 text-xs", reject && "border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive")}
+                  onClick={() => { if (t.disabledReason) return; if (t.requiresFeedback) onOpen(); else onAction?.(t); }}
+                >
+                  {t.label}
+                </Button>
+              );
+            })}
           </div>
           {transitions.find((t) => t.disabledReason) && (
-            <div className="card__needhint" role="status">
-              <span className="hint-icon" aria-hidden="true">⚠</span>
+            <div className="flex items-start gap-1.5 text-[11px] leading-relaxed text-amber-700 dark:text-amber-400" role="status">
+              <AlertTriangle className="mt-px size-3 shrink-0" aria-hidden="true" />
               <span>{transitions.find((t) => t.disabledReason)!.disabledReason}</span>
             </div>
           )}
@@ -94,8 +124,10 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
       )}
 
       {!readOnly && status === "In Review" && transitions.length === 0 && (
-        <div className="card__waiting">⏳ Waiting for review</div>
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <Hourglass className="size-3" /> Waiting for review
+        </div>
       )}
-    </div>
+    </article>
   );
 }

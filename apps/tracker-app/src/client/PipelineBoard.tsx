@@ -3,31 +3,27 @@
  * (derived from STAGES); each cell shows done ✓ / an active status pill / pending ✕.
  */
 import { useState } from "react";
+import { Check, X, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import type { Row } from "../shared/rbac";
 import { statusOf, type StageDef, type PipelineDef } from "./stages";
 import { displayName } from "./api";
-import { statusMeta } from "./status";
-import {
-  stageStepState, activeAssigneeEmail,
-} from "./pipeline";
+import { stageStepState, activeAssigneeEmail } from "./pipeline";
 import { rowMatchesFilters, type AdminFilters } from "./Filters";
+import { StatusPill } from "./Card";
+import { cn } from "@/lib/utils";
 
 function StageCell({ row, pipeline, stage }: { row: Row; pipeline: PipelineDef; stage: StageDef }) {
   const r = row as Record<string, string>;
   const state = stageStepState(pipeline, stage, r);
   if (state === "done") {
-    return <td className="ptable__cell ptable__cell--done"><span className="ptable__check" title={`${stage.label}: done`}>✓</span></td>;
+    return <td className="px-3 py-2 text-center"><Check className="mx-auto size-4 text-emerald-600" aria-label={`${stage.label}: done`} /></td>;
   }
   if (state === "pending") {
-    return <td className="ptable__cell ptable__cell--pending"><span className="ptable__cross" title={`${stage.label}: not started`}>✕</span></td>;
+    return <td className="px-3 py-2 text-center"><X className="mx-auto size-3.5 text-muted-foreground/30" aria-label={`${stage.label}: not started`} /></td>;
   }
-  const status = statusOf(stage, r);
-  const meta = statusMeta(status);
   return (
-    <td className="ptable__cell ptable__cell--active">
-      <div className="ptable__active-wrap">
-        <span className={`pill pill--${meta.tone}`}>{meta.label}</span>
-      </div>
+    <td className="px-3 py-2 text-center">
+      <div className="flex justify-center"><StatusPill status={statusOf(stage, r)} /></div>
     </td>
   );
 }
@@ -41,10 +37,10 @@ function TopicCell({ row, names }: { row: Row; names: Record<string, string> }) 
   const email = activeAssigneeEmail(r);
   const name = email ? displayName(email, names) : "";
   return (
-    <td className="ptable__topic">
-      <div className="ptable__topic-title">{title}</div>
-      {catLabel && <div className="ptable__topic-cat">{catLabel}</div>}
-      {name && <div className="ptable__topic-assignee">{name}</div>}
+    <td className="px-3 py-2">
+      <div className="font-medium leading-snug text-foreground">{title}</div>
+      {catLabel && <div className="text-xs text-muted-foreground">{catLabel}</div>}
+      {name && <div className="text-xs text-muted-foreground/80">{name}</div>}
     </td>
   );
 }
@@ -90,35 +86,38 @@ export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelet
       : { col, dir: col === TOPIC_COL ? "asc" : "desc" });
   }
 
-  // Only this video type's cards; then the admin filters.
   const filtered = rows.filter((r) => (r as Record<string, string>).pipeline === pipeline.id && rowMatchesFilters(r, filters));
   if (filtered.length === 0) {
-    return <div className="ptable-wrap"><div className="ptable-empty">No videos match these filters.</div></div>;
+    return <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">No videos match these filters.</div>;
   }
   const sorted = sort ? [...filtered].sort((a, b) => compareRows(a, b, sort, pipeline)) : filtered;
 
-  const caret = (col: string) => sort?.col === col ? <span className="ptable__sort-caret">{sort.dir === "asc" ? "▲" : "▼"}</span> : null;
+  const caret = (col: string) => sort?.col === col
+    ? (sort.dir === "asc" ? <ArrowUp className="inline size-3" /> : <ArrowDown className="inline size-3" />)
+    : null;
   const ariaSort = (col: string): "ascending" | "descending" | "none" =>
     sort?.col === col ? (sort.dir === "asc" ? "ascending" : "descending") : "none";
 
+  const thCls = "select-none whitespace-nowrap border-b border-border bg-muted/50 px-3 py-2 text-left text-xs font-semibold text-muted-foreground hover:text-foreground";
+
   return (
-    <div className="ptable-wrap">
-      <table className="ptable">
-        <thead>
-          <tr className="ptable__header-row">
-            <th className="ptable__th ptable__th--topic ptable__th--sortable" role="columnheader"
+    <div className="overflow-x-auto rounded-xl border border-border">
+      <table className="w-full text-sm">
+        <thead className="sticky top-0 z-10">
+          <tr>
+            <th className={cn(thCls, "cursor-pointer")} role="columnheader"
               aria-sort={ariaSort(TOPIC_COL)} tabIndex={0} onClick={() => toggleSort(TOPIC_COL)}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleSort(TOPIC_COL); } }}>
-              Topic{caret(TOPIC_COL)}
+              Topic {caret(TOPIC_COL)}
             </th>
             {pipeline.stages.map((stage) => (
-              <th key={stage.id} className="ptable__th ptable__th--stage ptable__th--sortable" role="columnheader"
+              <th key={stage.id} className={cn(thCls, "cursor-pointer text-center")} role="columnheader"
                 aria-sort={ariaSort(stage.id)} tabIndex={0} onClick={() => toggleSort(stage.id)}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleSort(stage.id); } }}>
-                {stage.label}{caret(stage.id)}
+                {stage.label} {caret(stage.id)}
               </th>
             ))}
-            {canDelete && <th className="ptable__th ptable__th--actions" aria-label="Actions" />}
+            {canDelete && <th className={cn(thCls, "w-10")} aria-label="Actions" />}
           </tr>
         </thead>
         <tbody>
@@ -126,16 +125,18 @@ export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelet
             const id = (row as Record<string, string>).row_id ?? "";
             const title = (row as Record<string, string>).video_title ?? "";
             return (
-              <tr key={id || title} className="ptable__row" role="button" tabIndex={0}
+              <tr key={id || title} className="group cursor-pointer border-b border-border last:border-0 hover:bg-muted/40" role="button" tabIndex={0}
                 aria-label={`Open ${title || "topic"}`} onClick={() => onOpen(row)}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onOpen(row); }}>
                 <TopicCell row={row} names={names} />
                 {pipeline.stages.map((stage) => <StageCell key={stage.id} row={row} pipeline={pipeline} stage={stage} />)}
                 {canDelete && (
-                  <td className="ptable__cell ptable__cell--actions">
-                    <button type="button" className="ptable__delete-btn" title="Delete this video"
-                      aria-label={`Delete ${title || id}`}
-                      onClick={(e) => { e.stopPropagation(); onDelete?.(id, title); }}>🗑</button>
+                  <td className="px-2 py-2 text-center">
+                    <button type="button" title="Delete this video" aria-label={`Delete ${title || id}`}
+                      onClick={(e) => { e.stopPropagation(); onDelete?.(id, title); }}
+                      className="rounded-md p-1 text-muted-foreground/40 opacity-0 transition group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100">
+                      <Trash2 className="size-3.5" />
+                    </button>
                   </td>
                 )}
               </tr>

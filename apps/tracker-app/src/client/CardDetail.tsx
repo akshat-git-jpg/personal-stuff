@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Lock, ExternalLink, Trash2, AlertTriangle, RotateCcw, Sparkles, ChevronDown } from "lucide-react";
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
 import { canEditForRoles, isAdminRoles } from "../shared/engine/rbac";
@@ -15,8 +16,13 @@ import {
   applyTransition, updateCell, generateLinks, displayName, personLabel,
   type BoardRow, type GenerateLinksResult,
 } from "./api";
-import { statusMeta } from "./status";
 import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl, etaBadge } from "./labels";
+import { StatusPill } from "./Card";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 
 interface CardDetailProps {
   row: BoardRow;
@@ -37,6 +43,26 @@ interface CardDetailProps {
   onApplyDefaults?: () => void; // admin: fill blank assignees/reviewers from the category/subcategory defaults
 }
 
+// Shared input styling so native inputs/selects/textareas match the shadcn look
+// (kept native to avoid the empty-string-value limitation on assignee selects).
+const inputCls = "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50";
+const labelCls = "flex items-center gap-1.5 text-xs font-medium text-foreground/80";
+
+const ETA_TONE: Record<string, string> = {
+  over: "bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-950/50 dark:text-red-300 dark:ring-red-400/20",
+  late: "bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-950/50 dark:text-red-300 dark:ring-red-400/20",
+  soon: "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-400/20",
+  today: "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-400/20",
+  ok: "bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-400/20",
+};
+const etaTone = (t: string) => ETA_TONE[t] ?? "bg-muted text-muted-foreground ring-border";
+
+function EtaBadge({ value }: { value: string }) {
+  const b = etaBadge(value);
+  if (!b) return null;
+  return <span className={cn("rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset", etaTone(b.tone))}>{b.text}</span>;
+}
+
 // A select of existing values + an "Add new…" escape hatch.
 export function ComboSelect({ id, value, options, placeholder, onChange }: {
   id: string; value: string; options: string[]; placeholder: string; onChange: (v: string) => void;
@@ -45,20 +71,22 @@ export function ComboSelect({ id, value, options, placeholder, onChange }: {
   const [adding, setAdding] = useState(false);
   if (adding) {
     return (
-      <div className="combo">
-        <input id={id} type="text" autoFocus value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
-        <button type="button" className="combo__toggle" title="Pick from the list instead" onClick={() => setAdding(false)}>⌄</button>
+      <div className="flex gap-1.5">
+        <input id={id} type="text" autoFocus value={value} placeholder={placeholder} className={inputCls} onChange={(e) => onChange(e.target.value)} />
+        <Button type="button" variant="outline" size="icon" className="size-9 shrink-0" title="Pick from the list instead" onClick={() => setAdding(false)}>
+          <ChevronDown className="size-4" />
+        </Button>
       </div>
     );
   }
   return (
-    <select id={id} value={value} onChange={(e) => {
+    <select id={id} value={value} className={inputCls} onChange={(e) => {
       if (e.target.value === ADD) { onChange(""); setAdding(true); } else onChange(e.target.value);
     }}>
       <option value="">— None —</option>
       {value && !options.includes(value) && <option value={value}>{value}</option>}
       {options.map((o) => <option key={o} value={o}>{o}</option>)}
-      <option value={ADD}>➕ Add new…</option>
+      <option value={ADD}>＋ Add new…</option>
     </select>
   );
 }
@@ -260,16 +288,16 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
 
     if (!editable) {
       return (
-        <div key={col} className="field">
-          <label>{label}{lockReason && <span className="lock-tag" title={lockReason}>🔒</span>}</label>
+        <div key={col} className="space-y-1">
+          <div className={labelCls}>{label}{lockReason && <Lock className="size-3 text-muted-foreground" aria-label={lockReason} />}</div>
           {ETA_COLS.has(col)
-            ? <div className="ro ro--eta">{value || <span className="ro--empty">—</span>}{etaBadge(value) && <span className={`eta-badge eta-badge--${etaBadge(value)!.tone}`}>{etaBadge(value)!.text}</span>}</div>
+            ? <div className="flex items-center gap-2 text-sm">{value || <span className="text-muted-foreground/50">—</span>}<EtaBadge value={value} /></div>
             : ASSIGNEE_COLS.has(col) && value
-            ? <div className="ro">{displayName(value, names)} <span className="ro__sub">{value}</span></div>
+            ? <div className="text-sm">{displayName(value, names)} <span className="text-xs text-muted-foreground">{value}</span></div>
             : LINK_COLS.has(col) && isUrl(value)
-            ? <div className="ro ro--link"><span className="ro__link-text">{value}</span><a href={value} target="_blank" rel="noopener noreferrer" className="ext-link">Open ↗</a></div>
-            : <div className={`ro${MULTILINE_COLS.has(col) ? " ro--para" : ""}`}>{value || <span className="ro--empty">—</span>}</div>}
-          {lockReason && <div className="field-lock-note">{lockReason}</div>}
+            ? <div className="flex items-center gap-2 text-sm"><span className="truncate text-muted-foreground">{value}</span><a href={value} target="_blank" rel="noopener noreferrer" className="inline-flex shrink-0 items-center gap-0.5 text-primary hover:underline">Open <ExternalLink className="size-3" /></a></div>
+            : <div className={cn("text-sm", MULTILINE_COLS.has(col) && "whitespace-pre-wrap leading-relaxed")}>{value || <span className="text-muted-foreground/50">—</span>}</div>}
+          {lockReason && <div className="text-[11px] text-muted-foreground">{lockReason}</div>}
         </div>
       );
     }
@@ -277,12 +305,12 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
     const err = errors[col];
     const st = fieldStatus[col];
     const indicator =
-      st === "saving" ? <span className="save-ind">Saving…</span>
-      : st === "saved" ? <span className="save-ind save-ind--ok">Saved ✓</span>
+      st === "saving" ? <span className="text-[11px] text-muted-foreground">Saving…</span>
+      : st === "saved" ? <span className="text-[11px] text-emerald-600">Saved ✓</span>
       : null;
     return (
-      <div key={col} className="field">
-        <label htmlFor={`f-${col}`}>{label}{indicator}</label>
+      <div key={col} className="space-y-1">
+        <label htmlFor={`f-${col}`} className={labelCls}>{label}{indicator}</label>
         {COMBO_COLS.has(col) ? (
           <ComboSelect id={`f-${col}`} value={value} options={col === "category" ? categoryOptions : subcategoryOptions}
             placeholder={`New ${label.toLowerCase()}…`} onChange={(v) => { handleChange(col, v); void autoSaveField(col, v); }} />
@@ -294,7 +322,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
             const people = Object.keys(names).filter(hasRole).sort((a, b) => names[a].localeCompare(names[b]));
             const cur = value.toLowerCase();
             return (
-              <select id={`f-${col}`} value={value} onChange={(e) => { handleChange(col, e.target.value); void autoSaveField(col, e.target.value); }}>
+              <select id={`f-${col}`} value={value} className={inputCls} onChange={(e) => { handleChange(col, e.target.value); void autoSaveField(col, e.target.value); }}>
                 <option value="">{REVIEWER_COL_SET.has(col) ? "— No review (auto-approve) —" : "— Unassigned —"}</option>
                 {value && !people.includes(cur) && <option value={value}>{personLabel(value, names, memberRoles)}</option>}
                 {people.map((email) => (
@@ -304,24 +332,24 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
             );
           })()
         ) : DATE_COLS.has(col) ? (
-          <div className="date-field">
-            <input id={`f-${col}`} type="date" value={value}
+          <div className="flex items-center gap-2">
+            <input id={`f-${col}`} type="date" value={value} className={inputCls}
               onChange={(e) => { handleChange(col, e.target.value); void autoSaveField(col, e.target.value); }} />
-            {ETA_COLS.has(col) && etaBadge(value) && <span className={`eta-badge eta-badge--${etaBadge(value)!.tone}`}>{etaBadge(value)!.text}</span>}
+            {ETA_COLS.has(col) && <EtaBadge value={value} />}
           </div>
         ) : MULTILINE_COLS.has(col) ? (
-          <textarea id={`f-${col}`} className="field-para" value={value} rows={5} placeholder={`Write the ${label.toLowerCase()}…`}
+          <textarea id={`f-${col}`} className={cn(inputCls, "h-auto min-h-24 py-2")} value={value} rows={5} placeholder={`Write the ${label.toLowerCase()}…`}
             onChange={(e) => handleChange(col, e.target.value)} onBlur={(e) => void autoSaveField(col, e.target.value)} />
         ) : (
           <>
-            <input id={`f-${col}`} type="text" value={value}
+            <input id={`f-${col}`} type="text" value={value} className={inputCls}
               placeholder={LINK_COLS.has(col) ? `Paste the ${label.toLowerCase()} link…` : `Enter the ${label.toLowerCase()}…`}
               onChange={(e) => handleChange(col, e.target.value)} onBlur={(e) => void autoSaveField(col, e.target.value)} />
-            {LINK_COLS.has(col) && isUrl(value) && <a href={value} target="_blank" rel="noopener noreferrer" className="ext-link ext-link--below-input">Open ↗</a>}
+            {LINK_COLS.has(col) && isUrl(value) && <a href={value} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-0.5 text-xs text-primary hover:underline">Open <ExternalLink className="size-3" /></a>}
           </>
         )}
-        {LINK_HINTS[col] && <div className="field-hint">🔗 {LINK_HINTS[col]}</div>}
-        {err && <div className="field-error">{err}</div>}
+        {LINK_HINTS[col] && <div className="text-[11px] text-muted-foreground">🔗 {LINK_HINTS[col]}</div>}
+        {err && <div className="text-[11px] font-medium text-destructive">{err}</div>}
       </div>
     );
   }
@@ -334,20 +362,13 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
       .filter((g) => g.transitions.length > 0);
     if (readOnly || groups.length === 0) return null;
     return (
-      <div className="detail-actions">
+      <div className="space-y-4">
         {groups.map((g) => {
           const stage = stageByIdIn(pipeline, g.stageId);
           if (!stage) return null;
           const status = statusOf(stage, row);
-          const meta = statusMeta(status);
           // Raw stored value for the optimistic-lock check (blank stays blank).
           const rawStatus = (row[g.statusCol as Column] as string) ?? "";
-          // Re-evaluate the required-field gate against what's TYPED (draft), not
-          // just what's saved — so pasting the link enables Submit immediately
-          // (clicking it then saves the link + moves the status in one go).
-          // Required-field gate, re-evaluated against TYPED values (effectiveRow):
-          //  • Start (To Do→In Progress) / Submit / Mark-uploaded → worker mustFill
-          //  • Approve → reviewer toApprove (e.g. the next worker's instruction)
           const blockReason = (t: Transition): string | undefined => {
             let cols: string[];
             if (t.kind === "approve") cols = requiredToApprove(pipeline, stage);
@@ -359,37 +380,39 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
           };
           const hint = g.transitions.map(blockReason).find(Boolean);
           return (
-            <div key={g.stageId} className="detail-action-row">
-              <div className="detail-action-row__label">
-                <strong>{stage.label}</strong> <span className={`pill pill--${meta.tone}`}>{meta.label}</span>
+            <div key={g.stageId} className="space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <strong className="font-semibold">{stage.label}</strong> <StatusPill status={status} />
               </div>
-              {/* Non-feedback actions (Approve / Start / Submit / Mark uploaded) */}
               {g.transitions.some((t) => !t.requiresFeedback) && (
-                <div className="detail-action-row__btns">
+                <div className="flex flex-wrap gap-2">
                   {g.transitions.filter((t) => !t.requiresFeedback).map((t) => {
                     const reason = blockReason(t);
+                    const reject = t.kind === "reject", reopen = t.kind === "reopen";
                     return (
-                      <button key={t.to + t.kind} type="button" className={`act act--${t.kind}`}
+                      <Button key={t.to + t.kind} size="sm"
+                        variant={reject ? "outline" : reopen ? "ghost" : "default"}
+                        className={cn(reject && "border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive")}
                         disabled={actingId !== null || !!reason} title={reason ?? ""}
-                        onClick={() => { if (!reason) void runTransition(t, rawStatus); }}>{t.label}</button>
+                        onClick={() => { if (!reason) void runTransition(t, rawStatus); }}>{t.label}</Button>
                     );
                   })}
                 </div>
               )}
               {hint && (
-                <div className="detail-action-row__hint" role="status">
-                  <span className="hint-icon" aria-hidden="true">⚠</span>
+                <div className="flex items-start gap-1.5 text-[11px] leading-relaxed text-amber-700 dark:text-amber-400" role="status">
+                  <AlertTriangle className="mt-px size-3 shrink-0" aria-hidden="true" />
                   <span>{hint}</span>
                 </div>
               )}
-              {/* Send-back: the box is always shown; the button IS the action, enabled once a note is typed. */}
               {g.transitions.filter((t) => t.requiresFeedback).map((t) => (
-                <div key={"fb" + t.to} className="sendback-form">
-                  <label className="sendback-label">Or send it back — say what to change:</label>
-                  <textarea className="sendback-textarea" rows={3} placeholder="What needs to change?"
+                <div key={"fb" + t.to} className="space-y-1.5 rounded-lg border border-border bg-muted/40 p-3">
+                  <label className="text-xs font-medium text-foreground/80">Or send it back — say what to change:</label>
+                  <textarea className={cn(inputCls, "h-auto min-h-16 py-2")} rows={3} placeholder="What needs to change?"
                     value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} />
-                  <button className="act act--reject" disabled={actingId !== null || !feedbackText.trim()}
-                    onClick={() => void runTransition(t, rawStatus, feedbackText.trim())}>{t.label}</button>
+                  <Button size="sm" variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    disabled={actingId !== null || !feedbackText.trim()}
+                    onClick={() => void runTransition(t, rawStatus, feedbackText.trim())}>{t.label}</Button>
                 </div>
               ))}
             </div>
@@ -399,10 +422,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
     );
   }
 
-  // ── Feedback banners: show the reviewer's note while the stage is being
-  //    reworked (Need Changes → In Progress → resubmit), i.e. any time feedback
-  //    exists and the stage isn't yet approved. This is the ONLY place feedback
-  //    is shown (it's no longer an editable field). ──────────────────────────
+  // ── Feedback banners (reviewer notes while a stage is being reworked). ──────
   const feedbackBanners = pipeline.stages
     .filter((s) => (showAll || s.id === contextStage.id) && isReviewable(s) && feedbackColOf(s) && colSet.has(feedbackColOf(s)!) && statusOf(s, row) !== "Done")
     .map((s) => ({ stage: s, text: ((row[feedbackColOf(s)! as Column] as string) ?? "").trim() }))
@@ -410,9 +430,6 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
 
   const title = row.video_title ?? "(no title)";
 
-  // Default: the columns the control table shows for this stage + role-kind at
-  // the current status. "Show all fields" (admin) falls back to the full per-stage
-  // section breakdown.
   const contextCols = showColumns(pipeline, contextStage, kind, ctxStatus).filter((c) => colSet.has(c));
   const fullSections = SECTIONS
     .map((sec) => ({ ...sec, cols: sec.cols.filter((c) => colSet.has(c)) }))
@@ -422,52 +439,57 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
     : [{ id: contextStage.id, label: isBrief(contextStage) ? "Brief & assignments" : contextStage.label, cols: contextCols }]
         .filter((sec) => sec.cols.length > 0);
 
-  return (
-    <>
-      <div className="detail-overlay" onClick={closeCard} />
-      <div className="detail-panel" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <button className="panel__close" onClick={closeCard} aria-label="Close">×</button>
-        <div className="detail-body">
-          <h2>{title} <span className="sys-chip sys-chip--detail">{pipeline.name}</span></h2>
+  const actions = renderActions();
 
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) closeCard(); }}>
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
+        <DialogHeader className="border-b border-border px-5 py-4">
+          <DialogTitle className="flex items-center gap-2 pr-6 text-lg tracking-tight">
+            <span className="text-balance">{title}</span>
+            <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground/70">{pipeline.name}</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
           {/* Stage status overview */}
-          <div className="detail-status-row">
-            {pipeline.stages.filter((s) => colSet.has(colOf(s, "status")) || isAdmin).map((s) => {
-              const m = statusMeta(statusOf(s, row as Row));
-              return <span key={s.id} className="detail-status-chip"><span className="detail-status-chip__stage">{s.label}</span><span className={`pill pill--${m.tone}`}>{m.label}</span></span>;
-            })}
+          <div className="flex flex-wrap gap-2">
+            {pipeline.stages.filter((s) => colSet.has(colOf(s, "status")) || isAdmin).map((s) => (
+              <span key={s.id} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-1">
+                <span className="text-[11px] font-medium text-muted-foreground">{s.label}</span>
+                <StatusPill status={statusOf(s, row as Row)} />
+              </span>
+            ))}
           </div>
 
           {feedbackBanners.map(({ stage, text }) => (
-            <div key={stage.id} className="needs-banner">
-              <span className="needs-banner__icon">⚠</span>
-              <div><div className="needs-banner__label">{stage.label} — changes requested</div><div className="needs-banner__text">{text}</div></div>
+            <div key={stage.id} className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm dark:border-red-900/50 dark:bg-red-950/40">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0 text-red-600 dark:text-red-400" />
+              <div><div className="font-semibold text-red-800 dark:text-red-200">{stage.label} — changes requested</div><div className="text-red-700 dark:text-red-300">{text}</div></div>
             </div>
           ))}
 
-          {/* Admin: apply assignment defaults for this card's category × subcategory */}
           {isAdmin && !readOnly && onApplyDefaults && (
-            <div className="apply-defaults-row">
-              <button type="button" className="btn-ghost" onClick={onApplyDefaults}>↺ Apply assignment defaults</button>
-              <span className="apply-defaults-hint">Fills blank assignees/reviewers from this card&rsquo;s category × subcategory.</span>
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+              <Button type="button" variant="outline" size="sm" onClick={onApplyDefaults}><RotateCcw className="size-3.5" /> Apply assignment defaults</Button>
+              <span className="text-[11px] text-muted-foreground">Fills blank assignees/reviewers from this card&rsquo;s category × subcategory.</span>
             </div>
           )}
 
-          {/* Admin: generate links */}
           {isAdmin && !readOnly && (
-            <div className="gen-panel">
-              <button className="btn-save" onClick={() => void handleGenerate()} disabled={genLoading}>
-                {genLoading ? "Generating…" : "Generate links & description"}
-              </button>
-              {genError && <p className="gen-panel__error">{genError}</p>}
+            <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+              <Button size="sm" onClick={() => void handleGenerate()} disabled={genLoading}>
+                <Sparkles className="size-3.5" /> {genLoading ? "Generating…" : "Generate links & description"}
+              </Button>
+              {genError && <p className="text-xs font-medium text-destructive">{genError}</p>}
               {genResult && (
-                <div className="gen-panel__result">
-                  <label className="gen-panel__label">Description</label>
-                  <textarea readOnly value={genResult.description} rows={6} className="gen-panel__desc" />
-                  <button type="button" className="gen-panel__copy" onClick={() => void navigator.clipboard.writeText(genResult.description)}>Copy description</button>
-                  <ul className="gen-panel__links">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-foreground/80">Description</label>
+                  <textarea readOnly value={genResult.description} rows={6} className={cn(inputCls, "h-auto py-2 font-mono text-xs")} />
+                  <Button type="button" variant="outline" size="sm" onClick={() => void navigator.clipboard.writeText(genResult.description)}>Copy description</Button>
+                  <ul className="space-y-1 text-xs">
                     {genResult.links.map((l) => (
-                      <li key={l.tool}><code>{l.tool}</code>: <a href={l.short_url} target="_blank" rel="noopener noreferrer">{l.short_url}</a>{!l.has_affiliate && <span className="gen-panel__warn"> (no affiliate — verify URL)</span>}</li>
+                      <li key={l.tool}><code className="rounded bg-muted px-1">{l.tool}</code>: <a href={l.short_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{l.short_url}</a>{!l.has_affiliate && <span className="text-amber-700 dark:text-amber-400"> (no affiliate — verify URL)</span>}</li>
                     ))}
                   </ul>
                 </div>
@@ -476,36 +498,38 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
           )}
 
           {/* Field sections — scoped to the context stage; admins can expand to all */}
-          <div className="sec-sections">
+          <div className="space-y-5">
             {sectionsToShow.map((sec) => (
-              <div key={sec.id} className="detail-section">
-                <div className="detail-section__title">{sec.label}</div>
-                <div className="detail-section__fields">{sec.cols.map((c) => renderField(c as Column))}</div>
+              <div key={sec.id} className="space-y-3">
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sec.label}</div>
+                <div className="space-y-3">{sec.cols.map((c) => renderField(c as Column))}</div>
               </div>
             ))}
           </div>
 
           {isAdmin && (
-            <button type="button" className="show-all-toggle" onClick={() => setShowAll((v) => !v)}>
+            <button type="button" className="text-xs font-medium text-primary hover:underline" onClick={() => setShowAll((v) => !v)}>
               {showAll ? "Show only this stage's fields" : "Show all fields"}
             </button>
           )}
 
           {isAdmin && !readOnly && onDelete && (
-            <div className="detail-danger">
-              <button type="button" className="btn-delete" onClick={onDelete}>🗑 Delete video</button>
+            <div className="border-t border-border pt-3">
+              <Button type="button" variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={onDelete}>
+                <Trash2 className="size-3.5" /> Delete video
+              </Button>
             </div>
           )}
         </div>
 
         {/* Single action footer — fields above auto-save; this is the one CTA. */}
-        {(renderActions() || formError) && (
-          <div className="detail-footer">
-            {formError && <div className="field-error detail-form-error">{formError}</div>}
-            {renderActions()}
+        {(actions || formError) && (
+          <div className="space-y-2 border-t border-border bg-muted/20 px-5 py-4">
+            {formError && <div className="text-xs font-medium text-destructive">{formError}</div>}
+            {actions}
           </div>
         )}
-      </div>
-    </>
+      </DialogContent>
+    </Dialog>
   );
 }
