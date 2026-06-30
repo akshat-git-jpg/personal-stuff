@@ -34,4 +34,8 @@ zluri-release
 pinterest-analyze
 research-critic
 improve
-tts-transcript-prep
+
+roast
+session-handoff
+ui-craft
+ui-craft-dense-dashboard
