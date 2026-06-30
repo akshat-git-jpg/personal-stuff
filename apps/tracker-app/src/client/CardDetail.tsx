@@ -5,8 +5,7 @@ import type { Row, Transition } from "../shared/rbac";
 import { canEditForRoles, isAdminRoles } from "../shared/engine/rbac";
 import { PROTECTED_ADMIN_EMAIL, PIPELINES } from "../shared/engine/registry";
 import { holdsRoleInSystem } from "../shared/engine/memberships";
-import { COLUMNS, DATE_COLUMNS, ETA_COLUMNS } from "../shared/columns";
-import { fieldType } from "./columnMeta";
+import { fieldType, ALL_FORM_COLS } from "./columnMeta";
 import {
   pipeOf, stageByIdIn, statusOf, showColumns, editColumns, requiredToApprove, requiredToSubmitFrom,
   missingColumns, colOf, assigneeColOf, reviewerColOf, instructionColOf,
@@ -94,13 +93,14 @@ export function ComboSelect({ id, value, options, placeholder, onChange }: {
   );
 }
 
-// Widget membership is derived from the column metadata (columnMeta.ts), so a new
-// column's input type is set in ONE place, not re-listed here.
-const ASSIGNEE_COLS = new Set(COLUMNS.filter((c) => fieldType(c) === "assignee"));
-const MULTILINE_COLS = new Set(COLUMNS.filter((c) => fieldType(c) === "textarea"));
-const COMBO_COLS = new Set(COLUMNS.filter((c) => fieldType(c) === "combo"));
-const DATE_COLS = new Set<string>(DATE_COLUMNS);
-const ETA_COLS = new Set<string>(ETA_COLUMNS);
+// Widget membership is derived from the column metadata (columnMeta.ts) across
+// ALL pipelines (ALL_FORM_COLS), so a new pipeline's columns classify correctly
+// with no per-column entry here. ETA is a date with a countdown badge.
+const ASSIGNEE_COLS = new Set(ALL_FORM_COLS.filter((c) => fieldType(c) === "assignee"));
+const MULTILINE_COLS = new Set(ALL_FORM_COLS.filter((c) => fieldType(c) === "textarea"));
+const COMBO_COLS = new Set(ALL_FORM_COLS.filter((c) => fieldType(c) === "combo"));
+const ETA_COLS = new Set(ALL_FORM_COLS.filter((c) => fieldType(c) === "eta"));
+const DATE_COLS = new Set(ALL_FORM_COLS.filter((c) => fieldType(c) === "date" || fieldType(c) === "eta"));
 
 // Membership/role lookups — union across ALL pipelines (cols are unique per system).
 const STATUS_COLS = new Set<string>(Object.values(PIPELINES).flatMap((p) => p.stages.map((s) => colOf(s, "status"))));
@@ -286,13 +286,19 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
     // when the cell is blank.
     const value = col === "admin_email" ? (draft[col] || PROTECTED_ADMIN_EMAIL) : (draft[col] ?? "");
     const label = fieldLabel(col);
+    // Link fields read as "<thing> link" with a "public link" placeholder, so a
+    // deliverable URL is unambiguous everywhere (e.g. "Outline link" / "Enter the
+    // outline public link…"). baseLabel drops any existing "link(s)" suffix.
+    const isLink = LINK_COLS.has(col);
+    const baseLabel = label.replace(/\s*links?$/i, "");
+    const displayLabel = isLink && !/link/i.test(label) ? `${label} link` : label;
     const lockReason = locks[col];
     const editable = editableNow(col);
 
     if (!editable) {
       return (
         <div key={col} className="space-y-1">
-          <div className={labelCls}>{label}{lockReason && <Lock className="size-3 text-muted-foreground" aria-label={lockReason} />}</div>
+          <div className={labelCls}>{displayLabel}{lockReason && <Lock className="size-3 text-muted-foreground" aria-label={lockReason} />}</div>
           {ETA_COLS.has(col)
             ? <div className="flex items-center gap-2 text-sm">{value || <span className="text-muted-foreground/50">—</span>}<EtaBadge value={value} /></div>
             : ASSIGNEE_COLS.has(col) && value
@@ -313,7 +319,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
       : null;
     return (
       <div key={col} className="space-y-1">
-        <label htmlFor={`f-${col}`} className={labelCls}>{label}{indicator}</label>
+        <label htmlFor={`f-${col}`} className={labelCls}>{displayLabel}{indicator}</label>
         {COMBO_COLS.has(col) ? (
           <ComboSelect id={`f-${col}`} value={value} options={col === "category" ? categoryOptions : subcategoryOptions}
             placeholder={`New ${label.toLowerCase()}…`} onChange={(v) => { handleChange(col, v); void autoSaveField(col, v); }} />
@@ -349,7 +355,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
         ) : (
           <>
             <input id={`f-${col}`} type="text" value={value} className={inputCls}
-              placeholder={LINK_COLS.has(col) ? `Paste the ${label.toLowerCase()} link…` : `Enter the ${label.toLowerCase()}…`}
+              placeholder={isLink ? `Enter the ${baseLabel.toLowerCase()} public link…` : `Enter the ${label.toLowerCase()}…`}
               onChange={(e) => handleChange(col, e.target.value)} onBlur={(e) => void autoSaveField(col, e.target.value)} />
             {LINK_COLS.has(col) && isUrl(value) && <a href={value} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-0.5 text-xs text-primary hover:underline">Open <ExternalLink className="size-3" /></a>}
           </>

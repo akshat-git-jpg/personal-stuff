@@ -1,12 +1,26 @@
-import { COLUMN_META, colHint, LINK_COLS } from "./columnMeta";
+import { COLUMN_META, colHint, LINK_COLS, PUBLIC_LINK_HINT } from "./columnMeta";
 import { fieldLabelOf } from "../shared/engine/labels";
+import { PIPELINES } from "../shared/engine/registry";
+import { colOf, workField } from "../shared/engine/types";
 
 // ── Link helpers (link columns + per-column hints come from columnMeta) ──────
 
 export { LINK_COLS };
-export const LINK_HINTS: Record<string, string> = Object.fromEntries(
-  Object.keys(COLUMN_META).map((c) => [c, colHint(c)]).filter(([, h]) => h),
-) as Record<string, string>;
+
+// Every stage deliverable that's a URL must be a publicly-viewable link, so the
+// public-share hint applies to each work-link column across ALL pipelines (not
+// just the curated Standard ones). Curated COLUMN_META hints layer on top.
+const WORK_LINK_HINTS: Record<string, string> = {};
+for (const p of Object.values(PIPELINES)) for (const s of p.stages) {
+  const wf = workField(s);
+  if (wf && wf.type === "url") WORK_LINK_HINTS[colOf(s, "work_link")] = PUBLIC_LINK_HINT;
+}
+export const LINK_HINTS: Record<string, string> = {
+  ...WORK_LINK_HINTS,
+  ...(Object.fromEntries(
+    Object.keys(COLUMN_META).map((c) => [c, colHint(c)]).filter(([, h]) => h),
+  ) as Record<string, string>),
+};
 
 export function isUrl(v: string): boolean { return /^https?:\/\//i.test((v ?? "").trim()); }
 

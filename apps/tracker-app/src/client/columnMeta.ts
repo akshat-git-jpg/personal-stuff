@@ -8,7 +8,10 @@
 // ETA_COLUMNS); `fieldType()` resolves those first, then this map.
 // ===========================================================================
 import type { Column } from "../shared/columns";
-import { DATE_COLUMNS, ETA_COLUMNS, columnLabel } from "../shared/columns";
+import { columnLabel } from "../shared/columns";
+import { PIPELINES } from "../shared/engine/registry";
+import { colOf, stageHasReviewerSlot, stageHasInstruction, stageHasEta, workField, type FieldType as EngineFieldType } from "../shared/engine/types";
+import { lifecycle } from "../shared/engine/lifecycle";
 
 export type FieldType =
   | "text"      // single-line text input
@@ -87,14 +90,37 @@ export const COLUMN_META: Partial<Record<Column, ColMeta>> = {
   actual_links:   { type: "link" },
 };
 
-const DATE_SET = new Set<string>(DATE_COLUMNS);
-const ETA_SET = new Set<string>(ETA_COLUMNS);
+// ── Engine-derived widget types — the GENERIC source of truth ────────────────
+// Mirrors engine/labels.ts: walk every pipeline's stages and map each flat-Row
+// column to its widget. This is why a NEW pipeline's columns (e.g. tut-2's
+// outline_eta / outline_work_link / outline_instruction) render correctly with
+// no per-column entry below — the COLUMN_META map only covers brief/meta columns
+// that aren't engine stage slots (video_title, category, topic_date, …).
+const engineWidget = (t: EngineFieldType): FieldType => (t === "url" ? "link" : t); // url→link; rest pass through
 
-/** The widget a column renders as. ETA/date are authoritative from columns.ts. */
+const ENGINE_TYPE: Record<string, FieldType> = {};
+for (const p of Object.values(PIPELINES)) for (const s of p.stages) {
+  ENGINE_TYPE[colOf(s, "assignee")] ??= "assignee";
+  if (stageHasReviewerSlot(s)) ENGINE_TYPE[colOf(s, "reviewer")] ??= "assignee";
+  if (stageHasInstruction(s)) ENGINE_TYPE[colOf(s, "instruction")] ??= "textarea";
+  if (stageHasEta(s)) ENGINE_TYPE[colOf(s, "eta")] ??= "eta";
+  if (lifecycle(s.lifecycle).reviewed) ENGINE_TYPE[colOf(s, "feedback")] ??= "textarea";
+  const wf = workField(s);
+  if (wf) ENGINE_TYPE[colOf(s, "work_link")] ??= engineWidget(wf.type);
+  for (const f of s.extra ?? []) ENGINE_TYPE[f.slot ? colOf(s, f.slot) : f.id] ??= engineWidget(f.type);
+}
+
+/** Every column that can render as a form field across all pipelines (engine
+ *  stage slots + the curated brief/meta columns). Lets the form classify fields
+ *  for any pipeline, not just the legacy Standard column list. */
+export const ALL_FORM_COLS: readonly string[] = [
+  ...new Set<string>([...Object.keys(ENGINE_TYPE), ...Object.keys(COLUMN_META)]),
+];
+
+/** The widget a column renders as. Engine stage slots win; brief/meta columns
+ *  fall back to the curated COLUMN_META; everything else is plain text. */
 export function fieldType(col: string): FieldType {
-  if (ETA_SET.has(col)) return "eta";
-  if (DATE_SET.has(col)) return "date";
-  return COLUMN_META[col as Column]?.type ?? "text";
+  return ENGINE_TYPE[col] ?? COLUMN_META[col as Column]?.type ?? "text";
 }
 
 /** Display label for a column — delegates to the single shared source. */
@@ -107,7 +133,6 @@ export function colHint(col: string): string | undefined {
   return COLUMN_META[col as Column]?.hint;
 }
 
-/** Columns whose value is (or contains) a URL — get "Open ↗" treatment. */
-export const LINK_COLS = new Set<string>(
-  Object.entries(COLUMN_META).filter(([, m]) => m!.type === "link").map(([c]) => c),
-);
+/** Columns whose value is (or contains) a URL — get "Open ↗" treatment. Derived
+ *  across all pipelines (engine work-link/url fields + curated link columns). */
+export const LINK_COLS = new Set<string>(ALL_FORM_COLS.filter((c) => fieldType(c) === "link"));
