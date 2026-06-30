@@ -4,10 +4,18 @@ The production system. Turns a tutorial-maker's messy male-voiced screen recordi
 CLEAN, clear, accent-neutral female voiceover that stays in sync with the video — with
 **no recurring cost**.
 
-**STATUS (2026-06-21):** OmniVoice chosen (4 engines benchmarked). Full pipeline BUILT &
-runs end-to-end (transcript → chunked synth → trim+anchor → mux). Real reference voice in
-use (cloned from a user-supplied YouTube Short). Currently iterating on output QUALITY —
-see "Quality engineering" and "Known issues" below.
+**STATUS (2026-06-23):** **IndexTTS-2 chosen** (superseding the 06-21 OmniVoice pick). It
+runs on **Modal GPU** (`modal/indextts2_app.py` — the only GPU step; transcribe/chunk/
+assemble/mux stay local). Full pipeline runs end-to-end (transcript → chunked synth →
+trim+anchor → mux). Real reference voice in use (`~/Desktop/my-ref-voices/30-sec-soft-women/
+jamila-walking-30s.wav`). Voice quality is good; the live blocker is **voice↔video sync** —
+see `SYNC-PROBLEM.md` (current source of truth for the open problem). The OmniVoice-era
+"Quality engineering" / "Known issues" notes below are HISTORICAL — their measurements
+(onset breath, ~18% slow, speed=1.18) are OmniVoice-specific and need re-validation on
+IndexTTS-2.
+
+**STATUS (2026-06-21, superseded):** OmniVoice chosen (4 engines benchmarked) and the full
+pipeline built around it. Kept below for history; the engine decision has since flipped.
 
 ## Why this exists (vs the RVC flow)
 
@@ -80,15 +88,17 @@ the 2.6-min sample transcript. Speed = compute time ÷ audio length (lower is be
 
 | Engine | Quality | Speed on Mac (MPS) | Verdict |
 |--------|---------|--------------------|---------|
-| **OmniVoice** | **human ✅** (clones a reference voice) | **~1.4× realtime**, correct durations | ✅ **CHOSEN** |
+| **IndexTTS2** | great + true emotion control | **RTF 32.7 (~32× on Mac)** → runs on Modal GPU | ✅ **CHOSEN** |
+| OmniVoice | **human ✅** (clones a reference voice) | **~1.4× realtime** on Mac, correct durations | superseded (was chosen 06-21) |
 | Kokoro | robotic (small synthetic model) | <1× realtime (fast) | ❌ quality |
 | Qwen3-TTS 1.7B | good | ~20–30× realtime (unusable) | ❌ needs GPU |
 | Qwen3-TTS 0.6B | garbled / defaults to Chinese | slow | ❌ broken |
-| IndexTTS2 | likely great, correct durations | **RTF 32.7 (~32× realtime)** | ❌ needs GPU |
 
-**Decision: OmniVoice.** Only engine that is both human-sounding AND fast enough on this
-hardware. Qwen + IndexTTS2 are GPU-class — kept in the repo (same contract) as the
-"if we get an NVIDIA box" premium options; switching is just `--engine`.
+**Decision: IndexTTS-2.** It is GPU-class (RTF 32.7 on Mac, unusable locally) so we run it
+on **Modal GPU** (`modal/indextts2_app.py`) — the only GPU step; everything else stays local.
+Chosen over OmniVoice for higher quality + **true emotion control** (`emo_vector`,
+`emo_audio_prompt`, `use_emo_text`, `emo_text`), which OmniVoice lacks. OmniVoice remains the
+no-GPU fallback (human-sounding, ~1.4× realtime on Mac); switching is just `--engine`.
 
 Reference clip: OmniVoice/IndexTTS2 are zero-shot CLONERS — they need a 5–10s clean clip of
 the target female voice (+ auto-transcribed by built-in Whisper). The user provides the
@@ -133,15 +143,17 @@ a livelier reference is the lever for more energy (see Emotion).
 ## Engines (all honor the same contract: `synth.py <segments.json> <out_dir>`)
 - `engines/kokoro/`     — preset voices, py3.11 venv, `en_core_web_sm` pre-installed (gotcha).
 - `engines/qwen3-tts/`  — `qwen-tts` pkg, CustomVoice presets; needs SoX; GPU-class.
-- `engines/omnivoice/`  — **chosen**; `omnivoice` pkg; clone-only; has a Gradio UI
+- `engines/omnivoice/`  — no-GPU fallback; `omnivoice` pkg; clone-only; has a Gradio UI
   (`omnivoice-demo --port 7860`) for auditioning. Headless adapter = `synth.py`.
-- `engines/indextts2/`  — full repo clone + `uv sync`; ~9.5 GB models; GPU-class.
+- `engines/indextts2/`  — **chosen**; full repo clone + `uv sync`; ~9.5 GB models; GPU-class,
+  run on Modal GPU via `modal/indextts2_app.py` (per-segment `{id,text}` contract; supports
+  `interval_silence` and `emo_text`).
 
 All set MPS-off-by-fallback / device auto. HF auth: token stored globally
 (`~/.cache/huggingface/token`) — downloads are fast.
 
 ## NEXT STEPS
-1. ✅ Engine chosen: OmniVoice. ✅ Pipeline built (chunk → synth → trim+anchor → mux).
+1. ✅ Engine chosen: IndexTTS-2 (on Modal GPU). ✅ Pipeline built (chunk → synth → trim+anchor → mux).
 2. ✅ Real reference voice wired in. ✅ Root-caused + fixed "tsh" and pacing (chunk+trim).
 3. ⏳ User reviewing the voiceover (`~/Desktop/voiceover_v2_chunked_trimmed.mp3`):
    is "tsh" gone? pacing even? Possibly try a livelier reference for energy.
@@ -151,6 +163,9 @@ All set MPS-off-by-fallback / device auto. HF auth: token stored globally
 6. ⬜ Deployment decision (below) + simple editor UI.
 
 ### How to run the current pipeline (Mac)
+> Note: the commands below are the OmniVoice (no-GPU fallback) path. For the chosen engine,
+> the synth step runs on Modal GPU via `modal/indextts2_app.py`; chunk/assemble/mux stay local
+> as shown. See `SYNC-PROBLEM.md` for the current IndexTTS-2 run + the open sync work.
 ```bash
 cd tts-flow
 export PYTORCH_ENABLE_MPS_FALLBACK=1
