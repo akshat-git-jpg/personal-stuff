@@ -54,7 +54,7 @@ async function fetchUsage(dir) {
   if (oa.expiresAt && oa.expiresAt < Date.now()) return { error: 'token expired — open Claude to refresh', plan };
   try {
     const ac = new AbortController();
-    const to = setTimeout(() => ac.abort(), 5000);
+    const to = setTimeout(() => ac.abort(), 15000);
     const r = await fetch('https://api.anthropic.com/api/oauth/usage', {
       headers: { Authorization: `Bearer ${token}`, 'anthropic-beta': 'oauth-2025-04-20', 'Content-Type': 'application/json' },
       signal: ac.signal,

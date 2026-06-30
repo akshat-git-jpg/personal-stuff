@@ -80,6 +80,7 @@ job. (Skip this step if you set `YT_CLAUDE_TARGET=terminal`.)
 | `YT_CLAUDE_TERMINAL` | `Terminal` | (terminal target) macOS app to open windows in (e.g. `iTerm`) |
 | `YT_CLAUDE_DIR` | `~/yt-claude` | per-video working dirs + `index.log` manifest + `pending/` queue |
 | `YT_CLAUDE_CMD` | `claude` | command run per tab/window (set to `echo` to test plumbing) |
+| `YT_CLAUDE_FLAGS` | `--dangerously-skip-permissions` | flags appended to `YT_CLAUDE_CMD`; default opens each session in bypass-permissions mode (no approval prompts). Set to `""` to restore normal prompting. |
 
 ## Notes
 

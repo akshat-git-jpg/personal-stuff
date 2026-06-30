@@ -33,6 +33,11 @@ TERMINAL_APP = os.environ.get("YT_CLAUDE_TERMINAL", "Terminal")
 # The command run per video window. Override for testing (e.g. YT_CLAUDE_CMD=echo)
 # so plumbing can be verified without a real TUI.
 LAUNCH_CMD = os.environ.get("YT_CLAUDE_CMD", "claude")
+# Flags appended to LAUNCH_CMD. Default starts each session in bypass-permissions
+# mode (no per-action approval prompts) so the summary runs hands-free. These are
+# throwaway per-video summary dirs, so the usual caution is low-stakes here. Set
+# YT_CLAUDE_FLAGS="" to get the normal prompting session back.
+LAUNCH_FLAGS = os.environ.get("YT_CLAUDE_FLAGS", "--dangerously-skip-permissions")
 MANIFEST = "index.log"  # appended per opened video, under BASE_DIR
 
 # pp-yt-transcript lives alongside this repo; resolve it relative to this file.
@@ -145,7 +150,8 @@ def open_window(url: str):
     # Code's "trust this folder" gate only appears once, not per video. The
     # per-video transcript/prompt live in subdirs, referenced by absolute path.
     win_title = "yt: " + title
-    run_cmd = f'{LAUNCH_CMD} "$(cat {shquote(str(prompt_path))})"'
+    launch = f"{LAUNCH_CMD} {LAUNCH_FLAGS}".strip()
+    run_cmd = f'{launch} "$(cat {shquote(str(prompt_path))})"'
 
     # .command script for the Terminal-window target. `zsh -il` (interactive
     # login) so the user's `claude` (claude-work) alias + env resolve. `open`

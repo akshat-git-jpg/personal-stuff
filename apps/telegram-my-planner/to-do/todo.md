@@ -67,3 +67,14 @@ https://youtu.be/j9tAj7bkDR4?si=wID6XKuFLYCnrt-c
 youri uses clone
 
 make channel like ai search
+
+- make app to track transactions
+
+- channel like this - https://youtu.be/NYD1GwKMmJA?si=SSYbRw-uY0-hMJer
+  make every other day - something with claude - give in school community.
+
+- built at researcher for yt topics
+- make tutorial tracker generic for any system tracking
+- form fill for affiliates
+- try new non tech niche where people are not aware of tech/ai. think anusha papa
+- sell games
