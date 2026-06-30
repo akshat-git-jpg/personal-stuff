@@ -27,10 +27,14 @@ export type BoardRow = Row & {
   _locks?: Record<string, string>;    // editable col -> lock reason (absent = editable)
 };
 
+export interface WorkerStage { pipelineId: string; stageId: string; statusCol: string; role: string; label: string }
+export interface PipelineSummary { id: string; name: string; stages: { id: string; label: string; role: string }[] }
+
 export interface BoardData {
   roles: string[];
   viewerEmail?: string;
-  stages: { statusCol: string; role: string }[];
+  stages: WorkerStage[];
+  pipelines: PipelineSummary[];
   columns: Column[];
   rows: BoardRow[];
   viewingAs: { email: string; roles: string[] } | null;
@@ -201,8 +205,9 @@ export async function getDefaults(): Promise<AssignmentDefaultRow[]> {
   if (!res.ok) return [];
   return res.json() as Promise<AssignmentDefaultRow[]>;
 }
-export async function getDefaultCols(): Promise<string[]> {
-  const res = await fetch("/api/defaults/cols", { credentials: "same-origin" });
+export async function getDefaultCols(pipeline?: string): Promise<string[]> {
+  const url = pipeline ? `/api/defaults/cols?pipeline=${encodeURIComponent(pipeline)}` : "/api/defaults/cols";
+  const res = await fetch(url, { credentials: "same-origin" });
   if (!res.ok) return [];
   return res.json() as Promise<string[]>;
 }

@@ -1,4 +1,5 @@
 import type { ReviewItem } from "./api";
+import { pipeOf } from "./stages";
 
 interface ReviewQueueProps {
   items: ReviewItem[];
@@ -18,6 +19,7 @@ export function ReviewQueue({ items, onOpen }: ReviewQueueProps) {
           onClick={() => onOpen(item)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onOpen(item); }}>
           <div className="awaiting-item__meta">
             <span className="awaiting-item__stage">{item.stage}</span>
+            <span className="sys-chip">{pipeOf(item.row as Record<string, unknown>).name}</span>
             <span className="awaiting-item__title">{item.video_title || "(no title)"}</span>
             {item.submittedByName && <span className="awaiting-item__assignee">submitted by {item.submittedByName}</span>}
           </div>

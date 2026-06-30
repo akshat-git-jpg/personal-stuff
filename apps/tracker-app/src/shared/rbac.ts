@@ -240,16 +240,20 @@ export function transitionsForStage(roles: string[], email: string, stage: Stage
   for (const tr of lifecycle.transitions) {
     if (tr.from !== status) continue;
     if (autoComplete) {
-      if (tr.by === "reviewer") continue;                 // no reviewer → drop approve/reject/reopen
-      if (tr.kind === "submit") {                          // submit goes straight to Done
+      // submit goes straight to Done — and if the card is ALREADY In Review
+      // (its reviewer was cleared mid-review), let the owner complete it the
+      // same way, so the card can never be stranded with no forward move.
+      if (tr.kind === "submit" || (status === "In Review" && tr.kind === "approve")) {
         if (owner && gateOpen) {
           out.push({
-            stageId: stage.id, statusCol: stage.statusCol, to: DONE, label: "Submit & complete",
+            stageId: stage.id, statusCol: stage.statusCol, to: DONE,
+            label: tr.kind === "submit" ? "Submit & complete" : "Complete",
             kind: "advance", by: "doer", disabledReason: blockReasonFor(requiredToSubmitFrom(stage.id, status), row),
           });
         }
         continue;
       }
+      if (tr.by === "reviewer") continue;                 // drop remaining reviewer moves (reject/reopen)
     }
     // Authority for this move.
     if (tr.by === "doer" ? !(owner && gateOpen) : !reviewer) continue;

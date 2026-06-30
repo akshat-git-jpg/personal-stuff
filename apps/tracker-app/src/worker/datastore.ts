@@ -1,32 +1,29 @@
 // ===========================================================================
-// DATASTORE — the swappable data backend. Everything that reads/writes card or
-// team data goes through this interface, so flipping the `DATA_BACKEND` env var
-// ("sheets" | "d1") swaps the whole backend with zero logic changes elsewhere.
+// DATASTORE — Cloudflare D1, normalized engine schema.
 //
-//   • SheetsStore — the original Google Sheets backend (wraps sheets.ts/roles.ts).
-//   • D1Store     — Cloudflare D1 (SQLite): `cards` + `employees` tables.
+//   pipelines    (the system definitions; read by the engine elsewhere)
+//   cards        one row per video (brief + pipeline_id + system stamps)
+//   card_stages  one row per stage of a card (status + people + work fields)
+//   employees    access list (email PK, name, comma-joined roles)
 //
-// Both honour the same contracts (optimistic-concurrency ConflictError on
-// updateCells; auto-stamped last_updated; row_id minted as r#### on append).
+// The rest of the app speaks a flat `Row`; this store assembles that Row from
+// cards + card_stages (engine/card.ts) on read, and routes each flat-col write
+// back to the right table/slot on write. The DataStore interface is unchanged,
+// so the worker is untouched. Sheets backend removed (D1-only).
 // ===========================================================================
-import type { Column } from "../shared/columns";
-import { COLUMNS } from "../shared/columns";
-import type { Row } from "../shared/rbac";
+import type { Row } from "../shared/engine/rbac";
 import type { Env } from "./auth";
-import {
-  ConflictError, getAccessToken,
-  readRows as sheetReadRows, updateCells as sheetUpdateCells,
-  appendRow as sheetAppendRow, deleteRowById as sheetDeleteRow,
-  upsertEmployee as sheetUpsertEmployee, deleteEmployee as sheetDeleteEmployee,
-} from "./sheets";
-import { loadTeam as sheetLoadTeam, lookupRoles as sheetLookupRoles, parseRoles, type TeamMember } from "./roles";
+import { ConflictError } from "./sheets";
+import { parseRoles, type TeamMember } from "./roles";
+import { getPipeline } from "../shared/engine/registry";
+import { assembleRow, decomposeRow, routeWrite, type CardRecord, type StageRecord } from "../shared/engine/card";
 
 export interface DataStore {
   readRows(): Promise<Row[]>;
   /** Write cells of one card. `expected` enables optimistic concurrency (throws ConflictError). */
-  updateCells(rowId: string, values: Partial<Record<Column, string>>, expected?: { col: Column; value: string }): Promise<void>;
+  updateCells(rowId: string, values: Record<string, string | undefined>, expected?: { col: string; value: string }): Promise<void>;
   /** Append a card; returns the minted row_id. */
-  appendRow(values: Partial<Record<Column, string>>): Promise<string>;
+  appendRow(values: Record<string, string | undefined>): Promise<string>;
   deleteRowById(rowId: string): Promise<void>;
   loadTeam(): Promise<TeamMember[]>;
   lookupRoles(email: string): Promise<string[]>;
@@ -34,84 +31,128 @@ export interface DataStore {
   deleteEmployee(email: string): Promise<boolean>;
 }
 
-const CARD_COLS = COLUMNS as readonly string[];
+export { ConflictError };
 
-// ---------------------------------------------------------------------------
-// Sheets backend — thin wrappers over the existing sheets.ts / roles.ts code.
-// ---------------------------------------------------------------------------
-class SheetsStore implements DataStore {
-  private token?: string;
-  constructor(private env: Env) {}
-  private async tok(): Promise<string> {
-    return (this.token ??= await getAccessToken(this.env.GOOGLE_SA_JSON));
-  }
-  async readRows() { return sheetReadRows(await this.tok(), this.env.SHEET_ID); }
-  async updateCells(rowId: string, values: Partial<Record<Column, string>>, expected?: { col: Column; value: string }) {
-    return sheetUpdateCells(await this.tok(), this.env.SHEET_ID, rowId, values, expected);
-  }
-  async appendRow(values: Partial<Record<Column, string>>) { return sheetAppendRow(await this.tok(), this.env.SHEET_ID, values); }
-  async deleteRowById(rowId: string) { return sheetDeleteRow(await this.tok(), this.env.SHEET_ID, rowId); }
-  async loadTeam() { return sheetLoadTeam(await this.tok(), this.env.SHEET_ID); }
-  async lookupRoles(email: string) { return sheetLookupRoles(await this.tok(), this.env.SHEET_ID, email); }
-  async upsertEmployee(name: string, email: string, roleCell: string) { return sheetUpsertEmployee(await this.tok(), this.env.SHEET_ID, name, email, roleCell); }
-  async deleteEmployee(email: string) { return sheetDeleteEmployee(await this.tok(), this.env.SHEET_ID, email); }
-}
+const parse = (j: string | null | undefined): Record<string, string> => {
+  if (!j) return {};
+  try { return JSON.parse(j) as Record<string, string>; } catch { return {}; }
+};
 
-// ---------------------------------------------------------------------------
-// D1 backend — `cards` (one TEXT column per COLUMNS, row_id PRIMARY KEY) and
-// `employees` (email PRIMARY KEY, name, role) tables.
-// ---------------------------------------------------------------------------
+type CardDB = CardRecord & Record<string, string | null>;
+type StageDB = StageRecord & Record<string, string | null>;
+
 class D1Store implements DataStore {
   constructor(private db: D1Database) {}
 
+  // --- read: assemble flat Rows from the two tables ------------------------
   async readRows(): Promise<Row[]> {
-    const { results } = await this.db.prepare(`SELECT * FROM cards ORDER BY row_id`).all<Record<string, string | null>>();
-    return (results ?? [])
-      .filter((r) => String(r.video_title ?? "").trim() !== "") // mirror Sheets: title-less rows ignored
-      .map((r) => {
-        const row: Row = {};
-        for (const c of CARD_COLS) row[c as Column] = (r[c] ?? "") as string;
-        return row;
-      });
+    const [cardsRes, stagesRes] = await Promise.all([
+      this.db.prepare(`SELECT * FROM cards ORDER BY id`).all<CardDB>(),
+      this.db.prepare(`SELECT * FROM card_stages`).all<StageDB>(),
+    ]);
+    const byCard = new Map<string, StageRecord[]>();
+    for (const s of stagesRes.results ?? []) {
+      const list = byCard.get(s.card_id) ?? [];
+      list.push(s as StageRecord);
+      byCard.set(s.card_id, list);
+    }
+    const rows: Row[] = [];
+    for (const card of cardsRes.results ?? []) {
+      if (String(card.title ?? "").trim() === "") continue; // title-less rows ignored (legacy parity)
+      const p = getPipeline(card.pipeline_id);
+      rows.push(assembleRow(p, card as CardRecord, byCard.get(card.id) ?? []) as unknown as Row);
+    }
+    return rows;
   }
 
-  async updateCells(rowId: string, values: Partial<Record<Column, string>>, expected?: { col: Column; value: string }) {
-    const existing = await this.db.prepare(`SELECT * FROM cards WHERE row_id = ?`).bind(rowId).first<Record<string, string | null>>();
-    if (!existing) throw new Error(`Row with row_id "${rowId}" not found`);
+  // --- write: route each flat-col write to its table/slot ------------------
+  async updateCells(rowId: string, values: Record<string, string | undefined>, expected?: { col: string; value: string }) {
+    const card = await this.db.prepare(`SELECT * FROM cards WHERE id = ?`).bind(rowId).first<CardDB>();
+    if (!card) throw new Error(`Row with row_id "${rowId}" not found`);
+    const p = getPipeline(card.pipeline_id);
+    const stageRows = ((await this.db.prepare(`SELECT * FROM card_stages WHERE card_id = ?`).bind(rowId).all<StageDB>()).results ?? []) as StageRecord[];
+
     if (expected) {
-      const cur = String(existing[expected.col] ?? "").trim();
+      const current = assembleRow(p, card as CardRecord, stageRows) as Record<string, string | undefined>;
+      const cur = String(current[expected.col] ?? "").trim();
       if (cur !== expected.value.trim()) throw new ConflictError(cur, expected.value);
     }
-    const toWrite: Record<string, string> = { ...(values as Record<string, string>) };
-    if (!("last_updated" in toWrite)) toWrite.last_updated = new Date().toISOString();
-    const cols = Object.keys(toWrite).filter((c) => CARD_COLS.includes(c));
-    if (cols.length === 0) return;
-    const setClause = cols.map((c) => `"${c}" = ?`).join(", ");
-    await this.db.prepare(`UPDATE cards SET ${setClause} WHERE row_id = ?`)
-      .bind(...cols.map((c) => toWrite[c] ?? ""), rowId).run();
+
+    const cardFields: Record<string, string> = { updated_at: new Date().toISOString() };
+    const cardExtra = parse(card.extra_json); let cardExtraDirty = false;
+    const stageBy = new Map(stageRows.map((s) => [s.stage_id, s]));
+    const stageUpd = new Map<string, { fields: Record<string, string>; extra: Record<string, string>; extraDirty: boolean }>();
+    const su = (id: string) => {
+      let u = stageUpd.get(id);
+      if (!u) { u = { fields: {}, extra: parse(stageBy.get(id)?.extra_json), extraDirty: false }; stageUpd.set(id, u); }
+      return u;
+    };
+
+    for (const [col, value] of Object.entries(values)) {
+      if (value === undefined) continue;
+      const t = routeWrite(p, col);
+      if (!t) continue;
+      if (t.kind === "card" || t.kind === "system") cardFields[t.field] = value;
+      else if (t.kind === "card_extra") { cardExtra[t.key] = value; cardExtraDirty = true; }
+      else if (t.kind === "stage") su(t.stageId).fields[t.slot] = value;
+      else if (t.kind === "stage_extra") { const u = su(t.stageId); u.extra[t.fieldId] = value; u.extraDirty = true; }
+    }
+
+    const stmts: D1PreparedStatement[] = [];
+    if (cardExtraDirty) cardFields.extra_json = JSON.stringify(cardExtra);
+    const cardCols = Object.keys(cardFields);
+    stmts.push(this.db.prepare(`UPDATE cards SET ${cardCols.map((c) => `"${c}" = ?`).join(", ")} WHERE id = ?`)
+      .bind(...cardCols.map((c) => cardFields[c]), rowId));
+
+    for (const [sid, u] of stageUpd) {
+      const f: Record<string, string> = { ...u.fields };
+      if (u.extraDirty) f.extra_json = JSON.stringify(u.extra);
+      const cols = Object.keys(f);
+      if (cols.length === 0) continue;
+      stmts.push(this.db.prepare(
+        `INSERT INTO card_stages (card_id, stage_id, ${cols.map((c) => `"${c}"`).join(", ")}) ` +
+        `VALUES (?, ?, ${cols.map(() => "?").join(", ")}) ` +
+        `ON CONFLICT(card_id, stage_id) DO UPDATE SET ${cols.map((c) => `"${c}" = excluded."${c}"`).join(", ")}`,
+      ).bind(rowId, sid, ...cols.map((c) => f[c])));
+    }
+    await this.db.batch(stmts);
   }
 
-  async appendRow(values: Partial<Record<Column, string>>): Promise<string> {
-    const { results } = await this.db.prepare(`SELECT row_id FROM cards`).all<{ row_id: string }>();
+  // --- append: create a fresh card + its stage rows ------------------------
+  async appendRow(values: Record<string, string | undefined>): Promise<string> {
+    const { results } = await this.db.prepare(`SELECT id FROM cards`).all<{ id: string }>();
     let counter = 1;
     for (const r of results ?? []) {
-      const m = String(r.row_id).match(/^r(\d+)$/);
+      const m = String(r.id).match(/^r(\d+)$/);
       if (m) { const n = parseInt(m[1], 10); if (n >= counter) counter = n + 1; }
     }
-    const rowId = `r${String(counter).padStart(4, "0")}`;
-    const full: Record<string, string> = { ...(values as Record<string, string>), row_id: rowId, last_updated: new Date().toISOString() };
-    const cols = Object.keys(full).filter((c) => CARD_COLS.includes(c));
-    const placeholders = cols.map(() => "?").join(", ");
-    await this.db.prepare(`INSERT INTO cards (${cols.map((c) => `"${c}"`).join(", ")}) VALUES (${placeholders})`)
-      .bind(...cols.map((c) => full[c] ?? "")).run();
-    return rowId;
+    const id = `r${String(counter).padStart(4, "0")}`;
+    const row: Record<string, string | undefined> = { ...values, row_id: id, pipeline: values.pipeline || "standard" };
+    const p = getPipeline(row.pipeline);
+    const { card, stages } = decomposeRow(p, row, true);
+    const now = new Date().toISOString();
+
+    const cardCols = ["id", "pipeline_id", "title", "notes", "description", "category", "subcategory", "extra_json", "created_at", "updated_at", "status_since"];
+    const stmts: D1PreparedStatement[] = [
+      this.db.prepare(`INSERT INTO cards (${cardCols.map((x) => `"${x}"`).join(", ")}) VALUES (${cardCols.map(() => "?").join(", ")})`)
+        .bind(id, p.id, card.title ?? "", card.notes ?? "", card.description ?? "", card.category ?? "", card.subcategory ?? "", card.extra_json ?? null, now, now, card.status_since ?? null),
+    ];
+    const stCols = ["card_id", "stage_id", "status", "assignee", "reviewer", "work_link", "instruction", "eta", "feedback", "extra_json", "status_since"];
+    for (const s of stages) {
+      stmts.push(this.db.prepare(`INSERT INTO card_stages (${stCols.map((x) => `"${x}"`).join(", ")}) VALUES (${stCols.map(() => "?").join(", ")})`)
+        .bind(id, s.stage_id, s.status ?? null, s.assignee ?? null, s.reviewer ?? null, s.work_link ?? null, s.instruction ?? null, s.eta ?? null, s.feedback ?? null, s.extra_json ?? null, s.status_since ?? null));
+    }
+    await this.db.batch(stmts);
+    return id;
   }
 
   async deleteRowById(rowId: string) {
-    const res = await this.db.prepare(`DELETE FROM cards WHERE row_id = ?`).bind(rowId).run();
+    const res = await this.db.prepare(`DELETE FROM cards WHERE id = ?`).bind(rowId).run();
+    await this.db.prepare(`DELETE FROM card_stages WHERE card_id = ?`).bind(rowId).run();
     if (res.meta?.changes === 0) throw new Error(`Row with row_id "${rowId}" not found`);
   }
 
+  // --- employees (access list) --------------------------------------------
   async loadTeam(): Promise<TeamMember[]> {
     const { results } = await this.db.prepare(`SELECT name, email, role FROM employees`).all<{ name: string; email: string; role: string }>();
     const members: TeamMember[] = [];
@@ -147,7 +188,7 @@ class D1Store implements DataStore {
   }
 }
 
-/** Pick the live backend from the DATA_BACKEND env var (defaults to Sheets). */
+/** D1 is the only backend now. */
 export function getStore(env: Env): DataStore {
-  return env.DATA_BACKEND === "d1" ? new D1Store(env.TRACKER_DB) : new SheetsStore(env);
+  return new D1Store(env.TRACKER_DB);
 }

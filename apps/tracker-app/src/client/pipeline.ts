@@ -1,40 +1,49 @@
 /**
- * pipeline.ts — pure helpers for the admin Pipeline matrix, derived from the
- * shared pipeline definition. No hardcoded stage names.
+ * pipeline.ts — pure helpers for the admin Pipeline matrix + card progress,
+ * resolved per the card's own pipeline (engine-backed). No hardcoded stages.
  */
 import {
-  STAGES, isStageComplete, isGateOpen, statusOf, type StageDef,
-} from "../shared/pipeline";
+  pipeOf, stagesOf, statusOf, isGateOpen, isStageComplete, isReviewable,
+  assigneeColOf, type StageDef, type PipelineDef,
+} from "./stages";
+
+type R = Record<string, string>;
 
 export type StepState = "done" | "active" | "pending";
 
-/** A stage is done when complete, active when reachable-but-not-done, else pending. */
-export function stageStepState(stage: StageDef, row: Record<string, string>): StepState {
+/** done = complete, active = reachable-but-not-done, else pending. */
+export function stageStepState(p: PipelineDef, stage: StageDef, row: R): StepState {
   if (isStageComplete(stage, row)) return "done";
-  if (isGateOpen(stage, row)) return "active";
+  if (isGateOpen(p, stage, row)) return "active";
   return "pending";
 }
 
 export interface ProgressStep { stage: StageDef; state: StepState; }
-export function progress(row: Record<string, string>): ProgressStep[] {
-  return STAGES.map((s) => ({ stage: s, state: stageStepState(s, row) }));
+export function progress(row: R): ProgressStep[] {
+  const p = pipeOf(row);
+  return p.stages.map((s) => ({ stage: s, state: stageStepState(p, s, row) }));
 }
 
 /** The single stage a card currently sits in (null when everything is complete). */
-export function activeStage(row: Record<string, string>): StageDef | null {
-  return STAGES.find((s) => stageStepState(s, row) === "active") ?? null;
+export function activeStage(row: R): StageDef | null {
+  const p = pipeOf(row);
+  return p.stages.find((s) => stageStepState(p, s, row) === "active") ?? null;
 }
-export function overallLabel(row: Record<string, string>): string {
+export function overallLabel(row: R): string {
   return activeStage(row)?.label ?? "Done";
 }
-export function activeAssigneeEmail(row: Record<string, string>): string {
+export function activeAssigneeEmail(row: R): string {
   const a = activeStage(row);
-  return a ? (row[a.assigneeCol] ?? "") : (row.uploader_email ?? "");
+  if (a) return row[assigneeColOf(a)] ?? "";
+  // Everything done → show the last stage's assignee (e.g. the uploader).
+  const stages = stagesOf(row);
+  const last = stages[stages.length - 1];
+  return last ? (row[assigneeColOf(last)] ?? "") : "";
 }
 
 /** Sent back: any reviewable stage currently needs changes. */
-export function isStalled(row: Record<string, string>): boolean {
-  return STAGES.some((s) => s.reviewable && statusOf(s, row) === "Need Changes");
+export function isStalled(row: R): boolean {
+  return stagesOf(row).some((s) => isReviewable(s) && statusOf(s, row) === "Need Changes");
 }
 
 /** Whole days elapsed since an ISO timestamp (null when blank/unparseable). */

@@ -58,8 +58,13 @@ export const STAGES: StageDef[] = [
     // downstream links / feedback / upload fields.
     cardView: [
       "video_title", "video_notes", "video_description", "category", "subcategory", "topic_date",
-      "admin_email", "reviewer_email", "script_writer_email", "tutorial_maker_email", "video_editor_email", "uploader_email",
-      "script_instruction", "tutorial_instruction", "video_editor_instruction",
+      "admin_email", "topic_reviewer_email",
+      "script_writer_email", "script_reviewer_email",
+      "tutorial_maker_email", "tutorial_reviewer_email",
+      "video_editor_email", "video_editor_reviewer_email",
+      "thumbnail_maker_email", "thumbnail_reviewer_email",
+      "uploader_email",
+      "script_instruction", "tutorial_instruction", "video_editor_instruction", "thumbnail_instruction",
     ],
     requiredFields: [{ col: "video_title", label: "title" }, { col: "video_notes", label: "brief notes" }],
   },

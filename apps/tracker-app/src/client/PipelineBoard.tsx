@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import type { Row } from "../shared/rbac";
-import { STAGES, statusOf, type StageDef } from "../shared/pipeline";
+import { statusOf, type StageDef, type PipelineDef } from "./stages";
 import { displayName } from "./api";
 import { statusMeta } from "./status";
 import {
@@ -12,9 +12,9 @@ import {
 } from "./pipeline";
 import { rowMatchesFilters, type AdminFilters } from "./Filters";
 
-function StageCell({ row, stage }: { row: Row; stage: StageDef }) {
+function StageCell({ row, pipeline, stage }: { row: Row; pipeline: PipelineDef; stage: StageDef }) {
   const r = row as Record<string, string>;
-  const state = stageStepState(stage, r);
+  const state = stageStepState(pipeline, stage, r);
   if (state === "done") {
     return <td className="ptable__cell ptable__cell--done"><span className="ptable__check" title={`${stage.label}: done`}>✓</span></td>;
   }
@@ -52,17 +52,17 @@ function TopicCell({ row, names }: { row: Row; names: Record<string, string> }) 
 const TOPIC_COL = "__topic__";
 type SortState = { col: string; dir: "asc" | "desc" };
 
-function sortValue(row: Row, col: string): string | number {
+function sortValue(row: Row, col: string, pipeline: PipelineDef): string | number {
   const r = row as Record<string, string>;
   if (col === TOPIC_COL) return (r.video_title ?? "").toLowerCase();
-  const stage = STAGES.find((s) => s.id === col);
+  const stage = pipeline.stages.find((s) => s.id === col);
   if (!stage) return "";
-  const s = stageStepState(stage, r);
+  const s = stageStepState(pipeline, stage, r);
   return s === "done" ? 2 : s === "active" ? 1 : 0;
 }
 
-function compareRows(a: Row, b: Row, sort: SortState): number {
-  const va = sortValue(a, sort.col), vb = sortValue(b, sort.col);
+function compareRows(a: Row, b: Row, sort: SortState, pipeline: PipelineDef): number {
+  const va = sortValue(a, sort.col, pipeline), vb = sortValue(b, sort.col, pipeline);
   let cmp = typeof va === "number" && typeof vb === "number" ? va - vb : String(va).localeCompare(String(vb));
   if (cmp === 0) {
     cmp = ((a as Record<string, string>).video_title ?? "").toLowerCase()
@@ -73,6 +73,7 @@ function compareRows(a: Row, b: Row, sort: SortState): number {
 
 interface PipelineBoardProps {
   rows: Row[];
+  pipeline: PipelineDef;   // the selected video type — drives the stage columns + row filter
   names: Record<string, string>;
   filters: AdminFilters;
   onOpen: (row: Row) => void;
@@ -80,7 +81,7 @@ interface PipelineBoardProps {
   onDelete?: (rowId: string, title: string) => void;
 }
 
-export function PipelineBoard({ rows, names, filters, onOpen, canDelete, onDelete }: PipelineBoardProps) {
+export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelete, onDelete }: PipelineBoardProps) {
   const [sort, setSort] = useState<SortState | null>(null);
 
   function toggleSort(col: string) {
@@ -89,11 +90,12 @@ export function PipelineBoard({ rows, names, filters, onOpen, canDelete, onDelet
       : { col, dir: col === TOPIC_COL ? "asc" : "desc" });
   }
 
-  const filtered = rows.filter((r) => rowMatchesFilters(r, filters));
+  // Only this video type's cards; then the admin filters.
+  const filtered = rows.filter((r) => (r as Record<string, string>).pipeline === pipeline.id && rowMatchesFilters(r, filters));
   if (filtered.length === 0) {
     return <div className="ptable-wrap"><div className="ptable-empty">No videos match these filters.</div></div>;
   }
-  const sorted = sort ? [...filtered].sort((a, b) => compareRows(a, b, sort)) : filtered;
+  const sorted = sort ? [...filtered].sort((a, b) => compareRows(a, b, sort, pipeline)) : filtered;
 
   const caret = (col: string) => sort?.col === col ? <span className="ptable__sort-caret">{sort.dir === "asc" ? "▲" : "▼"}</span> : null;
   const ariaSort = (col: string): "ascending" | "descending" | "none" =>
@@ -109,7 +111,7 @@ export function PipelineBoard({ rows, names, filters, onOpen, canDelete, onDelet
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleSort(TOPIC_COL); } }}>
               Topic{caret(TOPIC_COL)}
             </th>
-            {STAGES.map((stage) => (
+            {pipeline.stages.map((stage) => (
               <th key={stage.id} className="ptable__th ptable__th--stage ptable__th--sortable" role="columnheader"
                 aria-sort={ariaSort(stage.id)} tabIndex={0} onClick={() => toggleSort(stage.id)}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleSort(stage.id); } }}>
@@ -128,7 +130,7 @@ export function PipelineBoard({ rows, names, filters, onOpen, canDelete, onDelet
                 aria-label={`Open ${title || "topic"}`} onClick={() => onOpen(row)}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onOpen(row); }}>
                 <TopicCell row={row} names={names} />
-                {STAGES.map((stage) => <StageCell key={stage.id} row={row} stage={stage} />)}
+                {pipeline.stages.map((stage) => <StageCell key={stage.id} row={row} pipeline={pipeline} stage={stage} />)}
                 {canDelete && (
                   <td className="ptable__cell ptable__cell--actions">
                     <button type="button" className="ptable__delete-btn" title="Delete this video"

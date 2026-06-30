@@ -80,6 +80,24 @@ body {
   border: 1px solid var(--line-2);
 }
 .who { font-size: 13px; color: var(--t3); }
+
+/* System (video-type) chip — marks which pipeline a card runs on. */
+.sys-chip {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .03em;
+  padding: 2px 7px; border-radius: 5px;
+  color: var(--t2); background: rgba(255,240,224,0.06);
+  border: 1px solid var(--line-2);
+  white-space: nowrap; flex-shrink: 0;
+}
+.sys-chip--detail { font-size: 12px; padding: 3px 9px; }
+
+/* Mobile: stop the header from cramping — name hidden, view-as on its own row. */
+@media (max-width: 640px) {
+  .topbar { gap: 8px 10px; padding: 10px 14px; flex-wrap: wrap; }
+  .topbar h1 { font-size: 15px; white-space: nowrap; }
+  .who { display: none; }
+  .view-as-select { order: 10; flex-basis: 100%; max-width: 100%; }
+}
 .btn-ghost {
   font: inherit; font-size: 13px; color: var(--t2);
   background: transparent; border: 1px solid var(--line-2);
@@ -935,6 +953,25 @@ details[open] .review-details__summary::before { content: "▼ "; }
 .admin-tab--active {
   color: var(--accent);
   border-bottom-color: var(--accent);
+}
+.admin-tab { white-space: nowrap; flex: 0 0 auto; }
+
+/* Pipeline-matrix video-type selector (Standard | Tut 2 | …) */
+.matrix-typebar {
+  display: flex; align-items: center; gap: 4px;
+  padding: 10px 26px; border-bottom: 1px solid var(--line);
+}
+.matrix-typebar__label {
+  font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--t3); margin-right: 8px;
+}
+.defaults-head__right { display: flex; align-items: center; gap: 10px; }
+
+/* Mobile: let the tab rows scroll horizontally instead of wrapping. */
+@media (max-width: 640px) {
+  .admin-tabs { overflow-x: auto; flex-wrap: nowrap; padding: 10px 14px; -webkit-overflow-scrolling: touch; }
+  .matrix-typebar { overflow-x: auto; flex-wrap: nowrap; padding: 8px 14px; -webkit-overflow-scrolling: touch; }
+  .btn-newvideo { position: sticky; right: 0; }
 }
 
 /* ── New video: button + dialog ──────────────────────────────────────────── */

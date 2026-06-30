@@ -1,9 +1,8 @@
 import type { Row, Transition } from "../shared/rbac";
-import { stageByStatusCol, normalizeStatus } from "../shared/pipeline";
+import { pipeOf, stageByStatusColIn, normalizeStatusIn, feedbackColOf, assigneeColOf } from "./stages";
 import { displayName } from "./api";
 import { daysSince } from "./pipeline";
 import { statusMeta } from "./status";
-import { FEEDBACK_COL, EMAIL_FOR_STAGE } from "./labels";
 
 interface CardProps {
   row: Row;
@@ -20,8 +19,9 @@ interface CardProps {
 }
 
 export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, showDwell, canDelete, onDelete, onOpen, onAction }: CardProps) {
-  const stage = stageByStatusCol(statusCol);
-  const status = stage ? normalizeStatus(stage, row[statusCol as keyof Row] as string) : "To Do";
+  const p = pipeOf(row as Record<string, unknown>);
+  const stage = stageByStatusColIn(p, statusCol);
+  const status = stage ? normalizeStatusIn(stage, row[statusCol as keyof Row] as string) : "To Do";
   const meta = statusMeta(status);
 
   // Days the card has sat in its current status (from status_since, stamped on
@@ -35,10 +35,10 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
   const notes = row.video_notes ?? "";
 
   // Need-Changes reason (always present by construction when status is Need Changes).
-  const feedbackCol = FEEDBACK_COL[statusCol];
+  const feedbackCol = stage ? feedbackColOf(stage) : undefined;
   const feedback = feedbackCol ? ((row[feedbackCol as keyof Row] as string) ?? "").trim() : "";
 
-  const assigneeCol = EMAIL_FOR_STAGE[statusCol];
+  const assigneeCol = stage ? assigneeColOf(stage) : undefined;
   const assignee = assigneeCol ? ((row[assigneeCol as keyof Row] as string) ?? "") : "";
 
   return (
@@ -46,6 +46,7 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
       onClick={onOpen} onKeyDown={(e) => e.key === "Enter" && onOpen()}>
       <div className="card__top">
         <span className={`pill pill--${meta.tone}`}>{meta.label}</span>
+        <span className="sys-chip">{p.name}</span>
         {dwell !== null && (
           <span className="card__dwell" title={`In ${meta.label} since ${dwell} day${dwell === 1 ? "" : "s"}`}>
             ⏱ {dwell === 0 ? "today" : `${dwell}d`}

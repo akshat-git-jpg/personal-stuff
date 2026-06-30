@@ -29,20 +29,21 @@ import { loadAffiliateRecords } from "./affiliate";
 import { processVideo } from "./linkgen";
 import * as clickstore from "./clickstore";
 import {
-  visibleColumnsForRoles, canEditForRoles, filterRowsForRoles, projectRowForRoles,
+  allVisibleColsForRoles, visibleColsForRoles, canEditForRoles, filterRowsForRoles, projectRowForRoles,
   workerStagesForRoles, isApproverRoles, isAdminRoles, isApprover,
   authorizeWrite, transitionsForCard, transitionsForStage, cardStagesForUser,
-  reviewQueueForUser, fieldLockReason, canReview,
+  reviewQueueForUser, fieldLockReason, canReview, assignableColsFor, pipeOf,
   type Row,
-} from "../shared/rbac";
+} from "../shared/engine/rbac";
 import {
-  STAGES, stageById, stageByStatusCol, statusOf, PROTECTED_ADMIN_EMAIL, ASSIGNABLE_COLS,
-} from "../shared/pipeline";
+  getPipeline, stageById, PIPELINES, PROTECTED_ADMIN_EMAIL, pipelineSummaries, DEFAULT_PIPELINE_ID,
+} from "../shared/engine/registry";
+import { derive, statusOf } from "../shared/engine/derive";
+import { colOf, stageHasReviewerSlot } from "../shared/engine/types";
+import { lifecycle } from "../shared/engine/lifecycle";
 import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
 import { NEW_VIDEO_FIELDS } from "../shared/control";
 import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
-import { COLUMNS } from "../shared/columns";
-import type { Column } from "../shared/columns";
 import { sendNotification } from "./notifications";
 
 // ---------------------------------------------------------------------------
@@ -90,10 +91,14 @@ function displayName(email: string, names: Record<string, string>): string {
   return names[key] || (email.includes("@") ? email.split("@")[0] : email) || email;
 }
 
-// assignee column → role label, derived from the pipeline (+ reviewer).
+// assignee/reviewer column → role label, derived across ALL pipelines (for the
+// "you were assigned" notification). Cols are pipeline-specific so they don't clash.
 const ASSIGNEE_COL_ROLE: Record<string, string> = (() => {
   const m: Record<string, string> = { reviewer_email: "Reviewer" };
-  for (const s of STAGES) m[s.assigneeCol] = s.ownerRole;
+  for (const p of Object.values(PIPELINES)) for (const s of p.stages) {
+    m[colOf(s, "assignee")] = s.role;
+    if (stageHasReviewerSlot(s)) m[colOf(s, "reviewer")] = "Reviewer";
+  }
   return m;
 })();
 
@@ -216,8 +221,8 @@ app.get("/api/defaults", async (c) => {
   return c.json(await loadDefaults(c.env.TRACKER_DB));
 });
 
-// The columns a default set can fill (doers + per-stage reviewers).
-app.get("/api/defaults/cols", (c) => c.json(ASSIGNABLE_COLS));
+// The columns a default set can fill (doers + per-stage reviewers) for a pipeline.
+app.get("/api/defaults/cols", (c) => c.json(assignableColsFor(getPipeline(c.req.query("pipeline")))));
 
 app.post("/api/defaults", async (c) => {
   const { roles } = getUser(c);
@@ -226,10 +231,11 @@ app.post("/api/defaults", async (c) => {
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
   const category = (body.category ?? "").trim();
   if (!category) return c.json({ error: "category is required" }, 400);
-  // Keep only valid assignable columns.
+  // Keep only valid assignable columns (across any pipeline — cols are unique per system).
+  const validCols = new Set(Object.values(PIPELINES).flatMap((p) => assignableColsFor(p)));
   const assignments: Record<string, string> = {};
   for (const [col, email] of Object.entries(body.assignments ?? {})) {
-    if ((ASSIGNABLE_COLS as readonly string[]).includes(col)) assignments[col] = (email ?? "").trim();
+    if (validCols.has(col)) assignments[col] = (email ?? "").trim();
   }
   await setDefaults(c.env.TRACKER_DB, category, body.subcategory ?? "", assignments);
   return c.json({ ok: true });
@@ -261,11 +267,12 @@ app.post("/api/apply-defaults", async (c) => {
   if (!target) return c.json({ error: "row not found", row_id: rowId }, 404);
 
   const defaults = await resolveDefaults(c.env.TRACKER_DB, (target.category as string) ?? "", (target.subcategory as string) ?? "");
-  const updates: Partial<Record<Column, string>> = {};
+  const cardCols = new Set(assignableColsFor(pipeOf(target))); // only this card's pipeline cols
+  const updates: Record<string, string> = {};
   for (const [col, email] of Object.entries(defaults)) {
-    if (!(ASSIGNABLE_COLS as readonly string[]).includes(col)) continue;
-    if (String(target[col as Column] ?? "").trim()) continue; // fill blanks only
-    updates[col as Column] = email;
+    if (!cardCols.has(col)) continue;
+    if (String(target[col] ?? "").trim()) continue; // fill blanks only
+    updates[col] = email;
   }
   if (Object.keys(updates).length) { await store.updateCells(rowId, updates); await bustBoardCache(c.env); }
   return c.json({ applied: updates });
@@ -275,15 +282,18 @@ app.post("/api/apply-defaults", async (c) => {
 // Per-row authority meta — computed once on the server, authoritatively.
 // ---------------------------------------------------------------------------
 
-const STATUS_COLS = new Set<string>(STAGES.map((s) => s.statusCol));
+const STATUS_COLS = new Set<string>(
+  Object.values(PIPELINES).flatMap((p) => p.stages.map((s) => colOf(s, "status"))),
+);
 
 function rowMeta(roles: string[], email: string, row: Row) {
+  const p = pipeOf(row);                                        // resolve this card's pipeline
   const stages = cardStagesForUser(roles, email, row);          // statusCols this card belongs to (in user's lanes)
   const actions = transitionsForCard(roles, email, row);        // allowed status transitions, per stage
   const locks: Record<string, string> = {};                     // editable content/feedback fields that are currently locked
-  for (const col of visibleColumnsForRoles(roles)) {
+  for (const col of visibleColsForRoles(roles, p)) {
     if (STATUS_COLS.has(col)) continue;                         // status is driven by action buttons, not free inputs
-    if (!canEditForRoles(roles, col)) continue;
+    if (!canEditForRoles(roles, p, col)) continue;
     const reason = fieldLockReason(roles, email, col, row);
     if (reason) locks[col] = reason;
   }
@@ -311,7 +321,7 @@ app.get("/api/board", async (c) => {
     if (asRoles.length === 0) {
       return c.json({
         roles, viewingAs: { email: asUser, roles: [] }, readOnly: true,
-        columns: [], rows: [], names: {}, stages: [],
+        columns: [], rows: [], names: {}, stages: [], pipelines: pipelineSummaries(),
         notice: "This user has no role mapping in the Employes tab.",
       });
     }
@@ -340,11 +350,12 @@ app.get("/api/board", async (c) => {
     viewerEmail: effEmail,
     viewingAs,
     readOnly,
-    columns: visibleColumnsForRoles(effRoles),
+    columns: allVisibleColsForRoles(effRoles),
     rows,
     names: buildNamesMap(team),
     memberRoles: buildRolesMap(team),
     stages: workerStagesForRoles(effRoles),
+    pipelines: pipelineSummaries(),
   });
 });
 
@@ -364,7 +375,7 @@ app.get("/api/review-queue", async (c) => {
     video_title: (row.video_title ?? "") as string,
     stageId: stage.id,
     stage: stage.label,
-    statusCol: stage.statusCol,
+    statusCol: colOf(stage, "status"),
     submittedBy,
     submittedByName: displayName(submittedBy, names),
     // Attach the same authority meta the board sends, so opening a queue item
@@ -388,14 +399,16 @@ app.post("/api/update", async (c) => {
   if (!row_id || !col || value === undefined) {
     return c.json({ error: "missing required fields: row_id, col, value" }, 400);
   }
-  if (!(COLUMNS as readonly string[]).includes(col)) {
-    return c.json({ error: "unknown column", col }, 400);
-  }
-  const typedCol = col as Column;
+  const typedCol = col;
 
   const allRows = await cachedReadRows(c.env);
   const targetRow = allRows.find((r) => (r.row_id || "").trim() === row_id);
   if (!targetRow) return c.json({ error: "row not found", row_id }, 404);
+
+  const pipe = pipeOf(targetRow);
+  if (!derive(pipe).allCols.includes(col)) {
+    return c.json({ error: "unknown column", col }, 400);
+  }
 
   const check = authorizeWrite(roles, email, typedCol, value, targetRow);
   if (!check.ok) return c.json({ error: "forbidden", message: check.reason }, 403);
@@ -406,7 +419,7 @@ app.post("/api/update", async (c) => {
     // being written is a STATUS column, also stamp status_since so we can show
     // "in <status> since N days" — last_updated changes on any edit, status_since
     // only on a status change.
-    const writeValues: Partial<Record<Column, string>> = { [typedCol]: value };
+    const writeValues: Record<string, string> = { [typedCol]: value };
     if (STATUS_COLS.has(typedCol)) writeValues.status_since = new Date().toISOString();
     await store.updateCells(row_id, writeValues,
       prev !== undefined ? { col: typedCol, value: prev } : undefined);
@@ -419,19 +432,19 @@ app.post("/api/update", async (c) => {
   await bustBoardCache(c.env);
 
   // ── Notifications: run AFTER the response so the action feels instant. ──
-  const stage = stageByStatusCol(typedCol);
+  const stage = derive(pipe).byStatusCol.get(typedCol);
   const oldValue = ((targetRow[typedCol] ?? "") as string).trim().toLowerCase();
   c.executionCtx.waitUntil((async () => {
     try {
       const videoTitle = (targetRow.video_title ?? "") as string;
       const appUrl = c.env.APP_URL ?? "";
 
-      // Submitted for review → notify the card's assigned reviewer (fallback: approvers).
-      if (stage && stage.reviewable && value === "In Review") {
+      // Submitted for review → notify the stage's assigned reviewer (fallback: approvers).
+      if (stage && lifecycle(stage.lifecycle).reviewed && value === "In Review") {
         const team = await store.loadTeam();
         const submitterName = displayName(email, buildNamesMap(team));
         // Notify THIS stage's assigned reviewer (per-stage). Fallback: all approvers.
-        const stageReviewer = stage.reviewerCol ? ((targetRow[stage.reviewerCol] ?? "") as string).trim() : "";
+        const stageReviewer = stageHasReviewerSlot(stage) ? ((targetRow[colOf(stage, "reviewer")] ?? "") as string).trim() : "";
         const recipients = stageReviewer
           ? [stageReviewer]
           : team.filter((m) => (m.roles ?? [m.role]).some(isApprover)).map((m) => m.email);
@@ -466,22 +479,24 @@ app.post("/api/review", async (c) => {
   if (action !== "approve" && action !== "sendback") {
     return c.json({ error: "invalid action; must be approve|sendback" }, 400);
   }
-  const stage = stageById(stageId);
-  if (!stage || !stage.reviewable) {
-    return c.json({ error: `invalid stage; must be one of ${STAGES.filter((s) => s.reviewable).map((s) => s.id).join("|")}` }, 400);
-  }
-
   const store = getStore(c.env);
   const allRows = await cachedReadRows(c.env);
   const targetRow = allRows.find((r) => (r.row_id || "").trim() === row_id);
   if (!targetRow) return c.json({ error: "row not found", row_id }, 404);
+
+  const pipe = pipeOf(targetRow);
+  const stage = stageById(pipe, stageId);
+  if (!stage || !lifecycle(stage.lifecycle).reviewed) {
+    return c.json({ error: `invalid stage; must be one of ${pipe.stages.filter((s) => lifecycle(s.lifecycle).reviewed).map((s) => s.id).join("|")}` }, 400);
+  }
+  const feedbackCol = stage.lifecycle === "review" ? colOf(stage, "feedback") : null;
 
   // Authority + valid-transition check (single source of truth).
   if (!canReview(roles, email, stage, targetRow)) {
     return c.json({ error: "forbidden", message: "Only this card's assigned reviewer can review it." }, 403);
   }
   const newStatus = action === "approve" ? "Done" : "Need Changes";
-  const transition = transitionsForStage(roles, email, stage, targetRow).find((t) => t.to === newStatus);
+  const transition = transitionsForStage(roles, email, stage, targetRow, pipe).find((t) => t.to === newStatus);
   if (!transition) {
     return c.json({ error: "invalid_transition", message: `Can't ${action} from "${statusOf(stage, targetRow)}".` }, 409);
   }
@@ -489,21 +504,21 @@ app.post("/api/review", async (c) => {
   if (transition.disabledReason) {
     return c.json({ error: "blocked", message: transition.disabledReason }, 400);
   }
-  if (action === "sendback" && stage.feedbackCol && !feedback?.trim()) {
+  if (action === "sendback" && feedbackCol && !feedback?.trim()) {
     return c.json({ error: "feedback_required", message: "Tell the freelancer what to change." }, 400);
   }
 
   // One read + one batched write for status (+ feedback), last_updated, status_since.
-  const updates: Partial<Record<Column, string>> = {
-    [stage.statusCol]: newStatus,
+  const updates: Record<string, string> = {
+    [colOf(stage, "status")]: newStatus,
     status_since: new Date().toISOString(),
   };
-  if (action === "sendback" && stage.feedbackCol) updates[stage.feedbackCol] = feedback!.trim();
+  if (action === "sendback" && feedbackCol) updates[feedbackCol] = feedback!.trim();
   await store.updateCells(row_id, updates);
   await bustBoardCache(c.env);
 
   // Notify the submitter (the stage assignee) AFTER the response.
-  const assigneeEmail = ((targetRow[stage.assigneeCol] ?? "") as string).trim();
+  const assigneeEmail = ((targetRow[colOf(stage, "assignee")] ?? "") as string).trim();
   if (assigneeEmail) {
     const videoTitle = (targetRow.video_title ?? "") as string;
     const appUrl = c.env.APP_URL ?? "";
@@ -536,24 +551,29 @@ app.post("/api/video", async (c) => {
 
   // Validate + collect the creation fields from the shared config (control.ts),
   // so the required set can't drift from the client modal.
-  const values: Partial<Record<Column, string>> = {};
+  const values: Record<string, string> = {};
   for (const f of NEW_VIDEO_FIELDS) {
     const v = (body[f.col] ?? "").trim();
     if (!v) return c.json({ error: `${f.label} is required`, col: f.col }, 400);
     values[f.col] = v;
   }
 
+  // Which system this video runs on (defaults to standard).
+  const pipe = getPipeline((body.pipeline ?? DEFAULT_PIPELINE_ID).trim());
   const today = new Date().toISOString().slice(0, 10);
-  const firstStage = STAGES[0]; // topic
-  // Pre-fill assignees/reviewers from the defaults for this (category, subcategory).
+  const firstStage = pipe.stages[0]; // the brief/topic stage
+  // Pre-fill assignees/reviewers from the defaults for this (category, subcategory),
+  // keeping only columns that exist in THIS pipeline.
   const defaults = await resolveDefaults(c.env.TRACKER_DB, values.category ?? "", values.subcategory ?? "");
+  const cardCols = new Set(assignableColsFor(pipe));
+  const filteredDefaults = Object.fromEntries(Object.entries(defaults).filter(([col]) => cardCols.has(col)));
   const rowId = await getStore(c.env).appendRow({
-    ...defaults,                        // default assignees/reviewers for the combo
-    ...values,                          // the brief fields (win on any overlap)
-    [firstStage.statusCol]: "To Do",    // explicit — never blank
+    ...filteredDefaults,                          // default assignees/reviewers for the combo
+    ...values,                                    // the brief fields (win on any overlap)
+    pipeline: pipe.id,                            // stamp the system
+    [colOf(firstStage, "status")]: "To Do",       // explicit — never blank
     topic_date: today,
-    admin_email: PROTECTED_ADMIN_EMAIL, // admin owns the Topic stage
-    reviewer_email: (body.reviewer_email ?? "").trim(),
+    [colOf(firstStage, "assignee")]: PROTECTED_ADMIN_EMAIL, // admin owns the brief stage
   });
 
   await bustBoardCache(c.env);

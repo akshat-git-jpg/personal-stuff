@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
-import { canEditForRoles, isAdminRoles } from "../shared/rbac";
-import { STAGES, stageById, statusOf, PROTECTED_ADMIN_EMAIL, REVIEWER_COLS } from "../shared/pipeline";
+import { canEditForRoles, isAdminRoles } from "../shared/engine/rbac";
+import { PROTECTED_ADMIN_EMAIL, PIPELINES } from "../shared/engine/registry";
 import { COLUMNS, DATE_COLUMNS, ETA_COLUMNS } from "../shared/columns";
 import { fieldType } from "./columnMeta";
 import {
-  showColumns, editColumns, requiredToApprove, requiredToSubmitFrom,
-  missingColumns, columnLabel, type RoleKind,
-} from "../shared/control";
+  pipeOf, stageByIdIn, statusOf, showColumns, editColumns, requiredToApprove, requiredToSubmitFrom,
+  missingColumns, colOf, assigneeColOf, reviewerColOf, instructionColOf,
+  workLinkColOf, etaColOf, extraColsOf, isReviewable, feedbackColOf, isBrief, briefFieldsOf,
+  type RoleKind, type StageDef,
+} from "./stages";
 import {
   applyTransition, updateCell, generateLinks, displayName, personLabel,
   type BoardRow, type GenerateLinksResult,
@@ -61,7 +63,6 @@ export function ComboSelect({ id, value, options, placeholder, onChange }: {
   );
 }
 
-const STATUS_COLS = new Set(STAGES.map((s) => s.statusCol));
 // Widget membership is derived from the column metadata (columnMeta.ts), so a new
 // column's input type is set in ONE place, not re-listed here.
 const ASSIGNEE_COLS = new Set(COLUMNS.filter((c) => fieldType(c) === "assignee"));
@@ -70,38 +71,41 @@ const COMBO_COLS = new Set(COLUMNS.filter((c) => fieldType(c) === "combo"));
 const DATE_COLS = new Set<string>(DATE_COLUMNS);
 const ETA_COLS = new Set<string>(ETA_COLUMNS);
 
-// Which role each assignee field requires, so its dropdown only lists people who
-// actually hold that role. Derived from the pipeline (+ the card-level reviewer).
+// Membership/role lookups — union across ALL pipelines (cols are unique per system).
+const STATUS_COLS = new Set<string>(Object.values(PIPELINES).flatMap((p) => p.stages.map((s) => colOf(s, "status"))));
 const ASSIGNEE_ROLE: Record<string, string> = { reviewer_email: "Reviewer", admin_email: "Admin" };
-for (const s of STAGES) {
-  ASSIGNEE_ROLE[s.assigneeCol] = s.ownerRole;
-  if (s.reviewerCol) ASSIGNEE_ROLE[s.reviewerCol] = "Reviewer"; // per-stage reviewer dropdowns
+for (const p of Object.values(PIPELINES)) for (const s of p.stages) {
+  ASSIGNEE_ROLE[assigneeColOf(s)] = s.role;
+  const rc = reviewerColOf(s);
+  if (rc) ASSIGNEE_ROLE[rc] = "Reviewer";
 }
 // Per-stage reviewer fields: blank means "no review — auto-approve on submit".
-const REVIEWER_COL_SET = new Set<string>(REVIEWER_COLS);
+const REVIEWER_COL_SET = new Set<string>(
+  Object.values(PIPELINES).flatMap((p) => p.stages.map(reviewerColOf).filter(Boolean) as string[]),
+);
 
-// All assignee fields, in pipeline sequence, grouped right after the brief so the
-// admin sets them in one place: Scriptwriter → Recorder → Video Editor → Uploader
-// → Reviewer → Admin. (Topic's assignee is admin_email, shown once as "Admin".)
-const ASSIGNEE_SEQUENCE: Column[] = [
-  ...new Set<Column>([
-    ...STAGES.filter((s) => s.id !== "topic").map((s) => s.assigneeCol),
-    "reviewer_email",
-    "admin_email",
-  ]),
-];
-
-// Section per stage. "Brief" (topic) carries the meta + the whole assignee block.
-// Stage sections hold only the work fields (instructions, links, feedback).
 interface SectionDef { id: string; label: string; cols: Column[]; }
-const SECTIONS: SectionDef[] = STAGES.map((s) => ({
-  id: s.id,
-  label: s.id === "topic" ? "Brief & assignments" : s.label,
-  cols: (s.id === "topic"
-    ? ["video_title", "video_notes", "video_description", "category", "subcategory", "topic_date", ...ASSIGNEE_SEQUENCE]
-    : [s.instructionCol, ...s.editFields]
-  ).filter(Boolean) as Column[],
-}));
+
+/** The brief stage's assignment block + each stage's work fields — per card's pipeline. */
+function sectionsForPipeline(stages: StageDef[]): { sections: SectionDef[]; assigneeSeq: string[] } {
+  const briefAssignee = stages[0] ? assigneeColOf(stages[0]) : "";
+  const assigneeSeq = [...new Set<string>([
+    briefAssignee,
+    ...stages.flatMap((s) => [
+      ...(assigneeColOf(s) !== briefAssignee ? [assigneeColOf(s)] : []),
+      ...(reviewerColOf(s) ? [reviewerColOf(s)!] : []),
+    ]),
+  ])];
+  const sections = stages.map((s) => ({
+    id: s.id,
+    label: isBrief(s) ? "Brief & assignments" : s.label,
+    cols: (isBrief(s)
+      ? [...briefFieldsOf(s), ...assigneeSeq]
+      : [instructionColOf(s), workLinkColOf(s), etaColOf(s), ...extraColsOf(s)]
+    ).filter(Boolean) as Column[],
+  }));
+  return { sections, assigneeSeq };
+}
 
 export function CardDetail({ row, columns, roles, names, memberRoles = {}, readOnly, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved, onDelete, onApplyDefaults }: CardDetailProps) {
   const locks = row._locks ?? {};
@@ -109,9 +113,13 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
   const isAdmin = isAdminRoles(roles);
   const colSet = new Set<string>(columns);
 
+  // This card's pipeline (system) drives everything below.
+  const pipeline = pipeOf(row as Record<string, unknown>);
+  const { sections: SECTIONS } = sectionsForPipeline(pipeline.stages);
+
   // The card is scoped to the stage it was opened from: only that stage's curated
   // fields + actions show. Admins get a "Show all fields" escape hatch.
-  const contextStage = stageById(contextStageId ?? "") ?? STAGES[0];
+  const contextStage = stageByIdIn(pipeline, contextStageId ?? "") ?? pipeline.stages[0];
   const [showAll, setShowAll] = useState(false);
 
   // The form is driven by the control tables: which columns show / are editable
@@ -119,7 +127,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
   // view (My work); `reviewer` = the card reviewer's view (Review queue).
   const kind: RoleKind = perspective === "reviewer" ? "reviewer" : "worker";
   const ctxStatus = statusOf(contextStage, row);
-  const editSet = new Set<string>(editColumns(contextStage.id, kind, ctxStatus));
+  const editSet = new Set<string>(editColumns(pipeline, contextStage, kind, ctxStatus));
 
   const [draft, setDraft] = useState<Partial<Record<Column, string>>>({});
   const [savedMap, setSavedMap] = useState<Partial<Record<Column, string>>>({}); // last value persisted to the sheet
@@ -152,7 +160,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
     if (STATUS_COLS.has(col)) return false;       // driven by action buttons
     if (col === "admin_email") return false;       // founding admin is fixed
     if (col in locks) return false;                // server says it's locked (submitted/approved/gate)
-    if (!canEditForRoles(roles, col)) return false;
+    if (!canEditForRoles(roles, pipeline, col)) return false;
     if (isAdmin) return true;                      // admin edits everything the policy allows
     // Everyone else: only what the control table marks editable at THIS status.
     return editSet.has(col);
@@ -328,7 +336,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
     return (
       <div className="detail-actions">
         {groups.map((g) => {
-          const stage = stageById(g.stageId);
+          const stage = stageByIdIn(pipeline, g.stageId);
           if (!stage) return null;
           const status = statusOf(stage, row);
           const meta = statusMeta(status);
@@ -341,13 +349,13 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
           //  • Start (To Do→In Progress) / Submit / Mark-uploaded → worker mustFill
           //  • Approve → reviewer toApprove (e.g. the next worker's instruction)
           const blockReason = (t: Transition): string | undefined => {
-            let cols: Column[];
-            if (t.kind === "approve") cols = requiredToApprove(stage.id);
-            else if (t.kind === "submit" || t.kind === "advance") cols = requiredToSubmitFrom(stage.id, status);
-            else if (t.kind === "start" && status === "To Do") cols = requiredToSubmitFrom(stage.id, "To Do");
+            let cols: string[];
+            if (t.kind === "approve") cols = requiredToApprove(pipeline, stage);
+            else if (t.kind === "submit" || t.kind === "advance") cols = requiredToSubmitFrom(pipeline, stage, status);
+            else if (t.kind === "start" && status === "To Do") cols = requiredToSubmitFrom(pipeline, stage, "To Do");
             else return undefined;
             const missing = missingColumns(cols, effectiveRow as Record<string, unknown>);
-            return missing.length ? `Add the ${missing.map(columnLabel).join(", ")} first.` : undefined;
+            return missing.length ? `Add the ${missing.map(fieldLabel).join(", ")} first.` : undefined;
           };
           const hint = g.transitions.map(blockReason).find(Boolean);
           return (
@@ -395,9 +403,9 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
   //    reworked (Need Changes → In Progress → resubmit), i.e. any time feedback
   //    exists and the stage isn't yet approved. This is the ONLY place feedback
   //    is shown (it's no longer an editable field). ──────────────────────────
-  const feedbackBanners = STAGES
-    .filter((s) => (showAll || s.id === contextStage.id) && s.reviewable && s.feedbackCol && colSet.has(s.feedbackCol) && statusOf(s, row) !== "Done")
-    .map((s) => ({ stage: s, text: ((row[s.feedbackCol as Column] as string) ?? "").trim() }))
+  const feedbackBanners = pipeline.stages
+    .filter((s) => (showAll || s.id === contextStage.id) && isReviewable(s) && feedbackColOf(s) && colSet.has(feedbackColOf(s)!) && statusOf(s, row) !== "Done")
+    .map((s) => ({ stage: s, text: ((row[feedbackColOf(s)! as Column] as string) ?? "").trim() }))
     .filter((b) => b.text);
 
   const title = row.video_title ?? "(no title)";
@@ -405,13 +413,13 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
   // Default: the columns the control table shows for this stage + role-kind at
   // the current status. "Show all fields" (admin) falls back to the full per-stage
   // section breakdown.
-  const contextCols = showColumns(contextStage.id, kind, ctxStatus).filter((c) => colSet.has(c));
+  const contextCols = showColumns(pipeline, contextStage, kind, ctxStatus).filter((c) => colSet.has(c));
   const fullSections = SECTIONS
     .map((sec) => ({ ...sec, cols: sec.cols.filter((c) => colSet.has(c)) }))
     .filter((sec) => sec.cols.length > 0);
   const sectionsToShow = showAll
     ? fullSections
-    : [{ id: contextStage.id, label: contextStage.id === "topic" ? "Brief & assignments" : contextStage.label, cols: contextCols }]
+    : [{ id: contextStage.id, label: isBrief(contextStage) ? "Brief & assignments" : contextStage.label, cols: contextCols }]
         .filter((sec) => sec.cols.length > 0);
 
   return (
@@ -420,11 +428,11 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
       <div className="detail-panel" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <button className="panel__close" onClick={closeCard} aria-label="Close">×</button>
         <div className="detail-body">
-          <h2>{title}</h2>
+          <h2>{title} <span className="sys-chip sys-chip--detail">{pipeline.name}</span></h2>
 
           {/* Stage status overview */}
           <div className="detail-status-row">
-            {STAGES.filter((s) => colSet.has(s.statusCol) || isAdmin).map((s) => {
+            {pipeline.stages.filter((s) => colSet.has(colOf(s, "status")) || isAdmin).map((s) => {
               const m = statusMeta(statusOf(s, row as Row));
               return <span key={s.id} className="detail-status-chip"><span className="detail-status-chip__stage">{s.label}</span><span className={`pill pill--${m.tone}`}>{m.label}</span></span>;
             })}
@@ -472,7 +480,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
             {sectionsToShow.map((sec) => (
               <div key={sec.id} className="detail-section">
                 <div className="detail-section__title">{sec.label}</div>
-                <div className="detail-section__fields">{sec.cols.map((c) => renderField(c))}</div>
+                <div className="detail-section__fields">{sec.cols.map((c) => renderField(c as Column))}</div>
               </div>
             ))}
           </div>

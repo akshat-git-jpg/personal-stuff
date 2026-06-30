@@ -145,6 +145,7 @@ export default function App() {
       <Board
         roles={viewing?.roles ?? roles}
         stages={data.stages ?? []}
+        pipelines={data.pipelines ?? []}
         columns={data.columns}
         rows={data.rows}
         names={data.names ?? {}}

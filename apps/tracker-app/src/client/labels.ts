@@ -1,24 +1,5 @@
-import { STAGES, stageByStatusCol } from "../shared/pipeline";
-import { COLUMN_META, colLabel, colHint, LINK_COLS } from "./columnMeta";
-
-// ── Stage maps, derived from the pipeline (single source of truth) ──────────
-
-// status column → stage label / artifact (first edit link) / assignee / feedback
-export const STAGE_NAME: Record<string, string> = {};
-export const ARTIFACT_COL: Record<string, string> = {};
-export const EMAIL_FOR_STAGE: Record<string, string> = {};
-export const FEEDBACK_COL: Record<string, string> = {};
-for (const s of STAGES) {
-  STAGE_NAME[s.statusCol] = s.label;
-  EMAIL_FOR_STAGE[s.statusCol] = s.assigneeCol;
-  const link = s.editFields.find((c) => c.endsWith("_link") || c.endsWith("link"));
-  if (link) ARTIFACT_COL[s.statusCol] = link;
-  if (s.feedbackCol) FEEDBACK_COL[s.statusCol] = s.feedbackCol;
-}
-
-export function stageLabelForStatusCol(col: string): string {
-  return stageByStatusCol(col)?.label ?? col;
-}
+import { COLUMN_META, colHint, LINK_COLS } from "./columnMeta";
+import { fieldLabelOf } from "../shared/engine/labels";
 
 // ── Link helpers (link columns + per-column hints come from columnMeta) ──────
 
@@ -46,5 +27,5 @@ export function etaBadge(value: string | undefined): { text: string; tone: strin
 
 // ── Human-readable field label (sourced from columnMeta) ─────────────────────
 export function fieldLabel(col: string): string {
-  return colLabel(col);
+  return fieldLabelOf(col);
 }

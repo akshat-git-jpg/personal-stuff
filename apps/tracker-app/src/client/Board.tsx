@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import type { Column } from "../shared/columns";
 import type { Transition } from "../shared/rbac";
-import { stageByStatusCol, stageById } from "../shared/pipeline";
+import { pipeOf, stageByStatusColIn, getPipeline } from "./stages";
 import { NEW_VIDEO_FIELDS } from "../shared/control";
 import {
   applyTransition, getReviewQueue, createVideo, deleteVideo, applyDefaults, getDefaults,
@@ -18,9 +18,13 @@ import { PipelineBoard } from "./PipelineBoard";
 import { TeamPanel } from "./TeamPanel";
 import { Filters, EMPTY_FILTERS, type AdminFilters } from "./Filters";
 
+export interface WorkerStage { pipelineId: string; stageId: string; statusCol: string; role: string; label: string }
+export interface PipelineSummary { id: string; name: string; stages: { id: string; label: string; role: string }[] }
+
 interface BoardProps {
   roles: string[];
-  stages: { statusCol: string; role: string }[];
+  stages: WorkerStage[];
+  pipelines: PipelineSummary[];
   columns: Column[];
   rows: BoardRow[];
   names: Record<string, string>;
@@ -29,8 +33,9 @@ interface BoardProps {
   reload: () => void;
 }
 
-// Work-board tabs are keyed by their stage's statusCol; plus the fixed tabs below.
-type TabKey = string; // "<statusCol>" | "review" | "pipeline" | "team"
+// Work-board tabs are keyed by "w:<pipelineId>:<statusCol>" (pipeline-qualified so
+// the shared Topic stage of two systems doesn't collide); plus the fixed tabs.
+type TabKey = string;
 
 function transitionsForStageCol(row: BoardRow, statusCol: string): Transition[] {
   return row._actions?.find((g) => g.statusCol === statusCol)?.transitions ?? [];
@@ -62,11 +67,16 @@ function StatusLegend() {
   );
 }
 
-export function Board({ roles, stages, columns, rows, names, memberRoles = {}, readOnly, reload }: BoardProps) {
+export function Board({ roles, stages, pipelines, columns, rows, names, memberRoles = {}, readOnly, reload }: BoardProps) {
   const isAdmin = roles.includes("Admin");
   // Reviewing is an explicit role, not an Admin default.
   const canReview = roles.includes("Reviewer");
   const workerStages = stages ?? [];
+  // Only surface a work tab where the user actually has a card. A freelancer works
+  // a single system, so this drops the empty cross-system tabs (and the redundant
+  // "· System" suffix). The suffix stays only when real work spans >1 system.
+  const activeWorkerStages = workerStages.filter((ws) =>
+    rows.some((r) => (r as Record<string, unknown>).pipeline === ws.pipelineId && (r._stages ?? []).includes(ws.statusCol)));
 
   // Time-in-status chip audience. "everyone" = freelancers see it on their own
   // board AND admins see it in view-as. Flip to "admin" to restrict it to admins
@@ -79,18 +89,24 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
   // default) whenever the user is a reviewer; then one tab per work board (each
   // stage the user owns, named by the stage); then admin tabs.
   const [queueCount, setQueueCount] = useState(0);
+  const pipelineName = useCallback((id: string) => pipelines.find((p) => p.id === id)?.name ?? id, [pipelines]);
+  const workKey = (ws: WorkerStage) => `w:${ws.pipelineId}:${ws.statusCol}`;
+  // Suffix the system name when the user works stages across more than one system,
+  // so e.g. two "Topic" tabs read "Topic · Standard" / "Topic · Tut 2".
+  const multiSystem = new Set(activeWorkerStages.map((w) => w.pipelineId)).size > 1;
   const tabs: { key: TabKey; label: string }[] = [];
   if (canReview) tabs.push({ key: "review", label: `Review queue${queueCount ? ` (${queueCount})` : ""}` });
-  for (const ws of workerStages) {
-    tabs.push({ key: ws.statusCol, label: stageByStatusCol(ws.statusCol)?.label ?? ws.statusCol });
+  for (const ws of activeWorkerStages) {
+    tabs.push({ key: workKey(ws), label: multiSystem ? `${ws.label} · ${pipelineName(ws.pipelineId)}` : ws.label });
   }
   if (isAdmin) {
     tabs.push({ key: "pipeline", label: "Pipeline" });
     tabs.push({ key: "team", label: "Team" });
   }
-  const defaultTab: TabKey = canReview ? "review" : (workerStages[0]?.statusCol ?? tabs[0]?.key ?? "review");
+  const defaultTab: TabKey = canReview ? "review" : (activeWorkerStages[0] ? workKey(activeWorkerStages[0]) : (tabs[0]?.key ?? "review"));
   const [tab, setTab] = useState<TabKey>(defaultTab);
   const [adminFilters, setAdminFilters] = useState<AdminFilters>(EMPTY_FILTERS);
+  const [matrixPipeline, setMatrixPipeline] = useState<string>(pipelines[0]?.id ?? "standard");
   const [detailRow, setDetailRow] = useState<BoardRow | null>(null);
   const [detailStageId, setDetailStageId] = useState<string | undefined>(undefined);
   const [detailPerspective, setDetailPerspective] = useState<"doer" | "reviewer" | "all">("all");
@@ -163,7 +179,7 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
 
   async function doAction(row: BoardRow, t: Transition) {
     if (!row.row_id) return;
-    if (t.requiresFeedback) { openDetail(row, stageByStatusCol(t.statusCol)?.id, "reviewer"); return; }
+    if (t.requiresFeedback) { openDetail(row, stageByStatusColIn(pipeOf(row), t.statusCol)?.id, "reviewer"); return; }
     // Send the RAW stored value (blank stays blank) as the optimistic-lock expectation,
     // so a blank cell isn't mistaken for a "To Do" change.
     const prev = (row[t.statusCol as keyof BoardRow] as string) ?? "";
@@ -180,6 +196,7 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
   const blankNv = () => Object.fromEntries(NEW_VIDEO_FIELDS.map((f) => [f.col, ""])) as Record<string, string>;
   const [showNewVideo, setShowNewVideo] = useState(false);
   const [nv, setNv] = useState<Record<string, string>>(blankNv);
+  const [nvPipeline, setNvPipeline] = useState<string>(pipelines[0]?.id ?? "standard");
   const [nvBusy, setNvBusy] = useState(false);
   const [nvError, setNvError] = useState<string | null>(null);
 
@@ -188,17 +205,20 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
     if (missing.length) { setNvError(`${missing.map((f) => f.label).join(", ")} ${missing.length === 1 ? "is" : "are"} required.`); return; }
     setNvBusy(true); setNvError(null);
     try {
-      const payload = Object.fromEntries(NEW_VIDEO_FIELDS.map((f) => [f.col, (nv[f.col] ?? "").trim()]));
+      const payload = { ...Object.fromEntries(NEW_VIDEO_FIELDS.map((f) => [f.col, (nv[f.col] ?? "").trim()])), pipeline: nvPipeline };
       await createVideo(payload);
       setShowNewVideo(false); setNv(blankNv());
-      setTab(stageById("topic")?.statusCol ?? defaultTab); reload(); // jump to the Topic board
+      // jump to the Topic work board for the chosen system (admin owns every Topic).
+      const topicWs = workerStages.find((ws) => ws.pipelineId === nvPipeline && ws.stageId === "topic");
+      setTab(topicWs ? workKey(topicWs) : defaultTab);
+      reload();
     } catch (err) { setNvError(err instanceof Error ? err.message : String(err)); }
     finally { setNvBusy(false); }
   }
 
   // ── Lane board renderer ──────────────────────────────────────────────────────
   function renderLaneBoard(statusCol: Column, sourceRows: BoardRow[]) {
-    const lanes = lanesFor(statusCol);
+    const lanes = lanesFor(statusCol, sourceRows[0]);
     const groups = groupByLane(sourceRows, statusCol, lanes);
     return (
       <div className="board">
@@ -218,7 +238,7 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
                     onDelete={() => void handleDelete(row.row_id ?? "", row.video_title ?? "")}
                     /* A work board is the doer's view — never show reviewer actions here */
                     transitions={transitionsForStageCol(row, statusCol).filter((t) => t.by === "doer")}
-                    onOpen={() => openDetail(row, stageByStatusCol(statusCol)?.id, "doer")}
+                    onOpen={() => openDetail(row, stageByStatusColIn(pipeOf(row), statusCol)?.id, "doer")}
                     onAction={(t) => void doAction(row, t)} />
                 ))}
                 {laneRows.length === 0 && <div className="lane__empty">No items</div>}
@@ -231,15 +251,14 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
   }
 
   // ── A single work board (one stage the user owns; one tab each) ──────────────
-  function renderWork(statusCol: Column) {
-    const stageId = stageByStatusCol(statusCol)?.id ?? "";
-    const mine = rows.filter((r) => (r._stages ?? []).includes(statusCol));
+  function renderWork(ws: WorkerStage) {
+    const mine = rows.filter((r) => (r as Record<string, unknown>).pipeline === ws.pipelineId && (r._stages ?? []).includes(ws.statusCol));
     return (
       <>
-        {STAGE_GUIDE[stageId] && <HelpBanner text={STAGE_GUIDE[stageId]} />}
+        {STAGE_GUIDE[ws.stageId] && <HelpBanner text={STAGE_GUIDE[ws.stageId]} />}
         {mine.length === 0
-          ? <div className="awaiting-empty">Nothing in your {stageByStatusCol(statusCol)?.label ?? "queue"} right now.</div>
-          : renderLaneBoard(statusCol, mine)}
+          ? <div className="awaiting-empty">Nothing in your {ws.label} right now.</div>
+          : renderLaneBoard(ws.statusCol as Column, mine)}
       </>
     );
   }
@@ -251,6 +270,14 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
         <h3 className="confirm-dialog__title">New video</h3>
         <p className="confirm-dialog__body">Adds a topic at the start of the pipeline (Topic → To Do).</p>
         <div className="nv-form">
+          {pipelines.length > 1 && (
+            <div className="field">
+              <label>Video type *</label>
+              <select value={nvPipeline} onChange={(e) => setNvPipeline(e.target.value)}>
+                {pipelines.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+          )}
           {NEW_VIDEO_FIELDS.map((f, i) => {
             const set = (v: string) => setNv((prev) => ({ ...prev, [f.col]: v }));
             return (
@@ -279,8 +306,8 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
   ) : null;
 
   const activeTab = tabs.some((t) => t.key === tab) ? tab : (tabs[0]?.key ?? "review");
-  // A work-board tab is active when the active key is one of the user's stages.
-  const activeWorkerStatusCol = workerStages.find((ws) => ws.statusCol === activeTab)?.statusCol as Column | undefined;
+  // A work-board tab is active when the active key matches one of the user's stages.
+  const activeWorkerStage = activeWorkerStages.find((ws) => workKey(ws) === activeTab);
 
   return (
     <div className="board-root">
@@ -290,13 +317,13 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
             <button key={t.key} type="button" className={`admin-tab${activeTab === t.key ? " admin-tab--active" : ""}`}
               onClick={() => setTab(t.key)} aria-pressed={activeTab === t.key}>{t.label}</button>
           ))}
-          {isAdmin && <button type="button" className="btn-newvideo" onClick={() => setShowNewVideo(true)}>+ New video</button>}
+          {isAdmin && <button type="button" className="btn-newvideo" onClick={() => { setNvPipeline(matrixPipeline); setShowNewVideo(true); }}>+ New video</button>}
         </div>
       )}
 
-      {activeWorkerStatusCol && <StatusLegend />}
+      {activeWorkerStage && <StatusLegend />}
 
-      {activeWorkerStatusCol && renderWork(activeWorkerStatusCol)}
+      {activeWorkerStage && renderWork(activeWorkerStage)}
       {activeTab === "review" && (
         <>
           <HelpBanner text={REVIEWER_GUIDE} />
@@ -305,14 +332,26 @@ export function Board({ roles, stages, columns, rows, names, memberRoles = {}, r
       )}
       {activeTab === "pipeline" && (
         <>
-          <Filters rows={rows} names={names} memberRoles={memberRoles} filters={adminFilters} onChange={setAdminFilters} />
-          <PipelineBoard rows={rows} names={names} filters={adminFilters}
+          {pipelines.length > 1 && (
+            <div className="matrix-typebar">
+              <span className="matrix-typebar__label">Video type</span>
+              {pipelines.map((p) => (
+                <button key={p.id} type="button"
+                  className={`admin-tab${matrixPipeline === p.id ? " admin-tab--active" : ""}`}
+                  onClick={() => setMatrixPipeline(p.id)} aria-pressed={matrixPipeline === p.id}>{p.name}</button>
+              ))}
+            </div>
+          )}
+          <Filters rows={rows} pipeline={getPipeline(matrixPipeline)} names={names} memberRoles={memberRoles} filters={adminFilters} onChange={setAdminFilters} />
+          <PipelineBoard rows={rows} pipeline={getPipeline(matrixPipeline)} names={names} filters={adminFilters}
             onOpen={(r) => openDetail(r as BoardRow, activeStage(r as Record<string, string>)?.id, "all")}
             canDelete={isAdmin}
             onDelete={(rowId, title) => void handleDelete(rowId, title)} />
         </>
       )}
       {activeTab === "team" && <TeamPanel onChanged={reload} categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions} />}
+
+      {tabs.length === 0 && <div className="awaiting-empty">No work is assigned to you right now.</div>}
 
       {detailRow && (
         <CardDetail row={detailRow} columns={columns} roles={roles} names={names} memberRoles={memberRoles} readOnly={readOnly}

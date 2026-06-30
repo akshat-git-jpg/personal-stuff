@@ -9,8 +9,14 @@ export const STAGE_GUIDE: Record<string, string> = {
     "Write the script from the topic notes and the instructions on the card. Paste your script link and submit it for review. If it comes back as “Needs changes”, read the feedback, fix it, and resubmit.",
   recording:
     "Record the tutorial from the approved script. Paste your recording link and submit it for review. If it's sent back, check the feedback, redo it, and resubmit.",
+  outline:
+    "Write the outline from the topic brief and the instructions on the card. Paste your outline link and submit it for review. If it comes back as “Needs changes”, read the feedback, fix it, and resubmit.",
+  processing:
+    "Your step: take the approved screen recording and run it through the production pipeline (transcript, voiceover, avatar clips). Assemble the editor's input package, paste the Drive link that holds all the inputs, and mark it Complete — that hands the package to the video editor. No review step here.",
   editing:
     "Edit the final video from the approved recording. Paste the edited video link and submit it for review. Address any “Needs changes” feedback and resubmit.",
+  thumbnail:
+    "Design the thumbnail from the final video. Paste the thumbnail link and submit it for review. Address any “Needs changes” feedback and resubmit.",
   upload:
     "Upload the approved final video. Add the YouTube link and upload details, then mark it Uploaded. There's no review step here — this is the last stage.",
 };
