@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { validatePipelines, getPipeline, allRoles, pipelineIds } from "../src/shared/engine/registry";
+import { validatePipelines, getPipeline, allRoles, pipelineIds, rolesForSystem } from "../src/shared/engine/registry";
 import { assembleRow, decomposeRow, routeWrite, type StageRecord } from "../src/shared/engine/card";
+import { effectiveRoles, holdsRoleInSystem } from "../src/shared/engine/memberships";
+import { workerStagesForMemberships, reviewQueueForMemberships, type Row } from "../src/shared/engine/rbac";
 
 describe("pipeline definitions", () => {
   it("validate clean", () => {
@@ -63,5 +65,51 @@ describe("tut-2 normalizes cleanly", () => {
   it("has the processing (task) stage with no reviewer slot", () => {
     const { stages } = decomposeRow(P, { row_id: "v1", pipeline: "tut-2", video_title: "V2 vid" }, true);
     expect(stages.map((s) => s.stage_id)).toEqual(["topic", "outline", "recording", "processing", "editing", "thumbnail", "upload"]);
+  });
+});
+
+describe("system-scoped memberships", () => {
+  const samStd = { standard: ["Scriptwriter", "Recorder"] };          // standard-only doer
+  const ninaTut2 = { "tut-2": ["Scriptwriter"] };                     // tut-2-only doer
+  const reviewerBoth = { standard: ["Reviewer"], "tut-2": ["Reviewer"] }; // cross-system reviewer
+  const admin = { "*": ["Admin"], standard: ["Reviewer"] };           // founder
+
+  it("effectiveRoles collapses per-system + cross-system roles", () => {
+    expect(effectiveRoles(admin, "tut-2")).toEqual(["Admin"]);                  // admin spans all systems
+    expect(effectiveRoles(admin, "standard").sort()).toEqual(["Admin", "Reviewer"]);
+    expect(effectiveRoles(ninaTut2, "standard")).toEqual([]);                   // nina has nothing in standard
+    expect(effectiveRoles(ninaTut2, "tut-2")).toEqual(["Scriptwriter"]);
+  });
+
+  it("rolesForSystem = that system's doer roles + Reviewer, never Admin", () => {
+    const r = rolesForSystem("standard");
+    expect(r).toContain("Scriptwriter");
+    expect(r).toContain("Reviewer");
+    expect(r).not.toContain("Admin");
+  });
+
+  it("holdsRoleInSystem scopes the assignment dropdowns", () => {
+    expect(holdsRoleInSystem(samStd, "standard", "Scriptwriter")).toBe(true);
+    expect(holdsRoleInSystem(samStd, "tut-2", "Scriptwriter")).toBe(false);     // Sam never offered on a tut-2 card
+    expect(holdsRoleInSystem(reviewerBoth, "tut-2", "Reviewer")).toBe(true);
+  });
+
+  it("worker lanes only cover systems the user actually works in", () => {
+    const lanes = workerStagesForMemberships(ninaTut2);
+    expect(new Set(lanes.map((l) => l.pipelineId))).toEqual(new Set(["tut-2"]));
+    expect(lanes.every((l) => l.role === "Scriptwriter")).toBe(true);
+  });
+
+  it("a cross-system reviewer's queue spans every system they review", () => {
+    const stdCard: Row = {
+      row_id: "s1", pipeline: "standard", video_title: "A", topic_status: "Done",
+      script_status: "In Review", script_writer_email: "sw@x.com", script_reviewer_email: "riya@x.com",
+    };
+    const tutCard: Row = {
+      row_id: "t1", pipeline: "tut-2", video_title: "B", topic_status: "Done",
+      outline_status: "In Review", outline_assignee: "nina@x.com", outline_reviewer: "riya@x.com",
+    };
+    const q = reviewQueueForMemberships(reviewerBoth, "riya@x.com", [stdCard, tutCard]);
+    expect(q.map((i) => i.row.row_id).sort()).toEqual(["s1", "t1"]);
   });
 });

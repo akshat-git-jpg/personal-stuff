@@ -145,7 +145,9 @@ export interface TeamMember {
   name: string;
   email: string;
   role: string;   // raw cell (or first valid role) — for display
-  roles?: string[]; // all parsed roles
+  roles?: string[]; // all parsed roles (union across systems)
+  /** Per-system membership: systemId (or "*" for cross-system Admin) → roles there. */
+  memberships?: Record<string, string[]>;
 }
 
 /**

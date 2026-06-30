@@ -4,6 +4,7 @@ import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
 import { canEditForRoles, isAdminRoles } from "../shared/engine/rbac";
 import { PROTECTED_ADMIN_EMAIL, PIPELINES } from "../shared/engine/registry";
+import { holdsRoleInSystem } from "../shared/engine/memberships";
 import { COLUMNS, DATE_COLUMNS, ETA_COLUMNS } from "../shared/columns";
 import { fieldType } from "./columnMeta";
 import {
@@ -30,6 +31,8 @@ interface CardDetailProps {
   roles: string[];
   names: Record<string, string>;
   memberRoles?: Record<string, string>;
+  /** email -> systemId -> roles, so assignment dropdowns can scope to the card's system. */
+  memberships?: Record<string, Record<string, string[]>>;
   readOnly?: boolean;
   /** Which stage the card was opened while working — scopes the fields/actions shown. */
   contextStageId?: string;
@@ -135,7 +138,7 @@ function sectionsForPipeline(stages: StageDef[]): { sections: SectionDef[]; assi
   return { sections, assigneeSeq };
 }
 
-export function CardDetail({ row, columns, roles, names, memberRoles = {}, readOnly, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved, onDelete, onApplyDefaults }: CardDetailProps) {
+export function CardDetail({ row, columns, roles, names, memberRoles = {}, memberships = {}, readOnly, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved, onDelete, onApplyDefaults }: CardDetailProps) {
   const locks = row._locks ?? {};
   const actionGroups = row._actions ?? [];
   const isAdmin = isAdminRoles(roles);
@@ -317,9 +320,12 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, readO
         ) : ASSIGNEE_COLS.has(col) ? (
           (() => {
             const requiredRole = ASSIGNEE_ROLE[col];
-            const hasRole = (email: string) =>
-              !requiredRole || (memberRoles[email] ?? "").split(",").map((r) => r.trim()).includes(requiredRole);
-            const people = Object.keys(names).filter(hasRole).sort((a, b) => names[a].localeCompare(names[b]));
+            // Scope to the card's system: only people who hold the required role
+            // IN this card's system (reviewers may span systems). A Standard-only
+            // freelancer never shows on a Tut-2 card.
+            const inSystem = (email: string) =>
+              !requiredRole || holdsRoleInSystem(memberships[email.toLowerCase()] ?? {}, pipeline.id, requiredRole);
+            const people = Object.keys(names).filter(inSystem).sort((a, b) => names[a].localeCompare(names[b]));
             const cur = value.toLowerCase();
             return (
               <select id={`f-${col}`} value={value} className={inputCls} onChange={(e) => { handleChange(col, e.target.value); void autoSaveField(col, e.target.value); }}>

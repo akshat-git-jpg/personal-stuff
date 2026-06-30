@@ -29,14 +29,20 @@ import { loadAffiliateRecords } from "./affiliate";
 import { processVideo } from "./linkgen";
 import * as clickstore from "./clickstore";
 import {
-  allVisibleColsForRoles, visibleColsForRoles, canEditForRoles, filterRowsForRoles, projectRowForRoles,
-  workerStagesForRoles, isApproverRoles, isAdminRoles, isApprover,
+  visibleColsForRoles, canEditForRoles, projectRowForRoles,
+  isApproverRoles, isAdminRoles, isApprover,
   authorizeWrite, transitionsForCard, transitionsForStage, cardStagesForUser,
-  reviewQueueForUser, fieldLockReason, canReview, assignableColsFor, pipeOf,
+  fieldLockReason, canReview, assignableColsFor, pipeOf,
+  allVisibleColsForMemberships, filterRowsForMemberships, workerStagesForMemberships,
+  reviewQueueForMemberships, effectiveRolesFor,
   type Row,
 } from "../shared/engine/rbac";
 import {
+  unionRoles, holdsRoleInSystem, type Memberships,
+} from "../shared/engine/memberships";
+import {
   getPipeline, stageById, PIPELINES, PROTECTED_ADMIN_EMAIL, pipelineSummaries, DEFAULT_PIPELINE_ID,
+  rolesForSystem, isDoerRole, WILDCARD_SYSTEM, ADMIN_ROLE,
 } from "../shared/engine/registry";
 import { derive, statusOf } from "../shared/engine/derive";
 import { colOf, stageHasReviewerSlot } from "../shared/engine/types";
@@ -83,6 +89,14 @@ function buildRolesMap(team: TeamMember[]): Record<string, string> {
   const roles: Record<string, string> = {};
   for (const m of team) roles[m.email.toLowerCase()] = (m.roles ?? [m.role]).filter(Boolean).join(", ");
   return roles;
+}
+
+// email -> per-system memberships, so the client can scope assignment dropdowns to
+// the card's system (a Standard-only freelancer never appears on a Tut-2 card).
+function buildMembershipsMap(team: TeamMember[]): Record<string, Record<string, string[]>> {
+  const out: Record<string, Record<string, string[]>> = {};
+  for (const m of team) out[m.email.toLowerCase()] = m.memberships ?? {};
+  return out;
 }
 
 function displayName(email: string, names: Record<string, string>): string {
@@ -163,34 +177,62 @@ app.get("/api/team", async (c) => {
   return c.json(await getStore(c.env).loadTeam());
 });
 
-app.get("/api/roles", (c) => c.json(VALID_ROLE_NAMES));
+// Valid roles per system (its doer roles + Reviewer); ?system omitted ⇒ full roster.
+app.get("/api/roles", (c) => {
+  const system = c.req.query("system");
+  if (system && PIPELINES[system]) return c.json(rolesForSystem(system));
+  return c.json(VALID_ROLE_NAMES);
+});
 
-// POST /api/team {name, email, roles[]} — Admin-only; upsert a teammate. This is
-// the SINGLE place roles are assigned to people.
+// The list of systems (id + name), for the system-scoped Team tab.
+app.get("/api/systems", (c) => c.json(pipelineSummaries().map((p) => ({ id: p.id, name: p.name }))));
+
+// POST /api/team {name, email, memberships} — Admin-only; replace a teammate's
+// FULL per-system membership set. This is the SINGLE place people↔system↔role is
+// assigned. memberships = { systemId: roles[] }; "*" carries cross-system Admin.
 app.post("/api/team", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
 
-  let body: { name?: string; email?: string; roles?: string[] };
+  let body: { name?: string; email?: string; memberships?: Record<string, string[]> };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
   const name = (body.name ?? "").trim();
-  const email = (body.email ?? "").trim();
-  const memberRoles = Array.isArray(body.roles)
-    ? body.roles.map((r) => r.trim()).filter((r) => VALID_ROLE_NAMES.includes(r))
-    : [];
+  const email = (body.email ?? "").trim().toLowerCase();
   if (!name) return c.json({ error: "name is required" }, 400);
   if (!email || !email.includes("@")) return c.json({ error: "a valid email is required" }, 400);
-  if (memberRoles.length === 0) return c.json({ error: "at least one valid role is required" }, 400);
 
-  const isFounder = email.toLowerCase() === PROTECTED_ADMIN_EMAIL;
-  // Admin is reserved for the founding admin. Nobody else can be granted it; the
-  // founder can never lose it (that would lock everyone out of team management).
-  const finalRoles = isFounder
-    ? (memberRoles.includes("Admin") ? memberRoles : ["Admin", ...memberRoles])
-    : memberRoles.filter((r) => r !== "Admin");
-  if (finalRoles.length === 0) return c.json({ error: "at least one valid role is required" }, 400);
+  // Sanitize each system's roles against what's valid there; drop unknown systems.
+  const clean: Memberships = {};
+  for (const [sys, list] of Object.entries(body.memberships ?? {})) {
+    if (sys !== WILDCARD_SYSTEM && !PIPELINES[sys]) continue;
+    const valid = sys === WILDCARD_SYSTEM ? new Set([ADMIN_ROLE]) : new Set(rolesForSystem(sys));
+    const rs = (Array.isArray(list) ? list : []).map((r) => r.trim()).filter((r) => valid.has(r));
+    if (rs.length) clean[sys] = [...new Set(rs)];
+  }
 
-  const result = await getStore(c.env).upsertEmployee(name, email, finalRoles.join(", "));
+  // Admin is reserved for the founding admin (cross-system "*"); nobody else gets
+  // it, and the founder can never lose it (that would lock out team management).
+  const isFounder = email === PROTECTED_ADMIN_EMAIL;
+  if (isFounder) clean[WILDCARD_SYSTEM] = [ADMIN_ROLE];
+  else delete clean[WILDCARD_SYSTEM];
+
+  // A doer role belongs to exactly ONE system (Reviewer may span systems).
+  const doerSystems = new Map<string, string>();
+  for (const [sys, rs] of Object.entries(clean)) {
+    if (sys === WILDCARD_SYSTEM) continue;
+    for (const r of rs) {
+      if (!isDoerRole(r)) continue;
+      const prev = doerSystems.get(r);
+      if (prev && prev !== sys) {
+        return c.json({ error: `${r} can only belong to one system — it's set in both ${PIPELINES[prev]?.name ?? prev} and ${PIPELINES[sys]?.name ?? sys}.` }, 400);
+      }
+      doerSystems.set(r, sys);
+    }
+  }
+
+  if (Object.keys(clean).length === 0) return c.json({ error: "assign at least one role in one system" }, 400);
+
+  const result = await getStore(c.env).saveMemberships(name, email, clean);
   await bustBoardCache(c.env);
   return c.json({ ok: true, result });
 });
@@ -218,7 +260,8 @@ app.post("/api/team/delete", async (c) => {
 app.get("/api/defaults", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json([], 200);
-  return c.json(await loadDefaults(c.env.TRACKER_DB));
+  const pipeline = getPipeline(c.req.query("pipeline")).id;
+  return c.json(await loadDefaults(c.env.TRACKER_DB, pipeline));
 });
 
 // The columns a default set can fill (doers + per-stage reviewers) for a pipeline.
@@ -227,27 +270,28 @@ app.get("/api/defaults/cols", (c) => c.json(assignableColsFor(getPipeline(c.req.
 app.post("/api/defaults", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  let body: { category?: string; subcategory?: string; assignments?: Record<string, string> };
+  let body: { pipeline?: string; category?: string; subcategory?: string; assignments?: Record<string, string> };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
   const category = (body.category ?? "").trim();
   if (!category) return c.json({ error: "category is required" }, 400);
-  // Keep only valid assignable columns (across any pipeline — cols are unique per system).
-  const validCols = new Set(Object.values(PIPELINES).flatMap((p) => assignableColsFor(p)));
+  const pipe = getPipeline(body.pipeline);
+  // Keep only this system's assignable columns (doers + per-stage reviewers).
+  const validCols = new Set(assignableColsFor(pipe));
   const assignments: Record<string, string> = {};
   for (const [col, email] of Object.entries(body.assignments ?? {})) {
     if (validCols.has(col)) assignments[col] = (email ?? "").trim();
   }
-  await setDefaults(c.env.TRACKER_DB, category, body.subcategory ?? "", assignments);
+  await setDefaults(c.env.TRACKER_DB, pipe.id, category, body.subcategory ?? "", assignments);
   return c.json({ ok: true });
 });
 
 app.post("/api/defaults/delete", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
-  let body: { category?: string; subcategory?: string };
+  let body: { pipeline?: string; category?: string; subcategory?: string };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
   if (!(body.category ?? "").trim()) return c.json({ error: "category is required" }, 400);
-  await deleteDefaults(c.env.TRACKER_DB, body.category!.trim(), body.subcategory ?? "");
+  await deleteDefaults(c.env.TRACKER_DB, getPipeline(body.pipeline).id, body.category!.trim(), body.subcategory ?? "");
   return c.json({ ok: true });
 });
 
@@ -266,8 +310,9 @@ app.post("/api/apply-defaults", async (c) => {
   const target = allRows.find((r) => (r.row_id || "").trim() === rowId);
   if (!target) return c.json({ error: "row not found", row_id: rowId }, 404);
 
-  const defaults = await resolveDefaults(c.env.TRACKER_DB, (target.category as string) ?? "", (target.subcategory as string) ?? "");
-  const cardCols = new Set(assignableColsFor(pipeOf(target))); // only this card's pipeline cols
+  const targetPipe = pipeOf(target);
+  const defaults = await resolveDefaults(c.env.TRACKER_DB, targetPipe.id, (target.category as string) ?? "", (target.subcategory as string) ?? "");
+  const cardCols = new Set(assignableColsFor(targetPipe)); // only this card's pipeline cols
   const updates: Record<string, string> = {};
   for (const [col, email] of Object.entries(defaults)) {
     if (!cardCols.has(col)) continue;
@@ -286,6 +331,8 @@ const STATUS_COLS = new Set<string>(
   Object.values(PIPELINES).flatMap((p) => p.stages.map((s) => colOf(s, "status"))),
 );
 
+// `roles` here are the EFFECTIVE roles for this card's system (caller collapses
+// the user's memberships via effectiveRolesFor) — so meta is system-correct.
 function rowMeta(roles: string[], email: string, row: Row) {
   const p = pipeOf(row);                                        // resolve this card's pipeline
   const stages = cardStagesForUser(roles, email, row);          // statusCols this card belongs to (in user's lanes)
@@ -306,26 +353,27 @@ function rowMeta(roles: string[], email: string, row: Row) {
 // readOnly=true makes it inert. There is no edit elevation — exactly one
 // rendering path, so the admin's preview can never diverge from the real user.
 app.get("/api/board", async (c) => {
-  const { email, roles } = getUser(c);
+  const { email, roles, memberships } = getUser(c);
   const isAdmin = isAdminRoles(roles);
   const asUser = c.req.query("asUser");
   const store = getStore(c.env);
 
-  let effRoles = roles;
+  let effMemberships = memberships;
   let effEmail = email;
   let viewingAs: { email: string; roles: string[] } | null = null;
   let readOnly = false;
 
   if (isAdmin && asUser) {
-    const asRoles = await store.lookupRoles(asUser);
+    const asMemberships = await store.lookupMemberships(asUser);
+    const asRoles = unionRoles(asMemberships);
     if (asRoles.length === 0) {
       return c.json({
         roles, viewingAs: { email: asUser, roles: [] }, readOnly: true,
-        columns: [], rows: [], names: {}, stages: [], pipelines: pipelineSummaries(),
-        notice: "This user has no role mapping in the Employes tab.",
+        columns: [], rows: [], names: {}, stages: [], pipelines: pipelineSummaries(), memberships: {},
+        notice: "This user has no role mapping in the team.",
       });
     }
-    effRoles = asRoles;
+    effMemberships = asMemberships;
     effEmail = asUser.trim().toLowerCase();
     viewingAs = { email: asUser, roles: asRoles };
     readOnly = true; // mirror only — never editable
@@ -336,25 +384,30 @@ app.get("/api/board", async (c) => {
     store.loadTeam(),
   ]);
 
-  const filteredRows = filterRowsForRoles(effRoles, effEmail, allRows);
+  const filteredRows = filterRowsForMemberships(effMemberships, effEmail, allRows);
   // status_since is always attached (outside the per-role column policy) so the
-  // board can show "in <status> since N days" for every card.
-  const rows = filteredRows.map((r) => ({
-    ...projectRowForRoles(effRoles, r),
-    ...rowMeta(effRoles, effEmail, r),
-    status_since: (r.status_since as string) ?? "",
-  }));
+  // board can show "in <status> since N days" for every card. Per-card authority
+  // uses the EFFECTIVE roles for that card's system.
+  const rows = filteredRows.map((r) => {
+    const eff = effectiveRolesFor(effMemberships, r);
+    return {
+      ...projectRowForRoles(eff, r),
+      ...rowMeta(eff, effEmail, r),
+      status_since: (r.status_since as string) ?? "",
+    };
+  });
 
   return c.json({
-    roles: effRoles,
+    roles: unionRoles(effMemberships),
     viewerEmail: effEmail,
     viewingAs,
     readOnly,
-    columns: allVisibleColsForRoles(effRoles),
+    columns: allVisibleColsForMemberships(effMemberships),
     rows,
     names: buildNamesMap(team),
     memberRoles: buildRolesMap(team),
-    stages: workerStagesForRoles(effRoles),
+    memberships: buildMembershipsMap(team),
+    stages: workerStagesForMemberships(effMemberships),
     pipelines: pipelineSummaries(),
   });
 });
@@ -363,25 +416,28 @@ app.get("/api/board", async (c) => {
 // Cards on a reviewable stage at "In Review" that THIS user is assigned to review
 // (or all, for admins). Each item shows who submitted it + which stage.
 app.get("/api/review-queue", async (c) => {
-  const { email, roles } = getUser(c);
+  const { email, memberships } = getUser(c);
   const [allRows, team] = await Promise.all([
     cachedReadRows(c.env),
     getStore(c.env).loadTeam(),
   ]);
   const names = buildNamesMap(team);
 
-  const items = reviewQueueForUser(roles, email, allRows).map(({ row, stage, submittedBy }) => ({
-    row_id: (row.row_id ?? "") as string,
-    video_title: (row.video_title ?? "") as string,
-    stageId: stage.id,
-    stage: stage.label,
-    statusCol: colOf(stage, "status"),
-    submittedBy,
-    submittedByName: displayName(submittedBy, names),
-    // Attach the same authority meta the board sends, so opening a queue item
-    // shows its Approve / Request-changes buttons (and field locks).
-    row: { ...projectRowForRoles(roles, row), ...rowMeta(roles, email, row) },
-  }));
+  const items = reviewQueueForMemberships(memberships, email, allRows).map(({ row, stage, submittedBy }) => {
+    const eff = effectiveRolesFor(memberships, row);
+    return {
+      row_id: (row.row_id ?? "") as string,
+      video_title: (row.video_title ?? "") as string,
+      stageId: stage.id,
+      stage: stage.label,
+      statusCol: colOf(stage, "status"),
+      submittedBy,
+      submittedByName: displayName(submittedBy, names),
+      // Attach the same authority meta the board sends, so opening a queue item
+      // shows its Approve / Request-changes buttons (and field locks).
+      row: { ...projectRowForRoles(eff, row), ...rowMeta(eff, email, row) },
+    };
+  });
 
   return c.json({ count: items.length, items, names });
 });
@@ -391,7 +447,7 @@ app.get("/api/review-queue", async (c) => {
 // and content-field edits. Reviewer approve/sendback goes through /api/review.
 // authorizeWrite is the SINGLE enforcement point.
 app.post("/api/update", async (c) => {
-  const { roles, email } = getUser(c);
+  const { roles, email, memberships } = getUser(c);
 
   let body: { row_id?: string; col?: string; value?: string; prev?: string };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
@@ -410,10 +466,24 @@ app.post("/api/update", async (c) => {
     return c.json({ error: "unknown column", col }, 400);
   }
 
-  const check = authorizeWrite(roles, email, typedCol, value, targetRow);
+  const effRoles = effectiveRolesFor(memberships, targetRow);
+  const check = authorizeWrite(effRoles, email, typedCol, value, targetRow);
   if (!check.ok) return c.json({ error: "forbidden", message: check.reason }, 403);
 
   const store = getStore(c.env);
+
+  // System-membership guard: a person can only be assigned to a doer/reviewer slot
+  // on a card whose system they belong to (reviewers may span systems). This backs
+  // up the system-scoped dropdowns server-side, so an out-of-system assignment is
+  // rejected even via a hand-rolled request.
+  if (value.trim() && new Set(assignableColsFor(pipe)).has(typedCol)) {
+    const requiredRole = ASSIGNEE_COL_ROLE[typedCol];
+    const assigneeM = await store.lookupMemberships(value.trim());
+    if (requiredRole && !holdsRoleInSystem(assigneeM, pipe.id, requiredRole)) {
+      return c.json({ error: "not_in_system", message: `That person isn't a ${requiredRole} in ${pipe.name}. Add them to ${pipe.name} in the Team tab first.` }, 400);
+    }
+  }
+
   try {
     // One read + one batched write (also stamps last_updated). When the column
     // being written is a STATUS column, also stamp status_since so we can show
@@ -468,7 +538,7 @@ app.post("/api/update", async (c) => {
 // Authority is card-specific: only the card's assigned reviewer (or an admin) may
 // act, and never on work they submitted themselves.
 app.post("/api/review", async (c) => {
-  const { roles, email } = getUser(c);
+  const { email, memberships } = getUser(c);
 
   let body: { row_id?: string; stage?: string; action?: string; feedback?: string };
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
@@ -490,13 +560,14 @@ app.post("/api/review", async (c) => {
     return c.json({ error: `invalid stage; must be one of ${pipe.stages.filter((s) => lifecycle(s.lifecycle).reviewed).map((s) => s.id).join("|")}` }, 400);
   }
   const feedbackCol = stage.lifecycle === "review" ? colOf(stage, "feedback") : null;
+  const effRoles = effectiveRolesFor(memberships, targetRow);
 
   // Authority + valid-transition check (single source of truth).
-  if (!canReview(roles, email, stage, targetRow)) {
+  if (!canReview(effRoles, email, stage, targetRow)) {
     return c.json({ error: "forbidden", message: "Only this card's assigned reviewer can review it." }, 403);
   }
   const newStatus = action === "approve" ? "Done" : "Need Changes";
-  const transition = transitionsForStage(roles, email, stage, targetRow, pipe).find((t) => t.to === newStatus);
+  const transition = transitionsForStage(effRoles, email, stage, targetRow, pipe).find((t) => t.to === newStatus);
   if (!transition) {
     return c.json({ error: "invalid_transition", message: `Can't ${action} from "${statusOf(stage, targetRow)}".` }, 409);
   }
@@ -564,7 +635,7 @@ app.post("/api/video", async (c) => {
   const firstStage = pipe.stages[0]; // the brief/topic stage
   // Pre-fill assignees/reviewers from the defaults for this (category, subcategory),
   // keeping only columns that exist in THIS pipeline.
-  const defaults = await resolveDefaults(c.env.TRACKER_DB, values.category ?? "", values.subcategory ?? "");
+  const defaults = await resolveDefaults(c.env.TRACKER_DB, pipe.id, values.category ?? "", values.subcategory ?? "");
   const cardCols = new Set(assignableColsFor(pipe));
   const filteredDefaults = Object.fromEntries(Object.entries(defaults).filter(([col]) => cardCols.has(col)));
   const rowId = await getStore(c.env).appendRow({

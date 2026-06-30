@@ -39,6 +39,7 @@ interface BoardProps {
   rows: BoardRow[];
   names: Record<string, string>;
   memberRoles?: Record<string, string>;
+  memberships?: Record<string, Record<string, string[]>>;
   readOnly?: boolean;
   reload: () => void;
 }
@@ -82,7 +83,7 @@ function StatusLegend() {
   );
 }
 
-export function Board({ roles, stages, pipelines, columns, rows, names, memberRoles = {}, readOnly, reload }: BoardProps) {
+export function Board({ roles, stages, pipelines, columns, rows, names, memberRoles = {}, memberships = {}, readOnly, reload }: BoardProps) {
   const isAdmin = roles.includes("Admin");
   // Reviewing is an explicit role, not an Admin default.
   const canReview = roles.includes("Reviewer");
@@ -385,12 +386,12 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
             onDelete={(rowId, title) => void handleDelete(rowId, title)} />
         </>
       )}
-      {activeTab === "team" && <TeamPanel onChanged={reload} categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions} />}
+      {activeTab === "team" && <TeamPanel onChanged={reload} pipelines={pipelines} categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions} />}
 
       {tabs.length === 0 && <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">No work is assigned to you right now.</div>}
 
       {detailRow && (
-        <CardDetail row={detailRow} columns={columns} roles={roles} names={names} memberRoles={memberRoles} readOnly={readOnly}
+        <CardDetail row={detailRow} columns={columns} roles={roles} names={names} memberRoles={memberRoles} memberships={memberships} readOnly={readOnly}
           contextStageId={detailStageId} perspective={detailPerspective}
           onDelete={() => void handleDelete(detailRow.row_id ?? "", detailRow.video_title ?? "")}
           onApplyDefaults={() => void handleApplyDefaults(detailRow.row_id ?? "")}

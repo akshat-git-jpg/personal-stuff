@@ -11,6 +11,7 @@
 import type { PipelineDef, StageDef } from "./types";
 import { colOf, stageHasReviewerSlot, stageKind, stageHasEta, stageHasInstruction, workField } from "./types";
 import { getPipeline, PIPELINES, ADMIN_ROLE, REVIEWER_ROLE } from "./registry";
+import { effectiveRoles, unionRoles, type Memberships } from "./memberships";
 import { lifecycle } from "./lifecycle";
 import {
   derive, statusOf, isGateOpen, stageHasReviewer, type Access,
@@ -117,6 +118,67 @@ export function assignableColsFor(p: PipelineDef): string[] {
     ...(stageKind(s) !== "brief" ? [colOf(s, "assignee")] : []),
     ...(stageHasReviewerSlot(s) ? [colOf(s, "reviewer")] : []),
   ]);
+}
+
+// --- membership-aware entry points -----------------------------------------
+// A user's authority is a set of per-system memberships. Because every check is
+// FOR ONE CARD, and a card knows its system, we collapse the memberships into the
+// effective roles for that card's system and hand them to the role-based checks
+// below — so the core RBAC is unchanged. Reviewer membership in a set of systems
+// "just works": a card in a system the user reviews yields Reviewer in its
+// effective roles; a card in a system they don't, doesn't.
+
+/** Effective roles for this user on THIS card (its system's roles + cross-system). */
+export function effectiveRolesFor(m: Memberships, row: Row): string[] {
+  return effectiveRoles(m, pipeOf(row).id);
+}
+
+/** Worker lanes ("My work") across every system the user actually works in. */
+export function workerStagesForMemberships(m: Memberships) {
+  const out: { pipelineId: string; stageId: string; statusCol: string; role: string; label: string }[] = [];
+  const seen = new Set<string>();
+  for (const p of Object.values(PIPELINES)) {
+    const eff = effectiveRoles(m, p.id);
+    for (const s of p.stages) {
+      if (!eff.includes(s.role)) continue;
+      const key = `${p.id}:${colOf(s, "status")}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ pipelineId: p.id, stageId: s.id, statusCol: colOf(s, "status"), role: s.role, label: s.label });
+    }
+  }
+  return out;
+}
+
+/** Union of columns visible to the user across the systems they belong to. */
+export function allVisibleColsForMemberships(m: Memberships): string[] {
+  const set = new Set<string>();
+  for (const p of Object.values(PIPELINES)) for (const c of visibleColsForRoles(effectiveRoles(m, p.id), p)) set.add(c);
+  return [...set];
+}
+
+/** Rows the user may see: admins (cross-system) see all; everyone else sees a card
+ *  only via their effective roles in that card's system. */
+export function filterRowsForMemberships(m: Memberships, email: string, rows: Row[]): Row[] {
+  if (unionRoles(m).includes(ADMIN_ROLE)) return rows;
+  return rows.filter((r) => canSeeRow(effectiveRolesFor(m, r), email, r));
+}
+
+/** Cross-system review queue: scans every card, keeps those In Review the user is
+ *  the assigned reviewer for — naturally spanning every system they review. */
+export function reviewQueueForMemberships(m: Memberships, email: string, rows: Row[]) {
+  const items: { row: Row; stage: StageDef; submittedBy: string }[] = [];
+  for (const row of rows) {
+    const eff = effectiveRolesFor(m, row);
+    const p = pipeOf(row);
+    for (const s of p.stages) {
+      if (!lifecycle(s.lifecycle).reviewed) continue;
+      if (statusOf(s, row) !== "In Review") continue;
+      if (!canReview(eff, email, s, row)) continue;
+      items.push({ row, stage: s, submittedBy: row[colOf(s, "assignee")] || "" });
+    }
+  }
+  return items;
 }
 
 // --- card-aware authority --------------------------------------------------

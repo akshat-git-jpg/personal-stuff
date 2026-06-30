@@ -16,7 +16,8 @@ const DEV_PERSONAS: { label: string; email: string }[] = [
   { label: "John (Video Editor)", email: "akshatpatidar17@gmail.com" },
   { label: "Tara (Thumbnails)", email: "tara@dev.local" },
   { label: "Uma (Uploads)", email: "uma@dev.local" },
-  { label: "Riya (Reviewer)", email: "riya@dev.local" },
+  { label: "Riya (Reviewer · both systems)", email: "riya@dev.local" },
+  { label: "Nina (Tut 2 · Scriptwriter)", email: "nina@dev.local" },
 ];
 
 type AppState =
@@ -168,6 +169,7 @@ export default function App() {
         rows={data.rows}
         names={data.names ?? {}}
         memberRoles={data.memberRoles ?? {}}
+        memberships={data.memberships ?? {}}
         readOnly={data.readOnly ?? false}
         reload={() => void load(viewAsEmail || undefined, { silent: true })}
       />

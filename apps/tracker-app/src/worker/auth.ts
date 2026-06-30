@@ -17,6 +17,8 @@
 import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { getStore } from "./datastore";
+import { membershipsFromRoles, unionRoles, type Memberships } from "../shared/engine/memberships";
+import { DEFAULT_PIPELINE_ID } from "../shared/engine/registry";
 
 // ---------------------------------------------------------------------------
 // Env / variable types (shared across auth + index)
@@ -51,7 +53,7 @@ export type Env = {
 };
 
 export type Variables = {
-  user: { email: string; roles: string[] };
+  user: { email: string; roles: string[]; memberships: Memberships };
 };
 
 // ---------------------------------------------------------------------------
@@ -237,7 +239,9 @@ export async function requireSession(
     const devEmail = c.req.header("X-Dev-Email");
     const devRoles = c.req.header("X-Dev-Roles");
     if (devEmail && devRoles) {
-      c.set("user", { email: devEmail, roles: devRoles.split(",").map(r => r.trim()).filter(Boolean) });
+      const roles = devRoles.split(",").map(r => r.trim()).filter(Boolean);
+      const devSystem = c.req.header("X-Dev-System") || DEFAULT_PIPELINE_ID;
+      c.set("user", { email: devEmail, roles, memberships: membershipsFromRoles(roles, devSystem) });
       await next();
       return;
     }
@@ -268,14 +272,22 @@ export async function requireSession(
   // Roles are read LIVE from the Employes tab every request, so adding/removing a
   // role takes effect immediately (no re-login, no cache lag). The session only
   // proves identity.
-  let roles: string[];
+  // Memberships (per-system roles) are the authority; resolved LIVE so Team-tab
+  // changes apply with no re-login. `roles` is their union (UI + approver gating).
+  let memberships: Memberships = {};
   try {
-    roles = await getStore(c.env).lookupRoles(session.email);
+    memberships = await getStore(c.env).lookupMemberships(session.email);
   } catch (err) {
-    console.warn("[auth] live role lookup failed; using session roles:", err);
-    roles = session.roles ?? (session.role ? [session.role] : []);
+    console.warn("[auth] live membership lookup failed; using session roles:", err);
   }
-  c.set("user", { email: session.email, roles });
+  let roles = unionRoles(memberships);
+  if (roles.length === 0) {
+    // Dev (?roles=) / fallback: rebuild from the session-snapshot roles under the
+    // default system so ad-hoc dev-logins and transient lookup failures still work.
+    const fallback = session.roles ?? (session.role ? [session.role] : []);
+    if (fallback.length) { memberships = membershipsFromRoles(fallback, DEFAULT_PIPELINE_ID); roles = fallback; }
+  }
+  c.set("user", { email: session.email, roles, memberships });
   await next();
 }
 
@@ -286,6 +298,7 @@ export async function requireSession(
 export function getUser(c: Context<{ Bindings: Env; Variables: Variables }>): {
   email: string;
   roles: string[];
+  memberships: Memberships;
 } {
   return c.get("user");
 }

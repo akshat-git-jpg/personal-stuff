@@ -14,9 +14,18 @@
 import type { Row } from "../shared/engine/rbac";
 import type { Env } from "./auth";
 import { ConflictError } from "./sheets";
-import { parseRoles, type TeamMember } from "./roles";
-import { getPipeline } from "../shared/engine/registry";
+import { type TeamMember } from "./roles";
+import { getPipeline, rolesForSystem, WILDCARD_SYSTEM, ADMIN_ROLE } from "../shared/engine/registry";
+import { unionRoles, type Memberships } from "../shared/engine/memberships";
 import { assembleRow, decomposeRow, routeWrite, type CardRecord, type StageRecord } from "../shared/engine/card";
+
+/** Parse a comma-separated role cell for ONE system, dropping roles that aren't
+ *  valid there. "*" (cross-system) accepts only Admin; a real system accepts its
+ *  doer roles + Reviewer (see rolesForSystem). */
+function parseSystemRoles(cell: string | null | undefined, systemId: string): string[] {
+  const valid = systemId === WILDCARD_SYSTEM ? new Set([ADMIN_ROLE]) : new Set(rolesForSystem(systemId));
+  return (cell ?? "").split(",").map((r) => r.trim()).filter((r) => r !== "" && valid.has(r));
+}
 
 export interface DataStore {
   readRows(): Promise<Row[]>;
@@ -26,8 +35,12 @@ export interface DataStore {
   appendRow(values: Record<string, string | undefined>): Promise<string>;
   deleteRowById(rowId: string): Promise<void>;
   loadTeam(): Promise<TeamMember[]>;
+  /** Per-system memberships for one email (systemId/"*" → roles). */
+  lookupMemberships(email: string): Promise<Memberships>;
+  /** Union of roles across all systems — identity/UI gating + back-compat. */
   lookupRoles(email: string): Promise<string[]>;
-  upsertEmployee(name: string, email: string, roleCell: string): Promise<"updated" | "added">;
+  /** Replace a person's FULL membership set (one D1 row per system). */
+  saveMemberships(name: string, email: string, memberships: Memberships): Promise<"updated" | "added">;
   deleteEmployee(email: string): Promise<boolean>;
 }
 
@@ -152,33 +165,60 @@ class D1Store implements DataStore {
     if (res.meta?.changes === 0) throw new Error(`Row with row_id "${rowId}" not found`);
   }
 
-  // --- employees (access list) --------------------------------------------
+  // --- employees (access list, membership-grained) ------------------------
+  // One row per (email, system_id). `role` is the comma-joined roles that person
+  // holds IN that system. A doer has one row; a cross-system reviewer has one row
+  // per system; the founding admin has a "*" row.
   async loadTeam(): Promise<TeamMember[]> {
-    const { results } = await this.db.prepare(`SELECT name, email, role FROM employees`).all<{ name: string; email: string; role: string }>();
-    const members: TeamMember[] = [];
+    const { results } = await this.db.prepare(`SELECT email, system_id, name, role FROM employees`)
+      .all<{ email: string; system_id: string; name: string; role: string }>();
+    const byEmail = new Map<string, TeamMember>();
     for (const r of results ?? []) {
-      const email = (r.email ?? "").trim();
-      const roleCell = (r.role ?? "").trim();
-      if (!email || !roleCell) continue;
-      const roles = parseRoles(roleCell);
+      const email = (r.email ?? "").trim().toLowerCase();
+      const sys = (r.system_id ?? "").trim();
+      if (!email || !sys) continue;
+      const roles = parseSystemRoles(r.role, sys);
       if (roles.length === 0) continue;
-      members.push({ name: (r.name ?? "").trim(), email: email.toLowerCase(), role: roles[0], roles });
+      let m = byEmail.get(email);
+      if (!m) { m = { email, name: (r.name ?? "").trim(), role: "", roles: [], memberships: {} }; byEmail.set(email, m); }
+      if ((r.name ?? "").trim()) m.name = (r.name ?? "").trim();
+      m.memberships![sys] = roles;
     }
+    const members = [...byEmail.values()];
+    for (const m of members) { m.roles = unionRoles(m.memberships ?? {}); m.role = m.roles[0] ?? ""; }
     return members;
   }
 
-  async lookupRoles(email: string): Promise<string[]> {
-    const r = await this.db.prepare(`SELECT role FROM employees WHERE email = ?`).bind(email.trim().toLowerCase()).first<{ role: string }>();
-    return r ? parseRoles((r.role ?? "").trim()) : [];
+  async lookupMemberships(email: string): Promise<Memberships> {
+    const { results } = await this.db.prepare(`SELECT system_id, role FROM employees WHERE email = ?`)
+      .bind(email.trim().toLowerCase()).all<{ system_id: string; role: string }>();
+    const m: Memberships = {};
+    for (const r of results ?? []) {
+      const sys = (r.system_id ?? "").trim();
+      if (!sys) continue;
+      const roles = parseSystemRoles(r.role, sys);
+      if (roles.length) m[sys] = roles;
+    }
+    return m;
   }
 
-  async upsertEmployee(name: string, email: string, roleCell: string): Promise<"updated" | "added"> {
+  async lookupRoles(email: string): Promise<string[]> {
+    return unionRoles(await this.lookupMemberships(email));
+  }
+
+  async saveMemberships(name: string, email: string, memberships: Memberships): Promise<"updated" | "added"> {
     const key = email.trim().toLowerCase();
-    const existing = await this.db.prepare(`SELECT email FROM employees WHERE email = ?`).bind(key).first();
-    await this.db.prepare(
-      `INSERT INTO employees (email, name, role) VALUES (?, ?, ?)
-       ON CONFLICT(email) DO UPDATE SET name = excluded.name, role = excluded.role`,
-    ).bind(key, name, roleCell).run();
+    const existing = await this.db.prepare(`SELECT 1 FROM employees WHERE email = ? LIMIT 1`).bind(key).first();
+    const stmts: D1PreparedStatement[] = [
+      this.db.prepare(`DELETE FROM employees WHERE email = ?`).bind(key),
+    ];
+    for (const [sys, roles] of Object.entries(memberships)) {
+      const cell = (roles ?? []).filter(Boolean).join(", ");
+      if (!sys || !cell) continue;
+      stmts.push(this.db.prepare(`INSERT INTO employees (email, system_id, name, role) VALUES (?, ?, ?, ?)`)
+        .bind(key, sys, name, cell));
+    }
+    await this.db.batch(stmts);
     return existing ? "updated" : "added";
   }
 

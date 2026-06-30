@@ -42,9 +42,10 @@ export interface BoardData {
   notice?: string;
   names?: Record<string, string>;
   memberRoles?: Record<string, string>;   // email -> comma-joined roles, for "Name — Role" labels
+  memberships?: Record<string, Record<string, string[]>>; // email -> systemId -> roles, for system-scoped dropdowns
 }
 
-export interface TeamMember { name: string; email: string; role: string; roles?: string[]; }
+export interface TeamMember { name: string; email: string; role: string; roles?: string[]; memberships?: Record<string, string[]>; }
 export interface MeData { email: string; roles: string[]; }
 
 export interface ReviewItem {
@@ -115,13 +116,16 @@ export async function getTeam(): Promise<TeamMember[]> {
   return res.json() as Promise<TeamMember[]>;
 }
 
-export async function getRoleOptions(): Promise<string[]> {
-  const res = await fetch("/api/roles", { credentials: "same-origin" });
+/** Valid roles for one system (its doer roles + Reviewer); omit `system` for the full roster. */
+export async function getRoleOptions(system?: string): Promise<string[]> {
+  const url = system ? `/api/roles?system=${encodeURIComponent(system)}` : "/api/roles";
+  const res = await fetch(url, { credentials: "same-origin" });
   if (!res.ok) return [];
   return res.json() as Promise<string[]>;
 }
 
-export async function saveTeamMember(input: { name: string; email: string; roles: string[] }): Promise<void> {
+/** Replace a teammate's full per-system membership set ({ systemId: roles[] }). */
+export async function saveTeamMember(input: { name: string; email: string; memberships: Record<string, string[]> }): Promise<void> {
   await throwOnError(await postJSON("/api/team", input));
 }
 export async function deleteTeamMember(email: string): Promise<void> {
@@ -198,10 +202,11 @@ export async function deleteVideo(row_id: string): Promise<void> {
 
 // ── Assignment defaults (admin) ──────────────────────────────────────────────
 
-export interface AssignmentDefaultRow { category: string; subcategory: string; col: string; email: string; }
+export interface AssignmentDefaultRow { pipeline_id?: string; category: string; subcategory: string; col: string; email: string; }
 
-export async function getDefaults(): Promise<AssignmentDefaultRow[]> {
-  const res = await fetch("/api/defaults", { credentials: "same-origin" });
+export async function getDefaults(pipeline?: string): Promise<AssignmentDefaultRow[]> {
+  const url = pipeline ? `/api/defaults?pipeline=${encodeURIComponent(pipeline)}` : "/api/defaults";
+  const res = await fetch(url, { credentials: "same-origin" });
   if (!res.ok) return [];
   return res.json() as Promise<AssignmentDefaultRow[]>;
 }
@@ -211,11 +216,11 @@ export async function getDefaultCols(pipeline?: string): Promise<string[]> {
   if (!res.ok) return [];
   return res.json() as Promise<string[]>;
 }
-export async function saveDefaults(input: { category: string; subcategory: string; assignments: Record<string, string> }): Promise<void> {
+export async function saveDefaults(input: { pipeline: string; category: string; subcategory: string; assignments: Record<string, string> }): Promise<void> {
   await throwOnError(await postJSON("/api/defaults", input));
 }
-export async function deleteDefault(category: string, subcategory: string): Promise<void> {
-  await throwOnError(await postJSON("/api/defaults/delete", { category, subcategory }));
+export async function deleteDefault(pipeline: string, category: string, subcategory: string): Promise<void> {
+  await throwOnError(await postJSON("/api/defaults/delete", { pipeline, category, subcategory }));
 }
 export async function applyDefaults(row_id: string): Promise<{ applied: Record<string, string> }> {
   const res = await postJSON("/api/apply-defaults", { row_id });

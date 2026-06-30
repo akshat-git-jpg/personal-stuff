@@ -31,15 +31,20 @@ const ANUSHA = "khushibakliwal125@gmail.com";
 const TARA = "tara@dev.local";
 const UMA = "uma@dev.local";
 const RIYA = "riya@dev.local";
+const NINA = "nina@dev.local";
 
-const EMPLOYEES: { email: string; name: string; role: string }[] = [
-  { email: SEAN, name: "Sean", role: "Admin, Reviewer" },
-  { email: JOHN, name: "John", role: "Video Editor" },
-  { email: SAM, name: "Sam", role: "Scriptwriter, Recorder" },
-  { email: ANUSHA, name: "Anusha", role: "Recorder" },
-  { email: TARA, name: "Tara", role: "Thumbnail Maker" },
-  { email: UMA, name: "Uma", role: "Uploader" },
-  { email: RIYA, name: "Riya", role: "Reviewer" },
+// System-scoped memberships: systemId (or "*" cross-system Admin) → roles there.
+// Demonstrates the model: Riya is a CROSS-SYSTEM reviewer (standard + tut-2);
+// Nina is a TUT-2-ONLY scriptwriter; everyone else is a single-system doer.
+const EMPLOYEES: { email: string; name: string; memberships: Record<string, string[]> }[] = [
+  { email: SEAN, name: "Sean", memberships: { "*": ["Admin"], "standard": ["Reviewer"], "tut-2": ["Reviewer"] } },
+  { email: JOHN, name: "John", memberships: { "standard": ["Video Editor"] } },
+  { email: SAM, name: "Sam", memberships: { "standard": ["Scriptwriter", "Recorder"] } },
+  { email: ANUSHA, name: "Anusha", memberships: { "standard": ["Recorder"] } },
+  { email: TARA, name: "Tara", memberships: { "standard": ["Thumbnail Maker"] } },
+  { email: UMA, name: "Uma", memberships: { "standard": ["Uploader"] } },
+  { email: RIYA, name: "Riya", memberships: { "standard": ["Reviewer"], "tut-2": ["Reviewer"] } },
+  { email: NINA, name: "Nina", memberships: { "tut-2": ["Scriptwriter"] } },
 ];
 
 // ── Card spec DSL — keyed by stage id; columns resolved via the engine. ──────
@@ -122,23 +127,45 @@ const CARDS: CardSpec[] = [
     notes: "Anatomy of a trailer that converts visitors to subs.",
     stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: D(JOHN), thumbnail: D(TARA), upload: { status: "To Do", assignee: UMA } } },
 
-  // Tut-2 system — for the type picker + "Tut 2" system chip
+  // Tut-2 system — for the type picker + "Tut 2" system chip. Doer = Nina
+  // (tut-2-only Scriptwriter); reviewer = Riya (cross-system). Sam (standard
+  // Scriptwriter) must NOT appear in these cards' assignment dropdowns.
   { pipeline: "tut-2", title: "AI avatar explainer: zero to first video", category: "AI", subcategory: "Avatars", daysAgo: 1,
     notes: "End-to-end with an avatar tool; script-led.",
-    stages: { topic: D(SEAN), outline: { status: "In Progress", assignee: SAM } } },
+    stages: { topic: D(SEAN), outline: { status: "In Progress", assignee: NINA } } },
   { pipeline: "tut-2", title: "Faceless shorts pipeline", category: "AI", subcategory: "Shorts", daysAgo: 0,
     notes: "Batch-produce shorts from one long video.",
-    stages: { topic: D(SEAN), outline: D(SAM), recording: { status: "In Review", assignee: SAM, reviewer: RIYA, link: "https://drive.example.com/shorts-rec" } } },
+    stages: { topic: D(SEAN), outline: D(NINA), recording: { status: "In Review", assignee: NINA, reviewer: RIYA, link: "https://drive.example.com/shorts-rec" } } },
 ];
 
 function main() {
   const out: string[] = [];
   out.push("DELETE FROM card_stages;");
   out.push("DELETE FROM cards;");
-  out.push("DELETE FROM employees;");
 
+  // Employees are membership-grained: one row per (email, system_id). Recreate the
+  // table so a local DB on the old (email PK) schema is brought up to date.
+  out.push("DROP TABLE IF EXISTS employees;");
+  out.push(`CREATE TABLE employees (
+  email TEXT NOT NULL, system_id TEXT NOT NULL, name TEXT, role TEXT,
+  PRIMARY KEY (email, system_id)
+);`);
+  // Assignment defaults are per system (pipeline_id in the PK). Recreate so a local
+  // DB on the old (no pipeline_id) schema is brought up to date. Local-only, and
+  // defaults are reconfigurable, so dropping them is safe.
+  out.push("DROP TABLE IF EXISTS assignment_defaults;");
+  out.push(`CREATE TABLE assignment_defaults (
+  pipeline_id TEXT NOT NULL DEFAULT 'standard', category TEXT NOT NULL,
+  subcategory TEXT NOT NULL DEFAULT '', col TEXT NOT NULL, email TEXT NOT NULL,
+  PRIMARY KEY (pipeline_id, category, subcategory, col)
+);`);
+
+  let memberships = 0;
   for (const e of EMPLOYEES) {
-    out.push(`INSERT INTO employees (email, name, role) VALUES (${q(e.email)}, ${q(e.name)}, ${q(e.role)});`);
+    for (const [sys, roles] of Object.entries(e.memberships)) {
+      out.push(`INSERT INTO employees (email, system_id, name, role) VALUES (${q(e.email)}, ${q(sys)}, ${q(e.name)}, ${q(roles.join(", "))});`);
+      memberships++;
+    }
   }
 
   let cards = 0, stageRows = 0;
@@ -155,7 +182,7 @@ function main() {
   });
 
   const sql = out.join("\n") + "\n";
-  process.stderr.write(`-- seed: ${EMPLOYEES.length} employees, ${cards} cards, ${stageRows} card_stages rows\n`);
+  process.stderr.write(`-- seed: ${EMPLOYEES.length} employees (${memberships} memberships), ${cards} cards, ${stageRows} card_stages rows\n`);
 
   if (process.argv.includes("--print")) { process.stdout.write(sql); return; }
 

@@ -16,6 +16,7 @@ The app is now a **generic multi-system pipeline engine**. It is NO LONGER the s
 - **Storage is NORMALIZED D1** (`tracker-db`): `pipelines` (definitions seed) + `cards` (one per video, carries `pipeline_id`) + `card_stages` (one row per stage: status/assignee/reviewer/work_link/instruction/eta/feedback/extra_json) + `employees`. The old wide `cards` table is gone. The flat `Row` the app speaks is **assembled** from cards+card_stages by `card.ts`; each row carries `row.pipeline`.
 - **Client is pipeline-aware** via the `src/client/stages.ts` facade (resolves each card's pipeline + re-exports engine helpers). UI: new-video **type picker**, Board **per-system work tabs** (only shown where the user has a card; suffixed with the system name only when genuinely cross-system), **Pipeline-matrix type selector**, per-system assignment defaults, a **system chip** on cards/review-queue/detail.
 - **Legacy `src/shared/{pipeline,control,rbac,policy,lifecycle}.ts` are SUPERSEDED** by the engine. They remain only because `test/rbac.test.ts` still parity-checks the old `rbac.ts`, and a few type/const re-exports are still imported (`Column`/`COLUMNS`/`DATE_COLUMNS`/`ETA_COLUMNS` from `columns.ts`, `NEW_VIDEO_FIELDS` from `control.ts`, `Row`/`Transition` types from `rbac.ts`). **Do not edit the legacy modules for behavior — edit the engine.**
+- **System-scoped team (2026-06-30).** People are now scoped to a system, not global. The `employees` table is membership-grained — one row per **(email, system_id)**, where `role` is the comma-joined roles that person holds **in that system**. A doer role lives in exactly one system; **Reviewer** may be held in several (its queue spans them); **Admin** is a cross-system `"*"` membership (founder only, auto-preserved). The engine collapses a user's `Memberships` to **effective roles for one card's system** (`src/shared/engine/memberships.ts` → `effectiveRoles`), and the worker feeds those to the unchanged role-based RBAC — so authority stays per-card-correct without rewriting the brain. Assignment dropdowns + a server guard in `/api/update` scope assignable people to the card's system (`holdsRoleInSystem`); the Team tab is system-tabbed; `assignment_defaults` is keyed by `pipeline_id`. Adding a future system (e.g. an Amazon channel) is still just one `PipelineDef` — the team/assignment UI scales automatically. **Migration:** `scripts/migrate-system-scoping.ts` (employees → memberships + `assignment_defaults` gains `pipeline_id`; run once on prod, see header).
 - **Migration:** `scripts/migrate-to-engine.ts` produced the wide→normalized cutover (already applied to prod). Project memory: `tracker-pipeline-engine.md`.
 
 ---
@@ -146,8 +147,12 @@ Sent from `seankerman25@gmail.com` (display "Tutorials Tracker") on: **submitted
 
 ## Run locally
 
+**Canonical local-dev + design loop: see [`LOCAL-DEV.md`](./LOCAL-DEV.md).** It documents the fast path — `npm run seed:local` (local D1 with dev personas + demo cards across both pipelines and every status) then `npm run dev:local` (Vite HMR on **:5173** + wrangler API on **:8787**), plus `npm run shot -- <persona>` for Playwright screenshots and `npm run e2e` for smoke specs. Use **:5173** for UI work (instant reload); `:8787` serves the built `dist/` and needs a rebuild+restart.
+
+Bare-worker check (no HMR, exercises the real Worker serving `dist/`):
+
 ```bash
-cd youtube/tracker-app
+cd apps/tracker-app
 npm install                 # uses the local .npmrc → public npm registry (avoids Zluri CodeArtifact 401)
 npm run build               # builds the SPA into dist/
 npx wrangler dev --port 8787
@@ -159,7 +164,7 @@ npx wrangler dev --port 8787
 - **`npm test`** → `vitest run` (49 tests; includes `test/engine.test.ts` — validation, round-trip, routing).
 
 ### ⚠️ Gotchas
-- **`wrangler dev` serves a STALE snapshot of `dist/`.** After ANY client (SPA) rebuild you MUST **restart `wrangler dev`** (`pkill -f "wrangler dev"`; `npm run build`; restart) or the browser shows old UI. Worker-only changes hot-reload fine.
+- **`wrangler dev` serves a STALE snapshot of `dist/`.** After ANY client (SPA) rebuild you MUST **restart `wrangler dev`** (`pkill -f "wrangler dev"`; `npm run build`; restart) or the browser shows old UI. Worker-only changes hot-reload fine. (This is why design work uses `npm run dev:local`'s Vite :5173 — see `LOCAL-DEV.md`.)
 - The local `.npmrc` pins the public registry — keep it (home `~/.npmrc` points at Zluri CodeArtifact which 401s on public packages).
 - Sheets read range is bounded (`A1:…999`); fine now, but archive/scale needed past ~1000 rows.
 - **Link generation needs the D1 schema in the LOCAL D1.** `wrangler dev` uses an empty *local* D1, not the remote `clicks-db`, so `/api/generate-links` errors with `no such table: videos` until you seed it once: `npx wrangler d1 execute clicks-db --local --file=../../../TY/workers/redirector/migrations/0001_init.sql`. Production uses the remote `clicks-db` (already has the tables from the redirector in the sibling TY repo at `TY/workers/redirector`).

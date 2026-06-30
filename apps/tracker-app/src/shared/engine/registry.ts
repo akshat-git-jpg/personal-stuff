@@ -54,6 +54,28 @@ export function allRoles(): string[] {
   return [...roles];
 }
 
+/** Sentinel system id for cross-system membership (Admin). A membership keyed to
+ *  "*" applies to every system, including future ones. */
+export const WILDCARD_SYSTEM = "*";
+
+/** A doer role is any stage-owner role that is NOT the cross-system Admin/Reviewer.
+ *  Doers are scoped to a single system; Reviewer may span systems; Admin is all. */
+export function isDoerRole(role: string): boolean {
+  return role !== ADMIN_ROLE && role !== REVIEWER_ROLE;
+}
+
+/** The roles a person can hold WITHIN one system: that pipeline's doer roles (its
+ *  stage owners minus the cross-system Admin) plus Reviewer. Admin is never a
+ *  per-system role — it's granted cross-system to the founder only. */
+export function rolesForSystem(id: string): string[] {
+  const p = PIPELINES[id];
+  if (!p) return [];
+  const roles = new Set<string>();
+  for (const s of p.stages) if (isDoerRole(s.role)) roles.add(s.role);
+  roles.add(REVIEWER_ROLE);
+  return [...roles];
+}
+
 // --- Per-pipeline stage lookups (cached) -----------------------------------
 const byId = new Map<string, Map<string, StageDef>>();
 function stageMap(p: PipelineDef): Map<string, StageDef> {
