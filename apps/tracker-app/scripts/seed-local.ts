@@ -35,16 +35,18 @@ const NINA = "nina@dev.local";
 
 // System-scoped memberships: systemId (or "*" cross-system Admin) → roles there.
 // Demonstrates the model: Riya is a CROSS-SYSTEM reviewer (standard + tut-2);
-// Nina is a TUT-2-ONLY scriptwriter; everyone else is a single-system doer.
+// everyone else is a single-system doer. In tut-2, Nina holds BOTH Scriptwriter
+// and Tutorial Maker — i.e. one person who owns two consecutive reviewed stages
+// (Outline → Screen recording), the "same person, reviewed per part" flow.
 const EMPLOYEES: { email: string; name: string; memberships: Record<string, string[]> }[] = [
   { email: SEAN, name: "Sean", memberships: { "*": ["Admin"], "standard": ["Reviewer"], "tut-2": ["Reviewer"] } },
-  { email: JOHN, name: "John", memberships: { "standard": ["Video Editor"] } },
+  { email: JOHN, name: "John", memberships: { "standard": ["Video Editor"], "tut-2": ["Processor", "Video Editor"] } },
   { email: SAM, name: "Sam", memberships: { "standard": ["Scriptwriter", "Recorder"] } },
   { email: ANUSHA, name: "Anusha", memberships: { "standard": ["Recorder"] } },
-  { email: TARA, name: "Tara", memberships: { "standard": ["Thumbnail Maker"] } },
-  { email: UMA, name: "Uma", memberships: { "standard": ["Uploader"] } },
+  { email: TARA, name: "Tara", memberships: { "standard": ["Thumbnail Maker"], "tut-2": ["Thumbnail Maker"] } },
+  { email: UMA, name: "Uma", memberships: { "standard": ["Uploader"], "tut-2": ["Uploader"] } },
   { email: RIYA, name: "Riya", memberships: { "standard": ["Reviewer"], "tut-2": ["Reviewer"] } },
-  { email: NINA, name: "Nina", memberships: { "tut-2": ["Scriptwriter"] } },
+  { email: NINA, name: "Nina", memberships: { "tut-2": ["Scriptwriter", "Tutorial Maker"] } },
 ];
 
 // ── Card spec DSL — keyed by stage id; columns resolved via the engine. ──────
@@ -123,19 +125,41 @@ const CARDS: CardSpec[] = [
   { pipeline: "standard", title: "Thumbnail psychology that gets clicks", category: "Channel", subcategory: "Thumbnails", daysAgo: 1,
     notes: "Contrast, faces, and the 3-word rule.",
     stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: D(JOHN), thumbnail: { status: "To Do", assignee: TARA } } },
+  { pipeline: "standard", title: "Best budget mics for creators", category: "Channel", subcategory: "Thumbnails", daysAgo: 2,
+    notes: "Side-by-side mic comparison; punchy thumbnail.",
+    stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: D(JOHN), thumbnail: { status: "In Review", assignee: TARA, reviewer: SEAN, link: "https://drive.example.com/mic-thumb" } } },
   { pipeline: "standard", title: "Channel trailer breakdown", category: "Channel", subcategory: "Strategy", daysAgo: 1,
     notes: "Anatomy of a trailer that converts visitors to subs.",
     stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: D(JOHN), thumbnail: D(TARA), upload: { status: "To Do", assignee: UMA } } },
 
-  // Tut-2 system — for the type picker + "Tut 2" system chip. Doer = Nina
-  // (tut-2-only Scriptwriter); reviewer = Riya (cross-system). Sam (standard
-  // Scriptwriter) must NOT appear in these cards' assignment dropdowns.
+  // Tut-2 system — 6 doer roles (Scriptwriter → Tutorial Maker → Processor →
+  // Video Editor → Thumbnail Maker → Uploader). Nina owns BOTH Outline
+  // (Scriptwriter) and Screen recording (Tutorial Maker), so these cards show the
+  // same-person, reviewed-per-stage handoff. Riya reviews (cross-system); Sam
+  // (standard Scriptwriter) must NOT appear in these cards' assignment dropdowns.
   { pipeline: "tut-2", title: "AI avatar explainer: zero to first video", category: "AI", subcategory: "Avatars", daysAgo: 1,
     notes: "End-to-end with an avatar tool; script-led.",
     stages: { topic: D(SEAN), outline: { status: "In Progress", assignee: NINA } } },
+  // Outline DONE, recording In Review by the SAME person (Nina) — the card flowed
+  // back to her for the next stage; Riya sees it in the review queue.
   { pipeline: "tut-2", title: "Faceless shorts pipeline", category: "AI", subcategory: "Shorts", daysAgo: 0,
     notes: "Batch-produce shorts from one long video.",
     stages: { topic: D(SEAN), outline: D(NINA), recording: { status: "In Review", assignee: NINA, reviewer: RIYA, link: "https://drive.example.com/shorts-rec" } } },
+  // Further along: outline + recording done, John processing (Processor) for the editor.
+  { pipeline: "tut-2", title: "Avatar product demo, start to finish", category: "AI", subcategory: "Avatars", daysAgo: 2,
+    notes: "Demo an avatar tool end-to-end; hand processed inputs to the editor.",
+    stages: { topic: D(SEAN), outline: D(NINA), recording: D(NINA), processing: { status: "In Progress", assignee: JOHN } } },
+  // At the Thumbnail stage in tut-2, assigned to Tara — so Tara (Thumbnail Maker in
+  // BOTH systems) has thumbnail work in standard AND tut-2 → her board shows two
+  // suffixed tabs: "Thumbnail · Standard" and "Thumbnail · Tut 2".
+  { pipeline: "tut-2", title: "AI voiceover crash course", category: "AI", subcategory: "Audio", daysAgo: 1,
+    notes: "Pick a voice, script it, sync to footage.",
+    stages: { topic: D(SEAN), outline: D(NINA), recording: D(NINA), processing: D(JOHN), editing: D(JOHN),
+      thumbnail: { status: "To Do", assignee: TARA } } },
+  { pipeline: "tut-2", title: "Avatar B-roll tricks", category: "AI", subcategory: "Avatars", daysAgo: 2,
+    notes: "Spice up avatar videos with generated B-roll.",
+    stages: { topic: D(SEAN), outline: D(NINA), recording: D(NINA), processing: D(JOHN), editing: D(JOHN),
+      thumbnail: { status: "In Progress", assignee: TARA } } },
 ];
 
 function main() {
