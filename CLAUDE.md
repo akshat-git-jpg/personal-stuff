@@ -18,6 +18,7 @@ A single git repo for my money-making / business projects: YouTube (niche resear
 | Niche → knowledge-base research (Phase 1) | [`youtube/yt-research/CLAUDE.md`](youtube/yt-research/CLAUDE.md) |
 | Knowledge-base → final video script (Phase 2) | [`youtube/yt-script/CLAUDE.md`](youtube/yt-script/CLAUDE.md) |
 | My own channel notes | [`youtube/my-yt/CLAUDE.md`](youtube/my-yt/CLAUDE.md) |
+| Tutorial screen-recording → editor-ready package (script, voiceover, avatar clips) | [`youtube/kushal-tutorial-pipeline-v2/`](youtube/kushal-tutorial-pipeline-v2/PIPELINE.md) |
 | Pinterest pin data / a niche (keto, wedding) | `pinterest/<niche>/`, plan at [`pinterest/PLAN.md`](pinterest/PLAN.md) |
 | Pinterest funnel landing pages / Workers | `pinterest/landing-pages/` |
 | Short links (`go.agrolloo.com/*`) | [`workers/redirector/CLAUDE.md`](workers/redirector/CLAUDE.md) |
@@ -34,12 +35,13 @@ A single git repo for my money-making / business projects: YouTube (niche resear
 
 | Folder | Purpose | Stack |
 |---|---|---|
-| [`youtube/`](youtube/CLAUDE.md) | Wrapper for the core YT logic (5 sub-projects below) | mixed |
+| [`youtube/`](youtube/CLAUDE.md) | Wrapper for the core YT logic (6 sub-projects below) | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-analysis/`](youtube/yt-analysis/CLAUDE.md) | YT tracker sheet sync + LLM-driven affiliate-link workflow | Python |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/keyword-research/`](youtube/keyword-research/CLAUDE.md) | Scan competitor channels for affiliate opportunities | Python |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-research/`](youtube/yt-research/CLAUDE.md) | Niche → knowledge-base pipeline (Phase 1, Gemini) | TypeScript |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-script/`](youtube/yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2) | Markdown workflow |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/my-yt/`](youtube/my-yt/CLAUDE.md) | Personal channel notes (free-form) | Markdown |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/kushal-tutorial-pipeline-v2/`](youtube/kushal-tutorial-pipeline-v2/PIPELINE.md) | Tutorial screen-recording → editor-ready package (clean script, brand-voice voiceover, HeyGen avatar clips, visual plan); numbered `steps/` | Python + Claude steps |
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script under `youtube/`. | Python |
 | [`workers/redirector/`](workers/redirector/CLAUDE.md) | Cloudflare Worker for `go.agrolloo.com/*` short links | TypeScript (CF Worker) |
 | [`docs/`](docs/CLAUDE.md) | Repo-wide docs and workflows | Markdown |
