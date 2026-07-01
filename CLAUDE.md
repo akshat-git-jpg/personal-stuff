@@ -18,11 +18,13 @@ A single git repo for my money-making / business projects: YouTube (niche resear
 | Niche → knowledge-base research (Phase 1) | [`youtube/yt-research/CLAUDE.md`](youtube/yt-research/CLAUDE.md) |
 | Knowledge-base → final video script (Phase 2) | [`youtube/yt-script/CLAUDE.md`](youtube/yt-script/CLAUDE.md) |
 | My own channel notes | [`youtube/my-yt/CLAUDE.md`](youtube/my-yt/CLAUDE.md) |
+| Channel ideas / niche brainstorming notes | [`channel ideas/`](<channel ideas/>) |
 | Tutorial screen-recording → editor-ready package (script, voiceover, avatar clips) | [`youtube/kushal-tutorial-pipeline-v2/`](youtube/kushal-tutorial-pipeline-v2/PIPELINE.md) |
 | Pinterest pin data / a niche (keto, wedding) | `pinterest/<niche>/`, plan at [`pinterest/PLAN.md`](pinterest/PLAN.md) |
 | Pinterest funnel landing pages / Workers | `pinterest/landing-pages/` |
 | Short links (`go.agrolloo.com/*`) | [`workers/redirector/CLAUDE.md`](workers/redirector/CLAUDE.md) |
 | HTML→video cards / Video Studio | [`yt-visuals-hyperframe/`](yt-visuals-hyperframe/README.md) |
+| Devsplainers-style motion-graphics video kit / pipeline | [`ai-video-production/Devsplainers/hyperframes/SPEC.md`](ai-video-production/Devsplainers/hyperframes/SPEC.md) |
 | Bank-statement parsing / the RapidAPI product | [`bank-statement-parser/`](bank-statement-parser/README.md) |
 | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare) | [`common/CLAUDE.md`](common/CLAUDE.md) |
 | Income / business-strategy research | [`docs/research/`](docs/research/) |
@@ -50,12 +52,13 @@ A single git repo for my money-making / business projects: YouTube (niche resear
 | [`pinterest/`](pinterest/PLAN.md) | Per-niche Pinterest PDF business (keto, wedding) + landing pages | Python + HTML |
 | [`yt-visuals-hyperframe/`](yt-visuals-hyperframe/README.md) | **Live** HTML→video card tool (Video Studio); the card templates render2.agrolloo.com pulls from | Node |
 | [`hyperframes-vs-remotion/`](hyperframes-vs-remotion/CLAUDE.md) | Prior experiment (Hyperframes vs Remotion) — superseded by `yt-visuals-hyperframe/` | Node |
-| [`ai-video-production/`](ai-video-production/README.md) | Reverse-engineering motion-graphics video styles (Devsplainers breakdown + reference frames) | Markdown + assets |
+| [`ai-video-production/`](ai-video-production/README.md) | Motion-graphics video work: the Devsplainers style breakdown + reference frames, plus the Devsplainers-clone build kit (`Devsplainers/hyperframes/`, see its `SPEC.md`) | Markdown + HTML/CSS/GSAP |
 | [`video-voice/`](video-voice/README.md) | Voiceover pipeline — RVC male→female voice conversion, TTS voiceover flow, and HeyGen avatars | Python + Node |
 | [`bank-statement-parser/`](bank-statement-parser/README.md) | Parses + reconciles bank statements — building toward a paid RapidAPI product | Python |
 | [`docs/research/`](docs/research/) | Business/income-strategy research (RapidAPI ideas, passive marketplaces) | Markdown |
 | [`income-analysis/`](income-analysis/README.md) | Tracks actual income across platforms — per-source CLIs/MCPs + `snapshots/` of pulled numbers | Markdown + tooling |
 | [`big-comparison-util/`](big-comparison-util/README.md) | Standalone grouping-and-ranking method for comparing many tools at once (point Claude at `categorization-rule.md`) | Markdown |
+| [`channel ideas/`](<channel ideas/>) | Free-form channel / niche brainstorming notes (one folder per idea) | Markdown |
 
 ## Getting started
 
