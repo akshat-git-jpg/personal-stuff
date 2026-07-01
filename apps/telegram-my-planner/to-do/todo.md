@@ -48,8 +48,6 @@ avatar uping th equality
 
 claude api no, claude vps listening to a wbhook/change event and then makign changes/send response with my web app button clicks
 
-male to female voice
-
 mandir anusha
 
 browser automation to login to affiliates and do revenue analysis.
@@ -66,15 +64,13 @@ Club in a single video
 https://youtu.be/j9tAj7bkDR4?si=wID6XKuFLYCnrt-c
 youri uses clone
 
-make channel like ai search
-
 - make app to track transactions
 
-- channel like this - https://youtu.be/NYD1GwKMmJA?si=SSYbRw-uY0-hMJer
   make every other day - something with claude - give in school community.
 
 - built at researcher for yt topics
 - make tutorial tracker generic for any system tracking
 - form fill for affiliates
-- try new non tech niche where people are not aware of tech/ai. think anusha papa
 - sell games
+
+smallest ai

@@ -14,13 +14,14 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - `agrolloo.com` — main personal domain (apps + landing pages).
 - `bridebestie.com` — wedding-niche brand domain.
 
-### Workers (9 deployed, no Pages projects)
+### Workers (10 deployed, no Pages projects)
 - **redirector** — `go.agrolloo.com/*` — URL shortener + click tracking. Bindings: `CLICKS_KV`, `clicks-db` (D1).
 - **kushal-tools** — `kushal-tools.agrolloo.com` — KushalTools hub: card launcher linking every live agrolloo.com site. Shared-password gate (stateless signed cookie, no KV). Secrets: `APP_PASSWORD`, `SESSION_SECRET`. No bindings.
 - **kushal-gym** — `kushal-gym.agrolloo.com` — gym PWA, Google Sheet-backed via OAuth refresh token.
 - **kushal-docs** — `kushal-docs.agrolloo.com` — document-vault PWA, R2-backed (bucket `kushal-docs`), Google sign-in allow-listed to one email.
 - **yt-tutorials-tracker** — `tutorials-tracker.agrolloo.com` — YouTube tutorials Kanban app; also mints go.agrolloo.com short links. Bindings: `SESSIONS` (KV), `CLICKS_KV`, `clicks-db` (D1).
 - **yt-analytics** — `yt-analytics.agrolloo.com` — click dashboard (per-video/per-link counts) over `clicks-db`, plus **live YouTube view counts** fetched from the YouTube Data API per load. Shared-password gate (stateless signed cookie, no KV). Binding: `clicks-db` (D1, read-only). Secrets: `APP_PASSWORD`, `SESSION_SECRET`, `YT_API_KEY` (YouTube Data API v3 key, project `n8n-workflows-454504`).
+- **lists-app** — `lists.agrolloo.com` — personal categorized-lists app (SPA). Shared-password gate (stateless signed cookie, no KV). Bindings: `ASSETS` (SPA in `dist/`), `DB` (D1 `lists-db`). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
 - **keto-kitchen** — `keto-kitchen.agrolloo.com` — static landing page (assets-only).
 - **bridebestie** — `bridebestie.com` + `www` — static landing page (assets-only).
 - **vps-watchdog** — cron `*/2 * * * *`, no HTTP route — pings the dashboard; reboots VPS via Hostinger API if down. Binding: `WATCHDOG_KV`.
@@ -30,14 +31,15 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - `CLICKS_KV` — redirector clicks.
 - `SESSIONS` — tutorials-tracker logins.
 
-### D1 databases (1)
+### D1 databases (2)
+- `lists-db` — lists-app data store (categories + items). Bound as `DB` in lists-app only.
 - `clicks-db` — redirector click store. Written by redirector + yt-tutorials-tracker; read by yt-analytics (read-only) and by `yt-analysis/sync_clicks.py`. `videos` has an additive `yt_video_id` column (migration `0002`, owned by the redirector) so yt-analytics can look up YouTube views. All 65 uploaded `@AgrolloReviews` videos were backfilled here (per-video tracking links `go.agrolloo.com/<code>/<tool>`) on 2026-06-16.
 
 ### DNS — agrolloo.com
 - `agrolloo.com` + `www` → `191.101.230.133` (Hostinger shared hosting, proxied) — NOT the VPS, NOT a Worker.
 - `my-dashboard.agrolloo.com` → `72.61.241.170` (VPS, proxied) — personal-dashboard container via Traefik.
 - `render2.agrolloo.com` → `72.61.241.170` (VPS, proxied) — Hyperframes → MP4 renderer behind Traefik (added after the 2026-06-13 audit).
-- `go` / `keto-kitchen` / `kushal-gym` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` → the 7 routed Workers above (custom domains show as proxied `AAAA 100::`).
+- `go` / `keto-kitchen` / `kushal-gym` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` / `lists` → the 8 routed Workers above (custom domains show as proxied `AAAA 100::`).
 - `ftp.agrolloo.com` → `191.101.230.133` (Hostinger hosting).
 - MX + `autoconfig` / `autodiscover` / DKIM → Hostinger mail.
 - `send.notifications.agrolloo.com` + `resend._domainkey` → Amazon SES / Resend (transactional email sending).

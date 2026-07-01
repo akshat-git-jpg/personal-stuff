@@ -279,15 +279,24 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 
 ## STYLE PATTERNS
 
-### 14. Em Dash Overuse
+### 14. Em Dashes (Hard Ban)
 
-**Problem:** LLMs use em dashes (—) more than humans, mimicking "punchy" sales writing. In practice, most of these can be rewritten more cleanly with commas, periods, or parentheses.
+**Problem:** The em dash (—) and en dash (–) are the single loudest AI tell. Never use them. This is a hard rule, not a "use sparingly" one: the output must contain zero em dashes and zero en dashes, no matter the medium or tone. The regular hyphen (-) in genuine compound words like "long-term" or "well-known" is fine. Only the long dashes are banned.
+
+Rewrite every long dash. Options, in rough order of preference:
+- A comma, when the dash joins a clause or aside: `institutions—not the people` becomes `institutions, not the people`.
+- A period, when the dash splits two full thoughts: `it works—users love it` becomes `it works. Users love it.`
+- Parentheses, for a true aside: `the tool (still in beta) shipped`.
+- A colon, when what follows explains what came before: `one problem: it's slow`.
+- For a numeric range, use "to" instead of an en dash: `10 to 20 minutes`, not `10–20 minutes`.
+
+**Final check:** before delivering anything, scan the text for `—` and `–` and remove every one. If any remain, the pass is not done.
 
 **Before:**
 > The term is primarily promoted by Dutch institutions—not by the people themselves. You don't say "Netherlands, Europe" as an address—yet this mislabeling continues—even in official documents.
 
 **After:**
-> The term is primarily promoted by Dutch institutions, not by the people themselves. You don't say "Netherlands, Europe" as an address, yet this mislabeling continues in official documents.
+> The term is primarily promoted by Dutch institutions, not by the people themselves. You don't say "Netherlands, Europe" as an address, yet this mislabeling continues, even in official documents.
 
 
 ### 15. Overuse of Boldface
