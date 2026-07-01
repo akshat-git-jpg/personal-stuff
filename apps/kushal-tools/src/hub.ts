@@ -26,6 +26,7 @@ const APPS: App[] = [
   { name: "URL Shortener", host: "go.agrolloo.com", url: "https://go.agrolloo.com", kind: "infra" },
   { name: "Hyperframes Renderer", host: "render2.agrolloo.com", url: "https://render2.agrolloo.com", kind: "infra" },
   { name: "Keto Kitchen", host: "keto-kitchen.agrolloo.com", url: "https://keto-kitchen.agrolloo.com", kind: "page" },
+  { name: "Lists", host: "lists.agrolloo.com", url: "https://lists.agrolloo.com", kind: "app" },
 ];
 
 const FAVICON =

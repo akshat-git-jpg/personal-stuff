@@ -1,0 +1,9 @@
+# Copy to .dev.vars for local dev (gitignored). In production these are set as
+# Worker secrets: `npx wrangler secret put APP_PASSWORD` / `SESSION_SECRET`.
+
+# The single password that unlocks the app.
+APP_PASSWORD=changeme
+
+# Random 32+ char string used to sign the session cookie (HMAC-SHA256).
+# Generate: openssl rand -base64 32
+SESSION_SECRET=dev-only-insecure-secret-please-override

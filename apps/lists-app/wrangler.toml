@@ -1,0 +1,25 @@
+name = "lists-app"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# SPA built into dist/, served by the Worker via the ASSETS binding.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+# The app's data — categories + items. database_id is filled in after
+# `npx wrangler d1 create lists-db` (placeholder is fine for `--local` dev).
+[[d1_databases]]
+binding = "DB"
+database_name = "lists-db"
+database_id = "cab71291-9aa6-4e10-9946-fca15bf860cd"
+
+# Custom domain — Cloudflare auto-provisions DNS + SSL on the agrolloo.com zone.
+[[routes]]
+pattern = "lists.agrolloo.com"
+custom_domain = true
+
+# APP_PASSWORD + SESSION_SECRET are secrets (never committed):
+#   npx wrangler secret put APP_PASSWORD
+#   npx wrangler secret put SESSION_SECRET

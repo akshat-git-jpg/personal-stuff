@@ -35,3 +35,16 @@ npx wrangler dev --port 8787   # leave running
 → http://localhost:8787/dev-login?email=seankerman25@gmail.com&roles=Admin,Reviewer
 
 GOTCHA: `wrangler dev` serves a STALE dist/ — after any SPA rebuild, restart it (`pkill -f "wrangler dev"`, rebuild, restart). Worker-only changes hot-reload. This is why design work uses the :5173 loop.
+
+## lists (apps/lists-app)
+
+Categorized personal lists (categories + plain-text items, drag-reorder, search). Password-gated, single user.
+
+```bash
+cd /Users/kbtg/codebase/personal-stuff/apps/lists-app
+npm install
+npm run db:local        # apply schema to local D1 (once)
+npm run seed:local      # optional demo data
+npm run dev:local       # Vite :5173 (UI) + wrangler :8787 (API). Use :5173.
+```
+Local password is in `.dev.vars` (`APP_PASSWORD`). Deploy: `npm run deploy` (build + wrangler deploy → lists.agrolloo.com). Secrets `APP_PASSWORD` + `SESSION_SECRET` are set via `wrangler secret put`. Schema changes: `npm run db:remote`.

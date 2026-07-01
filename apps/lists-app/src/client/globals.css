@@ -1,0 +1,131 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Design tokens — Soft Modern ─────────────────────────────────────────────
+   Rounded, airy, soft layered shadows, one accent. Accent = emerald.
+   Emerald-500 ≈ oklch(0.696 0.17 162). Light is default; dark is intentional. */
+:root {
+  --radius: 0.875rem; /* 14px base — soft. Inputs step down, cards sit here. */
+  color-scheme: light;
+
+  --background: oklch(0.985 0.004 160);
+  --foreground: oklch(0.21 0.02 165);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 165);
+
+  --muted: oklch(0.96 0.006 160);
+  --muted-foreground: oklch(0.52 0.02 165);
+
+  /* brand accent — emerald */
+  --primary: oklch(0.696 0.17 162);
+  --primary-foreground: oklch(0.99 0.01 160);
+  --primary-soft: oklch(0.95 0.045 162); /* tinted surface for active states */
+
+  --secondary: oklch(0.96 0.006 160);
+  --secondary-foreground: oklch(0.21 0.02 165);
+
+  --destructive: oklch(0.585 0.22 27);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.91 0.008 160);
+  --input: oklch(0.91 0.008 160);
+  --ring: oklch(0.696 0.17 162);
+
+  /* layered shadows — ambient + direct */
+  --shadow-soft: 0 1px 2px oklch(0.2 0.02 165 / 0.04), 0 4px 12px oklch(0.2 0.02 165 / 0.06);
+  --shadow-pop: 0 2px 4px oklch(0.2 0.02 165 / 0.06), 0 12px 32px oklch(0.2 0.02 165 / 0.12);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.2 0.012 165);
+  --foreground: oklch(0.96 0.006 160);
+
+  --card: oklch(0.24 0.014 165);
+  --card-foreground: oklch(0.96 0.006 160);
+
+  --muted: oklch(0.28 0.014 165);
+  --muted-foreground: oklch(0.7 0.012 160);
+
+  --primary: oklch(0.72 0.16 162);
+  --primary-foreground: oklch(0.18 0.02 165);
+  --primary-soft: oklch(0.34 0.05 162);
+
+  --secondary: oklch(0.28 0.014 165);
+  --secondary-foreground: oklch(0.96 0.006 160);
+
+  --destructive: oklch(0.68 0.19 25);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.72 0.16 162);
+
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.3), 0 4px 14px oklch(0 0 0 / 0.4);
+  --shadow-pop: 0 2px 6px oklch(0 0 0 / 0.35), 0 14px 36px oklch(0 0 0 / 0.5);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --shadow-soft: var(--shadow-soft);
+  --shadow-pop: var(--shadow-pop);
+
+  --font-sans: "Inter Variable", Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  button {
+    cursor: pointer;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}

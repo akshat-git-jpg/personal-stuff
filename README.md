@@ -24,6 +24,7 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 - `telegram-email-assistant/` — Per-account Gmail digest preferences and `digest.sh` (runs on a VPS cron, sends to Telegram).
 - `founders-tracker/` — Shared action-item tracker for Khushi & Kushal at `founders.agrolloo.com`. Two owner tabs, drag-ordered tasks, hazard cards, an on-time scoreboard, and auto-recurring tasks. Vite + React + Hono on a Cloudflare Worker, backed by D1 (`founders-db`), shared-PIN gate; a daily Cron Trigger materializes recurring tasks.
 - `hyperframes-render/` — Paste-and-render web tool for Hyperframes video cards at `render2.agrolloo.com` (password-gated). Express + headless Chrome renders pasted HTML to MP4; the Templates tab reads cards live from the TY `yt-visuals-hyperframe/` checkout.
+- `lists-app/` — Plain-text lists grouped by category (e.g. "YouTube channel ideas", "Skills to learn"), single-user PIN-gated, at `lists.agrolloo.com`.
 - `spending-tracker/` — Daily spend tracker that auto-categorizes card/UPI transactions. Design notes only — not built yet.
 
 ### `infra/`
