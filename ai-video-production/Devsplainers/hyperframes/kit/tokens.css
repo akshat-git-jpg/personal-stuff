@@ -1,0 +1,107 @@
+/* ============================================================================
+   tokens.css — Devsplainers clone design tokens
+   The single source of truth for the whole kit. Every atom + scene styles
+   itself ONLY from these vars so the look is inherited for free and the
+   verify script can enforce color/font discipline (§7).
+
+   Evidence: reverse-engineered from the Devsplainers channel (see
+   ../README.md) and tuned against reference-frames/*.jpg. Canvas 1920x1080.
+   ============================================================================ */
+
+/* --- Fonts (self-hosted for deterministic render; see kit/fonts/) --------- */
+/* Anton is .ttf -> format('truetype'); JetBrains Mono are woff2. */
+@font-face {
+  font-family: 'Anton';
+  src: url('./fonts/Anton-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./fonts/JetBrainsMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./fonts/JetBrainsMono-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./fonts/JetBrainsMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
+:root {
+  /* --- Color (semantic — color carries the argument) --------------------- */
+  --bg: #0d0d0d;          /* near-black background, never pure black */
+  --surface: #141414;     /* dark card / panel fill (amber-bordered cards)  */
+  --surface-2: #333333;   /* neutral gray chip / card fill (frame 04)       */
+  --border: #2a2a2a;      /* hairline borders on dark boxes                 */
+
+  --fg: #f5f5f5;          /* neutral / primary text                         */
+  --fg-dim: #8a8a8a;      /* secondary text, underlines, watermark, ghosts  */
+  --fg-faint: #555555;    /* placeholder underlines inside cards            */
+
+  --blue: #2e7dff;        /* old / technical / RAG / vector-DB concept       */
+  --amber: #facc15;       /* new / hero concept (the folder / OKF)           */
+  --red: #ff3b30;         /* problems, catches, "the business read"          */
+  --green: #22c55e;       /* good / forgiven / free                          */
+
+  /* Tinted fills derived from accents (cards/pills backgrounds). Kept as
+     explicit tokens so scenes never invent their own rgba() — verify allows
+     these var names but flags raw hexes/rgba outside the palette. */
+  --blue-fill: rgba(46, 125, 255, 0.14);
+  --amber-fill: rgba(250, 204, 21, 0.14);
+  --red-fill: rgba(255, 59, 48, 0.14);
+  --green-fill: rgba(34, 197, 94, 0.14);
+
+  /* --- Type ------------------------------------------------------------- */
+  --font-head: 'Anton', 'Arial Narrow', sans-serif;       /* condensed caps */
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace; /* data / labels  */
+
+  /* Type scale (px on the 1920x1080 canvas) */
+  --fs-hero: 120px;       /* title-card headline                            */
+  --fs-h1: 84px;          /* section headline                              */
+  --fs-h2: 60px;          /* numbered-section title                        */
+  --fs-lead: 34px;        /* lead caption / subtitle                       */
+  --fs-body: 28px;        /* card content, list rows                       */
+  --fs-label: 22px;       /* section labels, pills, data                   */
+  --fs-small: 18px;       /* watermark, fine captions                      */
+
+  --track-caps: 0.02em;   /* headline tracking (tight)                     */
+  --track-label: 0.28em;  /* section-label / kicker tracking (wide)        */
+
+  /* --- Spacing scale (4px base) ----------------------------------------- */
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-4: 32px;
+  --sp-5: 48px;
+  --sp-6: 64px;
+  --sp-7: 96px;
+  --sp-8: 128px;
+  --margin: 96px;         /* scene safe-area inset from the frame edge      */
+
+  /* --- Radius ----------------------------------------------------------- */
+  --r-card: 16px;
+  --r-pill: 999px;
+  --r-tag: 8px;
+
+  /* --- Strokes ---------------------------------------------------------- */
+  --stroke-icon: 2.5px;   /* line-art icon stroke width                     */
+  --stroke-connector: 2px;
+  --dash: 10 9;           /* dashed-connector pattern                       */
+
+  /* --- Motion (consumed by recipes.js; ~3/10 restraint) ----------------- */
+  --dur-in: 0.35s;        /* typical element entrance                       */
+  --dur-slow: 0.6s;       /* headline / big reveal                          */
+  --stagger: 0.06s;       /* list / group stagger                          */
+}
