@@ -105,7 +105,7 @@ def main():
     ap.add_argument("--drive", action="store_true",
                     help="upload produced files into the Drive folders step 010 created")
     ap.add_argument("--drive-cli", default=None,
-                    help="path to pp-drive (default: PATH, then the sibling personal-stuff repo)")
+                    help="path to pp-drive (default: PATH, then in-tree personal-stuff/tooling/cli/drive)")
     ap.add_argument("--overwrite", action="store_true",
                     help="with --drive, replace same-named files already in Drive")
     a = ap.parse_args()

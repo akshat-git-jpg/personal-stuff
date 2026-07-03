@@ -1,8 +1,9 @@
 """Thin wrappers around the pp-drive CLI (shell-out). Shared by step 010 (create folders)
 and step 170 (upload files). No step-specific logic — just resolve the binary and run subcommands.
 
-pp-drive lives in the sibling personal-stuff repo (tooling/cli/drive/pp-drive) and reuses the
-Google OAuth token cache; every subcommand takes --account EMAIL.
+pp-drive lives in-tree at personal-stuff/tooling/cli/drive/pp-drive (this pipeline is nested
+under personal-stuff/ty/) and reuses the Google OAuth token cache; every subcommand takes
+--account EMAIL.
 """
 import shutil, subprocess, pathlib
 
@@ -10,7 +11,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]          # kushal-tutorial-pi
 
 
 def resolve_cli(explicit=None):
-    """Find pp-drive: explicit flag → PATH → the sibling personal-stuff repo."""
+    """Find pp-drive: explicit flag → PATH → the in-tree personal-stuff tooling."""
     if explicit:
         if not pathlib.Path(explicit).exists():
             raise SystemExit(f"✖ --drive-cli not found: {explicit}")
@@ -18,8 +19,8 @@ def resolve_cli(explicit=None):
     on_path = shutil.which("pp-drive")
     if on_path:
         return on_path
-    # kushal-tutorial-pipeline-v2/ → … → codebase/personal-stuff/tooling/cli/drive/pp-drive
-    guess = ROOT.parents[2] / "personal-stuff/tooling/cli/drive/pp-drive"
+    # kushal-tutorial-pipeline-v2/ → youtube/ → ty/ → personal-stuff/tooling/cli/drive/pp-drive
+    guess = ROOT.parents[2] / "tooling/cli/drive/pp-drive"
     if guess.exists():
         return str(guess)
     raise SystemExit("✖ can't find pp-drive — pass --drive-cli /path/to/pp-drive")

@@ -59,7 +59,7 @@ def main():
     ap.add_argument("--drive-root", default="video production",
                     help='Drive folder to create the tree inside (default: "video production")')
     ap.add_argument("--drive-cli", default=None,
-                    help="path to pp-drive (default: PATH, then the sibling personal-stuff repo)")
+                    help="path to pp-drive (default: PATH, then in-tree personal-stuff/tooling/cli/drive)")
     a = ap.parse_args()
 
     title = safe(a.title)
