@@ -1,8 +1,8 @@
 """Cloudflare MCP — D1 SQL + KV operations.
 
 Reads CF_API_TOKEN, CF_ACCOUNT_ID, CF_D1_DATABASE_ID, CF_KV_NAMESPACE_ID from
-OS env first, falling back to /Users/kbtg/codebase/TY/.env (the source of
-truth on this machine — same vars already used by common/cloudflare.py).
+OS env first, falling back to the in-tree ty/.env (moved under personal-stuff),
+then the legacy /Users/kbtg/codebase/TY/.env — same vars used by common/cloudflare.py.
 """
 from __future__ import annotations
 import asyncio
@@ -21,9 +21,15 @@ from mcp.server.lowlevel.server import NotificationOptions
 
 CF_API_BASE = "https://api.cloudflare.com/client/v4"
 
-# Source-of-truth .env on this machine. We don't require it — env vars set in
-# .mcp.json or the shell override anything found here.
-_DEFAULT_ENV_PATH = Path("/Users/kbtg/codebase/TY/.env")
+# Source-of-truth .env candidates, most-preferred first. We don't require any —
+# env vars set in .mcp.json or the shell override anything found here.
+# In-tree ty/.env (this file → cloudflare-mcp-server → mcp → tooling → personal-stuff)
+# is tried first; the legacy sibling-TY path is kept as a fallback for machines
+# that haven't copied the env into the merged tree yet.
+_ENV_CANDIDATES = [
+    Path(__file__).resolve().parents[3] / "ty" / ".env",
+    Path("/Users/kbtg/codebase/TY/.env"),
+]
 
 
 def _load_env_file(path: Path) -> None:
@@ -41,7 +47,8 @@ def _load_env_file(path: Path) -> None:
             os.environ[key] = value
 
 
-_load_env_file(_DEFAULT_ENV_PATH)
+for _env_path in _ENV_CANDIDATES:
+    _load_env_file(_env_path)
 
 
 def _required_env(name: str) -> str:
