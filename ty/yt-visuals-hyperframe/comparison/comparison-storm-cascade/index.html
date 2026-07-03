@@ -1,0 +1,327 @@
+<!doctype html>
+<!--
+  COMPARISON TABLE · Storm + Cascade   (Hyperframes port of comparison-storm-cascade)
+  Storm streaks + drifting particles loop; eyebrow fades, header springs in, a hairline
+  draws across, then rows cascade in with cells staggering left->right. Winner column glows.
+  1920x1080, 30fps, 13 seconds (390 frames).
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change tools / rows / winner column there.     │
+  │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
+  │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  This is a Hyperframes composition: HTML + GSAP. Render it with
+    npx hyperframes@latest render comparison/comparison-storm-cascade -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --text: #ffffff;
+        --text-sec: rgba(255, 239, 219, 0.65);
+        --accent: #fb923c;
+        --win: #facc15;
+        --cross: rgba(255, 239, 219, 0.22);
+        --divider: rgba(255, 200, 100, 0.1);
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: #000; font-family: var(--font); color: var(--text);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%);
+      }
+      #streaks, #particles { position: absolute; inset: 0; pointer-events: none; }
+      .streak { position: absolute; height: 2px; filter: blur(0.5px); will-change: transform, opacity, left; }
+      .particle { position: absolute; border-radius: 50%; will-change: top, opacity; }
+
+      /* SlideFrame align top-left: content starts at top-left, 140px padding */
+      #frame { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: flex-start; padding: 140px; }
+      #content { display: flex; flex-direction: column; gap: 56px; width: 100%; }
+
+      .eyebrow { font-size: 18px; font-weight: 600; letter-spacing: 6px; color: var(--accent); text-transform: uppercase; }
+
+      .table-row { display: grid; gap: 24px; align-items: center; }
+      #header { padding-bottom: 18px; will-change: transform, opacity; }
+      #header .th { text-align: center; font-size: 30px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; }
+      #header .th.win { font-weight: 700; color: var(--accent); }
+
+      #hairline { height: 1px; background: var(--divider); width: 100%; }
+
+      .row { padding: 22px 0; border-bottom: 1px solid var(--divider); will-change: transform, opacity; }
+      .row .feature { font-size: 26px; font-weight: 500; color: var(--text-sec); }
+      .cell { text-align: center; font-size: 32px; font-weight: 500; font-variant-numeric: tabular-nums; will-change: opacity; }
+      .cell.win { font-weight: 700; }
+      .cell.check { color: var(--win); }
+      .cell.cross { color: var(--cross); }
+    </style>
+  </head>
+  <body>
+    <!--
+      Composition root. data-composition-id "comparison-storm-cascade" is the timeline key.
+      data-duration is the total length in seconds (13s @ 30fps = 390 frames).
+    -->
+    <div
+      id="root"
+      data-composition-id="comparison-storm-cascade"
+      data-start="0"
+      data-duration="13"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"eyebrow":"The four winners","tools":["Hostinger","Railway","DigitalOcean","Coolify"],"rows":[{"feature":"One-click n8n template","values":["✓","✓","✗","✓"]},{"feature":"Predictable monthly cost","values":["$8.99","$40–60","$24","$8.99"]},{"feature":"No CLI required","values":["✓","✓","✗","✓"]},{"feature":"Scales with your business","values":["✓","✓","✓","✓"]}],"winnerColumn":0}'
+    >
+      <!-- Track 0: background (static, always on) -->
+      <div id="bg" class="clip" data-start="0" data-duration="13" data-track-index="0"></div>
+
+      <!-- Track 1: storm streaks (static shell; GSAP animates inner .streak children) -->
+      <div id="streaks" class="clip" data-start="0" data-duration="13" data-track-index="1"></div>
+
+      <!-- Track 2: drifting particles (static shell; GSAP animates inner .particle children) -->
+      <div id="particles" class="clip" data-start="0" data-duration="13" data-track-index="2"></div>
+
+      <!-- Track 3: frame holds eyebrow + header + hairline + rows. Each animated group is an
+           inner div GSAP targets; the .clip shell itself is never animated. Rows live in #rows. -->
+      <div id="frame" class="clip" data-start="0" data-duration="13" data-track-index="3">
+        <div id="content">
+          <div class="eyebrow" id="eyebrow"></div>
+          <div class="table-row" id="header"></div>
+          <div id="hairlineWrap" style="width:100%"><div id="hairline"></div></div>
+          <div id="rows"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      // Per-video values can ALSO be passed at render time with
+      //   --variables '{"eyebrow":"...","tools":[...],"rows":[...],"winnerColumn":0}'
+      // (no code editing needed). Those override the defaults below.
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'The four winners',
+        tools: VARS.tools ?? ['Hostinger', 'Railway', 'DigitalOcean', 'Coolify'],
+        rows: VARS.rows ?? [
+          { feature: 'One-click n8n template', values: ['✓', '✓', '✗', '✓'] },
+          { feature: 'Predictable monthly cost', values: ['$8.99', '$40–60', '$24', '$8.99'] },
+          { feature: 'No CLI required', values: ['✓', '✓', '✗', '✓'] },
+          { feature: 'Scales with your business', values: ['✓', '✓', '✓', '✓'] },
+        ],
+        winnerColumn: VARS.winnerColumn ?? 0, // index of the highlighted column (or null)
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED — do not edit) =====
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         Easing comes free from GSAP — this is what makes the motion smooth.
+         ===================================================== */
+      const $ = (id) => document.getElementById(id);
+      const FPS = 30;
+      const DURATION = 13;
+      const HOLD = DURATION; // seconds
+
+      const ACCENT = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#fb923c';
+      const GRID = `1.4fr ${DATA.tools.map(() => '1fr').join(' ')}`;
+      const hasWinner = DATA.winnerColumn !== null && DATA.winnerColumn !== undefined;
+
+      // streaks (3) + particles (22), same deterministic seeding as the storm title card
+      const STREAKS = [
+        { y: 280, len: 380, angle: -8, color: ACCENT },
+        { y: 520, len: 460, angle: 6, color: '#ffffff' },
+        { y: 760, len: 320, angle: -10, color: ACCENT },
+      ];
+      const PARTICLES = Array.from({ length: 22 }).map((_, i) => {
+        const h = (i * 9301 + 49297) % 233280, r = h / 233280;
+        return {
+          startX: r * 1920,
+          startY: ((h * 7) % 233280) / 233280 * 1080,
+          drift: 80 + (((h * 11) % 233280) / 233280) * 180,
+          size: 2 + (((h * 13) % 233280) / 233280) * 5,
+          glow: ((h * 17) % 233280) / 233280 > 0.5 ? ACCENT : '#ffffff',
+          duration: 70 + (((h * 19) % 233280) / 233280) * 80,
+          delay: (((h * 23) % 233280) / 233280) * 40,
+        };
+      });
+
+      function cellClass(v, ci) {
+        const isCheck = v === '✓' || v.toLowerCase() === 'yes';
+        const isCross = v === '✗' || v.toLowerCase() === 'no';
+        let c = 'cell';
+        if (ci === DATA.winnerColumn) c += ' win';
+        if (isCheck) c += ' check';
+        else if (isCross) c += ' cross';
+        return c;
+      }
+
+      // build the DOM that depends on DATA (must exist before the timeline targets it)
+      function build() {
+        $('eyebrow').textContent = DATA.eyebrow;
+        $('header').style.gridTemplateColumns = GRID;
+
+        // header: empty first cell + tool names
+        let h = `<div></div>`;
+        h += DATA.tools
+          .map((t, i) => `<div class="th ${i === DATA.winnerColumn ? 'win' : ''}">${t}</div>`)
+          .join('');
+        $('header').innerHTML = h;
+
+        // rows
+        $('rows').innerHTML = DATA.rows
+          .map(
+            (row) =>
+              `<div class="row table-row" style="grid-template-columns:${GRID}">
+                <div class="feature">${row.feature}</div>
+                ${row.values.map((v, ci) => `<div class="${cellClass(v, ci)}">${v}</div>`).join('')}
+              </div>`,
+          )
+          .join('');
+
+        // streaks + particles
+        $('streaks').innerHTML = STREAKS.map(
+          (s) =>
+            `<div class="streak" style="top:${s.y}px;left:-${s.len}px;width:${s.len}px;transform:rotate(${s.angle}deg);
+              background:linear-gradient(90deg, transparent, ${s.color}, transparent);"></div>`,
+        ).join('');
+        $('particles').innerHTML = PARTICLES.map(
+          (p) =>
+            `<div class="particle" style="left:${p.startX}px;top:${p.startY}px;width:${p.size}px;height:${p.size}px;
+              background:${p.glow};box-shadow:0 0 ${p.size * 3}px ${p.glow};"></div>`,
+        ).join('');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // ---- 0) Storm: streaks sweep across the screen, looping over the hold (deterministic) ----
+      const streakEls = document.querySelectorAll('#streaks .streak');
+      streakEls.forEach((el, i) => {
+        const s = STREAKS[i];
+        const CYCLE = 3.0 + i * 0.6; // seconds per sweep
+        const repeats = Math.max(0, Math.floor(HOLD / CYCLE) - 1);
+        tl.fromTo(
+          el,
+          { x: 0, opacity: 0 },
+          {
+            x: 1920 + s.len * 2,
+            duration: CYCLE,
+            ease: 'none',
+            repeat: repeats,
+            keyframes: { opacity: [0, 0.7, 0.7, 0], easeEach: 'none' },
+          },
+          i * 0.4,
+        );
+      });
+
+      // ---- particles drift upward, looping over the hold (deterministic) ----
+      const particleEls = document.querySelectorAll('#particles .particle');
+      particleEls.forEach((el, i) => {
+        const p = PARTICLES[i];
+        const CYCLE = p.duration / FPS; // frames -> seconds
+        const repeats = Math.max(0, Math.floor(HOLD / CYCLE) - 1);
+        tl.fromTo(
+          el,
+          { y: 0, opacity: 0 },
+          {
+            y: -p.drift,
+            duration: CYCLE,
+            ease: 'none',
+            repeat: repeats,
+            keyframes: { opacity: [0, 0.6, 0.6, 0], easeEach: 'none' },
+          },
+          p.delay / FPS,
+        );
+      });
+
+      // ---- 1) eyebrow fade in (frames 0->12) ----
+      tl.from('#eyebrow', { opacity: 0, duration: 0.4, ease: 'power2.out' }, 0);
+
+      // ---- 2) header springs in (frame 8) ----
+      tl.from(
+        '#header',
+        { opacity: 0, y: -18, duration: 0.7, ease: 'back.out(1.6)' },
+        8 / FPS,
+      );
+
+      // ---- 3) hairline draws across (frames 16->36) ----
+      tl.set('#hairline', { width: '0%' }, 0);
+      tl.to('#hairline', { width: '100%', duration: 20 / FPS, ease: 'power3.out' }, 16 / FPS);
+
+      // ---- 4) rows cascade in (spring), starting frame 40, +8f per row ----
+      const rowEls = document.querySelectorAll('#rows .row');
+      rowEls.forEach((rowEl, ri) => {
+        const rowStart = (40 + ri * 8) / FPS;
+        tl.from(
+          rowEl,
+          { opacity: 0, y: 16, duration: 0.6, ease: 'back.out(1.4)' },
+          rowStart,
+        );
+        // cells stagger left -> right within the row
+        const cells = rowEl.querySelectorAll('.cell');
+        tl.from(
+          cells,
+          { opacity: 0, duration: 16 / FPS, ease: 'power1.out', stagger: 3 / FPS },
+          rowStart,
+        );
+      });
+
+      // ---- 5) winner glow (header + positive cells), deterministic sine via keyframes ----
+      if (hasWinner) {
+        const glowTargets = [];
+        const winTh = document.querySelector('#header .th.win');
+        if (winTh) glowTargets.push(winTh);
+        document
+          .querySelectorAll('#rows .cell.win:not(.cross)')
+          .forEach((c) => glowTargets.push(c));
+
+        if (glowTargets.length) {
+          // glow = 0.5 + sin(t * PI * 0.8) * 0.3 over the hold; sample as keyframes so it stays deterministic
+          const GLOW_CYCLE = (2 / 0.8); // seconds per sin period (PI*0.8 rad/s)
+          const blurs = [];
+          const steps = 26;
+          for (let s = 0; s <= steps; s++) {
+            const tt = (s / steps) * HOLD;
+            const g = 0.5 + Math.sin(tt * Math.PI * 0.8) * 0.3;
+            blurs.push(`0 0 ${(20 * g).toFixed(2)}px ${ACCENT}`);
+          }
+          // header uses 20px, cells use 16px — apply per-target via two tweens
+          glowTargets.forEach((el) => {
+            const max = el.classList.contains('th') ? 20 : 16;
+            const k = [];
+            for (let s = 0; s <= steps; s++) {
+              const tt = (s / steps) * HOLD;
+              const g = 0.5 + Math.sin(tt * Math.PI * 0.8) * 0.3;
+              k.push(`0 0 ${(max * g).toFixed(2)}px ${ACCENT}`);
+            }
+            tl.to(el, { keyframes: { textShadow: k }, duration: HOLD, ease: 'none' }, 0);
+          });
+        }
+      }
+
+      window.__timelines['comparison-storm-cascade'] = tl;
+    </script>
+  </body>
+</html>

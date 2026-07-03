@@ -1,0 +1,11 @@
+{
+  "name": "yt-visuals-hyperframe",
+  "private": true,
+  "description": "YT visuals cards, Hyperframes edition (HTML + GSAP -> MP4). Each card is one self-contained file the editor can copy + Gemini-edit.",
+  "scripts": {
+    "serve": "node serve.mjs",
+    "preview": "npx --yes hyperframes@latest preview",
+    "lint": "npx --yes hyperframes@latest lint",
+    "render": "npx --yes hyperframes@latest render"
+  }
+}

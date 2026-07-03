@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>yt-visuals · gallery</title>
+<style>
+  :root {
+    --bg: #0a0805;
+    --bg-card: #14110d;
+    --text: #f8f3ea;
+    --text-dim: rgba(248,243,234,0.55);
+    --accent: #fb923c;
+    --border: rgba(255,200,100,0.10);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: radial-gradient(ellipse at 30% 20%, #3a1f08 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", system-ui, sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    padding: 48px 56px 24px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: linear-gradient(to bottom, var(--bg) 0%, rgba(10,8,5,0.92) 100%);
+    backdrop-filter: blur(16px);
+    z-index: 10;
+  }
+  header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  header p { margin: 6px 0 0; color: var(--text-dim); font-size: 14px; }
+  header .tools {
+    margin-top: 14px;
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  }
+  header label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-dim); cursor: pointer;
+  }
+  header input[type="checkbox"] { accent-color: var(--accent); }
+  header button {
+    background: var(--accent); color: #1a0f04;
+    border: 0; padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  header button:hover { filter: brightness(1.1); }
+
+  main { padding: 32px 56px 80px; }
+  section { margin-bottom: 56px; }
+  section h2 {
+    font-size: 18px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--accent);
+    margin: 0 0 20px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    margin: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+  /* Cutaway cards: video fills, black backdrop. */
+  .cutaway-card video {
+    width: 100%; aspect-ratio: 16 / 9; background: #000; display: block;
+  }
+
+  /* Overlay cards: video sits ON TOP of a fake screen recording. */
+  .overlay-stage {
+    position: relative; width: 100%; aspect-ratio: 16 / 9; background: #1e1e1e;
+  }
+  .overlay-stage video {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    background: transparent;
+    display: block;
+  }
+  .fake-screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    background: linear-gradient(180deg, #1f1f24 0%, #18181c 100%);
+    color: rgba(255,255,255,0.18);
+    overflow: hidden;
+  }
+  .fake-titlebar {
+    height: 24px;
+    background: #2a2a30;
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 10px;
+  }
+  .fake-titlebar .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .fake-titlebar .red    { background: #ff5f56; }
+  .fake-titlebar .yellow { background: #ffbd2e; }
+  .fake-titlebar .green  { background: #27c93f; }
+  .fake-titlebar .fake-tab {
+    margin-left: 14px;
+    background: rgba(255,255,255,0.05);
+    padding: 2px 10px;
+    border-radius: 4px;
+    color: rgba(255,255,255,0.4);
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 9px;
+  }
+  .fake-content {
+    flex: 1;
+    padding: 20px 28px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .fake-row {
+    height: 12px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 3px;
+  }
+  .fake-block {
+    height: 80px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 6px;
+    margin: 6px 0;
+  }
+
+  figcaption {
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text-dim);
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .badge {
+    background: var(--accent);
+    color: #1a0f04;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>yt-visuals · gallery</h1>
+  <p>27 clips across 6 groups — cutaways are full-frame slides; overlays sit on top of screen recordings.</p>
+  <div class="tools">
+    <label><input type="checkbox" id="autoplay" /> autoplay on hover</label>
+    <label><input type="checkbox" id="loopAll" checked /> loop</label>
+    <button id="playAll">▶ play all</button>
+    <button id="pauseAll">⏸ pause all</button>
+  </div>
+</header>
+
+<main>
+  
+    <section>
+      <h2>overlays · general</h2>
+      <div class="grid">
+      <figure class="card overlay-card">
+        <div class="overlay-stage">
+          <div class="fake-screen" aria-hidden="true">
+            <div class="fake-titlebar">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              <span class="fake-tab">tutorial.mov</span>
+            </div>
+            <div class="fake-content">
+              <div class="fake-row" style="width: 64%"></div>
+              <div class="fake-row" style="width: 82%"></div>
+              <div class="fake-row" style="width: 48%"></div>
+              <div class="fake-row" style="width: 92%"></div>
+              <div class="fake-row" style="width: 36%"></div>
+              <div class="fake-block"></div>
+              <div class="fake-row" style="width: 70%"></div>
+              <div class="fake-row" style="width: 55%"></div>
+            </div>
+          </div>
+          <video src="overlays/link-in-description.webm" preload="metadata" muted playsinline controls loop></video>
+        </div>
+        <figcaption><span class="badge">OVERLAY</span> link-in-description</figcaption>
+      </figure>
+      <figure class="card overlay-card">
+        <div class="overlay-stage">
+          <div class="fake-screen" aria-hidden="true">
+            <div class="fake-titlebar">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              <span class="fake-tab">tutorial.mov</span>
+            </div>
+            <div class="fake-content">
+              <div class="fake-row" style="width: 64%"></div>
+              <div class="fake-row" style="width: 82%"></div>
+              <div class="fake-row" style="width: 48%"></div>
+              <div class="fake-row" style="width: 92%"></div>
+              <div class="fake-row" style="width: 36%"></div>
+              <div class="fake-block"></div>
+              <div class="fake-row" style="width: 70%"></div>
+              <div class="fake-row" style="width: 55%"></div>
+            </div>
+          </div>
+          <video src="overlays/section-progress.webm" preload="metadata" muted playsinline controls loop></video>
+        </div>
+        <figcaption><span class="badge">OVERLAY</span> section-progress</figcaption>
+      </figure>
+      <figure class="card overlay-card">
+        <div class="overlay-stage">
+          <div class="fake-screen" aria-hidden="true">
+            <div class="fake-titlebar">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              <span class="fake-tab">tutorial.mov</span>
+            </div>
+            <div class="fake-content">
+              <div class="fake-row" style="width: 64%"></div>
+              <div class="fake-row" style="width: 82%"></div>
+              <div class="fake-row" style="width: 48%"></div>
+              <div class="fake-row" style="width: 92%"></div>
+              <div class="fake-row" style="width: 36%"></div>
+              <div class="fake-block"></div>
+              <div class="fake-row" style="width: 70%"></div>
+              <div class="fake-row" style="width: 55%"></div>
+            </div>
+          </div>
+          <video src="overlays/spotlight.webm" preload="metadata" muted playsinline controls loop></video>
+        </div>
+        <figcaption><span class="badge">OVERLAY</span> spotlight</figcaption>
+      </figure></div>
+    </section>
+  
+    <section>
+      <h2>cutaways · n8n-hosting</h2>
+      <div class="grid">
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/00-preview-all.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>00-preview-all</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/01-title.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>01-title</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/02-toc.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>02-toc</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/03-section.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>03-section</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/04-comparison.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>04-comparison</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/05-pricing.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>05-pricing</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/06-verdict.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>06-verdict</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/07-cta.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>07-cta</figcaption>
+      </figure></div>
+    </section>
+    <section>
+      <h2>cutaways · n8n-hosting/comparison-variants</h2>
+      <div class="grid">
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/comparison-variants/comparison-bracket.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>comparison-bracket</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/comparison-variants/comparison-light-scan.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>comparison-light-scan</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/comparison-variants/comparison-radar.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>comparison-radar</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/comparison-variants/comparison-spotlight.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>comparison-spotlight</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/comparison-variants/comparison-storm-cascade.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>comparison-storm-cascade</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/comparison-variants/comparison-survival.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>comparison-survival</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/comparison-variants/comparison-tier-list.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>comparison-tier-list</figcaption>
+      </figure></div>
+    </section>
+    <section>
+      <h2>cutaways · n8n-hosting/section-variants</h2>
+      <div class="grid">
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/section-variants/section-card-flip.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>section-card-flip</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/section-variants/section-counter-scale.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>section-counter-scale</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/section-variants/section-particle-storm.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>section-particle-storm</figcaption>
+      </figure></div>
+    </section>
+    <section>
+      <h2>cutaways · n8n-hosting/title-variants</h2>
+      <div class="grid">
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/title-variants/title-aurora-wave.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>title-aurora-wave</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/title-variants/title-cinematic-float.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>title-cinematic-float</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/title-variants/title-storm-pop.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>title-storm-pop</figcaption>
+      </figure></div>
+    </section>
+    <section>
+      <h2>cutaways · n8n-hosting/verdict-variants</h2>
+      <div class="grid">
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/verdict-variants/verdict-badges.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>verdict-badges</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/verdict-variants/verdict-report-card.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>verdict-report-card</figcaption>
+      </figure>
+      <figure class="card cutaway-card">
+        <video src="n8n-hosting/verdict-variants/verdict-trophy.mp4" preload="metadata" muted playsinline controls loop></video>
+        <figcaption>verdict-trophy</figcaption>
+      </figure></div>
+    </section>
+</main>
+
+<script>
+  const videos = () => Array.from(document.querySelectorAll("video"));
+  document.getElementById("playAll").onclick = () => videos().forEach((v) => v.play().catch(() => {}));
+  document.getElementById("pauseAll").onclick = () => videos().forEach((v) => v.pause());
+  document.getElementById("loopAll").onchange = (e) => videos().forEach((v) => (v.loop = e.target.checked));
+
+  const autoplayBox = document.getElementById("autoplay");
+  videos().forEach((v) => {
+    v.addEventListener("mouseenter", () => { if (autoplayBox.checked) v.play().catch(() => {}); });
+    v.addEventListener("mouseleave", () => { if (autoplayBox.checked) v.pause(); });
+  });
+</script>
+
+</body>
+</html>

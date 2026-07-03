@@ -1,0 +1,87 @@
+<!doctype html>
+<!-- EXAMPLE 04 — Two-column compare. Few-shot ref mirroring
+     reference-frames/05-two-column-compare.jpg: numbered title, blue "old" col
+     vs amber "new" col, line-art db + folder icons, sentiment captions. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="kit/tokens.css" />
+    <link rel="stylesheet" href="kit/atoms.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="kit/recipes.js"></script>
+    <style>
+      .cmp-stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 72px; padding: 0 var(--margin); }
+      .cmp-title { margin-top: 40px; }
+      .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 200px; align-items: start; width: 100%; max-width: 1400px; }
+      .col { display: flex; flex-direction: column; align-items: center; gap: 40px; }
+      .col .row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+      .db-badge { position: relative; }
+      .db-badge .q { position: absolute; top: -6px; right: -18px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="6" data-width="1920" data-height="1080">
+      <div id="clip-watermark" class="clip" data-start="0" data-duration="6" data-track-index="0">
+        <div class="watermark">&lt;devsplainers&gt;</div>
+      </div>
+
+      <div id="clip-cmp" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div id="cmp" class="cmp-stage">
+          <div class="cmp-title numbered-title"><span class="num">1</span> WHEN THE WORK HAPPENS</div>
+
+          <div class="cols">
+            <!-- LEFT: RAG (old / blue) -->
+            <div class="col" id="col-left">
+              <span class="pill is-blue">RAG · at question time</span>
+              <div class="db-badge">
+                <svg class="icon is-blue is-lg" viewBox="0 0 48 48">
+                  <ellipse cx="24" cy="12" rx="14" ry="5" />
+                  <path d="M10 12 V36 A14 5 0 0 0 38 36 V12" />
+                  <path d="M10 20 A14 5 0 0 0 38 20" />
+                  <path d="M10 28 A14 5 0 0 0 38 28" />
+                </svg>
+                <span class="q pill is-amber is-required">?</span>
+              </div>
+              <p class="caption is-bad">$ $ $ $ …</p>
+            </div>
+
+            <!-- RIGHT: WIKI (new / amber) -->
+            <div class="col" id="col-right">
+              <span class="pill is-amber">WIKI · once, at build time</span>
+              <svg class="icon is-amber is-lg" viewBox="0 0 48 48">
+                <path d="M6 14 h12 l4 5 h20 a2 2 0 0 1 2 2 v17 a2 2 0 0 1 -2 2 H6 a2 2 0 0 1 -2 -2 V16 a2 2 0 0 1 2 -2 Z" />
+              </svg>
+              <div class="row">
+                <span class="pill">link</span>
+                <span class="pill">flag conflict</span>
+                <span class="pill">summarize</span>
+              </div>
+              <p class="caption"><span class="is-hero" style="color:var(--amber)">$ once</span> <span style="color:var(--fg-dim)">→</span> <span class="pill is-solid-green">FREE READS</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      R.slideIn(tl, '.watermark', 0.2, 'right', { dist: 24 });
+      R.fadeUp(tl, '.cmp-title', 0.15, { duration: R.DUR_SLOW });
+      // left column beats
+      R.popIn(tl, '#col-left .pill', 0.5);
+      R.popIn(tl, '#col-left .icon', 0.7);
+      R.popIn(tl, '#col-left .q', 0.95);
+      R.fadeUp(tl, '#col-left .caption', 1.1);
+      // right column beats
+      R.popIn(tl, '#col-right > .pill', 0.8);
+      R.popIn(tl, '#col-right .icon', 1.0);
+      R.popIn(tl, '#col-right .row .pill', 1.2, { stagger: 0.1 });
+      R.fadeUp(tl, '#col-right .caption', 1.5);
+
+      window.__timelines['main'] = tl;
+    </script>
+  </body>
+</html>

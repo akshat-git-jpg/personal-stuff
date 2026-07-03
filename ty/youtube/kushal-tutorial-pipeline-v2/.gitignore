@@ -1,0 +1,13 @@
+# HeyGen session creds / cookies (web-session auth) — never commit
+shared/heygen-session.json
+
+# Python caches
+**/__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Generated step artifacts — every step's output/ is regenerable from the pipeline
+# (transcripts, audio, videos, manifests, logs, the packaged handoff tree, etc.)
+steps/*/output/

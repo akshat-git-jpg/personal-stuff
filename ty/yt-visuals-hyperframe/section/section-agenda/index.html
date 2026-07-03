@@ -1,0 +1,114 @@
+<!doctype html>
+<!--
+  SECTION AGENDA   (Hyperframes card)
+  Re-shows the whole table-of-contents between sections and highlights the one
+  you're covering now: done items get a ✓ and dim, the current item lights up with
+  an accent pill, upcoming items sit dimmed. 1920x1080, 30fps, 6 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block + :root. Use the SAME  │
+  │  items[] as your table-of-contents card. Set  active  to the number of    │
+  │  the section you're starting (1 = first item). Never touch the TIMELINE.  │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render section/section-agenda -o out.mp4 --fps 30
+  Override: --variables '{"active":3,"items":[{"label":"A"},{"label":"B"},{"label":"C"}]}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --accent: #fb923c;
+        --dim: rgba(255, 239, 219, 0.4);  /* upcoming items */
+        --done: rgba(255, 239, 219, 0.55); /* already-covered items */
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
+
+      #content { position: absolute; inset: 0; padding: 130px 200px; display: flex; align-items: center; justify-content: center; }
+      #inner { display: flex; flex-direction: column; gap: 30px; max-width: 1500px; width: 100%; }
+      .eyebrow { font-size: 22px; font-weight: 700; letter-spacing: 6px; color: var(--accent); text-transform: uppercase; will-change: transform, opacity; }
+      ol { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+
+      .row { position: relative; display: flex; align-items: center; gap: 32px; padding: 16px 30px; border-radius: 18px; will-change: transform, opacity; }
+      /* highlight pill behind the current row — placed FIRST in the DOM (no z-index;
+         later siblings paint on top), per the z-index:-1 gotcha. */
+      .pill { position: absolute; inset: 0; border-radius: 18px; background: color-mix(in srgb, var(--accent) 14%, transparent);
+        border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-left: 7px solid var(--accent);
+        box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 18%, transparent); will-change: transform, opacity; }
+      .num { font-variant-numeric: tabular-nums; font-size: 40px; font-weight: 600; min-width: 70px; text-align: center; will-change: transform, opacity; }
+      .label { font-size: 54px; font-weight: 600; letter-spacing: -1.5px; line-height: 1.1; }
+
+      .row.upcoming { opacity: 0.4; }
+      .row.upcoming .num { color: var(--dim); }
+      .row.upcoming .label { color: var(--dim); }
+      .row.done { opacity: 0.62; }
+      .row.done .num { color: var(--accent); }
+      .row.done .label { color: var(--done); }
+      .row.current .num { color: var(--accent); font-weight: 800; }
+      .row.current .label { color: var(--text); font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="agenda" data-start="0" data-duration="6" data-width="1920" data-height="1080"
+      data-composition-variables='{"eyebrow":"Now covering","active":2,"items":[{"label":"Eliminated — and why"},{"label":"Situational picks"},{"label":"Worth considering"},{"label":"The four winners"}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
+      <div id="content" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div id="inner">
+          <div class="eyebrow" id="eyebrow"></div>
+          <ol id="list"></ol>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'Now covering',
+        active: VARS.active ?? 2, // 1-based: which section you're starting
+        items: VARS.items ?? [
+          { label: 'Eliminated — and why' },
+          { label: 'Situational picks' },
+          { label: 'Worth considering' },
+          { label: 'The four winners' },
+        ],
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      const active = Math.min(Math.max(1, DATA.active | 0), DATA.items.length); // clamp into range
+      $('eyebrow').textContent = DATA.eyebrow;
+      $('list').innerHTML = DATA.items
+        .map((it, i) => {
+          const n = i + 1;
+          const state = n < active ? 'done' : n === active ? 'current' : 'upcoming';
+          const marker = state === 'done' ? '✓' : String(n).padStart(2, '0');
+          const pill = state === 'current' ? '<div class="pill"></div>' : '';
+          return `<li class="row ${state}">${pill}<span class="num">${marker}</span><span class="label">${it.label}</span></li>`;
+        })
+        .join('');
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // eyebrow + the full list slide in quickly (viewer has seen these before)
+      tl.from('#eyebrow', { opacity: 0, y: -14, duration: 0.45, ease: 'power3.out' }, 0.05);
+      tl.from('#list .row', { opacity: 0, x: -28, duration: 0.5, ease: 'power3.out', stagger: 0.08 }, 0.2);
+      // already-covered checkmarks pop in
+      tl.from('#list .row.done .num', { scale: 0, opacity: 0, duration: 0.4, ease: 'back.out(2.6)', stagger: 0.08, transformOrigin: '50% 50%' }, 0.45);
+      // the current row's pill sweeps in from the left, then the row lifts a touch
+      tl.fromTo('#list .row.current .pill', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.5, ease: 'power3.out', transformOrigin: 'left center' }, 0.75);
+      tl.fromTo('#list .row.current', { scale: 1 }, { scale: 1.045, duration: 0.45, ease: 'back.out(2)', transformOrigin: 'left center' }, 0.8);
+      window.__timelines['agenda'] = tl;
+    </script>
+  </body>
+</html>

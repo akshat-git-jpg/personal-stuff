@@ -1,0 +1,68 @@
+<!doctype html>
+<!-- EXAMPLE 01 — Title card. Few-shot ref for scene template #30 (title).
+     Mirrors reference-frames/01-title-card.jpg: centered condensed headline +
+     blue wide-tracked subtitle + blue line-art doc icon + draw-on dashed
+     connector. Author pattern: one content clip, GSAP animates its children. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="kit/tokens.css" />
+    <link rel="stylesheet" href="kit/atoms.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="kit/recipes.js"></script>
+    <style>
+      /* scene-local layout only (never colors/fonts — those come from tokens) */
+      .title-block { position: absolute; top: 130px; left: 0; right: 0; text-align: center; }
+      .doc-wrap { position: absolute; top: 430px; left: 340px; }
+      .track-line { position: absolute; top: 620px; left: 0; width: 1920px; height: 40px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="6" data-width="1920" data-height="1080">
+      <!-- Track 0: watermark -->
+      <div id="clip-watermark" class="clip" data-start="0" data-duration="6" data-track-index="0">
+        <div class="watermark">&lt;devsplainers&gt;</div>
+      </div>
+
+      <!-- Track 1: title content -->
+      <div id="clip-title" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div id="title" class="stage">
+          <div class="title-block">
+            <h1 class="headline is-hero">HOW TO GIVE AN AI MEMORY</h1>
+            <p class="subtitle" style="margin-top: 20px;">THE AGREED-ON WAY</p>
+          </div>
+
+          <!-- draw-on dashed connector across the frame -->
+          <svg class="track-line" viewBox="0 0 1920 40" preserveAspectRatio="none" fill="none">
+            <line id="conn" class="connector is-blue" x1="60" y1="20" x2="1860" y2="20" />
+          </svg>
+
+          <!-- blue line-art document icon -->
+          <div class="doc-wrap">
+            <svg id="docicon" class="icon is-blue is-lg" viewBox="0 0 48 48">
+              <path d="M14 6 h14 l8 8 v28 a2 2 0 0 1 -2 2 H14 a2 2 0 0 1 -2 -2 V8 a2 2 0 0 1 2 -2 Z" />
+              <path d="M28 6 v8 h8" />
+              <line x1="18" y1="24" x2="30" y2="24" />
+              <line x1="18" y1="30" x2="30" y2="30" />
+              <line x1="18" y1="36" x2="26" y2="36" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      R.fadeUp(tl, '#title .headline', 0.2, { duration: R.DUR_SLOW, y: 34 });
+      R.fadeUp(tl, '#title .subtitle', 0.6);
+      R.drawOn(tl, '#conn', 0.9, { duration: 1.1 });
+      R.popIn(tl, '#docicon', 1.2);
+      R.slideIn(tl, '.watermark', 0.3, 'right', { dist: 24 });
+
+      window.__timelines['main'] = tl;
+    </script>
+  </body>
+</html>

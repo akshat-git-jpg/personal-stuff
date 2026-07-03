@@ -1,0 +1,194 @@
+<!doctype html>
+<!--
+  SECTION DIVIDER · 3D Card Flip + Float   (Hyperframes port of section-card-flip)
+  A glass card flies up from below with a rotateX flip, lands with a spring
+  bounce + ignites an underglow, then floats gently.
+  1920x1080, 30fps, 5 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change number / title / colors there.         │
+  │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
+  │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  This is a Hyperframes composition: HTML + GSAP. Render it with
+    npx hyperframes@latest render section/section-card-flip -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --text: #fff;
+        --text-ter: rgba(255, 239, 219, 0.4);
+        --accent-from: #fb923c;
+        --accent-to: #c2410c;
+        --accent-glow: rgba(251, 146, 60, 0.45);
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: #000; font-family: var(--font); color: var(--text);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%);
+      }
+      #underglow {
+        position: absolute; inset: 0; pointer-events: none;
+        background: radial-gradient(ellipse at 50% 70%, var(--accent-glow) 0%, transparent 35%);
+        opacity: 0;
+      }
+      #frame {
+        position: absolute; inset: 0; padding: 140px; perspective: 1600px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      #card {
+        display: flex; align-items: center; gap: 36px; padding: 44px 64px;
+        border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 32px;
+        background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(20px);
+        transform-origin: center bottom; will-change: transform, opacity;
+      }
+      #number {
+        font-size: 180px; font-weight: 700; line-height: 0.85; letter-spacing: -8px;
+        background: linear-gradient(135deg, var(--accent-from) 0%, var(--accent-to) 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        font-feature-settings: 'tnum';
+      }
+      #meta {
+        display: flex; flex-direction: column; gap: 6px; padding-left: 28px;
+        border-left: 1px solid rgba(255, 255, 255, 0.18);
+      }
+      #meta .label {
+        font-size: 16px; font-weight: 600; letter-spacing: 6px; color: var(--text-ter);
+        text-transform: uppercase;
+      }
+      #meta .title {
+        font-size: 52px; font-weight: 700; letter-spacing: -2px; color: var(--text);
+        line-height: 1; max-width: 540px;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Composition root. data-composition-id "cardflip" is the timeline key.
+      data-duration is the total length in seconds (5s @ 30fps = 150 frames).
+    -->
+    <div
+      id="root"
+      data-composition-id="cardflip"
+      data-start="0"
+      data-duration="5"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"number":"02","title":"The Winners"}'
+    >
+      <!-- Track 0: background (static, always on) -->
+      <div id="bg" class="clip" data-start="0" data-duration="5" data-track-index="0"></div>
+
+      <!-- Track 1: underglow (static shell; GSAP animates opacity) -->
+      <div id="underglow" class="clip" data-start="0" data-duration="5" data-track-index="1"></div>
+
+      <!-- Track 2: card content (static clip shell; GSAP animates the children, never the .clip itself) -->
+      <div id="frame" class="clip" data-start="0" data-duration="5" data-track-index="2">
+        <div id="card">
+          <div id="number"></div>
+          <div id="meta">
+            <div class="label">Section</div>
+            <div class="title" id="title"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      // Per-video values can ALSO be passed at render time with
+      //   --variables '{"number":"03","title":"Final Verdict"}'
+      // (no code editing needed). Those override the defaults below.
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        number: VARS.number ?? '02', // the big section number on the card
+        title: VARS.title ?? 'The Winners', // the section title
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED — do not edit) =====
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         Easing comes free from GSAP — this is what makes the motion smooth.
+         ===================================================== */
+      const $ = (id) => document.getElementById(id);
+
+      function build() {
+        $('number').textContent = DATA.number;
+        $('title').textContent = DATA.title;
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Original: card flies up (translateY 220 -> 0) with a 3D rotateX flip
+      // (60deg -> 0) on a spring (damping 12 / stiffness 110 / mass 0.7),
+      // starting ~frame 4 (0.133s). The spring is mildly under-damped, so we
+      // reproduce the rise + tiny bounce with back.out; perspective is on #frame.
+      // Entrance lands by ~frame 30 (1s).
+      tl.set('#card', { transformPerspective: 1600, rotationX: 60, y: 220, opacity: 0 }, 0);
+      tl.to('#card', { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.133);
+      tl.to('#card', { rotationX: 0, duration: 0.867, ease: 'back.out(1.4)' }, 0.133);
+      tl.to('#card', { y: 0, duration: 0.867, ease: 'back.out(1.4)' }, 0.133);
+
+      // Underglow + card shadow ignite as the card settles (original: glow ramps
+      // over the tail of the spring, frames ~0.7..1 of the ease).
+      const glow = { v: 0 };
+      tl.to(
+        glow,
+        {
+          v: 1,
+          duration: 0.5,
+          ease: 'power2.out',
+          onUpdate: () => {
+            const g = glow.v;
+            $('underglow').style.opacity = g * 0.7;
+            $('card').style.boxShadow =
+              '0 32px 96px rgba(167,139,250,' + 0.3 * g + '), 0 0 80px rgba(167,139,250,' + 0.22 * g + ')';
+          },
+        },
+        0.6,
+      );
+
+      // Gentle float after the card lands (original: sin drift, amp 8px, starts
+      // frame 30 = 1s, period ~PI*0.6 per sec → ~1.2 cycles over the 4s hold).
+      // yoyo sine: half-cycle ~1.39s; 3 segments ≈ 1.2 full cycles to frame 150.
+      const FLOAT_START = 1; // seconds
+      const HALF = 1.39; // seconds per yoyo half-cycle
+      tl.to(
+        '#card',
+        { y: -8, duration: HALF, ease: 'sine.inOut', yoyo: true, repeat: 2 },
+        FLOAT_START,
+      );
+
+      window.__timelines['cardflip'] = tl;
+    </script>
+  </body>
+</html>

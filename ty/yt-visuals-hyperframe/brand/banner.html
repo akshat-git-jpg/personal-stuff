@@ -1,0 +1,53 @@
+<!doctype html>
+<!--
+  AGROLLO REVIEWS · BANNER  (2560x1440, exported to banner.png)
+  Wordmark + tagline + cadence, centered inside YouTube's safe area (the middle
+  ~1546x423 band shows on every device; the rest is cropped on phones). Amber-on-
+  black with the same glow + faint grid as the title cards, so the channel page
+  matches the videos. Edit the ===== CONTENT ===== block + :root.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root { --accent: #fb923c; --bg-from: #2a1606; --bg-to: #0a0805; --text: #ffffff; --text-dim: rgba(255,239,219,0.66);
+        --grid: rgba(255,239,219,0.05); }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 2560px; height: 1440px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 2560px; height: 1440px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 70% at 50% 50%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      #grid { position: absolute; inset: 0;
+        background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size: 92px 92px;
+        -webkit-mask-image: radial-gradient(ellipse 60% 62% at 50% 50%, #000 28%, transparent 76%);
+        mask-image: radial-gradient(ellipse 60% 62% at 50% 50%, #000 28%, transparent 76%); }
+      #glow { position: absolute; inset: 0; background: radial-gradient(ellipse 42% 50% at 50% 50%, color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 66%); }
+      /* everything important lives in the center safe band */
+      #safe { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+        width: 1546px; height: 423px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; text-align: center; }
+      #wordmark { font-family: 'Archivo Black', system-ui, sans-serif; font-size: 122px; letter-spacing: -1px; line-height: 1; white-space: nowrap; }
+      #wordmark .ag { color: var(--text); }
+      #wordmark .rev { color: var(--accent); text-shadow: 0 0 44px color-mix(in srgb, var(--accent) 50%, transparent); }
+      #tagline { font-family: 'Inter', system-ui, sans-serif; font-size: 44px; font-weight: 600; color: var(--text-dim); }
+      #cadence { font-family: 'Inter', system-ui, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+        color: var(--accent); border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+        background: color-mix(in srgb, var(--accent) 12%, transparent); padding: 12px 26px; border-radius: 999px; }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div id="bg"></div>
+      <div id="grid"></div>
+      <div id="glow"></div>
+      <div id="safe">
+        <!-- ===== CONTENT ===== -->
+        <div id="wordmark"><span class="ag">AGROLLO</span> <span class="rev">REVIEWS</span></div>
+        <div id="tagline">The honest take on the software you pay for.</div>
+        <div id="cadence">New review every week</div>
+      </div>
+    </div>
+  </body>
+</html>

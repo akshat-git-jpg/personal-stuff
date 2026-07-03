@@ -1,0 +1,1 @@
+No information about "Hiroku" could be extracted from the provided YouTube transcripts, pricing data, or Gemini research document. Therefore, a profile for this software cannot be generated based on the given sources.

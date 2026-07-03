@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Newlywed Name-Change Guide — Bride Bestie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Lato:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{ --cream:#FBF5F2; --charcoal:#34302B; --blush:#C58A86; --gold:#C9A24B; --soft:#6f6a62; --line:rgba(52,48,43,.16); }
+  @page{ size:Letter; margin:0; }
+  *{ box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:'Lato',sans-serif; color:var(--charcoal); }
+  .page{ width:8.5in; height:11in; background:var(--cream); padding:0.66in 0.72in 0.5in; page-break-after:always; position:relative; overflow:hidden; }
+  .page:last-child{ page-break-after:auto; }
+  h1,h2,h3{ font-family:'Playfair Display',serif; font-weight:600; }
+  .eyebrow{ font-size:10.5px; letter-spacing:.34em; text-transform:uppercase; color:var(--blush); font-weight:700; }
+  .ph h2{ font-size:28px; margin:4px 0 0; }
+  .rule{ height:2px; width:58px; background:var(--gold); border:0; margin:13px 0; }
+  .lead{ font-size:13px; color:var(--soft); margin:-2px 0 16px; max-width:6.2in; }
+  .body{ font-size:12.8px; line-height:1.62; color:#46413a; max-width:6.3in; margin:0 0 13px; }
+  .foot{ position:absolute; bottom:0.36in; left:0.72in; right:0.72in; display:flex; justify-content:space-between; font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--soft); }
+  .foot .bm{ color:var(--blush); font-weight:700; }
+
+  /* cover */
+  .cover{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+  .cover .frame{ position:absolute; inset:0.34in; border:1px solid var(--line); }
+  .cover h1{ font-size:46px; line-height:1.1; max-width:8in; }
+  .cover h1 .script{ font-style:italic; color:var(--blush); }
+  .cover .sub{ font-size:15px; color:var(--soft); max-width:4.8in; margin-top:4px; }
+  .cover .cfoot{ position:absolute; bottom:0.6in; font-size:11px; letter-spacing:.06em; color:var(--soft); }
+
+  /* numbered steps */
+  .step{ display:flex; gap:16px; padding:14px 0; border-bottom:1px solid var(--line); }
+  .step:last-child{ border-bottom:0; }
+  .num{ flex:0 0 auto; width:34px; height:34px; border-radius:50%; background:var(--blush); color:#fff;
+        font-family:'Playfair Display',serif; font-size:18px; display:flex; align-items:center; justify-content:center; }
+  .step .c h3{ font-size:16px; margin:2px 0 4px; }
+  .step .c p{ font-size:12.3px; line-height:1.5; color:#46413a; margin:0; }
+  .step .c .tip{ font-size:11.5px; color:var(--blush); font-style:italic; margin-top:4px; }
+  .step .c .track{ font-size:11px; color:var(--soft); margin-top:7px; display:flex; gap:22px; }
+  .step .c .track span{ border-bottom:1px solid var(--line); flex:1; padding-bottom:2px; }
+  .step0{ display:flex; gap:16px; background:#fff; border:1px solid var(--line); border-left:3px solid var(--gold);
+          border-radius:10px; padding:14px 18px; margin-bottom:6px; }
+  .step0 .lbl{ flex:0 0 auto; font-family:'Playfair Display',serif; font-size:13px; color:var(--gold);
+          letter-spacing:.04em; padding-top:1px; }
+  .step0 .c h3{ font-size:14.5px; margin:0 0 4px; }
+  .step0 .c p{ font-size:11.8px; line-height:1.5; color:#46413a; margin:0; }
+
+  /* checklist groups */
+  .grp{ margin-bottom:16px; }
+  .grp .gh{ display:flex; align-items:baseline; gap:12px; border-bottom:1.5px solid var(--gold); padding-bottom:6px; margin-bottom:10px; }
+  .grp .gh .t{ font-family:'Playfair Display',serif; font-size:18px; }
+  .items{ display:grid; grid-template-columns:1fr 1fr; gap:7px 26px; }
+  .item{ display:flex; align-items:flex-start; font-size:11.8px; line-height:1.3; color:#3c3833; }
+  .cb{ flex:0 0 auto; width:12px; height:12px; border:1.4px solid var(--charcoal); border-radius:3px; margin-right:9px; margin-top:1px; }
+
+  /* QA */
+  .qa{ margin-bottom:13px; }
+  .qa .q{ font-weight:700; font-size:12.8px; }
+  .qa .a{ font-size:12.3px; color:#46413a; line-height:1.5; }
+  .callout{ background:#fff; border:1px solid var(--line); border-left:3px solid var(--blush); border-radius:8px; padding:16px 20px; margin-top:12px; }
+  .callout h3{ font-size:15px; margin:0 0 6px; }
+  .callout p{ font-size:12.3px; color:#46413a; margin:0; line-height:1.55; }
+  .ln{ height:1px; background:rgba(52,48,43,.26); margin:13px 0; }
+
+  /* upsell */
+  .upsell{ display:flex; flex-direction:column; justify-content:center; }
+  .ucard{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:34px 38px; }
+  .ucard h2{ font-size:30px; margin:6px 0 8px; }
+  .ucard p{ font-size:13.5px; line-height:1.6; color:#46413a; max-width:5.3in; margin:0 0 22px; }
+  .cta{ display:inline-block; background:var(--blush); color:#fff; text-decoration:none; font-weight:700; font-size:14px; padding:14px 32px; border-radius:40px; }
+  .uend{ text-align:center; margin-top:42px; }
+  .uend .big{ font-family:'Playfair Display',serif; font-style:italic; font-size:22px; }
+  .uend .site{ font-size:11px; letter-spacing:.05em; color:var(--soft); margin-top:8px; }
+</style>
+</head>
+<body>
+
+<!-- 1 COVER -->
+<section class="page cover">
+  <div class="frame"></div>
+  <div class="eyebrow" style="margin-bottom:24px;">Bride Bestie</div>
+  <h1>The Newlywed<br>Name-Change <span class="script">Guide</span></h1>
+  <hr class="rule" style="margin:22px auto;">
+  <p class="sub">The exact order to change your name after the wedding — without the headache.</p>
+  <div class="cfoot">bridebestie.com</div>
+</section>
+
+<!-- 2 HOW IT WORKS -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">Start here</div><h2>How a name change actually works</h2></div>
+  <hr class="rule">
+  <p class="body">Changing your name after the wedding isn't hard — it's just <i>tedious</i>, and the
+    <b>order matters</b>. Each step usually needs the document from the step before it, so doing them
+    out of order means extra trips and re-dos. Follow this sequence and it goes smoothly.</p>
+  <p class="body">First, a note: changing your name is <b>completely optional</b> — keep yours,
+    hyphenate, or take a new one. Whatever you choose, this guide walks you through it. (US process.)</p>
+  <div class="callout">
+    <h3>The 5-step order, at a glance</h3>
+    <p>1. Get certified marriage certificates → 2. Social Security card → 3. Driver's license →
+       4. Passport → 5. Everything else (banks, work, insurance…). The next page breaks each one down.</p>
+  </div>
+  <p class="body" style="margin-top:14px;">Set aside about <b>6–8 weeks</b> start to finish — most of
+    that is just waiting for new cards to arrive. You can knock out the rest in an afternoon once your
+    Social Security card and license are updated.</p>
+  <p class="body">A few things make it painless: do them <b>one at a time</b>, keep every document in
+    one folder so you're never hunting for a certificate, and don't start the DMV step until your new
+    Social Security card is physically in hand. Skip ahead and you'll just be repeating the trip.</p>
+  <div class="callout" style="border-left-color:var(--gold); margin-top:16px;">
+    <h3>What to expect at each stop</h3>
+    <p><b>By mail or online:</b> Social Security and (often) your passport — fill in the form, send it
+       with a certified certificate, wait for the new card.<br>
+       <b>In person:</b> the DMV — bring everything and budget an hour.<br>
+       <b>A quick call or login:</b> banks, insurance, employer, memberships — usually done from your couch.</p>
+  </div>
+  <p class="body" style="margin-top:16px;">One small thing that saves a lot of stress: until your new
+    documents arrive, keep using your <b>current</b> name on anything time-sensitive — flights, hotel
+    bookings, reservations. The legal name on your ticket has to match the ID you'll show, so there's no
+    rush to change those before your cards catch up.</p>
+  <p class="body">That's the whole map. The next page turns it into five clear steps you can work through
+    one at a time, with space to jot the date you finish each one.</p>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 3 STEP BY STEP -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">The order</div><h2>Do it in this order</h2></div>
+  <hr class="rule">
+  <div class="step0"><div class="lbl">First</div><div class="c">
+    <h3>Before you start: have these in hand</h3>
+    <p>Your certified marriage certificates, current driver's license, current passport, your Social
+       Security card, and proof of address. Keep them together in one folder — you'll reach for the same
+       few documents at every step.</p>
+  </div></div>
+  <div class="step"><div class="num">1</div><div class="c">
+    <h3>Order certified marriage certificates</h3>
+    <p>Request them from your county clerk / vital records office. You'll show these as proof everywhere.</p>
+    <div class="tip">Tip: order 3–5 certified copies — several places want an original.</div>
+    <div class="track"><span>ordered on</span><span>received on</span></div>
+  </div></div>
+  <div class="step"><div class="num">2</div><div class="c">
+    <h3>Update your Social Security card</h3>
+    <p>Do this first — everything else keys off your SSA record. File Form SS-5 (free) by mail or at your
+       local SSA office with your marriage certificate. Your new card arrives in ~2 weeks.</p>
+    <div class="tip">Tip: wait for the new card before the DMV — they'll ask for it.</div>
+    <div class="track"><span>filed on</span><span>new card received</span></div>
+  </div></div>
+  <div class="step"><div class="num">3</div><div class="c">
+    <h3>Update your driver's license / state ID</h3>
+    <p>Visit the DMV with your new Social Security card, a certified marriage certificate, and proof of
+       address. You'll get a new license with your married name.</p>
+    <div class="track"><span>visited on</span><span>new ID received</span></div>
+  </div></div>
+  <div class="step"><div class="num">4</div><div class="c">
+    <h3>Update your U.S. passport</h3>
+    <p>Use Form DS-5504 (free) if your passport is less than a year old, otherwise DS-82 (standard fee),
+       with a certified marriage certificate.</p>
+    <div class="tip">Tip: book honeymoon flights in the name that matches your current passport.</div>
+    <div class="track"><span>filed on</span><span>new passport received</span></div>
+  </div></div>
+  <div class="step"><div class="num">5</div><div class="c">
+    <h3>Update everything else</h3>
+    <p>With your new license + SS card in hand, update banks, cards, employer, insurance and the rest —
+       use the master checklist on the next pages so nothing slips.</p>
+    <div class="track"><span>started on</span><span>finished on</span></div>
+  </div></div>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 4 CHECKLIST P1 -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">The master checklist</div><h2>Everywhere to update your name</h2></div>
+  <hr class="rule">
+  <div class="grp"><div class="gh"><span class="t">Government &amp; legal</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Social Security card</div>
+      <div class="item"><span class="cb"></span>Driver's license / state ID</div>
+      <div class="item"><span class="cb"></span>U.S. passport</div>
+      <div class="item"><span class="cb"></span>Voter registration</div>
+      <div class="item"><span class="cb"></span>Global Entry / TSA PreCheck</div>
+      <div class="item"><span class="cb"></span>Vehicle title &amp; registration</div>
+      <div class="item"><span class="cb"></span>Will &amp; estate documents</div>
+      <div class="item"><span class="cb"></span>IRS / tax records</div>
+      <div class="item"><span class="cb"></span>Power of attorney</div>
+      <div class="item"><span class="cb"></span>Beneficiary designations</div>
+      <div class="item"><span class="cb"></span>Military / VA records</div>
+      <div class="item"><span class="cb"></span>Immigration documents</div>
+    </div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Financial</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Checking &amp; savings accounts</div>
+      <div class="item"><span class="cb"></span>Credit &amp; debit cards</div>
+      <div class="item"><span class="cb"></span>Mortgage / loans</div>
+      <div class="item"><span class="cb"></span>Retirement accounts (401k / IRA)</div>
+      <div class="item"><span class="cb"></span>Investment / brokerage</div>
+      <div class="item"><span class="cb"></span>PayPal / Venmo / Zelle</div>
+      <div class="item"><span class="cb"></span>Auto insurance</div>
+      <div class="item"><span class="cb"></span>Home / renters insurance</div>
+      <div class="item"><span class="cb"></span>Life insurance</div>
+      <div class="item"><span class="cb"></span>Health insurance</div>
+      <div class="item"><span class="cb"></span>Credit bureaus / credit report</div>
+      <div class="item"><span class="cb"></span>Tax preparer / accountant</div>
+      <div class="item"><span class="cb"></span>Safe-deposit box</div>
+      <div class="item"><span class="cb"></span>Financial advisor</div>
+    </div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Add your own</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+    </div>
+  </div>
+  <div class="callout" style="border-left-color:var(--gold);">
+    <h3>How to work this list</h3>
+    <p>You won't have every one of these — tick what applies, cross out what doesn't, and add anything
+       specific to your life in the blanks. Knock out Government &amp; Legal first; the rest can happen in
+       any order once your new ID is in hand.</p>
+  </div>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 5 CHECKLIST P2 -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">The master checklist</div><h2>Everywhere to update (cont.)</h2></div>
+  <hr class="rule">
+  <div class="grp"><div class="gh"><span class="t">Work &amp; income</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Employer / HR &amp; payroll</div>
+      <div class="item"><span class="cb"></span>Professional licenses / certs</div>
+      <div class="item"><span class="cb"></span>Work email &amp; signature</div>
+      <div class="item"><span class="cb"></span>LinkedIn &amp; profiles</div>
+      <div class="item"><span class="cb"></span>Business cards</div>
+      <div class="item"><span class="cb"></span>Direct-deposit details</div>
+      <div class="item"><span class="cb"></span>Email signature &amp; out-of-office</div>
+      <div class="item"><span class="cb"></span>Freelance / client invoices</div>
+    </div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Home &amp; utilities</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Lease or mortgage</div>
+      <div class="item"><span class="cb"></span>Electric / gas / water</div>
+      <div class="item"><span class="cb"></span>Internet &amp; phone</div>
+      <div class="item"><span class="cb"></span>Trash / HOA</div>
+      <div class="item"><span class="cb"></span>Landlord contact</div>
+      <div class="item"><span class="cb"></span>Home security / alarm</div>
+    </div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Health</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Doctor(s)</div>
+      <div class="item"><span class="cb"></span>Dentist</div>
+      <div class="item"><span class="cb"></span>Pharmacy</div>
+      <div class="item"><span class="cb"></span>Medical records</div>
+      <div class="item"><span class="cb"></span>Vision / eye care</div>
+      <div class="item"><span class="cb"></span>Therapist / specialists</div>
+    </div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Digital &amp; memberships</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Personal email</div>
+      <div class="item"><span class="cb"></span>Amazon &amp; shopping</div>
+      <div class="item"><span class="cb"></span>Airline / hotel loyalty</div>
+      <div class="item"><span class="cb"></span>Streaming services</div>
+      <div class="item"><span class="cb"></span>Gym &amp; memberships</div>
+      <div class="item"><span class="cb"></span>Social media</div>
+      <div class="item"><span class="cb"></span>Subscription boxes</div>
+      <div class="item"><span class="cb"></span>Library card</div>
+    </div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Add your own</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+      <div class="item"><span class="cb"></span><span style="border-bottom:1px solid var(--line); flex:1;">&nbsp;</span></div>
+    </div>
+  </div>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 6 TIPS / FAQ -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">Good to know</div><h2>Tips &amp; quick answers</h2></div>
+  <hr class="rule">
+  <div class="qa"><div class="q">How many marriage certificate copies do I need?</div>
+    <div class="a">Order 3–5 certified copies — several offices keep an original, and you don't want to run out mid-process.</div></div>
+  <div class="qa"><div class="q">Do I have to change my name?</div>
+    <div class="a">No — it's entirely your choice. Keep your name, hyphenate, or take a new one. This guide works for whichever you pick.</div></div>
+  <div class="qa"><div class="q">What if I'm hyphenating?</div>
+    <div class="a">Same process — just use the exact hyphenated name consistently on every form so they all match.</div></div>
+  <div class="qa"><div class="q">How long does it take?</div>
+    <div class="a">About 6–8 weeks, mostly waiting on the new Social Security card and license. The rest is quick once those arrive.</div></div>
+  <div class="qa"><div class="q">What do I do first?</div>
+    <div class="a">Social Security, always. Many other updates ask for your updated SS record or new license.</div></div>
+  <div class="qa"><div class="q">Can I keep my maiden name at work but change it everywhere else?</div>
+    <div class="a">Yes. Plenty of people use their maiden name professionally and their married name legally — just keep your legal documents (ID, SS card, taxes) consistent so they match each other.</div></div>
+  <div class="qa"><div class="q">Do I need a lawyer or a court order?</div>
+    <div class="a">For a name change through marriage, no — your marriage certificate is the legal proof. A court order is only needed for a name that isn't your maiden, spouse's, or a simple combination of the two.</div></div>
+  <div class="qa"><div class="q">What about my email address and logins?</div>
+    <div class="a">Those don't have to change at all. Update the display name where it matters; your actual email and usernames can stay exactly as they are.</div></div>
+  <div class="qa"><div class="q">My documents have a typo — now what?</div>
+    <div class="a">Fix it at the source first (the marriage certificate or SS card), then carry the corrected version forward. Catching it early saves you from re-doing the steps that follow.</div></div>
+  <div class="callout">
+    <h3>✈️ Before the honeymoon</h3>
+    <p>Your flight booking must match the name on the ID/passport you'll travel with. If you haven't
+       updated your passport yet, book the honeymoon in your <b>maiden name</b> — don't get stuck at the gate.</p>
+  </div>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 7 DOCS + NOTES -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">Get ready</div><h2>Documents to gather</h2></div>
+  <hr class="rule">
+  <div class="grp"><div class="items">
+    <div class="item"><span class="cb"></span>Certified marriage certificates (3–5)</div>
+    <div class="item"><span class="cb"></span>Current driver's license</div>
+    <div class="item"><span class="cb"></span>Current passport</div>
+    <div class="item"><span class="cb"></span>Social Security card</div>
+    <div class="item"><span class="cb"></span>Proof of address (for the DMV)</div>
+    <div class="item"><span class="cb"></span>A second form of ID (just in case)</div>
+    <div class="item"><span class="cb"></span>Birth certificate</div>
+    <div class="item"><span class="cb"></span>Completed SS-5 form</div>
+    <div class="item"><span class="cb"></span>Passport form (DS-5504 or DS-82)</div>
+    <div class="item"><span class="cb"></span>A folder to keep it all together</div>
+  </div></div>
+  <div style="height:16px;"></div>
+  <div class="ph"><h2 style="font-size:22px;">Notes &amp; to-dos</h2></div>
+  <hr class="rule">
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 8 UPSELL -->
+<section class="page upsell">
+  <div class="ph"><div class="eyebrow">Still planning?</div></div>
+  <div class="ucard">
+    <h2>Planning the rest of the wedding too?</h2>
+    <p>The name change is just one box to tick. <b>The Ultimate Wedding Planner</b> keeps your whole
+       day organized — checklist, budget, guests, vendors, and the day-of timeline — all in one
+       beautiful printable. Everything in one place, so nothing slips through the cracks.</p>
+    <a class="cta" href="https://bridebestie.gumroad.com/l/wedding-planner">Get the full planner →</a>
+  </div>
+  <div class="uend"><div class="big">Congratulations, you two.</div><div class="site">bridebestie.com · @bridebestie</div></div>
+</section>
+
+</body>
+</html>

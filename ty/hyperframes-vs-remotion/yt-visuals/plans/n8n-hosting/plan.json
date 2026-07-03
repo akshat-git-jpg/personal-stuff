@@ -1,0 +1,93 @@
+{
+  "slug": "n8n-hosting",
+  "title": "Best n8n Self-Hosting in 2026",
+  "scenes": [
+    {
+      "type": "title",
+      "data": {
+        "title": "Best n8n Self-Hosting in 2026",
+        "platforms": [
+          { "name": "Hostinger", "icon": "logos/hostinger.svg" },
+          { "name": "Railway", "icon": "logos/railway.svg" },
+          { "name": "Render", "icon": "logos/render.svg" },
+          { "name": "DigitalOcean", "icon": "logos/digitalocean.svg" },
+          { "name": "Heroku", "icon": "logos/heroku.svg" },
+          { "name": "Amazon AWS", "icon": "logos/amazonaws.svg" },
+          { "name": "Google Cloud", "icon": "logos/googlecloud.svg" },
+          { "name": "Oracle Cloud", "icon": "logos/oracle.svg" },
+          { "name": "Fly.io", "icon": "logos/flydotio.svg" },
+          { "name": "Hetzner", "icon": "logos/hetzner.svg" },
+          { "name": "Netcup", "icon": "logos/netcup.svg" },
+          { "name": "Contabo", "icon": "logos/contabo.svg" },
+          { "name": "Coolify", "icon": "logos/coolify.svg" },
+          { "name": "Raspberry Pi", "icon": "logos/raspberrypi.svg" },
+          { "name": "Synology", "icon": "logos/synology.svg" }
+        ]
+      }
+    },
+    {
+      "type": "toc",
+      "data": {
+        "eyebrow": "In this video",
+        "items": [
+          { "label": "Eliminated — and why" },
+          { "label": "Situational picks" },
+          { "label": "Worth considering" },
+          { "label": "The four winners" }
+        ]
+      }
+    },
+    {
+      "type": "section",
+      "data": {
+        "number": "04",
+        "title": "The Winners"
+      }
+    },
+    {
+      "type": "comparison",
+      "data": {
+        "eyebrow": "The four winners — head to head",
+        "tools": ["Hostinger", "Railway", "DigitalOcean", "Coolify"],
+        "rows": [
+          { "feature": "One-click n8n template", "values": ["✓", "✓", "✗", "✓"] },
+          { "feature": "Predictable monthly cost", "values": ["$8.99", "$40–60", "$24", "$8.99"] },
+          { "feature": "No CLI required", "values": ["✓", "✓", "✗", "✓"] },
+          { "feature": "Scales with business needs", "values": ["✓", "✓", "✓", "✓"] },
+          { "feature": "Best for non-technical", "values": ["✓", "—", "✗", "✓"] }
+        ],
+        "winnerColumn": 0
+      }
+    },
+    {
+      "type": "pricing",
+      "data": {
+        "eyebrow": "Production cost / month — 4GB workload",
+        "unit": "$",
+        "items": [
+          { "label": "Hostinger", "value": 8.99, "winner": true, "note": "KVM 2 · 24-mo plan" },
+          { "label": "Render", "value": 32 },
+          { "label": "Railway", "value": 50 },
+          { "label": "Heroku", "value": 70 }
+        ]
+      }
+    },
+    {
+      "type": "verdict",
+      "data": {
+        "eyebrow": "Winner #1 — for most people",
+        "winner": "Hostinger",
+        "reason": "Easiest setup, lowest cost, built for n8n. Up and running in 15 minutes."
+      }
+    },
+    {
+      "type": "cta",
+      "data": {
+        "eyebrow": "Save on Hostinger KVM 2 with code",
+        "code": "AGROLLOO",
+        "discount": "Exclusive viewer discount",
+        "cta": "Link in description"
+      }
+    }
+  ]
+}

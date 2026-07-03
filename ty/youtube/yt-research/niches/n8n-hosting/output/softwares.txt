@@ -1,0 +1,15 @@
+Railway
+Render
+Oracle cloud
+Hostinger
+Digital Ocean
+Hiroku
+Netcup
+Hetzner
+Amazon AWS
+Contabo
+fly.io
+coolify
+Google Cloud
+Raspberry Pi
+Synology NAS docker

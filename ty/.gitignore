@@ -1,0 +1,58 @@
+node_modules/
+.DS_Store
+
+# Env / secrets
+.env
+.env.local
+*.env
+credentials.json
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# keyword-research runtime artifacts
+youtube/keyword-research/output/
+youtube/keyword-research/channel_cache.json
+
+# yt-visuals runtime artifacts (rendered MP4s, stills, Remotion bundle cache)
+youtube/yt-visuals/cutaways/
+youtube/yt-visuals/.cache/
+
+# hyperframes-vs-remotion render output — regenerable from the HTML sources
+hyperframes-vs-remotion/**/renders/
+
+# Pinterest intermediate tiles — regenerable from post.json + the pin skill.
+# Final composite (image.png) and the recipe (post.json/post.md) ARE kept.
+pinterest/**/cells/
+
+# Rendered brand/product outputs — regenerable from the HTML sources
+# (brand-assets.html, render-pdf.mjs / build.mjs). Sources + specs ARE kept.
+pinterest/*/brand/*.png
+pinterest/*/products/**/*.pdf
+pinterest/*/products/**/*.png
+pinterest/*/products/**/*.jpg
+
+# superpowers brainstorm mockups (per-session HTML, local-only)
+.superpowers/
+
+# Cloudflare Workers
+.wrangler/
+.dev.vars
+
+# IDE / agent scratch dirs
+.cursor/
+.gemini/
+.agent/
+brain/
+
+# Local MCP config (symlinked to ../personal stuff/.mcp.json — absolute
+# paths inside, machine-specific, don't commit)
+.mcp.json
+
+# Logs
+*.log
+
+# HeyGen avatar renders — regenerable from generate.json (the request payload IS kept)
+video-voice/heygen/**/*.mp4

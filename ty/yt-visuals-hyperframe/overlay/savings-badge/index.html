@@ -1,0 +1,100 @@
+<!doctype html>
+<!--
+  SAVINGS BADGE   (Hyperframes OVERLAY — transparent background)
+  A big "Save $__/mo" punches in next to a round "· FOR LIFE" seal that thumps down,
+  with a sub line. For "you'll save almost $__ each month" / "$__ saved every month ·
+  for life". Drop it over a talking-head. 1920x1080, 30fps, 5 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block + :root. Leave seal=''  │
+  │  to hide the round stamp. pos sets placement. Never touch the TIMELINE.   │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  ⚠ OVERLAY: render TRANSPARENT (alpha) so it composites over footage. In the render
+  tool, pick the transparent/MOV toggle. From the CLI use --format mov (ProRes 4444
+  carries alpha; plain WebM/MP4 here come out opaque on a black frame):
+    npx hyperframes@latest render overlay/savings-badge -o savings.mov --format mov --fps 30
+  Override: --variables '{"amount":"$12","per":"/mo","sub":"...","seal":"FOR LIFE"}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --panel: rgba(15, 11, 7, 0.9); --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.72);
+        --accent: #fb923c; --ok: #34d399; --seal: #34d399;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #card { position: absolute; }
+      #root[data-pos="center"] #card { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+      #root[data-pos="bottom-left"] #card { bottom: 140px; left: 140px; }
+      #root[data-pos="bottom-right"] #card { bottom: 140px; right: 140px; }
+      #root[data-pos="top-right"] #card { top: 140px; right: 140px; }
+
+      .panel { position: relative; background: var(--panel); border: 1px solid rgba(255,255,255,0.12); border-radius: 28px;
+        padding: 46px 60px; backdrop-filter: blur(14px); box-shadow: 0 28px 70px rgba(0,0,0,0.5); will-change: transform, opacity; }
+      .eyebrow { font-size: 24px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: var(--ok); margin-bottom: 14px; will-change: transform, opacity; }
+      .big { display: flex; align-items: baseline; gap: 12px; }
+      .save { font-size: 44px; font-weight: 800; color: var(--text); }
+      .amount { font-size: 116px; font-weight: 900; letter-spacing: -3px; line-height: 0.95; color: var(--ok); will-change: transform, opacity; }
+      .per { font-size: 38px; font-weight: 700; color: var(--text-dim); }
+      .sub { font-size: 30px; font-weight: 600; color: var(--text-dim); margin-top: 14px; will-change: transform, opacity; }
+      .seal { position: absolute; top: -40px; right: -40px; width: 158px; height: 158px; border-radius: 50%; background: var(--seal);
+        color: #07210f; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.04;
+        font-size: 32px; font-weight: 900; letter-spacing: 1px; padding: 16px; transform: rotate(-12deg);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.45), inset 0 0 0 4px rgba(255,255,255,0.4); will-change: transform, opacity; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="savingsbadge" data-start="0" data-duration="5" data-width="1920" data-height="1080" data-pos="center"
+      data-composition-variables='{"eyebrow":"Your savings","save":"Save","amount":"$12","per":"/month","sub":"every month — for as long as you stay","seal":"FOR LIFE","pos":"center"}'>
+      <div id="card" class="clip" data-start="0" data-duration="5" data-track-index="0">
+        <div class="panel" id="panel">
+          <div class="eyebrow" id="eyebrow"></div>
+          <div class="big"><span class="save" id="save"></span><span class="amount" id="amount"></span><span class="per" id="per"></span></div>
+          <div class="sub" id="sub"></div>
+          <div class="seal" id="seal"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'Your savings', // '' to hide
+        save: VARS.save ?? 'Save',
+        amount: VARS.amount ?? '$12',
+        per: VARS.per ?? '/month',
+        sub: VARS.sub ?? 'every month — for as long as you stay',
+        seal: VARS.seal ?? 'FOR LIFE', // '' to hide the round stamp
+        pos: VARS.pos ?? 'center',     // center | bottom-left | bottom-right | top-right
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      document.getElementById('root').dataset.pos = DATA.pos;
+      $('save').textContent = DATA.save;
+      $('amount').textContent = DATA.amount;
+      $('per').textContent = DATA.per;
+      $('sub').textContent = DATA.sub;
+      if (DATA.eyebrow) { $('eyebrow').textContent = DATA.eyebrow; } else { $('eyebrow').style.display = 'none'; }
+      if (DATA.seal) { $('seal').textContent = DATA.seal; } else { $('seal').style.display = 'none'; }
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo('#panel', { opacity: 0, scale: 1.18, rotation: -2 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.55, ease: 'back.out(1.5)', transformOrigin: '50% 50%' }, 0.1);
+      tl.from('#eyebrow', { opacity: 0, y: -12, duration: 0.4, ease: 'power2.out' }, 0.35);
+      tl.fromTo('#amount', { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.55, ease: 'back.out(2.2)', transformOrigin: '0% 100%' }, 0.5);
+      tl.from('#sub', { opacity: 0, y: 12, duration: 0.45, ease: 'power2.out' }, 0.8);
+      if (DATA.seal) tl.fromTo('#seal', { opacity: 0, scale: 2.1, rotation: 14 }, { opacity: 1, scale: 1, rotation: -12, duration: 0.7, ease: 'elastic.out(1, 0.6)', transformOrigin: '50% 50%' }, 0.95);
+      window.__timelines['savingsbadge'] = tl;
+    </script>
+  </body>
+</html>

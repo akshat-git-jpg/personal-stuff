@@ -1,0 +1,29 @@
+{
+  "niche": "wedding",
+  "brandName": "Bride Bestie",
+  "domain": "bridebestie.com",
+  "email": "hello@bridebestie.com",
+  "offerUrl": "https://bridebestie.gumroad.com/l/wedding-planner",
+  "offerUrlStatus": "PENDING — create the Gumroad product, then confirm/replace this URL",
+  "handle": "@bridebestie",
+  "boards": [
+    "Wedding Planning Checklists",
+    "Wedding Budget Tips",
+    "Wedding Day Timeline",
+    "Wedding Planning for Beginners",
+    "Wedding Planning Tips"
+  ],
+  "brand": {
+    "palette": ["#C58A86", "#C9A24B", "#FBF5F2"],
+    "paletteNote": "accent=dusty-rose/blush · secondary=gold · base=warm ivory · text=#34302B charcoal",
+    "headlineFont": "Playfair Display",
+    "bodyFont": "Lato"
+  },
+  "researchKeywords": [
+    "wedding planning checklist",
+    "wedding planner printable",
+    "wedding budget tracker",
+    "wedding timeline",
+    "how to plan a wedding"
+  ]
+}

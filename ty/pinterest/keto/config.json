@@ -1,0 +1,11 @@
+{
+  "niche": "keto",
+  "offerUrl": "https://gumroad.com/l/PLACEHOLDER",
+  "handle": "@yourketohandle",
+  "boards": ["Keto Recipes", "Keto Meal Plans", "Low Carb Dinners", "Keto Breakfast"],
+  "brand": {
+    "palette": ["#1B4332", "#FFB703", "#FFFFFF"],
+    "headlineFont": "Poppins",
+    "bodyFont": "Inter"
+  }
+}

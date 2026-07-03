@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Wedding Decor Checklist — Bride Bestie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Lato:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{ --cream:#FBF5F2; --charcoal:#34302B; --blush:#C58A86; --gold:#C9A24B; --soft:#6f6a62; --line:rgba(52,48,43,.16); }
+  @page{ size:Letter; margin:0; }
+  *{ box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:'Lato',sans-serif; color:var(--charcoal); }
+  .page{ width:8.5in; height:11in; background:var(--cream); padding:0.66in 0.72in 0.5in; page-break-after:always; position:relative; overflow:hidden; }
+  .page:last-child{ page-break-after:auto; }
+  h1,h2,h3{ font-family:'Playfair Display',serif; font-weight:600; }
+  .eyebrow{ font-size:10.5px; letter-spacing:.34em; text-transform:uppercase; color:var(--blush); font-weight:700; }
+  .ph h2{ font-size:27px; margin:4px 0 0; }
+  .rule{ height:2px; width:58px; background:var(--gold); border:0; margin:13px 0; }
+  .lead{ font-size:13px; color:var(--soft); margin:-2px 0 14px; max-width:6.1in; }
+  .body{ font-size:12.8px; line-height:1.6; color:#46413a; max-width:6.2in; margin:0 0 12px; }
+  .foot{ position:absolute; bottom:0.36in; left:0.72in; right:0.72in; display:flex; justify-content:space-between; font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--soft); }
+  .foot .bm{ color:var(--blush); font-weight:700; }
+
+  /* cover */
+  .cover{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+  .cover .frame{ position:absolute; inset:0.34in; border:1px solid var(--line); }
+  .cover h1{ font-size:48px; line-height:1.1; }
+  .cover h1 .script{ font-style:italic; color:var(--blush); }
+  .cover .sub{ font-size:15px; color:var(--soft); max-width:4.7in; margin-top:4px; }
+  .cover .gift{ position:absolute; bottom:0.62in; font-size:12px; letter-spacing:.04em; color:var(--soft); }
+  .cover .gift b{ color:var(--charcoal); }
+
+  /* tips */
+  .tips{ list-style:none; margin:0; padding:0; }
+  .tips li{ font-size:12.8px; line-height:1.6; margin-bottom:19px; padding-left:26px; position:relative; color:#46413a; }
+  .tips li::before{ content:"✦"; color:var(--gold); position:absolute; left:0; top:1px; }
+  .tips li b{ color:var(--charcoal); }
+  .note{ background:#fff; border:1px solid var(--line); border-left:3px solid var(--blush); border-radius:8px; padding:17px 20px; margin-top:14px; }
+  .note p{ font-size:12.3px; color:#46413a; margin:0; line-height:1.6; }
+  .note h3{ font-size:14px; margin:0 0 6px; }
+  .legend{ display:flex; gap:22px; flex-wrap:wrap; margin-top:18px; font-size:11.5px; color:var(--soft); }
+  .legend b{ color:var(--charcoal); font-family:'Playfair Display',serif; }
+
+  /* zones */
+  .grp{ margin-bottom:22px; }
+  .grp .gh{ display:flex; align-items:baseline; gap:12px; border-bottom:1.5px solid var(--gold); padding-bottom:7px; margin-bottom:13px; }
+  .grp .gh .t{ font-family:'Playfair Display',serif; font-size:18px; }
+  .grp .gh .s{ font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--blush); font-weight:700; }
+  .items{ display:grid; grid-template-columns:1fr 1fr; gap:13px 26px; }
+  .item{ display:flex; align-items:flex-start; font-size:11.7px; line-height:1.3; color:#3c3833; }
+  .cb{ flex:0 0 auto; width:12px; height:12px; border:1.4px solid var(--charcoal); border-radius:3px; margin-right:9px; margin-top:1px; }
+  .item.own{ color:var(--soft); font-style:italic; }
+  .item.own .write{ flex:1; border-bottom:1px dotted rgba(52,48,43,.35); min-height:14px; }
+  .ln{ height:1px; background:rgba(52,48,43,.26); margin:13px 0; }
+  .zmeta{ display:flex; gap:0; margin:11px 0 2px; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--soft); }
+  .zmeta .lbl{ flex:0 0 auto; color:var(--blush); font-weight:700; margin-right:8px; }
+  .zmeta .fill{ flex:1; border-bottom:1px solid rgba(52,48,43,.22); margin:0 14px 2px 4px; }
+
+  /* upsell */
+  .upsell{ display:flex; flex-direction:column; justify-content:center; }
+  .ucard{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:32px 38px; }
+  .ucard h2{ font-size:28px; margin:6px 0 8px; }
+  .ucard p{ font-size:13.5px; line-height:1.6; color:#46413a; max-width:5.3in; margin:0 0 18px; }
+  .ulist{ list-style:none; margin:0 0 24px; padding:0; }
+  .ulist li{ font-size:12.6px; line-height:1.5; color:#46413a; margin-bottom:10px; padding-left:24px; position:relative; }
+  .ulist li::before{ content:"✦"; color:var(--gold); position:absolute; left:0; top:1px; }
+  .cta{ display:inline-block; background:var(--blush); color:#fff; text-decoration:none; font-weight:700; font-size:14px; padding:14px 32px; border-radius:40px; }
+  .uend{ text-align:center; margin-top:40px; }
+  .uend .big{ font-family:'Playfair Display',serif; font-style:italic; font-size:22px; }
+  .uend .site{ font-size:11px; letter-spacing:.05em; color:var(--soft); margin-top:8px; }
+</style>
+</head>
+<body>
+
+<!-- 1 COVER -->
+<section class="page cover">
+  <div class="frame"></div>
+  <div class="eyebrow" style="margin-bottom:24px;">Bride Bestie</div>
+  <h1>The Wedding<br>Decor <span class="script">Checklist</span></h1>
+  <hr class="rule" style="margin:22px auto;">
+  <p class="sub">Every decor detail, ceremony to reception — so nothing gets forgotten.</p>
+  <div class="gift">From your <b>Bride Bestie</b> 💍 &nbsp;·&nbsp; bridebestie.com</div>
+</section>
+
+<!-- 2 HOW TO USE -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">Start here</div><h2>How to use this checklist</h2></div>
+  <hr class="rule">
+  <p class="body">Decor is where the little things hide — the signs, the candles, the cake knife no one
+    remembers until the day-of. This checklist walks your wedding <b>zone by zone</b> so every detail
+    is accounted for, decided, and assigned.</p>
+  <ul class="tips">
+    <li><b>Walk it in order</b> — ceremony → cocktail hour → reception → extras. Picture a guest moving through your day.</li>
+    <li><b>Tick only what applies.</b> No venue needs everything — skip freely, add your own in the blank rows on each zone.</li>
+    <li><b>Decide rent / DIY / buy</b> for each item as you go (rentals get returned; DIY needs storage + time).</li>
+    <li><b>Count quantities.</b> Centerpieces = number of tables; place cards = number of guests. Write the number next to it.</li>
+    <li><b>Assign setup &amp; teardown.</b> Who places it, who takes it home? Decor left behind = lost deposits.</li>
+    <li><b>Group by box.</b> Pack each zone's decor in its own labeled bin so setup is grab-and-go, not a treasure hunt.</li>
+    <li><b>Check the rules.</b> Many venues ban open flame, confetti, or anything stuck to walls — confirm before you buy.</li>
+    <li><b>Build a return pile.</b> Keep one bin for rentals and one for "goes home with us" so nothing gets boxed by mistake.</li>
+  </ul>
+  <div class="legend">
+    <span><b>R</b> = rent &nbsp;·&nbsp; <b>D</b> = DIY &nbsp;·&nbsp; <b>B</b> = buy</span>
+    <span>Use the note line under each zone for <b>qty · who sets up · who tears down</b>.</span>
+  </div>
+  <div class="note"><h3>One pro move</h3><p>Snap a photo of every finished area at the rehearsal so your team can
+    recreate it exactly on the day — and you can finally stop holding it all in your head. Keep a shared album so
+    every helper is working from the same picture.</p></div>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 3 CEREMONY + COCKTAIL -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">Zone 1 &amp; 2</div><h2>Ceremony &amp; cocktail hour</h2></div>
+  <hr class="rule">
+  <div class="grp"><div class="gh"><span class="t">Ceremony</span><span class="s">The aisle</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Arch / backdrop</div>
+      <div class="item"><span class="cb"></span>Arch florals or greenery</div>
+      <div class="item"><span class="cb"></span>Aisle runner</div>
+      <div class="item"><span class="cb"></span>Aisle markers (florals / lanterns)</div>
+      <div class="item"><span class="cb"></span>Welcome sign</div>
+      <div class="item"><span class="cb"></span>Order-of-events / program sign</div>
+      <div class="item"><span class="cb"></span>Programs or fans</div>
+      <div class="item"><span class="cb"></span>Reserved-seating signs</div>
+      <div class="item"><span class="cb"></span>Petals / confetti for the exit</div>
+      <div class="item"><span class="cb"></span>Unity ceremony items (if any)</div>
+      <div class="item"><span class="cb"></span>Unity candle stand / sand table</div>
+      <div class="item"><span class="cb"></span>Kneeling bench / cushions</div>
+      <div class="item"><span class="cb"></span>Signing table + pen for the license</div>
+      <div class="item"><span class="cb"></span>Mic / stand florals</div>
+      <div class="item"><span class="cb"></span>Chairs / seating style</div>
+      <div class="item"><span class="cb"></span>Card / ring bearer accessories</div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+    </div>
+    <div class="zmeta"><span class="lbl">Qty · setup · teardown</span><span class="fill"></span></div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Cocktail hour</span><span class="s">The mingle</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>"Cocktail hour this way" signage</div>
+      <div class="item"><span class="cb"></span>Cocktail / high-top tables</div>
+      <div class="item"><span class="cb"></span>High-top linens</div>
+      <div class="item"><span class="cb"></span>Small florals / candles</div>
+      <div class="item"><span class="cb"></span>Bar décor + signature drink sign</div>
+      <div class="item"><span class="cb"></span>Drink stirrers / garnish picks</div>
+      <div class="item"><span class="cb"></span>Cocktail napkins</div>
+      <div class="item"><span class="cb"></span>Menu easel / appetizer sign</div>
+      <div class="item"><span class="cb"></span>Lounge furniture (optional)</div>
+      <div class="item"><span class="cb"></span>Lawn games (optional)</div>
+      <div class="item"><span class="cb"></span>Music / speaker setup</div>
+      <div class="item"><span class="cb"></span>Guest favors / take-one station</div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+    </div>
+    <div class="zmeta"><span class="lbl">Qty · setup · teardown</span><span class="fill"></span></div>
+  </div>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 4 RECEPTION: ENTRANCE + TABLES -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">Zone 3</div><h2>Reception · welcome &amp; tables</h2></div>
+  <hr class="rule">
+  <div class="grp"><div class="gh"><span class="t">Entrance &amp; welcome</span><span class="s">First impression</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Seating chart or escort cards</div>
+      <div class="item"><span class="cb"></span>Welcome / entrance sign</div>
+      <div class="item"><span class="cb"></span>Guestbook + pen</div>
+      <div class="item"><span class="cb"></span>Card box / envelope</div>
+      <div class="item"><span class="cb"></span>Photo display / memory table</div>
+      <div class="item"><span class="cb"></span>Gift table + linen</div>
+      <div class="item"><span class="cb"></span>Favor / take-one display</div>
+      <div class="item"><span class="cb"></span>Hashtag / share-your-photos sign</div>
+      <div class="item"><span class="cb"></span>Entrance florals / arrangements</div>
+      <div class="item"><span class="cb"></span>Welcome basket (mints / fans / programs)</div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+    </div>
+    <div class="zmeta"><span class="lbl">Qty · setup · teardown</span><span class="fill"></span></div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Guest tables</span><span class="s">Count = # of tables</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Centerpieces</div>
+      <div class="item"><span class="cb"></span>Table numbers</div>
+      <div class="item"><span class="cb"></span>Table linens</div>
+      <div class="item"><span class="cb"></span>Runners / overlays</div>
+      <div class="item"><span class="cb"></span>Place cards</div>
+      <div class="item"><span class="cb"></span>Menus</div>
+      <div class="item"><span class="cb"></span>Napkins + folds / rings</div>
+      <div class="item"><span class="cb"></span>Chargers</div>
+      <div class="item"><span class="cb"></span>Candles / votives</div>
+      <div class="item"><span class="cb"></span>Favors at each setting</div>
+      <div class="item"><span class="cb"></span>Chairs / chair décor</div>
+      <div class="item"><span class="cb"></span>Scattered florals / greenery</div>
+      <div class="item"><span class="cb"></span>Table-number holders / frames</div>
+      <div class="item"><span class="cb"></span>Salt &amp; pepper / condiment sets</div>
+      <div class="item"><span class="cb"></span>Kids' table activities (if any)</div>
+      <div class="item"><span class="cb"></span>Reserved / family table markers</div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+    </div>
+    <div class="zmeta"><span class="lbl">Qty · setup · teardown</span><span class="fill"></span></div>
+  </div>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 5 RECEPTION: FOCAL + EXTRAS -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">Zone 3 (cont.)</div><h2>Reception · focal points &amp; extras</h2></div>
+  <hr class="rule">
+  <div class="grp"><div class="gh"><span class="t">Sweetheart / head table</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Backdrop</div>
+      <div class="item"><span class="cb"></span>Statement florals</div>
+      <div class="item"><span class="cb"></span>"Mr &amp; Mrs" / couple signage</div>
+      <div class="item"><span class="cb"></span>Special chairs / chair signs</div>
+      <div class="item"><span class="cb"></span>Linens + runner</div>
+      <div class="item"><span class="cb"></span>Candles</div>
+      <div class="item"><span class="cb"></span>Sweetheart-table florals / garland</div>
+      <div class="item"><span class="cb"></span>Toasting flutes + cake forks</div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+    </div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Cake &amp; dessert</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>Cake table + linen</div>
+      <div class="item"><span class="cb"></span>Cake stand</div>
+      <div class="item"><span class="cb"></span>Cake topper</div>
+      <div class="item"><span class="cb"></span>Cutting knife &amp; server</div>
+      <div class="item"><span class="cb"></span>Dessert display + signage</div>
+      <div class="item"><span class="cb"></span>Plates / napkins / forks</div>
+      <div class="item"><span class="cb"></span>Cake-table florals / backdrop</div>
+      <div class="item"><span class="cb"></span>Dessert labels / allergen cards</div>
+      <div class="item"><span class="cb"></span>To-go dessert boxes / bags</div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+    </div>
+  </div>
+  <div class="grp"><div class="gh"><span class="t">Lighting, dance floor &amp; extras</span></div>
+    <div class="items">
+      <div class="item"><span class="cb"></span>String / fairy lights</div>
+      <div class="item"><span class="cb"></span>Uplighting</div>
+      <div class="item"><span class="cb"></span>Neon / monogram sign</div>
+      <div class="item"><span class="cb"></span>Candles &amp; lanterns</div>
+      <div class="item"><span class="cb"></span>Photo booth + backdrop + props</div>
+      <div class="item"><span class="cb"></span>Restroom basket + signage</div>
+      <div class="item"><span class="cb"></span>Directional / parking signs</div>
+      <div class="item"><span class="cb"></span>Send-off items (sparklers / petals)</div>
+      <div class="item"><span class="cb"></span>Dance-floor monogram / decal</div>
+      <div class="item"><span class="cb"></span>Late-night snack station + sign</div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+      <div class="item own"><span class="cb"></span><span class="write"></span></div>
+    </div>
+    <div class="zmeta"><span class="lbl">Qty · setup · teardown</span><span class="fill"></span></div>
+  </div>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 6 DON'T FORGET + NOTES -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">Easy to miss</div><h2>The "don't forget these"</h2></div>
+  <hr class="rule">
+  <div class="grp"><div class="items">
+    <div class="item"><span class="cb"></span>Extension cords &amp; batteries (lights/candles)</div>
+    <div class="item"><span class="cb"></span>Lighter / matches for candles</div>
+    <div class="item"><span class="cb"></span>Easels for signs</div>
+    <div class="item"><span class="cb"></span>Tape / command strips / zip ties</div>
+    <div class="item"><span class="cb"></span>Vases + water for florals</div>
+    <div class="item"><span class="cb"></span>Scissors &amp; a small toolkit</div>
+    <div class="item"><span class="cb"></span>Boxes/bins to pack décor at the end</div>
+    <div class="item"><span class="cb"></span>A teardown crew + a getaway car for items</div>
+    <div class="item"><span class="cb"></span>Step stool / ladder for hanging décor</div>
+    <div class="item"><span class="cb"></span>Floral wire, pins &amp; a glue gun</div>
+    <div class="item"><span class="cb"></span>Trash bags &amp; a quick clean-up kit</div>
+    <div class="item"><span class="cb"></span>Fan / heater for the season</div>
+    <div class="item"><span class="cb"></span>Umbrellas / blankets (weather backup)</div>
+    <div class="item"><span class="cb"></span>Signage for the "where do things go home" plan</div>
+    <div class="item own"><span class="cb"></span><span class="write"></span></div>
+    <div class="item own"><span class="cb"></span><span class="write"></span></div>
+  </div></div>
+  <div style="height:18px;"></div>
+  <div class="ph"><h2 style="font-size:22px;">Notes, quantities &amp; who's doing what</h2></div>
+  <hr class="rule">
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div>
+  <div class="ln"></div><div class="ln"></div>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 7 UPSELL -->
+<section class="page upsell">
+  <div class="ph"><div class="eyebrow">One more thing</div></div>
+  <div class="ucard">
+    <h2>Got the whole wedding handled?</h2>
+    <p>Décor is one piece. <b>The Ultimate Wedding Planner</b> keeps it all together in one beautiful
+       printable, so nothing slips through the cracks:</p>
+    <ul class="ulist">
+      <li>A full planning checklist, month by month down to the week of</li>
+      <li>Budget tracker with running totals and deposit due-dates</li>
+      <li>Guest list, RSVPs, meals, and a seating-chart worksheet</li>
+      <li>Vendor contacts, contracts, and payment schedule in one place</li>
+      <li>A day-of timeline you can hand straight to your helpers</li>
+    </ul>
+    <a class="cta" href="https://bridebestie.gumroad.com/l/wedding-planner">Get the full planner →</a>
+  </div>
+  <div class="uend"><div class="big">It's going to be beautiful.</div><div class="site">bridebestie.com · @bridebestie</div></div>
+</section>
+
+</body>
+</html>

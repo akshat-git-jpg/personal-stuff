@@ -1,0 +1,95 @@
+<!doctype html>
+<!--
+  SCENE SCAFFOLD — Devsplainers clone. Copy this folder to start a new scene.
+
+  A scene = this index.html + a meta.json (see scaffold/meta.json).
+  Author flow:
+    1. Fill the CONTENT block (DATA) — the ONLY place text/values live.
+    2. Compose the MARKUP from kit atoms, reading from DATA.
+    3. Add motion in the TIMELINE block using R.* recipes.
+  Render:  npx hyperframes@latest render <this-folder> -o out.mp4 --fps 30
+
+  HYPERFRAMES RULES (lint will fail otherwise):
+    - Every timed element: class="clip" + data-start + data-duration + data-track-index.
+    - GSAP animates the INNER content div, never the .clip shell.
+    - Visually-overlapping elements each get their OWN track index.
+    - Same-track clips must not overlap (watch float precision).
+    - Timeline stays paused + registered as window.__timelines["main"].
+    - Deterministic only: no Math.random / Date.now / fetch / requestAnimationFrame.
+
+  ASSET PATHS (IMPORTANT): Hyperframes serves compositions with the PROJECT
+    ROOT (hyperframes/) as the base URL, so all paths must be ROOT-RELATIVE —
+    "kit/tokens.css", never "../tokens.css" (which 404s + fails lint). This is
+    true at ANY folder depth, so scenes under videos/<slug>/scenes/sNN/ use the
+    exact same "kit/..." paths. @font-face urls inside tokens.css resolve
+    relative to that css file, so fonts just work.
+  RENDER (from the hyperframes/ project root):
+    npx hyperframes@latest render kit/scaffold -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="kit/tokens.css" />
+    <link rel="stylesheet" href="kit/atoms.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="kit/recipes.js"></script>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="6"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- ================= CHROME (always-on, one track each) ============= -->
+      <!-- Track 0: section label (top-left) -->
+      <div id="clip-label" class="clip" data-start="0" data-duration="6" data-track-index="0">
+        <div id="label" class="section-label">
+          THE SECTION<span class="underline"></span>
+        </div>
+      </div>
+
+      <!-- Track 1: watermark (bottom-right, every frame) -->
+      <div id="clip-watermark" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div id="watermark" class="watermark">&lt;devsplainers&gt;</div>
+      </div>
+
+      <!-- ================= CONTENT (one track per overlapping element) ==== -->
+      <!-- Track 2: the scene body. The OUTER div is the clip shell; GSAP
+           animates #body (the inner div) only. -->
+      <div id="clip-body" class="clip" data-start="0" data-duration="6" data-track-index="2">
+        <div id="body" class="stage-center">
+          <h1 class="headline">SCENE <span class="amber">HEADLINE</span></h1>
+          <p class="caption is-dim">one-line supporting caption</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ================= CONTENT ========================================= */
+      // The only place copy/values live — swap these to reuse the layout.
+      const DATA = {
+        label: 'THE SECTION',
+        headline: ['SCENE ', { amber: 'HEADLINE' }],
+        caption: 'one-line supporting caption',
+      };
+      // (This scaffold hard-codes the markup above for clarity; a generated
+      //  scene can render markup from DATA, but keeping DATA declared documents
+      //  the single-source-of-copy convention.)
+
+      /* ================= TIMELINE ======================================= */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      R.fadeUp(tl, '#label', 0.1, { y: -16 });
+      R.slideIn(tl, '#watermark', 0.15, 'right', { dist: 24 });
+      R.fadeUp(tl, '#body .headline', 0.35, { duration: R.DUR_SLOW });
+      R.fadeUp(tl, '#body .caption', 0.7);
+
+      window.__timelines['main'] = tl;
+    </script>
+  </body>
+</html>

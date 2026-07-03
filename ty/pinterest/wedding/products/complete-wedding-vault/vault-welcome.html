@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Complete Wedding Vault — Bride Bestie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Lato:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{ --cream:#FBF5F2; --charcoal:#34302B; --blush:#C58A86; --gold:#C9A24B; --soft:#6f6a62; --line:rgba(52,48,43,.16); }
+  @page{ size:Letter; margin:0; }
+  *{ box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:'Lato',sans-serif; color:var(--charcoal); }
+  .page{ width:8.5in; height:11in; background:var(--cream); padding:0.66in 0.72in 0.5in; page-break-after:always; position:relative; overflow:hidden; }
+  .page:last-child{ page-break-after:auto; }
+  h1,h2,h3{ font-family:'Playfair Display',serif; font-weight:600; }
+  .eyebrow{ font-size:10.5px; letter-spacing:.34em; text-transform:uppercase; color:var(--blush); font-weight:700; }
+  .ph h2{ font-size:27px; margin:4px 0 0; }
+  .rule{ height:2px; width:58px; background:var(--gold); border:0; margin:13px 0; }
+  .body{ font-size:12.8px; line-height:1.62; color:#46413a; max-width:6.2in; margin:0 0 12px; }
+  .foot{ position:absolute; bottom:0.36in; left:0.72in; right:0.72in; display:flex; justify-content:space-between; font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--soft); }
+  .foot .bm{ color:var(--blush); font-weight:700; }
+
+  /* cover */
+  .cover{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+  .cover .frame{ position:absolute; inset:0.34in; border:1px solid var(--line); }
+  .cover h1{ font-size:50px; line-height:1.08; }
+  .cover h1 .script{ font-style:italic; color:var(--blush); }
+  .cover .sub{ font-size:15px; color:var(--soft); max-width:4.7in; margin-top:4px; }
+  .cover .gift{ position:absolute; bottom:0.62in; font-size:12px; letter-spacing:.04em; color:var(--soft); }
+  .cover .gift b{ color:var(--charcoal); }
+
+  /* contents list */
+  .inc{ display:flex; gap:14px; padding:13px 0; border-bottom:1px solid var(--line); }
+  .inc:last-child{ border-bottom:0; }
+  .inc .ico{ flex:0 0 auto; width:30px; height:30px; border-radius:50%; background:var(--blush); color:#fff;
+             font-size:14px; display:flex; align-items:center; justify-content:center; }
+  .inc .c h3{ font-size:15.5px; margin:1px 0 3px; }
+  .inc .c h3 .pp{ font-size:10px; color:var(--soft); font-weight:400; font-family:'Lato',sans-serif; letter-spacing:.04em; }
+  .inc .c p{ font-size:12px; line-height:1.45; color:#46413a; margin:0; }
+
+  /* how-to steps */
+  .steps{ counter-reset:s; list-style:none; margin:6px 0 0; padding:0; }
+  .steps li{ position:relative; padding-left:40px; margin-bottom:16px; font-size:12.6px; line-height:1.55; color:#46413a; }
+  .steps li::before{ counter-increment:s; content:counter(s); position:absolute; left:0; top:-2px;
+     width:26px; height:26px; border-radius:50%; background:#fff; border:1.5px solid var(--blush); color:var(--blush);
+     font-family:'Playfair Display',serif; font-weight:600; display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .steps li b{ color:var(--charcoal); }
+  .note{ background:#fff; border:1px solid var(--line); border-left:3px solid var(--gold); border-radius:8px; padding:15px 19px; margin-top:14px; }
+  .note p{ font-size:12.3px; color:#46413a; margin:0; line-height:1.55; }
+  .sign{ font-family:'Playfair Display',serif; font-style:italic; font-size:15px; color:var(--blush); margin-top:18px; }
+
+  /* suggested order */
+  .order{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 22px 20px; margin-top:22px; }
+  .order .oh{ font-family:'Playfair Display',serif; font-size:16px; margin:0 0 3px; }
+  .order .osub{ font-size:11.5px; color:var(--soft); margin:0 0 12px; }
+  .order ol{ counter-reset:o; list-style:none; margin:0; padding:0; }
+  .order li{ position:relative; padding-left:30px; margin-bottom:9px; font-size:12px; line-height:1.45; color:#46413a; }
+  .order li:last-child{ margin-bottom:0; }
+  .order li::before{ counter-increment:o; content:counter(o); position:absolute; left:0; top:0;
+     width:20px; height:20px; border-radius:50%; background:var(--blush); color:#fff;
+     font-family:'Playfair Display',serif; font-size:11px; display:flex; align-items:center; justify-content:center; }
+  .order li b{ color:var(--charcoal); }
+</style>
+</head>
+<body>
+
+<!-- 1 COVER -->
+<section class="page cover">
+  <div class="frame"></div>
+  <div class="eyebrow" style="margin-bottom:24px;">Bride Bestie</div>
+  <h1>The Complete<br>Wedding <span class="script">Vault</span></h1>
+  <hr class="rule" style="margin:22px auto;">
+  <p class="sub">Everything you need to plan your wedding — every planner, tracker &amp; checklist, in one place.</p>
+  <div class="gift">Welcome to your Vault, bestie 💍 &nbsp;·&nbsp; bridebestie.com</div>
+</section>
+
+<!-- 2 WHAT'S INSIDE -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">Your Vault</div><h2>What's inside</h2></div>
+  <hr class="rule">
+  <div class="inc"><div class="ico">★</div><div class="c">
+    <h3>The Ultimate Wedding Planner <span class="pp">· 21-page printable</span></h3>
+    <p>Your home base — at-a-glance details, vision, the full checklist, budget, guests, vendors, day-of timeline, ceremony &amp; reception, seating, menu.</p></div></div>
+  <div class="inc"><div class="ico">$</div><div class="c">
+    <h3>The Wedding Budget Tracker <span class="pp">· auto-calculating Google Sheet</span></h3>
+    <p>Type your numbers; it does the math — totals, balances, % of budget and an over/under flag, live.</p></div></div>
+  <div class="inc"><div class="ico">◷</div><div class="c">
+    <h3>The Wedding Day Timeline <span class="pp">· sample + template</span></h3>
+    <p>A worked hour-by-hour example plus a build-your-own template so your day flows perfectly.</p></div></div>
+  <div class="inc"><div class="ico">✦</div><div class="c">
+    <h3>The Wedding Decor Checklist <span class="pp">· ceremony → reception</span></h3>
+    <p>Every decor detail, zone by zone, so nothing gets forgotten on the day.</p></div></div>
+  <div class="inc"><div class="ico">♥</div><div class="c">
+    <h3>The Newlywed Name-Change Guide <span class="pp">· step-by-step</span></h3>
+    <p>The exact order to change your name after the wedding, plus a complete update checklist.</p></div></div>
+  <div class="inc"><div class="ico">✓</div><div class="c">
+    <h3>The ADHD-Friendly Wedding Checklist <span class="pp">· low-overwhelm</span></h3>
+    <p>Tiny steps, a brain-dump page, and systems that work — for when the big list feels like too much.</p></div></div>
+  <div class="inc"><div class="ico">☑</div><div class="c">
+    <h3>The 12-Month Planning Checklist <span class="pp">· quick-reference</span></h3>
+    <p>The whole timeline at a glance — print it for the fridge.</p></div></div>
+
+  <div class="order">
+    <div class="oh">Not sure where to begin?</div>
+    <p class="osub">A simple order to open them in — you don't need everything at once.</p>
+    <ol>
+      <li><b>Start with the 12-Month Checklist.</b> Pin down where you are on the timeline and what's next.</li>
+      <li><b>Set up the Budget Tracker.</b> Make your copy and drop in your total before you book anything.</li>
+      <li><b>Make the Ultimate Planner your home base.</b> Vision, guests, vendors — everything lives here.</li>
+      <li><b>In the final stretch, add the Timeline and Decor Checklist</b> as the day takes shape.</li>
+      <li><b>Save the Name-Change Guide for after the wedding.</b> One clean list for the to-dos that follow.</li>
+    </ol>
+  </div>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+<!-- 3 HOW TO USE -->
+<section class="page">
+  <div class="ph"><div class="eyebrow">Get started</div><h2>How to use your Vault</h2></div>
+  <hr class="rule">
+  <ol class="steps">
+    <li><b>Start with the Ultimate Wedding Planner.</b> It's your home base — fill in your details and
+       vision, then work the 12-month checklist from the top.</li>
+    <li><b>Open the Budget Tracker alongside it.</b> Pop in your total budget and add costs as you book —
+       it keeps you on track in real time. (Open the link, then File → Make a copy.)</li>
+    <li><b>Grab the wedges when you hit them:</b> the Decor Checklist as you style the day, the Timeline
+       as the date nears, and the Name-Change Guide for after the wedding.</li>
+    <li><b>Overwhelmed?</b> Switch to the ADHD-Friendly Checklist — one tiny step at a time, no shame.</li>
+    <li><b>Print what helps</b> (US Letter), keep the rest on your phone or tablet. Use it your way.</li>
+  </ol>
+  <div class="note"><p><b>Your Google Sheet:</b> the Budget Tracker opens as a "make a copy" link — it
+     drops a private, editable copy into your own Google Drive. The original stays untouched, so you
+     can always grab a fresh one.</p></div>
+
+  <div class="ph" style="margin-top:24px;"><div class="eyebrow">By stage</div><h2 style="font-size:21px;">How the pieces fit together</h2></div>
+  <hr class="rule">
+  <ol class="steps">
+    <li><b>Just engaged.</b> Open the 12-Month Checklist and the Budget Tracker first — they tell you what's
+       next and what you can spend, so every later decision has a frame around it.</li>
+    <li><b>Deep in planning.</b> Live in the Ultimate Planner. Vision, guests, vendors and the running
+       to-do list all sit here, and the budget updates alongside as you book.</li>
+    <li><b>The final stretch.</b> Bring in the Day Timeline and the Decor Checklist so the actual day is
+       mapped hour by hour and zone by zone — nothing left to memory.</li>
+    <li><b>After the wedding.</b> The Name-Change Guide takes it from there with the exact order to update
+       everything, so the post-wedding admin stays as calm as the rest of it.</li>
+  </ol>
+  <p class="sign">Here's to your dream day — I've got you. xo, your Bride Bestie</p>
+  <div class="foot"><span class="bm">Bride Bestie</span><span>bridebestie.com</span></div>
+</section>
+
+</body>
+</html>

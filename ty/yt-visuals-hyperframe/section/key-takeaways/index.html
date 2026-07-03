@@ -1,0 +1,92 @@
+<!doctype html>
+<!--
+  KEY TAKEAWAYS   (Hyperframes card)
+  An end-of-video recap: eyebrow + heading, then 3–4 short takeaway lines that tick
+  in one at a time, each with an accent ✓ badge. The "walk-away" summary — distinct
+  from the verdict (which is the decision). 1920x1080, 30fps, 8 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block + :root. Keep each     │
+  │  takeaway short (one line reads best). Never touch the TIMELINE.          │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render section/key-takeaways -o out.mp4 --fps 30
+  Override: --variables '{"title":"Key takeaways","items":[{"label":"..."},{"label":"..."}]}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.62);
+        --accent: #fb923c; --check: #1a0d02; /* tick colour inside the accent badge */
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
+
+      #content { position: absolute; inset: 0; padding: 130px 200px; display: flex; align-items: center; justify-content: center; }
+      #inner { display: flex; flex-direction: column; max-width: 1520px; width: 100%; }
+      .eyebrow { font-size: 22px; font-weight: 800; letter-spacing: 6px; color: var(--accent); text-transform: uppercase; margin-bottom: 14px; will-change: transform, opacity; }
+      #title { font-size: 72px; font-weight: 900; letter-spacing: -2px; margin-bottom: 56px; will-change: transform, opacity; }
+      ol { list-style: none; display: flex; flex-direction: column; gap: 30px; }
+      .row { display: flex; align-items: center; gap: 32px; will-change: transform, opacity; }
+      .badge { flex: 0 0 auto; width: 66px; height: 66px; border-radius: 50%; background: var(--accent); color: var(--check);
+        display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 900;
+        box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 45%, transparent); will-change: transform, opacity; }
+      .label { font-size: 48px; font-weight: 600; letter-spacing: -1px; line-height: 1.22; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="recap" data-start="0" data-duration="8" data-width="1920" data-height="1080"
+      data-composition-variables='{"eyebrow":"Recap","title":"Key takeaways","items":[{"label":"It is the fastest to set up — under 5 minutes."},{"label":"The free tier is enough for solo projects."},{"label":"Pay only when you need team seats & SSO."},{"label":"Best value of everything we tested."}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+      <div id="content" class="clip" data-start="0" data-duration="8" data-track-index="1">
+        <div id="inner">
+          <div class="eyebrow" id="eyebrow"></div>
+          <div id="title"></div>
+          <ol id="list"></ol>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'Recap',   // '' to hide
+        title: VARS.title ?? 'Key takeaways',
+        items: VARS.items ?? [
+          { label: 'It is the fastest to set up — under 5 minutes.' },
+          { label: 'The free tier is enough for solo projects.' },
+          { label: 'Pay only when you need team seats & SSO.' },
+          { label: 'Best value of everything we tested.' },
+        ],
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      if (DATA.eyebrow) { $('eyebrow').textContent = DATA.eyebrow; } else { $('eyebrow').style.display = 'none'; }
+      $('title').textContent = DATA.title;
+      $('list').innerHTML = DATA.items
+        .map((it) => `<li class="row"><span class="badge">✓</span><span class="label">${it.label}</span></li>`)
+        .join('');
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      if (DATA.eyebrow) tl.from('#eyebrow', { opacity: 0, y: -12, duration: 0.45, ease: 'power3.out' }, 0.1);
+      tl.from('#title', { opacity: 0, y: -20, duration: 0.55, ease: 'power3.out' }, 0.25);
+      // takeaways ticking in one at a time: row slides, badge pops just after
+      tl.from('#list .row', { opacity: 0, x: -30, duration: 0.5, ease: 'power3.out', stagger: 0.55 }, 0.65);
+      tl.from('#list .badge', { scale: 0, opacity: 0, duration: 0.5, ease: 'back.out(2.6)', stagger: 0.55, transformOrigin: '50% 50%' }, 0.78);
+      window.__timelines['recap'] = tl;
+    </script>
+  </body>
+</html>

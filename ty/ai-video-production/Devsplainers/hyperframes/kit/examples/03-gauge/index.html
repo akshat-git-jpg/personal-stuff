@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- EXAMPLE 03 — Gauge/dial. Few-shot ref for Tier-2 #24 (gauge) + big-stat
+     count-up. Track arc, amber fill arc drawing on, needle sweeping to value. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="kit/tokens.css" />
+    <link rel="stylesheet" href="kit/atoms.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="kit/recipes.js"></script>
+    <style>
+      .gauge-stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
+      .gauge-svg { width: 680px; height: 380px; }
+      .gauge-caption { margin-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="6" data-width="1920" data-height="1080">
+      <div id="clip-label" class="clip" data-start="0" data-duration="6" data-track-index="0">
+        <div class="section-label">DRIFT CONTROL<span class="underline"></span></div>
+      </div>
+      <div id="clip-watermark" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div class="watermark">&lt;devsplainers&gt;</div>
+      </div>
+
+      <div id="clip-gauge" class="clip" data-start="0" data-duration="6" data-track-index="2">
+        <div id="gauge" class="gauge-stage">
+          <svg class="gauge-svg" viewBox="0 0 600 340" fill="none">
+            <!-- track (semicircle, center 300,300 r240) -->
+            <path class="gauge-arc" d="M60 300 A240 240 0 0 1 540 300" />
+            <!-- value fill (~70%) -->
+            <path id="gfill" class="gauge-fill" d="M60 300 A240 240 0 0 1 441 106" />
+            <!-- needle: drawn pointing up from the pivot (300,300) -->
+            <line id="needle" class="gauge-needle" x1="300" y1="300" x2="300" y2="96" />
+            <circle cx="300" cy="300" r="12" fill="var(--fg)" />
+          </svg>
+          <div class="big-stat" style="font-size: 110px;"><span id="statnum">0</span><span style="font-size:56px;">%</span></div>
+          <p class="gauge-caption caption is-hero">HELD ON SPEC</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      R.fadeUp(tl, '.section-label', 0.1, { y: -16 });
+      R.slideIn(tl, '.watermark', 0.2, 'right', { dist: 24 });
+      R.drawOn(tl, '#gfill', 0.4, { duration: 1.1 });
+      // needle sweeps from left (-90) to the 70% mark (+36), pivoting at 300,300
+      R.needle(tl, '#needle', 0.4, 36, { svgOrigin: '300 300', duration: 1.1 });
+      R.countUp(tl, '#statnum', 0.4, { from: 0, to: '70', duration: 1.1 });
+      R.fadeUp(tl, '.gauge-caption', 1.4);
+
+      window.__timelines['main'] = tl;
+    </script>
+  </body>
+</html>

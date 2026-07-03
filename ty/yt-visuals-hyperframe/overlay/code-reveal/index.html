@@ -1,0 +1,124 @@
+<!doctype html>
+<!--
+  CODE REVEAL   (Hyperframes OVERLAY — transparent background)
+  A redacted coupon code scrambles + unblurs, decoding left-to-right into the real
+  code, then a "copy flash" sweeps across and a ✓ Copied chip pops. Good for
+  "the highest discount code is —". 1920x1080, 30fps, 5 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block + :root. Never touch    │
+  │  the TIMELINE.                                                            │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  ⚠ OVERLAY: render TRANSPARENT (alpha) so it composites over footage. In the render
+  tool, pick the transparent/MOV toggle. From the CLI use --format mov (ProRes 4444
+  carries alpha; plain WebM/MP4 here come out opaque on a black frame):
+    npx hyperframes@latest render overlay/code-reveal -o code.mov --format mov --fps 30
+  Override: --variables '{"eyebrow":"The biggest code","code":"SAVE40","sub":"40% off"}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --panel: rgba(15, 11, 7, 0.9); --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.7);
+        --accent: #fb923c; --ok: #34d399;
+        --font: 'Inter', system-ui, sans-serif;
+        --mono: ui-monospace, 'SF Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #card { position: absolute; }
+      #root[data-pos="center"] #card { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+      #root[data-pos="bottom"] #card { bottom: 150px; left: 50%; transform: translateX(-50%); }
+      #root[data-pos="top"] #card { top: 150px; left: 50%; transform: translateX(-50%); }
+
+      .panel { display: flex; flex-direction: column; align-items: center; gap: 26px; will-change: transform, opacity; }
+      .eyebrow { font-size: 28px; font-weight: 800; letter-spacing: 4px; text-transform: uppercase; color: var(--accent); will-change: transform, opacity; }
+      .codeChip { position: relative; overflow: hidden; display: flex; align-items: center; gap: 4px;
+        font-family: var(--mono); font-size: 96px; font-weight: 800; letter-spacing: 10px; color: var(--accent);
+        padding: 28px 52px; border-radius: 22px; border: 3px dashed var(--accent);
+        background: color-mix(in srgb, var(--accent) 12%, var(--panel)); backdrop-filter: blur(10px);
+        box-shadow: 0 24px 60px rgba(0,0,0,0.45); will-change: transform; }
+      .ch { display: inline-block; min-width: 0.62em; text-align: center; will-change: filter; }
+      /* the copy-flash bar that sweeps across the chip once */
+      #flash { position: absolute; top: 0; bottom: 0; width: 45%; left: -50%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent); will-change: transform; }
+      .sub { font-size: 34px; font-weight: 600; color: var(--text-dim); will-change: transform, opacity; }
+      #copied { display: inline-flex; align-items: center; gap: 12px; font-size: 30px; font-weight: 800; color: var(--ok);
+        background: color-mix(in srgb, var(--ok) 16%, transparent); border: 1.5px solid color-mix(in srgb, var(--ok) 55%, transparent);
+        padding: 12px 24px; border-radius: 999px; will-change: transform, opacity; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="codereveal" data-start="0" data-duration="5" data-width="1920" data-height="1080" data-pos="center"
+      data-composition-variables='{"eyebrow":"The biggest code","code":"SAVE40","sub":"40% off — our highest discount","pos":"center"}'>
+      <div id="card" class="clip" data-start="0" data-duration="5" data-track-index="0">
+        <div class="panel" id="panel">
+          <div class="eyebrow" id="eyebrow"></div>
+          <div class="codeChip" id="chip"><span id="chars"></span><div id="flash"></div></div>
+          <div class="sub" id="sub"></div>
+          <div id="copied">✓ Copied to clipboard</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'The biggest code',
+        code: (VARS.code ?? 'SAVE40').toString().toUpperCase(),
+        sub: VARS.sub ?? '40% off — our highest discount',
+        pos: VARS.pos ?? 'center', // center | bottom | top
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      document.getElementById('root').dataset.pos = DATA.pos;
+      $('eyebrow').textContent = DATA.eyebrow;
+      $('sub').textContent = DATA.sub;
+      const SCRAMBLE = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#@%&';
+      const real = DATA.code.split('');
+      $('chars').innerHTML = real.map((c, i) => `<span class="ch" id="ch-${i}" data-c="${c}">${c}</span>`).join('');
+      const chEls = real.map((_, i) => $('ch-' + i));
+      // deterministic scramble char for (frame, index) — no Math.random
+      const scrambleAt = (frame, i) => SCRAMBLE[(frame * 7 + i * 13 + 5) % SCRAMBLE.length];
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // panel + eyebrow in
+      tl.from('#panel', { opacity: 0, scale: 0.92, duration: 0.5, ease: 'power3.out', transformOrigin: '50% 50%' }, 0.05);
+      tl.from('#eyebrow', { opacity: 0, y: -12, duration: 0.4, ease: 'power2.out' }, 0.2);
+
+      // DECODE: progress 0→1 drives how many chars have locked to their real value;
+      // unlocked chars show a per-frame deterministic scramble + blur.
+      const dec = { p: 0 };
+      tl.fromTo(dec, { p: 0 }, { p: 1, duration: 1.4, ease: 'power1.inOut',
+        onUpdate: () => {
+          const frame = Math.round(tl.time() * 30);
+          const locked = Math.floor(dec.p * real.length + 0.0001);
+          for (let i = 0; i < real.length; i++) {
+            if (i < locked) { chEls[i].textContent = real[i]; chEls[i].style.filter = 'none'; }
+            else { chEls[i].textContent = scrambleAt(frame, i); chEls[i].style.filter = 'blur(5px)'; }
+          }
+        } }, 0.5);
+      // guarantee the final locked state
+      tl.add(() => { real.forEach((c, i) => { chEls[i].textContent = c; chEls[i].style.filter = 'none'; }); }, 1.9);
+
+      // chip punch once decoded
+      tl.fromTo('#chip', { scale: 0.96 }, { scale: 1.04, duration: 0.18, ease: 'power2.out', transformOrigin: '50% 50%' }, 1.95);
+      tl.to('#chip', { scale: 1, duration: 0.22, ease: 'back.out(2.5)', transformOrigin: '50% 50%' }, 2.13);
+      // copy flash sweeps across
+      tl.fromTo('#flash', { x: 0 }, { x: '320%', duration: 0.55, ease: 'power2.inOut' }, 2.1);
+      // sub + copied chip
+      tl.from('#sub', { opacity: 0, y: 12, duration: 0.45, ease: 'power2.out' }, 1.0);
+      tl.from('#copied', { opacity: 0, scale: 0.5, y: 12, duration: 0.5, ease: 'back.out(2.4)', transformOrigin: '50% 50%' }, 2.5);
+      window.__timelines['codereveal'] = tl;
+    </script>
+  </body>
+</html>

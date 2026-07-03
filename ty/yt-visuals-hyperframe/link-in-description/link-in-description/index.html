@@ -1,0 +1,145 @@
+<!doctype html>
+<!--
+  OVERLAY · Link in Description   (Hyperframes port of link-in-description)
+  A pill at 70% height slides up + fades in, breathes with a glowing border,
+  then fades out + slides down. 1920x1080, 30fps, 4 seconds (120 frames).
+
+  THIS IS AN OVERLAY — it has no real background of its own. Drop it onto your
+  footage by keying out the GREEN CHROMA-KEY background. To change the key color,
+  edit --bg in :root (e.g. a different key color, or "transparent" + render mov).
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change message / colors there.                │
+  │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
+  │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  This is a Hyperframes composition: HTML + GSAP. Render it with
+    npx hyperframes@latest render link-in-description/link-in-description -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg: #00b140; /* chroma-key green (key this out). use "transparent" or any color */
+        --accent: #fb923c;
+        --text: #ffffff;
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        font-family: var(--font); color: var(--text);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg { position: absolute; inset: 0; background: var(--bg); }
+
+      #anchor { position: absolute; left: 0; right: 0; top: 70%; display: flex; justify-content: center; }
+      #pill {
+        display: flex; align-items: center; gap: 18px; padding: 22px 40px; border-radius: 999px;
+        background: linear-gradient(180deg, rgba(20,12,4,0.94), rgba(10,6,2,0.90));
+        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        will-change: transform, opacity; white-space: nowrap;
+      }
+      #pill .label { font-size: 28px; font-weight: 600; letter-spacing: 0.3px; color: var(--text); white-space: nowrap; }
+    </style>
+  </head>
+  <body>
+    <!--
+      Composition root. data-composition-id "link" is the timeline key.
+      data-duration is the total length in seconds (4s @ 30fps = 120 frames).
+    -->
+    <div
+      id="root"
+      data-composition-id="link"
+      data-start="0"
+      data-duration="4"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"message":"Link in description"}'
+    >
+      <!-- Track 0: chroma-key background (static, always on) -->
+      <div id="bg" class="clip" data-start="0" data-duration="4" data-track-index="0"></div>
+
+      <!-- Track 1: pill shell (static clip; GSAP animates the inner #pill, never the .clip itself) -->
+      <div id="anchor" class="clip" data-start="0" data-duration="4" data-track-index="1">
+        <div id="pill">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M12 4 L12 18 M6 13 L12 19 L18 13" stroke="#fb923c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="label" id="label"></span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      // Per-video values can ALSO be passed at render time with
+      //   --variables '{"message":"Free template below"}'
+      // (no code editing needed). Those override the defaults below.
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        message: VARS.message ?? 'Link in description', // the pill text
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED — do not edit) =====
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         Easing comes free from GSAP — this is what makes the motion smooth.
+         ===================================================== */
+      const $ = (id) => document.getElementById(id);
+      const FPS = 30;
+      const DURATION = 4;
+
+      function build() {
+        $('label').textContent = DATA.message;
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const pill = $('pill');
+
+      // Enter: slide up (22px) + fade in + scale 0.94 -> 1.0 over 0.5s (15 frames).
+      // ease ~ cubic-bezier(0.16,1,0.3,1) → power4.out
+      tl.set(pill, { opacity: 0, y: 22, scale: 0.94 }, 0);
+      tl.to(pill, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'power4.out' }, 0);
+
+      // Exit: fade out + slide down (10px) over the last 0.5s (15 frames).
+      // ease ~ cubic-bezier(0.4,0,1,1) → power2.in
+      tl.to(pill, { opacity: 0, y: 10, duration: 0.5, ease: 'power2.in' }, DURATION - 0.5);
+
+      // Breathing glow: deterministic sine of the current frame, driven by the
+      // timeline tick (NOT requestAnimationFrame) so it stays frame-seekable.
+      function applyGlow(time) {
+        const f = time * FPS;
+        const glow = (Math.sin(f * 0.06) + 1) / 2;
+        const glowOpacity = 0.22 + glow * 0.15;
+        pill.style.border = `1.5px solid rgba(251,146,60,${0.5 + glow * 0.25})`;
+        pill.style.boxShadow =
+          `0 0 ${28 + glow * 14}px rgba(251,146,60,${glowOpacity}), 0 8px 28px rgba(0,0,0,0.55)`;
+      }
+      tl.eventCallback('onUpdate', () => applyGlow(tl.time()));
+      applyGlow(0); // initial paused frame
+
+      window.__timelines['link'] = tl;
+    </script>
+  </body>
+</html>

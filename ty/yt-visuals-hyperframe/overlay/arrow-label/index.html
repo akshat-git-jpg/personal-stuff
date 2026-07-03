@@ -1,0 +1,77 @@
+<!doctype html>
+<!--
+  ARROW + LABEL   (Hyperframes OVERLAY — transparent background)
+  A label pill pops in and a curved arrow draws toward what you're pointing at.
+  Sits on top of footage. 1920x1080, 30fps, 5 seconds.
+
+  ⚠ OVERLAY: render as a TRANSPARENT WebM:
+    npx hyperframes@latest render overlay/arrow-label -o arrow.webm --format webm --fps 30
+  EDITOR: edit only ===== CONTENT ===== (label, and the tail/tip x,y in px on a
+  1920x1080 canvas) + :root colors. The label sits at the tail; the arrow points to the tip.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root { --accent: #fb923c; --panel: rgba(15, 11, 7, 0.9); --text: #ffffff; --font: 'Inter', system-ui, sans-serif; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #svg { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+      #path { fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round; filter: drop-shadow(0 0 8px rgba(251,146,60,0.5)); }
+      #head { fill: var(--accent); filter: drop-shadow(0 0 8px rgba(251,146,60,0.5)); }
+      #label { position: absolute; transform: translate(-50%, -50%); background: var(--panel); border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 14px; padding: 16px 26px; font-size: 32px; font-weight: 700; white-space: nowrap; backdrop-filter: blur(10px); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="arrowlabel" data-start="0" data-duration="5" data-width="1920" data-height="1080"
+      data-composition-variables='{"label":"Click here","tailX":520,"tailY":360,"tipX":1180,"tipY":620}'>
+      <div id="ovl" class="clip" data-start="0" data-duration="5" data-track-index="0">
+        <svg id="svg" viewBox="0 0 1920 1080"><path id="path" /><polygon id="head" /></svg>
+        <div id="label"></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        label: VARS.label ?? 'Click here',
+        tailX: Number(VARS.tailX ?? 520), tailY: Number(VARS.tailY ?? 360),
+        tipX: Number(VARS.tipX ?? 1180), tipY: Number(VARS.tipY ?? 620),
+      };
+      const $ = (id) => document.getElementById(id);
+      // build the curved path + arrowhead, deterministic from tail/tip
+      function build() {
+        $('label').textContent = DATA.label;
+        $('label').style.left = DATA.tailX + 'px';
+        $('label').style.top = DATA.tailY + 'px';
+        const mx = (DATA.tailX + DATA.tipX) / 2;
+        const cy = Math.min(DATA.tailY, DATA.tipY) - 120; // arc upward
+        $('path').setAttribute('d', `M ${DATA.tailX} ${DATA.tailY + 44} Q ${mx} ${cy} ${DATA.tipX} ${DATA.tipY}`);
+        // arrowhead pointing along the final approach (from control point to tip)
+        const ang = Math.atan2(DATA.tipY - cy, DATA.tipX - mx);
+        const s = 26;
+        const a1 = ang + 2.6, a2 = ang - 2.6;
+        $('head').setAttribute('points',
+          `${DATA.tipX},${DATA.tipY} ${DATA.tipX + s * Math.cos(a1)},${DATA.tipY + s * Math.sin(a1)} ${DATA.tipX + s * Math.cos(a2)},${DATA.tipY + s * Math.sin(a2)}`);
+      }
+      build();
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const path = $('path');
+      const len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#label', { opacity: 0, scale: 0.8, duration: 0.5, ease: 'back.out(1.8)' }, 0.1);
+      tl.fromTo('#path', { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.7, ease: 'power2.inOut' }, 0.4);
+      tl.from('#head', { opacity: 0, scale: 0, transformOrigin: 'center', duration: 0.3, ease: 'back.out(2)' }, 1.0);
+      window.__timelines['arrowlabel'] = tl;
+    </script>
+  </body>
+</html>

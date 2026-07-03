@@ -1,0 +1,101 @@
+<!doctype html>
+<!--
+  HEAD-TO-HEAD (VS)   (Hyperframes card)
+  Two contender panels slide in from the sides; a "VS" badge pops in the middle;
+  each side's stats stagger up. 1920x1080, 30fps, 5.5 seconds.
+
+  EDITOR: edit only ===== CONTENT ===== (left{}, right{}) + :root colors.
+  Render-time override:
+    --variables '{"left":{"name":"Hostinger","stats":[{"label":"From","value":"$4"}]}}'
+  Render:  npx hyperframes@latest render comparison/head-to-head -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --left: #fb923c; --right: #38bdf8; --accent: #facc15;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, var(--bg-from) 0%, var(--bg-to) 65%); }
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 100px; }
+      .arena { display: flex; align-items: stretch; gap: 0; width: 100%; max-width: 1640px; position: relative; }
+      .side { flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 56px 52px; text-align: center; }
+      .side.l { border-top: 5px solid var(--left); }
+      .side.r { border-top: 5px solid var(--right); }
+      .logoBox { width: 110px; height: 110px; margin: 0 auto 26px; background: #fff; border-radius: 22px; padding: 16px; display: flex; }
+      .logoBox svg { width: 100%; height: 100%; }
+      .name { font-size: 56px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 30px; }
+      .stat { display: flex; align-items: baseline; justify-content: space-between; padding: 16px 6px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+      .stat .k { font-size: 24px; color: var(--text-dim); }
+      .stat .v { font-size: 32px; font-weight: 800; }
+      .vs { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+        width: 132px; height: 132px; border-radius: 50%; background: var(--accent); color: #1a0f05;
+        display: flex; align-items: center; justify-content: center; font-size: 46px; font-weight: 900;
+        box-shadow: 0 0 50px rgba(250,204,21,0.5); z-index: 3; }
+      .gap { width: 90px; flex: 0 0 auto; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="vs" data-start="0" data-duration="5.5" data-width="1920" data-height="1080"
+      data-composition-variables='{"left":{"name":"Hostinger","stats":[{"label":"From / mo","value":"$4"},{"label":"Setup","value":"1-click"},{"label":"Support","value":"24/7"}]},"right":{"name":"Railway","stats":[{"label":"From / mo","value":"$5"},{"label":"Setup","value":"Manual"},{"label":"Support","value":"Community"}]}}'>
+      <div id="bg" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="5.5" data-track-index="1">
+        <div class="arena">
+          <div class="side l" id="sideL">
+            <div class="logoBox" id="logoL"></div>
+            <div class="name" id="nameL"></div>
+            <div id="statsL"></div>
+          </div>
+          <div class="gap"></div>
+          <div class="side r" id="sideR">
+            <div class="logoBox" id="logoR"></div>
+            <div class="name" id="nameR"></div>
+            <div id="statsR"></div>
+          </div>
+          <div class="vs" id="vs">VS</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const initial = (n) => `<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#673DE6"/><text x="50" y="50" dy="0.35em" text-anchor="middle" font-family="Inter,sans-serif" font-weight="900" font-size="56" fill="#fff">${(n || '?')[0]}</text></svg>`;
+      const DATA = {
+        left: VARS.left ?? { name: 'Hostinger', stats: [{ label: 'From / mo', value: '$4' }, { label: 'Setup', value: '1-click' }, { label: 'Support', value: '24/7' }] },
+        right: VARS.right ?? { name: 'Railway', stats: [{ label: 'From / mo', value: '$5' }, { label: 'Setup', value: 'Manual' }, { label: 'Support', value: 'Community' }] },
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      const stat = (s) => `<div class="stat"><span class="k">${s.label}</span><span class="v">${s.value}</span></div>`;
+      function build() {
+        $('nameL').textContent = DATA.left.name;
+        $('nameR').textContent = DATA.right.name;
+        $('logoL').innerHTML = DATA.left.logoSvg ?? initial(DATA.left.name);
+        $('logoR').innerHTML = DATA.right.logoSvg ?? initial(DATA.right.name);
+        $('statsL').innerHTML = (DATA.left.stats || []).map(stat).join('');
+        $('statsR').innerHTML = (DATA.right.stats || []).map(stat).join('');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#sideL', { opacity: 0, x: -90, duration: 0.7, ease: 'power3.out' }, 0.1);
+      tl.from('#sideR', { opacity: 0, x: 90, duration: 0.7, ease: 'power3.out' }, 0.1);
+      tl.from('#statsL .stat', { opacity: 0, y: 16, duration: 0.4, ease: 'power2.out', stagger: 0.1 }, 0.7);
+      tl.from('#statsR .stat', { opacity: 0, y: 16, duration: 0.4, ease: 'power2.out', stagger: 0.1 }, 0.7);
+      tl.from('#vs', { opacity: 0, scale: 0, duration: 0.7, ease: 'back.out(2.2)' }, 0.6);
+      window.__timelines['vs'] = tl;
+    </script>
+  </body>
+</html>

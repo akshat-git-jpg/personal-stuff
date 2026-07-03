@@ -1,0 +1,137 @@
+<!doctype html>
+<!--
+  CHECKOUT SUMMARY   (Hyperframes card)
+  A cart / order-summary panel: line item(s) → subtotal → a promo code "applies"
+  (✓ Applied), a green discount line slides in, and the total counts DOWN to the
+  new price. The literal "apply coupon, price updates" moment. 1920x1080, 30fps, 7s.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block + :root. items[] are    │
+  │  { label, price (number) }. coupon is { code, percent } OR { code, amount }│
+  │  (off the subtotal). Math is computed for you. Never touch the TIMELINE.   │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render comparison/checkout-summary -o out.mp4 --fps 30
+  Override: --variables '{"items":[{"label":"Pro plan","price":120}],"coupon":{"code":"SAVE40","percent":40}}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c; --ok: #34d399;
+        --panel: rgba(255, 255, 255, 0.05); --panel-line: rgba(255, 255, 255, 0.12);
+        --field: rgba(255, 255, 255, 0.04);
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 18%, var(--bg-from) 0%, var(--bg-to) 62%); }
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 90px; }
+
+      #panel { width: 900px; background: var(--panel); border: 1px solid var(--panel-line); border-radius: 28px;
+        padding: 54px 60px; backdrop-filter: blur(10px); box-shadow: 0 30px 70px rgba(0,0,0,0.4); will-change: transform, opacity; }
+      #ttl { font-size: 44px; font-weight: 900; letter-spacing: -1px; margin-bottom: 36px; will-change: transform, opacity; }
+      .row { display: flex; align-items: baseline; justify-content: space-between; font-size: 36px; font-weight: 600; padding: 16px 0; }
+      .row .k { color: var(--text-dim); }
+      .row .v { font-variant-numeric: tabular-nums; font-weight: 700; }
+      .item .k { color: var(--text); }
+      .hr { height: 1px; background: var(--panel-line); margin: 10px 0; }
+
+      /* promo field row */
+      #promo { display: flex; align-items: center; gap: 18px; margin: 22px 0; padding: 20px 24px; border-radius: 16px;
+        background: var(--field); border: 2px solid var(--panel-line); will-change: border-color, box-shadow; }
+      #promo .tag { font-size: 26px; font-weight: 600; color: var(--text-dim); }
+      #promo .code { flex: 1; font-size: 34px; font-weight: 800; letter-spacing: 3px; color: var(--accent); font-family: ui-monospace, Menlo, monospace; }
+      #applied { display: inline-flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 800; color: var(--ok);
+        background: color-mix(in srgb, var(--ok) 16%, transparent); border: 1.5px solid color-mix(in srgb, var(--ok) 55%, transparent);
+        padding: 10px 20px; border-radius: 999px; will-change: transform, opacity; }
+
+      #discountRow { color: var(--ok); will-change: transform, opacity; }
+      #discountRow .k, #discountRow .v { color: var(--ok); }
+      #totalRow { padding-top: 24px; }
+      #totalRow .k { font-size: 40px; font-weight: 800; color: var(--text); }
+      #total { font-size: 68px; font-weight: 900; letter-spacing: -2px; color: var(--text); will-change: transform; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="checkout" data-start="0" data-duration="7" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Order summary","currency":"$","items":[{"label":"Pro plan · annual","price":120}],"coupon":{"code":"SAVE40","percent":40}}'>
+      <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
+        <div id="panel">
+          <div id="ttl"></div>
+          <div id="items"></div>
+          <div class="hr"></div>
+          <div class="row" id="subtotalRow"><span class="k">Subtotal</span><span class="v" id="subtotal"></span></div>
+          <div id="promo">
+            <span class="tag">Promo code</span>
+            <span class="code" id="code"></span>
+            <span id="applied">✓ Applied</span>
+          </div>
+          <div class="row" id="discountRow"><span class="k" id="discLabel"></span><span class="v" id="discount"></span></div>
+          <div class="hr"></div>
+          <div class="row" id="totalRow"><span class="k">Total</span><span class="v" id="total"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        title: VARS.title ?? 'Order summary',
+        currency: VARS.currency ?? '$',
+        items: VARS.items ?? [{ label: 'Pro plan · annual', price: 120 }],
+        coupon: VARS.coupon ?? { code: 'SAVE40', percent: 40 },
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      const cur = DATA.currency;
+      const subtotal = DATA.items.reduce((a, it) => a + (it.price || 0), 0);
+      const c = DATA.coupon || {};
+      const discount = c.amount != null ? c.amount : Math.round(subtotal * (c.percent || 0)) / 100;
+      const total = subtotal - discount;
+      // 2 decimals only if any number needs them
+      const needDec = [subtotal, discount, total, ...DATA.items.map((i) => i.price)].some((n) => Math.round(n) !== n);
+      const dec = needDec ? 2 : 0;
+      const fmt = (n) => cur + Number(n).toFixed(dec);
+
+      $('ttl').textContent = DATA.title;
+      $('items').innerHTML = DATA.items
+        .map((it) => `<div class="row item"><span class="k">${it.label}</span><span class="v">${fmt(it.price)}</span></div>`)
+        .join('');
+      $('subtotal').textContent = fmt(subtotal);
+      $('code').textContent = (c.code || '').toUpperCase();
+      $('discLabel').textContent = `Discount (${(c.code || '').toUpperCase()})`;
+      $('discount').textContent = '−' + fmt(discount);
+      $('total').textContent = fmt(subtotal); // starts at full price, then counts down
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#panel', { opacity: 0, y: 40, scale: 0.96, duration: 0.6, ease: 'power3.out', transformOrigin: '50% 50%' }, 0.1);
+      tl.from('#ttl', { opacity: 0, y: -16, duration: 0.45, ease: 'power3.out' }, 0.3);
+      tl.from('#items .row', { opacity: 0, x: -20, duration: 0.45, ease: 'power3.out', stagger: 0.12 }, 0.5);
+      tl.from('#subtotalRow', { opacity: 0, x: -20, duration: 0.45, ease: 'power3.out' }, 0.85);
+      // promo field appears
+      tl.from('#promo', { opacity: 0, y: 14, duration: 0.5, ease: 'power3.out' }, 1.2);
+      // code is "applied": field border flashes green + Applied chip pops
+      tl.fromTo('#promo', { borderColor: 'var(--panel-line)' }, { borderColor: 'var(--ok)', boxShadow: '0 0 26px color-mix(in srgb, var(--ok) 30%, transparent)', duration: 0.3, ease: 'power2.out' }, 1.7);
+      tl.from('#applied', { opacity: 0, scale: 0.4, duration: 0.5, ease: 'back.out(2.6)', transformOrigin: '50% 50%' }, 1.8);
+      // discount line slides in (green)
+      tl.from('#discountRow', { opacity: 0, y: -12, duration: 0.45, ease: 'power3.out' }, 2.15);
+      // total counts DOWN to the discounted price, then pops + turns accent
+      const counter = { v: subtotal };
+      tl.to(counter, { v: total, duration: 0.7, ease: 'power2.out', onUpdate: () => { $('total').textContent = fmt(counter.v); } }, 2.35);
+      tl.to('#total', { scale: 1.12, color: 'var(--accent)', duration: 0.35, ease: 'back.out(2.4)', transformOrigin: '100% 50%' }, 3.05);
+      window.__timelines['checkout'] = tl;
+    </script>
+  </body>
+</html>

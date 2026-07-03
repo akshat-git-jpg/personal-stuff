@@ -1,0 +1,93 @@
+<!doctype html>
+<!--
+  CHECKLIST   (Hyperframes card)
+  A "What you get" / "Requirements" list that ticks off one item at a time: each
+  row slides in, its box fills, and a checkmark draws on. 1920x1080, 30fps, 8s.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block (title, items[]) and   │
+  │  :root. Add/remove strings in items[]. Never touch the TIMELINE.          │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render checklist/checklist -o out.mp4 --fps 30
+  Override: --variables '{"title":"What you get","items":["A","B","C"]}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c; --check: #1a0d02; /* checkmark colour over the filled box */
+        --box-line: rgba(255, 255, 255, 0.22);
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 28% 18%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 140px 220px; }
+      #title { font-size: 64px; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 56px; will-change: transform, opacity; }
+      #list { display: flex; flex-direction: column; gap: 30px; }
+      .item { display: flex; align-items: center; gap: 28px; will-change: transform, opacity; }
+      .box { flex: 0 0 auto; width: 60px; height: 60px; border-radius: 16px; border: 3px solid var(--box-line);
+        background: transparent; display: flex; align-items: center; justify-content: center; }
+      .chk { width: 38px; height: 38px; }
+      .chk path { fill: none; stroke: var(--check); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+      .ilabel { font-size: 40px; font-weight: 700; line-height: 1.2; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="checklist" data-start="0" data-duration="8" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"What you get","items":["Full source code & assets","Step-by-step setup guide","Lifetime updates","Private community access","30-day money-back guarantee"]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="8" data-track-index="1">
+        <div id="title"></div>
+        <div id="list"></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        title: VARS.title ?? 'What you get',
+        items: VARS.items ?? [
+          'Full source code & assets',
+          'Step-by-step setup guide',
+          'Lifetime updates',
+          'Private community access',
+          '30-day money-back guarantee',
+        ],
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      document.getElementById('title').textContent = DATA.title;
+      document.getElementById('list').innerHTML = DATA.items
+        .map((t) => `<div class="item"><span class="box"><svg class="chk" viewBox="0 0 24 24"><path d="M4 12.5l5 5 11-12"/></svg></span><span class="ilabel">${t}</span></div>`)
+        .join('');
+
+      // prime each checkmark as an undrawn stroke (deterministic dash length)
+      document.querySelectorAll('.chk path').forEach((p) => {
+        const len = p.getTotalLength();
+        p.style.strokeDasharray = len;
+        p.style.strokeDashoffset = len;
+      });
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#title', { opacity: 0, y: -22, duration: 0.5, ease: 'power3.out' }, 0.1);
+      // rows slide in one by one
+      tl.from('.item', { opacity: 0, x: -36, duration: 0.45, ease: 'power3.out', stagger: 0.42 }, 0.5);
+      // each box fills accent just after its row lands...
+      tl.to('.box', { backgroundColor: 'var(--accent)', borderColor: 'var(--accent)', duration: 0.28, ease: 'power2.out', stagger: 0.42 }, 0.72);
+      // ...then the checkmark draws on
+      tl.to('.chk path', { strokeDashoffset: 0, duration: 0.32, ease: 'power2.out', stagger: 0.42 }, 0.84);
+      window.__timelines['checklist'] = tl;
+    </script>
+  </body>
+</html>

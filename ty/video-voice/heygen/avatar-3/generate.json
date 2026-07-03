@@ -1,0 +1,13 @@
+→ submitting Avatar III (unlimited-mode) …
+✓ video_id: 964b115dace24394b8c894c60ead8f27
+  → view: https://app.heygen.com/projects
+{
+  "code": 100,
+  "data": {
+    "video_id": "964b115dace24394b8c894c60ead8f27",
+    "avatar_id": "4553f46f2ceb4779990f0a83f7eab7ae"
+  },
+  "msg": null,
+  "message": null
+}
+ℹ️  download/status needs the Projects-page request captured (see README).

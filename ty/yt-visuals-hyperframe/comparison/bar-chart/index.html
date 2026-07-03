@@ -1,0 +1,95 @@
+<!doctype html>
+<!--
+  ANIMATED BAR CHART   (Hyperframes card)
+  Horizontal bars grow from 0 to their value (origin left); the value counts up.
+  1920x1080, 30fps, 6 seconds.
+
+  EDITOR: edit only ===== CONTENT ===== (title, bars[]) + :root. Each bar:
+  {label, value (number), color, prefix?, suffix?}. Bar length is value / max.
+  Render-time override:
+    --variables '{"title":"Price / mo","bars":[{"label":"A","value":4,"prefix":"$"}]}'
+  Render:  npx hyperframes@latest render comparison/bar-chart -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6); --accent: #fb923c;
+        --track: rgba(255,255,255,0.06);
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 130px; }
+      #chart { width: 100%; max-width: 1500px; }
+      .title { font-size: 60px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 56px; }
+      .bar { display: grid; grid-template-columns: 320px 1fr 200px; align-items: center; gap: 28px; margin: 26px 0; }
+      .bar .lbl { font-size: 32px; font-weight: 600; color: var(--text); text-align: right; }
+      .bar .track { height: 56px; background: var(--track); border-radius: 12px; overflow: hidden; }
+      .bar .fill { height: 100%; border-radius: 12px; transform-origin: left center; }
+      .bar .num { font-size: 38px; font-weight: 800; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="barchart" data-start="0" data-duration="6" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Cold start (ms · lower is better)","bars":[{"label":"Fly.io","value":30,"color":"#38bdf8","suffix":"ms"},{"label":"Hostinger","value":42,"color":"#fb923c","suffix":"ms"},{"label":"Railway","value":88,"color":"#fb7185","suffix":"ms"}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div id="chart"><div class="title" id="title"></div><div id="bars"></div></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        title: VARS.title ?? 'Cold start (ms · lower is better)',
+        bars: VARS.bars ?? [
+          { label: 'Fly.io', value: 30, color: '#38bdf8', suffix: 'ms' },
+          { label: 'Hostinger', value: 42, color: '#fb923c', suffix: 'ms' },
+          { label: 'Railway', value: 88, color: '#fb7185', suffix: 'ms' },
+        ],
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      const max = Math.max(...DATA.bars.map((b) => Number(b.value) || 0), 1);
+      function build() {
+        $('title').textContent = DATA.title;
+        $('bars').innerHTML = DATA.bars
+          .map((b, i) => {
+            const pct = ((Number(b.value) || 0) / max) * 100;
+            return `<div class="bar">
+              <div class="lbl">${b.label}</div>
+              <div class="track"><div class="fill" id="fill-${i}" style="width:${pct}%;background:linear-gradient(90deg,${b.color},${b.color}cc);box-shadow:0 0 24px ${b.color}55;"></div></div>
+              <div class="num" id="num-${i}" style="color:${b.color}">0</div>
+            </div>`;
+          })
+          .join('');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('.title', { opacity: 0, y: 20, duration: 0.55, ease: 'power3.out' }, 0.1);
+      DATA.bars.forEach((b, i) => {
+        const at = 0.5 + i * 0.22;
+        tl.from(`#fill-${i}`, { scaleX: 0, duration: 0.85, ease: 'power3.out' }, at);
+        const c = { v: 0 };
+        const dec = Number.isInteger(Number(b.value)) ? 0 : 1;
+        tl.to(c, {
+          v: Number(b.value) || 0, duration: 0.85, ease: 'power3.out',
+          onUpdate: () => { $('num-' + i).textContent = (b.prefix || '') + c.v.toFixed(dec) + (b.suffix || ''); },
+        }, at);
+      });
+      window.__timelines['barchart'] = tl;
+    </script>
+  </body>
+</html>

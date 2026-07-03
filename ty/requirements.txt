@@ -1,0 +1,8 @@
+gspread==6.2.1
+python-dotenv==1.2.1
+google-auth==2.48.0
+google-api-python-client==2.190.0
+google-genai==1.49.0
+pytest==8.3.4
+pytest-mock==3.14.0
+requests==2.32.3

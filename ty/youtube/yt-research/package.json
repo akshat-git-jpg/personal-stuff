@@ -1,0 +1,17 @@
+{
+  "name": "yt-research",
+  "version": "1.0.0",
+  "description": "YouTube niche research pipeline for comparison video knowledge bases",
+  "scripts": {
+    "start": "ts-node run.ts"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,7 @@
+# Heavy / regenerable artifacts — keep code + docs, ignore binaries
+engines/*/venv/
+engines/*/models/
+work/
+*.log
+engines/*/output/
+engines/indextts2/

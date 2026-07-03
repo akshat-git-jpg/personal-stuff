@@ -1,0 +1,3 @@
+step 1:
+
+  cd yt-research && npx ts-node run.ts --niche n8n-hosting                                                                           

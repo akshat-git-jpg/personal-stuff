@@ -1,0 +1,55 @@
+<!doctype html>
+<!--
+  LOWER THIRD   (Hyperframes OVERLAY — transparent background)
+  A name + subtitle pill slides in at the bottom-left and holds. Meant to sit on
+  top of your screen recording. 1920x1080, 30fps, 5 seconds.
+
+  ⚠ OVERLAY: render as a TRANSPARENT WebM so it composites over footage:
+    npx hyperframes@latest render overlay/lower-third -o lower-third.webm --format webm --fps 30
+  EDITOR: edit only ===== CONTENT ===== (name, subtitle) + :root colors.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root { --accent: #fb923c; --panel: rgba(15, 11, 7, 0.82); --text: #ffffff; --text-dim: rgba(255,239,219,0.7); --font: 'Inter', system-ui, sans-serif; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #lt { position: absolute; left: 96px; bottom: 140px; display: flex; align-items: stretch; }
+      .accentBar { width: 8px; border-radius: 8px 0 0 8px; background: var(--accent); }
+      .body { background: var(--panel); border: 1px solid rgba(255,255,255,0.12); border-left: none; border-radius: 0 16px 16px 0; padding: 22px 40px 22px 30px; backdrop-filter: blur(14px); }
+      .name { font-size: 50px; font-weight: 800; letter-spacing: -1px; line-height: 1.05; }
+      .sub { font-size: 26px; font-weight: 500; color: var(--text-dim); margin-top: 6px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="lowerthird" data-start="0" data-duration="5" data-width="1920" data-height="1080"
+      data-composition-variables='{"name":"Hostinger","subtitle":"Best n8n hosting for most people"}'>
+      <div id="lt" class="clip" data-start="0" data-duration="5" data-track-index="0">
+        <div class="accentBar" id="bar"></div>
+        <div class="body"><div class="name" id="name"></div><div class="sub" id="sub"></div></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = { name: VARS.name ?? 'Hostinger', subtitle: VARS.subtitle ?? 'Best n8n hosting for most people' };
+      document.getElementById('name').textContent = DATA.name;
+      document.getElementById('sub').textContent = DATA.subtitle;
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#lt', { opacity: 0, x: -70, duration: 0.6, ease: 'power3.out' }, 0.1);
+      tl.from('.name', { opacity: 0, y: 14, duration: 0.45, ease: 'power2.out' }, 0.3);
+      tl.from('.sub', { opacity: 0, y: 12, duration: 0.45, ease: 'power2.out' }, 0.42);
+      tl.from('#bar', { scaleY: 0, transformOrigin: 'top', duration: 0.5, ease: 'power2.out' }, 0.25);
+      window.__timelines['lowerthird'] = tl;
+    </script>
+  </body>
+</html>
