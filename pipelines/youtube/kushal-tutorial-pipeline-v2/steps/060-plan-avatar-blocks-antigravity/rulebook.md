@@ -1,14 +1,13 @@
-# Step 060 — plan avatar blocks (before TTS, with a human review gate)
+# Antigravity Prompt: 060 Plan Avatar Blocks
 
-Decide **which parts of the script the full-screen HeyGen 4 avatar will speak** — *before* any
-voice is generated. This is what lets step 2 chunk the audio so every avatar block falls on clean
-chunk boundaries (so a block's audio is exact, never trimmed or re-synthed). Claude drafts this
-from the script; **you review and approve**; only then does TTS run.
+Read the polished script at `../040-polish-script-for-delivery-sonnet/output/<base>.improved.txt`.
+Decide which parts of the script the full-screen HeyGen 4 avatar will speak.
 
 Output (two files):
 - `output/<base>.avatar-plan.md` — the human-readable review doc (what you read & give feedback on).
-- `output/<base>.avatar-segments.json` — the machine handoff step 080 (synthesize) consumes (the script split into
-  ordered `avatar` / `body` segments). Written once you approve.
+- `output/<base>.avatar-segments.json` — the machine handoff step 080 consumes (the script split into ordered `avatar` / `body` segments). Written once you approve.
+
+When done, print "060 avatar blocks planned."
 
 ## Why this is step 1 (before synth)
 The avatar decision sets **hard break points** for the chunker. If we decided after TTS we'd be

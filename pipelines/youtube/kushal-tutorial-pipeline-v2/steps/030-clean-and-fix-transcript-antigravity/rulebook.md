@@ -1,11 +1,10 @@
-# Step 030 — clean and fix transcript (Claude applies this)
+# Antigravity Prompt: 030 Clean and Fix Transcript
 
-Input: the raw transcript from step 1 (`<id>.transcript.txt` / `.json`).
-Output: a final, TTS-ready transcript that the voice step speaks cleanly.
+Read the raw transcript at `../020-transcribe-video-to-text-run/output/<base>.transcript.json`.
+Write the final, TTS-ready transcript to `output/<base>.clean.txt`.
+When done, print "030 transcript clean complete."
 
-This is the LLM step. There's no script to run — Claude reads the raw transcript and
-applies the rules below, then writes `<id>.final.txt`. (These rules were the
-`tts-transcript-prep` skill; they live here now so the tool is self-contained.)
+Apply the following rules to the transcript:
 
 ## The one rule that matters
 Clean for SPEECH-correctness, not text-correctness. The reader is a synth, not a person.
