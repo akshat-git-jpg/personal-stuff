@@ -1,0 +1,115 @@
+<!doctype html>
+<!-- ============================================================================
+  STATIC PASS · scene 03 · still-works
+  Build the FINAL-FRAME look for row 3 of ../../storyboard.md.
+  Rules: compose ONLY from kit atoms (kit/atoms.md) + tokens; NO motion this pass
+  (leave the timeline empty — M3 adds it). Assets are root-relative "kit/..."
+  and resolve through the ./kit symlink. Keep the watermark. Verify with:
+    node verify/verify.mjs videos/test/scenes/s03-still-works
+============================================================================ -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="kit/tokens.css" />
+    <link rel="stylesheet" href="kit/atoms.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      .title-block { position: absolute; top: 140px; left: 0; right: 0; text-align: center; }
+      .diagram-stage { position: absolute; top: 420px; left: 0; right: 0; display: flex; justify-content: center; align-items: center; gap: 120px; }
+      .encoders-wrap { display: flex; flex-direction: column; gap: var(--sp-3); position: relative; width: 280px; }
+      .strike-line { position: absolute; top: -10px; left: -10px; width: 300px; height: 260px; pointer-events: none; z-index: 10; }
+      .arrow-wrap { display: flex; align-items: center; }
+      .payoff-wrap { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+      .caption-block { position: absolute; bottom: 140px; left: 0; right: 0; text-align: center; }
+    </style>
+    <script src="kit/recipes.js"></script>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="7" data-width="1920" data-height="1080">
+      <!-- chrome -->
+      <div id="clip-watermark" class="clip" data-start="0" data-duration="7" data-track-index="0">
+        <div class="watermark">&lt;devsplainers&gt;</div>
+      </div>
+
+      <!-- Track 1: headline -->
+      <div id="clip-title" class="clip" data-start="0" data-duration="7" data-track-index="1">
+        <div class="title-block">
+          <h1 class="headline">DELETED THE PIECE EVERY MODEL WAS <span class="red">BUILT AROUND</span></h1>
+        </div>
+      </div>
+
+      <!-- Track 2: diagram -->
+      <div id="clip-diagram" class="clip" data-start="0" data-duration="7" data-track-index="2">
+        <div class="diagram-stage">
+          <!-- Left: Encoders Crossed Out -->
+          <div class="encoders-wrap">
+            <!-- Strike-through SVG lines -->
+            <svg class="strike-line" viewBox="0 0 300 260">
+              <line x1="10" y1="10" x2="290" y2="250" stroke="var(--red)" stroke-width="6" stroke-linecap="round" />
+              <line x1="290" y1="10" x2="10" y2="250" stroke="var(--red)" stroke-width="6" stroke-linecap="round" />
+            </svg>
+
+            <!-- Card 1: Vision -->
+            <div class="card is-blue" style="width: 280px; opacity: 0.6;">
+              <span class="tag">VISION</span>
+              <span class="title">VISION ENCODER</span>
+              <div class="lines">
+                <i></i>
+                <i></i>
+              </div>
+            </div>
+
+            <!-- Card 2: Audio -->
+            <div class="card is-blue" style="width: 280px; opacity: 0.6;">
+              <span class="tag">AUDIO</span>
+              <span class="title">AUDIO ENCODER</span>
+              <div class="lines">
+                <i></i>
+                <i></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle: Arrow -->
+          <div class="arrow-wrap">
+            <svg viewBox="0 0 100 40" style="width: 100px; height: 40px;">
+              <path class="connector is-solid" d="M 10 20 L 90 20 M 70 10 L 90 20 L 70 30" stroke="var(--green)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+
+          <!-- Right: Green Still Works Check -->
+          <div class="payoff-wrap">
+            <svg class="icon is-green is-lg" viewBox="0 0 48 48" style="width: 120px; height: 120px;">
+              <path d="M10 24 L20 34 L38 14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="stamp is-angled" style="background: var(--green); color: var(--bg);">STILL WORKS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Track 3: Caption -->
+      <div id="clip-caption" class="clip" data-start="0" data-duration="7" data-track-index="3">
+        <div class="caption-block">
+          <p class="caption is-good">AND IT STILL WORKS</p>
+        </div>
+      </div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Motion Pass Choreography
+      R.slideIn(tl, '.watermark', 0.2, 'right', { dist: 24 });
+      R.fadeUp(tl, '#clip-title .headline', 0.2);
+      R.staggerIn(tl, '.encoders-wrap .card', 0.6, { stagger: 0.12 });
+      R.drawOn(tl, '.encoders-wrap .strike-line line', 1.2);
+      R.drawOn(tl, '.arrow-wrap svg path', 1.8);
+      R.popIn(tl, '.payoff-wrap svg.icon', 2.2);
+      R.popIn(tl, '.payoff-wrap .stamp', 2.4);
+      R.fadeUp(tl, '#clip-caption .caption', 2.8);
+
+      window.__timelines['main'] = tl;
+    </script>
+  </body>
+</html>

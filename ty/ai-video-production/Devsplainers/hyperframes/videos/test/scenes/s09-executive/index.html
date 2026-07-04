@@ -1,0 +1,62 @@
+<!doctype html>
+<!-- ============================================================================
+  STATIC PASS · scene 09 · executive
+  Build the FINAL-FRAME look for row 9 of ../../storyboard.md.
+  Rules: compose ONLY from kit atoms (kit/atoms.md) + tokens; NO motion this pass
+  (leave the timeline empty — M3 adds it). Assets are root-relative "kit/..."
+  and resolve through the ./kit symlink. Keep the watermark. Verify with:
+    node verify/verify.mjs videos/test/scenes/s09-executive
+============================================================================ -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="kit/tokens.css" />
+    <link rel="stylesheet" href="kit/atoms.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="kit/recipes.js"></script>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="7" data-width="1920" data-height="1080">
+      <!-- chrome -->
+      <div id="clip-watermark" class="clip" data-start="0" data-duration="7" data-track-index="0">
+        <div class="watermark">&lt;devsplainers&gt;</div>
+      </div>
+      <!-- Track 1: Section Label -->
+      <div id="clip-section" class="clip" data-start="0" data-duration="7" data-track-index="1">
+        <div class="section-label">1 WHAT'S AN ENCODER?</div>
+      </div>
+
+      <!-- Track 2: Authority Card -->
+      <div id="clip-body" class="clip" data-start="0" data-duration="7" data-track-index="2">
+        <div id="body" class="stage-center">
+          <div class="authority">
+            <div class="photo" style="display: flex; align-items: center; justify-content: center;">
+              <svg class="icon" viewBox="0 0 48 48" style="width: 120px; height: 120px;">
+                <circle cx="24" cy="16" r="8" />
+                <path d="M8 38 C8 30, 16 28, 24 28 C32 28, 40 30, 40 38" />
+              </svg>
+            </div>
+            <div class="name">THE LANGUAGE MODEL</div>
+            <div class="roles">
+              <span class="pill">READS ENGLISH ONLY</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Motion Pass Choreography
+      R.slideIn(tl, '.watermark', 0.2, 'right', { dist: 24 });
+      R.fadeUp(tl, '.section-label', 0.2);
+      R.popIn(tl, '.authority .photo', 0.5);
+      R.fadeUp(tl, '.authority .name', 0.9);
+      R.popIn(tl, '.authority .roles .pill', 1.3);
+
+      window.__timelines['main'] = tl;
+    </script>
+  </body>
+</html>

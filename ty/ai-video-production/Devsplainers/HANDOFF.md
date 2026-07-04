@@ -111,7 +111,7 @@ Working dir: **`TY/ai-video-production/Devsplainers/hyperframes/`**. Reads `hype
 6. `kit/examples/` — 4 built scenes (title / loop-diagram / gauge / compare-cards) doubling as few-shot refs.
 7. `verify/verify.mjs` (§7 checks) + `serve.mjs` (gallery; **build fresh — do NOT copy from `yt-visuals-hyperframe/`**).
 
-**Guardrails:** Hyperframes is an `npx hyperframes@latest render <folder> -o out.mp4 --fps 30` tool — no local install, zero dependency on the forbidden `yt-visuals-hyperframe/` POC. Nothing committed yet (user's call; TY repo → run github-router before any commit). Per-video workflow (Step 1 storyboard) is blocked on the user supplying the **5-min script**. Frame stills + montages from the analysis are in the ephemeral job tmp (`$CLAUDE_JOB_DIR/tmp/okf_*`) — regenerate via the method in the Verification section if needed.
+**Guardrails:** Hyperframes is an `npx hyperframes@latest render <folder> -o out.mp4 --fps 30` tool — no local install, zero dependency on the forbidden `yt-visuals-hyperframe/` POC. Nothing committed yet (user's call; TY repo → run github-router before any commit). **Generation driver DECIDED (2026-07-01): Antigravity** — it generates scenes in parallel (Steps 2 & 4) and verification runs in batches with an Antigravity fix pass (SPEC §6/§7). Per-video workflow (Step 1 storyboard) is blocked on the user supplying the **5-min script**. Frame stills + montages from the analysis are in the ephemeral job tmp (`$CLAUDE_JOB_DIR/tmp/okf_*`) — regenerate via the method in the Verification section if needed.
 
 ## Key files for next session
 - `/Users/kbtg/codebase/TY/ai-video-production/Devsplainers/README.md` — read first; the Devsplainers visual-system reverse-engineering (colors, type, components, production method).

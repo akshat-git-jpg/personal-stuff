@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- ============================================================================
+  STATIC PASS · scene 05 · encoder-free-flash
+  Build the FINAL-FRAME look for row 5 of ../../storyboard.md.
+  Rules: compose ONLY from kit atoms (kit/atoms.md) + tokens; NO motion this pass
+  (leave the timeline empty — M3 adds it). Assets are root-relative "kit/..."
+  and resolve through the ./kit symlink. Keep the watermark. Verify with:
+    node verify/verify.mjs videos/test/scenes/s05-encoder-free-flash
+============================================================================ -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="kit/tokens.css" />
+    <link rel="stylesheet" href="kit/atoms.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      .watermark { color: var(--bg) !important; z-index: 100; }
+    </style>
+    <script src="kit/recipes.js"></script>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="4" data-width="1920" data-height="1080">
+      <!-- chrome -->
+      <div id="clip-watermark" class="clip" data-start="0" data-duration="4" data-track-index="0">
+        <div class="watermark">&lt;devsplainers&gt;</div>
+      </div>
+
+      <!-- Track 1: Color Flash -->
+      <div id="clip-body" class="clip" data-start="0" data-duration="4" data-track-index="1">
+        <div id="body" class="color-flash is-amber">
+          <span class="word">ENCODER-FREE</span>
+        </div>
+      </div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Motion Pass Choreography
+      R.slideIn(tl, '.watermark', 0.2, 'right', { dist: 24 });
+      R.flash(tl, '.color-flash', 0.1);
+      R.popIn(tl, '.color-flash .word', 0.35);
+
+      window.__timelines['main'] = tl;
+    </script>
+  </body>
+</html>

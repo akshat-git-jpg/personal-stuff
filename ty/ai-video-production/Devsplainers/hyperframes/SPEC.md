@@ -3,7 +3,7 @@
 **Date:** 2026-07-01
 **Status:** Design approved (brainstorm), pre-implementation
 **Home:** `TY/ai-video-production/Devsplainers/hyperframes/`
-**Companion docs:** `../README.md` (visual-system reverse-engineering), `../HANDOFF.md` (session history + decisions)
+**Companion docs:** `PIPELINE.md` (the run-order map + `steps/`), `../README.md` (visual-system reverse-engineering), `../HANDOFF.md` (session history + decisions)
 
 ---
 
@@ -14,9 +14,9 @@ explainer scenes — as individual rendered MP4 clips, cheaply and repeatably. T
 the first run: **~30 scenes for a 5-minute script** the user will supply.
 
 The cost strategy: **a strong model (Claude Opus) builds the reusable kit once and does the
-cheap per-video art-direction; a cheap model (Gemini API / UI / Antigravity — chosen in
-phase 2) generates the per-scene code; the user reviews static stills before any motion is
-generated.** Rendering is local and free.
+cheap per-video art-direction; a cheap agentic driver (Antigravity) generates the per-scene
+code in parallel and then verifies in batches; the user reviews static stills before any
+motion is generated.** Rendering is local and free.
 
 ## 2. Scope
 
@@ -28,7 +28,7 @@ generated.** Rendering is local and free.
 **Out of scope (deferred to phase 2):**
 - Final assembly (concatenating clips) and voiceover / VO-sync. Output is per-scene MP4s only.
 - The hosted `render2.agrolloo.com` renderer (it reads from the old POC folder; not wired to this).
-- Choosing the cheap generation driver (Gemini API vs UI vs Antigravity) — the workflow is identical regardless; the driver only changes who pulls the trigger.
+- Whether Step-1 art-direction/storyboard runs on Claude Opus or is also pushed to an Antigravity/Gemini surface (cheap either way). The scene-generation driver itself is **decided — Antigravity** (§6).
 - Rebranding to the user's own channel identity (this phase clones the Devsplainers look exactly).
 
 **Explicitly forbidden:**
@@ -184,7 +184,9 @@ See §7.
 
 ## 6. Per-video workflow
 
-Division of labor: **Opus = kit + plan; cheap model = scene volume; user = review gate.**
+Division of labor: **Opus = kit + plan; Antigravity (parallel) = scene volume; user = review gate.**
+Antigravity drives Steps 2 & 4: it generates scenes **concurrently** (many at once, not one-by-one),
+then verification runs as a **batch** over the produced set (§7).
 (Workflow "Steps" below are within-video stages; not to be confused with project "phase 2" = deferred work in §2/§10.)
 
 **Step 1 — Storyboard (Opus, cheap text).**
@@ -192,27 +194,33 @@ Input: the 5-min script. Output: `videos/<slug>/storyboard.md` — ~30 scene spe
 beat / voiceover line → visual metaphor → atoms used → layout sketch → accent color → duration → notes.
 User sanity-checks the *plan* here (cheap, text-only) before any pixels.
 
-**Step 2 — Static generation (cheap model).**
-For each spec, generate a static `index.html` (final-frame look, **no motion yet**) using only kit
-atoms + tokens, starting from the scaffold. Render each to a still (`stills/`). Assemble into a
-**contact-sheet gallery** via `serve.mjs`.
+**Step 2 — Static generation (Antigravity, parallel).**
+Antigravity generates the ~30 static `index.html` scenes **concurrently** (final-frame look,
+**no motion yet**) using only kit atoms + tokens, starting from the scaffold. Render each to a
+still (`stills/`). Assemble into a **contact-sheet gallery** via `serve.mjs`.
 
 **Step 3 — REVIEW GATE (user).**
 User flips through the static contact sheet and gives per-scene feedback ("scene 12 metaphor is
 off", "recolor 7 to blue"). Iterate on **static only** — cheap. Lock the look.
 
-**Step 4 — Motion pass (cheap model).**
-Add the GSAP `TIMELINE` to each *approved* static scene using `recipes.js`. Render each to MP4:
+**Step 4 — Motion pass (Antigravity, parallel).**
+Antigravity adds the GSAP `TIMELINE` to each *approved* static scene (in parallel) using
+`recipes.js`. Render each to MP4:
 `npx hyperframes@latest render videos/<slug>/scenes/sNN-<slug> -o renders/sNN.mp4 --fps 30`.
 
-**Step 5 — Verify loop (local, $0).**
-Every render is auto-checked (§7); the cheap model fixes failures for free until green.
+**Step 5 — Batch verify (local, $0).**
+After a generation batch completes, run verify across the **whole batch** at once (§7); collect
+the machine-readable failure list; Antigravity does a **fix pass** on just the failing scenes;
+re-verify the batch. Repeat until the batch is green.
 
 **Deliverable:** `videos/<slug>/renders/*.mp4` (~30 clips) + the preview gallery.
 
-## 7. Verify loop (checks)
+## 7. Batch verify (checks)
 
-`verify/verify.mjs <scene-folder>` renders the scene and asserts:
+`verify/verify.mjs` accepts **one scene folder or a whole `scenes/` dir** (batch mode). In batch
+mode it verifies every scene, prints a per-scene pass/fail table, and writes a machine-readable
+failure report (`verify-report.json`: scene → list of failed checks) that Antigravity consumes to
+fix only the failing scenes. Per scene it renders and asserts:
 1. **Renders** without error at 1920×1080.
 2. **Color discipline:** no colors outside the token palette (lint the CSS/inline styles for raw hexes not in `tokens.css`).
 3. **Font discipline:** only Anton + JetBrains Mono are used/loaded.
@@ -220,7 +228,7 @@ Every render is auto-checked (§7); the cheap model fixes failures for free unti
 5. **Watermark present.**
 6. **hyperframes-helper lint gotchas** pass (run its lint checks).
 
-Exit non-zero + a machine-readable reason list so the cheap driver can auto-iterate.
+Exit non-zero if any scene fails; the `verify-report.json` reason list drives Antigravity's batch fix pass.
 
 ## 8. Tooling / commands
 
@@ -240,7 +248,8 @@ Exit non-zero + a machine-readable reason list so the cheap driver can auto-iter
 - **Live preview while authoring:** `npx hyperframes@latest preview`.
 - **Render-time content injection:** `--variables '{"title":"…"}'` (for same-scene reuse across videos).
 - **Gallery / contact sheet:** `node serve.mjs` → localhost (built fresh for this project).
-- **Verify:** `node verify/verify.mjs <scene-folder>`.
+- **Verify (single):** `node verify/verify.mjs <scene-folder>`.
+- **Verify (batch):** `node verify/verify.mjs videos/<slug>/scenes` → per-scene table + `verify-report.json`.
 - **Skill:** `hyperframes-helper` (recipes, lint gotchas, storyboard templates) + official `hyperframes` skill for authoring/rendering basics.
 
 ## 9. Cost model
@@ -253,7 +262,7 @@ Exit non-zero + a machine-readable reason list so the cheap driver can auto-iter
 
 ## 10. Open decisions (deferred to phase 2)
 
-- Cheap generation driver: Gemini API (automated loop) vs Gemini UI (manual paste) vs Antigravity (agentic).
+- Antigravity tuning: how many scenes to generate in parallel and the batch size for verify + fix passes (tune during the first video).
 - Final assembly + voiceover (stitch + VO-sync) vs hand clips to the editor.
 - Rebrand from the Devsplainers clone to the user's own channel identity (colors/fonts/logo/handle).
 - Whether to wire a hosted "paste HTML → MP4" renderer for the editor.

@@ -1,0 +1,157 @@
+[
+  {
+    "n": 1,
+    "slug": "hook-sees-hears",
+    "dur": 8
+  },
+  {
+    "n": 2,
+    "slug": "eyes-ears-removed",
+    "dur": 5
+  },
+  {
+    "n": 3,
+    "slug": "still-works",
+    "dur": 7
+  },
+  {
+    "n": 4,
+    "slug": "hn-quote",
+    "dur": 7
+  },
+  {
+    "n": 5,
+    "slug": "encoder-free-flash",
+    "dur": 4
+  },
+  {
+    "n": 6,
+    "slug": "title-gemma",
+    "dur": 4
+  },
+  {
+    "n": 7,
+    "slug": "agenda",
+    "dur": 12
+  },
+  {
+    "n": 8,
+    "slug": "section-what-is-encoder",
+    "dur": 4
+  },
+  {
+    "n": 9,
+    "slug": "executive",
+    "dur": 7
+  },
+  {
+    "n": 10,
+    "slug": "vision-translator",
+    "dur": 10
+  },
+  {
+    "n": 11,
+    "slug": "audio-translator",
+    "dur": 8
+  },
+  {
+    "n": 12,
+    "slug": "normal-multimodal",
+    "dur": 8
+  },
+  {
+    "n": 13,
+    "slug": "mapping-recap",
+    "dur": 7
+  },
+  {
+    "n": 14,
+    "slug": "vision-encoder-params",
+    "dur": 8
+  },
+  {
+    "n": 15,
+    "slug": "bolt-on-law",
+    "dur": 8
+  },
+  {
+    "n": 16,
+    "slug": "section-the-cost",
+    "dur": 5
+  },
+  {
+    "n": 17,
+    "slug": "catch-memory",
+    "dur": 8
+  },
+  {
+    "n": 18,
+    "slug": "catch-lag",
+    "dur": 8
+  },
+  {
+    "n": 19,
+    "slug": "catch-frozen",
+    "dur": 9
+  },
+  {
+    "n": 20,
+    "slug": "fired-translators",
+    "dur": 9
+  },
+  {
+    "n": 21,
+    "slug": "the-assumption",
+    "dur": 9
+  },
+  {
+    "n": 22,
+    "slug": "what-if-wrong",
+    "dur": 10
+  },
+  {
+    "n": 23,
+    "slug": "image-tiles",
+    "dur": 9
+  },
+  {
+    "n": 24,
+    "slug": "single-multiply",
+    "dur": 11
+  },
+  {
+    "n": 25,
+    "slug": "position-wrinkle",
+    "dur": 8
+  },
+  {
+    "n": 26,
+    "slug": "coord-tags",
+    "dur": 9
+  },
+  {
+    "n": 27,
+    "slug": "param-compare-35m",
+    "dur": 11
+  },
+  {
+    "n": 28,
+    "slug": "audio-slivers",
+    "dur": 12
+  },
+  {
+    "n": 29,
+    "slug": "single-brain",
+    "dur": 10
+  },
+  {
+    "n": 30,
+    "slug": "seeing-absorbed",
+    "dur": 8
+  },
+  {
+    "n": 31,
+    "slug": "runs-on-laptop",
+    "dur": 9
+  }
+]
