@@ -24,7 +24,7 @@ The full repo map, what-runs-where, and conventions live in the README, imported
 | A specific app | apps/<name>/ — full list in the README map below; every app folder has its own CLAUDE.md |
 | YouTube / Pinterest / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
 | YouTube research / scripts / tutorial pipeline | `pipelines/youtube/` |
-| Voiceover / TTS / RVC / HeyGen avatar pipelines | `pipelines/video-voice/` |
+| Voiceover / TTS / RVC / HeyGen avatar pipelines | `pipelines/video/voice/` |
 | Income tracking across platforms | `pipelines/income-analysis/` |
 | Cross-project research notes, design specs, handoff docs | [`docs/`](docs/README.md) |
 | Implementation plans for executor agents (write or run one) | [`plans/README.md`](plans/README.md) — convention in [`plans/WORKFLOW.md`](plans/WORKFLOW.md) |

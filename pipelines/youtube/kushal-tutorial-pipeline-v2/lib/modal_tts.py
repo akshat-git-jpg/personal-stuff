@@ -1,6 +1,6 @@
 """The single GPU call: IndexTTS-2 on Modal. Used by step 080 (synthesize).
 
-Reuses the existing app at TY/video-voice/tts-flow/modal/indextts2_app.py — the only piece of
+Reuses the existing app at TY/video/voice/tts-flow/modal/indextts2_app.py — the only piece of
 this pipeline that runs off-machine. Everything else is local.
 """
 import json, subprocess, pathlib

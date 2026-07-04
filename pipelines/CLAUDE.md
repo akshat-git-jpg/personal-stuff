@@ -66,7 +66,7 @@ npx ts-node run.ts --niche <slug>
 | [`video/card-library/`](video/card-library/README.md) | Visual templates for Video Studio | HTML/CSS/JS |
 | [`hyperframes-vs-remotion/`](hyperframes-vs-remotion/CLAUDE.md) | Superseded Hyperframes vs Remotion rendering tests | HTML/CSS/JS |
 | [`video/motion-graphics/`](video/motion-graphics/README.md) | Motion-graphics assets and Devsplainers-style build kit | HTML/CSS/GSAP |
-| [`video-voice/`](video-voice/README.md) | Voiceover pipeline (RVC pitch conversion, TTS engine, heygen) | Python + Node |
+| [`video/voice/`](video/voice/README.md) | Voiceover pipeline (RVC pitch conversion, TTS engine, heygen) | Python + Node |
 | [`bank-statement-parser/`](tools/bank-statement-parser/README.md) | Bank statements parsing & reconciliation engine | Python |
 | [`income-analysis/`](income-analysis/README.md) | Gumroad/Skool income snapshot retrieval CLIs | Python |
 | [`upwork-hiring/`](notes/upwork-hiring/CLAUDE.md) | Hiring-post markdown generator | Claude workflow |

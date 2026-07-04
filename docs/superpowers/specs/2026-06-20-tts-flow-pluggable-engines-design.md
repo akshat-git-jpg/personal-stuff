@@ -10,8 +10,8 @@ accent-neutral female voiceover that stays in sync with the video — with **no 
 cost**. The system must let us trial different open-source TTS engines (Kokoro, IndexTTS2,
 Qwen-TTS, …) easily, each isolated in its own folder.
 
-See `pipelines/video-voice/tts-flow/CLAUDE.md` for the why (RVC can't fix delivery; only
-regenerating from corrected text can) and `pipelines/video-voice/RVC-flow/CLAUDE.md` for the
+See `pipelines/video/voice/tts-flow/CLAUDE.md` for the why (RVC can't fix delivery; only
+regenerating from corrected text can) and `pipelines/video/voice/RVC-flow/CLAUDE.md` for the
 rejected-but-kept fallback.
 
 ## Requirements
