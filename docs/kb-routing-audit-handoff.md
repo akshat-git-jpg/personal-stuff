@@ -68,7 +68,7 @@ These require SSH / interactive auth and are the user's to run:
    launchctl unload ~/Library/LaunchAgents/com.kushal.yt-claude-relay.plist
    launchctl load   ~/Library/LaunchAgents/com.kushal.yt-claude-relay.plist
    ```
-2. **Add TY to the VPS** (one-time, only needed to include TY in the audit): create a read-only GitHub deploy key for the TY repo, add a `Host github-ty` block in `/root/.ssh/config` mirroring the existing `github-personal-stuff` alias, then `git clone` TY to `/srv/projects/TY/` on the VPS.
+2. **(Obsolete) Add TY to the VPS**: TY was merged into personal-stuff and the standalone VPS clone was retired by plans/010.
 3. **After the agent scaffolds the cron + pushes:** on the VPS, `cd /srv/crons && git pull`, create `kb-routing-audit/.env` (Telegram token + chat_id, `chmod 600`), smoke-test `/srv/crons/kb-routing-audit/run.sh`, then `crontab /srv/crons/crontab.txt` to activate.
 
 ## Pick up here
