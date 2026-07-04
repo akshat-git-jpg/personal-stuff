@@ -35,5 +35,26 @@ Plans must be written so they are executable with **zero context** beyond the pl
 
 ---
 
+## Run log (execution ledger)
+
+Every automated execution run writes ONE append-only ledger: `plans/runs/<run-id>.md`, where a **run** is one batch of plans handed to one executor and `<run-id>` is `<YYYYMMDD-HHMM>-<slug>`. The orchestrator creates the file with the header line; the executor appends everything else. Both executor backends (Antigravity, Sonnet subagents) write the identical format — recovery always reads one document.
+
+```
+## RUN <run-id>  executor: <antigravity|sonnet|opus>  plans: <NNN,NNN>  planned-at: <SHA>
+[HH:MM:SS] RUN START
+[HH:MM:SS] PLAN NNN START
+[HH:MM:SS] PLAN NNN HEARTBEAT <short note>          ← at least every 3 minutes while working
+[HH:MM:SS] PLAN NNN DONE  verify: <results>  files: <changed files>
+[HH:MM:SS] PLAN NNN BLOCKED: <reason>               ← then stop the run; do not continue
+[HH:MM:SS] ROUND 2 START  fixes: <issue summary>    ← orchestrator-initiated fix-up round
+[HH:MM:SS] RUN DONE                                  ← success sentinel, always the last line
+```
+
+**Reading rule (recovery):** the last `PLAN NNN START` with no matching `DONE`/`BLOCKED` line is where the run died or is still in flight. Everything above it with a `DONE` is safe; resume from the dead plan. `scripts/runlog-status.sh` in the `orchestrate` skill folder encodes this rule — one line of output instead of re-reading the log.
+
+**Who writes what:** verify results go inside the `DONE` line (the ledger doubles as the result record). The executor still flips its plan's status cell in `plans/README.md` at completion — the README stays the static index, the run-log is the live blow-by-blow.
+
+---
+
 ## Source of Plans
 Plans can originate from automated repo audits (e.g., the `improve` skill), design spikes, or direct instruction from the owner. One plan represents one reviewable and mergeable unit of work.

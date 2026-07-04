@@ -14,6 +14,8 @@
 - **Risk**: <LOW | MED | HIGH>
 - **Depends on**: <dependencies or none>
 - **Category**: <feature | bug | security | tech-debt | dx>
+- **Executor**: <antigravity | sonnet | opus — user's call wins; unstated → sonnet, tricky → opus>
+- **Difficulty**: <mechanical | standard | tricky>
 - **Planned at**: commit `<commit_hash>`, <YYYY-MM-DD>
 
 ## Why this matters

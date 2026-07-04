@@ -1,10 +1,10 @@
 ---
 name: orchestrate
-description: Plan a NEW thing to build — a feature, component, tool, script, or small app — as a self-contained handoff plan that a cheaper executor model (Antigravity, Sonnet, etc.) runs, while YOU (the expensive model) only orchestrate and never implement. This is the new-work sibling of the `improve` skill (which audits EXISTING code); use `orchestrate` when the work is building something new. Triggers on "let's build X", "implement Y", "add a feature", "plan this for antigravity", "orchestrate this", "make a plan a cheaper model can build", "I want to build a new …", "spec this out for an executor", "hand this off to antigravity". When requirements are fuzzy it brainstorms first via superpowers:brainstorming, then writes an executor-ready plan into plans/ following plans/WORKFLOW.md + plans/_TEMPLATE.md, and produces a copy-paste handoff prompt. Do NOT use for auditing/improving existing code (use `improve`) or for one-off tiny edits you'd just make directly.
+description: Plan a NEW build (feature, tool, script, small app) as a self-contained plan in plans/ (per plans/WORKFLOW.md + _TEMPLATE.md) that a cheaper executor runs — you orchestrate, never implement; brainstorms first when requirements are fuzzy, then runs an AUTOMATED handoff loop (dispatch to Antigravity via GUI script or Sonnet subagents, wait token-free on a run-log watcher, verify cheaply, fix-up rounds). New-work sibling of `improve` (which audits EXISTING code). Triggers on "let's build X", "implement Y", "add a feature", "orchestrate this", "plan this for antigravity", "make a plan a cheaper model can build", "spec this out for an executor", "hand this off to antigravity", "run the plans", "execute the batch". Not for auditing existing code (use `improve`) or tiny one-off edits.
 user-invocable: true
 metadata:
   author: kbtg
-  version: 1.0.0
+  version: 2.1.0
 ---
 
 # Orchestrate
@@ -142,28 +142,131 @@ cited file yourself before quoting it — a wrong excerpt becomes a wrong plan.
 Then write/update `plans/README.md`: add the new plan row(s), execution order,
 dependencies, status `TODO`.
 
-### Step 4 — Hand off
+### Step 3.5 — Executor-readiness gate (before any handoff)
 
-Default: **stop at the plan and produce a copy-paste handoff prompt** for the
-user to run in Antigravity. The prompt must tell the executor to:
+A plan is ready for a cheaper executor only when **the executor never has to
+decide — only do and verify**. Self-check every plan:
 
-- read the whole plan first (including its executor-instructions header),
-- run the **drift check** before starting,
-- work stages/steps in order and **commit per stage** (rollback granularity),
-- run every **Verify** and confirm before continuing,
-- honor **STOP conditions** literally (stop and report, don't work around),
-- update the plan's `plans/README.md` row when done,
-- **not push** unless the user says so,
-- report what changed, verify results, any STOP hit, and flagged follow-ups.
+1. **Zero open decisions.** No "choose an appropriate…", "design a…", "as
+   needed", "pick a sensible…" left in any step. Every decision is made here,
+   by you, and inlined as a fact the executor obeys.
+2. **The intelligence-heavy bits are IN the plan.** If one function/algorithm/
+   schema is the hard part, write that exact snippet into the plan yourself —
+   authoring a critical snippet inside a plan is planning, not implementing.
+   The executor places and wires it.
+3. **Every Verify is machine-checkable.** Command + expected output, no "looks
+   right".
+4. **Zero-context test.** A model that has never seen this conversation could
+   execute it from the plan file + repo alone.
 
-Also restate the load-bearing decisions the executor must not re-litigate (chosen
-libraries, naming, scope boundaries) and any human-only preconditions (secrets,
-a decision, an SSH/push step).
+Then grade each plan — `Difficulty: mechanical | standard | tricky`:
 
-**Optional execute path:** if the user would rather run it in-session than in
-Antigravity, offer to dispatch a cheaper executor subagent on one plan and then
-review its diff like a tech lead (re-run done criteria, check scope) — mirroring
-`improve`'s `execute` mode. Still never implement it yourself.
+- **mechanical** — pure placement/renames/config; any executor.
+- **standard** — normal feature work fully specified by the plan.
+- **tricky** — still needs real judgment even with everything inlined (gnarly
+  refactor, subtle concurrency, security-sensitive logic). Route to the `opus`
+  executor (below) — a cheap model here just buys fix-up rounds.
+
+**Executor selection:** the user's explicit choice always wins (they normally
+name it per batch). If unstated: `tricky` → `opus`, everything else → `sonnet`.
+
+### Step 4 — Hand off (automated loop)
+
+Default: **run the automated handoff loop** in this session. The governing rule:
+a lot of context flows INTO the executor; only a thin signal flows back. You
+never re-read executor diffs — verification is exit codes, structural checks,
+and one-line verdicts.
+
+#### Executor registry
+
+Pick the executor from each plan's `Executor:` field (ask the user if plans in
+one batch disagree). Adding a future executor = one new row here + optionally
+one dispatch script; the run-log, verification, and rounds are executor-agnostic.
+
+| Executor | Dispatch | Completion signal | Death detection |
+|---|---|---|---|
+| `antigravity` | `scripts/ag-handoff.sh <prompt-file>` (pbcopy → focus → Cmd+V → Enter; `AG_APP` defaults to "Antigravity IDE") | `RUN DONE` in the run-log, via `scripts/watch-run.sh` | heartbeat staleness (default 10 min) — a GUI app emits no process signal |
+| `sonnet` | one Agent-tool subagent **per plan**, `model: sonnet`; orchestrator checkpoints between plans | subagent returns + run-log `PLAN NNN DONE` | harness surfaces a dead subagent immediately |
+| `opus` | one Agent-tool subagent **per plan**, `model: opus` — for `tricky` plans only | same as `sonnet` | same as `sonnet` |
+
+Notes:
+- **Antigravity's internal model is set in the app's own model picker** — the
+  skill cannot select or verify it. Antigravity runs on its own subscription,
+  so it's the cheapest choice for mechanical batches; `sonnet`/`opus` subagents
+  share the Claude usage pool.
+- **One run at a time.** Runs share one working tree and git history —
+  never dispatch a second run (any executor) while one is in flight.
+
+#### 4a — Start the run
+
+1. Run-id: `<YYYYMMDD-HHMM>-<slug>`. Create `plans/runs/<run-id>.md` containing
+   only the header line (format in `plans/WORKFLOW.md` → "Run log"). The
+   executor appends everything else.
+2. Build the handoff prompt and save it to `plans/runs/<run-id>.prompt.md`
+   (it's the record of what was dispatched). The prompt must tell the executor to:
+   - read each whole plan first (including its executor-instructions header),
+   - run the **drift check** before starting,
+   - work plans/steps in order and **commit per stage** (rollback granularity),
+   - run every **Verify** and confirm before continuing,
+   - honor **STOP conditions** literally (stop and report, don't work around),
+   - **write the run-log**: `PLAN NNN START` before each plan, a `HEARTBEAT`
+     line at least every 3 minutes, `DONE` with verify results + changed files
+     (or `BLOCKED: reason`, then STOP the whole run), and `RUN DONE` as the
+     final line,
+   - update each plan's `plans/README.md` row when done,
+   - **not push** unless the user says so.
+   Also restate the load-bearing decisions the executor must not re-litigate
+   (chosen libraries, naming, scope boundaries) and any human-only
+   preconditions (secrets, a decision, an SSH/push step).
+
+#### 4b — Dispatch and wait (token-free)
+
+- **Antigravity**: run `scripts/ag-handoff.sh <prompt-file>`, then launch
+  `scripts/watch-run.sh <run-log> [timeout-min]` as a **background** Bash task.
+  The session idles at ~zero token cost (no model turns) until the watcher
+  exits: `0` = RUN DONE, `2` = BLOCKED, `3` = stale/dead, `4` = never started.
+  Never wait in a foreground sleep — a single blocking bash call is capped.
+- **Sonnet**: dispatch the subagent for plan N with the plan path + run-log
+  instructions; it self-verifies, appends its log lines, returns a thin report.
+  Verify (4c) before dispatching plan N+1.
+
+#### 4c — Wake up and verify (cheap, layered)
+
+First run `scripts/runlog-status.sh <run-log>` — one line tells you done /
+blocked / dead-at-plan. Then a **scope check**: `git diff --stat <planned-at
+SHA>..HEAD` file names must be a subset of the batch's in-scope lists — catches
+an executor that "helpfully" touched out-of-scope files even when tests pass.
+Then verify by what each plan produces:
+
+1. **Code** → re-run the plan's own **Done criteria** commands; read only exit
+   codes + the last error line. A cheerful `DONE` line can lie; the commands
+   don't.
+2. **Content with no tests** → structural check only: file exists, non-empty,
+   required sections present, JSON validates. Don't read and judge the prose.
+3. **Subjective quality** → dispatch ONE cheap subagent to read the artifact
+   and return only PASS/FAIL + up to 3 issues. The heavy read happens in the
+   subagent's context, not yours.
+
+#### 4d — Fix-up rounds (max 2)
+
+If verification finds real gaps (failed Done criteria, verdict issues): write a
+**small fix-up prompt** — the issues list + pointer back to the plan + run-log
+instructions with a `ROUND N START fixes: <summary>` marker. Same run-log, same
+dispatch mechanism. **Cap: 2 fix-up rounds**, then stop and surface to the user
+— an executor failing twice on the same issue needs human eyes, not more tokens.
+
+#### 4e — On death or BLOCKED
+
+No auto-retry, no auto-notify (deliberate — policy seam for later). Read
+`runlog-status.sh` output + the last few log lines, report to the user exactly
+how far it got ("001 done and verified; 002 started 10:05, died at step 2"),
+and wait for their call. Everything above a `DONE` line is safe; recovery
+resumes from the dead plan.
+
+**Fallback:** if the user prefers, or `ag-handoff.sh` fails (no Accessibility
+permission), stop at the plan and produce the copy-paste handoff prompt — the
+prompt content is identical, only the paste is manual. The watcher + verify
+loop still runs.
 
 ## Relationship to superpowers and improve (the clean composition)
 
@@ -171,10 +274,17 @@ review its diff like a tech lead (re-run done criteria, check scope) — mirrori
         fuzzy idea ──▶ superpowers:brainstorming        (clarify — you INVOKE it, never edit it)
                                 │  clear requirements
                                 ▼
-  orchestrate:  recon repo ──▶ write plan(s) in plans/  ──▶ handoff prompt (Antigravity)
-                                │  (plans/_TEMPLATE.md + WORKFLOW.md — same contract as `improve`)
+  orchestrate:  recon repo ──▶ write plan(s) in plans/   (plans/_TEMPLATE.md + WORKFLOW.md — same contract as `improve`)
+                                │
                                 ▼
-                         cheaper executor runs one plan at a time
+                dispatch (ag-handoff.sh │ sonnet subagent per plan)
+                                │
+                                ▼
+        executor implements + self-verifies ──▶ appends plans/runs/<run-id>.md
+                                │                        ▲
+              watch-run.sh (bg, ~0 tokens)               │ fix-up round (≤2)
+                                ▼                        │
+        wake ──▶ runlog-status.sh ──▶ tiered verify ──▶ gaps? ──▶ done / report
 ```
 
 - **superpowers owns "how to think through a new feature."** You call

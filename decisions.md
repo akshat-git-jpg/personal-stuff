@@ -8,6 +8,8 @@ Format: `YYYY-MM-DD — <decision> — <why> (<optional link>)`
 
 ## Decisions
 
+2026-07-05 — orchestrate v2.1: executor-readiness gate (plan is handoff-ready only when the executor never decides — zero open decisions, tricky snippets authored INTO the plan by the orchestrator) + Difficulty grade routing (tricky → opus subagent; otherwise user's stated executor, unstated → sonnet) + scope check at verify (diff file names ⊆ in-scope) + one-run-at-a-time rule — design/architecture intelligence stays at plan time with Opus; Antigravity's internal model is set in its app UI, not by the skill.
+
 2026-07-04 — dissolved the ty/ theme-folder: renamed to pipelines/ (the shared-Python content/automation workspace, anchored by common/env.py), extracted the redirector + pinterest landing-pages Workers into apps/, and merged ty's decisions/docs/routing into the single root brain — ty/ was the only origin/theme-grouped bucket and forced a two-brain repo; the money-making lens now lives in context/bets.md, not the tree.
 
 2026-07-05 — orchestrate skill v2: automated handoff loop (dispatch → run-log ledger → bg watcher → cheap verify → ≤2 fix-up rounds) with two executors (antigravity via GUI-paste script pinned to "Antigravity IDE"; sonnet as one subagent per plan) — Opus should plan, not re-read executor diffs; only thin signals flow back (exit codes, one-line runlog-status, PASS/FAIL verdicts). Death/BLOCKED = record + surface, no auto-retry (deliberate seam). Runs ledger: plans/runs/<run-id>.md, format in plans/WORKFLOW.md; invariant tests in the skill's scripts/test-runlog.sh. (docs/orchestrator-executor-loop-handoff.md)
