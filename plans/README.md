@@ -23,7 +23,7 @@ plan file and the repo, not this audit conversation.
 | 010 | VPS migration runbook — repoint render2 mount, retire orphaned TY clone | P3 | S-M | 008, 009 pushed | DONE |
 | 011 | Tutorial pipeline v3 — implement deterministic assembly (105/125/162 + segment map) | P2 | L | — | TODO |
 | 012 | Competitor style packs — folder scaffold + zero-API transcript ingestion | P2 | M | — | DONE |
-| 013 | yt-style skill — distill Style DNA, generate topics/titles/scripts | P2 | M | 012 | TODO |
+| 013 | yt-style skill — distill Style DNA, generate topics/titles/scripts | P2 | M | 012 | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
