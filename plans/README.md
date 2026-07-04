@@ -18,8 +18,26 @@ plan file and the repo, not this audit conversation.
 | 005 | Fix skill-sync scripts; clean the MCP graveyard | P2 | M | — | DONE |
 | 006 | Formalize the orchestrator→executor workflow (plans/ convention) | P2 | S | 002 | DONE |
 | 007 | Scaffold the second-brain context layer (design/spike) | P3 | S | 002 | DONE |
+| 008 | Dissolve the `ty/` theme-folder into the by-kind structure (one brain) | P2 | L | 001–007 | TODO |
+| 009 | Reorganize the workspace internals by kind (video/tools/notes/archive) | P3 | M-L | 008 | TODO |
+| 010 | VPS migration runbook — repoint render2 mount, retire orphaned TY clone | P3 | S-M | 008, 009 pushed | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
+
+> **The full `ty/` migration is plans 008 → 009 → 010, run strictly in order.**
+> 008 dissolves the theme-folder (rename + extract Workers + merge the two brains);
+> 009 reorganizes the workspace internals by kind (incl. the render2 card library);
+> 010 is the VPS runbook that must run **after 008+009 are merged AND pushed**
+> (the VPS pulls from GitHub). Each plan commits per stage so a bad step rolls back
+> with `git reset --hard HEAD~1`. Only 010 touches the VPS — and only one bind-mount
+> plus retiring a stale clone; no cron changes are needed (no cron references `ty/`).
+>
+> **This supersedes an earlier rejected finding.** The 2026-07-04 audit recorded
+> "keep `ty/` as a self-governing subtree" (and rejected moving it) because
+> migration cost outweighed the benefit *at that time*. The owner has since
+> decided to prioritize a single by-kind structure over that cost, and to migrate
+> the VPS too — 008–010 are that decision, made deliberately. The "rejected" note
+> below is left for the record but is now overridden.
 
 ## Recommended sequencing
 
