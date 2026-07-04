@@ -88,7 +88,7 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
       {notes && <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground/80">{notes}</p>}
 
       {status === "Need Changes" && feedback && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs leading-relaxed text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+        <div className="break-words rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs leading-relaxed text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
           <span className="font-semibold">Needs changes:</span> {feedback}
         </div>
       )}

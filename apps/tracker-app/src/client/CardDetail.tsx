@@ -304,8 +304,8 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
             : ASSIGNEE_COLS.has(col) && value
             ? <div className="text-sm">{displayName(value, names)} <span className="text-xs text-muted-foreground">{value}</span></div>
             : LINK_COLS.has(col) && isUrl(value)
-            ? <div className="flex items-center gap-2 text-sm"><span className="truncate text-muted-foreground">{value}</span><a href={value} target="_blank" rel="noopener noreferrer" className="inline-flex shrink-0 items-center gap-0.5 text-primary hover:underline">Open <ExternalLink className="size-3" /></a></div>
-            : <div className={cn("text-sm", MULTILINE_COLS.has(col) && "whitespace-pre-wrap leading-relaxed")}>{value || <span className="text-muted-foreground/50">—</span>}</div>}
+            ? <div className="flex items-center gap-2 text-sm"><span className="min-w-0 truncate text-muted-foreground">{value}</span><a href={value} target="_blank" rel="noopener noreferrer" className="inline-flex shrink-0 items-center gap-0.5 text-primary hover:underline">Open <ExternalLink className="size-3" /></a></div>
+            : <div className={cn("break-words text-sm", MULTILINE_COLS.has(col) && "whitespace-pre-wrap leading-relaxed")}>{value || <span className="text-muted-foreground/50">—</span>}</div>}
           {lockReason && <div className="text-[11px] text-muted-foreground">{lockReason}</div>}
         </div>
       );
@@ -477,7 +477,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
           {feedbackBanners.map(({ stage, text }) => (
             <div key={stage.id} className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm dark:border-red-900/50 dark:bg-red-950/40">
               <AlertTriangle className="mt-0.5 size-4 shrink-0 text-red-600 dark:text-red-400" />
-              <div><div className="font-semibold text-red-800 dark:text-red-200">{stage.label} — changes requested</div><div className="text-red-700 dark:text-red-300">{text}</div></div>
+              <div className="min-w-0"><div className="font-semibold text-red-800 dark:text-red-200">{stage.label} — changes requested</div><div className="break-words text-red-700 dark:text-red-300">{text}</div></div>
             </div>
           ))}
 
