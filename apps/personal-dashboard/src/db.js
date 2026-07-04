@@ -114,6 +114,13 @@ function migrate() {
       defaultCaptureRules(),
       process.env.TZ || 'Asia/Kolkata',
     );
+  } else {
+    // Self-heal: if the table row exists but password_hash is NULL/empty, seed it.
+    const row = db.prepare('SELECT password_hash FROM app WHERE id = 1').get();
+    if (!row.password_hash && process.env.APP_PASSWORD) {
+      const hash = bcrypt.hashSync(process.env.APP_PASSWORD, 10);
+      db.prepare('UPDATE app SET password_hash = ? WHERE id = 1').run(hash);
+    }
   }
 }
 

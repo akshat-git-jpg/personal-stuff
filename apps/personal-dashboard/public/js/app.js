@@ -20,6 +20,13 @@ export async function api(path, method = 'GET', body) {
   };
   if (body !== undefined) opts.body = JSON.stringify(body);
   const res = await fetch(path, opts);
+  if (res.status === 401 && path !== '/api/auth/login' && path !== '/api/auth/me') {
+    document.getElementById('app').style.display = 'none';
+    const loginOverlay = document.getElementById('login-overlay');
+    loginOverlay.style.display = 'flex';
+    showLogin(loginOverlay, document.getElementById('app'));
+    throw new Error('Session expired. Please log in again.');
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error || `HTTP ${res.status}`);
@@ -151,10 +158,47 @@ function applyDarkMode(enabled) {
 // Boot
 // ============================================================
 
+function showLogin(loginOverlay, appEl) {
+  appEl.style.display = 'none';
+  loginOverlay.style.display = 'flex';
+  const form = document.getElementById('login-form');
+  const pwdInput = document.getElementById('login-password');
+  const errorDiv = document.getElementById('login-error');
+  pwdInput.value = '';
+  errorDiv.textContent = '';
+  pwdInput.focus();
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const password = pwdInput.value;
+    try {
+      const res = await api('/api/auth/login', 'POST', { password });
+      if (res.ok) {
+        loginOverlay.style.display = 'none';
+        await startApp(appEl);
+      } else {
+        errorDiv.textContent = 'Invalid password';
+      }
+    } catch (err) {
+      errorDiv.textContent = err.message || 'Login failed';
+    }
+  };
+}
+
 async function boot() {
-  // No auth gate — go straight to the app.
   const appEl = document.getElementById('app');
-  await startApp(appEl);
+  const loginOverlay = document.getElementById('login-overlay');
+  try {
+    const me = await api('/api/auth/me');
+    if (me && me.authed) {
+      loginOverlay.style.display = 'none';
+      await startApp(appEl);
+    } else {
+      showLogin(loginOverlay, appEl);
+    }
+  } catch (err) {
+    showLogin(loginOverlay, appEl);
+  }
 }
 
 async function startApp(appEl) {

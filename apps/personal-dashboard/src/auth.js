@@ -3,19 +3,21 @@ import cookieSession from 'cookie-session';
 import { getConfig, updateConfig } from './config.js';
 
 export function sessionMiddleware() {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) throw new Error('SESSION_SECRET is required (see .env.example)');
   return cookieSession({
     name: 'pd_session',
-    secret: process.env.SESSION_SECRET || 'dev-insecure-secret-change-me',
+    secret,
     maxAge: 60 * 24 * 60 * 60 * 1000, // 60 days
     httpOnly: true,
     sameSite: 'lax',
   });
 }
 
-// Auth removed — this is a single-user dashboard with no password gate.
-// Kept as a no-op so existing route mounts don't need to change.
+// Session gate — every data route mounts this. /api/auth/* and /healthz stay open.
 export function requireAuth(req, res, next) {
-  return next();
+  if (req.session && req.session.authed) return next();
+  return res.status(401).json({ error: 'unauthorized' });
 }
 
 export function login(req, res) {
