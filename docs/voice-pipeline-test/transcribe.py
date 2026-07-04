@@ -36,14 +36,15 @@ def main():
     src = sys.argv[1]
     model_name = sys.argv[2] if len(sys.argv) > 2 else "large-v3"
     here = pathlib.Path(__file__).parent
-    workdir = here / "work"
-    workdir.mkdir(exist_ok=True)
+    workdir = pathlib.Path(os.environ.get("VV_TEST_WORK_DIR", os.path.expanduser("~/kb-scratch/voice-pipeline-test/work")))
+    workdir.mkdir(parents=True, exist_ok=True)
 
     print(f"[1/3] getting audio from: {src}")
     wav = get_audio(src, str(workdir))
 
     # Prefer a local model folder (no HuggingFace) if it exists.
-    local_model = here / "models" / model_name
+    models_dir = pathlib.Path(os.environ.get("VV_TEST_MODELS_DIR", os.path.expanduser("~/kb-scratch/voice-pipeline-test/models")))
+    local_model = models_dir / model_name
     model_ref = str(local_model) if (local_model / "model.bin").exists() else model_name
     print(f"[2/3] loading whisper model from: {model_ref}")
     from faster_whisper import WhisperModel

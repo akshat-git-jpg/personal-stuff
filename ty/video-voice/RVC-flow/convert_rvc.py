@@ -18,10 +18,11 @@ torch.backends.mps.is_available = lambda: False
 torch.backends.mps.is_built = lambda: False
 from rvc_python.infer import RVCInference
 
-here = pathlib.Path(__file__).parent
-model = str(here / "models" / "egirl" / "egirl.pth")
-index = str(here / "models" / "egirl" / "added_IVF2182_Flat_nprobe_1_egirl.index")
-inp   = str(here / "work" / "short_for_rvc.wav")
+models_dir = pathlib.Path(os.environ.get("VV_RVC_MODELS_DIR", os.path.expanduser("~/kb-scratch/video-voice/RVC-flow/models")))
+work_dir = pathlib.Path(os.environ.get("VV_RVC_WORK_DIR", os.path.expanduser("~/kb-scratch/video-voice/RVC-flow/work")))
+model = str(models_dir / "egirl" / "egirl.pth")
+index = str(models_dir / "egirl" / "added_IVF2182_Flat_nprobe_1_egirl.index")
+inp   = str(work_dir / "short_for_rvc.wav")
 
 pitches = [int(x) for x in (sys.argv[1:] or [7, 12])]
 
@@ -30,7 +31,7 @@ rvc = RVCInference(device="cpu:0")
 rvc.load_model(model, version="v2", index_path=index)
 
 for p in pitches:
-    out = str(here / "work" / f"egirl_pitch{p:+d}.wav")
+    out = str(work_dir / f"egirl_pitch{p:+d}.wav")
     rvc.set_params(f0method="rmvpe", f0up_key=p, index_rate=0.66,
                    protect=0.33, filter_radius=3, rms_mix_rate=0.25)
     print(f"[pitch {p:+d}] inferring -> {out}")

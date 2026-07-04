@@ -51,3 +51,9 @@ htmlcov/
 # ntfy runtime data — caches, attachments, user db (server.yml is checked in)
 infra/docker/ntfy/data/cache/
 infra/docker/ntfy/data/etc/users.db
+
+# Rendered/generated media — outputs are rebuildable, never commit
+ty/video-voice/**/output/
+ty/hyperframes-vs-remotion/yt-visuals/cutaways/**/*.mp4
+ty/hyperframes-vs-remotion/yt-visuals/cutaways/**/*.webm
+docs/voice-pipeline-test/

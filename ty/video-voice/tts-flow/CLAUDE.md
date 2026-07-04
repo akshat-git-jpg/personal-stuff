@@ -77,7 +77,7 @@ OpenArt→"open art") + one garbled phrase — all fixable via an `initial_promp
 + the editor's text pass.
 
 **Existing Whisper assets live at:**
-`/Users/kbtg/codebase/personal-stuff/docs/voice-pipeline-test/` — `transcribe.py`, its
+`~/kb-scratch/voice-pipeline-test/` — `transcribe.py`, its
 `.venv`, `models/large-v3` (~2.9 GB), and `transcript.txt` / `transcript.json` for the
 sample. Consider moving these here when this flow is built out.
 

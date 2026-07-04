@@ -35,7 +35,7 @@ commit the ~2 GB of binaries; only the two .py scripts are tracked).
 ## How to run
 
 ```bash
-cd /Users/kbtg/codebase/TY/video-voice/RVC-flow
+cd <repo-root>/ty/video-voice/RVC-flow
 # convert at pitch +7 and +12 -> work/egirl_pitch+7.wav / +12.wav
 rvc-venv/bin/python convert_rvc.py 7 12
 # quick 20s smoke test: convert_test.py <f0method> <pitch>

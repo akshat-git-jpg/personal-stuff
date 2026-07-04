@@ -6,4 +6,4 @@ Voiceover pipeline for tutorial videos — turning a male-voiced screen recordin
 - `RVC-flow/` — male→female voice conversion using a local, free RVC v2 model (macOS / Apple Silicon).
 - `heygen/` — HeyGen avatar experiments.
 
-> Stub scaffolded by `/audit-repo-route` — flesh out as needed.
+Heavy generated artifacts (models, render outputs) live outside the repo in `~/kb-scratch/video-voice/` — see plans/003.
