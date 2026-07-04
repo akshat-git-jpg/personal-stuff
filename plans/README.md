@@ -22,6 +22,8 @@ plan file and the repo, not this audit conversation.
 | 009 | Reorganize the workspace internals by kind (video/tools/notes/archive) | P3 | M-L | 008 | DONE |
 | 010 | VPS migration runbook — repoint render2 mount, retire orphaned TY clone | P3 | S-M | 008, 009 pushed | DONE |
 | 011 | Tutorial pipeline v3 — implement deterministic assembly (105/125/162 + segment map) | P2 | L | — | TODO |
+| 012 | Competitor style packs — folder scaffold + zero-API transcript ingestion | P2 | M | — | DONE |
+| 013 | yt-style skill — distill Style DNA, generate topics/titles/scripts | P2 | M | 012 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -61,6 +63,9 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED 
 - **004 before 005** (soft): 004 gives you `scripts/check-apps.sh` to prove 005's
   script refactor didn't regress anything. Not a hard block.
 - 001, 002, 003 have **no** dependencies — start immediately.
+- **013 → 012 (hard)**: the yt-style skill reads the style-pack layout 012
+  creates. Run 012 then 013 in one batch, both on branch
+  `advisor/012-competitor-styles`; 013 does not create its own branch.
 
 ## Findings NOT turned into plans (deferred backlog, not rejected)
 
