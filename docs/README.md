@@ -2,7 +2,12 @@
 
 Notes that aren't tied to a single project: research write-ups and design specs.
 
-- `superpowers/plans/` — implementation plans for superpowers.
-- `superpowers/specs/` — design specs for things built in this repo (e.g. the RapidAPI research CLI). (The bank-statement-parser spec moved to `pipelines/docs/specs/`.)
-- Loose handoff and plan documents (`kb-routing-audit-handoff.md`, `tracker-app-ui-migration-handover.md`, `transcript-voice-tools-plan.md`, `ty-merge-plan.md`).
-- (Business and income-strategy research lives in `pipelines/docs/research/`.)
+- `plans/` — YouTube/tracker-app pipeline plans (e.g. `2026-05-29-yt-tracker-app.md`).
+- `specs/` — design specs (e.g. bank-statement-parser, tracker-app audit).
+- `research/` — business, platform and monetization research (e.g. `rapidapi-money-ideas/`, `upload-passive-marketplaces/`).
+- `superpowers/plans/` — implementation plans for superpowers (dashboard, link generation, etc.).
+- `superpowers/specs/` — design specs for superpowers (RapidAPI research CLI, founders tracker, personal dashboard, tts-flow).
+- Loose handoff and workflow documents:
+  - Workflows: `yt-tracker-workflow.md`, `research-and-script-workflow.md`, `yt-analysis-workflow.md`.
+  - Handoffs: `kb-routing-audit-handoff.md`, `tracker-app-ui-migration-handover.md`, `transcript-voice-tools-plan.md`, `ty-merge-plan.md`.
+  - Testing: `voice-pipeline-test/`.

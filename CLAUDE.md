@@ -22,8 +22,8 @@ The full repo map, what-runs-where, and conventions live in the README, imported
 | CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude) | `tooling/cli/` |
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
 | A specific app | apps/<name>/ — full list in the README map below; every app folder has its own CLAUDE.md |
-| Anything business / money-making (YouTube pipelines, Pinterest business, video production, income tracking, short links) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) — pipelines/ is a self-governing subtree with its own map, docs, and decisions.md |
-| YouTube research / scripts / tutorial pipeline | `pipelines/youtube/` (via [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md)) |
+| YouTube / Pinterest / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
+| YouTube research / scripts / tutorial pipeline | `pipelines/youtube/` |
 | Voiceover / TTS / RVC / HeyGen avatar pipelines | `pipelines/video-voice/` |
 | Income tracking across platforms | `pipelines/income-analysis/` |
 | Cross-project research notes, design specs, handoff docs | [`docs/`](docs/README.md) |
