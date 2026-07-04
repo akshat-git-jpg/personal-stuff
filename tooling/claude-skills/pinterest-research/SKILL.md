@@ -14,7 +14,7 @@ niche's keywords, read each pin's hidden engagement (saves + age → **save-velo
 **outliers** (winning fast), then critique + reshape them into concrete briefs the user can build
 with `pinterest-make-post`.
 
-> **READ FIRST — every run:** `~/codebase/personal-stuff/ty/pinterest/PINTEREST-PRINCIPLES.md`. All scoring,
+> **READ FIRST — every run:** `~/codebase/personal-stuff/pipelines/pinterest/PINTEREST-PRINCIPLES.md`. All scoring,
 > keyword, and brief decisions below MUST follow it (search-engine mindset, specific-beats-broad,
 > alignment, the 4 click triggers, mistakes-to-avoid, the pin→freebie→email→PDF funnel).
 
@@ -34,7 +34,7 @@ extension overlays). Runs on the user's **Mac (residential IP)** — datacenter 
 Let `SKILL_DIR` = this folder.
 1. Deps: if `SKILL_DIR/node_modules` is absent →
    `cd "<SKILL_DIR>" && npm install --registry=https://registry.npmjs.org && npx playwright install chromium`
-2. Session: if `~/codebase/personal-stuff/ty/pinterest/.auth/pinterest-state.json` is absent, the **user** logs in once.
+2. Session: if `~/codebase/personal-stuff/pipelines/pinterest/.auth/pinterest-state.json` is absent, the **user** logs in once.
    Best: reuse their Arc session (no re-login). Tell them to fully quit Arc, then run in their terminal:
    `! /Applications/Arc.app/Contents/MacOS/Arc --remote-debugging-port=9222 >/dev/null 2>&1 &`
    then you run `node "<SKILL_DIR>/connect-arc.mjs"` to save the session.
@@ -43,8 +43,8 @@ Let `SKILL_DIR` = this folder.
 ## Niche discovery (run when picking a niche)
 `node "<SKILL_DIR>/niche-scan.mjs" --rounds 3 --top 25` → per-niche scorecard JSON (topVelocity,
 productLinkPct = do they BUY, freshTopPct = is it OPEN, distinctDomains). Saved to
-`TY/pinterest/_niche-scan/`. Analyse against the four criteria (Demand · Monetization · Openness ·
-Product-fit), recommend the niche, then deep-scan it. See `TY/pinterest/NICHE-RESEARCH.md` for the
+`pipelines/pinterest/_niche-scan/`. Analyse against the four criteria (Demand · Monetization · Openness ·
+Product-fit), recommend the niche, then deep-scan it. See `pipelines/pinterest/NICHE-RESEARCH.md` for the
 method + the running findings log (APPEND new scans there so research isn't lost).
 
 ## Process (deep keyword research)

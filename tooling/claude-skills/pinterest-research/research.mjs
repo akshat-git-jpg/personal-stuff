@@ -18,8 +18,8 @@ import fs from "node:fs";
 import { collectPins, rankRecords } from "./lib/scrape.mjs";
 
 const HOME = os.homedir();
-const AUTH = path.join(HOME, "codebase/TY/pinterest/.auth/pinterest-state.json");
-const PROJ = path.join(HOME, "codebase/TY/pinterest");
+const AUTH = path.join(HOME, "codebase/personal-stuff/pipelines/pinterest/.auth/pinterest-state.json");
+const PROJ = path.join(HOME, "codebase/personal-stuff/pipelines/pinterest");
 
 // ---- args ----
 const argv = process.argv.slice(2);

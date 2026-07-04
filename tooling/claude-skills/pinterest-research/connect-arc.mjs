@@ -16,7 +16,7 @@ import path from "node:path";
 import fs from "node:fs";
 
 const PORT = process.env.CDP_PORT || "9222";
-const AUTH = path.join(os.homedir(), "codebase/TY/pinterest/.auth/pinterest-state.json");
+const AUTH = path.join(os.homedir(), "codebase/personal-stuff/pipelines/pinterest/.auth/pinterest-state.json");
 fs.mkdirSync(path.dirname(AUTH), { recursive: true });
 
 let browser;

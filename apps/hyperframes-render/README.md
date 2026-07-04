@@ -8,7 +8,7 @@ Live at https://render2.agrolloo.com (password-gated).
 
 An Express server (`src/server.js`) serves a small web UI and renders pasted HTML with headless Chrome. Login is a shared password, so cookies need a stable secret to survive restarts.
 
-The Templates tab is a gallery of ready-made cards read live from the TY checkout at `TY/yt-visuals-hyperframe/`. On the VPS that folder is mounted read-only at `/cards` (set by `CARDS_DIR`) and a cron pulls it every 15 minutes, so adding a template in TY and pushing makes it show up here with no redeploy.
+The Templates tab is a gallery of ready-made cards read live from the TY checkout at `pipelines/yt-visuals-hyperframe/`. On the VPS that folder is mounted read-only at `/cards` (set by `CARDS_DIR`) and a cron pulls it every 15 minutes, so adding a template in TY and pushing makes it show up here with no redeploy.
 
 ## Config
 

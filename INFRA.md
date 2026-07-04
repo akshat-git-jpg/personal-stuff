@@ -33,7 +33,7 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 
 ### D1 databases (2)
 - `lists-db` — lists-app data store (categories + items). Bound as `DB` in lists-app only.
-- `clicks-db` — redirector click store. Written by redirector + yt-tutorials-tracker; read by yt-analytics (read-only) and by `yt-analysis/sync_clicks.py`. `videos` has an additive `yt_video_id` column (migration `0002`, owned by the redirector) so yt-analytics can look up YouTube views. All 65 uploaded `@AgrolloReviews` videos were backfilled here (per-video tracking links `go.agrolloo.com/<code>/<tool>`) on 2026-06-16.
+- `clicks-db` — redirector click store. Written by redirector + yt-tutorials-tracker; read by yt-analytics (read-only) and by `pipelines/youtube/yt-analysis/sync_clicks.py`. `videos` has an additive `yt_video_id` column (migration `0002`, owned by the redirector) so yt-analytics can look up YouTube views. All 65 uploaded `@AgrolloReviews` videos were backfilled here (per-video tracking links `go.agrolloo.com/<code>/<tool>`) on 2026-06-16.
 
 ### DNS — agrolloo.com
 - `agrolloo.com` + `www` → `191.101.230.133` (Hostinger shared hosting, proxied) — NOT the VPS, NOT a Worker.

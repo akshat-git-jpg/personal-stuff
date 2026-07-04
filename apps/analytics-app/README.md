@@ -45,7 +45,7 @@ The local D1 starts empty, so apply the schema and (optionally) some sample rows
 
 ```sh
 npx wrangler d1 execute clicks-db --local \
-  --file=../../ty/workers/redirector/migrations/0001_init.sql
+  --file=../../pipelines/workers/redirector/migrations/0001_init.sql
 ```
 
 Then run the Worker (serves API + built assets):

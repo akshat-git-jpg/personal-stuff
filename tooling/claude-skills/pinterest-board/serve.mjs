@@ -20,7 +20,7 @@ function arg(name, def) {
   return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : def;
 }
 const ROOT = path.resolve(
-  arg("root", process.env.PINTEREST_ROOT || path.join(os.homedir(), "codebase/TY/pinterest"))
+  arg("root", process.env.PINTEREST_ROOT || path.join(os.homedir(), "codebase/personal-stuff/pipelines/pinterest"))
 );
 const PORT = parseInt(arg("port", process.env.PORT || "4000"), 10);
 

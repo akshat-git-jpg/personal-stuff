@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUB = path.join(ROOT, "public");
-const PRODUCTS_DIR = "/Users/kbtg/codebase/TY/pinterest/wedding/products";
+const PRODUCTS_DIR = "/Users/kbtg/codebase/personal-stuff/pipelines/pinterest/wedding/products";
 const GUMROAD = "https://bridebestie.gumroad.com/l";
 
 const PRODUCTS = [

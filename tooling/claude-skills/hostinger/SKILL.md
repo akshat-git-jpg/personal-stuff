@@ -35,5 +35,5 @@ pp-hostinger api METHOD /api/PATH [--body JSON] # raw escape hatch — full API 
 ## Notes
 
 - The `api` escape hatch reaches every endpoint the old MCP had (billing, hosting, reach, PTR, post-install scripts...): endpoint paths are documented at developers.hostinger.com. Confirm with the user before any non-GET escape-hatch call.
-- `domains check` is the Pinterest brand-domain workflow (see `TY/pinterest/BRAND-SETUP.md`).
+- `domains check` is the Pinterest brand-domain workflow (see `pipelines/pinterest/BRAND-SETUP.md`).
 - Most DNS for live sites is on Cloudflare, not Hostinger — check which nameservers a domain uses before editing zones here.

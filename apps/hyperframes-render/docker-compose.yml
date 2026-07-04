@@ -19,7 +19,7 @@ services:
     environment:
       - CARDS_DIR=/cards
     volumes:
-      - /srv/projects/TY/yt-visuals-hyperframe:/cards:ro
+      - /srv/projects/pipelines/yt-visuals-hyperframe:/cards:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.hfr.rule=Host(`render2.agrolloo.com`)"

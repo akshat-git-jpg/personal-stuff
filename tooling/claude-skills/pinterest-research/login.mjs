@@ -10,7 +10,7 @@ import os from "node:os";
 import path from "node:path";
 import fs from "node:fs";
 
-const AUTH = path.join(os.homedir(), "codebase/TY/pinterest/.auth/pinterest-state.json");
+const AUTH = path.join(os.homedir(), "codebase/personal-stuff/pipelines/pinterest/.auth/pinterest-state.json");
 fs.mkdirSync(path.dirname(AUTH), { recursive: true });
 
 const browser = await chromium.launch({ headless: false });

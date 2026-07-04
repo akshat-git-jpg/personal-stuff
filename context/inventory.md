@@ -12,13 +12,13 @@ This inventory tracks all apps, websites, and tools hosted under this repository
 | **YT Analytics** | [yt-analytics.agrolloo.com](https://yt-analytics.agrolloo.com) | `apps/analytics-app/` (Worker) | Click dashboard over D1 clicks-db + YouTube view counts | **Live** (Password Gated) |
 | **Founders Tracker** | [founders.agrolloo.com](https://founders.agrolloo.com) | `apps/founders-tracker/` (Worker) | Action item tracking for Khushi + Kushal | **Live** (Password Gated) |
 | **Lists** | [lists.agrolloo.com](https://lists.agrolloo.com) | `apps/lists-app/` (Worker) | Categorized personal items list app (SPA) | **Live** (Password Gated) |
-| **URL Shortener** | [go.agrolloo.com](https://go.agrolloo.com) | `ty/workers/redirector/` | Short link redirection + click-tracking edge engine | **Live** |
-| **Keto Kitchen** | [keto-kitchen.agrolloo.com](https://keto-kitchen.agrolloo.com) | `ty/pinterest/keto-kitchen/` | Static landing page for Pinterest marketing funnel | **Live** |
-| **Bride Bestie** | [bridebestie.com](https://bridebestie.com) | `ty/pinterest/bridebestie/` | Static landing page for Wedding Planner digital downloads | **Live** |
+| **URL Shortener** | [go.agrolloo.com](https://go.agrolloo.com) | `pipelines/workers/redirector/` | Short link redirection + click-tracking edge engine | **Live** |
+| **Keto Kitchen** | [keto-kitchen.agrolloo.com](https://keto-kitchen.agrolloo.com) | `pipelines/pinterest/keto-kitchen/` | Static landing page for Pinterest marketing funnel | **Live** |
+| **Bride Bestie** | [bridebestie.com](https://bridebestie.com) | `pipelines/pinterest/bridebestie/` | Static landing page for Wedding Planner digital downloads | **Live** |
 | **Video Studio** | [render2.agrolloo.com](https://render2.agrolloo.com) | `apps/hyperframes-render/` (Docker) | Hyperframes HTML to MP4 video renderer tool | **Live** (Password Gated) |
 | **Claude Usage** | `http://localhost:4319/` | `tooling/cli/ccusage-dashboard/` | Claude Code token & cost usage dashboard (ccu-dash) | **Local-Only** |
 | **Spending Tracker** | — | `apps/spending-tracker/` | Direct SMS-feeder backed transaction/spending tracker | **Design-Only** (Planned) |
-| **Hyperframes Experiment** | — | `ty/hyperframes-vs-remotion/` | Comparison between Hyperframes and Remotion rendering | **Superseded** |
+| **Hyperframes Experiment** | — | `pipelines/hyperframes-vs-remotion/` | Comparison between Hyperframes and Remotion rendering | **Superseded** |
 
 ---
 

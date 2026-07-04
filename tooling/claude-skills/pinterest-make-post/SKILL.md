@@ -1,6 +1,6 @@
 ---
 name: pinterest-make-post
-description: Turn a single pin idea into a finished, ready-to-post Pinterest pin — a catchy 1000x1500 image plus all the copy. Reads a per-niche data folder (config.json + playbook.md) under the project dir (e.g. TY/pinterest/<niche>/), art-directs the pin (picks a template + a backdrop layer: CSS gradient / free stock photo / free AI image), writes the title, description, alt text, hashtags, board, best time, and offer link, renders the image with Playwright, and saves image.png + post.md into <niche>/posts/<slug>/. Triggers on "make a pinterest pin", "make a keto pin", "create a pin for this idea", "pinterest-make-post", "generate a pin", "turn this idea into a pin".
+description: Turn a single pin idea into a finished, ready-to-post Pinterest pin — a catchy 1000x1500 image plus all the copy. Reads a per-niche data folder (config.json + playbook.md) under the project dir (e.g. pipelines/pinterest/<niche>/), art-directs the pin (picks a template + a backdrop layer: CSS gradient / free stock photo / free AI image), writes the title, description, alt text, hashtags, board, best time, and offer link, renders the image with Playwright, and saves image.png + post.md into <niche>/posts/<slug>/. Triggers on "make a pinterest pin", "make a keto pin", "create a pin for this idea", "pinterest-make-post", "generate a pin", "turn this idea into a pin".
 user-invocable: true
 metadata:
   author: kbtg
@@ -15,7 +15,7 @@ posts manually, so your output must be complete: a catchy image + copy they can 
 This skill is the **machine**. The per-niche folder is the **recipe card**. One machine,
 many niches — never hard-code niche facts here; read them from the niche folder.
 
-> **READ FIRST — every run:** `~/codebase/personal-stuff/ty/pinterest/PINTEREST-PRINCIPLES.md`. It holds the
+> **READ FIRST — every run:** `~/codebase/personal-stuff/pipelines/pinterest/PINTEREST-PRINCIPLES.md`. It holds the
 > non-negotiable Pinterest rules (search-engine mindset, keyword/alignment rules, the 4 click
 > triggers, image + mistakes-to-avoid). Your title, image, and copy decisions below MUST follow
 > it. If a request conflicts with it, flag the conflict.
@@ -25,7 +25,7 @@ many niches — never hard-code niche facts here; read them from the niche folde
 - **The idea** — from the user's message (e.g. "7 high-protein keto breakfasts") or a line
   they point you to.
 - **The niche** — usually in the idea ("keto pin"). Maps to a project folder:
-  `~/codebase/personal-stuff/ty/pinterest/<niche>/` (the project lives in the TY folder).
+  `~/codebase/personal-stuff/pipelines/pinterest/<niche>/` (the project lives in the pipelines folder).
   If the niche folder doesn't exist yet, ask the user before creating one.
 
 Read both niche files before doing anything else:
@@ -108,7 +108,7 @@ Write a temp spec file (use the job tmp dir or the post folder), then render:
 ```json
 {
   "template": "listicle",
-  "out": "/Users/kbtg/codebase/personal-stuff/ty/pinterest/keto/posts/<slug>/image.png",
+  "out": "/Users/kbtg/codebase/personal-stuff/pipelines/pinterest/keto/posts/<slug>/image.png",
   "data": {
     "title": "7 High-Protein Keto Breakfasts",
     "subtitle": "Under 10g carbs",
@@ -140,7 +140,7 @@ perspective grades it. Give the subagent this prompt:
 > - image: `<data.out PNG path>`
 > - copy: `<post dir>/post.json` (or the spec data if not written yet)
 > - brief: `<the idea>`
-> - niche playbook: `<niche>/playbook.md`; principles: `~/codebase/personal-stuff/ty/pinterest/PINTEREST-PRINCIPLES.md`
+> - niche playbook: `<niche>/playbook.md`; principles: `~/codebase/personal-stuff/pipelines/pinterest/PINTEREST-PRINCIPLES.md`
 > - benchmark (if from research): top competitor pin for this keyword — image `<url/path>`, `<saves>/mo`
 > Return ONLY the CRITIC.md verdict JSON.
 
@@ -248,5 +248,5 @@ badge, CTA-footer, cells) into partials only once several templates repeat them.
 
 - Output PNG is rendered at 2x (2000x3000, still 2:3) for crispness — Pinterest accepts this.
 - Everything is free; the only optional paid-tier-free key is Pexels.
-- Adding a new niche = create `TY/pinterest/<niche>/config.json` + `playbook.md`. The skill
+- Adding a new niche = create `pipelines/pinterest/<niche>/config.json` + `playbook.md`. The skill
   is unchanged.

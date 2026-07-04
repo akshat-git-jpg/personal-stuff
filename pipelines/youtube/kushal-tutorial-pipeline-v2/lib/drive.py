@@ -2,7 +2,7 @@
 and step 170 (upload files). No step-specific logic — just resolve the binary and run subcommands.
 
 pp-drive lives in-tree at personal-stuff/tooling/cli/drive/pp-drive (this pipeline is nested
-under personal-stuff/ty/) and reuses the Google OAuth token cache; every subcommand takes
+under personal-stuff/pipelines/) and reuses the Google OAuth token cache; every subcommand takes
 --account EMAIL.
 """
 import shutil, subprocess, pathlib

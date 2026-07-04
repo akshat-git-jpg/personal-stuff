@@ -13,8 +13,8 @@ import path from "node:path";
 import fs from "node:fs";
 import { collectPins, rankRecords } from "./lib/scrape.mjs";
 
-const AUTH = path.join(os.homedir(), "codebase/TY/pinterest/.auth/pinterest-state.json");
-const OUTDIR = path.join(os.homedir(), "codebase/TY/pinterest/_niche-scan");
+const AUTH = path.join(os.homedir(), "codebase/personal-stuff/pipelines/pinterest/.auth/pinterest-state.json");
+const OUTDIR = path.join(os.homedir(), "codebase/personal-stuff/pipelines/pinterest/_niche-scan");
 
 // Candidate niches — one product-intent seed keyword + relevance tokens each.
 const CANDIDATES = [

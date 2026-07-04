@@ -15,7 +15,7 @@ Pinterest: copy each field one tap at a time, then tick "Posted".
 
 ## What it does
 
-- Scans the project root (default `~/codebase/personal-stuff/ty/pinterest`) for niches (any subfolder with
+- Scans the project root (default `~/codebase/personal-stuff/pipelines/pinterest`) for niches (any subfolder with
   a `config.json`) and their `posts/<slug>/` folders.
 - Serves a board at `http://localhost:4000`:
   - **Niche switcher** (dropdown) + filters: **To post / All / Posted** + a progress count.

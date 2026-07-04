@@ -12,7 +12,7 @@ metadata:
 Tell the user the **truth** about their pins — what's working, what isn't, and the highest-impact
 fix — backed by data, never generic advice. This is a critic, not a cheerleader and not a doomer.
 
-> **READ FIRST:** `~/codebase/personal-stuff/ty/pinterest/PINTEREST-PRINCIPLES.md` + the niche `playbook.md`.
+> **READ FIRST:** `~/codebase/personal-stuff/pipelines/pinterest/PINTEREST-PRINCIPLES.md` + the niche `playbook.md`.
 > Judge pins against those rules AND the live competitors — not against opinion.
 
 ## Neutrality rules (non-negotiable)
@@ -34,7 +34,7 @@ fix — backed by data, never generic advice. This is a critic, not a cheerleade
   analysis only** (no performance claims). Never scrape/automate the posting account to get this.
 
 ## Process
-1. **Gather your pins.** Read `TY/pinterest/<niche>/posts.json` (posted flag + postedDate + pinUrl) and
+1. **Gather your pins.** Read `pipelines/pinterest/<niche>/posts.json` (posted flag + postedDate + pinUrl) and
    each posted pin's `post.json` (title, target keyword, board, link) + `notes.md`. Keep those in the period.
 2. **Attach performance.** Match each pin to its row in the analytics export → impressions, outbound
    clicks, saves, pin clicks. Compute **CTR = outbound clicks ÷ impressions**. No export → mark "no perf data".
@@ -55,7 +55,7 @@ fix — backed by data, never generic advice. This is a critic, not a cheerleade
 5. **Verdict + actions.** Overall **stay the course / tweak / pivot**, then 3–5 prioritized, specific,
    evidence-backed actions (which pin, what change, expected effect). Tie everything to the real goal:
    **more reach + more outbound clicks to the Gumroad offer.**
-6. **Log it.** Append a dated entry to `TY/pinterest/<niche>/ANALYSIS-LOG.md` (create if missing) in the
+6. **Log it.** Append a dated entry to `pipelines/pinterest/<niche>/ANALYSIS-LOG.md` (create if missing) in the
    format below, so week-over-week drift is visible.
 
 ## ANALYSIS-LOG.md entry format
