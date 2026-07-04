@@ -53,7 +53,7 @@ infra/docker/ntfy/data/cache/
 infra/docker/ntfy/data/etc/users.db
 
 # Rendered/generated media — outputs are rebuildable, never commit
-ty/video-voice/**/output/
-ty/hyperframes-vs-remotion/yt-visuals/cutaways/**/*.mp4
-ty/hyperframes-vs-remotion/yt-visuals/cutaways/**/*.webm
+pipelines/video-voice/**/output/
+pipelines/hyperframes-vs-remotion/yt-visuals/cutaways/**/*.mp4
+pipelines/hyperframes-vs-remotion/yt-visuals/cutaways/**/*.webm
 docs/voice-pipeline-test/

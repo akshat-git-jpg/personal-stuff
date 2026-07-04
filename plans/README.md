@@ -18,7 +18,7 @@ plan file and the repo, not this audit conversation.
 | 005 | Fix skill-sync scripts; clean the MCP graveyard | P2 | M | — | DONE |
 | 006 | Formalize the orchestrator→executor workflow (plans/ convention) | P2 | S | 002 | DONE |
 | 007 | Scaffold the second-brain context layer (design/spike) | P3 | S | 002 | DONE |
-| 008 | Dissolve the `ty/` theme-folder into the by-kind structure (one brain) | P2 | L | 001–007 | TODO |
+| 008 | Dissolve the `ty/` theme-folder into the by-kind structure (one brain) | P2 | L | 001–007 | DONE |
 | 009 | Reorganize the workspace internals by kind (video/tools/notes/archive) | P3 | M-L | 008 | TODO |
 | 010 | VPS migration runbook — repoint render2 mount, retire orphaned TY clone | P3 | S-M | 008, 009 pushed | TODO |
 
