@@ -39,8 +39,8 @@ The full repo map, what-runs-where, and conventions live in the README, imported
 - A personal product (app someone uses) → `apps/<kebab-name>/` (+ README.md + CLAUDE.md from day one).
 - A business / money-making project → `pipelines/<name>/` (register it in `pipelines/CLAUDE.md`'s map).
 - A skill, CLI, or MCP for driving work with Claude → `tooling/` (skills need a manifest entry — see `scripts/relink.sh`).
-- A deployable Worker lives with its **domain**, not its tech: the go.agrolloo.com redirector serves the business → it stays in `pipelines/workers/`.
-- `pipelines/` is deliberately self-governing: its own CLAUDE.md, docs/, decisions.md. Root files never duplicate its detail; they delegate.
+- A deployable Worker lives in `apps/` with the rest of the deployables (e.g. the go.agrolloo.com redirector is `apps/redirector/`), even when a business pipeline drives it.
+- `pipelines/` runs on its own CLAUDE.md (Python workspace operating guide); its docs and decisions were merged into the root brain (`docs/`, `decisions.md`) when the ty/ theme-folder was dissolved.
 
 ## Operating notes
 

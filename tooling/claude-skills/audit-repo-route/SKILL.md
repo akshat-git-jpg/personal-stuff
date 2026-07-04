@@ -1,10 +1,10 @@
 ---
 name: audit-repo-route
-description: Audit and auto-fix routing/navigation drift in a repo that uses the "Find it fast" CLAUDE.md convention (personal-stuff, TY). Detects folders missing from the intent table, dead links in the map, sub-folders with no CLAUDE.md/README, and stale decisions.md entries — then fixes the mechanical drift in place and flags the judgment calls. Read it as the repo's "dream sequence" self-audit. Triggers on "/audit-repo-route", "audit repo routing", "audit the repo route", "check routing drift", "is the routing stale", "check the find-it-fast table", "keep the map fresh", "run the routing audit".
+description: Audit and auto-fix routing/navigation drift in a repo that uses the "Find it fast" CLAUDE.md convention (personal-stuff). Detects folders missing from the intent table, dead links and false structural claims in the map, sub-folders with no CLAUDE.md/README, and stale decisions.md entries — then fixes the mechanical drift in place and flags the judgment calls. Read it as the repo's "dream sequence" self-audit. Triggers on "/audit-repo-route", "audit repo routing", "audit the repo route", "check routing drift", "is the routing stale", "check the find-it-fast table", "keep the map fresh", "run the routing audit".
 user-invocable: true
 metadata:
   author: kbtg
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # audit-repo-route
@@ -34,9 +34,24 @@ Each repo's root `CLAUDE.md` contains a **"Find it fast" intent table**: a markd
 | # | Check | Action |
 |---|---|---|
 | 1 | **Unmapped folder** — a top-level folder (or a notable project sub-folder) that has no row in the intent table and isn't covered by the README map | **Auto-fix:** add a row |
-| 2 | **Dead link** — an intent-table / map link whose target path no longer exists | **Auto-fix if relocated; flag if deleted** |
+| 2 | **Dead link or false structural claim** — an intent-table / map link whose target path no longer exists, or map prose asserting structure that isn't there (e.g. "X has its own docs/ and decisions.md" when it doesn't) | **Auto-fix if relocated / correct the claim; flag if deleted** |
 | 3 | **Missing operate-doc** — a project sub-folder that has neither `CLAUDE.md` nor `README.md` while its siblings do | **Auto-fix:** scaffold a minimal `README.md` stub |
 | 4 | **Stale `decisions.md`** — an entry contradicted by the current code/structure, or describing something that no longer exists | **Flag only — never auto-edit the log** |
+
+### Exemptions (don't audit these)
+
+Operational/artifact folders are not projects — no intent-table row, no
+operate-doc scaffolding: `plans/runs/` (run ledgers + LESSONS.md), any
+`fixtures/`, `venv/`, `node_modules/`, `archive/`, and dot-folders
+(`.claude/`, `.agents/`, `.superpowers/`, …). When in doubt whether a folder
+is a project or an artifact, flag instead of scaffolding.
+
+### Superseded ≠ stale (check 4)
+
+`decisions.md` is append-only history: an entry explicitly overridden by a
+LATER entry (or by a recorded override note, e.g. in `plans/README.md`) is
+settled history, not drift — don't flag it. Flag only contradictions with **no
+later acknowledgment** anywhere in the log.
 
 ### The fix / flag rule
 
