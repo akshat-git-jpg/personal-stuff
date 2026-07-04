@@ -22,7 +22,7 @@ This document lists the active business, content, and career bets being pursued 
 - **Thesis**: Publish and promote PDFs and digital products in lifestyle niches (such as Keto and Wedding Planner brands) using automated Pinterest pins and landing page funnels.
 - **Where it lives**:
   - Funnel assets, scripts & pins: [pipelines/pinterest/](file:///Users/kbtg/codebase/personal-stuff/pipelines/pinterest/PLAN.md)
-  - Deployable landing pages: `pipelines/pinterest/landing-pages/`
+  - Deployable landing pages: `apps/pinterest-landing-pages/`
   - Main brand domains: `bridebestie.com`, `keto-kitchen.ag` (see [my-hosted-sites.md](file:///Users/kbtg/codebase/personal-stuff/my-hosted-sites.md))
 - **Status & Metrics**:
   - Income tracking: [pipelines/income-analysis/](file:///Users/kbtg/codebase/personal-stuff/pipelines/income-analysis/README.md) (refer to Gumroad/Skool CLIs and snapshot logs)
@@ -33,7 +33,7 @@ This document lists the active business, content, and career bets being pursued 
 ## 3. Short Link & Affiliate Routing System
 - **Thesis**: Clean, branded short redirect links (`go.agrolloo.com/<code>/<tool>`) that track click counts to help analyze conversion efficiency across YouTube and Pinterest.
 - **Where it lives**:
-  - URL Redirector Worker: [pipelines/workers/redirector/](file:///Users/kbtg/codebase/personal-stuff/pipelines/workers/redirector/CLAUDE.md)
+  - URL Redirector Worker: [apps/redirector/](file:///Users/kbtg/codebase/personal-stuff/apps/redirector/CLAUDE.md)
   - Database schema & views: D1 `clicks-db` and KV `CLICKS_KV` (see [INFRA.md](file:///Users/kbtg/codebase/personal-stuff/INFRA.md))
 - **Status & Metrics**:
   - Click logs sync: `pipelines/youtube/yt-analysis/sync_clicks.py`
