@@ -8,6 +8,10 @@ Format: `YYYY-MM-DD — <decision> — <why> (<optional link>)`
 
 ## Decisions
 
+2026-07-05 — orchestrate v2.3 (mined 3 loop-engineering videos): plans/runs/LESSONS.md = cross-run executor-lesson ledger (read at recon, appended after verification — batches compound instead of repeating fix-up rounds); ONE human gate placed pre-dispatch (where a wrong direction invalidates all downstream work), none later; readiness gate checks decisions.md so plans can't propose house-rejected approaches. Deliberately skipped: scheduled self-triggering runs (v3 candidate, autonomy policy still open), approval triage buckets, Stop-hook loops, meta-audits of orchestration assets (YAGNI, single operator).
+
+2026-07-05 — orchestrate v2.2: executor self-fix attempts hard-capped at 5/plan (a busy loop keeps heartbeating, so it looks alive to the watcher while burning budget — cap turns "stuck" into a catchable BLOCKED) + subjective outputs require an explicit rubric in the plan, tier-3 verifier scores against it, never taste — both lifted from agent-loop practice (stop = objective metric OR hard cap; "until satisfied" is not a stop condition).
+
 2026-07-05 — orchestrate v2.1: executor-readiness gate (plan is handoff-ready only when the executor never decides — zero open decisions, tricky snippets authored INTO the plan by the orchestrator) + Difficulty grade routing (tricky → opus subagent; otherwise user's stated executor, unstated → sonnet) + scope check at verify (diff file names ⊆ in-scope) + one-run-at-a-time rule — design/architecture intelligence stays at plan time with Opus; Antigravity's internal model is set in its app UI, not by the skill.
 
 2026-07-04 — dissolved the ty/ theme-folder: renamed to pipelines/ (the shared-Python content/automation workspace, anchored by common/env.py), extracted the redirector + pinterest landing-pages Workers into apps/, and merged ty's decisions/docs/routing into the single root brain — ty/ was the only origin/theme-grouped bucket and forced a two-brain repo; the money-making lens now lives in context/bets.md, not the tree.

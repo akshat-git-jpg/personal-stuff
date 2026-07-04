@@ -4,7 +4,7 @@ description: Plan a NEW build (feature, tool, script, small app) as a self-conta
 user-invocable: true
 metadata:
   author: kbtg
-  version: 2.1.0
+  version: 2.3.0
 ---
 
 # Orchestrate
@@ -102,6 +102,9 @@ Before writing steps, learn what the executor must match:
   pick one **exemplar file** the plan can point the executor at ("match
   `src/users/api.ts`").
 - Identify the stack, package manager, and how a change is verified end-to-end.
+- Read `plans/runs/LESSONS.md` (cross-run executor lessons) if it exists —
+  author plans that route around known executor failure modes instead of
+  rediscovering them through fix-up rounds.
 
 Keep this proportional — a new small tool needs a lighter pass than a feature
 inside a large app.
@@ -156,7 +159,14 @@ decide — only do and verify**. Self-check every plan:
    The executor places and wires it.
 3. **Every Verify is machine-checkable.** Command + expected output, no "looks
    right".
-4. **Zero-context test.** A model that has never seen this conversation could
+4. **Subjective outputs get a rubric.** If the product is judged by taste
+   (prose, design, a thumbnail), the plan must carry an explicit rubric /
+   acceptance checklist. "Iterate until satisfied" is not a stop condition —
+   the tier-3 verifier scores against the rubric, never general taste.
+5. **No house-rule conflicts.** Check `decisions.md` (and the target folder's
+   CLAUDE.md): a plan proposing an approach the owner already rejected fails
+   the gate — the executor can't know the house said no.
+6. **Zero-context test.** A model that has never seen this conversation could
    execute it from the plan file + repo alone.
 
 Then grade each plan — `Difficulty: mechanical | standard | tricky`:
@@ -208,6 +218,10 @@ Notes:
    - run the **drift check** before starting,
    - work plans/steps in order and **commit per stage** (rollback granularity),
    - run every **Verify** and confirm before continuing,
+   - **cap self-fix attempts at 5 per plan** — if Done criteria still fail
+     after 5 fix attempts, write `BLOCKED: done criteria unreachable after 5
+     attempts` and stop. Never loop indefinitely: a busy loop keeps emitting
+     heartbeats, so it looks alive to the watcher while burning budget,
    - honor **STOP conditions** literally (stop and report, don't work around),
    - **write the run-log**: `PLAN NNN START` before each plan, a `HEARTBEAT`
      line at least every 3 minutes, `DONE` with verify results + changed files
@@ -220,6 +234,11 @@ Notes:
    preconditions (secrets, a decision, an SSH/push step).
 
 #### 4b — Dispatch and wait (token-free)
+
+**One human gate, placed here.** Before dispatching, show the user the batch in
+one glance: plans, routing (executor per plan), run-id. This is the checkpoint
+where a wrong direction would invalidate everything downstream — gate here,
+and don't add approval gates anywhere later in the loop.
 
 - **Antigravity**: run `scripts/ag-handoff.sh <prompt-file>`, then launch
   `scripts/watch-run.sh <run-log> [timeout-min]` as a **background** Bash task.
@@ -244,8 +263,9 @@ Then verify by what each plan produces:
 2. **Content with no tests** → structural check only: file exists, non-empty,
    required sections present, JSON validates. Don't read and judge the prose.
 3. **Subjective quality** → dispatch ONE cheap subagent to read the artifact
-   and return only PASS/FAIL + up to 3 issues. The heavy read happens in the
-   subagent's context, not yours.
+   and return only PASS/FAIL + up to 3 issues, **scored against the plan's
+   rubric** (readiness gate item 4). The heavy read happens in the subagent's
+   context, not yours.
 
 #### 4d — Fix-up rounds (max 2)
 
@@ -254,6 +274,13 @@ If verification finds real gaps (failed Done criteria, verdict issues): write a
 instructions with a `ROUND N START fixes: <summary>` marker. Same run-log, same
 dispatch mechanism. **Cap: 2 fix-up rounds**, then stop and surface to the user
 — an executor failing twice on the same issue needs human eyes, not more tokens.
+
+**Learn from the run.** After verification (pass or fail), if the run taught
+something non-obvious about an executor or the loop — a recurring mistake, a
+plan-shape fix that prevented one, a quirk — append ONE line per lesson to
+`plans/runs/LESSONS.md` (`YYYY-MM-DD <executor> — <lesson>`). Step 2 reads this
+file, so lessons compound into better plans instead of repeat fix-up rounds.
+Skip the obvious; an empty run teaches nothing and gets no line.
 
 #### 4e — On death or BLOCKED
 

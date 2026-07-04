@@ -54,6 +54,8 @@ Every automated execution run writes ONE append-only ledger: `plans/runs/<run-id
 
 **Who writes what:** verify results go inside the `DONE` line (the ledger doubles as the result record). The executor still flips its plan's status cell in `plans/README.md` at completion — the README stays the static index, the run-log is the live blow-by-blow.
 
+**Lessons:** non-obvious cross-run learnings (executor quirks, plan-shape fixes) accumulate one line each in `plans/runs/LESSONS.md`; the orchestrator reads it before planning and appends after verification.
+
 ---
 
 ## Source of Plans
