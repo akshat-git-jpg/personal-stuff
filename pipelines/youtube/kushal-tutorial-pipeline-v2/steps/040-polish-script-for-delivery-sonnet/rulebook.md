@@ -51,3 +51,24 @@ a stronger hook and ending.
 Runs **after** step 030 (clean text in). If a rewrite introduces a new number or name, give it
 the step-2 treatment (spell out / map) before TTS — number-and-name normalization is always
 the last thing before synthesis.
+
+## Segment Map
+ALSO write `output/<base>.segments.json` mapping each polished sentence block to its raw video span:
+```json
+[
+  {
+    "seg_id": "s01",
+    "kind": "screen",
+    "raw_start": 12.40,
+    "raw_end": 41.92,
+    "script_text": "The polished sentences belonging to this block."
+  }
+]
+```
+
+Boundary rules:
+1. Block boundaries may sit only where the raw ASR transcript (`../020-transcribe-video-to-text-run/output/<base>.transcript.json`) shows a silence gap of at least 1.0s, or at a brief-section change.
+2. Every sentence of `improved.txt` belongs to exactly one segment, in order.
+3. `raw_start`/`raw_end` come from the ASR word timestamps of the first/last raw word the block was derived from.
+4. `kind` is `"a4_block"` only for blocks the avatar plan will render fullscreen (intro, verdicts, conclusion), else `"screen"`.
+Output: Write `output/<base>.segments.json` per the schema above.

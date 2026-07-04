@@ -4,6 +4,6 @@ Lightly rewrite for delivery — hook, transitions, rambling, outro — while le
 steps, their order, and on-screen actions untouched. Self-limits to small edits; on by default.
 
 - **In:** `../030-clean-and-fix-transcript-antigravity/output/<base>.clean.txt`
-- **Out:** `output/<base>.improved.txt` (+ a short change-log)
+- **Out:** `output/<base>.improved.txt` (+ a short change-log) and `output/<base>.segments.json`
 - **How:** Claude applies `rulebook.md`.
 - **Next:** step 060 reads the `.improved.txt`
