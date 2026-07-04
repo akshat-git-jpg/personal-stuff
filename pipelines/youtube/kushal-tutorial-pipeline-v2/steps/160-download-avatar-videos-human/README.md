@@ -18,7 +18,7 @@ python3 download.py [<base>] [--flow a4|a3|both]   # pulls finished renders into
 python3 check.py   [<base>]                        # verify
 ```
 
-- **In:** `../150-submit-avatar-videos/output/<base>.heygen-manifest.json` (the job list)
+- **In:** `../150-submit-avatar-videos-run/output/<base>.heygen-manifest.json` (the job list)
 - **Out:** `output/videos/<base>__a4__*.mp4` + `<base>__a3__corner*.mp4`
 - **Next:** step 170 copies these into the editor handoff tree.
 

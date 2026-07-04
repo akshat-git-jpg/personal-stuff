@@ -2,7 +2,7 @@
 
 Stop and read the polished script before any voice or avatar work. Cheap to change now, expensive later.
 
-- **Review:** `../040-polish-script-for-delivery/output/<base>.improved.txt` (+ the change-log)
+- **Review:** `../040-polish-script-for-delivery-sonnet/output/<base>.improved.txt` (+ the change-log)
 - **You approve → proceed to step 060 (plan avatar blocks).** Until then, nothing downstream runs.
 
 ## Checklist

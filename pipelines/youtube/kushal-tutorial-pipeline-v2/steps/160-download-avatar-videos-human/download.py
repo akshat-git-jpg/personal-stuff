@@ -9,7 +9,7 @@ manually from HeyGen (see README). Either way, run check.py to confirm what land
 
   python3 download.py [<base>] [--flow a4|a3|both]
 
-Reads:  ../150-submit-avatar-videos/output/<base>.heygen-manifest.json
+Reads:  ../150-submit-avatar-videos-run/output/<base>.heygen-manifest.json
 Writes: output/videos/<job-name>.mp4   (idempotent — skips any .mp4 already present)
 """
 import sys, json, argparse, pathlib
@@ -21,7 +21,7 @@ from lib import heygen                                        # noqa: E402
 from shared import heygen_config as C                         # noqa: E402
 
 VIDEOS = HERE / "output" / "videos"
-S90_OUT = ROOT / "steps/150-submit-avatar-videos/output"
+S90_OUT = ROOT / "steps/150-submit-avatar-videos-run/output"
 
 
 def die(m): raise SystemExit("✖ " + m)

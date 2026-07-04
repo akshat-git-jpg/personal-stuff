@@ -3,8 +3,8 @@
 The last checkpoint **before TTS (GPU) and avatar generation (credits)**. Approving here locks the
 avatar-block boundaries that step 080 chunks to — so changing your mind later means re-synth.
 
-- **Review:** step 060's draft `../060-plan-avatar-blocks/output/<base>.avatar-plan.md`
-- **On approval:** Claude finalizes `../060-plan-avatar-blocks/output/<base>.avatar-segments.json`
+- **Review:** step 060's draft `../060-plan-avatar-blocks-antigravity/output/<base>.avatar-plan.md`
+- **On approval:** Claude finalizes `../060-plan-avatar-blocks-antigravity/output/<base>.avatar-segments.json`
   (the handoff step 080 consumes). **Nothing has cost anything yet.**
 
 ## Checklist

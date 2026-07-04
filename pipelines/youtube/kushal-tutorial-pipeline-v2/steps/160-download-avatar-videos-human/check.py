@@ -16,7 +16,7 @@ import sys, json, pathlib
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parents[1]                                       # kushal-tutorial-pipeline-v2/
 VIDEOS = HERE / "output" / "videos"
-S90_OUT = ROOT / "steps/150-submit-avatar-videos/output"
+S90_OUT = ROOT / "steps/150-submit-avatar-videos-run/output"
 
 
 def die(m): raise SystemExit("✖ " + m)
