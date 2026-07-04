@@ -6,7 +6,7 @@ this pipeline that runs off-machine. Everything else is local.
 import json, subprocess, pathlib
 
 # lib/modal_tts.py → parents: [0]=lib [1]=kushal-tutorial-pipeline-v2 [2]=youtube [3]=TY
-MODAL_APP = pathlib.Path(__file__).resolve().parents[3] / "video-voice/tts-flow/modal/indextts2_app.py"
+MODAL_APP = pathlib.Path(__file__).resolve().parents[3] / "video/voice/tts-flow/modal/indextts2_app.py"
 
 
 def modal_synth(chunks, ref, clip_dir, interval_silence, modal_app=MODAL_APP):

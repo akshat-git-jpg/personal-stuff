@@ -19,7 +19,7 @@ plan file and the repo, not this audit conversation.
 | 006 | Formalize the orchestrator→executor workflow (plans/ convention) | P2 | S | 002 | DONE |
 | 007 | Scaffold the second-brain context layer (design/spike) | P3 | S | 002 | DONE |
 | 008 | Dissolve the `ty/` theme-folder into the by-kind structure (one brain) | P2 | L | 001–007 | DONE |
-| 009 | Reorganize the workspace internals by kind (video/tools/notes/archive) | P3 | M-L | 008 | TODO |
+| 009 | Reorganize the workspace internals by kind (video/tools/notes/archive) | P3 | M-L | 008 | DONE |
 | 010 | VPS migration runbook — repoint render2 mount, retire orphaned TY clone | P3 | S-M | 008, 009 pushed | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).

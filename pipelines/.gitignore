@@ -55,4 +55,4 @@ brain/
 *.log
 
 # HeyGen avatar renders — regenerable from generate.json (the request payload IS kept)
-video-voice/heygen/**/*.mp4
+video/voice/heygen/**/*.mp4
