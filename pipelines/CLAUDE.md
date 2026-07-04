@@ -67,9 +67,9 @@ npx ts-node run.ts --niche <slug>
 | [`hyperframes-vs-remotion/`](hyperframes-vs-remotion/CLAUDE.md) | Superseded Hyperframes vs Remotion rendering tests | HTML/CSS/JS |
 | [`ai-video-production/`](ai-video-production/README.md) | Motion-graphics assets and Devsplainers-style build kit | HTML/CSS/GSAP |
 | [`video-voice/`](video-voice/README.md) | Voiceover pipeline (RVC pitch conversion, TTS engine, heygen) | Python + Node |
-| [`bank-statement-parser/`](bank-statement-parser/README.md) | Bank statements parsing & reconciliation engine | Python |
+| [`bank-statement-parser/`](tools/bank-statement-parser/README.md) | Bank statements parsing & reconciliation engine | Python |
 | [`income-analysis/`](income-analysis/README.md) | Gumroad/Skool income snapshot retrieval CLIs | Python |
-| [`upwork-hiring/`](upwork-hiring/CLAUDE.md) | Hiring-post markdown generator | Claude workflow |
-| [`big-comparison-util/`](big-comparison-util/README.md) | Grouping and ranking comparisons utility | Markdown |
-| [`channel ideas/`](<channel ideas/>) | Channel niche brainstorming notes | Markdown |
-| [`to-do/`](to-do/todolist.md) | Running task lists | Markdown |
+| [`upwork-hiring/`](notes/upwork-hiring/CLAUDE.md) | Hiring-post markdown generator | Claude workflow |
+| [`big-comparison-util/`](tools/big-comparison-util/README.md) | Grouping and ranking comparisons utility | Markdown |
+| [`channel-ideas/`](notes/channel-ideas/) | Channel niche brainstorming notes | Markdown |
+| [`to-do/`](notes/to-do/todolist.md) | Running task lists | Markdown |
