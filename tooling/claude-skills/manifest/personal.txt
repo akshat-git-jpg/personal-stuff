@@ -41,3 +41,4 @@ ui-craft
 ui-craft-dense-dashboard
 audit-repo-route
 orchestrate
+fable-skill
