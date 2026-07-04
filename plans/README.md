@@ -89,6 +89,10 @@ they aren't re-audited from scratch — promote any to a plan when ready.
   Single allow-listed user, so lower severity. `SEC-07`. Effort S.
 
 **Correctness/hygiene backlog:**
+- **Tutorial pipeline: 162 avatar + graphics overlay passes** — deliberately deferred from
+  plan 011's review (2026-07-05): implementing them before real HeyGen downloads exist would
+  mean guessing the file-naming convention. Unblocks when `lib/heygen.py` `TODO[HNS]` stubs
+  are filled and step 135 renders its first clips. `PIPE-01`. Effort S-M.
 - **telegram-my-planner digest fails silently** — no top-level try/except and no
   `requests` timeouts; a Google/Telegram error kills the cron with only local mail,
   no alert. `BUG-01`. Effort S (wrap `__main__`, send failure to Telegram, add timeouts).

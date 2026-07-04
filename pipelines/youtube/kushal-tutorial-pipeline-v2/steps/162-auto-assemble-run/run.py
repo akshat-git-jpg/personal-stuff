@@ -13,7 +13,7 @@ import sys, os, json, argparse, subprocess, pathlib, tempfile
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", required=True)
-    parser.add_argument("--recording", help="Path to raw screen recording")
+    parser.add_argument("--recording", required=True, help="Path to raw screen recording")
     parser.add_argument("--vo", help="Path to VO wav")
     parser.add_argument("--plan", help="Path to assembly plan")
     parser.add_argument("--out", help="Output path")
@@ -21,7 +21,7 @@ def main():
 
     root = pathlib.Path(__file__).resolve().parents[1]
     
-    recording = pathlib.Path(args.recording) if args.recording else root / "010-record-screen" / f"{args.base}.mp4"
+    recording = pathlib.Path(args.recording)
     vo_wav = pathlib.Path(args.vo) if args.vo else root / "100-trim-silence-run" / "output" / f"{args.base}.voice.trim.wav"
     plan_file = pathlib.Path(args.plan) if args.plan else root / "125-build-assembly-plan-run" / "output" / f"{args.base}.assembly-plan.json"
     out_file = pathlib.Path(args.out) if args.out else pathlib.Path(__file__).resolve().parent / "output" / f"{args.base}.draft-cut.mp4"
@@ -35,11 +35,11 @@ def main():
     with open(plan_file) as f:
         plan = json.load(f)
         
-    avatar_dir = root / "160-download-avatar-videos-human" / "output" / "videos"
-    gfx_dir = root / "135-build-graphics-sonnet" / "output"
-    
-    if not avatar_dir.exists(): print("(Notice: no avatar videos found, skipping avatar overlays)")
-    if not gfx_dir.exists(): print("(Notice: no graphics found, skipping graphics overlays)")
+    # Avatar and graphics overlay passes are NOT implemented yet. They land
+    # once real HeyGen downloads exist to pin the file-naming convention
+    # (blocked on the lib/heygen.py TODO[HNS] stubs) and step 135 produces
+    # its first clips. Until then the draft cut is retimed screen + VO.
+    print("(Notice: avatar/graphics overlay passes not implemented yet; output is retimed screen + VO)")
 
     with tempfile.TemporaryDirectory() as td:
         tdp = pathlib.Path(td)

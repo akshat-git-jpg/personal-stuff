@@ -25,6 +25,7 @@ import lib.audio as audio
 WER_FLAG = 0.18
 LOUD_DB_DELTA = 6.0
 PACE_BAND = (1.8, 3.6)
+CLIP_PEAK_COUNT = 50  # samples at full scale before we call it clipping
 
 def levenshtein(a, b):
     dp = [[0] * (len(b) + 1) for _ in range(len(a) + 1)]
@@ -45,14 +46,23 @@ def normalize(text):
     return text.split()
 
 def get_loudness(wav_path):
-    res = subprocess.run(["ffmpeg", "-i", str(wav_path), "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True)
+    res = subprocess.run(["ffmpeg", "-i", str(wav_path), "-af", "volumedetect,astats=metadata=0", "-f", "null", "-"], capture_output=True, text=True)
     mean_db = peak_db = 0.0
+    peak_count = 0
     for line in res.stderr.splitlines():
         if "mean_volume:" in line:
             mean_db = float(line.split("mean_volume:")[1].replace("dB", "").strip())
         if "max_volume:" in line:
             peak_db = float(line.split("max_volume:")[1].replace("dB", "").strip())
-    return mean_db, peak_db
+        # astats Overall block: how many samples sit at the peak value.
+        # Normalized TTS touches full scale a handful of times; true clipping
+        # slams into it repeatedly.
+        if "Peak count:" in line:
+            try:
+                peak_count = max(peak_count, int(float(line.split("Peak count:")[1].strip())))
+            except ValueError:
+                pass
+    return mean_db, peak_db, peak_count
 
 def main():
     parser = argparse.ArgumentParser()
@@ -82,12 +92,13 @@ def main():
         if not wav_path.exists(): continue
         
         dur = audio.dur(wav_path)
-        mean_db, peak_db = get_loudness(wav_path)
+        mean_db, peak_db, peak_count = get_loudness(wav_path)
         mean_dbs[cid] = mean_db
-        
+
         c["_dur"] = dur
         c["_mean_db"] = mean_db
         c["_peak_db"] = peak_db
+        c["_peak_count"] = peak_count
         c["_wav"] = wav_path
         
     if not mean_dbs:
@@ -124,8 +135,10 @@ def main():
         mean_db, peak_db = c["_mean_db"], c["_peak_db"]
         if abs(mean_db - med_db) > LOUD_DB_DELTA:
             reasons.append(f"Mean loudness {mean_db:.1f} dB is > {LOUD_DB_DELTA}dB from median {med_db:.1f} dB")
-        if peak_db >= 0.0:
-            reasons.append(f"Clipping detected (peak {peak_db:.1f} dB)")
+        # Normalized TTS peaks at full scale by design; that alone is not
+        # clipping. Flag only when many samples pile up at the peak.
+        if peak_db >= -0.05 and c["_peak_count"] >= CLIP_PEAK_COUNT:
+            reasons.append(f"Clipping detected (peak {peak_db:.1f} dB hit {c['_peak_count']} times)")
             
         dur = c["_dur"]
         words = len(normalize(c["text"]))

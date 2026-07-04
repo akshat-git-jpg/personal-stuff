@@ -129,4 +129,10 @@ kushal-tutorial-pipeline-v2/
   in a Claude Code session on model Sonnet (`/model sonnet` first).
 
 ## Status
-Steps 000, 015, 105, 125, 135, 162, 165 are v3 additions. All steps (105, 125, 162) are now fully implemented and 040 emits the segment map (via `plans/011-tutorial-pipeline-v3.md`). Step 135's rulebook is stubbed waiting for a Claude Code session with hyperframes skills. Everything from v2 (080-160 voice + avatar machinery) is unchanged and working as documented in `HANDOVER.md`.
+Steps 000, 015, 105, 125, 135, 162, 165 are v3 additions. 105, 125, and 162 are implemented
+and 040 emits the segment map (via `plans/011-tutorial-pipeline-v3.md`), with one scoped
+exception: 162's avatar and graphics overlay passes are pending — the draft cut is currently
+retimed screen + VO. They land once the HeyGen `TODO[HNS]` stubs are filled (real downloads
+pin the file naming) and step 135 produces its first clips. Step 135's rulebook is stubbed
+waiting for a Claude Code session with the hyperframes skills. Everything from v2 (080-160
+voice + avatar machinery) is unchanged and working as documented in `HANDOVER.md`.

@@ -1,24 +1,28 @@
 # HANDOVER — kushal-tutorial-pipeline-v2 (for a fresh Claude session)
 
 ## What this is
-A linear pipeline that turns a tutorial **screen recording** into an **editor-ready package**:
-clean script → brand-voice voiceover → full-screen + corner avatar videos → visual plan →
-Drive-style handoff folder. Built for a small team (you do the mechanical middle on Claude Code;
-freelancers do the rest).
+A linear pipeline that turns a topic into a **published-ready tutorial draft cut**:
+research brief → freelancer screen recording → clean script → brand-voice voiceover →
+avatar clips → rendered graphics → auto-assembled cut. As of the v3 flow (2026-07-05) the
+editor role is optional QC: assembly is deterministic (see the timing spine in `PIPELINE.md`
+and the design in `SPEC.md`).
 
-- **Location:** `TY/youtube/kushal-tutorial-pipeline-v2/` (in the **TY** repo, *not* personal-stuff).
-- **Read first:** `PIPELINE.md` (the ordered map). Each step folder has a `README.md`.
-- **Untracked:** all of `TY/youtube/` is git-untracked — nothing committed yet.
+- **Location:** `personal-stuff/pipelines/youtube/kushal-tutorial-pipeline-v2/` (tracked in git).
+- **Read first:** `PIPELINE.md` (the ordered map), then `SPEC.md` (v3 design). Each step folder has a `README.md`.
+- **v3 build status:** new steps 105/125/135/162 are stubs; `plans/011-tutorial-pipeline-v3.md`
+  (repo root) implements them plus 040's segment-map output.
 
-## The pipeline (17 steps, ×10-numbered 010–170)
+## The pipeline (24 steps, 000–170)
 **The full step list is in `PIPELINE.md`** — the canonical map. Not duplicated here so the two
-docs can't drift. `[RUN]` = a script you run · `[CLAUDE]` = a rulebook Claude applies ·
-`[HUMAN]` = a review gate. The shape, in one breath:
+docs can't drift. Actor suffix on each folder: `-run` (script) · `-antigravity` (paste prompt) ·
+`-sonnet` (Claude Code on Sonnet) · `-human` (gate). The shape, in one breath:
 
-- **010** create Drive folders → **020–040** transcribe / clean / polish script → **050** approve script
+- **000** research brief (Antigravity) → **010** Drive folders → **015** freelancer records per the brief
+- **020–040** transcribe / clean / polish script **+ segment map** → **050** approve script
 - **060–070** plan + approve avatar blocks (pre-spend gate) → **080** synthesize voice → **090** plan corner parts
-- **100** trim → **110** approve voice → **120** timestamps → **130–140** plan + approve visuals
-- **150** submit HeyGen renders → **160** download them (human) → **170** package for handoff
+- **100** trim → **105** voice auto-QC → **110** approve flagged chunks → **120** timestamps → **125** assembly plan
+- **130–140** plan + build + approve graphics, in parallel with **150–160** HeyGen submit + download
+- **162** auto-assemble draft cut → **165** QC the cut (fix flags only) → **170** package for handoff
 
 ## Architecture & conventions
 - **Each step owns its `output/`**; a step reads `../<prev>/output/…` and writes `./output/…`.
