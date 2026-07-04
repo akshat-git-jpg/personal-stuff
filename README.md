@@ -44,7 +44,7 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 
 ## Related
 
-- Pinterest work lives under `ty/` (nested in this repo since the TY merge): pin data and the funnel landing pages are under `ty/pinterest/` (`ty/pinterest/landing-pages/` holds the keto + bridebestie Cloudflare Workers). The Pinterest *skills* still live here in `tooling/claude-skills/`.
+- Business and money-making projects live under `ty/` (nested in this repo since the TY merge). The subtree covers YouTube pipelines, video production, Pinterest business (pin data + landing pages), and income analysis. Its guide is at [`ty/CLAUDE.md`](ty/CLAUDE.md). The Pinterest *skills* still live here in `tooling/claude-skills/`.
 
 ## Conventions
 

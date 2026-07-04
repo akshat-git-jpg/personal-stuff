@@ -48,7 +48,7 @@ A single git repo for my money-making / business projects: YouTube (niche resear
 | [`workers/redirector/`](workers/redirector/CLAUDE.md) | Cloudflare Worker for `go.agrolloo.com/*` short links | TypeScript (CF Worker) |
 | [`docs/`](docs/CLAUDE.md) | Repo-wide docs and workflows | Markdown |
 | [`upwork-hiring/`](upwork-hiring/CLAUDE.md) | Turn jumbled hiring thoughts into a ready-to-paste Upwork job post | Claude workflow |
-| [`to-do/`](to-do/CLAUDE.md) | Running TODO list | Markdown |
+| [`to-do/`](to-do/todolist.md) | Running TODO list | Markdown |
 | [`pinterest/`](pinterest/PLAN.md) | Per-niche Pinterest PDF business (keto, wedding) + landing pages | Python + HTML |
 | [`yt-visuals-hyperframe/`](yt-visuals-hyperframe/README.md) | **Live** HTML→video card tool (Video Studio); the card templates render2.agrolloo.com pulls from | Node |
 | [`hyperframes-vs-remotion/`](hyperframes-vs-remotion/CLAUDE.md) | Prior experiment (Hyperframes vs Remotion) — superseded by `yt-visuals-hyperframe/` | Node |
@@ -66,7 +66,7 @@ One-time setup:
 
 ```bash
 # 1. Python environment
-cd /Users/kbtg/codebase/TY
+cd <repo-root>/ty
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt

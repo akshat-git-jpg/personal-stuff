@@ -2,7 +2,7 @@
 
 Per-video analytics dashboard for the `@AgrolloReviews` channel + the `go.agrolloo.com` shortener. **YouTube is the source of truth for the video list** — the dashboard shows the channel's public long-form uploads (Shorts excluded), and each one is enriched with click data from D1 where it exists. A video with no shortener link still shows (0 clicks). Three tabs (`App.tsx`, client-side state): **Clicks** — per video, its **live YouTube view count**, de-duplicated click counts (30d + all-time), and each affiliate/tool link with its own counts (one dense card per video, all rendered upfront, no expand/collapse); **Uploads** (`UploadsView.tsx`) — upload-frequency bar chart (week/month toggle) over each video's real YouTube publish date, with preset + custom date ranges and a list of videos uploaded in the selected window; **Rankings** (`RankingsView.tsx`) — per-video keyword rank tracking via a manual YouTube-search check, with rank-over-time line charts (see the Rankings section). Live at `yt-analytics.agrolloo.com`. Worker name `yt-analytics`.
 
-Same stack as the sibling `gym-app/` / `kushal-docs/` / `tracker-app/`: Vite + React (client) + Hono on a Cloudflare Worker, SPA served via the `ASSETS` binding. The `clicks-db` D1 it reads is written by the sibling `tracker-app/` (link generation) and by the redirector Worker, which still lives in the **TY** repo (`../../../TY/`, a sibling checkout under `~/codebase/`).
+Same stack as the sibling `gym-app/` / `kushal-docs/` / `tracker-app/`: Vite + React (client) + Hono on a Cloudflare Worker, SPA served via the `ASSETS` binding. The `clicks-db` D1 it reads is written by the sibling `tracker-app/` (link generation) and by the redirector Worker, which lives in the in-tree `ty/` subtree (`ty/workers/redirector/`).
 
 ## Layout
 
@@ -31,11 +31,11 @@ If `YT_API_KEY`/`CHANNEL_ID` are missing or YouTube errors, the response is `{ v
 
 ### D1 — DO NOT WRITE
 
-Binds the redirector's `clicks-db` D1 (id `3415a408-…`, schema owned by the TY repo at `TY/workers/redirector/migrations/`). This app ONLY reads `videos`/`links`/`clicks` and ONLY for click data — never INSERT/UPDATE/migrate here. D1 is account-level, so the binding works even though the schema source is in another repo. The join hinges on the additive `videos.yt_video_id` column (redirector migration `0002`); treat new columns as additive. The tracker sheet is NOT used.
+Binds the redirector's `clicks-db` D1 (id `3415a408-…`, schema owned by `ty/workers/redirector/migrations/`). This app ONLY reads `videos`/`links`/`clicks` and ONLY for click data — never INSERT/UPDATE/migrate here. D1 is account-level, so the binding works even though the schema source is in another folder. The join hinges on the additive `videos.yt_video_id` column (redirector migration `0002`); treat new columns as additive. The tracker sheet is NOT used.
 
 ## Rankings (keyword rank tracking)
 
-Third tab (`RankingsView.tsx`). Lists **all** videos; each lets you add/delete keywords and run a manual per-video "Check". A check calls YouTube `search.list` (top `SEARCH_DEPTH`=50) once per keyword and appends a timestamped `rank_checks` row — history accrues, never overwritten. Each keyword shows current rank, Δ vs previous, and an expandable SVG line chart (inverted axis, ">50" at the bottom). No Sheets, no Python, no AI — this replaces the old `TY/youtube/yt-analysis/sync_rankings.py` sheet flow.
+Third tab (`RankingsView.tsx`). Lists **all** videos; each lets you add/delete keywords and run a manual per-video "Check". A check calls YouTube `search.list` (top `SEARCH_DEPTH`=50) once per keyword and appends a timestamped `rank_checks` row — history accrues, never overwritten. Each keyword shows current rank, Δ vs previous, and an expandable SVG line chart (inverted axis, ">50" at the bottom). No Sheets, no Python, no AI — this replaces the old `ty/youtube/yt-analysis/sync_rankings.py` sheet flow.
 
 **Quota**: each keyword check = 1 `search.list` = **100 units** (vs 1 unit for the videos.list calls); default daily quota 10,000 ≈ 100 checks/day. So checks are manual + per-video by design, never on page load. A 403 quotaExceeded stops the run, keeps partial results, and flags `quota_exhausted` for the UI.
 
@@ -58,8 +58,8 @@ Three secrets: `APP_PASSWORD`, `SESSION_SECRET`, `YT_API_KEY` (`wrangler secret 
 ```bash
 cd apps/analytics-app
 npm install
-# local D1 starts EMPTY — seed schema from the TY repo, or use --remote for live data:
-npx wrangler d1 execute clicks-db --local --file=../../../TY/workers/redirector/migrations/0001_init.sql
+# local D1 starts EMPTY — seed schema from the ty/ subtree, or use --remote for live data:
+npx wrangler d1 execute clicks-db --local --file=../../ty/workers/redirector/migrations/0001_init.sql
 npm run build && npx wrangler dev --local   # http://localhost:8787
 npm run deploy                              # build + wrangler deploy
 ```

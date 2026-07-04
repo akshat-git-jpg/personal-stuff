@@ -12,7 +12,7 @@ metadata:
 Tell the user the **truth** about their pins — what's working, what isn't, and the highest-impact
 fix — backed by data, never generic advice. This is a critic, not a cheerleader and not a doomer.
 
-> **READ FIRST:** `~/codebase/TY/pinterest/PINTEREST-PRINCIPLES.md` + the niche `playbook.md`.
+> **READ FIRST:** `~/codebase/personal-stuff/ty/pinterest/PINTEREST-PRINCIPLES.md` + the niche `playbook.md`.
 > Judge pins against those rules AND the live competitors — not against opinion.
 
 ## Neutrality rules (non-negotiable)

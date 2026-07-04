@@ -18,7 +18,7 @@ It is **not** a code reviewer. It only inspects the *navigation* artifacts (the 
 By default, audit the repos that use this convention and are present locally:
 
 - `/Users/kbtg/codebase/personal-stuff`
-- `/Users/kbtg/codebase/TY`
+- `/Users/kbtg/codebase/personal-stuff/ty`
 
 Rules:
 - If invoked from inside one of those repos with no other instruction, audit **both** (they share the convention).
