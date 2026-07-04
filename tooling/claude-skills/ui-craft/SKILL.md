@@ -1,6 +1,6 @@
 ---
 name: ui-craft
-description: "Use for UI design and implementation work to avoid generic AI-looking interfaces. Provides anti-slop rules, a required discovery phase before coding, and guidance for layout, typography, color, motion, accessibility, dashboards, tables, landing pages, theming, and polish. Trigger as soon as work involves any frontend, web app, website, UI, page, or screen — including while DESIGNING, PLANNING, or BRAINSTORMING it (engage at the discovery/design stage, before code is written, so accent/font/layout choices go through Discovery rather than defaults), and when building, editing UI code, or reviewing and refining components, pages, screens, layouts, animations, responsive behavior, or design systems."
+description: "Use for any UI design or implementation work to avoid generic AI-looking interfaces — anti-slop rules, a required discovery phase before coding, and guidance for layout, typography, color, motion, accessibility, dashboards, tables, landing pages, theming, and polish. Engage as soon as work involves a frontend, web app, website, page, or screen — including while DESIGNING, PLANNING, or BRAINSTORMING (before code, so accent/font/layout choices go through Discovery), and when building, editing, or reviewing UI code."
 argument-hint: "[action: build|animate|review|polish|audit] [target]"
 user-invocable: true
 metadata:

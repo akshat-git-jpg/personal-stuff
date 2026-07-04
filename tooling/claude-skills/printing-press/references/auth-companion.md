@@ -8,7 +8,7 @@ when-to-read: When implementing or recommending the press-auth companion for a C
 > with `auth.type` of `cookie` or `composed`. Also load when the user reports that a
 > printed CLI's `auth login --chrome` exits with "Required cookies not in Chrome's
 > cookie DB" or any cookie-extraction failure. The Printing Press's
-> Cookie/composed HTML transport section in SKILL.md points here for the recommendation
+> Cookie/composed HTML transport section in `references/phase-2-generate.md` points here for the recommendation
 > flow and debug playbook.
 
 ## What press-auth is

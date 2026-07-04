@@ -1,6 +1,6 @@
 ---
 name: fable-skill
-description: Opt-in operating profile for when the CURRENT model is Claude Fable 5 (or Mythos 5), invoked at the start of a big, open-ended, or long-running task so Fable works token-efficiently and finishes the job. Loads the proven Fable-5 operating habits — act when ready, don't over-engineer, report briefly and honestly, stay in scope, delegate to subagents, remember lessons — and flags the two Fable-only footguns (reasoning-echo refusals, over-prescription). Invoke it deliberately; it is NOT for routine work and adds nothing useful when the model is Opus/Sonnet. Triggers on "/fable-skill", "fable mode", "operate as fable", "I'm running fable", "tune for fable", "fable operating rules", or the user starting a hard/open-ended task and saying they're on Fable. Can also emit a paste-ready Fable prompt block for configuring a Fable agent in another harness (Antigravity, API).
+description: Opt-in operating profile for when the CURRENT model is Claude Fable 5 / Mythos 5, invoked at the start of a big or open-ended task — loads Fable's token-efficient habits (act when ready, don't over-engineer, report briefly, stay in scope, delegate, remember lessons) and its two footguns (reasoning-echo refusals, over-prescription). Not for routine work; adds nothing on Opus/Sonnet. Can also emit a paste-ready Fable prompt block for another harness. Triggers on "/fable-skill", "fable mode", "operate as fable", "I'm running fable", "tune for fable", "fable operating rules".
 user-invocable: true
 metadata:
   author: kbtg

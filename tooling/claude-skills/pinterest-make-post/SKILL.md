@@ -1,6 +1,6 @@
 ---
 name: pinterest-make-post
-description: Turn a single pin idea into a finished, ready-to-post Pinterest pin — a catchy 1000x1500 image plus all the copy. Reads a per-niche data folder (config.json + playbook.md) under the project dir (e.g. pipelines/pinterest/<niche>/), art-directs the pin (picks a template + a backdrop layer: CSS gradient / free stock photo / free AI image), writes the title, description, alt text, hashtags, board, best time, and offer link, renders the image with Playwright, and saves image.png + post.md into <niche>/posts/<slug>/. Triggers on "make a pinterest pin", "make a keto pin", "create a pin for this idea", "pinterest-make-post", "generate a pin", "turn this idea into a pin".
+description: Turn one pin idea into a finished, ready-to-post Pinterest pin — a 1000x1500 image plus title, description, alt text, hashtags, board, best time, and offer link. Reads the niche folder (config.json + playbook.md, e.g. pipelines/pinterest/<niche>/), art-directs a template + backdrop, renders with Playwright, saves image.png + post.md into <niche>/posts/<slug>/. Triggers on "make a pinterest pin", "make a keto pin", "create a pin for this idea", "pinterest-make-post", "generate a pin", "turn this idea into a pin".
 user-invocable: true
 metadata:
   author: kbtg

@@ -1,6 +1,6 @@
 ---
 name: commit-now
-description: Pre-commit gate for the current repo. Runs prettier, lint, typecheck (tsc), and build; auto-fixes whatever it can (including editing code to fix TS/build errors), then prints a summary (repo, branch, git user, files changed) and proposes a short conventional-commit message. After the user confirms, stages the relevant files and creates the commit. Uses --no-verify ONLY when all checks the husky hook would run have already passed clean in this skill. NEVER pushes. NEVER mentions AI, Claude, Anthropic, or any generator footer. Triggers on "commit now", "/commit-now", "commit-now", "run pre-commit checks", "ready to commit".
+description: Pre-commit gate — runs prettier, lint, tsc, and build, auto-fixing what it can (including code edits for TS/build errors), prints a summary (repo, branch, git user, files changed), proposes a conventional-commit message, and commits only after the user confirms. --no-verify only when every husky check already passed here. NEVER pushes; never mentions AI or any generator footer. Triggers on "commit now", "/commit-now", "commit-now", "run pre-commit checks", "ready to commit".
 user-invocable: true
 metadata:
   author: kbtg

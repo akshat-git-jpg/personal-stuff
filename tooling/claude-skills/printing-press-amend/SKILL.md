@@ -1,14 +1,11 @@
 ---
 name: printing-press-amend
 description: >
-  Amend a published CLI from one of two input sources: (1) dogfood mode mines
-  the active Claude Code session transcript for friction (missing flags, hand-
-  rolled API payloads, silent-null returns); (2) direct-input mode accepts
-  user-supplied asks (rename a command, add commands or feeds, fix a named bug,
-  optionally sniff the source site for new endpoints). Confirms scope with the
-  user, plans + executes the fix autonomously, scrubs PII, and opens a PR
-  against mvanhorn/printing-press-library. Two user-in-loop checkpoints: scope
-  after capture, PR draft before open.
+  Amend a published CLI: dogfood mode mines the current session transcript for
+  friction (missing flags, hand-rolled payloads, silent nulls); direct-input
+  mode takes user asks (rename/add commands or feeds, fix a named bug, sniff
+  for new endpoints). Confirms scope, fixes autonomously, scrubs PII, opens a
+  PR against mvanhorn/printing-press-library.
   Trigger phrases: "amend the CLI", "submit a patch", "fix what I just
   dogfooded", "open a PR for this CLI", "patch this CLI", "add features to my
   CLI", "rename this command", "add these feeds to <cli>", "sniff for new APIs

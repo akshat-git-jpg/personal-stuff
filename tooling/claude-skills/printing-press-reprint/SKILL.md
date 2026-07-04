@@ -2,13 +2,11 @@
 name: printing-press-reprint
 description: >
   Regenerate an existing printed CLI from scratch under the current Printing
-  Press, with prior research, prior novel features, and prior patches
-  (post-publish hand-fixes) carried into the writing pipeline as
-  reconciliation context rather than dropped on the floor. Pulls the CLI
-  from the public library if it isn't local, recommends reuse-vs-redo of
-  prior research based on age, then hands off to /printing-press with the
-  right context. Use when a machine upgrade would benefit a published CLI
-  more than manual polish.
+  Press, carrying prior research, novel features, and post-publish patches
+  into the pipeline as reconciliation context. Pulls the CLI from the public
+  library if not local, recommends reuse-vs-redo of prior research by age,
+  then hands off to /printing-press. Use when a machine upgrade would benefit
+  a published CLI more than manual polish.
   Trigger phrases: "reprint <api>", "regenerate <api>", "redo the <api> CLI",
   "rebuild <api> from scratch", "this CLI would benefit from a reprint".
 allowed-tools:

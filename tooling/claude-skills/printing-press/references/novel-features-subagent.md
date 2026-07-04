@@ -17,7 +17,7 @@ only legal non-spawn outcome is the pre-flight HALT defined below.
   entire reason the reprint case exists. Strong priors make the spawn more
   valuable, not less.
 - Hand-curating from a prior manifest, falling back to inline brainstorming
-  in SKILL.md, or disclosing a skip in the gate showcase are violations of
+  in the main flow, or disclosing a skip in the gate showcase are violations of
   this contract, not exits from it.
 - Run the prior-research discovery snippet below as written. Do not
   substitute a hand-eyeballed `ls` of the manuscripts directory; the
@@ -314,7 +314,7 @@ Do not include any other sections. Do not summarize. Do not editorialize.
 Do not propose follow-up work.
 ````
 
-## Output handling in SKILL.md
+## Output handling in the main flow (Phase 1.5c.5)
 
 After the subagent returns:
 

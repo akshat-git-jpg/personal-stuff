@@ -3,7 +3,7 @@
 > **When to read:** This file is referenced by Phase 1.7 of the printing-press skill.
 > Read it when the user approves temporary browser discovery (browser-use, agent-browser, or manual HAR capture of live site traffic).
 >
-> **Context:** This file documents what happens AFTER Phase 1.7 decides to browser-sniff. The decision itself — approve, decline, or silent-skip — is recorded in `$PRESS_RUNSTATE/runs/$RUN_ID/browser-browser-sniff-gate.json` by Phase 1.7 before this reference is loaded. Phase 1.5 refuses to proceed without that marker file. See SKILL.md Phase 1.7 "Enforcement: the browser-browser-sniff-gate.json marker file" for the contract.
+> **Context:** This file documents what happens AFTER Phase 1.7 decides to browser-sniff. The decision itself — approve, decline, or silent-skip — is recorded in `$PRESS_RUNSTATE/runs/$RUN_ID/browser-browser-sniff-gate.json` by Phase 1.7 before this reference is loaded. Phase 1.5 refuses to proceed without that marker file. See `references/phase-1.7-browser-sniff-gate.md` "Enforcement: the browser-browser-sniff-gate.json marker file" for the contract.
 >
 > Browser discovery is a temporary generation-time aid. It exists to learn URLs, methods, request bodies, persisted GraphQL hashes, BFF envelopes, auth/header construction, response shapes, and replayability. It is not permission to generate a printed CLI that keeps a browser open for normal commands.
 
@@ -426,7 +426,7 @@ For XHR-based interceptor captures, the same pattern applies: install the interc
 
 **Step 2a.1: Build the user flow plan**
 
-From the primary browser-sniff goal (Step 0 in the SKILL.md), derive the interactive steps a real user would take to accomplish that goal. This is NOT a list of pages to load -- it is a sequence of actions.
+From the primary browser-sniff goal (Step 0 in `references/phase-1.7-browser-sniff-gate.md`), derive the interactive steps a real user would take to accomplish that goal. This is NOT a list of pages to load -- it is a sequence of actions.
 
 Example for "Order a pizza for delivery" (Domino's):
 1. Click "Delivery" on homepage

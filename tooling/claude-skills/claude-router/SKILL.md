@@ -1,10 +1,10 @@
 ---
 name: claude-router
-description: Manage Claude Code skills and plugins in the user's dual-account setup (work + personal). Use this skill when the user asks to create, design, build, scaffold, or brainstorm a new custom skill from scratch (including naming, writing SKILL.md, choosing trigger phrases, validating frontmatter); install or add an existing skill or plugin from npx skills, GitHub, or a local folder; remove or uninstall a skill or plugin; install in both/work/personal; debug why a skill or plugin is not loading or not appearing in /skills or /plugins; fix /skills empty; run /plugin install; set up env vars for skills; or resolve npm 401 / CodeArtifact auth errors.
+description: Manage Claude Code skills and plugins in the dual-account setup (work + personal). Use when the user asks to create or scaffold a new custom skill (naming, SKILL.md, trigger phrases, frontmatter), install or remove a skill or plugin (npx skills, GitHub, local folder; scope both/work/personal), debug a skill or plugin not loading or /skills empty, run /plugin install, set env vars for skills, or fix npm 401 / CodeArtifact auth errors.
 user-invocable: true
 metadata:
   author: kbtg
-  version: 3.0.0
+  version: 3.1.0
 ---
 
 # Claude Code Config Router
@@ -36,8 +36,8 @@ skill is indistinguishable from a real one — it appears in `/skills`, the slas
 menu, and auto-invokes on its description exactly like a local skill.
 
 - **Store:** `/Users/kbtg/codebase/personal-stuff/tooling/claude-skills/` (the only real copies; in git, private repo `akshat-git-jpg/personal-stuff`)
-- **Relink script:** `claude-skills/relink.sh` — idempotent; (re)creates every symlink from the manifests. Run it after any membership change and on a new laptop.
-- **Membership manifests** (`claude-skills/manifest/`, one skill name per line):
+- **Relink script:** `scripts/relink.sh` (at the repo root) — idempotent; (re)creates every symlink from the manifests. Run it after any membership change and on a new laptop.
+- **Membership manifests** (`tooling/claude-skills/manifest/`, one skill name per line):
   - `work.txt`     → linked into `~/.claude-work/skills/` (sourced from the store)
   - `personal.txt` → linked into `~/.claude-personal/skills/` (sourced from the store)
   - `agents.txt`   → `pp-*` printing-press skills sourced from `~/.agents/skills/`, linked into **both** accounts
@@ -120,10 +120,10 @@ metadata:
 4. Write `SKILL.md` (and optionally `references/`, `scripts/`, `assets/`) into the store folder, then add `<name>` to the chosen manifest(s) and relink:
 
    ```bash
-   cd "/Users/kbtg/codebase/personal-stuff/claude-skills"
+   cd "/Users/kbtg/codebase/personal-stuff/tooling/claude-skills"
    echo <name> >> manifest/work.txt        # if work
    echo <name> >> manifest/personal.txt    # if personal  (both => both lines)
-   ./relink.sh
+   /Users/kbtg/codebase/personal-stuff/scripts/relink.sh
    ```
 
 5. Validate frontmatter against the rules in "Frontmatter requirements" (next section). Strip any disallowed fields.
@@ -145,6 +145,8 @@ Good: *"Reviews staged git changes for security issues, missing tests, and break
 
 When brainstorming, draft the description WITH trigger phrases, then read it back to the user to confirm coverage.
 
+**Description token budget:** every linked skill's description is loaded into EVERY session of that account — prose beyond what + trigger phrases is a permanent token tax. Aim for ≤500 characters, hard cap ~700. Cut narrative detail (how it works internally, edge-case caveats) — that belongs in the body, which only loads on invocation. When editing any existing skill, trim its description to this budget in the same pass.
+
 ## Installing a skill
 
 A skill = one folder containing `SKILL.md` + optional `references/`, `scripts/`, `assets/`.
@@ -156,7 +158,7 @@ A skill = one folder containing `SKILL.md` + optional `references/`, `scripts/`,
    - `npx skills add <owner>/<repo>` from a public GitHub repo — see "npm auth" section below
    - A local folder the user provides
    - A SKILL.md the user pastes inline
-3. Place the skill folder ONCE in the store `claude-skills/<skill-name>/`, add its name to the chosen manifest(s), and run `./relink.sh`.
+3. Place the skill folder ONCE in the store `claude-skills/<skill-name>/`, add its name to the chosen manifest(s), and run `/Users/kbtg/codebase/personal-stuff/scripts/relink.sh`.
 4. Validate the SKILL.md frontmatter (see below). Fix it if invalid.
 5. Verify on the filesystem (see "Verification" section).
 6. Tell the user: *"Restart any running `claude-<account>` session — skills load only at session start."*
@@ -175,19 +177,19 @@ The installer is interactive. Tell the user:
 After install completes, the skill lands at `~/.agents/skills/<skill-name>/`. Bring it into the store, add to manifest(s), and relink:
 ```bash
 cp -R ~/.agents/skills/<skill-name> "/Users/kbtg/codebase/personal-stuff/tooling/claude-skills/<skill-name>"
-cd "/Users/kbtg/codebase/personal-stuff/claude-skills"
+cd "/Users/kbtg/codebase/personal-stuff/tooling/claude-skills"
 echo <skill-name> >> manifest/work.txt       # and/or manifest/personal.txt
-./relink.sh
+/Users/kbtg/codebase/personal-stuff/scripts/relink.sh
 ```
 Alternatively, `relink.sh` can auto-source a skill straight from `~/.agents/skills/` without
 copying it into the store (this is how the `pp-*` skills work): just add the name to the
-manifest(s) and run `./relink.sh` — don't copy. Use this for printing-press-managed skills so
+manifest(s) and run `/Users/kbtg/codebase/personal-stuff/scripts/relink.sh` — don't copy. Use this for printing-press-managed skills so
 they aren't duplicated. (Note: agents-sourced skills won't exist on a fresh laptop until
 reinstalled, whereas store skills travel with the repo.)
 
 ### Source: user-provided folder or inline SKILL.md
 
-Place files in the store at `claude-skills/<skill-name>/`, add the name to the chosen manifest(s), and run `./relink.sh`.
+Place files in the store at `claude-skills/<skill-name>/`, add the name to the chosen manifest(s), and run `/Users/kbtg/codebase/personal-stuff/scripts/relink.sh`.
 
 ### Frontmatter requirements (Claude Code's parser is strict)
 
@@ -250,9 +252,9 @@ now-unlisted symlink from that account (e.g. removing it from `personal.txt` onl
 out of personal but keeps it in work):
 
 ```bash
-cd "/Users/kbtg/codebase/personal-stuff/claude-skills"
+cd "/Users/kbtg/codebase/personal-stuff/tooling/claude-skills"
 # edit manifest/work.txt and/or manifest/personal.txt to delete the line(s)
-./relink.sh
+/Users/kbtg/codebase/personal-stuff/scripts/relink.sh
 ```
 
 To delete the skill **entirely**, also `rm -rf claude-skills/<skill-name>` and remove it from
@@ -313,7 +315,7 @@ npx --registry=https://registry.npmjs.org <command>
 | Skill in folder but `/skills` doesn't list it | Frontmatter has `license`/`compatibility`/`version: "1.0"`/top-level `version` | Strip non-standard keys; ensure `metadata.version: 1.0.0` |
 | Skill not in `/` autocomplete | Missing `user-invocable: true` | Add it |
 | Skill changes / new / removed skill not reflected | Session started before the change; headless `claude -p` is cached | Restart `claude-<account>` (interactive) |
-| A skill silently vanished | Repo moved/renamed → symlink dangles | Rerun `claude-skills/relink.sh` |
+| A skill silently vanished | Repo moved/renamed → symlink dangles | Rerun `scripts/relink.sh` |
 | Skill present in wrong account | Manifest membership drifted | Fix `manifest/*.txt`, run `relink.sh` (it prunes) |
 | `/reload-plugins` shows "0 plugins" | Plugin install state is read only at session start | Quit fully (`/quit` or Ctrl+D twice), relaunch |
 | Plugin works in one account, not the other | Plugins are per-account | Run `/plugin install` separately in the other account |
@@ -331,10 +333,10 @@ npx --registry=https://registry.npmjs.org <command>
 3. Validate frontmatter in the store copy — strip `license`, `compatibility`; ensure `metadata.version: 1.0.0` unquoted; add `user-invocable: true`.
 4. Add to both manifests and relink:
    ```bash
-   cd "/Users/kbtg/codebase/personal-stuff/claude-skills"
+   cd "/Users/kbtg/codebase/personal-stuff/tooling/claude-skills"
    echo valyu-best-practices >> manifest/work.txt
    echo valyu-best-practices >> manifest/personal.txt
-   ./relink.sh
+   /Users/kbtg/codebase/personal-stuff/scripts/relink.sh
    ```
 5. Remind user: skill needs `VALYU_API_KEY` in `~/.zshrc`. Add if missing.
 6. Verify on the filesystem (symlink resolves to a readable SKILL.md in both accounts); tell user to restart sessions.
@@ -355,13 +357,13 @@ Same as the "both" dialogue, but add `valyu-best-practices` to `manifest/persona
 `claude-router` now lives in the store at
 `/Users/kbtg/codebase/personal-stuff/tooling/claude-skills/claude-router/SKILL.md` and is symlinked
 into BOTH accounts. **Edit that one file — both accounts update at once. No manual sync.**
-(Run `claude-skills/relink.sh` only if the symlinks are missing.) Commit the change to the
+(Run `scripts/relink.sh` only if the symlinks are missing.) Commit the change to the
 `personal-stuff` repo. Bump `metadata.version` on non-trivial changes.
 
 ## Final checks before declaring done
 
 After any install/remove operation:
-1. Run the verification command (`CLAUDE_CONFIG_DIR=... claude -p "list skills" | grep <name>`).
+1. Verify on the filesystem (`ls -l <account_dir>/skills/<name>` resolves to a readable SKILL.md) — never via `claude -p` (cached, unreliable).
 2. Tell the user explicitly which sessions to restart and how (`/quit` → `claude-<account>`).
 3. If env vars were added, tell the user to `source ~/.zshrc`.
 

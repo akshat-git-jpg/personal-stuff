@@ -1,18 +1,15 @@
 ---
 name: humanizer
 description: |
-  Write or rewrite human-facing text so it reads natural and human, never
-  AI-generated. Use whenever WRITING, DRAFTING, or REFRAMING any copy a human
-  will read: Slack messages, emails, Jira ticket updates/comments, PR
-  descriptions, READMEs, Notion/Confluence pages, design docs, tweets/X posts,
-  Threads/LinkedIn posts, ebook chapters, blog posts, landing-page or marketing
-  copy, Pinterest pin descriptions, video scripts. Triggers on "write a
-  message", "draft an email", "reframe this for slack", "update the ticket",
-  "write the chapter", "make a post". Also use when editing or reviewing
-  existing text ("humanize this", "make it sound natural"). Based on
-  Wikipedia's "Signs of AI writing" guide: fixes inflated symbolism,
-  promotional language, vague attributions, em dash overuse, rule of three,
-  AI vocabulary words, negative parallelisms, and filler phrases.
+  Write or rewrite human-facing text so it reads natural, never AI-generated —
+  fixes the Wikipedia "Signs of AI writing" tells (promotional language, em
+  dash overuse, rule of three, AI vocabulary, vague attributions, filler).
+  Use when WRITING, DRAFTING, or REFRAMING any copy a human will read: Slack,
+  email, Jira, PR descriptions, READMEs, Notion/Confluence, design docs,
+  social posts, blog/ebook chapters, marketing copy, pin descriptions, video
+  scripts. Triggers on "write a message", "draft an email", "reframe this for
+  slack", "update the ticket", "write the chapter", "make a post", "humanize
+  this", "make it sound natural".
 user-invocable: true
 allowed-tools:
   - Read

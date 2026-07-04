@@ -42,3 +42,5 @@ ui-craft-dense-dashboard
 audit-repo-route
 orchestrate
 fable-skill
+scout
+dsa-coach

@@ -1,6 +1,6 @@
 ---
 name: zluri-release
-description: Fetch release PR status across all 21 ZluriHQ service repos for branch release/<date>, classify each into "In progress" (PR with changes), "Not required" (empty-diff PR), or "To Do" (no PR), print the two markdown lists, and update the embedded Release order database on a Notion release-deployment-checklist page. Triggers on "zluri release", "/zluri-release", "release PR status", "update release notion", "check release PRs", or any user prompt containing a notion.so URL whose title matches "Release Deployment Checklist". The user pastes a fresh Notion page URL on every invocation because a new checklist doc is created per release; treat the URL as required input.
+description: Fetch release PR status across all 21 ZluriHQ service repos for branch release/<date>, classify each as "In progress" / "Not required" (empty diff) / "To Do" (no PR), print the two markdown lists, and update the Release order database on the Notion release-deployment-checklist page (a fresh Notion URL is required input each run). Triggers on "zluri release", "/zluri-release", "release PR status", "update release notion", "check release PRs", or a notion.so URL titled "Release Deployment Checklist".
 user-invocable: true
 metadata:
   author: kbtg

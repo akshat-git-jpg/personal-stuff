@@ -1,15 +1,14 @@
 ---
 name: research-critic
 description: >-
-  Adversarial review loop for research done in Claude Code. Spawns a fresh,
-  isolated critic subagent that red-teams the current findings, spot-verifies
-  the load-bearing claims with its own web/CLI lookups, and returns a verdict
-  (PASS / NEEDS-WORK / FAIL) plus severity-tagged findings and tough questions.
-  Runs as a checkpointed loop: critique -> you approve a plan -> deeper research
-  pass -> re-critique, until PASS or a round cap. General-purpose (market,
-  technical, factual). Triggers on "critique this research", "red-team these
-  findings", "stress-test this", "ask the tough questions", "poke holes in
-  this", "validate this research", "is this research solid", "/research-critic".
+  Adversarial review loop for research done in Claude Code: a fresh critic
+  subagent red-teams the findings, spot-verifies load-bearing claims with its
+  own lookups, and returns PASS / NEEDS-WORK / FAIL plus severity-tagged
+  findings and tough questions; loops critique -> deeper research ->
+  re-critique until PASS or a round cap. Triggers on "critique this research",
+  "red-team these findings", "stress-test this", "ask the tough questions",
+  "poke holes in this", "validate this research", "is this research solid",
+  "/research-critic".
 user-invocable: true
 metadata:
   author: kbtg

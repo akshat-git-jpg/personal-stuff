@@ -1,6 +1,6 @@
 # Setup Checks
 
-Post-contract checks the skill must run after executing the bash setup contract block in `SKILL.md`. These handle the contract output signals: `[setup-error]`, `[repo-upgrade-available]`, the always-emitted `PRINTING_PRESS_BIN=<abs-path>` and `PRESS_REPO_MODE=<true|false>` markers, the global open-agent-skills freshness check, the `min-binary-version` compatibility check, `[upgrade-available]`, `[browser-tools-missing]`, and optional `[binary-shadow]` advisory.
+Post-contract checks the skill must run after executing the bash setup contract block in `references/preflight.md`. These handle the contract output signals: `[setup-error]`, `[repo-upgrade-available]`, the always-emitted `PRINTING_PRESS_BIN=<abs-path>` and `PRESS_REPO_MODE=<true|false>` markers, the global open-agent-skills freshness check, the `min-binary-version` compatibility check, `[upgrade-available]`, `[browser-tools-missing]`, and optional `[binary-shadow]` advisory.
 
 Apply these in order. The preamble below runs unconditionally; each numbered section after it is conditional — do nothing if its trigger isn't present.
 
