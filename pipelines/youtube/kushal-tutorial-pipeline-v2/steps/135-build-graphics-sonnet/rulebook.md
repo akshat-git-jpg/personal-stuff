@@ -10,3 +10,5 @@ The rulebook will specify, per visual-plan cue type:
   duration locked to the cue's duration from the visual plan
 - the verify pass: snapshot each clip's midpoint frame and check it against the cue intent
   before handing to step 162
+
+Owner: author this in a Claude Code session on Sonnet with the pipelines:hyperframes + motion-graphics skills loaded.
