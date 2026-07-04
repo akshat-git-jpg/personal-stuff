@@ -21,6 +21,7 @@ plan file and the repo, not this audit conversation.
 | 008 | Dissolve the `ty/` theme-folder into the by-kind structure (one brain) | P2 | L | 001–007 | DONE |
 | 009 | Reorganize the workspace internals by kind (video/tools/notes/archive) | P3 | M-L | 008 | DONE |
 | 010 | VPS migration runbook — repoint render2 mount, retire orphaned TY clone | P3 | S-M | 008, 009 pushed | DONE |
+| 011 | Tutorial pipeline v3 — implement deterministic assembly (105/125/162 + segment map) | P2 | L | — | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
