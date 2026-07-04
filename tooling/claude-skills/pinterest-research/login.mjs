@@ -3,7 +3,7 @@
 // session (cookies + storage) so the headless scraper can reuse it. Run from the Mac.
 //
 // Usage:  node login.mjs
-// Saves:  ~/codebase/TY/pinterest/.auth/pinterest-state.json   (gitignored — it's a credential)
+// Saves:  ~/codebase/personal-stuff/pipelines/pinterest/.auth/pinterest-state.json   (gitignored — it's a credential)
 
 import { chromium } from "playwright";
 import os from "node:os";

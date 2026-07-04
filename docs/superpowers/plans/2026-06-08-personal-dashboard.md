@@ -2,9 +2,9 @@
 
 **Goal:** A mobile-first personal dashboard (to-dos + habits/streaks + remembers + Google Calendar view) with frictionless LLM-assisted capture, hosted on the existing Hostinger VPS behind Traefik.
 
-**Spec:** `/Users/kbtg/codebase/TY/docs/superpowers/specs/2026-06-08-personal-dashboard-design.md`
+**Spec:** `docs/superpowers/specs/2026-06-08-personal-dashboard-design.md`
 
-**Repo / location:** `/Users/kbtg/codebase/personal stuff/personal-dashboard/` (in the `personal-stuff` monorepo).
+**Repo / location:** `apps/personal-dashboard/` (in this repo).
 
 **Tech stack:** Node + Express (ESM), `better-sqlite3`, vanilla JS frontend + Chart.js, PWA, OpenRouter (cheap model) for capture parsing, Google Calendar API (read-only), Docker + Traefik for deploy.
 

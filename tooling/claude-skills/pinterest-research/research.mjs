@@ -9,7 +9,7 @@
 //          --niche <name> (also sets output folder)
 //
 // Output: prints JSON to stdout (cheap for Claude to read) AND writes the full ranked list to
-//         ~/codebase/TY/pinterest/<niche>/research/<date>-<kw>.json
+//         ~/codebase/personal-stuff/pipelines/pinterest/<niche>/research/<date>-<kw>.json
 
 import { chromium } from "playwright";
 import os from "node:os";

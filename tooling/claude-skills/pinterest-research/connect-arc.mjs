@@ -8,7 +8,7 @@
 // Then:
 //   node connect-arc.mjs
 //
-// Saves: ~/codebase/TY/pinterest/.auth/pinterest-state.json  (gitignored)
+// Saves: ~/codebase/personal-stuff/pipelines/pinterest/.auth/pinterest-state.json  (gitignored)
 
 import { chromium } from "playwright";
 import os from "node:os";

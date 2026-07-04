@@ -6,7 +6,7 @@
 // toggles that write status straight to <root>/<niche>/posts.json.
 //
 // Usage:
-//   node serve.mjs                         # root defaults to ~/codebase/TY/pinterest
+//   node serve.mjs                         # root defaults to ~/codebase/personal-stuff/pipelines/pinterest
 //   node serve.mjs --root /path --port 4000
 //   PINTEREST_ROOT=/path PORT=4000 node serve.mjs
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript, Vite, React, `dnd-kit`, Hono, Cloudflare Workers + KV, Google Sheets API v4, Google OAuth 2.0.
 
-**Project location:** `youtube/tracker-app/` in the TY repo.
+**Project location:** `apps/tracker-app/` in this repo.
 
 **Build target sheet:** `1jlogtb33vjgjvKMHZjrEs3M9lV8Jg3zWSv0wzp6xAmI` (`YT tracker (TEST COPY - app dev)`). Live sheet untouched until cutover.
 
@@ -17,7 +17,7 @@
 ## File structure (what gets built)
 
 ```
-youtube/tracker-app/
+apps/tracker-app/
 ├── package.json, tsconfig.json, vite.config.ts, wrangler.toml   # scaffold + CF config
 ├── .dev.vars                          # local secrets (gitignored): OAuth client, sheet id
 ├── src/
@@ -45,12 +45,12 @@ youtube/tracker-app/
 ## Task 1: Scaffold the project + Cloudflare config
 
 **Files:**
-- Create: `youtube/tracker-app/package.json`, `tsconfig.json`, `vite.config.ts`, `wrangler.toml`, `.gitignore`, `.dev.vars.example`
+- Create: `apps/tracker-app/package.json`, `tsconfig.json`, `vite.config.ts`, `wrangler.toml`, `.gitignore`, `.dev.vars.example`
 
 - [ ] **Step 1: Scaffold**
 
 ```bash
-cd /Users/kbtg/codebase/TY/youtube
+cd /Users/kbtg/codebase/personal-stuff/apps
 npm create vite@latest tracker-app -- --template react-ts
 cd tracker-app
 npm install
@@ -96,7 +96,7 @@ GOOGLE_SA_JSON=        # service-account JSON (one line) for Sheets read/write
 - [ ] **Step 5: Commit**
 
 ```bash
-git add youtube/tracker-app
+git add apps/tracker-app
 git commit -m "feat(tracker-app): scaffold vite+react+hono on cloudflare workers"
 ```
 
