@@ -1,3 +1,4 @@
+# STATUS: LIVE — wired into .mcp.json (regen-mcp-json.sh)
 """Cloudflare MCP — D1 SQL + KV operations.
 
 Reads CF_API_TOKEN, CF_ACCOUNT_ID, CF_D1_DATABASE_ID, CF_KV_NAMESPACE_ID from

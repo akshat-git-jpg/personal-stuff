@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# STATUS: RETIRED — referenced by telegram-my-planner and tooling/cli/hostinger; NOT in .mcp.json
 # Launches the unified Hostinger API MCP server (all 118 tools:
 # VPS, Domains, DNS, Hosting, Billing, Reach).
 # Loads API_TOKEN from the .env file sitting next to this script so the

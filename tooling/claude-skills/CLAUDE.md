@@ -14,3 +14,8 @@ the `claude-router` skill** (loads globally); this file is just local orientatio
 - `pp-*` skills are auto-sourced from `~/.agents/skills/` (printing-press), not stored here.
 
 Full how-to: see `README.md` in this folder.
+
+### Skill Linking vs. skills-lock.json
+- **Manifest + `relink.sh`**: Links local repo-owned skills into `~/.claude-work/skills` and `~/.claude-personal/skills`.
+- **`skills-lock.json` + `npx skills`**: Installs external github-sourced hyperframes/GSAP skills.
+- The two mechanisms are completely independent and neither reads or affects the other.

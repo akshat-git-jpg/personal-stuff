@@ -31,7 +31,7 @@ The packages are small — `mcp`, `requests`, `google-api-python-client`, etc.
 
 ### 2. Google MCPs — OAuth consent (one-time per Google account)
 
-The Gmail / Sheets / Drive / Calendar / Docs / Tasks / YouTube MCPs all share `google-shared/`. You'll need:
+The Gmail / Sheets / Drive / Tasks / YouTube MCPs all share `google-shared/`. You'll need:
 
 1. An OAuth Desktop client `credentials.json` from Google Cloud Console.
    Put it at `google-shared/credentials.json` (gitignored, won't leak).
@@ -57,16 +57,16 @@ CF_D1_DATABASE_ID=...
 CF_KV_NAMESPACE_ID=...
 ```
 
-### 4. Hostinger / ElevenLabs MCPs — env vars
+### 4. Hostinger MCP — env vars
 
-Each of those folders has its own `.env` file (gitignored). See the per-folder README or just skip them if you don't use those services.
+This folder has its own `.env` file (gitignored). See the per-folder README or just skip it if you don't use those services.
 
 ### 5. Register with Claude Code
 
-Create `.mcp.json` (gitignored) with the path to each MCP server you want. Copy `.mcp.json.template` and replace `<PATH_TO_TY>` with your absolute path to this folder, then trim it down to the servers you actually use (the active setup is just `google-drive` + `cloudflare`):
+Create `.mcp.json` (gitignored) with the path to each MCP server you want. Copy `.mcp.json.template` and replace `<PATH_TO_REPO>` with your absolute path to the repository root, then trim it down to the servers you actually use (the active setup is just `google-drive` + `cloudflare`):
 
 ```bash
-sed "s|<PATH_TO_TY>|$(pwd)|g" .mcp.json.template > /path/to/repo/.mcp.json
+sed "s|<PATH_TO_REPO>|$(cd ../.. && pwd)|g" .mcp.json.template > ../../.mcp.json
 ```
 
 Restart Claude Code. The MCPs should show up in the `/mcp` list.

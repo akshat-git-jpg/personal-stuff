@@ -1,3 +1,4 @@
+# STATUS: LEGACY-LOAD-BEARING — used by VPS gmail-digest cron; NOT in .mcp.json
 from __future__ import annotations
 
 import asyncio

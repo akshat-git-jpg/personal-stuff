@@ -1,3 +1,4 @@
+# STATUS: RETIRED — referenced by tooling/cli/youtube; NOT in .mcp.json
 from __future__ import annotations
 import asyncio
 import json

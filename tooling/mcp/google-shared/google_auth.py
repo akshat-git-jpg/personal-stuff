@@ -1,3 +1,4 @@
+# STATUS: SHARED-AUTH — imported by all tooling/cli google CLIs; do not move
 """Shared OAuth helper for all Google MCP servers (Sheets, Gmail, Tasks,
 Calendar, Drive, YouTube, ...).
 

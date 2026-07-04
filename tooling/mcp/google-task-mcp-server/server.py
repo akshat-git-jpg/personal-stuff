@@ -1,3 +1,4 @@
+# STATUS: RETIRED — referenced by telegram-my-planner; NOT in .mcp.json
 from __future__ import annotations
 import asyncio
 from pathlib import Path

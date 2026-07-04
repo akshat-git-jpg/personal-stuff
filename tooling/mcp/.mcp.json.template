@@ -1,58 +1,10 @@
 {
   "mcpServers": {
-    "google-sheets": {
-      "type": "stdio",
-      "command": "python3",
-      "args": [
-        "<PATH_TO_TY>/mcp/google-sheets-mcp-server/server.py"
-      ],
-      "env": {}
-    },
-    "gmail": {
-      "type": "stdio",
-      "command": "python3",
-      "args": [
-        "<PATH_TO_TY>/mcp/gmail-mcp-server/server.py"
-      ],
-      "env": {}
-    },
-    "google-tasks": {
-      "type": "stdio",
-      "command": "python3",
-      "args": [
-        "<PATH_TO_TY>/mcp/google-task-mcp-server/server.py"
-      ],
-      "env": {}
-    },
-    "google-calendar": {
-      "type": "stdio",
-      "command": "python3",
-      "args": [
-        "<PATH_TO_TY>/mcp/google-calendar-mcp-server/server.py"
-      ],
-      "env": {}
-    },
-    "google-docs": {
-      "type": "stdio",
-      "command": "python3",
-      "args": [
-        "<PATH_TO_TY>/mcp/google-docs-mcp-server/server.py"
-      ],
-      "env": {}
-    },
     "google-drive": {
       "type": "stdio",
       "command": "python3",
       "args": [
-        "<PATH_TO_TY>/mcp/google-drive-mcp-server/server.py"
-      ],
-      "env": {}
-    },
-    "youtube": {
-      "type": "stdio",
-      "command": "python3",
-      "args": [
-        "<PATH_TO_TY>/mcp/youtube-mcp-server/server.py"
+        "<PATH_TO_REPO>/tooling/mcp/google-drive-mcp-server/server.py"
       ],
       "env": {}
     },
@@ -60,26 +12,8 @@
       "type": "stdio",
       "command": "python3",
       "args": [
-        "<PATH_TO_TY>/mcp/cloudflare-mcp-server/server.py"
+        "<PATH_TO_REPO>/tooling/mcp/cloudflare-mcp-server/server.py"
       ],
-      "env": {}
-    },
-    "hostinger": {
-      "type": "stdio",
-      "command": "python3",
-      "args": [],
-      "env": {}
-    },
-    "elevenlabs": {
-      "type": "stdio",
-      "command": "python3",
-      "args": [],
-      "env": {}
-    },
-    "leetcode": {
-      "type": "stdio",
-      "command": "python3",
-      "args": [],
       "env": {}
     }
   }
