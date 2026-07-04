@@ -74,3 +74,5 @@ youri uses clone
 - sell games
 
 smallest ai
+
+M0 kit ✅ → M1 storyboard ✅ (just now) → [YOUR REVIEW GATE] → M2 static scenes → [REVIEW GATE] → M3 motion + render
