@@ -63,9 +63,9 @@ npx ts-node run.ts --niche <slug>
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/kushal-tutorial-pipeline-v2/`](youtube/kushal-tutorial-pipeline-v2/PIPELINE.md) | Tutorial recording prep steps | Python + Claude steps |
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script. | Python |
 | [`pinterest/`](pinterest/PLAN.md) | Pinterest pin data and generators (Keto, Wedding brands) | Python |
-| [`yt-visuals-hyperframe/`](yt-visuals-hyperframe/README.md) | Visual templates for Video Studio | HTML/CSS/JS |
+| [`video/card-library/`](video/card-library/README.md) | Visual templates for Video Studio | HTML/CSS/JS |
 | [`hyperframes-vs-remotion/`](hyperframes-vs-remotion/CLAUDE.md) | Superseded Hyperframes vs Remotion rendering tests | HTML/CSS/JS |
-| [`ai-video-production/`](ai-video-production/README.md) | Motion-graphics assets and Devsplainers-style build kit | HTML/CSS/GSAP |
+| [`video/motion-graphics/`](video/motion-graphics/README.md) | Motion-graphics assets and Devsplainers-style build kit | HTML/CSS/GSAP |
 | [`video-voice/`](video-voice/README.md) | Voiceover pipeline (RVC pitch conversion, TTS engine, heygen) | Python + Node |
 | [`bank-statement-parser/`](tools/bank-statement-parser/README.md) | Bank statements parsing & reconciliation engine | Python |
 | [`income-analysis/`](income-analysis/README.md) | Gumroad/Skool income snapshot retrieval CLIs | Python |

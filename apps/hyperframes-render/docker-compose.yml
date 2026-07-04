@@ -19,7 +19,7 @@ services:
     environment:
       - CARDS_DIR=/cards
     volumes:
-      - /srv/projects/pipelines/yt-visuals-hyperframe:/cards:ro
+      - /srv/projects/pipelines/video/card-library:/cards:ro # card library: pipelines/video/card-library — see plans/010 for the VPS mount
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.hfr.rule=Host(`render2.agrolloo.com`)"

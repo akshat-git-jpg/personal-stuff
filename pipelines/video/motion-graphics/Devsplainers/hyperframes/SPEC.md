@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-01
 **Status:** Design approved (brainstorm), pre-implementation
-**Home:** `TY/ai-video-production/Devsplainers/hyperframes/`
+**Home:** `pipelines/video/motion-graphics/Devsplainers/hyperframes/`
 **Companion docs:** `PIPELINE.md` (the run-order map + `steps/`), `../README.md` (visual-system reverse-engineering), `../HANDOFF.md` (session history + decisions)
 
 ---
@@ -32,7 +32,7 @@ motion is generated.** Rendering is local and free.
 - Rebranding to the user's own channel identity (this phase clones the Devsplainers look exactly).
 
 **Explicitly forbidden:**
-- **Do NOT reuse or modify `TY/yt-visuals-hyperframe/`.** It is a POC for a different system. This project is built fresh and standalone; Hyperframes is invoked as an `npx` tool, so there is no dependency on that folder.
+- **Do NOT reuse or modify `pipelines/video/card-library/`.** It is a POC for a different system. This project is built fresh and standalone; Hyperframes is invoked as an `npx` tool, so there is no dependency on that folder.
 
 ## 3. Target visual system (clone Devsplainers exactly)
 

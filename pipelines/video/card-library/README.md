@@ -8,7 +8,7 @@ Each card is one folder with an `index.html` inside it. To make a new version of
 card for a specific video, copy the folder, change the content, render.
 
 ```
-yt-visuals-hyperframe/
+video/card-library/
   serve.mjs             <- the gallery server (npm run serve)
   HYPERFRAMES.md        <- notes on how Hyperframes works (read this first)
   section/

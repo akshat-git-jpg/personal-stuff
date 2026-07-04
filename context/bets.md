@@ -9,7 +9,7 @@ This document lists the active business, content, and career bets being pursued 
 - **Where it lives**:
   - Research & Scripting: [pipelines/youtube/](file:///Users/kbtg/codebase/personal-stuff/pipelines/youtube/)
   - Tutorial Recording & AV Production: [pipelines/youtube/kushal-tutorial-pipeline-v2/](file:///Users/kbtg/codebase/personal-stuff/pipelines/youtube/kushal-tutorial-pipeline-v2/PIPELINE.md)
-  - Video Assets/Motion Graphics: [pipelines/ai-video-production/](file:///Users/kbtg/codebase/personal-stuff/pipelines/ai-video-production/README.md)
+  - Video Assets/Motion Graphics: [pipelines/video/motion-graphics/](file:///Users/kbtg/codebase/personal-stuff/pipelines/video/motion-graphics/README.md)
   - Voice Conversion & TTS pipeline: [pipelines/video-voice/](file:///Users/kbtg/codebase/personal-stuff/pipelines/video-voice/README.md)
 - **Status & Metrics**:
   - Live Channel Analytics Dashboard: [yt-analytics](https://yt-analytics.agrolloo.com) (wired to `clicks-db` and YT Data API)

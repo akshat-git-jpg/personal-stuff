@@ -1,4 +1,4 @@
-# ai-video-production
+# video/motion-graphics
 
 Reverse-engineering how good motion-graphics / explainer videos are produced, so the style can be reproduced.
 

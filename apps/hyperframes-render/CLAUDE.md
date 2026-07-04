@@ -5,7 +5,7 @@ Paste-and-render web tool: editor pastes Hyperframes card HTML, downloads an MP4
 ## Guardrails
 
 - **This is NOT a Cloudflare Worker.** Node/Express (`src/server.js`) running as a **Docker container on the Hostinger VPS** behind Traefik (`render2.agrolloo.com`). Deploy with `docker compose`, not `wrangler`.
-- The Templates tab reads card HTML live from the **TY repo** at `pipelines/yt-visuals-hyperframe/` (mounted read-only at `/cards`, set by `CARDS_DIR`; a VPS cron `git pull`s every 15 min). **To add/change a template, edit it in TY and push** — don't hand-edit cards here, and don't bake card files into this app.
+- The Templates tab reads card HTML live from the **TY repo** at `pipelines/video/card-library/` (mounted read-only at `/cards`, set by `CARDS_DIR`; a VPS cron `git pull`s every 15 min). **To add/change a template, edit it in TY and push** — don't hand-edit cards here, and don't bake card files into this app.
 - Rendering uses headless Chrome — the container needs `shm_size: 1gb` (Docker's 64MB default crashes Chrome).
 
 ## Run / deploy
