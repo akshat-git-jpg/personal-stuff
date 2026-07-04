@@ -17,7 +17,7 @@ plan file and the repo, not this audit conversation.
 | 004 | One-command verification baseline + auth tests | P2 | M | — | DONE |
 | 005 | Fix skill-sync scripts; clean the MCP graveyard | P2 | M | — | DONE |
 | 006 | Formalize the orchestrator→executor workflow (plans/ convention) | P2 | S | 002 | DONE |
-| 007 | Scaffold the second-brain context layer (design/spike) | P3 | S | 002 | TODO |
+| 007 | Scaffold the second-brain context layer (design/spike) | P3 | S | 002 | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 

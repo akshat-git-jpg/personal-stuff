@@ -8,6 +8,8 @@ Format: `YYYY-MM-DD — <decision> — <why> (<optional link>)`
 
 ## Decisions
 
+2026-07-04 — second-brain context layer scaffolded at context/ (profile/bets/inventory/ideas; pointers not copies; no secrets/PII) — capabilities and cadence existed but identity/goals context did not; sources: planner to-do dumps, income-analysis, hosted-sites index.
+
 2026-07-04 — repo-wide orchestrator→executor convention: expensive model writes self-contained plans into plans/ (template + lifecycle in plans/WORKFLOW.md), cheaper models execute, orchestrator reviews — generalizes the per-model step split already proven in the Devsplainers pipeline.
 
 2026-07-04 — MCP graveyard cleaned: google-calendar-mcp-server, google-docs-mcp-server, elevenlabs removed; gmail-mcp-server + google-shared kept (load-bearing: VPS digest cron + CLI OAuth) with STATUS banners; skill-sync logic extracted to scripts/lib/skill-link.sh with dangling-link pruning + vps-sync flock/pull-failure alert.
