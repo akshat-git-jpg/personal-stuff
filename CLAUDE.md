@@ -15,7 +15,7 @@ The full repo map, what-runs-where, and conventions live in the README, imported
 | A past decision / why something is done a certain way | [`decisions.md`](decisions.md) |
 | What runs where — Cloudflare + VPS + DNS inventory | [`INFRA.md`](INFRA.md) |
 | Cron architecture (Pattern B) | [`VPS-CRONS.md`](VPS-CRONS.md) |
-| Every live URL across this repo + TY | [`my-hosted-sites.md`](my-hosted-sites.md) |
+| Every live URL across this repo (incl. `ty/`) | [`my-hosted-sites.md`](my-hosted-sites.md) |
 | A custom Claude skill (source of truth) | `tooling/claude-skills/` |
 | CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude) | `tooling/cli/` |
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
@@ -23,7 +23,7 @@ The full repo map, what-runs-where, and conventions live in the README, imported
 | Infra (docker compose, VPS watchdog, secrets) | `infra/` |
 | DSA practice notes/solutions | `learning/DSA/` |
 | Repo-wide scripts + external path dependencies | `scripts/README.md` |
-| Pinterest pin data / landing pages | **TY repo** → `TY/pinterest/` (only the *skills* live here) |
+| Pinterest pin data / landing pages | [`ty/pinterest/`](ty/pinterest/) (only the *skills* live here) |
 
 @README.md
 
@@ -32,6 +32,6 @@ The full repo map, what-runs-where, and conventions live in the README, imported
 - A folder's `README.md` orients a human; its `CLAUDE.md` (where present) tells Claude how to operate there.
 - `INFRA.md` — canonical Cloudflare + VPS + DNS inventory.
 - `VPS-CRONS.md` — cron architecture (Pattern B). It's a runbook, not auto-loaded; open it only for cron work.
-- `my-hosted-sites.md` — flat index of every live URL across this repo and TY.
+- `my-hosted-sites.md` — flat index of every live URL across this repo, including `ty/`.
 - Skills under `tooling/claude-skills/` are the single source, symlinked into both accounts via `scripts/relink.sh`. Never edit a symlinked copy elsewhere — edit here.
-- Pinterest pin data + landing pages live in the **TY** repo (`TY/pinterest/`); only the Pinterest *skills* live here.
+- Pinterest pin data + landing pages live under `ty/pinterest/` (nested in this repo since the TY merge); only the Pinterest *skills* live here.

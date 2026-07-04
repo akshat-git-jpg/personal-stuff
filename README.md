@@ -17,13 +17,13 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 - `kushal-tools/` — KushalTools hub at `kushal-tools.agrolloo.com`. A card launcher linking every live agrolloo.com site; behind a shared-password gate. A single Hono Worker that renders the hub + login pages itself (no assets binding, no build step) so the PIN protects the page.
 - `gym-app/` — Mobile gym PWA, live at `kushal-gym.agrolloo.com`. Vite + React + Hono on a Cloudflare Worker, backed by a Google Sheet.
 - `kushal-docs/` — Personal document-vault PWA at `kushal-docs.agrolloo.com`. Upload/name/tag/filter PDFs + images. Vite + React + Hono on a Cloudflare Worker, files in R2, Google sign-in locked to one email.
-- `analytics-app/` — YT Analytics dashboard at `yt-analytics.agrolloo.com`. Per-video, per-link click counts for the `go.agrolloo.com` shortener. Vite + React + Hono on a Cloudflare Worker, reading the shortener's `clicks-db` D1 read-only, password-gated. The shortener itself lives in the TY repo.
-- `tracker-app/` — YT tutorials Kanban at `tutorials-tracker.agrolloo.com`. Role-aware 5-stage pipeline over the YT tracker sheet; also mints `go.agrolloo.com` short links (writes the shortener's `CLICKS_KV` + `clicks-db` D1). Vite + React + Hono on a Cloudflare Worker, Google OAuth, sessions in KV. The redirector that serves the links and `sync_clicks.py` still live in the TY repo.
+- `analytics-app/` — YT Analytics dashboard at `yt-analytics.agrolloo.com`. Per-video, per-link click counts for the `go.agrolloo.com` shortener. Vite + React + Hono on a Cloudflare Worker, reading the shortener's `clicks-db` D1 read-only, password-gated. The shortener itself lives in `ty/workers/redirector/`.
+- `tracker-app/` — YT tutorials Kanban at `tutorials-tracker.agrolloo.com`. Role-aware 5-stage pipeline over the YT tracker sheet; also mints `go.agrolloo.com` short links (writes the shortener's `CLICKS_KV` + `clicks-db` D1). Vite + React + Hono on a Cloudflare Worker, Google OAuth, sessions in KV. The redirector that serves the links and `sync_clicks.py` still live in `ty/workers/redirector/`.
 - `personal-dashboard/` — Mobile dashboard PWA at `my-dashboard.agrolloo.com`, running as a Docker container on the VPS.
 - `telegram-my-planner/` — Daily routine, to-do list, and exercise routine. Feeds the morning Telegram digest cron on the VPS.
 - `telegram-email-assistant/` — Per-account Gmail digest preferences and `digest.sh` (runs on a VPS cron, sends to Telegram).
 - `founders-tracker/` — Shared action-item tracker for Khushi & Kushal at `founders.agrolloo.com`. Two owner tabs, drag-ordered tasks, hazard cards, an on-time scoreboard, and auto-recurring tasks. Vite + React + Hono on a Cloudflare Worker, backed by D1 (`founders-db`), shared-PIN gate; a daily Cron Trigger materializes recurring tasks.
-- `hyperframes-render/` — Paste-and-render web tool for Hyperframes video cards at `render2.agrolloo.com` (password-gated). Express + headless Chrome renders pasted HTML to MP4; the Templates tab reads cards live from the TY `yt-visuals-hyperframe/` checkout.
+- `hyperframes-render/` — Paste-and-render web tool for Hyperframes video cards at `render2.agrolloo.com` (password-gated). Express + headless Chrome renders pasted HTML to MP4; the Templates tab reads cards live from `ty/yt-visuals-hyperframe/`.
 - `lists-app/` — Plain-text lists grouped by category (e.g. "YouTube channel ideas", "Skills to learn"), single-user PIN-gated, at `lists.agrolloo.com`.
 - `spending-tracker/` — Daily spend tracker that auto-categorizes card/UPI transactions. Design notes only — not built yet.
 
@@ -44,7 +44,7 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 
 ## Related
 
-- Pinterest work lives in the **TY** repo: pin data and the funnel landing pages are under `TY/pinterest/` (`TY/pinterest/landing-pages/` holds the keto + bridebestie Cloudflare Workers). The Pinterest *skills* still live here in `tooling/claude-skills/`.
+- Pinterest work lives under `ty/` (nested in this repo since the TY merge): pin data and the funnel landing pages are under `ty/pinterest/` (`ty/pinterest/landing-pages/` holds the keto + bridebestie Cloudflare Workers). The Pinterest *skills* still live here in `tooling/claude-skills/`.
 
 ## Conventions
 
