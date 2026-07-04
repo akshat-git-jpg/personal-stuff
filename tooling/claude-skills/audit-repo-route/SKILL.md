@@ -18,10 +18,9 @@ It is **not** a code reviewer. It only inspects the *navigation* artifacts (the 
 By default, audit the repos that use this convention and are present locally:
 
 - `/Users/kbtg/codebase/personal-stuff`
-- `/Users/kbtg/codebase/personal-stuff/ty`
 
 Rules:
-- If invoked from inside one of those repos with no other instruction, audit **both** (they share the convention).
+- If invoked from inside the repo with no other instruction, audit it.
 - If the user names one repo, audit only that one.
 - If invoked from a different repo that has a root `CLAUDE.md` with a "Find it fast"-style intent table, audit *that* repo instead.
 - If a target path doesn't exist locally, skip it and say so — don't error.

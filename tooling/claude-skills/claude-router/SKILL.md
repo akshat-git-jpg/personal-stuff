@@ -60,7 +60,6 @@ The user's npm registry points at AWS CodeArtifact (Zluri). Tokens expire ~12hr 
 
 | Folder | Claude account |
 |---|---|
-| `/Users/kbtg/codebase/personal-stuff/ty` | `claude-personal` |
 | `/Users/kbtg/codebase/personal-stuff/` | `claude-personal` |
 | `/Users/kbtg/codebase/IT` | `claude-personal` |
 | `/Users/kbtg/codebase/personal projects/` | `claude-personal` |

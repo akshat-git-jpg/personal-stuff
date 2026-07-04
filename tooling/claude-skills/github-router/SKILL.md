@@ -23,8 +23,7 @@ The user has three GitHub accounts. Picking the wrong one means commits land und
 
 Apply these in order. First match wins.
 
-1. Repo path starts with `/Users/kbtg/codebase/personal-stuff/ty` → **YT**
-2. Repo path starts with `/Users/kbtg/codebase/personal-stuff/` → **YT**
+1. Repo path starts with `/Users/kbtg/codebase/personal-stuff/` → **YT**
 3. Repo path starts with `/Users/kbtg/codebase/IT` → **YT**
 4. Repo path starts with `/Users/kbtg/codebase/personal projects/` → **Personal**
 5. Repo path starts with `/Users/kbtg/codebase/` (anything else) → **Work**
@@ -34,7 +33,6 @@ Apply these in order. First match wins.
 
 | Folder | Claude account |
 |---|---|
-| `/Users/kbtg/codebase/personal-stuff/ty` | `claude-personal` |
 | `/Users/kbtg/codebase/personal-stuff/` | `claude-personal` |
 | `/Users/kbtg/codebase/IT` | `claude-personal` |
 | `/Users/kbtg/codebase/personal projects/` | `claude-personal` |
@@ -147,7 +145,7 @@ When the user clones or creates a new repo under `/Users/kbtg/codebase/`:
 | Commit shows `kushal.b@zluri.com` on a personal repo | No per-repo override set | `git config user.email kushalbakliwal25@gmail.com` (and name) |
 | `gh pr create` opens PR under `kushal-zluri` on a YT repo | Wrong active `gh` account | `gh auth switch -u akshat-git-jpg` |
 | `git push` fails 403 on personal repo | `gh` not logged into `koala25` | Run interactive `gh auth login` first |
-| Repo lives in `~/codebase/foo/` but remote is `akshat-git-jpg/foo` | Repo in wrong folder | Move to `~/codebase/personal-stuff/ty/` or `~/codebase/personal-stuff/` if YT account, or set explicit per-repo override |
+| Repo lives in `~/codebase/foo/` but remote is `akshat-git-jpg/foo` | Repo in wrong folder | Move to `~/codebase/personal-stuff/` if YT account, or set explicit per-repo override |
 
 ## Notes
 
