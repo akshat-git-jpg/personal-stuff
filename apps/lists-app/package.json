@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
     "lint": "eslint .",
+    "test": "vitest run",
     "preview": "vite preview",
     "dev:api": "wrangler dev --port 8787",
     "dev:web": "vite",
@@ -46,6 +48,7 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12",
+    "vitest": "^4.1.9",
     "wrangler": "^4.95.0"
   }
 }

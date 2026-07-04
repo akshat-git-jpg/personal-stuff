@@ -6,6 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "start": "node src/server.js",
+    "check": "find src -name '*.js' -exec node --check {} +",
     "dev": "node --watch src/server.js"
   },
   "dependencies": {
