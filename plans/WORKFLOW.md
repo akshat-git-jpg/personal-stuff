@@ -46,11 +46,11 @@ Every automated execution run writes ONE append-only ledger: `plans/runs/<run-id
 [HH:MM:SS] PLAN NNN HEARTBEAT <short note>          ← at least every 3 minutes while working
 [HH:MM:SS] PLAN NNN DONE  verify: <results>  files: <changed files>
 [HH:MM:SS] PLAN NNN BLOCKED: <reason>               ← then stop the run; do not continue
-[HH:MM:SS] ROUND 2 START  fixes: <issue summary>    ← orchestrator-initiated fix-up round
+[HH:MM:SS] ROUND 2 START  fixes: <issue summary>    ← appended by the ORCHESTRATOR at dispatch of a fix-up round
 [HH:MM:SS] RUN DONE                                  ← success sentinel, always the last line
 ```
 
-**Reading rule (recovery):** the last `PLAN NNN START` with no matching `DONE`/`BLOCKED` line is where the run died or is still in flight. Everything above it with a `DONE` is safe; resume from the dead plan. `scripts/runlog-status.sh` in the `orchestrate` skill folder encodes this rule — one line of output instead of re-reading the log.
+**Reading rule (recovery):** status is always computed on the **active segment** — everything after the last `ROUND N START` marker (whole file if none); earlier rounds' `BLOCKED`/`RUN DONE` lines are history, not current state. Within that segment, the last `PLAN NNN START` with no matching `DONE`/`BLOCKED` line is where the run died or is still in flight. Everything above it with a `DONE` is safe; resume from the dead plan. `scripts/runlog-status.sh` in the `orchestrate` skill folder encodes this rule — one line of output instead of re-reading the log.
 
 **Who writes what:** verify results go inside the `DONE` line (the ledger doubles as the result record). The executor still flips its plan's status cell in `plans/README.md` at completion — the README stays the static index, the run-log is the live blow-by-blow.
 

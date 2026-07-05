@@ -271,9 +271,15 @@ Then verify by what each plan produces:
 
 If verification finds real gaps (failed Done criteria, verdict issues): write a
 **small fix-up prompt** — the issues list + pointer back to the plan + run-log
-instructions with a `ROUND N START fixes: <summary>` marker. Same run-log, same
-dispatch mechanism. **Cap: 2 fix-up rounds**, then stop and surface to the user
-— an executor failing twice on the same issue needs human eyes, not more tokens.
+instructions. **Append the `[HH:MM:SS] ROUND N START  fixes: <summary>` line to
+the run-log YOURSELF, at dispatch time** — never delegate the marker to the
+executor. The watcher and `runlog-status.sh` treat everything after the last
+round marker as the run's active state, so writing it before dispatch is what
+prevents them from misreading the previous round's BLOCKED/RUN DONE lines (a
+live false-alarm failure mode, fixed 2026-07-05; regression fixtures in
+`scripts/fixtures/round2-*.md`). Same run-log, same dispatch mechanism.
+**Cap: 2 fix-up rounds**, then stop and surface to the user — an executor
+failing twice on the same issue needs human eyes, not more tokens.
 
 **Learn from the run.** After verification (pass or fail), if the run taught
 something non-obvious about an executor or the loop — a recurring mistake, a
