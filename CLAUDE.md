@@ -43,6 +43,8 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 
 ## Operating notes
 
+- **When making technical decisions, don't weight development cost as if humans were writing the code.** Models estimate effort from human training data and implicitly reject good solutions as "too expensive" — an agent builds in minutes what it estimates in weeks. Pick the right design, not the cheap one.
+
 - A folder's `README.md` orients a human; its `CLAUDE.md` (where present) tells Claude how to operate there.
 - `INFRA.md` — canonical Cloudflare + VPS + DNS inventory.
 - `VPS-CRONS.md` — cron architecture (Pattern B). It's a runbook, not auto-loaded; open it only for cron work.

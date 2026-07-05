@@ -45,8 +45,23 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 030 | skills-status.sh: account-membership table + dangling-link check | P3 | S | — | DONE |
 | 031 | VPS-CRONS.md refresh: stale paths/date/names, sync both copies | P3 | S | 029 (soft) | DONE |
 | 032 | deploy-apps.sh — gated one-command deploy across all Worker apps | P2 | S | 021 (soft) | DONE |
+| 033 | `wt` — managed worktree pool for agent runs (lifts no-worktree rule to "managed runs only") | P1 | M | — | TODO |
+| 034 | `greenlight` — validation pipeline; lands green work on main + pushes | P1 | L | 033 | TODO |
+| 035 | `overnight` — capped autonomous improvement loops | P2 | M | 033 | TODO |
+| 036 | `/plan-review` — visual pre-dispatch plan gate (lavish-axi transport) | P2 | M | — | TODO |
+| 037 | `captain` — multi-session orchestrator with pluggable lanes | P1 | L | 033, 034 | TODO |
+| 038 | printing-press AXI alignment (skill levers + upstream draft) | P3 | M | — | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
+
+> **033–038 (2026-07-06, agentic-workflow batch)**: designs adapted from
+> kunchenguid's tools (treehouse / no-mistakes / gnhf / lavish-axi /
+> firstmate / AXI), studied in source. Strict order for the dependent chain:
+> 033 → 034 → 037; 035/036/038 independent. Owner decisions: worktrees for
+> managed runs only; greenlight pushes origin/main on green (high risk always
+> parks); captain routes propose-and-confirm with a pluggable lane registry;
+> reviewer model defaults to sonnet; orchestrate's own verification flow is
+> unchanged.
 
 > **The full `ty/` migration is plans 008 → 009 → 010, run strictly in order.**
 > 008 dissolves the theme-folder (rename + extract Workers + merge the two brains);
