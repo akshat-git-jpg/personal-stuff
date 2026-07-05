@@ -187,3 +187,168 @@ except Exception:
 }
 
 log "Run setup complete"
+
+# Check if stage is skipped
+function is_skipped() {
+  local stage=$1
+  if [[ ",$SKIP," == *",$stage,"* ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+function park() {
+  local reason=$1
+  log "Parking: $reason"
+  echo "parked" > "$STATE_DIR/state"
+  echo "$reason" > "$STATE_DIR/parked-reason"
+  pp-ntfy send "greenlight: $BRANCH parked — $reason" || true
+  exit 0
+}
+
+# 1. rebase
+if ! is_skipped "rebase"; then
+  log "Stage: rebase"
+  git -C "$WT_PATH" fetch origin >&2 || true
+  if ! git -C "$WT_PATH" rebase origin/main >&2; then
+    git -C "$WT_PATH" diff --name-only --diff-filter=U > "$STATE_DIR/findings-rebase.json"
+    git -C "$WT_PATH" rebase --abort >&2 || true
+    park "rebase conflict"
+  fi
+
+  if git -C "$WT_PATH" diff --quiet origin/main..HEAD; then
+    log "empty diff — nothing to do"
+    echo "landed" > "$STATE_DIR/state"
+    exit 0
+  fi
+fi
+
+risk_level="low"
+
+# 2. review
+if ! is_skipped "review"; then
+  log "Stage: review"
+  export FINDINGS_JSON=""
+  run_agent_stage "review" "$(dirname "$0")/prompts/review.md" "findings,risk_level"
+  
+  risk_level=$(cat "$STATE_DIR/findings-review.json" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("risk_level", "low"))')
+  if [ "$risk_level" = "high" ]; then
+    park "risk_level: high"
+  fi
+  
+  # Auto-fix loop
+  for round in 1 2 3; do
+    needs_fix=$(cat "$STATE_DIR/findings-review.json" | python3 -c '
+import json,sys
+try:
+  d=json.load(sys.stdin)
+  needs = [f for f in d.get("findings", []) if f.get("action") == "auto-fix" and f.get("severity") in ("error", "warning")]
+  print("yes" if needs else "no")
+except:
+  print("no")
+')
+    if [ "$needs_fix" = "no" ]; then break; fi
+    log "Review auto-fix round $round"
+    export FINDINGS_JSON=$(cat "$STATE_DIR/findings-review.json")
+    run_agent_stage "review-fix" "$(dirname "$0")/prompts/review.md" "findings,risk_level"
+    mv "$STATE_DIR/findings-review-fix.json" "$STATE_DIR/findings-review.json"
+  done
+  
+  # Check unresolved
+  unresolved=$(cat "$STATE_DIR/findings-review.json" | python3 -c '
+import json,sys
+try:
+  d=json.load(sys.stdin)
+  unresolved = [f for f in d.get("findings", []) if f.get("action") == "ask-user" or (f.get("action") == "auto-fix" and f.get("severity") in ("error", "warning"))]
+  print(len(unresolved))
+except:
+  print("1")
+')
+  if [ "$unresolved" != "0" ]; then
+    park "$unresolved findings need you"
+  fi
+fi
+
+# 3. test
+if ! is_skipped "test"; then
+  log "Stage: test"
+  export FINDINGS_JSON=""
+  export EVIDENCE_DIR="$STATE_DIR/evidence"
+  run_agent_stage "test" "$(dirname "$0")/prompts/test.md" "passed,tested,evidence"
+  passed=$(cat "$STATE_DIR/findings-test.json" | python3 -c 'import json,sys; print(str(json.load(sys.stdin).get("passed", False)).lower())')
+  if [ "$passed" != "true" ]; then
+    log "Test failed, running fix round"
+    export FINDINGS_JSON=$(cat "$STATE_DIR/findings-test.json")
+    run_agent_stage "test-fix" "$(dirname "$0")/prompts/test.md" "passed,tested,evidence"
+    passed=$(cat "$STATE_DIR/findings-test-fix.json" | python3 -c 'import json,sys; print(str(json.load(sys.stdin).get("passed", False)).lower())')
+    if [ "$passed" != "true" ]; then
+      park "tests failed"
+    fi
+  fi
+fi
+
+# 4. docs
+if ! is_skipped "docs"; then
+  log "Stage: docs"
+  export FINDINGS_JSON=""
+  run_agent_stage "docs" "$(dirname "$0")/prompts/docs.md" "updated,unresolved"
+  unresolved=$(cat "$STATE_DIR/findings-docs.json" | python3 -c 'import json,sys; print(len(json.load(sys.stdin).get("unresolved", [])))')
+  if [ "$unresolved" != "0" ]; then
+    park "docs unresolved"
+  fi
+fi
+
+# 5. lint
+if ! is_skipped "lint"; then
+  log "Stage: lint"
+  lint_failed=0
+  for f in $(git -C "$WT_PATH" diff --name-only origin/main..HEAD); do
+    if [[ "$f" == *.sh ]] && [ -f "$WT_PATH/$f" ]; then
+      bash -n "$WT_PATH/$f" >&2 || lint_failed=1
+    elif [[ "$f" == *.py ]] && [ -f "$WT_PATH/$f" ]; then
+      python3 -m py_compile "$WT_PATH/$f" >&2 || lint_failed=1
+    fi
+  done
+  if [ "$lint_failed" -eq 1 ]; then
+    # one agent fix round
+    log "Lint failed, running fix round"
+    export FINDINGS_JSON="{\"lint_failed\": true}"
+    # Wait, the instruction says "Failures → one agent fix round, then park."
+    # Since we don't have a lint agent prompt defined in scope... 
+    # the scope says "prompts/{review,test,docs,lint}.md (new — stage prompts)"
+    # Oh! I missed `prompts/lint.md`! I will create it.
+    run_agent_stage "lint-fix" "$(dirname "$0")/prompts/lint.md" "fixed"
+    # test again
+    lint_failed2=0
+    for f in $(git -C "$WT_PATH" diff --name-only origin/main..HEAD); do
+      if [[ "$f" == *.sh ]] && [ -f "$WT_PATH/$f" ]; then
+        bash -n "$WT_PATH/$f" >&2 || lint_failed2=1
+      elif [[ "$f" == *.py ]] && [ -f "$WT_PATH/$f" ]; then
+        python3 -m py_compile "$WT_PATH/$f" >&2 || lint_failed2=1
+      fi
+    done
+    if [ "$lint_failed2" -eq 1 ]; then
+      park "lint failed"
+    fi
+  fi
+fi
+
+# Land
+if [ "$NO_LAND" -eq 1 ]; then
+  park "--no-land"
+fi
+
+if [ -n "$(git -C "$REPO_TOPLEVEL" status --porcelain)" ]; then
+  park "main checkout busy"
+fi
+
+main_branch=$(git -C "$REPO_TOPLEVEL" rev-parse --abbrev-ref HEAD)
+if [ "$main_branch" != "main" ]; then
+  park "main checkout busy"
+fi
+
+git -C "$REPO_TOPLEVEL" merge --no-ff "$BRANCH" -m "greenlight: land $BRANCH ($RUN_ID)" >&2
+git -C "$REPO_TOPLEVEL" push origin main >&2
+echo "landed" > "$STATE_DIR/state"
+pp-ntfy send "greenlight: $BRANCH landed on main (risk $risk_level)" || true
