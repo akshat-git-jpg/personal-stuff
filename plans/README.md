@@ -37,7 +37,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 022 | Tracker: engine round-trip/routing guard over ALL PipelineDefs | P2 | S | — | DONE |
 | 023 | voice-autoqc: flag missing TTS clips instead of dropping | P2 | S | — | DONE |
 | 024 | Lazy-split humanizer / notebooklm / printing-press-publish SKILL.md | P2 | M | — | DONE |
-| 025 | vps-crons: shared _shared/alert.sh failure trap in every wrapper | P2 | S | — | TODO |
+| 025 | vps-crons: shared _shared/alert.sh failure trap in every wrapper | P2 | S | — | DONE |
 | 026 | CLAUDE.md: stop importing README (reduce per-session token load) | P3 | S | — | DONE |
 | 027 | Hourly site-uptime probe over my-hosted-sites.md (2 repos) | P3 | S-M | 025 | TODO |
 | 028 | tutorial-tracker-app CLAUDE.md: current guide inline, history out | P3 | M | — | DONE |
