@@ -9,6 +9,7 @@ Repo-wide orchestration scripts in one place, plus an index of everything *outsi
 - `vps-sync.sh` — **VPS only.** `git pull`s the VPS clone and rebuilds `~/.claude/skills` (single root account) from `manifest/personal.txt`. The VPS counterpart to `relink.sh`. A `repo-sync` cron runs it every 15 min so interactive Claude (Remote Control / mobile) on the VPS stays current with what you push. Safe to run by hand for an instant sync.
 - `check-apps.sh` — Uniform verification runner. Iterates through all apps and runs typecheck/check, lint, and test scripts. Returns exit code 0 if all pass, 1 if any fails.
 - `deploy-apps.sh` — check-apps-gated deploy loop: runs each app's own `deploy` script (apps own their quirks, e.g. patch-routes). `--only a,b`, `--dry-run`, `--skip-checks`. DEPLOYS TO PROD — dry-run first.
+- `skills-status.sh` — read-only: markdown table of every skill's account membership (work/personal/both), symlink health, and source (store/agents); exit 1 on any dangling/missing/unresolved link. Run it when a skill seems absent or after moving the repo (then fix with relink.sh).
 
 ## External touchpoints (things that hardcode this repo's path)
 
