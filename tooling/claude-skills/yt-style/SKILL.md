@@ -1,6 +1,6 @@
 ---
 name: yt-style
-description: Clone a competitor YouTube channel's script style from its style pack in pipelines/youtube/competitor-styles/. Verbs — distill a channel into a Style DNA profile; generate topic suggestions, title variants, or a full script in that channel's exact voice. Triggers on "yt-style", "distill <channel>", "clone <channel>'s style", "topics for <channel>", "titles like <channel>", "script this in <channel>'s style".
+description: Clone a competitor YouTube channel's script style from its style pack in pipelines/youtube/competitor-styles/. Verbs — fetch-transcripts a channel, build-style-dna into a Style DNA profile, suggest-topics, suggest-titles, or write-script in that channel's exact voice. Triggers on "yt-style", "build style dna for <channel>", "clone <channel>'s style", "suggest topics for <channel>", "suggest titles like <channel>", "write a script in <channel>'s style".
 user-invocable: true
 metadata:
   author: kbtg
@@ -17,16 +17,16 @@ Never load the whole transcript corpus for generation — that is exactly what
 the DNA exists to avoid. Generation verbs read ONLY `style-dna.md`,
 `rubric.md`, `exemplars/`, and (for topics) `videos.json`.
 
-## ingest <channel-url>
+## fetch-transcripts <channel-url>
 
 Not an LLM task. Tell the user to run (or run for them):
 
     python3 pipelines/youtube/competitor-styles/ingest.py <channel-url> --limit 30
 
-Re-running later picks up new uploads. Then suggest `distill` if
+Re-running later picks up new uploads. Then suggest `build-style-dna` if
 `style-dna.md` doesn't exist yet.
 
-## distill <slug>
+## build-style-dna <slug>
 
 The one expensive session per channel. Requires `transcripts/` to be non-empty.
 
@@ -59,7 +59,7 @@ The one expensive session per channel. Requires `transcripts/` to be non-empty.
    - **Do-not list** — things this channel never does (so a clone won't).
 4. Write `rubric.md`: 12–15 binary pass/fail checks derived from the DNA,
    each check quoting the DNA section it enforces (e.g. "Hook is ≤25 words
-   and uses one of the 3 hook formulas"). This is the QC gate for `script`.
+   and uses one of the 3 hook formulas"). This is the QC gate for `write-script`.
 5. Pick exemplars into `exemplars/` (copy the full transcript files):
    one top outlier, one maximally typical video, and — if the channel runs
    multiple formats — one of the format the owner most wants to make.
@@ -67,11 +67,11 @@ The one expensive session per channel. Requires `transcripts/` to be non-empty.
 6. Delete `distill-notes.md`. Report: DNA sections written, rubric check
    count, exemplar picks.
 
-Refresh policy: re-run distill only when the pack gains ~10+ new transcripts
-or the channel visibly changed style; it overwrites DNA/rubric (git holds
-history).
+Refresh policy: re-run build-style-dna only when the pack gains ~10+ new
+transcripts or the channel visibly changed style; it overwrites DNA/rubric
+(git holds history).
 
-## topics <slug>
+## suggest-topics <slug>
 
 Load `style-dna.md` (Topic performance + Title patterns) and `videos.json`.
 Produce 10 topic suggestions this channel would plausibly make next but
@@ -79,13 +79,13 @@ hasn't: each with (a) one-line rationale grounded in their outliers, (b) the
 format it fits, (c) 2 title variants using their named title patterns.
 Append as a dated section to `output/topics.md` (create if missing).
 
-## titles <slug> "<topic>"
+## suggest-titles <slug> "<topic>"
 
 Load `style-dna.md` (Title patterns). Produce 8 title variants for the topic,
 each labeled with the pattern it uses; mark the 2 the outlier data favors.
 Print in chat; no file write unless asked.
 
-## script <slug> "<topic>"
+## write-script <slug> "<topic>"
 
 Loads `style-dna.md`, `rubric.md`, and every file in `exemplars/`. Output dir:
 `output/scripts/<topic-kebab-slug>/`. Target length: the channel's median
@@ -111,5 +111,5 @@ before writing).
 - Style is cloned; facts are not. Never copy a competitor's specific claims,
   numbers, or sponsor reads into a generated script.
 - One channel per invocation — no blending styles unless explicitly asked.
-- If `style-dna.md` is missing for the requested slug, run `distill` first
-  (confirm with the user — it's the expensive step).
+- If `style-dna.md` is missing for the requested slug, run `build-style-dna`
+  first (confirm with the user — it's the expensive step).
