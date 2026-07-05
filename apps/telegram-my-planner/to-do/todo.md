@@ -73,6 +73,9 @@ youri uses clone
 - form fill for affiliates
 - sell games
 
+- password maanger, paskeys cleanup and setup
+- own hosting 
+
 smallest ai
 
 M0 kit ✅ → M1 storyboard ✅ (just now) → [YOUR REVIEW GATE] → M2 static scenes → [REVIEW GATE] → M3 motion + render
