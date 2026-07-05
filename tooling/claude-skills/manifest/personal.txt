@@ -44,5 +44,5 @@ orchestrate
 fable-skill
 scout
 dsa-coach
-yt-style
+yt-style-copy
 reddit-fetcher

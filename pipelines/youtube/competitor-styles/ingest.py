@@ -1,51 +1,32 @@
 #!/usr/bin/env python3
-"""Ingest a competitor YouTube channel into a style pack folder.
+"""Ingest a competitor YouTube channel's transcripts into a style pack folder.
 
 Usage:
     python3 ingest.py <channel-url> [--limit 30] [--slug <slug>]
 
-Zero API keys. Catalog listing + per-video metadata via the system `yt-dlp`
-binary; transcript text via the repo's pp-yt-transcript CLI (cached, uses
+Zero API keys. Catalog listing via catalog.py (system `yt-dlp` binary);
+transcript text via the repo's pp-yt-transcript CLI (cached, uses
 youtube-transcript-api's timedtext endpoint — more reliable than yt-dlp's
 caption extractor, and no VTT cleanup needed). Never downloads media.
 Stdlib-only — no venv needed. Re-running skips already-fetched transcripts,
 so it doubles as "pick up the channel's new uploads". Run from the Mac
 (residential IP) — YouTube blocks transcript fetches from datacenter IPs.
+Independent of fetch_video.py — run this even if you never run that.
 """
 
 import argparse
 import json
-import re
 import shutil
 import subprocess
 import sys
 import time
 from pathlib import Path
 
+from catalog import fetch_catalog, select, update_channel_json
+
 HERE = Path(__file__).resolve().parent
-BASE = HERE / "channels"
 # HERE = <repo>/pipelines/youtube/competitor-styles → parents[2] = <repo>
 TRANSCRIPT_CLI = HERE.parents[2] / "tooling" / "cli" / "youtube" / "pp-yt-transcript"
-
-
-def run_json(cmd):
-    out = subprocess.run(cmd, capture_output=True, text=True)
-    if out.returncode != 0:
-        sys.exit(f"{cmd[0]} failed ({out.returncode}): {out.stderr.strip()[-400:]}")
-    return json.loads(out.stdout)
-
-
-def select(entries, limit):
-    """First 10 (the /videos tab lists newest-first) + top by views, capped."""
-    chosen = {}
-    for e in entries[:10]:
-        chosen[e["id"]] = e
-    by_views = sorted(entries, key=lambda e: e.get("view_count") or 0, reverse=True)
-    for e in by_views:
-        if len(chosen) >= limit:
-            break
-        chosen.setdefault(e["id"], e)
-    return list(chosen.values())
 
 
 def main():
@@ -55,35 +36,11 @@ def main():
     ap.add_argument("--slug", help="folder name; default derived from the channel handle")
     args = ap.parse_args()
 
-    url = args.channel_url.rstrip("/")
-    if not url.endswith("/videos"):
-        url += "/videos"
-
-    print(f"Listing uploads: {url}")
-    playlist = run_json(["yt-dlp", "--flat-playlist", "-J", url])
-    entries = [e for e in (playlist.get("entries") or []) if e and e.get("id")]
-    if not entries:
-        sys.exit("No videos found — is that URL a channel page?")
-
-    handle = playlist.get("uploader_id") or playlist.get("channel") or "channel"
-    slug = args.slug or re.sub(r"[^a-z0-9-]", "", handle.lower().lstrip("@"))
-    ch_dir = BASE / slug
+    slug, ch_dir, entries = fetch_catalog(args.channel_url, args.slug)
     tdir = ch_dir / "transcripts"
-    tdir.mkdir(parents=True, exist_ok=True)
+    tdir.mkdir(exist_ok=True)
     (ch_dir / "exemplars").mkdir(exist_ok=True)
     (ch_dir / "output").mkdir(exist_ok=True)
-
-    catalog = [
-        {
-            "id": e["id"],
-            "title": e.get("title"),
-            "view_count": e.get("view_count"),
-            "duration": e.get("duration"),
-            "url": f"https://www.youtube.com/watch?v={e['id']}",
-        }
-        for e in entries
-    ]
-    (ch_dir / "videos.json").write_text(json.dumps(catalog, indent=2))
 
     todo = [e for e in select(entries, args.limit) if not (tdir / f"{e['id']}.md").exists()]
     print(f"{len(entries)} videos in catalog; fetching {len(todo)} transcripts")
@@ -128,17 +85,14 @@ def main():
         ok += 1
         time.sleep(2)
 
-    (ch_dir / "channel.json").write_text(json.dumps(
-        {
-            "slug": slug,
-            "channel_url": args.channel_url,
-            "channel_name": playlist.get("channel") or playlist.get("uploader"),
+    update_channel_json(
+        ch_dir, key="transcripts",
+        fields={
             "last_ingest": time.strftime("%Y-%m-%d"),
             "limit": args.limit,
-            "transcripts": len(list(tdir.glob("*.md"))),
+            "count": len(list(tdir.glob("*.md"))),
         },
-        indent=2,
-    ))
+    )
     print(f"Done: {ok} new transcripts, {skipped} skipped → {ch_dir}")
 
 
