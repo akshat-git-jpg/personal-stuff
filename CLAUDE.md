@@ -19,7 +19,7 @@ The full repo map, what-runs-where, and conventions live in the README, imported
 | Every live URL across this repo (incl. `pipelines/`) | [`my-hosted-sites.md`](my-hosted-sites.md) |
 | Who I am, active bets, product inventory, idea backlog | `context/` (start at [`context/CLAUDE.md`](context/CLAUDE.md)) |
 | A custom Claude skill (source of truth) | `tooling/claude-skills/` |
-| CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude) | `tooling/cli/` |
+| CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude, cf-email, drive, heygen-web, local-apps-dashboard) | `tooling/cli/` |
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
 | A specific app | apps/<name>/ — full list in the README map below; every app folder has its own CLAUDE.md |
 | YouTube / Pinterest / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |

@@ -12,6 +12,10 @@ Each tool lives in its own folder with the executable and (mostly) a README.
 - `rapidapi/` — RapidAPI calls.
 - `yt-claude/` — userscript + localhost relay that opens a Claude session per YouTube thumbnail.
 - `ccusage-dashboard/` — Claude Code usage dashboard.
+- `cf-email/` — sets up Cloudflare Email Routing (catch-all → hub inbox) for a niche domain in one command.
+- `drive/` — `pp-drive`, agent-native Google Drive CLI; shares Google auth with the others via `../mcp/google-shared`.
+- `heygen-web/` — drives HeyGen's web-session API for unlimited free Avatar III videos (the metered developer API/MCP can't do this).
+- `local-apps-dashboard/` — local control panel (`:4321`) for dev servers that don't run on the VPS or Cloudflare.
 
 ## Auth
 

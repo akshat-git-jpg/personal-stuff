@@ -76,3 +76,12 @@ Restart Claude Code. The MCPs should show up in the `/mcp` list.
 ## Optional MCPs (skip if you don't need them)
 
 Each entry in `.mcp.json` is independent — delete the ones you don't use. The active default is just `google-drive` + `cloudflare`.
+
+- `google-drive-mcp-server/` — Google Drive. Active default.
+- `cloudflare-mcp-server/` — Cloudflare D1/KV/DNS. Active default.
+- `gmail-mcp-server/` — Gmail. Legacy for interactive use, but still run directly by the VPS `gmail-digest` cron (see `../../VPS-CRONS.md`) — don't delete.
+- `google-sheets-mcp-server/` — Google Sheets. Legacy; superseded by `../cli/sheets`.
+- `google-task-mcp-server/` — Google Tasks. Legacy.
+- `youtube-mcp-server/` — YouTube data. Legacy; superseded by `../cli/youtube`.
+- `hostinger/` — Hostinger VPS/hosting API. Legacy; superseded by `../cli/hostinger`.
+- `google-shared/` — not a standalone MCP; shared Google OAuth client/token cache used by the Google servers above and by `../cli`.
