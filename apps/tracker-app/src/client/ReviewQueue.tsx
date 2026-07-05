@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import type { ReviewItem } from "./api";
-import { pipeOf } from "./stages";
+import { pipeOf, sinceOf } from "./stages";
+import { daysSince } from "./pipeline";
 
 interface ReviewQueueProps {
   items: ReviewItem[];
@@ -14,7 +15,9 @@ export function ReviewQueue({ items, onOpen }: ReviewQueueProps) {
   }
   return (
     <div className="flex flex-col gap-2">
-      {items.map((item) => (
+      {items.map((item) => {
+        const days = daysSince(sinceOf(item.row as Record<string, unknown>, item.statusCol));
+        return (
         <div key={`${item.row_id}:${item.statusCol}`}
           role="button" tabIndex={0}
           onClick={() => onOpen(item)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onOpen(item); }}
@@ -24,12 +27,14 @@ export function ReviewQueue({ items, onOpen }: ReviewQueueProps) {
             <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{pipeOf(item.row as Record<string, unknown>).name}</span>
             <span className="truncate text-sm font-medium text-foreground">{item.video_title || "(no title)"}</span>
             {item.submittedByName && <span className="text-xs text-muted-foreground">submitted by {item.submittedByName}</span>}
+            {days !== null && <span className="text-xs text-muted-foreground">submitted {days === 0 ? "today" : `${days}d ago`}</span>}
           </div>
           <div className="flex shrink-0 items-center gap-1 text-xs font-medium text-primary">
             Review <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

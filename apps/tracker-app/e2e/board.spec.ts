@@ -9,6 +9,9 @@ test("scriptwriter board shows seeded cards", async ({ page }) => {
   await expect(page.getByText("How to color grade in DaVinci Resolve")).toBeVisible();
   // A Need-Changes card carries its feedback banner.
   await expect(page.getByText(/Needs changes:/)).toBeVisible();
+  // Waiting-on-review items show who has it and how long (plan 019).
+  await expect(page.getByText("Waiting on review")).toBeVisible();
+  await expect(page.getByText(/With .+ · \d+d/)).toBeVisible();
 });
 
 test("reviewer has a populated review queue", async ({ page }) => {

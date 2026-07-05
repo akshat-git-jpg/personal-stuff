@@ -29,7 +29,7 @@ plan file and the repo, not this audit conversation.
 | 016 | Tracker: admin attention panel + title search | P2 | M | 015 | DONE |
 | 017 | Tracker: per-card activity thread (card_events) | P2 | M | 015 | DONE |
 | 018 | Tracker: let any role be held in multiple systems | P2 | S | 015–017 | DONE |
-| 019 | Tracker: stage time visibility | P2 | ? | 015–017 | TODO |
+| 019 | Tracker: per-stage time + holder visibility everywhere | P2 | S-M | 016, 017 | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 

@@ -10,7 +10,7 @@ import {
   pipeOf, stageByIdIn, statusOf, showColumns, editColumns, requiredToApprove, requiredToSubmitFrom,
   missingColumns, colOf, assigneeColOf, reviewerColOf, instructionColOf,
   workLinkColOf, etaColOf, extraColsOf, isReviewable, feedbackColOf, isBrief, briefFieldsOf,
-  isStageComplete, isGateOpen,
+  isStageComplete, isGateOpen, holderOf, sinceOf,
   type RoleKind, type StageDef,
 } from "./stages";
 import {
@@ -18,6 +18,7 @@ import {
   type BoardRow, type GenerateLinksResult, type CardEvent
 } from "./api";
 import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl, etaBadge } from "./labels";
+import { daysSince } from "./pipeline";
 import { StatusPill } from "./Card";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -492,7 +493,15 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
                 const isYou = !!viewerEmail && (row as any)[colOf(s, "assignee")] === viewerEmail;
                 const open = isGateOpen(pipeline, s, row as Row);
                 const isLast = i === arr.length - 1;
-                
+                const since = sinceOf(row as Record<string, unknown>, colOf(s, "status"));
+                const days = daysSince(since);
+                const holder = holderOf(s, row as Record<string, unknown>, status);
+                const holderName = holder.kind !== "none" && holder.email ? displayName(holder.email, names) : undefined;
+                const timing =
+                  done ? (since ? new Date(since).toLocaleDateString() : undefined)
+                  : open && days !== null ? `${days}d in ${status}${holderName ? ` · with ${holderName}` : ""}`
+                  : undefined;
+
                 return (
                   <div key={s.id} className="flex items-center shrink-0">
                     <div className={cn(
@@ -510,6 +519,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
                         {isYou && <span className="rounded bg-primary/10 px-1 text-[9px] font-bold uppercase tracking-wider text-primary">You</span>}
                       </div>
                       <StatusPill status={status} />
+                      {timing && <span className="text-[11px] text-muted-foreground">{timing}</span>}
                     </div>
                     {!isLast && <div className={cn("h-px w-6 mx-1", done ? "bg-emerald-200 dark:bg-emerald-800" : "bg-border")} />}
                   </div>

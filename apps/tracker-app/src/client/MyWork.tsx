@@ -4,9 +4,11 @@ import { ReviewQueue } from "./ReviewQueue";
 import { REVIEWER_GUIDE } from "./guidance";
 import { Info, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { pipeOf, stageByStatusColIn, stageByIdIn, normalizeStatusIn } from "./stages";
+import { pipeOf, stageByStatusColIn, stageByIdIn, normalizeStatusIn, holderOf, sinceOf, colOf } from "./stages";
 import type { StageDef, PipelineDef } from "./stages";
 import { Card } from "./Card";
+import { displayName } from "./api";
+import { daysSince } from "./pipeline";
 
 
 function HelpBanner({ text }: { text: string }) {
@@ -189,15 +191,18 @@ export function MyWork({
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{waitingOnReview.length}</span>
           </div>
           <div className="flex flex-col gap-3">
-            {waitingOnReview.map((item) => (
-              <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-card p-3 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
-                <div className="text-sm font-semibold">{item.row.video_title || "(no title)"}</div>
-                <div className="text-xs text-muted-foreground">
-                  Submitted — waiting for review
-                  {/* optionally show reviewer name here */}
+            {waitingOnReview.map((item) => {
+              const holder = holderOf(item.stage, item.row as Record<string, unknown>, item.status);
+              const days = daysSince(sinceOf(item.row as Record<string, unknown>, item.statusCol));
+              const who = holder.kind === "reviewer" && holder.email ? displayName(holder.email, names) : "reviewer";
+              const dayLabel = days === null ? "" : ` · ${days}d`;
+              return (
+                <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-card p-3 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                  <div className="text-sm font-semibold">{item.row.video_title || "(no title)"}</div>
+                  <div className="text-xs text-muted-foreground">With {who}{dayLabel}</div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
@@ -211,11 +216,18 @@ export function MyWork({
           </div>
           <div className="flex flex-col gap-3">
             {upNext.map((item) => {
-              const gateLabel = item.stage.gate ? stageByIdIn(item.pipeline, item.stage.gate)?.label : "previous stage";
+              const gateStage = item.stage.gate ? stageByIdIn(item.pipeline, item.stage.gate) : undefined;
+              const gateLabel = gateStage?.label ?? "previous stage";
+              const gateStatusCol = gateStage ? colOf(gateStage, "status") : undefined;
+              const gateStatus = gateStage && gateStatusCol ? normalizeStatusIn(gateStage, (item.row as Record<string, unknown>)[gateStatusCol] as string) : undefined;
+              const gateDays = gateStatusCol ? daysSince(sinceOf(item.row as Record<string, unknown>, gateStatusCol)) : null;
+              const waitText = gateStatus
+                ? `opens after ${gateLabel} — in ${gateStatus} for ${gateDays ?? 0}d`
+                : `Opens after ${gateLabel} is approved`;
               return (
                 <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-muted/30 p-3 text-left shadow-xs transition-all hover:border-foreground/15 opacity-70" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
                   <div className="text-sm font-semibold">{item.row.video_title || "(no title)"}</div>
-                  <div className="text-xs text-muted-foreground">Opens after {gateLabel} is approved</div>
+                  <div className="text-xs text-muted-foreground">{waitText}</div>
                 </div>
               );
             })}

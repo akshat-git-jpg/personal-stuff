@@ -371,16 +371,16 @@ app.get("/api/board", async (c) => {
   ]);
 
   const filteredRows = filterRowsForMemberships(effMemberships, effEmail, allRows);
-  // status_since is always attached (outside the per-role column policy) so the
-  // board can show "in <status> since N days" for every card. Per-card authority
-  // uses the EFFECTIVE roles for that card's system.
+  // status_since and every per-stage `*_since` are always attached (outside the
+  // per-role column policy) so everyone can see "in <status> since N days" per
+  // stage — timestamps carry no confidential data, and row/column visibility is
+  // already enforced elsewhere. Per-card authority uses the EFFECTIVE roles for
+  // that card's system.
   const rows = filteredRows.map((r) => {
     const eff = effectiveRolesFor(effMemberships, r);
     const extraSinceCols: Record<string, string> = {};
-    if (isAdmin) {
-      for (const k of Object.keys(r)) {
-        if (k.endsWith("_since")) extraSinceCols[k] = (r as any)[k] as string;
-      }
+    for (const k of Object.keys(r)) {
+      if (k.endsWith("_since")) extraSinceCols[k] = (r as any)[k] as string;
     }
     return {
       ...projectRowForRoles(eff, r),
