@@ -9,7 +9,7 @@
 - Founders tracker (Khushi + Kushal action items) — https://founders.agrolloo.com (password-gated)
 - Lists (categorized personal lists) — https://lists.agrolloo.com (password-gated)
 - URL shortener — https://go.agrolloo.com
-- Keto Kitchen landing page — https://keto-kitchen.ag
+- Keto Kitchen landing page — https://keto-kitchen.agrolloo.com
 - Bride Bestie landing page — https://bridebestie.com
 - Hyperframes → Video renderer — https://render2.agrolloo.com (password-gated; editor pastes Hyperframes card HTML, downloads MP4)
 - Claude usage - http://localhost:4319/ (ccu-dash)
