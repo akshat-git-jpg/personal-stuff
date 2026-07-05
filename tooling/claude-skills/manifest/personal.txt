@@ -1,13 +1,8 @@
 claude-router
 commit-now
-generate-key-maps
 github-router
 humanizer
-hyperframes-helper
 notebooklm
-pinterest-board
-pinterest-make-post
-pinterest-research
 pp-elevenlabs
 pp-impact
 pp-openrouter
@@ -27,7 +22,6 @@ tweet-lookup
 valyu-best-practices
 worktree-cleanup
 worktree-manager
-pinterest-analyze
 google-sheets
 gmail
 hostinger
@@ -39,10 +33,6 @@ roast
 session-handoff
 ui-craft
 ui-craft-dense-dashboard
-audit-repo-route
-orchestrate
 fable-skill
 scout
-dsa-coach
-yt-style-copy
 reddit-fetcher

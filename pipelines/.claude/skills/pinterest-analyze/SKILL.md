@@ -41,7 +41,7 @@ fix — backed by data, never generic advice. This is a critic, not a cheerleade
 3. **Pull live competition per pin.** For each pin's target keyword, run the research bot (research
    account, public search — never the posting account):
    ```bash
-   node "/Users/kbtg/codebase/personal-stuff/tooling/claude-skills/pinterest-research/research.mjs" \
+   node "/Users/kbtg/codebase/personal-stuff/pipelines/.claude/skills/pinterest-research/research.mjs" \
      --niche <niche> "<keyword>" --rounds 6 --top 15
    ```
    → the current top competitors + their save-velocity to benchmark against.
