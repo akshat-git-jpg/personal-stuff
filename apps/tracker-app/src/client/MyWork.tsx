@@ -145,7 +145,8 @@ export function MyWork({
       {queueItems.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Needs your review</h2>
+            <div className="size-1.5 shrink-0 rounded-full bg-amber-500" />
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">Needs your review</h2>
             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{queueItems.length}</span>
           </div>
           <HelpBanner text={REVIEWER_GUIDE} />
@@ -157,7 +158,8 @@ export function MyWork({
       {needsAction.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Needs your action</h2>
+            <div className="size-1.5 shrink-0 rounded-full bg-orange-500" />
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-400">Needs your action</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{needsAction.length}</span>
           </div>
           <div className="flex flex-col gap-3">
@@ -187,7 +189,8 @@ export function MyWork({
       {waitingOnReview.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Waiting on review</h2>
+            <div className="size-1.5 shrink-0 rounded-full bg-blue-500" />
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">Waiting on review</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{waitingOnReview.length}</span>
           </div>
           <div className="flex flex-col gap-3">
@@ -211,6 +214,7 @@ export function MyWork({
       {upNext.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
+            <div className="size-1.5 shrink-0 rounded-full bg-muted-foreground/40" />
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Up next</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{upNext.length}</span>
           </div>
@@ -239,7 +243,8 @@ export function MyWork({
       {done.length > 0 && (
         <section>
           <button type="button" onClick={() => setShowDone(o => !o)} className="mb-3 flex items-center gap-2 text-left hover:opacity-80">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Done</h2>
+            <div className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Done</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{done.length}</span>
             {showDone ? <ChevronDown className="size-3.5 text-muted-foreground" /> : <ChevronRight className="size-3.5 text-muted-foreground" />}
           </button>

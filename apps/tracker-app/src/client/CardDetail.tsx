@@ -185,14 +185,25 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
   const [eventsLoading, setEventsLoading] = useState(false);
   const [eventsLoaded, setEventsLoaded] = useState(false);
 
+  const [eventsError, setEventsError] = useState(false);
+
   useEffect(() => {
     if (showActivity && !eventsLoaded && !eventsLoading && row.row_id) {
       setEventsLoading(true);
-      void getCardEvents(row.row_id).then((res) => {
-        setEvents(res.events || []);
-        setEventsLoaded(true);
-        setEventsLoading(false);
-      });
+      setEventsError(false);
+      getCardEvents(row.row_id)
+        .then((res) => {
+          setEvents(res.events || []);
+          setEventsLoaded(true);
+        })
+        .catch(() => {
+          setEvents([]);
+          setEventsLoaded(true);
+          setEventsError(true);
+        })
+        .finally(() => {
+          setEventsLoading(false);
+        });
     }
   }, [showActivity, eventsLoaded, eventsLoading, row.row_id]);
 
@@ -586,7 +597,13 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
             {showActivity && (
               <div className="mt-4 space-y-4" data-testid="activity-feed">
                 {eventsLoading && <div className="text-xs text-muted-foreground">Loading...</div>}
-                {!eventsLoading && events.length === 0 && <div className="text-xs text-muted-foreground">No activity yet.</div>}
+                {!eventsLoading && events.length === 0 && eventsError && (
+                  <div className="flex items-center gap-2 text-xs text-destructive">
+                    Couldn't load activity
+                    <Button type="button" variant="outline" size="sm" className="h-6 px-2 text-[10px]" onClick={() => setEventsLoaded(false)}>Retry</Button>
+                  </div>
+                )}
+                {!eventsLoading && events.length === 0 && !eventsError && <div className="text-xs text-muted-foreground">No activity yet.</div>}
                 {!eventsLoading && events.map((ev) => {
                   const stage = stageByIdIn(pipeline, ev.stage_id);
                   const isSendback = ev.type === "sendback" || ev.type === "reopen";

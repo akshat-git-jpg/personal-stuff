@@ -253,11 +253,8 @@ export interface CardEvent {
 }
 
 export async function getCardEvents(row_id: string): Promise<{ events: CardEvent[] }> {
-  try {
-    const res = await fetch(`/api/card-events?row_id=${encodeURIComponent(row_id)}`, { credentials: "same-origin" });
-    if (!res.ok) return { events: [] };
-    return res.json() as Promise<{ events: CardEvent[] }>;
-  } catch {
-    return { events: [] };
-  }
+  const res = await fetch(`/api/card-events?row_id=${encodeURIComponent(row_id)}`, { credentials: "same-origin" });
+  if (!res.ok) throw new Error("Failed to load events");
+  const data = await res.json();
+  return data as { events: CardEvent[] };
 }
