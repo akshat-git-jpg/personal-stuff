@@ -45,7 +45,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 030 | skills-status.sh: account-membership table + dangling-link check | P3 | S | — | DONE |
 | 031 | VPS-CRONS.md refresh: stale paths/date/names, sync both copies | P3 | S | 029 (soft) | DONE |
 | 032 | deploy-apps.sh — gated one-command deploy across all Worker apps | P2 | S | 021 (soft) | DONE |
-| 033 | `wt` — managed worktree pool for agent runs (lifts no-worktree rule to "managed runs only") | P1 | M | — | TODO |
+| 033 | `wt` — managed worktree pool for agent runs (lifts no-worktree rule to "managed runs only") | P1 | M | — | DONE |
 | 034 | `greenlight` — validation pipeline; lands green work on main + pushes | P1 | L | 033 | TODO |
 | 035 | `overnight` — capped autonomous improvement loops | P2 | M | 033 | TODO |
 | 036 | `/plan-review` — visual pre-dispatch plan gate (lavish-axi transport) | P2 | M | — | TODO |
