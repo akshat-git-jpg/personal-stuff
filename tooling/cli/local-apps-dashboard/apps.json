@@ -7,6 +7,7 @@
       "cwd": "/Users/kbtg/codebase/personal-stuff/tooling/cli/ccusage-dashboard",
       "start": "node dashboard.mjs",
       "port": 4319,
+      "ports": [4319],
       "url": "http://localhost:4319"
     },
     {
@@ -15,6 +16,7 @@
       "cwd": "/Users/kbtg/codebase/personal-stuff/apps/tracker-app",
       "start": "npm run seed:local && npm run dev:local",
       "port": 5173,
+      "ports": [5173, 8787],
       "url": "http://localhost:5173/dev-login?email=seankerman25@gmail.com"
     },
     {
@@ -23,6 +25,7 @@
       "cwd": "/Users/kbtg/codebase/personal-stuff/apps/lists-app",
       "start": "npm run db:local && npm run dev:local",
       "port": 5173,
+      "ports": [5173, 8787],
       "url": "http://localhost:5173"
     }
   ]
