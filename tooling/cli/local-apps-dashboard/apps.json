@@ -1,5 +1,6 @@
 {
   "port": 4321,
+  "_note": "Each app gets its OWN port pair so all can run at once. Vite web + wrangler API apps: give a unique WEB_PORT/API_PORT in env and mirror them in `ports`. Convention: web 5173,5273,5373… (+100) · api 8787,8887,8987… (+100). The app reads WEB_PORT/API_PORT from env (vite.config + dev:api); the dashboard injects them.",
   "apps": [
     {
       "id": "ccusage",
@@ -15,6 +16,7 @@
       "name": "tutorials-tracker",
       "cwd": "/Users/kbtg/codebase/personal-stuff/apps/tracker-app",
       "start": "npm run seed:local && npm run dev:local",
+      "env": { "WEB_PORT": "5173", "API_PORT": "8787" },
       "port": 5173,
       "ports": [5173, 8787],
       "url": "http://localhost:5173/dev-login?email=seankerman25@gmail.com"
@@ -24,9 +26,10 @@
       "name": "lists",
       "cwd": "/Users/kbtg/codebase/personal-stuff/apps/lists-app",
       "start": "npm run db:local && npm run dev:local",
-      "port": 5173,
-      "ports": [5173, 8787],
-      "url": "http://localhost:5173"
+      "env": { "WEB_PORT": "5273", "API_PORT": "8887" },
+      "port": 5273,
+      "ports": [5273, 8887],
+      "url": "http://localhost:5273"
     }
   ]
 }

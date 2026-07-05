@@ -88,7 +88,10 @@ async function startApp(app) {
 
   const child = spawn(app.start, {
     cwd: app.cwd, shell: true, detached: true,
-    stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, FORCE_COLOR: '0' },
+    stdio: ['ignore', 'pipe', 'pipe'],
+    // app.env lets each app declare its own ports (WEB_PORT/API_PORT) etc. so
+    // many apps run at once without colliding.
+    env: { ...process.env, FORCE_COLOR: '0', ...(app.env || {}) },
   });
   const rec = { child, pid: child.pid, startedAt: Date.now(), log: [], alive: true, exit: null };
   child.stdout.on('data', (d) => pushLog(rec, d));
