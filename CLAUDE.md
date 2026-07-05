@@ -23,6 +23,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
 | A specific app | apps/<name>/ — full list in the README map below; every app folder has its own CLAUDE.md |
 | YouTube / Pinterest / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
+| Worktree pool for agent runs (wt) | [`tooling/cli/wt/README.md`](tooling/cli/wt/README.md) |
 | YouTube research / scripts / tutorial pipeline | `pipelines/youtube/` |
 | Voiceover / TTS / RVC / HeyGen avatar pipelines | `pipelines/video/voice/` |
 | Income tracking across platforms | `pipelines/income-analysis/` |

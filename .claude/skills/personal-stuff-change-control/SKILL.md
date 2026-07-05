@@ -29,7 +29,7 @@ New folder? Route via the placement rule (apps/ = personal products incl. all de
 | Rule | Rationale | Incident behind it |
 |---|---|---|
 | **Skills are edited ONLY in `tooling/claude-skills/`**, symlinked into accounts via `./scripts/relink.sh`. Never edit a copy under `~/.claude-work/skills/` or `~/.claude-personal/skills/`. | Single source across two accounts; edits to a symlink target propagate everywhere, edits to a stray copy silently fork. | Dual-account drift is why the manifest system exists (decisions.md 2026-06-30 example line). After relinking, **restart the session** — skill discovery is cached. |
-| **No worktrees in this repo.** Edit the main checkout directly. `.claude/settings.json` sets `worktree.bgIsolation: "none"`. | External systems (VPS pulls, symlinks, .mcp.json) key on the one checkout path; the orchestrate loop already enforces one-run-at-a-time on the shared tree. | Owner-set stance; also why orchestrate v2.1 added the one-run-at-a-time rule. |
+| **Worktrees only via `wt` (managed runs).** Agent/executor/parallel runs work in pool worktrees from `tooling/cli/wt`; owner interactive sessions, deploys, VPS/cron ops, and skill edits stay on the main checkout. Never create ad-hoc worktrees by hand. | Parallel agent runs need isolation, but external systems (VPS pulls, symlinks, .mcp.json) and the deploy/skill toolchain key on the one checkout path — the pool bootstraps runtime files and keeps the main checkout canonical. | Rule lifted 2026-07-06 (decisions.md) after the agentic-workflow study; replaces the 2026-07-05 blanket ban. |
 | **No TDD.** Write working code first; manual smoke tests. | Single-operator personal repo; test ceremony slows shipping. | Owner-set stance. |
 | **EXCEPTION — guard tests are mandatory for generic/data-driven layers**: any engine that renders from configs/defs must have invariant tests looping over ALL configs, so a new config can't silently break rendering. Mechanics + model: **personal-stuff-validation-and-qa**. | A new pipeline def must not make the owner the test harness. | Tracker-app took **multiple redos** to become intuitive/scalable across systems (owner-confirmed 2026-07-05, plans 014–019 + engine rebuild). |
 | **Media policy:** inputs/reference assets tracked; render outputs gitignored + untracked; heavy artifacts (models, work dirs) live OUTSIDE the repo in `~/kb-scratch/`. | Agent searches walk the tree; git stays fast. | The working tree hit **18GB** and every agent search walked it (decisions.md 2026-07-04). |
@@ -45,7 +45,7 @@ New Worker, domain, or hub card ⇒ the triple-update rule (all three inventory 
 ## Red flags — stop and re-read this skill
 
 - "I'll just fix the skill copy in ~/.claude-*/skills quickly"
-- "A worktree would be cleaner here"
+- "I'll just git worktree add by hand instead of wt get"
 - "This engine change is too small to run the guard tests"
 - "I'll commit the rendered MP4/PNG just this once"
 - "This decision is obvious, no decisions.md entry needed" (if you had to think, it wasn't obvious)
