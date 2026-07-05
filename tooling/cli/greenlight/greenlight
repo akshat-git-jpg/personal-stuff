@@ -101,7 +101,7 @@ else
   echo "$INTENT" > "$STATE_DIR/intent.md"
 fi
 
-WT_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../wt/wt"
+WT_BIN="wt"
 
 # Acquire worktree
 log "Acquiring worktree..."
