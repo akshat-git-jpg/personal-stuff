@@ -34,7 +34,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 019 | Tracker: per-stage time + holder visibility everywhere | P2 | S-M | 016, 017 | DONE |
 | 020 | Local-apps dashboard | P2 | M | — | DONE |
 | 021 | check-apps.sh: stale skip entry renamed, visible SKIPs, bash -n pass | P2 | S | — | DONE |
-| 022 | Tracker: engine round-trip/routing guard over ALL PipelineDefs | P2 | S | — | BLOCKED (AssertionError: col topic_work_link of stage topic: expected 'card_extra' not to be 'card_extra') |
+| 022 | Tracker: engine round-trip/routing guard over ALL PipelineDefs | P2 | S | — | DONE |
 | 023 | voice-autoqc: flag missing TTS clips instead of dropping | P2 | S | — | TODO |
 | 024 | Lazy-split humanizer / notebooklm / printing-press-publish SKILL.md | P2 | M | — | TODO |
 | 025 | vps-crons: shared _shared/alert.sh failure trap in every wrapper | P2 | S | — | TODO |

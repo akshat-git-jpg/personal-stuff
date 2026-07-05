@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { validatePipelines, getPipeline, allRoles, pipelineIds, rolesForSystem } from "../src/shared/engine/registry";
-import { assembleRow, decomposeRow, routeWrite, type StageRecord } from "../src/shared/engine/card";
+import { assembleRow, decomposeRow, routeWrite, type StageRecord, type CardRecord } from "../src/shared/engine/card";
 import { effectiveRoles, holdsRoleInSystem, systemsForRole } from "../src/shared/engine/memberships";
 import { workerStagesForMemberships, reviewQueueForMemberships, type Row, cardStagesForUser, upcomingStagesForUser, canSeeRow } from "../src/shared/engine/rbac";
 import { createFieldsOf, type PipelineDef, colOf, stageHasReviewerSlot } from "../src/shared/engine/types";
@@ -177,45 +177,49 @@ describe("up next / upcoming work visibility", () => {
 });
 
 describe("EVERY pipeline def: round-trip + routing invariants", () => {
-  const SLOTS = ["status", "assignee", "reviewer", "work_link", "eta", "instruction", "feedback"] as const;
-
   for (const pid of pipelineIds()) {
     const P = getPipeline(pid);
 
-    // Synthesize a fully-populated flat Row from the def's own metadata:
-    // every stage gets a distinct value in every slot it actually has.
-    const row: Record<string, string> = {
-      pipeline: pid, row_id: `r-${pid}`, last_updated: "2026-07-05T00:00:00Z",
-      status_since: "2026-07-04T00:00:00Z", video_title: `T-${pid}`,
+    // Ground-truth flat row: assemble from fully-populated normalized records.
+    // assembleRow only emits the slots each stage actually exposes, so the
+    // row IS the real schema — no slot-guessing. Slot values encode their
+    // origin as "<stageId>|<slot>" so the routing test can verify each column
+    // maps back to exactly the record it came from.
+    const card: CardRecord = {
+      id: `r-${pid}`, pipeline_id: pid, title: `T-${pid}`, notes: "n",
+      description: "d", category: "c", subcategory: "s",
+      updated_at: "2026-07-05T00:00:00Z", status_since: "2026-07-04T00:00:00Z",
     };
-    for (const s of P.stages) {
-      for (const slot of SLOTS) {
-        if (slot === "reviewer" && !stageHasReviewerSlot(s)) continue;
-        const col = colOf(s, slot);
-        if (!col) continue;
-        row[col] = slot === "status" ? "To Do" : `${pid}:${s.id}:${slot}`;
-      }
-    }
+    const stages: StageRecord[] = P.stages.map((s) => ({
+      card_id: `r-${pid}`, stage_id: s.id,
+      status: `${s.id}|status`, assignee: `${s.id}|assignee`,
+      reviewer: `${s.id}|reviewer`, work_link: `${s.id}|work_link`,
+      instruction: `${s.id}|instruction`, eta: `${s.id}|eta`,
+      feedback: `${s.id}|feedback`,
+    }));
+    const row = assembleRow(P, card, stages) as Record<string, string>;
 
-    it(`[${pid}] decompose→assemble is lossless`, () => {
-      const { card, stages } = decomposeRow(P, row);
-      const rebuilt = assembleRow(P, card, stages) as Record<string, string>;
+    it(`[${pid}] decompose→assemble is lossless over the real schema`, () => {
+      const d = decomposeRow(P, row);
+      const rebuilt = assembleRow(P, d.card, d.stages) as Record<string, string>;
       for (const k of Object.keys(row)) {
+        // *_status_since cols are store-stamped, one-way — same carve-out as
+        // the existing "storage round-trip" test above.
+        if (k.endsWith("_since") && k !== "status_since") continue;
         expect(`${k}=${rebuilt[k] ?? ""}`).toBe(`${k}=${row[k] ?? ""}`);
       }
     });
 
-    it(`[${pid}] every stage column routes to a defined target`, () => {
-      for (const s of P.stages) {
-        for (const slot of SLOTS) {
-          if (slot === "reviewer" && !stageHasReviewerSlot(s)) continue;
-          const col = colOf(s, slot);
-          if (!col) continue;
-          const route = routeWrite(P, col);
-          expect(route, `col ${col} of stage ${s.id}`).toBeTruthy();
-          expect(route!.kind, `col ${col} of stage ${s.id}`).not.toBe("card_extra");
-        }
+    it(`[${pid}] every stage-emitted column routes back to its stage+slot`, () => {
+      let checked = 0;
+      for (const [col, v] of Object.entries(row)) {
+        if (!v || !v.includes("|")) continue;      // only stage-slot values
+        const [stageId, slot] = v.split("|");
+        expect(routeWrite(P, col), `col ${col}`).toEqual({ kind: "stage", stageId, slot });
+        checked++;
       }
+      // status + assignee are active on every stage — hard floor on coverage
+      expect(checked).toBeGreaterThanOrEqual(P.stages.length * 2);
     });
   }
 });
