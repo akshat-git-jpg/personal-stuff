@@ -48,7 +48,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 033 | `wt` — managed worktree pool for agent runs (lifts no-worktree rule to "managed runs only") | P1 | M | — | DONE |
 | 034 | `greenlight` — validation pipeline; lands green work on main + pushes | P1 | L | 033 | DONE |
 | 035 | `overnight` — capped autonomous improvement loops | P2 | M | 033 | DONE |
-| 036 | `/plan-review` — visual pre-dispatch plan gate (lavish-axi transport) | P2 | M | — | TODO |
+| 036 | `/plan-review` — visual pre-dispatch plan gate (lavish-axi transport) | P2 | M | — | DONE |
 | 037 | `captain` — multi-session orchestrator with pluggable lanes | P1 | L | 033, 034 | TODO |
 | 038 | printing-press AXI alignment (skill levers + upstream draft) | P3 | M | — | TODO |
 
