@@ -60,3 +60,8 @@ docs/voice-pipeline-test/
 
 # Node dependencies — never commit
 node_modules/
+
+# secrets escrow — never commit archives (script writes to TMPDIR, this is a guard)
+infra/escrow/*.gpg
+infra/escrow/*.tar.gz
+infra/escrow/out/
