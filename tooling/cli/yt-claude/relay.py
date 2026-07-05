@@ -24,9 +24,13 @@ PORT = int(os.environ.get("YT_CLAUDE_PORT", "7777"))
 BASE_DIR = Path(os.environ.get("YT_CLAUDE_DIR", str(Path.home() / "yt-claude")))
 # Where each video opens:
 #   "terminal" -> a new macOS Terminal window (open -a Terminal)
-#   "cursor"   -> a new integrated terminal tab inside Cursor (via the extension
-#                 that watches BASE_DIR/pending/)
+#   an IDE name -> a new integrated terminal tab inside a VS Code-family editor
+#                  (via the yt-claude extension that watches BASE_DIR/pending/).
+#                  "antigravity" is the current default IDE; "cursor"/"editor"/
+#                  "ide"/"vscode"/"code" all resolve to the same job-file drop,
+#                  since every fork runs the same extension.
 TARGET = os.environ.get("YT_CLAUDE_TARGET", "terminal")
+IDE_TARGETS = {"antigravity", "cursor", "editor", "ide", "vscode", "code"}
 PENDING_DIR = BASE_DIR / "pending"
 # macOS terminal app to open each video in (one new window per video).
 TERMINAL_APP = os.environ.get("YT_CLAUDE_TERMINAL", "Terminal")
@@ -167,8 +171,8 @@ def open_window(url: str):
     cmd_path.write_text(script)
     cmd_path.chmod(0o755)
 
-    if TARGET == "cursor":
-        # Drop a job file for the Cursor extension to open as an integrated tab.
+    if TARGET in IDE_TARGETS:
+        # Drop a job file for the IDE extension to open as an integrated tab.
         PENDING_DIR.mkdir(parents=True, exist_ok=True)
         job = {
             "id": vid,
@@ -181,7 +185,7 @@ def open_window(url: str):
         tmp = PENDING_DIR / f".{vid}.json.tmp"
         tmp.write_text(json.dumps(job))
         tmp.rename(PENDING_DIR / f"{vid}.json")
-        dest = "cursor tab"
+        dest = f"{TARGET} tab"
     else:
         subprocess.run(["open", "-a", TERMINAL_APP, str(cmd_path)], check=True)
         dest = f"{TERMINAL_APP} window"

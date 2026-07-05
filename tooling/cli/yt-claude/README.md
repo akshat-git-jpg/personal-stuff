@@ -1,9 +1,10 @@
 # yt-claude
 
 Tick YouTube video thumbnails in the browser, hit one button, and each video
-opens as **its own terminal tab inside Cursor** (or a separate macOS Terminal
-window) — a live `claude` session pre-fed the transcript that prints an instant
-summary, then waits for your questions. Switch with `YT_CLAUDE_TARGET`.
+opens as **its own terminal tab inside Antigravity** (or a separate macOS Terminal
+window), a live `claude` session pre-fed the transcript that prints an instant
+summary, then waits for your questions. Switch with `YT_CLAUDE_TARGET`. Any VS
+Code fork works as the tab target; Antigravity is just the default.
 
 ```
  Browser (Tampermonkey)            Mac (this repo)
@@ -19,11 +20,11 @@ summary, then waits for your questions. Switch with `YT_CLAUDE_TARGET`.
 
 | File | What it is |
 |------|-----------|
-| `relay.py` | Localhost HTTP server. POST `/queue {urls:[…]}` → per video: fetch title (oembed) + transcript (`pp-yt-transcript`) → either drop a job file in `~/yt-claude/pending/` (cursor target) or `open` a `run.command` Terminal window (terminal target). |
-| `cursor-extension/` | Cursor/VS Code extension. Watches `~/yt-claude/pending/` and opens an integrated terminal tab per job. Installed at `~/.cursor/extensions/yt-claude/`. |
+| `relay.py` | Localhost HTTP server. POST `/queue {urls:[…]}` → per video: fetch title (oembed) + transcript (`pp-yt-transcript`) → either drop a job file in `~/yt-claude/pending/` (IDE target) or `open` a `run.command` Terminal window (terminal target). |
+| `ide-extension/` | Editor extension for any VS Code fork (Antigravity, VS Code, Cursor). Watches `~/yt-claude/pending/` and opens an integrated terminal tab per job. Installed at `~/.antigravity/extensions/yt-claude/`. |
 | `yt-claude` | Control CLI: `serve`, `ls` (recently opened), `log` (tail relay log). |
 | `yt-claude-select.user.js` | Tampermonkey userscript: checkboxes on thumbnails + the floating send button. |
-| `com.kushal.yt-claude-relay.plist` | launchd agent to keep the relay alive. Sets `YT_CLAUDE_TARGET=cursor`. |
+| `com.kushal.yt-claude-relay.plist` | launchd agent to keep the relay alive. Sets `YT_CLAUDE_TARGET=antigravity`. |
 
 ## Why these choices
 
@@ -50,13 +51,15 @@ launchctl load ~/Library/LaunchAgents/com.kushal.yt-claude-relay.plist
 ```
 > Edit the `relay.py` path in the plist if you move the repo.
 
-### 2. Install the Cursor extension (for `target=cursor`)
+### 2. Install the editor extension (for an IDE target)
 ```sh
-cp -R cli/yt-claude/cursor-extension ~/.cursor/extensions/yt-claude
+cp -R cli/yt-claude/ide-extension ~/.antigravity/extensions/yt-claude
 ```
-Reload Cursor (`Cmd-Shift-P` → "Developer: Reload Window") if it doesn't pick it
-up automatically. It watches `~/yt-claude/pending/` and opens a terminal tab per
-job. (Skip this step if you set `YT_CLAUDE_TARGET=terminal`.)
+Reload Antigravity (`Cmd-Shift-P` → "Developer: Reload Window") if it doesn't pick
+it up automatically. It watches `~/yt-claude/pending/` and opens a terminal tab per
+job. On another VS Code fork, copy into that editor's extensions dir instead
+(`~/.cursor/extensions/`, `~/.vscode/extensions/`, …). (Skip this step if you set
+`YT_CLAUDE_TARGET=terminal`.)
 
 ### 3. Install the userscript
 1. Install the **Tampermonkey** extension.
@@ -66,8 +69,8 @@ job. (Skip this step if you set `YT_CLAUDE_TARGET=terminal`.)
 ### 4. Use it
 - Tick the videos you want (homepage / search / sidebar / channel). A
   **`→ Claude (N)`** pill shows the count.
-- Click it. Each video opens as a Cursor terminal tab (or Terminal window) with
-  a summary.
+- Click it. Each video opens as an Antigravity terminal tab (or Terminal window)
+  with a summary.
 - `cli/yt-claude/yt-claude ls` → list recently opened videos.
 - Quit a video's claude (`Ctrl-C` / `/exit`) → the tab drops to a plain shell.
 
@@ -76,7 +79,7 @@ job. (Skip this step if you set `YT_CLAUDE_TARGET=terminal`.)
 | Var | Default | Purpose |
 |-----|---------|---------|
 | `YT_CLAUDE_PORT` | `7777` | relay port (match `RELAY` in the userscript if changed) |
-| `YT_CLAUDE_TARGET` | `terminal` | `cursor` = integrated Cursor tabs (needs the extension); `terminal` = macOS Terminal windows. The launchd plist sets this to `cursor`. |
+| `YT_CLAUDE_TARGET` | `terminal` | an IDE name (`antigravity`, `cursor`, `editor`, `vscode`, `code`) = integrated editor tabs (needs the extension); `terminal` = macOS Terminal windows. The launchd plist sets this to `antigravity`. |
 | `YT_CLAUDE_TERMINAL` | `Terminal` | (terminal target) macOS app to open windows in (e.g. `iTerm`) |
 | `YT_CLAUDE_DIR` | `~/yt-claude` | per-video working dirs + `index.log` manifest + `pending/` queue |
 | `YT_CLAUDE_CMD` | `claude` | command run per tab/window (set to `echo` to test plumbing) |

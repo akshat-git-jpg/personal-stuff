@@ -1,10 +1,10 @@
-// YT → Claude — Cursor/VS Code extension.
+// YT → Claude — VS Code-family editor extension (Antigravity, VS Code, Cursor…).
 //
 // Watches ~/yt-claude/pending/ for job files dropped by the relay (relay.py,
-// run with YT_CLAUDE_TARGET=cursor). For each job it opens a new integrated
-// terminal tab, cd'd to the video dir, running `claude`.
+// run with YT_CLAUDE_TARGET set to an IDE name, e.g. antigravity). For each job
+// it opens a new integrated terminal tab, cd'd to the video dir, running `claude`.
 //
-// Multi-window: every Cursor window runs its own copy of this extension, so
+// Multi-window: every editor window runs its own copy of this extension, so
 // without coordination a batch SPLITS across windows. Two layers fix that:
 //   1. A pinned target (~/yt-claude/.target). Run "YT→Claude: Open videos in
 //      THIS window" in the workspace you want — only that window then opens

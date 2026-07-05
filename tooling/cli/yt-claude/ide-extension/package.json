@@ -1,8 +1,8 @@
 {
   "name": "yt-claude",
   "displayName": "YT → Claude",
-  "description": "Opens an integrated terminal tab per YouTube video queued by the yt-claude relay.",
-  "version": "1.3.0",
+  "description": "Opens an integrated terminal tab per YouTube video queued by the yt-claude relay (Antigravity / VS Code / any fork).",
+  "version": "1.4.0",
   "publisher": "kushal",
   "engines": { "vscode": "^1.70.0" },
   "activationEvents": ["onStartupFinished"],

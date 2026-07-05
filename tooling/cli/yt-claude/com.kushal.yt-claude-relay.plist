@@ -17,11 +17,12 @@
     <!-- claude + node live in these dirs; launchd has a bare PATH otherwise -->
     <key>PATH</key>
     <string>/opt/homebrew/bin:/Users/kbtg/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
-    <!-- "cursor" = open each video as an integrated terminal tab in Cursor
-         (needs the yt-claude Cursor extension). Use "terminal" for new
-         macOS Terminal windows instead. -->
+    <!-- "antigravity" = open each video as an integrated terminal tab in the
+         Antigravity IDE (needs the yt-claude extension installed there). Any
+         VS Code fork works; "cursor"/"editor"/"vscode"/"code" are aliases.
+         Use "terminal" for new macOS Terminal windows instead. -->
     <key>YT_CLAUDE_TARGET</key>
-    <string>cursor</string>
+    <string>antigravity</string>
   </dict>
 
   <key>RunAtLoad</key>
