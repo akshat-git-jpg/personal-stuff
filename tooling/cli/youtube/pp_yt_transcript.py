@@ -29,6 +29,8 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -131,8 +133,41 @@ def _parse_vtt(text: str) -> str:
     return " ".join(out)
 
 
+_YTDLP_MAX_AGE_DAYS = 30
+
+
+def _ensure_ytdlp_fresh() -> None:
+    """Self-update yt-dlp when the installed release is >30 days old.
+
+    yt-dlp versions are date-shaped (2026.07.04); a stale build loses the
+    client-impersonation arms race with YouTube and starts drawing 429s.
+    Non-fatal on any failure; a stamp file caps update attempts at one/day.
+    """
+    try:
+        from yt_dlp.version import __version__ as v
+        released = datetime.strptime(".".join(v.split(".")[:3]), "%Y.%m.%d")
+        if (datetime.now() - released).days <= _YTDLP_MAX_AGE_DAYS:
+            return
+    except Exception:
+        return
+    stamp = CACHE_DIR / ".ytdlp-update-attempt"
+    if stamp.exists() and (time.time() - stamp.stat().st_mtime) < 86400:
+        return
+    print(f"INFO: yt-dlp {v} is >{_YTDLP_MAX_AGE_DAYS} days old; self-updating…", file=sys.stderr)
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        stamp.touch()
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "-q", "-U", "yt-dlp"],
+            capture_output=True, timeout=180,
+        )
+    except Exception as e:
+        print(f"WARN: yt-dlp self-update failed ({e}); continuing with {v}", file=sys.stderr)
+
+
 def fetch_ytdlp(video_id: str, want_lang: str) -> str:
     """Best-effort fallback via `python3 -m yt_dlp`. Returns plain text only."""
+    _ensure_ytdlp_fresh()
     base = want_lang.split("-")[0]
     with tempfile.TemporaryDirectory() as d:
         cmd = [

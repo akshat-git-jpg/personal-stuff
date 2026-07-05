@@ -52,6 +52,39 @@ Sources: [yt-dlp datacenter-IP issue](https://github.com/yt-dlp/yt-dlp/issues/16
 No captions at *all* on a video → both paths fail with a clear error. (A
 Whisper-from-audio tier was intentionally left out — see "Not included".)
 
+## Staying unblocked (added 2026-07-06)
+
+YouTube's 429s got worse through 2026: caption endpoints sit behind per-IP
+rate limits plus proof-of-origin (PO token) checks, and even a residential
+IP draws a temporary cooldown once unauthenticated volume looks bot-like.
+Two defenses are built in:
+
+1. **yt-dlp self-update.** The fallback path checks the installed yt-dlp
+   version (date-shaped, e.g. `2026.07.04`) and runs `pip install -U yt-dlp`
+   when it's over 30 days old. Stale yt-dlp loses the client-impersonation
+   race with YouTube and draws blocks much faster. Update attempts are
+   capped at one per day via a stamp file in the cache dir; failures are
+   non-fatal.
+
+2. **PO tokens via bgutil.** The `bgutil-ytdlp-pot-provider` pip plugin plus
+   its node script mint proof-of-origin tokens for every yt-dlp call on this
+   Mac, from any caller, no flags needed. The clone lives at
+   `~/kb-scratch/bgutil-ytdlp-pot-provider`; `~/bgutil-ytdlp-pot-provider`
+   symlinks to it because that's the plugin's default search path. Verify:
+
+   ```bash
+   python3 -m yt_dlp -v <url> --simulate 2>&1 | grep "pot:bgutil"
+   # want: "Generating a gvs PO Token ... via bgutil script"
+   ```
+
+   Rebuild after pulling the clone (`npm ci && npx tsc` in `server/`), and
+   update the pip plugin and the clone together so versions stay in step.
+
+Still seeing 429s with both in place? That's an active IP cooldown: stop
+retrying and wait a few hours, since hammering extends the ban. The next
+escalation (not built) is Webshare rotating residential proxies, which
+youtube-transcript-api supports natively at roughly $1/GB.
+
 ## Usage
 
 ### `get` — fetch a transcript
