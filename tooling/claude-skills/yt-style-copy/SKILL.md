@@ -1,6 +1,6 @@
 ---
-name: yt-style
-description: Clone a competitor YouTube channel's script style from its style pack in pipelines/youtube/competitor-styles/. Verbs — fetch-transcripts a channel, build-script-style-dna into a Script Style DNA profile, suggest-topics, suggest-titles, or write-script in that channel's exact voice. Triggers on "yt-style", "build script style dna for <channel>", "clone <channel>'s style", "suggest topics for <channel>", "suggest titles like <channel>", "write a script in <channel>'s style".
+name: yt-style-copy
+description: Clone a competitor YouTube channel's script style and/or visual editing style from its style pack in pipelines/youtube/competitor-styles/. Verbs — fetch-transcripts/build-script-style-dna for the script side, fetch-video/build-video-style-dna for the visual side (independent of each other — a channel can have one, the other, or both), suggest-topics, suggest-titles, or write-script in that channel's exact voice. Triggers on "yt-style-copy", "clone <channel>'s style", "clone <channel>'s video style", "build script style dna for <channel>", "build video style dna for <channel>", "suggest topics for <channel>", "suggest titles like <channel>", "write a script in <channel>'s style".
 user-invocable: true
 metadata:
   author: kbtg
