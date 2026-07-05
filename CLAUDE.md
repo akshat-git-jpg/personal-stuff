@@ -18,7 +18,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Cron architecture (Pattern B) | [`VPS-CRONS.md`](VPS-CRONS.md) |
 | Every live URL across this repo (incl. `pipelines/`) | [`my-hosted-sites.md`](my-hosted-sites.md) |
 | Who I am, active bets, product inventory, idea backlog | `context/` (start at [`context/CLAUDE.md`](context/CLAUDE.md)) |
-| A custom Claude skill (source of truth) | `tooling/claude-skills/` |
+| A custom Claude skill (source of truth) | cross-repo: `tooling/claude-skills/` (manifest+relink); repo-operating: `.claude/skills/`; pipelines-only: `pipelines/.claude/skills/` |
 | CLI tools Claude calls (gmail, sheets, youtube, hostinger, ntfy, rapidapi, yt-claude, cf-email, drive, heygen-web, local-apps-dashboard) | `tooling/cli/` |
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
 | A specific app | apps/<name>/ — full list in the README map below; every app folder has its own CLAUDE.md |

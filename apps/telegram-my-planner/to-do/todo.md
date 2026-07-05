@@ -90,3 +90,5 @@ entire channel on - how to make this kind of videos..
 make diff voice personal - for more channels plan
 
 yt board - all links at one place, download and upload job to diff person or on mobiel
+
+project, global memory and skill

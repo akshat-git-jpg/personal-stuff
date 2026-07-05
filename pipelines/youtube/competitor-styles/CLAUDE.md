@@ -6,7 +6,7 @@ distill once into a Script Style DNA profile, then generate topics/titles/
 scripts cheaply forever. Video side: fetch cut-pacing metrics + cached frames
 once, distill once into a Video Style DNA profile. A channel can have one side,
 the other, or both — neither checks for the other's artifacts. The generation
-workflow is the `yt-style-copy` skill (`tooling/claude-skills/yt-style-copy/`);
+workflow is the `yt-style-copy` skill (`pipelines/.claude/skills/yt-style-copy/`);
 this folder is its data.
 
 ## Layout
