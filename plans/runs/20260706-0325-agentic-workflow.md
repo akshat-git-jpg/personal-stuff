@@ -8,3 +8,7 @@
 [03:43:41] PLAN 036 START
 [04:06:08] ROUND 2 START  fixes: antigravity stalled mid-036 (silent 22min, presumed quota); resuming 036→037→038 via sonnet subagents
 [04:09:44] PLAN 036 DONE  verify: lavish-axi --help exit 0 + python HTML parse OK + skills-status.sh exit 0 + CLAUDE.md row + desc 314 chars  files: .claude/skills/plan-review/SKILL.md, .claude/skills/plan-review/references/artifact-template.md, CLAUDE.md, ~/kb-scratch/plan-review/033.html (untracked, outside repo); dropped an out-of-scope "Multi-session workflow batching / tooling/cli/captain" row that had leaked into CLAUDE.md's uncommitted diff (plan 037, not yet built); deleted stray test-json.sh (unreferenced debug scratch)
+[04:14:19] PLAN 037 START
+[04:18:17] HEARTBEAT: lanes + lifecycle scripts smoke-tested manually; writing CLAUDE.md next
+[04:26:26] HEARTBEAT: README + routing row done; check-apps.sh green; running final Done-criteria pass
+[04:26:26] PLAN 037 DONE  verify: ALL TESTS PASSED (incl. live tmux smoke) + bash -n all scripts + check-apps.sh exit 0 + CLAUDE.md 7 sections/propose x3 + lane registry 3x3-verbs + state gitignored  files: tooling/captain/{CLAUDE.md,README.md,bin/*.sh,lanes.d/*.sh,data/*.md,state/.gitignore,state/.gitkeep,test-captain.sh}, CLAUDE.md (routing row), plans/README.md (037 DONE)

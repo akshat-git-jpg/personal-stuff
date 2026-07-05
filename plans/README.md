@@ -49,7 +49,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 034 | `greenlight` — validation pipeline; lands green work on main + pushes | P1 | L | 033 | DONE |
 | 035 | `overnight` — capped autonomous improvement loops | P2 | M | 033 | DONE |
 | 036 | `/plan-review` — visual pre-dispatch plan gate (lavish-axi transport) | P2 | M | — | DONE |
-| 037 | `captain` — multi-session orchestrator with pluggable lanes | P1 | L | 033, 034 | TODO |
+| 037 | `captain` — multi-session orchestrator with pluggable lanes | P1 | L | 033, 034 | DONE |
 | 038 | printing-press AXI alignment (skill levers + upstream draft) | P3 | M | — | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
