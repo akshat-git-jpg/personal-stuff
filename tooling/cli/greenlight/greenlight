@@ -1,0 +1,189 @@
+#!/bin/bash
+set -euo pipefail
+
+# --- JSON Envelope from `claude -p` ---
+# Text result: .result
+# Input tokens: .usage.input_tokens
+# Output tokens: .usage.output_tokens
+#
+# Extraction via python3:
+# result=$(echo "$json" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("result", ""))')
+# ----------------------------------------
+
+function usage() {
+  echo "Usage: greenlight <command> [options]" >&2
+  echo "Commands:" >&2
+  echo "  run --branch <name> [--repo <path>] [--intent \"<text>\"] [--skip <stage,stage>] [--no-land] [--reviewer-model sonnet]" >&2
+  echo "  status <run-id>" >&2
+  exit 2
+}
+
+if [ $# -eq 0 ]; then
+  usage
+fi
+
+CMD=$1
+shift
+
+REPO="."
+BRANCH=""
+INTENT=""
+SKIP=""
+NO_LAND=0
+REVIEWER_MODEL="sonnet"
+RUN_ID=""
+
+case "$CMD" in
+  run)
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --branch) BRANCH="$2"; shift 2 ;;
+        --repo) REPO="$2"; shift 2 ;;
+        --intent) INTENT="$2"; shift 2 ;;
+        --skip) SKIP="$2"; shift 2 ;;
+        --no-land) NO_LAND=1; shift ;;
+        --reviewer-model) REVIEWER_MODEL="$2"; shift 2 ;;
+        *) usage ;;
+      esac
+    done
+    if [ -z "$BRANCH" ]; then
+      echo "ERROR: --branch is required" >&2
+      usage
+    fi
+    ;;
+  status)
+    if [ $# -ne 1 ]; then usage; fi
+    RUN_ID="$1"
+    ;;
+  *)
+    usage
+    ;;
+esac
+
+REPO=$(cd "$REPO" && pwd) || exit 1
+if ! git -C "$REPO" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "ERROR: $REPO is not a git repository" >&2
+  exit 1
+fi
+
+REPO_TOPLEVEL=$(git -C "$REPO" rev-parse --show-toplevel)
+
+if [ "$CMD" = "status" ]; then
+  STATE_DIR="$HOME/kb-scratch/greenlight/$RUN_ID"
+  if [ ! -d "$STATE_DIR" ]; then
+    echo "ERROR: run $RUN_ID not found" >&2
+    exit 1
+  fi
+  cat "$STATE_DIR/state"
+  exit 0
+fi
+
+# Run CMD
+BRANCH_SLUG=$(echo "$BRANCH" | tr '/' '-' | tr -cd 'a-zA-Z0-9-')
+TIMESTAMP=$(date +"%Y%m%d-%H%M")
+RUN_ID="${TIMESTAMP}-${BRANCH_SLUG}"
+STATE_DIR="$HOME/kb-scratch/greenlight/$RUN_ID"
+
+mkdir -p "$STATE_DIR/evidence"
+echo "running" > "$STATE_DIR/state"
+touch "$STATE_DIR/log"
+
+function log() {
+  echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" >> "$STATE_DIR/log"
+  echo "$1" >&2
+}
+
+log "Starting run $RUN_ID for branch $BRANCH"
+
+if [ -z "$INTENT" ]; then
+  git -C "$REPO_TOPLEVEL" log --format='%s%n%b' origin/main.."$BRANCH" > "$STATE_DIR/intent.md" || true
+else
+  echo "$INTENT" > "$STATE_DIR/intent.md"
+fi
+
+WT_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../wt/wt"
+
+# Acquire worktree
+log "Acquiring worktree..."
+WT_PATH=$("$WT_BIN" get --repo "$REPO_TOPLEVEL" --holder "greenlight-$RUN_ID")
+log "Worktree acquired: $WT_PATH"
+
+function cleanup() {
+  log "Releasing worktree..."
+  "$WT_BIN" return "$WT_PATH"
+}
+trap cleanup EXIT
+
+git -C "$WT_PATH" checkout "$BRANCH" >&2 || {
+  log "ERROR: failed to checkout branch $BRANCH"
+  echo "failed" > "$STATE_DIR/state"
+  exit 1
+}
+
+function run_agent_stage() {
+  local stage=$1
+  local prompt_file=$2
+  local required_keys=$3
+  
+  log "Running agent stage: $stage"
+  
+  local attempt=1
+  local prompt_content
+  prompt_content=$(cat "$prompt_file")
+  local append=""
+  
+  while [ $attempt -le 2 ]; do
+    local full_prompt="$prompt_content$append"
+    # Execute claude in worktree
+    local claude_out
+    if ! claude_out=$(cd "$WT_PATH" && claude -p "$full_prompt" --output-format json --dangerously-skip-permissions --model "$REVIEWER_MODEL" < /dev/null 2>/dev/null); then
+      log "ERROR: claude invocation failed on attempt $attempt"
+      append="\n\nYour previous reply was not valid JSON matching the schema. Reply with ONLY the JSON object."
+      attempt=$((attempt+1))
+      continue
+    fi
+    
+    local extracted_json
+    extracted_json=$(echo "$claude_out" | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    print(d.get("result", ""))
+except Exception:
+    print("")
+')
+    
+    if [ -z "$extracted_json" ]; then
+      log "ERROR: failed to extract result from envelope on attempt $attempt"
+      append="\n\nYour previous reply was not valid JSON matching the schema. Reply with ONLY the JSON object."
+      attempt=$((attempt+1))
+      continue
+    fi
+    
+    # Validate required keys
+    local valid=1
+    for key in $(echo "$required_keys" | tr ',' ' '); do
+      if ! echo "$extracted_json" | python3 -c "import json,sys; d=json.load(sys.stdin); sys.exit(0 if '$key' in d else 1)" 2>/dev/null; then
+        valid=0
+        break
+      fi
+    done
+    
+    if [ $valid -eq 1 ]; then
+      echo "$extracted_json" > "$STATE_DIR/findings-$stage.json"
+      return 0
+    else
+      log "ERROR: extracted JSON missing required keys on attempt $attempt"
+      append="\n\nYour previous reply was not valid JSON matching the schema. Reply with ONLY the JSON object."
+      attempt=$((attempt+1))
+    fi
+  done
+  
+  log "ERROR: agent stage $stage failed after 2 attempts"
+  echo "failed" > "$STATE_DIR/state"
+  # Call ntfy
+  pp-ntfy send "greenlight: stage $stage failed for $BRANCH" || true
+  exit 1
+}
+
+log "Run setup complete"
