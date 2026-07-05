@@ -10,6 +10,7 @@ Repo-wide orchestration scripts in one place, plus an index of everything *outsi
 - `check-apps.sh` — Uniform verification runner. Iterates through all apps and runs typecheck/check, lint, and test scripts. Returns exit code 0 if all pass, 1 if any fails.
 - `deploy-apps.sh` — check-apps-gated deploy loop: runs each app's own `deploy` script (apps own their quirks, e.g. patch-routes). `--only a,b`, `--dry-run`, `--skip-checks`. DEPLOYS TO PROD — dry-run first.
 - `skills-status.sh` — read-only: markdown table of every skill's account membership (work/personal/both), symlink health, and source (store/agents); exit 1 on any dangling/missing/unresolved link. Run it when a skill seems absent or after moving the repo (then fix with relink.sh).
+- `probe-sites.sh` — parses my-hosted-sites.md and curls every public URL; exit 1 + DOWN_SITES: line if any site is unreachable/5xx. Run by the site-probe VPS cron hourly; safe to run by hand.
 
 ## External touchpoints (things that hardcode this repo's path)
 

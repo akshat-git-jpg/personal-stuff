@@ -24,3 +24,5 @@
 [21:23:00] PLAN 024 DONE  verify: 3 skills split successfully, sizes met target  files: tooling/claude-skills/*/SKILL.md, tooling/claude-skills/*/references/*.md
 [21:23:30] PLAN 025 START
 [21:26:00] PLAN 025 DONE  verify: bash -n passes, smoke test confirms alert and marker, exec replaced  files: _shared/alert.sh, _template/run.sh, my-planner/run.sh, gmail-digest/run.sh, repo-sync/run.sh, README.md
+[21:26:30] PLAN 027 START
+[21:29:00] PLAN 027 DONE  verify: bash -n passes, probe tested locally, cron scheduled  files: scripts/probe-sites.sh, scripts/README.md
