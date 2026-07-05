@@ -10,6 +10,13 @@ register it by adding one object to `apps.json` (`id`, `name`, `cwd` absolute,
 workflow — there is no separate doc to keep in sync. `apps/local-apps.md` is only
 a stub pointing here.
 
+**Multi-port apps** (e.g. a Vite+wrangler `dev:local` that binds both 5173 and
+8787): list every port in a `ports` array, e.g. `"ports": [5173, 8787]`. `port`
+stays the primary/UI port (used for the Open link + status line). The dashboard
+uses the full `ports` set to (a) reclaim stale/zombie holders before Start so a
+leftover process can never wedge a restart, and (b) decide readiness (all ports
+listening = ready → Open enabled). If you omit `ports`, it falls back to `[port]`.
+
 **Do not** add a `package.json` or dependencies — this tool is Node built-ins
 only, matching the sibling `ccusage-dashboard`.
 
