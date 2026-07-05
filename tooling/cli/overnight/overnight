@@ -154,7 +154,8 @@ try:
     if k not in d:
       sys.exit(1)
   sys.exit(0)
-except:
+except Exception as e:
+  print(f"ERROR: {e}")
   sys.exit(1)
 ' && echo "yes" || echo "no")
     
