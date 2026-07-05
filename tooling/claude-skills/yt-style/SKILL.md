@@ -26,6 +26,17 @@ Not an LLM task. Tell the user to run (or run for them):
 Re-running later picks up new uploads. Then suggest `build-script-style-dna`
 if `script-style-dna.md` doesn't exist yet.
 
+## fetch-video <channel-url>
+
+Not an LLM task. Tell the user to run (or run for them):
+
+    python3 pipelines/youtube/competitor-styles/fetch_video.py <channel-url> --limit 30
+
+Downloads at 720p, measures cut pacing, caches frames, and deletes the raw
+video per video — independent of `fetch-transcripts`; run it even if the
+channel has no script pack. Re-running later picks up new uploads. Then
+suggest `build-video-style-dna` if `video-style-dna.md` doesn't exist yet.
+
 ## build-script-style-dna <slug>
 
 The one expensive session per channel. Requires `transcripts/` to be non-empty.
