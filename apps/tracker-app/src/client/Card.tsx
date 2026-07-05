@@ -1,6 +1,6 @@
 import { Clock, Trash2, AlertTriangle, Hourglass } from "lucide-react";
 import type { Row, Transition } from "../shared/rbac";
-import { pipeOf, stageByStatusColIn, normalizeStatusIn, feedbackColOf, assigneeColOf } from "./stages";
+import { pipeOf, stageByStatusColIn, normalizeStatusIn, feedbackColOf, assigneeColOf, sinceOf } from "./stages";
 import { displayName } from "./api";
 import { daysSince } from "./pipeline";
 import { statusMeta, toneBadge, toneDot } from "./status";
@@ -15,6 +15,8 @@ interface CardProps {
   readOnly?: boolean;
   showAssignee?: boolean;        // admin/reviewer views where many people mix
   showDwell?: boolean;           // show "in <status> since N days"
+  showStage?: boolean;           // show stage chip
+  showSystem?: boolean;          // show system chip
   canDelete?: boolean;           // admin: show the delete affordance
   onDelete?: () => void;
   onOpen: () => void;
@@ -32,15 +34,15 @@ export function StatusPill({ status, className }: { status: string; className?: 
   );
 }
 
-export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, showDwell, canDelete, onDelete, onOpen, onAction }: CardProps) {
+export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, showDwell, showStage, showSystem, canDelete, onDelete, onOpen, onAction }: CardProps) {
   const p = pipeOf(row as Record<string, unknown>);
   const stage = stageByStatusColIn(p, statusCol);
   const status = stage ? normalizeStatusIn(stage, row[statusCol as keyof Row] as string) : "To Do";
   const meta = statusMeta(status);
 
-  // Days the card has sat in its current status (from status_since, stamped on
-  // every status change). Blank until the card's next status change.
-  const dwell = showDwell ? daysSince((row as Record<string, string>).status_since) : null;
+  // Days THIS STAGE has sat in its current status (falls back to the card-level
+  // stamp for stages that predate per-stage `_since` tracking).
+  const dwell = showDwell ? daysSince(sinceOf(row as Record<string, unknown>, statusCol)) : null;
 
   const title = row.video_title ?? "(no title)";
   const cat = row.category ?? "";
@@ -61,12 +63,13 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
       onClick={onOpen} onKeyDown={(e) => e.key === "Enter" && onOpen()}
       className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-card p-3 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
     >
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 flex-wrap">
         <StatusPill status={status} />
-        <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{p.name}</span>
+        {showStage && stage && <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{stage.label}</span>}
+        {showSystem && <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{p.name}</span>}
         {dwell !== null && (
           <span className="inline-flex items-center gap-1 text-[11px] tabular-nums text-muted-foreground"
-            title={`In ${meta.label} since ${dwell} day${dwell === 1 ? "" : "s"}`}>
+            title={`In ${meta.label} for ${dwell} day${dwell === 1 ? "" : "s"}`}>
             <Clock className="size-3" /> {dwell === 0 ? "today" : `${dwell}d`}
           </span>
         )}
@@ -90,6 +93,7 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
       {status === "Need Changes" && feedback && (
         <div className="break-words rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs leading-relaxed text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
           <span className="font-semibold">Needs changes:</span> {feedback}
+          {dwell !== null && <span className="block pt-0.5 text-[11px] text-red-700/70 dark:text-red-300/70">sent back {dwell === 0 ? "today" : `${dwell}d ago`}</span>}
         </div>
       )}
 

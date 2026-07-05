@@ -42,6 +42,18 @@ export interface DataStore {
   /** Replace a person's FULL membership set (one D1 row per system). */
   saveMemberships(name: string, email: string, memberships: Memberships): Promise<"updated" | "added">;
   deleteEmployee(email: string): Promise<boolean>;
+  logEvent(e: { card_id: string; stage_id: string; type: string; actor: string; detail?: string }): Promise<void>;
+  listEvents(cardId: string): Promise<CardEventRecord[]>;
+}
+
+export interface CardEventRecord {
+  id: number;
+  card_id: string;
+  stage_id: string;
+  type: string;
+  actor: string;
+  detail: string | null;
+  created_at: string;
 }
 
 export { ConflictError };
@@ -107,7 +119,11 @@ class D1Store implements DataStore {
       if (!t) continue;
       if (t.kind === "card" || t.kind === "system") cardFields[t.field] = value;
       else if (t.kind === "card_extra") { cardExtra[t.key] = value; cardExtraDirty = true; }
-      else if (t.kind === "stage") su(t.stageId).fields[t.slot] = value;
+      else if (t.kind === "stage") {
+        const u = su(t.stageId);
+        u.fields[t.slot] = value;
+        if (t.slot === "status") u.fields.status_since = new Date().toISOString();
+      }
       else if (t.kind === "stage_extra") { const u = su(t.stageId); u.extra[t.fieldId] = value; u.extraDirty = true; }
     }
 
@@ -225,6 +241,17 @@ class D1Store implements DataStore {
   async deleteEmployee(email: string): Promise<boolean> {
     const res = await this.db.prepare(`DELETE FROM employees WHERE email = ?`).bind(email.trim().toLowerCase()).run();
     return (res.meta?.changes ?? 0) > 0;
+  }
+
+  async logEvent(e: { card_id: string; stage_id: string; type: string; actor: string; detail?: string }) {
+    await this.db.prepare(
+      `INSERT INTO card_events (card_id, stage_id, type, actor, detail, created_at) VALUES (?, ?, ?, ?, ?, ?)`)
+      .bind(e.card_id, e.stage_id, e.type, e.actor, e.detail ?? null, new Date().toISOString()).run();
+  }
+
+  async listEvents(cardId: string): Promise<CardEventRecord[]> {
+    return ((await this.db.prepare(`SELECT * FROM card_events WHERE card_id = ? ORDER BY id ASC`)
+      .bind(cardId).all<CardEventRecord>()).results ?? []);
   }
 }
 

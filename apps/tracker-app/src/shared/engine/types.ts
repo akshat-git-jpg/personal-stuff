@@ -20,6 +20,14 @@ import type { LifecycleId } from "./lifecycle";
 
 export type FieldType = "url" | "text" | "textarea" | "date" | "combo";
 
+/** A field collected when creating a card (the "new video" form). */
+export interface CreateField {
+  col: string;                        // flat-Row column it writes
+  label: string;
+  type: "text" | "textarea" | "combo";
+  options?: "category" | "subcategory"; // combo source
+}
+
 /** The first-class per-stage storage slots (one column each in `card_stages`).
  *  Anything a stage needs beyond these lives in `card_stages.extra_json`. */
 export type SlotKey =
@@ -66,6 +74,10 @@ export interface StageDef {
 
   /** Brief-only: which card meta fields this stage shows/collects (Topic). */
   briefFields?: string[];
+
+  /** Brief-only: fields the new-video form collects. Default: title, notes,
+   *  category, subcategory (the historical NEW_VIDEO_FIELDS). */
+  createFields?: CreateField[];
 
   /** Legacy flat-Row column keys per slot (the `standard` bridge). Default `${stage}_${slot}`. */
   cols?: Partial<Record<SlotKey, string>>;
@@ -117,4 +129,16 @@ export function colOf(s: StageDef, slot: SlotKey): string {
 export function workField(s: StageDef): FieldDef | undefined {
   if (stageKind(s) !== "work") return undefined;
   return s.work ?? { id: `${s.id}_link`, label: s.label, type: "url", slot: "work_link", required: "submit" };
+}
+
+const DEFAULT_CREATE_FIELDS: CreateField[] = [
+  { col: "video_title", label: "Title", type: "text" },
+  { col: "video_notes", label: "Notes / brief", type: "textarea" },
+  { col: "category", label: "Category", type: "combo", options: "category" },
+  { col: "subcategory", label: "Subcategory", type: "combo", options: "subcategory" },
+];
+
+/** The new-video form fields for a pipeline (its brief stage's, or the default). */
+export function createFieldsOf(p: PipelineDef): CreateField[] {
+  return p.stages[0]?.createFields ?? DEFAULT_CREATE_FIELDS;
 }

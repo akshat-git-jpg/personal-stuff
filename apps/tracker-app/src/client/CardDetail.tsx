@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Lock, ExternalLink, Trash2, AlertTriangle, RotateCcw, Sparkles, ChevronDown } from "lucide-react";
+import { Lock, ExternalLink, Trash2, AlertTriangle, RotateCcw, Sparkles, ChevronDown, CheckCircle2 } from "lucide-react";
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
 import { canEditForRoles, isAdminRoles } from "../shared/engine/rbac";
@@ -10,13 +10,15 @@ import {
   pipeOf, stageByIdIn, statusOf, showColumns, editColumns, requiredToApprove, requiredToSubmitFrom,
   missingColumns, colOf, assigneeColOf, reviewerColOf, instructionColOf,
   workLinkColOf, etaColOf, extraColsOf, isReviewable, feedbackColOf, isBrief, briefFieldsOf,
+  isStageComplete, isGateOpen, holderOf, sinceOf,
   type RoleKind, type StageDef,
 } from "./stages";
 import {
-  applyTransition, updateCell, generateLinks, displayName, personLabel,
-  type BoardRow, type GenerateLinksResult,
+  applyTransition, updateCell, generateLinks, displayName, personLabel, getCardEvents,
+  type BoardRow, type GenerateLinksResult, type CardEvent
 } from "./api";
 import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl, etaBadge } from "./labels";
+import { daysSince } from "./pipeline";
 import { StatusPill } from "./Card";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -33,6 +35,7 @@ interface CardDetailProps {
   /** email -> systemId -> roles, so assignment dropdowns can scope to the card's system. */
   memberships?: Record<string, Record<string, string[]>>;
   readOnly?: boolean;
+  viewerEmail?: string;
   /** Which stage the card was opened while working — scopes the fields/actions shown. */
   contextStageId?: string;
   /** Whose actions to show: doer (My work), reviewer (Review queue), or all (Pipeline). */
@@ -138,7 +141,7 @@ function sectionsForPipeline(stages: StageDef[]): { sections: SectionDef[]; assi
   return { sections, assigneeSeq };
 }
 
-export function CardDetail({ row, columns, roles, names, memberRoles = {}, memberships = {}, readOnly, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved, onDelete, onApplyDefaults }: CardDetailProps) {
+export function CardDetail({ row, columns, roles, names, memberRoles = {}, memberships = {}, readOnly, viewerEmail, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved, onDelete, onApplyDefaults }: CardDetailProps) {
   const locks = row._locks ?? {};
   const actionGroups = row._actions ?? [];
   const isAdmin = isAdminRoles(roles);
@@ -176,6 +179,22 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
   const [genLoading, setGenLoading] = useState(false);
   const [genResult, setGenResult] = useState<GenerateLinksResult | null>(null);
   const [genError, setGenError] = useState<string | null>(null);
+
+  const [showActivity, setShowActivity] = useState(false);
+  const [events, setEvents] = useState<CardEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsLoaded, setEventsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (showActivity && !eventsLoaded && !eventsLoading && row.row_id) {
+      setEventsLoading(true);
+      void getCardEvents(row.row_id).then((res) => {
+        setEvents(res.events || []);
+        setEventsLoaded(true);
+        setEventsLoading(false);
+      });
+    }
+  }, [showActivity, eventsLoaded, eventsLoading, row.row_id]);
 
   useEffect(() => {
     const init: Partial<Record<Column, string>> = {};
@@ -464,14 +483,49 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
         </DialogHeader>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
-          {/* Stage status overview */}
-          <div className="flex flex-wrap gap-2">
-            {pipeline.stages.filter((s) => colSet.has(colOf(s, "status")) || isAdmin).map((s) => (
-              <span key={s.id} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-1">
-                <span className="text-[11px] font-medium text-muted-foreground">{s.label}</span>
-                <StatusPill status={statusOf(s, row as Row)} />
-              </span>
-            ))}
+          {/* Stage status overview - Journey Rail */}
+          <div className="flex flex-col gap-2">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{perspective === "doer" ? "Your part in this video" : "Pipeline progress"}</h3>
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-5 px-5 hide-scrollbar">
+              {pipeline.stages.filter((s) => colSet.has(colOf(s, "status")) || isAdmin).map((s, i, arr) => {
+                const status = statusOf(s, row as Row);
+                const done = isStageComplete(s, row as Row);
+                const isYou = !!viewerEmail && (row as any)[colOf(s, "assignee")] === viewerEmail;
+                const open = isGateOpen(pipeline, s, row as Row);
+                const isLast = i === arr.length - 1;
+                const since = sinceOf(row as Record<string, unknown>, colOf(s, "status"));
+                const days = daysSince(since);
+                const holder = holderOf(s, row as Record<string, unknown>, status);
+                const holderName = holder.kind !== "none" && holder.email ? displayName(holder.email, names) : undefined;
+                const timing =
+                  done ? (since ? new Date(since).toLocaleDateString() : undefined)
+                  : open && days !== null ? `${days}d in ${status}${holderName ? ` · with ${holderName}` : ""}`
+                  : undefined;
+
+                return (
+                  <div key={s.id} className="flex items-center shrink-0">
+                    <div className={cn(
+                      "flex flex-col gap-1.5 rounded-lg border px-3 py-2 transition-all",
+                      done ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/30 dark:bg-emerald-900/10" :
+                      open ? "border-primary/20 bg-muted/40 shadow-xs" :
+                      "border-transparent bg-transparent opacity-50"
+                    )}
+                    title={!open && s.gate ? `Opens after ${stageByIdIn(pipeline, s.gate)?.label || s.gate} is approved` : undefined}
+                    >
+                      <div className="flex items-center gap-2">
+                        {!open && <Lock className="size-3 text-muted-foreground" />}
+                        {done && <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />}
+                        <span className={cn("text-[11px] font-semibold", done ? "text-emerald-700 dark:text-emerald-300" : "text-foreground")}>{s.label}</span>
+                        {isYou && <span className="rounded bg-primary/10 px-1 text-[9px] font-bold uppercase tracking-wider text-primary">You</span>}
+                      </div>
+                      <StatusPill status={status} />
+                      {timing && <span className="text-[11px] text-muted-foreground">{timing}</span>}
+                    </div>
+                    {!isLast && <div className={cn("h-px w-6 mx-1", done ? "bg-emerald-200 dark:bg-emerald-800" : "bg-border")} />}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {feedbackBanners.map(({ stage, text }) => (
@@ -524,6 +578,48 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
               {showAll ? "Show only this stage's fields" : "Show all fields"}
             </button>
           )}
+
+          <div className="border-t border-border pt-4">
+            <button type="button" className="flex items-center gap-1.5 text-sm font-semibold text-foreground" onClick={() => setShowActivity(!showActivity)}>
+              Activity <ChevronDown className={cn("size-4 transition-transform", showActivity && "rotate-180")} />
+            </button>
+            {showActivity && (
+              <div className="mt-4 space-y-4" data-testid="activity-feed">
+                {eventsLoading && <div className="text-xs text-muted-foreground">Loading...</div>}
+                {!eventsLoading && events.length === 0 && <div className="text-xs text-muted-foreground">No activity yet.</div>}
+                {!eventsLoading && events.map((ev) => {
+                  const stage = stageByIdIn(pipeline, ev.stage_id);
+                  const isSendback = ev.type === "sendback" || ev.type === "reopen";
+                  return (
+                    <div key={ev.id} className="text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground">{stage?.label ?? ev.stage_id}</span>
+                        <span className="text-foreground/90">
+                          <span className="font-medium">{ev.actorName}</span>
+                          {" "}
+                          {ev.type === "submit" ? "submitted for review" :
+                           ev.type === "approve" ? "approved" :
+                           ev.type === "sendback" ? "requested changes" :
+                           ev.type === "reopen" ? "reopened" :
+                           ev.type === "start" ? "started work" :
+                           "completed"}
+                        </span>
+                        <span className="text-xs text-muted-foreground" title={new Date(ev.created_at).toLocaleString()}>
+                          {/* Very crude relative time format since date-fns isn't here; could just show short date */}
+                          {new Date(ev.created_at).toLocaleDateString()} {new Date(ev.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      {isSendback && ev.detail && (
+                        <div className="mt-1.5 ml-1 border-l-2 border-red-300 pl-3 py-1 text-sm text-red-800 dark:border-red-900/50 dark:text-red-200 bg-red-50/50 dark:bg-red-950/20 rounded-r-sm">
+                          {ev.detail}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {isAdmin && !readOnly && onDelete && (
             <div className="border-t border-border pt-3">

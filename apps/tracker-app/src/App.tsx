@@ -171,6 +171,7 @@ export default function App() {
         memberRoles={data.memberRoles ?? {}}
         memberships={data.memberships ?? {}}
         readOnly={data.readOnly ?? false}
+        viewerEmail={data.viewerEmail}
         reload={() => void load(viewAsEmail || undefined, { silent: true })}
       />
     </div>

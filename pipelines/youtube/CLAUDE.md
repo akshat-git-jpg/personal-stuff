@@ -11,6 +11,7 @@ Wrapper for everything that directly produces or operates on YouTube channel con
 | [`yt-research/`](yt-research/CLAUDE.md) | Niche → knowledge-base pipeline (Phase 1, Gemini) | TypeScript |
 | [`yt-script/`](yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2) | Markdown workflow |
 | [`my-yt/`](my-yt/CLAUDE.md) | Personal channel notes (free-form) | Markdown |
+| [`competitor-styles/`](competitor-styles/CLAUDE.md) | Competitor style packs — transcript ingestion + Style DNA for the yt-style skill | Python + Claude skill |
 
 ## What's NOT here (intentional)
 

@@ -9,7 +9,7 @@
 import { getPipeline, PIPELINES, pipelineIds } from "../shared/engine/registry";
 import {
   colOf, stageHasReviewerSlot, stageHasInstruction, stageHasEta, stageKind, workField,
-  type StageDef, type PipelineDef,
+  type StageDef, type PipelineDef, createFieldsOf, type CreateField,
 } from "../shared/engine/types";
 import { statusOf as engStatusOf, isGateOpen as engIsGateOpen, isStageComplete as engIsStageComplete } from "../shared/engine/derive";
 import { lifecycle } from "../shared/engine/lifecycle";
@@ -62,9 +62,24 @@ export function missingColumns(cols: string[], row: Record<string, unknown>): st
   return cols.filter((c) => !String(row[c] ?? "").trim());
 }
 
+/** When this stage's status last changed; falls back to the card-level stamp. */
+export function sinceOf(row: Record<string, unknown>, statusCol: string): string {
+  return String(row[`${statusCol}_since`] ?? "") || String(row["status_since"] ?? "");
+}
+
+/** Who currently holds this stage: its assignee (doing) or reviewer (reviewing). */
+export function holderOf(stage: StageDef, row: Record<string, unknown>, status: string):
+    { kind: "doer" | "reviewer" | "none"; email: string } {
+  const done = lifecycle(stage.lifecycle).done;
+  if (status === done) return { kind: "none", email: "" };
+  if (status === "In Review") return { kind: "reviewer", email: String(row[reviewerColOf(stage) ?? ""] ?? "") };
+  return { kind: "doer", email: String(row[assigneeColOf(stage)] ?? "") };
+}
+
 export {
   colOf,
   showColumns, editColumns, requiredToApprove, requiredToSubmitFrom,
   lifecycle, getPipeline, PIPELINES, pipelineIds, columnLabel,
+  createFieldsOf,
 };
-export type { StageDef, PipelineDef, RoleKind };
+export type { StageDef, PipelineDef, RoleKind, CreateField };

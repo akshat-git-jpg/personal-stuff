@@ -22,6 +22,14 @@ plan file and the repo, not this audit conversation.
 | 009 | Reorganize the workspace internals by kind (video/tools/notes/archive) | P3 | M-L | 008 | DONE |
 | 010 | VPS migration runbook — repoint render2 mount, retire orphaned TY clone | P3 | S-M | 008, 009 pushed | DONE |
 | 011 | Tutorial pipeline v3 — implement deterministic assembly (105/125/162 + segment map) | P2 | L | — | TODO |
+| 012 | Competitor style packs — folder scaffold + zero-API transcript ingestion | P2 | M | — | DONE |
+| 013 | yt-style skill — distill Style DNA, generate topics/titles/scripts | P2 | M | 012 | DONE |
+| 014 | Tracker: derive the new-video form from the pipeline def | P2 | S | — | DONE |
+| 015 | Tracker: unified "My Work" inbox + card journey rail | P1 | L | 014 | DONE |
+| 016 | Tracker: admin attention panel + title search | P2 | M | 015 | DONE |
+| 017 | Tracker: per-card activity thread (card_events) | P2 | M | 015 | DONE |
+| 018 | Tracker: let any role be held in multiple systems | P2 | S | 015–017 | DONE |
+| 019 | Tracker: per-stage time + holder visibility everywhere | P2 | S-M | 016, 017 | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -61,6 +69,14 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED 
 - **004 before 005** (soft): 004 gives you `scripts/check-apps.sh` to prove 005's
   script refactor didn't regress anything. Not a hard block.
 - 001, 002, 003 have **no** dependencies — start immediately.
+- **013 → 012 (hard)**: the yt-style skill reads the style-pack layout 012
+  creates. Run 012 then 013 in one batch, both on branch
+  `advisor/012-competitor-styles`; 013 does not create its own branch.
+- **014 → 015 → 016/017 (tracker-app revamp batch, 2026-07-05 audit)**: all
+  four share branch `advisor/014-tracker-revamp` and touch overlapping files
+  (Board.tsx, CardDetail.tsx, worker/index.ts). Run strictly in order
+  014 (smallest) → 015 (the Board/CardDetail restructure) → 016 and 017
+  (both build on 015's layout; either order between them). One commit per plan.
 
 ## Findings NOT turned into plans (deferred backlog, not rejected)
 
@@ -103,6 +119,17 @@ they aren't re-audited from scratch — promote any to a plan when ready.
 - **`ty/hyperframes-vs-remotion` is marked superseded but still tracked** (incl. ~20 MP4s).
   Plan 003 untracks its media; wholesale archival of the project deferred.
 
+**Tracker-app backlog (2026-07-05 focused audit; promote when wanted):**
+- **Per-stage SLA defaults in the PipelineDef** (`slaDays` on `StageDef`) feeding the
+  attention panel (016) thresholds per system + auto-suggested ETAs. `TRK-01`. Effort S-M.
+- **Attention digest to admin** (email/telegram) reusing 016's group logic server-side
+  on a cron trigger. `TRK-02`. Effort M.
+- **Archive published cards + matrix pagination** — matrix grows unbounded; search
+  (016) buys time. `TRK-03`. Effort S-M.
+- **Legacy module cleanup** — `src/shared/{pipeline,control,rbac,policy,lifecycle}.ts`
+  superseded by the engine; kept for a parity test + a few type re-exports. Retire the
+  parity test, move the re-exports, delete. `TRK-04`. Effort S.
+
 ## Findings considered and rejected (do not re-audit)
 
 - **Move Workers to a single home / physically integrate `ty/`** — rejected. Every
@@ -122,6 +149,11 @@ they aren't re-audited from scratch — promote any to a plan when ready.
 - **CLAUDE.md quality overhaul** — not needed. The existing folder CLAUDE.md files
   (tracker-app, gym-app, personal-dashboard, hyperframes-render) are dense and
   operational, not prose duplicates. Only the three *missing* ones are a gap (Plan 002).
+- **Tracker: admin UI for authoring pipeline definitions** (a "system builder") —
+  rejected 2026-07-05. Definitions-as-typed-code is the right tradeoff while the
+  founder is the only admin: a new system is one ~40-line `PipelineDef` + deploy,
+  validated by TypeScript + `validatePipelines()`. A builder UI would re-implement
+  that validation for a once-a-quarter action.
 
 ## Direction options presented (not all planned)
 

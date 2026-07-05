@@ -31,7 +31,7 @@ import * as clickstore from "./clickstore";
 import {
   visibleColsForRoles, canEditForRoles, projectRowForRoles,
   isApproverRoles, isAdminRoles, isApprover,
-  authorizeWrite, transitionsForCard, transitionsForStage, cardStagesForUser,
+  authorizeWrite, transitionsForCard, transitionsForStage, cardStagesForUser, upcomingStagesForUser,
   fieldLockReason, canReview, assignableColsFor, pipeOf,
   allVisibleColsForMemberships, filterRowsForMemberships, workerStagesForMemberships,
   reviewQueueForMemberships, effectiveRolesFor,
@@ -42,13 +42,12 @@ import {
 } from "../shared/engine/memberships";
 import {
   getPipeline, stageById, PIPELINES, PROTECTED_ADMIN_EMAIL, pipelineSummaries, DEFAULT_PIPELINE_ID,
-  rolesForSystem, isDoerRole, WILDCARD_SYSTEM, ADMIN_ROLE,
+  rolesForSystem, WILDCARD_SYSTEM, ADMIN_ROLE,
 } from "../shared/engine/registry";
 import { derive, statusOf } from "../shared/engine/derive";
-import { colOf, stageHasReviewerSlot } from "../shared/engine/types";
+import { colOf, stageHasReviewerSlot, createFieldsOf } from "../shared/engine/types";
 import { lifecycle } from "../shared/engine/lifecycle";
 import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
-import { NEW_VIDEO_FIELDS } from "../shared/control";
 import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
 import { sendNotification } from "./notifications";
 
@@ -216,20 +215,6 @@ app.post("/api/team", async (c) => {
   if (isFounder) clean[WILDCARD_SYSTEM] = [ADMIN_ROLE];
   else delete clean[WILDCARD_SYSTEM];
 
-  // A doer role belongs to exactly ONE system (Reviewer may span systems).
-  const doerSystems = new Map<string, string>();
-  for (const [sys, rs] of Object.entries(clean)) {
-    if (sys === WILDCARD_SYSTEM) continue;
-    for (const r of rs) {
-      if (!isDoerRole(r)) continue;
-      const prev = doerSystems.get(r);
-      if (prev && prev !== sys) {
-        return c.json({ error: `${r} can only belong to one system — it's set in both ${PIPELINES[prev]?.name ?? prev} and ${PIPELINES[sys]?.name ?? sys}.` }, 400);
-      }
-      doerSystems.set(r, sys);
-    }
-  }
-
   if (Object.keys(clean).length === 0) return c.json({ error: "assign at least one role in one system" }, 400);
 
   const result = await getStore(c.env).saveMemberships(name, email, clean);
@@ -336,6 +321,7 @@ const STATUS_COLS = new Set<string>(
 function rowMeta(roles: string[], email: string, row: Row) {
   const p = pipeOf(row);                                        // resolve this card's pipeline
   const stages = cardStagesForUser(roles, email, row);          // statusCols this card belongs to (in user's lanes)
+  const upcoming = upcomingStagesForUser(roles, email, row);
   const actions = transitionsForCard(roles, email, row);        // allowed status transitions, per stage
   const locks: Record<string, string> = {};                     // editable content/feedback fields that are currently locked
   for (const col of visibleColsForRoles(roles, p)) {
@@ -344,7 +330,7 @@ function rowMeta(roles: string[], email: string, row: Row) {
     const reason = fieldLockReason(roles, email, col, row);
     if (reason) locks[col] = reason;
   }
-  return { _stages: stages, _actions: actions, _locks: locks };
+  return { _stages: stages, _upcoming: upcoming, _actions: actions, _locks: locks };
 }
 
 // GET /api/board[?asUser=email]
@@ -385,15 +371,22 @@ app.get("/api/board", async (c) => {
   ]);
 
   const filteredRows = filterRowsForMemberships(effMemberships, effEmail, allRows);
-  // status_since is always attached (outside the per-role column policy) so the
-  // board can show "in <status> since N days" for every card. Per-card authority
-  // uses the EFFECTIVE roles for that card's system.
+  // status_since and every per-stage `*_since` are always attached (outside the
+  // per-role column policy) so everyone can see "in <status> since N days" per
+  // stage — timestamps carry no confidential data, and row/column visibility is
+  // already enforced elsewhere. Per-card authority uses the EFFECTIVE roles for
+  // that card's system.
   const rows = filteredRows.map((r) => {
     const eff = effectiveRolesFor(effMemberships, r);
+    const extraSinceCols: Record<string, string> = {};
+    for (const k of Object.keys(r)) {
+      if (k.endsWith("_since")) extraSinceCols[k] = (r as any)[k] as string;
+    }
     return {
       ...projectRowForRoles(eff, r),
       ...rowMeta(eff, effEmail, r),
       status_since: (r.status_since as string) ?? "",
+      ...extraSinceCols,
     };
   });
 
@@ -499,11 +492,31 @@ app.post("/api/update", async (c) => {
     }
     throw err;
   }
+  
+  const stage = derive(pipe).byStatusCol.get(typedCol);
+  const oldValue = ((targetRow[typedCol] ?? "") as string).trim().toLowerCase();
+  
+  if (STATUS_COLS.has(typedCol) && stage) {
+    c.executionCtx.waitUntil((async () => {
+      try {
+        const trans = lifecycle(stage.lifecycle).transitions.find((t) => t.to === value && t.from === oldValue);
+        const rawType = trans?.kind ?? "submit";
+        const type = ["start", "submit", "advance"].includes(rawType) ? "complete" : rawType;
+        await store.logEvent({
+          card_id: row_id,
+          stage_id: stage.id,
+          type: type,
+          actor: email,
+        });
+      } catch (err) {
+        console.error("Failed to log card event:", err);
+      }
+    })());
+  }
+
   await bustBoardCache(c.env);
 
   // ── Notifications: run AFTER the response so the action feels instant. ──
-  const stage = derive(pipe).byStatusCol.get(typedCol);
-  const oldValue = ((targetRow[typedCol] ?? "") as string).trim().toLowerCase();
   c.executionCtx.waitUntil((async () => {
     try {
       const videoTitle = (targetRow.video_title ?? "") as string;
@@ -586,6 +599,23 @@ app.post("/api/review", async (c) => {
   };
   if (action === "sendback" && feedbackCol) updates[feedbackCol] = feedback!.trim();
   await store.updateCells(row_id, updates);
+  
+  c.executionCtx.waitUntil((async () => {
+    try {
+      const currentStatus = statusOf(stage, targetRow as any);
+      const type = action === "approve" ? "approve" : (currentStatus === "Done" ? "reopen" : "sendback");
+      await store.logEvent({
+        card_id: row_id,
+        stage_id: stage.id,
+        type: type,
+        actor: email,
+        detail: (action === "sendback" || type === "reopen") ? feedback?.trim() : undefined,
+      });
+    } catch (err) {
+      console.error("Failed to log review event:", err);
+    }
+  })());
+
   await bustBoardCache(c.env);
 
   // Notify the submitter (the stage assignee) AFTER the response.
@@ -620,17 +650,18 @@ app.post("/api/video", async (c) => {
   let body: Record<string, string>;
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
 
+  // Which system this video runs on (defaults to standard).
+  const pipe = getPipeline((body.pipeline ?? DEFAULT_PIPELINE_ID).trim());
+
   // Validate + collect the creation fields from the shared config (control.ts),
   // so the required set can't drift from the client modal.
   const values: Record<string, string> = {};
-  for (const f of NEW_VIDEO_FIELDS) {
+  for (const f of createFieldsOf(pipe)) {
     const v = (body[f.col] ?? "").trim();
     if (!v) return c.json({ error: `${f.label} is required`, col: f.col }, 400);
     values[f.col] = v;
   }
 
-  // Which system this video runs on (defaults to standard).
-  const pipe = getPipeline((body.pipeline ?? DEFAULT_PIPELINE_ID).trim());
   const today = new Date().toISOString().slice(0, 10);
   const firstStage = pipe.stages[0]; // the brief/topic stage
   // Pre-fill assignees/reviewers from the defaults for this (category, subcategory),
@@ -668,6 +699,34 @@ app.post("/api/delete", async (c) => {
   }
   await bustBoardCache(c.env);
   return c.json({ ok: true, row_id: rowId });
+});
+
+app.get("/api/card-events", async (c) => {
+  const { memberships, email } = getUser(c);
+  const row_id = c.req.query("row_id")?.trim();
+  if (!row_id) return c.json({ error: "missing row_id" }, 400);
+
+  const allRows = await cachedReadRows(c.env);
+  const targetRow = allRows.find((r) => (r.row_id || "").trim() === row_id);
+  if (!targetRow) return c.json({ error: "row not found" }, 404);
+
+  // Authorize with board visibility
+  const visible = filterRowsForMemberships(memberships, email, [targetRow]);
+  if (visible.length === 0) return c.json({ error: "forbidden" }, 403);
+
+  const store = getStore(c.env);
+  const [events, team] = await Promise.all([
+    store.listEvents(row_id),
+    store.loadTeam()
+  ]);
+
+  const names = buildNamesMap(team);
+  const enrichedEvents = events.map((e) => ({
+    ...e,
+    actorName: displayName(e.actor, names)
+  }));
+
+  return c.json({ events: enrichedEvents });
 });
 
 app.post("/api/generate-links", async (c) => {

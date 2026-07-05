@@ -22,7 +22,10 @@ export interface CardActionGroup {
 
 /** A board row plus the server-computed authority meta. */
 export type BoardRow = Row & {
+  row_id: string;
+  pipeline: string;
   _stages?: string[];                 // status cols this card belongs to (in user's lanes)
+  _upcoming?: string[];               // stages assigned but gate closed
   _actions?: CardActionGroup[];       // allowed status transitions, per stage
   _locks?: Record<string, string>;    // editable col -> lock reason (absent = editable)
 };
@@ -188,8 +191,7 @@ export interface GenerateLinksResult {
   description: string; links: GeneratedLink[]; non_affiliate_tools: string[];
 }
 
-// Column-keyed creation payload (the fields come from NEW_VIDEO_FIELDS in
-// shared/control.ts, plus optional reviewer_email).
+// Column-keyed creation payload (fields come from createFieldsOf per pipeline).
 export async function createVideo(input: Record<string, string>): Promise<{ row_id: string }> {
   const res = await postJSON("/api/video", input);
   await throwOnError(res);
@@ -237,4 +239,25 @@ export async function generateLinks(row_id: string): Promise<GenerateLinksResult
     throw new Error(msg);
   }
   return res.json() as Promise<GenerateLinksResult>;
+}
+
+export interface CardEvent {
+  id: number;
+  card_id: string;
+  stage_id: string;
+  type: string;
+  actor: string;
+  actorName: string;
+  detail: string | null;
+  created_at: string;
+}
+
+export async function getCardEvents(row_id: string): Promise<{ events: CardEvent[] }> {
+  try {
+    const res = await fetch(`/api/card-events?row_id=${encodeURIComponent(row_id)}`, { credentials: "same-origin" });
+    if (!res.ok) return { events: [] };
+    return res.json() as Promise<{ events: CardEvent[] }>;
+  } catch {
+    return { events: [] };
+  }
 }

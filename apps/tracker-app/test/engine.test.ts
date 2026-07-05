@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { validatePipelines, getPipeline, allRoles, pipelineIds, rolesForSystem } from "../src/shared/engine/registry";
 import { assembleRow, decomposeRow, routeWrite, type StageRecord } from "../src/shared/engine/card";
-import { effectiveRoles, holdsRoleInSystem } from "../src/shared/engine/memberships";
-import { workerStagesForMemberships, reviewQueueForMemberships, type Row } from "../src/shared/engine/rbac";
+import { effectiveRoles, holdsRoleInSystem, systemsForRole } from "../src/shared/engine/memberships";
+import { workerStagesForMemberships, reviewQueueForMemberships, type Row, cardStagesForUser, upcomingStagesForUser, canSeeRow } from "../src/shared/engine/rbac";
+import { createFieldsOf, type PipelineDef } from "../src/shared/engine/types";
 
 describe("pipeline definitions", () => {
   it("validate clean", () => {
@@ -13,6 +14,31 @@ describe("pipeline definitions", () => {
     expect(allRoles()).toEqual(expect.arrayContaining([
       "Admin", "Reviewer", "Scriptwriter", "Recorder", "Video Editor", "Thumbnail Maker", "Uploader",
     ]));
+  });
+});
+
+describe("createFieldsOf", () => {
+  it("returns default fields for standard and tut-2", () => {
+    const defaultCols = ["video_title", "video_notes", "category", "subcategory"];
+    expect(createFieldsOf(getPipeline("standard")).map((f) => f.col)).toEqual(defaultCols);
+    expect(createFieldsOf(getPipeline("tut-2")).map((f) => f.col)).toEqual(defaultCols);
+  });
+
+  it("returns custom fields for synthetic def", () => {
+    const p: PipelineDef = {
+      id: "syn", name: "Syn",
+      stages: [{
+        id: "topic", label: "Topic", role: "Admin", lifecycle: "review", kind: "brief",
+        createFields: [
+          { col: "video_title", label: "Title", type: "text" },
+          { col: "asin", label: "ASIN", type: "text" }
+        ]
+      }]
+    };
+    const fields = createFieldsOf(p);
+    expect(fields).toHaveLength(2);
+    expect(fields.map((f) => f.col)).toEqual(["video_title", "asin"]);
+    expect(fields[1].label).toBe("ASIN");
   });
 });
 
@@ -34,11 +60,22 @@ describe("storage round-trip (flat Row ⇄ normalized)", () => {
     const { card, stages } = decomposeRow(P, original);
     const rebuilt = assembleRow(P, card, stages) as Record<string, string>;
     for (const k of Object.keys(rebuilt)) {
+      if (k.endsWith("_since") && k !== "status_since") continue;
       expect(`${k}=${rebuilt[k] ?? ""}`).toBe(`${k}=${original[k] ?? ""}`);
     }
     expect(rebuilt.reviewer_email).toBe("legacy@x"); // passthrough preserved
     expect(rebuilt.status_since).toBe("2026-06-29T00:00:00Z");
     expect(card.status_since).toBe("2026-06-29T00:00:00Z");
+  });
+
+  it("assembles stage-level status_since cols", () => {
+    const card = { id: "c1", pipeline_id: "standard", status_since: "card_since" };
+    const stages: StageRecord[] = [
+      { card_id: "c1", stage_id: "script", status_since: "2026-07-01T00:00:00Z" }
+    ];
+    const rebuilt = assembleRow(P, card, stages) as Record<string, string>;
+    expect(rebuilt.script_status_since).toBe("2026-07-01T00:00:00Z");
+    expect(rebuilt.status_since).toBe("card_since");
   });
 
   it("routes writes to the right table/slot", () => {
@@ -94,6 +131,13 @@ describe("system-scoped memberships", () => {
     expect(holdsRoleInSystem(reviewerBoth, "tut-2", "Reviewer")).toBe(true);
   });
 
+  it("a doer role can be held in multiple systems", () => {
+    const bothSystems = { standard: ["Scriptwriter"], "tut-2": ["Scriptwriter"] };
+    expect(effectiveRoles(bothSystems, "standard")).toEqual(["Scriptwriter"]);
+    expect(effectiveRoles(bothSystems, "tut-2")).toEqual(["Scriptwriter"]);
+    expect(systemsForRole(bothSystems, "Scriptwriter").sort()).toEqual(["standard", "tut-2"]);
+  });
+
   it("worker lanes only cover systems the user actually works in", () => {
     const lanes = workerStagesForMemberships(ninaTut2);
     expect(new Set(lanes.map((l) => l.pipelineId))).toEqual(new Set(["tut-2"]));
@@ -111,5 +155,23 @@ describe("system-scoped memberships", () => {
     };
     const q = reviewQueueForMemberships(reviewerBoth, "riya@x.com", [stdCard, tutCard]);
     expect(q.map((i) => i.row.row_id).sort()).toEqual(["s1", "t1"]);
+  });
+});
+
+describe("up next / upcoming work visibility", () => {
+  it("surfaces closed-gate assigned stages and allows the doer to see the card", () => {
+    // Sam is the scriptwriter AND recorder (tutorial_maker) on a standard card.
+    // Script is open (In Progress); Tutorial is closed (waiting on Script).
+    const row: Row = {
+      row_id: "r1", pipeline: "standard", video_title: "Test",
+      topic_status: "Done",
+      script_status: "In Progress", script_writer_email: "sam@x.com",
+      tutorial_status: "To Do", tutorial_maker_email: "sam@x.com",
+    };
+    const roles = ["Scriptwriter", "Recorder"];
+    expect(cardStagesForUser(roles, "sam@x.com", row)).toEqual(["script_status"]);
+    expect(upcomingStagesForUser(roles, "sam@x.com", row)).toEqual(["tutorial_status"]);
+    // A pure Recorder can see the row even though their gate is closed.
+    expect(canSeeRow(["Recorder"], "sam@x.com", row)).toBe(true);
   });
 });
