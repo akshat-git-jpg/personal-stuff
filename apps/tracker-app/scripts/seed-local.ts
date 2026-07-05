@@ -17,7 +17,10 @@ import { writeFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { getPipeline } from "../src/shared/engine/registry";
+import { getPipeline, PIPELINES } from "../src/shared/engine/registry";
+import { decomposeRow, type Row } from "../src/shared/engine/card";
+import { colOf, stageHasReviewerSlot, type StageDef } from "../src/shared/engine/types";
+import { lifecycle } from "../src/shared/engine/lifecycle";
 import { decomposeRow, type Row } from "../src/shared/engine/card";
 import { colOf, stageHasReviewerSlot, type StageDef } from "../src/shared/engine/types";
 
@@ -91,76 +94,69 @@ const D = (assignee: string) => ({ status: "Done", assignee });
 
 // ── Demo cards ──────────────────────────────────────────────────────────────
 const CARDS: CardSpec[] = [
-  // Script board (Sam) — every status
   { pipeline: "standard", title: "How to color grade in DaVinci Resolve", category: "Editing", subcategory: "Color", daysAgo: 3,
     notes: "Beginner-friendly walkthrough of the color page — wheels, curves, and a quick LUT.",
     stages: { topic: D(SEAN), script: { status: "To Do", assignee: SAM } } },
-  { pipeline: "standard", title: "5 keyboard shortcuts that save hours", category: "Editing", subcategory: "Workflow", daysAgo: 1,
-    notes: "Punchy listicle. Keep each tip under 20s.",
-    stages: { topic: D(SEAN), script: { status: "In Progress", assignee: SAM } } },
-  { pipeline: "standard", title: "Masking explained in 4 minutes", category: "Editing", subcategory: "Effects", daysAgo: 2,
-    notes: "Cover shape vs. luma masks with one real example each.",
-    stages: { topic: D(SEAN), script: { status: "Need Changes", assignee: SAM, reviewer: RIYA, feedback: "Intro runs too long — cut to ~15s and lead with the payoff shot." } } },
-  { pipeline: "standard", title: "Exporting for YouTube without quality loss", category: "Editing", subcategory: "Export", daysAgo: 0,
-    notes: "Settings table + why bitrate matters.",
-    stages: { topic: D(SEAN), script: { status: "In Review", assignee: SAM, reviewer: RIYA, link: "https://docs.example.com/export-script" } } },
-
-  // Recording board (Sam / Anusha)
-  { pipeline: "standard", title: "Proxy workflow for 4K footage", category: "Editing", subcategory: "Workflow", daysAgo: 1,
-    notes: "Generate + relink proxies; when to use them.",
-    stages: { topic: D(SEAN), script: D(SAM), recording: { status: "In Progress", assignee: ANUSHA } } },
-  { pipeline: "standard", title: "Lighting on a budget", category: "Production", subcategory: "Lighting", daysAgo: 4,
-    notes: "Three-point lighting with cheap gear.",
-    stages: { topic: D(SEAN), script: D(SAM), recording: { status: "To Do", assignee: SAM } } },
-
-  // Editing board (John) — incl. review queue (reviewer = Sean)
-  { pipeline: "standard", title: "Audio cleanup with iZotope", category: "Editing", subcategory: "Audio", daysAgo: 2,
-    notes: "De-noise, de-reverb, and mouth-click removal.",
-    stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: { status: "In Progress", assignee: JOHN } } },
   { pipeline: "standard", title: "Color matching multi-cam footage", category: "Editing", subcategory: "Color", daysAgo: 0,
     notes: "Match shots across two cameras before grading.",
     stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: { status: "In Review", assignee: JOHN, reviewer: SEAN, link: "https://drive.example.com/final-multicam" } } },
-
-  // Thumbnail (Tara) + Upload (Uma)
-  { pipeline: "standard", title: "Thumbnail psychology that gets clicks", category: "Channel", subcategory: "Thumbnails", daysAgo: 1,
-    notes: "Contrast, faces, and the 3-word rule.",
-    stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: D(JOHN), thumbnail: { status: "To Do", assignee: TARA } } },
-  { pipeline: "standard", title: "Best budget mics for creators", category: "Channel", subcategory: "Thumbnails", daysAgo: 2,
-    notes: "Side-by-side mic comparison; punchy thumbnail.",
-    stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: D(JOHN), thumbnail: { status: "In Review", assignee: TARA, reviewer: SEAN, link: "https://drive.example.com/mic-thumb" } } },
-  { pipeline: "standard", title: "Channel trailer breakdown", category: "Channel", subcategory: "Strategy", daysAgo: 1,
-    notes: "Anatomy of a trailer that converts visitors to subs.",
-    stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: D(JOHN), thumbnail: D(TARA), upload: { status: "To Do", assignee: UMA } } },
-
-  // Tut-2 system — 6 doer roles (Scriptwriter → Tutorial Maker → Processor →
-  // Video Editor → Thumbnail Maker → Uploader). Nina owns BOTH Outline
-  // (Scriptwriter) and Screen recording (Tutorial Maker), so these cards show the
-  // same-person, reviewed-per-stage handoff. Riya reviews (cross-system); Sam
-  // (standard Scriptwriter) must NOT appear in these cards' assignment dropdowns.
-  { pipeline: "tut-2", title: "AI avatar explainer: zero to first video", category: "AI", subcategory: "Avatars", daysAgo: 1,
-    notes: "End-to-end with an avatar tool; script-led.",
-    stages: { topic: D(SEAN), outline: { status: "In Progress", assignee: NINA } } },
-  // Outline DONE, recording In Review by the SAME person (Nina) — the card flowed
-  // back to her for the next stage; Riya sees it in the review queue.
-  { pipeline: "tut-2", title: "Faceless shorts pipeline", category: "AI", subcategory: "Shorts", daysAgo: 0,
-    notes: "Batch-produce shorts from one long video.",
-    stages: { topic: D(SEAN), outline: D(NINA), recording: { status: "In Review", assignee: NINA, reviewer: RIYA, link: "https://drive.example.com/shorts-rec" } } },
-  // Further along: outline + recording done, John processing (Processor) for the editor.
-  { pipeline: "tut-2", title: "Avatar product demo, start to finish", category: "AI", subcategory: "Avatars", daysAgo: 2,
-    notes: "Demo an avatar tool end-to-end; hand processed inputs to the editor.",
-    stages: { topic: D(SEAN), outline: D(NINA), recording: D(NINA), processing: { status: "In Progress", assignee: JOHN } } },
-  // At the Thumbnail stage in tut-2, assigned to Tara — so Tara (Thumbnail Maker in
-  // BOTH systems) has thumbnail work in standard AND tut-2 → her board shows two
-  // suffixed tabs: "Thumbnail · Standard" and "Thumbnail · Tut 2".
-  { pipeline: "tut-2", title: "AI voiceover crash course", category: "AI", subcategory: "Audio", daysAgo: 1,
-    notes: "Pick a voice, script it, sync to footage.",
-    stages: { topic: D(SEAN), outline: D(NINA), recording: D(NINA), processing: D(JOHN), editing: D(JOHN),
-      thumbnail: { status: "To Do", assignee: TARA } } },
-  { pipeline: "tut-2", title: "Avatar B-roll tricks", category: "AI", subcategory: "Avatars", daysAgo: 2,
-    notes: "Spice up avatar videos with generated B-roll.",
-    stages: { topic: D(SEAN), outline: D(NINA), recording: D(NINA), processing: D(JOHN), editing: D(JOHN),
-      thumbnail: { status: "In Progress", assignee: TARA } } },
 ];
+
+function getAssignee(sys: string, role: string) {
+  if (role === "Admin") return SEAN;
+  if (sys === "standard") {
+    if (role === "Scriptwriter") return SAM;
+    if (role === "Recorder") return ANUSHA;
+    if (role === "Video Editor") return JOHN;
+    if (role === "Thumbnail Maker") return TARA;
+    if (role === "Uploader") return UMA;
+  }
+  if (sys === "tut-2") {
+    if (role === "Scriptwriter" || role === "Tutorial Maker") return NINA;
+    if (role === "Processor" || role === "Video Editor") return JOHN;
+    if (role === "Thumbnail Maker") return TARA;
+    if (role === "Uploader") return UMA;
+  }
+  return SEAN;
+}
+
+for (const p of Object.values(PIPELINES)) {
+  for (let sIdx = 0; sIdx < p.stages.length; sIdx++) {
+    const s = p.stages[sIdx];
+    const lc = lifecycle(s.lifecycle);
+    for (const status of lc.statuses) {
+      const spec: CardSpec = {
+        pipeline: p.id,
+        title: `test-${p.id}-${s.id}-${status.toLowerCase().replace(/ /g, "-")}`,
+        category: "Test",
+        subcategory: "Auto",
+        daysAgo: 1,
+        stages: {}
+      };
+
+      for (let i = 0; i < sIdx; i++) {
+        const priorStage = p.stages[i];
+        spec.stages[priorStage.id] = { 
+          status: lifecycle(priorStage.lifecycle).done, 
+          assignee: getAssignee(p.id, priorStage.role)
+        };
+      }
+      
+      const stageVals: StageVals = { status, assignee: getAssignee(p.id, s.role) };
+      if (lc.reviewed && stageHasReviewerSlot(s)) {
+        stageVals.reviewer = RIYA;
+      }
+      if (status === "Need Changes") stageVals.feedback = "test feedback: tighten the intro";
+      if (status === "In Review" || status === "Need Changes" || status === "Done" || status === "Uploaded") {
+        stageVals.link = "https://example.com/test";
+      }
+
+      spec.stages[s.id] = stageVals;
+      CARDS.push(spec);
+    }
+  }
+}
+
 
 function main() {
   const out: string[] = [];
@@ -183,6 +179,18 @@ function main() {
   subcategory TEXT NOT NULL DEFAULT '', col TEXT NOT NULL, email TEXT NOT NULL,
   PRIMARY KEY (pipeline_id, category, subcategory, col)
 );`);
+
+  out.push("DROP TABLE IF EXISTS card_events;");
+  out.push(`CREATE TABLE card_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  card_id TEXT NOT NULL,
+  stage_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  actor TEXT NOT NULL,
+  detail TEXT,
+  created_at TEXT NOT NULL
+);`);
+  out.push(`CREATE INDEX IF NOT EXISTS idx_card_events_card ON card_events (card_id, id);`);
 
   let memberships = 0;
   for (const e of EMPLOYEES) {
@@ -214,6 +222,13 @@ function main() {
   writeFileSync(file, sql);
   execSync(`npx wrangler d1 execute TRACKER_DB --local --file=${file}`, { stdio: "inherit" });
   process.stderr.write(`-- applied to local D1\n`);
+
+  // The worker caches board rows in KV for 60s (BOARD_CACHE_TTL in worker/index.ts).
+  // Bust it so a reseed is visible immediately instead of serving stale rows
+  // left over from whatever the dev server/e2e run mutated before this reseed.
+  try {
+    execSync(`npx wrangler kv key delete --binding=SESSIONS --local "board:rows"`, { stdio: "pipe" });
+  } catch { /* key may not exist yet on a fresh dev server — fine */ }
 }
 
 main();

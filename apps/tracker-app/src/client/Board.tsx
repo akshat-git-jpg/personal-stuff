@@ -13,6 +13,7 @@ import { PipelineBoard } from "./PipelineBoard";
 import { TeamPanel } from "./TeamPanel";
 import { NewVideoDialog } from "./NewVideoDialog";
 import { MyWork } from "./MyWork";
+import { AttentionPanel } from "./AttentionPanel";
 import { Filters, EMPTY_FILTERS, type AdminFilters } from "./Filters";
 import { activeStage } from "./pipeline";
 import { getPipeline } from "./stages";
@@ -241,6 +242,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
       )}
       {activeTab === "pipeline" && (
         <>
+          {isAdmin && !readOnly && <AttentionPanel rows={rows} pipelines={pipelines} names={names} onOpen={(r, sid) => openDetail(r, sid, "all")} />}
           {pipelines.length > 1 && (
             <div className="mb-3 flex items-center gap-2">
               <span className="text-xs font-medium text-muted-foreground">Video type</span>

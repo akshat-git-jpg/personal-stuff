@@ -1,24 +1,28 @@
 /**
  * Filters.tsx — admin filter bar for the Pipeline and Board views (client-side).
  */
+import { useState, useEffect } from "react";
 import type { Row } from "../shared/rbac";
 import { personLabel } from "./api";
 import { activeStage } from "./pipeline";
 import { stagesOf, assigneeColOf, type PipelineDef } from "./stages";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const selectCls = "h-8 rounded-md border border-input bg-transparent px-2 text-xs shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40";
 
 export interface AdminFilters {
+  q: string;          // title search
   assignee: string;   // email (lowercase) or ""
   category: string;   // raw category value or ""
   stage: string;      // stage id or ""
 }
 
-export const EMPTY_FILTERS: AdminFilters = { assignee: "", category: "", stage: "" };
+export const EMPTY_FILTERS: AdminFilters = { q: "", assignee: "", category: "", stage: "" };
 
 export function rowMatchesFilters(row: Row, filters: AdminFilters): boolean {
   const r = row as Record<string, string>;
+  if (filters.q && !(r.video_title ?? "").toLowerCase().includes(filters.q.toLowerCase())) return false;
   if (filters.stage && (activeStage(r)?.id ?? "done") !== filters.stage) return false;
   if (filters.assignee) {
     const cols = stagesOf(r).map(assigneeColOf);
@@ -54,12 +58,26 @@ export function Filters({ rows, pipeline, names, memberRoles = {}, filters, onCh
   for (const row of pRows) { const c = (row.category ?? "").trim(); if (c) catSet.add(c); }
   const categories = [...catSet].sort();
 
-  const hasFilters = filters.assignee !== "" || filters.category !== "" || filters.stage !== "";
+  const hasFilters = filters.q !== "" || filters.assignee !== "" || filters.category !== "" || filters.stage !== "";
   const filteredCount = pRows.filter((r) => rowMatchesFilters(r, filters)).length;
   const totalCount = pRows.length;
 
+  const [localQ, setLocalQ] = useState(filters.q);
+  useEffect(() => { setLocalQ(filters.q); }, [filters.q]);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localQ !== filters.q) onChange({ ...filters, q: localQ });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [localQ, filters, onChange]);
+
   return (
     <div className="mb-3 flex flex-wrap items-end gap-3">
+      <div className="flex flex-col gap-1 flex-1 min-w-[200px] max-w-xs">
+        <label className="text-[11px] font-medium text-muted-foreground" htmlFor="f-q">Search</label>
+        <Input id="f-q" type="search" placeholder="Search title…" className="h-8 text-xs bg-transparent" value={localQ} onChange={(e) => setLocalQ(e.target.value)} />
+      </div>
       <div className="flex flex-col gap-1">
         <label className="text-[11px] font-medium text-muted-foreground" htmlFor="f-assignee">Assignee</label>
         <select id="f-assignee" className={selectCls} value={filters.assignee}

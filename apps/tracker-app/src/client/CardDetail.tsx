@@ -14,8 +14,8 @@ import {
   type RoleKind, type StageDef,
 } from "./stages";
 import {
-  applyTransition, updateCell, generateLinks, displayName, personLabel,
-  type BoardRow, type GenerateLinksResult,
+  applyTransition, updateCell, generateLinks, displayName, personLabel, getCardEvents,
+  type BoardRow, type GenerateLinksResult, type CardEvent
 } from "./api";
 import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl, etaBadge } from "./labels";
 import { StatusPill } from "./Card";
@@ -178,6 +178,22 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
   const [genLoading, setGenLoading] = useState(false);
   const [genResult, setGenResult] = useState<GenerateLinksResult | null>(null);
   const [genError, setGenError] = useState<string | null>(null);
+
+  const [showActivity, setShowActivity] = useState(false);
+  const [events, setEvents] = useState<CardEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsLoaded, setEventsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (showActivity && !eventsLoaded && !eventsLoading && row.row_id) {
+      setEventsLoading(true);
+      void getCardEvents(row.row_id).then((res) => {
+        setEvents(res.events || []);
+        setEventsLoaded(true);
+        setEventsLoading(false);
+      });
+    }
+  }, [showActivity, eventsLoaded, eventsLoading, row.row_id]);
 
   useEffect(() => {
     const init: Partial<Record<Column, string>> = {};
@@ -552,6 +568,48 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
               {showAll ? "Show only this stage's fields" : "Show all fields"}
             </button>
           )}
+
+          <div className="border-t border-border pt-4">
+            <button type="button" className="flex items-center gap-1.5 text-sm font-semibold text-foreground" onClick={() => setShowActivity(!showActivity)}>
+              Activity <ChevronDown className={cn("size-4 transition-transform", showActivity && "rotate-180")} />
+            </button>
+            {showActivity && (
+              <div className="mt-4 space-y-4" data-testid="activity-feed">
+                {eventsLoading && <div className="text-xs text-muted-foreground">Loading...</div>}
+                {!eventsLoading && events.length === 0 && <div className="text-xs text-muted-foreground">No activity yet.</div>}
+                {!eventsLoading && events.map((ev) => {
+                  const stage = stageByIdIn(pipeline, ev.stage_id);
+                  const isSendback = ev.type === "sendback" || ev.type === "reopen";
+                  return (
+                    <div key={ev.id} className="text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground">{stage?.label ?? ev.stage_id}</span>
+                        <span className="text-foreground/90">
+                          <span className="font-medium">{ev.actorName}</span>
+                          {" "}
+                          {ev.type === "submit" ? "submitted for review" :
+                           ev.type === "approve" ? "approved" :
+                           ev.type === "sendback" ? "requested changes" :
+                           ev.type === "reopen" ? "reopened" :
+                           ev.type === "start" ? "started work" :
+                           "completed"}
+                        </span>
+                        <span className="text-xs text-muted-foreground" title={new Date(ev.created_at).toLocaleString()}>
+                          {/* Very crude relative time format since date-fns isn't here; could just show short date */}
+                          {new Date(ev.created_at).toLocaleDateString()} {new Date(ev.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      {isSendback && ev.detail && (
+                        <div className="mt-1.5 ml-1 border-l-2 border-red-300 pl-3 py-1 text-sm text-red-800 dark:border-red-900/50 dark:text-red-200 bg-red-50/50 dark:bg-red-950/20 rounded-r-sm">
+                          {ev.detail}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {isAdmin && !readOnly && onDelete && (
             <div className="border-t border-border pt-3">

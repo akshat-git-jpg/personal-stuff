@@ -390,10 +390,17 @@ app.get("/api/board", async (c) => {
   // uses the EFFECTIVE roles for that card's system.
   const rows = filteredRows.map((r) => {
     const eff = effectiveRolesFor(effMemberships, r);
+    const extraSinceCols: Record<string, string> = {};
+    if (isAdmin) {
+      for (const k of Object.keys(r)) {
+        if (k.endsWith("_since")) extraSinceCols[k] = (r as any)[k] as string;
+      }
+    }
     return {
       ...projectRowForRoles(eff, r),
       ...rowMeta(eff, effEmail, r),
       status_since: (r.status_since as string) ?? "",
+      ...extraSinceCols,
     };
   });
 
@@ -499,11 +506,31 @@ app.post("/api/update", async (c) => {
     }
     throw err;
   }
+  
+  const stage = derive(pipe).byStatusCol.get(typedCol);
+  const oldValue = ((targetRow[typedCol] ?? "") as string).trim().toLowerCase();
+  
+  if (STATUS_COLS.has(typedCol) && stage) {
+    c.executionCtx.waitUntil((async () => {
+      try {
+        const trans = lifecycle(stage.lifecycle).transitions.find((t) => t.to === value && t.from === oldValue);
+        const rawType = trans?.kind ?? "submit";
+        const type = ["start", "submit", "advance"].includes(rawType) ? "complete" : rawType;
+        await store.logEvent({
+          card_id: row_id,
+          stage_id: stage.id,
+          type: type,
+          actor: email,
+        });
+      } catch (err) {
+        console.error("Failed to log card event:", err);
+      }
+    })());
+  }
+
   await bustBoardCache(c.env);
 
   // ── Notifications: run AFTER the response so the action feels instant. ──
-  const stage = derive(pipe).byStatusCol.get(typedCol);
-  const oldValue = ((targetRow[typedCol] ?? "") as string).trim().toLowerCase();
   c.executionCtx.waitUntil((async () => {
     try {
       const videoTitle = (targetRow.video_title ?? "") as string;
@@ -586,6 +613,23 @@ app.post("/api/review", async (c) => {
   };
   if (action === "sendback" && feedbackCol) updates[feedbackCol] = feedback!.trim();
   await store.updateCells(row_id, updates);
+  
+  c.executionCtx.waitUntil((async () => {
+    try {
+      const currentStatus = statusOf(stage, targetRow as any);
+      const type = action === "approve" ? "approve" : (currentStatus === "Done" ? "reopen" : "sendback");
+      await store.logEvent({
+        card_id: row_id,
+        stage_id: stage.id,
+        type: type,
+        actor: email,
+        detail: (action === "sendback" || type === "reopen") ? feedback?.trim() : undefined,
+      });
+    } catch (err) {
+      console.error("Failed to log review event:", err);
+    }
+  })());
+
   await bustBoardCache(c.env);
 
   // Notify the submitter (the stage assignee) AFTER the response.
@@ -669,6 +713,34 @@ app.post("/api/delete", async (c) => {
   }
   await bustBoardCache(c.env);
   return c.json({ ok: true, row_id: rowId });
+});
+
+app.get("/api/card-events", async (c) => {
+  const { memberships, email } = getUser(c);
+  const row_id = c.req.query("row_id")?.trim();
+  if (!row_id) return c.json({ error: "missing row_id" }, 400);
+
+  const allRows = await cachedReadRows(c.env);
+  const targetRow = allRows.find((r) => (r.row_id || "").trim() === row_id);
+  if (!targetRow) return c.json({ error: "row not found" }, 404);
+
+  // Authorize with board visibility
+  const visible = filterRowsForMemberships(memberships, email, [targetRow]);
+  if (visible.length === 0) return c.json({ error: "forbidden" }, 403);
+
+  const store = getStore(c.env);
+  const [events, team] = await Promise.all([
+    store.listEvents(row_id),
+    store.loadTeam()
+  ]);
+
+  const names = buildNamesMap(team);
+  const enrichedEvents = events.map((e) => ({
+    ...e,
+    actorName: displayName(e.actor, names)
+  }));
+
+  return c.json({ events: enrichedEvents });
 });
 
 app.post("/api/generate-links", async (c) => {

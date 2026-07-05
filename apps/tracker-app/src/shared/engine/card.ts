@@ -97,6 +97,7 @@ export function assembleRow(p: PipelineDef, card: CardRecord, stages: StageRecor
     for (const slot of activeSlots(s)) row[colOf(s, slot)] = (sr?.[slot as keyof StageRecord] as string) ?? "";
     const ex = parse(sr?.extra_json);
     for (const f of s.extra ?? []) row[fieldCol(s, f)] = ex[f.id] ?? "";
+    row[`${colOf(s, "status")}_since`] = sr?.status_since ?? "";
   }
   return row;
 }

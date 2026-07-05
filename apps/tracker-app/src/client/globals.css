@@ -11,23 +11,23 @@
   --radius: 0.625rem;
   color-scheme: light;
 
-  --background: oklch(1 0 0);
+  --background: oklch(0.975 0.005 80);   /* was oklch(1 0 0) — warm paper, not pure white */
   --foreground: oklch(0.205 0 0);
 
-  --card: oklch(1 0 0);
+  --card: oklch(0.995 0.002 80);         /* cards lift slightly off the page */
   --card-foreground: oklch(0.205 0 0);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.995 0.002 80);
   --popover-foreground: oklch(0.205 0 0);
 
   /* brand accent — amber */
   --primary: oklch(0.77 0.165 54);
   --primary-foreground: oklch(0.205 0 0);
 
-  --secondary: oklch(0.97 0 0);
+  --secondary: oklch(0.945 0.006 80);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
+  --muted: oklch(0.945 0.006 80);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
+  --accent: oklch(0.945 0.006 80);
   --accent-foreground: oklch(0.205 0 0);
 
   --destructive: oklch(0.577 0.245 27.325);
@@ -36,8 +36,8 @@
   --success: oklch(0.62 0.17 145);
   --warning: oklch(0.77 0.165 54);
 
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --border: oklch(0.905 0.006 80);
+  --input: oklch(0.905 0.006 80);
   --ring: oklch(0.77 0.165 54);
 
   --chart-1: oklch(0.77 0.165 54);
