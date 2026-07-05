@@ -460,6 +460,15 @@ This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you 
 - **Project code:** `/srv/projects/personal-stuff/scripts/vps-sync.sh`
 - **Why separate from the digests:** the digest crons only pull when they fire (06:00). This keeps code + skills fresh all day so Claude mobile isn't stale. Push from the Mac → live on the VPS within 15 min.
 
+### d1-backup
+
+- **What:** nightly export of all 5 D1 databases → owned `.sql` dumps in MinIO (`d1-backups/<YYYYMMDD>/`, 30-day retention). Backs up money (clicks-db) + team (tracker-db) data that Cloudflare time-travel only holds ~30 days.
+- **When:** 01:00 IST daily (`30 19 * * *` UTC)
+- **Wrapper:** `/srv/crons/d1-backup/run.sh`
+- **Project code:** `/srv/projects/personal-stuff/pipelines/backups/d1_export.py`
+- **MinIO:** localhost `127.0.0.1:9000`, bucket `d1-backups`; upload + prune via `mc`
+- **Alerting:** silent on success; shared `alert.sh` → Telegram on any export/upload failure
+
 ---
 
 ## Gotchas / things to remember
