@@ -1,6 +1,6 @@
 # personal-stuff — Claude Code guide
 
-The full repo map, what-runs-where, and conventions live in the README, imported below.
+Routing lives in the table below. The human-facing repo map (per-app one-liners, conventions) is in [README.md](README.md) — open it only when you need the full inventory.
 
 ## How to operate here (read first)
 
@@ -32,7 +32,6 @@ The full repo map, what-runs-where, and conventions live in the README, imported
 | DSA practice notes/solutions | `learning/DSA/` |
 | Repo-wide scripts + external path dependencies | `scripts/README.md` |
 
-@README.md
 
 ## Where does a new thing go?
 
