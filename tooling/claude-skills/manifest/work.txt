@@ -40,3 +40,4 @@ use-zluri-docs
 worktree-cleanup
 worktree-manager
 zluri-release
+reddit-fetcher
