@@ -114,7 +114,10 @@ def main():
 
     for c in chunks:
         cid = c["id"]
-        if "_wav" not in c: continue
+        if "_wav" not in c:
+            results[cid] = {"verdict": "flag", "reasons": ["clip missing / synthesis failed"]}
+            flag_count += 1
+            continue
         
         reasons = []
         
@@ -154,6 +157,10 @@ def main():
             
         results[cid] = {"verdict": verdict, "reasons": reasons}
         
+    if len(results) != len(chunks):
+        missing = [c["id"] for c in chunks if c["id"] not in results]
+        sys.exit(f"✖ QC bug: {len(results)} results for {len(chunks)} chunks; unaccounted: {missing}")
+
     with open(out_file, "w") as f:
         json.dump(results, f, indent=2)
         
