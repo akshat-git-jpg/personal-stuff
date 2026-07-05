@@ -7,7 +7,7 @@ This file is mirrored to three locations so it's findable wherever you are:
 - `akshat-git-jpg/vps-crons` → `VPS-CRONS.md` (root)
 - VPS → `/root/VPS-CRONS.md` (for quick reference when SSH'd in)
 
-Last updated: 2026-05-27.
+Last updated: 2026-07-05.
 
 ---
 
@@ -33,8 +33,8 @@ You only have to SSH to the VPS in exactly these **5 situations**:
 | Situation | One-time SSH action |
 |---|---|
 | 🆕 Adding a brand-new cron | create `.env`, set up `.venv`, `crontab /srv/crons/crontab.txt` |
-| ⏰ Changing a cron's schedule (`crontab.txt` edited) | `crontab /srv/crons/crontab.txt` (cron only reloads when told) |
-| 📦 New pip dep added (changed `requirements.txt`) | `cd /srv/projects/personal-stuff/<path> && .venv/bin/pip install -r requirements.txt` |
+| ⏰ Changing a cron's schedule (`crontab.txt` edited) | `ssh root@72.61.241.170 '/srv/crons/vps-apply.sh'` |
+| 📦 New pip dep added (changed `requirements.txt`) | `ssh root@72.61.241.170 '/srv/crons/vps-apply.sh'` |
 | 🔐 Secret changed (Telegram token, OAuth token expired) | edit `.env` or scp the new token |
 | 🗑️ Removing/disabling a cron | edit `crontab.txt`, run `crontab /srv/crons/crontab.txt` |
 
@@ -135,7 +135,7 @@ vps-crons/
 │   ├── prompt.md
 │   ├── .mcp.json
 │   └── .env.example
-├── kb-daily-planner/
+├── my-planner/                            ← project: kb-daily-planner
 │   ├── README.md
 │   ├── run.sh                           ← sources .env, git-pulls personal-stuff, execs notifier.py
 │   ├── .env                             ← (gitignored) — Telegram bot + chat
@@ -261,9 +261,9 @@ Four invariants:
 ### 1. On Mac — build the project
 
 ```bash
-cd ~/codebase/personal\ stuff
-mkdir -p some-domain/my-new-tool
-cd some-domain/my-new-tool
+cd ~/codebase/personal-stuff
+mkdir -p apps/<my-new-tool>  # (or pipelines/… per the placement rule in the repo CLAUDE.md)
+cd apps/<my-new-tool>
 
 # Build it. Make it runnable locally:
 python3 -m venv .venv
@@ -276,8 +276,8 @@ Test it. Confirm it works directly on the Mac, no cron involved.
 ### 2. On Mac — push project code
 
 ```bash
-cd ~/codebase/personal\ stuff
-git add some-domain/my-new-tool
+cd ~/codebase/personal-stuff
+git add apps/<my-new-tool>
 git commit -m "Add my-new-tool"
 git push
 ```
@@ -292,7 +292,7 @@ cd my-new-tool
 
 Edit:
 - `README.md` — describe what it does, schedule, where the real code lives
-- `run.sh` — set `PROJECT_DIR="$PROJECT_REPO/some-domain/my-new-tool"` and replace the `# replace below` block with the actual command
+- `run.sh` — set `PROJECT_DIR="$PROJECT_REPO/apps/<my-new-tool>"` and replace the `# replace below` block with the actual command
 - `.env.example` — schema (typically just Telegram)
 - `prompt.md` + `.mcp.json` — only if it's a Claude-driven cron
 - Root `README.md` — add a row in the index table
@@ -322,7 +322,7 @@ nano .env             # fill in TELEGRAM_BOT_TOKEN, CHAT_ID
 chmod 600 .env
 
 # Set up project-side venv (if Python)
-cd /srv/projects/personal-stuff/some-domain/my-new-tool
+cd /srv/projects/personal-stuff/apps/<my-new-tool>
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 
@@ -348,6 +348,13 @@ Secret rotation: edit `.env` on the VPS directly (not in git).
 
 ## Common operations
 
+### Apply schedule or dependency changes
+
+To apply changes to `crontab.txt` or a `requirements.txt`, you don't need manual steps. Just run:
+```bash
+ssh root@72.61.241.170 '/srv/crons/vps-apply.sh'
+```
+
 ### Manual run a cron (without waiting for schedule)
 
 ```bash
@@ -366,7 +373,7 @@ tail -50 /srv/crons/<job>/logs/cron.log
 
 Edit `crontab.txt`, comment the line:
 ```
-# 30 0 * * * /srv/crons/kb-daily-planner/run.sh ...
+# 30 0 * * * /srv/crons/my-planner/run.sh ...
 ```
 Then `crontab /srv/crons/crontab.txt`. Commit + push so the disable is durable across machines.
 
@@ -382,17 +389,14 @@ Then `crontab /srv/crons/crontab.txt`. Commit + push so the disable is durable a
 
 Mac:
 ```bash
-cd ~/codebase/personal\ stuff/<path>
+cd ~/codebase/personal-stuff/<path>
 # update requirements.txt
 .venv/bin/pip install -r requirements.txt   # local
 git add requirements.txt && git commit -m "..." && git push
 ```
 VPS:
 ```bash
-ssh root@72.61.241.170
-cd /srv/projects/personal-stuff/<path>
-git pull
-.venv/bin/pip install -r requirements.txt
+ssh root@72.61.241.170 '/srv/crons/vps-apply.sh'
 ```
 
 ### Rotate a Google OAuth token
@@ -401,15 +405,15 @@ If the project's `token.json` expires (rare — refresh tokens are long-lived bu
 
 Mac:
 ```bash
-# Re-run consent flow on Mac via mcp/google-shared/setup_auth.py
-python3 mcp/google-shared/setup_auth.py
-# This writes mcp/google-shared/tokens/<email>.json
+# Re-run consent flow on Mac via tooling/mcp/google-shared/setup_auth.py
+python3 tooling/mcp/google-shared/setup_auth.py
+# This writes tooling/mcp/google-shared/tokens/<email>.json
 ```
 
 VPS:
 ```bash
 # Copy fresh token to wherever the project expects it
-scp /Users/kbtg/codebase/personal\ stuff/mcp/google-shared/tokens/akshatpatidar17@gmail.com.json \
+scp /Users/kbtg/codebase/personal-stuff/tooling/mcp/google-shared/tokens/akshatpatidar17@gmail.com.json \
     root@72.61.241.170:'/srv/projects/personal-stuff/apps/telegram-my-planner/tools/daily-digest/token.json'
 ```
 
@@ -514,11 +518,11 @@ ssh root@72.61.241.170 'cd /srv/crons && git pull && cd /srv/projects/personal-s
 # Apply changed crontab
 ssh root@72.61.241.170 'crontab /srv/crons/crontab.txt && crontab -l'
 
-# Tail kb-daily-planner cron log
-ssh root@72.61.241.170 'tail -f /srv/crons/kb-daily-planner/logs/cron.log'
+# Tail my-planner cron log
+ssh root@72.61.241.170 'tail -f /srv/crons/my-planner/logs/cron.log'
 
-# Manually trigger kb-daily-planner now
-ssh root@72.61.241.170 '/srv/crons/kb-daily-planner/run.sh'
+# Manually trigger my-planner now
+ssh root@72.61.241.170 '/srv/crons/my-planner/run.sh'
 
 # Verify Claude auth on VPS
 ssh root@72.61.241.170 'export PATH=/root/.local/bin:$PATH; claude auth status'

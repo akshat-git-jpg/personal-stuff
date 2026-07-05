@@ -28,3 +28,5 @@
 [21:29:00] PLAN 027 DONE  verify: bash -n passes, probe tested locally, cron scheduled  files: scripts/probe-sites.sh, scripts/README.md
 [21:29:30] PLAN 029 START
 [21:32:00] PLAN 029 DONE  verify: bash -n passes, sandbox test proves dry-run and diff detection  files: vps-apply.sh, README.md
+[21:32:30] PLAN 031 START
+[21:35:00] PLAN 031 DONE  verify: grep gates passed, files identical, n8n preserved via INFRA.md  files: VPS-CRONS.md (both copies)
