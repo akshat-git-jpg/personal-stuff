@@ -1,0 +1,29 @@
+{
+  "port": 4321,
+  "apps": [
+    {
+      "id": "ccusage",
+      "name": "ccusage dashboard",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/tooling/cli/ccusage-dashboard",
+      "start": "node dashboard.mjs",
+      "port": 4319,
+      "url": "http://localhost:4319"
+    },
+    {
+      "id": "tracker",
+      "name": "tutorials-tracker",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/apps/tracker-app",
+      "start": "npm run seed:local && npm run dev:local",
+      "port": 5173,
+      "url": "http://localhost:5173/dev-login?email=seankerman25@gmail.com"
+    },
+    {
+      "id": "lists",
+      "name": "lists",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/apps/lists-app",
+      "start": "npm run db:local && npm run dev:local",
+      "port": 5173,
+      "url": "http://localhost:5173"
+    }
+  ]
+}
