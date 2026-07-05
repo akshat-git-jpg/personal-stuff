@@ -3,6 +3,7 @@ import { validatePipelines, getPipeline, allRoles, pipelineIds, rolesForSystem }
 import { assembleRow, decomposeRow, routeWrite, type StageRecord } from "../src/shared/engine/card";
 import { effectiveRoles, holdsRoleInSystem } from "../src/shared/engine/memberships";
 import { workerStagesForMemberships, reviewQueueForMemberships, type Row } from "../src/shared/engine/rbac";
+import { createFieldsOf, type PipelineDef } from "../src/shared/engine/types";
 
 describe("pipeline definitions", () => {
   it("validate clean", () => {
@@ -13,6 +14,31 @@ describe("pipeline definitions", () => {
     expect(allRoles()).toEqual(expect.arrayContaining([
       "Admin", "Reviewer", "Scriptwriter", "Recorder", "Video Editor", "Thumbnail Maker", "Uploader",
     ]));
+  });
+});
+
+describe("createFieldsOf", () => {
+  it("returns default fields for standard and tut-2", () => {
+    const defaultCols = ["video_title", "video_notes", "category", "subcategory"];
+    expect(createFieldsOf(getPipeline("standard")).map((f) => f.col)).toEqual(defaultCols);
+    expect(createFieldsOf(getPipeline("tut-2")).map((f) => f.col)).toEqual(defaultCols);
+  });
+
+  it("returns custom fields for synthetic def", () => {
+    const p: PipelineDef = {
+      id: "syn", name: "Syn",
+      stages: [{
+        id: "topic", label: "Topic", role: "Admin", lifecycle: "review", kind: "brief",
+        createFields: [
+          { col: "video_title", label: "Title", type: "text" },
+          { col: "asin", label: "ASIN", type: "text" }
+        ]
+      }]
+    };
+    const fields = createFieldsOf(p);
+    expect(fields).toHaveLength(2);
+    expect(fields.map((f) => f.col)).toEqual(["video_title", "asin"]);
+    expect(fields[1].label).toBe("ASIN");
   });
 });
 

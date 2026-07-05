@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import type { Column } from "../shared/columns";
 import type { Transition } from "../shared/rbac";
-import { pipeOf, stageByStatusColIn, getPipeline } from "./stages";
-import { NEW_VIDEO_FIELDS } from "../shared/control";
+import { pipeOf, stageByStatusColIn, getPipeline, createFieldsOf } from "./stages";
 import {
   applyTransition, getReviewQueue, createVideo, deleteVideo, applyDefaults, getDefaults,
   type BoardRow, type ReviewItem, type AssignmentDefaultRow,
@@ -208,20 +207,21 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
     }
   }
 
-  // ── New-video modal (admin) — fields come from NEW_VIDEO_FIELDS (control.ts) ──
-  const blankNv = () => Object.fromEntries(NEW_VIDEO_FIELDS.map((f) => [f.col, ""])) as Record<string, string>;
-  const [showNewVideo, setShowNewVideo] = useState(false);
-  const [nv, setNv] = useState<Record<string, string>>(blankNv);
+  // ── New-video modal (admin) ──
   const [nvPipeline, setNvPipeline] = useState<string>(pipelines[0]?.id ?? "standard");
+  const nvFields = createFieldsOf(getPipeline(nvPipeline));
+  const blankNv = (fields = nvFields) => Object.fromEntries(fields.map((f) => [f.col, ""])) as Record<string, string>;
+  const [showNewVideo, setShowNewVideo] = useState(false);
+  const [nv, setNv] = useState<Record<string, string>>(() => blankNv());
   const [nvBusy, setNvBusy] = useState(false);
   const [nvError, setNvError] = useState<string | null>(null);
 
   async function submitNewVideo() {
-    const missing = NEW_VIDEO_FIELDS.filter((f) => !(nv[f.col] ?? "").trim());
+    const missing = nvFields.filter((f) => !(nv[f.col] ?? "").trim());
     if (missing.length) { setNvError(`${missing.map((f) => f.label).join(", ")} ${missing.length === 1 ? "is" : "are"} required.`); return; }
     setNvBusy(true); setNvError(null);
     try {
-      const payload = { ...Object.fromEntries(NEW_VIDEO_FIELDS.map((f) => [f.col, (nv[f.col] ?? "").trim()])), pipeline: nvPipeline };
+      const payload = { ...Object.fromEntries(nvFields.map((f) => [f.col, (nv[f.col] ?? "").trim()])), pipeline: nvPipeline };
       await createVideo(payload);
       setShowNewVideo(false); setNv(blankNv());
       // jump to the Topic work board for the chosen system (admin owns every Topic).
@@ -291,7 +291,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
           {pipelines.length > 1 && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-foreground/80">Video type <span className="text-primary">*</span></label>
-              <Select value={nvPipeline} onValueChange={setNvPipeline}>
+              <Select value={nvPipeline} onValueChange={(p) => { setNvPipeline(p); setNv(blankNv(createFieldsOf(getPipeline(p)))); }}>
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {pipelines.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
@@ -299,7 +299,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
               </Select>
             </div>
           )}
-          {NEW_VIDEO_FIELDS.map((f, i) => {
+          {nvFields.map((f, i) => {
             const set = (v: string) => setNv((prev) => ({ ...prev, [f.col]: v }));
             return (
               <div className="space-y-1.5" key={f.col}>

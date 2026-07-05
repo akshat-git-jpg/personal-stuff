@@ -9,7 +9,7 @@
 import { getPipeline, PIPELINES, pipelineIds } from "../shared/engine/registry";
 import {
   colOf, stageHasReviewerSlot, stageHasInstruction, stageHasEta, stageKind, workField,
-  type StageDef, type PipelineDef,
+  type StageDef, type PipelineDef, createFieldsOf, type CreateField,
 } from "../shared/engine/types";
 import { statusOf as engStatusOf, isGateOpen as engIsGateOpen, isStageComplete as engIsStageComplete } from "../shared/engine/derive";
 import { lifecycle } from "../shared/engine/lifecycle";
@@ -66,5 +66,6 @@ export {
   colOf,
   showColumns, editColumns, requiredToApprove, requiredToSubmitFrom,
   lifecycle, getPipeline, PIPELINES, pipelineIds, columnLabel,
+  createFieldsOf,
 };
-export type { StageDef, PipelineDef, RoleKind };
+export type { StageDef, PipelineDef, RoleKind, CreateField };

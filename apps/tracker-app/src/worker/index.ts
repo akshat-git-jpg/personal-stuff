@@ -45,10 +45,9 @@ import {
   rolesForSystem, isDoerRole, WILDCARD_SYSTEM, ADMIN_ROLE,
 } from "../shared/engine/registry";
 import { derive, statusOf } from "../shared/engine/derive";
-import { colOf, stageHasReviewerSlot } from "../shared/engine/types";
+import { colOf, stageHasReviewerSlot, createFieldsOf } from "../shared/engine/types";
 import { lifecycle } from "../shared/engine/lifecycle";
 import { VALID_ROLE_NAMES, type TeamMember } from "./roles";
-import { NEW_VIDEO_FIELDS } from "../shared/control";
 import { loadDefaults, setDefaults, deleteDefaults, resolveDefaults } from "./defaults";
 import { sendNotification } from "./notifications";
 
@@ -620,17 +619,18 @@ app.post("/api/video", async (c) => {
   let body: Record<string, string>;
   try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
 
+  // Which system this video runs on (defaults to standard).
+  const pipe = getPipeline((body.pipeline ?? DEFAULT_PIPELINE_ID).trim());
+
   // Validate + collect the creation fields from the shared config (control.ts),
   // so the required set can't drift from the client modal.
   const values: Record<string, string> = {};
-  for (const f of NEW_VIDEO_FIELDS) {
+  for (const f of createFieldsOf(pipe)) {
     const v = (body[f.col] ?? "").trim();
     if (!v) return c.json({ error: `${f.label} is required`, col: f.col }, 400);
     values[f.col] = v;
   }
 
-  // Which system this video runs on (defaults to standard).
-  const pipe = getPipeline((body.pipeline ?? DEFAULT_PIPELINE_ID).trim());
   const today = new Date().toISOString().slice(0, 10);
   const firstStage = pipe.stages[0]; // the brief/topic stage
   // Pre-fill assignees/reviewers from the defaults for this (category, subcategory),
