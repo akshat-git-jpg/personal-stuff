@@ -5,3 +5,5 @@
 [20:54:09] ROUND 2 START  fixes: plan 021 amended — red baseline was the stale tracker-app:lint mask itself; Step 1 now RENAMES it to tutorial-tracker-app:lint (lint debt recorded as TRK-05); resume from plan 021
 [20:55:00] PLAN 021 START
 [20:58:00] PLAN 021 DONE  verify: exit=0 with SKIPs and bash -n  files: scripts/check-apps.sh
+[21:00:10] PLAN 022 START
+[21:00:10] PLAN 022 BLOCKED: AssertionError: col topic_work_link of stage topic: expected 'card_extra' not to be 'card_extra'

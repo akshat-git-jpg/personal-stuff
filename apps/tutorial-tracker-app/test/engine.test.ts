@@ -3,7 +3,7 @@ import { validatePipelines, getPipeline, allRoles, pipelineIds, rolesForSystem }
 import { assembleRow, decomposeRow, routeWrite, type StageRecord } from "../src/shared/engine/card";
 import { effectiveRoles, holdsRoleInSystem, systemsForRole } from "../src/shared/engine/memberships";
 import { workerStagesForMemberships, reviewQueueForMemberships, type Row, cardStagesForUser, upcomingStagesForUser, canSeeRow } from "../src/shared/engine/rbac";
-import { createFieldsOf, type PipelineDef } from "../src/shared/engine/types";
+import { createFieldsOf, type PipelineDef, colOf, stageHasReviewerSlot } from "../src/shared/engine/types";
 
 describe("pipeline definitions", () => {
   it("validate clean", () => {
@@ -175,3 +175,48 @@ describe("up next / upcoming work visibility", () => {
     expect(canSeeRow(["Recorder"], "sam@x.com", row)).toBe(true);
   });
 });
+
+describe("EVERY pipeline def: round-trip + routing invariants", () => {
+  const SLOTS = ["status", "assignee", "reviewer", "work_link", "eta", "instruction", "feedback"] as const;
+
+  for (const pid of pipelineIds()) {
+    const P = getPipeline(pid);
+
+    // Synthesize a fully-populated flat Row from the def's own metadata:
+    // every stage gets a distinct value in every slot it actually has.
+    const row: Record<string, string> = {
+      pipeline: pid, row_id: `r-${pid}`, last_updated: "2026-07-05T00:00:00Z",
+      status_since: "2026-07-04T00:00:00Z", video_title: `T-${pid}`,
+    };
+    for (const s of P.stages) {
+      for (const slot of SLOTS) {
+        if (slot === "reviewer" && !stageHasReviewerSlot(s)) continue;
+        const col = colOf(s, slot);
+        if (!col) continue;
+        row[col] = slot === "status" ? "To Do" : `${pid}:${s.id}:${slot}`;
+      }
+    }
+
+    it(`[${pid}] decompose→assemble is lossless`, () => {
+      const { card, stages } = decomposeRow(P, row);
+      const rebuilt = assembleRow(P, card, stages) as Record<string, string>;
+      for (const k of Object.keys(row)) {
+        expect(`${k}=${rebuilt[k] ?? ""}`).toBe(`${k}=${row[k] ?? ""}`);
+      }
+    });
+
+    it(`[${pid}] every stage column routes to a defined target`, () => {
+      for (const s of P.stages) {
+        for (const slot of SLOTS) {
+          if (slot === "reviewer" && !stageHasReviewerSlot(s)) continue;
+          const col = colOf(s, slot);
+          if (!col) continue;
+          const route = routeWrite(P, col);
+          expect(route, `col ${col} of stage ${s.id}`).toBeTruthy();
+          expect(route!.kind, `col ${col} of stage ${s.id}`).not.toBe("card_extra");
+        }
+      }
+    });
+  }
+});
+
