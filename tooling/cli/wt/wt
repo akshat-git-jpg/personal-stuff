@@ -129,8 +129,8 @@ case "$CMD" in
         fi
       else
         # Not created yet, create it
-        local def_branch=$(get_default_branch)
-        local target_ref="origin/$def_branch"
+        def_branch=$(get_default_branch)
+        target_ref="origin/$def_branch"
         if ! git -C "$REPO_TOPLEVEL" show-ref --verify --quiet "refs/remotes/origin/$def_branch"; then
           target_ref="$def_branch"
         fi
