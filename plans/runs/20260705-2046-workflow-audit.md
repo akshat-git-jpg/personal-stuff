@@ -26,3 +26,5 @@
 [21:26:00] PLAN 025 DONE  verify: bash -n passes, smoke test confirms alert and marker, exec replaced  files: _shared/alert.sh, _template/run.sh, my-planner/run.sh, gmail-digest/run.sh, repo-sync/run.sh, README.md
 [21:26:30] PLAN 027 START
 [21:29:00] PLAN 027 DONE  verify: bash -n passes, probe tested locally, cron scheduled  files: scripts/probe-sites.sh, scripts/README.md
+[21:29:30] PLAN 029 START
+[21:32:00] PLAN 029 DONE  verify: bash -n passes, sandbox test proves dry-run and diff detection  files: vps-apply.sh, README.md
