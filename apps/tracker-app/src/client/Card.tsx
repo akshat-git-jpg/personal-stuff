@@ -15,6 +15,8 @@ interface CardProps {
   readOnly?: boolean;
   showAssignee?: boolean;        // admin/reviewer views where many people mix
   showDwell?: boolean;           // show "in <status> since N days"
+  showStage?: boolean;           // show stage chip
+  showSystem?: boolean;          // show system chip
   canDelete?: boolean;           // admin: show the delete affordance
   onDelete?: () => void;
   onOpen: () => void;
@@ -32,7 +34,7 @@ export function StatusPill({ status, className }: { status: string; className?: 
   );
 }
 
-export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, showDwell, canDelete, onDelete, onOpen, onAction }: CardProps) {
+export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, showDwell, showStage, showSystem, canDelete, onDelete, onOpen, onAction }: CardProps) {
   const p = pipeOf(row as Record<string, unknown>);
   const stage = stageByStatusColIn(p, statusCol);
   const status = stage ? normalizeStatusIn(stage, row[statusCol as keyof Row] as string) : "To Do";
@@ -61,9 +63,10 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
       onClick={onOpen} onKeyDown={(e) => e.key === "Enter" && onOpen()}
       className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-card p-3 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
     >
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 flex-wrap">
         <StatusPill status={status} />
-        <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{p.name}</span>
+        {showStage && stage && <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{stage.label}</span>}
+        {showSystem && <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{p.name}</span>}
         {dwell !== null && (
           <span className="inline-flex items-center gap-1 text-[11px] tabular-nums text-muted-foreground"
             title={`In ${meta.label} since ${dwell} day${dwell === 1 ? "" : "s"}`}>

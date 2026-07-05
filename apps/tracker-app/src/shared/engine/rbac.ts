@@ -277,6 +277,20 @@ export function cardStagesForUser(roles: string[], email: string, row: Row): str
   return [...out];
 }
 
+/** Stages of this card assigned to the user whose gate is NOT open yet — their
+ *  "up next" work. Mirrors cardStagesForUser with the gate check inverted. */
+export function upcomingStagesForUser(roles: string[], email: string, row: Row): string[] {
+  const p = pipeOf(row);
+  const out = new Set<string>();
+  for (const s of p.stages) {
+    if (!roles.includes(s.role) || isGateOpen(p, s, row)) continue;
+    if (stageKind(s) !== "brief" && norm(row[colOf(s, "assignee")]) !== norm(email)) continue;
+    if (stageKind(s) === "brief") continue; // a brief stage with a closed gate can't exist (stage 0 has no gate)
+    out.add(colOf(s, "status"));
+  }
+  return [...out];
+}
+
 /** Cards (reviewable stages) currently awaiting THIS user's review. */
 export function reviewQueueForUser(roles: string[], email: string, rows: Row[]) {
   const items: { row: Row; stage: StageDef; submittedBy: string }[] = [];
@@ -295,12 +309,12 @@ export function reviewQueueForUser(roles: string[], email: string, rows: Row[]) 
 // --- row visibility + projection -------------------------------------------
 
 /** Can this user see this card at all? Admin: yes. Else: owns an assigned stage
- *  (gate open) or is an assigned reviewer on any stage. */
+ *  (gate open or not) or is an assigned reviewer on any stage. */
 export function canSeeRow(roles: string[], email: string, row: Row): boolean {
   if (isAdminRoles(roles)) return true;
   const p = pipeOf(row);
   for (const s of p.stages) {
-    if (roles.includes(s.role) && norm(row[colOf(s, "assignee")]) === norm(email) && isGateOpen(p, s, row)) return true;
+    if (roles.includes(s.role) && norm(row[colOf(s, "assignee")]) === norm(email)) return true;
     if (roles.includes(REVIEWER_ROLE) && stageHasReviewerSlot(s) && norm(row[colOf(s, "reviewer")]) === norm(email)) return true;
   }
   return false;

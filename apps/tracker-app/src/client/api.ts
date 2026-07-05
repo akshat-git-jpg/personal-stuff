@@ -22,7 +22,10 @@ export interface CardActionGroup {
 
 /** A board row plus the server-computed authority meta. */
 export type BoardRow = Row & {
+  row_id: string;
+  pipeline: string;
   _stages?: string[];                 // status cols this card belongs to (in user's lanes)
+  _upcoming?: string[];               // stages assigned but gate closed
   _actions?: CardActionGroup[];       // allowed status transitions, per stage
   _locks?: Record<string, string>;    // editable col -> lock reason (absent = editable)
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Lock, ExternalLink, Trash2, AlertTriangle, RotateCcw, Sparkles, ChevronDown } from "lucide-react";
+import { Lock, ExternalLink, Trash2, AlertTriangle, RotateCcw, Sparkles, ChevronDown, CheckCircle2 } from "lucide-react";
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
 import { canEditForRoles, isAdminRoles } from "../shared/engine/rbac";
@@ -10,6 +10,7 @@ import {
   pipeOf, stageByIdIn, statusOf, showColumns, editColumns, requiredToApprove, requiredToSubmitFrom,
   missingColumns, colOf, assigneeColOf, reviewerColOf, instructionColOf,
   workLinkColOf, etaColOf, extraColsOf, isReviewable, feedbackColOf, isBrief, briefFieldsOf,
+  isStageComplete, isGateOpen,
   type RoleKind, type StageDef,
 } from "./stages";
 import {
@@ -33,6 +34,7 @@ interface CardDetailProps {
   /** email -> systemId -> roles, so assignment dropdowns can scope to the card's system. */
   memberships?: Record<string, Record<string, string[]>>;
   readOnly?: boolean;
+  viewerEmail?: string;
   /** Which stage the card was opened while working — scopes the fields/actions shown. */
   contextStageId?: string;
   /** Whose actions to show: doer (My work), reviewer (Review queue), or all (Pipeline). */
@@ -138,7 +140,7 @@ function sectionsForPipeline(stages: StageDef[]): { sections: SectionDef[]; assi
   return { sections, assigneeSeq };
 }
 
-export function CardDetail({ row, columns, roles, names, memberRoles = {}, memberships = {}, readOnly, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved, onDelete, onApplyDefaults }: CardDetailProps) {
+export function CardDetail({ row, columns, roles, names, memberRoles = {}, memberships = {}, readOnly, viewerEmail, contextStageId, perspective = "all", categoryOptions = [], subcategoryOptions = [], onClose, onSaved, onDelete, onApplyDefaults }: CardDetailProps) {
   const locks = row._locks ?? {};
   const actionGroups = row._actions ?? [];
   const isAdmin = isAdminRoles(roles);
@@ -464,14 +466,40 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
         </DialogHeader>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
-          {/* Stage status overview */}
-          <div className="flex flex-wrap gap-2">
-            {pipeline.stages.filter((s) => colSet.has(colOf(s, "status")) || isAdmin).map((s) => (
-              <span key={s.id} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-1">
-                <span className="text-[11px] font-medium text-muted-foreground">{s.label}</span>
-                <StatusPill status={statusOf(s, row as Row)} />
-              </span>
-            ))}
+          {/* Stage status overview - Journey Rail */}
+          <div className="flex flex-col gap-2">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{perspective === "doer" ? "Your part in this video" : "Pipeline progress"}</h3>
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-5 px-5 hide-scrollbar">
+              {pipeline.stages.filter((s) => colSet.has(colOf(s, "status")) || isAdmin).map((s, i, arr) => {
+                const status = statusOf(s, row as Row);
+                const done = isStageComplete(s, row as Row);
+                const isYou = !!viewerEmail && (row as any)[colOf(s, "assignee")] === viewerEmail;
+                const open = isGateOpen(pipeline, s, row as Row);
+                const isLast = i === arr.length - 1;
+                
+                return (
+                  <div key={s.id} className="flex items-center shrink-0">
+                    <div className={cn(
+                      "flex flex-col gap-1.5 rounded-lg border px-3 py-2 transition-all",
+                      done ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/30 dark:bg-emerald-900/10" :
+                      open ? "border-primary/20 bg-muted/40 shadow-xs" :
+                      "border-transparent bg-transparent opacity-50"
+                    )}
+                    title={!open && s.gate ? `Opens after ${stageByIdIn(pipeline, s.gate)?.label || s.gate} is approved` : undefined}
+                    >
+                      <div className="flex items-center gap-2">
+                        {!open && <Lock className="size-3 text-muted-foreground" />}
+                        {done && <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />}
+                        <span className={cn("text-[11px] font-semibold", done ? "text-emerald-700 dark:text-emerald-300" : "text-foreground")}>{s.label}</span>
+                        {isYou && <span className="rounded bg-primary/10 px-1 text-[9px] font-bold uppercase tracking-wider text-primary">You</span>}
+                      </div>
+                      <StatusPill status={status} />
+                    </div>
+                    {!isLast && <div className={cn("h-px w-6 mx-1", done ? "bg-emerald-200 dark:bg-emerald-800" : "bg-border")} />}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {feedbackBanners.map(({ stage, text }) => (

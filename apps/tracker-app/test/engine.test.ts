@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { validatePipelines, getPipeline, allRoles, pipelineIds, rolesForSystem } from "../src/shared/engine/registry";
 import { assembleRow, decomposeRow, routeWrite, type StageRecord } from "../src/shared/engine/card";
 import { effectiveRoles, holdsRoleInSystem } from "../src/shared/engine/memberships";
-import { workerStagesForMemberships, reviewQueueForMemberships, type Row } from "../src/shared/engine/rbac";
+import { workerStagesForMemberships, reviewQueueForMemberships, type Row, cardStagesForUser, upcomingStagesForUser, canSeeRow } from "../src/shared/engine/rbac";
 import { createFieldsOf, type PipelineDef } from "../src/shared/engine/types";
 
 describe("pipeline definitions", () => {
@@ -137,5 +137,23 @@ describe("system-scoped memberships", () => {
     };
     const q = reviewQueueForMemberships(reviewerBoth, "riya@x.com", [stdCard, tutCard]);
     expect(q.map((i) => i.row.row_id).sort()).toEqual(["s1", "t1"]);
+  });
+});
+
+describe("up next / upcoming work visibility", () => {
+  it("surfaces closed-gate assigned stages and allows the doer to see the card", () => {
+    // Sam is the scriptwriter AND recorder (tutorial_maker) on a standard card.
+    // Script is open (In Progress); Tutorial is closed (waiting on Script).
+    const row: Row = {
+      row_id: "r1", pipeline: "standard", video_title: "Test",
+      topic_status: "Done",
+      script_status: "In Progress", script_writer_email: "sam@x.com",
+      tutorial_status: "To Do", tutorial_maker_email: "sam@x.com",
+    };
+    const roles = ["Scriptwriter", "Recorder"];
+    expect(cardStagesForUser(roles, "sam@x.com", row)).toEqual(["script_status"]);
+    expect(upcomingStagesForUser(roles, "sam@x.com", row)).toEqual(["tutorial_status"]);
+    // A pure Recorder can see the row even though their gate is closed.
+    expect(canSeeRow(["Recorder"], "sam@x.com", row)).toBe(true);
   });
 });

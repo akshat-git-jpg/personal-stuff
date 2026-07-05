@@ -25,7 +25,7 @@ plan file and the repo, not this audit conversation.
 | 012 | Competitor style packs — folder scaffold + zero-API transcript ingestion | P2 | M | — | DONE |
 | 013 | yt-style skill — distill Style DNA, generate topics/titles/scripts | P2 | M | 012 | DONE |
 | 014 | Tracker: derive the new-video form from the pipeline def | P2 | S | — | DONE |
-| 015 | Tracker: unified "My Work" inbox + card journey rail | P1 | L | 014 | TODO |
+| 015 | Tracker: unified "My Work" inbox + card journey rail | P1 | L | 014 | DONE |
 | 016 | Tracker: admin attention panel + title search | P2 | M | 015 | TODO |
 | 017 | Tracker: per-card activity thread (card_events) | P2 | M | 015 | TODO |
 

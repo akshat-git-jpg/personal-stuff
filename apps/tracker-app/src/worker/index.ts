@@ -31,7 +31,7 @@ import * as clickstore from "./clickstore";
 import {
   visibleColsForRoles, canEditForRoles, projectRowForRoles,
   isApproverRoles, isAdminRoles, isApprover,
-  authorizeWrite, transitionsForCard, transitionsForStage, cardStagesForUser,
+  authorizeWrite, transitionsForCard, transitionsForStage, cardStagesForUser, upcomingStagesForUser,
   fieldLockReason, canReview, assignableColsFor, pipeOf,
   allVisibleColsForMemberships, filterRowsForMemberships, workerStagesForMemberships,
   reviewQueueForMemberships, effectiveRolesFor,
@@ -335,6 +335,7 @@ const STATUS_COLS = new Set<string>(
 function rowMeta(roles: string[], email: string, row: Row) {
   const p = pipeOf(row);                                        // resolve this card's pipeline
   const stages = cardStagesForUser(roles, email, row);          // statusCols this card belongs to (in user's lanes)
+  const upcoming = upcomingStagesForUser(roles, email, row);
   const actions = transitionsForCard(roles, email, row);        // allowed status transitions, per stage
   const locks: Record<string, string> = {};                     // editable content/feedback fields that are currently locked
   for (const col of visibleColsForRoles(roles, p)) {
@@ -343,7 +344,7 @@ function rowMeta(roles: string[], email: string, row: Row) {
     const reason = fieldLockReason(roles, email, col, row);
     if (reason) locks[col] = reason;
   }
-  return { _stages: stages, _actions: actions, _locks: locks };
+  return { _stages: stages, _upcoming: upcoming, _actions: actions, _locks: locks };
 }
 
 // GET /api/board[?asUser=email]
