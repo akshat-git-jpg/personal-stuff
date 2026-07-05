@@ -44,7 +44,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 029 | vps-crons: vps-apply.sh (pull + venv reinstall + crontab reload) | P3 | M | — | TODO |
 | 030 | skills-status.sh: account-membership table + dangling-link check | P3 | S | — | TODO |
 | 031 | VPS-CRONS.md refresh: stale paths/date/names, sync both copies | P3 | S | 029 (soft) | TODO |
-| 032 | deploy-apps.sh: check-gated one-command deploy loop (dry-run verified) | P2 | S | 021 (soft) | TODO |
+| 032 | deploy-apps.sh — gated one-command deploy across all Worker apps | P2 | S | 021 (soft) | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 

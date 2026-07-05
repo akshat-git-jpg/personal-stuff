@@ -12,3 +12,5 @@
 [21:07:53] PLAN 022 DONE  verify: typecheck and vitest green  files: test/engine.test.ts
 [21:08:00] PLAN 023 START
 [21:10:00] PLAN 023 DONE  verify: compile ok, synthetic test flagged missing clip  files: pipelines/youtube/kushal-tutorial-pipeline-v2/steps/105-voice-autoqc-run/run.py
+[21:10:30] PLAN 032 START
+[21:13:00] PLAN 032 DONE  verify: dry-run subset and full both work, test exits 0  files: scripts/deploy-apps.sh, apps/tutorial-tracker-app/package.json, scripts/README.md
