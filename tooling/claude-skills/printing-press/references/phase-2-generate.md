@@ -841,3 +841,22 @@ If generation fails:
   cli-printing-press lock release --cli <api>-pp-cli
   ```
 
+## AXI alignment (see references/axi-alignment.md)
+
+When selecting novel features for this CLI, favor the skill-lever gaps from
+`references/axi-alignment.md` over generic feature ideas:
+
+- A **no-args home view command** — bare `<cli>` with no subcommand shows a
+  compact live view (auth state + 2-3 headline resources) instead of help
+  text (AXI #8, content first).
+- **Count aggregates** on list/detail novel commands — `count: N of M total`
+  when the API exposes totals, cheap derived counts (`comments: 7`) on detail
+  views (AXI #4, pre-computed aggregates).
+- **Empty-state lines** on any novel list command — `<noun>: 0 results for
+  <scope>` on stdout instead of an empty array or empty table (AXI #5,
+  definitive empty states).
+
+These are additive to whatever novel features research turns up; they must
+not replace domain-specific workflow/insight commands, and they must not
+regress the scorecard (see `references/scorecard-patterns.md`).
+

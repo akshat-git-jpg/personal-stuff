@@ -12,3 +12,6 @@
 [04:18:17] HEARTBEAT: lanes + lifecycle scripts smoke-tested manually; writing CLAUDE.md next
 [04:26:26] HEARTBEAT: README + routing row done; check-apps.sh green; running final Done-criteria pass
 [04:26:26] PLAN 037 DONE  verify: ALL TESTS PASSED (incl. live tmux smoke) + bash -n all scripts + check-apps.sh exit 0 + CLAUDE.md 7 sections/propose x3 + lane registry 3x3-verbs + state gitignored  files: tooling/captain/{CLAUDE.md,README.md,bin/*.sh,lanes.d/*.sh,data/*.md,state/.gitignore,state/.gitkeep,test-captain.sh}, CLAUDE.md (routing row), plans/README.md (037 DONE)
+[04:28:00] PLAN 038 START
+[04:30:24] PLAN 038 DONE  verify: axi-alignment.md grep-2 ge1 + both wire-in files listed + upstream-issue grep-2 ge1 + skills-status.sh exit0/0-problems + drift clean  files: tooling/claude-skills/printing-press/references/axi-alignment.md (new), tooling/claude-skills/printing-press/references/phase-2-generate.md, tooling/claude-skills/printing-press-polish/SKILL.md, tooling/claude-skills/printing-press/references/scorecard-patterns.md, docs/press-axi-upstream-issue.md (new)
+[04:30:24] RUN DONE

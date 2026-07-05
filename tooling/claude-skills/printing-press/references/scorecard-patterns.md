@@ -32,3 +32,14 @@ Run the scorecard: `cli-printing-press scorecard --dir ./<api>-cli`
 - Local Cache gives +3 for `sqlite`/`bolt`/`badger` strings in `internal/cache/cache.go` or `internal/store/store.go`
 - Breadth counts files, not commands - one file per endpoint beats one file per resource
 - Workflow scoring follows registered Cobra commands and recognizes package-local helpers that reach the store
+
+## AXI alignment is additive, not scorecard bait
+
+The skill-lever items in `references/axi-alignment.md` (empty states,
+truncation hints, next-step stderr suggestions) exist to close AXI-benchmark
+gaps, not to move a scorecard dimension. None of the patterns above score on
+these strings, and that is intentional — do not restructure a command's
+output shape, add dead flags, or otherwise game a dimension in the name of
+"AXI polish." If an AXI patch happens to touch a scored file (e.g. adding a
+`--full` flag to a command in `internal/cli/*.go`), verify the scorecard
+delta is a side effect of real behavior, not a targeted string insertion.
