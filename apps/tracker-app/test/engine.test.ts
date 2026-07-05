@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { validatePipelines, getPipeline, allRoles, pipelineIds, rolesForSystem } from "../src/shared/engine/registry";
 import { assembleRow, decomposeRow, routeWrite, type StageRecord } from "../src/shared/engine/card";
-import { effectiveRoles, holdsRoleInSystem } from "../src/shared/engine/memberships";
+import { effectiveRoles, holdsRoleInSystem, systemsForRole } from "../src/shared/engine/memberships";
 import { workerStagesForMemberships, reviewQueueForMemberships, type Row, cardStagesForUser, upcomingStagesForUser, canSeeRow } from "../src/shared/engine/rbac";
 import { createFieldsOf, type PipelineDef } from "../src/shared/engine/types";
 
@@ -129,6 +129,13 @@ describe("system-scoped memberships", () => {
     expect(holdsRoleInSystem(samStd, "standard", "Scriptwriter")).toBe(true);
     expect(holdsRoleInSystem(samStd, "tut-2", "Scriptwriter")).toBe(false);     // Sam never offered on a tut-2 card
     expect(holdsRoleInSystem(reviewerBoth, "tut-2", "Reviewer")).toBe(true);
+  });
+
+  it("a doer role can be held in multiple systems", () => {
+    const bothSystems = { standard: ["Scriptwriter"], "tut-2": ["Scriptwriter"] };
+    expect(effectiveRoles(bothSystems, "standard")).toEqual(["Scriptwriter"]);
+    expect(effectiveRoles(bothSystems, "tut-2")).toEqual(["Scriptwriter"]);
+    expect(systemsForRole(bothSystems, "Scriptwriter").sort()).toEqual(["standard", "tut-2"]);
   });
 
   it("worker lanes only cover systems the user actually works in", () => {

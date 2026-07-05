@@ -2,10 +2,10 @@
  * TeamPanel.tsx — admin-only "Team & access" tab, SYSTEM-SCOPED.
  *
  * Each video system (pipeline) has its own roster: the freelancers + reviewers who
- * work that channel. A person is added to a system with that system's roles; doer
- * roles belong to one system, the Reviewer role can be granted in several (add the
- * person as Reviewer in each system tab they review). A small cross-system summary
- * shows the founder/admin and anyone who spans more than one system.
+ * work that channel. A person is added to a system with that system's roles; any
+ * role can be granted in several systems (add the person from each system's tab
+ * with the roles they hold there). A small cross-system summary shows the
+ * founder/admin and anyone who spans more than one system.
  *
  * Writes go through /api/team — sending a person's FULL membership map — so adding
  * a role in one system never disturbs their roles in another. The team is the
@@ -162,7 +162,7 @@ export function TeamPanel({ pipelines, onChanged, categoryOptions = [], subcateg
             })}
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Doer roles belong to one system. To let a reviewer cover several systems, add them as <strong className="font-medium text-foreground">Reviewer</strong> in each system&rsquo;s tab.
+            Any role can be held in several systems — add the person from each system&rsquo;s tab.
           </p>
         </div>
         <div className="flex gap-2 pt-1">

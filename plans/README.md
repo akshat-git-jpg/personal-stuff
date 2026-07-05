@@ -26,8 +26,10 @@ plan file and the repo, not this audit conversation.
 | 013 | yt-style skill — distill Style DNA, generate topics/titles/scripts | P2 | M | 012 | DONE |
 | 014 | Tracker: derive the new-video form from the pipeline def | P2 | S | — | DONE |
 | 015 | Tracker: unified "My Work" inbox + card journey rail | P1 | L | 014 | DONE |
-| 016 | Tracker: admin attention panel + title search | P2 | M | 015 | TODO |
-| 017 | Tracker: per-card activity thread (card_events) | P2 | M | 015 | TODO |
+| 016 | Tracker: admin attention panel + title search | P2 | M | 015 | DONE |
+| 017 | Tracker: per-card activity thread (card_events) | P2 | M | 015 | DONE |
+| 018 | Tracker: let any role be held in multiple systems | P2 | S | 015–017 | DONE |
+| 019 | Tracker: stage time visibility | P2 | ? | 015–017 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 

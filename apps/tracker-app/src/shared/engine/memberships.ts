@@ -7,13 +7,13 @@
 // card knows its system — so we collapse the membership set into the "effective
 // roles in this system" and feed those to the existing role-based checks.
 //
-// Rules (enforced where memberships are WRITTEN, not here):
-//   • a doer role is held in exactly ONE system
-//   • the Reviewer role may be held in several systems (queue spans them)
+// Rules:
+//   • any role (doer or Reviewer) may be held in any number of systems —
+//     e.g. Scriptwriter in both Standard and Tut 2
 //   • Admin is cross-system — stored under the WILDCARD_SYSTEM ("*") key, so it
 //     applies to every system, including ones added later
 // ===========================================================================
-import { WILDCARD_SYSTEM, ADMIN_ROLE, isDoerRole } from "./registry";
+import { WILDCARD_SYSTEM, ADMIN_ROLE } from "./registry";
 
 /** systemId (or "*") → roles held in that system. */
 export type Memberships = Record<string, string[]>;
@@ -50,15 +50,4 @@ export function membershipsFromRoles(roles: string[], systemId: string): Members
   if (scoped.length) m[systemId] = uniq(scoped);
   if (roles.includes(ADMIN_ROLE)) m[WILDCARD_SYSTEM] = [ADMIN_ROLE];
   return m;
-}
-
-/** The single system a user does doer work in, if any (the "home system"). The
- *  write path guarantees doer roles live in at most one system, so the first hit
- *  is authoritative. */
-export function homeSystem(m: Memberships): string | undefined {
-  for (const [sys, roles] of Object.entries(m)) {
-    if (sys === WILDCARD_SYSTEM) continue;
-    if (roles.some(isDoerRole)) return sys;
-  }
-  return undefined;
 }

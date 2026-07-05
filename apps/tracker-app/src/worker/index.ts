@@ -42,7 +42,7 @@ import {
 } from "../shared/engine/memberships";
 import {
   getPipeline, stageById, PIPELINES, PROTECTED_ADMIN_EMAIL, pipelineSummaries, DEFAULT_PIPELINE_ID,
-  rolesForSystem, isDoerRole, WILDCARD_SYSTEM, ADMIN_ROLE,
+  rolesForSystem, WILDCARD_SYSTEM, ADMIN_ROLE,
 } from "../shared/engine/registry";
 import { derive, statusOf } from "../shared/engine/derive";
 import { colOf, stageHasReviewerSlot, createFieldsOf } from "../shared/engine/types";
@@ -214,20 +214,6 @@ app.post("/api/team", async (c) => {
   const isFounder = email === PROTECTED_ADMIN_EMAIL;
   if (isFounder) clean[WILDCARD_SYSTEM] = [ADMIN_ROLE];
   else delete clean[WILDCARD_SYSTEM];
-
-  // A doer role belongs to exactly ONE system (Reviewer may span systems).
-  const doerSystems = new Map<string, string>();
-  for (const [sys, rs] of Object.entries(clean)) {
-    if (sys === WILDCARD_SYSTEM) continue;
-    for (const r of rs) {
-      if (!isDoerRole(r)) continue;
-      const prev = doerSystems.get(r);
-      if (prev && prev !== sys) {
-        return c.json({ error: `${r} can only belong to one system — it's set in both ${PIPELINES[prev]?.name ?? prev} and ${PIPELINES[sys]?.name ?? sys}.` }, 400);
-      }
-      doerSystems.set(r, sys);
-    }
-  }
 
   if (Object.keys(clean).length === 0) return c.json({ error: "assign at least one role in one system" }, 400);
 
