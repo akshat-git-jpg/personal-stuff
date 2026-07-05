@@ -57,16 +57,26 @@ big enough to deserve a `plans/` file and an orchestrate run.
 
 ### Tier 1 — data that cannot be recreated
 
-- [ ] **Nightly D1 exports.** `clicks-db` (money attribution) and `tracker-db` (team work)
+- [x] **Nightly D1 exports.** `clicks-db` (money attribution) and `tracker-db` (team work)
   have no owned backup; Cloudflare time-travel covers only ~30 days. Add a Pattern B cron
   that runs `wrangler d1 export` for all five DBs (clicks-db, tracker-db, lists-db,
   founders-db, yt-rankings) into MinIO. Effort S. (plan — touches vps-crons too)
-- [ ] **Mac secrets escrow.** The Mac is currently a single point of failure for
+  **DONE 2026-07-06**: built as `pipelines/backups/d1_export.py` (uses the CF D1 export
+  REST API, not wrangler — headless-friendlier) + `vps-crons/d1-backup/` Pattern B cron
+  uploading to MinIO `d1-backups/<date>/` (30-day retention). Live on the VPS
+  (`30 19 * * *` = 01:00 IST); smoke run verified 6 objects in MinIO. See
+  `pipelines/backups/README.md` + decisions.md.
+- [x] **Mac secrets escrow.** The Mac is currently a single point of failure for
   `pipelines/.env`, `pipelines/credentials.json`, `tooling/mcp/google-shared/tokens/*`
   (5 accounts), and `infra/secrets/*` — all gitignored, all nowhere else. Create one
   encrypted archive (age or gpg), refresh monthly (cron or calendar), store in MinIO or
   Drive, passphrase in the password manager. Effort S. This also de-risks the planned
   laptop migration (Part 3).
+  **DONE 2026-07-06**: `infra/escrow/escrow-backup.sh` (gpg AES256, 13 secret paths / 25
+  files) → **Drive** (offsite, survives VPS loss too), monthly manual run. First archive
+  uploaded + DR-verified (downloaded, decrypted, byte-matched); passphrase in the macOS
+  Keychain (`security find-generic-password -s personal-stuff-escrow -w`) — still also
+  belongs in the password manager. See `infra/escrow/README.md` + decisions.md.
 - [ ] **kushal-docs R2 second copy.** Real personal documents, unencrypted, one copy.
   Enable R2 object versioning and/or periodic sync to MinIO. Effort S–M.
 
@@ -257,7 +267,10 @@ from memory.
 
 ### Execution order (new session)
 
-1. Secrets escrow (Part 2 Tier 1 — unblocks everything else).
+1. ~~Secrets escrow (Part 2 Tier 1 — unblocks everything else).~~ **DONE 2026-07-06**
+   (`infra/escrow/`). Also shipped alongside: nightly D1 backups (Tier 1) live on the VPS,
+   and the "executor never touches the VPS" rule lifted (plans/README.md) so a keyed Claude
+   session can wire crons directly.
 2. `claude-setup` repo + bootstrap.sh + global-CLAUDE.md unification.
 3. ~~One-time memory consolidation + stale-store pruning~~ **DONE 2026-07-05**: both
    accounts' personal-stuff stores consolidated (38→0 and 12→1 files, unique facts
