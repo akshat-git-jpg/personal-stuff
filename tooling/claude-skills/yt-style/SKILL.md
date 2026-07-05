@@ -1,6 +1,6 @@
 ---
 name: yt-style
-description: Clone a competitor YouTube channel's script style from its style pack in pipelines/youtube/competitor-styles/. Verbs — fetch-transcripts a channel, build-style-dna into a Style DNA profile, suggest-topics, suggest-titles, or write-script in that channel's exact voice. Triggers on "yt-style", "build style dna for <channel>", "clone <channel>'s style", "suggest topics for <channel>", "suggest titles like <channel>", "write a script in <channel>'s style".
+description: Clone a competitor YouTube channel's script style from its style pack in pipelines/youtube/competitor-styles/. Verbs — fetch-transcripts a channel, build-script-style-dna into a Script Style DNA profile, suggest-topics, suggest-titles, or write-script in that channel's exact voice. Triggers on "yt-style", "build script style dna for <channel>", "clone <channel>'s style", "suggest topics for <channel>", "suggest titles like <channel>", "write a script in <channel>'s style".
 user-invocable: true
 metadata:
   author: kbtg
@@ -14,7 +14,7 @@ All data lives in style packs: `pipelines/youtube/competitor-styles/channels/<sl
 missing, list `channels/` and ask which channel + verb in one question.
 
 Never load the whole transcript corpus for generation — that is exactly what
-the DNA exists to avoid. Generation verbs read ONLY `style-dna.md`,
+the DNA exists to avoid. Generation verbs read ONLY `script-style-dna.md`,
 `rubric.md`, `exemplars/`, and (for topics) `videos.json`.
 
 ## fetch-transcripts <channel-url>
@@ -23,10 +23,10 @@ Not an LLM task. Tell the user to run (or run for them):
 
     python3 pipelines/youtube/competitor-styles/ingest.py <channel-url> --limit 30
 
-Re-running later picks up new uploads. Then suggest `build-style-dna` if
-`style-dna.md` doesn't exist yet.
+Re-running later picks up new uploads. Then suggest `build-script-style-dna`
+if `script-style-dna.md` doesn't exist yet.
 
-## build-style-dna <slug>
+## build-script-style-dna <slug>
 
 The one expensive session per channel. Requires `transcripts/` to be non-empty.
 
@@ -36,7 +36,7 @@ The one expensive session per channel. Requires `transcripts/` to be non-empty.
    observations to `distill-notes.md` in the pack (hooks seen verbatim,
    structure beats, recurring phrases, pacing impressions, CTA moments).
    Don't polish; capture evidence with video ids.
-3. Synthesize `style-dna.md` with EXACTLY these sections (all required —
+3. Synthesize `script-style-dna.md` with EXACTLY these sections (all required —
    every claim backed by at least one verbatim example with its video id):
    - **Identity snapshot** — ≤5 lines: format(s), audience, energy, POV.
    - **Hook formulas** — each distinct opening pattern, 2 verbatim examples
@@ -67,13 +67,13 @@ The one expensive session per channel. Requires `transcripts/` to be non-empty.
 6. Delete `distill-notes.md`. Report: DNA sections written, rubric check
    count, exemplar picks.
 
-Refresh policy: re-run build-style-dna only when the pack gains ~10+ new
-transcripts or the channel visibly changed style; it overwrites DNA/rubric
-(git holds history).
+Refresh policy: re-run build-script-style-dna only when the pack gains ~10+
+new transcripts or the channel visibly changed style; it overwrites
+DNA/rubric (git holds history).
 
 ## suggest-topics <slug>
 
-Load `style-dna.md` (Topic performance + Title patterns) and `videos.json`.
+Load `script-style-dna.md` (Topic performance + Title patterns) and `videos.json`.
 Produce 10 topic suggestions this channel would plausibly make next but
 hasn't: each with (a) one-line rationale grounded in their outliers, (b) the
 format it fits, (c) 2 title variants using their named title patterns.
@@ -81,13 +81,13 @@ Append as a dated section to `output/topics.md` (create if missing).
 
 ## suggest-titles <slug> "<topic>"
 
-Load `style-dna.md` (Title patterns). Produce 8 title variants for the topic,
+Load `script-style-dna.md` (Title patterns). Produce 8 title variants for the topic,
 each labeled with the pattern it uses; mark the 2 the outlier data favors.
 Print in chat; no file write unless asked.
 
 ## write-script <slug> "<topic>"
 
-Loads `style-dna.md`, `rubric.md`, and every file in `exemplars/`. Output dir:
+Loads `script-style-dna.md`, `rubric.md`, and every file in `exemplars/`. Output dir:
 `output/scripts/<topic-kebab-slug>/`. Target length: the channel's median
 video duration × the DNA's words-per-minute (state the computed word target
 before writing).
@@ -111,5 +111,6 @@ before writing).
 - Style is cloned; facts are not. Never copy a competitor's specific claims,
   numbers, or sponsor reads into a generated script.
 - One channel per invocation — no blending styles unless explicitly asked.
-- If `style-dna.md` is missing for the requested slug, run `build-style-dna`
-  first (confirm with the user — it's the expensive step).
+- If `script-style-dna.md` is missing for the requested slug, run
+  `build-script-style-dna` first (confirm with the user — it's the
+  expensive step).

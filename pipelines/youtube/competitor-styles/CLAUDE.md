@@ -11,8 +11,8 @@ generate topics/titles/scripts cheaply forever. The generation workflow is the
     ├── channel.json        # channel url/name, last ingest date
     ├── videos.json         # full catalog: id, title, views, duration, url
     ├── transcripts/        # one cleaned .md per video (frontmatter + text)
-    ├── style-dna.md        # distilled profile — written by /yt-style build-style-dna
-    ├── rubric.md           # style-fidelity checklist — written by build-style-dna
+    ├── script-style-dna.md # distilled profile — written by /yt-style build-script-style-dna
+    ├── rubric.md           # style-fidelity checklist — written by build-script-style-dna
     ├── exemplars/          # 2-3 full transcripts kept as few-shot references
     └── output/
         ├── topics.md       # dated batches of topic + title suggestions
@@ -32,7 +32,7 @@ blocks transcript fetches from datacenter IPs (see the pp-yt-transcript README).
 
 - Everything in a style pack is committed (small text only; media never lands here).
 - Transcripts are regenerable — if one looks garbled, delete it and re-run ingest.
-- New competitor = one `ingest.py` run + one `/yt-style build-style-dna <slug>` session.
+- New competitor = one `ingest.py` run + one `/yt-style build-script-style-dna <slug>` session.
 - Scale note: if a pack someday holds 100+ transcripts and topic research no
   longer fits in context, add a local embedding index THEN (decided 2026-07-05:
   no RAG/vector DB before that point; never for style itself).
