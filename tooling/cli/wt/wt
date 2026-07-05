@@ -1,0 +1,236 @@
+#!/bin/bash
+set -euo pipefail
+
+function usage() {
+  echo "Usage: wt <command> [options]" >&2
+  echo "Commands:" >&2
+  echo "  get    [--repo <path>] [--holder <label>]" >&2
+  echo "  return <worktree-path>" >&2
+  echo "  status [--repo <path>]" >&2
+  echo "  prune  [--repo <path>] [--yes]" >&2
+  exit 2
+}
+
+if [ $# -eq 0 ]; then
+  usage
+fi
+
+CMD=$1
+shift
+
+REPO="."
+HOLDER="unknown"
+PRUNE_YES=0
+TARGET_WT=""
+
+# Parse args
+case "$CMD" in
+  get|status|prune)
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --repo) REPO="$2"; shift 2 ;;
+        --holder) HOLDER="$2"; shift 2 ;;
+        --yes) PRUNE_YES=1; shift ;;
+        *) usage ;;
+      esac
+    done
+    ;;
+  return)
+    if [ $# -ne 1 ]; then usage; fi
+    TARGET_WT="$1"
+    ;;
+  *)
+    usage
+    ;;
+esac
+
+# Resolve repo
+REPO=$(cd "$REPO" && pwd) || exit 1
+if ! git -C "$REPO" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "ERROR: $REPO is not a git repository" >&2
+  exit 1
+fi
+
+REPO_TOPLEVEL=$(git -C "$REPO" rev-parse --show-toplevel)
+REPO_BASENAME=$(basename "$REPO_TOPLEVEL")
+HASH8=$(echo -n "$REPO_TOPLEVEL" | shasum -a 256 | cut -c 1-8)
+POOL="$HOME/kb-scratch/worktrees/$REPO_BASENAME-$HASH8"
+MAX_TREES=8
+
+# Locking mechanism
+LOCK_DIR="$POOL/.lock.d"
+
+function lock_pool() {
+  mkdir -p "$POOL"
+  until mkdir "$LOCK_DIR" 2>/dev/null; do
+    sleep 0.2
+  done
+}
+
+function unlock_pool() {
+  rmdir "$LOCK_DIR" 2>/dev/null || true
+}
+
+trap unlock_pool EXIT
+
+function get_default_branch() {
+  local ref
+  if ref=$(git -C "$REPO_TOPLEVEL" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null); then
+    echo "${ref#refs/remotes/origin/}"
+  else
+    echo "main"
+  fi
+}
+
+function reset_worktree() {
+  local wt_path=$1
+  local def_branch=$(get_default_branch)
+  local target_ref="origin/$def_branch"
+  
+  if ! git -C "$REPO_TOPLEVEL" show-ref --verify --quiet "refs/remotes/origin/$def_branch"; then
+    target_ref="$def_branch"
+  fi
+
+  git -C "$wt_path" checkout --detach "$target_ref" >&2
+  git -C "$wt_path" reset --hard "$target_ref" >&2
+  git -C "$wt_path" clean -fd >&2
+}
+
+function run_bootstrap() {
+  local wt_path=$1
+  local hook_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/bootstrap.d/$REPO_BASENAME.sh"
+  if [ -x "$hook_script" ]; then
+    (export WT_MAIN_CHECKOUT="$REPO_TOPLEVEL"; cd "$wt_path" && "$hook_script") || echo "WARNING: bootstrap hook failed" >&2
+  fi
+}
+
+case "$CMD" in
+  get)
+    git -C "$REPO_TOPLEVEL" fetch origin >&2 || echo "WARNING: fetch failed" >&2
+    
+    lock_pool
+    
+    allocated_path=""
+    for i in $(seq 1 $MAX_TREES); do
+      n_dir="$POOL/$i"
+      wt_path="$n_dir/$REPO_BASENAME"
+      lease_file="$POOL/$i.lease"
+      
+      if [ -d "$wt_path" ]; then
+        if [ ! -f "$lease_file" ]; then
+          # Check if clean
+          if [ -z "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
+            # Free and clean candidate found
+            reset_worktree "$wt_path"
+            allocated_path="$wt_path"
+            allocated_lease="$lease_file"
+            break
+          fi
+        fi
+      else
+        # Not created yet, create it
+        local def_branch=$(get_default_branch)
+        local target_ref="origin/$def_branch"
+        if ! git -C "$REPO_TOPLEVEL" show-ref --verify --quiet "refs/remotes/origin/$def_branch"; then
+          target_ref="$def_branch"
+        fi
+        
+        mkdir -p "$n_dir"
+        git -C "$REPO_TOPLEVEL" worktree add --detach "$wt_path" "$target_ref" >&2
+        allocated_path="$wt_path"
+        allocated_lease="$lease_file"
+        break
+      fi
+    done
+    
+    if [ -z "$allocated_path" ]; then
+      echo "ERROR: pool full ($MAX_TREES)" >&2
+      unlock_pool
+      exit 1
+    fi
+    
+    # Write lease
+    echo "holder=$HOLDER" > "$allocated_lease"
+    echo "leased_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$allocated_lease"
+    
+    run_bootstrap "$allocated_path"
+    
+    unlock_pool
+    # Print the path on stdout
+    echo "$allocated_path"
+    ;;
+    
+  return)
+    wt_path=$(cd "$TARGET_WT" 2>/dev/null && pwd) || { echo "ERROR: invalid path" >&2; exit 2; }
+    
+    if [[ "$wt_path" != "$POOL/"*"/$REPO_BASENAME" ]]; then
+      echo "ERROR: not a wt-managed worktree" >&2
+      exit 2
+    fi
+    
+    # Check if dirty or unpushed
+    if [ -n "$(git -C "$wt_path" log --oneline @{u}..HEAD 2>/dev/null)" ]; then
+      echo "WARNING: worktree has unpushed commits" >&2
+    fi
+    if [ -n "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
+      echo "WARNING: worktree is dirty" >&2
+    fi
+    
+    n_dir=$(dirname "$wt_path")
+    i=$(basename "$n_dir")
+    lease_file="$POOL/$i.lease"
+    
+    lock_pool
+    rm -f "$lease_file"
+    reset_worktree "$wt_path"
+    unlock_pool
+    ;;
+    
+  status)
+    lock_pool
+    printf "%-5s %-10s %-15s %s\n" "N" "STATE" "HOLDER" "AGE"
+    for i in $(seq 1 $MAX_TREES); do
+      n_dir="$POOL/$i"
+      wt_path="$n_dir/$REPO_BASENAME"
+      lease_file="$POOL/$i.lease"
+      
+      if [ -d "$wt_path" ]; then
+        if [ -f "$lease_file" ]; then
+          holder=$(grep "^holder=" "$lease_file" | cut -d= -f2)
+          printf "%-5s %-10s %-15s %s\n" "$i" "leased" "$holder" "$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$lease_file")"
+        else
+          if [ -n "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
+            printf "%-5s %-10s %-15s %s\n" "$i" "dirty" "-" "-"
+          else
+            printf "%-5s %-10s %-15s %s\n" "$i" "free" "-" "-"
+          fi
+        fi
+      fi
+    done
+    unlock_pool
+    ;;
+    
+  prune)
+    lock_pool
+    for i in $(seq 1 $MAX_TREES); do
+      n_dir="$POOL/$i"
+      wt_path="$n_dir/$REPO_BASENAME"
+      lease_file="$POOL/$i.lease"
+      
+      if [ -d "$wt_path" ]; then
+        if [ ! -f "$lease_file" ]; then
+          if [ -z "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
+            if [ "$PRUNE_YES" -eq 1 ]; then
+              git -C "$REPO_TOPLEVEL" worktree remove "$wt_path" >&2
+              rm -rf "$n_dir"
+              echo "Pruned $wt_path" >&2
+            else
+              echo "Would prune $wt_path (free+clean)" >&2
+            fi
+          fi
+        fi
+      fi
+    done
+    unlock_pool
+    ;;
+esac
