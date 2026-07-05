@@ -20,3 +20,5 @@
 [21:18:00] PLAN 026 DONE  verify: import removed, file size under 4300 bytes  files: CLAUDE.md
 [21:18:30] PLAN 028 START
 [21:20:00] PLAN 028 DONE  verify: 4 sections moved to HISTORY.md, Roles condensed. size 13735b (~13K)  files: apps/tutorial-tracker-app/CLAUDE.md, apps/tutorial-tracker-app/HISTORY.md
+[21:20:30] PLAN 024 START
+[21:23:00] PLAN 024 DONE  verify: 3 skills split successfully, sizes met target  files: tooling/claude-skills/*/SKILL.md, tooling/claude-skills/*/references/*.md
