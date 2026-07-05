@@ -1,4 +1,4 @@
-# Local dev & design loop — tracker-app
+# Local dev & design loop — tutorial-tracker-app
 
 Fast loop for building UI and checking it (by eye or via Playwright) against
 realistic seeded data. No Google sign-in, no password.
@@ -6,7 +6,7 @@ realistic seeded data. No Google sign-in, no password.
 ## One-time
 
 ```bash
-cd apps/tracker-app
+cd apps/tutorial-tracker-app
 npm install
 npx playwright install chromium   # only if you'll use the screenshot/e2e tooling
 ```

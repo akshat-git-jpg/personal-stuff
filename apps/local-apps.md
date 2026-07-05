@@ -10,12 +10,12 @@ node /Users/kbtg/codebase/personal-stuff/tooling/cli/ccusage-dashboard/dashboard
 
 http://localhost:4319
 
-## tutorials-tracker (apps/tracker-app)
+## tutorials-tracker (apps/tutorial-tracker-app)
 
 ### Fast design/dev loop (recommended) — Vite HMR :5173 + wrangler API :8787
 
 ```bash
-cd /Users/kbtg/codebase/personal-stuff/apps/tracker-app
+cd /Users/kbtg/codebase/personal-stuff/apps/tutorial-tracker-app
 npm install              # once (uses local .npmrc → public registry)
 npm run seed:local       # wipe + reseed local D1: dev personas + demo cards (both pipelines, every status)
 npm run dev:local        # Vite :5173 (instant reload) + wrangler :8787 (proxied /api,/auth,/dev-login)
@@ -33,7 +33,7 @@ Use **:5173** for UI work. Dev login (no Google), gated by `DEV_AUTH=1` in `.dev
 ### Bare-worker check — real Worker serving built dist/ on :8787
 
 ```bash
-cd /Users/kbtg/codebase/personal-stuff/apps/tracker-app
+cd /Users/kbtg/codebase/personal-stuff/apps/tutorial-tracker-app
 npm run build            # builds the SPA into dist/ — MUST run before wrangler (and after ANY client change)
 npx wrangler dev --port 8787   # leave running
 ```

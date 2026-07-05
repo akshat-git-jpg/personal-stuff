@@ -152,7 +152,7 @@ Sent from `seankerman25@gmail.com` (display "Tutorials Tracker") on: **submitted
 Bare-worker check (no HMR, exercises the real Worker serving `dist/`):
 
 ```bash
-cd apps/tracker-app
+cd apps/tutorial-tracker-app
 npm install                 # uses the local .npmrc → public npm registry (avoids Zluri CodeArtifact 401)
 npm run build               # builds the SPA into dist/
 npx wrangler dev --port 8787

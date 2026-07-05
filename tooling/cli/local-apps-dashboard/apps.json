@@ -14,7 +14,7 @@
     {
       "id": "tracker",
       "name": "tutorials-tracker",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/apps/tracker-app",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/apps/tutorial-tracker-app",
       "start": "npm run seed:local && npm run dev:local",
       "env": { "WEB_PORT": "5173", "API_PORT": "8787" },
       "port": 5173,
