@@ -117,6 +117,63 @@ before writing).
   are genuinely inapplicable. Append a scorecard to the bottom of `script.md`
   as an HTML comment (`<!-- rubric: 14/15 pass; #7 n/a because … -->`).
 
+## build-video-style-dna <slug>
+
+The expensive video session per channel (independent of `build-script-style-dna`
+— a channel can have one, the other, or both). Requires `video-metrics.json`
+to be non-empty.
+
+1. Read `video-metrics.json` + `videos.json`. Using view counts and
+   `cuts_per_minute`, pick a representative subset: the top view-count
+   outlier, one maximally typical video, one per visually distinct format
+   if the channel runs several, and any video whose `cuts_per_minute` is a
+   clear outlier vs the channel median (a "high-energy edit" signal worth
+   its own look). Aim for roughly 5-8 videos total — enough range without
+   reviewing every video's frames.
+2. For each chosen video, list `.video-cache/<video_id>/` (sorted by
+   timestamp). If it has more than ~40 frames, evenly subsample down to
+   ~40 before reading anything — pick every Nth file rather than reading
+   the full set (some channels' longer shots generate hundreds of interior
+   samples; Tier 1 extraction is free, but Tier 2 review is not, so cap
+   here, not at extraction time). Read the (sub)sampled frames in batches
+   of ~10 images. After each batch, append raw observations to
+   `video-distill-notes.md` in the pack (B-roll moments, caption/overlay
+   style, motion-graphics/animation beats, framing, thumbnail impressions —
+   capture evidence with video id + timestamp, don't polish yet).
+3. Synthesize `video-style-dna.md` with EXACTLY these sections (all required
+   — every claim backed by at least one example with its video id and
+   timestamp):
+   - **Identity snapshot** — ≤5 lines: visual format(s) (talking-head /
+     screen-recording / animated / hybrid), overall visual energy,
+     dominant color grade or aesthetic.
+   - **Cut pacing** — cuts-per-minute and shot-length distribution computed
+     across the FULL `video-metrics.json` (every fetched video, not just the
+     reviewed subset), and how pacing varies by video length or format.
+   - **B-roll patterns** — how often and when B-roll appears vs talking-head,
+     typical B-roll sources, examples with video id + timestamp.
+   - **On-screen text & captions** — burned-in caption/lower-third/callout
+     style, timing relative to speech, examples.
+   - **Motion graphics & animation** — kinetic typography, transition
+     styles, animated overlays/icons, examples.
+   - **Thumbnail style** — composition/color/text patterns across the
+     reviewed videos' frames.
+   - **Framing & composition** — camera angle and shot-composition habits.
+   - **Do-not list** — visual patterns this channel never uses.
+4. Copy 15-20 of the most illustrative frames referenced in the DNA into
+   `frames/exemplars/` (rename descriptively, e.g.
+   `<video_id>_<timestamp>s-lower-third.jpg`), so a claim can be visually
+   spot-checked later.
+5. Delete `video-distill-notes.md` and everything left in `.video-cache/`.
+   Report: DNA sections written, evidence frames kept.
+
+There is no `video-rubric.md` — nothing consumes it yet. `write-script`
+reads only `script-style-dna.md`/`rubric.md`/`exemplars/`; it does not read
+`video-style-dna.md`.
+
+Refresh policy: re-run build-video-style-dna only when the pack gains ~10+
+new measured videos or the channel visibly changed its visual style; it
+overwrites `video-style-dna.md` (git holds history).
+
 ## Guardrails
 
 - Style is cloned; facts are not. Never copy a competitor's specific claims,
