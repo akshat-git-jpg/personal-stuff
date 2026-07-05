@@ -64,7 +64,8 @@ fi
 
 if [ "$LANE" = "claude-tmux" ]; then
   WINDOW=$(meta_get tmux_window) || WINDOW="cap-$ID"
-  tmux kill-window -t "captain:$WINDOW" 2>/dev/null || true
+  TMUX_SESSION="${CAP_TMUX_SESSION:-captain}"
+  tmux kill-window -t "$TMUX_SESSION:$WINDOW" 2>/dev/null || true
 fi
 
 if [ -n "$WORKTREE" ]; then

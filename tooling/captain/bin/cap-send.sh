@@ -39,7 +39,7 @@ if [ "$LANE" != "claude-tmux" ]; then
 fi
 
 WINDOW=$(meta_get "$ID" tmux_window) || WINDOW="cap-$ID"
-TMUX_SESSION="captain"
+TMUX_SESSION="${CAP_TMUX_SESSION:-captain}"
 
 tmux send-keys -t "$TMUX_SESSION:$WINDOW" -l "$TEXT"
 sleep 0.3

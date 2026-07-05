@@ -16,7 +16,7 @@ CAPTAIN_HOME="${CAPTAIN_HOME:-$CAPTAIN_DIR}"
 STATE_DIR="$CAPTAIN_HOME/state"
 mkdir -p "$STATE_DIR"
 
-TMUX_SESSION="captain"
+TMUX_SESSION="${CAP_TMUX_SESSION:-captain}"
 BUSY_REGEX='esc (to )?interrupt|Working\.\.\.'
 
 meta_get() {

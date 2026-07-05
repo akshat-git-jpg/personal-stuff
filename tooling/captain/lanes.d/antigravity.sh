@@ -69,8 +69,15 @@ case "$verb" in
     fi
 
     if [ "$recent" -ne 0 ] && [ -n "$worktree" ] && [ -d "$worktree" ]; then
-      newest=$(find "$worktree" -type f -not -path '*/.git/*' -newermt "@$(( now - window ))" 2>/dev/null | head -1)
-      [ -n "$newest" ] && recent=0
+      threshold=$(( now - window ))
+      while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        fmtime=$(stat -f %m "$f" 2>/dev/null || stat -c %Y "$f" 2>/dev/null || echo 0)
+        if [ "$fmtime" -ge "$threshold" ]; then
+          recent=0
+          break
+        fi
+      done < <(find "$worktree" -type f 2>/dev/null | grep -v '/\.git/')
     fi
 
     if [ "$recent" -ne 0 ] && [ -n "$worktree" ] && [ -d "$worktree" ]; then

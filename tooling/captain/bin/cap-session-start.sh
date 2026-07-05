@@ -27,7 +27,8 @@ for meta in "$STATE_DIR"/*.meta; do
   lane=$(meta_get "$id" lane)
   if [ "$lane" = "claude-tmux" ]; then
     window=$(meta_get "$id" tmux_window) || window="cap-$id"
-    if ! tmux has-session -t captain 2>/dev/null || ! tmux list-windows -t captain 2>/dev/null | grep -q "$window"; then
+    tmux_session="${CAP_TMUX_SESSION:-captain}"
+    if ! tmux has-session -t "$tmux_session" 2>/dev/null || ! tmux list-windows -t "$tmux_session" 2>/dev/null | grep -q "$window"; then
       echo "  $id: tmux window '$window' is gone (dead crewmate, needs teardown)"
     fi
   fi
