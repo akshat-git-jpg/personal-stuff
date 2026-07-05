@@ -99,8 +99,9 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED 
   032/031 reference 021/029's output when present. Branch note: when executed
   as one run, the run prompt's branch instruction (one branch per repo, one
   commit per plan) OVERRIDES the per-plan branch names.
-  All vps-crons plans end with an owner follow-up (push + VPS pull + .env) —
-  the executor never touches the VPS.
+  vps-crons plans list a VPS follow-up (push + VPS pull + .env). A Claude session
+  with VPS access (the `hostinger-vps` SSH key) may perform that wiring directly
+  over SSH rather than handing it back to the owner.
 
 ## Findings NOT turned into plans (deferred backlog, not rejected)
 
