@@ -18,3 +18,5 @@
 [21:17:00] PLAN 030 DONE  verify: zero problems real run, 43 synthetic missing exit 1  files: scripts/skills-status.sh, scripts/README.md
 [21:17:30] PLAN 026 START
 [21:18:00] PLAN 026 DONE  verify: import removed, file size under 4300 bytes  files: CLAUDE.md
+[21:18:30] PLAN 028 START
+[21:20:00] PLAN 028 DONE  verify: 4 sections moved to HISTORY.md, Roles condensed. size 13735b (~13K)  files: apps/tutorial-tracker-app/CLAUDE.md, apps/tutorial-tracker-app/HISTORY.md

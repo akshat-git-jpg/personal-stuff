@@ -40,7 +40,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 025 | vps-crons: shared _shared/alert.sh failure trap in every wrapper | P2 | S | — | TODO |
 | 026 | CLAUDE.md: stop importing README (reduce per-session token load) | P3 | S | — | DONE |
 | 027 | Hourly site-uptime probe over my-hosted-sites.md (2 repos) | P3 | S-M | 025 | TODO |
-| 028 | tutorial-tracker-app CLAUDE.md: current guide inline, history out | P3 | M | — | TODO |
+| 028 | tutorial-tracker-app CLAUDE.md: current guide inline, history out | P3 | M | — | DONE |
 | 029 | vps-crons: vps-apply.sh (pull + venv reinstall + crontab reload) | P3 | M | — | TODO |
 | 030 | skills-status.sh: account-membership table + dangling-link check | P3 | S | — | DONE |
 | 031 | VPS-CRONS.md refresh: stale paths/date/names, sync both copies | P3 | S | 029 (soft) | TODO |
