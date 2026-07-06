@@ -63,7 +63,12 @@ def get_credentials(account_email: str) -> Credentials:
             f"    python3 \"{BASE_DIR}/setup_auth.py\" {account_email}"
         )
 
-    creds = Credentials.from_authorized_user_file(str(token_file), SCOPES)
+    # Load whatever scopes the token file already declares (scopes=None) rather
+    # than forcing the current SCOPES constant. Refresh sends the declared
+    # scopes to Google; a refresh_token only covers what it was originally
+    # granted, so forcing a superset (e.g. after SCOPES gains a new entry)
+    # fails with invalid_scope even though the token is otherwise healthy.
+    creds = Credentials.from_authorized_user_file(str(token_file))
     if creds.valid:
         return creds
     if creds.expired and creds.refresh_token:
