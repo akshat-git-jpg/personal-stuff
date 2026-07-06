@@ -66,12 +66,17 @@ Shipped lanes:
   exactly like death (2026-07-06 incident) — check the IDE window before
   declaring a task dead.
 - **agy-headless** — officers' default executor: a backgrounded
-  `agy -p ... --dangerously-skip-permissions` run (Antigravity CLI, same
-  AI Pro sub as the IDE). Real process: PID liveness, captured stdout, no
-  permission dialogs, no lock — fully parallel. Per-call `--model` incl.
-  Claude Sonnet/Opus 4.6. Replaced the gemini-headless lane after Google
-  cut the gemini CLI off from individual accounts (2026-06-18) — full story
-  in `references/antigravity-cli-findings.md`.
+  `agy -p ... --dangerously-skip-permissions --add-dir <worktree>
+  --output-format json --print-timeout 180m` run (Antigravity CLI, same AI
+  Pro sub as the IDE). Real process: PID liveness, JSON envelope with token
+  usage + `conversation_id` (fix-ups resume with full context via
+  `--conversation`), no permission dialogs, no lock — fully parallel.
+  Default model Gemini 3.1 Pro (High); per-call `--model` incl. Claude
+  Sonnet/Opus 4.6. agy reads AGENTS.md not CLAUDE.md — the repo ships an
+  `AGENTS.md -> CLAUDE.md` symlink; `.agents/hooks.json` runs a
+  secrets-guard hook denying reads of secret paths (live-verified).
+  Replaced gemini-headless after Google cut that CLI off from individual
+  accounts (2026-06-18) — `references/antigravity-cli-findings.md`.
 
 ## Task lifecycle scripts (`bin/`)
 

@@ -1,0 +1,16 @@
+{
+  "secrets-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 hooks/secrets-guard.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

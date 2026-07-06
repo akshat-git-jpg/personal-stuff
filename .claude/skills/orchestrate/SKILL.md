@@ -198,7 +198,7 @@ one dispatch script; the run-log, verification, and rounds are executor-agnostic
 | `antigravity` | `scripts/ag-handoff.sh <prompt-file>` (pbcopy → focus → Cmd+V → Enter; `AG_APP` defaults to "Antigravity IDE") | `RUN DONE` in the run-log, via `scripts/watch-run.sh` | heartbeat staleness (default 10 min) — a GUI app emits no process signal |
 | `sonnet` | one Agent-tool subagent **per plan**, `model: sonnet`; orchestrator checkpoints between plans | subagent returns + run-log `PLAN NNN DONE` | harness surfaces a dead subagent immediately |
 | `opus` | one Agent-tool subagent **per plan**, `model: opus` — for `tricky` plans only | same as `sonnet` | same as `sonnet` |
-| `agy` | background Bash per plan: `agy -p "$(cat <prompt-file>)" --dangerously-skip-permissions [--model "<name>"]` with cwd = the working tree; prompt carries the same run-log rules | process exit + run-log `PLAN NNN DONE`; stdout captured to a file | `kill -0 <pid>` — a real process, exact liveness (no heartbeat guessing) |
+| `agy` | background Bash per plan: `agy -p "$(cat <prompt-file>)" --dangerously-skip-permissions --add-dir "<working-tree>" --output-format json --print-timeout 180m [--model "<name>"]` with cwd = the working tree (`--add-dir` is mandatory — print mode does not bind cwd; default timeout is 5m); prompt carries the same run-log rules | process exit + run-log `PLAN NNN DONE`; JSON envelope in the captured file has `status`/`usage`/`conversation_id` (resume fix-ups via `--conversation <id>`) | `kill -0 <pid>` — a real process, exact liveness (no heartbeat guessing) |
 
 Notes:
 - **Antigravity's internal model is set in the app's own model picker** — the

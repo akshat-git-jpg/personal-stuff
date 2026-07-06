@@ -24,9 +24,14 @@ needs-decision status, never silent reinterpretation.>
 4. **Execution — default executor is `agy`** (Antigravity CLI; owner
    decision 2026-07-06 — same AI Pro subscription as the IDE, headless, no
    lock). Per plan: background `agy -p "$(cat <prompt-file>)"
-   --dangerously-skip-permissions [--model "<name>"]` with cwd = THIS
-   worktree, stdout to a file; liveness = the PID, completion = process
-   exit + the plan's run-log DONE line. Default model: **Gemini 3.1 Pro
+   --dangerously-skip-permissions --add-dir "$PWD" --output-format json
+   --print-timeout 180m [--model "<name>"]` with cwd = THIS worktree,
+   stdout to a file. `--add-dir` is MANDATORY (print mode does not bind
+   cwd; without it agy runs blind against a scratch dir) and the JSON
+   envelope carries usage + `conversation_id`. Liveness = the PID;
+   completion = process exit + the plan's run-log DONE line. Fix-up
+   rounds resume with FULL context: `agy --conversation <id> -p "..."`
+   (same flags). Default model: **Gemini 3.1 Pro
    (High)** (owner default 2026-07-06); per-plan override via `agy models`
    names — Claude Sonnet/Opus 4.6 are available under the same sub for
    tricky plans.
