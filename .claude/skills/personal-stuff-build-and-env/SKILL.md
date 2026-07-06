@@ -20,6 +20,9 @@ git clone git@github.com:akshat-git-jpg/vps-crons.git ~/codebase/vps-crons   # c
 cd ~/codebase/personal-stuff && ./scripts/relink.sh
 # then RESTART any open Claude session — skill discovery is cached
 
+# 2b. Repo CLIs (wt, yt-claude) onto PATH via ~/.local/bin
+./scripts/link-clis.sh
+
 # 3. Machine-local MCP config (gitignored, absolute paths)
 ./scripts/regen-mcp-json.sh        # wires google-drive + cloudflare only; MCP_PYTHON overrides interpreter
 
@@ -55,7 +58,7 @@ Full detail in `VPS-CRONS.md`; the skeleton: provision Ubuntu 24.04 → restore 
 
 ## After moving/renaming anything in the repo
 
-Symlinks store absolute paths and `.mcp.json` hardcodes them: re-run `./scripts/relink.sh` + `./scripts/regen-mcp-json.sh`, and check `scripts/README.md`'s external-dependency list (zshrc, vps-crons wrappers, VPS mounts, github-router).
+Symlinks store absolute paths and `.mcp.json` hardcodes them: re-run `./scripts/relink.sh` + `./scripts/link-clis.sh` + `./scripts/regen-mcp-json.sh`, and check `scripts/README.md`'s external-dependency list (zshrc, vps-crons wrappers, VPS mounts, github-router).
 
 ## When NOT to use this skill
 
