@@ -198,12 +198,18 @@ one dispatch script; the run-log, verification, and rounds are executor-agnostic
 | `antigravity` | `scripts/ag-handoff.sh <prompt-file>` (pbcopy → focus → Cmd+V → Enter; `AG_APP` defaults to "Antigravity IDE") | `RUN DONE` in the run-log, via `scripts/watch-run.sh` | heartbeat staleness (default 10 min) — a GUI app emits no process signal |
 | `sonnet` | one Agent-tool subagent **per plan**, `model: sonnet`; orchestrator checkpoints between plans | subagent returns + run-log `PLAN NNN DONE` | harness surfaces a dead subagent immediately |
 | `opus` | one Agent-tool subagent **per plan**, `model: opus` — for `tricky` plans only | same as `sonnet` | same as `sonnet` |
+| `gemini` | background Bash per plan: `gemini -p "$(cat <prompt-file>)" --yolo --skip-trust` with cwd = the working tree; prompt carries the same run-log rules | process exit + run-log `PLAN NNN DONE`; stdout captured to a file | `kill -0 <pid>` — a real process, exact liveness (no heartbeat guessing) |
 
 Notes:
 - **Antigravity's internal model is set in the app's own model picker** — the
   skill cannot select or verify it. Antigravity runs on its own subscription,
   so it's the cheapest choice for mechanical batches; `sonnet`/`opus` subagents
   share the Claude usage pool.
+- **`gemini` (added 2026-07-06, experimental)**: Gemini CLI on the owner's
+  Google quota — non-Claude like Antigravity, but a real process: no GUI
+  permission dialogs (approvals are spawn flags), exact death detection, and
+  it parallelizes (per-worktree cwd, no shared IDE workspace). One-time setup:
+  run `gemini` interactively once to log in. Shakedown before defaulting.
 - **One run at a time.** Runs share one working tree and git history —
   never dispatch a second run (any executor) while one is in flight.
 

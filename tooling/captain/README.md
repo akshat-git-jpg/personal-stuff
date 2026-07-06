@@ -8,12 +8,29 @@ needs the owner.
 ## Quickstart
 
 ```bash
-cd tooling/captain && claude
+captain-work        # or: captain-personal  (zshrc functions — opus default,
+                    # skip-permissions, the account flows to crewmates)
 ```
 
 That session reads `CLAUDE.md` in this folder and becomes the captain. It
-starts by running `bin/cap-session-start.sh` (fleet digest + wake-queue
-drain), then takes the owner's next ask.
+starts by running `bin/cap-session-start.sh` (captain lock check, fleet
+digest, wake-queue drain, orphaned-run scan), then takes the owner's next
+ask. **One captain at a time**, either account — they share `state/`.
+
+## The model (v2, 2026-07-06): workers and officers
+
+Every unit of work is a crewmate; the captain only talks, routes, and
+supervises. **Workers** = small clear-scope tasks → `greenlight` FULL review.
+**Officers** = one per big feature: a long-lived session in its own worktree
+that runs the `orchestrate` skill itself (recon → plans → the owner's
+/plan-review gate → execution → verification), spawned from
+`references/officer-brief-template.md` with the captain-brainstormed
+requirements brief pasted in → lands via `greenlight --skip review`.
+Officers parallelize (2–3 features in flight is the designed case); only the
+owner's attention and the Antigravity lane serialize. Antigravity is the
+officers' default executor and needs `bin/cap-aglock.sh` — a GLOBAL lock
+that also steers the main checkout onto the executing branch (one IDE = one
+workspace). The `gemini` and `sonnet` executors need no lock.
 
 ## The lane registry
 
@@ -42,7 +59,16 @@ Shipped lanes:
 - **antigravity** — a GUI handoff via the `orchestrate` skill's
   `ag-handoff.sh`. Antigravity skips run-log heartbeats on long GUI runs
   (`plans/runs/LESSONS.md`, 2026-07-05), so liveness trusts worktree file
-  mtimes and git-log timestamps over the run-log's own mtime.
+  mtimes and git-log timestamps over the run-log's own mtime. Plan-batch
+  execution on this lane requires `bin/cap-aglock.sh` (see above). Beware:
+  a write outside the workspace pops a GUI permission dialog that looks
+  exactly like death (2026-07-06 incident) — check the IDE window before
+  declaring a task dead.
+- **gemini-headless** (experimental) — a backgrounded `gemini -p ... --yolo
+  --skip-trust` run: non-Claude quota like Antigravity, but a real process
+  (PID liveness, captured stdout, no permission dialogs, no lock — fully
+  parallel). One-time setup: run `gemini` interactively once to log in.
+  Shakedown one real batch before making it any default.
 
 ## Task lifecycle scripts (`bin/`)
 
@@ -61,9 +87,13 @@ Shipped lanes:
   `state/.wake-queue` on a state change, but only when the lane does NOT
   show positive evidence of ongoing work (the absorb rule). Never calls a
   model. `CAP_WATCH_ONCE=1` runs a single pass (used by the self-test).
-- `cap-session-start.sh` — reconciles dead tmux windows against known
-  tasks, drains the wake-queue, prints the fleet table + backlog + parked
-  `greenlight` runs.
+- `cap-session-start.sh` — captain-lock check (warns if another captain
+  session looks live), reconciles dead tmux windows, drains the wake-queue,
+  prints the fleet table + backlog + in-flight/orphaned orchestrate runs +
+  parked `greenlight` runs.
+- `cap-aglock.sh acquire <id> <branch> | release <id> | status` — the global
+  Antigravity execution lock; acquire steers the main checkout onto the
+  officer's branch, release restores it.
 
 ## Data & state file map
 
@@ -107,7 +137,9 @@ Adapted from `kunchenguid/firstmate` (studied 2026-07-06).
   core change); propose-and-confirm routing instead of silent guessing;
   Antigravity as a first-class cheap lane; `wt`'s stdout-path lease instead
   of pane-cwd polling (simpler, race-free).
-- **Dropped**: secondmates, the away-mode daemon, multi-harness support.
+- **Dropped in v1**: secondmates, the away-mode daemon, multi-harness
+  support. **v2 (same day) added officers** — secondmates by another name,
+  earned once the owner hit the 3-parallel-features wall v1 serialized.
 
 ## Follow-up (not in scope here)
 
