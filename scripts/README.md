@@ -5,6 +5,7 @@ Repo-wide orchestration scripts in one place, plus an index of everything *outsi
 ## Scripts here
 
 - `relink.sh` — recreates the per-account skill symlinks in `~/.claude-work/skills` and `~/.claude-personal/skills` from the manifests in `tooling/claude-skills/manifest/`. Idempotent. Run it after cloning, after moving the repo, or after changing skill membership. Resolves the skill store relative to itself, so a repo rename doesn't break it — but the symlinks it already created point at absolute paths, so you must re-run it after a move.
+- `link-clis.sh` — the CLI counterpart to `relink.sh`: symlinks this repo's own PATH-facing CLIs (`wt`, `yt-claude`) into `~/.local/bin` from an explicit list at the top of the script. Idempotent and self-healing — repairs stale links, never clobbers real (non-symlink) files, never touches names it doesn't manage. Run it after cloning or moving the repo; add a new repo CLI by appending one line to the list.
 - `regen-mcp-json.sh` — rewrites the gitignored `.mcp.json` at the repo root with this machine's `tooling/mcp` server paths. Run after cloning or moving the repo.
 - `vps-sync.sh` — **VPS only.** `git pull`s the VPS clone and rebuilds `~/.claude/skills` (single root account) from `manifest/personal.txt`. The VPS counterpart to `relink.sh`. A `repo-sync` cron runs it every 15 min so interactive Claude (Remote Control / mobile) on the VPS stays current with what you push. Safe to run by hand for an instant sync.
 - `check-apps.sh` — Uniform verification runner. Iterates through all apps and runs typecheck/check, lint, and test scripts. Returns exit code 0 if all pass, 1 if any fails.
@@ -28,5 +29,6 @@ These live outside the repo and must be updated by hand if the repo moves or a f
 
 ```bash
 ./scripts/relink.sh          # recreate skill symlinks
+./scripts/link-clis.sh       # put the repo's own CLIs (wt, yt-claude) on PATH
 ./scripts/regen-mcp-json.sh  # write .mcp.json for this machine
 ```
