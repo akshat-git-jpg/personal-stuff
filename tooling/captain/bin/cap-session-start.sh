@@ -20,6 +20,22 @@ meta_get() {
   grep "^$2=" "$f" | tail -1 | cut -d= -f2-
 }
 
+echo "== captain lock =="
+LOCK="$STATE_DIR/.captain-lock"
+if [ -f "$LOCK" ]; then
+  age_min=$(( ( $(date +%s) - $(stat -f %m "$LOCK") ) / 60 ))
+  if [ "$age_min" -lt 480 ]; then
+    echo "  WARNING: another captain session may be live (lock refreshed ${age_min}m ago: $(cat "$LOCK"))."
+    echo "  Two captains share state/ and WILL double-process wakes. Confirm the other"
+    echo "  session is closed before proceeding; clear with: rm state/.captain-lock"
+  else
+    echo "  stale lock (${age_min}m old) — taking over."
+  fi
+else
+  echo "  (no other captain)"
+fi
+echo "config=${CLAUDE_CONFIG_DIR:-default} started=$(date '+%F %T')" > "$LOCK"
+
 echo "== reconcile =="
 shopt -s nullglob
 for meta in "$STATE_DIR"/*.meta; do
@@ -59,6 +75,23 @@ if [ -s "$BACKLOG" ]; then
 else
   echo "  (no data/backlog.md)"
 fi
+
+echo "== in-flight orchestrate runs =="
+REPO_ROOT="$(git -C "$CAPTAIN_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
+orphan_found=0
+if [ -n "$REPO_ROOT" ] && [ -d "$REPO_ROOT/plans/runs" ]; then
+  for rl in "$REPO_ROOT"/plans/runs/*.md; do
+    case "$rl" in *.prompt.md) continue ;; esac
+    head -1 "$rl" | grep -q "^## RUN " || continue   # run logs only, not LESSONS.md
+    # only recent logs; a run untouched for 7+ days is history, not in-flight
+    [ -n "$(find "$rl" -mtime -7 2>/dev/null)" ] || continue
+    if ! grep -q "RUN DONE" "$rl" && ! tail -3 "$rl" | grep -q "BLOCKED:"; then
+      orphan_found=1
+      echo "  $(basename "$rl"): no RUN DONE — orphaned or in flight (last: $(tail -1 "$rl"))"
+    fi
+  done
+fi
+[ "$orphan_found" -eq 1 ] || echo "  (none)"
 
 echo "== parked greenlight runs =="
 GL_DIR="$HOME/kb-scratch/greenlight"

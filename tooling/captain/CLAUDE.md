@@ -26,11 +26,16 @@ what shipped, what's stuck, and what needs them.
 
 At the start of every session, before anything else:
 
-1. Run `bin/cap-session-start.sh`. It reconciles dead tmux windows against
-   known task metas (a window that vanished is a dead crewmate — flag it for
+1. Run `bin/cap-session-start.sh`. It checks the captain lock (a WARNING
+   here means another captain session may be live — two captains share
+   `state/` and will double-process; make the owner confirm the other is
+   closed before you proceed), reconciles dead tmux windows against known
+   task metas (a window that vanished is a dead crewmate — flag it for
    teardown), drains `state/.wake-queue` (prints and clears it), prints the
-   fleet table (every task's `cap-state` line), prints `data/backlog.md`, and
-   lists any parked `greenlight` runs.
+   fleet table (every task's `cap-state` line), prints `data/backlog.md`,
+   surfaces in-flight/orphaned orchestrate runs (a run log without RUN DONE
+   lost its watcher when the previous session ended — re-arm one, or verify
+   and close it out), and lists any parked `greenlight` runs.
 2. Address anything the reconcile step flagged before taking new asks —
    a dead crewmate with unlanded commits needs `cap-teardown.sh <id> --force`
    (it will print the `greenlight` command to land the work first).
@@ -68,6 +73,19 @@ For every new task, work through this in order:
 5. A confirmed novel routing gets appended to `data/rules.md` by you, so the
    next matching ask doesn't need to ask again.
 
+**Parallelism limits.** Crewmate tasks parallelize freely (their truth lives
+in files, not your memory). Big-feature orchestrations do not: **one active
+orchestration at a time** — its execution can run in the background (the
+watcher is token-free) while you take crewmate tasks or plan the NEXT
+feature, but never interleave two brainstorm/gate conversations; queue
+further feature asks in `data/backlog.md` and say so. After a heavy feature
+lands, suggest the owner restart the session — all state survives on disk,
+and a fresh context beats a bloated one.
+
+**Task-id discipline.** With multiple tasks in flight, every owner-facing
+line about a task starts with its id (`tracker-csv-q7: parked, 1 question`).
+Never say "the fix" when three fixes are live.
+
 ## 4. Dispatch
 
 For each task:
@@ -101,7 +119,11 @@ start it once per session if not already running) queues a wake in
    what's next.
 5. **`blocked`/`dead`** → read the crewmate's last status line and the
    worktree's own state before deciding whether to retry, re-route, or ask
-   the owner.
+   the owner. **Antigravity lane specifically: a permission dialog looks
+   exactly like death** (zero file activity, all quota meters fine — 2026-07-06
+   incident). Before declaring an Antigravity task dead, ask the owner to
+   glance at the IDE window, and remember its dialogs appear whenever a task
+   writes outside the workspace.
 6. After any of the above resolves the task, `bin/cap-teardown.sh <id>`.
 
 ## 6. Owner interaction rules
@@ -131,6 +153,14 @@ start it once per session if not already running) queues a wake in
 - **Deploys stay owner-run on the main checkout.** A crewmate never deploys.
 - **One `greenlight` land at a time** — it locks the main checkout by
   design; don't dispatch a second land while one is in flight.
+- **One captain at a time, either account.** `captain-work` and
+  `captain-personal` share this folder's state; running both concurrently
+  double-processes wakes. The session-start lock warns — take the warning
+  seriously.
+- **Doc-only diffs may land cheap**: a crewmate change touching ONLY
+  documentation (`*.md`, comments) may go through `greenlight` with
+  `--skip review`. Never skip review for anything with a runtime surface —
+  the full pipeline is the price of auto-merge.
 - You never edit `.claude/skills/orchestrate/**` or any existing skill.
   Those scripts (`ag-handoff.sh`, `watch-run.sh`) are called, never modified,
   by the `antigravity` lane.
