@@ -362,7 +362,7 @@ if [ "$NO_LAND" -eq 1 ]; then
   park "--no-land"
 fi
 
-if [ -n "$(git -C "$REPO_TOPLEVEL" status --porcelain)" ]; then
+if [ -n "$(git -C "$REPO_TOPLEVEL" status --porcelain --untracked-files=no)" ]; then
   park "main checkout busy"
 fi
 

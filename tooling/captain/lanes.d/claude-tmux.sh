@@ -66,7 +66,9 @@ EOF
     if [ -z "${CAP_LAUNCH_CMD:-}" ] && [ -n "${CLAUDE_CONFIG_DIR:-}" ]; then
       launch_base="CLAUDE_CONFIG_DIR=$(printf '%q' "$CLAUDE_CONFIG_DIR") claude"
     fi
-    launch_cmd="$launch_base --dangerously-skip-permissions \"\$(cat $(printf '%q' "$brief"))\""
+    model=$(meta_get "$id" model) || model=""
+    [ -n "$model" ] || model="sonnet"
+    launch_cmd="$launch_base --model $(printf '%q' "$model") --dangerously-skip-permissions \"\$(cat $(printf '%q' "$brief"))\""
     tmux send-keys -t "$TMUX_SESSION:$window" -l "$launch_cmd"
     sleep 0.3
     tmux send-keys -t "$TMUX_SESSION:$window" Enter

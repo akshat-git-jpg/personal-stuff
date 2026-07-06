@@ -35,10 +35,13 @@ case "$verb" in
     worktree=$(meta_get "$id" worktree) || { echo "ERROR: no worktree for $id" >&2; exit 1; }
     out="$STATE_DIR/$id.out"
     : > "$out"
+    model=$(meta_get "$id" model) || model=""
+    [ -n "$model" ] || model="sonnet"
 
     (
       cd "$worktree" || exit 1
       exec "${CAP_LAUNCH_CMD:-claude}" -p "$(cat "$brief")" \
+        --model "$model" \
         --output-format json --dangerously-skip-permissions
     ) > "$out" 2>&1 &
     pid=$!
