@@ -20,7 +20,7 @@ Code fork works as the tab target; Antigravity is just the default.
 
 | File | What it is |
 |------|-----------|
-| `relay.py` | Localhost HTTP server. POST `/queue {urls:[…]}` → per video: fetch title (oembed) + transcript (`pp-yt-transcript`) → either drop a job file in `~/yt-claude/pending/` (IDE target) or `open` a `run.command` Terminal window (terminal target). |
+| `relay.py` | Localhost HTTP server. POST `/queue` (requires `X-Relay-Token` header) with `{urls:[…]}` → per video: fetch title (oembed) + transcript (`pp-yt-transcript`) → either drop a job file in `~/yt-claude/pending/` (IDE target) or `open` a `run.command` Terminal window (terminal target). |
 | `ide-extension/` | Editor extension for any VS Code fork (Antigravity, VS Code, Cursor). Watches `~/yt-claude/pending/` and opens an integrated terminal tab per job. Installed at `~/.antigravity/extensions/yt-claude/`. |
 | `yt-claude` | Control CLI: `serve`, `ls` (recently opened), `log` (tail relay log). |
 | `yt-claude-select.user.js` | Tampermonkey userscript: checkboxes on thumbnails + the floating send button. |
