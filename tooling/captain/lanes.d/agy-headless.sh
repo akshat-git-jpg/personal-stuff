@@ -45,15 +45,14 @@ case "$verb" in
     worktree=$(meta_get "$id" worktree) || { echo "ERROR: no worktree for $id" >&2; exit 1; }
     out="$STATE_DIR/$id.out"
     : > "$out"
+    # Default model: Gemini 3.1 Pro (High) — owner decision 2026-07-06.
+    # Override per task via meta `model=` (exact names from `agy models`).
     model=$(meta_get "$id" model) || model=""
+    [ -n "$model" ] || model="${AGY_DEFAULT_MODEL:-Gemini 3.1 Pro (High)}"
 
     (
       cd "$worktree" || exit 1
-      if [ -n "$model" ]; then
-        exec agy -p "$(cat "$brief")" --dangerously-skip-permissions --model "$model"
-      else
-        exec agy -p "$(cat "$brief")" --dangerously-skip-permissions
-      fi
+      exec agy -p "$(cat "$brief")" --dangerously-skip-permissions --model "$model"
     ) > "$out" 2>&1 &
     pid=$!
     disown "$pid" 2>/dev/null || true

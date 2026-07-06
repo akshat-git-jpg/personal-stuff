@@ -26,9 +26,10 @@ needs-decision status, never silent reinterpretation.>
    lock). Per plan: background `agy -p "$(cat <prompt-file>)"
    --dangerously-skip-permissions [--model "<name>"]` with cwd = THIS
    worktree, stdout to a file; liveness = the PID, completion = process
-   exit + the plan's run-log DONE line. Model per call via `agy models`
-   names (Claude Sonnet/Opus 4.6 are available under the same sub for
-   tricky plans).
+   exit + the plan's run-log DONE line. Default model: **Gemini 3.1 Pro
+   (High)** (owner default 2026-07-06); per-plan override via `agy models`
+   names — Claude Sonnet/Opus 4.6 are available under the same sub for
+   tricky plans.
    - Fallback executors: `sonnet` Agent-tool subagents (no lock, Claude
      pool) for fix-up rounds or when agy output quality disappoints.
    - **Antigravity IDE lane only if the captain's brief says so** (GUI-
