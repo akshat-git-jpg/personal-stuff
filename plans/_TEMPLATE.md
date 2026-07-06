@@ -1,3 +1,12 @@
+<!-- boss frontmatter — fill for plans that boss will run; delete this block for non-boss plans. -->
+---
+executor: claude-p       # claude-p | agy
+model:                   # blank = executor default (claude-p: sonnet)
+test_cmd:                # REQUIRED for boss: one command, exit 0 = pass (this is the merge gate)
+deploy:                  # blank = no deploy; else the deploy command boss runs after merge
+needs: []                # optional notes (shared target, ordering)
+---
+
 # Plan <NNN>: <Title>
 
 > **Executor instructions**: Follow this plan step by step. Run every

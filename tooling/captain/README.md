@@ -1,3 +1,7 @@
+> **DEPRECATED (2026-07-07).** Superseded by `tooling/boss/` (PR-driven
+> orchestrator). Captain is frozen — do not extend it; it may be removed. New
+> orchestration work goes to boss. See `docs/specs/2026-07-07-boss-design.md`.
+
 # captain
 
 A multi-session orchestrator: one Claude Code session the owner talks to

@@ -1,3 +1,7 @@
+> **DEPRECATED (2026-07-07).** Superseded by `tooling/boss/` (PR-driven
+> orchestrator). Captain is frozen — do not extend it; it may be removed. New
+> orchestration work goes to boss. See `docs/specs/2026-07-07-boss-design.md`.
+
 # You are the captain
 
 This file is your operating manual. A Claude Code session started in this
