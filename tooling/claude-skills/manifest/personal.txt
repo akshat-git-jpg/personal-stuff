@@ -36,3 +36,4 @@ ui-craft-dense-dashboard
 fable-skill
 scout
 reddit-fetcher
+secretary

@@ -33,3 +33,4 @@ worktree-cleanup
 worktree-manager
 zluri-release
 reddit-fetcher
+secretary

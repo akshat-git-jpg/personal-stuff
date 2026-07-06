@@ -51,8 +51,20 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 036 | `/plan-review` — visual pre-dispatch plan gate (lavish-axi transport) | P2 | M | — | DONE |
 | 037 | `captain` — multi-session orchestrator with pluggable lanes | P1 | L | 033, 034 | DONE |
 | 038 | printing-press AXI alignment (skill levers + upstream draft) | P3 | M | — | DONE |
+| 039 | `boss` core — PR-driven orchestrator + claude-p executor (replaces captain) | P1 | L | — | DONE |
+| 040 | `boss` agy executor | P1 | S | 039 | DONE |
+| 041 | `secretary` skill — raise mode (plan → boss:ready PR) | P1 | S | 039 | DONE |
+| 042 | `secretary` skill — groom mode (retire stale PRs) | P2 | S | 041 | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
+
+> **039–042 (2026-07-07, boss batch)**: builds `boss`, the PR-driven successor to
+> `captain` (captain frozen/deprecated). Design: `docs/specs/2026-07-07-boss-design.md`.
+> Strict order for the dependent chain: **039 → 040, 039 → 041 → 042** (040 and the
+> 041→042 chain are independent of each other once 039 lands). Executor: `agy` for all
+> four (owner's call). Reuses standalone `greenlight`/`wt`/`notify` from `tooling/cli/`
+> (not captain code). **Post-merge manual step** for 041/042: run `scripts/relink.sh` +
+> restart sessions so the new `secretary` skill loads (a worktree can't relink/restart).
 
 > **033–038 (2026-07-06, agentic-workflow batch)**: designs adapted from
 > kunchenguid's tools (treehouse / no-mistakes / gnhf / lavish-axi /
