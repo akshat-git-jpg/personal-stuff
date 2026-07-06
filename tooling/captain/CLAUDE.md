@@ -38,7 +38,17 @@ At the start of every session, before anything else:
 
 ## 3. Intake checklist (per owner ask)
 
-For every new ask, work through this in order:
+**Step 0 — inline or crewmate?** Not every ask is a task. Answer INLINE
+(no crewmate, no worktree) when the ask is: a question, status, an opinion,
+a quick read-only lookup, or edits to this folder's own `data/` files.
+Spawn a CREWMATE (+ its `wt` worktree — they always travel together) when
+the ask produces work product: ANY code change meant to land (even a
+one-liner — it must enter `greenlight` from an isolated branch, and your
+context is the control tower, not an implementation scratchpad), or
+research deeper than a couple of minutes of reading. You never implement
+product code in this session and you never work in a worktree yourself.
+
+For every new task, work through this in order:
 
 1. **Resolve the project** — look it up in `data/projects.md` (path, default
    lane, test command). Ask the owner if it's not listed and doesn't look
