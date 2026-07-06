@@ -23,7 +23,7 @@ meta_get() {
 echo "== captain lock =="
 LOCK="$STATE_DIR/.captain-lock"
 if [ -f "$LOCK" ]; then
-  age_min=$(( ( $(date +%s) - $(stat -f %m "$LOCK") ) / 60 ))
+  age_min=$(( ( $(date +%s) - $(stat -f %m "$LOCK" 2>/dev/null || stat -c %Y "$LOCK" 2>/dev/null || echo 0) ) / 60 ))
   if [ "$age_min" -lt 480 ]; then
     echo "  WARNING: another captain session may be live (lock refreshed ${age_min}m ago: $(cat "$LOCK"))."
     echo "  Two captains share state/ and WILL double-process wakes. Confirm the other"
@@ -44,7 +44,7 @@ for meta in "$STATE_DIR"/*.meta; do
   if [ "$lane" = "claude-tmux" ]; then
     window=$(meta_get "$id" tmux_window) || window="cap-$id"
     tmux_session="${CAP_TMUX_SESSION:-captain}"
-    if ! tmux has-session -t "$tmux_session" 2>/dev/null || ! tmux list-windows -t "$tmux_session" 2>/dev/null | grep -q "$window"; then
+    if ! tmux has-session -t "$tmux_session" 2>/dev/null || ! tmux list-windows -t "$tmux_session" -F '#{window_name}' 2>/dev/null | grep -Fxq "$window"; then
       echo "  $id: tmux window '$window' is gone (dead crewmate, needs teardown)"
     fi
   fi
