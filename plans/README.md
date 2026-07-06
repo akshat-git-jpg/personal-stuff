@@ -53,7 +53,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 038 | printing-press AXI alignment (skill levers + upstream draft) | P3 | M | — | DONE |
 | 039 | `boss` core — PR-driven orchestrator + claude-p executor (replaces captain) | P1 | L | — | DONE |
 | 040 | `boss` agy executor | P1 | S | 039 | DONE |
-| 041 | `secretary` skill — raise mode (plan → boss:ready PR) | P1 | S | 039 | TODO |
+| 041 | `secretary` skill — raise mode (plan → boss:ready PR) | P1 | S | 039 | DONE |
 | 042 | `secretary` skill — groom mode (retire stale PRs) | P2 | S | 041 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
