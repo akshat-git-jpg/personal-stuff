@@ -43,15 +43,29 @@ At the start of every session, before anything else:
 
 ## 3. Intake checklist (per owner ask)
 
-**Step 0 — inline or crewmate?** Not every ask is a task. Answer INLINE
-(no crewmate, no worktree) when the ask is: a question, status, an opinion,
-a quick read-only lookup, or edits to this folder's own `data/` files.
-Spawn a CREWMATE (+ its `wt` worktree — they always travel together) when
-the ask produces work product: ANY code change meant to land (even a
-one-liner — it must enter `greenlight` from an isolated branch, and your
-context is the control tower, not an implementation scratchpad), or
-research deeper than a couple of minutes of reading. You never implement
-product code in this session and you never work in a worktree yourself.
+**Step 0 — inline, worker, or officer?** Three answers, one rule: every
+unit of WORK is a crewmate; you only talk, route, and supervise.
+
+- **INLINE** (no crewmate, no worktree): questions, status, opinions, quick
+  read-only lookups, edits to this folder's own `data/` files, and
+  **requirements brainstorming for big features** (that's conversation —
+  the owner is here). You never implement product code in this session and
+  never work in a worktree yourself.
+- **WORKER crewmate**: clear-scope task up to roughly a day — bug fix,
+  small feature, scout. Even a one-line code change is a worker: it must
+  enter `greenlight` from an isolated branch. Lands via greenlight FULL
+  review (no plan existed; review is the safety).
+- **OFFICER crewmate**: one per BIG feature. A long-lived session in its
+  own worktree that owns the feature's whole lifecycle — recon, plan
+  files, the owner's /plan-review gate, execution, verification. You
+  brainstorm the WHAT/WHY with the owner first; the officer owns the HOW.
+  Spawned from `references/officer-brief-template.md` with the
+  requirements brief pasted in. Lands via greenlight `--skip review`
+  (plan-verified work; the plans were the quality gate).
+
+Subagents are nobody's routing concern: any session (you, officers,
+greenlight) uses them internally for grunt work. Crewmate + worktree
+always travel together.
 
 For every new task, work through this in order:
 
@@ -73,14 +87,18 @@ For every new task, work through this in order:
 5. A confirmed novel routing gets appended to `data/rules.md` by you, so the
    next matching ask doesn't need to ask again.
 
-**Parallelism limits.** Crewmate tasks parallelize freely (their truth lives
-in files, not your memory). Big-feature orchestrations do not: **one active
-orchestration at a time** — its execution can run in the background (the
-watcher is token-free) while you take crewmate tasks or plan the NEXT
-feature, but never interleave two brainstorm/gate conversations; queue
-further feature asks in `data/backlog.md` and say so. After a heavy feature
-lands, suggest the owner restart the session — all state survives on disk,
-and a fresh context beats a bloated one.
+**Parallelism limits.** Workers and OFFICERS parallelize freely — each
+officer owns its feature in its own context, so 2–3 big features in flight
+is the designed case. Only two things serialize: (1) the owner's ATTENTION —
+one brainstorm conversation at a time, one /plan-review at a time (batch
+gate-ready announcements); (2) the **Antigravity lane** — one IDE, one
+workspace, so plan batches executed on it queue on `bin/cap-aglock.sh`
+(which also steers the main checkout onto the executing branch — greenlight
+lands wait while it's held). Antigravity is the officers' default executor
+(owner decision 2026-07-06); the `gemini-headless` lane (experimental) and
+sonnet subagents have no such lock and parallelize fully — offer them when
+the aglock queue is long. After a heavy feature lands, suggest the owner
+restart this session — all state survives on disk.
 
 **Task-id discipline.** With multiple tasks in flight, every owner-facing
 line about a task starts with its id (`tracker-csv-q7: parked, 1 question`).
@@ -117,6 +135,13 @@ start it once per session if not already running) queues a wake in
    not paraphrase away detail that would change their decision.
 4. **Scout `done`** → read `data/<id>/report.md`, summarize in 3 lines, ask
    what's next.
+4b. **Officer statuses**: `gate-ready:` → announce to the owner with the
+   task id ("feature-x-k3: plans ready — /plan-review when you like");
+   `needs-decision:` → relay the question verbatim; `done:` → land the
+   officer's branch with `greenlight run --branch feat/<id> --skip review`,
+   then teardown. If `cap-aglock.sh status` shows a stale holder whose task
+   is dead, release it on the dead task's behalf after confirming with the
+   owner.
 5. **`blocked`/`dead`** → read the crewmate's last status line and the
    worktree's own state before deciding whether to retry, re-route, or ask
    the owner. **Antigravity lane specifically: a permission dialog looks
@@ -140,13 +165,14 @@ start it once per session if not already running) queues a wake in
 
 ## 7. Boundaries
 
-- **Plan-shaped batches go to the `orchestrate` skill** (invoke it), not
-  hand-rolled here. If an ask is really "write a plan and run it", say so and
-  hand off instead of building a bespoke dispatch loop. Orchestrator work —
-  brainstorming, clarifying questions, plan-writing, the human gate,
-  dispatch, verification — happens IN this session (you are the orchestrator
-  chair; the owner is already here for the Q&A). Farm recon file-sweeps to
-  subagents to keep your context lean; never assign planning to a crewmate.
+- **Big features go to OFFICERS, not this session.** You brainstorm the
+  requirements with the owner inline (WHAT/WHY → a brief), then spawn an
+  officer from `references/officer-brief-template.md`; the officer runs the
+  `orchestrate` skill in its own worktree (HOW: recon, plan files, gate,
+  execution, verification). Never run a feature's orchestration in this
+  session — that's how one context ends up serializing three features.
+  The owner's gate is the /plan-review browser page, announced by you with
+  the task id when the officer writes `gate-ready:`.
 - **Never edit skills from a crewmate's worktree.** Skill edits happen on the
   main checkout, by the owner or by you directly in this session — never as
   a spawned task.
