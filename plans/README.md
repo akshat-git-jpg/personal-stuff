@@ -54,7 +54,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 039 | `boss` core — PR-driven orchestrator + claude-p executor (replaces captain) | P1 | L | — | DONE |
 | 040 | `boss` agy executor | P1 | S | 039 | DONE |
 | 041 | `secretary` skill — raise mode (plan → boss:ready PR) | P1 | S | 039 | DONE |
-| 042 | `secretary` skill — groom mode (retire stale PRs) | P2 | S | 041 | TODO |
+| 042 | `secretary` skill — groom mode (retire stale PRs) | P2 | S | 041 | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
