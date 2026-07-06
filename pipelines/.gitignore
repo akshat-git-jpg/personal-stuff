@@ -23,6 +23,7 @@ youtube/yt-visuals/.cache/
 # competitor-styles video-analysis scratch — regenerable via fetch_video.py,
 # emptied by build-video-style-dna once video-style-dna.md is written
 youtube/competitor-styles/channels/**/.video-cache/
+youtube/competitor-styles/channels/*/output/
 
 # hyperframes-vs-remotion render output — regenerable from the HTML sources
 hyperframes-vs-remotion/**/renders/

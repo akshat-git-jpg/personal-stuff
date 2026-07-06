@@ -27,7 +27,7 @@ usage() {
 ID="$1"; shift
 PROJECT="$1"; shift
 LANE=""
-MODEL="sonnet"
+MODEL=""
 EFFORT=""
 
 while [ $# -gt 0 ]; do
