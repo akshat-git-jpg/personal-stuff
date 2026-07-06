@@ -1,11 +1,14 @@
 # Secrets — never commit these
-secrets/
+**/secrets/*
 **/.env
 **/credentials.json
 **/token.json
 **/token_*.json
 **/service_account.json
 **/google-shared/tokens/
+
+# ...except checked-in templates for owner-filled secrets
+!infra/secrets/*.example
 
 # Local MCP config — paths inside are absolute to this machine, so
 # committing would break other clones. Each machine generates its own

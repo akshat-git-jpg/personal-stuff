@@ -1,0 +1,129 @@
+#!/bin/bash
+# notify — Telegram-first phone-ping CLI, with ntfy as a fallback channel.
+#
+# Why: ntfy delivery is unreliable on the owner's iPhone, so Telegram is the
+# primary channel. ntfy is kept as a fallback for the window before Telegram
+# creds exist, and in case a Telegram send ever fails.
+#
+# Contract:
+#   notify send "<message>"   exit 0 sent, 3 undeliverable (never crashes caller)
+#   notify setup               one-time: derive TELEGRAM_CHAT_ID via getUpdates
+#
+# Creds: infra/secrets/telegram.env (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID).
+# Gitignored — see infra/secrets/telegram.env.example for the template.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+# NOTIFY_ENV_FILE lets callers (tests, alternate checkouts) point elsewhere;
+# defaults to the real repo-relative secrets path.
+ENV_FILE="${NOTIFY_ENV_FILE:-$REPO_ROOT/infra/secrets/telegram.env}"
+
+function usage() {
+  echo "Usage: notify send \"<message>\"" >&2
+  echo "       notify setup" >&2
+  exit 2
+}
+
+function load_env() {
+  TELEGRAM_BOT_TOKEN=""
+  TELEGRAM_CHAT_ID=""
+  if [ -f "$ENV_FILE" ]; then
+    # shellcheck disable=SC1090
+    source "$ENV_FILE"
+  fi
+}
+
+function cmd_send() {
+  local msg="$1"
+  load_env
+
+  if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+    if curl -fsS --max-time 10 \
+        "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+        --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+        --data-urlencode "text=${msg}" >/dev/null 2>&1; then
+      exit 0
+    fi
+    echo "WARN: notify: telegram send failed, falling back" >&2
+  fi
+
+  if command -v pp-ntfy >/dev/null 2>&1 && [ -n "${NTFY_TOPIC:-}" ]; then
+    if pp-ntfy send "$msg" >/dev/null 2>&1; then
+      exit 0
+    fi
+    echo "WARN: notify: pp-ntfy fallback failed" >&2
+  fi
+
+  echo "WARN: notify: message undeliverable: $msg" >&2
+  exit 3
+}
+
+function cmd_setup() {
+  load_env
+
+  if [ -z "${TELEGRAM_BOT_TOKEN:-}" ]; then
+    echo "ERROR: TELEGRAM_BOT_TOKEN not set in $ENV_FILE" >&2
+    echo "Create a bot via @BotFather, paste the token into $ENV_FILE, then re-run 'notify setup'." >&2
+    exit 1
+  fi
+
+  if [ -n "${TELEGRAM_CHAT_ID:-}" ]; then
+    echo "TELEGRAM_CHAT_ID already set ($TELEGRAM_CHAT_ID) — leaving it alone."
+    exit 0
+  fi
+
+  local resp
+  if ! resp=$(curl -fsS --max-time 10 "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates"); then
+    echo "ERROR: getUpdates request failed — check the token in $ENV_FILE" >&2
+    exit 1
+  fi
+
+  local chat_id
+  chat_id=$(echo "$resp" | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    for u in d.get("result", []):
+        msg = u.get("message") or u.get("channel_post")
+        if msg and "chat" in msg:
+            print(msg["chat"]["id"])
+            break
+except Exception:
+    pass
+')
+
+  if [ -z "$chat_id" ]; then
+    echo "No chat found yet. Message your bot once on Telegram, then re-run 'notify setup'." >&2
+    exit 1
+  fi
+
+  if grep -q '^TELEGRAM_CHAT_ID=' "$ENV_FILE" 2>/dev/null; then
+    sed -i.bak "s/^TELEGRAM_CHAT_ID=.*/TELEGRAM_CHAT_ID=$chat_id/" "$ENV_FILE"
+    rm -f "$ENV_FILE.bak"
+  else
+    echo "TELEGRAM_CHAT_ID=$chat_id" >> "$ENV_FILE"
+  fi
+  echo "Wrote TELEGRAM_CHAT_ID=$chat_id to $ENV_FILE"
+}
+
+if [ $# -eq 0 ]; then
+  usage
+fi
+
+CMD=$1
+shift
+
+case "$CMD" in
+  send)
+    if [ $# -ne 1 ]; then usage; fi
+    cmd_send "$1"
+    ;;
+  setup)
+    if [ $# -ne 0 ]; then usage; fi
+    cmd_setup
+    ;;
+  *)
+    usage
+    ;;
+esac

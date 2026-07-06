@@ -32,8 +32,10 @@ After your morning review, land the branch by either:
 1. `greenlight run --branch overnight/<slug>-<hash>` for the full validation pipeline.
 2. Cherry-picking the commits you want to keep.
 
+Notifications go through tooling/cli/notify (Telegram-first, ntfy fallback).
+
 ## Design Provenance
 
 Adapted from `kunchenguid/gnhf` (studied 2026-07-06).
 - Kept: orchestrator-owned git, atomic success/failure resets, externalized memory (`notes.md`), `should_fully_stop` self-evaluation.
-- Dropped: moon-phase TUI (replaced by `run.log` and `pp-ntfy`), multi-agent adapters (we just use `claude`), commit-failure repair loop (aborted to preserve work instead).
+- Dropped: moon-phase TUI (replaced by `run.log` and `notify`), multi-agent adapters (we just use `claude`), commit-failure repair loop (aborted to preserve work instead).

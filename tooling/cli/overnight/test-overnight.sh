@@ -10,6 +10,14 @@ STUB_DIR=$(mktemp -d)
 trap 'rm -rf "$STUB_DIR"' EXIT
 export PATH="$STUB_DIR:$PATH"
 
+# overnight now calls tooling/cli/notify (Telegram-first, ntfy fallback)
+# instead of pp-ntfy directly. Force the ntfy-fallback path deterministically:
+# point at a telegram env file that never exists so notify always falls
+# through to (stubbed) pp-ntfy, regardless of whether the real repo's
+# infra/secrets/telegram.env has been filled in by the owner.
+export NOTIFY_ENV_FILE="$STUB_DIR/no-such-telegram.env"
+export NTFY_TOPIC="test-topic"
+
 cat > "$STUB_DIR/pp-ntfy" << 'EOF'
 #!/bin/bash
 echo "$*" >> "$HOME/kb-scratch/test-ntfy.log"

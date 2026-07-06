@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NOTIFY_BIN="$SCRIPT_DIR/../notify/notify"
+
 # --- JSON Envelope from `claude -p` ---
 # Text result: .result
 # Input tokens: .usage.input_tokens
@@ -181,8 +184,8 @@ except Exception:
   
   log "ERROR: agent stage $stage failed after 2 attempts"
   echo "failed" > "$STATE_DIR/state"
-  # Call ntfy
-  pp-ntfy send "greenlight: stage $stage failed for $BRANCH" || true
+  # Notify (Telegram-first, ntfy fallback)
+  "$NOTIFY_BIN" send "greenlight: stage $stage failed for $BRANCH" || true
   exit 1
 }
 
@@ -203,7 +206,7 @@ function park() {
   log "Parking: $reason"
   echo "parked" > "$STATE_DIR/state"
   echo "$reason" > "$STATE_DIR/parked-reason"
-  pp-ntfy send "greenlight: $BRANCH parked — $reason" || true
+  "$NOTIFY_BIN" send "greenlight: $BRANCH parked — $reason" || true
   exit 0
 }
 
@@ -351,4 +354,4 @@ fi
 git -C "$REPO_TOPLEVEL" merge --no-ff "$BRANCH" -m "greenlight: land $BRANCH ($RUN_ID)" >&2
 git -C "$REPO_TOPLEVEL" push origin main >&2
 echo "landed" > "$STATE_DIR/state"
-pp-ntfy send "greenlight: $BRANCH landed on main (risk $risk_level)" || true
+"$NOTIFY_BIN" send "greenlight: $BRANCH landed on main (risk $risk_level)" || true

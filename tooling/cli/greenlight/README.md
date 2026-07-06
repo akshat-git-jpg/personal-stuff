@@ -28,13 +28,15 @@ Token economy: agent stages pass `--model <model>` to `claude -p`, defaulting to
 - `--no-land` is not set
 - The main checkout is clean and on `main` branch.
 
-Landing does `git merge --no-ff <branch>` followed by `git push origin main`, then notifies via `pp-ntfy`.
+Landing does `git merge --no-ff <branch>` followed by `git push origin main`, then notifies via `notify`.
 
 ## Park Semantics
 
-**Park**: If any land condition fails, state becomes `parked`. A `parked-reason` file is written, and `pp-ntfy` is called.
+**Park**: If any land condition fails, state becomes `parked`. A `parked-reason` file is written, and `notify` is called.
 `risk_level: high` ALWAYS parks regardless of findings.
 If the main checkout is busy, it parks with `main checkout busy` (never stashes or switches).
+
+Notifications go through tooling/cli/notify (Telegram-first, ntfy fallback).
 
 ## Evidence Location
 
