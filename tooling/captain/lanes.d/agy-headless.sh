@@ -101,14 +101,19 @@ except json.JSONDecodeError:
     try:
         d = json.loads(raw.splitlines()[-1])
     except Exception:
-        print("dead unparseable output"); raise SystemExit
+        # Must emit the detail|cid|tok shape with EMPTY cid/tok so the shell
+        # guard below does not write "dead unparseable output" into task meta.
+        print("dead unparseable output||"); raise SystemExit
 status = d.get("status", "")
 cid = d.get("conversation_id", "")
 tok = (d.get("usage") or {}).get("total_tokens", "")
 if status == "SUCCESS":
     print(f"done run completed (tokens={tok})|{cid}|{tok}")
 elif status == "ERROR":
-    err = (d.get("error") or "")[:120]
+    # Strip the | delimiter from err before interpolation, else a pipe in the
+    # error text (stack trace / path / shell error) shifts the split below and
+    # pollutes cid/tok with error fragments.
+    err = (d.get("error") or "").replace("|", " ")[:120]
     print(f"blocked agy error: {err}|{cid}|{tok}")
 else:
     print("dead no status in envelope||")

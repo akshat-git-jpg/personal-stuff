@@ -16,7 +16,12 @@ except Exception:
 blob = json.dumps(payload.get("toolCall", {}))
 
 DENY = [
-    r"infra/secrets/(?!.*\.example)",
+    # Deny infra/secrets/<name> unless <name> ends in .example. The lookahead
+    # is bounded to the matched path TOKEN (stops at quote/whitespace/backslash)
+    # so a .example appearing elsewhere in the serialized payload cannot exempt
+    # a real secret path. (Prior r"infra/secrets/(?!.*\.example)" scanned the
+    # whole blob and let a stray .example anywhere allow a real secret through.)
+    r"infra/secrets/(?![^\s\"'\\]*\.example(?:[\s\"'\\]|$))",
     r"credentials\.json",
     r"\.dev\.vars",
     r"google-shared/tokens",
