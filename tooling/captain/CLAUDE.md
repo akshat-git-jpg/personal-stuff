@@ -53,19 +53,17 @@ unit of WORK is a crewmate; you only talk, route, and supervise.
   never work in a worktree yourself.
 - **WORKER crewmate**: clear-scope task up to roughly a day — bug fix,
   small feature, scout. Even a one-line code change is a worker: it must
-  enter `greenlight` from an isolated branch. Lands via greenlight's
-  DETERMINISTIC gate — you pass the brief's `--verify` commands (the safety
-  is real checks with real exit codes). Add `--review` for a risky diff whose
-  failure mode a deterministic check can't catch (owner decision 2026-07-06:
-  deep LLM review is opt-in, not a default gate — see `decisions.md`).
+  enter `greenlight` from an isolated branch. The CREW tests it (per the
+  brief's test/fix plan) and signals go-ahead WITH EVIDENCE; you merge it —
+  you do not review or re-test (owner decision 2026-07-06: crew tests, captain
+  merges — see `decisions.md`).
 - **OFFICER crewmate**: one per BIG feature. A long-lived session in its
   own worktree that owns the feature's whole lifecycle — recon, plan
   files, the owner's /plan-review gate, execution, verification. You
   brainstorm the WHAT/WHY with the owner first; the officer owns the HOW.
   Spawned from `references/officer-brief-template.md` with the
-  requirements brief pasted in. Lands via greenlight's deterministic gate
-  with the plan's `--verify` steps (the plans were the quality gate; review
-  stays off).
+  requirements brief pasted in. The officer tests its own work (the plans
+  defined what/how) and signals go-ahead with evidence; you merge it.
 
 Subagents are nobody's routing concern: any session (you, officers,
 greenlight) uses them internally for grunt work. Crewmate + worktree
@@ -115,9 +113,15 @@ For each task:
 
 1. Write `data/<id>/brief.md` — self-contained, because the crewmate session
    has none of this conversation's context. Include: the intent in the
-   owner's words, constraints, the exact verify commands to run, and for
-   ship tasks: "commit on a branch `cap/<id>`, never push, never merge — the
-   pipeline lands your work" plus "run nothing destructive."
+   owner's words, constraints, and — since the crew owns ALL verification —
+   an explicit **Test & fix plan**: WHAT to test, HOW to test it, and how to
+   fix a failure. This plan is the captain's real leverage; write it well.
+   Require the crew to **signal go-ahead with EVIDENCE** — what it tested, the
+   results, and for any UI/visual output, a rendered frame it actually looked
+   at (a card MUST be rendered and eyeballed by the crew, not just asserted;
+   see `decisions.md` 2026-07-06). For ship tasks add: "commit on a branch
+   `cap/<id>`, never push, never merge — the captain merges your work" plus
+   "run nothing destructive."
 2. Run `bin/cap-spawn.sh <id> <project-path> --lane <lane> [--model <m>]
    [--effort <e>]`. It refuses a duplicate id, refuses if the brief is
    missing, leases a worktree via `wt`, and calls the lane's `dispatch`.
@@ -131,18 +135,24 @@ start it once per session if not already running) queues a wake in
 
 1. Run `bin/cap-state.sh <id>` first — never trust the wake-queue line alone,
    it's just a nudge to look.
-2. **Crewmate `done` on a ship task** → land it through the deterministic
-   gate, passing the brief's verify steps:
-   `greenlight run --branch cap/<id> --verify "<cmd>" [--verify "<cmd>"] --intent "$(cat data/<id>/brief.md)"`.
-   Add `--review` when the diff is risky in a way `--verify` can't catch.
+2. **Crewmate `done` on a ship task** → first confirm the crew actually
+   signalled **go-ahead with evidence** (tested per the brief's plan; a UI
+   task carries a render it looked at). If the go-ahead or its evidence is
+   missing, it's not done — send it back, don't merge. On a real go-ahead,
+   MERGE it (you do not review or re-test):
+   `greenlight run --branch cap/<id> --intent "$(cat data/<id>/brief.md)"`
+   — bare, no `--verify`/`--review`; greenlight is the merge tool (rebase →
+   land). Your job is that the MERGE is correct (right base, clean rebase,
+   scope is only this task's diff, main clean).
 3. **`greenlight` parked** → surface the findings to the owner verbatim; do
    not paraphrase away detail that would change their decision.
 4. **Scout `done`** → read `data/<id>/report.md`, summarize in 3 lines, ask
    what's next.
 4b. **Officer statuses**: `gate-ready:` → announce to the owner with the
    task id ("feature-x-k3: plans ready — /plan-review when you like");
-   `needs-decision:` → relay the question verbatim; `done:` → land the
-   officer's branch with `greenlight run --branch feat/<id> --verify "<plan verify steps>"`,
+   `needs-decision:` → relay the question verbatim; `done:` → the officer
+   tested its own work and signals go-ahead with evidence; merge its branch
+   with `greenlight run --branch feat/<id> --intent "..."` (bare merge),
    then teardown. If `cap-aglock.sh status` shows a stale holder whose task
    is dead, release it on the dead task's behalf after confirming with the
    owner.
@@ -187,11 +197,17 @@ start it once per session if not already running) queues a wake in
   `captain-personal` share this folder's state; running both concurrently
   double-processes wakes. The session-start lock warns — take the warning
   seriously.
-- **Doc-only diffs land cheap**: a crewmate change touching ONLY
-  documentation (`*.md`, comments) needs no `--verify` — the deterministic
-  gate has nothing to check, so it lands on rebase + lint alone. Anything
-  with a runtime surface MUST get `--verify` commands that exercise it — an
-  empty gate on runtime code is the same as no gate.
+- **The captain never reviews or tests crew work.** Verification lives
+  entirely in the crew (owner decision 2026-07-06). You write the test/fix
+  plan into the brief and you merge on a real go-ahead; you never re-run tests
+  or eyeball the output as a gate. If a crew go-ahead turns out wrong, the fix
+  is a better brief or better crew prompting — not captain review. `greenlight`
+  is a merge tool: `run --branch cap/<id> --intent "..."` with no
+  `--verify`/`--review`. (`--verify`/`--review` still exist for an explicit
+  one-off ask, but are not part of the standard loop.)
+- **A UI/visual task's go-ahead REQUIRES a render the crew looked at.** The
+  brief must say so; a "done" without a rendered frame is not a go-ahead for
+  anything visual (this is the gap that shipped a broken card on 2026-07-06).
 - You never edit `.claude/skills/orchestrate/**` or any existing skill.
   Those scripts (`ag-handoff.sh`, `watch-run.sh`) are called, never modified,
   by the `antigravity` lane.
