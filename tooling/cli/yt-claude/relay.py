@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import secrets
 import subprocess
 import sys
 import urllib.parse
@@ -21,6 +22,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 PORT = int(os.environ.get("YT_CLAUDE_PORT", "7777"))
+RELAY_TOKEN = secrets.token_urlsafe(32)
 BASE_DIR = Path(os.environ.get("YT_CLAUDE_DIR", str(Path.home() / "yt-claude")))
 # Where each video opens:
 #   "terminal" -> a new macOS Terminal window (open -a Terminal)
@@ -203,7 +205,6 @@ def shquote(s: str) -> str:
 
 class Handler(BaseHTTPRequestHandler):
     def _cors(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
@@ -213,6 +214,13 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        if self.path == "/token":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"token": RELAY_TOKEN}).encode())
+            return
+
         # health check
         self.send_response(200)
         self._cors()
@@ -223,6 +231,14 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path.rstrip("/") != "/queue":
             self.send_response(404); self._cors(); self.end_headers(); return
+
+        token = self.headers.get("X-Relay-Token")
+        if not token or token != RELAY_TOKEN:
+            self.send_response(403)
+            self.end_headers()
+            self.wfile.write(b'{"error":"forbidden"}')
+            return
+
         length = int(self.headers.get("Content-Length", 0))
         try:
             body = json.loads(self.rfile.read(length) or b"{}")

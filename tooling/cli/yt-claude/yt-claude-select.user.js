@@ -74,17 +74,42 @@
     if (!urls.length) return;
     pill.classList.add("flash");
     refreshPill("sending…");
+
+    const tokenUrl = RELAY.replace(/\/queue\/?$/, "/token");
     GM_xmlhttpRequest({
-      method: "POST",
-      url: RELAY,
-      headers: { "Content-Type": "application/json" },
-      data: JSON.stringify({ urls }),
-      onload: (r) => {
-        let opened = urls.length;
-        try { opened = JSON.parse(r.responseText).opened ?? opened; } catch (e) {}
-        refreshPill(`sent ${opened} ✓`);
-        clearAll();
-        setTimeout(() => { pill.classList.remove("flash"); refreshPill(); }, 1400);
+      method: "GET",
+      url: tokenUrl,
+      onload: (tRes) => {
+        let token = "";
+        try {
+          token = JSON.parse(tRes.responseText).token;
+        } catch (e) {}
+        if (!token) {
+          refreshPill("token failed ✗");
+          setTimeout(() => { pill.classList.remove("flash"); refreshPill(); }, 1800);
+          return;
+        }
+
+        GM_xmlhttpRequest({
+          method: "POST",
+          url: RELAY,
+          headers: {
+            "Content-Type": "application/json",
+            "X-Relay-Token": token
+          },
+          data: JSON.stringify({ urls }),
+          onload: (r) => {
+            let opened = urls.length;
+            try { opened = JSON.parse(r.responseText).opened ?? opened; } catch (e) {}
+            refreshPill(`sent ${opened} ✓`);
+            clearAll();
+            setTimeout(() => { pill.classList.remove("flash"); refreshPill(); }, 1400);
+          },
+          onerror: () => {
+            refreshPill("relay offline ✗");
+            setTimeout(() => { pill.classList.remove("flash"); refreshPill(); }, 1800);
+          },
+        });
       },
       onerror: () => {
         refreshPill("relay offline ✗");
