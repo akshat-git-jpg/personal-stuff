@@ -1,5 +1,10 @@
 {
   "slug": "youri",
   "channel_url": "https://www.youtube.com/@Yourivanhofwegen",
-  "channel_name": "Youri van Hofwegen"
+  "channel_name": "Youri van Hofwegen",
+  "transcripts": {
+    "last_ingest": "2026-07-06",
+    "limit": 30,
+    "count": 27
+  }
 }
