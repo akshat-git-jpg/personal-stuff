@@ -8,3 +8,4 @@ appended here by the captain — append-only, most-specific rule wins.
 |---|---|---|---|
 | plan-batch (an existing `plans/NNN-*.md` to execute) | antigravity | — | plan already reviewed; pass `--skip review` to greenlight on land |
 | scout / research (no code change, produces a report) | claude-headless | sonnet | writes `data/<id>/report.md`, nothing lands |
+| bug-fix worker (focused, few files, clear scope) | claude-headless | sonnet | confirmed 2026-07-06; headless keeps it parallel + deterministic |

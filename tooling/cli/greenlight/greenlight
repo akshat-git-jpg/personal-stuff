@@ -16,7 +16,14 @@ NOTIFY_BIN="$SCRIPT_DIR/../notify/notify"
 function usage() {
   echo "Usage: greenlight <command> [options]" >&2
   echo "Commands:" >&2
-  echo "  run --branch <name> [--repo <path>] [--intent \"<text>\"] [--skip <stage,stage>] [--no-land] [--reviewer-model sonnet]" >&2
+  echo "  run --branch <name> [--repo <path>] [--intent \"<text>\"] [--verify \"<cmd>\" ...] [--review] [--skip <stage,stage>] [--no-land] [--reviewer-model sonnet]" >&2
+  echo "" >&2
+  echo "  Default gate is DETERMINISTIC: rebase -> verify -> lint -> land." >&2
+  echo "  --verify \"<cmd>\"  deterministic check run in the worktree (repeatable; non-zero parks). Pass the project" >&2
+  echo "                    test command + the brief's verify steps. No --verify means no test gate ran." >&2
+  echo "  --review          opt-in LLM code review before verify (parks on high risk / unresolved findings)." >&2
+  echo "                    Off by default — deep whole-repo audits belong to the 'improve' skill, not the land gate." >&2
+  echo "  stage names for --skip: review, verify, lint" >&2
   echo "  status <run-id>" >&2
   exit 2
 }
@@ -34,6 +41,8 @@ INTENT=""
 SKIP=""
 NO_LAND=0
 REVIEWER_MODEL="sonnet"
+REVIEW=0
+VERIFY_CMDS=()
 RUN_ID=""
 
 case "$CMD" in
@@ -46,6 +55,8 @@ case "$CMD" in
         --skip) SKIP="$2"; shift 2 ;;
         --no-land) NO_LAND=1; shift ;;
         --reviewer-model) REVIEWER_MODEL="$2"; shift 2 ;;
+        --review) REVIEW=1; shift ;;
+        --verify) VERIFY_CMDS+=("$2"); shift 2 ;;
         *) usage ;;
       esac
     done
@@ -148,12 +159,42 @@ function run_agent_stage() {
     
     local extracted_json
     extracted_json=$(echo "$claude_out" | python3 -c '
-import json, sys
+import json, re, sys
+from json import JSONDecoder
+
+# Pull the assistant text out of the `claude -p --output-format json` envelope,
+# then recover the JSON object it contains. Reviewers routinely wrap their reply
+# in a ```json ... ``` fence or add a sentence of preamble; a bare json.load on
+# that text throws and the stage falsely reports "missing required keys".
+def recover(text):
+    text = text.strip()
+    m = re.match(r"^```(?:json)?\s*\n?(.*?)\n?```$", text, re.DOTALL)
+    if m:
+        text = m.group(1).strip()
+    try:
+        return json.loads(text)
+    except Exception:
+        pass
+    # Fallback: decode the first well-formed JSON value in the text. raw_decode
+    # stops at the end of the object, so trailing prose (and braces inside
+    # strings) do not fool it.
+    dec = JSONDecoder()
+    idx = text.find("{")
+    while idx != -1:
+        try:
+            obj, _ = dec.raw_decode(text[idx:])
+            return obj
+        except ValueError:
+            idx = text.find("{", idx + 1)
+    return None
+
 try:
-    d = json.load(sys.stdin)
-    print(d.get("result", ""))
+    result = json.load(sys.stdin).get("result", "")
 except Exception:
-    print("")
+    result = ""
+
+obj = recover(result) if result else None
+print(json.dumps(obj) if obj is not None else "")
 ')
     
     if [ -z "$extracted_json" ]; then
@@ -229,11 +270,13 @@ fi
 
 risk_level="low"
 
-# 2. review
-if ! is_skipped "review"; then
-  log "Stage: review"
+# 2. review — OPT-IN deep LLM pass, NOT a default gate. Whole-repo LLM auditing
+# belongs to the `improve` skill (advisory, non-gating); the land gate below is
+# deterministic. --review layers a code-review pass on top for risky diffs.
+if [ "$REVIEW" -eq 1 ] && ! is_skipped "review"; then
+  log "Stage: review (opt-in)"
   export FINDINGS_JSON=""
-  run_agent_stage "review" "$(dirname "$0")/prompts/review.md" "findings,risk_level"
+  run_agent_stage "review" "$SCRIPT_DIR/prompts/review.md" "findings,risk_level"
   
   risk_level=$(cat "$STATE_DIR/findings-review.json" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("risk_level", "low"))')
   if [ "$risk_level" = "high" ]; then
@@ -254,7 +297,7 @@ except:
     if [ "$needs_fix" = "no" ]; then break; fi
     log "Review auto-fix round $round"
     export FINDINGS_JSON=$(cat "$STATE_DIR/findings-review.json")
-    run_agent_stage "review-fix" "$(dirname "$0")/prompts/review.md" "findings,risk_level"
+    run_agent_stage "review-fix" "$SCRIPT_DIR/prompts/review.md" "findings,risk_level"
     mv "$STATE_DIR/findings-review-fix.json" "$STATE_DIR/findings-review.json"
   done
   
@@ -273,36 +316,27 @@ except:
   fi
 fi
 
-# 3. test
-if ! is_skipped "test"; then
-  log "Stage: test"
-  export FINDINGS_JSON=""
-  export EVIDENCE_DIR="$STATE_DIR/evidence"
-  run_agent_stage "test" "$(dirname "$0")/prompts/test.md" "passed,tested,evidence"
-  passed=$(cat "$STATE_DIR/findings-test.json" | python3 -c 'import json,sys; print(str(json.load(sys.stdin).get("passed", False)).lower())')
-  if [ "$passed" != "true" ]; then
-    log "Test failed, running fix round"
-    export FINDINGS_JSON=$(cat "$STATE_DIR/findings-test.json")
-    run_agent_stage "test-fix" "$(dirname "$0")/prompts/test.md" "passed,tested,evidence"
-    passed=$(cat "$STATE_DIR/findings-test-fix.json" | python3 -c 'import json,sys; print(str(json.load(sys.stdin).get("passed", False)).lower())')
-    if [ "$passed" != "true" ]; then
-      park "tests failed"
-    fi
+# 3. verify — DETERMINISTIC gate. Runs the caller-supplied --verify commands in
+# the worktree (the project test command + the brief's verify steps). Any
+# non-zero exit parks. This replaces the old LLM-driven "test"/"docs" stages:
+# the quality gate is real commands with real exit codes, matching the
+# orchestrate model. No LLM in the critical path.
+if ! is_skipped "verify"; then
+  if [ "${#VERIFY_CMDS[@]}" -eq 0 ]; then
+    log "Stage: verify — no --verify commands supplied; no deterministic test gate ran"
+  else
+    log "Stage: verify (${#VERIFY_CMDS[@]} command(s))"
+    for cmd in "${VERIFY_CMDS[@]}"; do
+      log "verify: $cmd"
+      if ! ( cd "$WT_PATH" && bash -c "$cmd" ) >&2; then
+        park "verify failed: $cmd"
+      fi
+    done
   fi
 fi
 
-# 4. docs
-if ! is_skipped "docs"; then
-  log "Stage: docs"
-  export FINDINGS_JSON=""
-  run_agent_stage "docs" "$(dirname "$0")/prompts/docs.md" "updated,unresolved"
-  unresolved=$(cat "$STATE_DIR/findings-docs.json" | python3 -c 'import json,sys; print(len(json.load(sys.stdin).get("unresolved", [])))')
-  if [ "$unresolved" != "0" ]; then
-    park "docs unresolved"
-  fi
-fi
-
-# 5. lint
+# 4. lint — DETERMINISTIC syntax check on changed shell / python files.
+# A failure parks (no LLM fix round); the crewmate owns fixing its own syntax.
 if ! is_skipped "lint"; then
   log "Stage: lint"
   lint_failed=0
@@ -314,26 +348,7 @@ if ! is_skipped "lint"; then
     fi
   done
   if [ "$lint_failed" -eq 1 ]; then
-    # one agent fix round
-    log "Lint failed, running fix round"
-    export FINDINGS_JSON="{\"lint_failed\": true}"
-    # Wait, the instruction says "Failures → one agent fix round, then park."
-    # Since we don't have a lint agent prompt defined in scope... 
-    # the scope says "prompts/{review,test,docs,lint}.md (new — stage prompts)"
-    # Oh! I missed `prompts/lint.md`! I will create it.
-    run_agent_stage "lint-fix" "$(dirname "$0")/prompts/lint.md" "fixed"
-    # test again
-    lint_failed2=0
-    for f in $(git -C "$WT_PATH" diff --name-only origin/main..HEAD); do
-      if [[ "$f" == *.sh ]] && [ -f "$WT_PATH/$f" ]; then
-        bash -n "$WT_PATH/$f" >&2 || lint_failed2=1
-      elif [[ "$f" == *.py ]] && [ -f "$WT_PATH/$f" ]; then
-        python3 -m py_compile "$WT_PATH/$f" >&2 || lint_failed2=1
-      fi
-    done
-    if [ "$lint_failed2" -eq 1 ]; then
-      park "lint failed"
-    fi
+    park "lint failed"
   fi
 fi
 

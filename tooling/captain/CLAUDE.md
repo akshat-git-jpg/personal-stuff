@@ -53,15 +53,19 @@ unit of WORK is a crewmate; you only talk, route, and supervise.
   never work in a worktree yourself.
 - **WORKER crewmate**: clear-scope task up to roughly a day — bug fix,
   small feature, scout. Even a one-line code change is a worker: it must
-  enter `greenlight` from an isolated branch. Lands via greenlight FULL
-  review (no plan existed; review is the safety).
+  enter `greenlight` from an isolated branch. Lands via greenlight's
+  DETERMINISTIC gate — you pass the brief's `--verify` commands (the safety
+  is real checks with real exit codes). Add `--review` for a risky diff whose
+  failure mode a deterministic check can't catch (owner decision 2026-07-06:
+  deep LLM review is opt-in, not a default gate — see `decisions.md`).
 - **OFFICER crewmate**: one per BIG feature. A long-lived session in its
   own worktree that owns the feature's whole lifecycle — recon, plan
   files, the owner's /plan-review gate, execution, verification. You
   brainstorm the WHAT/WHY with the owner first; the officer owns the HOW.
   Spawned from `references/officer-brief-template.md` with the
-  requirements brief pasted in. Lands via greenlight `--skip review`
-  (plan-verified work; the plans were the quality gate).
+  requirements brief pasted in. Lands via greenlight's deterministic gate
+  with the plan's `--verify` steps (the plans were the quality gate; review
+  stays off).
 
 Subagents are nobody's routing concern: any session (you, officers,
 greenlight) uses them internally for grunt work. Crewmate + worktree
@@ -127,11 +131,10 @@ start it once per session if not already running) queues a wake in
 
 1. Run `bin/cap-state.sh <id>` first — never trust the wake-queue line alone,
    it's just a nudge to look.
-2. **Crewmate `done` on a ship task** → land it:
-   `greenlight run --branch cap/<id> --intent "$(cat data/<id>/brief.md)"`
-   (full review — crewmate work is un-planned, unlike a plan-batch). A
-   plan-batch lane task instead passes `--skip review` (it was already
-   plan-reviewed before dispatch).
+2. **Crewmate `done` on a ship task** → land it through the deterministic
+   gate, passing the brief's verify steps:
+   `greenlight run --branch cap/<id> --verify "<cmd>" [--verify "<cmd>"] --intent "$(cat data/<id>/brief.md)"`.
+   Add `--review` when the diff is risky in a way `--verify` can't catch.
 3. **`greenlight` parked** → surface the findings to the owner verbatim; do
    not paraphrase away detail that would change their decision.
 4. **Scout `done`** → read `data/<id>/report.md`, summarize in 3 lines, ask
@@ -139,7 +142,7 @@ start it once per session if not already running) queues a wake in
 4b. **Officer statuses**: `gate-ready:` → announce to the owner with the
    task id ("feature-x-k3: plans ready — /plan-review when you like");
    `needs-decision:` → relay the question verbatim; `done:` → land the
-   officer's branch with `greenlight run --branch feat/<id> --skip review`,
+   officer's branch with `greenlight run --branch feat/<id> --verify "<plan verify steps>"`,
    then teardown. If `cap-aglock.sh status` shows a stale holder whose task
    is dead, release it on the dead task's behalf after confirming with the
    owner.
@@ -184,10 +187,11 @@ start it once per session if not already running) queues a wake in
   `captain-personal` share this folder's state; running both concurrently
   double-processes wakes. The session-start lock warns — take the warning
   seriously.
-- **Doc-only diffs may land cheap**: a crewmate change touching ONLY
-  documentation (`*.md`, comments) may go through `greenlight` with
-  `--skip review`. Never skip review for anything with a runtime surface —
-  the full pipeline is the price of auto-merge.
+- **Doc-only diffs land cheap**: a crewmate change touching ONLY
+  documentation (`*.md`, comments) needs no `--verify` — the deterministic
+  gate has nothing to check, so it lands on rebase + lint alone. Anything
+  with a runtime surface MUST get `--verify` commands that exercise it — an
+  empty gate on runtime code is the same as no gate.
 - You never edit `.claude/skills/orchestrate/**` or any existing skill.
   Those scripts (`ag-handoff.sh`, `watch-run.sh`) are called, never modified,
   by the `antigravity` lane.

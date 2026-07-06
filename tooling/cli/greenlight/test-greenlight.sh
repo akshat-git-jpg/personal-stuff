@@ -94,10 +94,11 @@ echo "test" > file.txt
 git add file.txt
 git commit -m "feat" >/dev/null 2>&1
 
-# (b) canned review with an ask-user finding
+# (b) canned review with an ask-user finding. Review is OPT-IN now (--review),
+# so the finding only gates the land when the pass is explicitly requested.
 export MOCK_CLAUDE_RESPONSE='{"result": "{\"findings\": [{\"id\": \"r1\", \"severity\": \"warning\", \"file\": \"file.txt\", \"line\": 1, \"description\": \"test\", \"action\": \"ask-user\"}], \"risk_level\": \"low\"}", "usage": {"input_tokens": 0, "output_tokens": 0}}'
 rm -f "$HOME/kb-scratch/test-ntfy.log"
-"$GREENLIGHT_BIN" run --branch feat-branch --repo "$TEST_REPO" >/dev/null 2>&1 || true
+"$GREENLIGHT_BIN" run --branch feat-branch --repo "$TEST_REPO" --review >/dev/null 2>&1 || true
 run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
 state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
 [ "$state" = "parked" ] || fail "(b) ask-user state=$state, expected parked"
@@ -120,7 +121,7 @@ state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
 # Check merge commit on stub main
 git -C "$TEST_REPO" log --oneline | grep -q "greenlight: land green-branch" || fail "(c) merge commit not present on main"
 
-# (d) canned risk_level: high all-green
+# (d) canned risk_level: high all-green, under --review (high ALWAYS parks)
 export MOCK_CLAUDE_RESPONSE='{"result": "{\"findings\": [], \"risk_level\": \"high\", \"passed\": true, \"tested\": [], \"evidence\": [], \"updated\": [], \"unresolved\": []}", "usage": {"input_tokens": 0, "output_tokens": 0}}'
 git checkout main >/dev/null 2>&1
 git checkout -b high-risk-branch >/dev/null 2>&1
@@ -128,10 +129,24 @@ echo "high" > file3.txt
 git add file3.txt
 git commit -m "high" >/dev/null 2>&1
 git checkout main >/dev/null 2>&1
-"$GREENLIGHT_BIN" run --branch high-risk-branch --repo "$TEST_REPO" >/dev/null 2>&1 || true
+"$GREENLIGHT_BIN" run --branch high-risk-branch --repo "$TEST_REPO" --review >/dev/null 2>&1 || true
 run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
 state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
 [ "$state" = "parked" ] || fail "(d) high risk state=$state, expected parked"
+
+# (d2) SAME high-risk mock, but WITHOUT --review: the opt-in review never runs,
+# so nothing gates the land. This is the contract change — deep LLM review is
+# no longer a default gate.
+git checkout main >/dev/null 2>&1
+git checkout -b high-risk-noreview >/dev/null 2>&1
+echo "high2" > file3b.txt
+git add file3b.txt
+git commit -m "high2" >/dev/null 2>&1
+git checkout main >/dev/null 2>&1
+"$GREENLIGHT_BIN" run --branch high-risk-noreview --repo "$TEST_REPO" >/dev/null 2>&1 || true
+run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
+state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
+[ "$state" = "landed" ] || fail "(d2) high risk w/o --review state=$state, expected landed"
 
 # (e) --no-land green
 export MOCK_CLAUDE_RESPONSE='{"result": "{\"findings\": [], \"risk_level\": \"low\", \"passed\": true, \"tested\": [], \"evidence\": [], \"updated\": [], \"unresolved\": []}", "usage": {"input_tokens": 0, "output_tokens": 0}}'
@@ -146,5 +161,31 @@ run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
 state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
 [ "$state" = "parked" ] || fail "(e) no-land state=$state, expected parked"
 grep -q "\-\-no-land" "$HOME/kb-scratch/greenlight/$run_id/parked-reason" || fail "(e) parked reason not --no-land"
+
+# (f) --verify command exits non-zero → parked (deterministic gate)
+unset MOCK_CLAUDE_RESPONSE
+git checkout main >/dev/null 2>&1
+git checkout -b verify-fail-branch >/dev/null 2>&1
+echo "vf" > file5.txt
+git add file5.txt
+git commit -m "vf" >/dev/null 2>&1
+git checkout main >/dev/null 2>&1
+"$GREENLIGHT_BIN" run --branch verify-fail-branch --repo "$TEST_REPO" --verify "exit 3" >/dev/null 2>&1 || true
+run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
+state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
+[ "$state" = "parked" ] || fail "(f) verify-fail state=$state, expected parked"
+grep -q "verify failed" "$HOME/kb-scratch/greenlight/$run_id/parked-reason" || fail "(f) parked reason not verify-failed"
+
+# (g) --verify command exits zero → landed
+git checkout main >/dev/null 2>&1
+git checkout -b verify-pass-branch >/dev/null 2>&1
+echo "vp" > file6.txt
+git add file6.txt
+git commit -m "vp" >/dev/null 2>&1
+git checkout main >/dev/null 2>&1
+"$GREENLIGHT_BIN" run --branch verify-pass-branch --repo "$TEST_REPO" --verify "true" >/dev/null 2>&1 || true
+run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
+state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
+[ "$state" = "landed" ] || fail "(g) verify-pass state=$state, expected landed"
 
 echo "ALL TESTS PASSED"
