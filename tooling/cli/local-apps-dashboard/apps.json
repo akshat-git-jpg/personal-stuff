@@ -30,6 +30,16 @@
       "port": 5273,
       "ports": [5273, 8887],
       "url": "http://localhost:5273"
+    },
+    {
+      "id": "card-gallery",
+      "name": "hyperframes card gallery",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/video/card-library",
+      "start": "node serve.mjs",
+      "env": { "PORT": "4331" },
+      "port": 4331,
+      "ports": [4331],
+      "url": "http://localhost:4331"
     }
   ]
 }
