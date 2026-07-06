@@ -1,0 +1,7 @@
+# Per-task scratch (brief.md, report.md) — machine-local, archived to
+# state/archive/ on teardown. Tracked registry files (projects.md, rules.md,
+# backlog.md) live directly in data/ and are NOT matched by this.
+data/*/
+
+# Machine-local runtime state (metas, status logs, wake queue, archive).
+state/
