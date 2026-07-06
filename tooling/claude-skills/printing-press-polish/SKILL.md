@@ -658,6 +658,29 @@ Stop and:
 
 Proceed to "After all fixes" only when `pii-audit` reads `no pending findings` with no `incomplete:` block.
 
+### Priority 9: AXI checklist
+
+**Your goal now is to close the skill-lever gaps in `references/axi-alignment.md` on the commands this CLI already ships.** These are additive polish, not new features — see `references/scorecard-patterns.md`'s anti-gaming rule; do not touch scorecard-scored files just to move a dimension.
+
+- **Empty states** (AXI #5) — Check: does any list/search command print an
+  empty JSON array or an empty table when the result set is zero? Patch:
+  make it print `<noun>: 0 results for <scope>` on stdout instead, in the
+  same output mode (JSON/table/plain) the command already uses.
+- **Truncation hints + `--full`** (AXI #3) — Check: does any command render
+  a large text field (body, description, log, diff) in full or silently cut
+  it off? Patch: render a 500-1500-char preview + `(truncated, N chars
+  total)`, and add a `--full` flag that returns the untruncated field.
+- **Next-step stderr suggestions** (AXI #9) — Check: after output that is
+  not self-contained (a list truncated by `--select`, a paginated result, an
+  error), does the command suggest a concrete next command? Patch: emit 1-2
+  complete, runnable next-step commands to stderr — generalizing the
+  existing `Showing N results. To narrow: ...` hint pattern. Keep these on
+  stderr, never stdout, so piped JSON output stays parseable.
+
+Proceed to "After all fixes" only when each check above has been run against
+every list/search/detail command and either patched or confirmed not
+applicable (no large-text fields, no non-self-contained output, etc.).
+
 ### After all fixes
 
 ```bash

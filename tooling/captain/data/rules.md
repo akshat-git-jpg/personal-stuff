@@ -1,0 +1,10 @@
+# Routing rules
+
+Task shape → lane + model. Checked during intake (CLAUDE.md section 3)
+before falling back to propose-and-confirm. A confirmed novel routing gets
+appended here by the captain — append-only, most-specific rule wins.
+
+| Task shape | Lane | Model | Notes |
+|---|---|---|---|
+| plan-batch (an existing `plans/NNN-*.md` to execute) | antigravity | — | plan already reviewed; pass `--skip review` to greenlight on land |
+| scout / research (no code change, produces a report) | claude-headless | sonnet | writes `data/<id>/report.md`, nothing lands |
