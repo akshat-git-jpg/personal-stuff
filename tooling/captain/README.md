@@ -27,10 +27,11 @@ that runs the `orchestrate` skill itself (recon → plans → the owner's
 `references/officer-brief-template.md` with the captain-brainstormed
 requirements brief pasted in → lands via `greenlight --skip review`.
 Officers parallelize (2–3 features in flight is the designed case); only the
-owner's attention and the Antigravity lane serialize. Antigravity is the
-officers' default executor and needs `bin/cap-aglock.sh` — a GLOBAL lock
-that also steers the main checkout onto the executing branch (one IDE = one
-workspace). The `gemini` and `sonnet` executors need no lock.
+owner's attention and the Antigravity IDE lane serialize. Officers' default
+executor is **`agy`** (Antigravity CLI — same AI Pro sub, headless, no
+lock, per-call model choice incl. Claude 4.6). The IDE lane is for
+GUI-assisted work only and needs `bin/cap-aglock.sh` — a GLOBAL lock that
+also steers the main checkout onto the executing branch.
 
 ## The lane registry
 
@@ -64,11 +65,13 @@ Shipped lanes:
   a write outside the workspace pops a GUI permission dialog that looks
   exactly like death (2026-07-06 incident) — check the IDE window before
   declaring a task dead.
-- **gemini-headless** (experimental) — a backgrounded `gemini -p ... --yolo
-  --skip-trust` run: non-Claude quota like Antigravity, but a real process
-  (PID liveness, captured stdout, no permission dialogs, no lock — fully
-  parallel). One-time setup: run `gemini` interactively once to log in.
-  Shakedown one real batch before making it any default.
+- **agy-headless** — officers' default executor: a backgrounded
+  `agy -p ... --dangerously-skip-permissions` run (Antigravity CLI, same
+  AI Pro sub as the IDE). Real process: PID liveness, captured stdout, no
+  permission dialogs, no lock — fully parallel. Per-call `--model` incl.
+  Claude Sonnet/Opus 4.6. Replaced the gemini-headless lane after Google
+  cut the gemini CLI off from individual accounts (2026-06-18) — full story
+  in `references/antigravity-cli-findings.md`.
 
 ## Task lifecycle scripts (`bin/`)
 

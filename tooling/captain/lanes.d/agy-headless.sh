@@ -1,9 +1,11 @@
 #!/bin/bash
-# Lane: gemini-headless — a backgrounded non-interactive `gemini -p` run.
-# EXPERIMENTAL (2026-07-06): candidate replacement for the antigravity lane —
-# same Gemini models, but a real process (PID/exit-code liveness, captured
-# stdout, no GUI permission dialogs, no global lock: runs in the task's own
-# worktree). Shakedown per LESSONS before making it any default.
+# Lane: agy-headless — a backgrounded non-interactive Antigravity CLI run.
+# OFFICERS' DEFAULT EXECUTOR (owner decision 2026-07-06): same engine and
+# AI Pro subscription as the Antigravity IDE, but headless — real process
+# (PID/exit-code liveness), no GUI permission dialogs, no aglock: runs in
+# the task's own worktree, so officers execute fully in parallel. Replaces
+# the gemini-headless lane (Google cut the gemini CLI off from individual
+# accounts 2026-06-18 — see references/antigravity-cli-findings.md).
 #
 # Contract: <script> <verb> <task-id> [args...]
 #   dispatch <task-id> <brief-path>
@@ -11,8 +13,11 @@
 #   collect  <task-id>          print "done|blocked|dead <detail>"
 #
 # Task metadata lives in $STATE_DIR/<task-id>.meta. This lane appends: pid=,
-# out=, dispatched_at=. Model override via meta `model=` (e.g. gemini-3-pro).
+# out=, dispatched_at=. Model override via meta `model=` — agy model names
+# contain spaces, e.g. model=Gemini 3.1 Pro (High); see `agy models`.
 set -uo pipefail
+
+export PATH="$HOME/.local/bin:$PATH"   # agy installs to ~/.local/bin
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CAPTAIN_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -30,13 +35,13 @@ meta_append() {
   echo "$2" >> "$STATE_DIR/$1.meta"
 }
 
-verb="${1:?usage: gemini-headless.sh <dispatch|alive|collect> <task-id> [args...]}"
-id="${2:?usage: gemini-headless.sh <verb> <task-id> [args...]}"
+verb="${1:?usage: agy-headless.sh <dispatch|alive|collect> <task-id> [args...]}"
+id="${2:?usage: agy-headless.sh <verb> <task-id> [args...]}"
 
 case "$verb" in
   dispatch)
     brief="${3:?dispatch requires <brief-path>}"
-    command -v gemini >/dev/null || { echo "ERROR: gemini CLI not installed" >&2; exit 1; }
+    command -v agy >/dev/null || { echo "ERROR: agy not installed (curl -fsSL https://antigravity.google/cli/install.sh | bash)" >&2; exit 1; }
     worktree=$(meta_get "$id" worktree) || { echo "ERROR: no worktree for $id" >&2; exit 1; }
     out="$STATE_DIR/$id.out"
     : > "$out"
@@ -44,11 +49,11 @@ case "$verb" in
 
     (
       cd "$worktree" || exit 1
-      # --yolo: approvals are a spawn-time decision, never a hidden dialog.
-      # --skip-trust: worktrees are freshly-created paths the CLI hasn't seen.
-      # shellcheck disable=SC2086
-      exec gemini -p "$(cat "$brief")" --yolo --skip-trust \
-        ${model:+-m "$model"}
+      if [ -n "$model" ]; then
+        exec agy -p "$(cat "$brief")" --dangerously-skip-permissions --model "$model"
+      else
+        exec agy -p "$(cat "$brief")" --dangerously-skip-permissions
+      fi
     ) > "$out" 2>&1 &
     pid=$!
     disown "$pid" 2>/dev/null || true
@@ -73,8 +78,8 @@ case "$verb" in
       echo "dead no output file"
       exit 0
     fi
-    # gemini -p prints the final response as plain text; a non-empty output
-    # from an exited process counts as done — the caller judges content.
+    # agy -p prints the final response as plain text; non-empty output from an
+    # exited process counts as done — the caller judges content.
     if [ -s "$out" ]; then
       echo "done headless run completed ($(wc -c < "$out" | tr -d ' ') bytes)"
     else

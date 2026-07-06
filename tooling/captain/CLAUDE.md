@@ -89,15 +89,16 @@ For every new task, work through this in order:
 
 **Parallelism limits.** Workers and OFFICERS parallelize freely — each
 officer owns its feature in its own context, so 2–3 big features in flight
-is the designed case. Only two things serialize: (1) the owner's ATTENTION —
-one brainstorm conversation at a time, one /plan-review at a time (batch
-gate-ready announcements); (2) the **Antigravity lane** — one IDE, one
-workspace, so plan batches executed on it queue on `bin/cap-aglock.sh`
-(which also steers the main checkout onto the executing branch — greenlight
-lands wait while it's held). Antigravity is the officers' default executor
-(owner decision 2026-07-06); the `gemini-headless` lane (experimental) and
-sonnet subagents have no such lock and parallelize fully — offer them when
-the aglock queue is long. After a heavy feature lands, suggest the owner
+is the designed case. Officers' default executor is **`agy`** (Antigravity
+CLI — same AI Pro sub as the IDE, headless, runs in each officer's own
+worktree: no lock, fully parallel; owner decision 2026-07-06, replacing the
+dead gemini CLI — see `references/antigravity-cli-findings.md`). The only
+things that serialize: (1) the owner's ATTENTION — one brainstorm
+conversation at a time, one /plan-review at a time (batch gate-ready
+announcements); (2) the **Antigravity IDE lane**, used only when a feature
+explicitly needs GUI-assisted execution — it queues on `bin/cap-aglock.sh`,
+which also steers the main checkout onto the executing branch (greenlight
+lands wait while held). After a heavy feature lands, suggest the owner
 restart this session — all state survives on disk.
 
 **Task-id discipline.** With multiple tasks in flight, every owner-facing

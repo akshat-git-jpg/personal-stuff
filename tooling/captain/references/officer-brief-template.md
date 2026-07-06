@@ -21,24 +21,21 @@ needs-decision status, never silent reinterpretation.>
 3. **Owner gate before any dispatch**: run `/plan-review` on your plans, then
    write `gate-ready: <n> plans at plans/NNN-…` to your status file (see §5).
    Do not dispatch until the review feedback lands and you've applied it.
-4. **Execution — default lane is Antigravity** (owner decision 2026-07-06),
-   which runs in the MAIN checkout:
-   - `bin/cap-aglock.sh acquire <feature-id> feat/<feature-id>` — blocks
-     until the global lock is yours and steers the main checkout onto your
-     branch. If it errors (dirty main checkout), write `blocked:` status and
-     stop.
-   - Dispatch with `ag-handoff.sh` + watch with `watch-run.sh` per the
-     orchestrate skill, exactly as documented there.
-   - `bin/cap-aglock.sh release <feature-id>` the moment the batch ends
-     (done OR blocked) — holding the lock idle blocks every other feature
-     and all greenlight lands.
-   - **Executor options, in order**: (1) `antigravity` — default, needs the
-     aglock; (2) `sonnet` subagents — no lock, work here in YOUR worktree,
-     share the Claude pool; (3) `gemini` — no lock, non-Claude quota, runs
-     as `gemini -p "$(cat <prompt>)" --yolo --skip-trust` with cwd = this
-     worktree (see the orchestrate skill's executor registry). Use 2 or 3
-     when the brief says so, for fix-up rounds, or when the aglock queue is
-     long.
+4. **Execution — default executor is `agy`** (Antigravity CLI; owner
+   decision 2026-07-06 — same AI Pro subscription as the IDE, headless, no
+   lock). Per plan: background `agy -p "$(cat <prompt-file>)"
+   --dangerously-skip-permissions [--model "<name>"]` with cwd = THIS
+   worktree, stdout to a file; liveness = the PID, completion = process
+   exit + the plan's run-log DONE line. Model per call via `agy models`
+   names (Claude Sonnet/Opus 4.6 are available under the same sub for
+   tricky plans).
+   - Fallback executors: `sonnet` Agent-tool subagents (no lock, Claude
+     pool) for fix-up rounds or when agy output quality disappoints.
+   - **Antigravity IDE lane only if the captain's brief says so** (GUI-
+     assisted work): it runs in the MAIN checkout and needs the global
+     lock — `bin/cap-aglock.sh acquire <feature-id> feat/<feature-id>`
+     before `ag-handoff.sh`, `release` the moment the batch ends; a dirty
+     main checkout at acquire → `blocked:` status and stop.
 5. **Status protocol** — append one line per state change to
    `state/<feature-id>.status` (relative to the captain home,
    `tooling/captain/`): `recon:`, `gate-ready:`, `executing: plan NNN`,
