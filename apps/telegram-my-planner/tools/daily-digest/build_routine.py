@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Generate exercise-routine.json from the human-editable markdown source
-(../../exercise routine/exercise-routine.md).
+(../../exercise-routine/exercise-routine.md).
 
 Workflow:  edit the markdown  ->  run this  ->  deploy.sh ships exercise-routine.json.
 See the comment block at the top of the markdown for the editing format.
@@ -19,7 +19,7 @@ import sys
 
 HERE         = os.path.dirname(os.path.abspath(__file__))
 MD_PATH      = os.path.normpath(os.path.join(HERE, "..", "..",
-                                             "exercise routine", "exercise-routine.md"))
+                                             "exercise-routine", "exercise-routine.md"))
 ROUTINE_PATH = os.path.join(HERE, "exercise-routine.json")
 
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
