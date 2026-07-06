@@ -18,9 +18,13 @@ ACCOUNT="${ACCOUNT:-akshatpatidar17@gmail.com}"
 SHARED_TOKEN="$SHARED_DIR/tokens/$ACCOUNT.json"
 
 VPS_HOST="${VPS_HOST:-root@72.61.241.170}"
-VPS_DIR="${VPS_DIR:-/opt/kb-daily-planner}"
+# Pattern-B layout (since 2026-06-13): the cron runs code straight out of the
+# git-cloned repo, not a separately scp'd /opt/kb-daily-planner tree. token.json
+# is gitignored, so this scp is still the only way to get a fresh one onto the box.
+VPS_DIR="${VPS_DIR:-/srv/projects/personal-stuff/apps/telegram-my-planner/tools/daily-digest}"
 VPS_KEY="${VPS_KEY:-$HOME/.ssh/hostinger_vps}"
-VPS_LOG="${VPS_LOG:-/var/log/kb-daily-planner.log}"
+VPS_LOG="${VPS_LOG:-/srv/crons/my-planner/logs/cron.log}"
+VPS_RUN_WRAPPER="${VPS_RUN_WRAPPER:-/srv/crons/my-planner/run.sh}"
 
 RUN_NOW=0
 [[ "${1:-}" == "--run-now" ]] && RUN_NOW=1
@@ -57,7 +61,7 @@ ssh -i "$VPS_KEY" "$VPS_HOST" "chmod 600 $VPS_DIR/token.json && rm -f $VPS_DIR/c
 # --- 4. optional smoke run --------------------------------------------------
 if [[ "$RUN_NOW" -eq 1 ]]; then
     echo "[5/5] running digest on VPS (--run-now)"
-    ssh -i "$VPS_KEY" "$VPS_HOST" "$VPS_DIR/run.sh" || true
+    ssh -i "$VPS_KEY" "$VPS_HOST" "$VPS_RUN_WRAPPER" || true
     echo ""
     echo "--- last 15 lines of $VPS_LOG ---"
     ssh -i "$VPS_KEY" "$VPS_HOST" "tail -15 $VPS_LOG"
