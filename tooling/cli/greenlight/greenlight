@@ -83,7 +83,7 @@ fi
 REPO_TOPLEVEL=$(git -C "$REPO" rev-parse --show-toplevel)
 
 if [ "$CMD" = "status" ]; then
-  STATE_DIR="$HOME/kb-scratch/greenlight/$RUN_ID"
+  STATE_DIR="${GREENLIGHT_STATE_ROOT:-$HOME/kb-scratch/greenlight}/$RUN_ID"
   if [ ! -d "$STATE_DIR" ]; then
     echo "ERROR: run $RUN_ID not found" >&2
     exit 1
@@ -96,7 +96,7 @@ fi
 BRANCH_SLUG=$(echo "$BRANCH" | tr '/' '-' | tr -cd 'a-zA-Z0-9-')
 TIMESTAMP=$(date +"%Y%m%d-%H%M")
 RUN_ID="${TIMESTAMP}-${BRANCH_SLUG}"
-STATE_DIR="$HOME/kb-scratch/greenlight/$RUN_ID"
+STATE_DIR="${GREENLIGHT_STATE_ROOT:-$HOME/kb-scratch/greenlight}/$RUN_ID"
 
 mkdir -p "$STATE_DIR/evidence"
 echo "running" > "$STATE_DIR/state"
@@ -144,6 +144,11 @@ function run_agent_stage() {
   local attempt=1
   local prompt_content
   prompt_content=$(cat "$prompt_file")
+  # Substitute the $FINDINGS_JSON placeholder in the prompt text with the
+  # actual prior findings. `export FINDINGS_JSON=...` only sets a shell env
+  # var; the prompt is read from a file, so the literal placeholder must be
+  # replaced here or fix-rounds send the agent the raw string "$FINDINGS_JSON".
+  prompt_content=${prompt_content//\$FINDINGS_JSON/${FINDINGS_JSON:-}}
   local append=""
   
   while [ $attempt -le 2 ]; do

@@ -11,6 +11,9 @@ STUB_DIR=$(mktemp -d)
 trap 'rm -rf "$STUB_DIR"' EXIT
 export PATH="$STUB_DIR:$PATH"
 
+# Isolate greenlight state so tests never pollute the real ~/kb-scratch/greenlight
+export GREENLIGHT_STATE_ROOT="$STUB_DIR/gl-state"
+
 # greenlight now calls tooling/cli/notify (Telegram-first, ntfy fallback)
 # instead of pp-ntfy directly. Force the ntfy-fallback path deterministically:
 # point at a telegram env file that never exists so notify always falls
@@ -28,13 +31,13 @@ chmod +x "$STUB_DIR/pp-ntfy"
 cat > "$STUB_DIR/wt" << 'EOF'
 #!/bin/bash
 if [ "$1" = "get" ]; then
-  mkdir -p "$HOME/kb-scratch/greenlight-test-wt"
+  mkdir -p "$GREENLIGHT_STATE_ROOT-test-wt"
   # Mock cloning repo
-  cp -r "$3/"* "$HOME/kb-scratch/greenlight-test-wt/" 2>/dev/null || true
-  cp -r "$3/.git" "$HOME/kb-scratch/greenlight-test-wt/"
-  echo "$HOME/kb-scratch/greenlight-test-wt"
+  cp -r "$3/"* "$GREENLIGHT_STATE_ROOT-test-wt/" 2>/dev/null || true
+  cp -r "$3/.git" "$GREENLIGHT_STATE_ROOT-test-wt/"
+  echo "$GREENLIGHT_STATE_ROOT-test-wt"
 elif [ "$1" = "return" ]; then
-  rm -rf "$HOME/kb-scratch/greenlight-test-wt"
+  rm -rf "$GREENLIGHT_STATE_ROOT-test-wt"
 fi
 EOF
 chmod +x "$STUB_DIR/wt"
@@ -83,8 +86,8 @@ git push -u origin main >/dev/null 2>&1
 # (a) empty-diff branch
 git checkout -b empty-branch >/dev/null 2>&1
 "$GREENLIGHT_BIN" run --branch empty-branch --repo "$TEST_REPO" >/dev/null 2>&1 || true
-run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
-state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
 [ "$state" = "landed" ] || fail "(a) empty-diff branch state=$state, expected landed"
 
 # Add a commit for other tests
@@ -99,8 +102,8 @@ git commit -m "feat" >/dev/null 2>&1
 export MOCK_CLAUDE_RESPONSE='{"result": "{\"findings\": [{\"id\": \"r1\", \"severity\": \"warning\", \"file\": \"file.txt\", \"line\": 1, \"description\": \"test\", \"action\": \"ask-user\"}], \"risk_level\": \"low\"}", "usage": {"input_tokens": 0, "output_tokens": 0}}'
 rm -f "$HOME/kb-scratch/test-ntfy.log"
 "$GREENLIGHT_BIN" run --branch feat-branch --repo "$TEST_REPO" --review >/dev/null 2>&1 || true
-run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
-state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
 [ "$state" = "parked" ] || fail "(b) ask-user state=$state, expected parked"
 grep -q "parked" "$HOME/kb-scratch/test-ntfy.log" || fail "(b) ntfy not called with parked"
 
@@ -114,8 +117,8 @@ git add file2.txt
 git commit -m "green" >/dev/null 2>&1
 git checkout main >/dev/null 2>&1 # Ensure we are on main
 "$GREENLIGHT_BIN" run --branch green-branch --repo "$TEST_REPO" >/dev/null 2>&1 || true
-run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
-state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
 [ "$state" = "landed" ] || fail "(c) all-green state=$state, expected landed"
 [ -f "$HOME/kb-scratch/test-push.log" ] || fail "(c) push not invoked"
 # Check merge commit on stub main
@@ -130,8 +133,8 @@ git add file3.txt
 git commit -m "high" >/dev/null 2>&1
 git checkout main >/dev/null 2>&1
 "$GREENLIGHT_BIN" run --branch high-risk-branch --repo "$TEST_REPO" --review >/dev/null 2>&1 || true
-run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
-state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
 [ "$state" = "parked" ] || fail "(d) high risk state=$state, expected parked"
 
 # (d2) SAME high-risk mock, but WITHOUT --review: the opt-in review never runs,
@@ -144,8 +147,8 @@ git add file3b.txt
 git commit -m "high2" >/dev/null 2>&1
 git checkout main >/dev/null 2>&1
 "$GREENLIGHT_BIN" run --branch high-risk-noreview --repo "$TEST_REPO" >/dev/null 2>&1 || true
-run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
-state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
 [ "$state" = "landed" ] || fail "(d2) high risk w/o --review state=$state, expected landed"
 
 # (e) --no-land green
@@ -157,10 +160,10 @@ git add file4.txt
 git commit -m "noland" >/dev/null 2>&1
 git checkout main >/dev/null 2>&1
 "$GREENLIGHT_BIN" run --branch noland-branch --repo "$TEST_REPO" --no-land >/dev/null 2>&1 || true
-run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
-state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
 [ "$state" = "parked" ] || fail "(e) no-land state=$state, expected parked"
-grep -q "\-\-no-land" "$HOME/kb-scratch/greenlight/$run_id/parked-reason" || fail "(e) parked reason not --no-land"
+grep -q "\-\-no-land" "$GREENLIGHT_STATE_ROOT/$run_id/parked-reason" || fail "(e) parked reason not --no-land"
 
 # (f) --verify command exits non-zero → parked (deterministic gate)
 unset MOCK_CLAUDE_RESPONSE
@@ -171,10 +174,10 @@ git add file5.txt
 git commit -m "vf" >/dev/null 2>&1
 git checkout main >/dev/null 2>&1
 "$GREENLIGHT_BIN" run --branch verify-fail-branch --repo "$TEST_REPO" --verify "exit 3" >/dev/null 2>&1 || true
-run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
-state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
 [ "$state" = "parked" ] || fail "(f) verify-fail state=$state, expected parked"
-grep -q "verify failed" "$HOME/kb-scratch/greenlight/$run_id/parked-reason" || fail "(f) parked reason not verify-failed"
+grep -q "verify failed" "$GREENLIGHT_STATE_ROOT/$run_id/parked-reason" || fail "(f) parked reason not verify-failed"
 
 # (g) --verify command exits zero → landed
 git checkout main >/dev/null 2>&1
@@ -184,8 +187,8 @@ git add file6.txt
 git commit -m "vp" >/dev/null 2>&1
 git checkout main >/dev/null 2>&1
 "$GREENLIGHT_BIN" run --branch verify-pass-branch --repo "$TEST_REPO" --verify "true" >/dev/null 2>&1 || true
-run_id=$(ls -t "$HOME/kb-scratch/greenlight" | head -n 1)
-state=$(cat "$HOME/kb-scratch/greenlight/$run_id/state")
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
 [ "$state" = "landed" ] || fail "(g) verify-pass state=$state, expected landed"
 
 echo "ALL TESTS PASSED"
