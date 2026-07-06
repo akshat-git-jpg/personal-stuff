@@ -68,7 +68,7 @@ command -v gpg >/dev/null || { echo "escrow: gpg not found" >&2; exit 1; }
 # Stage into a private temp tree, tar, encrypt, upload, then wipe plaintext.
 STAGE="$(mktemp -d "${TMPDIR:-/tmp}/escrow.XXXXXX")"
 chmod 700 "$STAGE"
-trap 'rm -rf "$STAGE"' EXIT
+trap 'rm -rf "$STAGE" "$STAGE.tar.gz"' EXIT
 
 for pair in "${present[@]}"; do
   src="${pair%%|*}"; dest="${pair#*|}"
