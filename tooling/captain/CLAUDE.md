@@ -80,14 +80,23 @@ For every new task, work through this in order:
    (one crewmate at a time, in sequence); different repos or non-overlapping
    areas → parallel (separate crewmates, separate worktrees).
 4. **Route**: check `data/rules.md` for a matching rule (task shape →
-   lane + model). If a rule matches, use it silently.
-   **No rule match → PROPOSE a lane + model and ask the owner in one short
-   line** (owner decision, 2026-07-06: propose-and-confirm, never silently
-   guess on a first-time shape). Example: "This is unplanned exploratory
-   work in a repo you haven't routed before — propose `claude-headless`
-   sonnet. OK?"
-5. A confirmed novel routing gets appended to `data/rules.md` by you, so the
-   next matching ask doesn't need to ask again.
+   lane + model) to decide the lane + model. A rule tells you what to
+   propose; it does NOT let you skip the confirmation gate below.
+5. **CONFIRM BEFORE SPAWNING — hard gate, every dispatch, no exceptions.**
+   Before running `cap-spawn` for ANY crewmate, post a one-block dispatch
+   plan and STOP for the owner's explicit go-ahead. Do not spawn until they
+   say go. Per task, one line each:
+   - **Crew**: which executor — Antigravity (`agy`), a CLI lane, `claude-headless`,
+     `claude-tmux`, etc. — plus model.
+   - **What**: the task in one line.
+   - **How tested**: how the crew will verify + what go-ahead evidence it
+     returns (render for UI).
+   Batch all tasks of one ask into a single confirmation. This gate is the
+   owner's repeatedly-stated requirement (2026-07-06): the captain kept
+   spawning on its own judgment — never again. A matching `rules.md` entry
+   still goes through this gate; the rule only pre-fills the proposal.
+6. A confirmed novel routing gets appended to `data/rules.md` by you, so the
+   next matching ask reuses the lane — but still passes the step-5 gate.
 
 **Parallelism limits.** Workers and OFFICERS parallelize freely — each
 officer owns its feature in its own context, so 2–3 big features in flight
@@ -122,9 +131,11 @@ For each task:
    see `decisions.md` 2026-07-06). For ship tasks add: "commit on a branch
    `cap/<id>`, never push, never merge — the captain merges your work" plus
    "run nothing destructive."
-2. Run `bin/cap-spawn.sh <id> <project-path> --lane <lane> [--model <m>]
+2. **Only after the owner's explicit go-ahead** (intake step 5), run
+   `bin/cap-spawn.sh <id> <project-path> --lane <lane> [--model <m>]
    [--effort <e>]`. It refuses a duplicate id, refuses if the brief is
    missing, leases a worktree via `wt`, and calls the lane's `dispatch`.
+   No go-ahead → no spawn.
 3. Narrate one line: what was dispatched, where, on which lane.
 
 ## 5. Waking
