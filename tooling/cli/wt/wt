@@ -119,13 +119,13 @@ case "$CMD" in
       if [ -d "$wt_path" ]; then
         if [ ! -f "$lease_file" ]; then
           # Check if clean
-          if [ -z "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
-            # Free and clean candidate found
-            reset_worktree "$wt_path"
-            allocated_path="$wt_path"
-            allocated_lease="$lease_file"
-            break
+          if [ -n "$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null)" ]; then
+            echo "wt: reclaimed dirty orphaned slot $wt_path (crashed holder, uncommitted work discarded)" >&2
           fi
+          reset_worktree "$wt_path"
+          allocated_path="$wt_path"
+          allocated_lease="$lease_file"
+          break
         fi
       else
         # Not created yet, create it
