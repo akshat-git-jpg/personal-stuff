@@ -59,7 +59,14 @@ EOF
       grep -qxF '.claude/settings.local.json' "$excl" 2>/dev/null || echo '.claude/settings.local.json' >> "$excl"
     fi
 
-    launch_cmd="${CAP_LAUNCH_CMD:-claude} --dangerously-skip-permissions \"\$(cat $(printf '%q' "$brief"))\""
+    # Crewmates inherit the captain's Claude account: the pane is a fresh zsh
+    # that never sees this process's env, so bake CLAUDE_CONFIG_DIR into the
+    # typed command text when the captain session has one set.
+    launch_base="${CAP_LAUNCH_CMD:-claude}"
+    if [ -z "${CAP_LAUNCH_CMD:-}" ] && [ -n "${CLAUDE_CONFIG_DIR:-}" ]; then
+      launch_base="CLAUDE_CONFIG_DIR=$(printf '%q' "$CLAUDE_CONFIG_DIR") claude"
+    fi
+    launch_cmd="$launch_base --dangerously-skip-permissions \"\$(cat $(printf '%q' "$brief"))\""
     tmux send-keys -t "$TMUX_SESSION:$window" -l "$launch_cmd"
     sleep 0.3
     tmux send-keys -t "$TMUX_SESSION:$window" Enter
