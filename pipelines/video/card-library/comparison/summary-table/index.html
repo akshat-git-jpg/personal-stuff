@@ -2,7 +2,9 @@
 <!--
   SUMMARY TABLE   (Hyperframes card)
   Scored comparison matrix: factors (rows) x products (columns), score cells plus a
-  Reason column explaining each row. 1920x1080, 30fps, 7 seconds.
+  Reason column explaining each row. Airy, borderless — matches feature-matrix's
+  house style (hairline row dividers, transparent cells, orange eyebrow label).
+  1920x1080, 30fps, 7 seconds.
 
   EDITOR: edit only ===== CONTENT ===== (products[], features[]) + :root, never TIMELINE.
   Render:  npx hyperframes@latest render comparison/summary-table -o out.mp4 --fps 30
@@ -15,97 +17,37 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
       :root {
-        --text: #ffffff;
-        --bg-from: #3a1f08;
-        --bg-to: #0a0805;
-        --orange-accent: #fb923c;
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.55);
+        --accent: #fb923c;
         --font: 'Inter', system-ui, sans-serif;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
       #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
 
-      #bg {
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%);
-      }
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 96px 120px; }
+      #content-wrapper { width: 100%; max-width: 1680px; display: flex; flex-direction: column; gap: 44px; }
 
-      #frame {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 60px 80px;
-      }
-
-      #content-wrapper {
-        width: 100%;
-        max-width: 1760px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px; /* Slightly increased gap for the larger text layout */
-      }
-
-      /* UPDATED: INCREASED SIZE FOR BETTER VISUAL HIERARCHY */
-      .slide-title {
-        font-size: 42px; /* Made the text larger here */
-        font-weight: 800;
-        color: var(--orange-accent);
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        text-align: left;
-        align-self: flex-start;
-      }
+      /* title: accent mark + heading, real gap, sentence case (no emoji, no all-caps) */
+      .slide-title { display: flex; align-items: center; gap: 20px; align-self: flex-start; will-change: transform, opacity; }
+      .slide-title .mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); flex: none; box-shadow: 0 0 26px rgba(251, 146, 60, 0.5); }
+      .slide-title .title-text { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
 
       #table { width: 100%; }
       .grid { display: grid; gap: 0; width: 100%; }
+      .cell { padding: 22px 22px; display: flex; align-items: center; }
 
-      .cell {
-        padding: 26px 20px;
-        display: flex;
-        align-items: center;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(0, 0, 0, 0.45);
-        justify-content: center;
-      }
+      /* header row: product names white/bold; label columns are orange eyebrows */
+      .hcell { font-size: 28px; font-weight: 800; justify-content: center; color: var(--text); }
+      .hcell.feat, .hcell.reason { justify-content: flex-start; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; font-size: 19px; font-weight: 800; }
 
-      .even-row-cell {
-        background: rgba(255, 255, 255, 0.03) !important;
-      }
-
-      .hcell {
-        font-size: 24px;
-        font-weight: 800;
-        color: #ffffff;
-        background: rgba(0, 0, 0, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-      }
-
-      .hcell.feat {
-        justify-content: flex-start;
-        color: #ffffff;
-      }
-
-      .feat {
-        justify-content: flex-start;
-        font-size: 22px;
-        font-weight: 700;
-        color: #ffffff;
-      }
-
-      .val { font-size: 26px; font-weight: 800; color: #ffffff; }
-
-      .val.txt {
-        justify-content: flex-start;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 16px;
-        font-weight: 400;
-        line-height: 1.4;
-        text-align: left;
-      }
+      /* body rows: hairline top divider, transparent (no boxes, no striping) */
+      .frow .cell { border-top: 1px solid rgba(255, 255, 255, 0.08); }
+      .feat { justify-content: flex-start; font-size: 24px; font-weight: 600; color: var(--text); }
+      .val { justify-content: center; font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); }
+      .val.txt { justify-content: flex-start; color: var(--text-dim); font-size: 19px; font-weight: 500; line-height: 1.45; text-align: left; }
     </style>
   </head>
   <body>
@@ -115,7 +57,10 @@
       <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
 
         <div id="content-wrapper">
-          <div class="slide-title" id="title-header">⬛ Summary Table</div>
+          <div class="slide-title" id="title-header">
+            <span class="mark"></span>
+            <span class="title-text">Summary Table</span>
+          </div>
 
           <div id="table">
             <div class="grid" id="grid"></div>
@@ -147,21 +92,16 @@
         let html = '<div class="hrow" style="display:contents">';
         html += '<div class="cell hcell feat">Factor</div>';
         html += DATA.products.map((p) => `<div class="cell hcell">${p}</div>`).join('');
-        html += '<div class="cell hcell" style="justify-content: flex-start;">Reason</div>';
+        html += '<div class="cell hcell reason">Reason</div>';
         html += '</div>';
 
-        DATA.features.forEach((f, rowIndex) => {
-          const isEven = (rowIndex % 2 !== 0);
-          const rowClass = isEven ? 'cell even-row-cell' : 'cell';
-
+        DATA.features.forEach((f) => {
           html += `<div class="frow" style="display:contents">`;
-          html += `<div class="${rowClass} feat">${f.name}</div>`;
-
+          html += `<div class="cell feat">${f.name}</div>`;
           for (let i = 0; i < f.values.length - 1; i++) {
-            html += `<div class="${rowClass} val">${f.values[i]}</div>`;
+            html += `<div class="cell val">${f.values[i]}</div>`;
           }
-
-          html += `<div class="${rowClass} val txt">${f.values[f.values.length - 1]}</div>`;
+          html += `<div class="cell val txt">${f.values[f.values.length - 1]}</div>`;
           html += `</div>`;
         });
 
