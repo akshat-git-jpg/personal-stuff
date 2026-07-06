@@ -8,6 +8,8 @@ Format: `YYYY-MM-DD — <decision> — <why> (<optional link>)`
 
 ## Decisions
 
+2026-07-07 — captain parallel-dispatch plumbing hardened (landed cap/land-plumbing): (a) `cap-spawn.sh` no longer hardcodes `MODEL="sonnet"` — it leaves model empty when `--model` is unset so each lane applies its own default (agy → Gemini 3.1 Pro (High), claude lanes → sonnet); the old default silently ran agy tasks on Sonnet not Gemini; (b) new `bin/cap-land.sh <id>` encapsulates detach-worktree → greenlight → teardown as one command; (c) `.gitattributes` sets `decisions.md merge=union` so parallel branches appending here auto-merge instead of rebase-conflicting; (d) greenlight's "main checkout busy" check uses `--untracked-files=no` so stray untracked artifacts no longer park a land. Convention: crewmates must NOT edit decisions.md — the captain appends after landing. (tooling/captain/)
+
 2026-07-06 — secured yt-claude relay with a per-session token (/token, X-Relay-Token header) and dropped wildcard CORS — prevents CSRF/RCE since non-privileged/attacker scripts cannot read /token due to SOP, whereas Tampermonkey can bypass CORS via GM_xmlhttpRequest.
 
 2026-07-06 — fixed escrow-backup.sh trap to wipe both staging dir and plaintext tarball — referenced "$STAGE.tar.gz" in the trap to avoid unbound variable errors under set -u since STAGE is bound at registration time whereas TARBALL is not yet defined. (infra/escrow/escrow-backup.sh)
