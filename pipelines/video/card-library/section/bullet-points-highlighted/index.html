@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  SECTION AGENDA   (Hyperframes card)
+  BULLET POINTS HIGHLIGHTED   (Hyperframes card)
   Re-shows the whole table-of-contents between sections and highlights the one
   you're covering now: done items get a ✓ and dim, the current item lights up with
   an accent pill, upcoming items sit dimmed. 1920x1080, 30fps, 6 seconds.
@@ -11,7 +11,7 @@
   │  the section you're starting (1 = first item). Never touch the TIMELINE.  │
   └─────────────────────────────────────────────────────────────────────────┘
 
-  Render:  npx hyperframes@latest render section/section-agenda -o out.mp4 --fps 30
+  Render:  npx hyperframes@latest render section/bullet-points-highlighted -o out.mp4 --fps 30
   Override: --variables '{"active":3,"items":[{"label":"A"},{"label":"B"},{"label":"C"}]}'
 -->
 <html lang="en">
@@ -59,7 +59,7 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="agenda" data-start="0" data-duration="6" data-width="1920" data-height="1080"
+    <div id="root" data-composition-id="bullet-points-highlighted" data-start="0" data-duration="6" data-width="1920" data-height="1080"
       data-composition-variables='{"eyebrow":"Now covering","active":2,"items":[{"label":"Eliminated — and why"},{"label":"Situational picks"},{"label":"Worth considering"},{"label":"The four winners"}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="content" class="clip" data-start="0" data-duration="6" data-track-index="1">
@@ -108,7 +108,7 @@
       // the current row's pill sweeps in from the left, then the row lifts a touch
       tl.fromTo('#list .row.current .pill', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.5, ease: 'power3.out', transformOrigin: 'left center' }, 0.75);
       tl.fromTo('#list .row.current', { scale: 1 }, { scale: 1.045, duration: 0.45, ease: 'back.out(2)', transformOrigin: 'left center' }, 0.8);
-      window.__timelines['agenda'] = tl;
+      window.__timelines['bullet-points-highlighted'] = tl;
     </script>
   </body>
 </html>

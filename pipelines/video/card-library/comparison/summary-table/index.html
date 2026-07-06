@@ -1,0 +1,183 @@
+<!doctype html>
+<!--
+  SUMMARY TABLE   (Hyperframes card)
+  Scored comparison matrix: factors (rows) x products (columns), score cells plus a
+  Reason column explaining each row. 1920x1080, 30fps, 7 seconds.
+
+  EDITOR: edit only ===== CONTENT ===== (products[], features[]) + :root, never TIMELINE.
+  Render:  npx hyperframes@latest render comparison/summary-table -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --text: #ffffff;
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --orange-accent: #fb923c;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%);
+      }
+
+      #frame {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 60px 80px;
+      }
+
+      #content-wrapper {
+        width: 100%;
+        max-width: 1760px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px; /* Slightly increased gap for the larger text layout */
+      }
+
+      /* UPDATED: INCREASED SIZE FOR BETTER VISUAL HIERARCHY */
+      .slide-title {
+        font-size: 42px; /* Made the text larger here */
+        font-weight: 800;
+        color: var(--orange-accent);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-align: left;
+        align-self: flex-start;
+      }
+
+      #table { width: 100%; }
+      .grid { display: grid; gap: 0; width: 100%; }
+
+      .cell {
+        padding: 26px 20px;
+        display: flex;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(0, 0, 0, 0.45);
+        justify-content: center;
+      }
+
+      .even-row-cell {
+        background: rgba(255, 255, 255, 0.03) !important;
+      }
+
+      .hcell {
+        font-size: 24px;
+        font-weight: 800;
+        color: #ffffff;
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .hcell.feat {
+        justify-content: flex-start;
+        color: #ffffff;
+      }
+
+      .feat {
+        justify-content: flex-start;
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      .val { font-size: 26px; font-weight: 800; color: #ffffff; }
+
+      .val.txt {
+        justify-content: flex-start;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 1.4;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="summary-table" data-start="0" data-duration="7" data-width="1920" data-height="1080"
+      data-composition-variables='{"products":["OpenArt","Higgsfield","Synthesia","HeyGen","Arcads"],"features":[{"name":"Ease of Use","values":["3.5 / 5","4 / 5","5 / 5","4.5 / 5","4 / 5","Synthesia is the most beginner-friendly. HeyGen close behind. OpenArt takes a session or two to get comfortable with."]},{"name":"Features","values":["5 / 5","3.5 / 5","3.5 / 5","3.5 / 5","3 / 5","OpenArt covers the most creative ground. Arcads scores lower — intentionally focused on one output type."]},{"name":"Output Quality","values":["4.5 / 5","4.5 / 5","4 / 5","4 / 5","4 / 5","OpenArt & Higgsfield tie at top. All five produce results you can actually use."]},{"name":"Use Case Fit","values":["5 / 5","3.5 / 5","5 / 5","5 / 5","5 / 5","Four tools are best-in-class for their niche. Higgsfield&#39;s cinematic focus serves a narrower range of creators."]},{"name":"Pricing & Value","values":["4.5 / 5","3.5 / 5","3.5 / 5","4 / 5","3.5 / 5","OpenArt leads — most creative ground per dollar. HeyGen strong for solo creators. Arcads premium only makes sense at volume."]}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
+
+        <div id="content-wrapper">
+          <div class="slide-title" id="title-header">⬛ Summary Table</div>
+
+          <div id="table">
+            <div class="grid" id="grid"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        products: VARS.products ?? ['OpenArt', 'Higgsfield', 'Synthesia', 'HeyGen', 'Arcads'],
+        features: VARS.features ?? [
+          { name: 'Ease of Use', values: ['3.5 / 5', '4 / 5', '5 / 5', '4.5 / 5', '4 / 5', 'Synthesia is the most beginner-friendly. HeyGen close behind. OpenArt takes a session or two to get comfortable with.'] },
+          { name: 'Features', values: ['5 / 5', '3.5 / 5', '3.5 / 5', '3.5 / 5', '3 / 5', 'OpenArt covers the most creative ground. Arcads scores lower — intentionally focused on one output type.'] },
+          { name: 'Output Quality', values: ['4.5 / 5', '4.5 / 5', '4 / 5', '4 / 5', '4 / 5', 'OpenArt & Higgsfield tie at top. All five produce results you can actually use.'] },
+          { name: 'Use Case Fit', values: ['5 / 5', '3.5 / 5', '5 / 5', '5 / 5', '5 / 5', "Four tools are best-in-class for their niche. Higgsfield's cinematic focus serves a narrower range of creators."] },
+          { name: 'Pricing & Value', values: ['4.5 / 5', '3.5 / 5', '3.5 / 5', '4 / 5', '3.5 / 5', 'OpenArt leads — most creative ground per dollar. HeyGen strong for solo creators. Arcads premium only makes sense at volume.'] },
+        ],
+      };
+
+      const grid = document.getElementById('grid');
+
+      function build() {
+        grid.style.gridTemplateColumns = `1.3fr repeat(${DATA.products.length}, 1fr) 2.4fr`;
+
+        let html = '<div class="hrow" style="display:contents">';
+        html += '<div class="cell hcell feat">Factor</div>';
+        html += DATA.products.map((p) => `<div class="cell hcell">${p}</div>`).join('');
+        html += '<div class="cell hcell" style="justify-content: flex-start;">Reason</div>';
+        html += '</div>';
+
+        DATA.features.forEach((f, rowIndex) => {
+          const isEven = (rowIndex % 2 !== 0);
+          const rowClass = isEven ? 'cell even-row-cell' : 'cell';
+
+          html += `<div class="frow" style="display:contents">`;
+          html += `<div class="${rowClass} feat">${f.name}</div>`;
+
+          for (let i = 0; i < f.values.length - 1; i++) {
+            html += `<div class="${rowClass} val">${f.values[i]}</div>`;
+          }
+
+          html += `<div class="${rowClass} val txt">${f.values[f.values.length - 1]}</div>`;
+          html += `</div>`;
+        });
+
+        grid.innerHTML = html;
+      }
+      build();
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.from('#title-header', { opacity: 0, y: -20, duration: 0.4, ease: 'power2.out' }, 0.1);
+      tl.from('.hrow .cell', { opacity: 0, y: -25, duration: 0.5, ease: 'power3.out', stagger: 0.04 }, 0.3);
+      tl.from('.frow .cell', { opacity: 0, x: -30, duration: 0.5, ease: 'power2.out', stagger: 0.02 }, 0.6);
+
+      window.__timelines['summary-table'] = tl;
+    </script>
+  </body>
+</html>
