@@ -23,7 +23,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Phone notifications (Telegram-first) | tooling/cli/notify/README.md |
 | Visual plan review before dispatch | .claude/skills/plan-review/SKILL.md |
 | MCP servers (only `drive`, `cloudflare` still used) | `tooling/mcp/README.md` |
-| A specific app | apps/<name>/ — full list in the README map below; every app folder has its own CLAUDE.md |
+| A specific app | apps/<name>/ — full list in the README map below; each app folder carries its own operate-doc (README and/or CLAUDE.md) |
 | YouTube / Pinterest / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
 | Worktree pool for agent runs (wt) | [`tooling/cli/wt/README.md`](tooling/cli/wt/README.md) |
 | Delegate parallel work across projects (captain) | tooling/captain/README.md |
