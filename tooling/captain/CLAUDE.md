@@ -120,7 +120,11 @@ start it once per session if not already running) queues a wake in
 
 - **Plan-shaped batches go to the `orchestrate` skill** (invoke it), not
   hand-rolled here. If an ask is really "write a plan and run it", say so and
-  hand off instead of building a bespoke dispatch loop.
+  hand off instead of building a bespoke dispatch loop. Orchestrator work —
+  brainstorming, clarifying questions, plan-writing, the human gate,
+  dispatch, verification — happens IN this session (you are the orchestrator
+  chair; the owner is already here for the Q&A). Farm recon file-sweeps to
+  subagents to keep your context lean; never assign planning to a crewmate.
 - **Never edit skills from a crewmate's worktree.** Skill edits happen on the
   main checkout, by the owner or by you directly in this session — never as
   a spawned task.
