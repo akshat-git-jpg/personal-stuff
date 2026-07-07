@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="kit/tokens.css" />
+    <link rel="stylesheet" href="kit/atoms.css" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="kit/recipes.js"></script>
+    <style>
+      /* Scene-specific layout */
+      #body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 150px;
+        width: 100%;
+        height: 100%;
+        gap: 120px;
+        color: var(--fg);
+      }
+      .columns {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+        padding: 0 100px;
+      }
+      .col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 60px;
+        flex: 1;
+      }
+      .col-left {
+        gap: 80px;
+      }
+      .col-right {
+        gap: 60px;
+      }
+      .icon-container {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .icon {
+        width: 160px;
+        height: 160px;
+        stroke: currentColor;
+      }
+      .icon.is-blue { stroke: var(--blue); }
+      .icon.is-amber { stroke: var(--amber); }
+      
+      .floating-pill {
+        position: absolute;
+        top: -20px;
+        right: -40px;
+      }
+      .pill-row {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        /* Line connecting pills */
+        position: relative;
+      }
+      .pill-row::before {
+        content: '';
+        position: absolute;
+        top: 50%; left: 0; right: 0;
+        height: 2px;
+        background: var(--fg);
+        z-index: -1;
+      }
+      .pill-row .pill {
+        background: var(--bg); /* To cover the line */
+      }
+      .map-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        font-size: 32px;
+      }
+      .money-text {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 48px;
+        font-weight: 700;
+        letter-spacing: 8px;
+        color: var(--red);
+      }
+      .is-amber-text { color: var(--amber); }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="8"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="clip-watermark" class="clip" data-start="0" data-duration="8" data-track-index="0">
+        <div id="watermark" class="watermark">&lt;devsplainers&gt;</div>
+      </div>
+
+      <div id="clip-body" class="clip" data-start="0" data-duration="8" data-track-index="1">
+        <div id="body">
+          <div class="scene-section">
+            <h2 class="numbered-title" id="title-elem">
+              <span class="num">1</span> <span id="title-text">WHEN THE WORK HAPPENS</span>
+            </h2>
+          </div>
+
+          <div class="columns">
+            <!-- Left Column -->
+            <div class="col col-left">
+              <div class="pill is-blue" id="rag-pill">RAG · at question time</div>
+              
+              <div class="icon-container" id="rag-icon">
+                <svg class="icon is-blue" viewBox="0 0 48 48" fill="none" stroke-width="2">
+                  <ellipse cx="24" cy="12" rx="16" ry="6"></ellipse>
+                  <path d="M8 12v24c0 3.3 7.2 6 16 6s16-2.7 16-6V12"></path>
+                  <path d="M8 24c0 3.3 7.2 6 16 6s16-2.7 16-6"></path>
+                </svg>
+                <div class="pill is-amber floating-pill" id="rag-q">?</div>
+              </div>
+
+              <div class="money-text" id="rag-money">$ $ $ $ $ ...</div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col col-right">
+              <div class="pill is-amber" id="wiki-pill">WIKI · once, at build time</div>
+              
+              <div class="icon-container" id="wiki-icon">
+                <svg class="icon is-amber" viewBox="0 0 48 48" fill="none" stroke-width="2">
+                  <path d="M4 10a2 2 0 0 1 2-2h12l4 4h20a2 2 0 0 1 2 2v24a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10z"></path>
+                  <path d="M4 18h40"></path>
+                </svg>
+              </div>
+
+              <div class="pill-row" id="wiki-steps">
+                <div class="pill is-outline">link</div>
+                <div class="pill is-outline">flag conflict</div>
+                <div class="pill is-outline">summarize</div>
+              </div>
+
+              <div class="map-row" id="wiki-money">
+                <span class="is-amber-text">$ once →</span>
+                <div class="pill is-green">FREE READS</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ================= TIMELINE ======================================= */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Title
+      R.fadeUp(tl, '#title-elem', 0.2);
+
+      // Left column (RAG)
+      R.popIn(tl, '#rag-pill', 0.8, { scale: 0.8 });
+      R.drawOn(tl, '#rag-icon svg', 1.2, { duration: 1.5 });
+      R.popIn(tl, '#rag-q', 1.5, { scale: 0.5 });
+      R.fadeUp(tl, '#rag-money', 2.0);
+
+      // Right column (WIKI)
+      R.popIn(tl, '#wiki-pill', 2.8, { scale: 0.8 });
+      R.drawOn(tl, '#wiki-icon svg', 3.2, { duration: 1.5 });
+      R.staggerIn(tl, '#wiki-steps .pill', 4.2, { stagger: 0.15, y: -10 });
+      R.fadeUp(tl, '#wiki-money', 5.0);
+
+      window.__timelines['main'] = tl;
+    </script>
+  </body>
+</html>
