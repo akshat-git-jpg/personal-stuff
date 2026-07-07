@@ -40,13 +40,9 @@ needs: []
 - **Test / verification for success**: syntax + structure checks only (`python3 -m py_compile`,
   `node --check`, JSON template parse, file/dir existence) — no live-account calls, no unit test
   suite (matches how `tutorial-pipeline-2` itself was verified when it landed).
-- **Open points for plan readiness**: none blocking handoff. `heygen3` (the default engine for the
-  `body` segment in `shared/avatar_mapping.py SEGMENT_ENGINE`) is now a real, working
-  implementation end to end. `heygen4` (currently the default for `intro`/`conclusion`) is still a
-  `[TODO][HNS]` stub pending its own HAR capture — until then, **2 of the 3 segments won't render
-  for real** unless the owner either captures a `heygen4` HAR or reassigns `SEGMENT_ENGINE` to route
-  more/all segments through `heygen3` in the meantime. This is a real usage decision for the owner,
-  not a planning gap — every Done criterion here is achievable either way.
+- **Open points for plan readiness**: none. (`heygen4` staying a `[TODO][HNS]` stub is a
+  deliberate scope decision, not an open question — see Maintenance notes for the usage
+  implication and how to close it later.)
 
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving on. If
