@@ -24,31 +24,36 @@ needs: []
   - Download the real finished renders and package them as `spokesperson_intro/body/conclusion.mp4`.
   - Upload the 3 packaged clips into a find-or-created `output/` subfolder of the source Drive folder.
   - Extend `pp-drive` with real read operations (`stat`/`list-folder`/`download`) and `heygen-web`
-    with a `generate-from-audio` command (HTTP body intentionally stubbed — see Open points).
+    with a `generate-from-audio` command — **real, HAR-verified implementation for `heygen3`**
+    (Avatar III, unlimited) as of 2026-07-07; `heygen4` (Avatar IV, metered) remains a stub.
 - **Executor proposed**: `agy` (Gemini-backed by default) — owner's explicit choice, overriding
   `tooling/boss/data/rules.md`'s `standard`-difficulty default of `claude-p`/`sonnet`.
 - **Done criteria** (terse — full list below): `scripts/check.sh` passes (py_compile + `node
-  --check` + structure check); `pp-drive` has `stat`/`list-folder`/`download`; `heygen-web.mjs` has
-  `generate-from-audio` wired into help + dispatch; `pipelines/CLAUDE.md` lists the pipeline;
-  `tutorial-pipeline-2/` untouched.
+  --check` + structure check + the 2 new template JSONs parse); `pp-drive` has
+  `stat`/`list-folder`/`download`; `heygen-web.mjs` has a real `generate-from-audio` (`heygen3`)
+  wired into help + dispatch; `pipelines/CLAUDE.md` lists the pipeline; `tutorial-pipeline-2/`
+  untouched.
 - **Stop conditions** (terse — full list below): never run any step against a real Drive/HeyGen
-  account; never guess or implement the real `submitAudioGenerate()` HTTP body; never touch
-  `tutorial-pipeline-2/` or `infra/secrets/`.
+  account during build/verify (syntax-only); never guess or implement the `heygen4` HTTP body
+  (no HAR exists for it — leave it a `[TODO][HNS]` stub); never touch `tutorial-pipeline-2/` or
+  `infra/secrets/`.
 - **Test / verification for success**: syntax + structure checks only (`python3 -m py_compile`,
-  `node --check`, file/dir existence) — no live-account calls, no unit test suite (matches how
-  `tutorial-pipeline-2` itself was verified when it landed).
-- **Open points for plan readiness**: none blocking handoff. The one known gap — HeyGen's
-  "upload audio + render on an existing avatar" HTTP call — ships as an intentional `[TODO][HNS]`
-  stub; every Done criterion here is achievable without it. The pipeline won't produce a REAL
-  rendered video until the owner captures that HAR (Preserve Log on) and fills in
-  `submitAudioGenerate()` — that's a follow-up action, not an unresolved planning decision.
+  `node --check`, JSON template parse, file/dir existence) — no live-account calls, no unit test
+  suite (matches how `tutorial-pipeline-2` itself was verified when it landed).
+- **Open points for plan readiness**: none blocking handoff. `heygen3` (the default engine for the
+  `body` segment in `shared/avatar_mapping.py SEGMENT_ENGINE`) is now a real, working
+  implementation end to end. `heygen4` (currently the default for `intro`/`conclusion`) is still a
+  `[TODO][HNS]` stub pending its own HAR capture — until then, **2 of the 3 segments won't render
+  for real** unless the owner either captures a `heygen4` HAR or reassigns `SEGMENT_ENGINE` to route
+  more/all segments through `heygen3` in the meantime. This is a real usage decision for the owner,
+  not a planning gap — every Done criterion here is achievable either way.
 
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving on. If
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat c8afcb2..HEAD -- pipelines/youtube/tutorial-pipeline-1 tooling/cli/drive/pp_drive.py tooling/cli/drive/README.md tooling/cli/heygen-web/heygen-web.mjs tooling/cli/heygen-web/README.md pipelines/CLAUDE.md`
+> **Drift check (run first)**: `git diff --stat c8afcb2..HEAD -- pipelines/youtube/tutorial-pipeline-1 tooling/cli/drive/pp_drive.py tooling/cli/drive/README.md tooling/cli/heygen-web/heygen-web.mjs tooling/cli/heygen-web/README.md tooling/cli/heygen-web/HANDOVER.md tooling/cli/heygen-web/studio-templates pipelines/CLAUDE.md`
 
 ## Status
 
@@ -66,11 +71,11 @@ The owner records tutorial video segments (`intro.mp4`, `body.mp4`, `conclusion.
 way, then wants an AI-avatar "spokesperson" version of each — an existing HeyGen avatar lip-synced
 to that segment's own audio — to drop into editing. Today that's a fully manual round trip through
 the HeyGen web app. This plan builds `tutorial-pipeline-1`, a small standalone pipeline (sibling to
-`tutorial-pipeline-2`, no dependency between them) that automates everything **except** the one
-HeyGen request that has never been captured: uploading arbitrary audio and rendering it on an
-already-created avatar. That single call ships as a clean, documented stub (see "The one deliberate
-gap" below) — everything around it (Drive download, audio extraction, config, submission
-bookkeeping, the real HeyGen download, packaging, Drive upload) is fully real and runnable today.
+`tutorial-pipeline-2`, no dependency between them) that automates the whole thing end to end. The
+one HeyGen request that had never been captured — uploading arbitrary audio and rendering it on an
+already-created avatar — was captured by the owner in a real HAR on 2026-07-07 (see "Current state"
+below); this plan now ships a **real, verified implementation** for that path on `heygen3` (Avatar
+III, unlimited), with `heygen4` (Avatar IV, metered) left as the one remaining documented stub.
 
 ## Current state
 
@@ -121,15 +126,17 @@ code in Step 1) — all standard, well-documented Drive API v3 calls (`files.get
    the same category of unknown, so this plan applies the same rule to it.
 3. `download <video_id>` (line 447) **is fully wired and real** — no gap there.
 
-**The one deliberate gap this plan leaves as a stub:** the actual "upload this local audio file,
-render it on avatar `avatar_id`" HTTP call. This plan adds a `generate-from-audio` command to
-`heygen-web.mjs` whose orchestration (arg parsing, error handling, JSON output shape) is real, but
-whose HTTP body (`submitAudioGenerate()`) raises `NotImplementedError` with a `[TODO][HNS]` message
-— **identical convention** to `tutorial-pipeline-2/lib/heygen.py`'s `WebSessionBackend.submit`/
-`fetch`, which have shipped in production since before this session with the same stub shape (see
-`plans/README.md` backlog item `PIPE-01`). To wire it for real: open the HeyGen editor with
-DevTools **Preserve Log ON**, pick an existing avatar, upload an audio file, hit Generate, and copy
-the network calls as cURL — the same recapture `HANDOVER.md` already calls for on the render side.
+**Update (2026-07-07) — the gap above is now resolved for `heygen3`.** The owner captured a real
+HAR (`app.heygen.com11.har`, Preserve Log ON) of exactly the flow described above: upload local
+audio, existing avatar, hit Generate. It also captures `text_draft.generate` — the actual "Generate"
+endpoint `HANDOVER.md` said had never been captured (only `text_draft.scene_avatar_preview`, the
+in-editor preview, existed before). Step 2 below now contains the real implementation — audio
+upload (`/v1/file/url.get` → S3 PUT → `/v1/file.upload`), HeyGen's own ASR (`/v1/audio/fast_asr` —
+no local Whisper/Groq step needed), and the render kickoff (`/v1/text_draft.generate`) — verified
+line-by-line against the HAR, not guessed. **`heygen4` (Avatar IV, metered) is still a stub** — the
+HAR only exercised Avatar III (`engine:"avatar_iii"`, `use_unlimited_mode:true`); `generate-from-audio
+--engine heygen4` raises a `[TODO][HNS]` error until its own HAR is captured, same convention as
+`tutorial-pipeline-2/lib/heygen.py`'s stubs (`plans/README.md` backlog item `PIPE-01`).
 
 **Avatar/engine config** — the owner confirmed (2026-07-07): the Drive folder name's `_xx`/`_yy`
 suffix selects a preset; each preset carries **its own HeyGen 4 avatar id AND HeyGen 3 avatar id**;
@@ -151,6 +158,7 @@ freely; actual avatar ids ship as `REPLACE_WITH_*` placeholders, same convention
 | pp-drive syntax check | `python3 -m py_compile tooling/cli/drive/pp_drive.py` | exit 0, no output |
 | Full check (test_cmd) | `bash pipelines/youtube/tutorial-pipeline-1/scripts/check.sh` | prints `✓ all checks passed`, exit 0 |
 | ffmpeg present | `ffmpeg -version` | prints a version line (already a dependency of `tutorial-pipeline-2`) |
+| New template JSONs parse | `python3 -c "import json; json.load(open('tooling/cli/heygen-web/studio-templates/generate-audio-save.json')); json.load(open('tooling/cli/heygen-web/studio-templates/generate-audio-generate.json'))"` | exit 0, no output |
 
 **Do not** run any step's `run.py` against real Drive/HeyGen accounts as part of verification — see
 STOP conditions. Verification in this plan is syntax + structure only.
@@ -161,15 +169,19 @@ STOP conditions. Verification in this plan is syntax + structure only.
 - New folder `pipelines/youtube/tutorial-pipeline-1/` (everything under it).
 - `tooling/cli/drive/pp_drive.py` + `tooling/cli/drive/README.md` — add `stat`, `list-folder`,
   `download` subcommands.
-- `tooling/cli/heygen-web/heygen-web.mjs` + `tooling/cli/heygen-web/README.md` — add
-  `generate-from-audio` (stubbed HTTP body, real CLI plumbing).
+- `tooling/cli/heygen-web/heygen-web.mjs` + `tooling/cli/heygen-web/README.md` +
+  `tooling/cli/heygen-web/HANDOVER.md` — add a real `generate-from-audio` (`heygen3` path) plus
+  its two new template files, `tooling/cli/heygen-web/studio-templates/generate-audio-save.json`
+  and `generate-audio-generate.json`.
 - `pipelines/CLAUDE.md` — add the new pipeline's row to the folder map table.
 
 **Out of scope**:
 - `pipelines/youtube/tutorial-pipeline-2/` (renamed sibling) — do not touch any file in it.
-- Filling in the actual `submitAudioGenerate()` HTTP call, or any real HeyGen avatar/voice ids —
-  those need a live HAR capture and real credentials, both owner-only actions (see STOP conditions).
-- `infra/secrets/heygen-web-curls.txt` or any other secrets file.
+- Implementing the `heygen4` HTTP body, or any real HeyGen avatar/voice ids for
+  `shared/avatar_mapping.py` — `heygen4` needs its own HAR capture and real credentials, both
+  owner-only actions (see STOP conditions); avatar ids are the owner's to fill in.
+- `infra/secrets/heygen-web-curls.txt`, `infra/secrets/heygen-usage-last.json`, or any other
+  secrets file.
 - Any change to `tooling/mcp/`, the official HeyGen MCP, or `--iv` (Avatar IV / metered) defaults.
 
 ## Git workflow
@@ -239,24 +251,1429 @@ commands (tab-separated `id  name  mimeType` output for `stat`/`list-folder`; `s
 
 **Verify**: `python3 -m py_compile tooling/cli/drive/pp_drive.py` → exit 0, no output.
 
-### Step 2: Add `generate-from-audio` to `heygen-web.mjs` (stubbed HTTP body)
+### Step 2: Add `generate-from-audio` to `heygen-web.mjs` — REAL implementation (HAR-verified 2026-07-07)
 
-In `tooling/cli/heygen-web/heygen-web.mjs`, add this after `submitGenerate()`/`generate()` (after
-line 269, before `async function batch(...)`):
+**Update (2026-07-07): this is no longer a stub for the `heygen3` (Avatar III, unlimited) path.**
+The owner captured a real HAR (`app.heygen.com11.har`, Preserve Log ON) of: upload a local audio
+file → HeyGen's own ASR transcribes it → render it on an **existing** avatar (not a new
+`create-photo-avatar`). This also happens to capture the endpoint `HANDOVER.md` flagged as the
+permanent gap in `studio-render` (`text_draft.generate`, the actual "Generate" button — previously
+only `text_draft.scene_avatar_preview`, the in-editor preview, had ever been captured). The
+`heygen4` (Avatar IV, metered) path is **still a stub** — the HAR only exercised Avatar III.
+
+The full chain, verified from the HAR (entries referenced by HAR index for traceability):
+1. `GET /v1/file/url.get?file_type=audio&filename=<name>&content_type=audio%2Fwav&properties%5Baudio_source%5D=voice_recording`
+   → `{data: {id, key, url (presigned S3 PUT), download_url}}` [HAR #155]
+2. `PUT <presigned url>` — raw audio bytes, headers `Content-Type: audio/wav`,
+   `x-amz-server-side-encryption: AES256` (same S3 signing quirk as `create-photo-avatar`'s image
+   upload) [HAR #159]
+3. `POST /v1/file.upload` body `{name, id, file_type:"audio", content_type, filename,
+   properties:{audio_source:"voice_recording"}}` → `{data: {id: <asset_id>, url}}` [HAR #161]
+4. `POST /v1/audio/fast_asr` body `{"url": "<download_url with original.mp3 swapped for
+   transcode.mp3, plus a content-disposition query string>"}` → `{data: {data: {words, text,
+   duration, language}}}` — **this is HeyGen's own ASR**, so this pipeline needs no local
+   Whisper/Groq step for the avatar's lip-sync transcript [HAR #173]
+5. `POST /v1/text_draft.create` → `{data: {video_id}}` (unchanged from `studio-render`) [HAR #178]
+6. `POST /v1/text_draft.save` — full scene doc, avatar + uploaded-audio filled in [HAR #247]
+7. `POST /v1/text_draft.generate` body `{video_id, enable_watermark:false, generate_type:"normal",
+   version_id:<client-generated random token — NOT server-issued, confirmed by tracing every
+   `text_draft.save`/`.create` response in the HAR and finding no match>, draft_details:{title,
+   text_draft_with_metadata:{text_draft, metadata}}, complete_tts_in_backend:true}` →
+   `{data: {video_id, status:"pending"}}` — **the actual render kickoff** [HAR #255]
+
+Create `tooling/cli/heygen-web/studio-templates/generate-audio-save.json` with this **exact**
+content (a real captured `text_draft.save` body, tokenized — mirrors how `save.json`/`preview.json`
+already work: `__AVATAR_ID__` is blanket-substituted even inside cosmetic preview-image URLs,
+proven harmless per `HANDOVER.md`'s own note that the render drives off the real id fields):
+
+```json
+{
+ "video_id": "__VIDEO_ID__",
+ "text_draft": {
+  "script": {
+   "elements": {
+    "p3uQXbqx": {
+     "id": "p3uQXbqx",
+     "type": "audio",
+     "text": "__AUDIO_TEXT__",
+     "attributes": {
+      "src": "__AUDIO_URL__",
+      "voice_id": "__VOICE_ID__",
+      "voice_settings": {
+       "locale": "",
+       "pitch": 0,
+       "speed": 1,
+       "volume": 1,
+       "voice_engine_settings": {
+        "engine_type": "elevenLabsV3",
+        "seed": 2613764667
+       }
+      }
+     },
+     "voice_mirroring": false
+    }
+   },
+   "timeline": [
+    "p3uQXbqx"
+   ],
+   "brand_kit_id": "d4b4e72235224eb486f5066139cfa60d"
+  },
+  "captions": {
+   "elements": {},
+   "remove_punctuation": false
+  },
+  "background_audio": {
+   "elements": {}
+  },
+  "visual": {
+   "elements": {
+    "zffBPsHA": {
+     "id": "zffBPsHA",
+     "type": "scene",
+     "content": {
+      "elements": [
+       "Qh1Uwlho"
+      ],
+      "background_color": "#FFFFFF"
+     }
+    },
+    "Qh1Uwlho": {
+     "id": "Qh1Uwlho",
+     "type": "avatar",
+     "attributes": {
+      "animations": [],
+      "opacity": 1,
+      "position": {
+       "offset": {
+        "x": 0,
+        "y": 0
+       },
+       "type": "center"
+      },
+      "size": {
+       "fit": "none",
+       "scale": {
+        "x": 0.8,
+        "y": 0.8
+       },
+       "crop": {
+        "top": 0,
+        "left": 0,
+        "bottom": 0,
+        "right": 0
+       }
+      },
+      "transformation": {
+       "rotate": {
+        "angle": 0
+       }
+      },
+      "rounded_corners": {
+       "top_left": 0,
+       "top_right": 0,
+       "bottom_right": 0,
+       "bottom_left": 0
+      }
+     },
+     "content": {
+      "avatar_id": "__AVATAR_ID__",
+      "avatar_state_id": "__AVATAR_ID__",
+      "render_type": "normal",
+      "avatar_type": "photo_avatar",
+      "avatar_group_id": "__AVATAR_ID__",
+      "matting": false,
+      "talking_photo": {
+       "enhance": false
+      },
+      "inference_mp4": "",
+      "inference_webm": "",
+      "inference_job_id": "",
+      "gesture_mp4": "",
+      "gesture_webm": "",
+      "use_avatar_iv_model": false,
+      "use_unlimited_mode": true,
+      "engine": "avatar_iii",
+      "engine_settings": {
+       "engine_type": "avatar_iii"
+      },
+      "inference_packed_mp4": ""
+     }
+    }
+   },
+   "layout": [
+    "zffBPsHA"
+   ]
+  },
+  "alignments": {
+   "zffBPsHA": {
+    "element_id": "zffBPsHA",
+    "alignment_info": {
+     "start": {
+      "script_id": "p3uQXbqx",
+      "word_index": 0
+     },
+     "end": {
+      "script_id": "p3uQXbqx",
+      "word_index": -1
+     }
+    }
+   },
+   "Qh1Uwlho": {
+    "element_id": "Qh1Uwlho",
+    "alignment_info": {
+     "start": {
+      "script_id": "p3uQXbqx",
+      "word_index": 0
+     },
+     "end": {
+      "script_id": "p3uQXbqx",
+      "word_index": -1
+     }
+    },
+    "gesture_alignments": []
+   }
+  }
+ },
+ "video_output": {
+  "resolution": {
+   "width": 1080,
+   "height": 1920
+  },
+  "fps": 25,
+  "caption": false
+ },
+ "metadata": [
+  {
+   "element_id": "p3uQXbqx",
+   "type": "audio",
+   "seed": 2613764667,
+   "url": "__AUDIO_URL__",
+   "duration": 28.676854,
+   "words": [
+    {
+     "word": "<start>",
+     "start_time": 0,
+     "end_time": 0
+    },
+    {
+     "word": "The",
+     "start_time": 0.039,
+     "end_time": 0.14
+    },
+    {
+     "word": "scarlet",
+     "start_time": 0.179,
+     "end_time": 0.62
+    },
+    {
+     "word": "rot",
+     "start_time": 0.719,
+     "end_time": 0.959
+    },
+    {
+     "word": "is",
+     "start_time": 1,
+     "end_time": 1.1
+    },
+    {
+     "word": "not",
+     "start_time": 1.179,
+     "end_time": 1.359
+    },
+    {
+     "word": "like",
+     "start_time": 1.419,
+     "end_time": 1.559
+    },
+    {
+     "word": "the",
+     "start_time": 1.599,
+     "end_time": 1.639
+    },
+    {
+     "word": "common",
+     "start_time": 1.74,
+     "end_time": 2.059
+    },
+    {
+     "word": "poisons",
+     "start_time": 2.139,
+     "end_time": 2.639
+    },
+    {
+     "word": "found",
+     "start_time": 2.759,
+     "end_time": 2.98
+    },
+    {
+     "word": "in",
+     "start_time": 3.039,
+     "end_time": 3.119
+    },
+    {
+     "word": "the",
+     "start_time": 3.139,
+     "end_time": 3.179
+    },
+    {
+     "word": "world.",
+     "start_time": 3.299,
+     "end_time": 3.679
+    },
+    {
+     "word": "It",
+     "start_time": 4.119,
+     "end_time": 4.199
+    },
+    {
+     "word": "is",
+     "start_time": 4.239,
+     "end_time": 4.359
+    },
+    {
+     "word": "an",
+     "start_time": 4.4,
+     "end_time": 4.46
+    },
+    {
+     "word": "unstoppable",
+     "start_time": 4.519,
+     "end_time": 5.319
+    },
+    {
+     "word": "tide,",
+     "start_time": 5.48,
+     "end_time": 5.879
+    },
+    {
+     "word": "the",
+     "start_time": 6.279,
+     "end_time": 6.379
+    },
+    {
+     "word": "purest",
+     "start_time": 6.48,
+     "end_time": 6.879
+    },
+    {
+     "word": "expression",
+     "start_time": 6.98,
+     "end_time": 7.539
+    },
+    {
+     "word": "of",
+     "start_time": 7.579,
+     "end_time": 7.699
+    },
+    {
+     "word": "this",
+     "start_time": 7.739,
+     "end_time": 7.879
+    },
+    {
+     "word": "deity's",
+     "start_time": 8.019,
+     "end_time": 8.519
+    },
+    {
+     "word": "power.",
+     "start_time": 8.599,
+     "end_time": 8.939
+    },
+    {
+     "word": "Where",
+     "start_time": 9.399,
+     "end_time": 9.519
+    },
+    {
+     "word": "the",
+     "start_time": 9.559,
+     "end_time": 9.599
+    },
+    {
+     "word": "rot",
+     "start_time": 9.719,
+     "end_time": 9.88
+    },
+    {
+     "word": "takes",
+     "start_time": 10,
+     "end_time": 10.28
+    },
+    {
+     "word": "hold,",
+     "start_time": 10.359,
+     "end_time": 10.719
+    },
+    {
+     "word": "life",
+     "start_time": 10.859,
+     "end_time": 11.119
+    },
+    {
+     "word": "is",
+     "start_time": 11.159,
+     "end_time": 11.279
+    },
+    {
+     "word": "eviscerated,",
+     "start_time": 11.399,
+     "end_time": 12.139
+    },
+    {
+     "word": "yes,",
+     "start_time": 12.239,
+     "end_time": 12.619
+    },
+    {
+     "word": "but",
+     "start_time": 12.88,
+     "end_time": 13.02
+    },
+    {
+     "word": "from",
+     "start_time": 13.039,
+     "end_time": 13.199
+    },
+    {
+     "word": "that",
+     "start_time": 13.239,
+     "end_time": 13.5
+    },
+    {
+     "word": "death,",
+     "start_time": 13.539,
+     "end_time": 13.859
+    },
+    {
+     "word": "new",
+     "start_time": 14.019,
+     "end_time": 14.239
+    },
+    {
+     "word": "life",
+     "start_time": 14.279,
+     "end_time": 14.619
+    },
+    {
+     "word": "begins",
+     "start_time": 14.679,
+     "end_time": 15.06
+    },
+    {
+     "word": "to",
+     "start_time": 15.079,
+     "end_time": 15.239
+    },
+    {
+     "word": "stir.",
+     "start_time": 15.259,
+     "end_time": 15.659
+    },
+    {
+     "word": "From",
+     "start_time": 15.859,
+     "end_time": 16
+    },
+    {
+     "word": "the",
+     "start_time": 16.02,
+     "end_time": 16.119
+    },
+    {
+     "word": "corpses",
+     "start_time": 16.199,
+     "end_time": 16.699
+    },
+    {
+     "word": "rise",
+     "start_time": 16.819,
+     "end_time": 17.1
+    },
+    {
+     "word": "the",
+     "start_time": 17.139,
+     "end_time": 17.219
+    },
+    {
+     "word": "kindred",
+     "start_time": 17.279,
+     "end_time": 17.659
+    },
+    {
+     "word": "of",
+     "start_time": 17.699,
+     "end_time": 17.819
+    },
+    {
+     "word": "rot,",
+     "start_time": 17.899,
+     "end_time": 18.219
+    },
+    {
+     "word": "skittering",
+     "start_time": 18.619,
+     "end_time": 19.119
+    },
+    {
+     "word": "beings",
+     "start_time": 19.18,
+     "end_time": 19.62
+    },
+    {
+     "word": "that",
+     "start_time": 19.659,
+     "end_time": 19.78
+    },
+    {
+     "word": "resemble",
+     "start_time": 19.799,
+     "end_time": 20.359
+    },
+    {
+     "word": "silverfish",
+     "start_time": 20.42,
+     "end_time": 21.119
+    },
+    {
+     "word": "or",
+     "start_time": 21.18,
+     "end_time": 21.34
+    },
+    {
+     "word": "cockroaches.",
+     "start_time": 21.399,
+     "end_time": 22.319
+    },
+    {
+     "word": "It",
+     "start_time": 22.619,
+     "end_time": 22.719
+    },
+    {
+     "word": "mirrors",
+     "start_time": 22.819,
+     "end_time": 23.139
+    },
+    {
+     "word": "the",
+     "start_time": 23.18,
+     "end_time": 23.259
+    },
+    {
+     "word": "way",
+     "start_time": 23.299,
+     "end_time": 23.44
+    },
+    {
+     "word": "of",
+     "start_time": 23.459,
+     "end_time": 23.579
+    },
+    {
+     "word": "our",
+     "start_time": 23.619,
+     "end_time": 23.739
+    },
+    {
+     "word": "own",
+     "start_time": 23.819,
+     "end_time": 24.019
+    },
+    {
+     "word": "world",
+     "start_time": 24.059,
+     "end_time": 24.399
+    },
+    {
+     "word": "where",
+     "start_time": 24.479,
+     "end_time": 24.639
+    },
+    {
+     "word": "bacteria",
+     "start_time": 24.659,
+     "end_time": 25.399
+    },
+    {
+     "word": "and",
+     "start_time": 25.439,
+     "end_time": 25.6
+    },
+    {
+     "word": "carrion",
+     "start_time": 25.619,
+     "end_time": 26.079
+    },
+    {
+     "word": "eaters",
+     "start_time": 26.119,
+     "end_time": 26.44
+    },
+    {
+     "word": "flourish",
+     "start_time": 26.559,
+     "end_time": 27
+    },
+    {
+     "word": "upon",
+     "start_time": 27.039,
+     "end_time": 27.28
+    },
+    {
+     "word": "the",
+     "start_time": 27.299,
+     "end_time": 27.359
+    },
+    {
+     "word": "remains",
+     "start_time": 27.399,
+     "end_time": 27.819
+    },
+    {
+     "word": "of",
+     "start_time": 27.84,
+     "end_time": 27.959
+    },
+    {
+     "word": "the",
+     "start_time": 27.979,
+     "end_time": 28.099
+    },
+    {
+     "word": "fallen.",
+     "start_time": 28.18,
+     "end_time": 28.559
+    },
+    {
+     "word": "<end>",
+     "start_time": 28.676854,
+     "end_time": 28.676854
+    }
+   ],
+   "text": "__AUDIO_TEXT__",
+   "name": "Audio_File_37b23d.wav",
+   "fileType": "upload",
+   "source_audio_url": "__AUDIO_URL__"
+  },
+  {
+   "element_id": "Qh1Uwlho",
+   "type": "avatar",
+   "avatar_type": "photo_avatar",
+   "name": "girl looking down test 3",
+   "pose_name": "girl looking down test 3",
+   "avatar_name": "girl looking down test 3",
+   "avatar_group_name": "girl looking down test 3",
+   "is_motion": true,
+   "is_avatar_iv_motion": true,
+   "crop_box_crop_x": {},
+   "preview_image_url": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783748580&Signature=gJK9KxiOzx4gWDP18EJlXncR3mOP8kRg1JP6pqM2YgqNTYmnkWU3h82kNS-jDt1w9MFySYBUtzbcYMntd~Cyb5xmNxuo18V4Eb8UYA-WbIUJ6TG7oiYS7paA315VRugUi1A1HOWpj3CgewYCgfio8Fj4xUInQ066qFXAmZc6wArz6V-y9iOk~8UsaAIULF6E-t3H4fgALlB0JXRqb8VCVrc1HKviYdKUdD~HBSYRDYy1RBn0l-RIN1f53ZUK9eAeRz9buBCjU7~LzQ-~YqdwiHiEjPsSoJeepZwdycS9qw297sV6hpUSWbVTArBiZaTvfY28~4PjIK6HlQ3wZs1QXg__&Key-Pair-Id=K38HBHX5LX3X2H",
+   "preview_video_url": "",
+   "blurred_lips_mp4": "",
+   "blurred_lips_webm": "",
+   "fps": 25,
+   "avatar_state_id": "__AVATAR_ID__",
+   "available_style": {
+    "normal": true,
+    "circle": true,
+    "close_up": true,
+    "closeUp": true
+   },
+   "enable_matting": true,
+   "has_alpha": false,
+   "enable_enhance": true,
+   "enable_4k": false,
+   "enable_eye_contact": false,
+   "preview": {
+    "normal": {
+     "size": {
+      "width": 1792,
+      "height": 2400
+     },
+     "src": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783748580&Signature=gJK9KxiOzx4gWDP18EJlXncR3mOP8kRg1JP6pqM2YgqNTYmnkWU3h82kNS-jDt1w9MFySYBUtzbcYMntd~Cyb5xmNxuo18V4Eb8UYA-WbIUJ6TG7oiYS7paA315VRugUi1A1HOWpj3CgewYCgfio8Fj4xUInQ066qFXAmZc6wArz6V-y9iOk~8UsaAIULF6E-t3H4fgALlB0JXRqb8VCVrc1HKviYdKUdD~HBSYRDYy1RBn0l-RIN1f53ZUK9eAeRz9buBCjU7~LzQ-~YqdwiHiEjPsSoJeepZwdycS9qw297sV6hpUSWbVTArBiZaTvfY28~4PjIK6HlQ3wZs1QXg__&Key-Pair-Id=K38HBHX5LX3X2H"
+    }
+   },
+   "crop_rect": {
+    "circle": {
+     "x": 0,
+     "y": 24.444444444444446,
+     "width": 1774.213399503722,
+     "height": 1773.3333333333335
+    },
+    "close_up": {
+     "x": 0,
+     "y": 24.444444444444446,
+     "width": 1774.213399503722,
+     "height": 1773.3333333333335
+    }
+   },
+   "is_private": true,
+   "support_avatar_iv": true,
+   "unlimited_mode_disabled": false,
+   "unlimited_mode_disabled_reason": null,
+   "photo_avatar_metadata": {
+    "photar_version": "V3"
+   },
+   "width": 1792,
+   "height": 2400,
+   "natural_width": 1792,
+   "natural_height": 2400,
+   "processed_image_url": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783748580&Signature=gJK9KxiOzx4gWDP18EJlXncR3mOP8kRg1JP6pqM2YgqNTYmnkWU3h82kNS-jDt1w9MFySYBUtzbcYMntd~Cyb5xmNxuo18V4Eb8UYA-WbIUJ6TG7oiYS7paA315VRugUi1A1HOWpj3CgewYCgfio8Fj4xUInQ066qFXAmZc6wArz6V-y9iOk~8UsaAIULF6E-t3H4fgALlB0JXRqb8VCVrc1HKviYdKUdD~HBSYRDYy1RBn0l-RIN1f53ZUK9eAeRz9buBCjU7~LzQ-~YqdwiHiEjPsSoJeepZwdycS9qw297sV6hpUSWbVTArBiZaTvfY28~4PjIK6HlQ3wZs1QXg__&Key-Pair-Id=K38HBHX5LX3X2H"
+  },
+  {
+   "type": "scene",
+   "element_id": "zffBPsHA"
+  }
+ ],
+ "title": "__TITLE__",
+ "skip_rate_limit": false,
+ "has_faceswap": false
+}
+```
+
+Create `tooling/cli/heygen-web/studio-templates/generate-audio-generate.json` (the tokenized
+`text_draft.generate` body):
+
+```json
+{
+ "video_id": "__VIDEO_ID__",
+ "enable_watermark": false,
+ "generate_type": "normal",
+ "version_id": "__VERSION_ID__",
+ "draft_details": {
+  "title": "__TITLE__",
+  "text_draft_with_metadata": {
+   "text_draft": {
+    "script": {
+     "elements": {
+      "p3uQXbqx": {
+       "id": "p3uQXbqx",
+       "type": "audio",
+       "text": "__AUDIO_TEXT__",
+       "attributes": {
+        "src": "__AUDIO_URL__",
+        "voice_id": "__VOICE_ID__",
+        "voice_settings": {
+         "locale": "",
+         "pitch": 0,
+         "speed": 1,
+         "volume": 1,
+         "voice_engine_settings": {
+          "engine_type": "elevenLabsV3",
+          "seed": 2613764667
+         }
+        }
+       },
+       "voice_mirroring": false
+      }
+     },
+     "timeline": [
+      "p3uQXbqx"
+     ],
+     "brand_kit_id": "d4b4e72235224eb486f5066139cfa60d"
+    },
+    "captions": {
+     "elements": {},
+     "remove_punctuation": false
+    },
+    "background_audio": {
+     "elements": {}
+    },
+    "visual": {
+     "elements": {
+      "zffBPsHA": {
+       "id": "zffBPsHA",
+       "type": "scene",
+       "content": {
+        "elements": [
+         "Qh1Uwlho"
+        ],
+        "background_color": "#FFFFFF"
+       }
+      },
+      "Qh1Uwlho": {
+       "id": "Qh1Uwlho",
+       "type": "avatar",
+       "attributes": {
+        "animations": [],
+        "opacity": 1,
+        "position": {
+         "offset": {
+          "x": 0,
+          "y": 0
+         },
+         "type": "center"
+        },
+        "size": {
+         "fit": "none",
+         "scale": {
+          "x": 0.8,
+          "y": 0.8
+         },
+         "crop": {
+          "top": 0,
+          "left": 0,
+          "bottom": 0,
+          "right": 0
+         }
+        },
+        "transformation": {
+         "rotate": {
+          "angle": 0
+         }
+        },
+        "rounded_corners": {
+         "top_left": 0,
+         "top_right": 0,
+         "bottom_right": 0,
+         "bottom_left": 0
+        }
+       },
+       "content": {
+        "avatar_id": "__AVATAR_ID__",
+        "avatar_state_id": "__AVATAR_ID__",
+        "render_type": "normal",
+        "avatar_type": "photo_avatar",
+        "avatar_group_id": "__AVATAR_ID__",
+        "matting": false,
+        "talking_photo": {
+         "enhance": false
+        },
+        "inference_mp4": "",
+        "inference_webm": "",
+        "inference_job_id": "",
+        "gesture_mp4": "",
+        "gesture_webm": "",
+        "use_avatar_iv_model": false,
+        "use_unlimited_mode": true,
+        "engine": "avatar_iii",
+        "engine_settings": {
+         "engine_type": "avatar_iii"
+        },
+        "inference_packed_mp4": ""
+       }
+      }
+     },
+     "layout": [
+      "zffBPsHA"
+     ]
+    },
+    "alignments": {
+     "zffBPsHA": {
+      "element_id": "zffBPsHA",
+      "alignment_info": {
+       "start": {
+        "script_id": "p3uQXbqx",
+        "word_index": 0
+       },
+       "end": {
+        "script_id": "p3uQXbqx",
+        "word_index": -1
+       }
+      }
+     },
+     "Qh1Uwlho": {
+      "element_id": "Qh1Uwlho",
+      "alignment_info": {
+       "start": {
+        "script_id": "p3uQXbqx",
+        "word_index": 0
+       },
+       "end": {
+        "script_id": "p3uQXbqx",
+        "word_index": -1
+       }
+      },
+      "gesture_alignments": []
+     }
+    }
+   },
+   "metadata": {
+    "p3uQXbqx": {
+     "element_id": "p3uQXbqx",
+     "type": "audio",
+     "seed": 2613764667,
+     "url": "__AUDIO_URL__",
+     "duration": 28.676854,
+     "words": [
+      {
+       "word": "<start>",
+       "start_time": 0,
+       "end_time": 0
+      },
+      {
+       "word": "The",
+       "start_time": 0.039,
+       "end_time": 0.14
+      },
+      {
+       "word": "scarlet",
+       "start_time": 0.179,
+       "end_time": 0.62
+      },
+      {
+       "word": "rot",
+       "start_time": 0.719,
+       "end_time": 0.959
+      },
+      {
+       "word": "is",
+       "start_time": 1,
+       "end_time": 1.1
+      },
+      {
+       "word": "not",
+       "start_time": 1.179,
+       "end_time": 1.359
+      },
+      {
+       "word": "like",
+       "start_time": 1.419,
+       "end_time": 1.559
+      },
+      {
+       "word": "the",
+       "start_time": 1.599,
+       "end_time": 1.639
+      },
+      {
+       "word": "common",
+       "start_time": 1.74,
+       "end_time": 2.059
+      },
+      {
+       "word": "poisons",
+       "start_time": 2.139,
+       "end_time": 2.639
+      },
+      {
+       "word": "found",
+       "start_time": 2.759,
+       "end_time": 2.98
+      },
+      {
+       "word": "in",
+       "start_time": 3.039,
+       "end_time": 3.119
+      },
+      {
+       "word": "the",
+       "start_time": 3.139,
+       "end_time": 3.179
+      },
+      {
+       "word": "world.",
+       "start_time": 3.299,
+       "end_time": 3.679
+      },
+      {
+       "word": "It",
+       "start_time": 4.119,
+       "end_time": 4.199
+      },
+      {
+       "word": "is",
+       "start_time": 4.239,
+       "end_time": 4.359
+      },
+      {
+       "word": "an",
+       "start_time": 4.4,
+       "end_time": 4.46
+      },
+      {
+       "word": "unstoppable",
+       "start_time": 4.519,
+       "end_time": 5.319
+      },
+      {
+       "word": "tide,",
+       "start_time": 5.48,
+       "end_time": 5.879
+      },
+      {
+       "word": "the",
+       "start_time": 6.279,
+       "end_time": 6.379
+      },
+      {
+       "word": "purest",
+       "start_time": 6.48,
+       "end_time": 6.879
+      },
+      {
+       "word": "expression",
+       "start_time": 6.98,
+       "end_time": 7.539
+      },
+      {
+       "word": "of",
+       "start_time": 7.579,
+       "end_time": 7.699
+      },
+      {
+       "word": "this",
+       "start_time": 7.739,
+       "end_time": 7.879
+      },
+      {
+       "word": "deity's",
+       "start_time": 8.019,
+       "end_time": 8.519
+      },
+      {
+       "word": "power.",
+       "start_time": 8.599,
+       "end_time": 8.939
+      },
+      {
+       "word": "Where",
+       "start_time": 9.399,
+       "end_time": 9.519
+      },
+      {
+       "word": "the",
+       "start_time": 9.559,
+       "end_time": 9.599
+      },
+      {
+       "word": "rot",
+       "start_time": 9.719,
+       "end_time": 9.88
+      },
+      {
+       "word": "takes",
+       "start_time": 10,
+       "end_time": 10.28
+      },
+      {
+       "word": "hold,",
+       "start_time": 10.359,
+       "end_time": 10.719
+      },
+      {
+       "word": "life",
+       "start_time": 10.859,
+       "end_time": 11.119
+      },
+      {
+       "word": "is",
+       "start_time": 11.159,
+       "end_time": 11.279
+      },
+      {
+       "word": "eviscerated,",
+       "start_time": 11.399,
+       "end_time": 12.139
+      },
+      {
+       "word": "yes,",
+       "start_time": 12.239,
+       "end_time": 12.619
+      },
+      {
+       "word": "but",
+       "start_time": 12.88,
+       "end_time": 13.02
+      },
+      {
+       "word": "from",
+       "start_time": 13.039,
+       "end_time": 13.199
+      },
+      {
+       "word": "that",
+       "start_time": 13.239,
+       "end_time": 13.5
+      },
+      {
+       "word": "death,",
+       "start_time": 13.539,
+       "end_time": 13.859
+      },
+      {
+       "word": "new",
+       "start_time": 14.019,
+       "end_time": 14.239
+      },
+      {
+       "word": "life",
+       "start_time": 14.279,
+       "end_time": 14.619
+      },
+      {
+       "word": "begins",
+       "start_time": 14.679,
+       "end_time": 15.06
+      },
+      {
+       "word": "to",
+       "start_time": 15.079,
+       "end_time": 15.239
+      },
+      {
+       "word": "stir.",
+       "start_time": 15.259,
+       "end_time": 15.659
+      },
+      {
+       "word": "From",
+       "start_time": 15.859,
+       "end_time": 16
+      },
+      {
+       "word": "the",
+       "start_time": 16.02,
+       "end_time": 16.119
+      },
+      {
+       "word": "corpses",
+       "start_time": 16.199,
+       "end_time": 16.699
+      },
+      {
+       "word": "rise",
+       "start_time": 16.819,
+       "end_time": 17.1
+      },
+      {
+       "word": "the",
+       "start_time": 17.139,
+       "end_time": 17.219
+      },
+      {
+       "word": "kindred",
+       "start_time": 17.279,
+       "end_time": 17.659
+      },
+      {
+       "word": "of",
+       "start_time": 17.699,
+       "end_time": 17.819
+      },
+      {
+       "word": "rot,",
+       "start_time": 17.899,
+       "end_time": 18.219
+      },
+      {
+       "word": "skittering",
+       "start_time": 18.619,
+       "end_time": 19.119
+      },
+      {
+       "word": "beings",
+       "start_time": 19.18,
+       "end_time": 19.62
+      },
+      {
+       "word": "that",
+       "start_time": 19.659,
+       "end_time": 19.78
+      },
+      {
+       "word": "resemble",
+       "start_time": 19.799,
+       "end_time": 20.359
+      },
+      {
+       "word": "silverfish",
+       "start_time": 20.42,
+       "end_time": 21.119
+      },
+      {
+       "word": "or",
+       "start_time": 21.18,
+       "end_time": 21.34
+      },
+      {
+       "word": "cockroaches.",
+       "start_time": 21.399,
+       "end_time": 22.319
+      },
+      {
+       "word": "It",
+       "start_time": 22.619,
+       "end_time": 22.719
+      },
+      {
+       "word": "mirrors",
+       "start_time": 22.819,
+       "end_time": 23.139
+      },
+      {
+       "word": "the",
+       "start_time": 23.18,
+       "end_time": 23.259
+      },
+      {
+       "word": "way",
+       "start_time": 23.299,
+       "end_time": 23.44
+      },
+      {
+       "word": "of",
+       "start_time": 23.459,
+       "end_time": 23.579
+      },
+      {
+       "word": "our",
+       "start_time": 23.619,
+       "end_time": 23.739
+      },
+      {
+       "word": "own",
+       "start_time": 23.819,
+       "end_time": 24.019
+      },
+      {
+       "word": "world",
+       "start_time": 24.059,
+       "end_time": 24.399
+      },
+      {
+       "word": "where",
+       "start_time": 24.479,
+       "end_time": 24.639
+      },
+      {
+       "word": "bacteria",
+       "start_time": 24.659,
+       "end_time": 25.399
+      },
+      {
+       "word": "and",
+       "start_time": 25.439,
+       "end_time": 25.6
+      },
+      {
+       "word": "carrion",
+       "start_time": 25.619,
+       "end_time": 26.079
+      },
+      {
+       "word": "eaters",
+       "start_time": 26.119,
+       "end_time": 26.44
+      },
+      {
+       "word": "flourish",
+       "start_time": 26.559,
+       "end_time": 27
+      },
+      {
+       "word": "upon",
+       "start_time": 27.039,
+       "end_time": 27.28
+      },
+      {
+       "word": "the",
+       "start_time": 27.299,
+       "end_time": 27.359
+      },
+      {
+       "word": "remains",
+       "start_time": 27.399,
+       "end_time": 27.819
+      },
+      {
+       "word": "of",
+       "start_time": 27.84,
+       "end_time": 27.959
+      },
+      {
+       "word": "the",
+       "start_time": 27.979,
+       "end_time": 28.099
+      },
+      {
+       "word": "fallen.",
+       "start_time": 28.18,
+       "end_time": 28.559
+      },
+      {
+       "word": "<end>",
+       "start_time": 28.676854,
+       "end_time": 28.676854
+      }
+     ],
+     "text": "__AUDIO_TEXT__",
+     "name": "Audio_File_37b23d.wav",
+     "fileType": "upload",
+     "source_audio_url": "__AUDIO_URL__"
+    },
+    "Qh1Uwlho": {
+     "element_id": "Qh1Uwlho",
+     "type": "avatar",
+     "avatar_type": "photo_avatar",
+     "name": "girl looking down test 3",
+     "pose_name": "girl looking down test 3",
+     "avatar_name": "girl looking down test 3",
+     "avatar_group_name": "girl looking down test 3",
+     "is_motion": true,
+     "is_avatar_iv_motion": true,
+     "crop_box_crop_x": {},
+     "preview_image_url": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783748580&Signature=gJK9KxiOzx4gWDP18EJlXncR3mOP8kRg1JP6pqM2YgqNTYmnkWU3h82kNS-jDt1w9MFySYBUtzbcYMntd~Cyb5xmNxuo18V4Eb8UYA-WbIUJ6TG7oiYS7paA315VRugUi1A1HOWpj3CgewYCgfio8Fj4xUInQ066qFXAmZc6wArz6V-y9iOk~8UsaAIULF6E-t3H4fgALlB0JXRqb8VCVrc1HKviYdKUdD~HBSYRDYy1RBn0l-RIN1f53ZUK9eAeRz9buBCjU7~LzQ-~YqdwiHiEjPsSoJeepZwdycS9qw297sV6hpUSWbVTArBiZaTvfY28~4PjIK6HlQ3wZs1QXg__&Key-Pair-Id=K38HBHX5LX3X2H",
+     "preview_video_url": "",
+     "blurred_lips_mp4": "",
+     "blurred_lips_webm": "",
+     "fps": 25,
+     "avatar_state_id": "__AVATAR_ID__",
+     "available_style": {
+      "normal": true,
+      "circle": true,
+      "close_up": true,
+      "closeUp": true
+     },
+     "enable_matting": true,
+     "has_alpha": false,
+     "enable_enhance": true,
+     "enable_4k": false,
+     "enable_eye_contact": false,
+     "preview": {
+      "normal": {
+       "size": {
+        "width": 1792,
+        "height": 2400
+       },
+       "src": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783748580&Signature=gJK9KxiOzx4gWDP18EJlXncR3mOP8kRg1JP6pqM2YgqNTYmnkWU3h82kNS-jDt1w9MFySYBUtzbcYMntd~Cyb5xmNxuo18V4Eb8UYA-WbIUJ6TG7oiYS7paA315VRugUi1A1HOWpj3CgewYCgfio8Fj4xUInQ066qFXAmZc6wArz6V-y9iOk~8UsaAIULF6E-t3H4fgALlB0JXRqb8VCVrc1HKviYdKUdD~HBSYRDYy1RBn0l-RIN1f53ZUK9eAeRz9buBCjU7~LzQ-~YqdwiHiEjPsSoJeepZwdycS9qw297sV6hpUSWbVTArBiZaTvfY28~4PjIK6HlQ3wZs1QXg__&Key-Pair-Id=K38HBHX5LX3X2H"
+      }
+     },
+     "crop_rect": {
+      "circle": {
+       "x": 0,
+       "y": 24.444444444444446,
+       "width": 1774.213399503722,
+       "height": 1773.3333333333335
+      },
+      "close_up": {
+       "x": 0,
+       "y": 24.444444444444446,
+       "width": 1774.213399503722,
+       "height": 1773.3333333333335
+      }
+     },
+     "is_private": true,
+     "support_avatar_iv": true,
+     "unlimited_mode_disabled": false,
+     "unlimited_mode_disabled_reason": null,
+     "photo_avatar_metadata": {
+      "photar_version": "V3"
+     },
+     "width": 1792,
+     "height": 2400,
+     "natural_width": 1792,
+     "natural_height": 2400,
+     "processed_image_url": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783748580&Signature=gJK9KxiOzx4gWDP18EJlXncR3mOP8kRg1JP6pqM2YgqNTYmnkWU3h82kNS-jDt1w9MFySYBUtzbcYMntd~Cyb5xmNxuo18V4Eb8UYA-WbIUJ6TG7oiYS7paA315VRugUi1A1HOWpj3CgewYCgfio8Fj4xUInQ066qFXAmZc6wArz6V-y9iOk~8UsaAIULF6E-t3H4fgALlB0JXRqb8VCVrc1HKviYdKUdD~HBSYRDYy1RBn0l-RIN1f53ZUK9eAeRz9buBCjU7~LzQ-~YqdwiHiEjPsSoJeepZwdycS9qw297sV6hpUSWbVTArBiZaTvfY28~4PjIK6HlQ3wZs1QXg__&Key-Pair-Id=K38HBHX5LX3X2H"
+    },
+    "zffBPsHA": {
+     "type": "scene",
+     "element_id": "zffBPsHA"
+    }
+   },
+   "video_output": {
+    "resolution": {
+     "width": 1080,
+     "height": 1920
+    },
+    "fps": 25,
+    "caption": false
+   }
+  }
+ },
+ "complete_tts_in_backend": true
+}
+```
+
+In `tooling/cli/heygen-web/heygen-web.mjs`:
+- Change the import line (currently `import { dirname, resolve } from "node:path";`) to also
+  import `basename`: `import { dirname, resolve, basename } from "node:path";`
+- Add this after `submitGenerate()`/`generate()` (after line 269, before `async function
+  batch(...)`), replacing the old stub entirely:
 
 ```js
+// Uploads a local audio file to HeyGen (S3 presigned PUT, same pattern as create-photo-avatar's
+// image upload) and runs it through HeyGen's own ASR. Captured 2026-07-07 from a real HAR — see
+// this step's HAR-index comments above for the exact endpoint trace.
+async function uploadAudio(auth, audioPath) {
+  const bytes = readFileSync(audioPath);
+  const base = basename(audioPath).replace(/\.[^.]+$/, "");
+  const ct = audioPath.toLowerCase().endsWith(".mp3") ? "audio/mpeg" : "audio/wav";
+
+  const presign = await api(auth, `/v1/file/url.get?file_type=audio&filename=${encodeURIComponent(base)}` +
+    `&content_type=${encodeURIComponent(ct)}&properties%5Baudio_source%5D=voice_recording`);
+  const { id: fileId, url: putUrl, download_url } = presign?.data || {};
+  if (!fileId || !putUrl) die("file/url.get failed: " + JSON.stringify(presign));
+
+  const put = await fetch(putUrl, {
+    method: "PUT",
+    headers: { "content-type": ct, "x-amz-server-side-encryption": "AES256" },
+    body: bytes,
+  });
+  if (!put.ok) die(`S3 audio upload failed: HTTP ${put.status}\n${(await put.text()).slice(0, 300)}`);
+
+  const finalize = await api(auth, "/v1/file.upload", {
+    method: "POST",
+    body: { name: `${base}.wav`, id: fileId, file_type: "audio", content_type: ct,
+            filename: `${base}.wav`, properties: { audio_source: "voice_recording" } },
+  });
+  if (!finalize?.data?.id) die("file.upload failed: " + JSON.stringify(finalize));
+
+  const transcodeUrl = `${download_url.replace(/original\.\w+$/, "transcode.mp3")}` +
+    `?response-content-disposition=attachment%3B+filename%2A%3DUTF-8%27%27${encodeURIComponent(base)}.mp3%3B`;
+
+  const asr = await api(auth, "/v1/audio/fast_asr", { method: "POST", body: { url: transcodeUrl } });
+  const asrData = asr?.data?.data;
+  if (!asrData?.words) die("fast_asr failed: " + JSON.stringify(asr));
+  return { transcodeUrl, text: asrData.text, words: asrData.words, duration: asrData.duration };
+}
+
+function fillAudioTemplate(name, tokens) {
+  const tdir = resolve(__dirname, "studio-templates");
+  let text = readFileSync(resolve(tdir, name), "utf8");
+  for (const [k, v] of Object.entries(tokens)) text = text.replaceAll(k, v);
+  return JSON.parse(text);
+}
+
 // Renders an EXISTING avatar (an avatar_id you already made — NOT create-photo-avatar) lip-synced
-// to a LOCAL audio file, instead of typed text + HeyGen TTS. NOT WIRED YET — the web editor's
-// "upload audio to an existing avatar, then Generate" request has never been captured with
-// Preserve Log on (same class of gap as studio-render's final-render endpoint, see HANDOVER.md
-// "The studio render, and the gap"). To wire it: open the editor, pick an existing avatar, upload
-// an audio file, hit Generate, capture the network calls (Preserve Log ON), then fill this in with
-// the same shape as submitGenerate() above, minus the TTS fields.
+// to a LOCAL audio file. Only the heygen3 (Avatar III, unlimited) path is HAR-verified; heygen4
+// (Avatar IV, metered) needs its own capture before this can support it.
 async function submitAudioGenerate(auth, { avatar, audioPath, engine, title }) {
-  throw new Error(
-    `[TODO][HNS] generate-from-audio not wired: need a captured HAR of "existing avatar + ` +
-    `uploaded audio + Generate" (Preserve Log ON) to know the upload endpoint + payload shape. ` +
-    `Args received: avatar=${avatar} audioPath=${audioPath} engine=${engine} title=${title}`);
+  if (engine !== "heygen3")
+    throw new Error(`[TODO][HNS] generate-from-audio: only heygen3 (Avatar III) is HAR-verified; ` +
+      `heygen4 (Avatar IV) needs its own captured HAR before this path can be wired.`);
+  const audio = await uploadAudio(auth, audioPath);
+
+  const create = await api(auth, "/v1/text_draft.create", {
+    method: "POST",
+    body: { video_output: { resolution: { width: 1080, height: 1920 }, fps: 25 }, source_type: "ai_studio" },
+  });
+  const vid = create?.data?.video_id;
+  if (!vid) die("text_draft.create failed: " + JSON.stringify(create));
+
+  const tokens = {
+    __VIDEO_ID__: vid, __AVATAR_ID__: avatar, __TITLE__: title || "generate-from-audio",
+    __AUDIO_URL__: audio.transcodeUrl,
+    __AUDIO_TEXT__: JSON.stringify(audio.text).slice(1, -1),
+    __VOICE_ID__: "42d00d4aac5441279d8536cd6b52c53c", // formality field — audio.src drives playback, not TTS
+  };
+
+  const saveBody = fillAudioTemplate("generate-audio-save.json", tokens);
+  const saveAudioMeta = saveBody.metadata.find((m) => m.type === "audio");
+  saveAudioMeta.words = audio.words; saveAudioMeta.duration = audio.duration;
+  await api(auth, "/v1/text_draft.save", { method: "POST", body: saveBody });
+
+  const genBody = fillAudioTemplate("generate-audio-generate.json",
+    { ...tokens, __VERSION_ID__: randomUUID().replace(/-/g, "") });
+  const genMeta = genBody.draft_details.text_draft_with_metadata.metadata;
+  const audioElId = genBody.draft_details.text_draft_with_metadata.text_draft.script.timeline[0];
+  genMeta[audioElId].words = audio.words;
+  genMeta[audioElId].duration = audio.duration;
+
+  const gen = await api(auth, "/v1/text_draft.generate", { method: "POST", body: genBody });
+  const outVid = gen?.data?.video_id;
+  if (!outVid) die("text_draft.generate failed: " + JSON.stringify(gen));
+  return { video_id: outVid };
 }
 
 async function generateFromAudio(auth, args) {
@@ -285,13 +1702,16 @@ Add one line to the `help` text block (alongside the existing `generate --avatar
 
 ```
   generate-from-audio --avatar <avatar_id> --audio <file> [--engine heygen3|heygen4] [--title T]
-           NOT WIRED YET — see HANDOVER.md / [TODO][HNS] in the code.
+           heygen3 (Avatar III) is real (HAR-verified 2026-07-07); heygen4 (Avatar IV) is [TODO][HNS].
 ```
 
-Update `tooling/cli/heygen-web/README.md`'s command list the same way, and add one line to
-`HANDOVER.md`'s "What to do next" list noting the audio-upload capture is now also needed here.
+Update `tooling/cli/heygen-web/README.md`'s command list the same way. In `HANDOVER.md`, mark the
+"Get the Generate HAR" item in "What to do next" as **done** (`text_draft.generate` is now captured
+and wired via `generate-from-audio`'s `heygen3` path) and add a note that `heygen4`'s equivalent
+capture is the new remaining gap.
 
-**Verify**: `node --check tooling/cli/heygen-web/heygen-web.mjs` → exit 0, no output.
+**Verify**: `node --check tooling/cli/heygen-web/heygen-web.mjs` → exit 0, no output. Also:
+`python3 -c "import json; json.load(open('tooling/cli/heygen-web/studio-templates/generate-audio-save.json')); json.load(open('tooling/cli/heygen-web/studio-templates/generate-audio-generate.json'))"` → exit 0 (both templates are valid JSON).
 
 ### Step 3: Scaffold the pipeline — `lib/`, `shared/`, `PIPELINE.md`
 
@@ -1110,8 +2530,10 @@ extended `heygen-web.mjs` parses, (3) the full step/lib/shared structure exists.
       checks passed`.
 - [ ] `pp-drive stat|list-folder|download` subcommands exist and `python3 -m py_compile
       tooling/cli/drive/pp_drive.py` passes.
-- [ ] `heygen-web.mjs` has `generate-from-audio` in its `help` text and dispatch `switch`, and
-      `node --check` passes.
+- [ ] `heygen-web.mjs` has a real `generate-from-audio` (`heygen3` path) in its `help` text and
+      dispatch `switch`, and `node --check` passes.
+- [ ] `tooling/cli/heygen-web/studio-templates/generate-audio-save.json` and
+      `generate-audio-generate.json` exist and are valid JSON.
 - [ ] `pipelines/CLAUDE.md` lists the new pipeline.
 - [ ] No file under `pipelines/youtube/tutorial-pipeline-2/` was touched (`git diff --stat
       c8afcb2..HEAD -- pipelines/youtube/tutorial-pipeline-2` is empty).
@@ -1122,11 +2544,12 @@ extended `heygen-web.mjs` parses, (3) the full step/lib/shared structure exists.
   of building or verifying this plan — verification is syntax + structure checks only (see
   "Commands you will need"). Stop and report if you find yourself needing real credentials to
   verify a Done criterion; that means the criterion is mis-specified, not that you should proceed.
-- **Do not implement `submitAudioGenerate()`'s real HTTP body**, and do not guess a plausible-looking
-  HeyGen endpoint/payload for it. Leave it exactly as the `[TODO][HNS]` stub specified in Step 2.
-  This mirrors `tooling/cli/heygen-web/HANDOVER.md`'s explicit rule ("do not guess and fire
-  candidate generate URLs") — an unconfirmed guess against a live paid account is the one thing
-  this plan must not risk.
+- **Do not implement the `heygen4` HTTP body**, and do not guess a plausible-looking payload for
+  it by analogy to the `heygen3` one — Avatar IV's request shape is genuinely unconfirmed (the HAR
+  only exercised Avatar III). Leave `engine !== "heygen3"` raising `[TODO][HNS]` exactly as
+  specified in Step 2. This mirrors `tooling/cli/heygen-web/HANDOVER.md`'s explicit rule ("do not
+  guess and fire candidate generate URLs") — an unconfirmed guess against a live paid account is
+  the one thing this plan must not risk.
 - **Do not touch `pipelines/youtube/tutorial-pipeline-2/`** or any file inside it.
 - **Do not touch `infra/secrets/`** or any credentials file.
 - If `pp_drive.py` or `heygen-web.mjs` have drifted materially from the excerpts quoted in this
@@ -1135,14 +2558,29 @@ extended `heygen-web.mjs` parses, (3) the full step/lib/shared structure exists.
 
 ## Maintenance notes
 
-- The one thing standing between this pipeline and being fully live is a single HAR capture: open
-  the HeyGen editor, pick an existing avatar, upload an audio file, hit Generate, with DevTools
-  **Preserve Log ON**, then fill in `submitAudioGenerate()` in `heygen-web.mjs` from that capture.
-  The owner has stated they believe they've done this successfully before manually — if so, that
-  capture should be quick to redo.
-- `shared/avatar_mapping.py SEGMENT_ENGINE`'s intro/conclusion→HeyGen4, body→HeyGen3 default is an
-  inferred convention (mirrors `tutorial-pipeline-2`'s a4/a3 split), not a rule the owner explicitly
-  fixed — a future session should feel free to change it in one place.
+- **`heygen4` (Avatar IV, metered) is the one remaining stub.** The captured HAR only exercised
+  Avatar III (`heygen3`, unlimited). To extend `generate-from-audio` to `heygen4`: capture a fresh
+  HAR of the same upload+generate flow but with an Avatar IV avatar selected (DevTools Preserve Log
+  ON), diff its `text_draft.save`/`.generate` bodies against `generate-audio-save.json`/
+  `-generate.json` (expect at least `use_avatar_iv_model:true` and a different `engine`/
+  `engine_settings`), and add an `engine === "heygen4"` branch to `submitAudioGenerate()`.
+- `shared/avatar_mapping.py SEGMENT_ENGINE`'s intro/conclusion→HeyGen4, body→HeyGen3 default means
+  **2 of 3 segments hit the still-stubbed `heygen4` path today** — reassign more segments to
+  `heygen3` in that one config if you want a fully-working pipeline before capturing a `heygen4`
+  HAR. This default was always inferred (mirrors `tutorial-pipeline-2`'s a4/a3 split), not a rule
+  the owner explicitly fixed — change it freely.
+- The `version_id` field in `generate-audio-generate.json`'s token (`__VERSION_ID__`) is
+  client-generated, not server-issued — confirmed by tracing every `text_draft.save`/`.create`
+  response in the HAR and finding no match for the value later sent in `text_draft.generate`. The
+  implementation generates a fresh random one per call (`randomUUID()`); this is inferred-safe
+  behavior, not verified against a second real request with a different token shape, so if HeyGen
+  ever rejects a generate call with a version_id-related error, that's the first thing to suspect.
+- `generate-audio-save.json`/`generate-audio-generate.json` carry the captured avatar's own cosmetic
+  preview fields (`preview_image_url`, `crop_rect`, etc., all under the blanket-substituted
+  `__AVATAR_ID__` token) verbatim from the HAR's specific avatar — same accepted staleness as
+  `studio-templates/save.json`/`preview.json` already have (`HANDOVER.md`: "the render drives off
+  the avatar_id we substitute... if a future render comes out wrong, suspect those stale template
+  fields first").
 - Once `generate-from-audio` is wired for real, revisit `PACING` in step 030 (`min_gap`/`max_gap`/
   `settle_every`) against whatever ban-risk signal the owner observes, same as
   `tutorial-pipeline-2/shared/heygen_config.py`'s `PACING` block.
