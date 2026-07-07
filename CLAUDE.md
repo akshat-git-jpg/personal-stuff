@@ -27,12 +27,13 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | YouTube / Pinterest / video / income business projects (Python workspace) | [`pipelines/CLAUDE.md`](pipelines/CLAUDE.md) |
 | Worktree pool for agent runs (wt) | [`tooling/cli/wt/README.md`](tooling/cli/wt/README.md) |
 | Delegate parallel work across projects (captain) | tooling/captain/README.md |
+| PR-driven implementation orchestrator — dispatch a crew, verify, merge, deploy (boss, captain's successor) | `tooling/boss/README.md` |
 | YouTube research / scripts / tutorial pipeline | `pipelines/youtube/` |
 | Voiceover / TTS / RVC / HeyGen avatar pipelines | `pipelines/video/voice/` |
 | Income tracking across platforms | `pipelines/income-analysis/` |
 | Cross-project research notes, design specs, handoff docs | [`docs/`](docs/README.md) |
 | Implementation plans for executor agents (write or run one) | [`plans/README.md`](plans/README.md) — convention in [`plans/WORKFLOW.md`](plans/WORKFLOW.md) |
-| Infra (docker compose, VPS watchdog, secrets) | `infra/` |
+| Infra (docker compose, VPS watchdog, secrets, secrets escrow) | `infra/` |
 | DSA practice notes/solutions | `learning/DSA/` |
 | Repo-wide scripts + external path dependencies | `scripts/README.md` |
 

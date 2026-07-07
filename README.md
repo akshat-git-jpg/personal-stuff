@@ -33,6 +33,7 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 - `docker/` — Compose files for the VPS containers (currently `ntfy`).
 - `vps-watchdog/` — Cloudflare Worker on a 2-minute cron that pings the dashboard and reboots the VPS via the Hostinger API if it's down.
 - `secrets/` — Local-only credentials. Gitignored, never committed.
+- `escrow/` — gpg-encrypted archive of every gitignored secret on the Mac, pushed offsite to Google Drive for Mac/VPS-loss recovery.
 
 ### `learning/`
 - `DSA/` — Data structures and algorithms practice: notes plus solutions, one folder per topic.
