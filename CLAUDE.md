@@ -8,6 +8,7 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 2. **Before working in any sub-folder, open its `CLAUDE.md` (or README) first** — sub-folder files are NOT auto-loaded; the map only links them.
 3. **When a non-obvious decision is made** (tool/approach chosen, convention set, a load-bearing "why"), append a dated line to [`decisions.md`](decisions.md). Check there before asking me to re-explain.
 4. **Multi-step implementation work gets a plan file** — write it with `plans/_TEMPLATE.md` into `plans/`, register it in `plans/README.md`, and let an executor run it. Don't hand a chat transcript to another model.
+5. **New-build routing (do not detour):** for a new feature/tool/skill, the entry point is the `orchestrate` skill — it brainstorms when fuzzy, writes the plan into `plans/`, and hands off. Do **NOT** use `superpowers:writing-plans` here (its generic terminal); `orchestrate` is this repo's plan writer. Raise the finished plan with `secretary` (`/secretary raise`) — never hand-roll the branch/commit/PR, because secretary encodes "stage only the plan file, never commit it to `main`." Brainstorm-first (standalone `superpowers:brainstorming`) only when you specifically want a design doc before any plan.
 
 ## Find it fast (route by intent)
 
