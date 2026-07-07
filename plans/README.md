@@ -306,3 +306,6 @@ The others are grounded and available when the owner wants them:
 - **Income-picture completion** — wire the existing `gumroad-pp-cli` / `skool-pp-cli`
   into `ty/income-analysis/` and set a snapshot cadence, so "what did I make
   everywhere last month" is truly one query. Small.
+
+## boss-landed
+- 044-explainer-pipeline-scaffold-and-input — PR#5 044-explainer-pipeline-scaffold-and-input: shared scaffolding + 0-input — DONE
