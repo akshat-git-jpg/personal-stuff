@@ -56,6 +56,8 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 041 | `secretary` skill — raise mode (plan → boss:ready PR) | P1 | S | 039 | DONE |
 | 042 | `secretary` skill — groom mode (retire stale PRs) | P2 | S | 041 | DONE |
 | 043 | `tutorial-pipeline-1` — Drive-in → HeyGen spokesperson clips → Drive-out | P2 | M | — | TODO |
+| 044 | Research v2 — tutorial/comparison flow (per-software dossier library, end to end) | P1 | L | — | TODO |
+| 045 | Research v2 — explainer flow (per-topic fact sheets) | P2 | S | 044 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -70,6 +72,15 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED 
 > have already done this" (manually) with audio upload against an existing
 > avatar, so wiring it for real should just need one fresh HAR capture with
 > Preserve Log on.
+
+> **044–045 (2026-07-07, research-v2 batch)**: replaces per-video research with a
+> persistent per-software dossier library (`pipelines/youtube/dossiers/`) — cheap-model
+> transcript distillation, dated+cited claims, Claude brief assembly feeding `yt-script/`;
+> 045 adds the explainer (topic) variant. Hard order: **044 → 045**. Executor: `agy`
+> (owner's call). Stdlib-only/system python3 by design (no pipelines venv exists);
+> `common/gemini.py` deliberately not used. Brainstorm record:
+> `docs/yt-research-v2-brainstorm-handoff.md`. v1 (`yt-research/`) is NOT deprecated —
+> new videos prefer v2, archived niches stay on v1.
 
 > **039–042 (2026-07-07, boss batch)**: builds `boss`, the PR-driven successor to
 > `captain` (captain frozen/deprecated). Design: `docs/specs/2026-07-07-boss-design.md`.
