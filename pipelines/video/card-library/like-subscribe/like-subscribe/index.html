@@ -1,0 +1,175 @@
+<!doctype html>
+<!--
+  OVERLAY · Subscribe   (Hyperframes card)
+  A single premium Subscribe pill at 70% height slides up + scales in, the bell
+  rings (a quick wiggle), the button gives one "click" press, and it breathes
+  with a glowing border before fading out + sliding down.
+  1920x1080, 30fps, 5 seconds (150 frames).
+
+  THIS IS AN OVERLAY — it has no real background of its own. Drop it onto your
+  footage by keying out the GREEN CHROMA-KEY background. To change the key color,
+  edit --bg in :root (e.g. a different key color, or "transparent" + render mov).
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change the label / colors there.               │
+  │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
+  │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  This is a Hyperframes composition: HTML + GSAP. Render it with
+    npx hyperframes@latest render like-subscribe/like-subscribe -o out.mp4 --fps 30
+  Override: --variables '{"subscribeText":"Subscribe"}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Like &amp; Subscribe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg: #00b140; /* chroma-key green (key this out). use "transparent" or any color */
+        --accent: #fb923c;
+        --accent-deep: #ea7a22;
+        --ink: #1a0f03; /* dark text/icon on the accent fill */
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        font-family: var(--font); color: #fff;
+      }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg { position: absolute; inset: 0; background: var(--bg); }
+
+      #anchor { position: absolute; left: 0; right: 0; top: 70%; display: flex; justify-content: center; }
+
+      /* The Subscribe button — solid accent, gradient for depth, top sheen. */
+      #subPill {
+        position: relative;
+        display: flex; align-items: center; gap: 22px;
+        padding: 30px 62px; border-radius: 999px; white-space: nowrap;
+        background: linear-gradient(180deg, var(--accent) 0%, var(--accent-deep) 100%);
+        will-change: transform, opacity;
+      }
+      /* thin top-edge highlight so the fill reads glossy, not flat */
+      #subPill::after { content: ""; }
+      #sheen {
+        position: absolute; left: 8%; right: 8%; top: 4px; height: 40%;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0));
+        pointer-events: none;
+      }
+      #bell { will-change: transform; transform-origin: 50% 18%; }
+      #subPill .label { font-size: 46px; font-weight: 800; letter-spacing: 0.2px; color: var(--ink); }
+    </style>
+  </head>
+  <body>
+    <!--
+      Composition root. data-composition-id "like-subscribe" is the timeline key.
+      data-duration is the total length in seconds (5s @ 30fps = 150 frames).
+    -->
+    <div
+      id="root"
+      data-composition-id="like-subscribe"
+      data-start="0"
+      data-duration="5"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"subscribeText":"Subscribe"}'
+    >
+      <!-- Track 0: chroma-key background (static, always on) -->
+      <div id="bg" class="clip" data-start="0" data-duration="5" data-track-index="0"></div>
+
+      <!-- Track 1: button shell (static clip; GSAP animates the inner #subPill, never the .clip itself) -->
+      <div id="anchor" class="clip" data-start="0" data-duration="5" data-track-index="1">
+        <div id="subPill">
+          <span id="sheen"></span>
+          <svg id="bell" width="46" height="46" viewBox="0 0 24 24" fill="none">
+            <path d="M18.5 8.5 A6.5 6.5 0 0 0 5.5 8.5 C5.5 15 2.6 16.7 2.6 16.7 L21.4 16.7 C21.4 16.7 18.5 15 18.5 8.5 Z"
+              fill="#1a0f03" stroke="#1a0f03" stroke-width="1.4" stroke-linejoin="round"/>
+            <path d="M9.7 19.4 A2.4 2.4 0 0 0 14.3 19.4" stroke="#1a0f03" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="label" id="subLabel"></span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      // Per-video values can ALSO be passed at render time with
+      //   --variables '{"subscribeText":"Subscribe"}'
+      // (no code editing needed). Those override the defaults below.
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        subscribeText: VARS.subscribeText ?? 'Subscribe',
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED — do not edit) =====
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         Easing comes free from GSAP — this is what makes the motion smooth.
+         ===================================================== */
+      const $ = (id) => document.getElementById(id);
+      const FPS = 30;
+      const DURATION = 5;
+
+      function build() {
+        $('subLabel').textContent = DATA.subscribeText;
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const subPill = $('subPill');
+      const bell = $('bell');
+
+      // Enter: slide up (26px) + fade in + scale 0.9 -> 1.0 over 0.55s. ease power4.out.
+      tl.set(subPill, { opacity: 0, y: 26, scale: 0.9 }, 0);
+      tl.to(subPill, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'power4.out' }, 0);
+
+      // Bell ring: a damped left-right wiggle just after it lands.
+      tl.to(bell, { rotation: 14, duration: 0.09, ease: 'power2.out', overwrite: 'auto' }, 0.7);
+      tl.to(bell, { rotation: -11, duration: 0.12, ease: 'power1.inOut', overwrite: 'auto' }, 0.79);
+      tl.to(bell, { rotation: 7, duration: 0.12, ease: 'power1.inOut', overwrite: 'auto' }, 0.91);
+      tl.to(bell, { rotation: -4, duration: 0.12, ease: 'power1.inOut', overwrite: 'auto' }, 1.03);
+      tl.to(bell, { rotation: 0, duration: 0.14, ease: 'power2.out', overwrite: 'auto' }, 1.15);
+
+      // Click "press": the whole button dips then springs back once, mid-hold.
+      tl.to(subPill, { scale: 0.95, duration: 0.12, ease: 'power2.in', overwrite: 'auto' }, 2.3);
+      tl.to(subPill, { scale: 1.06, duration: 0.18, ease: 'back.out(4)', overwrite: 'auto' }, 2.42);
+      tl.to(subPill, { scale: 1.0, duration: 0.24, ease: 'power2.out', overwrite: 'auto' }, 2.6);
+
+      // Exit: fade out + slide down (12px) over the last 0.5s.
+      tl.to(subPill, { opacity: 0, y: 12, duration: 0.5, ease: 'power2.in', overwrite: 'auto' }, DURATION - 0.5);
+
+      // Breathing glow: deterministic sine of the current frame, driven by the
+      // timeline tick (NOT requestAnimationFrame) so it stays frame-seekable.
+      function applyGlow(time) {
+        const f = time * FPS;
+        const glow = (Math.sin(f * 0.06) + 1) / 2;
+        const glowOpacity = 0.3 + glow * 0.22;
+        subPill.style.boxShadow =
+          `0 0 ${34 + glow * 20}px rgba(251,146,60,${glowOpacity}), 0 12px 34px rgba(0,0,0,0.5)`;
+      }
+      tl.eventCallback('onUpdate', () => applyGlow(tl.time()));
+      applyGlow(0); // initial paused frame
+
+      window.__timelines['like-subscribe'] = tl;
+    </script>
+  </body>
+</html>
