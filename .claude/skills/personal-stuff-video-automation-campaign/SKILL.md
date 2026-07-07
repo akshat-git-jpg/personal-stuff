@@ -43,8 +43,8 @@ Build per SYNC-PROBLEM.md's recommendation: **A+B (per-sentence sync) as the aut
 
 ## Phase 3 — motion graphics
 
-1. Author `steps/135-build-graphics-sonnet/rulebook.md` **in a Claude Code session, on Sonnet, with the pipelines-scoped `hyperframes*` skill family loaded** (they only activate under `pipelines/`). Note: there is NO pipelines-scoped "motion-graphics" skill — plan 011 step 6's wording implies one; `pipelines/video/motion-graphics/` is a content directory. This is the standing owner flag from plan 011 step 6.
-2. Ground it in `pipelines/video/motion-graphics/Devsplainers/` (the design-system breakdown) and `pipelines/video/card-library/` (existing GSAP card templates; gallery via `npm run serve` → localhost:4321; editor-facing rendering already hosted at render2.agrolloo.com).
+1. Author `steps/135-build-graphics-sonnet/rulebook.md` **in a Claude Code session, on Sonnet, with the pipelines-scoped `hyperframes*` skill family loaded** (they only activate under `pipelines/`). Note: there is NO pipelines-scoped "motion-graphics" skill — plan 011 step 6's wording implies one. This is the standing owner flag from plan 011 step 6.
+2. Ground it in `pipelines/youtube/competitor-styles/channels/devsplainers/` (the design-system breakdown + hyperframes build kit, moved 2026-07-07 from `pipelines/video/motion-graphics/Devsplainers/`) and `pipelines/video/card-library/` (existing GSAP card templates; gallery via `npm run serve` → localhost:4321; editor-facing rendering already hosted at render2.agrolloo.com).
 3. Step 162 already degrades gracefully when `135/output/` is empty — graphics are additive, ship the retimed cut first.
 **FENCE: Antigravity never touches graphics — the Devsplainers PoC failed quality on all four axes (decisions.md 2026-07-05). Quality-setting steps are Sonnet-in-Claude-Code by decided routing.**
 

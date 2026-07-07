@@ -2,8 +2,8 @@
 
 **Date:** 2026-07-01
 **Status:** Design approved (brainstorm), pre-implementation
-**Home:** `pipelines/video/motion-graphics/Devsplainers/hyperframes/`
-**Companion docs:** `PIPELINE.md` (the run-order map + `steps/`), `../README.md` (visual-system reverse-engineering), `../HANDOFF.md` (session history + decisions)
+**Home:** `pipelines/youtube/competitor-styles/channels/devsplainers/hyperframes/`
+**Companion docs:** `PIPELINE.md` (the run-order map + `steps/`), `../video-style-dna.md` (visual-system reverse-engineering), `../HANDOFF.md` (session history + decisions)
 
 ---
 
@@ -72,7 +72,7 @@ Scenes may use **only** these tokens (enforced by the verify script). Exact hexe
 ## 4. Repository layout
 
 ```
-Devsplainers/hyperframes/
+channels/devsplainers/hyperframes/
   SPEC.md                     <- this file
   kit/
     tokens.css                <- :root design tokens (colors, fonts, spacing, timing)

@@ -61,13 +61,12 @@ npx ts-node run.ts --niche <slug>
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-script/`](youtube/yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2) | Markdown workflow |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/my-yt/`](youtube/my-yt/CLAUDE.md) | Personal channel notes (free-form) | Markdown |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/tutorial-pipeline-2/`](youtube/tutorial-pipeline-2/PIPELINE.md) | Tutorial recording prep steps (renamed from kushal-tutorial-pipeline-v2, 2026-07-07) | Python + Claude steps |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/competitor-styles/`](youtube/competitor-styles/CLAUDE.md) | Competitor style packs (ingest + Style DNA for yt-style-copy skill) | Python + Claude skill |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/competitor-styles/`](youtube/competitor-styles/CLAUDE.md) | Competitor style packs (script + video Style DNA for yt-style-copy skill; includes the Devsplainers motion-graphics reverse-engineering + hyperframes build kit, moved here 2026-07-07) | Python + Claude skill |
 | [`pinterest/`](pinterest/PLAN.md) | Pinterest pin data and generators (Keto, Wedding brands) | Python |
 | [`income-analysis/`](income-analysis/README.md) | Gumroad/Skool income snapshot retrieval CLIs | Python |
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script. | Python |
 | [`video/`](#) | Video production and rendering assets | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/voice/`](video/voice/README.md) | Voiceover pipeline (RVC pitch conversion, TTS engine, heygen) | Python + Node |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`video/motion-graphics/`](video/motion-graphics/README.md) | Motion-graphics assets and Devsplainers-style build kit | HTML/CSS/GSAP |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/card-library/`](video/card-library/README.md) | Visual templates for Video Studio | HTML/CSS/JS |
 | [`tools/`](#) | Monetizable and utility tools | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`tools/bank-statement-parser/`](tools/bank-statement-parser/README.md) | Bank statements parsing & reconciliation engine | Python |

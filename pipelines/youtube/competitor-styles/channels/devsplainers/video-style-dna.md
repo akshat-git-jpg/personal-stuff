@@ -6,7 +6,7 @@ frames, and inspecting the design system.
 
 - **Sample video:** "Google's OKF: Why a Folder Beats the Vector Database" — https://youtu.be/P_E29-87THI
 - **Channel:** Devsplainers (~7,600 subs as of analysis), weekly faceless explainers
-- **Reference frames:** see `reference-frames/` for representative stills pulled from the video
+- **Reference frames:** see `frames/exemplars/` for representative stills pulled from the video
 
 ---
 

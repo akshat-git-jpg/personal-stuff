@@ -4,7 +4,7 @@
 User asked to reverse-engineer the visual style of a Devsplainers YouTube video, then expanded the question into: should they add Devsplainers-style motion graphics to their own software-comparison channel, how many tokens would that cost on a Claude Pro plan, is the "build a reusable kit once, reuse per video" model actually real for their format, and which tool to use. Session ended with a roast-council verdict and a tool decision. No code built yet — this is a decision/analysis session.
 
 ## Decisions locked + what shipped
-- **Reverse-engineered the Devsplainers visual system** → lives in `/Users/kbtg/codebase/personal-stuff/pipelines/video/motion-graphics/Devsplainers/README.md` + `reference-frames/`. Key style: near-black bg, 4 semantic accent colors (white/blue/amber/red + green), condensed-grotesk + monospace type pairing, ~6 reusable components (pill badge, type-tagged card, single-weight line-art SVG icons, underlined section header, connector, accumulating corner badges). Concluded it's code-generated 2D motion graphics (Remotion-style), VO-driven, faceless.
+- **Reverse-engineered the Devsplainers visual system** → lives in `/Users/kbtg/codebase/personal-stuff/pipelines/youtube/competitor-styles/channels/devsplainers/video-style-dna.md` + `frames/exemplars/`. Key style: near-black bg, 4 semantic accent colors (white/blue/amber/red + green), condensed-grotesk + monospace type pairing, ~6 reusable components (pill badge, type-tagged card, single-weight line-art SVG icons, underlined section header, connector, accumulating corner badges). Concluded it's code-generated 2D motion graphics (Remotion-style), VO-driven, faceless.
 - **Token model (the key reframe):** video *rendering* costs **zero LLM tokens** (it's CPU/ffmpeg). Tokens are spent only when Claude writes/iterates the component code. So cost does NOT scale with video length. One-time kit build ≈ a few focused Claude sessions; per-video cost ≈ near-zero **if** the kit is data-driven and Claude stays OUT of the per-video loop.
 - **Reuse analysis of the user's 3 real comparison videos** (see Analysis findings below): format is rigidly formulaic. ~8 templates cover ~80% of graphics scenes; ~85% of scenes are pure data-swaps; a mature kit means only **1–3 genuinely new graphics per video**. Reuse is high *within the graphics layer*, but graphics are only ~15–30% of runtime — the screen-recording demos stay bespoke capture every video.
 - **Current video format:** screen-recording walkthroughs + picture-in-picture webcam, NO motion graphics today. Graphics would be *inserts* wrapped around demos, not a full-screen animated video.
@@ -72,16 +72,16 @@ This session re-opened a **different** question than the roast: not "add a few d
 - Locked decisions in the spec: clone the Devsplainers look exactly (per `README.md` design system); build fresh in **`Devsplainers/hyperframes/`** (atom kit + per-video scenes); **do NOT reuse or modify `pipelines/video/card-library/`** (unrelated POC); Hyperframes invoked as an `npx` tool (no dependency on that folder); deliverable = ~30 individual scene MP4s for a 5-min script (assembly/VO + cheap-driver choice deferred to phase 2); two-pass static→motion with a user review gate on static stills; Opus builds kit + storyboard, cheap model builds scene code.
 
 ## Build progress (2026-07-01) — M0 COMPLETE ✅
-Working dir: **`pipelines/video/motion-graphics/Devsplainers/hyperframes/`**. Reads `hyperframes/SPEC.md` (§5 = the atom kit; §12 = M0 build order).
+Working dir: **`pipelines/youtube/competitor-styles/channels/devsplainers/hyperframes/`**. Reads `hyperframes/SPEC.md` (§5 = the atom kit; §12 = M0 build order).
 
 **M0 done + verified (this session):** the full atom kit is built and all 4 example scenes render clean through the verify script (success criterion §11.1 met).
 - `hyperframes.json` at the project root marks `hyperframes/` as the render root.
-- `kit/tokens.css` — 4 semantic colors + tints, Anton + JetBrains Mono `@font-face`, type/spacing/radius/stroke/motion vars. Hexes tuned against `reference-frames/`.
+- `kit/tokens.css` — 4 semantic colors + tints, Anton + JetBrains Mono `@font-face`, type/spacing/radius/stroke/motion vars. Hexes tuned against `../frames/exemplars/`.
 - `kit/atoms.css` (622 lines) — all 35 components across Tier 1/2/3.
 - `kit/atoms.md` — the catalog (class table + markup notes + recipe table) — the cheap model's authoring reference.
 - `kit/recipes.js` — global `R.*` GSAP helpers (fadeUp, slideIn, popIn+stagger, drawOn, countUp, staggerIn, grow, needle w/ svgOrigin, finite pulse, flash).
 - `kit/scaffold/{index.html,meta.json}` — the scene template (CONTENT / MARKUP / TIMELINE split, chrome, clip/track structure).
-- `kit/examples/{01-title-card,02-loop-diagram,03-gauge,04-compare-cards}/` — 4 few-shot refs; 01 + 04 mirror `reference-frames/` 01 & 05; all rendered + eyeballed + pass verify.
+- `kit/examples/{01-title-card,02-loop-diagram,03-gauge,04-compare-cards}/` — 4 few-shot refs; 01 + 04 mirror `../frames/exemplars/` 01 & 05; all rendered + eyeballed + pass verify.
 - `verify/verify.mjs` — SPEC §7 gate (ensures kit symlink, color/font/watermark static checks, `hyperframes lint`, snapshot render + 1920×1080 canvas check). Machine-readable `--json`; proven to PASS all 4 and FAIL a planted-defect scene.
 - `serve.mjs` — fresh contact-sheet gallery (localhost:4321); tiles seek each paused timeline to `progress(1)` so you review the final look. Assets resolve through the kit symlink (verified HTTP 200).
 
@@ -95,7 +95,7 @@ Working dir: **`pipelines/video/motion-graphics/Devsplainers/hyperframes/`**. Re
 **Next = M1 (storyboard), BLOCKED on the user supplying the 5-min script.** Then M2 static + review-gate (cheap model), M3 motion + render. Nothing committed (user's call; TY repo → run github-router before any commit). Side effect of `hyperframes init` probe: the official `hyperframes-*` skills got linked into the skill dirs — harmless/useful.
 
 ### (superseded) original M0 plan
-Working dir: **`pipelines/video/motion-graphics/Devsplainers/hyperframes/`**. Reads `hyperframes/SPEC.md` (§5 = the atom kit; §12 = M0 build order).
+Working dir: **`pipelines/youtube/competitor-styles/channels/devsplainers/hyperframes/`**. Reads `hyperframes/SPEC.md` (§5 = the atom kit; §12 = M0 build order).
 
 **Done this session:**
 - **Atom kit is evidence-based, not guessed.** Frame-analyzed the channel's #1 video ("Google's OKF", `P_E29-87THI`, 100.6k views, 97 frames @ 5s) + the memory video. Rewrote `SPEC.md` §5 into a **35-item, 3-tier kit**: Tier 1 primitives (chrome/text/pills-cards/data-code/icons/connector), Tier 2 composed diagrams (pipeline, node-graph, bar, gauge, grid-of-cells, status-bar, mapping-table, timeline-dots, loop), Tier 3 scene templates (title, numbered-section, authority card, pull-quote, color-flash, outro CTA). M0 milestone now lists the build order.
@@ -114,9 +114,9 @@ Working dir: **`pipelines/video/motion-graphics/Devsplainers/hyperframes/`**. Re
 **Guardrails:** Hyperframes is an `npx hyperframes@latest render <folder> -o out.mp4 --fps 30` tool — no local install, zero dependency on the forbidden `video/card-library/` POC. Nothing committed yet (user's call; TY repo → run github-router before any commit). **Generation driver DECIDED (2026-07-01): Antigravity** — it generates scenes in parallel (Steps 2 & 4) and verification runs in batches with an Antigravity fix pass (SPEC §6/§7). Per-video workflow (Step 1 storyboard) is blocked on the user supplying the **5-min script**. Frame stills + montages from the analysis are in the ephemeral job tmp (`$CLAUDE_JOB_DIR/tmp/okf_*`) — regenerate via the method in the Verification section if needed.
 
 ## Key files for next session
-- `/Users/kbtg/codebase/personal-stuff/pipelines/video/motion-graphics/Devsplainers/README.md` — read first; the Devsplainers visual-system reverse-engineering (colors, type, components, production method).
-- `/Users/kbtg/codebase/personal-stuff/pipelines/video/motion-graphics/Devsplainers/reference-frames/` — 6 stills from the Devsplainers video showing the target aesthetic.
-- `/Users/kbtg/codebase/personal-stuff/pipelines/video/motion-graphics/Devsplainers/HANDOFF.md` — this file.
+- `/Users/kbtg/codebase/personal-stuff/pipelines/youtube/competitor-styles/channels/devsplainers/video-style-dna.md` — read first; the Devsplainers visual-system reverse-engineering (colors, type, components, production method).
+- `/Users/kbtg/codebase/personal-stuff/pipelines/youtube/competitor-styles/channels/devsplainers/frames/exemplars/` — 6 stills from the Devsplainers video showing the target aesthetic.
+- `/Users/kbtg/codebase/personal-stuff/pipelines/youtube/competitor-styles/channels/devsplainers/HANDOFF.md` — this file.
 - Tooling already installed (both accounts): `remotion-best-practices` skill, `hyperframes-helper` skill, `pp-elevenlabs` (TTS). Hyperframes set up at `/Users/kbtg/codebase/personal-stuff/pipelines/hyperframes-vs-remotion/`.
 - ccusage dashboard for measuring token spend: `/Users/kbtg/codebase/personal-stuff/tooling/cli/ccusage-dashboard/`.
 - Memory files touched: none this session.

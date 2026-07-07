@@ -1,0 +1,14 @@
+{
+  "slug": "devsplainers",
+  "channel_url": "https://www.youtube.com/@devsplainers",
+  "channel_name": "Devsplainers",
+  "video": {
+    "method": "manual",
+    "note": "Reverse-engineered by frame-sampling (yt-dlp + ffmpeg), not the fetch_video.py pipeline",
+    "analyzed_videos": [
+      "https://youtu.be/P_E29-87THI",
+      "https://youtu.be/Ez4siJMzLX8"
+    ],
+    "last_analysis": "2026-07-01"
+  }
+}

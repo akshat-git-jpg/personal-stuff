@@ -43,6 +43,10 @@ each video at 720p but deletes it immediately after measuring it — nothing
 raw is kept. Run from the Mac — YouTube blocks transcript fetches from
 datacenter IPs (see the pp-yt-transcript README).
 
+## Exceptions
+
+- `channels/devsplainers/` predates this pipeline's automated `fetch_video.py` flow — it was built by manual frame-sampling (see `channel.json`'s `video.method`). It carries the standard `video-style-dna.md` + `frames/exemplars/` slots, but also nests a `hyperframes/` folder (a full HyperFrames build pipeline — atom kit, numbered `steps/`, a rendered test video) that has no slot in the schema above. Moved here 2026-07-07 from `pipelines/video/motion-graphics/Devsplainers/`.
+
 ## Conventions
 
 - Everything kept in a style pack is committed (small text + a handful of
