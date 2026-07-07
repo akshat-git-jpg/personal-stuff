@@ -1,71 +1,61 @@
-i fill the yt tracker sheet. Also update the affiliate sheet
-i mark the topic status as in yt tracker sheet - to process
+Breakdowns for small comparison and big comparison videos:
+A)
+1) Tutorial Maker - Researcher + Screen Recorder
+  - Makes Outline
+  - Once Approved - makes script
+  - Once Approved - Gets TTS from processor
+  - Make screen recorded video with sync with voice over
 
-i run the workflow called - process_yt_tracker.
-it checks the videos where status in to process.
-it figures out what tools i am promoting from title and notes.
-it fetches information about actual affiliate links from affiliate sheet.
-it generates short urls for all those tools.
-it adds two columns in yt tracker sheet in actual_links, short_links.
-it generates description from video title, notes and short_links.
+2) Processor
+  - Edits/Updates script
+  - Makes tts and gives back to Tutorial Maker
+  - Makes avatar videos and gives to Video Editor
+  
+3) Video Editor
+  - Fix any sync gaps of screen recording-voice
+  - Gets avatar videos from processor
+  - Makes final video with motion graphics, avatar videos, b roll, music, sound effects, transitions, etc
+3) Processor
+  
+B) Researcher + Draft Screen Recorder
+1) Researcher + Screen Recorder
+  - Makes Outline
+  - Once Approved - Makes Draft Screen video
+2) Processor
+  - Makes Final script
+  - Makes final tts and gives to video editor
+  - Makes avatar videos and gives to video editor
 
-now i can run on demand script yt_analysis.
+3) Video Editor
+  - Gets tts from processor
+  - Gets avatar videos from processor
+  - Sync screen recording - voice
+  - Makes final video with motion graphics, avatar videos, b roll, music, sound effects, transitions, etc
 
-- its main job is to fill Analysis sheet and YT Ranking sheet.
-- It asks questions - what all do you want to sync - views per video, affiliate links clicks and rank analysis.
-- for rank anaysis - there is a separate sheet and separate workflow [ Don't Do anything for now]
-- for views and affiliate links click - it will sync video meta data from yt tracker sheet to Analysis sheet. video_title video_notes video_description category sub_category yt_upload_status yt_upload_date yt_link
-- Core run will only run on videos where yt upload status is uploaded
-- for views, we already have a script. Fill the views column.
-- for affiliate links clicks count - fill the affiliate_link_clicks column - tool name, actual affiliate link, generated link, count last 30 days, count overall
-- Post the summary.
+C) 
+1) Script writer
+- Writes script
+- Write instruction/helps for screen Recorder
 
----
+2) Processor
+- Makes tts for Video Editor
+- Makes avatar videos for Video Editor
 
-Tutorial maker:
-Skill - No avatar, any accent, any gender, avg English Level:
-Main skill - Research + tutorial video scripting intution - what tutorial makes a good video
-Work:
+3) Video Editor
+- Gets tts from Processor
+- Screen Records video with tts and helper
+- Fix any sync gaps of screen recording-voice
+- Gets avatar videos from processor
+- Makes final video with motion graphics, avatar videos, b roll, music, sound effects, transitions, etc
 
-- Take a topic, research, watch compeitiors videos.
-- Submit draft/outline of video - get approval from founders
-- Make the screen recorded tutorial with voice.
+  
+Small Problem points:
+- Better realistic avatar, especially side view
+- Better tts voice
+- Better avatar face
+- Keyword/ Topic Finder
+- Affiliate program - apply automation
 
-Process transcript:
-
-- Get Transcript from screen recorded video - tool
-- Fix transcript - add punctuation, prounanciation, Remove wrong words, add/update sentence etc - tool
-- Make tts from transcript, listnet to it. Fix prounanciation - once finalize - submit.
-
-Video editor:
-Main skill - sync voice with screen recording (should have experience working with screen recorded videos)
-Work:
-
-- Take tts and screen recording.
-
-Process tts/transcript and make avatar:
-
-- remove space from tts.
-- Divide tts/transcript on avatar - what part to be made by heygen 4 (5 min) vs heygen 3 (entire)
-- Extract 5 min heygen audios and make heygen 4 avatar.
-- Make entire video heygen 3 avatar.
-
-- Make screen recording match with tts at relevant places.
-- Fill missing gaps with avatar video and motion graphics - Video done
-- Make thumbnail.
-
-Issues:
-
-- Make reaslitic avatar video
-- Make avatar video looking at laptop/side laptop or down - at time of showing screen recordings.
-
----
-
-1. Creative (expensive, scarce) — Tutorial maker
-   Research → outline → approval → screen-record + voice. Full stop. This is the only genuinely hard-to-hire skill ("what makes a good tutorial"). Don't dilute it with transcript cleanup.
-
-2. Production / mechanical (cheap or automated) — new "Production assistant" role, or mostly Claude + CLI
-   Transcript fix, TTS generation, space removal, avatar generation (III and IV). This is the assembly line. It should be 80% automated with our tooling and a junior doing QC — not eating creative or editor hours. This is where everything we built this week lives.
-
-3. Craft (mid, taste-driven) — Video editor
-   Sync screen recording to TTS, gap-fill, motion graphics. Pure editing judgment. This is real skill, but it shouldn't include generating avatars or fixing transcripts.
+Big Problem points:
+- Researcher + Scripting automation (Entire or helper)
+- Video Editor helper for motion graphics
