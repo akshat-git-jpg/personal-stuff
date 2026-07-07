@@ -1,4 +1,4 @@
-# kushal-tutorial-pipeline-v2 (v3 flow)
+# tutorial-pipeline-2 (v3 flow)
 
 One linear pipeline that turns a topic into a published-ready tutorial draft cut:
 research brief → freelancer screen recording → clean script → brand-voice voiceover →
@@ -100,7 +100,7 @@ published-ready draft cut (editor optional)
 
 ## Layout
 ```
-kushal-tutorial-pipeline-v2/
+tutorial-pipeline-2/
   SPEC.md                ← the v3 design and decisions
   PIPELINE.md            ← this file (the map)
   lib/                   ← shared logic, imported by every run.py

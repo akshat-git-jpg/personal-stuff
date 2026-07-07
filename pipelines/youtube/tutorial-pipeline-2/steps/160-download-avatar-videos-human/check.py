@@ -14,7 +14,7 @@ the same names step 150 recorded in the manifest and step 170 looks for. Exit 0 
 import sys, json, pathlib
 
 HERE = pathlib.Path(__file__).resolve().parent
-ROOT = HERE.parents[1]                                       # kushal-tutorial-pipeline-v2/
+ROOT = HERE.parents[1]                                       # tutorial-pipeline-2/
 VIDEOS = HERE / "output" / "videos"
 S90_OUT = ROOT / "steps/150-submit-avatar-videos-run/output"
 

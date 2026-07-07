@@ -16,7 +16,7 @@ transcription gives timestamps that line up with the actual file. Brand-name spe
 """
 import sys, re, json, argparse, pathlib
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]          # kushal-tutorial-pipeline-v2/
+ROOT = pathlib.Path(__file__).resolve().parents[2]          # tutorial-pipeline-2/
 sys.path.insert(0, str(ROOT))
 from lib import asr                                          # noqa: E402
 

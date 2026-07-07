@@ -23,7 +23,7 @@ Idempotent: re-running finds the existing folders (pp-drive ensure-folder is fin
 """
 import sys, json, argparse, pathlib
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]          # kushal-tutorial-pipeline-v2/
+ROOT = pathlib.Path(__file__).resolve().parents[2]          # tutorial-pipeline-2/
 sys.path.insert(0, str(ROOT))
 from lib import drive                                        # noqa: E402
 

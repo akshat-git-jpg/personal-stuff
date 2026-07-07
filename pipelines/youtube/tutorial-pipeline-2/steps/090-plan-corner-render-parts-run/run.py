@@ -21,7 +21,7 @@ Step 150 (run-a3) just uploads these — it does no chunking.
 """
 import sys, json, math, argparse, pathlib
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]          # kushal-tutorial-pipeline-v2/
+ROOT = pathlib.Path(__file__).resolve().parents[2]          # tutorial-pipeline-2/
 sys.path.insert(0, str(ROOT))
 from lib import audio                                        # noqa: E402
 from shared import heygen_config as C                        # noqa: E402

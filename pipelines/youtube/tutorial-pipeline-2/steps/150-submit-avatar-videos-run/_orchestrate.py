@@ -7,7 +7,7 @@ polling). Downloading the finished renders is step 160. Anti-ban pacing + usage 
 import sys, json, argparse, pathlib
 
 HERE = pathlib.Path(__file__).resolve().parent              # steps/150-submit-avatar-videos-run/
-ROOT = HERE.parents[1]                                       # kushal-tutorial-pipeline-v2/
+ROOT = HERE.parents[1]                                       # tutorial-pipeline-2/
 sys.path.insert(0, str(ROOT))
 from lib import heygen, audio                                # noqa: E402
 from shared import heygen_config as C                        # noqa: E402

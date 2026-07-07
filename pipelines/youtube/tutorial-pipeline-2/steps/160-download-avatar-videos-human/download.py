@@ -15,7 +15,7 @@ Writes: output/videos/<job-name>.mp4   (idempotent — skips any .mp4 already pr
 import sys, json, argparse, pathlib
 
 HERE = pathlib.Path(__file__).resolve().parent
-ROOT = HERE.parents[1]                                       # kushal-tutorial-pipeline-v2/
+ROOT = HERE.parents[1]                                       # tutorial-pipeline-2/
 sys.path.insert(0, str(ROOT))
 from lib import heygen                                        # noqa: E402
 from shared import heygen_config as C                         # noqa: E402

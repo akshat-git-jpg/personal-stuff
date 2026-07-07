@@ -8,7 +8,7 @@ This document lists the active business, content, and career bets being pursued 
 - **Thesis**: Create high-quality software review and search tutorials to capture search traffic and drive affiliate/digital product sales.
 - **Where it lives**:
   - Research & Scripting: [pipelines/youtube/](file:///Users/kbtg/codebase/personal-stuff/pipelines/youtube/)
-  - Tutorial Recording & AV Production: [pipelines/youtube/kushal-tutorial-pipeline-v2/](file:///Users/kbtg/codebase/personal-stuff/pipelines/youtube/kushal-tutorial-pipeline-v2/PIPELINE.md)
+  - Tutorial Recording & AV Production: [pipelines/youtube/tutorial-pipeline-2/](file:///Users/kbtg/codebase/personal-stuff/pipelines/youtube/tutorial-pipeline-2/PIPELINE.md)
   - Video Assets/Motion Graphics: [pipelines/video/motion-graphics/](file:///Users/kbtg/codebase/personal-stuff/pipelines/video/motion-graphics/README.md)
   - Voice Conversion & TTS pipeline: [pipelines/video/voice/](file:///Users/kbtg/codebase/personal-stuff/pipelines/video/voice/README.md)
 - **Status & Metrics**:

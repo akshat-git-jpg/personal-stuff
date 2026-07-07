@@ -7,7 +7,7 @@ under personal-stuff/pipelines/) and reuses the Google OAuth token cache; every 
 """
 import shutil, subprocess, pathlib
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]          # kushal-tutorial-pipeline-v2/
+ROOT = pathlib.Path(__file__).resolve().parents[1]          # tutorial-pipeline-2/
 
 
 def resolve_cli(explicit=None):
@@ -19,7 +19,7 @@ def resolve_cli(explicit=None):
     on_path = shutil.which("pp-drive")
     if on_path:
         return on_path
-    # kushal-tutorial-pipeline-v2/ → youtube/ → ty/ → personal-stuff/tooling/cli/drive/pp-drive
+    # tutorial-pipeline-2/ → youtube/ → ty/ → personal-stuff/tooling/cli/drive/pp-drive
     guess = ROOT.parents[2] / "tooling/cli/drive/pp-drive"
     if guess.exists():
         return str(guess)

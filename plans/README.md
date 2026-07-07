@@ -55,8 +55,21 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 040 | `boss` agy executor | P1 | S | 039 | DONE |
 | 041 | `secretary` skill — raise mode (plan → boss:ready PR) | P1 | S | 039 | DONE |
 | 042 | `secretary` skill — groom mode (retire stale PRs) | P2 | S | 041 | DONE |
+| 043 | `tutorial-pipeline-1` — Drive-in → HeyGen spokesperson clips → Drive-out | P2 | M | — | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
+
+> **043 (2026-07-07)**: new standalone pipeline, sibling to `tutorial-pipeline-2`
+> (the renamed `kushal-tutorial-pipeline-v2`) — no dependency between them.
+> Builds Drive download/upload (`pp-drive stat`/`list-folder`/`download`, all
+> standard Drive API v3 calls) and the full step/config scaffolding for real;
+> deliberately leaves the one HeyGen call that has never been captured
+> (upload custom audio + render on an *existing* avatar) as a `[TODO][HNS]`
+> stub in `heygen-web.mjs`, matching the accepted convention already shipped
+> in `tutorial-pipeline-2/lib/heygen.py` — owner statement (2026-07-07): "we
+> have already done this" (manually) with audio upload against an existing
+> avatar, so wiring it for real should just need one fresh HAR capture with
+> Preserve Log on.
 
 > **039–042 (2026-07-07, boss batch)**: builds `boss`, the PR-driven successor to
 > `captain` (captain frozen/deprecated). Design: `docs/specs/2026-07-07-boss-design.md`.

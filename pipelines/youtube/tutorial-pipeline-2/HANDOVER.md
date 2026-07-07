@@ -1,4 +1,4 @@
-# HANDOVER — kushal-tutorial-pipeline-v2 (for a fresh Claude session)
+# HANDOVER — tutorial-pipeline-2 (for a fresh Claude session)
 
 ## What this is
 A linear pipeline that turns a topic into a **published-ready tutorial draft cut**:
@@ -7,7 +7,7 @@ avatar clips → rendered graphics → auto-assembled cut. As of the v3 flow (20
 editor role is optional QC: assembly is deterministic (see the timing spine in `PIPELINE.md`
 and the design in `SPEC.md`).
 
-- **Location:** `personal-stuff/pipelines/youtube/kushal-tutorial-pipeline-v2/` (tracked in git).
+- **Location:** `personal-stuff/pipelines/youtube/tutorial-pipeline-2/` (tracked in git).
 - **Read first:** `PIPELINE.md` (the ordered map), then `SPEC.md` (v3 design). Each step folder has a `README.md`.
 - **v3 build status:** new steps 105/125/135/162 are stubs; `plans/011-tutorial-pipeline-v3.md`
   (repo root) implements them plus 040's segment-map output.
@@ -65,7 +65,7 @@ docs can't drift. Actor suffix on each folder: `-run` (script) · `-antigravity`
 - Step 170 builds the Drive-style local tree (tested).
 - **Drive CLI** (`personal-stuff/tooling/cli/drive/pp_drive.py` + `pp-drive` wrapper) works:
   authed accounts include **kushalbakliwal25@gmail.com**; `find-folder "video production"` = empty.
-- **Renumbered to ×10 (010–170)** and **renamed the top folder → `kushal-tutorial-pipeline-v2`**
+- **Renumbered to ×10 (010–170)** and **renamed the top folder → `tutorial-pipeline-2`**
   (2026-06-30). All paths/refs updated; everything still compiles.
 
 **STUBBED — needs you to fill from a HAR (search `TODO[HNS]` in `lib/heygen.py`):**

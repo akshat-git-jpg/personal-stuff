@@ -23,7 +23,7 @@ whole video. Avatar audio is rebuilt automatically after any re-synth.
 """
 import sys, re, json, argparse, pathlib, shutil
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]          # kushal-tutorial-pipeline-v2/
+ROOT = pathlib.Path(__file__).resolve().parents[2]          # tutorial-pipeline-2/
 sys.path.insert(0, str(ROOT))
 from lib import audio, chunking, modal_tts                   # noqa: E402
 

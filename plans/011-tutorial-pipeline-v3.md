@@ -5,7 +5,7 @@
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat ce08e57..HEAD -- pipelines/youtube/kushal-tutorial-pipeline-v2/`
+> **Drift check (run first)**: `git diff --stat ce08e57..HEAD -- pipelines/youtube/tutorial-pipeline-2/`
 > (expect: no changes to `steps/105-*`, `steps/125-*`, `steps/162-*`, `steps/040-*` beyond this plan's own work)
 
 ## Status
@@ -19,7 +19,7 @@
 
 ## Why this matters
 
-The v3 redesign (see `pipelines/youtube/kushal-tutorial-pipeline-v2/SPEC.md`) removes the
+The v3 redesign (see `pipelines/youtube/tutorial-pipeline-2/SPEC.md`) removes the
 video editor's timeline work by making assembly deterministic: script polish emits a
 segment map tying each script block to its raw-footage span; TTS gives each block's exact
 voiceover length; a plan step computes per-block retimes; ffmpeg executes them. The step
@@ -43,7 +43,7 @@ implementations and the two prompt conversions.
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Compile check | `python3 -m py_compile pipelines/youtube/kushal-tutorial-pipeline-v2/steps/*/run.py` | exit 0 |
+| Compile check | `python3 -m py_compile pipelines/youtube/tutorial-pipeline-2/steps/*/run.py` | exit 0 |
 | ffmpeg present | `ffmpeg -version` | version string |
 | Test recording | `ffmpeg -y -f lavfi -i testsrc=duration=60:size=1280x720:rate=30 -f lavfi -i sine=frequency=440:duration=60 -shortest /tmp/p011-rec.mp4` | 60s test video |
 | Test VO | `ffmpeg -y -f lavfi -i sine=frequency=330:duration=50 /tmp/p011-vo.wav` | 50s wav |
@@ -71,7 +71,7 @@ implementations and the two prompt conversions.
 
 ## Steps
 
-All paths below are relative to `pipelines/youtube/kushal-tutorial-pipeline-v2/`.
+All paths below are relative to `pipelines/youtube/tutorial-pipeline-2/`.
 
 ### Step 1: Segment map in 040
 

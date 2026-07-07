@@ -17,7 +17,7 @@ Deps: ffmpeg + gdown (public Drive links). pip install gdown groq
 """
 import sys, os, re, json, argparse, pathlib
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]          # kushal-tutorial-pipeline-v2/
+ROOT = pathlib.Path(__file__).resolve().parents[2]          # tutorial-pipeline-2/
 sys.path.insert(0, str(ROOT))
 from lib import audio, asr                                   # noqa: E402
 
