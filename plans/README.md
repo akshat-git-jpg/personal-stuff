@@ -56,7 +56,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 041 | `secretary` skill — raise mode (plan → boss:ready PR) | P1 | S | 039 | DONE |
 | 042 | `secretary` skill — groom mode (retire stale PRs) | P2 | S | 041 | DONE |
 | 043 | `tutorial-pipeline-1` — Drive-in → HeyGen spokesperson clips → Drive-out | P2 | M | — | TODO |
-| 044 | Research v2 — tutorial/comparison flow (per-software dossier library, end to end) | P1 | L | — | TODO |
+| 044 | Research v2 — tutorial/comparison flow (per-software dossier library, end to end) | P1 | L | — | REJECTED (superseded by 051-dossier-skills — skill-driven, link-driven redesign; PR #2 closed 2026-07-08) |
 | 045 | Research v2 — explainer flow (per-topic fact sheets) | P2 | S | 044 | TODO |
 | 044 | `explainer-videos-pipeline-1` — shared scaffolding + 0-input | P1 | M | — | DONE |
 | 045 | `explainer-videos-pipeline-1` — 2-scripting stage | P2 | M | 044 | DONE |
