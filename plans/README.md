@@ -62,7 +62,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 045 | `explainer-videos-pipeline-1` — 2-scripting stage | P2 | M | 044 | DONE |
 | 046 | `explainer-videos-pipeline-1` — 3-voiceover stage | P2 | M | 044, 045 | DONE |
 | 047 | `explainer-videos-pipeline-1` — 4-motion-graphics stage | P2 | L | 044, 046 | TODO |
-| 048 | `explainer-videos-pipeline-1` — 5-final-video-sync stage | P2 | S | 046, 047 | TODO |
+| 048 | `explainer-videos-pipeline-1` — 5-final-video-sync stage | P2 | S | 046, 047 | DONE |
 | 049 | `explainer-videos-pipeline-1` — 6-thumbnail stage | P2 | M | 044 | TODO |
 | 050 | `explainer-videos-pipeline-1` — 7-upload stage | P2 | S | 048, 049 | TODO |
 
