@@ -38,6 +38,16 @@ fs.mkdirSync(WORK_DIR, { recursive: true });
 
 // ---- template cards (Templates tab) ----
 const CARD_IGNORE = new Set(["node_modules", "assets", "compositions", ".git"]);
+// Optional gallery-order.json at CARDS_DIR root: an array of "type/card" keys that
+// pins the FRONT of the Templates list to an exact order (e.g. ["title/title-kinetic-lines", ...]).
+// Cards not listed keep alphabetical order after the pinned ones. Missing/invalid = plain alpha.
+// It lives in the cards repo, so reordering is a card-library push — no app redeploy needed.
+function readGalleryOrder() {
+  try {
+    const arr = JSON.parse(fs.readFileSync(path.join(CARDS_DIR, "gallery-order.json"), "utf8"));
+    return Array.isArray(arr) ? arr.map(String) : [];
+  } catch { return []; }
+}
 function listCards() {
   const out = [];
   let types;
@@ -54,7 +64,14 @@ function listCards() {
       out.push({ type, card, rel: `${type}/${card}/index.html`, title: (m && m[1].trim()) || pretty });
     }
   }
-  return out.sort((a, b) => (a.type + a.card).localeCompare(b.type + b.card));
+  const rank = new Map(readGalleryOrder().map((k, i) => [k, i]));
+  const keyOf = (c) => `${c.type}/${c.card}`;
+  return out.sort((a, b) => {
+    const ra = rank.has(keyOf(a)) ? rank.get(keyOf(a)) : Infinity;
+    const rb = rank.has(keyOf(b)) ? rank.get(keyOf(b)) : Infinity;
+    if (ra !== rb) return ra - rb;
+    return (a.type + a.card).localeCompare(b.type + b.card);
+  });
 }
 const safeDir = (p) => { try { return fs.statSync(p).isDirectory(); } catch { return false; } };
 const safeFile = (p) => { try { return fs.statSync(p).isFile(); } catch { return false; } };

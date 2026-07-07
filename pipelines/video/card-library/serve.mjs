@@ -67,7 +67,21 @@ async function listCards() {
       cards.push({ type, card, rel: `${type}/${card}/index.html`, title: (m && m[1].trim()) || pretty(card) });
     }
   }
-  return cards.sort((a, b) => (a.type + a.card).localeCompare(b.type + b.card));
+  // Optional gallery-order.json at ROOT pins the FRONT of the list to an exact
+  // "type/card" order; unlisted cards stay alphabetical after. Missing/invalid = alpha.
+  let order = [];
+  try {
+    const arr = JSON.parse(await readFile(join(ROOT, "gallery-order.json"), "utf8"));
+    if (Array.isArray(arr)) order = arr.map(String);
+  } catch {}
+  const rank = new Map(order.map((k, i) => [k, i]));
+  const keyOf = (c) => `${c.type}/${c.card}`;
+  return cards.sort((a, b) => {
+    const ra = rank.has(keyOf(a)) ? rank.get(keyOf(a)) : Infinity;
+    const rb = rank.has(keyOf(b)) ? rank.get(keyOf(b)) : Infinity;
+    if (ra !== rb) return ra - rb;
+    return (a.type + a.card).localeCompare(b.type + b.card);
+  });
 }
 
 const GALLERY = `<!DOCTYPE html>
@@ -139,16 +153,13 @@ const GALLERY = `<!DOCTYPE html>
         root.innerHTML = '<p class="empty">No cards yet. Add one at &lt;type&gt;/&lt;card&gt;/index.html and refresh.</p>';
         return;
       }
-      const byType = {};
-      for (const c of cards) (byType[c.type] = byType[c.type] || []).push(c);
-
-      for (const type of Object.keys(byType).sort()) {
-        const list = byType[type];
-        const sec = document.createElement("section");
-        sec.innerHTML = '<h2>' + type + ' <span class="count">' + list.length + '</span></h2>';
-        const grid = document.createElement("div");
-        grid.className = "grid";
-        for (const c of list) {
+      // Flat board in the server-provided order (gallery-order.json pins the front).
+      const sec = document.createElement("section");
+      sec.innerHTML = '<h2>Templates <span class="count">' + cards.length + '</span></h2>';
+      const grid = document.createElement("div");
+      grid.className = "grid";
+      {
+        for (const c of cards) {
           const el = document.createElement("div");
           el.className = "card";
           const box = document.createElement("div");

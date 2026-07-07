@@ -351,16 +351,13 @@
       templatesLoaded = false;
       return;
     }
-    const byType = {};
-    for (const c of cards) (byType[c.type] = byType[c.type] || []).push(c);
+    // Flat gallery in the server-provided order (gallery-order.json pins the front).
     root.innerHTML = "";
-    for (const type of Object.keys(byType).sort()) {
-      const sec = document.createElement("div");
-      sec.className = "gsec";
-      sec.innerHTML = "<h2>" + type + "</h2>";
-      const grid = document.createElement("div");
-      grid.className = "ggrid";
-      for (const c of byType[type]) {
+    const sec = document.createElement("div");
+    sec.className = "gsec";
+    const grid = document.createElement("div");
+    grid.className = "ggrid";
+    for (const c of cards) {
         const el = document.createElement("div");
         el.className = "gcard";
         const prev = document.createElement("div");
@@ -403,10 +400,9 @@
         el.append(prev, meta);
         grid.appendChild(el);
         galleryRO.observe(prev);
-      }
-      sec.appendChild(grid);
-      root.appendChild(sec);
     }
+    sec.appendChild(grid);
+    root.appendChild(sec);
   }
 
   showTop("templates"); // land on the Templates gallery by default
