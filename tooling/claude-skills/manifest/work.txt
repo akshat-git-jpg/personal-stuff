@@ -34,3 +34,4 @@ worktree-manager
 zluri-release
 reddit-fetcher
 secretary
+debug-dbt-data-errors
