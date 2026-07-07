@@ -65,6 +65,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 048 | `explainer-videos-pipeline-1` — 5-final-video-sync stage | P2 | S | 046, 047 | DONE |
 | 049 | `explainer-videos-pipeline-1` — 6-thumbnail stage | P2 | M | 044 | DONE |
 | 050 | `explainer-videos-pipeline-1` — 7-upload stage | P2 | S | 048, 049 | DONE |
+| 051 | Dossier skills — transcript fallback chain + per-tool research dossiers | P1 | L | — | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
