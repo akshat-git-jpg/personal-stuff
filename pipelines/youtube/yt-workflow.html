@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Production Workflow Comparison</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            
+            /* Role Colors */
+            --role-researcher: #38bdf8;
+            --role-processor: #a855f7;
+            --role-editor: #f43f5e;
+            --role-writer: #10b981;
+
+            /* Problem severity colors */
+            --sev-big: #ef4444;
+            --sev-small: #eab308;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #38bdf8, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .workflow-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .workflow-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .workflow-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .timeline {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .step {
+            position: relative;
+            padding-left: 1.5rem;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .step::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+        }
+
+        /* Dynamic Border Colors based on active role */
+        .step.researcher-host { border-left-color: rgba(56, 189, 248, 0.4); }
+        .step.processor-host { border-left-color: rgba(168, 85, 247, 0.4); }
+        .step.editor-host { border-left-color: rgba(244, 63, 94, 0.4); }
+        .step.writer-host { border-left-color: rgba(16, 185, 129, 0.4); }
+
+        .step.researcher-host::before { background-color: var(--role-researcher); }
+        .step.processor-host::before { background-color: var(--role-processor); }
+        .step.editor-host::before { background-color: var(--role-editor); }
+        .step.writer-host::before { background-color: var(--role-writer); }
+
+        .role-tag {
+            display: inline-block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .role-tag.researcher { color: var(--role-researcher); }
+        .role-tag.processor { color: var(--role-processor); }
+        .role-tag.editor { color: var(--role-editor); }
+        .role-tag.writer { color: var(--role-writer); }
+
+        .task-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .task-item {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            padding: 0.5rem;
+            background-color: rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .tab-btn {
+            font: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            padding: 0.6rem 1.5rem;
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            color: var(--text-main);
+            border-color: #38bdf8;
+            background: linear-gradient(to right, rgba(56, 189, 248, 0.15), rgba(168, 85, 247, 0.15));
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Gaps tab */
+        .gaps-wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        .gap-section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .gap-section-title .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .gap-section-title.big { color: var(--sev-big); }
+        .gap-section-title.big .dot { background-color: var(--sev-big); box-shadow: 0 0 10px var(--sev-big); }
+
+        .gap-section-title.small { color: var(--sev-small); }
+        .gap-section-title.small .dot { background-color: var(--sev-small); box-shadow: 0 0 10px var(--sev-small); }
+
+        .gap-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .gap-item {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+            color: var(--text-main);
+            box-shadow: 0 6px 12px -4px rgba(0, 0, 0, 0.3);
+        }
+
+        .gap-item.big {
+            border-left: 4px solid var(--sev-big);
+            background-color: rgba(239, 68, 68, 0.08);
+        }
+
+        .gap-item.small {
+            border-left: 4px solid var(--sev-small);
+            background-color: rgba(234, 179, 8, 0.08);
+        }
+
+        .gap-item .gap-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.15rem 0.55rem;
+            border-radius: 9999px;
+            margin-right: 0.6rem;
+            vertical-align: middle;
+        }
+
+        .gap-item.big .gap-badge {
+            color: var(--sev-big);
+            background-color: rgba(239, 68, 68, 0.15);
+        }
+
+        .gap-item.small .gap-badge {
+            color: var(--sev-small);
+            background-color: rgba(234, 179, 8, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Pipeline Matrix</h1>
+        <p>Comparative structural breakdown for small and big comparison videos</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="workflow" onclick="showTab('workflow')">Workflow</button>
+        <button class="tab-btn" data-tab="gaps" onclick="showTab('gaps')">Gaps</button>
+    </div>
+
+    <div id="tab-workflow" class="tab-panel active">
+    <div class="container">
+
+        <div class="workflow-card">
+            <div class="workflow-title">
+                Workflow A 
+                <span class="workflow-badge">Model A</span>
+            </div>
+            <div class="timeline">
+                
+                <div class="step researcher-host">
+                    <span class="role-tag researcher">1) Tutorial Maker - Researcher + Screen Recorder</span>
+                    <ul class="task-list">
+                        <li class="task-item">- Makes Outline</li>
+                        <li class="task-item">- Once Approved - makes script</li>
+                        <li class="task-item">- Once Approved - Gets TTS from processor</li>
+                        <li class="task-item">- Make screen recorded video with sync with voice over</li>
+                    </ul>
+                </div>
+
+                <div class="step processor-host">
+                    <span class="role-tag processor">2) Processor</span>
+                    <ul class="task-list">
+                        <li class="task-item">- Edits/Updates script</li>
+                        <li class="task-item">- Makes tts and gives back to Tutorial Maker</li>
+                        <li class="task-item">- Makes avatar videos and gives to Video Editor</li>
+                    </ul>
+                </div>
+
+                <div class="step editor-host">
+                    <span class="role-tag editor">3) Video Editor</span>
+                    <ul class="task-list">
+                        <li class="task-item">- Fix any sync gaps of screen recording-voice</li>
+                        <li class="task-item">- Gets avatar videos from processor</li>
+                        <li class="task-item">- Makes final video with motion graphics, avatar videos, b roll, music, sound effects, transitions, etc</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="workflow-card">
+            <div class="workflow-title">
+                Workflow B
+                <span class="workflow-badge">Model B</span>
+            </div>
+            <div class="timeline">
+                
+                <div class="step researcher-host">
+                    <span class="role-tag researcher">1) Researcher + Screen Recorder</span>
+                    <ul class="task-list">
+                        <li class="task-item">- Makes Outline</li>
+                        <li class="task-item">- Once Approved - Makes Draft Screen video</li>
+                    </ul>
+                </div>
+
+                <div class="step processor-host">
+                    <span class="role-tag processor">2) Processor</span>
+                    <ul class="task-list">
+                        <li class="task-item">- Makes Final script</li>
+                        <li class="task-item">- Makes final tts and gives to video editor</li>
+                        <li class="task-item">- Makes avatar videos and gives to video editor</li>
+                    </ul>
+                </div>
+
+                <div class="step editor-host">
+                    <span class="role-tag editor">3) Video Editor</span>
+                    <ul class="task-list">
+                        <li class="task-item">- Gets tts from processor</li>
+                        <li class="task-item">- Gets avatar videos from processor</li>
+                        <li class="task-item">- Sync screen recording - voice</li>
+                        <li class="task-item">- Makes final video with motion graphics, avatar videos, b roll, music, sound effects, transitions, etc</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="workflow-card">
+            <div class="workflow-title">
+                Workflow C
+                <span class="workflow-badge">Model C</span>
+            </div>
+            <div class="timeline">
+                
+                <div class="step writer-host">
+                    <span class="role-tag writer">1) Script writer</span>
+                    <ul class="task-list">
+                        <li class="task-item">- Writes script</li>
+                        <li class="task-item">- Write instruction/helps for screen Recorder</li>
+                    </ul>
+                </div>
+
+                <div class="step processor-host">
+                    <span class="role-tag processor">2) Processor</span>
+                    <ul class="task-list">
+                        <li class="task-item">- Makes tts for Video Editor</li>
+                        <li class="task-item">- Makes avatar videos for Video Editor</li>
+                    </ul>
+                </div>
+
+                <div class="step editor-host">
+                    <span class="role-tag editor">3) Video Editor</span>
+                    <ul class="task-list">
+                        <li class="task-item">- Gets tts from Processor</li>
+                        <li class="task-item">- Screen Records video with tts and helper</li>
+                        <li class="task-item">- Fix any sync gaps of screen recording-voice</li>
+                        <li class="task-item">- Gets avatar videos from processor</li>
+                        <li class="task-item">- Makes final video with motion graphics, avatar videos, b roll, music, sound effects, transitions, etc</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    </div>
+
+    <div id="tab-gaps" class="tab-panel">
+        <div class="gaps-wrap">
+
+            <div>
+                <div class="gap-section-title big"><span class="dot"></span>Big Problem Points</div>
+                <ul class="gap-list">
+                    <li class="gap-item big"><span class="gap-badge">Big</span>Researcher + Scripting automation (entire process or a helper tool)</li>
+                    <li class="gap-item big"><span class="gap-badge">Big</span>Video Editor helper for motion graphics</li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="gap-section-title small"><span class="dot"></span>Small Problem Points</div>
+                <ul class="gap-list">
+                    <li class="gap-item small"><span class="gap-badge">Small</span>Better realistic avatar, especially side view</li>
+                    <li class="gap-item small"><span class="gap-badge">Small</span>Better TTS voice</li>
+                    <li class="gap-item small"><span class="gap-badge">Small</span>Better avatar face</li>
+                    <li class="gap-item small"><span class="gap-badge">Small</span>Keyword/Topic Finder</li>
+                    <li class="gap-item small"><span class="gap-badge">Small</span>Affiliate program - apply automation</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function showTab(name) {
+            document.querySelectorAll('.tab-panel').forEach(function (el) {
+                el.classList.toggle('active', el.id === 'tab-' + name);
+            });
+            document.querySelectorAll('.tab-btn').forEach(function (el) {
+                el.classList.toggle('active', el.dataset.tab === name);
+            });
+        }
+    </script>
+
+</body>
+</html>

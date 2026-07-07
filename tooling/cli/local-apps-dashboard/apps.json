@@ -40,6 +40,16 @@
       "port": 4331,
       "ports": [4331],
       "url": "http://localhost:4331"
+    },
+    {
+      "id": "yt-workflow",
+      "name": "yt-workflow preview",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/youtube",
+      "start": "node serve.mjs",
+      "env": { "PORT": "4341" },
+      "port": 4341,
+      "ports": [4341],
+      "url": "http://localhost:4341"
     }
   ]
 }
