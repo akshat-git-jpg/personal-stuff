@@ -3,8 +3,8 @@
 One linear pipeline that turns a topic into a published-ready tutorial draft cut:
 research brief → freelancer screen recording → clean script → brand-voice voiceover →
 avatar clips → rendered graphics → an auto-assembled draft cut. The editor role is
-optional QC, not timeline work. Each step is a folder under `steps/`, numbered in run
-order, owning its own `output/`.
+optional QC, not timeline work. Each step is a folder numbered in run order, owning its
+own `output/`, grouped into numbered stage folders (`1-research/`, `2-recording/`, …).
 
 `SPEC.md` is the why (design + decisions); this file is the how (run order).
 
@@ -114,7 +114,13 @@ tutorial-pipeline-2/
     pronunciation-map.md (grows — names/numbers fixed across all videos)
     ref/jamila-30s.wav   (the fixed brand voice)
     heygen_config.py     (avatar knobs incl. corner position/scale)
-  steps/<NNN-name-actor>/
+  1-research/<NNN-name-actor>/
+  2-recording/<NNN-name-actor>/
+  3-scripting/<NNN-name-actor>/
+  4-voiceover/<NNN-name-actor>/
+  5-visuals/<NNN-name-actor>/
+  6-avatar-clips/<NNN-name-actor>/
+  7-final-assembly/<NNN-name-actor>/
     README.md            (the step's card: what · in · out · how)
     run.py | rulebook.md (the implementation; rulebook = paste prompt or Claude Code rules)
     output/              (this step's artifacts)
@@ -124,7 +130,8 @@ tutorial-pipeline-2/
 - ×10 numbering with room between (015, 105, 125, 135, 162, 165 slot in without renumbering).
 - The actor suffix names the executor: `-run` / `-antigravity` / `-sonnet` / `-human`.
 - Every step folder has a `README.md` + one implementation file + an `output/`.
-- A step reads `../<prev>/output/…` and writes `./output/…`. Shared code goes in `lib/`.
+- A step reads `../<prev>/output/…` (same stage) or `../../<stage>/<prev>/output/…`
+  (cross-stage) and writes `./output/…`. Shared code goes in `lib/`.
 - `[ANTIGRAVITY]` rulebooks are self-contained paste prompts. `[SONNET]` rulebooks are run
   in a Claude Code session on model Sonnet (`/model sonnet` first).
 
