@@ -3,11 +3,7 @@
 # Contract: <script> <dispatch|alive|collect> <pr#> [brief-path]
 set -uo pipefail
 export PATH="$HOME/.local/bin:$PATH"   # agy installs here
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BOSS_HOME="$(cd "$SCRIPT_DIR/.." && pwd)"
-STATE_DIR="$BOSS_HOME/state"; mkdir -p "$STATE_DIR"
-meta_get() { local f="$STATE_DIR/$1.meta"; [ -f "$f" ] || return 1; grep "^$2=" "$f" | tail -1 | cut -d= -f2-; }
-meta_set() { echo "$2=$3" >> "$STATE_DIR/$1.meta"; }
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../bin" && pwd)/boss-lib.sh"
 verb="${1:?usage: agy.sh <dispatch|alive|collect> <pr#> [brief]}"
 id="${2:?usage: agy.sh <verb> <pr#> [brief]}"
 case "$verb" in
@@ -43,13 +39,12 @@ except Exception:
 print(d.get("status",""))
 PY
 )
-    # HEAD-advanced guard: agy can operate on the wrong checkout; a SUCCESS with no new
-    # commit is NOT done (would make boss's label state lie).
-    wt=$(meta_get "$id" worktree); before=$(meta_get "$id" head_before)
-    after=$(git -C "$wt" rev-parse HEAD 2>/dev/null || echo none)
+    # HEAD-advanced guard (shared via boss_head_advanced): agy can operate on the
+    # wrong checkout; a SUCCESS with no new commit is NOT done (would make boss's
+    # label state lie).
     case "$status" in
       SUCCESS)
-        if [ "$after" != "$before" ] && [ "$after" != none ]; then echo "done agy completed, HEAD advanced"
+        if boss_head_advanced "$id"; then echo "done agy completed, HEAD advanced"
         else echo "blocked agy reported success but HEAD did not advance (wrong-checkout?)"; fi ;;
       ERROR) echo "blocked agy error" ;;
       PARSEFAIL) echo "dead unparseable output" ;;

@@ -41,7 +41,7 @@ plan file `plans/<name>.md`. The plan opens with YAML frontmatter and then prose
 
 ```yaml
 ---
-executor: claude-p        # claude-p | agy   (secretary stamps this from rules.md defaults)
+executor: claude-p        # claude-p | agy   (orchestrate stamps this from rules.md defaults; secretary & boss only read it)
 model: sonnet             # per-executor override; blank = executor default
 test_cmd: "npm test"      # REQUIRED. exit 0 = pass. this is the CI.
 deploy: "wrangler deploy" # optional. blank = no deploy step.
@@ -58,9 +58,15 @@ needs: []                 # optional notes (shared target, ordering)
 Rules:
 
 - **`test_cmd` is mandatory and must be an executable command** (exit 0 = pass).
-  Secretary refuses to raise a PR without one. This repo has no CI, so boss's
-  re-run of `test_cmd` *is* the CI. For UI work, `test_cmd` must produce the render
-  artifact and boss eyeballs it once.
+  This repo has no CI, so boss's re-run of `test_cmd` *is* the CI. Secretary
+  never refuses to raise over a missing `test_cmd` — it raises anyway and labels
+  the PR `gap:test-cmd` instead of `boss:ready`, so boss's queue naturally never
+  sees it (label-as-lock; no PR is ever blocked from existing).
+- **UI work gets a separate signal, not folded into `test_cmd`.** A plan sets
+  `ui: true` in frontmatter; boss's dispatch brief then requires the crew to
+  render the changed view, commit one screenshot, and post it as an inline PR
+  comment before finishing. `test_cmd` still only asserts build/lint/tests —
+  nobody claims an exit code can judge how something looks.
 - **Boss reads only the frontmatter** (via a shell grep), never the plan body. That
   keeps per-PR token cost near zero.
 
@@ -69,12 +75,16 @@ Rules:
 - Type (awareness): `type:feature` · `type:bug` · `type:refactor` · `type:chore`
 - State (also the concurrency lock, see below):
   `boss:ready` → `boss:in-progress` → `boss:done` / `boss:blocked`
+- Gap (readiness, mutually exclusive with `boss:ready`): `gap:test-cmd` ·
+  `gap:open-points` — secretary raises the PR anyway and applies these instead
+  of `boss:ready`; boss ignores anything without `boss:ready`. `groom` audits
+  and promotes gap PRs once the plan is fixed.
 - Absent state label, or a draft PR = still being brainstormed; boss ignores it.
 
 ## The loop
 
 ```
-[non-boss session]  brainstorm → /secretary raise → boss:ready PR
+[non-boss session]  brainstorm → /secretary raise → boss:ready PR (or gap:* PR if incomplete)
 [boss session start] print terminal-state ledger (merged/blocked since last session)
                      + list boss:ready PRs with age + reconcile in-flight from worktrees
    → BATCH confirm: "N ready, dispatching on their frontmatter executor/model, object now"
@@ -90,7 +100,8 @@ Rules:
                    clean + green → merge via greenlight → notify → archive plan
    → if frontmatter.deploy set → HARD-GATE: ask owner → deploy on main checkout → notify
    → teardown worktree → next
-[periodically] /secretary groom → audit boss:ready + draft PRs, retire the stale
+[periodically] /secretary groom → audit boss:ready + gap:* + draft PRs, promote fixed
+                     gap PRs to boss:ready, retire the stale
 ```
 
 Only **one** confirmation gate exists for implementation: the batch confirm at session
@@ -127,11 +138,13 @@ is added later only when a task the two handle badly appears.)
 ## Routing: one source of truth
 
 `data/rules.md` is an append-only `task-type/label → executor + model` map. It is
-**secretary's input, not boss's**: at `raise` time secretary reads the defaults and
-*stamps* `executor`+`model` into the PR's frontmatter. By the time the PR exists,
-routing is fixed in the frontmatter. Boss reads only the frontmatter. There is no
-runtime precedence question because rules.md was consumed before dispatch. A
-per-dispatch flag can still override for a one-off.
+**orchestrate's input, not boss's**: when orchestrate authors a plan (Step 3.5) it
+reads the defaults and *stamps* `executor`+`model` into the plan's frontmatter.
+secretary raises the PR as-is (it never re-derives routing) and boss reads only the
+frontmatter. By the time the PR exists, routing is fixed in the frontmatter, so
+there is no runtime precedence question — rules.md was consumed at plan-authoring
+time. A per-dispatch `boss-dispatch.sh --executor/--model` flag can still override
+for a one-off.
 
 ## State model: GitHub is the store
 
@@ -185,9 +198,12 @@ boss. Merges and deploys serialize; dispatch and implementation parallelize.
 
 A skill invocable in any session, two modes:
 
-- **`raise`**: from the current brainstorm, create a branch, write
-  `plans/<name>.md` (frontmatter stamped from rules.md + the four prose sections),
-  push, open the PR, apply `type:*` and `boss:ready`. Refuses without a `test_cmd`.
+- **`raise`**: from a finished plan file, create a branch, commit the plan, push,
+  open the PR, apply `type:*` and `boss:ready`. The frontmatter arrives already
+  stamped by orchestrate; secretary only reads it. **Never refuses**: a missing
+  `test_cmd` or an unresolved open point becomes a `gap:test-cmd` / `gap:open-points`
+  label instead of `boss:ready`, so the PR still exists but stays out of boss's queue
+  until `groom` promotes it.
 - **`groom`**: on demand, audit `boss:ready` + draft PRs (never in-progress ones),
   surface each one's age, and with the owner retire the stale: update the plan, drop
   `boss:ready`, or close. This is a deliberate sweep that can *edit* plans, which is

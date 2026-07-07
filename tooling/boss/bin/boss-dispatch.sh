@@ -19,6 +19,7 @@ executor="${exec_override:-$(fm_get executor "$plan_tmp")}"; [ -n "$executor" ] 
 model="${model_override:-$(fm_get model "$plan_tmp")}"
 test_cmd="$(fm_get test_cmd "$plan_tmp")"
 [ -n "$test_cmd" ] || { echo "PR $pr: test_cmd missing in frontmatter — refusing" >&2; exit 1; }
+ui="$(fm_get ui "$plan_tmp")"
 [ -f "$BOSS_HOME/executors/$executor.sh" ] || { echo "no executor '$executor'" >&2; exit 1; }
 
 gh pr edit "$pr" --remove-label boss:ready --add-label boss:in-progress
@@ -48,6 +49,23 @@ Rules:
 - Do NOT push. Do NOT merge. Do NOT deploy. Do NOT edit files outside this repo.
 - Finish with a final commit; the last thing you print is the test_cmd result.
 EOF
+
+if [ "$ui" = "true" ]; then
+  repo_slug="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)"
+  shot_path="plans/runs/evidence/$slug.png"
+  cat >> "$brief" <<EOF
+
+UI verification (required — this plan is flagged \`ui: true\`; test_cmd alone
+does not judge how the UI looks):
+- After implementing, render the changed view (dev server + browser, or an
+  existing screenshot script if this repo has one) and save ONE screenshot to
+  $shot_path in this worktree.
+- Commit the screenshot on this branch.
+- Post it as a PR comment so it renders inline:
+  gh pr comment $pr --body "![screenshot](https://github.com/$repo_slug/blob/$branch/$shot_path?raw=true)"
+- Do this BEFORE your final commit and before printing the test_cmd result.
+EOF
+fi
 
 "$BOSS_HOME/executors/$executor.sh" dispatch "$pr" "$brief"
 echo "PR#$pr dispatched: executor=$executor model=${model:-default} worktree=$wt"

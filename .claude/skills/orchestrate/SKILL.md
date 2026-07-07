@@ -4,7 +4,7 @@ description: Plan a NEW build (feature, tool, script, small app) as a self-conta
 user-invocable: true
 metadata:
   author: kbtg
-  version: 2.3.0
+  version: 2.5.0
 ---
 
 # Orchestrate
@@ -117,6 +117,22 @@ execution order and note dependencies. Write each with `plans/_TEMPLATE.md`.
 
 **Plan shape** (each plan must have all of these):
 
+- **Summary** — a to-the-point block at the very top of the file, before
+  anything else, so a reader (owner or executor) gets the gist without
+  scrolling:
+  - **Problem statement** — what's broken/missing, 1–2 sentences.
+  - **Goals** — bulleted, what this plan achieves.
+  - **Executor proposed** — the executor AND model (e.g. `agy` / Claude
+    Sonnet), one line, matching Step 3.5's difficulty grading.
+  - **Done criteria** — tersely restated (full detail lives in the Done
+    criteria section below).
+  - **Stop conditions** — tersely restated (full detail lives in the STOP
+    conditions section below).
+  - **Test / verification for success** — one line naming the verify
+    approach (unit tests, manual script, rubric-scored subagent, etc).
+  - **Open points for plan readiness** — anything still unresolved that
+    keeps this plan from being handoff-ready. Empty for a plan that passed
+    Step 3.5 — if non-empty, say so plainly; don't hand this plan off yet.
 - **Executor-instructions header** with a **drift check** command
   (`git diff --stat <SHA>..HEAD -- <in-scope paths>`).
 - **Status block**: Priority / Effort / Risk / Depends on / Category / Planned-at SHA.
@@ -168,24 +184,61 @@ decide — only do and verify**. Self-check every plan:
    the gate — the executor can't know the house said no.
 6. **Zero-context test.** A model that has never seen this conversation could
    execute it from the plan file + repo alone.
+7. **Boss frontmatter complete** (for any plan you'll hand to `boss` via
+   `/secretary raise` — i.e. every plan in personal-stuff). Fill the plan's YAML
+   frontmatter yourself now; an unfilled field is exactly what makes secretary
+   raise a `gap:*` PR that boss then ignores (the root cause of "I raised it but
+   boss never picked it up"):
+   - **`test_cmd`** — REQUIRED. The recon-verified command whose exit 0 is the
+     merge gate (boss re-runs it; this repo has no CI, so this field *is* the
+     CI). Never blank, never guessed — it's the command you confirmed in Step 2.
+   - **`ui`** — `true` if the plan touches a user-facing view (boss's crew brief
+     then requires a screenshot); omit/false otherwise.
+   - **`executor` + `model`** — stamp from the difficulty grade + `data/rules.md`
+     defaults (below). secretary does NOT re-derive these; what you write is what
+     boss dispatches.
+   - **`deploy`** — the post-merge deploy command if the plan needs one, else blank.
 
 Then grade each plan — `Difficulty: mechanical | standard | tricky`:
 
-- **mechanical** — pure placement/renames/config; any executor.
+- **mechanical** — pure placement/renames/config.
 - **standard** — normal feature work fully specified by the plan.
 - **tricky** — still needs real judgment even with everything inlined (gnarly
-  refactor, subtle concurrency, security-sensitive logic). Route to the `opus`
-  executor (below) — a cheap model here just buys fix-up rounds.
+  refactor, subtle concurrency, security-sensitive logic) — a cheap model here
+  just buys fix-up rounds.
 
-**Executor selection:** the user's explicit choice always wins (they normally
-name it per batch). If unstated: `tricky` → `opus`, everything else → `sonnet`.
+**Executor selection (boss taxonomy — this is what goes in the frontmatter).**
+boss runs two executors: `claude-p` (backgrounded `claude -p`; models `sonnet`
+or `opus`) and `agy` (headless Antigravity CLI; cheap tokens, gemini default).
+The user's explicit choice always wins. If unstated, consult
+`tooling/boss/data/rules.md` and default: `tricky` → `executor: claude-p` /
+`model: opus`; `standard` → `claude-p` / `sonnet`; `mechanical` or `type:chore`
+→ `agy` (agy default model). (The older `antigravity | sonnet | opus` naming
+belongs to the standalone direct-dispatch registry in Step 4 — NOT the
+frontmatter boss reads.)
 
-### Step 4 — Hand off (automated loop)
+### Step 4 — Hand off (optional)
 
-Default: **run the automated handoff loop** in this session. The governing rule:
-a lot of context flows INTO the executor; only a thin signal flows back. You
-never re-read executor diffs — verification is exit codes, structural checks,
-and one-line verdicts.
+Once plan(s) pass Step 3.5, ask the user how to hand off. Three routes:
+
+- **To `boss` via secretary (recommended, and the default in personal-stuff).**
+  The plan rides a GitHub PR. Invoke **`/secretary raise`** on each ready plan:
+  it opens a `boss:ready` PR (or a `gap:*` PR if the frontmatter is still
+  incomplete — Step 3.5 item 7 is what prevents that). boss then dispatches,
+  verifies, merges, and deploys on its own schedule. **You are done once the PR
+  is raised** — the dispatch/verify/merge loop is boss's, not yours, so nothing
+  below this line runs. This is the current design; see
+  `docs/specs/2026-07-07-boss-design.md`.
+- **Manual / later**: stop here. Report each plan's path plus its Summary
+  block so the user can see problem/goals/executor/done-criteria at a glance,
+  and hand off whenever they choose (re-invoke this skill at Step 4, or
+  `/secretary raise` by hand). Nothing below this line runs.
+- **Automated now (standalone direct-dispatch).** For a repo *without* boss
+  (boss is personal-stuff-only for now), continue below: you dispatch and watch
+  the executor yourself via the registry loop. The governing rule: a lot of
+  context flows INTO the executor; only a thin signal flows back. You never
+  re-read executor diffs — verification is exit codes, structural checks, and
+  one-line verdicts.
 
 #### Executor registry
 
