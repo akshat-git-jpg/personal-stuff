@@ -58,7 +58,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 043 | `tutorial-pipeline-1` — Drive-in → HeyGen spokesperson clips → Drive-out | P2 | M | — | TODO |
 | 044 | Research v2 — tutorial/comparison flow (per-software dossier library, end to end) | P1 | L | — | TODO |
 | 045 | Research v2 — explainer flow (per-topic fact sheets) | P2 | S | 044 | TODO |
-| 044 | `explainer-videos-pipeline-1` — shared scaffolding + 0-input | P1 | M | — | TODO |
+| 044 | `explainer-videos-pipeline-1` — shared scaffolding + 0-input | P1 | M | — | DONE |
 | 045 | `explainer-videos-pipeline-1` — 2-scripting stage | P2 | M | 044 | TODO |
 | 046 | `explainer-videos-pipeline-1` — 3-voiceover stage | P2 | M | 044, 045 | TODO |
 | 047 | `explainer-videos-pipeline-1` — 4-motion-graphics stage | P2 | L | 044, 046 | TODO |
