@@ -309,3 +309,4 @@ The others are grounded and available when the owner wants them:
 
 ## boss-landed
 - 044-explainer-pipeline-scaffold-and-input — PR#5 044-explainer-pipeline-scaffold-and-input: shared scaffolding + 0-input — DONE
+- 045-explainer-pipeline-scripting — PR#6 045-explainer-pipeline-scripting: 2-scripting stage — DONE
