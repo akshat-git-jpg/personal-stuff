@@ -22,7 +22,14 @@ echo "== gapped (raised but NOT ready — plan needs a fix, run /secretary groom
 gh pr list --state open --label gap:test-cmd,gap:open-points --json number,title,labels \
   -q '.[] | "  gap     #\(.number) \(.title)  [\([.labels[].name|select(.=="gap:test-cmd" or .=="gap:open-points")]|join(","))]"' 2>/dev/null
 echo "== in-flight (local state/) =="
-for m in "$STATE_DIR"/*.meta; do [ -e "$m" ] || continue; "$BOSS_HOME/bin/boss-state.sh" "$(basename "$m" .meta)"; done
+# Only show PRs boss is still working. A landed PR keeps its state/*.meta (deploy
+# may still need it) but is boss:done/closed — not in-flight — so skip those.
+for m in "$STATE_DIR"/*.meta; do
+  [ -e "$m" ] || continue; n=$(basename "$m" .meta)
+  st=$(gh pr view "$n" --json state,labels -q '"\(.state) \(.labels[].name)"' 2>/dev/null)
+  case "$st" in *boss:done*|CLOSED*|MERGED*) continue;; esac
+  "$BOSS_HOME/bin/boss-state.sh" "$n"
+done
 # Orphan check: a PR is boss:in-progress on GitHub but has no local meta — its crew
 # was lost (state/ is gitignored + machine-local, so a wiped dir or a different
 # machine orphans it). Surface it; it needs a manual re-dispatch or label reset.
