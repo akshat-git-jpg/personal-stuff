@@ -6,7 +6,7 @@ boss_ensure_labels
 # any uncommitted tracked changes (it "never stashes or switches"), so a dirty
 # main silently blocks EVERY merge in a batch with a "main checkout busy" park.
 # Surface it up front so it's dealt with before dispatch, not discovered mid-land.
-dirty=$(git -C "$REPO_ROOT" status --porcelain --untracked-files=no)
+dirty=$(boss_repo_dirty)
 if [ -n "$dirty" ]; then
   echo "== ⚠️  MAIN CHECKOUT DIRTY (blocks greenlight land — clean before merging) =="
   echo "$dirty" | sed 's/^/  /'

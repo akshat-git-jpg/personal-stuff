@@ -2,10 +2,29 @@
 # boss-dispatch.sh <pr#> [--executor <e>] [--model <m>]
 source "$(dirname "${BASH_SOURCE[0]}")/boss-lib.sh"
 pr="${1:?usage: boss-dispatch.sh <pr#> [--executor e] [--model m]}"; shift
-exec_override=""; model_override=""
+exec_override=""; model_override=""; force=0
 while [ $# -gt 0 ]; do case "$1" in
   --executor) exec_override="$2"; shift 2;; --model) model_override="$2"; shift 2;;
+  --force) force=1; shift;;
   *) echo "unknown arg $1" >&2; exit 2;; esac; done
+
+# Dirty-main guard (enforced, not a reminder). greenlight refuses to land onto a
+# REPO_ROOT with any uncommitted tracked change and silently parks the merge as
+# "main checkout busy" — so a dirty main quietly swallows an entire dispatch
+# batch. Refuse HERE, before we flip labels or lease a worktree, so the failure
+# surfaces at the point of action regardless of whether the session ran
+# boss-session-start. --force overrides (rarely wanted). Recurred twice under a
+# docs-only control (2026-07-07, 2026-07-08); this moves it from "I remember" to
+# "the code refuses".
+if [ "$force" != "1" ]; then
+  dirty=$(boss_repo_dirty)
+  if [ -n "$dirty" ]; then
+    echo "PR $pr: REFUSING to dispatch — main checkout ($REPO_ROOT) has uncommitted tracked changes:" >&2
+    echo "$dirty" | sed 's/^/  /' >&2
+    echo "  greenlight will park EVERY merge until this is clean. Commit/stash/revert in $REPO_ROOT, then re-dispatch (or pass --force to override)." >&2
+    exit 1
+  fi
+fi
 
 branch=$(gh pr view "$pr" --json headRefName -q .headRefName) || { echo "no such PR $pr" >&2; exit 1; }
 case "$branch" in boss/*) ;; *) echo "PR $pr branch '$branch' not boss/* — refusing" >&2; exit 1;; esac

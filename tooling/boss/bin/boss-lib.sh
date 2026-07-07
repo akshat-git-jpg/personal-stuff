@@ -29,6 +29,14 @@ fm_get() {
   ' "$2"
 }
 
+# boss_repo_dirty — echo the main checkout's uncommitted TRACKED changes (empty =
+# clean). greenlight refuses to land onto a dirty REPO_ROOT (it never
+# stashes/switches), so ANY tracked change here silently parks EVERY merge as
+# "main checkout busy". Untracked files don't block greenlight, so
+# --untracked-files=no matches its rule exactly. Single source for the dirty
+# check used by both boss-session-start (warns) and boss-dispatch (refuses).
+boss_repo_dirty() { git -C "$REPO_ROOT" status --porcelain --untracked-files=no; }
+
 slug_of()     { echo "${1#boss/}"; }
 boss_notify() { "$REPO_ROOT/tooling/cli/notify/notify" send "$1" || true; }
 boss_ensure_labels() {
