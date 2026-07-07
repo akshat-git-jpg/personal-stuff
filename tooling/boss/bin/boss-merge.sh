@@ -5,6 +5,15 @@ pr="${1:?usage: boss-merge.sh <pr#>}"
 branch=$(meta_get "$pr" branch); slug=$(meta_get "$pr" slug)
 test_cmd=$(meta_get "$pr" test_cmd); wt=$(meta_get "$pr" worktree)
 
+# Free the dispatch worktree BEFORE greenlight runs. git refuses to check out a
+# branch already held by another worktree, so greenlight (which leases its own
+# worktree and checks out $branch) would park with a checkout error while the
+# crew's dispatch worktree still holds it. The crew's commits live on the branch
+# ref, which survives the worktree return, so this is lossless.
+if [ -n "$wt" ] && [ -d "$wt" ]; then
+  wt return "$wt" 2>/dev/null || true
+fi
+
 # greenlight exits 0 on BOTH land and park (park() writes state=parked, exit 0),
 # so the exit code alone can't tell success from a parked verify-failure. Read
 # greenlight's own state file for the truth. RUN_ID = <timestamp>-<branch-slug>;
