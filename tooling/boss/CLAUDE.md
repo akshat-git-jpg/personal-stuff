@@ -36,9 +36,19 @@ Address anything flagged before taking the next ask.
      main into the branch, leases a `wt` worktree, invokes the executor.
 3. **Watch** via `bin/boss-state.sh [<pr#>]` — polls executor alive/collect.
 4. **On crew done**: `bin/boss-merge.sh <pr#>` — rebases via greenlight with
-   `--verify "<test_cmd>"`, records DONE, notifies.
+   `--verify "<test_cmd>"`, records DONE, notifies, and **closes the PR** (greenlight
+   merges the branch into main directly, so GitHub leaves it open — boss closes it).
 5. **If the plan's frontmatter has a `deploy`**: ASK the owner, then
    `bin/boss-deploy.sh <pr#> --yes`. **Deploy is the only hard per-item gate.**
+
+## The plan registry is boss-owned (on main)
+
+`plans/README.md` is a single shared file. A plan branch that edits it collides
+with every other in-flight branch — that caused the rebase conflicts on the
+044–050 batch (2026-07-07). Rule: **only main edits `plans/README.md`.** Plan
+branches never touch it (dispatch force-resets the branch's copy to main; the
+crew brief forbids it; secretary stages only the plan file). Registry rows and
+status live on main; boss records landings there.
 
 ## What you read
 

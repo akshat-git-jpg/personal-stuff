@@ -4,7 +4,7 @@ description: Bridge between the orchestrate skill and the boss orchestrator. rai
 user-invocable: true
 metadata:
   author: kbtg
-  version: 1.2.0
+  version: 1.3.0
 ---
 
 # secretary
@@ -58,9 +58,17 @@ gapped PR is automatically invisible to it without anyone refusing anything.
    `boss:ready`; any gap → the specific `gap:*` label(s) instead (never both —
    a gapped PR is not boss:ready by definition). Put the gap details in the PR
    body so nobody has to open the plan file to know what's missing.
+
+   **Stage ONLY the plan file — never `plans/README.md`.** The registry table is
+   boss-owned on main; a plan branch that edits it collides with every other
+   in-flight branch (all editing one shared file), which is exactly the rebase
+   conflict boss had to hand-resolve on the 044–050 batch (2026-07-07). If the
+   plan needs a registry row, add it to `plans/README.md` **on main directly**
+   (commit + push main) before or after raising — not on the boss branch. boss
+   discards any `plans/README.md` change it finds on a dispatch branch.
    ```bash
    git checkout -b "boss/<NNN-slug>" origin/main
-   git add "plans/<NNN-slug>.md"
+   git add "plans/<NNN-slug>.md"   # the plan file ONLY — do not `git add plans/README.md`
    git commit -m "plan: <NNN-slug>"
    git push -u origin "boss/<NNN-slug>"
    gh pr create --title "<NNN-slug>: <plan title>" \

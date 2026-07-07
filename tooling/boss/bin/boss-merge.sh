@@ -57,7 +57,11 @@ elif ! grep -q "boss:$slug" "$readme" 2>/dev/null; then
 fi
 
 gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:done 2>/dev/null || true
-gh pr comment "$pr" --body "Landed on main via greenlight." 2>/dev/null || true
+# greenlight lands by merging the branch into main directly (not via the PR
+# merge button), so GitHub leaves the PR OPEN. Close it explicitly with a
+# landing comment — boss:done is the state, closed is the lifecycle.
+gh pr close "$pr" --comment "Landed on main via greenlight (merged directly; closing)." 2>/dev/null \
+  || gh pr comment "$pr" --body "Landed on main via greenlight." 2>/dev/null || true
 [ -n "$wt" ] && wt return "$wt" 2>/dev/null || true
 boss_notify "boss:merged PR#$pr ($slug) landed on main"
 echo "PR#$pr merged. If the plan has a deploy, run: tooling/boss/bin/boss-deploy.sh $pr --yes"

@@ -33,6 +33,19 @@ if ! git -C "$wt" merge --no-edit origin/main; then
   wt return "$wt"; echo "PR#$pr blocked (stale)"; exit 2
 fi
 
+# Registry is boss-owned on main. Force the branch's plans/README.md to match
+# main so a plan branch NEVER carries registry edits into greenlight's merge —
+# that was the sole source of the plans/README.md rebase conflicts (concurrent
+# branches all editing one shared file). Plan rows live on main; boss records
+# landings there (boss-merge). See tooling/boss/CLAUDE.md.
+if git -C "$wt" cat-file -e origin/main:plans/README.md 2>/dev/null; then
+  git -C "$wt" checkout origin/main -- plans/README.md 2>/dev/null || true
+  if ! git -C "$wt" diff --quiet -- plans/README.md 2>/dev/null; then
+    git -C "$wt" add plans/README.md
+    git -C "$wt" commit -q -m "boss: reset plans/README.md to main (registry is boss-owned)"
+  fi
+fi
+
 : > "$STATE_DIR/$pr.meta"
 meta_set "$pr" branch "$branch"; meta_set "$pr" slug "$slug"; meta_set "$pr" worktree "$wt"
 meta_set "$pr" executor "$executor"; meta_set "$pr" model "$model"; meta_set "$pr" test_cmd "$test_cmd"
@@ -47,6 +60,8 @@ Rules:
 - You are on branch $branch. COMMIT early and often on this branch.
 - Run the plan's test_cmd and make it pass: $test_cmd
 - Do NOT push. Do NOT merge. Do NOT deploy. Do NOT edit files outside this repo.
+- Do NOT edit plans/README.md — boss owns the plan registry on main; any edit
+  you make to it is discarded.
 - Finish with a final commit; the last thing you print is the test_cmd result.
 EOF
 
