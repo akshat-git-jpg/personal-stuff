@@ -56,6 +56,13 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 041 | `secretary` skill — raise mode (plan → boss:ready PR) | P1 | S | 039 | DONE |
 | 042 | `secretary` skill — groom mode (retire stale PRs) | P2 | S | 041 | DONE |
 | 043 | `tutorial-pipeline-1` — Drive-in → HeyGen spokesperson clips → Drive-out | P2 | M | — | TODO |
+| 044 | `explainer-videos-pipeline-1` — shared scaffolding + 0-input | P1 | M | — | TODO |
+| 045 | `explainer-videos-pipeline-1` — 2-scripting stage | P2 | M | 044 | TODO |
+| 046 | `explainer-videos-pipeline-1` — 3-voiceover stage | P2 | M | 044, 045 | TODO |
+| 047 | `explainer-videos-pipeline-1` — 4-motion-graphics stage | P2 | L | 044, 046 | TODO |
+| 048 | `explainer-videos-pipeline-1` — 5-final-video-sync stage | P2 | S | 046, 047 | TODO |
+| 049 | `explainer-videos-pipeline-1` — 6-thumbnail stage | P2 | M | 044 | TODO |
+| 050 | `explainer-videos-pipeline-1` — 7-upload stage | P2 | S | 048, 049 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -70,6 +77,24 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED 
 > have already done this" (manually) with audio upload against an existing
 > avatar, so wiring it for real should just need one fresh HAR capture with
 > Preserve Log on.
+
+> **044–050 (2026-07-07, explainer-videos-pipeline-1 batch)**: fills in the 7
+> empty stage folders created when `tutorial-pipeline-2` was restructured into
+> stage folders (PR #4). No screen recording, no avatar — fully generated via
+> Hyperframes motion graphics timed to a synthesized voiceover (the inverted
+> sync model vs `tutorial-pipeline-2`: motion graphics render to fit the
+> voiceover's duration, not the other way around). Design:
+> `docs/superpowers/specs/2026-07-07-explainer-videos-pipeline-1-design.md`.
+> Strict order: **044 → 045 → 046 → {047, 049} → 048 → 050** (049 only needs
+> 044; 047 needs 046; 048 needs both 046 and 047; 050 needs both 048 and 049).
+> Executor: `agy` for all seven (owner's explicit call for this entire build —
+> overrides `tooling/boss/data/rules.md`'s normal difficulty-based default,
+> which would otherwise route the two `tricky`-graded plans, 047 and 049, to
+> `claude-p`/opus). Separately, at RUNTIME (once built), `2-scripting/010`,
+> `4-motion-graphics/010`, and `6-thumbnail/010` are run in a Claude Code
+> session on Opus, and `4-motion-graphics/020` on the Antigravity CLI — that
+> is a property of the pipeline's own rulebooks, unrelated to which executor
+> built this code.
 
 > **039–042 (2026-07-07, boss batch)**: builds `boss`, the PR-driven successor to
 > `captain` (captain frozen/deprecated). Design: `docs/specs/2026-07-07-boss-design.md`.
