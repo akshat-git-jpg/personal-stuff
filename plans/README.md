@@ -314,3 +314,4 @@ The others are grounded and available when the owner wants them:
 - 046-explainer-pipeline-voiceover — PR#7 046-explainer-pipeline-voiceover: 3-voiceover stage — DONE
 - 047-explainer-pipeline-motion-graphics — PR#8 047-explainer-pipeline-motion-graphics: 4-motion-graphics stage — DONE
 - 048-explainer-pipeline-final-video-sync — PR#9 048-explainer-pipeline-final-video-sync: 5-final-video-sync stage — DONE
+- 050-explainer-pipeline-upload-packaging — PR#11 050-explainer-pipeline-upload-packaging: 7-upload stage — DONE
