@@ -6,12 +6,13 @@ interface Props {
   task: Task;
   onToggleDone: (t: Task) => void;
   onSetEta: (t: Task, value: string | null) => void;
+  onEdit: (t: Task) => void;
   onDelete: (t: Task) => void;
   /** dnd-kit listeners for the drag handle; omitted for done cards. */
   handleProps?: Record<string, unknown>;
 }
 
-export function TaskCard({ task, onToggleDone, onSetEta, onDelete, handleProps }: Props) {
+export function TaskCard({ task, onToggleDone, onSetEta, onEdit, onDelete, handleProps }: Props) {
   const dateRef = useRef<HTMLInputElement>(null);
   const open = task.status === "open";
 
@@ -60,6 +61,7 @@ export function TaskCard({ task, onToggleDone, onSetEta, onDelete, handleProps }
           onChange={(e) => onSetEta(task, e.target.value || null)}
         />
       </div>
+      <button className="edit" onClick={() => onEdit(task)} aria-label="edit">✎</button>
       <button className="del" onClick={() => onDelete(task)} aria-label="delete">✕</button>
     </div>
   );

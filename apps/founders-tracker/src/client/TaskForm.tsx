@@ -1,30 +1,30 @@
 import { useState } from "react";
 import type { Owner, Task } from "../shared";
 import { api } from "./api";
+import { tomorrowIST } from "./dates";
 
 const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-export function AddTaskForm({ defaultOwner = "khushi", onClose, onCreated }: {
-  defaultOwner?: Owner; onClose: () => void; onCreated: (t: Task) => void;
+export function TaskForm({ initial, defaultOwner = "khushi", onClose, onSaved }: {
+  /** Task being edited, or null to create a new one. */
+  initial: Task | null;
+  defaultOwner?: Owner;
+  onClose: () => void;
+  onSaved: (t: Task) => void;
 }) {
-  const [title, setTitle] = useState("");
-  const [owner, setOwner] = useState<Owner>(defaultOwner);
-  const [hasDeadline, setHasDeadline] = useState(false);
-  const [eta, setEta] = useState("");
-  const [notes, setNotes] = useState("");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [owner, setOwner] = useState<Owner>(initial?.owner ?? defaultOwner);
+  const [eta, setEta] = useState(initial?.eta ?? tomorrowIST());
+  const [notes, setNotes] = useState(initial?.notes ?? "");
   const [busy, setBusy] = useState(false);
 
   async function submit() {
     if (!title.trim() || busy) return;
     setBusy(true);
+    const patch = { title: title.trim(), owner, eta: eta || null, notes: notes || null };
     try {
-      const t = await api.createTask({
-        title: title.trim(),
-        owner,
-        eta: hasDeadline && eta ? eta : null,
-        notes: notes || null,
-      });
-      onCreated(t);
+      const t = initial ? await api.patchTask(initial.id, patch) : await api.createTask(patch);
+      onSaved(t);
       onClose();
     } catch (e) { alert(String(e)); setBusy(false); }
   }
@@ -33,7 +33,7 @@ export function AddTaskForm({ defaultOwner = "khushi", onClose, onCreated }: {
     <div className="modal-back" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="grip" />
-        <h2>New task</h2>
+        <h2>{initial ? "Edit task" : "New task"}</h2>
 
         <div className="field">
           <label>What needs doing</label>
@@ -52,24 +52,10 @@ export function AddTaskForm({ defaultOwner = "khushi", onClose, onCreated }: {
           </div>
         </div>
 
-        <label className="toggle-row">
-          <span className="tl">
-            <b>Has a deadline?</b>
-            <span>Optional — leave off for an open-ended task.</span>
-          </span>
-          <span className="switch">
-            <input type="checkbox" checked={hasDeadline}
-              onChange={(e) => setHasDeadline(e.target.checked)} />
-            <span className="track" /><span className="knob" />
-          </span>
-        </label>
-
-        {hasDeadline && (
-          <div className="field">
-            <label>Deadline</label>
-            <input type="date" value={eta} onChange={(e) => setEta(e.target.value)} />
-          </div>
-        )}
+        <div className="field">
+          <label>Deadline</label>
+          <input type="date" value={eta} onChange={(e) => setEta(e.target.value)} />
+        </div>
 
         <div className="field">
           <label>Notes</label>
@@ -80,7 +66,7 @@ export function AddTaskForm({ defaultOwner = "khushi", onClose, onCreated }: {
         <div className="row" style={{ marginTop: 4 }}>
           <button className="btn" style={{ flex: 1 }} onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" style={{ flex: 2 }} disabled={busy || !title.trim()} onClick={submit}>
-            Add task
+            {initial ? "Save changes" : "Add task"}
           </button>
         </div>
       </div>

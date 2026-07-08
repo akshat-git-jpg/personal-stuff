@@ -174,12 +174,13 @@ body {
   border: solid #fbf7ef; border-width: 0 2px 2px 0; transform: rotate(43deg);
 }
 
-/* delete — quiet, becomes visible on hover (desktop); always tappable on touch */
-.del {
+/* edit / delete — quiet, become visible on hover (desktop); always tappable on touch */
+.edit, .del {
   appearance: none; border: 0; background: transparent; cursor: pointer;
-  color: var(--faint); font-size: 15px; line-height: 1; padding: 4px 5px;
+  color: var(--faint); font-size: 14px; line-height: 1; padding: 4px 5px;
   border-radius: 8px; flex: none; transition: color .15s ease, background .15s ease;
 }
+.edit:hover { color: var(--navy); background: var(--paper-2); }
 .del:hover { color: var(--over); background: var(--paper-2); }
 
 /* ---- Deadline row -------------------------------------------------------- */
@@ -273,23 +274,6 @@ body {
 }
 .pill.on { border-color: var(--navy); color: var(--ink); background: var(--surface);
   box-shadow: var(--shadow); }
-
-/* deadline toggle inside add form */
-.toggle-row { display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 14px; border: 1px solid var(--line-2); border-radius: 11px;
-  background: var(--paper); margin-bottom: 14px; }
-.toggle-row .tl { display: flex; flex-direction: column; gap: 2px; }
-.toggle-row .tl b { font-size: 14px; font-weight: 600; color: var(--ink); }
-.toggle-row .tl span { font-size: 11.5px; color: var(--muted); }
-.switch { position: relative; width: 46px; height: 27px; flex: none; cursor: pointer; }
-.switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
-.switch .track { position: absolute; inset: 0; background: var(--line-2); border-radius: 999px;
-  transition: background .2s ease; }
-.switch .knob { position: absolute; top: 3px; left: 3px; width: 21px; height: 21px;
-  background: #fbf7ef; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,.25);
-  transition: transform .2s cubic-bezier(.3,.7,.3,1.4); }
-.switch input:checked ~ .track { background: var(--navy); }
-.switch input:checked ~ .knob { transform: translateX(19px); }
 
 .modal-back {
   position: fixed; inset: 0; background: rgba(33,27,20,.4); backdrop-filter: blur(3px);

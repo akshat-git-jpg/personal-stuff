@@ -16,10 +16,11 @@ interface Props {
   onReorder: (owner: Owner, orderedIds: number[]) => void;
   onToggleDone: (t: Task) => void;
   onSetEta: (t: Task, value: string | null) => void;
+  onEdit: (t: Task) => void;
   onDelete: (t: Task) => void;
 }
 
-export function TaskList({ owner, tasks, onReorder, onToggleDone, onSetEta, onDelete }: Props) {
+export function TaskList({ owner, tasks, onReorder, onToggleDone, onSetEta, onEdit, onDelete }: Props) {
   const open = tasks.filter((t) => t.status === "open").sort((a, b) => a.sortOrder - b.sortOrder);
   const done = tasks.filter((t) => t.status === "done")
     .sort((a, b) => (a.completedAt ?? "") < (b.completedAt ?? "") ? 1 : -1);
@@ -43,7 +44,7 @@ export function TaskList({ owner, tasks, onReorder, onToggleDone, onSetEta, onDe
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
           {open.map((t) => (
             <SortableRow key={t.id} task={t}
-              onToggleDone={onToggleDone} onSetEta={onSetEta} onDelete={onDelete} />
+              onToggleDone={onToggleDone} onSetEta={onSetEta} onEdit={onEdit} onDelete={onDelete} />
           ))}
         </SortableContext>
       </DndContext>
@@ -57,7 +58,7 @@ export function TaskList({ owner, tasks, onReorder, onToggleDone, onSetEta, onDe
           </div>
           {showDone && done.map((t) => (
             <TaskCard key={t.id} task={t}
-              onToggleDone={onToggleDone} onSetEta={onSetEta} onDelete={onDelete} />
+              onToggleDone={onToggleDone} onSetEta={onSetEta} onEdit={onEdit} onDelete={onDelete} />
           ))}
         </div>
       )}
@@ -65,10 +66,11 @@ export function TaskList({ owner, tasks, onReorder, onToggleDone, onSetEta, onDe
   );
 }
 
-function SortableRow({ task, onToggleDone, onSetEta, onDelete }: {
+function SortableRow({ task, onToggleDone, onSetEta, onEdit, onDelete }: {
   task: Task;
   onToggleDone: (t: Task) => void;
   onSetEta: (t: Task, value: string | null) => void;
+  onEdit: (t: Task) => void;
   onDelete: (t: Task) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -77,7 +79,7 @@ function SortableRow({ task, onToggleDone, onSetEta, onDelete }: {
   return (
     <div ref={setNodeRef} style={style}>
       <TaskCard task={task} handleProps={{ ...attributes, ...listeners }}
-        onToggleDone={onToggleDone} onSetEta={onSetEta} onDelete={onDelete} />
+        onToggleDone={onToggleDone} onSetEta={onSetEta} onEdit={onEdit} onDelete={onDelete} />
     </div>
   );
 }

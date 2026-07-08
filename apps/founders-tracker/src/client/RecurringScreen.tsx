@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Cadence, Owner, Template, TemplateInput } from "../shared";
 import { api } from "./api";
-import { DOW } from "./AddTaskForm";
+import { DOW } from "./TaskForm";
 
 function dueLabel(t: Template): string {
   if (t.cadence === "weekly") return `every ${DOW[t.dueDay] ?? "?"}`;

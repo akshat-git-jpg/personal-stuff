@@ -9,6 +9,13 @@ export function todayIST(d: Date = new Date()): string {
   }).format(d);
 }
 
+/** Default deadline for a freshly created task: tomorrow, IST. */
+export function tomorrowIST(d: Date = new Date()): string {
+  const t = new Date(`${todayIST(d)}T12:00:00Z`);
+  t.setUTCDate(t.getUTCDate() + 1);
+  return t.toISOString().slice(0, 10);
+}
+
 /** Whole days from today (IST) to the eta date. Negative = overdue. */
 export function daysLeft(eta: string): number {
   const a = Date.parse(`${todayIST()}T12:00:00Z`);

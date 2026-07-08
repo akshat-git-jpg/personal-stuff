@@ -3,7 +3,7 @@ import type { Owner, Task } from "../shared";
 import { api, type BootstrapData } from "./api";
 import { Scoreboard } from "./Scoreboard";
 import { TaskList } from "./TaskList";
-import { AddTaskForm } from "./AddTaskForm";
+import { TaskForm } from "./TaskForm";
 import { RecurringScreen } from "./RecurringScreen";
 
 type Screen = "tracker" | "recurring";
@@ -14,6 +14,7 @@ export function App() {
   const [screen, setScreen] = useState<Screen>("tracker");
   const [tab, setTab] = useState<Owner>("khushi");
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<Task | null>(null);
 
   async function reload() {
     try { setData(await api.bootstrap()); } catch (e) { setErr(String(e)); }
@@ -93,11 +94,17 @@ export function App() {
             })}
           </div>
           <TaskList owner={tab} tasks={ownTasks}
-            onReorder={reorder} onToggleDone={toggleDone} onSetEta={setEta} onDelete={del} />
+            onReorder={reorder} onToggleDone={toggleDone} onSetEta={setEta}
+            onEdit={setEditing} onDelete={del} />
         </>
       )}
 
-      {adding && <AddTaskForm defaultOwner={tab} onClose={() => setAdding(false)} onCreated={reload} />}
+      {adding && (
+        <TaskForm initial={null} defaultOwner={tab} onClose={() => setAdding(false)} onSaved={reload} />
+      )}
+      {editing && (
+        <TaskForm initial={editing} onClose={() => setEditing(null)} onSaved={reload} />
+      )}
     </div>
   );
 }
