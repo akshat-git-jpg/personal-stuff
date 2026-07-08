@@ -2,7 +2,7 @@
 """
 Step 010 — resolve the Drive input.  [RUN]  (first step)
 
-Takes a Drive FOLDER link, works out the video's type (_xx or _yy suffix on the folder name) and
+Takes a Drive FOLDER link, works out the video's type (" @ g1" or " @ g2" suffix on the folder name) and
 title, then downloads intro.mp4 / body.mp4 / conclusion.mp4 into ./output/ — read from an
 `input/` subfolder if one exists, else from the folder itself (flat fallback).
 
@@ -21,7 +21,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 OUT = HERE / "output"
 SEGMENTS = ("intro", "body", "conclusion")
 FOLDER_ID_RE = re.compile(r"/folders/([a-zA-Z0-9_-]+)")
-TYPE_RE = re.compile(r"_(xx|yy)$", re.IGNORECASE)
+TYPE_RE = re.compile(r"\s*@\s*(g1|g2)$", re.IGNORECASE)
 
 
 def die(m): raise SystemExit("✖ " + m)
@@ -49,7 +49,7 @@ def main():
 
     m = TYPE_RE.search(name)
     if not m:
-        die(f"folder name {name!r} doesn't end in _xx or _yy — can't pick an avatar mapping")
+        die(f"folder name {name!r} doesn't end in ' @ g1' or ' @ g2' — can't pick an avatar mapping")
     vtype = m.group(1).lower()
     video_title = TYPE_RE.sub("", name)
 

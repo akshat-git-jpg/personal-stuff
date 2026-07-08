@@ -1,16 +1,18 @@
 # Avatar mapping for tutorial-pipeline-1 — EDIT THIS to plug in real HeyGen avatar ids.
-# Keyed by the Drive folder's _xx / _yy suffix. Each type carries its OWN HeyGen 4 avatar id
+# Keyed by the Drive folder's " @ g1" / " @ g2" suffix. Each type carries its OWN HeyGen 4 avatar id
 # (full-screen, metered) AND HeyGen 3 avatar id (unlimited corner-style, free) — both are
 # avatars you've ALREADY created in HeyGen; this pipeline never creates a new one.
 
 TYPES = {
-    "xx": {
-        "heygen4_avatar_id": "REPLACE_WITH_XX_HEYGEN4_AVATAR_ID",
-        "heygen3_avatar_id": "REPLACE_WITH_XX_HEYGEN3_AVATAR_ID",
+    "g1": {
+        # girl 1
+        "heygen4_avatar_id": "7629dffbebe141eb8f701630948bd707",
+        "heygen3_avatar_id": "7629dffbebe141eb8f701630948bd707",
     },
-    "yy": {
-        "heygen4_avatar_id": "REPLACE_WITH_YY_HEYGEN4_AVATAR_ID",
-        "heygen3_avatar_id": "REPLACE_WITH_YY_HEYGEN3_AVATAR_ID",
+    "g2": {
+        # girl 2
+        "heygen4_avatar_id": "887ad69c743d4740a0174eecb3198ef4",
+        "heygen3_avatar_id": "887ad69c743d4740a0174eecb3198ef4",
     },
 }
 

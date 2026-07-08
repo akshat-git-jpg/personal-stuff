@@ -7,7 +7,7 @@ not feed into or read from `tutorial-pipeline-2`.
 ## Drive layout
 
 ```
-{title}_xx or {title}_yy/     ← the folder you link
+{title} @ g1 or {title} @ g2/  ← the folder you link
   input/                      ← optional: intro.mp4, body.mp4, conclusion.mp4
                                  (falls back to reading them from the folder root if input/ is absent)
   output/                     ← find-or-created: spokesperson_intro/body/conclusion.mp4 land here
@@ -17,14 +17,14 @@ not feed into or read from `tutorial-pipeline-2`.
 
 | # | Step | Actor | In → Out |
 |---|------|-------|----------|
-| 010 | `resolve-drive-input` | [RUN] | Drive folder link → `intro/body/conclusion.mp4` downloaded from `input/` (or the folder root) + type (`xx`/`yy`) detected |
+| 010 | `resolve-drive-input` | [RUN] | Drive folder link → `intro/body/conclusion.mp4` downloaded from `input/` (or the folder root) + type (`g1`/`g2`) detected |
 | 020 | `extract-audio` | [RUN] | each segment's video → its audio track (`.wav`) |
 | 030 | `submit-avatar-renders` | [RUN] | audio + avatar mapping → HeyGen submit (no polling) |
 | 040 | `download-avatar-renders` | [HUMAN] | check HeyGen → download finished `.mp4`s |
 | 050 | `package-and-upload` | [RUN] | rename to `spokesperson_*` + upload into `output/` (find-or-created) in the source Drive folder |
 
 ```
-Drive folder "{title}_xx" or "{title}_yy"
+Drive folder "{title} @ g1" or "{title} @ g2"
    │ 010 resolve drive input      [RUN]    → reads input/ (or root) → intro/body/conclusion.mp4 (local)
    │ 020 extract audio            [RUN]    → intro.wav, body.wav, conclusion.wav
    │ 030 submit avatar renders    [RUN]    → HeyGen submit per segment (no polling)
