@@ -64,3 +64,9 @@ Update for kushal system
 
 Make a workflow for each software knowlede base
 Use it for reviews as well as give pointers at start
+
+A reviewer might be necessary. He is like a architect who is knowledablt about niche, tools , etc. who can review things, guide other freelancers to do better work and up the quality. It will remove dependency from us.
+
+Dont shy away from spending money on quality. 4 quality videos - 50k, 130 dollar per video. but imagine if video is too good. Make mindset to spend atleast $100 per video.
+
+Always try to up the quality. Dont do bulk game. 4 very high quality video is btter than 12 low quality video.
