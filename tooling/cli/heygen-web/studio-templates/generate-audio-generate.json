@@ -1,0 +1,648 @@
+{
+ "video_id": "__VIDEO_ID__",
+ "enable_watermark": false,
+ "generate_type": "normal",
+ "version_id": "__VERSION_ID__",
+ "draft_details": {
+  "title": "__TITLE__",
+  "text_draft_with_metadata": {
+   "text_draft": {
+    "script": {
+     "elements": {
+      "p3uQXbqx": {
+       "id": "p3uQXbqx",
+       "type": "audio",
+       "text": "__AUDIO_TEXT__",
+       "attributes": {
+        "src": "__AUDIO_URL__",
+        "voice_id": "__VOICE_ID__",
+        "voice_settings": {
+         "locale": "",
+         "pitch": 0,
+         "speed": 1,
+         "volume": 1,
+         "voice_engine_settings": {
+          "engine_type": "elevenLabsV3",
+          "seed": 2613764667
+         }
+        }
+       },
+       "voice_mirroring": false
+      }
+     },
+     "timeline": [
+      "p3uQXbqx"
+     ],
+     "brand_kit_id": "d4b4e72235224eb486f5066139cfa60d"
+    },
+    "captions": {
+     "elements": {},
+     "remove_punctuation": false
+    },
+    "background_audio": {
+     "elements": {}
+    },
+    "visual": {
+     "elements": {
+      "zffBPsHA": {
+       "id": "zffBPsHA",
+       "type": "scene",
+       "content": {
+        "elements": [
+         "Qh1Uwlho"
+        ],
+        "background_color": "#FFFFFF"
+       }
+      },
+      "Qh1Uwlho": {
+       "id": "Qh1Uwlho",
+       "type": "avatar",
+       "attributes": {
+        "animations": [],
+        "opacity": 1,
+        "position": {
+         "offset": {
+          "x": 0,
+          "y": 0
+         },
+         "type": "center"
+        },
+        "size": {
+         "fit": "none",
+         "scale": {
+          "x": 0.8,
+          "y": 0.8
+         },
+         "crop": {
+          "top": 0,
+          "left": 0,
+          "bottom": 0,
+          "right": 0
+         }
+        },
+        "transformation": {
+         "rotate": {
+          "angle": 0
+         }
+        },
+        "rounded_corners": {
+         "top_left": 0,
+         "top_right": 0,
+         "bottom_right": 0,
+         "bottom_left": 0
+        }
+       },
+       "content": {
+        "avatar_id": "__AVATAR_ID__",
+        "avatar_state_id": "__AVATAR_ID__",
+        "render_type": "normal",
+        "avatar_type": "photo_avatar",
+        "avatar_group_id": "__AVATAR_ID__",
+        "matting": false,
+        "talking_photo": {
+         "enhance": false
+        },
+        "inference_mp4": "",
+        "inference_webm": "",
+        "inference_job_id": "",
+        "gesture_mp4": "",
+        "gesture_webm": "",
+        "use_avatar_iv_model": false,
+        "use_unlimited_mode": true,
+        "engine": "avatar_iii",
+        "engine_settings": {
+         "engine_type": "avatar_iii"
+        },
+        "inference_packed_mp4": ""
+       }
+      }
+     },
+     "layout": [
+      "zffBPsHA"
+     ]
+    },
+    "alignments": {
+     "zffBPsHA": {
+      "element_id": "zffBPsHA",
+      "alignment_info": {
+       "start": {
+        "script_id": "p3uQXbqx",
+        "word_index": 0
+       },
+       "end": {
+        "script_id": "p3uQXbqx",
+        "word_index": -1
+       }
+      }
+     },
+     "Qh1Uwlho": {
+      "element_id": "Qh1Uwlho",
+      "alignment_info": {
+       "start": {
+        "script_id": "p3uQXbqx",
+        "word_index": 0
+       },
+       "end": {
+        "script_id": "p3uQXbqx",
+        "word_index": -1
+       }
+      },
+      "gesture_alignments": []
+     }
+    }
+   },
+   "metadata": {
+    "p3uQXbqx": {
+     "element_id": "p3uQXbqx",
+     "type": "audio",
+     "seed": 2613764667,
+     "url": "__AUDIO_URL__",
+     "duration": 28.676854,
+     "words": [
+      {
+       "word": "<start>",
+       "start_time": 0,
+       "end_time": 0
+      },
+      {
+       "word": "The",
+       "start_time": 0.039,
+       "end_time": 0.14
+      },
+      {
+       "word": "scarlet",
+       "start_time": 0.179,
+       "end_time": 0.62
+      },
+      {
+       "word": "rot",
+       "start_time": 0.719,
+       "end_time": 0.959
+      },
+      {
+       "word": "is",
+       "start_time": 1,
+       "end_time": 1.1
+      },
+      {
+       "word": "not",
+       "start_time": 1.179,
+       "end_time": 1.359
+      },
+      {
+       "word": "like",
+       "start_time": 1.419,
+       "end_time": 1.559
+      },
+      {
+       "word": "the",
+       "start_time": 1.599,
+       "end_time": 1.639
+      },
+      {
+       "word": "common",
+       "start_time": 1.74,
+       "end_time": 2.059
+      },
+      {
+       "word": "poisons",
+       "start_time": 2.139,
+       "end_time": 2.639
+      },
+      {
+       "word": "found",
+       "start_time": 2.759,
+       "end_time": 2.98
+      },
+      {
+       "word": "in",
+       "start_time": 3.039,
+       "end_time": 3.119
+      },
+      {
+       "word": "the",
+       "start_time": 3.139,
+       "end_time": 3.179
+      },
+      {
+       "word": "world.",
+       "start_time": 3.299,
+       "end_time": 3.679
+      },
+      {
+       "word": "It",
+       "start_time": 4.119,
+       "end_time": 4.199
+      },
+      {
+       "word": "is",
+       "start_time": 4.239,
+       "end_time": 4.359
+      },
+      {
+       "word": "an",
+       "start_time": 4.4,
+       "end_time": 4.46
+      },
+      {
+       "word": "unstoppable",
+       "start_time": 4.519,
+       "end_time": 5.319
+      },
+      {
+       "word": "tide,",
+       "start_time": 5.48,
+       "end_time": 5.879
+      },
+      {
+       "word": "the",
+       "start_time": 6.279,
+       "end_time": 6.379
+      },
+      {
+       "word": "purest",
+       "start_time": 6.48,
+       "end_time": 6.879
+      },
+      {
+       "word": "expression",
+       "start_time": 6.98,
+       "end_time": 7.539
+      },
+      {
+       "word": "of",
+       "start_time": 7.579,
+       "end_time": 7.699
+      },
+      {
+       "word": "this",
+       "start_time": 7.739,
+       "end_time": 7.879
+      },
+      {
+       "word": "deity's",
+       "start_time": 8.019,
+       "end_time": 8.519
+      },
+      {
+       "word": "power.",
+       "start_time": 8.599,
+       "end_time": 8.939
+      },
+      {
+       "word": "Where",
+       "start_time": 9.399,
+       "end_time": 9.519
+      },
+      {
+       "word": "the",
+       "start_time": 9.559,
+       "end_time": 9.599
+      },
+      {
+       "word": "rot",
+       "start_time": 9.719,
+       "end_time": 9.88
+      },
+      {
+       "word": "takes",
+       "start_time": 10,
+       "end_time": 10.28
+      },
+      {
+       "word": "hold,",
+       "start_time": 10.359,
+       "end_time": 10.719
+      },
+      {
+       "word": "life",
+       "start_time": 10.859,
+       "end_time": 11.119
+      },
+      {
+       "word": "is",
+       "start_time": 11.159,
+       "end_time": 11.279
+      },
+      {
+       "word": "eviscerated,",
+       "start_time": 11.399,
+       "end_time": 12.139
+      },
+      {
+       "word": "yes,",
+       "start_time": 12.239,
+       "end_time": 12.619
+      },
+      {
+       "word": "but",
+       "start_time": 12.88,
+       "end_time": 13.02
+      },
+      {
+       "word": "from",
+       "start_time": 13.039,
+       "end_time": 13.199
+      },
+      {
+       "word": "that",
+       "start_time": 13.239,
+       "end_time": 13.5
+      },
+      {
+       "word": "death,",
+       "start_time": 13.539,
+       "end_time": 13.859
+      },
+      {
+       "word": "new",
+       "start_time": 14.019,
+       "end_time": 14.239
+      },
+      {
+       "word": "life",
+       "start_time": 14.279,
+       "end_time": 14.619
+      },
+      {
+       "word": "begins",
+       "start_time": 14.679,
+       "end_time": 15.06
+      },
+      {
+       "word": "to",
+       "start_time": 15.079,
+       "end_time": 15.239
+      },
+      {
+       "word": "stir.",
+       "start_time": 15.259,
+       "end_time": 15.659
+      },
+      {
+       "word": "From",
+       "start_time": 15.859,
+       "end_time": 16
+      },
+      {
+       "word": "the",
+       "start_time": 16.02,
+       "end_time": 16.119
+      },
+      {
+       "word": "corpses",
+       "start_time": 16.199,
+       "end_time": 16.699
+      },
+      {
+       "word": "rise",
+       "start_time": 16.819,
+       "end_time": 17.1
+      },
+      {
+       "word": "the",
+       "start_time": 17.139,
+       "end_time": 17.219
+      },
+      {
+       "word": "kindred",
+       "start_time": 17.279,
+       "end_time": 17.659
+      },
+      {
+       "word": "of",
+       "start_time": 17.699,
+       "end_time": 17.819
+      },
+      {
+       "word": "rot,",
+       "start_time": 17.899,
+       "end_time": 18.219
+      },
+      {
+       "word": "skittering",
+       "start_time": 18.619,
+       "end_time": 19.119
+      },
+      {
+       "word": "beings",
+       "start_time": 19.18,
+       "end_time": 19.62
+      },
+      {
+       "word": "that",
+       "start_time": 19.659,
+       "end_time": 19.78
+      },
+      {
+       "word": "resemble",
+       "start_time": 19.799,
+       "end_time": 20.359
+      },
+      {
+       "word": "silverfish",
+       "start_time": 20.42,
+       "end_time": 21.119
+      },
+      {
+       "word": "or",
+       "start_time": 21.18,
+       "end_time": 21.34
+      },
+      {
+       "word": "cockroaches.",
+       "start_time": 21.399,
+       "end_time": 22.319
+      },
+      {
+       "word": "It",
+       "start_time": 22.619,
+       "end_time": 22.719
+      },
+      {
+       "word": "mirrors",
+       "start_time": 22.819,
+       "end_time": 23.139
+      },
+      {
+       "word": "the",
+       "start_time": 23.18,
+       "end_time": 23.259
+      },
+      {
+       "word": "way",
+       "start_time": 23.299,
+       "end_time": 23.44
+      },
+      {
+       "word": "of",
+       "start_time": 23.459,
+       "end_time": 23.579
+      },
+      {
+       "word": "our",
+       "start_time": 23.619,
+       "end_time": 23.739
+      },
+      {
+       "word": "own",
+       "start_time": 23.819,
+       "end_time": 24.019
+      },
+      {
+       "word": "world",
+       "start_time": 24.059,
+       "end_time": 24.399
+      },
+      {
+       "word": "where",
+       "start_time": 24.479,
+       "end_time": 24.639
+      },
+      {
+       "word": "bacteria",
+       "start_time": 24.659,
+       "end_time": 25.399
+      },
+      {
+       "word": "and",
+       "start_time": 25.439,
+       "end_time": 25.6
+      },
+      {
+       "word": "carrion",
+       "start_time": 25.619,
+       "end_time": 26.079
+      },
+      {
+       "word": "eaters",
+       "start_time": 26.119,
+       "end_time": 26.44
+      },
+      {
+       "word": "flourish",
+       "start_time": 26.559,
+       "end_time": 27
+      },
+      {
+       "word": "upon",
+       "start_time": 27.039,
+       "end_time": 27.28
+      },
+      {
+       "word": "the",
+       "start_time": 27.299,
+       "end_time": 27.359
+      },
+      {
+       "word": "remains",
+       "start_time": 27.399,
+       "end_time": 27.819
+      },
+      {
+       "word": "of",
+       "start_time": 27.84,
+       "end_time": 27.959
+      },
+      {
+       "word": "the",
+       "start_time": 27.979,
+       "end_time": 28.099
+      },
+      {
+       "word": "fallen.",
+       "start_time": 28.18,
+       "end_time": 28.559
+      },
+      {
+       "word": "<end>",
+       "start_time": 28.676854,
+       "end_time": 28.676854
+      }
+     ],
+     "text": "__AUDIO_TEXT__",
+     "name": "Audio_File_37b23d.wav",
+     "fileType": "upload",
+     "source_audio_url": "__AUDIO_URL__"
+    },
+    "Qh1Uwlho": {
+     "element_id": "Qh1Uwlho",
+     "type": "avatar",
+     "avatar_type": "photo_avatar",
+     "name": "girl looking down test 3",
+     "pose_name": "girl looking down test 3",
+     "avatar_name": "girl looking down test 3",
+     "avatar_group_name": "girl looking down test 3",
+     "is_motion": true,
+     "is_avatar_iv_motion": true,
+     "crop_box_crop_x": {},
+     "preview_image_url": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783748580&Signature=gJK9KxiOzx4gWDP18EJlXncR3mOP8kRg1JP6pqM2YgqNTYmnkWU3h82kNS-jDt1w9MFySYBUtzbcYMntd~Cyb5xmNxuo18V4Eb8UYA-WbIUJ6TG7oiYS7paA315VRugUi1A1HOWpj3CgewYCgfio8Fj4xUInQ066qFXAmZc6wArz6V-y9iOk~8UsaAIULF6E-t3H4fgALlB0JXRqb8VCVrc1HKviYdKUdD~HBSYRDYy1RBn0l-RIN1f53ZUK9eAeRz9buBCjU7~LzQ-~YqdwiHiEjPsSoJeepZwdycS9qw297sV6hpUSWbVTArBiZaTvfY28~4PjIK6HlQ3wZs1QXg__&Key-Pair-Id=K38HBHX5LX3X2H",
+     "preview_video_url": "",
+     "blurred_lips_mp4": "",
+     "blurred_lips_webm": "",
+     "fps": 25,
+     "avatar_state_id": "__AVATAR_ID__",
+     "available_style": {
+      "normal": true,
+      "circle": true,
+      "close_up": true,
+      "closeUp": true
+     },
+     "enable_matting": true,
+     "has_alpha": false,
+     "enable_enhance": true,
+     "enable_4k": false,
+     "enable_eye_contact": false,
+     "preview": {
+      "normal": {
+       "size": {
+        "width": 1792,
+        "height": 2400
+       },
+       "src": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783748580&Signature=gJK9KxiOzx4gWDP18EJlXncR3mOP8kRg1JP6pqM2YgqNTYmnkWU3h82kNS-jDt1w9MFySYBUtzbcYMntd~Cyb5xmNxuo18V4Eb8UYA-WbIUJ6TG7oiYS7paA315VRugUi1A1HOWpj3CgewYCgfio8Fj4xUInQ066qFXAmZc6wArz6V-y9iOk~8UsaAIULF6E-t3H4fgALlB0JXRqb8VCVrc1HKviYdKUdD~HBSYRDYy1RBn0l-RIN1f53ZUK9eAeRz9buBCjU7~LzQ-~YqdwiHiEjPsSoJeepZwdycS9qw297sV6hpUSWbVTArBiZaTvfY28~4PjIK6HlQ3wZs1QXg__&Key-Pair-Id=K38HBHX5LX3X2H"
+      }
+     },
+     "crop_rect": {
+      "circle": {
+       "x": 0,
+       "y": 24.444444444444446,
+       "width": 1774.213399503722,
+       "height": 1773.3333333333335
+      },
+      "close_up": {
+       "x": 0,
+       "y": 24.444444444444446,
+       "width": 1774.213399503722,
+       "height": 1773.3333333333335
+      }
+     },
+     "is_private": true,
+     "support_avatar_iv": true,
+     "unlimited_mode_disabled": false,
+     "unlimited_mode_disabled_reason": null,
+     "photo_avatar_metadata": {
+      "photar_version": "V3"
+     },
+     "width": 1792,
+     "height": 2400,
+     "natural_width": 1792,
+     "natural_height": 2400,
+     "processed_image_url": "https://files2.heygen.ai/talking_photo/__AVATAR_ID__/32be43735f0a4d10baac990096307af2.WEBP?Expires=1783748580&Signature=gJK9KxiOzx4gWDP18EJlXncR3mOP8kRg1JP6pqM2YgqNTYmnkWU3h82kNS-jDt1w9MFySYBUtzbcYMntd~Cyb5xmNxuo18V4Eb8UYA-WbIUJ6TG7oiYS7paA315VRugUi1A1HOWpj3CgewYCgfio8Fj4xUInQ066qFXAmZc6wArz6V-y9iOk~8UsaAIULF6E-t3H4fgALlB0JXRqb8VCVrc1HKviYdKUdD~HBSYRDYy1RBn0l-RIN1f53ZUK9eAeRz9buBCjU7~LzQ-~YqdwiHiEjPsSoJeepZwdycS9qw297sV6hpUSWbVTArBiZaTvfY28~4PjIK6HlQ3wZs1QXg__&Key-Pair-Id=K38HBHX5LX3X2H"
+    },
+    "zffBPsHA": {
+     "type": "scene",
+     "element_id": "zffBPsHA"
+    }
+   },
+   "video_output": {
+    "resolution": {
+     "width": 1080,
+     "height": 1920
+    },
+    "fps": 25,
+    "caption": false
+   }
+  }
+ },
+ "complete_tts_in_backend": true
+}
