@@ -62,6 +62,25 @@ Only the plan's YAML frontmatter (the `---`…`---` block at the top): `executor
 - Crew dead/timed out → teardown → `boss:blocked` → next.
 - No unbounded retries.
 
+### Hang / stall protection (added 2026-07-08 after an agy crew hung 83m undetected)
+
+`alive` only proves the PID exists, not that it progresses — these close that gap:
+
+- **test_cmd never runs bare.** It's wrapped in `gtimeout -k 30 <ttl>s` in both the
+  crew brief and `boss-merge`'s greenlight `--verify`, so a hang fails fast (exit
+  124 → park) instead of freezing a run or a merge. `ttl` = frontmatter
+  `test_timeout` (default 600s). Needs coreutils (`gtimeout`); session-start warns
+  loudly if it's missing.
+- **Fence-leak gate.** `boss-merge` blocks the land if markdown fence markers leaked
+  into non-`.md` source (the exact artifact that caused the hang).
+- **Stall detection.** `boss-state` fingerprints process-tree CPU + HEAD + output; a
+  "working" crew with no movement for 15m shows `STALLED(<n>m)`, and at 45m boss
+  kills the tree → it becomes `dead` and the one-fix-up→blocked policy above takes
+  over. A genuinely computing crew never trips (CPU keeps moving). Override per-PR
+  via meta `stall_warn`/`stall_kill`, or globally via `BOSS_STALL_WARN_MIN`/`_KILL_MIN`.
+- **gh account auto-asserted** on every write path (session-start/dispatch/merge/
+  deploy) — a silent account flip had broken all `gh` calls. Set `BOSS_GH_USER` to override.
+
 ## Boundaries
 
 - **Never brainstorm, plan, or write product code.** Crew does that.
