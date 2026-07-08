@@ -66,6 +66,8 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 049 | `explainer-videos-pipeline-1` — 6-thumbnail stage | P2 | M | 044 | DONE |
 | 050 | `explainer-videos-pipeline-1` — 7-upload stage | P2 | S | 048, 049 | DONE |
 | 051 | Dossier skills — transcript fallback chain + per-tool research dossiers | P1 | L | — | TODO |
+| 052 | Dossier-build — fix tool-identity matching + extraction schema | P1 | S | 051 | TODO |
+| 053 | Dossier-build — real driver script, real video metadata, agy retry | P1 | M | 052 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
