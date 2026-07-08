@@ -22,6 +22,7 @@ tweet-lookup
 valyu-best-practices
 worktree-cleanup
 worktree-manager
+worktree-tracker
 google-sheets
 gmail
 hostinger
