@@ -1,6 +1,6 @@
 ---
 name: commit-now
-description: Pre-commit gate — runs prettier, lint, tsc, and build, auto-fixing what it can (including code edits for TS/build errors), prints a summary (repo, branch, git user, files changed), proposes a conventional-commit message, and commits only after the user confirms. --no-verify only when every husky check already passed here. NEVER pushes; never mentions AI or any generator footer. Triggers on "commit now", "/commit-now", "commit-now", "run pre-commit checks", "ready to commit".
+description: Pre-commit gate for ANY git commit — runs prettier, lint, tsc, and build, auto-fixing what it can (including code edits for TS/build errors), prints a summary (repo, branch, git user, files changed), proposes a single-line conventional-commit message (no body, no em dash, no AI mention), and commits only after the user confirms. --no-verify only when every husky check already passed here. NEVER pushes; never mentions AI or any generator footer. Invoke BEFORE running `git commit` for ANY reason and HOWEVER the request is phrased — "commit now", "/commit-now", "commit and push", "commit this", "commit the changes", "push this" (a push implies committing first), "raise a PR", "address review comments", or when committing is just one step inside a larger task. In unattended/background sessions where confirmation is impossible, apply every check and message rule and skip only the interactive confirmation step.
 user-invocable: true
 metadata:
   author: kbtg
@@ -149,6 +149,12 @@ Reply "ok" / "commit" to commit with this message, or send a different message.
 ```
 
 Then **wait** for the user to confirm or edit. Validate any user-supplied message against the format rules (type required, scope optional, lowercase subject, ≤ 72 chars). If invalid, point out what's wrong and ask again.
+
+**Unattended exception:** in a background/autonomous session where the user
+cannot answer (and the commit follows directly from their request), do NOT
+block on confirmation — print the same summary and proposed message, then
+proceed. Every other rule (checks, staging discipline, message format, no AI
+mention) still applies in full.
 
 ### Step 5 — Stage + commit
 
