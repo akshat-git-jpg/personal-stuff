@@ -29,8 +29,6 @@ tweet-lookup
 ui-craft
 ui-craft-dense-dashboard
 use-zluri-docs
-worktree-cleanup
-worktree-manager
 worktree-tracker
 zluri-release
 reddit-fetcher

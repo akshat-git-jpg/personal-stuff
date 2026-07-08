@@ -20,8 +20,6 @@ printing-press-score
 remotion-best-practices
 tweet-lookup
 valyu-best-practices
-worktree-cleanup
-worktree-manager
 worktree-tracker
 google-sheets
 gmail
