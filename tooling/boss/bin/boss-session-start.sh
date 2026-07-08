@@ -1,6 +1,11 @@
 #!/bin/bash
 # boss-session-start.sh — the session's catch-up surface.
 source "$(dirname "${BASH_SOURCE[0]}")/boss-lib.sh"
+boss_assert_gh || exit 1
+# test_cmd timeouts need a `timeout`-compatible binary; without it a hanging
+# verify freezes a merge (2026-07-08 incident). Dispatch/merge hard-fail when it's
+# missing — warn loudly here so it's fixed before any dispatch.
+boss_timeout_bin >/dev/null || echo "== ⚠️  NO gtimeout/timeout ON PATH — test_cmd timeouts DISABLED; a hang will freeze a merge. Fix: brew install coreutils =="
 boss_ensure_labels
 # Dirty-main-checkout guard: greenlight refuses to land onto a REPO_TOPLEVEL with
 # any uncommitted tracked changes (it "never stashes or switches"), so a dirty

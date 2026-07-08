@@ -1,6 +1,7 @@
 #!/bin/bash
 # boss-merge.sh <pr#> — land a finished PR via greenlight, record DONE, offer deploy.
 source "$(dirname "${BASH_SOURCE[0]}")/boss-lib.sh"
+boss_assert_gh || exit 1
 pr="${1:?usage: boss-merge.sh <pr#>}"
 branch=$(meta_get "$pr" branch); slug=$(meta_get "$pr" slug)
 test_cmd=$(meta_get "$pr" test_cmd); wt=$(meta_get "$pr" worktree)
@@ -14,13 +15,35 @@ if [ -n "$wt" ] && [ -d "$wt" ]; then
   wt return "$wt" 2>/dev/null || true
 fi
 
+# Fence-leak gate. The 2026-07-08 hang was markdown fence markers (```bash / ```)
+# copied verbatim into real source files — a class of failure that is mechanically
+# detectable with zero LLM involvement, so catch it deterministically BEFORE
+# handing off to greenlight (verify might not even trip on it). The crew's commits
+# live on the local $branch ref (worktrees share the ref store), intact after the
+# return above. Diff the branch against main; .md is excluded (fences are legal there).
+git -C "$REPO_ROOT" fetch -q origin main 2>/dev/null || true
+leak=$(git -C "$REPO_ROOT" diff "origin/main...$branch" -- . ':(exclude)*.md' 2>/dev/null | grep -cE '^\+[[:space:]]*```' || true)
+if [ "${leak:-0}" -gt 0 ]; then
+  gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:blocked
+  boss_notify "boss:blocked PR#$pr — $leak markdown fence line(s) leaked into non-md source"
+  echo "PR#$pr blocked — $leak leaked markdown fence line(s) in non-markdown source (see git diff origin/main...$branch)"; exit 2
+fi
+
 # greenlight exits 0 on BOTH land and park (park() writes state=parked, exit 0),
 # so the exit code alone can't tell success from a parked verify-failure. Read
 # greenlight's own state file for the truth. RUN_ID = <timestamp>-<branch-slug>;
 # find the newest run dir matching this branch.
 gl_root="${GREENLIGHT_STATE_ROOT:-$HOME/kb-scratch/greenlight}"
 branch_slug=$(echo "$branch" | tr '/' '-' | tr -cd 'a-zA-Z0-9-')
-"$REPO_ROOT/tooling/cli/greenlight/greenlight" run --branch "$branch" --verify "$test_cmd" || true
+# Wrap the verify in a timeout so a hanging test_cmd fails fast (gtimeout exits
+# 124 → greenlight parks "verify failed" → existing boss:blocked path) instead of
+# wedging the merge forever (2026-07-08). greenlight runs --verify via bash -c, so
+# printf %q keeps the test_cmd intact through the extra shell layer. -k 30 forces
+# SIGKILL 30s after SIGTERM in case the hung process ignores the term.
+ttl=$(meta_get "$pr" test_timeout); ttl="${ttl:-600}"
+tbin=$(boss_timeout_bin) || { echo "FATAL: no gtimeout/timeout on PATH — brew install coreutils" >&2; exit 1; }
+verify="$tbin -k 30 ${ttl}s bash -c $(printf '%q' "$test_cmd")"
+"$REPO_ROOT/tooling/cli/greenlight/greenlight" run --branch "$branch" --verify "$verify" || true
 run_dir=$(ls -dt "$gl_root"/*-"$branch_slug" 2>/dev/null | head -1)
 gl_state=$(cat "$run_dir/state" 2>/dev/null || echo unknown)
 gl_reason=$(cat "$run_dir/parked-reason" 2>/dev/null || echo "")

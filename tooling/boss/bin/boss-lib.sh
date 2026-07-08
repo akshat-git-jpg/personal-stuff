@@ -46,3 +46,27 @@ boss_ensure_labels() {
     gh label create "$l" >/dev/null 2>&1 || true
   done
 }
+
+# boss_timeout_bin — resolve a `timeout`-compatible binary. A hanging test_cmd
+# must fail fast, never freeze a run or a merge (2026-07-08 incident: a malformed
+# check.sh blocked bash for 83m undetected). macOS ships no `timeout`; coreutils
+# provides it as `gtimeout`. Prints the full path of whichever exists (empty +
+# nonzero if neither). Callers on the merge path hard-fail when it's missing
+# rather than silently running the verify bare.
+boss_timeout_bin() { command -v gtimeout 2>/dev/null || command -v timeout 2>/dev/null; }
+
+# gh account guard. Another tool (or a second logged-in account) can flip the
+# active gh login mid-session; against this PRIVATE repo that silently breaks
+# every gh call ("Could not resolve to a Repository") and quietly parks work.
+# Assert — and auto-switch — to the expected account on every gh write path
+# (session-start, dispatch, merge, deploy). `gh api user` is one unambiguous call
+# that also proves the token is valid. Override the expected user via BOSS_GH_USER.
+BOSS_GH_USER="${BOSS_GH_USER:-akshat-git-jpg}"
+boss_assert_gh() {
+  local u; u=$(gh api user -q .login 2>/dev/null)
+  [ "$u" = "$BOSS_GH_USER" ] && return 0
+  gh auth switch --hostname github.com --user "$BOSS_GH_USER" >/dev/null 2>&1
+  u=$(gh api user -q .login 2>/dev/null)
+  [ "$u" = "$BOSS_GH_USER" ] || { echo "FATAL: gh active account is '${u:-none}', need $BOSS_GH_USER (run: gh auth switch --user $BOSS_GH_USER)" >&2; return 1; }
+  echo "boss: gh account auto-switched to $BOSS_GH_USER" >&2
+}
