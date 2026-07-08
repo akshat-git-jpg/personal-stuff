@@ -70,3 +70,69 @@ boss_assert_gh() {
   [ "$u" = "$BOSS_GH_USER" ] || { echo "FATAL: gh active account is '${u:-none}', need $BOSS_GH_USER (run: gh auth switch --user $BOSS_GH_USER)" >&2; return 1; }
   echo "boss: gh account auto-switched to $BOSS_GH_USER" >&2
 }
+
+# --- stall detection (fix: `alive` only proves the PID exists; a process blocked
+# forever looks identical to one working, which let the 2026-07-08 hang run 83m
+# undetected). The load-bearing signal is CPU: a working crew (or a real
+# render/download) accrues CPU continuously; a deadlock sits at 0% forever.
+
+# boss_tree_pids <pid> — echo pid + ALL descendant pids (space-separated). The hang
+# was a blocked CHILD shell under a live parent, so anything reasoning about or
+# killing a crew must walk the whole tree, not just the top pid.
+boss_tree_pids() {
+  local frontier="$1" all="$1" kids
+  while [ -n "${frontier// /}" ]; do
+    kids=$(pgrep -P "${frontier// /,}" 2>/dev/null | tr '\n' ' ')
+    all="$all $kids"; frontier="$kids"
+  done
+  echo $all
+}
+
+# boss_tree_cpu <pid> — total CPU-seconds across the process tree. Used only as a
+# change fingerprint between polls, so whole-second coarseness is fine.
+boss_tree_cpu() {
+  local pids; pids=$(boss_tree_pids "$1")
+  ps -o time= -p "${pids// /,}" 2>/dev/null \
+    | awk -F: '{s=$NF; sub(/\..*/,"",s); m=(NF>1?$(NF-1):0); h=(NF>2?$(NF-2):0); sum+=h*3600+m*60+s} END{print sum+0}'
+}
+
+# boss_tree_kill <pid> — SIGTERM the whole tree, then SIGKILL after a grace (a
+# process stuck in an uninterruptible wait can ignore TERM; orphaning a child
+# recreates the hang, so kill descendants too).
+boss_tree_kill() {
+  local pids; pids=$(boss_tree_pids "$1")
+  kill -TERM $pids 2>/dev/null || true
+  sleep 3
+  kill -KILL $pids 2>/dev/null || true
+}
+
+# boss_stall_check <pr> — call ONLY when the executor reports alive/working. Echoes
+# `working`, `STALLED(<n>m)`, or `STALLED-KILLED(<n>m)`. Fingerprint = worktree HEAD
+# + tree CPU + output size; when it stops moving for BOSS_STALL_WARN_MIN it warns,
+# and past BOSS_STALL_KILL_MIN it kills the tree so the normal dead → one-fix-up →
+# blocked policy takes over. Per-PR overrides: meta stall_warn / stall_kill.
+BOSS_STALL_WARN_MIN="${BOSS_STALL_WARN_MIN:-15}"
+BOSS_STALL_KILL_MIN="${BOSS_STALL_KILL_MIN:-45}"
+boss_stall_check() {
+  local pr="$1" pid wt out head cpu osize fp now warn kill_ sw sk last_fp progress_at idle
+  pid=$(meta_get "$pr" pid); [ -n "$pid" ] || { echo working; return; }
+  wt=$(meta_get "$pr" worktree); out=$(meta_get "$pr" out)
+  head=$(git -C "$wt" rev-parse HEAD 2>/dev/null || echo none)
+  cpu=$(boss_tree_cpu "$pid")
+  osize=$(wc -c < "$out" 2>/dev/null | tr -d ' '); osize="${osize:-0}"
+  fp="$head|$cpu|$osize"; now=$(date +%s)
+  sw=$(meta_get "$pr" stall_warn); warn=$(( ${sw:-$BOSS_STALL_WARN_MIN} ))
+  sk=$(meta_get "$pr" stall_kill); kill_=$(( ${sk:-$BOSS_STALL_KILL_MIN} ))
+  last_fp=$(meta_get "$pr" stall_fp); progress_at=$(meta_get "$pr" progress_at)
+  if [ "$fp" != "$last_fp" ] || [ -z "$progress_at" ]; then
+    meta_set "$pr" stall_fp "$fp"; meta_set "$pr" progress_at "$now"; echo working; return
+  fi
+  idle=$(( (now - progress_at) / 60 ))
+  if [ "$idle" -ge "$kill_" ]; then
+    boss_tree_kill "$pid"; meta_set "$pr" killed_reason "stalled ${idle}m no progress"
+    boss_notify "boss:killed PR#$pr — crew stalled ${idle}m (0 progress); treating as dead"
+    echo "STALLED-KILLED(${idle}m)"; return
+  fi
+  [ "$idle" -ge "$warn" ] && { echo "STALLED(${idle}m)"; return; }
+  echo working
+}

@@ -6,6 +6,10 @@ report() {
   local ex; ex=$(meta_get "$pr" executor)
   "$BOSS_HOME/executors/$ex.sh" alive "$pr"; local a=$?
   local live=working; [ $a -eq 1 ] && live=idle/done; [ $a -eq 2 ] && live=dead
+  # A live PID only proves existence, not progress. When the executor says it's
+  # working, fingerprint CPU/HEAD/output: no movement past the thresholds reports
+  # STALLED and eventually kills the hung tree (→ dead → one-fix-up → blocked).
+  [ "$live" = working ] && live=$(boss_stall_check "$pr")
   local c; c=$("$BOSS_HOME/executors/$ex.sh" collect "$pr" 2>/dev/null)
   echo "PR#$pr  $ex  alive=$live  collect=[$c]"
 }
