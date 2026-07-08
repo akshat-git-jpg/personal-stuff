@@ -319,3 +319,4 @@ The others are grounded and available when the owner wants them:
 - 048-explainer-pipeline-final-video-sync — PR#9 048-explainer-pipeline-final-video-sync: 5-final-video-sync stage — DONE
 - 050-explainer-pipeline-upload-packaging — PR#11 050-explainer-pipeline-upload-packaging: 7-upload stage — DONE
 - 051-dossier-skills — PR#12 051-dossier-skills: Dossier skills — transcript fallback chain + per-tool research dossiers — DONE
+- 043-tutorial-pipeline-1-heygen-spokesperson — PR#1 043-tutorial-pipeline-1-heygen-spokesperson: tutorial-pipeline-1 — Drive-in → HeyGen spokesperson clips → Drive-out — DONE
