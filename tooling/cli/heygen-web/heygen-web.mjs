@@ -26,7 +26,7 @@
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { dirname, resolve, basename } from "node:path";
 import { randomUUID } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -268,6 +268,105 @@ async function generate(auth, args) {
   console.log(JSON.stringify(raw, null, 2));
 }
 
+// Uploads a local audio file to HeyGen (S3 presigned PUT, same pattern as create-photo-avatar's
+// image upload) and runs it through HeyGen's own ASR. Captured 2026-07-07 from a real HAR — see
+// this step's HAR-index comments above for the exact endpoint trace.
+async function uploadAudio(auth, audioPath) {
+  const bytes = readFileSync(audioPath);
+  const base = basename(audioPath).replace(/\.[^.]+$/, "");
+  const ct = audioPath.toLowerCase().endsWith(".mp3") ? "audio/mpeg" : "audio/wav";
+
+  const presign = await api(auth, `/v1/file/url.get?file_type=audio&filename=${encodeURIComponent(base)}` +
+    `&content_type=${encodeURIComponent(ct)}&properties%5Baudio_source%5D=voice_recording`);
+  const { id: fileId, url: putUrl, download_url } = presign?.data || {};
+  if (!fileId || !putUrl) die("file/url.get failed: " + JSON.stringify(presign));
+
+  const put = await fetch(putUrl, {
+    method: "PUT",
+    headers: { "content-type": ct, "x-amz-server-side-encryption": "AES256" },
+    body: bytes,
+  });
+  if (!put.ok) die(`S3 audio upload failed: HTTP ${put.status}\n${(await put.text()).slice(0, 300)}`);
+
+  const finalize = await api(auth, "/v1/file.upload", {
+    method: "POST",
+    body: { name: `${base}.wav`, id: fileId, file_type: "audio", content_type: ct,
+            filename: `${base}.wav`, properties: { audio_source: "voice_recording" } },
+  });
+  if (!finalize?.data?.id) die("file.upload failed: " + JSON.stringify(finalize));
+
+  const transcodeUrl = `${download_url.replace(/original\.\w+$/, "transcode.mp3")}` +
+    `?response-content-disposition=attachment%3B+filename%2A%3DUTF-8%27%27${encodeURIComponent(base)}.mp3%3B`;
+
+  const asr = await api(auth, "/v1/audio/fast_asr", { method: "POST", body: { url: transcodeUrl } });
+  const asrData = asr?.data?.data;
+  if (!asrData?.words) die("fast_asr failed: " + JSON.stringify(asr));
+  return { transcodeUrl, text: asrData.text, words: asrData.words, duration: asrData.duration };
+}
+
+function fillAudioTemplate(name, tokens) {
+  const tdir = resolve(__dirname, "studio-templates");
+  let text = readFileSync(resolve(tdir, name), "utf8");
+  for (const [k, v] of Object.entries(tokens)) text = text.replaceAll(k, v);
+  return JSON.parse(text);
+}
+
+// Renders an EXISTING avatar (an avatar_id you already made — NOT create-photo-avatar) lip-synced
+// to a LOCAL audio file. Only the heygen3 (Avatar III, unlimited) path is HAR-verified; heygen4
+// (Avatar IV, metered) needs its own capture before this can support it.
+async function submitAudioGenerate(auth, { avatar, audioPath, engine, title }) {
+  if (engine !== "heygen3")
+    throw new Error(`[TODO][HNS] generate-from-audio: only heygen3 (Avatar III) is HAR-verified; ` +
+      `heygen4 (Avatar IV) needs its own captured HAR before this path can be wired.`);
+  const audio = await uploadAudio(auth, audioPath);
+
+  const create = await api(auth, "/v1/text_draft.create", {
+    method: "POST",
+    body: { video_output: { resolution: { width: 1080, height: 1920 }, fps: 25 }, source_type: "ai_studio" },
+  });
+  const vid = create?.data?.video_id;
+  if (!vid) die("text_draft.create failed: " + JSON.stringify(create));
+
+  const tokens = {
+    __VIDEO_ID__: vid, __AVATAR_ID__: avatar, __TITLE__: title || "generate-from-audio",
+    __AUDIO_URL__: audio.transcodeUrl,
+    __AUDIO_TEXT__: JSON.stringify(audio.text).slice(1, -1),
+    __VOICE_ID__: "42d00d4aac5441279d8536cd6b52c53c", // formality field — audio.src drives playback, not TTS
+  };
+
+  const saveBody = fillAudioTemplate("generate-audio-save.json", tokens);
+  const saveAudioMeta = saveBody.metadata.find((m) => m.type === "audio");
+  saveAudioMeta.words = audio.words; saveAudioMeta.duration = audio.duration;
+  await api(auth, "/v1/text_draft.save", { method: "POST", body: saveBody });
+
+  const genBody = fillAudioTemplate("generate-audio-generate.json",
+    { ...tokens, __VERSION_ID__: randomUUID().replace(/-/g, "") });
+  const genMeta = genBody.draft_details.text_draft_with_metadata.metadata;
+  const audioElId = genBody.draft_details.text_draft_with_metadata.text_draft.script.timeline[0];
+  genMeta[audioElId].words = audio.words;
+  genMeta[audioElId].duration = audio.duration;
+
+  const gen = await api(auth, "/v1/text_draft.generate", { method: "POST", body: genBody });
+  const outVid = gen?.data?.video_id;
+  if (!outVid) die("text_draft.generate failed: " + JSON.stringify(gen));
+  return { video_id: outVid };
+}
+
+async function generateFromAudio(auth, args) {
+  const avatar = arg(args, "--avatar"), audioPath = arg(args, "--audio");
+  const engine = arg(args, "--engine") || "heygen3", title = arg(args, "--title");
+  if (!avatar || !audioPath)
+    die('generate-from-audio needs --avatar <avatar_id> --audio <file> [--engine heygen3|heygen4] [--title T]');
+  if (!existsSync(audioPath)) die(`no such audio file: ${audioPath}`);
+  try {
+    const { video_id } = await submitAudioGenerate(auth, { avatar, audioPath, engine, title });
+    console.log(JSON.stringify({ video_id }, null, 2));
+  } catch (e) {
+    console.error(String(e.message || e));
+    process.exit(1);
+  }
+}
+
 // Batch generate many clips from a file. Each clip = one unlimited Avatar III submit.
 //   --file *.txt   → one script per line (uses shared --avatar/--voice/--orientation/--res)
 //   --file *.json  → [{ "text": "...", "avatar"?, "voice"?, "title"?, "orientation"?, "res"? }, ...]
@@ -477,6 +576,8 @@ if (!cmd || cmd === "help") {
   list-looks --group <group_id>
   generate --avatar <look_id> --voice <voice_id> --text "..." [--title T]
            [--orientation portrait|landscape] [--res 720p|1080p] [--iv]
+  generate-from-audio --avatar <avatar_id> --audio <file> [--engine heygen3|heygen4] [--title T]
+           heygen3 (Avatar III) is real (HAR-verified 2026-07-07); heygen4 (Avatar IV) is [TODO][HNS].
   batch --file <items.txt|items.json> [--avatar id] [--voice id]
            [--orientation portrait|landscape] [--res 720p|1080p]
            [--out-dir DIR] [--delay 1500] [--download] [--iv]
@@ -499,6 +600,7 @@ switch (cmd) {
   case "limits":       await limits(auth); break;
   case "usage":        await usage(auth, rest); break;
   case "generate":     await generate(auth, rest); break;
+  case "generate-from-audio": await generateFromAudio(auth, rest); break;
   case "batch":        await batch(auth, rest); break;
   case "create-photo-avatar": await createPhotoAvatar(auth, rest); break;
   case "studio-render": await studioRender(auth, rest); break;

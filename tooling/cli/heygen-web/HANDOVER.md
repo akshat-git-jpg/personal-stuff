@@ -117,8 +117,7 @@ Baseline lives in `infra/secrets/heygen-usage-last.json` (gitignored). Dropped t
 
 ## What to do next
 
-1. Get the Generate HAR (Preserve log on), wire it as the final step of `studio-render`,
-   and measure one completed render with `usage --diff`. That's the real unlimited proof.
+1. **DONE** (`text_draft.generate` is now captured and wired via `generate-from-audio`'s `heygen3` path). `heygen4`'s equivalent capture is the new remaining gap.
 2. If a render path ever moves the free-second pool, flag it: 1200s/month is ~20 minutes,
    so two-minute renders would hit a wall after ~10 a month even with no money spent.
 

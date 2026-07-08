@@ -11,6 +11,9 @@ All subcommands take `--account EMAIL`.
 | `ensure-folder NAME [--parent ID]` | Find-or-create, print id |
 | `upload FILE --parent ID [--name N] [--overwrite]` | Upload a file, print id + link |
 | `mirror LOCALDIR [--parent ID] [--overwrite]` | Recreate the local tree in Drive (dirs→folders, files→uploads) |
+| `stat ID` | Print tab-separated id, name, mimeType |
+| `list-folder ID` | Print tab-separated id, name, mimeType for children |
+| `download ID --out PATH` | Download a file, print saved <path> |
 
 Idempotent: folders are found-or-created; files are skipped if a same-named file already exists in that folder (`--overwrite` to replace). `root` or omitted `--parent` means My Drive root.
 

@@ -61,6 +61,7 @@ node heygen-web.mjs list-avatars [--limit 20]
 node heygen-web.mjs list-looks --group <group_id>
 node heygen-web.mjs list-voices [--limit 30] [--page 1] [--search term] [--json]
 node heygen-web.mjs generate --avatar <look_id> --voice <id> --text "..." [--title T] [--orientation portrait|landscape] [--res 720p|1080p] [--iv]
+node heygen-web.mjs generate-from-audio --avatar <avatar_id> --audio <file> [--engine heygen3|heygen4] [--title T]
 node heygen-web.mjs batch --file <items.txt|items.json> [--avatar id] [--voice id] [--res 720p] [--out-dir DIR] [--download]
 node heygen-web.mjs list-videos [--limit 30] [--type heygen_video] [--json]
 node heygen-web.mjs delete-video <video_id> [<video_id> ...]

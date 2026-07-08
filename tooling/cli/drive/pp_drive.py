@@ -12,6 +12,9 @@ All subcommands take --account EMAIL (e.g. kushalbakliwal25@gmail.com).
   upload FILE --parent ID [--name N] [--overwrite] upload a file, print id + link
   mirror LOCALDIR [--parent ID] [--overwrite]      recreate the local tree in Drive (dirs→folders,
                                                    files→uploads), print the top folder id + link
+  stat ID                                          print tab-separated id, name, mimeType
+  list-folder ID                                   print tab-separated id, name, mimeType for children
+  download ID --out PATH                           download a file, print saved <path>
 
 Idempotent: folders are found-or-created; files are skipped if a same-named file already exists in
 that folder (use --overwrite to replace). 'root' or omitted --parent means My Drive root.
@@ -78,6 +81,32 @@ def upload_file(s, path, parent, name=None, overwrite=False):
     return fid, True
 
 
+def stat(s, file_id):
+    """Return {id, name, mimeType} for any file/folder id."""
+    return s.files().get(fileId=file_id, fields="id,name,mimeType",
+                         supportsAllDrives=True).execute()
+
+
+def list_folder(s, parent):
+    """List immediate children (files+folders) of a folder id. Returns [{id,name,mimeType}]."""
+    q = f"'{parent}' in parents and trashed = false"
+    r = s.files().list(q=q, fields="files(id,name,mimeType)", pageSize=1000,
+                       supportsAllDrives=True, includeItemsFromAllDrives=True).execute()
+    return r.get("files", [])
+
+
+def download_file(s, file_id, dest):
+    """Download a file's bytes to a local path. Returns dest."""
+    from googleapiclient.http import MediaIoBaseDownload
+    request = s.files().get_media(fileId=file_id, supportsAllDrives=True)
+    with open(dest, "wb") as f:
+        downloader = MediaIoBaseDownload(f, request)
+        done = False
+        while not done:
+            _, done = downloader.next_chunk()
+    return dest
+
+
 def mirror(s, localdir, parent, overwrite=False):
     localdir = Path(localdir)
     top = ensure_folder(s, localdir.name, parent)
@@ -110,6 +139,10 @@ def main():
     sub.add_parser("accounts")
     for name in ("find-folder", "ensure-folder"):
         p = sub.add_parser(name); p.add_argument("name"); p.add_argument("--parent", default="root"); p.add_argument("--account", required=True)
+    st = sub.add_parser("stat"); st.add_argument("id"); st.add_argument("--account", required=True)
+    lf = sub.add_parser("list-folder"); lf.add_argument("id"); lf.add_argument("--account", required=True)
+    dl = sub.add_parser("download"); dl.add_argument("id"); dl.add_argument("--out", required=True)
+    dl.add_argument("--account", required=True)
     up = sub.add_parser("upload"); up.add_argument("file"); up.add_argument("--parent", required=True)
     up.add_argument("--name"); up.add_argument("--overwrite", action="store_true"); up.add_argument("--account", required=True)
     mi = sub.add_parser("mirror"); mi.add_argument("localdir"); mi.add_argument("--parent", default="root")
@@ -123,6 +156,13 @@ def main():
         print(_find(s, a.name, a.parent, folder_only=True) or "")
     elif a.cmd == "ensure-folder":
         fid = ensure_folder(s, a.name, a.parent); print(fid)
+    elif a.cmd == "stat":
+        r = stat(s, a.id); print(f"{r['id']}\t{r['name']}\t{r['mimeType']}")
+    elif a.cmd == "list-folder":
+        for f in list_folder(s, a.id):
+            print(f"{f['id']}\t{f['name']}\t{f['mimeType']}")
+    elif a.cmd == "download":
+        download_file(s, a.id, a.out); print(f"saved {a.out}")
     elif a.cmd == "upload":
         fid, wrote = upload_file(s, a.file, a.parent, a.name, a.overwrite)
         print(f"{fid}  {'uploaded' if wrote else 'skipped (exists)'}  https://drive.google.com/file/d/{fid}")
