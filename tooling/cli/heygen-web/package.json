@@ -1,0 +1,8 @@
+{
+  "name": "heygen-web",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": { "heygen-web": "./heygen-web.mjs" },
+  "scripts": { "test": "node --test test/" },
+  "private": true
+}
