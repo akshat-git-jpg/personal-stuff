@@ -1,0 +1,1 @@
+export function arg(a, f) { const i = a.indexOf(f); return i >= 0 ? a[i + 1] : undefined; }
