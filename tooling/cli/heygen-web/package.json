@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "type": "module",
   "bin": { "heygen-web": "./heygen-web.mjs" },
-  "scripts": { "test": "node --test test/" },
+  "scripts": { "test": "node --test" },
   "private": true
 }

@@ -18,4 +18,4 @@ This CLI has been refactored into a layered architecture to make APIs safe to up
 - **Meter semantics**: `usage` tracks credits (must stay flat), free second-pool (`/1200`, ~20 min/month cap), priority slots, and AI-image/video/concept pools. Run `usage --save` before and `usage --diff` after any create op to prove it stayed free.
 - **Hard rule**: **Avatar III only**. Never use `--iv` or route through the official metered MCP.
 - **Auth**: Parsed from `infra/secrets/heygen-web-curls.txt` (gitignored). Cloudflare cookies rotate in minutes to hours. On 403, recapture a fresh `submit` cURL.
-- **Testing**: `node --test test/` is offline and safe. Live commands are ToS-grey and account-bound — run them manually, never in automation loops.
+- **Testing**: `npm test` (i.e. `node --test`, run from this folder) is offline and safe. Live commands are ToS-grey and account-bound — run them manually, never in automation loops.
