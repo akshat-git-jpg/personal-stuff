@@ -1,11 +1,12 @@
 import { existsSync } from "node:fs";
 import { arg } from "../cli/args.mjs";
 import { die } from "../client/http.mjs";
+import { resolveAvatar, resolveTemplate } from "../client/registry.mjs";
 import { submitGenerate, submitAudioGenerate, submitFromTemplate } from "../operations/render.mjs";
 import { RESOLUTIONS } from "../operations/audio.mjs";
 
 export async function generate(auth, args) {
-  const avatar = arg(args, "--avatar"), voice = arg(args, "--voice"), text = arg(args, "--text");
+  const avatar = resolveAvatar(arg(args, "--avatar")), voice = arg(args, "--voice"), text = arg(args, "--text");
   if (!avatar || !voice || !text) die('generate needs --avatar <look_id> --voice <voice_id> --text "..."');
   const iv = args.includes("--iv"); // default = unlimited Avatar III
   console.error(`→ submitting ${iv ? "Avatar IV (METERED)" : "Avatar III (unlimited-mode)"} …`);
@@ -20,7 +21,7 @@ export async function generate(auth, args) {
 }
 
 export async function generateFromAudio(auth, args) {
-  const avatar = arg(args, "--avatar"), audioPath = arg(args, "--audio");
+  const avatar = resolveAvatar(arg(args, "--avatar")), audioPath = arg(args, "--audio");
   const engine = arg(args, "--engine") || "heygen3", title = arg(args, "--title");
   const orientation = arg(args, "--orientation") || "landscape";
   if (!avatar || !audioPath)
@@ -38,7 +39,7 @@ export async function generateFromAudio(auth, args) {
 }
 
 export async function generateFromTemplate(auth, args) {
-  const templateId = arg(args, "--template"), audioPath = arg(args, "--audio");
+  const templateId = resolveTemplate(arg(args, "--template")), audioPath = arg(args, "--audio");
   const title = arg(args, "--title");
   if (!templateId || !audioPath)
     die('generate-from-template needs --template <template_id> --audio <file> [--title T]');

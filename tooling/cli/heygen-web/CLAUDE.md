@@ -9,6 +9,17 @@ This CLI has been refactored into a layered architecture to make APIs safe to up
 - **`src/workflows/`**: End-to-end recipes (e.g., `generate`, `photo-to-video`) that compose operations. **To add a new pipeline, add a file here.**
 - **`src/cli/`**: The CLI dispatch layer.
 - **`src/client/payloads/`**: The raw JSON payload files mined from HARs. Never edit these directly unless a HAR proves it; they are verified byte-for-byte.
+- **`avatars.json`** (package root) + **`src/client/registry.mjs`**: the avatar/template registry — friendly slugs → HeyGen ids. This is the single source of truth for ids, shared by this CLI and the youtube pipelines.
+
+## Avatar/template registry
+
+`avatars.json` maps a slug to an avatar and/or template id plus a description:
+
+```json
+{ "girl-1": { "template_id": "7629dffb…", "description": "Girl 1 — soft-voice tutorial template" } }
+```
+
+Any `--avatar` / `--template` flag accepts **a slug or a raw id** — `registry.mjs`'s `resolveAvatar()` / `resolveTemplate()` map a known slug to its id and pass anything else through unchanged (so raw ids still work). To add a new avatar/template, edit `avatars.json` — no code change. The Python pipelines read this same file (`tutorial-pipeline-1/shared/avatar_mapping.py`), so ids live in exactly one place. Override the path with `HEYGEN_AVATARS`.
 
 ## Operational Gotchas
 

@@ -23,7 +23,8 @@ test("1. Imports: modules can be imported without throwing", async () => {
     "src/workflows/photo-to-video.mjs",
     "src/workflows/raw.mjs",
     "src/client/endpoints.mjs",
-    "src/client/http.mjs"
+    "src/client/http.mjs",
+    "src/client/registry.mjs"
   ];
   for (const path of toImport) {
     await import(resolve(PKG_ROOT, path));
@@ -98,4 +99,24 @@ test("5. Help without auth", () => {
   });
   assert.ok(out.includes("generate-from-template"));
   assert.ok(out.includes("photo-to-video"));
+});
+
+test("6. Avatar registry: slug resolves, raw id passes through", async () => {
+  const { loadRegistry, resolveAvatar, resolveTemplate } =
+    await import(resolve(PKG_ROOT, "src/client/registry.mjs"));
+
+  const reg = loadRegistry();
+  assert.ok(typeof reg === "object", "registry loads as an object");
+  // avatars.json is valid and seeded
+  assert.ok(reg["girl-1"] && reg["girl-1"].template_id, "girl-1 seeded with a template_id");
+  assert.ok(reg["girl-1"].description, "entries carry a description");
+
+  // known slug → mapped id
+  assert.strictEqual(resolveTemplate("girl-1"), "7629dffbebe141eb8f701630948bd707");
+  assert.strictEqual(resolveTemplate("girl-2"), "887ad69c743d4740a0174eecb3198ef4");
+  // unknown value → passthrough (raw ids keep working)
+  assert.strictEqual(resolveTemplate("some-raw-id-123"), "some-raw-id-123");
+  assert.strictEqual(resolveAvatar("another-raw-id"), "another-raw-id");
+  // undefined → undefined (missing flag stays missing)
+  assert.strictEqual(resolveAvatar(undefined), undefined);
 });

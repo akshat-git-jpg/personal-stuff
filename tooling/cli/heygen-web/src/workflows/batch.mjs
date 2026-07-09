@@ -2,6 +2,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { die } from "../client/http.mjs";
 import { arg } from "../cli/args.mjs";
+import { resolveAvatar } from "../client/registry.mjs";
 import { submitGenerate } from "../operations/render.mjs";
 import { downloadCore } from "../operations/videos.mjs";
 
@@ -14,7 +15,7 @@ export async function batch(auth, args) {
   if (!existsSync(file)) die(`no such file: ${file}`);
   const iv = args.includes("--iv");
   const shared = {
-    avatar: arg(args, "--avatar"), voice: arg(args, "--voice"),
+    avatar: resolveAvatar(arg(args, "--avatar")), voice: arg(args, "--voice"),
     orientation: arg(args, "--orientation"), res: arg(args, "--res"), iv,
   };
   const outDir = arg(args, "--out-dir") || ".";
@@ -36,7 +37,7 @@ export async function batch(auth, args) {
   // validate every item resolves an avatar+voice before spending anything
   const resolved = items.map((it, i) => {
     const m = {
-      text: it.text, avatar: it.avatar || shared.avatar, voice: it.voice || shared.voice,
+      text: it.text, avatar: resolveAvatar(it.avatar) || shared.avatar, voice: it.voice || shared.voice,
       title: it.title || `batch ${i + 1}`,
       orientation: it.orientation || shared.orientation,
       res: it.res || shared.res, iv: shared.iv,
