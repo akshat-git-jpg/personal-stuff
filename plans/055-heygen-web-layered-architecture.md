@@ -2,7 +2,7 @@
 ---
 executor: claude-p       # claude-p | agy
 model: opus              # tricky refactor: byte-identical request bodies + no live testing + 2 downstream callers
-test_cmd: node --test tooling/cli/heygen-web/test/   # REQUIRED: offline structural suite, exit 0 = merge gate
+test_cmd: node --test tooling/cli/heygen-web/test/smoke.test.mjs   # REQUIRED: offline structural suite, exit 0 = merge gate (dir-arg form of --test fails on node 22.14 — name the file or run `node --test` from the folder)
 ui:                      # false — pure CLI, no user-facing view
 deploy:                  # blank — local CLI, callers invoke it in place
 needs: []                # no dependencies on other plans
