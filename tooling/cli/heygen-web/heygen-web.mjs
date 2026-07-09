@@ -37,6 +37,7 @@ import { randomUUID } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 import { BASE, CURLS, USAGE_SNAP, loadAuth, api, die } from "./src/client/http.mjs";
+import { fillTemplate } from "./src/client/payloads/fill.mjs";
 
 
 // ─── commands ─────────────────────────────────────────────────────────────────
@@ -117,9 +118,7 @@ async function studioRender(auth, args) {
   const avatar = arg(args, "--avatar");
   if (!avatar) die("studio-render needs --avatar <look_id>");
   const title = arg(args, "--title") || `studio ${new Date().toISOString().slice(0, 16).replace("T", " ")}`;
-  const tdir = resolve(__dirname, "studio-templates");
-  const fill = (f, vid) => JSON.parse(readFileSync(resolve(tdir, f), "utf8")
-    .replaceAll("__VIDEO_ID__", vid).replaceAll("__AVATAR_ID__", avatar));
+  const fill = (f, vid) => fillTemplate(f, { __VIDEO_ID__: vid, __AVATAR_ID__: avatar });
 
   const cr = await api(auth, "/v1/text_draft.create", {
     method: "POST",
@@ -304,12 +303,7 @@ async function uploadAudio(auth, audioPath) {
   return { transcodeUrl, text: asrData.text, words: asrData.words, duration: asrData.duration };
 }
 
-function fillAudioTemplate(name, tokens) {
-  const tdir = resolve(__dirname, "studio-templates");
-  let text = readFileSync(resolve(tdir, name), "utf8");
-  for (const [k, v] of Object.entries(tokens)) text = text.replaceAll(k, v);
-  return JSON.parse(text);
-}
+
 
 // Both HAR-captured templates (generate-audio-save.json, generate-audio-generate.json) bake in a
 // fixed avatar element size: { fit: "none", scale: {x,y} } scaling the avatar's native photo
@@ -360,12 +354,12 @@ async function submitAudioGenerate(auth, { avatar, audioPath, engine, title, ori
     __WIDTH__: width, __HEIGHT__: height, __SCALE__: scale,
   };
 
-  const saveBody = fillAudioTemplate("generate-audio-save.json", tokens);
+  const saveBody = fillTemplate("generate-audio-save.json", tokens);
   const saveAudioMeta = saveBody.metadata.find((m) => m.type === "audio");
   saveAudioMeta.words = audio.words; saveAudioMeta.duration = audio.duration;
   await api(auth, "/v1/text_draft.save", { method: "POST", xPath: editorPath, body: saveBody });
 
-  const genBody = fillAudioTemplate("generate-audio-generate.json",
+  const genBody = fillTemplate("generate-audio-generate.json",
     { ...tokens, __VERSION_ID__: randomUUID().replace(/-/g, "") });
   const genMeta = genBody.draft_details.text_draft_with_metadata.metadata;
   const genTextDraft = genBody.draft_details.text_draft_with_metadata.text_draft;
