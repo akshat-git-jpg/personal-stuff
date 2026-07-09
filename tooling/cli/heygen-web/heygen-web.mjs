@@ -36,57 +36,8 @@ import { dirname, resolve, basename } from "node:path";
 import { randomUUID } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const CURLS = process.env.HEYGEN_WEB_CURLS ||
-  resolve(__dirname, "../../../infra/secrets/heygen-web-curls.txt");
-const BASE = "https://api2.heygen.com";
+import { BASE, CURLS, USAGE_SNAP, loadAuth, api, die } from "./src/client/http.mjs";
 
-// ─── auth: parse cookie + x-zid out of the captured cURL file ─────────────────
-function loadAuth() {
-  if (!existsSync(CURLS)) die(`No capture file at ${CURLS} (set HEYGEN_WEB_CURLS).`);
-  const txt = readFileSync(CURLS, "utf8");
-  const cookie = (txt.match(/-b '([^']+)'/) || [])[1];
-  const zid = (txt.match(/x-zid:\s*([^\s'\\]+)/) || [])[1];
-  const spaceId = (cookie || "").match(/heygen_space=([^;]+)/)?.[1];
-  if (!cookie) die(`Could not find a -b '<cookie>' block in ${CURLS}.`);
-  return { cookie, zid, spaceId };
-}
-
-function headers(auth, extra = {}) {
-  return {
-    accept: "application/json, text/plain, */*",
-    "content-type": "application/json",
-    origin: "https://app.heygen.com",
-    "user-agent":
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-    "x-ver": "4.1.0",
-    "x-path": "/avatar",
-    "x-language-override": "en-US",
-    ...(auth.zid ? { "x-zid": auth.zid } : {}),
-    ...(auth.spaceId ? { "x-space-id": auth.spaceId } : {}),
-    cookie: auth.cookie,
-    ...extra,
-  };
-}
-
-// xPath lets callers send the real editor route (e.g. "/create-v4/draft" or
-// "/create-v4/<video_id>") instead of the generic "/avatar" default — HAR-verified
-// 2026-07-09 (app.heygen.com13.har) as what the actual AI Studio editor sends on every
-// text_draft.create/save/generate call. Unconfirmed whether the backend's routing/behavior
-// actually depends on it, but it's free to send correctly and rules out one more variable.
-async function api(auth, path, { method = "GET", body, xPath } = {}) {
-  const res = await fetch(path.startsWith("http") ? path : BASE + path, {
-    method,
-    headers: headers(auth, xPath ? { "x-path": xPath } : {}),
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  if (res.status === 403 || /cloudflare|just a moment/i.test(text))
-    die(`403 / Cloudflare — session cookie likely expired. Recapture a fresh\n` +
-        `   'submit' cURL into ${CURLS}. (cf_clearance/__cf_bm rotate fast.)`);
-  let json; try { json = JSON.parse(text); } catch { json = { raw: text }; }
-  if (!res.ok) die(`HTTP ${res.status} ${method} ${path}\n${text.slice(0, 500)}`);
-  return json;
-}
 
 // ─── commands ─────────────────────────────────────────────────────────────────
 async function authCheck(auth) {
@@ -618,7 +569,6 @@ async function limits(auth) {
 // usage — snapshot every meter that could move when we create avatar/video/audio.
 // The point: on the unlimited Avatar III path these should NOT change (credits flat,
 // only priority_count ticks). --save writes a baseline; --diff compares to it.
-const USAGE_SNAP = resolve(__dirname, "../../../infra/secrets/heygen-usage-last.json");
 async function usageSnapshot(auth) {
   const lim = (await api(auth, "/v1/avatar/video_generate/limits"))?.data || {};
   const pri = (await api(auth, "/v1/video_history/monthly_priority_video_count"))?.data || {};
@@ -727,7 +677,6 @@ async function raw(auth, path, args) {
 
 // ─── helpers / dispatch ─────────────────────────────────────────────────────────
 function arg(a, f) { const i = a.indexOf(f); return i >= 0 ? a[i + 1] : undefined; }
-function die(m) { console.error("✖ " + m); process.exit(1); }
 
 const [cmd, ...rest] = process.argv.slice(2);
 if (!cmd || cmd === "help") {
@@ -780,7 +729,6 @@ switch (cmd) {
   case "list-videos":  await listVideos(auth, rest); break;
   case "status":       await status(auth, rest[0]); break;
   case "delete-video": await deleteVideos(auth, rest.filter((x) => !x.startsWith("--")), rest); break;
-  case "download":     await download(auth, rest[0], rest.slice(1)); break;
   case "raw":          await raw(auth, rest[0], rest.slice(1)); break;
   default: die(`unknown command: ${cmd} (try: help)`);
 }
