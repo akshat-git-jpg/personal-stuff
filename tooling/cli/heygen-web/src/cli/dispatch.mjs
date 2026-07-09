@@ -36,6 +36,7 @@ export async function run(args) {
     case "list-videos":  await listVideos(auth, rest); break;
     case "status":       await status(auth, rest[0]); break;
     case "delete-video": await deleteVideos(auth, rest.filter((x) => !x.startsWith("--")), rest); break;
+    case "download":     await download(auth, rest[0], rest.slice(1)); break;
     case "raw":          await raw(auth, rest[0], rest.slice(1)); break;
     default: die(`unknown command: ${cmd} (try: help)`);
   }

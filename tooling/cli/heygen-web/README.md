@@ -127,3 +127,11 @@ wait ~1 min, then download). `batch --download` re-tries to ride that out.
 - **Cookie expiry.** Cloudflare cookies (`cf_clearance`/`__cf_bm`) rotate in minutes–hours.
   On a 403/Cloudflare response, recapture one fresh `submit` cURL into
   `infra/secrets/heygen-web-curls.txt` (only the `-b` cookie + `x-zid` matter). The CLI detects this.
+
+## Repository Layout
+
+- `heygen-web.mjs`: Thin CLI entrypoint.
+- `src/client/endpoints.mjs`: Endpoint registry.
+- `src/client/payloads/`: Payload JSON files.
+- `src/operations/`: Atomic operations mapped from endpoints.
+- `src/workflows/`: Composite end-to-end commands.
