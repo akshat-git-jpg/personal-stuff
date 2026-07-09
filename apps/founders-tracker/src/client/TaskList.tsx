@@ -7,20 +7,22 @@ import {
   SortableContext, arrayMove, useSortable, verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Owner, Task } from "../shared";
+import type { Owner, Task, TaskPatch } from "../shared";
 import { TaskCard } from "./TaskCard";
+import { QuickAdd } from "./QuickAdd";
 
 interface Props {
   owner: Owner;
   tasks: Task[];
   onReorder: (owner: Owner, orderedIds: number[]) => void;
+  onAdd: (title: string, eta: string | null) => Promise<void>;
   onToggleDone: (t: Task) => void;
   onSetEta: (t: Task, value: string | null) => void;
-  onEdit: (t: Task) => void;
+  onSaveEdit: (t: Task, patch: TaskPatch) => void;
   onDelete: (t: Task) => void;
 }
 
-export function TaskList({ owner, tasks, onReorder, onToggleDone, onSetEta, onEdit, onDelete }: Props) {
+export function TaskList({ owner, tasks, onReorder, onAdd, onToggleDone, onSetEta, onSaveEdit, onDelete }: Props) {
   const open = tasks.filter((t) => t.status === "open").sort((a, b) => a.sortOrder - b.sortOrder);
   const done = tasks.filter((t) => t.status === "done")
     .sort((a, b) => (a.completedAt ?? "") < (b.completedAt ?? "") ? 1 : -1);
@@ -40,11 +42,12 @@ export function TaskList({ owner, tasks, onReorder, onToggleDone, onSetEta, onEd
 
   return (
     <div>
+      <QuickAdd owner={owner} onAdd={onAdd} />
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
           {open.map((t) => (
             <SortableRow key={t.id} task={t}
-              onToggleDone={onToggleDone} onSetEta={onSetEta} onEdit={onEdit} onDelete={onDelete} />
+              onToggleDone={onToggleDone} onSetEta={onSetEta} onSaveEdit={onSaveEdit} onDelete={onDelete} />
           ))}
         </SortableContext>
       </DndContext>
@@ -58,7 +61,7 @@ export function TaskList({ owner, tasks, onReorder, onToggleDone, onSetEta, onEd
           </div>
           {showDone && done.map((t) => (
             <TaskCard key={t.id} task={t}
-              onToggleDone={onToggleDone} onSetEta={onSetEta} onEdit={onEdit} onDelete={onDelete} />
+              onToggleDone={onToggleDone} onSetEta={onSetEta} onSaveEdit={onSaveEdit} onDelete={onDelete} />
           ))}
         </div>
       )}
@@ -66,11 +69,11 @@ export function TaskList({ owner, tasks, onReorder, onToggleDone, onSetEta, onEd
   );
 }
 
-function SortableRow({ task, onToggleDone, onSetEta, onEdit, onDelete }: {
+function SortableRow({ task, onToggleDone, onSetEta, onSaveEdit, onDelete }: {
   task: Task;
   onToggleDone: (t: Task) => void;
   onSetEta: (t: Task, value: string | null) => void;
-  onEdit: (t: Task) => void;
+  onSaveEdit: (t: Task, patch: TaskPatch) => void;
   onDelete: (t: Task) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -79,7 +82,7 @@ function SortableRow({ task, onToggleDone, onSetEta, onEdit, onDelete }: {
   return (
     <div ref={setNodeRef} style={style}>
       <TaskCard task={task} handleProps={{ ...attributes, ...listeners }}
-        onToggleDone={onToggleDone} onSetEta={onSetEta} onEdit={onEdit} onDelete={onDelete} />
+        onToggleDone={onToggleDone} onSetEta={onSetEta} onSaveEdit={onSaveEdit} onDelete={onDelete} />
     </div>
   );
 }

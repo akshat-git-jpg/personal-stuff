@@ -32,6 +32,16 @@
       "url": "http://localhost:5273"
     },
     {
+      "id": "founders",
+      "name": "founders-tracker",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/apps/founders-tracker",
+      "start": "npm run db:local && npm run dev",
+      "env": { "WEB_PORT": "5373" },
+      "port": 5373,
+      "ports": [5373],
+      "url": "http://localhost:5373"
+    },
+    {
       "id": "card-gallery",
       "name": "hyperframes card gallery",
       "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/video/card-library",
@@ -50,6 +60,15 @@
       "port": 4341,
       "ports": [4341],
       "url": "http://localhost:4341"
+    },
+    {
+      "id": "timeblock",
+      "name": "timeblock",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/apps/timeblock",
+      "start": "npm run dev -- --port 4351 --ip 127.0.0.1",
+      "port": 4351,
+      "ports": [4351],
+      "url": "http://localhost:4351"
     }
   ]
 }

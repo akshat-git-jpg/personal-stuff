@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import type { Owner, Task } from "../shared";
+import type { Owner, Task, TaskPatch } from "../shared";
 import { api, type BootstrapData } from "./api";
-import { Scoreboard } from "./Scoreboard";
 import { TaskList } from "./TaskList";
-import { TaskForm } from "./TaskForm";
 import { RecurringScreen } from "./RecurringScreen";
 
 type Screen = "tracker" | "recurring";
@@ -13,8 +11,6 @@ export function App() {
   const [err, setErr] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>("tracker");
   const [tab, setTab] = useState<Owner>("khushi");
-  const [adding, setAdding] = useState(false);
-  const [editing, setEditing] = useState<Task | null>(null);
 
   async function reload() {
     try { setData(await api.bootstrap()); } catch (e) { setErr(String(e)); }
@@ -35,6 +31,13 @@ export function App() {
   }
   function setEta(t: Task, value: string | null) {
     patchAndReload(t.id, { eta: value });
+  }
+  async function addTask(title: string, eta: string | null) {
+    await api.createTask({ title, owner: tab, eta });
+    await reload();
+  }
+  function saveEdit(t: Task, patch: TaskPatch) {
+    patchAndReload(t.id, patch);
   }
   async function del(t: Task) {
     if (!confirm(`Delete "${t.title}"?`)) return;
@@ -59,11 +62,6 @@ export function App() {
             <span className="kicker">Khushi &amp; Kushal</span>
             <h1>Founders <em>Ledger</em></h1>
           </div>
-          {screen === "tracker" && (
-            <button className="btn btn-primary btn-add" onClick={() => setAdding(true)}>
-              <span className="plus">+</span> New task
-            </button>
-          )}
         </div>
         <div className="rule" />
       </header>
@@ -81,7 +79,6 @@ export function App() {
         <RecurringScreen templates={data.templates} onChanged={reload} />
       ) : (
         <>
-          <Scoreboard data={data.scoreboard} />
           <div className="ownerbar">
             {(["khushi", "kushal"] as Owner[]).map((o) => {
               const openCount = data.tasks.filter((t) => t.owner === o && t.status === "open").length;
@@ -94,16 +91,9 @@ export function App() {
             })}
           </div>
           <TaskList owner={tab} tasks={ownTasks}
-            onReorder={reorder} onToggleDone={toggleDone} onSetEta={setEta}
-            onEdit={setEditing} onDelete={del} />
+            onReorder={reorder} onAdd={addTask} onToggleDone={toggleDone} onSetEta={setEta}
+            onSaveEdit={saveEdit} onDelete={del} />
         </>
-      )}
-
-      {adding && (
-        <TaskForm initial={null} defaultOwner={tab} onClose={() => setAdding(false)} onSaved={reload} />
-      )}
-      {editing && (
-        <TaskForm initial={editing} onClose={() => setEditing(null)} onSaved={reload} />
       )}
     </div>
   );

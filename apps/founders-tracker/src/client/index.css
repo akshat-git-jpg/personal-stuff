@@ -88,35 +88,77 @@ body {
 .btn-add .plus { font-size: 17px; line-height: 0; font-weight: 400; margin-top: -1px; }
 .btn:disabled { opacity: .5; cursor: default; }
 
-/* ---- Scoreboard ---------------------------------------------------------- */
-.scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 22px; }
-.scorecard {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
-  padding: 16px 16px 14px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+/* ---- Quick add ----------------------------------------------------------- */
+.quickadd {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 12px 14px 11px; margin-bottom: 16px; box-shadow: var(--shadow);
 }
-.scorecard .who {
-  font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
-  color: var(--muted); font-weight: 700;
+.qa-input {
+  width: 100%; border: 0; background: transparent; resize: none; overflow: hidden;
+  font-family: inherit; font-size: 15px; font-weight: 600; color: var(--ink);
+  letter-spacing: -.005em; line-height: 1.5; padding: 2px 0;
 }
-.scorecard .pct {
-  font-family: "Fraunces", Georgia, serif; font-optical-sizing: auto;
-  font-weight: 600; font-size: 46px; line-height: 1; letter-spacing: -.02em;
-  margin: 8px 0 2px; font-variant-numeric: lining-nums tabular-nums;
+.qa-input:focus { outline: none; }
+.qa-input::placeholder { color: var(--faint); font-weight: 500; }
+.qa-foot { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.qa-spacer { flex: 1; }
+.qa-add {
+  appearance: none; border: 1px solid var(--navy); background: var(--navy); color: #fdfaf3;
+  font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  padding: 7px 15px; border-radius: 10px; display: inline-flex; align-items: center; gap: 5px;
+  box-shadow: 0 8px 20px -10px rgba(31,58,95,.7);
+  transition: background .18s ease, transform .12s ease;
 }
-.scorecard .pct.none { color: var(--faint); }
-.scorecard .pct .sym { font-size: 22px; font-weight: 500; color: var(--muted);
-  margin-left: 1px; }
-.scorecard .ratio { font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }
-.scorecard .ratio .lbl { color: var(--muted); font-weight: 500; }
-.scorecard .splitbar {
-  display: flex; height: 5px; border-radius: 999px; overflow: hidden;
-  background: var(--paper-2); margin: 11px 0 9px;
+.qa-add:hover { background: var(--navy-ink); }
+.qa-add:active { transform: translateY(1px); }
+.qa-add:disabled { opacity: .45; cursor: default; box-shadow: none; }
+.qa-add .plus { font-size: 15px; line-height: 0; font-weight: 400; margin-top: -1px; }
+
+/* ---- Inline deadline picker (chips) -------------------------------------- */
+.datepick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.date-chip {
+  appearance: none; border: 1px solid var(--line-2); background: var(--paper);
+  color: var(--muted); font-family: inherit; font-size: 11.5px; font-weight: 600;
+  padding: 5px 10px; border-radius: 999px; cursor: pointer; letter-spacing: .01em;
+  display: inline-flex; align-items: center; gap: 4px;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
 }
-.scorecard .splitbar i { display: block; height: 100%; }
-.scorecard .splitbar .on { background: var(--safe); }
-.scorecard .splitbar .lt { background: var(--over); opacity: .75; }
-.scorecard .foot { font-size: 11.5px; color: var(--muted); min-height: 1em; }
-.scorecard .foot .late { color: var(--over); font-weight: 600; }
+.date-chip:hover { color: var(--navy); border-color: var(--navy); }
+.date-chip.on { background: var(--navy); border-color: var(--navy); color: #fdfaf3; }
+.date-chip .ic { font-size: 10.5px; opacity: .8; }
+.date-chip.cal { border-style: dashed; }
+.date-chip.cal.on { border-style: solid; }
+
+/* ---- Inline task edit ---------------------------------------------------- */
+.card.editing { align-items: stretch; }
+.edit-inline { display: grid; gap: 11px; }
+.title-edit {
+  width: 100%; border: 1px solid var(--navy); border-radius: 10px; resize: none; overflow: hidden;
+  background: var(--paper); color: var(--ink); font-family: inherit; font-size: 15px;
+  font-weight: 600; letter-spacing: -.005em; line-height: 1.5; padding: 10px 11px;
+  box-shadow: 0 0 0 3px rgba(31,58,95,.13);
+}
+.title-edit:focus { outline: none; }
+.owner-mini { display: inline-flex; gap: 6px; }
+.pill-mini {
+  appearance: none; border: 1px solid var(--line-2); background: var(--paper);
+  color: var(--muted); font-family: inherit; font-size: 12px; font-weight: 600;
+  padding: 5px 13px; border-radius: 8px; cursor: pointer;
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.pill-mini.on { border-color: var(--navy); color: var(--ink); background: var(--surface);
+  box-shadow: var(--shadow); }
+.edit-actions { display: flex; gap: 8px; }
+.btn-mini {
+  appearance: none; border: 1px solid var(--line-2); background: var(--surface);
+  color: var(--ink-soft); font-family: inherit; font-size: 12.5px; font-weight: 600;
+  padding: 7px 15px; border-radius: 9px; cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.btn-mini:hover { border-color: var(--ink-soft); }
+.btn-mini.primary { background: var(--navy); border-color: var(--navy); color: #fdfaf3; }
+.btn-mini.primary:hover { background: var(--navy-ink); }
+.btn-mini:disabled { opacity: .5; cursor: default; }
 
 /* ---- Owner selector ------------------------------------------------------ */
 .ownerbar {
@@ -153,9 +195,10 @@ body {
 .card .handle:hover { color: var(--muted); }
 .card .body { flex: 1; min-width: 0; }
 .card .title { font-weight: 600; font-size: 15px; color: var(--ink); letter-spacing: -.005em;
-  word-break: break-word; }
-.card .notes { font-size: 13px; color: var(--muted); margin-top: 3px; white-space: pre-wrap;
-  line-height: 1.45; word-break: break-word; }
+  word-break: break-word; white-space: pre-wrap; line-height: 1.5; }
+.card .title.tappable { cursor: text; border-radius: 6px; margin: -2px -4px; padding: 2px 4px;
+  transition: background .15s ease; }
+.card .title.tappable:hover { background: var(--paper-2); }
 .card.done { background: var(--paper); box-shadow: none; border-color: var(--line); }
 .card.done .title { text-decoration: line-through; text-decoration-color: var(--faint);
   color: var(--muted); }

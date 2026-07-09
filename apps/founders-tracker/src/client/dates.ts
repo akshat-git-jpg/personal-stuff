@@ -1,5 +1,8 @@
 const TZ = "Asia/Kolkata";
 
+/** Weekday labels for recurring cadence (0=Mon … 6=Sun). */
+export const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
 export function todayIST(d: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: TZ,
@@ -9,11 +12,16 @@ export function todayIST(d: Date = new Date()): string {
   }).format(d);
 }
 
+/** A date `days` away from today (IST), as 'YYYY-MM-DD'. Negative = past. */
+export function addDaysIST(days: number, d: Date = new Date()): string {
+  const t = new Date(`${todayIST(d)}T12:00:00Z`);
+  t.setUTCDate(t.getUTCDate() + days);
+  return t.toISOString().slice(0, 10);
+}
+
 /** Default deadline for a freshly created task: tomorrow, IST. */
 export function tomorrowIST(d: Date = new Date()): string {
-  const t = new Date(`${todayIST(d)}T12:00:00Z`);
-  t.setUTCDate(t.getUTCDate() + 1);
-  return t.toISOString().slice(0, 10);
+  return addDaysIST(1, d);
 }
 
 /** Whole days from today (IST) to the eta date. Negative = overdue. */
@@ -40,4 +48,10 @@ export function fmtEta(eta: string): string {
     month: "short",
     year: "numeric",
   });
+}
+
+/** Compact date label for inline chips — day + month, no year. */
+export function fmtEtaShort(eta: string): string {
+  const d = new Date(`${eta}T12:00:00Z`);
+  return d.toLocaleDateString("en-GB", { timeZone: TZ, day: "numeric", month: "short" });
 }
