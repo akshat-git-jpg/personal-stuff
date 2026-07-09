@@ -43,18 +43,17 @@ def main():
     if vtype not in M.TYPES:
         die(f"unknown type {vtype!r} — add it to shared/avatar_mapping.py TYPES")
 
+    template_id = M.TYPES[vtype]["template_id"]
     cli = heygen.resolve_cli()
     OUT.mkdir(parents=True, exist_ok=True)
     jobs = []
-    print(f"video: {title} · type: {vtype} · submit (no polling)")
+    print(f"video: {title} · type: {vtype} · template {template_id} · submit (no polling)")
     for n, (seg, wav) in enumerate(audio_man["wavs"].items()):
-        engine = M.SEGMENT_ENGINE[seg]
-        avatar_id = M.TYPES[vtype][f"{engine}_avatar_id"]
         if n:
             heygen.human_delay(PACING, n)
-        print(f"  → submit {seg} on {engine} (avatar {avatar_id})")
-        res = heygen.submit(cli, wav, avatar_id, engine, title=f"{title}__{seg}")
-        jobs.append({"segment": seg, "engine": engine, "avatar_id": avatar_id, "audio": wav, **res})
+        print(f"  → submit {seg} from template")
+        res = heygen.submit_from_template(cli, wav, template_id, title=f"{title}__{seg}")
+        jobs.append({"segment": seg, "template_id": template_id, "audio": wav, **res})
         vid = f" video_id={res['video_id']}" if res.get("video_id") else ""
         print(f"    {res.get('status')}{vid}")
 

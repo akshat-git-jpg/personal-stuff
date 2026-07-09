@@ -21,7 +21,13 @@
 //   heygen-web generate --avatar <look_id> --voice <voice_id> --text "..." \
 //                       [--title T] [--orientation portrait|landscape] [--res 720p|1080p]
 //                       [--iv]   (opt into metered Avatar IV; default is unlimited Avatar III)
-//   heygen-web status <video_id>      (stub — needs poll endpoint capture)
+//   heygen-web generate-from-audio --avatar <avatar_id> --audio <file> \
+//                       [--engine heygen3|heygen4] [--orientation landscape|portrait] [--title T]
+//                       (default landscape — matches this pipeline's source recordings)
+//   heygen-web generate-from-template --template <template_id> --audio <file> [--title T]
+//                       renders a pre-composed TEMPLATE (background + avatar bubble) over your
+//                       audio — this is what "Girl 1"/"girl 2"/etc ids actually are, NOT avatars
+//   heygen-web status <video_id>      one-shot ETA/progress, no polling loop
 //   heygen-web raw <path> [--json '<body>']   (GET, or POST when --json given)
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -40,8 +46,9 @@ function loadAuth() {
   const txt = readFileSync(CURLS, "utf8");
   const cookie = (txt.match(/-b '([^']+)'/) || [])[1];
   const zid = (txt.match(/x-zid:\s*([^\s'\\]+)/) || [])[1];
+  const spaceId = (cookie || "").match(/heygen_space=([^;]+)/)?.[1];
   if (!cookie) die(`Could not find a -b '<cookie>' block in ${CURLS}.`);
-  return { cookie, zid };
+  return { cookie, zid, spaceId };
 }
 
 function headers(auth, extra = {}) {
@@ -55,15 +62,21 @@ function headers(auth, extra = {}) {
     "x-path": "/avatar",
     "x-language-override": "en-US",
     ...(auth.zid ? { "x-zid": auth.zid } : {}),
+    ...(auth.spaceId ? { "x-space-id": auth.spaceId } : {}),
     cookie: auth.cookie,
     ...extra,
   };
 }
 
-async function api(auth, path, { method = "GET", body } = {}) {
+// xPath lets callers send the real editor route (e.g. "/create-v4/draft" or
+// "/create-v4/<video_id>") instead of the generic "/avatar" default — HAR-verified
+// 2026-07-09 (app.heygen.com13.har) as what the actual AI Studio editor sends on every
+// text_draft.create/save/generate call. Unconfirmed whether the backend's routing/behavior
+// actually depends on it, but it's free to send correctly and rules out one more variable.
+async function api(auth, path, { method = "GET", body, xPath } = {}) {
   const res = await fetch(path.startsWith("http") ? path : BASE + path, {
     method,
-    headers: headers(auth),
+    headers: headers(auth, xPath ? { "x-path": xPath } : {}),
     body: body ? JSON.stringify(body) : undefined,
   });
   const text = await res.text();
@@ -224,6 +237,21 @@ async function listVideos(auth, args) {
   console.error(`\n→ ${items.length} videos (type=${type}). delete-video <id...> to trash.`);
 }
 
+// One-shot render status — GET /v1/project/items/status?item_ids=<id>. Real ETA/progress from
+// the server itself (no polling loop needed): {status, progress (0-100), eta (seconds left),
+// thumbnail_url, error_code/type/message on failure}. HAR-verified 2026-07-09 (app.heygen.com13.har).
+async function status(auth, id) {
+  if (!id) die("status needs <video_id>");
+  const r = await api(auth, `/v1/project/items/status?item_ids=${encodeURIComponent(id)}`);
+  const item = r?.data?.[0];
+  if (!item) die("no such video_id (or no status yet): " + id);
+  console.log(JSON.stringify(item, null, 2));
+  if (item.status === "processing" && item.eta != null)
+    console.error(`→ processing, ~${Math.round(item.eta)}s left (${item.progress?.toFixed(1)}%)`);
+  else
+    console.error(`→ ${item.status}`);
+}
+
 // Trash one or more videos — DELETE /v1/project/item.trash {items:[{id,item_type}]}.
 // DESTRUCTIVE: only call when the user has named/approved the ids.
 async function deleteVideos(auth, ids, args) {
@@ -268,6 +296,27 @@ async function generate(auth, args) {
   console.log(JSON.stringify(raw, null, 2));
 }
 
+// fast_asr 404s ("File not found") for a few seconds right after file.upload — HeyGen hasn't
+// finished transcoding the S3 upload to transcode.mp3 yet. Retry instead of dying on the first 404.
+async function fastAsrWithRetry(auth, url, tries = 8, gapMs = 3000) {
+  for (let i = 0; i < tries; i++) {
+    const res = await fetch(`${BASE}/v1/audio/fast_asr`, {
+      method: "POST", headers: headers(auth), body: JSON.stringify({ url }),
+    });
+    const text = await res.text();
+    if (res.status === 403 || /cloudflare|just a moment/i.test(text))
+      die(`403 / Cloudflare — session cookie likely expired. Recapture a fresh\n` +
+          `   'submit' cURL into ${CURLS}. (cf_clearance/__cf_bm rotate fast.)`);
+    let json; try { json = JSON.parse(text); } catch { json = { raw: text }; }
+    if (res.ok) return json;
+    if (res.status === 404 && i < tries - 1) {
+      await new Promise((r) => setTimeout(r, gapMs));
+      continue;
+    }
+    die(`HTTP ${res.status} POST /v1/audio/fast_asr\n${text.slice(0, 500)}`);
+  }
+}
+
 // Uploads a local audio file to HeyGen (S3 presigned PUT, same pattern as create-photo-avatar's
 // image upload) and runs it through HeyGen's own ASR. Captured 2026-07-07 from a real HAR — see
 // this step's HAR-index comments above for the exact endpoint trace.
@@ -298,7 +347,7 @@ async function uploadAudio(auth, audioPath) {
   const transcodeUrl = `${download_url.replace(/original\.\w+$/, "transcode.mp3")}` +
     `?response-content-disposition=attachment%3B+filename%2A%3DUTF-8%27%27${encodeURIComponent(base)}.mp3%3B`;
 
-  const asr = await api(auth, "/v1/audio/fast_asr", { method: "POST", body: { url: transcodeUrl } });
+  const asr = await fastAsrWithRetry(auth, transcodeUrl);
   const asrData = asr?.data?.data;
   if (!asrData?.words) die("fast_asr failed: " + JSON.stringify(asr));
   return { transcodeUrl, text: asrData.text, words: asrData.words, duration: asrData.duration };
@@ -311,42 +360,138 @@ function fillAudioTemplate(name, tokens) {
   return JSON.parse(text);
 }
 
+// Both HAR-captured templates (generate-audio-save.json, generate-audio-generate.json) bake in a
+// fixed avatar element size: { fit: "none", scale: {x,y} } scaling the avatar's native photo
+// pixels, centered, with NO auto-fit to the canvas — so canvas and scale must be changed together
+// or the avatar under/overshoots the frame (e.g. leaving the scene's white background_color
+// showing through on the sides). Both values below are HAR-verified per orientation, not derived:
+// portrait from the original 2026-07-07 capture, landscape from a 2026-07-09 web-UI capture
+// (app.heygen.com12.har) of this same avatar rendering correctly full-bleed in 16:9.
+const RESOLUTIONS = {
+  landscape: { width: 1920, height: 1080, scale: 0.703125 },
+  portrait: { width: 1080, height: 1920, scale: 0.8 },
+};
+
+// Two things field-by-field diffing against a verified-working capture (app.heygen.com13.har,
+// "test claude 2") ruled OUT as the fix — both produced pixel-identical pillarboxed output to the
+// plain avatar_iii baseline despite matching that capture's structure exactly:
+//   1. Referencing the avatar's avatar_artifact_id (a pre-rendered "Autogenerated Footage" loop,
+//      natively landscape) via engine_settings.engine_type "avatar_artifact".
+//   2. Priming with an extra text_draft.save using engine_settings.engine_type "avatar_iv_turbo"
+//      before the real avatar_iii save (replicating the web UI's default-engine-then-switch
+//      sequence).
+// Remaining unexplained: the request BODY is byte-identical to the working capture (only a
+// random element id differs) — see the HAR-mining notes in HANDOVER.md for what's still open.
+
 // Renders an EXISTING avatar (an avatar_id you already made — NOT create-photo-avatar) lip-synced
 // to a LOCAL audio file. Only the heygen3 (Avatar III, unlimited) path is HAR-verified; heygen4
 // (Avatar IV, metered) needs its own capture before this can support it.
-async function submitAudioGenerate(auth, { avatar, audioPath, engine, title }) {
+async function submitAudioGenerate(auth, { avatar, audioPath, engine, title, orientation }) {
   if (engine !== "heygen3")
     throw new Error(`[TODO][HNS] generate-from-audio: only heygen3 (Avatar III) is HAR-verified; ` +
       `heygen4 (Avatar IV) needs its own captured HAR before this path can be wired.`);
+  const { width, height, scale } = RESOLUTIONS[orientation || "landscape"];
   const audio = await uploadAudio(auth, audioPath);
 
   const create = await api(auth, "/v1/text_draft.create", {
-    method: "POST",
-    body: { video_output: { resolution: { width: 1080, height: 1920 }, fps: 25 }, source_type: "ai_studio" },
+    method: "POST", xPath: "/create-v4/draft",
+    body: { video_output: { resolution: { width, height }, fps: 25 }, source_type: "ai_studio" },
   });
   const vid = create?.data?.video_id;
   if (!vid) die("text_draft.create failed: " + JSON.stringify(create));
+  const editorPath = `/create-v4/${vid}`;
 
   const tokens = {
     __VIDEO_ID__: vid, __AVATAR_ID__: avatar, __TITLE__: title || "generate-from-audio",
     __AUDIO_URL__: audio.transcodeUrl,
     __AUDIO_TEXT__: JSON.stringify(audio.text).slice(1, -1),
     __VOICE_ID__: "42d00d4aac5441279d8536cd6b52c53c", // formality field — audio.src drives playback, not TTS
+    __WIDTH__: width, __HEIGHT__: height, __SCALE__: scale,
   };
 
   const saveBody = fillAudioTemplate("generate-audio-save.json", tokens);
   const saveAudioMeta = saveBody.metadata.find((m) => m.type === "audio");
   saveAudioMeta.words = audio.words; saveAudioMeta.duration = audio.duration;
-  await api(auth, "/v1/text_draft.save", { method: "POST", body: saveBody });
+  await api(auth, "/v1/text_draft.save", { method: "POST", xPath: editorPath, body: saveBody });
 
   const genBody = fillAudioTemplate("generate-audio-generate.json",
     { ...tokens, __VERSION_ID__: randomUUID().replace(/-/g, "") });
   const genMeta = genBody.draft_details.text_draft_with_metadata.metadata;
-  const audioElId = genBody.draft_details.text_draft_with_metadata.text_draft.script.timeline[0];
+  const genTextDraft = genBody.draft_details.text_draft_with_metadata.text_draft;
+  const audioElId = genTextDraft.script.timeline[0];
   genMeta[audioElId].words = audio.words;
   genMeta[audioElId].duration = audio.duration;
 
-  const gen = await api(auth, "/v1/text_draft.generate", { method: "POST", body: genBody });
+  const gen = await api(auth, "/v1/text_draft.generate",
+    { method: "POST", xPath: editorPath, body: genBody });
+  const outVid = gen?.data?.video_id;
+  if (!outVid) die("text_draft.generate failed: " + JSON.stringify(gen));
+  return { video_id: outVid };
+}
+
+// GET a template's pre-composed text_draft — HAR-verified 2026-07-09 (app.heygen.com15.har).
+// Returns { text_draft, metadata, video_output }. Never mutate the returned object in place —
+// callers deep-clone before editing (see submitFromTemplate).
+async function getTemplate(auth, templateId) {
+  const r = await api(auth, `/v2/heygen_template.get?id=${encodeURIComponent(templateId)}`);
+  const t = r?.data?.text_draft;
+  if (!t) die("heygen_template.get failed: " + JSON.stringify(r));
+  return t;
+}
+
+// Renders a TEMPLATE (a whole pre-composed scene — background image + avatar, often a small
+// circular "webcam bubble" via matting, not full-frame — bundled under a template_id) over your
+// own audio. This is what the account's "Girl 1"/"girl 2"/etc ids actually are (they only
+// resolve on heygen_template.list, never avatar_group.*) — see API-REFERENCE.md. The visual
+// composition (avatar/image/scene) is left completely untouched; only the script's audio element
+// is swapped for your uploaded audio, same upload path as generate-from-audio.
+//
+// Skips HeyGen's speech-to-speech voice mirroring (POST /v1/speech_to_speech.generate) that the
+// real editor used in its capture — that converts your audio into the template's own designated
+// voice while keeping your words/timing; cosmetic, not required for a working render. Add it
+// later if the raw uploaded voice turns out to matter for a given template.
+async function submitFromTemplate(auth, { templateId, audioPath, title }) {
+  const tmpl = await getTemplate(auth, templateId);
+  const audio = await uploadAudio(auth, audioPath);
+
+  const create = await api(auth, "/v1/text_draft.create", {
+    method: "POST", xPath: "/create-v4/draft",
+    body: { video_output: tmpl.video_output, source_type: "ai_studio_template", template_id: templateId },
+  });
+  const vid = create?.data?.video_id;
+  if (!vid) die("text_draft.create failed: " + JSON.stringify(create));
+  const editorPath = `/create-v4/${vid}`;
+
+  const textDraft = JSON.parse(JSON.stringify(tmpl.text_draft));
+  const metadata = JSON.parse(JSON.stringify(tmpl.metadata));
+
+  const scriptElId = textDraft.script.timeline[0];
+  const { voice_id, voice_settings } = textDraft.script.elements[scriptElId].attributes;
+  textDraft.script.elements[scriptElId] = {
+    id: scriptElId, type: "audio",
+    attributes: { src: audio.transcodeUrl, voice_id, voice_settings },
+    voice_mirroring: false,
+  };
+  metadata[scriptElId] = {
+    element_id: scriptElId, type: "audio", seed: Math.floor(Math.random() * 2 ** 32),
+    url: audio.transcodeUrl, duration: audio.duration, words: audio.words,
+    name: basename(audioPath), fileType: "upload", source_audio_url: audio.transcodeUrl,
+  };
+
+  const saveBody = {
+    video_id: vid, text_draft: textDraft, video_output: tmpl.video_output,
+    metadata: Object.values(metadata), title: title || "generate-from-template",
+    skip_rate_limit: false, has_faceswap: false,
+  };
+  await api(auth, "/v1/text_draft.save", { method: "POST", xPath: editorPath, body: saveBody });
+
+  const genBody = {
+    video_id: vid, enable_watermark: false, generate_type: "normal",
+    version_id: randomUUID().replace(/-/g, ""), complete_tts_in_backend: true,
+    draft_details: { text_draft_with_metadata: { metadata, text_draft: textDraft, video_output: tmpl.video_output } },
+  };
+  const gen = await api(auth, "/v1/text_draft.generate",
+    { method: "POST", xPath: editorPath, body: genBody });
   const outVid = gen?.data?.video_id;
   if (!outVid) die("text_draft.generate failed: " + JSON.stringify(gen));
   return { video_id: outVid };
@@ -355,11 +500,29 @@ async function submitAudioGenerate(auth, { avatar, audioPath, engine, title }) {
 async function generateFromAudio(auth, args) {
   const avatar = arg(args, "--avatar"), audioPath = arg(args, "--audio");
   const engine = arg(args, "--engine") || "heygen3", title = arg(args, "--title");
+  const orientation = arg(args, "--orientation") || "landscape";
   if (!avatar || !audioPath)
-    die('generate-from-audio needs --avatar <avatar_id> --audio <file> [--engine heygen3|heygen4] [--title T]');
+    die('generate-from-audio needs --avatar <avatar_id> --audio <file> [--engine heygen3|heygen4] ' +
+        '[--orientation landscape|portrait] [--title T]');
+  if (!RESOLUTIONS[orientation]) die(`--orientation must be landscape|portrait, got '${orientation}'`);
   if (!existsSync(audioPath)) die(`no such audio file: ${audioPath}`);
   try {
-    const { video_id } = await submitAudioGenerate(auth, { avatar, audioPath, engine, title });
+    const { video_id } = await submitAudioGenerate(auth, { avatar, audioPath, engine, title, orientation });
+    console.log(JSON.stringify({ video_id }, null, 2));
+  } catch (e) {
+    console.error(String(e.message || e));
+    process.exit(1);
+  }
+}
+
+async function generateFromTemplate(auth, args) {
+  const templateId = arg(args, "--template"), audioPath = arg(args, "--audio");
+  const title = arg(args, "--title");
+  if (!templateId || !audioPath)
+    die('generate-from-template needs --template <template_id> --audio <file> [--title T]');
+  if (!existsSync(audioPath)) die(`no such audio file: ${audioPath}`);
+  try {
+    const { video_id } = await submitFromTemplate(auth, { templateId, audioPath, title });
     console.log(JSON.stringify({ video_id }, null, 2));
   } catch (e) {
     console.error(String(e.message || e));
@@ -576,8 +739,14 @@ if (!cmd || cmd === "help") {
   list-looks --group <group_id>
   generate --avatar <look_id> --voice <voice_id> --text "..." [--title T]
            [--orientation portrait|landscape] [--res 720p|1080p] [--iv]
-  generate-from-audio --avatar <avatar_id> --audio <file> [--engine heygen3|heygen4] [--title T]
+  generate-from-audio --avatar <avatar_id> --audio <file> [--engine heygen3|heygen4]
+           [--orientation landscape|portrait] [--title T]
            heygen3 (Avatar III) is real (HAR-verified 2026-07-07); heygen4 (Avatar IV) is [TODO][HNS].
+           orientation defaults to landscape (1920x1080) — matches this pipeline's source recordings.
+  generate-from-template --template <template_id> --audio <file> [--title T]
+           renders a TEMPLATE (pre-composed background + avatar bubble, e.g. "Girl 1"/"girl 2")
+           over your audio; visual composition untouched, only the audio swaps in.
+           HAR-verified 2026-07-09 — see API-REFERENCE.md "Create from template".
   batch --file <items.txt|items.json> [--avatar id] [--voice id]
            [--orientation portrait|landscape] [--res 720p|1080p]
            [--out-dir DIR] [--delay 1500] [--download] [--iv]
@@ -587,6 +756,7 @@ if (!cmd || cmd === "help") {
   studio-render --avatar <look_id> [--title T]  AI Studio render over the fixed 1-min audio
   list-voices [--limit 30] [--page 1] [--search term] [--json]
   list-videos [--limit 30] [--type heygen_video] [--json]
+  status <video_id>           one-shot status + ETA/progress (no polling loop)
   delete-video <video_id> [<video_id> ...] [--type heygen_video]
   raw <path> [--json '<body>']\n
 Auth file: ${CURLS}\n⚠️  ToS-grey, account-bound. Default mode = unlimited Avatar III.`);
@@ -601,12 +771,14 @@ switch (cmd) {
   case "usage":        await usage(auth, rest); break;
   case "generate":     await generate(auth, rest); break;
   case "generate-from-audio": await generateFromAudio(auth, rest); break;
+  case "generate-from-template": await generateFromTemplate(auth, rest); break;
   case "batch":        await batch(auth, rest); break;
   case "create-photo-avatar": await createPhotoAvatar(auth, rest); break;
   case "studio-render": await studioRender(auth, rest); break;
   case "studio-render-status": await studioRenderStatus(auth, rest[0], rest[1]); break;
   case "list-voices":  await listVoices(auth, rest); break;
   case "list-videos":  await listVideos(auth, rest); break;
+  case "status":       await status(auth, rest[0]); break;
   case "delete-video": await deleteVideos(auth, rest.filter((x) => !x.startsWith("--")), rest); break;
   case "download":     await download(auth, rest[0], rest.slice(1)); break;
   case "raw":          await raw(auth, rest[0], rest.slice(1)); break;

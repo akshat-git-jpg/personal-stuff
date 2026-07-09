@@ -64,8 +64,8 @@
       "size": {
        "fit": "none",
        "scale": {
-        "x": 0.8,
-        "y": 0.8
+        "x": __SCALE__,
+        "y": __SCALE__
        },
        "crop": {
         "top": 0,
@@ -147,8 +147,8 @@
  },
  "video_output": {
   "resolution": {
-   "width": 1080,
-   "height": 1920
+   "width": __WIDTH__,
+   "height": __HEIGHT__
   },
   "fps": 25,
   "caption": false

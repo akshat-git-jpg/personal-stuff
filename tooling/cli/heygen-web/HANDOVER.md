@@ -120,13 +120,35 @@ Baseline lives in `infra/secrets/heygen-usage-last.json` (gitignored). Dropped t
 1. **DONE** (`text_draft.generate` is now captured and wired via `generate-from-audio`'s `heygen3` path). `heygen4`'s equivalent capture is the new remaining gap.
 2. If a render path ever moves the free-second pool, flag it: 1200s/month is ~20 minutes,
    so two-minute renders would hit a wall after ~10 a month even with no money spent.
+3. **Resolved (2026-07-09), but not yet implemented:** the landscape pillarboxing on
+   `generate-from-audio` turned out to be the wrong question. The user's original girl
+   1/girl 2 ids (`7629dffb...`/`887ad69c...`) are **template ids**, not avatar ids — they
+   only resolve on `heygen_template.list`, never on any `avatar_group.*` endpoint, which
+   is why hours of scale/artifact/header investigation against a stand-in avatar
+   ("Lilly") never closed it. A template bundles its own correctly-composed 16:9 scene
+   (background image + avatar bubble). See API-REFERENCE.md's "Create from template"
+   section for the full flow (`heygen_template.get` → `text_draft.create` with
+   `source_type:"ai_studio_template"`+`template_id` → swap in real audio → save →
+   generate) — mined from a real capture but **not yet wired into `heygen-web.mjs`** (no
+   `generate-from-template` command exists yet) and not yet render-verified end to end
+   with real audio.
+4. **Before mining any new HAR for this CLI, read `API-REFERENCE.md` first** — it
+   catalogs every endpoint seen across HARs 1-13 and 15 (wired or not), so a fresh session
+   doesn't have to re-discover the same 50+ endpoints by hand.
 
 ## File map
 
 - `heygen-web.mjs` — the CLI. Commands: auth-check, limits, usage, list-avatars,
   list-looks, list-voices, create-photo-avatar, studio-render, studio-render-status,
-  generate, batch, list-videos, delete-video, download, raw.
+  generate, generate-from-audio, batch, list-videos, status, delete-video, download, raw.
+- `API-REFERENCE.md` — full endpoint catalog mined from every HAR capture, wired or not.
+  Read this before re-mining a HAR for a "new" endpoint.
 - `studio-templates/save.json`, `preview.json` — tokenized AI Studio bodies, fixed audio.
-- `README.md` — command reference.
+- `studio-templates/generate-audio-save.json`, `generate-audio-generate.json` — tokenized
+  `generate-from-audio` bodies (used by `heygen3`'s real path). Canvas size (`__WIDTH__`/
+  `__HEIGHT__`) and avatar scale (`__SCALE__`) are both orientation-dependent tokens — see
+  `RESOLUTIONS` in `heygen-web.mjs`.
+- `README.md` — command reference (stale in places — written before generate-from-audio
+  existed; API-REFERENCE.md and this file are the current source of truth).
 - `infra/secrets/heygen-web-curls.txt` — auth source (gitignored).
 - `infra/secrets/heygen-usage-last.json` — usage baseline (gitignored).

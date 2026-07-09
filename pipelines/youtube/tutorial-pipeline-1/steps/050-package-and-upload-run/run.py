@@ -4,7 +4,7 @@ Step 050 — package spokesperson clips + upload back to Drive.  [RUN]  (last st
 
   python3 run.py [<video_title>] [--account EMAIL]
 
-Reads:  ../040-download-avatar-renders-human/output/videos/{intro,body,conclusion}.mp4
+Reads:  ../040-download-avatar-renders-run/output/videos/{intro,body,conclusion}.mp4
         ../010-resolve-drive-input-run/output/<video_title>.input-manifest.json  (for folder_id)
 Writes: output/spokesperson_intro.mp4, output/spokesperson_body.mp4, output/spokesperson_conclusion.mp4
         + uploads each into an output/ subfolder of the source Drive folder (find-or-created)
@@ -18,7 +18,7 @@ from lib import drive                                             # noqa: E402
 HERE = pathlib.Path(__file__).resolve().parent
 OUT = HERE / "output"
 S010_OUT = ROOT / "steps/010-resolve-drive-input-run/output"
-S040_VIDEOS = ROOT / "steps/040-download-avatar-renders-human/output/videos"
+S040_VIDEOS = ROOT / "steps/040-download-avatar-renders-run/output/videos"
 SEGMENTS = ("intro", "body", "conclusion")
 
 
@@ -51,7 +51,7 @@ def main():
     for seg in SEGMENTS:
         src = S040_VIDEOS / f"{seg}.mp4"
         if not src.exists():
-            die(f"missing {src} — run step 040 (and its check.py) first")
+            die(f"missing {src} — run step 040 first")
         dest = OUT / f"spokesperson_{seg}.mp4"
         shutil.copyfile(src, dest)
         drive.upload(cli, dest, output_id, a.account, overwrite=True)

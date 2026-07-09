@@ -1,0 +1,10 @@
+# Python caches
+**/__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Generated step artifacts — every step's output/ is regenerable from the pipeline
+# (downloaded segments, audio, HeyGen manifests, rendered videos, the packaged handoff tree)
+steps/*/output/

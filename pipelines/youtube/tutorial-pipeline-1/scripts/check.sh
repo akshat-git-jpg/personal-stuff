@@ -18,7 +18,7 @@ for f in PIPELINE.md lib/drive.py lib/audio.py lib/heygen.py shared/avatar_mappi
   [ -f "$f" ] || { echo "✖ missing $f"; exit 1; }
 done
 for d in steps/010-resolve-drive-input-run steps/020-extract-audio-run \
-         steps/030-submit-avatar-renders-run steps/040-download-avatar-renders-human \
+         steps/030-submit-avatar-renders-run steps/040-download-avatar-renders-run \
          steps/050-package-and-upload-run; do
   [ -d "$d" ] || { echo "✖ missing $d"; exit 1; }
 done
