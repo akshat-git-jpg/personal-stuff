@@ -1,5 +1,5 @@
 ---
-executor: claude-p
+executor: agy
 model:
 test_cmd: bash scripts/check-skill-descriptions.sh && cd tooling/cli/heygen-web && npm test
 ui: false
@@ -16,7 +16,7 @@ needs: ["PRE-DISPATCH: owner must move the untracked heygen-web media out of the
   - `scripts/check-skill-descriptions.sh` — measures every skill description; WARN >500, FAIL >700 (exit 1); wired into `scripts/relink.sh` so the cap can't silently regress again.
   - Trim `commit-now`'s description under 500 (exact replacement text below).
   - heygen-web: `.gitignore` for media, `renders-log.md` tracked (content inlined below, media paths pointing at `~/kb-scratch/heygen-web-renders/`), and an `appendRenderLog()` helper wired into the three submit operations so the manifest maintains itself.
-- **Executor proposed**: claude-p, sonnet (standard difficulty).
+- **Executor proposed**: agy, executor-default model (Gemini 3.1 Pro (High)).
 - **Done criteria** (terse): test_cmd green (guard passes because commit-now is trimmed in the same branch; heygen offline tests pass incl. 2 new ones).
 - **Stop conditions** (terse): drift vs excerpts; any live HeyGen call; any skill description rewrite other than commit-now.
 - **Test / verification for success**: the guard run against the real store + `npm test` in heygen-web (offline).
