@@ -7,7 +7,7 @@ This file is mirrored to three locations so it's findable wherever you are:
 - `akshat-git-jpg/vps-crons` → `VPS-CRONS.md` (root)
 - VPS → `/root/VPS-CRONS.md` (for quick reference when SSH'd in)
 
-Last updated: 2026-07-05.
+Last updated: 2026-07-11.
 
 ---
 
@@ -468,6 +468,26 @@ This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you 
 - **Project code:** `/srv/projects/personal-stuff/pipelines/backups/d1_export.py`
 - **MinIO:** localhost `127.0.0.1:9000`, bucket `d1-backups`; upload + prune via `mc`
 - **Alerting:** silent on success; shared `alert.sh` → Telegram on any export/upload failure
+
+### site-probe
+
+- **What:** GET every URL in `my-hosted-sites.md`; Telegram on any down site.
+- **When:** Hourly (`15 * * * *` UTC)
+- **Wrapper:** `/srv/crons/site-probe/run.sh`
+
+### cred-probe
+
+- **What:** daily Google-token + claude-auth health check (plan 057); silent on success, Telegram on failure.
+- **When:** 05:00 IST (`30 23 * * *` UTC)
+- **Wrapper:** `/srv/crons/cred-probe/run.sh`
+- **Project code:** `/srv/projects/personal-stuff/infra/cred-probe/`
+
+### route-audit
+
+- **What:** weekly read-only routing-drift audit via `claude -p` → Telegram report (the autonomy pilot).
+- **When:** Sunday 08:00 IST (`30 2 * * 0` UTC)
+- **Wrapper:** `/srv/crons/route-audit/run.sh`
+- **Project code:** `/srv/projects/personal-stuff/infra/route-audit/`
 
 ---
 
