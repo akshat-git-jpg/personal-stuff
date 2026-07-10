@@ -20,6 +20,15 @@ SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPTS_DIR/lib/skill-link.sh"
 
 STORE="$(cd "$SCRIPTS_DIR/../tooling/claude-skills" && pwd)"
+
+# Refuse to propagate over-cap descriptions to both accounts (COST-01 guard).
+if [[ "${SKIP_DESC_GUARD:-}" != "1" ]]; then
+  "$SCRIPTS_DIR/check-skill-descriptions.sh" || {
+    echo "relink aborted: a skill description exceeds the 700-char hard cap." >&2
+    echo "Trim it (budget ≤500) or rerun with SKIP_DESC_GUARD=1." >&2
+    exit 1
+  }
+fi
 WORK_DIR="${CLAUDE_WORK_CONFIG_DIR:-$HOME/.claude-work}/skills"
 PERS_DIR="${CLAUDE_PERSONAL_CONFIG_DIR:-$HOME/.claude-personal}/skills"
 AGENTS_DIR="$HOME/.agents/skills"   # printing-press pp-* skills

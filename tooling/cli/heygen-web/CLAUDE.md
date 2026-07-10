@@ -37,6 +37,7 @@ Any `--avatar` / `--template` flag accepts **a slug or a raw id** — `registry.
 
 ## Operational Gotchas
 
+- **Render outputs never live in this folder.** Download to `~/kb-scratch/heygen-web-renders/` (media policy); `.gitignore` blocks media here. `renders-log.md` is the tracked manifest — submits auto-append a row via `src/cli/render-log.mjs`; fill in the output filename after downloading.
 - **S3 PUT quirk**: The S3 presigned URL signs `host;x-amz-server-side-encryption`. Any PUT *must* send the header `x-amz-server-side-encryption: AES256` or S3 returns a 403 Forbidden.
 - **Stale template fields**: `preview_image_url`/`processed_image_url` inside the payload JSON carry expiring signatures from the original HAR capture. If a render fails or looks wrong, this is the first suspect.
 - **`studio-render` gap**: The `studio-render` operation fires the in-editor *preview*, not the real Generate render (that endpoint was never HAR-captured with Preserve-log on).

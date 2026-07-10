@@ -5,6 +5,7 @@ import { die } from "../client/http.mjs";
 import { fillTemplate } from "../client/payloads/fill.mjs";
 import { uploadAudio, RESOLUTIONS } from "./audio.mjs";
 import { arg } from "../cli/args.mjs";
+import { appendRenderLog } from "../cli/render-log.mjs";
 
 export async function submitGenerate(auth, { avatar, voice, text, title, orientation, res, iv }) {
   const body = {
@@ -20,6 +21,7 @@ export async function submitGenerate(auth, { avatar, voice, text, title, orienta
     create_new_avatar: false,
   };
   const out = await call(auth, endpoints.avatarShortcutSubmit, {}, { body });
+  appendRenderLog({ avatar, audio: "TTS", video_id: out?.data?.video_id });
   return { video_id: out?.data?.video_id, raw: out };
 }
 
@@ -62,6 +64,7 @@ export async function submitAudioGenerate(auth, { avatar, audioPath, engine, tit
   const gen = await call(auth, endpoints.textDraftGenerate, {}, { xPath: editorPath, body: genBody });
   const outVid = gen?.data?.video_id;
   if (!outVid) die("text_draft.generate failed: " + JSON.stringify(gen));
+  appendRenderLog({ avatar, audio: basename(audioPath), video_id: outVid });
   return { video_id: outVid };
 }
 
@@ -115,6 +118,7 @@ export async function submitFromTemplate(auth, { templateId, audioPath, title })
   const gen = await call(auth, endpoints.textDraftGenerate, {}, { xPath: editorPath, body: genBody });
   const outVid = gen?.data?.video_id;
   if (!outVid) die("text_draft.generate failed: " + JSON.stringify(gen));
+  appendRenderLog({ avatar: templateId, audio: basename(audioPath), video_id: outVid });
   return { video_id: outVid };
 }
 
