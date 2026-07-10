@@ -14,9 +14,10 @@ import {
   type RoleKind, type StageDef,
 } from "./stages";
 import {
-  applyTransition, updateCell, generateLinks, displayName, personLabel, getCardEvents,
-  type BoardRow, type GenerateLinksResult, type CardEvent
+  applyTransition, updateCell, affiliateCatalog, linkPreview, linkConfirm, displayName, personLabel, getCardEvents,
+  type BoardRow, type CardEvent, type AffiliateCatalogItem, type PreviewResult
 } from "./api";
+import { LinkReviewModal } from "./LinkReviewModal";
 import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl, etaBadge } from "./labels";
 import { daysSince } from "./pipeline";
 import { StatusPill } from "./Card";
@@ -207,9 +208,63 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
   const [actingId, setActingId] = useState<string | null>(null);
 
   // Link generation (admin).
-  const [genLoading, setGenLoading] = useState(false);
-  const [genResult, setGenResult] = useState<GenerateLinksResult | null>(null);
-  const [genError, setGenError] = useState<string | null>(null);
+  const [toolsDraft, setToolsDraft] = useState<any[]>(() => {
+    try { return JSON.parse(((row as any).video_tools as string) || "[]"); } catch { return []; }
+  });
+  const [catalog, setCatalog] = useState<AffiliateCatalogItem[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [previewData, setPreviewData] = useState<PreviewResult | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [staleError, setStaleError] = useState<string | undefined>();
+  const [showExternalInputs, setShowExternalInputs] = useState(false);
+  const [extName, setExtName] = useState("");
+  const [extUrl, setExtUrl] = useState("");
+  
+  useEffect(() => {
+    if (isAdmin && !readOnly && catalog.length === 0 && !catalogLoading) {
+      setCatalogLoading(true);
+      affiliateCatalog().then(setCatalog).finally(() => setCatalogLoading(false));
+    }
+  }, [isAdmin, readOnly, catalog.length, catalogLoading]);
+
+  async function handlePreview() {
+    if (!row.row_id) return;
+    setPreviewLoading(true); setPreviewError(null); setStaleError(undefined);
+    try {
+      setPreviewData(await linkPreview(row.row_id));
+    } catch (err) {
+      setPreviewError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  async function handleConfirm() {
+    if (!row.row_id || !previewData) return;
+    setIsConfirming(true); setStaleError(undefined);
+    try {
+      await linkConfirm(row.row_id, previewData.plan_hash);
+      setPreviewData(null);
+      onSaved();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("Re-open the review")) {
+        setStaleError(msg);
+      } else {
+        setPreviewError(msg);
+        setPreviewData(null);
+      }
+    } finally {
+      setIsConfirming(false);
+    }
+  }
+
+  async function saveTools(newTools: any[]) {
+    setToolsDraft(newTools);
+    if (row.row_id) await updateCell(row.row_id, "video_tools" as Column, JSON.stringify(newTools));
+  }
 
   const [showActivity, setShowActivity] = useState(false);
   const [events, setEvents] = useState<CardEvent[]>([]);
@@ -324,13 +379,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
     }
   }
 
-  async function handleGenerate() {
-    if (!row.row_id) return;
-    setGenLoading(true); setGenError(null);
-    try { setGenResult(await generateLinks(row.row_id)); onSaved(); }
-    catch (err) { setGenError(err instanceof Error ? err.message : String(err)); }
-    finally { setGenLoading(false); }
-  }
+
 
   // ── Field renderer ─────────────────────────────────────────────────────────
   function renderField(col: Column) {
@@ -576,24 +625,66 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
           )}
 
           {isAdmin && !readOnly && (
-            <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
-              <Button size="sm" onClick={() => void handleGenerate()} disabled={genLoading}>
-                <Sparkles className="size-3.5" /> {genLoading ? "Generating…" : "Generate links & description"}
-              </Button>
-              {genError && <p className="text-xs font-medium text-destructive">{genError}</p>}
-              {genResult && (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-foreground/80">Description</label>
-                  <textarea readOnly value={genResult.description} rows={6} className={cn(inputCls, "h-auto py-2 font-mono text-xs")} />
-                  <Button type="button" variant="outline" size="sm" onClick={() => void navigator.clipboard.writeText(genResult.description)}>Copy description</Button>
-                  <ul className="space-y-1 text-xs">
-                    {genResult.links.map((l) => (
-                      <li key={l.tool}><code className="rounded bg-muted px-1">{l.tool}</code>: <a href={l.short_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{l.short_url}</a>{!l.has_affiliate && <span className="text-amber-700 dark:text-amber-400"> (no affiliate — verify URL)</span>}</li>
+            <div className="space-y-4 rounded-lg border border-border bg-card p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Video tools</h3>
+                <span className="text-xs text-muted-foreground">{toolsDraft.length} selected</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {toolsDraft.map((t, i) => (
+                  <div key={i} className={cn("flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium", t.kind === "catalog" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300")}>
+                    <span>{t.kind === "catalog" ? catalog.find(c => c.slug === t.slug)?.displayName || t.slug : t.name}</span>
+                    <button type="button" onClick={() => saveTools(toolsDraft.filter((_, idx) => idx !== i))} className="rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10"><Trash2 className="size-3" /></button>
+                  </div>
+                ))}
+                {toolsDraft.length === 0 && <span className="text-sm text-muted-foreground italic">No tools selected</span>}
+              </div>
+              <div className="flex flex-wrap items-end gap-3 pt-2 border-t border-border">
+                <div className="flex-1 min-w-[200px]">
+                  <select className={inputCls} value="" onChange={(e) => {
+                    if (e.target.value) saveTools([...toolsDraft, { kind: "catalog", slug: e.target.value }]);
+                  }}>
+                    <option value="">+ Add from catalog...</option>
+                    {catalog.filter(c => !toolsDraft.some(t => t.kind === "catalog" && t.slug === c.slug)).map(c => (
+                      <option key={c.slug} value={c.slug}>{c.displayName} {c.isApproved ? "" : "(Not approved)"} {c.hasCoupon ? "🎟️" : ""}</option>
                     ))}
-                  </ul>
+                  </select>
                 </div>
-              )}
+                <div className="flex-1 min-w-[200px]">
+                  {showExternalInputs ? (
+                    <div className="flex items-center gap-2">
+                      <input type="text" placeholder="Name" className={inputCls} value={extName} onChange={e => setExtName(e.target.value)} />
+                      <input type="url" placeholder="https://..." className={inputCls} value={extUrl} onChange={e => setExtUrl(e.target.value)} />
+                      <Button size="sm" type="button" onClick={() => {
+                        if (extName.trim() && extUrl.trim()) {
+                          saveTools([...toolsDraft, { kind: "external", name: extName.trim(), url: extUrl.trim() }]);
+                          setExtName(""); setExtUrl(""); setShowExternalInputs(false);
+                        }
+                      }}>Add</Button>
+                      <Button size="sm" variant="ghost" type="button" onClick={() => setShowExternalInputs(false)}>Cancel</Button>
+                    </div>
+                  ) : (
+                    <Button type="button" variant="outline" size="sm" className="w-full justify-start text-muted-foreground" onClick={() => setShowExternalInputs(true)}>+ Add external link...</Button>
+                  )}
+                </div>
+              </div>
+              <div className="pt-2">
+                <Button size="sm" onClick={() => void handlePreview()} disabled={previewLoading || toolsDraft.length === 0}>
+                  <Sparkles className="size-3.5 mr-1.5" /> {previewLoading ? "Previewing…" : "Preview links & description"}
+                </Button>
+                {previewError && <p className="mt-2 text-xs font-medium text-destructive">{previewError}</p>}
+              </div>
             </div>
+          )}
+          {previewData && (
+            <LinkReviewModal
+              preview={previewData}
+              onConfirm={() => void handleConfirm()}
+              onCancel={() => { setPreviewData(null); setStaleError(undefined); }}
+              onRepreview={() => void handlePreview()}
+              staleError={staleError}
+              isConfirming={isConfirming}
+            />
           )}
 
           {/* Field sections — scoped to the context stage; admins can expand to all */}

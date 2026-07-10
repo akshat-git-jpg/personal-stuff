@@ -14,6 +14,7 @@ import { TeamPanel } from "./TeamPanel";
 import { NewVideoDialog } from "./NewVideoDialog";
 import { MyWork } from "./MyWork";
 import { AttentionPanel } from "./AttentionPanel";
+import { LinkDriftPanel } from "./LinkDrift";
 import { Filters, EMPTY_FILTERS, type AdminFilters } from "./Filters";
 import { activeStage } from "./pipeline";
 import { getPipeline } from "./stages";
@@ -87,6 +88,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
   if (isAdmin) {
     tabs.push({ key: "pipeline", label: "Board" });
     tabs.push({ key: "team", label: "Team" });
+    tabs.push({ key: "links", label: "Links" });
   }
   const defaultTab: TabKey = isAdmin ? "pipeline" : "my-work";
   const [tab, setTab] = useState<TabKey>(defaultTab);
@@ -266,6 +268,7 @@ export function Board({ roles, stages, pipelines, columns, rows, names, memberRo
         </>
       )}
       {activeTab === "team" && <TeamPanel onChanged={reload} pipelines={pipelines} categoryOptions={categoryOptions} subcategoryOptions={subcategoryOptions} />}
+      {activeTab === "links" && <LinkDriftPanel />}
 
       {tabs.length === 0 && <div className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-12 text-center text-sm text-muted-foreground">No work is assigned to you right now.</div>}
 

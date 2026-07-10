@@ -184,12 +184,13 @@ export async function getAuthMode(): Promise<{ dev: boolean }> {
 
 // ── Affiliate-link generation ────────────────────────────────────────────────
 
-export interface GeneratedLink {
-  tool: string; short_url: string; target_url: string; has_affiliate: boolean; coupon: string;
-}
-export interface GenerateLinksResult {
-  description: string; links: GeneratedLink[]; non_affiliate_tools: string[];
-}
+export type ToolStatus = "affiliate" | "external" | "blocked";
+export interface LinkPlanItem { slug: string; displayName: string; short_url: string; target_url: string; status: ToolStatus; coupon: string; reason?: string; }
+export interface PreviewResult { video_code: string; items: LinkPlanItem[]; description: string; warnings: string[]; blocked: LinkPlanItem[]; plan_hash: string; }
+export interface ConfirmResult { ok: boolean; video_code: string; items: LinkPlanItem[]; description: string; }
+export interface DriftRow { row_id: string; video_title: string; slug: string; tool: string; minted_url: string; current_url: string; kind: "url_changed" | "deactivated" | "missing"; }
+export interface ResyncResult { ok: boolean; slug: string; target_url: string; }
+export interface AffiliateCatalogItem { slug: string; displayName: string; isApproved: boolean; hasCoupon: boolean; }
 
 // Column-keyed creation payload (fields come from createFieldsOf per pipeline).
 export async function createVideo(input: Record<string, string>): Promise<{ row_id: string }> {
@@ -230,15 +231,52 @@ export async function applyDefaults(row_id: string): Promise<{ applied: Record<s
   return res.json() as Promise<{ applied: Record<string, string> }>;
 }
 
-export async function generateLinks(row_id: string): Promise<GenerateLinksResult> {
-  const res = await postJSON("/api/generate-links", { row_id });
+export async function affiliateCatalog(): Promise<AffiliateCatalogItem[]> {
+  const res = await fetch("/api/affiliate-catalog", { credentials: "same-origin" });
+  if (!res.ok) return [];
+  return res.json() as Promise<AffiliateCatalogItem[]>;
+}
+
+export async function linkPreview(row_id: string): Promise<PreviewResult> {
+  const res = await postJSON("/api/link-preview", { row_id });
   if (!res.ok) {
     if (res.status === 401) throw new UnauthorizedError();
-    let msg = `Couldn't generate links (HTTP ${res.status})`;
+    let msg = `Couldn't preview links (HTTP ${res.status})`;
     try { const b = (await res.json()) as { message?: string }; if (b?.message) msg = b.message; } catch { /* ignore */ }
     throw new Error(msg);
   }
-  return res.json() as Promise<GenerateLinksResult>;
+  return res.json() as Promise<PreviewResult>;
+}
+
+export async function linkConfirm(row_id: string, plan_hash: string): Promise<ConfirmResult> {
+  const res = await postJSON("/api/link-confirm", { row_id, plan_hash });
+  if (!res.ok) {
+    if (res.status === 401) throw new UnauthorizedError();
+    let msg = `Couldn't confirm links (HTTP ${res.status})`;
+    try { const b = (await res.json()) as { message?: string }; if (b?.message) msg = b.message; } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  return res.json() as Promise<ConfirmResult>;
+}
+
+export async function linkDrift(): Promise<{ drift: DriftRow[] }> {
+  const res = await fetch("/api/link-drift", { credentials: "same-origin" });
+  if (!res.ok) {
+    if (res.status === 401) throw new UnauthorizedError();
+    throw new Error(`Couldn't fetch link drift (HTTP ${res.status})`);
+  }
+  return res.json() as Promise<{ drift: DriftRow[] }>;
+}
+
+export async function linkResync(slug: string): Promise<ResyncResult> {
+  const res = await postJSON("/api/link-resync", { slug });
+  if (!res.ok) {
+    if (res.status === 401) throw new UnauthorizedError();
+    let msg = `Couldn't resync link (HTTP ${res.status})`;
+    try { const b = (await res.json()) as { message?: string }; if (b?.message) msg = b.message; } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  return res.json() as Promise<ResyncResult>;
 }
 
 export interface CardEvent {

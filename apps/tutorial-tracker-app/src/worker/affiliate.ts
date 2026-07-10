@@ -42,9 +42,10 @@ export async function loadAffiliateRecords(
   for (const row of rows.slice(1)) {
     const display = cell(row, "Affiliate Program");
     if (!display) continue;
+    const explicit = cell(row, "Slug");
     let slug: string;
     try {
-      slug = normalizeToolName(display);
+      slug = explicit ? normalizeToolName(explicit) : normalizeToolName(display);
     } catch {
       continue;
     }
