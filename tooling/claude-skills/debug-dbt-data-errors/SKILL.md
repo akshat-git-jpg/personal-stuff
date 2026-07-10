@@ -1,10 +1,10 @@
 ---
 name: debug-dbt-data-errors
-description: Debug be-dbt (Zluri dbt) run failures caused by bad source data — "value too long for type character varying", invalid enum/uuid/timestamp cast, or an incremental model erroring repeatedly on the same batch. Finds the exact Mongo document that broke the run and hands over a cleanup query. Triggers on "dbt failed", "debug this dbt error", "which document broke dbt", "value too long", "dbt data error", or a pasted dbt log containing "Database Error in model".
+description: Debug be-dbt (Zluri dbt) run failures caused by bad source data — "value too long for type character varying", invalid enum/uuid/timestamp cast, or an incremental model erroring repeatedly on the same batch. Fetches the dbt log straight from a shared prod Argo Workflows link, finds the exact Mongo document that broke the run, and hands over a cleanup query. Triggers on "dbt failed", "debug this dbt error", "which document broke dbt", "value too long", "dbt data error", a pasted dbt log containing "Database Error in model", or a shared prod Argo Workflows link (argo-workflows-be-exports.pvt.zluri.com) for a be-dbt run.
 user-invocable: true
 metadata:
   author: kbtg
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Debug dbt Data Errors (be-dbt)
@@ -34,6 +34,49 @@ MCP is read-only — **never execute the fix; hand the query to the user.**
 
 NOT for: compilation/jinja errors, missing relations, permission/connection errors,
 or dbt test failures — those are code/infra, not data.
+
+## Step 0 — Get the dbt log from an Argo link (skip if a log is already pasted)
+
+Prod be-dbt runs execute in Argo Workflows. When the user shares an Argo link (or
+just an id) instead of pasting a log, pull the log yourself with the bundled helper —
+**no manual auth setup, the prod token is stored in `references/prod-argo.env`.**
+
+```bash
+scripts/argo-logs.sh <argo-url-or-id> [--list] [--grep PAT] [--all] [--tail N]
+```
+
+`<argo-url-or-id>` accepts any of:
+- `https://.../archived-workflows/<ns>/<uid>` — **archived link** (the common case for
+  a *failed* run; carries the UID, which is all the script needs).
+- `https://.../workflows/<ns>/<name>` — **live link** (run still present / running).
+- a bare `<uid>` or bare `<name>`.
+
+Recommended flow:
+```bash
+# 1) see which nodes failed and why (exit codes, retry attempts)
+scripts/argo-logs.sh <link> --list
+# 2) pull the dbt error lines across all failed retry attempts
+scripts/argo-logs.sh <link> --grep 'ERROR|Database Error|Completed with|exit code|Batch Start'
+# 3) more context around the error (last N lines per node), or --all for everything
+scripts/argo-logs.sh <link> --tail 400
+```
+
+From the output, lift the **model + file**, **error text**, and **batch window**
+(`Batch Start time` / `Batch end time`) — that is exactly what Step 1 needs. Each retry
+attempt (`be-steps-dbt-container(0..N)`) replays the same stuck batch, so any failed
+node's log shows the offending window.
+
+How it works / gotchas (see `references/prod-argo.env` header for the auth model):
+- The SA token is **namespace-scoped**. Direct archived-workflow get + artifact logs
+  work; the cluster-wide archived-**list** endpoint returns **403**, so a live NAME
+  cannot be resolved to a UID.
+- The live-workflow API **404s once the run is garbage-collected** (completed runs are
+  reaped quickly). If a live link 404s, open the run in the UI and copy the
+  **Archived Workflows** link (it contains the UID) — that always works.
+- Logs are read from the S3 artifact repo (`main-logs` artifact per pod node), so they
+  survive GC. `canceling statement due to user request` in the log = the query hit a
+  statement/pod timeout (exit 143 = SIGTERM), which is a *performance* problem, not the
+  data-shaped error this skill fixes — see the NOT-for list above.
 
 ## Step 1 — Extract facts from the dbt log
 
