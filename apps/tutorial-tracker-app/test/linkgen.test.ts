@@ -1,14 +1,15 @@
 import { describe, it, expect } from "vitest";
 import {
+  resolveSelection,
+  externalCollisions,
+  renderDescription,
+  validateDescription,
+  planHash,
   generateVideoCode,
-  resolveTools,
-  formatActualLinks,
-  formatShortLinks,
-  processVideo,
-  type DetectedTool,
+  type VideoTool,
+  type LinkPlanItem
 } from "../src/worker/linkgen";
 import type { AffiliateRecord } from "../src/worker/affiliate";
-import type { GeminiClient } from "../src/worker/gemini";
 
 const aff = (over: Partial<AffiliateRecord> & { tool: string }): AffiliateRecord => ({
   displayName: over.tool,
@@ -34,99 +35,127 @@ describe("generateVideoCode", () => {
   });
 });
 
-describe("resolveTools", () => {
+describe("resolveSelection", () => {
   const affiliates: Record<string, AffiliateRecord> = {
-    railway: aff({ tool: "railway", isApproved: true, targetUrl: "https://aff/railway", couponCode: "SAVE10" }),
-    render: aff({ tool: "render", isApproved: false, targetUrl: "" }),
+    railway: aff({ tool: "railway", displayName: "Railway", isApproved: true, targetUrl: "https://aff/railway", couponCode: "SAVE10" }),
+    render: aff({ tool: "render", displayName: "Render", isApproved: false, targetUrl: "https://aff/render" }),
+    blank: aff({ tool: "blank", displayName: "Blank", isApproved: true, targetUrl: " " }),
   };
-  it("uses affiliate URL when approved", () => {
-    const r = resolveTools([{ slug: "railway", display_name: "Railway", homepage_url: "" }], affiliates);
-    expect(r).toEqual([
-      { slug: "railway", displayName: "Railway", targetUrl: "https://aff/railway", couponCode: "SAVE10", hasAffiliate: true },
+
+  it("resolves approved catalog tools to affiliate status", () => {
+    const tools: VideoTool[] = [{ kind: "catalog", slug: "railway" }];
+    const res = resolveSelection(tools, affiliates);
+    expect(res).toEqual([
+      { slug: "railway", displayName: "Railway", status: "affiliate", targetUrl: "https://aff/railway", couponCode: "SAVE10" }
     ]);
   });
-  it("falls back to homepage_url for non-affiliate tools", () => {
-    const r = resolveTools([{ slug: "fliki", display_name: "Fliki", homepage_url: "https://fliki.ai" }], affiliates);
-    expect(r).toEqual([
-      { slug: "fliki", displayName: "Fliki", targetUrl: "https://fliki.ai", couponCode: "", hasAffiliate: false },
+
+  it("blocks unapproved catalog tools and emits empty targetUrl", () => {
+    const tools: VideoTool[] = [{ kind: "catalog", slug: "render" }];
+    const res = resolveSelection(tools, affiliates);
+    expect(res).toEqual([
+      { slug: "render", displayName: "Render", status: "blocked", targetUrl: "", couponCode: "", reason: expect.stringContaining("not approved") }
     ]);
   });
-  it("skips tools with no resolvable URL", () => {
-    const r = resolveTools([{ slug: "render", display_name: "Render", homepage_url: "" }], affiliates);
-    expect(r).toEqual([]);
+
+  it("blocks approved catalog tools with blank URLs", () => {
+    const tools: VideoTool[] = [{ kind: "catalog", slug: "blank" }];
+    const res = resolveSelection(tools, affiliates);
+    expect(res).toEqual([
+      { slug: "blank", displayName: "Blank", status: "blocked", targetUrl: "", couponCode: "", reason: expect.stringContaining("no affiliate link set") }
+    ]);
+  });
+
+  it("blocks missing catalog tools", () => {
+    const tools: VideoTool[] = [{ kind: "catalog", slug: "notfound" }];
+    const res = resolveSelection(tools, affiliates);
+    expect(res).toEqual([
+      { slug: "notfound", displayName: "notfound", status: "blocked", targetUrl: "", couponCode: "", reason: expect.stringContaining("not in affiliate catalog") }
+    ]);
+  });
+
+  it("resolves external tools with valid URLs", () => {
+    const tools: VideoTool[] = [{ kind: "external", name: "My Tool", url: "https://example.com/foo" }];
+    const res = resolveSelection(tools, affiliates);
+    expect(res).toEqual([
+      { slug: "my-tool", displayName: "My Tool", status: "external", targetUrl: "https://example.com/foo", couponCode: "" }
+    ]);
+  });
+
+  it("blocks external tools with bad URLs", () => {
+    const tools: VideoTool[] = [{ kind: "external", name: "Bad", url: "ftp://example.com" }];
+    const res = resolveSelection(tools, affiliates);
+    expect(res).toEqual([
+      { slug: "bad", displayName: "Bad", status: "blocked", targetUrl: "", couponCode: "", reason: expect.stringContaining("valid https URL") }
+    ]);
   });
 });
 
-describe("formatters", () => {
-  it("formatShortLinks pairs tool: url", () => {
-    expect(formatShortLinks([["railway", "https://go/x/railway"]])).toBe("railway: https://go/x/railway");
+describe("externalCollisions", () => {
+  it("warns when an external name normalizes to a catalog slug", () => {
+    const affiliates: Record<string, AffiliateRecord> = { railway: aff({ tool: "railway" }) };
+    const tools: VideoTool[] = [{ kind: "external", name: "Railway!", url: "https://railway.app" }];
+    const warns = externalCollisions(tools, affiliates);
+    expect(warns).toHaveLength(1);
+    expect(warns[0]).toContain("Railway!");
   });
-  it("formatActualLinks flags non-affiliate", () => {
-    expect(
-      formatActualLinks([
-        ["railway", "https://aff", true],
-        ["fliki", "https://fliki.ai", false],
-      ]),
-    ).toBe("railway: https://aff\nfliki: https://fliki.ai (no affiliate)");
+  it("does not warn on safe external tools", () => {
+    const affiliates: Record<string, AffiliateRecord> = { railway: aff({ tool: "railway" }) };
+    const tools: VideoTool[] = [{ kind: "external", name: "Fliki", url: "https://fliki.ai" }];
+    const warns = externalCollisions(tools, affiliates);
+    expect(warns).toHaveLength(0);
   });
 });
 
-function fakeGemini(tools: DetectedTool[], description: string): GeminiClient {
-  return {
-    async generateJSON<T>() {
-      return { tools } as unknown as T;
-    },
-    async generateText() {
-      return description;
-    },
-  };
-}
+describe("renderDescription", () => {
+  it("excludes blocked tools and includes coupons", () => {
+    const items: LinkPlanItem[] = [
+      { slug: "t1", displayName: "Tool 1", short_url: "http://go/t1", target_url: "", status: "affiliate", coupon: "T1_10" },
+      { slug: "t2", displayName: "Tool 2", short_url: "http://go/t2", target_url: "", status: "blocked", coupon: "" },
+      { slug: "t3", displayName: "Tool 3", short_url: "http://go/t3", target_url: "", status: "external", coupon: "" },
+    ];
+    const desc = renderDescription("My Video", items);
+    expect(desc).toContain("🎥 My Video");
+    expect(desc).toContain("▶ Tool 1 — http://go/t1");
+    expect(desc).toContain("Code: T1_10");
+    expect(desc).not.toContain("Tool 2");
+    expect(desc).toContain("▶ Tool 3 — http://go/t3");
+  });
+});
 
-describe("processVideo", () => {
-  it("mints code, writes KV+D1, returns description + links", async () => {
-    const kv: Record<string, string> = {};
-    const d1videos: { video_code: string; video_title: string }[] = [];
-    const d1links: { slug: string }[] = [];
-    const deps = {
-      gemini: fakeGemini([{ slug: "railway", display_name: "Railway", homepage_url: "" }], "DESC"),
-      affiliates: {
-        railway: aff({ tool: "railway", displayName: "Railway", targetUrl: "https://aff/railway", approvalStatus: "Approved", isApproved: true }),
-      },
-      linkDomain: "go.agrolloo.com",
-      existingCodes: async () => new Set<string>(),
-      videoCodeForTitle: async () => null,
-      existingSlugs: async () => new Set<string>(),
-      insertVideo: async (code: string, title: string) => {
-        d1videos.push({ video_code: code, video_title: title });
-      },
-      insertLink: async (slug: string) => {
-        d1links.push({ slug });
-      },
-      kvPut: async (k: string, v: string) => {
-        kv[k] = v;
-      },
-    };
-    const res = await processVideo("Best hosts", "compare railway", deps);
-    expect(res.description).toBe("DESC");
-    expect(res.links).toHaveLength(1);
-    expect(res.links[0].short_url).toMatch(/^https:\/\/go\.agrolloo\.com\/[a-zA-Z0-9]{4}\/railway$/);
-    expect(Object.keys(kv)).toHaveLength(1);
-    expect(d1videos).toHaveLength(1);
-    expect(d1links).toHaveLength(1);
+describe("validateDescription", () => {
+  const items: LinkPlanItem[] = [
+    { slug: "t1", displayName: "T1", short_url: "https://go.example.com/abcd/t1", target_url: "", status: "affiliate", coupon: "" },
+    { slug: "t2", displayName: "T2", short_url: "https://go.example.com/abcd/t2", target_url: "", status: "blocked", coupon: "" },
+  ];
+  const domain = "go.example.com";
+
+  it("passes valid descriptions", () => {
+    expect(() => validateDescription("Here is https://go.example.com/abcd/t1", items, domain)).not.toThrow();
+  });
+  
+  it("throws if a short url is duplicated", () => {
+    expect(() => validateDescription("Here is https://go.example.com/abcd/t1 and https://go.example.com/abcd/t1", items, domain)).toThrow("appears 2×");
   });
 
-  it("throws when no tools detected", async () => {
-    const deps = {
-      gemini: fakeGemini([], ""),
-      affiliates: {},
-      linkDomain: "go.agrolloo.com",
-      existingCodes: async () => new Set<string>(),
-      videoCodeForTitle: async () => null,
-      existingSlugs: async () => new Set<string>(),
-      insertVideo: async () => {},
-      insertLink: async () => {},
-      kvPut: async () => {},
-    };
-    await expect(processVideo("x", "", deps)).rejects.toThrow();
+  it("throws if an unexpected url from the domain appears", () => {
+    expect(() => validateDescription("Here is https://go.example.com/abcd/t1 and https://go.example.com/abcd/t99", items, domain)).toThrow("unexpected link");
+  });
+});
+
+describe("planHash", () => {
+  const items: LinkPlanItem[] = [
+    { slug: "t1", displayName: "T1", short_url: "s", target_url: "u", status: "affiliate", coupon: "c" }
+  ];
+  it("is stable", async () => {
+    const h1 = await planHash("abcd", items);
+    const h2 = await planHash("abcd", items);
+    expect(h1).toBe(h2);
+    expect(h1.length).toBeGreaterThan(0);
+  });
+  it("changes on target mutation", async () => {
+    const h1 = await planHash("abcd", items);
+    const h2 = await planHash("abcd", [{ ...items[0], target_url: "u2" }]);
+    expect(h1).not.toBe(h2);
   });
 });

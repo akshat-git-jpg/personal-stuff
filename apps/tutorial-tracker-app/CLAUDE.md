@@ -57,7 +57,11 @@ The app is now a **generic multi-system pipeline engine**. It is NO LONGER the s
 - `GET /api/review-queue` → cards In-Review that THIS user is the assigned reviewer for (admins see all), with submitter name + stage.
 - `POST /api/video {video_title, video_notes?, category?, subcategory?}` → Admin-only; appends a Master row, returns `{row_id}`.
 - `POST /api/delete {row_id}` → Admin-only; deletes the Master row (`deleteRowById` → Sheets `deleteDimension`), busts the board cache. Surfaced as a per-row 🗑 button in the admin Pipeline matrix.
-- `POST /api/generate-links {row_id}` → Admin-only; ports `process_yt_tracker.py` — detects tools (Gemini), mints go.agrolloo short links into `CLICKS_KV` + `clicks-db` D1, writes `video_description`/`actual_links`/`short_links` back, returns `{description, links, non_affiliate_tools}`.
+- `POST /api/link-preview {row_id}` → Admin-only; LLM-free, admin selects catalog rows; returns `{ video_code, items, description, warnings, blocked, plan_hash }`. Zero writes.
+- `POST /api/link-confirm {row_id, plan_hash}` → Admin-only; mints go.agrolloo short links into `CLICKS_KV` + `clicks-db` D1, writes `video_description`/`actual_links`/`short_links` back.
+- `GET /api/link-drift` → Admin-only; lists URL/approval drift for minted links.
+- `POST /api/link-resync {slug}` → Admin-only; updates a drifted link's target in D1+KV.
+- `GET /api/affiliate-catalog` → Admin-only; returns `[{slug, displayName, isApproved, hasCoupon}]`.
 - `GET /api/team` (admin/approver), `GET /api/roles` (valid role names), `GET /api/me`, `GET /api/auth-mode`.
 - `POST /api/team {name, email, roles[]}` → Admin-only; upsert a teammate in the `Employes` tab (by email). `POST /api/team/delete {email}` → Admin-only; remove one. Both bust the board cache. Backs the admin **Team** tab (`TeamPanel.tsx`). Editing the `Employes` tab IS editing both assignment options and login access.
 - `GET /auth/login` · `GET /auth/callback` · `POST /auth/logout` · `GET /dev-login?email=…` (dev only).

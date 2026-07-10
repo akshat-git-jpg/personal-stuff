@@ -24,9 +24,8 @@ import type { Env, Variables } from "./auth";
 import { getUser, loginRedirect, logout, oauthCallback, requireSession } from "./auth";
 import { getAccessToken, ConflictError } from "./sheets";
 import { getStore } from "./datastore";
-import { createGeminiClient } from "./gemini";
 import { loadAffiliateRecords } from "./affiliate";
-import { processVideo } from "./linkgen";
+import { resolveSelection, externalCollisions, buildPlan, renderDescription, validateDescription, planHash, generateVideoCode } from "./linkgen";
 import * as clickstore from "./clickstore";
 import {
   visibleColsForRoles, canEditForRoles, projectRowForRoles,
@@ -730,6 +729,24 @@ app.get("/api/card-events", async (c) => {
 });
 
 app.post("/api/generate-links", async (c) => {
+  return c.json({ error: "gone", message: "Replaced by /api/link-preview + /api/link-confirm" }, 410);
+});
+
+app.get("/api/affiliate-catalog", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const list = Object.values(affiliates).map(a => ({
+    slug: a.tool,
+    displayName: a.displayName,
+    isApproved: a.isApproved,
+    hasCoupon: !!a.couponCode
+  }));
+  return c.json(list);
+});
+
+app.post("/api/link-preview", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
   let body: { row_id?: string };
@@ -737,42 +754,176 @@ app.post("/api/generate-links", async (c) => {
   const rowId = (body.row_id ?? "").trim();
   if (!rowId) return c.json({ error: "row_id is required" }, 400);
 
-  const token = await getAccessToken(c.env.GOOGLE_SA_JSON); // for the (separate) affiliate-programs sheet
   const allRows = await cachedReadRows(c.env);
   const target = allRows.find((r) => ((r.row_id as string) || "").trim() === rowId);
-  if (!target) return c.json({ error: "row not found", row_id: rowId }, 404);
+  if (!target) return c.json({ error: "row not found" }, 404);
   const title = ((target.video_title as string) ?? "").trim();
-  if (!title) return c.json({ error: "row has no video_title" }, 400);
-  const notes = ((target.video_notes as string) ?? "").trim();
-
+  
+  let tools: any[] = [];
   try {
-    const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
-    const gemini = createGeminiClient(c.env.GEMINI_API_KEY);
-    const db = c.env.DB;
-    const result = await processVideo(title, notes, {
-      gemini, affiliates, linkDomain: c.env.LINK_DOMAIN,
-      existingCodes: () => clickstore.existingCodes(db),
-      videoCodeForTitle: (t) => clickstore.videoCodeForTitle(db, t),
-      existingSlugs: (code) => clickstore.existingSlugs(db, code),
-      insertVideo: (code, t) => clickstore.insertVideo(db, code, t),
-      insertLink: (slug, code, tool, url) => clickstore.insertLink(db, slug, code, tool, url),
-      kvPut: (k, v) => c.env.CLICKS_KV.put(k, v),
-    });
-    await getStore(c.env).updateCells(rowId, {
-      video_description: result.description,
-      actual_links: result.actual_links_text,
-      short_links: result.short_links_text,
-    });
-    await bustBoardCache(c.env);
-    return c.json({ description: result.description, links: result.links, non_affiliate_tools: result.non_affiliate_tools });
+    const toolsStr = target.video_tools as string;
+    if (toolsStr) tools = JSON.parse(toolsStr);
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    const isContentIssue = /no tools/i.test(msg);
-    return c.json(
-      { error: isContentIssue ? "no_tools" : "generation_failed", message: msg },
-      isContentIssue ? 422 : 500,
-    );
+    tools = [];
   }
+  if (!tools || tools.length === 0) return c.json({ error: "no_tools", message: "Select at least one tool for this video, then preview." }, 422);
+
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const resolved = resolveSelection(tools, affiliates);
+  
+  let videoCode = (target.video_code as string)?.trim();
+  if (!videoCode) {
+    const dbCode = await clickstore.videoCodeForTitle(c.env.DB, title);
+    videoCode = dbCode ?? "(new)";
+  }
+
+  const items = buildPlan(resolved, videoCode, c.env.LINK_DOMAIN);
+  const description = renderDescription(title, items);
+  try {
+    validateDescription(description, items, c.env.LINK_DOMAIN);
+  } catch (err: any) {
+    return c.json({ error: "validation", message: err.message }, 500);
+  }
+
+  const warnings = externalCollisions(tools, affiliates);
+  const blocked = items.filter(i => i.status === "blocked");
+  const hash = await planHash(videoCode, items);
+
+  return c.json({ video_code: videoCode, items, description, warnings, blocked, plan_hash: hash });
+});
+
+app.post("/api/link-confirm", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: { row_id?: string, plan_hash?: string };
+  try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
+  const rowId = (body.row_id ?? "").trim();
+  const planHashInput = body.plan_hash ?? "";
+
+  const allRows = await cachedReadRows(c.env);
+  const target = allRows.find((r) => ((r.row_id as string) || "").trim() === rowId);
+  if (!target) return c.json({ error: "row not found" }, 404);
+  const title = ((target.video_title as string) ?? "").trim();
+  
+  let tools: any[] = [];
+  try { tools = JSON.parse((target.video_tools as string) || "[]"); } catch (e) { tools = []; }
+  
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  const resolved = resolveSelection(tools, affiliates);
+  
+  let previewVideoCode = (target.video_code as string)?.trim();
+  if (!previewVideoCode) {
+    const dbCode = await clickstore.videoCodeForTitle(c.env.DB, title);
+    previewVideoCode = dbCode ?? "(new)";
+  }
+  const previewItems = buildPlan(resolved, previewVideoCode, c.env.LINK_DOMAIN);
+  const hash = await planHash(previewVideoCode, previewItems);
+  
+  if (hash !== planHashInput) {
+    return c.json({ error: "stale", message: "The affiliate sheet changed since you previewed. Re-open the review." }, 409);
+  }
+
+  const db = c.env.DB;
+  let finalVideoCode = previewVideoCode;
+  let codeUpdates: any = {};
+  
+  if (finalVideoCode === "(new)") {
+    finalVideoCode = generateVideoCode(await clickstore.existingCodes(db));
+    await clickstore.insertVideo(db, finalVideoCode, title);
+    codeUpdates.video_code = finalVideoCode;
+  } else if (!((target.video_code as string)?.trim())) {
+    codeUpdates.video_code = finalVideoCode;
+  }
+
+  const finalItems = buildPlan(resolved, finalVideoCode, c.env.LINK_DOMAIN);
+  const description = renderDescription(title, finalItems);
+  validateDescription(description, finalItems, c.env.LINK_DOMAIN);
+
+  const existing = await clickstore.existingSlugs(db, finalVideoCode);
+  for (const i of finalItems.filter(x => x.status !== "blocked")) {
+    const fullSlug = `${finalVideoCode}/${i.slug}`;
+    if (!existing.has(fullSlug)) {
+      await clickstore.insertLink(db, fullSlug, finalVideoCode, i.slug, i.target_url);
+      await c.env.CLICKS_KV.put(fullSlug, i.target_url);
+    }
+  }
+
+  const actualItems: [string, string, boolean][] = finalItems
+    .filter(i => i.status !== "blocked")
+    .map(i => [i.slug, i.target_url, i.status === "affiliate"]);
+  const shortPairs: [string, string][] = finalItems
+    .filter(i => i.status !== "blocked")
+    .map(i => [i.slug, i.short_url]);
+
+  const actual_links = actualItems
+    .map(([tool, url, hasAff]) => (hasAff ? `${tool}: ${url}` : `${tool}: ${url} (no affiliate)`))
+    .join("\n");
+  const short_links = shortPairs
+    .map(([tool, url]) => `${tool}: ${url}`)
+    .join("\n");
+
+  await getStore(c.env).updateCells(rowId, {
+    ...codeUpdates,
+    video_description: description,
+    actual_links,
+    short_links
+  });
+  await bustBoardCache(c.env);
+
+  return c.json({ ok: true, video_code: finalVideoCode, items: finalItems, description });
+});
+
+app.get("/api/link-drift", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  
+  const allRows = await cachedReadRows(c.env);
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  
+  const drift = [];
+  const db = c.env.DB;
+  for (const row of allRows) {
+    const code = (row.video_code as string)?.trim();
+    if (!code) continue;
+    const links = await clickstore.linksForVideo(db, code);
+    if (!links.length) continue;
+    const rowDrift = clickstore.linkDriftDiff(links, affiliates);
+    for (const d of rowDrift) {
+      drift.push({ ...d, row_id: row.row_id, video_title: row.video_title });
+    }
+  }
+  
+  return c.json({ drift });
+});
+
+app.post("/api/link-resync", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: { slug?: string };
+  try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
+  const slug = (body.slug ?? "").trim();
+  if (!slug) return c.json({ error: "slug is required" }, 400);
+
+  const db = c.env.DB;
+  const linkRow = await db.prepare("SELECT tool FROM links WHERE slug = ?").bind(slug).first<{tool: string}>();
+  if (!linkRow) return c.json({ error: "link not found" }, 404);
+  
+  const token = await getAccessToken(c.env.GOOGLE_SA_JSON);
+  const affiliates = await loadAffiliateRecords(token, c.env.AFFILIATE_PROGRAMS_SHEET_URL);
+  
+  const rec = affiliates[linkRow.tool];
+  if (!rec || !rec.isApproved || !rec.targetUrl.trim()) {
+    return c.json({ error: "conflict", message: "Program is not approved or has no URL in sheet." }, 409);
+  }
+  
+  const url = rec.targetUrl.trim();
+  await clickstore.updateLinkTarget(db, slug, url);
+  await c.env.CLICKS_KV.put(slug, url);
+  
+  return c.json({ ok: true, slug, target_url: url });
 });
 
 // ---------------------------------------------------------------------------
