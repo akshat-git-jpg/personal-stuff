@@ -1,5 +1,5 @@
 ---
-executor: claude-p
+executor: agy
 model:
 test_cmd: bash -n infra/route-audit/run-audit.sh && grep -q "REPORT-ONLY" infra/route-audit/prompt.md && grep -q "site-probe" VPS-CRONS.md
 ui: false
@@ -16,7 +16,7 @@ needs: [057 lands first — this plan's VPS-CRONS.md refresh documents 057's cre
   - `infra/route-audit/` — a self-contained REPORT-ONLY drift-audit prompt + runner script for a weekly `claude -p` cron on the VPS, reporting to Telegram. First scheduled self-triggering agent run, scoped to the safest possible class: read-only.
   - Refresh the root `VPS-CRONS.md` (date, `site-probe` + `cred-probe` + `route-audit` entries in Active crons).
   - Carry the autonomy-policy text for the owner to append to `decisions.md` at landing (the executor does NOT touch that file).
-- **Executor proposed**: claude-p, sonnet (standard difficulty).
+- **Executor proposed**: agy, executor-default model (Gemini 3.1 Pro (High)).
 - **Done criteria** (terse): test_cmd green; prompt is self-contained and forbids edits; VPS-CRONS.md lists all crons including the two new ones.
 - **Stop conditions** (terse): file drift; any step that would edit `decisions.md` or run `claude -p` live.
 - **Test / verification for success**: `bash -n` + grep gates (the test_cmd); one manual VPS run post-merge.
