@@ -16,7 +16,7 @@ needs: []
   - New `infra/cred-probe/` — stdlib-only Python probe that verifies every Google OAuth refresh token still refreshes, plus a Pattern-B cron wrapper example for the VPS.
   - `infra/vps-watchdog` sends a Telegram message whenever it reboots the VPS (or fails to).
   - `apps/telegram-email-assistant/digest.sh` asserts the digest output has the expected two-part shape before printing it.
-- **Executor proposed**: agy, executor-default model (Gemini 3.1 Pro (High))...
+- **Executor proposed**: agy, executor-default model (Gemini 3.1 Pro (High)).
 - **Done criteria** (terse): test_cmd green; probe self-test passes offline; watchdog notifies on `rebooted`/`reboot_failed`; digest.sh rejects malformed output with an `ERROR:` line.
 - **Stop conditions** (terse): file drift vs excerpts below; any live network call to Google/Telegram/HeyGen during implementation or tests.
 - **Test / verification for success**: offline self-test + `node --check` + `bash -n` (the test_cmd).
