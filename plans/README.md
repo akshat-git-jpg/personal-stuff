@@ -70,6 +70,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 053 | Dossier-build — real driver script, real video metadata, agy retry | P1 | M | 052 | TODO |
 | 054 | `timeblock` — fast tap-to-block day planner (new `apps/timeblock`) | P2 | M | — | DONE |
 | 055 | `heygen-web` — layered CLI (endpoints registry → operations → workflows → thin dispatch) | P2 | L | — | DONE |
+| 056 | tracker — deterministic, LLM-free affiliate link-gen (row-select source of truth, preview→confirm modal, drift report) | P1 | L | — | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
