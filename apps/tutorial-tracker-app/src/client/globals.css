@@ -131,4 +131,15 @@ summary {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  /* Native <select> popups paint their option list with the OS theme, not the
+     page's color-scheme: on a light-mode OS a dark-themed app gets a white
+     popup while option text inherits the app's light --foreground → invisible
+     (readable only when hover highlights a row). Pin explicit colors on the
+     options — browsers honor these regardless of the OS popup background — so
+     they stay legible in both themes on every machine. */
+  option,
+  optgroup {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
+  }
 }

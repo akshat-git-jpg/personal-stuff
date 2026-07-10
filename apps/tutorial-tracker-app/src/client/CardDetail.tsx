@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Lock, ExternalLink, Trash2, AlertTriangle, RotateCcw, Sparkles, ChevronDown, CheckCircle2 } from "lucide-react";
 import type { Column } from "../shared/columns";
 import type { Row, Transition } from "../shared/rbac";
@@ -164,7 +164,38 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
   const editSet = new Set<string>(editColumns(pipeline, contextStage, kind, ctxStatus));
 
   const [draft, setDraft] = useState<Partial<Record<Column, string>>>({});
-  const [savedMap, setSavedMap] = useState<Partial<Record<Column, string>>>({}); // last value persisted to the sheet
+  // Serialize every cell write for this card through one queue, with the
+  // last-persisted value held in a ref (not React state). This is what keeps
+  // `prev` — the optimistic-lock "expected" value — always current. Without it,
+  // a field's auto-save (fired on blur when a button steals focus) and the
+  // pre-action flush both read a STALE `savedMap` from their closure and issue
+  // two writes for the same cell with the same `prev`; the server sees the
+  // second one's `prev` no longer matches and 409s, surfacing a bogus
+  // "Couldn't save your changes" even though the value was saved fine. Queued,
+  // the flush runs after the auto-save and simply no-ops (value already saved).
+  const savedRef = useRef<Partial<Record<Column, string>>>({});
+  const writeQueue = useRef<Promise<unknown>>(Promise.resolve());
+
+  // Persist one field, serialized behind any in-flight write. Never rejects:
+  // resolves { ok:true } on success or when the value is already saved,
+  // { ok:false, error } on failure — so the queue chain always stays alive.
+  function persistField(col: Column, value: string): Promise<{ ok: boolean; error?: string }> {
+    const run = writeQueue.current.then(async (): Promise<{ ok: boolean; error?: string }> => {
+      if (!row.row_id) return { ok: true };
+      const prev = savedRef.current[col] ?? "";
+      if (value === prev) return { ok: true }; // already persisted by an earlier queued write
+      try {
+        await updateCell(row.row_id, col, value, prev);
+        savedRef.current = { ...savedRef.current, [col]: value };
+        setTouched(true);
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, error: err instanceof Error ? err.message : "Save failed" };
+      }
+    });
+    writeQueue.current = run; // run never rejects, so the chain survives errors
+    return run;
+  }
   const [fieldStatus, setFieldStatus] = useState<Partial<Record<Column, "saving" | "saved" | "error">>>({});
   const [touched, setTouched] = useState(false); // did we auto-save anything this session?
   const [errors, setErrors] = useState<Partial<Record<Column, string>>>({});
@@ -211,7 +242,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
     const init: Partial<Record<Column, string>> = {};
     for (const col of columns) init[col] = (row[col] as string) ?? "";
     setDraft(init);
-    setSavedMap(init);
+    savedRef.current = init;
     setFieldStatus({});
     setTouched(false);
   }, [row, columns]);
@@ -237,43 +268,34 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
     setFormError(null);
   }
 
-  // Auto-save a single field (on blur / change). No "Save" button — fields persist
-  // themselves, and `savedMap` tracks what's on the sheet so the optimistic-lock
-  // check uses the right expected value.
+  // Auto-save a single field (on blur / change). No "Save" button — fields
+  // persist themselves through persistField, which tracks the last saved value
+  // in savedRef so the optimistic-lock check uses the right expected value.
   async function autoSaveField(col: Column, value: string) {
     if (!row.row_id || !editableNow(col)) return;
-    const prev = savedMap[col] ?? "";
-    if (value === prev) return;
+    if (value === (savedRef.current[col] ?? "")) return;
     setFieldStatus((s) => ({ ...s, [col]: "saving" }));
-    try {
-      await updateCell(row.row_id, col, value, prev);
-      setSavedMap((m) => ({ ...m, [col]: value }));
+    const res = await persistField(col, value);
+    if (res.ok) {
       setFieldStatus((s) => ({ ...s, [col]: "saved" }));
       setErrors((e) => ({ ...e, [col]: undefined }));
-      setTouched(true);
-    } catch (err) {
+    } else {
       setFieldStatus((s) => ({ ...s, [col]: "error" }));
-      setErrors((e) => ({ ...e, [col]: err instanceof Error ? err.message : "Save failed" }));
+      setErrors((e) => ({ ...e, [col]: res.error ?? "Save failed" }));
     }
   }
 
-  // Flush any field not yet auto-saved (e.g. a status action fired before a blur).
-  // Returns false on error. Compares against savedMap (what's really on the sheet).
+  // Flush any field not yet auto-saved (e.g. an action fired before a field's
+  // blur). Each write is serialized via persistField, so a field already being
+  // auto-saved is a no-op here instead of a racing duplicate write. Returns
+  // false only on a genuine save error.
   async function flushPending(): Promise<boolean> {
     const newErrors: Partial<Record<Column, string>> = {};
     let anyError = false;
     for (const col of columns) {
-      const updated = draft[col] ?? "";
-      const prev = savedMap[col] ?? "";
-      if (updated === prev || !editableNow(col) || !row.row_id) continue;
-      try {
-        await updateCell(row.row_id, col, updated, prev);
-        setSavedMap((m) => ({ ...m, [col]: updated }));
-        setTouched(true);
-      } catch (err) {
-        anyError = true;
-        newErrors[col] = err instanceof Error ? err.message : "Save failed";
-      }
+      if (!editableNow(col) || !row.row_id) continue;
+      const res = await persistField(col, draft[col] ?? "");
+      if (!res.ok) { anyError = true; newErrors[col] = res.error ?? "Save failed"; }
     }
     if (anyError) { setErrors(newErrors); return false; }
     return true;
