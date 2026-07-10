@@ -1,6 +1,6 @@
 ---
 name: commit-now
-description: Pre-commit gate for ANY git commit — runs prettier, lint, tsc, and build, auto-fixing what it can (including code edits for TS/build errors), prints a summary (repo, branch, git user, files changed), proposes a single-line conventional-commit message (no body, no em dash, no AI mention), and commits only after the user confirms. --no-verify only when every husky check already passed here. NEVER pushes; never mentions AI or any generator footer. Invoke BEFORE running `git commit` for ANY reason and HOWEVER the request is phrased — "commit now", "/commit-now", "commit and push", "commit this", "commit the changes", "push this" (a push implies committing first), "raise a PR", "address review comments", or when committing is just one step inside a larger task. In unattended/background sessions where confirmation is impossible, apply every check and message rule and skip only the interactive confirmation step.
+description: Pre-commit gate for ANY git commit, however phrased — "commit now", "commit this", "commit and push", "push this" (push implies commit), "raise a PR", or committing as one step of a larger task. Runs prettier, lint, tsc, and build, auto-fixing what it can; proposes a single-line conventional-commit message (no body, no AI mention) and commits only after the user confirms (unattended sessions skip only the confirmation). NEVER pushes.
 user-invocable: true
 metadata:
   author: kbtg
