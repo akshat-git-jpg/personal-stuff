@@ -71,8 +71,22 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 054 | `timeblock` — fast tap-to-block day planner (new `apps/timeblock`) | P2 | M | — | DONE |
 | 055 | `heygen-web` — layered CLI (endpoints registry → operations → workflows → thin dispatch) | P2 | L | — | DONE |
 | 056 | tracker — deterministic, LLM-free affiliate link-gen (row-select source of truth, preview→confirm modal, drift report) | P1 | L | — | TODO |
+| 057 | Silent-failure alerts — cred-probe cron, watchdog reboot notify, digest shape check | P1 | S-M | — | TODO |
+| 058 | Autonomy pilot — weekly read-only route-audit cron → Telegram (+ VPS-CRONS.md refresh) | P2 | M | 057 (soft) | TODO |
+| 059 | Hygiene — skill-description budget guard + heygen-web render-output policy | P2 | S-M | — (pre-dispatch owner step: move untracked heygen media out of main checkout) | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
+
+> **057–059 (2026-07-11, workflow-automation audit follow-up)**: from an `improve`
+> audit focused on "automate more / make existing automation trustworthy". 057
+> promotes backlog items `AUTO-02` (watchdog silent reboots) + `QUAL-03` (digest
+> shape) and adds the new cred-probe (root cause of the 2026-06 silent token
+> death); 058 is the frontier's priority-2 autonomy pilot (read-only by policy);
+> 059 promotes `COST-01` (skill-description budget, now with a relink guard) and
+> enforces the media policy on heygen-web. Order: 057 → 058 (VPS-CRONS.md rows);
+> 059 independent but needs a pre-dispatch owner step (see its plan). Deselected
+> from the same audit (recorded below, not rejected): income-snapshot cron +
+> gumroad/skool wiring, and `COST-06` usage-snapshot cron.
 
 > **043 (2026-07-07)**: new standalone pipeline, sibling to `tutorial-pipeline-2`
 > (the renamed `kushal-tutorial-pipeline-v2`) — no dependency between them.
@@ -232,17 +246,18 @@ they aren't re-audited from scratch — promote any to a plan when ready.
   Plan 003 untracks its media; wholesale archival of the project deferred.
 
 **Workflow/cost/quality backlog (2026-07-05 audit; owner deferred, promote when wanted):**
-- **Skill-description budget regression** — 12 descriptions re-fattened past the
-  ≤500-char budget on 2026-07-05 (orchestrate ~865, printing-press-amend ~835,
-  humanizer ~763; 6 exceed even the ~700 hard cap). ~4.5–5K tokens re-added to
-  EVERY session. Fix = re-trim + add a guard in relink/pre-commit rejecting
-  >700-char descriptions. `COST-01`. Effort S. (Highest-leverage unplanned item.)
-- **vps-watchdog silent reboots** — on `rebooted`/`reboot_failed` it only
-  writes KV (infra/vps-watchdog/src/index.js:85-93); no ntfy/Telegram ping.
-  `AUTO-02`. Effort S.
-- **gmail digest content check** — digest.sh pipes `claude -p` output straight
-  to Telegram with no non-empty/section assertion; exit-0 garbage ships.
-  `QUAL-03`. Effort S.
+- **Skill-description budget regression** — `COST-01`. **PROMOTED → plan 059**
+  (2026-07-11 re-measure: commit-now 918 over the hard cap, 14 skills in the
+  500–700 WARN band; 059 trims the cap-breaker and adds the relink guard;
+  WARN-band batch trim stays an owner pass).
+- **vps-watchdog silent reboots** — `AUTO-02`. **PROMOTED → plan 057.**
+- **gmail digest content check** — `QUAL-03`. **PROMOTED → plan 057**
+  (2026-07-11 re-check: empty output IS now caught by run.sh; 057 adds the
+  Part 1/Part 2 shape assert for non-empty garbage).
+- **Income snapshot automation** — gumroad/skool CLIs built but unwired
+  (`pipelines/income-analysis/README.md` "To add"); one manual snapshot ever
+  (2026-06-20). Fix = wire the two CLIs + weekly Pattern-B snapshot cron +
+  monthly Telegram income digest. Surfaced 2026-07-11, owner deferred. Effort M.
 - **Cost/usage feedback loop** — pp-openrouter + ccusage exist but nothing
   snapshots or alerts on spend; budget regressions (see COST-01) surface only
   via manual audit. Fix = weekly Pattern-B cron snapshot + threshold ping.
@@ -269,6 +284,14 @@ they aren't re-audited from scratch — promote any to a plan when ready.
 
 ## Findings considered and rejected (do not re-audit)
 
+- **Automating the monthly escrow run** (2026-07-11 audit) — rejected: monthly
+  manual is a documented security decision (`infra/escrow/README.md` — the
+  passphrase is typed by hand, never stored; cron automation is explicitly the
+  weaker option, gated on an asymmetric-key upgrade).
+- **my-planner silent-death wrap (`BUG-01`)** (2026-07-11 re-check) — largely
+  superseded: plan 025's `alert.sh` failure trap in every cron wrapper now
+  alerts on non-zero exits; only the missing `requests` timeouts remain (a hang
+  wouldn't alert) — too small to plan alone, fold into the next my-planner touch.
 - **"RTK hook may not be wired in this repo"** (2026-07-05 audit) — rejected:
   verified wired globally in `~/.claude-work/settings.json` (PreToolUse Bash →
   `rtk hook claude`); repo-level settings correctly carry no hooks block.
