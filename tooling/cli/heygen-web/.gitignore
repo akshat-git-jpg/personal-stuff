@@ -1,0 +1,8 @@
+# Render outputs live OUTSIDE the repo in ~/kb-scratch/heygen-web-renders/
+# (media policy, decisions.md 2026-07-04). Only the renders-log.md manifest
+# is tracked.
+*.mp4
+*.mp3
+*.wav
+girl-*/
+test-man/
