@@ -11,6 +11,20 @@ This CLI has been refactored into a layered architecture to make APIs safe to up
 - **`src/client/payloads/`**: The raw JSON payload files mined from HARs. Never edit these directly unless a HAR proves it; they are verified byte-for-byte.
 - **`avatars.json`** (package root) + **`src/client/registry.mjs`**: the avatar/template registry — friendly slugs → HeyGen ids. This is the single source of truth for ids, shared by this CLI and the youtube pipelines.
 
+## Adding a new workflow
+
+A **workflow** is an end-to-end command that composes operations (e.g. `photo-to-video` = create avatar → render). Adding one touches **three files** — plus one test line. Copy `src/workflows/photo-to-video.mjs` as the template.
+
+1. **Write `src/workflows/<name>.mjs`** — export `async function fn(auth, args)` that:
+   - parses flags with `arg(args, "--x")` (`import { arg } from "../cli/args.mjs"`);
+   - composes **operations** (`import { … } from "../operations/*.mjs"`) — never call the network directly. If no operation covers the endpoint you need, add the endpoint to `src/client/endpoints.mjs` and a function in the right `src/operations/*.mjs` first, then compose it;
+   - resolves any `--avatar` / `--template` value through `resolveAvatar` / `resolveTemplate` (`import … from "../client/registry.mjs"`) so slugs and raw ids both work;
+   - prints machine output with `console.log(JSON.stringify(x, null, 2))`, human progress with `console.error(...)`, and fatal errors with `die(...)` (`import { die } from "../client/http.mjs"`).
+2. **Wire it in `src/cli/dispatch.mjs`** — add the `import` and a `case "<name>": await fn(auth, rest); break;`.
+3. **Add a help line in `src/cli/help.mjs`**, and add `"<name>"` to the command-parity set in `test/smoke.test.mjs` (test 3) — that test asserts the exact command set, so it fails until the command is registered.
+
+**Verify (offline only):** `npm test` must stay green and `node heygen-web.mjs help` must list the new command. **Never run live HeyGen calls to test** — they are ToS-grey and account-bound (see Operational Gotchas).
+
 ## Avatar/template registry
 
 `avatars.json` maps a slug to an avatar and/or template id plus a description:
