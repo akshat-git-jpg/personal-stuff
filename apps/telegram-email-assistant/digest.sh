@@ -108,10 +108,19 @@ EOF
 # Resolve claude binary — works on Mac (homebrew) and VPS (~/.local/bin/claude).
 CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude || echo /root/.local/bin/claude)}"
 
-# Run Claude non-interactively. No --mcp-config, no --allowed-tools for MCP.
-# acceptEdits handles any incidental file writes but Claude isn't expected
-# to need any tools — just produce the digest text.
-exec "$CLAUDE_BIN" -p \
+# Run Claude non-interactively and validate the output SHAPE before shipping.
+# run.sh (vps-crons) only catches empty output; a non-empty refusal or error
+# dump that exits 0 would otherwise go to Telegram as if it were the digest.
+DIGEST_OUTPUT=$("$CLAUDE_BIN" -p \
   --output-format text \
   --permission-mode acceptEdits \
-  <<< "$FULL_PROMPT"
+  <<< "$FULL_PROMPT")
+
+if [[ ${#DIGEST_OUTPUT} -lt 200 \
+      || "$DIGEST_OUTPUT" != *"Part 1: Overall summary"* \
+      || "$DIGEST_OUTPUT" != *"Part 2: Per your preferences"* ]]; then
+  echo "ERROR: digest output failed shape check (${#DIGEST_OUTPUT} chars, expected Part 1/Part 2 sections) for $EMAIL"
+  exit 1
+fi
+
+printf '%s\n' "$DIGEST_OUTPUT"
