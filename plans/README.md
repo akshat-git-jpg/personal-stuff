@@ -349,3 +349,4 @@ The others are grounded and available when the owner wants them:
 - 056-tracker-deterministic-linkgen — PR#13 056-tracker-deterministic-linkgen: deterministic, LLM-free affiliate link generation — DONE
 - 059-hygiene-skill-budget-heygen-media — PR#16 059-hygiene-skill-budget-heygen-media: skill-description budget guard + heygen render policy — DONE
 - 057-silent-failure-alerts — PR#14 057-silent-failure-alerts: cred-probe cron, watchdog reboot notify, digest shape check — DONE
+- 058-autonomy-pilot-route-audit — PR#15 058-autonomy-pilot-route-audit: weekly read-only route-audit cron + VPS-CRONS.md refresh — DONE
