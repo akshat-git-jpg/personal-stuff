@@ -386,6 +386,12 @@ app.get("/api/board", async (c) => {
       ...rowMeta(eff, effEmail, r),
       status_since: (r.status_since as string) ?? "",
       ...extraSinceCols,
+      // Link-gen fields live in card_extra, so they're not declared pipeline
+      // columns and projectRowForRoles drops them. Re-attach them (non-sensitive:
+      // the tool list + a public short-code) so the card's Video-tools section can
+      // rehydrate the selection on reopen.
+      video_tools: (r.video_tools as string) ?? "",
+      video_code: (r.video_code as string) ?? "",
     };
   });
 
@@ -746,6 +752,23 @@ app.get("/api/affiliate-catalog", async (c) => {
   return c.json(list);
 });
 
+// POST /api/video-tools {row_id, tools} — Admin-only. Persists the card's tool
+// selection. Uses a dedicated route (not /api/update) because video_tools is a
+// card_extra passthrough field, not a declared pipeline column, so the generic
+// update handler's allCols guard would (correctly) reject it.
+app.post("/api/video-tools", async (c) => {
+  const { roles } = getUser(c);
+  if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
+  let body: { row_id?: string; tools?: unknown };
+  try { body = await c.req.json(); } catch { return c.json({ error: "invalid JSON body" }, 400); }
+  const rowId = (body.row_id ?? "").trim();
+  if (!rowId) return c.json({ error: "row_id is required" }, 400);
+  if (!Array.isArray(body.tools)) return c.json({ error: "tools must be an array" }, 400);
+  await getStore(c.env).updateCells(rowId, { video_tools: JSON.stringify(body.tools) });
+  await bustBoardCache(c.env);
+  return c.json({ ok: true });
+});
+
 app.post("/api/link-preview", async (c) => {
   const { roles } = getUser(c);
   if (!isAdminRoles(roles)) return c.json({ error: "forbidden" }, 403);
@@ -775,7 +798,19 @@ app.post("/api/link-preview", async (c) => {
   let videoCode = (target.video_code as string)?.trim();
   if (!videoCode) {
     const dbCode = await clickstore.videoCodeForTitle(c.env.DB, title);
-    videoCode = dbCode ?? "(new)";
+    if (dbCode) {
+      videoCode = dbCode;
+    } else {
+      // Reserve a real short-code NOW so the preview (and any copied description)
+      // shows the FINAL links, not a "(new)" placeholder that would break if pasted.
+      // This only creates the videos-table id + stores the code on the card — the
+      // redirects (KV), the links rows, and the description write all still wait
+      // for Confirm & Save. So no money-affecting artifact is created here.
+      videoCode = generateVideoCode(await clickstore.existingCodes(c.env.DB));
+      await clickstore.insertVideo(c.env.DB, videoCode, title);
+    }
+    await getStore(c.env).updateCells(rowId, { video_code: videoCode });
+    await bustBoardCache(c.env);
   }
 
   const items = buildPlan(resolved, videoCode, c.env.LINK_DOMAIN);

@@ -237,6 +237,10 @@ export async function affiliateCatalog(): Promise<AffiliateCatalogItem[]> {
   return res.json() as Promise<AffiliateCatalogItem[]>;
 }
 
+export async function saveVideoTools(row_id: string, tools: unknown[]): Promise<void> {
+  await throwOnError(await postJSON("/api/video-tools", { row_id, tools }));
+}
+
 export async function linkPreview(row_id: string): Promise<PreviewResult> {
   const res = await postJSON("/api/link-preview", { row_id });
   if (!res.ok) {

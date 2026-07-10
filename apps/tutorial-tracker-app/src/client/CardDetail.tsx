@@ -14,10 +14,10 @@ import {
   type RoleKind, type StageDef,
 } from "./stages";
 import {
-  applyTransition, updateCell, affiliateCatalog, linkPreview, linkConfirm, displayName, personLabel, getCardEvents,
+  applyTransition, updateCell, affiliateCatalog, saveVideoTools, linkPreview, linkConfirm, displayName, personLabel, getCardEvents,
   type BoardRow, type CardEvent, type AffiliateCatalogItem, type PreviewResult
 } from "./api";
-import { LinkReviewModal } from "./LinkReviewModal";
+import { LinkResultModal } from "./LinkReviewModal";
 import { fieldLabel, LINK_HINTS, LINK_COLS, isUrl, etaBadge } from "./labels";
 import { daysSince } from "./pipeline";
 import { StatusPill } from "./Card";
@@ -216,12 +216,13 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
   const [previewData, setPreviewData] = useState<PreviewResult | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  const [isConfirming, setIsConfirming] = useState(false);
-  const [staleError, setStaleError] = useState<string | undefined>();
-  const [showExternalInputs, setShowExternalInputs] = useState(false);
+  const [addMode, setAddMode] = useState<null | "catalog" | "external">(null);
   const [extName, setExtName] = useState("");
   const [extUrl, setExtUrl] = useState("");
-  
+  const [catalogQuery, setCatalogQuery] = useState("");
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const catalogBoxRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (isAdmin && !readOnly && catalog.length === 0 && !catalogLoading) {
       setCatalogLoading(true);
@@ -229,11 +230,26 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
     }
   }, [isAdmin, readOnly, catalog.length, catalogLoading]);
 
-  async function handlePreview() {
+  useEffect(() => {
+    if (!catalogOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (catalogBoxRef.current && !catalogBoxRef.current.contains(e.target as Node)) setCatalogOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [catalogOpen]);
+
+  // One click: reserve the real short-code + build the plan (preview), then mint
+  // the redirects + write the description to the card (confirm), then show the
+  // finished result read-only. No separate confirm step — the admin already chose
+  // the tools, so there's nothing left to approve.
+  async function handleGenerate() {
     if (!row.row_id) return;
-    setPreviewLoading(true); setPreviewError(null); setStaleError(undefined);
+    setPreviewLoading(true); setPreviewError(null);
     try {
-      setPreviewData(await linkPreview(row.row_id));
+      const plan = await linkPreview(row.row_id);
+      await linkConfirm(row.row_id, plan.plan_hash);
+      setPreviewData(plan); // plan already carries the real links → display it
     } catch (err) {
       setPreviewError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -241,29 +257,18 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
     }
   }
 
-  async function handleConfirm() {
-    if (!row.row_id || !previewData) return;
-    setIsConfirming(true); setStaleError(undefined);
-    try {
-      await linkConfirm(row.row_id, previewData.plan_hash);
-      setPreviewData(null);
-      onSaved();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("Re-open the review")) {
-        setStaleError(msg);
-      } else {
-        setPreviewError(msg);
-        setPreviewData(null);
-      }
-    } finally {
-      setIsConfirming(false);
-    }
-  }
-
   async function saveTools(newTools: any[]) {
+    const prev = toolsDraft;
     setToolsDraft(newTools);
-    if (row.row_id) await updateCell(row.row_id, "video_tools" as Column, JSON.stringify(newTools));
+    if (!row.row_id) return;
+    try {
+      await saveVideoTools(row.row_id, newTools);
+      setPreviewError(null);
+      setTouched(true); // so closing the card refreshes the board and the selection rehydrates on reopen
+    } catch (err) {
+      setToolsDraft(prev); // revert optimistic update so the UI reflects what's actually saved
+      setPreviewError(`Couldn't save tools: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   const [showActivity, setShowActivity] = useState(false);
@@ -639,51 +644,95 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
                 ))}
                 {toolsDraft.length === 0 && <span className="text-sm text-muted-foreground italic">No tools selected</span>}
               </div>
-              <div className="flex flex-wrap items-end gap-3 pt-2 border-t border-border">
-                <div className="flex-1 min-w-[200px]">
-                  <select className={inputCls} value="" onChange={(e) => {
-                    if (e.target.value) saveTools([...toolsDraft, { kind: "catalog", slug: e.target.value }]);
-                  }}>
-                    <option value="">+ Add from catalog...</option>
-                    {catalog.filter(c => !toolsDraft.some(t => t.kind === "catalog" && t.slug === c.slug)).map(c => (
-                      <option key={c.slug} value={c.slug}>{c.displayName} {c.isApproved ? "" : "(Not approved)"} {c.hasCoupon ? "🎟️" : ""}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1 min-w-[200px]">
-                  {showExternalInputs ? (
+              <div className="pt-3 border-t border-border">
+                {addMode === null && (
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setAddMode("catalog"); setCatalogOpen(true); }}>+ Add from catalog</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setAddMode("external")}>+ Add external link</Button>
+                  </div>
+                )}
+
+                {addMode === "catalog" && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground">Add from catalog</span>
+                      <button type="button" className="text-xs text-muted-foreground hover:text-foreground" onClick={() => { setAddMode(null); setCatalogQuery(""); setCatalogOpen(false); }}>Cancel</button>
+                    </div>
+                    <div className="relative" ref={catalogBoxRef}>
+                      <input
+                        type="text"
+                        autoFocus
+                        className={inputCls}
+                        placeholder="Type to search programs…"
+                        value={catalogQuery}
+                        onFocus={() => setCatalogOpen(true)}
+                        onChange={(e) => { setCatalogQuery(e.target.value); setCatalogOpen(true); }}
+                      />
+                      {catalogOpen && (() => {
+                        const matches = catalog
+                          .filter(c => !toolsDraft.some(t => t.kind === "catalog" && t.slug === c.slug))
+                          .filter(c => c.displayName.toLowerCase().includes(catalogQuery.trim().toLowerCase()));
+                        return (
+                          <div className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-md border border-border bg-card shadow-lg">
+                            {matches.length === 0 && (
+                              <div className="px-3 py-2 text-sm text-muted-foreground">No matching programs</div>
+                            )}
+                            {matches.map(c => (
+                              <button
+                                key={c.slug}
+                                type="button"
+                                className="flex w-full items-center gap-1.5 px-3 py-1.5 text-left text-sm hover:bg-muted"
+                                onClick={() => {
+                                  saveTools([...toolsDraft, { kind: "catalog", slug: c.slug }]);
+                                  setCatalogQuery("");
+                                  setCatalogOpen(false);
+                                }}
+                              >
+                                <span className={cn(!c.isApproved && "text-red-600 dark:text-red-400")}>{c.displayName}</span>
+                                {c.hasCoupon && <span>🎟️</span>}
+                                {!c.isApproved && <span className="text-red-600 dark:text-red-400">(Not approved) 🔴</span>}
+                              </button>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+
+                {addMode === "external" && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground">Add external link (tool with no affiliate program)</span>
+                      <button type="button" className="text-xs text-muted-foreground hover:text-foreground" onClick={() => { setAddMode(null); setExtName(""); setExtUrl(""); }}>Cancel</button>
+                    </div>
                     <div className="flex items-center gap-2">
-                      <input type="text" placeholder="Name" className={inputCls} value={extName} onChange={e => setExtName(e.target.value)} />
+                      <input type="text" autoFocus placeholder="Display name" className={inputCls} value={extName} onChange={e => setExtName(e.target.value)} />
                       <input type="url" placeholder="https://..." className={inputCls} value={extUrl} onChange={e => setExtUrl(e.target.value)} />
-                      <Button size="sm" type="button" onClick={() => {
+                      <Button size="sm" type="button" disabled={!extName.trim() || !extUrl.trim()} onClick={() => {
                         if (extName.trim() && extUrl.trim()) {
                           saveTools([...toolsDraft, { kind: "external", name: extName.trim(), url: extUrl.trim() }]);
-                          setExtName(""); setExtUrl(""); setShowExternalInputs(false);
+                          setExtName(""); setExtUrl(""); setAddMode(null);
                         }
                       }}>Add</Button>
-                      <Button size="sm" variant="ghost" type="button" onClick={() => setShowExternalInputs(false)}>Cancel</Button>
                     </div>
-                  ) : (
-                    <Button type="button" variant="outline" size="sm" className="w-full justify-start text-muted-foreground" onClick={() => setShowExternalInputs(true)}>+ Add external link...</Button>
-                  )}
-                </div>
+                    <p className="text-[11px] text-muted-foreground">The name is what viewers see next to the link in your description (e.g. “DaVinci Resolve — link”).</p>
+                  </div>
+                )}
               </div>
               <div className="pt-2">
-                <Button size="sm" onClick={() => void handlePreview()} disabled={previewLoading || toolsDraft.length === 0}>
-                  <Sparkles className="size-3.5 mr-1.5" /> {previewLoading ? "Previewing…" : "Preview links & description"}
+                <Button size="sm" onClick={() => void handleGenerate()} disabled={previewLoading || toolsDraft.length === 0}>
+                  <Sparkles className="size-3.5 mr-1.5" /> {previewLoading ? "Generating…" : "Generate links & description"}
                 </Button>
                 {previewError && <p className="mt-2 text-xs font-medium text-destructive">{previewError}</p>}
               </div>
             </div>
           )}
           {previewData && (
-            <LinkReviewModal
-              preview={previewData}
-              onConfirm={() => void handleConfirm()}
-              onCancel={() => { setPreviewData(null); setStaleError(undefined); }}
-              onRepreview={() => void handlePreview()}
-              staleError={staleError}
-              isConfirming={isConfirming}
+            <LinkResultModal
+              result={previewData}
+              onClose={() => { setPreviewData(null); setTouched(true); }}
+              onSaveDescription={async (text) => { if (row.row_id) await updateCell(row.row_id, "video_description" as Column, text); }}
             />
           )}
 
