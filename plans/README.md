@@ -68,6 +68,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 051 | Dossier skills — transcript fallback chain + per-tool research dossiers | P1 | L | — | TODO |
 | 052 | Dossier-build — fix tool-identity matching + extraction schema | P1 | S | 051 | TODO |
 | 053 | Dossier-build — real driver script, real video metadata, agy retry | P1 | M | 052 | TODO |
+| 054 | `timeblock` — fast tap-to-block day planner (new `apps/timeblock`) | P2 | M | — | DONE |
 | 055 | `heygen-web` — layered CLI (endpoints registry → operations → workflows → thin dispatch) | P2 | L | — | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).

@@ -1,6 +1,7 @@
 # Infrastructure Inventory
 
 Canonical map of what runs where. Audited 2026-06-13; Cloudflare Workers + agrolloo.com DNS re-verified 2026-06-16 (added kushal-docs, yt-analytics, render2, kushal-tools). The single infra reference (the old `my-planner/hostinger-vps-srv1377177.md` was stale and has been removed).
+- **timeblock** — `timeblock.agrolloo.com` — personal tap-to-block day planner. Shared-password gate (stateless signed cookie, no KV sessions). Binding: `BLOCKS_KV` (KV, one JSON blob per day). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
 
 Three places: **Cloudflare** (public edge), **Hostinger VPS** (always-on box), **GitHub** (source of truth; VPS pulls on every cron tick).
 

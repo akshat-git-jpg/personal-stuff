@@ -13,3 +13,4 @@
 - Bride Bestie landing page — https://bridebestie.com
 - Hyperframes → Video renderer — https://render2.agrolloo.com (password-gated; editor pastes Hyperframes card HTML, downloads MP4)
 - Claude usage - http://localhost:4319/ (ccu-dash)
+- timeblock.agrolloo.com — fast tap-to-block day planner; password-gated (APP_PASSWORD/SESSION_SECRET); Worker + KV (BLOCKS_KV), static `public/`; app at `apps/timeblock`

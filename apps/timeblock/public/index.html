@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#f4f6f9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e1015" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>timeblock</title>
+  <style>
+    :root {
+      --bg: #f4f6f9; --surface: #ffffff; --surface-2: #fafbfc;
+      --line: #e7eaef; --line-strong: #d7dce3; --text: #191c22;
+      --text-dim: #667085; --text-faint: #9aa2b0; --accent: #5b5ef0; --now: #ef4444;
+      --rowh: 46px; --gutter: 66px;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
+      --lbl-deep: #5b5ef0; --lbl-meeting: #e8890c; --lbl-gym: #0ea472; --lbl-break: #0891b2; --lbl-personal: #e11d68;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e1015; --surface: #161922; --surface-2: #1b1f2a;
+        --line: #262b36; --line-strong: #333a48; --text: #e9ebef;
+        --text-dim: #939bab; --text-faint: #626b7c; --accent: #7d80f5; --now: #f8716b;
+        --lbl-deep: #7d80f5; --lbl-meeting: #f5a63a; --lbl-gym: #22c48c; --lbl-break: #22b8d6; --lbl-personal: #f4517f;
+      }
+    }
+    :root[data-theme="light"] {
+      --bg: #f4f6f9; --surface: #ffffff; --surface-2: #fafbfc;
+      --line: #e7eaef; --line-strong: #d7dce3; --text: #191c22;
+      --text-dim: #667085; --text-faint: #9aa2b0; --accent: #5b5ef0; --now: #ef4444;
+      --lbl-deep: #5b5ef0; --lbl-meeting: #e8890c; --lbl-gym: #0ea472; --lbl-break: #0891b2; --lbl-personal: #e11d68;
+    }
+    :root[data-theme="dark"] {
+      --bg: #0e1015; --surface: #161922; --surface-2: #1b1f2a;
+      --line: #262b36; --line-strong: #333a48; --text: #e9ebef;
+      --text-dim: #939bab; --text-faint: #626b7c; --accent: #7d80f5; --now: #f8716b;
+      --lbl-deep: #7d80f5; --lbl-meeting: #f5a63a; --lbl-gym: #22c48c; --lbl-break: #22b8d6; --lbl-personal: #f4517f;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); }
+    /* The overlays below set an explicit `display`, which would otherwise beat the
+       UA [hidden]{display:none} rule and keep them permanently visible. Make the
+       hidden attribute authoritative so JS toggling .hidden actually hides them. */
+    [hidden] { display: none !important; }
+    .app {
+      font-family: var(--sans); background: var(--bg); color: var(--text);
+      min-height: 100vh; max-width: 540px; margin: 0 auto;
+      -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; position: relative;
+    }
+    .topbar {
+      position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px; background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line);
+    }
+    .nav {
+      appearance: none; border: 1px solid var(--line-strong); background: var(--surface); color: var(--text);
+      width: 38px; height: 38px; border-radius: 11px; font-size: 20px; line-height: 1; cursor: pointer;
+      display: grid; place-items: center; touch-action: manipulation; transition: background .12s, transform .08s;
+    }
+    .nav:active { transform: scale(.93); background: var(--surface-2); }
+    .daterow { flex: 1; text-align: center; }
+    .dayname { font-size: 17px; font-weight: 640; letter-spacing: -.01em; }
+    .datesub { font-size: 12.5px; color: var(--text-dim); margin-top: 1px; font-variant-numeric: tabular-nums; }
+    /* Color picker swatches (in the create/edit sheet) — color only, no preset names. */
+    .swatch {
+      appearance: none; cursor: pointer; width: 40px; height: 40px; border-radius: 50%;
+      background: var(--c); border: 2px solid transparent; padding: 0;
+      touch-action: manipulation; transition: transform .08s, box-shadow .13s;
+      position: relative;
+    }
+    .swatch:active { transform: scale(.92); }
+    .swatch[aria-pressed="true"] {
+      box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--c);
+    }
+    /* padding-top gives the first time label (lifted -8px to straddle its line) headroom
+       so it isn't clipped by the scroll container's top edge. */
+    .gridwrap { flex: 1; overflow-y: auto; padding-top: 12px; padding-bottom: 96px; }
+    .grid { position: relative; }
+    /* Hour lines are drawn on the CELL only (the day area), not the whole row,
+       so they never cross through the time labels in the left gutter. */
+    .slot { display: flex; height: var(--rowh); }
+    .slot .cell { border-top: 1px solid var(--line); }
+    .slot.hour .cell { border-top-color: var(--line-strong); }
+    .slot:first-child .cell { border-top: none; }
+    .time {
+      width: var(--gutter); flex: 0 0 var(--gutter); padding: 3px 10px 0 0; text-align: right;
+      font-size: 11px; color: var(--text-dim); font-variant-numeric: tabular-nums; user-select: none;
+      transform: translateY(-8px); white-space: nowrap;
+    }
+    .time.half { font-size: 9.5px; color: var(--text-faint); }
+    .cell { flex: 1; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; border-left: 1px solid var(--line); }
+    .cell:active { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+    .cell.start { background: color-mix(in srgb, var(--accent) 16%, transparent); box-shadow: inset 3px 0 0 var(--accent); }
+    .cell.preview { background: color-mix(in srgb, var(--sel) 14%, transparent); }
+    .blocks { position: absolute; top: 0; left: var(--gutter); right: 8px; bottom: 0; pointer-events: none; }
+    .block {
+      position: absolute; left: 0; right: 0; border-radius: 9px; overflow: hidden; cursor: pointer;
+      pointer-events: auto; touch-action: manipulation; background: color-mix(in srgb, var(--c) 15%, var(--surface));
+      box-shadow: inset 3.5px 0 0 var(--c); border: 1px solid color-mix(in srgb, var(--c) 26%, transparent);
+      padding: 5px 10px; display: flex; flex-direction: column; gap: 1px; animation: pop .16s ease-out;
+    }
+    @media (prefers-reduced-motion: reduce) { .block, .pill, .sheet, .backdrop { animation: none !important; } }
+    @keyframes pop { from { transform: scale(.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .block .b-title { font-size: 13.5px; font-weight: 620; color: color-mix(in srgb, var(--c) 45%, var(--text)); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .block .b-time { font-size: 11.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+    .block.tiny { padding: 3px 10px; flex-direction: row; align-items: center; gap: 8px; }
+    .block.tiny .b-time { font-size: 11px; }
+    .nowline { position: absolute; left: calc(var(--gutter) - 4px); right: 8px; height: 0; z-index: 5; pointer-events: none; }
+    .nowline::before { content: ""; position: absolute; left: 0; top: -3.5px; width: 7px; height: 7px; border-radius: 50%; background: var(--now); }
+    .nowline::after { content: ""; position: absolute; left: 4px; right: 0; top: 0; border-top: 2px solid var(--now); }
+    .hint { position: absolute; left: var(--gutter); right: 8px; text-align: center; color: var(--text-faint); font-size: 13px; pointer-events: none; padding: 0 12px; }
+    .pill {
+      position: fixed; left: 50%; transform: translateX(-50%); bottom: 22px; z-index: 40;
+      max-width: 500px; width: calc(100% - 32px); display: flex; align-items: center; gap: 12px;
+      padding: 11px 12px 11px 16px; border-radius: 14px; background: var(--text); color: var(--bg);
+      box-shadow: 0 8px 30px rgba(0,0,0,.28); animation: slideup .2s ease-out;
+    }
+    @keyframes slideup { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+    .pill .p-txt { flex: 1; font-size: 14px; font-weight: 500; }
+    .pill .p-txt b { font-variant-numeric: tabular-nums; }
+    .pill .p-cancel {
+      appearance: none; border: none; cursor: pointer; background: color-mix(in srgb, var(--bg) 20%, transparent);
+      color: var(--bg); font-size: 13px; font-weight: 600; padding: 7px 13px; border-radius: 9px;
+      font-family: var(--sans); touch-action: manipulation;
+    }
+    .backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.38); display: grid; align-items: end; animation: fade .15s ease; }
+    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+    .sheet {
+      max-width: 540px; width: 100%; margin: 0 auto; background: var(--surface);
+      border-radius: 20px 20px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); animation: slideup2 .22s ease-out;
+    }
+    @keyframes slideup2 { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .sheet h3 { margin: 0 0 2px; font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
+    .sheet .s-sub { color: var(--text-dim); font-size: 13px; font-variant-numeric: tabular-nums; margin-bottom: 16px; }
+    .sheet .s-input {
+      width: 100%; appearance: none; font-family: var(--sans); font-size: 16px;
+      padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line-strong);
+      background: var(--surface-2); color: var(--text); margin-bottom: 18px;
+    }
+    .sheet .s-input:focus { outline: none; border-color: var(--accent); }
+    .sheet .s-input::placeholder { color: var(--text-faint); }
+    .sheet .s-lbl { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); margin: 4px 0 10px; }
+    .sheet .s-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .s-actions { display: flex; gap: 10px; }
+    .btn {
+      flex: 1; appearance: none; cursor: pointer; font-family: var(--sans); padding: 13px; border-radius: 12px;
+      font-size: 15px; font-weight: 600; border: 1px solid var(--line-strong); background: var(--surface-2);
+      color: var(--text); touch-action: manipulation;
+    }
+    .btn.danger { border-color: color-mix(in srgb, var(--now) 40%, transparent); color: var(--now); background: color-mix(in srgb, var(--now) 8%, var(--surface)); }
+    .btn:active { transform: scale(.98); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    /* login overlay */
+    .login { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: var(--bg); padding: 24px; font-family: var(--sans); }
+    .login .card { width: 100%; max-width: 320px; text-align: center; }
+    .login .mark { width: 46px; height: 46px; margin: 0 auto 16px; border-radius: 12px; background: var(--accent); display: grid; place-items: center; }
+    .login .mark span { display: block; width: 22px; height: 3px; border-radius: 2px; background: #fff; margin: 2.5px 0; }
+    .login .mark span:nth-child(2) { opacity: .7; width: 22px; } .login .mark span:nth-child(3) { opacity: .45; width: 13px; }
+    .login h1 { font-size: 21px; font-weight: 680; letter-spacing: -.02em; margin: 0 0 4px; color: var(--text); }
+    .login p { font-size: 13.5px; color: var(--text-dim); margin: 0 0 20px; }
+    .login input {
+      width: 100%; appearance: none; font-family: var(--sans); font-size: 16px; text-align: center;
+      padding: 13px; border-radius: 12px; border: 1.5px solid var(--line-strong); background: var(--surface);
+      color: var(--text); margin-bottom: 10px;
+    }
+    .login input:focus { outline: none; border-color: var(--accent); }
+    .login .go { width: 100%; appearance: none; cursor: pointer; font-family: var(--sans); font-size: 15px; font-weight: 640; padding: 13px; border-radius: 12px; border: none; background: var(--accent); color: #fff; touch-action: manipulation; }
+    .login .go:active { transform: scale(.98); }
+    .login .err { color: var(--now); font-size: 13px; min-height: 20px; margin-top: 10px; }
+    .toast {
+      position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 70;
+      background: var(--now); color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 13px;
+      font-family: var(--sans); box-shadow: 0 8px 30px rgba(0,0,0,.28);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <button class="nav" id="prevDay" aria-label="Previous day">&lsaquo;</button>
+      <div class="daterow">
+        <div class="dayname" id="dayName">Today</div>
+        <div class="datesub" id="dateSub"></div>
+      </div>
+      <button class="nav" id="nextDay" aria-label="Next day">&rsaquo;</button>
+    </header>
+    <div class="gridwrap" id="gridwrap">
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+
+  <div class="pill" id="pill" hidden>
+    <div class="p-txt">Start <b id="pillTime"></b> &middot; now tap the end time</div>
+    <button class="p-cancel" id="pillCancel">Cancel</button>
+  </div>
+
+  <div class="backdrop" id="backdrop" hidden>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <div class="login" id="login" hidden>
+    <div class="card">
+      <div class="mark"><span></span><span></span><span></span></div>
+      <h1>timeblock</h1>
+      <p>Enter your password to continue</p>
+      <form id="loginForm">
+        <input type="password" id="pw" inputmode="text" autocomplete="current-password" placeholder="Password" aria-label="Password">
+        <button class="go" type="submit">Unlock</button>
+      </form>
+      <div class="err" id="loginErr"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    var START_HOUR = 6, END_HOUR = 30; // a planner day runs 6 AM → 6 AM next morning (24h)
+    var SLOTS = (END_HOUR - START_HOUR) * 2; // 48 half-hour slots
+    var ROWH = 46;
+
+    // NOTE: keep these label ids in sync with src/worker/constants.ts — there is
+    // no build step sharing them between the browser and the Worker validator.
+    var LABELS = [
+      { id: "deep",     name: "Deep work", css: "--lbl-deep" },
+      { id: "meeting",  name: "Meeting",   css: "--lbl-meeting" },
+      { id: "gym",      name: "Gym",       css: "--lbl-gym" },
+      { id: "break",    name: "Break",     css: "--lbl-break" },
+      { id: "personal", name: "Personal",  css: "--lbl-personal" }
+    ];
+    function labelById(id) { for (var i=0;i<LABELS.length;i++) if (LABELS[i].id===id) return LABELS[i]; return LABELS[0]; }
+    function labelColor(id) { return "var(" + labelById(id).css + ")"; }
+
+    var activeLabel = "deep";
+    var pendingStart = null;
+    // A planner day starts at 6 AM. Before 6 AM the active day is still "yesterday".
+    var viewDate = new Date();
+    if (viewDate.getHours() < START_HOUR) viewDate.setDate(viewDate.getDate() - 1);
+    var blocks = [];
+    var idc = 1;
+
+    // ---------- date ----------
+    function dateKey(d) {
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    }
+    function isToday(d) { var n = new Date(); return d.toDateString() === n.toDateString(); }
+
+    // ---------- time helpers ----------
+    function slotToMin(i) { return START_HOUR*60 + i*30; }
+    function fmt(mins) {
+      var h = Math.floor(mins/60) % 24, m = mins%60;
+      var ap = h >= 12 ? "PM" : "AM";
+      var hh = h % 12; if (hh === 0) hh = 12;
+      return hh + (m ? ":" + String(m).padStart(2,"0") : "") + " " + ap;
+    }
+    function slotStartLabel(i) { return fmt(slotToMin(i)); }
+
+    // ---------- API ----------
+    async function apiMe() {
+      try { var r = await fetch("/api/me", { credentials: "same-origin" }); if (!r.ok) return false; var j = await r.json(); return !!j.authenticated; }
+      catch (e) { return false; }
+    }
+    async function apiLogin(pw) {
+      try {
+        var r = await fetch("/auth/login", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pw }) });
+        return r.ok;
+      } catch (e) { return false; }
+    }
+    async function apiGetDay(dstr) {
+      var r = await fetch("/api/day?date=" + dstr, { credentials: "same-origin" });
+      if (r.status === 401) { showLogin(); return null; }
+      if (!r.ok) throw new Error("load failed");
+      var j = await r.json();
+      return j.blocks || [];
+    }
+    async function persist() {
+      var dstr = dateKey(viewDate);
+      var payload = blocks.map(function (b) { return { start: b.start, end: b.end, labelId: b.labelId, title: b.title || "" }; });
+      try {
+        var r = await fetch("/api/day", { method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date: dstr, blocks: payload }) });
+        if (r.status === 401) { showLogin(); return; }
+        if (!r.ok) throw new Error("save failed");
+      } catch (e) { toast("Couldn't save — reloading"); await loadDay(); }
+    }
+    async function loadDay() {
+      var got = await apiGetDay(dateKey(viewDate));
+      if (got === null) return; // login overlay shown
+      idc = 1;
+      blocks = got.map(function (b) { return { id: idc++, start: b.start, end: b.end, labelId: b.labelId, title: b.title || "" }; });
+      render();
+    }
+
+    // ---------- rendering ----------
+    var grid = document.getElementById("grid");
+    var gridwrap = document.getElementById("gridwrap");
+
+    function render() {
+      grid.style.height = (SLOTS * ROWH) + "px";
+      grid.innerHTML = "";
+      for (var i = 0; i < SLOTS; i++) {
+        var isHour = (slotToMin(i) % 60 === 0);
+        var row = document.createElement("div");
+        row.className = "slot" + (isHour ? " hour" : "");
+        var t = document.createElement("div");
+        t.className = "time" + (isHour ? "" : " half");
+        t.textContent = fmt(slotToMin(i));
+        var cell = document.createElement("div");
+        cell.className = "cell";
+        cell.dataset.i = i;
+        row.appendChild(t); row.appendChild(cell);
+        grid.appendChild(row);
+      }
+      var layer = document.createElement("div");
+      layer.className = "blocks";
+      blocks.forEach(function (b) {
+        var span = (b.end - b.start + 1);
+        var el = document.createElement("div");
+        el.className = "block" + (span <= 1 ? " tiny" : "");
+        el.style.top = (b.start * ROWH + 1.5) + "px";
+        el.style.height = (span * ROWH - 3) + "px";
+        el.style.setProperty("--c", labelColor(b.labelId));
+        var startM = slotToMin(b.start), endM = slotToMin(b.end + 1);
+        el.innerHTML = '<div class="b-title"></div><div class="b-time"></div>';
+        el.querySelector(".b-title").textContent = (b.title && b.title.trim()) ? b.title : "Untitled";
+        el.querySelector(".b-time").textContent = fmt(startM) + " – " + fmt(endM);
+        el.addEventListener("click", function (e) { e.stopPropagation(); openSheet(b); });
+        layer.appendChild(el);
+      });
+      grid.appendChild(layer);
+      // now-line: minutes from this day's 6 AM base; shows only if "now" falls in the 24h window
+      var base = new Date(viewDate); base.setHours(START_HOUR, 0, 0, 0);
+      var minsNow = (new Date() - base) / 60000;
+      if (minsNow >= 0 && minsNow < (END_HOUR - START_HOUR) * 60) {
+        var nl = document.createElement("div");
+        nl.className = "nowline";
+        nl.style.top = ((minsNow / 30) * ROWH) + "px";
+        grid.appendChild(nl);
+      }
+      if (blocks.length === 0 && pendingStart === null) {
+        var hint = document.createElement("div");
+        hint.className = "hint";
+        hint.style.top = (2 * ROWH) + "px";
+        hint.textContent = "Tap a start time, then an end time.";
+        grid.appendChild(hint);
+      }
+      applyPendingClasses();
+    }
+
+    function applyPendingClasses() {
+      grid.querySelectorAll(".cell").forEach(function (c) { c.classList.remove("start", "preview"); });
+      if (pendingStart !== null) {
+        var s = grid.querySelector('.cell[data-i="' + pendingStart + '"]');
+        if (s) s.classList.add("start");
+      }
+    }
+    function previewTo(i) {
+      if (pendingStart === null) return;
+      var a = Math.min(pendingStart, i), b = Math.max(pendingStart, i);
+      grid.querySelectorAll(".cell").forEach(function (c) {
+        var ci = +c.dataset.i;
+        if (ci >= a && ci <= b && ci !== pendingStart) c.classList.add("preview");
+        else c.classList.remove("preview");
+      });
+      grid.style.setProperty("--sel", labelColor(activeLabel));
+    }
+    function occupied(i) {
+      for (var k=0;k<blocks.length;k++) if (i >= blocks[k].start && i <= blocks[k].end) return blocks[k];
+      return null;
+    }
+
+    // ---------- interaction ----------
+    grid.addEventListener("click", function (e) {
+      var cell = e.target.closest(".cell");
+      if (!cell) return;
+      var i = +cell.dataset.i;
+      var occ = occupied(i);
+      if (occ) { openSheet(occ); return; }
+      if (pendingStart === null) {
+        pendingStart = i; showPill(); applyPendingClasses();
+      } else {
+        var a = Math.min(pendingStart, i), b = Math.max(pendingStart, i);
+        for (var s = a; s <= b; s++) {
+          if (occupied(s)) { if (s <= pendingStart) { a = s + 1; } else { b = s - 1; break; } }
+        }
+        pendingStart = null; hidePill();
+        if (a <= b) {
+          var nb = { id: idc++, start: a, end: b, labelId: activeLabel, title: "" };
+          blocks.push(nb); render(); persist();
+          openSheet(nb, true);
+        } else { render(); }
+      }
+    });
+    grid.addEventListener("mousemove", function (e) {
+      if (pendingStart === null) return;
+      var cell = e.target.closest(".cell");
+      if (cell) previewTo(+cell.dataset.i);
+    });
+
+    // ---------- pill ----------
+    var pill = document.getElementById("pill");
+    var pillTime = document.getElementById("pillTime");
+    function showPill() { pillTime.textContent = slotStartLabel(pendingStart); pill.hidden = false; }
+    function hidePill() { pill.hidden = true; }
+    document.getElementById("pillCancel").addEventListener("click", function () {
+      pendingStart = null; hidePill(); render();
+    });
+
+    // ---------- edit sheet ----------
+    var backdrop = document.getElementById("backdrop");
+    var sheet = document.getElementById("sheet");
+    var activeSheetCommit = null;
+    function openSheet(b, isNew) {
+      var startM = slotToMin(b.start), endM = slotToMin(b.end + 1);
+      sheet.innerHTML =
+        '<h3></h3><div class="s-sub"></div>' +
+        '<input class="s-input" id="taskInput" type="text" maxlength="120" autocomplete="off" placeholder="What will you do? (optional)">' +
+        '<div class="s-lbl">Color</div><div class="s-chips"></div>' +
+        '<div class="s-actions"><button class="btn danger" id="delBtn">Delete</button><button class="btn primary" id="doneBtn">Done</button></div>';
+      sheet.querySelector("h3").textContent = isNew ? "New block" : "Edit block";
+      sheet.querySelector(".s-sub").textContent = fmt(startM) + " – " + fmt(endM);
+      var input = sheet.querySelector("#taskInput");
+      input.value = b.title || "";
+      var sc = sheet.querySelector(".s-chips");
+      LABELS.forEach(function (l) {
+        var c = document.createElement("button");
+        c.className = "swatch";
+        c.type = "button";
+        c.setAttribute("aria-pressed", l.id === b.labelId ? "true" : "false");
+        c.setAttribute("aria-label", l.name + " color");
+        c.title = l.name;
+        c.style.setProperty("--c", "var(" + l.css + ")");
+        c.addEventListener("click", function () {
+          b.labelId = l.id;
+          activeLabel = l.id; // remember last-picked color as the default for the next block
+          sc.querySelectorAll(".swatch").forEach(function (x) { x.setAttribute("aria-pressed", x === c ? "true" : "false"); });
+          render();
+          input.focus();
+        });
+        sc.appendChild(c);
+      });
+      function commit() {
+        b.title = input.value.trim();
+        activeSheetCommit = null;
+        render(); persist(); closeSheet();
+      }
+      activeSheetCommit = commit;
+      backdrop.hidden = false;
+      input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); commit(); } });
+      document.getElementById("delBtn").addEventListener("click", function () {
+        activeSheetCommit = null;
+        blocks = blocks.filter(function (x) { return x.id !== b.id; });
+        render(); persist(); closeSheet();
+      });
+      document.getElementById("doneBtn").addEventListener("click", commit);
+      if (isNew) setTimeout(function () { input.focus(); }, 60);
+    }
+    function closeSheet() { activeSheetCommit = null; backdrop.hidden = true; sheet.innerHTML = ""; }
+    backdrop.addEventListener("click", function (e) { if (e.target === backdrop) { if (activeSheetCommit) activeSheetCommit(); else closeSheet(); } });
+
+    // ---------- date nav ----------
+    var dayName = document.getElementById("dayName");
+    var dateSub = document.getElementById("dateSub");
+    function renderDate() {
+      var days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+      var mon = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      var today = new Date(); if (today.getHours() < START_HOUR) today.setDate(today.getDate() - 1); today.setHours(0,0,0,0);
+      var vd = new Date(viewDate); vd.setHours(0,0,0,0);
+      var diff = Math.round((vd - today) / 86400000);
+      if (diff === 0) dayName.textContent = "Today";
+      else if (diff === 1) dayName.textContent = "Tomorrow";
+      else if (diff === -1) dayName.textContent = "Yesterday";
+      else dayName.textContent = days[viewDate.getDay()];
+      dateSub.textContent = days[viewDate.getDay()].slice(0,3) + ", " + mon[viewDate.getMonth()] + " " + viewDate.getDate();
+    }
+    async function changeDay(delta) {
+      viewDate.setDate(viewDate.getDate() + delta);
+      pendingStart = null; hidePill(); renderDate(); await loadDay();
+    }
+    document.getElementById("prevDay").addEventListener("click", function () { changeDay(-1); });
+    document.getElementById("nextDay").addEventListener("click", function () { changeDay(1); });
+
+    // ---------- login ----------
+    var loginEl = document.getElementById("login");
+    function showLogin() { loginEl.hidden = false; setTimeout(function () { var i = document.getElementById("pw"); if (i) i.focus(); }, 50); }
+    function hideLogin() { loginEl.hidden = true; }
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var err = document.getElementById("loginErr"); err.textContent = "";
+      var pwEl = document.getElementById("pw");
+      var ok = await apiLogin(pwEl.value);
+      if (ok) { pwEl.value = ""; hideLogin(); await boot2(); }
+      else { err.textContent = "Wrong password"; pwEl.value = ""; pwEl.focus(); }
+    });
+
+    // ---------- toast ----------
+    var toastTimer;
+    function toast(msg) {
+      var t = document.getElementById("toast");
+      t.textContent = msg; t.hidden = false;
+      clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, 2500);
+    }
+
+    // ---------- boot ----------
+    renderDate();
+    async function boot2() {
+      await loadDay();
+      var base = new Date(viewDate); base.setHours(START_HOUR, 0, 0, 0);
+      var minsNow = (new Date() - base) / 60000;
+      var inWindow = minsNow > 0 && minsNow < (END_HOUR - START_HOUR) * 60;
+      gridwrap.scrollTop = inWindow ? Math.max(0, ((minsNow - 60) / 30) * ROWH) : 0;
+    }
+    (async function boot() {
+      var authed = await apiMe();
+      if (!authed) { showLogin(); return; }
+      await boot2();
+    })();
+  })();
+  </script>
+</body>
+</html>

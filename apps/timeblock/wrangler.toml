@@ -1,0 +1,25 @@
+name = "timeblock"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Static frontend (public/index.html) served by the Worker via the ASSETS binding.
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# One JSON blob per day: key `day:YYYY-MM-DD`. The id is filled in AFTER the owner
+# runs `npx wrangler kv namespace create BLOCKS_KV` — the placeholder below is fine
+# for `wrangler dev` (local mode simulates KV).
+[[kv_namespaces]]
+binding = "BLOCKS_KV"
+id = "30e8b66eeea848dc8d39c9b8671d0c45"
+
+# Custom domain — Cloudflare auto-provisions DNS + SSL on the agrolloo.com zone.
+[[routes]]
+pattern = "timeblock.agrolloo.com"
+custom_domain = true
+
+# APP_PASSWORD + SESSION_SECRET are secrets (never committed):
+#   npx wrangler secret put APP_PASSWORD
+#   npx wrangler secret put SESSION_SECRET
