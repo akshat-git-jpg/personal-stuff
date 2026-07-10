@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+source .env
+source _shared/telegram.sh
+source _shared/alert.sh
+enable_failure_alert "route-audit"
+source _shared/claude-env.sh
+
+git -C /srv/projects/personal-stuff pull --quiet || true
+
+REPORT=$(/srv/projects/personal-stuff/infra/route-audit/run-audit.sh) || {
+  send_telegram "route-audit: runner failed — check /srv/crons/route-audit/logs/cron.log"
+  exit 1
+}
+send_telegram "$REPORT"
