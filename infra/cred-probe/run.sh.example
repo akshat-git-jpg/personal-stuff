@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# cred-probe: daily credential-health check → Telegram on failure only.
+set -euo pipefail
+JOB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$JOB_DIR"
+[[ -f .env ]] && set -a && source .env && set +a
+source /srv/crons/_shared/telegram.sh
+source /srv/crons/_shared/alert.sh
+enable_failure_alert "cred-probe" "$JOB_DIR/logs/cron.log"
+source /srv/crons/_shared/claude-env.sh
+
+PROJECT_REPO="/srv/projects/personal-stuff"
+git -C "$PROJECT_REPO" pull --quiet 2>>"$JOB_DIR/logs/git.log" \
+  && echo "git pull: ok" || echo "git pull: failed; using existing checkout"
+
+FAILS=""
+
+# 1. Google OAuth tokens: shared dir + the my-planner vendored copy.
+if ! OUT=$(python3 "$PROJECT_REPO/infra/cred-probe/cred_probe.py" \
+      --extra "$PROJECT_REPO/apps/telegram-my-planner/tools/daily-digest/token.json"); then
+  FAILS+="$OUT"$'\n'
+fi
+echo "$OUT"
+
+# 2. Claude Code auth on the VPS (the LLM crons ride it).
+if ! "$CLAUDE_BIN" auth status >/dev/null 2>&1; then
+  FAILS+="DEAD claude-auth (claude auth status failed)"$'\n'
+fi
+
+if [[ -n "$FAILS" ]]; then
+  send_telegram "🔑 cred-probe failures:
+$FAILS
+Rotate per VPS-CRONS.md §'Rotate a Google OAuth token'."
+  exit 1
+fi
+echo "all credentials healthy"

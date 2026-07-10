@@ -19,4 +19,6 @@
   // Secrets (set via `wrangler secret put`):
   //   HOSTINGER_API_TOKEN  — Bearer token for the Hostinger API (VPS restart)
   //   STATUS_SECRET        — guards the GET status/dry-run endpoint
+  //   TELEGRAM_BOT_TOKEN   — (optional) Bot token for reboot notifications
+  //   TELEGRAM_CHAT_ID     — (optional) Chat ID for reboot notifications
 }

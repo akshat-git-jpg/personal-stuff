@@ -54,6 +54,22 @@ async function rebootVps(token, vpsId) {
   return { ok: res.ok, status: res.status, body: body.slice(0, 500) };
 }
 
+// Fire-and-forget Telegram alert. A reboot the owner never hears about is
+// indistinguishable from a healthy day — this closes that gap.
+async function sendTelegram(env, text) {
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, text }),
+      signal: AbortSignal.timeout(10000),
+    });
+  } catch {
+    // alerting must never break the watchdog itself
+  }
+}
+
 async function runCheck(env, { dryRun = false } = {}) {
   const threshold = parseInt(env.FAIL_THRESHOLD || '3', 10);
   const cooldown = parseInt(env.COOLDOWN_SECONDS || '900', 10);
@@ -85,6 +101,10 @@ async function runCheck(env, { dryRun = false } = {}) {
   const reboot = await rebootVps(env.HOSTINGER_API_TOKEN, env.VPS_ID);
   result.action = reboot.ok ? 'rebooted' : 'reboot_failed';
   result.reboot = reboot;
+  await sendTelegram(
+    env,
+    `🐕 vps-watchdog: ${reboot.ok ? 'REBOOTED the VPS' : `reboot FAILED (Hostinger API ${reboot.status})`} — ${env.TARGET_URL} failed ${threshold} consecutive probes.`
+  );
   if (reboot.ok) await env.WATCHDOG_KV.put('last_reboot', String(now));
   await env.WATCHDOG_KV.put('last_status', JSON.stringify(result));
   await env.WATCHDOG_KV.put(`event:${now}`, JSON.stringify(result), {
