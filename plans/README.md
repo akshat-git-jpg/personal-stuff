@@ -348,3 +348,4 @@ The others are grounded and available when the owner wants them:
 - 043-tutorial-pipeline-1-heygen-spokesperson — PR#1 043-tutorial-pipeline-1-heygen-spokesperson: tutorial-pipeline-1 — Drive-in → HeyGen spokesperson clips → Drive-out — DONE
 - 056-tracker-deterministic-linkgen — PR#13 056-tracker-deterministic-linkgen: deterministic, LLM-free affiliate link generation — DONE
 - 059-hygiene-skill-budget-heygen-media — PR#16 059-hygiene-skill-budget-heygen-media: skill-description budget guard + heygen render policy — DONE
+- 057-silent-failure-alerts — PR#14 057-silent-failure-alerts: cred-probe cron, watchdog reboot notify, digest shape check — DONE
