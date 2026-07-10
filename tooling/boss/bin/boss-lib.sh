@@ -25,7 +25,15 @@ boss_head_advanced() {
 fm_get() {
   awk -v k="$1" '
     /^---[[:space:]]*$/ { n++; next }
-    n==1 && $0 ~ "^"k":" { sub("^"k":[[:space:]]*",""); gsub(/^"|"$/,""); print; exit }
+    n==1 && $0 ~ "^"k":" {
+      sub("^"k":[[:space:]]*","")
+      # Strip a YAML inline comment (whitespace + #) on unquoted scalars only;
+      # a # inside a quoted value or with no leading space is kept verbatim.
+      if ($0 !~ /^["'\''].*["'\''][[:space:]]*$/) sub(/[[:space:]]+#.*$/,"")
+      sub(/[[:space:]]+$/,"")
+      gsub(/^"|"$/,""); gsub(/^'\''|'\''$/,"")
+      print; exit
+    }
   ' "$2"
 }
 
