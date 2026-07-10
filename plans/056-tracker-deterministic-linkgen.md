@@ -1,7 +1,7 @@
 <!-- boss frontmatter -->
 ---
-executor: claude-p       # claude-p | agy  — money-critical logic; see "Executor" note in Summary
-model: opus              # blank = executor default (claude-p: sonnet)
+executor: agy            # claude-p | agy  — owner choice; plan is fully inlined (agy sweet spot)
+model: Gemini 3.1 Pro (High)   # owner-selected agy model
 test_cmd: cd apps/tutorial-tracker-app && npm test
 ui: true                 # adds a review modal + tool-picker section — screenshot required on the PR
 deploy: cd apps/tutorial-tracker-app && npm run build && npx wrangler deploy
@@ -20,7 +20,7 @@ needs: ["Owner must add a 'Slug' column to the affiliate Google Sheet BEFORE dep
   - Description becomes a **code-assembled template** (no LLM), validated so every planned link appears exactly once.
   - Fix two live bugs: unapproved affiliate URLs can be published; video identity is keyed on the mutable title string.
   - Add a **drift report** so post-publish changes (affiliate URL changed, program deactivated) to already-minted links are visible and one-click re-syncable.
-- **Executor proposed**: `claude-p` / **opus** — graded *tricky* (money-critical correctness + a new modal UI + a validation/idempotency path). `agy` (Gemini 3.1 Pro High) is a viable cheaper alternative given this plan is fully inlined, but the money-criticality is why opus is proposed; owner may override the frontmatter.
+- **Executor proposed**: `agy` / **Gemini 3.1 Pro (High)** — owner's choice. Graded *tricky* (money-critical correctness + a new modal UI + a validation/idempotency path), but the plan is fully inlined (resolver/template/validator/endpoint code in-body), which recent runs show is agy's sweet spot for one-turn single-plan builds. Verify by committed diff + the `npm test` gate.
 - **Done criteria** (terse — full list below): `npm test` green with new deterministic tests; `npm run build` + `tsc -b` clean; no `createGeminiClient` / `detectToolsPrompt` / `describePrompt` reachable from the link-gen path; preview endpoint performs zero writes; confirm is idempotent and hash-guarded; blocked tools never get a homepage URL.
 - **Stop conditions** (terse — full list below): affiliate sheet lacks a usable catalog to select from; the `video_code`-on-card identity change would require rewriting already-minted prod links (it must not — reuse-by-title stays as a fallback); any step needs a schema change to the shared `clicks-db` `links`/`videos` tables (owned by `apps/redirector`).
 - **Test / verification for success**: Vitest unit tests (pure functions: resolver, template renderer, link validator, plan-hash, drift diff) following the existing `test/linkgen.test.ts` style, plus a manual smoke against local D1 (seed script documented). Merge gate = `cd apps/tutorial-tracker-app && npm test`.
