@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
-source .env
-source _shared/telegram.sh
-source _shared/alert.sh
-enable_failure_alert "route-audit"
-source _shared/claude-env.sh
+# route-audit cron wrapper (Pattern B). Copy to /srv/crons/route-audit/run.sh on the VPS.
+# Sources _shared/ by ABSOLUTE path so it resolves under cron (cwd is not /srv/crons).
+set -euo pipefail
+JOB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$JOB_DIR"
+[[ -f .env ]] && set -a && source .env && set +a
+source /srv/crons/_shared/telegram.sh
+source /srv/crons/_shared/alert.sh
+enable_failure_alert "route-audit" "$JOB_DIR/logs/cron.log"
+source /srv/crons/_shared/claude-env.sh
 
 git -C /srv/projects/personal-stuff pull --quiet || true
 
 REPORT=$(/srv/projects/personal-stuff/infra/route-audit/run-audit.sh) || {
-  send_telegram "route-audit: runner failed — check /srv/crons/route-audit/logs/cron.log"
+  send_telegram "route-audit: runner failed — check $JOB_DIR/logs/cron.log"
   exit 1
 }
 send_telegram "$REPORT"
