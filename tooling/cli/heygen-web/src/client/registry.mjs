@@ -1,6 +1,6 @@
 // Avatar/template registry — the single source of truth for friendly slugs → HeyGen ids.
-// The map lives in avatars.json at the package root; both this CLI and the youtube
-// pipelines read that same file, so an id is defined once.
+// The map lives in pipelines/video/heygen/registry.json (the heygen asset hub); both this
+// CLI and the youtube pipelines read that same file, so an id is defined once.
 //
 // Each entry: "<slug>": { avatar_id?: "...", template_id?: "...", description: "..." }
 // A slug carries an avatar id OR a template id (or both) plus a human note.
@@ -13,8 +13,10 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// avatars.json sits at the package root (src/client/ -> ../../). Override with HEYGEN_AVATARS.
-export const REGISTRY_PATH = process.env.HEYGEN_AVATARS || resolve(__dirname, "../../avatars.json");
+// The registry lives in the heygen asset hub (src/client/ -> repo root -> pipelines/video/heygen/).
+// Override with HEYGEN_AVATARS.
+export const REGISTRY_PATH =
+  process.env.HEYGEN_AVATARS || resolve(__dirname, "../../../../../pipelines/video/heygen/registry.json");
 
 export function loadRegistry() {
   if (!existsSync(REGISTRY_PATH)) return {};

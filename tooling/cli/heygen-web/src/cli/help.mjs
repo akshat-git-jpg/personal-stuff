@@ -31,6 +31,6 @@ export function printHelp() {
   status <video_id>           one-shot status + ETA/progress (no polling loop)
   delete-video <video_id> [<video_id> ...] [--type heygen_video]
   raw <path> [--json '<body>']\n
---avatar / --template accept a SLUG from avatars.json (e.g. "girl-1") or a raw id.
+--avatar / --template accept a SLUG from the avatar registry (pipelines/video/heygen/registry.json) (e.g. "girl-1") or a raw id.
 Auth file: ${CURLS}\n⚠️  ToS-grey, account-bound. Default mode = unlimited Avatar III.`);
 }

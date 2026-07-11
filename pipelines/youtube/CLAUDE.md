@@ -16,7 +16,8 @@ Wrapper for everything that directly produces or operates on YouTube channel con
 | [`tutorial-pipeline-1/`](tutorial-pipeline-1/PIPELINE.md) | Drive-in → HeyGen spokesperson clips from an existing avatar → Drive-out. Standalone | Python + Claude steps |
 | [`tutorial-pipeline-2/`](tutorial-pipeline-2/PIPELINE.md) | Tutorial recording prep steps (renamed from kushal-tutorial-pipeline-v2, 2026-07-07) | Python + Claude steps |
 | [`explainer-videos-pipeline-1/`](explainer-videos-pipeline-1/PIPELINE.md) | Topic + competitor styles → fully-generated explainer video draft. No screen recording, no avatar | Python + Claude steps |
-| [`open-source/`](open-source/README.md) | Self-hosted alternatives exploration (starting with a HeyGen replacement for avatar clips) | Research/handoff docs |
+| [`open-source/`](open-source/README.md) | Self-hosted alternatives exploration (avatar/HeyGen-replacement work moved to `../video/heygen/fal-lipsync/` 2026-07-12) | Research/handoff docs |
+| [`final-workflow/`](final-workflow/final-workflow-notes.md) | Multi-channel production workflow + per-video cost model (notes) | Markdown |
 
 ## What's NOT here (intentional)
 

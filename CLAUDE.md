@@ -30,7 +30,8 @@ Routing lives in the table below. The human-facing repo map (per-app one-liners,
 | Delegate parallel work across projects (captain) | tooling/captain/README.md |
 | PR-driven implementation orchestrator — dispatch a crew, verify, merge, deploy (boss, captain's successor) | `tooling/boss/README.md` |
 | YouTube research / scripts / tutorial pipeline | `pipelines/youtube/` |
-| Voiceover / TTS / RVC / HeyGen avatar pipelines | `pipelines/video/voice/` |
+| Voiceover / TTS (reference voices, engines, voiceover manifest) | `pipelines/video/tts/` |
+| HeyGen / avatar assets (character registry, renders, fal-lipsync) | `pipelines/video/heygen/` |
 | Income tracking across platforms | `pipelines/income-analysis/` |
 | Cross-project research notes, design specs, handoff docs | [`docs/`](docs/README.md) |
 | Implementation plans for executor agents (write or run one) | [`plans/README.md`](plans/README.md) — convention in [`plans/WORKFLOW.md`](plans/WORKFLOW.md) |

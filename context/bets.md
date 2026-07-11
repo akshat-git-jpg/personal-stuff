@@ -10,7 +10,7 @@ This document lists the active business, content, and career bets being pursued 
   - Research & Scripting: [pipelines/youtube/](file:///Users/kbtg/codebase/personal-stuff/pipelines/youtube/)
   - Tutorial Recording & AV Production: [pipelines/youtube/tutorial-pipeline-2/](file:///Users/kbtg/codebase/personal-stuff/pipelines/youtube/tutorial-pipeline-2/PIPELINE.md)
   - Video Assets/Motion Graphics: [pipelines/video/motion-graphics/](file:///Users/kbtg/codebase/personal-stuff/pipelines/video/motion-graphics/README.md)
-  - Voice Conversion & TTS pipeline: [pipelines/video/voice/](file:///Users/kbtg/codebase/personal-stuff/pipelines/video/voice/README.md)
+  - Voice Conversion & TTS pipeline: [pipelines/video/tts/](file:///Users/kbtg/codebase/personal-stuff/pipelines/video/tts/CLAUDE.md)
 - **Status & Metrics**:
   - Live Channel Analytics Dashboard: [yt-analytics](https://yt-analytics.agrolloo.com) (wired to `clicks-db` and YT Data API)
   - Competitor Opportunities: [pipelines/youtube/keyword-research/](file:///Users/kbtg/codebase/personal-stuff/pipelines/youtube/keyword-research/CLAUDE.md)

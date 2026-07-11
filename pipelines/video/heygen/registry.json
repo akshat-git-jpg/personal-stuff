@@ -1,0 +1,33 @@
+{
+  "girl-1": {
+    "template_id": "7629dffbebe141eb8f701630948bd707",
+    "description": "Girl 1 — soft-voice tutorial template (avatar bubble + background), 16:9"
+  },
+  "girl-2": {
+    "template_id": "887ad69c743d4740a0174eecb3198ef4",
+    "description": "Girl 2 — tutorial template (avatar bubble + background), 16:9"
+  },
+  "bearded-man-1": {
+    "avatar_id": "14eea609c76343399b1f74508b0f28a9",
+    "image": "characters/bearded-man-1/source.jpeg",
+    "description": "Bearded Man 1 — photo→Avatar III look; source image tracked in characters/"
+  },
+  "specs-man": {
+    "avatar_id": "6bdc449aaabf4f998c34ac7490260285",
+    "image": "characters/specs-man/source.jpeg",
+    "description": "Man with Specs Black Shirt — photo→Avatar III look"
+  },
+  "woman-laptop": {
+    "avatar_id": "3949a56f150941bd860d68c64e6f8f0b",
+    "image": "characters/woman-laptop/source.jpeg",
+    "description": "Woman with Laptop — photo→Avatar III look"
+  },
+  "harry": {
+    "avatar_id": "cb3a91d35fde44c8a32c04e0abb22710",
+    "description": "Harry — pre-existing HeyGen avatar (no local source image)"
+  },
+  "side-avatar": {
+    "image": "characters/side-avatar/source.jpeg",
+    "description": "Side-view 'working at laptop' woman for the fal-lipsync flow (no HeyGen id — HeyGen can't hold this pose). Pose variants + scripts in fal-lipsync/; candidate base loop kling-base-v4-pingpong.mp4 in ~/kb-scratch/video/heygen/_test/fal-lipsync/"
+  }
+}

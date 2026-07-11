@@ -1,0 +1,9 @@
+{
+  "model_id": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "mode": "custom_voice",
+  "speaker": "Serena",
+  "language": "English",
+  "instruct": "Speak in a clear, natural, friendly tutorial-narration tone.",
+  "device": "auto",
+  "_notes": "mode: custom_voice (preset speakers) | voice_design (describe via instruct) | voice_clone (ref_audio+ref_text, needs a Base model_id). English female presets: Serena, Vivian. device auto -> mps on Mac, cuda if present, else cpu."
+}

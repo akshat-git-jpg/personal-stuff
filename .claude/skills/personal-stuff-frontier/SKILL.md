@@ -24,7 +24,7 @@ Owner-ranked priorities (interview 2026-07-05): **1) finish tutorial pipeline v3
 ## Priority 3 — fully automated video production (both styles)
 
 - Screen-recording style: IS priorities 1 + the campaign's sync/graphics/avatar phases — one home: **personal-stuff-video-automation-campaign**.
-- **Explainer style: no pipeline exists yet** (candidate). Assets already in repo: `yt-style-copy` skill + competitor style packs (script DNA), hyperframes + card-library + render2 (visuals), tts-flow (voice). First steps: ① distill one explainer competitor into a style pack (`pipelines/youtube/competitor-styles/`); ② script one explainer via `yt-style-copy`; ③ prototype visuals as a hyperframes composition — then decide whether it earns its own `pipelines/` folder (register per **personal-stuff-idea-to-shipped**).
+- **Explainer style: no pipeline exists yet** (candidate). Assets already in repo: `yt-style-copy` skill + competitor style packs (script DNA), hyperframes + card-library + render2 (visuals), video/tts (voice). First steps: ① distill one explainer competitor into a style pack (`pipelines/youtube/competitor-styles/`); ② script one explainer via `yt-style-copy`; ③ prototype visuals as a hyperframes composition — then decide whether it earns its own `pipelines/` folder (register per **personal-stuff-idea-to-shipped**).
 
 ## Candidates (real assets, not owner-selected — don't start without asking)
 
@@ -35,7 +35,7 @@ Owner-ranked priorities (interview 2026-07-05): **1) finish tutorial pipeline v3
 | Complete the income picture | `paypal-txns-pp-cli` + `pp-impact` wired; gumroad/skool CLIs built but unwired | "to add" in `pipelines/income-analysis/README.md` | Wire gumroad snapshots into `snapshots/` |
 | Spending-tracker app | Design notes + iOS SMS feasibility in `apps/spending-tracker/` | Explicitly not built; open design questions | Resolve the SMS-forwarding question with the owner |
 | Security backlog | SEC-02..07 (SSRF, auth weaknesses, rate-limiting), BUG/DEP items enumerated in `plans/README.md` deferred list | Recorded during the workflow audit, never planned | Turn the highest-severity item into a plan |
-| tts-flow VPS deploy + editor web UI | Target spelled out in `tts-flow/CLAUDE.md` (2 vCPU box, async queue, add swap first) | Blocked behind the sync problem | Only after campaign Phase 2 |
+| video/tts VPS deploy + editor web UI | Target spelled out in `pipelines/video/tts/CLAUDE.md` (2 vCPU box, async queue, add swap first) | Blocked behind the sync problem | Only after campaign Phase 2 |
 
 ## Standing context for any session here
 

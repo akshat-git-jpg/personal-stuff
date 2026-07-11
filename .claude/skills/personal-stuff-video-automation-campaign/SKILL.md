@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-video-automation-campaign
-description: Use when working toward fully automated YouTube video production in personal-stuff — the tutorial pipeline v3 (plan 011), voice↔video sync for TTS voiceovers, adding motion graphics or avatar overlays, or any "automate video creation end to end" request for screen-recording or explainer videos. Also use before touching tts-flow assemble.py, tutorial-pipeline-2 steps, or proposing a new TTS/sync/graphics approach.
+description: Use when working toward fully automated YouTube video production in personal-stuff — the tutorial pipeline v3 (plan 011), voice↔video sync for TTS voiceovers, adding motion graphics or avatar overlays, or any "automate video creation end to end" request for screen-recording or explainer videos. Also use before touching video/tts assemble.py, tutorial-pipeline-2 steps, or proposing a new TTS/sync/graphics approach.
 ---
 
 # Video-automation campaign (the owner's #1 open problem)
@@ -12,7 +12,7 @@ Goal (owner, 2026-07-05): **entire video creation automated — voice↔video sy
 | Line | Where | Sync strategy | State (2026-07-05) |
 |---|---|---|---|
 | **Own tutorials** (screen-recording style) | `pipelines/youtube/tutorial-pipeline-2/` (contains the **v3** flow — name is historical) | **Sync by construction**: VO is generated from the recording's own transcript; a segment map + per-block TTS durations let ffmpeg retime video to audio (speed band 0.85–1.18 + freeze-pad) | Steps 000–170 scaffolded; v2 voice+avatar machinery works; **plan 011 (the only open plan) implements 040-segment-map/105/125/162** |
-| **Dub flow** (replace a freelancer's narration in an existing recording) | `pipelines/video/voice/tts-flow/` | Anchor + silence-absorb; currently ±1–2s global — good for talk-over, **NOT click-along** | Engine settled (IndexTTS-2 on Modal, ~$0.50/video); blocker documented in `SYNC-PROBLEM.md` (the source of truth — read it before this skill's summary) |
+| **Dub flow** (replace a freelancer's narration in an existing recording) | `pipelines/video/tts/` | Anchor + silence-absorb; currently ±1–2s global — good for talk-over, **NOT click-along** | Engine settled (IndexTTS-2 on Modal, ~$0.50/video); blocker documented in `SYNC-PROBLEM.md` (the source of truth — read it before this skill's summary) |
 
 Explainer-style (non-screen-recording) videos ride the graphics phase (hyperframes) + yt-style script generation; there is no separate pipeline for them yet — treat that as a candidate, not a build target.
 
@@ -89,8 +89,8 @@ Standing HeyGen rules (owner-set): **Avatar III only — never IV/V** (III is th
 
 ## Provenance and maintenance
 
-Grounded in `SYNC-PROBLEM.md`, `tts-flow/CLAUDE.md`, `plans/011-tutorial-pipeline-v3.md`, `SPEC.md`/`HANDOVER.md`, decisions.md (2026-07-05 entries), and owner interview (2026-07-05). This is the most volatile skill in the library — re-verify before each campaign session:
+Grounded in `SYNC-PROBLEM.md`, `pipelines/video/tts/CLAUDE.md`, `plans/011-tutorial-pipeline-v3.md`, `SPEC.md`/`HANDOVER.md`, decisions.md (2026-07-05 entries), and owner interview (2026-07-05). This is the most volatile skill in the library — re-verify before each campaign session:
 - Is plan 011 still TODO? `grep -n "| 011" plans/README.md`
-- Sync blocker still open? read `pipelines/video/voice/tts-flow/SYNC-PROBLEM.md` header
+- Sync blocker still open? read `pipelines/video/tts/SYNC-PROBLEM.md` header
 - 135 rulebook still a stub? `head pipelines/youtube/tutorial-pipeline-2/steps/135-build-graphics-sonnet/rulebook.md`
 - HeyGen still stubbed? `grep -n "TODO\[HNS\]" pipelines/youtube/tutorial-pipeline-2/lib/heygen.py`

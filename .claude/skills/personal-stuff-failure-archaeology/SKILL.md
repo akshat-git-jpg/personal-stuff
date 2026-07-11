@@ -21,7 +21,7 @@ This repo reverses course via explicit decommissions (there are zero `git revert
 | **Antigravity in the graphics path** | Failed quality on all four axes in the Devsplainers PoC | Recorded in decisions.md 2026-07-05 (tutorial pipeline v3) | SETTLED — Antigravity for prompt grind only; graphics via Sonnet + hyperframes skills |
 | **Fine-tuning for style cloning** | 20–30 scripts/channel is too little data; weaker local models | decisions.md 2026-07-05 (competitor-styles) | REJECTED — distill-once Style DNA packs instead |
 | **RAG for style cloning** | Style is a global property, not chunk-retrievable | Same entry | REJECTED — revisit only as topic-research index if a pack outgrows context (100+ transcripts) |
-| **OmniVoice TTS engine** | Flipped to IndexTTS-2 (2026-06-23) | `pipelines/video/voice/tts-flow/` README (OmniVoice sections marked HISTORICAL) | SUPERSEDED — don't trust OmniVoice-era measurements |
+| **OmniVoice TTS engine** | Flipped to IndexTTS-2 (2026-06-23) | `pipelines/video/tts/` README (OmniVoice sections marked HISTORICAL) | SUPERSEDED — don't trust OmniVoice-era measurements |
 | **x-twitter-pp-cli** | Can't read on Free tier; broken `auth login` | Tried then removed (project memory) | REMOVED — use the `tweet-lookup` skill (public embed endpoint); no safe free search/timeline |
 | **html-to-video / render.agrolloo.com** | Replaced | `render2.agrolloo.com` backed by `apps/hyperframes-render/` | SUPERSEDED |
 | **hyperframes-vs-remotion experiment** | Comparison concluded; Hyperframes won for this repo | `pipelines/archive/hyperframes-vs-remotion/` — "Don't build new work here" | ARCHIVED |

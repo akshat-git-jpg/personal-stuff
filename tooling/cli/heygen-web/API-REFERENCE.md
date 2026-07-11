@@ -71,7 +71,7 @@ Two endpoints appeared in this HAR that weren't in any earlier capture:
 
 | Endpoint | Notes |
 |---|---|
-| `POST /v1/speech_to_speech.generate` | Body/response not yet captured in detail — name strongly suggests voice conversion (upload audio in your own voice, get it back in a target voice). Relevant to the RVC-style pitch-conversion work in `pipelines/video/voice/` if HeyGen's own S2S turns out usable — worth a dedicated look before building anything, not investigated further here. |
+| `POST /v1/speech_to_speech.generate` | Body/response not yet captured in detail — name strongly suggests voice conversion (upload audio in your own voice, get it back in a target voice). Relevant to the RVC-style pitch-conversion work archived at `pipelines/archive/rvc-flow/` if HeyGen's own S2S turns out usable — worth a dedicated look before building anything, not investigated further here. |
 | `POST /v2/audio_sbs.prepare` | "sbs" likely "side-by-side" — unclear purpose, not investigated. |
 
 ## Avatar & look management

@@ -1,0 +1,10 @@
+{
+  "model_id": "k2-fsa/OmniVoice",
+  "ref_audio": "references/ref-6s-soft.wav",
+  "ref_text": "I decided to make a video that I hope will be helpful to you in helping you become a more soft",
+  "language": "English",
+  "instruct": "",
+  "device": "auto",
+  "sample_rate": 24000,
+  "_notes": "ref_audio/ref_text = the voice to clone (5-10s clean clip + its transcript). Path is relative to the tts hub root or absolute. Reference voices live in references/ (see REFERENCES.md). Swap in the real target voice for production; the placeholder here is only for timing benchmarks."
+}

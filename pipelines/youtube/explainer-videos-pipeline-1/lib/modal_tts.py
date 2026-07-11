@@ -1,12 +1,12 @@
 """The single GPU call: IndexTTS-2 on Modal. Used by step 080 (synthesize).
 
-Reuses the existing app at TY/video/voice/tts-flow/modal/indextts2_app.py — the only piece of
+Reuses the existing app at pipelines/video/tts/modal/indextts2_app.py — the only piece of
 this pipeline that runs off-machine. Everything else is local.
 """
 import json, subprocess, pathlib
 
-# lib/modal_tts.py → parents: [0]=lib [1]=tutorial-pipeline-2 [2]=youtube [3]=TY
-MODAL_APP = pathlib.Path(__file__).resolve().parents[3] / "video/voice/tts-flow/modal/indextts2_app.py"
+# lib/modal_tts.py → parents: [0]=lib [1]=explainer-videos-pipeline-1 [2]=youtube [3]=pipelines
+MODAL_APP = pathlib.Path(__file__).resolve().parents[3] / "video/tts/modal/indextts2_app.py"
 
 
 def modal_synth(chunks, ref, clip_dir, interval_silence, modal_app=MODAL_APP):

@@ -1,7 +1,0 @@
-{
-  "ref_audio": "/Users/kbtg/Desktop/my-ref-voices/30-sec-soft-women/jamila-walking-30s.wav",
-  "exaggeration": 0.7,
-  "cfg_weight": 0.3,
-  "device": "auto",
-  "_notes": "exaggeration = emotion intensity (0.5 neutral, 0.7-0.9 expressive). cfg_weight lower (~0.3) = more emotional/looser pacing. ref_audio = voice to clone (relative to tts-flow root or absolute)."
-}

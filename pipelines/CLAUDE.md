@@ -1,6 +1,6 @@
 # pipelines — Python Workspace operating guide
 
-This workspace holds the content and automation pipelines sharing a single Python runtime and the `common/` package (e.g. YouTube research, scripting, recording prep, Pinterest pin generation, RVC voice conversion, bank statement parser, and income analysis).
+This workspace holds the content and automation pipelines sharing a single Python runtime and the `common/` package (e.g. YouTube research, scripting, recording prep, Pinterest pin generation, TTS voiceover + avatar asset hubs, bank statement parser, and income analysis).
 
 ## Getting started
 
@@ -65,12 +65,15 @@ npx ts-node run.ts --niche <slug>
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/explainer-videos-pipeline-1/`](youtube/explainer-videos-pipeline-1/PIPELINE.md) | Topic + competitor styles → fully-generated explainer video draft. No screen recording, no avatar | Python + Claude steps |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/competitor-styles/`](youtube/competitor-styles/CLAUDE.md) | Competitor style packs (script + video Style DNA for yt-style-copy skill; includes the Devsplainers motion-graphics reverse-engineering + hyperframes build kit, moved here 2026-07-07) | Python + Claude skill |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/dossiers/`](youtube/dossiers/CLAUDE.md) | Persistent per-software research library — one dossier per tool, accumulated from every fetched video transcript | Python + Claude skill |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/open-source/`](youtube/open-source/README.md) | Self-hosted alternatives exploration (starting with a HeyGen replacement for avatar clips) | Research/handoff docs |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/open-source/`](youtube/open-source/README.md) | Self-hosted alternatives exploration (the avatar/HeyGen-replacement work moved to `video/heygen/fal-lipsync/` 2026-07-12) | Research/handoff docs |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/final-workflow/`](youtube/final-workflow/final-workflow-notes.md) | Multi-channel production workflow + per-video cost model (notes) | Markdown |
 | [`pinterest/`](pinterest/PLAN.md) | Pinterest pin data and generators (Keto, Wedding brands) | Python |
+| [`fb-ads/`](fb-ads/fb-ads-notes.md) | Facebook ads playbook notes (page warm-up, ABO→CBO budget ladder) | Markdown |
 | [`income-analysis/`](income-analysis/README.md) | Gumroad/Skool income snapshot retrieval CLIs | Python |
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script. | Python |
 | [`video/`](#) | Video production and rendering assets | mixed |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`video/voice/`](video/voice/README.md) | Voiceover pipeline (TTS engine, heygen) | Python + Node |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`video/tts/`](video/tts/CLAUDE.md) | TTS asset hub — reference voices, engines (IndexTTS-2 on Modal), voiceover manifest; consumed by the youtube pipelines | Python |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`video/heygen/`](video/heygen/CLAUDE.md) | Avatar asset hub — character registry + reference images, render manifest, HeyGen + fal-lipsync flows | Python + JSON |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/card-library/`](video/card-library/README.md) | Visual templates for Video Studio | HTML/CSS/JS |
 | [`tools/`](#) | Monetizable and utility tools | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`tools/bank-statement-parser/`](tools/bank-statement-parser/README.md) | Bank statements parsing & reconciliation engine | Python |
@@ -81,4 +84,4 @@ npx ts-node run.ts --niche <slug>
 | &nbsp;&nbsp;&nbsp;&nbsp;[`notes/to-do/`](notes/to-do/todolist.md) | Running task lists | Markdown |
 | [`archive/`](#) | Superseded work kept for reference | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`archive/hyperframes-vs-remotion/`](archive/hyperframes-vs-remotion/CLAUDE.md) | Superseded Hyperframes vs Remotion rendering tests | HTML/CSS/JS |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`archive/rvc-flow/`](archive/rvc-flow/CLAUDE.md) | Superseded RVC male→female voice conversion (replaced by tts-flow's IndexTTS-2) | Python |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`archive/rvc-flow/`](archive/rvc-flow/CLAUDE.md) | Superseded RVC male→female voice conversion (replaced by `video/tts/`'s IndexTTS-2) | Python |

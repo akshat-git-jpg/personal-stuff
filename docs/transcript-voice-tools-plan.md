@@ -66,12 +66,12 @@ freelancers touch. Avatar work stays manual for now.
 ## What to reuse (don't rebuild)
 
 - TTS engine + pipeline live in the **TY repo** (separate from this one):
-  - `TY/video/voice/tts-flow/modal/indextts2_app.py` — IndexTTS-2 on Modal GPU
-  - `TY/video/voice/tts-flow/pipeline/` — `make_segments.py`, `chunk_segments.py`,
+  - `pipelines/video/tts/modal/indextts2_app.py` — IndexTTS-2 on Modal GPU
+  - `pipelines/video/tts/pipeline/` — `make_segments.py`, `chunk_segments.py`,
     `run.py`, `assemble.py` (transcript → segments → synth → assembled audio)
   - This is a cross-repo dependency. The new app is in personal-stuff; the pipeline it
     calls is in TY. Decide how to invoke it (shell out, shared Modal endpoint, or copy).
-- Whisper transcription harness — also under `TY/video/voice/tts-flow/` (the
+- Whisper transcription harness — also under `pipelines/video/tts/` (the
   "whisper transcription harness" from commit 66d1088).
 - Transcript cleaning logic: the `tts-transcript-prep` skill at
   `personal-stuff/tooling/claude-skills/tts-transcript-prep/SKILL.md`. See the gotcha below.
@@ -112,4 +112,4 @@ freelancers touch. Avatar work stays manual for now.
 - `VPS-CRONS.md` — how VPS jobs are wired
 - `apps/personal-dashboard/` — the VPS Docker app to mirror
 - `tooling/claude-skills/tts-transcript-prep/` — the cleaning logic
-- `TY/video/voice/tts-flow/` — the Whisper + TTS pipeline (other repo)
+- `pipelines/video/tts/` — the Whisper + TTS pipeline (other repo)
