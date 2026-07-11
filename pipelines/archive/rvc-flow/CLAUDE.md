@@ -1,4 +1,8 @@
-# RVC flow — male→female voice conversion (WORKING)
+# RVC flow — male→female voice conversion (ARCHIVED)
+
+> **Archived 2026-07-12.** Superseded by `pipelines/video/voice/tts-flow/` (IndexTTS-2 on
+> Modal) — RVC can't fix delivery/pronunciation since it copies the source audio's flaws
+> (see "Why this exists" in `tts-flow/CLAUDE.md`). Kept for reference; not run in production.
 
 Convert a tutorial-maker's male-voiced recording into a female voice, locally and
 for free, using an RVC v2 voice model. Built and verified on macOS (Apple Silicon).

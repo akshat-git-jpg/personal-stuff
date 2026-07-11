@@ -70,7 +70,7 @@ npx ts-node run.ts --niche <slug>
 | [`income-analysis/`](income-analysis/README.md) | Gumroad/Skool income snapshot retrieval CLIs | Python |
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script. | Python |
 | [`video/`](#) | Video production and rendering assets | mixed |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`video/voice/`](video/voice/README.md) | Voiceover pipeline (RVC pitch conversion, TTS engine, heygen) | Python + Node |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`video/voice/`](video/voice/README.md) | Voiceover pipeline (TTS engine, heygen) | Python + Node |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/card-library/`](video/card-library/README.md) | Visual templates for Video Studio | HTML/CSS/JS |
 | [`tools/`](#) | Monetizable and utility tools | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`tools/bank-statement-parser/`](tools/bank-statement-parser/README.md) | Bank statements parsing & reconciliation engine | Python |
@@ -81,3 +81,4 @@ npx ts-node run.ts --niche <slug>
 | &nbsp;&nbsp;&nbsp;&nbsp;[`notes/to-do/`](notes/to-do/todolist.md) | Running task lists | Markdown |
 | [`archive/`](#) | Superseded work kept for reference | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`archive/hyperframes-vs-remotion/`](archive/hyperframes-vs-remotion/CLAUDE.md) | Superseded Hyperframes vs Remotion rendering tests | HTML/CSS/JS |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`archive/rvc-flow/`](archive/rvc-flow/CLAUDE.md) | Superseded RVC male→female voice conversion (replaced by tts-flow's IndexTTS-2) | Python |

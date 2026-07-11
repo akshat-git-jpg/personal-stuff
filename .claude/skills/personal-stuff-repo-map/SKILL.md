@@ -49,7 +49,7 @@ Full placement decision tree: see **personal-stuff-idea-to-shipped**.
 ## Known weak spots (verified 2026-07-05 — read before trusting these files)
 
 1. `INFRA.md` is stale: missing the `founders-tracker` Worker (`founders.agrolloo.com`, D1 `founders-db`, cron `35 18 * * *`), says "2 D1 databases" when at least 5 exist (`clicks-db`, `lists-db`, `founders-db`, `tracker-db`, `yt-rankings`), and under-lists bindings for yt-analytics (`RANKINGS_DB`) and yt-tutorials-tracker (`TRACKER_DB`).
-2. `apps/redirector/CLAUDE.md` still references pre-restructure `workers/redirector` paths; several `pipelines/` docs (RVC-flow CLAUDE.md, pinterest/PLAN.md, cf-email README) still say `ty/` or `TY/` — the repo dissolved `ty/` into `pipelines/` on 2026-07-04.
+2. `apps/redirector/CLAUDE.md` still references pre-restructure `workers/redirector` paths; several `pipelines/` docs (`archive/rvc-flow/CLAUDE.md`, pinterest/PLAN.md, cf-email README) still say `ty/` or `TY/` — the repo dissolved `ty/` into `pipelines/` on 2026-07-04.
 3. `pipelines/.env.example` lists ~10 keys; the real `.env` has ~21. Do not rebuild an env from the example alone — see **personal-stuff-config-and-secrets**.
 4. `tooling/claude-skills/README.md` "Current split" section understates the work/personal manifest split — trust `manifest/work.txt` + `manifest/personal.txt`, or run `./scripts/skills-status.sh`.
 5. `docs/voice-pipeline-test/` contains a tracked `.venv/` — violates the media/artifact policy; don't copy that pattern.

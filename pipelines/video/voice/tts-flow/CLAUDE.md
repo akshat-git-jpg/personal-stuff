@@ -23,7 +23,7 @@ The user's hard requirements: voiceover must be **clear, clean, correctly pronou
 correctly punctuated, properly sentence-broken, well-paced, and synced** — with **no
 recurring/subscription cost**.
 
-Voice-conversion (RVC, in `../RVC-flow/`) CANNOT meet this. RVC is a voice skin: it copies
+Voice-conversion (RVC, archived at `../../archive/rvc-flow/`) CANNOT meet this. RVC is a voice skin: it copies
 the freelancer's accent, pacing, mispronunciations, and gibberish exactly. To fix *how
 words are said*, you must regenerate speech from **corrected text** — i.e. TTS. So:
 
