@@ -74,7 +74,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 057 | Silent-failure alerts — cred-probe cron, watchdog reboot notify, digest shape check | P1 | S-M | — | TODO |
 | 058 | Autonomy pilot — weekly read-only route-audit cron → Telegram (+ VPS-CRONS.md refresh) | P2 | M | 057 (soft) | TODO |
 | 059 | Hygiene — skill-description budget guard + heygen-web render-output policy | P2 | S-M | — (pre-dispatch owner step: move untracked heygen media out of main checkout) | TODO |
-| 060 | media-board — local gallery cockpit over the tts/heygen asset hubs (view, filter, drag-out) | P2 | M | — | TODO |
+| 060 | media-board — local gallery cockpit over the tts/heygen asset hubs (view, filter, drag-out) | P2 | M | — | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 

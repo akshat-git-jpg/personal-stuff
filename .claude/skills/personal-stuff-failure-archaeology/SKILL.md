@@ -34,7 +34,7 @@ This repo reverses course via explicit decommissions (there are zero `git revert
 
 ## Stale-reference decoder
 
-Seeing these in docs means the doc predates a settled battle — fix the doc, don't follow it: `ty/` or `TY/` paths (→ `pipelines/`, landing pages → `apps/pinterest-landing-pages/`), `workers/redirector` (→ `apps/redirector/`), `render.agrolloo.com` (→ render2), Hermes anything, `personal stuff` with a space (→ `personal-stuff`), `pipelines/ai-video-production/` (→ `pipelines/video/motion-graphics/`).
+Seeing these in docs means the doc predates a settled battle — fix the doc, don't follow it: `ty/` or `TY/` paths (→ `pipelines/`, landing pages → `apps/pinterest-landing-pages/`), `workers/redirector` (→ `apps/redirector/`), `render.agrolloo.com` (→ render2), Hermes anything, `personal stuff` with a space (→ `personal-stuff`), `pipelines/ai-video-production/` (→ `pipelines/video/motion-graphics/`), `pipelines/video/voice/` or `tts-flow/` paths (→ `pipelines/video/tts/`; heygen/avatar bits → `pipelines/video/heygen/`; `RVC-flow` → `pipelines/archive/rvc-flow/`; 2026-07-12 hub migration), `tooling/cli/heygen-web/avatars.json` + `renders-log.md` (→ `pipelines/video/heygen/registry.json` + `RENDERS.md`).
 
 ## When NOT to use this skill
 
