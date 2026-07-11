@@ -13,6 +13,7 @@ accent-neutral female voiceover that stays in sync with the video — with **no 
   and every generation gets a row in `OUTPUTS.md` (the tracked manifest).
 - Consumers (tutorial-pipeline-2, explainer-videos-pipeline-1, final-workflow, …) call the
   engines/Modal app here and pass paths; they own nothing voice-related themselves.
+- Browse everything visually with the media-board skill ("open my media board" → localhost:4100).
 
 **STATUS (2026-06-23):** **IndexTTS-2 chosen** (superseding the 06-21 OmniVoice pick). It
 runs on **Modal GPU** (`modal/indextts2_app.py` — the only GPU step; transcribe/chunk/
