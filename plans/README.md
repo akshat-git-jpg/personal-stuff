@@ -351,3 +351,4 @@ The others are grounded and available when the owner wants them:
 - 059-hygiene-skill-budget-heygen-media — PR#16 059-hygiene-skill-budget-heygen-media: skill-description budget guard + heygen render policy — DONE
 - 057-silent-failure-alerts — PR#14 057-silent-failure-alerts: cred-probe cron, watchdog reboot notify, digest shape check — DONE
 - 058-autonomy-pilot-route-audit — PR#15 058-autonomy-pilot-route-audit: weekly read-only route-audit cron + VPS-CRONS.md refresh — DONE
+- 060-media-board — PR#17 060-media-board: local gallery cockpit for the tts/heygen asset hubs — DONE
