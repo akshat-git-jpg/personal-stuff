@@ -62,6 +62,15 @@
       "url": "http://localhost:4341"
     },
     {
+      "id": "media-board",
+      "name": "media board",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/.claude/skills/media-board",
+      "start": "node serve.mjs --port 4100",
+      "port": 4100,
+      "ports": [4100],
+      "url": "http://localhost:4100"
+    },
+    {
       "id": "timeblock",
       "name": "timeblock",
       "cwd": "/Users/kbtg/codebase/personal-stuff/apps/timeblock",
