@@ -12,6 +12,11 @@ Wrapper for everything that directly produces or operates on YouTube channel con
 | [`yt-script/`](yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2) | Markdown workflow |
 | [`my-yt/`](my-yt/CLAUDE.md) | Personal channel notes (free-form) | Markdown |
 | [`competitor-styles/`](competitor-styles/CLAUDE.md) | Competitor style packs — transcript/video ingestion + Style DNA for the yt-style-copy skill | Python + Claude skill |
+| [`dossiers/`](dossiers/CLAUDE.md) | Persistent per-software research library — one dossier per tool, accumulated from every fetched video transcript | Python + Claude skill |
+| [`tutorial-pipeline-1/`](tutorial-pipeline-1/PIPELINE.md) | Drive-in → HeyGen spokesperson clips from an existing avatar → Drive-out. Standalone | Python + Claude steps |
+| [`tutorial-pipeline-2/`](tutorial-pipeline-2/PIPELINE.md) | Tutorial recording prep steps (renamed from kushal-tutorial-pipeline-v2, 2026-07-07) | Python + Claude steps |
+| [`explainer-videos-pipeline-1/`](explainer-videos-pipeline-1/PIPELINE.md) | Topic + competitor styles → fully-generated explainer video draft. No screen recording, no avatar | Python + Claude steps |
+| [`open-source/`](open-source/README.md) | Self-hosted alternatives exploration (starting with a HeyGen replacement for avatar clips) | Research/handoff docs |
 
 ## What's NOT here (intentional)
 

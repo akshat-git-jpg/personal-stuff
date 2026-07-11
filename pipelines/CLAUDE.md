@@ -54,14 +54,18 @@ npx ts-node run.ts --niche <slug>
 
 | Folder | Purpose | Stack |
 |---|---|---|
-| [`youtube/`](youtube/CLAUDE.md) | Wrapper for the core YT logic (5 sub-projects below) | mixed |
+| [`youtube/`](youtube/CLAUDE.md) | Wrapper for the core YT logic (sub-projects below) | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-analysis/`](youtube/yt-analysis/CLAUDE.md) | YT tracker sheet sync + LLM-driven affiliate-link workflow | Python |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/keyword-research/`](youtube/keyword-research/CLAUDE.md) | Scan competitor channels for affiliate opportunities | Python |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-research/`](youtube/yt-research/CLAUDE.md) | Niche → knowledge-base pipeline (Phase 1, Gemini) | TypeScript |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-script/`](youtube/yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2) | Markdown workflow |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/my-yt/`](youtube/my-yt/CLAUDE.md) | Personal channel notes (free-form) | Markdown |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/tutorial-pipeline-1/`](youtube/tutorial-pipeline-1/PIPELINE.md) | Drive-in → HeyGen spokesperson clips from an existing avatar → Drive-out. Standalone | Python + Claude steps |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/tutorial-pipeline-2/`](youtube/tutorial-pipeline-2/PIPELINE.md) | Tutorial recording prep steps (renamed from kushal-tutorial-pipeline-v2, 2026-07-07) | Python + Claude steps |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/explainer-videos-pipeline-1/`](youtube/explainer-videos-pipeline-1/PIPELINE.md) | Topic + competitor styles → fully-generated explainer video draft. No screen recording, no avatar | Python + Claude steps |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/competitor-styles/`](youtube/competitor-styles/CLAUDE.md) | Competitor style packs (script + video Style DNA for yt-style-copy skill; includes the Devsplainers motion-graphics reverse-engineering + hyperframes build kit, moved here 2026-07-07) | Python + Claude skill |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/dossiers/`](youtube/dossiers/CLAUDE.md) | Persistent per-software research library — one dossier per tool, accumulated from every fetched video transcript | Python + Claude skill |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/open-source/`](youtube/open-source/README.md) | Self-hosted alternatives exploration (starting with a HeyGen replacement for avatar clips) | Research/handoff docs |
 | [`pinterest/`](pinterest/PLAN.md) | Pinterest pin data and generators (Keto, Wedding brands) | Python |
 | [`income-analysis/`](income-analysis/README.md) | Gumroad/Skool income snapshot retrieval CLIs | Python |
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script. | Python |

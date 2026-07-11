@@ -28,12 +28,15 @@ The top level is grouped into buckets. Each bucket and most projects have their 
 - `hyperframes-render/` — Paste-and-render web tool for Hyperframes video cards at `render2.agrolloo.com` (password-gated). Express + headless Chrome renders pasted HTML to MP4; the Templates tab reads cards live from `pipelines/video/card-library/`.
 - `lists-app/` — Plain-text lists grouped by category (e.g. "YouTube channel ideas", "Skills to learn"), single-user PIN-gated, at `lists.agrolloo.com`.
 - `spending-tracker/` — Daily spend tracker that auto-categorizes card/UPI transactions. Design notes only — not built yet.
+- `timeblock/` — Tap-to-block day planner at `timeblock.agrolloo.com`, password-gated. Cloudflare Worker (Hono) + static HTML, no build step, data in KV.
 
 ### `infra/`
 - `docker/` — Compose files for the VPS containers (currently `ntfy`).
 - `vps-watchdog/` — Cloudflare Worker on a 2-minute cron that pings the dashboard and reboots the VPS via the Hostinger API if it's down.
 - `secrets/` — Local-only credentials. Gitignored, never committed.
 - `escrow/` — gpg-encrypted archive of every gitignored secret on the Mac, pushed offsite to Google Drive for Mac/VPS-loss recovery.
+- `cred-probe/` — Verifies every Google OAuth refresh token still refreshes, avoiding silent token death.
+- `route-audit/` — Autonomy pilot: a weekly self-triggered, read-only repo-drift audit reporting to Telegram.
 
 ### `learning/`
 - `DSA/` — Data structures and algorithms practice: notes plus solutions, one folder per topic.
