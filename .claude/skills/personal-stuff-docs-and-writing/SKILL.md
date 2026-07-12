@@ -21,6 +21,7 @@ Every fact has exactly ONE home; everything else links to it. A doc that drifts 
 | `VPS-CRONS.md` | **Mirrored to three places** — repo root, `vps-crons` root, `/root/VPS-CRONS.md` on the VPS. Update ALL THREE (plan 031 synced them; drift returns otherwise) | runbook |
 | `my-hosted-sites.md` | One line per live URL; update on launch/retire; `probe-sites.sh` parses it, so format matters | flat list |
 | `context/` | `bets.md` on bet start/pause/stop/pivot; `inventory.md` on launch/pause/retire; `ideas.md` on new high-potential idea. Pointers not copies; NO secrets/PII | per `context/CLAUDE.md` |
+| `pipelines/video/tts/OUTPUTS.md`, `pipelines/video/heygen/RENDERS.md` | Asset-hub manifests — docs of record for generated media: one row per voiceover/render; the media itself lives OUTSIDE the repo in `~/kb-scratch/video/{tts,heygen}/<pipeline>/`, never committed (decisions.md 2026-07-12) | per asset-hub rule in `pipelines/CLAUDE.md` |
 
 ## Folder-doc conventions
 
@@ -51,7 +52,8 @@ Any prose a human will read — README content, PR descriptions, Slack/email/Jir
 
 ## Provenance and maintenance
 
-Contracts verified against the docs themselves, `plans/WORKFLOW.md`, `context/CLAUDE.md`, plan 026/028/031 outcomes, and the global humanizer rule on 2026-07-05. Re-verify:
+Contracts verified against the docs themselves, `plans/WORKFLOW.md`, `context/CLAUDE.md`, plan 026/028/031 outcomes, and the global humanizer rule on 2026-07-05; re-verified 2026-07-12 (ledger formats, VPS-CRONS three-copy header, context cadence, and the table above against root CLAUDE.md's "Find it fast" — all match; added the asset-hub manifest row per `pipelines/CLAUDE.md` + decisions.md 2026-07-12). Re-verify:
 - Ledger line formats: `sed -n '38,57p' plans/WORKFLOW.md`
 - Three-copy rule: header of `VPS-CRONS.md`
 - context cadence: `context/CLAUDE.md`
+- Asset-hub manifest rule: "Generated media never lives in the repo" bullet in `pipelines/CLAUDE.md`

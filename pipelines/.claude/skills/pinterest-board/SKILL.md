@@ -1,6 +1,6 @@
 ---
 name: pinterest-board
-description: Open the local Pinterest "posting cockpit" — an intuitive web board (localhost) that shows every generated pin with a big image preview and one-tap Copy buttons for each field (title, description, hashtags, board, link), plus a "Mark posted" toggle that records posted status + optional live pin URL + date to disk. Use when posting pins to Pinterest one by one. Triggers on "open my pinterest board", "open the pinterest board", "show my pins", "pinterest posting cockpit", "pinterest-board", "I want to post my pins", "let me post pins".
+description: Open the local Pinterest "posting cockpit" — a localhost web board showing every generated pin with a big image preview, one-tap Copy buttons per field (title, description, hashtags, board, link), and a "Mark posted" toggle that records posted status + optional live pin URL + date to disk. Use when posting pins to Pinterest one by one. Triggers on "open my pinterest board", "show my pins", "pinterest posting cockpit", "pinterest-board", "let me post pins".
 user-invocable: true
 metadata:
   author: kbtg

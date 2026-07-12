@@ -1,5 +1,11 @@
 # Problem statement — voice↔video sync for TTS voiceover
 
+> **2026-07-12 — the open question below is ANSWERED: the final workflow is VO-first
+> (option C).** The tutorial maker records the screen while listening to the finished TTS,
+> so new videos are synced by construction (decisions.md 2026-07-12,
+> `pipelines/youtube/final-workflow/`). The per-sentence sync upgrade (option A+B) is NOT
+> being built; everything below stays relevant only for dubbing PRE-EXISTING recordings.
+
 Handoff for a fresh session. Read `CLAUDE.md` (pipeline) and this file before working.
 
 ## The system (one paragraph)

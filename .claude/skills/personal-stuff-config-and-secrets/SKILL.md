@@ -15,18 +15,18 @@ Secrets never enter git — they live in exactly six places, each with its own r
 |---|---|---|---|
 | 1. Worker prod secrets | Cloudflare, per Worker | `APP_PASSWORD`/`APP_PIN`, `SESSION_SECRET`, app-specific (below) | `wrangler secret put <NAME>` in the app folder |
 | 2. Worker local dev | `apps/<app>/.dev.vars` (gitignored; `.dev.vars.example` templates) | mirror of axis 1 | edit file |
-| 3. Python workspace | `pipelines/.env` + `pipelines/credentials.json` (both gitignored) | ~21 keys (below) + Google **service account** | edit `.env`; share each Sheet with the service account's `client_email` as Editor |
-| 4. Google OAuth (human accounts) | `tooling/mcp/google-shared/credentials.json` + `tokens/<email>.json` (gitignored) | one OAuth Desktop client; per-account tokens (5 as of 2026-07-05: `kushalbakliwal25`, `seankerman25`, `jessicap123k`, `akshatpatidar17`, `seemabakliwal19` @gmail.com) | `python3 tooling/mcp/google-shared/setup_auth.py <email>` (browser consent on the Mac) |
-| 5. Misc tool secrets | `infra/secrets/` | `heygen-web-curls.txt` (+ `heygen-usage-last.json` ledger), `hostinger-vps.env`, `impact.env`, `minio.env` | edit file; heygen cookies rotate in minutes–hours (recapture cURL on 403) |
+| 3. Python workspace | `pipelines/.env` + `pipelines/credentials.json` (both gitignored) | 21 keys (below) + Google **service account** | edit `.env`; share each Sheet with the service account's `client_email` as Editor |
+| 4. Google OAuth (human accounts) | `tooling/mcp/google-shared/credentials.json` + `tokens/<email>.json` (gitignored) | one OAuth Desktop client; per-account tokens (5 as of 2026-07-12: `kushalbakliwal25`, `seankerman25`, `jessicap123k`, `akshatpatidar17`, `seemabakliwal19` @gmail.com) | `python3 tooling/mcp/google-shared/setup_auth.py <email>` (browser consent on the Mac) |
+| 5. Misc tool secrets | `infra/secrets/` | `heygen-web-curls.txt` (+ `heygen-usage-last.json` ledger), `hostinger-vps.env`, `impact.env`, `minio.env`, `fal.env`, `telegram.env` (+ `telegram.env.example`, `minio-access.md`) | edit file; heygen cookies rotate in minutes–hours (recapture cURL on 403) |
 | 6. VPS-side | `/srv/crons/<job>/.env` (Telegram bot+chat), vendored `token.json` next to project code, `/root/.claude/.credentials.json`, `/root/.claude-rc.env` (chmod 600, EnvironmentFile for `claude-rc.service`: ELEVENLABS/PEXELS/SKOOL/VALYU/OPENROUTER keys) | per-cron delivery secrets, OAuth tokens, Claude Pro login, Remote Control env | edit on VPS directly / `scp` from Mac — never via git |
 
-Also per-CLI: `tooling/cli/hostinger/.env` (Hostinger API token); `~/.config/` holds `paypal-txns-pp-cli` creds. `GUMROAD_ACCESS_TOKEN` for the gumroad CLI.
+Also per-CLI: the Hostinger API token lives at `tooling/mcp/hostinger/.env` (`API_TOKEN`) — the `pp-hostinger` CLI in `tooling/cli/hostinger/` reads it from there, NOT from a `.env` of its own; `~/.config/` holds `paypal-txns-pp-cli` creds. `GUMROAD_ACCESS_TOKEN` for the gumroad CLI.
 
-## `pipelines/.env` — real key list (verified 2026-07-05)
+## `pipelines/.env` — real key list (21 keys, re-verified 2026-07-12)
 
 `YT_API_KEY`, `GEMINI_API_KEY`, `CREDENTIALS_FILE`, `YT_MAIN_SHEET_URL`, `YT_TRACKER_SHEET_URL`, `WORKFLOW_DEADLINES_SHEET_URL`, `KEYWORD_RESEARCH_SHEET_URL`, `AFFILIATE_PROGRAMS_SHEET_URL`, `ANALYSIS_INCOME_SHEET_URL`, `INCOME_ANALYSIS`, `GOOGLE_SHEET_URL`, `RANDOM_NOTES_SHEET_URL`, `PROBLEMS_AUTOMATIONS_SHEET_URL`, `MISC_CHANNELS_SHEET_URL`, `CF_API_TOKEN`, `CF_ACCOUNT_ID`, `CF_D1_DATABASE_ID`, `CF_KV_NAMESPACE_ID`, `LINK_DOMAIN`, `CF_GLOBAL_API_KEY`, `CF_API_EMAIL`.
 
-**TRAP:** `pipelines/.env.example` lists only ~10 of these. Rebuilding from the example alone breaks most sync scripts. `common/env.py` auto-loads `.env` keyed off its own file location (not CWD) — scripts never load it themselves. `common/cloudflare.py` hard-requires `CF_API_TOKEN`, `CF_ACCOUNT_ID`, `CF_D1_DATABASE_ID`/`CF_KV_NAMESPACE_ID` (raises `RuntimeError: <NAME> not set in .env`).
+**TRAP:** `pipelines/.env.example` lists only 10 of these 21 (as of 2026-07-12). Rebuilding from the example alone breaks most sync scripts. `common/env.py` auto-loads `.env` keyed off its own file location (not CWD) — scripts never load it themselves. `common/cloudflare.py` hard-requires `CF_API_TOKEN`, `CF_ACCOUNT_ID`, `CF_D1_DATABASE_ID`/`CF_KV_NAMESPACE_ID` (raises `RuntimeError: <NAME> not set in .env`).
 
 ## Worker app-specific secrets (beyond the gate pair)
 
@@ -71,8 +71,4 @@ Also per-CLI: `tooling/cli/hostinger/.env` (Hostinger API token); `~/.config/` h
 
 ## Provenance and maintenance
 
-Key names verified against `pipelines/.env` (names only), `infra/secrets/` listing, app wrangler configs + CLAUDE.mds, `tooling/mcp/README.md`, and `VPS-CRONS.md` on 2026-07-05. Re-verify:
-- pipelines keys: `grep -o "^[A-Z_0-9]*" pipelines/.env`
-- Worker secrets: `cd apps/<app> && npx wrangler secret list`
-- Google tokens present: `ls tooling/mcp/google-shared/tokens/`
-- infra/secrets inventory: `ls infra/secrets/`
+Key names verified against `pipelines/.env` (names only), `infra/secrets/` listing, `tooling/cli/hostinger/pp_hostinger.py`, app wrangler configs + CLAUDE.mds, `tooling/mcp/README.md`, and `VPS-CRONS.md` on 2026-07-12. Re-verify: run `scripts/verify.sh` in this skill dir (offline, names-only; exit 0 = all documented facts hold, exit 1 names the failing check). The one check it can't run offline — Worker prod secrets — stays manual: `cd apps/<app> && npx wrangler secret list` (needs Cloudflare auth).

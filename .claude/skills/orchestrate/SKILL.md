@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Plan a NEW build (feature, tool, script, small app) as a self-contained plan in plans/ (per plans/WORKFLOW.md + _TEMPLATE.md) that a cheaper executor runs — you orchestrate, never implement; brainstorms first when requirements are fuzzy, then runs an AUTOMATED handoff loop (dispatch to Antigravity via GUI script or Sonnet subagents, wait token-free on a run-log watcher, verify cheaply, fix-up rounds). New-work sibling of `improve` (which audits EXISTING code). Triggers on "let's build X", "implement Y", "add a feature", "orchestrate this", "plan this for antigravity", "make a plan a cheaper model can build", "spec this out for an executor", "hand this off to antigravity", "run the plans", "execute the batch". Not for auditing existing code (use `improve`) or tiny one-off edits.
+description: Use when planning a NEW build (feature, tool, script, small app) as a self-contained plan in plans/ that a cheaper executor runs — you orchestrate, never implement. New-work sibling of `improve`, which audits EXISTING code. Triggers on "let's build X", "implement Y", "add a feature", "orchestrate this", "hand this off", "spec this out for an executor", "run the plans", "execute the batch". Not for auditing existing code (use `improve`) or tiny one-off edits.
 user-invocable: true
 metadata:
   author: kbtg
@@ -194,9 +194,9 @@ decide — only do and verify**. Self-check every plan:
      CI). Never blank, never guessed — it's the command you confirmed in Step 2.
    - **`ui`** — `true` if the plan touches a user-facing view (boss's crew brief
      then requires a screenshot); omit/false otherwise.
-   - **`executor` + `model`** — stamp from the difficulty grade + `data/rules.md`
-     defaults (below). secretary does NOT re-derive these; what you write is what
-     boss dispatches.
+   - **`executor` + `model`** — stamp from the difficulty grade +
+     `tooling/boss/data/rules.md` defaults (below). secretary does NOT re-derive
+     these; what you write is what boss dispatches.
    - **`deploy`** — the post-merge deploy command if the plan needs one, else blank.
 
 Then grade each plan — `Difficulty: mechanical | standard | tricky`:
@@ -209,12 +209,13 @@ Then grade each plan — `Difficulty: mechanical | standard | tricky`:
 
 **Executor selection (boss taxonomy — this is what goes in the frontmatter).**
 boss runs two executors: `claude-p` (backgrounded `claude -p`; models `sonnet`
-or `opus`) and `agy` (headless Antigravity CLI; cheap tokens, gemini default).
-The user's explicit choice always wins. If unstated, consult
-`tooling/boss/data/rules.md` and default: `tricky` → `executor: claude-p` /
-`model: opus`; `standard` → `claude-p` / `sonnet`; `mechanical` or `type:chore`
-→ `agy` (agy default model). (The older `antigravity | sonnet | opus` naming
-belongs to the standalone direct-dispatch registry in Step 4 — NOT the
+or `opus`) and `agy` (headless Antigravity CLI; cheap tokens; agy runs use
+Gemini 3.1 Pro (High), its default model). **Never pick the executor model unilaterally**
+(owner-confirmed 2026-07-12): the user's explicit choice always wins; otherwise
+routing comes from `tooling/boss/data/rules.md` — `tricky` → `executor:
+claude-p` / `model: opus`; `standard` → `claude-p` / `sonnet`; `mechanical` or
+`type:chore` → `agy` (Gemini 3.1 Pro (High)). (The older `antigravity | sonnet | opus`
+naming belongs to the standalone direct-dispatch registry in Step 4 — NOT the
 frontmatter boss reads.)
 
 ### Step 4 — Hand off (optional)
@@ -225,7 +226,10 @@ Once plan(s) pass Step 3.5, ask the user how to hand off. Three routes:
   The plan rides a GitHub PR. Invoke **`/secretary raise`** on each ready plan:
   it opens a `boss:ready` PR (or a `gap:*` PR if the frontmatter is still
   incomplete — Step 3.5 item 7 is what prevents that). boss then dispatches,
-  verifies, merges, and deploys on its own schedule. **You are done once the PR
+  verifies, and merges autonomously once the PR is `boss:ready`; **deploy is
+  the only hard per-item gate** — boss executes the deploy chain only when the
+  owner explicitly says "deploy" for that item (`tooling/boss/CLAUDE.md`,
+  **personal-stuff-change-control**). **You are done once the PR
   is raised** — the dispatch/verify/merge loop is boss's, not yours, so nothing
   below this line runs. This is the current design; see
   `docs/specs/2026-07-07-boss-design.md`.
@@ -262,9 +266,11 @@ Notes:
   subscription as the Antigravity IDE, but a real headless process: no GUI
   permission dialogs, exact death detection, parallelizes (per-worktree cwd,
   no shared IDE workspace), per-call model choice (`agy models`; includes
-  Claude Sonnet/Opus 4.6 under the same sub). Prefer it over the `antigravity`
-  IDE row for headless plan batches. (The gemini CLI is dead for individual
-  accounts since 2026-06-18 — do not spec it.)
+  Claude Sonnet/Opus 4.6 under the same sub — a capability, not a license:
+  agy runs use Gemini 3.1 Pro (High), its default, and you never pick a different model
+  unilaterally; routing comes from `tooling/boss/data/rules.md` or the user).
+  Prefer it over the `antigravity` IDE row for headless plan batches. (The
+  gemini CLI is dead for individual accounts since 2026-06-18 — do not spec it.)
 - **One run at a time.** Runs share one working tree and git history —
   never dispatch a second run (any executor) while one is in flight.
 
@@ -394,3 +400,30 @@ loop still runs.
 Advising and specifying, not selling or building. Prefer a short, precise plan
 over a long vague one. Flag uncertainty honestly. If the right answer is "this is
 too small to orchestrate — just make the edit," say so.
+
+## When NOT to use
+
+- Auditing / improving EXISTING code, or "what should I build next" → `improve`
+- Tiny one-off edits → do them inline; **personal-stuff-change-control** Gate 1
+  (small, single-session, doing-it-yourself work needs no plan file)
+- Raising the finished plan as a boss PR → `secretary` (`/secretary raise`) —
+  never hand-roll the branch/commit/PR
+- Visual review of a written plan before dispatch → `plan-review`
+- Thinking through a fuzzy idea with no plan intended yet →
+  `superpowers:brainstorming` directly
+
+## Provenance and maintenance
+
+Workflow, registry, and routing verified on 2026-07-12 against
+`plans/WORKFLOW.md`, `plans/_TEMPLATE.md`, `tooling/boss/data/rules.md`,
+`tooling/boss/README.md`, `docs/specs/2026-07-07-boss-design.md`, and this
+skill's `scripts/`. Executor/model routing lives in `tooling/boss/data/rules.md`
+— this skill has NO `data/` dir of its own. Owner rule (confirmed 2026-07-12):
+never pick the executor model unilaterally; agy runs use Gemini 3.1 Pro (High)
+(agy's default); routing comes from the rules file. Re-verify:
+
+- Dispatch/watch scripts still present: `ls .claude/skills/orchestrate/scripts/`
+- Routing defaults unchanged: `head -20 tooling/boss/data/rules.md`
+- Plans contract exists: `ls plans/WORKFLOW.md plans/_TEMPLATE.md`
+- Boss design spec still there: `ls docs/specs/2026-07-07-boss-design.md`
+- agy default model: `grep -n "default model" tooling/boss/README.md`

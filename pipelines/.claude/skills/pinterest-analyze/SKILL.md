@@ -1,6 +1,6 @@
 ---
 name: pinterest-analyze
-description: Weekly, evidence-based performance review of YOUR posted Pinterest pins for a niche. For a given period it reads your pins + their analytics, pulls the competitors currently ranking on each pin's target keyword (via the research bot), diagnoses WHY your pins are or aren't getting reach and clicks, and gives prioritized, neutral fixes to grow saves/clicks to your Gumroad offer. Appends a dated entry to the niche ANALYSIS-LOG.md. Triggers on "run pinterest analysis", "analyze my pins", "pinterest weekly review", "how are my pins doing", "pinterest-analyze".
+description: Run a weekly, evidence-based performance review of YOUR posted Pinterest pins for a niche — diagnoses why pins are or aren't getting reach/clicks against the competitors ranking on each target keyword, gives prioritized neutral fixes to grow saves/clicks to the Gumroad offer, and appends a dated entry to the niche ANALYSIS-LOG.md. Triggers on "run pinterest analysis", "analyze my pins", "pinterest weekly review", "how are my pins doing", "pinterest-analyze".
 user-invocable: true
 metadata:
   author: kbtg

@@ -1,6 +1,6 @@
 ---
 name: plan-review
-description: Visual plan review gate using lavish-axi. Triggers on "/plan-review", "plan review", "review the plans visually", or "open the plan gate". Renders plans as interactive HTML in the browser. On-command only; HTML is disposable (kb-scratch); plan file is the source of truth; never dispatch executors from this skill.
+description: Use when the owner wants a visual review of a plan before dispatch — the lavish-axi plan gate. Triggers on "/plan-review", "plan review", "review the plans visually", or "open the plan gate". On-command only; HTML is disposable (kb-scratch); the plan file is the source of truth; never dispatch executors from this skill.
 ---
 
 # /plan-review
@@ -27,3 +27,22 @@ You are the visual plan reviewer. Your job is to render a markdown plan as an in
 - **On-command only**: Do not run this workflow automatically.
 - **HTML is disposable**: Artifacts live outside the repo in `~/kb-scratch`. The markdown plan file is the source of truth.
 - **Never dispatch executors**: This skill is strictly for review and editing the plan. Execution is orchestrate's job.
+
+## When NOT to use
+
+- Writing or revising the plan itself (recon, steps, readiness gate) →
+  `orchestrate` — this skill only folds review feedback back into an
+  existing plan file
+- Raising the reviewed plan as a `boss:ready` PR → `secretary`
+  (`/secretary raise`)
+- Executing the plan → boss dispatches it after secretary raises the PR;
+  never dispatch from here
+
+## Provenance and maintenance
+
+Verified on 2026-07-12: `references/artifact-template.md` exists (the HTML
+authoring guide step 2 depends on), and the root `CLAUDE.md` "Find it fast"
+table routes "Visual plan review before dispatch" to this skill. Re-verify:
+
+- References intact: `ls .claude/skills/plan-review/references/`
+- Routing row still points here: `grep -n "plan-review" CLAUDE.md`

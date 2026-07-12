@@ -1,6 +1,6 @@
 ---
 name: hyperframes-helper
-description: Opinionated production layer ON TOP OF the official Hyperframes skills — three-level workflow, 16 lint gotchas with fixes, 10 motion-graphics recipes, storyboard templates, and a talking-head cut pipeline (silence-cut → transcribe → retake-cut). For basic authoring/rendering use the official `hyperframes` skill instead. Triggers on "/hyperframes-helper", "hyperframes helper", "storyboard a video", "storyboard the title cards", "level 3 video pipeline", "cut the retakes", "silence cut my recording", "hyperframes lint gotchas", "motion graphics recipe".
+description: Opinionated production layer ON TOP OF the official Hyperframes skills — three-level workflow, 16 lint gotchas with fixes, 10 motion-graphics recipes, storyboard templates, and a talking-head cut pipeline. For basic authoring/rendering use the official `hyperframes` skill instead. Triggers on "hyperframes helper", "storyboard a video", "storyboard the title cards", "level 3 video pipeline", "cut the retakes", "silence cut my recording", "hyperframes lint gotchas", "motion graphics recipe".
 user-invocable: true
 metadata:
   author: Jay (RoboNuggets, https://robonuggets.com) — CC BY 4.0; installed by kbtg

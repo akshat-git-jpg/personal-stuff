@@ -19,6 +19,8 @@ Claude drives this repo through CLIs and scripts, each already documented by its
 | Live URLs | `./scripts/probe-sites.sh [--include-localhost]` | parses `my-hosted-sites.md`; exit 1 + `DOWN_SITES:` line on any unreachable/5xx |
 | Orchestrate run state | `runlog-status.sh` in `.claude/skills/orchestrate/scripts/` (moved from tooling/claude-skills 2026-07-05) | prints one status word (`done` / `blocked <reason>` / `dead <plan>` / `not-started`), **always exit 0** — do not gate on its exit code |
 | Orchestrate run watcher | `watch-run.sh` (same folder) | exit 0=RUN DONE, 2=BLOCKED, 3=stale/dead, 4=never started |
+| Skill-description budget — store | `./scripts/check-skill-descriptions.sh` | scans `tooling/claude-skills/` only; WARN >500 chars, FAIL >700 → exit 1; wired into `scripts/relink.sh` (plan 059) |
+| Skill-description budget — `.claude/skills/` | `.claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh` | same thresholds, prints a per-skill table; follows symlinks without double-counting; handles `description: \|` blocks. **NOT wired into relink.sh** (run on demand after any `.claude/skills` description edit; wiring it in is a candidate follow-up, not done) |
 
 ## rtk (Rust Token Killer)
 
@@ -35,7 +37,10 @@ A hook rewrites shell commands through `rtk` transparently (60–90% token savin
 | Google Drive | `pp-drive --account <email>` or `google-drive` MCP | idempotent find-or-create; `--overwrite` to replace |
 | Hostinger VPS/DNS/snapshots via API | `hostinger` skill → `pp-hostinger` | |
 | Cloudflare D1/KV/DNS ad hoc | `cloudflare` MCP tools | Python pipelines use `common/cloudflare.py` instead |
-| Push notification to phone | `pp-ntfy send\|alarm\|test "..."` | exit 0 ack, 3 timeout, 2 config/HTTP; topic name IS the secret; server is plain HTTP |
+| Push notification to phone | `tooling/cli/notify/` — Telegram-first, ntfy as fallback (used by greenlight/overnight) | `pp-ntfy send\|alarm\|test` still works standalone: exit 0 ack, 3 timeout, 2 config/HTTP; topic name IS the secret; server is plain HTTP |
+| Isolated worktree for an agent run | `tooling/cli/wt/` (pool manager) | managed runs only — owner sessions, deploys, skill edits stay on the main checkout |
+| Land a finished branch hands-free | `tooling/cli/greenlight/` | validation pipeline used by boss; parks merges if main is dirty |
+| Capped autonomous improvement loop | `tooling/cli/overnight/` | one verifiable change per iteration; see its README for the contract |
 | RapidAPI market research | `tooling/cli/rapidapi/pp-rapidapi search\|gaps\|competition` | unofficial, research only |
 | Email routing for a new domain | `node tooling/cli/cf-email/setup-routing.mjs <domain>` | scoped token can't enable routing (error 10000) — one manual dashboard click, or global key |
 | HeyGen avatar generation (web session) | `node tooling/cli/heygen-web/heygen-web.mjs` | ToS-risky; cookies rotate — see HANDOVER.md; usage ledger `infra/secrets/heygen-usage-last.json` |
@@ -63,7 +68,8 @@ A hook rewrites shell commands through `rtk` transparently (60–90% token savin
 
 ## Provenance and maintenance
 
-Router verified against `tooling/cli/*`, `scripts/*`, skill manifests, and project memory on 2026-07-05. Re-verify:
+Router verified against `tooling/cli/*`, `scripts/*`, skill manifests, and owner-session records on 2026-07-05; re-verified 2026-07-12 (added notify/wt/greenlight/overnight rows from `ls tooling/cli/`; skills-status 43 skills 0 problems; doctor.sh still wraps skills-status + check-apps + opt-in probe-sites; shipped `scripts/check-descriptions.sh`). Re-verify:
 - CLI inventory: `ls tooling/cli/`
 - Skill inventory: `./scripts/skills-status.sh`
 - doctor.sh still matches the scripts it wraps: read both before trusting after script changes
+- Run `scripts/check-descriptions.sh` (this skill's folder) after any `.claude/skills` description edit; the store guard `./scripts/check-skill-descriptions.sh` covers `tooling/claude-skills/` via relink.sh

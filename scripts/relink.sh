@@ -28,6 +28,13 @@ if [[ "${SKIP_DESC_GUARD:-}" != "1" ]]; then
     echo "Trim it (budget ≤500) or rerun with SKIP_DESC_GUARD=1." >&2
     exit 1
   }
+  # Same budget for the repo-level skills in .claude/skills/ (they load into
+  # every repo-root session even though relink doesn't manage them).
+  "$SCRIPTS_DIR/../.claude/skills/personal-stuff-diagnostics-and-tooling/scripts/check-descriptions.sh" || {
+    echo "relink aborted: a .claude/skills description exceeds the 700-char hard cap." >&2
+    echo "Trim it (budget ≤500) or rerun with SKIP_DESC_GUARD=1." >&2
+    exit 1
+  }
 fi
 WORK_DIR="${CLAUDE_WORK_CONFIG_DIR:-$HOME/.claude-work}/skills"
 PERS_DIR="${CLAUDE_PERSONAL_CONFIG_DIR:-$HOME/.claude-personal}/skills"

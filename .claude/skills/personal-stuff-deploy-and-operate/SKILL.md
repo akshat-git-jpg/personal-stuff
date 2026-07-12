@@ -15,6 +15,8 @@ Three deployment surfaces, three mechanisms. **Deploys go to production directly
 | VPS Docker app (personal-dashboard, hyperframes-render) | SSH → `cd /docker/<name> && docker compose up -d --build` | `docker ps` + curl the domain |
 | VPS cron | Pattern B (code in git, wiring via SSH) — lifecycle in `VPS-CRONS.md`; schedule/dep changes: `ssh root@72.61.241.170 '/srv/crons/vps-apply.sh'` | manual run: `/srv/crons/<job>/run.sh`, then `tail logs/cron.log` |
 
+**Orchestrated path (plan-driven work): boss** (`tooling/boss/`, captain's successor — captain is frozen). Boss lands PRs via greenlight then runs the gated `bin/boss-deploy.sh`. Standing permission (decisions.md 2026-07-11): boss may execute the owner-side deploy chain itself — `wrangler secret put`/`deploy`, VPS SSH cron wiring, committing wrappers to `vps-crons`, syncing the mirrored `VPS-CRONS.md` copies — but ONLY after the owner explicitly says "deploy" (or equivalent) on that item; the deploy gate itself is unchanged. Still human-only: interactive browser OAuth consent and deleting a live credential/account.
+
 ## Workers — the rules
 
 1. **Always the app's own `deploy` npm script, never bare `wrangler deploy`.** Per-app quirks live in each `deploy` script on purpose — gym-app and kushal-docs need their `patch-routes.mjs` step or the custom domain silently drops (mechanism: **cloudflare-and-vps-reference**). kushal-tools has no build; landing pages are `node build-pages.mjs` (bridebestie only) then `npx wrangler deploy` per subfolder.
@@ -41,11 +43,11 @@ ssh root@72.61.241.170 'tail -50 /srv/crons/<job>/logs/cron.log'
 ssh root@72.61.241.170 'crontab -l'                        # must equal /srv/crons/crontab.txt
 ```
 
-Remember: VPS is UTC (IST − 5:30); cron PATH is stripped (absolute paths only); code changes need only `git push` — the wrapper pulls on every tick.
+Remember: VPS is UTC (IST − 5:30); cron PATH is stripped (absolute paths only); code changes need only `git push` — the wrapper pulls on every tick. The VPS is Linux: smoke-test with `timeout`, never macOS `gtimeout` (exit 127 = the test silently no-ops).
 
 ## MinIO (generated-asset storage)
 
-Localhost-only on the VPS by choice (no public exposure). Access: SSH tunnel `ssh -i ~/.ssh/hostinger_vps -L 9001:localhost:9001 root@72.61.241.170`, then http://localhost:9001. Creds: `infra/secrets/minio.env` (see `infra/secrets/minio-access.md`). Purpose: keep generated assets out of git per the media policy (**personal-stuff-change-control**).
+Localhost-only on the VPS by choice (no public exposure). Access: SSH tunnel `ssh -i ~/.ssh/hostinger_vps -L 9001:localhost:9001 root@72.61.241.170`, then http://localhost:9001. Creds: `infra/secrets/minio.env` (see `infra/secrets/minio-access.md`). Purpose: keep generated assets out of git per the media policy (**personal-stuff-change-control**). Mac-side, the same policy is the asset-hub convention (decisions.md 2026-07-12): repo hubs `pipelines/video/{tts,heygen}/` track only reference assets + output manifests; the generated media itself lives outside the repo in `~/kb-scratch/video/{tts,heygen}/<consuming-pipeline>/`.
 
 ## After every deploy (non-negotiable)
 
@@ -62,8 +64,9 @@ Localhost-only on the VPS by choice (no public exposure). Access: SSH tunnel `ss
 
 ## Provenance and maintenance
 
-Verified against `scripts/deploy-apps.sh`, `scripts/check-apps.sh`, `scripts/probe-sites.sh`, app package.json deploy scripts, `VPS-CRONS.md`, `INFRA.md`, and `infra/secrets/` listing on 2026-07-05. Re-verify:
+Verified against `scripts/deploy-apps.sh`, `scripts/check-apps.sh`, `scripts/probe-sites.sh`, app package.json deploy scripts, `tooling/boss/README.md` + `bin/boss-deploy.sh`, `decisions.md` (2026-07-11 boss deploy permission, 2026-07-12 asset hubs), `VPS-CRONS.md`, `INFRA.md`, and `infra/secrets/minio-access.md` on 2026-07-12 (VPS SSH unreachable from the verifying network that day — VPS-side facts re-checked against the docs of record only). No verify script on purpose: this skill's real checks (probe-sites curls, cron runs, `wrangler secret list`) need network/SSH, and a script that can't run offline is worse than commands with expected outputs. Re-verify:
 - deploy-apps flags: `sed -n '1,30p' scripts/deploy-apps.sh`
-- Per-app deploy quirks: `grep '"deploy"' apps/*/package.json`
+- Per-app deploy quirks: `grep '"deploy"' apps/*/package.json` (also shows the mixed v3/v4 wrangler pins — see **personal-stuff-build-and-env**)
+- Boss deploy path: `tooling/boss/README.md` + decisions.md 2026-07-11 entry
 - Cron ops: `VPS-CRONS.md` "Common operations"
 - MinIO access: `infra/secrets/minio-access.md`

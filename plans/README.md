@@ -23,7 +23,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 008 | Dissolve the `ty/` theme-folder into the by-kind structure (one brain) | P2 | L | 001–007 | DONE |
 | 009 | Reorganize the workspace internals by kind (video/tools/notes/archive) | P3 | M-L | 008 | DONE |
 | 010 | VPS migration runbook — repoint render2 mount, retire orphaned TY clone | P3 | S-M | 008, 009 pushed | DONE |
-| 011 | Tutorial pipeline v3 — implement deterministic assembly (105/125/162 + segment map) | P2 | L | — | TODO |
+| 011 | Tutorial pipeline v3 — implement deterministic assembly (105/125/162 + segment map) | P2 | L | — | DONE (verified 2026-07-12: 105/125/162 implemented, 040 emits segment map, 125 fixture reproduces 1.11/1.00/flag; row was stale — executor never flipped it. Open remnants: 135 rulebook stub, 162 overlay passes pending HeyGen downloads) |
 | 012 | Competitor style packs — folder scaffold + zero-API transcript ingestion | P2 | M | — | DONE |
 | 013 | yt-style skill — distill Style DNA, generate topics/titles/scripts | P2 | M | 012 | DONE |
 | 014 | Tracker: derive the new-video form from the pipeline def | P2 | S | — | DONE |

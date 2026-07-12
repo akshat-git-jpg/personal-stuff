@@ -14,7 +14,7 @@ The bar here is **"verified working", not "tests pass"** — this repo skips TDD
 | Level | Command | Applies to |
 |---|---|---|
 | 1. Static | `./scripts/check-apps.sh` — runs each app's `typecheck` (`tsc -b` on TS), `check` (`node --check` on JS), `lint`, `test` if present, + `bash -n` on shell scripts | any app change; CI-equivalent gate |
-| 2. Unit/guard | the app's `npm test` (vitest: tutorial-tracker-app ~64 tests incl. `engine.test.ts` as of 2026-07-05; lists-app; founders-tracker; redirector `--passWithNoTests`) | apps with suites |
+| 2. Unit/guard | the app's `npm test` (vitest: tutorial-tracker-app ~76 `it`/`test` cases across 6 files incl. `engine.test.ts` as of 2026-07-12; lists-app; founders-tracker; timeblock; redirector `--passWithNoTests`) | apps with suites |
 | 3. Smoke | run it and do one real user action (`npm run dev:local`, or the cron's `run.sh`, or the pipeline script on real input) | everything |
 | 4. Deploy | `./scripts/probe-sites.sh` + a real action on the live URL | after any deploy — see **personal-stuff-deploy-and-operate** |
 
@@ -59,7 +59,7 @@ Use the existing `commit-now` skill (prettier/lint/tsc/build gate + conventional
 
 ## Provenance and maintenance
 
-Verified against `scripts/check-apps.sh`, app package.json test scripts, `plans/WORKFLOW.md`, `plans/runs/LESSONS.md`, and decisions.md (2026-07-04 uniform verification; 2026-07-05 orchestrate v2.2 rubric rule) on 2026-07-05. Re-verify:
+Verified against `scripts/check-apps.sh`, app package.json test scripts, `plans/WORKFLOW.md`, `plans/runs/LESSONS.md`, and decisions.md (2026-07-04 uniform verification; 2026-07-05 orchestrate v2.2 rubric rule) on 2026-07-05; re-verified 2026-07-12 (KNOWN_FAILING still exactly analytics-app:lint + tutorial-tracker-app:lint; tutorial-tracker-app suite grew to ~76 cases; timeblock gained a vitest suite; guard-test rule wording still matches **personal-stuff-change-control**'s — change-control owns the rule, this skill owns the mechanics). Re-verify:
 - Ladder level 1: `sed -n '1,30p' scripts/check-apps.sh`
 - Test suites: `grep '"test"' apps/*/package.json`
 - Executor rules: `grep -n "rubric\|scope check\|self-fix" decisions.md`

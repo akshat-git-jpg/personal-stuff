@@ -1,6 +1,6 @@
 ---
 name: audit-repo-route
-description: Audit and auto-fix routing/navigation drift in a repo that uses the "Find it fast" CLAUDE.md convention (personal-stuff). Detects folders missing from the intent table, dead links and false structural claims in the map, sub-folders with no CLAUDE.md/README, and stale decisions.md entries — then fixes the mechanical drift in place and flags the judgment calls. Read it as the repo's "dream sequence" self-audit. Triggers on "/audit-repo-route", "audit repo routing", "audit the repo route", "check routing drift", "is the routing stale", "check the find-it-fast table", "keep the map fresh", "run the routing audit".
+description: Use when auditing routing/navigation drift in a repo using the "Find it fast" CLAUDE.md convention (personal-stuff) — folders missing from the intent table, dead links, false structural claims, sub-folders with no CLAUDE.md/README, stale decisions.md entries. Triggers on "/audit-repo-route", "audit repo routing", "check routing drift", "is the routing stale", "check the find-it-fast table", "keep the map fresh", "run the routing audit".
 user-invocable: true
 metadata:
   author: kbtg
@@ -117,3 +117,26 @@ Keep it scannable — one line per item, path-first, no prose padding. If a repo
 - Don't reformat a whole `CLAUDE.md`/`README.md` — make the minimal targeted edit for each fix.
 - Never commit or push. The user reviews the diff.
 - When a fix would require guessing intent (ambiguous relocation, a folder with no docs to describe it), flag it instead of guessing.
+
+## When NOT to use
+
+- Fixing the hosting/infra inventory content itself (live URLs, Workers, DNS,
+  the triple-update rule) → **personal-stuff-hosting-inventory** — this skill
+  only checks that the *navigation* to those docs isn't broken
+- Conventions for the docs of record (decisions.md entry format, README vs
+  CLAUDE.md roles, humanizer for prose) → **personal-stuff-docs-and-writing**
+- Pure orientation — "where does X live?" with no audit intent →
+  **personal-stuff-repo-map**
+
+## Provenance and maintenance
+
+Checks and exemptions verified against the live repo on 2026-07-12: root
+`CLAUDE.md` carries the "Find it fast" intent table, `decisions.md` is the
+append-only log, `plans/runs/` holds run ledgers (exempt, not a project). The
+target-repo list contains one entry (`/Users/kbtg/codebase/personal-stuff`) —
+extend it if another repo adopts the convention. Re-verify:
+
+- Intent table still exists: `grep -n "Find it fast" CLAUDE.md`
+- Target repo present: `ls /Users/kbtg/codebase/personal-stuff/CLAUDE.md`
+- Exempt artifact folders unchanged: `ls plans/runs/`
+- Decision log format: `head -5 decisions.md`

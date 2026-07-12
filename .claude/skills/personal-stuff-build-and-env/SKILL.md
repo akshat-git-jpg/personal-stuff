@@ -42,6 +42,8 @@ Dual-account facts: work config `~/.claude-work`, personal `~/.claude-personal`;
 | Go (1.26.3+) | printing-press CLIs (`~/go/bin/*-pp-cli`, `cli-printing-press`) | reinstall via the `printing-press-catalog` skill |
 | pipx | `notebooklm` CLI (`~/.local/bin/notebooklm`) | `pipx install` per the `notebooklm` skill |
 
+Wrangler is a per-app devDependency and versions are deliberately mixed (as of 2026-07-12: v3 in founders-tracker (pinned 3.114.17), gym-app, kushal-docs, redirector, timeblock; v4 in analytics-app, kushal-tools, lists-app, tutorial-tracker-app). There is no single repo-wide wrangler — never install or run a global one; always go through each app's own npm scripts.
+
 ## The npm 401 trap (work machine)
 
 The work `~/.npmrc` points at Zluri CodeArtifact, which 401s on public packages. Repo apps carry a local `.npmrc` pinning the public registry — **keep it**, and give any NEW nested Node project its own cwd-local `.npmrc` before first `npm install`.
@@ -68,7 +70,4 @@ Symlinks store absolute paths and `.mcp.json` hardcodes them: re-run `./scripts/
 
 ## Provenance and maintenance
 
-Verified against `scripts/relink.sh`, `scripts/regen-mcp-json.sh`, `scripts/skills-status.sh`, `pipelines/CLAUDE.md`, `VPS-CRONS.md`, and memory of tool installs on 2026-07-05. Re-verify:
-- Script behavior: read the script headers (`sed -n '1,20p' scripts/<name>.sh`)
-- Runtime homes: `which rtk; ls ~/go/bin | grep pp-cli; ls ~/.agents/skills`
-- VPS layout: `ssh root@72.61.241.170 'ls /srv/crons /srv/projects'`
+Verified against `scripts/relink.sh`, `scripts/link-clis.sh`, `scripts/regen-mcp-json.sh`, `scripts/skills-status.sh`, `pipelines/CLAUDE.md`, app package.json wrangler pins, and `VPS-CRONS.md` on 2026-07-12. Re-verify: run `scripts/verify.sh` in this skill dir (offline checks; exit 0 all-pass, exit 1 names the failing check). The VPS layout check needs the network and is opt-in: `VERIFY_VPS=1 scripts/verify.sh` (or manually `ssh root@72.61.241.170 'ls /srv/crons /srv/projects'`) — SSH was unreachable from the 2026-07-12 verifying network, so VPS facts were re-verified against `VPS-CRONS.md` only.

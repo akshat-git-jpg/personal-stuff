@@ -56,7 +56,8 @@ def _required_env(name: str) -> str:
     value = os.getenv(name)
     if not value:
         raise RuntimeError(
-            f"{name} is not set. Add it to {_DEFAULT_ENV_PATH} or the .mcp.json env block."
+            f"{name} is not set. Add it to one of "
+            f"{', '.join(str(p) for p in _ENV_CANDIDATES)} or the .mcp.json env block."
         )
     return value
 
@@ -362,7 +363,7 @@ def _handle(name: str, args: dict) -> list[types.TextContent]:
             "CF_ACCOUNT_ID": os.getenv("CF_ACCOUNT_ID") or "(missing)",
             "CF_D1_DATABASE_ID": os.getenv("CF_D1_DATABASE_ID") or "(missing)",
             "CF_KV_NAMESPACE_ID": os.getenv("CF_KV_NAMESPACE_ID") or "(missing)",
-            "env_file_loaded": str(_DEFAULT_ENV_PATH) if _DEFAULT_ENV_PATH.is_file() else "(none)",
+            "env_file_loaded": next((str(p) for p in _ENV_CANDIDATES if p.is_file()), "(none)"),
         }, indent=2))
 
     if name == "d1_query":

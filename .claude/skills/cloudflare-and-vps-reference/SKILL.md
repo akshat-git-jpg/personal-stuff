@@ -7,9 +7,9 @@ description: Use when working with Cloudflare Workers, wrangler, D1, R2, KV, cus
 
 ## Overview
 
-Everything public runs in one of three places: **Cloudflare Workers** (public edge), **Hostinger VPS Docker containers** (always-on box behind Traefik), or **VPS crons** (Pattern B). GitHub is the bridge — the VPS pulls, the Mac pushes. Canonical inventory: `INFRA.md` (known stale in spots — see **personal-stuff-repo-map** weak spots).
+Everything public runs in one of three places: **Cloudflare Workers** (public edge), **Hostinger VPS Docker containers** (always-on box behind Traefik), or **VPS crons** (Pattern B). GitHub is the bridge — the VPS pulls, the Mac pushes. Canonical inventory: `INFRA.md` (drift repaired 2026-07-12; it lags launches, so verify with **personal-stuff-hosting-inventory**'s `scripts/verify-inventory.sh` before load-bearing use — on DRIFT trust `apps/*/wrangler.*` + `VPS-CRONS.md` over it).
 
-## Cloudflare account facts (2026-07-05)
+## Cloudflare account facts (2026-07-12)
 
 - Account: `akshatpatidar17@gmail.com`, id `ac525d9a38c81a18eb327571d3f76e7e`. Zones: `agrolloo.com`, `bridebestie.com`. No Pages projects — everything is Workers.
 - Live MCP server `cloudflare` (from `tooling/mcp/cloudflare-mcp-server/`) gives D1 query / KV / DNS tools. Python pipelines use REST via `pipelines/common/cloudflare.py` (`D1Client`/`KVClient`; requires `CF_API_TOKEN`, `CF_ACCOUNT_ID`, `CF_D1_DATABASE_ID`, `CF_KV_NAMESPACE_ID` in `pipelines/.env`).
@@ -19,7 +19,7 @@ Everything public runs in one of three places: **Cloudflare Workers** (public ed
 | Shape | Pattern | Examples |
 |---|---|---|
 | SPA Worker | Vite + React + Hono, `ASSETS` binding with `not_found_handling: "single-page-application"`, `nodejs_compat` flag, `npm run deploy` = build + `wrangler deploy` | analytics-app, founders-tracker, gym-app, kushal-docs, lists-app, tutorial-tracker-app |
-| Plain Worker | Hono or raw fetch handler, no build step | kushal-tools (renders its own HTML so the PIN gate precedes any content), redirector, infra/vps-watchdog |
+| Plain Worker | Hono or raw fetch handler, no build step | kushal-tools (renders its own HTML so the PIN gate precedes any content), redirector, timeblock (static frontend via `ASSETS`, no build), infra/vps-watchdog |
 | Assets-only Worker | No main script, `assets.directory` only | pinterest-landing-pages/{keto-kitchen, bridebestie} |
 
 ## Custom domains and routes
@@ -29,10 +29,10 @@ Everything public runs in one of three places: **Cloudflare Workers** (public ed
 - Exception 2 (TRAP): **gym-app and kushal-docs deploy from a build artifact that loses routes.** Their source `wrangler.jsonc` files DO carry the routes (and kushal-docs' R2 binding), but the Cloudflare Vite plugin regenerates `dist/<name>/wrangler.json` on every build and strips them there; each app's `scripts/patch-routes.mjs` re-injects into that built file during `npm run deploy`. **A bare `wrangler deploy` after a build silently drops the custom domain.** Always `npm run deploy`.
 - `agrolloo.com` apex + `www` → Hostinger shared hosting (`191.101.230.133`), NOT the VPS, NOT a Worker.
 
-## D1 / KV / R2 (state of 2026-07-05)
+## D1 / KV / R2 (state of 2026-07-12)
 
 - **D1 (5):** `clicks-db` (owned + migrated by redirector; written by redirector + tutorial-tracker; read-only in analytics-app; columns are additive — readers tolerate new ones), `tracker-db` (tutorial-tracker's normalized store), `lists-db`, `founders-db`, `yt-rankings` (analytics-app read+write).
-- **KV (3+):** `CLICKS_KV` (shared: redirector + tutorial-tracker), `SESSIONS` (tutorial-tracker logins), `WATCHDOG_KV` (vps-watchdog).
+- **KV (4):** `CLICKS_KV` (shared: redirector + tutorial-tracker), `SESSIONS` (tutorial-tracker logins), `WATCHDOG_KV` (vps-watchdog), `BLOCKS_KV` (timeblock — one JSON blob per day).
 - **R2 (1):** bucket `kushal-docs` — real personal documents, **unencrypted**; never delete/overwrite/log contents.
 - Schema pushes: apps keep `schema.sql` + npm scripts like `db:local` / `db:remote` (`wrangler d1 execute <db> --local|--remote --file=schema.sql`). Migrations live with the owning app (`apps/redirector/migrations/`). **`db:remote` mutates production — for any non-additive migration on the load-bearing DBs (`clicks-db`, `tracker-db`), export the data first.**
 
@@ -63,8 +63,9 @@ Project code lives in `personal-stuff`; orchestration (run.sh, .env, crontab.txt
 
 ## Provenance and maintenance
 
-Verified against `INFRA.md`, `VPS-CRONS.md`, all `apps/*/wrangler.*`, `infra/vps-watchdog/wrangler.jsonc`, and `pipelines/common/cloudflare.py` on 2026-07-05. Re-verify:
-- Worker/domain list: `grep -rn "custom_domain\|zone_name\|pattern" apps/*/wrangler.* infra/vps-watchdog/wrangler.jsonc`
-- D1/KV live state: cloudflare MCP `d1_list_databases` / `kv_list_namespaces`
+Re-verified 2026-07-12 against all `apps/*/wrangler.*` (incl. `apps/pinterest-landing-pages/*/`), `infra/vps-watchdog/wrangler.jsonc`, live SSH (`docker ps`: 6 containers; `crontab -l`: 7 active crons matching `VPS-CRONS.md`), and `VPS-CRONS.md`. Added timeblock (`BLOCKS_KV`) — was missing from the KV list and Worker-shape examples here. Cloudflare MCP `d1_list_databases`/`kv_list_namespaces` errored server-side (`NameError: _DEFAULT_ENV_PATH`) on 2026-07-12 — D1/KV counts rest on wrangler configs + the d1-backup cron ("all 5 D1 databases"). Re-verify:
+- Worker/domain list: `grep -rn "custom_domain\|zone_name\|pattern" apps/*/wrangler.* apps/pinterest-landing-pages/*/wrangler.* infra/vps-watchdog/wrangler.jsonc`
+- INFRA.md-vs-reality drift: `.claude/skills/personal-stuff-hosting-inventory/scripts/verify-inventory.sh` (the drift table lives in **personal-stuff-hosting-inventory**)
+- D1/KV live state: cloudflare MCP `d1_list_databases` / `kv_list_namespaces` (fix the MCP server first if it still NameErrors)
 - VPS containers: `ssh root@72.61.241.170 'docker ps --format "{{.Names}}"'`
 - Crontab: `ssh root@72.61.241.170 'crontab -l'` (must match `/srv/crons/crontab.txt`)
