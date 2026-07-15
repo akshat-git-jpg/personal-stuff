@@ -4,7 +4,7 @@ export type Owner = "khushi" | "kushal";
 export const OWNERS: Owner[] = ["khushi", "kushal"];
 
 export type TaskStatus = "open" | "done";
-export type Cadence = "monthly" | "weekly";
+export type Cadence = "daily" | "monthly" | "weekly";
 
 /** A tracked action item. */
 export interface Task {
@@ -48,7 +48,7 @@ export interface Template {
   owner: Owner;
   notes: string | null;
   cadence: Cadence;
-  /** monthly: 1-31 (clamped to month length). weekly: 0-6 (0=Mon … 6=Sun). */
+  /** monthly: 1-31 (clamped to month length). weekly: 0-6 (0=Mon … 6=Sun). daily: unused. */
   dueDay: number;
   active: boolean;
   createdAt: string;

@@ -21,6 +21,7 @@ function isoWeek(ymd: string): { year: number; week: number } {
 }
 
 export function periodKey(cadence: Cadence, ymd: string): string {
+  if (cadence === "daily") return ymd; // YYYY-MM-DD — one instance per day
   if (cadence === "monthly") return ymd.slice(0, 7); // YYYY-MM
   const { year, week } = isoWeek(ymd);
   return `${year}-W${String(week).padStart(2, "0")}`;
@@ -35,6 +36,7 @@ function pad2(n: number): string { return String(n).padStart(2, "0"); }
 /** The 'YYYY-MM-DD' due date for the period that contains `ymd`. */
 export function resolveEta(template: Template, ymd: string): string {
   const { y, m, d } = parseYmd(ymd);
+  if (template.cadence === "daily") return ymd; // due the same day it's generated
   if (template.cadence === "monthly") {
     const day = Math.min(template.dueDay, daysInMonth(y, m));
     return `${y}-${pad2(m)}-${pad2(day)}`;

@@ -4,6 +4,7 @@ import { api } from "./api";
 import { DOW } from "./dates";
 
 function dueLabel(t: Template): string {
+  if (t.cadence === "daily") return "every day";
   if (t.cadence === "weekly") return `every ${DOW[t.dueDay] ?? "?"}`;
   const n = t.dueDay;
   const suff = n === 1 || n === 21 || n === 31 ? "st" : n === 2 || n === 22 ? "nd" : n === 3 || n === 23 ? "rd" : "th";
@@ -105,7 +106,7 @@ function TemplateForm({ initial, onClose, onSaved }: {
         <div className="field">
           <label>Cadence</label>
           <div className="row">
-            {(["monthly", "weekly"] as Cadence[]).map((cd) => (
+            {(["daily", "monthly", "weekly"] as Cadence[]).map((cd) => (
               <button key={cd} className={`pill ${cadence === cd ? "on" : ""}`}
                 onClick={() => { setCadence(cd); setDueDay(cd === "weekly" ? 4 : 1); }}>
                 {cd}
@@ -113,17 +114,19 @@ function TemplateForm({ initial, onClose, onSaved }: {
             ))}
           </div>
         </div>
-        <div className="field">
-          <label>{cadence === "weekly" ? "Due weekday" : "Due day of month (1–31)"}</label>
-          {cadence === "weekly" ? (
-            <select value={dueDay} onChange={(e) => setDueDay(Number(e.target.value))}>
-              {DOW.map((d, i) => <option key={d} value={i}>{d}</option>)}
-            </select>
-          ) : (
-            <input type="number" min={1} max={31} value={dueDay}
-              onChange={(e) => setDueDay(Math.max(1, Math.min(31, Number(e.target.value) || 1)))} />
-          )}
-        </div>
+        {cadence !== "daily" && (
+          <div className="field">
+            <label>{cadence === "weekly" ? "Due weekday" : "Due day of month (1–31)"}</label>
+            {cadence === "weekly" ? (
+              <select value={dueDay} onChange={(e) => setDueDay(Number(e.target.value))}>
+                {DOW.map((d, i) => <option key={d} value={i}>{d}</option>)}
+              </select>
+            ) : (
+              <input type="number" min={1} max={31} value={dueDay}
+                onChange={(e) => setDueDay(Math.max(1, Math.min(31, Number(e.target.value) || 1)))} />
+            )}
+          </div>
+        )}
         <div className="field">
           <label>Notes</label>
           <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
