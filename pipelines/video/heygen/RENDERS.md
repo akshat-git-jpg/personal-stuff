@@ -70,3 +70,9 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/dustin-d166ced8b1cb467188bb8e59836c4423--78db1955453f49fcaccdb946d6d4484e) | d166ced8b1cb467188bb8e59836c4423 | intro.mp3 | `78db1955453f49fcaccdb946d6d4484e` |
 | [heygen link](https://app.heygen.com/videos/dustin-6ab533f941fe457db0e267d8c79136f0--7ebaefef2c5a42478745d4f25c71933d) | 6ab533f941fe457db0e267d8c79136f0 | intro.mp3 | `7ebaefef2c5a42478745d4f25c71933d` |
 | [heygen link](https://app.heygen.com/videos/dustin-11e82ae7df844be8a5695ee864e44f49--e9c7314895eb4b31a591596b6efb33f7) | 11e82ae7df844be8a5695ee864e44f49 | intro.mp3 | `e9c7314895eb4b31a591596b6efb33f7` |
+| [heygen link](https://app.heygen.com/videos/look-d993f02290684062aee26517e14d5f7e--412fa338215946b0ac96e0d6042e3378) | d993f02290684062aee26517e14d5f7e | intro.mp3 | `412fa338215946b0ac96e0d6042e3378` |
+| [heygen link](https://app.heygen.com/videos/look-e15dd7a8ed3f45d1929f87847db59d76--813e66b3ab244135b2213d0cbaec3f39) | e15dd7a8ed3f45d1929f87847db59d76 | intro.mp3 | `813e66b3ab244135b2213d0cbaec3f39` |
+| [heygen link](https://app.heygen.com/videos/look-ae822c76977d48679a3d4ad3efefc798--a90a8176f6ed46b6bd1e65f1f471ed99) | ae822c76977d48679a3d4ad3efefc798 | intro.mp3 | `a90a8176f6ed46b6bd1e65f1f471ed99` |
+| [heygen link](https://app.heygen.com/videos/look-1b3a4c4ea87c4d81a43f11552e06abcf--9188b0c8d44045d8ab2274844b92d6c3) | 1b3a4c4ea87c4d81a43f11552e06abcf | intro.mp3 | `9188b0c8d44045d8ab2274844b92d6c3` |
+| [heygen link](https://app.heygen.com/videos/look-167a2a23120945278b55a29e5eb3bf77--84c9ba34d1e644aa83dbf4c951d749eb) | 167a2a23120945278b55a29e5eb3bf77 | intro.mp3 | `84c9ba34d1e644aa83dbf4c951d749eb` |
+| [heygen link](https://app.heygen.com/videos/look-381bff7c83f14ec29255d41e1d23ec19--08ae1a9fd94f487abc2bac9db56223c0) | 381bff7c83f14ec29255d41e1d23ec19 | intro.mp3 | `08ae1a9fd94f487abc2bac9db56223c0` |
