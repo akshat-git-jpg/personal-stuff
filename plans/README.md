@@ -75,6 +75,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 058 | Autonomy pilot — weekly read-only route-audit cron → Telegram (+ VPS-CRONS.md refresh) | P2 | M | 057 (soft) | TODO |
 | 059 | Hygiene — skill-description budget guard + heygen-web render-output policy | P2 | S-M | — (pre-dispatch owner step: move untracked heygen media out of main checkout) | TODO |
 | 060 | media-board — local gallery cockpit over the tts/heygen asset hubs (view, filter, drag-out) | P2 | M | — | DONE |
+| 061 | Avatar Renderer — local UI wrapping tutorial-pipeline-1 (Drive link → 3 avatar clips), run from local-apps-dashboard | P2 | M | — (043 shipped the pipeline it wraps) | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
