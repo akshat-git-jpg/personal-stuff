@@ -45,6 +45,7 @@ tutorial-pipeline-1/
   lib/            drive.py (pp-drive wrapper), audio.py (ffmpeg), heygen.py (heygen-web wrapper)
   shared/
     avatar_mapping.py   ← EDIT: real HeyGen template id per type
+  ui/                   ← local UI wrapper (dashboard app `avatar renderer`, :4371) that runs steps 010→050 as one job. The five steps remain the source of truth.
   steps/<NNN-name-actor>/
     README.md, run.py, output/
 ```

@@ -24,7 +24,9 @@ VIDEOS = HERE / "output" / "videos"
 S020_OUT = ROOT / "steps/020-extract-audio-run/output"
 S030_OUT = ROOT / "steps/030-submit-avatar-renders-run/output"
 
-DEFAULT_BUFFER = 60  # seconds of render overhead on top of clip length — a heuristic, not a poll
+DEFAULT_BUFFER = 300  # seconds of render overhead on top of clip length — a heuristic, not a poll.
+                      # Owner chose "wait longer, single attempt" over polling/retries (2026-07-16):
+                      # 60s was tighter than real renders (a verified 1080p render ran 86.6s of clip).
 
 
 def die(m): raise SystemExit("✖ " + m)

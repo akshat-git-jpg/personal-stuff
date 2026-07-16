@@ -87,6 +87,15 @@
       "port": 4361,
       "ports": [4361],
       "url": "http://localhost:4361"
+    },
+    {
+      "id": "avatar-ui",
+      "name": "avatar renderer",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/youtube/tutorial-pipeline-1/ui",
+      "start": "node serve.mjs --port 4371",
+      "port": 4371,
+      "ports": [4371],
+      "url": "http://localhost:4371"
     }
   ]
 }
