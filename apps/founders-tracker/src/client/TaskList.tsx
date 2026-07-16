@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   DndContext, PointerSensor, closestCenter, useSensor, useSensors,
   type DragEndEvent,
@@ -7,13 +7,14 @@ import {
   SortableContext, arrayMove, useSortable, verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Owner, Task, TaskPatch } from "../shared";
+import type { Owner, Task, TaskPatch, Template } from "../shared";
 import { TaskCard } from "./TaskCard";
 import { QuickAdd } from "./QuickAdd";
 
 interface Props {
   owner: Owner;
   tasks: Task[];
+  templates: Template[];
   onReorder: (owner: Owner, orderedIds: number[]) => void;
   onAdd: (title: string, eta: string | null) => Promise<void>;
   onToggleDone: (t: Task) => void;
@@ -22,7 +23,14 @@ interface Props {
   onDelete: (t: Task) => void;
 }
 
-export function TaskList({ owner, tasks, onReorder, onAdd, onToggleDone, onSetEta, onSaveEdit, onDelete }: Props) {
+export function TaskList({ owner, tasks, templates, onReorder, onAdd, onToggleDone, onSetEta, onSaveEdit, onDelete }: Props) {
+  const cadenceOf = useMemo(() => {
+    const byId = new Map(templates.map((t) => [t.id, t.cadence]));
+    // A deleted template leaves its generated tasks behind: still a repeat, cadence unknown.
+    return (t: Task) =>
+      t.templateId == null ? null : byId.get(t.templateId) ?? "repeat";
+  }, [templates]);
+
   const open = tasks.filter((t) => t.status === "open").sort((a, b) => a.sortOrder - b.sortOrder);
   const done = tasks.filter((t) => t.status === "done")
     .sort((a, b) => (a.completedAt ?? "") < (b.completedAt ?? "") ? 1 : -1);
@@ -46,7 +54,7 @@ export function TaskList({ owner, tasks, onReorder, onAdd, onToggleDone, onSetEt
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
           {open.map((t) => (
-            <SortableRow key={t.id} task={t}
+            <SortableRow key={t.id} task={t} repeat={cadenceOf(t)}
               onToggleDone={onToggleDone} onSetEta={onSetEta} onSaveEdit={onSaveEdit} onDelete={onDelete} />
           ))}
         </SortableContext>
@@ -60,7 +68,7 @@ export function TaskList({ owner, tasks, onReorder, onAdd, onToggleDone, onSetEt
             Done · {done.length}
           </div>
           {showDone && done.map((t) => (
-            <TaskCard key={t.id} task={t}
+            <TaskCard key={t.id} task={t} repeat={cadenceOf(t)}
               onToggleDone={onToggleDone} onSetEta={onSetEta} onSaveEdit={onSaveEdit} onDelete={onDelete} />
           ))}
         </div>
@@ -69,8 +77,9 @@ export function TaskList({ owner, tasks, onReorder, onAdd, onToggleDone, onSetEt
   );
 }
 
-function SortableRow({ task, onToggleDone, onSetEta, onSaveEdit, onDelete }: {
+function SortableRow({ task, repeat, onToggleDone, onSetEta, onSaveEdit, onDelete }: {
   task: Task;
+  repeat: string | null;
   onToggleDone: (t: Task) => void;
   onSetEta: (t: Task, value: string | null) => void;
   onSaveEdit: (t: Task, patch: TaskPatch) => void;
@@ -81,7 +90,7 @@ function SortableRow({ task, onToggleDone, onSetEta, onSaveEdit, onDelete }: {
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 };
   return (
     <div ref={setNodeRef} style={style}>
-      <TaskCard task={task} handleProps={{ ...attributes, ...listeners }}
+      <TaskCard task={task} repeat={repeat} handleProps={{ ...attributes, ...listeners }}
         onToggleDone={onToggleDone} onSetEta={onSetEta} onSaveEdit={onSaveEdit} onDelete={onDelete} />
     </div>
   );

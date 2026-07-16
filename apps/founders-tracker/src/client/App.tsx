@@ -90,7 +90,7 @@ export function App() {
               );
             })}
           </div>
-          <TaskList owner={tab} tasks={ownTasks}
+          <TaskList owner={tab} tasks={ownTasks} templates={data.templates}
             onReorder={reorder} onAdd={addTask} onToggleDone={toggleDone} onSetEta={setEta}
             onSaveEdit={saveEdit} onDelete={del} />
         </>

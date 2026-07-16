@@ -8,6 +8,8 @@ const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 
 interface Props {
   task: Task;
+  /** Cadence of the source template ('daily' …), or null for a manual task. */
+  repeat?: string | null;
   onToggleDone: (t: Task) => void;
   onSetEta: (t: Task, value: string | null) => void;
   onSaveEdit: (t: Task, patch: TaskPatch) => void;
@@ -16,7 +18,7 @@ interface Props {
   handleProps?: Record<string, unknown>;
 }
 
-export function TaskCard({ task, onToggleDone, onSetEta, onSaveEdit, onDelete, handleProps }: Props) {
+export function TaskCard({ task, repeat, onToggleDone, onSetEta, onSaveEdit, onDelete, handleProps }: Props) {
   const open = task.status === "open";
 
   const [editing, setEditing] = useState(false);
@@ -86,6 +88,11 @@ export function TaskCard({ task, onToggleDone, onSetEta, onSaveEdit, onDelete, h
           </div>
         ) : (
           <>
+            {repeat && (
+              <div className="repeat-chip" title="generated from a repeat">
+                <span className="ic">↻</span>{repeat}
+              </div>
+            )}
             <div className={`title ${open ? "tappable" : ""}`}
               onClick={open ? startEdit : undefined}>{task.title}</div>
             {deadline}
