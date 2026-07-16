@@ -21,7 +21,7 @@ export async function submitGenerate(auth, { avatar, voice, text, title, orienta
     create_new_avatar: false,
   };
   const out = await call(auth, endpoints.avatarShortcutSubmit, {}, { body });
-  appendRenderLog({ avatar, audio: "TTS", video_id: out?.data?.video_id });
+  appendRenderLog({ avatar, audio: "TTS", video_id: out?.data?.video_id, title: body.video_title });
   return { video_id: out?.data?.video_id, raw: out };
 }
 
@@ -64,7 +64,7 @@ export async function submitAudioGenerate(auth, { avatar, audioPath, engine, tit
   const gen = await call(auth, endpoints.textDraftGenerate, {}, { xPath: editorPath, body: genBody });
   const outVid = gen?.data?.video_id;
   if (!outVid) die("text_draft.generate failed: " + JSON.stringify(gen));
-  appendRenderLog({ avatar, audio: basename(audioPath), video_id: outVid });
+  appendRenderLog({ avatar, audio: basename(audioPath), video_id: outVid, title: title || "generate-from-audio" });
   return { video_id: outVid };
 }
 
@@ -118,7 +118,7 @@ export async function submitFromTemplate(auth, { templateId, audioPath, title })
   const gen = await call(auth, endpoints.textDraftGenerate, {}, { xPath: editorPath, body: genBody });
   const outVid = gen?.data?.video_id;
   if (!outVid) die("text_draft.generate failed: " + JSON.stringify(gen));
-  appendRenderLog({ avatar: templateId, audio: basename(audioPath), video_id: outVid });
+  appendRenderLog({ avatar: templateId, audio: basename(audioPath), video_id: outVid, title: title || "generate-from-template" });
   return { video_id: outVid };
 }
 

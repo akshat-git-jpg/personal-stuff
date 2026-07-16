@@ -5,6 +5,7 @@ import { arg } from "../cli/args.mjs";
 import { resolveAvatar } from "../client/registry.mjs";
 import { submitGenerate } from "../operations/render.mjs";
 import { downloadCore } from "../operations/videos.mjs";
+import { meterChecked } from "../operations/account.mjs";
 
 // Batch generate many clips from a file. Each clip = one unlimited Avatar III submit.
 //   --file *.txt   → one script per line (uses shared --avatar/--voice/--orientation/--res)
@@ -49,19 +50,22 @@ export async function batch(auth, args) {
 
   console.error(`→ batch: ${resolved.length} clips, ${iv ? "Avatar IV (METERED)" : "Avatar III (unlimited)"} …`);
   const results = [];
-  for (let i = 0; i < resolved.length; i++) {
-    const it = resolved[i];
-    try {
-      const { video_id, raw } = await submitGenerate(auth, it);
-      results.push({ index: i + 1, title: it.title, text: it.text, video_id: video_id || null,
-        ok: !!video_id, code: raw?.code });
-      console.error(`  [${i + 1}/${resolved.length}] ${video_id ? "✓ " + video_id : "✖ no video_id: " + JSON.stringify(raw)}`);
-    } catch (e) {
-      results.push({ index: i + 1, title: it.title, text: it.text, video_id: null, ok: false, error: String(e) });
-      console.error(`  [${i + 1}/${resolved.length}] ✖ ${e}`);
+  // One meter-check around the whole batch (not per-clip) — proves the run stayed free.
+  await meterChecked(auth, args, async () => {
+    for (let i = 0; i < resolved.length; i++) {
+      const it = resolved[i];
+      try {
+        const { video_id, raw } = await submitGenerate(auth, it);
+        results.push({ index: i + 1, title: it.title, text: it.text, video_id: video_id || null,
+          ok: !!video_id, code: raw?.code });
+        console.error(`  [${i + 1}/${resolved.length}] ${video_id ? "✓ " + video_id : "✖ no video_id: " + JSON.stringify(raw)}`);
+      } catch (e) {
+        results.push({ index: i + 1, title: it.title, text: it.text, video_id: null, ok: false, error: String(e) });
+        console.error(`  [${i + 1}/${resolved.length}] ✖ ${e}`);
+      }
+      if (i < resolved.length - 1) await new Promise((r) => setTimeout(r, delay));
     }
-    if (i < resolved.length - 1) await new Promise((r) => setTimeout(r, delay));
-  }
+  });
 
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const manifest = resolve(outDir, `batch-${stamp}.json`);

@@ -55,6 +55,22 @@ export function diffUsage(prev, cur) {
       (d.priority_count > 0 ? ` (priority slot used: +${d.priority_count}/100 — free, queue only)` : ""));
 }
 
+// Wrap a submit so every generate auto-proves whether it stayed free:
+// snapshot usage → run the submit → snapshot again → print the ✓UNLIMITED / ⚠️NOT-free
+// verdict (to stderr, so machine JSON on stdout is untouched). Skip with --no-meter-check.
+export async function meterChecked(auth, args, submitFn) {
+  if (args.includes("--no-meter-check")) return submitFn();
+  const before = await usageSnapshot(auth);
+  const result = await submitFn();
+  try {
+    const after = await usageSnapshot(auth);
+    diffUsage(before, after);
+  } catch (e) {
+    console.error(`(meter-check skipped: ${e.message || e})`);
+  }
+  return result;
+}
+
 export async function usage(auth, args) {
   const cur = await usageSnapshot(auth);
   console.log(JSON.stringify(cur, null, 2));

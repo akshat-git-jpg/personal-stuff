@@ -32,5 +32,6 @@ export function printHelp() {
   delete-video <video_id> [<video_id> ...] [--type heygen_video]
   raw <path> [--json '<body>']\n
 --avatar / --template accept a SLUG from the avatar registry (pipelines/video/heygen/registry.json) (e.g. "girl-1") or a raw id.
+Every generate/batch auto-runs a usage diff and prints ✓UNLIMITED / ⚠️NOT-free (Avatar III should stay free). Skip with --no-meter-check.
 Auth file: ${CURLS}\n⚠️  ToS-grey, account-bound. Default mode = unlimited Avatar III.`);
 }

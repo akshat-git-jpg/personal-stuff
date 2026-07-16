@@ -78,6 +78,15 @@
       "port": 4351,
       "ports": [4351],
       "url": "http://localhost:4351"
+    },
+    {
+      "id": "heygen-renders",
+      "name": "heygen renders",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/video/heygen/renders-viewer",
+      "start": "node serve.mjs --port 4361",
+      "port": 4361,
+      "ports": [4361],
+      "url": "http://localhost:4361"
     }
   ]
 }

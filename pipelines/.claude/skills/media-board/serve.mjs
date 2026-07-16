@@ -181,21 +181,39 @@ function startServer() {
 
       const srcs = sources();
       const resData = { sources: [], unmatched: [] };
-      
-      let allUnmatched = [];
-      let pendingHeygen = heygenRows;
-      let pendingTts = ttsRows;
 
+      // The heygen "Videos generated" rows are now link-only (Avatar III is unlimited, so we
+      // store the HeyGen link instead of downloading). Surface each as a link-card. Rows from
+      // the "Avatars created" table (no link/output column) are skipped, not dumped as unmatched.
+      const heygenLinkAssets = heygenRows
+        .filter((r) => Object.keys(r).some((k) => /heygen link|output file/.test(k)))
+        .map((r) => {
+          const lk = Object.keys(r).find((k) => /heygen link|output file/.test(k));
+          const cell = r[lk] || "";
+          const m = cell.match(/\((https?:\/\/[^)]+)\)/);
+          const url = m ? m[1] : (/^https?:\/\//.test(cell) ? cell : null);
+          return {
+            type: "link",
+            name: r["avatar / template"] || r["avatar"] || r["video_id"] || "render",
+            audio: r["audio"] || "",
+            video_id: r["video_id"] || "",
+            url,
+            group: "renders · on HeyGen",
+          };
+        })
+        .filter((a) => a.url);
+
+      let pendingTts = ttsRows;
       for (const src of srcs) {
         const files = scanSource(src);
         if (src.hub === "heygen" && src.kind === "outputs") {
-           pendingHeygen = manifestFor(files, pendingHeygen);
+          files.push(...heygenLinkAssets); // link-only renders as cards
         } else if (src.hub === "tts" && src.kind === "outputs") {
-           pendingTts = manifestFor(files, pendingTts);
+          pendingTts = manifestFor(files, pendingTts);
         }
         resData.sources.push({ ...src, files });
       }
-      resData.unmatched = [...pendingHeygen, ...pendingTts];
+      resData.unmatched = pendingTts;
       return json(res, 200, resData);
     }
 
@@ -336,8 +354,28 @@ async function load(){
 
 function card(f, src){
   const el=document.createElement("div");el.className="card";
+
+  // Link-only render (lives on HeyGen, no local file): show an Open/Copy card, no player.
+  if(f.type==="link"){
+    const media=document.createElement("div");media.className="media";
+    media.innerHTML='<div style="text-align:center;color:var(--mut)"><div style="font-size:30px">▶</div><div style="font-size:12px;margin-top:6px">on HeyGen · no local copy</div></div>';
+    el.appendChild(media);
+    const body=document.createElement("div");body.className="body";
+    const name=document.createElement("div");name.className="name";name.title=f.name;name.textContent=f.name;
+    const meta=document.createElement("div");meta.className="meta";meta.textContent=[f.audio,f.video_id].filter(Boolean).join(" · ");
+    body.append(name,meta);
+    const btns=document.createElement("div");btns.className="btns";
+    const open=document.createElement("a");open.className="btn";open.textContent="Open on HeyGen ↗";open.href=f.url;open.target="_blank";open.rel="noopener";
+    const cpy=document.createElement("button");cpy.className="btn";cpy.textContent="Copy link";
+    cpy.onclick=async()=>{await navigator.clipboard.writeText(f.url);cpy.textContent="Copied!";setTimeout(()=>cpy.textContent="Copy link",1000);};
+    btns.append(open,cpy);
+    body.appendChild(btns);
+    el.appendChild(body);
+    return el;
+  }
+
   el.draggable=true;
-  
+
   const fileUrl=location.origin+"/file?src="+encodeURIComponent(src.id)+"&p="+encodeURIComponent(f.relPath);
   let mime="application/octet-stream";
   if(f.type==="video") mime="video/mp4";
@@ -387,9 +425,10 @@ function card(f, src){
   return el;
 }
 
+const norm=s=>(s||"").toLowerCase().replace(/[-_\s]+/g,"");
 function render(){
   const wrap=$("#wrap"); wrap.innerHTML="";
-  const search=SEARCH.toLowerCase();
+  const search=norm(SEARCH);
   let count=0;
 
   for(const src of DATA.sources){
@@ -400,9 +439,11 @@ function render(){
 
     const files=src.files.filter(f=>{
       if(!search) return true;
-      if(f.name.toLowerCase().includes(search)) return true;
+      // search is separator-insensitive ("girl 1" matches "girl-1") and path-aware
+      const hay=norm([f.name,f.relPath,f.audio,f.video_id,f.url].filter(Boolean).join(" "));
+      if(hay.includes(search)) return true;
       if(f.manifest){
-        for(const v of Object.values(f.manifest)) if(v.toLowerCase().includes(search)) return true;
+        for(const v of Object.values(f.manifest)) if(norm(v).includes(search)) return true;
       }
       return false;
     });

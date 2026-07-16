@@ -96,7 +96,7 @@ Writes a `batch-<timestamp>.json` manifest mapping each clip → `video_id`. Wit
 ## Full flow (all verified working)
 
 ```bash
-node heygen-web.mjs limits                       # ~20 min/month pool: used/remaining
+node heygen-web.mjs limits                       # generative/free-credit pool (NOT the Avatar III cap — III is unlimited)
 node heygen-web.mjs list-avatars                 # find a group_id
 node heygen-web.mjs list-looks --group <gid>     # find a look_id (avatar_id)
 node heygen-web.mjs generate --avatar <look_id> --voice <voice_id> \
@@ -122,8 +122,14 @@ wait ~1 min, then download). `batch --download` re-tries to ride that out.
 
 ## ⚠️ Two caveats
 
-- **"Unlimited" = ~20 min/month.** The `limits` endpoint caps at `total_limit: 1200`
-  seconds/month. Run `limits` to see what's left. Not infinite.
+- **Avatar III IS unlimited — the `limits` 1200s pool is a different meter.** The
+  `/v1/avatar/video_generate/limits` endpoint's `total_limit: 1200` seconds is the
+  **generative / free-credit** pool (Avatar IV + AI generative features), *not* an
+  Avatar III cap. Unlimited-mode Avatar III submits do **not** consume it — proven
+  2026-07-16 with `usage --save`/`--diff` around a real render on look
+  `6c5ff54cb83e4284b0119598c058d3b2`: `credits +0 seconds +0` (only a free priority
+  slot moved). So ignore the "min left" line for Avatar III; use `usage --diff` to
+  confirm any op is free.
 - **Cookie expiry.** Cloudflare cookies (`cf_clearance`/`__cf_bm`) rotate in minutes–hours.
   On a 403/Cloudflare response, recapture one fresh `submit` cURL into
   `infra/secrets/heygen-web-curls.txt` (only the `-b` cookie + `x-zid` matter). The CLI detects this.
