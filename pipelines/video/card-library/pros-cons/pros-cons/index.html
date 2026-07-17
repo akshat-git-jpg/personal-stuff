@@ -47,7 +47,7 @@
   </head>
   <body>
     <div id="root" data-composition-id="proscons" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"Hostinger","pros":["Cheapest n8n hosting","One-click install","Great support"],"cons":["No EU-only region","Scales slower than VPS"]}'>
+      data-composition-variables='{"title":"Hostinger","beats":[{"kind":"pro","text":"Cheapest n8n hosting","at":0.8},{"kind":"pro","text":"One-click install","at":0.92},{"kind":"pro","text":"Great support","at":1.04},{"kind":"con","text":"No EU-only region","at":0.95},{"kind":"con","text":"Scales slower than VPS","at":1.07}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div id="card">
@@ -65,26 +65,33 @@
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
         title: VARS.title ?? 'Hostinger',
-        pros: VARS.pros ?? ['Cheapest n8n hosting', 'One-click install', 'Great support'],
-        cons: VARS.cons ?? ['No EU-only region', 'Scales slower than VPS'],
+        beats: VARS.beats ?? [
+          { kind: 'pro', text: 'Cheapest n8n hosting',   at: 0.8 },
+          { kind: 'pro', text: 'One-click install',      at: 0.92 },
+          { kind: 'pro', text: 'Great support',          at: 1.04 },
+          { kind: 'con', text: 'No EU-only region',      at: 0.95 },
+          { kind: 'con', text: 'Scales slower than VPS', at: 1.07 },
+        ],
       };
 
       /* ===== TIMELINE (LOCKED — do not edit) ===== */
       const $ = (id) => document.getElementById(id);
-      function build() {
-        $('title').textContent = DATA.title;
-        $('prosList').innerHTML = DATA.pros.map((t) => `<div class="row"><span class="ic">✓</span><span>${t}</span></div>`).join('');
-        $('consList').innerHTML = DATA.cons.map((t) => `<div class="row"><span class="ic">✕</span><span>${t}</span></div>`).join('');
-      }
-      build();
-
+      $('title').textContent = DATA.title;
+      const rows = DATA.beats.map((b) => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `<span class="ic">${b.kind === 'pro' ? '✓' : '✕'}</span><span></span>`;
+        row.lastElementChild.textContent = b.text;
+        $(b.kind === 'pro' ? 'prosList' : 'consList').appendChild(row);
+        return { b, row };
+      });
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       tl.from('#card .title', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, 0.1);
-      tl.from('.pros', { opacity: 0, x: -40, duration: 0.6, ease: 'power3.out' }, 0.4);
-      tl.from('.cons', { opacity: 0, x: 40, duration: 0.6, ease: 'power3.out' }, 0.4);
-      tl.from('.pros .row', { opacity: 0, y: 16, duration: 0.45, ease: 'power2.out', stagger: 0.12 }, 0.8);
-      tl.from('.cons .row', { opacity: 0, y: 16, duration: 0.45, ease: 'power2.out', stagger: 0.12 }, 0.95);
+      const firstAt = (kind, fb) => { const xs = DATA.beats.filter((b) => b.kind === kind); return xs.length ? Math.max(0.3, Math.min(...xs.map((b) => b.at)) - 0.3) : fb; };
+      tl.from('.pros', { opacity: 0, x: -40, duration: 0.6, ease: 'power3.out' }, firstAt('pro', 0.4));
+      tl.from('.cons', { opacity: 0, x: 40, duration: 0.6, ease: 'power3.out' }, firstAt('con', 0.4));
+      rows.forEach(({ b, row }) => tl.from(row, { opacity: 0, y: 16, duration: 0.45, ease: 'power2.out' }, b.at));
       window.__timelines['proscons'] = tl;
     </script>
   </body>
