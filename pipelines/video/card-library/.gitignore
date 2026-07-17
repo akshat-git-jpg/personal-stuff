@@ -2,3 +2,5 @@ node_modules/
 renders/
 .DS_Store
 flow/.test-tmp/
+flow/fixtures/board/vo.mp3
+flow/fixtures/board/slices/
