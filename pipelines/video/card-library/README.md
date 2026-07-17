@@ -97,3 +97,19 @@ fully removed.)
 - Lint a card before rendering: `npx hyperframes@latest lint section/section-counter-scale`.
   The "Studio can't drag-edit these elements" and "Google Fonts" warnings are expected —
   the motion is locked on purpose, and the fonts load fine online.
+
+## Beat contract (progressive-reveal cards)
+
+1. A **beat card** accepts two extra variables: `beats` (array; item shape is card-specific
+   and listed in `catalog.json` as `beat_shape`, always plus a required numeric `at` = seconds
+   from card start) and nothing else new. Reveal timing comes ONLY from `beats[].at`.
+2. The TIMELINE block builds reveals with `DATA.beats.forEach(...)` — no hardcoded per-item
+   offsets. Entrance motion (easing, direction, duration of each reveal animation) stays fixed
+   per card.
+3. Defaults in `data-composition-variables` must encode the card's current 6s look, so the
+   gallery preview and a variable-less render look exactly like today.
+4. Card `data-duration` stays static in the file. Per-cue durations are applied by the flow's
+   render step, which rewrites the attribute in a staged copy — cards must keep ALL their
+   `data-duration` attributes at one identical value so a global rewrite is safe.
+5. Single-shot cards (no progressive reveals) are exempt; they are `"kind": "single"` in
+   catalog.json.
