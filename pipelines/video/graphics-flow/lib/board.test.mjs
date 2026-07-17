@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer } from './board.mjs';
+import { createServer, buildSegments } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp');
@@ -133,6 +133,69 @@ test('POST /approve sets cues.json approved: true', async () => {
 
     const onDisk = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
     assert.equal(onDisk.approved, true);
+  } finally {
+    server.close();
+  }
+});
+test('buildSegments: words fully covered, no duplication, contiguous order', () => {
+  const words = JSON.parse(fs.readFileSync(path.join(FIXTURE_DIR, 'transcript.json'), 'utf8'));
+  const resolved = JSON.parse(fs.readFileSync(path.join(FIXTURE_DIR, 'resolved.json'), 'utf8')).resolved;
+  
+  const segments = buildSegments(words, resolved);
+  
+  let wordCount = 0;
+  for (const seg of segments) {
+    wordCount += seg.words.length;
+  }
+  assert.equal(wordCount, words.length, 'total words in segments must equal transcript words');
+  
+  for (let i = 1; i < segments.length; i++) {
+    assert.ok(segments[i - 1].start <= segments[i].start, `segment ${i-1} start ${segments[i-1].start} > segment ${i} start ${segments[i].start}`);
+  }
+});
+
+test('buildSegments: short gap folding', () => {
+  const words = [
+    { text: "w1", start: 0, end: 1 },
+    { text: "w2", start: 1, end: 2 },
+    { text: "w3", start: 2, end: 3 },
+  ];
+  const resolved = [
+    { id: "c1", start: -5, duration: 4 },
+    { id: "c2", start: 4, duration: 2 },
+  ];
+  const segments = buildSegments(words, resolved, { gapMinWords: 4 });
+  assert.equal(segments.length, 2);
+  assert.equal(segments[0].kind, 'cue');
+  assert.equal(segments[0].cue.id, 'c1');
+  assert.equal(segments[1].kind, 'cue');
+  assert.equal(segments[1].cue.id, 'c2');
+  assert.equal(segments[1].words.length, 3);
+});
+
+test('GET / contains gap timecode, cues in DOM order, anchor highlighted, minimap matches segment count', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/`);
+    assert.equal(res.status, 200);
+    const html = await res.text();
+    
+    assert.match(html, /gap-block/);
+    assert.match(html, /&rarr;/);
+    
+    const c01Idx = html.indexOf('data-id="c01"');
+    const c02Idx = html.indexOf('data-id="c02"');
+    assert.ok(c01Idx !== -1 && c02Idx !== -1, 'both cues present');
+    assert.ok(c01Idx < c02Idx, 'c01 comes before c02');
+    
+    assert.match(html, /<mark>let&#39;s<\/mark>\s*<mark>look<\/mark>\s*<mark>at<\/mark>\s*<mark>the<\/mark>\s*<mark>pros<\/mark>\s*<mark>and<\/mark>\s*<mark>cons<\/mark>/);
+    
+    const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
+    const resolved = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8')).resolved;
+    const segs = buildSegments(words, resolved);
+    const minimapCount = (html.match(/class="minimap-seg"/g) || []).length;
+    assert.equal(minimapCount, segs.length, 'minimap segments must equal buildSegments length');
   } finally {
     server.close();
   }
