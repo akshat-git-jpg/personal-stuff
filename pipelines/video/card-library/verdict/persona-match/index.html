@@ -1,0 +1,80 @@
+<!doctype html>
+<!--
+  PERSONA MATCH   (Hyperframes card)
+  Use-case verdict: persona -> winning tool pairs.
+  1920x1080, 30fps, 7 seconds.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff;
+        --accent: #fb923c;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding: 120px; }
+      #title { font-size: 64px; font-weight: 800; letter-spacing: -2px; margin-bottom: 56px; will-change: transform, opacity; }
+      #rows { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 1200px; }
+      .row { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 32px 48px; display: flex; align-items: center; justify-content: space-between; will-change: transform, opacity; }
+      .persona { font-size: 34px; font-weight: 700; }
+      .arrow { font-size: 34px; color: var(--accent); margin: 0 24px; }
+      .winner { font-size: 34px; font-weight: 800; color: var(--accent); }
+      .left { display: flex; align-items: center; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="personamatch" data-start="0" data-duration="7" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Which one is for you?","beats":[{"persona":"Content creators","winner":"OpenArt AI","at":0.6},{"persona":"Cinematic video","winner":"Higgsfield","at":1.5},{"persona":"Corporate &amp; L&amp;D","winner":"Synthesia","at":2.4},{"persona":"Solo creators","winner":"HeyGen","at":3.3},{"persona":"Performance marketers","winner":"Arcads","at":4.2}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
+        <div id="title"></div>
+        <div id="rows"></div>
+      </div>
+    </div>
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        title: VARS.title ?? 'Which one is for you?',
+        beats: VARS.beats ?? [
+          { persona: 'Content creators', winner: 'OpenArt AI', at: 0.6 },
+          { persona: 'Cinematic video', winner: 'Higgsfield', at: 1.5 },
+          { persona: 'Corporate & L&D', winner: 'Synthesia', at: 2.4 },
+          { persona: 'Solo creators', winner: 'HeyGen', at: 3.3 },
+          { persona: 'Performance marketers', winner: 'Arcads', at: 4.2 },
+        ],
+      };
+      document.getElementById('title').textContent = DATA.title;
+      const rowsContainer = document.getElementById('rows');
+      const els = [];
+      DATA.beats.forEach((b) => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `<div class="left"><span class="persona"></span><span class="arrow">→</span></div><div class="winner"></div>`;
+        row.querySelector('.persona').textContent = b.persona || '';
+        row.querySelector('.winner').textContent = b.winner || '';
+        rowsContainer.appendChild(row);
+        els.push({ b, row });
+      });
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const firstAt = DATA.beats.length ? Math.max(0, Math.min(...DATA.beats.map(b => Number(b.at))) - 0.3) : 0.3;
+      tl.from('#title', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, firstAt);
+      els.forEach(({ b, row }) => {
+        tl.from(row, { opacity: 0, y: 24, duration: 0.5, ease: 'power2.out' }, Number(b.at));
+      });
+      window.__timelines['personamatch'] = tl;
+    </script>
+  </body>
+</html>

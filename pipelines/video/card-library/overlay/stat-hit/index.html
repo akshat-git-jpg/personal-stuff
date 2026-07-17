@@ -1,0 +1,83 @@
+<!doctype html>
+<!--
+  STAT HIT   (Hyperframes OVERLAY — transparent background)
+  Big animated stat: count-up hero number + label + context line.
+  1920x1080, 30fps, 5 seconds.
+
+  ⚠ OVERLAY: render as a TRANSPARENT WebM:
+    npx hyperframes@latest render overlay/stat-hit -o stat-hit.webm --format webm --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --text: #ffffff;
+        --text-dim: rgba(255,239,219,0.6);
+        --accent: #fb923c;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #box { position: absolute; bottom: 110px; left: 110px; display: flex; flex-direction: column; gap: 8px; }
+      .eyebrow { font-size: 22px; font-weight: 800; text-transform: uppercase; color: var(--accent); letter-spacing: 2px; }
+      .hero-row { display: flex; align-items: baseline; line-height: 1; }
+      .hero-num { font-size: 220px; font-weight: 900; font-variant-numeric: tabular-nums; }
+      .hero-suffix { font-size: 140px; font-weight: 800; margin-left: 8px; }
+      .context { font-size: 32px; color: var(--text-dim); max-width: 800px; line-height: 1.35; margin-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="stathit" data-start="0" data-duration="5" data-width="1920" data-height="1080"
+      data-composition-variables='{"eyebrow":"AVATAR LIBRARY","value":240,"suffix":"+","context":"lifelike AI avatars to pick from"}'>
+      <div id="box" class="clip" data-start="0" data-duration="5" data-track-index="0">
+        <div class="eyebrow" id="eyebrow"></div>
+        <div class="hero-row">
+          <div class="hero-num" id="value">0</div>
+          <div class="hero-suffix" id="suffix"></div>
+        </div>
+        <div class="context" id="context"></div>
+      </div>
+    </div>
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'AVATAR LIBRARY',
+        value: VARS.value ?? 240,
+        suffix: VARS.suffix ?? '+',
+        context: VARS.context ?? 'lifelike AI avatars to pick from',
+      };
+      document.getElementById('eyebrow').textContent = DATA.eyebrow;
+      document.getElementById('suffix').textContent = DATA.suffix;
+      document.getElementById('context').textContent = DATA.context;
+
+      const TARGET = Number(DATA.value) || 0;
+      const isFloat = !Number.isInteger(TARGET);
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      
+      const counter = { v: 0 };
+      tl.to(counter, {
+        v: TARGET,
+        duration: 0.9,
+        ease: 'power3.out',
+        onUpdate: () => {
+          document.getElementById('value').textContent = isFloat ? counter.v.toFixed(1) : Math.round(counter.v);
+        }
+      }, 0.2);
+
+      tl.from('#eyebrow', { opacity: 0, y: 16, duration: 0.5, ease: 'power3.out' }, 0.4);
+      tl.from('#suffix', { opacity: 0, x: -20, duration: 0.5, ease: 'power3.out' }, 0.3);
+      tl.from('#context', { opacity: 0, y: 16, duration: 0.5, ease: 'power3.out' }, 0.5);
+
+      window.__timelines['stathit'] = tl;
+    </script>
+  </body>
+</html>

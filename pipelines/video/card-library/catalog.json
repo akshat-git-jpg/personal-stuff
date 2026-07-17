@@ -108,7 +108,7 @@
       "purpose": "2-3 column pricing plan cards with one plan flagged as recommended",
       "variables": {
         "heading": "string",
-        "plans": "array of {name, price, period, tagline, features: string[], cta, best: boolean}"
+        "plans": "array of {name, price, monthlyPrice?, billingNote?, period, tagline, features: string[], cta, best: boolean}"
       },
       "default_duration": 8
     },
@@ -186,7 +186,9 @@
         "kind": "string",
         "title": "string",
         "text": "string",
-        "pos": "string"
+        "pos": "string",
+        "style": "string (optional): 'feature' | 'tip' | 'warning' — default 'feature'",
+        "kicker": "string (optional)"
       },
       "default_duration": 5
     },
@@ -480,6 +482,81 @@
         "reason": "string"
       },
       "default_duration": 7
+    },
+    {
+      "slug": "overlay/stat-hit",
+      "kind": "single",
+      "placement": "overlay",
+      "purpose": "big animated stat: count-up hero number + label + context line, transparent overlay for demo footage",
+      "variables": {
+        "eyebrow": "string",
+        "value": "number",
+        "suffix": "string (optional)",
+        "context": "string"
+      },
+      "default_duration": 5
+    },
+    {
+      "slug": "section/tool-intro",
+      "kind": "single",
+      "placement": "fullframe",
+      "purpose": "section opener for one tool/product: TOOL N OF M progress, huge name, positioning line, category chip",
+      "variables": {
+        "index": "number",
+        "total": "number",
+        "name": "string",
+        "tagline": "string",
+        "tag": "string"
+      },
+      "default_duration": 6
+    },
+    {
+      "slug": "verdict/persona-match",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "use-case verdict: persona → winning tool pairs, one pair per beat",
+      "variables": {
+        "title": "string"
+      },
+      "beat_shape": {
+        "persona": "string",
+        "winner": "string"
+      },
+      "default_duration": 7,
+      "max_beats": 6,
+      "max_reveal_chars": 30
+    },
+    {
+      "slug": "comparison/credits-math",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "credit/unit economics rows: plan → credits → what that actually buys, one row per beat",
+      "variables": {
+        "title": "string"
+      },
+      "beat_shape": {
+        "label": "string",
+        "math": "string",
+        "note": "string (optional)"
+      },
+      "default_duration": 7,
+      "max_beats": 6,
+      "max_reveal_chars": 40
+    },
+    {
+      "slug": "process/step-flow",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "numbered step flow: process walkthrough nodes revealing left to right, one step per beat",
+      "variables": {
+        "title": "string"
+      },
+      "beat_shape": {
+        "label": "string"
+      },
+      "default_duration": 6,
+      "max_beats": 5,
+      "max_reveal_chars": 30
     }
   ]
 }

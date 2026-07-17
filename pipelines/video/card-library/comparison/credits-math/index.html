@@ -1,0 +1,86 @@
+<!doctype html>
+<!--
+  CREDITS MATH   (Hyperframes card)
+  Unit-economics card ("do the math").
+  1920x1080, 30fps, 7 seconds.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 120px 240px; }
+      .slide-title { display: flex; align-items: center; gap: 20px; margin-bottom: 64px; will-change: transform, opacity; }
+      .slide-title .mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); box-shadow: 0 0 26px rgba(251, 146, 60, 0.5); }
+      .slide-title .title-text { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
+      #rows { display: flex; flex-direction: column; gap: 40px; width: 100%; }
+      .row { display: flex; align-items: flex-start; gap: 64px; will-change: transform, opacity; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 32px; }
+      .row:last-child { border-bottom: none; }
+      .label { width: 320px; flex-shrink: 0; font-size: 25px; font-weight: 700; color: var(--accent); }
+      .content { display: flex; flex-direction: column; gap: 8px; }
+      .math { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .note { font-size: 19px; color: var(--text-dim); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="creditsmath" data-start="0" data-duration="7" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Higgsfield: the credit math","beats":[{"label":"Creator plan","math":"$39/mo → 6,000 credits","at":0.6},{"label":"Premium models","math":"40–70 credits per generation","note":"Sora 2, Veo 3.1","at":1.6},{"label":"Real capacity","math":"≈ 85–150 generations / month","at":2.6},{"label":"Free tier","math":"300 credits, images only","at":3.6}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
+        <div class="slide-title" id="title-header">
+          <div class="mark"></div>
+          <div class="title-text" id="title"></div>
+        </div>
+        <div id="rows"></div>
+      </div>
+    </div>
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        title: VARS.title ?? 'Higgsfield: the credit math',
+        beats: VARS.beats ?? [
+          { label: 'Creator plan', math: '$39/mo → 6,000 credits', at: 0.6 },
+          { label: 'Premium models', math: '40–70 credits per generation', note: 'Sora 2, Veo 3.1', at: 1.6 },
+          { label: 'Real capacity', math: '≈ 85–150 generations / month', at: 2.6 },
+          { label: 'Free tier', math: '300 credits, images only', at: 3.6 },
+        ],
+      };
+      document.getElementById('title').textContent = DATA.title;
+      const rowsContainer = document.getElementById('rows');
+      const els = [];
+      DATA.beats.forEach((b) => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `<div class="label"></div><div class="content"><div class="math"></div>${b.note ? '<div class="note"></div>' : ''}</div>`;
+        row.querySelector('.label').textContent = b.label || '';
+        row.querySelector('.math').textContent = b.math || '';
+        if (b.note) row.querySelector('.note').textContent = b.note;
+        rowsContainer.appendChild(row);
+        els.push({ b, row });
+      });
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const firstAt = DATA.beats.length ? Math.max(0, Math.min(...DATA.beats.map(b => Number(b.at))) - 0.3) : 0.3;
+      tl.from('#title-header', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, firstAt);
+      els.forEach(({ b, row }) => {
+        tl.from(row, { opacity: 0, y: 24, duration: 0.5, ease: 'power2.out' }, Number(b.at));
+      });
+      window.__timelines['creditsmath'] = tl;
+    </script>
+  </body>
+</html>

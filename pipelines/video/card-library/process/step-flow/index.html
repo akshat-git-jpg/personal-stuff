@@ -1,0 +1,91 @@
+<!doctype html>
+<!--
+  STEP FLOW   (Hyperframes card)
+  Numbered step sequence for walkthroughs.
+  1920x1080, 30fps, 6 seconds.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff;
+        --accent: #fb923c;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px; }
+      #title { font-size: 64px; font-weight: 800; letter-spacing: -2px; margin-bottom: 120px; will-change: transform, opacity; }
+      #flow { display: flex; align-items: flex-start; justify-content: center; gap: 0; width: 100%; position: relative; }
+      .node-wrapper { display: flex; align-items: flex-start; position: relative; flex: 0 1 auto; }
+      .node { display: flex; flex-direction: column; align-items: center; width: 220px; will-change: transform, opacity; position: relative; z-index: 2; }
+      .badge { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); color: #1a0d02; font-size: 36px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; box-shadow: 0 0 20px rgba(251, 146, 60, 0.4); }
+      .label { font-size: 26px; font-weight: 600; text-align: center; line-height: 1.35; }
+      .connector { position: absolute; top: 40px; left: 110px; width: 180px; height: 2px; background: rgba(255,255,255,0.2); transform-origin: left center; will-change: transform, opacity; z-index: 1; }
+      .node-wrapper:last-child .connector { display: none; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="stepflow" data-start="0" data-duration="6" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Clone your voice in 3 steps","beats":[{"label":"Record 1–2 min sample","at":0.6},{"label":"AI builds your voice","at":1.8},{"label":"Every video sounds like you","at":3.0}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div id="title"></div>
+        <div id="flow"></div>
+      </div>
+    </div>
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        title: VARS.title ?? 'Clone your voice in 3 steps',
+        beats: VARS.beats ?? [
+          { label: 'Record 1–2 min sample', at: 0.6 },
+          { label: 'AI builds your voice', at: 1.8 },
+          { label: 'Every video sounds like you', at: 3.0 },
+        ],
+      };
+      document.getElementById('title').textContent = DATA.title;
+      const flowContainer = document.getElementById('flow');
+      const els = [];
+      DATA.beats.forEach((b, i) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'node-wrapper';
+        wrap.innerHTML = `
+          <div class="node">
+            <div class="badge">${i + 1}</div>
+            <div class="label"></div>
+          </div>
+          <div class="connector"></div>
+        `;
+        wrap.querySelector('.label').textContent = b.label || '';
+        flowContainer.appendChild(wrap);
+        els.push({ b, node: wrap.querySelector('.node'), connector: wrap.querySelector('.connector'), isFirst: i === 0 });
+      });
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const firstAt = DATA.beats.length ? Math.max(0, Math.min(...DATA.beats.map(b => Number(b.at))) - 0.3) : 0.3;
+      tl.from('#title', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, firstAt);
+      
+      els.forEach(({ b, node, connector, isFirst }, i) => {
+        const at = Number(b.at);
+        tl.from(node, { opacity: 0, scale: 0.8, y: 16, duration: 0.5, ease: 'back.out(1.5)' }, at);
+        if (!isFirst) {
+          const prevAt = Number(DATA.beats[i - 1].at);
+          // Connector from previous node animates during the gap
+          tl.from(els[i - 1].connector, { scaleX: 0, duration: Math.max(0.3, at - prevAt), ease: 'none' }, prevAt);
+        }
+      });
+      window.__timelines['stepflow'] = tl;
+    </script>
+  </body>
+</html>

@@ -46,8 +46,10 @@
         white-space: nowrap; box-shadow: 0 10px 26px rgba(0,0,0,0.4); will-change: transform, opacity; }
       .pname { font-size: 26px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
       .priceRow { display: flex; align-items: baseline; gap: 8px; will-change: transform, opacity; }
+      .monthly-price { font-size: 32px; font-weight: 600; color: var(--text-dim); text-decoration: line-through; margin-right: 4px; }
       .price { font-size: 76px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
       .period { font-size: 28px; font-weight: 600; color: var(--text-dim); }
+      .billing-note { font-size: 16px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: -12px; margin-bottom: 4px; }
       .tagline { font-size: 24px; color: var(--text-dim); line-height: 1.4; min-height: 34px; }
       .feats { display: flex; flex-direction: column; gap: 16px; margin-top: 4px; }
       .feat { display: flex; align-items: flex-start; gap: 14px; font-size: 25px; font-weight: 500; line-height: 1.35; will-change: transform, opacity; }
@@ -88,7 +90,8 @@
           <div class="card${p.best ? ' best' : ''}">
             ${p.best ? '<div class="badge">Most popular</div>' : ''}
             <div class="pname">${p.name}</div>
-            <div class="priceRow"><span class="price">${p.price}</span><span class="period">${p.period || ''}</span></div>
+            <div class="priceRow">${p.monthlyPrice ? `<span class="monthly-price">${p.monthlyPrice}</span>` : ''}<span class="price">${p.price}</span><span class="period">${p.period || ''}</span></div>
+            ${p.billingNote ? `<div class="billing-note">${p.billingNote}</div>` : ''}
             <div class="tagline">${p.tagline || ''}</div>
             <div class="feats">${(p.features || []).map((f) => `<div class="feat"><span class="tick">✓</span><span>${f}</span></div>`).join('')}</div>
             <div class="cta">${p.cta || 'Choose'}</div>

@@ -53,6 +53,12 @@ section/title card; one reinforced claim -> an overlay card. If nothing fits,
 set `flagged: true`, `card` to the closest slug, and add a `note` field
 explaining the gap — never force a bad match.
 
+Specificity wins (mandatory): big number -> overlay/stat-hit; a tool/section
+demo start -> section/tool-intro; plan/credit economics -> comparison/credits-math;
+step walkthrough -> process/step-flow; who-should-buy-what payoff ->
+verdict/persona-match. Repetition cap: the same fullframe card at most 3 times
+per video; overlays exempt but vary callout's style when repeating.
+
 Anchors: verbatim quotes copied exactly from the transcript, contractions and
 all, never paraphrased; at least 3 consecutive words; pick phrases unlikely
 to repeat; anchors must appear in script order across the whole file — the
