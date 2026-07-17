@@ -1,10 +1,10 @@
 # Cue-pass prompt
 
 Model-agnostic prompt for the graphics flow's one LLM step. Paste this whole
-file (with `{{CATALOG}}` and `{{TRANSCRIPT}}` filled in) into whichever
-executor is running the cue pass — it has no repo access, so every rule is
-inlined below rather than linked. Full judgment detail lives in
-`flow/RULEBOOK.md`; this is the compressed version for direct execution.
+file, with its two placeholders filled in, into whichever executor is running
+the cue pass — it has no repo access, so every rule is inlined below rather
+than linked. Full judgment detail lives in `flow/RULEBOOK.md`; this is the
+compressed version for direct execution.
 
 ---
 
