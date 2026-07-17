@@ -83,6 +83,7 @@
           { name: 'Use Case Fit', values: ['5 / 5', '3.5 / 5', '5 / 5', '5 / 5', '5 / 5', "Four tools are best-in-class for their niche. Higgsfield's cinematic focus serves a narrower range of creators."], at: 1.02 },
           { name: 'Pricing & Value', values: ['4.5 / 5', '3.5 / 5', '3.5 / 5', '4 / 5', '3.5 / 5', 'OpenArt leads — most creative ground per dollar. HeyGen strong for solo creators. Arcads premium only makes sense at volume.'], at: 1.16 },
         ],
+        productLogos: VARS.productLogos,
       };
       // Normalize rows so the grid never mis-aligns: a row's values must be
       // products.length scores + a trailing reason cell. Accept a separate
@@ -118,8 +119,14 @@
 
         grid.innerHTML = html;
 
+        const LOGOS = VARS.__logos ?? {};
         grid.querySelectorAll('.hrow .cell.hcell:not(.feat):not(.reason)').forEach((el, i) => {
-          el.textContent = DATA.products[i];
+          const slug = (DATA.productLogos && DATA.productLogos[i]) ? DATA.productLogos[i] : null;
+          if (slug && LOGOS[slug]) {
+            el.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; gap:8px;"><img src="${LOGOS[slug]}" style="width:24px; height:24px; border-radius:4px; object-fit:contain;" /><span>${DATA.products[i]}</span></div>`;
+          } else {
+            el.textContent = DATA.products[i];
+          }
         });
         DATA.beats.forEach((f, i) => {
           const cells = document.getElementById(`frow-${i}`).children;

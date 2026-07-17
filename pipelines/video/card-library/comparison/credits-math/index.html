@@ -41,6 +41,7 @@
       <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
         <div class="slide-title" id="title-header">
           <div class="mark"></div>
+          <img id="logo" style="width:32px; height:32px; border-radius:6px; display:none; object-fit:contain;" />
           <div class="title-text" id="title"></div>
         </div>
         <div id="rows"></div>
@@ -57,7 +58,18 @@
           { label: 'Real capacity', math: '≈ 85–150 generations / month', at: 2.6 },
           { label: 'Free tier', math: '300 credits, images only', at: 3.6 },
         ],
+        logo: VARS.logo,
       };
+      
+      const LOGOS = VARS.__logos ?? {};
+      const logoEl = document.getElementById('logo');
+      if (DATA.logo && LOGOS[DATA.logo]) {
+        logoEl.src = LOGOS[DATA.logo];
+        logoEl.style.display = 'block';
+      } else {
+        logoEl.remove();
+      }
+
       document.getElementById('title').textContent = DATA.title;
       const rowsContainer = document.getElementById('rows');
       const els = [];

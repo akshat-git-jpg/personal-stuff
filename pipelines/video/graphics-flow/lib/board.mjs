@@ -14,6 +14,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveCues, normWord } from './resolve.mjs';
 import { mmss } from './render.mjs';
+import { enrichLogos } from './logos-inline.mjs';
 
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
 
@@ -418,7 +419,7 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
 
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
-  const { resolved, errors } = resolveCues(merged.cues ?? [], words, catalog);
+  const { resolved, errors } = resolveCues(merged.cues ?? [], words, catalog, cardLibraryRoot);
 
   res.setHeader('content-type', 'application/json');
   if (errors.length) {
@@ -454,7 +455,8 @@ function serveCard(res, workdir, cardLibraryRoot, id) {
   const html = fs.readFileSync(indexPath, 'utf8');
   res.setHeader('content-type', 'text/html; charset=utf-8');
   res.setHeader('cache-control', 'no-store');
-  res.end(injectShim(html, cue.variables));
+  const { variables: enrichedVars } = enrichLogos(cue.variables, cardLibraryRoot);
+  res.end(injectShim(html, enrichedVars));
 }
 
 function serveSlice(res, workdir, id) {

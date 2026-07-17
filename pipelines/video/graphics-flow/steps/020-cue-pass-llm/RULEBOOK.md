@@ -105,6 +105,7 @@ field explaining what's missing. See Section 8.
 - Product names in ANY on-screen text (variables and beat reveals) use the
   correct official spelling — the transcript is ASR output and garbles names
   (test-01: HeyGen → "Heigen/Hazen"); only anchors stay transcript-verbatim.
+- When a cue is about a specific tool, set its `logo` slug (lowercase alphanumeric tool name). `summary-table` gets `productLogos` aligned with `products`. Only slugs that exist may be used — the resolver rejects unknown ones.
 
 ## Worked example
 

@@ -85,6 +85,7 @@ Variables: fill every non-beat variable the card lists; sentence-case text.
 Product names: the transcript is ASR output and often GARBLES brand names — all
 on-screen text (variables, reveal text) must use the correct official spelling;
 only anchors stay transcript-verbatim, garbles and all.
+Logos: when a cue is about a specific tool, set its `logo` slug (lowercase alphanumeric tool name). For `summary-table`, set `productLogos` aligned with `products`. Only slugs that exist may be used — the resolver rejects unknown ones. Seeded slugs: openart, higgsfield, synthesia, heygen, arcads.
 
 ```
 CATALOG (the only cards you may use):

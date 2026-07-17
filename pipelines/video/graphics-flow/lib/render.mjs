@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
+import { enrichLogos } from './logos-inline.mjs';
 
 const DURATION_TOLERANCE = 0.15;
 
@@ -126,7 +127,12 @@ async function main() {
       }
       fs.writeFileSync(indexPath, newHtml);
 
-      fs.writeFileSync(path.join(stagedDir, 'vars.json'), JSON.stringify(cue.variables));
+      const { variables: enrichedVars, missing } = enrichLogos(cue.variables, cardLibraryRoot);
+      if (missing.length > 0) {
+        errors.push(`${cue.id}: missing logo slugs in registry: ${missing.join(', ')}`);
+        continue;
+      }
+      fs.writeFileSync(path.join(stagedDir, 'vars.json'), JSON.stringify(enrichedVars));
 
       const { args, outFile } = planRender(cue, opts.quality);
       const outPath = path.join(renderDir, outFile);
