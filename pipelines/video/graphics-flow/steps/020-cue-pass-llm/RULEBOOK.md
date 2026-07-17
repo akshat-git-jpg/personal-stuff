@@ -165,7 +165,9 @@ auto-corrected. When a flag is approved:
 2. Add a matching entry to `catalog.json` (beat-smoke.sh enforces the fields).
 
 This grows the catalog so future videos flag less over time. Authoring
-executor is Sonnet by default; Antigravity is only used under the recorded
+executor is Opus (owner decision 2026-07-18 — card authoring is occasional
+library growth, not the per-video loop, so the Opus-stays-out-of-the-loop rule
+doesn't apply); Antigravity is only used under the recorded
 render-plus-visual-inspection mitigation (decisions.md 2026-07-07).
 
 ## Rubric
