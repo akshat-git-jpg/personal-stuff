@@ -370,3 +370,4 @@ The others are grounded and available when the owner wants them:
 - 063-graphics-flow-scripts — PR#20 063-graphics-flow-scripts: Graphics flow scripts — transcript to resolver to render + manifest — DONE
 - 064-cue-pass-rulebook — PR#21 064-cue-pass-rulebook: Cue-pass rulebook + prompt (the one LLM step) — DONE
 - 065-graphics-storyboard-board — PR#22 065-graphics-storyboard-board: Graphics storyboard board (local review server) — DONE
+- 066-graphics-flow-restructure — PR#23 066-graphics-flow-restructure: step-wise pipeline folder for the graphics flow — DONE
