@@ -12,7 +12,7 @@ import { createServer as httpCreateServer } from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { resolveCues } from './resolve.mjs';
+import { resolveCues, normWord } from './resolve.mjs';
 import { mmss } from './render.mjs';
 
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
@@ -72,10 +72,11 @@ async function readBody(req) {
 
 const BOARD_CSS = `
   :root { --bg:#0f0b07; --panel:#181210; --line:rgba(255,255,255,0.10);
-    --text:#f5ede2; --dim:rgba(245,237,226,0.55); --accent:#fb923c; --ok:#34d399; --err:#ff6b6b;
+    --text:#f5ede2; --dim:rgba(245,237,226,0.55); --accent:#fb923c; --accent-light:#fdba74; --ok:#34d399; --err:#ff6b6b;
     --font:"Inter",-apple-system,system-ui,sans-serif; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:var(--font); background:var(--bg); color:var(--text); padding:28px 32px 80px; }
+  .sticky-header { position:sticky; top:0; background:var(--bg); z-index:100; margin:-28px -32px 20px -32px; padding:28px 32px 16px 32px; border-bottom:1px solid var(--line); }
   .topbar { display:flex; align-items:center; gap:20px; margin-bottom:16px; font-size:14px; color:var(--dim); }
   .topbar strong { color:var(--text); }
   .topbar button { font:inherit; font-weight:700; border-radius:9px; padding:9px 16px; cursor:pointer;
@@ -85,10 +86,21 @@ const BOARD_CSS = `
   .banner { margin-bottom:16px; padding:10px 14px; border-radius:9px; font-size:13px; }
   .banner.ok { background:rgba(52,211,153,0.12); border:1px solid var(--ok); color:var(--ok); }
   .banner.err { background:rgba(255,107,107,0.12); border:1px solid var(--err); color:var(--err); }
-  .tiles { display:grid; grid-template-columns:repeat(auto-fill, minmax(480px,1fr)); gap:20px; }
-  .tile { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
+  .minimap { display:flex; height:28px; width:100%; border-radius:4px; overflow:hidden; gap:1px; background:var(--line); }
+  .minimap-seg { cursor:pointer; transition:opacity 0.2s; }
+  .minimap-seg:hover { opacity:0.8; }
+  .timeline { display:flex; flex-direction:column; gap:20px; max-width:800px; margin:0 auto; }
+  .timeline-block { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
+  .gap-block { padding:12px 16px; }
+  .gap-header { font-size:13px; color:var(--dim); cursor:pointer; display:flex; align-items:center; }
+  .gap-icon { display:inline-block; width:16px; transition:transform 0.2s; }
+  .gap-block.expanded .gap-icon { transform:rotate(90deg); }
+  .gap-body { display:none; margin-top:10px; font-size:14px; line-height:1.6; color:var(--dim); max-width:70ch; }
+  .gap-block.expanded .gap-body { display:block; }
   .tile.flagged { opacity:0.55; border-color:var(--err); }
   .tile-header { font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--dim); margin-bottom:8px; }
+  .excerpt { font-size:15px; line-height:1.6; margin-bottom:12px; color:var(--text); }
+  mark { background:rgba(251,146,60,0.25); color:var(--accent); padding:2px 4px; border-radius:4px; }
   .anchor { font-size:14px; margin-bottom:6px; }
   .beats { list-style:none; font-size:12px; color:var(--dim); margin-bottom:10px; }
   .preview { width:480px; height:270px; overflow:hidden; position:relative; background:#000; border-radius:8px; margin-bottom:8px; }
@@ -101,28 +113,164 @@ const BOARD_CSS = `
     background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:8px; }
 `;
 
-function renderBoardPage(cuesFile, resolved) {
+function timecode(secs) {
+  const m = Math.floor(secs / 60).toString().padStart(2, '0');
+  const s = (secs % 60).toFixed(1).padStart(4, '0');
+  return `${m}:${s}`;
+}
+
+export function buildSegments(words, resolved, { gapMinWords = 8 } = {}) {
+  const cues = [...resolved].sort((a, b) => a.start - b.start);
+  const wordToCue = new Map();
+  for (const w of words) {
+    const c = cues.find(c => w.start >= c.start && w.start < c.start + c.duration);
+    if (c) wordToCue.set(w, c);
+  }
+
+  const cueSegs = cues.map(c => ({
+    kind: 'cue', cue: c, start: c.start, end: c.start + c.duration, words: []
+  }));
+  const cueSegByCue = new Map(cueSegs.map(s => [s.cue, s]));
+
+  for (const w of words) {
+    const c = wordToCue.get(w);
+    if (c) cueSegByCue.get(c).words.push(w);
+  }
+
+  const items = [];
+  for (const s of cueSegs) items.push({ type: 'cue', start: s.start, item: s });
+  for (const w of words) {
+    if (!wordToCue.has(w)) items.push({ type: 'word', start: w.start, item: w });
+  }
+
+  items.sort((a, b) => {
+    if (a.start !== b.start) return a.start - b.start;
+    if (a.type !== b.type) return a.type === 'cue' ? -1 : 1;
+    return 0;
+  });
+
+  const segments = [];
+  let currentGap = null;
+  for (const x of items) {
+    if (x.type === 'word') {
+      if (!currentGap) {
+        currentGap = { kind: 'gap', start: x.item.start, end: x.item.end, words: [] };
+        segments.push(currentGap);
+      }
+      currentGap.words.push(x.item);
+      currentGap.end = x.item.end;
+    } else {
+      segments.push(x.item);
+      currentGap = null;
+    }
+  }
+
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    if (seg.kind === 'gap' && seg.words.length < gapMinWords && i + 1 < segments.length) {
+      const next = segments[i + 1];
+      next.words = [...seg.words, ...next.words];
+      if (seg.start < next.start) next.start = seg.start;
+      segments.splice(i, 1);
+      i--;
+    }
+  }
+
+  return segments;
+}
+
+function renderBoardPage(cuesFile, resolved, words) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
+  
+  const segments = buildSegments(words, resolved);
+  const unresolvedSegs = cues.filter(c => !byId.has(c.id)).map(c => ({
+    kind: 'cue', cue: c, start: 0, end: 0, words: [], unresolved: true
+  }));
+  segments.unshift(...unresolvedSegs);
+  
+  const totalDuration = words.length ? words[words.length - 1].end : 0;
 
-  const tiles = cues.map((cue) => {
-    const r = byId.get(cue.id);
+  const minimapHtml = segments.filter(s => !s.unresolved).map((seg, i) => {
+    const duration = Math.max(0.1, seg.end - seg.start);
+    let colorVar = '--line';
+    let title = `${timecode(seg.start)} · gap`;
+    if (seg.kind === 'cue') {
+      title = `${timecode(seg.start)} · ${escapeHtml(seg.cue.card)}`;
+      const c = cues.find(c => c.id === seg.cue.id);
+      if (c?.flagged) {
+        colorVar = '--err';
+      } else if (seg.cue.placement === 'fullframe') {
+        colorVar = '--accent';
+      } else {
+        colorVar = '--accent-light';
+      }
+    }
+    return `<div class="minimap-seg" title="${title}" style="flex-grow:${duration}; background:var(${colorVar});" onclick="document.getElementById('seg-${i + unresolvedSegs.length}').scrollIntoView({behavior:'smooth'})"></div>`;
+  }).join('');
+
+  const timelineHtml = segments.map((seg, idx) => {
+    const i = idx;
+    if (seg.kind === 'gap') {
+      const durSecs = seg.end - seg.start;
+      const m = Math.floor(durSecs / 60);
+      const s = Math.floor(durSecs % 60);
+      const durStr = m > 0 ? `${m}m ${s}s` : `${s}s`;
+      const allWords = seg.words.map(w => w.text).join(' ');
+      const previewWords = seg.words.slice(0, 14).map(w => w.text).join(' ') + (seg.words.length > 14 ? '…' : '');
+      return `<div class="timeline-block gap-block" id="seg-${i}">
+        <div class="gap-header" onclick="this.parentElement.classList.toggle('expanded')">
+          <span class="gap-icon">▸</span> ${timecode(seg.start)} &rarr; ${timecode(seg.end)} &middot; ${durStr} &middot; <span style="color:var(--dim)">"${escapeHtml(previewWords)}"</span>
+        </div>
+        <div class="gap-body">${escapeHtml(allWords)}</div>
+      </div>`;
+    }
+
+    const cue = cues.find(c => c.id === seg.cue.id);
+    const r = seg.unresolved ? null : seg.cue;
     const beats = cue.beats ?? [];
     const fragment = { anchor: cue.anchor, hold: cue.hold ?? 3.0, variables: cue.variables ?? {}, beats };
     const beatLines = beats
       .map((b) => `<li><strong>${escapeHtml(b.reveal?.text ?? '')}</strong> @ "${escapeHtml(b.anchor ?? '')}"</li>`)
       .join('');
+    
     const header = r
-      ? `#${escapeHtml(cue.id)} &middot; ${mmss(r.start)} &middot; ${escapeHtml(cue.card)} &middot; ${r.duration}s &middot; ${escapeHtml(r.placement)}`
+      ? `#${escapeHtml(cue.id)} &middot; ${timecode(r.start)} &rarr; ${timecode(r.start + r.duration)} &middot; ${escapeHtml(cue.card)} &middot; ${r.duration}s &middot; ${escapeHtml(r.placement)}`
       : `#${escapeHtml(cue.id)} &middot; unresolved &middot; ${escapeHtml(cue.card)}`;
+
     const media = r
-      ? `<div class="preview"><iframe src="/card/${encodeURIComponent(cue.id)}"></iframe></div>
+      ? `<div class="preview"><iframe loading="lazy" src="/card/${encodeURIComponent(cue.id)}"></iframe></div>
       <audio class="scrub" controls src="/slice/${encodeURIComponent(cue.id)}.mp3"></audio>`
       : `<div class="unresolved-note">no resolved timing for this cue — fix the anchor and Save</div>`;
 
-    return `<div class="tile ${cue.flagged ? 'flagged' : ''}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}">
+    const phrasesToHighlight = [cue.anchor, ...beats.map(b => b.anchor)];
+    const highlighted = new Set();
+    for (const phrase of phrasesToHighlight) {
+      if (!phrase) continue;
+      const p = phrase.split(/\s+/).map(normWord).filter(Boolean);
+      if (p.length === 0) continue;
+      for (let j = 0; j <= seg.words.length - p.length; j++) {
+        let ok = true;
+        for (let k = 0; k < p.length; k++) {
+          if (normWord(seg.words[j + k].text) !== p[k]) { ok = false; break; }
+        }
+        if (ok) {
+          for (let k = 0; k < p.length; k++) highlighted.add(j + k);
+          break;
+        }
+      }
+    }
+    const excerptHtml = seg.words.map((w, j) => {
+      const esc = escapeHtml(w.text);
+      return highlighted.has(j) ? `<mark>${esc}</mark>` : esc;
+    }).join(' ');
+
+    const excerptDiv = seg.words.length ? `<div class="excerpt">${excerptHtml}</div>` : '';
+
+    return `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}" id="seg-${i}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}">
       <div class="tile-header">${header}</div>
+      ${excerptDiv}
       <div class="anchor"><strong>${escapeHtml(cue.anchor ?? '')}</strong></div>
       <ul class="beats">${beatLines}</ul>
       ${media}
@@ -136,18 +284,22 @@ function renderBoardPage(cuesFile, resolved) {
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Graphics storyboard board</title>
+<title>Graphics storyboard timeline</title>
 <style>${BOARD_CSS}</style>
 </head>
 <body>
-  <div class="topbar">
-    <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
-    <div>${cues.length} cues &middot; ${flaggedCount} flagged</div>
-    <button id="approveBtn">Approve</button>
-    <button id="saveBtn">Save</button>
+  <div class="sticky-header">
+    <div class="topbar">
+      <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
+      <div>duration: ${timecode(totalDuration)}</div>
+      <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
+      <button id="approveBtn">Approve</button>
+      <button id="saveBtn">Save</button>
+    </div>
+    <div id="banner">${cuesFile.approved ? '<div class="banner ok">approved — ready for <code>node lib/render.mjs</code></div>' : ''}</div>
+    <div class="minimap">${minimapHtml}</div>
   </div>
-  <div id="banner">${cuesFile.approved ? '<div class="banner ok">approved — ready for <code>node lib/render.mjs</code></div>' : ''}</div>
-  <div class="tiles">${tiles}</div>
+  <div class="timeline">${timelineHtml}</div>
   <script>
     const VIDEO = ${JSON.stringify(cuesFile.video ?? '')};
     let APPROVED = ${JSON.stringify(!!cuesFile.approved)};
@@ -162,7 +314,6 @@ function renderBoardPage(cuesFile, resolved) {
       audio.addEventListener('seeked', post);
       audio.addEventListener('pause', () => { post(); if (raf) cancelAnimationFrame(raf); });
       audio.addEventListener('play', () => {
-        // one video at a time: starting this tile pauses every other one
         document.querySelectorAll('.tile audio').forEach((a) => { if (a !== audio && !a.paused) a.pause(); });
         const loop = () => { post(); if (!audio.paused) raf = requestAnimationFrame(loop); };
         loop();
@@ -284,9 +435,10 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index')) {
     const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
     const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
+    const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderBoardPage(cuesFile, resolved));
+    return res.end(renderBoardPage(cuesFile, resolved, words));
   }
 
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);
