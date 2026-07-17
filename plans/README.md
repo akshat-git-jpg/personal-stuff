@@ -81,6 +81,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 064 | Cue-pass rulebook + prompt — the one-LLM-call-per-video operating manual (density, card choice, anchors, rubric) | P2 | S-M | 062, 063 | DONE (validated 2026-07-17: merge gate re-run green) |
 | 065 | Graphics storyboard board — local review server: real cards + VO slices prove sync before rendering; edit/flag/approve | P2 | M | 062, 063 | DONE (validated 2026-07-17: merge gate re-run green) |
 | 066 | Graphics-flow restructure — step-wise pipeline folder (pipelines/video/graphics-flow/), per-video videos/<slug>/ data, card-library stays the asset hub | P1 | M | 062-065 | TODO |
+| 067 | Board script-timeline — full transcript as vertical timeline, inline cue previews, mini-map; untyped gaps (avatar/screen spans = next phase) | P2 | M | 066 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
