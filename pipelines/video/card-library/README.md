@@ -4,6 +4,10 @@ The YT visuals card set as [Hyperframes](https://hyperframes.heygen.com) composi
 plain HTML + GSAP that renders to MP4. GSAP gives the easing for free, so the motion
 is smooth without hand-rolling spring math. (Replaces the old seekToFrame cards.)
 
+The beat-synced motion-graphics pipeline (VO → cues → storyboard review →
+rendered clips) moved to `../graphics-flow/` — see its `PIPELINE.md`. This
+folder remains the card + catalog source of truth the flow builds on.
+
 Each card is one folder with an `index.html` inside it. To make a new version of a
 card for a specific video, copy the folder, change the content, render.
 

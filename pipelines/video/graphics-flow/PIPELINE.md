@@ -1,41 +1,48 @@
-# Graphics flow — per-video runbook
+# graphics-flow
 
-Mechanical pipeline around the one LLM step (the cue pass): word-timestamp
-transcription → anchor resolver → batch render → editor manifest. Everything
-except the cue pass is scripted and costs zero tokens.
+Beat-synced motion graphics for a video: word-timestamp transcription → LLM cue
+pass → anchor resolver → owner storyboard review → batch render + editor
+manifest. Everything except the cue pass is scripted and costs zero tokens.
+Cards themselves (the Hyperframes compositions + `catalog.json`) live in
+`../card-library/`, which this flow treats as a read-only source of truth.
 
-Generated media never lives in the repo (decisions.md 2026-07-12) — the owner
-creates and runs each video's workdir under `~/kb-scratch/`, not this repo.
+## The flow (run top to bottom)
 
-## Workdir layout
+| Step | Actor | In → Out |
+|---|---|---|
+| `010-transcribe-run` | [RUN] | `vo.mp3` → `transcript.json` (word timestamps) |
+| `020-cue-pass-llm` | [LLM] (pluggable: Sonnet default; agy/Antigravity allowed as form-fillers) | `transcript.json` + `card-library/catalog.json` → `cues.json` |
+| `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables) |
+| `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board) |
+| `050-render-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` |
+
+Each `steps/NNN-*/` folder has a `README.md` (purpose, exact command, in →
+out); the four scripted steps also have a thin `run.sh` wrapper.
+
+## `videos/<slug>/` layout
 
 ```
-~/kb-scratch/video/graphics/<video-slug>/
-  vo.mp3           # the video's TTS voiceover (input, from the tts hub)
-  transcript.json  # word timestamps — step 1 output
-  cues.json        # the LLM cue pass output (plan 064 defines how it's produced)
-  resolved.json    # resolver output — absolute times + merged variables
-  renders/         # final clips + manifest.md
-  slices/          # per-cue mp3 slices (written by the board, plan 065)
+videos/<slug>/
+  vo.mp3           # input voiceover — gitignored (regenerable from the tts hub)
+  transcript.json  # step 010 output — committed
+  cues.json        # step 020 output, step 040 edits — committed
+  resolved.json    # step 030 output — committed
+  slices/          # per-cue vo slices, step 040's board — gitignored
+  renders/         # step 050's clips — gitignored (regenerable)
+  manifest.md      # step 050 output, at the workdir root — committed
 ```
 
-## The four commands
+Per-video text artifacts (transcript, cues, resolved times, manifest) are
+committed so each video's graphics data is reviewable in one place; media
+(voiceover, slices, rendered clips) is regenerable and never lands in git —
+same house rule as the rest of `pipelines/`.
 
-All run with `<card-library>` = the absolute path to `pipelines/video/card-library/` in this repo (needed so `npx` resolves the `.npmrc`-pinned public registry from a workdir that has no `.npmrc` of its own — verified working 2026-07-17).
+## Independence
 
-1. **Transcribe** (writes `transcript.json` into the workdir):
-   ```
-   cd <workdir> && npx --prefix <card-library> hyperframes@latest transcribe vo.mp3 --json -m small.en
-   ```
-2. **Cue pass** — the one LLM step. See `flow/RULEBOOK.md` (plan 064) for how `cues.json` gets written; this flow only consumes it.
-3. **Resolve** (from `<card-library>`):
-   ```
-   node flow/resolve.mjs <workdir>
-   ```
-4. **Render** (from `<card-library>`):
-   ```
-   node flow/render.mjs <workdir>
-   ```
+Any flow may call `lib/resolve.mjs`, `lib/render.mjs`, or `lib/board.mjs`
+directly with a path argument instead of a slug — this flow's steps are not
+the only caller. `card-library` remains the card + catalog source of truth;
+see `../card-library/README.md` for the beat contract cards must satisfy.
 
 ## cues.json schema
 
