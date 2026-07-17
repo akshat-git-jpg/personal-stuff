@@ -43,7 +43,7 @@
   </head>
   <body>
     <div id="root" data-composition-id="checklist" data-start="0" data-duration="8" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"What you get","items":["Full source code & assets","Step-by-step setup guide","Lifetime updates","Private community access","30-day money-back guarantee"]}'>
+      data-composition-variables='{"title":"What you get","beats":[{"text":"Full source code & assets","at":0.5},{"text":"Step-by-step setup guide","at":0.92},{"text":"Lifetime updates","at":1.34},{"text":"Private community access","at":1.76},{"text":"30-day money-back guarantee","at":2.18}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="8" data-track-index="1">
         <div id="title"></div>
@@ -56,20 +56,25 @@
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
         title: VARS.title ?? 'What you get',
-        items: VARS.items ?? [
-          'Full source code & assets',
-          'Step-by-step setup guide',
-          'Lifetime updates',
-          'Private community access',
-          '30-day money-back guarantee',
+        beats: VARS.beats ?? [
+          { text: 'Full source code & assets',   at: 0.5 },
+          { text: 'Step-by-step setup guide',    at: 0.92 },
+          { text: 'Lifetime updates',            at: 1.34 },
+          { text: 'Private community access',   at: 1.76 },
+          { text: '30-day money-back guarantee', at: 2.18 },
         ],
       };
 
       /* ===== TIMELINE (LOCKED) ===== */
       document.getElementById('title').textContent = DATA.title;
-      document.getElementById('list').innerHTML = DATA.items
-        .map((t) => `<div class="item"><span class="box"><svg class="chk" viewBox="0 0 24 24"><path d="M4 12.5l5 5 11-12"/></svg></span><span class="ilabel">${t}</span></div>`)
-        .join('');
+      const items = DATA.beats.map((b) => {
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.innerHTML = '<span class="box"><svg class="chk" viewBox="0 0 24 24"><path d="M4 12.5l5 5 11-12"/></svg></span><span class="ilabel"></span>';
+        item.querySelector('.ilabel').textContent = b.text;
+        document.getElementById('list').appendChild(item);
+        return { b, item };
+      });
 
       // prime each checkmark as an undrawn stroke (deterministic dash length)
       document.querySelectorAll('.chk path').forEach((p) => {
@@ -81,12 +86,12 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       tl.from('#title', { opacity: 0, y: -22, duration: 0.5, ease: 'power3.out' }, 0.1);
-      // rows slide in one by one
-      tl.from('.item', { opacity: 0, x: -36, duration: 0.45, ease: 'power3.out', stagger: 0.42 }, 0.5);
-      // each box fills accent just after its row lands...
-      tl.to('.box', { backgroundColor: 'var(--accent)', borderColor: 'var(--accent)', duration: 0.28, ease: 'power2.out', stagger: 0.42 }, 0.72);
-      // ...then the checkmark draws on
-      tl.to('.chk path', { strokeDashoffset: 0, duration: 0.32, ease: 'power2.out', stagger: 0.42 }, 0.84);
+      // each row slides in on its beat; box fills, then checkmark draws, shortly after
+      items.forEach(({ b, item }) => {
+        tl.from(item, { opacity: 0, x: -36, duration: 0.45, ease: 'power3.out' }, b.at);
+        tl.to(item.querySelector('.box'), { backgroundColor: 'var(--accent)', borderColor: 'var(--accent)', duration: 0.28, ease: 'power2.out' }, b.at + 0.22);
+        tl.to(item.querySelector('.chk path'), { strokeDashoffset: 0, duration: 0.32, ease: 'power2.out' }, b.at + 0.34);
+      });
       window.__timelines['checklist'] = tl;
     </script>
   </body>

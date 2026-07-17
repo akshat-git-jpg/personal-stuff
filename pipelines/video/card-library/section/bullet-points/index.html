@@ -44,7 +44,7 @@
   </head>
   <body>
     <div id="root" data-composition-id="bullet-points" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"eyebrow":"What we&apos;ll cover","items":[{"label":"Eliminated — and why"},{"label":"Situational picks"},{"label":"Worth considering"},{"label":"The four winners"}]}'>
+      data-composition-variables='{"eyebrow":"What we&apos;ll cover","beats":[{"label":"Eliminated — and why","at":0.2},{"label":"Situational picks","at":0.28},{"label":"Worth considering","at":0.36},{"label":"The four winners","at":0.44}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="content" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div id="inner">
@@ -59,26 +59,31 @@
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
         eyebrow: VARS.eyebrow ?? "What we'll cover",
-        items: VARS.items ?? [
-          { label: 'Eliminated — and why' },
-          { label: 'Situational picks' },
-          { label: 'Worth considering' },
-          { label: 'The four winners' },
+        beats: VARS.beats ?? [
+          { label: 'Eliminated — and why', at: 0.2 },
+          { label: 'Situational picks',    at: 0.28 },
+          { label: 'Worth considering',    at: 0.36 },
+          { label: 'The four winners',     at: 0.44 },
         ],
       };
 
       /* ===== TIMELINE (LOCKED) ===== */
       const $ = (id) => document.getElementById(id);
       $('eyebrow').textContent = DATA.eyebrow;
-      $('list').innerHTML = DATA.items
-        .map((it, i) => `<li class="row"><span class="num">${String(i + 1)}</span><span class="label">${it.label}</span></li>`)
-        .join('');
+      const rows = DATA.beats.map((b, i) => {
+        const row = document.createElement('li');
+        row.className = 'row';
+        row.innerHTML = `<span class="num">${String(i + 1)}</span><span class="label"></span>`;
+        row.querySelector('.label').textContent = b.label;
+        $('list').appendChild(row);
+        return { b, row };
+      });
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      // eyebrow slides in, then the list rows stagger in
+      // eyebrow slides in, then each row reveals on its beat
       tl.from('#eyebrow', { opacity: 0, y: -14, duration: 0.45, ease: 'power3.out' }, 0.05);
-      tl.from('#list .row', { opacity: 0, x: -28, duration: 0.5, ease: 'power3.out', stagger: 0.08 }, 0.2);
+      rows.forEach(({ b, row }) => tl.from(row, { opacity: 0, x: -28, duration: 0.5, ease: 'power3.out' }, b.at));
       window.__timelines['bullet-points'] = tl;
     </script>
   </body>
