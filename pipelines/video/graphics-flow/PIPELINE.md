@@ -82,6 +82,7 @@ Field semantics:
 - `lead` — seconds the card starts before its anchor (default 0.5).
 - `hold` — seconds held after the last beat (default 3.0).
 - `variables` — card variables excluding beats.
+- `logo` / `productLogos` (optional) — in variables or beats, a registry slug for a tool logo.
 - `beats[].reveal` — the card-specific beat item (shape per catalog.json `beat_shape`, WITHOUT `at` — the resolver adds it).
 - `placement` comes from catalog.json, not from the cue.
 - `flagged: true` — no card fits, needs a novel card (plan 065 surfaces these).
