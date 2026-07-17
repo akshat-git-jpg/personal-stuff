@@ -42,7 +42,7 @@
   </head>
   <body>
     <div id="root" data-composition-id="matrix" data-start="0" data-duration="7" data-width="1920" data-height="1080"
-      data-composition-variables='{"products":["Hostinger","Railway","Fly.io"],"features":[{"name":"Free tier","values":[false,true,true]},{"name":"1-click n8n","values":[true,false,false]},{"name":"Auto-scale","values":[false,true,true]},{"name":"EU region","values":[true,true,true]},{"name":"From / mo","values":["$4","$5","$3"]}]}'>
+      data-composition-variables='{"products":["Hostinger","Railway","Fly.io"],"beats":[{"name":"Free tier","values":[false,true,true],"at":0.6},{"name":"1-click n8n","values":[true,false,false],"at":0.8},{"name":"Auto-scale","values":[false,true,true],"at":1.0},{"name":"EU region","values":[true,true,true],"at":1.2},{"name":"From / mo","values":["$4","$5","$3"],"at":1.4}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
         <div id="table"><div class="grid" id="grid"></div></div>
@@ -54,43 +54,63 @@
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
         products: VARS.products ?? ['Hostinger', 'Railway', 'Fly.io'],
-        features: VARS.features ?? [
-          { name: 'Free tier', values: [false, true, true] },
-          { name: '1-click n8n', values: [true, false, false] },
-          { name: 'Auto-scale', values: [false, true, true] },
-          { name: 'EU region', values: [true, true, true] },
-          { name: 'From / mo', values: ['$4', '$5', '$3'] },
+        beats: VARS.beats ?? [
+          { name: 'Free tier',    values: [false, true, true],   at: 0.6 },
+          { name: '1-click n8n',  values: [true, false, false],  at: 0.8 },
+          { name: 'Auto-scale',   values: [false, true, true],   at: 1.0 },
+          { name: 'EU region',    values: [true, true, true],    at: 1.2 },
+          { name: 'From / mo',    values: ['$4', '$5', '$3'],    at: 1.4 },
         ],
       };
 
       /* ===== TIMELINE (LOCKED) ===== */
       const grid = document.getElementById('grid');
       function cellVal(v) {
-        if (v === true) return '<div class="cell val yes">✓</div>';
-        if (v === false) return '<div class="cell val no">✕</div>';
-        return `<div class="cell val txt">${v}</div>`;
+        const cell = document.createElement('div');
+        if (v === true) { cell.className = 'cell val yes'; cell.textContent = '✓'; }
+        else if (v === false) { cell.className = 'cell val no'; cell.textContent = '✕'; }
+        else { cell.className = 'cell val txt'; cell.textContent = v; }
+        return cell;
       }
       function build() {
         grid.style.gridTemplateColumns = `1.4fr repeat(${DATA.products.length}, 1fr)`;
-        let html = '<div class="hrow" style="display:contents">';
-        html += '<div class="cell hcell feat">Feature</div>';
-        html += DATA.products.map((p) => `<div class="cell hcell">${p}</div>`).join('');
-        html += '</div>';
-        html += DATA.features
-          .map(
-            (f) =>
-              `<div class="frow" style="display:contents"><div class="cell feat">${f.name}</div>${f.values.map(cellVal).join('')}</div>`,
-          )
-          .join('');
-        grid.innerHTML = html;
+        grid.innerHTML = '';
+        const hrow = document.createElement('div');
+        hrow.className = 'hrow';
+        hrow.style.display = 'contents';
+        const featHead = document.createElement('div');
+        featHead.className = 'cell hcell feat';
+        featHead.textContent = 'Feature';
+        hrow.appendChild(featHead);
+        DATA.products.forEach((p) => {
+          const c = document.createElement('div');
+          c.className = 'cell hcell';
+          c.textContent = p;
+          hrow.appendChild(c);
+        });
+        grid.appendChild(hrow);
+        DATA.beats.forEach((f, i) => {
+          const frow = document.createElement('div');
+          frow.className = 'frow';
+          frow.id = `frow-${i}`;
+          frow.style.display = 'contents';
+          const feat = document.createElement('div');
+          feat.className = 'cell feat';
+          feat.textContent = f.name;
+          frow.appendChild(feat);
+          f.values.forEach((v) => frow.appendChild(cellVal(v)));
+          grid.appendChild(frow);
+        });
       }
       build();
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       tl.from('.hrow .cell', { opacity: 0, y: -18, duration: 0.5, ease: 'power3.out', stagger: 0.06 }, 0.1);
-      // .frow uses display:contents (no box to animate) — animate the cells, cascading by row.
-      tl.from('.frow .cell', { opacity: 0, y: 18, duration: 0.45, ease: 'power2.out', stagger: 0.05 }, 0.6);
+      // each row reveals on its beat; cells within a row still cascade slightly
+      DATA.beats.forEach((f, i) => {
+        tl.from(`#frow-${i} .cell`, { opacity: 0, y: 18, duration: 0.45, ease: 'power2.out', stagger: 0.05 }, f.at);
+      });
       window.__timelines['matrix'] = tl;
     </script>
   </body>

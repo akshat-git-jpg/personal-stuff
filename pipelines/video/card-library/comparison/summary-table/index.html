@@ -53,7 +53,7 @@
   </head>
   <body>
     <div id="root" data-composition-id="summary-table" data-start="0" data-duration="7" data-width="1920" data-height="1080"
-      data-composition-variables='{"products":["OpenArt","Higgsfield","Synthesia","HeyGen","Arcads"],"features":[{"name":"Ease of Use","values":["3.5 / 5","4 / 5","5 / 5","4.5 / 5","4 / 5","Synthesia is the most beginner-friendly. HeyGen close behind. OpenArt takes a session or two to get comfortable with."]},{"name":"Features","values":["5 / 5","3.5 / 5","3.5 / 5","3.5 / 5","3 / 5","OpenArt covers the most creative ground. Arcads scores lower — intentionally focused on one output type."]},{"name":"Output Quality","values":["4.5 / 5","4.5 / 5","4 / 5","4 / 5","4 / 5","OpenArt & Higgsfield tie at top. All five produce results you can actually use."]},{"name":"Use Case Fit","values":["5 / 5","3.5 / 5","5 / 5","5 / 5","5 / 5","Four tools are best-in-class for their niche. Higgsfield&#39;s cinematic focus serves a narrower range of creators."]},{"name":"Pricing & Value","values":["4.5 / 5","3.5 / 5","3.5 / 5","4 / 5","3.5 / 5","OpenArt leads — most creative ground per dollar. HeyGen strong for solo creators. Arcads premium only makes sense at volume."]}]}'>
+      data-composition-variables='{"products":["OpenArt","Higgsfield","Synthesia","HeyGen","Arcads"],"beats":[{"name":"Ease of Use","values":["3.5 / 5","4 / 5","5 / 5","4.5 / 5","4 / 5","Synthesia is the most beginner-friendly. HeyGen close behind. OpenArt takes a session or two to get comfortable with."],"at":0.6},{"name":"Features","values":["5 / 5","3.5 / 5","3.5 / 5","3.5 / 5","3 / 5","OpenArt covers the most creative ground. Arcads scores lower — intentionally focused on one output type."],"at":0.74},{"name":"Output Quality","values":["4.5 / 5","4.5 / 5","4 / 5","4 / 5","4 / 5","OpenArt & Higgsfield tie at top. All five produce results you can actually use."],"at":0.88},{"name":"Use Case Fit","values":["5 / 5","3.5 / 5","5 / 5","5 / 5","5 / 5","Four tools are best-in-class for their niche. Higgsfield&#39;s cinematic focus serves a narrower range of creators."],"at":1.02},{"name":"Pricing & Value","values":["4.5 / 5","3.5 / 5","3.5 / 5","4 / 5","3.5 / 5","OpenArt leads — most creative ground per dollar. HeyGen strong for solo creators. Arcads premium only makes sense at volume."],"at":1.16}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
 
@@ -76,12 +76,12 @@
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
         products: VARS.products ?? ['OpenArt', 'Higgsfield', 'Synthesia', 'HeyGen', 'Arcads'],
-        features: VARS.features ?? [
-          { name: 'Ease of Use', values: ['3.5 / 5', '4 / 5', '5 / 5', '4.5 / 5', '4 / 5', 'Synthesia is the most beginner-friendly. HeyGen close behind. OpenArt takes a session or two to get comfortable with.'] },
-          { name: 'Features', values: ['5 / 5', '3.5 / 5', '3.5 / 5', '3.5 / 5', '3 / 5', 'OpenArt covers the most creative ground. Arcads scores lower — intentionally focused on one output type.'] },
-          { name: 'Output Quality', values: ['4.5 / 5', '4.5 / 5', '4 / 5', '4 / 5', '4 / 5', 'OpenArt & Higgsfield tie at top. All five produce results you can actually use.'] },
-          { name: 'Use Case Fit', values: ['5 / 5', '3.5 / 5', '5 / 5', '5 / 5', '5 / 5', "Four tools are best-in-class for their niche. Higgsfield's cinematic focus serves a narrower range of creators."] },
-          { name: 'Pricing & Value', values: ['4.5 / 5', '3.5 / 5', '3.5 / 5', '4 / 5', '3.5 / 5', 'OpenArt leads — most creative ground per dollar. HeyGen strong for solo creators. Arcads premium only makes sense at volume.'] },
+        beats: VARS.beats ?? [
+          { name: 'Ease of Use', values: ['3.5 / 5', '4 / 5', '5 / 5', '4.5 / 5', '4 / 5', 'Synthesia is the most beginner-friendly. HeyGen close behind. OpenArt takes a session or two to get comfortable with.'], at: 0.6 },
+          { name: 'Features', values: ['5 / 5', '3.5 / 5', '3.5 / 5', '3.5 / 5', '3 / 5', 'OpenArt covers the most creative ground. Arcads scores lower — intentionally focused on one output type.'], at: 0.74 },
+          { name: 'Output Quality', values: ['4.5 / 5', '4.5 / 5', '4 / 5', '4 / 5', '4 / 5', 'OpenArt & Higgsfield tie at top. All five produce results you can actually use.'], at: 0.88 },
+          { name: 'Use Case Fit', values: ['5 / 5', '3.5 / 5', '5 / 5', '5 / 5', '5 / 5', "Four tools are best-in-class for their niche. Higgsfield's cinematic focus serves a narrower range of creators."], at: 1.02 },
+          { name: 'Pricing & Value', values: ['4.5 / 5', '3.5 / 5', '3.5 / 5', '4 / 5', '3.5 / 5', 'OpenArt leads — most creative ground per dollar. HeyGen strong for solo creators. Arcads premium only makes sense at volume.'], at: 1.16 },
         ],
       };
 
@@ -92,21 +92,30 @@
 
         let html = '<div class="hrow" style="display:contents">';
         html += '<div class="cell hcell feat">Factor</div>';
-        html += DATA.products.map((p) => `<div class="cell hcell">${p}</div>`).join('');
+        html += DATA.products.map(() => '<div class="cell hcell"></div>').join('');
         html += '<div class="cell hcell reason">Reason</div>';
         html += '</div>';
 
-        DATA.features.forEach((f) => {
-          html += `<div class="frow" style="display:contents">`;
-          html += `<div class="cell feat">${f.name}</div>`;
-          for (let i = 0; i < f.values.length - 1; i++) {
-            html += `<div class="cell val">${f.values[i]}</div>`;
+        DATA.beats.forEach((f, i) => {
+          html += `<div class="frow" id="frow-${i}" style="display:contents">`;
+          html += '<div class="cell feat"></div>';
+          for (let j = 0; j < f.values.length - 1; j++) {
+            html += '<div class="cell val"></div>';
           }
-          html += `<div class="cell val txt">${f.values[f.values.length - 1]}</div>`;
+          html += '<div class="cell val txt"></div>';
           html += `</div>`;
         });
 
         grid.innerHTML = html;
+
+        grid.querySelectorAll('.hrow .cell.hcell:not(.feat):not(.reason)').forEach((el, i) => {
+          el.textContent = DATA.products[i];
+        });
+        DATA.beats.forEach((f, i) => {
+          const cells = document.getElementById(`frow-${i}`).children;
+          cells[0].textContent = f.name;
+          f.values.forEach((v, j) => { cells[j + 1].textContent = v; });
+        });
       }
       build();
 
@@ -116,7 +125,9 @@
 
       tl.from('#title-header', { opacity: 0, y: -20, duration: 0.4, ease: 'power2.out' }, 0.1);
       tl.from('.hrow .cell', { opacity: 0, y: -25, duration: 0.5, ease: 'power3.out', stagger: 0.04 }, 0.3);
-      tl.from('.frow .cell', { opacity: 0, x: -30, duration: 0.5, ease: 'power2.out', stagger: 0.02 }, 0.6);
+      DATA.beats.forEach((f, i) => {
+        tl.from(`#frow-${i} .cell`, { opacity: 0, x: -30, duration: 0.5, ease: 'power2.out', stagger: 0.02 }, f.at);
+      });
 
       window.__timelines['summary-table'] = tl;
     </script>
