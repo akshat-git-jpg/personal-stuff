@@ -6,6 +6,8 @@ manifest. Everything except the cue pass is scripted and costs zero tokens.
 Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 `../card-library/`, which this flow treats as a read-only source of truth.
 
+**Current state + open items for the next phase: [HANDOFF.md](HANDOFF.md).**
+
 ## The flow (run top to bottom)
 
 | Step | Actor | In → Out |
