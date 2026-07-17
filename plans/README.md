@@ -365,3 +365,4 @@ The others are grounded and available when the owner wants them:
 - 058-autonomy-pilot-route-audit — PR#15 058-autonomy-pilot-route-audit: weekly read-only route-audit cron + VPS-CRONS.md refresh — DONE
 - 060-media-board — PR#17 060-media-board: local gallery cockpit for the tts/heygen asset hubs — DONE
 - 061-avatar-ui-local-app — PR#18 061-avatar-ui-local-app: Avatar Renderer — local UI for tutorial-pipeline-1 — DONE
+- 062-beat-card-contract — PR#19 062-beat-card-contract: Beat contract + seed catalog retrofit (card-library) — DONE
