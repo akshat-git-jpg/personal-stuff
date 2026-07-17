@@ -1,0 +1,12 @@
+{
+  "video": "cli-fixture",
+  "cues": [
+    {
+      "id": "c01",
+      "card": "pros-cons/pros-cons",
+      "anchor": "we take a look",
+      "variables": { "title": "Fixture" },
+      "beats": []
+    }
+  ]
+}
