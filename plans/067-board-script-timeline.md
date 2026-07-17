@@ -1,6 +1,6 @@
 ---
-executor: claude-p
-model: sonnet
+executor: agy
+model:
 test_cmd: cd pipelines/video/graphics-flow && node --test lib/board.test.mjs
 ui: true
 deploy:
@@ -16,7 +16,7 @@ needs: ["066 landed (graphics-flow layout)", "living board.mjs — read it fully
   - Rebuild `GET /` as a vertical script timeline: the ENTIRE transcript in order; cue cards inline at their exact positions; the stretches between cues as collapsed, untyped VO blocks (duration + excerpt, expandable).
   - A fixed horizontal mini-map strip: the whole video as proportional colored segments, click-to-jump.
   - Keep everything that works: per-cue slice players (one playing at a time), live card iframes with injected variables, inline edit → save → re-resolve, flag, approve, no-arg latest-video mode, port 4322, node stdlib only.
-- **Executor proposed**: claude-p / sonnet (standard)
+- **Executor proposed**: agy / Gemini 3.1 Pro High, its default (owner routing 2026-07-18); render+inspect verification stays on the verifier side
 - **Done criteria** (terse): board tests pass (existing + new timeline tests); screenshot of the timeline view on the PR.
 - **Stop conditions** (terse): no npm deps; no changes to resolve/render/cards; keep all existing routes working.
 - **Test / verification for success**: `node --test lib/board.test.mjs` + PR screenshot (ui: true).
