@@ -366,3 +366,4 @@ The others are grounded and available when the owner wants them:
 - 060-media-board — PR#17 060-media-board: local gallery cockpit for the tts/heygen asset hubs — DONE
 - 061-avatar-ui-local-app — PR#18 061-avatar-ui-local-app: Avatar Renderer — local UI for tutorial-pipeline-1 — DONE
 - 062-beat-card-contract — PR#19 062-beat-card-contract: Beat contract + seed catalog retrofit (card-library) — DONE
+- 063-graphics-flow-scripts — PR#20 063-graphics-flow-scripts: Graphics flow scripts — transcript to resolver to render + manifest — DONE
