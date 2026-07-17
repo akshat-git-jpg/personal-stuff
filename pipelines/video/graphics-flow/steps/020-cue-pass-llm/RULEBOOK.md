@@ -3,8 +3,8 @@
 The operating manual for the graphics flow's one LLM step: transcript.json →
 cues.json. Any executor (Claude, agy, Antigravity) follows this to produce a
 cues.json that the rest of the flow (resolve → render) can consume without
-review. Schema is owned by `flow/README.md` — this file restates it for
-convenience but never forks it. If they disagree, README.md wins.
+review. Schema is owned by `PIPELINE.md` — this file restates it for
+convenience but never forks it. If they disagree, PIPELINE.md wins.
 
 ## Inputs and outputs
 
@@ -14,7 +14,7 @@ Inputs:
   the words for their text and their order only; you never write a timestamp.
 - `catalog.json` — the full set of cards you may choose from.
 
-Output: `cues.json` only, matching the schema in `flow/README.md`. You never
+Output: `cues.json` only, matching the schema in `PIPELINE.md`. You never
 write `resolved.json`, durations, absolute times, or file paths — the resolver
 computes all of that from your anchors.
 
@@ -152,7 +152,7 @@ The correct cues.json for that excerpt:
 Flagged cues are reviewed on the storyboard board (plan 065), not
 auto-corrected. When a flag is approved:
 
-1. Author the new card into the library following `flow/README.md`'s sibling
+1. Author the new card into the library following `PIPELINE.md`'s sibling
    docs and the Beat contract conventions the existing cards follow.
 2. Add a matching entry to `catalog.json`.
 
@@ -164,7 +164,7 @@ render-plus-visual-inspection mitigation (decisions.md 2026-07-07).
 
 A reviewer scores a cues.json against these 10 checks; all 10 must pass:
 
-1. Valid JSON matching the `flow/README.md` schema.
+1. Valid JSON matching the `PIPELINE.md` schema.
 2. Every anchor is a verbatim ≥3-word transcript quote.
 3. Anchors appear in script order across the whole file.
 4. Cue density is within Section 2's bounds for the video's runtime.

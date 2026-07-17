@@ -1,0 +1,9 @@
+# per-video media is regenerable / hub-bound — text artifacts ARE committed
+videos/*/vo.mp3
+videos/*/renders/
+videos/*/slices/
+# test artifacts
+lib/.test-tmp/
+lib/fixtures/board/vo.mp3
+lib/fixtures/board/slices/
+.DS_Store
