@@ -87,9 +87,7 @@ test('anchor not in transcript produces an error and drops the cue', () => {
   ];
   const { resolved, errors } = resolveCues(cues, WORDS, CATALOG);
   assert.equal(resolved.length, 0);
-  assert.equal(errors.length, 1);
-  assert.match(errors[0], /^c02:/);
-  assert.match(errors[0], /anchor not found/);
+  assert.ok(errors.some((e) => /^c02:.*anchor not found/.test(e)));
 });
 
 test('monotonicity: beat phrase only before the cue anchor is not found (forward search only)', () => {
@@ -126,8 +124,7 @@ test('anchor with fewer than 3 words is an error', () => {
   const cues = [{ id: 'c05', card: 'pros-cons/pros-cons', anchor: 'the pros', beats: [] }];
   const { resolved, errors } = resolveCues(cues, WORDS, CATALOG);
   assert.equal(resolved.length, 0);
-  assert.equal(errors.length, 1);
-  assert.match(errors[0], /fewer than 3 words/);
+  assert.ok(errors.some((e) => /fewer than 3 words/.test(e)));
 });
 
 test('flagged cue is skipped silently, no error', () => {
@@ -146,9 +143,9 @@ test('overlapping fullframe cues error; overlay overlapping fullframe does not',
     { id: 'c07c', card: 'overlay/simple-overlay', anchor: "it's not all good", beats: [] }, // overlay, overlaps c07a too
   ];
   const { resolved, errors } = resolveCues(cues, WORDS, CATALOG);
-  assert.equal(errors.length, 1);
-  assert.match(errors[0], /^c07b:/);
-  assert.match(errors[0], /overlaps previous fullframe cue c07a/);
+  const overlapErrors = errors.filter((e) => /overlaps previous fullframe/.test(e));
+  assert.equal(overlapErrors.length, 1);
+  assert.match(overlapErrors[0], /^c07b:.*overlaps previous fullframe cue c07a/);
   const ids = resolved.map((c) => c.id);
   assert.deepEqual(ids, ['c07a', 'c07c']);
 });
@@ -196,4 +193,41 @@ test('CLI: bad anchor exits 1 and writes no resolved.json', () => {
   });
   assert.equal(result.status, 1);
   assert.ok(!fs.existsSync(path.join(workdir, 'resolved.json')));
+});
+
+test('validateCues: catches the test-01 bug classes', async (t) => {
+  const { validateCues } = await import('./resolve.mjs');
+  const catalog = { cards: [
+    { slug: 'x/single', kind: 'single', placement: 'fullframe', default_duration: 6,
+      variables: { title: 'string', items: 'array of {label} or plain strings' } },
+    { slug: 'x/table', kind: 'beat', placement: 'fullframe', default_duration: 7,
+      max_beats: 3, max_reveal_chars: 10,
+      variables: { products: 'array of strings' },
+      beat_shape: { name: 'string', values: 'array, one per product', reason: 'string (optional)' } },
+  ]};
+  const errs = (cues) => validateCues(cues, catalog);
+
+  // single card: missing variable + beats present + empty array
+  let e = errs([{ id: 'c1', card: 'x/single', beats: [{ reveal: { a: 1 }, anchor: 'x y z' }], variables: { items: [] } }]);
+  assert.ok(e.some((m) => m.includes('beats must be empty')));
+  assert.ok(e.some((m) => m.includes('missing variable "title"')));
+  assert.ok(e.some((m) => m.includes('non-empty array')));
+
+  // beat card: width mismatch (the summary-table staircase), max_beats, chars, missing required field
+  e = errs([{ id: 'c2', card: 'x/table', variables: { products: ['A', 'B'] }, beats: [
+    { reveal: { name: 'ok', values: [1] }, anchor: 'a b c' },
+    { reveal: { name: 'way too long a name', values: [1, 2] }, anchor: 'd e f' },
+    { reveal: { values: [1, 2] }, anchor: 'g h i' },
+    { reveal: { name: 'x', values: [1, 2] }, anchor: 'j k l' },
+  ]}]);
+  assert.ok(e.some((m) => m.includes('values has 1 entries but products has 2')));
+  assert.ok(e.some((m) => m.includes('exceeds max_beats 3')));
+  assert.ok(e.some((m) => m.includes('max 10')));
+  assert.ok(e.some((m) => m.includes('missing required field "name"')));
+
+  // clean cue: no errors; optional reason may be absent
+  e = errs([{ id: 'c3', card: 'x/table', variables: { products: ['A', 'B'] }, beats: [
+    { reveal: { name: 'ok', values: [1, 2] }, anchor: 'a b c' },
+  ]}]);
+  assert.equal(e.length, 0);
 });

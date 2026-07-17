@@ -5,8 +5,25 @@
       "id": "c01",
       "card": "pros-cons/pros-cons",
       "anchor": "we take a look",
-      "variables": { "title": "Fixture" },
-      "beats": []
+      "variables": {
+        "title": "Fixture"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "kind": "pro",
+            "text": "Looks good"
+          },
+          "anchor": "look at pros"
+        },
+        {
+          "reveal": {
+            "kind": "con",
+            "text": "Costs money"
+          },
+          "anchor": "pros and cons"
+        }
+      ]
     }
   ]
 }

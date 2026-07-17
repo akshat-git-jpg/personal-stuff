@@ -3,10 +3,70 @@ import path from 'node:path';
 
 export function normWord(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ''); }
 
+// Schema validation against catalog.json contracts — catches wrong-shaped
+// variables/beats BEFORE anything renders (the "undefined on screen" class).
+// A catalog type description containing "optional" marks that field optional.
+export function validateCues(cues, catalog) {
+  const bySlug = Object.fromEntries(catalog.cards.map((c) => [c.slug, c]));
+  const errors = [];
+  for (const cue of cues) {
+    const cat = bySlug[cue.card];
+    if (!cat || cue.flagged) continue; // unknown cards error in resolveCues; flagged cues are parked
+    const beats = cue.beats ?? [];
+    const vars = cue.variables ?? {};
+    if (cat.kind === 'single' && beats.length > 0) {
+      errors.push(`${cue.id}: ${cue.card} is a single card — beats must be empty`);
+    }
+    if (cat.kind === 'beat') {
+      if (beats.length === 0) errors.push(`${cue.id}: ${cue.card} is a beat card — needs at least 1 beat`);
+      if (cat.max_beats && beats.length > cat.max_beats) {
+        errors.push(`${cue.id}: ${beats.length} beats exceeds max_beats ${cat.max_beats} for ${cue.card} — split into two cues or trim`);
+      }
+      const shape = cat.beat_shape ?? {};
+      beats.forEach((b, i) => {
+        const r = b.reveal;
+        if (!r || typeof r !== 'object' || Object.keys(r).length === 0) {
+          errors.push(`${cue.id} beat ${i + 1}: reveal must be a non-empty object (shape: ${Object.keys(shape).join(', ')})`);
+          return;
+        }
+        for (const [k, desc] of Object.entries(shape)) {
+          if (!(k in r) && !String(desc).toLowerCase().includes('optional')) {
+            errors.push(`${cue.id} beat ${i + 1}: reveal missing required field "${k}"`);
+          }
+        }
+        if (cat.max_reveal_chars) {
+          for (const [k, v] of Object.entries(r)) {
+            if (typeof v === 'string' && v.length > cat.max_reveal_chars) {
+              errors.push(`${cue.id} beat ${i + 1}: reveal.${k} is ${v.length} chars, max ${cat.max_reveal_chars} — summarize harder`);
+            }
+          }
+        }
+        // Cross-field width contract: score rows must carry exactly one value per product.
+        if (Array.isArray(r.values) && Array.isArray(vars.products) && r.values.length !== vars.products.length) {
+          errors.push(`${cue.id} beat ${i + 1}: values has ${r.values.length} entries but products has ${vars.products.length} — must match 1:1`);
+        }
+      });
+    }
+    for (const [k, desc] of Object.entries(cat.variables ?? {})) {
+      const optional = String(desc).toLowerCase().includes('optional');
+      if (!(k in vars)) {
+        if (!optional) errors.push(`${cue.id}: missing variable "${k}" (${desc}) — the card would silently show its default content`);
+        continue;
+      }
+      if (String(desc).toLowerCase().includes('array')) {
+        if (!Array.isArray(vars[k]) || vars[k].length === 0) {
+          errors.push(`${cue.id}: variable "${k}" must be a non-empty array (${desc})`);
+        }
+      }
+    }
+  }
+  return errors;
+}
+
 export function resolveCues(cues, words, catalog) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
   const bySlug = Object.fromEntries(catalog.cards.map((c) => [c.slug, c]));
-  const errors = [];
+  const errors = [...validateCues(cues, catalog)];
   const out = [];
   let cursor = 0;
   const findFrom = (phrase, from) => {
