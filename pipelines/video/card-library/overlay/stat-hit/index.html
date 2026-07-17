@@ -24,7 +24,7 @@
       html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
       #root { position: relative; width: 1920px; height: 1080px; }
       #box { position: absolute; bottom: 110px; left: 110px; display: flex; flex-direction: column; gap: 8px; }
-      .eyebrow { font-size: 22px; font-weight: 800; text-transform: uppercase; color: var(--accent); letter-spacing: 2px; }
+      .eyebrow { font-size: 22px; font-weight: 800; text-transform: uppercase; color: var(--accent); letter-spacing: 2px; display: flex; align-items: center; }
       .hero-row { display: flex; align-items: baseline; line-height: 1; }
       .hero-num { font-size: 220px; font-weight: 900; font-variant-numeric: tabular-nums; }
       .hero-suffix { font-size: 140px; font-weight: 800; margin-left: 8px; }
@@ -35,7 +35,7 @@
     <div id="root" data-composition-id="stathit" data-start="0" data-duration="5" data-width="1920" data-height="1080"
       data-composition-variables='{"eyebrow":"AVATAR LIBRARY","value":240,"suffix":"+","context":"lifelike AI avatars to pick from"}'>
       <div id="box" class="clip" data-start="0" data-duration="5" data-track-index="0">
-        <div class="eyebrow" id="eyebrow"></div>
+        <div class="eyebrow"><img id="logo" style="width:32px; height:32px; border-radius:6px; margin-right:12px; display:none; object-fit:contain;" /><span id="eyebrow"></span></div>
         <div class="hero-row">
           <div class="hero-num" id="value">0</div>
           <div class="hero-suffix" id="suffix"></div>
@@ -51,7 +51,18 @@
         value: VARS.value ?? 240,
         suffix: VARS.suffix ?? '+',
         context: VARS.context ?? 'lifelike AI avatars to pick from',
+        logo: VARS.logo,
       };
+      
+      const LOGOS = VARS.__logos ?? {};
+      const logoEl = document.getElementById('logo');
+      if (DATA.logo && LOGOS[DATA.logo]) {
+        logoEl.src = LOGOS[DATA.logo];
+        logoEl.style.display = 'block';
+      } else {
+        logoEl.remove();
+      }
+
       document.getElementById('eyebrow').textContent = DATA.eyebrow;
       document.getElementById('suffix').textContent = DATA.suffix;
       document.getElementById('context').textContent = DATA.context;

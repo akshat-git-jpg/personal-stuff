@@ -132,7 +132,8 @@
       "placement": "fullframe",
       "purpose": "scored comparison matrix with a reason column; each factor row reveals on its beat",
       "variables": {
-        "products": "array of strings"
+        "products": "array of strings",
+        "productLogos": "array of strings (optional) — logos/ registry slugs matching products, e.g. ['heygen', 'openart']"
       },
       "beat_shape": {
         "name": "string",
@@ -490,6 +491,7 @@
       "purpose": "big animated stat: count-up hero number + label + context line, transparent overlay for demo footage",
       "variables": {
         "eyebrow": "string",
+        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'",
         "value": "number",
         "suffix": "string (optional)",
         "context": "string"
@@ -504,6 +506,7 @@
       "variables": {
         "index": "number",
         "total": "number",
+        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'",
         "name": "string",
         "tagline": "string",
         "tag": "string"
@@ -520,7 +523,8 @@
       },
       "beat_shape": {
         "persona": "string",
-        "winner": "string"
+        "winner": "string",
+        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'"
       },
       "default_duration": 7,
       "max_beats": 6,
@@ -532,7 +536,8 @@
       "placement": "fullframe",
       "purpose": "credit/unit economics rows: plan → credits → what that actually buys, one row per beat",
       "variables": {
-        "title": "string"
+        "title": "string",
+        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'"
       },
       "beat_shape": {
         "label": "string",
