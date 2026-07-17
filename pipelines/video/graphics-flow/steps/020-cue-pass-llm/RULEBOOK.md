@@ -83,6 +83,12 @@ field explaining what's missing. See Section 8.
   sentence verbatim.
 - A beat-card cue with fewer than 2 beats should usually be a single-card cue
   instead; beat cards exist to show a sequence revealing over time.
+- **Capacity is a hard limit.** Each beat card's catalog entry declares
+  `max_beats` and `max_reveal_chars`. Never exceed either. If the VO covers
+  more points than `max_beats`, split into two consecutive cues of the same
+  card (e.g. "Pros" then "Cons" as separate pros-cons cues) or keep only the
+  strongest points — dropping weak points is better than an overflowing card.
+  If a reveal can't be said within `max_reveal_chars`, summarize harder.
 
 ## Variables
 
@@ -152,9 +158,11 @@ The correct cues.json for that excerpt:
 Flagged cues are reviewed on the storyboard board (plan 065), not
 auto-corrected. When a flag is approved:
 
-1. Author the new card into the library following `PIPELINE.md`'s sibling
-   docs and the Beat contract conventions the existing cards follow.
-2. Add a matching entry to `catalog.json`.
+1. Author the new card into the library following BOTH card-library contracts:
+   the Beat contract (card-library `README.md`) for timing mechanics, and the
+   design system (card-library `DESIGN.md`) for palette, typography, layout,
+   and motion — including honestly measured `max_beats`/`max_reveal_chars`.
+2. Add a matching entry to `catalog.json` (beat-smoke.sh enforces the fields).
 
 This grows the catalog so future videos flag less over time. Authoring
 executor is Sonnet by default; Antigravity is only used under the recorded

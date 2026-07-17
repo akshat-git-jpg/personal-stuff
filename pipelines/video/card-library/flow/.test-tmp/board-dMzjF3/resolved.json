@@ -1,0 +1,40 @@
+{
+  "video": "board-fixture",
+  "resolved": [
+    {
+      "id": "c01",
+      "card": "pros-cons/pros-cons",
+      "placement": "fullframe",
+      "start": 0,
+      "duration": 8,
+      "variables": {
+        "title": "Edited",
+        "beats": [
+          {
+            "kind": "pro",
+            "text": "Great support",
+            "at": 3.5
+          },
+          {
+            "kind": "con",
+            "text": "Bit pricey",
+            "at": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "c02",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 6,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "title": "Heads up",
+        "text": "Free tier resets monthly",
+        "pos": "bottom-right"
+      }
+    }
+  ]
+}

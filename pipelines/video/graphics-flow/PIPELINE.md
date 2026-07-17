@@ -10,7 +10,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 
 | Step | Actor | In → Out |
 |---|---|---|
-| `010-transcribe-run` | [RUN] | `vo.mp3` → `transcript.json` (word timestamps) |
+| `010-transcribe-run` | [RUN] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) → `transcript.json` (word timestamps) |
 | `020-cue-pass-llm` | [LLM] (pluggable: Sonnet default; agy/Antigravity allowed as form-fillers) | `transcript.json` + `card-library/catalog.json` → `cues.json` |
 | `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables) |
 | `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board) |
@@ -52,6 +52,7 @@ This is the interface plans 064 (writes it) and 065 (edits it) build against. Ch
 {
   "video": "notion-vs-asana",
   "approved": false,
+  "offset": 0,
   "cues": [
     {
       "id": "c01",
@@ -79,5 +80,11 @@ Field semantics:
 - `beats[].reveal` — the card-specific beat item (shape per catalog.json `beat_shape`, WITHOUT `at` — the resolver adds it).
 - `placement` comes from catalog.json, not from the cue.
 - `flagged: true` — no card fits, needs a novel card (plan 065 surfaces these).
+- `offset` (top-level, default 0) — seconds the VOICEOVER starts at on the editor's
+  final timeline (e.g. 6.0 if a cold-open precedes it). All cue/beat times stay
+  VO-relative; the offset is applied ONLY to manifest.md's "place at" column, so
+  the editor always drops clips at real timeline timecodes. If the VO shifts after
+  rendering, update `offset` in cues.json, re-run step 030 then 050 (or shift the
+  manifest timecodes by hand — the clips themselves don't change).
 
 Single-card cues (`kind: "single"`) have `beats: []` and use catalog `default_duration`.

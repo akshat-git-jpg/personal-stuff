@@ -1,0 +1,46 @@
+{
+  "video": "board-fixture",
+  "approved": false,
+  "cues": [
+    {
+      "id": "c01",
+      "card": "pros-cons/pros-cons",
+      "anchor": "let's look at the pros and cons",
+      "lead": 0.5,
+      "hold": 3,
+      "variables": {
+        "title": "Edited"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "kind": "pro",
+            "text": "Great support"
+          },
+          "anchor": "great support team"
+        },
+        {
+          "reveal": {
+            "kind": "con",
+            "text": "Bit pricey"
+          },
+          "anchor": "bit pricey though"
+        }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c02",
+      "card": "overlay/callout",
+      "anchor": "keep this tip in mind",
+      "variables": {
+        "kind": "tip",
+        "title": "Heads up",
+        "text": "Free tier resets monthly",
+        "pos": "bottom-right"
+      },
+      "beats": [],
+      "flagged": false
+    }
+  ]
+}

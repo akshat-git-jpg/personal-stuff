@@ -65,6 +65,11 @@ Beats: one beat per spoken point, anchored at the phrase that starts it;
 summary of the point, never the transcript sentence; fewer than 2 beats
 usually means a single-card cue is the better fit.
 
+Capacity (hard limits): each beat card's catalog entry declares `max_beats`
+and `max_reveal_chars` — never exceed either. Too many points? Split into two
+consecutive cues of the same card, or keep only the strongest points. Reveal
+too long? Summarize harder.
+
 Variables: fill every non-beat variable the card lists; sentence-case text;
 spell product names as the script spells them.
 

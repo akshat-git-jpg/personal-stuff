@@ -102,6 +102,9 @@ fully removed.)
   The "Studio can't drag-edit these elements" and "Google Fonts" warnings are expected —
   the motion is locked on purpose, and the fonts load fine online.
 
+> New or edited cards must also follow the visual design system in
+> [DESIGN.md](DESIGN.md) — palette, typography, layout capacity, motion.
+
 ## Beat contract (progressive-reveal cards)
 
 1. A **beat card** accepts two extra variables: `beats` (array; item shape is card-specific

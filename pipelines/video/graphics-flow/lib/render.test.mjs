@@ -49,3 +49,15 @@ test('planRender: overlay placement renders mov, fullframe renders mp4', () => {
   assert.equal(fullframePlan.args[fullframePlan.args.indexOf('--format') + 1], 'mp4');
   assert.ok(fullframePlan.outFile.endsWith('.mp4'));
 });
+
+test('manifestMd applies timeline offset to place-at column only', () => {
+  const cues = [
+    { id: 'c01', card: 'pros-cons/pros-cons', placement: 'fullframe', start: 10, duration: 8 },
+  ];
+  const md = manifestMd('vid', cues, 62.5);
+  assert.match(md, /\| 01:12\.5 \|/);
+  assert.match(md, /offset 62\.5s/);
+  const noOffset = manifestMd('vid', cues);
+  assert.match(noOffset, /\| 00:10\.0 \|/);
+  assert.match(noOffset, /starts at 00:00\.0/);
+});

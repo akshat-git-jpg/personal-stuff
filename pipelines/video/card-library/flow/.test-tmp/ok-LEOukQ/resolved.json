@@ -1,0 +1,15 @@
+{
+  "video": "cli-fixture",
+  "resolved": [
+    {
+      "id": "c01",
+      "card": "pros-cons/pros-cons",
+      "placement": "fullframe",
+      "start": 0,
+      "duration": 6,
+      "variables": {
+        "title": "Fixture"
+      }
+    }
+  ]
+}

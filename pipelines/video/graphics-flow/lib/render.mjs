@@ -49,14 +49,19 @@ export function planRender(cue, quality = 'standard') {
   return { args, outFile, format };
 }
 
-export function manifestMd(video, cues) {
+export function manifestMd(video, cues, offset = 0) {
   const sorted = [...cues].sort((a, b) => a.start - b.start);
   const rows = sorted.map((cue) => {
     const { outFile } = planRender(cue);
-    return `| ${mmss(cue.start)} | ${outFile} | ${cue.duration}s | ${cue.placement} | ${cue.card} |`;
+    return `| ${mmss(cue.start + offset)} | ${outFile} | ${cue.duration}s | ${cue.placement} | ${cue.card} |`;
   });
+  const offsetNote = offset
+    ? `Timecodes assume the voiceover starts at ${mmss(offset)} on the editor timeline (offset ${offset}s).`
+    : 'Timecodes assume the voiceover starts at 00:00.0 on the editor timeline. If an intro shifts the VO, set "offset" (seconds) in cues.json and re-run render.';
   return [
     `# ${video} — graphics manifest`,
+    '',
+    offsetNote,
     '',
     '| place at | file | duration | placement | card |',
     '|---|---|---|---|---|',
@@ -97,7 +102,7 @@ async function main() {
   const renderDir = path.join(workdir, 'renders');
   fs.mkdirSync(renderDir, { recursive: true });
 
-  const { video, resolved } = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
+  const { video, resolved, offset = 0 } = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
   const cues = opts.only ? resolved.filter((c) => c.id === opts.only) : resolved;
 
   const errors = [];
@@ -151,7 +156,7 @@ async function main() {
     }
   }
 
-  fs.writeFileSync(path.join(workdir, 'manifest.md'), manifestMd(video, rendered));
+  fs.writeFileSync(path.join(workdir, 'manifest.md'), manifestMd(video, rendered, offset));
 
   if (errors.length) {
     for (const e of errors) console.error(e);

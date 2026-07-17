@@ -84,7 +84,7 @@ async function main() {
 
   fs.writeFileSync(
     path.join(workdir, 'resolved.json'),
-    JSON.stringify({ video: cuesFile.video, resolved }, null, 2),
+    JSON.stringify({ video: cuesFile.video, offset: cuesFile.offset ?? 0, resolved }, null, 2),
   );
 }
 

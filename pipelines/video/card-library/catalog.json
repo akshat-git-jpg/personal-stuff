@@ -5,16 +5,25 @@
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "vertical checklist; each row's box fills and checkmark draws in as it reveals on its beat",
-      "variables": { "title": "string" },
-      "beat_shape": { "text": "string" },
-      "default_duration": 8
+      "variables": {
+        "title": "string"
+      },
+      "beat_shape": {
+        "text": "string"
+      },
+      "default_duration": 8,
+      "max_beats": 6,
+      "max_reveal_chars": 40
     },
     {
       "slug": "comparison/bar-chart",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "horizontal bar chart racing from zero to each product's value",
-      "variables": { "title": "string", "bars": "array" },
+      "variables": {
+        "title": "string",
+        "bars": "array"
+      },
       "default_duration": 6
     },
     {
@@ -22,7 +31,11 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "monthly vs yearly plan cards side by side with a savings stamp on the yearly plan",
-      "variables": { "title": "string", "monthly": "object", "yearly": "object" },
+      "variables": {
+        "title": "string",
+        "monthly": "object",
+        "yearly": "object"
+      },
       "default_duration": 7
     },
     {
@@ -30,7 +43,12 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "cart summary panel where a coupon code applies and the total counts down",
-      "variables": { "title": "string", "currency": "string", "items": "array", "coupon": "object" },
+      "variables": {
+        "title": "string",
+        "currency": "string",
+        "items": "array",
+        "coupon": "object"
+      },
       "default_duration": 7
     },
     {
@@ -38,7 +56,12 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "comparison table over a storm/particle background; rows cascade in and the winner column glows",
-      "variables": { "eyebrow": "string", "tools": "array", "rows": "array", "winnerColumn": "number" },
+      "variables": {
+        "eyebrow": "string",
+        "tools": "array",
+        "rows": "array",
+        "winnerColumn": "number"
+      },
       "default_duration": 13
     },
     {
@@ -46,7 +69,9 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "S/A/B/C/F tier list ranking tools with logo pills sliding into each tier row",
-      "variables": { "eyebrow": "string" },
+      "variables": {
+        "eyebrow": "string"
+      },
       "default_duration": 13
     },
     {
@@ -54,16 +79,26 @@
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "feature comparison matrix; each row of check/cross/value cells reveals on its beat",
-      "variables": { "products": "array" },
-      "beat_shape": { "name": "string", "values": "array" },
-      "default_duration": 7
+      "variables": {
+        "products": "array"
+      },
+      "beat_shape": {
+        "name": "string",
+        "values": "array"
+      },
+      "default_duration": 7,
+      "max_beats": 8,
+      "max_reveal_chars": 24
     },
     {
       "slug": "comparison/head-to-head",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "two-contender VS panel with stats stacked on each side and a center VS badge",
-      "variables": { "left": "object", "right": "object" },
+      "variables": {
+        "left": "object",
+        "right": "object"
+      },
       "default_duration": 5.5
     },
     {
@@ -71,7 +106,10 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "2-3 column pricing plan cards with one plan flagged as recommended",
-      "variables": { "heading": "string", "plans": "array" },
+      "variables": {
+        "heading": "string",
+        "plans": "array"
+      },
       "default_duration": 8
     },
     {
@@ -79,7 +117,13 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "full-price bar that slices off discount chunks one by one down to a final price",
-      "variables": { "title": "string", "currency": "string", "original": "number", "period": "string", "steps": "array" },
+      "variables": {
+        "title": "string",
+        "currency": "string",
+        "original": "number",
+        "period": "string",
+        "steps": "array"
+      },
       "default_duration": 8
     },
     {
@@ -87,16 +131,25 @@
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "scored comparison matrix with a reason column; each factor row reveals on its beat",
-      "variables": { "products": "array" },
-      "beat_shape": { "name": "string", "values": "array" },
-      "default_duration": 7
+      "variables": {
+        "products": "array"
+      },
+      "beat_shape": {
+        "name": "string",
+        "values": "array"
+      },
+      "default_duration": 7,
+      "max_beats": 7,
+      "max_reveal_chars": 28
     },
     {
       "slug": "like-subscribe/like-subscribe",
       "kind": "single",
       "placement": "overlay",
       "purpose": "chroma-key subscribe button overlay that rings the bell and presses on click",
-      "variables": { "subscribeText": "string" },
+      "variables": {
+        "subscribeText": "string"
+      },
       "default_duration": 5
     },
     {
@@ -104,7 +157,9 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "chroma-key pill overlay pointing viewers to the link in the description",
-      "variables": { "message": "string" },
+      "variables": {
+        "message": "string"
+      },
       "default_duration": 4
     },
     {
@@ -112,7 +167,13 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent overlay: a curved arrow draws from a label toward whatever you're pointing at",
-      "variables": { "label": "string", "tailX": "number", "tailY": "number", "tipX": "number", "tipY": "number" },
+      "variables": {
+        "label": "string",
+        "tailX": "number",
+        "tailY": "number",
+        "tipX": "number",
+        "tipY": "number"
+      },
       "default_duration": 5
     },
     {
@@ -120,7 +181,12 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent tip/warning/note callout box that pops in over screen recording",
-      "variables": { "kind": "string", "title": "string", "text": "string", "pos": "string" },
+      "variables": {
+        "kind": "string",
+        "title": "string",
+        "text": "string",
+        "pos": "string"
+      },
       "default_duration": 5
     },
     {
@@ -128,7 +194,12 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent overlay decoding a redacted coupon code with a copy-flash sweep",
-      "variables": { "eyebrow": "string", "code": "string", "sub": "string", "pos": "string" },
+      "variables": {
+        "eyebrow": "string",
+        "code": "string",
+        "sub": "string",
+        "pos": "string"
+      },
       "default_duration": 5
     },
     {
@@ -136,7 +207,15 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent overlay slamming in a discounted price with a strike-through original and save stamp",
-      "variables": { "eyebrow": "string", "original": "string", "price": "string", "period": "string", "save": "string", "code": "string", "pos": "string" },
+      "variables": {
+        "eyebrow": "string",
+        "original": "string",
+        "price": "string",
+        "period": "string",
+        "save": "string",
+        "code": "string",
+        "pos": "string"
+      },
       "default_duration": 5
     },
     {
@@ -144,7 +223,10 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent lower-third name + subtitle pill sliding in at bottom-left",
-      "variables": { "name": "string", "subtitle": "string" },
+      "variables": {
+        "name": "string",
+        "subtitle": "string"
+      },
       "default_duration": 5
     },
     {
@@ -152,7 +234,15 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent overlay punching in a big savings amount next to a round seal",
-      "variables": { "eyebrow": "string", "save": "string", "amount": "string", "per": "string", "sub": "string", "seal": "string", "pos": "string" },
+      "variables": {
+        "eyebrow": "string",
+        "save": "string",
+        "amount": "string",
+        "per": "string",
+        "sub": "string",
+        "seal": "string",
+        "pos": "string"
+      },
       "default_duration": 5
     },
     {
@@ -160,7 +250,14 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent overlay dimming the screen except a highlighted region, with a click ripple inside it",
-      "variables": { "x": "number", "y": "number", "w": "number", "h": "number", "radius": "number", "label": "string" },
+      "variables": {
+        "x": "number",
+        "y": "number",
+        "w": "number",
+        "h": "number",
+        "radius": "number",
+        "label": "string"
+      },
       "default_duration": 5
     },
     {
@@ -168,7 +265,11 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent step-progress pill (Step X of Y) with a progress-dot row for tutorial footage",
-      "variables": { "step": "number", "total": "number", "label": "string" },
+      "variables": {
+        "step": "number",
+        "total": "number",
+        "label": "string"
+      },
       "default_duration": 5
     },
     {
@@ -176,7 +277,12 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent full-width tip/warning banner sliding in along the bottom or top edge",
-      "variables": { "kind": "string", "label": "string", "text": "string", "edge": "string" },
+      "variables": {
+        "kind": "string",
+        "label": "string",
+        "text": "string",
+        "edge": "string"
+      },
       "default_duration": 5
     },
     {
@@ -184,25 +290,42 @@
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "two-column pros vs cons; each row reveals on its beat",
-      "variables": { "title": "string" },
-      "beat_shape": { "kind": "'pro' | 'con'", "text": "string" },
-      "default_duration": 6
+      "variables": {
+        "title": "string"
+      },
+      "beat_shape": {
+        "kind": "'pro' | 'con'",
+        "text": "string"
+      },
+      "default_duration": 6,
+      "max_beats": 8,
+      "max_reveal_chars": 45
     },
     {
       "slug": "section/bullet-points",
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "plain numbered agenda list; each row reveals on its beat",
-      "variables": { "eyebrow": "string" },
-      "beat_shape": { "label": "string" },
-      "default_duration": 6
+      "variables": {
+        "eyebrow": "string"
+      },
+      "beat_shape": {
+        "label": "string"
+      },
+      "default_duration": 6,
+      "max_beats": 6,
+      "max_reveal_chars": 50
     },
     {
       "slug": "section/bullet-points-highlighted",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "re-shown table-of-contents that dims done/upcoming items and highlights the current section",
-      "variables": { "eyebrow": "string", "active": "number", "items": "array" },
+      "variables": {
+        "eyebrow": "string",
+        "active": "number",
+        "items": "array"
+      },
       "default_duration": 6
     },
     {
@@ -210,16 +333,26 @@
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "end-of-video recap; each takeaway ticks in with a check badge on its beat",
-      "variables": { "eyebrow": "string", "title": "string" },
-      "beat_shape": { "label": "string" },
-      "default_duration": 8
+      "variables": {
+        "eyebrow": "string",
+        "title": "string"
+      },
+      "beat_shape": {
+        "label": "string"
+      },
+      "default_duration": 8,
+      "max_beats": 5,
+      "max_reveal_chars": 55
     },
     {
       "slug": "section/section-card-flip",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "section divider where a glass card flips up from below and settles with a spring bounce",
-      "variables": { "number": "string", "title": "string" },
+      "variables": {
+        "number": "string",
+        "title": "string"
+      },
       "default_duration": 5
     },
     {
@@ -227,7 +360,11 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "section divider where a big number counts up then scales down as the title and dots ripple in",
-      "variables": { "number": "string", "title": "string", "dots": "number" },
+      "variables": {
+        "number": "string",
+        "title": "string",
+        "dots": "number"
+      },
       "default_duration": 5
     },
     {
@@ -235,7 +372,10 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "section divider with drifting light streaks and particles behind an elastic title pop",
-      "variables": { "number": "string", "title": "string" },
+      "variables": {
+        "number": "string",
+        "title": "string"
+      },
       "default_duration": 5
     },
     {
@@ -243,16 +383,24 @@
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "numbered table-of-contents list; each row reveals on its beat",
-      "variables": { "eyebrow": "string" },
-      "beat_shape": { "label": "string" },
-      "default_duration": 9
+      "variables": {
+        "eyebrow": "string"
+      },
+      "beat_shape": {
+        "label": "string"
+      },
+      "default_duration": 9,
+      "max_beats": 7,
+      "max_reveal_chars": 45
     },
     {
       "slug": "title/title-aurora-wave",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "title card with drifting aurora blobs and a light bar that wipes logo chips into view",
-      "variables": { "title": "string" },
+      "variables": {
+        "title": "string"
+      },
       "default_duration": 10
     },
     {
@@ -260,7 +408,9 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "title card with a breathing vignette background; title scales in and platform chips cascade then bob",
-      "variables": { "title": "string" },
+      "variables": {
+        "title": "string"
+      },
       "default_duration": 10
     },
     {
@@ -268,7 +418,11 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "title card with kinetic line-by-line text reveal for kicker, title, and subtitle",
-      "variables": { "kicker": "string", "title": "string", "subtitle": "string" },
+      "variables": {
+        "kicker": "string",
+        "title": "string",
+        "subtitle": "string"
+      },
       "default_duration": 10
     },
     {
@@ -276,7 +430,9 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "title card with a storm background and the title popping in with an elastic overshoot",
-      "variables": { "title": "string" },
+      "variables": {
+        "title": "string"
+      },
       "default_duration": 10
     },
     {
@@ -284,7 +440,12 @@
       "kind": "single",
       "placement": "fullframe",
       "purpose": "verdict card where the winner slides in and five achievement badges pop in one by one",
-      "variables": { "eyebrow": "string", "winner": "string", "reason": "string", "badgesHead": "string" },
+      "variables": {
+        "eyebrow": "string",
+        "winner": "string",
+        "reason": "string",
+        "badgesHead": "string"
+      },
       "default_duration": 8
     },
     {
@@ -292,16 +453,31 @@
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "verdict report card with a glowing letter grade; each sub-grade reveals on its beat",
-      "variables": { "eyebrow": "string", "winner": "string", "grade": "string", "reason": "string" },
-      "beat_shape": { "subject": "string", "grade": "string", "color": "string" },
-      "default_duration": 7
+      "variables": {
+        "eyebrow": "string",
+        "winner": "string",
+        "grade": "string",
+        "reason": "string"
+      },
+      "beat_shape": {
+        "subject": "string",
+        "grade": "string",
+        "color": "string"
+      },
+      "default_duration": 7,
+      "max_beats": 5,
+      "max_reveal_chars": 30
     },
     {
       "slug": "verdict/verdict-trophy",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "verdict card with confetti and a trophy dropping in before the winner card lifts with a gold pulse",
-      "variables": { "eyebrow": "string", "winner": "string", "reason": "string" },
+      "variables": {
+        "eyebrow": "string",
+        "winner": "string",
+        "reason": "string"
+      },
       "default_duration": 7
     }
   ]
