@@ -76,10 +76,10 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 059 | Hygiene — skill-description budget guard + heygen-web render-output policy | P2 | S-M | — (pre-dispatch owner step: move untracked heygen media out of main checkout) | TODO |
 | 060 | media-board — local gallery cockpit over the tts/heygen asset hubs (view, filter, drag-out) | P2 | M | — | DONE |
 | 061 | Avatar Renderer — local UI wrapping tutorial-pipeline-1 (Drive link → 3 avatar clips), run from local-apps-dashboard | P2 | M | — (043 shipped the pipeline it wraps) | TODO |
-| 062 | Beat contract + seed catalog retrofit — 8 card-library cards take reveal timing as `beats` data; catalog.json for all 37 | P1 | M | — | TODO |
-| 063 | Graphics flow scripts — anchor resolver (phrase→timestamp), staged batch render, editor manifest | P1 | M | 062 | TODO |
-| 064 | Cue-pass rulebook + prompt — the one-LLM-call-per-video operating manual (density, card choice, anchors, rubric) | P2 | S-M | 062, 063 | TODO |
-| 065 | Graphics storyboard board — local review server: real cards + VO slices prove sync before rendering; edit/flag/approve | P2 | M | 062, 063 | TODO |
+| 062 | Beat contract + seed catalog retrofit — 8 card-library cards take reveal timing as `beats` data; catalog.json for all 37 | P1 | M | — | DONE (validated 2026-07-17: merge gate re-run green) |
+| 063 | Graphics flow scripts — anchor resolver (phrase→timestamp), staged batch render, editor manifest | P1 | M | 062 | DONE (validated 2026-07-17: merge gate re-run green) |
+| 064 | Cue-pass rulebook + prompt — the one-LLM-call-per-video operating manual (density, card choice, anchors, rubric) | P2 | S-M | 062, 063 | DONE (validated 2026-07-17: merge gate re-run green) |
+| 065 | Graphics storyboard board — local review server: real cards + VO slices prove sync before rendering; edit/flag/approve | P2 | M | 062, 063 | DONE (validated 2026-07-17: merge gate re-run green) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
