@@ -372,3 +372,4 @@ The others are grounded and available when the owner wants them:
 - 064-cue-pass-rulebook — PR#21 064-cue-pass-rulebook: Cue-pass rulebook + prompt (the one LLM step) — DONE
 - 065-graphics-storyboard-board — PR#22 065-graphics-storyboard-board: Graphics storyboard board (local review server) — DONE
 - 066-graphics-flow-restructure — PR#23 066-graphics-flow-restructure: step-wise pipeline folder for the graphics flow — DONE
+- 067-board-script-timeline — PR#24 067-board-script-timeline: full-script timeline view for the storyboard board — DONE
