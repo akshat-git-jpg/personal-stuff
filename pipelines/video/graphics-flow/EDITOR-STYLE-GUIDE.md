@@ -72,3 +72,20 @@ and rose only when the meaning is good vs bad. Gold only when something wins.
 - No emoji in graphics.
 - Product names always spelled correctly on screen (HeyGen, OpenArt AI,
   Higgsfield, Synthesia, Arcads), even if the voiceover audio mangles them.
+
+## When a moment earns a graphic (and when it doesn't)
+
+The default is NO graphic: the screen recording or presenter carries the
+video. Add a graphic only where it gives the viewer something the footage
+can't:
+
+- a section is starting (opener / divider card)
+- a number, list, or comparison the viewer should retain (stat, table,
+  pros and cons, pricing math)
+- the payoff moment (verdict, "which one is for you")
+- a single spoken claim worth reinforcing (small overlay, used sparingly)
+
+Leave bare: any stretch where the screen is already showing what the voice
+describes (demos, walkthroughs, clicking through a tool). Rough rhythm: one
+full-screen graphic every 1 to 2 minutes, overlays at most one per minute,
+nothing in the first 15 or last 20 seconds. If in doubt, skip the graphic.

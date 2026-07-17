@@ -34,6 +34,14 @@ computes all of that from your anchors.
 
 ## Cue density
 
+**The default state of every moment is NO graphic — the screen recording (or
+avatar) carries the video.** A graphic must earn its slot: it appears only
+where it ADDS something the footage can't (structure at a section boundary, a
+number or list the viewer should hold onto, a comparison too dense to say).
+Stretches that are demonstration — the presenter clicking through a tool while
+describing what they're doing — are already visual and need nothing on top.
+When unsure whether a moment earns a graphic, it doesn't.
+
 These are starting defaults, not physics — when the script structure fights a
 rule, follow the script and note why in the cue's context.
 

@@ -38,7 +38,10 @@ Single-card cues (catalog `kind: "single"`) use `beats: []`.
 
 ## Rules
 
-Density (defaults — follow the script when it disagrees):
+Density (defaults — follow the script when it disagrees). The default for any
+moment is NO graphic: the screen recording carries the video, and a graphic
+must earn its slot by adding what footage can't. Demo/walkthrough stretches
+are already visual — leave them bare. When unsure, no graphic.
 - One fullframe cue per natural section boundary, targeting one per 60–120s.
 - Overlays sparse: at most one per minute, only where reinforcement helps.
 - Never two overlapping fullframe cues.
