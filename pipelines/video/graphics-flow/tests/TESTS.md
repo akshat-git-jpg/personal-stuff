@@ -36,6 +36,19 @@ tested, with what source, and what the run taught us.
      (HeyGen/OpenArt/Higgsfield — zero garbles), largely dissolving finding #1 for
      future runs; timestamps agree with local within 0.77s on sampled words.
   3. Anchor discipline held: Sonnet self-verified verbatim+ordering; resolver confirmed.
-  4. Sonnet judgment notes: inferred one unstated score (OpenArt "Creative Ground" = 5);
+  4. (renumbered below)
+  5. Board port clash: a stale board instance from plan-065 verification held :4322;
+     my launch died EADDRINUSE while the stale one served fixture data. TODO: board
+     should fail with a clear "port in use" message and/or auto-pick a free port.
+  6. **Catalog under-specified array shapes — TWO broken cards on the board** (owner
+     screenshots): bullet-points-highlighted rendered "undefined" per row (card wants
+     items:[{label}], catalog said "array", Sonnet sent strings) and summary-table
+     staircased (rows need products.length score values + a trailing reason cell;
+     catalog said values:"array", Sonnet sent 5 scores, 6 cells hit a 7-col grid).
+     FIXED same day at three levels: both cards normalize LLM-shaped input
+     (strings→{label}; pad/trim rows + separate reason field), catalog.json array
+     types now spell out exact item shapes for all 8 affected cards, and this class
+     of bug feeds the auto-QC design (schema validation + frame inspection).
+  7. Sonnet judgment notes: inferred one unstated score (OpenArt "Creative Ground" = 5);
      dropped a 6-item feature list (items too short for 3-word anchors); moved the CTA
      cue off the last-20s zone. All reasonable — review on board.

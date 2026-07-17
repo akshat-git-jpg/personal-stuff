@@ -84,6 +84,16 @@
           { name: 'Pricing & Value', values: ['4.5 / 5', '3.5 / 5', '3.5 / 5', '4 / 5', '3.5 / 5', 'OpenArt leads — most creative ground per dollar. HeyGen strong for solo creators. Arcads premium only makes sense at volume.'], at: 1.16 },
         ],
       };
+      // Normalize rows so the grid never mis-aligns: a row's values must be
+      // products.length scores + a trailing reason cell. Accept a separate
+      // `reason` field, and pad/trim to the exact width.
+      DATA.beats = DATA.beats.map((b) => {
+        const values = [...(b.values ?? [])].map((v) => String(v));
+        if (b.reason != null && values.length <= DATA.products.length) values.push(String(b.reason));
+        while (values.length < DATA.products.length + 1) values.push('');
+        values.length = DATA.products.length + 1;
+        return { ...b, values };
+      });
 
       const grid = document.getElementById('grid');
 

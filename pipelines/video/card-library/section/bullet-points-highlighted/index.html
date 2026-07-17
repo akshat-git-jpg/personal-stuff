@@ -84,6 +84,8 @@
           { label: 'The four winners' },
         ],
       };
+      // Accept plain strings per item too — normalize to {label}.
+      DATA.items = DATA.items.map((it) => (typeof it === 'string' ? { label: it } : it));
 
       /* ===== TIMELINE (LOCKED) ===== */
       const $ = (id) => document.getElementById(id);
