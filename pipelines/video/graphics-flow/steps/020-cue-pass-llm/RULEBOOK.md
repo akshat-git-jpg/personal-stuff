@@ -94,8 +94,9 @@ field explaining what's missing. See Section 8.
 
 - Fill every non-beat variable listed in the card's catalog `variables`.
 - Text is sentence-case.
-- Spell product names exactly as the script spells them, not as you'd
-  normally capitalize them.
+- Product names in ANY on-screen text (variables and beat reveals) use the
+  correct official spelling — the transcript is ASR output and garbles names
+  (test-01: HeyGen → "Heigen/Hazen"); only anchors stay transcript-verbatim.
 
 ## Worked example
 

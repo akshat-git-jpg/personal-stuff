@@ -111,6 +111,9 @@ const BOARD_CSS = `
   .note { width:100%; font:inherit; font-size:12px; padding:6px 8px; margin-bottom:8px; background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:6px; }
   textarea.frag { width:100%; min-height:140px; font-family:ui-monospace,Menlo,monospace; font-size:11px;
     background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  textarea.feedback { width:100%; min-height:34px; font:inherit; font-size:12px; margin:8px 0;
+    background:rgba(251,146,60,0.05); color:var(--text); border:1px dashed rgba(251,146,60,0.4); border-radius:6px; padding:6px 8px; }
+  textarea.feedback:focus { border-style:solid; outline:none; }
 `;
 
 function timecode(secs) {
@@ -179,10 +182,13 @@ export function buildSegments(words, resolved, { gapMinWords = 8 } = {}) {
   return segments;
 }
 
-function renderBoardPage(cuesFile, resolved, words) {
+function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
+  const fb = (ref) => escapeHtml(feedbackItems[ref] ?? '');
+  const fbBox = (ref, placeholder) =>
+    `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>`;
   
   const segments = buildSegments(words, resolved);
   const unresolvedSegs = cues.filter(c => !byId.has(c.id)).map(c => ({
@@ -223,7 +229,9 @@ function renderBoardPage(cuesFile, resolved, words) {
         <div class="gap-header" onclick="this.parentElement.classList.toggle('expanded')">
           <span class="gap-icon">▸</span> ${timecode(seg.start)} &rarr; ${timecode(seg.end)} &middot; ${durStr} &middot; <span style="color:var(--dim)">"${escapeHtml(previewWords)}"</span>
         </div>
-        <div class="gap-body">${escapeHtml(allWords)}</div>
+        <div class="gap-body">${escapeHtml(allWords)}
+          ${fbBox(`gap-${timecode(seg.start)}`, 'feedback for this stretch (read by the next Claude session)')}
+        </div>
       </div>`;
     }
 
@@ -276,6 +284,7 @@ function renderBoardPage(cuesFile, resolved, words) {
       ${media}
       <label class="flag"><input type="checkbox" class="flag-input" ${cue.flagged ? 'checked' : ''}/> flag: no card fits</label>
       <input class="note" type="text" placeholder="note (why no card fits)" value="${escapeHtml(cue.note ?? '')}" />
+      ${fbBox(cue.id, 'feedback on this graphic — wrong card, wrong timing, wording… (read by the next Claude session)')}
       <textarea class="frag">${escapeHtml(JSON.stringify(fragment, null, 2))}</textarea>
     </div>`;
   }).join('\n');
@@ -298,6 +307,7 @@ function renderBoardPage(cuesFile, resolved, words) {
     </div>
     <div id="banner">${cuesFile.approved ? '<div class="banner ok">approved — ready for <code>node lib/render.mjs</code></div>' : ''}</div>
     <div class="minimap">${minimapHtml}</div>
+    ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
   </div>
   <div class="timeline">${timelineHtml}</div>
   <script>
@@ -341,7 +351,9 @@ function renderBoardPage(cuesFile, resolved, words) {
         if (note) cue.note = note;
         return cue;
       });
-      const res = await fetch('/save', { method: 'POST', body: JSON.stringify({ video: VIDEO, approved: APPROVED, cues }) });
+      const feedback = {};
+      document.querySelectorAll('textarea.feedback').forEach((t) => { if (t.value.trim()) feedback[t.dataset.ref] = t.value.trim(); });
+      const res = await fetch('/save', { method: 'POST', body: JSON.stringify({ video: VIDEO, approved: APPROVED, cues, feedback }) });
       const data = await res.json();
       if (!data.ok) {
         showBanner(data.errors.map(escapeForBanner).join('<br>'), 'err');
@@ -375,11 +387,27 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   }
 
   const cuesPath = path.join(workdir, 'cues.json');
-  fs.writeFileSync(cuesPath, JSON.stringify(cuesFile, null, 2));
+  // Merge over the existing file so top-level fields the client doesn't send
+  // (offset, future additions) survive a save. feedback is board-only — it goes
+  // to feedback.json, never into cues.json.
+  const prev = fs.existsSync(cuesPath) ? JSON.parse(fs.readFileSync(cuesPath, 'utf8')) : {};
+  const { feedback, ...incoming } = cuesFile;
+  const merged = { ...prev, ...incoming };
+  fs.writeFileSync(cuesPath, JSON.stringify(merged, null, 2));
+
+  if (feedback && typeof feedback === 'object') {
+    const items = Object.fromEntries(
+      Object.entries(feedback).filter(([, v]) => String(v ?? '').trim() !== ''),
+    );
+    fs.writeFileSync(
+      path.join(workdir, 'feedback.json'),
+      JSON.stringify({ video: merged.video, updated: new Date().toISOString().slice(0, 10), items }, null, 2),
+    );
+  }
 
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
-  const { resolved, errors } = resolveCues(cuesFile.cues ?? [], words, catalog);
+  const { resolved, errors } = resolveCues(merged.cues ?? [], words, catalog);
 
   res.setHeader('content-type', 'application/json');
   if (errors.length) {
@@ -388,7 +416,7 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
 
   fs.writeFileSync(
     path.join(workdir, 'resolved.json'),
-    JSON.stringify({ video: cuesFile.video, resolved }, null, 2),
+    JSON.stringify({ video: merged.video, offset: merged.offset ?? 0, resolved }, null, 2),
   );
   ensureSlices(workdir);
   res.end(JSON.stringify({ ok: true, errors: [] }));
@@ -436,9 +464,11 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
     const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
     const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
+    const fbPath = path.join(workdir, 'feedback.json');
+    const feedbackItems = fs.existsSync(fbPath) ? (JSON.parse(fs.readFileSync(fbPath, 'utf8')).items ?? {}) : {};
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderBoardPage(cuesFile, resolved, words));
+    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems));
   }
 
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);

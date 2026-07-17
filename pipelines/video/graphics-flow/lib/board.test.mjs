@@ -200,3 +200,39 @@ test('GET / contains gap timecode, cues in DOM order, anchor highlighted, minima
     server.close();
   }
 });
+
+test('save: feedback goes to feedback.json; offset survives; page renders saved feedback', async () => {
+  const workdir = makeWorkdir();
+  const cuesPath = path.join(workdir, 'cues.json');
+  const before = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
+  before.offset = 3.5;
+  fs.writeFileSync(cuesPath, JSON.stringify(before, null, 2));
+
+  const server = createServer(workdir);
+  await new Promise((r) => server.listen(0, r));
+  const port = server.address().port;
+  try {
+    const body = { video: before.video, approved: false, cues: before.cues, feedback: { c01: 'wrong card here', '_global': 'good pass', empty: '  ' } };
+    const res = await fetch(`http://localhost:${port}/save`, { method: 'POST', body: JSON.stringify(body) });
+    const data = await res.json();
+    assert.equal(data.ok, true);
+
+    const after = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
+    assert.equal(after.offset, 3.5); // top-level fields survive saves
+    assert.ok(!('feedback' in after)); // feedback never lands in cues.json
+
+    const fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.equal(fb.items.c01, 'wrong card here');
+    assert.equal(fb.items._global, 'good pass');
+    assert.ok(!('empty' in fb.items)); // blank entries dropped
+
+    const resolvedOut = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
+    assert.equal(resolvedOut.offset, 3.5);
+
+    const page = await (await fetch(`http://localhost:${port}/`)).text();
+    assert.ok(page.includes('wrong card here'));
+    assert.ok(page.includes('data-ref="_global"'));
+  } finally {
+    server.close();
+  }
+});

@@ -30,6 +30,7 @@ videos/<slug>/
   slices/          # per-cue vo slices, step 040's board — gitignored
   renders/         # step 050's clips — gitignored (regenerable)
   manifest.md      # step 050 output, at the workdir root — committed
+  feedback.json    # owner feedback typed on the board (per-cue, per-gap, global) — committed
 ```
 
 Per-video text artifacts (transcript, cues, resolved times, manifest) are
@@ -80,6 +81,10 @@ Field semantics:
 - `beats[].reveal` — the card-specific beat item (shape per catalog.json `beat_shape`, WITHOUT `at` — the resolver adds it).
 - `placement` comes from catalog.json, not from the cue.
 - `flagged: true` — no card fits, needs a novel card (plan 065 surfaces these).
+- Board feedback: every cue block, gap block, and the header carry a feedback box;
+  Save writes non-empty entries to `feedback.json` (`items` keyed by cue id,
+  `gap-<mm:ss>`, or `_global`). The next Claude session working on the video reads
+  it — no screenshots-to-terminal needed.
 - `offset` (top-level, default 0) — seconds the VOICEOVER starts at on the editor's
   final timeline (e.g. 6.0 if a cold-open precedes it). All cue/beat times stay
   VO-relative; the offset is applied ONLY to manifest.md's "place at" column, so

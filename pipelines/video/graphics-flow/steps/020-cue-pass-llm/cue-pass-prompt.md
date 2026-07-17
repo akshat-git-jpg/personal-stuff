@@ -76,8 +76,10 @@ and `max_reveal_chars` — never exceed either. Too many points? Split into two
 consecutive cues of the same card, or keep only the strongest points. Reveal
 too long? Summarize harder.
 
-Variables: fill every non-beat variable the card lists; sentence-case text;
-spell product names as the script spells them.
+Variables: fill every non-beat variable the card lists; sentence-case text.
+Product names: the transcript is ASR output and often GARBLES brand names — all
+on-screen text (variables, reveal text) must use the correct official spelling;
+only anchors stay transcript-verbatim, garbles and all.
 
 ```
 CATALOG (the only cards you may use):
