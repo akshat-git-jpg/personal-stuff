@@ -19,13 +19,14 @@ function fail(message) {
 }
 
 function main() {
-  const cardLibraryRoot = path.resolve(import.meta.dirname, '..');
-  const rulebookPath = path.join(cardLibraryRoot, 'flow', 'RULEBOOK.md');
-  const promptPath = path.join(cardLibraryRoot, 'flow', 'cue-pass-prompt.md');
+  const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
+  const cuePassStepDir = path.resolve(import.meta.dirname, '..', 'steps', '020-cue-pass-llm');
+  const rulebookPath = path.join(cuePassStepDir, 'RULEBOOK.md');
+  const promptPath = path.join(cuePassStepDir, 'cue-pass-prompt.md');
   const catalogPath = path.join(cardLibraryRoot, 'catalog.json');
 
-  if (!fs.existsSync(rulebookPath)) fail('flow/RULEBOOK.md missing');
-  if (!fs.existsSync(promptPath)) fail('flow/cue-pass-prompt.md missing');
+  if (!fs.existsSync(rulebookPath)) fail('steps/020-cue-pass-llm/RULEBOOK.md missing');
+  if (!fs.existsSync(promptPath)) fail('steps/020-cue-pass-llm/cue-pass-prompt.md missing');
   if (!fs.existsSync(catalogPath)) fail('catalog.json missing (plan 062 not landed)');
 
   const rulebook = fs.readFileSync(rulebookPath, 'utf8');

@@ -78,15 +78,21 @@ function parseArgs(argv) {
   return opts;
 }
 
+function resolveWorkdir(arg) {
+  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
+  const pipelineRoot = path.resolve(import.meta.dirname, '..');
+  return path.join(pipelineRoot, 'videos', arg);
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.workdir) {
-    console.error('usage: node flow/render.mjs <workdir> [--only <cueId>] [--quality draft|standard]');
+    console.error('usage: node lib/render.mjs <slug-or-path> [--only <cueId>] [--quality draft|standard]');
     process.exit(1);
   }
 
-  const cardLibraryRoot = path.resolve(import.meta.dirname, '..');
-  const workdir = path.resolve(opts.workdir);
+  const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
+  const workdir = resolveWorkdir(opts.workdir);
   const resolvedPath = path.join(workdir, 'resolved.json');
   const renderDir = path.join(workdir, 'renders');
   fs.mkdirSync(renderDir, { recursive: true });
@@ -145,7 +151,7 @@ async function main() {
     }
   }
 
-  fs.writeFileSync(path.join(renderDir, 'manifest.md'), manifestMd(video, rendered));
+  fs.writeFileSync(path.join(workdir, 'manifest.md'), manifestMd(video, rendered));
 
   if (errors.length) {
     for (const e of errors) console.error(e);

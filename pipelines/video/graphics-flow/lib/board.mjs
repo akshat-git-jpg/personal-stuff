@@ -1,11 +1,11 @@
 // board.mjs — local review board (port 4322) for a video's graphics cues.
 //
-//   node flow/board.mjs <workdir>
+//   node lib/board.mjs <slug-or-path>
 //   → open the printed http://localhost:4322
 //
 // One tile per cue: the REAL card, playing in an iframe, driven by that cue's
 // VO slice (postMessage seeks the card's paused GSAP timeline). Edits write
-// back through the same resolver flow/resolve.mjs's CLI uses; nothing here
+// back through the same resolver lib/resolve.mjs's CLI uses; nothing here
 // duplicates the anchor-matching logic.
 
 import { createServer as httpCreateServer } from 'node:http';
@@ -146,7 +146,7 @@ function renderBoardPage(cuesFile, resolved) {
     <button id="approveBtn">Approve</button>
     <button id="saveBtn">Save</button>
   </div>
-  <div id="banner">${cuesFile.approved ? '<div class="banner ok">approved — ready for <code>node flow/render.mjs</code></div>' : ''}</div>
+  <div id="banner">${cuesFile.approved ? '<div class="banner ok">approved — ready for <code>node lib/render.mjs</code></div>' : ''}</div>
   <div class="tiles">${tiles}</div>
   <script>
     const VIDEO = ${JSON.stringify(cuesFile.video ?? '')};
@@ -310,7 +310,7 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
 }
 
 export function createServer(workdir) {
-  const cardLibraryRoot = path.resolve(import.meta.dirname, '..');
+  const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
   for (const name of REQUIRED_FILES) {
     if (!fs.existsSync(path.join(workdir, name))) {
       throw new Error(`workdir missing ${name}: ${path.join(workdir, name)}`);
@@ -327,13 +327,19 @@ export function createServer(workdir) {
   });
 }
 
+function resolveWorkdir(arg) {
+  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
+  const pipelineRoot = path.resolve(import.meta.dirname, '..');
+  return path.join(pipelineRoot, 'videos', arg);
+}
+
 async function main() {
-  const workdir = process.argv[2];
-  if (!workdir) {
-    console.error('usage: node flow/board.mjs <workdir>');
+  const arg = process.argv[2];
+  if (!arg) {
+    console.error('usage: node lib/board.mjs <slug-or-path>');
     process.exit(1);
   }
-  const resolvedWorkdir = path.resolve(workdir);
+  const resolvedWorkdir = resolveWorkdir(arg);
   let server;
   try {
     server = createServer(resolvedWorkdir);

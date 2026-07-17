@@ -53,13 +53,20 @@ export function resolveCues(cues, words, catalog) {
   return { resolved: out, errors };
 }
 
+function resolveWorkdir(arg) {
+  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
+  const pipelineRoot = path.resolve(import.meta.dirname, '..');
+  return path.join(pipelineRoot, 'videos', arg);
+}
+
 async function main() {
-  const workdir = process.argv[2];
-  if (!workdir) {
-    console.error('usage: node flow/resolve.mjs <workdir>');
+  const arg = process.argv[2];
+  if (!arg) {
+    console.error('usage: node lib/resolve.mjs <slug-or-path>');
     process.exit(1);
   }
-  const cardLibraryRoot = path.resolve(import.meta.dirname, '..');
+  const workdir = resolveWorkdir(arg);
+  const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
   const cuesPath = path.join(workdir, 'cues.json');
   const transcriptPath = path.join(workdir, 'transcript.json');
   const catalogPath = path.join(cardLibraryRoot, 'catalog.json');
