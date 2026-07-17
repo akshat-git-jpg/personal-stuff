@@ -12,3 +12,5 @@ The rulebook will specify, per visual-plan cue type:
   before handing to step 162
 
 Owner: author this in a Claude Code session on Sonnet with the pipelines:hyperframes + motion-graphics skills loaded.
+
+For final-workflow videos this is superseded by the beat-sync flow rulebook: pipelines/video/card-library/flow/RULEBOOK.md (plan 064).
