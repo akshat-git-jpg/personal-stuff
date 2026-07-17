@@ -212,11 +212,14 @@ boss runs two executors: `claude-p` (backgrounded `claude -p`; models `sonnet`
 or `opus`) and `agy` (headless Antigravity CLI; cheap tokens; agy runs use
 Gemini 3.1 Pro (High), its default model). **Never pick the executor model unilaterally**
 (owner-confirmed 2026-07-12): the user's explicit choice always wins; otherwise
-routing comes from `tooling/boss/data/rules.md` — `tricky` → `executor:
-claude-p` / `model: opus`; `standard` → `claude-p` / `sonnet`; `mechanical` or
-`type:chore` → `agy` (Gemini 3.1 Pro (High)). (The older `antigravity | sonnet | opus`
-naming belongs to the standalone direct-dispatch registry in Step 4 — NOT the
-frontmatter boss reads.)
+routing comes from `tooling/boss/data/rules.md` — **default is `agy`** (Gemini 3.1
+Pro High; owner decision 2026-07-18) for any plan that passes the fully-inlined
+bar, with `claude-p` as the exception: `sonnet` for quality-setting content the
+owner judges by taste (rulebooks, prompts, prose) or plans that can't be fully
+inlined; `opus` for `tricky`. Read rules.md for the riders (render+inspect gate
+on visual output; verify agy by commits, never its envelope). (The older
+`antigravity | sonnet | opus` naming belongs to the standalone direct-dispatch
+registry in Step 4 — NOT the frontmatter boss reads.)
 
 ### Step 4 — Hand off (optional)
 
