@@ -15,6 +15,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables) |
 | `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board: full-script timeline, transcript + inline cue previews + mini-map, per-cue playback) |
 | `050-render-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` |
+| `060-feedback-fold-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
 
 Each `steps/NNN-*/` folder has a `README.md` (purpose, exact command, in →
 out); the four scripted steps also have a thin `run.sh` wrapper.

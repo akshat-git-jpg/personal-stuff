@@ -57,7 +57,9 @@ Specificity wins (mandatory): big number -> overlay/stat-hit; a tool/section
 demo start -> section/tool-intro; plan/credit economics -> comparison/credits-math;
 step walkthrough -> process/step-flow; who-should-buy-what payoff ->
 verdict/persona-match. Repetition cap: the same fullframe card at most 3 times
-per video; overlays exempt but vary callout's style when repeating.
+per video. overlay/stat-hit: max 3 per video, >=90s apart, only for numbers the
+VO leans on — drop the least impressive rather than exceed. Other overlays: vary
+callout's style and position when repeating.
 
 Anchors: verbatim quotes copied exactly from the transcript, contractions and
 all, never paraphrased; at least 3 consecutive words; pick phrases unlikely

@@ -86,6 +86,10 @@ const BOARD_CSS = `
   .banner { margin-bottom:16px; padding:10px 14px; border-radius:9px; font-size:13px; }
   .banner.ok { background:rgba(52,211,153,0.12); border:1px solid var(--ok); color:var(--ok); }
   .banner.err { background:rgba(255,107,107,0.12); border:1px solid var(--err); color:var(--err); }
+  .usage { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .usage-chip { font-size:11px; font-family:ui-monospace,Menlo,monospace; color:var(--dim);
+    border:1px solid var(--line); border-radius:20px; padding:3px 10px; }
+  .usage-chip.hot { color:var(--err); border-color:var(--err); }
   .minimap { display:flex; height:28px; width:100%; border-radius:4px; overflow:hidden; gap:1px; background:var(--line); }
   .minimap-seg { cursor:pointer; transition:opacity 0.2s; }
   .minimap-seg:hover { opacity:0.8; }
@@ -306,6 +310,13 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       <button id="saveBtn">Save</button>
     </div>
     <div id="banner">${cuesFile.approved ? '<div class="banner ok">approved — ready for <code>node lib/render.mjs</code></div>' : ''}</div>
+    <div class="usage">${(() => {
+      const counts = new Map();
+      for (const c of cues) counts.set(c.card, (counts.get(c.card) ?? 0) + 1);
+      return [...counts.entries()].sort((a, b) => b[1] - a[1])
+        .map(([card, n]) => `<span class="usage-chip${n > 3 ? ' hot' : ''}">${escapeHtml(card.split('/').pop())} &times;${n}</span>`)
+        .join('');
+    })()}</div>
     <div class="minimap">${minimapHtml}</div>
     ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
   </div>

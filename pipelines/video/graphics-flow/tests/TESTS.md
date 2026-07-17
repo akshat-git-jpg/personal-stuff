@@ -60,3 +60,9 @@ tested, with what source, and what the run taught us.
 - Validation/resolver caught 5 real errors across two rounds (3 beat anchors placed at/before their cue anchor — the monotonic cursor can't reach backward; 2 fullframe overlaps from heuristic holds). Fix loop: resolver errors + transcript snippets sent back to the SAME warm subagent (one small round), plus one negative-lead fix (c06 lead -1.1 — a single card's duration is catalog-fixed, so overlap resolves from the next cue's side).
 - Learnings for the rulebook (future): beat anchors must come AFTER the cue anchor; single fullframe cards squeezed against a next cue can use negative lead.
 - v1 cues.json remains in git history (committed 2026-07-18 before overwrite).
+
+## Folded lessons
+
+- 2026-07-18 — owner: 5 stat-hits in one video read as a tic → RULEBOOK+prompt: stat-hit max 3/video, ≥90s apart, keep the most impressive numbers. (First fold via steps/060.)
+- 2026-07-18 — owner: no at-a-glance view of template mix → board header now shows per-card usage chips (red when >3).
+- 2026-07-18 — owner: tools should show real logos/icons, text-only names click less → OPEN, needs design decisions (asset source, which cards) before building.
