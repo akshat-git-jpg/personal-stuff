@@ -73,7 +73,7 @@
       data-duration="9"
       data-width="1920"
       data-height="1080"
-      data-composition-variables='{"eyebrow":"In this video","items":[{"label":"Eliminated — and why"},{"label":"Situational picks"},{"label":"Worth considering"},{"label":"The four winners"}]}'
+      data-composition-variables='{"eyebrow":"In this video","beats":[{"label":"Eliminated — and why","at":0.4},{"label":"Situational picks","at":0.8},{"label":"Worth considering","at":1.2},{"label":"The four winners","at":1.6}]}'
     >
       <!-- Track 0: background (static, always on) -->
       <div id="bg" class="clip" data-start="0" data-duration="9" data-track-index="0"></div>
@@ -105,11 +105,11 @@
           : null) || {};
       const DATA = {
         eyebrow: VARS.eyebrow ?? 'In this video', // the small uppercase label up top
-        items: VARS.items ?? [
-          { label: 'Eliminated — and why' },
-          { label: 'Situational picks' },
-          { label: 'Worth considering' },
-          { label: 'The four winners' },
+        beats: VARS.beats ?? [
+          { label: 'Eliminated — and why', at: 0.4 },
+          { label: 'Situational picks',    at: 0.8 },
+          { label: 'Worth considering',    at: 1.2 },
+          { label: 'The four winners',     at: 1.6 },
         ],
       };
 
@@ -123,15 +123,16 @@
       // build the DOM that depends on DATA (must exist before the timeline targets it)
       function build() {
         $('eyebrow').textContent = DATA.eyebrow;
-        $('list').innerHTML = DATA.items
+        $('list').innerHTML = DATA.beats
           .map(
-            (it, i) =>
+            (b, i) =>
               `<li><div class="item">
                  <span class="num">${String(i + 1).padStart(2, '0')}</span>
-                 <span class="label">${it.label}</span>
+                 <span class="label"></span>
                </div></li>`,
           )
           .join('');
+        $('list').querySelectorAll('.label').forEach((el, i) => { el.textContent = DATA.beats[i].label; });
       }
       build();
 
@@ -139,17 +140,16 @@
       const tl = gsap.timeline({ paused: true });
 
       // entrance ease ~ cubic-bezier(0.16,1,0.3,1) (original enterEase) → power4.out
-      // entrance length 28 frames ≈ 0.933s; stagger step = 12 frames = 0.4s; first item at 0.4s
+      // entrance length 28 frames ≈ 0.933s
 
       // 1) Eyebrow fades + slides up (delay 0, yOffset 18)
       tl.from('#eyebrow', { opacity: 0, y: 18, duration: 0.933, ease: 'power4.out' }, 0);
 
-      // 2) List rows stagger in (yOffset 24); first at 0.4s, then +0.4s each
-      tl.from(
-        '#list li',
-        { opacity: 0, y: 24, duration: 0.933, ease: 'power4.out', stagger: 0.4 },
-        0.4,
-      );
+      // 2) Each list row reveals on its beat
+      const rows = $('list').children;
+      DATA.beats.forEach((b, i) => {
+        tl.from(rows[i], { opacity: 0, y: 24, duration: 0.933, ease: 'power4.out' }, b.at);
+      });
 
       window.__timelines['toc'] = tl;
     </script>

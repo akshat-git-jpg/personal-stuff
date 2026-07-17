@@ -46,7 +46,7 @@
   </head>
   <body>
     <div id="root" data-composition-id="recap" data-start="0" data-duration="8" data-width="1920" data-height="1080"
-      data-composition-variables='{"eyebrow":"Recap","title":"Key takeaways","items":[{"label":"It is the fastest to set up — under 5 minutes."},{"label":"The free tier is enough for solo projects."},{"label":"Pay only when you need team seats & SSO."},{"label":"Best value of everything we tested."}]}'>
+      data-composition-variables='{"eyebrow":"Recap","title":"Key takeaways","beats":[{"label":"It is the fastest to set up — under 5 minutes.","at":0.65},{"label":"The free tier is enough for solo projects.","at":1.2},{"label":"Pay only when you need team seats & SSO.","at":1.75},{"label":"Best value of everything we tested.","at":2.3}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
       <div id="content" class="clip" data-start="0" data-duration="8" data-track-index="1">
         <div id="inner">
@@ -63,11 +63,11 @@
       const DATA = {
         eyebrow: VARS.eyebrow ?? 'Recap',   // '' to hide
         title: VARS.title ?? 'Key takeaways',
-        items: VARS.items ?? [
-          { label: 'It is the fastest to set up — under 5 minutes.' },
-          { label: 'The free tier is enough for solo projects.' },
-          { label: 'Pay only when you need team seats & SSO.' },
-          { label: 'Best value of everything we tested.' },
+        beats: VARS.beats ?? [
+          { label: 'It is the fastest to set up — under 5 minutes.', at: 0.65 },
+          { label: 'The free tier is enough for solo projects.',     at: 1.2 },
+          { label: 'Pay only when you need team seats & SSO.',       at: 1.75 },
+          { label: 'Best value of everything we tested.',            at: 2.3 },
         ],
       };
 
@@ -75,17 +75,24 @@
       const $ = (id) => document.getElementById(id);
       if (DATA.eyebrow) { $('eyebrow').textContent = DATA.eyebrow; } else { $('eyebrow').style.display = 'none'; }
       $('title').textContent = DATA.title;
-      $('list').innerHTML = DATA.items
-        .map((it) => `<li class="row"><span class="badge">✓</span><span class="label">${it.label}</span></li>`)
-        .join('');
+      const rows = DATA.beats.map((b) => {
+        const row = document.createElement('li');
+        row.className = 'row';
+        row.innerHTML = '<span class="badge">✓</span><span class="label"></span>';
+        row.querySelector('.label').textContent = b.label;
+        $('list').appendChild(row);
+        return { b, row };
+      });
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       if (DATA.eyebrow) tl.from('#eyebrow', { opacity: 0, y: -12, duration: 0.45, ease: 'power3.out' }, 0.1);
       tl.from('#title', { opacity: 0, y: -20, duration: 0.55, ease: 'power3.out' }, 0.25);
-      // takeaways ticking in one at a time: row slides, badge pops just after
-      tl.from('#list .row', { opacity: 0, x: -30, duration: 0.5, ease: 'power3.out', stagger: 0.55 }, 0.65);
-      tl.from('#list .badge', { scale: 0, opacity: 0, duration: 0.5, ease: 'back.out(2.6)', stagger: 0.55, transformOrigin: '50% 50%' }, 0.78);
+      // each takeaway ticks in on its beat: row slides, badge pops just after
+      rows.forEach(({ b, row }) => {
+        tl.from(row, { opacity: 0, x: -30, duration: 0.5, ease: 'power3.out' }, b.at);
+        tl.from(row.querySelector('.badge'), { scale: 0, opacity: 0, duration: 0.5, ease: 'back.out(2.6)', transformOrigin: '50% 50%' }, b.at + 0.13);
+      });
       window.__timelines['recap'] = tl;
     </script>
   </body>
