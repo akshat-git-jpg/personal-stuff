@@ -6,9 +6,11 @@ export function normWord(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, '');
 // Schema validation against catalog.json contracts — catches wrong-shaped
 // variables/beats BEFORE anything renders (the "undefined on screen" class).
 // A catalog type description containing "optional" marks that field optional.
-export function validateCues(cues, catalog) {
+export function validateCues(cues, catalog, cardLibraryRoot) {
   const bySlug = Object.fromEntries(catalog.cards.map((c) => [c.slug, c]));
   const errors = [];
+  const regPath = cardLibraryRoot ? path.join(cardLibraryRoot, 'logos', 'registry.json') : null;
+  const registry = regPath && fs.existsSync(regPath) ? JSON.parse(fs.readFileSync(regPath, 'utf8')) : {};
   for (const cue of cues) {
     const cat = bySlug[cue.card];
     if (!cat || cue.flagged) continue; // unknown cards error in resolveCues; flagged cues are parked
@@ -59,14 +61,27 @@ export function validateCues(cues, catalog) {
         }
       }
     }
+    const refs = new Set();
+    if (typeof vars.logo === 'string') refs.add(vars.logo);
+    for (const s of vars.productLogos ?? []) if (typeof s === 'string') refs.add(s);
+    for (const b of beats) if (typeof b.reveal?.logo === 'string') refs.add(b.reveal.logo);
+    
+    if (cardLibraryRoot) {
+      for (const slug of refs) {
+        const entry = registry[slug];
+        if (!entry || !entry.file) {
+          errors.push(`${cue.id}: unknown logo slug "${slug}" — run card-library/scripts/fetch-logo.mjs`);
+        }
+      }
+    }
   }
   return errors;
 }
 
-export function resolveCues(cues, words, catalog) {
+export function resolveCues(cues, words, catalog, cardLibraryRoot) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
   const bySlug = Object.fromEntries(catalog.cards.map((c) => [c.slug, c]));
-  const errors = [...validateCues(cues, catalog)];
+  const errors = [...validateCues(cues, catalog, cardLibraryRoot)];
   const out = [];
   let cursor = 0;
   const findFrom = (phrase, from) => {
@@ -135,7 +150,7 @@ async function main() {
   const words = JSON.parse(fs.readFileSync(transcriptPath, 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 
-  const { resolved, errors } = resolveCues(cuesFile.cues, words, catalog);
+  const { resolved, errors } = resolveCues(cuesFile.cues, words, catalog, cardLibraryRoot);
 
   if (errors.length) {
     for (const e of errors) console.error(e);
