@@ -162,6 +162,8 @@ function renderBoardPage(cuesFile, resolved) {
       audio.addEventListener('seeked', post);
       audio.addEventListener('pause', () => { post(); if (raf) cancelAnimationFrame(raf); });
       audio.addEventListener('play', () => {
+        // one video at a time: starting this tile pauses every other one
+        document.querySelectorAll('.tile audio').forEach((a) => { if (a !== audio && !a.paused) a.pause(); });
         const loop = () => { post(); if (!audio.paused) raf = requestAnimationFrame(loop); };
         loop();
       });
@@ -333,13 +335,26 @@ function resolveWorkdir(arg) {
   return path.join(pipelineRoot, 'videos', arg);
 }
 
+// No-arg mode (used by the local-apps dashboard): most recently touched video
+// workdir that has a cues.json.
+function latestWorkdir() {
+  const videosDir = path.join(path.resolve(import.meta.dirname, '..'), 'videos');
+  const candidates = fs.readdirSync(videosDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && fs.existsSync(path.join(videosDir, d.name, 'cues.json')))
+    .map((d) => ({ name: d.name, mtime: fs.statSync(path.join(videosDir, d.name, 'cues.json')).mtimeMs }))
+    .sort((a, b) => b.mtime - a.mtime);
+  if (!candidates.length) return null;
+  console.log(`no workdir given — using latest: videos/${candidates[0].name}`);
+  return path.join(videosDir, candidates[0].name);
+}
+
 async function main() {
   const arg = process.argv[2];
-  if (!arg) {
-    console.error('usage: node lib/board.mjs <slug-or-path>');
+  const resolvedWorkdir = arg ? resolveWorkdir(arg) : latestWorkdir();
+  if (!resolvedWorkdir) {
+    console.error('usage: node lib/board.mjs <slug-or-path>  (no videos/*/cues.json found for no-arg mode)');
     process.exit(1);
   }
-  const resolvedWorkdir = resolveWorkdir(arg);
   let server;
   try {
     server = createServer(resolvedWorkdir);

@@ -89,6 +89,15 @@
       "url": "http://localhost:4361"
     },
     {
+      "id": "graphics-board",
+      "name": "graphics storyboard",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/video/graphics-flow",
+      "start": "node lib/board.mjs",
+      "port": 4322,
+      "ports": [4322],
+      "url": "http://localhost:4322"
+    },
+    {
       "id": "avatar-ui",
       "name": "avatar renderer",
       "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/youtube/tutorial-pipeline-1/ui",
