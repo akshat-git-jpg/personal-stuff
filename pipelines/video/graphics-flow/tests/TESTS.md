@@ -49,6 +49,14 @@ tested, with what source, and what the run taught us.
      (strings→{label}; pad/trim rows + separate reason field), catalog.json array
      types now spell out exact item shapes for all 8 affected cards, and this class
      of bug feeds the auto-QC design (schema validation + frame inspection).
-  7. Sonnet judgment notes: inferred one unstated score (OpenArt "Creative Ground" = 5);
+  7. (v1) Sonnet judgment notes: inferred one unstated score (OpenArt "Creative Ground" = 5);
      dropped a 6-item feature list (items too short for 3-word anchors); moved the CTA
      cue off the last-20s zone. All reasonable — review on board.
+
+### v2 cue pass (2026-07-18) — new 42-card catalog + routing rules
+
+- Re-ran step 020 (Sonnet again, for comparability) after the card batch + specificity/repetition rules.
+- **27 cues, 0 flagged**: 5 stat-hit (100 models / 70 presets / 240 avatars / 140 languages / 300 actors), 3 tool-intro + 2 section dividers (cap respected via substitution), 3 step-flow, 3 credits-math, persona-match payoff (5 beats), summary-table trimmed to the 4 fully-stated factor rows, callout styles varied. The v1 monotony (5x bullet-list + 5x identical callout) is gone.
+- Validation/resolver caught 5 real errors across two rounds (3 beat anchors placed at/before their cue anchor — the monotonic cursor can't reach backward; 2 fullframe overlaps from heuristic holds). Fix loop: resolver errors + transcript snippets sent back to the SAME warm subagent (one small round), plus one negative-lead fix (c06 lead -1.1 — a single card's duration is catalog-fixed, so overlap resolves from the next cue's side).
+- Learnings for the rulebook (future): beat anchors must come AFTER the cue anchor; single fullframe cards squeezed against a next cue can use negative lead.
+- v1 cues.json remains in git history (committed 2026-07-18 before overwrite).

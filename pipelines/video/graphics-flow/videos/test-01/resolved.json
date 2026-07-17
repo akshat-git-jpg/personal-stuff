@@ -4,156 +4,178 @@
   "resolved": [
     {
       "id": "c01",
-      "card": "title/title-kinetic-lines",
-      "placement": "fullframe",
-      "start": 13.78,
-      "duration": 10,
-      "variables": {
-        "kicker": "5 AI video tools compared",
-        "title": "Which Tool Wins And For Who",
-        "subtitle": "OpenArt, Higgsfield, Synthesia, HeyGen, and Arcads"
-      }
-    },
-    {
-      "id": "c02",
       "card": "table-of-contents/table-of-contents",
       "placement": "fullframe",
-      "start": 59.01,
-      "duration": 28.07,
+      "start": 58.59,
+      "duration": 34.67,
       "variables": {
         "eyebrow": "What's coming up",
         "beats": [
           {
             "label": "Quick tool overviews",
-            "at": 3.63
+            "at": 4.29
           },
           {
-            "label": "Live demos of each platform",
-            "at": 8.48
+            "label": "Live demo of each tool",
+            "at": 8.91
           },
           {
-            "label": "Pricing across all 5 tools",
-            "at": 11.75
+            "label": "Pricing side by side",
+            "at": 12.23
           },
           {
-            "label": "Summary table of scores",
-            "at": 14.37
+            "label": "Summary score table",
+            "at": 14.86
           },
           {
             "label": "Verdict by use case",
-            "at": 19.07
+            "at": 19.67
           }
         ]
       }
     },
     {
-      "id": "c03",
-      "card": "section/bullet-points-highlighted",
-      "placement": "fullframe",
-      "start": 176.05,
-      "duration": 6,
+      "id": "c02",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 96.87,
+      "duration": 5,
       "variables": {
-        "eyebrow": "Live demo",
-        "active": 0,
-        "items": [
-          "OpenArt AI",
-          "Higgsfield",
-          "Synthesia",
-          "HeyGen",
-          "Arcads"
-        ]
+        "eyebrow": "OpenArt AI",
+        "value": 100,
+        "suffix": "+",
+        "context": "AI models in one platform"
+      }
+    },
+    {
+      "id": "c03",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 142.75,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Higgsfield",
+        "value": 70,
+        "suffix": "+",
+        "context": "camera presets in Cinema Studio"
       }
     },
     {
       "id": "c04",
-      "card": "overlay/callout",
+      "card": "overlay/stat-hit",
       "placement": "overlay",
-      "start": 262.11,
+      "start": 159.69,
       "duration": 5,
       "variables": {
-        "kind": "tip",
-        "title": "Model tip",
-        "text": "VU 3.1 renders high-fidelity 4K video with audio",
-        "pos": "bottom-right"
+        "eyebrow": "Synthesia",
+        "value": 240,
+        "suffix": "+",
+        "context": "lifelike AI avatars to choose from"
       }
     },
     {
       "id": "c05",
-      "card": "section/bullet-points-highlighted",
+      "card": "section/tool-intro",
       "placement": "fullframe",
-      "start": 492.85,
+      "start": 176.05,
       "duration": 6,
       "variables": {
-        "eyebrow": "Live demo",
-        "active": 1,
-        "items": [
-          "OpenArt AI",
-          "Higgsfield",
-          "Synthesia",
-          "HeyGen",
-          "Arcads"
-        ]
+        "index": 1,
+        "total": 5,
+        "name": "OpenArt AI",
+        "tagline": "A full creative workspace, not a single-purpose tool",
+        "tag": "Creative hub"
       }
     },
     {
       "id": "c06",
-      "card": "overlay/callout",
-      "placement": "overlay",
-      "start": 697.07,
-      "duration": 5,
-      "variables": {
-        "kind": "tip",
-        "title": "Character consistency",
-        "text": "SoulID keeps a character consistent across video clips",
-        "pos": "bottom-right"
-      }
-    },
-    {
-      "id": "c07",
-      "card": "section/bullet-points-highlighted",
+      "card": "process/step-flow",
       "placement": "fullframe",
-      "start": 763.83,
-      "duration": 6,
+      "start": 182.07,
+      "duration": 187.1,
       "variables": {
-        "eyebrow": "Live demo",
-        "active": 2,
-        "items": [
-          "OpenArt AI",
-          "Higgsfield",
-          "Synthesia",
-          "HeyGen",
-          "Arcads"
+        "title": "OpenArt AI: text to video",
+        "beats": [
+          {
+            "label": "Open OpenArt.ai",
+            "at": 7.02
+          },
+          {
+            "label": "Choose text to video",
+            "at": 13.86
+          },
+          {
+            "label": "Pick your model",
+            "at": 23.83
+          },
+          {
+            "label": "Describe your scene",
+            "at": 109.25
+          },
+          {
+            "label": "Generate the video",
+            "at": 175.1
+          }
         ]
       }
     },
     {
-      "id": "c08",
+      "id": "c07",
       "card": "overlay/callout",
       "placement": "overlay",
-      "start": 830.64,
+      "start": 446.42,
       "duration": 5,
       "variables": {
         "kind": "note",
-        "title": "Avatar library",
-        "text": "Over 240 lifelike AI avatars to choose from",
-        "pos": "bottom-right"
+        "title": "Category of its own",
+        "text": "Broadest creative toolkit of the five",
+        "pos": "bottom-right",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c08",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 492.85,
+      "duration": 6,
+      "variables": {
+        "index": 2,
+        "total": 5,
+        "name": "Higgsfield",
+        "tagline": "Director-level camera control for cinematic video",
+        "tag": "Cinematic video"
       }
     },
     {
       "id": "c09",
-      "card": "section/bullet-points-highlighted",
+      "card": "process/step-flow",
       "placement": "fullframe",
-      "start": 994.79,
-      "duration": 6,
+      "start": 506.83,
+      "duration": 128.21,
       "variables": {
-        "eyebrow": "Live demo",
-        "active": 3,
-        "items": [
-          "OpenArt AI",
-          "Higgsfield",
-          "Synthesia",
-          "HeyGen",
-          "Arcads"
+        "title": "Higgsfield: Cinema Studio",
+        "beats": [
+          {
+            "label": "Open Cinema Studio",
+            "at": 7.76
+          },
+          {
+            "label": "Set camera movement",
+            "at": 20.49
+          },
+          {
+            "label": "Pick genre & aspect ratio",
+            "at": 53.13
+          },
+          {
+            "label": "Set start & end frame",
+            "at": 95.9
+          },
+          {
+            "label": "Generate the shot",
+            "at": 116.21
+          }
         ]
       }
     },
@@ -161,171 +183,310 @@
       "id": "c10",
       "card": "overlay/callout",
       "placement": "overlay",
-      "start": 1066.44,
+      "start": 728.99,
       "duration": 5,
       "variables": {
-        "kind": "tip",
-        "title": "Voice cloning",
-        "text": "Clone your voice from a short audio sample",
-        "pos": "bottom-right"
+        "kind": "note",
+        "title": "Strongest cinematic tool",
+        "text": "Camera control leads the pack",
+        "pos": "top-right",
+        "style": "tip"
       }
     },
     {
       "id": "c11",
-      "card": "section/bullet-points-highlighted",
+      "card": "section/tool-intro",
       "placement": "fullframe",
-      "start": 1198.75,
+      "start": 763.83,
       "duration": 6,
       "variables": {
-        "eyebrow": "Live demo",
-        "active": 4,
-        "items": [
-          "OpenArt AI",
-          "Higgsfield",
-          "Synthesia",
-          "HeyGen",
-          "Arcads"
-        ]
+        "index": 3,
+        "total": 5,
+        "name": "Synthesia",
+        "tagline": "Polished presenter-style avatar video for business",
+        "tag": "Corporate avatars"
       }
     },
     {
       "id": "c12",
-      "card": "overlay/callout",
+      "card": "overlay/stat-hit",
       "placement": "overlay",
-      "start": 1305.78,
+      "start": 934.77,
       "duration": 5,
       "variables": {
-        "kind": "tip",
-        "title": "Bulk creation",
-        "text": "Attach multiple actors to one script and generate variations at once",
-        "pos": "bottom-right"
+        "eyebrow": "Synthesia",
+        "value": 140,
+        "suffix": "+",
+        "context": "languages and accents supported"
       }
     },
     {
       "id": "c13",
-      "card": "section/section-counter-scale",
-      "placement": "fullframe",
-      "start": 1375.27,
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 971.91,
       "duration": 5,
       "variables": {
-        "number": "3",
-        "title": "Pricing Across All 5 Tools",
-        "dots": 5
+        "kind": "note",
+        "title": "Corporate video winner",
+        "text": "Built for polished presenter content",
+        "pos": "bottom-left",
+        "style": "feature"
       }
     },
     {
       "id": "c14",
-      "card": "comparison/billing-discount",
+      "card": "section/section-counter-scale",
       "placement": "fullframe",
-      "start": 1420.54,
-      "duration": 7,
+      "start": 994.79,
+      "duration": 5,
       "variables": {
-        "title": "OpenArt AI Pricing",
-        "monthly": {
-          "label": "Monthly",
-          "price": "$56/mo"
-        },
-        "yearly": {
-          "label": "Annual (50% off)",
-          "price": "$28/mo",
-          "credits": "24,000 credits"
-        }
+        "number": "4",
+        "title": "HeyGen",
+        "dots": 5
       }
     },
     {
       "id": "c15",
-      "card": "comparison/billing-discount",
+      "card": "process/step-flow",
       "placement": "fullframe",
-      "start": 1469.34,
-      "duration": 7,
+      "start": 1011.32,
+      "duration": 150.31,
       "variables": {
-        "title": "Higgsfield Pricing",
-        "monthly": {
-          "label": "Monthly",
-          "price": "$49/mo"
-        },
-        "yearly": {
-          "label": "Annual",
-          "price": "$39/mo",
-          "credits": "6,000 credits"
-        }
+        "title": "HeyGen: avatar & voice",
+        "beats": [
+          {
+            "label": "Select your avatar",
+            "at": 1.48
+          },
+          {
+            "label": "Paste in your script",
+            "at": 3.45
+          },
+          {
+            "label": "Clone your voice",
+            "at": 41.8
+          },
+          {
+            "label": "Upload a voice sample",
+            "at": 105.37
+          },
+          {
+            "label": "Translate the video",
+            "at": 138.31
+          }
+        ]
       }
     },
     {
       "id": "c16",
-      "card": "comparison/pricing-tiers",
-      "placement": "fullframe",
-      "start": 1501.95,
-      "duration": 8,
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 1168.2,
+      "duration": 5,
       "variables": {
-        "heading": "Synthesia Pricing",
-        "plans": [
-          {
-            "name": "Starter",
-            "price": "$29/mo ($18 annual)",
-            "detail": "10 minutes of video/month"
-          },
-          {
-            "name": "Creator",
-            "price": "$89/mo ($64 annual)",
-            "detail": "30 minutes of video/month",
-            "recommended": true
-          }
-        ]
+        "kind": "note",
+        "title": "Best for solo creators",
+        "text": "Voice cloning plus fast turnaround",
+        "pos": "top-left",
+        "style": "tip"
       }
     },
     {
       "id": "c17",
-      "card": "comparison/pricing-tiers",
+      "card": "section/section-particle-storm",
       "placement": "fullframe",
-      "start": 1548.47,
-      "duration": 8,
+      "start": 1198.75,
+      "duration": 5,
       "variables": {
-        "heading": "HeyGen Pricing",
-        "plans": [
-          {
-            "name": "Creator",
-            "price": "$29/mo",
-            "detail": "Unlimited avatar videos, voice cloning"
-          },
-          {
-            "name": "Team",
-            "price": "$39/seat/mo",
-            "detail": "4K export, collaboration tools",
-            "recommended": true
-          }
-        ]
+        "number": "5",
+        "title": "Arcads"
       }
     },
     {
       "id": "c18",
-      "card": "comparison/pricing-tiers",
-      "placement": "fullframe",
-      "start": 1589.49,
-      "duration": 8,
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 1213.57,
+      "duration": 5,
       "variables": {
-        "heading": "Arcads Pricing",
-        "plans": [
+        "eyebrow": "Arcads",
+        "value": 300,
+        "suffix": "+",
+        "context": "real-human actors in the library"
+      }
+    },
+    {
+      "id": "c19",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 1337.93,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Wins for performance marketers",
+        "text": "Built for high-volume UGC ad creative",
+        "pos": "bottom-right",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c20",
+      "card": "comparison/credits-math",
+      "placement": "fullframe",
+      "start": 1386.13,
+      "duration": 65.67,
+      "variables": {
+        "title": "OpenArt AI pricing",
+        "beats": [
           {
-            "name": "Starter",
-            "price": "$110/mo",
-            "detail": "Up to 10 videos"
+            "label": "Infinite (annual)",
+            "math": "$28/mo · 24k credits",
+            "at": 41.73
           },
           {
-            "name": "Creator",
-            "price": "$154/mo (was $220)",
-            "detail": "Discounted higher-volume plan",
-            "recommended": true
+            "label": "Basic image",
+            "math": "~1 credit",
+            "at": 55.9
+          },
+          {
+            "label": "Premium clip",
+            "math": "up to 1,500 credits",
+            "at": 59.67
           }
         ]
       }
     },
     {
-      "id": "c19",
+      "id": "c21",
+      "card": "comparison/credits-math",
+      "placement": "fullframe",
+      "start": 1452.61,
+      "duration": 42.74,
+      "variables": {
+        "title": "Higgsfield pricing",
+        "beats": [
+          {
+            "label": "Free tier",
+            "math": "~300 credits/mo, images only",
+            "at": 2.43
+          },
+          {
+            "label": "Creator (annual)",
+            "math": "$39/mo · 6,000 credits",
+            "at": 21.33
+          },
+          {
+            "label": "Premium model gen",
+            "math": "40-70 credits each",
+            "at": 32.74
+          }
+        ]
+      }
+    },
+    {
+      "id": "c22",
+      "card": "comparison/pricing-tiers",
+      "placement": "fullframe",
+      "start": 1496.37,
+      "duration": 8,
+      "variables": {
+        "heading": "Synthesia pricing",
+        "plans": [
+          {
+            "name": "Starter",
+            "price": "$18/mo",
+            "monthlyPrice": "$29/mo",
+            "billingNote": "billed annually",
+            "period": "mo",
+            "tagline": "10 minutes of video per month",
+            "features": [
+              "10 min video/month"
+            ],
+            "cta": "Try Starter",
+            "best": false
+          },
+          {
+            "name": "Creator",
+            "price": "$64/mo",
+            "monthlyPrice": "$89/mo",
+            "billingNote": "billed annually",
+            "period": "mo",
+            "tagline": "30 minutes plus more avatars",
+            "features": [
+              "30 min video/month",
+              "More avatars & features"
+            ],
+            "cta": "Try Creator",
+            "best": true
+          },
+          {
+            "name": "Enterprise",
+            "price": "Custom",
+            "period": "mo",
+            "tagline": "Clip export & translation, unlocked",
+            "features": [
+              "Custom pricing",
+              "Advanced export & translation"
+            ],
+            "cta": "Contact sales",
+            "best": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "c23",
+      "card": "comparison/credits-math",
+      "placement": "fullframe",
+      "start": 1528.91,
+      "duration": 50.58,
+      "variables": {
+        "title": "HeyGen pricing",
+        "beats": [
+          {
+            "label": "Creator plan",
+            "math": "$29/mo, unlimited avatar videos",
+            "at": 20.41
+          },
+          {
+            "label": "Team plan",
+            "math": "$39/seat/mo, 4K export",
+            "at": 30.03
+          },
+          {
+            "label": "90-sec video cost",
+            "math": "eats a big credit chunk",
+            "at": 40.58
+          }
+        ]
+      }
+    },
+    {
+      "id": "c24",
+      "card": "comparison/billing-discount",
+      "placement": "fullframe",
+      "start": 1589.73,
+      "duration": 7,
+      "variables": {
+        "title": "Arcads pricing",
+        "monthly": {
+          "name": "Creator",
+          "price": "$220/mo"
+        },
+        "yearly": {
+          "name": "Creator (discounted)",
+          "price": "$154/mo",
+          "savings": "30% off"
+        }
+      }
+    },
+    {
+      "id": "c25",
       "card": "comparison/summary-table",
       "placement": "fullframe",
-      "start": 1647.75,
-      "duration": 96.06,
+      "start": 1648.8,
+      "duration": 101.31,
       "variables": {
         "products": [
           "OpenArt AI",
@@ -336,104 +497,97 @@
         ],
         "beats": [
           {
-            "name": "Ease of Use",
+            "name": "Ease of use",
             "values": [
-              3.5,
-              4,
-              5,
-              4.5,
-              4
+              "3.5/5",
+              "4/5",
+              "5/5",
+              "4.5/5",
+              "4/5"
             ],
-            "at": 4.32
+            "at": 4.24
           },
           {
-            "name": "Creative Ground",
+            "name": "Output quality",
             "values": [
-              5,
-              3.5,
-              3.5,
-              3.5,
-              3
+              "4.5/5",
+              "4.5/5",
+              "4/5",
+              "4/5",
+              "4/5"
             ],
-            "at": 26.58
+            "at": 47.26
           },
           {
-            "name": "Output Quality",
+            "name": "Use case fit",
             "values": [
-              4.5,
-              4.5,
-              4,
-              4,
-              4
+              "5/5",
+              "3.5/5",
+              "5/5",
+              "5/5",
+              "5/5"
             ],
-            "at": 46.84
+            "at": 66.76
           },
           {
-            "name": "Use Case Fit",
+            "name": "Pricing & value",
             "values": [
-              5,
-              3.5,
-              5,
-              5,
-              5
+              "4.5/5",
+              "3.5/5",
+              "3.5/5",
+              "4/5",
+              "3.5/5"
             ],
-            "at": 66.34
-          },
-          {
-            "name": "Pricing and Value",
-            "values": [
-              4.5,
-              3.5,
-              3.5,
-              4,
-              3.5
-            ],
-            "at": 89.06
+            "at": 89.81
           }
         ]
       }
     },
     {
-      "id": "c20",
-      "card": "section/key-takeaways",
+      "id": "c26",
+      "card": "verdict/persona-match",
       "placement": "fullframe",
       "start": 1771.61,
-      "duration": 95.88,
+      "duration": 103.62,
       "variables": {
-        "eyebrow": "Final verdict",
-        "title": "Which Tool Wins For You",
+        "title": "Which tool is right for you",
         "beats": [
           {
-            "label": "OpenArt AI - best for full creative workflow",
-            "at": 3.86
+            "persona": "Content creators & marketers",
+            "winner": "OpenArt AI",
+            "at": 4.2
           },
           {
-            "label": "Higgsfield - best for cinematic camera control",
+            "persona": "Cinematic video creators",
+            "winner": "Higgsfield",
             "at": 33.96
           },
           {
-            "label": "Synthesia - best for corporate training video",
-            "at": 52.84
+            "persona": "Corporate & training teams",
+            "winner": "Synthesia",
+            "at": 52.91
           },
           {
-            "label": "HeyGen - best for solo creators, no camera",
-            "at": 70.52
+            "persona": "Solo creators & small teams",
+            "winner": "HeyGen",
+            "at": 70.54
           },
           {
-            "label": "Arcads - best for paid ad UGC creatives",
-            "at": 87.88
+            "persona": "Performance marketers",
+            "winner": "Arcads",
+            "at": 90.62
           }
         ]
       }
     },
     {
-      "id": "c21",
+      "id": "c27",
       "card": "link-in-description/link-in-description",
       "placement": "overlay",
-      "start": 1878.92,
+      "start": 1879.21,
       "duration": 4,
       "variables": {
-        "message": "Best discount linked in the description"
+        "message": "Best discount linked below"
       }
     }
   ]
