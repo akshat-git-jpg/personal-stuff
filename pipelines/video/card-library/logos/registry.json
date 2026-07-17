@@ -1,0 +1,27 @@
+{
+  "openart": {
+    "domain": "openart.ai",
+    "file": "openart.png",
+    "source": "favicon"
+  },
+  "higgsfield": {
+    "domain": "higgsfield.ai",
+    "file": "higgsfield.png",
+    "source": "favicon"
+  },
+  "synthesia": {
+    "domain": "synthesia.io",
+    "file": "synthesia.png",
+    "source": "favicon"
+  },
+  "heygen": {
+    "domain": "heygen.com",
+    "file": "heygen.png",
+    "source": "favicon"
+  },
+  "arcads": {
+    "domain": "arcads.ai",
+    "file": "arcads.png",
+    "source": "favicon"
+  }
+}
