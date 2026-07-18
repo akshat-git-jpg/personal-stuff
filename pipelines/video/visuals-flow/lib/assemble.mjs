@@ -48,6 +48,45 @@ export function planSegments({ resolved, avatarJobs, total }) {
   return segments;
 }
 
+// Map each overlay onto the segment(s) it intersects, in segment-local time.
+// trimStart = seconds into the overlay clip where this segment's slice begins
+// (non-zero only when an overlay crosses a segment boundary).
+export function planSegmentOverlays(segments, overlays) {
+  return segments.map((seg) => {
+    const local = [];
+    for (const o of overlays) {
+      const s = Math.max(o.start, seg.start);
+      const e = Math.min(o.end, seg.end);
+      if (e - s > 0.01) {
+        local.push({
+          id: o.id,
+          file: o.file,
+          trimStart: +Math.max(seg.start - o.start, 0).toFixed(3),
+          at: +(s - seg.start).toFixed(3),
+          until: +(e - seg.start).toFixed(3),
+        });
+      }
+    }
+    return local;
+  });
+}
+
+// One settings object per run — every segment MUST use identical encoder
+// params so the concat stream-copy is valid.
+export function encoderArgs({ encoder, draft }) {
+  if (encoder === 'videotoolbox') {
+    return ['-c:v', 'h264_videotoolbox', '-b:v', draft ? '4M' : '12M', '-pix_fmt', 'yuv420p'];
+  }
+  return draft
+    ? ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28']
+    : ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18'];
+}
+
+export function detectEncoder() {
+  const res = spawnSync('ffmpeg', ['-hide_banner', '-encoders'], { encoding: 'utf8' });
+  return (res.stdout || '').includes('h264_videotoolbox') ? 'videotoolbox' : 'x264';
+}
+
 // Committed EDL — doubles as editor documentation.
 export function assemblyMd(video, segments, overlays, total, outPath) {
   const seg = segments.map((s) =>
@@ -77,7 +116,7 @@ export function assemblyMd(video, segments, overlays, total, outPath) {
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, keepTemp: false, force: false };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -85,6 +124,12 @@ function parseArgs(argv) {
     if (a === '--screen') opts.screen = rest.shift();
     else if (a === '--screen-offset') opts.screenOffset = parseFloat(rest.shift());
     else if (a === '--out') opts.out = rest.shift();
+    else if (a === '--draft') opts.draft = true;
+    else if (a === '--encoder') {
+      const e = rest.shift();
+      if (e !== 'x264' && e !== 'videotoolbox') throw new Error('--encoder must be x264 or videotoolbox');
+      opts.encoder = e;
+    }
     else if (a === '--keep-temp') opts.keepTemp = true;
     else if (a === '--force') opts.force = true;
     else throw new Error(`unknown argument: ${a}`);
@@ -98,7 +143,7 @@ function resolveWorkdir(arg) {
   return path.join(pipelineRoot, 'videos', arg);
 }
 
-export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, keepTemp = false }) {
+export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false }) {
   const segments = planSegments({ resolved, avatarJobs, total });
   const renderDir = path.join(workdir, 'renders');
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
@@ -108,11 +153,16 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
   const tmpDir = path.join(workdir, 'assembly-tmp');
   fs.mkdirSync(tmpDir, { recursive: true });
 
-  const VF = `scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=30,format=yuv420p`;
+  const { w, h } = draft ? { w: 1280, h: 720 } : { w: CANVAS.w, h: CANVAS.h };
+  const VF = `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,fps=30,format=yuv420p`;
+  const ENC = encoderArgs({ encoder, draft });
+  const segOverlays = planSegmentOverlays(segments, overlays);
 
   const concatLines = [];
   let segIndex = 1;
-  for (const seg of segments) {
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    const L = segOverlays[i];
     const segFileStr = `seg-${String(segIndex).padStart(3, '0')}-${seg.id}.ts`;
     const segFile = path.join(tmpDir, segFileStr);
     concatLines.push(`file '${segFileStr}'`);
@@ -120,24 +170,46 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
 
     const dur = seg.end - seg.start;
     let spawnArgs = [];
+    let src = '';
+    let seekArgs = [];
+
     if (seg.kind === 'screen') {
-      spawnArgs = [
-        '-y', '-ss', String(seg.start + screenOffset), '-to', String(seg.end + screenOffset),
-        '-i', screen, '-vf', `${VF},tpad=stop_mode=clone:stop_duration=30`,
-        '-t', String(dur), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-f', 'mpegts', segFile
-      ];
+      seekArgs = ['-ss', String(seg.start + screenOffset), '-to', String(seg.end + screenOffset)];
+      src = screen;
     } else if (seg.kind === 'avatar') {
       const job = avatarJobs.find(j => j.id === seg.id);
-      spawnArgs = [
-        '-y', '-i', job.file, '-vf', `${VF},tpad=stop_mode=clone:stop_duration=30`,
-        '-t', String(dur), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-f', 'mpegts', segFile
-      ];
+      src = job.file;
     } else if (seg.kind === 'graphic') {
       const cue = resolved.find(c => c.id === seg.id);
-      const clipFile = path.join(renderDir, planRender(cue).outFile);
+      src = path.join(renderDir, planRender(cue).outFile);
+    }
+
+    if (L && L.length > 0) {
+      let chain = `[0:v]${VF},tpad=stop_mode=clone:stop_duration=30[b0];`;
+      const inputs = [];
+      for (const o of L) inputs.push('-i', o.file);
+      
+      let lastV = 'b0';
+      for (let j = 0; j < L.length; j++) {
+        const o = L[j];
+        const oj = `o${j}`;
+        const nextV = `b${j + 1}`;
+        chain += `[${j + 1}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${o.at}/TB,scale=${w}:${h}[${oj}];`;
+        chain += `[${lastV}][${oj}]overlay=eof_action=pass:enable='between(t,${o.at},${o.until})'[${nextV}];`;
+        lastV = nextV;
+      }
+      chain = chain.slice(0, -1); // remove trailing semicolon
+
       spawnArgs = [
-        '-y', '-i', clipFile, '-vf', `${VF},tpad=stop_mode=clone:stop_duration=30`,
-        '-t', String(dur), '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-f', 'mpegts', segFile
+        '-y', ...seekArgs, '-i', src, ...inputs,
+        '-filter_complex', chain, '-map', `[${lastV}]`,
+        '-t', String(dur), '-an', ...ENC, '-f', 'mpegts', segFile
+      ];
+    } else {
+      spawnArgs = [
+        '-y', ...seekArgs, '-i', src,
+        '-vf', `${VF},tpad=stop_mode=clone:stop_duration=30`,
+        '-t', String(dur), '-an', ...ENC, '-f', 'mpegts', segFile
       ];
     }
 
@@ -148,41 +220,16 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     }
   }
 
-  fs.writeFileSync(path.join(tmpDir, 'concat.txt'), concatLines.join('\n') + '\n');
-  const baseRes = spawnSync('ffmpeg', ['-y', '-f', 'concat', '-safe', '0', '-i', 'concat.txt', '-c', 'copy', 'base.mp4'], { cwd: tmpDir, encoding: 'utf8' });
-  if (baseRes.status !== 0) {
-    console.error(baseRes.stderr);
-    process.exit(1);
-  }
-
-  const finalArgs = ['-y', '-i', path.join(tmpDir, 'base.mp4')];
-  overlays.sort((a, b) => a.start - b.start);
-  for (const o of overlays) {
-    finalArgs.push('-itsoffset', String(o.start), '-i', o.file);
-  }
-  finalArgs.push('-i', path.join(workdir, 'vo.mp3'));
-
-  if (overlays.length > 0) {
-    let filterComplex = '';
-    let lastV = '0:v';
-    for (let i = 0; i < overlays.length; i++) {
-      const o = overlays[i];
-      const nextV = `v${i + 1}`;
-      filterComplex += `[${lastV}][${i + 1}:v]overlay=eof_action=pass:enable='between(t,${o.start},${o.end})'[${nextV}];`;
-      lastV = nextV;
-    }
-    filterComplex = filterComplex.slice(0, -1);
-    finalArgs.push('-filter_complex', filterComplex);
-    finalArgs.push('-map', `[${lastV}]`, '-map', `${overlays.length + 1}:a`);
-  } else {
-    finalArgs.push('-map', '0:v', '-map', '1:a');
-  }
-
+  const voPath = path.join(workdir, 'vo.mp3');
   fs.mkdirSync(path.dirname(out), { recursive: true });
-
-  finalArgs.push('-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-t', String(total), '-movflags', '+faststart', out);
+  fs.writeFileSync(path.join(tmpDir, 'concat.txt'), concatLines.join('\n') + '\n');
   
-  const finalRes = spawnSync('ffmpeg', finalArgs, { encoding: 'utf8' });
+  const finalArgs = [
+    '-y', '-f', 'concat', '-safe', '0', '-i', 'concat.txt', '-i', path.resolve(voPath),
+    '-map', '0:v', '-c:v', 'copy', '-map', '1:a', '-c:a', 'aac', '-b:a', '192k',
+    '-t', String(total), '-movflags', '+faststart', out
+  ];
+  const finalRes = spawnSync('ffmpeg', finalArgs, { cwd: tmpDir, encoding: 'utf8' });
   if (finalRes.status !== 0) {
     console.error(finalRes.stderr);
     process.exit(1);
@@ -196,8 +243,8 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
   }
 
   const streamProbe = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0:s=x', out], { encoding: 'utf8' });
-  if (streamProbe.stdout.trim() !== '1920x1080') {
-    console.error(`mismatched video resolution: ${streamProbe.stdout.trim()} != 1920x1080`);
+  if (streamProbe.stdout.trim() !== `${w}x${h}`) {
+    console.error(`mismatched video resolution: ${streamProbe.stdout.trim()} != ${w}x${h}`);
     process.exit(1);
   }
 
@@ -221,7 +268,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.workdir) {
-    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--keep-temp] [--force]');
+    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force]');
     process.exit(1);
   }
   const workdir = resolveWorkdir(opts.workdir);
@@ -300,8 +347,8 @@ async function main() {
     console.warn('warning: screen source duration + offset is more than 2s short of the last screen segment end');
   }
 
-  const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, video, 'final.mp4');
-  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, keepTemp: opts.keepTemp });
+  const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, video, opts.draft ? 'final-draft.mp4' : 'final.mp4');
+  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp });
   process.exit(0);
 }
 

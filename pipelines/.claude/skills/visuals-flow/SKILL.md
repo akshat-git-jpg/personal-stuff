@@ -89,6 +89,8 @@ Editor handoff = `renders/` + `manifest.md` + those clips + `avatar-manifest.md`
    the ffmpeg passes are the step's own. Output:
    `~/kb-scratch/video/visuals-flow/<slug>/final.mp4` + committed
    `assembly.md` (the EDL).
+   For a fast placement check first, add `--draft` (720p preview,
+   `final-draft.mp4`); re-run without it for the ship render.
 3. The editor handoff bundle is unchanged; final.mp4 is an additional output —
    per video the owner ships it directly or hands the bundle to the editor.
 

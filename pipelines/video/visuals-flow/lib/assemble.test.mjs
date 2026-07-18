@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { planSegments, assemblyMd, runAssembly } from './assemble.mjs';
+import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder } from './assemble.mjs';
 
 const testTmp = path.resolve(import.meta.dirname, '.test-tmp', 'assemble-it');
 
@@ -64,6 +64,35 @@ test('assemblyMd: format', () => {
   assert.match(md, /\| 00:02.0 \| 00:04.0 \| ov.mov \|/);
 });
 
+test('planSegmentOverlays: pure mapping', () => {
+  const segments = [{ start: 0, end: 2 }, { start: 2, end: 4 }];
+  const overlays = [
+    { id: 'o1', start: 0.5, end: 1.5, file: '1.mov' },
+    { id: 'o2', start: 1.5, end: 2.5, file: '2.mov' },
+    { id: 'o3', start: 4.5, end: 5.5, file: '3.mov' },
+    { id: 'o4', start: 1.995, end: 2.0, file: '4.mov' }
+  ];
+  const planned = planSegmentOverlays(segments, overlays);
+  assert.equal(planned.length, 2);
+  assert.deepEqual(planned[0], [
+    { id: 'o1', file: '1.mov', trimStart: 0, at: 0.5, until: 1.5 },
+    { id: 'o2', file: '2.mov', trimStart: 0, at: 1.5, until: 2 }
+  ]);
+  assert.deepEqual(planned[1], [
+    { id: 'o2', file: '2.mov', trimStart: 0.5, at: 0, until: 0.5 }
+  ]);
+});
+
+test('encoderArgs', () => {
+  assert.ok(encoderArgs({ encoder: 'x264', draft: false }).includes('veryfast'));
+  assert.ok(encoderArgs({ encoder: 'x264', draft: true }).includes('ultrafast'));
+  assert.ok(encoderArgs({ encoder: 'videotoolbox', draft: false }).includes('h264_videotoolbox'));
+  assert.ok(encoderArgs({ encoder: 'videotoolbox', draft: false }).includes('12M'));
+  assert.ok(encoderArgs({ encoder: 'videotoolbox', draft: true }).includes('4M'));
+  const enc = detectEncoder();
+  assert.ok(enc === 'x264' || enc === 'videotoolbox');
+});
+
 test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
   fs.mkdirSync(path.join(testTmp, 'media'), { recursive: true });
   fs.mkdirSync(path.join(testTmp, 'renders'), { recursive: true });
@@ -85,7 +114,7 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
 
   const resolved = [
     { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' },
-    { id: 'o1', placement: 'overlay', start: 5, duration: 1, card: 'black' }
+    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
   ];
   const avatarJobs = [
     { kind: 'avatar-full', id: 's01', start: 6, end: 8, file: avatarFile }
@@ -103,9 +132,15 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
       total: 8,
       screen: screenMp4,
       out: outMp4,
-      keepTemp: false
+      encoder: 'x264',
+      keepTemp: true
     });
   });
+
+  const tmpDir = path.join(testTmp, 'assembly-tmp');
+  assert.ok(!fs.existsSync(path.join(tmpDir, 'base.mp4')), 'base.mp4 should not exist in single-pass');
+  assert.ok(fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts')).length >= 4, 'should have at least 5 segments');
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 
   assert.ok(fs.existsSync(outMp4));
   const probe = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', outMp4], { encoding: 'utf8' });
@@ -121,4 +156,41 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   const mdFile = fs.readFileSync(path.join(testTmp, 'assembly.md'), 'utf8');
   assert.equal((mdFile.match(/screen-|avatar|graphic/g) || []).length, 5); // 5 base rows
   assert.equal((mdFile.match(/0005-o1-black.mov/g) || []).length, 1); // 1 overlay row
+});
+
+test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+  const outDraft = path.join(testTmp, 'final-draft.mp4');
+  if (fs.existsSync(outDraft)) fs.unlinkSync(outDraft);
+
+  const resolved = [
+    { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' },
+    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
+  ];
+  const avatarJobs = [
+    { kind: 'avatar-full', id: 's01', start: 6, end: 8, file: path.join(testTmp, 'media', 's01.mp4') }
+  ];
+
+  runAssembly({
+    workdir: testTmp,
+    video: 'it',
+    resolved,
+    avatarJobs,
+    total: 8,
+    screen: path.join(testTmp, 'screen.mp4'),
+    out: outDraft,
+    draft: true,
+    encoder: 'x264',
+    keepTemp: false
+  });
+
+  assert.ok(fs.existsSync(outDraft));
+  const probe = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', outDraft], { encoding: 'utf8' });
+  const dur = parseFloat(probe.stdout);
+  assert.ok(Math.abs(dur - 8) <= 0.5);
+
+  const streamProbe = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0:s=x', outDraft], { encoding: 'utf8' });
+  assert.equal(streamProbe.stdout.trim(), '1280x720');
+
+  const audioProbe = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=codec_type', '-of', 'csv=p=0', outDraft], { encoding: 'utf8' });
+  assert.match(audioProbe.stdout, /audio/);
 });
