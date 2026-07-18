@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveWorkdir } from './workdir.mjs';
 
 const CAP_STAT_HIT = 3;
 const SPACING_STAT_HIT = 90;
@@ -145,11 +146,6 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
   return { errors, warnings };
 }
 
-function resolveWorkdir(arg) {
-  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
-  const pipelineRoot = path.resolve(import.meta.dirname, '..');
-  return path.join(pipelineRoot, 'videos', arg);
-}
 
 async function main() {
   const arg = process.argv[2];

@@ -4,11 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-function resolveWorkdir(arg) {
-  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
-  const pipelineRoot = path.resolve(import.meta.dirname, '..');
-  return path.join(pipelineRoot, 'videos', arg);
-}
+import { resolveWorkdir } from './workdir.mjs';
 
 export function transcriptText(words) {
   return words.map((w) => w.text).join(' ');

@@ -17,6 +17,7 @@ import { lintCues } from './lint-cues.mjs';
 import { mmss } from './render.mjs';
 import { enrichLogos } from './logos-inline.mjs';
 import { resolveShots } from './resolve-shots.mjs';
+import { resolveWorkdir } from './workdir.mjs';
 
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
 
@@ -1009,11 +1010,6 @@ export function createServer(workdir) {
   });
 }
 
-function resolveWorkdir(arg) {
-  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
-  const pipelineRoot = path.resolve(import.meta.dirname, '..');
-  return path.join(pipelineRoot, 'videos', arg);
-}
 
 // No-arg mode (used by the local-apps dashboard): most recently touched video
 // workdir that has a cues.json.

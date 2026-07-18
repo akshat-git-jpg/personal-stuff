@@ -4,6 +4,7 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { enrichLogos } from './logos-inline.mjs';
 import { resolveCues } from './resolve.mjs';
+import { resolveWorkdir } from './workdir.mjs';
 
 const HYPERFRAMES = process.env.HYPERFRAMES_VERSION ? `hyperframes@${process.env.HYPERFRAMES_VERSION}` : 'hyperframes@0.7.62';
 const DURATION_TOLERANCE = 0.15;
@@ -91,11 +92,6 @@ function parseArgs(argv) {
   return opts;
 }
 
-function resolveWorkdir(arg) {
-  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
-  const pipelineRoot = path.resolve(import.meta.dirname, '..');
-  return path.join(pipelineRoot, 'videos', arg);
-}
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
