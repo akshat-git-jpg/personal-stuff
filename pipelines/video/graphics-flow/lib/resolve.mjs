@@ -84,13 +84,14 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot) {
   const errors = [...validateCues(cues, catalog, cardLibraryRoot)];
   const out = [];
   let cursor = 0;
+  let lastFullframe = null;
   const findFrom = (phrase, from) => {
     const p = phrase.split(/\s+/).map(normWord).filter(Boolean);
     if (p.length < 3) return { err: `anchor has fewer than 3 words: "${phrase}"` };
     for (let i = from; i <= W.length - p.length; i++) {
       let ok = true;
       for (let j = 0; j < p.length; j++) if (W[i + j].n !== p[j]) { ok = false; break; }
-      if (ok) return { idx: i, start: W[i].start };
+      if (ok) return { idx: i, start: W[i].start, len: p.length };
     }
     return { err: `anchor not found (searching forward from word ${from}): "${phrase}"` };
   };
@@ -100,7 +101,7 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot) {
     if (cue.flagged) continue; // flagged cues are skipped, not errors
     const a = findFrom(cue.anchor, cursor);
     if (a.err) { errors.push(`${cue.id}: ${a.err}`); continue; }
-    cursor = a.idx + 1;
+    cursor = a.idx + a.len;
     const lead = cue.lead ?? 0.5;
     const hold = cue.hold ?? 3.0;
     const start = Math.max(0, a.start - lead);
@@ -109,21 +110,22 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot) {
     for (const b of cue.beats ?? []) {
       const m = findFrom(b.anchor, cursor);
       if (m.err) { errors.push(`${cue.id} beat: ${m.err}`); failed = true; break; }
-      cursor = m.idx + 1;
+      cursor = m.idx + m.len;
       beats.push({ ...b.reveal, at: +(m.start - start).toFixed(2) });
     }
     if (failed) continue;
     const duration = beats.length ? +(beats[beats.length - 1].at + hold).toFixed(2) : cat.default_duration;
-    const prev = out[out.length - 1];
-    if (prev && cat.placement === 'fullframe' && prev.placement === 'fullframe' && start < prev.start + prev.duration) {
-      errors.push(`${cue.id}: overlaps previous fullframe cue ${prev.id} (${start} < ${(prev.start + prev.duration).toFixed(2)})`);
+    if (cat.placement === 'fullframe' && lastFullframe && start < lastFullframe.start + lastFullframe.duration) {
+      errors.push(`${cue.id}: overlaps previous fullframe cue ${lastFullframe.id} (${start} < ${(lastFullframe.start + lastFullframe.duration).toFixed(2)})`);
       continue;
     }
-    out.push({
+    const entry = {
       id: cue.id, card: cue.card, placement: cat.placement,
       start: +start.toFixed(2), duration,
       variables: { ...cue.variables, ...(beats.length ? { beats } : {}) },
-    });
+    };
+    out.push(entry);
+    if (entry.placement === 'fullframe') lastFullframe = entry;
   }
   return { resolved: out, errors };
 }
