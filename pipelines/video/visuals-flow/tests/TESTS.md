@@ -90,6 +90,7 @@ tested, with what source, and what the run taught us.
 - 2026-07-18 — owner: lane colors all read as similar warm hues → distinct hues (orange fullframe / sky-blue overlay / violet avatar; green stays reserved for approved states).
 - 2026-07-18 — owner: "why two approve buttons?" → kept two gates (independent lifecycles, cue-edit auto-un-approves shots), renamed bare "Approve" to "Approve graphics"; one review sitting covers both.
 - 2026-07-18 — session (s03 retry): avatar-jobs.json was only flushed inside the submit branch, so a retry whose trailing jobs all skip dropped s04–s09 from the file (video_ids recovered from RENDERS.md — the CLI's auto-append row per submit is the designed backup, and it worked) → final unconditional flush after the loop + regression test.
+- 2026-07-18 — owner asked WHY s03 failed → unanswerable: the submit swallowed the CLI's stdout/stderr (empty catch), losing both the error AND the per-submit ✓UNLIMITED meter proof → failed jobs now record an `error` field + per-job stderr lines incl. meter verdict, ⚠️ loud warning on NOT-free; `usage --save` baseline saved so the next run's meter diff is provable. Failure itself was transient (neighbors + retry succeeded on the same session — not auth, not ban, not quota).
 
 ## Convergence
 

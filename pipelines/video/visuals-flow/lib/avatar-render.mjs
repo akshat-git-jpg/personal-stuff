@@ -177,6 +177,18 @@ async function main() {
         id: job.id, kind: job.kind, start: job.start, end: job.end, duration: job.duration,
         audio: audioPath, video_id, status, submitted_at: new Date().toISOString()
       };
+      // Surface the CLI's voice instead of swallowing it (s03 incident 2026-07-18:
+      // a failed submit left zero evidence of WHY, and the per-submit meter
+      // check — the proof Avatar III stayed free — was invisible too).
+      const cliSays = `${res.stderr ?? ''}\n${res.stdout ?? ''}`.trim();
+      if (!video_id) {
+        newJob.error = cliSays.slice(-400) || `exit ${res.status} with empty output`;
+        console.error(`${job.id}: submit FAILED — ${newJob.error}`);
+      } else {
+        const meter = cliSays.match(/UNLIMITED|NOT-free/)?.[0] ?? 'meter-check not seen';
+        console.error(`${job.id}: submitted ${video_id} [${meter}]`);
+        if (/NOT-free/.test(cliSays)) console.error(`${job.id}: ⚠️ meter says NOT-free — Avatar III unlimited assumption broken, investigate before submitting more`);
+      }
       outJobs.push(newJob);
 
       fs.writeFileSync(jobsPath, JSON.stringify({
