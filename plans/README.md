@@ -472,3 +472,4 @@ The others are grounded and available when the owner wants them:
 - 077-visuals-flow-rename — PR#34 077-visuals-flow-rename: Rename graphics-flow → visuals-flow (folder + live refs) — DONE
 - 078-shot-plan-schema-and-pass — PR#35 078-shot-plan-schema-and-pass: Shot plan — schema, LLM pass (step 070), resolver + lint — DONE
 - 079-board-shot-spans — PR#36 079-board-shot-spans: Board — shot spans as a reviewable third block kind — DONE
+- 080-avatar-render-step — PR#37 080-avatar-render-step: Avatar render step (080) — VO slices → HeyGen 3 template jobs → clips + avatar-manifest.md — DONE
