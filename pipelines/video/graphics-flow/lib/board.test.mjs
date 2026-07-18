@@ -387,3 +387,46 @@ test('save: changing cues resets approved to false; identical save keeps it true
   }
 });
 
+test('save: incremental slices only re-encode changed cues', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+    let res = await fetch(`${base}/save`, { method: 'POST', body: JSON.stringify(cuesFile) });
+    assert.equal((await res.json()).ok, true);
+
+    const slicesDir = path.join(workdir, 'slices');
+    const c01Path = path.join(slicesDir, 'c01.mp3');
+    const c02Path = path.join(slicesDir, 'c02.mp3');
+    const c01Stat = fs.statSync(c01Path);
+    const c02Stat = fs.statSync(c02Path);
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    cuesFile.cues[0].hold = (cuesFile.cues[0].hold || 3) + 1;
+    res = await fetch(`${base}/save`, { method: 'POST', body: JSON.stringify(cuesFile) });
+    assert.equal((await res.json()).ok, true);
+
+    const c01Stat2 = fs.statSync(c01Path);
+    const c02Stat2 = fs.statSync(c02Path);
+
+    assert.notEqual(c01Stat2.mtimeMs, c01Stat.mtimeMs, 'c01 should have been re-encoded');
+    assert.equal(c02Stat2.mtimeMs, c02Stat.mtimeMs, 'c02 should not have been re-encoded');
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /save with invalid JSON body returns 400 and error', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/save`, { method: 'POST', body: 'not json' });
+    assert.equal(res.status, 400);
+    const data = await res.json();
+    assert.equal(data.ok, false);
+    assert.match(data.errors[0], /invalid JSON/);
+  } finally {
+    server.close();
+  }
+});
