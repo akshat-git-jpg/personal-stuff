@@ -155,6 +155,7 @@ const BOARD_CSS = `
   .preview { width:480px; height:270px; overflow:hidden; position:relative; background:#000; border-radius:8px; margin-bottom:8px; }
   .preview iframe { width:1920px; height:1080px; border:0; transform:scale(0.25); transform-origin:top left; position:absolute; top:0; left:0; }
   .unresolved-note { font-size:12px; color:var(--err); margin-bottom:8px; }
+  .overflow-badge { display:inline-block; margin-left:8px; font-family:ui-monospace,Menlo,monospace; font-size:11px; color:var(--err); background:rgba(255,107,107,0.12); border:1px solid var(--err); border-radius:4px; padding:2px 6px; }
   audio.scrub { width:100%; margin-bottom:10px; }
   .flag { display:block; font-size:12px; color:var(--dim); margin-bottom:6px; }
   .note { width:100%; font:inherit; font-size:12px; padding:6px 8px; margin-bottom:8px; background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:6px; }
@@ -166,10 +167,57 @@ const BOARD_CSS = `
   .feedback-folded { font-size:12px; color:var(--dim); margin-bottom:8px; padding:0 8px; }
 `;
 
+// Shared client script for both / (board) and /calibrate: posts each tile's
+// probe times into its iframe on load, and turns broken reports into a badge
+// on the tile header. Kept as one string so the two pages can't drift.
+const OVERFLOW_BADGE_JS = `
+  function wireProbe(tile) {
+    const iframe = tile.querySelector('iframe');
+    const preview = tile.querySelector('.preview');
+    if (!iframe || !preview) return;
+    let probeTimes = [];
+    try { probeTimes = JSON.parse(preview.dataset.probeTimes || '[]'); } catch {}
+    if (!probeTimes.length) return;
+    iframe.addEventListener('load', () => {
+      try { iframe.contentWindow.postMessage({ probe: probeTimes }, '*'); } catch {}
+    });
+  }
+  function wireOverflowBadges() {
+    const brokenTimesByTile = new WeakMap();
+    window.addEventListener('message', (e) => {
+      if (!e.data || !e.data.__overflow) return;
+      const tile = [...document.querySelectorAll('.tile')].find((t) => t.querySelector('iframe')?.contentWindow === e.source);
+      if (!tile) return;
+      const { t, offenders } = e.data.__overflow;
+      const times = brokenTimesByTile.get(tile) || [];
+      times.push({ t, offenders });
+      brokenTimesByTile.set(tile, times);
+      let badge = tile.querySelector('.overflow-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'overflow-badge';
+        (tile.querySelector('.tile-header') || tile).appendChild(badge);
+      }
+      const label = times.map((x) => x.t.toFixed(1) + 's').join(', ');
+      const allOffenders = [...new Set(times.flatMap((x) => x.offenders))].slice(0, 5);
+      badge.textContent = 'OVERFLOW @ ' + label + ' (' + allOffenders.join(' ') + ')';
+    });
+  }
+`;
+
 function timecode(secs) {
   const m = Math.floor(secs / 60).toString().padStart(2, '0');
   const s = (secs % 60).toFixed(1).padStart(4, '0');
   return `${m}:${s}`;
+}
+
+// Probe times for the overflow shim: just after each beat reveals, plus just
+// before the card ends (catches a final state that never got a mid-beat check).
+function computeProbeTimes(beats, duration) {
+  const times = (beats ?? []).map((b) => +(b.at + 0.6).toFixed(2)).filter((t) => t >= 0);
+  const end = +(duration - 0.1).toFixed(2);
+  if (end >= 0) times.push(end);
+  return times;
 }
 
 export function buildSegments(words, resolved, { gapMinWords = 8 } = {}) {
@@ -310,8 +358,9 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       ? `#${escapeHtml(cue.id)} &middot; ${timecode(r.start)} &rarr; ${timecode(r.start + r.duration)} &middot; ${escapeHtml(cue.card)} &middot; ${r.duration}s &middot; ${escapeHtml(r.placement)}`
       : `#${escapeHtml(cue.id)} &middot; unresolved &middot; ${escapeHtml(cue.card)}`;
 
+    const probeTimes = r ? computeProbeTimes(r.variables?.beats, r.duration) : [];
     const media = r
-      ? `<div class="preview"><iframe loading="lazy" src="/card/${encodeURIComponent(cue.id)}"></iframe></div>
+      ? `<div class="preview" data-probe-times='${JSON.stringify(probeTimes)}'><iframe loading="lazy" src="/card/${encodeURIComponent(cue.id)}"></iframe></div>
       <audio class="scrub" controls src="/slice/${encodeURIComponent(cue.id)}.mp3"></audio>`
       : `<div class="unresolved-note">no resolved timing for this cue — fix the anchor and Save</div>`;
 
@@ -367,6 +416,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
       <button id="approveBtn">Approve</button>
       <button id="saveBtn">Save</button>
+      <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
     </div>
     <div id="banner">${cuesFile.approved ? '<div class="banner ok">approved — ready for <code>node lib/render.mjs</code></div>' : ''}</div>
     <div class="usage">${(() => {
@@ -381,6 +431,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
   </div>
   <div class="timeline">${timelineHtml}</div>
   <script>
+    ${OVERFLOW_BADGE_JS}
     const VIDEO = ${JSON.stringify(cuesFile.video ?? '')};
     let APPROVED = ${JSON.stringify(!!cuesFile.approved)};
 
@@ -398,7 +449,11 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
         const loop = () => { post(); if (!audio.paused) raf = requestAnimationFrame(loop); };
         loop();
       });
+
+      wireProbe(tile);
     });
+
+    wireOverflowBadges();
 
     function showBanner(html, cls) {
       document.getElementById('banner').innerHTML = '<div class="banner ' + cls + '">' + html + '</div>';
