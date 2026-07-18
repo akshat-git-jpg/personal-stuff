@@ -431,3 +431,4 @@ The others are grounded and available when the owner wants them:
 - 070-graphics-render-approval-integrity — PR#27 070-graphics-render-approval-integrity: Graphics-flow render integrity — approval gate, staleness check, manifest that survives --only — DONE
 - 071-graphics-resolver-correctness — PR#28 071-graphics-resolver-correctness: Graphics-flow resolver correctness — non-adjacent fullframe overlap + cursor past the whole anchor phrase — DONE
 - 072-graphics-lint-cues — PR#29 072-graphics-lint-cues: lint-cues — machine-enforce the cue-pass rubric (caps, spacing, zones, density) — DONE
+- 073-graphics-board-hardening — PR#30 073-graphics-board-hardening: Graphics board hardening — safe Save, localhost bind + port hygiene, incremental slices — DONE
