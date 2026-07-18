@@ -169,7 +169,13 @@ const BOARD_CSS = `
   .timeline { display:flex; flex-direction:column; gap:20px; max-width:800px; margin:0 auto; }
   .timeline-block { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
   .gap-block { padding:12px 16px; }
-  .minimap-shots { height:6px; margin-top:2px; }
+  .lane-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+  .lane-label { flex:none; width:60px; text-align:right; font-family:ui-monospace,Menlo,monospace;
+    font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:0.08em; }
+  .lane-row .minimap { flex:1; width:auto; }
+  .minimap-shots { height:18px; }
+  .lane-legend { display:flex; flex-wrap:wrap; gap:14px; font-size:11px; color:var(--dim); margin:2px 0 8px 68px; }
+  .lane-legend .dot { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; }
   .shot-block { border-left:3px solid var(--shot); }
   .in-shot { border-left:3px solid var(--shot); }
   .gap-header { font-size:13px; color:var(--dim); cursor:pointer; display:flex; align-items:center; }
@@ -190,8 +196,9 @@ const BOARD_CSS = `
   audio.scrub { width:100%; margin-bottom:10px; }
   .flag { display:block; font-size:12px; color:var(--dim); margin-bottom:6px; }
   .note { width:100%; font:inherit; font-size:12px; padding:6px 8px; margin-bottom:8px; background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:6px; }
-  textarea.frag { width:100%; min-height:140px; font-family:ui-monospace,Menlo,monospace; font-size:11px;
+  textarea.frag, textarea.shot-frag { width:100%; min-height:140px; font-family:ui-monospace,Menlo,monospace; font-size:11px;
     background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:8px; }
+  textarea.shot-frag { min-height:120px; margin-top:8px; }
   textarea.feedback { width:100%; min-height:34px; font:inherit; font-size:12px; margin:8px 0 4px;
     background:rgba(251,146,60,0.05); color:var(--text); border:1px dashed rgba(251,146,60,0.4); border-radius:6px; padding:6px 8px; }
   textarea.feedback:focus { border-style:solid; outline:none; }
@@ -490,7 +497,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
       <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
       <div>duration: ${timecode(totalDuration)}</div>
       <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
-      <button id="approveBtn">Approve</button>
+      <button id="approveBtn">Approve graphics</button>
       ${shots ? `<span class="usage-chip">engineMode: ${escapeHtml(shots.shotsFile?.engineMode || 'none')}</span><button id="approveShotsBtn">Approve shots</button>` : ''}
       <button id="saveBtn">Save</button>
       <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
@@ -507,7 +514,14 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
         .map(([card, n]) => `<span class="usage-chip${n > 3 ? ' hot' : ''}">${escapeHtml(card.split('/').pop())} &times;${n}</span>`)
         .join('');
     })()}</div>
-    <div class="minimap">${minimapHtml}${minimapShotsHtml}</div>
+    <div class="lane-row"><span class="lane-label">graphics</span><div class="minimap">${minimapHtml}</div></div>
+    ${minimapShotsHtml ? `<div class="lane-row"><span class="lane-label">avatar</span>${minimapShotsHtml}</div>` : ''}
+    <div class="lane-legend">
+      <span><span class="dot" style="background:var(--accent)"></span>fullframe card</span>
+      <span><span class="dot" style="background:var(--accent-light)"></span>overlay card</span>
+      ${minimapShotsHtml ? '<span><span class="dot" style="background:var(--shot)"></span>full-screen avatar</span>' : ''}
+      <span><span class="dot" style="background:var(--line)"></span>screen recording + corner avatar</span>
+    </div>
     ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
   </div>
   <div class="timeline">${timelineHtml}</div>

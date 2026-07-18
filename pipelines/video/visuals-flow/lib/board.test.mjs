@@ -48,7 +48,7 @@ test('GET / lists every cue id and an Approve button', async () => {
     const html = await res.text();
     assert.match(html, /c01/);
     assert.match(html, /c02/);
-    assert.match(html, />Approve</);
+    assert.match(html, />Approve graphics</);
   } finally {
     server.close();
   }
