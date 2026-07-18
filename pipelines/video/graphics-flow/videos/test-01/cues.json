@@ -6,15 +6,14 @@
       "id": "c01",
       "card": "table-of-contents/table-of-contents",
       "anchor": "Now here is what we are going to go through",
-      "lead": 0.5,
-      "hold": 15.0,
+      "hold": 15,
       "variables": {
         "eyebrow": "What's coming up"
       },
       "beats": [
         {
           "reveal": {
-            "label": "Quick tool overviews"
+            "label": "Tool overviews"
           },
           "anchor": "quick overviews of all"
         },
@@ -43,44 +42,14 @@
           "anchor": "honest verdict used by"
         }
       ],
-      "flagged": false
-    },
-    {
-      "id": "c02",
-      "card": "overlay/stat-hit",
-      "anchor": "over 100 AI models",
-      "lead": 0.5,
-      "hold": 5.0,
-      "variables": {
-        "eyebrow": "OpenArt AI",
-        "value": 100,
-        "suffix": "+",
-        "context": "AI models in one platform"
-      },
-      "beats": [],
-      "flagged": false
-    },
-    {
-      "id": "c03",
-      "card": "overlay/stat-hit",
-      "anchor": "over 70 camera presets",
-      "lead": 0.5,
-      "hold": 5.0,
-      "variables": {
-        "eyebrow": "Higgsfield",
-        "value": 70,
-        "suffix": "+",
-        "context": "camera presets in Cinema Studio"
-      },
-      "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c04",
       "card": "overlay/stat-hit",
       "anchor": "over 240 lifelike AI avatars",
-      "lead": 0.5,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "eyebrow": "Synthesia",
         "value": 240,
@@ -88,14 +57,14 @@
         "context": "lifelike AI avatars to choose from"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c05",
       "card": "section/tool-intro",
       "anchor": "Alright let's start with Open Art AI",
-      "lead": 0.5,
-      "hold": 6.0,
+      "hold": 6,
       "variables": {
         "index": 1,
         "total": 5,
@@ -104,14 +73,14 @@
         "tag": "Creative hub"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c06",
       "card": "process/step-flow",
       "anchor": "head over to OpenArt.ai",
-      "lead": -1.1,
-      "hold": 12.0,
+      "hold": 12,
       "variables": {
         "title": "OpenArt AI: text to video"
       },
@@ -147,14 +116,14 @@
           "anchor": "click on generate right here"
         }
       ],
-      "flagged": false
+      "flagged": false,
+      "lead": -1.1
     },
     {
       "id": "c07",
       "card": "overlay/callout",
       "anchor": "creative workspace side Open Art",
-      "lead": 0.5,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "note",
         "title": "Category of its own",
@@ -163,14 +132,14 @@
         "style": "feature"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c08",
       "card": "section/tool-intro",
       "anchor": "let's now move over to Higgs Field AI",
-      "lead": 0.5,
-      "hold": 6.0,
+      "hold": 6,
       "variables": {
         "index": 2,
         "total": 5,
@@ -179,14 +148,14 @@
         "tag": "Cinematic video"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c09",
       "card": "process/step-flow",
       "anchor": "click on Cinema Studio video",
-      "lead": 0.5,
-      "hold": 12.0,
+      "hold": 12,
       "variables": {
         "title": "Higgsfield: Cinema Studio"
       },
@@ -222,14 +191,14 @@
           "anchor": "click on generate right here"
         }
       ],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c10",
       "card": "overlay/callout",
       "anchor": "strongest cinematic video tool",
-      "lead": 0.5,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "note",
         "title": "Strongest cinematic tool",
@@ -238,14 +207,14 @@
         "style": "tip"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c11",
       "card": "section/tool-intro",
       "anchor": "Now let's move on to synthesis",
-      "lead": 0.5,
-      "hold": 6.0,
+      "hold": 6,
       "variables": {
         "index": 3,
         "total": 5,
@@ -254,14 +223,14 @@
         "tag": "Corporate avatars"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c12",
       "card": "overlay/stat-hit",
       "anchor": "140 languages and accents",
-      "lead": 0.5,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "eyebrow": "Synthesia",
         "value": 140,
@@ -269,14 +238,14 @@
         "context": "languages and accents supported"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c13",
       "card": "overlay/callout",
       "anchor": "clear winner for professional",
-      "lead": 0.5,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "note",
         "title": "Corporate video winner",
@@ -285,28 +254,28 @@
         "style": "feature"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c14",
       "card": "section/section-counter-scale",
       "anchor": "Now let's move on to Heigen",
-      "lead": 0.5,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "number": "4",
         "title": "HeyGen",
         "dots": 5
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c15",
       "card": "process/step-flow",
       "anchor": "select new video and",
-      "lead": 0.5,
-      "hold": 12.0,
+      "hold": 12,
       "variables": {
         "title": "HeyGen: avatar & voice"
       },
@@ -342,14 +311,14 @@
           "anchor": "click on this translate tab"
         }
       ],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c16",
       "card": "overlay/callout",
       "anchor": "strongest option for solo",
-      "lead": 0.5,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "note",
         "title": "Best for solo creators",
@@ -358,27 +327,27 @@
         "style": "tip"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c17",
       "card": "section/section-particle-storm",
       "anchor": "And now finally, Arcad",
-      "lead": 0.5,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "number": "5",
         "title": "Arcads"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c18",
       "card": "overlay/stat-hit",
       "anchor": "over 300 options built",
-      "lead": 0.5,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "eyebrow": "Arcads",
         "value": 300,
@@ -386,14 +355,14 @@
         "context": "real-human actors in the library"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c19",
       "card": "overlay/callout",
       "anchor": "wins for performance marketers",
-      "lead": 0.5,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "note",
         "title": "Wins for performance marketers",
@@ -402,14 +371,14 @@
         "style": "feature"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c20",
       "card": "comparison/credits-math",
       "anchor": "Let's start with the open art",
-      "lead": 0.5,
-      "hold": 6.0,
+      "hold": 6,
       "variables": {
         "title": "OpenArt AI pricing"
       },
@@ -417,7 +386,7 @@
         {
           "reveal": {
             "label": "Infinite (annual)",
-            "math": "$28/mo · 24k credits"
+            "math": "$28/mo \u00b7 24k credits"
           },
           "anchor": "priced at $28 per month"
         },
@@ -436,14 +405,14 @@
           "anchor": "run up to 1,500"
         }
       ],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c21",
       "card": "comparison/credits-math",
       "anchor": "Higgs field free tier gives",
-      "lead": 0.5,
-      "hold": 10.0,
+      "hold": 10,
       "variables": {
         "title": "Higgsfield pricing"
       },
@@ -458,7 +427,7 @@
         {
           "reveal": {
             "label": "Creator (annual)",
-            "math": "$39/mo · 6,000 credits"
+            "math": "$39/mo \u00b7 6,000 credits"
           },
           "anchor": "discounted to $39 per"
         },
@@ -470,14 +439,14 @@
           "anchor": "40 to 70 credits"
         }
       ],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c22",
       "card": "comparison/pricing-tiers",
       "anchor": "its free plan gives you three minutes",
-      "lead": 0.5,
-      "hold": 8.0,
+      "hold": 8,
       "variables": {
         "heading": "Synthesia pricing",
         "plans": [
@@ -523,14 +492,14 @@
         ]
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c23",
       "card": "comparison/credits-math",
       "anchor": "Now for Higgs's free plan",
-      "lead": 0.5,
-      "hold": 10.0,
+      "hold": 10,
       "variables": {
         "title": "HeyGen pricing"
       },
@@ -557,14 +526,14 @@
           "anchor": "single 90 second video"
         }
       ],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c24",
       "card": "comparison/billing-discount",
       "anchor": "starter plan runs around $110",
-      "lead": 0.5,
-      "hold": 7.0,
+      "hold": 7,
       "variables": {
         "title": "Arcads pricing",
         "monthly": {
@@ -578,13 +547,13 @@
         }
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c25",
       "card": "comparison/summary-table",
       "anchor": "let's talk through this row by row",
-      "lead": 0.5,
       "hold": 11.5,
       "variables": {
         "products": [
@@ -649,14 +618,14 @@
           "anchor": "OpenARC leads at 4.5"
         }
       ],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c26",
       "card": "verdict/persona-match",
       "anchor": "here's exactly where we land",
-      "lead": 0.5,
-      "hold": 13.0,
+      "hold": 13,
       "variables": {
         "title": "Which tool is right for you"
       },
@@ -697,19 +666,20 @@
           "anchor": "running paid ads on metal"
         }
       ],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     },
     {
       "id": "c27",
       "card": "link-in-description/link-in-description",
       "anchor": "use the link in the description",
-      "lead": 0.5,
-      "hold": 4.0,
+      "hold": 4,
       "variables": {
         "message": "Best discount linked below"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "lead": 0.5
     }
   ]
 }

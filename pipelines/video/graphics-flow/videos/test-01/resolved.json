@@ -12,7 +12,7 @@
         "eyebrow": "What's coming up",
         "beats": [
           {
-            "label": "Quick tool overviews",
+            "label": "Tool overviews",
             "at": 4.29
           },
           {
@@ -32,32 +32,6 @@
             "at": 19.67
           }
         ]
-      }
-    },
-    {
-      "id": "c02",
-      "card": "overlay/stat-hit",
-      "placement": "overlay",
-      "start": 96.87,
-      "duration": 5,
-      "variables": {
-        "eyebrow": "OpenArt AI",
-        "value": 100,
-        "suffix": "+",
-        "context": "AI models in one platform"
-      }
-    },
-    {
-      "id": "c03",
-      "card": "overlay/stat-hit",
-      "placement": "overlay",
-      "start": 142.75,
-      "duration": 5,
-      "variables": {
-        "eyebrow": "Higgsfield",
-        "value": 70,
-        "suffix": "+",
-        "context": "camera presets in Cinema Studio"
       }
     },
     {
