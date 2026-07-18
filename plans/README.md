@@ -473,3 +473,4 @@ The others are grounded and available when the owner wants them:
 - 078-shot-plan-schema-and-pass — PR#35 078-shot-plan-schema-and-pass: Shot plan — schema, LLM pass (step 070), resolver + lint — DONE
 - 079-board-shot-spans — PR#36 079-board-shot-spans: Board — shot spans as a reviewable third block kind — DONE
 - 080-avatar-render-step — PR#37 080-avatar-render-step: Avatar render step (080) — VO slices → HeyGen 3 template jobs → clips + avatar-manifest.md — DONE
+- 081-visuals-flow-operating-skill — PR#38 081-visuals-flow-operating-skill: verb router — session operates the flow, owner keeps the two human gates — DONE
