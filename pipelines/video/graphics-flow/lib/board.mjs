@@ -27,13 +27,47 @@ function injectShim(html, variables) {
   const varsJson = JSON.stringify(variables ?? {}).replace(/</g, '\\u003c');
   const shim = `<script>
   window.__hyperframes = { getVariables: () => (${varsJson}) };
-  window.addEventListener('message', (e) => {
-    if (!e.data || typeof e.data.t !== 'number') return;
+  function __hfSeek(t) {
     const tls = Object.values(window.__timelines || {});
-    if (!tls.length) return;
+    if (!tls.length) return false;
     const tl = tls[0];
     tl.pause();
-    tl.time(Math.min(e.data.t, tl.duration()));
+    tl.time(Math.min(t, tl.duration()));
+    return true;
+  }
+  function __measureOverflow() {
+    const W = 1920, H = 1080, TOL = 2;
+    const offenders = [];
+    for (const el of document.querySelectorAll('body *')) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      if (r.right > W + TOL || r.bottom > H + TOL || r.left < -TOL || r.top < -TOL) {
+        offenders.push((el.id ? '#' + el.id : el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : '')));
+        if (offenders.length >= 5) break;
+      }
+    }
+    const doc = document.documentElement;
+    const scrolled = doc.scrollWidth > W + TOL || doc.scrollHeight > H + TOL;
+    return { broken: offenders.length > 0 || scrolled, offenders };
+  }
+  function __runProbe(times) {
+    let i = 0;
+    function step() {
+      if (i >= times.length) { parent.postMessage({ __overflowDone: true }, '*'); return; }
+      const t = times[i++];
+      __hfSeek(t);
+      requestAnimationFrame(() => {
+        const result = __measureOverflow();
+        if (result.broken) parent.postMessage({ __overflow: { t, broken: result.broken, offenders: result.offenders } }, '*');
+        step();
+      });
+    }
+    step();
+  }
+  window.addEventListener('message', (e) => {
+    if (!e.data) return;
+    if (Array.isArray(e.data.probe)) { __runProbe(e.data.probe); return; }
+    if (typeof e.data.t === 'number') __hfSeek(e.data.t);
   });
 </script>
 `;
