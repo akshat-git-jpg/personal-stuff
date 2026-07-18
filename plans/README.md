@@ -460,3 +460,4 @@ The others are grounded and available when the owner wants them:
 - 072-graphics-lint-cues — PR#29 072-graphics-lint-cues: lint-cues — machine-enforce the cue-pass rubric (caps, spacing, zones, density) — DONE
 - 073-graphics-board-hardening — PR#30 073-graphics-board-hardening: Graphics board hardening — safe Save, localhost bind + port hygiene, incremental slices — DONE
 - 074-graphics-overflow-qc — PR#31 074-graphics-overflow-qc: Zero-token visual QC — DOM overflow probe on board tiles + /calibrate capacity page — DONE
+- 075-graphics-flow-integration-contract — PR#32 075-graphics-flow-integration-contract: graphics-flow INTEGRATION.md — the caller contract for tutorial-pipeline-1/2 — DONE
