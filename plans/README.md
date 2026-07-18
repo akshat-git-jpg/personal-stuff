@@ -96,7 +96,8 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 079 | Board — shot spans as a reviewable third block kind (lane, blocks, approve-shots, staleness cascade) | P1 | M | 078 | DONE (PR #36, landed 2026-07-18) |
 | 080 | Avatar render step (080) — VO slices → HeyGen 3 template jobs → clips + avatar-manifest.md | P1 | M | 078, 079 | DONE (PR #37, landed 2026-07-18) |
 | 081 | visuals-flow operating skill (GFX-12) — verb router: session runs the steps, owner reviews board + green-lights HeyGen | P2 | S | 077–080 landed | TODO |
-| 082 | visuals-flow step 090 assemble (GFX-14) — deterministic final-video build: screen base + avatar spans + fullframe swaps + overlay composite + vo.mp3, hard cuts; final.mp4 (kb-scratch) + assembly.md EDL; editor bundle unchanged | P1 | M | 080 landed | TODO |
+| 082 | visuals-flow step 090 assemble (GFX-14) — deterministic final-video build: screen base + avatar spans + fullframe swaps + overlay composite + vo.mp3, hard cuts; final.mp4 (kb-scratch) + assembly.md EDL; editor bundle unchanged | P1 | M | 080 landed | DONE (PR #39, landed 2026-07-18; test-01 assembled + verified same night) |
+| 083 | visuals-flow assemble speed pass (GFX-15) — overlay-in-segment single-encode path (final pass → stream-copy remux), h264_videotoolbox auto-detect w/ x264 fallback + --encoder, --draft 720p preview (final-draft.mp4) | P2 | S-M | 082 landed | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
