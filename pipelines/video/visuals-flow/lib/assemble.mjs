@@ -71,6 +71,9 @@ export function planSegmentOverlays(segments, overlays) {
   });
 }
 
+export const BEAT_INTERVAL = 20, BEAT_MIN_EDGE = 8, BEAT_SNAP_WINDOW = 3, BEAT_MIN_GAP = 0.25;
+export const FLASH_DUR = 0.24, FLASH_COLOR = '0xfb923c', FLASH_ALPHA = 0.85, PUNCH_SCALE = 1.08;
+
 export const TRANSITION_DUR = 0.4;
 
 // Whip transitions at screen<->avatar boundaries. Returns [{at, direction,
@@ -88,6 +91,66 @@ export function planTransitions(segments, overlays, { duration = TRANSITION_DUR 
     const at = a.end;
     if (overlays.some((o) => o.start < at + half && o.end > at - half)) continue;
     out.push({ at, direction: pair === 'screen>avatar' ? 'left' : 'right', fromIdx: i, toIdx: i + 1 });
+  }
+  return out;
+}
+
+// Refresh beats inside one avatar segment: every ~BEAT_INTERVAL s, snapped to
+// the nearest inter-word silence so the flash never lands mid-word. Returns
+// ascending beat times (timeline seconds); [] when the span is too short.
+export function planAvatarBeats(seg, words, {
+  interval = BEAT_INTERVAL, minEdge = BEAT_MIN_EDGE,
+  window = BEAT_SNAP_WINDOW, minGap = BEAT_MIN_GAP } = {}) {
+  const gaps = [];
+  for (let i = 0; i < words.length - 1; i++) {
+    const g = words[i + 1].start - words[i].end;
+    if (g >= minGap) gaps.push(+((words[i].end + words[i + 1].start) / 2).toFixed(3));
+  }
+  const beats = [];
+  const lo = seg.start + minEdge, hi = seg.end - minEdge;
+  for (let t = seg.start + interval; t <= hi; t += interval) {
+    let best = null;
+    for (const g of gaps) {
+      if (g < lo || g > hi || Math.abs(g - t) > window) continue;
+      if (best === null || Math.abs(g - t) < Math.abs(best - t)) best = g;
+    }
+    if (best !== null && (beats.length === 0 || best - beats[beats.length - 1] >= interval / 2)) beats.push(best);
+  }
+  return beats;
+}
+
+export function splitAvatarSegments(segments, words) {
+  const out = [];
+  for (const seg of segments) {
+    if (seg.kind !== 'avatar') {
+      out.push(seg);
+      continue;
+    }
+    const beats = planAvatarBeats(seg, words);
+    if (beats.length === 0) {
+      out.push(seg);
+      continue;
+    }
+    
+    let currentStart = seg.start;
+    for (let i = 0; i <= beats.length; i++) {
+      const isFirst = i === 0;
+      const isLast = i === beats.length;
+      const end = isLast ? seg.end : beats[i];
+      
+      const subSeg = {
+        ...seg,
+        sub: i,
+        start: currentStart,
+        end: end,
+        punch: i % 2 === 1 ? PUNCH_SCALE : 1.0
+      };
+      if (!isLast) subSeg.flashOut = true;
+      if (!isFirst) subSeg.flashIn = true;
+      
+      out.push(subSeg);
+      currentStart = end;
+    }
   }
   return out;
 }
