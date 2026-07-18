@@ -107,22 +107,10 @@ cat >> "$brief" <<'FENCE'
   Any hit is a bug; the merge gate rejects fence markers in non-markdown source.
 FENCE
 
-if [ "$ui" = "true" ]; then
-  repo_slug="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)"
-  shot_path="plans/runs/evidence/$slug.png"
-  cat >> "$brief" <<EOF
-
-UI verification (required — this plan is flagged \`ui: true\`; test_cmd alone
-does not judge how the UI looks):
-- After implementing, render the changed view (dev server + browser, or an
-  existing screenshot script if this repo has one) and save ONE screenshot to
-  $shot_path in this worktree.
-- Commit the screenshot on this branch.
-- Post it as a PR comment so it renders inline:
-  gh pr comment $pr --body "![screenshot](https://github.com/$repo_slug/blob/$branch/$shot_path?raw=true)"
-- Do this BEFORE your final commit and before printing the test_cmd result.
-EOF
-fi
+# ui:true screenshot gate removed 2026-07-18: the sole owner never reviews the
+# committed PNGs / PR comments, and making the crew render one inside its turn
+# budget only ever cost us (e.g. the #31 max-turns fix-up). Visual changes are
+# eyeballed locally on demand; boss-merge prints the run hint. See decisions.md.
 
 "$BOSS_HOME/executors/$executor.sh" dispatch "$pr" "$brief"
 echo "PR#$pr dispatched: executor=$executor model=${model:-default} worktree=$wt"
