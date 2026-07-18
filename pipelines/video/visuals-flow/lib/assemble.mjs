@@ -109,15 +109,19 @@ export function detectEncoder() {
 }
 
 // Committed EDL — doubles as editor documentation.
-export function assemblyMd(video, segments, overlays, total, outPath) {
+export function assemblyMd(video, segments, overlays, total, outPath, transitions = []) {
   const seg = segments.map((s) =>
     `| ${mmss(s.start)} | ${mmss(s.end)} | ${s.kind} | ${s.id} |`);
   const ov = overlays.map((o) =>
     `| ${mmss(o.start)} | ${mmss(o.end)} | ${path.basename(o.file)} |`);
-  return [
+  const transSentence = transitions.length > 0
+    ? 'Whip transitions at the listed boundaries; hard cuts elsewhere.'
+    : 'Hard cuts.';
+
+  const lines = [
     `# ${video} — assembly`,
     '',
-    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. Hard cuts, no transitions.`,
+    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. ${transSentence}`,
     '',
     `Output: ${outPath}`,
     '',
@@ -132,8 +136,23 @@ export function assemblyMd(video, segments, overlays, total, outPath) {
     '| at | until | file |',
     '|---|---|---|',
     ...ov,
-    '',
-  ].join('\n');
+    ''
+  ];
+
+  if (transitions.length > 0) {
+    const tr = transitions.map((t) =>
+      `| ${mmss(t.at)} | ${t.direction} | ${segments[t.fromIdx].id} | ${segments[t.toIdx].id} |`);
+    lines.push(
+      '## Transitions',
+      '',
+      '| at | direction | from | to |',
+      '|---|---|---|---|',
+      ...tr,
+      ''
+    );
+  }
+
+  return lines.join('\n');
 }
 
 function parseArgs(argv) {
@@ -330,7 +349,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     process.exit(1);
   }
 
-  const assemblyMdContent = assemblyMd(video, segments, overlays, total, out);
+  const assemblyMdContent = assemblyMd(video, segments, overlays, total, out, trans);
   fs.writeFileSync(path.join(workdir, 'assembly.md'), assemblyMdContent);
 
   if (!keepTemp) {

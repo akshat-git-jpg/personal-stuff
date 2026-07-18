@@ -60,8 +60,17 @@ test('assemblyMd: format', () => {
   const md = assemblyMd('test-vid', [{ kind: 'screen', start: 0, end: 10, id: 'screen-01' }], [{ start: 2, end: 4, file: 'ov.mov' }], 10.5, 'out.mp4');
   assert.match(md, /# test-vid — assembly/);
   assert.match(md, /10.5s starts at/);
+  assert.match(md, /Hard cuts\./);
   assert.match(md, /\| 00:00.0 \| 00:10.0 \| screen \| screen-01 \|/);
   assert.match(md, /\| 00:02.0 \| 00:04.0 \| ov.mov \|/);
+});
+
+test('assemblyMd: transitions table', () => {
+  const segments = [{ id: 'screen-01' }, { id: 's01' }];
+  const md = assemblyMd('vid', segments, [], 10.0, 'out.mp4', [{ at: 5, direction: 'left', fromIdx: 0, toIdx: 1 }]);
+  assert.match(md, /Whip transitions at the listed boundaries/);
+  assert.match(md, /## Transitions/);
+  assert.match(md, /\| 00:05\.0 \| left \| screen-01 \| s01 \|/);
 });
 
 test('planSegmentOverlays: pure mapping', () => {
@@ -223,7 +232,7 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   assert.match(audioProbe.stdout, /audio/);
 
   const mdFile = fs.readFileSync(path.join(testTmp, 'assembly.md'), 'utf8');
-  assert.equal((mdFile.match(/screen-|avatar|graphic/g) || []).length, 5); // 5 base rows
+  assert.equal((mdFile.match(/screen-|avatar|graphic/g) || []).length, 6); // 5 base rows + 1 in transitions table
   assert.equal((mdFile.match(/0004-o1-black.mov/g) || []).length, 1); // 1 overlay row
 });
 
@@ -262,4 +271,38 @@ test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-ver
 
   const audioProbe = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=codec_type', '-of', 'csv=p=0', outDraft], { encoding: 'utf8' });
   assert.match(audioProbe.stdout, /audio/);
+});
+
+test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+  const outNone = path.join(testTmp, 'final-none.mp4');
+  if (fs.existsSync(outNone)) fs.unlinkSync(outNone);
+
+  const resolved = [
+    { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' },
+    { id: 'o1', placement: 'overlay', start: 4.5, duration: 1, card: 'black' }
+  ];
+  const avatarJobs = [
+    { kind: 'avatar-full', id: 's01', start: 6, end: 8, file: path.join(testTmp, 'media', 's01.mp4') }
+  ];
+
+  runAssembly({
+    workdir: testTmp,
+    video: 'it',
+    resolved,
+    avatarJobs,
+    total: 8,
+    screen: path.join(testTmp, 'screen.mp4'),
+    out: outNone,
+    encoder: 'x264',
+    keepTemp: true,
+    transitions: 'none'
+  });
+
+  const tmpDir = path.join(testTmp, 'assembly-tmp');
+  const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
+  assert.equal(tsFiles.length, 4, 'should have 4 base segments, no transitions');
+  const transFiles = tsFiles.filter(f => f.includes('-trans-'));
+  assert.equal(transFiles.length, 0, 'should have 0 transition files');
+  
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 });
