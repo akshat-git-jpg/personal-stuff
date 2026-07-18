@@ -3,6 +3,8 @@ videos/*/vo.mp3
 videos/*/renders/
 videos/*/slices/
 videos/*/slices-avatar/
+videos/*/screen.mp4
+videos/*/assembly-tmp/
 # test artifacts
 lib/.test-tmp/
 lib/fixtures/board/vo.mp3

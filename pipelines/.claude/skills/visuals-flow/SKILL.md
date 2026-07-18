@@ -78,6 +78,20 @@ pending job; re-run until no `pending:` lines. Output: clips in
 `~/kb-scratch/video/heygen/visuals-flow/<slug>/` + `avatar-manifest.md`.
 Editor handoff = `renders/` + `manifest.md` + those clips + `avatar-manifest.md`.
 
+## Verb: "assemble the video" / "build the final video"
+
+1. Requires: cues approved + rendered (`renders/` complete), shots approved
+   with ALL avatar clips downloaded (every `avatar-jobs.json` job has `file`),
+   and the VO-aligned screen recording at `videos/<slug>/screen.mp4` (ask the
+   owner for it if missing — it is never committed). Graphics-only videos
+   (no shots.json) assemble fine.
+2. `bash steps/090-assemble-run/run.sh <slug>` — gates, segment planning, and
+   the ffmpeg passes are the step's own. Output:
+   `~/kb-scratch/video/visuals-flow/<slug>/final.mp4` + committed
+   `assembly.md` (the EDL).
+3. The editor handoff bundle is unchanged; final.mp4 is an additional output —
+   per video the owner ships it directly or hands the bundle to the editor.
+
 ## Verb: "fold the feedback" (guardrail 2 — Opus-class only)
 
 Follow `steps/060-feedback-fold-opus/README.md`: `node lib/edit-delta.mjs <slug>`
