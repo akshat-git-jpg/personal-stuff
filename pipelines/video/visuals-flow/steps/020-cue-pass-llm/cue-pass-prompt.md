@@ -1,10 +1,10 @@
 # Cue-pass prompt
 
-Model-agnostic prompt for the graphics flow's one LLM step. Paste this whole
-file, with its two placeholders filled in, into whichever executor is running
-the cue pass — it has no repo access, so every rule is inlined below rather
-than linked. Full judgment detail lives in `RULEBOOK.md`; this is the
-compressed version for direct execution.
+Model-agnostic prompt for the graphics flow's one LLM step. Sessions paste **the
+prompt only** (this whole file, with its placeholders filled) into whichever executor
+is running the cue pass. It is self-contained; it has no repo access, so every rule
+is inlined below rather than linked. `RULEBOOK.md` is the judgment archive the
+060 fold maintains and syncs from; it is not a session input.
 
 ---
 
@@ -106,7 +106,7 @@ Logos: when a cue is about a specific tool, set its `logo` slug (lowercase alpha
 CATALOG (the only cards you may use):
 {{CATALOG}}
 
-TRANSCRIPT (verbatim word sequence with your quoting source):
+TRANSCRIPT (verbatim word sequence via `node lib/transcript-text.mjs <slug>` — never raw transcript.json):
 {{TRANSCRIPT}}
 ```
 

@@ -198,16 +198,19 @@ brainstorms.** Standing next steps in priority order:
 cd pipelines/video/visuals-flow
 node lib/feedback-status.mjs                       # MUST exit 0 before any new cue pass
 bash steps/010-transcribe-run/run.sh <slug-or-path>
-# 020: Sonnet session with steps/020-cue-pass-llm/cue-pass-prompt.md
-#      (+ catalog.json + transcript text) -> videos/<slug>/cues.json,
-#      then snapshot to cues.llm.json after the fix-loop converges
+# 020: Sonnet session with steps/020-cue-pass-llm/cue-pass-prompt.md (the prompt only;
+#      RULEBOOK.md is the 060 fold's archive). Fill placeholders with catalog.json +
+#      `node lib/transcript-text.mjs <slug>` output (never raw transcript.json)
+#      -> videos/<slug>/cues.json, then snapshot to cues.llm.json after the
+#      fix-loop converges
 node lib/resolve.mjs <slug>
 node lib/lint-cues.mjs <slug>                      # errors -> feed back to 020, <=3 rounds
 node lib/board.mjs [<slug>]                        # review at :4322, Save/Approve (+ /calibrate)
 node lib/render.mjs <slug> [--quality draft]       # refuses unapproved/stale; --force exists
 node lib/edit-delta.mjs <slug>                     # owner-edit diff for the fold
 # 070 (after cues approved): Sonnet session with steps/070-shot-pass-llm/shot-pass-prompt.md
-#      (+ fullframe cue times + transcript) -> videos/<slug>/shots.json, snapshot shots.llm.json
+#      (the prompt only). Inputs: fullframe cue times + `node lib/transcript-text.mjs <slug>`
+#      output -> videos/<slug>/shots.json, snapshot shots.llm.json
 node lib/resolve-shots.mjs <slug>                  # anchors -> shots.resolved.json
 node lib/lint-shots.mjs <slug>                     # budget/overlap/U-curve; errors -> back to 070
 #      then board: review shot lane, "Approve shots"
