@@ -82,6 +82,20 @@ export const FLASH_OUT_OPACITIES = [0.45, 0.75, 1.0];  // 3-frame ramp on outgoi
 export const FLASH_IN_OPACITIES  = [0.8, 0.5, 0.25];   // 3-frame full-frame decay
 export const FLASH_BAND_OPACITIES = [0.35, 0.2, 0.1];  // 3-frame residue band after
 export const PUNCH_SCALE = 1.08;
+export const DRIFT_MAX = 0.05, DRIFT_MIN_SEG = 4, DRIFT_PERIOD = 30;
+
+// Ken Burns drift for one screen segment: slow center zoom, direction
+// alternating by screen ordinal (in, out, in, ...). Returns a filter
+// suffix string, or '' when the segment is too short.
+export function driftVF(screenOrdinal, dur, w, h, {
+  max = DRIFT_MAX, minSeg = DRIFT_MIN_SEG, period = DRIFT_PERIOD } = {}) {
+  if (dur < minSeg) return '';
+  const depth = +(max * Math.min(dur / period, 1)).toFixed(4);
+  const p = screenOrdinal % 2 === 0
+    ? `${depth}*min(time/${dur.toFixed(3)},1)`          // push in
+    : `${depth}*max(1-time/${dur.toFixed(3)},0)`;       // pull out
+  return `,zoompan=z='1+${p}':x='iw/2-(iw/zoom)/2':y='ih/2-(ih/zoom)/2':d=1:s=${w}x${h}:fps=30`;
+}
 
 // Whip transitions at screen<->avatar boundaries. Returns [{at, direction,
 // fromIdx, toIdx}] in timeline order. Skips: short neighbors, overlay
@@ -190,7 +204,7 @@ export function detectEncoder() {
 }
 
 // Committed EDL — doubles as editor documentation.
-export function assemblyMd(video, segments, overlays, total, outPath, transitions = [], captions = 'on') {
+export function assemblyMd(video, segments, overlays, total, outPath, transitions = [], captions = 'on', drift = 'on') {
   const getSegId = (s) => s.sub !== undefined ? `${s.id}.${s.sub + 1}` : s.id;
   const seg = segments.map((s) =>
     `| ${mmss(s.start)} | ${mmss(s.end)} | ${s.kind} | ${getSegId(s)} |`);
@@ -201,11 +215,12 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
     : 'Hard cuts.';
 
   const capSentence = captions === 'on' ? ' Captions burned on screen segments.' : '';
+  const driftSentence = drift === 'on' ? ' Ken Burns drift on screen segments.' : '';
 
   const lines = [
     `# ${video} — assembly`,
     '',
-    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. ${transSentence}${capSentence}`,
+    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. ${transSentence}${capSentence}${driftSentence}`,
     '',
     `Output: ${outPath}`,
     '',
@@ -240,7 +255,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on' };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', drift: 'on' };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -269,6 +284,11 @@ function parseArgs(argv) {
       if (c !== 'on' && c !== 'off') throw new Error('--captions must be on or off');
       opts.captions = c;
     }
+    else if (a === '--drift') {
+      const d = rest.shift();
+      if (d !== 'on' && d !== 'off') throw new Error('--drift must be on or off');
+      opts.drift = d;
+    }
     else if (a === '--keep-temp') opts.keepTemp = true;
     else if (a === '--force') opts.force = true;
     else throw new Error(`unknown argument: ${a}`);
@@ -277,7 +297,7 @@ function parseArgs(argv) {
 }
 
 
-export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', words = [] }) {
+export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', words = [] }) {
   let segments = planSegments({ resolved, avatarJobs, total });
   if (beats === 'on') {
     const cueTimes = resolved.filter(c => c.placement === 'overlay').map(c => c.start);
@@ -329,6 +349,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
 
   const concatLines = [];
   let segIndex = 1;
+  let screenOrdinal = 0;
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     const L = segOverlays[i];
@@ -364,6 +385,12 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     let punchVF = VF;
     if (seg.punch && seg.punch > 1.0) {
       punchVF += `,scale=trunc(iw*${seg.punch}/2)*2:-2,crop=${w}:${h}`;
+    }
+    if (seg.kind === 'screen') {
+      if (drift === 'on') {
+        punchVF += driftVF(screenOrdinal, dur, w, h);
+      }
+      screenOrdinal++;
     }
 
     let needsComplex = false;
@@ -586,7 +613,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     process.exit(1);
   }
 
-  const assemblyMdContent = assemblyMd(video, segments, overlays, total, out, trans, captions);
+  const assemblyMdContent = assemblyMd(video, segments, overlays, total, out, trans, captions, drift);
   fs.writeFileSync(path.join(workdir, 'assembly.md'), assemblyMdContent);
 
   if (!keepTemp) {
@@ -600,7 +627,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.workdir) {
-    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--captions on|off]');
+    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--captions on|off] [--drift on|off]');
     process.exit(1);
   }
 
@@ -689,7 +716,7 @@ async function main() {
   }
 
   const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, video, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, words });
+  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, drift: opts.drift, words });
   process.exit(0);
 }
 
