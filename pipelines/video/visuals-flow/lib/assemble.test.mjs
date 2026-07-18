@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions } from './assemble.mjs';
+import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions, planAvatarBeats, splitAvatarSegments } from './assemble.mjs';
 
 const testTmp = path.resolve(import.meta.dirname, '.test-tmp', 'assemble-it');
 
@@ -158,6 +158,102 @@ test('encoderArgs', () => {
   assert.ok(encoderArgs({ encoder: 'videotoolbox', draft: true }).includes('4M'));
   const enc = detectEncoder();
   assert.ok(enc === 'x264' || enc === 'videotoolbox');
+});
+
+test('planAvatarBeats: 60s span snapped to seeded gaps', () => {
+  const seg = { start: 0, end: 60 };
+  const words = [
+    { start: 0, end: 5 },
+    { start: 5.5, end: 19 },
+    { start: 20, end: 25 },
+    { start: 25.5, end: 39 },
+    { start: 40, end: 45 },
+    { start: 45.5, end: 60 }
+  ];
+  const beats = planAvatarBeats(seg, words);
+  assert.deepEqual(beats, [19.5, 39.5]);
+});
+
+test('planAvatarBeats: beat moved to nearest gap, not raw target', () => {
+  const seg = { start: 10, end: 70 }; // 60s, targets at 30, 50
+  const words = [
+    { start: 10, end: 28 },
+    { start: 29, end: 35 }, // gap at 28.5 (size 1) - closer to 30
+    { start: 36, end: 48 }, // gap at 35.5 - further
+    { start: 51, end: 60 } // gap at 49.5 - closer to 50
+  ];
+  const beats = planAvatarBeats(seg, words);
+  assert.deepEqual(beats, [28.5, 49.5]);
+});
+
+test('planAvatarBeats: no gap within +-3s -> beat dropped', () => {
+  const seg = { start: 0, end: 60 };
+  const words = [
+    { start: 0, end: 15 },
+    { start: 15.5, end: 25 }, // gap at 15.25 (distance 4.75 from 20)
+    { start: 25.5, end: 39 },
+    { start: 40, end: 60 } // gap at 39.5 (distance 0.5 from 40)
+  ];
+  const beats = planAvatarBeats(seg, words);
+  assert.deepEqual(beats, [39.5]); // 20 is dropped
+});
+
+test('planAvatarBeats: short span -> []', () => {
+  const seg = { start: 0, end: 25 };
+  const words = [
+    { start: 0, end: 19 },
+    { start: 20, end: 25 }
+  ];
+  const beats = planAvatarBeats(seg, words);
+  assert.deepEqual(beats, []);
+});
+
+test('planAvatarBeats: beats respect the 8s edges', () => {
+  const seg = { start: 0, end: 30 }; // targets at 20
+  const words = [
+    { start: 0, end: 22 },
+    { start: 23, end: 30 } // gap at 22.5
+  ];
+  const beats = planAvatarBeats(seg, words);
+  assert.deepEqual(beats, []);
+});
+
+test('splitAvatarSegments: alternating punch and passes others', () => {
+  const segments = [
+    { kind: 'screen', id: 'screen-01', start: 0, end: 10 },
+    { kind: 'avatar', id: 'a1', start: 10, end: 70 },
+    { kind: 'graphic', id: 'g1', start: 70, end: 80 }
+  ];
+  const words = [
+    { start: 0, end: 29 },
+    { start: 30, end: 49 },
+    { start: 50, end: 70 }
+  ];
+  const out = splitAvatarSegments(segments, words);
+  assert.equal(out.length, 5);
+  assert.equal(out[0].kind, 'screen');
+  assert.equal(out[1].sub, 0);
+  assert.equal(out[1].start, 10);
+  assert.equal(out[1].end, 29.5);
+  assert.equal(out[1].punch, 1.0);
+  assert.equal(out[1].flashOut, true);
+  assert.equal(out[1].flashIn, undefined);
+  
+  assert.equal(out[2].sub, 1);
+  assert.equal(out[2].start, 29.5);
+  assert.equal(out[2].end, 49.5);
+  assert.equal(out[2].punch, 1.08);
+  assert.equal(out[2].flashIn, true);
+  assert.equal(out[2].flashOut, true);
+  
+  assert.equal(out[3].sub, 2);
+  assert.equal(out[3].start, 49.5);
+  assert.equal(out[3].end, 70);
+  assert.equal(out[3].punch, 1.0);
+  assert.equal(out[3].flashIn, true);
+  assert.equal(out[3].flashOut, undefined);
+  
+  assert.equal(out[4].kind, 'graphic');
 });
 
 test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
