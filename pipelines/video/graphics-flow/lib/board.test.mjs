@@ -222,8 +222,8 @@ test('save: feedback goes to feedback.json; offset survives; page renders saved 
     assert.ok(!('feedback' in after)); // feedback never lands in cues.json
 
     const fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
-    assert.equal(fb.items.c01, 'wrong card here');
-    assert.equal(fb.items._global, 'good pass');
+    assert.equal(fb.items.c01.text, 'wrong card here');
+    assert.equal(fb.items._global.text, 'good pass');
     assert.ok(!('empty' in fb.items)); // blank entries dropped
 
     const resolvedOut = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
@@ -236,3 +236,124 @@ test('save: feedback goes to feedback.json; offset survives; page renders saved 
     server.close();
   }
 });
+
+test('save: folded items survive save intact; other items update', async () => {
+  const workdir = makeWorkdir();
+  const fbPath = path.join(workdir, 'feedback.json');
+  fs.writeFileSync(fbPath, JSON.stringify({
+    items: {
+      c01: { text: 'old lesson', folded: '2026-07-18 — RULEBOOK' },
+      _global: { text: 'still open' }
+    }
+  }));
+
+  const cuesPath = path.join(workdir, 'cues.json');
+  const before = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
+
+  const server = createServer(workdir);
+  await new Promise((r) => server.listen(0, r));
+  const port = server.address().port;
+  try {
+    const body = { video: before.video, approved: false, cues: before.cues, feedback: { _global: 'updated note', c02: 'new item' } };
+    const res = await fetch(`http://localhost:${port}/save`, { method: 'POST', body: JSON.stringify(body) });
+    const data = await res.json();
+    assert.equal(data.ok, true);
+
+    const fb = JSON.parse(fs.readFileSync(fbPath, 'utf8'));
+    assert.equal(fb.items.c01.folded, '2026-07-18 — RULEBOOK');
+    assert.equal(fb.items.c01.text, 'old lesson');
+    assert.equal(fb.items._global.text, 'updated note');
+    assert.equal(fb.items.c02.text, 'new item');
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /: folded items are read-only in the page and prefill only unfolded text', async () => {
+  const workdir = makeWorkdir();
+  const fbPath = path.join(workdir, 'feedback.json');
+  fs.writeFileSync(fbPath, JSON.stringify({
+    items: {
+      c01: { text: 'old lesson', folded: '2026-07-18' }
+    }
+  }));
+
+  const server = createServer(workdir);
+  await new Promise((r) => server.listen(0, r));
+  const port = server.address().port;
+  try {
+    const page = await (await fetch(`http://localhost:${port}/`)).text();
+    // The c01 textarea should NOT contain 'old lesson'
+    const c01TextareaMatch = page.match(/<textarea[^>]*data-ref="c01"[^>]*>([^<]*)<\/textarea>/);
+    assert.ok(c01TextareaMatch);
+    assert.equal(c01TextareaMatch[1], ''); // Should be empty
+
+    // Should contain the folded read-only rendering
+    assert.ok(page.includes('folded 2026-07-18'));
+    assert.ok(page.includes('old lesson'));
+    assert.ok(page.includes('feedback-folded'));
+  } finally {
+    server.close();
+  }
+});
+
+test('GET / and save: legacy string upgrade', async () => {
+  const workdir = makeWorkdir();
+  const fbPath = path.join(workdir, 'feedback.json');
+  fs.writeFileSync(fbPath, JSON.stringify({
+    items: {
+      c01: 'plain old string'
+    }
+  }));
+
+  const cuesPath = path.join(workdir, 'cues.json');
+  const before = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
+
+  const server = createServer(workdir);
+  await new Promise((r) => server.listen(0, r));
+  const port = server.address().port;
+  try {
+    const page = await (await fetch(`http://localhost:${port}/`)).text();
+    assert.ok(page.includes('plain old string')); // Prefilled
+
+    const body = { video: before.video, approved: false, cues: before.cues, feedback: { c01: 'plain old string' } };
+    const res = await fetch(`http://localhost:${port}/save`, { method: 'POST', body: JSON.stringify(body) });
+    const data = await res.json();
+    assert.equal(data.ok, true);
+
+    const fb = JSON.parse(fs.readFileSync(fbPath, 'utf8'));
+    assert.equal(typeof fb.items.c01, 'object');
+    assert.equal(fb.items.c01.text, 'plain old string');
+  } finally {
+    server.close();
+  }
+});
+
+test('save: clearing a feedback box deletes the unfolded item', async () => {
+  const workdir = makeWorkdir();
+  const fbPath = path.join(workdir, 'feedback.json');
+  fs.writeFileSync(fbPath, JSON.stringify({
+    items: {
+      c01: { text: 'delete me' }
+    }
+  }));
+
+  const cuesPath = path.join(workdir, 'cues.json');
+  const before = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
+
+  const server = createServer(workdir);
+  await new Promise((r) => server.listen(0, r));
+  const port = server.address().port;
+  try {
+    const body = { video: before.video, approved: false, cues: before.cues, feedback: { c01: '' } };
+    const res = await fetch(`http://localhost:${port}/save`, { method: 'POST', body: JSON.stringify(body) });
+    const data = await res.json();
+    assert.equal(data.ok, true);
+
+    const fb = JSON.parse(fs.readFileSync(fbPath, 'utf8'));
+    assert.ok(!('c01' in fb.items));
+  } finally {
+    server.close();
+  }
+});
+

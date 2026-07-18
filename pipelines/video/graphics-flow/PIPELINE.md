@@ -88,8 +88,8 @@ Field semantics:
 - `flagged: true` — no card fits, needs a novel card (plan 065 surfaces these).
 - Board feedback: every cue block, gap block, and the header carry a feedback box;
   Save writes non-empty entries to `feedback.json` (`items` keyed by cue id,
-  `gap-<mm:ss>`, or `_global`). The next Claude session working on the video reads
-  it — no screenshots-to-terminal needed.
+  `gap-<mm:ss>`, or `_global`). Items are objects `{text, added, folded?}`.
+  The next Claude session working on the video reads it — no screenshots-to-terminal needed.
 - `offset` (top-level, default 0) — seconds the VOICEOVER starts at on the editor's
   final timeline (e.g. 6.0 if a cold-open precedes it). All cue/beat times stay
   VO-relative; the offset is applied ONLY to manifest.md's "place at" column, so

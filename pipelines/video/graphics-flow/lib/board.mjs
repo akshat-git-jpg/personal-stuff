@@ -116,9 +116,10 @@ const BOARD_CSS = `
   .note { width:100%; font:inherit; font-size:12px; padding:6px 8px; margin-bottom:8px; background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:6px; }
   textarea.frag { width:100%; min-height:140px; font-family:ui-monospace,Menlo,monospace; font-size:11px;
     background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:8px; }
-  textarea.feedback { width:100%; min-height:34px; font:inherit; font-size:12px; margin:8px 0;
+  textarea.feedback { width:100%; min-height:34px; font:inherit; font-size:12px; margin:8px 0 4px;
     background:rgba(251,146,60,0.05); color:var(--text); border:1px dashed rgba(251,146,60,0.4); border-radius:6px; padding:6px 8px; }
   textarea.feedback:focus { border-style:solid; outline:none; }
+  .feedback-folded { font-size:12px; color:var(--dim); margin-bottom:8px; padding:0 8px; }
 `;
 
 function timecode(secs) {
@@ -187,13 +188,26 @@ export function buildSegments(words, resolved, { gapMinWords = 8 } = {}) {
   return segments;
 }
 
+function normalizeFeedbackItems(raw) {
+  const items = {};
+  for (const [ref, v] of Object.entries(raw ?? {})) {
+    if (typeof v === 'string') items[ref] = { text: v };
+    else if (v && typeof v === 'object' && typeof v.text === 'string') items[ref] = v;
+  }
+  return items;
+}
+
 function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
-  const fb = (ref) => escapeHtml(feedbackItems[ref] ?? '');
-  const fbBox = (ref, placeholder) =>
-    `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>`;
+  const fb = (ref) => feedbackItems[ref]?.folded ? '' : escapeHtml(feedbackItems[ref]?.text ?? '');
+  const fbBox = (ref, placeholder) => {
+    const foldedHtml = feedbackItems[ref]?.folded
+      ? `<div class="feedback-folded">✓ folded ${escapeHtml(feedbackItems[ref].folded)} — "${escapeHtml(feedbackItems[ref].text)}"</div>`
+      : '';
+    return `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>${foldedHtml}`;
+  };
   
   const segments = buildSegments(words, resolved);
   const unresolvedSegs = cues.filter(c => !byId.has(c.id)).map(c => ({
@@ -364,7 +378,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
         return cue;
       });
       const feedback = {};
-      document.querySelectorAll('textarea.feedback').forEach((t) => { if (t.value.trim()) feedback[t.dataset.ref] = t.value.trim(); });
+      document.querySelectorAll('textarea.feedback').forEach((t) => { feedback[t.dataset.ref] = t.value; });
       const res = await fetch('/save', { method: 'POST', body: JSON.stringify({ video: VIDEO, approved: APPROVED, cues, feedback }) });
       const data = await res.json();
       if (!data.ok) {
@@ -408,13 +422,19 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   fs.writeFileSync(cuesPath, JSON.stringify(merged, null, 2));
 
   if (feedback && typeof feedback === 'object') {
-    const items = Object.fromEntries(
-      Object.entries(feedback).filter(([, v]) => String(v ?? '').trim() !== ''),
-    );
-    fs.writeFileSync(
-      path.join(workdir, 'feedback.json'),
-      JSON.stringify({ video: merged.video, updated: new Date().toISOString().slice(0, 10), items }, null, 2),
-    );
+    const fbPath = path.join(workdir, 'feedback.json');
+    const existing = fs.existsSync(fbPath)
+      ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items)
+      : {};
+    const items = { ...existing };
+    const today = new Date().toISOString().slice(0, 10);
+    for (const [ref, v] of Object.entries(feedback ?? {})) {
+      const text = String(v ?? '').trim();
+      if (items[ref]?.folded) continue;            // folded items are immutable here
+      if (!text) delete items[ref];                // cleared box removes an unfolded item
+      else if (items[ref]?.text !== text) items[ref] = { text, added: today };
+    }
+    fs.writeFileSync(fbPath, JSON.stringify({ video: merged.video, updated: today, items }, null, 2));
   }
 
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
@@ -478,7 +498,7 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
     const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
     const fbPath = path.join(workdir, 'feedback.json');
-    const feedbackItems = fs.existsSync(fbPath) ? (JSON.parse(fs.readFileSync(fbPath, 'utf8')).items ?? {}) : {};
+    const feedbackItems = fs.existsSync(fbPath) ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items) : {};
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
     return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems));
