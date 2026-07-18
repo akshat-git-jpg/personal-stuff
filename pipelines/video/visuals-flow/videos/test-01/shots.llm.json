@@ -1,0 +1,79 @@
+{
+  "video": "test-01",
+  "approved": false,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s01",
+      "kind": "avatar-full",
+      "from_anchor": "5 AI video tools 5 very different promises",
+      "to_anchor": "each one earns a spot",
+      "note": "intro + methodology — front-load; ends right before the table-of-contents card (c01)",
+      "flagged": false
+    },
+    {
+      "id": "s02",
+      "kind": "avatar-full",
+      "from_anchor": "Now on the other hand Higgs Field is a video-first platform",
+      "to_anchor": "a polished talking head video in over 140 languages",
+      "note": "pre-demo overview (Higgs + Synthesia halves) — host carries the setup; ends before the OpenArt section opener (c05)",
+      "flagged": false
+    },
+    {
+      "id": "s03",
+      "kind": "avatar-full",
+      "from_anchor": "And so I think on the creative workspace side",
+      "to_anchor": "very good in terms of variety",
+      "note": "OpenArt verdict beat (~20s) — first and fullest of the shrinking per-tool verdicts",
+      "flagged": false
+    },
+    {
+      "id": "s04",
+      "kind": "avatar-full",
+      "from_anchor": "So Higgs field I think is the strongest cinematic video tool",
+      "to_anchor": "Higgs field earns its spot",
+      "note": "Higgs Field verdict beat (~30s); ends before its section card (c11)",
+      "flagged": false
+    },
+    {
+      "id": "s05",
+      "kind": "avatar-full",
+      "from_anchor": "So synesthesia is a clear winner for professional",
+      "to_anchor": "in t-shirt is about to do",
+      "note": "Synthesia verdict beat (~17s); anchors quote the ASR garbles verbatim; ends before c14",
+      "flagged": false
+    },
+    {
+      "id": "s06",
+      "kind": "avatar-full",
+      "from_anchor": "Now overall I think that Hazen is the strongest option",
+      "to_anchor": "this is my personal favorite tool as well",
+      "note": "HeyGen verdict beat (~17s) + personal-favorite moment — genuine host emotion; ends before c17",
+      "flagged": false
+    },
+    {
+      "id": "s07",
+      "kind": "avatar-full",
+      "from_anchor": "I think that Arcads wins for performance marketers",
+      "to_anchor": "use case to way Arcads is",
+      "note": "Arcads verdict beat (~23s) — also the cadence beat for the long ads section",
+      "flagged": false
+    },
+    {
+      "id": "s08",
+      "kind": "avatar-full",
+      "from_anchor": "Now on pricing every tool sets in a different value bracket",
+      "to_anchor": "if paid ad production is your core workflow",
+      "note": "pricing wrap-up — back-load begins; ends before the summary-table block (c25)",
+      "flagged": false
+    },
+    {
+      "id": "s09",
+      "kind": "avatar-full",
+      "from_anchor": "And the honest takeaway from this comparison",
+      "to_anchor": "see you in the next video",
+      "note": "conclusion — land on the host through the CTA and sign-off, starts after the finale card (c26) ends",
+      "flagged": false
+    }
+  ]
+}
