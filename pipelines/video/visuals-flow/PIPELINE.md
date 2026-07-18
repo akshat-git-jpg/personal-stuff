@@ -1,4 +1,4 @@
-# graphics-flow
+# visuals-flow
 
 Beat-synced motion graphics for a video: word-timestamp transcription → LLM cue
 pass → anchor resolver → owner storyboard review → batch render + editor

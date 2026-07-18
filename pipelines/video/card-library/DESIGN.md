@@ -1,7 +1,7 @@
 # Card design system
 
 > Human-editor version of this document (plain style guide, no code):
-> `../graphics-flow/EDITOR-STYLE-GUIDE.md`. Keep the two in sync when the
+> `../visuals-flow/EDITOR-STYLE-GUIDE.md`. Keep the two in sync when the
 > system changes.
 
 Every card in this library follows one visual family. This file is the contract a NEW
