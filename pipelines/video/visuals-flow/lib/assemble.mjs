@@ -219,7 +219,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip' };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on' };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -238,6 +238,11 @@ function parseArgs(argv) {
       if (t !== 'whip' && t !== 'none') throw new Error('--transitions must be whip or none');
       opts.transitions = t;
     }
+    else if (a === '--beats') {
+      const b = rest.shift();
+      if (b !== 'on' && b !== 'off') throw new Error('--beats must be on or off');
+      opts.beats = b;
+    }
     else if (a === '--keep-temp') opts.keepTemp = true;
     else if (a === '--force') opts.force = true;
     else throw new Error(`unknown argument: ${a}`);
@@ -251,8 +256,11 @@ function resolveWorkdir(arg) {
   return path.join(pipelineRoot, 'videos', arg);
 }
 
-export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip' }) {
-  const segments = planSegments({ resolved, avatarJobs, total });
+export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', words = [] }) {
+  let segments = planSegments({ resolved, avatarJobs, total });
+  if (beats === 'on') {
+    segments = splitAvatarSegments(segments, words);
+  }
   const renderDir = path.join(workdir, 'renders');
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
     return { id: c.id, start: c.start, end: c.start + c.duration, file: path.join(renderDir, planRender(c).outFile) };
@@ -297,30 +305,53 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     } else if (seg.kind === 'avatar') {
       const job = avatarJobs.find(j => j.id === seg.id);
       src = job.file;
-      if (startTrim > 0) seekArgs = ['-ss', String(startTrim)];
+      seekArgs = ['-ss', String(seg.start - job.start + startTrim)];
     } else if (seg.kind === 'graphic') {
       const cue = resolved.find(c => c.id === seg.id);
       src = path.join(renderDir, planRender(cue).outFile);
     }
 
-    if (L && L.length > 0) {
-      let chain = `[0:v]${VF},tpad=stop_mode=clone:stop_duration=30[b0];`;
-      const inputs = [];
-      for (const o of L) inputs.push('-i', o.file);
-      
-      let lastV = 'b0';
-      for (let j = 0; j < L.length; j++) {
-        const o = L[j];
-        const oj = `o${j}`;
-        const nextV = `b${j + 1}`;
-        const adjustedAt = +(o.at - startTrim).toFixed(3);
-        const adjustedUntil = +(o.until - startTrim).toFixed(3);
-        chain += `[${j + 1}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${w}:${h}[${oj}];`;
-        chain += `[${lastV}][${oj}]overlay=eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
-        lastV = nextV;
-      }
-      chain = chain.slice(0, -1); // remove trailing semicolon
+    let punchVF = VF;
+    if (seg.punch && seg.punch > 1.0) {
+      punchVF += `,scale=trunc(iw*${seg.punch}/2)*2:-2,crop=${w}:${h}`;
+    }
 
+    let needsComplex = false;
+    if (L && L.length > 0) needsComplex = true;
+    if (seg.flashIn || seg.flashOut) needsComplex = true;
+
+    if (needsComplex) {
+      let chain = `[0:v]${punchVF},tpad=stop_mode=clone:stop_duration=30[b0];`;
+      const inputs = [];
+      let lastV = 'b0';
+      
+      if (L && L.length > 0) {
+        for (const o of L) inputs.push('-i', o.file);
+        for (let j = 0; j < L.length; j++) {
+          const o = L[j];
+          const oj = `o${j}`;
+          const nextV = `b${j + 1}`;
+          const adjustedAt = +(o.at - startTrim).toFixed(3);
+          const adjustedUntil = +(o.until - startTrim).toFixed(3);
+          chain += `[${j + 1}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${w}:${h}[${oj}];`;
+          chain += `[${lastV}][${oj}]overlay=eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
+          lastV = nextV;
+        }
+      }
+      
+      if (seg.flashIn) {
+        chain += `color=c=${FLASH_COLOR}@${FLASH_ALPHA}:s=${w}x${h}:r=30,format=yuva420p,fade=t=out:st=0:d=0.12:alpha=1[f_in];`;
+        chain += `[${lastV}][f_in]overlay=eof_action=pass[b_fin];`;
+        lastV = 'b_fin';
+      }
+      if (seg.flashOut) {
+        chain += `color=c=${FLASH_COLOR}@${FLASH_ALPHA}:s=${w}x${h}:r=30,format=yuva420p,fade=t=in:st=${Math.max(0, dur - 0.12).toFixed(3)}:d=0.12:alpha=1[f_out];`;
+        chain += `[${lastV}][f_out]overlay=eof_action=pass[b_fout];`;
+        lastV = 'b_fout';
+      }
+      
+      chain = chain.slice(0, -1);
+      
       spawnArgs = [
         '-y', ...seekArgs, '-i', src, ...inputs,
         '-filter_complex', chain, '-map', `[${lastV}]`,
@@ -329,7 +360,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     } else {
       spawnArgs = [
         '-y', ...seekArgs, '-i', src,
-        '-vf', `${VF},tpad=stop_mode=clone:stop_duration=30`,
+        '-vf', `${punchVF},tpad=stop_mode=clone:stop_duration=30`,
         '-t', String(dur), '-an', ...ENC, '-f', 'mpegts', segFile
       ];
     }
@@ -506,7 +537,7 @@ async function main() {
   }
 
   const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, video, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions });
+  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, words });
   process.exit(0);
 }
 
