@@ -492,3 +492,4 @@ The others are grounded and available when the owner wants them:
 - 085-assemble-avatar-refresh-beats — PR#42 085-assemble-avatar-refresh-beats: flash + punch-in refresh beats inside long avatar spans (step 090) — DONE
 - 086-transcript-text-export-and-docs — PR#43 086-transcript-text-export-and-docs: plain-text transcript export + LLM-step doc reconciliation — DONE
 - 087-avatar-render-hardening — PR#44 087-avatar-render-hardening: avatar-render hardening: array-form spawns, slice verify, guards — DONE
+- 088-visuals-flow-hygiene-batch — PR#45 088-visuals-flow-hygiene-batch: hygiene batch: test-tmp teardown, workdir dedupe, small guards — DONE
