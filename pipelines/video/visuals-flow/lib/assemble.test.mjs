@@ -317,10 +317,10 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
     { kind: 'avatar-full', id: 's01', start: 6, end: 66, file: avatarFile }
   ];
   const words = [
-    { start: 0, end: 5 },
-    { start: 6, end: 25 },
-    { start: 26, end: 45 },
-    { start: 46, end: 68 }
+    { start: 0, end: 5, word: 'hello_world' },
+    { start: 6, end: 25, word: 'something_else' },
+    { start: 26, end: 45, word: 'third_chunk' },
+    { start: 46, end: 68, word: 'final_words' }
   ];
   // gaps at 5.5, 25.5, 45.5. Beats inside [6, 66] are 25.5, 45.5
   // sub-segment durations before trim: 19.5, 20.0, 20.5
@@ -369,7 +369,30 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
     assert.ok(Math.abs(d - subDurations[i]) <= 0.05, `sub ${i} dur ${d} not near ${subDurations[i]}`);
   }
   
+  // Check captions
+  const capDir = path.join(tmpDir, 'captions');
+  assert.ok(fs.existsSync(capDir), 'captions dir should exist');
+  const caps = fs.readdirSync(capDir).filter(f => f.endsWith('.png'));
+  assert.ok(caps.length > 0, 'captions generated');
+  
   fs.rmSync(tmpDir, { recursive: true, force: true });
+
+  const capFrame = path.join(testTmp, 'cap-frame.png');
+  spawnSync('ffmpeg', ['-y', '-ss', '1', '-i', outMp4, '-frames:v', '1', '-pix_fmt', 'gray', capFrame]);
+  
+  const avFrame = path.join(testTmp, 'av-frame.png');
+  spawnSync('ffmpeg', ['-y', '-ss', '10', '-i', outMp4, '-frames:v', '1', '-pix_fmt', 'gray', avFrame]);
+  
+  const getMean = (file) => {
+    const cropStr = 'crop=in_w:in_h*0.2:0:in_h*0.8';
+    const p = spawnSync('ffprobe', ['-v', 'error', '-f', 'lavfi', '-i', `movie=${file},${cropStr},signalstats`, '-show_entries', 'frame_tags=lavfi.signalstats.YAVG', '-of', 'csv=p=0'], { encoding: 'utf8' });
+    return parseFloat(p.stdout);
+  };
+  
+  const meanCap = getMean(capFrame);
+  const meanAv = getMean(avFrame);
+  assert.ok(Math.abs(meanCap - meanAv) >= 2, `luma diff too small: cap=${meanCap}, av=${meanAv}`);
+
 
   assert.ok(fs.existsSync(outMp4));
   const probe = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', outMp4], { encoding: 'utf8' });
@@ -463,3 +486,44 @@ test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmp
   
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
+
+test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+  const outOff = path.join(testTmp, 'final-cap-off.mp4');
+  if (fs.existsSync(outOff)) fs.unlinkSync(outOff);
+
+  const resolved = [
+    { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' }
+  ];
+  const avatarJobs = [];
+  
+  const words = [
+    { start: 0, end: 5, word: 'hello_world' }
+  ];
+
+  runAssembly({
+    workdir: testTmp,
+    video: 'it',
+    resolved,
+    avatarJobs,
+    total: 10,
+    screen: path.join(testTmp, 'screen.mp4'),
+    out: outOff,
+    encoder: 'x264',
+    keepTemp: true,
+    transitions: 'none',
+    beats: 'on',
+    captions: 'off',
+    words
+  });
+
+  const tmpDir = path.join(testTmp, 'assembly-tmp');
+  const capDir = path.join(tmpDir, 'captions');
+  assert.ok(!fs.existsSync(capDir), 'captions dir should NOT exist');
+  
+  const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
+  // 1 screen, 1 graphic, 1 screen = 3 segments
+  assert.equal(tsFiles.length, 3, 'segment count unchanged when captions off');
+  
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
