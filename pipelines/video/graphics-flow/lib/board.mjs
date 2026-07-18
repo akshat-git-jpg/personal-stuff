@@ -539,6 +539,10 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
 
   fs.writeFileSync(cuesPath, JSON.stringify(merged, null, 2));
 
+  const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
+  const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
+  const { resolved, errors } = resolveCues(merged.cues ?? [], words, catalog, cardLibraryRoot);
+
   if (feedback && typeof feedback === 'object') {
     const fbPath = path.join(workdir, 'feedback.json');
     const existing = fs.existsSync(fbPath)
@@ -546,18 +550,37 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
       : {};
     const items = { ...existing };
     const today = new Date().toISOString().slice(0, 10);
+    const segments = buildSegments(words, resolved);
+    const gaps = segments.filter(s => s.kind === 'gap');
+
     for (const [ref, v] of Object.entries(feedback ?? {})) {
       const text = String(v ?? '').trim();
       if (items[ref]?.folded) continue;            // folded items are immutable here
-      if (!text) delete items[ref];                // cleared box removes an unfolded item
-      else if (items[ref]?.text !== text) items[ref] = { text, added: today };
+      if (!text) { delete items[ref]; continue; }
+      if (items[ref]?.text !== text) {
+        if (!items[ref]) {
+          const item = { text, added: today };
+          if (ref.startsWith('gap-')) {
+            const gap = gaps.find(g => `gap-${timecode(g.start)}` === ref);
+            if (gap) {
+              item.context = { start: gap.start, end: gap.end, excerpt: gap.words.slice(0, 8).map(w => w.text).join(' ') };
+            }
+          } else if (ref !== '_global') {
+            const cue = (merged.cues ?? []).find(c => c.id === ref);
+            const r = resolved.find(c => c.id === ref);
+            if (cue) {
+              item.context = { card: cue.card, anchor: cue.anchor };
+              if (r) item.context.start = r.start;
+            }
+          }
+          items[ref] = item;
+        } else {
+          items[ref] = { ...items[ref], text };
+        }
+      }
     }
     fs.writeFileSync(fbPath, JSON.stringify({ video: merged.video, updated: today, items }, null, 2));
   }
-
-  const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
-  const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
-  const { resolved, errors } = resolveCues(merged.cues ?? [], words, catalog, cardLibraryRoot);
 
   res.setHeader('content-type', 'application/json');
   if (errors.length) {
