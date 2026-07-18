@@ -134,6 +134,7 @@ tutorial-pipeline-2/
   (cross-stage) and writes `./output/…`. Shared code goes in `lib/`.
 - `[ANTIGRAVITY]` rulebooks are self-contained paste prompts. `[SONNET]` rulebooks are run
   in a Claude Code session on model Sonnet (`/model sonnet` first).
+- Graphics step: consume `pipelines/video/graphics-flow` per its INTEGRATION.md (workdir-by-path contract).
 
 ## Status
 Steps 000, 015, 105, 125, 135, 162, 165 are v3 additions. 105, 125, and 162 are implemented
