@@ -22,10 +22,16 @@ file and `shot-pass-prompt.md` together — same convention as 020's pair.
 2. **Conclusion + summary framing** — back-load; land on the host.
 3. **Each tool's/section's verdict** — shrinking as the video goes.
 4. **Pricing / value wrap-up** — part of the back-load.
-5. Still under target? Add back-loaded beats first; mid-demo beats are a last resort.
+5. **Cadence beats** — SHORT mid-video host moments (15–30s: a one-line verdict,
+   a reaction, a "here's what surprised me") so no stretch runs longer than the
+   lint cadence gap (`GAP_AVATAR_MAX` in lint-shots.mjs) without the host
+   full-screen. Owner rule 2026-07-18: the host returns periodically, not just
+   at the ends. Keep them brief — they share the same total budget.
 
-Lean demo middle: when narration walks the screen ("click", "open", "type",
-"select"), the screen recording IS the shot — never claim it for the avatar.
+Lean demo middle still applies WITHIN the cadence: when narration walks the
+screen ("click", "open", "type", "select"), the screen recording IS the shot —
+place cadence beats at natural pauses (a verdict, a transition between tools),
+never over hands-on narration.
 
 ## Anchors
 
@@ -50,3 +56,4 @@ Lean demo middle: when narration walks the screen ("click", "open", "type",
 | Date | What we learned | Rule / knob change |
 |------|-----------------|--------------------|
 | 2026-07-18 | (seed — fill from the first owner review) | — |
+| 2026-07-18 | Owner: the video must not run long stretches with no full-screen host — periodic presence, not only the U-curve ends | Priority item 5 rewritten from "mid-demo = last resort" to cadence beats; `GAP_AVATAR_MAX = 300` + W4 span-cadence warning added to lint-shots.mjs |

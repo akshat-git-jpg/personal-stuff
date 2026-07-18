@@ -11,6 +11,9 @@ const SPAN_MIN = 12;                // s — error: a shorter full-screen moment
 const SPAN_MAX = 150;               // s — warn: a full-screen host stretch this long drags
 const FRONT_ZONE = 0.15;            // U-curve: expect a span starting in the first 15% of the VO
 const BACK_ZONE = 0.15;             //          and one in the last 15%
+const GAP_AVATAR_MAX = 300;         // s — warn when the host is off full-screen longer than this
+                                    //     between spans (owner rule 2026-07-18: periodic host
+                                    //     presence mid-video, not just the U-curve ends)
 
 export function lintShots({ shotsResolved, resolvedCues, words }) {
   const errors = [];
@@ -61,6 +64,15 @@ export function lintShots({ shotsResolved, resolvedCues, words }) {
     }
     if (!spans.some((s) => s.end >= T * (1 - BACK_ZONE))) {
       warnings.push(`W3 u-curve: no span reaches the last ${(BACK_ZONE * 100).toFixed(0)}% of the video — land on the host`);
+    }
+  }
+
+  // W4 span-cadence — no stretch without the host longer than GAP_AVATAR_MAX
+  // between consecutive spans (start/end coverage is W3's job).
+  for (let i = 1; i < spans.length; i++) {
+    const gap = spans[i].start - spans[i - 1].end;
+    if (gap > GAP_AVATAR_MAX) {
+      warnings.push(`W4 span-cadence: ${gap.toFixed(0)}s without full-screen host between ${spans[i - 1].id} and ${spans[i].id} (max ${GAP_AVATAR_MAX}s) — add a short mid-video host beat`);
     }
   }
 

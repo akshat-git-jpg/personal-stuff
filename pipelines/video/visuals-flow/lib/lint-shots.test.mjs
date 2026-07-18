@@ -51,6 +51,32 @@ test('single mid-video span → W3 twice; spans at edges → no W3', () => {
   assert.ok(!res2.warnings.some(w => w.startsWith('W3')));
 });
 
+test('400s gap between spans → W4; 250s gap → no W4', () => {
+  const res1 = lintShots({
+    shotsResolved: {
+      spans: [
+        { id: 's1', start: 30, end: 90, duration: 60 },
+        { id: 's2', start: 490, end: 530, duration: 40 }
+      ]
+    },
+    resolvedCues: [],
+    words
+  });
+  assert.ok(res1.warnings.some(w => w.startsWith('W4')));
+
+  const res2 = lintShots({
+    shotsResolved: {
+      spans: [
+        { id: 's1', start: 30, end: 90, duration: 60 },
+        { id: 's2', start: 340, end: 380, duration: 40 }
+      ]
+    },
+    resolvedCues: [],
+    words
+  });
+  assert.ok(!res2.warnings.some(w => w.startsWith('W4')));
+});
+
 test('empty spans array → no errors, no warnings', () => {
   const { errors, warnings } = lintShots({ shotsResolved: { spans: [] }, resolvedCues: [], words });
   assert.equal(errors.length, 0);

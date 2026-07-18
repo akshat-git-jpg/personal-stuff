@@ -38,16 +38,20 @@ content — no other text.
    Misspellings in the transcript are quoted as-is.
 2. U-curve: host-heavy open (intro + overview), lean hands-on middle, host-heavy
    close (verdicts shrinking → pricing wrap → conclusion).
-3. Total full-screen time: aim near 4 minutes for a ~30-min video, never above
+3. Cadence: never let more than ~5 minutes pass without a full-screen host
+   moment. Fill the middle with SHORT beats (15–30s — a one-line verdict, a
+   reaction, a transition between tools) at natural pauses, never over
+   hands-on narration.
+4. Total full-screen time: aim near 4 minutes for a ~30-min video, never above
    5 minutes total. No span under ~15 seconds; prefer spans under ~2 minutes.
-4. NEVER place a span over a fullframe graphics cue — the fullframe times are
+5. NEVER place a span over a fullframe graphics cue — the fullframe times are
    listed below; plan around them. Overlay cues are fine to overlap.
-5. Span boundaries at sentence starts/ends.
-6. When narration describes on-screen actions (click/open/type/select/drag),
+6. Span boundaries at sentence starts/ends.
+7. When narration describes on-screen actions (click/open/type/select/drag),
    that stretch belongs to the screen recording — not to the avatar.
-7. Can't place a span cleanly? Set `"flagged": true` with a note instead of
+8. Can't place a span cleanly? Set `"flagged": true` with a note instead of
    forcing bad anchors.
-8. `engineMode` is always `"test"` — do not change it.
+9. `engineMode` is always `"test"` — do not change it.
 
 ## Fullframe graphics cues (plan around these — [start, end] seconds)
 
