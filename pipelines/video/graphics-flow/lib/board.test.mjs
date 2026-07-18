@@ -357,3 +357,31 @@ test('save: clearing a feedback box deletes the unfolded item', async () => {
   }
 });
 
+test('save: changing cues resets approved to false; identical save keeps it true', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    // Approve first
+    await fetch(`${base}/approve`, { method: 'POST' });
+    let onDisk = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+    assert.equal(onDisk.approved, true);
+
+    // Save identical cues
+    let res = await fetch(`${base}/save`, { method: 'POST', body: JSON.stringify(onDisk) });
+    let data = await res.json();
+    assert.equal(data.ok, true);
+    onDisk = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+    assert.equal(onDisk.approved, true);
+
+    // Save with a changed cue
+    onDisk.cues[0].hold = (onDisk.cues[0].hold || 3) + 1;
+    res = await fetch(`${base}/save`, { method: 'POST', body: JSON.stringify(onDisk) });
+    data = await res.json();
+    assert.equal(data.ok, true);
+    onDisk = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+    assert.equal(onDisk.approved, false);
+  } finally {
+    server.close();
+  }
+});
+
