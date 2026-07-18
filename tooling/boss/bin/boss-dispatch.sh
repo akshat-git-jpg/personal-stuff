@@ -44,7 +44,7 @@ test_cmd="$(fm_get test_cmd "$plan_tmp")"
 # declare their own budget; everything else gets 600s, which would have caught the
 # 2026-07-08 hang in 10 minutes instead of 83.
 test_timeout="$(fm_get test_timeout "$plan_tmp")"; [ -n "$test_timeout" ] || test_timeout=600
-ui="$(fm_get ui "$plan_tmp")"
+# ui: frontmatter is no longer read — the screenshot gate was removed 2026-07-18 (see decisions.md).
 [ -f "$BOSS_HOME/executors/$executor.sh" ] || { echo "no executor '$executor'" >&2; exit 1; }
 
 gh pr edit "$pr" --remove-label boss:ready --add-label boss:in-progress
