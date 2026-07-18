@@ -80,6 +80,7 @@ field explaining what's missing. See Section 8.
   a hard error, not a warning.
 - A cue's anchor is where the card APPEARS — the sentence that introduces the
   topic. Each beat's anchor is the phrase that begins that specific point.
+- A beat's anchor must begin after its cue's anchor phrase ends — the resolver enforces this (it will report "anchor not found").
 
 ## Beats
 

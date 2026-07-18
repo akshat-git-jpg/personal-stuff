@@ -150,6 +150,58 @@ test('overlapping fullframe cues error; overlay overlapping fullframe does not',
   assert.deepEqual(ids, ['c07a', 'c07c']);
 });
 
+test('sandwich overlap: overlay between fullframes tracks the last fullframe', () => {
+  const cues = [
+    { id: 'cA', card: 'pros-cons/pros-cons', anchor: "let's look at the pros", beats: [] }, // start 0, dur 6
+    { id: 'cB', card: 'overlay/simple-overlay', anchor: 'the free tier alone', beats: [] }, // start 2.0
+    { id: 'cC', card: 'pros-cons/pros-cons', anchor: "is great but it's", beats: [] }, // start 4.0, overlaps cA [0, 6)
+    { id: 'cD', card: 'pros-cons/pros-cons', anchor: "let's look at the cons", beats: [] }, // start 9.5, no overlap
+  ];
+  const { resolved, errors } = resolveCues(cues, WORDS, CATALOG);
+  const overlapErrors = errors.filter((e) => /overlaps previous fullframe/.test(e));
+  assert.equal(overlapErrors.length, 1);
+  assert.match(overlapErrors[0], /^cC:.*overlaps previous fullframe cue cA/);
+  const ids = resolved.map((c) => c.id);
+  assert.deepEqual(ids, ['cA', 'cB', 'cD']);
+});
+
+test('beat anchor inside cue anchor phrase fails; immediately after resolves', () => {
+  const cues = [
+    {
+      id: 'c1',
+      card: 'pros-cons/pros-cons',
+      anchor: "let's look at the pros", // length 5, idx 0..4
+      beats: [
+        { reveal: { kind: 'pro', text: '1' }, anchor: 'at the pros' }, // inside cue anchor, fails
+      ],
+    },
+    {
+      id: 'c2',
+      card: 'pros-cons/pros-cons',
+      anchor: "let's look at the cons", // length 5, idx 20..24
+      beats: [
+        { reveal: { kind: 'con', text: '2' }, anchor: 'now the free tier' }, // idx 25, immediately after, resolves
+      ],
+    }
+  ];
+  const { resolved, errors } = resolveCues(cues, WORDS, CATALOG);
+  assert.ok(errors.some(e => /^c1 beat: anchor not found/.test(e)));
+  assert.equal(resolved.length, 1);
+  assert.equal(resolved[0].id, 'c2');
+});
+
+test('consecutive cues sharing boundary words resolve correctly', () => {
+  const cues = [
+    { id: 'c1', card: 'overlay/simple-overlay', anchor: "let's look at", beats: [] }, // idx 0..2
+    { id: 'c2', card: 'overlay/simple-overlay', anchor: 'the pros, the free', beats: [] }, // idx 3..6
+  ];
+  const { resolved, errors } = resolveCues(cues, WORDS, CATALOG);
+  assert.deepEqual(errors, []);
+  assert.equal(resolved.length, 2);
+  assert.equal(resolved[0].id, 'c1');
+  assert.equal(resolved[1].id, 'c2');
+});
+
 test('beat-less single cue uses catalog default_duration', () => {
   const cues = [{ id: 'c08', card: 'overlay/simple-overlay', anchor: "it's not all good", beats: [] }];
   const { resolved, errors } = resolveCues(cues, WORDS, CATALOG);

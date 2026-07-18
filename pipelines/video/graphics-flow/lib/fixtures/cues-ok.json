@@ -4,7 +4,7 @@
     {
       "id": "c01",
       "card": "pros-cons/pros-cons",
-      "anchor": "we take a look",
+      "anchor": "we take a",
       "variables": {
         "title": "Fixture"
       },
@@ -21,7 +21,7 @@
             "kind": "con",
             "text": "Costs money"
           },
-          "anchor": "pros and cons"
+          "anchor": "and cons here"
         }
       ]
     }
