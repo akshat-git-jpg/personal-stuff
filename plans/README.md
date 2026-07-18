@@ -96,6 +96,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 079 | Board — shot spans as a reviewable third block kind (lane, blocks, approve-shots, staleness cascade) | P1 | M | 078 | DONE (PR #36, landed 2026-07-18) |
 | 080 | Avatar render step (080) — VO slices → HeyGen 3 template jobs → clips + avatar-manifest.md | P1 | M | 078, 079 | DONE (PR #37, landed 2026-07-18) |
 | 081 | visuals-flow operating skill (GFX-12) — verb router: session runs the steps, owner reviews board + green-lights HeyGen | P2 | S | 077–080 landed | TODO |
+| 082 | visuals-flow step 090 assemble (GFX-14) — deterministic final-video build: screen base + avatar spans + fullframe swaps + overlay composite + vo.mp3, hard cuts; final.mp4 (kb-scratch) + assembly.md EDL; editor bundle unchanged | P1 | M | 080 landed | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -352,6 +353,11 @@ lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
   the avatar phase: run graphics / shot pass / board / render / make+download avatar
   videos / fold). Overlap with `video-and-tts-reference` checked — none (theory vs
   runbook). Status lives in the table above. `GFX-12`. Effort S.
+- **Final-video assembly (step 090)** — planned as **082** (2026-07-18; owner decisions:
+  screen recording is VO-aligned, vo.mp3 throughout, hard cuts, output serves both as
+  shippable video and editor draft — bundle handoff unchanged). Corner-track compositing
+  and non-aligned screen (tutorial-pipeline-2 flow) are recorded as future seams in the
+  plan's maintenance notes. Status lives in the table above. `GFX-14`. Effort M.
 - (Density calibration — HANDOFF open item 7 — is deliberately NOT a backlog row: it's what
   the 060 fold loop + 076's convergence metrics DO with the first few real videos.)
 
