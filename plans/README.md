@@ -91,7 +91,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 074 | Graphics zero-token visual QC — DOM overflow probe on board tiles + /calibrate capacity page | P2 | M | 073 | DONE (PR #31, landed 2026-07-18) |
 | 075 | Graphics-flow INTEGRATION.md — caller contract for tutorial-pipeline-1/2 + path-arg 010 | P2 | S-M | 070, 072 (hard — doc describes their behavior) | DONE (PR #32, landed 2026-07-18) |
 | 076 | Graphics feedback loop v2 — apply/fold lifecycle + context snapshots, cues.llm.json edit-delta mining, unfolded pre-flight, convergence metrics | P1 | M | 069 (hard); 072 (soft) | DONE (PR #33, landed 2026-07-18) |
-| 077 | Rename graphics-flow → visuals-flow (folder + live refs) | P1 | S | — | TODO |
+| 077 | Rename graphics-flow → visuals-flow (folder + live refs) | P1 | S | — | DONE |
 | 078 | Shot plan — schema, LLM pass (step 070), resolver + lint (GFX-07, design doc 2026-07-18) | P1 | M | 077 | TODO |
 | 079 | Board — shot spans as a reviewable third block kind (lane, blocks, approve-shots, staleness cascade) | P1 | M | 078 | TODO |
 | 080 | Avatar render step (090) — VO slices → HeyGen 3 template jobs → clips + avatar-manifest.md | P1 | M | 078, 079 | TODO |
@@ -306,7 +306,7 @@ they aren't re-audited from scratch — promote any to a plan when ready.
 - **printing-press-polish lazy split** — 65KB SKILL.md body (has references/
   already); same treatment as plan 024's three. Effort S-M.
 
-**graphics-flow backlog (2026-07-18 audit; too small to plan alone, fold into the next touch):**
+**visuals-flow backlog (2026-07-18 audit; too small to plan alone, fold into the next touch):**
 - `resolveWorkdir` copy-pasted across `resolve.mjs`/`render.mjs`/`board.mjs`/`transcribe-groq.mjs`,
   and `mmss` (render) vs `timecode` (board) duplicate each other — extract to a tiny `lib/shared.mjs`
   next time two of those files are open together. `GFX-01`. Effort S.
@@ -325,8 +325,8 @@ they aren't re-audited from scratch — promote any to a plan when ready.
   has no structured intake; deferred until the first real editor handoff shows what they need
   (HANDOFF open item 1 will surface it). `GFX-06`. Effort S.
 
-**graphics-flow PRODUCT backlog (roadmap items, consolidated 2026-07-18 from
-graphics-flow HANDOFF.md "open items" + the feedback-loop discussion; detail
+**visuals-flow PRODUCT backlog (roadmap items, consolidated 2026-07-18 from
+visuals-flow HANDOFF.md "open items" + the feedback-loop discussion; detail
 lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
 - **Avatar/screen-recording shot plan** — THE owner-stated next phase. Designed 2026-07-18
   (`docs/specs/2026-07-18-avatar-shot-plan-design.md`, owner-approved) and planned as
@@ -347,7 +347,7 @@ lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
 - **agy cue-pass trial** — run step 020 on agy for one video, compare vs Sonnet on lint
   output (072) + RULEBOOK rubric; frees the last per-video cents. Unblocked once 072 lands.
   `GFX-11`. Effort S.
-- **graphics-flow operating skill** — thin trigger-router skill (verbs: run / board / fold)
+- **visuals-flow operating skill** — thin trigger-router skill (verbs: run / board / fold)
   in `pipelines/.claude/skills/`, mapping "fold the feedback" / "run graphics for <video>" /
   "open my storyboard" to the step procedures + guardrails (feedback-status pre-flight,
   Opus-only fold, 020 model routing). Write AFTER 069–076 land — it references their
@@ -374,16 +374,16 @@ lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
 
 ## Findings considered and rejected (do not re-audit)
 
-- **graphics-flow: overlay-vs-anything overlap checking** (2026-07-18 audit) —
+- **visuals-flow: overlay-vs-anything overlap checking** (2026-07-18 audit) —
   rejected: RULEBOOK only forbids fullframe/fullframe spoken-coverage overlap;
   overlays coexisting with fullframes (and each other) is by design. 071 fixes
   the fullframe check only.
-- **graphics-flow: validating/forbidding negative `lead`** (2026-07-18 audit) —
+- **visuals-flow: validating/forbidding negative `lead`** (2026-07-18 audit) —
   rejected: negative lead is a deliberate technique (test-01 c06, TESTS.md v2
   notes — a catalog-fixed single card squeezed against the next cue starts
   after its anchor). The resolver's `Math.max(0, start - lead)` already guards
   the only dangerous case.
-- **graphics-flow: chunking Groq uploads for >100-min audio** (2026-07-18
+- **visuals-flow: chunking Groq uploads for >100-min audio** (2026-07-18
   audit) — not planned: the 16kHz/32kbps downsample keeps ~104 min under the
   25MB cap; target videos are ~30 min. Revisit only if a longer format appears.
 - **Automating the monthly escrow run** (2026-07-11 audit) — rejected: monthly

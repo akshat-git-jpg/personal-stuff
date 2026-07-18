@@ -37,7 +37,7 @@ guarantee that a correction given once is never needed twice.
 6. Append ONE metrics line per video to `tests/TESTS.md` under a `## Convergence` section:
    `- <date> <slug>: llm=<N> approved=<M> edited=<K> added=<A> removed=<R> typed=<count of feedback items> flags=<flagged count> lint-warnings=<count or n/a>`
    (Numbers come from edit-delta's totals, feedback.json, cues.json, and `node lib/lint-cues.mjs <slug>`). The trend everyone watches: `edited` and `typed` falling video over video.
-7. Commit everything together (`fold(graphics-flow): <summary>`).
+7. Commit everything together (`fold(visuals-flow): <summary>`).
 
 ## Item Schema (feedback.json)
 

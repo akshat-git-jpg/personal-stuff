@@ -1,4 +1,4 @@
-# graphics-flow handoff (2026-07-18, post end-to-end run)
+# visuals-flow handoff (2026-07-18, post end-to-end run)
 
 For the next session picking this up. Everything below was true and verified on
 2026-07-18 (evening). Read PIPELINE.md first if you have never seen this
@@ -94,8 +94,8 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 ## In flight
 
 Nothing. Plans 062–076 all boss-landed as of 2026-07-18 (PRs #19–#33).
-Backlog registry: `plans/README.md` → "graphics-flow backlog" (GFX-01..06
-hygiene) + "graphics-flow PRODUCT backlog" (GFX-07..12 roadmap).
+Backlog registry: `plans/README.md` → "visuals-flow backlog" (GFX-01..06
+hygiene) + "visuals-flow PRODUCT backlog" (GFX-07..12 roadmap).
 
 ## Open items (canonical list = GFX rows in plans/README.md)
 
@@ -117,14 +117,14 @@ hygiene) + "graphics-flow PRODUCT backlog" (GFX-07..12 roadmap).
    metrics do this across the first few real videos.
 6. **Aesthetic visual QC beyond overflow** (`GFX-10`): open problem, revisit
    only with a cheap mechanism.
-7. **graphics-flow operating skill** (`GFX-12`): thin run/board/fold trigger
+7. **visuals-flow operating skill** (`GFX-12`): thin run/board/fold trigger
    router; write now that 069–076 landed; check overlap with
    `video-and-tts-reference` first.
 
 ## How to run (quick reference)
 
 ```
-cd pipelines/video/graphics-flow
+cd pipelines/video/visuals-flow
 node lib/feedback-status.mjs                       # MUST exit 0 before any new cue pass
 bash steps/010-transcribe-run/run.sh <slug-or-path>
 # 020: Sonnet session with steps/020-cue-pass-llm/cue-pass-prompt.md

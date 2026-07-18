@@ -13,4 +13,4 @@ The rulebook will specify, per visual-plan cue type:
 
 Owner: author this in a Claude Code session on Sonnet with the pipelines:hyperframes + motion-graphics skills loaded.
 
-For final-workflow videos this is superseded by the beat-sync flow rulebook: pipelines/video/graphics-flow/steps/020-cue-pass-llm/RULEBOOK.md (plan 064).
+For final-workflow videos this is superseded by the beat-sync flow rulebook: pipelines/video/visuals-flow/steps/020-cue-pass-llm/RULEBOOK.md (plan 064).

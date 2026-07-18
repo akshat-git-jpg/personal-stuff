@@ -1,13 +1,13 @@
 # INTEGRATION.md — the caller contract
 
-For any pipeline consuming graphics-flow as its graphics step (currently
+For any pipeline consuming visuals-flow as its graphics step (currently
 `tutorial-pipeline-1` and `tutorial-pipeline-2`). Read `PIPELINE.md` first for
 the flow itself; this doc is what changes when the caller is another pipeline
 instead of a human running this folder directly.
 
 ## 1. What callers get
 
-Hand graphics-flow a workdir containing a voiceover (or an existing
+Hand visuals-flow a workdir containing a voiceover (or an existing
 transcript) and it gives back `renders/*.mp4|mov` (final clips) plus
 `manifest.md` (an editor-facing "place this file at this timecode" table).
 Graphics reveal their content on the exact second the voiceover speaks each
@@ -37,7 +37,7 @@ caller's own policy; this flow has no opinion.
 
 Every command below takes a slug (resolves under this pipeline's `videos/`)
 or an external path (anything containing `/`, or an existing dir) — see
-`resolveWorkdir` in each lib. Run from `pipelines/video/graphics-flow`:
+`resolveWorkdir` in each lib. Run from `pipelines/video/visuals-flow`:
 
 ```
 bash steps/010-transcribe-run/run.sh <workdir>   # skip if transcript.json already exists
