@@ -128,7 +128,9 @@ const BOARD_CSS = `
     border:1px solid var(--line); background:var(--panel); color:var(--text); }
   #approveBtn { border-color:var(--ok); color:var(--ok); }
   #saveBtn { border-color:var(--accent); color:var(--accent); }
-  .banner { margin-bottom:16px; padding:10px 14px; border-radius:9px; font-size:13px; }
+  .banner { margin-bottom:16px; padding:10px 36px 10px 14px; border-radius:9px; font-size:13px; position:relative; }
+  .banner-x { position:absolute; top:6px; right:8px; background:none; border:none; color:inherit; cursor:pointer; font-size:15px; line-height:1; padding:4px; opacity:0.7; }
+  .banner-x:hover { opacity:1; }
   .banner.ok { background:rgba(52,211,153,0.12); border:1px solid var(--ok); color:var(--ok); }
   .banner.err { background:rgba(255,107,107,0.12); border:1px solid var(--err); color:var(--err); }
   .usage { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
@@ -418,7 +420,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       <button id="saveBtn">Save</button>
       <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
     </div>
-    <div id="banner">${cuesFile.approved ? '<div class="banner ok">approved — ready for <code>node lib/render.mjs</code></div>' : ''}</div>
+    <div id="banner">${cuesFile.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}</div>
     <div class="usage">${(() => {
       const counts = new Map();
       for (const c of cues) counts.set(c.card, (counts.get(c.card) ?? 0) + 1);
@@ -456,7 +458,8 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
     wireOverflowBadges();
 
     function showBanner(html, cls) {
-      document.getElementById('banner').innerHTML = '<div class="banner ' + cls + '">' + html + '</div>';
+      document.getElementById('banner').innerHTML = '<div class="banner ' + cls + '">'
+        + '<button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>' + html + '</div>';
     }
 
     document.getElementById('saveBtn').onclick = async () => {
@@ -848,7 +851,10 @@ function listenOnFreePort(server, startPort, attempts = 10) {
           tryPort(p + 1, left - 1);
         } else reject(err);
       });
-      server.listen(p, '127.0.0.1', () => { server.removeAllListeners('error'); resolve(p); });
+      // resolve from the socket, not the closure: a failed earlier listen()
+      // leaves its success callback registered, and it fires first with a
+      // stale p when a later attempt binds.
+      server.listen(p, '127.0.0.1', () => { server.removeAllListeners('error'); resolve(server.address().port); });
     };
     tryPort(startPort, attempts);
   });

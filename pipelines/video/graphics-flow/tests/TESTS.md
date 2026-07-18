@@ -66,3 +66,5 @@ tested, with what source, and what the run taught us.
 - 2026-07-18 — owner: 5 stat-hits in one video read as a tic → RULEBOOK+prompt: stat-hit max 3/video, ≥90s apart, keep the most impressive numbers. (First fold via steps/060.)
 - 2026-07-18 — owner: no at-a-glance view of template mix → board header now shows per-card usage chips (red when >3).
 - 2026-07-18 — owner: tools should show real logos/icons, text-only names click less → OPEN, needs design decisions (asset source, which cards) before building.
+- 2026-07-18 — owner: lint banner has no dismiss and stays forever → board banners now carry a ✕ (client + server-rendered).
+- 2026-07-18 — session: port-walk printed the STALE port in "board at" (failed listen()'s success callback stays registered and fires first) → resolve from server.address().port, not the closure.
