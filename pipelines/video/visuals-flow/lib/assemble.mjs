@@ -173,8 +173,9 @@ export function detectEncoder() {
 
 // Committed EDL — doubles as editor documentation.
 export function assemblyMd(video, segments, overlays, total, outPath, transitions = []) {
+  const getSegId = (s) => s.sub !== undefined ? `${s.id}.${s.sub + 1}` : s.id;
   const seg = segments.map((s) =>
-    `| ${mmss(s.start)} | ${mmss(s.end)} | ${s.kind} | ${s.id} |`);
+    `| ${mmss(s.start)} | ${mmss(s.end)} | ${s.kind} | ${getSegId(s)} |`);
   const ov = overlays.map((o) =>
     `| ${mmss(o.start)} | ${mmss(o.end)} | ${path.basename(o.file)} |`);
   const transSentence = transitions.length > 0
@@ -204,7 +205,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 
   if (transitions.length > 0) {
     const tr = transitions.map((t) =>
-      `| ${mmss(t.at)} | ${t.direction} | ${segments[t.fromIdx].id} | ${segments[t.toIdx].id} |`);
+      `| ${mmss(t.at)} | ${t.direction} | ${getSegId(segments[t.fromIdx])} | ${getSegId(segments[t.toIdx])} |`);
     lines.push(
       '## Transitions',
       '',

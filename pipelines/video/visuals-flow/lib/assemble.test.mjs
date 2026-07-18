@@ -57,11 +57,12 @@ test('planSegments: empty avatar list and ignored corner jobs', () => {
 });
 
 test('assemblyMd: format', () => {
-  const md = assemblyMd('test-vid', [{ kind: 'screen', start: 0, end: 10, id: 'screen-01' }], [{ start: 2, end: 4, file: 'ov.mov' }], 10.5, 'out.mp4');
+  const md = assemblyMd('test-vid', [{ kind: 'screen', start: 0, end: 10, id: 'screen-01' }, { kind: 'avatar', start: 10, end: 20, id: 's01', sub: 0 }], [{ start: 2, end: 4, file: 'ov.mov' }], 20.5, 'out.mp4');
   assert.match(md, /# test-vid — assembly/);
-  assert.match(md, /10.5s starts at/);
+  assert.match(md, /20.5s starts at/);
   assert.match(md, /Hard cuts\./);
   assert.match(md, /\| 00:00.0 \| 00:10.0 \| screen \| screen-01 \|/);
+  assert.match(md, /\| 00:10.0 \| 00:20.0 \| avatar \| s01.1 \|/);
   assert.match(md, /\| 00:02.0 \| 00:04.0 \| ov.mov \|/);
 });
 
