@@ -93,22 +93,23 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 
 ## In flight
 
-Nothing. Plans 062–076 all boss-landed as of 2026-07-18 (PRs #19–#33).
+Nothing. Plans 062–076 boss-landed 2026-07-18 (PRs #19–#33); the avatar phase
+(plans 077–080, PRs #34–#37) landed the same evening.
 Backlog registry: `plans/README.md` → "visuals-flow backlog" (GFX-01..06
-hygiene) + "visuals-flow PRODUCT backlog" (GFX-07..12 roadmap).
+hygiene) + "visuals-flow PRODUCT backlog" (GFX-07..13 roadmap).
 
 ## Open items (canonical list = GFX rows in plans/README.md)
 
-1. **Avatar/screen-recording shot plan** (`GFX-07`, the owner's next phase —
-   START WITH A BRAINSTORM/DESIGN SESSION via `orchestrate`, schema was
-   deliberately never invented): decide per stretch of the video whether
-   avatar video or screen recording shows, plus layout hints, with durations.
-   The board was built for this: `buildSegments()` in `lib/board.mjs` is the
-   seam; shot spans become a third segment kind (or gap attributes) in the
-   same timeline — gap blocks are deliberately untyped today. Prior art:
-   `pipelines/youtube/tutorial-pipeline-1/` and `-2/` (avatar-block plans,
-   segment maps). New machinery that helps: feedback lifecycle + lint are in
-   place, so the shot plan can get its own review/lint pass on the same board.
+1. **Avatar shot-plan PILOT on test-01** (`GFX-07` — machinery LANDED
+   2026-07-18 as plans 077–080; design: `docs/specs/2026-07-18-avatar-shot-plan-design.md`):
+   the built flow is 070 shot pass (Sonnet, after cue approval) → board review
+   (shot lane + "Approve shots") → 080 avatar render (HeyGen 3 templates,
+   `engineMode: "test"` — production/HeyGen 4 is a validation error until the
+   owner explicitly flips it, which also needs heygen-web work). What remains
+   is the OWNER-RUN pilot: shot pass on test-01, review/approve on the board,
+   pick a template slug from `video/heygen/registry.json`, then
+   `--submit`/`--download` (live HeyGen = owner-run only). Feed lessons to the
+   060 fold; `GFX-13` (edit-delta for shots) folds into the first post-pilot touch.
 2. **Editor handoff + feedback intake** (`GFX-09` done for render; `GFX-06`
    open): give the editor `renders/` + `manifest.md`, fold what comes back.
 3. **Global play-through on the board** (`GFX-08`, owner-deferred).
@@ -135,6 +136,13 @@ node lib/lint-cues.mjs <slug>                      # errors -> feed back to 020,
 node lib/board.mjs [<slug>]                        # review at :4322, Save/Approve (+ /calibrate)
 node lib/render.mjs <slug> [--quality draft]       # refuses unapproved/stale; --force exists
 node lib/edit-delta.mjs <slug>                     # owner-edit diff for the fold
+# 070 (after cues approved): Sonnet session with steps/070-shot-pass-llm/shot-pass-prompt.md
+#      (+ fullframe cue times + transcript) -> videos/<slug>/shots.json, snapshot shots.llm.json
+node lib/resolve-shots.mjs <slug>                  # anchors -> shots.resolved.json
+node lib/lint-shots.mjs <slug>                     # budget/overlap/U-curve; errors -> back to 070
+#      then board: review shot lane, "Approve shots"
+bash steps/080-avatar-render-run/run.sh <slug> --template <registry-slug> --submit   # OWNER-RUN (live HeyGen)
+bash steps/080-avatar-render-run/run.sh <slug> --download                            # re-run until no "pending:"
 bash scripts/check.sh                              # flow gate
 (cd ../card-library && bash scripts/beat-smoke.sh) # card gate
 ```

@@ -92,9 +92,9 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 075 | Graphics-flow INTEGRATION.md — caller contract for tutorial-pipeline-1/2 + path-arg 010 | P2 | S-M | 070, 072 (hard — doc describes their behavior) | DONE (PR #32, landed 2026-07-18) |
 | 076 | Graphics feedback loop v2 — apply/fold lifecycle + context snapshots, cues.llm.json edit-delta mining, unfolded pre-flight, convergence metrics | P1 | M | 069 (hard); 072 (soft) | DONE (PR #33, landed 2026-07-18) |
 | 077 | Rename graphics-flow → visuals-flow (folder + live refs) | P1 | S | — | DONE |
-| 078 | Shot plan — schema, LLM pass (step 070), resolver + lint (GFX-07, design doc 2026-07-18) | P1 | M | 077 | TODO |
-| 079 | Board — shot spans as a reviewable third block kind (lane, blocks, approve-shots, staleness cascade) | P1 | M | 078 | TODO |
-| 080 | Avatar render step (090) — VO slices → HeyGen 3 template jobs → clips + avatar-manifest.md | P1 | M | 078, 079 | TODO |
+| 078 | Shot plan — schema, LLM pass (step 070), resolver + lint (GFX-07, design doc 2026-07-18) | P1 | M | 077 | DONE (PR #35, landed 2026-07-18) |
+| 079 | Board — shot spans as a reviewable third block kind (lane, blocks, approve-shots, staleness cascade) | P1 | M | 078 | DONE (PR #36, landed 2026-07-18) |
+| 080 | Avatar render step (080) — VO slices → HeyGen 3 template jobs → clips + avatar-manifest.md | P1 | M | 078, 079 | DONE (PR #37, landed 2026-07-18) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
