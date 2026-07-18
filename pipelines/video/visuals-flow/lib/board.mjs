@@ -16,8 +16,34 @@ import { resolveCues, normWord } from './resolve.mjs';
 import { lintCues } from './lint-cues.mjs';
 import { mmss } from './render.mjs';
 import { enrichLogos } from './logos-inline.mjs';
+import { resolveShots } from './resolve-shots.mjs';
 
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
+
+// Reads shots.json + computes resolved spans; null when the video has no shot
+// plan yet — every caller must handle null and render the pre-078 board.
+export function loadShots(workdir, words) {
+  const p = path.join(workdir, 'shots.json');
+  if (!fs.existsSync(p)) return null;
+  let shotsFile;
+  try { shotsFile = JSON.parse(fs.readFileSync(p, 'utf8')); }
+  catch (e) { return { shotsFile: null, spans: [], errors: [`shots.json unreadable: ${e.message}`] }; }
+  const { spans, errors } = resolveShots(shotsFile, words);
+  return { shotsFile, spans, errors };
+}
+
+// Merge semantics mirror handleSave's cue merge: key-order-insensitive
+// compare; a real change to spans resets approval.
+export function mergeShots(prevShotsFile, incomingSpans) {
+  const canon = (v) => Array.isArray(v) ? v.map(canon)
+    : (v && typeof v === 'object')
+      ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])]))
+      : v;
+  const merged = { ...prevShotsFile, spans: incomingSpans };
+  const changed = JSON.stringify(canon(prevShotsFile.spans ?? [])) !== JSON.stringify(canon(incomingSpans ?? []));
+  if (prevShotsFile.approved === true && changed) merged.approved = false;
+  return { merged, changed };
+}
 
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
