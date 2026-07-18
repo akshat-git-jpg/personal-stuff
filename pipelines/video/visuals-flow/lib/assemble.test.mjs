@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder } from './assemble.mjs';
+import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions } from './assemble.mjs';
 
 const testTmp = path.resolve(import.meta.dirname, '.test-tmp', 'assemble-it');
 
@@ -60,8 +60,17 @@ test('assemblyMd: format', () => {
   const md = assemblyMd('test-vid', [{ kind: 'screen', start: 0, end: 10, id: 'screen-01' }], [{ start: 2, end: 4, file: 'ov.mov' }], 10.5, 'out.mp4');
   assert.match(md, /# test-vid — assembly/);
   assert.match(md, /10.5s starts at/);
+  assert.match(md, /Hard cuts\./);
   assert.match(md, /\| 00:00.0 \| 00:10.0 \| screen \| screen-01 \|/);
   assert.match(md, /\| 00:02.0 \| 00:04.0 \| ov.mov \|/);
+});
+
+test('assemblyMd: transitions table', () => {
+  const segments = [{ id: 'screen-01' }, { id: 's01' }];
+  const md = assemblyMd('vid', segments, [], 10.0, 'out.mp4', [{ at: 5, direction: 'left', fromIdx: 0, toIdx: 1 }]);
+  assert.match(md, /Whip transitions at the listed boundaries/);
+  assert.match(md, /## Transitions/);
+  assert.match(md, /\| 00:05\.0 \| left \| screen-01 \| s01 \|/);
 });
 
 test('planSegmentOverlays: pure mapping', () => {
@@ -80,6 +89,64 @@ test('planSegmentOverlays: pure mapping', () => {
   ]);
   assert.deepEqual(planned[1], [
     { id: 'o2', file: '2.mov', trimStart: 0.5, at: 0, until: 0.5 }
+  ]);
+});
+
+test('planTransitions: screen<->avatar directions', () => {
+  const segments = [
+    { kind: 'screen', start: 0, end: 5 },
+    { kind: 'avatar', start: 5, end: 10 },
+    { kind: 'screen', start: 10, end: 15 }
+  ];
+  const out = planTransitions(segments, []);
+  assert.deepEqual(out, [
+    { at: 5, direction: 'left', fromIdx: 0, toIdx: 1 },
+    { at: 10, direction: 'right', fromIdx: 1, toIdx: 2 }
+  ]);
+});
+
+test('planTransitions: graphic boundaries produce nothing', () => {
+  const segments = [
+    { kind: 'screen', start: 0, end: 5 },
+    { kind: 'graphic', start: 5, end: 10 },
+    { kind: 'screen', start: 10, end: 15 }
+  ];
+  assert.deepEqual(planTransitions(segments, []), []);
+});
+
+test('planTransitions: short neighbor skipped', () => {
+  const segments = [
+    { kind: 'screen', start: 0, end: 5 },
+    { kind: 'avatar', start: 5, end: 5.5 }, // < 1.0s
+    { kind: 'screen', start: 5.5, end: 10 }
+  ];
+  assert.deepEqual(planTransitions(segments, []), []);
+});
+
+test('planTransitions: overlay straddle skipped', () => {
+  const segments = [
+    { kind: 'screen', start: 0, end: 5 },
+    { kind: 'avatar', start: 5, end: 10 }
+  ];
+  const overlays = [{ start: 4.9, end: 5.5 }]; // straddles 5
+  assert.deepEqual(planTransitions(segments, overlays), []);
+  // doesn't straddle 5
+  assert.equal(planTransitions(segments, [{ start: 2, end: 4.5 }]).length, 1);
+});
+
+test('planTransitions: edge skip at t=0 and t=total', () => {
+  const segments = [
+    { kind: 'avatar', start: 0, end: 5 },
+    { kind: 'screen', start: 5, end: 10 },
+    { kind: 'avatar', start: 10, end: 15 }
+  ];
+  // Outer boundaries don't exist since there are no adjacent segments.
+  // The test plan says "an avatar span starting at t=0 or ending at total produces no transition on that outer edge".
+  // `planTransitions` only iterates i < segments.length - 1, so it only finds the boundaries between segments.
+  const out = planTransitions(segments, []);
+  assert.deepEqual(out, [
+    { at: 5, direction: 'right', fromIdx: 0, toIdx: 1 },
+    { at: 10, direction: 'left', fromIdx: 1, toIdx: 2 }
   ]);
 });
 
@@ -109,12 +176,12 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   const ffFile = path.join(testTmp, 'renders', '0002-c1-green.mp4');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=green:s=1920x1080:r=30', '-t', '2', '-pix_fmt', 'yuv420p', ffFile]);
 
-  const ovFile = path.join(testTmp, 'renders', '0005-o1-black.mov');
+  const ovFile = path.join(testTmp, 'renders', '0004-o1-black.mov');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=black@0.0:s=1920x1080:r=30,format=yuva420p', '-t', '1', '-c:v', 'qtrle', ovFile]);
 
   const resolved = [
     { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' },
-    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
+    { id: 'o1', placement: 'overlay', start: 4.5, duration: 1, card: 'black' }
   ];
   const avatarJobs = [
     { kind: 'avatar-full', id: 's01', start: 6, end: 8, file: avatarFile }
@@ -139,7 +206,18 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
 
   const tmpDir = path.join(testTmp, 'assembly-tmp');
   assert.ok(!fs.existsSync(path.join(tmpDir, 'base.mp4')), 'base.mp4 should not exist in single-pass');
-  assert.ok(fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts')).length >= 4, 'should have at least 5 segments');
+  const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
+  assert.equal(tsFiles.length, 5, 'should have 5 segments including transition');
+  
+  const transFiles = tsFiles.filter(f => f.includes('-trans-'));
+  assert.equal(transFiles.length, 1, 'should have 1 transition file');
+  
+  for (const tFile of transFiles) {
+    const p = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(tmpDir, tFile)], { encoding: 'utf8' });
+    const d = parseFloat(p.stdout);
+    assert.ok(Math.abs(d - 0.4) <= 0.05, `transition duration ${d} not near 0.4`);
+  }
+  
   fs.rmSync(tmpDir, { recursive: true, force: true });
 
   assert.ok(fs.existsSync(outMp4));
@@ -154,8 +232,8 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   assert.match(audioProbe.stdout, /audio/);
 
   const mdFile = fs.readFileSync(path.join(testTmp, 'assembly.md'), 'utf8');
-  assert.equal((mdFile.match(/screen-|avatar|graphic/g) || []).length, 5); // 5 base rows
-  assert.equal((mdFile.match(/0005-o1-black.mov/g) || []).length, 1); // 1 overlay row
+  assert.equal((mdFile.match(/screen-|avatar|graphic/g) || []).length, 6); // 5 base rows + 1 in transitions table
+  assert.equal((mdFile.match(/0004-o1-black.mov/g) || []).length, 1); // 1 overlay row
 });
 
 test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
@@ -164,7 +242,7 @@ test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-ver
 
   const resolved = [
     { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' },
-    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
+    { id: 'o1', placement: 'overlay', start: 4.5, duration: 1, card: 'black' }
   ];
   const avatarJobs = [
     { kind: 'avatar-full', id: 's01', start: 6, end: 8, file: path.join(testTmp, 'media', 's01.mp4') }
@@ -193,4 +271,38 @@ test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-ver
 
   const audioProbe = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=codec_type', '-of', 'csv=p=0', outDraft], { encoding: 'utf8' });
   assert.match(audioProbe.stdout, /audio/);
+});
+
+test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+  const outNone = path.join(testTmp, 'final-none.mp4');
+  if (fs.existsSync(outNone)) fs.unlinkSync(outNone);
+
+  const resolved = [
+    { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' },
+    { id: 'o1', placement: 'overlay', start: 4.5, duration: 1, card: 'black' }
+  ];
+  const avatarJobs = [
+    { kind: 'avatar-full', id: 's01', start: 6, end: 8, file: path.join(testTmp, 'media', 's01.mp4') }
+  ];
+
+  runAssembly({
+    workdir: testTmp,
+    video: 'it',
+    resolved,
+    avatarJobs,
+    total: 8,
+    screen: path.join(testTmp, 'screen.mp4'),
+    out: outNone,
+    encoder: 'x264',
+    keepTemp: true,
+    transitions: 'none'
+  });
+
+  const tmpDir = path.join(testTmp, 'assembly-tmp');
+  const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
+  assert.equal(tsFiles.length, 4, 'should have 4 base segments, no transitions');
+  const transFiles = tsFiles.filter(f => f.includes('-trans-'));
+  assert.equal(transFiles.length, 0, 'should have 0 transition files');
+  
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 });

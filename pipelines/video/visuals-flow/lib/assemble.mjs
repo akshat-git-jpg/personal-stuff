@@ -71,6 +71,27 @@ export function planSegmentOverlays(segments, overlays) {
   });
 }
 
+export const TRANSITION_DUR = 0.4;
+
+// Whip transitions at screen<->avatar boundaries. Returns [{at, direction,
+// fromIdx, toIdx}] in timeline order. Skips: short neighbors, overlay
+// straddle, t=0/t=total edges (planSegments guarantees contiguity, so a
+// boundary is simply segments[i].end === segments[i+1].start).
+export function planTransitions(segments, overlays, { duration = TRANSITION_DUR } = {}) {
+  const half = duration / 2;
+  const out = [];
+  for (let i = 0; i < segments.length - 1; i++) {
+    const a = segments[i], b = segments[i + 1];
+    const pair = `${a.kind}>${b.kind}`;
+    if (pair !== 'screen>avatar' && pair !== 'avatar>screen') continue;
+    if (a.end - a.start < 1.0 || b.end - b.start < 1.0) continue;
+    const at = a.end;
+    if (overlays.some((o) => o.start < at + half && o.end > at - half)) continue;
+    out.push({ at, direction: pair === 'screen>avatar' ? 'left' : 'right', fromIdx: i, toIdx: i + 1 });
+  }
+  return out;
+}
+
 // One settings object per run — every segment MUST use identical encoder
 // params so the concat stream-copy is valid.
 export function encoderArgs({ encoder, draft }) {
@@ -88,15 +109,19 @@ export function detectEncoder() {
 }
 
 // Committed EDL — doubles as editor documentation.
-export function assemblyMd(video, segments, overlays, total, outPath) {
+export function assemblyMd(video, segments, overlays, total, outPath, transitions = []) {
   const seg = segments.map((s) =>
     `| ${mmss(s.start)} | ${mmss(s.end)} | ${s.kind} | ${s.id} |`);
   const ov = overlays.map((o) =>
     `| ${mmss(o.start)} | ${mmss(o.end)} | ${path.basename(o.file)} |`);
-  return [
+  const transSentence = transitions.length > 0
+    ? 'Whip transitions at the listed boundaries; hard cuts elsewhere.'
+    : 'Hard cuts.';
+
+  const lines = [
     `# ${video} — assembly`,
     '',
-    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. Hard cuts, no transitions.`,
+    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. ${transSentence}`,
     '',
     `Output: ${outPath}`,
     '',
@@ -111,12 +136,27 @@ export function assemblyMd(video, segments, overlays, total, outPath) {
     '| at | until | file |',
     '|---|---|---|',
     ...ov,
-    '',
-  ].join('\n');
+    ''
+  ];
+
+  if (transitions.length > 0) {
+    const tr = transitions.map((t) =>
+      `| ${mmss(t.at)} | ${t.direction} | ${segments[t.fromIdx].id} | ${segments[t.toIdx].id} |`);
+    lines.push(
+      '## Transitions',
+      '',
+      '| at | direction | from | to |',
+      '|---|---|---|---|',
+      ...tr,
+      ''
+    );
+  }
+
+  return lines.join('\n');
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip' };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -129,6 +169,11 @@ function parseArgs(argv) {
       const e = rest.shift();
       if (e !== 'x264' && e !== 'videotoolbox') throw new Error('--encoder must be x264 or videotoolbox');
       opts.encoder = e;
+    }
+    else if (a === '--transitions') {
+      const t = rest.shift();
+      if (t !== 'whip' && t !== 'none') throw new Error('--transitions must be whip or none');
+      opts.transitions = t;
     }
     else if (a === '--keep-temp') opts.keepTemp = true;
     else if (a === '--force') opts.force = true;
@@ -143,7 +188,7 @@ function resolveWorkdir(arg) {
   return path.join(pipelineRoot, 'videos', arg);
 }
 
-export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false }) {
+export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip' }) {
   const segments = planSegments({ resolved, avatarJobs, total });
   const renderDir = path.join(workdir, 'renders');
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
@@ -158,6 +203,9 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
   const ENC = encoderArgs({ encoder, draft });
   const segOverlays = planSegmentOverlays(segments, overlays);
 
+  const trans = transitions === 'whip' ? planTransitions(segments, overlays) : [];
+  const half = TRANSITION_DUR / 2;
+
   const concatLines = [];
   let segIndex = 1;
   for (let i = 0; i < segments.length; i++) {
@@ -168,17 +216,25 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     concatLines.push(`file '${segFileStr}'`);
     segIndex++;
 
-    const dur = seg.end - seg.start;
+    let startTrim = 0;
+    let endTrim = 0;
+    const tOut = trans.find(t => t.fromIdx === i);
+    const tIn = trans.find(t => t.toIdx === i);
+    if (tOut) endTrim = half;
+    if (tIn) startTrim = half;
+
+    const dur = seg.end - seg.start - startTrim - endTrim;
     let spawnArgs = [];
     let src = '';
     let seekArgs = [];
 
     if (seg.kind === 'screen') {
-      seekArgs = ['-ss', String(seg.start + screenOffset), '-to', String(seg.end + screenOffset)];
+      seekArgs = ['-ss', String(seg.start + screenOffset + startTrim), '-to', String(seg.end + screenOffset - endTrim)];
       src = screen;
     } else if (seg.kind === 'avatar') {
       const job = avatarJobs.find(j => j.id === seg.id);
       src = job.file;
+      if (startTrim > 0) seekArgs = ['-ss', String(startTrim)];
     } else if (seg.kind === 'graphic') {
       const cue = resolved.find(c => c.id === seg.id);
       src = path.join(renderDir, planRender(cue).outFile);
@@ -194,8 +250,10 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
         const o = L[j];
         const oj = `o${j}`;
         const nextV = `b${j + 1}`;
-        chain += `[${j + 1}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${o.at}/TB,scale=${w}:${h}[${oj}];`;
-        chain += `[${lastV}][${oj}]overlay=eof_action=pass:enable='between(t,${o.at},${o.until})'[${nextV}];`;
+        const adjustedAt = +(o.at - startTrim).toFixed(3);
+        const adjustedUntil = +(o.until - startTrim).toFixed(3);
+        chain += `[${j + 1}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${w}:${h}[${oj}];`;
+        chain += `[${lastV}][${oj}]overlay=eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
         lastV = nextV;
       }
       chain = chain.slice(0, -1); // remove trailing semicolon
@@ -217,6 +275,43 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     if (res.status !== 0) {
       console.error(res.stderr);
       process.exit(1);
+    }
+
+    if (tOut) {
+      const transFileStr = `seg-${String(segIndex).padStart(3, '0')}-trans-${segments[tOut.fromIdx].id}-${segments[tOut.toIdx].id}.ts`;
+      const transFile = path.join(tmpDir, transFileStr);
+      concatLines.push(`file '${transFileStr}'`);
+      segIndex++;
+
+      let sliceA, sliceB;
+      const b = tOut.at;
+      if (segments[tOut.fromIdx].kind === 'screen') {
+        sliceA = ['-ss', String(b - half + screenOffset), '-to', String(b + screenOffset), '-i', screen];
+      } else {
+        const j = avatarJobs.find(j => j.id === segments[tOut.fromIdx].id);
+        sliceA = ['-ss', String(b - half - j.start), '-to', String(b - j.start), '-i', j.file];
+      }
+      if (segments[tOut.toIdx].kind === 'screen') {
+        sliceB = ['-ss', String(b + screenOffset), '-to', String(b + half + screenOffset), '-i', screen];
+      } else {
+        const j = avatarJobs.find(j => j.id === segments[tOut.toIdx].id);
+        sliceB = ['-ss', '0', '-to', String(half), '-i', j.file];
+      }
+
+      const chainTrans =
+        `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1[a];` +
+        `[1:v]${VF},tpad=start_mode=clone:start_duration=${half}[b];` +
+        `[a][b]xfade=transition=slide${tOut.direction}:duration=${TRANSITION_DUR}:offset=0[x];` +
+        `[x]tmix=frames=3[v]`;
+      const spawnArgsTrans = ['-y', ...sliceA, ...sliceB,
+        '-filter_complex', chainTrans, '-map', '[v]',
+        '-t', String(TRANSITION_DUR), '-an', ...ENC, '-f', 'mpegts', transFile];
+      
+      const resTrans = spawnSync('ffmpeg', spawnArgsTrans, { encoding: 'utf8' });
+      if (resTrans.status !== 0) {
+        console.error(resTrans.stderr);
+        process.exit(1);
+      }
     }
   }
 
@@ -254,7 +349,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     process.exit(1);
   }
 
-  const assemblyMdContent = assemblyMd(video, segments, overlays, total, out);
+  const assemblyMdContent = assemblyMd(video, segments, overlays, total, out, trans);
   fs.writeFileSync(path.join(workdir, 'assembly.md'), assemblyMdContent);
 
   if (!keepTemp) {
@@ -348,7 +443,7 @@ async function main() {
   }
 
   const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, video, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp });
+  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions });
   process.exit(0);
 }
 
