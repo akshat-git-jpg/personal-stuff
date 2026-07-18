@@ -1,10 +1,12 @@
-# visuals-flow handoff (2026-07-18, post end-to-end run)
+# visuals-flow handoff (2026-07-18, post avatar-pilot session)
 
 For the next session picking this up. Everything below was true and verified on
-2026-07-18 (evening). Read PIPELINE.md first if you have never seen this
+2026-07-18 (late night). Read PIPELINE.md first if you have never seen this
 pipeline; read this doc for where things actually stand and what is open.
-**The owner's stated next phase is the avatar/screen-recording shot plan —
-see Open items #1.**
+**Operate this flow via the `visuals-flow` skill (verb router) — landed as
+plan 081.** The avatar shot-plan machinery (plans 077–080) is LANDED and the
+test-01 pilot ran the same night — see "Immediate state of test-01" for what's
+still in flight.
 
 ## What this is
 
@@ -58,6 +60,24 @@ Caller contract for other pipelines: `INTEGRATION.md`.
   finale card (gold winner chips); section-counter-scale gained an optional
   logo slot; ALL logos render muted per DESIGN.md's "Tool logos" rule
   (saturate .5, small); section openers carry `structural: true`.
+- **070 shot pass** (avatar phase, landed 2026-07-18): after cue approval,
+  an LLM pass proposes full-screen avatar spans (`shots.json`, anchored like
+  cues; snapshot `shots.llm.json`). `lib/resolve-shots.mjs` + `lib/lint-shots.mjs`
+  enforce: ≤300s TOTAL full-screen (E4, no force bypass — the owner's hard
+  5-min HeyGen 4 rule), no fullframe-card collisions (E2), ≥12s spans (E3),
+  U-curve (W3) and ≤300s host-less cadence gaps (W4 — owner rule, see the
+  step's RULEBOOK Learnings row).
+- **Board shot lane**: separate labeled minimap lanes (graphics / avatar) with
+  a color legend — orange fullframe, sky-blue overlay, violet avatar; shot
+  blocks are editable JSON + feedback boxes; "Approve graphics" and "Approve
+  shots" are separate gates (owner questioned, then kept: one review sitting,
+  two flags — editing cues auto-un-approves shots).
+- **080 avatar render**: submit + download verbs over the heygen-web CLI
+  (HeyGen 3 templates only; `engineMode: "test"` is the only implementable
+  mode — production/HeyGen 4 is a validation error until the owner flips it).
+  tp-1 anti-ban pacing, idempotent `avatar-jobs.json`, one-attempt downloads,
+  `avatar-manifest.md` (separate from manifest.md on purpose — render.mjs
+  rewrites that from disk). `--spans-only` skips the corner track.
 
 ## Where the rules live (five surfaces)
 
@@ -72,10 +92,18 @@ Caller contract for other pipelines: `INTEGRATION.md`.
    density) as named constants at the top of the file.
 5. `tests/TESTS.md`: findings log, "Folded lessons" provenance, "Convergence"
    metrics (llm vs approved cue counts per video — watch `edited`/`typed` fall).
+6. `steps/070-shot-pass-llm/RULEBOOK.md` + `shot-pass-prompt.md` (edit BOTH
+   together) + `lib/lint-shots.mjs` constants: the avatar-span equivalents of
+   1 and 4. The owner's standing avatar rules live here: ≤5 min total
+   full-screen (hard), ≤5 min host-less cadence gaps, U-curve shape.
 
 ## Model routing (owner-decided, do not re-litigate)
 
 - 020 cue pass: Sonnet (agy/Gemini approved as a free alternate to trial).
+- 070 shot pass: Sonnet-class or better, run in-session via the `visuals-flow`
+  skill (pilot ran on Fable 2026-07-18; it's form-filling like 020).
+- 080 avatar submits: LIVE HeyGen, owner-run only, owner names the template
+  slug (pilot: `girl-1`). HeyGen 3 only — the heygen-web hard rule.
 - Novel-card authoring + card redesigns: Opus-class. Antigravity only under
   the recorded render-plus-visual-inspection mitigation (decisions.md 2026-07-07).
 - **060 feedback-fold: Opus-class ONLY.** Trigger: owner says "fold the feedback".
@@ -88,39 +116,49 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 - cues.json: 18 cues, `approved: true`, rendered. v2→final owner edits are
   measurable via `node lib/edit-delta.mjs test-01` (baseline `cues.llm.json`).
 - feedback.json: 9 items, all `applied` + `folded`. `feedback-status` exits 0.
-- Only open action: editor handoff of `renders/` + `manifest.md`, then fold
-  whatever the editor reports (GFX-06 will get its shape from that).
+- **Shot plan: 9 avatar-full spans, 247.7s/300s, lint clean, `approved: true`
+  (2026-07-18). Owner approved the LLM output with ZERO edits** (shots.llm.json
+  == shots.json — a perfect convergence data point).
+- **Avatar submit ran 2026-07-18 late night**: `--template girl-1 --submit
+  --spans-only` (owner call: full-screen spans only, corner track deferred).
+  Check `videos/test-01/avatar-jobs.json` for ground truth. As of handoff
+  writing: s01/s02/s04/s05 submitted with video_ids, **s03 FAILED (no
+  video_id) — re-run submit to retry just s03** (idempotent), s06–s09 were
+  still pacing through. Next actions, in order:
+  1. Confirm all 9 jobs have video_ids (re-run submit for any failed).
+  2. "download the avatar videos" (one attempt per pending job; re-run until
+     no `pending:` lines) → clips in `~/kb-scratch/video/heygen/visuals-flow/test-01/`
+     + `avatar-manifest.md`.
+  3. Editor handoff: `renders/` + `manifest.md` + avatar clips +
+     `avatar-manifest.md`; fold what comes back (GFX-06 gets its shape here).
 
 ## In flight
 
-Nothing. Plans 062–076 boss-landed 2026-07-18 (PRs #19–#33); the avatar phase
-(plans 077–080, PRs #34–#37) landed the same evening.
+Plans 062–081 all boss-landed 2026-07-18 (PRs #19–#38; #38 = the
+`visuals-flow` operating skill). At handoff-writing time the test-01 avatar
+SUBMIT was still pacing through its jobs in a background shell — treat
+`videos/test-01/avatar-jobs.json` as ground truth, not this doc.
 Backlog registry: `plans/README.md` → "visuals-flow backlog" (GFX-01..06
 hygiene) + "visuals-flow PRODUCT backlog" (GFX-07..13 roadmap).
 
 ## Open items (canonical list = GFX rows in plans/README.md)
 
-1. **Avatar shot-plan PILOT on test-01** (`GFX-07` — machinery LANDED
-   2026-07-18 as plans 077–080; design: `docs/specs/2026-07-18-avatar-shot-plan-design.md`):
-   the built flow is 070 shot pass (Sonnet, after cue approval) → board review
-   (shot lane + "Approve shots") → 080 avatar render (HeyGen 3 templates,
-   `engineMode: "test"` — production/HeyGen 4 is a validation error until the
-   owner explicitly flips it, which also needs heygen-web work). What remains
-   is the OWNER-RUN pilot: shot pass on test-01, review/approve on the board,
-   pick a template slug from `video/heygen/registry.json`, then
-   `--submit`/`--download` (live HeyGen = owner-run only). Feed lessons to the
-   060 fold; `GFX-13` (edit-delta for shots) folds into the first post-pilot touch.
-2. **Editor handoff + feedback intake** (`GFX-09` done for render; `GFX-06`
-   open): give the editor `renders/` + `manifest.md`, fold what comes back.
+1. **Finish the avatar pilot on test-01** (`GFX-07` machinery + skill are DONE;
+   pilot ran 2026-07-18 late night): (a) confirm all 9 submits have video_ids
+   in `avatar-jobs.json` — s03 failed on first pass, re-run submit to retry it;
+   (b) "download the avatar videos" until no `pending:`; (c) corner track was
+   DEFERRED by the owner (spans-only pilot) — revisit only when the owner asks.
+2. **Editor handoff + feedback intake** (`GFX-06` open): give the editor
+   `renders/` + `manifest.md` + avatar clips + `avatar-manifest.md`, fold what
+   comes back.
 3. **Global play-through on the board** (`GFX-08`, owner-deferred).
 4. **agy cue-pass trial** (`GFX-11`): unblocked — lint is the objective rubric half.
 5. **Density calibration**: not a task; the 060 fold loop + Convergence
    metrics do this across the first few real videos.
 6. **Aesthetic visual QC beyond overflow** (`GFX-10`): open problem, revisit
    only with a cheap mechanism.
-7. **visuals-flow operating skill** (`GFX-12`): thin run/board/fold trigger
-   router; write now that 069–076 landed; check overlap with
-   `video-and-tts-reference` first.
+7. **edit-delta for shots** (`GFX-13`): fold into the first post-pilot touch
+   (note: pilot v1 had ZERO owner edits, so there was nothing to diff yet).
 
 ## How to run (quick reference)
 
@@ -141,7 +179,7 @@ node lib/edit-delta.mjs <slug>                     # owner-edit diff for the fol
 node lib/resolve-shots.mjs <slug>                  # anchors -> shots.resolved.json
 node lib/lint-shots.mjs <slug>                     # budget/overlap/U-curve; errors -> back to 070
 #      then board: review shot lane, "Approve shots"
-bash steps/080-avatar-render-run/run.sh <slug> --template <registry-slug> --submit   # OWNER-RUN (live HeyGen)
+bash steps/080-avatar-render-run/run.sh <slug> --template <registry-slug> --submit [--spans-only]  # OWNER-RUN (live HeyGen; --spans-only skips the corner track)
 bash steps/080-avatar-render-run/run.sh <slug> --download                            # re-run until no "pending:"
 bash scripts/check.sh                              # flow gate
 (cd ../card-library && bash scripts/beat-smoke.sh) # card gate

@@ -61,6 +61,18 @@ tested, with what source, and what the run taught us.
 - Learnings for the rulebook (future): beat anchors must come AFTER the cue anchor; single fullframe cards squeezed against a next cue can use negative lead.
 - v1 cues.json remains in git history (committed 2026-07-18 before overwrite).
 
+### v1 shot pass (2026-07-18, late night) — first avatar shot plan (pilot)
+
+- Ran step 070 in-session (Fable) after 077–081 landed: 9 avatar-full spans,
+  247.7s/300s cap, longest host-less gap 278s (under the new 300s cadence rule).
+- Fix loop: 2 lint errors in round 1 — E2 (intro span clipped the toc card by
+  0.5s; to_anchor pulled one phrase earlier) and E3 (Higgs verdict resolved
+  9.8s < 12s min; to_anchor extended). Round 2 clean, zero warnings.
+- **Owner approved with ZERO edits** (shots.llm.json == shots.json). Submit ran
+  same night: `girl-1`, `--spans-only` (corner deferred), HeyGen 3 templates;
+  s03 failed on first submit attempt (transient — neighbors succeeded), retry
+  via idempotent re-run.
+
 ## Folded lessons
 
 - 2026-07-18 — owner: 5 stat-hits in one video read as a tic → RULEBOOK+prompt: stat-hit max 3/video, ≥90s apart, keep the most impressive numbers. (First fold via steps/060.)
@@ -73,9 +85,15 @@ tested, with what source, and what the run taught us.
 - 2026-07-18 — owner (board review v2): per-tool pricing graphics out, one pricing comparison at the end → removed c20–c24, added c28 (summary-table with real VO-stated prices + logos); pricing-consolidation rule (RULEBOOK+prompt).
 - 2026-07-18 — owner (board review v2): "why no tool icons" → logos applied across test-01 (openers/stat-hits/tables/persona-match); section-counter-scale gained an optional logo slot (rendered + inspected); no new rule (068's rule already covered it — test-01 predated the registry).
 
+- 2026-07-18 — owner: "video must not run long without the full-screen host — periodic presence, not just start/end" → `GAP_AVATAR_MAX=300` + W4 span-cadence in lint-shots.mjs; RULEBOOK priority 5 rewritten from "mid-demo last resort" to cadence beats.
+- 2026-07-18 — owner (shot-plan board review): shot-block JSON editor was an unstyled white sliver + avatar lane was nested INSIDE the graphics minimap → styled shot-frag, separate labeled lanes + color legend.
+- 2026-07-18 — owner: lane colors all read as similar warm hues → distinct hues (orange fullframe / sky-blue overlay / violet avatar; green stays reserved for approved states).
+- 2026-07-18 — owner: "why two approve buttons?" → kept two gates (independent lifecycles, cue-edit auto-un-approves shots), renamed bare "Approve" to "Approve graphics"; one review sitting covers both.
+
 ## Convergence
 
 - 2026-07-18 test-01: llm=27 approved=18 edited=11 added=1 removed=10 typed=7 flags=0 lint-warnings=7 (v2 baseline; heavy edits expected — three new rules folded this pass)
+- 2026-07-18 test-01 SHOTS: llm=9 approved=9 edited=0 added=0 removed=0 typed=0 flags=0 lint-warnings=0 (v1 shot-pass baseline — perfect convergence on the first try; watch whether it holds on video #2)
 - 2026-07-18 — owner: typed board feedback silently lost on reload without Save (c26 "too plain" note) → board warns on unload with unsaved feedback boxes; lost note re-entered from screenshot and processed.
 - 2026-07-18 — owner: full-color brand logos clash with the warm palette → DESIGN.md "Tool logos" rule: always muted (saturate .5, brightness .95, opacity .9), small relative to text; applied across all 6 logo-consuming cards.
 - 2026-07-18 — owner: persona-match "too plain" for the finale → card rebuilt (THE VERDICT eyebrow, panel rows, drawn accent dividers, gold winner chips + one-shot glow); gold-chip winner pattern recorded in DESIGN.md.

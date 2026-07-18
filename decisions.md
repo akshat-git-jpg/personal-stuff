@@ -4,6 +4,9 @@ Append-only record of non-obvious decisions: a tool/approach chosen, a conventio
 set, or a load-bearing "why". Newest at the top. Check here before re-deriving or
 re-asking. One line per decision; link to detail where it helps.
 
+- 2026-07-18 — **Avatar pilot runs spans-only; corner track deferred** (owner call at submit time): `avatar-render.mjs --spans-only` skips corner chunks; revisit the always-on corner avatar only when the owner asks — don't "helpfully" render it. Also owner-standing avatar rules now machine-enforced in `visuals-flow/lib/lint-shots.mjs`: ≤5 min TOTAL full-screen (E4, no force bypass) and ≤5 min host-less cadence gaps (W4).
+- 2026-07-18 — **Board keeps two approve gates** ("Approve graphics" / "Approve shots") after owner questioned it: independent lifecycles (graphics render before shots exist; each render step gates on its own flag), linked one-way (cue edits auto-un-approve shots). One review sitting covers both; feedback.json is shared.
+
 Format: `YYYY-MM-DD — <decision> — <why> (<optional link>)`
 
 ## Decisions
