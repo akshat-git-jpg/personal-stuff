@@ -89,7 +89,9 @@ test('POST /save with a valid edit updates cues.json and regenerates resolved.js
     cuesFile.cues[0].variables.title = 'Edited';
     const res = await fetch(`${base}/save`, { method: 'POST', body: JSON.stringify(cuesFile) });
     const data = await res.json();
-    assert.deepEqual(data, { ok: true, errors: [] });
+    assert.equal(data.ok, true);
+    assert.ok(Array.isArray(data.errors));
+    assert.ok(Array.isArray(data.warnings));
 
     const onDisk = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
     assert.equal(onDisk.cues[0].variables.title, 'Edited');

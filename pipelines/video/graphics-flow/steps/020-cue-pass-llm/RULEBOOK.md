@@ -183,7 +183,7 @@ render-plus-visual-inspection mitigation (decisions.md 2026-07-07).
 
 ## Rubric
 
-A reviewer scores a cues.json against these 10 checks; all 10 must pass:
+A reviewer scores a cues.json against these 10 checks; all 10 must pass (note: checks 3–9 and the repetition/stat-hit caps are machine-checked by `lib/lint-cues.mjs`, so the reviewer runs it instead of eyeballing those):
 
 1. Valid JSON matching the `PIPELINE.md` schema.
 2. Every anchor is a verbatim ≥3-word transcript quote.

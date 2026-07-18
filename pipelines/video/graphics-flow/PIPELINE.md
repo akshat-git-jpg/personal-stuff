@@ -15,7 +15,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 |---|---|---|
 | `010-transcribe-run` | [RUN] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) → `transcript.json` (word timestamps) |
 | `020-cue-pass-llm` | [LLM] (pluggable: Sonnet default; agy/Antigravity allowed as form-fillers) | `transcript.json` + `card-library/catalog.json` → `cues.json` |
-| `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables) |
+| `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables) … (+ lint gate) |
 | `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board: full-script timeline, transcript + inline cue previews + mini-map, per-cue playback) |
 | `050-render-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` |
 | `060-feedback-fold-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
