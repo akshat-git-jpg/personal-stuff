@@ -37,3 +37,7 @@ Captions are burned onto all screen segments by default, formatted as a single l
 ## Refresh beats
 
 Inside long avatar spans, the pipeline automatically inserts a "refresh beat" every ~20s: a color flash cut to a slightly punched-in version of the same shot. Beats snap to the nearest inter-word silence gap to never blink mid-word. Pass `--beats off` to disable.
+
+## Ken Burns drift
+
+Screen segments ≥4s get a slow Ken Burns drift (alternating zoom in/out, max 5%) applied underneath captions. Pass `--drift off` to disable.

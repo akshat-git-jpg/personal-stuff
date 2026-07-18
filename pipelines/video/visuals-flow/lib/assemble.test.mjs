@@ -3,9 +3,23 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions, planAvatarBeats, splitAvatarSegments } from './assemble.mjs';
+import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions, planAvatarBeats, splitAvatarSegments, driftVF } from './assemble.mjs';
 
 const testTmp = path.resolve(import.meta.dirname, '.test-tmp', 'assemble-it');
+
+test('driftVF: short segment -> empty string', () => {
+  assert.equal(driftVF(0, 3.9, 1920, 1080), '');
+});
+
+test('driftVF: even ordinal pushes in', () => {
+  const vf = driftVF(0, 15, 1920, 1080, { max: 0.05, period: 30, minSeg: 4 });
+  assert.ok(vf.includes("zoompan=z='1+0.025*min(time/15.000,1)':x='iw/2-(iw/zoom)/2':y='ih/2-(ih/zoom)/2':d=1:s=1920x1080:fps=30"));
+});
+
+test('driftVF: odd ordinal pulls out and depth caps', () => {
+  const vf = driftVF(1, 40, 1920, 1080, { max: 0.05, period: 30, minSeg: 4 });
+  assert.ok(vf.includes("zoompan=z='1+0.05*max(1-time/40.000,0)'"));
+});
 
 test('planSegments: contiguity and edge placement', () => {
   const resolved = [{ placement: 'fullframe', id: 'c1', start: 10, duration: 5 }];
@@ -298,7 +312,7 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-t', '68', '-q:a', '9', voMp3]);
 
   const screenMp4 = path.join(testTmp, 'screen.mp4');
-  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=1920x1080:r=30', '-t', '68', '-pix_fmt', 'yuv420p', screenMp4]);
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=1920x1080:r=30,drawgrid=width=100:height=100:thickness=2:color=red', '-t', '68', '-pix_fmt', 'yuv420p', screenMp4]);
 
   const avatarFile = path.join(testTmp, 'media', 's01.mp4');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=red:s=1920x1080:r=30', '-t', '60', '-pix_fmt', 'yuv420p', avatarFile]);
@@ -328,6 +342,9 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   const outMp4 = path.join(testTmp, 'final.mp4');
   if (fs.existsSync(outMp4)) fs.unlinkSync(outMp4);
 
+  const tmpDir = path.join(testTmp, 'assembly-tmp');
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+
   assert.doesNotThrow(() => {
     runAssembly({
       workdir: testTmp,
@@ -344,7 +361,6 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
     });
   });
 
-  const tmpDir = path.join(testTmp, 'assembly-tmp');
   assert.ok(!fs.existsSync(path.join(tmpDir, 'base.mp4')), 'base.mp4 should not exist in single-pass');
   const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
   assert.equal(tsFiles.length, 11, 'should have 11 segments including transitions');
@@ -525,5 +541,66 @@ test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg',
   assert.equal(tsFiles.length, 3, 'segment count unchanged when captions off');
   
   fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('Integration: drift on vs off', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+  const tmpDir = path.join(testTmp, 'assembly-tmp');
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  const outDriftOn = path.join(testTmp, 'final-drift-on.mp4');
+  const outDriftOff = path.join(testTmp, 'final-drift-off.mp4');
+
+  const screenDriftMp4 = path.join(testTmp, 'screen-drift.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'smptehdbars=size=1920x1080:rate=30', '-t', '6', '-pix_fmt', 'yuv420p', screenDriftMp4]);
+
+  runAssembly({
+    workdir: testTmp,
+    video: 'it',
+    resolved: [],
+    avatarJobs: [],
+    total: 6,
+    screen: screenDriftMp4,
+    out: outDriftOn,
+    encoder: 'x264',
+    keepTemp: true,
+    transitions: 'none',
+    beats: 'off',
+    captions: 'off',
+    drift: 'on',
+    words: []
+  });
+
+  runAssembly({
+    workdir: testTmp,
+    video: 'it',
+    resolved: [],
+    avatarJobs: [],
+    total: 6,
+    screen: screenDriftMp4,
+    out: outDriftOff,
+    encoder: 'x264',
+    keepTemp: false,
+    transitions: 'none',
+    beats: 'off',
+    captions: 'off',
+    drift: 'off',
+    words: []
+  });
+
+  const getMean = (file, time) => {
+    // Check edge region (crossing the first bar boundary in smptehdbars) to easily spot zoom diffs
+    const cropStr = 'crop=in_w*0.2:in_h*0.1:0:0';
+    const p = spawnSync('ffprobe', ['-v', 'error', '-f', 'lavfi', '-i', `movie=${file},trim=start=${time}:end=${time+0.1},${cropStr},signalstats`, '-show_entries', 'frame_tags=lavfi.signalstats.YAVG', '-of', 'csv=p=0'], { encoding: 'utf8' });
+    return parseFloat(p.stdout.split('\n')[0]);
+  };
+
+  // With drift on, frame at t=0 and t=5 should differ because it zooms in
+  const onMean0 = getMean(outDriftOn, 0.5);
+  const onMean5 = getMean(outDriftOn, 5.5);
+  assert.ok(Math.abs(onMean0 - onMean5) >= 0.5, `drift ON frames should differ, got ${onMean0} vs ${onMean5}`);
+
+  // With drift off, frame at t=0 and t=5 should be exactly the same
+  const offMean0 = getMean(outDriftOff, 0.5);
+  const offMean5 = getMean(outDriftOff, 5.5);
+  assert.ok(Math.abs(offMean0 - offMean5) < 0.1, `drift OFF frames should match, got ${offMean0} vs ${offMean5}`);
 });
 
