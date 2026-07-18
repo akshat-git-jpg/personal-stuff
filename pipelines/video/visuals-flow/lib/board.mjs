@@ -645,8 +645,8 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
     : (v && typeof v === 'object')
       ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])]))
       : v;
-  const cuesChanged = prev.approved === true && JSON.stringify(canon(prev.cues ?? [])) !== JSON.stringify(canon(incoming.cues ?? []));
-  if (cuesChanged) {
+  const cuesChanged = JSON.stringify(canon(prev.cues ?? [])) !== JSON.stringify(canon(incoming.cues ?? []));
+  if (prev.approved === true && cuesChanged) {
     merged.approved = false;
   }
 
