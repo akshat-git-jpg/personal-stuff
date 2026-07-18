@@ -1,6 +1,6 @@
 # test-01 — assembly
 
-Master timeline = voiceover (1927.6s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. Hard cuts, no transitions.
+Master timeline = voiceover (1927.6s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. Whip transitions at the listed boundaries; hard cuts elsewhere.
 
 Output: /Users/kbtg/kb-scratch/video/visuals-flow/test-01/final-draft.mp4
 
@@ -13,7 +13,9 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow/test-01/final-draft.mp4
 | 00:57.5 | 00:58.6 | screen | screen-02 |
 | 00:58.6 | 01:33.3 | graphic | c01 |
 | 01:33.3 | 01:57.6 | screen | screen-03 |
-| 01:57.6 | 02:47.6 | avatar | s02 |
+| 01:57.6 | 02:18.9 | avatar | s02.1 |
+| 02:18.9 | 02:37.9 | avatar | s02.2 |
+| 02:37.9 | 02:47.6 | avatar | s02.3 |
 | 02:47.6 | 02:56.1 | screen | screen-04 |
 | 02:56.1 | 03:01.1 | graphic | c05 |
 | 03:01.1 | 07:25.9 | screen | screen-05 |
@@ -59,3 +61,24 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow/test-01/final-draft.mp4
 | 20:13.6 | 20:18.6 | 2013-c18-stat-hit.mov |
 | 22:17.9 | 22:22.9 | 2217-c19-callout.mov |
 | 31:19.2 | 31:23.2 | 3119-c27-link-in-description.mov |
+
+## Transitions
+
+| at | direction | from | to |
+|---|---|---|---|
+| 00:57.5 | right | s01 | screen-02 |
+| 01:57.6 | left | screen-03 | s02.1 |
+| 02:47.6 | right | s02.3 | screen-04 |
+| 07:25.9 | left | screen-05 | s03 |
+| 07:40.5 | right | s03 | screen-06 |
+| 12:07.9 | left | screen-07 | s04 |
+| 12:25.8 | right | s04 | screen-08 |
+| 16:11.5 | left | screen-09 | s05 |
+| 16:27.5 | right | s05 | screen-10 |
+| 19:27.1 | left | screen-11 | s06 |
+| 19:44.9 | right | s06 | screen-12 |
+| 22:17.3 | left | screen-13 | s07 |
+| 22:31.5 | right | s07 | screen-14 |
+| 26:59.1 | left | screen-14 | s08 |
+| 27:20.8 | right | s08 | screen-15 |
+| 31:29.2 | left | screen-18 | s09 |
