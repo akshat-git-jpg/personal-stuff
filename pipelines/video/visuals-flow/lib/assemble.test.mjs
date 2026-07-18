@@ -167,12 +167,12 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   const ffFile = path.join(testTmp, 'renders', '0002-c1-green.mp4');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=green:s=1920x1080:r=30', '-t', '2', '-pix_fmt', 'yuv420p', ffFile]);
 
-  const ovFile = path.join(testTmp, 'renders', '0005-o1-black.mov');
+  const ovFile = path.join(testTmp, 'renders', '0004-o1-black.mov');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=black@0.0:s=1920x1080:r=30,format=yuva420p', '-t', '1', '-c:v', 'qtrle', ovFile]);
 
   const resolved = [
     { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' },
-    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
+    { id: 'o1', placement: 'overlay', start: 4.5, duration: 1, card: 'black' }
   ];
   const avatarJobs = [
     { kind: 'avatar-full', id: 's01', start: 6, end: 8, file: avatarFile }
@@ -197,7 +197,18 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
 
   const tmpDir = path.join(testTmp, 'assembly-tmp');
   assert.ok(!fs.existsSync(path.join(tmpDir, 'base.mp4')), 'base.mp4 should not exist in single-pass');
-  assert.ok(fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts')).length >= 4, 'should have at least 5 segments');
+  const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
+  assert.equal(tsFiles.length, 5, 'should have 5 segments including transition');
+  
+  const transFiles = tsFiles.filter(f => f.includes('-trans-'));
+  assert.equal(transFiles.length, 1, 'should have 1 transition file');
+  
+  for (const tFile of transFiles) {
+    const p = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(tmpDir, tFile)], { encoding: 'utf8' });
+    const d = parseFloat(p.stdout);
+    assert.ok(Math.abs(d - 0.4) <= 0.05, `transition duration ${d} not near 0.4`);
+  }
+  
   fs.rmSync(tmpDir, { recursive: true, force: true });
 
   assert.ok(fs.existsSync(outMp4));
@@ -213,7 +224,7 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
 
   const mdFile = fs.readFileSync(path.join(testTmp, 'assembly.md'), 'utf8');
   assert.equal((mdFile.match(/screen-|avatar|graphic/g) || []).length, 5); // 5 base rows
-  assert.equal((mdFile.match(/0005-o1-black.mov/g) || []).length, 1); // 1 overlay row
+  assert.equal((mdFile.match(/0004-o1-black.mov/g) || []).length, 1); // 1 overlay row
 });
 
 test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
@@ -222,7 +233,7 @@ test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-ver
 
   const resolved = [
     { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' },
-    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
+    { id: 'o1', placement: 'overlay', start: 4.5, duration: 1, card: 'black' }
   ];
   const avatarJobs = [
     { kind: 'avatar-full', id: 's01', start: 6, end: 8, file: path.join(testTmp, 'media', 's01.mp4') }
