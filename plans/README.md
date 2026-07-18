@@ -488,3 +488,4 @@ The others are grounded and available when the owner wants them:
 - 081-visuals-flow-operating-skill — PR#38 081-visuals-flow-operating-skill: verb router — session operates the flow, owner keeps the two human gates — DONE
 - 082-assemble-final-video — PR#39 082-assemble-final-video: visuals-flow step 090 — assemble the final video — DONE
 - 083-assemble-speed-pass — PR#40 083-assemble-speed-pass: assemble speed — single-encode overlays, hw encoder, --draft — DONE
+- 084-assemble-whip-transitions — PR#41 084-assemble-whip-transitions: whip-pan transitions at screen<->avatar boundaries (step 090) — DONE
