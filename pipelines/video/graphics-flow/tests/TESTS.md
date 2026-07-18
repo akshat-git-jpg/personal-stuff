@@ -79,3 +79,4 @@ tested, with what source, and what the run taught us.
 - 2026-07-18 — owner: typed board feedback silently lost on reload without Save (c26 "too plain" note) → board warns on unload with unsaved feedback boxes; lost note re-entered from screenshot and processed.
 - 2026-07-18 — owner: full-color brand logos clash with the warm palette → DESIGN.md "Tool logos" rule: always muted (saturate .5, brightness .95, opacity .9), small relative to text; applied across all 6 logo-consuming cards.
 - 2026-07-18 — owner: persona-match "too plain" for the finale → card rebuilt (THE VERDICT eyebrow, panel rows, drawn accent dividers, gold winner chips + one-shot glow); gold-chip winner pattern recorded in DESIGN.md.
+- 2026-07-18 — session: Approve then Save silently reset approved (raw JSON.stringify cue comparison is key-order sensitive; script-written cues.json ordered differently than the board serializer) → canonicalized comparison in handleSave.

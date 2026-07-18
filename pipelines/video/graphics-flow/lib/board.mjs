@@ -540,7 +540,14 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   const { feedback, ...incoming } = cuesFile;
   const merged = { ...prev, ...incoming };
 
-  if (prev.approved === true && JSON.stringify(prev.cues) !== JSON.stringify(incoming.cues)) {
+  // key-order-insensitive comparison — cues.json may have been written by a
+  // script with different key order than the board's serializer; raw
+  // JSON.stringify would false-positive and silently un-approve.
+  const canon = (v) => Array.isArray(v) ? v.map(canon)
+    : (v && typeof v === 'object')
+      ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])]))
+      : v;
+  if (prev.approved === true && JSON.stringify(canon(prev.cues)) !== JSON.stringify(canon(incoming.cues))) {
     merged.approved = false;
   }
 

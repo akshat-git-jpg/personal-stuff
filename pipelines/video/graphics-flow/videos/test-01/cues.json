@@ -1,6 +1,6 @@
 {
   "video": "test-01",
-  "approved": false,
+  "approved": true,
   "cues": [
     {
       "id": "c01",
