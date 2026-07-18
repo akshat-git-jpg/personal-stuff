@@ -6,6 +6,12 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { mmss, rewriteDuration, manifestMd, planRender, manifestCues } from './render.mjs';
 
+const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'render');
+test.before(() => {
+  if (fs.existsSync(TMP_ROOT)) {
+    fs.rmSync(TMP_ROOT, { recursive: true, force: true });
+  }
+});
 test('rewriteDuration: uniform data-duration values all get replaced', () => {
   const html = '<div data-duration="6"></div><div data-duration="6"></div><div data-duration="6"></div>';
   const { html: out, error } = rewriteDuration(html, 24.5);
@@ -67,9 +73,8 @@ test('manifestMd applies timeline offset to place-at column only', () => {
 });
 
 test('manifestCues returns only cues whose outFile exists', () => {
-  const tmpRoot = path.join(import.meta.dirname, '.test-tmp');
-  fs.mkdirSync(tmpRoot, { recursive: true });
-  const renderDir = fs.mkdtempSync(path.join(tmpRoot, 'manifest-cues-'));
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const renderDir = fs.mkdtempSync(path.join(TMP_ROOT, 'manifest-cues-'));
   
   const cues = [
     { id: 'c01', card: 'overlay/callout', placement: 'overlay', start: 10, duration: 3 },
@@ -88,9 +93,8 @@ test('manifestCues returns only cues whose outFile exists', () => {
 });
 
 test('CLI: approval gate exits 1 and mentions approved', () => {
-  const tmpRoot = path.join(import.meta.dirname, '.test-tmp');
-  fs.mkdirSync(tmpRoot, { recursive: true });
-  const workdir = fs.mkdtempSync(path.join(tmpRoot, 'approval-'));
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'approval-'));
   
   // cues-ok.json has approved: false
   fs.copyFileSync(path.join(import.meta.dirname, 'fixtures', 'cues-ok.json'), path.join(workdir, 'cues.json'));
@@ -108,9 +112,8 @@ test('CLI: approval gate exits 1 and mentions approved', () => {
 });
 
 test('CLI: staleness gate exits 1 and mentions stale', () => {
-  const tmpRoot = path.join(import.meta.dirname, '.test-tmp');
-  fs.mkdirSync(tmpRoot, { recursive: true });
-  const workdir = fs.mkdtempSync(path.join(tmpRoot, 'stale-'));
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'stale-'));
   
   const cuesJson = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, 'fixtures', 'cues-ok.json'), 'utf8'));
   cuesJson.approved = true;

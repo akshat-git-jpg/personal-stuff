@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
-const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp');
+const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'board');
 const CARD_LIBRARY_ROOT = path.resolve(import.meta.dirname, '..', '..', 'card-library');
 const CATALOG = JSON.parse(fs.readFileSync(path.join(CARD_LIBRARY_ROOT, 'catalog.json'), 'utf8'));
 const BEAT_CARDS = CATALOG.cards.filter((c) => c.kind === 'beat');
@@ -37,6 +37,9 @@ async function startServer(workdir) {
 }
 
 test.before(() => {
+  if (fs.existsSync(TMP_ROOT)) {
+    fs.rmSync(TMP_ROOT, { recursive: true, force: true });
+  }
   ensureFixtureAudio();
 });
 

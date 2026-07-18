@@ -6,6 +6,12 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { normWord, resolveCues } from './resolve.mjs';
 
+const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'resolve');
+test.before(() => {
+  if (fs.existsSync(TMP_ROOT)) {
+    fs.rmSync(TMP_ROOT, { recursive: true, force: true });
+  }
+});
 // Shared fixture: words spaced 0.5s apart, idx*0.5 = start.
 const WORDS = [
   { text: "let's", start: 0.0 },
@@ -216,9 +222,8 @@ test('normWord strips punctuation and lowercases (transcript "Pros," matches anc
 });
 
 test('CLI: resolves a fixture workdir to resolved.json and exits 0', () => {
-  const tmpRoot = path.join(import.meta.dirname, '.test-tmp');
-  fs.mkdirSync(tmpRoot, { recursive: true });
-  const workdir = fs.mkdtempSync(path.join(tmpRoot, 'ok-'));
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'ok-'));
   fs.copyFileSync(path.join(import.meta.dirname, 'fixtures', 'cues-ok.json'), path.join(workdir, 'cues.json'));
   fs.copyFileSync(path.join(import.meta.dirname, 'fixtures', 'transcript.json'), path.join(workdir, 'transcript.json'));
 
@@ -234,9 +239,8 @@ test('CLI: resolves a fixture workdir to resolved.json and exits 0', () => {
 });
 
 test('CLI: bad anchor exits 1 and writes no resolved.json', () => {
-  const tmpRoot = path.join(import.meta.dirname, '.test-tmp');
-  fs.mkdirSync(tmpRoot, { recursive: true });
-  const workdir = fs.mkdtempSync(path.join(tmpRoot, 'bad-'));
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'bad-'));
   fs.copyFileSync(path.join(import.meta.dirname, 'fixtures', 'cues-bad.json'), path.join(workdir, 'cues.json'));
   fs.copyFileSync(path.join(import.meta.dirname, 'fixtures', 'transcript.json'), path.join(workdir, 'transcript.json'));
 
