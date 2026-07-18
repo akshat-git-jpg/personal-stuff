@@ -143,7 +143,7 @@ async function readBody(req) {
 
 const BOARD_CSS = `
   :root { --bg:#0f0b07; --panel:#181210; --line:rgba(255,255,255,0.10);
-    --text:#f5ede2; --dim:rgba(245,237,226,0.55); --accent:#fb923c; --accent-light:#fdba74; --ok:#34d399; --err:#ff6b6b;
+    --text:#f5ede2; --dim:rgba(245,237,226,0.55); --accent:#fb923c; --accent-light:#fdba74; --ok:#34d399; --err:#ff6b6b; --shot:#eab308;
     --font:"Inter",-apple-system,system-ui,sans-serif; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:var(--font); background:var(--bg); color:var(--text); padding:28px 32px 80px; }
@@ -169,6 +169,9 @@ const BOARD_CSS = `
   .timeline { display:flex; flex-direction:column; gap:20px; max-width:800px; margin:0 auto; }
   .timeline-block { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
   .gap-block { padding:12px 16px; }
+  .minimap-shots { height:6px; margin-top:2px; }
+  .shot-block { border-left:3px solid var(--shot); }
+  .in-shot { border-left:3px solid var(--shot); }
   .gap-header { font-size:13px; color:var(--dim); cursor:pointer; display:flex; align-items:center; }
   .gap-icon { display:inline-block; width:16px; transition:transform 0.2s; }
   .gap-block.expanded .gap-icon { transform:rotate(90deg); }
@@ -317,7 +320,7 @@ function normalizeFeedbackItems(raw) {
   return items;
 }
 
-function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
+function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
@@ -355,8 +358,30 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
     return `<div class="minimap-seg" title="${title}" style="flex-grow:${duration}; background:var(${colorVar});" onclick="document.getElementById('seg-${i + unresolvedSegs.length}').scrollIntoView({behavior:'smooth'})"></div>`;
   }).join('');
 
-  const timelineHtml = segments.map((seg, idx) => {
+  let minimapShotsHtml = '';
+  if (shots?.spans?.length || shots?.errors?.length) {
+    const spans = [...(shots.spans || [])].sort((a, b) => a.start - b.start);
+    let t = 0;
+    const items = [];
+    for (const span of spans) {
+      if (span.start > t) {
+        items.push(`<div class="minimap-seg" style="flex-grow:${span.start - t}; background:var(--line)"></div>`);
+      }
+      items.push(`<div class="minimap-seg" title="${timecode(span.start)} &middot; ${escapeHtml(span.id)} &middot; avatar-full" style="flex-grow:${span.duration}; background:var(--shot)" onclick="document.getElementById('shot-${escapeHtml(span.id)}').scrollIntoView({behavior:'smooth'})"></div>`);
+      t = span.start + span.duration;
+    }
+    if (t < totalDuration) {
+      items.push(`<div class="minimap-seg" style="flex-grow:${totalDuration - t}; background:var(--line)"></div>`);
+    }
+    minimapShotsHtml = `<div class="minimap minimap-shots">${items.join('')}</div>`;
+  }
+
+  const timelineBlocks = segments.map((seg, idx) => {
     const i = idx;
+    const mid = (seg.start + seg.end) / 2;
+    const inShot = shots?.spans?.some(s => mid >= s.start && mid <= s.start + s.duration) ? ' in-shot' : '';
+    let html = '';
+    
     if (seg.kind === 'gap') {
       const durSecs = seg.end - seg.start;
       const m = Math.floor(durSecs / 60);
@@ -364,7 +389,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       const durStr = m > 0 ? `${m}m ${s}s` : `${s}s`;
       const allWords = seg.words.map(w => w.text).join(' ');
       const previewWords = seg.words.slice(0, 14).map(w => w.text).join(' ') + (seg.words.length > 14 ? '…' : '');
-      return `<div class="timeline-block gap-block" id="seg-${i}">
+      html = `<div class="timeline-block gap-block${inShot}" id="seg-${i}">
         <div class="gap-header" onclick="this.parentElement.classList.toggle('expanded')">
           <span class="gap-icon">▸</span> ${timecode(seg.start)} &rarr; ${timecode(seg.end)} &middot; ${durStr} &middot; <span style="color:var(--dim)">"${escapeHtml(previewWords)}"</span>
         </div>
@@ -372,7 +397,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
           ${fbBox(`gap-${timecode(seg.start)}`, 'feedback for this stretch (read by the next Claude session)')}
         </div>
       </div>`;
-    }
+    } else {
 
     const cue = cues.find(c => c.id === seg.cue.id);
     const r = seg.unresolved ? null : seg.cue;
@@ -416,7 +441,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
 
     const excerptDiv = seg.words.length ? `<div class="excerpt">${excerptHtml}</div>` : '';
 
-    return `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}" id="seg-${i}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}">
+    html = `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}${inShot}" id="seg-${i}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}">
       <div class="tile-header">${header}</div>
       ${excerptDiv}
       <div class="anchor"><strong>${escapeHtml(cue.anchor ?? '')}</strong></div>
@@ -427,7 +452,30 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       ${fbBox(cue.id, 'feedback on this graphic — wrong card, wrong timing, wording… (read by the next Claude session)')}
       <textarea class="frag">${escapeHtml(JSON.stringify(fragment, null, 2))}</textarea>
     </div>`;
-  }).join('\n');
+    }
+    return { html, start: seg.start, isShot: false };
+  });
+
+  if (shots?.spans?.length) {
+    for (const span of shots.spans) {
+      const origSpan = shots.shotsFile?.spans?.find(s => s.id === span.id) || span;
+      const noteHtml = span.note ? ` &mdash; ${escapeHtml(span.note)}` : '';
+      const shotHtml = `<div class="timeline-block shot-block" id="shot-${escapeHtml(span.id)}">
+  <div class="shot-header">🧍 <b>${escapeHtml(span.id)}</b> avatar-full &middot; ${timecode(span.start)} &rarr; ${timecode(span.start + span.duration)} &middot; ${span.duration}s${noteHtml}</div>
+  <textarea class="shot-frag">${escapeHtml(JSON.stringify(origSpan, null, 2))}</textarea>
+  ${fbBox(span.id, 'feedback on this shot span (read by the next Claude session)')}
+</div>`;
+      const block = { html: shotHtml, start: span.start, isShot: true };
+      const idx = timelineBlocks.findIndex(b => !b.isShot && b.start >= span.start);
+      if (idx !== -1) {
+        timelineBlocks.splice(idx, 0, block);
+      } else {
+        timelineBlocks.push(block);
+      }
+    }
+  }
+  
+  const timelineHtml = timelineBlocks.map(b => b.html).join('\n');
 
   return `<!doctype html>
 <html lang="en">
@@ -443,10 +491,15 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       <div>duration: ${timecode(totalDuration)}</div>
       <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
       <button id="approveBtn">Approve</button>
+      ${shots ? `<span class="usage-chip">engineMode: ${escapeHtml(shots.shotsFile?.engineMode || 'none')}</span><button id="approveShotsBtn">Approve shots</button>` : ''}
       <button id="saveBtn">Save</button>
       <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
     </div>
-    <div id="banner">${cuesFile.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}</div>
+    <div id="banner">
+      ${cuesFile.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}
+      ${shots && shots.shotsFile?.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shot plan approved — ready for the avatar render step</div>' : ''}
+      ${shots?.errors?.length ? `<div class="banner err"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shots: ${shots.errors.map(escapeHtml).join('<br>')}</div>` : ''}
+    </div>
     <div class="usage">${(() => {
       const counts = new Map();
       for (const c of cues) counts.set(c.card, (counts.get(c.card) ?? 0) + 1);
@@ -454,7 +507,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
         .map(([card, n]) => `<span class="usage-chip${n > 3 ? ' hot' : ''}">${escapeHtml(card.split('/').pop())} &times;${n}</span>`)
         .join('');
     })()}</div>
-    <div class="minimap">${minimapHtml}</div>
+    <div class="minimap">${minimapHtml}${minimapShotsHtml}</div>
     ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
   </div>
   <div class="timeline">${timelineHtml}</div>
@@ -801,9 +854,10 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
     const fbPath = path.join(workdir, 'feedback.json');
     const feedbackItems = fs.existsSync(fbPath) ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items) : {};
+    const shots = loadShots(workdir, words);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems));
+    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots));
   }
 
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);
