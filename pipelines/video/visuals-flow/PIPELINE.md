@@ -20,6 +20,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `050-render-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` |
 | `070-shot-pass-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (full-screen avatar spans; corner+screen-rec is the implicit baseline) |
 | `080-avatar-render-run` | [RUN] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
+| `090-assemble-run` | [RUN] | `screen.mp4` + `vo.mp3` + `renders/` + avatar clips (`avatar-jobs.json`) → `final.mp4` (kb-scratch) + `assembly.md` |
 | `060-feedback-fold-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
 
 Each `steps/NNN-*/` folder has a `README.md` (purpose, exact command, in →
@@ -43,6 +44,8 @@ videos/<slug>/
   renders/             # step 050's clips — gitignored (regenerable)
   manifest.md      # step 050 output, at the workdir root — committed
   avatar-manifest.md   # step 080 output — committed
+  screen.mp4       # VO-aligned screen recording (owner-provided) — gitignored
+  assembly.md      # step 090 output, the assembly EDL — committed
   feedback.json    # owner feedback typed on the board (per-cue, per-gap, global) — committed
 ```
 
