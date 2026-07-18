@@ -497,3 +497,4 @@ The others are grounded and available when the owner wants them:
 - 087-avatar-render-hardening — PR#44 087-avatar-render-hardening: avatar-render hardening: array-form spawns, slice verify, guards — DONE
 - 088-visuals-flow-hygiene-batch — PR#45 088-visuals-flow-hygiene-batch: hygiene batch: test-tmp teardown, workdir dedupe, small guards — DONE
 - 089-assemble-whip-flash-v2 — PR#46 089-assemble-whip-flash-v2: whip v2 blur-cut + flash v2 luminous sweep (reference-matched rework) — DONE
+- 090-assemble-burned-captions — PR#47 090-assemble-burned-captions: burned captions on screen segments (Pillow PNG strips) — DONE
