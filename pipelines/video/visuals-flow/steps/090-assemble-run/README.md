@@ -30,6 +30,10 @@ A boundary falls back to a hard cut if:
 - An overlay straddles the transition window (±0.2s from the boundary).
 - The boundary is at `t=0` or `t=total`.
 
+## Captions
+
+Captions are burned onto all screen segments by default, formatted as a single line of white text with a dark edge at the bottom-center. They are driven by the word-level timestamps in the transcript and automatically excluded from avatar and graphic segments. Pass `--captions off` to disable them.
+
 ## Refresh beats
 
 Inside long avatar spans, the pipeline automatically inserts a "refresh beat" every ~20s: a color flash cut to a slightly punched-in version of the same shot. Beats snap to the nearest inter-word silence gap to never blink mid-word. Pass `--beats off` to disable.

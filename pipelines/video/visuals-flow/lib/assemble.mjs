@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { mmss, planRender } from './render.mjs';
 import { resolveCues } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
+import { planCaptions, CAP_Y_FRAC } from './captions.mjs';
 
 const EPS = 0.05;
 export const CANVAS = { w: 1920, h: 1080, fps: 30 };
@@ -189,7 +190,7 @@ export function detectEncoder() {
 }
 
 // Committed EDL — doubles as editor documentation.
-export function assemblyMd(video, segments, overlays, total, outPath, transitions = []) {
+export function assemblyMd(video, segments, overlays, total, outPath, transitions = [], captions = 'on') {
   const getSegId = (s) => s.sub !== undefined ? `${s.id}.${s.sub + 1}` : s.id;
   const seg = segments.map((s) =>
     `| ${mmss(s.start)} | ${mmss(s.end)} | ${s.kind} | ${getSegId(s)} |`);
@@ -199,10 +200,12 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
     ? 'Whip transitions at the listed boundaries; hard cuts elsewhere.'
     : 'Hard cuts.';
 
+  const capSentence = captions === 'on' ? ' Captions burned on screen segments.' : '';
+
   const lines = [
     `# ${video} — assembly`,
     '',
-    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. ${transSentence}`,
+    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. ${transSentence}${capSentence}`,
     '',
     `Output: ${outPath}`,
     '',
@@ -237,7 +240,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on' };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on' };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -261,6 +264,11 @@ function parseArgs(argv) {
       if (b !== 'on' && b !== 'off') throw new Error('--beats must be on or off');
       opts.beats = b;
     }
+    else if (a === '--captions') {
+      const c = rest.shift();
+      if (c !== 'on' && c !== 'off') throw new Error('--captions must be on or off');
+      opts.captions = c;
+    }
     else if (a === '--keep-temp') opts.keepTemp = true;
     else if (a === '--force') opts.force = true;
     else throw new Error(`unknown argument: ${a}`);
@@ -269,7 +277,7 @@ function parseArgs(argv) {
 }
 
 
-export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', words = [] }) {
+export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', words = [] }) {
   let segments = planSegments({ resolved, avatarJobs, total });
   if (beats === 'on') {
     const cueTimes = resolved.filter(c => c.placement === 'overlay').map(c => c.start);
@@ -287,6 +295,34 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
   const VF = `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,fps=30,format=yuv420p`;
   const ENC = encoderArgs({ encoder, draft });
   const segOverlays = planSegmentOverlays(segments, overlays);
+
+  let capChunks = [];
+  let capDir = null;
+  if (captions === 'on') {
+    capChunks = planCaptions(words);
+    const screenChunks = capChunks.filter(c => 
+      segments.some(seg => seg.kind === 'screen' && c.start < seg.end && c.end > seg.start)
+    );
+    if (screenChunks.length > 0) {
+      capDir = path.join(tmpDir, 'captions');
+      fs.mkdirSync(capDir, { recursive: true });
+      const capWidth = Math.round(w * 0.86);
+      const capFontPx = Math.round(44 * h / 1080);
+      
+      const renderStdin = JSON.stringify({
+        outDir: capDir,
+        width: capWidth,
+        fontPx: capFontPx,
+        chunks: screenChunks
+      });
+      const pyPath = path.resolve(import.meta.dirname, 'caption-render.py');
+      const pyRes = spawnSync('python3', [pyPath], { input: renderStdin, encoding: 'utf8' });
+      if (pyRes.status !== 0) {
+        console.error('caption-render failed:', pyRes.stderr);
+        process.exit(1);
+      }
+    }
+  }
 
   const trans = transitions === 'whip' ? planTransitions(segments, overlays) : [];
   const half = TRANSITION_DUR / 2;
@@ -333,6 +369,21 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     let needsComplex = false;
     if (L && L.length > 0) needsComplex = true;
     if (seg.flashIn || seg.flashOut) needsComplex = true;
+    
+    const segCaps = [];
+    if (seg.kind === 'screen' && capDir && capChunks.length > 0) {
+      for (const c of capChunks) {
+        const cAt = c.start - seg.start - startTrim;
+        const cUntil = c.end - seg.start - startTrim;
+        if (cUntil > 0 && cAt < dur) {
+          const f = path.join(capDir, `cap-${c.i}.png`);
+          if (fs.existsSync(f)) {
+            segCaps.push({ file: f, at: Math.max(0, cAt), until: cUntil });
+            needsComplex = true;
+          }
+        }
+      }
+    }
 
     if (needsComplex) {
       let chain = `[0:v]${punchVF},tpad=stop_mode=clone:stop_duration=30[b0];`;
@@ -403,6 +454,18 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
             chain += `[${lastV}][${gNames[splitIdx++]}]blend=all_mode=screen:all_opacity=${op}:enable='gte(t,${tStart})'[${nextV}];`;
             lastV = nextV;
           }
+        }
+      }
+      
+      if (segCaps.length > 0) {
+        const lLen = L ? L.length : 0;
+        for (const c of segCaps) inputs.push('-loop', '1', '-i', c.file);
+        for (let j = 0; j < segCaps.length; j++) {
+          const c = segCaps[j];
+          const inputIdx = 1 + lLen + j;
+          const nextV = `b_cap_${j}`;
+          chain += `[${lastV}][${inputIdx}:v]overlay=(main_w-overlay_w)/2:${Math.round(h * CAP_Y_FRAC)}-overlay_h:enable='between(t,${c.at.toFixed(3)},${c.until.toFixed(3)})'[${nextV}];`;
+          lastV = nextV;
         }
       }
       
@@ -523,7 +586,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     process.exit(1);
   }
 
-  const assemblyMdContent = assemblyMd(video, segments, overlays, total, out, trans);
+  const assemblyMdContent = assemblyMd(video, segments, overlays, total, out, trans, captions);
   fs.writeFileSync(path.join(workdir, 'assembly.md'), assemblyMdContent);
 
   if (!keepTemp) {
@@ -537,9 +600,18 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.workdir) {
-    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force]');
+    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--captions on|off]');
     process.exit(1);
   }
+
+  if (opts.captions === 'on') {
+    const pilCheck = spawnSync('python3', ['-c', 'import PIL']);
+    if (pilCheck.status !== 0) {
+      console.error('captions need Pillow: python3 -m pip install pillow (or run with --captions off)');
+      process.exit(1);
+    }
+  }
+
   const workdir = resolveWorkdir(opts.workdir);
   const cuesPath = path.join(workdir, 'cues.json');
   
@@ -617,7 +689,7 @@ async function main() {
   }
 
   const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, video, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, words });
+  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, words });
   process.exit(0);
 }
 
