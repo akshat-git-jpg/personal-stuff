@@ -108,13 +108,12 @@ Decisions log entries: decisions.md 2026-07-17 and 2026-07-18.
    Prior art: tutorial-pipeline-1/2 in pipelines/youtube/.
 3. **Global play-through on the board** (deferred by owner): master player,
    auto-scroll, cards animate as the playhead crosses. Same buildSegments seam.
-4. **Automated visual QC** (OPEN PROBLEM, owner rejected the vision-model
-   version on cost): today nothing looks at rendered frames except humans.
-   Schema validation covers structure; visual breakage (overflow etc.) is
-   caught at owner review. Revisit only with a cheaper mechanism.
-5. **Capacity calibration**: max_beats/max_reveal_chars are layout-math
-   estimates. Calibrate by filling cards to their caps and looking (or fold
-   real failures from reviews as they come).
+4. **Automated visual QC** — DONE (plan 074): every board tile posts probe
+   seeks into its card iframe and badges red on a DOM-overflow report; zero
+   tokens, zero vision model.
+5. **Capacity calibration** — DONE (plan 074): `/calibrate` renders every beat
+   card filled to its declared `max_beats`/`max_reveal_chars` with live
+   overflow probes, so caps are visually verified instead of estimated.
 6. **agy cue-pass trial**: run 020 on agy for one video, compare against
    Sonnet on the rubric (RULEBOOK section 9). Frees the last per-video cents.
 7. **Density calibration**: 60-120s fullframe cadence and 18-28 cues per 30

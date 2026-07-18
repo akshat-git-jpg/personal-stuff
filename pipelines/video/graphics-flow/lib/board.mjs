@@ -27,13 +27,47 @@ function injectShim(html, variables) {
   const varsJson = JSON.stringify(variables ?? {}).replace(/</g, '\\u003c');
   const shim = `<script>
   window.__hyperframes = { getVariables: () => (${varsJson}) };
-  window.addEventListener('message', (e) => {
-    if (!e.data || typeof e.data.t !== 'number') return;
+  function __hfSeek(t) {
     const tls = Object.values(window.__timelines || {});
-    if (!tls.length) return;
+    if (!tls.length) return false;
     const tl = tls[0];
     tl.pause();
-    tl.time(Math.min(e.data.t, tl.duration()));
+    tl.time(Math.min(t, tl.duration()));
+    return true;
+  }
+  function __measureOverflow() {
+    const W = 1920, H = 1080, TOL = 2;
+    const offenders = [];
+    for (const el of document.querySelectorAll('body *')) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      if (r.right > W + TOL || r.bottom > H + TOL || r.left < -TOL || r.top < -TOL) {
+        offenders.push((el.id ? '#' + el.id : el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : '')));
+        if (offenders.length >= 5) break;
+      }
+    }
+    const doc = document.documentElement;
+    const scrolled = doc.scrollWidth > W + TOL || doc.scrollHeight > H + TOL;
+    return { broken: offenders.length > 0 || scrolled, offenders };
+  }
+  function __runProbe(times) {
+    let i = 0;
+    function step() {
+      if (i >= times.length) { parent.postMessage({ __overflowDone: true }, '*'); return; }
+      const t = times[i++];
+      __hfSeek(t);
+      requestAnimationFrame(() => {
+        const result = __measureOverflow();
+        if (result.broken) parent.postMessage({ __overflow: { t, broken: result.broken, offenders: result.offenders } }, '*');
+        step();
+      });
+    }
+    step();
+  }
+  window.addEventListener('message', (e) => {
+    if (!e.data) return;
+    if (Array.isArray(e.data.probe)) { __runProbe(e.data.probe); return; }
+    if (typeof e.data.t === 'number') __hfSeek(e.data.t);
   });
 </script>
 `;
@@ -121,6 +155,7 @@ const BOARD_CSS = `
   .preview { width:480px; height:270px; overflow:hidden; position:relative; background:#000; border-radius:8px; margin-bottom:8px; }
   .preview iframe { width:1920px; height:1080px; border:0; transform:scale(0.25); transform-origin:top left; position:absolute; top:0; left:0; }
   .unresolved-note { font-size:12px; color:var(--err); margin-bottom:8px; }
+  .overflow-badge { display:inline-block; margin-left:8px; font-family:ui-monospace,Menlo,monospace; font-size:11px; color:var(--err); background:rgba(255,107,107,0.12); border:1px solid var(--err); border-radius:4px; padding:2px 6px; }
   audio.scrub { width:100%; margin-bottom:10px; }
   .flag { display:block; font-size:12px; color:var(--dim); margin-bottom:6px; }
   .note { width:100%; font:inherit; font-size:12px; padding:6px 8px; margin-bottom:8px; background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:6px; }
@@ -132,10 +167,57 @@ const BOARD_CSS = `
   .feedback-folded { font-size:12px; color:var(--dim); margin-bottom:8px; padding:0 8px; }
 `;
 
+// Shared client script for both / (board) and /calibrate: posts each tile's
+// probe times into its iframe on load, and turns broken reports into a badge
+// on the tile header. Kept as one string so the two pages can't drift.
+const OVERFLOW_BADGE_JS = `
+  function wireProbe(tile) {
+    const iframe = tile.querySelector('iframe');
+    const preview = tile.querySelector('.preview');
+    if (!iframe || !preview) return;
+    let probeTimes = [];
+    try { probeTimes = JSON.parse(preview.dataset.probeTimes || '[]'); } catch {}
+    if (!probeTimes.length) return;
+    iframe.addEventListener('load', () => {
+      try { iframe.contentWindow.postMessage({ probe: probeTimes }, '*'); } catch {}
+    });
+  }
+  function wireOverflowBadges() {
+    const brokenTimesByTile = new WeakMap();
+    window.addEventListener('message', (e) => {
+      if (!e.data || !e.data.__overflow) return;
+      const tile = [...document.querySelectorAll('.tile')].find((t) => t.querySelector('iframe')?.contentWindow === e.source);
+      if (!tile) return;
+      const { t, offenders } = e.data.__overflow;
+      const times = brokenTimesByTile.get(tile) || [];
+      times.push({ t, offenders });
+      brokenTimesByTile.set(tile, times);
+      let badge = tile.querySelector('.overflow-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'overflow-badge';
+        (tile.querySelector('.tile-header') || tile).appendChild(badge);
+      }
+      const label = times.map((x) => x.t.toFixed(1) + 's').join(', ');
+      const allOffenders = [...new Set(times.flatMap((x) => x.offenders))].slice(0, 5);
+      badge.textContent = 'OVERFLOW @ ' + label + ' (' + allOffenders.join(' ') + ')';
+    });
+  }
+`;
+
 function timecode(secs) {
   const m = Math.floor(secs / 60).toString().padStart(2, '0');
   const s = (secs % 60).toFixed(1).padStart(4, '0');
   return `${m}:${s}`;
+}
+
+// Probe times for the overflow shim: just after each beat reveals, plus just
+// before the card ends (catches a final state that never got a mid-beat check).
+function computeProbeTimes(beats, duration) {
+  const times = (beats ?? []).map((b) => +(b.at + 0.6).toFixed(2)).filter((t) => t >= 0);
+  const end = +(duration - 0.1).toFixed(2);
+  if (end >= 0) times.push(end);
+  return times;
 }
 
 export function buildSegments(words, resolved, { gapMinWords = 8 } = {}) {
@@ -276,8 +358,9 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       ? `#${escapeHtml(cue.id)} &middot; ${timecode(r.start)} &rarr; ${timecode(r.start + r.duration)} &middot; ${escapeHtml(cue.card)} &middot; ${r.duration}s &middot; ${escapeHtml(r.placement)}`
       : `#${escapeHtml(cue.id)} &middot; unresolved &middot; ${escapeHtml(cue.card)}`;
 
+    const probeTimes = r ? computeProbeTimes(r.variables?.beats, r.duration) : [];
     const media = r
-      ? `<div class="preview"><iframe loading="lazy" src="/card/${encodeURIComponent(cue.id)}"></iframe></div>
+      ? `<div class="preview" data-probe-times='${JSON.stringify(probeTimes)}'><iframe loading="lazy" src="/card/${encodeURIComponent(cue.id)}"></iframe></div>
       <audio class="scrub" controls src="/slice/${encodeURIComponent(cue.id)}.mp3"></audio>`
       : `<div class="unresolved-note">no resolved timing for this cue — fix the anchor and Save</div>`;
 
@@ -333,6 +416,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
       <button id="approveBtn">Approve</button>
       <button id="saveBtn">Save</button>
+      <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
     </div>
     <div id="banner">${cuesFile.approved ? '<div class="banner ok">approved — ready for <code>node lib/render.mjs</code></div>' : ''}</div>
     <div class="usage">${(() => {
@@ -347,6 +431,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
   </div>
   <div class="timeline">${timelineHtml}</div>
   <script>
+    ${OVERFLOW_BADGE_JS}
     const VIDEO = ${JSON.stringify(cuesFile.video ?? '')};
     let APPROVED = ${JSON.stringify(!!cuesFile.approved)};
 
@@ -364,7 +449,11 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
         const loop = () => { post(); if (!audio.paused) raf = requestAnimationFrame(loop); };
         loop();
       });
+
+      wireProbe(tile);
     });
+
+    wireOverflowBadges();
 
     function showBanner(html, cls) {
       document.getElementById('banner').innerHTML = '<div class="banner ' + cls + '">' + html + '</div>';
@@ -495,6 +584,125 @@ async function handleApprove(req, res, workdir) {
   res.end(JSON.stringify({ ok: true }));
 }
 
+function fillerText(chars) {
+  if (chars <= 0) return '';
+  let s = '';
+  while (s.length < chars) s += 'Mmmmmm ';
+  return s.slice(0, chars);
+}
+
+// e.g. "'pro' | 'con'" -> ['pro', 'con']; null if the descriptor isn't an enum.
+function parseEnumOptions(descriptor) {
+  const quoted = descriptor.match(/'([^']+)'/g);
+  return quoted && quoted.length >= 2 ? quoted.map((q) => q.slice(1, -1)) : null;
+}
+
+// Fields where the generic string/array/number/enum rules below produce
+// something meaningless — see plan 074's synthCalibrationVars step.
+const CALIBRATE_OVERRIDES = {
+  'verdict/verdict-report-card': {
+    // color is a CSS value the card applies directly, not display text —
+    // max_reveal_chars filler here would just render an invalid color
+    // instead of stress-testing layout. Cycle the design system's real
+    // accent/gold tokens (DESIGN.md) instead.
+    beatField: (key, i) => (key === 'color' ? (i % 2 === 0 ? '#facc15' : '#fb923c') : undefined),
+  },
+};
+
+// Builds variables + beats that fill a beat card to its declared caps
+// (max_beats, max_reveal_chars) for /calibrate. See plan 074 and
+// card-library/DESIGN.md's "measure honestly" checklist item.
+export function synthCalibrationVars(card) {
+  const maxBeats = card.max_beats ?? 0;
+  const maxChars = card.max_reveal_chars ?? 20;
+  const override = CALIBRATE_OVERRIDES[card.slug] ?? {};
+
+  const variables = {};
+  for (const [key, descriptor] of Object.entries(card.variables ?? {})) {
+    if (/\(optional\)/i.test(descriptor)) continue;
+    if (/^array/i.test(descriptor)) variables[key] = ['Calibration one', 'Calibration two', 'Calibration three'];
+    else if (/^number/i.test(descriptor)) variables[key] = 88;
+    else variables[key] = 'Calibration title';
+  }
+
+  const beats = [];
+  for (let i = 0; i < maxBeats; i++) {
+    const beat = { at: +((i + 1) * (card.default_duration / (maxBeats + 1))).toFixed(2) };
+    for (const [key, descriptor] of Object.entries(card.beat_shape ?? {})) {
+      if (/\(optional\)/i.test(descriptor)) continue;
+      const overridden = override.beatField?.(key, i);
+      if (overridden !== undefined) { beat[key] = overridden; continue; }
+      // values arrays keyed one-per-product ride along whatever "products" synthesized to.
+      if (key === 'values' && Array.isArray(variables.products) && /per product/i.test(descriptor)) {
+        beat.values = variables.products.map((_, j) => (
+          /true\/false/i.test(descriptor) && j % 2 === 0 ? true : fillerText(maxChars)
+        ));
+        continue;
+      }
+      const enumOpts = parseEnumOptions(descriptor);
+      if (enumOpts) { beat[key] = enumOpts[i % enumOpts.length]; continue; }
+      if (/^number/i.test(descriptor)) { beat[key] = 88; continue; }
+      beat[key] = fillerText(maxChars);
+    }
+    beats.push(beat);
+  }
+
+  return { variables, beats };
+}
+
+function renderCalibratePage(catalog) {
+  const beatCards = catalog.cards.filter((c) => c.kind === 'beat');
+  const tilesHtml = beatCards.map((card) => {
+    const { beats } = synthCalibrationVars(card);
+    const probeTimes = computeProbeTimes(beats, card.default_duration);
+    const header = `${escapeHtml(card.slug)} &middot; max_beats=${card.max_beats} &middot; max_reveal_chars=${card.max_reveal_chars}`;
+    return `<div class="timeline-block tile">
+      <div class="tile-header">${header}</div>
+      <div class="preview" data-probe-times='${JSON.stringify(probeTimes)}'>
+        <iframe loading="lazy" src="/calibrate-card/${encodeURIComponent(card.slug)}"></iframe>
+      </div>
+    </div>`;
+  }).join('\n');
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Calibrate beat card capacity</title>
+<style>${BOARD_CSS}</style>
+</head>
+<body>
+  <div class="sticky-header">
+    <div class="topbar">
+      <div><strong>Calibrate</strong> — every beat card filled to its declared caps</div>
+      <div>${beatCards.length} beat cards</div>
+      <a href="/" style="color:var(--dim); font-size:13px;">back to board</a>
+    </div>
+  </div>
+  <div class="timeline">${tilesHtml}</div>
+  <script>
+    ${OVERFLOW_BADGE_JS}
+    document.querySelectorAll('.tile').forEach(wireProbe);
+    wireOverflowBadges();
+  </script>
+</body>
+</html>`;
+}
+
+function serveCalibrateCard(res, cardLibraryRoot, catalog, slug) {
+  const card = catalog.cards.find((c) => c.slug === slug && c.kind === 'beat');
+  if (!card) {
+    res.statusCode = 404;
+    return res.end('unknown beat card');
+  }
+  const indexPath = path.join(cardLibraryRoot, card.slug, 'index.html');
+  const html = fs.readFileSync(indexPath, 'utf8');
+  const { variables, beats } = synthCalibrationVars(card);
+  res.setHeader('content-type', 'text/html; charset=utf-8');
+  res.setHeader('cache-control', 'no-store');
+  res.end(injectShim(html, { ...variables, beats }));
+}
+
 function serveCard(res, workdir, cardLibraryRoot, id) {
   const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
   const cue = resolved.find((c) => c.id === id);
@@ -538,6 +746,19 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);
   if (req.method === 'GET' && cardMatch) {
     return serveCard(res, workdir, cardLibraryRoot, cardMatch[1]);
+  }
+
+  if (req.method === 'GET' && url.pathname === '/calibrate') {
+    const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
+    res.setHeader('content-type', 'text/html; charset=utf-8');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(renderCalibratePage(catalog));
+  }
+
+  const calibrateCardMatch = url.pathname.match(/^\/calibrate-card\/(.+)$/);
+  if (req.method === 'GET' && calibrateCardMatch) {
+    const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
+    return serveCalibrateCard(res, cardLibraryRoot, catalog, decodeURIComponent(calibrateCardMatch[1]));
   }
 
   const sliceMatch = url.pathname.match(/^\/slice\/([^/]+)\.mp3$/);
