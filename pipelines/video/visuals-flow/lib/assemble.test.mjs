@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder } from './assemble.mjs';
+import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions } from './assemble.mjs';
 
 const testTmp = path.resolve(import.meta.dirname, '.test-tmp', 'assemble-it');
 
@@ -80,6 +80,64 @@ test('planSegmentOverlays: pure mapping', () => {
   ]);
   assert.deepEqual(planned[1], [
     { id: 'o2', file: '2.mov', trimStart: 0.5, at: 0, until: 0.5 }
+  ]);
+});
+
+test('planTransitions: screen<->avatar directions', () => {
+  const segments = [
+    { kind: 'screen', start: 0, end: 5 },
+    { kind: 'avatar', start: 5, end: 10 },
+    { kind: 'screen', start: 10, end: 15 }
+  ];
+  const out = planTransitions(segments, []);
+  assert.deepEqual(out, [
+    { at: 5, direction: 'left', fromIdx: 0, toIdx: 1 },
+    { at: 10, direction: 'right', fromIdx: 1, toIdx: 2 }
+  ]);
+});
+
+test('planTransitions: graphic boundaries produce nothing', () => {
+  const segments = [
+    { kind: 'screen', start: 0, end: 5 },
+    { kind: 'graphic', start: 5, end: 10 },
+    { kind: 'screen', start: 10, end: 15 }
+  ];
+  assert.deepEqual(planTransitions(segments, []), []);
+});
+
+test('planTransitions: short neighbor skipped', () => {
+  const segments = [
+    { kind: 'screen', start: 0, end: 5 },
+    { kind: 'avatar', start: 5, end: 5.5 }, // < 1.0s
+    { kind: 'screen', start: 5.5, end: 10 }
+  ];
+  assert.deepEqual(planTransitions(segments, []), []);
+});
+
+test('planTransitions: overlay straddle skipped', () => {
+  const segments = [
+    { kind: 'screen', start: 0, end: 5 },
+    { kind: 'avatar', start: 5, end: 10 }
+  ];
+  const overlays = [{ start: 4.9, end: 5.5 }]; // straddles 5
+  assert.deepEqual(planTransitions(segments, overlays), []);
+  // doesn't straddle 5
+  assert.equal(planTransitions(segments, [{ start: 2, end: 4.5 }]).length, 1);
+});
+
+test('planTransitions: edge skip at t=0 and t=total', () => {
+  const segments = [
+    { kind: 'avatar', start: 0, end: 5 },
+    { kind: 'screen', start: 5, end: 10 },
+    { kind: 'avatar', start: 10, end: 15 }
+  ];
+  // Outer boundaries don't exist since there are no adjacent segments.
+  // The test plan says "an avatar span starting at t=0 or ending at total produces no transition on that outer edge".
+  // `planTransitions` only iterates i < segments.length - 1, so it only finds the boundaries between segments.
+  const out = planTransitions(segments, []);
+  assert.deepEqual(out, [
+    { at: 5, direction: 'right', fromIdx: 0, toIdx: 1 },
+    { at: 10, direction: 'left', fromIdx: 1, toIdx: 2 }
   ]);
 });
 

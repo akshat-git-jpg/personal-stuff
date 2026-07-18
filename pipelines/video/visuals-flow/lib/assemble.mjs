@@ -71,6 +71,27 @@ export function planSegmentOverlays(segments, overlays) {
   });
 }
 
+export const TRANSITION_DUR = 0.4;
+
+// Whip transitions at screen<->avatar boundaries. Returns [{at, direction,
+// fromIdx, toIdx}] in timeline order. Skips: short neighbors, overlay
+// straddle, t=0/t=total edges (planSegments guarantees contiguity, so a
+// boundary is simply segments[i].end === segments[i+1].start).
+export function planTransitions(segments, overlays, { duration = TRANSITION_DUR } = {}) {
+  const half = duration / 2;
+  const out = [];
+  for (let i = 0; i < segments.length - 1; i++) {
+    const a = segments[i], b = segments[i + 1];
+    const pair = `${a.kind}>${b.kind}`;
+    if (pair !== 'screen>avatar' && pair !== 'avatar>screen') continue;
+    if (a.end - a.start < 1.0 || b.end - b.start < 1.0) continue;
+    const at = a.end;
+    if (overlays.some((o) => o.start < at + half && o.end > at - half)) continue;
+    out.push({ at, direction: pair === 'screen>avatar' ? 'left' : 'right', fromIdx: i, toIdx: i + 1 });
+  }
+  return out;
+}
+
 // One settings object per run — every segment MUST use identical encoder
 // params so the concat stream-copy is valid.
 export function encoderArgs({ encoder, draft }) {
