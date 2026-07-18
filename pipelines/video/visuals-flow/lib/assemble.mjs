@@ -73,9 +73,14 @@ export function planSegmentOverlays(segments, overlays) {
 }
 
 export const BEAT_INTERVAL = 20, BEAT_MIN_EDGE = 8, BEAT_SNAP_WINDOW = 3, BEAT_MIN_GAP = 0.25;
-export const FLASH_DUR = 0.24, FLASH_COLOR = '0xfb923c', FLASH_ALPHA = 0.85, PUNCH_SCALE = 1.08;
-
-export const TRANSITION_DUR = 0.4;
+export const TRANSITION_DUR = 0.2;             // 6 frames total @30fps
+export const WHIP_SIGMAS = [10, 24];           // cumulative gblur stages per half
+export const WHIP_ZOOM = 0.12;                 // crop fraction at peak (≈1.09x)
+export const FLASH_COLOR = '0xfb923c';
+export const FLASH_OUT_OPACITIES = [0.45, 0.75, 1.0];  // 3-frame ramp on outgoing tail
+export const FLASH_IN_OPACITIES  = [0.8, 0.5, 0.25];   // 3-frame full-frame decay
+export const FLASH_BAND_OPACITIES = [0.35, 0.2, 0.1];  // 3-frame residue band after
+export const PUNCH_SCALE = 1.08;
 
 // Whip transitions at screen<->avatar boundaries. Returns [{at, direction,
 // fromIdx, toIdx}] in timeline order. Skips: short neighbors, overlay
@@ -101,7 +106,7 @@ export function planTransitions(segments, overlays, { duration = TRANSITION_DUR 
 // ascending beat times (timeline seconds); [] when the span is too short.
 export function planAvatarBeats(seg, words, {
   interval = BEAT_INTERVAL, minEdge = BEAT_MIN_EDGE,
-  window = BEAT_SNAP_WINDOW, minGap = BEAT_MIN_GAP } = {}) {
+  window = BEAT_SNAP_WINDOW, minGap = BEAT_MIN_GAP, cueTimes = [] } = {}) {
   const gaps = [];
   for (let i = 0; i < words.length - 1; i++) {
     const g = words[i + 1].start - words[i].end;
@@ -111,23 +116,34 @@ export function planAvatarBeats(seg, words, {
   const lo = seg.start + minEdge, hi = seg.end - minEdge;
   for (let t = seg.start + interval; t <= hi; t += interval) {
     let best = null;
-    for (const g of gaps) {
-      if (g < lo || g > hi || Math.abs(g - t) > window) continue;
-      if (best === null || Math.abs(g - t) < Math.abs(best - t)) best = g;
+    let cueFound = false;
+    for (const c of cueTimes) {
+      if (c < lo || c > hi || Math.abs(c - t) > window) continue;
+      // FIRST look for a cueTimes entry within ±window inside [lo, hi] and snap to it
+      if (best === null || !cueFound || Math.abs(c - t) < Math.abs(best - t)) {
+        best = c;
+        cueFound = true;
+      }
+    }
+    if (!cueFound) {
+      for (const g of gaps) {
+        if (g < lo || g > hi || Math.abs(g - t) > window) continue;
+        if (best === null || Math.abs(g - t) < Math.abs(best - t)) best = g;
+      }
     }
     if (best !== null && (beats.length === 0 || best - beats[beats.length - 1] >= interval / 2)) beats.push(best);
   }
   return beats;
 }
 
-export function splitAvatarSegments(segments, words) {
+export function splitAvatarSegments(segments, words, { cueTimes = [] } = {}) {
   const out = [];
   for (const seg of segments) {
     if (seg.kind !== 'avatar') {
       out.push(seg);
       continue;
     }
-    const beats = planAvatarBeats(seg, words);
+    const beats = planAvatarBeats(seg, words, { cueTimes });
     if (beats.length === 0) {
       out.push(seg);
       continue;
@@ -256,7 +272,8 @@ function parseArgs(argv) {
 export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', words = [] }) {
   let segments = planSegments({ resolved, avatarJobs, total });
   if (beats === 'on') {
-    segments = splitAvatarSegments(segments, words);
+    const cueTimes = resolved.filter(c => c.placement === 'overlay').map(c => c.start);
+    segments = splitAvatarSegments(segments, words, { cueTimes });
   }
   const renderDir = path.join(workdir, 'renders');
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
@@ -336,15 +353,57 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
         }
       }
       
-      if (seg.flashIn) {
-        chain += `color=c=${FLASH_COLOR}@${FLASH_ALPHA}:s=${w}x${h}:r=30,format=yuva420p,fade=t=out:st=0:d=0.12:alpha=1[f_in];`;
-        chain += `[${lastV}][f_in]overlay=eof_action=pass[b_fin];`;
-        lastV = 'b_fin';
-      }
-      if (seg.flashOut) {
-        chain += `color=c=${FLASH_COLOR}@${FLASH_ALPHA}:s=${w}x${h}:r=30,format=yuva420p,fade=t=in:st=${Math.max(0, dur - 0.12).toFixed(3)}:d=0.12:alpha=1[f_out];`;
-        chain += `[${lastV}][f_out]overlay=eof_action=pass[b_fout];`;
-        lastV = 'b_fout';
+      if (seg.flashIn || seg.flashOut) {
+        let numSplits = 0;
+        if (seg.flashIn) numSplits += 6;
+        if (seg.flashOut) numSplits += 3;
+        
+        chain += `gradients=s=${w}x${h}:c0=${FLASH_COLOR}:c1=0xffffff:x0=0:y0=${h}:x1=${w}:y1=0:speed=0.00001,format=yuv420p[g];`;
+        chain += `[g]split=${numSplits}`;
+        const gNames = [];
+        for (let i = 0; i < numSplits; i++) {
+          gNames.push(`g${i+1}`);
+          chain += `[${gNames[i]}]`;
+        }
+        chain += `;`;
+
+        let splitIdx = 0;
+        if (seg.flashIn) {
+          const inTimes = [
+            ['lt', '0.033'],
+            ['between', '0.033', '0.066'],
+            ['between', '0.066', '0.100']
+          ];
+          for (let i = 0; i < 3; i++) {
+            const nextV = `b_fin_${i}`;
+            const op = FLASH_IN_OPACITIES[i];
+            const cond = inTimes[i][0] === 'lt' ? `lt(t,${inTimes[i][1]})` : `between(t,${inTimes[i][1]},${inTimes[i][2]})`;
+            chain += `[${lastV}][${gNames[splitIdx++]}]blend=all_mode=screen:all_opacity=${op}:enable='${cond}'[${nextV}];`;
+            lastV = nextV;
+          }
+          const bandTimes = [
+            ['between', '0.100', '0.133'],
+            ['between', '0.133', '0.166'],
+            ['between', '0.166', '0.200']
+          ];
+          for (let i = 0; i < 3; i++) {
+            const nextV = `b_fband_${i}`;
+            const op = FLASH_BAND_OPACITIES[i];
+            const cond = `between(t,${bandTimes[i][1]},${bandTimes[i][2]})`;
+            chain += `[${lastV}][${gNames[splitIdx++]}]blend=all_mode=screen:all_opacity=${op}:enable='${cond}'[${nextV}];`;
+            lastV = nextV;
+          }
+        }
+        if (seg.flashOut) {
+          const offsets = [0.100, 0.066, 0.033];
+          for (let i = 0; i < 3; i++) {
+            const nextV = `b_fout_${i}`;
+            const op = FLASH_OUT_OPACITIES[i];
+            const tStart = Math.max(0, dur - offsets[i]).toFixed(3);
+            chain += `[${lastV}][${gNames[splitIdx++]}]blend=all_mode=screen:all_opacity=${op}:enable='gte(t,${tStart})'[${nextV}];`;
+            lastV = nextV;
+          }
+        }
       }
       
       chain = chain.slice(0, -1);
@@ -369,9 +428,14 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     }
 
     if (tOut) {
-      const transFileStr = `seg-${String(segIndex).padStart(3, '0')}-trans-${segments[tOut.fromIdx].id}-${segments[tOut.toIdx].id}.ts`;
-      const transFile = path.join(tmpDir, transFileStr);
-      concatLines.push(`file '${transFileStr}'`);
+      const transOutStr = `seg-${String(segIndex).padStart(3, '0')}-trans-${segments[tOut.fromIdx].id}-out.ts`;
+      const transOutFile = path.join(tmpDir, transOutStr);
+      concatLines.push(`file '${transOutStr}'`);
+      segIndex++;
+
+      const transInStr = `seg-${String(segIndex).padStart(3, '0')}-trans-${segments[tOut.toIdx].id}-in.ts`;
+      const transInFile = path.join(tmpDir, transInStr);
+      concatLines.push(`file '${transInStr}'`);
       segIndex++;
 
       let sliceA, sliceB;
@@ -389,18 +453,37 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
         sliceB = ['-ss', '0', '-to', String(half), '-i', j.file];
       }
 
-      const chainTrans =
-        `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1[a];` +
-        `[1:v]${VF},tpad=start_mode=clone:start_duration=${half}[b];` +
-        `[a][b]xfade=transition=slide${tOut.direction}:duration=${TRANSITION_DUR}:offset=0[x];` +
-        `[x]tmix=frames=3[v]`;
-      const spawnArgsTrans = ['-y', ...sliceA, ...sliceB,
-        '-filter_complex', chainTrans, '-map', '[v]',
-        '-t', String(TRANSITION_DUR), '-an', ...ENC, '-f', 'mpegts', transFile];
+      const chainOut =
+        `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,` +
+        `gblur=sigma=${WHIP_SIGMAS[0]}:sigmaV=1:enable='gte(t,0.032)',` +
+        `gblur=sigma=${WHIP_SIGMAS[1]}:sigmaV=1:enable='gte(t,0.065)',` +
+        `crop=w='iw-iw*${WHIP_ZOOM}*min(t/0.1,1)':h='ih-ih*${WHIP_ZOOM}*min(t/0.1,1)',` +
+        `scale=${w}:${h},setsar=1[v]`;
+
+      const spawnArgsOut = ['-y', ...sliceA,
+        '-filter_complex', chainOut, '-map', '[v]',
+        '-t', String(half), '-an', ...ENC, '-f', 'mpegts', transOutFile];
       
-      const resTrans = spawnSync('ffmpeg', spawnArgsTrans, { encoding: 'utf8' });
-      if (resTrans.status !== 0) {
-        console.error(resTrans.stderr);
+      const resOut = spawnSync('ffmpeg', spawnArgsOut, { encoding: 'utf8' });
+      if (resOut.status !== 0) {
+        console.error(resOut.stderr);
+        process.exit(1);
+      }
+
+      const chainIn =
+        `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,` +
+        `gblur=sigma=${WHIP_SIGMAS[1]}:sigmaV=1:enable='lt(t,0.035)',` +
+        `gblur=sigma=${WHIP_SIGMAS[0]}:sigmaV=1:enable='lt(t,0.068)',` +
+        `crop=w='iw-iw*${WHIP_ZOOM}*max(1-t/0.1,0)':h='ih-ih*${WHIP_ZOOM}*max(1-t/0.1,0)',` +
+        `scale=${w}:${h},setsar=1[v]`;
+
+      const spawnArgsIn = ['-y', ...sliceB,
+        '-filter_complex', chainIn, '-map', '[v]',
+        '-t', String(half), '-an', ...ENC, '-f', 'mpegts', transInFile];
+      
+      const resIn = spawnSync('ffmpeg', spawnArgsIn, { encoding: 'utf8' });
+      if (resIn.status !== 0) {
+        console.error(resIn.stderr);
         process.exit(1);
       }
     }

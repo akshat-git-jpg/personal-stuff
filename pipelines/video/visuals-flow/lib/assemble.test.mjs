@@ -219,6 +219,39 @@ test('planAvatarBeats: beats respect the 8s edges', () => {
   assert.deepEqual(beats, []);
 });
 
+test('planAvatarBeats: cue within window wins over closer gap', () => {
+  const seg = { start: 0, end: 60 }; // target 20
+  const words = [
+    { start: 0, end: 19.5 },
+    { start: 20.5, end: 60 } // gap at 20.0
+  ];
+  // cue at 22 is in window (20 +- 3), gap is at 20. Cue should win.
+  const beats = planAvatarBeats(seg, words, { cueTimes: [22] });
+  assert.deepEqual(beats, [22]);
+});
+
+test('planAvatarBeats: no in-window cue -> gap fallback unchanged', () => {
+  const seg = { start: 0, end: 60 }; // target 20
+  const words = [
+    { start: 0, end: 19.5 },
+    { start: 20.5, end: 60 } // gap at 20.0
+  ];
+  // cue at 24 is outside window (20 +- 3), so gap at 20 should win.
+  const beats = planAvatarBeats(seg, words, { cueTimes: [24] });
+  assert.deepEqual(beats, [20]);
+});
+
+test('planAvatarBeats: cue outside [lo, hi] is ignored', () => {
+  const seg = { start: 0, end: 30 }; // target 20, hi is 30 - 8 = 22
+  const words = [
+    { start: 0, end: 19.5 },
+    { start: 20.5, end: 30 } // gap at 20.0
+  ];
+  // cue at 22.5 is inside window (20 +- 3) but > hi (22). Should be ignored, fallback to gap 20.
+  const beats = planAvatarBeats(seg, words, { cueTimes: [22.5] });
+  assert.deepEqual(beats, [20]);
+});
+
 test('splitAvatarSegments: alternating punch and passes others', () => {
   const segments = [
     { kind: 'screen', id: 'screen-01', start: 0, end: 10 },
@@ -314,22 +347,22 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   const tmpDir = path.join(testTmp, 'assembly-tmp');
   assert.ok(!fs.existsSync(path.join(tmpDir, 'base.mp4')), 'base.mp4 should not exist in single-pass');
   const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
-  assert.equal(tsFiles.length, 9, 'should have 9 segments including transition');
+  assert.equal(tsFiles.length, 11, 'should have 11 segments including transitions');
   
   const transFiles = tsFiles.filter(f => f.includes('-trans-'));
-  assert.equal(transFiles.length, 2, 'should have 2 transition files');
+  assert.equal(transFiles.length, 4, 'should have 4 transition files');
   
   for (const tFile of transFiles) {
     const p = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(tmpDir, tFile)], { encoding: 'utf8' });
     const d = parseFloat(p.stdout);
-    assert.ok(Math.abs(d - 0.4) <= 0.05, `transition duration ${d} not near 0.4`);
+    assert.ok(Math.abs(d - 0.1) <= 0.04, `transition duration ${d} not near 0.1`);
   }
   
   // check avatar sub-segments
   const avatarSubFiles = tsFiles.filter(f => f.includes('s01') && !f.includes('-trans-')).sort();
   assert.equal(avatarSubFiles.length, 3, 'should have 3 avatar sub-segments');
   
-  const subDurations = [19.3, 20.0, 20.3]; // trimmed 0.2 off first and last
+  const subDurations = [19.4, 20.0, 20.4]; // trimmed 0.1 off first and last
   for (let i = 0; i < 3; i++) {
     const p = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(tmpDir, avatarSubFiles[i])], { encoding: 'utf8' });
     const d = parseFloat(p.stdout);
