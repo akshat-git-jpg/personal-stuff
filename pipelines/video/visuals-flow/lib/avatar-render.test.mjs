@@ -157,3 +157,10 @@ test('CLI tests', (t) => {
   assert.ok(manifest.includes('s01.mp4'));
   assert.ok(manifest.includes('corner-01.mp4'));
 });
+
+test('planJobs spansOnly → no corner jobs', async () => {
+  const { planJobs } = await import('./avatar-render.mjs');
+  const jobs = planJobs({ spans: [{ id: 's01', start: 10, end: 40 }] }, 650, { spansOnly: true });
+  assert.equal(jobs.length, 1);
+  assert.ok(jobs.every(j => j.kind === 'avatar-full'));
+});

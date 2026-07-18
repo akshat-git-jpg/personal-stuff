@@ -21,9 +21,9 @@ export function planCornerChunks(totalDuration, chunk = CORNER_CHUNK) {
   return out;
 }
 
-export function planJobs(shotsResolved, totalDuration) {
+export function planJobs(shotsResolved, totalDuration, { spansOnly = false } = {}) {
   const spanJobs = (shotsResolved.spans || []).map((s) => ({ id: s.id, kind: 'avatar-full', start: s.start, end: s.end }));
-  const cornerJobs = planCornerChunks(totalDuration).map((c) => ({ ...c, kind: 'corner' }));
+  const cornerJobs = spansOnly ? [] : planCornerChunks(totalDuration).map((c) => ({ ...c, kind: 'corner' }));
   return [...spanJobs, ...cornerJobs].map((j) => ({ ...j, duration: +(j.end - j.start).toFixed(2) }));
 }
 
@@ -53,6 +53,7 @@ function parseArgs(argv) {
     else if (a === '--submit') opts.submit = true;
     else if (a === '--download') opts.download = true;
     else if (a === '--force') opts.force = true;
+    else if (a === '--spans-only') opts.spansOnly = true;
     else throw new Error(`unknown argument: ${a}`);
   }
   return opts;
@@ -124,7 +125,7 @@ async function main() {
     fs.mkdirSync(slicesDir, { recursive: true });
 
     const totalDuration = words[words.length - 1].end;
-    const jobs = planJobs(shotsResolved, totalDuration);
+    const jobs = planJobs(shotsResolved, totalDuration, { spansOnly: !!opts.spansOnly });
 
     let jobsState = [];
     const jobsPath = path.join(workdir, 'avatar-jobs.json');
