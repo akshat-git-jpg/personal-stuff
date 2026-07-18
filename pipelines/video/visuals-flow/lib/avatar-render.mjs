@@ -13,6 +13,11 @@ export const HEYGEN_WEB = process.env.HEYGEN_WEB_BIN
   ?? `node ${path.join(REPO_ROOT, 'tooling', 'cli', 'heygen-web', 'heygen-web.mjs')}`;
 export const MEDIA_ROOT = process.env.AVATAR_MEDIA_ROOT ?? path.join(os.homedir(), 'kb-scratch', 'video', 'heygen', 'visuals-flow');
 
+export function heygenArgv() {
+  const parts = HEYGEN_WEB.split(' ').filter(Boolean);
+  return { bin: parts[0], pre: parts.slice(1) };
+}
+
 export function planCornerChunks(totalDuration, chunk = CORNER_CHUNK) {
   const out = [];
   for (let i = 0, n = 1; i < totalDuration; i += chunk, n++) {
@@ -75,6 +80,8 @@ async function main() {
     process.exit(1);
   }
 
+  const { bin, pre } = heygenArgv();
+
   const workdir = resolveWorkdir(opts.workdir);
   const shotsPath = path.join(workdir, 'shots.json');
   const shotsResolvedPath = path.join(workdir, 'shots.resolved.json');
@@ -118,7 +125,17 @@ async function main() {
       process.exit(1);
     }
 
-    const authRes = spawnSync(HEYGEN_WEB, ['auth-check'], { shell: true, encoding: 'utf8' });
+    const SAFE = /^[A-Za-z0-9._-]+$/;
+    if (!SAFE.test(shotsResolved.video)) {
+      console.error(`invalid video slug: ${shotsResolved.video}`);
+      process.exit(1);
+    }
+    if (!SAFE.test(opts.template)) {
+      console.error(`invalid template: ${opts.template}`);
+      process.exit(1);
+    }
+
+    const authRes = spawnSync(bin, [...pre, 'auth-check'], { encoding: 'utf8' });
     if (authRes.status !== 0) {
       console.error('auth expired — recapture cURLs (tooling/cli/heygen-web/CLAUDE.md)');
       process.exit(1);
@@ -127,8 +144,16 @@ async function main() {
     const slicesDir = path.join(workdir, 'slices-avatar');
     fs.mkdirSync(slicesDir, { recursive: true });
 
+    if (!Array.isArray(words) || words.length === 0) { console.error('empty transcript.json — nothing to submit'); process.exit(1); }
     const totalDuration = words[words.length - 1].end;
     const jobs = planJobs(shotsResolved, totalDuration, { spansOnly: !!opts.spansOnly });
+
+    for (const job of jobs) {
+      if (!SAFE.test(job.id)) {
+        console.error(`invalid job id: ${job.id}`);
+        process.exit(1);
+      }
+    }
 
     let jobsState = [];
     const jobsPath = path.join(workdir, 'avatar-jobs.json');
@@ -140,7 +165,12 @@ async function main() {
       const audioPath = path.join(slicesDir, `${job.id}.mp3`);
       if (!fs.existsSync(audioPath)) {
         const voPath = path.join(workdir, 'vo.mp3');
-        spawnSync('ffmpeg', ['-y', '-i', voPath, '-ss', String(job.start), '-to', String(job.end), '-c', 'copy', audioPath]);
+        const res = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', voPath,
+          '-ss', String(job.start), '-to', String(job.end), '-c:a', 'libmp3lame', '-q:a', '2', audioPath]);
+        if (res.status !== 0 || !fs.existsSync(audioPath)) {
+          console.error(`slice failed for ${job.id} — aborting before any submit`);
+          process.exit(1);
+        }
       }
     }
 
@@ -164,8 +194,8 @@ async function main() {
 
       const title = `${shotsResolved.video}__${job.id}`;
       const audioPath = path.join('slices-avatar', `${job.id}.mp3`);
-      const cmd = `${HEYGEN_WEB} generate-from-template --template ${opts.template} --audio ${audioPath} --title ${title}`;
-      const res = spawnSync(cmd, { shell: true, encoding: 'utf8', cwd: workdir });
+      const cmdArgs = [...pre, 'generate-from-template', '--template', opts.template, '--audio', audioPath, '--title', title];
+      const res = spawnSync(bin, cmdArgs, { encoding: 'utf8', cwd: workdir });
       let video_id = null;
       let status = 'failed';
       try {
@@ -225,6 +255,19 @@ async function main() {
     if (!fs.existsSync(jobsPath)) process.exit(0);
     const jobsData = JSON.parse(fs.readFileSync(jobsPath, 'utf8'));
     const jobs = jobsData.jobs || [];
+
+    const SAFE = /^[A-Za-z0-9._-]+$/;
+    if (!SAFE.test(jobsData.video)) {
+      console.error(`invalid video slug: ${jobsData.video}`);
+      process.exit(1);
+    }
+    for (const job of jobs) {
+      if (job.video_id && !SAFE.test(job.video_id)) {
+        console.error(`invalid video_id: ${job.video_id}`);
+        process.exit(1);
+      }
+    }
+
     let exitCode = 0;
     const outDir = path.join(MEDIA_ROOT, jobsData.video);
     fs.mkdirSync(outDir, { recursive: true });
@@ -233,12 +276,12 @@ async function main() {
       if (!job.video_id) continue;
       if (job.file) continue;
 
-      const res = spawnSync(`${HEYGEN_WEB} status ${job.video_id}`, { shell: true, encoding: 'utf8', cwd: workdir });
+      const res = spawnSync(bin, [...pre, 'status', job.video_id], { encoding: 'utf8', cwd: workdir });
       try {
         const parsed = JSON.parse(res.stdout);
         if (parsed.status === 'completed') {
           const outFile = path.join(outDir, `${job.id}.mp4`);
-          const dlRes = spawnSync(`${HEYGEN_WEB} download ${job.video_id} --out ${outFile}`, { shell: true, encoding: 'utf8', cwd: workdir });
+          const dlRes = spawnSync(bin, [...pre, 'download', job.video_id, '--out', outFile], { encoding: 'utf8', cwd: workdir });
           if (dlRes.status !== 0) {
             exitCode = 1;
           } else {
