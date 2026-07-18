@@ -31,10 +31,13 @@ export function avatarManifestMd(video, jobs, offset = 0) {
   const done = jobs.filter((j) => j.file);
   const rows = done.sort((a, b) => a.start - b.start).map((j) =>
     `| ${mmss(j.start + offset)} | ${path.basename(j.file)} | ${j.duration}s | ${j.kind} |`);
+  const cornerNote = jobs.some((j) => j.kind === 'corner')
+    ? `Corner chunks are contiguous — drop them in sequence from ${mmss(offset)}; the editor cuts the corner during avatar-full spans.`
+    : 'Full-screen avatar clips only (corner track not rendered for this video).';
   return [
     `# ${video} — avatar manifest`,
     '',
-    `Corner chunks are contiguous — drop them in sequence from ${mmss(offset)}; the editor cuts the corner during avatar-full spans.`,
+    cornerNote,
     '',
     '| place at | file | duration | kind |',
     '|---|---|---|---|',

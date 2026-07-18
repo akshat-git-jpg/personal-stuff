@@ -119,25 +119,23 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 - **Shot plan: 9 avatar-full spans, 247.7s/300s, lint clean, `approved: true`
   (2026-07-18). Owner approved the LLM output with ZERO edits** (shots.llm.json
   == shots.json — a perfect convergence data point).
-- **Avatar submit ran 2026-07-18 late night**: `--template girl-1 --submit
-  --spans-only` (owner call: full-screen spans only, corner track deferred).
-  Check `videos/test-01/avatar-jobs.json` for ground truth. As of handoff
-  writing: s01/s02/s04/s05 submitted with video_ids, **s03 FAILED (no
-  video_id) — re-run submit to retry just s03** (idempotent), s06–s09 were
-  still pacing through. Next actions, in order:
-  1. Confirm all 9 jobs have video_ids (re-run submit for any failed).
-  2. "download the avatar videos" (one attempt per pending job; re-run until
-     no `pending:` lines) → clips in `~/kb-scratch/video/heygen/visuals-flow/test-01/`
-     + `avatar-manifest.md`.
-  3. Editor handoff: `renders/` + `manifest.md` + avatar clips +
-     `avatar-manifest.md`; fold what comes back (GFX-06 gets its shape here).
+- **Avatar pilot COMPLETE 2026-07-18**: `girl-1`, `--spans-only`, HeyGen 3.
+  All 9 clips submitted (s03 needed one idempotent retry — transient),
+  downloaded to `~/kb-scratch/video/heygen/visuals-flow/test-01/`, durations
+  ffprobe-match the spans (±30ms), `avatar-manifest.md` written with place-at
+  timecodes. Meter baseline saved (`usage --save`) so the next run's
+  free-render proof is a `usage --diff`. Two step bugs found by the pilot are
+  fixed + regression-tested (jobs-file flush on retry; swallowed CLI output —
+  see TESTS.md folded lessons).
+- **Only remaining test-01 action — editor handoff**: `renders/` +
+  `manifest.md` + the avatar clips + `avatar-manifest.md`; fold what comes
+  back (GFX-06 gets its shape here).
 
 ## In flight
 
-Plans 062–081 all boss-landed 2026-07-18 (PRs #19–#38; #38 = the
-`visuals-flow` operating skill). At handoff-writing time the test-01 avatar
-SUBMIT was still pacing through its jobs in a background shell — treat
-`videos/test-01/avatar-jobs.json` as ground truth, not this doc.
+Nothing. Plans 062–081 all boss-landed 2026-07-18 (PRs #19–#38; #38 = the
+`visuals-flow` operating skill), and the test-01 avatar pilot ran to
+completion the same night (9/9 clips downloaded).
 Backlog registry: `plans/README.md` → "visuals-flow backlog" (GFX-01..06
 hygiene) + "visuals-flow PRODUCT backlog" (GFX-07..13 roadmap).
 

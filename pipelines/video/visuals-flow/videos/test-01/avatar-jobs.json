@@ -12,7 +12,8 @@
       "audio": "slices-avatar/s01.mp3",
       "video_id": "10d518a536ab45eb8f6eebde948ff06a",
       "status": "submitted",
-      "submitted_at": "2026-07-18T15:41:48.545Z"
+      "submitted_at": "2026-07-18T15:41:48.545Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/test-01/s01.mp4"
     },
     {
       "id": "s02",
@@ -23,7 +24,8 @@
       "audio": "slices-avatar/s02.mp3",
       "video_id": "da07901a72fd49d3a8a70cfe7be47ebd",
       "status": "submitted",
-      "submitted_at": "2026-07-18T15:44:15.085Z"
+      "submitted_at": "2026-07-18T15:44:15.085Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/test-01/s02.mp4"
     },
     {
       "id": "s03",
@@ -34,7 +36,8 @@
       "audio": "slices-avatar/s03.mp3",
       "video_id": "65473bfa4a7c41a5a92e71fd0f6f5311",
       "status": "submitted",
-      "submitted_at": "2026-07-18T16:07:53.965Z"
+      "submitted_at": "2026-07-18T16:07:53.965Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/test-01/s03.mp4"
     },
     {
       "id": "s04",
@@ -45,7 +48,8 @@
       "audio": "slices-avatar/s04.mp3",
       "video_id": "f805f5ee3b8249cc9d5a2280618c3a20",
       "status": "submitted",
-      "submitted_at": "2026-07-18T16:05:00.000Z"
+      "submitted_at": "2026-07-18T16:05:00.000Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/test-01/s04.mp4"
     },
     {
       "id": "s05",
@@ -56,7 +60,8 @@
       "audio": "slices-avatar/s05.mp3",
       "video_id": "84de977213f646cab7e30607d0644a4d",
       "status": "submitted",
-      "submitted_at": "2026-07-18T16:05:00.000Z"
+      "submitted_at": "2026-07-18T16:05:00.000Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/test-01/s05.mp4"
     },
     {
       "id": "s06",
@@ -67,7 +72,8 @@
       "audio": "slices-avatar/s06.mp3",
       "video_id": "e07d23e337344a0ab9835cf2743876f0",
       "status": "submitted",
-      "submitted_at": "2026-07-18T16:05:00.000Z"
+      "submitted_at": "2026-07-18T16:05:00.000Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/test-01/s06.mp4"
     },
     {
       "id": "s07",
@@ -78,7 +84,8 @@
       "audio": "slices-avatar/s07.mp3",
       "video_id": "b5a92b3c31ae4c2e86236f00db832aba",
       "status": "submitted",
-      "submitted_at": "2026-07-18T16:05:00.000Z"
+      "submitted_at": "2026-07-18T16:05:00.000Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/test-01/s07.mp4"
     },
     {
       "id": "s08",
@@ -89,7 +96,8 @@
       "audio": "slices-avatar/s08.mp3",
       "video_id": "8c71063ede6841b5bd99de2ad5f2653f",
       "status": "submitted",
-      "submitted_at": "2026-07-18T16:05:00.000Z"
+      "submitted_at": "2026-07-18T16:05:00.000Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/test-01/s08.mp4"
     },
     {
       "id": "s09",
@@ -100,7 +108,8 @@
       "audio": "slices-avatar/s09.mp3",
       "video_id": "d585d2812fe94f9e8bd247930979e49f",
       "status": "submitted",
-      "submitted_at": "2026-07-18T16:05:00.000Z"
+      "submitted_at": "2026-07-18T16:05:00.000Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/test-01/s09.mp4"
     }
   ]
 }
