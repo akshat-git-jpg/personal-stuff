@@ -2,6 +2,7 @@
 videos/*/vo.mp3
 videos/*/renders/
 videos/*/slices/
+videos/*/slices-avatar/
 # test artifacts
 lib/.test-tmp/
 lib/fixtures/board/vo.mp3
