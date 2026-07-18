@@ -98,6 +98,11 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 081 | visuals-flow operating skill (GFX-12) — verb router: session runs the steps, owner reviews board + green-lights HeyGen | P2 | S | 077–080 landed | DONE (PR #38, landed 2026-07-18; row was stale) |
 | 082 | visuals-flow step 090 assemble (GFX-14) — deterministic final-video build: screen base + avatar spans + fullframe swaps + overlay composite + vo.mp3, hard cuts; final.mp4 (kb-scratch) + assembly.md EDL; editor bundle unchanged | P1 | M | 080 landed | DONE (PR #39, landed 2026-07-18; test-01 assembled + verified same night) |
 | 083 | visuals-flow assemble speed pass (GFX-15) — overlay-in-segment single-encode path (final pass → stream-copy remux), h264_videotoolbox auto-detect w/ x264 fallback + --encoder, --draft 720p preview (final-draft.mp4) | P2 | S-M | 082 landed | DONE (PR #40, landed 2026-07-18; validated on test-01: 32-min draft in 4m23s vs ~17m old path) |
+| 084 | visuals-flow whip-pan transitions (step 090) — xfade slide + tmix blur at screen↔avatar boundaries, 0.4s, neighbors trimmed 0.2s each, --transitions whip\|none, planTransitions unit-tested; verifier renders test-01 --draft + inspects | P2 | M | 083 landed | TODO |
+| 085 | visuals-flow avatar refresh beats (step 090) — flash (brand-orange wash, 0.24s) + alternating 1.0×/1.08× punch-in inside long avatar spans, snapped to word-gap silences every ~20s; VISUAL ONLY (owner deferred SFX); --beats on\|off | P2 | M | 084 landed | TODO |
+| 086 | visuals-flow transcript-text exporter + LLM-doc reconciliation — lib/transcript-text.mjs (plain word stream, ~8k vs ~69k tokens/pass), prompt-only load-list across 6 doc sites (RULEBOOK = fold archive, never pasted) | P1 | S | none | TODO |
+| 087 | avatar-render hardening — array-form spawns (kill 4 shell:true sites), slice verify + re-encode (exact cuts before paid submits), empty-transcript guard, slug/template allowlist | P1 | S | none (land before 088) | TODO |
+| 088 | visuals-flow hygiene batch (GFX-01+02 + audit smalls) — lib/workdir.mjs dedupe (11 sites), .test-tmp teardown in 3 suites, transcribe-groq --out guard, 010 run.sh usage, board origin check + generic 500, lint E4 short-video guard | P3 | S | 087 landed | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
