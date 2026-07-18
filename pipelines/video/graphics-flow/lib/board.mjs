@@ -584,6 +584,125 @@ async function handleApprove(req, res, workdir) {
   res.end(JSON.stringify({ ok: true }));
 }
 
+function fillerText(chars) {
+  if (chars <= 0) return '';
+  let s = '';
+  while (s.length < chars) s += 'Mmmmmm ';
+  return s.slice(0, chars);
+}
+
+// e.g. "'pro' | 'con'" -> ['pro', 'con']; null if the descriptor isn't an enum.
+function parseEnumOptions(descriptor) {
+  const quoted = descriptor.match(/'([^']+)'/g);
+  return quoted && quoted.length >= 2 ? quoted.map((q) => q.slice(1, -1)) : null;
+}
+
+// Fields where the generic string/array/number/enum rules below produce
+// something meaningless — see plan 074's synthCalibrationVars step.
+const CALIBRATE_OVERRIDES = {
+  'verdict/verdict-report-card': {
+    // color is a CSS value the card applies directly, not display text —
+    // max_reveal_chars filler here would just render an invalid color
+    // instead of stress-testing layout. Cycle the design system's real
+    // accent/gold tokens (DESIGN.md) instead.
+    beatField: (key, i) => (key === 'color' ? (i % 2 === 0 ? '#facc15' : '#fb923c') : undefined),
+  },
+};
+
+// Builds variables + beats that fill a beat card to its declared caps
+// (max_beats, max_reveal_chars) for /calibrate. See plan 074 and
+// card-library/DESIGN.md's "measure honestly" checklist item.
+export function synthCalibrationVars(card) {
+  const maxBeats = card.max_beats ?? 0;
+  const maxChars = card.max_reveal_chars ?? 20;
+  const override = CALIBRATE_OVERRIDES[card.slug] ?? {};
+
+  const variables = {};
+  for (const [key, descriptor] of Object.entries(card.variables ?? {})) {
+    if (/\(optional\)/i.test(descriptor)) continue;
+    if (/^array/i.test(descriptor)) variables[key] = ['Calibration one', 'Calibration two', 'Calibration three'];
+    else if (/^number/i.test(descriptor)) variables[key] = 88;
+    else variables[key] = 'Calibration title';
+  }
+
+  const beats = [];
+  for (let i = 0; i < maxBeats; i++) {
+    const beat = { at: +((i + 1) * (card.default_duration / (maxBeats + 1))).toFixed(2) };
+    for (const [key, descriptor] of Object.entries(card.beat_shape ?? {})) {
+      if (/\(optional\)/i.test(descriptor)) continue;
+      const overridden = override.beatField?.(key, i);
+      if (overridden !== undefined) { beat[key] = overridden; continue; }
+      // values arrays keyed one-per-product ride along whatever "products" synthesized to.
+      if (key === 'values' && Array.isArray(variables.products) && /per product/i.test(descriptor)) {
+        beat.values = variables.products.map((_, j) => (
+          /true\/false/i.test(descriptor) && j % 2 === 0 ? true : fillerText(maxChars)
+        ));
+        continue;
+      }
+      const enumOpts = parseEnumOptions(descriptor);
+      if (enumOpts) { beat[key] = enumOpts[i % enumOpts.length]; continue; }
+      if (/^number/i.test(descriptor)) { beat[key] = 88; continue; }
+      beat[key] = fillerText(maxChars);
+    }
+    beats.push(beat);
+  }
+
+  return { variables, beats };
+}
+
+function renderCalibratePage(catalog) {
+  const beatCards = catalog.cards.filter((c) => c.kind === 'beat');
+  const tilesHtml = beatCards.map((card) => {
+    const { beats } = synthCalibrationVars(card);
+    const probeTimes = computeProbeTimes(beats, card.default_duration);
+    const header = `${escapeHtml(card.slug)} &middot; max_beats=${card.max_beats} &middot; max_reveal_chars=${card.max_reveal_chars}`;
+    return `<div class="timeline-block tile">
+      <div class="tile-header">${header}</div>
+      <div class="preview" data-probe-times='${JSON.stringify(probeTimes)}'>
+        <iframe loading="lazy" src="/calibrate-card/${encodeURIComponent(card.slug)}"></iframe>
+      </div>
+    </div>`;
+  }).join('\n');
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Calibrate beat card capacity</title>
+<style>${BOARD_CSS}</style>
+</head>
+<body>
+  <div class="sticky-header">
+    <div class="topbar">
+      <div><strong>Calibrate</strong> — every beat card filled to its declared caps</div>
+      <div>${beatCards.length} beat cards</div>
+      <a href="/" style="color:var(--dim); font-size:13px;">back to board</a>
+    </div>
+  </div>
+  <div class="timeline">${tilesHtml}</div>
+  <script>
+    ${OVERFLOW_BADGE_JS}
+    document.querySelectorAll('.tile').forEach(wireProbe);
+    wireOverflowBadges();
+  </script>
+</body>
+</html>`;
+}
+
+function serveCalibrateCard(res, cardLibraryRoot, catalog, slug) {
+  const card = catalog.cards.find((c) => c.slug === slug && c.kind === 'beat');
+  if (!card) {
+    res.statusCode = 404;
+    return res.end('unknown beat card');
+  }
+  const indexPath = path.join(cardLibraryRoot, card.slug, 'index.html');
+  const html = fs.readFileSync(indexPath, 'utf8');
+  const { variables, beats } = synthCalibrationVars(card);
+  res.setHeader('content-type', 'text/html; charset=utf-8');
+  res.setHeader('cache-control', 'no-store');
+  res.end(injectShim(html, { ...variables, beats }));
+}
+
 function serveCard(res, workdir, cardLibraryRoot, id) {
   const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
   const cue = resolved.find((c) => c.id === id);
@@ -627,6 +746,19 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);
   if (req.method === 'GET' && cardMatch) {
     return serveCard(res, workdir, cardLibraryRoot, cardMatch[1]);
+  }
+
+  if (req.method === 'GET' && url.pathname === '/calibrate') {
+    const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
+    res.setHeader('content-type', 'text/html; charset=utf-8');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(renderCalibratePage(catalog));
+  }
+
+  const calibrateCardMatch = url.pathname.match(/^\/calibrate-card\/(.+)$/);
+  if (req.method === 'GET' && calibrateCardMatch) {
+    const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
+    return serveCalibrateCard(res, cardLibraryRoot, catalog, decodeURIComponent(calibrateCardMatch[1]));
   }
 
   const sliceMatch = url.pathname.match(/^\/slice\/([^/]+)\.mp3$/);
