@@ -18,6 +18,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables) … (+ lint gate) |
 | `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board: full-script timeline, transcript + inline cue previews + mini-map, per-cue playback) |
 | `050-render-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` |
+| `070-shot-pass-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (full-screen avatar spans; corner+screen-rec is the implicit baseline) |
 | `060-feedback-fold-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
 
 Each `steps/NNN-*/` folder has a `README.md` (purpose, exact command, in →
@@ -32,6 +33,9 @@ videos/<slug>/
   cues.llm.json    # step 020's final output, pre-owner-edits — committed, immutable
   cues.json        # step 020 output, step 040 edits — committed
   resolved.json    # step 030 output — committed
+  shots.llm.json   # step 070's final output, pre-owner-edits — committed, immutable
+  shots.json       # step 070 output, board edits — committed
+  shots.resolved.json  # resolve-shots output (absolute times) — committed
   slices/          # per-cue vo slices, step 040's board — gitignored
   renders/         # step 050's clips — gitignored (regenerable)
   manifest.md      # step 050 output, at the workdir root — committed
@@ -98,3 +102,35 @@ Field semantics:
   manifest timecodes by hand — the clips themselves don't change).
 
 Single-card cues (`kind: "single"`) have `beats: []` and use catalog `default_duration`.
+
+## shots.json schema
+
+This README is the schema's single home (same one-place rule as cues.json).
+
+```json
+{
+  "video": "<slug>",
+  "approved": false,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s01",
+      "kind": "avatar-full",
+      "from_anchor": "verbatim first words of the span",
+      "to_anchor": "verbatim last words of the span",
+      "note": "why this is a host moment",
+      "flagged": false
+    }
+  ]
+}
+```
+
+Field semantics:
+- `from_anchor`/`to_anchor` (verbatim, ≥3 words, forward order; span = first word of from_anchor → last word of to_anchor)
+- `kind` (`avatar-full` only today; enum exists for additive future kinds)
+- `engineMode` (`test` = every span renders HeyGen 3 template; `production` = full-screen→HeyGen 4, corner→HeyGen 3 — **a validation error until the owner explicitly enables it**)
+- `flagged` (parked span)
+- `approved` (board gate, same lifecycle as cues.json)
+- `offset` (top-level) shared meaning with cues.json
+
+Note that the corner track is a standing output of the avatar render step, not a span.
