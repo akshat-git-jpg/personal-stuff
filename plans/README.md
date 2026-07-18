@@ -95,6 +95,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 078 | Shot plan — schema, LLM pass (step 070), resolver + lint (GFX-07, design doc 2026-07-18) | P1 | M | 077 | DONE (PR #35, landed 2026-07-18) |
 | 079 | Board — shot spans as a reviewable third block kind (lane, blocks, approve-shots, staleness cascade) | P1 | M | 078 | DONE (PR #36, landed 2026-07-18) |
 | 080 | Avatar render step (080) — VO slices → HeyGen 3 template jobs → clips + avatar-manifest.md | P1 | M | 078, 079 | DONE (PR #37, landed 2026-07-18) |
+| 081 | visuals-flow operating skill (GFX-12) — verb router: session runs the steps, owner reviews board + green-lights HeyGen | P2 | S | 077–080 landed | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -347,11 +348,10 @@ lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
 - **agy cue-pass trial** — run step 020 on agy for one video, compare vs Sonnet on lint
   output (072) + RULEBOOK rubric; frees the last per-video cents. Unblocked once 072 lands.
   `GFX-11`. Effort S.
-- **visuals-flow operating skill** — thin trigger-router skill (verbs: run / board / fold)
-  in `pipelines/.claude/skills/`, mapping "fold the feedback" / "run graphics for <video>" /
-  "open my storyboard" to the step procedures + guardrails (feedback-status pre-flight,
-  Opus-only fold, 020 model routing). Write AFTER 069–076 land — it references their
-  behavior. Check scope overlap with the `video-and-tts-reference` skill first. `GFX-12`. Effort S.
+- **visuals-flow operating skill** — planned as **081** (2026-07-18; verbs grew to cover
+  the avatar phase: run graphics / shot pass / board / render / make+download avatar
+  videos / fold). Overlap with `video-and-tts-reference` checked — none (theory vs
+  runbook). Status lives in the table above. `GFX-12`. Effort S.
 - (Density calibration — HANDOFF open item 7 — is deliberately NOT a backlog row: it's what
   the 060 fold loop + 076's convergence metrics DO with the first few real videos.)
 
