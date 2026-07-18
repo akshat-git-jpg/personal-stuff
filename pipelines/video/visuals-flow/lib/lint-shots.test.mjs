@@ -1,0 +1,58 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { lintShots } from './lint-shots.mjs';
+
+const words = Array.from({ length: 1200 }, (_, i) => ({ text: `w${i}`, start: i, end: i + 1 }));
+
+test('two overlapping spans → E1', () => {
+  const shotsResolved = { spans: [{ id: 's1', start: 10, end: 30, duration: 20 }, { id: 's2', start: 25, end: 40, duration: 15 }] };
+  const { errors } = lintShots({ shotsResolved, resolvedCues: [], words });
+  assert.ok(errors.some(e => e.startsWith('E1')));
+});
+
+test('span overlapping a fullframe cue → E2; same span vs an overlay cue → no E2', () => {
+  const shotsResolved = { spans: [{ id: 's1', start: 90, end: 130, duration: 40 }] };
+  const res1 = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', placement: 'fullframe', start: 100, duration: 20 }], words });
+  assert.ok(res1.errors.some(e => e.startsWith('E2')));
+
+  const res2 = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', placement: 'overlay', start: 100, duration: 20 }], words });
+  assert.ok(!res2.errors.some(e => e.startsWith('E2')));
+});
+
+test('8s span → E3; 200s span → W1', () => {
+  const res1 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 10, end: 18, duration: 8 }] }, resolvedCues: [], words });
+  assert.ok(res1.errors.some(e => e.startsWith('E3')));
+
+  const res2 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 10, end: 210, duration: 200 }] }, resolvedCues: [], words });
+  assert.ok(res2.warnings.some(w => w.startsWith('W1')));
+});
+
+test('spans totalling 350s → E4', () => {
+  const shotsResolved = { spans: [{ id: 's1', start: 10, end: 360, duration: 350 }] };
+  const { errors } = lintShots({ shotsResolved, resolvedCues: [], words });
+  assert.ok(errors.some(e => e.startsWith('E4')));
+});
+
+test('single mid-video span → W3 twice; spans at edges → no W3', () => {
+  const res1 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 500, end: 560, duration: 60 }] }, resolvedCues: [], words });
+  const w3s = res1.warnings.filter(w => w.startsWith('W3'));
+  assert.equal(w3s.length, 2);
+
+  const res2 = lintShots({
+    shotsResolved: {
+      spans: [
+        { id: 's1', start: 30, end: 90, duration: 60 },
+        { id: 's2', start: 1150, end: 1190, duration: 40 }
+      ]
+    },
+    resolvedCues: [],
+    words
+  });
+  assert.ok(!res2.warnings.some(w => w.startsWith('W3')));
+});
+
+test('empty spans array → no errors, no warnings', () => {
+  const { errors, warnings } = lintShots({ shotsResolved: { spans: [] }, resolvedCues: [], words });
+  assert.equal(errors.length, 0);
+  assert.equal(warnings.length, 0);
+});

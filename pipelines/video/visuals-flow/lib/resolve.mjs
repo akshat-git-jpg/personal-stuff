@@ -3,6 +3,19 @@ import path from 'node:path';
 
 export function normWord(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ''); }
 
+// Forward-only phrase matcher over normalized words. Shared by the cue
+// resolver and the shot resolver — one matching semantics, one place.
+export function findPhrase(W, phrase, from) {
+  const p = phrase.split(/\s+/).map(normWord).filter(Boolean);
+  if (p.length < 3) return { err: `anchor has fewer than 3 words: "${phrase}"` };
+  for (let i = from; i <= W.length - p.length; i++) {
+    let ok = true;
+    for (let j = 0; j < p.length; j++) if (W[i + j].n !== p[j]) { ok = false; break; }
+    if (ok) return { idx: i, start: W[i].start, len: p.length };
+  }
+  return { err: `anchor not found (searching forward from word ${from}): "${phrase}"` };
+}
+
 // Schema validation against catalog.json contracts — catches wrong-shaped
 // variables/beats BEFORE anything renders (the "undefined on screen" class).
 // A catalog type description containing "optional" marks that field optional.
@@ -85,16 +98,7 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot) {
   const out = [];
   let cursor = 0;
   let lastFullframe = null;
-  const findFrom = (phrase, from) => {
-    const p = phrase.split(/\s+/).map(normWord).filter(Boolean);
-    if (p.length < 3) return { err: `anchor has fewer than 3 words: "${phrase}"` };
-    for (let i = from; i <= W.length - p.length; i++) {
-      let ok = true;
-      for (let j = 0; j < p.length; j++) if (W[i + j].n !== p[j]) { ok = false; break; }
-      if (ok) return { idx: i, start: W[i].start, len: p.length };
-    }
-    return { err: `anchor not found (searching forward from word ${from}): "${phrase}"` };
-  };
+  const findFrom = (phrase, from) => findPhrase(W, phrase, from);
   for (const cue of cues) {
     const cat = bySlug[cue.card];
     if (!cat) { errors.push(`${cue.id}: unknown card "${cue.card}"`); continue; }
