@@ -321,6 +321,33 @@ they aren't re-audited from scratch — promote any to a plan when ready.
   has no structured intake; deferred until the first real editor handoff shows what they need
   (HANDOFF open item 1 will surface it). `GFX-06`. Effort S.
 
+**graphics-flow PRODUCT backlog (roadmap items, consolidated 2026-07-18 from
+graphics-flow HANDOFF.md "open items" + the feedback-loop discussion; detail
+lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
+- **Avatar/screen-recording shot plan** — THE owner-stated next phase: per stretch of the
+  video, decide avatar vs screen recording + layout hints + durations. `buildSegments()` in
+  `lib/board.mjs` is the designed seam (shot spans = a third segment kind; gap blocks are
+  deliberately untyped today). Schema deliberately NOT invented yet — needs a brainstorm/
+  design pass (orchestrate) before any plan. Prior art: tutorial-pipeline-1/2. `GFX-07`. Effort L.
+- **Global play-through on the board** — master player, auto-scroll, cards animate as the
+  playhead crosses; same buildSegments seam. Owner-deferred. `GFX-08`. Effort M.
+- **Render + editor handoff proof** — run 050 on approved test-01, check clips + manifest
+  against the actual final edit; the last unproven step of the whole flow. Owner action +
+  fold the lessons (expect `offset`/ergonomics findings feeding GFX-06). `GFX-09`. Effort S.
+- **Aesthetic visual QC beyond overflow** — plan 074 machine-catches layout overflow; taste
+  breakage (bad contrast, awkward wrapping) still human-only. Owner rejected vision-model QC
+  on cost; revisit only with a cheaper mechanism. `GFX-10`. Effort ?.
+- **agy cue-pass trial** — run step 020 on agy for one video, compare vs Sonnet on lint
+  output (072) + RULEBOOK rubric; frees the last per-video cents. Unblocked once 072 lands.
+  `GFX-11`. Effort S.
+- **graphics-flow operating skill** — thin trigger-router skill (verbs: run / board / fold)
+  in `pipelines/.claude/skills/`, mapping "fold the feedback" / "run graphics for <video>" /
+  "open my storyboard" to the step procedures + guardrails (feedback-status pre-flight,
+  Opus-only fold, 020 model routing). Write AFTER 069–076 land — it references their
+  behavior. Check scope overlap with the `video-and-tts-reference` skill first. `GFX-12`. Effort S.
+- (Density calibration — HANDOFF open item 7 — is deliberately NOT a backlog row: it's what
+  the 060 fold loop + 076's convergence metrics DO with the first few real videos.)
+
 **Tracker-app backlog (2026-07-05 focused audit; promote when wanted):**
 - **Per-stage SLA defaults in the PipelineDef** (`slaDays` on `StageDef`) feeding the
   attention panel (016) thresholds per system + auto-suggested ETAs. `TRK-01`. Effort S-M.
