@@ -15,10 +15,10 @@ Decisions log entries: decisions.md 2026-07-17 and 2026-07-18.
 ## State: what is built and verified
 
 - **Steps 010-050 all exist and ran end to end on real content once** (test-01,
-  a 32-min "5 AI video tools" comparison; workdir `videos/test-01/`), EXCEPT
-  step 050 (render) which has NOT yet run on test-01. Renders + manifest are
-  the one untested-at-scale piece. The render machinery itself is proven on
-  single cards (beat-smoke, card inspections).
+  a 32-min "5 AI video tools" comparison; workdir `videos/test-01/`), INCLUDING
+  step 050 (render), which completed its first full run on test-01 on
+  2026-07-18 (18/18 clips, ffprobe-verified, manifest.md written) — the whole
+  flow is now proven end to end.
 - **010 transcribe**: Groq whisper-large-v3-turbo fast path (22s for 32 min,
   correct brand spellings), local whisper fallback (~8 min). Accepts vo.mp4/mov/
   mkv/m4a/wav and extracts vo.mp3 itself. NOTE: test-01's transcript.json is

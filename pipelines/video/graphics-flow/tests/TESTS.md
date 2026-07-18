@@ -20,8 +20,8 @@ tested, with what source, and what the run taught us.
   - [x] 010 transcribe — local whisper small.en, ~8 min for 32:08 audio; 6110 words
   - [x] 020 cue pass — Sonnet subagent, 21 cues, 0 flagged (~109k subagent tokens)
   - [x] 030 resolve — 21/21 cues + all beats matched FIRST TRY, zero anchor misses
-  - [ ] 040 board review (owner) — board live at localhost:4322
-  - [ ] 050 render + manifest
+  - [x] 040 board review (owner) — approved 2026-07-18 after two feedback rounds (v2 fold: 27→18 cues)
+  - [x] 050 render + manifest — 2026-07-18, first full run: 18/18 clips, all ffprobe-verified, manifest.md written
 - **Findings**:
   1. **ASR garbles brand names** (HeyGen → "Heigen/Hazen/Haitian", OpenArt → "OpenARC").
      Anchors still resolved (they quote the garbled transcript verbatim — by design), but
