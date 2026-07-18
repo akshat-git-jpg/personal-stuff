@@ -123,7 +123,7 @@
         grid.querySelectorAll('.hrow .cell.hcell:not(.feat):not(.reason)').forEach((el, i) => {
           const slug = (DATA.productLogos && DATA.productLogos[i]) ? DATA.productLogos[i] : null;
           if (slug && LOGOS[slug]) {
-            el.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; gap:8px;"><img src="${LOGOS[slug]}" style="width:24px; height:24px; border-radius:4px; object-fit:contain;" /><span>${DATA.products[i]}</span></div>`;
+            el.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; gap:8px;"><img src="${LOGOS[slug]}" style="width:24px; height:24px; border-radius:4px; object-fit:contain; filter:saturate(0.5) brightness(0.95); opacity:0.9;;" /><span>${DATA.products[i]}</span></div>`;
           } else {
             el.textContent = DATA.products[i];
           }

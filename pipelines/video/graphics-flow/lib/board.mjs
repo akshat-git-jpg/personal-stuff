@@ -434,6 +434,9 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
   <div class="timeline">${timelineHtml}</div>
   <script>
     ${OVERFLOW_BADGE_JS}
+    let FB_DIRTY = false;
+    window.addEventListener('beforeunload', (e) => { if (FB_DIRTY) { e.preventDefault(); e.returnValue = ''; } });
+    document.addEventListener('input', (e) => { if (e.target.classList && e.target.classList.contains('feedback')) FB_DIRTY = true; });
     const VIDEO = ${JSON.stringify(cuesFile.video ?? '')};
     let APPROVED = ${JSON.stringify(!!cuesFile.approved)};
 
@@ -490,6 +493,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       if (!data.ok) {
         showBanner(data.errors.map(escapeForBanner).join('<br>'), 'err');
       } else {
+        FB_DIRTY = false;
         const warns = data.warnings || [];
         const errs = data.errors || [];
         if (warns.length > 0 || errs.length > 0) {

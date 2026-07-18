@@ -76,3 +76,6 @@ tested, with what source, and what the run taught us.
 ## Convergence
 
 - 2026-07-18 test-01: llm=27 approved=18 edited=11 added=1 removed=10 typed=7 flags=0 lint-warnings=7 (v2 baseline; heavy edits expected — three new rules folded this pass)
+- 2026-07-18 — owner: typed board feedback silently lost on reload without Save (c26 "too plain" note) → board warns on unload with unsaved feedback boxes; lost note re-entered from screenshot and processed.
+- 2026-07-18 — owner: full-color brand logos clash with the warm palette → DESIGN.md "Tool logos" rule: always muted (saturate .5, brightness .95, opacity .9), small relative to text; applied across all 6 logo-consuming cards.
+- 2026-07-18 — owner: persona-match "too plain" for the finale → card rebuilt (THE VERDICT eyebrow, panel rows, drawn accent dividers, gold winner chips + one-shot glow); gold-chip winner pattern recorded in DESIGN.md.

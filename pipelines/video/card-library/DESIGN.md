@@ -71,3 +71,16 @@ deliberate reason.
    text readable at YouTube compression sizes.
 6. Not a near-duplicate: check `catalog.json` purposes first; a variant of an
    existing card should be new `beats`/variables on the existing card, not a new folder.
+
+## Tool logos (added 2026-07-18)
+
+- Logos come ONLY from `logos/registry.json` slugs, inlined as data URIs at
+  render/board time (`__logos`). Cards never hardcode brand imagery.
+- **Muted treatment, always**: brand marks carry hues outside this palette, so
+  every logo `<img>` renders with `filter: saturate(0.5) brightness(0.95);
+  opacity: 0.9;` and stays SMALL relative to its text (24–48px next to body/title
+  text; 96px only as a hero mark on tool-intro). Never show a full-saturation
+  logo on these cards.
+- Winner moments may put the logo inside a gold chip (see
+  `verdict/persona-match`): `rgba(250,204,21,0.07)` fill, `rgba(250,204,21,0.35)`
+  1px border, radius 14px — gold text per the palette's winner rule.

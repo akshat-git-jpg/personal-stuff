@@ -73,6 +73,23 @@
       },
       "applied": "2026-07-18 \u2014 removed with c20\u2013c24",
       "folded": "2026-07-18 \u2014 covered by pricing consolidation rule"
+    },
+    "c26": {
+      "text": "too plain. can we make a better motion graphics or use a better motion graphic here. (typed on board, lost to unsaved-reload; re-entered from owner screenshot)",
+      "added": "2026-07-18",
+      "context": {
+        "card": "verdict/persona-match",
+        "anchor": "here's exactly where we land",
+        "start": 1771.61
+      },
+      "applied": "2026-07-18 \u2014 persona-match card rebuilt (verdict eyebrow, panel rows, drawn dividers, gold winner chips + glow); rendered + inspected",
+      "folded": "2026-07-18 \u2014 DESIGN.md: gold-chip winner pattern; card itself is the surface"
+    },
+    "_logos_theme": {
+      "text": "logos are too popping with our color theme, not matching, standing out (chat feedback, screenshots of counter-scale/summary-table tiles)",
+      "added": "2026-07-18",
+      "applied": "2026-07-18 \u2014 muted treatment applied to every logo across 6 cards (saturate .5, brightness .95, opacity .9, size trims)",
+      "folded": "2026-07-18 \u2014 DESIGN.md: \"Tool logos\" section \u2014 muted treatment is now a design-system rule"
     }
   }
 }
