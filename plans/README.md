@@ -80,17 +80,17 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 063 | Graphics flow scripts — anchor resolver (phrase→timestamp), staged batch render, editor manifest | P1 | M | 062 | DONE (validated 2026-07-17: merge gate re-run green) |
 | 064 | Cue-pass rulebook + prompt — the one-LLM-call-per-video operating manual (density, card choice, anchors, rubric) | P2 | S-M | 062, 063 | DONE (validated 2026-07-17: merge gate re-run green) |
 | 065 | Graphics storyboard board — local review server: real cards + VO slices prove sync before rendering; edit/flag/approve | P2 | M | 062, 063 | DONE (validated 2026-07-17: merge gate re-run green) |
-| 066 | Graphics-flow restructure — step-wise pipeline folder (pipelines/video/graphics-flow/), per-video videos/<slug>/ data, card-library stays the asset hub | P1 | M | 062-065 | TODO |
-| 067 | Board script-timeline — full transcript as vertical timeline, inline cue previews, mini-map; untyped gaps (avatar/screen spans = next phase) | P2 | M | 066 | TODO |
-| 068 | Tool logos on cards — favicon registry w/ manual override, data-URI enrichment, 5 cards + validation + cue-pass rule | P2 | M | — | TODO |
-| 069 | Graphics-flow feedback lifecycle — folded state survives board Saves (one feedback.json schema) | P1 | S | — (first of the board.mjs chain) | TODO |
-| 070 | Graphics-flow render integrity — approval gate, staleness check, manifest survives `--only`, pin hyperframes version | P1 | S-M | 069 (soft, shared board.mjs edit) | TODO |
-| 071 | Graphics-flow resolver correctness — non-adjacent fullframe overlap, cursor past whole anchor phrase | P2 | S | — (before 072) | TODO |
-| 072 | Graphics-flow lint-cues — machine-enforced rubric (stat-hit/repetition caps, spacing, exclusion zones, density warnings) | P1 | M | 071; 069/070 for board wiring | TODO |
-| 073 | Graphics board hardening — per-cue JSON save errors, 127.0.0.1 bind + port walk, incremental slices | P2 | S | 069, 070, 072 (board.mjs chain) | TODO |
-| 074 | Graphics zero-token visual QC — DOM overflow probe on board tiles + /calibrate capacity page | P2 | M | 073 | TODO |
-| 075 | Graphics-flow INTEGRATION.md — caller contract for tutorial-pipeline-1/2 + path-arg 010 | P2 | S-M | 070, 072 (hard — doc describes their behavior) | TODO |
-| 076 | Graphics feedback loop v2 — apply/fold lifecycle + context snapshots, cues.llm.json edit-delta mining, unfolded pre-flight, convergence metrics | P1 | M | 069 (hard); 072 (soft) | TODO |
+| 066 | Graphics-flow restructure — step-wise pipeline folder (pipelines/video/graphics-flow/), per-video videos/<slug>/ data, card-library stays the asset hub | P1 | M | 062-065 | DONE (PR #23) |
+| 067 | Board script-timeline — full transcript as vertical timeline, inline cue previews, mini-map; untyped gaps (avatar/screen spans = next phase) | P2 | M | 066 | DONE (PR #24) |
+| 068 | Tool logos on cards — favicon registry w/ manual override, data-URI enrichment, 5 cards + validation + cue-pass rule | P2 | M | — | DONE (PR #25) |
+| 069 | Graphics-flow feedback lifecycle — folded state survives board Saves (one feedback.json schema) | P1 | S | — (first of the board.mjs chain) | DONE (PR #26, landed 2026-07-18) |
+| 070 | Graphics-flow render integrity — approval gate, staleness check, manifest survives `--only`, pin hyperframes version | P1 | S-M | 069 (soft, shared board.mjs edit) | DONE (PR #27, landed 2026-07-18) |
+| 071 | Graphics-flow resolver correctness — non-adjacent fullframe overlap, cursor past whole anchor phrase | P2 | S | — (before 072) | DONE (PR #28, landed 2026-07-18) |
+| 072 | Graphics-flow lint-cues — machine-enforced rubric (stat-hit/repetition caps, spacing, exclusion zones, density warnings) | P1 | M | 071; 069/070 for board wiring | DONE (PR #29, landed 2026-07-18) |
+| 073 | Graphics board hardening — per-cue JSON save errors, 127.0.0.1 bind + port walk, incremental slices | P2 | S | 069, 070, 072 (board.mjs chain) | DONE (PR #30, landed 2026-07-18) |
+| 074 | Graphics zero-token visual QC — DOM overflow probe on board tiles + /calibrate capacity page | P2 | M | 073 | DONE (PR #31, landed 2026-07-18) |
+| 075 | Graphics-flow INTEGRATION.md — caller contract for tutorial-pipeline-1/2 + path-arg 010 | P2 | S-M | 070, 072 (hard — doc describes their behavior) | DONE (PR #32, landed 2026-07-18) |
+| 076 | Graphics feedback loop v2 — apply/fold lifecycle + context snapshots, cues.llm.json edit-delta mining, unfolded pre-flight, convergence metrics | P1 | M | 069 (hard); 072 (soft) | DONE (PR #33, landed 2026-07-18) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 

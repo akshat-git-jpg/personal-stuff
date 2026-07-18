@@ -1,8 +1,10 @@
-# graphics-flow handoff (2026-07-18)
+# graphics-flow handoff (2026-07-18, post end-to-end run)
 
 For the next session picking this up. Everything below was true and verified on
-2026-07-18. Read PIPELINE.md first if you have never seen this pipeline; read
-this doc for where things actually stand and what is open.
+2026-07-18 (evening). Read PIPELINE.md first if you have never seen this
+pipeline; read this doc for where things actually stand and what is open.
+**The owner's stated next phase is the avatar/screen-recording shot plan —
+see Open items #1.**
 
 ## What this is
 
@@ -11,129 +13,131 @@ of rendered clips plus an editor manifest out. Graphics reveal their content at
 the exact second the voiceover speaks each point. One LLM call per video;
 everything else is scripts. Design spec: `docs/specs/2026-07-17-motion-graphics-beat-sync-design.md`.
 Decisions log entries: decisions.md 2026-07-17 and 2026-07-18.
+Caller contract for other pipelines: `INTEGRATION.md`.
 
-## State: what is built and verified
+## State: proven end to end
 
-- **Steps 010-050 all exist and ran end to end on real content once** (test-01,
-  a 32-min "5 AI video tools" comparison; workdir `videos/test-01/`), INCLUDING
-  step 050 (render), which completed its first full run on test-01 on
-  2026-07-18 (18/18 clips, ffprobe-verified, manifest.md written) — the whole
-  flow is now proven end to end.
+- **The full flow ran on real content**: test-01, a 32-min "5 AI video tools"
+  comparison (`videos/test-01/`). 010 transcribe → 020 cue pass (Sonnet) →
+  030 resolve → 040 owner board review (two feedback rounds, all folded) →
+  050 render: **18/18 clips rendered 2026-07-18, ffprobe-verified,
+  `manifest.md` written, owner-approved.** Pending only: hand `renders/` +
+  `manifest.md` to the human editor and collect their reaction (feeds GFX-06).
 - **010 transcribe**: Groq whisper-large-v3-turbo fast path (22s for 32 min,
-  correct brand spellings), local whisper fallback (~8 min). Accepts vo.mp4/mov/
-  mkv/m4a/wav and extracts vo.mp3 itself. NOTE: test-01's transcript.json is
-  from the LOCAL engine and contains garbled names ("Heigen"); its anchors quote
-  those garbles correctly. A fresh Groq transcript would shift timestamps
-  slightly and break existing anchors, so leave test-01's transcript alone.
-- **020 cue pass**: Sonnet subagent, prompt assembled from
-  `steps/020-cue-pass-llm/cue-pass-prompt.md` + card-library `catalog.json` +
-  transcript text. Two runs done: v1 (21 cues, generic) and v2 (27 cues, current
-  cues.json, uses the new cards). v1 is in git history.
-- **030 resolve**: anchor matching plus schema validation (validateCues) against
-  catalog contracts. Caught 5 real errors on v2 before anything rendered. All 27
-  v2 cues currently resolve clean.
-- **040 board**: full-script timeline at localhost:4322 (also on the local-apps
-  dashboard as "graphics storyboard", no-arg start picks the latest video).
-  Transcript top to bottom, cue cards inline as LIVE previews (real card HTML
-  driven by the VO slice, not rendered video), collapsed gap blocks, mini-map,
-  per-template usage chips (red past 3 uses), one audio at a time, per-block
-  feedback boxes that Save writes to `feedback.json`. Save preserves top-level
-  cues.json fields (offset bug fixed 2026-07-18).
-- **050 render**: staged per-cue renders (data-duration rewrite in a temp copy,
-  the ONLY way to set duration; script-time patching does not work), mp4 for
-  fullframe, transparent mov for overlays, ffprobe checks, manifest.md at
-  workdir root with the timeline `offset` applied to place-at timecodes.
-- **card-library** (sibling folder, the asset hub): 42 cards, 11 of them beat
-  cards taking reveal timing as `beats[].at` data. New cards from this effort:
-  stat-hit, tool-intro, persona-match, credits-math, step-flow, plus callout
-  style variants and pricing-tiers annual strike-through. All visually
-  inspected. `catalog.json` carries per-card contracts incl. `max_beats` and
-  `max_reveal_chars` (estimates, not yet visually calibrated). `DESIGN.md` is
-  the visual system new cards must follow. `beat-smoke.sh` is the gate.
+  correct brand spellings), local whisper fallback. Accepts vo.mp4/mov/mkv/m4a/
+  wav, extracts vo.mp3 itself, slug-or-path arg. NOTE: test-01's transcript is
+  from the LOCAL engine with garbled names ("Heigen"); anchors quote the
+  garbles verbatim by design — leave test-01's transcript alone.
+- **020 cue pass**: prompt = `steps/020-cue-pass-llm/cue-pass-prompt.md` +
+  catalog + transcript. Convention since plan 076: the final LLM output is
+  snapshotted to `cues.llm.json` (committed, immutable) BEFORE owner edits —
+  `lib/edit-delta.mjs` diffs it against the approved cues.json at fold time.
+  Fix-loop: resolve + lint, errors fed back, ≤3 rounds (020 README).
+- **030 resolve + lint**: anchor matching, schema validation, non-adjacent
+  fullframe overlap, cursor past whole anchor phrases. `lib/lint-cues.mjs`
+  machine-enforces the rubric: stat-hit cap/spacing, repetition cap
+  (structural cards exempt — see catalog `structural: true`), exclusion zones
+  as errors; density cadence/count/word-count as warnings.
+- **040 board** (localhost:4322, binds 127.0.0.1, walks ports when taken):
+  full-script timeline, live card previews, per-block feedback boxes with the
+  full lifecycle (`{text, added, context, applied?, folded?}` — folded items
+  are read-only history; unload warns on unsaved feedback), lint results in
+  the Save banner (dismissable), DOM-overflow badges on tiles, `/calibrate`
+  page rendering every beat card at its declared caps. Save resets `approved`
+  when cues actually change (key-order-insensitive compare).
+- **050 render**: refuses unapproved (`--force` to override) or stale
+  `resolved.json`; staged per-cue renders (data-duration rewrite in a temp
+  copy — the ONLY way to set duration), mp4 fullframe / transparent mov
+  overlay, ffprobe duration checks, `manifest.md` derived from files on disk
+  (so `--only` re-renders never clobber it), pinned hyperframes version.
+- **060 feedback-fold** exercised twice on 2026-07-18: 9 owner items captured →
+  applied to test-01 AND folded into rules (see TESTS.md "Folded lessons" +
+  "Convergence"). Pre-flight: `node lib/feedback-status.mjs` exits 1 while any
+  item is unprocessed — run it before ANY new cue pass.
+- **card-library**: 42 cards, 11 beat cards. persona-match rebuilt as the
+  finale card (gold winner chips); section-counter-scale gained an optional
+  logo slot; ALL logos render muted per DESIGN.md's "Tool logos" rule
+  (saturate .5, small); section openers carry `structural: true`.
 
-## Where the rules live (four surfaces)
+## Where the rules live (five surfaces)
 
 1. `steps/020-cue-pass-llm/RULEBOOK.md` + `cue-pass-prompt.md`: selection
-   judgment (density, routing, specificity-wins, repetition caps incl. the
-   stat-hit cap, anchor discipline, correct-brand-spelling rule). Edit BOTH
-   together, the prompt is what the model actually sees.
-2. `card-library/DESIGN.md`: palette, typography, motion, capacity honesty.
-3. `card-library/catalog.json`: machine-enforced per-card contracts (the
-   resolver validates against it). Prefer encoding a lesson here over prose.
-4. `tests/TESTS.md`: findings log + "Folded lessons" provenance.
+   judgment (density, routing, structural consistency, step-narration,
+   pricing consolidation, caps, anchors, brand spelling). Edit BOTH together.
+2. `card-library/DESIGN.md`: palette, typography, motion, capacity honesty,
+   muted-logo treatment, gold-chip winner pattern.
+3. `card-library/catalog.json`: machine-enforced per-card contracts
+   (+ `structural` flag). Prefer encoding a lesson here over prose.
+4. `lib/lint-cues.mjs`: quantitative selection rules (caps, spacing, zones,
+   density) as named constants at the top of the file.
+5. `tests/TESTS.md`: findings log, "Folded lessons" provenance, "Convergence"
+   metrics (llm vs approved cue counts per video — watch `edited`/`typed` fall).
 
 ## Model routing (owner-decided, do not re-litigate)
 
 - 020 cue pass: Sonnet (agy/Gemini approved as a free alternate to trial).
-- Novel-card authoring: Opus. Antigravity only under the recorded
-  render-plus-visual-inspection mitigation (decisions.md 2026-07-07).
-- **060 feedback-fold: Opus-class ONLY** (`steps/060-feedback-fold-opus/README.md`).
-  Any owner feedback (board `feedback.json` or chat) gets folded into the rule
-  surfaces and marked folded. This is the never-repeat-a-mistake guarantee.
-  Trigger: owner says "fold the feedback".
-- Plan execution (boss): default agy per `tooling/boss/data/rules.md`
-  (2026-07-18); claude-p sonnet for taste-judged content or non-inlinable
-  plans; opus for tricky. agy visual output ALWAYS gets rendered and inspected
-  by the verifier before landing.
+- Novel-card authoring + card redesigns: Opus-class. Antigravity only under
+  the recorded render-plus-visual-inspection mitigation (decisions.md 2026-07-07).
+- **060 feedback-fold: Opus-class ONLY.** Trigger: owner says "fold the feedback".
+- Plan execution (boss): default agy per `tooling/boss/data/rules.md`;
+  claude-p sonnet for taste-judged/tricky. Visual output always rendered and
+  inspected before landing.
 
 ## Immediate state of test-01
 
-- v2 cues.json (27 cues) resolved clean, on the board, NOT yet owner-approved.
-- Owner feedback so far came via chat, already folded (stat-hit cap, usage
-  chips, logos plan). `feedback.json` is empty as of handoff.
-- Next actions on this video: owner reviews/approves on the board, then
-  `node lib/render.mjs test-01` and hand `renders/` + `manifest.md` to the
-  editor. That render run is the last unproven step of the whole flow.
+- cues.json: 18 cues, `approved: true`, rendered. v2→final owner edits are
+  measurable via `node lib/edit-delta.mjs test-01` (baseline `cues.llm.json`).
+- feedback.json: 9 items, all `applied` + `folded`. `feedback-status` exits 0.
+- Only open action: editor handoff of `renders/` + `manifest.md`, then fold
+  whatever the editor reports (GFX-06 will get its shape from that).
 
 ## In flight
 
-- **PR #25 (plan 068, tool logos)**: boss:ready, executor agy, not yet picked
-  up by boss. Favicon registry with manual override in card-library/logos/,
-  data-URI enrichment at render/board time, logo slots in 5 cards, resolver
-  validation, cue-pass rule. After it lands: render tool-intro and
-  persona-match with logos and INSPECT the frames (standing agy rider), then
-  consider a v3 cue pass on test-01 so logos appear.
+Nothing. Plans 062–076 all boss-landed as of 2026-07-18 (PRs #19–#33).
+Backlog registry: `plans/README.md` → "graphics-flow backlog" (GFX-01..06
+hygiene) + "graphics-flow PRODUCT backlog" (GFX-07..12 roadmap).
 
-## Open items for the next phase (not started, in rough priority order)
+## Open items (canonical list = GFX rows in plans/README.md)
 
-1. **Render + editor handoff proof** (small): run 050 on approved test-01,
-   check the clips and manifest against the actual final edit. Expect lessons
-   about `offset` and editor ergonomics.
-2. **Avatar/screen-recording shot plan** (the big one, owner's stated next
-   phase): decide per stretch of the video whether avatar video or screen
-   recording shows, plus layout hints, with durations. The board was built for
-   this: `buildSegments()` in lib/board.mjs is the seam; shot spans become a
-   third segment kind (or gap attributes) in the same timeline. The gap blocks
-   are deliberately untyped today. Schema was deliberately NOT invented yet.
-   Prior art: tutorial-pipeline-1/2 in pipelines/youtube/.
-3. **Global play-through on the board** (deferred by owner): master player,
-   auto-scroll, cards animate as the playhead crosses. Same buildSegments seam.
-4. **Automated visual QC** — DONE (plan 074): every board tile posts probe
-   seeks into its card iframe and badges red on a DOM-overflow report; zero
-   tokens, zero vision model.
-5. **Capacity calibration** — DONE (plan 074): `/calibrate` renders every beat
-   card filled to its declared `max_beats`/`max_reveal_chars` with live
-   overflow probes, so caps are visually verified instead of estimated.
-6. **agy cue-pass trial**: run 020 on agy for one video, compare against
-   Sonnet on the rubric (RULEBOOK section 9). Frees the last per-video cents.
-7. **Density calibration**: 60-120s fullframe cadence and 18-28 cues per 30
-   min were educated guesses. Fold owner edits from the first few real videos.
-8. **Board port hygiene** (small): EADDRINUSE crashes with a raw stack when
-   4322 is taken. Print a clear message or auto-pick a port.
+1. **Avatar/screen-recording shot plan** (`GFX-07`, the owner's next phase —
+   START WITH A BRAINSTORM/DESIGN SESSION via `orchestrate`, schema was
+   deliberately never invented): decide per stretch of the video whether
+   avatar video or screen recording shows, plus layout hints, with durations.
+   The board was built for this: `buildSegments()` in `lib/board.mjs` is the
+   seam; shot spans become a third segment kind (or gap attributes) in the
+   same timeline — gap blocks are deliberately untyped today. Prior art:
+   `pipelines/youtube/tutorial-pipeline-1/` and `-2/` (avatar-block plans,
+   segment maps). New machinery that helps: feedback lifecycle + lint are in
+   place, so the shot plan can get its own review/lint pass on the same board.
+2. **Editor handoff + feedback intake** (`GFX-09` done for render; `GFX-06`
+   open): give the editor `renders/` + `manifest.md`, fold what comes back.
+3. **Global play-through on the board** (`GFX-08`, owner-deferred).
+4. **agy cue-pass trial** (`GFX-11`): unblocked — lint is the objective rubric half.
+5. **Density calibration**: not a task; the 060 fold loop + Convergence
+   metrics do this across the first few real videos.
+6. **Aesthetic visual QC beyond overflow** (`GFX-10`): open problem, revisit
+   only with a cheap mechanism.
+7. **graphics-flow operating skill** (`GFX-12`): thin run/board/fold trigger
+   router; write now that 069–076 landed; check overlap with
+   `video-and-tts-reference` first.
 
 ## How to run (quick reference)
 
 ```
 cd pipelines/video/graphics-flow
-bash steps/010-transcribe-run/run.sh <slug>        # vo.mp3 or vo.mp4 in videos/<slug>/ first
-# 020: Sonnet subagent with steps/020-cue-pass-llm/cue-pass-prompt.md
-#      (+ catalog.json + transcript text) writing videos/<slug>/cues.json
+node lib/feedback-status.mjs                       # MUST exit 0 before any new cue pass
+bash steps/010-transcribe-run/run.sh <slug-or-path>
+# 020: Sonnet session with steps/020-cue-pass-llm/cue-pass-prompt.md
+#      (+ catalog.json + transcript text) -> videos/<slug>/cues.json,
+#      then snapshot to cues.llm.json after the fix-loop converges
 node lib/resolve.mjs <slug>
-node lib/board.mjs [<slug>]                        # review at :4322, Save/Approve
-node lib/render.mjs <slug> [--quality draft]       # after approval
+node lib/lint-cues.mjs <slug>                      # errors -> feed back to 020, <=3 rounds
+node lib/board.mjs [<slug>]                        # review at :4322, Save/Approve (+ /calibrate)
+node lib/render.mjs <slug> [--quality draft]       # refuses unapproved/stale; --force exists
+node lib/edit-delta.mjs <slug>                     # owner-edit diff for the fold
 bash scripts/check.sh                              # flow gate
 (cd ../card-library && bash scripts/beat-smoke.sh) # card gate
 ```
 
-Test log with all findings and folded lessons: `tests/TESTS.md`. Per-video data
+Test log, folded lessons, convergence metrics: `tests/TESTS.md`. Per-video data
 convention: `videos/<slug>/` (text committed, media gitignored).
