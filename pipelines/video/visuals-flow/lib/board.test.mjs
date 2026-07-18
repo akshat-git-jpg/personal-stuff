@@ -655,3 +655,38 @@ test('save: cue change with approved shots un-approves shots and warns', async (
     server.close();
   }
 });
+
+test('POST /save rejects non-localhost origin with 403', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/save`, { 
+      method: 'POST', 
+      headers: { 'Origin': 'http://evil.example' },
+      body: '{}' 
+    });
+    assert.equal(res.status, 403);
+    assert.equal(await res.text(), 'forbidden origin');
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /save allows 127.0.0.1 origin', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+    const port = new URL(base).port;
+    const res = await fetch(`${base}/save`, { 
+      method: 'POST', 
+      headers: { 'Origin': `http://127.0.0.1:${port}` },
+      body: JSON.stringify(cuesFile) 
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.ok, true);
+  } finally {
+    server.close();
+  }
+});
