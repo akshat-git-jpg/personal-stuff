@@ -83,8 +83,28 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 066 | Graphics-flow restructure — step-wise pipeline folder (pipelines/video/graphics-flow/), per-video videos/<slug>/ data, card-library stays the asset hub | P1 | M | 062-065 | TODO |
 | 067 | Board script-timeline — full transcript as vertical timeline, inline cue previews, mini-map; untyped gaps (avatar/screen spans = next phase) | P2 | M | 066 | TODO |
 | 068 | Tool logos on cards — favicon registry w/ manual override, data-URI enrichment, 5 cards + validation + cue-pass rule | P2 | M | — | TODO |
+| 069 | Graphics-flow feedback lifecycle — folded state survives board Saves (one feedback.json schema) | P1 | S | — (first of the board.mjs chain) | TODO |
+| 070 | Graphics-flow render integrity — approval gate, staleness check, manifest survives `--only`, pin hyperframes version | P1 | S-M | 069 (soft, shared board.mjs edit) | TODO |
+| 071 | Graphics-flow resolver correctness — non-adjacent fullframe overlap, cursor past whole anchor phrase | P2 | S | — (before 072) | TODO |
+| 072 | Graphics-flow lint-cues — machine-enforced rubric (stat-hit/repetition caps, spacing, exclusion zones, density warnings) | P1 | M | 071; 069/070 for board wiring | TODO |
+| 073 | Graphics board hardening — per-cue JSON save errors, 127.0.0.1 bind + port walk, incremental slices | P2 | S | 069, 070, 072 (board.mjs chain) | TODO |
+| 074 | Graphics zero-token visual QC — DOM overflow probe on board tiles + /calibrate capacity page | P2 | M | 073 | TODO |
+| 075 | Graphics-flow INTEGRATION.md — caller contract for tutorial-pipeline-1/2 + path-arg 010 | P2 | S-M | 070, 072 (hard — doc describes their behavior) | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
+
+> **069–075 (2026-07-18, graphics-flow quality audit)**: from an `improve` audit
+> of `pipelines/video/graphics-flow` at commit `8e48c2f` (goal: long-term quality;
+> the flow will be consumed by tutorial-pipeline-1/2). Recommended order:
+> **069 → 070 → 071 → 072 → 073 → 074**, then **075** (069/070/072/073/074 all
+> touch `lib/board.mjs` — run the chain in order to avoid rebase pain; 071→072
+> share `lib/` and resolver semantics; 075 is docs describing 070+072 behavior,
+> so it MUST come after both land). The strongest regression gate across the
+> batch: `node lib/resolve.mjs test-01` + `git diff --exit-code
+> videos/test-01/resolved.json` must stay clean (071 makes this explicit).
+> Executors: agy for 069–073 (mechanical/standard, fully specified), claude-p
+> sonnet for 074 (tricky, cross-frame probing) and 075 (prose deliverable).
+> ui gate on 069/073/074 (board-facing).
 
 > **057–059 (2026-07-11, workflow-automation audit follow-up)**: from an `improve`
 > audit focused on "automate more / make existing automation trustworthy". 057
@@ -281,6 +301,18 @@ they aren't re-audited from scratch — promote any to a plan when ready.
 - **printing-press-polish lazy split** — 65KB SKILL.md body (has references/
   already); same treatment as plan 024's three. Effort S-M.
 
+**graphics-flow backlog (2026-07-18 audit; too small to plan alone, fold into the next touch):**
+- `resolveWorkdir` copy-pasted across `resolve.mjs`/`render.mjs`/`board.mjs`/`transcribe-groq.mjs`,
+  and `mmss` (render) vs `timecode` (board) duplicate each other — extract to a tiny `lib/shared.mjs`
+  next time two of those files are open together. `GFX-01`. Effort S.
+- `lib/.test-tmp/` accumulates temp dirs forever (gitignored but never cleaned) — add an `after()`
+  cleanup or a `rm -rf` line in `scripts/check.sh`. `GFX-02`. Effort S.
+- RULEBOOK rubric says reveal text "6 words or fewer" while the prompt says "2–6 word summary" —
+  align the wording when next editing both surfaces (072 encodes 2–6 as the lint warning). `GFX-03`.
+- Groq transcribe (`transcribe-groq.mjs`) doesn't validate word timestamps are monotonic
+  non-negative before writing transcript.json; a garbage API response would poison downstream
+  anchors. One assert loop. `GFX-04`. Effort S.
+
 **Tracker-app backlog (2026-07-05 focused audit; promote when wanted):**
 - **Per-stage SLA defaults in the PipelineDef** (`slaDays` on `StageDef`) feeding the
   attention panel (016) thresholds per system + auto-suggested ETAs. `TRK-01`. Effort S-M.
@@ -300,6 +332,18 @@ they aren't re-audited from scratch — promote any to a plan when ready.
 
 ## Findings considered and rejected (do not re-audit)
 
+- **graphics-flow: overlay-vs-anything overlap checking** (2026-07-18 audit) —
+  rejected: RULEBOOK only forbids fullframe/fullframe spoken-coverage overlap;
+  overlays coexisting with fullframes (and each other) is by design. 071 fixes
+  the fullframe check only.
+- **graphics-flow: validating/forbidding negative `lead`** (2026-07-18 audit) —
+  rejected: negative lead is a deliberate technique (test-01 c06, TESTS.md v2
+  notes — a catalog-fixed single card squeezed against the next cue starts
+  after its anchor). The resolver's `Math.max(0, start - lead)` already guards
+  the only dangerous case.
+- **graphics-flow: chunking Groq uploads for >100-min audio** (2026-07-18
+  audit) — not planned: the 16kHz/32kbps downsample keeps ~104 min under the
+  25MB cap; target videos are ~30 min. Revisit only if a longer format appears.
 - **Automating the monthly escrow run** (2026-07-11 audit) — rejected: monthly
   manual is a documented security decision (`infra/escrow/README.md` — the
   passphrase is typed by hand, never stored; cron automation is explicitly the
