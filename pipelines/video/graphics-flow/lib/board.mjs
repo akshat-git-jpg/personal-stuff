@@ -419,6 +419,11 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   const prev = fs.existsSync(cuesPath) ? JSON.parse(fs.readFileSync(cuesPath, 'utf8')) : {};
   const { feedback, ...incoming } = cuesFile;
   const merged = { ...prev, ...incoming };
+
+  if (prev.approved === true && JSON.stringify(prev.cues) !== JSON.stringify(incoming.cues)) {
+    merged.approved = false;
+  }
+
   fs.writeFileSync(cuesPath, JSON.stringify(merged, null, 2));
 
   if (feedback && typeof feedback === 'object') {

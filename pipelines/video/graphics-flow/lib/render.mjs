@@ -3,7 +3,9 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { enrichLogos } from './logos-inline.mjs';
+import { resolveCues } from './resolve.mjs';
 
+const HYPERFRAMES = process.env.HYPERFRAMES_VERSION ? `hyperframes@${process.env.HYPERFRAMES_VERSION}` : 'hyperframes@0.7.62';
 const DURATION_TOLERANCE = 0.15;
 
 export function mmss(seconds) {
@@ -50,6 +52,10 @@ export function planRender(cue, quality = 'standard') {
   return { args, outFile, format };
 }
 
+export function manifestCues(resolved, renderDir) {
+  return resolved.filter((cue) => fs.existsSync(path.join(renderDir, planRender(cue).outFile)));
+}
+
 export function manifestMd(video, cues, offset = 0) {
   const sorted = [...cues].sort((a, b) => a.start - b.start);
   const rows = sorted.map((cue) => {
@@ -72,13 +78,14 @@ export function manifestMd(video, cues, offset = 0) {
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, only: null, quality: 'standard' };
+  const opts = { workdir: null, only: null, quality: 'standard', force: false };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
     const a = rest.shift();
     if (a === '--only') opts.only = rest.shift();
     else if (a === '--quality') opts.quality = rest.shift();
+    else if (a === '--force') opts.force = true;
     else throw new Error(`unknown argument: ${a}`);
   }
   return opts;
@@ -93,17 +100,39 @@ function resolveWorkdir(arg) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.workdir) {
-    console.error('usage: node lib/render.mjs <slug-or-path> [--only <cueId>] [--quality draft|standard]');
+    console.error('usage: node lib/render.mjs <slug-or-path> [--only <cueId>] [--quality draft|standard] [--force]');
     process.exit(1);
   }
 
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
   const workdir = resolveWorkdir(opts.workdir);
+  const cuesPath = path.join(workdir, 'cues.json');
+  
+  const cuesFile = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
+  if (cuesFile.approved !== true && !opts.force) {
+    console.error('refusing to render: cues.json approved=false — review on the board (node lib/board.mjs <slug>) or pass --force');
+    process.exit(1);
+  }
+
   const resolvedPath = path.join(workdir, 'resolved.json');
   const renderDir = path.join(workdir, 'renders');
+  
+  const { video, resolved, offset = 0 } = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
+
+  const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
+  const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
+  const recomputed = resolveCues(cuesFile.cues, words, catalog, cardLibraryRoot);
+  const fresh = recomputed.errors.length === 0
+    && JSON.stringify(recomputed.resolved) === JSON.stringify(resolved);
+  if (!fresh && !opts.force) {
+    console.error('resolved.json is stale or cues.json no longer resolves — re-run node lib/resolve.mjs <slug>');
+    process.exit(1);
+  } else if (!fresh && opts.force) {
+    console.warn('warning: resolved.json is stale, but proceeding anyway due to --force');
+  }
+
   fs.mkdirSync(renderDir, { recursive: true });
 
-  const { video, resolved, offset = 0 } = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
   const cues = opts.only ? resolved.filter((c) => c.id === opts.only) : resolved;
 
   const errors = [];
@@ -136,7 +165,7 @@ async function main() {
 
       const { args, outFile } = planRender(cue, opts.quality);
       const outPath = path.join(renderDir, outFile);
-      const spawnArgs = ['hyperframes@latest', ...args, '-o', outPath];
+      const spawnArgs = [HYPERFRAMES, ...args, '-o', outPath];
       const result = spawnSync('npx', spawnArgs, { cwd: stagedDir, encoding: 'utf8' });
       if (result.status !== 0) {
         console.error(result.stdout ?? '');
@@ -162,7 +191,12 @@ async function main() {
     }
   }
 
-  fs.writeFileSync(path.join(workdir, 'manifest.md'), manifestMd(video, rendered, offset));
+  const cuesForManifest = manifestCues(resolved, renderDir);
+  if (cuesForManifest.length < resolved.length) {
+    const missing = resolved.filter(r => !cuesForManifest.includes(r)).map(r => r.id);
+    console.warn(`warning: leaving missing files out of manifest: ${missing.join(', ')}`);
+  }
+  fs.writeFileSync(path.join(workdir, 'manifest.md'), manifestMd(video, cuesForManifest, offset));
 
   if (errors.length) {
     for (const e of errors) console.error(e);

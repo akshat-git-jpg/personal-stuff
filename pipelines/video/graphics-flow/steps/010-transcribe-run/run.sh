@@ -31,4 +31,5 @@ if [ -n "${GROQ_API_KEY:-}" ]; then
   echo "groq path failed — falling back to local whisper" >&2
 fi
 cd "videos/$slug"
-npx hyperframes@latest transcribe vo.mp3 --json -m small.en "$@"
+# Pinned version; central pin for the flow is in lib/render.mjs
+npx hyperframes@0.7.62 transcribe vo.mp3 --json -m small.en "$@"

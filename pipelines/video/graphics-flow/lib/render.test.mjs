@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mmss, rewriteDuration, manifestMd, planRender } from './render.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import { spawnSync } from 'node:child_process';
+import { mmss, rewriteDuration, manifestMd, planRender, manifestCues } from './render.mjs';
 
 test('rewriteDuration: uniform data-duration values all get replaced', () => {
   const html = '<div data-duration="6"></div><div data-duration="6"></div><div data-duration="6"></div>';
@@ -60,4 +64,70 @@ test('manifestMd applies timeline offset to place-at column only', () => {
   const noOffset = manifestMd('vid', cues);
   assert.match(noOffset, /\| 00:10\.0 \|/);
   assert.match(noOffset, /starts at 00:00\.0/);
+});
+
+test('manifestCues returns only cues whose outFile exists', () => {
+  const tmpRoot = path.join(import.meta.dirname, '.test-tmp');
+  fs.mkdirSync(tmpRoot, { recursive: true });
+  const renderDir = fs.mkdtempSync(path.join(tmpRoot, 'manifest-cues-'));
+  
+  const cues = [
+    { id: 'c01', card: 'overlay/callout', placement: 'overlay', start: 10, duration: 3 },
+    { id: 'c02', card: 'pros-cons/pros-cons', placement: 'fullframe', start: 0, duration: 24.5 },
+    { id: 'c03', card: 'overlay/callout', placement: 'overlay', start: 20, duration: 3 },
+  ];
+
+  // Create dummy files for c01 and c03
+  fs.writeFileSync(path.join(renderDir, planRender(cues[0]).outFile), 'dummy');
+  fs.writeFileSync(path.join(renderDir, planRender(cues[2]).outFile), 'dummy');
+
+  const filtered = manifestCues(cues, renderDir);
+  assert.equal(filtered.length, 2);
+  assert.equal(filtered[0].id, 'c01');
+  assert.equal(filtered[1].id, 'c03');
+});
+
+test('CLI: approval gate exits 1 and mentions approved', () => {
+  const tmpRoot = path.join(import.meta.dirname, '.test-tmp');
+  fs.mkdirSync(tmpRoot, { recursive: true });
+  const workdir = fs.mkdtempSync(path.join(tmpRoot, 'approval-'));
+  
+  // cues-ok.json has approved: false
+  fs.copyFileSync(path.join(import.meta.dirname, 'fixtures', 'cues-ok.json'), path.join(workdir, 'cues.json'));
+  fs.copyFileSync(path.join(import.meta.dirname, 'fixtures', 'transcript.json'), path.join(workdir, 'transcript.json'));
+  
+  // Create a resolved.json (we can just run resolveCues or just copy a dummy)
+  // Let's run resolve.mjs to create a clean resolved.json
+  spawnSync(process.execPath, [path.join(import.meta.dirname, 'resolve.mjs'), workdir]);
+
+  const result = spawnSync(process.execPath, [path.join(import.meta.dirname, 'render.mjs'), workdir], {
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /approved=false/);
+});
+
+test('CLI: staleness gate exits 1 and mentions stale', () => {
+  const tmpRoot = path.join(import.meta.dirname, '.test-tmp');
+  fs.mkdirSync(tmpRoot, { recursive: true });
+  const workdir = fs.mkdtempSync(path.join(tmpRoot, 'stale-'));
+  
+  const cuesJson = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, 'fixtures', 'cues-ok.json'), 'utf8'));
+  cuesJson.approved = true;
+  fs.writeFileSync(path.join(workdir, 'cues.json'), JSON.stringify(cuesJson));
+  fs.copyFileSync(path.join(import.meta.dirname, 'fixtures', 'transcript.json'), path.join(workdir, 'transcript.json'));
+  
+  spawnSync(process.execPath, [path.join(import.meta.dirname, 'resolve.mjs'), workdir]);
+  
+  // Perturb resolved.json
+  const resolvedPath = path.join(workdir, 'resolved.json');
+  const resolvedData = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
+  resolvedData.resolved[0].start += 1;
+  fs.writeFileSync(resolvedPath, JSON.stringify(resolvedData));
+
+  const result = spawnSync(process.execPath, [path.join(import.meta.dirname, 'render.mjs'), workdir], {
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /stale/);
 });
