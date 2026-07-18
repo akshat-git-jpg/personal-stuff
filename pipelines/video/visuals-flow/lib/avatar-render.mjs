@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { resolveShots } from './resolve-shots.mjs';
 import { lintShots } from './lint-shots.mjs';
 import { mmss } from './render.mjs';
+import { resolveWorkdir } from './workdir.mjs';
 
 export const CORNER_CHUNK = 300;
 export const PACING = { minGap: 45, maxGap: 150, settleEvery: 5, settleGap: 600 };
@@ -67,11 +68,6 @@ function parseArgs(argv) {
   return opts;
 }
 
-function resolveWorkdir(arg) {
-  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
-  const pipelineRoot = path.resolve(import.meta.dirname, '..');
-  return path.join(pipelineRoot, 'videos', arg);
-}
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));

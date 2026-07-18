@@ -221,3 +221,16 @@ test('E3 exemption: structural fullframe cards repeat freely (one per compared i
   });
   assert(!res.errors.some(e => e.includes('E3 card-repetition')));
 });
+
+test('E4 short-video guard', () => {
+  const c = [{ id: 'c1', card: 'overlay/plain', start: 10 }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(30), // video is 30 seconds
+    catalog
+  });
+  const e4Errors = res.errors.filter(e => e.includes('E4 exclusion zones'));
+  assert.equal(e4Errors.length, 1);
+  assert.match(e4Errors[0], /video too short/);
+});

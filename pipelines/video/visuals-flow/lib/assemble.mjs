@@ -4,6 +4,7 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { mmss, planRender } from './render.mjs';
 import { resolveCues } from './resolve.mjs';
+import { resolveWorkdir } from './workdir.mjs';
 
 const EPS = 0.05;
 export const CANVAS = { w: 1920, h: 1080, fps: 30 };
@@ -251,11 +252,6 @@ function parseArgs(argv) {
   return opts;
 }
 
-function resolveWorkdir(arg) {
-  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
-  const pipelineRoot = path.resolve(import.meta.dirname, '..');
-  return path.join(pipelineRoot, 'videos', arg);
-}
 
 export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', words = [] }) {
   let segments = planSegments({ resolved, avatarJobs, total });

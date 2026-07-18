@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
-const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp');
+const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'board');
 const CARD_LIBRARY_ROOT = path.resolve(import.meta.dirname, '..', '..', 'card-library');
 const CATALOG = JSON.parse(fs.readFileSync(path.join(CARD_LIBRARY_ROOT, 'catalog.json'), 'utf8'));
 const BEAT_CARDS = CATALOG.cards.filter((c) => c.kind === 'beat');
@@ -37,6 +37,9 @@ async function startServer(workdir) {
 }
 
 test.before(() => {
+  if (fs.existsSync(TMP_ROOT)) {
+    fs.rmSync(TMP_ROOT, { recursive: true, force: true });
+  }
   ensureFixtureAudio();
 });
 
@@ -648,6 +651,41 @@ test('save: cue change with approved shots un-approves shots and warns', async (
     
     const diskShots = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.json'), 'utf8'));
     assert.equal(diskShots.approved, false, 'cascade persisted');
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /save rejects non-localhost origin with 403', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/save`, { 
+      method: 'POST', 
+      headers: { 'Origin': 'http://evil.example' },
+      body: '{}' 
+    });
+    assert.equal(res.status, 403);
+    assert.equal(await res.text(), 'forbidden origin');
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /save allows 127.0.0.1 origin', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+    const port = new URL(base).port;
+    const res = await fetch(`${base}/save`, { 
+      method: 'POST', 
+      headers: { 'Origin': `http://127.0.0.1:${port}` },
+      body: JSON.stringify(cuesFile) 
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.ok, true);
   } finally {
     server.close();
   }

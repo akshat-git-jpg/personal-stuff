@@ -17,6 +17,7 @@ import { lintCues } from './lint-cues.mjs';
 import { mmss } from './render.mjs';
 import { enrichLogos } from './logos-inline.mjs';
 import { resolveShots } from './resolve-shots.mjs';
+import { resolveWorkdir } from './workdir.mjs';
 
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
 
@@ -940,6 +941,19 @@ function serveSlice(res, workdir, id) {
 async function handleRequest(req, res, workdir, cardLibraryRoot) {
   const url = new URL(req.url, 'http://localhost');
 
+  if (req.method === 'POST') {
+    const host = req.headers.host || '';
+    if (!/^localhost(:\d+)?$/.test(host) && !/^127\.0\.0\.1(:\d+)?$/.test(host)) {
+      res.statusCode = 403;
+      return res.end('forbidden origin');
+    }
+    const origin = req.headers.origin;
+    if (origin && !/^http:\/\/localhost(:\d+)?$/.test(origin) && !/^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) {
+      res.statusCode = 403;
+      return res.end('forbidden origin');
+    }
+  }
+
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index')) {
     const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
     const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
@@ -1003,17 +1017,13 @@ export function createServer(workdir) {
 
   return httpCreateServer((req, res) => {
     handleRequest(req, res, workdir, cardLibraryRoot).catch((err) => {
+      console.error(err && err.stack ? err.stack : err);
       res.statusCode = 500;
-      res.end(String((err && err.stack) || err));
+      res.end('internal error');
     });
   });
 }
 
-function resolveWorkdir(arg) {
-  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
-  const pipelineRoot = path.resolve(import.meta.dirname, '..');
-  return path.join(pipelineRoot, 'videos', arg);
-}
 
 // No-arg mode (used by the local-apps dashboard): most recently touched video
 // workdir that has a cues.json.

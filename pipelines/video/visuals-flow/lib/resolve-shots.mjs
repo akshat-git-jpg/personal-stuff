@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { normWord, findPhrase } from './resolve.mjs';
+import { resolveWorkdir } from './workdir.mjs';
 
 export const ENGINE_MODES = ['test', 'production'];
 
@@ -45,11 +46,6 @@ export function resolveShots(shotsFile, words) {
   return { spans: out, errors };
 }
 
-function resolveWorkdir(arg) {
-  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
-  const pipelineRoot = path.resolve(import.meta.dirname, '..');
-  return path.join(pipelineRoot, 'videos', arg);
-}
 
 async function main() {
   const arg = process.argv[2];

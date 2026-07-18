@@ -6,14 +6,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
+import { resolveWorkdir } from './workdir.mjs';
 
 const MODEL = 'whisper-large-v3-turbo';
 
-function resolveWorkdir(arg) {
-  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
-  const pipelineRoot = path.resolve(import.meta.dirname, '..');
-  return path.join(pipelineRoot, 'videos', arg);
-}
 
 async function main() {
   const args = process.argv.slice(2);
@@ -23,6 +19,10 @@ async function main() {
     process.exit(1);
   }
   const outFlag = args.indexOf('--out');
+  if (outFlag !== -1 && !args[outFlag + 1]) {
+    console.error('--out needs a file path');
+    process.exit(1);
+  }
   const workdir = resolveWorkdir(workdirArg);
   const outPath = outFlag !== -1 ? path.resolve(args[outFlag + 1]) : path.join(workdir, 'transcript.json');
   const voPath = path.join(workdir, 'vo.mp3');

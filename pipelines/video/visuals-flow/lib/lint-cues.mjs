@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { resolveWorkdir } from './workdir.mjs';
 
 const CAP_STAT_HIT = 3;
 const SPACING_STAT_HIT = 90;
@@ -70,12 +71,16 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
   }
 
   // E4 exclusion-zones
-  for (const r of sortedResolved) {
-    if (r.start < ZONE_START) {
-      errors.push(`E4 exclusion-zones: ${r.id} starts at ${r.start.toFixed(1)}s (minimum ${ZONE_START}s)`);
-    }
-    if (r.start + r.duration > T - ZONE_END) {
-      errors.push(`E4 exclusion-zones: ${r.id} ends at ${(r.start + r.duration).toFixed(1)}s (maximum ${(T - ZONE_END).toFixed(1)}s, total ${T.toFixed(1)}s)`);
+  if (T < 40) {
+    errors.push(`E4 exclusion zones: video too short for graphics (< 40s)`);
+  } else {
+    for (const r of sortedResolved) {
+      if (r.start < ZONE_START) {
+        errors.push(`E4 exclusion-zones: ${r.id} starts at ${r.start.toFixed(1)}s (minimum ${ZONE_START}s)`);
+      }
+      if (r.start + r.duration > T - ZONE_END) {
+        errors.push(`E4 exclusion-zones: ${r.id} ends at ${(r.start + r.duration).toFixed(1)}s (maximum ${(T - ZONE_END).toFixed(1)}s, total ${T.toFixed(1)}s)`);
+      }
     }
   }
 
@@ -145,11 +150,6 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
   return { errors, warnings };
 }
 
-function resolveWorkdir(arg) {
-  if (arg.includes('/') || fs.existsSync(arg)) return path.resolve(arg);
-  const pipelineRoot = path.resolve(import.meta.dirname, '..');
-  return path.join(pipelineRoot, 'videos', arg);
-}
 
 async function main() {
   const arg = process.argv[2];
