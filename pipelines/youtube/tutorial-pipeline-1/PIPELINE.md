@@ -55,6 +55,8 @@ Same as `tutorial-pipeline-2`: ×10 step numbering, `-run`/`-human` actor suffix
 `../<prev>/output/…` and writes its own `./output/…`, no HeyGen polling (anti-ban) — 040 waits a
 computed duration instead of polling status.
 
+Graphics step: consume `pipelines/video/graphics-flow` per its INTEGRATION.md (workdir-by-path contract).
+
 ## Status
 `030`'s HeyGen submit calls `generate-from-template` — real and HAR-verified 2026-07-09
 end-to-end (real render, downloaded, confirmed correctly composed). Every step is real today.

@@ -46,8 +46,7 @@ same house rule as the rest of `pipelines/`.
 
 Any flow may call `lib/resolve.mjs`, `lib/render.mjs`, or `lib/board.mjs`
 directly with a path argument instead of a slug — this flow's steps are not
-the only caller. `card-library` remains the card + catalog source of truth;
-see `../card-library/README.md` for the beat contract cards must satisfy.
+the only caller. Full caller contract: [INTEGRATION.md](INTEGRATION.md).
 
 ## cues.json schema
 
