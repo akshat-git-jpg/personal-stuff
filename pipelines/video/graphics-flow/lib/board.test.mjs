@@ -3,10 +3,13 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer, buildSegments } from './board.mjs';
+import { createServer, buildSegments, synthCalibrationVars } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp');
+const CARD_LIBRARY_ROOT = path.resolve(import.meta.dirname, '..', '..', 'card-library');
+const CATALOG = JSON.parse(fs.readFileSync(path.join(CARD_LIBRARY_ROOT, 'catalog.json'), 'utf8'));
+const BEAT_CARDS = CATALOG.cards.filter((c) => c.kind === 'beat');
 
 function ensureFixtureAudio() {
   const voPath = path.join(FIXTURE_DIR, 'vo.mp3');
@@ -63,6 +66,18 @@ test('GET /card/c01 injects the getVariables shim before the card\'s first origi
     assert.ok(cardScriptIdx !== -1, "card's original script present");
     assert.ok(shimIdx < cardScriptIdx, 'shim is injected before the first original script');
     assert.match(html, /Great support/);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /card/c01 includes the overflow probe (__measureOverflow + probe message handler)', async () => {
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    const res = await fetch(`${base}/card/c01`);
+    const html = await res.text();
+    assert.match(html, /__measureOverflow/);
+    assert.match(html, /Array\.isArray\(e\.data\.probe\)/);
   } finally {
     server.close();
   }
@@ -428,5 +443,69 @@ test('POST /save with invalid JSON body returns 400 and error', async () => {
     assert.match(data.errors[0], /invalid JSON/);
   } finally {
     server.close();
+  }
+});
+
+test('GET /calibrate lists one tile per beat card in the catalog', async () => {
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    const res = await fetch(`${base}/calibrate`);
+    assert.equal(res.status, 200);
+    const html = await res.text();
+    assert.ok(BEAT_CARDS.length > 0, 'catalog fixture sanity: expected at least one beat card');
+    for (const card of BEAT_CARDS) {
+      assert.ok(html.includes(card.slug), `expected ${card.slug} tile on /calibrate`);
+    }
+    const tileCount = (html.match(/class="timeline-block tile"/g) || []).length;
+    assert.equal(tileCount, BEAT_CARDS.length);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /calibrate-card/<slug> serves every beat card 200 with getVariables present', async () => {
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    for (const card of BEAT_CARDS) {
+      const res = await fetch(`${base}/calibrate-card/${encodeURIComponent(card.slug)}`);
+      assert.equal(res.status, 200, `${card.slug} should respond 200`);
+      const html = await res.text();
+      assert.match(html, /getVariables/, `${card.slug} should include the shim`);
+    }
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /calibrate-card/<unknown> returns 404', async () => {
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    const res = await fetch(`${base}/calibrate-card/${encodeURIComponent('nope/nope')}`);
+    assert.equal(res.status, 404);
+  } finally {
+    server.close();
+  }
+});
+
+test('synthCalibrationVars: every beat card synthesizes exactly max_beats beats, each within max_reveal_chars', () => {
+  for (const card of BEAT_CARDS) {
+    const { variables, beats } = synthCalibrationVars(card);
+    assert.equal(beats.length, card.max_beats, `${card.slug}: expected ${card.max_beats} beats`);
+    for (const beat of beats) {
+      assert.equal(typeof beat.at, 'number');
+      for (const [key, value] of Object.entries(beat)) {
+        if (key === 'at' || key === 'color') continue; // color is a CSS value, not reveal text
+        if (typeof value === 'string') {
+          assert.ok(value.length <= card.max_reveal_chars, `${card.slug} beat.${key} is ${value.length} chars, max ${card.max_reveal_chars}`);
+        }
+      }
+      if (Array.isArray(beat.values) && Array.isArray(variables.products)) {
+        assert.equal(beat.values.length, variables.products.length, `${card.slug}: values must match products 1:1`);
+      }
+    }
+    for (const [key, descriptor] of Object.entries(card.variables ?? {})) {
+      if (/\(optional\)/i.test(descriptor)) continue;
+      assert.ok(key in variables, `${card.slug}: required variable "${key}" missing from synthesis`);
+    }
   }
 });
