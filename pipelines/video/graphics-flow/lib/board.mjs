@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveCues, normWord } from './resolve.mjs';
+import { lintCues } from './lint-cues.mjs';
 import { mmss } from './render.mjs';
 import { enrichLogos } from './logos-inline.mjs';
 
@@ -384,7 +385,17 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       if (!data.ok) {
         showBanner(data.errors.map(escapeForBanner).join('<br>'), 'err');
       } else {
-        location.reload();
+        const warns = data.warnings || [];
+        const errs = data.errors || [];
+        if (warns.length > 0 || errs.length > 0) {
+          let html = \`saved — \${warns.length} lint warnings, \${errs.length} errors<br><br>\`;
+          const lines = [];
+          for (const e of errs) lines.push(\`error: \${escapeForBanner(e)}\`);
+          for (const w of warns) lines.push(escapeForBanner(w));
+          showBanner(html + lines.join('<br>'), errs.length > 0 ? 'err' : 'ok');
+        } else {
+          location.reload();
+        }
       }
     };
 
@@ -450,13 +461,15 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   if (errors.length) {
     return res.end(JSON.stringify({ ok: false, errors }));
   }
+  
+  const { errors: lintErrors, warnings: lintWarnings } = lintCues({ cuesFile: merged, resolved, words, catalog });
 
   fs.writeFileSync(
     path.join(workdir, 'resolved.json'),
     JSON.stringify({ video: merged.video, offset: merged.offset ?? 0, resolved }, null, 2),
   );
   ensureSlices(workdir);
-  res.end(JSON.stringify({ ok: true, errors: [] }));
+  res.end(JSON.stringify({ ok: true, errors: lintErrors, warnings: lintWarnings }));
 }
 
 async function handleApprove(req, res, workdir) {

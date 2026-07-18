@@ -19,6 +19,7 @@ guarantee that a correction given once is never needed twice.
    - selection/timing/density mistake → `steps/020-cue-pass-llm/RULEBOOK.md`
      AND the compressed rule in `cue-pass-prompt.md` (both, always — the prompt
      is what the model actually sees)
+   - quantitative selection rule (caps, spacing, zones, density) → `lib/lint-cues.mjs` thresholds
    - visual/design mistake → `card-library/DESIGN.md`, or the card itself
    - wrong card contract (shapes, limits, purpose wording) → `card-library/catalog.json`
      (machine-enforced surfaces beat prose — prefer a catalog field + resolver
