@@ -1,0 +1,78 @@
+{
+  "video": "test-01",
+  "updated": "2026-07-18",
+  "items": {
+    "c06": {
+      "text": "we don't need this step flow. I think screen recording itself will be best here instead of showing motion graphics. Please take care of this as other places as well.",
+      "added": "2026-07-18",
+      "context": {
+        "card": "process/step-flow",
+        "anchor": "head over to OpenArt.ai",
+        "start": 182.07
+      },
+      "applied": "2026-07-18 \u2014 removed c06/c09/c15 (all step-flows over on-screen demos)",
+      "folded": "2026-07-18 \u2014 RULEBOOK+prompt: step narration rule \u2014 no graphic over on-screen actions"
+    },
+    "c14": {
+      "text": "c11, c08 - why are they different than this. they are same category of motion graphics right for tool title.. lets use this eveyrhwere?",
+      "added": "2026-07-18",
+      "context": {
+        "card": "section/section-counter-scale",
+        "anchor": "Now let's move on to Heigen",
+        "start": 994.79
+      },
+      "applied": "2026-07-18 \u2014 all 5 tool openers unified on section-counter-scale (+logo)",
+      "folded": "2026-07-18 \u2014 RULEBOOK+prompt structural-consistency rule; catalog structural flag; lint E3 exemption"
+    },
+    "c20": {
+      "text": "does not look good. I think no need to show motion graphics here. Screen recording itself will be better. We can show pricing details motion graphics at end when showing comparison.",
+      "added": "2026-07-18",
+      "context": {
+        "card": "comparison/credits-math",
+        "anchor": "Let's start with the open art",
+        "start": 1386.13
+      },
+      "applied": "2026-07-18 \u2014 removed c20\u2013c24; added c28 pricing-details summary-table at 29:12",
+      "folded": "2026-07-18 \u2014 RULEBOOK+prompt: pricing consolidation rule"
+    },
+    "_global": {
+      "text": "why most motion graphics don't have tool icons..",
+      "added": "2026-07-18",
+      "applied": "2026-07-18 \u2014 logos added: 5 openers, 3 stat-hits, c25/c28 productLogos, c26 winners; counter-scale card gained a logo slot",
+      "folded": "2026-07-18 \u2014 no new rule \u2014 068 logo rule already covers; test-01 predated it"
+    },
+    "c21": {
+      "text": "same.",
+      "added": "2026-07-18",
+      "context": {
+        "card": "comparison/credits-math",
+        "anchor": "Higgs field free tier gives",
+        "start": 1452.61
+      },
+      "applied": "2026-07-18 \u2014 removed with c20\u2013c24",
+      "folded": "2026-07-18 \u2014 covered by pricing consolidation rule"
+    },
+    "c22": {
+      "text": "doesn't look right. My main feedback is lets keep motion graphics similar for each tool. you can't just show one motion graphic for 1 tool and different motion graphic for different tool. We did not showed this motion graphic earlier so why show this suddently for synthesia.",
+      "added": "2026-07-18",
+      "context": {
+        "card": "comparison/pricing-tiers",
+        "anchor": "its free plan gives you three minutes",
+        "start": 1496.37
+      },
+      "applied": "2026-07-18 \u2014 removed with c20\u2013c24; consistency covered by structural rule",
+      "folded": "2026-07-18 \u2014 covered by pricing consolidation + structural consistency rules"
+    },
+    "c24": {
+      "text": "same.",
+      "added": "2026-07-18",
+      "context": {
+        "card": "comparison/billing-discount",
+        "anchor": "starter plan runs around $110",
+        "start": 1589.73
+      },
+      "applied": "2026-07-18 \u2014 removed with c20\u2013c24",
+      "folded": "2026-07-18 \u2014 covered by pricing consolidation rule"
+    }
+  }
+}

@@ -40,6 +40,10 @@ where it ADDS something the footage can't (structure at a section boundary, a
 number or list the viewer should hold onto, a comparison too dense to say).
 Stretches that are demonstration — the presenter clicking through a tool while
 describing what they're doing — are already visual and need nothing on top.
+This includes step narration: when the VO walks actions the recording shows
+("head over to the site, click X, select Y"), never place a step-flow or any
+other graphic over it — `process/step-flow` is reserved for processes NOT
+visible on screen (owner fold 2026-07-18, test-01 c06/c09/c15).
 When unsure whether a moment earns a graphic, it doesn't.
 
 These are starting defaults, not physics — when the script structure fights a
@@ -64,6 +68,26 @@ Route by what the VO is DOING at that moment, using each catalog card's
 - Delivering a final judgment → a verdict card.
 - Opening a section → a section or title card.
 - Reinforcing a single claim or number → an overlay card.
+
+**Structural consistency (mandatory).** Cards serving a parallel structural
+role — the same semantic slot repeated once per compared item, like the
+section opener for each of 5 tools — MUST use the SAME card for every item.
+Mixing cards across parallel items makes the video asymmetrical and is a
+defect, not variety. These cards carry `structural: true` in catalog.json and
+are exempt from the repetition cap below; the linter knows. (Owner fold
+2026-07-18: v2 swapped two of five tool openers to different section cards to
+dodge the cap — wrong tradeoff, consistency wins.)
+
+**Repetition cap (non-structural cards only).** The same fullframe card at
+most 3 times per video. `overlay/stat-hit`: max 3 per video, ≥90s apart, only
+for numbers the VO leans on — drop the least impressive rather than exceed.
+Other overlays: vary callout's style and position when repeating.
+
+**Pricing consolidation (mandatory).** Per-tool pricing/credits details during
+tool segments stay on the screen recording — pricing pages are already on
+screen. Consolidate pricing into ONE comparison graphic (e.g. a summary-table
+with real prices) in the final comparison section. Never one pricing card per
+tool. (Owner fold 2026-07-18, test-01 c20–c24.)
 
 If nothing in the catalog fits, do not force a bad match. Set the cue's
 `flagged` to `true`, set `card` to the closest existing slug, and add a `note`

@@ -56,13 +56,28 @@ section/title card; one reinforced claim -> an overlay card. If nothing fits,
 set `flagged: true`, `card` to the closest slug, and add a `note` field
 explaining the gap — never force a bad match.
 
-Specificity wins (mandatory): big number -> overlay/stat-hit; a tool/section
-demo start -> section/tool-intro; plan/credit economics -> comparison/credits-math;
-step walkthrough -> process/step-flow; who-should-buy-what payoff ->
-verdict/persona-match. Repetition cap: the same fullframe card at most 3 times
+Specificity wins (mandatory): big number -> overlay/stat-hit; plan/credit
+economics too dense to say -> comparison/credits-math; step walkthrough NOT
+shown on screen -> process/step-flow; who-should-buy-what payoff ->
+verdict/persona-match.
+
+Structural consistency (mandatory): a repeated semantic slot — e.g. the
+section opener for each compared tool — uses the SAME card every time; mixing
+cards across parallel items is a defect, not variety. Structural cards
+(catalog `structural: true`) are exempt from the repetition cap.
+
+Repetition cap (non-structural cards): the same fullframe card at most 3 times
 per video. overlay/stat-hit: max 3 per video, >=90s apart, only for numbers the
 VO leans on — drop the least impressive rather than exceed. Other overlays: vary
 callout's style and position when repeating.
+
+Step narration (mandatory): if the VO narrates actions the screen recording
+shows ("go to the site, click X"), NO graphic — step-flow is only for
+processes not visible on screen.
+
+Pricing (mandatory): no per-tool pricing/credits graphics during tool segments
+(the pricing page is on screen); consolidate into ONE pricing comparison
+graphic in the final comparison section.
 
 Anchors: verbatim quotes copied exactly from the transcript, contractions and
 all, never paraphrased; at least 3 consecutive words; pick phrases unlikely

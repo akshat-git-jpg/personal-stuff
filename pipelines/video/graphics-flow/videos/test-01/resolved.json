@@ -44,53 +44,21 @@
         "eyebrow": "Synthesia",
         "value": 240,
         "suffix": "+",
-        "context": "lifelike AI avatars to choose from"
+        "context": "lifelike AI avatars to choose from",
+        "logo": "synthesia"
       }
     },
     {
       "id": "c05",
-      "card": "section/tool-intro",
+      "card": "section/section-counter-scale",
       "placement": "fullframe",
       "start": 176.05,
-      "duration": 6,
+      "duration": 5,
       "variables": {
-        "index": 1,
-        "total": 5,
-        "name": "OpenArt AI",
-        "tagline": "A full creative workspace, not a single-purpose tool",
-        "tag": "Creative hub"
-      }
-    },
-    {
-      "id": "c06",
-      "card": "process/step-flow",
-      "placement": "fullframe",
-      "start": 182.07,
-      "duration": 187.1,
-      "variables": {
-        "title": "OpenArt AI: text to video",
-        "beats": [
-          {
-            "label": "Open OpenArt.ai",
-            "at": 7.02
-          },
-          {
-            "label": "Choose text to video",
-            "at": 13.86
-          },
-          {
-            "label": "Pick your model",
-            "at": 23.83
-          },
-          {
-            "label": "Describe your scene",
-            "at": 109.25
-          },
-          {
-            "label": "Generate the video",
-            "at": 175.1
-          }
-        ]
+        "number": "1",
+        "title": "OpenArt AI",
+        "dots": 5,
+        "logo": "openart"
       }
     },
     {
@@ -109,48 +77,15 @@
     },
     {
       "id": "c08",
-      "card": "section/tool-intro",
+      "card": "section/section-counter-scale",
       "placement": "fullframe",
       "start": 492.85,
-      "duration": 6,
+      "duration": 5,
       "variables": {
-        "index": 2,
-        "total": 5,
-        "name": "Higgsfield",
-        "tagline": "Director-level camera control for cinematic video",
-        "tag": "Cinematic video"
-      }
-    },
-    {
-      "id": "c09",
-      "card": "process/step-flow",
-      "placement": "fullframe",
-      "start": 506.83,
-      "duration": 128.21,
-      "variables": {
-        "title": "Higgsfield: Cinema Studio",
-        "beats": [
-          {
-            "label": "Open Cinema Studio",
-            "at": 7.76
-          },
-          {
-            "label": "Set camera movement",
-            "at": 20.49
-          },
-          {
-            "label": "Pick genre & aspect ratio",
-            "at": 53.13
-          },
-          {
-            "label": "Set start & end frame",
-            "at": 95.9
-          },
-          {
-            "label": "Generate the shot",
-            "at": 116.21
-          }
-        ]
+        "number": "2",
+        "title": "Higgsfield",
+        "dots": 5,
+        "logo": "higgsfield"
       }
     },
     {
@@ -169,16 +104,15 @@
     },
     {
       "id": "c11",
-      "card": "section/tool-intro",
+      "card": "section/section-counter-scale",
       "placement": "fullframe",
       "start": 763.83,
-      "duration": 6,
+      "duration": 5,
       "variables": {
-        "index": 3,
-        "total": 5,
-        "name": "Synthesia",
-        "tagline": "Polished presenter-style avatar video for business",
-        "tag": "Corporate avatars"
+        "number": "3",
+        "title": "Synthesia",
+        "dots": 5,
+        "logo": "synthesia"
       }
     },
     {
@@ -191,7 +125,8 @@
         "eyebrow": "Synthesia",
         "value": 140,
         "suffix": "+",
-        "context": "languages and accents supported"
+        "context": "languages and accents supported",
+        "logo": "synthesia"
       }
     },
     {
@@ -217,39 +152,8 @@
       "variables": {
         "number": "4",
         "title": "HeyGen",
-        "dots": 5
-      }
-    },
-    {
-      "id": "c15",
-      "card": "process/step-flow",
-      "placement": "fullframe",
-      "start": 1011.32,
-      "duration": 150.31,
-      "variables": {
-        "title": "HeyGen: avatar & voice",
-        "beats": [
-          {
-            "label": "Select your avatar",
-            "at": 1.48
-          },
-          {
-            "label": "Paste in your script",
-            "at": 3.45
-          },
-          {
-            "label": "Clone your voice",
-            "at": 41.8
-          },
-          {
-            "label": "Upload a voice sample",
-            "at": 105.37
-          },
-          {
-            "label": "Translate the video",
-            "at": 138.31
-          }
-        ]
+        "dots": 5,
+        "logo": "heygen"
       }
     },
     {
@@ -268,13 +172,15 @@
     },
     {
       "id": "c17",
-      "card": "section/section-particle-storm",
+      "card": "section/section-counter-scale",
       "placement": "fullframe",
       "start": 1198.75,
       "duration": 5,
       "variables": {
         "number": "5",
-        "title": "Arcads"
+        "title": "Arcads",
+        "dots": 5,
+        "logo": "arcads"
       }
     },
     {
@@ -287,7 +193,8 @@
         "eyebrow": "Arcads",
         "value": 300,
         "suffix": "+",
-        "context": "real-human actors in the library"
+        "context": "real-human actors in the library",
+        "logo": "arcads"
       }
     },
     {
@@ -305,157 +212,6 @@
       }
     },
     {
-      "id": "c20",
-      "card": "comparison/credits-math",
-      "placement": "fullframe",
-      "start": 1386.13,
-      "duration": 65.67,
-      "variables": {
-        "title": "OpenArt AI pricing",
-        "beats": [
-          {
-            "label": "Infinite (annual)",
-            "math": "$28/mo · 24k credits",
-            "at": 41.73
-          },
-          {
-            "label": "Basic image",
-            "math": "~1 credit",
-            "at": 55.9
-          },
-          {
-            "label": "Premium clip",
-            "math": "up to 1,500 credits",
-            "at": 59.67
-          }
-        ]
-      }
-    },
-    {
-      "id": "c21",
-      "card": "comparison/credits-math",
-      "placement": "fullframe",
-      "start": 1452.61,
-      "duration": 42.74,
-      "variables": {
-        "title": "Higgsfield pricing",
-        "beats": [
-          {
-            "label": "Free tier",
-            "math": "~300 credits/mo, images only",
-            "at": 2.43
-          },
-          {
-            "label": "Creator (annual)",
-            "math": "$39/mo · 6,000 credits",
-            "at": 21.33
-          },
-          {
-            "label": "Premium model gen",
-            "math": "40-70 credits each",
-            "at": 32.74
-          }
-        ]
-      }
-    },
-    {
-      "id": "c22",
-      "card": "comparison/pricing-tiers",
-      "placement": "fullframe",
-      "start": 1496.37,
-      "duration": 8,
-      "variables": {
-        "heading": "Synthesia pricing",
-        "plans": [
-          {
-            "name": "Starter",
-            "price": "$18/mo",
-            "monthlyPrice": "$29/mo",
-            "billingNote": "billed annually",
-            "period": "mo",
-            "tagline": "10 minutes of video per month",
-            "features": [
-              "10 min video/month"
-            ],
-            "cta": "Try Starter",
-            "best": false
-          },
-          {
-            "name": "Creator",
-            "price": "$64/mo",
-            "monthlyPrice": "$89/mo",
-            "billingNote": "billed annually",
-            "period": "mo",
-            "tagline": "30 minutes plus more avatars",
-            "features": [
-              "30 min video/month",
-              "More avatars & features"
-            ],
-            "cta": "Try Creator",
-            "best": true
-          },
-          {
-            "name": "Enterprise",
-            "price": "Custom",
-            "period": "mo",
-            "tagline": "Clip export & translation, unlocked",
-            "features": [
-              "Custom pricing",
-              "Advanced export & translation"
-            ],
-            "cta": "Contact sales",
-            "best": false
-          }
-        ]
-      }
-    },
-    {
-      "id": "c23",
-      "card": "comparison/credits-math",
-      "placement": "fullframe",
-      "start": 1528.91,
-      "duration": 50.58,
-      "variables": {
-        "title": "HeyGen pricing",
-        "beats": [
-          {
-            "label": "Creator plan",
-            "math": "$29/mo, unlimited avatar videos",
-            "at": 20.41
-          },
-          {
-            "label": "Team plan",
-            "math": "$39/seat/mo, 4K export",
-            "at": 30.03
-          },
-          {
-            "label": "90-sec video cost",
-            "math": "eats a big credit chunk",
-            "at": 40.58
-          }
-        ]
-      }
-    },
-    {
-      "id": "c24",
-      "card": "comparison/billing-discount",
-      "placement": "fullframe",
-      "start": 1589.73,
-      "duration": 7,
-      "variables": {
-        "title": "Arcads pricing",
-        "monthly": {
-          "name": "Creator",
-          "price": "$220/mo"
-        },
-        "yearly": {
-          "name": "Creator (discounted)",
-          "price": "$154/mo",
-          "savings": "30% off"
-        }
-      }
-    },
-    {
       "id": "c25",
       "card": "comparison/summary-table",
       "placement": "fullframe",
@@ -468,6 +224,13 @@
           "Synthesia",
           "HeyGen",
           "Arcads"
+        ],
+        "productLogos": [
+          "openart",
+          "higgsfield",
+          "synthesia",
+          "heygen",
+          "arcads"
         ],
         "beats": [
           {
@@ -518,6 +281,53 @@
       }
     },
     {
+      "id": "c28",
+      "card": "comparison/summary-table",
+      "placement": "fullframe",
+      "start": 1752.11,
+      "duration": 15.72,
+      "variables": {
+        "products": [
+          "OpenArt AI",
+          "Higgsfield",
+          "Synthesia",
+          "HeyGen",
+          "Arcads"
+        ],
+        "productLogos": [
+          "openart",
+          "higgsfield",
+          "synthesia",
+          "heygen",
+          "arcads"
+        ],
+        "beats": [
+          {
+            "name": "Free tier",
+            "values": [
+              "40 trial credits",
+              "~300 credits/mo",
+              "3 min video/mo",
+              "3 videos/mo",
+              "—"
+            ],
+            "at": 5.42
+          },
+          {
+            "name": "Paid from",
+            "values": [
+              "$28/mo (annual)",
+              "$39/mo (annual)",
+              "$18/mo (annual)",
+              "$29/mo",
+              "$110/mo"
+            ],
+            "at": 7.72
+          }
+        ]
+      }
+    },
+    {
       "id": "c26",
       "card": "verdict/persona-match",
       "placement": "fullframe",
@@ -529,26 +339,31 @@
           {
             "persona": "Content creators & marketers",
             "winner": "OpenArt AI",
+            "logo": "openart",
             "at": 4.2
           },
           {
             "persona": "Cinematic video creators",
             "winner": "Higgsfield",
+            "logo": "higgsfield",
             "at": 33.96
           },
           {
             "persona": "Corporate & training teams",
             "winner": "Synthesia",
+            "logo": "synthesia",
             "at": 52.91
           },
           {
             "persona": "Solo creators & small teams",
             "winner": "HeyGen",
+            "logo": "heygen",
             "at": 70.54
           },
           {
             "persona": "Performance marketers",
             "winner": "Arcads",
+            "logo": "arcads",
             "at": 90.62
           }
         ]

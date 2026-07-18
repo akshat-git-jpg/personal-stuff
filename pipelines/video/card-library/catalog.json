@@ -133,12 +133,12 @@
       "purpose": "scored comparison matrix with a reason column; each factor row reveals on its beat",
       "variables": {
         "products": "array of strings",
-        "productLogos": "array of strings (optional) — logos/ registry slugs matching products, e.g. ['heygen', 'openart']"
+        "productLogos": "array of strings (optional) \u2014 logos/ registry slugs matching products, e.g. ['heygen', 'openart']"
       },
       "beat_shape": {
         "name": "string",
         "values": "array of score strings, EXACTLY one per product in products order (e.g. \"4.5 / 5\")",
-        "reason": "string (optional) — one-line why, shown in the last column"
+        "reason": "string (optional) \u2014 one-line why, shown in the last column"
       },
       "default_duration": 7,
       "max_beats": 7,
@@ -188,7 +188,7 @@
         "title": "string",
         "text": "string",
         "pos": "string",
-        "style": "string (optional): 'feature' | 'tip' | 'warning' — default 'feature'",
+        "style": "string (optional): 'feature' | 'tip' | 'warning' \u2014 default 'feature'",
         "kicker": "string (optional)"
       },
       "default_duration": 5
@@ -357,7 +357,8 @@
         "number": "string",
         "title": "string"
       },
-      "default_duration": 5
+      "default_duration": 5,
+      "structural": true
     },
     {
       "slug": "section/section-counter-scale",
@@ -367,9 +368,11 @@
       "variables": {
         "number": "string",
         "title": "string",
-        "dots": "number"
+        "dots": "number",
+        "logo": "string (optional) \u2014 logos/ registry slug, e.g. 'heygen'; shown beside the title"
       },
-      "default_duration": 5
+      "default_duration": 5,
+      "structural": true
     },
     {
       "slug": "section/section-particle-storm",
@@ -380,7 +383,8 @@
         "number": "string",
         "title": "string"
       },
-      "default_duration": 5
+      "default_duration": 5,
+      "structural": true
     },
     {
       "slug": "table-of-contents/table-of-contents",
@@ -491,7 +495,7 @@
       "purpose": "big animated stat: count-up hero number + label + context line, transparent overlay for demo footage",
       "variables": {
         "eyebrow": "string",
-        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'",
+        "logo": "string (optional) \u2014 logos/ registry slug, e.g. 'heygen'",
         "value": "number",
         "suffix": "string (optional)",
         "context": "string"
@@ -506,25 +510,26 @@
       "variables": {
         "index": "number",
         "total": "number",
-        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'",
+        "logo": "string (optional) \u2014 logos/ registry slug, e.g. 'heygen'",
         "name": "string",
         "tagline": "string",
         "tag": "string"
       },
-      "default_duration": 6
+      "default_duration": 6,
+      "structural": true
     },
     {
       "slug": "verdict/persona-match",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "use-case verdict: persona → winning tool pairs, one pair per beat",
+      "purpose": "use-case verdict: persona \u2192 winning tool pairs, one pair per beat",
       "variables": {
         "title": "string"
       },
       "beat_shape": {
         "persona": "string",
         "winner": "string",
-        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'"
+        "logo": "string (optional) \u2014 logos/ registry slug, e.g. 'heygen'"
       },
       "default_duration": 7,
       "max_beats": 6,
@@ -534,10 +539,10 @@
       "slug": "comparison/credits-math",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "credit/unit economics rows: plan → credits → what that actually buys, one row per beat",
+      "purpose": "credit/unit economics rows: plan \u2192 credits \u2192 what that actually buys, one row per beat",
       "variables": {
         "title": "string",
-        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'"
+        "logo": "string (optional) \u2014 logos/ registry slug, e.g. 'heygen'"
       },
       "beat_shape": {
         "label": "string",

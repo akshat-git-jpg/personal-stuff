@@ -5,6 +5,7 @@ import { lintCues } from './lint-cues.mjs';
 const catalog = {
   cards: [
     { slug: 'fullframe/beat', placement: 'fullframe' },
+    { slug: 'section/opener', placement: 'fullframe', structural: true },
     { slug: 'overlay/stat-hit', placement: 'overlay' },
     { slug: 'overlay/plain', placement: 'overlay' }
   ]
@@ -202,4 +203,21 @@ test('flagged cues are ignored', () => {
   assert(!res.errors.some(e => e.includes('E1 stat-hit-cap')));
   // c1 is ignored, so no E4 (start < 15)
   assert(!res.errors.some(e => e.includes('E4 exclusion-zones')));
+});
+
+test('E3 exemption: structural fullframe cards repeat freely (one per compared item)', () => {
+  const c = [
+    { id: 'c1', card: 'section/opener', start: 20 },
+    { id: 'c2', card: 'section/opener', start: 120 },
+    { id: 'c3', card: 'section/opener', start: 220 },
+    { id: 'c4', card: 'section/opener', start: 320 },
+    { id: 'c5', card: 'section/opener', start: 420 }
+  ];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog
+  });
+  assert(!res.errors.some(e => e.includes('E3 card-repetition')));
 });

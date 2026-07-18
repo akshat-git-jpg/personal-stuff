@@ -51,11 +51,13 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
     }
   }
 
-  // E3 card-repetition
+  // E3 card-repetition — structural cards (catalog `structural: true`, e.g.
+  // section openers used once per compared item) are exempt: consistency
+  // across parallel items beats variety (owner rule 2026-07-18).
   const fullframeCounts = {};
   for (const r of sortedResolved) {
     const cat = bySlug[r.card];
-    if (cat && cat.placement === 'fullframe') {
+    if (cat && cat.placement === 'fullframe' && !cat.structural) {
       fullframeCounts[r.card] = fullframeCounts[r.card] || { count: 0, ids: [] };
       fullframeCounts[r.card].count++;
       fullframeCounts[r.card].ids.push(r.id);

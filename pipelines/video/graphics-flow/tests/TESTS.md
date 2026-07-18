@@ -68,3 +68,11 @@ tested, with what source, and what the run taught us.
 - 2026-07-18 — owner: tools should show real logos/icons, text-only names click less → OPEN, needs design decisions (asset source, which cards) before building.
 - 2026-07-18 — owner: lint banner has no dismiss and stays forever → board banners now carry a ✕ (client + server-rendered).
 - 2026-07-18 — session: port-walk printed the STALE port in "board at" (failed listen()'s success callback stays registered and fires first) → resolve from server.address().port, not the closure.
+- 2026-07-18 — owner (board review v2): step-flow over on-screen demos is redundant → removed c06/c09/c15; RULEBOOK+prompt step-narration rule (no graphic over actions the recording shows).
+- 2026-07-18 — owner (board review v2): tool openers must be ONE consistent card, not a mix forced by the repetition cap → all 5 on section-counter-scale; structural-consistency rule (RULEBOOK+prompt), `structural: true` in catalog, lint E3 exempts structural cards.
+- 2026-07-18 — owner (board review v2): per-tool pricing graphics out, one pricing comparison at the end → removed c20–c24, added c28 (summary-table with real VO-stated prices + logos); pricing-consolidation rule (RULEBOOK+prompt).
+- 2026-07-18 — owner (board review v2): "why no tool icons" → logos applied across test-01 (openers/stat-hits/tables/persona-match); section-counter-scale gained an optional logo slot (rendered + inspected); no new rule (068's rule already covered it — test-01 predated the registry).
+
+## Convergence
+
+- 2026-07-18 test-01: llm=27 approved=18 edited=11 added=1 removed=10 typed=7 flags=0 lint-warnings=7 (v2 baseline; heavy edits expected — three new rules folded this pass)

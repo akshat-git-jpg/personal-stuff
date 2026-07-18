@@ -64,7 +64,9 @@
       #title {
         font-size: 56px; font-weight: 700; letter-spacing: -2px; color: var(--text);
         margin-top: 14px; will-change: transform, opacity;
+        display: flex; align-items: center; gap: 20px;
       }
+      #logo { width: 64px; height: 64px; border-radius: 12px; object-fit: contain; display: none; }
       #dots { display: flex; gap: 14px; margin-top: 18px; }
       .dot { border-radius: 50%; }
     </style>
@@ -90,7 +92,7 @@
       <div id="content" class="clip" data-start="0" data-duration="5" data-track-index="1">
         <div id="number">00</div>
         <div id="sectionLabel">Section</div>
-        <div id="title"></div>
+        <div id="title"><img id="logo" alt="" /><span id="titleText"></span></div>
         <div id="dots"></div>
       </div>
     </div>
@@ -110,6 +112,7 @@
         number: VARS.number ?? '02', // the section number it counts up to
         title: VARS.title ?? 'The Winners', // the section title
         dots: VARS.dots ?? 6, // how many progress dots
+        logo: VARS.logo ?? '', // optional logos/ registry slug; inlined via __logos
       };
 
       /* =====================================================
@@ -123,7 +126,14 @@
 
       // build the DOM that depends on DATA (must exist before the timeline targets it)
       function build() {
-        $('title').textContent = DATA.title;
+        $('titleText').textContent = DATA.title;
+        const LOGOS = VARS.__logos ?? {};
+        if (DATA.logo && LOGOS[DATA.logo]) {
+          $('logo').src = LOGOS[DATA.logo];
+          $('logo').style.display = 'block';
+        } else {
+          $('logo').remove();
+        }
         $('number').textContent = '00';
         $('dots').innerHTML = Array.from({ length: DATA.dots })
           .map((_, i) => {

@@ -54,7 +54,8 @@
         "eyebrow": "Synthesia",
         "value": 240,
         "suffix": "+",
-        "context": "lifelike AI avatars to choose from"
+        "context": "lifelike AI avatars to choose from",
+        "logo": "synthesia"
       },
       "beats": [],
       "flagged": false,
@@ -62,62 +63,18 @@
     },
     {
       "id": "c05",
-      "card": "section/tool-intro",
+      "card": "section/section-counter-scale",
       "anchor": "Alright let's start with Open Art AI",
       "hold": 6,
       "variables": {
-        "index": 1,
-        "total": 5,
-        "name": "OpenArt AI",
-        "tagline": "A full creative workspace, not a single-purpose tool",
-        "tag": "Creative hub"
+        "number": "1",
+        "title": "OpenArt AI",
+        "dots": 5,
+        "logo": "openart"
       },
       "beats": [],
       "flagged": false,
       "lead": 0.5
-    },
-    {
-      "id": "c06",
-      "card": "process/step-flow",
-      "anchor": "head over to OpenArt.ai",
-      "hold": 12,
-      "variables": {
-        "title": "OpenArt AI: text to video"
-      },
-      "beats": [
-        {
-          "reveal": {
-            "label": "Open OpenArt.ai"
-          },
-          "anchor": "click on video right here"
-        },
-        {
-          "reveal": {
-            "label": "Choose text to video"
-          },
-          "anchor": "frame to video, text to video"
-        },
-        {
-          "reveal": {
-            "label": "Pick your model"
-          },
-          "anchor": "look at the model selector"
-        },
-        {
-          "reveal": {
-            "label": "Describe your scene"
-          },
-          "anchor": "describe the action in detail"
-        },
-        {
-          "reveal": {
-            "label": "Generate the video"
-          },
-          "anchor": "click on generate right here"
-        }
-      ],
-      "flagged": false,
-      "lead": -1.1
     },
     {
       "id": "c07",
@@ -137,60 +94,16 @@
     },
     {
       "id": "c08",
-      "card": "section/tool-intro",
+      "card": "section/section-counter-scale",
       "anchor": "let's now move over to Higgs Field AI",
       "hold": 6,
       "variables": {
-        "index": 2,
-        "total": 5,
-        "name": "Higgsfield",
-        "tagline": "Director-level camera control for cinematic video",
-        "tag": "Cinematic video"
+        "number": "2",
+        "title": "Higgsfield",
+        "dots": 5,
+        "logo": "higgsfield"
       },
       "beats": [],
-      "flagged": false,
-      "lead": 0.5
-    },
-    {
-      "id": "c09",
-      "card": "process/step-flow",
-      "anchor": "click on Cinema Studio video",
-      "hold": 12,
-      "variables": {
-        "title": "Higgsfield: Cinema Studio"
-      },
-      "beats": [
-        {
-          "reveal": {
-            "label": "Open Cinema Studio"
-          },
-          "anchor": "use the Cinema Studio video feature"
-        },
-        {
-          "reveal": {
-            "label": "Set camera movement"
-          },
-          "anchor": "options for movement, you have"
-        },
-        {
-          "reveal": {
-            "label": "Pick genre & aspect ratio"
-          },
-          "anchor": "you have here the genre"
-        },
-        {
-          "reveal": {
-            "label": "Set start & end frame"
-          },
-          "anchor": "set the start frame"
-        },
-        {
-          "reveal": {
-            "label": "Generate the shot"
-          },
-          "anchor": "click on generate right here"
-        }
-      ],
       "flagged": false,
       "lead": 0.5
     },
@@ -212,15 +125,14 @@
     },
     {
       "id": "c11",
-      "card": "section/tool-intro",
+      "card": "section/section-counter-scale",
       "anchor": "Now let's move on to synthesis",
       "hold": 6,
       "variables": {
-        "index": 3,
-        "total": 5,
-        "name": "Synthesia",
-        "tagline": "Polished presenter-style avatar video for business",
-        "tag": "Corporate avatars"
+        "number": "3",
+        "title": "Synthesia",
+        "dots": 5,
+        "logo": "synthesia"
       },
       "beats": [],
       "flagged": false,
@@ -235,7 +147,8 @@
         "eyebrow": "Synthesia",
         "value": 140,
         "suffix": "+",
-        "context": "languages and accents supported"
+        "context": "languages and accents supported",
+        "logo": "synthesia"
       },
       "beats": [],
       "flagged": false,
@@ -265,54 +178,13 @@
       "variables": {
         "number": "4",
         "title": "HeyGen",
-        "dots": 5
+        "dots": 5,
+        "logo": "heygen"
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.5
-    },
-    {
-      "id": "c15",
-      "card": "process/step-flow",
-      "anchor": "select new video and",
-      "hold": 12,
-      "variables": {
-        "title": "HeyGen: avatar & voice"
-      },
-      "beats": [
-        {
-          "reveal": {
-            "label": "Select your avatar"
-          },
-          "anchor": "then from here you're just going to"
-        },
-        {
-          "reveal": {
-            "label": "Paste in your script"
-          },
-          "anchor": "paste in your script"
-        },
-        {
-          "reveal": {
-            "label": "Clone your voice"
-          },
-          "anchor": "clone your voice for"
-        },
-        {
-          "reveal": {
-            "label": "Upload a voice sample"
-          },
-          "anchor": "choose to upload your audio"
-        },
-        {
-          "reveal": {
-            "label": "Translate the video"
-          },
-          "anchor": "click on this translate tab"
-        }
-      ],
-      "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "note": " "
     },
     {
       "id": "c16",
@@ -332,12 +204,14 @@
     },
     {
       "id": "c17",
-      "card": "section/section-particle-storm",
+      "card": "section/section-counter-scale",
       "anchor": "And now finally, Arcad",
       "hold": 5,
       "variables": {
         "number": "5",
-        "title": "Arcads"
+        "title": "Arcads",
+        "dots": 5,
+        "logo": "arcads"
       },
       "beats": [],
       "flagged": false,
@@ -352,7 +226,8 @@
         "eyebrow": "Arcads",
         "value": 300,
         "suffix": "+",
-        "context": "real-human actors in the library"
+        "context": "real-human actors in the library",
+        "logo": "arcads"
       },
       "beats": [],
       "flagged": false,
@@ -375,182 +250,6 @@
       "lead": 0.5
     },
     {
-      "id": "c20",
-      "card": "comparison/credits-math",
-      "anchor": "Let's start with the open art",
-      "hold": 6,
-      "variables": {
-        "title": "OpenArt AI pricing"
-      },
-      "beats": [
-        {
-          "reveal": {
-            "label": "Infinite (annual)",
-            "math": "$28/mo \u00b7 24k credits"
-          },
-          "anchor": "priced at $28 per month"
-        },
-        {
-          "reveal": {
-            "label": "Basic image",
-            "math": "~1 credit"
-          },
-          "anchor": "basic image costs roughly one"
-        },
-        {
-          "reveal": {
-            "label": "Premium clip",
-            "math": "up to 1,500 credits"
-          },
-          "anchor": "run up to 1,500"
-        }
-      ],
-      "flagged": false,
-      "lead": 0.5
-    },
-    {
-      "id": "c21",
-      "card": "comparison/credits-math",
-      "anchor": "Higgs field free tier gives",
-      "hold": 10,
-      "variables": {
-        "title": "Higgsfield pricing"
-      },
-      "beats": [
-        {
-          "reveal": {
-            "label": "Free tier",
-            "math": "~300 credits/mo, images only"
-          },
-          "anchor": "around 300 credits a month"
-        },
-        {
-          "reveal": {
-            "label": "Creator (annual)",
-            "math": "$39/mo \u00b7 6,000 credits"
-          },
-          "anchor": "discounted to $39 per"
-        },
-        {
-          "reveal": {
-            "label": "Premium model gen",
-            "math": "40-70 credits each"
-          },
-          "anchor": "40 to 70 credits"
-        }
-      ],
-      "flagged": false,
-      "lead": 0.5
-    },
-    {
-      "id": "c22",
-      "card": "comparison/pricing-tiers",
-      "anchor": "its free plan gives you three minutes",
-      "hold": 8,
-      "variables": {
-        "heading": "Synthesia pricing",
-        "plans": [
-          {
-            "name": "Starter",
-            "price": "$18/mo",
-            "monthlyPrice": "$29/mo",
-            "billingNote": "billed annually",
-            "period": "mo",
-            "tagline": "10 minutes of video per month",
-            "features": [
-              "10 min video/month"
-            ],
-            "cta": "Try Starter",
-            "best": false
-          },
-          {
-            "name": "Creator",
-            "price": "$64/mo",
-            "monthlyPrice": "$89/mo",
-            "billingNote": "billed annually",
-            "period": "mo",
-            "tagline": "30 minutes plus more avatars",
-            "features": [
-              "30 min video/month",
-              "More avatars & features"
-            ],
-            "cta": "Try Creator",
-            "best": true
-          },
-          {
-            "name": "Enterprise",
-            "price": "Custom",
-            "period": "mo",
-            "tagline": "Clip export & translation, unlocked",
-            "features": [
-              "Custom pricing",
-              "Advanced export & translation"
-            ],
-            "cta": "Contact sales",
-            "best": false
-          }
-        ]
-      },
-      "beats": [],
-      "flagged": false,
-      "lead": 0.5
-    },
-    {
-      "id": "c23",
-      "card": "comparison/credits-math",
-      "anchor": "Now for Higgs's free plan",
-      "hold": 10,
-      "variables": {
-        "title": "HeyGen pricing"
-      },
-      "beats": [
-        {
-          "reveal": {
-            "label": "Creator plan",
-            "math": "$29/mo, unlimited avatar videos"
-          },
-          "anchor": "creator plan starts at $29"
-        },
-        {
-          "reveal": {
-            "label": "Team plan",
-            "math": "$39/seat/mo, 4K export"
-          },
-          "anchor": "team plan at $39 per"
-        },
-        {
-          "reveal": {
-            "label": "90-sec video cost",
-            "math": "eats a big credit chunk"
-          },
-          "anchor": "single 90 second video"
-        }
-      ],
-      "flagged": false,
-      "lead": 0.5
-    },
-    {
-      "id": "c24",
-      "card": "comparison/billing-discount",
-      "anchor": "starter plan runs around $110",
-      "hold": 7,
-      "variables": {
-        "title": "Arcads pricing",
-        "monthly": {
-          "name": "Creator",
-          "price": "$220/mo"
-        },
-        "yearly": {
-          "name": "Creator (discounted)",
-          "price": "$154/mo",
-          "savings": "30% off"
-        }
-      },
-      "beats": [],
-      "flagged": false,
-      "lead": 0.5
-    },
-    {
       "id": "c25",
       "card": "comparison/summary-table",
       "anchor": "let's talk through this row by row",
@@ -562,6 +261,13 @@
           "Synthesia",
           "HeyGen",
           "Arcads"
+        ],
+        "productLogos": [
+          "openart",
+          "higgsfield",
+          "synthesia",
+          "heygen",
+          "arcads"
         ]
       },
       "beats": [
@@ -622,6 +328,58 @@
       "lead": 0.5
     },
     {
+      "id": "c28",
+      "card": "comparison/summary-table",
+      "anchor": "Higgsfield, Synthesia and Arcads are all tied",
+      "lead": 0.5,
+      "hold": 8.0,
+      "variables": {
+        "products": [
+          "OpenArt AI",
+          "Higgsfield",
+          "Synthesia",
+          "HeyGen",
+          "Arcads"
+        ],
+        "productLogos": [
+          "openart",
+          "higgsfield",
+          "synthesia",
+          "heygen",
+          "arcads"
+        ]
+      },
+      "beats": [
+        {
+          "reveal": {
+            "name": "Free tier",
+            "values": [
+              "40 trial credits",
+              "~300 credits/mo",
+              "3 min video/mo",
+              "3 videos/mo",
+              "\u2014"
+            ]
+          },
+          "anchor": "for different reasons"
+        },
+        {
+          "reveal": {
+            "name": "Paid from",
+            "values": [
+              "$28/mo (annual)",
+              "$39/mo (annual)",
+              "$18/mo (annual)",
+              "$29/mo",
+              "$110/mo"
+            ]
+          },
+          "anchor": "Higgsfield toolkit is an hour"
+        }
+      ],
+      "flagged": false
+    },
+    {
       "id": "c26",
       "card": "verdict/persona-match",
       "anchor": "here's exactly where we land",
@@ -633,41 +391,47 @@
         {
           "reveal": {
             "persona": "Content creators & marketers",
-            "winner": "OpenArt AI"
+            "winner": "OpenArt AI",
+            "logo": "openart"
           },
           "anchor": "content creator, digital artist"
         },
         {
           "reveal": {
             "persona": "Cinematic video creators",
-            "winner": "Higgsfield"
+            "winner": "Higgsfield",
+            "logo": "higgsfield"
           },
           "anchor": "cinematic video is your primary"
         },
         {
           "reveal": {
             "persona": "Corporate & training teams",
-            "winner": "Synthesia"
+            "winner": "Synthesia",
+            "logo": "synthesia"
           },
           "anchor": "professional or corporate environment producing"
         },
         {
           "reveal": {
             "persona": "Solo creators & small teams",
-            "winner": "HeyGen"
+            "winner": "HeyGen",
+            "logo": "heygen"
           },
           "anchor": "solo creator or a small"
         },
         {
           "reveal": {
             "persona": "Performance marketers",
-            "winner": "Arcads"
+            "winner": "Arcads",
+            "logo": "arcads"
           },
           "anchor": "running paid ads on metal"
         }
       ],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "note": "too plain. can we make a better motion graphics or use a better motion graphic here."
     },
     {
       "id": "c27",
