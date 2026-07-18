@@ -29,6 +29,7 @@ out); the four scripted steps also have a thin `run.sh` wrapper.
 videos/<slug>/
   vo.mp3           # input voiceover — gitignored (regenerable from the tts hub)
   transcript.json  # step 010 output — committed
+  cues.llm.json    # step 020's final output, pre-owner-edits — committed, immutable
   cues.json        # step 020 output, step 040 edits — committed
   resolved.json    # step 030 output — committed
   slices/          # per-cue vo slices, step 040's board — gitignored

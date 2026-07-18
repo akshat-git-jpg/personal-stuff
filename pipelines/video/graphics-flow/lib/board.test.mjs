@@ -509,3 +509,48 @@ test('synthCalibrationVars: every beat card synthesizes exactly max_beats beats,
     }
   }
 });
+
+test('save: context snapshot on creation, preserved on edit', async () => {
+  const workdir = makeWorkdir();
+  // inject a gap at the end
+  const transcriptPath = path.join(workdir, 'transcript.json');
+  const words = JSON.parse(fs.readFileSync(transcriptPath, 'utf8'));
+  words.push({ text: 'gap', start: 20.0, end: 20.5 });
+  words.push({ text: 'time', start: 21.0, end: 21.5 });
+  fs.writeFileSync(transcriptPath, JSON.stringify(words));
+
+  const cuesPath = path.join(workdir, 'cues.json');
+  const before = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
+
+  const server = createServer(workdir);
+  await new Promise((r) => server.listen(0, r));
+  const port = server.address().port;
+  try {
+    const body1 = { video: before.video, approved: false, cues: before.cues, feedback: { c01: 'cue feedback', 'gap-00:20.0': 'gap feedback' } };
+    let res = await fetch(`http://localhost:${port}/save`, { method: 'POST', body: JSON.stringify(body1) });
+    assert.equal((await res.json()).ok, true);
+
+    let fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.ok(fb.items.c01.context, 'c01 context missing');
+    assert.equal(fb.items.c01.context.card, 'pros-cons/pros-cons');
+    assert.equal(fb.items.c01.context.anchor, "let's look at the pros and cons");
+    assert.equal(typeof fb.items.c01.context.start, 'number');
+
+    assert.ok(fb.items['gap-00:20.0'].context, 'gap-00:20.0 context missing');
+    assert.equal(fb.items['gap-00:20.0'].context.start, 20);
+    assert.equal(typeof fb.items['gap-00:20.0'].context.end, 'number');
+    assert.equal(typeof fb.items['gap-00:20.0'].context.excerpt, 'string');
+
+    const body2 = { video: before.video, approved: false, cues: before.cues, feedback: { c01: 'cue edited', 'gap-00:20.0': 'gap edited' } };
+    res = await fetch(`http://localhost:${port}/save`, { method: 'POST', body: JSON.stringify(body2) });
+    assert.equal((await res.json()).ok, true);
+
+    fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.equal(fb.items.c01.text, 'cue edited');
+    assert.equal(fb.items.c01.context.card, 'pros-cons/pros-cons', 'c01 context lost on edit');
+    assert.equal(fb.items['gap-00:20.0'].text, 'gap edited');
+    assert.equal(fb.items['gap-00:20.0'].context.start, 20, 'gap context lost on edit');
+  } finally {
+    server.close();
+  }
+});
