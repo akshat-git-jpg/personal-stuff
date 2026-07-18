@@ -71,6 +71,9 @@ export function planSegmentOverlays(segments, overlays) {
   });
 }
 
+export const BEAT_INTERVAL = 20, BEAT_MIN_EDGE = 8, BEAT_SNAP_WINDOW = 3, BEAT_MIN_GAP = 0.25;
+export const FLASH_DUR = 0.24, FLASH_COLOR = '0xfb923c', FLASH_ALPHA = 0.85, PUNCH_SCALE = 1.08;
+
 export const TRANSITION_DUR = 0.4;
 
 // Whip transitions at screen<->avatar boundaries. Returns [{at, direction,
@@ -88,6 +91,66 @@ export function planTransitions(segments, overlays, { duration = TRANSITION_DUR 
     const at = a.end;
     if (overlays.some((o) => o.start < at + half && o.end > at - half)) continue;
     out.push({ at, direction: pair === 'screen>avatar' ? 'left' : 'right', fromIdx: i, toIdx: i + 1 });
+  }
+  return out;
+}
+
+// Refresh beats inside one avatar segment: every ~BEAT_INTERVAL s, snapped to
+// the nearest inter-word silence so the flash never lands mid-word. Returns
+// ascending beat times (timeline seconds); [] when the span is too short.
+export function planAvatarBeats(seg, words, {
+  interval = BEAT_INTERVAL, minEdge = BEAT_MIN_EDGE,
+  window = BEAT_SNAP_WINDOW, minGap = BEAT_MIN_GAP } = {}) {
+  const gaps = [];
+  for (let i = 0; i < words.length - 1; i++) {
+    const g = words[i + 1].start - words[i].end;
+    if (g >= minGap) gaps.push(+((words[i].end + words[i + 1].start) / 2).toFixed(3));
+  }
+  const beats = [];
+  const lo = seg.start + minEdge, hi = seg.end - minEdge;
+  for (let t = seg.start + interval; t <= hi; t += interval) {
+    let best = null;
+    for (const g of gaps) {
+      if (g < lo || g > hi || Math.abs(g - t) > window) continue;
+      if (best === null || Math.abs(g - t) < Math.abs(best - t)) best = g;
+    }
+    if (best !== null && (beats.length === 0 || best - beats[beats.length - 1] >= interval / 2)) beats.push(best);
+  }
+  return beats;
+}
+
+export function splitAvatarSegments(segments, words) {
+  const out = [];
+  for (const seg of segments) {
+    if (seg.kind !== 'avatar') {
+      out.push(seg);
+      continue;
+    }
+    const beats = planAvatarBeats(seg, words);
+    if (beats.length === 0) {
+      out.push(seg);
+      continue;
+    }
+    
+    let currentStart = seg.start;
+    for (let i = 0; i <= beats.length; i++) {
+      const isFirst = i === 0;
+      const isLast = i === beats.length;
+      const end = isLast ? seg.end : beats[i];
+      
+      const subSeg = {
+        ...seg,
+        sub: i,
+        start: currentStart,
+        end: end,
+        punch: i % 2 === 1 ? PUNCH_SCALE : 1.0
+      };
+      if (!isLast) subSeg.flashOut = true;
+      if (!isFirst) subSeg.flashIn = true;
+      
+      out.push(subSeg);
+      currentStart = end;
+    }
   }
   return out;
 }
@@ -110,8 +173,9 @@ export function detectEncoder() {
 
 // Committed EDL — doubles as editor documentation.
 export function assemblyMd(video, segments, overlays, total, outPath, transitions = []) {
+  const getSegId = (s) => s.sub !== undefined ? `${s.id}.${s.sub + 1}` : s.id;
   const seg = segments.map((s) =>
-    `| ${mmss(s.start)} | ${mmss(s.end)} | ${s.kind} | ${s.id} |`);
+    `| ${mmss(s.start)} | ${mmss(s.end)} | ${s.kind} | ${getSegId(s)} |`);
   const ov = overlays.map((o) =>
     `| ${mmss(o.start)} | ${mmss(o.end)} | ${path.basename(o.file)} |`);
   const transSentence = transitions.length > 0
@@ -141,7 +205,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 
   if (transitions.length > 0) {
     const tr = transitions.map((t) =>
-      `| ${mmss(t.at)} | ${t.direction} | ${segments[t.fromIdx].id} | ${segments[t.toIdx].id} |`);
+      `| ${mmss(t.at)} | ${t.direction} | ${getSegId(segments[t.fromIdx])} | ${getSegId(segments[t.toIdx])} |`);
     lines.push(
       '## Transitions',
       '',
@@ -156,7 +220,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip' };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on' };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -175,6 +239,11 @@ function parseArgs(argv) {
       if (t !== 'whip' && t !== 'none') throw new Error('--transitions must be whip or none');
       opts.transitions = t;
     }
+    else if (a === '--beats') {
+      const b = rest.shift();
+      if (b !== 'on' && b !== 'off') throw new Error('--beats must be on or off');
+      opts.beats = b;
+    }
     else if (a === '--keep-temp') opts.keepTemp = true;
     else if (a === '--force') opts.force = true;
     else throw new Error(`unknown argument: ${a}`);
@@ -188,8 +257,11 @@ function resolveWorkdir(arg) {
   return path.join(pipelineRoot, 'videos', arg);
 }
 
-export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip' }) {
-  const segments = planSegments({ resolved, avatarJobs, total });
+export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', words = [] }) {
+  let segments = planSegments({ resolved, avatarJobs, total });
+  if (beats === 'on') {
+    segments = splitAvatarSegments(segments, words);
+  }
   const renderDir = path.join(workdir, 'renders');
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
     return { id: c.id, start: c.start, end: c.start + c.duration, file: path.join(renderDir, planRender(c).outFile) };
@@ -234,30 +306,53 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     } else if (seg.kind === 'avatar') {
       const job = avatarJobs.find(j => j.id === seg.id);
       src = job.file;
-      if (startTrim > 0) seekArgs = ['-ss', String(startTrim)];
+      seekArgs = ['-ss', String(seg.start - job.start + startTrim)];
     } else if (seg.kind === 'graphic') {
       const cue = resolved.find(c => c.id === seg.id);
       src = path.join(renderDir, planRender(cue).outFile);
     }
 
-    if (L && L.length > 0) {
-      let chain = `[0:v]${VF},tpad=stop_mode=clone:stop_duration=30[b0];`;
-      const inputs = [];
-      for (const o of L) inputs.push('-i', o.file);
-      
-      let lastV = 'b0';
-      for (let j = 0; j < L.length; j++) {
-        const o = L[j];
-        const oj = `o${j}`;
-        const nextV = `b${j + 1}`;
-        const adjustedAt = +(o.at - startTrim).toFixed(3);
-        const adjustedUntil = +(o.until - startTrim).toFixed(3);
-        chain += `[${j + 1}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${w}:${h}[${oj}];`;
-        chain += `[${lastV}][${oj}]overlay=eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
-        lastV = nextV;
-      }
-      chain = chain.slice(0, -1); // remove trailing semicolon
+    let punchVF = VF;
+    if (seg.punch && seg.punch > 1.0) {
+      punchVF += `,scale=trunc(iw*${seg.punch}/2)*2:-2,crop=${w}:${h}`;
+    }
 
+    let needsComplex = false;
+    if (L && L.length > 0) needsComplex = true;
+    if (seg.flashIn || seg.flashOut) needsComplex = true;
+
+    if (needsComplex) {
+      let chain = `[0:v]${punchVF},tpad=stop_mode=clone:stop_duration=30[b0];`;
+      const inputs = [];
+      let lastV = 'b0';
+      
+      if (L && L.length > 0) {
+        for (const o of L) inputs.push('-i', o.file);
+        for (let j = 0; j < L.length; j++) {
+          const o = L[j];
+          const oj = `o${j}`;
+          const nextV = `b${j + 1}`;
+          const adjustedAt = +(o.at - startTrim).toFixed(3);
+          const adjustedUntil = +(o.until - startTrim).toFixed(3);
+          chain += `[${j + 1}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${w}:${h}[${oj}];`;
+          chain += `[${lastV}][${oj}]overlay=eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
+          lastV = nextV;
+        }
+      }
+      
+      if (seg.flashIn) {
+        chain += `color=c=${FLASH_COLOR}@${FLASH_ALPHA}:s=${w}x${h}:r=30,format=yuva420p,fade=t=out:st=0:d=0.12:alpha=1[f_in];`;
+        chain += `[${lastV}][f_in]overlay=eof_action=pass[b_fin];`;
+        lastV = 'b_fin';
+      }
+      if (seg.flashOut) {
+        chain += `color=c=${FLASH_COLOR}@${FLASH_ALPHA}:s=${w}x${h}:r=30,format=yuva420p,fade=t=in:st=${Math.max(0, dur - 0.12).toFixed(3)}:d=0.12:alpha=1[f_out];`;
+        chain += `[${lastV}][f_out]overlay=eof_action=pass[b_fout];`;
+        lastV = 'b_fout';
+      }
+      
+      chain = chain.slice(0, -1);
+      
       spawnArgs = [
         '-y', ...seekArgs, '-i', src, ...inputs,
         '-filter_complex', chain, '-map', `[${lastV}]`,
@@ -266,7 +361,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     } else {
       spawnArgs = [
         '-y', ...seekArgs, '-i', src,
-        '-vf', `${VF},tpad=stop_mode=clone:stop_duration=30`,
+        '-vf', `${punchVF},tpad=stop_mode=clone:stop_duration=30`,
         '-t', String(dur), '-an', ...ENC, '-f', 'mpegts', segFile
       ];
     }
@@ -443,7 +538,7 @@ async function main() {
   }
 
   const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, video, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions });
+  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, words });
   process.exit(0);
 }
 

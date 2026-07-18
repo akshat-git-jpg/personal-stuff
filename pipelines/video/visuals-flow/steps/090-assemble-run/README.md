@@ -29,3 +29,7 @@ A boundary falls back to a hard cut if:
 - A neighbor segment is shorter than 1.0s.
 - An overlay straddles the transition window (±0.2s from the boundary).
 - The boundary is at `t=0` or `t=total`.
+
+## Refresh beats
+
+Inside long avatar spans, the pipeline automatically inserts a "refresh beat" every ~20s: a color flash cut to a slightly punched-in version of the same shot. Beats snap to the nearest inter-word silence gap to never blink mid-word. Pass `--beats off` to disable.
