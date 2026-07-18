@@ -156,6 +156,60 @@ test('CLI tests', (t) => {
   const manifest = fs.readFileSync(path.join(workdir, 'avatar-manifest.md'), 'utf8');
   assert.ok(manifest.includes('s01.mp4'));
   assert.ok(manifest.includes('corner-01.mp4'));
+
+  // Case 8: Bad slug
+  const origShotsResolved = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.resolved.json'), 'utf8'));
+  const badShotsResolved = { ...origShotsResolved, video: 'bad slug' };
+  fs.writeFileSync(path.join(workdir, 'shots.resolved.json'), JSON.stringify(badShotsResolved));
+  res = runCLI([workdir, '--template', 't', '--submit']);
+  assert.strictEqual(res.status, 1);
+  assert.ok(res.stderr.includes('invalid video slug'));
+  fs.writeFileSync(path.join(workdir, 'shots.resolved.json'), JSON.stringify(origShotsResolved));
+
+  // Case 9: Bad template
+  res = runCLI([workdir, '--template', 't; bad', '--submit']);
+  assert.strictEqual(res.status, 1);
+  assert.ok(res.stderr.includes('invalid template'));
+
+  // Case 10: Empty transcript
+  const origTranscript = fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8');
+  const origShots10 = fs.readFileSync(path.join(workdir, 'shots.json'), 'utf8');
+  const origShotsRes10 = fs.readFileSync(path.join(workdir, 'shots.resolved.json'), 'utf8');
+  fs.writeFileSync(path.join(workdir, 'transcript.json'), JSON.stringify([]));
+  fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify({ ...JSON.parse(origShots10), spans: [] }));
+  fs.writeFileSync(path.join(workdir, 'shots.resolved.json'), JSON.stringify({ ...JSON.parse(origShotsRes10), spans: [] }));
+  res = runCLI([workdir, '--template', 't', '--submit']);
+  assert.strictEqual(res.status, 1);
+  assert.ok(res.stderr.includes('empty transcript.json'));
+  fs.writeFileSync(path.join(workdir, 'transcript.json'), origTranscript);
+  fs.writeFileSync(path.join(workdir, 'shots.json'), origShots10);
+  fs.writeFileSync(path.join(workdir, 'shots.resolved.json'), origShotsRes10);
+
+  // Case 11: Slice failure
+  const origVo = path.join(workdir, 'vo.mp3');
+  fs.renameSync(origVo, path.join(workdir, 'vo_backup.mp3'));
+  fs.rmSync(path.join(workdir, 'slices-avatar', 's01.mp3'), { force: true });
+  res = runCLI([workdir, '--template', 't', '--submit']);
+  assert.strictEqual(res.status, 1);
+  assert.ok(res.stderr.includes('slice failed for s01'));
+  fs.renameSync(path.join(workdir, 'vo_backup.mp3'), origVo);
+
+  // Case 12: Slice duration precise check
+  // Resolve a new shot "s02" to trigger a fresh slice
+  const newShots = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.json'), 'utf8'));
+  newShots.spans = [{ id: 's02', kind: 'avatar-full', from_anchor: "hello world this", to_anchor: "is a test" }];
+  fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify(newShots));
+  const rs3 = spawnSync(process.execPath, [path.resolve(import.meta.dirname, 'resolve-shots.mjs'), workdir], { encoding: 'utf8' });
+  if (rs3.status !== 0) throw new Error(rs3.stderr);
+  
+  res = runCLI([workdir, '--template', 't', '--submit']);
+  assert.strictEqual(res.status, 0);
+  
+  const probeRes = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', path.join(workdir, 'slices-avatar', 's02.mp3')], { encoding: 'utf8' });
+  const duration = parseFloat(probeRes.stdout.trim());
+  const resShots2 = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.resolved.json'), 'utf8'));
+  const expectedDuration = resShots2.spans[0].duration;
+  assert.ok(Math.abs(duration - expectedDuration) <= 0.05, `duration ${duration} not within 0.05s of ${expectedDuration}`);
 });
 
 test('planJobs spansOnly → no corner jobs', async () => {
