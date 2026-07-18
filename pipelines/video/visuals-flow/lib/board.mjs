@@ -16,8 +16,34 @@ import { resolveCues, normWord } from './resolve.mjs';
 import { lintCues } from './lint-cues.mjs';
 import { mmss } from './render.mjs';
 import { enrichLogos } from './logos-inline.mjs';
+import { resolveShots } from './resolve-shots.mjs';
 
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
+
+// Reads shots.json + computes resolved spans; null when the video has no shot
+// plan yet — every caller must handle null and render the pre-078 board.
+export function loadShots(workdir, words) {
+  const p = path.join(workdir, 'shots.json');
+  if (!fs.existsSync(p)) return null;
+  let shotsFile;
+  try { shotsFile = JSON.parse(fs.readFileSync(p, 'utf8')); }
+  catch (e) { return { shotsFile: null, spans: [], errors: [`shots.json unreadable: ${e.message}`] }; }
+  const { spans, errors } = resolveShots(shotsFile, words);
+  return { shotsFile, spans, errors };
+}
+
+// Merge semantics mirror handleSave's cue merge: key-order-insensitive
+// compare; a real change to spans resets approval.
+export function mergeShots(prevShotsFile, incomingSpans) {
+  const canon = (v) => Array.isArray(v) ? v.map(canon)
+    : (v && typeof v === 'object')
+      ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])]))
+      : v;
+  const merged = { ...prevShotsFile, spans: incomingSpans };
+  const changed = JSON.stringify(canon(prevShotsFile.spans ?? [])) !== JSON.stringify(canon(incomingSpans ?? []));
+  if (prevShotsFile.approved === true && changed) merged.approved = false;
+  return { merged, changed };
+}
 
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -117,7 +143,7 @@ async function readBody(req) {
 
 const BOARD_CSS = `
   :root { --bg:#0f0b07; --panel:#181210; --line:rgba(255,255,255,0.10);
-    --text:#f5ede2; --dim:rgba(245,237,226,0.55); --accent:#fb923c; --accent-light:#fdba74; --ok:#34d399; --err:#ff6b6b;
+    --text:#f5ede2; --dim:rgba(245,237,226,0.55); --accent:#fb923c; --accent-light:#fdba74; --ok:#34d399; --err:#ff6b6b; --shot:#eab308;
     --font:"Inter",-apple-system,system-ui,sans-serif; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:var(--font); background:var(--bg); color:var(--text); padding:28px 32px 80px; }
@@ -143,6 +169,9 @@ const BOARD_CSS = `
   .timeline { display:flex; flex-direction:column; gap:20px; max-width:800px; margin:0 auto; }
   .timeline-block { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
   .gap-block { padding:12px 16px; }
+  .minimap-shots { height:6px; margin-top:2px; }
+  .shot-block { border-left:3px solid var(--shot); }
+  .in-shot { border-left:3px solid var(--shot); }
   .gap-header { font-size:13px; color:var(--dim); cursor:pointer; display:flex; align-items:center; }
   .gap-icon { display:inline-block; width:16px; transition:transform 0.2s; }
   .gap-block.expanded .gap-icon { transform:rotate(90deg); }
@@ -291,7 +320,7 @@ function normalizeFeedbackItems(raw) {
   return items;
 }
 
-function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
+function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
@@ -329,8 +358,30 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
     return `<div class="minimap-seg" title="${title}" style="flex-grow:${duration}; background:var(${colorVar});" onclick="document.getElementById('seg-${i + unresolvedSegs.length}').scrollIntoView({behavior:'smooth'})"></div>`;
   }).join('');
 
-  const timelineHtml = segments.map((seg, idx) => {
+  let minimapShotsHtml = '';
+  if (shots?.spans?.length || shots?.errors?.length) {
+    const spans = [...(shots.spans || [])].sort((a, b) => a.start - b.start);
+    let t = 0;
+    const items = [];
+    for (const span of spans) {
+      if (span.start > t) {
+        items.push(`<div class="minimap-seg" style="flex-grow:${span.start - t}; background:var(--line)"></div>`);
+      }
+      items.push(`<div class="minimap-seg" title="${timecode(span.start)} &middot; ${escapeHtml(span.id)} &middot; avatar-full" style="flex-grow:${span.duration}; background:var(--shot)" onclick="document.getElementById('shot-${escapeHtml(span.id)}').scrollIntoView({behavior:'smooth'})"></div>`);
+      t = span.start + span.duration;
+    }
+    if (t < totalDuration) {
+      items.push(`<div class="minimap-seg" style="flex-grow:${totalDuration - t}; background:var(--line)"></div>`);
+    }
+    minimapShotsHtml = `<div class="minimap minimap-shots">${items.join('')}</div>`;
+  }
+
+  const timelineBlocks = segments.map((seg, idx) => {
     const i = idx;
+    const mid = (seg.start + seg.end) / 2;
+    const inShot = shots?.spans?.some(s => mid >= s.start && mid <= s.start + s.duration) ? ' in-shot' : '';
+    let html = '';
+    
     if (seg.kind === 'gap') {
       const durSecs = seg.end - seg.start;
       const m = Math.floor(durSecs / 60);
@@ -338,7 +389,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       const durStr = m > 0 ? `${m}m ${s}s` : `${s}s`;
       const allWords = seg.words.map(w => w.text).join(' ');
       const previewWords = seg.words.slice(0, 14).map(w => w.text).join(' ') + (seg.words.length > 14 ? '…' : '');
-      return `<div class="timeline-block gap-block" id="seg-${i}">
+      html = `<div class="timeline-block gap-block${inShot}" id="seg-${i}">
         <div class="gap-header" onclick="this.parentElement.classList.toggle('expanded')">
           <span class="gap-icon">▸</span> ${timecode(seg.start)} &rarr; ${timecode(seg.end)} &middot; ${durStr} &middot; <span style="color:var(--dim)">"${escapeHtml(previewWords)}"</span>
         </div>
@@ -346,7 +397,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
           ${fbBox(`gap-${timecode(seg.start)}`, 'feedback for this stretch (read by the next Claude session)')}
         </div>
       </div>`;
-    }
+    } else {
 
     const cue = cues.find(c => c.id === seg.cue.id);
     const r = seg.unresolved ? null : seg.cue;
@@ -390,7 +441,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
 
     const excerptDiv = seg.words.length ? `<div class="excerpt">${excerptHtml}</div>` : '';
 
-    return `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}" id="seg-${i}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}">
+    html = `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}${inShot}" id="seg-${i}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}">
       <div class="tile-header">${header}</div>
       ${excerptDiv}
       <div class="anchor"><strong>${escapeHtml(cue.anchor ?? '')}</strong></div>
@@ -401,7 +452,30 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       ${fbBox(cue.id, 'feedback on this graphic — wrong card, wrong timing, wording… (read by the next Claude session)')}
       <textarea class="frag">${escapeHtml(JSON.stringify(fragment, null, 2))}</textarea>
     </div>`;
-  }).join('\n');
+    }
+    return { html, start: seg.start, isShot: false };
+  });
+
+  if (shots?.spans?.length) {
+    for (const span of shots.spans) {
+      const origSpan = shots.shotsFile?.spans?.find(s => s.id === span.id) || span;
+      const noteHtml = span.note ? ` &mdash; ${escapeHtml(span.note)}` : '';
+      const shotHtml = `<div class="timeline-block shot-block" id="shot-${escapeHtml(span.id)}">
+  <div class="shot-header">🧍 <b>${escapeHtml(span.id)}</b> avatar-full &middot; ${timecode(span.start)} &rarr; ${timecode(span.start + span.duration)} &middot; ${span.duration}s${noteHtml}</div>
+  <textarea class="shot-frag">${escapeHtml(JSON.stringify(origSpan, null, 2))}</textarea>
+  ${fbBox(span.id, 'feedback on this shot span (read by the next Claude session)')}
+</div>`;
+      const block = { html: shotHtml, start: span.start, isShot: true };
+      const idx = timelineBlocks.findIndex(b => !b.isShot && b.start >= span.start);
+      if (idx !== -1) {
+        timelineBlocks.splice(idx, 0, block);
+      } else {
+        timelineBlocks.push(block);
+      }
+    }
+  }
+  
+  const timelineHtml = timelineBlocks.map(b => b.html).join('\n');
 
   return `<!doctype html>
 <html lang="en">
@@ -417,10 +491,15 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       <div>duration: ${timecode(totalDuration)}</div>
       <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
       <button id="approveBtn">Approve</button>
+      ${shots ? `<span class="usage-chip">engineMode: ${escapeHtml(shots.shotsFile?.engineMode || 'none')}</span><button id="approveShotsBtn">Approve shots</button>` : ''}
       <button id="saveBtn">Save</button>
       <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
     </div>
-    <div id="banner">${cuesFile.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}</div>
+    <div id="banner">
+      ${cuesFile.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}
+      ${shots && shots.shotsFile?.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shot plan approved — ready for the avatar render step</div>' : ''}
+      ${shots?.errors?.length ? `<div class="banner err"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shots: ${shots.errors.map(escapeHtml).join('<br>')}</div>` : ''}
+    </div>
     <div class="usage">${(() => {
       const counts = new Map();
       for (const c of cues) counts.set(c.card, (counts.get(c.card) ?? 0) + 1);
@@ -428,7 +507,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
         .map(([card, n]) => `<span class="usage-chip${n > 3 ? ' hot' : ''}">${escapeHtml(card.split('/').pop())} &times;${n}</span>`)
         .join('');
     })()}</div>
-    <div class="minimap">${minimapHtml}</div>
+    <div class="minimap">${minimapHtml}${minimapShotsHtml}</div>
     ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
   </div>
   <div class="timeline">${timelineHtml}</div>
@@ -486,9 +565,20 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
         return cue;
       }).filter(Boolean);
       if (broken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + broken.map(escapeForBanner).join('<br>'), 'err'); return; }
+      
+      const shotBroken = [];
+      const spans = [...document.querySelectorAll('.shot-block')].map((b) => {
+        try { return JSON.parse(b.querySelector('.shot-frag').value); }
+        catch (e) { shotBroken.push(b.id + ': ' + e.message); return null; }
+      }).filter(Boolean);
+      if (shotBroken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + shotBroken.map(escapeForBanner).join('<br>'), 'err'); return; }
+
       const feedback = {};
       document.querySelectorAll('textarea.feedback').forEach((t) => { feedback[t.dataset.ref] = t.value; });
-      const res = await fetch('/save', { method: 'POST', body: JSON.stringify({ video: VIDEO, approved: APPROVED, cues, feedback }) });
+      const payload = { video: VIDEO, approved: APPROVED, cues, feedback };
+      if (document.querySelectorAll('.shot-block').length > 0) payload.spans = spans;
+
+      const res = await fetch('/save', { method: 'POST', body: JSON.stringify(payload) });
       const data = await res.json();
       if (!data.ok) {
         showBanner(data.errors.map(escapeForBanner).join('<br>'), 'err');
@@ -512,6 +602,14 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
       await fetch('/approve', { method: 'POST' });
       location.reload();
     };
+
+    const approveShotsBtn = document.getElementById('approveShotsBtn');
+    if (approveShotsBtn) {
+      approveShotsBtn.onclick = async () => {
+        await fetch('/approve-shots', { method: 'POST' });
+        location.reload();
+      };
+    }
 
     function escapeForBanner(s) {
       return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -547,7 +645,8 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
     : (v && typeof v === 'object')
       ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])]))
       : v;
-  if (prev.approved === true && JSON.stringify(canon(prev.cues)) !== JSON.stringify(canon(incoming.cues))) {
+  const cuesChanged = JSON.stringify(canon(prev.cues ?? [])) !== JSON.stringify(canon(incoming.cues ?? []));
+  if (prev.approved === true && cuesChanged) {
     merged.approved = false;
   }
 
@@ -556,6 +655,28 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
   const { resolved, errors } = resolveCues(merged.cues ?? [], words, catalog, cardLibraryRoot);
+
+  let mergedShots = null;
+  let resolvedSpans = null;
+  let shotErrors = null;
+  const shotWarnings = [];
+  const shotsPath = path.join(workdir, 'shots.json');
+  if (fs.existsSync(shotsPath)) {
+    const prevShotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
+    mergedShots = prevShotsFile;
+    if (cuesFile.spans !== undefined) {
+      const { merged } = mergeShots(prevShotsFile, cuesFile.spans);
+      mergedShots = merged;
+    }
+    if (cuesChanged && mergedShots.approved === true) {
+      mergedShots.approved = false;
+      shotWarnings.push('shots: un-approved — cues changed after shot approval (re-review the shot plan)');
+    }
+    fs.writeFileSync(shotsPath, JSON.stringify(mergedShots, null, 2));
+    const resShots = resolveShots(mergedShots, words);
+    resolvedSpans = resShots.spans;
+    shotErrors = resShots.errors;
+  }
 
   if (feedback && typeof feedback === 'object') {
     const fbPath = path.join(workdir, 'feedback.json');
@@ -580,11 +701,17 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
               item.context = { start: gap.start, end: gap.end, excerpt: gap.words.slice(0, 8).map(w => w.text).join(' ') };
             }
           } else if (ref !== '_global') {
-            const cue = (merged.cues ?? []).find(c => c.id === ref);
-            const r = resolved.find(c => c.id === ref);
-            if (cue) {
-              item.context = { card: cue.card, anchor: cue.anchor };
-              if (r) item.context.start = r.start;
+            const span = (mergedShots?.spans ?? []).find(s => s.id === ref);
+            const rSpan = (resolvedSpans ?? []).find(s => s.id === ref);
+            if (span && rSpan) {
+              item.context = { start: rSpan.start, end: rSpan.end, note: span.note };
+            } else {
+              const cue = (merged.cues ?? []).find(c => c.id === ref);
+              const r = resolved.find(c => c.id === ref);
+              if (cue) {
+                item.context = { card: cue.card, anchor: cue.anchor };
+                if (r) item.context.start = r.start;
+              }
             }
           }
           items[ref] = item;
@@ -601,14 +728,34 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
     return res.end(JSON.stringify({ ok: false, errors }));
   }
   
+  const resErrors = [];
+  const resWarnings = [...shotWarnings];
+
+  if (mergedShots) {
+    if (shotErrors && shotErrors.length > 0) {
+      resErrors.push(...shotErrors.map(e => `shots: ${e}`));
+    } else {
+      fs.writeFileSync(
+        path.join(workdir, 'shots.resolved.json'),
+        JSON.stringify({ video: mergedShots.video, offset: mergedShots.offset ?? 0, engineMode: mergedShots.engineMode ?? 'test', spans: resolvedSpans }, null, 2)
+      );
+      const { lintShots } = await import('./lint-shots.mjs');
+      const { errors: sErrors, warnings: sWarnings } = lintShots({ shotsResolved: resolvedSpans, resolvedCues: resolved, words });
+      if (sErrors) resErrors.push(...sErrors.map(e => `shots: ${e}`));
+      if (sWarnings) resWarnings.push(...sWarnings.map(w => `shots: ${w}`));
+    }
+  }
+
   const { errors: lintErrors, warnings: lintWarnings } = lintCues({ cuesFile: merged, resolved, words, catalog });
+  resErrors.push(...lintErrors);
+  resWarnings.push(...lintWarnings);
 
   fs.writeFileSync(
     path.join(workdir, 'resolved.json'),
     JSON.stringify({ video: merged.video, offset: merged.offset ?? 0, resolved }, null, 2),
   );
   ensureSlices(workdir);
-  res.end(JSON.stringify({ ok: true, errors: lintErrors, warnings: lintWarnings }));
+  res.end(JSON.stringify({ ok: true, errors: resErrors, warnings: resWarnings }));
 }
 
 async function handleApprove(req, res, workdir) {
@@ -617,6 +764,16 @@ async function handleApprove(req, res, workdir) {
   const cuesFile = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
   cuesFile.approved = true;
   fs.writeFileSync(cuesPath, JSON.stringify(cuesFile, null, 2));
+  res.setHeader('content-type', 'application/json');
+  res.end(JSON.stringify({ ok: true }));
+}
+
+async function handleApproveShots(req, res, workdir) {
+  await readBody(req);
+  const shotsPath = path.join(workdir, 'shots.json');
+  const shotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
+  shotsFile.approved = true;
+  fs.writeFileSync(shotsPath, JSON.stringify(shotsFile, null, 2));
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
 }
@@ -775,9 +932,10 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
     const fbPath = path.join(workdir, 'feedback.json');
     const feedbackItems = fs.existsSync(fbPath) ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items) : {};
+    const shots = loadShots(workdir, words);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems));
+    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots));
   }
 
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);
@@ -809,6 +967,10 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
 
   if (req.method === 'POST' && url.pathname === '/approve') {
     return handleApprove(req, res, workdir);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/approve-shots') {
+    return handleApproveShots(req, res, workdir);
   }
 
   res.statusCode = 404;

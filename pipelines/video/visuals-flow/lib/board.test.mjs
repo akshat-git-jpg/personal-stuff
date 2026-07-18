@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer, buildSegments, synthCalibrationVars } from './board.mjs';
+import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp');
@@ -550,6 +550,104 @@ test('save: context snapshot on creation, preserved on edit', async () => {
     assert.equal(fb.items.c01.context.card, 'pros-cons/pros-cons', 'c01 context lost on edit');
     assert.equal(fb.items['gap-00:20.0'].text, 'gap edited');
     assert.equal(fb.items['gap-00:20.0'].context.start, 20, 'gap context lost on edit');
+  } finally {
+    server.close();
+  }
+});
+
+test('mergeShots: staleness cascade and order-insensitive comparison', () => {
+  const spansA = [{ id: 's1', anchor: 'hello' }];
+  const spansA_reordered = [{ anchor: 'hello', id: 's1' }];
+  const spansB = [{ id: 's1', anchor: 'world' }];
+
+  const base = { approved: true, engineMode: 'test', spans: spansA };
+  
+  const resA = mergeShots(base, spansB);
+  assert.equal(resA.merged.approved, false);
+  
+  const resB = mergeShots(base, spansA_reordered);
+  assert.equal(resB.merged.approved, true);
+
+  const resC = mergeShots({ ...base, approved: false }, spansB);
+  assert.equal(resC.merged.approved, false);
+});
+
+test('loadShots: parses, handles missing/corrupt, resolves spans', () => {
+  const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'board-loadshots-'));
+  const words = [
+    { start: 0, end: 1, text: 'one' }, { start: 1, end: 2, text: 'two' }, { start: 2, end: 3, text: 'three' },
+    { start: 3, end: 4, text: 'four' }, { start: 4, end: 5, text: 'five' }, { start: 5, end: 6, text: 'six' }
+  ];
+  
+  assert.equal(loadShots(dir, words), null);
+
+  fs.writeFileSync(path.join(dir, 'shots.json'), JSON.stringify({ engineMode: 'test', spans: [{ id: 's1', from_anchor: 'one two three', to_anchor: 'four five six', kind: 'avatar-full' }] }));
+  const loaded = loadShots(dir, words);
+  assert.equal(loaded.spans.length, 1);
+  assert.equal(loaded.spans[0].start, 0);
+
+  fs.writeFileSync(path.join(dir, 'shots.json'), 'invalid json');
+  const corrupt = loadShots(dir, words);
+  assert.equal(corrupt.spans.length, 0);
+  assert.match(corrupt.errors[0], /unreadable/i);
+});
+
+test('renderBoardPage: no-shots vs shots layout', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/`);
+    const html = await res.text();
+    assert.ok(!html.includes('class="minimap minimap-shots"'), 'no shot lane when shots=null');
+    assert.ok(!html.includes('class="timeline-block shot-block"'), 'no shot block when shots=null');
+    assert.ok(!html.includes('id="approveShotsBtn"'), 'no button when shots=null');
+  } finally {
+    server.close();
+  }
+
+  fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify({
+    engineMode: 'test',
+    spans: [
+      { id: 's01', from_anchor: "let's look at", to_anchor: "pros and cons", kind: 'avatar-full' },
+      { id: 's02', from_anchor: "great support team", to_anchor: "tip in mind", kind: 'avatar-full' }
+    ]
+  }));
+  const { server: s2, base: b2 } = await startServer(workdir);
+  try {
+    const res = await fetch(`${b2}/`);
+    const html = await res.text();
+    assert.ok(html.includes('class="minimap minimap-shots"'), 'has shot lane');
+    assert.ok(html.includes('engineMode: test'), 'has chip');
+    
+    const blocks = html.match(/class="[^"]*shot-block[^"]*"/g);
+    assert.ok(blocks && blocks.length === 2, 'has two shot blocks');
+    assert.match(html, /in-shot/, 'has tint');
+  } finally {
+    s2.close();
+  }
+});
+
+test('save: cue change with approved shots un-approves shots and warns', async () => {
+  const workdir = makeWorkdir();
+  fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify({
+    approved: true,
+    engineMode: 'test',
+    spans: [{ id: 's01', from_anchor: "let's look at", to_anchor: "pros and cons", kind: 'avatar-full' }]
+  }));
+  const { server, base } = await startServer(workdir);
+  try {
+    const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+    
+    // valid change
+    cuesFile.cues[0].hold = 99;
+    
+    const res2 = await fetch(`${base}/save`, { method: 'POST', body: JSON.stringify(cuesFile) });
+    const data2 = await res2.json();
+    assert.equal(data2.ok, true);
+    assert.ok(data2.warnings.some(w => w.includes('cues changed after shot approval')), 'warning emitted');
+    
+    const diskShots = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.json'), 'utf8'));
+    assert.equal(diskShots.approved, false, 'cascade persisted');
   } finally {
     server.close();
   }
