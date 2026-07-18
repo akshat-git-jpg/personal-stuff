@@ -143,7 +143,7 @@ async function readBody(req) {
 
 const BOARD_CSS = `
   :root { --bg:#0f0b07; --panel:#181210; --line:rgba(255,255,255,0.10);
-    --text:#f5ede2; --dim:rgba(245,237,226,0.55); --accent:#fb923c; --accent-light:#fdba74; --ok:#34d399; --err:#ff6b6b; --shot:#eab308;
+    --text:#f5ede2; --dim:rgba(245,237,226,0.55); --accent:#fb923c; --accent-light:#fdba74; --ok:#34d399; --err:#ff6b6b; --shot:#a78bfa; --overlay-seg:#38bdf8;
     --font:"Inter",-apple-system,system-ui,sans-serif; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:var(--font); background:var(--bg); color:var(--text); padding:28px 32px 80px; }
@@ -359,7 +359,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
       } else if (seg.cue.placement === 'fullframe') {
         colorVar = '--accent';
       } else {
-        colorVar = '--accent-light';
+        colorVar = '--overlay-seg';
       }
     }
     return `<div class="minimap-seg" title="${title}" style="flex-grow:${duration}; background:var(${colorVar});" onclick="document.getElementById('seg-${i + unresolvedSegs.length}').scrollIntoView({behavior:'smooth'})"></div>`;
@@ -518,7 +518,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     ${minimapShotsHtml ? `<div class="lane-row"><span class="lane-label">avatar</span>${minimapShotsHtml}</div>` : ''}
     <div class="lane-legend">
       <span><span class="dot" style="background:var(--accent)"></span>fullframe card</span>
-      <span><span class="dot" style="background:var(--accent-light)"></span>overlay card</span>
+      <span><span class="dot" style="background:var(--overlay-seg)"></span>overlay card</span>
       ${minimapShotsHtml ? '<span><span class="dot" style="background:var(--shot)"></span>full-screen avatar</span>' : ''}
       <span><span class="dot" style="background:var(--line)"></span>screen recording + corner avatar</span>
     </div>
