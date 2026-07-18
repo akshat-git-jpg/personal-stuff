@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-arg="$1"; shift
+arg="${1:-}"
+if [ -z "$arg" ]; then echo "usage: run.sh <slug-or-path>" >&2; exit 1; fi
+shift
 
 # Slug-or-path, mirroring the libs' resolveWorkdir: a path containing '/' or an
 # existing dir is used as-is; a bare slug resolves under this pipeline's videos/.

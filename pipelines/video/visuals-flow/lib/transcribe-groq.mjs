@@ -19,6 +19,10 @@ async function main() {
     process.exit(1);
   }
   const outFlag = args.indexOf('--out');
+  if (outFlag !== -1 && !args[outFlag + 1]) {
+    console.error('--out needs a file path');
+    process.exit(1);
+  }
   const workdir = resolveWorkdir(workdirArg);
   const outPath = outFlag !== -1 ? path.resolve(args[outFlag + 1]) : path.join(workdir, 'transcript.json');
   const voPath = path.join(workdir, 'vo.mp3');
