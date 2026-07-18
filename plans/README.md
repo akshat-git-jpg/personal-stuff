@@ -419,3 +419,4 @@ The others are grounded and available when the owner wants them:
 - 066-graphics-flow-restructure — PR#23 066-graphics-flow-restructure: step-wise pipeline folder for the graphics flow — DONE
 - 067-board-script-timeline — PR#24 067-board-script-timeline: full-script timeline view for the storyboard board — DONE
 - 068-tool-logos — PR#25 068-tool-logos: real tool logos on cards (favicon registry + data-URI enrichment) — DONE
+- 069-graphics-feedback-lifecycle — PR#26 069-graphics-feedback-lifecycle: Graphics-flow feedback lifecycle — folded state must survive board Saves — DONE
