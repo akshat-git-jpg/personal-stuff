@@ -45,25 +45,34 @@ function injectShim(html, variables) {
 function ensureSlices(workdir) {
   const resolvedPath = path.join(workdir, 'resolved.json');
   const { resolved } = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
-  const resolvedMtime = fs.statSync(resolvedPath).mtimeMs;
   const slicesDir = path.join(workdir, 'slices');
   fs.mkdirSync(slicesDir, { recursive: true });
+  const indexFile = path.join(slicesDir, '.index.json');
+  const cache = fs.existsSync(indexFile) ? JSON.parse(fs.readFileSync(indexFile, 'utf8')) : {};
+  const newCache = {};
   const voPath = path.join(workdir, 'vo.mp3');
   for (const cue of resolved) {
     const slicePath = path.join(slicesDir, `${cue.id}.mp3`);
-    const stale = !fs.existsSync(slicePath) || fs.statSync(slicePath).mtimeMs < resolvedMtime;
+    const key = `${cue.start}:${cue.duration}`;
+    newCache[cue.id] = key;
+    const stale = !fs.existsSync(slicePath) || cache[cue.id] !== key;
     if (!stale) continue;
     const result = spawnSync('ffmpeg', [
-      '-y', '-i', voPath,
-      '-ss', String(cue.start),
-      '-t', String(cue.duration),
-      '-c:a', 'libmp3lame', '-q:a', '4',
+      '-y', '-ss', String(cue.start), '-t', String(cue.duration),
+      '-i', voPath, '-c:a', 'libmp3lame', '-q:a', '4',
       slicePath,
     ], { encoding: 'utf8' });
     if (result.status !== 0) {
       console.error(`slice failed for ${cue.id}: ${result.stderr || result.error}`);
     }
   }
+  for (const oldId of Object.keys(cache)) {
+    if (!newCache[oldId]) {
+      const p = path.join(slicesDir, `${oldId}.mp3`);
+      if (fs.existsSync(p)) fs.unlinkSync(p);
+    }
+  }
+  fs.writeFileSync(indexFile, JSON.stringify(newCache, null, 2));
 }
 
 async function readBody(req) {
@@ -362,8 +371,11 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
     }
 
     document.getElementById('saveBtn').onclick = async () => {
+      const broken = [];
       const cues = [...document.querySelectorAll('.tile')].map((tile) => {
-        const fragment = JSON.parse(tile.querySelector('.frag').value);
+        let fragment;
+        try { fragment = JSON.parse(tile.querySelector('.frag').value); }
+        catch (e) { broken.push(tile.dataset.id + ': ' + e.message); return null; }
         const cue = {
           id: tile.dataset.id,
           card: tile.dataset.card,
@@ -377,7 +389,8 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}) {
         const note = tile.querySelector('.note').value;
         if (note) cue.note = note;
         return cue;
-      });
+      }).filter(Boolean);
+      if (broken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + broken.map(escapeForBanner).join('<br>'), 'err'); return; }
       const feedback = {};
       document.querySelectorAll('textarea.feedback').forEach((t) => { feedback[t.dataset.ref] = t.value; });
       const res = await fetch('/save', { method: 'POST', body: JSON.stringify({ video: VIDEO, approved: APPROVED, cues, feedback }) });
@@ -572,6 +585,7 @@ function resolveWorkdir(arg) {
 // workdir that has a cues.json.
 function latestWorkdir() {
   const videosDir = path.join(path.resolve(import.meta.dirname, '..'), 'videos');
+  if (!fs.existsSync(videosDir)) return null;
   const candidates = fs.readdirSync(videosDir, { withFileTypes: true })
     .filter((d) => d.isDirectory() && fs.existsSync(path.join(videosDir, d.name, 'cues.json')))
     .map((d) => ({ name: d.name, mtime: fs.statSync(path.join(videosDir, d.name, 'cues.json')).mtimeMs }))
@@ -579,6 +593,21 @@ function latestWorkdir() {
   if (!candidates.length) return null;
   console.log(`no workdir given — using latest: videos/${candidates[0].name}`);
   return path.join(videosDir, candidates[0].name);
+}
+
+function listenOnFreePort(server, startPort, attempts = 10) {
+  return new Promise((resolve, reject) => {
+    const tryPort = (p, left) => {
+      server.once('error', (err) => {
+        if (err.code === 'EADDRINUSE' && left > 0) {
+          console.error(`port ${p} in use — trying ${p + 1}`);
+          tryPort(p + 1, left - 1);
+        } else reject(err);
+      });
+      server.listen(p, '127.0.0.1', () => { server.removeAllListeners('error'); resolve(p); });
+    };
+    tryPort(startPort, attempts);
+  });
 }
 
 async function main() {
@@ -596,9 +625,13 @@ async function main() {
     process.exit(1);
   }
   const port = Number(process.env.BOARD_PORT) || 4322;
-  server.listen(port, () => {
-    console.log(`board at http://localhost:${server.address().port}`);
-  });
+  try {
+    const finalPort = await listenOnFreePort(server, port);
+    console.log(`board at http://localhost:${finalPort}`);
+  } catch (err) {
+    console.error(err);
+    process.exit(1);
+  }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

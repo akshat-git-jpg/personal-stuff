@@ -2,8 +2,8 @@
 
 - **In:** `videos/<slug>/cues.json`, `videos/<slug>/resolved.json`, `videos/<slug>/vo.mp3`
 - **Out:** approved `videos/<slug>/cues.json` (`approved: true`, edits/flags applied)
-- **Run:** `bash run.sh <slug>` then open the printed `http://localhost:4322`
-  (equivalent to `node lib/board.mjs <slug>`)
+- **Run:** `bash run.sh <slug>` then open the printed URL
+  (equivalent to `node lib/board.mjs <slug>`. Binds `127.0.0.1`; starts at `BOARD_PORT` (default 4322) and walks up to +10 when taken, printing the final URL.)
 - **Next:** step 050 renders the approved cues
 
 One tile per cue: the real card, playing in an iframe, scrubbed by that cue's
