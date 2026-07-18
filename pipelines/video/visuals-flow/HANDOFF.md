@@ -1,12 +1,13 @@
-# visuals-flow handoff (2026-07-18, post avatar-pilot session)
+# visuals-flow handoff (2026-07-18, post assembly session — POC complete)
 
 For the next session picking this up. Everything below was true and verified on
-2026-07-18 (late night). Read PIPELINE.md first if you have never seen this
-pipeline; read this doc for where things actually stand and what is open.
-**Operate this flow via the `visuals-flow` skill (verb router) — landed as
-plan 081.** The avatar shot-plan machinery (plans 077–080) is LANDED and the
-test-01 pilot ran the same night — see "Immediate state of test-01" for what's
-still in flight.
+2026-07-18 (late night, second pass). Read PIPELINE.md first if you have never
+seen this pipeline; read this doc for where things actually stand and what is
+open. **Operate this flow via the `visuals-flow` skill (verb router).**
+**The POC is COMPLETE end to end**: test-01 went VO → cues → renders → avatar
+clips → **assembled final.mp4** (step 090, plans 082+083, PRs #39/#40) the
+same night. Owner verdict: successful and decent; next phase is tightening
+rules and adding capabilities via new-session brainstorms.
 
 ## What this is
 
@@ -78,6 +79,19 @@ Caller contract for other pipelines: `INTEGRATION.md`.
   tp-1 anti-ban pacing, idempotent `avatar-jobs.json`, one-attempt downloads,
   `avatar-manifest.md` (separate from manifest.md on purpose — render.mjs
   rewrites that from disk). `--spans-only` skips the corner track.
+- **090 assemble** (plans 082+083, landed 2026-07-18, PRs #39/#40):
+  deterministic final-video build — screen recording base track (VO-aligned,
+  `videos/<slug>/screen.mp4`, owner-provided, gitignored), avatar spans +
+  fullframe graphics swapped in at exact times, overlays composited INSIDE the
+  intersecting segment encodes (single-encode path — the final pass is a
+  stream-copy concat + vo.mp3 audio mux), hard cuts, `h264_videotoolbox`
+  auto-detect (x264 fallback, `--encoder` override), `--draft` = 720p preview
+  to `final-draft.mp4`. Output `~/kb-scratch/video/visuals-flow/<slug>/final.mp4`
+  + committed `assembly.md` (EDL). Editor handoff bundle unchanged — final.mp4
+  is an ADDITIONAL output; per video the owner ships it or hands the bundle
+  over. Timings on test-01 (32 min, M2 Pro): old two-pass path ~17 min;
+  new draft path 4m23s. Design decisions: decisions.md 2026-07-18 (two
+  entries: assembly step, speed pass).
 
 ## Where the rules live (five surfaces)
 
@@ -127,36 +141,56 @@ Caller contract for other pipelines: `INTEGRATION.md`.
   free-render proof is a `usage --diff`. Two step bugs found by the pilot are
   fixed + regression-tested (jobs-file flush on retry; swallowed CLI output —
   see TESTS.md folded lessons).
-- **Only remaining test-01 action — editor handoff**: `renders/` +
-  `manifest.md` + the avatar clips + `avatar-manifest.md`; fold what comes
-  back (GFX-06 gets its shape here).
+- **ASSEMBLED 2026-07-18 (step 090)**: screen recording built from
+  `videos/test-01/src/{intro,body,conclusion}.mp4` (concat re-encode to 30fps
+  — durations sum to VO ±0.11s, recorded live by the tutorial maker so
+  VO-aligned by construction) → `videos/test-01/screen.mp4`. Full assembly ran
+  clean: `~/kb-scratch/video/visuals-flow/test-01/final.mp4` (32:07.6,
+  1080p30, AAC, 222.6M, duration == VO exactly) + `final-draft.mp4` (720p,
+  4m23s via the 083 speed path) + committed `assembly.md` EDL.
+- **Next test-01 actions are OWNER actions**: (a) WATCH final.mp4 — no human
+  has seen the full cut; there is no automated final-video QC (final-workflow
+  open problem #3). Feedback goes into the board boxes → fold. (b) Decide the
+  route: ship final.mp4 as-is, or editor pass (bundle = `renders/` +
+  `manifest.md` + avatar clips + `avatar-manifest.md` + `assembly.md`;
+  reaction feeds GFX-06).
 
 ## In flight
 
-Nothing. Plans 062–081 all boss-landed 2026-07-18 (PRs #19–#38; #38 = the
-`visuals-flow` operating skill), and the test-01 avatar pilot ran to
-completion the same night (9/9 clips downloaded).
+Nothing. Plans 062–083 all boss-landed 2026-07-18 (PRs #19–#40; #39 = step 090
+assemble, #40 = the speed pass), the avatar pilot ran to completion (9/9
+clips), and test-01 was assembled + speed-validated the same night.
 Backlog registry: `plans/README.md` → "visuals-flow backlog" (GFX-01..06
-hygiene) + "visuals-flow PRODUCT backlog" (GFX-07..13 roadmap).
+hygiene) + "visuals-flow PRODUCT backlog" (GFX-07..15 roadmap).
 
 ## Open items (canonical list = GFX rows in plans/README.md)
 
-1. **Finish the avatar pilot on test-01** (`GFX-07` machinery + skill are DONE;
-   pilot ran 2026-07-18 late night): (a) confirm all 9 submits have video_ids
-   in `avatar-jobs.json` — s03 failed on first pass, re-run submit to retry it;
-   (b) "download the avatar videos" until no `pending:`; (c) corner track was
-   DEFERRED by the owner (spans-only pilot) — revisit only when the owner asks.
-2. **Editor handoff + feedback intake** (`GFX-06` open): give the editor
-   `renders/` + `manifest.md` + avatar clips + `avatar-manifest.md`, fold what
-   comes back.
-3. **Global play-through on the board** (`GFX-08`, owner-deferred).
-4. **agy cue-pass trial** (`GFX-11`): unblocked — lint is the objective rubric half.
-5. **Density calibration**: not a task; the 060 fold loop + Convergence
+**Owner verdict on the POC (2026-07-18): successful, output decent. Direction:
+keep improving — tighten rules, add capabilities — via new-session
+brainstorms.** Standing next steps in priority order:
+
+1. **Owner QC watch of test-01 final.mp4** + route decision (ship vs editor) —
+   see "Immediate state" above. Whatever the watch surfaces becomes board
+   feedback → the 060 fold.
+2. **Editor handoff + feedback intake** (`GFX-06` open) if the editor route is
+   chosen; fold what comes back.
+3. **Video #2 end-to-end** — exercises convergence metrics + the fold loop on
+   fresh content; the flow is now two owner sittings (approve graphics,
+   approve shots) plus the HeyGen green-light and the QC watch.
+4. **Title/thumbnail packaging loop** — highest-ROI NEW build per
+   personal-stuff-frontier (Front 1 #2); brainstorm via `orchestrate` when the
+   owner asks.
+5. **Corner avatar track** — owner-DEFERRED (spans-only). When it lands, it
+   composites through `planSegmentOverlays` (see plan 083 maintenance notes),
+   not a new pass.
+6. **Global play-through on the board** (`GFX-08`, owner-deferred).
+7. **agy cue-pass trial** (`GFX-11`): unblocked — lint is the objective rubric half.
+8. **Density calibration**: not a task; the 060 fold loop + Convergence
    metrics do this across the first few real videos.
-6. **Aesthetic visual QC beyond overflow** (`GFX-10`): open problem, revisit
+9. **Aesthetic visual QC beyond overflow** (`GFX-10`): open problem, revisit
    only with a cheap mechanism.
-7. **edit-delta for shots** (`GFX-13`): fold into the first post-pilot touch
-   (note: pilot v1 had ZERO owner edits, so there was nothing to diff yet).
+10. **edit-delta for shots** (`GFX-13`): fold into the first post-pilot touch
+    (note: pilot v1 had ZERO owner edits, so there was nothing to diff yet).
 
 ## How to run (quick reference)
 
@@ -179,6 +213,8 @@ node lib/lint-shots.mjs <slug>                     # budget/overlap/U-curve; err
 #      then board: review shot lane, "Approve shots"
 bash steps/080-avatar-render-run/run.sh <slug> --template <registry-slug> --submit [--spans-only]  # OWNER-RUN (live HeyGen; --spans-only skips the corner track)
 bash steps/080-avatar-render-run/run.sh <slug> --download                            # re-run until no "pending:"
+# 090 (needs videos/<slug>/screen.mp4, VO-aligned, owner-provided):
+bash steps/090-assemble-run/run.sh <slug> [--draft] [--encoder x264|videotoolbox]    # -> kb-scratch final.mp4 (+ assembly.md EDL); --draft = 720p final-draft.mp4
 bash scripts/check.sh                              # flow gate
 (cd ../card-library && bash scripts/beat-smoke.sh) # card gate
 ```
