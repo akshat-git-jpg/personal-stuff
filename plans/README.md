@@ -420,3 +420,4 @@ The others are grounded and available when the owner wants them:
 - 067-board-script-timeline — PR#24 067-board-script-timeline: full-script timeline view for the storyboard board — DONE
 - 068-tool-logos — PR#25 068-tool-logos: real tool logos on cards (favicon registry + data-URI enrichment) — DONE
 - 069-graphics-feedback-lifecycle — PR#26 069-graphics-feedback-lifecycle: Graphics-flow feedback lifecycle — folded state must survive board Saves — DONE
+- 070-graphics-render-approval-integrity — PR#27 070-graphics-render-approval-integrity: Graphics-flow render integrity — approval gate, staleness check, manifest that survives --only — DONE
