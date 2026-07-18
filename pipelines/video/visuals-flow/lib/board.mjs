@@ -565,9 +565,20 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
         return cue;
       }).filter(Boolean);
       if (broken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + broken.map(escapeForBanner).join('<br>'), 'err'); return; }
+      
+      const shotBroken = [];
+      const spans = [...document.querySelectorAll('.shot-block')].map((b) => {
+        try { return JSON.parse(b.querySelector('.shot-frag').value); }
+        catch (e) { shotBroken.push(b.id + ': ' + e.message); return null; }
+      }).filter(Boolean);
+      if (shotBroken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + shotBroken.map(escapeForBanner).join('<br>'), 'err'); return; }
+
       const feedback = {};
       document.querySelectorAll('textarea.feedback').forEach((t) => { feedback[t.dataset.ref] = t.value; });
-      const res = await fetch('/save', { method: 'POST', body: JSON.stringify({ video: VIDEO, approved: APPROVED, cues, feedback }) });
+      const payload = { video: VIDEO, approved: APPROVED, cues, feedback };
+      if (document.querySelectorAll('.shot-block').length > 0) payload.spans = spans;
+
+      const res = await fetch('/save', { method: 'POST', body: JSON.stringify(payload) });
       const data = await res.json();
       if (!data.ok) {
         showBanner(data.errors.map(escapeForBanner).join('<br>'), 'err');
@@ -591,6 +602,14 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
       await fetch('/approve', { method: 'POST' });
       location.reload();
     };
+
+    const approveShotsBtn = document.getElementById('approveShotsBtn');
+    if (approveShotsBtn) {
+      approveShotsBtn.onclick = async () => {
+        await fetch('/approve-shots', { method: 'POST' });
+        location.reload();
+      };
+    }
 
     function escapeForBanner(s) {
       return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -626,7 +645,8 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
     : (v && typeof v === 'object')
       ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])]))
       : v;
-  if (prev.approved === true && JSON.stringify(canon(prev.cues)) !== JSON.stringify(canon(incoming.cues))) {
+  const cuesChanged = prev.approved === true && JSON.stringify(canon(prev.cues ?? [])) !== JSON.stringify(canon(incoming.cues ?? []));
+  if (cuesChanged) {
     merged.approved = false;
   }
 
@@ -635,6 +655,28 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
   const { resolved, errors } = resolveCues(merged.cues ?? [], words, catalog, cardLibraryRoot);
+
+  let mergedShots = null;
+  let resolvedSpans = null;
+  let shotErrors = null;
+  const shotWarnings = [];
+  const shotsPath = path.join(workdir, 'shots.json');
+  if (fs.existsSync(shotsPath)) {
+    const prevShotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
+    mergedShots = prevShotsFile;
+    if (cuesFile.spans !== undefined) {
+      const { merged } = mergeShots(prevShotsFile, cuesFile.spans);
+      mergedShots = merged;
+    }
+    if (cuesChanged && mergedShots.approved === true) {
+      mergedShots.approved = false;
+      shotWarnings.push('shots: un-approved — cues changed after shot approval (re-review the shot plan)');
+    }
+    fs.writeFileSync(shotsPath, JSON.stringify(mergedShots, null, 2));
+    const resShots = resolveShots(mergedShots, words);
+    resolvedSpans = resShots.spans;
+    shotErrors = resShots.errors;
+  }
 
   if (feedback && typeof feedback === 'object') {
     const fbPath = path.join(workdir, 'feedback.json');
@@ -659,11 +701,17 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
               item.context = { start: gap.start, end: gap.end, excerpt: gap.words.slice(0, 8).map(w => w.text).join(' ') };
             }
           } else if (ref !== '_global') {
-            const cue = (merged.cues ?? []).find(c => c.id === ref);
-            const r = resolved.find(c => c.id === ref);
-            if (cue) {
-              item.context = { card: cue.card, anchor: cue.anchor };
-              if (r) item.context.start = r.start;
+            const span = (mergedShots?.spans ?? []).find(s => s.id === ref);
+            const rSpan = (resolvedSpans ?? []).find(s => s.id === ref);
+            if (span && rSpan) {
+              item.context = { start: rSpan.start, end: rSpan.end, note: span.note };
+            } else {
+              const cue = (merged.cues ?? []).find(c => c.id === ref);
+              const r = resolved.find(c => c.id === ref);
+              if (cue) {
+                item.context = { card: cue.card, anchor: cue.anchor };
+                if (r) item.context.start = r.start;
+              }
             }
           }
           items[ref] = item;
@@ -680,14 +728,34 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
     return res.end(JSON.stringify({ ok: false, errors }));
   }
   
+  const resErrors = [];
+  const resWarnings = [...shotWarnings];
+
+  if (mergedShots) {
+    if (shotErrors && shotErrors.length > 0) {
+      resErrors.push(...shotErrors.map(e => `shots: ${e}`));
+    } else {
+      fs.writeFileSync(
+        path.join(workdir, 'shots.resolved.json'),
+        JSON.stringify({ video: mergedShots.video, offset: mergedShots.offset ?? 0, engineMode: mergedShots.engineMode ?? 'test', spans: resolvedSpans }, null, 2)
+      );
+      const { lintShots } = await import('./lint-shots.mjs');
+      const { errors: sErrors, warnings: sWarnings } = lintShots({ shotsResolved: resolvedSpans, resolvedCues: resolved, words });
+      if (sErrors) resErrors.push(...sErrors.map(e => `shots: ${e}`));
+      if (sWarnings) resWarnings.push(...sWarnings.map(w => `shots: ${w}`));
+    }
+  }
+
   const { errors: lintErrors, warnings: lintWarnings } = lintCues({ cuesFile: merged, resolved, words, catalog });
+  resErrors.push(...lintErrors);
+  resWarnings.push(...lintWarnings);
 
   fs.writeFileSync(
     path.join(workdir, 'resolved.json'),
     JSON.stringify({ video: merged.video, offset: merged.offset ?? 0, resolved }, null, 2),
   );
   ensureSlices(workdir);
-  res.end(JSON.stringify({ ok: true, errors: lintErrors, warnings: lintWarnings }));
+  res.end(JSON.stringify({ ok: true, errors: resErrors, warnings: resWarnings }));
 }
 
 async function handleApprove(req, res, workdir) {
@@ -696,6 +764,16 @@ async function handleApprove(req, res, workdir) {
   const cuesFile = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
   cuesFile.approved = true;
   fs.writeFileSync(cuesPath, JSON.stringify(cuesFile, null, 2));
+  res.setHeader('content-type', 'application/json');
+  res.end(JSON.stringify({ ok: true }));
+}
+
+async function handleApproveShots(req, res, workdir) {
+  await readBody(req);
+  const shotsPath = path.join(workdir, 'shots.json');
+  const shotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
+  shotsFile.approved = true;
+  fs.writeFileSync(shotsPath, JSON.stringify(shotsFile, null, 2));
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
 }
@@ -889,6 +967,10 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
 
   if (req.method === 'POST' && url.pathname === '/approve') {
     return handleApprove(req, res, workdir);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/approve-shots') {
+    return handleApproveShots(req, res, workdir);
   }
 
   res.statusCode = 404;
