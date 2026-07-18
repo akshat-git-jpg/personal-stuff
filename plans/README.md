@@ -91,6 +91,10 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 074 | Graphics zero-token visual QC — DOM overflow probe on board tiles + /calibrate capacity page | P2 | M | 073 | DONE (PR #31, landed 2026-07-18) |
 | 075 | Graphics-flow INTEGRATION.md — caller contract for tutorial-pipeline-1/2 + path-arg 010 | P2 | S-M | 070, 072 (hard — doc describes their behavior) | DONE (PR #32, landed 2026-07-18) |
 | 076 | Graphics feedback loop v2 — apply/fold lifecycle + context snapshots, cues.llm.json edit-delta mining, unfolded pre-flight, convergence metrics | P1 | M | 069 (hard); 072 (soft) | DONE (PR #33, landed 2026-07-18) |
+| 077 | Rename graphics-flow → visuals-flow (folder + live refs) | P1 | S | — | TODO |
+| 078 | Shot plan — schema, LLM pass (step 070), resolver + lint (GFX-07, design doc 2026-07-18) | P1 | M | 077 | TODO |
+| 079 | Board — shot spans as a reviewable third block kind (lane, blocks, approve-shots, staleness cascade) | P1 | M | 078 | TODO |
+| 080 | Avatar render step (090) — VO slices → HeyGen 3 template jobs → clips + avatar-manifest.md | P1 | M | 078, 079 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -324,11 +328,14 @@ they aren't re-audited from scratch — promote any to a plan when ready.
 **graphics-flow PRODUCT backlog (roadmap items, consolidated 2026-07-18 from
 graphics-flow HANDOFF.md "open items" + the feedback-loop discussion; detail
 lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
-- **Avatar/screen-recording shot plan** — THE owner-stated next phase: per stretch of the
-  video, decide avatar vs screen recording + layout hints + durations. `buildSegments()` in
-  `lib/board.mjs` is the designed seam (shot spans = a third segment kind; gap blocks are
-  deliberately untyped today). Schema deliberately NOT invented yet — needs a brainstorm/
-  design pass (orchestrate) before any plan. Prior art: tutorial-pipeline-1/2. `GFX-07`. Effort L.
+- **Avatar/screen-recording shot plan** — THE owner-stated next phase. Designed 2026-07-18
+  (`docs/specs/2026-07-18-avatar-shot-plan-design.md`, owner-approved) and planned as
+  **077–080** (rename → schema/pass → board → avatar render); status lives in the table
+  above. Test mode = HeyGen 3 templates only; production flip is an explicit future owner
+  call. `GFX-07`. Effort L.
+- **edit-delta for shots** — extend `lib/edit-delta.mjs` to diff `shots.llm.json` vs
+  approved `shots.json` (owner-edit mining for the fold loop, same as cues). Deliberately
+  left out of 078 to keep it lean; fold into the first post-pilot touch. `GFX-13`. Effort S.
 - **Global play-through on the board** — master player, auto-scroll, cards animate as the
   playhead crosses; same buildSegments seam. Owner-deferred. `GFX-08`. Effort M.
 - **Render + editor handoff proof** — run 050 on approved test-01, check clips + manifest
