@@ -26,7 +26,10 @@ guarantee that a correction given once is never needed twice.
    - flow/tooling mistake → the step README or lib script involved
 3. Run the gates the edits touch: `node lib/check-rulebook.mjs`, board/resolver
    tests, `card-library/scripts/beat-smoke.sh` if catalog changed.
-4. Mark each folded item in its feedback.json: `"folded": "<date> — <where the rule landed>"`.
+4. Mark each folded item in its feedback.json by setting `folded` on the item
+   object: `"c05": { "text": "...", "added": "2026-07-18", "folded": "2026-07-19 — RULEBOOK section 2" }`.
+   The board treats folded items as read-only history — they can never be
+   edited or deleted from the board again.
 5. Append one dated line per lesson to `tests/TESTS.md` under a `## Folded lessons`
    section (provenance: what feedback → which rule).
 6. Commit everything together (`fold(graphics-flow): <summary>`).
