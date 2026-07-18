@@ -90,6 +90,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 073 | Graphics board hardening — per-cue JSON save errors, 127.0.0.1 bind + port walk, incremental slices | P2 | S | 069, 070, 072 (board.mjs chain) | TODO |
 | 074 | Graphics zero-token visual QC — DOM overflow probe on board tiles + /calibrate capacity page | P2 | M | 073 | TODO |
 | 075 | Graphics-flow INTEGRATION.md — caller contract for tutorial-pipeline-1/2 + path-arg 010 | P2 | S-M | 070, 072 (hard — doc describes their behavior) | TODO |
+| 076 | Graphics feedback loop v2 — apply/fold lifecycle + context snapshots, cues.llm.json edit-delta mining, unfolded pre-flight, convergence metrics | P1 | M | 069 (hard); 072 (soft) | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -312,6 +313,13 @@ they aren't re-audited from scratch — promote any to a plan when ready.
 - Groq transcribe (`transcribe-groq.mjs`) doesn't validate word timestamps are monotonic
   non-negative before writing transcript.json; a garbage API response would poison downstream
   anchors. One assert loop. `GFX-04`. Effort S.
+- Board edit affordances — the most common owner fixes (swap a cue's card, delete a cue,
+  add a cue in a gap, edit `lead`) have no board controls, so they become typed feedback for a
+  later session instead of direct edits. Promote to a plan after the 069-076 chain lands
+  (2026-07-18 feedback-loop discussion). `GFX-05`. Effort M.
+- Editor (downstream) feedback channel — the human editor consuming `renders/` + `manifest.md`
+  has no structured intake; deferred until the first real editor handoff shows what they need
+  (HANDOFF open item 1 will surface it). `GFX-06`. Effort S.
 
 **Tracker-app backlog (2026-07-05 focused audit; promote when wanted):**
 - **Per-stage SLA defaults in the PipelineDef** (`slaDays` on `StageDef`) feeding the
