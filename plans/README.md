@@ -491,3 +491,4 @@ The others are grounded and available when the owner wants them:
 - 084-assemble-whip-transitions — PR#41 084-assemble-whip-transitions: whip-pan transitions at screen<->avatar boundaries (step 090) — DONE
 - 085-assemble-avatar-refresh-beats — PR#42 085-assemble-avatar-refresh-beats: flash + punch-in refresh beats inside long avatar spans (step 090) — DONE
 - 086-transcript-text-export-and-docs — PR#43 086-transcript-text-export-and-docs: plain-text transcript export + LLM-step doc reconciliation — DONE
+- 087-avatar-render-hardening — PR#44 087-avatar-render-hardening: avatar-render hardening: array-form spawns, slice verify, guards — DONE
