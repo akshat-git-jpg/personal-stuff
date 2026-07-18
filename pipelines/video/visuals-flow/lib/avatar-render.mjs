@@ -191,6 +191,17 @@ async function main() {
       submittedAny = true;
       submitsInRun++;
     }
+
+    // Final flush — the per-submit write above only fires on submits, so a run
+    // whose trailing jobs are all skips (e.g. a retry of one failed job) would
+    // otherwise leave the file missing every job after the last submit
+    // (incident: test-01 s03 retry dropped s04–s09, 2026-07-18).
+    fs.writeFileSync(jobsPath, JSON.stringify({
+      video: shotsResolved.video,
+      template: opts.template,
+      engineMode: "test",
+      jobs: outJobs
+    }, null, 2));
     process.exit(exitCode);
   }
 

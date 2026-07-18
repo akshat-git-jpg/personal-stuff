@@ -1,0 +1,106 @@
+{
+  "video": "test-01",
+  "template": "girl-1",
+  "engineMode": "test",
+  "jobs": [
+    {
+      "id": "s01",
+      "kind": "avatar-full",
+      "start": 0.4,
+      "end": 57.52,
+      "duration": 57.12,
+      "audio": "slices-avatar/s01.mp3",
+      "video_id": "10d518a536ab45eb8f6eebde948ff06a",
+      "status": "submitted",
+      "submitted_at": "2026-07-18T15:41:48.545Z"
+    },
+    {
+      "id": "s02",
+      "kind": "avatar-full",
+      "start": 117.57,
+      "end": 167.58,
+      "duration": 50.01,
+      "audio": "slices-avatar/s02.mp3",
+      "video_id": "da07901a72fd49d3a8a70cfe7be47ebd",
+      "status": "submitted",
+      "submitted_at": "2026-07-18T15:44:15.085Z"
+    },
+    {
+      "id": "s03",
+      "kind": "avatar-full",
+      "start": 445.85,
+      "end": 460.54,
+      "duration": 14.69,
+      "audio": "slices-avatar/s03.mp3",
+      "video_id": "65473bfa4a7c41a5a92e71fd0f6f5311",
+      "status": "submitted",
+      "submitted_at": "2026-07-18T16:07:53.965Z"
+    },
+    {
+      "id": "s04",
+      "kind": "avatar-full",
+      "start": 727.89,
+      "end": 745.76,
+      "duration": 17.87,
+      "audio": "slices-avatar/s04.mp3",
+      "video_id": "f805f5ee3b8249cc9d5a2280618c3a20",
+      "status": "submitted",
+      "submitted_at": "2026-07-18T16:05:00.000Z"
+    },
+    {
+      "id": "s05",
+      "kind": "avatar-full",
+      "start": 971.47,
+      "end": 987.5,
+      "duration": 16.03,
+      "audio": "slices-avatar/s05.mp3",
+      "video_id": "84de977213f646cab7e30607d0644a4d",
+      "status": "submitted",
+      "submitted_at": "2026-07-18T16:05:00.000Z"
+    },
+    {
+      "id": "s06",
+      "kind": "avatar-full",
+      "start": 1167.09,
+      "end": 1184.93,
+      "duration": 17.84,
+      "audio": "slices-avatar/s06.mp3",
+      "video_id": "e07d23e337344a0ab9835cf2743876f0",
+      "status": "submitted",
+      "submitted_at": "2026-07-18T16:05:00.000Z"
+    },
+    {
+      "id": "s07",
+      "kind": "avatar-full",
+      "start": 1337.33,
+      "end": 1351.48,
+      "duration": 14.15,
+      "audio": "slices-avatar/s07.mp3",
+      "video_id": "b5a92b3c31ae4c2e86236f00db832aba",
+      "status": "submitted",
+      "submitted_at": "2026-07-18T16:05:00.000Z"
+    },
+    {
+      "id": "s08",
+      "kind": "avatar-full",
+      "start": 1619.09,
+      "end": 1640.84,
+      "duration": 21.75,
+      "audio": "slices-avatar/s08.mp3",
+      "video_id": "8c71063ede6841b5bd99de2ad5f2653f",
+      "status": "submitted",
+      "submitted_at": "2026-07-18T16:05:00.000Z"
+    },
+    {
+      "id": "s09",
+      "kind": "avatar-full",
+      "start": 1889.21,
+      "end": 1927.44,
+      "duration": 38.23,
+      "audio": "slices-avatar/s09.mp3",
+      "video_id": "d585d2812fe94f9e8bd247930979e49f",
+      "status": "submitted",
+      "submitted_at": "2026-07-18T16:05:00.000Z"
+    }
+  ]
+}

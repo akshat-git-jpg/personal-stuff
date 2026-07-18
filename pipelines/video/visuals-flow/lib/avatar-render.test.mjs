@@ -164,3 +164,46 @@ test('planJobs spansOnly → no corner jobs', async () => {
   assert.equal(jobs.length, 1);
   assert.ok(jobs.every(j => j.kind === 'avatar-full'));
 });
+
+test('retry run flushes skipped jobs after the last submit (s03-retry incident)', (t) => {
+  const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), 'avatar-render-flush-'));
+  const workdir = path.join(tmpdir, 'videos', 'vid');
+  const mediaRoot = path.join(tmpdir, 'media');
+  t.after(() => fs.rmSync(tmpdir, { recursive: true, force: true }));
+  fs.mkdirSync(workdir, { recursive: true });
+  fs.mkdirSync(mediaRoot, { recursive: true });
+
+  const words = Array.from({ length: 12 }, (_, i) => ({ start: i * 5, end: i * 5 + 5, text: `w${i}` }));
+  fs.writeFileSync(path.join(workdir, 'transcript.json'), JSON.stringify(words));
+  fs.writeFileSync(path.join(workdir, 'resolved.json'), JSON.stringify({ video: 'vid', resolved: [] }));
+  fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify({
+    video: 'vid', approved: true, engineMode: 'test',
+    spans: [
+      { id: 's01', kind: 'avatar-full', from_anchor: 'w0 w1 w2', to_anchor: 'w3 w4 w5' },
+      { id: 's02', kind: 'avatar-full', from_anchor: 'w6 w7 w8', to_anchor: 'w9 w10 w11' }
+    ]
+  }));
+  spawnSync('ffmpeg', ['-f', 'lavfi', '-i', 'anullsrc', '-t', '65', '-q:a', '9', path.join(workdir, 'vo.mp3')]);
+  const rs = spawnSync(process.execPath, [path.resolve(import.meta.dirname, 'resolve-shots.mjs'), workdir], { encoding: 'utf8' });
+  if (rs.status !== 0) throw new Error(rs.stderr);
+
+  // Pre-seed: s02 already submitted, s01 needs a submit → the skip comes AFTER the submit.
+  const resolved = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.resolved.json'), 'utf8'));
+  const s02 = resolved.spans.find((s) => s.id === 's02');
+  fs.writeFileSync(path.join(workdir, 'avatar-jobs.json'), JSON.stringify({
+    video: 'vid', template: 'girl-1', engineMode: 'test',
+    jobs: [{ id: 's02', kind: 'avatar-full', start: s02.start, end: s02.end, duration: s02.duration,
+             audio: 'slices-avatar/s02.mp3', video_id: 'pre-existing-id', status: 'submitted', submitted_at: 'x' }]
+  }));
+
+  const res = spawnSync(process.execPath, [path.resolve(import.meta.dirname, 'avatar-render.mjs'), workdir, '--template', 'girl-1', '--submit', '--spans-only'], {
+    cwd: workdir, encoding: 'utf8',
+    env: { ...process.env, HEYGEN_WEB_BIN: `node ${path.resolve(import.meta.dirname, 'fixtures', 'heygen-web-stub.mjs')}`, AVATAR_RENDER_NO_PACING: '1', AVATAR_MEDIA_ROOT: mediaRoot }
+  });
+  assert.strictEqual(res.status, 0, res.stderr);
+
+  const after = JSON.parse(fs.readFileSync(path.join(workdir, 'avatar-jobs.json'), 'utf8'));
+  assert.strictEqual(after.jobs.length, 2, 'both jobs must survive the rewrite');
+  assert.ok(after.jobs.every((j) => j.video_id), 'every job keeps a video_id');
+  assert.strictEqual(after.jobs.find((j) => j.id === 's02').video_id, 'pre-existing-id');
+});

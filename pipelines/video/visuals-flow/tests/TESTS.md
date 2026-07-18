@@ -89,6 +89,7 @@ tested, with what source, and what the run taught us.
 - 2026-07-18 — owner (shot-plan board review): shot-block JSON editor was an unstyled white sliver + avatar lane was nested INSIDE the graphics minimap → styled shot-frag, separate labeled lanes + color legend.
 - 2026-07-18 — owner: lane colors all read as similar warm hues → distinct hues (orange fullframe / sky-blue overlay / violet avatar; green stays reserved for approved states).
 - 2026-07-18 — owner: "why two approve buttons?" → kept two gates (independent lifecycles, cue-edit auto-un-approves shots), renamed bare "Approve" to "Approve graphics"; one review sitting covers both.
+- 2026-07-18 — session (s03 retry): avatar-jobs.json was only flushed inside the submit branch, so a retry whose trailing jobs all skip dropped s04–s09 from the file (video_ids recovered from RENDERS.md — the CLI's auto-append row per submit is the designed backup, and it worked) → final unconditional flush after the loop + regression test.
 
 ## Convergence
 
