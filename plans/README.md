@@ -471,3 +471,4 @@ The others are grounded and available when the owner wants them:
 - 076-graphics-feedback-loop-v2 — PR#33 076-graphics-feedback-loop-v2: Graphics feedback loop v2 — apply/fold lifecycle, edit-delta mining, unfolded pre-flight, convergence metrics — DONE
 - 077-visuals-flow-rename — PR#34 077-visuals-flow-rename: Rename graphics-flow → visuals-flow (folder + live refs) — DONE
 - 078-shot-plan-schema-and-pass — PR#35 078-shot-plan-schema-and-pass: Shot plan — schema, LLM pass (step 070), resolver + lint — DONE
+- 079-board-shot-spans — PR#36 079-board-shot-spans: Board — shot spans as a reviewable third block kind — DONE
