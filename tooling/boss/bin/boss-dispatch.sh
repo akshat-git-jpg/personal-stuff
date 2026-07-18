@@ -36,8 +36,21 @@ git -C "$REPO_ROOT" fetch -q origin "$branch"
 plan_tmp="$STATE_DIR/$pr.plan"
 git -C "$REPO_ROOT" show "origin/$branch:$planpath" > "$plan_tmp" 2>/dev/null \
   || { echo "PR $pr: $planpath missing on branch" >&2; exit 1; }
-executor="${exec_override:-$(fm_get executor "$plan_tmp")}"; [ -n "$executor" ] || executor="claude-p"
-model="${model_override:-$(fm_get model "$plan_tmp")}"
+fm_executor="$(fm_get executor "$plan_tmp")"
+executor="${exec_override:-$fm_executor}"; [ -n "$executor" ] || executor="claude-p"
+# Model resolution. An explicit --model always wins. Otherwise the frontmatter
+# model is only valid when the executor IS the frontmatter's own — a model string
+# is executor-specific ("sonnet" is a claude-p model; agy rejects it with
+# `invalid --model "sonnet"` and burns a dispatch). When --executor swaps the
+# executor, DROP the frontmatter model so the new executor falls back to its own
+# default (agy.sh / claude-p.sh fill it in).
+if [ -n "$model_override" ]; then
+  model="$model_override"
+elif [ "$executor" = "$fm_executor" ]; then
+  model="$(fm_get model "$plan_tmp")"
+else
+  model=""
+fi
 test_cmd="$(fm_get test_cmd "$plan_tmp")"
 [ -n "$test_cmd" ] || { echo "PR $pr: test_cmd missing in frontmatter — refusing" >&2; exit 1; }
 # Optional frontmatter `test_timeout` (seconds) — plans with real renders/downloads
@@ -51,7 +64,20 @@ gh pr edit "$pr" --remove-label boss:ready --add-label boss:in-progress
 
 wt=$(wt get --holder "boss-$pr")
 git -C "$wt" fetch -q origin "$branch" main
-git -C "$wt" checkout -B "$branch" "origin/$branch"
+# Guard the checkout. If $branch is held by another worktree (typically a prior
+# errored dispatch that never released it), `checkout -B` fails — but without this
+# guard execution CONTINUES and the crew runs on this worktree's stale detached
+# HEAD, silently committing nothing to $branch (data loss; hit on PR#43). Fail
+# loudly, return the leased worktree, and leave the PR boss:ready (retryable, not
+# blocked — this is an environment snag, not a plan defect).
+if ! git -C "$wt" checkout -B "$branch" "origin/$branch"; then
+  gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:ready 2>/dev/null || true
+  boss_notify "boss:dispatch-abort PR#$pr — cannot checkout $branch (held by another worktree?); left boss:ready"
+  wt return "$wt"
+  echo "PR#$pr dispatch ABORTED — could not checkout $branch in $wt (branch held by another worktree?)." >&2
+  echo "  Free the stale worktree (git -C <wt> checkout --detach; wt return <wt>), then re-dispatch." >&2
+  exit 2
+fi
 if ! git -C "$wt" merge --no-edit origin/main; then
   gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:blocked
   boss_notify "boss:blocked PR#$pr — stale, main-merge conflict"
