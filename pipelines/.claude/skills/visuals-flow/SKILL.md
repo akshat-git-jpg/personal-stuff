@@ -30,9 +30,12 @@ State of the pipeline + full command list: `HANDOFF.md`. Schemas: `PIPELINE.md`.
 
 1. Guardrail 1. If `videos/<slug>/transcript.json` is missing:
    `bash steps/010-transcribe-run/run.sh <slug>` (accepts vo.mp3/mp4/mov/mkv/m4a/wav).
-2. Run the cue pass IN THIS SESSION: read `steps/020-cue-pass-llm/cue-pass-prompt.md`,
-   fill its placeholders (`../card-library/catalog.json` + the transcript text),
-   produce `videos/<slug>/cues.json` exactly per the prompt's schema. Any
+2. Run the cue pass IN THIS SESSION: paste **the prompt only**
+   (`steps/020-cue-pass-llm/cue-pass-prompt.md`), as it is self-contained
+   (RULEBOOK.md is the 060 fold's judgment archive, kept in sync by the fold).
+   Fill its placeholders with `../card-library/catalog.json` and the output of
+   `node lib/transcript-text.mjs <slug>` (never raw transcript.json). Produce
+   `videos/<slug>/cues.json` exactly per the prompt's schema. Any
    Sonnet-class-or-better session qualifies (the pass is form-filling; HANDOFF
    "Model routing").
 3. Fix-loop (≤3 rounds): `node lib/resolve.mjs <slug> && node lib/lint-cues.mjs <slug>`;
@@ -47,8 +50,10 @@ State of the pipeline + full command list: `HANDOFF.md`. Schemas: `PIPELINE.md`.
    plans AROUND approved graphics — refuse otherwise).
 2. Extract the fullframe cue times for the prompt:
    `node -e "const r=require('./videos/<slug>/resolved.json');for(const c of r.resolved.filter(c=>c.placement==='fullframe'))console.log(c.id, c.start, +(c.start+c.duration).toFixed(2))"`
-3. Run the shot pass IN THIS SESSION: `steps/070-shot-pass-llm/shot-pass-prompt.md`
-   with the fullframe list + transcript → `videos/<slug>/shots.json`.
+3. Run the shot pass IN THIS SESSION: paste **the prompt only**
+   (`steps/070-shot-pass-llm/shot-pass-prompt.md`) with the fullframe list +
+   the output of `node lib/transcript-text.mjs <slug>` (never raw transcript.json)
+   → `videos/<slug>/shots.json`. (RULEBOOK.md is the fold's judgment archive).
 4. Fix-loop (≤3 rounds): `node lib/resolve-shots.mjs <slug> && node lib/lint-shots.mjs <slug>`.
 5. Guardrail 5 (snapshot to `shots.llm.json`), then point the owner at the
    board's shot lane + "Approve shots" button.
