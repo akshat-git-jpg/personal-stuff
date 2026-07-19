@@ -193,12 +193,15 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 
 ## In flight
 
-**Plan 102 (GFX-17 speed pass) is BLOCKED** — the crew hit the plan's STOP
-condition (verified real: `/opt/homebrew/bin/ffmpeg` 8.1.2 lacks the libass
-`subtitles` filter); PR #59 closed `boss:blocked`, no code landed. Unblock
-paths for the next session: (a) install a libass-enabled ffmpeg and re-raise,
-or (b) re-scope 102 to pool+cache+`--bare` only (the big wins) and keep PNG
-captions — owner's call.
+**Plan 102 (GFX-17 speed pass) LANDED on the second run** (2026-07-20): the
+first crew correctly STOPPED on missing libass; ffmpeg was fixed overnight
+(same 8.1.2, now with the `subtitles` filter) and the re-run landed the full
+scope — `--jobs` pool, content-keyed segment cache (`assembly-cache/`,
+`--no-cache` to bypass), libass ASS captions (PNG pipeline deleted), `--bare`
+tier. NOT yet benchmarked on a real draft — the next test-01 draft run is the
+proof (expect minutes cold, ~1-2 min warm).
+**Plan 103 (bubble rotating gradient ring, PR #60)** — boss:ready, awaiting
+pickup; resolves the queued 1b ring feedback.
 Everything else landed: plans 062–083 (PRs #19–#40, 2026-07-18), 084–094
 (PRs #41–#51, 2026-07-19 AM, + hot-fixes a8456e4), 095–101 (PRs #52–#58,
 2026-07-19 PM, the style-clone wave). test-01 re-assembled `--draft` after
