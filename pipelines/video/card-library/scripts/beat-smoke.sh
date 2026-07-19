@@ -2,10 +2,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 BEAT_CARDS=$(node -e "require('./catalog.json').cards.filter(c=>c.kind==='beat').forEach(c=>console.log(c.slug))")
-[ "$(echo "$BEAT_CARDS" | wc -l | tr -d ' ')" = "11" ]
+[ "$(echo "$BEAT_CARDS" | wc -l | tr -d ' ')" = "12" ]
 node -e "
 const fs=require('fs');const c=require('./catalog.json');
-if(c.cards.length!==42)throw new Error('want 42 cards, got '+c.cards.length);
+if(c.cards.length!==44)throw new Error('want 44 cards, got '+c.cards.length);
 for(const card of c.cards){
   if(!fs.existsSync(card.slug+'/index.html'))throw new Error('missing dir: '+card.slug);
   if(!['beat','single'].includes(card.kind))throw new Error('bad kind: '+card.slug);

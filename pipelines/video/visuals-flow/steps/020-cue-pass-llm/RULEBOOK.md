@@ -68,6 +68,11 @@ Route by what the VO is DOING at that moment, using each catalog card's
 - Delivering a final judgment → a verdict card.
 - Opening a section → a section or title card.
 - Reinforcing a single claim or number → an overlay card.
+- VO judges a result while footage shows it (a pro or con is spoken) →
+  `overlay/verdict-chips`, one beat per spoken judgment, ≤4.
+- VO announces a rating or score ('gets a 9.5 out of 10') →
+  `overlay/score-pill` at the spoken score; `winner:true` only for a
+  final-verdict winner.
 
 **Structural consistency (mandatory).** Cards serving a parallel structural
 role — the same semantic slot repeated once per compared item, like the

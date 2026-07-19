@@ -1,0 +1,112 @@
+<!doctype html>
+<!--
+  VERDICT CHIPS   (Hyperframes OVERLAY — transparent background)
+  Spoken pros/cons pinned to footage: green-check / rose-cross pill chips tick
+  in one per beat and persist, accumulating bottom-left. 1920x1080, 30fps, 8s.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block (beats[]) and :root.   │
+  │  Each beat = { text, verdict:'yes'|'no', at }. Never touch the TIMELINE.  │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  ⚠ OVERLAY: render as a TRANSPARENT WebM:
+    npx hyperframes@latest render overlay/verdict-chips -o verdict-chips.webm --format webm --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --text: #ffffff;
+        --positive: #34d399;
+        --negative: #fb7185;
+        --pill-bg: rgba(10, 8, 5, 0.82);
+        --pill-line: rgba(255, 255, 255, 0.1);
+        --mark: #0a0805; /* dark mark drawn over the filled circle */
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #chips {
+        position: absolute; bottom: 120px; left: 120px;
+        display: flex; flex-direction: column-reverse; gap: 20px;
+      }
+      .chip {
+        display: flex; align-items: center; gap: 20px;
+        background: var(--pill-bg); border: 1px solid var(--pill-line);
+        border-radius: 999px; padding: 16px 34px 16px 16px;
+        backdrop-filter: blur(2px); will-change: transform, opacity;
+      }
+      .icon { flex: 0 0 auto; width: 52px; height: 52px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; }
+      .icon-yes { background: var(--positive); }
+      .icon-no { background: var(--negative); }
+      .mark { width: 30px; height: 30px; will-change: transform, opacity; }
+      .mark path, .mark line { fill: none; stroke: var(--mark); stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; }
+      .label { font-size: 30px; font-weight: 600; line-height: 1.15; white-space: nowrap; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="verdict-chips" data-start="0" data-duration="8" data-width="1920" data-height="1080"
+      data-composition-variables='{"beats":[{"text":"Clean underwater scene","verdict":"yes","at":0.4},{"text":"Weird shirt removal","verdict":"no","at":1.2}]}'>
+      <div id="chips" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        beats: VARS.beats ?? [
+          { text: 'Clean underwater scene', verdict: 'yes', at: 0.4 },
+          { text: 'Weird shirt removal', verdict: 'no', at: 1.2 },
+        ],
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const CHECK = '<svg class="mark" viewBox="0 0 24 24"><path d="M4 12.5l5 5 11-12"/></svg>';
+      const CROSS = '<svg class="mark" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>';
+
+      const chips = DATA.beats.map((b) => {
+        const yes = b.verdict === 'yes';
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.innerHTML =
+          '<span class="icon ' + (yes ? 'icon-yes' : 'icon-no') + '">' + (yes ? CHECK : CROSS) + '</span>' +
+          '<span class="label"></span>';
+        chip.querySelector('.label').textContent = b.text;
+        document.getElementById('chips').appendChild(chip);
+        return { b, chip, yes };
+      });
+
+      // prime each check stroke as an undrawn dash (deterministic length)
+      chips.forEach(({ chip, yes }) => {
+        if (yes) {
+          const p = chip.querySelector('.mark path');
+          const len = p.getTotalLength();
+          p.style.strokeDasharray = len;
+          p.style.strokeDashoffset = len;
+        }
+      });
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      chips.forEach(({ b, chip, yes }) => {
+        // chip slides up + fades in
+        tl.from(chip, { opacity: 0, y: 20, duration: 0.45, ease: 'power3.out' }, b.at);
+        // the mark draws (check) or pops (cross) shortly after — box-then-check rhythm
+        if (yes) {
+          tl.to(chip.querySelector('.mark path'), { strokeDashoffset: 0, duration: 0.32, ease: 'power2.out' }, b.at + 0.2);
+        } else {
+          tl.from(chip.querySelectorAll('.mark line'), { scale: 0, transformOrigin: 'center', duration: 0.3, ease: 'back.out(2.5)' }, b.at + 0.2);
+        }
+      });
+
+      window.__timelines['verdict-chips'] = tl;
+    </script>
+  </body>
+</html>

@@ -61,6 +61,13 @@ economics too dense to say -> comparison/credits-math; step walkthrough NOT
 shown on screen -> process/step-flow; who-should-buy-what payoff ->
 verdict/persona-match.
 
+Result-review overlays:
+- VO judges a result while footage shows it (a pro or con is spoken) →
+  `overlay/verdict-chips`, one beat per spoken judgment, ≤4.
+- VO announces a rating or score ('gets a 9.5 out of 10') →
+  `overlay/score-pill` at the spoken score; `winner:true` only for a
+  final-verdict winner.
+
 Structural consistency (mandatory): a repeated semantic slot — e.g. the
 section opener for each compared tool — uses the SAME card every time; mixing
 cards across parallel items is a defect, not variety. Structural cards

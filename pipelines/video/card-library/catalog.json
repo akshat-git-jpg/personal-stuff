@@ -250,6 +250,20 @@
       "default_duration": 5
     },
     {
+      "slug": "overlay/score-pill",
+      "kind": "single",
+      "placement": "overlay",
+      "purpose": "spoken score badge: label + animated N/10 pill (optional logo; gold only when winner) at the second the score is said",
+      "variables": {
+        "label": "string",
+        "score": "number",
+        "max": "number (optional, default 10)",
+        "logo": "string (optional) — logos/ registry slug",
+        "winner": "boolean (optional, default false)"
+      },
+      "default_duration": 4
+    },
+    {
       "slug": "overlay/spotlight-click",
       "kind": "single",
       "placement": "overlay",
@@ -288,6 +302,17 @@
         "edge": "string"
       },
       "default_duration": 5
+    },
+    {
+      "slug": "overlay/verdict-chips",
+      "kind": "beat",
+      "placement": "overlay",
+      "purpose": "spoken pros/cons pinned to footage: green-check / rose-cross pill chips tick in one per beat and persist, anchored bottom-left",
+      "variables": {},
+      "beat_shape": { "text": "string", "verdict": "string — 'yes' | 'no'" },
+      "default_duration": 8,
+      "max_beats": 4,
+      "max_reveal_chars": 32
     },
     {
       "slug": "pros-cons/pros-cons",
