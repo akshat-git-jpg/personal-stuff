@@ -522,7 +522,10 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], 
     }
 
     if (tOut) {
-      const bSegsRes = whipMod.boundarySegments(tOut, { ...ctx, screenOffset, ENC });
+      const bSegsRes = whipMod.boundarySegments(tOut, {
+        ...ctx, screenOffset, ENC,
+        graphicFile: (cue) => path.join(renderDir, planRender(cue).outFile)
+      });
       if (bSegsRes && bSegsRes.extraSegments) {
         for (const ex of bSegsRes.extraSegments) {
           const transStr = `seg-${String(segIndex).padStart(3, '0')}-${ex.fileTag}.ts`;

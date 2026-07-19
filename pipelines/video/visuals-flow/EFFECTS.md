@@ -37,7 +37,9 @@ Effects are implemented as independent modules registered in `lib/effects/regist
 
 ## Core Modules
 
-- **Whip (`whip.mjs`)**: Inserts whip-pan transitions on screen<->avatar boundaries.
+- **Whip (`whip.mjs`)**: Inserts transitions at boundaries.
+  - `blur` (default): whip-pan transitions on `screen>avatar` and `avatar>screen` boundaries. Skip if <1s segment or overlapping overlay.
+  - `flash`: brightness-bloom wipe on `screen>graphic` and `avatar>graphic` boundaries. Skip rules same as blur. Knobs: `FLASH_GAIN`, `FLASH_COLOR`, per-instance `style`. Reference: `references/vPqSgj8Ta3Y.md` moment 1:27.2.
 - **Beats (`beats.mjs`)**: Synchronizes zoom punch-ins on avatar shots with transcript gaps and overlay cue placements.
 - **Captions (`captions.mjs`)**: Renders burned-in word-level captions.
 - **Drift (`drift.mjs`)**: Adds a slow Ken Burns effect to static screen segments.
