@@ -67,6 +67,11 @@ Result-review overlays:
 - VO announces a rating or score ('gets a 9.5 out of 10') →
   `overlay/score-pill` at the spoken score; `winner:true` only for a
   final-verdict winner.
+- VO walks per-product numbers (price/specs) across 3+ products →
+  `comparison/table-rows`, one beat per product row, cells pipe-separated,
+  anchor each beat at that product's first spoken number.
+- VO states a claim then lists items under it →
+  `slate/headline-chips`: headline = the claim, one chip beat per listed item.
 
 Structural consistency (mandatory): a repeated semantic slot — e.g. the
 section opener for each compared tool — uses the SAME card every time; mixing
@@ -84,7 +89,8 @@ processes not visible on screen.
 
 Pricing (mandatory): no per-tool pricing/credits graphics during tool segments
 (the pricing page is on screen); consolidate into ONE pricing comparison
-graphic in the final comparison section.
+graphic in the final comparison section. When the `comparison/table-rows` card
+is used, do NOT also emit stat-hit cues for the same numbers.
 
 Anchors: verbatim quotes copied exactly from the transcript, contractions and
 all, never paraphrased; at least 3 consecutive words; pick phrases unlikely

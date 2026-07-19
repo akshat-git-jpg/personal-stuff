@@ -73,6 +73,11 @@ Route by what the VO is DOING at that moment, using each catalog card's
 - VO announces a rating or score ('gets a 9.5 out of 10') →
   `overlay/score-pill` at the spoken score; `winner:true` only for a
   final-verdict winner.
+- VO walks per-product numbers (price/specs) across 3+ products →
+  `comparison/table-rows`, one beat per product row, cells pipe-separated,
+  anchor each beat at that product's first spoken number.
+- VO states a claim then lists items under it →
+  `slate/headline-chips`: headline = the claim, one chip beat per listed item.
 
 **Structural consistency (mandatory).** Cards serving a parallel structural
 role — the same semantic slot repeated once per compared item, like the
@@ -92,7 +97,8 @@ Other overlays: vary callout's style and position when repeating.
 tool segments stay on the screen recording — pricing pages are already on
 screen. Consolidate pricing into ONE comparison graphic (e.g. a summary-table
 with real prices) in the final comparison section. Never one pricing card per
-tool. (Owner fold 2026-07-18, test-01 c20–c24.)
+tool. When the `comparison/table-rows` card is used, do NOT also emit stat-hit
+cues for the same numbers. (Owner fold 2026-07-18, test-01 c20–c24.)
 
 If nothing in the catalog fits, do not force a bad match. Set the cue's
 `flagged` to `true`, set `card` to the closest existing slug, and add a `note`
