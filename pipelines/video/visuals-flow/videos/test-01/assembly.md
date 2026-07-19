@@ -62,18 +62,18 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow/test-01/final-draft.mp4
 
 | at | direction | from | to |
 |---|---|---|---|
-| 01:57.6 | left | screen-03 | s02.1 |
+| 00:57.5 | right | s01 | c01 |
 | 02:47.6 | right | s02.3 | screen-04 |
-| 07:25.9 | left | screen-05 | s03 |
+| 02:56.1 | right | screen-04 | c05 |
 | 07:40.5 | right | s03 | screen-06 |
-| 12:07.9 | left | screen-07 | s04 |
+| 08:12.9 | right | screen-06 | c08 |
 | 12:25.8 | right | s04 | screen-08 |
-| 16:11.5 | left | screen-09 | s05 |
+| 12:43.8 | right | screen-08 | c11 |
 | 16:27.5 | right | s05 | screen-10 |
-| 19:27.1 | left | screen-11 | s06 |
+| 16:34.8 | right | screen-10 | c14 |
 | 19:44.9 | right | s06 | screen-12 |
-| 22:17.3 | left | screen-13 | s07 |
+| 19:58.8 | right | screen-12 | c17 |
 | 22:31.5 | right | s07 | screen-14 |
-| 26:59.1 | left | screen-14 | s08 |
 | 27:20.8 | right | s08 | screen-15 |
-| 31:29.2 | left | screen-18 | s09 |
+| 27:28.8 | right | screen-15 | c25 |
+| 29:31.6 | right | screen-17 | c26 |
