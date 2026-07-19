@@ -108,6 +108,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 091 | Ken Burns drift on screen segments (step 090) — alternating ≤5% center-zoom via per-frame crop expr, ≥4s screens only, --drift on\|off | P3 | S | 090 landed | DONE (PR #48, landed 2026-07-19; drift mechanism hot-fixed same day — zoompan dead expr → scale eval=frame) |
 | 092 | no orphan screen slivers — resolve-shots edge snapping, lint E5/W5 short-screen rules, assemble absorbSlivers (tpad freeze into graphic/avatar neighbors), 070 rulebook no-orphan rule; owner-flagged 2026-07-19 (0.4s/1.4s screen blinks) | P1 | M | none | DONE (PR #49, landed 2026-07-19) |
 | 093 | effects layer — lib/effects/ pluggable modules (whip/beats/drift/captions), per-video effects.json manifest (owner-editable per instance, merged by id), EFFECTS.md rulebook as rule surface #7; adding an effect never edits the encode loop again | P1 | M-L | 089-092 landed | TODO |
+| 094 | analyze-reference tool — full-video effect discovery for any YouTube URL: scene-score + luma-spike detectors -> clustered moments.json + ranked 30fps contact sheets (kb-scratch), session writes committed references/<id>.md inventory; new skill verb "analyze reference <url>" | P2 | M | none (feeds 093's EFFECTS.md) | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
