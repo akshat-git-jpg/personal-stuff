@@ -90,11 +90,18 @@ export const DRIFT_MAX = 0.05, DRIFT_MIN_SEG = 4, DRIFT_PERIOD = 30;
 export function driftVF(screenOrdinal, dur, w, h, {
   max = DRIFT_MAX, minSeg = DRIFT_MIN_SEG, period = DRIFT_PERIOD } = {}) {
   if (dur < minSeg) return '';
-  const depth = +(max * Math.min(dur / period, 1)).toFixed(4);
+  // Full depth always; the push completes within `period` (or the segment,
+  // if shorter) and holds — ramping over a long segment's full duration made
+  // the motion imperceptible (~0.02%/s on a 4-min segment).
+  // Mechanism: scale with eval=frame (its w/h expressions DO get per-frame
+  // `t`) + a static center crop. Plain crop can't zoom — its w/h evaluate
+  // once at init — and zoompan has no `time` variable (both prior attempts
+  // produced a frozen frame).
+  const T = Math.min(dur, period).toFixed(3);
   const p = screenOrdinal % 2 === 0
-    ? `${depth}*min(time/${dur.toFixed(3)},1)`          // push in
-    : `${depth}*max(1-time/${dur.toFixed(3)},0)`;       // pull out
-  return `,zoompan=z='1+${p}':x='iw/2-(iw/zoom)/2':y='ih/2-(ih/zoom)/2':d=1:s=${w}x${h}:fps=30`;
+    ? `${max}*min(t/${T},1)`          // push in, hold
+    : `${max}*max(1-t/${T},0)`;       // start pushed, release
+  return `,scale=w='trunc(iw*(1+${p})/2)*2':h='trunc(ih*(1+${p})/2)*2':eval=frame,crop=${w}:${h},setsar=1`;
 }
 
 // Whip transitions at screen<->avatar boundaries. Returns [{at, direction,
@@ -436,7 +443,9 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
         if (seg.flashIn) numSplits += 6;
         if (seg.flashOut) numSplits += 3;
         
-        chain += `gradients=s=${w}x${h}:c0=${FLASH_COLOR}:c1=0xffffff:x0=0:y0=${h}:x1=${w}:y1=0:speed=0.00001,format=yuv420p[g];`;
+        // Screen-blend must happen in RGB: blending the yuv420p planes
+        // directly distorts chroma (orange gradient came out pink).
+        chain += `gradients=s=${w}x${h}:c0=${FLASH_COLOR}:c1=0xffffff:x0=0:y0=${h}:x1=${w}:y1=0:speed=0.00001,format=gbrp[g];`;
         chain += `[g]split=${numSplits}`;
         const gNames = [];
         for (let i = 0; i < numSplits; i++) {
@@ -444,6 +453,8 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
           chain += `[${gNames[i]}]`;
         }
         chain += `;`;
+        chain += `[${lastV}]format=gbrp[b_rgb];`;
+        lastV = 'b_rgb';
 
         let splitIdx = 0;
         if (seg.flashIn) {
@@ -482,8 +493,10 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
             lastV = nextV;
           }
         }
+        chain += `[${lastV}]format=yuv420p[b_fyuv];`;
+        lastV = 'b_fyuv';
       }
-      
+
       if (segCaps.length > 0) {
         const lLen = L ? L.length : 0;
         for (const c of segCaps) inputs.push('-loop', '1', '-i', c.file);

@@ -11,14 +11,15 @@ test('driftVF: short segment -> empty string', () => {
   assert.equal(driftVF(0, 3.9, 1920, 1080), '');
 });
 
-test('driftVF: even ordinal pushes in', () => {
+test('driftVF: even ordinal pushes in over min(dur, period) then holds', () => {
   const vf = driftVF(0, 15, 1920, 1080, { max: 0.05, period: 30, minSeg: 4 });
-  assert.ok(vf.includes("zoompan=z='1+0.025*min(time/15.000,1)':x='iw/2-(iw/zoom)/2':y='ih/2-(ih/zoom)/2':d=1:s=1920x1080:fps=30"));
+  assert.ok(vf.includes("scale=w='trunc(iw*(1+0.05*min(t/15.000,1))/2)*2'"), vf);
+  assert.ok(vf.includes(':eval=frame,crop=1920:1080'), vf);
 });
 
-test('driftVF: odd ordinal pulls out and depth caps', () => {
+test('driftVF: odd ordinal releases; long segment ramps over period only', () => {
   const vf = driftVF(1, 40, 1920, 1080, { max: 0.05, period: 30, minSeg: 4 });
-  assert.ok(vf.includes("zoompan=z='1+0.05*max(1-time/40.000,0)'"));
+  assert.ok(vf.includes("scale=w='trunc(iw*(1+0.05*max(1-t/30.000,0))/2)*2'"), vf);
 });
 
 test('planSegments: contiguity and edge placement', () => {
@@ -549,8 +550,14 @@ test('Integration: drift on vs off', { skip: spawnSync('ffmpeg', ['-version']).e
   const outDriftOn = path.join(testTmp, 'final-drift-on.mp4');
   const outDriftOff = path.join(testTmp, 'final-drift-off.mp4');
 
+  // A STATIC but textured screen source: smptehdbars' uniform blocks defeat
+  // the zoom probe (a solid corner has the same luma at any zoom), and live
+  // testsrc2 animates (breaking the drift-off identity check) — so freeze one
+  // textured testsrc2 frame and loop it.
+  const screenStill = path.join(testTmp, 'screen-still.png');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'testsrc2=size=1920x1080:rate=30', '-frames:v', '1', screenStill]);
   const screenDriftMp4 = path.join(testTmp, 'screen-drift.mp4');
-  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'smptehdbars=size=1920x1080:rate=30', '-t', '6', '-pix_fmt', 'yuv420p', screenDriftMp4]);
+  spawnSync('ffmpeg', ['-y', '-loop', '1', '-i', screenStill, '-t', '6', '-r', '30', '-pix_fmt', 'yuv420p', screenDriftMp4]);
 
   runAssembly({
     workdir: testTmp,

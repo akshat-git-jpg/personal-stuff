@@ -18,8 +18,8 @@ export function planCaptions(words, opts = {}) {
       const prevWord = currentWords[currentWords.length - 1];
       const gap = word.start - prevWord.end;
 
-      const currentText = currentWords.map(w => w.word).join(' ');
-      const newText = currentText + ' ' + word.word;
+      const currentText = currentWords.map(w => w.text).join(' ');
+      const newText = currentText + ' ' + word.text;
 
       if (
         currentWords.length >= CAP_MAX_WORDS ||
@@ -41,7 +41,7 @@ export function planCaptions(words, opts = {}) {
   const out = [];
   for (let i = 0; i < chunks.length; i++) {
     const chunkWords = chunks[i];
-    const text = chunkWords.map(w => w.word).join(' ').trim();
+    const text = chunkWords.map(w => w.text).join(' ').trim();
     const start = chunkWords[0].start;
     const endRaw = chunkWords[chunkWords.length - 1].end + CAP_TAIL;
 

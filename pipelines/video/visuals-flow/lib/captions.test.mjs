@@ -12,7 +12,7 @@ test('planCaptions empty', () => {
 
 test('planCaptions chunking by word cap', () => {
   const words = Array.from({length: 7}, (_, i) => ({
-    word: `w${i}`,
+    text: `w${i}`,
     start: i,
     end: i + 0.5
   }));
@@ -26,8 +26,8 @@ test('planCaptions chunking by word cap', () => {
 
 test('planCaptions chunking by char cap', () => {
   const words = [
-    { word: 'this_is_a_very_long_word_indeed', start: 0, end: 1 },
-    { word: 'too_long', start: 1, end: 2 }
+    { text: 'this_is_a_very_long_word_indeed', start: 0, end: 1 },
+    { text: 'too_long', start: 1, end: 2 }
   ];
   const res = planCaptions(words);
   assert.strictEqual(res.length, 2);
@@ -37,8 +37,8 @@ test('planCaptions chunking by char cap', () => {
 
 test('planCaptions chunking by gap split', () => {
   const words = [
-    { word: 'a', start: 0, end: 1 },
-    { word: 'b', start: 1.6, end: 2 }
+    { text: 'a', start: 0, end: 1 },
+    { text: 'b', start: 1.6, end: 2 }
   ];
   const res = planCaptions(words);
   assert.strictEqual(res.length, 2);
@@ -48,22 +48,22 @@ test('planCaptions chunking by gap split', () => {
 
 test('planCaptions CAP_TAIL vs next-chunk clamp', () => {
   const words2 = [
-    { word: 'a', start: 0, end: 1 },
-    { word: 'b', start: 1.6, end: 2 },
-    { word: 'c', start: 2.1, end: 2.2 }
+    { text: 'a', start: 0, end: 1 },
+    { text: 'b', start: 1.6, end: 2 },
+    { text: 'c', start: 2.1, end: 2.2 }
   ];
   const res2 = planCaptions(words2);
   assert.strictEqual(res2.length, 2);
   assert.strictEqual(res2[0].end, 1.4);
   
   const words3 = [
-    { word: 'w0', start: 0, end: 0.1 },
-    { word: 'w1', start: 0.2, end: 0.3 },
-    { word: 'w2', start: 0.4, end: 0.5 },
-    { word: 'w3', start: 0.6, end: 0.7 },
-    { word: 'w4', start: 0.8, end: 0.9 },
-    { word: 'w5', start: 1.0, end: 1.1 },
-    { word: 'w6', start: 1.2, end: 1.3 }
+    { text: 'w0', start: 0, end: 0.1 },
+    { text: 'w1', start: 0.2, end: 0.3 },
+    { text: 'w2', start: 0.4, end: 0.5 },
+    { text: 'w3', start: 0.6, end: 0.7 },
+    { text: 'w4', start: 0.8, end: 0.9 },
+    { text: 'w5', start: 1.0, end: 1.1 },
+    { text: 'w6', start: 1.2, end: 1.3 }
   ];
   const res3 = planCaptions(words3);
   assert.strictEqual(res3[0].end, 1.2);
