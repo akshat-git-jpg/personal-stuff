@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
-import { planCaptions, markKeyword } from './captions.mjs';
+import { planCaptions, markKeyword, assEscape } from './captions.mjs';
 
 test('markKeyword rules', () => {
   assert.strictEqual(markKeyword('180'), true);
@@ -83,76 +83,59 @@ test('planCaptions CAP_TAIL vs next-chunk clamp', () => {
   assert.strictEqual(res3[0].end, 1.2);
 });
 
-test('caption-render.py directly', () => {
-  const pilCheck = spawnSync('python3', ['-c', 'import PIL']);
-  if (pilCheck.status !== 0) {
-    return; // skip
-  }
-  
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'caption-test-'));
-  const chunks = [
-    { i: 0, text: 'Hello world' },
-    { i: 1, text: 'Second chunk' }
-  ];
-  const stdin = JSON.stringify({
-    outDir: tmp,
-    width: 1000,
-    fontPx: 44,
-    chunks
-  });
-  
-  const pyPath = path.resolve(import.meta.dirname, 'caption-render.py');
-  const res = spawnSync('python3', [pyPath], {
-    input: stdin,
-    encoding: 'utf8'
-  });
-  
-  assert.strictEqual(res.status, 0, res.stderr);
-  assert.strictEqual(fs.existsSync(path.join(tmp, 'cap-0.png')), true);
-  assert.strictEqual(fs.existsSync(path.join(tmp, 'cap-1.png')), true);
-  
-  const st0 = fs.statSync(path.join(tmp, 'cap-0.png'));
-  const st1 = fs.statSync(path.join(tmp, 'cap-1.png'));
-  assert.ok(st0.size > 0);
-  assert.ok(st1.size > 0);
-  
-  fs.rmSync(tmp, { recursive: true, force: true });
+test('assEscape', () => {
+  assert.strictEqual(assEscape('hello {world} \\n'), 'hello \\{world\\} \\\\n');
 });
 
-test('caption-render.py highlight pixel proof', () => {
+test('ASS highlight pixel proof', () => {
   const pilCheck = spawnSync('python3', ['-c', 'import PIL']);
   if (pilCheck.status !== 0) {
-    return; // skip
+    return; // skip if no PIL
   }
   
   const tmp = 'tmp-captest';
-  const chunks = [
-    { i: 0, text: 'costs 180 credits', words: [
-      { text: 'costs', hl: false }, { text: '180', hl: true }, { text: 'credits', hl: false } ],
-      start: 0, end: 1 },
-    { i: 1, text: 'plain words only', words: [
-      { text: 'plain', hl: false }, { text: 'words', hl: false }, { text: 'only', hl: false } ],
-      start: 1, end: 2 }
-  ];
-  const stdin = JSON.stringify({
-    outDir: tmp,
-    width: 800,
-    fontPx: 44,
-    chunks
-  });
+  fs.mkdirSync(path.join(import.meta.dirname, tmp), { recursive: true });
   
-  const pyPath = path.resolve(import.meta.dirname, 'caption-render.py');
-  const res = spawnSync('python3', [pyPath], {
-    cwd: import.meta.dirname,
-    input: stdin,
-    encoding: 'utf8'
-  });
+  const assText = `[Script Info]
+ScriptType: v4.00+
+PlayResX: 800
+PlayResY: 600
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, OutlineColour, BackColour, Bold, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Helvetica,44,&H00FFFFFF,&H00000000,&H00000000,1,2,0,2,40,40,10,1
+
+[Events]
+Format: Layer, Start, End, Style, Text
+Dialogue: 0,0:00:00.00,0:00:01.00,Cap,,0,0,0,,costs {\\1c&H3C92FB&}180{\\1c&HFFFFFF&} credits
+Dialogue: 0,0:00:01.00,0:00:02.00,Cap,,0,0,0,,plain words only
+`;
   
-  assert.strictEqual(res.status, 0, res.stderr);
-  assert.ok(res.stdout.includes('2 rendered'));
+  const assFile = path.join(import.meta.dirname, tmp, 'fixture.ass');
+  fs.writeFileSync(assFile, assText);
+  
+  const outPng0 = path.join(import.meta.dirname, tmp, 'cap-0.png');
+  const outPng1 = path.join(import.meta.dirname, tmp, 'cap-1.png');
+  
+  const escapedAssPath = assFile.replace(/:/g, '\\\\:').replace(/'/g, "'\\\\''");
+  
+  spawnSync('ffmpeg', [
+    '-y', '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i', 'color=c=black:s=800x600:d=2',
+    '-vf', `subtitles=filename='${escapedAssPath}'`,
+    '-ss', '0.5', '-vframes', '1', outPng0
+  ], { encoding: 'utf8' });
+  
+  spawnSync('ffmpeg', [
+    '-y', '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i', 'color=c=black:s=800x600:d=2',
+    '-vf', `subtitles=filename='${escapedAssPath}'`,
+    '-ss', '1.5', '-vframes', '1', outPng1
+  ], { encoding: 'utf8' });
   
   const checkScript = `
 from PIL import Image
+import sys
 def count_accent(path):
     img = Image.open(path).convert('RGBA')
     c = 0
@@ -160,10 +143,9 @@ def count_accent(path):
         if abs(r - 251) < 12 and abs(g - 146) < 12 and abs(b - 60) < 12:
             c += 1
     return c
-print(count_accent('${tmp}/cap-0.png'), count_accent('${tmp}/cap-1.png'))
+print(count_accent(sys.argv[1]), count_accent(sys.argv[2]))
 `;
-  const pixelRes = spawnSync('python3', ['-c', checkScript], {
-    cwd: import.meta.dirname,
+  const pixelRes = spawnSync('python3', ['-c', checkScript, outPng0, outPng1], {
     encoding: 'utf8'
   });
   
@@ -173,5 +155,5 @@ print(count_accent('${tmp}/cap-0.png'), count_accent('${tmp}/cap-1.png'))
   assert.ok(c0 > 50, `cap-0.png should have accent pixels (got ${c0})`);
   assert.strictEqual(c1, 0, `cap-1.png should have no accent pixels (got ${c1})`);
   
-  fs.rmSync(path.resolve(import.meta.dirname, tmp), { recursive: true, force: true });
+  fs.rmSync(path.join(import.meta.dirname, tmp), { recursive: true, force: true });
 });

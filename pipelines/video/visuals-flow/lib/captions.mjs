@@ -18,6 +18,14 @@ export function markKeyword(text, lexicon = CAP_ACCENT_LEXICON) {
   return false;
 }
 
+export function assEscape(text) {
+  return String(text)
+    .replace(/\\/g, '\\\\')
+    .replace(/\{/g, '\\{')
+    .replace(/\}/g, '\\}')
+    .replace(/\n/g, '\\N');
+}
+
 export function planCaptions(words, opts = {}) {
   if (!words || words.length === 0) return [];
 
