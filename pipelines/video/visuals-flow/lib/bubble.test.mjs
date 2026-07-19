@@ -82,6 +82,23 @@ test('contribute slice arithmetic across a chunk boundary', () => {
   const geqCount = (chain.match(/geq=/g) || []).length;
   const rgbaCount = (chain.match(/format=rgba,geq=/g) || []).length;
   assert.strictEqual(geqCount, rgbaCount, 'every geq is preceded by format=rgba');
+  assert.ok(chain.includes('cos('), 'gradient includes cos');
+  assert.ok(chain.includes('sin('), 'gradient includes sin');
+  assert.ok(chain.includes('pow('), 'gradient includes pow');
+  assert.ok(chain.includes('T+10'), 'phase constant T+10');
+  assert.ok(chain.includes('251+'), 'base red 251');
+  assert.ok(chain.includes('255-251'), 'highlight red 255 minus base red');
+});
+
+test('contribute assigns phase constants per segment', () => {
+  const ctx = { w: 1920, h: 1080, startTrim: 0, cornerJobs: [{ file: 'a.mp4', start: 0, end: 100 }] };
+  const c1 = contribute({ kind: 'screen', start: 10, end: 20 }, plan({}), ctx);
+  const { chain: chain1 } = c1.chainFragments[0]('b0', { inputOffset: 1 });
+  assert.ok(chain1.includes('T+10)'), 'segment at 10s uses T+10');
+
+  const c2 = contribute({ kind: 'screen', start: 60, end: 70 }, plan({}), ctx);
+  const { chain: chain2 } = c2.chainFragments[0]('b0', { inputOffset: 1 });
+  assert.ok(chain2.includes('T+60)'), 'segment at 60s uses T+60');
 });
 
 test('contribute honours startTrim in slice + local timing', () => {
@@ -168,6 +185,71 @@ print('ring', *px(${ringX}, ${ringY}))
     // Ring band carries the brand orange (softened by the glow).
     const [rr, rg, rb] = vals.ring;
     assert.ok(rr > rg && rg > rb && rr > 150, `ring should read orange (r>g>b), got ${vals.ring}`);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('pixel proof: arc position changes with phase', () => {
+  const ff = spawnSync('ffmpeg', ['-hide_banner', '-version']);
+  if (ff.status !== 0) return; // skip
+  const pil = spawnSync('python3', ['-c', 'import PIL']);
+  if (pil.status !== 0) return; // skip
+
+  const tmp = fs.mkdtempSync(path.join(import.meta.dirname, 'bubble-arc-proof-'));
+  try {
+    const D = 120;
+    const R = 60;
+    const RING = 4;
+    const GLOW = 0;
+    const P = 4;
+    const K = 2;
+    const rr=251, gg=146, bb=60;
+    const hr=255, hg=227, hb=194;
+
+    const runFrame = (phase, outFile) => {
+      const th = `(2*PI*(T+${phase})/${P})`;
+      const wgt = `pow(0.5*(1+((X-${R})*cos(${th})+(Y-${R})*sin(${th}))/max(hypot(X-${R},Y-${R}),1)),${K})`;
+      const mix = (base, hi) => `'${base}+(${hi}-${base})*${wgt}'`;
+      const geq = `geq=r=${mix(rr, hr)}:g=${mix(gg, hg)}:b=${mix(bb, hb)}:a='if(between(hypot(X-${R},Y-${R}),${R}-${RING}-1,${R}+1),255,0)'`;
+
+      const r = spawnSync('ffmpeg', [
+        '-y',
+        '-f', 'lavfi', '-i', `color=c=black:s=${D}x${D}:d=0.1`,
+        '-f', 'lavfi', '-i', `color=c=0x00000000:s=${D}x${D}:d=0.1`,
+        '-filter_complex', `[1:v]format=rgba,${geq}[ring];[0:v][ring]overlay=0:0`,
+        '-frames:v', '1',
+        outFile
+      ], { encoding: 'utf8' });
+      assert.strictEqual(r.status, 0, r.stderr);
+    };
+
+    const outA = path.join(tmp, 'ringA.png');
+    const outB = path.join(tmp, 'ringB.png');
+    runFrame(0, outA); // Frame A
+    runFrame(2.0, outB); // Frame B
+
+    const checkScript = `
+from PIL import Image
+imgA = Image.open('${outA}').convert('RGB')
+imgB = Image.open('${outB}').convert('RGB')
+def b(img, x, y):
+    p = img.getpixel((x, y))
+    return p[0] + p[1] + p[2]
+print('A', b(imgA, 117, 60), b(imgA, 3, 60))
+print('B', b(imgB, 117, 60), b(imgB, 3, 60))
+`;
+    const py = spawnSync('python3', ['-c', checkScript], { encoding: 'utf8' });
+    assert.strictEqual(py.status, 0, py.stderr);
+    
+    const lines = py.stdout.trim().split('\n');
+    const [_, aRightStr, aLeftStr] = lines[0].split(' ');
+    const [__, bRightStr, bLeftStr] = lines[1].split(' ');
+    const aRight = Number(aRightStr), aLeft = Number(aLeftStr);
+    const bRight = Number(bRightStr), bLeft = Number(bLeftStr);
+
+    assert.ok(aRight - aLeft >= 60, `Frame A (PHASE=0): right(${aRight}) should be > left(${aLeft}) by >= 60`);
+    assert.ok(bLeft - bRight >= 60, `Frame B (PHASE=2.0): left(${bLeft}) should be > right(${bRight}) by >= 60`);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
