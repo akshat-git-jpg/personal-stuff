@@ -15,7 +15,7 @@ export function plan(ctx) {
   for (let i = 0; i < segments.length - 1; i++) {
     const a = segments[i], b = segments[i + 1];
     const pair = `${a.kind}>${b.kind}`;
-    const isWhip = pair === 'screen>avatar' || pair === 'avatar>screen';
+    const isWhip = pair === 'avatar>screen';
     const isFlash = pair === 'screen>graphic' || pair === 'avatar>graphic';
     if (!isWhip && !isFlash) continue;
     if (a.end - a.start < 1.0 || b.end - b.start < 1.0) continue;
