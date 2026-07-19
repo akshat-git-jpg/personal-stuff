@@ -234,6 +234,12 @@ brainstorms.** Standing next steps in priority order:
    ring chain only (rotate a gradient-ring overlay, e.g. `rotate=` on a
    pre-built ring frame); update EFFECTS.md row with the same edit. Bubble
    enter/exit stays hard-on-the-cut (matches reference; the cut/wipe masks it).
+1c. **Board effects lane — promote to the next brainstorm.** Owner concern
+   (2026-07-19 EOD): effects (now 6 modules) render with no visual pre-review —
+   only `effects.json` data + the draft watch. Instances are already data, so
+   a board lane (show flash/punch/caption/bubble markers on the timeline,
+   per-instance toggle) is pure UI. Previously owner-deferred at 2 effects;
+   re-raise now that the surface grew.
 2. **Editor handoff + feedback intake** (`GFX-06` open) if the editor route is
    chosen; fold what comes back.
 3. **Video #2 end-to-end** — now doubly important: the FIRST video where the
