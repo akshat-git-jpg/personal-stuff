@@ -1,0 +1,94 @@
+<!doctype html>
+<!--
+  HEADLINE CHIPS   (Hyperframes card)
+  A canvas slate: a spoken headline sentence, then one pill chip ticking in per
+  beat (lists, consequences, criteria). Each chip has an accent icon that pops in
+  just after the pill slides. 1920x1080, 30fps, 8s.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block (headline,             │
+  │  beats[].text) and :root. Add/remove chips via beats[]. Never touch the   │
+  │  TIMELINE.                                                                 │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render slate/headline-chips -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --pill: rgba(255, 255, 255, 0.04);
+        --pill-line: rgba(255, 255, 255, 0.1);
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 28% 18%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 150px 220px; }
+      #headline { font-size: 40px; font-weight: 700; line-height: 1.28; letter-spacing: -0.5px; max-width: 1200px; margin-bottom: 64px; will-change: transform, opacity; }
+      #chips { display: flex; flex-direction: column; gap: 28px; }
+      .chip { display: flex; align-items: center; gap: 26px; background: var(--pill); border: 1px solid var(--pill-line);
+        border-radius: 999px; padding: 20px 40px 20px 24px; will-change: transform, opacity; }
+      .icon { flex: 0 0 auto; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--accent);
+        display: flex; align-items: center; justify-content: center; will-change: transform; }
+      .icon svg { width: 26px; height: 26px; }
+      .icon svg path, .icon svg circle { fill: var(--accent); }
+      .label { font-size: 30px; font-weight: 600; letter-spacing: -0.2px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="headlinechips" data-start="0" data-duration="8" data-width="1920" data-height="1080"
+      data-composition-variables='{"headline":"Here is what you still can&#39;t make on your own","beats":[{"text":"Long-form films","at":0.6},{"text":"Character consistency","at":1.5},{"text":"Real dialogue scenes","at":2.4},{"text":"Complex camera moves","at":3.3}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="8" data-track-index="1">
+        <div id="headline"></div>
+        <div id="chips"></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        headline: VARS.headline ?? "Here is what you still can't make on your own",
+        beats: VARS.beats ?? [
+          { text: 'Long-form films',       at: 0.6 },
+          { text: 'Character consistency', at: 1.5 },
+          { text: 'Real dialogue scenes',  at: 2.4 },
+          { text: 'Complex camera moves',  at: 3.3 },
+        ],
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const ICON = '<svg viewBox="0 0 24 24"><path d="M12 2l2.4 6.9L21.5 9l-5.6 4.4L18 20.5 12 16.4 6 20.5l2.1-7.1L2.5 9l7.1-.1z"/></svg>';
+      document.getElementById('headline').textContent = DATA.headline;
+      const chipsEl = document.getElementById('chips');
+      const chips = DATA.beats.map((b) => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.innerHTML = '<span class="icon">' + ICON + '</span><span class="label"></span>';
+        chip.querySelector('.label').textContent = b.text ?? '';
+        chipsEl.appendChild(chip);
+        return { b, chip };
+      });
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#headline', { opacity: 0, y: 20, duration: 0.5, ease: 'power3.out' }, 0.1);
+      chips.forEach(({ b, chip }) => {
+        const at = Number(b.at);
+        tl.from(chip, { opacity: 0, x: -24, duration: 0.45, ease: 'power3.out' }, at);
+        tl.from(chip.querySelector('.icon'), { scale: 0.9, duration: 0.2, ease: 'back.out(3)' }, at + 0.2);
+      });
+      window.__timelines['headlinechips'] = tl;
+    </script>
+  </body>
+</html>
