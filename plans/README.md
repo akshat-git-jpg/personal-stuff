@@ -539,3 +539,4 @@ The others are grounded and available when the owner wants them:
 - 102-assembly-speed-pass-2 — PR#59 102-assembly-speed-pass-2: parallel encodes, segment cache, libass captions, --bare (GFX-17) — DONE
 - 102-assembly-speed-pass-2 — PR#59 102-assembly-speed-pass-2: parallel encodes, segment cache, libass captions, --bare (GFX-17) — DONE
 - 103-bubble-rotating-ring — PR#60 103-bubble-rotating-ring: conic gradient ring with rotating bright arc — DONE
+- 103-bubble-rotating-ring — PR#60 103-bubble-rotating-ring: conic gradient ring with rotating bright arc — DONE
