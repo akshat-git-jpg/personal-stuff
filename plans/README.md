@@ -117,7 +117,9 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 100 | corner avatar bubble (spec D2) — new `bubble` effect module composites corner chunks as circle+orange ring over screen segments; opus (encode path), frame proof | P1 | M-L | none | DONE (PR #57, landed 2026-07-19) |
 | 101 | TH treatment polish (spec D3, owner-vetoable) — whip drops screen→avatar (hard cut into host), beats skip spans <45s | P2 | S | 095, 100 (soft) | DONE (PR #58, landed 2026-07-19) |
 | 102 | assembly speed pass 2 (GFX-17) — parallel segment encodes (--jobs), content-keyed segment cache, libass ASS captions replace PNG pipeline, --bare draft tier; effects wave took drafts 4m23s → 15+min | P1 | M-L | none | DONE (PR #59; first run blocked on missing libass, ffmpeg fixed overnight, re-run landed 2026-07-20: pool+cache+libass captions+--bare all in) |
-| 103 | bubble rotating gradient ring — conic two-tone ring, bright arc rotates (RING_SPIN_PERIOD), phase-continuous across segments; queued owner feedback from HANDOFF 1b | P2 | S | 100 landed | TODO |
+| 103 | bubble rotating gradient ring — conic two-tone ring, bright arc rotates (RING_SPIN_PERIOD), phase-continuous across segments; queued owner feedback from HANDOFF 1b | P2 | S | 100 landed | DONE (PR #60, landed 2026-07-20) |
+| 104 | board effects lane (HANDOFF 1c; spec 2026-07-20) — minimap markers + per-instance enabled toggles, THIRD approval gate (assemble refuses unapproved effects.json), master VO playback + CSS sim stage scoped as timing preview | P1 | M | none (independent of 105) | TODO |
+| 105 | visuals-flow smalls sweep — GFX-03 rubric wording, GFX-04 transcript timestamp assert, GFX-13 edit-delta shots mode, defuse + wire the destructive orphaned effects.test.mjs into check.sh | P2 | S | none (independent of 104) | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
