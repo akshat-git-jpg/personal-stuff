@@ -37,10 +37,10 @@ Effects are implemented as independent modules registered in `lib/effects/regist
 
 ## Core Modules
 
-- **Whip (`whip.mjs`)**: Inserts transitions at boundaries.
-  - `blur` (default): whip-pan transitions on `screen>avatar` and `avatar>screen` boundaries. Skip if <1s segment or overlapping overlay.
+- **Whip (`whip.mjs`)**: Inserts transitions at boundaries. avatar→screen and →graphic only; cuts INTO the host are hard by design (reference asymmetry). Provenance: spec D3.
+  - `blur` (default): whip-pan transitions on `avatar>screen` boundaries. Skip if <1s segment or overlapping overlay.
   - `flash`: brightness-bloom wipe on `screen>graphic` and `avatar>graphic` boundaries. Skip rules same as blur. Knobs: `FLASH_GAIN`, `FLASH_COLOR`, per-instance `style`. Reference: `references/vPqSgj8Ta3Y.md` moment 1:27.2.
-- **Beats (`beats.mjs`)**: Synchronizes zoom punch-ins on avatar shots with transcript gaps and overlay cue placements.
+- **Beats (`beats.mjs`)**: Synchronizes zoom punch-ins on avatar shots with transcript gaps and overlay cue placements. Knobs: `BEAT_MIN_SPAN`. Provenance: spec D3.
 - **Captions (`captions.mjs`)**: Renders burned-in word-level captions.
 - **Drift (`drift.mjs`)**: Adds a slow Ken Burns effect to static screen segments.
 - **Bubble (`bubble.mjs`)**: Composites the corner-avatar chunks as a circular host bubble (brand-orange ring + soft glow, top-right) over `screen` segments only — hidden on avatar-full and graphic segments by construction, and silent. Each overlapping corner chunk is sliced to its overlap and masked to a circle via `geq` alpha (`format=rgba` first — the pink-flash lesson forbids yuv). No-ops when no corner clips exist, so assembly never fails without them. Stacks LAST in the registry so it draws over captions on any collision. Knobs: `BUBBLE_D_1080`, `BUBBLE_INSET_1080`, `RING_PX_1080`, `RING_COLOR`, `GLOW_SIGMA`; CLI `--bubble off`; per-instance `enabled:false` kills it video-wide. Provenance: `references/PvnJavua0YY.md` mode-structure section + spec D2 (`docs/specs/2026-07-19-mode-structure-density-design.md`).

@@ -1,6 +1,6 @@
 export const TYPE = 'beat';
 export const CONSTANTS = {
-  BEAT_INTERVAL: 20, BEAT_MIN_EDGE: 8, BEAT_SNAP_WINDOW: 3, BEAT_MIN_GAP: 0.25,
+  BEAT_INTERVAL: 20, BEAT_MIN_EDGE: 8, BEAT_SNAP_WINDOW: 3, BEAT_MIN_GAP: 0.25, BEAT_MIN_SPAN: 45,
   FLASH_COLOR: '0xfb923c',
   FLASH_OUT_OPACITIES: [0.45, 0.75, 1.0],
   FLASH_IN_OPACITIES: [0.8, 0.5, 0.25],
@@ -15,6 +15,7 @@ export function plan(ctx) {
 
   for (const seg of segments) {
     if (seg.kind !== 'avatar') continue;
+    if (seg.end - seg.start < CONSTANTS.BEAT_MIN_SPAN) continue;
     const gaps = [];
     for (let i = 0; i < words.length - 1; i++) {
       const g = words[i + 1].start - words[i].end;

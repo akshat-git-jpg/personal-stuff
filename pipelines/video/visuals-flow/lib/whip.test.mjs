@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert';
 import * as whipMod from './effects/whip.mjs';
 
-test('plan() emits style:blur for screen<->avatar and style:flash for *>graphic, nothing for graphic>*', () => {
+test('plan() emits style:blur for avatar>screen and style:flash for *>graphic, nothing for graphic>* or screen>avatar', () => {
   const segments = [
     { kind: 'screen', id: 's1', start: 0, end: 10 },
     { kind: 'graphic', id: 'g1', start: 10, end: 16 },
@@ -11,18 +11,16 @@ test('plan() emits style:blur for screen<->avatar and style:flash for *>graphic,
     { kind: 'screen', id: 's3', start: 40, end: 50 },
   ];
   const out = whipMod.plan({ segments, overlays: [] });
-  assert.strictEqual(out.length, 3);
+  assert.strictEqual(out.length, 2);
   
   assert.strictEqual(out[0].at, 10);
   assert.strictEqual(out[0].style, 'flash'); // screen>graphic
   
-  assert.strictEqual(out[1].at, 30);
-  assert.strictEqual(out[1].style, 'blur'); // screen>avatar
-  
-  assert.strictEqual(out[2].at, 40);
-  assert.strictEqual(out[2].style, 'blur'); // avatar>screen
+  assert.strictEqual(out[1].at, 40);
+  assert.strictEqual(out[1].style, 'blur');
   
   // Note: 16 is graphic>screen, which should be ignored
+  // Note: 30 is screen>avatar, which should be ignored
 });
 
 test('plan() skips boundaries with an overlapping overlay and <1s segments', () => {

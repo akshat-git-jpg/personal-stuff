@@ -174,7 +174,7 @@ test('planSegmentOverlays: pure mapping', () => {
   ]);
 });
 
-test('planTransitions: screen<->avatar directions', () => {
+test('planTransitions: avatar>screen direction', () => {
   const segments = [
     { kind: 'screen', start: 0, end: 5 },
     { kind: 'avatar', start: 5, end: 10 },
@@ -182,7 +182,6 @@ test('planTransitions: screen<->avatar directions', () => {
   ];
   const out = planTransitions(segments, []);
   assert.deepEqual(out, [
-    { at: 5, direction: 'left', fromIdx: 0, toIdx: 1 },
     { at: 10, direction: 'right', fromIdx: 1, toIdx: 2 }
   ]);
 });
@@ -209,8 +208,8 @@ test('planTransitions: short neighbor skipped', () => {
 
 test('planTransitions: overlay straddle skipped', () => {
   const segments = [
-    { kind: 'screen', start: 0, end: 5 },
-    { kind: 'avatar', start: 5, end: 10 }
+    { kind: 'avatar', start: 0, end: 5 },
+    { kind: 'screen', start: 5, end: 10 }
   ];
   const overlays = [{ start: 4.9, end: 5.5 }]; // straddles 5
   assert.deepEqual(planTransitions(segments, overlays), []);
@@ -229,8 +228,7 @@ test('planTransitions: edge skip at t=0 and t=total', () => {
   // `planTransitions` only iterates i < segments.length - 1, so it only finds the boundaries between segments.
   const out = planTransitions(segments, []);
   assert.deepEqual(out, [
-    { at: 5, direction: 'right', fromIdx: 0, toIdx: 1 },
-    { at: 10, direction: 'left', fromIdx: 1, toIdx: 2 }
+    { at: 5, direction: 'right', fromIdx: 0, toIdx: 1 }
   ]);
 });
 
@@ -282,23 +280,25 @@ test('planAvatarBeats: no gap within +-3s -> beat dropped', () => {
   assert.deepEqual(beats, [39.5]); // 20 is dropped
 });
 
-test('planAvatarBeats: short span -> []', () => {
-  const seg = { start: 0, end: 25 };
+test('planAvatarBeats: short span (<45s) -> []', () => {
+  const seg = { start: 0, end: 30 };
   const words = [
     { start: 0, end: 19 },
-    { start: 20, end: 25 }
+    { start: 20, end: 30 }
   ];
   const beats = planAvatarBeats(seg, words);
   assert.deepEqual(beats, []);
 });
 
 test('planAvatarBeats: beats respect the 8s edges', () => {
-  const seg = { start: 0, end: 30 }; // targets at 20
+  const seg = { start: 0, end: 48 }; // hi=40. targets 20, 40
   const words = [
-    { start: 0, end: 22 },
-    { start: 23, end: 30 } // gap at 22.5
+    { start: 0, end: 40 },
+    { start: 42, end: 48 } // gap at 41 (too high, > hi)
   ];
   const beats = planAvatarBeats(seg, words);
+  // at target 20 there are no gaps within +-3s (17-23). 
+  // at target 40, gap is at 41, but 41 > hi (40).
   assert.deepEqual(beats, []);
 });
 
@@ -325,14 +325,15 @@ test('planAvatarBeats: no in-window cue -> gap fallback unchanged', () => {
 });
 
 test('planAvatarBeats: cue outside [lo, hi] is ignored', () => {
-  const seg = { start: 0, end: 30 }; // target 20, hi is 30 - 8 = 22
+  const seg = { start: 0, end: 48 }; // hi is 40. targets 20, 40
   const words = [
     { start: 0, end: 19.5 },
-    { start: 20.5, end: 30 } // gap at 20.0
+    { start: 20.5, end: 39 }, // gap at 20.0
+    { start: 40, end: 48 } // gap at 39.5
   ];
-  // cue at 22.5 is inside window (20 +- 3) but > hi (22). Should be ignored, fallback to gap 20.
-  const beats = planAvatarBeats(seg, words, { cueTimes: [22.5] });
-  assert.deepEqual(beats, [20]);
+  // cue at 41 is inside window (40 +- 3) but > hi (40). Should be ignored, fallback to gap 39.5.
+  const beats = planAvatarBeats(seg, words, { cueTimes: [41] });
+  assert.deepEqual(beats, [20, 39.5]);
 });
 
 test('splitAvatarSegments: alternating punch and passes others', () => {
