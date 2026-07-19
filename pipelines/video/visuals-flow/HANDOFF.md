@@ -228,6 +228,12 @@ brainstorms.** Standing next steps in priority order:
 1b. **Corner bubble needs footage**: the bubble module is live but no-ops
    until a HeyGen run WITHOUT `--spans-only` produces corner clips
    (owner-run, live HeyGen — guardrail 3). First candidate: video #2.
+   **Owner feedback already queued (2026-07-19, pre-footage)**: the reference
+   ring is NOT static — frame-zoom of vPqSgj8Ta3Y shows a two-tone gradient
+   ring whose bright arc ROTATES slowly; ours is a solid ring. Fix = bubble.mjs
+   ring chain only (rotate a gradient-ring overlay, e.g. `rotate=` on a
+   pre-built ring frame); update EFFECTS.md row with the same edit. Bubble
+   enter/exit stays hard-on-the-cut (matches reference; the cut/wipe masks it).
 2. **Editor handoff + feedback intake** (`GFX-06` open) if the editor route is
    chosen; fold what comes back.
 3. **Video #2 end-to-end** — now doubly important: the FIRST video where the
