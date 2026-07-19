@@ -535,3 +535,4 @@ The others are grounded and available when the owner wants them:
 - 099-cadence-density-and-canvas-routing — PR#56 099-cadence-density-and-canvas-routing: cadence density + canvas routing (spec D1) — DONE
 - 100-corner-avatar-bubble — PR#57 100-corner-avatar-bubble: corner avatar bubble (spec D2) — DONE
 - 101-th-treatment-polish — PR#58 101-th-treatment-polish: TH treatment polish — cut-in/wipe-out asymmetry + static short spans (spec D3) — DONE
+- 102-assembly-speed-pass-2 — PR#59 102-assembly-speed-pass-2: parallel encodes, segment cache, libass captions, --bare (GFX-17) — DONE
