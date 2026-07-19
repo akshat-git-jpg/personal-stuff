@@ -187,13 +187,15 @@ test('planTransitions: screen<->avatar directions', () => {
   ]);
 });
 
-test('planTransitions: graphic boundaries produce nothing', () => {
+test('planTransitions: graphic boundaries produce flash on in, nothing on out', () => {
   const segments = [
     { kind: 'screen', start: 0, end: 5 },
     { kind: 'graphic', start: 5, end: 10 },
     { kind: 'screen', start: 10, end: 15 }
   ];
-  assert.deepEqual(planTransitions(segments, []), []);
+  assert.deepEqual(planTransitions(segments, []), [
+    { at: 5, direction: 'right', fromIdx: 0, toIdx: 1 }
+  ]);
 });
 
 test('planTransitions: short neighbor skipped', () => {
@@ -430,10 +432,10 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
 
   assert.ok(!fs.existsSync(path.join(tmpDir, 'base.mp4')), 'base.mp4 should not exist in single-pass');
   const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
-  assert.equal(tsFiles.length, 8, 'should have 8 segments including transitions');
+  assert.equal(tsFiles.length, 10, 'should have 10 segments including transitions');
   
   const transFiles = tsFiles.filter(f => f.includes('-trans-'));
-  assert.equal(transFiles.length, 2, 'should have 2 transition files');
+  assert.equal(transFiles.length, 4, 'should have 4 transition files');
   
   for (const tFile of transFiles) {
     const p = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(tmpDir, tFile)], { encoding: 'utf8' });
