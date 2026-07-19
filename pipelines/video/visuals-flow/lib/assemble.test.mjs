@@ -3,9 +3,75 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions, planAvatarBeats, splitAvatarSegments, driftVF } from './assemble.mjs';
+import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions, planAvatarBeats, splitAvatarSegments, driftVF, absorbSlivers } from './assemble.mjs';
 
 const testTmp = path.resolve(import.meta.dirname, '.test-tmp', 'assemble-it');
+
+
+test('absorbSlivers: 1.4s sliver between avatar and graphic -> graphic absorbs with padStart', () => {
+  const segments = [
+    { kind: 'avatar', start: 0, end: 10, id: 'a1' },
+    { kind: 'screen', start: 10, end: 11.4, id: 's1' },
+    { kind: 'graphic', start: 11.4, end: 20, id: 'g1' }
+  ];
+  const out = absorbSlivers(segments);
+  assert.equal(out.length, 2);
+  assert.equal(out[0].kind, 'avatar');
+  assert.equal(out[0].end, 10);
+  assert.equal(out[1].kind, 'graphic');
+  assert.equal(out[1].start, 10);
+  assert.equal(out[1].padStart, 1.4);
+});
+
+test('absorbSlivers: 0.4s sliver at t=0 before avatar -> avatar absorbs with padStart', () => {
+  const segments = [
+    { kind: 'screen', start: 0, end: 0.4, id: 's1' },
+    { kind: 'avatar', start: 0.4, end: 10, id: 'a1' }
+  ];
+  const out = absorbSlivers(segments);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].kind, 'avatar');
+  assert.equal(out[0].start, 0);
+  assert.equal(out[0].padStart, 0.4);
+});
+
+test('absorbSlivers: 2s sliver between two avatars -> NOT absorbed (over avatarMax)', () => {
+  const segments = [
+    { kind: 'avatar', start: 0, end: 10, id: 'a1' },
+    { kind: 'screen', start: 10, end: 12.0, id: 's1' },
+    { kind: 'avatar', start: 12.0, end: 20, id: 'a2' }
+  ];
+  const out = absorbSlivers(segments);
+  assert.equal(out.length, 3);
+  assert.equal(out[1].kind, 'screen');
+});
+
+test('absorbSlivers: 6s screen segment untouched', () => {
+  const segments = [
+    { kind: 'graphic', start: 0, end: 10, id: 'g1' },
+    { kind: 'screen', start: 10, end: 16, id: 's1' },
+    { kind: 'graphic', start: 16, end: 20, id: 'g2' }
+  ];
+  const out = absorbSlivers(segments);
+  assert.equal(out.length, 3);
+  assert.equal(out[1].kind, 'screen');
+});
+
+test('absorbSlivers: output remains contiguous 0->total', () => {
+  const segments = [
+    { kind: 'screen', start: 0, end: 1, id: 's1' },
+    { kind: 'avatar', start: 1, end: 5, id: 'a1' },
+    { kind: 'screen', start: 5, end: 5.5, id: 's2' },
+    { kind: 'graphic', start: 5.5, end: 10, id: 'g1' },
+    { kind: 'screen', start: 10, end: 10.5, id: 's3' }
+  ];
+  const out = absorbSlivers(segments);
+  assert.equal(out[0].start, 0);
+  for (let i = 1; i < out.length; i++) {
+    assert.equal(out[i-1].end, out[i].start);
+  }
+  assert.equal(out[out.length - 1].end, 10.5);
+});
 
 test('driftVF: short segment -> empty string', () => {
   assert.equal(driftVF(0, 3.9, 1920, 1080), '');
@@ -316,20 +382,20 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=1920x1080:r=30,drawgrid=width=100:height=100:thickness=2:color=red', '-t', '68', '-pix_fmt', 'yuv420p', screenMp4]);
 
   const avatarFile = path.join(testTmp, 'media', 's01.mp4');
-  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=red:s=1920x1080:r=30', '-t', '60', '-pix_fmt', 'yuv420p', avatarFile]);
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=red:s=1920x1080:r=30', '-t', '62', '-pix_fmt', 'yuv420p', avatarFile]);
 
-  const ffFile = path.join(testTmp, 'renders', '0002-c1-green.mp4');
+  const ffFile = path.join(testTmp, 'renders', '0003-c1-green.mp4');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=green:s=1920x1080:r=30', '-t', '2', '-pix_fmt', 'yuv420p', ffFile]);
 
-  const ovFile = path.join(testTmp, 'renders', '0004-o1-black.mov');
+  const ovFile = path.join(testTmp, 'renders', '0005-o1-black.mov');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=black@0.0:s=1920x1080:r=30,format=yuva420p', '-t', '1', '-c:v', 'qtrle', ovFile]);
 
   const resolved = [
-    { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' },
-    { id: 'o1', placement: 'overlay', start: 4.5, duration: 1, card: 'black' }
+    { id: 'c1', placement: 'fullframe', start: 3, duration: 2, card: 'green' },
+    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
   ];
   const avatarJobs = [
-    { kind: 'avatar-full', id: 's01', start: 6, end: 66, file: avatarFile }
+    { kind: 'avatar-full', id: 's01', start: 6, end: 66, file: avatarFile } // restored back to 6 from 6 to 5 to make the screen between c1 (ends 4) and s01 (starts 5) exactly 1.0s, which gets absorbed
   ];
   const words = [
     { start: 0, end: 5, word: 'hello_world' },
@@ -364,10 +430,10 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
 
   assert.ok(!fs.existsSync(path.join(tmpDir, 'base.mp4')), 'base.mp4 should not exist in single-pass');
   const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
-  assert.equal(tsFiles.length, 11, 'should have 11 segments including transitions');
+  assert.equal(tsFiles.length, 8, 'should have 8 segments including transitions');
   
   const transFiles = tsFiles.filter(f => f.includes('-trans-'));
-  assert.equal(transFiles.length, 4, 'should have 4 transition files');
+  assert.equal(transFiles.length, 2, 'should have 2 transition files');
   
   for (const tFile of transFiles) {
     const p = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(tmpDir, tFile)], { encoding: 'utf8' });
@@ -379,7 +445,7 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   const avatarSubFiles = tsFiles.filter(f => f.includes('s01') && !f.includes('-trans-')).sort();
   assert.equal(avatarSubFiles.length, 3, 'should have 3 avatar sub-segments');
   
-  const subDurations = [19.4, 20.0, 20.4]; // trimmed 0.1 off first and last
+  const subDurations = [19.5, 20.0, 20.4]; // trimmed 0.1 off first and last
   for (let i = 0; i < 3; i++) {
     const p = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(tmpDir, avatarSubFiles[i])], { encoding: 'utf8' });
     const d = parseFloat(p.stdout);
@@ -462,6 +528,8 @@ test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-ver
 });
 
 test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+  const tmpDirNone = path.join(testTmp, 'assembly-tmp');
+  fs.rmSync(tmpDirNone, { recursive: true, force: true });
   const outNone = path.join(testTmp, 'final-none.mp4');
   if (fs.existsSync(outNone)) fs.unlinkSync(outNone);
 
@@ -497,7 +565,7 @@ test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmp
 
   const tmpDir = path.join(testTmp, 'assembly-tmp');
   const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
-  assert.equal(tsFiles.length, 7, 'should have 7 base segments, no transitions');
+  assert.equal(tsFiles.length, 5, 'should have 5 base segments, no transitions');
   const transFiles = tsFiles.filter(f => f.includes('-trans-'));
   assert.equal(transFiles.length, 0, 'should have 0 transition files');
   
@@ -505,6 +573,8 @@ test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmp
 });
 
 test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+  const tmpDirOff = path.join(testTmp, 'assembly-tmp');
+  fs.rmSync(tmpDirOff, { recursive: true, force: true });
   const outOff = path.join(testTmp, 'final-cap-off.mp4');
   if (fs.existsSync(outOff)) fs.unlinkSync(outOff);
 
@@ -539,7 +609,7 @@ test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg',
   
   const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
   // 1 screen, 1 graphic, 1 screen = 3 segments
-  assert.equal(tsFiles.length, 3, 'segment count unchanged when captions off');
+  assert.equal(tsFiles.length, 2, 'segment count unchanged when captions off');
   
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });

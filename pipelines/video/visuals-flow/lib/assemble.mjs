@@ -73,6 +73,56 @@ export function planSegmentOverlays(segments, overlays) {
   });
 }
 
+
+export const SLIVER_GRAPHIC = 2.5;
+export const SLIVER_AVATAR = 1.0;
+
+export function absorbSlivers(segments, { graphicMax = SLIVER_GRAPHIC, avatarMax = SLIVER_AVATAR } = {}) {
+  const currentSegments = JSON.parse(JSON.stringify(segments));
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let j = 0; j < currentSegments.length; j++) {
+      const seg = currentSegments[j];
+      if (seg.kind !== 'screen') continue;
+      const dur = +(seg.end - seg.start).toFixed(3);
+      const prev = j > 0 ? currentSegments[j - 1] : null;
+      const next = j < currentSegments.length - 1 ? currentSegments[j + 1] : null;
+      
+      let absorbed = false;
+      if (dur <= graphicMax) {
+        if (prev && prev.kind === 'graphic') {
+          prev.end = seg.end;
+          prev.padEnd = +( (prev.padEnd || 0) + dur ).toFixed(3);
+          absorbed = true;
+        } else if (next && next.kind === 'graphic') {
+          next.start = seg.start;
+          next.padStart = +( (next.padStart || 0) + dur ).toFixed(3);
+          absorbed = true;
+        }
+      }
+      if (!absorbed && dur <= avatarMax) {
+        if (prev && prev.kind === 'avatar') {
+          prev.end = seg.end;
+          prev.padEnd = +( (prev.padEnd || 0) + dur ).toFixed(3);
+          absorbed = true;
+        } else if (next && next.kind === 'avatar') {
+          next.start = seg.start;
+          next.padStart = +( (next.padStart || 0) + dur ).toFixed(3);
+          absorbed = true;
+        }
+      }
+      
+      if (absorbed) {
+        currentSegments.splice(j, 1);
+        changed = true;
+        break;
+      }
+    }
+  }
+  return currentSegments;
+}
+
 export const BEAT_INTERVAL = 20, BEAT_MIN_EDGE = 8, BEAT_SNAP_WINDOW = 3, BEAT_MIN_GAP = 0.25;
 export const TRANSITION_DUR = 0.2;             // 6 frames total @30fps
 export const WHIP_SIGMAS = [10, 24];           // cumulative gblur stages per half
@@ -306,6 +356,7 @@ function parseArgs(argv) {
 
 export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', words = [] }) {
   let segments = planSegments({ resolved, avatarJobs, total });
+  segments = absorbSlivers(segments);
   if (beats === 'on') {
     const cueTimes = resolved.filter(c => c.placement === 'overlay').map(c => c.start);
     segments = splitAvatarSegments(segments, words, { cueTimes });
@@ -377,13 +428,16 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     let src = '';
     let seekArgs = [];
 
+    const pStart = seg.padStart || 0;
+    const actualPadStart = Math.max(0, pStart - startTrim);
     if (seg.kind === 'screen') {
       seekArgs = ['-ss', String(seg.start + screenOffset + startTrim), '-to', String(seg.end + screenOffset - endTrim)];
       src = screen;
     } else if (seg.kind === 'avatar') {
       const job = avatarJobs.find(j => j.id === seg.id);
       src = job.file;
-      seekArgs = ['-ss', String(seg.start - job.start + startTrim)];
+      const contentStartTrim = Math.max(0, startTrim - pStart);
+      seekArgs = ['-ss', String(seg.start + pStart - job.start + contentStartTrim)];
     } else if (seg.kind === 'graphic') {
       const cue = resolved.find(c => c.id === seg.id);
       src = path.join(renderDir, planRender(cue).outFile);
@@ -420,7 +474,8 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     }
 
     if (needsComplex) {
-      let chain = `[0:v]${punchVF},tpad=stop_mode=clone:stop_duration=30[b0];`;
+      const padStartFilter = actualPadStart > 0 ? `,tpad=start_mode=clone:start_duration=${actualPadStart}` : '';
+      let chain = `[0:v]${punchVF}${padStartFilter},tpad=stop_mode=clone:stop_duration=30[b0];`;
       const inputs = [];
       let lastV = 'b0';
       
@@ -519,7 +574,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     } else {
       spawnArgs = [
         '-y', ...seekArgs, '-i', src,
-        '-vf', `${punchVF},tpad=stop_mode=clone:stop_duration=30`,
+        '-vf', `${punchVF}${actualPadStart > 0 ? ',tpad=start_mode=clone:start_duration=' + actualPadStart : ''},tpad=stop_mode=clone:stop_duration=30`,
         '-t', String(dur), '-an', ...ENC, '-f', 'mpegts', segFile
       ];
     }
@@ -547,13 +602,16 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
         sliceA = ['-ss', String(b - half + screenOffset), '-to', String(b + screenOffset), '-i', screen];
       } else {
         const j = avatarJobs.find(j => j.id === segments[tOut.fromIdx].id);
-        sliceA = ['-ss', String(b - half - j.start), '-to', String(b - j.start), '-i', j.file];
+        const sourceStartA = Math.max(0, b - half - j.start);
+        const sourceEndA = Math.max(0, b - j.start);
+        sliceA = ['-ss', String(sourceStartA), '-to', String(sourceEndA), '-i', j.file];
       }
       if (segments[tOut.toIdx].kind === 'screen') {
         sliceB = ['-ss', String(b + screenOffset), '-to', String(b + half + screenOffset), '-i', screen];
       } else {
         const j = avatarJobs.find(j => j.id === segments[tOut.toIdx].id);
-        sliceB = ['-ss', '0', '-to', String(half), '-i', j.file];
+        const sourceStartB = Math.max(0, b - j.start);
+        sliceB = ['-ss', String(sourceStartB), '-to', String(sourceStartB + half), '-i', j.file];
       }
 
       const chainOut =

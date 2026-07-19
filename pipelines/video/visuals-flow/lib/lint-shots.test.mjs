@@ -82,3 +82,48 @@ test('empty spans array → no errors, no warnings', () => {
   assert.equal(errors.length, 0);
   assert.equal(warnings.length, 0);
 });
+
+
+test('screen segment between avatars < 2.5s -> E5', () => {
+  const { errors, warnings } = lintShots({
+    shotsResolved: {
+      spans: [
+        { id: 's1', start: 0, end: 50, duration: 50 },
+        { id: 's2', start: 52.4, end: 100, duration: 47.6 }
+      ]
+    },
+    resolvedCues: [],
+    words
+  });
+  assert.ok(errors.some(e => e.startsWith('E5 orphan-screen')));
+});
+
+test('screen segment < 5s -> W5', () => {
+  const { errors, warnings } = lintShots({
+    shotsResolved: {
+      spans: [
+        { id: 's1', start: 4, end: 50, duration: 46 } // screen 0 to 4 (4s)
+      ]
+    },
+    resolvedCues: [],
+    words
+  });
+  assert.ok(warnings.some(w => w.startsWith('W5 short-screen')));
+});
+
+test('clean plan silent -> no E5/W5', () => {
+  const { errors, warnings } = lintShots({
+    shotsResolved: {
+      spans: [
+        { id: 's1', start: 10, end: 50, duration: 40 },
+        { id: 's2', start: 60, end: 100, duration: 40 }
+      ]
+    },
+    resolvedCues: [],
+    words: Array.from({ length: 200 }, (_, i) => ({ text: 'w', start: i, end: i + 1 })) // total 200
+  });
+  // Wait, start 10 -> screen 10s. mid gap 10s. end gap 100s. All >= 5s.
+  // W2 budget target might trigger if not enough duration, but we just check E5/W5.
+  assert.ok(!errors.some(e => e.startsWith('E5')));
+  assert.ok(!warnings.some(w => w.startsWith('W5')));
+});

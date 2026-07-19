@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
+import { planSegments } from './assemble.mjs';
 
 // Budget + shape rules for full-screen avatar spans. Seeded from
 // tutorial-pipeline-2's 060 rulebook knobs (U-curve, ~5:00 total cap from the
@@ -12,8 +13,11 @@ const SPAN_MIN = 12;                // s — error: a shorter full-screen moment
 const SPAN_MAX = 150;               // s — warn: a full-screen host stretch this long drags
 const FRONT_ZONE = 0.15;            // U-curve: expect a span starting in the first 15% of the VO
 const BACK_ZONE = 0.15;             //          and one in the last 15%
-const GAP_AVATAR_MAX = 300;         // s — warn when the host is off full-screen longer than this
-                                    //     between spans (owner rule 2026-07-18: periodic host
+const GAP_AVATAR_MAX = 300;
+
+const MIN_SCREEN_ERROR = 2.5;
+const MIN_SCREEN_WARN = 5;
+
                                     //     presence mid-video, not just the U-curve ends)
 
 export function lintShots({ shotsResolved, resolvedCues, words }) {
@@ -22,6 +26,27 @@ export function lintShots({ shotsResolved, resolvedCues, words }) {
   if (!words || words.length === 0) return { errors, warnings };
   const T = words[words.length - 1].end;
   const spans = [...(shotsResolved.spans ?? [])].sort((a, b) => a.start - b.start);
+
+  // E5 orphan-screen / W5 short-screen
+  try {
+    const avatarJobs = spans.map(s => ({ kind: 'avatar-full', id: s.id, start: s.start, end: s.end }));
+    const baseSegments = planSegments({ resolved: resolvedCues || [], avatarJobs, total: T });
+    for (let i = 0; i < baseSegments.length; i++) {
+      const seg = baseSegments[i];
+      if (seg.kind !== 'screen') continue;
+      const dur = seg.end - seg.start;
+      const prev = i > 0 ? baseSegments[i-1] : null;
+      const next = i < baseSegments.length - 1 ? baseSegments[i+1] : null;
+      
+      if (dur < MIN_SCREEN_ERROR && prev && prev.kind === 'avatar' && next && next.kind === 'avatar') {
+        errors.push(`E5 orphan-screen: ${dur.toFixed(1)}s of screen between ${prev.id} and ${next.id} — extend a span or drop it on the board`);
+      } else if (dur < MIN_SCREEN_WARN) {
+        warnings.push(`W5 short-screen: ${dur.toFixed(1)}s of screen (segment ${seg.id}) is short — consider absorbing or extending it`);
+      }
+    }
+  } catch (err) {
+    // ignore overlap errors here, E2 handles it
+  }
 
   // E1 span-overlap
   for (let i = 1; i < spans.length; i++) {

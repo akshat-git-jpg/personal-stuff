@@ -4,12 +4,14 @@ import { normWord, findPhrase } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 
 export const ENGINE_MODES = ['test', 'production'];
+export const SNAP_EDGE = 1.5;
 
 // Spans are matched with the same forward-cursor discipline as cues: each
 // span's from_anchor is searched after the previous span's to_anchor, so
 // repeated phrases resolve in transcript order.
 export function resolveShots(shotsFile, words) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
+  const total = W.length > 0 ? W[W.length - 1].end : 0;
   const errors = [];
   const out = [];
   let cursor = 0;
@@ -35,13 +37,24 @@ export function resolveShots(shotsFile, words) {
     const b = findPhrase(W, span.to_anchor ?? '', a.idx + a.len);
     if (b.err) { errors.push(`${span.id} to_anchor: ${b.err}`); continue; }
     cursor = b.idx + b.len;
-    const start = +a.start.toFixed(2);
-    const end = +W[b.idx + b.len - 1].end.toFixed(2);
-    out.push({
+    let start = +a.start.toFixed(2);
+    let end = +W[b.idx + b.len - 1].end.toFixed(2);
+    let snapped = false;
+    if (start < SNAP_EDGE) {
+      start = 0;
+      snapped = true;
+    }
+    if (total - end < SNAP_EDGE) {
+      end = total;
+      snapped = true;
+    }
+    const spanObj = {
       id: span.id, kind: span.kind,
       start, end, duration: +(end - start).toFixed(2),
       note: span.note ?? '',
-    });
+    };
+    if (snapped) spanObj.snapped = true;
+    out.push(spanObj);
   }
   return { spans: out, errors };
 }
