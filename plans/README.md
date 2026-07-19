@@ -511,3 +511,4 @@ The others are grounded and available when the owner wants them:
 - 094-analyze-reference-tool — PR#51 094-analyze-reference-tool: full-video effect discovery for any YouTube URL — DONE
 - 096-keyword-highlight-captions — PR#53 096-keyword-highlight-captions: keyword-highlight captions — accent the load-bearing words — DONE
 - 095-flash-wipe-transition — PR#52 095-flash-wipe-transition: flash-wipe transition — light-leak wipe on cuts INTO graphics — DONE
+- 097-verdict-and-score-overlays — PR#54 097-verdict-and-score-overlays: verdict-chip + score-pill overlay cards — DONE
