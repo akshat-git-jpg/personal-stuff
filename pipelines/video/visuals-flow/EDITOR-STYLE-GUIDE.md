@@ -87,5 +87,6 @@ can't:
 
 Leave bare: any stretch where the screen is already showing what the voice
 describes (demos, walkthroughs, clicking through a tool). Rough rhythm: one
-full-screen graphic every 1 to 2 minutes, overlays at most one per minute,
-nothing in the first 15 or last 20 seconds. If in doubt, skip the graphic.
+fullframe beat every 45–90 seconds, overlays up to three per minute in review
+stretches, and cold-open and end-card allowances instead of total exclusion
+zones. If in doubt during demo stretches, skip the graphic.

@@ -116,14 +116,14 @@ test('E3 card-repetition', () => {
 });
 
 test('E4 exclusion-zones', () => {
-  const cEarly = [{ id: 'c1', card: 'overlay/plain', start: 10 }];
+  const cEarly = [{ id: 'c1', card: 'overlay/plain', start: 5 }];
   const resEarly = lintCues({
     cuesFile: createCues(cEarly),
     resolved: createResolved(cEarly),
     words: createWords(900),
     catalog
   });
-  assert(resEarly.errors.some(e => e.includes('E4 exclusion-zones')));
+  assert(!resEarly.errors.some(e => e.includes('E4 exclusion-zones')));
 
   const cLate = [{ id: 'c1', card: 'overlay/plain', start: 885, duration: 10 }];
   const resLate = lintCues({
@@ -133,6 +133,24 @@ test('E4 exclusion-zones', () => {
     catalog
   });
   assert(resLate.errors.some(e => e.includes('E4 exclusion-zones')));
+
+  const cLateBrand = [{ id: 'c1', card: 'brand/outro', start: 885, duration: 10 }];
+  const resLateBrand = lintCues({
+    cuesFile: createCues(cLateBrand),
+    resolved: createResolved(cLateBrand),
+    words: createWords(900),
+    catalog
+  });
+  assert(!resLateBrand.errors.some(e => e.includes('E4 exclusion-zones')));
+
+  const cLateLink = [{ id: 'c1', card: 'link-in-description/something', start: 885, duration: 10 }];
+  const resLateLink = lintCues({
+    cuesFile: createCues(cLateLink),
+    resolved: createResolved(cLateLink),
+    words: createWords(900),
+    catalog
+  });
+  assert(!resLateLink.errors.some(e => e.includes('E4 exclusion-zones')));
 
   const cPass = [{ id: 'c1', card: 'overlay/plain', start: 20, duration: 10 }];
   const resPass = lintCues({
@@ -144,30 +162,68 @@ test('E4 exclusion-zones', () => {
   assert(!resPass.errors.some(e => e.includes('E4 exclusion-zones')));
 });
 
-test('W3 scaling', () => {
-  const T = 900; // 15 min
-  const minCues = Math.floor(18 * (T / 1800)); // 9
-  const maxCues = Math.ceil(28 * (T / 1800)); // 14
-  
-  // 30 cues
-  const c30 = Array.from({ length: 30 }, (_, i) => ({ id: `c${i}`, card: 'overlay/plain', start: 20 + i }));
-  const res30 = lintCues({
-    cuesFile: createCues(c30),
-    resolved: createResolved(c30),
-    words: createWords(T),
+test('W3 total-count scaling', () => {
+  const T_10min = 600;
+  const c3 = Array.from({ length: 3 }, (_, i) => ({ id: `c${i}`, card: 'overlay/plain', start: 20 + i }));
+  const res_10min = lintCues({
+    cuesFile: createCues(c3),
+    resolved: createResolved(c3),
+    words: createWords(T_10min),
     catalog
   });
-  assert(res30.warnings.some(w => w.includes('W3 total-count')));
+  assert(res_10min.warnings.some(w => w.includes('W3 total-count')));
   
-  // 12 cues
-  const c12 = Array.from({ length: 12 }, (_, i) => ({ id: `c${i}`, card: 'overlay/plain', start: 20 + i }));
-  const res12 = lintCues({
-    cuesFile: createCues(c12),
-    resolved: createResolved(c12),
-    words: createWords(T),
+  const T_3min = 180;
+  const res_3min = lintCues({
+    cuesFile: createCues(c3),
+    resolved: createResolved(c3),
+    words: createWords(T_3min),
     catalog
   });
-  assert(!res12.warnings.some(w => w.includes('W3 total-count')));
+  assert(!res_3min.warnings.some(w => w.includes('W3 total-count')));
+});
+
+test('W1 fullframe-cadence gap', () => {
+  const c = [
+    { id: 'c1', card: 'fullframe/beat', start: 20 },
+    { id: 'c2', card: 'fullframe/beat', start: 140 }
+  ];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog
+  });
+  assert(res.warnings.some(w => w.includes('W1 fullframe-cadence')));
+});
+
+test('W2 overlay-density', () => {
+  const c3 = [
+    { id: 'c1', card: 'overlay/plain', start: 10 },
+    { id: 'c2', card: 'overlay/plain', start: 30 },
+    { id: 'c3', card: 'overlay/plain', start: 50 }
+  ];
+  const res3 = lintCues({
+    cuesFile: createCues(c3),
+    resolved: createResolved(c3),
+    words: createWords(900),
+    catalog
+  });
+  assert(!res3.warnings.some(w => w.includes('W2 overlay-density')));
+
+  const c4 = [
+    { id: 'c1', card: 'overlay/plain', start: 10 },
+    { id: 'c2', card: 'overlay/plain', start: 20 },
+    { id: 'c3', card: 'overlay/plain', start: 30 },
+    { id: 'c4', card: 'overlay/plain', start: 40 }
+  ];
+  const res4 = lintCues({
+    cuesFile: createCues(c4),
+    resolved: createResolved(c4),
+    words: createWords(900),
+    catalog
+  });
+  assert(res4.warnings.some(w => w.includes('W2 overlay-density')));
 });
 
 test('W4 reveal-wordcount', () => {
@@ -188,7 +244,7 @@ test('W4 reveal-wordcount', () => {
 
 test('flagged cues are ignored', () => {
   const c = [
-    { id: 'c1', card: 'overlay/stat-hit', start: 10, flagged: true },
+    { id: 'c1', card: 'overlay/plain', start: 890, duration: 10, flagged: true },
     { id: 'c2', card: 'overlay/stat-hit', start: 110 },
     { id: 'c3', card: 'overlay/stat-hit', start: 210 },
     { id: 'c4', card: 'overlay/stat-hit', start: 310 }
@@ -201,7 +257,7 @@ test('flagged cues are ignored', () => {
   });
   // Should only count 3 stat-hits, so no E1
   assert(!res.errors.some(e => e.includes('E1 stat-hit-cap')));
-  // c1 is ignored, so no E4 (start < 15)
+  // c1 is ignored, so no E4 (end zone)
   assert(!res.errors.some(e => e.includes('E4 exclusion-zones')));
 });
 
