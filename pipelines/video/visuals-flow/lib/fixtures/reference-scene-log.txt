@@ -1,0 +1,4 @@
+frame:0 pts:1000 pts_time:1.000
+lavfi.scene_score=0.3
+frame:1 pts:4000 pts_time:4.000
+lavfi.scene_score=0.4
