@@ -5,6 +5,11 @@ full-screen span + contiguous corner chunks covering the whole VO. Test mode
 only (`engineMode: "test"`) — the HeyGen 4 production path does not exist yet
 (design doc `docs/specs/2026-07-18-avatar-shot-plan-design.md`).
 
+The corner chunks are no longer just editor reference: step 090 (assemble) now
+composites them automatically as the top-right host bubble on screen segments
+(the `bubble` effect module — see `EFFECTS.md`). Render them whenever you want
+the host present outside full-screen spans; drop `--spans-only` to include them.
+
 - **In:** approved `shots.json` + fresh `shots.resolved.json` + `resolved.json` + `vo.mp3`
 - **Out:** `avatar-jobs.json` (committed) · clips in `~/kb-scratch/video/heygen/visuals-flow/<slug>/` (media policy — never in the repo; RENDERS.md rows auto-appended on submit) · `avatar-manifest.md` (committed)
 - **Run:** `bash run.sh <slug> --template <registry-slug> --submit` → wait for HeyGen → `bash run.sh <slug> --download` (re-run until no `pending:` lines)

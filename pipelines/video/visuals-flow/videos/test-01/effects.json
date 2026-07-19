@@ -356,6 +356,11 @@
       "segId": "screen-18",
       "direction": "in",
       "enabled": true
+    },
+    {
+      "id": "bubble",
+      "type": "bubble",
+      "enabled": true
     }
   ]
 }
