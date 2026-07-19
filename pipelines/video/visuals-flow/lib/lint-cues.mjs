@@ -5,14 +5,14 @@ import { resolveWorkdir } from './workdir.mjs';
 const CAP_STAT_HIT = 3;
 const SPACING_STAT_HIT = 90;
 const CAP_FULLFRAME = 3;
-const ZONE_START = 15;
 const ZONE_END = 20;
-const GAP_FULLFRAME_MAX = 180;
+const GAP_FULLFRAME_MAX = 90;
 const GAP_FULLFRAME_MIN = 45;
 const DENSITY_OVERLAY_WINDOW = 60;
-const DENSITY_OVERLAY_MAX = 2;
-const TARGET_TOTAL_MIN = 18;
-const TARGET_TOTAL_MAX = 28;
+const DENSITY_OVERLAY_MAX = 3;
+const TARGET_RATE_MIN = 0.55;
+const TARGET_RATE_MAX = 1.3;
+const ENDCARD_SLUG_PREFIXES = ['brand/', 'link-in-description/'];
 
 export function lintCues({ cuesFile, resolved, words, catalog }) {
   const errors = [];
@@ -75,11 +75,10 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
     errors.push(`E4 exclusion zones: video too short for graphics (< 40s)`);
   } else {
     for (const r of sortedResolved) {
-      if (r.start < ZONE_START) {
-        errors.push(`E4 exclusion-zones: ${r.id} starts at ${r.start.toFixed(1)}s (minimum ${ZONE_START}s)`);
-      }
       if (r.start + r.duration > T - ZONE_END) {
-        errors.push(`E4 exclusion-zones: ${r.id} ends at ${(r.start + r.duration).toFixed(1)}s (maximum ${(T - ZONE_END).toFixed(1)}s, total ${T.toFixed(1)}s)`);
+        if (!ENDCARD_SLUG_PREFIXES.some(prefix => r.card.startsWith(prefix))) {
+          errors.push(`E4 exclusion-zones: ${r.id} ends at ${(r.start + r.duration).toFixed(1)}s (maximum ${(T - ZONE_END).toFixed(1)}s, total ${T.toFixed(1)}s)`);
+        }
       }
     }
   }
@@ -125,11 +124,11 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
   }
 
   // W3 total-count
-  const minCues = Math.floor(TARGET_TOTAL_MIN * (T / 1800));
-  const maxCues = Math.ceil(TARGET_TOTAL_MAX * (T / 1800));
+  const targetMin = Math.round(TARGET_RATE_MIN * T / 60);
+  const targetMax = Math.round(TARGET_RATE_MAX * T / 60);
   const count = sortedResolved.length;
-  if (count < minCues || count > maxCues) {
-    warnings.push(`W3 total-count: ${count} cues is outside the scaled bounds [${minCues}, ${maxCues}] for a ${(T/60).toFixed(1)}min video`);
+  if (count < targetMin || count > targetMax) {
+    warnings.push(`W3 total-count: ${count} cues is outside the scaled band [${targetMin}, ${targetMax}] (rate ${TARGET_RATE_MIN}-${TARGET_RATE_MAX}/min) for a ${(T/60).toFixed(1)}min video`);
   }
 
   // W4 reveal-wordcount
