@@ -509,3 +509,4 @@ The others are grounded and available when the owner wants them:
 - 092-no-orphan-screen-slivers — PR#49 092-no-orphan-screen-slivers: plan-time lint + assemble-time absorption for screen slivers — DONE
 - 093-effects-layer — PR#50 093-effects-layer: pluggable effect modules + effects.json manifest + EFFECTS.md rulebook — DONE
 - 094-analyze-reference-tool — PR#51 094-analyze-reference-tool: full-video effect discovery for any YouTube URL — DONE
+- 096-keyword-highlight-captions — PR#53 096-keyword-highlight-captions: keyword-highlight captions — accent the load-bearing words — DONE
