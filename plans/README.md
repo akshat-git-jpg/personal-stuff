@@ -524,3 +524,4 @@ The others are grounded and available when the owner wants them:
 - 097-verdict-and-score-overlays — PR#54 097-verdict-and-score-overlays: verdict-chip + score-pill overlay cards — DONE
 - 098-progressive-table-and-headline-chips — PR#55 098-progressive-table-and-headline-chips: progressive comparison table + headline-chips slate — DONE
 - 099-cadence-density-and-canvas-routing — PR#56 099-cadence-density-and-canvas-routing: cadence density + canvas routing (spec D1) — DONE
+- 100-corner-avatar-bubble — PR#57 100-corner-avatar-bubble: corner avatar bubble (spec D2) — DONE
