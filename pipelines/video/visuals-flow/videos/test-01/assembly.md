@@ -1,6 +1,6 @@
 # test-01 — assembly
 
-Master timeline = voiceover (1927.6s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. Whip transitions at the listed boundaries; hard cuts elsewhere.
+Master timeline = voiceover (1927.6s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. Whip transitions at the listed boundaries; hard cuts elsewhere. Captions burned on screen segments. Ken Burns drift on screen segments.
 
 Output: /Users/kbtg/kb-scratch/video/visuals-flow/test-01/final-draft.mp4
 
