@@ -592,6 +592,37 @@
       "default_duration": 6,
       "max_beats": 5,
       "max_reveal_chars": 30
+    },
+    {
+      "slug": "comparison/table-rows",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "comparison table that builds one row per beat as each product's numbers are spoken; cells pipe-separated in beat text",
+      "variables": {
+        "title": "string",
+        "columns": "array of strings — header cells, 2-4 columns"
+      },
+      "beat_shape": {
+        "text": "string — pipe-separated cells, e.g. 'Kling 3.0|15s|1080p|30 cr'"
+      },
+      "default_duration": 10,
+      "max_beats": 5,
+      "max_reveal_chars": 44
+    },
+    {
+      "slug": "slate/headline-chips",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "canvas beat: a spoken headline sentence plus pill chips ticking in one per beat (lists, consequences, criteria)",
+      "variables": {
+        "headline": "string"
+      },
+      "beat_shape": {
+        "text": "string"
+      },
+      "default_duration": 8,
+      "max_beats": 4,
+      "max_reveal_chars": 34
     }
   ]
 }

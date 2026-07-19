@@ -1,0 +1,117 @@
+<!doctype html>
+<!--
+  TABLE ROWS   (Hyperframes card)
+  A comparison table that builds one data row per beat as each product's numbers
+  are spoken. A header row renders at card start; each beat adds one row whose
+  cells are the beat text split on "|". 1920x1080, 30fps, 10s.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block (title, columns,       │
+  │  beats[].text) and :root. Each beat's text is pipe-separated cells        │
+  │  ("Kling 3.0|15s|1080p|30 cr"). Never touch the TIMELINE.                 │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render comparison/table-rows -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --panel: rgba(255, 255, 255, 0.04);
+        --panel-line: rgba(255, 255, 255, 0.1);
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 28% 18%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 130px 210px; }
+      #title { font-size: 64px; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 48px; will-change: transform, opacity; }
+      #panel { background: var(--panel); border: 1px solid var(--panel-line); border-radius: 24px; padding: 40px 52px; }
+      .trow { display: grid; align-items: center; gap: 32px; padding: 24px 8px; }
+      #head { border-bottom: 1px solid var(--panel-line); will-change: transform, opacity; }
+      #head .cell { color: var(--text-dim); text-transform: uppercase; font-size: 22px; font-weight: 700; letter-spacing: 2px; }
+      #body .trow { border-bottom: 1px solid rgba(255, 255, 255, 0.06); will-change: transform, opacity; }
+      #body .trow:last-child { border-bottom: none; }
+      #body .cell { font-size: 30px; font-weight: 400; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+      #body .cell.first { color: var(--text); font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="tablerows" data-start="0" data-duration="10" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"What you actually pay","columns":["Model","Max length","Resolution","Cost (15s)"],"beats":[{"text":"Seedance 2.0|15s|1080p|180 cr","at":0.6},{"text":"Kling 3.0|15s|1080p|30 cr","at":1.7},{"text":"Veo 3.1|8s|1080p|165 cr","at":2.8},{"text":"Grok Video|6s|720p|23 cr","at":3.9},{"text":"Wan 2.5|10s|1080p|38 cr","at":5.0}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="10" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="10" data-track-index="1">
+        <div id="title"></div>
+        <div id="panel">
+          <div id="head" class="trow"></div>
+          <div id="body"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        title: VARS.title ?? 'What you actually pay',
+        columns: VARS.columns ?? ['Model', 'Max length', 'Resolution', 'Cost (15s)'],
+        beats: VARS.beats ?? [
+          { text: 'Seedance 2.0|15s|1080p|180 cr', at: 0.6 },
+          { text: 'Kling 3.0|15s|1080p|30 cr',     at: 1.7 },
+          { text: 'Veo 3.1|8s|1080p|165 cr',       at: 2.8 },
+          { text: 'Grok Video|6s|720p|23 cr',      at: 3.9 },
+          { text: 'Wan 2.5|10s|1080p|38 cr',       at: 5.0 },
+        ],
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const columns = Array.isArray(DATA.columns) && DATA.columns.length ? DATA.columns : ['', ''];
+      // first column wider (product name), the rest share the remaining width
+      const template = '1.4fr' + ' 1fr'.repeat(Math.max(0, columns.length - 1));
+
+      document.getElementById('title').textContent = DATA.title;
+      const head = document.getElementById('head');
+      head.style.gridTemplateColumns = template;
+      columns.forEach((c) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.textContent = c ?? '';
+        head.appendChild(cell);
+      });
+
+      const body = document.getElementById('body');
+      const rows = DATA.beats.map((b) => {
+        const row = document.createElement('div');
+        row.className = 'trow';
+        row.style.gridTemplateColumns = template;
+        const cells = String(b.text ?? '').split('|').map((s) => s.trim());
+        for (let i = 0; i < columns.length; i++) {
+          const cell = document.createElement('div');
+          cell.className = i === 0 ? 'cell first' : 'cell';
+          cell.textContent = cells[i] ?? '';
+          row.appendChild(cell);
+        }
+        body.appendChild(row);
+        return { b, row };
+      });
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const firstAt = DATA.beats.length ? Math.max(0, Math.min(...DATA.beats.map((b) => Number(b.at))) - 0.35) : 0.2;
+      tl.from('#title', { opacity: 0, y: -22, duration: 0.5, ease: 'power3.out' }, 0.1);
+      tl.from('#head', { opacity: 0, y: 18, duration: 0.5, ease: 'power3.out' }, firstAt);
+      rows.forEach(({ b, row }) => {
+        tl.from(row, { opacity: 0, y: 18, duration: 0.45, ease: 'power3.out' }, Number(b.at));
+      });
+      window.__timelines['tablerows'] = tl;
+    </script>
+  </body>
+</html>
