@@ -1,0 +1,110 @@
+<!doctype html>
+<!--
+  SCORE PILL   (Hyperframes OVERLAY — transparent background)
+  Spoken score badge: label + animated N/10 pill (optional muted logo; gold only
+  when winner) popped in at the second the score is said. 1920x1080, 30fps, 4s.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block and :root. Set label,  │
+  │  score, max, logo, winner there. Never touch the TIMELINE.                │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  ⚠ OVERLAY: render as a TRANSPARENT WebM:
+    npx hyperframes@latest render overlay/score-pill -o score-pill.webm --format webm --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.6);
+        --gold: #facc15;
+        --pill-bg: rgba(10, 8, 5, 0.82);
+        --pill-line: rgba(255, 255, 255, 0.1);
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #pill {
+        position: absolute; bottom: 120px; left: 120px;
+        display: flex; align-items: center; gap: 26px;
+        background: var(--pill-bg); border: 1px solid var(--pill-line);
+        border-radius: 999px; padding: 26px 44px;
+        transform-origin: left center; will-change: transform, opacity;
+      }
+      #logo { width: 44px; height: 44px; border-radius: 10px; object-fit: contain;
+        display: none; filter: saturate(0.5) brightness(0.95); opacity: 0.9; }
+      #label { font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); }
+      .divider { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.28); flex: 0 0 auto; }
+      #scoreRow { display: flex; align-items: baseline; line-height: 1; }
+      #num { font-size: 44px; font-weight: 900; font-variant-numeric: tabular-nums; }
+      #max { font-size: 30px; font-weight: 700; color: var(--text-dim); margin-left: 2px; }
+      #num.winner { color: var(--gold); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="score-pill" data-start="0" data-duration="4" data-width="1920" data-height="1080"
+      data-composition-variables='{"label":"Realism","score":9,"max":10,"winner":false}'>
+      <div id="pill" class="clip" data-start="0" data-duration="4" data-track-index="0">
+        <img id="logo" alt="" />
+        <span id="label"></span>
+        <span class="divider"></span>
+        <span id="scoreRow"><span id="num">0</span><span id="max"></span></span>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        label: VARS.label ?? 'Realism',
+        score: VARS.score ?? 9,
+        max: VARS.max ?? 10,
+        logo: VARS.logo,
+        winner: VARS.winner ?? false,
+      };
+
+      const LOGOS = VARS.__logos ?? {};
+      const logoEl = document.getElementById('logo');
+      if (DATA.logo && LOGOS[DATA.logo]) {
+        logoEl.src = LOGOS[DATA.logo];
+        logoEl.style.display = 'block';
+      } else {
+        logoEl.remove();
+      }
+
+      document.getElementById('label').textContent = DATA.label;
+      document.getElementById('max').textContent = '/' + (Number(DATA.max) || 10);
+      const numEl = document.getElementById('num');
+      if (DATA.winner) numEl.classList.add('winner');
+
+      const TARGET = Number(DATA.score) || 0;
+      const isFloat = !Number.isInteger(TARGET);
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // pill pops in — scale from 90% + fade, slight overshoot (badge exception)
+      tl.from('#pill', { opacity: 0, scale: 0.9, duration: 0.5, ease: 'back.out(1.7)' }, 0);
+
+      // score number counts up from 0
+      const counter = { v: 0 };
+      tl.to(counter, {
+        v: TARGET,
+        duration: 0.5,
+        ease: 'power3.out',
+        onUpdate: () => {
+          numEl.textContent = isFloat ? counter.v.toFixed(1) : Math.round(counter.v);
+        },
+      }, 0.2);
+
+      window.__timelines['score-pill'] = tl;
+    </script>
+  </body>
+</html>
