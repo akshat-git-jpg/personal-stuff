@@ -1,0 +1,1 @@
+- Removed implicit effects from the assembly loop; implemented an explicit effects registry and effects.json manifest. This decouples aesthetic decisions from structural planning.

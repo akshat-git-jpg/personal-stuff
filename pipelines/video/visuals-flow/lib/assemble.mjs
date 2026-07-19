@@ -5,16 +5,37 @@ import { spawnSync } from 'node:child_process';
 import { mmss, planRender } from './render.mjs';
 import { resolveCues } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
-import { planCaptions, CAP_Y_FRAC } from './captions.mjs';
+import { EFFECT_MODULES } from './effects/registry.mjs';
+
+import * as whipMod from './effects/whip.mjs';
+import * as beatsMod from './effects/beats.mjs';
+import * as driftMod from './effects/drift.mjs';
+import * as captionsMod from './effects/captions.mjs';
+import { planCaptions } from './captions.mjs';
 
 const EPS = 0.05;
 export const CANVAS = { w: 1920, h: 1080, fps: 30 };
 export const ASSEMBLE_MEDIA_ROOT = process.env.ASSEMBLE_MEDIA_ROOT
   ?? path.join(os.homedir(), 'kb-scratch', 'video', 'visuals-flow');
 
-// Base-track plan: screen segments + replacements (avatar-full spans,
-// fullframe graphics), contiguous from 0 to total. Throws on overlap —
-// lint-shots E2 guarantees clean data, so overlap means corrupt inputs.
+export const TRANSITION_DUR = whipMod.CONSTANTS.TRANSITION_DUR;
+export const WHIP_SIGMAS = whipMod.CONSTANTS.WHIP_SIGMAS;
+export const WHIP_ZOOM = whipMod.CONSTANTS.WHIP_ZOOM;
+
+export const BEAT_INTERVAL = beatsMod.CONSTANTS.BEAT_INTERVAL;
+export const BEAT_MIN_EDGE = beatsMod.CONSTANTS.BEAT_MIN_EDGE;
+export const BEAT_SNAP_WINDOW = beatsMod.CONSTANTS.BEAT_SNAP_WINDOW;
+export const BEAT_MIN_GAP = beatsMod.CONSTANTS.BEAT_MIN_GAP;
+export const FLASH_COLOR = beatsMod.CONSTANTS.FLASH_COLOR;
+export const FLASH_OUT_OPACITIES = beatsMod.CONSTANTS.FLASH_OUT_OPACITIES;
+export const FLASH_IN_OPACITIES = beatsMod.CONSTANTS.FLASH_IN_OPACITIES;
+export const FLASH_BAND_OPACITIES = beatsMod.CONSTANTS.FLASH_BAND_OPACITIES;
+export const PUNCH_SCALE = beatsMod.CONSTANTS.PUNCH_SCALE;
+
+export const DRIFT_MAX = driftMod.CONSTANTS.DRIFT_MAX;
+export const DRIFT_MIN_SEG = driftMod.CONSTANTS.DRIFT_MIN_SEG;
+export const DRIFT_PERIOD = driftMod.CONSTANTS.DRIFT_PERIOD;
+
 export function planSegments({ resolved, avatarJobs, total }) {
   const repl = [];
   for (const c of resolved.filter((c) => c.placement === 'fullframe')) {
@@ -35,7 +56,7 @@ export function planSegments({ resolved, avatarJobs, total }) {
   let t = 0;
   let n = 0;
   for (const r of repl) {
-    const start = Math.max(r.start, t); // clamp sub-EPS underlap
+    const start = Math.max(r.start, t);
     if (start > t + EPS) {
       n++;
       segments.push({ kind: 'screen', id: `screen-${String(n).padStart(2, '0')}`, start: t, end: start });
@@ -50,9 +71,6 @@ export function planSegments({ resolved, avatarJobs, total }) {
   return segments;
 }
 
-// Map each overlay onto the segment(s) it intersects, in segment-local time.
-// trimStart = seconds into the overlay clip where this segment's slice begins
-// (non-zero only when an overlay crosses a segment boundary).
 export function planSegmentOverlays(segments, overlays) {
   return segments.map((seg) => {
     const local = [];
@@ -72,7 +90,6 @@ export function planSegmentOverlays(segments, overlays) {
     return local;
   });
 }
-
 
 export const SLIVER_GRAPHIC = 2.5;
 export const SLIVER_AVATAR = 1.0;
@@ -123,129 +140,38 @@ export function absorbSlivers(segments, { graphicMax = SLIVER_GRAPHIC, avatarMax
   return currentSegments;
 }
 
-export const BEAT_INTERVAL = 20, BEAT_MIN_EDGE = 8, BEAT_SNAP_WINDOW = 3, BEAT_MIN_GAP = 0.25;
-export const TRANSITION_DUR = 0.2;             // 6 frames total @30fps
-export const WHIP_SIGMAS = [10, 24];           // cumulative gblur stages per half
-export const WHIP_ZOOM = 0.12;                 // crop fraction at peak (≈1.09x)
-export const FLASH_COLOR = '0xfb923c';
-export const FLASH_OUT_OPACITIES = [0.45, 0.75, 1.0];  // 3-frame ramp on outgoing tail
-export const FLASH_IN_OPACITIES  = [0.8, 0.5, 0.25];   // 3-frame full-frame decay
-export const FLASH_BAND_OPACITIES = [0.35, 0.2, 0.1];  // 3-frame residue band after
-export const PUNCH_SCALE = 1.08;
-export const DRIFT_MAX = 0.05, DRIFT_MIN_SEG = 4, DRIFT_PERIOD = 30;
+export const planTransitions = (segments, overlays, opts = {}) => {
+  return whipMod.plan({ segments, overlays }).map(t => ({
+    at: t.at,
+    direction: t.direction,
+    fromIdx: t.fromIdx,
+    toIdx: t.toIdx
+  }));
+};
 
-// Ken Burns drift for one screen segment: slow center zoom, direction
-// alternating by screen ordinal (in, out, in, ...). Returns a filter
-// suffix string, or '' when the segment is too short.
-export function driftVF(screenOrdinal, dur, w, h, {
-  max = DRIFT_MAX, minSeg = DRIFT_MIN_SEG, period = DRIFT_PERIOD } = {}) {
-  if (dur < minSeg) return '';
-  // Full depth always; the push completes within `period` (or the segment,
-  // if shorter) and holds — ramping over a long segment's full duration made
-  // the motion imperceptible (~0.02%/s on a 4-min segment).
-  // Mechanism: scale with eval=frame (its w/h expressions DO get per-frame
-  // `t`) + a static center crop. Plain crop can't zoom — its w/h evaluate
-  // once at init — and zoompan has no `time` variable (both prior attempts
-  // produced a frozen frame).
-  const T = Math.min(dur, period).toFixed(3);
-  const p = screenOrdinal % 2 === 0
-    ? `${max}*min(t/${T},1)`          // push in, hold
-    : `${max}*max(1-t/${T},0)`;       // start pushed, release
-  return `,scale=w='trunc(iw*(1+${p})/2)*2':h='trunc(ih*(1+${p})/2)*2':eval=frame,crop=${w}:${h},setsar=1`;
-}
+export const planAvatarBeats = (seg, words, opts = {}) => {
+  const cueTimes = opts.cueTimes || [];
+  const dummyResolved = cueTimes.map(t => ({ placement: 'overlay', start: t }));
+  const instances = beatsMod.plan({ segments: [{ ...seg, kind: 'avatar' }], words, resolved: dummyResolved });
+  return instances.map(i => i.at);
+};
 
-// Whip transitions at screen<->avatar boundaries. Returns [{at, direction,
-// fromIdx, toIdx}] in timeline order. Skips: short neighbors, overlay
-// straddle, t=0/t=total edges (planSegments guarantees contiguity, so a
-// boundary is simply segments[i].end === segments[i+1].start).
-export function planTransitions(segments, overlays, { duration = TRANSITION_DUR } = {}) {
-  const half = duration / 2;
-  const out = [];
-  for (let i = 0; i < segments.length - 1; i++) {
-    const a = segments[i], b = segments[i + 1];
-    const pair = `${a.kind}>${b.kind}`;
-    if (pair !== 'screen>avatar' && pair !== 'avatar>screen') continue;
-    if (a.end - a.start < 1.0 || b.end - b.start < 1.0) continue;
-    const at = a.end;
-    if (overlays.some((o) => o.start < at + half && o.end > at - half)) continue;
-    out.push({ at, direction: pair === 'screen>avatar' ? 'left' : 'right', fromIdx: i, toIdx: i + 1 });
-  }
-  return out;
-}
+export const splitAvatarSegments = (segments, words, opts = {}) => {
+  const cueTimes = opts.cueTimes || [];
+  const dummyResolved = cueTimes.map(t => ({ placement: 'overlay', start: t }));
+  const instances = beatsMod.plan({ segments, words, resolved: dummyResolved });
+  return beatsMod.transformSegments(segments, instances, { words, resolved: dummyResolved });
+};
 
-// Refresh beats inside one avatar segment: every ~BEAT_INTERVAL s, snapped to
-// the nearest inter-word silence so the flash never lands mid-word. Returns
-// ascending beat times (timeline seconds); [] when the span is too short.
-export function planAvatarBeats(seg, words, {
-  interval = BEAT_INTERVAL, minEdge = BEAT_MIN_EDGE,
-  window = BEAT_SNAP_WINDOW, minGap = BEAT_MIN_GAP, cueTimes = [] } = {}) {
-  const gaps = [];
-  for (let i = 0; i < words.length - 1; i++) {
-    const g = words[i + 1].start - words[i].end;
-    if (g >= minGap) gaps.push(+((words[i].end + words[i + 1].start) / 2).toFixed(3));
-  }
-  const beats = [];
-  const lo = seg.start + minEdge, hi = seg.end - minEdge;
-  for (let t = seg.start + interval; t <= hi; t += interval) {
-    let best = null;
-    let cueFound = false;
-    for (const c of cueTimes) {
-      if (c < lo || c > hi || Math.abs(c - t) > window) continue;
-      // FIRST look for a cueTimes entry within ±window inside [lo, hi] and snap to it
-      if (best === null || !cueFound || Math.abs(c - t) < Math.abs(best - t)) {
-        best = c;
-        cueFound = true;
-      }
-    }
-    if (!cueFound) {
-      for (const g of gaps) {
-        if (g < lo || g > hi || Math.abs(g - t) > window) continue;
-        if (best === null || Math.abs(g - t) < Math.abs(best - t)) best = g;
-      }
-    }
-    if (best !== null && (beats.length === 0 || best - beats[beats.length - 1] >= interval / 2)) beats.push(best);
-  }
-  return beats;
-}
+export const driftVF = (screenOrdinal, dur, w, h, opts = {}) => {
+  const ctx = { dur, w, h };
+  const seg = { kind: 'screen', id: 'dummy' };
+  const direction = screenOrdinal % 2 === 0 ? 'in' : 'out';
+  const instance = { segId: 'dummy', direction };
+  const res = driftMod.contribute(seg, [instance], ctx);
+  return res && res.vfSuffix ? res.vfSuffix : '';
+};
 
-export function splitAvatarSegments(segments, words, { cueTimes = [] } = {}) {
-  const out = [];
-  for (const seg of segments) {
-    if (seg.kind !== 'avatar') {
-      out.push(seg);
-      continue;
-    }
-    const beats = planAvatarBeats(seg, words, { cueTimes });
-    if (beats.length === 0) {
-      out.push(seg);
-      continue;
-    }
-    
-    let currentStart = seg.start;
-    for (let i = 0; i <= beats.length; i++) {
-      const isFirst = i === 0;
-      const isLast = i === beats.length;
-      const end = isLast ? seg.end : beats[i];
-      
-      const subSeg = {
-        ...seg,
-        sub: i,
-        start: currentStart,
-        end: end,
-        punch: i % 2 === 1 ? PUNCH_SCALE : 1.0
-      };
-      if (!isLast) subSeg.flashOut = true;
-      if (!isFirst) subSeg.flashIn = true;
-      
-      out.push(subSeg);
-      currentStart = end;
-    }
-  }
-  return out;
-}
-
-// One settings object per run — every segment MUST use identical encoder
-// params so the concat stream-copy is valid.
 export function encoderArgs({ encoder, draft }) {
   if (encoder === 'videotoolbox') {
     return ['-c:v', 'h264_videotoolbox', '-b:v', draft ? '4M' : '12M', '-pix_fmt', 'yuv420p'];
@@ -260,7 +186,6 @@ export function detectEncoder() {
   return (res.stdout || '').includes('h264_videotoolbox') ? 'videotoolbox' : 'x264';
 }
 
-// Committed EDL — doubles as editor documentation.
 export function assemblyMd(video, segments, overlays, total, outPath, transitions = [], captions = 'on', drift = 'on') {
   const getSegId = (s) => s.sub !== undefined ? `${s.id}.${s.sub + 1}` : s.id;
   const seg = segments.map((s) =>
@@ -312,7 +237,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', drift: 'on' };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', drift: 'on', effects: 'on' };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -346,6 +271,11 @@ function parseArgs(argv) {
       if (d !== 'on' && d !== 'off') throw new Error('--drift must be on or off');
       opts.drift = d;
     }
+    else if (a === '--effects') {
+      const e = rest.shift();
+      if (e !== 'on' && e !== 'off') throw new Error('--effects must be on or off');
+      opts.effects = e;
+    }
     else if (a === '--keep-temp') opts.keepTemp = true;
     else if (a === '--force') opts.force = true;
     else throw new Error(`unknown argument: ${a}`);
@@ -353,14 +283,10 @@ function parseArgs(argv) {
   return opts;
 }
 
-
-export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', words = [] }) {
+export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', effects = 'on', words = [] }) {
   let segments = planSegments({ resolved, avatarJobs, total });
   segments = absorbSlivers(segments);
-  if (beats === 'on') {
-    const cueTimes = resolved.filter(c => c.placement === 'overlay').map(c => c.start);
-    segments = splitAvatarSegments(segments, words, { cueTimes });
-  }
+
   const renderDir = path.join(workdir, 'renders');
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
     return { id: c.id, start: c.start, end: c.start + c.duration, file: path.join(renderDir, planRender(c).outFile) };
@@ -372,11 +298,62 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
   const { w, h } = draft ? { w: 1280, h: 720 } : { w: CANVAS.w, h: CANVAS.h };
   const VF = `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,fps=30,format=yuv420p`;
   const ENC = encoderArgs({ encoder, draft });
-  const segOverlays = planSegmentOverlays(segments, overlays);
 
-  let capChunks = [];
+  const effectFlags = {
+    whip: transitions !== 'none',
+    beat: beats === 'on',
+    captions: captions === 'on',
+    drift: drift === 'on'
+  };
+
+  const manifestPath = path.join(workdir, 'effects.json');
+  const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : { instances: [] };
+
+  const defaultInstances = [];
+  const enabledInstances = [];
+  
+  let ctx = { segments, overlays, words, resolved, avatarJobs, total, w, h, VF, screen };
+  
+  for (const mod of EFFECT_MODULES) {
+    if (mod.plan) {
+      const modInstances = mod.plan(ctx);
+      defaultInstances.push(...modInstances);
+      
+      for (const inst of modInstances) {
+        const isEnabled = effectFlags[inst.type] !== false && effects !== 'off';
+        const override = manifest.instances.find(m => m.id === inst.id);
+        if (override) {
+          if (isEnabled && override.enabled !== false) {
+            enabledInstances.push({ ...inst, ...override, enabled: true });
+          }
+        } else if (isEnabled) {
+          enabledInstances.push(inst);
+        }
+      }
+    }
+    
+    if (mod.transformSegments) {
+      const modEnabledInsts = enabledInstances.filter(i => i.type === mod.TYPE);
+      segments = mod.transformSegments(segments, modEnabledInsts, ctx);
+      ctx.segments = segments;
+    }
+  }
+
+  if (manifest.instances && effects !== 'off') {
+    for (const m of manifest.instances) {
+      if (!defaultInstances.some(inst => inst.id === m.id)) {
+        console.warn(`warning: ignoring effects.json instance with unknown id: ${m.id}`);
+      }
+    }
+  }
+
+  const segOverlays = planSegmentOverlays(segments, overlays);
+  
   let capDir = null;
-  if (captions === 'on') {
+  let capChunks = [];
+  const capInstances = enabledInstances.filter(i => i.type === 'captions');
+  if (capInstances.length > 0) {
+    const inst = capInstances[0];
     capChunks = planCaptions(words);
     const screenChunks = capChunks.filter(c => 
       segments.some(seg => seg.kind === 'screen' && c.start < seg.end && c.end > seg.start)
@@ -385,7 +362,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
       capDir = path.join(tmpDir, 'captions');
       fs.mkdirSync(capDir, { recursive: true });
       const capWidth = Math.round(w * 0.86);
-      const capFontPx = Math.round(44 * h / 1080);
+      const capFontPx = Math.round((inst.fontPx || captionsMod.CONSTANTS.CAP_FONT_PX) * h / 1080);
       
       const renderStdin = JSON.stringify({
         outDir: capDir,
@@ -402,12 +379,11 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     }
   }
 
-  const trans = transitions === 'whip' ? planTransitions(segments, overlays) : [];
-  const half = TRANSITION_DUR / 2;
-
+  const whipInstances = enabledInstances.filter(i => i.type === 'whip');
+  
   const concatLines = [];
   let segIndex = 1;
-  let screenOrdinal = 0;
+
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     const L = segOverlays[i];
@@ -418,13 +394,14 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
 
     let startTrim = 0;
     let endTrim = 0;
-    const tOut = trans.find(t => t.fromIdx === i);
-    const tIn = trans.find(t => t.toIdx === i);
-    if (tOut) endTrim = half;
-    if (tIn) startTrim = half;
+    
+    const tOut = whipInstances.find(t => Math.abs(t.at - seg.end) < 0.01);
+    const tIn = whipInstances.find(t => Math.abs(t.at - seg.start) < 0.01);
+    
+    if (tOut) endTrim = TRANSITION_DUR / 2;
+    if (tIn) startTrim = TRANSITION_DUR / 2;
 
     const dur = seg.end - seg.start - startTrim - endTrim;
-    let spawnArgs = [];
     let src = '';
     let seekArgs = [];
 
@@ -442,132 +419,91 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
       const cue = resolved.find(c => c.id === seg.id);
       src = path.join(renderDir, planRender(cue).outFile);
     }
-
-    let punchVF = VF;
-    if (seg.punch && seg.punch > 1.0) {
-      punchVF += `,scale=trunc(iw*${seg.punch}/2)*2:-2,crop=${w}:${h}`;
-    }
-    if (seg.kind === 'screen') {
-      if (drift === 'on') {
-        punchVF += driftVF(screenOrdinal, dur, w, h);
-      }
-      screenOrdinal++;
-    }
-
-    let needsComplex = false;
-    if (L && L.length > 0) needsComplex = true;
-    if (seg.flashIn || seg.flashOut) needsComplex = true;
     
-    const segCaps = [];
-    if (seg.kind === 'screen' && capDir && capChunks.length > 0) {
-      for (const c of capChunks) {
-        const cAt = c.start - seg.start - startTrim;
-        const cUntil = c.end - seg.start - startTrim;
-        if (cUntil > 0 && cAt < dur) {
-          const f = path.join(capDir, `cap-${c.i}.png`);
-          if (fs.existsSync(f)) {
-            segCaps.push({ file: f, at: Math.max(0, cAt), until: cUntil });
-            needsComplex = true;
+    let punchVF = VF;
+    const contribCtx = { ...ctx, dur, startTrim, endTrim, capDir, capChunks };
+    let finalVFSuffix = '';
+    let inputs = [];
+    let fragments = [];
+    
+    for (const mod of EFFECT_MODULES) {
+      if (mod.contribute) {
+        const insts = enabledInstances.filter(inst => inst.type === mod.TYPE);
+        if (insts.length > 0) {
+          const contrib = mod.contribute(seg, insts, contribCtx);
+          if (contrib) {
+            if (contrib.vfSuffix) finalVFSuffix += contrib.vfSuffix;
+            if (contrib.inputs) {
+              const offset = inputs.length;
+              inputs.push(...contrib.inputs);
+              const numInputs = contrib.inputs.filter(x => x === '-i').length;
+              if (contrib.chainFragments) {
+                for (const frag of contrib.chainFragments) {
+                  fragments.push({ frag, offset, numInputs });
+                }
+              }
+            } else if (contrib.chainFragments) {
+              for (const frag of contrib.chainFragments) {
+                fragments.push({ frag, offset: 0, numInputs: 0 });
+              }
+            }
           }
         }
       }
     }
+    
+    punchVF += finalVFSuffix;
+    
+    let needsComplex = false;
+    if (L && L.length > 0) needsComplex = true;
+    if (fragments.length > 0) needsComplex = true;
+
+    let spawnArgs = [];
 
     if (needsComplex) {
       const padStartFilter = actualPadStart > 0 ? `,tpad=start_mode=clone:start_duration=${actualPadStart}` : '';
       let chain = `[0:v]${punchVF}${padStartFilter},tpad=stop_mode=clone:stop_duration=30[b0];`;
-      const inputs = [];
       let lastV = 'b0';
       
+      let allInputs = [];
+      let globalInputIdx = 1;
+
       if (L && L.length > 0) {
-        for (const o of L) inputs.push('-i', o.file);
+        for (const o of L) allInputs.push('-i', o.file);
         for (let j = 0; j < L.length; j++) {
           const o = L[j];
           const oj = `o${j}`;
           const nextV = `b${j + 1}`;
           const adjustedAt = +(o.at - startTrim).toFixed(3);
           const adjustedUntil = +(o.until - startTrim).toFixed(3);
-          chain += `[${j + 1}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${w}:${h}[${oj}];`;
+          chain += `[${globalInputIdx}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${w}:${h}[${oj}];`;
           chain += `[${lastV}][${oj}]overlay=eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
           lastV = nextV;
+          globalInputIdx++;
         }
       }
       
-      if (seg.flashIn || seg.flashOut) {
-        let numSplits = 0;
-        if (seg.flashIn) numSplits += 6;
-        if (seg.flashOut) numSplits += 3;
-        
-        // Screen-blend must happen in RGB: blending the yuv420p planes
-        // directly distorts chroma (orange gradient came out pink).
-        chain += `gradients=s=${w}x${h}:c0=${FLASH_COLOR}:c1=0xffffff:x0=0:y0=${h}:x1=${w}:y1=0:speed=0.00001,format=gbrp[g];`;
-        chain += `[g]split=${numSplits}`;
-        const gNames = [];
-        for (let i = 0; i < numSplits; i++) {
-          gNames.push(`g${i+1}`);
-          chain += `[${gNames[i]}]`;
-        }
-        chain += `;`;
-        chain += `[${lastV}]format=gbrp[b_rgb];`;
-        lastV = 'b_rgb';
-
-        let splitIdx = 0;
-        if (seg.flashIn) {
-          const inTimes = [
-            ['lt', '0.033'],
-            ['between', '0.033', '0.066'],
-            ['between', '0.066', '0.100']
-          ];
-          for (let i = 0; i < 3; i++) {
-            const nextV = `b_fin_${i}`;
-            const op = FLASH_IN_OPACITIES[i];
-            const cond = inTimes[i][0] === 'lt' ? `lt(t,${inTimes[i][1]})` : `between(t,${inTimes[i][1]},${inTimes[i][2]})`;
-            chain += `[${lastV}][${gNames[splitIdx++]}]blend=all_mode=screen:all_opacity=${op}:enable='${cond}'[${nextV}];`;
-            lastV = nextV;
-          }
-          const bandTimes = [
-            ['between', '0.100', '0.133'],
-            ['between', '0.133', '0.166'],
-            ['between', '0.166', '0.200']
-          ];
-          for (let i = 0; i < 3; i++) {
-            const nextV = `b_fband_${i}`;
-            const op = FLASH_BAND_OPACITIES[i];
-            const cond = `between(t,${bandTimes[i][1]},${bandTimes[i][2]})`;
-            chain += `[${lastV}][${gNames[splitIdx++]}]blend=all_mode=screen:all_opacity=${op}:enable='${cond}'[${nextV}];`;
-            lastV = nextV;
-          }
-        }
-        if (seg.flashOut) {
-          const offsets = [0.100, 0.066, 0.033];
-          for (let i = 0; i < 3; i++) {
-            const nextV = `b_fout_${i}`;
-            const op = FLASH_OUT_OPACITIES[i];
-            const tStart = Math.max(0, dur - offsets[i]).toFixed(3);
-            chain += `[${lastV}][${gNames[splitIdx++]}]blend=all_mode=screen:all_opacity=${op}:enable='gte(t,${tStart})'[${nextV}];`;
-            lastV = nextV;
-          }
-        }
-        chain += `[${lastV}]format=yuv420p[b_fyuv];`;
-        lastV = 'b_fyuv';
-      }
-
-      if (segCaps.length > 0) {
-        const lLen = L ? L.length : 0;
-        for (const c of segCaps) inputs.push('-loop', '1', '-i', c.file);
-        for (let j = 0; j < segCaps.length; j++) {
-          const c = segCaps[j];
-          const inputIdx = 1 + lLen + j;
-          const nextV = `b_cap_${j}`;
-          chain += `[${lastV}][${inputIdx}:v]overlay=(main_w-overlay_w)/2:${Math.round(h * CAP_Y_FRAC)}-overlay_h:enable='between(t,${c.at.toFixed(3)},${c.until.toFixed(3)})'[${nextV}];`;
-          lastV = nextV;
+      if (fragments.length > 0) {
+        allInputs.push(...inputs);
+        let inputsProcessed = 0;
+        for (const { frag, offset, numInputs } of fragments) {
+          // the frag receives inputOffset corresponding to its inputs start
+          // wait, inputs from all modules are concatenated into `inputs` array.
+          // how many inputs were BEFORE this module?
+          // Since we pushed in order, globalInputIdx + (number of -i before this module).
+          // We can just calculate number of -i in `inputs.slice(0, offset)`.
+          const numBefore = inputs.slice(0, offset).filter(x => x === '-i').length;
+          const state = { inputOffset: globalInputIdx + numBefore };
+          const res = frag(lastV, state);
+          chain += res.chain;
+          lastV = res.nextV;
         }
       }
       
-      chain = chain.slice(0, -1);
+      if (chain.endsWith(';')) chain = chain.slice(0, -1);
       
       spawnArgs = [
-        '-y', ...seekArgs, '-i', src, ...inputs,
+        '-y', ...seekArgs, '-i', src, ...allInputs,
         '-filter_complex', chain, '-map', `[${lastV}]`,
         '-t', String(dur), '-an', ...ENC, '-f', 'mpegts', segFile
       ];
@@ -586,66 +522,24 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     }
 
     if (tOut) {
-      const transOutStr = `seg-${String(segIndex).padStart(3, '0')}-trans-${segments[tOut.fromIdx].id}-out.ts`;
-      const transOutFile = path.join(tmpDir, transOutStr);
-      concatLines.push(`file '${transOutStr}'`);
-      segIndex++;
-
-      const transInStr = `seg-${String(segIndex).padStart(3, '0')}-trans-${segments[tOut.toIdx].id}-in.ts`;
-      const transInFile = path.join(tmpDir, transInStr);
-      concatLines.push(`file '${transInStr}'`);
-      segIndex++;
-
-      let sliceA, sliceB;
-      const b = tOut.at;
-      if (segments[tOut.fromIdx].kind === 'screen') {
-        sliceA = ['-ss', String(b - half + screenOffset), '-to', String(b + screenOffset), '-i', screen];
-      } else {
-        const j = avatarJobs.find(j => j.id === segments[tOut.fromIdx].id);
-        const sourceStartA = Math.max(0, b - half - j.start);
-        const sourceEndA = Math.max(0, b - j.start);
-        sliceA = ['-ss', String(sourceStartA), '-to', String(sourceEndA), '-i', j.file];
-      }
-      if (segments[tOut.toIdx].kind === 'screen') {
-        sliceB = ['-ss', String(b + screenOffset), '-to', String(b + half + screenOffset), '-i', screen];
-      } else {
-        const j = avatarJobs.find(j => j.id === segments[tOut.toIdx].id);
-        const sourceStartB = Math.max(0, b - j.start);
-        sliceB = ['-ss', String(sourceStartB), '-to', String(sourceStartB + half), '-i', j.file];
-      }
-
-      const chainOut =
-        `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,` +
-        `gblur=sigma=${WHIP_SIGMAS[0]}:sigmaV=1:enable='gte(t,0.032)',` +
-        `gblur=sigma=${WHIP_SIGMAS[1]}:sigmaV=1:enable='gte(t,0.065)',` +
-        `crop=w='iw-iw*${WHIP_ZOOM}*min(t/0.1,1)':h='ih-ih*${WHIP_ZOOM}*min(t/0.1,1)',` +
-        `scale=${w}:${h},setsar=1[v]`;
-
-      const spawnArgsOut = ['-y', ...sliceA,
-        '-filter_complex', chainOut, '-map', '[v]',
-        '-t', String(half), '-an', ...ENC, '-f', 'mpegts', transOutFile];
-      
-      const resOut = spawnSync('ffmpeg', spawnArgsOut, { encoding: 'utf8' });
-      if (resOut.status !== 0) {
-        console.error(resOut.stderr);
-        process.exit(1);
-      }
-
-      const chainIn =
-        `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,` +
-        `gblur=sigma=${WHIP_SIGMAS[1]}:sigmaV=1:enable='lt(t,0.035)',` +
-        `gblur=sigma=${WHIP_SIGMAS[0]}:sigmaV=1:enable='lt(t,0.068)',` +
-        `crop=w='iw-iw*${WHIP_ZOOM}*max(1-t/0.1,0)':h='ih-ih*${WHIP_ZOOM}*max(1-t/0.1,0)',` +
-        `scale=${w}:${h},setsar=1[v]`;
-
-      const spawnArgsIn = ['-y', ...sliceB,
-        '-filter_complex', chainIn, '-map', '[v]',
-        '-t', String(half), '-an', ...ENC, '-f', 'mpegts', transInFile];
-      
-      const resIn = spawnSync('ffmpeg', spawnArgsIn, { encoding: 'utf8' });
-      if (resIn.status !== 0) {
-        console.error(resIn.stderr);
-        process.exit(1);
+      const bSegsRes = whipMod.boundarySegments(tOut, { ...ctx, screenOffset, ENC });
+      if (bSegsRes && bSegsRes.extraSegments) {
+        for (const ex of bSegsRes.extraSegments) {
+          const transStr = `seg-${String(segIndex).padStart(3, '0')}-${ex.fileTag}.ts`;
+          const transFile = path.join(tmpDir, transStr);
+          concatLines.push(`file '${transStr}'`);
+          segIndex++;
+          
+          const spawnArgsEx = ['-y', ...ex.sliceArgs,
+            '-filter_complex', ex.chain, '-map', '[v]',
+            '-t', String(ex.dur), '-an', ...ENC, '-f', 'mpegts', transFile];
+          
+          const resEx = spawnSync('ffmpeg', spawnArgsEx, { encoding: 'utf8' });
+          if (resEx.status !== 0) {
+            console.error(resEx.stderr);
+            process.exit(1);
+          }
+        }
       }
     }
   }
@@ -684,7 +578,13 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
     process.exit(1);
   }
 
-  const assemblyMdContent = assemblyMd(video, segments, overlays, total, out, trans, captions, drift);
+  const transitionsObj = whipInstances.map(t => {
+    const toIdx = segments.findIndex(s => Math.abs(s.start - t.at) < 0.01);
+    const fromIdx = toIdx - 1;
+    return { at: t.at, direction: t.direction, fromIdx, toIdx };
+  });
+
+  const assemblyMdContent = assemblyMd(video, segments, overlays, total, out, transitionsObj, captions, drift);
   fs.writeFileSync(path.join(workdir, 'assembly.md'), assemblyMdContent);
 
   if (!keepTemp) {
@@ -698,7 +598,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs, total
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.workdir) {
-    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--captions on|off] [--drift on|off]');
+    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--captions on|off] [--drift on|off] [--effects on|off]');
     process.exit(1);
   }
 
@@ -787,7 +687,7 @@ async function main() {
   }
 
   const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, video, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, drift: opts.drift, words });
+  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, drift: opts.drift, effects: opts.effects, words });
   process.exit(0);
 }
 
