@@ -538,3 +538,4 @@ The others are grounded and available when the owner wants them:
 - 101-th-treatment-polish — PR#58 101-th-treatment-polish: TH treatment polish — cut-in/wipe-out asymmetry + static short spans (spec D3) — DONE
 - 102-assembly-speed-pass-2 — PR#59 102-assembly-speed-pass-2: parallel encodes, segment cache, libass captions, --bare (GFX-17) — DONE
 - 102-assembly-speed-pass-2 — PR#59 102-assembly-speed-pass-2: parallel encodes, segment cache, libass captions, --bare (GFX-17) — DONE
+- 103-bubble-rotating-ring — PR#60 103-bubble-rotating-ring: conic gradient ring with rotating bright arc — DONE
