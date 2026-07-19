@@ -104,3 +104,19 @@ Editor handoff = `renders/` + `manifest.md` + those clips + `avatar-manifest.md`
 Follow `steps/060-feedback-fold-opus/README.md`: `node lib/edit-delta.mjs <slug>`
 for the owner-edit diff, fold lessons into the rule surfaces, mark items folded.
 Done when `node lib/feedback-status.mjs` exits 0.
+
+## Verb: "analyze reference <url>" / "what effects does this video use"
+
+1. `bash scripts/analyze-reference.sh <url>` — downloads to kb-scratch
+   `_reference/<video-id>/`, detects cut/flash moments, writes moments.json +
+   per-moment 30fps contact sheets + overview sheets. Nothing lands in git.
+2. Read the overview sheets first (video's overall grammar), then each
+   moment sheet (they are ranked; read top-score first, batch 4-6 per Read).
+3. Write `references/<video-id>.md` (committed): a moment table —
+   `| time | kinds | what happens (mechanism: duration in frames, blur/blend/
+   slide/zoom) | already have? | candidate? |` — plus a shortlist of NEW
+   effect candidates with the EFFECTS.md recipe as next step.
+4. Surface the shortlist to the owner; each approved candidate becomes a new
+   effect build (EFFECTS.md "Adding a new effect").
+Token note: ~20-40 sheets per 10-min video; sheets are ~10x cheaper than
+frame-by-frame reads. Do not read moment sheets beyond the top 40.

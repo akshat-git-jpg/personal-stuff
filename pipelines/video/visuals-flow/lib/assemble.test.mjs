@@ -494,8 +494,8 @@ test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-ver
   if (fs.existsSync(outDraft)) fs.unlinkSync(outDraft);
 
   const resolved = [
-    { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' },
-    { id: 'o1', placement: 'overlay', start: 4.5, duration: 1, card: 'black' }
+    { id: 'c1', placement: 'fullframe', start: 3, duration: 2, card: 'green' },
+    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
   ];
   const avatarJobs = [
     { kind: 'avatar-full', id: 's01', start: 6, end: 66, file: path.join(testTmp, 'media', 's01.mp4') }
@@ -534,8 +534,8 @@ test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmp
   if (fs.existsSync(outNone)) fs.unlinkSync(outNone);
 
   const resolved = [
-    { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' },
-    { id: 'o1', placement: 'overlay', start: 4.5, duration: 1, card: 'black' }
+    { id: 'c1', placement: 'fullframe', start: 3, duration: 2, card: 'green' },
+    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
   ];
   const avatarJobs = [
     { kind: 'avatar-full', id: 's01', start: 6, end: 66, file: path.join(testTmp, 'media', 's01.mp4') }
@@ -565,7 +565,7 @@ test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmp
 
   const tmpDir = path.join(testTmp, 'assembly-tmp');
   const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
-  assert.equal(tsFiles.length, 5, 'should have 5 base segments, no transitions');
+  assert.equal(tsFiles.length, 6, 'should have 6 base segments, no transitions');
   const transFiles = tsFiles.filter(f => f.includes('-trans-'));
   assert.equal(transFiles.length, 0, 'should have 0 transition files');
   
@@ -579,7 +579,7 @@ test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg',
   if (fs.existsSync(outOff)) fs.unlinkSync(outOff);
 
   const resolved = [
-    { id: 'c1', placement: 'fullframe', start: 2, duration: 2, card: 'green' }
+    { id: 'c1', placement: 'fullframe', start: 3, duration: 2, card: 'green' }
   ];
   const avatarJobs = [];
   
@@ -603,15 +603,15 @@ test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg',
     words
   });
 
-  const tmpDir = path.join(testTmp, 'assembly-tmp');
-  const capDir = path.join(tmpDir, 'captions');
+  const tmpDir2 = path.join(testTmp, 'assembly-tmp');
+  const capDir = path.join(tmpDir2, 'captions');
   assert.ok(!fs.existsSync(capDir), 'captions dir should NOT exist');
   
-  const tsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.ts'));
+  const tsFiles2 = fs.readdirSync(tmpDir2).filter(f => f.endsWith('.ts'));
   // 1 screen, 1 graphic, 1 screen = 3 segments
-  assert.equal(tsFiles.length, 2, 'segment count unchanged when captions off');
+  assert.equal(tsFiles2.length, 3, 'segment count unchanged when captions off');
   
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir2, { recursive: true, force: true });
 });
 
 test('Integration: drift on vs off', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {

@@ -49,6 +49,8 @@ videos/<slug>/
   feedback.json    # owner feedback typed on the board (per-cue, per-gap, global) — committed
 ```
 
+`references/<video-id>.md` — committed moment tables from analyzed external reference videos (feeds `EFFECTS.md`).
+
 Per-video text artifacts (transcript, cues, resolved times, manifest) are
 committed so each video's graphics data is reviewable in one place; media
 (voiceover, slices, rendered clips) is regenerable and never lands in git —
