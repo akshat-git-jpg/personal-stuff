@@ -109,6 +109,10 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 092 | no orphan screen slivers — resolve-shots edge snapping, lint E5/W5 short-screen rules, assemble absorbSlivers (tpad freeze into graphic/avatar neighbors), 070 rulebook no-orphan rule; owner-flagged 2026-07-19 (0.4s/1.4s screen blinks) | P1 | M | none | DONE (PR #49, landed 2026-07-19) |
 | 093 | effects layer — lib/effects/ pluggable modules (whip/beats/drift/captions), per-video effects.json manifest (owner-editable per instance, merged by id), EFFECTS.md rulebook as rule surface #7; adding an effect never edits the encode loop again | P1 | M-L | 089-092 landed | DONE (PR #50, landed 2026-07-19; doc obligations backfilled same day) |
 | 094 | analyze-reference tool — full-video effect discovery for any YouTube URL: scene-score + luma-spike detectors -> clustered moments.json + ranked 30fps contact sheets (kb-scratch), session writes committed references/<id>.md inventory; new skill verb "analyze reference <url>" | P2 | M | none (feeds 093's EFFECTS.md) | DONE (PR #51, landed 2026-07-19) |
+| 095 | flash-wipe transition — whip module gains `style:'flash'` (brand-orange light-leak) auto-planned at screen/avatar→graphic boundaries; graphic→* stays hard cut; from the Youri reference analysis (`visuals-flow/references/`) | P1 | M | none | TODO |
+| 096 | keyword-highlight captions — deterministic markKeyword (numbers/brand-lexicon/ALL-CAPS) in planCaptions + per-word accent rendering in caption-render.py | P2 | S | none | TODO |
+| 097 | verdict-chip + score-pill overlay cards — spoken-synced ✓/✗ chips and N/10 badge; catalog + cue routing; opus (novel cards), ui screenshots | P2 | M | none | TODO |
+| 098 | progressive comparison table + headline-chips slate — beat cards (pipe-cell rows; headline + chip stack); catalog + routing + capacity proof | P2 | M | 097 (beat-count + routing-section collisions) | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
