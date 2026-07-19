@@ -113,6 +113,9 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 096 | keyword-highlight captions — deterministic markKeyword (numbers/brand-lexicon/ALL-CAPS) in planCaptions + per-word accent rendering in caption-render.py | P2 | S | none | TODO |
 | 097 | verdict-chip + score-pill overlay cards — spoken-synced ✓/✗ chips and N/10 badge; catalog + cue routing; opus (novel cards), ui screenshots | P2 | M | none | TODO |
 | 098 | progressive comparison table + headline-chips slate — beat cards (pipe-cell rows; headline + chip stack); catalog + routing + capacity proof | P2 | M | 097 (beat-count + routing-section collisions) | TODO |
+| 099 | cadence density + canvas routing (spec D1) — lint constants to reference calibration, per-minute total band, zone allowances, canvas-beat routing rule in 020 pair + style guide | P1 | M | none | TODO |
+| 100 | corner avatar bubble (spec D2) — new `bubble` effect module composites corner chunks as circle+orange ring over screen segments; opus (encode path), frame proof | P1 | M-L | none | TODO |
+| 101 | TH treatment polish (spec D3, owner-vetoable) — whip drops screen→avatar (hard cut into host), beats skip spans <45s | P2 | S | 095, 100 (soft) | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -375,7 +378,14 @@ lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
   and non-aligned screen (tutorial-pipeline-2 flow) are recorded as future seams in the
   plan's maintenance notes. Status lives in the table above. `GFX-14`. Effort M.
 - (Density calibration — HANDOFF open item 7 — is deliberately NOT a backlog row: it's what
-  the 060 fold loop + 076's convergence metrics DO with the first few real videos.)
+  the 060 fold loop + 076's convergence metrics DO with the first few real videos. The
+  STARTING numbers were reset to the Youri reference calibration by plan 099 — owner
+  decision 2026-07-19, spec `docs/specs/2026-07-19-mode-structure-density-design.md`.)
+- **Windowed-screen canvas prototype (Level 2 look)** — composite screen.mp4 into a floating
+  title-barred rounded window drifting on an animated brand-gradient canvas (the reference's
+  v2/v3 base treatment; `references/-vwHldNaGPI.md`). Owner call 2026-07-19: prototype on ONE
+  real video and look at it before committing any grammar to it — not part of spec D1-D3.
+  `GFX-16`. Effort M.
 
 **Tracker-app backlog (2026-07-05 focused audit; promote when wanted):**
 - **Per-stage SLA defaults in the PipelineDef** (`slaDays` on `StageDef`) feeding the
