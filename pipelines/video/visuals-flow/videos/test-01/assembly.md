@@ -8,10 +8,8 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow/test-01/final-draft.mp4
 
 | from | to | source | id |
 |---|---|---|---|
-| 00:00.0 | 00:00.4 | screen | screen-01 |
-| 00:00.4 | 00:57.5 | avatar | s01 |
-| 00:57.5 | 00:58.6 | screen | screen-02 |
-| 00:58.6 | 01:33.3 | graphic | c01 |
+| 00:00.0 | 00:57.5 | avatar | s01 |
+| 00:57.5 | 01:33.3 | graphic | c01 |
 | 01:33.3 | 01:57.6 | screen | screen-03 |
 | 01:57.6 | 02:18.9 | avatar | s02.1 |
 | 02:18.9 | 02:37.9 | avatar | s02.2 |
@@ -39,14 +37,12 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow/test-01/final-draft.mp4
 | 22:31.5 | 26:59.1 | screen | screen-14 |
 | 26:59.1 | 27:20.8 | avatar | s08 |
 | 27:20.8 | 27:28.8 | screen | screen-15 |
-| 27:28.8 | 29:10.1 | graphic | c25 |
-| 29:10.1 | 29:12.1 | screen | screen-16 |
+| 27:28.8 | 29:12.1 | graphic | c25 |
 | 29:12.1 | 29:27.8 | graphic | c28 |
 | 29:27.8 | 29:31.6 | screen | screen-17 |
 | 29:31.6 | 31:15.2 | graphic | c26 |
 | 31:15.2 | 31:29.2 | screen | screen-18 |
-| 31:29.2 | 32:07.4 | avatar | s09 |
-| 32:07.4 | 32:07.6 | screen | screen-19 |
+| 31:29.2 | 32:07.6 | avatar | s09 |
 
 ## Overlays (composited on top)
 
@@ -66,7 +62,6 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow/test-01/final-draft.mp4
 
 | at | direction | from | to |
 |---|---|---|---|
-| 00:57.5 | right | s01 | screen-02 |
 | 01:57.6 | left | screen-03 | s02.1 |
 | 02:47.6 | right | s02.3 | screen-04 |
 | 07:25.9 | left | screen-05 | s03 |
