@@ -41,20 +41,17 @@ Single-card cues (catalog `kind: "single"`) use `beats: []`.
 Density (defaults — follow the script when it disagrees). The default for any
 moment is NO graphic: the screen recording carries the video, and a graphic
 must earn its slot by adding what footage can't. Demo/walkthrough stretches
-are already visual — leave them bare. When unsure, no graphic.
-- One fullframe cue per natural section boundary, targeting one per 60–120s.
-- Overlays sparse: at most one per minute, only where reinforcement helps.
+are already visual — leave them bare. When in doubt during demo/walkthrough stretches, skip.
+- Fire a fullframe/canvas beat every 45–90s of VO.
+- Overlays: up to 3 per minute during review/verdict stretches.
 - Never two overlapping fullframe cues.
-- No cue in the first 15s or last 20s.
-- A 30-minute video lands roughly 18–28 cues total.
+- Cold-open beat allowed in the first 15s; end-card allowed in the last 20s.
 
 Choosing a card — route by what the VO is doing, matching catalog `purpose`
-lines: enumerating pros/cons -> pros-cons; ordered list -> checklist or
-bullet-points; feature-by-feature comparison -> feature-matrix or
-summary-table; final judgment -> a verdict card; opening a section -> a
-section/title card; one reinforced claim -> an overlay card. If nothing fits,
-set `flagged: true`, `card` to the closest slug, and add a `note` field
-explaining the gap — never force a bad match.
+lines:
+- Narration makes a claim, lists items, or states numbers and the screen does not show it → fullframe canvas beat (`slate/headline-chips`, `comparison/table-rows`, section slates). The screen already shows what is spoken → no graphic.
+- Enumerating pros/cons -> pros-cons; ordered list -> checklist or bullet-points; feature-by-feature comparison -> feature-matrix or summary-table; final judgment -> a verdict card; opening a section -> a section/title card; one reinforced claim -> an overlay card.
+If nothing fits, set `flagged: true`, `card` to the closest slug, and add a `note` field explaining the gap — never force a bad match.
 
 Specificity wins (mandatory): big number -> overlay/stat-hit; plan/credit
 economics too dense to say -> comparison/credits-math; step walkthrough NOT

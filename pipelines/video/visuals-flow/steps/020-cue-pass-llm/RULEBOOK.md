@@ -44,23 +44,22 @@ This includes step narration: when the VO walks actions the recording shows
 ("head over to the site, click X, select Y"), never place a step-flow or any
 other graphic over it — `process/step-flow` is reserved for processes NOT
 visible on screen (owner fold 2026-07-18, test-01 c06/c09/c15).
-When unsure whether a moment earns a graphic, it doesn't.
+When in doubt during demo/walkthrough stretches, skip.
 
 These are starting defaults, not physics — when the script structure fights a
 rule, follow the script and note why in the cue's context.
 
-1. Place a fullframe cue at each natural section boundary, targeting one per
-   60–120 seconds of runtime.
-2. Overlays are sparse: at most one per minute, and only where a spoken point
-   benefits from visual reinforcement.
+1. Fire a fullframe/canvas beat every 45–90s of VO.
+2. Overlays: up to 3 per minute during review/verdict stretches.
 3. Never let two fullframe cues' spoken coverage overlap.
-4. No cue in the first 15 seconds or the last 20 seconds of the video.
-5. A 30-minute video should land roughly 18–28 cues total.
+4. Cold-open beat allowed in the first 15s; end-card allowed in the last 20s.
 
 ## Choosing a card
 
 Route by what the VO is DOING at that moment, using each catalog card's
 `purpose` line to match:
+
+- Narration makes a claim, lists items, or states numbers and the screen does not show it → fullframe canvas beat (`slate/headline-chips`, `comparison/table-rows`, section slates). The screen already shows what is spoken → no graphic.
 
 - Enumerating advantages and drawbacks → a pros-cons card.
 - Walking an ordered list → a checklist or bullet-points card.
