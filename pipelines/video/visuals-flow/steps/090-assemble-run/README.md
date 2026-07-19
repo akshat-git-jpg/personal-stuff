@@ -10,8 +10,11 @@ unchanged — final.mp4 is an additional output.
 In: videos/<slug>/{screen.mp4, vo.mp3, resolved.json, renders/, avatar-jobs.json (clips downloaded)}
 Out: ~/kb-scratch/video/visuals-flow/<slug>/final.mp4 + videos/<slug>/assembly.md
 
-    bash steps/090-assemble-run/run.sh <slug> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--transitions whip|none]
+    bash steps/090-assemble-run/run.sh <slug> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--transitions whip|none] [--jobs N] [--no-cache] [--bare]
 
+## Caching
+
+Segment encodes are cached to `assembly-cache/` by a content hash covering all inputs, sizes, modifications, and ffmpeg arguments. A warm run only re-encodes changed segments. To bust the cache, delete the folder or use `--no-cache`. Old cache files are pruned automatically after 14 days.
 Gates: cues approved + fresh, shots approved with every avatar-full job
 downloaded (skipped when shots.json absent), all renders present. screen.mp4
 is owner-provided and never committed.

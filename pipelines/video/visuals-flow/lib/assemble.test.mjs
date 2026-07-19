@@ -374,29 +374,32 @@ test('splitAvatarSegments: alternating punch and passes others', () => {
   assert.equal(out[4].kind, 'graphic');
 });
 
-test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
   fs.mkdirSync(path.join(testTmp, 'media'), { recursive: true });
   fs.mkdirSync(path.join(testTmp, 'renders'), { recursive: true });
+
+  const screenMp4 = path.join(testTmp, 'screen.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'testsrc=size=1920x1080:rate=30', '-t', '68', '-r', '30', '-pix_fmt', 'yuv420p', screenMp4]);
+  const avatarFile = path.join(testTmp, 'media', 's01.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=red:s=1920x1080', '-t', '60', '-r', '30', '-pix_fmt', 'yuv420p', avatarFile]);
 
   const voMp3 = path.join(testTmp, 'vo.mp3');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-t', '68', '-q:a', '9', voMp3]);
 
-  const screenMp4 = path.join(testTmp, 'screen.mp4');
-  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=1920x1080:r=30,drawgrid=width=100:height=100:thickness=2:color=red', '-t', '68', '-pix_fmt', 'yuv420p', screenMp4]);
+  const resolved = [
+    { id: 'c1', placement: 'fullframe', start: 3, duration: 2, card: 'green' },
+    { id: 'c2', placement: 'fullframe', start: 67, duration: 2, card: 'blue' },
+    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
+  ];
+  const ffFile1 = path.join(testTmp, 'renders', '0003-c1-green.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=green:s=1920x1080:r=30', '-t', '2', '-pix_fmt', 'yuv420p', ffFile1]);
 
-  const avatarFile = path.join(testTmp, 'media', 's01.mp4');
-  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=red:s=1920x1080:r=30', '-t', '62', '-pix_fmt', 'yuv420p', avatarFile]);
-
-  const ffFile = path.join(testTmp, 'renders', '0003-c1-green.mp4');
-  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=green:s=1920x1080:r=30', '-t', '2', '-pix_fmt', 'yuv420p', ffFile]);
+  const ffFile2 = path.join(testTmp, 'renders', '0107-c2-blue.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=1920x1080:r=30', '-t', '2', '-pix_fmt', 'yuv420p', ffFile2]);
 
   const ovFile = path.join(testTmp, 'renders', '0005-o1-black.mov');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=black@0.0:s=1920x1080:r=30,format=yuva420p', '-t', '1', '-c:v', 'qtrle', ovFile]);
 
-  const resolved = [
-    { id: 'c1', placement: 'fullframe', start: 3, duration: 2, card: 'green' },
-    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
-  ];
   const avatarJobs = [
     { kind: 'avatar-full', id: 's01', start: 6, end: 66, file: avatarFile } // restored back to 6 from 6 to 5 to make the screen between c1 (ends 4) and s01 (starts 5) exactly 1.0s, which gets absorbed
   ];
@@ -415,20 +418,18 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   const tmpDir = path.join(testTmp, 'assembly-tmp');
   fs.rmSync(tmpDir, { recursive: true, force: true });
 
-  assert.doesNotThrow(() => {
-    runAssembly({
-      workdir: testTmp,
-      video: 'it',
-      resolved,
-      avatarJobs,
-      total: 68,
-      screen: screenMp4,
-      out: outMp4,
-      encoder: 'x264',
-      keepTemp: true,
-      beats: 'on',
-      words
-    });
+  await runAssembly({
+    workdir: testTmp,
+    video: 'it',
+    resolved,
+    avatarJobs,
+    total: 68,
+    screen: screenMp4,
+    out: outMp4,
+    encoder: 'x264',
+    keepTemp: true,
+    beats: 'on',
+    words
   });
 
   assert.ok(!fs.existsSync(path.join(tmpDir, 'base.mp4')), 'base.mp4 should not exist in single-pass');
@@ -458,7 +459,7 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   // Check captions
   const capDir = path.join(tmpDir, 'captions');
   assert.ok(fs.existsSync(capDir), 'captions dir should exist');
-  const caps = fs.readdirSync(capDir).filter(f => f.endsWith('.png'));
+  const caps = fs.readdirSync(capDir).filter(f => f.endsWith('.ass'));
   assert.ok(caps.length > 0, 'captions generated');
   
   fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -492,7 +493,7 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   assert.match(audioProbe.stdout, /audio/);
 });
 
-test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
   const outDraft = path.join(testTmp, 'final-draft.mp4');
   if (fs.existsSync(outDraft)) fs.unlinkSync(outDraft);
 
@@ -504,7 +505,7 @@ test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-ver
     { kind: 'avatar-full', id: 's01', start: 6, end: 66, file: path.join(testTmp, 'media', 's01.mp4') }
   ];
 
-  runAssembly({
+  await runAssembly({
     workdir: testTmp,
     video: 'it',
     resolved,
@@ -530,7 +531,7 @@ test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-ver
   assert.match(audioProbe.stdout, /audio/);
 });
 
-test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
   const tmpDirNone = path.join(testTmp, 'assembly-tmp');
   fs.rmSync(tmpDirNone, { recursive: true, force: true });
   const outNone = path.join(testTmp, 'final-none.mp4');
@@ -551,7 +552,7 @@ test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmp
     { start: 46, end: 68 }
   ];
 
-  runAssembly({
+  await runAssembly({
     workdir: testTmp,
     video: 'it',
     resolved,
@@ -575,7 +576,7 @@ test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmp
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
-test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
   const tmpDirOff = path.join(testTmp, 'assembly-tmp');
   fs.rmSync(tmpDirOff, { recursive: true, force: true });
   const outOff = path.join(testTmp, 'final-cap-off.mp4');
@@ -590,7 +591,7 @@ test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg',
     { start: 0, end: 5, word: 'hello_world' }
   ];
 
-  runAssembly({
+  await runAssembly({
     workdir: testTmp,
     video: 'it',
     resolved,
@@ -617,7 +618,7 @@ test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg',
   fs.rmSync(tmpDir2, { recursive: true, force: true });
 });
 
-test('Integration: drift on vs off', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, () => {
+test('Integration: drift on vs off', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
   const tmpDir = path.join(testTmp, 'assembly-tmp');
   fs.rmSync(tmpDir, { recursive: true, force: true });
   const outDriftOn = path.join(testTmp, 'final-drift-on.mp4');
@@ -632,7 +633,7 @@ test('Integration: drift on vs off', { skip: spawnSync('ffmpeg', ['-version']).e
   const screenDriftMp4 = path.join(testTmp, 'screen-drift.mp4');
   spawnSync('ffmpeg', ['-y', '-loop', '1', '-i', screenStill, '-t', '6', '-r', '30', '-pix_fmt', 'yuv420p', screenDriftMp4]);
 
-  runAssembly({
+  await runAssembly({
     workdir: testTmp,
     video: 'it',
     resolved: [],
@@ -649,7 +650,7 @@ test('Integration: drift on vs off', { skip: spawnSync('ffmpeg', ['-version']).e
     words: []
   });
 
-  runAssembly({
+  await runAssembly({
     workdir: testTmp,
     video: 'it',
     resolved: [],

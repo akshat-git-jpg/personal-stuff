@@ -11,7 +11,28 @@ import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
 import * as driftMod from './effects/drift.mjs';
 import * as captionsMod from './effects/captions.mjs';
-import { planCaptions } from './captions.mjs';
+import { planCaptions, assEscape } from './captions.mjs';
+import { createHash } from 'node:crypto';
+
+function formatAssTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  const cs = Math.floor((sec % 1) * 100);
+  return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+}
+
+function jobKey(args) {
+  const h = createHash('sha1');
+  for (const a of args) {
+    h.update(a); h.update(' ');
+    if (fs.existsSync(a) && fs.statSync(a).isFile()) {
+      const st = fs.statSync(a);
+      h.update(`${st.size}:${Math.floor(st.mtimeMs)}`);
+    }
+  }
+  return h.digest('hex');
+}
 
 const EPS = 0.05;
 export const CANVAS = { w: 1920, h: 1080, fps: 30 };
@@ -237,7 +258,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', drift: 'on', effects: 'on', bubble: 'on' };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', drift: 'on', effects: 'on', bubble: 'on', jobs: 3, noCache: false, bare: false };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -283,12 +304,24 @@ function parseArgs(argv) {
     }
     else if (a === '--keep-temp') opts.keepTemp = true;
     else if (a === '--force') opts.force = true;
+    else if (a === '--jobs') opts.jobs = parseInt(rest.shift(), 10);
+    else if (a === '--no-cache') opts.noCache = true;
+    else if (a === '--bare') opts.bare = true;
     else throw new Error(`unknown argument: ${a}`);
+  }
+  if (opts.bare) {
+    const hasCapOn = argv.findIndex(x => x === '--captions') >= 0 && argv[argv.findIndex(x => x === '--captions')+1] === 'on';
+    const hasDriftOn = argv.findIndex(x => x === '--drift') >= 0 && argv[argv.findIndex(x => x === '--drift')+1] === 'on';
+    const hasTransWhip = argv.findIndex(x => x === '--transitions') >= 0 && argv[argv.findIndex(x => x === '--transitions')+1] === 'whip';
+    if (hasCapOn || hasDriftOn || hasTransWhip) throw new Error('--bare cannot be combined with explicit --captions on or --drift on or --transitions whip');
+    opts.captions = 'off';
+    opts.drift = 'off';
+    opts.transitions = 'none';
   }
   return opts;
 }
 
-export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', effects = 'on', bubble = 'on', words = [] }) {
+export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', effects = 'on', bubble = 'on', words = [], jobsN = 3, noCache = false }) {
   let segments = planSegments({ resolved, avatarJobs, total });
   segments = absorbSlivers(segments);
 
@@ -299,6 +332,18 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], 
 
   const tmpDir = path.join(workdir, 'assembly-tmp');
   fs.mkdirSync(tmpDir, { recursive: true });
+
+  const cacheDir = path.join(workdir, 'assembly-cache');
+  fs.mkdirSync(cacheDir, { recursive: true });
+  const now = Date.now();
+  if (fs.existsSync(cacheDir)) {
+    for (const f of fs.readdirSync(cacheDir)) {
+      if (f.endsWith('.ts')) {
+        const p = path.join(cacheDir, f);
+        if (now - fs.statSync(p).mtimeMs > 14 * 24 * 60 * 60 * 1000) fs.rmSync(p);
+      }
+    }
+  }
 
   const { w, h } = draft ? { w: 1280, h: 720 } : { w: CANVAS.w, h: CANVAS.h };
   const VF = `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,fps=30,format=yuv420p`;
@@ -370,17 +415,42 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], 
       const capWidth = Math.round(w * 0.86);
       const capFontPx = Math.round((inst.fontPx || captionsMod.CONSTANTS.CAP_FONT_PX) * h / 1080);
       
-      const renderStdin = JSON.stringify({
-        outDir: capDir,
-        width: capWidth,
-        fontPx: capFontPx,
-        chunks: screenChunks
-      });
-      const pyPath = path.resolve(import.meta.dirname, 'caption-render.py');
-      const pyRes = spawnSync('python3', [pyPath], { input: renderStdin, encoding: 'utf8' });
-      if (pyRes.status !== 0) {
-        console.error('caption-render failed:', pyRes.stderr);
-        process.exit(1);
+      const outline = Math.max(2, Math.floor(capFontPx / 16));
+      const marginV = h - Math.round(h * (inst.yFrac !== undefined ? inst.yFrac : captionsMod.CONSTANTS.CAP_Y_FRAC));
+      const whipInstancesTmp = enabledInstances.filter(i => i.type === 'whip');
+      
+      for (const seg of segments) {
+        if (seg.kind !== 'screen') continue;
+        const tIn = whipInstancesTmp.find(t => Math.abs(t.at - seg.start) < 0.01);
+        const startTrim = tIn ? TRANSITION_DUR / 2 : 0;
+        
+        let assBody = '';
+        for (const c of capChunks) {
+          const cAt = c.start - seg.start - startTrim;
+          const cUntil = c.end - seg.start - startTrim;
+          if (cUntil > 0 && cAt < (seg.end - seg.start)) {
+            const startStr = formatAssTime(Math.max(0, cAt));
+            const endStr = formatAssTime(cUntil);
+            const textASS = c.words.map(w => w.hl ? `{\\1c&H3C92FB&}${assEscape(w.text)}{\\1c&HFFFFFF&}` : assEscape(w.text)).join(' ');
+            assBody += `Dialogue: 0,${startStr},${endStr},Cap,,0,0,0,,${textASS}\n`;
+          }
+        }
+        
+        if (assBody) {
+          const assHead = `[Script Info]
+ScriptType: v4.00+
+PlayResX: ${w}
+PlayResY: ${h}
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, OutlineColour, BackColour, Bold, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Helvetica,${capFontPx},&H00FFFFFF,&H00000000,&H00000000,1,${outline},0,2,40,40,${marginV},1
+
+[Events]
+Format: Layer, Start, End, Style, Text
+`;
+          fs.writeFileSync(path.join(capDir, `seg-${seg.id}.ass`), assHead + assBody);
+        }
       }
     }
   }
@@ -389,6 +459,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], 
   
   const concatLines = [];
   let segIndex = 1;
+  const jobs = [];
 
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
@@ -521,11 +592,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], 
       ];
     }
 
-    const res = spawnSync('ffmpeg', spawnArgs, { encoding: 'utf8' });
-    if (res.status !== 0) {
-      console.error(res.stderr);
-      process.exit(1);
-    }
+    jobs.push({ outFile: segFile, args: spawnArgs, label: `segment ${seg.id}` });
 
     if (tOut) {
       const bSegsRes = whipMod.boundarySegments(tOut, {
@@ -543,15 +610,55 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], 
             '-filter_complex', ex.chain, '-map', '[v]',
             '-t', String(ex.dur), '-an', ...ENC, '-f', 'mpegts', transFile];
           
-          const resEx = spawnSync('ffmpeg', spawnArgsEx, { encoding: 'utf8' });
-          if (resEx.status !== 0) {
-            console.error(resEx.stderr);
-            process.exit(1);
-          }
+          jobs.push({ outFile: transFile, args: spawnArgsEx, label: `transition ${ex.fileTag}` });
         }
       }
     }
   }
+
+  let cacheHits = 0;
+  let cacheMisses = 0;
+
+  async function runPool(jobsList, jobsNWorkers) {
+    let i = 0; let failed = null;
+    async function worker() {
+      while (i < jobsList.length && !failed) {
+        const job = jobsList[i++];
+        const key = jobKey(job.args);
+        const cachePath = path.join(cacheDir, `${key}.ts`);
+
+        if (!noCache && fs.existsSync(cachePath)) {
+          fs.copyFileSync(cachePath, job.outFile);
+          cacheHits++;
+          continue;
+        }
+
+        const res = await new Promise((resolve) => {
+          import('node:child_process').then(({ spawn }) => {
+            const p = spawn('ffmpeg', job.args, { stdio: ['ignore', 'ignore', 'pipe'] });
+            let err = '';
+            p.stderr.setEncoding('utf8');
+            p.stderr.on('data', (d) => { err += d; });
+            p.on('close', (code) => resolve({ code, err }));
+          });
+        });
+
+        if (res.code !== 0) failed = { job, err: res.err };
+        else {
+          cacheMisses++;
+          fs.copyFileSync(job.outFile, cachePath);
+        }
+      }
+    }
+    await Promise.all(Array.from({ length: jobsNWorkers }, worker));
+    if (failed) {
+      console.error(`ffmpeg failed for ${failed.job.label}\n${failed.err.slice(-2000)}`);
+      process.exit(1);
+    }
+  }
+
+  await runPool(jobs, jobsN);
+  console.log(`segments: ${cacheHits} cached, ${cacheMisses} encoded (jobs=${jobsN})`);
 
   const voPath = path.join(workdir, 'vo.mp3');
   fs.mkdirSync(path.dirname(out), { recursive: true });
@@ -612,9 +719,9 @@ async function main() {
   }
 
   if (opts.captions === 'on') {
-    const pilCheck = spawnSync('python3', ['-c', 'import PIL']);
-    if (pilCheck.status !== 0) {
-      console.error('captions need Pillow: python3 -m pip install pillow (or run with --captions off)');
+    const ffprobeRes = spawnSync('ffmpeg', ['-hide_banner', '-filters'], { encoding: 'utf8' });
+    if (!ffprobeRes.stdout.includes(' subtitles ')) {
+      console.error('ffmpeg lacks the subtitles filter (libass required)');
       process.exit(1);
     }
   }
@@ -700,7 +807,7 @@ async function main() {
   }
 
   const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, video, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  runAssembly({ workdir, video, resolved, avatarJobs, cornerJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, drift: opts.drift, effects: opts.effects, bubble: opts.bubble, words });
+  await runAssembly({ workdir, video, resolved, avatarJobs, cornerJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, drift: opts.drift, effects: opts.effects, bubble: opts.bubble, words, jobsN: opts.jobs, noCache: opts.noCache });
   process.exit(0);
 }
 

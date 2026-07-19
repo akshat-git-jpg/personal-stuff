@@ -20,49 +20,22 @@ export function plan(ctx) {
   }];
 }
 
+import fs from 'node:fs';
+
 export function contribute(seg, instances, ctx) {
   if (seg.kind !== 'screen') return null;
   const instance = instances[0];
   if (!instance) return null;
   
-  const { capDir, capChunks, startTrim } = ctx;
+  const { capDir, capChunks } = ctx;
   if (!capDir || !capChunks || capChunks.length === 0) return null;
 
-  const segCaps = [];
-  for (const c of capChunks) {
-    const cAt = c.start - seg.start - (startTrim || 0);
-    const cUntil = c.end - seg.start - (startTrim || 0);
-    if (cUntil > 0 && cAt < ctx.dur) {
-      const f = `${capDir}/cap-${c.i}.png`;
-      // We assume it exists based on previous rendering
-      segCaps.push({ file: f, at: Math.max(0, cAt), until: cUntil });
-    }
-  }
-  if (segCaps.length === 0) return null;
+  const assFile = `${capDir}/seg-${seg.id}.ass`;
+  if (!fs.existsSync(assFile)) return null;
 
-  const inputs = [];
-  for (const c of segCaps) {
-    inputs.push('-loop', '1', '-i', c.file);
-  }
-
-  const h = ctx.h;
-  const yFrac = instance.yFrac !== undefined ? instance.yFrac : CONSTANTS.CAP_Y_FRAC;
+  const escapedAssPath = assFile.replace(/:/g, '\\:').replace(/'/g, "'\\''");
 
   return {
-    inputs,
-    chainFragments: [
-      (lastV, state) => {
-        let chain = '';
-        let nextV = lastV;
-        for (let j = 0; j < segCaps.length; j++) {
-          const c = segCaps[j];
-          const inputIdx = state.inputOffset + j;
-          nextV = `b_cap_${j}`;
-          chain += `[${lastV}][${inputIdx}:v]overlay=(main_w-overlay_w)/2:${Math.round(h * yFrac)}-overlay_h:enable='between(t,${c.at.toFixed(3)},${c.until.toFixed(3)})'[${nextV}];`;
-          lastV = nextV;
-        }
-        return { chain, nextV };
-      }
-    ]
+    vfSuffix: `,subtitles=filename='${escapedAssPath}'`
   };
 }
