@@ -503,3 +503,4 @@ The others are grounded and available when the owner wants them:
 - 090-assemble-burned-captions — PR#47 090-assemble-burned-captions: burned captions on screen segments (Pillow PNG strips) — DONE
 - 091-assemble-ken-burns-drift — PR#48 091-assemble-ken-burns-drift: Ken Burns drift on screen segments — DONE
 - 092-no-orphan-screen-slivers — PR#49 092-no-orphan-screen-slivers: plan-time lint + assemble-time absorption for screen slivers — DONE
+- 093-effects-layer — PR#50 093-effects-layer: pluggable effect modules + effects.json manifest + EFFECTS.md rulebook — DONE
