@@ -233,7 +233,7 @@ brainstorms.** Standing next steps in priority order:
    (owner-run, live HeyGen — guardrail 3). First candidate: video #2.
    **Owner feedback already queued (2026-07-19, pre-footage)**: the reference
    ring is NOT static — frame-zoom of vPqSgj8Ta3Y shows a two-tone gradient
-   ring whose bright arc ROTATES slowly; ours is a solid ring. Fix = bubble.mjs
+   ring whose bright arc ROTATES slowly; ours is a solid ring (fixed by plan 103). Fix = bubble.mjs
    ring chain only (rotate a gradient-ring overlay, e.g. `rotate=` on a
    pre-built ring frame); update EFFECTS.md row with the same edit. Bubble
    enter/exit stays hard-on-the-cut (matches reference; the cut/wipe masks it).

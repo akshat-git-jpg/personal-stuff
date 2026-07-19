@@ -4,6 +4,9 @@ export const CONSTANTS = {
   BUBBLE_INSET_1080: 40,
   RING_PX_1080: 3,
   RING_COLOR: '#FB923C',
+  RING_COLOR_HI: '#FFE3C2',
+  RING_SPIN_PERIOD: 4,
+  RING_SPIN_SHARP: 2,
   GLOW_SIGMA: 6
 };
 
@@ -24,7 +27,8 @@ export function bubbleGeometry(w, h) {
   const RING = Math.max(1, Math.round(h * CONSTANTS.RING_PX_1080 / 1080));
   const INSET = Math.round(h * CONSTANTS.BUBBLE_INSET_1080 / 1080);
   const [rr, gg, bb] = hexToRgb(CONSTANTS.RING_COLOR);
-  return { D, R, RING, INSET, rr, gg, bb, OX: w - INSET - D, OY: INSET, GLOW: CONSTANTS.GLOW_SIGMA };
+  const [hr, hg, hb] = hexToRgb(CONSTANTS.RING_COLOR_HI);
+  return { D, R, RING, INSET, rr, gg, bb, hr, hg, hb, OX: w - INSET - D, OY: INSET, GLOW: CONSTANTS.GLOW_SIGMA };
 }
 
 // Slice each overlapping corner chunk to the part of it that overlaps this
@@ -69,12 +73,16 @@ export function contribute(seg, instances, ctx) {
   const slices = bubbleSlices(seg, cornerJobs, ctx);
   if (slices.length === 0) return null;
 
-  const { D, R, RING, INSET, rr, gg, bb, OX, OY, GLOW } = bubbleGeometry(ctx.w, ctx.h);
+  const { D, R, RING, INSET, rr, gg, bb, hr, hg, hb, OX, OY, GLOW } = bubbleGeometry(ctx.w, ctx.h);
 
   const inputs = [];
   for (const s of slices) {
     inputs.push('-ss', String(s.sliceStart), '-t', String(s.overlapDur), '-i', s.file);
   }
+
+  const PHASE = +(seg.start + (ctx.startTrim || 0)).toFixed(3);
+  const P = CONSTANTS.RING_SPIN_PERIOD;
+  const K = CONSTANTS.RING_SPIN_SHARP;
 
   return {
     inputs,
@@ -82,6 +90,9 @@ export function contribute(seg, instances, ctx) {
       (lastV, state) => {
         let chain = '';
         let nextV = lastV;
+        const th = `(2*PI*(T+${PHASE})/${P})`;
+        const wgt = `pow(0.5*(1+((X-${R})*cos(${th})+(Y-${R})*sin(${th}))/max(hypot(X-${R},Y-${R}),1)),${K})`;
+        const mix = (base, hi) => `'${base}+(${hi}-${base})*${wgt}'`;
         for (let j = 0; j < slices.length; j++) {
           const s = slices[j];
           const idx = state.inputOffset + j;
@@ -93,7 +104,7 @@ export function contribute(seg, instances, ctx) {
           // yuv (the pink-flash lesson). Circle alpha masks the square crop; a
           // separate orange ring+glow is composited on top.
           chain += `[${idx}:v]setpts=PTS-STARTPTS,scale=${D}:${D}:force_original_aspect_ratio=increase,crop=${D}:${D},format=rgba,geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':a='if(lte(hypot(X-${R},Y-${R}),${R}-1),255,0)'[${bub}];`;
-          chain += `color=c=0x00000000:s=${D}x${D},format=rgba,geq=r='${rr}':g='${gg}':b='${bb}':a='if(between(hypot(X-${R},Y-${R}),${R}-${RING}-1,${R}+1),255,0)',gblur=sigma=${GLOW}:steps=2[${ring}];`;
+          chain += `color=c=0x00000000:s=${D}x${D},format=rgba,geq=r=${mix(rr, hr)}:g=${mix(gg, hg)}:b=${mix(bb, hb)}:a='if(between(hypot(X-${R},Y-${R}),${R}-${RING}-1,${R}+1),255,0)',gblur=sigma=${GLOW}:steps=2[${ring}];`;
           chain += `[${bub}][${ring}]overlay=0:0,setpts=PTS-STARTPTS+${s.at.toFixed(3)}/TB[${bubr}];`;
           chain += `[${lastV}][${bubr}]overlay=${OX}:${OY}:enable='between(t,${s.at.toFixed(3)},${s.until.toFixed(3)})'[${nextV}];`;
           lastV = nextV;
