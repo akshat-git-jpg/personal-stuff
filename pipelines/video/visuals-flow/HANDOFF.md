@@ -193,7 +193,12 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 
 ## In flight
 
-**PR #59 (plan 102, GFX-17 speed pass)** — boss:ready, not yet landed.
+**Plan 102 (GFX-17 speed pass) is BLOCKED** — the crew hit the plan's STOP
+condition (verified real: `/opt/homebrew/bin/ffmpeg` 8.1.2 lacks the libass
+`subtitles` filter); PR #59 closed `boss:blocked`, no code landed. Unblock
+paths for the next session: (a) install a libass-enabled ffmpeg and re-raise,
+or (b) re-scope 102 to pool+cache+`--bare` only (the big wins) and keep PNG
+captions — owner's call.
 Everything else landed: plans 062–083 (PRs #19–#40, 2026-07-18), 084–094
 (PRs #41–#51, 2026-07-19 AM, + hot-fixes a8456e4), 095–101 (PRs #52–#58,
 2026-07-19 PM, the style-clone wave). test-01 re-assembled `--draft` after

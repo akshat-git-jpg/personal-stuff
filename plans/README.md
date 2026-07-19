@@ -116,7 +116,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 099 | cadence density + canvas routing (spec D1) — lint constants to reference calibration, per-minute total band, zone allowances, canvas-beat routing rule in 020 pair + style guide | P1 | M | none | DONE (PR #56, landed 2026-07-19) |
 | 100 | corner avatar bubble (spec D2) — new `bubble` effect module composites corner chunks as circle+orange ring over screen segments; opus (encode path), frame proof | P1 | M-L | none | DONE (PR #57, landed 2026-07-19) |
 | 101 | TH treatment polish (spec D3, owner-vetoable) — whip drops screen→avatar (hard cut into host), beats skip spans <45s | P2 | S | 095, 100 (soft) | DONE (PR #58, landed 2026-07-19) |
-| 102 | assembly speed pass 2 (GFX-17) — parallel segment encodes (--jobs), content-keyed segment cache, libass ASS captions replace PNG pipeline, --bare draft tier; effects wave took drafts 4m23s → 15+min | P1 | M-L | none | TODO |
+| 102 | assembly speed pass 2 (GFX-17) — parallel segment encodes (--jobs), content-keyed segment cache, libass ASS captions replace PNG pipeline, --bare draft tier; effects wave took drafts 4m23s → 15+min | P1 | M-L | none | BLOCKED (crew hit STOP: brew ffmpeg 8.1.2 has no libass/subtitles filter; PR #59 closed boss:blocked. Unblock: install libass-enabled ffmpeg OR re-scope to pool+cache+--bare only) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
