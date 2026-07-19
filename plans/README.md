@@ -116,6 +116,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 099 | cadence density + canvas routing (spec D1) — lint constants to reference calibration, per-minute total band, zone allowances, canvas-beat routing rule in 020 pair + style guide | P1 | M | none | DONE (PR #56, landed 2026-07-19) |
 | 100 | corner avatar bubble (spec D2) — new `bubble` effect module composites corner chunks as circle+orange ring over screen segments; opus (encode path), frame proof | P1 | M-L | none | DONE (PR #57, landed 2026-07-19) |
 | 101 | TH treatment polish (spec D3, owner-vetoable) — whip drops screen→avatar (hard cut into host), beats skip spans <45s | P2 | S | 095, 100 (soft) | DONE (PR #58, landed 2026-07-19) |
+| 102 | assembly speed pass 2 (GFX-17) — parallel segment encodes (--jobs), content-keyed segment cache, libass ASS captions replace PNG pipeline, --bare draft tier; effects wave took drafts 4m23s → 15+min | P1 | M-L | none | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -386,6 +387,14 @@ lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
   v2/v3 base treatment; `references/-vwHldNaGPI.md`). Owner call 2026-07-19: prototype on ONE
   real video and look at it before committing any grammar to it — not part of spec D1-D3.
   `GFX-16`. Effort M.
+- **Assembly speed pass 2** — planned as **102** (2026-07-19): parallel encodes, segment
+  cache, libass captions, --bare tier; status in the table above. `GFX-17`. Effort M-L.
+- **VPS async assemble** — remote `assemble` verb on the existing Hostinger box: pull
+  sources from Drive, x264 encode, ntfy on done, output to Drive. Not a speed play (no HW
+  encoder) — a portability/async play. PRECONDITION: screen recordings must already land in
+  Drive (tutorial-maker flow); reuses 102's code path unchanged (`ASSEMBLE_JOBS` env).
+  Owner call 2026-07-19: decide after 102 ships and real re-draft times are known.
+  `GFX-18`. Effort M.
 
 **Tracker-app backlog (2026-07-05 focused audit; promote when wanted):**
 - **Per-stage SLA defaults in the PipelineDef** (`slaDays` on `StageDef`) feeding the
