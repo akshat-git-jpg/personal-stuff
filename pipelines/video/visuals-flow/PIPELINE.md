@@ -39,6 +39,7 @@ videos/<slug>/
   shots.json       # step 070 output, board edits — committed
   shots.resolved.json  # resolve-shots output (absolute times) — committed
   avatar-jobs.json     # step 080 HeyGen job tracking — committed
+  effects.json         # per-instance assembly-effects manifest (node lib/effects-plan.mjs <slug>) — owner-editable, committed; see EFFECTS.md
   slices/              # per-cue vo slices, step 040's board — gitignored
   slices-avatar/       # per-job vo slices, step 080 — gitignored
   renders/             # step 050's clips — gitignored (regenerable)

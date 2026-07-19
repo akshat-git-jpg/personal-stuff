@@ -1,0 +1,266 @@
+{
+  "video": "test-01",
+  "instances": [
+    {
+      "id": "whip-117.6",
+      "type": "whip",
+      "at": 117.57,
+      "direction": "left",
+      "fromIdx": 2,
+      "toIdx": 3,
+      "enabled": true
+    },
+    {
+      "id": "whip-167.6",
+      "type": "whip",
+      "at": 167.58,
+      "direction": "right",
+      "fromIdx": 3,
+      "toIdx": 4,
+      "enabled": true
+    },
+    {
+      "id": "whip-445.9",
+      "type": "whip",
+      "at": 445.85,
+      "direction": "left",
+      "fromIdx": 6,
+      "toIdx": 7,
+      "enabled": true
+    },
+    {
+      "id": "whip-460.5",
+      "type": "whip",
+      "at": 460.54,
+      "direction": "right",
+      "fromIdx": 7,
+      "toIdx": 8,
+      "enabled": true
+    },
+    {
+      "id": "whip-727.9",
+      "type": "whip",
+      "at": 727.89,
+      "direction": "left",
+      "fromIdx": 10,
+      "toIdx": 11,
+      "enabled": true
+    },
+    {
+      "id": "whip-745.8",
+      "type": "whip",
+      "at": 745.76,
+      "direction": "right",
+      "fromIdx": 11,
+      "toIdx": 12,
+      "enabled": true
+    },
+    {
+      "id": "whip-971.5",
+      "type": "whip",
+      "at": 971.47,
+      "direction": "left",
+      "fromIdx": 14,
+      "toIdx": 15,
+      "enabled": true
+    },
+    {
+      "id": "whip-987.5",
+      "type": "whip",
+      "at": 987.5,
+      "direction": "right",
+      "fromIdx": 15,
+      "toIdx": 16,
+      "enabled": true
+    },
+    {
+      "id": "whip-1167.1",
+      "type": "whip",
+      "at": 1167.09,
+      "direction": "left",
+      "fromIdx": 18,
+      "toIdx": 19,
+      "enabled": true
+    },
+    {
+      "id": "whip-1184.9",
+      "type": "whip",
+      "at": 1184.93,
+      "direction": "right",
+      "fromIdx": 19,
+      "toIdx": 20,
+      "enabled": true
+    },
+    {
+      "id": "whip-1337.3",
+      "type": "whip",
+      "at": 1337.33,
+      "direction": "left",
+      "fromIdx": 22,
+      "toIdx": 23,
+      "enabled": true
+    },
+    {
+      "id": "whip-1351.5",
+      "type": "whip",
+      "at": 1351.48,
+      "direction": "right",
+      "fromIdx": 23,
+      "toIdx": 24,
+      "enabled": true
+    },
+    {
+      "id": "whip-1619.1",
+      "type": "whip",
+      "at": 1619.09,
+      "direction": "left",
+      "fromIdx": 24,
+      "toIdx": 25,
+      "enabled": true
+    },
+    {
+      "id": "whip-1640.8",
+      "type": "whip",
+      "at": 1640.84,
+      "direction": "right",
+      "fromIdx": 25,
+      "toIdx": 26,
+      "enabled": true
+    },
+    {
+      "id": "whip-1889.2",
+      "type": "whip",
+      "at": 1889.21,
+      "direction": "left",
+      "fromIdx": 31,
+      "toIdx": 32,
+      "enabled": true
+    },
+    {
+      "id": "beat-138.9",
+      "type": "beat",
+      "at": 138.865,
+      "punch": 1.08,
+      "enabled": true
+    },
+    {
+      "id": "beat-157.9",
+      "type": "beat",
+      "at": 157.865,
+      "punch": 1.08,
+      "enabled": true
+    },
+    {
+      "id": "captions",
+      "type": "captions",
+      "enabled": true,
+      "fontPx": 44,
+      "yFrac": 0.87
+    },
+    {
+      "id": "drift-screen-03",
+      "type": "drift",
+      "segId": "screen-03",
+      "direction": "in",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-04",
+      "type": "drift",
+      "segId": "screen-04",
+      "direction": "out",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-05",
+      "type": "drift",
+      "segId": "screen-05",
+      "direction": "in",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-06",
+      "type": "drift",
+      "segId": "screen-06",
+      "direction": "out",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-07",
+      "type": "drift",
+      "segId": "screen-07",
+      "direction": "in",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-08",
+      "type": "drift",
+      "segId": "screen-08",
+      "direction": "out",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-09",
+      "type": "drift",
+      "segId": "screen-09",
+      "direction": "in",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-10",
+      "type": "drift",
+      "segId": "screen-10",
+      "direction": "out",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-11",
+      "type": "drift",
+      "segId": "screen-11",
+      "direction": "in",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-12",
+      "type": "drift",
+      "segId": "screen-12",
+      "direction": "out",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-13",
+      "type": "drift",
+      "segId": "screen-13",
+      "direction": "in",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-14",
+      "type": "drift",
+      "segId": "screen-14",
+      "direction": "out",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-15",
+      "type": "drift",
+      "segId": "screen-15",
+      "direction": "in",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-17",
+      "type": "drift",
+      "segId": "screen-17",
+      "direction": "out",
+      "enabled": true
+    },
+    {
+      "id": "drift-screen-18",
+      "type": "drift",
+      "segId": "screen-18",
+      "direction": "in",
+      "enabled": true
+    }
+  ]
+}

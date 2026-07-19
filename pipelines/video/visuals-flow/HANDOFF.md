@@ -1,13 +1,23 @@
-# visuals-flow handoff (2026-07-18, post assembly session — POC complete)
+# visuals-flow handoff (2026-07-19, post effects sessions — POC complete + effects layer)
 
 For the next session picking this up. Everything below was true and verified on
-2026-07-18 (late night, second pass). Read PIPELINE.md first if you have never
-seen this pipeline; read this doc for where things actually stand and what is
-open. **Operate this flow via the `visuals-flow` skill (verb router).**
-**The POC is COMPLETE end to end**: test-01 went VO → cues → renders → avatar
-clips → **assembled final.mp4** (step 090, plans 082+083, PRs #39/#40) the
-same night. Owner verdict: successful and decent; next phase is tightening
-rules and adding capabilities via new-session brainstorms.
+2026-07-19. Read PIPELINE.md first if you have never seen this pipeline; read
+this doc for where things actually stand and what is open. **Operate this flow
+via the `visuals-flow` skill (verb router).**
+**The POC is COMPLETE end to end** (2026-07-18: test-01 VO → cues → renders →
+avatar clips → assembled final.mp4, plans 082+083). **2026-07-19 added the
+assembly EFFECTS layer** (plans 084–094, PRs #41–#51): whip blur-cuts at
+screen↔avatar boundaries, flash+punch refresh beats inside long avatar spans,
+burned captions + Ken Burns drift on screen segments, orphan-sliver absorption,
+and the scalable architecture — pluggable `lib/effects/` modules, per-video
+`effects.json` manifest (owner-editable per instance), `EFFECTS.md` rulebook,
+and an `analyze reference <url>` verb that auto-discovers effect moments in any
+YouTube video. All effect looks were frame-verified against the owner's
+reference video (youtu.be/7Ker2Vxs2yM) after three same-day hot-fixes (pink
+flash = yuv blend, blank captions = wrong word field, dead drift = zoompan
+expr) — lesson: boss's render+inspect gate did NOT catch these; visual
+verification must extract and LOOK at frames, and test fixtures must be able
+to detect the effect (a solid-color fixture cannot detect zoom).
 
 ## What this is
 
@@ -109,7 +119,16 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 6. `steps/070-shot-pass-llm/RULEBOOK.md` + `shot-pass-prompt.md` (edit BOTH
    together) + `lib/lint-shots.mjs` constants: the avatar-span equivalents of
    1 and 4. The owner's standing avatar rules live here: ≤5 min total
-   full-screen (hard), ≤5 min host-less cadence gaps, U-curve shape.
+   full-screen (hard), ≤5 min host-less cadence gaps, U-curve shape, and the
+   no-orphan-screen rule (spans butt against cue/video edges or leave ≥8s;
+   lint E5/W5, plan 092).
+7. `EFFECTS.md` + `lib/effects/*.mjs` CONSTANTS: the assembly-effects rulebook
+   (whip/beat/drift/captions — what fires when, skip rules, knobs, reference
+   provenance) + the "adding a new effect" recipe. Owner feedback on an
+   effect's look updates the module CONSTANTS and the EFFECTS.md row together
+   (same edit-both rule as 1 and 6). Per-video instance control lives in
+   `videos/<slug>/effects.json` (regenerate: `node lib/effects-plan.mjs <slug>`;
+   overrides merge by id).
 
 ## Model routing (owner-decided, do not re-litigate)
 
@@ -157,11 +176,14 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 
 ## In flight
 
-Nothing. Plans 062–083 all boss-landed 2026-07-18 (PRs #19–#40; #39 = step 090
-assemble, #40 = the speed pass), the avatar pilot ran to completion (9/9
-clips), and test-01 was assembled + speed-validated the same night.
+Nothing. Plans 062–083 boss-landed 2026-07-18 (PRs #19–#40); plans 084–094
+boss-landed 2026-07-19 (PRs #41–#51: whip/flash/beats/captions/drift/slivers/
+effects-layer/analyze-reference; three inline hot-fixes landed direct on main
+same day, commit a8456e4). test-01 re-assembled `--draft` after each wave and
+frame-verified; the current final-draft.mp4 (kb-scratch) carries everything.
 Backlog registry: `plans/README.md` → "visuals-flow backlog" (GFX-01..06
-hygiene) + "visuals-flow PRODUCT backlog" (GFX-07..15 roadmap).
+hygiene; GFX-01/02 folded by plan 088) + "visuals-flow PRODUCT backlog"
+(GFX-07..15 roadmap).
 
 ## Open items (canonical list = GFX rows in plans/README.md)
 
@@ -169,9 +191,15 @@ hygiene) + "visuals-flow PRODUCT backlog" (GFX-07..15 roadmap).
 keep improving — tighten rules, add capabilities — via new-session
 brainstorms.** Standing next steps in priority order:
 
-1. **Owner QC watch of test-01 final.mp4** + route decision (ship vs editor) —
-   see "Immediate state" above. Whatever the watch surfaces becomes board
-   feedback → the 060 fold.
+1. **Owner QC watch of test-01 final-draft.mp4 (2026-07-19 render, with all
+   effects)** + route decision (ship vs editor). The 1080p ship render is one
+   command away (`bash steps/090-assemble-run/run.sh test-01`, no --draft) —
+   the committed final.mp4 in kb-scratch predates the effects layer. Whatever
+   the watch surfaces becomes board feedback → the 060 fold; effect-look notes
+   go to EFFECTS.md + module CONSTANTS (rule surface 7). Per-instance kills/
+   tweaks: edit `videos/test-01/effects.json` (committed, 33 instances).
+   Owner-deferred: corner avatar bubble; board effects-lane (instances are
+   already data — the lane is pure UI when wanted).
 2. **Editor handoff + feedback intake** (`GFX-06` open) if the editor route is
    chosen; fold what comes back.
 3. **Video #2 end-to-end** — exercises convergence metrics + the fold loop on
