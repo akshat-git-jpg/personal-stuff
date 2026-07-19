@@ -522,3 +522,4 @@ The others are grounded and available when the owner wants them:
 - 096-keyword-highlight-captions — PR#53 096-keyword-highlight-captions: keyword-highlight captions — accent the load-bearing words — DONE
 - 095-flash-wipe-transition — PR#52 095-flash-wipe-transition: flash-wipe transition — light-leak wipe on cuts INTO graphics — DONE
 - 097-verdict-and-score-overlays — PR#54 097-verdict-and-score-overlays: verdict-chip + score-pill overlay cards — DONE
+- 098-progressive-table-and-headline-chips — PR#55 098-progressive-table-and-headline-chips: progressive comparison table + headline-chips slate — DONE
