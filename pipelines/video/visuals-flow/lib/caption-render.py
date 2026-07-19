@@ -33,10 +33,18 @@ def main():
             text_w = bbox[2] - bbox[0]
             text_h = bbox[3] - bbox[1]
             
-            x = (width - text_w) // 2 - bbox[0]
-            y = (height - text_h) // 2 - bbox[1]
-            
-            draw.text((x, y), text, font=font, fill='white', stroke_width=stroke_width, stroke_fill='black')
+            ACCENT = (251, 146, 60, 255)   # #FB923C
+            words = chunk.get('words') or [{'text': t, 'hl': False} for t in text.split(' ')]
+            space_w = draw.textlength(' ', font=font)
+            widths = [draw.textlength(w['text'], font=font) for w in words]
+            total_w = sum(widths) + space_w * (len(words) - 1)
+            x = (width - total_w) // 2
+            y = (height - text_h) // 2 - bbox[1]   # keep the existing bbox-based y math on the full text
+            for w, wd in zip(words, widths):
+                fill = ACCENT if w.get('hl') else 'white'
+                draw.text((x, y), w['text'], font=font, fill=fill,
+                          stroke_width=stroke_width, stroke_fill='black')
+                x += wd + space_w
             
             img.save(os.path.join(out_dir, f'cap-{i}.png'))
             count += 1
