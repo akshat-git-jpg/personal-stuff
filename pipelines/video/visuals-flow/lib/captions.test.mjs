@@ -4,7 +4,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
-import { planCaptions } from './captions.mjs';
+import { planCaptions, markKeyword } from './captions.mjs';
+
+test('markKeyword rules', () => {
+  assert.strictEqual(markKeyword('180'), true);
+  assert.strictEqual(markKeyword('$49'), true);
+  assert.strictEqual(markKeyword('93%'), true);
+  assert.strictEqual(markKeyword('HeyGen'), true);
+  assert.strictEqual(markKeyword('INSANE'), true);
+  assert.strictEqual(markKeyword('the'), false);
+  assert.strictEqual(markKeyword('A'), false);
+  assert.strictEqual(markKeyword('Kling,'), false);
+});
 
 test('planCaptions empty', () => {
   assert.deepStrictEqual(planCaptions([]), []);
@@ -22,6 +33,9 @@ test('planCaptions chunking by word cap', () => {
   assert.strictEqual(res[0].text, 'w0 w1 w2 w3 w4 w5');
   assert.strictEqual(res[1].i, 1);
   assert.strictEqual(res[1].text, 'w6');
+  assert.ok(res[0].words);
+  assert.strictEqual(res[0].words.length, 6);
+  assert.strictEqual(res[1].words.length, 1);
 });
 
 test('planCaptions chunking by char cap', () => {
@@ -103,4 +117,61 @@ test('caption-render.py directly', () => {
   assert.ok(st1.size > 0);
   
   fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+test('caption-render.py highlight pixel proof', () => {
+  const pilCheck = spawnSync('python3', ['-c', 'import PIL']);
+  if (pilCheck.status !== 0) {
+    return; // skip
+  }
+  
+  const tmp = 'tmp-captest';
+  const chunks = [
+    { i: 0, text: 'costs 180 credits', words: [
+      { text: 'costs', hl: false }, { text: '180', hl: true }, { text: 'credits', hl: false } ],
+      start: 0, end: 1 },
+    { i: 1, text: 'plain words only', words: [
+      { text: 'plain', hl: false }, { text: 'words', hl: false }, { text: 'only', hl: false } ],
+      start: 1, end: 2 }
+  ];
+  const stdin = JSON.stringify({
+    outDir: tmp,
+    width: 800,
+    fontPx: 44,
+    chunks
+  });
+  
+  const pyPath = path.resolve(import.meta.dirname, 'caption-render.py');
+  const res = spawnSync('python3', [pyPath], {
+    cwd: import.meta.dirname,
+    input: stdin,
+    encoding: 'utf8'
+  });
+  
+  assert.strictEqual(res.status, 0, res.stderr);
+  assert.ok(res.stdout.includes('2 rendered'));
+  
+  const checkScript = `
+from PIL import Image
+def count_accent(path):
+    img = Image.open(path).convert('RGBA')
+    c = 0
+    for r, g, b, a in img.getdata():
+        if abs(r - 251) < 12 and abs(g - 146) < 12 and abs(b - 60) < 12:
+            c += 1
+    return c
+print(count_accent('${tmp}/cap-0.png'), count_accent('${tmp}/cap-1.png'))
+`;
+  const pixelRes = spawnSync('python3', ['-c', checkScript], {
+    cwd: import.meta.dirname,
+    encoding: 'utf8'
+  });
+  
+  assert.strictEqual(pixelRes.status, 0, pixelRes.stderr);
+  const [c0, c1] = pixelRes.stdout.trim().split(' ').map(Number);
+  
+  assert.ok(c0 > 50, `cap-0.png should have accent pixels (got ${c0})`);
+  assert.strictEqual(c1, 0, `cap-1.png should have no accent pixels (got ${c1})`);
+  
+  fs.rmSync(path.resolve(import.meta.dirname, tmp), { recursive: true, force: true });
 });

@@ -5,6 +5,19 @@ export const CAP_TAIL = 0.4;
 export const CAP_FONT_PX = 44;
 export const CAP_Y_FRAC = 0.87;
 
+export const CAP_ACCENT_LEXICON = [
+  'heygen', 'openart', 'higgsfield', 'synthesia', 'arcads'
+];
+
+export function markKeyword(text, lexicon = CAP_ACCENT_LEXICON) {
+  if (!text) return false;
+  const t = text.replace(/[.,!?;:]+$/, '');
+  if (/[\d$%€£]/.test(t)) return true;                    // numbers, money, percent
+  if (lexicon.includes(t.toLowerCase())) return true;      // brand names
+  if (t.length >= 2 && t === t.toUpperCase() && /[A-Z]/.test(t)) return true; // ALL-CAPS emphasis
+  return false;
+}
+
 export function planCaptions(words, opts = {}) {
   if (!words || words.length === 0) return [];
 
@@ -56,6 +69,10 @@ export function planCaptions(words, opts = {}) {
     out.push({
       i,
       text,
+      words: chunkWords.map(w => {
+        const wt = w.text || w.word || '';
+        return { text: wt, hl: markKeyword(wt) };
+      }),
       start: +(start).toFixed(3),
       end: +(end).toFixed(3)
     });
