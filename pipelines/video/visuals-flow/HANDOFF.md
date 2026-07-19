@@ -1,4 +1,4 @@
-# visuals-flow handoff (2026-07-19, post effects sessions — POC complete + effects layer)
+# visuals-flow handoff (2026-07-19 EOD, post style-clone wave — POC complete + effects layer + Youri grammar)
 
 For the next session picking this up. Everything below was true and verified on
 2026-07-19. Read PIPELINE.md first if you have never seen this pipeline; read
@@ -18,6 +18,23 @@ flash = yuv blend, blank captions = wrong word field, dead drift = zoompan
 expr) — lesson: boss's render+inspect gate did NOT catch these; visual
 verification must extract and LOOK at frames, and test fixtures must be able
 to detect the effect (a solid-color fixture cannot detect zoom).
+**2026-07-19 PM added the Youri style-clone wave** (plans 095–101, PRs #52–#58,
+all landed same day): the owner had 3 reference videos (Youri van Hofwegen)
+frame-analyzed into committed reports (`references/*.md` — moment tables,
+mechanism specs, mode-structure rules), then approved the grammar via
+brainstorm (spec `docs/specs/2026-07-19-mode-structure-density-design.md`,
+decisions.md 2026-07-19 ×2). Landed: orange flash-wipe INTO graphics (whip
+`style:'flash'`), keyword-highlight captions (orange numbers/brands), verdict-chip
++ score-pill overlay cards, progressive table + headline-chips slate beat cards,
+density recalibrated to reference cadence (per-minute rates in lint), `bubble`
+effect module (corner avatar circle — code landed, waits on corner CLIPS from a
+non-`--spans-only` HeyGen run), TH asymmetry (hard cut INTO host, no punch-ins
+<45s — owner-VETOABLE at the next draft watch). test-01 re-assembled `--draft`
+with all of it and frame-verified (flash ✓ keyword captions ✓ no artifacts);
+**the owner has NOT yet watched it** — that watch is open item #1. Plan 102
+(GFX-17 speed pass: --jobs pool, segment cache, libass captions, --bare) is
+IN FLIGHT as PR #59 — drafts regressed to 15+ min with effects; 102 targets
+<2-min warm re-drafts.
 
 ## What this is
 
@@ -176,11 +193,12 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 
 ## In flight
 
-Nothing. Plans 062–083 boss-landed 2026-07-18 (PRs #19–#40); plans 084–094
-boss-landed 2026-07-19 (PRs #41–#51: whip/flash/beats/captions/drift/slivers/
-effects-layer/analyze-reference; three inline hot-fixes landed direct on main
-same day, commit a8456e4). test-01 re-assembled `--draft` after each wave and
-frame-verified; the current final-draft.mp4 (kb-scratch) carries everything.
+**PR #59 (plan 102, GFX-17 speed pass)** — boss:ready, not yet landed.
+Everything else landed: plans 062–083 (PRs #19–#40, 2026-07-18), 084–094
+(PRs #41–#51, 2026-07-19 AM, + hot-fixes a8456e4), 095–101 (PRs #52–#58,
+2026-07-19 PM, the style-clone wave). test-01 re-assembled `--draft` after
+each wave and frame-verified; the current final-draft.mp4 (kb-scratch,
+2026-07-19 ~16:45) carries ALL effects including the style clone.
 Backlog registry: `plans/README.md` → "visuals-flow backlog" (GFX-01..06
 hygiene; GFX-01/02 folded by plan 088) + "visuals-flow PRODUCT backlog"
 (GFX-07..15 roadmap).
@@ -191,20 +209,28 @@ hygiene; GFX-01/02 folded by plan 088) + "visuals-flow PRODUCT backlog"
 keep improving — tighten rules, add capabilities — via new-session
 brainstorms.** Standing next steps in priority order:
 
-1. **Owner QC watch of test-01 final-draft.mp4 (2026-07-19 render, with all
-   effects)** + route decision (ship vs editor). The 1080p ship render is one
-   command away (`bash steps/090-assemble-run/run.sh test-01`, no --draft) —
-   the committed final.mp4 in kb-scratch predates the effects layer. Whatever
-   the watch surfaces becomes board feedback → the 060 fold; effect-look notes
-   go to EFFECTS.md + module CONSTANTS (rule surface 7). Per-instance kills/
-   tweaks: edit `videos/test-01/effects.json` (committed, 33 instances).
-   Owner-deferred: corner avatar bubble; board effects-lane (instances are
-   already data — the lane is pure UI when wanted).
+1. **Owner QC watch of test-01 final-draft.mp4 (2026-07-19 ~16:45 render —
+   ALL effects incl. style clone)** + route decision (ship vs editor). Watch
+   for, in plain terms: (a) the orange flash when graphics appear (knobs:
+   FLASH_GAIN/TRANSITION_DUR in whip.mjs + EFFECTS.md row); (b) cuts TO the
+   host now instant + no zoom-ins on short host clips — the D3 VETO window
+   (revert = 2 commits, plan 101); (c) orange keyword words in captions.
+   Feedback via board boxes or plain chat → 060 fold. Per-instance kills:
+   `videos/test-01/effects.json`. The 1080p ship render is one command away
+   (`bash steps/090-assemble-run/run.sh test-01`, no --draft) but consider
+   waiting for plan 102 (PR #59) to land first — it takes drafts from 15+ min
+   back to ~2 min and ship renders proportionally.
+1b. **Corner bubble needs footage**: the bubble module is live but no-ops
+   until a HeyGen run WITHOUT `--spans-only` produces corner clips
+   (owner-run, live HeyGen — guardrail 3). First candidate: video #2.
 2. **Editor handoff + feedback intake** (`GFX-06` open) if the editor route is
    chosen; fold what comes back.
-3. **Video #2 end-to-end** — exercises convergence metrics + the fold loop on
-   fresh content; the flow is now two owner sittings (approve graphics,
-   approve shots) plus the HeyGen green-light and the QC watch.
+3. **Video #2 end-to-end** — now doubly important: the FIRST video where the
+   Youri grammar actually fires end-to-end (reference-density cue pass, new
+   cards — verdict chips / score pills / progressive table / headline slates —
+   plus the bubble if the HeyGen run includes the corner track). Exercises
+   convergence metrics + the fold loop; two owner sittings + HeyGen
+   green-light + QC watch.
 4. **Title/thumbnail packaging loop** — highest-ROI NEW build per
    personal-stuff-frontier (Front 1 #2); brainstorm via `orchestrate` when the
    owner asks.
