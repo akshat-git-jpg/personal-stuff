@@ -237,7 +237,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', drift: 'on', effects: 'on' };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', drift: 'on', effects: 'on', bubble: 'on' };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -276,6 +276,11 @@ function parseArgs(argv) {
       if (e !== 'on' && e !== 'off') throw new Error('--effects must be on or off');
       opts.effects = e;
     }
+    else if (a === '--bubble') {
+      const b = rest.shift();
+      if (b !== 'on' && b !== 'off') throw new Error('--bubble must be on or off');
+      opts.bubble = b;
+    }
     else if (a === '--keep-temp') opts.keepTemp = true;
     else if (a === '--force') opts.force = true;
     else throw new Error(`unknown argument: ${a}`);
@@ -283,7 +288,7 @@ function parseArgs(argv) {
   return opts;
 }
 
-export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', effects = 'on', words = [] }) {
+export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', effects = 'on', bubble = 'on', words = [] }) {
   let segments = planSegments({ resolved, avatarJobs, total });
   segments = absorbSlivers(segments);
 
@@ -303,7 +308,8 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], 
     whip: transitions !== 'none',
     beat: beats === 'on',
     captions: captions === 'on',
-    drift: drift === 'on'
+    drift: drift === 'on',
+    bubble: bubble === 'on'
   };
 
   const manifestPath = path.join(workdir, 'effects.json');
@@ -312,7 +318,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], 
   const defaultInstances = [];
   const enabledInstances = [];
   
-  let ctx = { segments, overlays, words, resolved, avatarJobs, total, w, h, VF, screen };
+  let ctx = { segments, overlays, words, resolved, avatarJobs, cornerJobs, total, w, h, VF, screen };
   
   for (const mod of EFFECT_MODULES) {
     if (mod.plan) {
@@ -601,7 +607,7 @@ export function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.workdir) {
-    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--captions on|off] [--drift on|off] [--effects on|off]');
+    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--captions on|off] [--drift on|off] [--bubble on|off] [--effects on|off]');
     process.exit(1);
   }
 
@@ -639,6 +645,7 @@ async function main() {
   const shotsPath = path.join(workdir, 'shots.json');
   const avatarJobsPath = path.join(workdir, 'avatar-jobs.json');
   let avatarJobs = [];
+  let cornerJobs = [];
   if (fs.existsSync(shotsPath)) {
     const shotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
     if (shotsFile.approved !== true && !opts.force) {
@@ -651,6 +658,9 @@ async function main() {
     }
     const avatarJobsFile = JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8'));
     avatarJobs = avatarJobsFile.jobs.filter(j => j.kind === 'avatar-full');
+    // Corner chunks composited as the top-right bubble (plan 100). Absent files
+    // are dropped so the bubble module simply no-ops rather than failing assembly.
+    cornerJobs = avatarJobsFile.jobs.filter(j => j.kind === 'corner' && j.file && fs.existsSync(j.file));
     const missing = avatarJobs.filter(j => !j.file || !fs.existsSync(j.file));
     if (missing.length > 0) {
       const missingIds = missing.map(j => j.id).join(', ');
@@ -690,7 +700,7 @@ async function main() {
   }
 
   const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, video, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  runAssembly({ workdir, video, resolved, avatarJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, drift: opts.drift, effects: opts.effects, words });
+  runAssembly({ workdir, video, resolved, avatarJobs, cornerJobs, total, screen, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, drift: opts.drift, effects: opts.effects, bubble: opts.bubble, words });
   process.exit(0);
 }
 
