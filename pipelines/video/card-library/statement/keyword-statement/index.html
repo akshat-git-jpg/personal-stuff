@@ -1,0 +1,124 @@
+<!doctype html>
+<!--
+  STATEMENT CARD · Keyword Statement   (Hyperframes card)
+  One punchy centered sentence, revealed word-by-word, with a highlighted keyword phrase in accent.
+  1920x1080, 30fps.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and the      │
+  │  :root  colors below. Change text / keyword  there. Do NOT touch the      │
+  │  ===== TIMELINE (LOCKED) =====  script — that's the motion.               │
+  │  Ask Gemini: "only change DATA and :root, never the timeline."            │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render statement/keyword-statement -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Statement.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08;   /* radial origin (burnt amber) */
+        --bg-to: #0a0805;     /* near-black warm undertone */
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.62);
+        --accent: #fb923c;
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 24%, var(--bg-from) 0%, var(--bg-to) 64%); }
+      
+      /* soft accent glow */
+      #glow { position: absolute; inset: 0; background: radial-gradient(ellipse 50% 40% at 50% 50%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 60%); }
+
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 140px; }
+
+      #line { font-size: 70px; font-weight: 800; letter-spacing: -1px; line-height: 1.18; text-align: center; max-width: 1500px; margin: 0 auto; }
+      
+      .mask { display: inline-block; overflow: hidden; vertical-align: top; margin-right: 0.26em; padding: 0.08em 0 0.18em; margin-top: -0.08em; margin-bottom: -0.18em; }
+      #line > .mask:last-child, #line > .kw-phrase:last-child .mask:last-child { margin-right: 0; }
+      
+      .word { display: inline-block; will-change: transform; }
+      
+      /* keyword highlight styling */
+      .kw { color: var(--accent); font-weight: 800; }
+      .kw-phrase { position: relative; display: inline-block; padding: 0 0.18em; margin: 0 -0.18em; white-space: nowrap; }
+      .kw-bg { position: absolute; inset: 0; background: color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 8px; z-index: -1; transform-origin: left; will-change: transform; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="statement" data-start="0" data-duration="5" data-width="1920" data-height="1080"
+      data-composition-variables='{"text":"You&apos;re also not tied to one company&apos;s AI","keyword":"one company&apos;s AI"}'>
+      <!-- Track 0: background -->
+      <div id="bg" class="clip" data-start="0" data-duration="5" data-track-index="0"></div>
+      <!-- Track 1: accent glow -->
+      <div id="glow" class="clip" data-start="0" data-duration="5" data-track-index="1"></div>
+      <!-- Track 2: content -->
+      <div id="frame" class="clip" data-start="0" data-duration="5" data-track-index="2">
+        <h1 id="line"></h1>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  
+         text    : the sentence
+         keyword : verbatim phrase inside text, shown in accent
+         ===================================================== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        text: VARS.text ?? "You're also not tied to one company's AI",
+        keyword: VARS.keyword ?? "one company's AI",
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      
+      const titleEl = $('line');
+      let html = '';
+      let kwStartIndex = -1;
+      
+      if (DATA.keyword && DATA.text.toLowerCase().includes(DATA.keyword.toLowerCase())) {
+        const idx = DATA.text.toLowerCase().indexOf(DATA.keyword.toLowerCase());
+        const before = DATA.text.slice(0, idx).trim();
+        const match = DATA.text.slice(idx, idx + DATA.keyword.length).trim();
+        const after = DATA.text.slice(idx + DATA.keyword.length).trim();
+
+        const wrapWords = (str, isKw) => {
+          if (!str) return '';
+          return str.split(/\s+/).filter(Boolean).map(w => `<span class="mask"><span class="word ${isKw ? 'kw' : ''}">${w}</span></span>`).join('');
+        };
+        
+        html += wrapWords(before, false);
+        if (match) {
+          kwStartIndex = before ? before.split(/\s+/).filter(Boolean).length : 0;
+          html += `<span class="kw-phrase"><span class="kw-bg"></span>${wrapWords(match, true)}</span>`;
+        }
+        html += wrapWords(after, false);
+      } else {
+        html = DATA.text.split(/\s+/).filter(Boolean).map(w => `<span class="mask"><span class="word">${w}</span></span>`).join('');
+      }
+      
+      titleEl.innerHTML = html;
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      
+      tl.fromTo('#line .word', { yPercent: 118 }, { yPercent: 0, duration: 0.7, ease: 'expo.out', stagger: 0.06 }, 0.2);
+      
+      if (kwStartIndex !== -1) {
+        tl.fromTo('.kw-bg', { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: 'power3.out' }, 0.2 + (kwStartIndex * 0.06) + 0.35);
+      }
+
+      window.__timelines['statement'] = tl;
+    </script>
+  </body>
+</html>

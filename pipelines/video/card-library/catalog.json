@@ -24,6 +24,17 @@
       "default_duration": 6
     },
     {
+      "slug": "statement/keyword-statement",
+      "kind": "single",
+      "placement": "fullframe",
+      "purpose": "a single punchy centered statement revealed word-by-word with one keyword phrase highlighted in the accent — a standalone emphasis beat (distinct from running captions)",
+      "variables": {
+        "text": "string",
+        "keyword": "string (optional) — verbatim phrase inside text, shown in accent"
+      },
+      "default_duration": 5
+    },
+    {
       "slug": "checklist/checklist",
       "kind": "beat",
       "placement": "fullframe",
