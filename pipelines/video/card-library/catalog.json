@@ -12,6 +12,18 @@
       "default_duration": 12
     },
     {
+      "slug": "tool-icon/tool-glass-tile",
+      "kind": "single",
+      "placement": "fullframe",
+      "purpose": "hero for one tool/model: a glassy app-icon tile with the tool's (muted) logo, its name beneath, and an optional subtitle — the 'this is the tool' beat",
+      "variables": {
+        "logo": "string — logos/ registry slug",
+        "name": "string",
+        "subtitle": "string (optional)"
+      },
+      "default_duration": 6
+    },
+    {
       "slug": "checklist/checklist",
       "kind": "beat",
       "placement": "fullframe",
