@@ -18,6 +18,7 @@ import { mmss } from './render.mjs';
 import { enrichLogos } from './logos-inline.mjs';
 import { resolveShots } from './resolve-shots.mjs';
 import { resolveWorkdir } from './workdir.mjs';
+import { planCaptions } from './captions.mjs';
 
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
 
@@ -43,6 +44,31 @@ export function mergeShots(prevShotsFile, incomingSpans) {
   const merged = { ...prevShotsFile, spans: incomingSpans };
   const changed = JSON.stringify(canon(prevShotsFile.spans ?? [])) !== JSON.stringify(canon(incomingSpans ?? []));
   if (prevShotsFile.approved === true && changed) merged.approved = false;
+  return { merged, changed };
+}
+
+// Reads effects.json; null when the video has no effects plan yet — every
+// caller must handle null and render the pre-effects board.
+export function loadEffects(workdir) {
+  const p = path.join(workdir, 'effects.json');
+  if (!fs.existsSync(p)) return null;
+  try { return JSON.parse(fs.readFileSync(p, 'utf8')); }
+  catch (e) { return { instances: [], errors: [`effects.json unreadable: ${e.message}`] }; }
+}
+
+// Merge semantics mirror mergeShots: only `enabled` is board-writable;
+// a real change resets approval.
+export function mergeEffects(prevEffectsFile, toggles) {
+  const canon = (v) => Array.isArray(v) ? v.map(canon)
+    : (v && typeof v === 'object')
+      ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])]))
+      : v;
+  const byId = new Map((toggles ?? []).map((t) => [t.id, !!t.enabled]));
+  const instances = (prevEffectsFile.instances ?? []).map((inst) =>
+    byId.has(inst.id) ? { ...inst, enabled: byId.get(inst.id) } : inst);
+  const changed = JSON.stringify(canon(prevEffectsFile.instances ?? [])) !== JSON.stringify(canon(instances));
+  const merged = { ...prevEffectsFile, instances };
+  if (prevEffectsFile.approved === true && changed) merged.approved = false;
   return { merged, changed };
 }
 
@@ -204,6 +230,34 @@ const BOARD_CSS = `
     background:rgba(251,146,60,0.05); color:var(--text); border:1px dashed rgba(251,146,60,0.4); border-radius:6px; padding:6px 8px; }
   textarea.feedback:focus { border-style:solid; outline:none; }
   .feedback-folded { font-size:12px; color:var(--dim); margin-bottom:8px; padding:0 8px; }
+
+  .minimap-fx { height:18px; }
+  .fx-marker { position:absolute; top:2px; bottom:2px; width:3px; border-radius:1px; }
+  .fx-whip { background:var(--accent); }
+  .fx-beat { background:var(--ok); }
+  .fx-span { position:absolute; top:6px; height:6px; background:rgba(245,237,226,0.28); border-radius:3px; }
+  .fx-off { opacity:0.25; }
+  #fxPlayhead { position:absolute; top:-2px; bottom:-2px; width:2px; background:#fff; opacity:0; }
+  .fx-chips { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+  .fx-chip { font-size:11px; font-family:ui-monospace,Menlo,monospace; color:var(--dim); border:1px solid var(--line); border-radius:20px; padding:3px 10px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; }
+  .fx-chip input { accent-color: var(--accent); }
+  #approveEffectsBtn { border-color:var(--ok); color:var(--ok); }
+  #fxStage { position:fixed; right:24px; bottom:24px; width:480px; height:270px; background:#141017; border:1px solid var(--line); border-radius:10px; overflow:hidden; z-index:200; display:none; }
+  #fxStage.on { display:block; }
+  #fxStage .frame { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; transition:transform 0.3s ease-out; }
+  #fxStage .ctx { font:11px ui-monospace,Menlo,monospace; color:var(--dim); }
+  #fxStage .flash { position:absolute; inset:0; background:#ffd9b0; opacity:0; pointer-events:none; }
+  #fxStage.fx-flash .flash { animation:fxFlash 0.3s ease-out; }
+  @keyframes fxFlash { 0%{opacity:0} 25%{opacity:0.9} 100%{opacity:0} }
+  #fxStage.fx-punch .frame { transform:scale(1.08); }
+  #fxStage.fx-whipblur .frame { animation:fxWhip 0.25s ease-in; }
+  @keyframes fxWhip { 0%{filter:blur(0);transform:translateX(0)} 50%{filter:blur(8px);transform:translateX(-40px)} 100%{filter:blur(0);transform:translateX(0)} }
+  #fxStage.fx-drift .frame { transform:scale(1.04); transition:transform 3s linear; }
+  #fxStage .cap { position:absolute; left:8px; right:8px; bottom:10%; text-align:center; font-weight:700; font-size:16px; color:#fff; text-shadow:0 0 4px #000; }
+  #fxStage .cap .hl { color:var(--accent); }
+  #fxStage .bubble { position:absolute; top:12px; right:12px; width:56px; height:56px; border-radius:50%; border:3px solid var(--accent); background:#2a1d14; display:none; }
+  #fxStage.ctx-screen .bubble.on { display:block; }
+  #fxStage .note-fixed { position:absolute; top:6px; right:10px; font-size:10px; color:var(--dim); }
 `;
 
 // Shared client script for both / (board) and /calibrate: posts each tile's
@@ -249,6 +303,26 @@ function timecode(secs) {
   const s = (secs % 60).toFixed(1).padStart(4, '0');
   return `${m}:${s}`;
 }
+
+export const FX_SIM_HELPERS = `
+function fxContext(t, fullframes, spans) {
+  if (fullframes.some((f) => t >= f.start && t < f.end)) return 'graphic';
+  if (spans.some((s) => t >= s.start && t < s.end)) return 'avatar';
+  return 'screen';
+}
+function fxEventsAt(prevT, t, instances) {
+  return instances.filter((i) => i.enabled && typeof i.at === 'number' && i.at > prevT && i.at <= t);
+}
+function fxDriftActive(t, instances, ctx) {
+  return ctx === 'screen' && instances.some((i) => i.type === 'drift' && i.enabled
+    && typeof i.start === 'number' && t >= i.start && t <= i.end);
+}
+`;
+// Node-side bindings for tests:
+const fxSim = {};
+new Function('exports', FX_SIM_HELPERS
+  + '\nexports.fxContext = fxContext; exports.fxEventsAt = fxEventsAt; exports.fxDriftActive = fxDriftActive;')(fxSim);
+export const { fxContext, fxEventsAt, fxDriftActive } = fxSim;
 
 // Probe times for the overflow shim: just after each beat reveals, plus just
 // before the card ends (catches a final state that never got a mid-beat check).
@@ -328,7 +402,7 @@ function normalizeFeedbackItems(raw) {
   return items;
 }
 
-function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null) {
+function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
@@ -347,6 +421,29 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
   segments.unshift(...unresolvedSegs);
   
   const totalDuration = words.length ? words[words.length - 1].end : 0;
+
+  const fxInstances = effects?.instances ?? [];
+  const fxPoint = fxInstances.filter((i) => i.type === 'whip' || i.type === 'beat');
+  const fxSpan = fxInstances.filter((i) => i.type === 'drift' && typeof i.start === 'number');
+  const fxGlobal = fxInstances.filter((i) => i.type === 'captions' || i.type === 'bubble');
+  const capChunks = fxInstances.some((i) => i.type === 'captions' && i.enabled) ? planCaptions(words) : [];
+  const fxFullframes = resolved.filter((c) => c.placement === 'fullframe').map((c) => ({ id: c.id, start: c.start, end: c.start + c.duration }));
+  const fxShotSpans = (shots?.spans ?? []).map((s) => ({ id: s.id, start: s.start, end: s.start + s.duration }));
+
+  const fxLaneHtml = fxInstances.length ? `
+  <div class="lane-row"><span class="lane-label">effects</span>
+    <div class="minimap minimap-fx" style="position:relative; background:transparent;">
+      \${fxSpan.map((i) => \`<div class="fx-span\${i.enabled ? '' : ' fx-off'}" title="\${escapeHtml(i.id)}" style="left:\${(i.start / totalDuration * 100).toFixed(2)}%; width:\${((i.end - i.start) / totalDuration * 100).toFixed(2)}%"></div>\`).join('')}
+      \${fxPoint.map((i) => \`<div class="fx-marker fx-\${escapeHtml(i.type)}\${i.enabled ? '' : ' fx-off'}" title="\${escapeHtml(i.id)}\${i.style ? ' · ' + escapeHtml(i.style) : ''}" style="left:\${(i.at / totalDuration * 100).toFixed(2)}%"></div>\`).join('')}
+      <div id="fxPlayhead"></div>
+    </div>
+  </div>` : '';
+
+  const fxChipsHtml = fxInstances.length ? `<div class="fx-chips">\${fxInstances.map((i) => {
+    const when = typeof i.at === 'number' ? ' ' + timecode(i.at) : (typeof i.start === 'number' ? ' ' + timecode(i.start) : '');
+    const extra = i.style ? ' ' + escapeHtml(i.style) : '';
+    return \`<label class="fx-chip"><input type="checkbox" class="fx-toggle" data-fx-id="\${escapeHtml(i.id)}" \${i.enabled ? 'checked' : ''}/>\${escapeHtml(i.type)}\${when}\${extra}</label>\`;
+  }).join('')}</div>` : '';
 
   const minimapHtml = segments.filter(s => !s.unresolved).map((seg, i) => {
     const duration = Math.max(0.1, seg.end - seg.start);
@@ -500,12 +597,14 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
       <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
       <button id="approveBtn">Approve graphics</button>
       ${shots ? `<span class="usage-chip">engineMode: ${escapeHtml(shots.shotsFile?.engineMode || 'none')}</span><button id="approveShotsBtn">Approve shots</button>` : ''}
+      ${effects ? `<button id="approveEffectsBtn">Approve effects</button>` : ''}
       <button id="saveBtn">Save</button>
       <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
     </div>
     <div id="banner">
       ${cuesFile.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}
       ${shots && shots.shotsFile?.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shot plan approved — ready for the avatar render step</div>' : ''}
+      ${effects && effects.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>effects approved — ready for step 090 assemble</div>' : ''}
       ${shots?.errors?.length ? `<div class="banner err"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shots: ${shots.errors.map(escapeHtml).join('<br>')}</div>` : ''}
     </div>
     <div class="usage">${(() => {
@@ -517,13 +616,24 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     })()}</div>
     <div class="lane-row"><span class="lane-label">graphics</span><div class="minimap">${minimapHtml}</div></div>
     ${minimapShotsHtml ? `<div class="lane-row"><span class="lane-label">avatar</span>${minimapShotsHtml}</div>` : ''}
+    ${fxLaneHtml}
     <div class="lane-legend">
       <span><span class="dot" style="background:var(--accent)"></span>fullframe card</span>
       <span><span class="dot" style="background:var(--overlay-seg)"></span>overlay card</span>
       ${minimapShotsHtml ? '<span><span class="dot" style="background:var(--shot)"></span>full-screen avatar</span>' : ''}
       <span><span class="dot" style="background:var(--line)"></span>screen recording + corner avatar</span>
     </div>
+    ${fxChipsHtml}
     ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
+    ${fxInstances.length ? `
+    <audio id="master" class="scrub" controls src="/vo.mp3"></audio>
+    <div id="fxStage">
+      <div class="frame"><span class="ctx" id="fxCtx"></span></div>
+      <div class="flash"></div>
+      <div class="bubble"></div>
+      <div class="cap" id="fxCap"></div>
+      <div class="note-fixed">timing preview — final look is the module's</div>
+    </div>` : ''}
   </div>
   <div class="timeline">${timelineHtml}</div>
   <script>
@@ -533,6 +643,16 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     document.addEventListener('input', (e) => { if (e.target.classList && e.target.classList.contains('feedback')) FB_DIRTY = true; });
     const VIDEO = ${JSON.stringify(cuesFile.video ?? '')};
     let APPROVED = ${JSON.stringify(!!cuesFile.approved)};
+    const FX_DATA = ${JSON.stringify({ instances: fxInstances, fullframes: fxFullframes, spans: fxShotSpans, capChunks, total: totalDuration })};
+    ${FX_SIM_HELPERS}
+    let FX_DIRTY_TOGGLES = false;
+    document.querySelectorAll('.fx-toggle').forEach(el => {
+      el.addEventListener('change', () => {
+        FX_DIRTY_TOGGLES = true;
+        const marker = document.querySelector(\`.minimap-fx [title^="\${el.dataset.fxId}"]\`);
+        if (marker) marker.classList.toggle('fx-off', !el.checked);
+      });
+    });
 
     document.querySelectorAll('.tile').forEach((tile) => {
       const iframe = tile.querySelector('iframe');
@@ -551,6 +671,65 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 
       wireProbe(tile);
     });
+
+    const master = document.getElementById('master');
+    const fxStage = document.getElementById('fxStage');
+    const fxPlayhead = document.getElementById('fxPlayhead');
+    const fxCtx = document.getElementById('fxCtx');
+    const fxCap = document.getElementById('fxCap');
+    const fxBubble = document.querySelector('#fxStage .bubble');
+    if (master) {
+      let masterRaf = null;
+      let prevT = 0;
+      master.addEventListener('pause', () => { 
+        fxStage.classList.remove('on'); 
+        if (fxPlayhead) fxPlayhead.style.opacity = '0';
+        if (masterRaf) cancelAnimationFrame(masterRaf); 
+      });
+      master.addEventListener('play', () => {
+        document.querySelectorAll('.tile audio').forEach((a) => { if (!a.paused) a.pause(); });
+        fxStage.classList.add('on');
+        if (fxPlayhead) fxPlayhead.style.opacity = '1';
+        prevT = master.currentTime;
+        const loop = () => {
+          const t = master.currentTime;
+          if (fxPlayhead) fxPlayhead.style.left = (t / FX_DATA.total * 100) + '%';
+          const ctx = fxContext(t, FX_DATA.fullframes, FX_DATA.spans);
+          
+          const ctxCls = 'ctx-' + ctx;
+          if (!fxStage.classList.contains(ctxCls)) {
+            fxStage.classList.remove('ctx-graphic', 'ctx-avatar', 'ctx-screen');
+            fxStage.classList.add(ctxCls);
+          }
+          fxStage.classList.toggle('fx-drift', fxDriftActive(t, FX_DATA.instances, ctx));
+          
+          fxCtx.textContent = ctx === 'graphic' 
+            ? (FX_DATA.fullframes.find(f => t >= f.start && t < f.end)?.id || 'graphic')
+            : ctx;
+          
+          for (const ev of fxEventsAt(prevT, t, FX_DATA.instances)) {
+            const cls = ev.type === 'whip' && ev.style === 'flash' ? 'fx-flash' 
+              : ev.type === 'whip' ? 'fx-whipblur' : 'fx-punch';
+            fxStage.classList.add(cls);
+            setTimeout(() => fxStage.classList.remove(cls), 350);
+          }
+          
+          const bubbleInst = FX_DATA.instances.find(i => i.type === 'bubble');
+          if (fxBubble) fxBubble.classList.toggle('on', !!(bubbleInst && bubbleInst.enabled));
+          
+          const capChunk = FX_DATA.capChunks.find(c => t >= c.start && t < c.end);
+          if (capChunk && ctx === 'screen') {
+            fxCap.innerHTML = capChunk.words.map(w => w.hl ? '<span class="hl">'+escapeForBanner(w.text)+'</span>' : escapeForBanner(w.text)).join(' ');
+          } else {
+            fxCap.innerHTML = '';
+          }
+          
+          prevT = t;
+          if (!master.paused) masterRaf = requestAnimationFrame(loop);
+        };
+        loop();
+      });
+    }
 
     wireOverflowBadges();
 
@@ -592,6 +771,10 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
       document.querySelectorAll('textarea.feedback').forEach((t) => { feedback[t.dataset.ref] = t.value; });
       const payload = { video: VIDEO, approved: APPROVED, cues, feedback };
       if (document.querySelectorAll('.shot-block').length > 0) payload.spans = spans;
+      const toggles = [...document.querySelectorAll('.fx-toggle')];
+      if (toggles.length > 0) {
+        payload.effects = toggles.map((el) => ({ id: el.dataset.fxId, enabled: el.checked }));
+      }
 
       const res = await fetch('/save', { method: 'POST', body: JSON.stringify(payload) });
       const data = await res.json();
@@ -622,6 +805,14 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     if (approveShotsBtn) {
       approveShotsBtn.onclick = async () => {
         await fetch('/approve-shots', { method: 'POST' });
+        location.reload();
+      };
+    }
+    
+    const approveEffectsBtn = document.getElementById('approveEffectsBtn');
+    if (approveEffectsBtn) {
+      approveEffectsBtn.onclick = async () => {
+        await fetch('/approve-effects', { method: 'POST' });
         location.reload();
       };
     }
@@ -745,6 +936,23 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   
   const resErrors = [];
   const resWarnings = [...shotWarnings];
+  const resWarningsEffects = [];
+
+  const effectsPath = path.join(workdir, 'effects.json');
+  if (fs.existsSync(effectsPath)) {
+    let mergedEffects = JSON.parse(fs.readFileSync(effectsPath, 'utf8'));
+    if (cuesFile.effects !== undefined) {
+      const prevApproved = mergedEffects.approved === true;
+      const { merged, changed } = mergeEffects(mergedEffects, cuesFile.effects);
+      mergedEffects = merged;
+      if (prevApproved && changed) resWarningsEffects.push('effects: un-approved — effects changed after approval (re-approve on the board)');
+    }
+    if (cuesChanged && mergedEffects.approved === true) {
+      mergedEffects.approved = false;
+      resWarningsEffects.push('effects: un-approved — cues changed after effects approval (re-run node lib/effects-plan.mjs and re-review)');
+    }
+    fs.writeFileSync(effectsPath, JSON.stringify(mergedEffects, null, 2));
+  }
 
   if (mergedShots) {
     if (shotErrors && shotErrors.length > 0) {
@@ -764,6 +972,7 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   const { errors: lintErrors, warnings: lintWarnings } = lintCues({ cuesFile: merged, resolved, words, catalog });
   resErrors.push(...lintErrors);
   resWarnings.push(...lintWarnings);
+  resWarnings.push(...resWarningsEffects);
 
   fs.writeFileSync(
     path.join(workdir, 'resolved.json'),
@@ -789,6 +998,16 @@ async function handleApproveShots(req, res, workdir) {
   const shotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
   shotsFile.approved = true;
   fs.writeFileSync(shotsPath, JSON.stringify(shotsFile, null, 2));
+  res.setHeader('content-type', 'application/json');
+  res.end(JSON.stringify({ ok: true }));
+}
+
+async function handleApproveEffects(req, res, workdir) {
+  await readBody(req);
+  const effectsPath = path.join(workdir, 'effects.json');
+  const effectsFile = JSON.parse(fs.readFileSync(effectsPath, 'utf8'));
+  effectsFile.approved = true;
+  fs.writeFileSync(effectsPath, JSON.stringify(effectsFile, null, 2));
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
 }
@@ -961,9 +1180,10 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     const fbPath = path.join(workdir, 'feedback.json');
     const feedbackItems = fs.existsSync(fbPath) ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items) : {};
     const shots = loadShots(workdir, words);
+    const effects = loadEffects(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots));
+    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects));
   }
 
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);
@@ -999,6 +1219,21 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
 
   if (req.method === 'POST' && url.pathname === '/approve-shots') {
     return handleApproveShots(req, res, workdir);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/approve-effects') {
+    return handleApproveEffects(req, res, workdir);
+  }
+
+  if (req.method === 'GET' && url.pathname === '/vo.mp3') {
+    const voPath = path.join(workdir, 'vo.mp3');
+    if (!fs.existsSync(voPath)) {
+      res.statusCode = 404;
+      return res.end('vo.mp3 not found');
+    }
+    res.setHeader('content-type', 'audio/mpeg');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(fs.readFileSync(voPath));
   }
 
   res.statusCode = 404;

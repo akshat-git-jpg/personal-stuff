@@ -11,6 +11,8 @@ export function plan(ctx) {
         type: TYPE,
         segId: seg.id,
         direction: screenOrdinal % 2 === 0 ? 'in' : 'out',
+        start: seg.start,
+        end: seg.end,
         enabled: true
       });
       screenOrdinal++;

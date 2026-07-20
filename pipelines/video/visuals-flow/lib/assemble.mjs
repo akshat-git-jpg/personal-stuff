@@ -776,6 +776,15 @@ async function main() {
     }
   }
 
+  const effectsGatePath = path.join(workdir, 'effects.json');
+  if (fs.existsSync(effectsGatePath)) {
+    const effectsFile = JSON.parse(fs.readFileSync(effectsGatePath, 'utf8'));
+    if (effectsFile.approved !== true && !opts.force) {
+      console.error('refusing to render: effects.json approved=false — review the effects lane on the board (node lib/board.mjs <slug>) or pass --force');
+      process.exit(1);
+    }
+  }
+
   const voPath = path.join(workdir, 'vo.mp3');
   const screen = opts.screen ?? path.join(workdir, 'screen.mp4');
   if (!fs.existsSync(voPath)) {
