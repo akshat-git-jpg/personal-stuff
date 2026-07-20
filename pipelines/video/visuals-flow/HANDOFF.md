@@ -293,6 +293,7 @@ bash steps/080-avatar-render-run/run.sh <slug> --download                       
 # 090 (needs videos/<slug>/screen.mp4, VO-aligned, owner-provided):
 bash steps/090-assemble-run/run.sh <slug> [--draft] [--encoder x264|videotoolbox]    # -> kb-scratch final.mp4 (+ assembly.md EDL); --draft = 720p final-draft.mp4
 bash steps/095-resolve-export-run/run.sh <slug> [--bundle]   # -> kb-scratch resolve-export/ (timeline.fcpxml for DaVinci/Premiere touch-up)
+bash scripts/qc-video.sh <slug> [--final]          # -> kb-scratch qc/ pack; then READ the sheets (skill verb "qc the video")
 bash scripts/check.sh                              # flow gate
 (cd ../card-library && bash scripts/beat-smoke.sh) # card gate
 ```
