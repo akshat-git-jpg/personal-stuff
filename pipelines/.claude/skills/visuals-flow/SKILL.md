@@ -108,6 +108,22 @@ Editor handoff = `renders/` + `manifest.md` + those clips + `avatar-manifest.md`
 3. The editor handoff bundle is unchanged; final.mp4 is an additional output —
    per video the owner ships it directly or hands the bundle to the editor.
 
+## Verb: "export the timeline" / "open it in resolve"
+
+1. Same gates as assembly (the exporter enforces them itself: cues approved +
+   rendered, shots approved with clips downloaded, screen.mp4 present).
+2. `bash steps/095-resolve-export-run/run.sh <slug> [--bundle]` — full-res
+   segment encodes (shares assembly-cache/ with the ship render, so a prior
+   ship render makes this mostly cache hits), overlay-free base clips, writes
+   `~/kb-scratch/video/visuals-flow/<slug>/resolve-export/` (timeline.fcpxml
+   + segments/ + README.md; `--bundle` adds media/ with vo + overlay movs for
+   a portable editor handoff).
+3. Tell the owner: DaVinci Resolve → File → Import → Timeline →
+   timeline.fcpxml (Premiere: File → Import). V1 = base cut, lane 1 = overlay
+   graphics (each movable/deletable), lane -1 = VO. Effects (flash / drift /
+   captions / punch-ins) are baked INTO the clips — effect tweaks stay
+   `effects.json` + re-assemble, never Resolve.
+
 ## Verb: "fold the feedback" (guardrail 2 — Opus-class only)
 
 Follow `steps/060-feedback-fold-opus/README.md`: `node lib/edit-delta.mjs <slug>`
