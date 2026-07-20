@@ -570,3 +570,4 @@ The others are grounded and available when the owner wants them:
 - 111-fx-overlay-clip-renderer — PR#68 111-fx-overlay-clip-renderer: effects.json instances → transparent ProRes FX clips — DONE
 - 112-native-layered-fcpxml-export — PR#69 112-native-layered-fcpxml-export: layered native editor project becomes the default export — DONE
 - 113-visuals-flow-review-timeline — PR#70 113-visuals-flow-review-timeline: visuals-flow review board — horizontal timeline overview view — DONE
+- 114-visuals-flow-card-pack — PR#71 114-visuals-flow-card-pack: 4 new card-library cards (prompt-typing, tool-icon hero, kinetic statement, icon-pill list) + reusable icon set — DONE
