@@ -108,20 +108,27 @@ function main() {
   fs.rmSync(outDir, { recursive: true, force: true });
   fs.mkdirSync(outDir, { recursive: true });
 
+  // All instances of a type share one identical envelope — render ONE file per
+  // unique type and let every timeline placement reference it (one media-pool
+  // item, many clips), instead of N duplicate movs.
+  const fileByType = new Map();
   for (const r of rendered) {
-    const outFile = path.join(outDir, `${r.id}.mov`);
-    const res = spawnSync('ffmpeg', fxRenderArgs({ envelope: r.envelope, outFile }), { encoding: 'utf8' });
-    if (res.status !== 0) {
-      console.error(`ffmpeg failed for ${r.id}\n${(res.stderr || '').slice(-2000)}`);
-      process.exit(1);
+    if (!fileByType.has(r.type)) {
+      const outFile = path.join(outDir, `${r.type}.mov`);
+      const res = spawnSync('ffmpeg', fxRenderArgs({ envelope: r.envelope, outFile }), { encoding: 'utf8' });
+      if (res.status !== 0) {
+        console.error(`ffmpeg failed for ${r.type}\n${(res.stderr || '').slice(-2000)}`);
+        process.exit(1);
+      }
+      fileByType.set(r.type, outFile);
     }
-    r.file = outFile;
+    r.file = fileByType.get(r.type);
     delete r.envelope;
   }
 
   const manifest = { video: path.basename(workdir), rendered, dropped };
   fs.writeFileSync(path.join(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
-  console.log(`fx clips: ${rendered.length} rendered, ${dropped.length} dropped -> ${outDir}`);
+  console.log(`fx clips: ${rendered.length} placements over ${fileByType.size} unique files, ${dropped.length} dropped -> ${outDir}`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

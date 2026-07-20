@@ -34,9 +34,12 @@ export function buildNativeFcpxml({ video, screenPath, voPath, total, w, h, avat
   const totalF = frames(total);
   const assets = [];
   let nextId = 2;
+  const assetIdByFile = new Map();
   const assetFor = (file, { audio = false, durF }) => {
+    if (assetIdByFile.has(file)) return assetIdByFile.get(file);
     const id = `r${nextId++}`;
     assets.push(`    <asset id="${id}" name="${xmlEsc(path.basename(file))}" start="0s" duration="${rt(durF)}" hasVideo="${audio ? '0' : '1'}" hasAudio="${audio ? '1' : '0'}" src="${xmlEsc(srcUrl(file))}"/>`);
+    assetIdByFile.set(file, id);
     return id;
   };
 
