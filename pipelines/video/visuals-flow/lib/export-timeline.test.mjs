@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { buildFcpxml, frames, rt } from './export-timeline.mjs';
+import { buildFcpxml, frames, rt, srtTime, srtFromCaptions, buildNativeFcpxml } from './export-timeline.mjs';
 import { runAssembly } from './assemble.mjs';
 
 const testTmp = path.join(import.meta.dirname, '.test-tmp', 'export-it');
@@ -12,6 +12,72 @@ test('frames/rt basics', () => {
   assert.equal(frames(57.5), 1725);
   assert.equal(frames(0), 0);
   assert.equal(rt(30), '3000/3000s');
+});
+
+test('srt basics', () => {
+  assert.equal(srtTime(0), '00:00:00,000');
+  assert.equal(srtTime(3661.042), '01:01:01,042');
+  const srt = srtFromCaptions([{start: 0, end: 1.2, text: 'hi'}, {start: 1.2, end: 2.5, text: 'there'}]);
+  assert.ok(srt.includes('1\n00:00:00,000 --> 00:00:01,200\nhi\n\n2\n00:00:01,200 --> 00:00:02,500\nthere\n'));
+});
+
+test('buildNativeFcpxml: native generator layers', () => {
+  const avatarClips = [
+    { id: 'a1', offsetSec: 2, durationSec: 5, file: 'a1.mp4' },
+    { id: 'a2', offsetSec: 10, durationSec: 3, file: 'a2.mp4' }
+  ];
+  const fullframes = [
+    { id: 'ff1', offsetSec: 7, durationSec: 2, file: 'ff1.mp4' },
+    { id: 'ff2', offsetSec: 15, durationSec: 4, file: 'ff2.mp4' }
+  ];
+  const overlayClips = [
+    { id: 'o1', offsetSec: 20, durationSec: 1, file: 'o1.mov' }
+  ];
+  const fxClips = [
+    { id: 'fx1&', offsetSec: 1, durationSec: 0.5, file: 'fx1.mov' },
+    { id: 'fx2', offsetSec: 5, durationSec: 0.5, file: 'fx2.mov' }
+  ];
+  const markers = [
+    { at: 12, note: 'drift' },
+    { at: null, note: 'punch' }
+  ];
+  
+  const xml = buildNativeFcpxml({
+    video: 't', screenPath: 'screen.mp4', voPath: 'vo.mp3', total: 30, w: 1920, h: 1080,
+    avatarClips, fullframes, overlayClips, fxClips, markers, srcUrl: (f) => f
+  });
+  
+  const spineRe = /<asset-clip ref="[^"]+" offset="[^"]+" duration="[^"]+" start="0s" name="screen"/g;
+  const spines = xml.match(spineRe) || [];
+  assert.equal(spines.length, 1, 'exactly 1 spine clip');
+  assert.match(spines[0], new RegExp(`duration="${frames(30)*100}/3000s"`), 'spine spans total frames');
+  
+  const l1 = (xml.match(/lane="1"/g) || []).length;
+  assert.equal(l1, 2, '2 clips lane 1');
+  const l2 = (xml.match(/lane="2"/g) || []).length;
+  assert.equal(l2, 2, '2 clips lane 2');
+  const l3 = (xml.match(/lane="3"/g) || []).length;
+  assert.equal(l3, 1, '1 clip lane 3');
+  const l4 = (xml.match(/lane="4"/g) || []).length;
+  assert.equal(l4, 2, '2 clips lane 4');
+  const lm1 = (xml.match(/lane="-1"/g) || []).length;
+  assert.equal(lm1, 1, '1 clip lane -1');
+  
+  const xmlMarkers = xml.match(/<marker /g) || [];
+  assert.equal(xmlMarkers.length, 1, 'exactly 1 marker');
+  assert.match(xml, new RegExp(`<marker start="${frames(12)*100}/3000s"`), 'marker start equals frames(at)*100');
+  
+  const numAssets = (xml.match(/<asset /g) || []).length;
+  assert.equal(numAssets, 9, 'exactly 9 assets');
+  
+  for (const c of [...avatarClips, ...fullframes, ...overlayClips, ...fxClips]) {
+    const oOffset = rt(frames(c.offsetSec));
+    const escId = c.id.replace('&', '&amp;');
+    assert.match(xml, new RegExp(`offset="${oOffset}"[^>]+name="${escId}"`), `offset matches for ${c.id}`);
+  }
+  
+  assert.ok(!/&(?!amp;|lt;|gt;|quot;)/.test(xml), 'no unescaped ampersands');
+  assert.ok(xml.includes('fx1&amp;'), 'fx id escaped correctly');
 });
 
 test('buildFcpxml: gapless spine under rounding drift', () => {
