@@ -45,15 +45,57 @@ test.before(() => {
   ensureFixtureAudio();
 });
 
-test('GET / lists every cue id and an Approve button', async () => {
+test('GET /list lists every cue id and an Approve button', async () => {
   const { server, base } = await startServer(makeWorkdir());
   try {
-    const res = await fetch(`${base}/`);
+    const res = await fetch(`${base}/list`);
     assert.equal(res.status, 200);
     const html = await res.text();
     assert.match(html, /c01/);
     assert.match(html, /c02/);
     assert.match(html, />Approve graphics</);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET / renders the timeline with all four lanes and a link to /list', async () => {
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    const res = await fetch(`${base}/`);
+    assert.equal(res.status, 200);
+    const html = await res.text();
+    assert.match(html, /SCREEN/);
+    assert.match(html, /GRAPHICS/);
+    assert.match(html, /AVATAR/);
+    assert.match(html, /EFFECTS/);
+    assert.match(html, /c01/);
+    assert.match(html, /data-detail="seg-/);
+    assert.match(html, /href="\/list"/);
+    assert.match(html, />Approve graphics</);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET / keeps card previews inert in the detail store (data-src, not eager src)', async () => {
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    const res = await fetch(`${base}/`);
+    const html = await res.text();
+    assert.ok(html.includes('data-src="/card/'), 'card iframe uses data-src');
+    assert.ok(!html.includes('<iframe loading="lazy" src="/card/'), 'no eager card iframe on the timeline');
+  } finally {
+    server.close();
+  }
+});
+
+test('GET / shows effects markers when effects.json is present', async () => {
+  const { server, base } = await startServer(makeWorkdir(true));
+  try {
+    const res = await fetch(`${base}/`);
+    const html = await res.text();
+    assert.match(html, /tl-mark/);
   } finally {
     server.close();
   }
@@ -195,11 +237,11 @@ test('buildSegments: short gap folding', () => {
   assert.equal(segments[1].words.length, 3);
 });
 
-test('GET / contains gap timecode, cues in DOM order, anchor highlighted, minimap matches segment count', async () => {
+test('GET /list contains gap timecode, cues in DOM order, anchor highlighted, minimap matches segment count', async () => {
   const workdir = makeWorkdir();
   const { server, base } = await startServer(workdir);
   try {
-    const res = await fetch(`${base}/`);
+    const res = await fetch(`${base}/list`);
     assert.equal(res.status, 200);
     const html = await res.text();
     
@@ -601,7 +643,7 @@ test('renderBoardPage: no-shots vs shots layout', async () => {
   const workdir = makeWorkdir();
   const { server, base } = await startServer(workdir);
   try {
-    const res = await fetch(`${base}/`);
+    const res = await fetch(`${base}/list`);
     const html = await res.text();
     assert.ok(!html.includes('class="minimap minimap-shots"'), 'no shot lane when shots=null');
     assert.ok(!html.includes('class="timeline-block shot-block"'), 'no shot block when shots=null');
@@ -619,7 +661,7 @@ test('renderBoardPage: no-shots vs shots layout', async () => {
   }));
   const { server: s2, base: b2 } = await startServer(workdir);
   try {
-    const res = await fetch(`${b2}/`);
+    const res = await fetch(`${b2}/list`);
     const html = await res.text();
     assert.ok(html.includes('class="minimap minimap-shots"'), 'has shot lane');
     assert.ok(html.includes('engineMode: test'), 'has chip');
@@ -706,11 +748,11 @@ test('GET / without effects.json renders no effects lane', async () => {
   }
 });
 
-test('GET / with effects.json renders lane, chips, approve button, sim stage', async () => {
+test('GET /list with effects.json renders lane, chips, approve button, sim stage', async () => {
   const workdir = makeWorkdir(true);
   const { server, base } = await startServer(workdir);
   try {
-    const res = await fetch(`${base}/`);
+    const res = await fetch(`${base}/list`);
     const html = await res.text();
     assert.ok(html.includes('minimap-fx'), 'lane present');
     assert.ok(html.includes('fx-chip'), 'chips present');
