@@ -1,0 +1,883 @@
+TAP version 13
+# Subtest: absorbSlivers: 1.4s sliver between avatar and graphic -> graphic absorbs with padStart
+ok 1 - absorbSlivers: 1.4s sliver between avatar and graphic -> graphic absorbs with padStart
+  ---
+  duration_ms: 0.628041
+  ...
+# Subtest: absorbSlivers: 0.4s sliver at t=0 before avatar -> avatar absorbs with padStart
+ok 2 - absorbSlivers: 0.4s sliver at t=0 before avatar -> avatar absorbs with padStart
+  ---
+  duration_ms: 0.187375
+  ...
+# Subtest: absorbSlivers: 2s sliver between two avatars -> NOT absorbed (over avatarMax)
+ok 3 - absorbSlivers: 2s sliver between two avatars -> NOT absorbed (over avatarMax)
+  ---
+  duration_ms: 0.099459
+  ...
+# Subtest: absorbSlivers: 6s screen segment untouched
+ok 4 - absorbSlivers: 6s screen segment untouched
+  ---
+  duration_ms: 0.051292
+  ...
+# Subtest: absorbSlivers: output remains contiguous 0->total
+ok 5 - absorbSlivers: output remains contiguous 0->total
+  ---
+  duration_ms: 0.0695
+  ...
+# Subtest: driftVF: short segment -> empty string
+ok 6 - driftVF: short segment -> empty string
+  ---
+  duration_ms: 0.095791
+  ...
+# Subtest: driftVF: even ordinal pushes in over min(dur, period) then holds
+ok 7 - driftVF: even ordinal pushes in over min(dur, period) then holds
+  ---
+  duration_ms: 0.078958
+  ...
+# Subtest: driftVF: odd ordinal releases; long segment ramps over period only
+ok 8 - driftVF: odd ordinal releases; long segment ramps over period only
+  ---
+  duration_ms: 0.0425
+  ...
+# Subtest: planSegments: contiguity and edge placement
+ok 9 - planSegments: contiguity and edge placement
+  ---
+  duration_ms: 0.655083
+  ...
+# Subtest: planSegments: replacement at t=0
+ok 10 - planSegments: replacement at t=0
+  ---
+  duration_ms: 0.3115
+  ...
+# Subtest: planSegments: replacement ending at total
+ok 11 - planSegments: replacement ending at total
+  ---
+  duration_ms: 0.10825
+  ...
+# Subtest: planSegments: overlapping replacements throw
+ok 12 - planSegments: overlapping replacements throw
+  ---
+  duration_ms: 0.18825
+  ...
+# Subtest: planSegments: sub-EPS underlap clamped
+ok 13 - planSegments: sub-EPS underlap clamped
+  ---
+  duration_ms: 0.051708
+  ...
+# Subtest: planSegments: empty avatar list and ignored corner jobs
+ok 14 - planSegments: empty avatar list and ignored corner jobs
+  ---
+  duration_ms: 0.051625
+  ...
+# Subtest: assemblyMd: format
+ok 15 - assemblyMd: format
+  ---
+  duration_ms: 0.2315
+  ...
+# Subtest: assemblyMd: transitions table
+ok 16 - assemblyMd: transitions table
+  ---
+  duration_ms: 0.064209
+  ...
+# Subtest: planSegmentOverlays: pure mapping
+ok 17 - planSegmentOverlays: pure mapping
+  ---
+  duration_ms: 0.183542
+  ...
+# Subtest: planTransitions: avatar>screen direction
+ok 18 - planTransitions: avatar>screen direction
+  ---
+  duration_ms: 0.106708
+  ...
+# Subtest: planTransitions: graphic boundaries produce flash on in, nothing on out
+ok 19 - planTransitions: graphic boundaries produce flash on in, nothing on out
+  ---
+  duration_ms: 0.040417
+  ...
+# Subtest: planTransitions: short neighbor skipped
+ok 20 - planTransitions: short neighbor skipped
+  ---
+  duration_ms: 0.039416
+  ...
+# Subtest: planTransitions: overlay straddle skipped
+ok 21 - planTransitions: overlay straddle skipped
+  ---
+  duration_ms: 0.05375
+  ...
+# Subtest: planTransitions: edge skip at t=0 and t=total
+ok 22 - planTransitions: edge skip at t=0 and t=total
+  ---
+  duration_ms: 0.047041
+  ...
+# Subtest: encoderArgs
+ok 23 - encoderArgs
+  ---
+  duration_ms: 122.949125
+  ...
+# Subtest: planAvatarBeats: 60s span snapped to seeded gaps
+ok 24 - planAvatarBeats: 60s span snapped to seeded gaps
+  ---
+  duration_ms: 0.242625
+  ...
+# Subtest: planAvatarBeats: beat moved to nearest gap, not raw target
+ok 25 - planAvatarBeats: beat moved to nearest gap, not raw target
+  ---
+  duration_ms: 0.13825
+  ...
+# Subtest: planAvatarBeats: no gap within +-3s -> beat dropped
+ok 26 - planAvatarBeats: no gap within +-3s -> beat dropped
+  ---
+  duration_ms: 0.06175
+  ...
+# Subtest: planAvatarBeats: short span (<45s) -> []
+ok 27 - planAvatarBeats: short span (<45s) -> []
+  ---
+  duration_ms: 0.037958
+  ...
+# Subtest: planAvatarBeats: beats respect the 8s edges
+ok 28 - planAvatarBeats: beats respect the 8s edges
+  ---
+  duration_ms: 0.034292
+  ...
+# Subtest: planAvatarBeats: cue within window wins over closer gap
+ok 29 - planAvatarBeats: cue within window wins over closer gap
+  ---
+  duration_ms: 0.056834
+  ...
+# Subtest: planAvatarBeats: no in-window cue -> gap fallback unchanged
+ok 30 - planAvatarBeats: no in-window cue -> gap fallback unchanged
+  ---
+  duration_ms: 0.046042
+  ...
+# Subtest: planAvatarBeats: cue outside [lo, hi] is ignored
+ok 31 - planAvatarBeats: cue outside [lo, hi] is ignored
+  ---
+  duration_ms: 0.148958
+  ...
+# Subtest: splitAvatarSegments: alternating punch and passes others
+ok 32 - splitAvatarSegments: alternating punch and passes others
+  ---
+  duration_ms: 0.146375
+  ...
+# segments: 0 cached, 10 encoded (jobs=3)
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/1/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final.mp4 (01:08.0)
+# Subtest: Integration: ffmpeg runAssembly
+ok 33 - Integration: ffmpeg runAssembly
+  ---
+  duration_ms: 34512.246542
+  ...
+# segments: 0 cached, 8 encoded (jobs=3)
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/1/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-draft.mp4 (01:08.0)
+# Subtest: Integration: ffmpeg draft runAssembly
+ok 34 - Integration: ffmpeg draft runAssembly
+  ---
+  duration_ms: 7634.914041
+  ...
+# segments: 0 cached, 6 encoded (jobs=3)
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/1/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-none.mp4 (01:08.0)
+# Subtest: Integration: ffmpeg runAssembly none transitions
+ok 35 - Integration: ffmpeg runAssembly none transitions
+  ---
+  duration_ms: 14293.837916
+  ...
+# segments: 0 cached, 3 encoded (jobs=3)
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/1/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-cap-off.mp4 (00:10.0)
+# Subtest: Integration: ffmpeg runAssembly captions off
+ok 36 - Integration: ffmpeg runAssembly captions off
+  ---
+  duration_ms: 2406.415125
+  ...
+# segments: 0 cached, 1 encoded (jobs=3)
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/1/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-drift-on.mp4 (00:06.0)
+# segments: 0 cached, 1 encoded (jobs=3)
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/1/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-drift-off.mp4 (00:06.0)
+# Subtest: Integration: drift on vs off
+ok 37 - Integration: drift on vs off
+  ---
+  duration_ms: 7083.855333
+  ...
+# Subtest: assemble: effects.json approved=false exits unless --force is passed
+ok 38 - assemble: effects.json approved=false exits unless --force is passed
+  ---
+  duration_ms: 783.864834
+  ...
+# Subtest: planCornerChunks
+ok 39 - planCornerChunks
+  ---
+  duration_ms: 0.501708
+  ...
+# Subtest: avatarManifestMd
+ok 40 - avatarManifestMd
+  ---
+  duration_ms: 0.211083
+  ...
+# Subtest: CLI tests
+ok 41 - CLI tests
+  ---
+  duration_ms: 2992.840167
+  ...
+# Subtest: planJobs spansOnly → no corner jobs
+ok 42 - planJobs spansOnly → no corner jobs
+  ---
+  duration_ms: 0.25025
+  ...
+# Subtest: retry run flushes skipped jobs after the last submit (s03-retry incident)
+ok 43 - retry run flushes skipped jobs after the last submit (s03-retry incident)
+  ---
+  duration_ms: 1308.8005
+  ...
+# Subtest: GET / lists every cue id and an Approve button
+ok 44 - GET / lists every cue id and an Approve button
+  ---
+  duration_ms: 322.673375
+  ...
+# Subtest: GET /card/c01 injects the getVariables shim before the card's first original script and includes resolved beat text
+ok 45 - GET /card/c01 injects the getVariables shim before the card's first original script and includes resolved beat text
+  ---
+  duration_ms: 315.819208
+  ...
+# Subtest: GET /card/c01 includes the overflow probe (__measureOverflow + probe message handler)
+ok 46 - GET /card/c01 includes the overflow probe (__measureOverflow + probe message handler)
+  ---
+  duration_ms: 261.647084
+  ...
+# Subtest: GET /slice/c01.mp3 serves a non-empty mp3 generated on start
+ok 47 - GET /slice/c01.mp3 serves a non-empty mp3 generated on start
+  ---
+  duration_ms: 361.098542
+  ...
+# Subtest: POST /save with a valid edit updates cues.json and regenerates resolved.json
+ok 48 - POST /save with a valid edit updates cues.json and regenerates resolved.json
+  ---
+  duration_ms: 341.270625
+  ...
+# Subtest: POST /save with a broken anchor keeps the edit, reports the resolver error, and leaves resolved.json untouched
+ok 49 - POST /save with a broken anchor keeps the edit, reports the resolver error, and leaves resolved.json untouched
+  ---
+  duration_ms: 353.625958
+  ...
+# Subtest: POST /approve sets cues.json approved: true
+ok 50 - POST /approve sets cues.json approved: true
+  ---
+  duration_ms: 358.991166
+  ...
+# Subtest: buildSegments: words fully covered, no duplication, contiguous order
+ok 51 - buildSegments: words fully covered, no duplication, contiguous order
+  ---
+  duration_ms: 0.553
+  ...
+# Subtest: buildSegments: short gap folding
+ok 52 - buildSegments: short gap folding
+  ---
+  duration_ms: 0.272333
+  ...
+# Subtest: GET / contains gap timecode, cues in DOM order, anchor highlighted, minimap matches segment count
+ok 53 - GET / contains gap timecode, cues in DOM order, anchor highlighted, minimap matches segment count
+  ---
+  duration_ms: 258.544625
+  ...
+# Subtest: save: feedback goes to feedback.json; offset survives; page renders saved feedback
+ok 54 - save: feedback goes to feedback.json; offset survives; page renders saved feedback
+  ---
+  duration_ms: 276.042458
+  ...
+# Subtest: save: folded items survive save intact; other items update
+ok 55 - save: folded items survive save intact; other items update
+  ---
+  duration_ms: 326.150417
+  ...
+# Subtest: GET /: folded items are read-only in the page and prefill only unfolded text
+ok 56 - GET /: folded items are read-only in the page and prefill only unfolded text
+  ---
+  duration_ms: 338.132166
+  ...
+# Subtest: GET / and save: legacy string upgrade
+ok 57 - GET / and save: legacy string upgrade
+  ---
+  duration_ms: 327.923792
+  ...
+# Subtest: save: clearing a feedback box deletes the unfolded item
+ok 58 - save: clearing a feedback box deletes the unfolded item
+  ---
+  duration_ms: 338.871458
+  ...
+# Subtest: save: changing cues resets approved to false; identical save keeps it true
+ok 59 - save: changing cues resets approved to false; identical save keeps it true
+  ---
+  duration_ms: 504.980917
+  ...
+# Subtest: save: incremental slices only re-encode changed cues
+ok 60 - save: incremental slices only re-encode changed cues
+  ---
+  duration_ms: 526.373333
+  ...
+# Subtest: POST /save with invalid JSON body returns 400 and error
+ok 61 - POST /save with invalid JSON body returns 400 and error
+  ---
+  duration_ms: 353.354959
+  ...
+# Subtest: GET /calibrate lists one tile per beat card in the catalog
+ok 62 - GET /calibrate lists one tile per beat card in the catalog
+  ---
+  duration_ms: 385.909958
+  ...
+# Subtest: GET /calibrate-card/<slug> serves every beat card 200 with getVariables present
+ok 63 - GET /calibrate-card/<slug> serves every beat card 200 with getVariables present
+  ---
+  duration_ms: 344.7435
+  ...
+# Subtest: GET /calibrate-card/<unknown> returns 404
+ok 64 - GET /calibrate-card/<unknown> returns 404
+  ---
+  duration_ms: 373.588625
+  ...
+# Subtest: synthCalibrationVars: every beat card synthesizes exactly max_beats beats, each within max_reveal_chars
+ok 65 - synthCalibrationVars: every beat card synthesizes exactly max_beats beats, each within max_reveal_chars
+  ---
+  duration_ms: 0.505834
+  ...
+# Subtest: save: context snapshot on creation, preserved on edit
+ok 66 - save: context snapshot on creation, preserved on edit
+  ---
+  duration_ms: 350.454709
+  ...
+# Subtest: mergeShots: staleness cascade and order-insensitive comparison
+ok 67 - mergeShots: staleness cascade and order-insensitive comparison
+  ---
+  duration_ms: 0.195041
+  ...
+# Subtest: loadShots: parses, handles missing/corrupt, resolves spans
+ok 68 - loadShots: parses, handles missing/corrupt, resolves spans
+  ---
+  duration_ms: 1.07925
+  ...
+# Subtest: renderBoardPage: no-shots vs shots layout
+ok 69 - renderBoardPage: no-shots vs shots layout
+  ---
+  duration_ms: 646.0905
+  ...
+# Subtest: save: cue change with approved shots un-approves shots and warns
+ok 70 - save: cue change with approved shots un-approves shots and warns
+  ---
+  duration_ms: 634.028459
+  ...
+# Subtest: POST /save rejects non-localhost origin with 403
+ok 71 - POST /save rejects non-localhost origin with 403
+  ---
+  duration_ms: 357.000041
+  ...
+# Subtest: POST /save allows 127.0.0.1 origin
+ok 72 - POST /save allows 127.0.0.1 origin
+  ---
+  duration_ms: 365.967
+  ...
+# Subtest: GET / without effects.json renders no effects lane
+not ok 73 - GET / without effects.json renders no effects lane
+  ---
+  duration_ms: 558.365667
+  location: '/Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/1/personal-stuff/pipelines/video/visuals-flow/lib/board.test.mjs:696:1'
+  failureType: 'testCodeFailure'
+  error: 'no effects lane'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/1/personal-stuff/pipelines/video/visuals-flow/lib/board.test.mjs:702:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:980:9)
+    async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+  ...
+# Subtest: GET / with effects.json renders lane, chips, approve button, sim stage
+ok 74 - GET / with effects.json renders lane, chips, approve button, sim stage
+  ---
+  duration_ms: 320.774167
+  ...
+# Subtest: POST /save with an effects toggle writes enabled and resets approval
+ok 75 - POST /save with an effects toggle writes enabled and resets approval
+  ---
+  duration_ms: 315.703542
+  ...
+# Subtest: POST /save with unchanged toggles preserves approval
+ok 76 - POST /save with unchanged toggles preserves approval
+  ---
+  duration_ms: 369.511291
+  ...
+# Subtest: POST /approve-effects sets approved
+ok 77 - POST /approve-effects sets approved
+  ---
+  duration_ms: 368.340959
+  ...
+# Subtest: mergeEffects only applies enabled
+ok 78 - mergeEffects only applies enabled
+  ---
+  duration_ms: 0.313917
+  ...
+# Subtest: fxContext / fxEventsAt / fxDriftActive helpers
+ok 79 - fxContext / fxEventsAt / fxDriftActive helpers
+  ---
+  duration_ms: 0.279791
+  ...
+# Subtest: effects-plan approved carry
+not ok 80 - effects-plan approved carry
+  ---
+  duration_ms: 710.149417
+  location: '/Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/1/personal-stuff/pipelines/video/visuals-flow/lib/board.test.mjs:819:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/1/personal-stuff/pipelines/video/visuals-flow/lib/board.test.mjs:843:10)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+  ...
+# Subtest: GET /vo.mp3 serves audio
+ok 81 - GET /vo.mp3 serves audio
+  ---
+  duration_ms: 335.339083
+  ...
+# Subtest: plan emits one bubble instance
+ok 82 - plan emits one bubble instance
+  ---
+  duration_ms: 0.43325
+  ...
+# Subtest: bubbleGeometry integer values at 1080p and 720p
+ok 83 - bubbleGeometry integer values at 1080p and 720p
+  ---
+  duration_ms: 0.480208
+  ...
+# Subtest: contribute returns null for non-screen segments
+ok 84 - contribute returns null for non-screen segments
+  ---
+  duration_ms: 0.124792
+  ...
+# Subtest: contribute returns null when cornerJobs empty or filesless
+ok 85 - contribute returns null when cornerJobs empty or filesless
+  ---
+  duration_ms: 0.060625
+  ...
+# Subtest: contribute slice arithmetic across a chunk boundary
+ok 86 - contribute slice arithmetic across a chunk boundary
+  ---
+  duration_ms: 0.470875
+  ...
+# Subtest: contribute assigns phase constants per segment
+ok 87 - contribute assigns phase constants per segment
+  ---
+  duration_ms: 0.361958
+  ...
+# Subtest: contribute honours startTrim in slice + local timing
+ok 88 - contribute honours startTrim in slice + local timing
+  ---
+  duration_ms: 0.280833
+  ...
+# Subtest: pixel proof: masked circle + ring composited at top-right
+ok 89 - pixel proof: masked circle + ring composited at top-right
+  ---
+  duration_ms: 917.609625
+  ...
+# Subtest: pixel proof: arc position changes with phase
+ok 90 - pixel proof: arc position changes with phase
+  ---
+  duration_ms: 609.494
+  ...
+# Subtest: markKeyword rules
+ok 91 - markKeyword rules
+  ---
+  duration_ms: 0.501084
+  ...
+# Subtest: planCaptions empty
+ok 92 - planCaptions empty
+  ---
+  duration_ms: 0.473625
+  ...
+# Subtest: planCaptions chunking by word cap
+ok 93 - planCaptions chunking by word cap
+  ---
+  duration_ms: 0.205916
+  ...
+# Subtest: planCaptions chunking by char cap
+ok 94 - planCaptions chunking by char cap
+  ---
+  duration_ms: 0.135958
+  ...
+# Subtest: planCaptions chunking by gap split
+ok 95 - planCaptions chunking by gap split
+  ---
+  duration_ms: 0.073
+  ...
+# Subtest: planCaptions CAP_TAIL vs next-chunk clamp
+ok 96 - planCaptions CAP_TAIL vs next-chunk clamp
+  ---
+  duration_ms: 0.066792
+  ...
+# Subtest: assEscape
+ok 97 - assEscape
+  ---
+  duration_ms: 0.1085
+  ...
+# Subtest: ASS highlight pixel proof
+ok 98 - ASS highlight pixel proof
+  ---
+  duration_ms: 4726.556542
+  ...
+# Subtest: editDelta: identical files yield zero totals
+ok 99 - editDelta: identical files yield zero totals
+  ---
+  duration_ms: 0.465458
+  ...
+# Subtest: editDelta: detects changes correctly
+ok 100 - editDelta: detects changes correctly
+  ---
+  duration_ms: 0.312916
+  ...
+# Subtest: feedback-status: all folded/applied -> exit 0
+ok 101 - feedback-status: all folded/applied -> exit 0
+  ---
+  duration_ms: 3.535667
+  ...
+# Subtest: feedback-status: pending item -> exit 1 and logs item
+ok 102 - feedback-status: pending item -> exit 1 and logs item
+  ---
+  duration_ms: 6.812292
+  ...
+# Subtest: feedback-status: missing cues.llm.json -> stderr warning, exit unaffected
+ok 103 - feedback-status: missing cues.llm.json -> stderr warning, exit unaffected
+  ---
+  duration_ms: 1.513
+  ...
+# Subtest: two overlapping spans → E1
+ok 104 - two overlapping spans → E1
+  ---
+  duration_ms: 0.72975
+  ...
+# Subtest: span overlapping a fullframe cue → E2; same span vs an overlay cue → no E2
+ok 105 - span overlapping a fullframe cue → E2; same span vs an overlay cue → no E2
+  ---
+  duration_ms: 0.112833
+  ...
+# Subtest: 8s span → E3; 200s span → W1
+ok 106 - 8s span → E3; 200s span → W1
+  ---
+  duration_ms: 0.243542
+  ...
+# Subtest: spans totalling 350s → E4
+ok 107 - spans totalling 350s → E4
+  ---
+  duration_ms: 0.0735
+  ...
+# Subtest: single mid-video span → W3 twice; spans at edges → no W3
+ok 108 - single mid-video span → W3 twice; spans at edges → no W3
+  ---
+  duration_ms: 0.827583
+  ...
+# Subtest: 400s gap between spans → W4; 250s gap → no W4
+ok 109 - 400s gap between spans → W4; 250s gap → no W4
+  ---
+  duration_ms: 0.278459
+  ...
+# Subtest: empty spans array → no errors, no warnings
+ok 110 - empty spans array → no errors, no warnings
+  ---
+  duration_ms: 0.436
+  ...
+# Subtest: screen segment between avatars < 2.5s -> E5
+ok 111 - screen segment between avatars < 2.5s -> E5
+  ---
+  duration_ms: 0.123542
+  ...
+# Subtest: screen segment < 5s -> W5
+ok 112 - screen segment < 5s -> W5
+  ---
+  duration_ms: 0.30425
+  ...
+# Subtest: clean plan silent -> no E5/W5
+ok 113 - clean plan silent -> no E5/W5
+  ---
+  duration_ms: 0.374083
+  ...
+# Subtest: E1 stat-hit-cap
+ok 114 - E1 stat-hit-cap
+  ---
+  duration_ms: 0.936208
+  ...
+# Subtest: E2 stat-hit-spacing
+ok 115 - E2 stat-hit-spacing
+  ---
+  duration_ms: 0.315667
+  ...
+# Subtest: E3 card-repetition
+ok 116 - E3 card-repetition
+  ---
+  duration_ms: 0.11425
+  ...
+# Subtest: E4 exclusion-zones
+ok 117 - E4 exclusion-zones
+  ---
+  duration_ms: 0.117125
+  ...
+# Subtest: W3 total-count scaling
+ok 118 - W3 total-count scaling
+  ---
+  duration_ms: 0.139583
+  ...
+# Subtest: W1 fullframe-cadence gap
+ok 119 - W1 fullframe-cadence gap
+  ---
+  duration_ms: 0.057959
+  ...
+# Subtest: W2 overlay-density
+ok 120 - W2 overlay-density
+  ---
+  duration_ms: 0.1305
+  ...
+# Subtest: W4 reveal-wordcount
+ok 121 - W4 reveal-wordcount
+  ---
+  duration_ms: 0.118333
+  ...
+# Subtest: flagged cues are ignored
+ok 122 - flagged cues are ignored
+  ---
+  duration_ms: 0.2805
+  ...
+# Subtest: E3 exemption: structural fullframe cards repeat freely (one per compared item)
+ok 123 - E3 exemption: structural fullframe cards repeat freely (one per compared item)
+  ---
+  duration_ms: 0.337167
+  ...
+# Subtest: E4 short-video guard
+ok 124 - E4 short-video guard
+  ---
+  duration_ms: 0.15375
+  ...
+# Subtest: enrichLogos handles variables and missing
+ok 125 - enrichLogos handles variables and missing
+  ---
+  duration_ms: 7.364333
+  ...
+# Subtest: validateCues handles logo slugs
+ok 126 - validateCues handles logo slugs
+  ---
+  duration_ms: 5.709667
+  ...
+# Subtest: parseSceneLog parses ffmpeg metadata
+ok 127 - parseSceneLog parses ffmpeg metadata
+  ---
+  duration_ms: 1.58825
+  ...
+# Subtest: parseLumaCsv and lumaSpikes detect flashes
+ok 128 - parseLumaCsv and lumaSpikes detect flashes
+  ---
+  duration_ms: 0.696583
+  ...
+# Subtest: clusterMoments merges and ranks moments
+ok 129 - clusterMoments merges and ranks moments
+  ---
+  duration_ms: 1.114333
+  ...
+# Subtest: rewriteDuration: uniform data-duration values all get replaced
+ok 130 - rewriteDuration: uniform data-duration values all get replaced
+  ---
+  duration_ms: 0.531458
+  ...
+# Subtest: rewriteDuration: mixed data-duration values error, html unchanged
+ok 131 - rewriteDuration: mixed data-duration values error, html unchanged
+  ---
+  duration_ms: 0.149542
+  ...
+# Subtest: mmss formats minutes:seconds.decisecond
+ok 132 - mmss formats minutes:seconds.decisecond
+  ---
+  duration_ms: 0.071333
+  ...
+# Subtest: manifestMd sorts cues by start and formats columns
+ok 133 - manifestMd sorts cues by start and formats columns
+  ---
+  duration_ms: 0.237208
+  ...
+# Subtest: planRender: overlay placement renders mov, fullframe renders mp4
+ok 134 - planRender: overlay placement renders mov, fullframe renders mp4
+  ---
+  duration_ms: 0.147792
+  ...
+# Subtest: manifestMd applies timeline offset to place-at column only
+ok 135 - manifestMd applies timeline offset to place-at column only
+  ---
+  duration_ms: 0.073584
+  ...
+# Subtest: manifestCues returns only cues whose outFile exists
+ok 136 - manifestCues returns only cues whose outFile exists
+  ---
+  duration_ms: 2.424083
+  ...
+# Subtest: CLI: approval gate exits 1 and mentions approved
+ok 137 - CLI: approval gate exits 1 and mentions approved
+  ---
+  duration_ms: 142.910958
+  ...
+# Subtest: CLI: staleness gate exits 1 and mentions stale
+ok 138 - CLI: staleness gate exits 1 and mentions stale
+  ---
+  duration_ms: 98.647541
+  ...
+# Subtest: happy path: span {id:"s01", kind:"avatar-full", from_anchor:"w10 w11 w12", to_anchor:"w20 w21 w22"}, engineMode "test" → one resolved span
+ok 139 - happy path: span {id:"s01", kind:"avatar-full", from_anchor:"w10 w11 w12", to_anchor:"w20 w21 w22"}, engineMode "test" → one resolved span
+  ---
+  duration_ms: 1.0405
+  ...
+# Subtest: to_anchor before from_anchor in the transcript → error mentioning to_anchor
+ok 140 - to_anchor before from_anchor in the transcript → error mentioning to_anchor
+  ---
+  duration_ms: 0.109792
+  ...
+# Subtest: unknown kind → error; flagged: true span → skipped, no error
+ok 141 - unknown kind → error; flagged: true span → skipped, no error
+  ---
+  duration_ms: 0.072083
+  ...
+# Subtest: engineMode: "production" → error containing not implemented; engineMode: "nope" → error containing invalid
+ok 142 - engineMode: "production" → error containing not implemented; engineMode: "nope" → error containing invalid
+  ---
+  duration_ms: 0.083167
+  ...
+# Subtest: duplicate span ids → error
+ok 143 - duplicate span ids → error
+  ---
+  duration_ms: 0.149333
+  ...
+# Subtest: anchor with < 3 words → error (via findPhrase)
+ok 144 - anchor with < 3 words → error (via findPhrase)
+  ---
+  duration_ms: 0.068375
+  ...
+# Subtest: snap at both edges
+ok 145 - snap at both edges
+  ---
+  duration_ms: 1.396542
+  ...
+# Subtest: snap at 1.4s, no snap at 1.6s, sets snapped flag
+ok 146 - snap at 1.4s, no snap at 1.6s, sets snapped flag
+  ---
+  duration_ms: 0.371083
+  ...
+# Subtest: happy path: cue + 2 beats resolves start/at/duration
+ok 147 - happy path: cue + 2 beats resolves start/at/duration
+  ---
+  duration_ms: 1.10375
+  ...
+# Subtest: anchor not in transcript produces an error and drops the cue
+ok 148 - anchor not in transcript produces an error and drops the cue
+  ---
+  duration_ms: 0.153583
+  ...
+# Subtest: monotonicity: beat phrase only before the cue anchor is not found (forward search only)
+ok 149 - monotonicity: beat phrase only before the cue anchor is not found (forward search only)
+  ---
+  duration_ms: 0.137084
+  ...
+# Subtest: repeated phrase: second cue matches the second occurrence, forward of the first
+ok 150 - repeated phrase: second cue matches the second occurrence, forward of the first
+  ---
+  duration_ms: 0.33675
+  ...
+# Subtest: anchor with fewer than 3 words is an error
+ok 151 - anchor with fewer than 3 words is an error
+  ---
+  duration_ms: 0.096042
+  ...
+# Subtest: flagged cue is skipped silently, no error
+ok 152 - flagged cue is skipped silently, no error
+  ---
+  duration_ms: 0.124
+  ...
+# Subtest: overlapping fullframe cues error; overlay overlapping fullframe does not
+ok 153 - overlapping fullframe cues error; overlay overlapping fullframe does not
+  ---
+  duration_ms: 0.218333
+  ...
+# Subtest: sandwich overlap: overlay between fullframes tracks the last fullframe
+ok 154 - sandwich overlap: overlay between fullframes tracks the last fullframe
+  ---
+  duration_ms: 0.297084
+  ...
+# Subtest: beat anchor inside cue anchor phrase fails; immediately after resolves
+ok 155 - beat anchor inside cue anchor phrase fails; immediately after resolves
+  ---
+  duration_ms: 0.286917
+  ...
+# Subtest: consecutive cues sharing boundary words resolve correctly
+ok 156 - consecutive cues sharing boundary words resolve correctly
+  ---
+  duration_ms: 0.253458
+  ...
+# Subtest: beat-less single cue uses catalog default_duration
+ok 157 - beat-less single cue uses catalog default_duration
+  ---
+  duration_ms: 0.059125
+  ...
+# Subtest: normWord strips punctuation and lowercases (transcript "Pros," matches anchor "pros")
+ok 158 - normWord strips punctuation and lowercases (transcript "Pros," matches anchor "pros")
+  ---
+  duration_ms: 0.036625
+  ...
+# Subtest: CLI: resolves a fixture workdir to resolved.json and exits 0
+ok 159 - CLI: resolves a fixture workdir to resolved.json and exits 0
+  ---
+  duration_ms: 56.006875
+  ...
+# Subtest: CLI: bad anchor exits 1 and writes no resolved.json
+ok 160 - CLI: bad anchor exits 1 and writes no resolved.json
+  ---
+  duration_ms: 52.192458
+  ...
+# Subtest: validateCues: catches the test-01 bug classes
+ok 161 - validateCues: catches the test-01 bug classes
+  ---
+  duration_ms: 0.388583
+  ...
+# Subtest: transcriptText unit test
+ok 162 - transcriptText unit test
+  ---
+  duration_ms: 0.3245
+  ...
+# Subtest: CLI smoke test
+ok 163 - CLI smoke test
+  ---
+  duration_ms: 59.295042
+  ...
+# Subtest: plan() emits style:blur for avatar>screen and style:flash for *>graphic, nothing for graphic>* or screen>avatar
+ok 164 - plan() emits style:blur for avatar>screen and style:flash for *>graphic, nothing for graphic>* or screen>avatar
+  ---
+  duration_ms: 0.415792
+  ...
+# Subtest: plan() skips boundaries with an overlapping overlay and <1s segments
+ok 165 - plan() skips boundaries with an overlapping overlay and <1s segments
+  ---
+  duration_ms: 0.131958
+  ...
+# Subtest: boundarySegments() flash chain shape
+ok 166 - boundarySegments() flash chain shape
+  ---
+  duration_ms: 0.234334
+  ...
+1..166
+# tests 166
+# suites 0
+# pass 164
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 67587.128541

@@ -685,3 +685,23 @@ test('Integration: drift on vs off', { skip: spawnSync('ffmpeg', ['-version']).e
   assert.ok(Math.abs(offMean0 - offMean5) < 0.1, `drift OFF frames should match, got ${offMean0} vs ${offMean5}`);
 });
 
+test('assemble: effects.json approved=false exits unless --force is passed', () => {
+  const workdir = fs.mkdtempSync(path.join(testTmp, 'assemble-fx-gate-'));
+  
+  fs.writeFileSync(path.join(workdir, 'cues.json'), JSON.stringify({ approved: true, cues: [] }));
+  fs.writeFileSync(path.join(workdir, 'resolved.json'), JSON.stringify({ video: 'test', resolved: [] }));
+  fs.writeFileSync(path.join(workdir, 'transcript.json'), '[]');
+  fs.writeFileSync(path.join(workdir, 'vo.mp3'), '');
+  fs.writeFileSync(path.join(workdir, 'screen.mp4'), '');
+  fs.writeFileSync(path.join(workdir, 'effects.json'), JSON.stringify({ approved: false, instances: [] }));
+  
+  const bin = path.resolve(import.meta.dirname, 'assemble.mjs');
+  
+  const res1 = spawnSync('node', [bin, workdir]);
+  assert.equal(res1.status, 1);
+  assert.match(res1.stderr.toString(), /effects\.json approved=false/);
+  
+  fs.writeFileSync(path.join(workdir, 'effects.json'), JSON.stringify({ approved: true, instances: [] }));
+  const res2 = spawnSync('node', [bin, workdir]);
+  assert.ok(!res2.stderr.toString().includes('effects.json approved=false'));
+});

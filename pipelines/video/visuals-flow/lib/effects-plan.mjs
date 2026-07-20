@@ -79,15 +79,23 @@ function main() {
   const newInstances = [];
   for (const inst of defaultInstances) {
     const override = existing.instances.find(m => m.id === inst.id);
-    if (override) {
-      newInstances.push({ ...inst, ...override });
+    if (override && override.enabled !== undefined) {
+      newInstances.push({ ...inst, enabled: override.enabled });
     } else {
-      newInstances.push(inst);
+      newInstances.push({ ...inst });
     }
   }
 
+  const stripEnabled = (instances) => instances.map(({ enabled, ...rest }) => rest);
+
+  const canon = (v) => Array.isArray(v) ? v.map(canon)
+    : (v && typeof v === 'object')
+      ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])]))
+      : v;
+  const unchanged = JSON.stringify(canon(stripEnabled(existing.instances ?? []))) === JSON.stringify(canon(stripEnabled(defaultInstances)));
   const outData = {
     video,
+    approved: existing.approved === true && unchanged,
     instances: newInstances
   };
 

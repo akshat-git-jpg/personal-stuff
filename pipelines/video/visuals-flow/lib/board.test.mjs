@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots } from './board.mjs';
+import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, fxDriftActive } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'board');
@@ -20,10 +20,12 @@ function ensureFixtureAudio() {
   assert.equal(result.status, 0, result.stderr);
 }
 
-function makeWorkdir() {
+function makeWorkdir(withEffects = false) {
   fs.mkdirSync(TMP_ROOT, { recursive: true });
   const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'board-'));
-  for (const f of ['cues.json', 'resolved.json', 'transcript.json', 'vo.mp3']) {
+  const files = ['cues.json', 'resolved.json', 'transcript.json', 'vo.mp3'];
+  if (withEffects) files.push('effects.json');
+  for (const f of files) {
     fs.copyFileSync(path.join(FIXTURE_DIR, f), path.join(dir, f));
   }
   return dir;
@@ -686,6 +688,178 @@ test('POST /save allows 127.0.0.1 origin', async () => {
     assert.equal(res.status, 200);
     const data = await res.json();
     assert.equal(data.ok, true);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET / without effects.json renders no effects lane', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/`);
+    const html = await res.text();
+    assert.ok(!html.includes('minimap minimap-fx'), 'no effects lane');
+    assert.ok(!html.includes('Approve effects'), 'no approve effects button');
+  } finally {
+    server.close();
+  }
+});
+
+test('GET / with effects.json renders lane, chips, approve button, sim stage', async () => {
+  const workdir = makeWorkdir(true);
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/`);
+    const html = await res.text();
+    assert.ok(html.includes('minimap-fx'), 'lane present');
+    assert.ok(html.includes('fx-chip'), 'chips present');
+    assert.ok(html.includes('>Approve effects<'), 'button present');
+    assert.ok(html.includes('fxStage'), 'sim stage present');
+    assert.ok(html.includes('timing preview'), 'preview note present');
+    assert.ok(html.includes('capChunks') || html.includes('Great support'), 'caption data present');
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /save with an effects toggle writes enabled and resets approval', async () => {
+  const workdir = makeWorkdir(true);
+  const effectsPath = path.join(workdir, 'effects.json');
+  const fxFile = JSON.parse(fs.readFileSync(effectsPath, 'utf8'));
+  fxFile.approved = true;
+  fs.writeFileSync(effectsPath, JSON.stringify(fxFile));
+  const { server, base } = await startServer(workdir);
+  try {
+    const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+    cuesFile.effects = [{ id: 'whip-5.0', enabled: false }];
+    const res = await fetch(`${base}/save`, { method: 'POST', body: JSON.stringify(cuesFile) });
+    const data = await res.json();
+    assert.ok(data.warnings.some(w => w.includes('effects: un-approved')), 'warning emitted');
+    const onDisk = JSON.parse(fs.readFileSync(effectsPath, 'utf8'));
+    assert.equal(onDisk.instances.find(i => i.id === 'whip-5.0').enabled, false);
+    assert.equal(onDisk.approved, false);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /save with unchanged toggles preserves approval', async () => {
+  const workdir = makeWorkdir(true);
+  const effectsPath = path.join(workdir, 'effects.json');
+  const fxFile = JSON.parse(fs.readFileSync(effectsPath, 'utf8'));
+  fxFile.approved = true;
+  fs.writeFileSync(effectsPath, JSON.stringify(fxFile));
+  const { server, base } = await startServer(workdir);
+  try {
+    const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+    cuesFile.effects = fxFile.instances.map(i => ({ id: i.id, enabled: i.enabled }));
+    const res = await fetch(`${base}/save`, { method: 'POST', body: JSON.stringify(cuesFile) });
+    const data = await res.json();
+    assert.ok(!data.warnings?.some(w => w.includes('effects: un-approved')), 'no warning');
+    const onDisk = JSON.parse(fs.readFileSync(effectsPath, 'utf8'));
+    assert.equal(onDisk.approved, true);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /approve-effects sets approved', async () => {
+  const workdir = makeWorkdir(true);
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/approve-effects`, { method: 'POST' });
+    const data = await res.json();
+    assert.deepEqual(data, { ok: true });
+    const onDisk = JSON.parse(fs.readFileSync(path.join(workdir, 'effects.json'), 'utf8'));
+    assert.equal(onDisk.approved, true);
+    
+    const pageRes = await fetch(`${base}/`);
+    const html = await pageRes.text();
+    assert.ok(html.includes('effects approved — ready for step 090 assemble'));
+  } finally {
+    server.close();
+  }
+});
+
+test('mergeEffects only applies enabled', () => {
+  const prev = { instances: [{ id: 'b1', punch: 1.05, enabled: true }] };
+  const toggles = [{ id: 'b1', enabled: false, punch: 99 }];
+  const { merged } = mergeEffects(prev, toggles);
+  assert.equal(merged.instances[0].enabled, false);
+  assert.equal(merged.instances[0].punch, 1.05);
+});
+
+test('fxContext / fxEventsAt / fxDriftActive helpers', () => {
+  const fullframes = [{ id: 'f1', start: 10, end: 15 }];
+  const spans = [{ id: 's1', start: 5, end: 12 }];
+  
+  assert.equal(fxContext(8, fullframes, spans), 'avatar');
+  assert.equal(fxContext(11, fullframes, spans), 'graphic');
+  assert.equal(fxContext(2, fullframes, spans), 'screen');
+  
+  const instances = [
+    { type: 'whip', at: 5, enabled: true },
+    { type: 'whip', at: 8, enabled: false },
+    { type: 'drift', start: 4, end: 6, enabled: true }
+  ];
+  
+  const ev1 = fxEventsAt(4, 5, instances);
+  assert.equal(ev1.length, 1);
+  assert.equal(ev1[0].at, 5);
+  
+  const ev2 = fxEventsAt(5, 6, instances);
+  assert.equal(ev2.length, 0);
+  
+  assert.equal(fxDriftActive(5, instances, 'screen'), true);
+  assert.equal(fxDriftActive(7, instances, 'screen'), false);
+  assert.equal(fxDriftActive(5, instances, 'avatar'), false);
+});
+
+test('effects-plan approved carry', () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'board-fxplan-'));
+  const boardDir = makeWorkdir(false);
+  fs.copyFileSync(path.join(boardDir, 'resolved.json'), path.join(dir, 'resolved.json'));
+  fs.copyFileSync(path.join(boardDir, 'transcript.json'), path.join(dir, 'transcript.json'));
+  fs.copyFileSync(path.join(boardDir, 'vo.mp3'), path.join(dir, 'vo.mp3'));
+  
+  const fxPlanPath = path.resolve(import.meta.dirname, 'effects-plan.mjs');
+  
+  spawnSync('node', [fxPlanPath, dir]);
+  let onDisk = JSON.parse(fs.readFileSync(path.join(dir, 'effects.json'), 'utf8'));
+  assert.equal(onDisk.approved, false);
+  
+  onDisk.approved = true;
+  fs.writeFileSync(path.join(dir, 'effects.json'), JSON.stringify(onDisk));
+  spawnSync('node', [fxPlanPath, dir]);
+  onDisk = JSON.parse(fs.readFileSync(path.join(dir, 'effects.json'), 'utf8'));
+  assert.equal(onDisk.approved, true);
+  
+  onDisk.instances[0].enabled = false;
+  fs.writeFileSync(path.join(dir, 'effects.json'), JSON.stringify(onDisk));
+  spawnSync('node', [fxPlanPath, dir]);
+  onDisk = JSON.parse(fs.readFileSync(path.join(dir, 'effects.json'), 'utf8'));
+  assert.equal(onDisk.approved, true, 'intrinsic is unchanged so approved is preserved');
+  assert.equal(onDisk.instances[0].enabled, false, 'override preserved');
+  
+  // 4. Change an intrinsic property -> false
+  onDisk.instances[0].at = 99.9;
+  fs.writeFileSync(path.join(dir, 'effects.json'), JSON.stringify(onDisk));
+  spawnSync('node', [fxPlanPath, dir]);
+  onDisk = JSON.parse(fs.readFileSync(path.join(dir, 'effects.json'), 'utf8'));
+  assert.equal(onDisk.approved, false, 'intrinsic changed so approved resets');
+});
+
+test('GET /vo.mp3 serves audio', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/vo.mp3`);
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('content-type'), 'audio/mpeg');
+    const buf = Buffer.from(await res.arrayBuffer());
+    assert.ok(buf.length > 0);
   } finally {
     server.close();
   }
