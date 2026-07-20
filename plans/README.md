@@ -550,3 +550,4 @@ The others are grounded and available when the owner wants them:
 - 104-board-effects-lane — PR#61 104-board-effects-lane: board effects lane — markers, toggles, approval gate, CSS-sim playback — DONE
 - 106-shot-cadence-youri-recalibration — PR#63 106-shot-cadence-youri-recalibration: shot-plan cadence → Youri rhythm, totals frozen — DONE
 - 107-kinetic-sentence-card — PR#64 107-kinetic-sentence-card: kinetic-sentence card + word-synced resolver — DONE
+- 108-kinetic-sentence-cue-rules — PR#65 108-kinetic-sentence-cue-rules: teach the cue pass to write kinetic-sentence cues — DONE
