@@ -124,6 +124,31 @@ Editor handoff = `renders/` + `manifest.md` + those clips + `avatar-manifest.md`
    captions / punch-ins) are baked INTO the clips — effect tweaks stay
    `effects.json` + re-assemble, never Resolve.
 
+## Verb: "qc the video <slug>" / "run the filmstrip qc"
+
+1. Requires an assembled video in kb-scratch: `final-draft.mp4` (default) or
+   `final.mp4` (add `--final`).
+2. `bash scripts/qc-video.sh <slug> [--final]` — writes
+   `~/kb-scratch/video/visuals-flow/<slug>/qc/`: `checklist.md` (one row per
+   expected event, derived from assembly.md + effects.json), `events.json`,
+   `waveform.png`, overview strips, and one 30fps contact sheet per event
+   (the event lands ~frame 21; the window starts 0.7s before it).
+3. READ the pack in this order: checklist.md first, then the overview strips
+   (whole-video sanity: no long freezes, no letterboxing shifts, captions
+   present on screen segments), then EVERY event sheet (batch 4–6 images per
+   Read). Score each event ✓/✗ against its "expected" column. Typical ✗:
+   wrong/missing card, black or solid-color frames at a cut, caption absent,
+   overlay lingering past its until, a zoom on a cut INTO the host, flash
+   rendering pink/washed-out.
+4. Write `videos/<slug>/qc-report.md` (committed): the checklist table plus
+   `verdict` and `note` columns, ✗ rows first, then surface the ✗ list to the
+   owner with the cheapest fix for each (an `effects.json` per-instance kill,
+   a board feedback box entry for cue/shot timing, or a Resolve nudge via the
+   export verb). QC findings are observations for the OWNER — never edit
+   cues/shots/effects yourself off the back of a sheet.
+Token note: a 30-min video ≈ 55–75 sheets ≈ the cost class of one
+"analyze reference" pass. Do not sample — coverage is the point.
+
 ## Verb: "fold the feedback" (guardrail 2 — Opus-class only)
 
 Follow `steps/060-feedback-fold-opus/README.md`: `node lib/edit-delta.mjs <slug>`

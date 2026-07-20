@@ -22,6 +22,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `080-avatar-render-run` | [RUN] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
 | `090-assemble-run` | [RUN] | `screen.mp4` + `vo.mp3` + `renders/` + avatar clips (`avatar-jobs.json`) → `final.mp4` (kb-scratch) + `assembly.md` |
 | `095-resolve-export-run` | [RUN] | same inputs as 090 → `resolve-export/` in kb-scratch (`timeline.fcpxml` + segment clips) for human touch-up in DaVinci Resolve / Premiere |
+| qc (`scripts/qc-video.sh`) | [RUN] + [LLM read] | `final(-draft).mp4` + `assembly.md` + `effects.json` → kb-scratch `qc/` pack (checklist + event contact sheets) → session-read verdicts in committed `qc-report.md` |
 | `060-feedback-fold-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
 | **publish templates** | [RUN] | once the video is done: `cd ../card-library && npm run publish-check` → fails on any card built for this video that is uncommitted or unpushed. Cards only reach the editor's gallery at render2.agrolloo.com once pushed (VPS `repo-sync` cron, ~15 min). See `card-library/CLAUDE.md`. |
 
@@ -49,6 +50,7 @@ videos/<slug>/
   avatar-manifest.md   # step 080 output — committed
   screen.mp4       # VO-aligned screen recording (owner-provided) — gitignored
   assembly.md      # step 090 output, the assembly EDL — committed
+  qc-report.md     # filmstrip QC verdict table (qc verb output) — committed
   feedback.json    # owner feedback typed on the board (per-cue, per-gap, global) — committed
 ```
 
