@@ -123,8 +123,10 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 106 | shot-plan cadence recalibrated to Youri rhythm (owner 2026-07-20) — SPAN_MIN 12→10, W1 split mid 45s/zone 120s, GAP_AVATAR_MAX 300→180, 070 pair rewritten; totals FROZEN (300s cap/240s target = HeyGen cost) | P1 | S | none | TODO |
 | 107 | kinetic-sentence card + word-synced resolver — the Youri interstitial that replaces jump-cut talking head for bridges; new `word-sync` catalog kind whose per-word `at` is derived from transcript.json (never hand-anchored) | P1 | M | none | TODO |
 | 108 | teach the cue pass to write kinetic-sentence cues — RULEBOOK rule (when it fires, verbatim quoting, how the accent phrase is chosen) + cue-pass-prompt schema/rules | P1 | S | 107 | TODO |
-| 109 | Resolve timeline export — assembly → FCPXML (V1 baked overlay-free segments, overlays on their own lane, VO track) for human touch-up in DaVinci/Premiere; `--bundle` for the remote-editor handoff | P1 | M | none | TODO |
+| 109 | Resolve timeline export — assembly → FCPXML (V1 baked overlay-free segments, overlays on their own lane, VO track) for human touch-up in DaVinci/Premiere; `--bundle` for the remote-editor handoff | P1 | M | none | DONE (landed PR#66; +2026-07-21 inline fix 090dcb8: absolute media URLs, --force) |
 | 110 | Filmstrip QC pass — expected-events checklist + per-event 30fps contact sheets from assembly.md/effects.json; session reads the pack → committed qc-report.md | P1 | M | 109 (merge order only: shared check.sh/SKILL.md/docs) | DONE |
+| 111 | FX overlay clip renderer — effects.json flash/beat instances → transparent ProRes clips + manifest (renders-fx/), envelopes derived live from effect-module CONSTANTS | P1 | M | none | TODO |
+| 112 | Native layered FCPXML export (new default) — continuous screen spine + avatar/graphics/overlays/FX lanes + markers + captions.srt; `--baked` keeps the 109 WYSIWYG mode (spec docs/specs/2026-07-21-native-editor-export-design.md) | P1 | M | 111 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -386,6 +388,13 @@ lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
   shippable video and editor draft — bundle handoff unchanged). Corner-track compositing
   and non-aligned screen (tutorial-pipeline-2 flow) are recorded as future seams in the
   plan's maintenance notes. Status lives in the table above. `GFX-14`. Effort M.
+- **DRT-native editor export (Phase 2)** — author real `.drp` projects offline via the vendored
+  `davinci-resolve-mcp/resolve-advanced` drp-format lib: native transitions + true Text+ captions +
+  media items. POC 2026-07-20/21 (Resolve 21.0.2 free, `~/kb-scratch/.../test-01/drt-poc/`):
+  structure/transitions/generators import as native objects ✓; media-pool items and Text+ comps
+  break (cloned zstd/binary blobs don't survive machine drift) ✗. Preconditions in
+  `docs/specs/2026-07-21-native-editor-export-design.md`; consumes plan 112's data layer as-is.
+  Owner-DEFERRED 2026-07-21 in favor of Phase 1 (plans 111/112). `GFX-19`. Effort L.
 - (Density calibration — HANDOFF open item 7 — is deliberately NOT a backlog row: it's what
   the 060 fold loop + 076's convergence metrics DO with the first few real videos. The
   STARTING numbers were reset to the Youri reference calibration by plan 099 — owner
