@@ -123,6 +123,8 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 106 | shot-plan cadence recalibrated to Youri rhythm (owner 2026-07-20) — SPAN_MIN 12→10, W1 split mid 45s/zone 120s, GAP_AVATAR_MAX 300→180, 070 pair rewritten; totals FROZEN (300s cap/240s target = HeyGen cost) | P1 | S | none | TODO |
 | 107 | kinetic-sentence card + word-synced resolver — the Youri interstitial that replaces jump-cut talking head for bridges; new `word-sync` catalog kind whose per-word `at` is derived from transcript.json (never hand-anchored) | P1 | M | none | TODO |
 | 108 | teach the cue pass to write kinetic-sentence cues — RULEBOOK rule (when it fires, verbatim quoting, how the accent phrase is chosen) + cue-pass-prompt schema/rules | P1 | S | 107 | TODO |
+| 109 | Resolve timeline export — assembly → FCPXML (V1 baked overlay-free segments, overlays on their own lane, VO track) for human touch-up in DaVinci/Premiere; `--bundle` for the remote-editor handoff | P1 | M | none | TODO |
+| 110 | Filmstrip QC pass — expected-events checklist + per-event 30fps contact sheets from assembly.md/effects.json; session reads the pack → committed qc-report.md | P1 | M | 109 (merge order only: shared check.sh/SKILL.md/docs) | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
