@@ -47,6 +47,9 @@ dist/
 htmlcov/
 .pytest_cache/
 
+# stray test-run captures (crews sometimes redirect check.sh output to repo root)
+test-output*.log
+
 # IDE
 .idea/
 .vscode/
