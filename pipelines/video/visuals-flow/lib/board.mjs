@@ -263,6 +263,35 @@ const BOARD_CSS = `
   #fxStage .note-fixed { position:absolute; top:6px; right:10px; font-size:10px; color:var(--dim); }
 `;
 
+// Styles for the / (timeline) view only — appended alongside BOARD_CSS.
+const TIMELINE_CSS = `
+  .tl-zoom-row { display:flex; align-items:center; gap:10px; margin:0 0 14px; font-size:12px; color:var(--dim); }
+  .tl-layout { display:flex; gap:16px; align-items:flex-start; }
+  .tl-canvas-wrap { flex:1; min-width:0; overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
+  .tl-canvas { display:flex; }
+  .tl-labels { flex:none; width:90px; position:sticky; left:0; z-index:5; background:var(--bg); border-right:1px solid var(--line); }
+  .tl-label { height:36px; display:flex; align-items:center; padding:0 10px; font-family:ui-monospace,Menlo,monospace;
+    font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:0.08em; }
+  .tl-ruler-spacer { height:24px; }
+  .tl-tracks { position:relative; flex:none; }
+  .tl-ruler { height:24px; position:relative; border-bottom:1px solid var(--line); cursor:pointer; }
+  .tl-tick { position:absolute; top:0; bottom:0; font-size:10px; color:var(--dim); border-left:1px solid var(--line); padding:2px 0 0 4px; white-space:nowrap; }
+  .tl-track { position:relative; height:36px; border-bottom:1px solid var(--line); background:rgba(255,255,255,0.02); }
+  .tl-screen-bar { position:absolute; inset:8px 0; background:var(--line); border-radius:3px; }
+  .tl-block { position:absolute; top:4px; bottom:4px; overflow:hidden; cursor:pointer; border-radius:3px;
+    font-size:10px; padding:2px 4px; color:#0f0b07; white-space:nowrap; }
+  .tl-mark { position:absolute; top:4px; bottom:4px; width:3px; border-radius:1px; }
+  .tl-span { position:absolute; top:12px; height:8px; border-radius:4px; background:rgba(245,237,226,0.28); }
+  .tl-fx-chips { position:absolute; left:4px; top:4px; display:flex; gap:4px; z-index:2; }
+  .tl-chip { font-size:11px; font-family:ui-monospace,Menlo,monospace; color:var(--dim);
+    border:1px solid var(--line); border-radius:20px; padding:2px 8px; background:var(--bg); }
+  .tl-playhead { position:absolute; top:0; bottom:0; width:2px; background:#fff; pointer-events:none; }
+  #detail-panel { flex:none; width:520px; max-width:520px; position:sticky; top:140px;
+    max-height:calc(100vh - 160px); overflow-y:auto; background:var(--panel); border:1px solid var(--line);
+    border-radius:12px; padding:16px; }
+  #detail-panel .placeholder { color:var(--dim); font-size:13px; }
+`;
+
 // Shared client script for both / (board) and /calibrate: posts each tile's
 // probe times into its iframe on load, and turns broken reports into a badge
 // on the tile header. Kept as one string so the two pages can't drift.
@@ -868,6 +897,202 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 </html>`;
 }
 
+// The board's default (`/`) landing page: a horizontal, editor-style timeline
+// (SCREEN/GRAPHICS/AVATAR/EFFECTS lanes on one time ruler) with on-demand
+// previews — clicking a block moves its buildDetailBlocks HTML (shared with
+// /list) into a docked panel and only then loads its card iframe. Delivers
+// GFX-08 (global play-through) via the master playhead.
+function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null) {
+  const byId = new Map(resolved.map((r) => [r.id, r]));
+  const cues = cuesFile.cues || [];
+  const flaggedCount = cues.filter((c) => c.flagged).length;
+  const fb = (ref) => feedbackItems[ref]?.folded ? '' : escapeHtml(feedbackItems[ref]?.text ?? '');
+  const fbBox = (ref, placeholder) => {
+    const foldedHtml = feedbackItems[ref]?.folded
+      ? `<div class="feedback-folded">✓ folded ${escapeHtml(feedbackItems[ref].folded)} — "${escapeHtml(feedbackItems[ref].text)}"</div>`
+      : '';
+    return `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>${foldedHtml}`;
+  };
+
+  const segments = buildSegments(words, resolved);
+  const unresolvedSegs = cues.filter(c => !byId.has(c.id)).map(c => ({
+    kind: 'cue', cue: c, start: 0, end: 0, words: [], unresolved: true
+  }));
+  segments.unshift(...unresolvedSegs);
+
+  const totalDuration = Math.max(0.1, words.length ? words[words.length - 1].end : 0);
+
+  const fxInstances = effects?.instances ?? [];
+  const fxPoint = fxInstances.filter((i) => i.type === 'whip' || i.type === 'beat');
+  const fxSpan = fxInstances.filter((i) => i.type === 'drift' && typeof i.start === 'number');
+  const fxGlobal = fxInstances.filter((i) => i.type === 'captions' || i.type === 'bubble');
+
+  const graphicsBlocksHtml = segments.map((seg, i) => {
+    if (seg.kind !== 'cue' || seg.unresolved) return '';
+    const r = seg.cue;
+    const cue = cues.find((c) => c.id === r.id);
+    const colorVar = cue?.flagged ? '--err' : (r.placement === 'fullframe' ? '--accent' : '--overlay-seg');
+    const label = escapeHtml((r.card ?? '').split('/').pop());
+    return `<div class="tl-block" data-start="${r.start}" data-dur="${r.duration}" data-detail="seg-${i}"
+      title="${escapeHtml(r.card ?? '')} &middot; ${timecode(r.start)}" style="background:var(${colorVar})">${label}</div>`;
+  }).join('');
+
+  const avatarBlocksHtml = (shots?.spans ?? []).map((span) => `<div class="tl-block" data-start="${span.start}" data-dur="${span.duration}"
+    data-detail="shot-${escapeHtml(span.id)}" title="${escapeHtml(span.id)}" style="background:var(--shot)">${escapeHtml(span.id)}</div>`).join('');
+
+  const fxMarksHtml = fxPoint.map((i) => `<div class="tl-mark${i.enabled ? '' : ' fx-off'}" data-start="${i.at}"
+    title="${escapeHtml(i.id)}${i.style ? ' · ' + escapeHtml(i.style) : ''}" style="background:var(${i.type === 'whip' ? '--accent' : '--ok'})"></div>`).join('');
+  const fxSpansHtml = fxSpan.map((i) => `<div class="tl-span${i.enabled ? '' : ' fx-off'}" data-start="${i.start}" data-dur="${i.end - i.start}"
+    title="${escapeHtml(i.id)}"></div>`).join('');
+  const fxChipsHtml = fxGlobal.length ? `<div class="tl-fx-chips">${fxGlobal.map((i) =>
+    `<span class="tl-chip${i.enabled ? '' : ' fx-off'}">${escapeHtml(i.type)}</span>`).join('')}</div>` : '';
+
+  const detailBlocks = buildDetailBlocks(cues, segments, shots, feedbackItems);
+  const storeHtml = detailBlocks.map((b) =>
+    `<div class="detail-item" id="detail-${b.id}">${b.html.replace('<iframe loading="lazy" src=', '<iframe loading="lazy" data-src=')}</div>`
+  ).join('\n');
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Graphics storyboard timeline</title>
+<style>${BOARD_CSS}${TIMELINE_CSS}</style>
+</head>
+<body>
+  <div class="sticky-header">
+    <div class="topbar">
+      <span class="view-toggle"><a href="/" class="active">Timeline</a><a href="/list">List</a></span>
+      <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
+      <div>duration: ${timecode(totalDuration)}</div>
+      <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
+      <button id="approveBtn">Approve graphics</button>
+      ${shots ? `<span class="usage-chip">engineMode: ${escapeHtml(shots.shotsFile?.engineMode || 'none')}</span><button id="approveShotsBtn">Approve shots</button>` : ''}
+      ${effects ? `<button id="approveEffectsBtn">Approve effects</button>` : ''}
+      <button id="saveBtn">Save</button>
+      <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
+    </div>
+    <div id="banner">
+      ${cuesFile.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}
+      ${shots && shots.shotsFile?.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shot plan approved — ready for the avatar render step</div>' : ''}
+      ${effects && effects.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>effects approved — ready for step 090 assemble</div>' : ''}
+      ${shots?.errors?.length ? `<div class="banner err"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shots: ${shots.errors.map(escapeHtml).join('<br>')}</div>` : ''}
+    </div>
+    <audio id="master" class="scrub" controls src="/vo.mp3"></audio>
+    <div class="tl-zoom-row"><label>zoom <input type="range" id="zoom" min="0.4" max="30" step="0.1" value="1"/></label></div>
+    ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
+  </div>
+  <div class="tl-layout">
+    <div class="tl-canvas-wrap">
+      <div class="tl-canvas">
+        <div class="tl-labels">
+          <div class="tl-label tl-ruler-spacer"></div>
+          <div class="tl-label">SCREEN</div>
+          <div class="tl-label">GRAPHICS</div>
+          <div class="tl-label">AVATAR</div>
+          <div class="tl-label">EFFECTS</div>
+        </div>
+        <div class="tl-tracks" id="tlTracks">
+          <div class="tl-ruler" id="tlRuler"></div>
+          <div class="tl-track" id="tlScreen"><div class="tl-screen-bar"></div></div>
+          <div class="tl-track" id="tlGraphics">${graphicsBlocksHtml}</div>
+          <div class="tl-track" id="tlAvatar">${avatarBlocksHtml}</div>
+          <div class="tl-track" id="tlEffects">${fxChipsHtml}${fxSpansHtml}${fxMarksHtml}</div>
+          <div class="tl-playhead" id="tlPlayhead"></div>
+        </div>
+      </div>
+    </div>
+    <aside id="detail-panel"><div class="placeholder">click a block to preview</div></aside>
+  </div>
+  <div id="detail-store" hidden>${storeHtml}</div>
+  <script>
+    ${OVERFLOW_BADGE_JS}
+    ${INIT_BLOCK_JS}
+    const VIDEO = ${JSON.stringify(cuesFile.video ?? '')};
+    let APPROVED = ${JSON.stringify(!!cuesFile.approved)};
+    ${SAVE_ACTIONS_JS}
+
+    const TOTAL = ${totalDuration};
+    const LABEL_W = 90;
+    const canvasWrap = document.querySelector('.tl-canvas-wrap');
+    const zoom = document.getElementById('zoom');
+    let PXPS_FIT = Math.min(30, Math.max(0.4, (canvasWrap.clientWidth - LABEL_W) / TOTAL));
+    let pxps = PXPS_FIT;
+    zoom.min = PXPS_FIT;
+    zoom.value = PXPS_FIT;
+
+    function fmtClock(t) {
+      const m = Math.floor(t / 60), s = Math.floor(t % 60);
+      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+    function drawRuler() {
+      const ruler = document.getElementById('tlRuler');
+      ruler.innerHTML = '';
+      const step = Math.max(1, Math.round(80 / pxps));
+      for (let t = 0; t <= TOTAL; t += step) {
+        const tick = document.createElement('div');
+        tick.className = 'tl-tick';
+        tick.style.left = (t * pxps) + 'px';
+        tick.textContent = fmtClock(t);
+        ruler.appendChild(tick);
+      }
+    }
+    function layout() {
+      document.querySelectorAll('.tl-track, #tlRuler').forEach((t) => { t.style.width = (TOTAL * pxps) + 'px'; });
+      document.querySelectorAll('.tl-block').forEach((b) => {
+        b.style.left = (parseFloat(b.dataset.start) * pxps) + 'px';
+        b.style.width = Math.max(2, parseFloat(b.dataset.dur || 0) * pxps) + 'px';
+      });
+      document.querySelectorAll('.tl-mark, .tl-span').forEach((m) => {
+        m.style.left = (parseFloat(m.dataset.start) * pxps) + 'px';
+        if (m.classList.contains('tl-span')) m.style.width = Math.max(2, parseFloat(m.dataset.dur || 0) * pxps) + 'px';
+      });
+      drawRuler();
+    }
+    zoom.addEventListener('input', () => { pxps = +zoom.value; layout(); });
+
+    let openId = null;
+    function reveal(detailId) {
+      const store = document.getElementById('detail-store');
+      const panel = document.getElementById('detail-panel');
+      if (openId) {
+        const prev = document.getElementById('detail-' + openId);
+        if (prev) store.appendChild(prev);
+      }
+      const node = document.getElementById('detail-' + detailId);
+      if (!node) return;
+      panel.replaceChildren(node);
+      node.querySelectorAll('iframe[data-src]').forEach((f) => { if (!f.src) f.src = f.dataset.src; });
+      initBlock(node);
+      openId = detailId;
+    }
+    document.querySelectorAll('[data-detail]').forEach((el) =>
+      el.addEventListener('click', () => reveal(el.dataset.detail)));
+
+    const master = document.getElementById('master');
+    master.addEventListener('play', () => {
+      document.querySelectorAll('.tile audio').forEach((a) => { if (!a.paused) a.pause(); });
+    });
+    master.addEventListener('timeupdate', () => {
+      document.getElementById('tlPlayhead').style.left = (master.currentTime * pxps) + 'px';
+    });
+    document.getElementById('tlRuler').addEventListener('click', (e) => {
+      master.currentTime = e.offsetX / pxps;
+    });
+    window.addEventListener('resize', () => {
+      const wasFit = pxps === PXPS_FIT;
+      PXPS_FIT = Math.min(30, Math.max(0.4, (canvasWrap.clientWidth - LABEL_W) / TOTAL));
+      zoom.min = PXPS_FIT;
+      if (wasFit) { pxps = PXPS_FIT; zoom.value = pxps; layout(); }
+    });
+
+    layout();
+    wireOverflowBadges();
+  </script>
+</body>
+</html>`;
+}
+
 async function handleSave(req, res, workdir, cardLibraryRoot) {
   const body = await readBody(req);
   let cuesFile;
@@ -1231,7 +1456,7 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     const { cuesFile, resolved, words, feedbackItems, shots, effects } = loadBoardData(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects));
+    return res.end(renderTimelinePage(cuesFile, resolved, words, feedbackItems, shots, effects));
   }
 
   if (req.method === 'GET' && url.pathname === '/list') {
