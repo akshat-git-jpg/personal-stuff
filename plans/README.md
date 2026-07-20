@@ -549,3 +549,4 @@ The others are grounded and available when the owner wants them:
 - 105-visuals-flow-smalls-sweep — PR#62 105-visuals-flow-smalls-sweep: GFX-03/04/13 + defuse and wire effects.test.mjs — DONE
 - 104-board-effects-lane — PR#61 104-board-effects-lane: board effects lane — markers, toggles, approval gate, CSS-sim playback — DONE
 - 106-shot-cadence-youri-recalibration — PR#63 106-shot-cadence-youri-recalibration: shot-plan cadence → Youri rhythm, totals frozen — DONE
+- 107-kinetic-sentence-card — PR#64 107-kinetic-sentence-card: kinetic-sentence card + word-synced resolver — DONE
