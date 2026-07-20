@@ -565,3 +565,4 @@ The others are grounded and available when the owner wants them:
 - 109-resolve-timeline-export — PR#66 109-resolve-timeline-export: Resolve timeline export — assembly → FCPXML for human touch-up — DONE
 - 110-filmstrip-qc-pass — PR#67 110-filmstrip-qc-pass: Filmstrip QC pass — contact-sheet self-check of the assembled video — DONE
 - 111-fx-overlay-clip-renderer — PR#68 111-fx-overlay-clip-renderer: effects.json instances → transparent ProRes FX clips — DONE
+- 112-native-layered-fcpxml-export — PR#69 112-native-layered-fcpxml-export: layered native editor project becomes the default export — DONE
