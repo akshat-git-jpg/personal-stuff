@@ -385,11 +385,12 @@ lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
   the 060 fold loop + 076's convergence metrics DO with the first few real videos. The
   STARTING numbers were reset to the Youri reference calibration by plan 099 — owner
   decision 2026-07-19, spec `docs/specs/2026-07-19-mode-structure-density-design.md`.)
-- **Windowed-screen canvas prototype (Level 2 look)** — composite screen.mp4 into a floating
-  title-barred rounded window drifting on an animated brand-gradient canvas (the reference's
-  v2/v3 base treatment; `references/-vwHldNaGPI.md`). Owner call 2026-07-19: prototype on ONE
-  real video and look at it before committing any grammar to it — not part of spec D1-D3.
-  `GFX-16`. Effort M.
+- **Windowed-screen canvas (Level 2 look)** — RESOLVED as a recording-side convention, not a
+  pipeline build (owner decision 2026-07-20, decisions.md): the tutorial maker records the
+  windowed look directly (Screen-Studio-style floating window on a brand-gradient canvas;
+  `references/-vwHldNaGPI.md`), so screen.mp4 arrives with the treatment baked in. Drift is
+  killed per-video in effects.json for windowed footage; the maker's first sample video gates
+  the format. No code. `GFX-16`. Retired.
 - **Assembly speed pass 2** — planned as **102** (2026-07-19): parallel encodes, segment
   cache, libass captions, --bare tier; status in the table above. `GFX-17`. Effort M-L.
 - **VPS async assemble** — remote `assemble` verb on the existing Hostinger box: pull
