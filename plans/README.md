@@ -127,6 +127,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 110 | Filmstrip QC pass — expected-events checklist + per-event 30fps contact sheets from assembly.md/effects.json; session reads the pack → committed qc-report.md | P1 | M | 109 (merge order only: shared check.sh/SKILL.md/docs) | DONE |
 | 111 | FX overlay clip renderer — effects.json flash/beat instances → transparent ProRes clips + manifest (renders-fx/), envelopes derived live from effect-module CONSTANTS | P1 | M | none | DONE (landed PR#68; +ce7188f dedupe: one file per envelope type) |
 | 112 | Native layered FCPXML export (new default) — continuous screen spine + avatar/graphics/overlays/FX lanes + markers + captions.srt; `--baked` keeps the 109 WYSIWYG mode (spec docs/specs/2026-07-21-native-editor-export-design.md) | P1 | M | 111 | DONE (landed PR#69; verified on test-01 in Resolve 2026-07-21) |
+| 113 | visuals-flow review board — horizontal timeline overview view (new default `/`): shared time ruler + SCREEN/GRAPHICS/AVATAR/EFFECTS lanes aligned, on-demand card previews in a docked panel, detail list kept at `/list` via header toggle; master playhead delivers GFX-08. board.mjs only, temp-fixture tests | P2 | M | none | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -370,6 +371,7 @@ lives in HANDOFF.md — these rows exist so the backlog registry is complete):**
   left out of 078 to keep it lean; fold into the first post-pilot touch. `GFX-13`. Effort S.
 - **Global play-through on the board** — master player, auto-scroll, cards animate as the
   playhead crosses; same buildSegments seam. Owner-deferred. `GFX-08`. Effort M.
+  **→ being delivered by plan 113** (timeline master playhead across all lanes).
 - **Render + editor handoff proof** — run 050 on approved test-01, check clips + manifest
   against the actual final edit; the last unproven step of the whole flow. Owner action +
   fold the lessons (expect `offset`/ergonomics findings feeding GFX-06). `GFX-09`. Effort S.
