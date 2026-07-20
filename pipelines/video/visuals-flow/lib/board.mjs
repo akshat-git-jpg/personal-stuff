@@ -328,6 +328,104 @@ const INIT_BLOCK_JS = `
   }
 `;
 
+// Shared Save/Approve wiring — reads VIDEO/APPROVED (page-local consts) and
+// the current DOM's .tile/.shot-block/.feedback elements. Both / and /list
+// use the identical handlers so save/approve semantics can't drift between
+// the two views.
+const SAVE_ACTIONS_JS = `
+  let FB_DIRTY = false;
+  window.addEventListener('beforeunload', (e) => { if (FB_DIRTY) { e.preventDefault(); e.returnValue = ''; } });
+  document.addEventListener('input', (e) => { if (e.target.classList && e.target.classList.contains('feedback')) FB_DIRTY = true; });
+
+  function showBanner(html, cls) {
+    document.getElementById('banner').innerHTML = '<div class="banner ' + cls + '">'
+      + '<button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>' + html + '</div>';
+  }
+
+  function escapeForBanner(s) {
+    return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  }
+
+  document.getElementById('saveBtn').onclick = async () => {
+    const broken = [];
+    const cues = [...document.querySelectorAll('.tile')].map((tile) => {
+      let fragment;
+      try { fragment = JSON.parse(tile.querySelector('.frag').value); }
+      catch (e) { broken.push(tile.dataset.id + ': ' + e.message); return null; }
+      const cue = {
+        id: tile.dataset.id,
+        card: tile.dataset.card,
+        anchor: fragment.anchor,
+        hold: fragment.hold,
+        variables: fragment.variables,
+        beats: fragment.beats,
+        flagged: tile.querySelector('.flag-input').checked,
+      };
+      if (tile.dataset.lead !== '') cue.lead = Number(tile.dataset.lead);
+      const note = tile.querySelector('.note').value;
+      if (note) cue.note = note;
+      return cue;
+    }).filter(Boolean);
+    if (broken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + broken.map(escapeForBanner).join('<br>'), 'err'); return; }
+
+    const shotBroken = [];
+    const spans = [...document.querySelectorAll('.shot-block')].map((b) => {
+      try { return JSON.parse(b.querySelector('.shot-frag').value); }
+      catch (e) { shotBroken.push(b.id + ': ' + e.message); return null; }
+    }).filter(Boolean);
+    if (shotBroken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + shotBroken.map(escapeForBanner).join('<br>'), 'err'); return; }
+
+    const feedback = {};
+    document.querySelectorAll('textarea.feedback').forEach((t) => { feedback[t.dataset.ref] = t.value; });
+    const payload = { video: VIDEO, approved: APPROVED, cues, feedback };
+    if (document.querySelectorAll('.shot-block').length > 0) payload.spans = spans;
+    const toggles = [...document.querySelectorAll('.fx-toggle')];
+    if (toggles.length > 0) {
+      payload.effects = toggles.map((el) => ({ id: el.dataset.fxId, enabled: el.checked }));
+    }
+
+    const res = await fetch('/save', { method: 'POST', body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (!data.ok) {
+      showBanner(data.errors.map(escapeForBanner).join('<br>'), 'err');
+    } else {
+      FB_DIRTY = false;
+      const warns = data.warnings || [];
+      const errs = data.errors || [];
+      if (warns.length > 0 || errs.length > 0) {
+        let html = \`saved — \${warns.length} lint warnings, \${errs.length} errors<br><br>\`;
+        const lines = [];
+        for (const e of errs) lines.push(\`error: \${escapeForBanner(e)}\`);
+        for (const w of warns) lines.push(escapeForBanner(w));
+        showBanner(html + lines.join('<br>'), errs.length > 0 ? 'err' : 'ok');
+      } else {
+        location.reload();
+      }
+    }
+  };
+
+  document.getElementById('approveBtn').onclick = async () => {
+    await fetch('/approve', { method: 'POST' });
+    location.reload();
+  };
+
+  const approveShotsBtn = document.getElementById('approveShotsBtn');
+  if (approveShotsBtn) {
+    approveShotsBtn.onclick = async () => {
+      await fetch('/approve-shots', { method: 'POST' });
+      location.reload();
+    };
+  }
+
+  const approveEffectsBtn = document.getElementById('approveEffectsBtn');
+  if (approveEffectsBtn) {
+    approveEffectsBtn.onclick = async () => {
+      await fetch('/approve-effects', { method: 'POST' });
+      location.reload();
+    };
+  }
+`;
+
 function timecode(secs) {
   const m = Math.floor(secs / 60).toString().padStart(2, '0');
   const s = (secs % 60).toFixed(1).padStart(4, '0');
@@ -689,11 +787,9 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
   <script>
     ${OVERFLOW_BADGE_JS}
     ${INIT_BLOCK_JS}
-    let FB_DIRTY = false;
-    window.addEventListener('beforeunload', (e) => { if (FB_DIRTY) { e.preventDefault(); e.returnValue = ''; } });
-    document.addEventListener('input', (e) => { if (e.target.classList && e.target.classList.contains('feedback')) FB_DIRTY = true; });
     const VIDEO = ${JSON.stringify(cuesFile.video ?? '')};
     let APPROVED = ${JSON.stringify(!!cuesFile.approved)};
+    ${SAVE_ACTIONS_JS}
     const FX_DATA = ${JSON.stringify({ instances: fxInstances, fullframes: fxFullframes, spans: fxShotSpans, capChunks, total: totalDuration })};
     ${FX_SIM_HELPERS}
     let FX_DIRTY_TOGGLES = false;
@@ -767,94 +863,6 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     }
 
     wireOverflowBadges();
-
-    function showBanner(html, cls) {
-      document.getElementById('banner').innerHTML = '<div class="banner ' + cls + '">'
-        + '<button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>' + html + '</div>';
-    }
-
-    document.getElementById('saveBtn').onclick = async () => {
-      const broken = [];
-      const cues = [...document.querySelectorAll('.tile')].map((tile) => {
-        let fragment;
-        try { fragment = JSON.parse(tile.querySelector('.frag').value); }
-        catch (e) { broken.push(tile.dataset.id + ': ' + e.message); return null; }
-        const cue = {
-          id: tile.dataset.id,
-          card: tile.dataset.card,
-          anchor: fragment.anchor,
-          hold: fragment.hold,
-          variables: fragment.variables,
-          beats: fragment.beats,
-          flagged: tile.querySelector('.flag-input').checked,
-        };
-        if (tile.dataset.lead !== '') cue.lead = Number(tile.dataset.lead);
-        const note = tile.querySelector('.note').value;
-        if (note) cue.note = note;
-        return cue;
-      }).filter(Boolean);
-      if (broken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + broken.map(escapeForBanner).join('<br>'), 'err'); return; }
-      
-      const shotBroken = [];
-      const spans = [...document.querySelectorAll('.shot-block')].map((b) => {
-        try { return JSON.parse(b.querySelector('.shot-frag').value); }
-        catch (e) { shotBroken.push(b.id + ': ' + e.message); return null; }
-      }).filter(Boolean);
-      if (shotBroken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + shotBroken.map(escapeForBanner).join('<br>'), 'err'); return; }
-
-      const feedback = {};
-      document.querySelectorAll('textarea.feedback').forEach((t) => { feedback[t.dataset.ref] = t.value; });
-      const payload = { video: VIDEO, approved: APPROVED, cues, feedback };
-      if (document.querySelectorAll('.shot-block').length > 0) payload.spans = spans;
-      const toggles = [...document.querySelectorAll('.fx-toggle')];
-      if (toggles.length > 0) {
-        payload.effects = toggles.map((el) => ({ id: el.dataset.fxId, enabled: el.checked }));
-      }
-
-      const res = await fetch('/save', { method: 'POST', body: JSON.stringify(payload) });
-      const data = await res.json();
-      if (!data.ok) {
-        showBanner(data.errors.map(escapeForBanner).join('<br>'), 'err');
-      } else {
-        FB_DIRTY = false;
-        const warns = data.warnings || [];
-        const errs = data.errors || [];
-        if (warns.length > 0 || errs.length > 0) {
-          let html = \`saved — \${warns.length} lint warnings, \${errs.length} errors<br><br>\`;
-          const lines = [];
-          for (const e of errs) lines.push(\`error: \${escapeForBanner(e)}\`);
-          for (const w of warns) lines.push(escapeForBanner(w));
-          showBanner(html + lines.join('<br>'), errs.length > 0 ? 'err' : 'ok');
-        } else {
-          location.reload();
-        }
-      }
-    };
-
-    document.getElementById('approveBtn').onclick = async () => {
-      await fetch('/approve', { method: 'POST' });
-      location.reload();
-    };
-
-    const approveShotsBtn = document.getElementById('approveShotsBtn');
-    if (approveShotsBtn) {
-      approveShotsBtn.onclick = async () => {
-        await fetch('/approve-shots', { method: 'POST' });
-        location.reload();
-      };
-    }
-    
-    const approveEffectsBtn = document.getElementById('approveEffectsBtn');
-    if (approveEffectsBtn) {
-      approveEffectsBtn.onclick = async () => {
-        await fetch('/approve-effects', { method: 'POST' });
-        location.reload();
-      };
-    }
-
-    function escapeForBanner(s) {
-      return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-    }
   </script>
 </body>
 </html>`;
