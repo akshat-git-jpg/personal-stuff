@@ -177,6 +177,9 @@ const BOARD_CSS = `
   .sticky-header { position:sticky; top:0; background:var(--bg); z-index:100; margin:-28px -32px 20px -32px; padding:28px 32px 16px 32px; border-bottom:1px solid var(--line); }
   .topbar { display:flex; align-items:center; gap:20px; margin-bottom:16px; font-size:14px; color:var(--dim); }
   .topbar strong { color:var(--text); }
+  .view-toggle { display:flex; gap:2px; border:1px solid var(--line); border-radius:8px; padding:2px; }
+  .view-toggle a { padding:5px 12px; border-radius:6px; font-size:13px; font-weight:600; text-decoration:none; color:var(--dim); }
+  .view-toggle a.active { color:var(--accent); background:rgba(251,146,60,0.12); }
   .topbar button { font:inherit; font-weight:700; border-radius:9px; padding:9px 16px; cursor:pointer;
     border:1px solid var(--line); background:var(--panel); color:var(--text); }
   #approveBtn { border-color:var(--ok); color:var(--ok); }
@@ -638,6 +641,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 <body>
   <div class="sticky-header">
     <div class="topbar">
+      <span class="view-toggle"><a href="/">Timeline</a><a href="/list" class="active">List</a></span>
       <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
       <div>duration: ${timecode(totalDuration)}</div>
       <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
@@ -1188,6 +1192,17 @@ function serveSlice(res, workdir, id) {
   res.end(fs.readFileSync(slicePath));
 }
 
+function loadBoardData(workdir) {
+  const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+  const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
+  const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
+  const fbPath = path.join(workdir, 'feedback.json');
+  const feedbackItems = fs.existsSync(fbPath) ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items) : {};
+  const shots = loadShots(workdir, words);
+  const effects = loadEffects(workdir);
+  return { cuesFile, resolved, words, feedbackItems, shots, effects };
+}
+
 async function handleRequest(req, res, workdir, cardLibraryRoot) {
   const url = new URL(req.url, 'http://localhost');
 
@@ -1205,13 +1220,14 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
   }
 
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index')) {
-    const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
-    const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
-    const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
-    const fbPath = path.join(workdir, 'feedback.json');
-    const feedbackItems = fs.existsSync(fbPath) ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items) : {};
-    const shots = loadShots(workdir, words);
-    const effects = loadEffects(workdir);
+    const { cuesFile, resolved, words, feedbackItems, shots, effects } = loadBoardData(workdir);
+    res.setHeader('content-type', 'text/html; charset=utf-8');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects));
+  }
+
+  if (req.method === 'GET' && url.pathname === '/list') {
+    const { cuesFile, resolved, words, feedbackItems, shots, effects } = loadBoardData(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
     return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects));
