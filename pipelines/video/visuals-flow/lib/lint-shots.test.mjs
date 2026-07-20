@@ -19,7 +19,7 @@ test('span overlapping a fullframe cue → E2; same span vs an overlay cue → n
   assert.ok(!res2.errors.some(e => e.startsWith('E2')));
 });
 
-test('8s span → E3; 200s span → W1', () => {
+test('8s span → E3; 200s span in front zone → W1', () => {
   const res1 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 10, end: 18, duration: 8 }] }, resolvedCues: [], words });
   assert.ok(res1.errors.some(e => e.startsWith('E3')));
 
@@ -51,7 +51,7 @@ test('single mid-video span → W3 twice; spans at edges → no W3', () => {
   assert.ok(!res2.warnings.some(w => w.startsWith('W3')));
 });
 
-test('400s gap between spans → W4; 250s gap → no W4', () => {
+test('400s gap between spans → W4; 150s gap → no W4', () => {
   const res1 = lintShots({
     shotsResolved: {
       spans: [
@@ -68,13 +68,51 @@ test('400s gap between spans → W4; 250s gap → no W4', () => {
     shotsResolved: {
       spans: [
         { id: 's1', start: 30, end: 90, duration: 60 },
-        { id: 's2', start: 340, end: 380, duration: 40 }
+        { id: 's2', start: 240, end: 280, duration: 40 }
       ]
     },
     resolvedCues: [],
     words
   });
   assert.ok(!res2.warnings.some(w => w.startsWith('W4')));
+});
+
+test('zone/mid span thresholds and Youri cadence gaps', () => {
+  const words1800 = Array.from({ length: 1800 }, (_, i) => ({ text: `w${i}`, start: i, end: i + 1 }));
+
+  // mid-video span of 50s → W1 fires with `mid-video` in the message
+  const resMid50 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 500, end: 550, duration: 50 }] }, resolvedCues: [], words: words1800 });
+  const w1Mid50 = resMid50.warnings.find(w => w.startsWith('W1'));
+  assert.ok(w1Mid50 && w1Mid50.includes('mid-video'));
+
+  // mid-video span of 30s → no W1
+  const resMid30 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 500, end: 530, duration: 30 }] }, resolvedCues: [], words: words1800 });
+  assert.ok(!resMid30.warnings.some(w => w.startsWith('W1')));
+
+  // front-zone span (starts ≤ 270) of 100s → no W1
+  const resFront100 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 50, end: 150, duration: 100 }] }, resolvedCues: [], words: words1800 });
+  assert.ok(!resFront100.warnings.some(w => w.startsWith('W1')));
+
+  // front-zone span of 130s → W1 fires with `intro/outro` in the message
+  const resFront130 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 50, end: 180, duration: 130 }] }, resolvedCues: [], words: words1800 });
+  const w1Front130 = resFront130.warnings.find(w => w.startsWith('W1'));
+  assert.ok(w1Front130 && w1Front130.includes('intro/outro'));
+
+  // gap of 200s between spans → W4 fires
+  const resGap200 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 10, end: 50, duration: 40 }, { id: 's2', start: 250, end: 290, duration: 40 }] }, resolvedCues: [], words: words1800 });
+  assert.ok(resGap200.warnings.some(w => w.startsWith('W4')));
+
+  // gap of 170s → no W4
+  const resGap170 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 10, end: 50, duration: 40 }, { id: 's2', start: 220, end: 260, duration: 40 }] }, resolvedCues: [], words: words1800 });
+  assert.ok(!resGap170.warnings.some(w => w.startsWith('W4')));
+
+  // 10.5s span → no E3
+  const resSpan10_5 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 10, end: 20.5, duration: 10.5 }] }, resolvedCues: [], words: words1800 });
+  assert.ok(!resSpan10_5.errors.some(e => e.startsWith('E3')));
+
+  // 9s span → E3
+  const resSpan9 = lintShots({ shotsResolved: { spans: [{ id: 's1', start: 10, end: 19, duration: 9 }] }, resolvedCues: [], words: words1800 });
+  assert.ok(resSpan9.errors.some(e => e.startsWith('E3')));
 });
 
 test('empty spans array → no errors, no warnings', () => {
