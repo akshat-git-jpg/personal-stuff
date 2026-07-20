@@ -298,6 +298,33 @@ const OVERFLOW_BADGE_JS = `
   }
 `;
 
+// initBlock(root): wire probe + audio<->iframe sync for every .tile inside
+// `root` that hasn't been wired yet. Idempotent (data-inited guard) so it's
+// safe to call again when the timeline dock reveals a previously-parked
+// block. Shared by /list (whole-document init) and / (per-block, on reveal).
+const INIT_BLOCK_JS = `
+  function initBlock(root) {
+    root.querySelectorAll('.tile:not([data-inited])').forEach((tile) => {
+      tile.dataset.inited = '1';
+      const iframe = tile.querySelector('iframe');
+      const audio = tile.querySelector('audio');
+      if (iframe && audio) {
+        const post = () => { try { iframe.contentWindow.postMessage({ t: audio.currentTime }, '*'); } catch {} };
+        let raf = null;
+        audio.addEventListener('timeupdate', post);
+        audio.addEventListener('seeked', post);
+        audio.addEventListener('pause', () => { post(); if (raf) cancelAnimationFrame(raf); });
+        audio.addEventListener('play', () => {
+          document.querySelectorAll('.tile audio').forEach((a) => { if (a !== audio && !a.paused) a.pause(); });
+          const loop = () => { post(); if (!audio.paused) raf = requestAnimationFrame(loop); };
+          loop();
+        });
+      }
+      wireProbe(tile);
+    });
+  }
+`;
+
 function timecode(secs) {
   const m = Math.floor(secs / 60).toString().padStart(2, '0');
   const s = (secs % 60).toFixed(1).padStart(4, '0');
@@ -402,6 +429,123 @@ function normalizeFeedbackItems(raw) {
   return items;
 }
 
+// Returns an ordered array of { html, start, id, isShot } for every cue tile,
+// gap block, and shot block — the single source of per-block detail HTML for
+// both the timeline dock and the /list view. `id` is the DOM id the block
+// HTML itself carries (`seg-<i>` for cue/gap, `shot-<span.id>` for shots).
+function buildDetailBlocks(cues, segments, shots, feedbackItems) {
+  const fb = (ref) => feedbackItems[ref]?.folded ? '' : escapeHtml(feedbackItems[ref]?.text ?? '');
+  const fbBox = (ref, placeholder) => {
+    const foldedHtml = feedbackItems[ref]?.folded
+      ? `<div class="feedback-folded">✓ folded ${escapeHtml(feedbackItems[ref].folded)} — "${escapeHtml(feedbackItems[ref].text)}"</div>`
+      : '';
+    return `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>${foldedHtml}`;
+  };
+
+  const blocks = segments.map((seg, idx) => {
+    const i = idx;
+    const id = `seg-${i}`;
+    const mid = (seg.start + seg.end) / 2;
+    const inShot = shots?.spans?.some(s => mid >= s.start && mid <= s.start + s.duration) ? ' in-shot' : '';
+    let html = '';
+
+    if (seg.kind === 'gap') {
+      const durSecs = seg.end - seg.start;
+      const m = Math.floor(durSecs / 60);
+      const s = Math.floor(durSecs % 60);
+      const durStr = m > 0 ? `${m}m ${s}s` : `${s}s`;
+      const allWords = seg.words.map(w => w.text).join(' ');
+      const previewWords = seg.words.slice(0, 14).map(w => w.text).join(' ') + (seg.words.length > 14 ? '…' : '');
+      html = `<div class="timeline-block gap-block${inShot}" id="${id}">
+        <div class="gap-header" onclick="this.parentElement.classList.toggle('expanded')">
+          <span class="gap-icon">▸</span> ${timecode(seg.start)} &rarr; ${timecode(seg.end)} &middot; ${durStr} &middot; <span style="color:var(--dim)">"${escapeHtml(previewWords)}"</span>
+        </div>
+        <div class="gap-body">${escapeHtml(allWords)}
+          ${fbBox(`gap-${timecode(seg.start)}`, 'feedback for this stretch (read by the next Claude session)')}
+        </div>
+      </div>`;
+    } else {
+
+    const cue = cues.find(c => c.id === seg.cue.id);
+    const r = seg.unresolved ? null : seg.cue;
+    const beats = cue.beats ?? [];
+    const fragment = { anchor: cue.anchor, hold: cue.hold ?? 3.0, variables: cue.variables ?? {}, beats };
+    const beatLines = beats
+      .map((b) => `<li><strong>${escapeHtml(b.reveal?.text ?? '')}</strong> @ "${escapeHtml(b.anchor ?? '')}"</li>`)
+      .join('');
+
+    const header = r
+      ? `#${escapeHtml(cue.id)} &middot; ${timecode(r.start)} &rarr; ${timecode(r.start + r.duration)} &middot; ${escapeHtml(cue.card)} &middot; ${r.duration}s &middot; ${escapeHtml(r.placement)}`
+      : `#${escapeHtml(cue.id)} &middot; unresolved &middot; ${escapeHtml(cue.card)}`;
+
+    const probeTimes = r ? computeProbeTimes(r.variables?.beats, r.duration) : [];
+    const media = r
+      ? `<div class="preview" data-probe-times='${JSON.stringify(probeTimes)}'><iframe loading="lazy" src="/card/${encodeURIComponent(cue.id)}"></iframe></div>
+      <audio class="scrub" controls src="/slice/${encodeURIComponent(cue.id)}.mp3"></audio>`
+      : `<div class="unresolved-note">no resolved timing for this cue — fix the anchor and Save</div>`;
+
+    const phrasesToHighlight = [cue.anchor, ...beats.map(b => b.anchor)];
+    const highlighted = new Set();
+    for (const phrase of phrasesToHighlight) {
+      if (!phrase) continue;
+      const p = phrase.split(/\s+/).map(normWord).filter(Boolean);
+      if (p.length === 0) continue;
+      for (let j = 0; j <= seg.words.length - p.length; j++) {
+        let ok = true;
+        for (let k = 0; k < p.length; k++) {
+          if (normWord(seg.words[j + k].text) !== p[k]) { ok = false; break; }
+        }
+        if (ok) {
+          for (let k = 0; k < p.length; k++) highlighted.add(j + k);
+          break;
+        }
+      }
+    }
+    const excerptHtml = seg.words.map((w, j) => {
+      const esc = escapeHtml(w.text);
+      return highlighted.has(j) ? `<mark>${esc}</mark>` : esc;
+    }).join(' ');
+
+    const excerptDiv = seg.words.length ? `<div class="excerpt">${excerptHtml}</div>` : '';
+
+    html = `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}${inShot}" id="${id}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}">
+      <div class="tile-header">${header}</div>
+      ${excerptDiv}
+      <div class="anchor"><strong>${escapeHtml(cue.anchor ?? '')}</strong></div>
+      <ul class="beats">${beatLines}</ul>
+      ${media}
+      <label class="flag"><input type="checkbox" class="flag-input" ${cue.flagged ? 'checked' : ''}/> flag: no card fits</label>
+      <input class="note" type="text" placeholder="note (why no card fits)" value="${escapeHtml(cue.note ?? '')}" />
+      ${fbBox(cue.id, 'feedback on this graphic — wrong card, wrong timing, wording… (read by the next Claude session)')}
+      <textarea class="frag">${escapeHtml(JSON.stringify(fragment, null, 2))}</textarea>
+    </div>`;
+    }
+    return { html, start: seg.start, id, isShot: false };
+  });
+
+  if (shots?.spans?.length) {
+    for (const span of shots.spans) {
+      const origSpan = shots.shotsFile?.spans?.find(s => s.id === span.id) || span;
+      const noteHtml = span.note ? ` &mdash; ${escapeHtml(span.note)}` : '';
+      const id = `shot-${escapeHtml(span.id)}`;
+      const shotHtml = `<div class="timeline-block shot-block" id="${id}">
+  <div class="shot-header">🧍 <b>${escapeHtml(span.id)}</b> avatar-full &middot; ${timecode(span.start)} &rarr; ${timecode(span.start + span.duration)} &middot; ${span.duration}s${noteHtml}</div>
+  <textarea class="shot-frag">${escapeHtml(JSON.stringify(origSpan, null, 2))}</textarea>
+  ${fbBox(span.id, 'feedback on this shot span (read by the next Claude session)')}
+</div>`;
+      const block = { html: shotHtml, start: span.start, id, isShot: true };
+      const idx = blocks.findIndex(b => !b.isShot && b.start >= span.start);
+      if (idx !== -1) {
+        blocks.splice(idx, 0, block);
+      } else {
+        blocks.push(block);
+      }
+    }
+  }
+
+  return blocks;
+}
+
 function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
@@ -481,105 +625,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     minimapShotsHtml = `<div class="minimap minimap-shots">${items.join('')}</div>`;
   }
 
-  const timelineBlocks = segments.map((seg, idx) => {
-    const i = idx;
-    const mid = (seg.start + seg.end) / 2;
-    const inShot = shots?.spans?.some(s => mid >= s.start && mid <= s.start + s.duration) ? ' in-shot' : '';
-    let html = '';
-    
-    if (seg.kind === 'gap') {
-      const durSecs = seg.end - seg.start;
-      const m = Math.floor(durSecs / 60);
-      const s = Math.floor(durSecs % 60);
-      const durStr = m > 0 ? `${m}m ${s}s` : `${s}s`;
-      const allWords = seg.words.map(w => w.text).join(' ');
-      const previewWords = seg.words.slice(0, 14).map(w => w.text).join(' ') + (seg.words.length > 14 ? '…' : '');
-      html = `<div class="timeline-block gap-block${inShot}" id="seg-${i}">
-        <div class="gap-header" onclick="this.parentElement.classList.toggle('expanded')">
-          <span class="gap-icon">▸</span> ${timecode(seg.start)} &rarr; ${timecode(seg.end)} &middot; ${durStr} &middot; <span style="color:var(--dim)">"${escapeHtml(previewWords)}"</span>
-        </div>
-        <div class="gap-body">${escapeHtml(allWords)}
-          ${fbBox(`gap-${timecode(seg.start)}`, 'feedback for this stretch (read by the next Claude session)')}
-        </div>
-      </div>`;
-    } else {
-
-    const cue = cues.find(c => c.id === seg.cue.id);
-    const r = seg.unresolved ? null : seg.cue;
-    const beats = cue.beats ?? [];
-    const fragment = { anchor: cue.anchor, hold: cue.hold ?? 3.0, variables: cue.variables ?? {}, beats };
-    const beatLines = beats
-      .map((b) => `<li><strong>${escapeHtml(b.reveal?.text ?? '')}</strong> @ "${escapeHtml(b.anchor ?? '')}"</li>`)
-      .join('');
-    
-    const header = r
-      ? `#${escapeHtml(cue.id)} &middot; ${timecode(r.start)} &rarr; ${timecode(r.start + r.duration)} &middot; ${escapeHtml(cue.card)} &middot; ${r.duration}s &middot; ${escapeHtml(r.placement)}`
-      : `#${escapeHtml(cue.id)} &middot; unresolved &middot; ${escapeHtml(cue.card)}`;
-
-    const probeTimes = r ? computeProbeTimes(r.variables?.beats, r.duration) : [];
-    const media = r
-      ? `<div class="preview" data-probe-times='${JSON.stringify(probeTimes)}'><iframe loading="lazy" src="/card/${encodeURIComponent(cue.id)}"></iframe></div>
-      <audio class="scrub" controls src="/slice/${encodeURIComponent(cue.id)}.mp3"></audio>`
-      : `<div class="unresolved-note">no resolved timing for this cue — fix the anchor and Save</div>`;
-
-    const phrasesToHighlight = [cue.anchor, ...beats.map(b => b.anchor)];
-    const highlighted = new Set();
-    for (const phrase of phrasesToHighlight) {
-      if (!phrase) continue;
-      const p = phrase.split(/\s+/).map(normWord).filter(Boolean);
-      if (p.length === 0) continue;
-      for (let j = 0; j <= seg.words.length - p.length; j++) {
-        let ok = true;
-        for (let k = 0; k < p.length; k++) {
-          if (normWord(seg.words[j + k].text) !== p[k]) { ok = false; break; }
-        }
-        if (ok) {
-          for (let k = 0; k < p.length; k++) highlighted.add(j + k);
-          break;
-        }
-      }
-    }
-    const excerptHtml = seg.words.map((w, j) => {
-      const esc = escapeHtml(w.text);
-      return highlighted.has(j) ? `<mark>${esc}</mark>` : esc;
-    }).join(' ');
-
-    const excerptDiv = seg.words.length ? `<div class="excerpt">${excerptHtml}</div>` : '';
-
-    html = `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}${inShot}" id="seg-${i}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}">
-      <div class="tile-header">${header}</div>
-      ${excerptDiv}
-      <div class="anchor"><strong>${escapeHtml(cue.anchor ?? '')}</strong></div>
-      <ul class="beats">${beatLines}</ul>
-      ${media}
-      <label class="flag"><input type="checkbox" class="flag-input" ${cue.flagged ? 'checked' : ''}/> flag: no card fits</label>
-      <input class="note" type="text" placeholder="note (why no card fits)" value="${escapeHtml(cue.note ?? '')}" />
-      ${fbBox(cue.id, 'feedback on this graphic — wrong card, wrong timing, wording… (read by the next Claude session)')}
-      <textarea class="frag">${escapeHtml(JSON.stringify(fragment, null, 2))}</textarea>
-    </div>`;
-    }
-    return { html, start: seg.start, isShot: false };
-  });
-
-  if (shots?.spans?.length) {
-    for (const span of shots.spans) {
-      const origSpan = shots.shotsFile?.spans?.find(s => s.id === span.id) || span;
-      const noteHtml = span.note ? ` &mdash; ${escapeHtml(span.note)}` : '';
-      const shotHtml = `<div class="timeline-block shot-block" id="shot-${escapeHtml(span.id)}">
-  <div class="shot-header">🧍 <b>${escapeHtml(span.id)}</b> avatar-full &middot; ${timecode(span.start)} &rarr; ${timecode(span.start + span.duration)} &middot; ${span.duration}s${noteHtml}</div>
-  <textarea class="shot-frag">${escapeHtml(JSON.stringify(origSpan, null, 2))}</textarea>
-  ${fbBox(span.id, 'feedback on this shot span (read by the next Claude session)')}
-</div>`;
-      const block = { html: shotHtml, start: span.start, isShot: true };
-      const idx = timelineBlocks.findIndex(b => !b.isShot && b.start >= span.start);
-      if (idx !== -1) {
-        timelineBlocks.splice(idx, 0, block);
-      } else {
-        timelineBlocks.push(block);
-      }
-    }
-  }
-  
+  const timelineBlocks = buildDetailBlocks(cues, segments, shots, feedbackItems);
   const timelineHtml = timelineBlocks.map(b => b.html).join('\n');
 
   return `<!doctype html>
@@ -638,6 +684,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
   <div class="timeline">${timelineHtml}</div>
   <script>
     ${OVERFLOW_BADGE_JS}
+    ${INIT_BLOCK_JS}
     let FB_DIRTY = false;
     window.addEventListener('beforeunload', (e) => { if (FB_DIRTY) { e.preventDefault(); e.returnValue = ''; } });
     document.addEventListener('input', (e) => { if (e.target.classList && e.target.classList.contains('feedback')) FB_DIRTY = true; });
@@ -654,23 +701,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
       });
     });
 
-    document.querySelectorAll('.tile').forEach((tile) => {
-      const iframe = tile.querySelector('iframe');
-      const audio = tile.querySelector('audio');
-      if (!iframe || !audio) return;
-      const post = () => { try { iframe.contentWindow.postMessage({ t: audio.currentTime }, '*'); } catch {} };
-      let raf = null;
-      audio.addEventListener('timeupdate', post);
-      audio.addEventListener('seeked', post);
-      audio.addEventListener('pause', () => { post(); if (raf) cancelAnimationFrame(raf); });
-      audio.addEventListener('play', () => {
-        document.querySelectorAll('.tile audio').forEach((a) => { if (a !== audio && !a.paused) a.pause(); });
-        const loop = () => { post(); if (!audio.paused) raf = requestAnimationFrame(loop); };
-        loop();
-      });
-
-      wireProbe(tile);
-    });
+    initBlock(document);
 
     const master = document.getElementById('master');
     const fxStage = document.getElementById('fxStage');
