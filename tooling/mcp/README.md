@@ -1,6 +1,6 @@
 # MCPs for Claude Code
 
-> **Status (2026):** Mostly legacy. The Gmail / Sheets / YouTube / Hostinger work moved to plain CLIs in `../cli`, which cost tokens only when they run. Only `drive` and `cloudflare` are still wired into the active `.mcp.json`. This folder stays in place for two reasons: the CLIs in `../cli` borrow their Google OAuth from `mcp/google-shared`, and the VPS `gmail-digest` cron runs `gmail-mcp-server/server.py` directly (see `../../VPS-CRONS.md`). Don't move it without updating those.
+> **Status (2026):** Mostly legacy. The Gmail / Sheets / YouTube / Hostinger work moved to plain CLIs in `../cli`, which cost tokens only when they run. `google-drive`, `cloudflare`, and `davinci-resolve`(-advanced) are wired into the active `.mcp.json`. This folder stays in place for two reasons: the CLIs in `../cli` borrow their Google OAuth from `mcp/google-shared`, and the VPS `gmail-digest` cron runs `gmail-mcp-server/server.py` directly (see `../../VPS-CRONS.md`). Don't move it without updating those.
 
 A bundle of MCP (Model Context Protocol) servers that Claude Code can call as tools while you work in this repo. Examples: read/write Google Sheets, query a Cloudflare D1 database, search YouTube, send a Gmail draft.
 
@@ -75,10 +75,11 @@ Restart Claude Code. The MCPs should show up in the `/mcp` list.
 
 ## Optional MCPs (skip if you don't need them)
 
-Each entry in `.mcp.json` is independent — delete the ones you don't use. The active default is just `google-drive` + `cloudflare`.
+Each entry in `.mcp.json` is independent — delete the ones you don't use. The active default is `google-drive` + `cloudflare` + `davinci-resolve`(-advanced).
 
 - `google-drive-mcp-server/` — Google Drive. Active default.
 - `cloudflare-mcp-server/` — Cloudflare D1/KV/DNS. Active default.
+- `davinci-resolve-mcp/` — Control DaVinci Resolve (edit points, timelines, color, render) from [samuelgursky/davinci-resolve-mcp](https://github.com/samuelgursky/davinci-resolve-mcp), vendored as plain source (own `.git` stripped on clone, like the other server folders). Two servers registered: `davinci-resolve` (Python, compound 34-tool surface, `src/server.py` via its own `venv/`) and `davinci-resolve-advanced` (Node, granular 341-tool surface, `bin/davinci-resolve-advanced-mcp.mjs`). **Requires DaVinci Resolve *Studio*** (the free edition has no external-scripting API) with **Preferences → General → External scripting using → Local**, and Resolve running before tool calls will connect. `RESOLVE_SCRIPT_API`/`RESOLVE_SCRIPT_LIB`/`PYTHONPATH` in `.mcp.json` are pre-filled with the standard macOS paths — update them if Resolve is ever installed somewhere nonstandard. To refresh: `cd davinci-resolve-mcp && git pull` won't work (no `.git`) — re-clone over it, or run `python3 install.py --update-now` from a real clone and copy `src/` back in.
 - `gmail-mcp-server/` — Gmail. Legacy for interactive use, but still run directly by the VPS `gmail-digest` cron (see `../../VPS-CRONS.md`) — don't delete.
 - `google-sheets-mcp-server/` — Google Sheets. Legacy; superseded by `../cli/sheets`.
 - `google-task-mcp-server/` — Google Tasks. Legacy.

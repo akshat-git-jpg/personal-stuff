@@ -15,6 +15,28 @@
         "<PATH_TO_REPO>/tooling/mcp/cloudflare-mcp-server/server.py"
       ],
       "env": {}
+    },
+    "davinci-resolve": {
+      "type": "stdio",
+      "command": "<PATH_TO_REPO>/tooling/mcp/davinci-resolve-mcp/venv/bin/python",
+      "args": [
+        "<PATH_TO_REPO>/tooling/mcp/davinci-resolve-mcp/src/server.py"
+      ],
+      "env": {
+        "RESOLVE_SCRIPT_API": "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting",
+        "RESOLVE_SCRIPT_LIB": "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Libraries/Fusion/fusionscript.so",
+        "PYTHONPATH": "/Library/Application Support/Blackmagic Design/DaVinci Resolve/Developer/Scripting/Modules"
+      }
+    },
+    "davinci-resolve-advanced": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "<PATH_TO_REPO>/tooling/mcp/davinci-resolve-mcp/bin/davinci-resolve-advanced-mcp.mjs"
+      ],
+      "env": {
+        "AAF_PROBE_PYTHON": "<PATH_TO_REPO>/tooling/mcp/davinci-resolve-mcp/venv/bin/python"
+      }
     }
   }
 }

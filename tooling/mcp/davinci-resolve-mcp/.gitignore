@@ -1,0 +1,117 @@
+# Node (resolve-advanced — the davinci-resolve-advanced-mcp server + vendored libs)
+node_modules/
+resolve-advanced/node_modules/
+
+# Python (envs, build artifacts, caches)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv
+.env
+ENV/
+env.bak/
+venv.bak/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Logs and temporary files
+*.log
+*.log.bak
+*.swp
+.DS_Store
+to_clean/
+logs_backup/
+cleanup_backup/
+tmp/
+tests/*_results.json
+results.tsv
+# Keep the logs directory but not its contents
+logs/*
+!logs/.gitkeep
+
+# Configuration files with sensitive info
+# Don't ignore templates
+.mcp.json
+.mcp.json.backup
+claude_desktop_config.json
+!config-templates/*.template.json
+
+# IDE / editor
+.idea/
+.vscode/
+.cursor/*
+# ...but track the generated cross-platform agent rules (see scripts/agent-rules/)
+!.cursor/rules/
+*.sublime-project
+*.sublime-workspace
+.specstory/
+.cursorindexingignore
+
+# Session-specific files
+*.session
+*.pid
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# macOS specific files
+.AppleDouble
+.LSOverride
+
+# Any backup directories
+*_backup/
+
+# Autoresearch framework (local development only)
+autoresearch/
+
+# Local planning notes / scratch artifacts — anywhere in the tree.
+# Policy: gameplans and in-flight design docs are never committed; they live in local/.
+docs/_scratch/
+docs/_design/
+**/*gameplan*.md
+**/*ledger*.json
+**/*review-log*.md
+**/*session*.md
+
+# Resolve MCP media analysis artifacts
+.davinci-resolve-mcp-analysis/
+davinci-resolve-mcp-analysis/
+
+# Local scratch / personal tooling attached to this project.
+# Holds design docs, calibration references, release-notes drafts, the screenshot
+# capture script, and one-off repro scripts. Never shipped. See local/README.md.
+/local/
+.claude/launch.json
