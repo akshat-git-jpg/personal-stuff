@@ -36,6 +36,23 @@ cues.json content — no other text.
 
 Single-card cues (catalog `kind: "single"`) use `beats: []`.
 
+Word-sync cues (catalog `kind: "word-sync"`, e.g. `slate/kinetic-sentence`)
+carry no beats and instead fill `variables.text` (the voiceover verbatim) and
+optionally `variables.accent` (a phrase verbatim inside `text`):
+
+```json
+{
+  "id": "c07",
+  "card": "slate/kinetic-sentence",
+  "anchor": "verbatim >=3-word transcript quote — the sentence's own opening words",
+  "lead": 0.2,
+  "hold": 2.0,
+  "variables": { "text": "voiceover sentence, verbatim, <=18 words", "accent": "2-4 verbatim words inside text" },
+  "beats": [],
+  "flagged": false
+}
+```
+
 ## Rules
 
 Density (defaults — follow the script when it disagrees). The default for any
@@ -69,6 +86,17 @@ Result-review overlays:
   anchor each beat at that product's first spoken number.
 - VO states a claim then lists items under it →
   `slate/headline-chips`: headline = the claim, one chip beat per listed item.
+
+Kinetic-sentence interstitial (mandatory): for a bridge with no footage, UI,
+or data worth showing and a single spoken point, use `slate/kinetic-sentence`
+instead of leaving it on camera — a frequent choice, drawn from the same
+every-45–90s fullframe cadence above, not an extra quota. `variables.text` is
+the voiceover verbatim, one sentence, <=18 words, `beats: []` — paraphrasing
+fails resolution at step 030; split long sentences into two consecutive cues
+instead. `variables.accent` is the 2-4 verbatim, contiguous words carrying the
+sentence's point (the consequence or substance, e.g. "burns credits", "cool
+technical features" — not a brand name or number picked for salience). Anchor
+at the sentence's own opening words.
 
 Structural consistency (mandatory): a repeated semantic slot — e.g. the
 section opener for each compared tool — uses the SAME card every time; mixing

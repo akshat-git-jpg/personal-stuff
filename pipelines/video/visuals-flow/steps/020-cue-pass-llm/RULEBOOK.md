@@ -123,6 +123,43 @@ introduces a section long before the first data point, anchor at the sentence
 immediately preceding the first beat instead of the section opener. (Owner
 fold 2026-07-20, test-02 c29: 18.9s of empty table scaffold.)
 
+**Kinetic-sentence interstitial (`slate/kinetic-sentence`).** When it fires: a
+narration bridge where there is no footage, UI, or data worth showing, and the
+point is a single spoken assertion — this card is the alternative to letting
+the host carry that bridge on camera. How often: this is a frequent device in
+the reference, not a once-per-video special — whenever a bridge qualifies, use
+it as one of the fullframe/canvas beats in the every-45–90s cadence (Section
+2, rule 1); it draws from that same cadence rather than adding a separate
+quota on top of it.
+
+Quoting (mandatory): `variables.text` is the voiceover **verbatim**, one
+sentence, ≤18 words, `beats: []`. Paraphrasing is not a style slip — the
+resolver matches `text` word-for-word forward through the transcript and a
+paraphrase fails to resolve at step 030. If the spoken sentence runs long,
+either quote the clause carrying the point or split into two consecutive
+kinetic-sentence cues.
+
+Accent phrase (mandatory): `variables.accent` is the 2–4 words carrying the
+sentence's *point*, not merely its nouns, and must appear verbatim and
+contiguously inside `text`.
+- "Because picking the wrong model just **burns credits**" → the consequence.
+- "It highlights some of the **cool technical features**" → the substance,
+  not "It highlights".
+- Wrong: accenting a brand name or a number just because it stands out —
+  that's already handled by caption keyword accent; this is a semantic
+  choice, not a salience one.
+
+No beats, no per-word anchors: the cue authors `"beats": []` — per-word timing
+is derived from the transcript by the resolver, never authored here.
+
+Anchor: the sentence's own opening words (≥3), not a phrase earlier in the
+narration — word matching starts at the anchor.
+
+Interaction with the shot pass: this card is `fullframe` and occupies a bridge
+the shot pass might otherwise fill with a full-screen host span; it cannot
+overlap another fullframe cue's spoken coverage (the resolver rejects
+overlaps, same as any other fullframe card).
+
 If nothing in the catalog fits, do not force a bad match. Set the cue's
 `flagged` to `true`, set `card` to the closest existing slug, and add a `note`
 field explaining what's missing. See Section 8.
@@ -214,6 +251,36 @@ The correct cues.json for that excerpt:
         "label": "Pro tip",
         "text": "Drag tasks directly into any project",
         "edge": "bottom"
+      },
+      "beats": [],
+      "flagged": false
+    }
+  ]
+}
+```
+
+A second excerpt, this one a bridge with nothing on screen worth showing:
+
+> Before we get into setup, one thing is worth saying plainly. Because
+> picking the wrong model just burns credits, and there's no undoing that
+> once a run finishes.
+
+The correct cue for that bridge:
+
+```json
+{
+  "video": "bramble-review",
+  "approved": false,
+  "cues": [
+    {
+      "id": "c07",
+      "card": "slate/kinetic-sentence",
+      "anchor": "because picking the wrong",
+      "lead": 0.2,
+      "hold": 2.0,
+      "variables": {
+        "text": "Because picking the wrong model just burns credits",
+        "accent": "burns credits"
       },
       "beats": [],
       "flagged": false
