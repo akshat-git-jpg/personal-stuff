@@ -1,0 +1,91 @@
+<!doctype html>
+<!--
+  KINETIC SENTENCE   (Hyperframes card)
+  A canvas slate: one spoken sentence alone on the ambient canvas; words appear as spoken
+  and an accent phrase colorizes with them.
+  1920x1080, 30fps, 6s.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block (text, accent,       │
+  │  beats) and :root. Never touch the TIMELINE.                            │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render slate/kinetic-sentence -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff;
+        --accent: #fb923c;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: -10%; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); will-change: transform; }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 180px; }
+      #sentence { font-size: 64px; font-weight: 800; line-height: 1.25; letter-spacing: -1.5px; max-width: 1560px; text-align: center; }
+      .word { display: inline-block; white-space: pre-wrap; will-change: opacity, color; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="kineticsentence" data-start="0" data-duration="6" data-width="1920" data-height="1080"
+      data-composition-variables='{"text":"Because picking the wrong model just burns credits","accent":"burns credits","beats":[{"text":"Because","accent":false,"at":0.0},{"text":"picking","accent":false,"at":0.35},{"text":"the","accent":false,"at":0.62},{"text":"wrong","accent":false,"at":0.8},{"text":"model","accent":false,"at":1.15},{"text":"just","accent":false,"at":1.5},{"text":"burns","accent":true,"at":1.75},{"text":"credits","accent":true,"at":2.1}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div id="sentence"></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        text: VARS.text ?? "Because picking the wrong model just burns credits",
+        accent: VARS.accent ?? "burns credits",
+        beats: VARS.beats ?? [
+          {"text":"Because","accent":false,"at":0.0},
+          {"text":"picking","accent":false,"at":0.35},
+          {"text":"the","accent":false,"at":0.62},
+          {"text":"wrong","accent":false,"at":0.8},
+          {"text":"model","accent":false,"at":1.15},
+          {"text":"just","accent":false,"at":1.5},
+          {"text":"burns","accent":true,"at":1.75},
+          {"text":"credits","accent":true,"at":2.1}
+        ]
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const sentenceEl = document.getElementById('sentence');
+      const words = DATA.beats.map((b, i) => {
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.textContent = b.text + (i < DATA.beats.length - 1 ? ' ' : '');
+        span.style.opacity = 0;
+        sentenceEl.appendChild(span);
+        return { b, span };
+      });
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      
+      tl.to('#bg', { scale: 1.05, x: -20, y: -10, duration: 6, ease: 'none' }, 0);
+
+      words.forEach(({ b, span }) => {
+        const at = Number(b.at);
+        tl.to(span, { opacity: 1, duration: 0.1, ease: 'none' }, at);
+        if (b.accent) {
+          tl.to(span, { color: 'var(--accent)', duration: 0.1, ease: 'none' }, at);
+        }
+      });
+      
+      window.__timelines['kineticsentence'] = tl;
+    </script>
+  </body>
+</html>

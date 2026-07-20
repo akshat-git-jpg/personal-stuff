@@ -143,6 +143,44 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
     }
   }
 
+  // word-sync validation
+  for (const c of rawCues) {
+    const cat = bySlug[c.card];
+    if (cat && cat.kind === 'word-sync') {
+      const text = c.variables?.text;
+      if (!text || typeof text !== 'string' || text.trim() === '') {
+        errors.push(`${c.id}: word-sync card requires variables.text`);
+      } else {
+        const wcount = text.trim().split(/\s+/).length;
+        if (cat.max_beats && wcount > cat.max_beats) {
+          errors.push(`${c.id}: sentence is ${wcount} words, max is ${cat.max_beats} — split it into two cues`);
+        }
+        const accent = c.variables?.accent;
+        if (accent && typeof accent === 'string' && accent.trim() !== '') {
+          const normWord = (w) => w.toLowerCase().replace(/[^a-z0-9']/g, '');
+          const tNorm = text.trim().split(/\s+/).map(normWord).filter(Boolean);
+          const aNorm = accent.trim().split(/\s+/).map(normWord).filter(Boolean);
+          if (aNorm.length) {
+            let found = false;
+            for (let i = 0; i <= tNorm.length - aNorm.length; i++) {
+              let ok = true;
+              for (let k = 0; k < aNorm.length; k++) {
+                if (tNorm[i + k] !== aNorm[k]) { ok = false; break; }
+              }
+              if (ok) { found = true; break; }
+            }
+            if (!found) {
+              errors.push(`${c.id}: accent phrase "${accent}" does not appear in text`);
+            }
+          }
+        }
+      }
+      if (c.beats && Array.isArray(c.beats) && c.beats.length > 0) {
+        errors.push(`${c.id}: word-sync cards must not author beats — timings are derived from the transcript`);
+      }
+    }
+  }
+
   // W4 reveal-wordcount
   for (const c of rawCues) {
     if (c.beats) {
