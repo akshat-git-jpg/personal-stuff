@@ -93,7 +93,7 @@ Rules of thumb:
 `;
 
 function parseArgs(argv) {
-  const opts = { workdir: null, bundle: false, out: null, jobs: 3 };
+  const opts = { workdir: null, bundle: false, out: null, jobs: 3, force: false };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -101,6 +101,7 @@ function parseArgs(argv) {
     if (a === '--bundle') opts.bundle = true;
     else if (a === '--out') opts.out = rest.shift();
     else if (a === '--jobs') opts.jobs = parseInt(rest.shift(), 10);
+    else if (a === '--force') opts.force = true;
     else throw new Error(`unknown argument: ${a}`);
   }
   return opts;
@@ -109,10 +110,10 @@ function parseArgs(argv) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.workdir) {
-    console.error('usage: node lib/export-timeline.mjs <slug-or-path> [--bundle] [--out <dir>] [--jobs N]');
+    console.error('usage: node lib/export-timeline.mjs <slug-or-path> [--bundle] [--out <dir>] [--jobs N] [--force]');
     process.exit(1);
   }
-  const inputs = await loadAssemblyInputs({ workdir: opts.workdir, screen: null, screenOffset: 0, force: false });
+  const inputs = await loadAssemblyInputs({ workdir: opts.workdir, screen: null, screenOffset: 0, force: opts.force });
   const exportDir = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, inputs.video, 'resolve-export');
   const segDir = path.join(exportDir, 'segments');
   fs.rmSync(exportDir, { recursive: true, force: true });
@@ -129,9 +130,14 @@ async function main() {
   });
 
   const voPath = path.join(inputs.workdir, 'vo.mp3');
+  // Resolve does NOT resolve relative refs against the fcpxml's own folder
+  // (verified on 21.0.2: every ./segments/ clip imported as "not yet found"),
+  // so the local default is absolute file:// URLs for everything. --bundle
+  // keeps relative refs: the folder travels, and the importer's
+  // search-folder dialog relinks by filename in one pick.
   const srcUrl = (file) => {
-    if (path.dirname(file) === segDir) return `./segments/${path.basename(file)}`;
     if (opts.bundle) {
+      if (path.dirname(file) === segDir) return `./segments/${path.basename(file)}`;
       const mediaDir = path.join(exportDir, 'media');
       fs.mkdirSync(mediaDir, { recursive: true });
       const dest = path.join(mediaDir, path.basename(file));

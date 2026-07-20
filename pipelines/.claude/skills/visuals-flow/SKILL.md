@@ -112,7 +112,9 @@ Editor handoff = `renders/` + `manifest.md` + those clips + `avatar-manifest.md`
 
 1. Same gates as assembly (the exporter enforces them itself: cues approved +
    rendered, shots approved with clips downloaded, screen.mp4 present).
-2. `bash steps/095-resolve-export-run/run.sh <slug> [--bundle]` — full-res
+   `--force` bypasses the approval gates — owner-said-so only, same rule as
+   the render verb.
+2. `bash steps/095-resolve-export-run/run.sh <slug> [--bundle] [--force]` — full-res
    segment encodes (shares assembly-cache/ with the ship render, so a prior
    ship render makes this mostly cache hits), overlay-free base clips, writes
    `~/kb-scratch/video/visuals-flow/<slug>/resolve-export/` (timeline.fcpxml
