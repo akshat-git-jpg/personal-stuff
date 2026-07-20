@@ -1,0 +1,158 @@
+<!doctype html>
+<!--
+  ICON PILLS   (Hyperframes card)
+  Vertical list of rows; each row = an accent-outlined icon tile (left) + an
+  accent-outlined text pill (right). Rows reveal one per beat.
+  1920x1080, 30fps.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block and :root.           │
+  │  Never touch the TIMELINE script.                                       │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render checklist/icon-pills -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Icon Pills.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08;   /* radial origin (burnt amber) */
+        --bg-to: #0a0805;     /* near-black warm undertone */
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.62);
+        --accent: #fb923c;
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 24%, var(--bg-from) 0%, var(--bg-to) 64%); }
+      #glow { position: absolute; inset: 0; background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 60%); will-change: opacity; }
+
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 140px; }
+
+      #rows { display: flex; flex-direction: column; gap: 34px; align-items: center; justify-content: center; will-change: opacity; }
+      
+      .row { display: flex; align-items: center; gap: 24px; }
+      
+      .icon-tile { 
+        flex: 0 0 auto; width: 88px; height: 88px; border-radius: 22px; 
+        border: 2px solid var(--accent); background: rgba(0, 0, 0, 0.35); 
+        box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 40%, transparent); 
+        display: flex; align-items: center; justify-content: center; 
+        color: var(--accent); will-change: transform, opacity;
+      }
+      .icon-tile svg { width: 44px; height: 44px; }
+      
+      .pill { 
+        flex: 0 0 auto; border-radius: 44px; 
+        border: 2px solid var(--accent); background: rgba(0, 0, 0, 0.35); 
+        box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 40%, transparent); 
+        padding: 18px 34px; font-size: 34px; font-weight: 600; color: #ffffff; 
+        will-change: transform, opacity; white-space: pre-wrap; text-align: center;
+      }
+
+      .kw { 
+        color: var(--accent); font-weight: 800; 
+        background: color-mix(in srgb, var(--accent) 16%, transparent); 
+        border-radius: 8px; padding: 0 0.18em; 
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="iconpills" data-start="0" data-duration="8" data-width="1920" data-height="1080"
+      data-composition-variables='{"beats":[{"icon":"brain","text":"The memory"},{"icon":"calendar","text":"The scheduling"},{"icon":"person","text":"The way it learns your work over time","keyword":"work over time"}]}'>
+      <!-- Track 0: background -->
+      <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+      <!-- Track 1: accent glow -->
+      <div id="glow" class="clip" data-start="0" data-duration="8" data-track-index="1"></div>
+      <!-- Track 2: content -->
+      <div id="frame" class="clip" data-start="0" data-duration="8" data-track-index="2">
+        <div id="rows"></div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  
+         ===================================================== */
+      const ICONS = {
+        // the generic, extensible icon source; future cards can copy it, 
+        // and a later injected __icons registry is the promotion seam
+        brain:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>',
+        calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+        person:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+        bolt:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+        gear:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+        lock:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+        clock:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+        chart:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+        chat:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+        shield:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+        doc:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+        search:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+        star:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+        cloud:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>'
+      };
+      const iconSvg = (name) => ICONS[name] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/></svg>';
+
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        beats: VARS.beats ?? [
+          { icon: 'brain', text: 'The memory', at: 0.5 },
+          { icon: 'calendar', text: 'The scheduling', at: 1.0 },
+          { icon: 'person', text: 'The way it learns your work over time', keyword: 'work over time', at: 1.5 }
+        ]
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+
+      const highlight = (text, keyword) => {
+        const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        if (!keyword || !text.toLowerCase().includes(keyword.toLowerCase())) return esc(text);
+        
+        const idx = text.toLowerCase().indexOf(keyword.toLowerCase());
+        const before = text.slice(0, idx);
+        const match = text.slice(idx, idx + keyword.length);
+        const after = text.slice(idx + keyword.length);
+        return `${esc(before)}<span class="kw">${esc(match)}</span>${esc(after)}`;
+      };
+
+      const rowsEl = $('rows');
+      const items = DATA.beats.map((b) => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <div class="icon-tile">${iconSvg(b.icon)}</div>
+          <div class="pill">${highlight(b.text, b.keyword)}</div>
+        `;
+        rowsEl.appendChild(row);
+        return { b, tile: row.querySelector('.icon-tile'), pill: row.querySelector('.pill') };
+      });
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      
+      if (DATA.beats.length > 0) {
+        const firstAt = Math.max(0, DATA.beats[0].at - 0.3);
+        tl.fromTo('#rows', { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' }, firstAt);
+        tl.fromTo('#glow', { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' }, firstAt);
+      }
+      
+      items.forEach(({ b, tile, pill }) => {
+        tl.fromTo(tile, { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.4)' }, b.at);
+        tl.fromTo(pill, { x: -24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }, b.at + 0.05);
+      });
+
+      window.__timelines['iconpills'] = tl;
+    </script>
+  </body>
+</html>

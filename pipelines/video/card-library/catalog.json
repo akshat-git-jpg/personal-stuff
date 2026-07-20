@@ -50,6 +50,21 @@
       "max_reveal_chars": 40
     },
     {
+      "slug": "checklist/icon-pills",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "vertical list of icon-tile + text-pill rows revealing one per beat, accent-outlined with a soft glow; optional keyword highlight per row — for enumerating features/capabilities",
+      "variables": {},
+      "beat_shape": {
+        "icon": "string — icon-set name (brain|calendar|person|bolt|gear|lock|clock|chart|chat|shield|doc|search|star|cloud)",
+        "text": "string",
+        "keyword": "string (optional) — verbatim phrase inside text"
+      },
+      "max_beats": 4,
+      "max_reveal_chars": 40,
+      "default_duration": 8
+    },
+    {
       "slug": "comparison/bar-chart",
       "kind": "single",
       "placement": "fullframe",
