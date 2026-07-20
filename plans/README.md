@@ -121,6 +121,8 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 104 | board effects lane (HANDOFF 1c; spec 2026-07-20) — minimap markers + per-instance enabled toggles, THIRD approval gate (assemble refuses unapproved effects.json), master VO playback + CSS sim stage scoped as timing preview | P1 | M | none (independent of 105) | TODO |
 | 105 | visuals-flow smalls sweep — GFX-03 rubric wording, GFX-04 transcript timestamp assert, GFX-13 edit-delta shots mode, defuse + wire the destructive orphaned effects.test.mjs into check.sh | P2 | S | none (independent of 104) | TODO |
 | 106 | shot-plan cadence recalibrated to Youri rhythm (owner 2026-07-20) — SPAN_MIN 12→10, W1 split mid 45s/zone 120s, GAP_AVATAR_MAX 300→180, 070 pair rewritten; totals FROZEN (300s cap/240s target = HeyGen cost) | P1 | S | none | TODO |
+| 107 | kinetic-sentence card + word-synced resolver — the Youri interstitial that replaces jump-cut talking head for bridges; new `word-sync` catalog kind whose per-word `at` is derived from transcript.json (never hand-anchored) | P1 | M | none | TODO |
+| 108 | teach the cue pass to write kinetic-sentence cues — RULEBOOK rule (when it fires, verbatim quoting, how the accent phrase is chosen) + cue-pass-prompt schema/rules | P1 | S | 107 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
