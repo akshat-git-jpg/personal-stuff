@@ -5,10 +5,10 @@ BEAT_CARDS=$(node -e "require('./catalog.json').cards.filter(c=>c.kind==='beat')
 [ "$(echo "$BEAT_CARDS" | wc -l | tr -d ' ')" = "15" ]
 node -e "
 const fs=require('fs');const c=require('./catalog.json');
-if(c.cards.length!==47)throw new Error('want 47 cards, got '+c.cards.length);
+if(c.cards.length!==48)throw new Error('want 48 cards, got '+c.cards.length);
 for(const card of c.cards){
   if(!fs.existsSync(card.slug+'/index.html'))throw new Error('missing dir: '+card.slug);
-  if(!['beat','single'].includes(card.kind))throw new Error('bad kind: '+card.slug);
+  if(!['beat','single','word-sync'].includes(card.kind))throw new Error('bad kind: '+card.slug);
   if(!['fullframe','overlay'].includes(card.placement))throw new Error('bad placement: '+card.slug);
   if(card.kind==='beat'&&!card.beat_shape)throw new Error('beat card missing beat_shape: '+card.slug);
   if(card.kind==='beat'&&!(card.max_beats>0))throw new Error('beat card missing max_beats: '+card.slug);

@@ -77,7 +77,8 @@ Once it passes, render2 serves the new cards within ~15 minutes.
 
 Generated media and test output — the house rule from `pipelines/CLAUDE.md`.
 Renders belong in `~/kb-scratch/`, test temp dirs belong under the owning
-flow's gitignored `.test-tmp/`. `flow/.test-tmp/` in this folder is a historical
-violation (42 files, 19 of them audio) from visuals-flow board tests that ran
-with the wrong working directory; it also shows up in the `/cards` mount as a
-phantom card type.
+flow's gitignored `.test-tmp/`. A `flow/` directory used to live here — a
+historical violation from visuals-flow board tests that ran with the wrong
+working directory (42 committed files, plus a phantom card type in the `/cards`
+mount). It was deleted once those tests moved to their own workdir; don't
+recreate it. `flow/.test-tmp/` stays gitignored as a guard against a repeat.
