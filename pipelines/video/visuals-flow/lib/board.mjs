@@ -177,6 +177,9 @@ const BOARD_CSS = `
   .sticky-header { position:sticky; top:0; background:var(--bg); z-index:100; margin:-28px -32px 20px -32px; padding:28px 32px 16px 32px; border-bottom:1px solid var(--line); }
   .topbar { display:flex; align-items:center; gap:20px; margin-bottom:16px; font-size:14px; color:var(--dim); }
   .topbar strong { color:var(--text); }
+  .view-toggle { display:flex; gap:2px; border:1px solid var(--line); border-radius:8px; padding:2px; }
+  .view-toggle a { padding:5px 12px; border-radius:6px; font-size:13px; font-weight:600; text-decoration:none; color:var(--dim); }
+  .view-toggle a.active { color:var(--accent); background:rgba(251,146,60,0.12); }
   .topbar button { font:inherit; font-weight:700; border-radius:9px; padding:9px 16px; cursor:pointer;
     border:1px solid var(--line); background:var(--panel); color:var(--text); }
   #approveBtn { border-color:var(--ok); color:var(--ok); }
@@ -260,6 +263,35 @@ const BOARD_CSS = `
   #fxStage .note-fixed { position:absolute; top:6px; right:10px; font-size:10px; color:var(--dim); }
 `;
 
+// Styles for the / (timeline) view only — appended alongside BOARD_CSS.
+const TIMELINE_CSS = `
+  .tl-zoom-row { display:flex; align-items:center; gap:10px; margin:0 0 14px; font-size:12px; color:var(--dim); }
+  .tl-layout { display:flex; gap:16px; align-items:flex-start; }
+  .tl-canvas-wrap { flex:1; min-width:0; overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
+  .tl-canvas { display:flex; }
+  .tl-labels { flex:none; width:90px; position:sticky; left:0; z-index:5; background:var(--bg); border-right:1px solid var(--line); }
+  .tl-label { height:36px; display:flex; align-items:center; padding:0 10px; font-family:ui-monospace,Menlo,monospace;
+    font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:0.08em; }
+  .tl-ruler-spacer { height:24px; }
+  .tl-tracks { position:relative; flex:none; }
+  .tl-ruler { height:24px; position:relative; border-bottom:1px solid var(--line); cursor:pointer; }
+  .tl-tick { position:absolute; top:0; bottom:0; font-size:10px; color:var(--dim); border-left:1px solid var(--line); padding:2px 0 0 4px; white-space:nowrap; }
+  .tl-track { position:relative; height:36px; border-bottom:1px solid var(--line); background:rgba(255,255,255,0.02); }
+  .tl-screen-bar { position:absolute; inset:8px 0; background:var(--line); border-radius:3px; }
+  .tl-block { position:absolute; top:4px; bottom:4px; overflow:hidden; cursor:pointer; border-radius:3px;
+    font-size:10px; padding:2px 4px; color:#0f0b07; white-space:nowrap; }
+  .tl-mark { position:absolute; top:4px; bottom:4px; width:3px; border-radius:1px; }
+  .tl-span { position:absolute; top:12px; height:8px; border-radius:4px; background:rgba(245,237,226,0.28); }
+  .tl-fx-chips { position:absolute; left:4px; top:4px; display:flex; gap:4px; z-index:2; }
+  .tl-chip { font-size:11px; font-family:ui-monospace,Menlo,monospace; color:var(--dim);
+    border:1px solid var(--line); border-radius:20px; padding:2px 8px; background:var(--bg); }
+  .tl-playhead { position:absolute; top:0; bottom:0; width:2px; background:#fff; pointer-events:none; }
+  #detail-panel { flex:none; width:520px; max-width:520px; position:sticky; top:140px;
+    max-height:calc(100vh - 160px); overflow-y:auto; background:var(--panel); border:1px solid var(--line);
+    border-radius:12px; padding:16px; }
+  #detail-panel .placeholder { color:var(--dim); font-size:13px; }
+`;
+
 // Shared client script for both / (board) and /calibrate: posts each tile's
 // probe times into its iframe on load, and turns broken reports into a badge
 // on the tile header. Kept as one string so the two pages can't drift.
@@ -295,6 +327,131 @@ const OVERFLOW_BADGE_JS = `
       const allOffenders = [...new Set(times.flatMap((x) => x.offenders))].slice(0, 5);
       badge.textContent = 'OVERFLOW @ ' + label + ' (' + allOffenders.join(' ') + ')';
     });
+  }
+`;
+
+// initBlock(root): wire probe + audio<->iframe sync for every .tile inside
+// `root` that hasn't been wired yet. Idempotent (data-inited guard) so it's
+// safe to call again when the timeline dock reveals a previously-parked
+// block. Shared by /list (whole-document init) and / (per-block, on reveal).
+const INIT_BLOCK_JS = `
+  function initBlock(root) {
+    root.querySelectorAll('.tile:not([data-inited])').forEach((tile) => {
+      tile.dataset.inited = '1';
+      const iframe = tile.querySelector('iframe');
+      const audio = tile.querySelector('audio');
+      if (iframe && audio) {
+        const post = () => { try { iframe.contentWindow.postMessage({ t: audio.currentTime }, '*'); } catch {} };
+        let raf = null;
+        audio.addEventListener('timeupdate', post);
+        audio.addEventListener('seeked', post);
+        audio.addEventListener('pause', () => { post(); if (raf) cancelAnimationFrame(raf); });
+        audio.addEventListener('play', () => {
+          document.querySelectorAll('.tile audio').forEach((a) => { if (a !== audio && !a.paused) a.pause(); });
+          const loop = () => { post(); if (!audio.paused) raf = requestAnimationFrame(loop); };
+          loop();
+        });
+      }
+      wireProbe(tile);
+    });
+  }
+`;
+
+// Shared Save/Approve wiring — reads VIDEO/APPROVED (page-local consts) and
+// the current DOM's .tile/.shot-block/.feedback elements. Both / and /list
+// use the identical handlers so save/approve semantics can't drift between
+// the two views.
+const SAVE_ACTIONS_JS = `
+  let FB_DIRTY = false;
+  window.addEventListener('beforeunload', (e) => { if (FB_DIRTY) { e.preventDefault(); e.returnValue = ''; } });
+  document.addEventListener('input', (e) => { if (e.target.classList && e.target.classList.contains('feedback')) FB_DIRTY = true; });
+
+  function showBanner(html, cls) {
+    document.getElementById('banner').innerHTML = '<div class="banner ' + cls + '">'
+      + '<button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>' + html + '</div>';
+  }
+
+  function escapeForBanner(s) {
+    return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  }
+
+  document.getElementById('saveBtn').onclick = async () => {
+    const broken = [];
+    const cues = [...document.querySelectorAll('.tile')].map((tile) => {
+      let fragment;
+      try { fragment = JSON.parse(tile.querySelector('.frag').value); }
+      catch (e) { broken.push(tile.dataset.id + ': ' + e.message); return null; }
+      const cue = {
+        id: tile.dataset.id,
+        card: tile.dataset.card,
+        anchor: fragment.anchor,
+        hold: fragment.hold,
+        variables: fragment.variables,
+        beats: fragment.beats,
+        flagged: tile.querySelector('.flag-input').checked,
+      };
+      if (tile.dataset.lead !== '') cue.lead = Number(tile.dataset.lead);
+      const note = tile.querySelector('.note').value;
+      if (note) cue.note = note;
+      return cue;
+    }).filter(Boolean);
+    if (broken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + broken.map(escapeForBanner).join('<br>'), 'err'); return; }
+
+    const shotBroken = [];
+    const spans = [...document.querySelectorAll('.shot-block')].map((b) => {
+      try { return JSON.parse(b.querySelector('.shot-frag').value); }
+      catch (e) { shotBroken.push(b.id + ': ' + e.message); return null; }
+    }).filter(Boolean);
+    if (shotBroken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + shotBroken.map(escapeForBanner).join('<br>'), 'err'); return; }
+
+    const feedback = {};
+    document.querySelectorAll('textarea.feedback').forEach((t) => { feedback[t.dataset.ref] = t.value; });
+    const payload = { video: VIDEO, approved: APPROVED, cues, feedback };
+    if (document.querySelectorAll('.shot-block').length > 0) payload.spans = spans;
+    const toggles = [...document.querySelectorAll('.fx-toggle')];
+    if (toggles.length > 0) {
+      payload.effects = toggles.map((el) => ({ id: el.dataset.fxId, enabled: el.checked }));
+    }
+
+    const res = await fetch('/save', { method: 'POST', body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (!data.ok) {
+      showBanner(data.errors.map(escapeForBanner).join('<br>'), 'err');
+    } else {
+      FB_DIRTY = false;
+      const warns = data.warnings || [];
+      const errs = data.errors || [];
+      if (warns.length > 0 || errs.length > 0) {
+        let html = \`saved — \${warns.length} lint warnings, \${errs.length} errors<br><br>\`;
+        const lines = [];
+        for (const e of errs) lines.push(\`error: \${escapeForBanner(e)}\`);
+        for (const w of warns) lines.push(escapeForBanner(w));
+        showBanner(html + lines.join('<br>'), errs.length > 0 ? 'err' : 'ok');
+      } else {
+        location.reload();
+      }
+    }
+  };
+
+  document.getElementById('approveBtn').onclick = async () => {
+    await fetch('/approve', { method: 'POST' });
+    location.reload();
+  };
+
+  const approveShotsBtn = document.getElementById('approveShotsBtn');
+  if (approveShotsBtn) {
+    approveShotsBtn.onclick = async () => {
+      await fetch('/approve-shots', { method: 'POST' });
+      location.reload();
+    };
+  }
+
+  const approveEffectsBtn = document.getElementById('approveEffectsBtn');
+  if (approveEffectsBtn) {
+    approveEffectsBtn.onclick = async () => {
+      await fetch('/approve-effects', { method: 'POST' });
+      location.reload();
+    };
   }
 `;
 
@@ -402,6 +559,123 @@ function normalizeFeedbackItems(raw) {
   return items;
 }
 
+// Returns an ordered array of { html, start, id, isShot } for every cue tile,
+// gap block, and shot block — the single source of per-block detail HTML for
+// both the timeline dock and the /list view. `id` is the DOM id the block
+// HTML itself carries (`seg-<i>` for cue/gap, `shot-<span.id>` for shots).
+function buildDetailBlocks(cues, segments, shots, feedbackItems) {
+  const fb = (ref) => feedbackItems[ref]?.folded ? '' : escapeHtml(feedbackItems[ref]?.text ?? '');
+  const fbBox = (ref, placeholder) => {
+    const foldedHtml = feedbackItems[ref]?.folded
+      ? `<div class="feedback-folded">✓ folded ${escapeHtml(feedbackItems[ref].folded)} — "${escapeHtml(feedbackItems[ref].text)}"</div>`
+      : '';
+    return `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>${foldedHtml}`;
+  };
+
+  const blocks = segments.map((seg, idx) => {
+    const i = idx;
+    const id = `seg-${i}`;
+    const mid = (seg.start + seg.end) / 2;
+    const inShot = shots?.spans?.some(s => mid >= s.start && mid <= s.start + s.duration) ? ' in-shot' : '';
+    let html = '';
+
+    if (seg.kind === 'gap') {
+      const durSecs = seg.end - seg.start;
+      const m = Math.floor(durSecs / 60);
+      const s = Math.floor(durSecs % 60);
+      const durStr = m > 0 ? `${m}m ${s}s` : `${s}s`;
+      const allWords = seg.words.map(w => w.text).join(' ');
+      const previewWords = seg.words.slice(0, 14).map(w => w.text).join(' ') + (seg.words.length > 14 ? '…' : '');
+      html = `<div class="timeline-block gap-block${inShot}" id="${id}">
+        <div class="gap-header" onclick="this.parentElement.classList.toggle('expanded')">
+          <span class="gap-icon">▸</span> ${timecode(seg.start)} &rarr; ${timecode(seg.end)} &middot; ${durStr} &middot; <span style="color:var(--dim)">"${escapeHtml(previewWords)}"</span>
+        </div>
+        <div class="gap-body">${escapeHtml(allWords)}
+          ${fbBox(`gap-${timecode(seg.start)}`, 'feedback for this stretch (read by the next Claude session)')}
+        </div>
+      </div>`;
+    } else {
+
+    const cue = cues.find(c => c.id === seg.cue.id);
+    const r = seg.unresolved ? null : seg.cue;
+    const beats = cue.beats ?? [];
+    const fragment = { anchor: cue.anchor, hold: cue.hold ?? 3.0, variables: cue.variables ?? {}, beats };
+    const beatLines = beats
+      .map((b) => `<li><strong>${escapeHtml(b.reveal?.text ?? '')}</strong> @ "${escapeHtml(b.anchor ?? '')}"</li>`)
+      .join('');
+
+    const header = r
+      ? `#${escapeHtml(cue.id)} &middot; ${timecode(r.start)} &rarr; ${timecode(r.start + r.duration)} &middot; ${escapeHtml(cue.card)} &middot; ${r.duration}s &middot; ${escapeHtml(r.placement)}`
+      : `#${escapeHtml(cue.id)} &middot; unresolved &middot; ${escapeHtml(cue.card)}`;
+
+    const probeTimes = r ? computeProbeTimes(r.variables?.beats, r.duration) : [];
+    const media = r
+      ? `<div class="preview" data-probe-times='${JSON.stringify(probeTimes)}'><iframe loading="lazy" src="/card/${encodeURIComponent(cue.id)}"></iframe></div>
+      <audio class="scrub" controls src="/slice/${encodeURIComponent(cue.id)}.mp3"></audio>`
+      : `<div class="unresolved-note">no resolved timing for this cue — fix the anchor and Save</div>`;
+
+    const phrasesToHighlight = [cue.anchor, ...beats.map(b => b.anchor)];
+    const highlighted = new Set();
+    for (const phrase of phrasesToHighlight) {
+      if (!phrase) continue;
+      const p = phrase.split(/\s+/).map(normWord).filter(Boolean);
+      if (p.length === 0) continue;
+      for (let j = 0; j <= seg.words.length - p.length; j++) {
+        let ok = true;
+        for (let k = 0; k < p.length; k++) {
+          if (normWord(seg.words[j + k].text) !== p[k]) { ok = false; break; }
+        }
+        if (ok) {
+          for (let k = 0; k < p.length; k++) highlighted.add(j + k);
+          break;
+        }
+      }
+    }
+    const excerptHtml = seg.words.map((w, j) => {
+      const esc = escapeHtml(w.text);
+      return highlighted.has(j) ? `<mark>${esc}</mark>` : esc;
+    }).join(' ');
+
+    const excerptDiv = seg.words.length ? `<div class="excerpt">${excerptHtml}</div>` : '';
+
+    html = `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}${inShot}" id="${id}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}">
+      <div class="tile-header">${header}</div>
+      ${excerptDiv}
+      <div class="anchor"><strong>${escapeHtml(cue.anchor ?? '')}</strong></div>
+      <ul class="beats">${beatLines}</ul>
+      ${media}
+      <label class="flag"><input type="checkbox" class="flag-input" ${cue.flagged ? 'checked' : ''}/> flag: no card fits</label>
+      <input class="note" type="text" placeholder="note (why no card fits)" value="${escapeHtml(cue.note ?? '')}" />
+      ${fbBox(cue.id, 'feedback on this graphic — wrong card, wrong timing, wording… (read by the next Claude session)')}
+      <textarea class="frag">${escapeHtml(JSON.stringify(fragment, null, 2))}</textarea>
+    </div>`;
+    }
+    return { html, start: seg.start, id, isShot: false };
+  });
+
+  if (shots?.spans?.length) {
+    for (const span of shots.spans) {
+      const origSpan = shots.shotsFile?.spans?.find(s => s.id === span.id) || span;
+      const noteHtml = span.note ? ` &mdash; ${escapeHtml(span.note)}` : '';
+      const id = `shot-${escapeHtml(span.id)}`;
+      const shotHtml = `<div class="timeline-block shot-block" id="${id}">
+  <div class="shot-header">🧍 <b>${escapeHtml(span.id)}</b> avatar-full &middot; ${timecode(span.start)} &rarr; ${timecode(span.start + span.duration)} &middot; ${span.duration}s${noteHtml}</div>
+  <textarea class="shot-frag">${escapeHtml(JSON.stringify(origSpan, null, 2))}</textarea>
+  ${fbBox(span.id, 'feedback on this shot span (read by the next Claude session)')}
+</div>`;
+      const block = { html: shotHtml, start: span.start, id, isShot: true };
+      const idx = blocks.findIndex(b => !b.isShot && b.start >= span.start);
+      if (idx !== -1) {
+        blocks.splice(idx, 0, block);
+      } else {
+        blocks.push(block);
+      }
+    }
+  }
+
+  return blocks;
+}
+
 function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
@@ -481,105 +755,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     minimapShotsHtml = `<div class="minimap minimap-shots">${items.join('')}</div>`;
   }
 
-  const timelineBlocks = segments.map((seg, idx) => {
-    const i = idx;
-    const mid = (seg.start + seg.end) / 2;
-    const inShot = shots?.spans?.some(s => mid >= s.start && mid <= s.start + s.duration) ? ' in-shot' : '';
-    let html = '';
-    
-    if (seg.kind === 'gap') {
-      const durSecs = seg.end - seg.start;
-      const m = Math.floor(durSecs / 60);
-      const s = Math.floor(durSecs % 60);
-      const durStr = m > 0 ? `${m}m ${s}s` : `${s}s`;
-      const allWords = seg.words.map(w => w.text).join(' ');
-      const previewWords = seg.words.slice(0, 14).map(w => w.text).join(' ') + (seg.words.length > 14 ? '…' : '');
-      html = `<div class="timeline-block gap-block${inShot}" id="seg-${i}">
-        <div class="gap-header" onclick="this.parentElement.classList.toggle('expanded')">
-          <span class="gap-icon">▸</span> ${timecode(seg.start)} &rarr; ${timecode(seg.end)} &middot; ${durStr} &middot; <span style="color:var(--dim)">"${escapeHtml(previewWords)}"</span>
-        </div>
-        <div class="gap-body">${escapeHtml(allWords)}
-          ${fbBox(`gap-${timecode(seg.start)}`, 'feedback for this stretch (read by the next Claude session)')}
-        </div>
-      </div>`;
-    } else {
-
-    const cue = cues.find(c => c.id === seg.cue.id);
-    const r = seg.unresolved ? null : seg.cue;
-    const beats = cue.beats ?? [];
-    const fragment = { anchor: cue.anchor, hold: cue.hold ?? 3.0, variables: cue.variables ?? {}, beats };
-    const beatLines = beats
-      .map((b) => `<li><strong>${escapeHtml(b.reveal?.text ?? '')}</strong> @ "${escapeHtml(b.anchor ?? '')}"</li>`)
-      .join('');
-    
-    const header = r
-      ? `#${escapeHtml(cue.id)} &middot; ${timecode(r.start)} &rarr; ${timecode(r.start + r.duration)} &middot; ${escapeHtml(cue.card)} &middot; ${r.duration}s &middot; ${escapeHtml(r.placement)}`
-      : `#${escapeHtml(cue.id)} &middot; unresolved &middot; ${escapeHtml(cue.card)}`;
-
-    const probeTimes = r ? computeProbeTimes(r.variables?.beats, r.duration) : [];
-    const media = r
-      ? `<div class="preview" data-probe-times='${JSON.stringify(probeTimes)}'><iframe loading="lazy" src="/card/${encodeURIComponent(cue.id)}"></iframe></div>
-      <audio class="scrub" controls src="/slice/${encodeURIComponent(cue.id)}.mp3"></audio>`
-      : `<div class="unresolved-note">no resolved timing for this cue — fix the anchor and Save</div>`;
-
-    const phrasesToHighlight = [cue.anchor, ...beats.map(b => b.anchor)];
-    const highlighted = new Set();
-    for (const phrase of phrasesToHighlight) {
-      if (!phrase) continue;
-      const p = phrase.split(/\s+/).map(normWord).filter(Boolean);
-      if (p.length === 0) continue;
-      for (let j = 0; j <= seg.words.length - p.length; j++) {
-        let ok = true;
-        for (let k = 0; k < p.length; k++) {
-          if (normWord(seg.words[j + k].text) !== p[k]) { ok = false; break; }
-        }
-        if (ok) {
-          for (let k = 0; k < p.length; k++) highlighted.add(j + k);
-          break;
-        }
-      }
-    }
-    const excerptHtml = seg.words.map((w, j) => {
-      const esc = escapeHtml(w.text);
-      return highlighted.has(j) ? `<mark>${esc}</mark>` : esc;
-    }).join(' ');
-
-    const excerptDiv = seg.words.length ? `<div class="excerpt">${excerptHtml}</div>` : '';
-
-    html = `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}${inShot}" id="seg-${i}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}">
-      <div class="tile-header">${header}</div>
-      ${excerptDiv}
-      <div class="anchor"><strong>${escapeHtml(cue.anchor ?? '')}</strong></div>
-      <ul class="beats">${beatLines}</ul>
-      ${media}
-      <label class="flag"><input type="checkbox" class="flag-input" ${cue.flagged ? 'checked' : ''}/> flag: no card fits</label>
-      <input class="note" type="text" placeholder="note (why no card fits)" value="${escapeHtml(cue.note ?? '')}" />
-      ${fbBox(cue.id, 'feedback on this graphic — wrong card, wrong timing, wording… (read by the next Claude session)')}
-      <textarea class="frag">${escapeHtml(JSON.stringify(fragment, null, 2))}</textarea>
-    </div>`;
-    }
-    return { html, start: seg.start, isShot: false };
-  });
-
-  if (shots?.spans?.length) {
-    for (const span of shots.spans) {
-      const origSpan = shots.shotsFile?.spans?.find(s => s.id === span.id) || span;
-      const noteHtml = span.note ? ` &mdash; ${escapeHtml(span.note)}` : '';
-      const shotHtml = `<div class="timeline-block shot-block" id="shot-${escapeHtml(span.id)}">
-  <div class="shot-header">🧍 <b>${escapeHtml(span.id)}</b> avatar-full &middot; ${timecode(span.start)} &rarr; ${timecode(span.start + span.duration)} &middot; ${span.duration}s${noteHtml}</div>
-  <textarea class="shot-frag">${escapeHtml(JSON.stringify(origSpan, null, 2))}</textarea>
-  ${fbBox(span.id, 'feedback on this shot span (read by the next Claude session)')}
-</div>`;
-      const block = { html: shotHtml, start: span.start, isShot: true };
-      const idx = timelineBlocks.findIndex(b => !b.isShot && b.start >= span.start);
-      if (idx !== -1) {
-        timelineBlocks.splice(idx, 0, block);
-      } else {
-        timelineBlocks.push(block);
-      }
-    }
-  }
-  
+  const timelineBlocks = buildDetailBlocks(cues, segments, shots, feedbackItems);
   const timelineHtml = timelineBlocks.map(b => b.html).join('\n');
 
   return `<!doctype html>
@@ -592,6 +768,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 <body>
   <div class="sticky-header">
     <div class="topbar">
+      <span class="view-toggle"><a href="/">Timeline</a><a href="/list" class="active">List</a></span>
       <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
       <div>duration: ${timecode(totalDuration)}</div>
       <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
@@ -638,11 +815,10 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
   <div class="timeline">${timelineHtml}</div>
   <script>
     ${OVERFLOW_BADGE_JS}
-    let FB_DIRTY = false;
-    window.addEventListener('beforeunload', (e) => { if (FB_DIRTY) { e.preventDefault(); e.returnValue = ''; } });
-    document.addEventListener('input', (e) => { if (e.target.classList && e.target.classList.contains('feedback')) FB_DIRTY = true; });
+    ${INIT_BLOCK_JS}
     const VIDEO = ${JSON.stringify(cuesFile.video ?? '')};
     let APPROVED = ${JSON.stringify(!!cuesFile.approved)};
+    ${SAVE_ACTIONS_JS}
     const FX_DATA = ${JSON.stringify({ instances: fxInstances, fullframes: fxFullframes, spans: fxShotSpans, capChunks, total: totalDuration })};
     ${FX_SIM_HELPERS}
     let FX_DIRTY_TOGGLES = false;
@@ -654,23 +830,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
       });
     });
 
-    document.querySelectorAll('.tile').forEach((tile) => {
-      const iframe = tile.querySelector('iframe');
-      const audio = tile.querySelector('audio');
-      if (!iframe || !audio) return;
-      const post = () => { try { iframe.contentWindow.postMessage({ t: audio.currentTime }, '*'); } catch {} };
-      let raf = null;
-      audio.addEventListener('timeupdate', post);
-      audio.addEventListener('seeked', post);
-      audio.addEventListener('pause', () => { post(); if (raf) cancelAnimationFrame(raf); });
-      audio.addEventListener('play', () => {
-        document.querySelectorAll('.tile audio').forEach((a) => { if (a !== audio && !a.paused) a.pause(); });
-        const loop = () => { post(); if (!audio.paused) raf = requestAnimationFrame(loop); };
-        loop();
-      });
-
-      wireProbe(tile);
-    });
+    initBlock(document);
 
     const master = document.getElementById('master');
     const fxStage = document.getElementById('fxStage');
@@ -732,94 +892,202 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     }
 
     wireOverflowBadges();
+  </script>
+</body>
+</html>`;
+}
 
-    function showBanner(html, cls) {
-      document.getElementById('banner').innerHTML = '<div class="banner ' + cls + '">'
-        + '<button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>' + html + '</div>';
+// The board's default (`/`) landing page: a horizontal, editor-style timeline
+// (SCREEN/GRAPHICS/AVATAR/EFFECTS lanes on one time ruler) with on-demand
+// previews — clicking a block moves its buildDetailBlocks HTML (shared with
+// /list) into a docked panel and only then loads its card iframe. Delivers
+// GFX-08 (global play-through) via the master playhead.
+function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null) {
+  const byId = new Map(resolved.map((r) => [r.id, r]));
+  const cues = cuesFile.cues || [];
+  const flaggedCount = cues.filter((c) => c.flagged).length;
+  const fb = (ref) => feedbackItems[ref]?.folded ? '' : escapeHtml(feedbackItems[ref]?.text ?? '');
+  const fbBox = (ref, placeholder) => {
+    const foldedHtml = feedbackItems[ref]?.folded
+      ? `<div class="feedback-folded">✓ folded ${escapeHtml(feedbackItems[ref].folded)} — "${escapeHtml(feedbackItems[ref].text)}"</div>`
+      : '';
+    return `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>${foldedHtml}`;
+  };
+
+  const segments = buildSegments(words, resolved);
+  const unresolvedSegs = cues.filter(c => !byId.has(c.id)).map(c => ({
+    kind: 'cue', cue: c, start: 0, end: 0, words: [], unresolved: true
+  }));
+  segments.unshift(...unresolvedSegs);
+
+  const totalDuration = Math.max(0.1, words.length ? words[words.length - 1].end : 0);
+
+  const fxInstances = effects?.instances ?? [];
+  const fxPoint = fxInstances.filter((i) => i.type === 'whip' || i.type === 'beat');
+  const fxSpan = fxInstances.filter((i) => i.type === 'drift' && typeof i.start === 'number');
+  const fxGlobal = fxInstances.filter((i) => i.type === 'captions' || i.type === 'bubble');
+
+  const graphicsBlocksHtml = segments.map((seg, i) => {
+    if (seg.kind !== 'cue' || seg.unresolved) return '';
+    const r = seg.cue;
+    const cue = cues.find((c) => c.id === r.id);
+    const colorVar = cue?.flagged ? '--err' : (r.placement === 'fullframe' ? '--accent' : '--overlay-seg');
+    const label = escapeHtml((r.card ?? '').split('/').pop());
+    return `<div class="tl-block" data-start="${r.start}" data-dur="${r.duration}" data-detail="seg-${i}"
+      title="${escapeHtml(r.card ?? '')} &middot; ${timecode(r.start)}" style="background:var(${colorVar})">${label}</div>`;
+  }).join('');
+
+  const avatarBlocksHtml = (shots?.spans ?? []).map((span) => `<div class="tl-block" data-start="${span.start}" data-dur="${span.duration}"
+    data-detail="shot-${escapeHtml(span.id)}" title="${escapeHtml(span.id)}" style="background:var(--shot)">${escapeHtml(span.id)}</div>`).join('');
+
+  const fxMarksHtml = fxPoint.map((i) => `<div class="tl-mark${i.enabled ? '' : ' fx-off'}" data-start="${i.at}"
+    title="${escapeHtml(i.id)}${i.style ? ' · ' + escapeHtml(i.style) : ''}" style="background:var(${i.type === 'whip' ? '--accent' : '--ok'})"></div>`).join('');
+  const fxSpansHtml = fxSpan.map((i) => `<div class="tl-span${i.enabled ? '' : ' fx-off'}" data-start="${i.start}" data-dur="${i.end - i.start}"
+    title="${escapeHtml(i.id)}"></div>`).join('');
+  const fxChipsHtml = fxGlobal.length ? `<div class="tl-fx-chips">${fxGlobal.map((i) =>
+    `<span class="tl-chip${i.enabled ? '' : ' fx-off'}">${escapeHtml(i.type)}</span>`).join('')}</div>` : '';
+
+  const detailBlocks = buildDetailBlocks(cues, segments, shots, feedbackItems);
+  const storeHtml = detailBlocks.map((b) =>
+    `<div class="detail-item" id="detail-${b.id}">${b.html.replace('<iframe loading="lazy" src=', '<iframe loading="lazy" data-src=')}</div>`
+  ).join('\n');
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Graphics storyboard timeline</title>
+<style>${BOARD_CSS}${TIMELINE_CSS}</style>
+</head>
+<body>
+  <div class="sticky-header">
+    <div class="topbar">
+      <span class="view-toggle"><a href="/" class="active">Timeline</a><a href="/list">List</a></span>
+      <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
+      <div>duration: ${timecode(totalDuration)}</div>
+      <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
+      <button id="approveBtn">Approve graphics</button>
+      ${shots ? `<span class="usage-chip">engineMode: ${escapeHtml(shots.shotsFile?.engineMode || 'none')}</span><button id="approveShotsBtn">Approve shots</button>` : ''}
+      ${effects ? `<button id="approveEffectsBtn">Approve effects</button>` : ''}
+      <button id="saveBtn">Save</button>
+      <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
+    </div>
+    <div id="banner">
+      ${cuesFile.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}
+      ${shots && shots.shotsFile?.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shot plan approved — ready for the avatar render step</div>' : ''}
+      ${effects && effects.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>effects approved — ready for step 090 assemble</div>' : ''}
+      ${shots?.errors?.length ? `<div class="banner err"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shots: ${shots.errors.map(escapeHtml).join('<br>')}</div>` : ''}
+    </div>
+    <audio id="master" class="scrub" controls src="/vo.mp3"></audio>
+    <div class="tl-zoom-row"><label>zoom <input type="range" id="zoom" min="0.4" max="30" step="0.1" value="1"/></label></div>
+    ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
+  </div>
+  <div class="tl-layout">
+    <div class="tl-canvas-wrap">
+      <div class="tl-canvas">
+        <div class="tl-labels">
+          <div class="tl-label tl-ruler-spacer"></div>
+          <div class="tl-label">SCREEN</div>
+          <div class="tl-label">GRAPHICS</div>
+          <div class="tl-label">AVATAR</div>
+          <div class="tl-label">EFFECTS</div>
+        </div>
+        <div class="tl-tracks" id="tlTracks">
+          <div class="tl-ruler" id="tlRuler"></div>
+          <div class="tl-track" id="tlScreen"><div class="tl-screen-bar"></div></div>
+          <div class="tl-track" id="tlGraphics">${graphicsBlocksHtml}</div>
+          <div class="tl-track" id="tlAvatar">${avatarBlocksHtml}</div>
+          <div class="tl-track" id="tlEffects">${fxChipsHtml}${fxSpansHtml}${fxMarksHtml}</div>
+          <div class="tl-playhead" id="tlPlayhead"></div>
+        </div>
+      </div>
+    </div>
+    <aside id="detail-panel"><div class="placeholder">click a block to preview</div></aside>
+  </div>
+  <div id="detail-store" hidden>${storeHtml}</div>
+  <script>
+    ${OVERFLOW_BADGE_JS}
+    ${INIT_BLOCK_JS}
+    const VIDEO = ${JSON.stringify(cuesFile.video ?? '')};
+    let APPROVED = ${JSON.stringify(!!cuesFile.approved)};
+    ${SAVE_ACTIONS_JS}
+
+    const TOTAL = ${totalDuration};
+    const LABEL_W = 90;
+    const canvasWrap = document.querySelector('.tl-canvas-wrap');
+    const zoom = document.getElementById('zoom');
+    let PXPS_FIT = Math.min(30, Math.max(0.4, (canvasWrap.clientWidth - LABEL_W) / TOTAL));
+    let pxps = PXPS_FIT;
+    zoom.min = PXPS_FIT;
+    zoom.value = PXPS_FIT;
+
+    function fmtClock(t) {
+      const m = Math.floor(t / 60), s = Math.floor(t % 60);
+      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     }
-
-    document.getElementById('saveBtn').onclick = async () => {
-      const broken = [];
-      const cues = [...document.querySelectorAll('.tile')].map((tile) => {
-        let fragment;
-        try { fragment = JSON.parse(tile.querySelector('.frag').value); }
-        catch (e) { broken.push(tile.dataset.id + ': ' + e.message); return null; }
-        const cue = {
-          id: tile.dataset.id,
-          card: tile.dataset.card,
-          anchor: fragment.anchor,
-          hold: fragment.hold,
-          variables: fragment.variables,
-          beats: fragment.beats,
-          flagged: tile.querySelector('.flag-input').checked,
-        };
-        if (tile.dataset.lead !== '') cue.lead = Number(tile.dataset.lead);
-        const note = tile.querySelector('.note').value;
-        if (note) cue.note = note;
-        return cue;
-      }).filter(Boolean);
-      if (broken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + broken.map(escapeForBanner).join('<br>'), 'err'); return; }
-      
-      const shotBroken = [];
-      const spans = [...document.querySelectorAll('.shot-block')].map((b) => {
-        try { return JSON.parse(b.querySelector('.shot-frag').value); }
-        catch (e) { shotBroken.push(b.id + ': ' + e.message); return null; }
-      }).filter(Boolean);
-      if (shotBroken.length) { showBanner('invalid fragment JSON — nothing saved:<br>' + shotBroken.map(escapeForBanner).join('<br>'), 'err'); return; }
-
-      const feedback = {};
-      document.querySelectorAll('textarea.feedback').forEach((t) => { feedback[t.dataset.ref] = t.value; });
-      const payload = { video: VIDEO, approved: APPROVED, cues, feedback };
-      if (document.querySelectorAll('.shot-block').length > 0) payload.spans = spans;
-      const toggles = [...document.querySelectorAll('.fx-toggle')];
-      if (toggles.length > 0) {
-        payload.effects = toggles.map((el) => ({ id: el.dataset.fxId, enabled: el.checked }));
+    function drawRuler() {
+      const ruler = document.getElementById('tlRuler');
+      ruler.innerHTML = '';
+      const step = Math.max(1, Math.round(80 / pxps));
+      for (let t = 0; t <= TOTAL; t += step) {
+        const tick = document.createElement('div');
+        tick.className = 'tl-tick';
+        tick.style.left = (t * pxps) + 'px';
+        tick.textContent = fmtClock(t);
+        ruler.appendChild(tick);
       }
+    }
+    function layout() {
+      document.querySelectorAll('.tl-track, #tlRuler').forEach((t) => { t.style.width = (TOTAL * pxps) + 'px'; });
+      document.querySelectorAll('.tl-block').forEach((b) => {
+        b.style.left = (parseFloat(b.dataset.start) * pxps) + 'px';
+        b.style.width = Math.max(2, parseFloat(b.dataset.dur || 0) * pxps) + 'px';
+      });
+      document.querySelectorAll('.tl-mark, .tl-span').forEach((m) => {
+        m.style.left = (parseFloat(m.dataset.start) * pxps) + 'px';
+        if (m.classList.contains('tl-span')) m.style.width = Math.max(2, parseFloat(m.dataset.dur || 0) * pxps) + 'px';
+      });
+      drawRuler();
+    }
+    zoom.addEventListener('input', () => { pxps = +zoom.value; layout(); });
 
-      const res = await fetch('/save', { method: 'POST', body: JSON.stringify(payload) });
-      const data = await res.json();
-      if (!data.ok) {
-        showBanner(data.errors.map(escapeForBanner).join('<br>'), 'err');
-      } else {
-        FB_DIRTY = false;
-        const warns = data.warnings || [];
-        const errs = data.errors || [];
-        if (warns.length > 0 || errs.length > 0) {
-          let html = \`saved — \${warns.length} lint warnings, \${errs.length} errors<br><br>\`;
-          const lines = [];
-          for (const e of errs) lines.push(\`error: \${escapeForBanner(e)}\`);
-          for (const w of warns) lines.push(escapeForBanner(w));
-          showBanner(html + lines.join('<br>'), errs.length > 0 ? 'err' : 'ok');
-        } else {
-          location.reload();
-        }
+    let openId = null;
+    function reveal(detailId) {
+      const store = document.getElementById('detail-store');
+      const panel = document.getElementById('detail-panel');
+      if (openId) {
+        const prev = document.getElementById('detail-' + openId);
+        if (prev) store.appendChild(prev);
       }
-    };
-
-    document.getElementById('approveBtn').onclick = async () => {
-      await fetch('/approve', { method: 'POST' });
-      location.reload();
-    };
-
-    const approveShotsBtn = document.getElementById('approveShotsBtn');
-    if (approveShotsBtn) {
-      approveShotsBtn.onclick = async () => {
-        await fetch('/approve-shots', { method: 'POST' });
-        location.reload();
-      };
+      const node = document.getElementById('detail-' + detailId);
+      if (!node) return;
+      panel.replaceChildren(node);
+      node.querySelectorAll('iframe[data-src]').forEach((f) => { if (!f.src) f.src = f.dataset.src; });
+      initBlock(node);
+      openId = detailId;
     }
-    
-    const approveEffectsBtn = document.getElementById('approveEffectsBtn');
-    if (approveEffectsBtn) {
-      approveEffectsBtn.onclick = async () => {
-        await fetch('/approve-effects', { method: 'POST' });
-        location.reload();
-      };
-    }
+    document.querySelectorAll('[data-detail]').forEach((el) =>
+      el.addEventListener('click', () => reveal(el.dataset.detail)));
 
-    function escapeForBanner(s) {
-      return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-    }
+    const master = document.getElementById('master');
+    master.addEventListener('play', () => {
+      document.querySelectorAll('.tile audio').forEach((a) => { if (!a.paused) a.pause(); });
+    });
+    master.addEventListener('timeupdate', () => {
+      document.getElementById('tlPlayhead').style.left = (master.currentTime * pxps) + 'px';
+    });
+    document.getElementById('tlRuler').addEventListener('click', (e) => {
+      master.currentTime = e.offsetX / pxps;
+    });
+    window.addEventListener('resize', () => {
+      const wasFit = pxps === PXPS_FIT;
+      PXPS_FIT = Math.min(30, Math.max(0.4, (canvasWrap.clientWidth - LABEL_W) / TOTAL));
+      zoom.min = PXPS_FIT;
+      if (wasFit) { pxps = PXPS_FIT; zoom.value = pxps; layout(); }
+    });
+
+    layout();
+    wireOverflowBadges();
   </script>
 </body>
 </html>`;
@@ -1157,6 +1425,17 @@ function serveSlice(res, workdir, id) {
   res.end(fs.readFileSync(slicePath));
 }
 
+function loadBoardData(workdir) {
+  const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+  const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
+  const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
+  const fbPath = path.join(workdir, 'feedback.json');
+  const feedbackItems = fs.existsSync(fbPath) ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items) : {};
+  const shots = loadShots(workdir, words);
+  const effects = loadEffects(workdir);
+  return { cuesFile, resolved, words, feedbackItems, shots, effects };
+}
+
 async function handleRequest(req, res, workdir, cardLibraryRoot) {
   const url = new URL(req.url, 'http://localhost');
 
@@ -1174,13 +1453,14 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
   }
 
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index')) {
-    const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
-    const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
-    const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
-    const fbPath = path.join(workdir, 'feedback.json');
-    const feedbackItems = fs.existsSync(fbPath) ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items) : {};
-    const shots = loadShots(workdir, words);
-    const effects = loadEffects(workdir);
+    const { cuesFile, resolved, words, feedbackItems, shots, effects } = loadBoardData(workdir);
+    res.setHeader('content-type', 'text/html; charset=utf-8');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(renderTimelinePage(cuesFile, resolved, words, feedbackItems, shots, effects));
+  }
+
+  if (req.method === 'GET' && url.pathname === '/list') {
+    const { cuesFile, resolved, words, feedbackItems, shots, effects } = loadBoardData(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
     return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects));
