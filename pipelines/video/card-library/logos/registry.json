@@ -23,5 +23,30 @@
     "domain": "arcads.ai",
     "file": "arcads.png",
     "source": "favicon"
+  },
+  "n8n": {
+    "domain": "n8n.io",
+    "file": "n8n.png",
+    "source": "favicon"
+  },
+  "make": {
+    "domain": "make.com",
+    "file": "make.png",
+    "source": "manual"
+  },
+  "zapier": {
+    "domain": "zapier.com",
+    "file": "zapier.png",
+    "source": "favicon"
+  },
+  "langchain": {
+    "domain": "langchain.com",
+    "file": "langchain.png",
+    "source": "favicon"
+  },
+  "flowise": {
+    "domain": "flowiseai.com",
+    "file": "flowise.png",
+    "source": "favicon"
   }
 }

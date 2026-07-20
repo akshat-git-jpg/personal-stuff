@@ -89,6 +89,20 @@ Pricing (mandatory): no per-tool pricing/credits graphics during tool segments
 graphic in the final comparison section. When the `comparison/table-rows` card
 is used, do NOT also emit stat-hit cues for the same numbers.
 
+Cold open (mandatory for comparison videos): the intro title card makes the
+compared products the VISUAL hero — `title/title-aurora-wave` with `platforms`
+logo chips, never a text-only title.
+
+Verdicts (mandatory): one winner per verdict card. Two favorites = two verdict
+cards back to back, each anchored at its own "X was the best" phrase.
+
+Units (mandatory): numeric values on cards carry their unit (prefix "$",
+suffix "ms"/"/mo") — never a bare number.
+
+Beat cards must not idle: anchor so the FIRST beat lands within ~8s of the
+card appearing — when the VO rambles before its first data point, anchor at
+the sentence right before the first beat, not the section opener.
+
 Anchors: verbatim quotes copied exactly from the transcript, contractions and
 all, never paraphrased; at least 3 consecutive words; pick phrases unlikely
 to repeat; anchors must appear in script order across the whole file — the
@@ -110,7 +124,7 @@ Variables: fill every non-beat variable the card lists; sentence-case text.
 Product names: the transcript is ASR output and often GARBLES brand names — all
 on-screen text (variables, reveal text) must use the correct official spelling;
 only anchors stay transcript-verbatim, garbles and all.
-Logos: when a cue is about a specific tool, set its `logo` slug (lowercase alphanumeric tool name). For `summary-table`, set `productLogos` aligned with `products`. Only slugs that exist may be used — the resolver rejects unknown ones. Seeded slugs: openart, higgsfield, synthesia, heygen, arcads.
+Logos: when a cue is about a specific tool, set its `logo` slug (lowercase alphanumeric tool name). For `summary-table`, set `productLogos` aligned with `products`; for `title-aurora-wave`, set `platforms[].logo`; for `table-rows`, per-beat `logo`. Only slugs that exist may be used — the resolver rejects unknown ones. Available slugs: {{LOGO_SLUGS}}
 
 ```
 CATALOG (the only cards you may use):

@@ -22,7 +22,7 @@
       "purpose": "horizontal bar chart racing from zero to each product's value",
       "variables": {
         "title": "string",
-        "bars": "array of {label, value, color?, suffix?}"
+        "bars": "array of {label, value, color?, prefix?, suffix?} — ALWAYS carry the unit on each bar (prefix '$' / suffix 'ms'); missing colors fall back to the card palette"
       },
       "default_duration": 6
     },
@@ -430,9 +430,10 @@
       "slug": "title/title-aurora-wave",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "title card with drifting aurora blobs and a light bar that wipes logo chips into view",
+      "purpose": "title card with drifting aurora blobs and a light bar that wipes logo chips into view — THE cold-open pick for multi-product comparisons (products become the visual hero)",
       "variables": {
-        "title": "string"
+        "title": "string",
+        "platforms": "array of {name, logo? (logos/ registry slug)} — the chips the light bar wipes in; name-only entries render as text chips. Omit entirely = demo chips (never ship those)"
       },
       "default_duration": 10
     },
@@ -440,9 +441,10 @@
       "slug": "title/title-cinematic-float",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "title card with a breathing vignette background; title scales in and platform chips cascade then bob",
+      "purpose": "title card with a breathing vignette background; title scales in and uniform tool tiles cascade then gently bob — a strong comparison cold-open (products are the hero, every tile identical size)",
       "variables": {
-        "title": "string"
+        "title": "string",
+        "platforms": "array of {name, logo? (logos/ registry slug)} — uniform glass tiles the logos sit in at a fixed centered footprint; name-only entries render as text tiles. Omit = demo chips (never ship those)"
       },
       "default_duration": 10
     },
@@ -505,11 +507,12 @@
       "slug": "verdict/verdict-trophy",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "verdict card with confetti and a trophy dropping in before the winner card lifts with a gold pulse",
+      "purpose": "verdict card with confetti and a trophy dropping in before the winner card lifts with a gold pulse. ONE winner per card — a dual verdict gets one card per winner, back to back",
       "variables": {
         "eyebrow": "string",
-        "winner": "string",
-        "reason": "string"
+        "winner": "string — exactly one product name",
+        "reason": "string",
+        "logo": "string (optional) — logos/ registry slug, shown beside the winner name"
       },
       "default_duration": 7
     },
@@ -542,6 +545,24 @@
       },
       "default_duration": 6,
       "structural": true
+    },
+    {
+      "slug": "verdict/winners-podium",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "side-by-side verdict winners over a confetti stage, one tool column per beat; scales 2-4 winners (layout derives from count). Use for a multi-winner finale \u2014 co-winners (ranked:false, all gold) or a ranked podium (ranked:true \u2192 gold/silver/bronze/steel). ONE tool per beat.",
+      "variables": {
+        "eyebrow": "string",
+        "ranked": "boolean (optional, default false) \u2014 false: every column an equal gold co-winner; true: medals by beat order (1st gold, 2nd silver, 3rd bronze, 4th steel)"
+      },
+      "beat_shape": {
+        "name": "string \u2014 one tool/product name",
+        "reason": "string \u2014 one-line why this tool won",
+        "logo": "string (optional) \u2014 logos/ registry slug"
+      },
+      "default_duration": 8,
+      "max_beats": 4,
+      "max_reveal_chars": 34
     },
     {
       "slug": "verdict/persona-match",
@@ -603,7 +624,8 @@
         "columns": "array of strings — header cells, 2-4 columns"
       },
       "beat_shape": {
-        "text": "string — pipe-separated cells, e.g. 'Kling 3.0|15s|1080p|30 cr'"
+        "text": "string — pipe-separated cells, e.g. 'Kling 3.0|15s|1080p|30 cr'",
+        "logo": "string (optional) — logos/ registry slug, shown muted before the first cell"
       },
       "default_duration": 10,
       "max_beats": 5,

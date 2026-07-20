@@ -4,7 +4,7 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import assert from 'node:assert';
-import { planCornerChunks, planJobs, avatarManifestMd } from './avatar-render.mjs';
+import { planCornerChunks, planCornerChunksRange, planJobs, avatarManifestMd } from './avatar-render.mjs';
 
 test('planCornerChunks', () => {
   const chunks = planCornerChunks(650);
@@ -15,6 +15,21 @@ test('planCornerChunks', () => {
   assert.strictEqual(chunks[1].end, 600);
   assert.strictEqual(chunks[2].start, 600);
   assert.strictEqual(chunks[2].end, 650);
+});
+
+test('planCornerChunksRange → single sub-300s window is one chunk', () => {
+  const chunks = planCornerChunksRange(113.67, 293.67);
+  assert.strictEqual(chunks.length, 1);
+  assert.strictEqual(chunks[0].start, 113.67);
+  assert.strictEqual(chunks[0].end, 293.67);
+});
+
+test('planJobs cornerRange → only the ranged corner chunk, no whole-VO track', () => {
+  const jobs = planJobs({ spans: [] }, 2167, { cornerRange: [113.67, 293.67] });
+  assert.strictEqual(jobs.length, 1);
+  assert.strictEqual(jobs[0].kind, 'corner');
+  assert.strictEqual(jobs[0].start, 113.67);
+  assert.strictEqual(jobs[0].duration, 180);
 });
 
 test('avatarManifestMd', () => {

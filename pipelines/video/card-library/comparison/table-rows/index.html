@@ -41,7 +41,9 @@
       #body .trow { border-bottom: 1px solid rgba(255, 255, 255, 0.06); will-change: transform, opacity; }
       #body .trow:last-child { border-bottom: none; }
       #body .cell { font-size: 30px; font-weight: 400; color: var(--text-dim); font-variant-numeric: tabular-nums; }
-      #body .cell.first { color: var(--text); font-weight: 700; }
+      #body .cell.first { color: var(--text); font-weight: 700; display: flex; align-items: center; gap: 16px; }
+      /* per-row registry logo (beats[].logo) — muted per DESIGN.md tool-logo rule */
+      #body .cell.first img { width: 40px; height: 40px; border-radius: 8px; object-fit: contain; filter: saturate(0.5); flex-shrink: 0; }
     </style>
   </head>
   <body>
@@ -88,6 +90,7 @@
       });
 
       const body = document.getElementById('body');
+      const LOGOS = VARS.__logos ?? {}; // registry logos inlined by resolve (beats[].logo slugs)
       const rows = DATA.beats.map((b) => {
         const row = document.createElement('div');
         row.className = 'trow';
@@ -96,7 +99,15 @@
         for (let i = 0; i < columns.length; i++) {
           const cell = document.createElement('div');
           cell.className = i === 0 ? 'cell first' : 'cell';
-          cell.textContent = cells[i] ?? '';
+          if (i === 0 && b.logo && LOGOS[b.logo]) {
+            const img = document.createElement('img');
+            img.src = LOGOS[b.logo];
+            img.alt = cells[0] ?? b.logo;
+            cell.appendChild(img);
+            cell.appendChild(document.createTextNode(cells[0] ?? ''));
+          } else {
+            cell.textContent = cells[i] ?? '';
+          }
           row.appendChild(cell);
         }
         body.appendChild(row);
@@ -107,6 +118,9 @@
       const tl = gsap.timeline({ paused: true });
       const firstAt = DATA.beats.length ? Math.max(0, Math.min(...DATA.beats.map((b) => Number(b.at))) - 0.35) : 0.2;
       tl.from('#title', { opacity: 0, y: -22, duration: 0.5, ease: 'power3.out' }, 0.1);
+      // the panel shell enters WITH the header — an empty bordered box idling
+      // before the first row reads as broken (owner feedback, test-02)
+      tl.from('#panel', { opacity: 0, y: 18, duration: 0.5, ease: 'power3.out' }, firstAt);
       tl.from('#head', { opacity: 0, y: 18, duration: 0.5, ease: 'power3.out' }, firstAt);
       rows.forEach(({ b, row }) => {
         tl.from(row, { opacity: 0, y: 18, duration: 0.45, ease: 'power3.out' }, Number(b.at));

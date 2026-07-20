@@ -20,16 +20,32 @@ export function heygenArgv() {
 }
 
 export function planCornerChunks(totalDuration, chunk = CORNER_CHUNK) {
+  return planCornerChunksRange(0, totalDuration, chunk);
+}
+
+// Corner chunks covering [rangeStart, rangeEnd) in <=chunk pieces. The whole-VO
+// track is just range [0, totalDuration). A narrower range (--corner-range)
+// renders the host bubble for only part of the video — e.g. a short test clip
+// instead of paying HeyGen minutes for the full runtime (owner ask 2026-07-20).
+export function planCornerChunksRange(rangeStart, rangeEnd, chunk = CORNER_CHUNK) {
   const out = [];
-  for (let i = 0, n = 1; i < totalDuration; i += chunk, n++) {
-    out.push({ id: `corner-${String(n).padStart(2, '0')}`, start: +i.toFixed(2), end: +Math.min(i + chunk, totalDuration).toFixed(2) });
+  const start = Math.max(0, +rangeStart);
+  const end = +rangeEnd;
+  for (let i = start, n = 1; i < end; i += chunk, n++) {
+    out.push({ id: `corner-${String(n).padStart(2, '0')}`, start: +i.toFixed(2), end: +Math.min(i + chunk, end).toFixed(2) });
   }
   return out;
 }
 
-export function planJobs(shotsResolved, totalDuration, { spansOnly = false } = {}) {
+export function planJobs(shotsResolved, totalDuration, { spansOnly = false, cornerRange = null } = {}) {
   const spanJobs = (shotsResolved.spans || []).map((s) => ({ id: s.id, kind: 'avatar-full', start: s.start, end: s.end }));
-  const cornerJobs = spansOnly ? [] : planCornerChunks(totalDuration).map((c) => ({ ...c, kind: 'corner' }));
+  let cornerChunks = [];
+  if (cornerRange) {
+    cornerChunks = planCornerChunksRange(cornerRange[0], Math.min(cornerRange[1], totalDuration));
+  } else if (!spansOnly) {
+    cornerChunks = planCornerChunks(totalDuration);
+  }
+  const cornerJobs = cornerChunks.map((c) => ({ ...c, kind: 'corner' }));
   return [...spanJobs, ...cornerJobs].map((j) => ({ ...j, duration: +(j.end - j.start).toFixed(2) }));
 }
 
@@ -63,6 +79,13 @@ function parseArgs(argv) {
     else if (a === '--download') opts.download = true;
     else if (a === '--force') opts.force = true;
     else if (a === '--spans-only') opts.spansOnly = true;
+    else if (a === '--corner-range') {
+      const spec = rest.shift();
+      const m = /^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$/.exec(spec || '');
+      if (!m) throw new Error(`--corner-range expects "start:end" seconds, got: ${spec}`);
+      opts.cornerRange = [parseFloat(m[1]), parseFloat(m[2])];
+      if (opts.cornerRange[1] <= opts.cornerRange[0]) throw new Error(`--corner-range end must exceed start: ${spec}`);
+    }
     else throw new Error(`unknown argument: ${a}`);
   }
   return opts;
@@ -142,7 +165,7 @@ async function main() {
 
     if (!Array.isArray(words) || words.length === 0) { console.error('empty transcript.json — nothing to submit'); process.exit(1); }
     const totalDuration = words[words.length - 1].end;
-    const jobs = planJobs(shotsResolved, totalDuration, { spansOnly: !!opts.spansOnly });
+    const jobs = planJobs(shotsResolved, totalDuration, { spansOnly: !!opts.spansOnly, cornerRange: opts.cornerRange ?? null });
 
     for (const job of jobs) {
       if (!SAFE.test(job.id)) {

@@ -1,0 +1,248 @@
+<!doctype html>
+<!--
+  WINNERS PODIUM   (Hyperframes card)
+  Side-by-side verdict winners — 2 to 4 tool columns revealing one per beat over
+  a confetti stage. Scales without redesign: column width, fonts, and logo size
+  all derive from the winner COUNT, so 2 winners read big-and-premium and 4 stay
+  clean. `ranked:true` gives gold/silver/bronze/steel medals + rank numbers;
+  `ranked:false` (default) makes every column an equal GOLD co-winner.
+  1920x1080, 30fps, 8 seconds.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: edit only the  ===== CONTENT =====  block (eyebrow, ranked,      │
+  │  beats[].{name,logo,reason}) and :root. Never touch the TIMELINE.         │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render verdict/winners-podium -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.62);
+        --accent: #fb923c;
+        --gold: #facc15;
+        /* medal hues — a deliberate exception to the one-accent rule, scoped to
+           ranked podiums (DESIGN.md "no new hues without a deliberate reason"). */
+        --silver: #d8dde6;
+        --bronze: #e08a3c;
+        --steel: #9aa0aa;
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 6%, rgba(250,204,21,0.14) -10%, var(--bg-from) 34%, var(--bg-to) 78%); }
+
+      #confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+      .conf { position: absolute; border-radius: 2px; opacity: 0.85; will-change: transform, top, left; }
+
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px 120px; }
+      #eyebrow { font-size: 20px; font-weight: 700; letter-spacing: 8px; color: var(--gold); text-transform: uppercase; margin-bottom: 44px; will-change: transform, opacity; }
+      #eyebrow .cup { filter: none; }
+
+      /* columns row — gap + column count set at build from winner count */
+      #cols { display: grid; gap: 40px; width: 100%; max-width: 1620px; align-items: stretch; justify-content: center; }
+
+      .col {
+        position: relative; display: flex; flex-direction: column; align-items: center; text-align: center;
+        background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.10);
+        border-radius: 26px; padding: 40px 30px 34px;
+        will-change: transform, opacity;
+      }
+      /* medal ring color is set per-column via --medal */
+      .col { --medal: var(--gold); }
+      .col.gold   { --medal: var(--gold); }
+      .col.silver { --medal: var(--silver); }
+      .col.bronze { --medal: var(--bronze); }
+      .col.steel  { --medal: var(--steel); }
+      .col::after { /* top accent hairline in the medal color */
+        content: ''; position: absolute; top: 0; left: 22%; right: 22%; height: 3px; border-radius: 3px;
+        background: linear-gradient(90deg, transparent, var(--medal), transparent);
+      }
+
+      .badge {
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        border-radius: 999px; padding: 8px 20px; margin-bottom: 26px;
+        background: color-mix(in srgb, var(--medal) 12%, transparent);
+        border: 1px solid color-mix(in srgb, var(--medal) 45%, transparent);
+        color: var(--medal); font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+        will-change: transform, opacity;
+      }
+
+      .logoPlate {
+        position: relative; display: flex; align-items: center; justify-content: center;
+        border-radius: 26px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+        margin-bottom: 24px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      }
+      .logoPlate::before { content: ''; position: absolute; inset: 22%; border-radius: 16px;
+        background: radial-gradient(circle, rgba(255,255,255,0.10) 0%, transparent 70%); }
+      .logoPlate img { width: 100%; height: 100%; object-fit: contain; position: relative;
+        filter: saturate(0.62) brightness(1.02); opacity: 0.95; }
+      .logoPlate .initial { font-weight: 900; color: var(--text); opacity: 0.9; }
+
+      .name { font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; line-height: 1.05; }
+      .reason { color: var(--text-dim); font-weight: 500; line-height: 1.32; }
+
+      .glow { position: absolute; inset: 0; border-radius: 26px; opacity: 0; pointer-events: none;
+        box-shadow: inset 0 0 60px color-mix(in srgb, var(--medal) 24%, transparent); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="winnerspodium" data-start="0" data-duration="8" data-width="1920" data-height="1080"
+      data-composition-variables='{"eyebrow":"My verdict","ranked":false,"beats":[{"name":"n8n","reason":"Best overall automation platform","at":0.8},{"name":"Flowise","reason":"Best visual AI workflow builder","at":2.2}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+      <div id="confetti" class="clip" data-start="0" data-duration="8" data-track-index="1"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="8" data-track-index="2">
+        <div id="eyebrow"><span class="cup">🏆</span> <span id="eyebrowText"></span></div>
+        <div id="cols"></div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         eyebrow : small line above the columns
+         ranked  : false = all co-winners (gold); true = 1st gold, 2nd silver,
+                   3rd bronze, 4th steel, by beat order
+         beats[] : { name, logo? (logos/ registry slug), reason, at }
+                   2-4 winners; more than 4 is not supported (quality cap).
+         ===================================================== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        eyebrow: VARS.eyebrow ?? 'My verdict',
+        ranked: VARS.ranked ?? false,
+        beats: VARS.beats ?? [
+          { name: 'n8n', reason: 'Best overall automation platform', at: 0.8 },
+          { name: 'Flowise', reason: 'Best visual AI workflow builder', at: 2.2 },
+        ],
+      };
+      const LOGOS = VARS.__logos ?? {};
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const N = Math.max(1, Math.min(4, DATA.beats.length)); // hard cap 4
+      const beats = DATA.beats.slice(0, N);
+
+      // Everything that must scale with the winner count lives in ONE table,
+      // so 2 reads big and 4 stays clean without a separate layout.
+      const SCALE = {
+        2: { col: 640, gap: 56, plate: 150, name: 58, reason: 27, badge: 17, pad: '46px 40px 40px' },
+        3: { col: 470, gap: 44, plate: 128, name: 48, reason: 24, badge: 15, pad: '42px 30px 34px' },
+        4: { col: 366, gap: 34, plate: 108, name: 40, reason: 21, badge: 14, pad: '36px 22px 30px' },
+      }[N] || { col: 640, gap: 56, plate: 150, name: 58, reason: 27, badge: 17, pad: '46px 40px 40px' };
+
+      const MEDALS = ['gold', 'silver', 'bronze', 'steel'];
+      const MEDAL_LABEL = ['1st', '2nd', '3rd', '4th'];
+
+      document.getElementById('eyebrowText').textContent = DATA.eyebrow + ' · 2026';
+
+      const colsWrap = document.getElementById('cols');
+      colsWrap.style.gridTemplateColumns = `repeat(${N}, ${SCALE.col}px)`;
+      colsWrap.style.gap = SCALE.gap + 'px';
+
+      const els = [];
+      beats.forEach((b, i) => {
+        const medalClass = DATA.ranked ? MEDALS[i] : 'gold';
+        const col = document.createElement('div');
+        col.className = 'col ' + medalClass;
+        col.style.padding = SCALE.pad;
+
+        const badgeText = DATA.ranked ? MEDAL_LABEL[i] : 'Winner';
+        const badgeIcon = DATA.ranked ? ['🥇', '🥈', '🥉', '🎖️'][i] : '🏆';
+
+        col.innerHTML =
+          `<div class="badge" style="font-size:${SCALE.badge}px">${badgeIcon} <span>${badgeText}</span></div>`
+          + `<div class="logoPlate" style="width:${SCALE.plate}px;height:${SCALE.plate}px"></div>`
+          + `<div class="name" style="font-size:${SCALE.name}px"></div>`
+          + `<div class="reason" style="font-size:${SCALE.reason}px"></div>`
+          + `<div class="glow"></div>`;
+
+        col.querySelector('.name').textContent = b.name || '';
+        col.querySelector('.reason').textContent = b.reason || '';
+        const plate = col.querySelector('.logoPlate');
+        if (b.logo && LOGOS[b.logo]) {
+          const img = document.createElement('img');
+          img.src = LOGOS[b.logo];
+          img.alt = b.name || b.logo;
+          plate.appendChild(img);
+        } else {
+          // no logo -> initial letter so the plate never looks empty
+          const span = document.createElement('span');
+          span.className = 'initial';
+          span.style.fontSize = Math.round(SCALE.plate * 0.5) + 'px';
+          span.textContent = (b.name || '?').trim().charAt(0).toUpperCase();
+          plate.appendChild(span);
+        }
+        colsWrap.appendChild(col);
+        els.push({ b, col });
+      });
+
+      // deterministic confetti field (40 pieces) — ported from verdict-trophy
+      const CONFETTI = Array.from({ length: 40 }).map((_, i) => {
+        const h = (i * 9301 + 49297) % 233280;
+        const r = h / 233280;
+        return {
+          // spawn inside a safe band so sway + rotation never push a piece past
+          // the frame edge (the board overflow probe flags ANY element leaving
+          // 1920x1080, parent overflow:hidden notwithstanding).
+          startX: 60 + r * 1800,
+          startY: -50 - (((h * 7) % 233280) / 233280) * 200,
+          fallSpeed: 1.4 + (((h * 11) % 233280) / 233280) * 2.4,
+          swayPhase: (((h * 13) % 233280) / 233280) * Math.PI * 2,
+          color: ['#facc15', '#fb923c', '#fff', '#c2410c'][Math.floor((((h * 17) % 233280) / 233280) * 4)],
+          size: 6 + (((h * 19) % 233280) / 233280) * 6,
+          rotation: (((h * 23) % 233280) / 233280) * 360,
+        };
+      });
+      document.getElementById('confetti').innerHTML = CONFETTI.map(
+        (c) => `<div class="conf" style="width:${c.size}px;height:${c.size * 0.6}px;background:${c.color};"></div>`,
+      ).join('');
+      const confEls = Array.from(document.querySelectorAll('#confetti .conf'));
+
+      const FPS = 30;
+      // confetti WRAPS within [-110, 1190] so it (a) never overflows the frame
+      // (no false-positive overflow badge) and (b) keeps falling for any hold
+      // length — the card is often stretched well past its 8s default to cover
+      // a long verdict, and frozen confetti would look broken.
+      // vertical wrap band stays fully on-screen: top in [24, 24+WRAP]
+      const WRAP = 1020;
+      function tick() {
+        const f = tl.time() * FPS;
+        const t = f / FPS;
+        for (let i = 0; i < confEls.length; i++) {
+          const el = confEls[i];
+          const c = CONFETTI[i];
+          el.style.left = c.startX + Math.sin(t * 1.2 + c.swayPhase) * 16 + 'px'; // 44..1876
+          const raw = c.startY + f * c.fallSpeed;
+          el.style.top = 24 + (((raw % WRAP) + WRAP) % WRAP) + 'px'; // 24..1044
+          el.style.transform = `rotate(${c.rotation + f * 2}deg)`;
+        }
+      }
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true, onUpdate: tick });
+
+      const firstAt = beats.length ? Math.max(0, Math.min(...beats.map((b) => Number(b.at))) - 0.4) : 0.3;
+      tl.from('#eyebrow', { opacity: 0, y: 14, duration: 0.5, ease: 'power2.out' }, firstAt);
+
+      els.forEach(({ b, col }) => {
+        const at = Number(b.at);
+        tl.from(col, { opacity: 0, y: 40, scale: 0.9, duration: 0.6, ease: 'back.out(1.6)' }, at);
+        tl.from(col.querySelector('.badge'), { opacity: 0, scale: 0.7, duration: 0.4, ease: 'back.out(2)' }, at + 0.18);
+        tl.fromTo(col.querySelector('.glow'), { opacity: 1 }, { opacity: 0, duration: 0.9, ease: 'power2.out' }, at + 0.25);
+      });
+
+      // Keep the timeline (and thus confetti) alive for long holds: a silent
+      // spacer out to 20s so a stretched card never freezes mid-verdict.
+      tl.to({}, { duration: 20 }, 0);
+      tick();
+      window.__timelines['winnerspodium'] = tl;
+    </script>
+  </body>
+</html>

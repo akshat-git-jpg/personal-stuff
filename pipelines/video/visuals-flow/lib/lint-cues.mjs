@@ -12,6 +12,7 @@ const DENSITY_OVERLAY_WINDOW = 60;
 const DENSITY_OVERLAY_MAX = 3;
 const TARGET_RATE_MIN = 0.55;
 const TARGET_RATE_MAX = 1.3;
+const FIRST_BEAT_IDLE_MAX = 8; // s a beat card may sit before its first reveal (owner: an empty scaffold reads as broken, test-02 c29)
 const ENDCARD_SLUG_PREFIXES = ['brand/', 'link-in-description/'];
 
 export function lintCues({ cuesFile, resolved, words, catalog }) {
@@ -129,6 +130,17 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
   const count = sortedResolved.length;
   if (count < targetMin || count > targetMax) {
     warnings.push(`W3 total-count: ${count} cues is outside the scaled band [${targetMin}, ${targetMax}] (rate ${TARGET_RATE_MIN}-${TARGET_RATE_MAX}/min) for a ${(T/60).toFixed(1)}min video`);
+  }
+
+  // W5 first-beat-idle: a beat card whose first reveal lands long after the
+  // card appears shows an empty scaffold — anchor the cue closer to beat 1.
+  for (const r of sortedResolved) {
+    const ats = (r.variables?.beats ?? []).map((b) => Number(b.at)).filter(Number.isFinite);
+    if (!ats.length) continue;
+    const firstAt = Math.min(...ats);
+    if (firstAt > FIRST_BEAT_IDLE_MAX) {
+      warnings.push(`W5 first-beat-idle: ${r.id} shows its first beat ${firstAt.toFixed(1)}s after the card appears (max ${FIRST_BEAT_IDLE_MAX}s) — move the cue anchor closer to the first beat`);
+    }
   }
 
   // W4 reveal-wordcount

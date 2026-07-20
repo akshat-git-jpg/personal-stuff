@@ -77,8 +77,10 @@
       data-composition-variables='{"kicker":"Honest review","title":"Is Notion worth it in 2026?","subtitle":"Everything you need to know before you pay a cent."}'>
       <!-- Track 0: background -->
       <div id="bg" class="clip" data-start="0" data-duration="10" data-track-index="0"></div>
-      <!-- Track 1: drifting grid (static shell; GSAP drifts the inner #grid) -->
-      <div class="clip" data-start="0" data-duration="10" data-track-index="1"><div id="grid"></div></div>
+      <!-- Track 1: drifting grid (static shell; GSAP drifts the inner #grid).
+           overflow:hidden: #grid is intentionally oversized (inset -240px) for the
+           drift; without the clip here the board's DOM-overflow probe false-positives. -->
+      <div class="clip" data-start="0" data-duration="10" data-track-index="1" style="overflow: hidden;"><div id="grid"></div></div>
       <!-- Track 2: accent glow -->
       <div id="glow" class="clip" data-start="0" data-duration="10" data-track-index="2"></div>
       <!-- Track 3: content (static clip shell; GSAP animates the children) -->

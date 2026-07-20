@@ -34,7 +34,8 @@
         --accent: #fb923c;
         --accent-to: #c2410c;
         --win: #facc15;
-        --chip-bg: #ffffff;
+        --chip-bg: rgba(255, 255, 255, 0.05);
+        --chip-border: rgba(255, 255, 255, 0.14);
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -69,14 +70,38 @@
         display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
         gap: 28px; row-gap: 32px; margin-top: 8px; position: relative;
       }
+      /* uniform glass tile: every tool = an IDENTICAL rectangle holding a
+         fixed-size logo box above a name label. Same footprint for every brand
+         mark regardless of its own aspect/fill, so the row reads symmetrical
+         (owner ask: same-size tiles + tool name shown with the logo). Scales to
+         any tool list — tiles wrap and the name comes from platforms[].name. */
       .chip {
-        width: 220px; height: 220px; border-radius: 36px; background: var(--chip-bg);
-        display: flex; align-items: center; justify-content: center; padding: 26px;
-        flex-shrink: 0; box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+        position: relative;
+        width: 196px; height: 218px; border-radius: 32px; background: var(--chip-bg);
+        border: 1px solid var(--chip-border);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 16px; padding: 26px 14px; flex-shrink: 0;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 22px 50px rgba(0, 0, 0, 0.38);
         will-change: transform, opacity;
       }
-      .chip svg { width: 100%; height: 100%; object-fit: contain; }
-      .chip.text { width: auto; padding: 0 48px; font-size: 36px; font-weight: 700; color: #0a0805; }
+      .chip .logoBox {
+        position: relative; width: 100%; height: 100px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .chip .logoBox::before {
+        content: ''; position: absolute; inset: 8% 26%; border-radius: 18px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.10) 0%, transparent 70%);
+      }
+      /* fixed footprint = uniform logo size across all tiles */
+      .chip .logoBox svg, .chip .logoBox img {
+        max-width: 86px; max-height: 86px; object-fit: contain; position: relative;
+        filter: saturate(0.62) brightness(1.02); opacity: 0.95;
+      }
+      .chip .label {
+        font-size: 22px; font-weight: 700; letter-spacing: -0.4px; color: var(--text);
+        line-height: 1; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+      }
+      .chip .logoBox .initial { font-size: 52px; font-weight: 900; color: var(--text); opacity: 0.92; }
     </style>
   </head>
   <body>
@@ -151,12 +176,18 @@
       const $ = (id) => document.getElementById(id);
 
       // build the DOM that depends on DATA (must exist before the timeline targets it)
+      const LOGOS = VARS.__logos ?? {}; // registry logos inlined by resolve (platforms[].logo slugs)
       function build() {
         $('title').textContent = DATA.title;
         $('chips').innerHTML = DATA.platforms
-          .map((p) =>
-            p.logoSvg ? `<div class="chip">${p.logoSvg}</div>` : `<div class="chip text">${p.name}</div>`,
-          )
+          .map((p) => {
+            const name = p.name ?? '';
+            let mark;
+            if (p.logoSvg) mark = p.logoSvg;
+            else if (p.logo && LOGOS[p.logo]) mark = `<img src="${LOGOS[p.logo]}" alt="${name}">`;
+            else mark = `<span class="initial">${(name || '?').trim().charAt(0).toUpperCase()}</span>`;
+            return `<div class="chip"><div class="logoBox">${mark}</div><div class="label">${name}</div></div>`;
+          })
           .join('');
       }
       build();

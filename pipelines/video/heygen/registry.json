@@ -14,8 +14,9 @@
   },
   "specs-man": {
     "avatar_id": "6bdc449aaabf4f998c34ac7490260285",
+    "template_id": "ac366a12ded942989d22735c23f3794d",
     "image": "characters/specs-man/source.jpeg",
-    "description": "Man with Specs Black Shirt — photo→Avatar III look"
+    "description": "Man with Specs Black Shirt — photo→Avatar III look; template_id = HeyGen 3 tutorial template (owner-provided 2026-07-20 for visuals-flow test-02)"
   },
   "woman-laptop": {
     "avatar_id": "3949a56f150941bd860d68c64e6f8f0b",

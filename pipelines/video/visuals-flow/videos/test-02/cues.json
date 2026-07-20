@@ -1,0 +1,798 @@
+{
+  "video": "test-02",
+  "approved": true,
+  "cues": [
+    {
+      "id": "c01",
+      "card": "title/title-cinematic-float",
+      "anchor": "If you're trying to automate workflows",
+      "hold": 10,
+      "variables": {
+        "title": "5 automation tools. One real test.",
+        "platforms": [
+          {
+            "name": "n8n",
+            "logo": "n8n"
+          },
+          {
+            "name": "Make",
+            "logo": "make"
+          },
+          {
+            "name": "Zapier",
+            "logo": "zapier"
+          },
+          {
+            "name": "LangChain",
+            "logo": "langchain"
+          },
+          {
+            "name": "Flowise",
+            "logo": "flowise"
+          }
+        ]
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c02",
+      "card": "slate/headline-chips",
+      "anchor": "So to keep this fair",
+      "hold": 6,
+      "variables": {
+        "headline": "Every tool gets the same fair test"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "text": "Same use case"
+          },
+          "anchor": "using the same automation use case"
+        },
+        {
+          "reveal": {
+            "text": "Same AI prompt logic"
+          },
+          "anchor": "the same AI prompt logic"
+        },
+        {
+          "reveal": {
+            "text": "Same evaluation criteria"
+          },
+          "anchor": "the same evaluation criteria"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c03",
+      "card": "table-of-contents/table-of-contents",
+      "anchor": "Now in this video, again",
+      "hold": 12,
+      "variables": {
+        "eyebrow": "The game plan"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "label": "Quick tool overviews"
+          },
+          "anchor": "a quick overview of all"
+        },
+        {
+          "reveal": {
+            "label": "Same-workflow live demos"
+          },
+          "anchor": "a live demo using the same"
+        },
+        {
+          "reveal": {
+            "label": "Ease, flexibility & pricing"
+          },
+          "anchor": "a breakdown of ease of use"
+        },
+        {
+          "reveal": {
+            "label": "The honest verdict"
+          },
+          "anchor": "my honest verdict on which"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c04",
+      "card": "link-in-description/link-in-description",
+      "anchor": "find the relevant links in the description",
+      "hold": 5,
+      "variables": {
+        "message": "All five tools linked below"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c05",
+      "card": "section/tool-intro",
+      "anchor": "Now first of all, we have n8n",
+      "hold": 6,
+      "variables": {
+        "index": 1,
+        "total": 5,
+        "logo": "n8n",
+        "name": "n8n",
+        "tagline": "Low-code automation for power users",
+        "tag": "Low-code"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c06",
+      "card": "section/tool-intro",
+      "anchor": "Flowise, on the other hand",
+      "hold": 6,
+      "variables": {
+        "index": 2,
+        "total": 5,
+        "logo": "flowise",
+        "name": "Flowise",
+        "tagline": "Visual AI workflow builder",
+        "tag": "AI-first"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c07",
+      "card": "section/tool-intro",
+      "anchor": "Now, Zapier is a no-code automation tool",
+      "hold": 6,
+      "variables": {
+        "index": 3,
+        "total": 5,
+        "logo": "zapier",
+        "name": "Zapier",
+        "tagline": "No-code automation, built for speed",
+        "tag": "No-code"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c08",
+      "card": "section/tool-intro",
+      "anchor": "Moving over to Make",
+      "hold": 6,
+      "variables": {
+        "index": 4,
+        "total": 5,
+        "logo": "make",
+        "name": "Make",
+        "tagline": "Visual automation with more control",
+        "tag": "Visual"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c09",
+      "card": "section/tool-intro",
+      "anchor": "we move over to LangChain",
+      "hold": 6,
+      "variables": {
+        "index": 5,
+        "total": 5,
+        "logo": "langchain",
+        "name": "LangChain",
+        "tagline": "Developer-first AI agent framework",
+        "tag": "Code-first"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c10",
+      "card": "process/step-flow",
+      "anchor": "so the demo scenario is going to be",
+      "hold": 4,
+      "variables": {
+        "title": "The test workflow"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "label": "User submits text"
+          },
+          "anchor": "when a user submits any text"
+        },
+        {
+          "reveal": {
+            "label": "AI summarizes it"
+          },
+          "anchor": "that AI summarizes it"
+        },
+        {
+          "reveal": {
+            "label": "Sent to email or Slack"
+          },
+          "anchor": "is sent to email or Slack"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5,
+      "note": "till 7 seconds only orange backgroud was visible, then actual motion graphics started. have seen similar pattern at other motion graphics. This is bad, pls fix this long term. Start motion graphic at correct time."
+    },
+    {
+      "id": "c11",
+      "card": "section/section-counter-scale",
+      "anchor": "we're going to come over to n8n",
+      "hold": 6,
+      "variables": {
+        "number": "1",
+        "title": "n8n",
+        "dots": 5,
+        "logo": "n8n"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c12",
+      "card": "overlay/callout",
+      "anchor": "most important thing is to have an API key",
+      "hold": 5,
+      "variables": {
+        "kind": "tip",
+        "title": "Grab your OpenAI API key",
+        "text": "You'll reuse it across all five tools",
+        "pos": "top-right",
+        "style": "tip"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c13",
+      "card": "section/section-counter-scale",
+      "anchor": "let's move over to Flowise",
+      "hold": 6,
+      "variables": {
+        "number": "2",
+        "title": "Flowise",
+        "dots": 5,
+        "logo": "flowise"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c14",
+      "card": "process/step-flow",
+      "anchor": "the general workflow on Flowise",
+      "hold": 6,
+      "variables": {
+        "title": "Flowise agent anatomy"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "label": "Chat input node"
+          },
+          "anchor": "you add a chat input node"
+        },
+        {
+          "reveal": {
+            "label": "Prompt template node"
+          },
+          "anchor": "the prompt template node"
+        },
+        {
+          "reveal": {
+            "label": "LLM node"
+          },
+          "anchor": "the LLM node"
+        },
+        {
+          "reveal": {
+            "label": "Output node"
+          },
+          "anchor": "the output node"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c15",
+      "card": "section/section-counter-scale",
+      "anchor": "let's go over to Zapier",
+      "hold": 6,
+      "variables": {
+        "number": "3",
+        "title": "Zapier",
+        "dots": 5,
+        "logo": "zapier"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c16",
+      "card": "section/section-counter-scale",
+      "anchor": "let's move over to make",
+      "hold": 6,
+      "variables": {
+        "number": "4",
+        "title": "Make",
+        "dots": 5,
+        "logo": "make"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c17",
+      "card": "section/section-counter-scale",
+      "anchor": "let's move over to LangSmith",
+      "hold": 6,
+      "variables": {
+        "number": "5",
+        "title": "LangSmith",
+        "dots": 5,
+        "logo": "langchain"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c18",
+      "card": "overlay/callout",
+      "anchor": "LangSmith gives you an input handler",
+      "hold": 5,
+      "variables": {
+        "kind": "note",
+        "title": "LangSmith = raw building blocks",
+        "text": "Input, prompt, LLM chain, parser",
+        "pos": "bottom-left",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c19",
+      "card": "overlay/verdict-chips",
+      "anchor": "Zapier, on the first hand",
+      "hold": 6,
+      "variables": {},
+      "beats": [
+        {
+          "reveal": {
+            "text": "Smooth trigger handling",
+            "verdict": "yes"
+          },
+          "anchor": "handles the trigger smoothly"
+        },
+        {
+          "reveal": {
+            "text": "AI logic gets boxed in",
+            "verdict": "no"
+          },
+          "anchor": "once AI logic gets involved"
+        },
+        {
+          "reveal": {
+            "text": "Quick first results",
+            "verdict": "yes"
+          },
+          "anchor": "get results pretty quickly"
+        },
+        {
+          "reveal": {
+            "text": "Leans on presets",
+            "verdict": "no"
+          },
+          "anchor": "relying heavily on presets"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c20",
+      "card": "overlay/verdict-chips",
+      "anchor": "Make allows more",
+      "hold": 6,
+      "variables": {},
+      "beats": [
+        {
+          "reveal": {
+            "text": "More branching than Zapier",
+            "verdict": "yes"
+          },
+          "anchor": "branching and logic than Zapier"
+        },
+        {
+          "reveal": {
+            "text": "Visual workflow control",
+            "verdict": "yes"
+          },
+          "anchor": "visually manipulate the workflow"
+        },
+        {
+          "reveal": {
+            "text": "Complex AI hard to maintain",
+            "verdict": "no"
+          },
+          "anchor": "becomes harder to maintain"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c21",
+      "card": "overlay/verdict-chips",
+      "anchor": "n8n, on the other hand",
+      "hold": 6,
+      "variables": {},
+      "beats": [
+        {
+          "reveal": {
+            "text": "Full workflow, clean",
+            "verdict": "yes"
+          },
+          "anchor": "handles the full workflow cleanly"
+        },
+        {
+          "reveal": {
+            "text": "AI feels intentional",
+            "verdict": "yes"
+          },
+          "anchor": "feel intentional rather than forced"
+        },
+        {
+          "reveal": {
+            "text": "Scalable, not hacky",
+            "verdict": "yes"
+          },
+          "anchor": "feel scalable instead of hacky"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c22",
+      "card": "overlay/verdict-chips",
+      "anchor": "LangSmith, or LangChain",
+      "hold": 6,
+      "variables": {},
+      "beats": [
+        {
+          "reveal": {
+            "text": "Excellent results",
+            "verdict": "yes"
+          },
+          "anchor": "produces excellent results"
+        },
+        {
+          "reveal": {
+            "text": "Everything requires code",
+            "verdict": "no"
+          },
+          "anchor": "everything does require code"
+        },
+        {
+          "reveal": {
+            "text": "Maximum flexibility",
+            "verdict": "yes"
+          },
+          "anchor": "You get maximum flexibility"
+        },
+        {
+          "reveal": {
+            "text": "Slower, less accessible",
+            "verdict": "no"
+          },
+          "anchor": "cost of speed and accessibility"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c23",
+      "card": "overlay/verdict-chips",
+      "anchor": "Flowise obviously delivers",
+      "hold": 6,
+      "variables": {},
+      "beats": [
+        {
+          "reveal": {
+            "text": "Strong AI agents, less setup",
+            "verdict": "yes"
+          },
+          "anchor": "far less setup than LangChain"
+        },
+        {
+          "reveal": {
+            "text": "Visual chains & memory",
+            "verdict": "yes"
+          },
+          "anchor": "build an agent or chains"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c24",
+      "card": "comparison/bar-chart",
+      "anchor": "that was pretty much the pricing",
+      "hold": 8,
+      "variables": {
+        "title": "Entry paid plan, per month",
+        "bars": [
+          {
+            "label": "Make",
+            "value": 10.59,
+            "prefix": "$"
+          },
+          {
+            "label": "Zapier",
+            "value": 20,
+            "prefix": "$"
+          },
+          {
+            "label": "n8n",
+            "value": 24,
+            "prefix": "$"
+          },
+          {
+            "label": "Flowise",
+            "value": 35,
+            "prefix": "$"
+          },
+          {
+            "label": "LangSmith",
+            "value": 39,
+            "prefix": "$"
+          }
+        ]
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c25",
+      "card": "link-in-description/link-in-description",
+      "anchor": "given the link for each of these",
+      "hold": 5,
+      "variables": {
+        "message": "Every tool linked in the description"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c26",
+      "card": "overlay/callout",
+      "anchor": "put Zapier and Flowise at the top",
+      "hold": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Ease of use",
+        "text": "Zapier & Flowise lead",
+        "pos": "bottom-right",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c27",
+      "card": "overlay/callout",
+      "anchor": "the feature set will definitely go to n8n",
+      "hold": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Features",
+        "text": "n8n first, LangChain & Flowise close",
+        "pos": "bottom-left",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c28",
+      "card": "overlay/callout",
+      "anchor": "best in case of customization",
+      "hold": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Customization",
+        "text": "n8n, LangChain & Flowise",
+        "pos": "top-right",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c29",
+      "card": "comparison/table-rows",
+      "anchor": "all of them were pretty decent",
+      "hold": 8,
+      "variables": {
+        "title": "Time to result",
+        "columns": [
+          "Tool",
+          "Score"
+        ]
+      },
+      "beats": [
+        {
+          "reveal": {
+            "text": "Zapier|5 / 5",
+            "logo": "zapier"
+          },
+          "anchor": "Zapier 5 out of"
+        },
+        {
+          "reveal": {
+            "text": "Make|4 / 5",
+            "logo": "make"
+          },
+          "anchor": "Make 4 out of"
+        },
+        {
+          "reveal": {
+            "text": "n8n|4 / 5",
+            "logo": "n8n"
+          },
+          "anchor": "n8n 4 out of"
+        },
+        {
+          "reveal": {
+            "text": "LangChain|2 / 5",
+            "logo": "langchain"
+          },
+          "anchor": "LangChain 2 out of"
+        },
+        {
+          "reveal": {
+            "text": "Flowise|4.5 / 5",
+            "logo": "flowise"
+          },
+          "anchor": "Flowise 4.5 out of"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c30",
+      "card": "overlay/callout",
+      "anchor": "we move over to pricing and value",
+      "hold": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Pricing value",
+        "text": "n8n & Flowise take the win",
+        "pos": "top-left",
+        "style": "tip"
+      },
+      "beats": [],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c31",
+      "card": "verdict/persona-match",
+      "anchor": "I have the individual conclusions",
+      "hold": 5,
+      "variables": {
+        "title": "Which one is for you?"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "persona": "Max control & scale",
+            "winner": "n8n",
+            "logo": "n8n"
+          },
+          "anchor": "choose n8n if you want the maximum"
+        },
+        {
+          "reveal": {
+            "persona": "Visual AI agents",
+            "winner": "Flowise",
+            "logo": "flowise"
+          },
+          "anchor": "Choose Flowise if you want"
+        },
+        {
+          "reveal": {
+            "persona": "Fast, simple automations",
+            "winner": "Zapier",
+            "logo": "zapier"
+          },
+          "anchor": "Choose Zapier if you want"
+        },
+        {
+          "reveal": {
+            "persona": "Visual logic, zero code",
+            "winner": "Make",
+            "logo": "make"
+          },
+          "anchor": "Choose Make if you want"
+        },
+        {
+          "reveal": {
+            "persona": "Devs building serious AI",
+            "winner": "LangChain",
+            "logo": "langchain"
+          },
+          "anchor": "choose LangChain if you are a developer"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5
+    },
+    {
+      "id": "c32",
+      "card": "verdict/winners-podium",
+      "anchor": "my personal favorite were",
+      "hold": 14,
+      "variables": {
+        "eyebrow": "MY VERDICT",
+        "ranked": false
+      },
+      "beats": [
+        {
+          "reveal": {
+            "name": "n8n",
+            "logo": "n8n",
+            "reason": "Best overall automation platform"
+          },
+          "anchor": "n8n and Flowise"
+        },
+        {
+          "reveal": {
+            "name": "Flowise",
+            "logo": "flowise",
+            "reason": "Best visual AI workflow builder"
+          },
+          "anchor": "because n8n was the"
+        }
+      ],
+      "flagged": false,
+      "lead": 0.5
+    }
+  ]
+}

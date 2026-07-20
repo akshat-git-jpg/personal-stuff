@@ -447,7 +447,7 @@ Format: Name, Fontname, Fontsize, PrimaryColour, OutlineColour, BackColour, Bold
 Style: Cap,Helvetica,${capFontPx},&H00FFFFFF,&H00000000,&H00000000,1,${outline},0,2,40,40,${marginV},1
 
 [Events]
-Format: Layer, Start, End, Style, Text
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 `;
           fs.writeFileSync(path.join(capDir, `seg-${seg.id}.ass`), assHead + assBody);
         }

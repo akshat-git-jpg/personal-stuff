@@ -114,10 +114,12 @@
         eyebrow: VARS.eyebrow ?? 'Winner #1', // shown as "<eyebrow> · 2026"
         winner: VARS.winner ?? 'Hostinger',
         reason: VARS.reason ?? 'Easiest setup, lowest cost, built for n8n. Right for most people.',
-        logoSvg:
-          VARS.logoSvg ??
-          `<svg fill="#673DE6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.415 0v7.16l5.785 3.384V2.949L16.415 0ZM1.8 0v11.237h18.815L14.89 8.09l-7.457-.003V3.024L1.8 0Zm14.615 20.894v-5.019l-7.514-.005c.007.033-5.82-3.197-5.82-3.197l19.119.091V24l-5.785-3.106ZM1.8 13.551v7.343l5.633 2.949v-6.988L1.8 13.551Z"/></svg>`,
+        logo: VARS.logo, // logos/ registry slug, inlined by resolve via __logos
+        logoSvg: VARS.logoSvg, // raw inline svg escape hatch; NO default — an
+        // unset logo must hide the logo box, never show a leftover demo brand
+        // (owner feedback, test-02: mystery Hostinger icon on the winner card)
       };
+      const LOGOS = VARS.__logos ?? {};
 
       /* =====================================================
          ===== TIMELINE (LOCKED — do not edit) =====
@@ -151,7 +153,17 @@
       function build() {
         $('eyebrow').textContent = DATA.eyebrow + ' · 2026';
         $('winnerName').textContent = DATA.winner;
-        $('logo').innerHTML = DATA.logoSvg;
+        if (DATA.logoSvg) {
+          $('logo').innerHTML = DATA.logoSvg;
+        } else if (DATA.logo && LOGOS[DATA.logo]) {
+          const img = document.createElement('img');
+          img.src = LOGOS[DATA.logo];
+          img.alt = DATA.winner;
+          img.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+          $('logo').appendChild(img);
+        } else {
+          $('logo').remove();
+        }
         $('reason').textContent = DATA.reason;
         $('confetti').innerHTML = CONFETTI.map(
           (c) =>

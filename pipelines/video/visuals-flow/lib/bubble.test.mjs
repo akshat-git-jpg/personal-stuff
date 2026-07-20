@@ -13,21 +13,66 @@ test('plan emits one bubble instance', () => {
   assert.strictEqual(insts[0].enabled, true);
 });
 
-test('bubbleGeometry integer values at 1080p and 720p', () => {
+// D/R/INSET stay whole pixels; ring and blur widths are deliberately
+// fractional so the 720p draft scales down honestly (see bubbleGeometry).
+test('bubbleGeometry values at 1080p and 720p', () => {
   const g1 = bubbleGeometry(1920, 1080);
-  assert.strictEqual(g1.D, 150);
-  assert.strictEqual(g1.R, 75);
-  assert.strictEqual(g1.RING, 3);
-  assert.strictEqual(g1.INSET, 40);
+  assert.strictEqual(g1.D, 300);
+  assert.strictEqual(g1.R, 150);
+  assert.strictEqual(g1.RING, 3.5);
+  assert.strictEqual(g1.INSET, 24);
   assert.deepStrictEqual([g1.rr, g1.gg, g1.bb], [251, 146, 60]);
-  assert.strictEqual(g1.OX, 1920 - 40 - 150);
-  assert.strictEqual(g1.OY, 40);
+  assert.strictEqual(g1.OX, 1920 - 24 - 300);
+  assert.strictEqual(g1.OY, 24);
 
   const g2 = bubbleGeometry(1280, 720);
-  assert.strictEqual(g2.D, 100);
-  assert.strictEqual(g2.R, 50);
-  assert.ok(Number.isInteger(g2.RING) && g2.RING >= 1);
+  assert.strictEqual(g2.D, 200);
+  assert.strictEqual(g2.R, 100);
+  assert.ok(g2.RING >= 1);
   assert.ok(Number.isInteger(g2.INSET));
+});
+
+// Reference proportions (measured, high-zoom still): hairline 1.16% of D,
+// gleam 2.78% of D => the gleam reads ~2.40x wider. Those ABSOLUTE numbers are
+// verified against real renders by scripts/measure-bubble-ring.py, NOT here —
+// a closed-form gaussian FWHM overestimates what `gblur ... steps=2` actually
+// produces, so asserting rendered widths from a formula would encode a lie.
+// What this guards is the structural invariant: the gleam must stay materially
+// wider than the hairline, in band AND in blur, at every resolution.
+test('gleam stays materially wider than the hairline at both resolutions', () => {
+  const spread = (band, sigma) => Math.hypot(band, 2.355 * sigma);
+  for (const [w, h] of [[1920, 1080], [1280, 720]]) {
+    const g = bubbleGeometry(w, h);
+    assert.ok(g.GW > g.RING, `at ${h}p gleam band ${g.GW} must exceed hairline ${g.RING}`);
+    assert.ok(g.GSIG >= 3 * g.CORE,
+      `at ${h}p gleam blur ${g.GSIG} must dominate the hairline's anti-alias ${g.CORE}`);
+    const ratio = spread(g.GW, g.GSIG) / spread(g.RING, g.CORE);
+    assert.ok(ratio >= 1.8, `at ${h}p gleam/hairline spread is ${ratio.toFixed(2)}x, want >= 1.8x`);
+  }
+});
+
+test('band edges are centred on R and exactly the nominal width', () => {
+  for (const [w, h] of [[1920, 1080], [1280, 720]]) {
+    const g = bubbleGeometry(w, h);
+    assert.ok(Math.abs((g.ROUT - g.RIN) - g.RING) < 0.02, `hairline band width at ${h}p`);
+    assert.ok(Math.abs((g.GOUT - g.GIN) - g.GW) < 0.02, `gleam band width at ${h}p`);
+    assert.ok(Math.abs((g.RIN + g.ROUT) / 2 - g.R) < 0.02, `hairline centred on R at ${h}p`);
+    assert.ok(Math.abs((g.GIN + g.GOUT) / 2 - g.R) < 0.02, `gleam centred on R at ${h}p`);
+  }
+});
+
+test('ring canvas is padded so the glow is not clipped into a rectangle', () => {
+  for (const [w, h] of [[1920, 1080], [1280, 720]]) {
+    const g = bubbleGeometry(w, h);
+    // Canvas must clear the circle by at least the gaussian's practical reach,
+    // otherwise the blur hits the canvas edge and reads as a hard-edged box.
+    assert.ok(g.PAD >= 3 * g.GSIG, `PAD ${g.PAD} must cover 3 sigma (${3 * g.GSIG}) at ${h}p`);
+    assert.ok(g.PAD >= g.GW / 2 + 3 * g.GSIG, `PAD ${g.PAD} must also clear the gleam half-width at ${h}p`);
+    assert.strictEqual(g.S, g.D + 2 * g.PAD);
+    assert.strictEqual(g.C, Math.round(g.S / 2));
+    // The padded canvas is placed so the circle still lands exactly at OX/OY.
+    assert.ok(g.OX - g.PAD >= 0 && g.OY - g.PAD >= 0, 'padded canvas stays on-frame');
+  }
 });
 
 test('contribute returns null for non-screen segments', () => {
@@ -86,8 +131,19 @@ test('contribute slice arithmetic across a chunk boundary', () => {
   assert.ok(chain.includes('sin('), 'gradient includes sin');
   assert.ok(chain.includes('pow('), 'gradient includes pow');
   assert.ok(chain.includes('T+10'), 'phase constant T+10');
-  assert.ok(chain.includes('251+'), 'base red 251');
-  assert.ok(chain.includes('255-251'), 'highlight red 255 minus base red');
+  // Two independent layers: a constant-colour hairline, and a wider near-white
+  // bloom whose ALPHA is angularly shaped. If the gleam ever collapses back
+  // into a colour-mix inside the hairline it stops reading as motion.
+  assert.ok(chain.includes("r='251'"), 'hairline carries the constant brand red');
+  assert.ok(chain.includes("r='255'"), 'gleam carries the constant highlight red');
+  assert.ok(chain.includes(',255*min(1,pow('),
+    'gleam alpha is driven by the clamped angular weight');
+  // two layers (hairline + gleam) per overlapping corner slice; this seg has 2
+  assert.strictEqual((chain.match(/color=c=0x00000000/g) || []).length, 4,
+    'two ring layers per slice');
+  const g = bubbleGeometry(1920, 1080);
+  assert.ok(chain.includes(`${g.RIN},${g.ROUT}`), 'hairline band uses the centred RING edges');
+  assert.ok(chain.includes(`${g.GIN},${g.GOUT}`), 'gleam band uses the wider centred edges');
 });
 
 test('contribute assigns phase constants per segment', () => {

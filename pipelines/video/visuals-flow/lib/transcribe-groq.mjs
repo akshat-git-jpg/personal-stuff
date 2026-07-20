@@ -61,8 +61,28 @@ async function main() {
     start: +(+w.start).toFixed(2),
     end: +(+w.end).toFixed(2),
   }));
-  // A garbage API response (NaN/negative/backwards timestamps) would poison
-  // every downstream anchor — refuse to write transcript.json (GFX-04).
+  // whisper-large-v3-turbo word timestamps carry occasional small jitter: a word
+  // starting slightly BEFORE its predecessor (test-02: 61 of 5543 words, all
+  // ≤0.52s). That is noise, not poison — clamp it. Rejecting the transcript
+  // for it forces the garbled local-whisper fallback (and wastes an hour of
+  // Groq audio quota per retry). Fold 2026-07-20.
+  let clamped = 0;
+  for (let i = 1; i < words.length; i++) {
+    const overlap = words[i - 1].start - words[i].start;
+    if (overlap > 0 && overlap <= 1.0) {
+      words[i].start = words[i - 1].start;
+      if (words[i].end < words[i].start) words[i].end = words[i].start;
+      clamped++;
+    }
+  }
+  // A genuinely garbage response (NaN/negative/large-backwards timestamps, or
+  // jitter beyond ~2% of words) would poison every downstream anchor — refuse
+  // to write transcript.json (GFX-04).
+  const clampCap = Math.ceil(words.length * 0.02);
+  if (clamped > clampCap) {
+    console.error(`transcript rejected: ${clamped} non-monotonic word starts (cap ${clampCap}) — timestamps look poisoned`);
+    process.exit(1);
+  }
   let prevStart = -Infinity;
   for (let i = 0; i < words.length; i++) {
     const w = words[i];
@@ -77,7 +97,7 @@ async function main() {
     prevStart = w.start;
   }
   fs.writeFileSync(outPath, JSON.stringify(words));
-  console.log(JSON.stringify({ ok: true, engine: 'groq', model: MODEL, wordCount: words.length, durationSeconds: words[words.length - 1].end, transcriptPath: outPath }));
+  console.log(JSON.stringify({ ok: true, engine: 'groq', model: MODEL, wordCount: words.length, clampedWords: clamped, durationSeconds: words[words.length - 1].end, transcriptPath: outPath }));
 }
 
 main();

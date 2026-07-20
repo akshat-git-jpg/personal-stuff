@@ -61,15 +61,19 @@
       /* ===== TIMELINE (LOCKED) ===== */
       const $ = (id) => document.getElementById(id);
       const max = Math.max(...DATA.bars.map((b) => Number(b.value) || 0), 1);
+      // fallback palette: a missing bar color must never render an invisible bar
+      // (linear-gradient(undefined) is invalid CSS -> no fill at all)
+      const PALETTE = ['#fb923c', '#38bdf8', '#facc15', '#fb7185', '#4ade80', '#a78bfa'];
       function build() {
         $('title').textContent = DATA.title;
         $('bars').innerHTML = DATA.bars
           .map((b, i) => {
             const pct = ((Number(b.value) || 0) / max) * 100;
+            const color = b.color || PALETTE[i % PALETTE.length];
             return `<div class="bar">
               <div class="lbl">${b.label}</div>
-              <div class="track"><div class="fill" id="fill-${i}" style="width:${pct}%;background:linear-gradient(90deg,${b.color},${b.color}cc);box-shadow:0 0 24px ${b.color}55;"></div></div>
-              <div class="num" id="num-${i}" style="color:${b.color}">0</div>
+              <div class="track"><div class="fill" id="fill-${i}" style="width:${pct}%;background:linear-gradient(90deg,${color},${color}cc);box-shadow:0 0 24px ${color}55;"></div></div>
+              <div class="num" id="num-${i}" style="color:${color}">0</div>
             </div>`;
           })
           .join('');

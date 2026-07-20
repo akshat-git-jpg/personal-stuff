@@ -1,0 +1,19 @@
+{
+  "video": "test-02",
+  "template": "specs-man",
+  "engineMode": "test",
+  "jobs": [
+    {
+      "id": "corner-01",
+      "kind": "corner",
+      "start": 113.67,
+      "end": 293.67,
+      "duration": 180,
+      "audio": "slices-avatar/corner-01.mp3",
+      "video_id": "97bd848fa13e4d628315500ca14243ef",
+      "status": "submitted",
+      "submitted_at": "2026-07-20T09:06:53.878Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/test-02/corner-01.mp4"
+    }
+  ]
+}

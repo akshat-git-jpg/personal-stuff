@@ -33,8 +33,11 @@ State of the pipeline + full command list: `HANDOFF.md`. Schemas: `PIPELINE.md`.
 2. Run the cue pass IN THIS SESSION: paste **the prompt only**
    (`steps/020-cue-pass-llm/cue-pass-prompt.md`), as it is self-contained
    (RULEBOOK.md is the 060 fold's judgment archive, kept in sync by the fold).
-   Fill its placeholders with `../card-library/catalog.json` and the output of
-   `node lib/transcript-text.mjs <slug>` (never raw transcript.json). Produce
+   Fill its placeholders with `../card-library/catalog.json`, the output of
+   `node lib/transcript-text.mjs <slug>` (never raw transcript.json), and
+   {{LOGO_SLUGS}} = the slug list from `../card-library/logos/registry.json`
+   (fetch missing tool logos FIRST: `node scripts/fetch-logo.mjs <slug> <domain>`
+   from card-library, then eyeball the PNGs). Produce
    `videos/<slug>/cues.json` exactly per the prompt's schema. Any
    Sonnet-class-or-better session qualifies (the pass is form-filling; HANDOFF
    "Model routing").
@@ -62,6 +65,12 @@ State of the pipeline + full command list: `HANDOFF.md`. Schemas: `PIPELINE.md`.
 
 `node lib/board.mjs <slug>` (background), report the printed 127.0.0.1 URL.
 Unsaved-feedback warning and approval semantics are the board's own.
+**The board is a long-running process: card HTML + resolved.json + cues.json are
+read per-request, but imported `lib/*.mjs` modules (e.g. `logos-inline.mjs`) and
+the VO-slice cache are loaded at startup. After editing ANY lib module or a
+card's variables/duration, KILL and RESTART the board before asking the owner to
+review — otherwise it silently serves stale logic (symptom: logos fall back to
+text tiles, or a preview plays an old slice length).**
 
 ## Verb: "render the graphics"
 

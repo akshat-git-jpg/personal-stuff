@@ -1,0 +1,666 @@
+{
+  "video": "test-02",
+  "offset": 0,
+  "resolved": [
+    {
+      "id": "c01",
+      "card": "title/title-cinematic-float",
+      "placement": "fullframe",
+      "start": 0,
+      "duration": 10,
+      "variables": {
+        "title": "5 automation tools. One real test.",
+        "platforms": [
+          {
+            "name": "n8n",
+            "logo": "n8n"
+          },
+          {
+            "name": "Make",
+            "logo": "make"
+          },
+          {
+            "name": "Zapier",
+            "logo": "zapier"
+          },
+          {
+            "name": "LangChain",
+            "logo": "langchain"
+          },
+          {
+            "name": "Flowise",
+            "logo": "flowise"
+          }
+        ]
+      }
+    },
+    {
+      "id": "c02",
+      "card": "slate/headline-chips",
+      "placement": "fullframe",
+      "start": 62.32,
+      "duration": 14.02,
+      "variables": {
+        "headline": "Every tool gets the same fair test",
+        "beats": [
+          {
+            "text": "Same use case",
+            "at": 3.04
+          },
+          {
+            "text": "Same AI prompt logic",
+            "at": 5.86
+          },
+          {
+            "text": "Same evaluation criteria",
+            "at": 8.02
+          }
+        ]
+      }
+    },
+    {
+      "id": "c03",
+      "card": "table-of-contents/table-of-contents",
+      "placement": "fullframe",
+      "start": 81.82,
+      "duration": 27.34,
+      "variables": {
+        "eyebrow": "The game plan",
+        "beats": [
+          {
+            "label": "Quick tool overviews",
+            "at": 2.24
+          },
+          {
+            "label": "Same-workflow live demos",
+            "at": 6.22
+          },
+          {
+            "label": "Ease, flexibility & pricing",
+            "at": 9.86
+          },
+          {
+            "label": "The honest verdict",
+            "at": 15.34
+          }
+        ]
+      }
+    },
+    {
+      "id": "c04",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 106.5,
+      "duration": 4,
+      "variables": {
+        "message": "All five tools linked below"
+      }
+    },
+    {
+      "id": "c05",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 113.54,
+      "duration": 6,
+      "variables": {
+        "index": 1,
+        "total": 5,
+        "logo": "n8n",
+        "name": "n8n",
+        "tagline": "Low-code automation for power users",
+        "tag": "Low-code"
+      }
+    },
+    {
+      "id": "c06",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 134.96,
+      "duration": 6,
+      "variables": {
+        "index": 2,
+        "total": 5,
+        "logo": "flowise",
+        "name": "Flowise",
+        "tagline": "Visual AI workflow builder",
+        "tag": "AI-first"
+      }
+    },
+    {
+      "id": "c07",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 160.54,
+      "duration": 6,
+      "variables": {
+        "index": 3,
+        "total": 5,
+        "logo": "zapier",
+        "name": "Zapier",
+        "tagline": "No-code automation, built for speed",
+        "tag": "No-code"
+      }
+    },
+    {
+      "id": "c08",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 178.94,
+      "duration": 6,
+      "variables": {
+        "index": 4,
+        "total": 5,
+        "logo": "make",
+        "name": "Make",
+        "tagline": "Visual automation with more control",
+        "tag": "Visual"
+      }
+    },
+    {
+      "id": "c09",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 199.22,
+      "duration": 6,
+      "variables": {
+        "index": 5,
+        "total": 5,
+        "logo": "langchain",
+        "name": "LangChain",
+        "tagline": "Developer-first AI agent framework",
+        "tag": "Code-first"
+      }
+    },
+    {
+      "id": "c10",
+      "card": "process/step-flow",
+      "placement": "fullframe",
+      "start": 248.5,
+      "duration": 18.66,
+      "variables": {
+        "title": "The test workflow",
+        "beats": [
+          {
+            "label": "User submits text",
+            "at": 7.24
+          },
+          {
+            "label": "AI summarizes it",
+            "at": 11.12
+          },
+          {
+            "label": "Sent to email or Slack",
+            "at": 14.66
+          }
+        ]
+      }
+    },
+    {
+      "id": "c11",
+      "card": "section/section-counter-scale",
+      "placement": "fullframe",
+      "start": 267.8,
+      "duration": 5,
+      "variables": {
+        "number": "1",
+        "title": "n8n",
+        "dots": 5,
+        "logo": "n8n"
+      }
+    },
+    {
+      "id": "c12",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 393.2,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "title": "Grab your OpenAI API key",
+        "text": "You'll reuse it across all five tools",
+        "pos": "top-right",
+        "style": "tip"
+      }
+    },
+    {
+      "id": "c13",
+      "card": "section/section-counter-scale",
+      "placement": "fullframe",
+      "start": 609.76,
+      "duration": 5,
+      "variables": {
+        "number": "2",
+        "title": "Flowise",
+        "dots": 5,
+        "logo": "flowise"
+      }
+    },
+    {
+      "id": "c14",
+      "card": "process/step-flow",
+      "placement": "fullframe",
+      "start": 730.48,
+      "duration": 13.2,
+      "variables": {
+        "title": "Flowise agent anatomy",
+        "beats": [
+          {
+            "label": "Chat input node",
+            "at": 3.24
+          },
+          {
+            "label": "Prompt template node",
+            "at": 4.98
+          },
+          {
+            "label": "LLM node",
+            "at": 6.18
+          },
+          {
+            "label": "Output node",
+            "at": 7.2
+          }
+        ]
+      }
+    },
+    {
+      "id": "c15",
+      "card": "section/section-counter-scale",
+      "placement": "fullframe",
+      "start": 838.76,
+      "duration": 5,
+      "variables": {
+        "number": "3",
+        "title": "Zapier",
+        "dots": 5,
+        "logo": "zapier"
+      }
+    },
+    {
+      "id": "c16",
+      "card": "section/section-counter-scale",
+      "placement": "fullframe",
+      "start": 1074.46,
+      "duration": 5,
+      "variables": {
+        "number": "4",
+        "title": "Make",
+        "dots": 5,
+        "logo": "make"
+      }
+    },
+    {
+      "id": "c17",
+      "card": "section/section-counter-scale",
+      "placement": "fullframe",
+      "start": 1222.39,
+      "duration": 5,
+      "variables": {
+        "number": "5",
+        "title": "LangSmith",
+        "dots": 5,
+        "logo": "langchain"
+      }
+    },
+    {
+      "id": "c18",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 1320.27,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "LangSmith = raw building blocks",
+        "text": "Input, prompt, LLM chain, parser",
+        "pos": "bottom-left",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c19",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1412.17,
+      "duration": 15.88,
+      "variables": {
+        "beats": [
+          {
+            "text": "Smooth trigger handling",
+            "verdict": "yes",
+            "at": 2.64
+          },
+          {
+            "text": "AI logic gets boxed in",
+            "verdict": "no",
+            "at": 4.44
+          },
+          {
+            "text": "Quick first results",
+            "verdict": "yes",
+            "at": 8.3
+          },
+          {
+            "text": "Leans on presets",
+            "verdict": "no",
+            "at": 9.88
+          }
+        ]
+      }
+    },
+    {
+      "id": "c20",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1426.35,
+      "duration": 14.16,
+      "variables": {
+        "beats": [
+          {
+            "text": "More branching than Zapier",
+            "verdict": "yes",
+            "at": 1.74
+          },
+          {
+            "text": "Visual workflow control",
+            "verdict": "yes",
+            "at": 4.28
+          },
+          {
+            "text": "Complex AI hard to maintain",
+            "verdict": "no",
+            "at": 8.16
+          }
+        ]
+      }
+    },
+    {
+      "id": "c21",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1437.51,
+      "duration": 16.94,
+      "variables": {
+        "beats": [
+          {
+            "text": "Full workflow, clean",
+            "verdict": "yes",
+            "at": 1.88
+          },
+          {
+            "text": "AI feels intentional",
+            "verdict": "yes",
+            "at": 6.76
+          },
+          {
+            "text": "Scalable, not hacky",
+            "verdict": "yes",
+            "at": 10.94
+          }
+        ]
+      }
+    },
+    {
+      "id": "c22",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1450.73,
+      "duration": 15.3,
+      "variables": {
+        "beats": [
+          {
+            "text": "Excellent results",
+            "verdict": "yes",
+            "at": 1.74
+          },
+          {
+            "text": "Everything requires code",
+            "verdict": "no",
+            "at": 3.24
+          },
+          {
+            "text": "Maximum flexibility",
+            "verdict": "yes",
+            "at": 7.3
+          },
+          {
+            "text": "Slower, less accessible",
+            "verdict": "no",
+            "at": 9.3
+          }
+        ]
+      }
+    },
+    {
+      "id": "c23",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1461.99,
+      "duration": 12.7,
+      "variables": {
+        "beats": [
+          {
+            "text": "Strong AI agents, less setup",
+            "verdict": "yes",
+            "at": 4.34
+          },
+          {
+            "text": "Visual chains & memory",
+            "verdict": "yes",
+            "at": 6.7
+          }
+        ]
+      }
+    },
+    {
+      "id": "c24",
+      "card": "comparison/bar-chart",
+      "placement": "fullframe",
+      "start": 1750.17,
+      "duration": 6,
+      "variables": {
+        "title": "Entry paid plan, per month",
+        "bars": [
+          {
+            "label": "Make",
+            "value": 10.59,
+            "prefix": "$"
+          },
+          {
+            "label": "Zapier",
+            "value": 20,
+            "prefix": "$"
+          },
+          {
+            "label": "n8n",
+            "value": 24,
+            "prefix": "$"
+          },
+          {
+            "label": "Flowise",
+            "value": 35,
+            "prefix": "$"
+          },
+          {
+            "label": "LangSmith",
+            "value": 39,
+            "prefix": "$"
+          }
+        ]
+      }
+    },
+    {
+      "id": "c25",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 1769.37,
+      "duration": 4,
+      "variables": {
+        "message": "Every tool linked in the description"
+      }
+    },
+    {
+      "id": "c26",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 1804.95,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Ease of use",
+        "text": "Zapier & Flowise lead",
+        "pos": "bottom-right",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c27",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 1845.51,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Features",
+        "text": "n8n first, LangChain & Flowise close",
+        "pos": "bottom-left",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c28",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 1912.77,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Customization",
+        "text": "n8n, LangChain & Flowise",
+        "pos": "top-right",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c29",
+      "card": "comparison/table-rows",
+      "placement": "fullframe",
+      "start": 1945.53,
+      "duration": 18.44,
+      "variables": {
+        "title": "Time to result",
+        "columns": [
+          "Tool",
+          "Score"
+        ],
+        "beats": [
+          {
+            "text": "Zapier|5 / 5",
+            "logo": "zapier",
+            "at": 3.96
+          },
+          {
+            "text": "Make|4 / 5",
+            "logo": "make",
+            "at": 6.26
+          },
+          {
+            "text": "n8n|4 / 5",
+            "logo": "n8n",
+            "at": 7.18
+          },
+          {
+            "text": "LangChain|2 / 5",
+            "logo": "langchain",
+            "at": 8.56
+          },
+          {
+            "text": "Flowise|4.5 / 5",
+            "logo": "flowise",
+            "at": 10.44
+          }
+        ]
+      }
+    },
+    {
+      "id": "c30",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 1971.87,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Pricing value",
+        "text": "n8n & Flowise take the win",
+        "pos": "top-left",
+        "style": "tip"
+      }
+    },
+    {
+      "id": "c31",
+      "card": "verdict/persona-match",
+      "placement": "fullframe",
+      "start": 2046.35,
+      "duration": 57.84,
+      "variables": {
+        "title": "Which one is for you?",
+        "beats": [
+          {
+            "persona": "Max control & scale",
+            "winner": "n8n",
+            "logo": "n8n",
+            "at": 7.82
+          },
+          {
+            "persona": "Visual AI agents",
+            "winner": "Flowise",
+            "logo": "flowise",
+            "at": 22.3
+          },
+          {
+            "persona": "Fast, simple automations",
+            "winner": "Zapier",
+            "logo": "zapier",
+            "at": 31.94
+          },
+          {
+            "persona": "Visual logic, zero code",
+            "winner": "Make",
+            "logo": "make",
+            "at": 43.32
+          },
+          {
+            "persona": "Devs building serious AI",
+            "winner": "LangChain",
+            "logo": "langchain",
+            "at": 52.84
+          }
+        ]
+      }
+    },
+    {
+      "id": "c32",
+      "card": "verdict/winners-podium",
+      "placement": "fullframe",
+      "start": 2112.09,
+      "duration": 18.14,
+      "variables": {
+        "eyebrow": "MY VERDICT",
+        "ranked": false,
+        "beats": [
+          {
+            "name": "n8n",
+            "logo": "n8n",
+            "reason": "Best overall automation platform",
+            "at": 1.88
+          },
+          {
+            "name": "Flowise",
+            "logo": "flowise",
+            "reason": "Best visual AI workflow builder",
+            "at": 4.14
+          }
+        ]
+      }
+    }
+  ]
+}

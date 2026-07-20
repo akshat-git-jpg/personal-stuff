@@ -99,6 +99,30 @@ with real prices) in the final comparison section. Never one pricing card per
 tool. When the `comparison/table-rows` card is used, do NOT also emit stat-hit
 cues for the same numbers. (Owner fold 2026-07-18, test-01 c20–c24.)
 
+**Cold-open shows the products (mandatory for comparison videos).** The intro
+title card of a multi-product comparison makes the compared products the
+VISUAL hero — use a chip title card (`title/title-aurora-wave` with
+`platforms` filled from the logo registry), not a text-only title. The intro
+is the video's most important graphic; a title that buries the tools in a
+subtitle line is a defect. (Owner fold 2026-07-20, test-02 c01.)
+
+**One winner per verdict card (mandatory).** A verdict card's `winner` is
+exactly one product. When the VO crowns two favorites, emit one verdict card
+per winner, back to back, each anchored at its own "X was the best..." phrase
+with its own reason. Never join names into one box. (Owner fold 2026-07-20,
+test-02 c32.)
+
+**Units on numbers (mandatory).** Any card that renders numeric values
+(`bar-chart` bars, stat-hits, table cells) carries the unit ON the value —
+prefix `$`, suffix `ms`/`/mo` etc. A bare number the viewer must decode from
+context is a defect. (Owner fold 2026-07-20, test-02 c24.)
+
+**Beat cards must not idle empty.** Anchor a beat-card cue so its FIRST beat
+lands within ~8s of the card appearing (lint W5 enforces this). When the VO
+introduces a section long before the first data point, anchor at the sentence
+immediately preceding the first beat instead of the section opener. (Owner
+fold 2026-07-20, test-02 c29: 18.9s of empty table scaffold.)
+
 If nothing in the catalog fits, do not force a bad match. Set the cue's
 `flagged` to `true`, set `card` to the closest existing slug, and add a `note`
 field explaining what's missing. See Section 8.

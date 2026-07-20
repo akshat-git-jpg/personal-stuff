@@ -12,5 +12,15 @@
   `[{text,start,end}]` transcript.json.
 - **Next:** step 020 — the cue pass reads `transcript.json`
 
+**Transcript brand QA (before the cue pass, always).** ASR garbles product
+names, and step 090 burns captions from transcript words VERBATIM — garbles
+ship onto the final video. After transcribing, grep the transcript for every
+product the video covers and normalize: fix casing/spelling on single words,
+and MERGE split-word garbles ("flow wise" → one "Flowise" word spanning both
+timestamps — never leave empty words). Text only; timings stay. Keep the raw
+engine output as `transcript.<engine>-raw.bak.json`. Do this BEFORE any anchor
+exists — anchors quote the transcript verbatim, so later text edits break
+them. (Fold 2026-07-20, test-02: 67 single-word fixes + 7 pair merges.)
+
 Needs `.npmrc` at the pipeline root (already present) so `npx` resolves the public
 registry instead of the work registry that 401s.

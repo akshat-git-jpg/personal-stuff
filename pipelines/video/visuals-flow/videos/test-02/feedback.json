@@ -1,0 +1,50 @@
+{
+  "video": "test-02",
+  "updated": "2026-07-20",
+  "items": {
+    "c01": {
+      "text": "intro is supposed to be most imp. this looks bas with no focus on the tools. Tools are secondary in this mootion graphics. Can we please use or make a better motion graphics.",
+      "added": "2026-07-20",
+      "context": {
+        "card": "title/title-kinetic-lines",
+        "anchor": "If you're trying to automate workflows",
+        "start": 0
+      },
+      "applied": "2026-07-20 (r3) — intro switched to title/title-cinematic-float; uniform glass tiles, every tool an identical rectangle with logo at a fixed centered footprint (owner: same rectangle size for all) | r3c: added tool-name labels under each logo (uniform labeled tiles)",
+      "folded": "2026-07-20 (r3) — cinematic-float given glass tiles + registry-logo (img/svg) support + uniform 58% logo footprint; catalog documents platforms; Make logo bug fixed library-wide (see below)"
+    },
+    "c24": {
+      "text": "all bars are empty, also right side numbers are confusing.. with no unit mentioned..",
+      "added": "2026-07-20",
+      "context": {
+        "card": "comparison/bar-chart",
+        "anchor": "that was pretty much the pricing",
+        "start": 1750.17
+      },
+      "applied": "2026-07-20 — c24 bars gained $ prefixes; colors from the new card fallback palette",
+      "folded": "2026-07-20 — bar-chart card: fallback palette so missing colors can never render invisible bars; RULEBOOK+prompt: units mandatory on numeric cards; catalog documents prefix/suffix"
+    },
+    "c29": {
+      "text": "till 17, graphics just had empty box which looks extermenly bad, similar pattern above. Also why no logos?",
+      "added": "2026-07-20",
+      "context": {
+        "card": "comparison/table-rows",
+        "anchor": "Then I move over to time to result",
+        "start": 1930.59
+      },
+      "applied": "2026-07-20 — c29 re-anchored (first row now 4.0s after card, was 18.9s) + per-row tool logos",
+      "folded": "2026-07-20 — lint W5 first-beat-idle (max 8s); table-rows card: panel enters with header + beat_shape.logo; RULEBOOK+prompt: beat cards must not idle empty"
+    },
+    "c32": {
+      "text": "n8n and flowwise are two different tools. Making them in 1 box looks weird. Also wondering why hostinger icon is there. is it intentional or mistake.",
+      "added": "2026-07-20",
+      "context": {
+        "card": "verdict/verdict-trophy",
+        "anchor": "with an overall verdict",
+        "start": 2108.31
+      },
+      "applied": "2026-07-20 (r3) — winners-podium re-timed: both co-winners reveal at ~2s & ~4s (were ~6s apart, so only n8n showed in-window); holds 18s through the verdict",
+      "folded": "2026-07-20 (r3) — winners-podium confetti now WRAPS (no overflow badge, never freezes on long holds) + 20s timeline spacer"
+    }
+  }
+}
