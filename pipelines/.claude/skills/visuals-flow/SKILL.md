@@ -110,21 +110,18 @@ Editor handoff = `renders/` + `manifest.md` + those clips + `avatar-manifest.md`
 
 ## Verb: "export the timeline" / "open it in resolve"
 
-1. Same gates as assembly (the exporter enforces them itself: cues approved +
-   rendered, shots approved with clips downloaded, screen.mp4 present).
-   `--force` bypasses the approval gates — owner-said-so only, same rule as
-   the render verb.
-2. `bash steps/095-resolve-export-run/run.sh <slug> [--bundle] [--force]` — full-res
-   segment encodes (shares assembly-cache/ with the ship render, so a prior
-   ship render makes this mostly cache hits), overlay-free base clips, writes
-   `~/kb-scratch/video/visuals-flow/<slug>/resolve-export/` (timeline.fcpxml
-   + segments/ + README.md; `--bundle` adds media/ with vo + overlay movs for
-   a portable editor handoff).
-3. Tell the owner: DaVinci Resolve → File → Import → Timeline →
-   timeline.fcpxml (Premiere: File → Import). V1 = base cut, lane 1 = overlay
-   graphics (each movable/deletable), lane -1 = VO. Effects (flash / drift /
-   captions / punch-ins) are baked INTO the clips — effect tweaks stay
-   `effects.json` + re-assemble, never Resolve.
+1. Same gates as assembly (exporter enforces them; `--force` bypasses —
+   owner-said-so only, same rule as the render verb).
+2. `bash steps/095-resolve-export-run/run.sh <slug> [--baked] [--bundle] [--force]`
+   — DEFAULT is the NATIVE layered project (near-instant, no encoding):
+   continuous screen on the spine, avatar/graphics/overlays/FX clips each on
+   their own lane (every effect a copyable clip), markers for dropped
+   transform-effects, sidecar captions.srt. `--baked` = the WYSIWYG
+   pre-encoded variant (plays exactly like final.mp4; for ship checks).
+   Output: `~/kb-scratch/video/visuals-flow/<slug>/resolve-export/`.
+3. Tell the owner: Resolve → File → Import → Timeline → timeline.fcpxml,
+   then File → Import → Subtitle → captions.srt. Effect LOOK tweaks stay
+   effects.json + re-export; structural edits are native drags now.
 
 ## Verb: "qc the video <slug>" / "run the filmstrip qc"
 
