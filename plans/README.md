@@ -120,6 +120,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 103 | bubble rotating gradient ring — conic two-tone ring, bright arc rotates (RING_SPIN_PERIOD), phase-continuous across segments; queued owner feedback from HANDOFF 1b | P2 | S | 100 landed | DONE (PR #60, landed 2026-07-20) |
 | 104 | board effects lane (HANDOFF 1c; spec 2026-07-20) — minimap markers + per-instance enabled toggles, THIRD approval gate (assemble refuses unapproved effects.json), master VO playback + CSS sim stage scoped as timing preview | P1 | M | none (independent of 105) | TODO |
 | 105 | visuals-flow smalls sweep — GFX-03 rubric wording, GFX-04 transcript timestamp assert, GFX-13 edit-delta shots mode, defuse + wire the destructive orphaned effects.test.mjs into check.sh | P2 | S | none (independent of 104) | TODO |
+| 106 | shot-plan cadence recalibrated to Youri rhythm (owner 2026-07-20) — SPAN_MIN 12→10, W1 split mid 45s/zone 120s, GAP_AVATAR_MAX 300→180, 070 pair rewritten; totals FROZEN (300s cap/240s target = HeyGen cost) | P1 | S | none | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
