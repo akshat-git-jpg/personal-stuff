@@ -34,7 +34,15 @@ Address anything flagged before taking the next ask.
 2. **Per PR** (oldest first):
    - `bin/boss-dispatch.sh <pr#>` — flips `boss:ready → boss:in-progress`, merges
      main into the branch, leases a `wt` worktree, invokes the executor.
-3. **Watch** via `bin/boss-state.sh [<pr#>]` — polls executor alive/collect.
+3. **Watch** via `bin/boss-state.sh [<pr#>]` — polls executor alive/collect. Poll on a
+   **fast cadence right after dispatch**: every ~1 min for the first ~5 min. Executor-level
+   failures (auth timeouts, missing binaries, wrong-checkout) surface in `collect` almost
+   immediately — don't let a 15-minute blind wait be the first time you learn a crew died in
+   the first 60 seconds. This is distinct from the 15m/45m stall detection below, which is for
+   genuinely hung crews that are still alive but not progressing. Once past the first ~5 min
+   with no dead/blocked signal, back off to a slower cadence (10–15 min) for the rest of the
+   run. (Learned 2026-07-20: PR#66's `agy` crew hit an expired Google OAuth session and
+   errored within ~60s of dispatch, but wasn't discovered until the next scheduled 15-min check.)
 4. **On crew done**: `bin/boss-merge.sh <pr#>` — rebases via greenlight with
    `--verify "<test_cmd>"`, records DONE, notifies, and **closes the PR** (greenlight
    merges the branch into main directly, so GitHub leaves it open — boss closes it).
