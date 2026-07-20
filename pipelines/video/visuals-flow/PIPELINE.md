@@ -101,6 +101,7 @@ Field semantics:
 - `beats[].reveal` — the card-specific beat item (shape per catalog.json `beat_shape`, WITHOUT `at` — the resolver adds it).
 - `placement` comes from catalog.json, not from the cue.
 - `flagged: true` — no card fits, needs a novel card (plan 065 surfaces these).
+- `kind: "word-sync"` cards (catalog) take `variables.text` (the sentence, quoted verbatim from the voiceover) and optional `variables.accent` (a phrase appearing verbatim inside `text`, rendered in the brand accent). They author **no** `beats` — the resolver derives one beat per word from `transcript.json`, so the cue's `anchor` must be the opening words of the sentence itself.
 - Board feedback: every cue block, gap block, and the header carry a feedback box;
   Save writes non-empty entries to `feedback.json` (`items` keyed by cue id,
   `gap-<mm:ss>`, or `_global`). Items are objects `{text, added, folded?}`.
