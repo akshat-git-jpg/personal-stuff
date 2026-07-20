@@ -22,6 +22,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `080-avatar-render-run` | [RUN] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
 | `090-assemble-run` | [RUN] | `screen.mp4` + `vo.mp3` + `renders/` + avatar clips (`avatar-jobs.json`) → `final.mp4` (kb-scratch) + `assembly.md` |
 | `060-feedback-fold-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
+| **publish templates** | [RUN] | once the video is done: `cd ../card-library && npm run publish-check` → fails on any card built for this video that is uncommitted or unpushed. Cards only reach the editor's gallery at render2.agrolloo.com once pushed (VPS `repo-sync` cron, ~15 min). See `card-library/CLAUDE.md`. |
 
 Each `steps/NNN-*/` folder has a `README.md` (purpose, exact command, in →
 out); the four scripted steps also have a thin `run.sh` wrapper.

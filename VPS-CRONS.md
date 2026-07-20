@@ -459,6 +459,7 @@ This is the canonical Pattern B example. Read its `run.sh` + `README.md` if you 
 - **Wrapper:** `/srv/crons/repo-sync/run.sh`
 - **Project code:** `/srv/projects/personal-stuff/scripts/vps-sync.sh`
 - **Why separate from the digests:** the digest crons only pull when they fire (06:00). This keeps code + skills fresh all day so Claude mobile isn't stale. Push from the Mac → live on the VPS within 15 min.
+- **⚠️ Second consumer — do not retire without a replacement:** `render2.agrolloo.com` (the editor's card gallery) serves `pipelines/video/card-library/` straight off this clone — the `hyperframes-render` container mounts `/srv/projects/personal-stuff/pipelines/video/card-library` read-only as `/cards` and scans it live. This cron is the *only* thing that makes a newly pushed card show up for the editor. Kill it and new templates silently stop appearing, with no error anywhere. (Verified live 2026-07-20.)
 
 ### d1-backup
 

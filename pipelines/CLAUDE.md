@@ -75,7 +75,7 @@ npx ts-node run.ts --niche <slug>
 | [`video/`](#) | Video production and rendering assets | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/tts/`](video/tts/CLAUDE.md) | TTS asset hub — reference voices, engines (IndexTTS-2 on Modal), voiceover manifest; consumed by the youtube pipelines | Python |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/heygen/`](video/heygen/CLAUDE.md) | Avatar asset hub — character registry + reference images, render manifest, HeyGen + fal-lipsync flows | Python + JSON |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`video/card-library/`](video/card-library/README.md) | Visual templates for Video Studio | HTML/CSS/JS |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`video/card-library/`](video/card-library/CLAUDE.md) | Visual templates for Video Studio — also the live source for the editor's gallery at render2.agrolloo.com; a card is only real once pushed (see its CLAUDE.md) | HTML/CSS/JS |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/visuals-flow/`](video/visuals-flow/PIPELINE.md) | Beat-synced motion-graphics pipeline — VO mp3 → cues → storyboard review → rendered clips + manifest (uses card-library cards) | Node + Claude steps |
 | [`tools/`](#) | Monetizable and utility tools | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`tools/bank-statement-parser/`](tools/bank-statement-parser/README.md) | Bank statements parsing & reconciliation engine | Python |
