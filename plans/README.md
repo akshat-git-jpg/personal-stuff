@@ -125,8 +125,8 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 108 | teach the cue pass to write kinetic-sentence cues — RULEBOOK rule (when it fires, verbatim quoting, how the accent phrase is chosen) + cue-pass-prompt schema/rules | P1 | S | 107 | TODO |
 | 109 | Resolve timeline export — assembly → FCPXML (V1 baked overlay-free segments, overlays on their own lane, VO track) for human touch-up in DaVinci/Premiere; `--bundle` for the remote-editor handoff | P1 | M | none | DONE (landed PR#66; +2026-07-21 inline fix 090dcb8: absolute media URLs, --force) |
 | 110 | Filmstrip QC pass — expected-events checklist + per-event 30fps contact sheets from assembly.md/effects.json; session reads the pack → committed qc-report.md | P1 | M | 109 (merge order only: shared check.sh/SKILL.md/docs) | DONE |
-| 111 | FX overlay clip renderer — effects.json flash/beat instances → transparent ProRes clips + manifest (renders-fx/), envelopes derived live from effect-module CONSTANTS | P1 | M | none | TODO |
-| 112 | Native layered FCPXML export (new default) — continuous screen spine + avatar/graphics/overlays/FX lanes + markers + captions.srt; `--baked` keeps the 109 WYSIWYG mode (spec docs/specs/2026-07-21-native-editor-export-design.md) | P1 | M | 111 | TODO |
+| 111 | FX overlay clip renderer — effects.json flash/beat instances → transparent ProRes clips + manifest (renders-fx/), envelopes derived live from effect-module CONSTANTS | P1 | M | none | DONE (landed PR#68; +ce7188f dedupe: one file per envelope type) |
+| 112 | Native layered FCPXML export (new default) — continuous screen spine + avatar/graphics/overlays/FX lanes + markers + captions.srt; `--baked` keeps the 109 WYSIWYG mode (spec docs/specs/2026-07-21-native-editor-export-design.md) | P1 | M | 111 | DONE (landed PR#69; verified on test-01 in Resolve 2026-07-21) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 

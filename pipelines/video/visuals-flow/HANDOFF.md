@@ -1,4 +1,27 @@
-# visuals-flow handoff (2026-07-19 EOD, post style-clone wave — POC complete + effects layer + Youri grammar)
+# visuals-flow handoff (2026-07-21, post editor-native wave — Resolve handoff live; DRT Phase 2 parked as GFX-19)
+
+**2026-07-20/21 added the EDITOR-NATIVE wave** (owner-driven, spec
+`docs/specs/2026-07-21-native-editor-export-design.md`, decisions.md 2026-07-20 + 2026-07-21 ×2):
+DaVinci Resolve (FREE 21.0.2) is installed and the editing handoff is now a
+real editor project. Landed: **109** (FCPXML exporter, baked WYSIWYG mode, PR#66 +
+inline fixes: absolute media URLs — Resolve ignores relative fcpxml refs — and
+`--force`), **110** (filmstrip QC pack + `qc the video` verb, PR#67), **111** (FX
+overlay clip renderer — flash/beat instances → transparent ProRes clips, one file
+per envelope type after ce7188f, PR#68), **112** (native layered FCPXML is the
+DEFAULT export: continuous screen spine, avatar/graphics/overlays/FX lanes —
+every effect a copyable clip — markers for dropped transform-effects, sidecar
+captions.srt; `--baked` keeps 109's mode; PR#69). Verified on test-01 in Resolve
+2026-07-21: all 31 assets auto-link, lanes correct, export runs in seconds.
+Editor-version trade-offs (accepted): no per-word orange captions (SRT limit),
+punch/drift/blur-whips become markers + Resolve-native equivalents, FX clips
+want one Composite→Screen flip for the exact shipped look. **Phase 2 = native
+.drp authoring (true Text+ captions, native transitions) via the vendored
+`davinci-resolve-advanced` offline lib — POC proved structure/transitions import
+as native objects; media-pool + Text+ blobs (zstd/binary, machine-drift) are the
+open problems. Owner-DEFERRED as GFX-19; POC artifacts in kb-scratch
+`test-01/drt-poc/`.** Also: test-01 `effects.json` is still `approved:false`
+(board effects lane) — exports currently need `--force` (owner-sanctioned for
+tests only) until the owner approves it.
 
 For the next session picking this up. Everything below was true and verified on
 2026-07-19. Read PIPELINE.md first if you have never seen this pipeline; read
@@ -193,23 +216,15 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 
 ## In flight
 
-**Plan 102 (GFX-17 speed pass) LANDED on the second run** (2026-07-20): the
-first crew correctly STOPPED on missing libass; ffmpeg was fixed overnight
-(same 8.1.2, now with the `subtitles` filter) and the re-run landed the full
-scope — `--jobs` pool, content-keyed segment cache (`assembly-cache/`,
-`--no-cache` to bypass), libass ASS captions (PNG pipeline deleted), `--bare`
-tier. NOT yet benchmarked on a real draft — the next test-01 draft run is the
-proof (expect minutes cold, ~1-2 min warm).
-**Plan 103 (bubble rotating gradient ring, PR #60)** — boss:ready, awaiting
-pickup; resolves the queued 1b ring feedback.
-Everything else landed: plans 062–083 (PRs #19–#40, 2026-07-18), 084–094
-(PRs #41–#51, 2026-07-19 AM, + hot-fixes a8456e4), 095–101 (PRs #52–#58,
-2026-07-19 PM, the style-clone wave). test-01 re-assembled `--draft` after
-each wave and frame-verified; the current final-draft.mp4 (kb-scratch,
-2026-07-19 ~16:45) carries ALL effects including the style clone.
-Backlog registry: `plans/README.md` → "visuals-flow backlog" (GFX-01..06
-hygiene; GFX-01/02 folded by plan 088) + "visuals-flow PRODUCT backlog"
-(GFX-07..15 roadmap).
+**Nothing in flight (2026-07-21).** Everything through plan 112 is landed:
+062–083 (2026-07-18), 084–094 + hot-fixes (2026-07-19 AM), 095–101 style-clone
+wave (2026-07-19 PM), 102 speed pass (2026-07-20; benchmarked: full 32-min
+draft 3m16s cold cache), 103–108 (bubble ring, board effects lane, smalls
+sweep, cadence recalibration, kinetic-sentence card + cue rules, 2026-07-20),
+109–112 editor-native wave (2026-07-20/21, see header). Backlog registry:
+`plans/README.md` → "visuals-flow backlog" + "visuals-flow PRODUCT backlog"
+(GFX-07..19 — GFX-19 is the deferred DRT Phase 2). The owner plans a fresh
+brainstorm session for the next enhancement wave.
 
 ## Open items (canonical list = GFX rows in plans/README.md)
 
@@ -224,10 +239,14 @@ brainstorms.** Standing next steps in priority order:
    host now instant + no zoom-ins on short host clips — the D3 VETO window
    (revert = 2 commits, plan 101); (c) orange keyword words in captions.
    Feedback via board boxes or plain chat → 060 fold. Per-instance kills:
-   `videos/test-01/effects.json`. The 1080p ship render is one command away
-   (`bash steps/090-assemble-run/run.sh test-01`, no --draft) but consider
-   waiting for plan 102 (PR #59) to land first — it takes drafts from 15+ min
-   back to ~2 min and ship renders proportionally.
+   `videos/test-01/effects.json` (still `approved:false` — approving it on the
+   board retires the `--force` on exports). The 1080p ship render is one
+   command away (`bash steps/090-assemble-run/run.sh test-01`, no --draft;
+   plan 102 landed — cold-cache full draft benchmarked at 3m16s). NEW tools
+   for this watch: `bash scripts/qc-video.sh test-01` + the "qc the video"
+   verb (filmstrip pre-check), and the native editor project
+   (`bash steps/095-resolve-export-run/run.sh test-01 --force` → import in
+   Resolve) for hands-on review/fixes.
 1b. **Corner bubble needs footage**: the bubble module is live but no-ops
    until a HeyGen run WITHOUT `--spans-only` produces corner clips
    (owner-run, live HeyGen — guardrail 3). First candidate: video #2.
