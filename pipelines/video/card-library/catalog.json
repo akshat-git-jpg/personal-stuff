@@ -1,6 +1,17 @@
 {
   "cards": [
     {
+      "slug": "prompt/prompt-typing",
+      "kind": "single",
+      "placement": "fullframe",
+      "purpose": "a 'Prompt' panel that types its text out over the clip; [m:ss] timestamp tags glow orange, a caret blinks, the box auto-scrolls — for showing an AI-tool/video prompt being written",
+      "variables": {
+        "title": "string",
+        "prompt": "string — the full prompt, \\n for line breaks; [m:ss] tags auto-highlight"
+      },
+      "default_duration": 12
+    },
+    {
       "slug": "checklist/checklist",
       "kind": "beat",
       "placement": "fullframe",
