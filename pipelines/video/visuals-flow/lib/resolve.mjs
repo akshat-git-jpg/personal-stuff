@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
+import { wordSyncBeats } from './kinetic-sentence.mjs';
 
 export function normWord(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ''); }
 
@@ -112,11 +113,18 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot) {
     const start = Math.max(0, a.start - lead);
     const beats = [];
     let failed = false;
-    for (const b of cue.beats ?? []) {
-      const m = findFrom(b.anchor, cursor);
-      if (m.err) { errors.push(`${cue.id} beat: ${m.err}`); failed = true; break; }
-      cursor = m.idx + m.len;
-      beats.push({ ...b.reveal, at: +(m.start - start).toFixed(2) });
+    if (cat.kind === 'word-sync') {
+      const r = wordSyncBeats(cue, W, a.idx, start);
+      if (r.err) { errors.push(`${cue.id}: ${r.err}`); continue; }
+      beats.push(...r.beats);
+      cursor = r.cursor;
+    } else {
+      for (const b of cue.beats ?? []) {
+        const m = findFrom(b.anchor, cursor);
+        if (m.err) { errors.push(`${cue.id} beat: ${m.err}`); failed = true; break; }
+        cursor = m.idx + m.len;
+        beats.push({ ...b.reveal, at: +(m.start - start).toFixed(2) });
+      }
     }
     if (failed) continue;
     const duration = beats.length ? +(beats[beats.length - 1].at + hold).toFixed(2) : cat.default_duration;

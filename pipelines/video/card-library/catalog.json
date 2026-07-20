@@ -645,6 +645,20 @@
       "default_duration": 8,
       "max_beats": 4,
       "max_reveal_chars": 34
+    },
+    {
+      "slug": "slate/kinetic-sentence",
+      "kind": "word-sync",
+      "placement": "fullframe",
+      "purpose": "one spoken sentence alone on the ambient canvas; words appear as spoken and an accent phrase colorizes with them; used INSTEAD of a talking-head bridge",
+      "variables": {
+        "text": "string",
+        "accent": "string (optional) — a phrase appearing verbatim inside text; those words render in --accent"
+      },
+      "beat_shape": { "text": "string", "accent": "boolean" },
+      "default_duration": 6,
+      "max_beats": 18,
+      "max_reveal_chars": 24
     }
   ]
 }

@@ -287,3 +287,23 @@ test('validateCues: catches the test-01 bug classes', async (t) => {
   ]}]);
   assert.equal(e.length, 0);
 });
+
+test('word-sync cue resolves start/at/duration', () => {
+  const customCatalog = { cards: [ ...CATALOG.cards, { slug: 'slate/kinetic-sentence', kind: 'word-sync', placement: 'fullframe', default_duration: 6, max_beats: 18 } ] };
+  const cues = [
+    {
+      id: 'cWS',
+      card: 'slate/kinetic-sentence',
+      anchor: "let's look at the",
+      variables: { text: "let's look at the", accent: 'look at' },
+    },
+  ];
+  const { resolved, errors } = resolveCues(cues, WORDS, customCatalog);
+  assert.deepEqual(errors, []);
+  assert.equal(resolved.length, 1);
+  const cue = resolved[0];
+  assert.equal(cue.start, 0); // W[0].start (0.0) - lead (0.5), floored
+  assert.equal(cue.variables.beats.length, 4); // let's look at the
+  assert.equal(cue.variables.beats[3].at, 1.5); // "the" is W[3], start 1.5
+  assert.equal(cue.duration, 4.5); // last at (1.5) + hold (3.0)
+});
