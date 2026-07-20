@@ -553,3 +553,4 @@ The others are grounded and available when the owner wants them:
 - 106-shot-cadence-youri-recalibration — PR#63 106-shot-cadence-youri-recalibration: shot-plan cadence → Youri rhythm, totals frozen — DONE
 - 107-kinetic-sentence-card — PR#64 107-kinetic-sentence-card: kinetic-sentence card + word-synced resolver — DONE
 - 108-kinetic-sentence-cue-rules — PR#65 108-kinetic-sentence-cue-rules: teach the cue pass to write kinetic-sentence cues — DONE
+- 109-resolve-timeline-export — PR#66 109-resolve-timeline-export: Resolve timeline export — assembly → FCPXML for human touch-up — DONE
