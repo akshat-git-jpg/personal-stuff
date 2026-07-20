@@ -61,6 +61,21 @@ async function main() {
     start: +(+w.start).toFixed(2),
     end: +(+w.end).toFixed(2),
   }));
+  // A garbage API response (NaN/negative/backwards timestamps) would poison
+  // every downstream anchor — refuse to write transcript.json (GFX-04).
+  let prevStart = -Infinity;
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    const bad =
+      typeof w.start !== 'number' || typeof w.end !== 'number' ||
+      !Number.isFinite(w.start) || !Number.isFinite(w.end) ||
+      w.start < 0 || w.end < w.start || w.start < prevStart;
+    if (bad) {
+      console.error(`transcript rejected: word[${i}] has invalid timing (start=${w.start}, end=${w.end}, prevStart=${prevStart})`);
+      process.exit(1);
+    }
+    prevStart = w.start;
+  }
   fs.writeFileSync(outPath, JSON.stringify(words));
   console.log(JSON.stringify({ ok: true, engine: 'groq', model: MODEL, wordCount: words.length, durationSeconds: words[words.length - 1].end, transcriptPath: outPath }));
 }

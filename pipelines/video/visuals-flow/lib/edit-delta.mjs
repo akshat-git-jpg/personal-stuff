@@ -122,6 +122,89 @@ export function formatDelta(summary) {
   return out.trim();
 }
 
+export function shotsDelta(llmShots, approvedShots) {
+  const llm = llmShots.spans || [];
+  const app = approvedShots.spans || [];
+
+  const byIdLlm = new Map(llm.map(s => [s.id, s]));
+  const byIdApp = new Map(app.map(s => [s.id, s]));
+
+  const summary = {
+    edited: [],
+    added: [],
+    removed: [],
+    totals: {
+      llmSpans: llm.length,
+      approvedSpans: app.length,
+      edited: 0,
+      added: 0,
+      removed: 0
+    }
+  };
+
+  for (const s of llm) {
+    if (!byIdApp.has(s.id)) {
+      summary.removed.push({ id: s.id });
+      summary.totals.removed++;
+    }
+  }
+
+  for (const s of app) {
+    if (!byIdLlm.has(s.id)) {
+      summary.added.push({ id: s.id });
+      summary.totals.added++;
+    } else {
+      const orig = byIdLlm.get(s.id);
+      const changes = [];
+
+      for (const field of ['kind', 'from_anchor', 'to_anchor', 'note', 'flagged']) {
+        if (orig[field] !== s[field]) {
+          changes.push({ field, from: orig[field], to: s[field] });
+        }
+      }
+
+      if (changes.length > 0) {
+        summary.edited.push({ id: s.id, changes });
+        summary.totals.edited++;
+      }
+    }
+  }
+
+  return summary;
+}
+
+export function formatShotsDelta(summary) {
+  let out = '';
+  if (summary.added.length > 0) {
+    out += `**Added spans:**\n`;
+    for (const a of summary.added) out += `- ${a.id}\n`;
+    out += '\n';
+  }
+  if (summary.removed.length > 0) {
+    out += `**Removed spans:**\n`;
+    for (const r of summary.removed) out += `- ${r.id}\n`;
+    out += '\n';
+  }
+  if (summary.edited.length > 0) {
+    out += `**Edited spans:**\n`;
+    for (const e of summary.edited) {
+      out += `- ${e.id}:\n`;
+      for (const c of e.changes) {
+        if (['from_anchor', 'to_anchor', 'note'].includes(c.field)) {
+          out += `  - ${c.field}: "${c.from}" -> "${c.to}"\n`;
+        } else {
+          out += `  - ${c.field} changed\n`;
+        }
+      }
+    }
+    out += '\n';
+  }
+
+  const t = summary.totals;
+  out += `${t.llmSpans} spans from LLM, ${t.approvedSpans} approved, ${t.edited} edited, ${t.added} added, ${t.removed} removed`;
+  return out.trim();
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
   if (args.length === 0 || args.length > 2) {
@@ -131,8 +214,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 
   let llmPath, appPath;
+  let workdir = null;
   if (args.length === 1) {
-    const workdir = resolveWorkdir(args[0]);
+    workdir = resolveWorkdir(args[0]);
     llmPath = path.join(workdir, 'cues.llm.json');
     appPath = path.join(workdir, 'cues.json');
     if (!fs.existsSync(llmPath)) {
@@ -148,4 +232,16 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const appCues = JSON.parse(fs.readFileSync(appPath, 'utf8'));
   const summary = editDelta(llmCues, appCues);
   console.log(formatDelta(summary));
+
+  if (workdir) {
+    const llmShotsPath = path.join(workdir, 'shots.llm.json');
+    const appShotsPath = path.join(workdir, 'shots.json');
+    if (fs.existsSync(llmShotsPath) && fs.existsSync(appShotsPath)) {
+      const llmShots = JSON.parse(fs.readFileSync(llmShotsPath, 'utf8'));
+      const appShots = JSON.parse(fs.readFileSync(appShotsPath, 'utf8'));
+      const shotsSum = shotsDelta(llmShots, appShots);
+      console.log('\n## Shots\n');
+      console.log(formatShotsDelta(shotsSum));
+    }
+  }
 }

@@ -226,6 +226,6 @@ A reviewer scores a cues.json against these 10 checks; all 10 must pass (note: c
 5. No two fullframe cues have overlapping spoken coverage.
 6. Every `card` slug exists in `catalog.json`.
 7. Every beat's `reveal` matches its card's `beat_shape`.
-8. Every reveal `text` is 6 words or fewer.
+8. Every reveal `text` is 2–6 words.
 9. No cue anchors into the first 15s or the last 20s of the video.
 10. Every flagged cue carries a `note` explaining what's missing.
