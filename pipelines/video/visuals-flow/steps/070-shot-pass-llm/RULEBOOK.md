@@ -22,7 +22,7 @@ file and `shot-pass-prompt.md` together — same convention as 020's pair.
 2. **Conclusion + summary framing** — back-load; land on the host.
 3. **Each tool's/section's verdict** — shrinking as the video goes.
 4. **Pricing / value wrap-up** — part of the back-load.
-5. **Cadence beats** — SHORT mid-video host moments (15–30s: a one-line verdict,
+5. **Cadence beats** — SHORT mid-video host moments (10–30s: a one-line verdict,
    a reaction, a "here's what surprised me") so no stretch runs longer than the
    lint cadence gap (`GAP_AVATAR_MAX` in lint-shots.mjs) without the host
    full-screen. Owner rule 2026-07-18: the host returns periodically, not just
@@ -57,3 +57,4 @@ never over hands-on narration.
 |------|-----------------|--------------------|
 | 2026-07-18 | (seed — fill from the first owner review) | — |
 | 2026-07-18 | Owner: the video must not run long stretches with no full-screen host — periodic presence, not only the U-curve ends | Priority item 5 rewritten from "mid-demo = last resort" to cadence beats; `GAP_AVATAR_MAX = 300` + W4 span-cadence warning added to lint-shots.mjs |
+| 2026-07-20 | Owner adopted the Youri reference RHYTHM (many short bridges, fast host↔content cycle) while keeping the cost-driven total budget | SPAN_MIN 12→10, W1 split mid 45s / zone 120s (was flat 150s), GAP_AVATAR_MAX 300→180; cap/target unchanged; prompt rules 3–4 rewritten |

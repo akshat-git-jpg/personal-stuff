@@ -38,12 +38,14 @@ content — no other text.
    Misspellings in the transcript are quoted as-is.
 2. U-curve: host-heavy open (intro + overview), lean hands-on middle, host-heavy
    close (verdicts shrinking → pricing wrap → conclusion).
-3. Cadence: never let more than ~5 minutes pass without a full-screen host
-   moment. Fill the middle with SHORT beats (15–30s — a one-line verdict, a
+3. Cadence: never let more than ~3 minutes pass without a full-screen host
+   moment. The cycle is fast and regular — host bridge → content run → back to
+   host. Fill the middle with SHORT bridges (10–30s — a one-line verdict, a
    reaction, a transition between tools) at natural pauses, never over
    hands-on narration.
 4. Total full-screen time: aim near 4 minutes for a ~30-min video, never above
-   5 minutes total. No span under ~15 seconds; prefer spans under ~2 minutes.
+   5 minutes total. Mid-video spans are 10–30s bridges; only the intro and the
+   conclusion may run longer (up to ~2 minutes). No span under ~10 seconds.
 5. NEVER place a span over a fullframe graphics cue — the fullframe times are
    listed below; plan around them. Overlay cues are fine to overlap.
 6. Span boundaries at sentence starts/ends.

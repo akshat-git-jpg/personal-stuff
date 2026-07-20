@@ -6,14 +6,16 @@ import { planSegments } from './assemble.mjs';
 // Budget + shape rules for full-screen avatar spans. Seeded from
 // tutorial-pipeline-2's 060 rulebook knobs (U-curve, ~5:00 total cap from the
 // HeyGen 4 limit); the cap is enforced in BOTH engine modes so a test-mode
-// plan is production-shaped by construction. Tune constants here, nowhere else.
+// plan is production-shaped by construction. 2026-07-20 Youri recalibration:
+// rhythm adopted, totals kept for cost. Tune constants here, nowhere else.
 const AVATAR_FULL_CAP = 300;        // s — hard total ceiling (HeyGen 4 limit at production)
 const AVATAR_FULL_TARGET = 240;     // s — scaled by video length (T/1800); warn under
-const SPAN_MIN = 12;                // s — error: a shorter full-screen moment isn't worth a clip
-const SPAN_MAX = 150;               // s — warn: a full-screen host stretch this long drags
+const SPAN_MIN = 10;                // s — error: a shorter full-screen moment isn't worth a clip (Youri bridges run 10–30s)
+const SPAN_MAX_MID = 45;            // s — warn: a MID-VIDEO bridge this long drags (reference cycle: 10–30s)
+const SPAN_MAX_ZONE = 120;          // s — warn: even intro/outro host stretches drag past this
 const FRONT_ZONE = 0.15;            // U-curve: expect a span starting in the first 15% of the VO
 const BACK_ZONE = 0.15;             //          and one in the last 15%
-const GAP_AVATAR_MAX = 300;
+const GAP_AVATAR_MAX = 180;         // s — warn: reference cycles host↔content much tighter than the old 300
 
 const MIN_SCREEN_ERROR = 2.5;
 const MIN_SCREEN_WARN = 5;
@@ -70,7 +72,11 @@ export function lintShots({ shotsResolved, resolvedCues, words }) {
   // E3 span-min / W1 span-max
   for (const s of spans) {
     if (s.duration < SPAN_MIN) errors.push(`E3 span-min: ${s.id} is ${s.duration.toFixed(1)}s (minimum ${SPAN_MIN}s)`);
-    if (s.duration > SPAN_MAX) warnings.push(`W1 span-max: ${s.id} is ${s.duration.toFixed(1)}s (target under ${SPAN_MAX}s)`);
+    const inZone = s.start <= T * FRONT_ZONE || s.end >= T * (1 - BACK_ZONE);
+    const maxWarn = inZone ? SPAN_MAX_ZONE : SPAN_MAX_MID;
+    if (s.duration > maxWarn) {
+      warnings.push(`W1 span-max: ${s.id} is ${s.duration.toFixed(1)}s (target under ${maxWarn}s for ${inZone ? 'an intro/outro' : 'a mid-video'} span — Youri bridges run 10–30s)`);
+    }
   }
 
   // E4 budget-cap / W2 budget-target
