@@ -1,0 +1,142 @@
+<!doctype html>
+<!--
+  PROMPT CARD · Typewriter Reveal   (Hyperframes card)
+  A "Prompt" panel on the brand burnt-amber background. The prompt text types in
+  character by character over the whole clip, [0:00–0:02] timestamp tags glow in
+  the brand orange, a caret blinks at the end, and the box auto-scrolls down so the
+  newest line stays in view — for showing an AI-video / tool prompt being written.
+  1920x1080, 30fps.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and the      │
+  │  :root  colors below. Change  title / prompt / colors  there. Do NOT      │
+  │  touch the  ===== TIMELINE (LOCKED) =====  script — that's the motion.    │
+  │  Ask Gemini: "only change DATA and :root, never the timeline."            │
+  │  The typing fits the clip length automatically — a longer/shorter card    │
+  │  just types slower/faster; the box scrolls to keep up.                    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Render:  npx hyperframes@latest render prompt/prompt-typing -o out.mp4 --fps 30
+  Override: --variables '{"title":"Prompt","prompt":"Your prompt text...\n[0:00–0:02] ..."}'
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Prompt.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08;   /* radial origin (burnt amber) */
+        --bg-to: #0a0805;     /* near-black warm undertone */
+        --text: #ffffff;
+        --text-dim: rgba(255, 239, 219, 0.62);
+        --accent: #fb923c;    /* title glow, timestamp tags, caret */
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 24%, var(--bg-from) 0%, var(--bg-to) 64%); }
+      /* soft accent glow behind the panel */
+      #glow { position: absolute; inset: 0; background: radial-gradient(ellipse 52% 40% at 50% 46%, color-mix(in srgb, var(--accent) 13%, transparent) 0%, transparent 70%); }
+
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 90px; }
+
+      /* the Prompt panel (GSAP animates #panel, not the .clip shell) */
+      #panel { width: 1240px; max-height: 900px; display: flex; flex-direction: column;
+        background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: 30px; padding: 40px 44px 46px; backdrop-filter: blur(2px);
+        box-shadow: 0 40px 120px rgba(0, 0, 0, 0.45); will-change: transform, opacity; }
+
+      /* header: "Prompt" centered with an info glyph */
+      #head { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 26px; }
+      #head .label { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
+      #head .info { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--text-dim);
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 19px; font-weight: 700; font-style: italic; color: var(--text-dim); font-family: Georgia, serif; }
+
+      /* the scroll box — inner text is taller than the box; JS drives scrollTop.
+         overflow hidden (no scrollbar chrome) + a top fade where text scrolls off. */
+      #scroll { position: relative; flex: 1; min-height: 0; overflow: hidden; border-radius: 18px;
+        background: rgba(0, 0, 0, 0.34); border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 30px 34px; height: 620px;
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 44px, #000 100%);
+        mask-image: linear-gradient(to bottom, transparent 0, #000 44px, #000 100%); }
+
+      #body { font-size: 33px; line-height: 1.5; font-weight: 500; color: var(--text);
+        white-space: pre-wrap; word-break: normal; }
+      #body .ts { color: var(--accent); font-weight: 700; }
+
+      /* caret: a solid accent bar that flows right after the typed text; GSAP blinks it */
+      #caret { display: inline-block; width: 3px; height: 0.95em; margin-left: 2px; vertical-align: -0.12em;
+        background: var(--accent); border-radius: 1px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="prompt" data-start="0" data-duration="12" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Prompt","prompt":"Cinematic food film of a pasta dish being plated in a cozy home kitchen. No dialogue. No people. Photoreal.\n[0:00–0:02] Overhead wide. Rustic wooden table. Empty bowl centered. Hands enter frame from above, ladle pours pasta in a slow arc. Steam rises immediately.\n[0:02–0:05] Extreme close-up, side angle. Fork pierces the pasta and twirls slowly. Sauce clings and glistens. Depth of field razor thin, background blurs warm amber.\n[0:05–0:08] Slow motion, top-down. Thin stream of olive oil poured from above catches the kitchen light. It falls in a perfect golden thread across the pasta surface.\n[0:08–0:11] Macro close-up. Fresh basil leaves drop in slow motion onto the dish one by one. Each lands and settles. Steam curls around them."}'>
+      <!-- Track 0: background -->
+      <div id="bg" class="clip" data-start="0" data-duration="12" data-track-index="0"></div>
+      <!-- Track 1: accent glow -->
+      <div id="glow" class="clip" data-start="0" data-duration="12" data-track-index="1"></div>
+      <!-- Track 2: content (static clip shell; GSAP animates #panel + children) -->
+      <div id="frame" class="clip" data-start="0" data-duration="12" data-track-index="2">
+        <div id="panel">
+          <div id="head"><span class="label"></span><span class="info">i</span></div>
+          <div id="scroll"><div id="body"><span id="typed"></span><span id="caret"></span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         title  : the panel heading ('Prompt')
+         prompt : the full prompt text, typed out verbatim. Use \n for line
+                  breaks. Any [0:00–0:02] style tag is auto-highlighted orange.
+         ===================================================== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        title: VARS.title ?? 'Prompt',
+        prompt: VARS.prompt ?? 'Cinematic food film of a pasta dish being plated in a cozy home kitchen. No dialogue. No people. Photoreal.\n[0:00–0:02] Overhead wide. Rustic wooden table. Empty bowl centered. Hands enter frame from above, ladle pours pasta in a slow arc. Steam rises immediately.\n[0:02–0:05] Extreme close-up, side angle. Fork pierces the pasta and twirls slowly. Sauce clings and glistens. Depth of field razor thin, background blurs warm amber.\n[0:05–0:08] Slow motion, top-down. Thin stream of olive oil poured from above catches the kitchen light. It falls in a perfect golden thread across the pasta surface.\n[0:08–0:11] Macro close-up. Fresh basil leaves drop in slow motion onto the dish one by one. Each lands and settles. Steam curls around them.',
+      };
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      const $ = (id) => document.getElementById(id);
+      const root = $('root');
+      const DURATION = parseFloat(root.dataset.duration) || 12;   // fit typing to the clip length
+      const FULL = DATA.prompt;
+      document.querySelector('#head .label').textContent = DATA.title;
+
+      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const TS = /\[\d{1,2}:\d{2}(?:\s*[–-]\s*\d{1,2}:\d{2})?\]/g;
+      const highlight = (s) => esc(s).replace(TS, (m) => '<span class="ts">' + m + '</span>');
+
+      const typed = $('typed');
+      const scroll = $('scroll');
+      let lastN = -1;
+      function render(n) {
+        if (n === lastN) return;
+        lastN = n;
+        typed.innerHTML = highlight(FULL.slice(0, n));
+        scroll.scrollTop = scroll.scrollHeight;
+      }
+      render(0);
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from('#panel', { opacity: 0, y: 26, scale: 0.985, duration: 0.5, ease: 'power3.out', transformOrigin: '50% 50%' }, 0);
+      tl.to('#caret', { opacity: 0, duration: 0.5, ease: 'steps(1)', yoyo: true, repeat: Math.max(1, Math.ceil(DURATION / 0.5)) }, 0);
+      const START = 0.55, TAIL = 0.5;
+      const typeDur = Math.max(0.5, DURATION - START - TAIL);
+      const count = { v: 0 };
+      tl.to(count, { v: FULL.length, duration: typeDur, ease: 'none', onUpdate: () => render(Math.round(count.v)) }, START);
+      tl.set(count, { v: FULL.length, onComplete: () => render(FULL.length) }, START + typeDur);
+      window.__timelines['prompt'] = tl;
+    </script>
+  </body>
+</html>

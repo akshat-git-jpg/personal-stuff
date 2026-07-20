@@ -1,6 +1,40 @@
 {
   "cards": [
     {
+      "slug": "prompt/prompt-typing",
+      "kind": "single",
+      "placement": "fullframe",
+      "purpose": "a 'Prompt' panel that types its text out over the clip; [m:ss] timestamp tags glow orange, a caret blinks, the box auto-scrolls — for showing an AI-tool/video prompt being written",
+      "variables": {
+        "title": "string",
+        "prompt": "string — the full prompt, \\n for line breaks; [m:ss] tags auto-highlight"
+      },
+      "default_duration": 12
+    },
+    {
+      "slug": "tool-icon/tool-glass-tile",
+      "kind": "single",
+      "placement": "fullframe",
+      "purpose": "hero for one tool/model: a glassy app-icon tile with the tool's (muted) logo, its name beneath, and an optional subtitle — the 'this is the tool' beat",
+      "variables": {
+        "logo": "string — logos/ registry slug",
+        "name": "string",
+        "subtitle": "string (optional)"
+      },
+      "default_duration": 6
+    },
+    {
+      "slug": "statement/keyword-statement",
+      "kind": "single",
+      "placement": "fullframe",
+      "purpose": "a single punchy centered statement revealed word-by-word with one keyword phrase highlighted in the accent — a standalone emphasis beat (distinct from running captions)",
+      "variables": {
+        "text": "string",
+        "keyword": "string (optional) — verbatim phrase inside text, shown in accent"
+      },
+      "default_duration": 5
+    },
+    {
       "slug": "checklist/checklist",
       "kind": "beat",
       "placement": "fullframe",
@@ -14,6 +48,21 @@
       "default_duration": 8,
       "max_beats": 6,
       "max_reveal_chars": 40
+    },
+    {
+      "slug": "checklist/icon-pills",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "vertical list of icon-tile + text-pill rows revealing one per beat, accent-outlined with a soft glow; optional keyword highlight per row — for enumerating features/capabilities",
+      "variables": {},
+      "beat_shape": {
+        "icon": "string — icon-set name (brain|calendar|person|bolt|gear|lock|clock|chart|chat|shield|doc|search|star|cloud)",
+        "text": "string",
+        "keyword": "string (optional) — verbatim phrase inside text"
+      },
+      "max_beats": 4,
+      "max_reveal_chars": 40,
+      "default_duration": 8
     },
     {
       "slug": "comparison/bar-chart",
