@@ -564,3 +564,4 @@ The others are grounded and available when the owner wants them:
 - 108-kinetic-sentence-cue-rules — PR#65 108-kinetic-sentence-cue-rules: teach the cue pass to write kinetic-sentence cues — DONE
 - 109-resolve-timeline-export — PR#66 109-resolve-timeline-export: Resolve timeline export — assembly → FCPXML for human touch-up — DONE
 - 110-filmstrip-qc-pass — PR#67 110-filmstrip-qc-pass: Filmstrip QC pass — contact-sheet self-check of the assembled video — DONE
+- 111-fx-overlay-clip-renderer — PR#68 111-fx-overlay-clip-renderer: effects.json instances → transparent ProRes FX clips — DONE
