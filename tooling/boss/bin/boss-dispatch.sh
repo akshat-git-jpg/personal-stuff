@@ -21,10 +21,20 @@ boss_assert_gh || exit 1
 if [ "$force" != "1" ]; then
   dirty=$(boss_repo_dirty)
   if [ -n "$dirty" ]; then
-    echo "PR $pr: REFUSING to dispatch — main checkout ($REPO_ROOT) has uncommitted tracked changes:" >&2
-    echo "$dirty" | sed 's/^/  /' >&2
-    echo "  greenlight will park EVERY merge until this is clean. Commit/stash/revert in $REPO_ROOT, then re-dispatch (or pass --force to override)." >&2
-    exit 1
+    if [ "${BOSS_NO_AUTO_COMMIT:-0}" = "1" ]; then
+      echo "PR $pr: REFUSING to dispatch — main checkout ($REPO_ROOT) has uncommitted tracked changes:" >&2
+      echo "$dirty" | sed 's/^/  /' >&2
+      echo "  greenlight will park EVERY merge until this is clean. Commit/stash/revert in $REPO_ROOT, then re-dispatch (or pass --force to override)." >&2
+      exit 1
+    fi
+    # Auto-commit+push the dirty main so the merge isn't silently parked later.
+    # `git add -A` honors .gitignore, so generated media stays out. Set
+    # BOSS_NO_AUTO_COMMIT=1 to restore the old hard-refuse. --force skips entirely.
+    echo "PR $pr: main checkout dirty — auto-committing before dispatch (BOSS_NO_AUTO_COMMIT=1 to disable):" >&2
+    if ! "$BOSS_HOME/bin/boss-commit-main.sh"; then
+      echo "PR $pr: auto-commit failed — resolve $REPO_ROOT manually, then re-dispatch." >&2
+      exit 1
+    fi
   fi
 fi
 

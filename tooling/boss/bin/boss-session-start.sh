@@ -15,7 +15,8 @@ dirty=$(boss_repo_dirty)
 if [ -n "$dirty" ]; then
   echo "== ⚠️  MAIN CHECKOUT DIRTY (blocks greenlight land — clean before merging) =="
   echo "$dirty" | sed 's/^/  /'
-  echo "  → commit, stash, or revert these in $REPO_ROOT before running boss-merge."
+  echo "  → boss-dispatch auto-commits+pushes these before dispatch (git add -A, gitignore-respecting)."
+  echo "     Run 'bin/boss-commit-main.sh [msg]' now to clear it, or set BOSS_NO_AUTO_COMMIT=1 to keep the old refuse."
 fi
 echo "== recently landed / blocked =="
 gh pr list --state all  --label boss:done    --limit 10 --json number,title -q '.[] | "  done    #\(.number) \(.title)"' 2>/dev/null
