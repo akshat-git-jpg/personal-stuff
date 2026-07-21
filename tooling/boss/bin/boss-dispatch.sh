@@ -2,10 +2,11 @@
 # boss-dispatch.sh <pr#> [--executor <e>] [--model <m>]
 source "$(dirname "${BASH_SOURCE[0]}")/boss-lib.sh"
 pr="${1:?usage: boss-dispatch.sh <pr#> [--executor e] [--model m]}"; shift
-exec_override=""; model_override=""; force=0
+exec_override=""; model_override=""; force=0; brief_extra=""
 while [ $# -gt 0 ]; do case "$1" in
   --executor) exec_override="$2"; shift 2;; --model) model_override="$2"; shift 2;;
   --force) force=1; shift;;
+  --brief-extra) brief_extra="$2"; shift 2;;
   *) echo "unknown arg $1" >&2; exit 2;; esac; done
 
 boss_assert_gh || exit 1
@@ -142,6 +143,14 @@ cat >> "$brief" <<'FENCE'
     git diff origin/main...HEAD -- . ':(exclude)*.md' | grep -n '^+.*```'
   Any hit is a bug; the merge gate rejects fence markers in non-markdown source.
 FENCE
+
+# Optional per-dispatch extra instructions (owner batch rules, ui-verification
+# notes, etc). Appended verbatim after the standard brief so a batch can add
+# constraints without editing this script.
+if [ -n "$brief_extra" ]; then
+  [ -f "$brief_extra" ] || { echo "PR $pr: --brief-extra file '$brief_extra' not found" >&2; exit 1; }
+  { echo ""; echo "## Batch-specific instructions (owner)"; cat "$brief_extra"; } >> "$brief"
+fi
 
 # ui:true screenshot gate removed 2026-07-18: the sole owner never reviews the
 # committed PNGs / PR comments, and making the crew render one inside its turn
