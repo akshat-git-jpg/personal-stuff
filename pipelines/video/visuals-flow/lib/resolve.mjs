@@ -36,9 +36,10 @@ export function validateVariable(path, value, spec) {
   const out = [];
   if (spec === undefined) return out;
 
-  // Legacy string form: fall back to presence-only checking so a partially
-  // migrated catalog still resolves. check-catalog.mjs is what forbids it.
-  if (typeof spec === 'string') return out;
+  if (typeof spec === 'string') {
+    out.push(`${path}: string-form variable contract is unsupported — migrate catalog to object form`);
+    return out;
+  }
 
   const t = spec.type;
   const actual = Array.isArray(value) ? 'array' : typeof value;
@@ -138,9 +139,7 @@ export function validateCues(cues, catalog, cardLibraryRoot) {
       });
     }
     for (const [k, spec] of Object.entries(cat.variables ?? {})) {
-      const isRequired = typeof spec === 'string'
-        ? !String(spec).toLowerCase().includes('optional')
-        : spec.required !== false;
+      const isRequired = spec.required !== false;
       if (!(k in vars)) {
         if (isRequired) errors.push(`${cue.id}: missing variable "${k}" — the card would silently show its default content`);
         continue;
@@ -149,7 +148,7 @@ export function validateCues(cues, catalog, cardLibraryRoot) {
     }
     for (const [i, b] of (cue.beats ?? []).entries()) {
       for (const [k, spec] of Object.entries(cat.beat_shape ?? {})) {
-        if (typeof spec === 'string') continue; // legacy entry, nothing to check
+
         if (!(k in (b.reveal ?? {}))) {
           if (spec.required !== false) errors.push(`${cue.id} beat ${i + 1}: missing reveal field "${k}"`);
           continue;

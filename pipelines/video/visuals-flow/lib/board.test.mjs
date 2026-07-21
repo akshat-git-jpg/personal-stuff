@@ -550,8 +550,10 @@ test('synthCalibrationVars: every beat card synthesizes exactly max_beats beats,
         assert.equal(beat.values.length, variables.products.length, `${card.slug}: values must match products 1:1`);
       }
     }
-    for (const [key, descriptor] of Object.entries(card.variables ?? {})) {
-      if (/\(optional\)/i.test(descriptor)) continue;
+    for (const [key, spec] of Object.entries(card.variables ?? {})) {
+      const isString = typeof spec === 'string';
+      const desc = isString ? spec : (spec.descriptor || spec.type || '');
+      if (isString ? /\(optional\)/i.test(desc) : spec.required === false) continue;
       assert.ok(key in variables, `${card.slug}: required variable "${key}" missing from synthesis`);
     }
   }

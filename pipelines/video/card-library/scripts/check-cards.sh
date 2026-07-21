@@ -73,6 +73,11 @@ else
   echo "  all ${#cards[@]} cards registered"
 fi
 
+echo "==> catalog contract check"
+if ! npm run check-catalog -s; then
+  err "catalog contract validation failed"
+fi
+
 echo "==> nothing left untracked"
 untracked=$(git ls-files --others --exclude-standard . 2>/dev/null)
 if [ -n "$untracked" ]; then

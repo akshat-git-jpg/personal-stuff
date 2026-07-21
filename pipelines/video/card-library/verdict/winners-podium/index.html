@@ -228,8 +228,7 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true, onUpdate: tick });
 
-      const firstAt = beats.length ? Math.max(0, Math.min(...beats.map((b) => Number(b.at))) - 0.4) : 0.3;
-      const CHROME_IN = 0.15;
+            const CHROME_IN = 0.15;
       tl.from('#eyebrow', { opacity: 0, y: 14, duration: 0.5, ease: 'power2.out' }, CHROME_IN);
 
       els.forEach(({ b, col }) => {

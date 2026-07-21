@@ -433,3 +433,25 @@ test('W1 fullframe-cadence: narration gap ignores demo segments', () => {
   assert(!res.warnings.some(w => w.includes('W1 fullframe-cadence')));
 });
 
+test('W1 fullframe-cadence: skip W1 when either endpoint sits in a demo/playback segment', () => {
+  const c = [
+    { id: 'c1', card: 'fullframe/beat', start: 30 },
+    { id: 'c2', card: 'fullframe/beat', start: 140 }
+  ];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      confirmed: true,
+      segments: [
+        { kind: 'narration', start: 0, end: 20 },
+        { kind: 'demo', start: 20, end: 200 }
+      ]
+    }
+  });
+  assert.equal(res.errors.filter(e => e.includes('E5 demo-coverage')).length, 2);
+  assert(!res.warnings.some(w => w.includes('W1 fullframe-cadence')));
+});
+

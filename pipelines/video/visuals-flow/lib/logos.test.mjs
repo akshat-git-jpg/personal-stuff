@@ -56,7 +56,7 @@ test('validateCues handles logo slugs', () => {
     
     const catalog = {
       cards: [
-        { slug: 'some/card', variables: { logo: 'string' } }
+        { slug: 'some/card', variables: { logo: { type: 'string', required: true } } }
       ]
     };
     

@@ -4,6 +4,7 @@
   "description": "YT visuals cards, Hyperframes edition (HTML + GSAP -> MP4). Each card is one self-contained file the editor can copy + Gemini-edit.",
   "scripts": {
     "serve": "node serve.mjs",
+    "check-catalog": "node scripts/check-catalog.mjs",
     "check": "bash scripts/check-cards.sh",
     "publish-check": "bash scripts/check-cards.sh --publish",
     "preview": "npx --yes hyperframes@latest preview",
