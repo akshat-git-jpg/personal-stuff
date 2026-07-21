@@ -1,27 +1,27 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
+import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
 
-const CAP_STAT_HIT = 3;
-const SPACING_STAT_HIT = 90;
-const CAP_FULLFRAME = 3;
-const ZONE_END = 20;
+const CAP_STAT_HIT = CUE_CONSTANTS.CAP_STAT_HIT.value;
+const SPACING_STAT_HIT = CUE_CONSTANTS.SPACING_STAT_HIT.value;
+const CAP_FULLFRAME = CUE_CONSTANTS.CAP_FULLFRAME.value;
+const ZONE_END = CUE_CONSTANTS.ZONE_END.value;
 // Density recalibration 2026-07-21 (owner: "motion graphics more frequent —
 // long stretches were bare"). Moderate ~2x: fullframe beat every ~35-60s, floor
 // rate 1.0/min, and W6 forbids any interior stretch >50s with no graphic at all
 // (fullframe OR overlay). Supersedes the Youri-wave starting numbers per the
 // same owner-directive precedent; the 060 fold tunes from here. decisions.md.
-const GAP_FULLFRAME_MAX = 60;
-const GAP_FULLFRAME_MIN = 35;
-const DENSITY_OVERLAY_WINDOW = 60;
-const DENSITY_OVERLAY_MAX = 3;
-const TARGET_RATE_MIN = 1.0;
-const TARGET_RATE_MAX = 1.9;
-const BARE_GAP_MAX = 50; // W6: max interior seconds with NO graphic (any placement) before/after any cue
+const GAP_FULLFRAME_MAX = CUE_CONSTANTS.GAP_FULLFRAME_MAX.value;
+const GAP_FULLFRAME_MIN = CUE_CONSTANTS.GAP_FULLFRAME_MIN.value;
+const DENSITY_OVERLAY_WINDOW = CUE_CONSTANTS.DENSITY_OVERLAY_WINDOW.value;
+const DENSITY_OVERLAY_MAX = CUE_CONSTANTS.DENSITY_OVERLAY_MAX.value;
+const TARGET_RATE_MIN = CUE_CONSTANTS.TARGET_RATE_MIN.value;
+const TARGET_RATE_MAX = CUE_CONSTANTS.TARGET_RATE_MAX.value;
+const BARE_GAP_MAX = CUE_CONSTANTS.BARE_GAP_MAX.value; // W6: max interior seconds with NO graphic (any placement) before/after any cue
 // Dead air is now designed out by the resolver's BEAT_LEAD_IN clamp (plan 116);
 // W5 stays as the regression detector for that clamp, not as a style hint.
 const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
-const ENDCARD_SLUG_PREFIXES = ['brand/', 'link-in-description/'];
 
 export function lintCues({ cuesFile, resolved, words, catalog, segmentsData }) {
   const errors = [];
