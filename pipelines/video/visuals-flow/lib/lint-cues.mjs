@@ -133,6 +133,11 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData }) {
   for (let i = 1; i < fullframes.length; i++) {
     const prev = fullframes[i - 1];
     const curr = fullframes[i];
+    
+    const kPrev = kindAt(prev.start);
+    const kCurr = kindAt(curr.start);
+    if (['demo', 'playback'].includes(kPrev) || ['demo', 'playback'].includes(kCurr)) continue;
+
     const gap = narrationGap(prev.start, curr.start);
     if (gap > GAP_FULLFRAME_MAX) {
       warnings.push(`W1 fullframe-cadence: ${curr.id} starts ${gap.toFixed(1)}s after ${prev.id} (maximum gap ${GAP_FULLFRAME_MAX}s)`);
