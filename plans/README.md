@@ -594,3 +594,5 @@ structural causes, all model-independent. Ordered; 115 and 116 both edit `lib/re
 - 115-card-variable-contracts — PR#73 115-card-variable-contracts: Card variable contracts (typed shapes + editorial roles) with resolver enforcement — DONE
 - 116-beat-card-timing-determinism — PR#74 116-beat-card-timing-determinism: Beat-card timing determinism — no card ever renders a blank frame — DONE
 - 117-segment-map-demo-safety — PR#75 117-segment-map-demo-safety: Segment map — stop fullframe graphics from covering live demo footage — DONE
+- 121-logo-normalization — normalize every registry logo to a 256x256 tile, mark at 72%; gate on fetch — TODO
+- 122-card-stress-qa-and-fixes — worst-case card contact sheets as a required gate; fix icon-pills, summary-table, head-to-head logos — TODO
