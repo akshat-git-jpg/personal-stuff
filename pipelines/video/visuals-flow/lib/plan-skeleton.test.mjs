@@ -1,7 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { buildSlots, buildBudget } from './plan-skeleton.mjs';
+import { buildSlots, buildBudget, resolveVideoDir } from './plan-skeleton.mjs';
 import { CUE_CONSTANTS } from './cue-constants.mjs';
+
+test('Workdir resolves under the visuals-flow root', () => {
+  assert.strictEqual(
+    resolveVideoDir('/x/pipelines/video/visuals-flow', 'demo'),
+    '/x/pipelines/video/visuals-flow/videos/demo'
+  );
+});
 
 test('W1 holds by construction', () => {
   for (let total = 120; total <= 3600; total += 60) {

@@ -107,6 +107,12 @@ export function buildSkeleton(total, segments, transcriptWords, C) {
   return { budget, zones, slots: enhancedSlots, overlayCapacity };
 }
 
+// Workdirs live at <visuals-flow>/videos/<slug> — the '..', '..' hop belongs to
+// the card-library lookups, not here.
+export function resolveVideoDir(root, slug) {
+  return path.join(root, 'videos', slug);
+}
+
 function renderMarkdown(skeleton, total) {
   const { budget, zones, slots, overlayCapacity } = skeleton;
   
@@ -166,7 +172,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   
   const root = path.resolve(import.meta.dirname, '..');
-  const videoDir = path.join(root, '..', '..', 'videos', slug);
+  const videoDir = resolveVideoDir(root, slug);
   const segmentsPath = path.join(videoDir, 'segments.json');
   const transcriptPath = path.join(videoDir, 'transcript.json');
   
