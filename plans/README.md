@@ -591,3 +591,4 @@ structural causes, all model-independent. Ordered; 115 and 116 both edit `lib/re
 | 118 | lint-constants-single-source | Density constants duplicated in code + prompt + RULEBOOK with no drift gate; W3 absent from the prompt; end-zone rule contradicts E4 | — |
 | 119 | title-versus-card | Cold-open rule hard-codes a slug whose card does not deliver the rule's stated intent | 115 |
 | 120 | cue-plan-skeleton | The model does constraint bookkeeping by hand, so caps are violated at random | 117, 118 |
+- 115-card-variable-contracts — PR#73 115-card-variable-contracts: Card variable contracts (typed shapes + editorial roles) with resolver enforcement — DONE
