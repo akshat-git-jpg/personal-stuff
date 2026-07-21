@@ -111,6 +111,11 @@ if [ "$PUBLISH" = "1" ]; then
   fi
 fi
 
+echo "==> logo normalization gate"
+if ! node scripts/check-logos.mjs; then
+  err "logos failed validation"
+fi
+
 echo
 if [ "$fail" = "1" ]; then
   echo "card check FAILED"

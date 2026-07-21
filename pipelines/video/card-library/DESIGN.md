@@ -76,11 +76,7 @@ deliberate reason.
 
 - Logos come ONLY from `logos/registry.json` slugs, inlined as data URIs at
   render/board time (`__logos`). Cards never hardcode brand imagery.
-- **Muted treatment, always**: brand marks carry hues outside this palette, so
-  every logo `<img>` renders with `filter: saturate(0.5) brightness(0.95);
-  opacity: 0.9;` and stays SMALL relative to its text (24–48px next to body/title
-  text; 96px only as a hero mark on tool-intro). Never show a full-saturation
-  logo on these cards.
+- **Logo tiles**: logos arrive as 256×256 opaque tiles with the mark at 72%; cards must render them square with a consistent border-radius and must **not** apply their own trimming, rescaling to a different safe area, or `saturate()`/`brightness()` filters that alter apparent weight. When `registry[slug].dark` is true, cards add a 1px `rgba(255,255,255,0.10)` inset border so the tile separates from a dark background.
 - Winner moments may put the logo inside a gold chip (see
   `verdict/persona-match`): `rgba(250,204,21,0.07)` fill, `rgba(250,204,21,0.35)`
   1px border, radius 14px — gold text per the palette's winner rule.
