@@ -34,6 +34,11 @@ computes all of that from your anchors.
 
 ## Cue density
 
+Every threshold below is a copy for judgment context — `lib/cue-constants.mjs`
+is the single source of truth; `lib/lint-cues.mjs` enforces it and
+`lib/build-prompt.mjs` renders it into `cue-pass-prompt.md`. Retune density
+there, not here.
+
 **Keep the video visually active — motion graphics are a near-constant
 presence, not a rare garnish.** (Owner recalibration 2026-07-21: earlier videos
 had multi-minute bare stretches; the target is now ~2× that density.) Aim for
@@ -60,8 +65,10 @@ rule, follow the script and note why in the cue's context.
    minute; a demo/bridge stretch should not go >~50s without at least a
    lightweight overlay or statement (W6).
 3. Never let two fullframe cues' spoken coverage overlap.
-4. Cold-open beat allowed in the first 15s; end-card allowed in the last 20s —
-   these two zones stay sparse (W6 does not police them).
+4. Cold-open beat allowed in the first 15s (this zone stays sparse — W6 does
+   not police it). No cue may END in the last 20s of the video except the
+   end-card slugs (`brand/`, `link-in-description/`, `like-subscribe/`) — lint
+   E4 raises this as a HARD ERROR, not a preference.
 
 ## Choosing a card
 
