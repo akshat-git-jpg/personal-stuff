@@ -2,7 +2,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow && node --test
+test_cmd: cd pipelines/video/visuals-flow && node --test && node lib/check-rulebook.mjs
 ui:
 deploy:
 needs: ["Consumes the segment map (117) and the constants module (118) — land both first"]
