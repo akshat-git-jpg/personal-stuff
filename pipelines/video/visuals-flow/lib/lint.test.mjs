@@ -4,7 +4,8 @@ import { lintCues } from './lint-cues.mjs';
 
 const catalog = {
   cards: [
-    { slug: 'fullframe/beat', placement: 'fullframe' },
+    { slug: 'fullframe/beat', placement: 'fullframe', pre_beat_render: 'chrome' },
+    { slug: 'overlay/beat', placement: 'overlay', pre_beat_render: 'chrome' },
     { slug: 'section/opener', placement: 'fullframe', structural: true },
     { slug: 'overlay/stat-hit', placement: 'overlay' },
     { slug: 'overlay/plain', placement: 'overlay' }
@@ -317,4 +318,38 @@ test('E4 short-video guard', () => {
   const e4Errors = res.errors.filter(e => e.includes('E4 exclusion zones'));
   assert.equal(e4Errors.length, 1);
   assert.match(e4Errors[0], /video too short/);
+});
+
+test('W5 first-beat-idle: fullframe card over threshold is an error', () => {
+  const c = [{
+    id: 'c1',
+    card: 'fullframe/beat',
+    start: 20,
+    beats: [{ reveal: { text: 'one' }, at: 3.0 }]
+  }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c).map(r => ({ ...r, variables: { beats: c[0].beats } })),
+    words: createWords(900),
+    catalog
+  });
+  assert(res.errors.some(e => e.includes('W5 first-beat-idle')));
+  assert(!res.warnings.some(w => w.includes('W5 first-beat-idle')));
+});
+
+test('W5 first-beat-idle: overlay card over threshold is a warning', () => {
+  const c = [{
+    id: 'c1',
+    card: 'overlay/beat',
+    start: 20,
+    beats: [{ reveal: { text: 'one' }, at: 3.0 }]
+  }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c).map(r => ({ ...r, variables: { beats: c[0].beats } })),
+    words: createWords(900),
+    catalog
+  });
+  assert(!res.errors.some(e => e.includes('W5 first-beat-idle')));
+  assert(res.warnings.some(w => w.includes('W5 first-beat-idle')));
 });

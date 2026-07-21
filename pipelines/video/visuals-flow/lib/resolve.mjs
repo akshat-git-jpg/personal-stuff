@@ -188,12 +188,15 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot) {
     const cat = bySlug[cue.card];
     if (!cat) { errors.push(`${cue.id}: unknown card "${cue.card}"`); continue; }
     if (cue.flagged) continue; // flagged cues are skipped, not errors
+    const BEAT_LEAD_IN = 0.6; // s a beat card is on screen before its first reveal
+
     const a = findFrom(cue.anchor, cursor);
     if (a.err) { errors.push(`${cue.id}: ${a.err}`); continue; }
     cursor = a.idx + a.len;
     const lead = cue.lead ?? 0.5;
     const hold = cue.hold ?? 3.0;
-    const start = Math.max(0, a.start - lead);
+    let start = Math.max(0, a.start - lead);
+
     const beats = [];
     let failed = false;
     if (cat.kind === 'word-sync') {
@@ -202,11 +205,20 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot) {
       beats.push(...r.beats);
       cursor = r.cursor;
     } else {
+      // Resolve every beat anchor to an ABSOLUTE time first — the cue anchor is
+      // advisory for beat cards (owner decision 2026-07-21): it fixes ordering,
+      // the first beat fixes placement. This makes dead air structurally
+      // impossible instead of merely lint-detectable.
+      const abs = [];
       for (const b of cue.beats ?? []) {
         const m = findFrom(b.anchor, cursor);
         if (m.err) { errors.push(`${cue.id} beat: ${m.err}`); failed = true; break; }
         cursor = m.idx + m.len;
-        beats.push({ ...b.reveal, at: +(m.start - start).toFixed(2) });
+        abs.push({ reveal: b.reveal, at: m.start });
+      }
+      if (!failed) {
+        if (abs.length) start = Math.max(0, +(abs[0].at - BEAT_LEAD_IN).toFixed(2));
+        for (const x of abs) beats.push({ ...x.reveal, at: +(x.at - start).toFixed(2) });
       }
     }
     if (failed) continue;

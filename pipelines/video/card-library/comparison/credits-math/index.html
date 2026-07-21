@@ -88,7 +88,8 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       const firstAt = DATA.beats.length ? Math.max(0, Math.min(...DATA.beats.map(b => Number(b.at))) - 0.3) : 0.3;
-      tl.from('#title-header', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, firstAt);
+      const CHROME_IN = 0.15;
+      tl.from('#title-header', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, CHROME_IN);
       els.forEach(({ b, row }) => {
         tl.from(row, { opacity: 0, y: 24, duration: 0.5, ease: 'power2.out' }, Number(b.at));
       });

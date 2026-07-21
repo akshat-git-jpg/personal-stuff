@@ -143,8 +143,9 @@
       
       if (DATA.beats.length > 0) {
         const firstAt = Math.max(0, DATA.beats[0].at - 0.3);
-        tl.fromTo('#rows', { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' }, firstAt);
-        tl.fromTo('#glow', { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' }, firstAt);
+        const CHROME_IN = 0.15;
+        tl.fromTo('#rows', { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' }, CHROME_IN);
+        tl.fromTo('#glow', { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' }, CHROME_IN);
       }
       
       items.forEach(({ b, tile, pill }) => {

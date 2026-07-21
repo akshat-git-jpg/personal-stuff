@@ -47,7 +47,8 @@
       },
       "default_duration": 8,
       "max_beats": 6,
-      "max_reveal_chars": 40
+      "max_reveal_chars": 40,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "checklist/icon-pills",
@@ -62,7 +63,8 @@
       },
       "max_beats": 4,
       "max_reveal_chars": 40,
-      "default_duration": 8
+      "default_duration": 8,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "comparison/bar-chart",
@@ -137,7 +139,8 @@
       },
       "default_duration": 7,
       "max_beats": 8,
-      "max_reveal_chars": 24
+      "max_reveal_chars": 24,
+      "pre_beat_render": "frame"
     },
     {
       "slug": "comparison/head-to-head",
@@ -182,16 +185,17 @@
       "purpose": "scored comparison matrix with a reason column; each factor row reveals on its beat",
       "variables": {
         "products": "array of strings",
-        "productLogos": "array of strings (optional) \u2014 logos/ registry slugs matching products, e.g. ['heygen', 'openart']"
+        "productLogos": "array of strings (optional) — logos/ registry slugs matching products, e.g. ['heygen', 'openart']"
       },
       "beat_shape": {
         "name": "string",
         "values": "array of score strings, EXACTLY one per product in products order (e.g. \"4.5 / 5\")",
-        "reason": "string (optional) \u2014 one-line why, shown in the last column"
+        "reason": "string (optional) — one-line why, shown in the last column"
       },
       "default_duration": 7,
       "max_beats": 7,
-      "max_reveal_chars": 28
+      "max_reveal_chars": 28,
+      "pre_beat_render": "frame"
     },
     {
       "slug": "like-subscribe/like-subscribe",
@@ -237,7 +241,7 @@
         "title": "string",
         "text": "string",
         "pos": "string",
-        "style": "string (optional): 'feature' | 'tip' | 'warning' \u2014 default 'feature'",
+        "style": "string (optional): 'feature' | 'tip' | 'warning' — default 'feature'",
         "kicker": "string (optional)"
       },
       "default_duration": 5
@@ -358,10 +362,14 @@
       "placement": "overlay",
       "purpose": "spoken pros/cons pinned to footage: green-check / rose-cross pill chips tick in one per beat and persist, anchored bottom-left",
       "variables": {},
-      "beat_shape": { "text": "string", "verdict": "string — 'yes' | 'no'" },
+      "beat_shape": {
+        "text": "string",
+        "verdict": "string — 'yes' | 'no'"
+      },
       "default_duration": 8,
       "max_beats": 4,
-      "max_reveal_chars": 32
+      "max_reveal_chars": 32,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "pros-cons/pros-cons",
@@ -377,7 +385,8 @@
       },
       "default_duration": 6,
       "max_beats": 8,
-      "max_reveal_chars": 45
+      "max_reveal_chars": 45,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "section/bullet-points",
@@ -392,7 +401,8 @@
       },
       "default_duration": 6,
       "max_beats": 6,
-      "max_reveal_chars": 50
+      "max_reveal_chars": 50,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "section/bullet-points-highlighted",
@@ -420,7 +430,8 @@
       },
       "default_duration": 8,
       "max_beats": 5,
-      "max_reveal_chars": 55
+      "max_reveal_chars": 55,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "section/section-card-flip",
@@ -443,7 +454,7 @@
         "number": "string",
         "title": "string",
         "dots": "number",
-        "logo": "string (optional) \u2014 logos/ registry slug, e.g. 'heygen'; shown beside the title"
+        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'; shown beside the title"
       },
       "default_duration": 5,
       "structural": true
@@ -473,7 +484,8 @@
       },
       "default_duration": 9,
       "max_beats": 7,
-      "max_reveal_chars": 45
+      "max_reveal_chars": 45,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "title/title-aurora-wave",
@@ -550,7 +562,8 @@
       },
       "default_duration": 7,
       "max_beats": 5,
-      "max_reveal_chars": 30
+      "max_reveal_chars": 30,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "verdict/verdict-trophy",
@@ -572,7 +585,7 @@
       "purpose": "big animated stat: count-up hero number + label + context line, transparent overlay for demo footage",
       "variables": {
         "eyebrow": "string",
-        "logo": "string (optional) \u2014 logos/ registry slug, e.g. 'heygen'",
+        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'",
         "value": "number",
         "suffix": "string (optional)",
         "context": "string"
@@ -587,7 +600,7 @@
       "variables": {
         "index": "number",
         "total": "number",
-        "logo": "string (optional) \u2014 logos/ registry slug, e.g. 'heygen'",
+        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'",
         "name": "string",
         "tagline": "string",
         "tag": "string"
@@ -599,45 +612,47 @@
       "slug": "verdict/winners-podium",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "side-by-side verdict winners over a confetti stage, one tool column per beat; scales 2-4 winners (layout derives from count). Use for a multi-winner finale \u2014 co-winners (ranked:false, all gold) or a ranked podium (ranked:true \u2192 gold/silver/bronze/steel). ONE tool per beat.",
+      "purpose": "side-by-side verdict winners over a confetti stage, one tool column per beat; scales 2-4 winners (layout derives from count). Use for a multi-winner finale — co-winners (ranked:false, all gold) or a ranked podium (ranked:true → gold/silver/bronze/steel). ONE tool per beat.",
       "variables": {
         "eyebrow": "string",
-        "ranked": "boolean (optional, default false) \u2014 false: every column an equal gold co-winner; true: medals by beat order (1st gold, 2nd silver, 3rd bronze, 4th steel)"
+        "ranked": "boolean (optional, default false) — false: every column an equal gold co-winner; true: medals by beat order (1st gold, 2nd silver, 3rd bronze, 4th steel)"
       },
       "beat_shape": {
-        "name": "string \u2014 one tool/product name",
-        "reason": "string \u2014 one-line why this tool won",
-        "logo": "string (optional) \u2014 logos/ registry slug"
+        "name": "string — one tool/product name",
+        "reason": "string — one-line why this tool won",
+        "logo": "string (optional) — logos/ registry slug"
       },
       "default_duration": 8,
       "max_beats": 4,
-      "max_reveal_chars": 34
+      "max_reveal_chars": 34,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "verdict/persona-match",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "use-case verdict: persona \u2192 winning tool pairs, one pair per beat",
+      "purpose": "use-case verdict: persona → winning tool pairs, one pair per beat",
       "variables": {
         "title": "string"
       },
       "beat_shape": {
         "persona": "string",
         "winner": "string",
-        "logo": "string (optional) \u2014 logos/ registry slug, e.g. 'heygen'"
+        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'"
       },
       "default_duration": 7,
       "max_beats": 6,
-      "max_reveal_chars": 30
+      "max_reveal_chars": 30,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "comparison/credits-math",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "credit/unit economics rows: plan \u2192 credits \u2192 what that actually buys, one row per beat",
+      "purpose": "credit/unit economics rows: plan → credits → what that actually buys, one row per beat",
       "variables": {
         "title": "string",
-        "logo": "string (optional) \u2014 logos/ registry slug, e.g. 'heygen'"
+        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'"
       },
       "beat_shape": {
         "label": "string",
@@ -646,7 +661,8 @@
       },
       "default_duration": 7,
       "max_beats": 6,
-      "max_reveal_chars": 40
+      "max_reveal_chars": 40,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "process/step-flow",
@@ -661,7 +677,8 @@
       },
       "default_duration": 6,
       "max_beats": 5,
-      "max_reveal_chars": 30
+      "max_reveal_chars": 30,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "comparison/table-rows",
@@ -678,7 +695,8 @@
       },
       "default_duration": 10,
       "max_beats": 5,
-      "max_reveal_chars": 44
+      "max_reveal_chars": 44,
+      "pre_beat_render": "frame"
     },
     {
       "slug": "slate/headline-chips",
@@ -693,7 +711,8 @@
       },
       "default_duration": 8,
       "max_beats": 4,
-      "max_reveal_chars": 34
+      "max_reveal_chars": 34,
+      "pre_beat_render": "chrome"
     },
     {
       "slug": "slate/kinetic-sentence",
@@ -704,7 +723,10 @@
         "text": "string",
         "accent": "string (optional) — a phrase appearing verbatim inside text; those words render in --accent"
       },
-      "beat_shape": { "text": "string", "accent": "boolean" },
+      "beat_shape": {
+        "text": "string",
+        "accent": "boolean"
+      },
       "default_duration": 6,
       "max_beats": 18,
       "max_reveal_chars": 24

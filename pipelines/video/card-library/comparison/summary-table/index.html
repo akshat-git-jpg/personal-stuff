@@ -140,8 +140,9 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
 
-      tl.from('#title-header', { opacity: 0, y: -20, duration: 0.4, ease: 'power2.out' }, 0.1);
-      tl.from('.hrow .cell', { opacity: 0, y: -25, duration: 0.5, ease: 'power3.out', stagger: 0.04 }, 0.3);
+      const CHROME_IN = 0.15;
+      tl.from('#title-header', { opacity: 0, y: -20, duration: 0.4, ease: 'power2.out' }, CHROME_IN);
+      tl.from('.hrow .cell', { opacity: 0, y: -25, duration: 0.5, ease: 'power3.out', stagger: 0.04 }, CHROME_IN + 0.15);
       DATA.beats.forEach((f, i) => {
         tl.from(`#frow-${i} .cell`, { opacity: 0, x: -30, duration: 0.5, ease: 'power2.out', stagger: 0.02 }, f.at);
       });

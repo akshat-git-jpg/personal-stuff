@@ -64,16 +64,16 @@ const CATALOG = {
   ],
 };
 
-test('happy path: cue + 2 beats resolves start/at/duration', () => {
+test('beat cue resolves start relative to first beat, not cue anchor (BEAT_LEAD_IN clamp)', () => {
   const cues = [
     {
       id: 'c01',
       card: 'pros-cons/pros-cons',
-      anchor: "let's look at the pros",
+      anchor: "let's look at the",
       variables: { title: 'Notion' },
       beats: [
-        { reveal: { kind: 'pro', text: 'Free tier' }, anchor: 'the free tier alone' },
-        { reveal: { kind: 'con', text: 'Not great' }, anchor: "it's not all good" },
+        { reveal: { kind: 'pro', text: 'Free tier' }, anchor: "it's not all good" },
+        { reveal: { kind: 'con', text: 'Not great' }, anchor: 'the mobile app crawls' },
       ],
     },
   ];
@@ -81,10 +81,12 @@ test('happy path: cue + 2 beats resolves start/at/duration', () => {
   assert.deepEqual(errors, []);
   assert.equal(resolved.length, 1);
   const cue = resolved[0];
-  assert.equal(cue.start, 0); // anchor start (0.0) - lead (0.5), floored at 0
-  assert.equal(cue.variables.beats[0].at, 2.5);
-  assert.equal(cue.variables.beats[1].at, 6);
-  assert.equal(cue.duration, 9); // last at (6) + hold (3.0)
+  const firstBeatAbs = 6.0;
+  
+  assert.ok(Math.abs(cue.variables.beats[0].at - 0.6) < 0.05);
+  assert.equal(cue.start, firstBeatAbs - 0.6); // 5.4
+  assert.ok(Math.abs(cue.variables.beats[1].at - 2.6) < 0.05);
+  assert.ok(Math.abs(cue.duration - 5.6) < 0.05);
 });
 
 test('anchor not in transcript produces an error and drops the cue', () => {

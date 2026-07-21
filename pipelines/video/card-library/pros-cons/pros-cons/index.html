@@ -87,10 +87,11 @@
       });
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      tl.from('#card .title', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, 0.1);
+      const CHROME_IN = 0.15;
+      tl.from('#card .title', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, CHROME_IN);
       const firstAt = (kind, fb) => { const xs = DATA.beats.filter((b) => b.kind === kind); return xs.length ? Math.max(0.3, Math.min(...xs.map((b) => b.at)) - 0.3) : fb; };
-      tl.from('.pros', { opacity: 0, x: -40, duration: 0.6, ease: 'power3.out' }, firstAt('pro', 0.4));
-      tl.from('.cons', { opacity: 0, x: 40, duration: 0.6, ease: 'power3.out' }, firstAt('con', 0.4));
+      tl.from('.pros', { opacity: 0, x: -40, duration: 0.6, ease: 'power3.out' }, CHROME_IN + 0.15);
+      tl.from('.cons', { opacity: 0, x: 40, duration: 0.6, ease: 'power3.out' }, CHROME_IN + 0.15);
       rows.forEach(({ b, row }) => tl.from(row, { opacity: 0, y: 16, duration: 0.45, ease: 'power2.out' }, b.at));
       window.__timelines['proscons'] = tl;
     </script>

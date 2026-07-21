@@ -6,30 +6,30 @@
       "id": "c01",
       "card": "table-of-contents/table-of-contents",
       "placement": "fullframe",
-      "start": 58.59,
-      "duration": 34.67,
+      "start": 62.28,
+      "duration": 30.98,
       "variables": {
         "eyebrow": "What's coming up",
         "beats": [
           {
             "label": "Tool overviews",
-            "at": 4.29
+            "at": 0.6
           },
           {
             "label": "Live demo of each tool",
-            "at": 8.91
+            "at": 5.22
           },
           {
             "label": "Pricing side by side",
-            "at": 12.23
+            "at": 8.54
           },
           {
             "label": "Summary score table",
-            "at": 14.86
+            "at": 11.17
           },
           {
             "label": "Verdict by use case",
-            "at": 19.67
+            "at": 15.98
           }
         ]
       }
@@ -215,8 +215,8 @@
       "id": "c25",
       "card": "comparison/summary-table",
       "placement": "fullframe",
-      "start": 1648.8,
-      "duration": 101.31,
+      "start": 1652.44,
+      "duration": 97.67,
       "variables": {
         "products": [
           "OpenArt AI",
@@ -242,7 +242,7 @@
               "4.5/5",
               "4/5"
             ],
-            "at": 4.24
+            "at": 0.6
           },
           {
             "name": "Output quality",
@@ -253,7 +253,7 @@
               "4/5",
               "4/5"
             ],
-            "at": 47.26
+            "at": 43.62
           },
           {
             "name": "Use case fit",
@@ -264,7 +264,7 @@
               "5/5",
               "5/5"
             ],
-            "at": 66.76
+            "at": 63.12
           },
           {
             "name": "Pricing & value",
@@ -275,7 +275,7 @@
               "4/5",
               "3.5/5"
             ],
-            "at": 89.81
+            "at": 86.17
           }
         ]
       }
@@ -284,8 +284,8 @@
       "id": "c28",
       "card": "comparison/summary-table",
       "placement": "fullframe",
-      "start": 1752.11,
-      "duration": 15.72,
+      "start": 1756.93,
+      "duration": 10.9,
       "variables": {
         "products": [
           "OpenArt AI",
@@ -311,7 +311,7 @@
               "3 videos/mo",
               "—"
             ],
-            "at": 5.42
+            "at": 0.6
           },
           {
             "name": "Paid from",
@@ -322,7 +322,7 @@
               "$29/mo",
               "$110/mo"
             ],
-            "at": 7.72
+            "at": 2.9
           }
         ]
       }
@@ -331,8 +331,8 @@
       "id": "c26",
       "card": "verdict/persona-match",
       "placement": "fullframe",
-      "start": 1771.61,
-      "duration": 103.62,
+      "start": 1775.21,
+      "duration": 100.02,
       "variables": {
         "title": "Which tool is right for you",
         "beats": [
@@ -340,31 +340,31 @@
             "persona": "Content creators & marketers",
             "winner": "OpenArt AI",
             "logo": "openart",
-            "at": 4.2
+            "at": 0.6
           },
           {
             "persona": "Cinematic video creators",
             "winner": "Higgsfield",
             "logo": "higgsfield",
-            "at": 33.96
+            "at": 30.36
           },
           {
             "persona": "Corporate & training teams",
             "winner": "Synthesia",
             "logo": "synthesia",
-            "at": 52.91
+            "at": 49.31
           },
           {
             "persona": "Solo creators & small teams",
             "winner": "HeyGen",
             "logo": "heygen",
-            "at": 70.54
+            "at": 66.94
           },
           {
             "persona": "Performance marketers",
             "winner": "Arcads",
             "logo": "arcads",
-            "at": 90.62
+            "at": 87.02
           }
         ]
       }
