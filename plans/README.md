@@ -593,3 +593,4 @@ structural causes, all model-independent. Ordered; 115 and 116 both edit `lib/re
 | 120 | cue-plan-skeleton | The model does constraint bookkeeping by hand, so caps are violated at random | 117, 118 |
 - 115-card-variable-contracts — PR#73 115-card-variable-contracts: Card variable contracts (typed shapes + editorial roles) with resolver enforcement — DONE
 - 116-beat-card-timing-determinism — PR#74 116-beat-card-timing-determinism: Beat-card timing determinism — no card ever renders a blank frame — DONE
+- 117-segment-map-demo-safety — PR#75 117-segment-map-demo-safety: Segment map — stop fullframe graphics from covering live demo footage — DONE
