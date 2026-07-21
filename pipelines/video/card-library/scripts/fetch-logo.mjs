@@ -42,9 +42,31 @@ async function downloadLogo() {
     const fileStream = fs.createWriteStream(filePath, { flags: 'w' });
     await finished(Readable.fromWeb(res.body).pipe(fileStream));
     
-    registry[slug] = { domain, file: fileName, source: 'favicon' };
+    // Normalize logo
+    const { normalizeFile } = await import('./normalize-logo.mjs');
+    const tmpRaw = path.join(logosDir, `${slug}.raw.tmp`);
+    const tmpOut = path.join(logosDir, `${slug}.out.tmp.png`);
+    let normMeta;
+    try {
+      normMeta = normalizeFile(filePath, tmpRaw, tmpOut);
+      if (fs.existsSync(tmpOut)) fs.renameSync(tmpOut, filePath);
+    } catch (err) {
+      console.error(`Error: Normalization failed for ${slug} - ${err.message}`);
+      process.exit(1); // keep the raw file for inspection
+    } finally {
+      if (fs.existsSync(tmpRaw)) fs.unlinkSync(tmpRaw);
+      if (fs.existsSync(tmpOut)) fs.unlinkSync(tmpOut);
+    }
+    
+    registry[slug] = {
+      domain, file: fileName, source: 'favicon',
+      normalized: true,
+      bg: '#' + normMeta.bg.map(v => v.toString(16).padStart(2, '0')).join(''),
+      dark: normMeta.dark,
+      mark_ratio: normMeta.mark_ratio
+    };
     fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2) + '\n', 'utf8');
-    console.log(`Successfully fetched logo for ${slug}`);
+    console.log(`Successfully fetched and normalized logo for ${slug}`);
   } catch (err) {
     console.error(`Error: Network failed - ${err.message}`);
     registry[slug] = { domain, file: null, source: 'favicon' };

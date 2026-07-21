@@ -2,61 +2,109 @@
   "openart": {
     "domain": "openart.ai",
     "file": "openart.png",
-    "source": "favicon"
+    "source": "favicon",
+    "normalized": true,
+    "bg": "#12151c",
+    "dark": true,
+    "mark_ratio": 0.72
   },
   "higgsfield": {
     "domain": "higgsfield.ai",
     "file": "higgsfield.png",
-    "source": "favicon"
+    "source": "favicon",
+    "normalized": true,
+    "bg": "#12151c",
+    "dark": true,
+    "mark_ratio": 0.72
   },
   "synthesia": {
     "domain": "synthesia.io",
     "file": "synthesia.png",
-    "source": "favicon"
+    "source": "favicon",
+    "normalized": true,
+    "bg": "#12151c",
+    "dark": true,
+    "mark_ratio": 0.72
   },
   "heygen": {
     "domain": "heygen.com",
     "file": "heygen.png",
-    "source": "favicon"
+    "source": "favicon",
+    "normalized": true,
+    "bg": "#12151c",
+    "dark": true,
+    "mark_ratio": 0.72
   },
   "arcads": {
     "domain": "arcads.ai",
     "file": "arcads.png",
-    "source": "favicon"
+    "source": "favicon",
+    "normalized": true,
+    "bg": "#121212",
+    "dark": true,
+    "mark_ratio": 0.72
   },
   "n8n": {
     "domain": "n8n.io",
     "file": "n8n.png",
-    "source": "favicon"
+    "source": "favicon",
+    "normalized": true,
+    "bg": "#12151c",
+    "dark": true,
+    "mark_ratio": 0.72
   },
   "make": {
     "domain": "make.com",
     "file": "make.png",
-    "source": "manual"
+    "source": "manual",
+    "normalized": true,
+    "bg": "#12151c",
+    "dark": true,
+    "mark_ratio": 0.72
   },
   "zapier": {
     "domain": "zapier.com",
     "file": "zapier.png",
-    "source": "favicon"
+    "source": "favicon",
+    "normalized": true,
+    "bg": "#ff4f00",
+    "dark": false,
+    "mark_ratio": 0.72
   },
   "langchain": {
     "domain": "langchain.com",
     "file": "langchain.png",
-    "source": "favicon"
+    "source": "favicon",
+    "normalized": true,
+    "bg": "#12151c",
+    "dark": true,
+    "mark_ratio": 0.72
   },
   "flowise": {
     "domain": "flowiseai.com",
     "file": "flowise.png",
-    "source": "favicon"
+    "source": "favicon",
+    "normalized": true,
+    "bg": "#341d51",
+    "dark": true,
+    "mark_ratio": 0.72
   },
   "submagic": {
     "domain": "submagic.co",
     "file": "submagic.png",
-    "source": "favicon"
+    "source": "favicon",
+    "normalized": true,
+    "bg": "#ff3800",
+    "dark": false,
+    "mark_ratio": 0.72
   },
   "opusclip": {
     "domain": "opus.pro",
     "file": "opusclip.png",
-    "source": "favicon"
+    "source": "favicon",
+    "normalized": true,
+    "bg": "#0e1015",
+    "dark": true,
+    "mark_ratio": 0.72
   }
 }
