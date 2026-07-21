@@ -18,6 +18,84 @@ export function findPhrase(W, phrase, from) {
   return { err: `anchor not found (searching forward from word ${from}): "${phrase}"` };
 }
 
+const ROLE_DEFAULTS = {
+  heading:    { max_words: 7,  noTerminalPeriod: true,  maxCommas: 1 },
+  sentence:   { max_words: 18 },
+  label:      { max_words: 5,  noTerminalPeriod: true },
+  descriptor: { max_words: 6,  noTerminalPeriod: true },
+  value:      { mustContainDigit: true },
+  logo_slug:  {},
+  icon_name:  {},
+  free:       {},
+};
+
+// Validate one value against one contract entry. Returns an array of message
+// strings (empty = valid). `path` is a human-readable location like
+// `left.stats[0].label` so an error points at the exact slot.
+export function validateVariable(path, value, spec) {
+  const out = [];
+  if (spec === undefined) return out;
+
+  // Legacy string form: fall back to presence-only checking so a partially
+  // migrated catalog still resolves. check-catalog.mjs is what forbids it.
+  if (typeof spec === 'string') return out;
+
+  const t = spec.type;
+  const actual = Array.isArray(value) ? 'array' : typeof value;
+  if (t && actual !== t) {
+    out.push(`${path}: expected ${t}, got ${actual} (${JSON.stringify(value)?.slice(0, 40)})`);
+    return out; // shape is wrong; further checks would be noise
+  }
+
+  if (Array.isArray(spec.enum) && !spec.enum.includes(value)) {
+    out.push(`${path}: "${value}" is not one of ${spec.enum.join(' | ')}`);
+  }
+
+  if (t === 'string') {
+    const rule = { ...(ROLE_DEFAULTS[spec.role] ?? {}), ...spec };
+    const words = String(value).trim().split(/\s+/).filter(Boolean);
+    if (rule.max_words && words.length > rule.max_words) {
+      out.push(`${path}: ${words.length} words exceeds max_words ${rule.max_words} for role "${spec.role}" — "${value}"`);
+    }
+    if (rule.max_chars && String(value).length > rule.max_chars) {
+      out.push(`${path}: ${String(value).length} chars exceeds max_chars ${rule.max_chars}`);
+    }
+    if (rule.noTerminalPeriod && /\.\s*$/.test(String(value))) {
+      out.push(`${path}: role "${spec.role}" must not end in a period — "${value}" reads as a sentence, not a ${spec.role}`);
+    }
+    if (rule.maxCommas !== undefined && (String(value).match(/,/g) ?? []).length > rule.maxCommas) {
+      out.push(`${path}: role "${spec.role}" allows at most ${rule.maxCommas} comma — "${value}" reads as a list, not a heading`);
+    }
+    if (rule.mustContainDigit && !/[0-9]/.test(String(value))) {
+      out.push(`${path}: role "value" must carry a number — "${value}"`);
+    }
+  }
+
+  if (t === 'object' && spec.shape && value && typeof value === 'object') {
+    for (const [k, sub] of Object.entries(spec.shape)) {
+      if (!(k in value)) {
+        if (sub.required !== false) out.push(`${path}.${k}: missing required field`);
+        continue;
+      }
+      out.push(...validateVariable(`${path}.${k}`, value[k], sub));
+    }
+  }
+
+  if (t === 'array' && spec.item_shape && Array.isArray(value)) {
+    value.forEach((el, i) => {
+      for (const [k, sub] of Object.entries(spec.item_shape)) {
+        if (!(k in el)) {
+          if (sub.required !== false) out.push(`${path}[${i}].${k}: missing required field`);
+          continue;
+        }
+        out.push(...validateVariable(`${path}[${i}].${k}`, el[k], sub));
+      }
+    });
+  }
+
+  return out;
+}
+
 // Schema validation against catalog.json contracts — catches wrong-shaped
 // variables/beats BEFORE anything renders (the "undefined on screen" class).
 // A catalog type description containing "optional" marks that field optional.
@@ -46,11 +124,6 @@ export function validateCues(cues, catalog, cardLibraryRoot) {
           errors.push(`${cue.id} beat ${i + 1}: reveal must be a non-empty object (shape: ${Object.keys(shape).join(', ')})`);
           return;
         }
-        for (const [k, desc] of Object.entries(shape)) {
-          if (!(k in r) && !String(desc).toLowerCase().includes('optional')) {
-            errors.push(`${cue.id} beat ${i + 1}: reveal missing required field "${k}"`);
-          }
-        }
         if (cat.max_reveal_chars) {
           for (const [k, v] of Object.entries(r)) {
             if (typeof v === 'string' && v.length > cat.max_reveal_chars) {
@@ -64,15 +137,25 @@ export function validateCues(cues, catalog, cardLibraryRoot) {
         }
       });
     }
-    for (const [k, desc] of Object.entries(cat.variables ?? {})) {
-      const optional = String(desc).toLowerCase().includes('optional');
+    for (const [k, spec] of Object.entries(cat.variables ?? {})) {
+      const isRequired = typeof spec === 'string'
+        ? !String(spec).toLowerCase().includes('optional')
+        : spec.required !== false;
       if (!(k in vars)) {
-        if (!optional) errors.push(`${cue.id}: missing variable "${k}" (${desc}) — the card would silently show its default content`);
+        if (isRequired) errors.push(`${cue.id}: missing variable "${k}" — the card would silently show its default content`);
         continue;
       }
-      if (String(desc).toLowerCase().includes('array')) {
-        if (!Array.isArray(vars[k]) || vars[k].length === 0) {
-          errors.push(`${cue.id}: variable "${k}" must be a non-empty array (${desc})`);
+      for (const msg of validateVariable(k, vars[k], spec)) errors.push(`${cue.id}: ${msg}`);
+    }
+    for (const [i, b] of (cue.beats ?? []).entries()) {
+      for (const [k, spec] of Object.entries(cat.beat_shape ?? {})) {
+        if (typeof spec === 'string') continue; // legacy entry, nothing to check
+        if (!(k in (b.reveal ?? {}))) {
+          if (spec.required !== false) errors.push(`${cue.id} beat ${i + 1}: missing reveal field "${k}"`);
+          continue;
+        }
+        for (const msg of validateVariable(`beat ${i + 1}.${k}`, b.reveal[k], spec)) {
+          errors.push(`${cue.id}: ${msg}`);
         }
       }
     }

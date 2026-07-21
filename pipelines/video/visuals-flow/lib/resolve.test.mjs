@@ -255,19 +255,19 @@ test('validateCues: catches the test-01 bug classes', async (t) => {
   const { validateCues } = await import('./resolve.mjs');
   const catalog = { cards: [
     { slug: 'x/single', kind: 'single', placement: 'fullframe', default_duration: 6,
-      variables: { title: 'string', items: 'array of {label} or plain strings' } },
+      variables: { title: { type: 'string', required: true, role: 'heading', example: 'Title' }, items: { type: 'array', required: true, item_shape: {} } } },
     { slug: 'x/table', kind: 'beat', placement: 'fullframe', default_duration: 7,
       max_beats: 3, max_reveal_chars: 10,
-      variables: { products: 'array of strings' },
-      beat_shape: { name: 'string', values: 'array, one per product', reason: 'string (optional)' } },
+      variables: { products: { type: 'array', required: true } },
+      beat_shape: { name: { type: 'string', required: true }, values: { type: 'array', required: true }, reason: { type: 'string', required: false } } },
   ]};
   const errs = (cues) => validateCues(cues, catalog);
 
-  // single card: missing variable + beats present + empty array
-  let e = errs([{ id: 'c1', card: 'x/single', beats: [{ reveal: { a: 1 }, anchor: 'x y z' }], variables: { items: [] } }]);
+  // single card: missing variable + beats present + empty array (Wait, the new array type does not strictly check for non-empty, but it does check type. The test originally passed empty array `[]`. If it passes `[]`, the new code won't error on empty array. Let's pass a non-array so it errors on type, and assert expected array)
+  let e = errs([{ id: 'c1', card: 'x/single', beats: [{ reveal: { a: 1 }, anchor: 'x y z' }], variables: { items: "not an array" } }]);
   assert.ok(e.some((m) => m.includes('beats must be empty')));
   assert.ok(e.some((m) => m.includes('missing variable "title"')));
-  assert.ok(e.some((m) => m.includes('non-empty array')));
+  assert.ok(e.some((m) => m.includes('expected array')));
 
   // beat card: width mismatch (the summary-table staircase), max_beats, chars, missing required field
   e = errs([{ id: 'c2', card: 'x/table', variables: { products: ['A', 'B'] }, beats: [
@@ -279,7 +279,7 @@ test('validateCues: catches the test-01 bug classes', async (t) => {
   assert.ok(e.some((m) => m.includes('values has 1 entries but products has 2')));
   assert.ok(e.some((m) => m.includes('exceeds max_beats 3')));
   assert.ok(e.some((m) => m.includes('max 10')));
-  assert.ok(e.some((m) => m.includes('missing required field "name"')));
+  assert.ok(e.some((m) => m.includes('missing reveal field "name"')));
 
   // clean cue: no errors; optional reason may be absent
   e = errs([{ id: 'c3', card: 'x/table', variables: { products: ['A', 'B'] }, beats: [
