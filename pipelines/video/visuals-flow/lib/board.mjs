@@ -1314,30 +1314,34 @@ export function synthCalibrationVars(card) {
   const override = CALIBRATE_OVERRIDES[card.slug] ?? {};
 
   const variables = {};
-  for (const [key, descriptor] of Object.entries(card.variables ?? {})) {
-    if (/\(optional\)/i.test(descriptor)) continue;
-    if (/^array/i.test(descriptor)) variables[key] = ['Calibration one', 'Calibration two', 'Calibration three'];
-    else if (/^number/i.test(descriptor)) variables[key] = 88;
+  for (const [key, spec] of Object.entries(card.variables ?? {})) {
+    const isString = typeof spec === 'string';
+    const desc = isString ? spec : (spec.descriptor || spec.type || '');
+    if (isString ? /\(optional\)/i.test(desc) : spec.required === false) continue;
+    if (isString ? /^array/i.test(desc) : spec.type === 'array') variables[key] = ['Calibration one', 'Calibration two', 'Calibration three'];
+    else if (isString ? /^number/i.test(desc) : spec.type === 'number') variables[key] = 88;
     else variables[key] = 'Calibration title';
   }
 
   const beats = [];
   for (let i = 0; i < maxBeats; i++) {
     const beat = { at: +((i + 1) * (card.default_duration / (maxBeats + 1))).toFixed(2) };
-    for (const [key, descriptor] of Object.entries(card.beat_shape ?? {})) {
-      if (/\(optional\)/i.test(descriptor)) continue;
+    for (const [key, spec] of Object.entries(card.beat_shape ?? {})) {
+      const isString = typeof spec === 'string';
+      const desc = isString ? spec : (spec.descriptor || spec.type || '');
+      if (isString ? /\(optional\)/i.test(desc) : spec.required === false) continue;
       const overridden = override.beatField?.(key, i);
       if (overridden !== undefined) { beat[key] = overridden; continue; }
       // values arrays keyed one-per-product ride along whatever "products" synthesized to.
-      if (key === 'values' && Array.isArray(variables.products) && /per product/i.test(descriptor)) {
+      if (key === 'values' && Array.isArray(variables.products) && (isString ? /per product/i.test(desc) : spec.type === 'array')) {
         beat.values = variables.products.map((_, j) => (
-          /true\/false/i.test(descriptor) && j % 2 === 0 ? true : fillerText(maxChars)
+          /true\/false/i.test(desc) && j % 2 === 0 ? true : fillerText(maxChars)
         ));
         continue;
       }
-      const enumOpts = parseEnumOptions(descriptor);
+      const enumOpts = isString ? parseEnumOptions(desc) : (spec.enum || parseEnumOptions(desc));
       if (enumOpts) { beat[key] = enumOpts[i % enumOpts.length]; continue; }
-      if (/^number/i.test(descriptor)) { beat[key] = 88; continue; }
+      if (isString ? /^number/i.test(desc) : spec.type === 'number') { beat[key] = 88; continue; }
       beat[key] = fillerText(maxChars);
     }
     beats.push(beat);
