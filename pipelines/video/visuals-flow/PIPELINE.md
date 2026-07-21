@@ -15,6 +15,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 |---|---|---|
 | `010-transcribe-run` | [RUN] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) → `transcript.json` (word timestamps) |
 | `015-segments-propose` | [RUN] | `transcript.json` → `segments.json` (demo vs narration segments) |
+| `plan-skeleton` | [RUN] | `transcript.json` + `segments.json` → deterministic placement grid (the `{{SKELETON}}` prompt variable) |
 | `020-cue-pass-llm` | [LLM] (pluggable: Sonnet default; agy/Antigravity allowed as form-fillers) | `transcript.json` + `card-library/catalog.json` → `cues.json` |
 | `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables) … (+ lint gate) |
 | `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board: full-script timeline, transcript + inline cue previews + mini-map, per-cue playback; board default = horizontal timeline overview, List toggle = the per-cue detail view) |

@@ -30,6 +30,10 @@ State of the pipeline + full command list: `HANDOFF.md`. Schemas: `PIPELINE.md`.
 
 1. Guardrail 1. If `videos/<slug>/transcript.json` is missing:
    `bash steps/010-transcribe-run/run.sh <slug>` (accepts vo.mp3/mp4/mov/mkv/m4a/wav).
+1b. Generate the placement grid: `node lib/segments.mjs <slug> --propose` (owner
+    confirms boundaries), then `node lib/plan-skeleton.mjs <slug>`. Paste its
+    output as `{{SKELETON}}`. Never hand-derive the cadence — the grid is
+    deterministic and identical for every model.
 2. Run the cue pass IN THIS SESSION: paste **the prompt only**
    (`steps/020-cue-pass-llm/cue-pass-prompt.md`), as it is self-contained
    (RULEBOOK.md is the 060 fold's judgment archive, kept in sync by the fold).
