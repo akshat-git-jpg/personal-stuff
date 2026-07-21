@@ -57,18 +57,30 @@ optionally `variables.accent` (a phrase verbatim inside `text`):
 
 Density (defaults — follow the script when it disagrees). Keep the video
 visually active: motion graphics are a near-constant presence, not a rare
-garnish. Aim for something on screen every ~35–50s, and NEVER let an interior
-stretch run longer than ~50s with only the raw recording (lint W6). A graphic
-still must ADD something (structure, a number/list, a comparison, or the spoken
-POINT of a bridge) — but "the footage shows it" is not a licence to leave a long
-stretch bare.
-- Fire a fullframe/canvas beat every 35–60s of VO (fullframe cadence is measured over narration only, so a long demo is not a cadence failure).
-- Between fullframe beats, punctuate with overlays — up to 3 per rolling minute;
-  a demo/bridge stretch should not go >~50s without at least a lightweight
-  overlay or statement.
+garnish. A graphic still must ADD something (structure, a number/list, a
+comparison, or the spoken POINT of a bridge) — but "the footage shows it" is
+not a licence to leave a long stretch bare.
+
+<!-- BEGIN GENERATED CONSTRAINTS — edit lib/cue-constants.mjs, then run node lib/build-prompt.mjs -->
+These are HARD constraints checked by lib/lint-cues.mjs after you produce cues.json.
+A violation is a defect, not a stylistic choice. Budget against them BEFORE placing cues.
+
+- Any non-structural fullframe card may be used at most 3 times per video (lint E3). Structural cards (catalog `structural: true`) are exempt.
+- overlay/stat-hit: at most 3 per video (lint E2).
+- Consecutive overlay/stat-hit cues must start at least 90s apart (lint E2).
+- No cue may END in the last 20s of the video except the end-card slugs listed below (lint E4 — a HARD ERROR, not a preference).
+- Consecutive fullframe cues must start at least 35s apart, measured START to START across narration time (lint W1).
+- Consecutive fullframe cues must start no more than 60s apart, measured START to START across narration time (lint W1).
+- At most 3 overlay cues may START within any 60s window (lint W2).
+- Total cue count must be at least 1.0 per minute of video (lint W3).
+- Total cue count must be at most 1.9 per minute of video (lint W3). For a 20-minute video that is 20-38 cues in total — budget before you place.
+- No interior narration stretch may run longer than 50s with no graphic of any kind (lint W6).
+- End-card slugs exempt from the last-20s rule: brand/, link-in-description/, like-subscribe/
+<!-- END GENERATED CONSTRAINTS -->
+
 - Never two overlapping fullframe cues.
-- Cold-open beat allowed in the first 15s; end-card allowed in the last 20s
-  (these two zones stay sparse — W6 does not police them).
+- Cold-open beat allowed in the first 15s (this zone stays sparse — W6 does
+  not police it).
 
 Choosing a card — route by what the VO is doing, matching catalog `purpose`
 lines:
@@ -111,7 +123,7 @@ New cards (2026-07-21) — when to fire each:
 Kinetic-sentence interstitial (mandatory): for a bridge with no footage, UI,
 or data worth showing and a single spoken point, use `slate/kinetic-sentence`
 instead of leaving it on camera — a frequent choice, drawn from the same
-every-35–60s fullframe cadence above, not an extra quota (`statement/keyword-statement`
+fullframe cadence above, not an extra quota (`statement/keyword-statement`
 is a close sibling for the same job). `variables.text` is
 the voiceover verbatim, one sentence, <=18 words, `beats: []` — paraphrasing
 fails resolution at step 030; split long sentences into two consecutive cues
@@ -125,10 +137,10 @@ section opener for each compared tool — uses the SAME card every time; mixing
 cards across parallel items is a defect, not variety. Structural cards
 (catalog `structural: true`) are exempt from the repetition cap.
 
-Repetition cap (non-structural cards): the same fullframe card at most 3 times
-per video. overlay/stat-hit: max 3 per video, >=90s apart, only for numbers the
-VO leans on — drop the least impressive rather than exceed. Other overlays: vary
-callout's style and position when repeating.
+Repetition cap (non-structural cards): follow the caps above — for
+overlay/stat-hit, keep only the numbers the VO leans on most and drop the
+least impressive rather than exceed the cap. Other overlays: vary callout's
+style and position when repeating.
 
 Demos & step narration (mandatory): do NOT lay a redundant graphic over a click
 the screen already shows — no `process/step-flow` re-labeling visible steps
