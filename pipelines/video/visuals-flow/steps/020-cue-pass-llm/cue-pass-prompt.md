@@ -62,7 +62,7 @@ stretch run longer than ~50s with only the raw recording (lint W6). A graphic
 still must ADD something (structure, a number/list, a comparison, or the spoken
 POINT of a bridge) — but "the footage shows it" is not a licence to leave a long
 stretch bare.
-- Fire a fullframe/canvas beat every 35–60s of VO.
+- Fire a fullframe/canvas beat every 35–60s of VO (fullframe cadence is measured over narration only, so a long demo is not a cadence failure).
 - Between fullframe beats, punctuate with overlays — up to 3 per rolling minute;
   a demo/bridge stretch should not go >~50s without at least a lightweight
   overlay or statement.
@@ -103,8 +103,8 @@ New cards (2026-07-21) — when to fire each:
 - A **single punchy assertion/bridge** with one phrase to emphasize →
   `statement/keyword-statement`: `text` = the spoken line, `keyword` = the 2–4
   words carrying the point, `beats: []`. Sibling of `slate/kinetic-sentence`;
-  use both to punctuate demo/bridge stretches.
-- **Enumerating features/capabilities** where a concept icon helps →
+  use both to punctuate bridge stretches.
+- **Enumerating features/capabilities** where a concept icon helps (unless the screen is currently showing those capabilities being set — during a demo this card is illegal (fullframe)) →
   `checklist/icon-pills`: one beat per item; beat = `{icon, text, keyword?}`,
   `icon` ∈ brain|calendar|person|bolt|gear|lock|clock|chart|chat|shield|doc|search|star|cloud.
 
@@ -132,11 +132,8 @@ callout's style and position when repeating.
 
 Demos & step narration (mandatory): do NOT lay a redundant graphic over a click
 the screen already shows — no `process/step-flow` re-labeling visible steps
-(step-flow is only for processes NOT on screen). But do NOT leave a long demo
-stretch bare either: punctuate it with the SPOKEN layer — a
-`statement/keyword-statement`/`slate/kinetic-sentence` of the point, an
-`overlay/lower-third`/`overlay/callout` naming the feature, or a
-`tool-icon/tool-glass-tile` when the VO names/switches tools. Test: echoes the
+(step-flow is only for processes NOT on screen). During a demo/playback stretch only `placement: overlay` cards may be used (this is enforced via lint E5). But do NOT leave a long demo
+stretch bare either: punctuate it with the SPOKEN layer — `overlay/callout`, `overlay/lower-third`, `overlay/tip-banner`, `overlay/stat-hit`, or `overlay/verdict-chips`. Test: echoes the
 click → skip; adds the narration's point/label → keep.
 
 Pricing (mandatory): no per-tool pricing/credits graphics during tool segments

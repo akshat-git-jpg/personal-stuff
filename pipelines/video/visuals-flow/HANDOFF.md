@@ -291,6 +291,7 @@ brainstorms.** Standing next steps in priority order:
 cd pipelines/video/visuals-flow
 node lib/feedback-status.mjs                       # MUST exit 0 before any new cue pass
 bash steps/010-transcribe-run/run.sh <slug-or-path>
+node lib/segments.mjs <slug> --propose             # 015: proposes segments.json; MUST set confirmed: true
 # 020: Sonnet session with steps/020-cue-pass-llm/cue-pass-prompt.md (the prompt only;
 #      RULEBOOK.md is the 060 fold's archive). Fill placeholders with catalog.json +
 #      `node lib/transcript-text.mjs <slug>` output (never raw transcript.json)

@@ -47,18 +47,15 @@ bare.
 **Demos and walkthroughs get PUNCTUATED, not blanked.** Do not lay a redundant
 graphic over a click the screen already shows — a `process/step-flow`
 re-labeling visible steps is still wrong (owner fold 2026-07-18, test-01
-c06/c09/c15). But a long demo stretch should carry lightweight punctuation that
-adds the SPOKEN layer, not the click: a `statement/keyword-statement` or
-`slate/kinetic-sentence` of the point being made, an `overlay/lower-third` or
-`overlay/callout` naming the feature on screen, a `tool-icon/tool-glass-tile`
-hero when the VO names or switches tools. The test for a demo moment is: does
+c06/c09/c15). During a demo/playback stretch ONLY `placement: overlay` cards may be used (enforced by lint E5). But a long demo stretch should carry lightweight punctuation that
+adds the SPOKEN layer, not the click: `overlay/callout`, `overlay/lower-third`, `overlay/tip-banner`, `overlay/stat-hit`, or `overlay/verdict-chips`. The test for a demo moment is: does
 the graphic echo the click (skip it) or add the narration's point/label (keep
 it)?
 
 These are starting defaults, not physics — when the script structure fights a
 rule, follow the script and note why in the cue's context.
 
-1. Fire a fullframe/canvas beat every 35–60s of VO.
+1. Fire a fullframe/canvas beat every 35–60s of VO (fullframe cadence is measured over narration only, so a long demo is not a cadence failure).
 2. Between fullframe beats, punctuate with overlays — up to 3 per rolling
    minute; a demo/bridge stretch should not go >~50s without at least a
    lightweight overlay or statement (W6).
@@ -105,10 +102,10 @@ Route by what the VO is DOING at that moment, using each catalog card's
 - A **single punchy assertion or bridge** with one phrase worth emphasizing →
   `statement/keyword-statement`: `text` = the spoken line (one sentence),
   `keyword` = the 2–4 words carrying the point. It is the sibling of
-  `slate/kinetic-sentence`; use both freely to PUNCTUATE demo/bridge stretches
+  `slate/kinetic-sentence`; use both freely to PUNCTUATE bridge stretches
   (they draw from the every-35–60s fullframe cadence, not a separate quota).
 - **Enumerating features/capabilities** where a concept icon helps ("the
-  memory / the scheduling / the way it learns your work") →
+  memory / the scheduling / the way it learns your work") (unless the screen is currently showing those capabilities being set — during a demo this card is illegal (fullframe)) →
   `checklist/icon-pills`: one beat per item, `icon` = an icon-set name
   (brain|calendar|person|bolt|gear|lock|clock|chart|chat|shield|doc|search|star|cloud),
   `text` = the item, optional `keyword`. Prefer this over a plain checklist when

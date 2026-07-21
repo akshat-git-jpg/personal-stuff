@@ -14,6 +14,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | Step | Actor | In → Out |
 |---|---|---|
 | `010-transcribe-run` | [RUN] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) → `transcript.json` (word timestamps) |
+| `015-segments-propose` | [RUN] | `transcript.json` → `segments.json` (demo vs narration segments) |
 | `020-cue-pass-llm` | [LLM] (pluggable: Sonnet default; agy/Antigravity allowed as form-fillers) | `transcript.json` + `card-library/catalog.json` → `cues.json` |
 | `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables) … (+ lint gate) |
 | `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board: full-script timeline, transcript + inline cue previews + mini-map, per-cue playback; board default = horizontal timeline overview, List toggle = the per-cue detail view) |
@@ -35,6 +36,7 @@ out); the four scripted steps also have a thin `run.sh` wrapper.
 videos/<slug>/
   vo.mp3           # input voiceover — gitignored (regenerable from the tts hub)
   transcript.json  # step 010 output — committed
+  segments.json    # step 015 output — committed
   cues.llm.json    # step 020's final output, pre-owner-edits — committed, immutable
   cues.json        # step 020 output, step 040 edits — committed
   resolved.json    # step 030 output — committed
