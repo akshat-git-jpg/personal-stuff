@@ -7,18 +7,30 @@ export const END_MARKER = '<!-- END GENERATED CONSTRAINTS -->';
 
 export const PROMPT_PATH = path.resolve(import.meta.dirname, '..', 'steps', '020-cue-pass-llm', 'cue-pass-prompt.md');
 
-export function renderConstraintsBlock() {
-  const lines = [
+// Returns one entry per rendered bullet, tagged with the constant key that
+// produced it — lets check-rulebook.mjs name the offending constant on drift
+// instead of just dumping a whole-block diff.
+export function renderConstraintLines(cueConstants = CUE_CONSTANTS, endcardSlugPrefixes = ENDCARD_SLUG_PREFIXES) {
+  const lines = [];
+  for (const [key, constant] of Object.entries(cueConstants)) {
+    if (!constant.rule) continue;
+    lines.push({ key, text: `- ${constant.rule}` });
+  }
+  lines.push({
+    key: 'ENDCARD_SLUG_PREFIXES',
+    text: `- End-card slugs exempt from the last-${cueConstants.ZONE_END.value}s rule: ${endcardSlugPrefixes.join(', ')}`,
+  });
+  return lines;
+}
+
+export function renderConstraintsBlock(cueConstants = CUE_CONSTANTS, endcardSlugPrefixes = ENDCARD_SLUG_PREFIXES) {
+  const header = [
     'These are HARD constraints checked by lib/lint-cues.mjs after you produce cues.json.',
     'A violation is a defect, not a stylistic choice. Budget against them BEFORE placing cues.',
     '',
   ];
-  for (const constant of Object.values(CUE_CONSTANTS)) {
-    if (!constant.rule) continue;
-    lines.push(`- ${constant.rule}`);
-  }
-  lines.push(`- End-card slugs exempt from the last-${CUE_CONSTANTS.ZONE_END.value}s rule: ${ENDCARD_SLUG_PREFIXES.join(', ')}`);
-  return lines.join('\n');
+  const lines = renderConstraintLines(cueConstants, endcardSlugPrefixes).map((l) => l.text);
+  return [...header, ...lines].join('\n');
 }
 
 function withGeneratedBlock(promptText, block) {
