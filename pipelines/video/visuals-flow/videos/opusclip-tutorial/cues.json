@@ -1,0 +1,519 @@
+{
+  "video": "opusclip-tutorial",
+  "approved": false,
+  "cues": [
+    {
+      "id": "c01",
+      "card": "title/title-aurora-wave",
+      "anchor": "Some Magic and Opus Clips both promise",
+      "lead": 0.2,
+      "hold": 3.0,
+      "variables": {
+        "title": "Submagic vs OpusClip",
+        "platforms": [
+          { "name": "Submagic", "logo": "submagic" },
+          { "name": "OpusClip", "logo": "opusclip" }
+        ]
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c02",
+      "card": "slate/headline-chips",
+      "anchor": "the same goal, publish ready short clips",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "headline": "Same video, same goal, same criteria"
+      },
+      "beats": [
+        { "reveal": { "text": "Caption quality" }, "anchor": "criteria, caption quality" },
+        { "reveal": { "text": "Pacing and customization" }, "anchor": "pacing, customization, time" },
+        { "reveal": { "text": "Time saved and value" }, "anchor": "saved, and value for" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c03",
+      "card": "link-in-description/link-in-description",
+      "anchor": "you will find the links in the description",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "message": "Links to both tools in the description"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c04",
+      "card": "section/tool-intro",
+      "anchor": "we're going to start off with Opus Clips",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "index": 1,
+        "total": 2,
+        "logo": "opusclip",
+        "name": "OpusClip",
+        "tagline": "Automated clipping built around speed",
+        "tag": "AI clipping"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c05",
+      "card": "overlay/verdict-chips",
+      "anchor": "Now, its biggest strength",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {},
+      "beats": [
+        { "reveal": { "text": "Fast, automated clipping", "verdict": "yes" }, "anchor": "going to be speed" },
+        { "reveal": { "text": "Little creative control", "verdict": "no" }, "anchor": "biggest limitation is going to be" },
+        { "reveal": { "text": "Clips still need cleanup", "verdict": "no" }, "anchor": "still need cleanup afterwards" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c06",
+      "card": "section/tool-intro",
+      "anchor": "editing tool focused on captions",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "index": 2,
+        "total": 2,
+        "logo": "submagic",
+        "name": "Submagic",
+        "tagline": "Short-form editing built around polish",
+        "tag": "Caption editor"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c07",
+      "card": "overlay/verdict-chips",
+      "anchor": "Its biggest strength is",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {},
+      "beats": [
+        { "reveal": { "text": "Polish and customization", "verdict": "yes" }, "anchor": "polish and customization" },
+        { "reveal": { "text": "Not fully hands-off", "verdict": "no" }, "anchor": "not trying to be completely hands off" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c08",
+      "card": "tool-icon/tool-glass-tile",
+      "anchor": "let's start off with Submagic",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "logo": "submagic",
+        "name": "Submagic",
+        "subtitle": "First up in the demo"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c10",
+      "card": "checklist/icon-pills",
+      "anchor": "So now I want to go ahead",
+      "lead": 0.5,
+      "hold": 3.0,
+      "variables": {},
+      "beats": [
+        { "reveal": { "icon": "chat", "text": "Set the language", "keyword": "language" }, "anchor": "English as my language" },
+        { "reveal": { "icon": "person", "text": "Multi-speaker colors", "keyword": "Multi-speaker" }, "anchor": "multi speaker theme" },
+        { "reveal": { "icon": "bolt", "text": "Create the AI edit", "keyword": "AI edit" }, "anchor": "click on Create AI Edit" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c11",
+      "card": "tool-icon/tool-glass-tile",
+      "anchor": "Now on Opus clips, I'm going to be doing",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "logo": "opusclip",
+        "name": "OpusClip",
+        "subtitle": "Same video, same goal"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c12",
+      "card": "overlay/callout",
+      "anchor": "what font would you like to go with",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "kind": "note",
+        "style": "feature",
+        "title": "Caption font and color",
+        "text": "Set the caption look before the clips are generated",
+        "pos": "top-left"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c13",
+      "card": "statement/keyword-statement",
+      "anchor": "they're going to give you the auto captions",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "text": "You get auto captions and general AI edits with face tracking.",
+        "keyword": "auto captions"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c14",
+      "card": "overlay/tip-banner",
+      "anchor": "unauthorized clipping of others' content",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "kind": "warning",
+        "label": "Watch out",
+        "text": "Only clip content you own or have permission to use — otherwise it is a copyright problem.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c15",
+      "card": "checklist/icon-pills",
+      "anchor": "Then we go over to AI clipping",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {},
+      "beats": [
+        { "reveal": { "icon": "gear", "text": "Pick the clip model", "keyword": "clip model" }, "anchor": "we're going to get the clip basic" },
+        { "reveal": { "icon": "search", "text": "Set the video genre", "keyword": "genre" }, "anchor": "select your video genre" },
+        { "reveal": { "icon": "clock", "text": "Choose the clip length", "keyword": "clip length" }, "anchor": "Then the clip length" },
+        { "reveal": { "icon": "bolt", "text": "Auto hook on top clips", "keyword": "Auto hook" }, "anchor": "auto hook which adds a concise text hook" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c16",
+      "card": "slate/kinetic-sentence",
+      "anchor": "And what it does is it starts",
+      "lead": 0.3,
+      "hold": 2.0,
+      "variables": {
+        "text": "And what it does is it starts working around with your project.",
+        "accent": "starts working"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c17",
+      "card": "overlay/stat-hit",
+      "anchor": "an ETA of five minutes",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "eyebrow": "OpusClip",
+        "logo": "opusclip",
+        "value": 5,
+        "suffix": " min",
+        "context": "Estimated time to generate the clips"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c18",
+      "card": "slate/kinetic-sentence",
+      "anchor": "You can add magic zooms",
+      "lead": 0.3,
+      "hold": 2.0,
+      "variables": {
+        "text": "You can add magic zooms, magic b-rolls, whatever you require.",
+        "accent": "magic zooms"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c18a",
+      "card": "overlay/lower-third",
+      "anchor": "They're in the path of the ash storm",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "name": "Submagic output",
+        "subtitle": "Same source video, auto-clipped"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c19",
+      "card": "statement/keyword-statement",
+      "anchor": "the difference is absolutely immediate",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "text": "With Submagic, the difference is absolutely immediate.",
+        "keyword": "absolutely immediate"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c20",
+      "card": "overlay/verdict-chips",
+      "anchor": "Captions are cleaner",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {},
+      "beats": [
+        { "reveal": { "text": "Emphasis is clearer", "verdict": "yes" }, "anchor": "emphasis is clearer" },
+        { "reveal": { "text": "Layout feels intentional", "verdict": "yes" }, "anchor": "overall layout feels intentional" },
+        { "reveal": { "text": "Feels native to short-form", "verdict": "yes" }, "anchor": "feel native to short-form platforms" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c22",
+      "card": "overlay/verdict-chips",
+      "anchor": "The AI does a decent job",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {},
+      "beats": [
+        { "reveal": { "text": "Captions are pretty basic", "verdict": "no" }, "anchor": "captions are pretty basic" },
+        { "reveal": { "text": "Pacing often feels off", "verdict": "no" }, "anchor": "pacing often feels off" },
+        { "reveal": { "text": "Clips don't look finished", "verdict": "no" }, "anchor": "They just don't look finished" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c22a",
+      "card": "slate/headline-chips",
+      "anchor": "most of the time, you still need",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "headline": "OpusClip clips still need work after export"
+      },
+      "beats": [
+        { "reveal": { "text": "Adjust captions" }, "anchor": "adjust your captions" },
+        { "reveal": { "text": "Fix emphasis" }, "anchor": "fix your emphasis" },
+        { "reveal": { "text": "Clean up pacing" }, "anchor": "clean up your pacing" },
+        { "reveal": { "text": "Rework layout" }, "anchor": "rework your layout" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c23",
+      "card": "section/section-counter-scale",
+      "anchor": "talk about their pricing and value",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "number": "03",
+        "title": "Pricing and value",
+        "dots": 3
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c24",
+      "card": "slate/kinetic-sentence",
+      "anchor": "You're paying for automation",
+      "lead": 0.3,
+      "hold": 2.0,
+      "variables": {
+        "text": "You're paying for automation, not for actual finished results.",
+        "accent": "finished results"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c25a",
+      "card": "overlay/callout",
+      "anchor": "AI B-roll input from 10 plus sources",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "kind": "note",
+        "style": "feature",
+        "title": "Pro plan adds",
+        "text": "AI B-roll from 10+ sources, Premiere Pro export, scheduler",
+        "pos": "top-right"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c25",
+      "card": "overlay/savings-badge",
+      "anchor": "you can get up to 50% off",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "eyebrow": "OpusClip yearly",
+        "save": "Save up to",
+        "amount": "50%",
+        "per": "/year",
+        "sub": "on every OpusClip plan when billed yearly",
+        "seal": "YEARLY",
+        "pos": "bottom-right"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c26",
+      "card": "slate/headline-chips",
+      "anchor": "Less cleanup means",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "headline": "Less cleanup compounds for daily creators"
+      },
+      "beats": [
+        { "reveal": { "text": "Faster publishing" }, "anchor": "faster publishing, better" },
+        { "reveal": { "text": "Better consistency" }, "anchor": "consistency, and better looking" },
+        { "reveal": { "text": "Quality earns the price" }, "anchor": "The output quality actually" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c27",
+      "card": "statement/keyword-statement",
+      "anchor": "You can remove bad takes",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "text": "Remove bad takes and silences, clean the audio, translate your voice.",
+        "keyword": "bad takes and silences"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c28",
+      "card": "overlay/callout",
+      "anchor": "three free videos, no credit card",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "kind": "tip",
+        "style": "tip",
+        "title": "Free to try",
+        "text": "3 free videos on Submagic, no credit card required",
+        "pos": "top-right"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c29",
+      "card": "comparison/head-to-head",
+      "anchor": "we have gone and talked about the pricing",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "left": {
+          "name": "OpusClip",
+          "stats": [
+            { "label": "Starter", "value": "$12 / mo" },
+            { "label": "Pro", "value": "$23 / mo" },
+            { "label": "Yearly", "value": "Up to 50% off" }
+          ]
+        },
+        "right": {
+          "name": "Submagic",
+          "stats": [
+            { "label": "Pro", "value": "$39 / mo" },
+            { "label": "Business + API", "value": "$69 / mo" },
+            { "label": "Yearly", "value": "41% off" }
+          ]
+        }
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c30",
+      "card": "comparison/summary-table",
+      "anchor": "when it comes to ease of use",
+      "lead": 0.4,
+      "hold": 4.0,
+      "variables": {
+        "products": ["OpusClip", "Submagic"],
+        "productLogos": ["opusclip", "submagic"]
+      },
+      "beats": [
+        { "reveal": { "name": "Ease of use", "values": ["4 / 5", "4.5 / 5"], "reason": "More intuitive editor" }, "anchor": "Opus Clips a 4 out" },
+        { "reveal": { "name": "Caption quality", "values": ["3 / 5", "5 / 5"], "reason": "Cleaner, dynamic captions" }, "anchor": "Opus Clips gets 3 out of 5" },
+        { "reveal": { "name": "Customization", "values": ["2.5 / 5", "5 / 5"], "reason": "Real control over style" }, "anchor": "Opus Clips, 2.5 out of 5" },
+        { "reveal": { "name": "Time to publish", "values": ["3.5 / 5", "5 / 5"], "reason": "Publish-ready immediately" }, "anchor": "give Opus 3.5 out of 5" },
+        { "reveal": { "name": "Pricing value", "values": ["3 / 5", "4.5 / 5"], "reason": "Saves more editing time" }, "anchor": "Opus clips I'll give a 3 out of 5" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c31",
+      "card": "verdict/persona-match",
+      "anchor": "to give you an individual conclusion",
+      "lead": 0.4,
+      "hold": 4.0,
+      "variables": {
+        "title": "Which one should you pick?"
+      },
+      "beats": [
+        { "reveal": { "persona": "Speed is the priority", "winner": "OpusClip", "logo": "opusclip" }, "anchor": "choose Opus Clips if your top priority" },
+        { "reveal": { "persona": "You want publish-ready clips", "winner": "Submagic", "logo": "submagic" }, "anchor": "Choose Submagic if you want short-form content" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c32",
+      "card": "verdict/verdict-trophy",
+      "anchor": "the overall verdict is that",
+      "lead": 0.4,
+      "hold": 3.0,
+      "variables": {
+        "eyebrow": "Overall verdict",
+        "winner": "Submagic",
+        "reason": "Better at generating clips you can actually post",
+        "logo": "submagic"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c33",
+      "card": "link-in-description/link-in-description",
+      "anchor": "the links are in the description",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "message": "Try Submagic or OpusClip — links below"
+      },
+      "beats": [],
+      "flagged": false
+    }
+  ]
+}

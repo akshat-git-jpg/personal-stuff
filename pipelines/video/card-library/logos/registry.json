@@ -48,5 +48,15 @@
     "domain": "flowiseai.com",
     "file": "flowise.png",
     "source": "favicon"
+  },
+  "submagic": {
+    "domain": "submagic.co",
+    "file": "submagic.png",
+    "source": "favicon"
+  },
+  "opusclip": {
+    "domain": "opus.pro",
+    "file": "opusclip.png",
+    "source": "favicon"
   }
 }
