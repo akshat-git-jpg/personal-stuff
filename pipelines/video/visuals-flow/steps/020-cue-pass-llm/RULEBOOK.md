@@ -34,25 +34,37 @@ computes all of that from your anchors.
 
 ## Cue density
 
-**The default state of every moment is NO graphic — the screen recording (or
-avatar) carries the video.** A graphic must earn its slot: it appears only
-where it ADDS something the footage can't (structure at a section boundary, a
-number or list the viewer should hold onto, a comparison too dense to say).
-Stretches that are demonstration — the presenter clicking through a tool while
-describing what they're doing — are already visual and need nothing on top.
-This includes step narration: when the VO walks actions the recording shows
-("head over to the site, click X, select Y"), never place a step-flow or any
-other graphic over it — `process/step-flow` is reserved for processes NOT
-visible on screen (owner fold 2026-07-18, test-01 c06/c09/c15).
-When in doubt during demo/walkthrough stretches, skip.
+**Keep the video visually active — motion graphics are a near-constant
+presence, not a rare garnish.** (Owner recalibration 2026-07-21: earlier videos
+had multi-minute bare stretches; the target is now ~2× that density.) Aim for
+something on screen every ~35–50s, and **never let an interior stretch run
+longer than ~50s with nothing but the raw recording** — `lib/lint-cues.mjs` W6
+enforces this. A graphic still has to ADD something (structure at a boundary, a
+number/list to hold onto, a comparison, or the spoken POINT of a bridge), but
+"the footage already shows it" is no longer a licence to leave a long stretch
+bare.
+
+**Demos and walkthroughs get PUNCTUATED, not blanked.** Do not lay a redundant
+graphic over a click the screen already shows — a `process/step-flow`
+re-labeling visible steps is still wrong (owner fold 2026-07-18, test-01
+c06/c09/c15). But a long demo stretch should carry lightweight punctuation that
+adds the SPOKEN layer, not the click: a `statement/keyword-statement` or
+`slate/kinetic-sentence` of the point being made, an `overlay/lower-third` or
+`overlay/callout` naming the feature on screen, a `tool-icon/tool-glass-tile`
+hero when the VO names or switches tools. The test for a demo moment is: does
+the graphic echo the click (skip it) or add the narration's point/label (keep
+it)?
 
 These are starting defaults, not physics — when the script structure fights a
 rule, follow the script and note why in the cue's context.
 
-1. Fire a fullframe/canvas beat every 45–90s of VO.
-2. Overlays: up to 3 per minute during review/verdict stretches.
+1. Fire a fullframe/canvas beat every 35–60s of VO.
+2. Between fullframe beats, punctuate with overlays — up to 3 per rolling
+   minute; a demo/bridge stretch should not go >~50s without at least a
+   lightweight overlay or statement (W6).
 3. Never let two fullframe cues' spoken coverage overlap.
-4. Cold-open beat allowed in the first 15s; end-card allowed in the last 20s.
+4. Cold-open beat allowed in the first 15s; end-card allowed in the last 20s —
+   these two zones stay sparse (W6 does not police them).
 
 ## Choosing a card
 
@@ -77,6 +89,30 @@ Route by what the VO is DOING at that moment, using each catalog card's
   anchor each beat at that product's first spoken number.
 - VO states a claim then lists items under it →
   `slate/headline-chips`: headline = the claim, one chip beat per listed item.
+
+**New cards (2026-07-21 pack) — when to fire each:**
+
+- VO dictates or the screen shows a **prompt** (an AI image/video/text prompt) →
+  `prompt/prompt-typing`: the prompt types itself out over the beat. Put the
+  prompt in `variables.prompt` verbatim (keep any `[m:ss]` shot tags inline —
+  they auto-highlight); `variables.title` defaults to "Prompt". A single-card
+  cue (`beats: []`).
+- VO names or switches to a **specific tool/model** as a hero moment ("this is
+  the model we'll use") → `tool-icon/tool-glass-tile`: `logo` = the tool's
+  registry slug, `name` = its official name, optional `subtitle`. This is the
+  punchy "here's the tool" beat, distinct from a section opener (which frames a
+  whole section). A single-card cue.
+- A **single punchy assertion or bridge** with one phrase worth emphasizing →
+  `statement/keyword-statement`: `text` = the spoken line (one sentence),
+  `keyword` = the 2–4 words carrying the point. It is the sibling of
+  `slate/kinetic-sentence`; use both freely to PUNCTUATE demo/bridge stretches
+  (they draw from the every-35–60s fullframe cadence, not a separate quota).
+- **Enumerating features/capabilities** where a concept icon helps ("the
+  memory / the scheduling / the way it learns your work") →
+  `checklist/icon-pills`: one beat per item, `icon` = an icon-set name
+  (brain|calendar|person|bolt|gear|lock|clock|chart|chat|shield|doc|search|star|cloud),
+  `text` = the item, optional `keyword`. Prefer this over a plain checklist when
+  the items are concepts that read better with an icon.
 
 **Structural consistency (mandatory).** Cards serving a parallel structural
 role — the same semantic slot repeated once per compared item, like the
@@ -128,9 +164,10 @@ narration bridge where there is no footage, UI, or data worth showing, and the
 point is a single spoken assertion — this card is the alternative to letting
 the host carry that bridge on camera. How often: this is a frequent device in
 the reference, not a once-per-video special — whenever a bridge qualifies, use
-it as one of the fullframe/canvas beats in the every-45–90s cadence (Section
+it as one of the fullframe/canvas beats in the every-35–60s cadence (Section
 2, rule 1); it draws from that same cadence rather than adding a separate
-quota on top of it.
+quota on top of it. `statement/keyword-statement` is a close sibling for the
+same job (a spoken assertion with one phrase to emphasize) — reach for either.
 
 Quoting (mandatory): `variables.text` is the voiceover **verbatim**, one
 sentence, ≤18 words, `beats: []`. Paraphrasing is not a style slip — the

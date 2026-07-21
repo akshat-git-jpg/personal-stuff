@@ -226,6 +226,34 @@ test('W2 overlay-density', () => {
   assert(res4.warnings.some(w => w.includes('W2 overlay-density')));
 });
 
+test('W6 bare-stretch', () => {
+  // two overlays 65s apart (end 25 -> start 90) => a 65s bare interior stretch
+  const cFail = [
+    { id: 'c1', card: 'overlay/plain', start: 20, duration: 5 },
+    { id: 'c2', card: 'overlay/plain', start: 90, duration: 5 }
+  ];
+  const resFail = lintCues({
+    cuesFile: createCues(cFail),
+    resolved: createResolved(cFail),
+    words: createWords(900),
+    catalog
+  });
+  assert(resFail.warnings.some(w => w.includes('W6 bare-stretch')));
+
+  // same pair only 35s apart (end 25 -> start 60) => within BARE_GAP_MAX
+  const cPass = [
+    { id: 'c1', card: 'overlay/plain', start: 20, duration: 5 },
+    { id: 'c2', card: 'overlay/plain', start: 60, duration: 5 }
+  ];
+  const resPass = lintCues({
+    cuesFile: createCues(cPass),
+    resolved: createResolved(cPass),
+    words: createWords(900),
+    catalog
+  });
+  assert(!resPass.warnings.some(w => w.includes('W6 bare-stretch')));
+});
+
 test('W4 reveal-wordcount', () => {
   const c = [{
     id: 'c1',
