@@ -571,3 +571,23 @@ The others are grounded and available when the owner wants them:
 - 112-native-layered-fcpxml-export — PR#69 112-native-layered-fcpxml-export: layered native editor project becomes the default export — DONE
 - 113-visuals-flow-review-timeline — PR#70 113-visuals-flow-review-timeline: visuals-flow review board — horizontal timeline overview view — DONE
 - 114-visuals-flow-card-pack — PR#71 114-visuals-flow-card-pack: 4 new card-library cards (prompt-typing, tool-icon hero, kinetic statement, icon-pill list) + reusable icon set — DONE
+- 115-card-variable-contracts — typed variable contracts (shape + enum + editorial role) in catalog.json, enforced in resolve.mjs — TODO
+- 116-beat-card-timing-determinism — beat-card start derived from first beat; ungate chrome in 7 cards; W5 becomes a regression detector — TODO
+- 117-segment-map-demo-safety — segments.json (narration/demo/playback); fullframe inside a demo becomes a hard error; W1/W6 measured over narration only — TODO
+- 118-lint-constants-single-source — cue-constants.mjs as sole source; prompt constraints block generated; check-rulebook fails on drift — TODO
+- 119-title-versus-card — title/title-versus card; cold-open rule routes by catalog `roles`, not a hard-coded slug — TODO
+- 120-cue-plan-skeleton — generated placement grid + budget ledger so the cue pass fills slots instead of deriving cadence — TODO
+
+### visuals-flow determinism batch (2026-07-21)
+
+Cause: owner board review of `opusclip-tutorial` surfaced 5 rejections tracing to 4 distinct
+structural causes, all model-independent. Ordered; 115 and 116 both edit `lib/resolve.mjs`.
+
+| # | Plan | Root cause it removes | Depends on |
+|---|---|---|---|
+| 115 | card-variable-contracts | Catalog variables are type hints, not contracts — bad shapes and wrong editorial register pass silently | — |
+| 116 | beat-card-timing-determinism | Beat-card placement is authored, and 7 cards gate chrome on the first beat → blank frames | 115 |
+| 117 | segment-map-demo-safety | W1 cadence (linted) fights "don't cover the demo" (prose); fullframes land on live demo footage | 115 |
+| 118 | lint-constants-single-source | Density constants duplicated in code + prompt + RULEBOOK with no drift gate; W3 absent from the prompt; end-zone rule contradicts E4 | — |
+| 119 | title-versus-card | Cold-open rule hard-codes a slug whose card does not deliver the rule's stated intent | 115 |
+| 120 | cue-plan-skeleton | The model does constraint bookkeeping by hand, so caps are violated at random | 117, 118 |
