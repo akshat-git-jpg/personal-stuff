@@ -117,11 +117,12 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       const firstAt = DATA.beats.length ? Math.max(0, Math.min(...DATA.beats.map((b) => Number(b.at))) - 0.35) : 0.2;
-      tl.from('#title', { opacity: 0, y: -22, duration: 0.5, ease: 'power3.out' }, 0.1);
+      const CHROME_IN = 0.15;
+      tl.from('#title', { opacity: 0, y: -22, duration: 0.5, ease: 'power3.out' }, CHROME_IN);
       // the panel shell enters WITH the header — an empty bordered box idling
       // before the first row reads as broken (owner feedback, test-02)
-      tl.from('#panel', { opacity: 0, y: 18, duration: 0.5, ease: 'power3.out' }, firstAt);
-      tl.from('#head', { opacity: 0, y: 18, duration: 0.5, ease: 'power3.out' }, firstAt);
+      tl.from('#panel', { opacity: 0, y: 18, duration: 0.5, ease: 'power3.out' }, CHROME_IN);
+      tl.from('#head', { opacity: 0, y: 18, duration: 0.5, ease: 'power3.out' }, CHROME_IN);
       rows.forEach(({ b, row }) => {
         tl.from(row, { opacity: 0, y: 18, duration: 0.45, ease: 'power3.out' }, Number(b.at));
       });

@@ -38,22 +38,22 @@
       "id": "c02",
       "card": "slate/headline-chips",
       "placement": "fullframe",
-      "start": 62.32,
-      "duration": 14.02,
+      "start": 64.76,
+      "duration": 11.58,
       "variables": {
         "headline": "Every tool gets the same fair test",
         "beats": [
           {
             "text": "Same use case",
-            "at": 3.04
+            "at": 0.6
           },
           {
             "text": "Same AI prompt logic",
-            "at": 5.86
+            "at": 3.42
           },
           {
             "text": "Same evaluation criteria",
-            "at": 8.02
+            "at": 5.58
           }
         ]
       }
@@ -62,26 +62,26 @@
       "id": "c03",
       "card": "table-of-contents/table-of-contents",
       "placement": "fullframe",
-      "start": 81.82,
-      "duration": 27.34,
+      "start": 83.46,
+      "duration": 25.7,
       "variables": {
         "eyebrow": "The game plan",
         "beats": [
           {
             "label": "Quick tool overviews",
-            "at": 2.24
+            "at": 0.6
           },
           {
             "label": "Same-workflow live demos",
-            "at": 6.22
+            "at": 4.58
           },
           {
             "label": "Ease, flexibility & pricing",
-            "at": 9.86
+            "at": 8.22
           },
           {
             "label": "The honest verdict",
-            "at": 15.34
+            "at": 13.7
           }
         ]
       }
@@ -175,22 +175,22 @@
       "id": "c10",
       "card": "process/step-flow",
       "placement": "fullframe",
-      "start": 248.5,
-      "duration": 18.66,
+      "start": 255.14,
+      "duration": 12.02,
       "variables": {
         "title": "The test workflow",
         "beats": [
           {
             "label": "User submits text",
-            "at": 7.24
+            "at": 0.6
           },
           {
             "label": "AI summarizes it",
-            "at": 11.12
+            "at": 4.48
           },
           {
             "label": "Sent to email or Slack",
-            "at": 14.66
+            "at": 8.02
           }
         ]
       }
@@ -239,26 +239,26 @@
       "id": "c14",
       "card": "process/step-flow",
       "placement": "fullframe",
-      "start": 730.48,
-      "duration": 13.2,
+      "start": 733.12,
+      "duration": 10.56,
       "variables": {
         "title": "Flowise agent anatomy",
         "beats": [
           {
             "label": "Chat input node",
-            "at": 3.24
+            "at": 0.6
           },
           {
             "label": "Prompt template node",
-            "at": 4.98
+            "at": 2.34
           },
           {
             "label": "LLM node",
-            "at": 6.18
+            "at": 3.54
           },
           {
             "label": "Output node",
-            "at": 7.2
+            "at": 4.56
           }
         ]
       }
@@ -320,29 +320,29 @@
       "id": "c19",
       "card": "overlay/verdict-chips",
       "placement": "overlay",
-      "start": 1412.17,
-      "duration": 15.88,
+      "start": 1414.21,
+      "duration": 13.84,
       "variables": {
         "beats": [
           {
             "text": "Smooth trigger handling",
             "verdict": "yes",
-            "at": 2.64
+            "at": 0.6
           },
           {
             "text": "AI logic gets boxed in",
             "verdict": "no",
-            "at": 4.44
+            "at": 2.4
           },
           {
             "text": "Quick first results",
             "verdict": "yes",
-            "at": 8.3
+            "at": 6.26
           },
           {
             "text": "Leans on presets",
             "verdict": "no",
-            "at": 9.88
+            "at": 7.84
           }
         ]
       }
@@ -351,24 +351,24 @@
       "id": "c20",
       "card": "overlay/verdict-chips",
       "placement": "overlay",
-      "start": 1426.35,
-      "duration": 14.16,
+      "start": 1427.49,
+      "duration": 13.02,
       "variables": {
         "beats": [
           {
             "text": "More branching than Zapier",
             "verdict": "yes",
-            "at": 1.74
+            "at": 0.6
           },
           {
             "text": "Visual workflow control",
             "verdict": "yes",
-            "at": 4.28
+            "at": 3.14
           },
           {
             "text": "Complex AI hard to maintain",
             "verdict": "no",
-            "at": 8.16
+            "at": 7.02
           }
         ]
       }
@@ -377,24 +377,24 @@
       "id": "c21",
       "card": "overlay/verdict-chips",
       "placement": "overlay",
-      "start": 1437.51,
-      "duration": 16.94,
+      "start": 1438.79,
+      "duration": 15.66,
       "variables": {
         "beats": [
           {
             "text": "Full workflow, clean",
             "verdict": "yes",
-            "at": 1.88
+            "at": 0.6
           },
           {
             "text": "AI feels intentional",
             "verdict": "yes",
-            "at": 6.76
+            "at": 5.48
           },
           {
             "text": "Scalable, not hacky",
             "verdict": "yes",
-            "at": 10.94
+            "at": 9.66
           }
         ]
       }
@@ -403,29 +403,29 @@
       "id": "c22",
       "card": "overlay/verdict-chips",
       "placement": "overlay",
-      "start": 1450.73,
-      "duration": 15.3,
+      "start": 1451.87,
+      "duration": 14.16,
       "variables": {
         "beats": [
           {
             "text": "Excellent results",
             "verdict": "yes",
-            "at": 1.74
+            "at": 0.6
           },
           {
             "text": "Everything requires code",
             "verdict": "no",
-            "at": 3.24
+            "at": 2.1
           },
           {
             "text": "Maximum flexibility",
             "verdict": "yes",
-            "at": 7.3
+            "at": 6.16
           },
           {
             "text": "Slower, less accessible",
             "verdict": "no",
-            "at": 9.3
+            "at": 8.16
           }
         ]
       }
@@ -434,19 +434,19 @@
       "id": "c23",
       "card": "overlay/verdict-chips",
       "placement": "overlay",
-      "start": 1461.99,
-      "duration": 12.7,
+      "start": 1465.73,
+      "duration": 8.96,
       "variables": {
         "beats": [
           {
             "text": "Strong AI agents, less setup",
             "verdict": "yes",
-            "at": 4.34
+            "at": 0.6
           },
           {
             "text": "Visual chains & memory",
             "verdict": "yes",
-            "at": 6.7
+            "at": 2.96
           }
         ]
       }
@@ -544,8 +544,8 @@
       "id": "c29",
       "card": "comparison/table-rows",
       "placement": "fullframe",
-      "start": 1945.53,
-      "duration": 18.44,
+      "start": 1948.89,
+      "duration": 15.08,
       "variables": {
         "title": "Time to result",
         "columns": [
@@ -556,27 +556,27 @@
           {
             "text": "Zapier|5 / 5",
             "logo": "zapier",
-            "at": 3.96
+            "at": 0.6
           },
           {
             "text": "Make|4 / 5",
             "logo": "make",
-            "at": 6.26
+            "at": 2.9
           },
           {
             "text": "n8n|4 / 5",
             "logo": "n8n",
-            "at": 7.18
+            "at": 3.82
           },
           {
             "text": "LangChain|2 / 5",
             "logo": "langchain",
-            "at": 8.56
+            "at": 5.2
           },
           {
             "text": "Flowise|4.5 / 5",
             "logo": "flowise",
-            "at": 10.44
+            "at": 7.08
           }
         ]
       }
@@ -599,8 +599,8 @@
       "id": "c31",
       "card": "verdict/persona-match",
       "placement": "fullframe",
-      "start": 2046.35,
-      "duration": 57.84,
+      "start": 2053.57,
+      "duration": 50.62,
       "variables": {
         "title": "Which one is for you?",
         "beats": [
@@ -608,31 +608,31 @@
             "persona": "Max control & scale",
             "winner": "n8n",
             "logo": "n8n",
-            "at": 7.82
+            "at": 0.6
           },
           {
             "persona": "Visual AI agents",
             "winner": "Flowise",
             "logo": "flowise",
-            "at": 22.3
+            "at": 15.08
           },
           {
             "persona": "Fast, simple automations",
             "winner": "Zapier",
             "logo": "zapier",
-            "at": 31.94
+            "at": 24.72
           },
           {
             "persona": "Visual logic, zero code",
             "winner": "Make",
             "logo": "make",
-            "at": 43.32
+            "at": 36.1
           },
           {
             "persona": "Devs building serious AI",
             "winner": "LangChain",
             "logo": "langchain",
-            "at": 52.84
+            "at": 45.62
           }
         ]
       }
@@ -641,8 +641,8 @@
       "id": "c32",
       "card": "verdict/winners-podium",
       "placement": "fullframe",
-      "start": 2112.09,
-      "duration": 18.14,
+      "start": 2113.37,
+      "duration": 16.86,
       "variables": {
         "eyebrow": "MY VERDICT",
         "ranked": false,
@@ -651,13 +651,13 @@
             "name": "n8n",
             "logo": "n8n",
             "reason": "Best overall automation platform",
-            "at": 1.88
+            "at": 0.6
           },
           {
             "name": "Flowise",
             "logo": "flowise",
             "reason": "Best visual AI workflow builder",
-            "at": 4.14
+            "at": 2.86
           }
         ]
       }

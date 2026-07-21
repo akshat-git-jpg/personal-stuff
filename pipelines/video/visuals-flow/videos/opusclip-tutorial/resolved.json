@@ -26,22 +26,22 @@
       "id": "c02",
       "card": "slate/headline-chips",
       "placement": "fullframe",
-      "start": 68.6,
-      "duration": 12.44,
+      "start": 73.46,
+      "duration": 7.58,
       "variables": {
         "headline": "Same video, same goal, same criteria",
         "beats": [
           {
             "text": "Caption quality",
-            "at": 5.46
+            "at": 0.6
           },
           {
             "text": "Pacing and customization",
-            "at": 7.62
+            "at": 2.76
           },
           {
             "text": "Time saved and value",
-            "at": 9.44
+            "at": 4.58
           }
         ]
       }
@@ -75,24 +75,24 @@
       "id": "c05",
       "card": "overlay/verdict-chips",
       "placement": "overlay",
-      "start": 139.96,
-      "duration": 13.28,
+      "start": 141.48,
+      "duration": 11.76,
       "variables": {
         "beats": [
           {
             "text": "Fast, automated clipping",
             "verdict": "yes",
-            "at": 2.12
+            "at": 0.6
           },
           {
             "text": "Little creative control",
             "verdict": "no",
-            "at": 3.18
+            "at": 1.66
           },
           {
             "text": "Clips still need cleanup",
             "verdict": "no",
-            "at": 10.28
+            "at": 8.76
           }
         ]
       }
@@ -116,19 +116,19 @@
       "id": "c07",
       "card": "overlay/verdict-chips",
       "placement": "overlay",
-      "start": 166.8,
-      "duration": 7.5,
+      "start": 167.54,
+      "duration": 6.76,
       "variables": {
         "beats": [
           {
             "text": "Polish and customization",
             "verdict": "yes",
-            "at": 1.34
+            "at": 0.6
           },
           {
             "text": "Not fully hands-off",
             "verdict": "no",
-            "at": 4.5
+            "at": 3.76
           }
         ]
       }
@@ -149,27 +149,27 @@
       "id": "c10",
       "card": "checklist/icon-pills",
       "placement": "fullframe",
-      "start": 244.84,
-      "duration": 23.48,
+      "start": 251.62,
+      "duration": 16.7,
       "variables": {
         "beats": [
           {
             "icon": "chat",
             "text": "Set the language",
             "keyword": "language",
-            "at": 7.38
+            "at": 0.6
           },
           {
             "icon": "person",
             "text": "Multi-speaker colors",
             "keyword": "Multi-speaker",
-            "at": 14.56
+            "at": 7.78
           },
           {
             "icon": "bolt",
             "text": "Create the AI edit",
             "keyword": "AI edit",
-            "at": 20.48
+            "at": 13.7
           }
         ]
       }
@@ -228,33 +228,33 @@
       "id": "c15",
       "card": "checklist/icon-pills",
       "placement": "fullframe",
-      "start": 374.57,
-      "duration": 15.7,
+      "start": 378.33,
+      "duration": 11.94,
       "variables": {
         "beats": [
           {
             "icon": "gear",
             "text": "Pick the clip model",
             "keyword": "clip model",
-            "at": 4.36
+            "at": 0.6
           },
           {
             "icon": "search",
             "text": "Set the video genre",
             "keyword": "genre",
-            "at": 6.48
+            "at": 2.72
           },
           {
             "icon": "clock",
             "text": "Choose the clip length",
             "keyword": "clip length",
-            "at": 8.9
+            "at": 5.14
           },
           {
             "icon": "bolt",
             "text": "Auto hook on top clips",
             "keyword": "Auto hook",
-            "at": 12.7
+            "at": 8.94
           }
         ]
       }
@@ -435,24 +435,24 @@
       "id": "c20",
       "card": "overlay/verdict-chips",
       "placement": "overlay",
-      "start": 557.22,
-      "duration": 14.72,
+      "start": 557.9,
+      "duration": 14.04,
       "variables": {
         "beats": [
           {
             "text": "Emphasis is clearer",
             "verdict": "yes",
-            "at": 1.28
+            "at": 0.6
           },
           {
             "text": "Layout feels intentional",
             "verdict": "yes",
-            "at": 2.88
+            "at": 2.2
           },
           {
             "text": "Feels native to short-form",
             "verdict": "yes",
-            "at": 11.72
+            "at": 11.04
           }
         ]
       }
@@ -461,24 +461,24 @@
       "id": "c22",
       "card": "overlay/verdict-chips",
       "placement": "overlay",
-      "start": 619.36,
-      "duration": 12.84,
+      "start": 621.8,
+      "duration": 10.4,
       "variables": {
         "beats": [
           {
             "text": "Captions are pretty basic",
             "verdict": "no",
-            "at": 3.04
+            "at": 0.6
           },
           {
             "text": "Pacing often feels off",
             "verdict": "no",
-            "at": 5.6
+            "at": 3.16
           },
           {
             "text": "Clips don't look finished",
             "verdict": "no",
-            "at": 9.84
+            "at": 7.4
           }
         ]
       }
@@ -487,26 +487,26 @@
       "id": "c22a",
       "card": "slate/headline-chips",
       "placement": "fullframe",
-      "start": 631.46,
-      "duration": 9.34,
+      "start": 633,
+      "duration": 7.8,
       "variables": {
         "headline": "OpusClip clips still need work after export",
         "beats": [
           {
             "text": "Adjust captions",
-            "at": 2.14
+            "at": 0.6
           },
           {
             "text": "Fix emphasis",
-            "at": 4
+            "at": 2.46
           },
           {
             "text": "Clean up pacing",
-            "at": 5
+            "at": 3.46
           },
           {
             "text": "Rework layout",
-            "at": 6.34
+            "at": 4.8
           }
         ]
       }
@@ -615,22 +615,22 @@
       "id": "c26",
       "card": "slate/headline-chips",
       "placement": "fullframe",
-      "start": 752.5,
-      "duration": 8.56,
+      "start": 753.16,
+      "duration": 7.9,
       "variables": {
         "headline": "Less cleanup compounds for daily creators",
         "beats": [
           {
             "text": "Faster publishing",
-            "at": 1.26
+            "at": 0.6
           },
           {
             "text": "Better consistency",
-            "at": 2.54
+            "at": 1.88
           },
           {
             "text": "Quality earns the price",
-            "at": 5.56
+            "at": 4.9
           }
         ]
       }
@@ -707,8 +707,8 @@
       "id": "c30",
       "card": "comparison/summary-table",
       "placement": "fullframe",
-      "start": 891.83,
-      "duration": 82.38,
+      "start": 895.67,
+      "duration": 78.54,
       "variables": {
         "products": [
           "OpusClip",
@@ -726,7 +726,7 @@
               "4.5 / 5"
             ],
             "reason": "More intuitive editor",
-            "at": 4.44
+            "at": 0.6
           },
           {
             "name": "Caption quality",
@@ -735,7 +735,7 @@
               "5 / 5"
             ],
             "reason": "Cleaner, dynamic captions",
-            "at": 30.24
+            "at": 26.4
           },
           {
             "name": "Customization",
@@ -744,7 +744,7 @@
               "5 / 5"
             ],
             "reason": "Real control over style",
-            "at": 48.82
+            "at": 44.98
           },
           {
             "name": "Time to publish",
@@ -753,7 +753,7 @@
               "5 / 5"
             ],
             "reason": "Publish-ready immediately",
-            "at": 64.18
+            "at": 60.34
           },
           {
             "name": "Pricing value",
@@ -762,7 +762,7 @@
               "4.5 / 5"
             ],
             "reason": "Saves more editing time",
-            "at": 78.38
+            "at": 74.54
           }
         ]
       }
@@ -771,8 +771,8 @@
       "id": "c31",
       "card": "verdict/persona-match",
       "placement": "fullframe",
-      "start": 997.15,
-      "duration": 23.2,
+      "start": 1002.97,
+      "duration": 17.38,
       "variables": {
         "title": "Which one should you pick?",
         "beats": [
@@ -780,13 +780,13 @@
             "persona": "Speed is the priority",
             "winner": "OpusClip",
             "logo": "opusclip",
-            "at": 6.42
+            "at": 0.6
           },
           {
             "persona": "You want publish-ready clips",
             "winner": "Submagic",
             "logo": "submagic",
-            "at": 19.2
+            "at": 13.38
           }
         ]
       }

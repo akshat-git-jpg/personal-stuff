@@ -18,7 +18,9 @@ const DENSITY_OVERLAY_MAX = 3;
 const TARGET_RATE_MIN = 1.0;
 const TARGET_RATE_MAX = 1.9;
 const BARE_GAP_MAX = 50; // W6: max interior seconds with NO graphic (any placement) before/after any cue
-const FIRST_BEAT_IDLE_MAX = 8; // s a beat card may sit before its first reveal (owner: an empty scaffold reads as broken, test-02 c29)
+// Dead air is now designed out by the resolver's BEAT_LEAD_IN clamp (plan 116);
+// W5 stays as the regression detector for that clamp, not as a style hint.
+const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
 const ENDCARD_SLUG_PREFIXES = ['brand/', 'link-in-description/'];
 
 export function lintCues({ cuesFile, resolved, words, catalog }) {
@@ -160,8 +162,17 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
     const ats = (r.variables?.beats ?? []).map((b) => Number(b.at)).filter(Number.isFinite);
     if (!ats.length) continue;
     const firstAt = Math.min(...ats);
-    if (firstAt > FIRST_BEAT_IDLE_MAX) {
-      warnings.push(`W5 first-beat-idle: ${r.id} shows its first beat ${firstAt.toFixed(1)}s after the card appears (max ${FIRST_BEAT_IDLE_MAX}s) — move the cue anchor closer to the first beat`);
+    const cat = bySlug[r.card];
+    if (!cat) continue;
+    const pre = cat.pre_beat_render || 'chrome';
+    const limit = FIRST_BEAT_IDLE_MAX[pre] ?? FIRST_BEAT_IDLE_MAX.chrome;
+    if (firstAt > limit) {
+      const msg = `W5 first-beat-idle: ${r.id} shows its first beat ${firstAt.toFixed(1)}s after the card appears (max ${limit}s) — move the cue anchor closer to the first beat`;
+      if (cat.placement === 'fullframe') {
+        errors.push(msg);
+      } else {
+        warnings.push(msg);
+      }
     }
   }
 
