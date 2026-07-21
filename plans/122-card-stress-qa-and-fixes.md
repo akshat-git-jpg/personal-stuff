@@ -2,7 +2,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/card-library && bash scripts/check-cards.sh && node scripts/check-catalog.mjs
+test_cmd: cd pipelines/video/card-library && bash scripts/check-cards.sh && node scripts/check-catalog.mjs && cd ../visuals-flow && node --test
 ui: true
 deploy:
 needs: ["Needs 115 (variable contracts drive the worst-case generator) and 121 (normalized logos)"]
