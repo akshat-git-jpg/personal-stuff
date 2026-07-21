@@ -104,6 +104,7 @@ export function checkRulebook({
     if (!rulebook.includes(section)) fail(`RULEBOOK.md missing section: ${section}`);
   }
 
+  if (!prompt.includes('{{SKELETON}}')) fail('cue-pass-prompt.md missing {{SKELETON}} placeholder');
   if (!prompt.includes('{{CATALOG}}')) fail('cue-pass-prompt.md missing {{CATALOG}} placeholder');
   if (!prompt.includes('{{TRANSCRIPT}}')) fail('cue-pass-prompt.md missing {{TRANSCRIPT}} placeholder');
   if (!prompt.includes('raw JSON')) fail('cue-pass-prompt.md missing "raw JSON" output rule');
