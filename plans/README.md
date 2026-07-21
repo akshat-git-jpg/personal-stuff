@@ -596,3 +596,4 @@ structural causes, all model-independent. Ordered; 115 and 116 both edit `lib/re
 - 117-segment-map-demo-safety — PR#75 117-segment-map-demo-safety: Segment map — stop fullframe graphics from covering live demo footage — DONE
 - 121-logo-normalization — normalize every registry logo to a 256x256 tile, mark at 72%; gate on fetch — TODO
 - 122-card-stress-qa-and-fixes — worst-case card contact sheets as a required gate; fix icon-pills, summary-table, head-to-head logos — TODO
+- 123-complete-115-116-117 — finish the catalog migration, card ungating and prompt fix that 115/116/117's narrow test_cmd could not gate — TODO
