@@ -6,8 +6,18 @@
       "placement": "fullframe",
       "purpose": "a 'Prompt' panel that types its text out over the clip; [m:ss] timestamp tags glow orange, a caret blinks, the box auto-scrolls — for showing an AI-tool/video prompt being written",
       "variables": {
-        "title": "string",
-        "prompt": "string — the full prompt, \\n for line breaks; [m:ss] tags auto-highlight"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "prompt": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        }
       },
       "default_duration": 12
     },
@@ -17,9 +27,27 @@
       "placement": "fullframe",
       "purpose": "hero for one tool/model: a glassy app-icon tile with the tool's (muted) logo, its name beneath, and an optional subtitle — the 'this is the tool' beat",
       "variables": {
-        "logo": "string — logos/ registry slug",
-        "name": "string",
-        "subtitle": "string (optional)"
+        "logo": {
+          "type": "string",
+          "required": true,
+          "role": "logo_slug",
+          "example": "submagic"
+        },
+        "name": {
+          "type": "string",
+          "required": true,
+          "role": "label",
+          "max_words": 3,
+          "example": "Submagic"
+        },
+        "subtitle": {
+          "type": "string",
+          "required": false,
+          "role": "descriptor",
+          "max_words": 6,
+          "omit_unless": "it states what the tool IS or DOES in words the logo and name do not already carry. Never flow narration about the video itself ('First up in the demo', 'Next tool').",
+          "example": "Caption-first short-form editor"
+        }
       },
       "default_duration": 6
     },
@@ -29,8 +57,18 @@
       "placement": "fullframe",
       "purpose": "a single punchy centered statement revealed word-by-word with one keyword phrase highlighted in the accent — a standalone emphasis beat (distinct from running captions)",
       "variables": {
-        "text": "string",
-        "keyword": "string (optional) — verbatim phrase inside text, shown in accent"
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "keyword": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "example": "example"
+        }
       },
       "default_duration": 5
     },
@@ -40,10 +78,20 @@
       "placement": "fullframe",
       "purpose": "vertical checklist; each row's box fills and checkmark draws in as it reveals on its beat",
       "variables": {
-        "title": "string"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "beat_shape": {
-        "text": "string"
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        }
       },
       "default_duration": 8,
       "max_beats": 6,
@@ -57,9 +105,40 @@
       "purpose": "vertical list of icon-tile + text-pill rows revealing one per beat, accent-outlined with a soft glow; optional keyword highlight per row — for enumerating features/capabilities",
       "variables": {},
       "beat_shape": {
-        "icon": "string — icon-set name (brain|calendar|person|bolt|gear|lock|clock|chart|chat|shield|doc|search|star|cloud)",
-        "text": "string",
-        "keyword": "string (optional) — verbatim phrase inside text"
+        "icon": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "brain",
+          "enum": [
+            "brain",
+            "calendar",
+            "person",
+            "bolt",
+            "gear",
+            "lock",
+            "clock",
+            "chart",
+            "chat",
+            "shield",
+            "doc",
+            "search",
+            "star",
+            "cloud"
+          ]
+        },
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "keyword": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "example": "example"
+        }
       },
       "max_beats": 4,
       "max_reveal_chars": 40,
@@ -72,8 +151,46 @@
       "placement": "fullframe",
       "purpose": "horizontal bar chart racing from zero to each product's value",
       "variables": {
-        "title": "string",
-        "bars": "array of {label, value, color?, prefix?, suffix?} — ALWAYS carry the unit on each bar (prefix '$' / suffix 'ms'); missing colors fall back to the card palette"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "bars": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "label": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "OpusClip"
+            },
+            "value": {
+              "type": "number",
+              "required": true
+            },
+            "color": {
+              "type": "string",
+              "required": false,
+              "role": "free",
+              "example": "#ff0000"
+            },
+            "prefix": {
+              "type": "string",
+              "required": false,
+              "role": "free",
+              "example": "$"
+            },
+            "suffix": {
+              "type": "string",
+              "required": false,
+              "role": "free",
+              "example": "ms"
+            }
+          }
+        }
       },
       "default_duration": 6
     },
@@ -83,9 +200,36 @@
       "placement": "fullframe",
       "purpose": "monthly vs yearly plan cards side by side with a savings stamp on the yearly plan",
       "variables": {
-        "title": "string",
-        "monthly": "object",
-        "yearly": "object"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "monthly": {
+          "type": "object",
+          "required": true,
+          "shape": {
+            "price": {
+              "type": "string",
+              "required": true,
+              "role": "value",
+              "example": "$20"
+            }
+          }
+        },
+        "yearly": {
+          "type": "object",
+          "required": true,
+          "shape": {
+            "price": {
+              "type": "string",
+              "required": true,
+              "role": "value",
+              "example": "$12"
+            }
+          }
+        }
       },
       "default_duration": 7
     },
@@ -95,10 +239,48 @@
       "placement": "fullframe",
       "purpose": "cart summary panel where a coupon code applies and the total counts down",
       "variables": {
-        "title": "string",
-        "currency": "string",
-        "items": "array of {label, price}",
-        "coupon": "object"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "currency": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "items": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "label": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "Pro Plan"
+            },
+            "price": {
+              "type": "string",
+              "required": true,
+              "role": "value",
+              "example": "$20"
+            }
+          }
+        },
+        "coupon": {
+          "type": "object",
+          "required": true,
+          "shape": {
+            "code": {
+              "type": "string",
+              "required": true,
+              "role": "free",
+              "example": "SAVE20"
+            }
+          }
+        }
       },
       "default_duration": 7
     },
@@ -108,10 +290,36 @@
       "placement": "fullframe",
       "purpose": "comparison table over a storm/particle background; rows cascade in and the winner column glows",
       "variables": {
-        "eyebrow": "string",
-        "tools": "array of strings",
-        "rows": "array of {feature, values: one per tool}",
-        "winnerColumn": "number"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "tools": {
+          "required": true,
+          "type": "array"
+        },
+        "rows": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "feature": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "Speed"
+            },
+            "values": {
+              "type": "array",
+              "required": true
+            }
+          }
+        },
+        "winnerColumn": {
+          "required": true,
+          "type": "number"
+        }
       },
       "default_duration": 13
     },
@@ -121,7 +329,12 @@
       "placement": "fullframe",
       "purpose": "S/A/B/C/F tier list ranking tools with logo pills sliding into each tier row",
       "variables": {
-        "eyebrow": "string"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "default_duration": 13
     },
@@ -131,11 +344,24 @@
       "placement": "fullframe",
       "purpose": "feature comparison matrix; each row of check/cross/value cells reveals on its beat",
       "variables": {
-        "products": "array of strings"
+        "products": {
+          "required": true,
+          "type": "array"
+        }
       },
       "beat_shape": {
-        "name": "string",
-        "values": "array, EXACTLY one per product, in products order: true/false for checks or a short string"
+        "name": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "values": {
+          "required": true,
+          "type": "string",
+          "role": "value",
+          "example": "100"
+        }
       },
       "default_duration": 7,
       "max_beats": 8,
@@ -148,8 +374,72 @@
       "placement": "fullframe",
       "purpose": "two-contender VS panel with stats stacked on each side and a center VS badge",
       "variables": {
-        "left": "object",
-        "right": "object"
+        "left": {
+          "type": "object",
+          "required": true,
+          "shape": {
+            "name": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "max_words": 3,
+              "example": "OpusClip"
+            },
+            "stats": {
+              "type": "array",
+              "required": true,
+              "item_shape": {
+                "label": {
+                  "type": "string",
+                  "required": true,
+                  "role": "label",
+                  "max_words": 3,
+                  "example": "Starter"
+                },
+                "value": {
+                  "type": "string",
+                  "required": true,
+                  "role": "value",
+                  "max_words": 3,
+                  "example": "$12 / mo"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "type": "object",
+          "required": true,
+          "shape": {
+            "name": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "max_words": 3,
+              "example": "OpusClip"
+            },
+            "stats": {
+              "type": "array",
+              "required": true,
+              "item_shape": {
+                "label": {
+                  "type": "string",
+                  "required": true,
+                  "role": "label",
+                  "max_words": 3,
+                  "example": "Starter"
+                },
+                "value": {
+                  "type": "string",
+                  "required": true,
+                  "role": "value",
+                  "max_words": 3,
+                  "example": "$12 / mo"
+                }
+              }
+            }
+          }
+        }
       },
       "default_duration": 5.5
     },
@@ -159,8 +449,68 @@
       "placement": "fullframe",
       "purpose": "2-3 column pricing plan cards with one plan flagged as recommended",
       "variables": {
-        "heading": "string",
-        "plans": "array of {name, price, monthlyPrice?, billingNote?, period, tagline, features: string[], cta, best: boolean}"
+        "heading": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "plans": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "name": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "Pro"
+            },
+            "price": {
+              "type": "string",
+              "required": true,
+              "role": "value",
+              "example": "$20"
+            },
+            "monthlyPrice": {
+              "type": "string",
+              "required": false,
+              "role": "value",
+              "example": "$24"
+            },
+            "billingNote": {
+              "type": "string",
+              "required": false,
+              "role": "descriptor",
+              "example": "billed yearly"
+            },
+            "period": {
+              "type": "string",
+              "required": true,
+              "role": "free",
+              "example": "/mo"
+            },
+            "tagline": {
+              "type": "string",
+              "required": true,
+              "role": "descriptor",
+              "example": "For teams"
+            },
+            "features": {
+              "type": "array",
+              "required": true
+            },
+            "cta": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "Get Started"
+            },
+            "best": {
+              "type": "boolean",
+              "required": true
+            }
+          }
+        }
       },
       "default_duration": 8
     },
@@ -170,11 +520,46 @@
       "placement": "fullframe",
       "purpose": "full-price bar that slices off discount chunks one by one down to a final price",
       "variables": {
-        "title": "string",
-        "currency": "string",
-        "original": "number",
-        "period": "string",
-        "steps": "array of {label, percent}"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "currency": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "original": {
+          "required": true,
+          "type": "number"
+        },
+        "period": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "steps": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "label": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "Annual discount"
+            },
+            "percent": {
+              "type": "string",
+              "required": true,
+              "role": "value",
+              "example": "-20%"
+            }
+          }
+        }
       },
       "default_duration": 8
     },
@@ -184,13 +569,34 @@
       "placement": "fullframe",
       "purpose": "scored comparison matrix with a reason column; each factor row reveals on its beat",
       "variables": {
-        "products": "array of strings",
-        "productLogos": "array of strings (optional) — logos/ registry slugs matching products, e.g. ['heygen', 'openart']"
+        "products": {
+          "required": true,
+          "type": "array"
+        },
+        "productLogos": {
+          "required": false,
+          "type": "array"
+        }
       },
       "beat_shape": {
-        "name": "string",
-        "values": "array of score strings, EXACTLY one per product in products order (e.g. \"4.5 / 5\")",
-        "reason": "string (optional) — one-line why, shown in the last column"
+        "name": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "values": {
+          "required": true,
+          "type": "string",
+          "role": "value",
+          "example": "100"
+        },
+        "reason": {
+          "required": false,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        }
       },
       "default_duration": 7,
       "max_beats": 7,
@@ -203,7 +609,12 @@
       "placement": "overlay",
       "purpose": "chroma-key subscribe button overlay that rings the bell and presses on click",
       "variables": {
-        "subscribeText": "string"
+        "subscribeText": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        }
       },
       "default_duration": 5
     },
@@ -213,7 +624,12 @@
       "placement": "overlay",
       "purpose": "chroma-key pill overlay pointing viewers to the link in the description",
       "variables": {
-        "message": "string"
+        "message": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        }
       },
       "default_duration": 4
     },
@@ -223,11 +639,28 @@
       "placement": "overlay",
       "purpose": "transparent overlay: a curved arrow draws from a label toward whatever you're pointing at",
       "variables": {
-        "label": "string",
-        "tailX": "number",
-        "tailY": "number",
-        "tipX": "number",
-        "tipY": "number"
+        "label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "tailX": {
+          "required": true,
+          "type": "number"
+        },
+        "tailY": {
+          "required": true,
+          "type": "number"
+        },
+        "tipX": {
+          "required": true,
+          "type": "number"
+        },
+        "tipY": {
+          "required": true,
+          "type": "number"
+        }
       },
       "default_duration": 5
     },
@@ -237,12 +670,58 @@
       "placement": "overlay",
       "purpose": "transparent tip/warning/note callout box that pops in over screen recording",
       "variables": {
-        "kind": "string",
-        "title": "string",
-        "text": "string",
-        "pos": "string",
-        "style": "string (optional): 'feature' | 'tip' | 'warning' — default 'feature'",
-        "kicker": "string (optional)"
+        "kind": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "tip",
+          "enum": [
+            "tip",
+            "warning",
+            "note"
+          ]
+        },
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "pos": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "top-right",
+          "enum": [
+            "top-right",
+            "top-left",
+            "bottom-right",
+            "center"
+          ]
+        },
+        "style": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "example": "feature",
+          "enum": [
+            "feature",
+            "tip",
+            "warning"
+          ]
+        },
+        "kicker": {
+          "required": false,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "default_duration": 5
     },
@@ -252,10 +731,30 @@
       "placement": "overlay",
       "purpose": "transparent overlay decoding a redacted coupon code with a copy-flash sweep",
       "variables": {
-        "eyebrow": "string",
-        "code": "string",
-        "sub": "string",
-        "pos": "string"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "code": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "sub": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "pos": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        }
       },
       "default_duration": 5
     },
@@ -265,13 +764,48 @@
       "placement": "overlay",
       "purpose": "transparent overlay slamming in a discounted price with a strike-through original and save stamp",
       "variables": {
-        "eyebrow": "string",
-        "original": "string",
-        "price": "string",
-        "period": "string",
-        "save": "string",
-        "code": "string",
-        "pos": "string"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "original": {
+          "required": true,
+          "type": "string",
+          "role": "value",
+          "example": "100"
+        },
+        "price": {
+          "required": true,
+          "type": "string",
+          "role": "value",
+          "example": "100"
+        },
+        "period": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "save": {
+          "required": true,
+          "type": "string",
+          "role": "value",
+          "example": "100"
+        },
+        "code": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "pos": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        }
       },
       "default_duration": 5
     },
@@ -281,8 +815,18 @@
       "placement": "overlay",
       "purpose": "transparent lower-third name + subtitle pill sliding in at bottom-left",
       "variables": {
-        "name": "string",
-        "subtitle": "string"
+        "name": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "subtitle": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "default_duration": 5
     },
@@ -292,13 +836,54 @@
       "placement": "overlay",
       "purpose": "transparent overlay punching in a big savings amount next to a round seal",
       "variables": {
-        "eyebrow": "string",
-        "save": "string",
-        "amount": "string",
-        "per": "string",
-        "sub": "string",
-        "seal": "string",
-        "pos": "string"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "save": {
+          "required": true,
+          "type": "string",
+          "role": "value",
+          "example": "100"
+        },
+        "amount": {
+          "required": true,
+          "type": "string",
+          "role": "value",
+          "example": "100"
+        },
+        "per": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "sub": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "seal": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "pos": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "center",
+          "enum": [
+            "center",
+            "bottom-left",
+            "bottom-right",
+            "top-right"
+          ]
+        }
       },
       "default_duration": 5
     },
@@ -308,11 +893,30 @@
       "placement": "overlay",
       "purpose": "spoken score badge: label + animated N/10 pill (optional logo; gold only when winner) at the second the score is said",
       "variables": {
-        "label": "string",
-        "score": "number",
-        "max": "number (optional, default 10)",
-        "logo": "string (optional) — logos/ registry slug",
-        "winner": "boolean (optional, default false)"
+        "label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "score": {
+          "required": true,
+          "type": "number"
+        },
+        "max": {
+          "required": true,
+          "type": "number"
+        },
+        "logo": {
+          "required": false,
+          "type": "string",
+          "role": "logo_slug",
+          "example": "heygen"
+        },
+        "winner": {
+          "required": true,
+          "type": "boolean"
+        }
       },
       "default_duration": 4
     },
@@ -322,12 +926,32 @@
       "placement": "overlay",
       "purpose": "transparent overlay dimming the screen except a highlighted region, with a click ripple inside it",
       "variables": {
-        "x": "number",
-        "y": "number",
-        "w": "number",
-        "h": "number",
-        "radius": "number",
-        "label": "string"
+        "x": {
+          "required": true,
+          "type": "number"
+        },
+        "y": {
+          "required": true,
+          "type": "number"
+        },
+        "w": {
+          "required": true,
+          "type": "number"
+        },
+        "h": {
+          "required": true,
+          "type": "number"
+        },
+        "radius": {
+          "required": true,
+          "type": "number"
+        },
+        "label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        }
       },
       "default_duration": 5
     },
@@ -337,9 +961,20 @@
       "placement": "overlay",
       "purpose": "transparent step-progress pill (Step X of Y) with a progress-dot row for tutorial footage",
       "variables": {
-        "step": "number",
-        "total": "number",
-        "label": "string"
+        "step": {
+          "required": true,
+          "type": "number"
+        },
+        "total": {
+          "required": true,
+          "type": "number"
+        },
+        "label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        }
       },
       "default_duration": 5
     },
@@ -349,10 +984,40 @@
       "placement": "overlay",
       "purpose": "transparent full-width tip/warning banner sliding in along the bottom or top edge",
       "variables": {
-        "kind": "string",
-        "label": "string",
-        "text": "string",
-        "edge": "string"
+        "kind": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "tip",
+          "enum": [
+            "tip",
+            "warning",
+            "danger",
+            "info"
+          ]
+        },
+        "label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "edge": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "bottom",
+          "enum": [
+            "bottom",
+            "top"
+          ]
+        }
       },
       "default_duration": 5
     },
@@ -363,8 +1028,18 @@
       "purpose": "spoken pros/cons pinned to footage: green-check / rose-cross pill chips tick in one per beat and persist, anchored bottom-left",
       "variables": {},
       "beat_shape": {
-        "text": "string",
-        "verdict": "string — 'yes' | 'no'"
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "verdict": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        }
       },
       "default_duration": 8,
       "max_beats": 4,
@@ -377,11 +1052,30 @@
       "placement": "fullframe",
       "purpose": "two-column pros vs cons; each row reveals on its beat",
       "variables": {
-        "title": "string"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "beat_shape": {
-        "kind": "'pro' | 'con'",
-        "text": "string"
+        "kind": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "enum": [
+            "pro",
+            "con"
+          ],
+          "example": "pro"
+        },
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        }
       },
       "default_duration": 6,
       "max_beats": 8,
@@ -394,10 +1088,20 @@
       "placement": "fullframe",
       "purpose": "plain numbered agenda list; each row reveals on its beat",
       "variables": {
-        "eyebrow": "string"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "beat_shape": {
-        "label": "string"
+        "label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        }
       },
       "default_duration": 6,
       "max_beats": 6,
@@ -410,9 +1114,28 @@
       "placement": "fullframe",
       "purpose": "re-shown table-of-contents that dims done/upcoming items and highlights the current section",
       "variables": {
-        "eyebrow": "string",
-        "active": "number (1-based highlighted item)",
-        "items": "array of {label} or plain strings"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "active": {
+          "required": true,
+          "type": "number"
+        },
+        "items": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "label": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "Introduction"
+            }
+          }
+        }
       },
       "default_duration": 6
     },
@@ -422,11 +1145,26 @@
       "placement": "fullframe",
       "purpose": "end-of-video recap; each takeaway ticks in with a check badge on its beat",
       "variables": {
-        "eyebrow": "string",
-        "title": "string"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "beat_shape": {
-        "label": "string"
+        "label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        }
       },
       "default_duration": 8,
       "max_beats": 5,
@@ -439,8 +1177,18 @@
       "placement": "fullframe",
       "purpose": "section divider where a glass card flips up from below and settles with a spring bounce",
       "variables": {
-        "number": "string",
-        "title": "string"
+        "number": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "default_duration": 5,
       "structural": true
@@ -451,10 +1199,28 @@
       "placement": "fullframe",
       "purpose": "section divider where a big number counts up then scales down as the title and dots ripple in",
       "variables": {
-        "number": "string",
-        "title": "string",
-        "dots": "number",
-        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'; shown beside the title"
+        "number": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "dots": {
+          "required": true,
+          "type": "number"
+        },
+        "logo": {
+          "required": false,
+          "type": "string",
+          "role": "logo_slug",
+          "example": "heygen"
+        }
       },
       "default_duration": 5,
       "structural": true
@@ -465,8 +1231,18 @@
       "placement": "fullframe",
       "purpose": "section divider with drifting light streaks and particles behind an elastic title pop",
       "variables": {
-        "number": "string",
-        "title": "string"
+        "number": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "default_duration": 5,
       "structural": true
@@ -477,10 +1253,20 @@
       "placement": "fullframe",
       "purpose": "numbered table-of-contents list; each row reveals on its beat",
       "variables": {
-        "eyebrow": "string"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "beat_shape": {
-        "label": "string"
+        "label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        }
       },
       "default_duration": 9,
       "max_beats": 7,
@@ -493,8 +1279,30 @@
       "placement": "fullframe",
       "purpose": "title card with drifting aurora blobs and a light bar that wipes logo chips into view — THE cold-open pick for multi-product comparisons (products become the visual hero)",
       "variables": {
-        "title": "string",
-        "platforms": "array of {name, logo? (logos/ registry slug)} — the chips the light bar wipes in; name-only entries render as text chips. Omit entirely = demo chips (never ship those)"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "platforms": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "name": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "OpusClip"
+            },
+            "logo": {
+              "type": "string",
+              "required": false,
+              "role": "logo_slug",
+              "example": "opusclip"
+            }
+          }
+        }
       },
       "default_duration": 10
     },
@@ -504,8 +1312,30 @@
       "placement": "fullframe",
       "purpose": "title card with a breathing vignette background; title scales in and uniform tool tiles cascade then gently bob — a strong comparison cold-open (products are the hero, every tile identical size)",
       "variables": {
-        "title": "string",
-        "platforms": "array of {name, logo? (logos/ registry slug)} — uniform glass tiles the logos sit in at a fixed centered footprint; name-only entries render as text tiles. Omit = demo chips (never ship those)"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "platforms": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "name": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "OpusClip"
+            },
+            "logo": {
+              "type": "string",
+              "required": false,
+              "role": "logo_slug",
+              "example": "opusclip"
+            }
+          }
+        }
       },
       "default_duration": 10
     },
@@ -515,9 +1345,24 @@
       "placement": "fullframe",
       "purpose": "title card with kinetic line-by-line text reveal for kicker, title, and subtitle",
       "variables": {
-        "kicker": "string",
-        "title": "string",
-        "subtitle": "string"
+        "kicker": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "subtitle": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "default_duration": 10
     },
@@ -527,7 +1372,12 @@
       "placement": "fullframe",
       "purpose": "title card with a storm background and the title popping in with an elastic overshoot",
       "variables": {
-        "title": "string"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "default_duration": 10
     },
@@ -537,10 +1387,30 @@
       "placement": "fullframe",
       "purpose": "verdict card where the winner slides in and five achievement badges pop in one by one",
       "variables": {
-        "eyebrow": "string",
-        "winner": "string",
-        "reason": "string",
-        "badgesHead": "string"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "winner": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "reason": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "badgesHead": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        }
       },
       "default_duration": 8
     },
@@ -550,15 +1420,50 @@
       "placement": "fullframe",
       "purpose": "verdict report card with a glowing letter grade; each sub-grade reveals on its beat",
       "variables": {
-        "eyebrow": "string",
-        "winner": "string",
-        "grade": "string",
-        "reason": "string"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "winner": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "grade": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "reason": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        }
       },
       "beat_shape": {
-        "subject": "string",
-        "grade": "string",
-        "color": "string"
+        "subject": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "grade": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "color": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        }
       },
       "default_duration": 7,
       "max_beats": 5,
@@ -571,10 +1476,30 @@
       "placement": "fullframe",
       "purpose": "verdict card with confetti and a trophy dropping in before the winner card lifts with a gold pulse. ONE winner per card — a dual verdict gets one card per winner, back to back",
       "variables": {
-        "eyebrow": "string",
-        "winner": "string — exactly one product name",
-        "reason": "string",
-        "logo": "string (optional) — logos/ registry slug, shown beside the winner name"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "winner": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "reason": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "logo": {
+          "required": false,
+          "type": "string",
+          "role": "logo_slug",
+          "example": "heygen"
+        }
       },
       "default_duration": 7
     },
@@ -584,11 +1509,34 @@
       "placement": "overlay",
       "purpose": "big animated stat: count-up hero number + label + context line, transparent overlay for demo footage",
       "variables": {
-        "eyebrow": "string",
-        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'",
-        "value": "number",
-        "suffix": "string (optional)",
-        "context": "string"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "logo": {
+          "required": false,
+          "type": "string",
+          "role": "logo_slug",
+          "example": "heygen"
+        },
+        "value": {
+          "required": true,
+          "type": "number"
+        },
+        "suffix": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "example": "Example value"
+        },
+        "context": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        }
       },
       "default_duration": 5
     },
@@ -598,12 +1546,38 @@
       "placement": "fullframe",
       "purpose": "section opener for one tool/product: TOOL N OF M progress, huge name, positioning line, category chip",
       "variables": {
-        "index": "number",
-        "total": "number",
-        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'",
-        "name": "string",
-        "tagline": "string",
-        "tag": "string"
+        "index": {
+          "required": true,
+          "type": "number"
+        },
+        "total": {
+          "required": true,
+          "type": "number"
+        },
+        "logo": {
+          "required": false,
+          "type": "string",
+          "role": "logo_slug",
+          "example": "heygen"
+        },
+        "name": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "tagline": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "tag": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        }
       },
       "default_duration": 6,
       "structural": true
@@ -614,13 +1588,36 @@
       "placement": "fullframe",
       "purpose": "side-by-side verdict winners over a confetti stage, one tool column per beat; scales 2-4 winners (layout derives from count). Use for a multi-winner finale — co-winners (ranked:false, all gold) or a ranked podium (ranked:true → gold/silver/bronze/steel). ONE tool per beat.",
       "variables": {
-        "eyebrow": "string",
-        "ranked": "boolean (optional, default false) — false: every column an equal gold co-winner; true: medals by beat order (1st gold, 2nd silver, 3rd bronze, 4th steel)"
+        "eyebrow": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "ranked": {
+          "required": true,
+          "type": "boolean"
+        }
       },
       "beat_shape": {
-        "name": "string — one tool/product name",
-        "reason": "string — one-line why this tool won",
-        "logo": "string (optional) — logos/ registry slug"
+        "name": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "reason": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "logo": {
+          "required": false,
+          "type": "string",
+          "role": "logo_slug",
+          "example": "heygen"
+        }
       },
       "default_duration": 8,
       "max_beats": 4,
@@ -633,12 +1630,32 @@
       "placement": "fullframe",
       "purpose": "use-case verdict: persona → winning tool pairs, one pair per beat",
       "variables": {
-        "title": "string"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "beat_shape": {
-        "persona": "string",
-        "winner": "string",
-        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'"
+        "persona": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "winner": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "logo": {
+          "required": false,
+          "type": "string",
+          "role": "logo_slug",
+          "example": "heygen"
+        }
       },
       "default_duration": 7,
       "max_beats": 6,
@@ -651,13 +1668,38 @@
       "placement": "fullframe",
       "purpose": "credit/unit economics rows: plan → credits → what that actually buys, one row per beat",
       "variables": {
-        "title": "string",
-        "logo": "string (optional) — logos/ registry slug, e.g. 'heygen'"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "logo": {
+          "required": false,
+          "type": "string",
+          "role": "logo_slug",
+          "example": "heygen"
+        }
       },
       "beat_shape": {
-        "label": "string",
-        "math": "string",
-        "note": "string (optional)"
+        "label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        },
+        "math": {
+          "required": true,
+          "type": "string",
+          "role": "value",
+          "example": "100"
+        },
+        "note": {
+          "required": false,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        }
       },
       "default_duration": 7,
       "max_beats": 6,
@@ -670,10 +1712,20 @@
       "placement": "fullframe",
       "purpose": "numbered step flow: process walkthrough nodes revealing left to right, one step per beat",
       "variables": {
-        "title": "string"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        }
       },
       "beat_shape": {
-        "label": "string"
+        "label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "OpusClip"
+        }
       },
       "default_duration": 6,
       "max_beats": 5,
@@ -686,12 +1738,30 @@
       "placement": "fullframe",
       "purpose": "comparison table that builds one row per beat as each product's numbers are spoken; cells pipe-separated in beat text",
       "variables": {
-        "title": "string",
-        "columns": "array of strings — header cells, 2-4 columns"
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Section Title"
+        },
+        "columns": {
+          "required": true,
+          "type": "array"
+        }
       },
       "beat_shape": {
-        "text": "string — pipe-separated cells, e.g. 'Kling 3.0|15s|1080p|30 cr'",
-        "logo": "string (optional) — logos/ registry slug, shown muted before the first cell"
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "logo": {
+          "required": false,
+          "type": "string",
+          "role": "logo_slug",
+          "example": "heygen"
+        }
       },
       "default_duration": 10,
       "max_beats": 5,
@@ -704,10 +1774,21 @@
       "placement": "fullframe",
       "purpose": "canvas beat: a spoken headline sentence plus pill chips ticking in one per beat (lists, consequences, criteria)",
       "variables": {
-        "headline": "string"
+        "headline": {
+          "type": "string",
+          "required": true,
+          "role": "heading",
+          "max_words": 7,
+          "example": "Publish-ready beats raw speed"
+        }
       },
       "beat_shape": {
-        "text": "string"
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        }
       },
       "default_duration": 8,
       "max_beats": 4,
@@ -720,12 +1801,30 @@
       "placement": "fullframe",
       "purpose": "one spoken sentence alone on the ambient canvas; words appear as spoken and an accent phrase colorizes with them; used INSTEAD of a talking-head bridge",
       "variables": {
-        "text": "string",
-        "accent": "string (optional) — a phrase appearing verbatim inside text; those words render in --accent"
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "accent": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "example": "example"
+        }
       },
       "beat_shape": {
-        "text": "string",
-        "accent": "boolean"
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        },
+        "accent": {
+          "required": true,
+          "type": "boolean"
+        }
       },
       "default_duration": 6,
       "max_beats": 18,
