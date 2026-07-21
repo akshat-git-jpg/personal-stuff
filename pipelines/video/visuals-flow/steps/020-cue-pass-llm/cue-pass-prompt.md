@@ -55,14 +55,20 @@ optionally `variables.accent` (a phrase verbatim inside `text`):
 
 ## Rules
 
-Density (defaults — follow the script when it disagrees). The default for any
-moment is NO graphic: the screen recording carries the video, and a graphic
-must earn its slot by adding what footage can't. Demo/walkthrough stretches
-are already visual — leave them bare. When in doubt during demo/walkthrough stretches, skip.
-- Fire a fullframe/canvas beat every 45–90s of VO.
-- Overlays: up to 3 per minute during review/verdict stretches.
+Density (defaults — follow the script when it disagrees). Keep the video
+visually active: motion graphics are a near-constant presence, not a rare
+garnish. Aim for something on screen every ~35–50s, and NEVER let an interior
+stretch run longer than ~50s with only the raw recording (lint W6). A graphic
+still must ADD something (structure, a number/list, a comparison, or the spoken
+POINT of a bridge) — but "the footage shows it" is not a licence to leave a long
+stretch bare.
+- Fire a fullframe/canvas beat every 35–60s of VO.
+- Between fullframe beats, punctuate with overlays — up to 3 per rolling minute;
+  a demo/bridge stretch should not go >~50s without at least a lightweight
+  overlay or statement.
 - Never two overlapping fullframe cues.
-- Cold-open beat allowed in the first 15s; end-card allowed in the last 20s.
+- Cold-open beat allowed in the first 15s; end-card allowed in the last 20s
+  (these two zones stay sparse — W6 does not police them).
 
 Choosing a card — route by what the VO is doing, matching catalog `purpose`
 lines:
@@ -87,10 +93,26 @@ Result-review overlays:
 - VO states a claim then lists items under it →
   `slate/headline-chips`: headline = the claim, one chip beat per listed item.
 
+New cards (2026-07-21) — when to fire each:
+- VO dictates or the screen shows a **prompt** (AI image/video/text prompt) →
+  `prompt/prompt-typing`: `variables.prompt` = the prompt verbatim (keep any
+  `[m:ss]` shot tags inline), `variables.title` defaults "Prompt", `beats: []`.
+- VO names/switches to a **specific tool/model** as a hero moment →
+  `tool-icon/tool-glass-tile`: `logo` = tool registry slug, `name` = official
+  name, optional `subtitle`, `beats: []`. Distinct from a section opener.
+- A **single punchy assertion/bridge** with one phrase to emphasize →
+  `statement/keyword-statement`: `text` = the spoken line, `keyword` = the 2–4
+  words carrying the point, `beats: []`. Sibling of `slate/kinetic-sentence`;
+  use both to punctuate demo/bridge stretches.
+- **Enumerating features/capabilities** where a concept icon helps →
+  `checklist/icon-pills`: one beat per item; beat = `{icon, text, keyword?}`,
+  `icon` ∈ brain|calendar|person|bolt|gear|lock|clock|chart|chat|shield|doc|search|star|cloud.
+
 Kinetic-sentence interstitial (mandatory): for a bridge with no footage, UI,
 or data worth showing and a single spoken point, use `slate/kinetic-sentence`
 instead of leaving it on camera — a frequent choice, drawn from the same
-every-45–90s fullframe cadence above, not an extra quota. `variables.text` is
+every-35–60s fullframe cadence above, not an extra quota (`statement/keyword-statement`
+is a close sibling for the same job). `variables.text` is
 the voiceover verbatim, one sentence, <=18 words, `beats: []` — paraphrasing
 fails resolution at step 030; split long sentences into two consecutive cues
 instead. `variables.accent` is the 2-4 verbatim, contiguous words carrying the
@@ -108,9 +130,14 @@ per video. overlay/stat-hit: max 3 per video, >=90s apart, only for numbers the
 VO leans on — drop the least impressive rather than exceed. Other overlays: vary
 callout's style and position when repeating.
 
-Step narration (mandatory): if the VO narrates actions the screen recording
-shows ("go to the site, click X"), NO graphic — step-flow is only for
-processes not visible on screen.
+Demos & step narration (mandatory): do NOT lay a redundant graphic over a click
+the screen already shows — no `process/step-flow` re-labeling visible steps
+(step-flow is only for processes NOT on screen). But do NOT leave a long demo
+stretch bare either: punctuate it with the SPOKEN layer — a
+`statement/keyword-statement`/`slate/kinetic-sentence` of the point, an
+`overlay/lower-third`/`overlay/callout` naming the feature, or a
+`tool-icon/tool-glass-tile` when the VO names/switches tools. Test: echoes the
+click → skip; adds the narration's point/label → keep.
 
 Pricing (mandatory): no per-tool pricing/credits graphics during tool segments
 (the pricing page is on screen); consolidate into ONE pricing comparison

@@ -6,12 +6,18 @@ const CAP_STAT_HIT = 3;
 const SPACING_STAT_HIT = 90;
 const CAP_FULLFRAME = 3;
 const ZONE_END = 20;
-const GAP_FULLFRAME_MAX = 90;
-const GAP_FULLFRAME_MIN = 45;
+// Density recalibration 2026-07-21 (owner: "motion graphics more frequent —
+// long stretches were bare"). Moderate ~2x: fullframe beat every ~35-60s, floor
+// rate 1.0/min, and W6 forbids any interior stretch >50s with no graphic at all
+// (fullframe OR overlay). Supersedes the Youri-wave starting numbers per the
+// same owner-directive precedent; the 060 fold tunes from here. decisions.md.
+const GAP_FULLFRAME_MAX = 60;
+const GAP_FULLFRAME_MIN = 35;
 const DENSITY_OVERLAY_WINDOW = 60;
 const DENSITY_OVERLAY_MAX = 3;
-const TARGET_RATE_MIN = 0.55;
-const TARGET_RATE_MAX = 1.3;
+const TARGET_RATE_MIN = 1.0;
+const TARGET_RATE_MAX = 1.9;
+const BARE_GAP_MAX = 50; // W6: max interior seconds with NO graphic (any placement) before/after any cue
 const FIRST_BEAT_IDLE_MAX = 8; // s a beat card may sit before its first reveal (owner: an empty scaffold reads as broken, test-02 c29)
 const ENDCARD_SLUG_PREFIXES = ['brand/', 'link-in-description/'];
 
@@ -130,6 +136,22 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
   const count = sortedResolved.length;
   if (count < targetMin || count > targetMax) {
     warnings.push(`W3 total-count: ${count} cues is outside the scaled band [${targetMin}, ${targetMax}] (rate ${TARGET_RATE_MIN}-${TARGET_RATE_MAX}/min) for a ${(T/60).toFixed(1)}min video`);
+  }
+
+  // W6 bare-stretch: no interior stretch should sit longer than BARE_GAP_MAX
+  // seconds with NO graphic of any kind (fullframe OR overlay) on screen. This
+  // is the direct guard against the "long stretches of video without motion
+  // graphics" the owner flagged — punctuate demos/bridges with a lightweight
+  // overlay or statement. Only gaps BETWEEN cues are checked; the cold-open
+  // (first ~15s) and end-zone (last ZONE_END s, kept graphics-free by E4) are
+  // deliberately sparse and are not flagged.
+  for (let i = 1; i < sortedResolved.length; i++) {
+    const prev = sortedResolved[i - 1];
+    const curr = sortedResolved[i];
+    const gap = curr.start - (prev.start + prev.duration);
+    if (gap > BARE_GAP_MAX) {
+      warnings.push(`W6 bare-stretch: ${gap.toFixed(1)}s with no graphic between ${prev.id} (ends ${(prev.start + prev.duration).toFixed(1)}s) and ${curr.id} (starts ${curr.start.toFixed(1)}s) — max ${BARE_GAP_MAX}s; punctuate with a lightweight overlay or statement card`);
+    }
   }
 
   // W5 first-beat-idle: a beat card whose first reveal lands long after the
