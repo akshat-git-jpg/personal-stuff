@@ -53,7 +53,10 @@ const CATALOG = {
       kind: 'beat',
       placement: 'fullframe',
       default_duration: 6,
-      beat_shape: { kind: "'pro' | 'con'", text: 'string' },
+      beat_shape: { 
+        kind: { type: 'string', required: true, enum: ['pro', 'con'] }, 
+        text: { type: 'string', required: true } 
+      },
     },
     {
       slug: 'overlay/simple-overlay',
@@ -288,6 +291,16 @@ test('validateCues: catches the test-01 bug classes', async (t) => {
     { reveal: { name: 'ok', values: [1, 2] }, anchor: 'a b c' },
   ]}]);
   assert.equal(e.length, 0);
+
+  // string-form spec throws/errors
+  catalog.cards.push({ slug: 'x/legacy', kind: 'beat', placement: 'fullframe', default_duration: 6, max_beats: 3, max_reveal_chars: 10, beat_shape: { name: 'string' } });
+  e = errs([{ id: 'c4', card: 'x/legacy', beats: [{ reveal: { name: 'x' }, anchor: 'a b c' }] }]);
+  assert.ok(e.some((m) => m.includes('string-form variable contract is unsupported')));
+
+  // headline-chips maxCommas
+  catalog.cards.push({ slug: 'slate/headline-chips', kind: 'beat', placement: 'fullframe', default_duration: 6, max_beats: 5, max_reveal_chars: 10, variables: { headline: { type: 'string', role: 'heading', required: true } }, beat_shape: { text: { type: 'string', required: true } } });
+  e = errs([{ id: 'c5', card: 'slate/headline-chips', variables: { headline: 'Same video, same goal, same criteria' }, beats: [{ reveal: { text: 'x' }, anchor: 'a b c' }] }]);
+  assert.ok(e.some((m) => m.includes('at most 1 comma')));
 });
 
 test('word-sync cue resolves start/at/duration', () => {

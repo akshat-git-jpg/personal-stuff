@@ -1287,8 +1287,8 @@ function fillerText(chars) {
   return s.slice(0, chars);
 }
 
-// e.g. "'pro' | 'con'" -> ['pro', 'con']; null if the descriptor isn't an enum.
 function parseEnumOptions(descriptor) {
+  if (!descriptor) return null;
   const quoted = descriptor.match(/'([^']+)'/g);
   return quoted && quoted.length >= 2 ? quoted.map((q) => q.slice(1, -1)) : null;
 }
