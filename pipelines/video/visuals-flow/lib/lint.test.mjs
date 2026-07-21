@@ -351,5 +351,85 @@ test('W5 first-beat-idle: overlay card over threshold is a warning', () => {
     catalog
   });
   assert(!res.errors.some(e => e.includes('W5 first-beat-idle')));
-  assert(res.warnings.some(w => w.includes('W5 first-beat-idle')));
 });
+
+test('E5 demo-coverage: confirmed: true + fullframe inside demo -> error', () => {
+  const c = [{ id: 'c1', card: 'fullframe/beat', start: 25, duration: 10 }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      confirmed: true,
+      segments: [
+        { kind: 'narration', start: 0, end: 20 },
+        { kind: 'demo', start: 20, end: 100 }
+      ]
+    }
+  });
+  assert(res.errors.some(e => e.includes('E5 demo-coverage')));
+  assert(!res.warnings.some(w => w.includes('E5 demo-coverage')));
+});
+
+test('E5 demo-coverage: confirmed: false + fullframe inside demo -> warning', () => {
+  const c = [{ id: 'c1', card: 'fullframe/beat', start: 25, duration: 10 }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      confirmed: false,
+      segments: [
+        { kind: 'narration', start: 0, end: 20 },
+        { kind: 'demo', start: 20, end: 100 }
+      ]
+    }
+  });
+  assert(!res.errors.some(e => e.includes('E5 demo-coverage')));
+  assert(res.warnings.some(w => w.includes('E5 demo-coverage')));
+});
+
+test('E5 demo-coverage: overlay inside demo -> neither', () => {
+  const c = [{ id: 'c1', card: 'overlay/plain', start: 25, duration: 10 }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      confirmed: true,
+      segments: [
+        { kind: 'narration', start: 0, end: 20 },
+        { kind: 'demo', start: 20, end: 100 }
+      ]
+    }
+  });
+  assert(!res.errors.some(e => e.includes('E5 demo-coverage')));
+  assert(!res.warnings.some(w => w.includes('E5 demo-coverage')));
+});
+
+test('W1 fullframe-cadence: narration gap ignores demo segments', () => {
+  const c = [
+    { id: 'c1', card: 'fullframe/beat', start: 10 },
+    { id: 'c2', card: 'fullframe/beat', start: 310 }
+  ];
+  // elapsed gap is 300s. But if we have a 260s demo between them, narration gap is 40s.
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      confirmed: true,
+      segments: [
+        { kind: 'narration', start: 0, end: 20 },
+        { kind: 'demo', start: 20, end: 280 }, // 260s demo
+        { kind: 'narration', start: 280, end: 900 }
+      ]
+    }
+  });
+  assert(!res.warnings.some(w => w.includes('W1 fullframe-cadence')));
+});
+

@@ -23,9 +23,30 @@ const BARE_GAP_MAX = 50; // W6: max interior seconds with NO graphic (any placem
 const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
 const ENDCARD_SLUG_PREFIXES = ['brand/', 'link-in-description/'];
 
-export function lintCues({ cuesFile, resolved, words, catalog }) {
+export function lintCues({ cuesFile, resolved, words, catalog, segmentsData }) {
   const errors = [];
   const warnings = [];
+  
+  const segments = segmentsData?.segments || [];
+  const confirmed = segmentsData?.confirmed ?? false;
+  if (!segmentsData) {
+    warnings.push(`W7 no-segment-map: no segments.json — cadence rules assume the whole video is narration; run 'node lib/segments.mjs <slug> --propose'`);
+  }
+
+  const kindAt = (t) => (segments.find(s => t >= s.start && t < s.end) ?? {}).kind ?? 'narration';
+  const narrationGap = (start, end) => {
+    if (!segmentsData) return end - start;
+    let total = end - start;
+    for (const s of segments) {
+      if (s.kind === 'demo' || s.kind === 'playback') {
+        const oStart = Math.max(start, s.start);
+        const oEnd = Math.min(end, s.end);
+        if (oStart < oEnd) total -= (oEnd - oStart);
+      }
+    }
+    return total;
+  };
+
   
   if (!words || words.length === 0) {
     return { errors, warnings };
@@ -43,6 +64,18 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
   
   // Sort resolved by start time just to be safe
   const sortedResolved = [...validResolved].sort((a, b) => a.start - b.start);
+
+  // E5 demo-coverage
+  for (const r of sortedResolved) {
+    const cat = bySlug[r.card];
+    if (!cat || cat.placement !== 'fullframe') continue;
+    const k = kindAt(r.start);
+    if (k === 'demo' || k === 'playback') {
+      const msg = `E5 demo-coverage: ${r.id} (${r.card}, fullframe, ${r.duration}s) starts at ${r.start.toFixed(1)}s inside a ${k} segment — a fullframe card replaces the screen recording. Use an overlay card, or move the cue into a narration stretch.`;
+      (confirmed ? errors : warnings).push(msg);
+    }
+  }
+
 
   // E1 stat-hit-cap
   const statHits = sortedResolved.filter(r => r.card === 'overlay/stat-hit');
@@ -100,7 +133,7 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
   for (let i = 1; i < fullframes.length; i++) {
     const prev = fullframes[i - 1];
     const curr = fullframes[i];
-    const gap = curr.start - prev.start;
+    const gap = narrationGap(prev.start, curr.start);
     if (gap > GAP_FULLFRAME_MAX) {
       warnings.push(`W1 fullframe-cadence: ${curr.id} starts ${gap.toFixed(1)}s after ${prev.id} (maximum gap ${GAP_FULLFRAME_MAX}s)`);
     }
@@ -150,7 +183,7 @@ export function lintCues({ cuesFile, resolved, words, catalog }) {
   for (let i = 1; i < sortedResolved.length; i++) {
     const prev = sortedResolved[i - 1];
     const curr = sortedResolved[i];
-    const gap = curr.start - (prev.start + prev.duration);
+    const gap = narrationGap(prev.start + prev.duration, curr.start);
     if (gap > BARE_GAP_MAX) {
       warnings.push(`W6 bare-stretch: ${gap.toFixed(1)}s with no graphic between ${prev.id} (ends ${(prev.start + prev.duration).toFixed(1)}s) and ${curr.id} (starts ${curr.start.toFixed(1)}s) — max ${BARE_GAP_MAX}s; punctuate with a lightweight overlay or statement card`);
     }
@@ -245,17 +278,24 @@ async function main() {
   const resolvedPath = path.join(workdir, 'resolved.json');
   const transcriptPath = path.join(workdir, 'transcript.json');
   const catalogPath = path.join(cardLibraryRoot, 'catalog.json');
+  const segmentsPath = path.join(workdir, 'segments.json');
 
   const cuesFile = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
   const resolvedFile = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
   const words = JSON.parse(fs.readFileSync(transcriptPath, 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+  
+  let segmentsData = null;
+  if (fs.existsSync(segmentsPath)) {
+    segmentsData = JSON.parse(fs.readFileSync(segmentsPath, 'utf8'));
+  }
 
   const { errors, warnings } = lintCues({
     cuesFile,
     resolved: resolvedFile.resolved,
     words,
-    catalog
+    catalog,
+    segmentsData
   });
 
   for (const w of warnings) {
