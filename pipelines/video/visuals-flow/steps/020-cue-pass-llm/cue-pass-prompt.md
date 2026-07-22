@@ -55,12 +55,6 @@ optionally `variables.accent` (a phrase verbatim inside `text`):
 
 ## Rules
 
-Density (defaults — follow the script when it disagrees). Keep the video
-visually active: motion graphics are a near-constant presence, not a rare
-garnish. A graphic still must ADD something (structure, a number/list, a
-comparison, or the spoken POINT of a bridge) — but "the footage shows it" is
-not a licence to leave a long stretch bare.
-
 <!-- BEGIN GENERATED CONSTRAINTS — edit lib/cue-constants.mjs, then run node lib/build-prompt.mjs -->
 These are HARD constraints checked by lib/lint-cues.mjs after you produce cues.json.
 A violation is a defect, not a stylistic choice. Budget against them BEFORE placing cues.
@@ -77,33 +71,44 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - No interior narration stretch may run longer than 50s with no graphic of any kind (lint W6).
 - End-card slugs exempt from the last-20s rule: brand/, link-in-description/, like-subscribe/
 <!-- END GENERATED CONSTRAINTS -->
+<!-- BEGIN GENERATED ROUTING RULES — edit lib/cue-rules.mjs, then run node lib/build-prompt.mjs -->
+Density (defaults — follow the script when it disagrees). Keep the video visually active: motion graphics are a near-constant presence, not a rare garnish. A graphic still must ADD something (structure, a number/list, a comparison, or the spoken POINT of a bridge) — but "the footage shows it" is not a licence to leave a long stretch bare.
 
-- Never two overlapping fullframe cues.
-- Cold-open beat allowed in the first 15s (this zone stays sparse — W6 does
-  not police it).
+Never two overlapping fullframe cues.
 
-Choosing a card — route by what the VO is doing, matching catalog `purpose`
-lines:
+Cold-open beat allowed in the first 15s (this zone stays sparse — W6 does not police it).
+
+Choosing a card — route by what the VO is doing, matching catalog `purpose` lines:
 - Narration makes a claim, lists items, or states numbers and the screen does not show it → fullframe canvas beat (`slate/headline-chips`, `comparison/table-rows`, section slates). The screen already shows what is spoken → no graphic.
 - Enumerating pros/cons -> pros-cons; ordered list -> checklist or bullet-points; feature-by-feature comparison -> feature-matrix or summary-table; final judgment -> a verdict card; opening a section -> a section/title card; one reinforced claim -> an overlay card.
 If nothing fits, set `flagged: true`, `card` to the closest slug, and add a `note` field explaining the gap — never force a bad match.
 
-Specificity wins (mandatory): big number -> overlay/stat-hit; plan/credit
-economics too dense to say -> comparison/credits-math; step walkthrough NOT
-shown on screen -> process/step-flow; who-should-buy-what payoff ->
-verdict/persona-match.
+Specificity wins (mandatory): big number -> overlay/stat-hit; plan/credit economics too dense to say -> comparison/credits-math; step walkthrough NOT shown on screen -> process/step-flow; who-should-buy-what payoff -> verdict/persona-match.
 
 Result-review overlays:
-- VO judges a result while footage shows it (a pro or con is spoken) →
-  `overlay/verdict-chips`, one beat per spoken judgment, ≤4.
-- VO announces a rating or score ('gets a 9.5 out of 10') →
-  `overlay/score-pill` at the spoken score; `winner:true` only for a
-  final-verdict winner.
-- VO walks per-product numbers (price/specs) across 3+ products →
-  `comparison/table-rows`, one beat per product row, cells pipe-separated,
-  anchor each beat at that product's first spoken number.
-- VO states a claim then lists items under it →
-  `slate/headline-chips`: headline = the claim, one chip beat per listed item.
+- VO judges a result while footage shows it (a pro or con is spoken) → `overlay/verdict-chips`, one beat per spoken judgment, ≤4.
+- VO announces a rating or score ('gets a 9.5 out of 10') → `overlay/score-pill` at the spoken score; `winner:true` only for a final-verdict winner.
+- VO walks per-product numbers (price/specs) across 3+ products → `comparison/table-rows`, one beat per product row, cells pipe-separated, anchor each beat at that product's first spoken number.
+- VO states a claim then lists items under it → `slate/headline-chips`: headline = the claim, one chip beat per listed item.
+
+Kinetic-sentence interstitial (mandatory): for a bridge with no footage, UI, or data worth showing and a single spoken point, use `slate/kinetic-sentence` instead of leaving it on camera — a frequent choice, drawn from the same fullframe cadence above, not an extra quota (`statement/keyword-statement` is a close sibling for the same job). `variables.text` is the voiceover verbatim, one sentence, <=18 words, `beats: []` — paraphrasing fails resolution at step 030; split long sentences into two consecutive cues instead. `variables.accent` is the 2-4 verbatim, contiguous words carrying the sentence's point (the consequence or substance, e.g. "burns credits", "cool technical features" — not a brand name or number picked for salience). Anchor at the sentence's own opening words.
+
+Structural consistency (mandatory): a repeated semantic slot — e.g. the section opener for each compared tool — uses the SAME card every time; mixing cards across parallel items is a defect, not variety. Structural cards (catalog `structural: true`) are exempt from the repetition cap.
+
+Repetition cap (non-structural cards): follow the caps above — for overlay/stat-hit, keep only the numbers the VO leans on most and drop the least impressive rather than exceed the cap. Other overlays: vary callout's style and position when repeating.
+
+Demos & step narration (mandatory): do NOT lay a redundant graphic over a click the screen already shows — no `process/step-flow` re-labeling visible steps (step-flow is only for processes NOT on screen). During a demo/playback stretch only `placement: overlay` cards may be used (this is enforced via lint E5). But do NOT leave a long demo stretch bare either: punctuate it with the SPOKEN layer — `overlay/callout`, `overlay/lower-third`, `overlay/tip-banner`, `overlay/stat-hit`, or `overlay/verdict-chips`. Test: echoes the click → skip; adds the narration's point/label → keep.
+
+Pricing (mandatory): no per-tool pricing/credits graphics during tool segments (the pricing page is on screen); consolidate into ONE pricing comparison graphic in the final comparison section. When the `comparison/table-rows` card is used, do NOT also emit stat-hit cues for the same numbers.
+
+Cold open (mandatory for comparison videos): the intro title card makes the compared products the VISUAL hero — `title/title-aurora-wave` with `platforms` logo chips, never a text-only title.
+
+Verdicts (mandatory): one winner per verdict card. Two favorites = two verdict cards back to back, each anchored at its own "X was the best" phrase.
+
+Units (mandatory): numeric values on cards carry their unit (prefix "$", suffix "ms"/"/mo") — never a bare number.
+
+Beat cards must not idle: anchor so the FIRST beat lands within ~8s of the card appearing — when the VO rambles before its first data point, anchor at the sentence right before the first beat, not the section opener.
+<!-- END GENERATED ROUTING RULES -->
 
 New cards (2026-07-21) — when to fire each:
 - VO dictates or the screen shows a **prompt** (AI image/video/text prompt) →
@@ -119,58 +124,6 @@ New cards (2026-07-21) — when to fire each:
 - **Enumerating features/capabilities** where a concept icon helps (unless the screen is currently showing those capabilities being set — during a demo this card is illegal (fullframe)) →
   `checklist/icon-pills`: one beat per item; beat = `{icon, text, keyword?}`,
   `icon` ∈ brain|calendar|person|bolt|gear|lock|clock|chart|chat|shield|doc|search|star|cloud.
-
-Kinetic-sentence interstitial (mandatory): for a bridge with no footage, UI,
-or data worth showing and a single spoken point, use `slate/kinetic-sentence`
-instead of leaving it on camera — a frequent choice, drawn from the same
-fullframe cadence above, not an extra quota (`statement/keyword-statement`
-is a close sibling for the same job). `variables.text` is
-the voiceover verbatim, one sentence, <=18 words, `beats: []` — paraphrasing
-fails resolution at step 030; split long sentences into two consecutive cues
-instead. `variables.accent` is the 2-4 verbatim, contiguous words carrying the
-sentence's point (the consequence or substance, e.g. "burns credits", "cool
-technical features" — not a brand name or number picked for salience). Anchor
-at the sentence's own opening words.
-
-Structural consistency (mandatory): a repeated semantic slot — e.g. the
-section opener for each compared tool — uses the SAME card every time; mixing
-cards across parallel items is a defect, not variety. Structural cards
-(catalog `structural: true`) are exempt from the repetition cap.
-
-Repetition cap (non-structural cards): follow the caps above — for
-overlay/stat-hit, keep only the numbers the VO leans on most and drop the
-least impressive rather than exceed the cap. Other overlays: vary callout's
-style and position when repeating.
-
-Demos & step narration (mandatory): do NOT lay a redundant graphic over a click
-the screen already shows — no `process/step-flow` re-labeling visible steps
-(step-flow is only for processes NOT on screen). During a demo/playback stretch only `placement: overlay` cards may be used (this is enforced via lint E5). But do NOT leave a long demo
-stretch bare either: punctuate it with the SPOKEN layer — `overlay/callout`, `overlay/lower-third`, `overlay/tip-banner`, `overlay/stat-hit`, or `overlay/verdict-chips`. Test: echoes the
-click → skip; adds the narration's point/label → keep.
-
-Pricing (mandatory): no per-tool pricing/credits graphics during tool segments
-(the pricing page is on screen); consolidate into ONE pricing comparison
-graphic in the final comparison section. When the `comparison/table-rows` card
-is used, do NOT also emit stat-hit cues for the same numbers.
-
-Cold open (mandatory for comparison videos): open on a card whose catalog
-`roles` include `comparison-coldopen`, with the compared products supplied as
-`platforms` entries carrying their logo slugs — never a text-only title. When
-two products are compared, prefer `title/title-versus`: it renders both logos
-at hero size with a VS between them, which is what a versus video promises in
-its first seconds. The other `comparison-coldopen` cards lead with the title
-and reduce the products to chips — use them only when there are more than
-four products, or no logo exists for a product.
-
-Verdicts (mandatory): one winner per verdict card. Two favorites = two verdict
-cards back to back, each anchored at its own "X was the best" phrase.
-
-Units (mandatory): numeric values on cards carry their unit (prefix "$",
-suffix "ms"/"/mo") — never a bare number.
-
-Beat cards must not idle: anchor so the FIRST beat lands within ~8s of the
-card appearing — when the VO rambles before its first data point, anchor at
-the sentence right before the first beat, not the section opener.
 
 Anchors: verbatim quotes copied exactly from the transcript, contractions and
 all, never paraphrased; at least 3 consecutive words; pick phrases unlikely
