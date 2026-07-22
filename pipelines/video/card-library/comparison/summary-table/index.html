@@ -42,11 +42,11 @@
 
       /* header row: product names white/bold; label columns are orange eyebrows */
       .hcell { font-size: 28px; font-weight: 800; justify-content: center; color: var(--text); }
-      .hcell.feat, .hcell.reason { justify-content: flex-start; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; font-size: 19px; font-weight: 800; }
+      .hcell.feat, .hcell.reason { font-size: 23px; color: var(--text-dim); letter-spacing: 1.5px; justify-content: flex-start; text-transform: uppercase; }
 
       /* body rows: hairline top divider, transparent (no boxes, no striping) */
       .frow .cell { border-top: 1px solid rgba(255, 255, 255, 0.08); }
-      .feat { justify-content: flex-start; font-size: 25px; font-weight: 700; color: var(--accent); }
+      .feat { font-size: 25px; font-weight: 700; color: var(--text); justify-content: flex-start; }
       .val { justify-content: center; font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); }
       .val.txt { justify-content: flex-start; color: var(--text-dim); font-size: 19px; font-weight: 500; line-height: 1.45; text-align: left; }
     </style>
@@ -99,7 +99,10 @@
       const grid = document.getElementById('grid');
 
       function build() {
-        grid.style.gridTemplateColumns = `1.3fr repeat(${DATA.products.length}, 1fr) 2.4fr`;
+        const n = DATA.products.length;
+        const factorFr = 1.3;
+        const reasonFr = Math.max(1.2, 2.4 - (5 - n) * 0.35);
+        grid.style.gridTemplateColumns = `${factorFr}fr repeat(${n}, 1fr) ${reasonFr}fr`;
 
         let html = '<div class="hrow" style="display:contents">';
         html += '<div class="cell hcell feat">Factor</div>';
@@ -120,10 +123,12 @@
         grid.innerHTML = html;
 
         const LOGOS = VARS.__logos ?? {};
+        const LOGO_DARK = VARS.__logoDark ?? {};
         grid.querySelectorAll('.hrow .cell.hcell:not(.feat):not(.reason)').forEach((el, i) => {
           const slug = (DATA.productLogos && DATA.productLogos[i]) ? DATA.productLogos[i] : null;
           if (slug && LOGOS[slug]) {
-            el.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; gap:8px;"><img src="${LOGOS[slug]}" style="width:24px; height:24px; border-radius:4px; object-fit:contain; filter:saturate(0.5) brightness(0.95); opacity:0.9;;" /><span>${DATA.products[i]}</span></div>`;
+            const darkBorder = LOGO_DARK[slug] ? 'border: 1px solid rgba(255,255,255,0.10);' : '';
+            el.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; gap:8px;"><img src="${LOGOS[slug]}" style="width:44px; height:44px; border-radius:4px; object-fit:contain; ${darkBorder}" /><span>${DATA.products[i]}</span></div>`;
           } else {
             el.textContent = DATA.products[i];
           }

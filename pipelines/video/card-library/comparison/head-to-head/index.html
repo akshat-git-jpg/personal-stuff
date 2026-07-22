@@ -81,8 +81,12 @@
       function build() {
         $('nameL').textContent = DATA.left.name;
         $('nameR').textContent = DATA.right.name;
-        $('logoL').innerHTML = DATA.left.logoSvg ?? initial(DATA.left.name);
-        $('logoR').innerHTML = DATA.right.logoSvg ?? initial(DATA.right.name);
+        const LOGOS = VARS.__logos ?? {};
+        const logoFor = (side) => LOGOS[side.logo]
+          ? `<img src="${LOGOS[side.logo]}" alt="" style="width:100%;height:100%;object-fit:contain;border-radius:18px;">`
+          : (side.logoSvg ?? initial(side.name));
+        $('logoL').innerHTML = logoFor(DATA.left);
+        $('logoR').innerHTML = logoFor(DATA.right);
         $('statsL').innerHTML = (DATA.left.stats || []).map(stat).join('');
         $('statsR').innerHTML = (DATA.right.stats || []).map(stat).join('');
       }

@@ -52,8 +52,9 @@ alphabetically after them. Add a card there only to make it easy to find.
 3. Add a `catalog.json` entry so visuals-flow can select it.
 4. `npx hyperframes@latest lint <type>/<card-name>` (the "Studio can't drag-edit"
    and "Google Fonts" warnings are expected).
-5. `bash scripts/check-cards.sh`
-6. Commit **and push**.
+5. Run `node scripts/card-qa.mjs <type>/<card-name>` and attach the contact sheet to the PR. A card whose `max` variant clips, overlaps, or misaligns is not done.
+6. `bash scripts/check-cards.sh`
+7. Commit **and push**.
 
 Pick `<type>` from the folders that already exist (`title/`, `section/`,
 `comparison/`, `verdict/`, `process/`, …). A new type is fine — render2 picks it

@@ -38,12 +38,17 @@ function generateVar(spec, variant, logoToggle, maxItems) {
     let arr = [];
     const count = variant === 'min' ? 2 : maxItems;
     for (let i = 0; i < count; i++) {
-      let item = {};
-      for (const [k, v] of Object.entries(spec.item_shape)) {
-         if (!v.required && variant === 'min') continue;
-         item[k] = generateVar(v, variant, i % 2 === 0, maxItems);
+      if (spec.item_shape) {
+        let item = {};
+        for (const [k, v] of Object.entries(spec.item_shape)) {
+           if (!v.required && variant === 'min') continue;
+           item[k] = generateVar(v, variant, i % 2 === 0, maxItems);
+        }
+        arr.push(item);
+      } else {
+        // Fallback for arrays without item_shape (e.g. array of strings)
+        arr.push(generateVar({ type: spec.item_type || 'string', role: spec.item_role || 'label' }, variant, i % 2 === 0, maxItems));
       }
-      arr.push(item);
     }
     return arr;
   }
