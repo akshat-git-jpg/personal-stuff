@@ -18,44 +18,29 @@ Output: `cues.json` only, matching the schema in `PIPELINE.md`. You never
 write `resolved.json`, durations, absolute times, or file paths — the resolver
 computes all of that from your anchors.
 
-| Field | Meaning |
-|---|---|
-| `video` | video slug, copied from the workdir name |
-| `approved` | always `false` — a human/board flips this |
-| `cues[].id` | short id, e.g. `c01` |
-| `cues[].card` | catalog slug, e.g. `pros-cons/pros-cons` |
-| `cues[].anchor` | verbatim ≥3-word transcript quote where the card appears |
-| `cues[].lead` | seconds before the anchor the card starts (default 0.5) |
-| `cues[].hold` | seconds held after the last beat (default 3.0) |
-| `cues[].variables` | card variables excluding beats |
-| `cues[].beats[].reveal` | beat-shaped object per catalog `beat_shape`, no `at` |
-| `cues[].beats[].anchor` | verbatim ≥3-word quote where that beat lands |
-| `cues[].flagged` | `true` when no card fits (see Section 8) |
+Schema: see PIPELINE.md's cues.json section.
 
 ## Cue density
 
-Every threshold below is a copy for judgment context — `lib/cue-constants.mjs`
-is the single source of truth; `lib/lint-cues.mjs` enforces it and
+Every number below is judgment context, not the source — `lib/cue-constants.mjs`
+is the single source of truth for thresholds; `lib/lint-cues.mjs` enforces it and
 `lib/build-prompt.mjs` renders it into `cue-pass-prompt.md`. Retune density
-there, not here.
+there, not here. The routing prose that used to live in this section (which
+graphic fires when, and how cadence interacts with demos and cold opens) has
+moved the same way: `lib/cue-rules.mjs` is the single source, cited below by id.
 
-**Keep the video visually active — motion graphics are a near-constant
-presence, not a rare garnish.** (Owner recalibration 2026-07-21: earlier videos
-had multi-minute bare stretches; the target is now ~2× that density.) Aim for
-something on screen every ~35–50s, and **never let an interior stretch run
-longer than ~50s with nothing but the raw recording** — `lib/lint-cues.mjs` W6
-enforces this. A graphic still has to ADD something (structure at a boundary, a
-number/list to hold onto, a comparison, or the spoken POINT of a bridge), but
-"the footage already shows it" is no longer a licence to leave a long stretch
-bare.
+Rule: `R_DENSITY` in `lib/cue-rules.mjs`.
 
-**Demos and walkthroughs get PUNCTUATED, not blanked.** Do not lay a redundant
-graphic over a click the screen already shows — a `process/step-flow`
-re-labeling visible steps is still wrong (owner fold 2026-07-18, test-01
-c06/c09/c15). During a demo/playback stretch ONLY `placement: overlay` cards may be used (enforced by lint E5). But a long demo stretch should carry lightweight punctuation that
-adds the SPOKEN layer, not the click: `overlay/callout`, `overlay/lower-third`, `overlay/tip-banner`, `overlay/stat-hit`, or `overlay/verdict-chips`. The test for a demo moment is: does
-the graphic echo the click (skip it) or add the narration's point/label (keep
-it)?
+Owner recalibration 2026-07-21: earlier videos had multi-minute bare
+stretches; the target is now ~2× that density. This is the reason the default
+flipped from "the footage shows it, skip the graphic" to "add something or
+punctuate the stretch."
+
+Rule: `R_DEMOS` in `lib/cue-rules.mjs`.
+
+Owner fold 2026-07-18 (test-01 c06/c09/c15): a `process/step-flow` that
+re-labelled steps already visible on screen was rejected as redundant. The
+correction is punctuation with the SPOKEN layer, not blanking the stretch.
 
 These are starting defaults, not physics — when the script structure fights a
 rule, follow the script and note why in the cue's context.
@@ -64,35 +49,20 @@ rule, follow the script and note why in the cue's context.
 2. Between fullframe beats, punctuate with overlays — up to 3 per rolling
    minute; a demo/bridge stretch should not go >~50s without at least a
    lightweight overlay or statement (W6).
-3. Never let two fullframe cues' spoken coverage overlap.
-4. Cold-open beat allowed in the first 15s (this zone stays sparse — W6 does
-   not police it). No cue may END in the last 20s of the video except the
-   end-card slugs (`brand/`, `link-in-description/`, `like-subscribe/`) — lint
-   E4 raises this as a HARD ERROR, not a preference.
+3. Rule: `R_NO_OVERLAP` in `lib/cue-rules.mjs` — no dated fold; predates this log.
+4. Rule: `R_COLD_OPEN_ZONE` in `lib/cue-rules.mjs` — no dated fold; predates this log.
 
 ## Choosing a card
 
 Route by what the VO is DOING at that moment, using each catalog card's
-`purpose` line to match:
+`purpose` line to match.
 
-- Narration makes a claim, lists items, or states numbers and the screen does not show it → fullframe canvas beat (`slate/headline-chips`, `comparison/table-rows`, section slates). The screen already shows what is spoken → no graphic.
+Rule: `R_CHOOSING` in `lib/cue-rules.mjs` — no dated fold; predates this log.
 
-- Enumerating advantages and drawbacks → a pros-cons card.
-- Walking an ordered list → a checklist or bullet-points card.
-- Comparing tools feature-by-feature → a feature-matrix or summary-table card.
-- Delivering a final judgment → a verdict card.
-- Opening a section → a section or title card.
-- Reinforcing a single claim or number → an overlay card.
-- VO judges a result while footage shows it (a pro or con is spoken) →
-  `overlay/verdict-chips`, one beat per spoken judgment, ≤4.
-- VO announces a rating or score ('gets a 9.5 out of 10') →
-  `overlay/score-pill` at the spoken score; `winner:true` only for a
-  final-verdict winner.
-- VO walks per-product numbers (price/specs) across 3+ products →
-  `comparison/table-rows`, one beat per product row, cells pipe-separated,
-  anchor each beat at that product's first spoken number.
-- VO states a claim then lists items under it →
-  `slate/headline-chips`: headline = the claim, one chip beat per listed item.
+Rule: `R_RESULT_REVIEW` in `lib/cue-rules.mjs` — no dated fold; predates this
+log. This is the split for judging a result already on screen (a verdict-chip
+or score-pill overlay) versus stating a claim that needs its own fullframe
+card (headline-chips or table-rows).
 
 **New cards (2026-07-21 pack) — when to fire each:**
 
@@ -118,62 +88,45 @@ Route by what the VO is DOING at that moment, using each catalog card's
   `text` = the item, optional `keyword`. Prefer this over a plain checklist when
   the items are concepts that read better with an icon.
 
-**Structural consistency (mandatory).** Cards serving a parallel structural
-role — the same semantic slot repeated once per compared item, like the
-section opener for each of 5 tools — MUST use the SAME card for every item.
-Mixing cards across parallel items makes the video asymmetrical and is a
-defect, not variety. These cards carry `structural: true` in catalog.json and
-are exempt from the repetition cap below; the linter knows. (Owner fold
-2026-07-18: v2 swapped two of five tool openers to different section cards to
-dodge the cap — wrong tradeoff, consistency wins.)
+Rule: `R_STRUCTURAL` in `lib/cue-rules.mjs`.
 
-**Repetition cap (non-structural cards only).** The same fullframe card at
-most 3 times per video. `overlay/stat-hit`: max 3 per video, ≥90s apart, only
-for numbers the VO leans on — drop the least impressive rather than exceed.
-Other overlays: vary callout's style and position when repeating.
+Owner fold 2026-07-18: v2 swapped two of five tool openers to different
+section cards to dodge the repetition cap. Wrong tradeoff — consistency wins.
 
-**Pricing consolidation (mandatory).** Per-tool pricing/credits details during
-tool segments stay on the screen recording — pricing pages are already on
-screen. Consolidate pricing into ONE comparison graphic (e.g. a summary-table
-with real prices) in the final comparison section. Never one pricing card per
-tool. When the `comparison/table-rows` card is used, do NOT also emit stat-hit
-cues for the same numbers. (Owner fold 2026-07-18, test-01 c20–c24.)
+Rule: `R_REPETITION` in `lib/cue-rules.mjs` — no dated fold; predates this log.
 
-**Cold-open shows the products (mandatory for comparison videos).** Open on a card whose catalog
-`roles` include `comparison-coldopen`, with the compared products supplied as
-`platforms` entries carrying their logo slugs — never a text-only title. When
-two products are compared, prefer `title/title-versus`: it renders both logos
-at hero size with a VS between them, which is what a versus video promises in
-its first seconds. The other `comparison-coldopen` cards lead with the title
-and reduce the products to chips — use them only when there are more than
-four products, or no logo exists for a product. (Owner fold 2026-07-20, test-02 c01.)
+Rule: `R_PRICING` in `lib/cue-rules.mjs`.
 
-**One winner per verdict card (mandatory).** A verdict card's `winner` is
-exactly one product. When the VO crowns two favorites, emit one verdict card
-per winner, back to back, each anchored at its own "X was the best..." phrase
-with its own reason. Never join names into one box. (Owner fold 2026-07-20,
-test-02 c32.)
+Owner fold 2026-07-18 (test-01 c20–c24): per-tool pricing cards during tool
+segments duplicated what the pricing page already showed on screen. The
+correction is one consolidated comparison graphic, not one card per tool.
 
-**Units on numbers (mandatory).** Any card that renders numeric values
-(`bar-chart` bars, stat-hits, table cells) carries the unit ON the value —
-prefix `$`, suffix `ms`/`/mo` etc. A bare number the viewer must decode from
-context is a defect. (Owner fold 2026-07-20, test-02 c24.)
+Rule: `R_COLD_OPEN_TITLE` in `lib/cue-rules.mjs`.
 
-**Beat cards must not idle empty.** Anchor a beat-card cue so its FIRST beat
-lands within ~8s of the card appearing (lint W5 enforces this). When the VO
-introduces a section long before the first data point, anchor at the sentence
-immediately preceding the first beat instead of the section opener. (Owner
-fold 2026-07-20, test-02 c29: 18.9s of empty table scaffold.)
+Owner fold 2026-07-20 (test-02 c01): a text-only intro title buried the
+compared tools in a subtitle line. The intro is the video's most important
+graphic, so the products themselves have to be the visual hero.
 
-**Kinetic-sentence interstitial (`slate/kinetic-sentence`).** When it fires: a
-narration bridge where there is no footage, UI, or data worth showing, and the
-point is a single spoken assertion — this card is the alternative to letting
-the host carry that bridge on camera. How often: this is a frequent device in
-the reference, not a once-per-video special — whenever a bridge qualifies, use
-it as one of the fullframe/canvas beats in the every-35–60s cadence (Section
-2, rule 1); it draws from that same cadence rather than adding a separate
-quota on top of it. `statement/keyword-statement` is a close sibling for the
-same job (a spoken assertion with one phrase to emphasize) — reach for either.
+Rule: `R_VERDICTS` in `lib/cue-rules.mjs`.
+
+Owner fold 2026-07-20 (test-02 c32): two favorites got joined into one verdict
+box instead of two back-to-back cards, each with its own reason.
+
+Rule: `R_UNITS` in `lib/cue-rules.mjs`.
+
+Owner fold 2026-07-20 (test-02 c24): a bare number on a card left the viewer
+to decode the unit from context.
+
+Rule: `R_NO_IDLE` in `lib/cue-rules.mjs`.
+
+Owner fold 2026-07-20 (test-02 c29): 18.9s of empty table scaffold before the
+first beat landed. The fix is anchoring at the sentence right before the
+first beat, not the section opener.
+
+Rule: `R_KINETIC` in `lib/cue-rules.mjs` — no dated fold; predates this log.
+This covers when `slate/kinetic-sentence` fires and how often; the mechanics
+below (quoting, accent phrase, anchoring) are this card's authoring detail,
+not duplicated elsewhere.
 
 Quoting (mandatory): `variables.text` is the voiceover **verbatim**, one
 sentence, ≤18 words, `beats: []`. Paraphrasing is not a style slip — the
@@ -203,9 +156,8 @@ the shot pass might otherwise fill with a full-screen host span; it cannot
 overlap another fullframe cue's spoken coverage (the resolver rejects
 overlaps, same as any other fullframe card).
 
-If nothing in the catalog fits, do not force a bad match. Set the cue's
-`flagged` to `true`, set `card` to the closest existing slug, and add a `note`
-field explaining what's missing. See Section 8.
+The flagged-cue fallback is part of `R_CHOOSING` in `lib/cue-rules.mjs`. See
+Section 8 (Novel cards) for what happens after a flag is approved.
 
 ## Anchors
 
