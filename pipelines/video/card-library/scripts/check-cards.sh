@@ -116,6 +116,13 @@ if ! node scripts/check-logos.mjs; then
   err "logos failed validation"
 fi
 
+echo "==> style-guide palette matches DESIGN.md"
+for hex in $(grep -o '#[0-9A-Fa-f]\{6\}' ../visuals-flow/EDITOR-STYLE-GUIDE.md | sort -u); do
+  if ! grep -qi -- "$hex" DESIGN.md; then
+    err "$hex is in EDITOR-STYLE-GUIDE.md but not DESIGN.md — DESIGN.md owns the palette"
+  fi
+done
+
 echo
 if [ "$fail" = "1" ]; then
   echo "card check FAILED"

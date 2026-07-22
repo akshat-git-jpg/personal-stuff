@@ -5,21 +5,20 @@ follows. The pre-rendered clips you receive from the pipeline already match it.
 Use this guide whenever you build something by hand, so your graphics and ours
 look like one family.
 
-(Technical source of truth for the automated side: `../card-library/DESIGN.md`.
-If the two ever disagree, tell us instead of guessing.)
+Palette values below are owned by `card-library/DESIGN.md`. They are checked:
+`scripts/check-cards.sh` fails if this file names a colour DESIGN.md does not.
 
 ## Colors
 
 Use these exact values. No other hues.
 
-| Use | Hex | Notes |
+| Use | Value | Notes |
 |---|---|---|
 | Background gradient, origin | `#3A1F08` | burnt amber, radial gradient centered around upper-left (about 30% x, 20% y) |
-| Background gradient, outer | `#0A0805` | near-black with a warm undertone; page base is pure black `#000000` |
+| Background gradient, outer | `#0A0805` | near-black with a warm undertone; page base is pure black `#000` |
 | Primary text | `#FFFFFF` | |
-| Secondary text | `#FFEFDB` at 55-65% opacity | warm cream. Never use plain grey for dim text |
+| Secondary text | `rgba(255, 239, 219, 0.55-0.65)` | warm cream. Never use plain grey for dim text |
 | Accent (THE brand color) | `#FB923C` | orange. Labels, highlights, active states, buttons |
-| Accent light | `#FDBA74` | secondary accent when two accent levels are needed |
 | Positive / pro / yes | `#34D399` | green |
 | Negative / con / no | `#FB7185` | rose. For a muted "no", white at 28% opacity also appears |
 | Winner / top grade / gold moment | `#FACC15` | ONLY for verdict-winner moments, never decoration |
@@ -73,20 +72,10 @@ and rose only when the meaning is good vs bad. Gold only when something wins.
 - Product names always spelled correctly on screen (HeyGen, OpenArt AI,
   Higgsfield, Synthesia, Arcads), even if the voiceover audio mangles them.
 
-## When a moment earns a graphic (and when it doesn't)
+## Density and placement
 
-The default is NO graphic: the screen recording or presenter carries the
-video. Add a graphic only where it gives the viewer something the footage
-can't:
-
-- a section is starting (opener / divider card)
-- a number, list, or comparison the viewer should retain (stat, table,
-  pros and cons, pricing math)
-- the payoff moment (verdict, "which one is for you")
-- a single spoken claim worth reinforcing (small overlay, used sparingly)
-
-Leave bare: any stretch where the screen is already showing what the voice
-describes (demos, walkthroughs, clicking through a tool). Rough rhythm: one
-fullframe beat every 45–90 seconds, overlays up to three per minute in review
-stretches, and cold-open and end-card allowances instead of total exclusion
-zones. If in doubt during demo stretches, skip the graphic.
+Not your call, and not in this guide. Which graphic fires when, and how often,
+is decided by the pipeline: the rules live in
+`steps/020-cue-pass-llm/cue-pass-prompt.md`, the numbers in
+`lib/cue-constants.mjs`, and `lib/lint-cues.mjs` enforces both.
+This guide covers only how a hand-built graphic should LOOK.

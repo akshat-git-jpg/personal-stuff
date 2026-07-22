@@ -601,6 +601,9 @@ structural causes, all model-independent. Ordered; 115 and 116 both edit `lib/re
 - 123-complete-115-116-117 — PR#81 123-complete-115-116-117: Finish the parts of 115, 116 and 117 that their merge gates could not see — DONE
 - 121-logo-normalization — PR#79 121-logo-normalization: Logo normalization — every registry logo becomes a uniform app-icon tile — DONE
 - 120-cue-plan-skeleton — PR#78 120-cue-plan-skeleton: Cue-plan skeleton — turn constraint bookkeeping into a generated artifact — DONE
+- 127-visuals-flow-driver — PR#84 127-visuals-flow-driver: One front door — run.sh <slug> <step> dispatches the whole pipeline — DONE
+- 126-shot-rules-single-source — PR#83 126-shot-rules-single-source: Extend the single-source pattern to the 070 shot pass — DONE
+- 128-visuals-flow-doc-consolidation — PR#85 128-visuals-flow-doc-consolidation: Delete the doc copies that already drifted — DONE
 
 ### visuals-flow rule-surface consolidation (2026-07-22)
 

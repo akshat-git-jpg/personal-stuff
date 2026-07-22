@@ -28,8 +28,14 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `060-feedback-fold-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
 | **publish templates** | [RUN] | once the video is done: `cd ../card-library && npm run publish-check` → fails on any card built for this video that is uncommitted or unpushed. Cards only reach the editor's gallery at render2.agrolloo.com once pushed (VPS `repo-sync` cron, ~15 min). See `card-library/CLAUDE.md`. |
 
-Each `steps/NNN-*/` folder has a `README.md` (purpose, exact command, in →
-out); the four scripted steps also have a thin `run.sh` wrapper.
+### The entry point
+
+The driver script is the single entry point for the whole chain:
+
+- `bash run.sh <slug> status` prints an artifact table showing where the video is and names the next step to run.
+- `bash run.sh <slug> <step>` dispatches the named step.
+
+Each `steps/NNN-*/` folder has a `README.md` that remains the detailed reference for what that step does, its exact inputs, and its exact outputs.
 
 ## `videos/<slug>/` layout
 
