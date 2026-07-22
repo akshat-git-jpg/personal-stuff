@@ -101,7 +101,7 @@ Demos & step narration (mandatory): do NOT lay a redundant graphic over a click 
 
 Pricing (mandatory): no per-tool pricing/credits graphics during tool segments (the pricing page is on screen); consolidate into ONE pricing comparison graphic in the final comparison section. When the `comparison/table-rows` card is used, do NOT also emit stat-hit cues for the same numbers.
 
-Cold open (mandatory for comparison videos): the intro title card makes the compared products the VISUAL hero — `title/title-aurora-wave` with `platforms` logo chips, never a text-only title.
+Cold open (mandatory for comparison videos): open on a card whose catalog `roles` include `comparison-coldopen`, with the compared products supplied as `platforms` entries carrying their logo slugs — never a text-only title. When two products are compared, prefer `title/title-versus`: it renders both logos at hero size with a VS between them, which is what a versus video promises in its first seconds. The other `comparison-coldopen` cards lead with the title and reduce the products to chips — use them only when there are more than four products, or no logo exists for a product.
 
 Verdicts (mandatory): one winner per verdict card. Two favorites = two verdict cards back to back, each anchored at its own "X was the best" phrase.
 
