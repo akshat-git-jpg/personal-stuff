@@ -10,6 +10,7 @@
     "publish-check": "bash scripts/check-cards.sh --publish",
     "preview": "npx --yes hyperframes@latest preview",
     "lint": "npx --yes hyperframes@latest lint",
-    "render": "npx --yes hyperframes@latest render"
+    "render": "npx --yes hyperframes@latest render",
+    "card-qa": "node scripts/card-qa.mjs"
   }
 }

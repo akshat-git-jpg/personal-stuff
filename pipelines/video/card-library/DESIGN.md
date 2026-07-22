@@ -45,6 +45,7 @@ deliberate reason.
   `max_reveal_chars` characters fit without overflow — then record those two
   numbers in the card's `catalog.json` entry. If content can overflow, the card
   is not done.
+- **Survives worst-case content**: layouts must hold at both the minimum and maximum item counts the catalog allows, and at every string's `max_words`. Grid ratios must be computed from item count, never hardcoded for one count.
 
 ## Motion
 

@@ -14,7 +14,11 @@ export function enrichLogos(variables, cardLibraryRoot) {
   for (const s of variables.productLogos ?? []) if (typeof s === 'string') refs.add(s);
   for (const p of variables.platforms ?? []) if (typeof p?.logo === 'string') refs.add(p.logo);
   for (const b of variables.beats ?? []) if (typeof b.logo === 'string') refs.add(b.logo);
+  for (const side of [variables.left, variables.right]) {
+    if (typeof side?.logo === 'string') refs.add(side.logo);
+  }
   const logos = {};
+  const logoDark = {};
   const missing = [];
   for (const slug of refs) {
     const entry = registry[slug];
@@ -25,6 +29,7 @@ export function enrichLogos(variables, cardLibraryRoot) {
     // for the favicon-fetched ones. Mime follows the file extension.
     const mime = entry.file.toLowerCase().endsWith('.svg') ? 'image/svg+xml' : 'image/png';
     logos[slug] = `data:${mime};base64,${fs.readFileSync(file).toString('base64')}`;
+    if (entry.dark) logoDark[slug] = true;
   }
-  return { variables: refs.size ? { ...variables, __logos: logos } : variables, missing };
+  return { variables: refs.size ? { ...variables, __logos: logos, __logoDark: logoDark } : variables, missing };
 }

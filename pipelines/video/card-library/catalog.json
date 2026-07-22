@@ -404,6 +404,12 @@
                   "example": "$12 / mo"
                 }
               }
+            },
+            "logo": {
+              "type": "string",
+              "required": false,
+              "role": "logo_slug",
+              "example": "opusclip"
             }
           }
         },
@@ -437,6 +443,12 @@
                   "example": "$12 / mo"
                 }
               }
+            },
+            "logo": {
+              "type": "string",
+              "required": false,
+              "role": "logo_slug",
+              "example": "opusclip"
             }
           }
         }

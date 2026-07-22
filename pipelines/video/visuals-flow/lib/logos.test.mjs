@@ -26,12 +26,14 @@ test('enrichLogos handles variables and missing', () => {
       logo: 'known',
       productLogos: ['known', 'unknown'],
       platforms: [{ name: 'A', logo: 'known' }, { name: 'B', logo: 'platmissing' }, { name: 'C' }],
-      beats: [{ logo: 'known' }, { logo: 'badfile' }, { logo: 'nullfile' }, {}]
+      beats: [{ logo: 'known' }, { logo: 'badfile' }, { logo: 'nullfile' }, {}],
+      left: { logo: 'known' },
+      right: { logo: 'rightmissing' }
     };
     
     const { variables, missing } = enrichLogos(input, tmp);
     
-    assert.deepStrictEqual(missing.sort(), ['badfile', 'nullfile', 'platmissing', 'unknown']);
+    assert.deepStrictEqual(missing.sort(), ['badfile', 'nullfile', 'platmissing', 'rightmissing', 'unknown']);
     assert.strictEqual(variables.__logos.known, b64);
     assert.strictEqual(variables.__logos.unknown, undefined);
     
