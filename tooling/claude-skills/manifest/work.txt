@@ -34,3 +34,4 @@ zluri-release
 reddit-fetcher
 secretary
 debug-dbt-data-errors
+debug-from-backendlib
