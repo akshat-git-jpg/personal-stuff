@@ -626,3 +626,4 @@ Second, unrelated cause: 17 CLI entrypoints with no driver (127).
 - 125-catalog-when-field — every card states its own trigger in catalog.json; delete the prompt's per-card block — TODO (held with 124)
 - 119-title-versus-card — PR#77 119-title-versus-card: title/title-versus card, and cold-open routing by capability instead of slug — DONE
 - 124-cue-routing-rules-single-source — PR#86 124-cue-routing-rules-single-source: Single-source the cue ROUTING rules — extend 118's pattern from numbers to prose — DONE
+- 122-card-stress-qa-and-fixes — PR#80 122-card-stress-qa-and-fixes: Card stress-test QA harness, and the three layout defects it would have caught — DONE
