@@ -1,7 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { BEGIN_MARKER, END_MARKER, renderConstraintsBlock, renderConstraintLines } from './build-prompt.mjs';
+import {
+  BEGIN_MARKER, END_MARKER, renderConstraintsBlock, renderConstraintLines,
+  RULES_BEGIN_MARKER, RULES_END_MARKER, renderRulesBlock, renderRuleLines,
+} from './build-prompt.mjs';
 import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
+import { CUE_RULES } from './cue-rules.mjs';
 
 // Governed units/phrases the generated constraints block already states.
 // Any bare occurrence of these OUTSIDE the generated block is a hand-written
@@ -41,6 +45,7 @@ export function checkRulebook({
   catalogPath,
   cueConstants = CUE_CONSTANTS,
   endcardSlugPrefixes = ENDCARD_SLUG_PREFIXES,
+  cueRules = CUE_RULES,
 } = {}) {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
   const cuePassStepDir = path.resolve(import.meta.dirname, '..', 'steps', '020-cue-pass-llm');
@@ -102,6 +107,34 @@ export function checkRulebook({
 
   for (const section of REQUIRED_SECTIONS) {
     if (!rulebook.includes(section)) fail(`RULEBOOK.md missing section: ${section}`);
+  }
+
+  // Drift gate 4: the prompt's generated routing-rules block must match what
+  // lib/cue-rules.mjs would render today — mirrors drift gate 1 for rules.
+  const rulesBeginIdx = prompt.indexOf(RULES_BEGIN_MARKER);
+  const rulesEndIdx = prompt.indexOf(RULES_END_MARKER);
+  if (rulesBeginIdx === -1 || rulesEndIdx === -1 || rulesEndIdx < rulesBeginIdx) {
+    fail('cue-pass-prompt.md is missing the generated-routing-rules markers');
+  }
+  const currentRulesBlock = prompt.slice(rulesBeginIdx + RULES_BEGIN_MARKER.length, rulesEndIdx).trim();
+  const expectedRulesBlock = renderRulesBlock(cueRules).trim();
+  if (currentRulesBlock !== expectedRulesBlock) {
+    const staleKeys = renderRuleLines(cueRules)
+      .filter((l) => !currentRulesBlock.includes(l.text))
+      .map((l) => l.key);
+    fail(
+      `cue-pass-prompt.md's generated routing rules block is stale for: ${staleKeys.join(', ') || '(header text)'} ` +
+      `— run node lib/build-prompt.mjs\n--- current ---\n${currentRulesBlock}\n--- expected ---\n${expectedRulesBlock}`,
+    );
+  }
+
+  // Drift gate 5: RULEBOOK.md holds PROVENANCE, not rule text. A verbatim
+  // restatement is a second live copy that will drift from lib/cue-rules.mjs.
+  for (const { key, text } of renderRuleLines(cueRules)) {
+    const probe = text.split(/\s+/).slice(0, 8).join(' ');
+    if (probe.length > 20 && rulebook.includes(probe)) {
+      fail(`RULEBOOK.md restates governed rule ${key} verbatim — RULEBOOK holds the WHY and cites the rule id; the rule text lives in lib/cue-rules.mjs`);
+    }
   }
 
   if (!prompt.includes('{{SKELETON}}')) fail('cue-pass-prompt.md missing {{SKELETON}} placeholder');

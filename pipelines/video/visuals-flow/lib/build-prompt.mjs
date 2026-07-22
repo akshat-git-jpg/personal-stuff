@@ -1,9 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
+import { CUE_RULES } from './cue-rules.mjs';
 
 export const BEGIN_MARKER = '<!-- BEGIN GENERATED CONSTRAINTS — edit lib/cue-constants.mjs, then run node lib/build-prompt.mjs -->';
 export const END_MARKER = '<!-- END GENERATED CONSTRAINTS -->';
+
+export const RULES_BEGIN_MARKER = '<!-- BEGIN GENERATED ROUTING RULES — edit lib/cue-rules.mjs, then run node lib/build-prompt.mjs -->';
+export const RULES_END_MARKER = '<!-- END GENERATED ROUTING RULES -->';
 
 export const PROMPT_PATH = path.resolve(import.meta.dirname, '..', 'steps', '020-cue-pass-llm', 'cue-pass-prompt.md');
 
@@ -33,13 +37,23 @@ export function renderConstraintsBlock(cueConstants = CUE_CONSTANTS, endcardSlug
   return [...header, ...lines].join('\n');
 }
 
-function withGeneratedBlock(promptText, block) {
-  const beginIdx = promptText.indexOf(BEGIN_MARKER);
-  const endIdx = promptText.indexOf(END_MARKER);
+// One entry per rendered rule, tagged with its rule id — lets
+// check-rulebook.mjs name the offending rule on drift.
+export function renderRuleLines(cueRules = CUE_RULES) {
+  return Object.entries(cueRules).map(([key, r]) => ({ key, text: r.rule }));
+}
+
+export function renderRulesBlock(cueRules = CUE_RULES) {
+  return renderRuleLines(cueRules).map((l) => l.text).join('\n\n');
+}
+
+function withGeneratedBlock(promptText, block, beginMarker, endMarker) {
+  const beginIdx = promptText.indexOf(beginMarker);
+  const endIdx = promptText.indexOf(endMarker);
   if (beginIdx === -1 || endIdx === -1 || endIdx < beginIdx) {
-    throw new Error(`cue-pass-prompt.md is missing the generated-constraints markers`);
+    throw new Error(`cue-pass-prompt.md is missing markers: ${beginMarker} / ${endMarker}`);
   }
-  const before = promptText.slice(0, beginIdx + BEGIN_MARKER.length);
+  const before = promptText.slice(0, beginIdx + beginMarker.length);
   const after = promptText.slice(endIdx);
   return `${before}\n${block}\n${after}`;
 }
@@ -47,8 +61,10 @@ function withGeneratedBlock(promptText, block) {
 function main() {
   const check = process.argv.includes('--check');
   const current = fs.readFileSync(PROMPT_PATH, 'utf8');
-  const block = renderConstraintsBlock();
-  const rendered = withGeneratedBlock(current, block);
+  const constraintsBlock = renderConstraintsBlock();
+  const rulesBlock = renderRulesBlock();
+  const withConstraints = withGeneratedBlock(current, constraintsBlock, BEGIN_MARKER, END_MARKER);
+  const rendered = withGeneratedBlock(withConstraints, rulesBlock, RULES_BEGIN_MARKER, RULES_END_MARKER);
 
   if (check) {
     if (rendered !== current) {
