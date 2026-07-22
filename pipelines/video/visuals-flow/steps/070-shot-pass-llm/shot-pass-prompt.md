@@ -43,9 +43,22 @@ content — no other text.
    host. Fill the middle with SHORT bridges (10–30s — a one-line verdict, a
    reaction, a transition between tools) at natural pauses, never over
    hands-on narration.
-4. Total full-screen time: aim near 4 minutes for a ~30-min video, never above
-   5 minutes total. Mid-video spans are 10–30s bridges; only the intro and the
-   conclusion may run longer (up to ~2 minutes). No span under ~10 seconds.
+4. Total full-screen time: budget against the constraints below. Mid-video
+   spans are short bridges; only the intro and the conclusion may run longer.
+
+<!-- BEGIN GENERATED SHOT CONSTRAINTS — edit lib/shot-constants.mjs, then run node lib/build-shot-prompt.mjs -->
+These are HARD constraints checked by lib/lint-shots.mjs after you produce shots.json.
+A violation is a defect, not a stylistic choice. Budget against them BEFORE placing spans.
+
+- Total full-screen avatar time must never exceed 300s (lint error). This is the HeyGen 4 production limit, enforced in both engine modes.
+- Aim for about 240s of total full-screen avatar time, scaled by video length (T/1800); the linter warns below it.
+- No avatar span may be shorter than 10s (lint error) — a shorter full-screen moment is not worth a clip.
+- A mid-video avatar span longer than 45s drags (lint warning); mid-video bridges should run 10s to 30s.
+- Even an intro or outro host stretch drags past 120s (lint warning).
+- Expect one avatar span starting within the first 15% of the voiceover (U-curve shape).
+- Expect one avatar span starting within the last 15% of the voiceover (U-curve shape).
+- Consecutive avatar spans must start no more than 180s apart (lint warning) — host and content cycle tighter than the old 300s.
+<!-- END GENERATED SHOT CONSTRAINTS -->
 5. NEVER place a span over a fullframe graphics cue — the fullframe times are
    listed below; plan around them. Overlay cues are fine to overlap.
 6. Span boundaries at sentence starts/ends.
