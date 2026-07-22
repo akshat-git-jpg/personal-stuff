@@ -139,12 +139,14 @@ with real prices) in the final comparison section. Never one pricing card per
 tool. When the `comparison/table-rows` card is used, do NOT also emit stat-hit
 cues for the same numbers. (Owner fold 2026-07-18, test-01 c20–c24.)
 
-**Cold-open shows the products (mandatory for comparison videos).** The intro
-title card of a multi-product comparison makes the compared products the
-VISUAL hero — use a chip title card (`title/title-aurora-wave` with
-`platforms` filled from the logo registry), not a text-only title. The intro
-is the video's most important graphic; a title that buries the tools in a
-subtitle line is a defect. (Owner fold 2026-07-20, test-02 c01.)
+**Cold-open shows the products (mandatory for comparison videos).** Open on a card whose catalog
+`roles` include `comparison-coldopen`, with the compared products supplied as
+`platforms` entries carrying their logo slugs — never a text-only title. When
+two products are compared, prefer `title/title-versus`: it renders both logos
+at hero size with a VS between them, which is what a versus video promises in
+its first seconds. The other `comparison-coldopen` cards lead with the title
+and reduce the products to chips — use them only when there are more than
+four products, or no logo exists for a product. (Owner fold 2026-07-20, test-02 c01.)
 
 **One winner per verdict card (mandatory).** A verdict card's `winner` is
 exactly one product. When the VO crowns two favorites, emit one verdict card

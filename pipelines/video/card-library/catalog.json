@@ -1277,6 +1277,10 @@
       "slug": "title/title-aurora-wave",
       "kind": "single",
       "placement": "fullframe",
+      "roles": [
+        "title",
+        "comparison-coldopen"
+      ],
       "purpose": "title card with drifting aurora blobs and a light bar that wipes logo chips into view — THE cold-open pick for multi-product comparisons (products become the visual hero)",
       "variables": {
         "title": {
@@ -1310,6 +1314,10 @@
       "slug": "title/title-cinematic-float",
       "kind": "single",
       "placement": "fullframe",
+      "roles": [
+        "title",
+        "comparison-coldopen"
+      ],
       "purpose": "title card with a breathing vignette background; title scales in and uniform tool tiles cascade then gently bob — a strong comparison cold-open (products are the hero, every tile identical size)",
       "variables": {
         "title": {
@@ -1333,6 +1341,45 @@
               "required": false,
               "role": "logo_slug",
               "example": "opusclip"
+            }
+          }
+        }
+      },
+      "default_duration": 10
+    },
+    {
+      "slug": "title/title-versus",
+      "kind": "single",
+      "placement": "fullframe",
+      "roles": [
+        "comparison-coldopen"
+      ],
+      "purpose": "comparison cold open: two large logo tiles side by side with the product name beneath each and a VS badge between — the compared products ARE the visual hero",
+      "variables": {
+        "title": {
+          "type": "string",
+          "required": false,
+          "role": "heading",
+          "max_words": 6,
+          "omit_unless": "it adds framing the product names do not already carry",
+          "example": "Which one ships faster"
+        },
+        "platforms": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "name": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "max_words": 3,
+              "example": "Submagic"
+            },
+            "logo": {
+              "type": "string",
+              "required": false,
+              "role": "logo_slug",
+              "example": "submagic"
             }
           }
         }
