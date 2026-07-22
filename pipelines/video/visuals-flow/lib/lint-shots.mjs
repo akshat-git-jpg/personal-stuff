@@ -2,20 +2,22 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { planSegments } from './assemble.mjs';
+import { SHOT_CONSTANTS as SC } from './shot-constants.mjs';
 
 // Budget + shape rules for full-screen avatar spans. Seeded from
 // tutorial-pipeline-2's 060 rulebook knobs (U-curve, ~5:00 total cap from the
 // HeyGen 4 limit); the cap is enforced in BOTH engine modes so a test-mode
 // plan is production-shaped by construction. 2026-07-20 Youri recalibration:
-// rhythm adopted, totals kept for cost. Tune constants here, nowhere else.
-const AVATAR_FULL_CAP = 300;        // s — hard total ceiling (HeyGen 4 limit at production)
-const AVATAR_FULL_TARGET = 240;     // s — scaled by video length (T/1800); warn under
-const SPAN_MIN = 10;                // s — error: a shorter full-screen moment isn't worth a clip (Youri bridges run 10–30s)
-const SPAN_MAX_MID = 45;            // s — warn: a MID-VIDEO bridge this long drags (reference cycle: 10–30s)
-const SPAN_MAX_ZONE = 120;          // s — warn: even intro/outro host stretches drag past this
-const FRONT_ZONE = 0.15;            // U-curve: expect a span starting in the first 15% of the VO
-const BACK_ZONE = 0.15;             //          and one in the last 15%
-const GAP_AVATAR_MAX = 180;         // s — warn: reference cycles host↔content much tighter than the old 300
+// rhythm adopted, totals kept for cost. Values live in lib/shot-constants.mjs;
+// the prompt is generated from them.
+const AVATAR_FULL_CAP = SC.AVATAR_FULL_CAP.value;
+const AVATAR_FULL_TARGET = SC.AVATAR_FULL_TARGET.value;
+const SPAN_MIN = SC.SPAN_MIN.value;
+const SPAN_MAX_MID = SC.SPAN_MAX_MID.value;
+const SPAN_MAX_ZONE = SC.SPAN_MAX_ZONE.value;
+const FRONT_ZONE = SC.FRONT_ZONE.value;
+const BACK_ZONE = SC.BACK_ZONE.value;
+const GAP_AVATAR_MAX = SC.GAP_AVATAR_MAX.value;
 
 const MIN_SCREEN_ERROR = 2.5;
 const MIN_SCREEN_WARN = 5;

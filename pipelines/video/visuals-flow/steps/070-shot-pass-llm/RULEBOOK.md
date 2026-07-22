@@ -1,9 +1,10 @@
 # Shot-pass rulebook (step 070)
 
 Judgment rules for choosing full-screen avatar spans. The quantitative half is
-machine-enforced by `lib/lint-shots.mjs` (constants at the top of that file are
-the single source for numbers); this file owns the qualitative half. Edit this
-file and `shot-pass-prompt.md` together — same convention as 020's pair.
+machine-enforced by `lib/lint-shots.mjs`, whose constants live in
+`lib/shot-constants.mjs` (the single source for numbers); this file owns the
+qualitative half. Edit this file and `shot-pass-prompt.md` together — same
+convention as 020's pair.
 
 ## The model (fixed by design, don't re-litigate)
 
