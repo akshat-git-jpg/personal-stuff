@@ -625,3 +625,4 @@ Second, unrelated cause: 17 CLI entrypoints with no driver (127).
 - 124-cue-routing-rules-single-source — move routing rules into lib/cue-rules.mjs, generate them into the prompt, gate RULEBOOK against restating them — TODO (held: rewrites the cue-pass prompt, so it must not land mid-run)
 - 125-catalog-when-field — every card states its own trigger in catalog.json; delete the prompt's per-card block — TODO (held with 124)
 - 119-title-versus-card — PR#77 119-title-versus-card: title/title-versus card, and cold-open routing by capability instead of slug — DONE
+- 124-cue-routing-rules-single-source — PR#86 124-cue-routing-rules-single-source: Single-source the cue ROUTING rules — extend 118's pattern from numbers to prose — DONE
