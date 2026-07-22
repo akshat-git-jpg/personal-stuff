@@ -603,3 +603,4 @@ structural causes, all model-independent. Ordered; 115 and 116 both edit `lib/re
 - 120-cue-plan-skeleton — PR#78 120-cue-plan-skeleton: Cue-plan skeleton — turn constraint bookkeeping into a generated artifact — DONE
 - 127-visuals-flow-driver — PR#84 127-visuals-flow-driver: One front door — run.sh <slug> <step> dispatches the whole pipeline — DONE
 - 126-shot-rules-single-source — PR#83 126-shot-rules-single-source: Extend the single-source pattern to the 070 shot pass — DONE
+- 128-visuals-flow-doc-consolidation — PR#85 128-visuals-flow-doc-consolidation: Delete the doc copies that already drifted — DONE
