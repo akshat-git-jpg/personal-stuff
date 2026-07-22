@@ -1,0 +1,611 @@
+{
+  "video": "opusclip-tutorial",
+  "offset": 0,
+  "resolved": [
+    {
+      "id": "c01",
+      "card": "title/title-aurora-wave",
+      "placement": "fullframe",
+      "start": 0.78,
+      "duration": 10,
+      "variables": {
+        "title": "Submagic vs OpusClip",
+        "platforms": [
+          {
+            "name": "Submagic",
+            "logo": "submagic"
+          },
+          {
+            "name": "OpusClip",
+            "logo": "opusclip"
+          }
+        ]
+      }
+    },
+    {
+      "id": "c02",
+      "card": "slate/headline-chips",
+      "placement": "fullframe",
+      "start": 40.26,
+      "duration": 12.46,
+      "variables": {
+        "headline": "Made for creators repurposing long-form",
+        "beats": [
+          {
+            "text": "Creators & podcasters",
+            "at": 0.6
+          },
+          {
+            "text": "Coaches & educators",
+            "at": 3.5
+          },
+          {
+            "text": "TikToks, Reels, Shorts",
+            "at": 7.5
+          },
+          {
+            "text": "No babysitting every clip",
+            "at": 9.96
+          }
+        ]
+      }
+    },
+    {
+      "id": "c03",
+      "card": "table-of-contents/table-of-contents",
+      "placement": "fullframe",
+      "start": 85.22,
+      "duration": 18.9,
+      "variables": {
+        "eyebrow": "What's coming up",
+        "beats": [
+          {
+            "label": "Quick overview of both tools",
+            "at": 0.6
+          },
+          {
+            "label": "Live demo, same video",
+            "at": 3.72
+          },
+          {
+            "label": "Captions, layouts and polish",
+            "at": 7.62
+          },
+          {
+            "label": "Pricing and real-world value",
+            "at": 11.58
+          },
+          {
+            "label": "The honest verdict",
+            "at": 16.4
+          }
+        ]
+      }
+    },
+    {
+      "id": "c04",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 120.32,
+      "duration": 6,
+      "variables": {
+        "index": 1,
+        "total": 2,
+        "logo": "opusclip",
+        "name": "OpusClip",
+        "tagline": "Automation first, speed over control",
+        "tag": "AI clipping"
+      }
+    },
+    {
+      "id": "c05",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 155.52,
+      "duration": 6,
+      "variables": {
+        "index": 2,
+        "total": 2,
+        "logo": "submagic",
+        "name": "Submagic",
+        "tagline": "Polish first, full caption control",
+        "tag": "Short-form editor"
+      }
+    },
+    {
+      "id": "c06",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 182.9,
+      "duration": 4,
+      "variables": {
+        "message": "Try both tools — links in the description"
+      }
+    },
+    {
+      "id": "c07",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 200.94,
+      "duration": 5,
+      "variables": {
+        "name": "Submagic",
+        "subtitle": "Caption-first short-form editor"
+      }
+    },
+    {
+      "id": "c08",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 218.36,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "title": "Template sets the look",
+        "text": "The caption style is chosen up front, before the edit runs.",
+        "pos": "top-right",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c09",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 257.68,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "title": "Multi-speaker theme",
+        "text": "Assigns a different caption colour per speaker.",
+        "pos": "top-left",
+        "style": "tip"
+      }
+    },
+    {
+      "id": "c10",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 278.31,
+      "duration": 5,
+      "variables": {
+        "name": "OpusClip",
+        "subtitle": "Automation-first clipping tool"
+      }
+    },
+    {
+      "id": "c11",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 310.73,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Font picked at upload",
+        "text": "Caption font and colour are set before clipping starts.",
+        "pos": "bottom-right",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c12",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 364.17,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Copyright",
+        "text": "Only clip content you own or have permission to use.",
+        "edge": "bottom"
+      }
+    },
+    {
+      "id": "c13",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 386.97,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "title": "Auto hook",
+        "text": "Adds a text hook to the top 10 clips automatically.",
+        "pos": "top-right",
+        "style": "tip"
+      }
+    },
+    {
+      "id": "c14",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 419.19,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Process time frame",
+        "text": "Choose the whole video or only a section to clip.",
+        "pos": "top-left",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c15",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 447.09,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "OpusClip render",
+        "logo": "opusclip",
+        "value": 5,
+        "suffix": " min",
+        "context": "Estimated wait before the clips are ready"
+      }
+    },
+    {
+      "id": "c16",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 480.69,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "title": "B-roll and magic zooms",
+        "text": "Media, transitions and effects can be layered in before export.",
+        "pos": "bottom-right",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c17",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 511.81,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Now playing",
+        "text": "Submagic's generated clip.",
+        "pos": "top-left",
+        "style": "tip"
+      }
+    },
+    {
+      "id": "c18",
+      "card": "slate/headline-chips",
+      "placement": "fullframe",
+      "start": 556.92,
+      "duration": 14.52,
+      "variables": {
+        "headline": "Submagic's output lands publish-ready",
+        "beats": [
+          {
+            "text": "Cleaner captions",
+            "at": 0.6
+          },
+          {
+            "text": "Clearer emphasis",
+            "at": 1.58
+          },
+          {
+            "text": "Intentional layout",
+            "at": 3.18
+          },
+          {
+            "text": "Native to short-form",
+            "at": 12.02
+          }
+        ]
+      }
+    },
+    {
+      "id": "c19",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 584.62,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Now playing",
+        "text": "OpusClip's generated clip.",
+        "pos": "top-right",
+        "style": "tip"
+      }
+    },
+    {
+      "id": "c20",
+      "card": "pros-cons/pros-cons",
+      "placement": "fullframe",
+      "start": 615.78,
+      "duration": 29.16,
+      "variables": {
+        "title": "OpusClip output",
+        "beats": [
+          {
+            "kind": "pro",
+            "text": "Generates clips automatically and fast",
+            "at": 0.6
+          },
+          {
+            "kind": "pro",
+            "text": "Decent at finding the moments",
+            "at": 4.42
+          },
+          {
+            "kind": "con",
+            "text": "Captions are pretty basic",
+            "at": 6.62
+          },
+          {
+            "kind": "con",
+            "text": "Pacing often feels off",
+            "at": 9.18
+          },
+          {
+            "kind": "con",
+            "text": "Still needs caption and emphasis fixes",
+            "at": 17.1
+          },
+          {
+            "kind": "con",
+            "text": "The post-work adds up",
+            "at": 26.66
+          }
+        ]
+      }
+    },
+    {
+      "id": "c21",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 650.88,
+      "duration": 5,
+      "variables": {
+        "number": "03",
+        "title": "Pricing & Value"
+      }
+    },
+    {
+      "id": "c22",
+      "card": "comparison/credits-math",
+      "placement": "fullframe",
+      "start": 686.5,
+      "duration": 46.6,
+      "variables": {
+        "title": "OpusClip plans",
+        "logo": "opusclip",
+        "beats": [
+          {
+            "label": "Starter",
+            "math": "$12/mo · 150 credits",
+            "note": "AI clipping + captions",
+            "at": 0.6
+          },
+          {
+            "label": "Pro",
+            "math": "$23/mo · 300 credits",
+            "note": "B-roll, Premiere export",
+            "at": 21.16
+          },
+          {
+            "label": "Yearly",
+            "math": "50% off",
+            "note": "On annual billing",
+            "at": 44.1
+          }
+        ]
+      }
+    },
+    {
+      "id": "c23",
+      "card": "statement/keyword-statement",
+      "placement": "fullframe",
+      "start": 741.58,
+      "duration": 5,
+      "variables": {
+        "text": "You're not paying for more clips. You're paying for fewer fixes.",
+        "keyword": "fewer fixes"
+      }
+    },
+    {
+      "id": "c24",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 766.76,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Submagic Starter",
+        "text": "15 videos per plan, max 2 minutes, no watermark.",
+        "pos": "top-right",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c25",
+      "card": "comparison/credits-math",
+      "placement": "fullframe",
+      "start": 787.74,
+      "duration": 49.57,
+      "variables": {
+        "title": "Submagic plans",
+        "logo": "submagic",
+        "beats": [
+          {
+            "label": "Pro",
+            "math": "$39/mo · 40 videos",
+            "note": "Max 5 min, 6 AI credits",
+            "at": 0.6
+          },
+          {
+            "label": "Business + API",
+            "math": "$69/mo",
+            "note": "Full feature suite",
+            "at": 23.89
+          },
+          {
+            "label": "Free trial",
+            "math": "3 videos",
+            "note": "No credit card required",
+            "at": 38.25
+          },
+          {
+            "label": "Yearly",
+            "math": "41% off",
+            "note": "Annual billing",
+            "at": 47.07
+          }
+        ]
+      }
+    },
+    {
+      "id": "c26",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 839.57,
+      "duration": 5,
+      "variables": {
+        "number": "04",
+        "title": "Summary Table"
+      }
+    },
+    {
+      "id": "c26b",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 855.31,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Scored on five factors",
+        "text": "Ease of use, captions, customization, time to publish, value.",
+        "pos": "top-left",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c27",
+      "card": "comparison/summary-table",
+      "placement": "fullframe",
+      "start": 895.35,
+      "duration": 27.78,
+      "variables": {
+        "products": [
+          "OpusClip",
+          "Submagic"
+        ],
+        "productLogos": [
+          "opusclip",
+          "submagic"
+        ],
+        "beats": [
+          {
+            "name": "Ease of use",
+            "values": "4/5|4.5/5",
+            "reason": "Submagic feels less rigid",
+            "at": 0.6
+          },
+          {
+            "name": "Caption quality",
+            "values": "3/5|5/5",
+            "reason": "Cleaner, dynamic captions",
+            "at": 25.28
+          }
+        ]
+      }
+    },
+    {
+      "id": "c28",
+      "card": "comparison/summary-table",
+      "placement": "fullframe",
+      "start": 941.91,
+      "duration": 30.7,
+      "variables": {
+        "products": [
+          "OpusClip",
+          "Submagic"
+        ],
+        "productLogos": [
+          "opusclip",
+          "submagic"
+        ],
+        "beats": [
+          {
+            "name": "Customization",
+            "values": "2.5/5|5/5",
+            "reason": "Real control over style",
+            "at": 0.6
+          },
+          {
+            "name": "Time to publish",
+            "values": "3.5/5|5/5",
+            "reason": "Submagic is publish-ready",
+            "at": 14.1
+          },
+          {
+            "name": "Pricing & value",
+            "values": "3/5|4.5/5",
+            "reason": "Saves more editing time",
+            "at": 28.2
+          }
+        ]
+      }
+    },
+    {
+      "id": "c29",
+      "card": "verdict/persona-match",
+      "placement": "fullframe",
+      "start": 1000.49,
+      "duration": 18.36,
+      "variables": {
+        "title": "Which one is for you",
+        "beats": [
+          {
+            "persona": "Speed is the priority",
+            "winner": "OpusClip",
+            "logo": "opusclip",
+            "at": 0.6
+          },
+          {
+            "persona": "Wants publish-ready clips",
+            "winner": "Submagic",
+            "logo": "submagic",
+            "at": 15.86
+          }
+        ]
+      }
+    },
+    {
+      "id": "c30",
+      "card": "verdict/verdict-trophy",
+      "placement": "fullframe",
+      "start": 1042.59,
+      "duration": 7,
+      "variables": {
+        "eyebrow": "Overall verdict",
+        "winner": "Submagic",
+        "reason": "Better at generating clips you can actually post",
+        "logo": "submagic"
+      }
+    },
+    {
+      "id": "c31",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 1051.87,
+      "duration": 4,
+      "variables": {
+        "message": "Try Submagic or OpusClip — links in the description"
+      }
+    },
+    {
+      "id": "c32",
+      "card": "like-subscribe/like-subscribe",
+      "placement": "overlay",
+      "start": 1065.63,
+      "duration": 5,
+      "variables": {
+        "subscribeText": "Subscribe for more honest comparisons"
+      }
+    }
+  ]
+}
