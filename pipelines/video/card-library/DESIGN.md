@@ -1,8 +1,8 @@
 # Card design system
 
-> Human-editor version of this document (plain style guide, no code):
-> `../visuals-flow/EDITOR-STYLE-GUIDE.md`. Keep the two in sync when the
-> system changes.
+> This file owns the palette. `../visuals-flow/EDITOR-STYLE-GUIDE.md` is the
+> human-editor version (plain style guide, no code) and is checked against it:
+> `check-cards.sh` fails if that file names a colour this one does not.
 
 Every card in this library follows one visual family. This file is the contract a NEW
 card must meet before it joins `catalog.json` (the timing/variables contract is the

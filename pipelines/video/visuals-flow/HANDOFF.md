@@ -1,7 +1,8 @@
 # visuals-flow handoff (2026-07-21, post editor-native wave — Resolve handoff live; DRT Phase 2 parked as GFX-19)
 
 **2026-07-20/21 added the EDITOR-NATIVE wave** (owner-driven, spec
-`docs/specs/2026-07-21-native-editor-export-design.md`, decisions.md 2026-07-20 + 2026-07-21 ×2):
+`docs/specs/2026-07-21-native-editor-export-design.md`, the root decisions.md
+(entries tagged (visuals-flow, owner)) 2026-07-20 + 2026-07-21 ×2):
 DaVinci Resolve (FREE 21.0.2) is installed and the editing handoff is now a
 real editor project. Landed: **109** (FCPXML exporter, baked WYSIWYG mode, PR#66 +
 inline fixes: absolute media URLs — Resolve ignores relative fcpxml refs — and
@@ -46,7 +47,8 @@ all landed same day): the owner had 3 reference videos (Youri van Hofwegen)
 frame-analyzed into committed reports (`references/*.md` — moment tables,
 mechanism specs, mode-structure rules), then approved the grammar via
 brainstorm (spec `docs/specs/2026-07-19-mode-structure-density-design.md`,
-decisions.md 2026-07-19 ×2). Landed: orange flash-wipe INTO graphics (whip
+the root decisions.md (entries tagged (visuals-flow, owner)) 2026-07-19 ×2).
+Landed: orange flash-wipe INTO graphics (whip
 `style:'flash'`), keyword-highlight captions (orange numbers/brands), verdict-chip
 + score-pill overlay cards, progressive table + headline-chips slate beat cards,
 density recalibrated to reference cadence (per-minute rates in lint), `bubble`
@@ -65,7 +67,8 @@ Beat-synced motion graphics for final-workflow videos. One VO mp3 in, a folder
 of rendered clips plus an editor manifest out. Graphics reveal their content at
 the exact second the voiceover speaks each point. One LLM call per video;
 everything else is scripts. Design spec: `docs/specs/2026-07-17-motion-graphics-beat-sync-design.md`.
-Decisions log entries: decisions.md 2026-07-17 and 2026-07-18.
+Decisions log entries: the root decisions.md (entries tagged (visuals-flow,
+owner)) 2026-07-17 and 2026-07-18.
 Caller contract for other pipelines: `INTEGRATION.md`.
 
 ## State: proven end to end
@@ -140,35 +143,34 @@ Caller contract for other pipelines: `INTEGRATION.md`.
   + committed `assembly.md` (EDL). Editor handoff bundle unchanged — final.mp4
   is an ADDITIONAL output; per video the owner ships it or hands the bundle
   over. Timings on test-01 (32 min, M2 Pro): old two-pass path ~17 min;
-  new draft path 4m23s. Design decisions: decisions.md 2026-07-18 (two
-  entries: assembly step, speed pass).
+  new draft path 4m23s. Design decisions: the root decisions.md (entries
+  tagged (visuals-flow, owner)) 2026-07-18 (two entries: assembly step,
+  speed pass).
 
-## Where the rules live (five surfaces)
+## Where the rules live (seven surfaces)
 
-1. `steps/020-cue-pass-llm/RULEBOOK.md` + `cue-pass-prompt.md`: selection
-   judgment (density, routing, structural consistency, step-narration,
-   pricing consolidation, caps, anchors, brand spelling). Edit BOTH together.
-2. `card-library/DESIGN.md`: palette, typography, motion, capacity honesty,
-   muted-logo treatment, gold-chip winner pattern.
-3. `card-library/catalog.json`: machine-enforced per-card contracts
-   (+ `structural` flag). Prefer encoding a lesson here over prose.
-4. `lib/lint-cues.mjs`: quantitative selection rules (caps, spacing, zones,
-   density) as named constants at the top of the file.
-5. `tests/TESTS.md`: findings log, "Folded lessons" provenance, "Convergence"
-   metrics (llm vs approved cue counts per video — watch `edited`/`typed` fall).
-6. `steps/070-shot-pass-llm/RULEBOOK.md` + `shot-pass-prompt.md` (edit BOTH
-   together) + `lib/lint-shots.mjs` constants: the avatar-span equivalents of
-   1 and 4. The owner's standing avatar rules live here: ≤5 min total
-   full-screen (hard), ≤5 min host-less cadence gaps, U-curve shape, and the
-   no-orphan-screen rule (spans butt against cue/video edges or leave ≥8s;
-   lint E5/W5, plan 092).
-7. `EFFECTS.md` + `lib/effects/*.mjs` CONSTANTS: the assembly-effects rulebook
-   (whip/beat/drift/captions — what fires when, skip rules, knobs, reference
-   provenance) + the "adding a new effect" recipe. Owner feedback on an
-   effect's look updates the module CONSTANTS and the EFFECTS.md row together
-   (same edit-both rule as 1 and 6). Per-video instance control lives in
-   `videos/<slug>/effects.json` (regenerate: `node lib/effects-plan.mjs <slug>`;
-   overrides merge by id).
+1. `steps/020-cue-pass-llm/cue-pass-prompt.md` — the operative ruleset the
+   cue-pass model reads. Its constraints block is generated; never hand-edit
+   between the markers.
+2. `lib/cue-constants.mjs` — the numbers. The single source for every
+   threshold.
+3. `lib/lint-cues.mjs` — enforcement. Turns the constants into pass/fail.
+4. `card-library/catalog.json` — the per-card contract: schema, capacity,
+   placement, `structural`.
+5. `card-library/DESIGN.md` — the visual rules every card obeys, and the
+   palette.
+6. `steps/020-cue-pass-llm/RULEBOOK.md` — the judgment archive. Dated owner
+   folds and the WHY.
+7. `steps/070-shot-pass-llm/` + `lib/lint-shots.mjs` — the avatar-span
+   equivalents of 1 to 3.
+
+Assembly effects are a different domain from cue selection: `EFFECTS.md` +
+`lib/effects/*.mjs` CONSTANTS is the assembly-effects rulebook (whip/beat/
+drift/captions — what fires when, skip rules, knobs, reference provenance) +
+the "adding a new effect" recipe. Owner feedback on an effect's look updates
+the module CONSTANTS and the EFFECTS.md row together. Per-video instance
+control lives in `videos/<slug>/effects.json` (regenerate:
+`node lib/effects-plan.mjs <slug>`; overrides merge by id).
 
 ## Model routing (owner-decided, do not re-litigate)
 
@@ -178,7 +180,8 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 - 080 avatar submits: LIVE HeyGen, owner-run only, owner names the template
   slug (pilot: `girl-1`). HeyGen 3 only — the heygen-web hard rule.
 - Novel-card authoring + card redesigns: Opus-class. Antigravity only under
-  the recorded render-plus-visual-inspection mitigation (decisions.md 2026-07-07).
+  the recorded render-plus-visual-inspection mitigation (the root decisions.md,
+  entries tagged (visuals-flow, owner), 2026-07-07).
 - **060 feedback-fold: Opus-class ONLY.** Trigger: owner says "fold the feedback".
 - Plan execution (boss): default agy per `tooling/boss/data/rules.md`;
   claude-p sonnet for taste-judged/tricky. Visual output always rendered and
