@@ -601,3 +601,23 @@ structural causes, all model-independent. Ordered; 115 and 116 both edit `lib/re
 - 123-complete-115-116-117 — PR#81 123-complete-115-116-117: Finish the parts of 115, 116 and 117 that their merge gates could not see — DONE
 - 121-logo-normalization — PR#79 121-logo-normalization: Logo normalization — every registry logo becomes a uniform app-icon tile — DONE
 - 120-cue-plan-skeleton — PR#78 120-cue-plan-skeleton: Cue-plan skeleton — turn constraint bookkeeping into a generated artifact — DONE
+
+### visuals-flow rule-surface consolidation (2026-07-22)
+
+Cause: owner review after test-03 — "too many things scattered around, not able to understand".
+Root cause is single: plan 118 built a constants → generate → gate pattern for NUMBERS, and it
+was never applied to anything else. Every remaining duplicate is a surface that pattern skipped.
+Second, unrelated cause: 17 CLI entrypoints with no driver (127).
+
+| # | Plan | Root cause it removes | Depends on |
+|---|---|---|---|
+| 124 | cue-routing-rules-single-source | Routing rules written twice, in the prompt and in RULEBOOK, with no drift gate | — |
+| 125 | catalog-when-field | A card's trigger lives in the prompt, far from the card; only 4 of 52 cards state one | 124 |
+| 126 | shot-rules-single-source | 070 duplicates lint-shots constants as prose; the "tune here, nowhere else" comment is false | — |
+| 127 | visuals-flow-driver | No front door: 17 entrypoints, no driver, so a shipped CLI block can never have run | — |
+| 128 | visuals-flow-doc-consolidation | Style guide teaches the reversed density stance and a colour no palette defines; orphan decisions.md; HANDOFF miscounts its own list | — |
+
+126, 127 and 128 landed 2026-07-22 (PRs #83, #84, #85); their status rows are recorded above.
+
+- 124-cue-routing-rules-single-source — move routing rules into lib/cue-rules.mjs, generate them into the prompt, gate RULEBOOK against restating them — TODO (held: rewrites the cue-pass prompt, so it must not land mid-run)
+- 125-catalog-when-field — every card states its own trigger in catalog.json; delete the prompt's per-card block — TODO (held with 124)
