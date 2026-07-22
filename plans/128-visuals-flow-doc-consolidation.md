@@ -5,7 +5,7 @@ model: sonnet
 test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
-needs: ["Depends on 124 (RULEBOOK trimming lands there first)"]
+needs: ["Independent — cites only surfaces that exist today"]
 ---
 
 # Plan 128: Delete the doc copies that already drifted
@@ -36,7 +36,7 @@ needs: ["Depends on 124 (RULEBOOK trimming lands there first)"]
 - **Priority**: P2
 - **Effort**: S
 - **Risk**: LOW
-- **Depends on**: 124
+- **Depends on**: none
 - **Category**: tech-debt
 - **Difficulty**: mechanical
 - **Planned at**: commit `be36087`, 2026-07-22
@@ -104,7 +104,7 @@ The list that follows runs to item 7, ending at line 171.
 
 **Out of scope**:
 - Root `decisions.md`. Do not add, edit or reorder entries there. This plan only repoints citations at it.
-- `steps/020-cue-pass-llm/RULEBOOK.md` — plan 124 owns it.
+- `steps/020-cue-pass-llm/RULEBOOK.md` — a separate plan owns its trimming. Do not edit it here even though it is a rules surface.
 - `EFFECTS.md`, `INTEGRATION.md`, `PIPELINE.md`, `tests/TESTS.md`. Each has a distinct job; leave them.
 - Any card `index.html`. Changing the palette is not in scope; this plan only stops it being defined twice.
 - `videos/**` — never touch a video workdir.
@@ -124,8 +124,9 @@ Remove lines 76-92 entirely. Replace with exactly:
 ## Density and placement
 
 Not your call, and not in this guide. Which graphic fires when, and how often,
-is decided by the pipeline: the rules live in `lib/cue-rules.mjs` and the
-numbers in `lib/cue-constants.mjs`, both enforced by `lib/lint-cues.mjs`.
+is decided by the pipeline: the rules live in
+`steps/020-cue-pass-llm/cue-pass-prompt.md`, the numbers in
+`lib/cue-constants.mjs`, and `lib/lint-cues.mjs` enforces both.
 This guide covers only how a hand-built graphic should LOOK.
 ```
 
@@ -185,13 +186,13 @@ Rewrite each as `the root decisions.md (entries tagged (visuals-flow, owner))`.
 
 Change the heading at line 146 to `## Where the rules live (seven surfaces)`, and rewrite items 1-7 so each is ONE line naming that surface's single job. Use exactly these jobs:
 
-1. `steps/020-cue-pass-llm/cue-pass-prompt.md` — the operative ruleset the cue-pass model reads. Generated; do not hand-edit the marked blocks.
-2. `lib/cue-rules.mjs` — the routing rules. The single source for which card fires when.
-3. `lib/cue-constants.mjs` — the numbers. The single source for every threshold.
-4. `lib/lint-cues.mjs` — enforcement. Turns 2 and 3 into pass/fail.
-5. `card-library/catalog.json` — the per-card contract: schema, capacity, and the card's own trigger.
-6. `steps/020-cue-pass-llm/RULEBOOK.md` — the judgment archive. Dated owner folds and the WHY, citing rule ids. No rule text.
-7. `steps/070-shot-pass-llm/` + `lib/lint-shots.mjs` — the avatar-span equivalents of 1 to 4.
+1. `steps/020-cue-pass-llm/cue-pass-prompt.md` — the operative ruleset the cue-pass model reads. Its constraints block is generated; never hand-edit between the markers.
+2. `lib/cue-constants.mjs` — the numbers. The single source for every threshold.
+3. `lib/lint-cues.mjs` — enforcement. Turns the constants into pass/fail.
+4. `card-library/catalog.json` — the per-card contract: schema, capacity, placement, `structural`.
+5. `card-library/DESIGN.md` — the visual rules every card obeys, and the palette.
+6. `steps/020-cue-pass-llm/RULEBOOK.md` — the judgment archive. Dated owner folds and the WHY.
+7. `steps/070-shot-pass-llm/` + `lib/lint-shots.mjs` — the avatar-span equivalents of 1 to 3.
 
 Move the `EFFECTS.md` entry out of this list into its own short paragraph below it: assembly effects are a different domain from cue selection, and listing them together is part of why this section grew confusing.
 
@@ -221,5 +222,5 @@ Step 3's palette check is the only durable guard here; the rest is deletion. Ver
 
 ## Maintenance notes
 
-- Steps 1 and 5 both assume plan 124 has landed, since they cite `lib/cue-rules.mjs`. If 124 is not merged, that reference will not resolve.
+- This plan deliberately cites only surfaces that exist today, so it can land in any order. Plan 124 adds `lib/cue-rules.mjs` as a routing-rule source; when it lands, add it to the HANDOFF list from Step 5 and to the style guide's density pointer from Step 1. That is a two-line follow-up, not a dependency.
 - The palette check is intentionally crude, string presence rather than parsing. It catches the drift class that actually occurred without needing a token format nobody has agreed on.
