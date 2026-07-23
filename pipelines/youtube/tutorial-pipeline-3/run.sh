@@ -29,9 +29,15 @@ case "$verb" in
   lint)
     node lib/lint-script.mjs "$TP3_ROOT/videos/$slug/script.json"
     ;;
+  render)
+    node lib/render-script-md.mjs "$slug" --root "$TP3_ROOT"
+    ;;
+  gate)
+    node lib/lint-script.mjs "$TP3_ROOT/videos/$slug/script.json" --stage polished
+    ;;
   *)
     echo "Unknown verb: $verb"
-    echo "usage: bash run.sh <slug> <status|010|lint>"
+    echo "usage: bash run.sh <slug> <status|010|lint|render|gate>"
     exit 2
     ;;
 esac
