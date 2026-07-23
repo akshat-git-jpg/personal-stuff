@@ -97,3 +97,72 @@ def main(segments: str, ref: str, out: str, emo_text: str = "", interval_silence
     for sid, b in res.items():
         (od / f"{sid}.wav").write_bytes(b)
     print(f"wrote {len(res)} wavs to {out}")
+
+
+# --- Web endpoint (plan 131): per-section synth over HTTPS for the tutorial UI ---
+REF_DIR = f"{MODELS}/ref"
+REF_FILE = f"{REF_DIR}/production.wav"
+
+web_image = (
+    modal.Image.debian_slim(python_version="3.11")
+    .pip_install("fastapi[standard]")
+    .add_local_python_source("web_validate")
+)
+
+
+@app.function(volumes={MODELS: vol}, timeout=600)
+def store_ref(ref_bytes: bytes):
+    """Persist the production reference voice into the Volume (run via upload_ref)."""
+    pathlib.Path(REF_DIR).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(REF_FILE).write_bytes(ref_bytes)
+    vol.commit()
+    print(f"reference stored at {REF_FILE} ({len(ref_bytes)} bytes)")
+
+
+@app.local_entrypoint()
+def upload_ref(ref: str):
+    """One-time: modal run indextts2_app.py::upload_ref --ref references/jamila-walking-30s.wav"""
+    store_ref.remote(pathlib.Path(ref).read_bytes())
+
+
+@app.function(
+    image=web_image,
+    volumes={MODELS: vol},
+    secrets=[modal.Secret.from_name("tts-web-secret")],
+    timeout=600,
+)
+@modal.fastapi_endpoint(method="POST")
+def synth_section(payload: dict, request):
+    """POST {id, text, interval_silence?, emo_text?} + 'Authorization: Bearer <token>'
+    -> audio/wav bytes for that one section. Token lives in Modal secret
+    tts-web-secret as TTS_WEB_TOKEN. Caps/regen policy are the CALLER's job."""
+    import hmac
+    import os
+    from fastapi.responses import JSONResponse, Response
+    from web_validate import validate_payload
+
+    supplied = request.headers.get("authorization", "").removeprefix("Bearer ").strip()
+    expected = os.environ.get("TTS_WEB_TOKEN", "")
+    if not expected or not hmac.compare_digest(supplied, expected):
+        return JSONResponse({"error": "unauthorized"}, status_code=401)
+
+    ok, err, clean = validate_payload(payload)
+    if not ok:
+        return JSONResponse({"error": err}, status_code=400)
+
+    ref_path = pathlib.Path(REF_FILE)
+    if not ref_path.exists():
+        return JSONResponse({"error": "reference voice not uploaded (run upload_ref)"},
+                            status_code=503)
+
+    res = Synth().synth.remote(
+        [{"id": clean["id"], "text": clean["text"]}],
+        ref_path.read_bytes(),
+        clean["emo_text"],
+        clean["interval_silence"],
+    )
+    wav = res.get(clean["id"])
+    if not wav:
+        return JSONResponse({"error": "synth produced no audio"}, status_code=500)
+    return Response(content=wav, media_type="audio/wav",
+                    headers={"x-section-id": clean["id"]})
