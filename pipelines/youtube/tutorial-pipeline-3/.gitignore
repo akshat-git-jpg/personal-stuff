@@ -1,0 +1,7 @@
+videos/*/audio/
+videos/*/recordings/
+videos/*/qc/
+videos/*/*.wav
+videos/*/*.mp3
+videos/*/*.mp4
+videos/*/*.mov
