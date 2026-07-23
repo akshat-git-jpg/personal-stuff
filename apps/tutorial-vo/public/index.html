@@ -34,6 +34,8 @@
   
   .status { font-size: 12px; color: var(--muted); margin-top: 4px; }
   .error { color: var(--danger); }
+  .landing { max-width: 560px; margin: 15vh auto 0; text-align: center; line-height: 1.6; }
+  .landing code { background: rgba(255,255,255,.08); padding: 2px 6px; border-radius: 4px; }
   audio { width: 100%; height: 40px; margin-top: 8px; }
   
   .footer-msg { font-size: 12px; text-align: center; color: var(--muted); font-weight: bold; padding: 8px; background: #1a1a1a; border-radius: 4px; }
@@ -46,14 +48,30 @@
 <script>
 const params = new URLSearchParams(window.location.search);
 const token = params.get('t');
-const slug = window.location.pathname.split('/').pop();
+const pathParts = window.location.pathname.split('/').filter(Boolean);
+const slug = pathParts[0] === 'v' ? pathParts[1] : null;
 
 let state = null;
 
 async function fetchState() {
+  if (!slug || !token) {
+    document.getElementById('app').innerHTML =
+      '<div class="landing"><h1>Tutorial VO Studio</h1>' +
+      '<p>This tool works from a per-video link that looks like</p>' +
+      '<p><code>vo.agrolloo.com/v/&lt;video&gt;?t=&lt;token&gt;</code></p>' +
+      '<p>If you are the tutorial maker, use the link you were sent. ' +
+      'If you are the owner, get a link with <code>run.sh &lt;slug&gt; publish</code> ' +
+      'or <code>GET /api/admin/link/&lt;slug&gt;</code>.</p></div>';
+    return;
+  }
   const res = await fetch(`/api/video/${slug}?t=${token}`);
   if (!res.ok) {
-    document.getElementById('app').innerHTML = `<div class="error">Failed to load: ${res.status}</div>`;
+    const msg = res.status === 401
+      ? 'This link is not valid — check you copied the full URL including the ?t= part.'
+      : res.status === 404
+        ? 'No video published under this link yet.'
+        : `Failed to load: ${res.status}`;
+    document.getElementById('app').innerHTML = `<div class="error">${msg}</div>`;
     return;
   }
   state = await res.json();
