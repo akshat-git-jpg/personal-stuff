@@ -111,3 +111,9 @@ Per-section invariants:
    `stage: "locked"` requires every section locked. `stage: "recorded"` requires
    every demo section `recording.status` ∈ {"received","qc-passed"}.
    `stage: "qc-passed"` requires every demo section `"qc-passed"`.
+
+## Environment
+
+The pipeline looks for a `.env` file at `pipelines/.env`. Step 050 requires:
+- `VO_UI_URL`: URL of the tutorial-vo worker
+- `VO_UI_ADMIN_TOKEN`: Admin token for the worker
