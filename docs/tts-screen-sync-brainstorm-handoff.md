@@ -1,8 +1,13 @@
 # TTS-to-screen-recording sync: brainstorm handoff
 
 **Date:** 2026-07-22
-**Status:** problem open. The existing approach was reviewed and rejected by the owner. No replacement chosen yet.
-**For:** a fresh session that will brainstorm this from scratch.
+**Status:** RESOLVED 2026-07-23 — closed by workflow change, not by sync code. The owner chose
+VO-first ordering (the voiceover is generated first and the screen is recorded to it), so the
+sync problem below no longer exists for new videos. See
+`pipelines/youtube/tutorial-pipeline-3/WORKFLOW.md` and decisions.md 2026-07-23. Pre-existing
+footage that can't be re-recorded gets a polish-only dub via the legacy talk-over sync in
+`pipelines/video/tts/`, or a re-record. Kept as the autopsy of the rejected map-and-retime approach.
+**For:** historical reference. (Originally: a fresh session that would brainstorm this from scratch.)
 
 ## The problem in one paragraph
 

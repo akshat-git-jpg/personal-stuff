@@ -627,3 +627,24 @@ Second, unrelated cause: 17 CLI entrypoints with no driver (127).
 - 119-title-versus-card — PR#77 119-title-versus-card: title/title-versus card, and cold-open routing by capability instead of slug — DONE
 - 124-cue-routing-rules-single-source — PR#86 124-cue-routing-rules-single-source: Single-source the cue ROUTING rules — extend 118's pattern from numbers to prose — DONE
 - 122-card-stress-qa-and-fixes — PR#80 122-card-stress-qa-and-fixes: Card stress-test QA harness, and the three layout defects it would have caught — DONE
+
+### tutorial-pipeline-3 — VO-first build (2026-07-23)
+
+Implements `pipelines/youtube/tutorial-pipeline-3/WORKFLOW.md` (decisions.md
+2026-07-23: VO-first, no dub-sync). Executor: agy for all five (owner call).
+Owner-gated deploys: 131 (modal deploy + secret + upload_ref) and 132 (wrangler
+d1/r2/secrets/deploy) — documented in each plan.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 129 | tp3-skeleton-script-contract | Pipeline skeleton, script.json contract + lint, script-gen rulebook | — |
+| 130 | tp3-state-machine-polish-gate | Lock/invalidate state machine, script.md render, respell, polish gate | 129 |
+| 131 | tts-modal-web-endpoint | Token-authed per-section synth endpoint on the Modal app | — |
+| 132 | tutorial-vo-worker-ui | apps/tutorial-vo Worker (vo.agrolloo.com): freelancer TTS UI + admin API + publish/pull CLIs | 129, 130, 131 |
+| 133 | tp3-intake-qc-handoff | Drive intake, QC gate 1 + filmstrips, vo.mp3/screen.mp4 handoff to visuals-flow | 129, 130, 132 |
+
+- 129-tp3-skeleton-script-contract — skeleton, script.json schema/lint, step 010/020 + rulebook — TODO
+- 130-tp3-state-machine-polish-gate — state machine (edit⇒invalidate, lock rules), render, spoken/respell, polish gate — TODO
+- 131-tts-modal-web-endpoint — synth_section fastapi endpoint + upload_ref on indextts2_app.py — TODO
+- 132-tutorial-vo-worker-ui — Worker UI (hono + D1 + R2, takes cap 4, Telegram alert) + publish-ui/pull-ui — TODO
+- 133-tp3-intake-qc-handoff — pull-audio/recordings, intake QC, filmstrips, concat handoff to visuals-flow — TODO

@@ -14,7 +14,8 @@ Wrapper for everything that directly produces or operates on YouTube channel con
 | [`competitor-styles/`](competitor-styles/CLAUDE.md) | Competitor style packs — transcript/video ingestion + Style DNA for the yt-style-copy skill | Python + Claude skill |
 | [`dossiers/`](dossiers/CLAUDE.md) | Persistent per-software research library — one dossier per tool, accumulated from every fetched video transcript | Python + Claude skill |
 | [`tutorial-pipeline-1/`](tutorial-pipeline-1/PIPELINE.md) | Drive-in → HeyGen spokesperson clips from an existing avatar → Drive-out. Standalone | Python + Claude steps |
-| [`tutorial-pipeline-2/`](tutorial-pipeline-2/PIPELINE.md) | Tutorial recording prep steps (renamed from kushal-tutorial-pipeline-v2, 2026-07-07) | Python + Claude steps |
+| [`tutorial-pipeline-2/`](tutorial-pipeline-2/PIPELINE.md) | Tutorial recording prep steps (renamed from kushal-tutorial-pipeline-v2, 2026-07-07). Video-first + dub-sync — superseded by tutorial-pipeline-3's VO-first ordering (2026-07-23) | Python + Claude steps |
+| [`tutorial-pipeline-3/`](tutorial-pipeline-3/WORKFLOW.md) | VO-first tutorial workflow — voiceover generated first, screen recorded to it, no sync machinery. Concept doc only, no implementation yet | Markdown |
 | [`explainer-videos-pipeline-1/`](explainer-videos-pipeline-1/PIPELINE.md) | Topic + competitor styles → fully-generated explainer video draft. No screen recording, no avatar | Python + Claude steps |
 | [`open-source/`](open-source/README.md) | Self-hosted alternatives exploration (avatar/HeyGen-replacement work moved to `../video/heygen/fal-lipsync/` 2026-07-12) | Research/handoff docs |
 | [`final-workflow/`](final-workflow/final-workflow-notes.md) | Multi-channel production workflow + per-video cost model (notes) | Markdown |
