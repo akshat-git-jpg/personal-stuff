@@ -28,6 +28,7 @@ const APPS: App[] = [
   { name: "Hyperframes Renderer", host: "render2.agrolloo.com", url: "https://render2.agrolloo.com", kind: "infra" },
   { name: "Keto Kitchen", host: "keto-kitchen.agrolloo.com", url: "https://keto-kitchen.agrolloo.com", kind: "page" },
   { name: "Lists", host: "lists.agrolloo.com", url: "https://lists.agrolloo.com", kind: "app" },
+  { name: "Tutorial VO Studio", host: "vo.agrolloo.com", url: "https://vo.agrolloo.com", kind: "infra" },
 ];
 
 const FAVICON =

@@ -14,7 +14,7 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - `agrolloo.com` — main personal domain (apps + landing pages).
 - `bridebestie.com` — wedding-niche brand domain.
 
-### Workers (12 deployed, no Pages projects)
+### Workers (13 deployed, no Pages projects)
 - **redirector** — `go.agrolloo.com/*` — URL shortener + click tracking. Bindings: `CLICKS_KV`, `clicks-db` (D1).
 - **kushal-tools** — `kushal-tools.agrolloo.com` — KushalTools hub: card launcher linking every live agrolloo.com site. Shared-password gate (stateless signed cookie, no KV). Secrets: `APP_PASSWORD`, `SESSION_SECRET`. No bindings.
 - **kushal-gym** — `kushal-gym.agrolloo.com` — gym PWA, Google Sheet-backed via OAuth refresh token.
@@ -24,6 +24,7 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - **lists-app** — `lists.agrolloo.com` — personal categorized-lists app (SPA). Shared-password gate (stateless signed cookie, no KV). Bindings: `ASSETS` (SPA in `dist/`), `DB` (D1 `lists-db`). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
 - **founders-tracker** — `founders.agrolloo.com` — founders/CRM tracker SPA. Bindings: `ASSETS`, `DB` (D1 `founders-db`). Worker cron `35 18 * * *`. Secrets: `APP_PIN`, `SESSION_SECRET`.
 - **timeblock** — `timeblock.agrolloo.com` — tap-to-block day planner. Shared-password gate (stateless signed cookie, no KV sessions). Bindings: `ASSETS`, `BLOCKS_KV` (KV, one JSON blob per day). Secrets: `APP_PASSWORD`, `SESSION_SECRET`.
+- **tutorial-vo** — `vo.agrolloo.com` — freelancer self-serve TTS studio (tutorial-pipeline-3): per-section generate/respell/lock against the Modal IndexTTS-2 endpoint. Token-link auth per video (HMAC of slug); admin API bearer-gated. Bindings: `ASSETS`, `DB` (D1 `tutorial-vo-db`), `AUDIO` (R2 `tutorial-vo-audio`). Secrets: `ADMIN_TOKEN`, `LINK_SECRET`, `MODAL_TTS_URL`, `MODAL_TTS_TOKEN`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (escrow: `infra/secrets/tutorial-vo.env`). Deployed 2026-07-23.
 - **keto-kitchen** — `keto-kitchen.agrolloo.com` — static landing page (assets-only).
 - **bridebestie** — `bridebestie.com` + `www` — static landing page (assets-only).
 - **vps-watchdog** — cron `*/2 * * * *`, no HTTP route — pings the dashboard; reboots VPS via Hostinger API if down. Binding: `WATCHDOG_KV`.
@@ -34,18 +35,19 @@ Account: `akshatpatidar17@gmail.com` (`ac525d9a38c81a18eb327571d3f76e7e`). Both 
 - `SESSIONS` — tutorials-tracker logins.
 - `BLOCKS_KV` — timeblock day blobs (key `day:YYYY-MM-DD`).
 
-### D1 databases (5)
+### D1 databases (6)
 - `lists-db` — lists-app data store (categories + items). Bound as `DB` in lists-app only.
 - `clicks-db` — redirector click store. Written by redirector + yt-tutorials-tracker; read by yt-analytics (read-only) and by `pipelines/youtube/yt-analysis/sync_clicks.py`. `videos` has an additive `yt_video_id` column (migration `0002`, owned by the redirector) so yt-analytics can look up YouTube views. All 65 uploaded `@AgrolloReviews` videos were backfilled here (per-video tracking links `go.agrolloo.com/<code>/<tool>`) on 2026-06-16.
 - `tracker-db` — yt-tutorials-tracker app data (second D1 binding alongside `clicks-db`).
 - `founders-db` — founders-tracker data store. Bound as `DB` in founders-tracker only.
 - `yt-rankings` — YouTube rankings data, bound in yt-analytics (second D1 binding alongside read-only `clicks-db`).
+- `tutorial-vo-db` — tutorial-vo section state (videos + sections, takes/locks). Bound as `DB` in tutorial-vo only. Id `503fc40e-748d-4c17-a518-9b69b8a43f25`.
 
 ### DNS — agrolloo.com
 - `agrolloo.com` + `www` → `191.101.230.133` (Hostinger shared hosting, proxied) — NOT the VPS, NOT a Worker.
 - `my-dashboard.agrolloo.com` → `72.61.241.170` (VPS, proxied) — personal-dashboard container via Traefik.
 - `render2.agrolloo.com` → `72.61.241.170` (VPS, proxied) — Hyperframes → MP4 renderer behind Traefik (added after the 2026-06-13 audit).
-- `go` / `keto-kitchen` / `kushal-gym` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` / `lists` / `founders` / `timeblock` → the 10 routed Workers above (custom domains show as proxied `AAAA 100::`).
+- `go` / `keto-kitchen` / `kushal-gym` / `kushal-docs` / `tutorials-tracker` / `yt-analytics` / `kushal-tools` / `lists` / `founders` / `timeblock` / `vo` → the 11 routed Workers above (custom domains show as proxied `AAAA 100::`).
 - `ftp.agrolloo.com` → `191.101.230.133` (Hostinger hosting).
 - MX + `autoconfig` / `autodiscover` / DKIM → Hostinger mail.
 - `send.notifications.agrolloo.com` + `resend._domainkey` → Amazon SES / Resend (transactional email sending).
