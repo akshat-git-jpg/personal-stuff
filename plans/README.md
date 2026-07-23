@@ -652,3 +652,4 @@ d1/r2/secrets/deploy) — documented in each plan.
 - 129-tp3-skeleton-script-contract — PR#87 129-tp3-skeleton-script-contract: tutorial-pipeline-3 skeleton, script contract, and script-generation step — DONE
 - 130-tp3-state-machine-polish-gate — PR#88 130-tp3-state-machine-polish-gate: tutorial-pipeline-3 section state machine + polish/lint gate — DONE
 - 132-tutorial-vo-worker-ui — PR#90 132-tutorial-vo-worker-ui: tutorial-vo — the tutorial maker's self-serve TTS Worker UI (v1) — DONE
+- 133-tp3-intake-qc-handoff — PR#91 133-tp3-intake-qc-handoff: tutorial-pipeline-3 intake QC + handoff to visuals-flow — DONE
