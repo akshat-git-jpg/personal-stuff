@@ -17,7 +17,9 @@ app.use("/api/admin/*", async (c, next) => {
 
 app.use("/api/*", async (c, next) => {
   if (c.req.path.startsWith("/api/admin/")) return next();
-  const slug = c.req.param("slug");
+  // Route params don't resolve in wildcard middleware; every non-admin API route
+  // is /api/<resource>/<slug>[/...], so the slug is always path segment 3.
+  const slug = c.req.path.split("/")[3];
   if (!slug) return c.json({ error: "missing slug" }, 400);
   const t = c.req.query("t");
   if (!t) return c.json({ error: "unauthorized" }, 401);
@@ -50,7 +52,7 @@ app.post("/api/admin/publish/:slug", async (c) => {
       id: s.id,
       version: s.version,
       demo: !!s.demo,
-      spoken_text: s.tts?.spoken_text || s.display_text || "",
+      spoken_text: s.spoken_text || s.display_text || "",
     };
     const res = mergePublish(existing, incoming, slug, now);
     statements.push(
