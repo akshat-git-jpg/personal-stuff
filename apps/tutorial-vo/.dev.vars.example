@@ -1,0 +1,6 @@
+ADMIN_TOKEN=dummy
+LINK_SECRET=dummy
+MODAL_TTS_URL=https://dummy
+MODAL_TTS_TOKEN=dummy
+TELEGRAM_BOT_TOKEN=dummy
+TELEGRAM_CHAT_ID=dummy

@@ -32,12 +32,18 @@ case "$verb" in
   render)
     node lib/render-script-md.mjs "$slug" --root "$TP3_ROOT"
     ;;
+  publish)
+    node lib/publish-ui.mjs "$slug" --root "$TP3_ROOT" ${3:+--drive-url "$3"}
+    ;;
+  pull)
+    node lib/pull-ui.mjs "$slug" --root "$TP3_ROOT"
+    ;;
   gate)
     node lib/lint-script.mjs "$TP3_ROOT/videos/$slug/script.json" --stage polished
     ;;
   *)
     echo "Unknown verb: $verb"
-    echo "usage: bash run.sh <slug> <status|010|lint|render|gate>"
+    echo "usage: bash run.sh <slug> <status|010|lint|render|publish|pull|gate>"
     exit 2
     ;;
 esac

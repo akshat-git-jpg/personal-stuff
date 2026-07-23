@@ -1,0 +1,27 @@
+name = "tutorial-vo"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Owner fills the real id after `npx wrangler d1 create tutorial-vo-db`;
+# placeholder is fine for `wrangler dev` (local simulation).
+[[d1_databases]]
+binding = "DB"
+database_name = "tutorial-vo-db"
+database_id = "00000000-0000-0000-0000-000000000000"
+
+# Owner creates with `npx wrangler r2 bucket create tutorial-vo-audio`.
+[[r2_buckets]]
+binding = "AUDIO"
+bucket_name = "tutorial-vo-audio"
+
+[[routes]]
+pattern = "vo.agrolloo.com"
+custom_domain = true
+
+# Secrets (never committed): ADMIN_TOKEN, LINK_SECRET, MODAL_TTS_URL,
+# MODAL_TTS_TOKEN, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID — via `npx wrangler secret put`.
