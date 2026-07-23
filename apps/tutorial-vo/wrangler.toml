@@ -7,12 +7,11 @@ compatibility_flags = ["nodejs_compat"]
 directory = "./public"
 binding = "ASSETS"
 
-# Owner fills the real id after `npx wrangler d1 create tutorial-vo-db`;
-# placeholder is fine for `wrangler dev` (local simulation).
+# Real id from `npx wrangler d1 create tutorial-vo-db` (provisioned 2026-07-23).
 [[d1_databases]]
 binding = "DB"
 database_name = "tutorial-vo-db"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "503fc40e-748d-4c17-a518-9b69b8a43f25"
 
 # Owner creates with `npx wrangler r2 bucket create tutorial-vo-audio`.
 [[r2_buckets]]
