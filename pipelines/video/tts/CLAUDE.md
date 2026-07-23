@@ -161,6 +161,9 @@ references → plain output; a livelier reference is the lever for more energy (
   run on Modal GPU via `modal/indextts2_app.py` (per-segment `{id,text}` contract; supports
   `interval_silence` and `emo_text`).
 
+### Web endpoint (tutorial-pipeline-3 UI)
+endpoint = `synth_section` in `modal/indextts2_app.py`, POST `{id, text, interval_silence?, emo_text?}` with `Authorization: Bearer $TTS_WEB_TOKEN` → `audio/wav`; owner one-time setup: `modal secret create tts-web-secret TTS_WEB_TOKEN=<long-random>`, then `modal run modal/indextts2_app.py::upload_ref --ref references/jamila-walking-30s.wav`, then `modal deploy modal/indextts2_app.py`; the deployed URL is printed by `modal deploy` and goes into the Worker secret `MODAL_TTS_URL` (plan 132). Note the caller owns regen caps; the endpoint is deliberately policy-free.
+
 All set MPS-off-by-fallback / device auto. HF auth: token stored globally
 (`~/.cache/huggingface/token`) — downloads are fast.
 
