@@ -100,7 +100,10 @@ def main(segments: str, ref: str, out: str, emo_text: str = "", interval_silence
 
 
 # --- Web endpoint (plan 131): per-section synth over HTTPS for the tutorial UI ---
-from fastapi import Request  # noqa: E402  (annotation below; container image installs fastapi)
+try:  # only the web container (web_image) ships fastapi; the GPU image must not import it
+    from fastapi import Request  # noqa: E402
+except ModuleNotFoundError:
+    Request = None  # GPU/store_ref containers never touch the endpoint annotation
 
 REF_DIR = f"{MODELS}/ref"
 REF_FILE = f"{REF_DIR}/production.wav"
