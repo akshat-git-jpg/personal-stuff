@@ -650,3 +650,4 @@ d1/r2/secrets/deploy) — documented in each plan.
 - 133-tp3-intake-qc-handoff — pull-audio/recordings, intake QC, filmstrips, concat handoff to visuals-flow — TODO
 - 131-tts-modal-web-endpoint — PR#89 131-tts-modal-web-endpoint: Modal web endpoint for per-section TTS synthesis — DONE
 - 129-tp3-skeleton-script-contract — PR#87 129-tp3-skeleton-script-contract: tutorial-pipeline-3 skeleton, script contract, and script-generation step — DONE
+- 130-tp3-state-machine-polish-gate — PR#88 130-tp3-state-machine-polish-gate: tutorial-pipeline-3 section state machine + polish/lint gate — DONE
