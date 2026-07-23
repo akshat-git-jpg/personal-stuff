@@ -648,3 +648,4 @@ d1/r2/secrets/deploy) — documented in each plan.
 - 131-tts-modal-web-endpoint — synth_section fastapi endpoint + upload_ref on indextts2_app.py — TODO
 - 132-tutorial-vo-worker-ui — Worker UI (hono + D1 + R2, takes cap 4, Telegram alert) + publish-ui/pull-ui — TODO
 - 133-tp3-intake-qc-handoff — pull-audio/recordings, intake QC, filmstrips, concat handoff to visuals-flow — TODO
+- 131-tts-modal-web-endpoint — PR#89 131-tts-modal-web-endpoint: Modal web endpoint for per-section TTS synthesis — DONE
