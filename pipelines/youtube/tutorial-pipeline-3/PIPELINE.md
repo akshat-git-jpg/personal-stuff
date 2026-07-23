@@ -20,8 +20,13 @@ videos/<slug>/
   audio/                 # gitignored (locked section wavs, pulled from UI)
   recordings/            # gitignored (per-section clips from Drive)
   qc/                    # gitignored (contact sheets)
-  intake-report.md       # committed (plan 133)
+  drive.json             # committed — Drive folder config for pull-recordings
+  intake-report.md       # committed — gate 1 QC report
 ```
+
+Handoff outputs (written to `pipelines/video/visuals-flow/videos/<slug>/`):
+- `vo.mp3`: The complete, normalized voiceover track (sections + gaps).
+- `screen.mp4`: The VO-aligned screen recording (trimmed clips + freeze-filled talk sections).
 
 ## The script.json contract (single source of truth — goes into PIPELINE.md)
 

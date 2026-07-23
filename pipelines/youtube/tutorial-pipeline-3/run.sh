@@ -38,12 +38,25 @@ case "$verb" in
   pull)
     node lib/pull-ui.mjs "$slug" --root "$TP3_ROOT"
     ;;
+  pull-audio)
+    node lib/pull-audio.mjs "$slug" --root "$TP3_ROOT"
+    ;;
+  pull-recordings)
+    node lib/drive-pull.mjs "$slug" --root "$TP3_ROOT"
+    ;;
+  qc)
+    node lib/intake-qc.mjs "$slug" --root "$TP3_ROOT"
+    node lib/filmstrip.mjs "$slug" --root "$TP3_ROOT"
+    ;;
+  handoff)
+    node lib/handoff.mjs "$slug" --root "$TP3_ROOT"
+    ;;
   gate)
     node lib/lint-script.mjs "$TP3_ROOT/videos/$slug/script.json" --stage polished
     ;;
   *)
     echo "Unknown verb: $verb"
-    echo "usage: bash run.sh <slug> <status|010|lint|render|publish|pull|gate>"
+    echo "usage: bash run.sh <slug> <status|010|lint|render|publish|pull|pull-audio|pull-recordings|qc|handoff|gate>"
     exit 2
     ;;
 esac
