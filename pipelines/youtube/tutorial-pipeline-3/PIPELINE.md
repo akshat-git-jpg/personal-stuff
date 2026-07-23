@@ -89,3 +89,25 @@ Lint stages (`lib/lint-script.mjs`):
 - default (`--stage generated`): all schema rules above.
 - `--stage polished`: additionally, zero flags anywhere (no inline markers, empty
   `flags` arrays) and `spoken_text` non-empty for every section.
+
+## Section state machine
+
+Stage order (top-level `stage`): generated → verified → polished → tts → locked
+→ recorded → qc-passed. `set-stage` may only move one step forward, except the
+edit rule below which moves the file backward automatically.
+
+Per-section invariants:
+
+1. **Text edit invalidates everything derived from the text.** Changing a
+   section's `display_text` or `spoken_text` bumps `section.version`, resets
+   `tts` to `{ regens_used: 0, locked: false, take: null }`, and sets
+   `recording.status` to `"re-record"` if a recording was already
+   `"received"`/`"qc-passed"`, else `"pending"` (demo) / `"none"` (non-demo).
+2. **Lock preconditions.** A section may lock only when: `flags` is empty,
+   `spoken_text` is non-empty, and `tts.take` is non-null. Locking sets
+   `tts.locked = true`. There is no unlock operation — only a text edit (rule 1)
+   clears a lock.
+3. **Stage gates.** `stage: "tts"` requires lint `--stage polished` to pass.
+   `stage: "locked"` requires every section locked. `stage: "recorded"` requires
+   every demo section `recording.status` ∈ {"received","qc-passed"}.
+   `stage: "qc-passed"` requires every demo section `"qc-passed"`.
