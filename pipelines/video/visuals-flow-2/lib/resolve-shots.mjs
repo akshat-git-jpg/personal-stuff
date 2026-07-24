@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { normWord, findPhrase } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
+import { loadVideoManifest } from './video-manifest.mjs';
 
 export const ENGINE_MODES = ['test', 'production'];
 export const SNAP_EDGE = 1.5;
@@ -9,7 +10,7 @@ export const SNAP_EDGE = 1.5;
 // Spans are matched with the same forward-cursor discipline as cues: each
 // span's from_anchor is searched after the previous span's to_anchor, so
 // repeated phrases resolve in transcript order.
-export function resolveShots(shotsFile, words) {
+export function resolveShots(shotsFile, words, manifest = { head_layout: 'full' }) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
   const total = W.length > 0 ? W[W.length - 1].end : 0;
   const errors = [];
@@ -48,8 +49,9 @@ export function resolveShots(shotsFile, words) {
       end = total;
       snapped = true;
     }
+    const resolvedKind = (span.kind === 'avatar-full' && manifest.head_layout === 'panel') ? 'avatar-panel' : span.kind;
     const spanObj = {
-      id: span.id, kind: span.kind,
+      id: span.id, kind: resolvedKind,
       start, end, duration: +(end - start).toFixed(2),
       note: span.note ?? '',
     };
@@ -69,8 +71,9 @@ async function main() {
   const workdir = resolveWorkdir(arg);
   const shotsFile = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.json'), 'utf8'));
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
+  const manifest = loadVideoManifest(workdir);
 
-  const { spans, errors } = resolveShots(shotsFile, words);
+  const { spans, errors } = resolveShots(shotsFile, words, manifest);
   if (errors.length) {
     for (const e of errors) console.error(e);
     process.exit(1);

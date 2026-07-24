@@ -117,3 +117,26 @@ test('snap at 1.4s, no snap at 1.6s, sets snapped flag', () => {
   assert.equal(spans4[0].end, 118);
   assert.equal(spans4[0].snapped, undefined);
 });
+
+test('panel layout converts avatar-full to avatar-panel', () => {
+  const manifest = { head_layout: 'panel' };
+  const { spans, errors } = resolveShots({
+    engineMode: 'test',
+    spans: [{ id: 's01', kind: 'avatar-full', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }]
+  }, words, manifest);
+  assert.deepEqual(errors, []);
+  assert.equal(spans.length, 1);
+  assert.equal(spans[0].kind, 'avatar-panel');
+});
+
+test('corner layout leaves avatar-full unchanged', () => {
+  const manifest = { head_layout: 'corner' };
+  const { spans, errors } = resolveShots({
+    engineMode: 'test',
+    spans: [{ id: 's01', kind: 'avatar-full', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }]
+  }, words, manifest);
+  assert.deepEqual(errors, []);
+  assert.equal(spans.length, 1);
+  assert.equal(spans[0].kind, 'avatar-full');
+});
+
