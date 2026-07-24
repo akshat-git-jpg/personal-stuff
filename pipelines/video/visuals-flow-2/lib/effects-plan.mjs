@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { planSegments, absorbSlivers, CANVAS } from './assemble.mjs';
+import { planSegments, absorbSlivers, fillGapsWithFreeze, CANVAS } from './assemble.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { EFFECT_MODULES } from './effects/registry.mjs';
+import { loadVideoManifest } from './video-manifest.mjs';
 
 function main() {
   if (process.argv.length < 3) {
@@ -43,8 +44,10 @@ function main() {
     total = 0;
   }
 
+  const manifest = loadVideoManifest(workdir);
   let segments = planSegments({ resolved, avatarJobs, total });
   segments = absorbSlivers(segments);
+  segments = fillGapsWithFreeze(segments, { base: manifest.base });
 
   const renderDir = path.join(workdir, 'renders');
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {

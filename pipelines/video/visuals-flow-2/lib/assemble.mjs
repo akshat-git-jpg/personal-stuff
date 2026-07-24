@@ -6,6 +6,7 @@ import { mmss, planRender } from './render.mjs';
 import { resolveCues } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { EFFECT_MODULES } from './effects/registry.mjs';
+import { loadVideoManifest } from './video-manifest.mjs';
 
 import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
@@ -90,6 +91,29 @@ export function planSegments({ resolved, avatarJobs, total }) {
     segments.push({ kind: 'screen', id: `screen-${String(n).padStart(2, '0')}`, start: t, end: total });
   }
   return segments;
+}
+
+export function fillGapsWithFreeze(segments, { base }) {
+  if (base !== 'none') return segments;
+  const out = [];
+  for (let i = 0; i < segments.length; i++) {
+    const s = segments[i];
+    if (s.kind === 'screen') {
+      let from = null;
+      for (let j = i - 1; j >= 0; j--) {
+        if (segments[j].kind !== 'screen') { from = segments[j].id; break; }
+      }
+      if (!from) {
+        for (let j = i + 1; j < segments.length; j++) {
+          if (segments[j].kind !== 'screen') { from = segments[j].id; break; }
+        }
+      }
+      out.push({ ...s, kind: 'freeze', from });
+    } else {
+      out.push(s);
+    }
+  }
+  return out;
 }
 
 export function planSegmentOverlays(segments, overlays) {
@@ -322,8 +346,10 @@ function parseArgs(argv) {
 }
 
 export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', effects = 'on', bubble = 'on', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null }) {
+  const videoManifest = loadVideoManifest(workdir);
   let segments = planSegments({ resolved, avatarJobs, total });
   segments = absorbSlivers(segments);
+  segments = fillGapsWithFreeze(segments, { base: videoManifest.base });
 
   const renderDir = path.join(workdir, 'renders');
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
@@ -488,6 +514,20 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     if (seg.kind === 'screen') {
       seekArgs = ['-ss', String(seg.start + screenOffset + startTrim), '-to', String(seg.end + screenOffset - endTrim)];
       src = screen;
+    } else if (seg.kind === 'freeze') {
+      const cue = resolved.find(c => c.id === seg.from);
+      if (cue) src = path.join(renderDir, planRender(cue).outFile);
+      else {
+        const job = avatarJobs.find(j => j.id === seg.from);
+        if (job) src = job.file;
+      }
+      const fromIdx = segments.findIndex(s => s.id === seg.from);
+      const isHead = fromIdx > i;
+      if (isHead) {
+        seekArgs = ['-frames:v', '1'];
+      } else {
+        seekArgs = ['-sseof', '-0.05'];
+      }
     } else if (seg.kind === 'avatar') {
       const job = avatarJobs.find(j => j.id === seg.id);
       src = job.file;
