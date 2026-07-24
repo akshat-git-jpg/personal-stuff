@@ -149,7 +149,7 @@ export function checkRulebook({
     nextSectionIdx === -1 ? rulebook.length : nextSectionIdx,
   );
 
-  const jsonBlockMatch = workedExampleSection.match(/```json\n([\s\S]*?)```/);
+  const jsonBlockMatch = workedExampleSection.match(/`{3}json\n([\s\S]*?)`{3}/);
   if (!jsonBlockMatch) fail('no fenced json block in the Worked example section');
 
   let workedExample;
