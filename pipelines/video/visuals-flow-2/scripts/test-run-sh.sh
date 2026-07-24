@@ -14,12 +14,12 @@ if bash run.sh >/dev/null 2>&1; then
   fail "bash run.sh should exit 2"
 fi
 
-# bash run.sh test-02 bogus exits 2 and contains unknown step
-out=$(bash run.sh test-02 bogus 2>&1 || true)
+# bash run.sh . bogus exits 2 and contains unknown step
+out=$(bash run.sh . bogus 2>&1 || true)
 if [[ "$out" != *"unknown step"* ]]; then
   fail "bogus step should print unknown step, got: $out"
 fi
-if bash run.sh test-02 bogus >/dev/null 2>&1; then
+if bash run.sh . bogus >/dev/null 2>&1; then
   fail "bogus step should exit 2"
 fi
 
@@ -28,16 +28,16 @@ if bash run.sh nosuchvideo status >/dev/null 2>&1; then
   fail "nosuchvideo status should exit 1"
 fi
 
-# bash run.sh test-02 status exits 0 and contains next:
-out=$(bash run.sh test-02 status)
+# bash run.sh . status exits 0 and contains next:
+out=$(bash run.sh . status)
 if [[ "$out" != *"next:"* ]]; then
-  fail "test-02 status should contain next:, got: $out"
+  fail ". status should contain next:, got: $out"
 fi
 
-# bash run.sh test-02 cue-pass exits 0 and contains plan-skeleton
-out=$(bash run.sh test-02 cue-pass)
+# bash run.sh . cue-pass exits 0 and contains plan-skeleton
+out=$(bash run.sh . cue-pass)
 if [[ "$out" != *"plan-skeleton"* ]]; then
-  fail "test-02 cue-pass should contain plan-skeleton, got: $out"
+  fail ". cue-pass should contain plan-skeleton, got: $out"
 fi
 
 # assert underlying commands are in run.sh
