@@ -228,11 +228,19 @@ const BOARD_CSS = `
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:var(--font); background:var(--bg); color:var(--text); padding:28px 32px 80px; }
   .sticky-header { position:sticky; top:0; background:var(--bg); z-index:100; margin:-28px -32px 20px -32px; padding:28px 32px 16px 32px; border-bottom:1px solid var(--line); }
-  .topbar { display:flex; align-items:center; gap:20px; margin-bottom:16px; font-size:14px; color:var(--dim); }
+  .topbar { display:flex; align-items:center; gap:12px 20px; margin-bottom:16px; font-size:14px; color:var(--dim); flex-wrap:wrap; }
   .topbar strong { color:var(--text); }
-  .view-toggle { display:flex; gap:2px; border:1px solid var(--line); border-radius:8px; padding:2px; }
-  .view-toggle a { padding:5px 12px; border-radius:6px; font-size:13px; font-weight:600; text-decoration:none; color:var(--dim); }
-  .view-toggle a.active { color:var(--accent); background:rgba(251,146,60,0.12); }
+  .view-toggle { display:flex; align-items:center; gap:2px; border:1px solid var(--line); border-radius:8px; padding:2px; flex:none; }
+  .view-toggle a, .view-toggle button.tab-btn { padding:5px 12px; border-radius:6px; font-size:13px; font-weight:600; text-decoration:none;
+    color:var(--dim); background:none; border:0; font-family:inherit; cursor:pointer; white-space:nowrap; line-height:1.4; }
+  .view-toggle a.active, .view-toggle button.tab-btn.active { color:var(--accent); background:rgba(251,146,60,0.12); }
+  #fc-version { font:inherit; font-size:13px; font-weight:600; padding:6px 10px; background:var(--panel); color:var(--text);
+    border:1px solid var(--line); border-radius:8px; outline:none; }
+  .fc-cbtn { background:none; border:0; color:var(--dim); cursor:pointer; font-size:13px; padding:2px 5px; border-radius:4px; }
+  .fc-cbtn:hover { color:var(--text); background:rgba(255,255,255,0.08); }
+  .fold-toggle { background:none; border:1px solid var(--line); color:var(--dim); cursor:pointer; font:inherit; font-size:12px;
+    font-weight:600; padding:3px 10px; border-radius:6px; margin:2px 0 8px; }
+  .fold-toggle:hover { color:var(--text); }
   .topbar button { font:inherit; font-weight:700; border-radius:9px; padding:9px 16px; cursor:pointer;
     border:1px solid var(--line); background:var(--panel); color:var(--text); }
   #approveBtn { border-color:var(--ok); color:var(--ok); }
@@ -870,6 +878,8 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
       ${effects && effects.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>effects approved — ready for step 090 assemble</div>' : ''}
       ${shots?.errors?.length ? `<div class="banner err"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shots: ${shots.errors.map(escapeHtml).join('<br>')}</div>` : ''}
     </div>
+    <button id="overviewToggle" class="fold-toggle" onclick="toggleOverview()">overview ▾</button>
+    <div id="overviewBlock">
     <div class="usage">${(() => {
       const counts = new Map();
       for (const c of cues) counts.set(c.card, (counts.get(c.card) ?? 0) + 1);
@@ -893,6 +903,18 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
       <span><span class="dot" style="background:var(--line)"></span>screen recording + corner avatar</span>
     </div>
     ${fxChipsHtml}
+    </div>
+    <script>
+      function toggleOverview() {
+        const el = document.getElementById('overviewBlock');
+        const btn = document.getElementById('overviewToggle');
+        const hide = el.style.display !== 'none';
+        el.style.display = hide ? 'none' : '';
+        btn.textContent = hide ? 'overview ▸' : 'overview ▾';
+        try { localStorage.setItem('board:list-overview', hide ? 'closed' : 'open'); } catch (e) {}
+      }
+      if ((() => { try { return localStorage.getItem('board:list-overview'); } catch (e) { return null; } })() === 'closed') toggleOverview();
+    </script>
     ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
     ${fxInstances.length ? `
     <audio id="master" class="scrub" controls src="/vo.mp3"></audio>
@@ -1306,6 +1328,20 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
     }
 
     let fcItems = ${JSON.stringify(feedbackItems)};
+    async function editFcComment(key) {
+      const cur = fcItems[key]; if (!cur) return;
+      const text = prompt('Edit comment:', cur.text);
+      if (text === null || !text.trim() || text === cur.text) return;
+      const res = await fetch('/feedback-final-edit', { method: 'POST', body: JSON.stringify({ key, text: text.trim() }) });
+      if (res.ok) { fcItems[key] = { ...cur, text: text.trim() }; renderFcComments(document.getElementById('fc-version').value); }
+      else alert('failed to edit');
+    }
+    async function deleteFcComment(key) {
+      if (!confirm('Delete this comment?')) return;
+      const res = await fetch('/feedback-final-delete', { method: 'POST', body: JSON.stringify({ key }) });
+      if (res.ok) { delete fcItems[key]; renderFcComments(document.getElementById('fc-version').value); }
+      else alert('failed to delete');
+    }
     function showFcPin(x, y) {
       const m = document.getElementById('fc-pin-marker');
       if (x === null || x === undefined) { m.style.display = 'none'; return; }
@@ -1326,6 +1362,12 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
         let html = '';
         if (v.t !== undefined) html += \`<strong style="color:var(--accent); cursor:pointer" onclick="document.getElementById('fc-video').currentTime=\${v.t}; showFcPin(\${v.x ?? 'null'}, \${v.y ?? 'null'})">\${fmtClock(v.t)}</strong> \`;
         html += escapeHtml(v.text);
+        if (!v.folded) {
+          html += \`<span style="float:right; white-space:nowrap;">
+            <button class="fc-cbtn" title="edit" onclick="editFcComment('\${k}')">✎</button>
+            <button class="fc-cbtn" title="delete" onclick="deleteFcComment('\${k}')">✕</button>
+          </span>\`;
+        }
         
         const st = fcStatus[k];
         if (st) {
@@ -1908,6 +1950,30 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
       fs.createReadStream(videoPath).pipe(res);
     }
     return;
+  }
+
+  if (req.method === 'POST' && (url.pathname === '/feedback-final-edit' || url.pathname === '/feedback-final-delete')) {
+    const body = await readBody(req);
+    let payload;
+    try { payload = JSON.parse(body); } catch (e) { res.statusCode = 400; return res.end('{"ok":false}'); }
+    const key = String(payload.key ?? '');
+    if (!key.startsWith('final-')) { res.statusCode = 400; return res.end('{"ok":false,"error":"final-* keys only"}'); }
+    const fbPath = path.join(workdir, 'feedback.json');
+    const fb = fs.existsSync(fbPath) ? JSON.parse(fs.readFileSync(fbPath, 'utf8')) : { items: {} };
+    const item = fb.items?.[key];
+    if (!item) { res.statusCode = 404; return res.end('{"ok":false,"error":"no such comment"}'); }
+    if (item.folded) { res.statusCode = 409; return res.end('{"ok":false,"error":"folded items are read-only history"}'); }
+    if (url.pathname === '/feedback-final-edit') {
+      const text = String(payload.text ?? '').trim();
+      if (!text) { res.statusCode = 400; return res.end('{"ok":false,"error":"empty text"}'); }
+      item.text = text;
+    } else {
+      delete fb.items[key];
+    }
+    fb.updated = new Date().toISOString().slice(0, 10);
+    fs.writeFileSync(fbPath, JSON.stringify(fb, null, 2));
+    res.setHeader('content-type', 'application/json');
+    return res.end('{"ok":true}');
   }
 
   if (req.method === 'POST' && url.pathname === '/feedback-final') {
