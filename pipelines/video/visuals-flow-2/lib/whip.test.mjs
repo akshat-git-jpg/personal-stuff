@@ -66,3 +66,50 @@ test('boundarySegments() flash chain shape', () => {
   assert.ok(inSeg.chain.includes('colorchannelmixer'), 'chainIn missing colorchannelmixer');
   assert.ok(!inSeg.chain.includes('crop='), 'chainIn should not contain crop=');
 });
+
+test('plan() emits style:register for concept span boundaries', () => {
+  const segments = [];
+  const conceptSpans = [
+    { start: 0, end: 10, register: 'dark' },
+    { start: 10, end: 20, register: 'light' },
+    { start: 20, end: 30, register: 'dark' },
+    { start: 30, end: 40, register: 'dark' } // same register, no transition
+  ];
+  
+  const out = whipMod.plan({ segments, overlays: [], conceptSpans });
+  assert.strictEqual(out.length, 2);
+  
+  assert.strictEqual(out[0].at, 10);
+  assert.strictEqual(out[0].style, 'register');
+  assert.strictEqual(out[0].direction, 'lift');
+  
+  assert.strictEqual(out[1].at, 20);
+  assert.strictEqual(out[1].style, 'register');
+  assert.strictEqual(out[1].direction, 'drop');
+});
+
+test('boundarySegments() register chain shape', () => {
+  const segments = [
+    { kind: 'screen', id: 's1', start: 0, end: 10 },
+    { kind: 'screen', id: 's2', start: 10, end: 20 }
+  ];
+  const instance = { at: 10, style: 'register', direction: 'lift' };
+  const ctx = {
+    segments,
+    screenOffset: 0,
+    w: 1920, h: 1080, VF: 'dummyVF',
+    screen: 'screen.mp4',
+    resolved: [],
+    graphicFile: () => ''
+  };
+  const res = whipMod.boundarySegments(instance, ctx);
+  assert.strictEqual(res.extraSegments.length, 2);
+  
+  const [outSeg, inSeg] = res.extraSegments;
+  
+  assert.strictEqual(outSeg.dur, 0.2); // half duration of 0.4s dip
+  assert.ok(outSeg.chain.includes('fade=t=out:st=0:d=0.2'), 'chainOut missing fade=t=out');
+  
+  assert.strictEqual(inSeg.dur, 0.2); // half duration of 0.4s dip
+  assert.ok(inSeg.chain.includes('fade=t=in:st=0:d=0.2'), 'chainIn missing fade=t=in');
+});

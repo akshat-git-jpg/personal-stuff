@@ -5,6 +5,8 @@ import { spawnSync } from 'node:child_process';
 import { enrichLogos } from './logos-inline.mjs';
 import { resolveCues } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
+import { loadVideoManifest } from './video-manifest.mjs';
+import { loadBrand, injectBrand } from './brand-inline.mjs';
 
 const HYPERFRAMES = process.env.HYPERFRAMES_VERSION ? `hyperframes@${process.env.HYPERFRAMES_VERSION}` : 'hyperframes@0.7.62';
 const DURATION_TOLERANCE = 0.15;
@@ -110,6 +112,10 @@ async function main() {
     process.exit(1);
   }
 
+  const manifest = loadVideoManifest(workdir);
+  const root = path.resolve(import.meta.dirname, '..');
+  const brand = loadBrand(root, manifest);
+
   const resolvedPath = path.join(workdir, 'resolved.json');
   const renderDir = path.join(workdir, 'renders');
   
@@ -157,7 +163,7 @@ async function main() {
         errors.push(`${cue.id}: data-duration rewrite failed: ${rewriteError}`);
         continue;
       }
-      fs.writeFileSync(indexPath, newHtml);
+      fs.writeFileSync(indexPath, injectBrand(newHtml, brand));
 
       const { variables: enrichedVars, missing } = enrichLogos(cue.variables, cardLibraryRoot);
       if (missing.length > 0) {

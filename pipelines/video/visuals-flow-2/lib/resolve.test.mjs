@@ -390,3 +390,24 @@ test('bespoke cue with existing dir resolves; missing dir errors; missing placem
   assert.ok(errors.some(e => /b2: bespoke dir missing-dir missing index\.html/.test(e)));
   assert.ok(errors.some(e => /b3: bespoke card requires placement "fullframe" or "overlay"/.test(e)));
 });
+
+test('variant rotation', () => {
+  const customCatalog = {
+    cards: [
+      { slug: 'slate/test-variants', kind: 'single', placement: 'overlay', default_duration: 1, variants: ['a', 'b'] }
+    ]
+  };
+  const cues = [
+    { id: 'c1', card: 'slate/test-variants', anchor: "let's look at" },
+    { id: 'c2', card: 'slate/test-variants', anchor: "Pros, the free" },
+    { id: 'c3', card: 'slate/test-variants', anchor: "tier alone is", variables: { variant: 'c' } },
+    { id: 'c4', card: 'slate/test-variants', anchor: "great but it's" }
+  ];
+  const { resolved, errors } = resolveCues(cues, WORDS, customCatalog);
+  assert.deepEqual(errors, []);
+  assert.equal(resolved[0].variables.variant, 'a');
+  assert.equal(resolved[1].variables.variant, 'b');
+  assert.equal(resolved[2].variables.variant, 'c');
+  assert.equal(resolved[3].variables.variant, 'b'); // count is 3, 3%2 = 1 -> 'b'
+});
+

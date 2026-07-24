@@ -552,3 +552,30 @@ test('E8 concept-register and W8 motif', () => {
   assert(!resQuiet.errors.some(e => e.includes('E8 concept-register')));
   assert(!resQuiet.warnings.some(w => w.includes('W8 motif')));
 });
+
+test('W9 variant-rotation warns on back-to-back same-card-same-variant', () => {
+  const catalog = { cards: [ { slug: 'slate/test', placement: 'fullframe' } ] };
+  const words = [ { start: 0, end: 1, text: 'test' } ];
+  
+  const cues1 = [
+    { id: 'c1', card: 'slate/test', start: 10, variables: { variant: 'a' } },
+    { id: 'c2', card: 'slate/test', start: 20, variables: { variant: 'a' } }
+  ];
+  const res1 = lintCues({ cuesFile: createCues(cues1), resolved: cues1, words, catalog });
+  assert(res1.warnings.some(w => w.includes('W9 variant-rotation')));
+
+  const cues2 = [
+    { id: 'c1', card: 'slate/test', start: 10, variables: { variant: 'a' } },
+    { id: 'c2', card: 'slate/test', start: 20, variables: { variant: 'b' } }
+  ];
+  const res2 = lintCues({ cuesFile: createCues(cues2), resolved: cues2, words, catalog });
+  assert(!res2.warnings.some(w => w.includes('W9 variant-rotation')));
+
+  const cues3 = [
+    { id: 'c1', card: 'slate/test', start: 10, variables: { variant: 'a' } },
+    { id: 'c2', card: 'slate/other', start: 20, variables: { variant: 'a' } },
+    { id: 'c3', card: 'slate/test', start: 30, variables: { variant: 'a' } }
+  ];
+  const res3 = lintCues({ cuesFile: createCues(cues3), resolved: cues3, words, catalog });
+  assert(!res3.warnings.some(w => w.includes('W9 variant-rotation')));
+});

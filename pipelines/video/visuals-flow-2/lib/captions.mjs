@@ -26,6 +26,19 @@ export function assEscape(text) {
     .replace(/\n/g, '\\N');
 }
 
+export function hexToAssBgr(hex) {
+  const c = hex.replace('#', '');
+  if (c.length === 3) {
+    return c[2]+c[2]+c[1]+c[1]+c[0]+c[0];
+  }
+  return c.substring(4, 6) + c.substring(2, 4) + c.substring(0, 2);
+}
+
+export function formatAssText(words, keywordColor = '#fb923c') {
+  const bgr = hexToAssBgr(keywordColor).toUpperCase();
+  return words.map(w => w.hl ? `{\\1c&H${bgr}&}${assEscape(w.text)}{\\1c&HFFFFFF&}` : assEscape(w.text)).join(' ');
+}
+
 export function planCaptions(words, opts = {}) {
   if (!words || words.length === 0) return [];
 

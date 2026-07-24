@@ -196,6 +196,7 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
   const out = [];
   let cursor = 0;
   let lastFullframe = null;
+  const cardUseCounts = {};
   const findFrom = (phrase, from) => findPhrase(W, phrase, from);
   for (const cue of cues) {
     let cat;
@@ -245,10 +246,22 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
       errors.push(`${cue.id}: overlaps previous fullframe cue ${lastFullframe.id} (${start} < ${(lastFullframe.start + lastFullframe.duration).toFixed(2)})`);
       continue;
     }
+    
+    let vars = { ...cue.variables, ...(beats.length ? { beats } : {}) };
+    if (cat.variants && cat.variants.length > 0) {
+      const useCount = cardUseCounts[cue.card] || 0;
+      if (cue.variables && cue.variables.variant !== undefined) {
+        vars.variant = cue.variables.variant;
+      } else {
+        vars.variant = cat.variants[useCount % cat.variants.length];
+      }
+      cardUseCounts[cue.card] = useCount + 1;
+    }
+
     const entry = {
       id: cue.id, card: cue.card, placement: cat.placement,
       start: +start.toFixed(2), duration,
-      variables: { ...cue.variables, ...(beats.length ? { beats } : {}) },
+      variables: vars,
     };
     if (cue.card === 'bespoke') entry.bespoke = cue.bespoke;
     out.push(entry);
