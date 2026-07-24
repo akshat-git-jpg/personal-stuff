@@ -200,6 +200,15 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
+  // W9 variant-rotation
+  for (let i = 1; i < sortedResolved.length; i++) {
+    const prev = sortedResolved[i - 1];
+    const curr = sortedResolved[i];
+    if (prev.card === curr.card && prev.variables?.variant && curr.variables?.variant && prev.variables.variant === curr.variables.variant) {
+      warnings.push(`W9 variant-rotation: ${curr.id} uses the same card and variant ("${curr.variables.variant}") as the immediately preceding cue ${prev.id} — rotate the variant or vary the device`);
+    }
+  }
+
   // E7 uncovered-second
   if (manifest?.base === 'none') {
     const extended = extendExposure(sortedResolved, { base: 'none', total: T });
