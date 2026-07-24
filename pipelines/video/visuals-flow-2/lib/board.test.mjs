@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, fxDriftActive } from './board.mjs';
+import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, fxDriftActive, appendFinalFeedback, pinFromClick } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'board');
@@ -907,4 +907,34 @@ test('GET /vo.mp3 serves audio', async () => {
   } finally {
     server.close();
   }
+});
+
+test('appendFinalFeedback key naming and shape, folded preserved', () => {
+  const fb = { items: { 'c01': { text: 'old', folded: '2026-01-01' } } };
+  
+  const f2 = appendFinalFeedback(fb, 'v2', { text: 'my feedback', context: 'final@00:01.2', t: 1.2, x: 50, y: 50 });
+  assert.equal(f2.items['c01'].folded, '2026-01-01');
+  assert.ok(f2.items['final-v2:0'], 'starts at :0');
+  assert.equal(f2.items['final-v2:0'].text, 'my feedback');
+  assert.equal(f2.items['final-v2:0'].t, 1.2);
+  
+  const f3 = appendFinalFeedback(f2, 'v2', { text: 'more feedback' });
+  assert.ok(f3.items['final-v2:1'], 'increments to :1');
+  assert.equal(f3.items['final-v2:1'].text, 'more feedback');
+});
+
+test('pinFromClick percentage math bounds', () => {
+  const rect = { left: 100, top: 50, width: 200, height: 100 };
+  
+  const p1 = pinFromClick(200, 100, rect);
+  assert.equal(p1.x, 50);
+  assert.equal(p1.y, 50);
+  
+  const p2 = pinFromClick(50, 20, rect); // out of bounds left/top
+  assert.equal(p2.x, 0);
+  assert.equal(p2.y, 0);
+  
+  const p3 = pinFromClick(400, 300, rect); // out of bounds right/bottom
+  assert.equal(p3.x, 100);
+  assert.equal(p3.y, 100);
 });

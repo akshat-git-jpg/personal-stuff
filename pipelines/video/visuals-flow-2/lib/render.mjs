@@ -211,6 +211,8 @@ async function main() {
     for (const e of errors) console.error(e);
     process.exit(1);
   }
+
+  console.log(`board: node lib/board.mjs ${video}  →  http://127.0.0.1:4322/`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
