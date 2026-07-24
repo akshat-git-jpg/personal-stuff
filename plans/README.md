@@ -685,3 +685,4 @@ No deploys. 137's test_cmd runs in BOTH card-library and visuals-flow-2
 - 134-vf2-scaffold — PR#92 134-vf2-scaffold: visuals-flow-2 scaffold — copy the v1 spine, prove parity — DONE
 - 135-vf2-coverage-density-headmodes — PR#93 135-vf2-coverage-density-headmodes: v2 coverage fix (orange screen), motion density, head layout modes — DONE
 - 136-vf2-concept-doctrine — PR#94 136-vf2-concept-doctrine: v2 concept/through-line pre-pass + doctrine rules + storyboard self-audit — DONE
+- 137-vf2-enacted-cards — PR#95 137-vf2-enacted-cards: enacted-device card family (12 cards) + catalog metadata + bespoke flywheel — DONE
