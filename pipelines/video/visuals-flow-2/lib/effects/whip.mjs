@@ -33,16 +33,36 @@ export function plan(ctx) {
       enabled: true
     });
   }
+  
+  const { conceptSpans } = ctx;
+  if (conceptSpans && conceptSpans.length > 0) {
+    for (let i = 0; i < conceptSpans.length - 1; i++) {
+      const a = conceptSpans[i];
+      const b = conceptSpans[i + 1];
+      if (a.register !== b.register && (a.register === 'dark' || a.register === 'light') && (b.register === 'dark' || b.register === 'light')) {
+        out.push({
+          id: `whip-reg-${a.end.toFixed(1)}`,
+          type: TYPE,
+          at: a.end,
+          direction: a.register === 'dark' && b.register === 'light' ? 'lift' : 'drop',
+          style: 'register',
+          enabled: true
+        });
+      }
+    }
+  }
+  
   return out;
 }
 
 export function boundarySegments(instance, ctx) {
   const { segments, avatarJobs, screen, screenOffset, w, h, VF } = ctx;
-  const half = CONSTANTS.TRANSITION_DUR / 2;
+  const isRegister = instance.style === 'register';
+  const half = isRegister ? 0.2 : CONSTANTS.TRANSITION_DUR / 2;
   const b = instance.at;
   
   const toIdx = segments.findIndex(s => Math.abs(s.start - b) < 0.01);
-  const fromIdx = toIdx - 1;
+  const fromIdx = toIdx > 0 ? toIdx - 1 : 0;
   const fromSeg = segments[fromIdx];
   const toSeg = segments[toIdx];
   
@@ -92,19 +112,27 @@ export function boundarySegments(instance, ctx) {
 
   const isFlash = instance.style === 'flash';
 
-  const chainOut = isFlash ? chainOutFlash :
-    `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,` +
-    `gblur=sigma=${CONSTANTS.WHIP_SIGMAS[0]}:sigmaV=1:enable='gte(t,0.032)',` +
-    `gblur=sigma=${CONSTANTS.WHIP_SIGMAS[1]}:sigmaV=1:enable='gte(t,0.065)',` +
-    `crop=w='iw-iw*${CONSTANTS.WHIP_ZOOM}*min(t/0.1,1)':h='ih-ih*${CONSTANTS.WHIP_ZOOM}*min(t/0.1,1)',` +
-    `scale=${w}:${h},setsar=1[v]`;
+  let chainOut, chainIn;
+  if (isRegister) {
+    // 0.4s dip: fade out 0.2s to black (or lift) -> both directions implemented as dip to black for now
+    // TODO: implement white-lift for dark->light if feasible, falling back to black dip.
+    chainOut = `[0:v]${VF},fade=t=out:st=0:d=${half},scale=${w}:${h},setsar=1[v]`;
+    chainIn = `[0:v]${VF},fade=t=in:st=0:d=${half},scale=${w}:${h},setsar=1[v]`;
+  } else {
+    chainOut = isFlash ? chainOutFlash :
+      `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,` +
+      `gblur=sigma=${CONSTANTS.WHIP_SIGMAS[0]}:sigmaV=1:enable='gte(t,0.032)',` +
+      `gblur=sigma=${CONSTANTS.WHIP_SIGMAS[1]}:sigmaV=1:enable='gte(t,0.065)',` +
+      `crop=w='iw-iw*${CONSTANTS.WHIP_ZOOM}*min(t/0.1,1)':h='ih-ih*${CONSTANTS.WHIP_ZOOM}*min(t/0.1,1)',` +
+      `scale=${w}:${h},setsar=1[v]`;
 
-  const chainIn = isFlash ? chainInFlash :
-    `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,` +
-    `gblur=sigma=${CONSTANTS.WHIP_SIGMAS[1]}:sigmaV=1:enable='lt(t,0.035)',` +
-    `gblur=sigma=${CONSTANTS.WHIP_SIGMAS[0]}:sigmaV=1:enable='lt(t,0.068)',` +
-    `crop=w='iw-iw*${CONSTANTS.WHIP_ZOOM}*max(1-t/0.1,0)':h='ih-ih*${CONSTANTS.WHIP_ZOOM}*max(1-t/0.1,0)',` +
-    `scale=${w}:${h},setsar=1[v]`;
+    chainIn = isFlash ? chainInFlash :
+      `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,` +
+      `gblur=sigma=${CONSTANTS.WHIP_SIGMAS[1]}:sigmaV=1:enable='lt(t,0.035)',` +
+      `gblur=sigma=${CONSTANTS.WHIP_SIGMAS[0]}:sigmaV=1:enable='lt(t,0.068)',` +
+      `crop=w='iw-iw*${CONSTANTS.WHIP_ZOOM}*max(1-t/0.1,0)':h='ih-ih*${CONSTANTS.WHIP_ZOOM}*max(1-t/0.1,0)',` +
+      `scale=${w}:${h},setsar=1[v]`;
+  }
 
   return {
     extraSegments: [
