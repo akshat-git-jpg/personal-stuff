@@ -853,7 +853,8 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 <body>
   <div class="sticky-header">
     <div class="topbar">
-      <span class="view-toggle"><a href="/">Timeline</a><a href="/list" class="active">List</a></span>
+      <span class="view-toggle"><a href="/">Storyboard</a><a href="/#final-cut">Final Cut</a></span>
+      <span class="view-toggle" style="margin-left:8px;"><a href="/">Timeline</a><a href="/list" class="active">List</a></span>
       <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
       <div>duration: ${timecode(totalDuration)}</div>
       <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
@@ -1050,13 +1051,19 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
 <title>Graphics storyboard timeline</title>
 <style>${BOARD_CSS}${TIMELINE_CSS}</style>
 <script>
-  function switchTab(btn) {
-    document.querySelectorAll('#tab-toggle button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-storyboard').style.display = btn.dataset.target === 'tab-storyboard' ? 'block' : 'none';
-    document.getElementById('tab-final-cut').style.display = btn.dataset.target === 'tab-final-cut' ? 'block' : 'none';
-    if (btn.dataset.target === 'tab-final-cut') initFinalCut();
+  // Tab switching is hash-backed so browser back/forward works and a reload
+  // restores the tab you were on (owner-reported gap, 2026-07-24).
+  function switchTab(btn) { applyTab(btn.dataset.target, true); }
+  function applyTab(target, push) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.target === target));
+    document.getElementById('tab-storyboard').style.display = target === 'tab-storyboard' ? 'block' : 'none';
+    document.getElementById('tab-final-cut').style.display = target === 'tab-final-cut' ? 'block' : 'none';
+    const wantHash = target === 'tab-final-cut' ? '#final-cut' : '';
+    if (push && (location.hash || '') !== wantHash) history.pushState(null, '', location.pathname + wantHash);
+    if (target === 'tab-final-cut') initFinalCut();
   }
+  window.addEventListener('popstate', () => applyTab(location.hash === '#final-cut' ? 'tab-final-cut' : 'tab-storyboard', false));
+  window.addEventListener('DOMContentLoaded', () => { if (location.hash === '#final-cut') applyTab('tab-final-cut', false); });
 </script>
 </head>
 <body>
@@ -1064,8 +1071,8 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
     <div class="sticky-header">
       <div class="topbar">
         <span class="view-toggle" id="tab-toggle">
-          <button data-target="tab-storyboard" class="active" onclick="switchTab(this)">Storyboard</button>
-          <button data-target="tab-final-cut" onclick="switchTab(this)">Final Cut</button>
+          <button data-target="tab-storyboard" class="tab-btn active" onclick="switchTab(this)">Storyboard</button>
+          <button data-target="tab-final-cut" class="tab-btn" onclick="switchTab(this)">Final Cut</button>
         </span>
         <span class="view-toggle" style="margin-left:8px;"><a href="/" class="active">Timeline</a><a href="/list">List</a></span>
         <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
@@ -1122,6 +1129,13 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
   </div>
   
   <div id="tab-final-cut" style="display:none; padding:20px;">
+    <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+      <span class="view-toggle">
+        <button data-target="tab-storyboard" class="tab-btn" onclick="switchTab(this)">Storyboard</button>
+        <button data-target="tab-final-cut" class="tab-btn active" onclick="switchTab(this)">Final Cut</button>
+      </span>
+      <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong> — final cut review</div>
+    </div>
     <div style="display:flex; gap:20px; align-items:flex-start;">
       <div style="flex:1;">
         <select id="fc-version"></select>
@@ -1264,6 +1278,16 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
         });
         sel.onchange = () => loadFcVersion(sel.value);
         loadFcVersion(sel.value);
+        // Live check-off: poll status while the tab is visible so fixes tick
+        // off without a refresh (plan-140 Gate B behavior).
+        setInterval(async () => {
+          if (document.getElementById('tab-final-cut').style.display === 'none') return;
+          try {
+            const s = await fetch('/status');
+            fcStatus = (await s.json()).items || {};
+            renderFcComments(document.getElementById('fc-version').value);
+          } catch (e) {}
+        }, 2500);
       } catch (e) {
         console.error(e);
       }
@@ -1281,8 +1305,14 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       renderFcComments(label);
     }
 
+    let fcItems = ${JSON.stringify(feedbackItems)};
+    function showFcPin(x, y) {
+      const m = document.getElementById('fc-pin-marker');
+      if (x === null || x === undefined) { m.style.display = 'none'; return; }
+      m.style.left = x + '%'; m.style.top = y + '%'; m.style.display = 'block';
+    }
     function renderFcComments(label) {
-      const items = ${JSON.stringify(feedbackItems)};
+      const items = fcItems;
       const container = document.getElementById('fc-comments');
       container.innerHTML = '';
       const prefix = 'final-' + label + ':';
@@ -1294,7 +1324,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
         div.style.background = 'var(--bg)';
         div.style.borderRadius = '4px';
         let html = '';
-        if (v.t !== undefined) html += \`<strong style="color:var(--accent); cursor:pointer" onclick="document.getElementById('fc-video').currentTime=\${v.t}">\${fmtClock(v.t)}</strong> \`;
+        if (v.t !== undefined) html += \`<strong style="color:var(--accent); cursor:pointer" onclick="document.getElementById('fc-video').currentTime=\${v.t}; showFcPin(\${v.x ?? 'null'}, \${v.y ?? 'null'})">\${fmtClock(v.t)}</strong> \`;
         html += escapeHtml(v.text);
         
         const st = fcStatus[k];
@@ -1354,8 +1384,17 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
           body: JSON.stringify({ label, item })
         });
         if (res.ok) {
-          // just reload page to keep simple and consistent with save
-          window.location.reload();
+          // No reload: keep the tab, the video position, and the pin flow
+          // intact (a reload here bounced the owner back to the storyboard
+          // and reset playback — reported 2026-07-24).
+          const data = await res.json();
+          if (data.key) fcItems[data.key] = data.item;
+          fcInput.value = '';
+          fcInput.disabled = false;
+          fcInput.placeholder = 'Pause video to type comment...';
+          fcMarker.style.display = 'none';
+          fcCurrentPin = null;
+          renderFcComments(label);
         } else {
           fcInput.disabled = false;
           alert('failed to save');
@@ -1880,8 +1919,13 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     fb = appendFinalFeedback(fb, payload.label, payload.item);
     fb.updated = new Date().toISOString().slice(0, 10);
     fs.writeFileSync(fbPath, JSON.stringify(fb, null, 2));
+    const prefix = 'final-' + payload.label + ':';
+    const key = Object.keys(fb.items)
+      .filter((k) => k.startsWith(prefix))
+      .sort((a, b) => parseInt(a.slice(prefix.length), 10) - parseInt(b.slice(prefix.length), 10))
+      .pop();
     res.setHeader('content-type', 'application/json');
-    return res.end('{"ok":true}');
+    return res.end(JSON.stringify({ ok: true, key, item: fb.items[key] }));
   }
 
   res.statusCode = 404;
