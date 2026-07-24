@@ -10,6 +10,7 @@
 
 import { createServer as httpCreateServer } from 'node:http';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveCues, normWord, extendExposure } from './resolve.mjs';
@@ -791,16 +792,16 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
   const fxLaneHtml = fxInstances.length ? `
   <div class="lane-row"><span class="lane-label">effects</span>
     <div class="minimap minimap-fx" style="position:relative; background:transparent;">
-      \${fxSpan.map((i) => \`<div class="fx-span\${i.enabled ? '' : ' fx-off'}" title="\${escapeHtml(i.id)}" style="left:\${(i.start / totalDuration * 100).toFixed(2)}%; width:\${((i.end - i.start) / totalDuration * 100).toFixed(2)}%"></div>\`).join('')}
-      \${fxPoint.map((i) => \`<div class="fx-marker fx-\${escapeHtml(i.type)}\${i.enabled ? '' : ' fx-off'}" title="\${escapeHtml(i.id)}\${i.style ? ' · ' + escapeHtml(i.style) : ''}" style="left:\${(i.at / totalDuration * 100).toFixed(2)}%"></div>\`).join('')}
+      ${fxSpan.map((i) => `<div class="fx-span${i.enabled ? '' : ' fx-off'}" title="${escapeHtml(i.id)}" style="left:${(i.start / totalDuration * 100).toFixed(2)}%; width:${((i.end - i.start) / totalDuration * 100).toFixed(2)}%"></div>`).join('')}
+      ${fxPoint.map((i) => `<div class="fx-marker fx-${escapeHtml(i.type)}${i.enabled ? '' : ' fx-off'}" title="${escapeHtml(i.id)}${i.style ? ' · ' + escapeHtml(i.style) : ''}" style="left:${(i.at / totalDuration * 100).toFixed(2)}%"></div>`).join('')}
       <div id="fxPlayhead"></div>
     </div>
   </div>` : '';
 
-  const fxChipsHtml = fxInstances.length ? `<div class="fx-chips">\${fxInstances.map((i) => {
+  const fxChipsHtml = fxInstances.length ? `<div class="fx-chips">${fxInstances.map((i) => {
     const when = typeof i.at === 'number' ? ' ' + timecode(i.at) : (typeof i.start === 'number' ? ' ' + timecode(i.start) : '');
     const extra = i.style ? ' ' + escapeHtml(i.style) : '';
-    return \`<label class="fx-chip"><input type="checkbox" class="fx-toggle" data-fx-id="\${escapeHtml(i.id)}" \${i.enabled ? 'checked' : ''}/>\${escapeHtml(i.type)}\${when}\${extra}</label>\`;
+    return `<label class="fx-chip"><input type="checkbox" class="fx-toggle" data-fx-id="${escapeHtml(i.id)}" ${i.enabled ? 'checked' : ''}/>${escapeHtml(i.type)}${when}${extra}</label>`;
   }).join('')}</div>` : '';
 
   const minimapHtml = segments.filter(s => !s.unresolved).map((seg, i) => {
@@ -880,8 +881,8 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     ${fxLaneHtml}
     ${sound?.instances?.length ? `<div class="lane-row"><span class="lane-label">sound</span><div class="minimap minimap-fx" style="position:relative; background:transparent;">${
       sound.instances.map(inst => {
-        const c = resolved.find(x => x.id === inst.cue || x.id === inst.cueId);
-        return c ? `<div class="tl-mark" title="${escapeHtml(inst.sfx || inst.file)}" style="left:${((c.start + (inst.offset || 0)) / totalDuration * 100).toFixed(2)}%; background:#fcd34d; position:absolute; width:4px; height:100%;"></div>` : '';
+        if (typeof inst.at !== 'number') return '';
+        return `<div class="tl-mark${inst.enabled === false ? ' fx-off' : ''}" title="${escapeHtml(inst.sample || inst.id)} @ ${timecode(inst.at)}" style="left:${(inst.at / totalDuration * 100).toFixed(2)}%; background:#fcd34d; position:absolute; width:4px; height:100%;"></div>`;
       }).join('')
     }</div></div>` : ''}
     <div class="lane-legend">
@@ -1108,8 +1109,8 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
             <div class="tl-track" id="tlEffects">${fxChipsHtml}${fxSpansHtml}${fxMarksHtml}</div>
             ${sound?.instances?.length ? `<div class="tl-track" id="tlSound">${
               sound.instances.map(inst => {
-                const c = resolved.find(x => x.id === inst.cue || x.id === inst.cueId);
-                return c ? `<div class="tl-mark" data-start="${c.start + (inst.offset||0)}" title="${escapeHtml(inst.sfx||inst.file)}" style="background:#fcd34d"></div>` : '';
+                if (typeof inst.at !== 'number') return '';
+                return `<div class="tl-mark" data-start="${inst.at}" title="${escapeHtml(inst.sample || inst.id)}" style="background:#fcd34d"></div>`;
               }).join('')
             }</div>` : ''}
             <div class="tl-playhead" id="tlPlayhead"></div>
@@ -1806,8 +1807,17 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     return res.end(fs.readFileSync(voPath));
   }
 
+  // Versions + version mp4s live in the kb-scratch workdir (assemble's
+  // registerVersion writes there — media never in the repo); the repo workdir
+  // only holds text artifacts. Reading workdir here left the Final Cut tab
+  // permanently on "no versions" (found 2026-07-24).
+  const kbWorkdir = path.join(
+    process.env.ASSEMBLE_MEDIA_ROOT ?? path.join(os.homedir(), 'kb-scratch', 'video', 'visuals-flow-2'),
+    path.basename(workdir),
+  );
+
   if (req.method === 'GET' && url.pathname === '/versions') {
-    const p = path.join(workdir, 'versions.json');
+    const p = path.join(kbWorkdir, 'versions.json');
     res.setHeader('content-type', 'application/json');
     res.setHeader('cache-control', 'no-store');
     return res.end(fs.existsSync(p) ? fs.readFileSync(p) : '{"versions":[]}');
@@ -1822,17 +1832,17 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
 
   const videoMatch = url.pathname.match(/^\/video\/(.+)$/);
   if (req.method === 'GET' && videoMatch) {
-    const versionsPath = path.join(workdir, 'versions.json');
+    const versionsPath = path.join(kbWorkdir, 'versions.json');
     if (!fs.existsSync(versionsPath)) {
       res.statusCode = 404; return res.end('no versions');
     }
     const versionsJson = JSON.parse(fs.readFileSync(versionsPath, 'utf8'));
-    let version = videoMatch[1] === 'current' 
+    let version = videoMatch[1] === 'current'
       ? versionsJson.versions[versionsJson.versions.length - 1]
       : versionsJson.versions.find(v => v.label === videoMatch[1]);
     if (!version) { res.statusCode = 404; return res.end('version not found'); }
-    
-    const videoPath = path.join(workdir, version.file);
+
+    const videoPath = path.join(kbWorkdir, version.file);
     if (!fs.existsSync(videoPath)) { res.statusCode = 404; return res.end('video not found'); }
     
     const stat = fs.statSync(videoPath);
