@@ -124,10 +124,7 @@ function main() {
     process.exit(1);
   }
   const soundData = JSON.parse(fs.readFileSync(soundPath, 'utf8'));
-  if (!soundData.approved) {
-    console.error('sound.json is not approved');
-    process.exit(1);
-  }
+
 
   const voPath = path.join(workdir, 'vo.mp3');
   const probeVo = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', voPath], { encoding: 'utf8' });

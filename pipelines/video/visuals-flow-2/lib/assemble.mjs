@@ -249,7 +249,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
   const lines = [
     `# ${video} — assembly`,
     '',
-    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: ${audioSource} throughout — screen and avatar audio muted. ${transSentence}${capSentence}${driftSentence}`,
+    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: ${audioSource} throughout — screen and avatar audio muted. ${transSentence}${capSentence}${driftSentence} Effects/sound are Final-Cut-reviewed.`,
     '',
     `Output: ${outPath}`,
     '',
@@ -835,14 +835,6 @@ export async function loadAssemblyInputs(opts) {
     }
   }
 
-  const effectsGatePath = path.join(workdir, 'effects.json');
-  if (fs.existsSync(effectsGatePath)) {
-    const effectsFile = JSON.parse(fs.readFileSync(effectsGatePath, 'utf8'));
-    if (effectsFile.approved !== true && !opts.force) {
-      console.error('refusing to render: effects.json approved=false — review the effects lane on the board (node lib/board.mjs <slug>) or pass --force');
-      process.exit(1);
-    }
-  }
 
   const voPath = path.join(workdir, 'vo.mp3');
   const screen = opts.screen ?? path.join(workdir, 'screen.mp4');

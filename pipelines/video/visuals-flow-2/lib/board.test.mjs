@@ -816,7 +816,6 @@ test('GET /list with effects.json renders lane, chips, approve button, sim stage
     const html = await res.text();
     assert.ok(html.includes('minimap-fx'), 'lane present');
     assert.ok(html.includes('fx-chip'), 'chips present');
-    assert.ok(html.includes('>Approve effects<'), 'button present');
     assert.ok(html.includes('fxStage'), 'sim stage present');
     assert.ok(html.includes('timing preview'), 'preview note present');
     assert.ok(html.includes('capChunks') || html.includes('Great support'), 'caption data present');
@@ -945,27 +944,14 @@ test('effects-plan approved carry', () => {
   
   spawnSync('node', [fxPlanPath, dir]);
   let onDisk = JSON.parse(fs.readFileSync(path.join(dir, 'effects.json'), 'utf8'));
-  assert.equal(onDisk.approved, false);
-  
-  onDisk.approved = true;
-  fs.writeFileSync(path.join(dir, 'effects.json'), JSON.stringify(onDisk));
-  spawnSync('node', [fxPlanPath, dir]);
-  onDisk = JSON.parse(fs.readFileSync(path.join(dir, 'effects.json'), 'utf8'));
   assert.equal(onDisk.approved, true);
   
   onDisk.instances[0].enabled = false;
   fs.writeFileSync(path.join(dir, 'effects.json'), JSON.stringify(onDisk));
   spawnSync('node', [fxPlanPath, dir]);
   onDisk = JSON.parse(fs.readFileSync(path.join(dir, 'effects.json'), 'utf8'));
-  assert.equal(onDisk.approved, true, 'intrinsic is unchanged so approved is preserved');
-  assert.equal(onDisk.instances[0].enabled, false, 'override preserved');
-  
-  // 4. Change an intrinsic property -> false
-  onDisk.instances[0].at = 99.9;
-  fs.writeFileSync(path.join(dir, 'effects.json'), JSON.stringify(onDisk));
-  spawnSync('node', [fxPlanPath, dir]);
-  onDisk = JSON.parse(fs.readFileSync(path.join(dir, 'effects.json'), 'utf8'));
-  assert.equal(onDisk.approved, false, 'intrinsic changed so approved resets');
+  assert.equal(onDisk.approved, true, 'approved is always true');
+  assert.equal(onDisk.instances[0].enabled, false, 'enabled overrides survive');
 });
 
 test('GET /vo.mp3 serves audio', async () => {

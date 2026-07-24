@@ -194,17 +194,9 @@ function main() {
     }
   }
 
-  const stripEnabled = (instances) => instances.map(({ enabled, ...rest }) => rest);
-  const canon = (v) => Array.isArray(v) ? v.map(canon)
-    : (v && typeof v === 'object')
-      ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])]))
-      : v;
-      
-  const unchanged = JSON.stringify(canon(stripEnabled(existing.instances ?? []))) === JSON.stringify(canon(stripEnabled(newInstances)));
-  
   const outData = {
     video,
-    approved: existing.approved === true && unchanged,
+    approved: true,
     instances: finalInstances
   };
 

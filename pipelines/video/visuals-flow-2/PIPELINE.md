@@ -20,13 +20,13 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `020-cue-pass-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json` (bespoke escalation rule) |
 | `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9) |
 | `035-cue-audit` | [LLM] | `resolved.json` → `audit.json` (mute test) |
-| `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board; audit-gate blocks labelled fullframes; Final Cut reviews assembled versions). **Review model (owner, 2026-07-24): storyboard = quick HIGH-LEVEL pass (structure/placement/density, cue-keyed notes; skippable on short videos — machine gates still run), Final Cut = the real/final review (motion, pacing, captions, SFX; timestamped + pinned comments).** |
+| `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board; audit-gate blocks labelled fullframes). **Review model (owner, 2026-07-24): 1. Storyboard = COMPOSITION ONLY (screen vs graphics vs avatar+mode, skippable on short videos). 2. Unattended cut = effects/sound/mix/assemble draft. 3. Final Cut = MOTION AND SOUND REVIEW (effects, sound, pacing, captions; judged in motion).** |
 | `050-render-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` (brand-inline; bespoke staging; variant rotation) |
 | `070-shot-pass-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel) |
 | `080-avatar-render-run` | [OWNER live HeyGen] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
-| `effects-plan` | [RUN] | `resolved.json` → `effects.json` (register transitions, motif lane, captions default-on) |
-| `sound` | [RUN] | `resolved.json` + `effects.json` → `sound.json` (gate) |
-| `mix` | [RUN] | `vo.mp3` + `sound.json` → `master.wav` (−14 LUFS, frame-exact) + bounces |
+| `effects-plan` | [RUN] | `resolved.json` → `effects.json` (auto-approved — reviewed on Final Cut; register transitions, motif lane, captions default-on) |
+| `sound` | [RUN] | `resolved.json` + `effects.json` → `sound.json` (auto-approved — reviewed on Final Cut) |
+| `mix` | [RUN] | `vo.mp3` + `sound.json` → `master.wav` (auto-approved — reviewed on Final Cut; −14 LUFS, frame-exact) + bounces |
 | `090-assemble-run` | [RUN] | `screen.mp4` + `master.wav` + `renders/` + avatar clips → `final.mp4` (freeze gap-filler, version registry) + `assembly.md` |
 | `095-resolve-export-run` | [RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)] | same inputs as 090 → layered FCPXML + music/sfx lanes + panel transforms |
 | qc (`scripts/qc-video.sh`) | [RUN] + [LLM read] | `final(-draft).mp4` + `assembly.md` + `effects.json` → kb-scratch `qc/` pack (checklist + event contact sheets) → session-read verdicts in committed `qc-report.md` |
