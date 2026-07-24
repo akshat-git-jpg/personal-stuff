@@ -710,3 +710,4 @@ Independent of each other — raised together.
 - 144-vf2-board-playthrough-fidelity — board tells the truth during play-through — TODO
 - 142-vf2-enact-gate-density-coherence — PR#100 142-vf2-enact-gate-density-coherence: v2 enact enforcement gate + density-constant coherence — DONE
 - 143-cards-ambient-motion-variants — PR#101 143-cards-ambient-motion-variants: living cards — ambient-motion contract + variants for the overused four — DONE
+- 144-vf2-board-playthrough-fidelity — PR#102 144-vf2-board-playthrough-fidelity: v2 board play-through fidelity + handleSave extendExposure fix — DONE
