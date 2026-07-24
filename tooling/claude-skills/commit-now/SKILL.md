@@ -1,6 +1,6 @@
 ---
 name: commit-now
-description: Pre-commit gate for ANY git commit, however phrased — "commit now", "commit this", "commit and push", "push this" (push implies commit), "raise a PR", or committing as one step of a larger task. Runs prettier, lint, tsc, and build, auto-fixing what it can; proposes a single-line conventional-commit message (no body, no AI mention) and commits only after the user confirms (unattended sessions skip only the confirmation). NEVER pushes.
+description: Pre-commit gate for ANY git commit, however phrased — "commit now", "commit this", "commit and push", "push this" (push implies commit), "raise a PR", committing as one step of a larger task, AND merge/revert/conflict-resolution commits ("resolve conflicts", "merge the base branch", "update from develop"). Runs prettier, lint, tsc, and build, auto-fixing what it can; proposes a single-line conventional-commit message (no body, no AI mention) and commits only after the user confirms (unattended sessions skip only the confirmation). NEVER pushes.
 user-invocable: true
 metadata:
   author: kbtg
@@ -15,7 +15,7 @@ A pre-commit gate that runs the project's quality checks, fixes what it can, pro
 
 These rules override anything else in this skill or the user's general guidance:
 
-1. **Allowed git state changes:** `git add <specific files>` and `git commit -m "..."` after the user confirms the message. **Not allowed:** `git push`, `git push --force`, `git stash`, `git reset`, `git checkout --`, `git restore .`, `git clean -f`, `git rebase`, `git commit --amend`, or `git add -A` / `git add .` / `git add *`. Read-only git commands (`status`, `diff`, `log`, `rev-parse`, `branch`, `config user.*`) are fine throughout.
+1. **Allowed git state changes:** `git add <specific files>` and `git commit -m "..."` after the user confirms the message. **Not allowed:** `git push`, `git push --force`, `git stash`, `git reset`, `git checkout --`, `git restore .`, `git clean -f`, `git rebase`, `git commit --amend`, or `git add -A` / `git add .` / `git add *`. Read-only git commands (`status`, `diff`, `log`, `rev-parse`, `branch`, `config user.*`) are fine throughout. Sole `--amend` exception: fixing a multi-line message on an UNPUSHED commit per "Merge & conflict-resolution commits" — never to change content.
 2. **No AI/Claude/Anthropic footprint anywhere in output.** The commit message, the summary, and your conversational text must NOT contain:
    - "Claude", "Anthropic", "AI", "ChatGPT", "GPT", "LLM"
    - "Generated with", "Co-Authored-By", "🤖", "Authored by Claude", "with the help of"
@@ -30,6 +30,7 @@ These rules override anything else in this skill or the user's general guidance:
    - Examples (good): `fix(qb): filters`, `feat(sod): simulate-reason api`, `fix(sod): reason grouping`, `chore: deps`.
    - Examples (bad — too long/detailed): `fix(sod): align simulate-reason API with FE wire shape and group reasons by set_name`.
    - If a message includes a newline, the second line, or any explanation after the subject — that's a bug. Strip it.
+   - **Merge commits are NOT exempt.** They keep git's standard subject (`Merge branch 'x' into y`) instead of a conventional-commit type, but the single-line rule applies in full — no `# Conflicts:` section, no body. See "Merge & conflict-resolution commits".
 5. **Don't claim a check passed unless you ran it and saw a zero exit code.** If a script doesn't exist in package.json, say so explicitly — don't fabricate output.
 6. **`--no-verify` is allowed only under one condition:** every check the husky hook would have run (format, lint, typecheck, build) has already been run *by this skill* in this session and exited clean. If any check was skipped, failed, or wasn't applicable, you may NOT auto-use `--no-verify` — the user must explicitly authorize it.
 
@@ -170,6 +171,25 @@ Once the message is confirmed:
 
 After commit, **stop**. Do not push. Do not open a PR. Do not amend.
 
+## Merge & conflict-resolution commits
+
+Resolving PR conflicts, merging a base branch in, or completing any `git merge` ends in a commit — so it goes through this skill like every other commit. Two extra rules:
+
+1. **Never finish a merge with bare `git commit` or `git commit --no-edit`.** After a conflicted merge, git's prepared message contains a `# Conflicts:` block, and with `--no-edit` the default cleanup does NOT strip it — the file list lands in the commit body. This is the #1 source of unwanted descriptions.
+2. **Always pass the subject explicitly**, keeping git's standard merge subject, single line:
+   ```bash
+   git commit -m "Merge branch 'release/2026-07-23' into feature/qb-fixes"
+   ```
+   (Use the same wording git would have generated — `Merge branch '<base>' into <head>` or `Merge remote-tracking branch 'origin/<base>' into <head>` — just without the body.)
+
+Everything else in this skill still applies to the merge flow: run the checks on the resolved result before committing, stage the conflicted files explicitly by name, and verify after committing:
+
+```bash
+git log -1 --format=%B   # must print exactly one line
+```
+
+If more than one line comes back, the commit message is wrong — fix it before doing anything else (if it hasn't been pushed yet, this is the one case where amending the message is allowed: `git commit --amend -m "<single line>"`; if it was already pushed, surface it to the user instead of amending).
+
 ## Examples
 
 ### Good — clean checks, skill commits with --no-verify
@@ -230,5 +250,6 @@ You:
 - About to claim a check passed without running it — stop. Run it or mark "skipped".
 - About to write a multi-line commit message — stop. Subject only.
 - About to use `cat <<EOF` / HEREDOC for a commit message — stop. Subject-only fits in a single `-m "..."`.
+- About to run bare `git commit` or `git commit --no-edit` to finish a merge — stop. Git's prepared message carries a `# Conflicts:` body; pass the single-line subject via `-m` instead.
 - About to write a subject longer than 50 chars — try to shorten it to a generic label before settling for the 72-char hard cap.
 - About to use `--no-verify` without constraint #6 being satisfied AND without explicit user authorization — stop. Either re-run the missing check or ask.
