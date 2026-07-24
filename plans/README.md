@@ -690,3 +690,21 @@ No deploys. 137's test_cmd runs in BOTH card-library and visuals-flow-2
 - 139-vf2-sound-mix — PR#97 139-vf2-sound-mix: v2 sound + mix stage (semantic SFX, ducked music, -14 LUFS, audio lanes) — DONE
 - 140-vf2-board-two-tabs — PR#98 140-vf2-board-two-tabs: v2 board — two-tab review dashboard (storyboard + Final Cut) — DONE
 - 141-vf2-docs-registration — PR#99 141-vf2-docs-registration: v2 docs, skill, and repo registration — DONE
+
+### visuals-flow-2 — first-run fix batch (2026-07-24, after test-01 review)
+
+Owner reviewed the first v2 run (test-01, 5-min slice) and judged it v1-like:
+18/19 legacy cards, audit ignored, static card tails, choppy density, board
+preview missing captions/SFX, plus a real handleSave bug dropping
+extendExposure. Executor: agy for all three (standing owner directive).
+Independent of each other — raised together.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 142 | vf2-enact-gate-density-coherence | audit gate (labelled fullframe blocks board), real-slug audit fixes, enacted-first prompt + W10, coherent density constants | — |
+| 143 | cards-ambient-motion-variants | never-dead-on-screen contract, ambient motion on 22 cards, variants for the overused four | — |
+| 144 | vf2-board-playthrough-fidelity | handleSave extendExposure fix, captions/FX sim in play-through, real SFX preview, gap placeholder, master.wav, audit accept toggle | — |
+
+- 142-vf2-enact-gate-density-coherence — enforce enactment + one coherent constant set — TODO
+- 143-cards-ambient-motion-variants — living cards + anti-samey variants — TODO
+- 144-vf2-board-playthrough-fidelity — board tells the truth during play-through — TODO
