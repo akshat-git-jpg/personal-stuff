@@ -74,4 +74,4 @@ sit on a dark green-black animated-gradient background.
    track exists in shot pass; this is the reference look for it).
 8. **rounds scoreboard card** — winner-per-round recap tab graphic.
 
-Evidence sheets: `~/kb-scratch/video/visuals-flow/_reference/vPqSgj8Ta3Y/` (regenerable via `bash scripts/analyze-reference.sh https://youtu.be/vPqSgj8Ta3Y`).
+Evidence sheets: `~/kb-scratch/video/visuals-flow-2/_reference/vPqSgj8Ta3Y/` (regenerable via `bash scripts/analyze-reference.sh https://youtu.be/vPqSgj8Ta3Y`).

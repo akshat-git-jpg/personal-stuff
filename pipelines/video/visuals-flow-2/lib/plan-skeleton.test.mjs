@@ -5,8 +5,8 @@ import { CUE_CONSTANTS } from './cue-constants.mjs';
 
 test('Workdir resolves under the visuals-flow root', () => {
   assert.strictEqual(
-    resolveVideoDir('/x/pipelines/video/visuals-flow', 'demo'),
-    '/x/pipelines/video/visuals-flow/videos/demo'
+    resolveVideoDir('/x/pipelines/video/visuals-flow-2', 'demo'),
+    '/x/pipelines/video/visuals-flow-2/videos/demo'
   );
 });
 

@@ -12,7 +12,7 @@ export const PACING = { minGap: 45, maxGap: 150, settleEvery: 5, settleGap: 600 
 const REPO_ROOT = path.resolve(import.meta.dirname, '..', '..', '..', '..');
 export const HEYGEN_WEB = process.env.HEYGEN_WEB_BIN
   ?? `node ${path.join(REPO_ROOT, 'tooling', 'cli', 'heygen-web', 'heygen-web.mjs')}`;
-export const MEDIA_ROOT = process.env.AVATAR_MEDIA_ROOT ?? path.join(os.homedir(), 'kb-scratch', 'video', 'heygen', 'visuals-flow');
+export const MEDIA_ROOT = process.env.AVATAR_MEDIA_ROOT ?? path.join(os.homedir(), 'kb-scratch', 'video', 'heygen', 'visuals-flow-2');
 
 export function heygenArgv() {
   const parts = HEYGEN_WEB.split(' ').filter(Boolean);

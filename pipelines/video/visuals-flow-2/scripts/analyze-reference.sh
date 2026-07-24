@@ -14,7 +14,7 @@ fi
 
 if [[ "$1" == "--self-test" ]]; then
   echo "Running self-test..."
-  OUT=~/kb-scratch/video/visuals-flow/_reference/self-test
+  OUT=~/kb-scratch/video/visuals-flow-2/_reference/self-test
   mkdir -p "$OUT"
   
   ffmpeg -f lavfi -i testsrc2=d=5 -f lavfi -i smptebars=d=5 -f lavfi -i color=c=red:d=4 -f lavfi -i color=c=white:d=0.1 -f lavfi -i color=c=red:d=5.9 -filter_complex "[0:v][1:v][2:v][3:v][4:v]concat=n=5:v=1[v]" -map "[v]" -c:v libx264 -y "$OUT/ref.mp4" >/dev/null 2>&1
@@ -57,7 +57,7 @@ if [[ -z "$VIDEO_ID" ]]; then
   exit 1
 fi
 
-OUT=~/kb-scratch/video/visuals-flow/_reference/$VIDEO_ID
+OUT=~/kb-scratch/video/visuals-flow-2/_reference/$VIDEO_ID
 mkdir -p "$OUT"
 
 if [[ ! -f "$OUT/ref.mp4" ]]; then

@@ -12,7 +12,7 @@ transform-effects, sidecar captions.srt.
 
 `--baked` = the WYSIWYG pre-encoded variant (plays exactly like final.mp4; for ship checks).
 
-Out: `~/kb-scratch/video/visuals-flow/<slug>/resolve-export/`
+Out: `~/kb-scratch/video/visuals-flow-2/<slug>/resolve-export/`
 
 Import: DaVinci Resolve → File → Import → Timeline → timeline.fcpxml,
 then File → Import → Subtitle → captions.srt. Effect LOOK tweaks stay

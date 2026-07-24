@@ -37,7 +37,7 @@ caller's own policy; this flow has no opinion.
 
 Every command below takes a slug (resolves under this pipeline's `videos/`)
 or an external path (anything containing `/`, or an existing dir) — see
-`resolveWorkdir` in each lib. Run from `pipelines/video/visuals-flow`:
+`resolveWorkdir` in each lib. Run from `pipelines/video/visuals-flow-2`:
 
 ```
 bash steps/010-transcribe-run/run.sh <workdir>   # skip if transcript.json already exists

@@ -41,4 +41,4 @@ is unchanged.
    cut at peak brightness.
 4. Chips/verdict/score/table rules are identical to vPqSgj8Ta3Y.
 
-Evidence sheets: `~/kb-scratch/video/visuals-flow/_reference/-vwHldNaGPI/`.
+Evidence sheets: `~/kb-scratch/video/visuals-flow-2/_reference/-vwHldNaGPI/`.

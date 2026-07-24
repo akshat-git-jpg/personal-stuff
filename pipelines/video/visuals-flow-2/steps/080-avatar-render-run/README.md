@@ -11,6 +11,6 @@ composites them automatically as the top-right host bubble on screen segments
 the host present outside full-screen spans; drop `--spans-only` to include them.
 
 - **In:** approved `shots.json` + fresh `shots.resolved.json` + `resolved.json` + `vo.mp3`
-- **Out:** `avatar-jobs.json` (committed) · clips in `~/kb-scratch/video/heygen/visuals-flow/<slug>/` (media policy — never in the repo; RENDERS.md rows auto-appended on submit) · `avatar-manifest.md` (committed)
+- **Out:** `avatar-jobs.json` (committed) · clips in `~/kb-scratch/video/heygen/visuals-flow-2/<slug>/` (media policy — never in the repo; RENDERS.md rows auto-appended on submit) · `avatar-manifest.md` (committed)
 - **Run:** `bash run.sh <slug> --template <registry-slug> --submit` → wait for HeyGen → `bash run.sh <slug> --download` (re-run until no `pending:` lines)
 - **Rules:** live HeyGen calls are owner-run only (ToS-grey — heygen-web CLAUDE.md); anti-ban pacing is built in; template slug comes from `pipelines/video/heygen/registry.json`.

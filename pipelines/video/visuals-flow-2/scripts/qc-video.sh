@@ -9,7 +9,7 @@ VARIANT="final-draft"
 [[ "${1:-}" == "--final" ]] && VARIANT="final"
 
 WORKDIR="videos/$SLUG"
-MEDIA=~/kb-scratch/video/visuals-flow/$SLUG
+MEDIA=~/kb-scratch/video/visuals-flow-2/$SLUG
 VIDEO="$MEDIA/$VARIANT.mp4"
 QC="$MEDIA/qc"
 [[ -f "$VIDEO" ]] || { echo "missing $VIDEO — run the assemble step first"; exit 1; }

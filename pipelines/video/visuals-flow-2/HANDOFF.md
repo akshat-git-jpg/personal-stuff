@@ -139,7 +139,7 @@ Caller contract for other pipelines: `INTEGRATION.md`.
   intersecting segment encodes (single-encode path — the final pass is a
   stream-copy concat + vo.mp3 audio mux), hard cuts, `h264_videotoolbox`
   auto-detect (x264 fallback, `--encoder` override), `--draft` = 720p preview
-  to `final-draft.mp4`. Output `~/kb-scratch/video/visuals-flow/<slug>/final.mp4`
+  to `final-draft.mp4`. Output `~/kb-scratch/video/visuals-flow-2/<slug>/final.mp4`
   + committed `assembly.md` (EDL). Editor handoff bundle unchanged — final.mp4
   is an ADDITIONAL output; per video the owner ships it or hands the bundle
   over. Timings on test-01 (32 min, M2 Pro): old two-pass path ~17 min;
@@ -197,7 +197,7 @@ control lives in `videos/<slug>/effects.json` (regenerate:
   == shots.json — a perfect convergence data point).
 - **Avatar pilot COMPLETE 2026-07-18**: `girl-1`, `--spans-only`, HeyGen 3.
   All 9 clips submitted (s03 needed one idempotent retry — transient),
-  downloaded to `~/kb-scratch/video/heygen/visuals-flow/test-01/`, durations
+  downloaded to `~/kb-scratch/video/heygen/visuals-flow-2/test-01/`, durations
   ffprobe-match the spans (±30ms), `avatar-manifest.md` written with place-at
   timecodes. Meter baseline saved (`usage --save`) so the next run's
   free-render proof is a `usage --diff`. Two step bugs found by the pilot are
@@ -207,7 +207,7 @@ control lives in `videos/<slug>/effects.json` (regenerate:
   `videos/test-01/src/{intro,body,conclusion}.mp4` (concat re-encode to 30fps
   — durations sum to VO ±0.11s, recorded live by the tutorial maker so
   VO-aligned by construction) → `videos/test-01/screen.mp4`. Full assembly ran
-  clean: `~/kb-scratch/video/visuals-flow/test-01/final.mp4` (32:07.6,
+  clean: `~/kb-scratch/video/visuals-flow-2/test-01/final.mp4` (32:07.6,
   1080p30, AAC, 222.6M, duration == VO exactly) + `final-draft.mp4` (720p,
   4m23s via the 083 speed path) + committed `assembly.md` EDL.
 - **Next test-01 actions are OWNER actions**: (a) WATCH final.mp4 — no human
@@ -291,7 +291,7 @@ brainstorms.** Standing next steps in priority order:
 ## How to run (quick reference)
 
 ```
-cd pipelines/video/visuals-flow
+cd pipelines/video/visuals-flow-2
 node lib/feedback-status.mjs                       # MUST exit 0 before any new cue pass
 bash steps/010-transcribe-run/run.sh <slug-or-path>
 node lib/segments.mjs <slug> --propose             # 015: proposes segments.json; MUST set confirmed: true

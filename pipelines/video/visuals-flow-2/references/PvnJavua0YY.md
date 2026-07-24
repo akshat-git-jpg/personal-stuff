@@ -58,4 +58,4 @@ overview sheets):
 4. Same transition economy: green wipe/flash INTO content and INTO canvas
    beats; hard cuts back to host.
 
-Evidence sheets: `~/kb-scratch/video/visuals-flow/_reference/PvnJavua0YY/`.
+Evidence sheets: `~/kb-scratch/video/visuals-flow-2/_reference/PvnJavua0YY/`.

@@ -8,7 +8,7 @@ bundle (renders/ + manifest.md + avatar clips + avatar-manifest.md) is
 unchanged — final.mp4 is an additional output.
 
 In: videos/<slug>/{screen.mp4, vo.mp3, resolved.json, renders/, avatar-jobs.json (clips downloaded)}
-Out: ~/kb-scratch/video/visuals-flow/<slug>/final.mp4 + videos/<slug>/assembly.md
+Out: ~/kb-scratch/video/visuals-flow-2/<slug>/final.mp4 + videos/<slug>/assembly.md
 
     bash steps/090-assemble-run/run.sh <slug> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--transitions whip|none] [--jobs N] [--no-cache] [--bare]
 
