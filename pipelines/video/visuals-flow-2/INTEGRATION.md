@@ -1,6 +1,6 @@
 # INTEGRATION.md — the caller contract
 
-For any pipeline consuming visuals-flow as its graphics step (currently
+For any pipeline consuming visuals-flow-2 as its graphics step (currently
 `tutorial-pipeline-1` and `tutorial-pipeline-2`). Read `PIPELINE.md` first for
 the flow itself; this doc is what changes when the caller is another pipeline
 instead of a human running this folder directly.
