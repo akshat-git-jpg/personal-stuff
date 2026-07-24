@@ -3,7 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { mmss, planRender } from './render.mjs';
-import { resolveCues } from './resolve.mjs';
+import { resolveCues, extendExposure } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { EFFECT_MODULES } from './effects/registry.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
@@ -40,7 +40,7 @@ function jobKey(args) {
 const EPS = 0.05;
 export const CANVAS = { w: 1920, h: 1080, fps: 30 };
 export const ASSEMBLE_MEDIA_ROOT = process.env.ASSEMBLE_MEDIA_ROOT
-  ?? path.join(os.homedir(), 'kb-scratch', 'video', 'visuals-flow');
+  ?? path.join(os.homedir(), 'kb-scratch', 'video', 'visuals-flow-2');
 
 export const TRANSITION_DUR = whipMod.CONSTANTS.TRANSITION_DUR;
 export const WHIP_SIGMAS = whipMod.CONSTANTS.WHIP_SIGMAS;
@@ -793,9 +793,16 @@ export async function loadAssemblyInputs(opts) {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
-  const recomputed = resolveCues(cuesFile.cues, words, catalog, cardLibraryRoot);
+  const recomputed = resolveCues(cuesFile.cues, words, catalog, cardLibraryRoot, workdir);
+  // Freshness must compare post-extendExposure output — resolved.json is written
+  // after the post-pass, so a raw recompute is always "stale" for any video with
+  // an extended fullframe (bug found on test-01's first draft, 2026-07-24).
+  const recomputedExtended = extendExposure(recomputed.resolved, {
+    base: loadVideoManifest(workdir).base,
+    total: words.length ? words[words.length - 1].end + 1.0 : 0,
+  });
   const fresh = recomputed.errors.length === 0
-    && JSON.stringify(recomputed.resolved) === JSON.stringify(resolved);
+    && JSON.stringify(recomputedExtended) === JSON.stringify(resolved);
   if (!fresh && !opts.force) {
     console.error('resolved.json is stale or cues.json no longer resolves — re-run node lib/resolve.mjs <slug>');
     process.exit(1);

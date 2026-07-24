@@ -3,7 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { enrichLogos } from './logos-inline.mjs';
-import { resolveCues } from './resolve.mjs';
+import { resolveCues, extendExposure } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { loadBrand, injectBrand } from './brand-inline.mjs';
@@ -124,8 +124,13 @@ async function main() {
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
   const recomputed = resolveCues(cuesFile.cues, words, catalog, cardLibraryRoot, workdir);
+  // Compare post-extendExposure output — see the matching note in assemble.mjs.
+  const recomputedExtended = extendExposure(recomputed.resolved, {
+    base: manifest.base,
+    total: words.length ? words[words.length - 1].end + 1.0 : 0,
+  });
   const fresh = recomputed.errors.length === 0
-    && JSON.stringify(recomputed.resolved) === JSON.stringify(resolved);
+    && JSON.stringify(recomputedExtended) === JSON.stringify(resolved);
   if (!fresh && !opts.force) {
     console.error('resolved.json is stale or cues.json no longer resolves — re-run node lib/resolve.mjs <slug>');
     process.exit(1);

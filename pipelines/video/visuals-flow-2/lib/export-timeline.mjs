@@ -77,7 +77,7 @@ export function buildNativeFcpxml({ video, screenPath, voPath, musicPath, total,
 ${assets.join('\n')}
   </resources>
   <library>
-    <event name="visuals-flow">
+    <event name="visuals-flow-2">
       <project name="${xmlEsc(video)}">
         <sequence format="r1" duration="${rt(totalF)}" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
           <spine>
@@ -141,7 +141,7 @@ export function buildFcpxml({ video, clips, overlays, voPath, total, w, h, srcUr
 ${assets.join('\n')}
   </resources>
   <library>
-    <event name="visuals-flow">
+    <event name="visuals-flow-2">
       <project name="${xmlEsc(video)}">
         <sequence format="r1" duration="${rt(totalF)}" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
           <spine>
