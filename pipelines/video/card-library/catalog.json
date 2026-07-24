@@ -650,37 +650,6 @@
       "default_duration": 4
     },
     {
-      "slug": "overlay/arrow-label",
-      "kind": "single",
-      "placement": "overlay",
-      "purpose": "transparent overlay: a curved arrow draws from a label toward whatever you're pointing at",
-      "variables": {
-        "label": {
-          "required": true,
-          "type": "string",
-          "role": "label",
-          "example": "OpusClip"
-        },
-        "tailX": {
-          "required": true,
-          "type": "number"
-        },
-        "tailY": {
-          "required": true,
-          "type": "number"
-        },
-        "tipX": {
-          "required": true,
-          "type": "number"
-        },
-        "tipY": {
-          "required": true,
-          "type": "number"
-        }
-      },
-      "default_duration": 5
-    },
-    {
       "slug": "overlay/code-reveal",
       "kind": "single",
       "placement": "overlay",
@@ -874,41 +843,6 @@
         }
       },
       "default_duration": 4
-    },
-    {
-      "slug": "overlay/spotlight-click",
-      "kind": "single",
-      "placement": "overlay",
-      "purpose": "transparent overlay dimming the screen except a highlighted region, with a click ripple inside it",
-      "variables": {
-        "x": {
-          "required": true,
-          "type": "number"
-        },
-        "y": {
-          "required": true,
-          "type": "number"
-        },
-        "w": {
-          "required": true,
-          "type": "number"
-        },
-        "h": {
-          "required": true,
-          "type": "number"
-        },
-        "radius": {
-          "required": true,
-          "type": "number"
-        },
-        "label": {
-          "required": true,
-          "type": "string",
-          "role": "label",
-          "example": "OpusClip"
-        }
-      },
-      "default_duration": 5
     },
     {
       "slug": "overlay/step-card",
@@ -1816,7 +1750,8 @@
           "required": true,
           "type": "string",
           "role": "sentence",
-          "example": "This is an example sentence."
+          "example": "Kling 3.0|15s|1080p|*30 cr",
+          "note": "pipe-separated cells; prefix a non-first cell with * to render it as a GOOD (green) pill or ! as a BAD (rose) pill \u2014 mark the standout value per column"
         },
         "logo": {
           "required": false,
@@ -2179,41 +2114,6 @@
       ]
     },
     {
-      "slug": "enacted/connect-nodes",
-      "kind": "beat",
-      "placement": "fullframe",
-      "purpose": "Each beat adds a labeled node and draws an accent edge to the previous one, growing a graph",
-      "variables": {
-        "title": {
-          "required": true,
-          "type": "string",
-          "role": "heading",
-          "example": "Network"
-        }
-      },
-      "beat_shape": {
-        "label": {
-          "type": "string",
-          "role": "label",
-          "example": "Server"
-        }
-      },
-      "max_beats": 6,
-      "default_duration": 6,
-      "register": [
-        "dark",
-        "light"
-      ],
-      "marker": true,
-      "intent": "Demonstrate the growth of a connected graph or network.",
-      "anti_intent": "Showing a strict linear process or pipeline.",
-      "variants": [
-        "a",
-        "b"
-      ],
-      "max_reveal_chars": 40
-    },
-    {
       "slug": "enacted/spotlight-focus",
       "kind": "single",
       "placement": "fullframe",
@@ -2285,104 +2185,6 @@
       "marker": true,
       "intent": "Map events strictly across time.",
       "anti_intent": "Showing a logical pipeline or stacking architecture.",
-      "variants": [
-        "a",
-        "b"
-      ],
-      "max_reveal_chars": 40
-    },
-    {
-      "slug": "enacted/verdict-scale",
-      "kind": "beat",
-      "placement": "fullframe",
-      "purpose": "A balance scale; each beat drops a weight chip on side and the beam tips accordingly; final tilt = verdict",
-      "variables": {
-        "title": {
-          "required": true,
-          "type": "string",
-          "role": "heading",
-          "example": "Decision"
-        },
-        "left_label": {
-          "required": true,
-          "type": "string",
-          "role": "label",
-          "example": "Pros"
-        },
-        "right_label": {
-          "required": true,
-          "type": "string",
-          "role": "label",
-          "example": "Cons"
-        }
-      },
-      "beat_shape": {
-        "side": {
-          "type": "string",
-          "role": "label",
-          "example": "left"
-        },
-        "label": {
-          "type": "string",
-          "role": "label",
-          "example": "Fast"
-        }
-      },
-      "max_beats": 6,
-      "default_duration": 6,
-      "register": [
-        "dark",
-        "light"
-      ],
-      "marker": true,
-      "intent": "Weigh opposing factors to reach a tilted verdict.",
-      "anti_intent": "Showing independent metrics or absolute values.",
-      "variants": [
-        "a",
-        "b"
-      ],
-      "max_reveal_chars": 40
-    },
-    {
-      "slug": "enacted/price-meter",
-      "kind": "beat",
-      "placement": "fullframe",
-      "purpose": "An odometer-style money readout rises as cost chips slide in; dark register colors total negative-rose past warn_at",
-      "variables": {
-        "title": {
-          "required": true,
-          "type": "string",
-          "role": "heading",
-          "example": "Costs"
-        },
-        "currency": {
-          "required": false,
-          "type": "string",
-          "role": "label",
-          "example": "$"
-        }
-      },
-      "beat_shape": {
-        "label": {
-          "type": "string",
-          "role": "label",
-          "example": "Server"
-        },
-        "amount": {
-          "type": "string",
-          "role": "value",
-          "example": "50"
-        }
-      },
-      "max_beats": 5,
-      "default_duration": 6,
-      "register": [
-        "dark",
-        "light"
-      ],
-      "marker": true,
-      "intent": "Accumulate costs or prices over time to show a total.",
-      "anti_intent": "Counting non-monetary items or showing raw volume.",
       "variants": [
         "a",
         "b"

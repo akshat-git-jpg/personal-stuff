@@ -92,15 +92,33 @@ export function buildMixArgs({ voPath, instances, musicPath, total, outPath, wor
   return args;
 }
 
+// Audibility gate: a planned-but-silent SFX bus shipped in test-01 (samples
+// were generated ~30 dB too quiet; every LUFS check passed because loudnorm
+// only watches the master). If effects were planned, the bus must be audible.
+export function sfxBusPeakDb(busPath) {
+  const p = spawnSync('ffmpeg', ['-i', busPath, '-af', 'volumedetect', '-f', 'null', '-'], { encoding: 'utf8' });
+  const m = (p.stderr || '').match(/max_volume:\s*(-?[\d.]+) dB/);
+  return m ? parseFloat(m[1]) : null;
+}
+export const SFX_BUS_MIN_PEAK_DB = -35;
+
 export function runMix({ voPath, instances, musicPath, total, outPath, workdir }) {
   const args = buildMixArgs({ voPath, instances, musicPath, total, outPath, workdir });
-  
+
   const child = spawnSync('ffmpeg', args, { stdio: 'inherit' });
   if (child.status !== 0) {
     console.error(`ffmpeg failed with status ${child.status}`);
     process.exit(1);
   }
-  
+
+  if (instances.length > 0) {
+    const peak = sfxBusPeakDb(path.join(workdir, 'sfx-bus.wav'));
+    if (peak === null || peak < SFX_BUS_MIN_PEAK_DB) {
+      console.error(`SFX bus is inaudible (peak ${peak ?? 'unreadable'} dB < ${SFX_BUS_MIN_PEAK_DB} dB) with ${instances.length} planned effects — regenerate the kit (scripts/gen-sfx-kit.sh) or check sample gain staging`);
+      process.exit(1);
+    }
+  }
+
   const probeMix = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', outPath], { encoding: 'utf8' });
   const probeVo = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', voPath], { encoding: 'utf8' });
   

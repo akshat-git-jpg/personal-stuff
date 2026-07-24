@@ -38,11 +38,11 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow-2/test-01/final-draft.mp4
 | 02:11.5 | 02:16.5 | 0211-c12-keyword-pop.mov |
 | 02:39.1 | 02:44.1 | 0239-c15-stat-hit.mov |
 | 02:56.5 | 03:01.5 | 0256-c16-lower-third.mov |
-| 03:04.3 | 03:09.3 | 0304-c17-arrow-label.mov |
-| 03:22.0 | 03:27.0 | 0321-c18-arrow-label.mov |
+| 03:04.3 | 03:09.3 | 0304-c17-keyword-pop.mov |
+| 03:22.0 | 03:27.0 | 0321-c18-keyword-pop.mov |
 | 03:43.5 | 03:48.5 | 0343-c20-keyword-pop.mov |
 | 03:56.6 | 04:01.6 | 0356-c21-tip-banner.mov |
-| 04:11.5 | 04:16.5 | 0411-c22-arrow-label.mov |
+| 04:11.5 | 04:16.5 | 0411-c22-keyword-pop.mov |
 
 ## Transitions
 

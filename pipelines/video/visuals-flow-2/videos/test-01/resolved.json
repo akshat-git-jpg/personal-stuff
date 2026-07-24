@@ -252,28 +252,29 @@
     },
     {
       "id": "c13",
-      "card": "enacted/connect-nodes",
+      "card": "checklist/icon-pills",
       "placement": "fullframe",
       "start": 141.58,
       "duration": 10.29,
       "variables": {
-        "title": "The Higgsfield stack",
         "beats": [
           {
-            "label": "Cinema Studio: 70+ presets",
+            "icon": "star",
+            "text": "Cinema Studio: 70+ presets",
             "at": 0.6
           },
           {
-            "label": "SoulID: character consistency",
+            "icon": "person",
+            "text": "SoulID: character consistency",
             "at": 4.71
           },
           {
-            "label": "Director-level control",
+            "icon": "gear",
+            "text": "Director-level control",
             "at": 6.87
           }
         ],
-        "register": "light",
-        "variant": "a"
+        "register": "light"
       }
     },
     {
@@ -322,32 +323,30 @@
     },
     {
       "id": "c17",
-      "card": "overlay/arrow-label",
+      "card": "overlay/keyword-pop",
       "placement": "overlay",
       "start": 184.29,
       "duration": 5,
       "variables": {
-        "label": "Create → Video",
-        "tailX": 560,
-        "tailY": 250,
-        "tipX": 315,
-        "tipY": 395,
-        "register": "light"
+        "kicker": "OpenArt",
+        "text": "Create: Video",
+        "pos": "top-left",
+        "register": "light",
+        "variant": "b"
       }
     },
     {
       "id": "c18",
-      "card": "overlay/arrow-label",
+      "card": "overlay/keyword-pop",
       "placement": "overlay",
       "start": 201.99,
       "duration": 5,
       "variables": {
-        "label": "Text to Video",
-        "tailX": 1250,
-        "tailY": 340,
-        "tipX": 965,
-        "tipY": 168,
-        "register": "light"
+        "kicker": "OpenArt",
+        "text": "Text to Video",
+        "pos": "top-left",
+        "register": "light",
+        "variant": "a"
       }
     },
     {
@@ -435,17 +434,16 @@
     },
     {
       "id": "c22",
-      "card": "overlay/arrow-label",
+      "card": "overlay/keyword-pop",
       "placement": "overlay",
       "start": 251.52,
       "duration": 5,
       "variables": {
-        "label": "Clip length",
-        "tailX": 620,
-        "tailY": 780,
-        "tipX": 1500,
-        "tipY": 672,
-        "register": "light"
+        "kicker": "Seedance",
+        "text": "Pick your clip length",
+        "pos": "bottom-left",
+        "register": "light",
+        "variant": "a"
       }
     },
     {

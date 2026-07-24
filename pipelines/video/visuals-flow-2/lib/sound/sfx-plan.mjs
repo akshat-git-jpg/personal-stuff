@@ -35,13 +35,13 @@ export function planSfx({ resolved, effects, segments, total }) {
       let runSample = 'pop';
       let contour = 'contour';
       
-      if (cue.card === 'enacted/counter-tally' || cue.card === 'enacted/price-meter') {
+      if (cue.card === 'enacted/counter-tally') {
         runSample = 'tick';
         contour = 'flat';
-      } else if (family === 'enacted' && ['fill-gauge', 'connect-nodes', 'pipeline-flow'].includes(cardType)) {
+      } else if (family === 'enacted' && ['fill-gauge', 'pipeline-flow'].includes(cardType)) {
         runSample = 'pop';
         contour = 'contour';
-      } else if (family === 'enacted' && ['race-bars', 'verdict-scale'].includes(cardType)) {
+      } else if (family === 'enacted' && ['race-bars'].includes(cardType)) {
         runSample = 'thock';
         contour = 'alt';
       } else {

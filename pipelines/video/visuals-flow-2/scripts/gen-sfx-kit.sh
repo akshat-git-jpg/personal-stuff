@@ -43,4 +43,20 @@ ffmpeg -hide_banner -loglevel error -y -f lavfi -i "sine=frequency=55:duration=8
 # tear.wav
 ffmpeg -hide_banner -loglevel error -y -f lavfi -i "anoisesrc=d=0.18:c=white:a=0.3" -af "highpass=f=1000,afade=t=in:d=0.02,afade=t=out:st=0.05:d=0.13,volume=0.35" -ar 48000 -ac 1 assets/sfx/tear.wav
 
+# Peak-normalize every sample to -3 dBFS. The synthesis chains above stack
+# attenuations (source amplitude x filter losses x volume) unpredictably —
+# test-01 shipped a silent mix because samples peaked at -27..-66 dBFS
+# (found 2026-07-24, owner: "why no sound effects in final cut?"). Gain
+# staging happens in sound.json/build-mix, so samples must start at a
+# known reference level, not at whatever the filter chain left behind.
+echo "Normalizing to -3 dBFS peak..."
+for f in assets/sfx/*.wav; do
+  peak=$(ffmpeg -i "$f" -af volumedetect -f null - 2>&1 | sed -n 's/.*max_volume: \(-*[0-9.]*\) dB/\1/p')
+  [ -z "$peak" ] && { echo "  $f: no peak reading, skipping"; continue; }
+  gain=$(echo "-3 - ($peak)" | bc)
+  ffmpeg -hide_banner -loglevel error -y -i "$f" -af "volume=${gain}dB" -ar 48000 -ac 1 "$f.norm.wav"
+  mv "$f.norm.wav" "$f"
+  echo "  $f: ${peak} dB -> -3 dBFS (${gain} dB makeup)"
+done
+
 echo "Done."

@@ -16,9 +16,12 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    fold first or stop and tell the owner.
 2. **060 feedback-fold is Opus-class ONLY.** If the current session is not
    Opus-class, refuse the fold verb and say why.
-3. **Live HeyGen is owner-run.** Submit only when the owner explicitly asked in
-   THIS conversation and confirmed the template slug. Never submit from a cron,
-   subagent, or unattended session. Download is safe to re-run.
+3. **Live HeyGen: Avatar III test renders are pre-authorized** (owner rule
+   2026-07-24 — Avatar III unlimited mode is free): sessions may submit
+   Avatar III for TESTING without asking each time. Anything metered
+   (Avatar IV, generative credits) and production renders stay owner-run —
+   explicit ask in THIS conversation. Never submit from a cron. Download is
+   safe to re-run.
 4. **`engineMode` stays `"test"`.** Production (HeyGen 4) is a validation error
    by design until the owner flips it.
 5. **Snapshot before owner edits**: after a cue/shot pass converges, copy the

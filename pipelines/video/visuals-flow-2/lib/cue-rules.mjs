@@ -58,8 +58,8 @@ export const CUE_RULES = {
     why: 'unattributed — predates the fold log; callout reference replaced by keyword-pop (owner removed callout 2026-07-24)',
   },
   R_DEMOS: {
-    rule: 'Demos & step narration (mandatory): do NOT lay a redundant graphic over a click the screen already shows — no `process/step-flow` re-labeling visible steps (step-flow is only for processes NOT on screen). During a demo/playback stretch only `placement: overlay` cards may be used (this is enforced via lint E5). But do NOT leave a long demo stretch bare either: punctuate it with the SPOKEN layer — `overlay/keyword-pop`, `overlay/lower-third`, `overlay/tip-banner`, `overlay/stat-hit`, `overlay/arrow-label`, or `overlay/verdict-chips`. Test: echoes the click → skip; adds the narration\'s point/label → keep.',
-    why: 'owner fold 2026-07-18, test-01 c06/c09/c15; callout replaced by keyword-pop/arrow-label 2026-07-24',
+    rule: 'Demos & step narration (mandatory): do NOT lay a redundant graphic over a click the screen already shows — no `process/step-flow` re-labeling visible steps (step-flow is only for processes NOT on screen). During a demo/playback stretch only `placement: overlay` cards may be used (this is enforced via lint E5). But do NOT leave a long demo stretch bare either: punctuate it with the SPOKEN layer — `overlay/keyword-pop`, `overlay/lower-third`, `overlay/tip-banner`, `overlay/stat-hit`, or `overlay/verdict-chips`. Test: echoes the click → skip; adds the narration\'s point/label → keep.',
+    why: 'owner fold 2026-07-18, test-01 c06/c09/c15; callout replaced by keyword-pop 2026-07-24; arrow-label removed same day (owner template note)',
   },
   R_PRICING: {
     rule: 'Pricing (mandatory): no per-tool pricing/credits graphics during tool segments (the pricing page is on screen); consolidate into ONE pricing comparison graphic in the final comparison section. When the `comparison/table-rows` card is used, do NOT also emit stat-hit cues for the same numbers.',

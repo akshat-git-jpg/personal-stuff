@@ -8,7 +8,7 @@
   ┌─────────────────────────────────────────────────────────────────────────┐
   │  EDITOR: edit only the  ===== CONTENT =====  block (title, columns,       │
   │  beats[].text) and :root. Each beat's text is pipe-separated cells        │
-  │  ("Kling 3.0|15s|1080p|30 cr"). Never touch the TIMELINE.                 │
+  │  ("Kling 3.0|15s|1080p|*30 cr"). Never touch the TIMELINE.                 │
   └─────────────────────────────────────────────────────────────────────────┘
 
   Render:  npx hyperframes@latest render comparison/table-rows -o out.mp4 --fps 30
@@ -24,6 +24,7 @@
         --bg-from: #3a1f08; --bg-to: #0a0805;
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
         --accent: #fb923c;
+        --positive: #34d399; --negative: #fb7185;
         --panel: rgba(255, 255, 255, 0.04);
         --panel-line: rgba(255, 255, 255, 0.1);
         --font: 'Inter', system-ui, sans-serif;
@@ -36,19 +37,25 @@
       #title { font-size: 64px; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 48px; will-change: transform, opacity; }
       #panel { background: var(--panel); border: 1px solid var(--panel-line); border-radius: 24px; padding: 40px 52px; }
       .trow { display: grid; align-items: center; gap: 32px; padding: 24px 8px; }
-      #head { border-bottom: 1px solid var(--panel-line); will-change: transform, opacity; }
-      #head .cell { color: var(--text-dim); text-transform: uppercase; font-size: 22px; font-weight: 700; letter-spacing: 2px; }
+      /* color coding pass (owner template note 2026-07-24: "too bland"):
+         accent header, zebra rows, bright values, and *good / !bad cell pills */
+      #head { border-bottom: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); will-change: transform, opacity; }
+      #head .cell { color: var(--accent); text-transform: uppercase; font-size: 22px; font-weight: 800; letter-spacing: 2px; }
       #body .trow { border-bottom: 1px solid rgba(255, 255, 255, 0.06); will-change: transform, opacity; }
+      #body .trow:nth-child(even) { background: rgba(255, 255, 255, 0.035); border-radius: 14px; }
       #body .trow:last-child { border-bottom: none; }
-      #body .cell { font-size: 30px; font-weight: 400; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+      #body .cell { font-size: 30px; font-weight: 500; color: rgba(255, 255, 255, 0.88); font-variant-numeric: tabular-nums; }
       #body .cell.first { color: var(--text); font-weight: 700; display: flex; align-items: center; gap: 16px; }
+      #body .cell .val-good, #body .cell .val-bad { display: inline-block; font-weight: 800; border-radius: 10px; padding: 3px 14px; }
+      #body .cell .val-good { color: var(--positive); background: color-mix(in srgb, var(--positive) 14%, transparent); }
+      #body .cell .val-bad { color: var(--negative); background: color-mix(in srgb, var(--negative) 12%, transparent); }
       /* per-row registry logo (beats[].logo) — muted per DESIGN.md tool-logo rule */
       #body .cell.first img { width: 40px; height: 40px; border-radius: 8px; object-fit: contain; filter: saturate(0.5); flex-shrink: 0; }
     </style>
   </head>
   <body>
     <div id="root" data-composition-id="tablerows" data-start="0" data-duration="10" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"What you actually pay","columns":["Model","Max length","Resolution","Cost (15s)"],"beats":[{"text":"Seedance 2.0|15s|1080p|180 cr","at":0.6},{"text":"Kling 3.0|15s|1080p|30 cr","at":1.7},{"text":"Veo 3.1|8s|1080p|165 cr","at":2.8},{"text":"Grok Video|6s|720p|23 cr","at":3.9},{"text":"Wan 2.5|10s|1080p|38 cr","at":5.0}]}'>
+      data-composition-variables='{"title":"What you actually pay","columns":["Model","Max length","Resolution","Cost (15s)"],"beats":[{"text":"Seedance 2.0|15s|1080p|!180 cr","at":0.6},{"text":"Kling 3.0|15s|1080p|*30 cr","at":1.7},{"text":"Veo 3.1|8s|1080p|165 cr","at":2.8},{"text":"Grok Video|6s|720p|23 cr","at":3.9},{"text":"Wan 2.5|10s|1080p|38 cr","at":5.0}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="10" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="10" data-track-index="1">
         <div id="title"></div>
@@ -66,8 +73,8 @@
         title: VARS.title ?? 'What you actually pay',
         columns: VARS.columns ?? ['Model', 'Max length', 'Resolution', 'Cost (15s)'],
         beats: VARS.beats ?? [
-          { text: 'Seedance 2.0|15s|1080p|180 cr', at: 0.6 },
-          { text: 'Kling 3.0|15s|1080p|30 cr',     at: 1.7 },
+          { text: 'Seedance 2.0|15s|1080p|!180 cr', at: 0.6 },
+          { text: 'Kling 3.0|15s|1080p|*30 cr',     at: 1.7 },
           { text: 'Veo 3.1|8s|1080p|165 cr',       at: 2.8 },
           { text: 'Grok Video|6s|720p|23 cr',      at: 3.9 },
           { text: 'Wan 2.5|10s|1080p|38 cr',       at: 5.0 },
@@ -106,7 +113,18 @@
             cell.appendChild(img);
             cell.appendChild(document.createTextNode(cells[0] ?? ''));
           } else {
-            cell.textContent = cells[i] ?? '';
+            // color-coding markers: a cell starting "*" renders as a good
+            // (green) pill, "!" as a bad (rose) pill — the cue pass marks the
+            // standout value per column so the table isn't a wall of numbers.
+            const raw = cells[i] ?? '';
+            if (i > 0 && (raw.startsWith('*') || raw.startsWith('!'))) {
+              const pill = document.createElement('span');
+              pill.className = raw.startsWith('*') ? 'val-good' : 'val-bad';
+              pill.textContent = raw.slice(1).trim();
+              cell.appendChild(pill);
+            } else {
+              cell.textContent = raw;
+            }
           }
           row.appendChild(cell);
         }

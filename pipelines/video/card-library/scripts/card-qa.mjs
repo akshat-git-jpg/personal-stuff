@@ -94,10 +94,10 @@ const cards = targetCardSlug
   : catalog.cards;
 
 const AMBIENT_REQUIRED = [
-  'enacted/before-after', 'enacted/connect-nodes', 'enacted/counter-tally',
-  'enacted/fill-gauge', 'enacted/pipeline-flow', 'enacted/price-meter',
+  'enacted/before-after', 'enacted/counter-tally',
+  'enacted/fill-gauge', 'enacted/pipeline-flow',
   'enacted/race-bars', 'enacted/spotlight-focus',
-  'enacted/terminal-enact', 'enacted/timeline-scrub', 'enacted/verdict-scale',
+  'enacted/terminal-enact', 'enacted/timeline-scrub',
   'overlay/stat-hit', 'overlay/keyword-pop', 'overlay/lower-third', 'overlay/tip-banner',
   'section/bullet-points-highlighted', 'section/tool-intro', 'slate/kinetic-sentence',
   'statement/keyword-statement', 'title/title-aurora-wave', 'checklist/icon-pills'

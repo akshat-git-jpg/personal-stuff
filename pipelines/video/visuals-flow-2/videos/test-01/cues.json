@@ -291,35 +291,37 @@
     },
     {
       "id": "c13",
-      "card": "enacted/connect-nodes",
+      "card": "checklist/icon-pills",
       "anchor": "wraps them in professional",
       "lead": 0.5,
       "hold": 3.0,
       "register": "light",
-      "variables": {
-        "title": "The Higgsfield stack"
-      },
+      "variables": {},
       "beats": [
         {
           "reveal": {
-            "label": "Cinema Studio: 70+ presets"
+            "icon": "star",
+            "text": "Cinema Studio: 70+ presets"
           },
           "anchor": "Cinema Studio with over"
         },
         {
           "reveal": {
-            "label": "SoulID: character consistency"
+            "icon": "person",
+            "text": "SoulID: character consistency"
           },
           "anchor": "system called SoulID"
         },
         {
           "reveal": {
-            "label": "Director-level control"
+            "icon": "gear",
+            "text": "Director-level control"
           },
           "anchor": "creators who want director-level"
         }
       ],
-      "flagged": false
+      "flagged": false,
+      "legacy_why": "owner deleted the enacted stack/graph devices (template notes 2026-07-24); list card enacts the capability run"
     },
     {
       "id": "c14",
@@ -373,34 +375,30 @@
     },
     {
       "id": "c17",
-      "card": "overlay/arrow-label",
+      "card": "overlay/keyword-pop",
       "anchor": "over to the left side",
       "lead": 0.4,
       "hold": 3.0,
       "register": "light",
       "variables": {
-        "label": "Create → Video",
-        "tailX": 560,
-        "tailY": 250,
-        "tipX": 315,
-        "tipY": 395
+        "kicker": "OpenArt",
+        "text": "Create: Video",
+        "pos": "top-left"
       },
       "beats": [],
       "flagged": false
     },
     {
       "id": "c18",
-      "card": "overlay/arrow-label",
+      "card": "overlay/keyword-pop",
       "anchor": "use this text to",
       "lead": 0.4,
       "hold": 3.0,
       "register": "light",
       "variables": {
-        "label": "Text to Video",
-        "tailX": 1250,
-        "tailY": 340,
-        "tipX": 965,
-        "tipY": 168
+        "kicker": "OpenArt",
+        "text": "Text to Video",
+        "pos": "top-left"
       },
       "beats": [],
       "flagged": false
@@ -453,17 +451,15 @@
     },
     {
       "id": "c22",
-      "card": "overlay/arrow-label",
+      "card": "overlay/keyword-pop",
       "anchor": "also have here the control",
       "lead": 0.4,
       "hold": 3.0,
       "register": "light",
       "variables": {
-        "label": "Clip length",
-        "tailX": 620,
-        "tailY": 780,
-        "tipX": 1500,
-        "tipY": 672
+        "kicker": "Seedance",
+        "text": "Pick your clip length",
+        "pos": "bottom-left"
       },
       "beats": [],
       "flagged": false

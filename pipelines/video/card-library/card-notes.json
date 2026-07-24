@@ -1,1 +1,66 @@
-{}
+{
+  "overlay/arrow-label": [
+    {
+      "text": "delete. Not needed",
+      "at": "2026-07-24",
+      "done": true,
+      "resolution": "deleted (template + catalog + rule references)"
+    }
+  ],
+  "overlay/spotlight-click": [
+    {
+      "text": "delete. Not needed",
+      "at": "2026-07-24",
+      "done": true,
+      "resolution": "deleted"
+    }
+  ],
+  "comparison/table-rows": [
+    {
+      "text": "Too bland, need better color coding",
+      "at": "2026-07-24",
+      "done": true,
+      "resolution": "color coding added: accent header, zebra rows, *good/!bad value pills (cue pass marks standouts)"
+    }
+  ],
+  "checklist/icon-pills": [
+    {
+      "text": "It should be arranged left centered. Basically logos should be in one line",
+      "at": "2026-07-24",
+      "done": true,
+      "resolution": "rows left-aligned \u2014 icon tiles now stack in one vertical line"
+    }
+  ],
+  "enacted/verdict-scale": [
+    {
+      "text": "delete. Not needed",
+      "at": "2026-07-24",
+      "done": true,
+      "resolution": "deleted"
+    }
+  ],
+  "enacted/price-meter": [
+    {
+      "text": "delete. Not needed",
+      "at": "2026-07-24",
+      "done": true,
+      "resolution": "deleted"
+    }
+  ],
+  "enacted/connect-nodes": [
+    {
+      "text": "delete. Not needed",
+      "at": "2026-07-24",
+      "done": true,
+      "resolution": "deleted; test-01 Higgsfield stack remapped to icon-pills"
+    }
+  ],
+  "title/title-cinematic-float": [
+    {
+      "text": "Can we make text biggere. Its not clear",
+      "at": "2026-07-24",
+      "done": true,
+      "resolution": "title 88px -> 112px weight 800, chip names 22 -> 26px"
+    }
+  ]
+}
