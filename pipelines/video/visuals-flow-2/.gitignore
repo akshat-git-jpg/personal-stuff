@@ -15,3 +15,6 @@ lib/fixtures/board/slices/
 # raw source video segments per test/video — never committed
 videos/*/src/
 assets/sfx/*.wav
+videos/*/master.wav
+videos/*/music-ducked.wav
+videos/*/sfx-bus.wav

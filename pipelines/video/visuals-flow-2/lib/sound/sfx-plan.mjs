@@ -168,7 +168,9 @@ function main() {
   const segmentsPath = path.join(workdir, 'segments.json');
   let segments = [];
   if (fs.existsSync(segmentsPath)) {
-    segments = JSON.parse(fs.readFileSync(segmentsPath, 'utf8'));
+    const raw = JSON.parse(fs.readFileSync(segmentsPath, 'utf8'));
+    // segments.json is {video, confirmed, segments:[...]} — accept both shapes.
+    segments = Array.isArray(raw) ? raw : (raw.segments ?? []);
   }
   
   const manifestPath = path.join(workdir, 'video.json');
