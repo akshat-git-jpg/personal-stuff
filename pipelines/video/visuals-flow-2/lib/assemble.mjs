@@ -7,6 +7,7 @@ import { resolveCues } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { EFFECT_MODULES } from './effects/registry.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
+import { registerVersion } from './versions.mjs';
 
 import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
@@ -887,8 +888,14 @@ async function main() {
   const inputs = await loadAssemblyInputs(opts);
   const root = path.resolve(import.meta.dirname, '..');
   const brandObj = loadBrand(root, { brand: inputs.brand || 'default' });
-  const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, inputs.video, opts.draft ? 'final-draft.mp4' : 'final.mp4');
+  const kbWorkdir = path.join(ASSEMBLE_MEDIA_ROOT, inputs.video);
+  const out = opts.out ?? path.join(kbWorkdir, opts.draft ? 'final-draft.mp4' : 'final.mp4');
   await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, drift: opts.drift, effects: opts.effects, bubble: opts.bubble, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj });
+
+  const entry = registerVersion(kbWorkdir, out, { draft: opts.draft });
+  console.log(`registered version: ${entry.label}`);
+  console.log(`board: node lib/board.mjs ${inputs.video}  →  http://127.0.0.1:4322/`);
+  console.log('Final Cut hint: Review the video in the Final Cut tab of the board.');
   process.exit(0);
 }
 

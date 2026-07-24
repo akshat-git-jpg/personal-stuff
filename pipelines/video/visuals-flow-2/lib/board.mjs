@@ -19,6 +19,8 @@ import { enrichLogos } from './logos-inline.mjs';
 import { resolveShots } from './resolve-shots.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { planCaptions } from './captions.mjs';
+import { loadBrand, injectBrand } from './brand-inline.mjs';
+import { loadVideoManifest } from './video-manifest.mjs';
 
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
 
@@ -32,6 +34,28 @@ export function loadShots(workdir, words) {
   catch (e) { return { shotsFile: null, spans: [], errors: [`shots.json unreadable: ${e.message}`] }; }
   const { spans, errors } = resolveShots(shotsFile, words);
   return { shotsFile, spans, errors };
+}
+
+export function appendFinalFeedback(feedback, label, item) {
+  const updated = { ...feedback };
+  if (!updated.items) updated.items = {};
+  const prefix = `final-${label}:`;
+  let maxIdx = -1;
+  for (const k of Object.keys(updated.items)) {
+    if (k.startsWith(prefix)) {
+      const idx = parseInt(k.slice(prefix.length), 10);
+      if (idx > maxIdx) maxIdx = idx;
+    }
+  }
+  const nextKey = `${prefix}${maxIdx + 1}`;
+  updated.items[nextKey] = { ...item };
+  return updated;
+}
+
+export function pinFromClick(clientX, clientY, rect) {
+  const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+  const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+  return { x: +(x.toFixed(2)), y: +(y.toFixed(2)) };
 }
 
 // Merge semantics mirror handleSave's cue merge: key-order-insensitive
@@ -563,7 +587,7 @@ function normalizeFeedbackItems(raw) {
 // gap block, and shot block — the single source of per-block detail HTML for
 // both the timeline dock and the /list view. `id` is the DOM id the block
 // HTML itself carries (`seg-<i>` for cue/gap, `shot-<span.id>` for shots).
-function buildDetailBlocks(cues, segments, shots, feedbackItems) {
+function buildDetailBlocks(cues, segments, shots, feedbackItems, audit = null) {
   const fb = (ref) => feedbackItems[ref]?.folded ? '' : escapeHtml(feedbackItems[ref]?.text ?? '');
   const fbBox = (ref, placeholder) => {
     const foldedHtml = feedbackItems[ref]?.folded
@@ -604,9 +628,17 @@ function buildDetailBlocks(cues, segments, shots, feedbackItems) {
       .map((b) => `<li><strong>${escapeHtml(b.reveal?.text ?? '')}</strong> @ "${escapeHtml(b.anchor ?? '')}"</li>`)
       .join('');
 
+    let auditHtml = '';
+    if (audit?.cues?.[cue.id]) {
+      const v = audit.cues[cue.id];
+      const color = v.verdict === 'labelled' ? 'var(--err)' : 'var(--ok)';
+      const msg = v.fix ? ` title="${escapeHtml(v.fix)}"` : '';
+      auditHtml = `<span class="usage-chip" style="border-color:${color}; color:${color}; margin-left:8px; cursor:default"${msg}>${escapeHtml(v.verdict)}</span>`;
+    }
+
     const header = r
-      ? `#${escapeHtml(cue.id)} &middot; ${timecode(r.start)} &rarr; ${timecode(r.start + r.duration)} &middot; ${escapeHtml(cue.card)} &middot; ${r.duration}s &middot; ${escapeHtml(r.placement)}`
-      : `#${escapeHtml(cue.id)} &middot; unresolved &middot; ${escapeHtml(cue.card)}`;
+      ? `#${escapeHtml(cue.id)} &middot; ${timecode(r.start)} &rarr; ${timecode(r.start + r.duration)} &middot; ${escapeHtml(cue.card)} &middot; ${r.duration}s &middot; ${escapeHtml(r.placement)}${auditHtml}`
+      : `#${escapeHtml(cue.id)} &middot; unresolved &middot; ${escapeHtml(cue.card)}${auditHtml}`;
 
     const probeTimes = r ? computeProbeTimes(r.variables?.beats, r.duration) : [];
     const media = r
@@ -638,7 +670,7 @@ function buildDetailBlocks(cues, segments, shots, feedbackItems) {
 
     const excerptDiv = seg.words.length ? `<div class="excerpt">${excerptHtml}</div>` : '';
 
-    html = `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}${inShot}" id="${id}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}">
+    html = `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}${inShot}" id="${id}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}" data-start="${r ? r.start : 0}">
       <div class="tile-header">${header}</div>
       ${excerptDiv}
       <div class="anchor"><strong>${escapeHtml(cue.anchor ?? '')}</strong></div>
@@ -676,7 +708,7 @@ function buildDetailBlocks(cues, segments, shots, feedbackItems) {
   return blocks;
 }
 
-function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null) {
+function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
@@ -755,7 +787,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     minimapShotsHtml = `<div class="minimap minimap-shots">${items.join('')}</div>`;
   }
 
-  const timelineBlocks = buildDetailBlocks(cues, segments, shots, feedbackItems);
+  const timelineBlocks = buildDetailBlocks(cues, segments, shots, feedbackItems, audit);
   const timelineHtml = timelineBlocks.map(b => b.html).join('\n');
 
   return `<!doctype html>
@@ -794,6 +826,12 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     <div class="lane-row"><span class="lane-label">graphics</span><div class="minimap">${minimapHtml}</div></div>
     ${minimapShotsHtml ? `<div class="lane-row"><span class="lane-label">avatar</span>${minimapShotsHtml}</div>` : ''}
     ${fxLaneHtml}
+    ${sound?.instances?.length ? `<div class="lane-row"><span class="lane-label">sound</span><div class="minimap minimap-fx" style="position:relative; background:transparent;">${
+      sound.instances.map(inst => {
+        const c = resolved.find(x => x.id === inst.cue || x.id === inst.cueId);
+        return c ? `<div class="tl-mark" title="${escapeHtml(inst.sfx || inst.file)}" style="left:${((c.start + (inst.offset || 0)) / totalDuration * 100).toFixed(2)}%; background:#fcd34d; position:absolute; width:4px; height:100%;"></div>` : '';
+      }).join('')
+    }</div></div>` : ''}
     <div class="lane-legend">
       <span><span class="dot" style="background:var(--accent)"></span>fullframe card</span>
       <span><span class="dot" style="background:var(--overlay-seg)"></span>overlay card</span>
@@ -902,7 +940,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 // previews — clicking a block moves its buildDetailBlocks HTML (shared with
 // /list) into a docked panel and only then loads its card iframe. Delivers
 // GFX-08 (global play-through) via the master playhead.
-function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null) {
+function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
@@ -947,7 +985,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
   const fxChipsHtml = fxGlobal.length ? `<div class="tl-fx-chips">${fxGlobal.map((i) =>
     `<span class="tl-chip${i.enabled ? '' : ' fx-off'}">${escapeHtml(i.type)}</span>`).join('')}</div>` : '';
 
-  const detailBlocks = buildDetailBlocks(cues, segments, shots, feedbackItems);
+  const detailBlocks = buildDetailBlocks(cues, segments, shots, feedbackItems, audit);
   const storeHtml = detailBlocks.map((b) =>
     `<div class="detail-item" id="detail-${b.id}">${b.html.replace('<iframe loading="lazy" src=', '<iframe loading="lazy" data-src=')}</div>`
   ).join('\n');
@@ -958,52 +996,96 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
 <meta charset="UTF-8" />
 <title>Graphics storyboard timeline</title>
 <style>${BOARD_CSS}${TIMELINE_CSS}</style>
+<script>
+  function switchTab(btn) {
+    document.querySelectorAll('#tab-toggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-storyboard').style.display = btn.dataset.target === 'tab-storyboard' ? 'block' : 'none';
+    document.getElementById('tab-final-cut').style.display = btn.dataset.target === 'tab-final-cut' ? 'block' : 'none';
+    if (btn.dataset.target === 'tab-final-cut') initFinalCut();
+  }
+</script>
 </head>
 <body>
-  <div class="sticky-header">
-    <div class="topbar">
-      <span class="view-toggle"><a href="/" class="active">Timeline</a><a href="/list">List</a></span>
-      <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
-      <div>duration: ${timecode(totalDuration)}</div>
-      <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
-      <button id="approveBtn">Approve graphics</button>
-      ${shots ? `<span class="usage-chip">engineMode: ${escapeHtml(shots.shotsFile?.engineMode || 'none')}</span><button id="approveShotsBtn">Approve shots</button>` : ''}
-      ${effects ? `<button id="approveEffectsBtn">Approve effects</button>` : ''}
-      <button id="saveBtn">Save</button>
-      <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
+  <div id="tab-storyboard">
+    <div class="sticky-header">
+      <div class="topbar">
+        <span class="view-toggle" id="tab-toggle">
+          <button data-target="tab-storyboard" class="active" onclick="switchTab(this)">Storyboard</button>
+          <button data-target="tab-final-cut" onclick="switchTab(this)">Final Cut</button>
+        </span>
+        <span class="view-toggle" style="margin-left:8px;"><a href="/" class="active">Timeline</a><a href="/list">List</a></span>
+        <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
+        <div>duration: ${timecode(totalDuration)}</div>
+        <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
+        <button id="approveBtn">Approve graphics</button>
+        ${shots ? `<span class="usage-chip">engineMode: ${escapeHtml(shots.shotsFile?.engineMode || 'none')}</span><button id="approveShotsBtn">Approve shots</button>` : ''}
+        ${effects ? `<button id="approveEffectsBtn">Approve effects</button>` : ''}
+        <button id="saveBtn">Save</button>
+        <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
+      </div>
+      <div id="banner">
+        ${cuesFile.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}
+        ${shots && shots.shotsFile?.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shot plan approved — ready for the avatar render step</div>' : ''}
+        ${effects && effects.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>effects approved — ready for step 090 assemble</div>' : ''}
+        ${shots?.errors?.length ? `<div class="banner err"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shots: ${shots.errors.map(escapeHtml).join('<br>')}</div>` : ''}
+      </div>
+      <audio id="master" class="scrub" controls src="/vo.mp3"></audio>
+      <div class="tl-zoom-row">
+        <label>zoom <input type="range" id="zoom" min="0.4" max="30" step="0.1" value="1"/></label>
+        ${sound?.instances?.length ? `<label style="margin-left:14px; font-size:13px; color:var(--dim);"><input type="checkbox" id="sfxToggle" checked> SFX preview</label>` : ''}
+      </div>
+      ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
     </div>
-    <div id="banner">
-      ${cuesFile.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}
-      ${shots && shots.shotsFile?.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shot plan approved — ready for the avatar render step</div>' : ''}
-      ${effects && effects.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>effects approved — ready for step 090 assemble</div>' : ''}
-      ${shots?.errors?.length ? `<div class="banner err"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shots: ${shots.errors.map(escapeHtml).join('<br>')}</div>` : ''}
-    </div>
-    <audio id="master" class="scrub" controls src="/vo.mp3"></audio>
-    <div class="tl-zoom-row"><label>zoom <input type="range" id="zoom" min="0.4" max="30" step="0.1" value="1"/></label></div>
-    ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
-  </div>
-  <div class="tl-layout">
-    <div class="tl-canvas-wrap">
-      <div class="tl-canvas">
-        <div class="tl-labels">
-          <div class="tl-label tl-ruler-spacer"></div>
-          <div class="tl-label">SCREEN</div>
-          <div class="tl-label">GRAPHICS</div>
-          <div class="tl-label">AVATAR</div>
-          <div class="tl-label">EFFECTS</div>
-        </div>
-        <div class="tl-tracks" id="tlTracks">
-          <div class="tl-ruler" id="tlRuler"></div>
-          <div class="tl-track" id="tlScreen"><div class="tl-screen-bar"></div></div>
-          <div class="tl-track" id="tlGraphics">${graphicsBlocksHtml}</div>
-          <div class="tl-track" id="tlAvatar">${avatarBlocksHtml}</div>
-          <div class="tl-track" id="tlEffects">${fxChipsHtml}${fxSpansHtml}${fxMarksHtml}</div>
-          <div class="tl-playhead" id="tlPlayhead"></div>
+    <div class="tl-layout">
+      <div class="tl-canvas-wrap">
+        <div class="tl-canvas">
+          <div class="tl-labels">
+            <div class="tl-label tl-ruler-spacer"></div>
+            <div class="tl-label">SCREEN</div>
+            <div class="tl-label">GRAPHICS</div>
+            <div class="tl-label">AVATAR</div>
+            <div class="tl-label">EFFECTS</div>
+            ${sound?.instances?.length ? `<div class="tl-label">SOUND</div>` : ''}
+          </div>
+          <div class="tl-tracks" id="tlTracks">
+            <div class="tl-ruler" id="tlRuler"></div>
+            <div class="tl-track" id="tlScreen"><div class="tl-screen-bar"></div></div>
+            <div class="tl-track" id="tlGraphics">${graphicsBlocksHtml}</div>
+            <div class="tl-track" id="tlAvatar">${avatarBlocksHtml}</div>
+            <div class="tl-track" id="tlEffects">${fxChipsHtml}${fxSpansHtml}${fxMarksHtml}</div>
+            ${sound?.instances?.length ? `<div class="tl-track" id="tlSound">${
+              sound.instances.map(inst => {
+                const c = resolved.find(x => x.id === inst.cue || x.id === inst.cueId);
+                return c ? `<div class="tl-mark" data-start="${c.start + (inst.offset||0)}" title="${escapeHtml(inst.sfx||inst.file)}" style="background:#fcd34d"></div>` : '';
+              }).join('')
+            }</div>` : ''}
+            <div class="tl-playhead" id="tlPlayhead"></div>
+          </div>
         </div>
       </div>
+      <aside id="detail-panel"><div class="placeholder">click a block to preview</div></aside>
     </div>
-    <aside id="detail-panel"><div class="placeholder">click a block to preview</div></aside>
   </div>
+  
+  <div id="tab-final-cut" style="display:none; padding:20px;">
+    <div style="display:flex; gap:20px; align-items:flex-start;">
+      <div style="flex:1;">
+        <select id="fc-version"></select>
+        <div style="position:relative; margin-top:10px; background:#000; border-radius:8px; overflow:hidden;" id="fc-video-container">
+          <video id="fc-video" controls style="width:100%; display:block; cursor:crosshair;"></video>
+          <div id="fc-pin-marker" style="position:absolute; width:12px; height:12px; background:var(--err); border:2px solid #fff; border-radius:50%; transform:translate(-50%,-50%); display:none; pointer-events:none; z-index:10; box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>
+        </div>
+        <div id="fc-msg" style="margin-top:10px; color:var(--dim);"></div>
+      </div>
+      <div style="width:400px; flex:none; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px;">
+        <h3>Comments</h3>
+        <div id="fc-comments" style="margin:16px 0; max-height:400px; overflow-y:auto; font-size:14px;"></div>
+        <input type="text" id="fc-input" placeholder="Pause video to type comment..." style="width:100%; padding:8px; font:inherit; background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:6px;" disabled />
+      </div>
+    </div>
+  </div>
+
   <div id="detail-store" hidden>${storeHtml}</div>
   <script>
     ${OVERFLOW_BADGE_JS}
@@ -1070,11 +1152,29 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       el.addEventListener('click', () => reveal(el.dataset.detail)));
 
     const master = document.getElementById('master');
+    const BLOCK_TIMES = ${JSON.stringify(detailBlocks.map(b => ({ id: b.id, start: b.start, isShot: b.isShot })))};
     master.addEventListener('play', () => {
       document.querySelectorAll('.tile audio').forEach((a) => { if (!a.paused) a.pause(); });
     });
     master.addEventListener('timeupdate', () => {
       document.getElementById('tlPlayhead').style.left = (master.currentTime * pxps) + 'px';
+      const t = master.currentTime;
+      let active = null;
+      for (const b of BLOCK_TIMES) {
+        if (b.isShot) continue;
+        if (b.start <= t) active = b;
+      }
+      if (active && active.id !== openId) reveal(active.id);
+      if (active) {
+        const tile = document.querySelector('#detail-panel .tile');
+        if (tile) {
+          const iframe = tile.querySelector('iframe');
+          const start = parseFloat(tile.dataset.start || '0');
+          if (iframe && iframe.contentWindow) {
+            try { iframe.contentWindow.postMessage({ t: t - start }, '*'); } catch {}
+          }
+        }
+      }
     });
     document.getElementById('tlRuler').addEventListener('click', (e) => {
       master.currentTime = e.offsetX / pxps;
@@ -1088,6 +1188,132 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
 
     layout();
     wireOverflowBadges();
+
+    // Final Cut Logic
+    let fcInited = false;
+    async function initFinalCut() {
+      if (fcInited) return;
+      fcInited = true;
+      try {
+        const res = await fetch('/versions');
+        const data = await res.json();
+        const sel = document.getElementById('fc-version');
+        if (!data.versions || !data.versions.length) {
+          sel.innerHTML = '<option>No versions available</option>';
+          sel.disabled = true;
+          return;
+        }
+        data.versions.reverse().forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.label;
+          opt.textContent = v.label;
+          sel.appendChild(opt);
+        });
+        sel.onchange = () => loadFcVersion(sel.value);
+        loadFcVersion(sel.value);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    let fcStatus = {};
+    async function loadFcVersion(label) {
+      const vid = document.getElementById('fc-video');
+      vid.src = '/video/' + label;
+      try {
+        const s = await fetch('/status');
+        const data = await s.json();
+        fcStatus = data.items || {};
+      } catch (e) {}
+      renderFcComments(label);
+    }
+
+    function renderFcComments(label) {
+      const items = ${JSON.stringify(feedbackItems)};
+      const container = document.getElementById('fc-comments');
+      container.innerHTML = '';
+      const prefix = 'final-' + label + ':';
+      for (const [k, v] of Object.entries(items)) {
+        if (!k.startsWith(prefix)) continue;
+        const div = document.createElement('div');
+        div.style.marginBottom = '12px';
+        div.style.padding = '8px';
+        div.style.background = 'var(--bg)';
+        div.style.borderRadius = '4px';
+        let html = '';
+        if (v.t !== undefined) html += \`<strong style="color:var(--accent); cursor:pointer" onclick="document.getElementById('fc-video').currentTime=\${v.t}">\${fmtClock(v.t)}</strong> \`;
+        html += escapeHtml(v.text);
+        
+        const st = fcStatus[k];
+        if (st) {
+          const color = st.status === 'fixed' ? 'var(--ok)' : (st.status === 'question' ? 'var(--err)' : 'var(--dim)');
+          html += \`<div style="margin-top:4px; font-size:12px; color:\${color}; border:1px solid \${color}; display:inline-block; padding:2px 6px; border-radius:4px;">\${st.status}: \${escapeHtml(st.message||'')}</div>\`;
+        }
+        
+        div.innerHTML = html;
+        container.appendChild(div);
+      }
+    }
+
+    const fcVideo = document.getElementById('fc-video');
+    const fcInput = document.getElementById('fc-input');
+    const fcMarker = document.getElementById('fc-pin-marker');
+    let fcCurrentPin = null;
+
+    fcVideo.addEventListener('pause', () => {
+      fcInput.disabled = false;
+      fcInput.placeholder = 'Type comment for ' + fmtClock(fcVideo.currentTime) + '...';
+      fcInput.focus();
+    });
+    fcVideo.addEventListener('play', () => {
+      fcInput.disabled = true;
+      fcInput.value = '';
+      fcMarker.style.display = 'none';
+      fcCurrentPin = null;
+    });
+    fcVideo.addEventListener('click', (e) => {
+      if (!fcVideo.paused) {
+        fcVideo.pause();
+        return;
+      }
+      const rect = fcVideo.getBoundingClientRect();
+      const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+      const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+      fcCurrentPin = { x: +(x.toFixed(2)), y: +(y.toFixed(2)) };
+      fcMarker.style.left = x + '%';
+      fcMarker.style.top = y + '%';
+      fcMarker.style.display = 'block';
+      fcInput.focus();
+    });
+    fcInput.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter' && fcInput.value.trim()) {
+        const text = fcInput.value.trim();
+        const t = fcVideo.currentTime;
+        const item = { text, t, context: 'final@' + fmtClock(t) };
+        if (fcCurrentPin) {
+          item.x = fcCurrentPin.x;
+          item.y = fcCurrentPin.y;
+        }
+        fcInput.disabled = true;
+        const label = document.getElementById('fc-version').value;
+        const res = await fetch('/feedback-final', {
+          method: 'POST',
+          body: JSON.stringify({ label, item })
+        });
+        if (res.ok) {
+          // just reload page to keep simple and consistent with save
+          window.location.reload();
+        } else {
+          fcInput.disabled = false;
+          alert('failed to save');
+        }
+      }
+    });
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
   </script>
 </body>
 </html>`;
@@ -1415,7 +1641,11 @@ function serveCard(res, workdir, cardLibraryRoot, id) {
   res.setHeader('content-type', 'text/html; charset=utf-8');
   res.setHeader('cache-control', 'no-store');
   const { variables: enrichedVars } = enrichLogos(cue.variables, cardLibraryRoot);
-  res.end(injectShim(html, enrichedVars));
+  const root = path.resolve(import.meta.dirname, '..');
+  const manifest = fs.existsSync(path.join(workdir, 'manifest.json')) ? loadVideoManifest(workdir) : {};
+  const brand = loadBrand(root, manifest);
+  const brandedHtml = injectBrand(html, brand);
+  res.end(injectShim(brandedHtml, enrichedVars));
 }
 
 function serveSlice(res, workdir, id) {
@@ -1437,7 +1667,11 @@ function loadBoardData(workdir) {
   const feedbackItems = fs.existsSync(fbPath) ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items) : {};
   const shots = loadShots(workdir, words);
   const effects = loadEffects(workdir);
-  return { cuesFile, resolved, words, feedbackItems, shots, effects };
+  const soundPath = path.join(workdir, 'sound.json');
+  const sound = fs.existsSync(soundPath) ? JSON.parse(fs.readFileSync(soundPath, 'utf8')) : null;
+  const auditPath = path.join(workdir, 'audit.json');
+  const audit = fs.existsSync(auditPath) ? JSON.parse(fs.readFileSync(auditPath, 'utf8')) : null;
+  return { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit };
 }
 
 async function handleRequest(req, res, workdir, cardLibraryRoot) {
@@ -1457,17 +1691,17 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
   }
 
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index')) {
-    const { cuesFile, resolved, words, feedbackItems, shots, effects } = loadBoardData(workdir);
+    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit } = loadBoardData(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderTimelinePage(cuesFile, resolved, words, feedbackItems, shots, effects));
+    return res.end(renderTimelinePage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit));
   }
 
   if (req.method === 'GET' && url.pathname === '/list') {
-    const { cuesFile, resolved, words, feedbackItems, shots, effects } = loadBoardData(workdir);
+    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit } = loadBoardData(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects));
+    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit));
   }
 
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);
@@ -1518,6 +1752,74 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     res.setHeader('content-type', 'audio/mpeg');
     res.setHeader('cache-control', 'no-store');
     return res.end(fs.readFileSync(voPath));
+  }
+
+  if (req.method === 'GET' && url.pathname === '/versions') {
+    const p = path.join(workdir, 'versions.json');
+    res.setHeader('content-type', 'application/json');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(fs.existsSync(p) ? fs.readFileSync(p) : '{"versions":[]}');
+  }
+
+  if (req.method === 'GET' && url.pathname === '/status') {
+    const p = path.join(workdir, 'claude_status.json');
+    res.setHeader('content-type', 'application/json');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(fs.existsSync(p) ? fs.readFileSync(p) : '{"items":{}}');
+  }
+
+  const videoMatch = url.pathname.match(/^\/video\/(.+)$/);
+  if (req.method === 'GET' && videoMatch) {
+    const versionsPath = path.join(workdir, 'versions.json');
+    if (!fs.existsSync(versionsPath)) {
+      res.statusCode = 404; return res.end('no versions');
+    }
+    const versionsJson = JSON.parse(fs.readFileSync(versionsPath, 'utf8'));
+    let version = videoMatch[1] === 'current' 
+      ? versionsJson.versions[versionsJson.versions.length - 1]
+      : versionsJson.versions.find(v => v.label === videoMatch[1]);
+    if (!version) { res.statusCode = 404; return res.end('version not found'); }
+    
+    const videoPath = path.join(workdir, version.file);
+    if (!fs.existsSync(videoPath)) { res.statusCode = 404; return res.end('video not found'); }
+    
+    const stat = fs.statSync(videoPath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunksize = (end - start) + 1;
+      const file = fs.createReadStream(videoPath, { start, end });
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': 'video/mp4',
+      });
+      file.pipe(res);
+    } else {
+      res.writeHead(200, {
+        'Content-Length': fileSize,
+        'Content-Type': 'video/mp4',
+      });
+      fs.createReadStream(videoPath).pipe(res);
+    }
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/feedback-final') {
+    const body = await readBody(req);
+    let payload;
+    try { payload = JSON.parse(body); } catch(e) { res.statusCode = 400; return res.end('{"ok":false}'); }
+    const fbPath = path.join(workdir, 'feedback.json');
+    let fb = fs.existsSync(fbPath) ? JSON.parse(fs.readFileSync(fbPath, 'utf8')) : {};
+    fb = appendFinalFeedback(fb, payload.label, payload.item);
+    fb.updated = new Date().toISOString().slice(0, 10);
+    fs.writeFileSync(fbPath, JSON.stringify(fb, null, 2));
+    res.setHeader('content-type', 'application/json');
+    return res.end('{"ok":true}');
   }
 
   res.statusCode = 404;
