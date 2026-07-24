@@ -52,7 +52,10 @@
       .kw { color: var(--accent); font-weight: 800; }
       .kw-phrase { position: relative; display: inline-block; padding: 0 0.18em; margin: 0 -0.18em; white-space: nowrap; }
       .kw-bg { position: absolute; inset: 0; background: color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 8px; z-index: -1; transform-origin: left; will-change: transform; }
-    </style>
+    
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+</style>
   </head>
   <body>
     <div id="root" data-composition-id="statement" data-start="0" data-duration="5" data-width="1920" data-height="1080"

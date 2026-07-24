@@ -98,7 +98,10 @@
         background: linear-gradient(180deg, transparent 0%, var(--accent) 40%, #fff 50%, var(--accent) 60%, transparent 100%);
         box-shadow: 0 0 80px var(--accent), 0 0 40px #fff; will-change: transform, opacity;
       }
-    </style>
+    
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+</style>
   </head>
   <body>
     <!--

@@ -29,7 +29,10 @@
       .name { font-size: 130px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
       .tagline { font-size: 32px; color: var(--text-dim); margin-top: 16px; max-width: 1200px; line-height: 1.4; }
       .chip { margin-top: 32px; padding: 12px 24px; border: 2px solid var(--accent); border-radius: 999px; color: var(--accent); font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-    </style>
+    
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+</style>
   </head>
   <body>
     <div id="root" data-composition-id="toolintro" data-start="0" data-duration="6" data-width="1920" data-height="1080"

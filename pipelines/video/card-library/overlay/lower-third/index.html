@@ -24,7 +24,10 @@
       .body { background: var(--panel); border: 1px solid rgba(255,255,255,0.12); border-left: none; border-radius: 0 16px 16px 0; padding: 22px 40px 22px 30px; backdrop-filter: blur(14px); }
       .name { font-size: 50px; font-weight: 800; letter-spacing: -1px; line-height: 1.05; }
       .sub { font-size: 26px; font-weight: 500; color: var(--text-dim); margin-top: 6px; }
-    </style>
+    
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #box { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+</style>
   </head>
   <body>
     <div id="root" data-composition-id="lowerthird" data-start="0" data-duration="5" data-width="1920" data-height="1080"

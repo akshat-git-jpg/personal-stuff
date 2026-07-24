@@ -35,7 +35,10 @@
       .ic { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
       .title { font-size: 32px; font-weight: 800; color: var(--accent); letter-spacing: 0.5px; }
       .text { font-size: 27px; line-height: 1.45; color: var(--text-dim); }
-    </style>
+    
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #box { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+</style>
   </head>
   <body>
     <div id="root" data-composition-id="callout" data-start="0" data-duration="5" data-width="1920" data-height="1080" data-pos="top-right"

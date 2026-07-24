@@ -64,7 +64,10 @@
         background: color-mix(in srgb, var(--accent) 16%, transparent); 
         border-radius: 8px; padding: 0 0.18em; 
       }
-    </style>
+    
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+</style>
   </head>
   <body>
     <div id="root" data-composition-id="iconpills" data-start="0" data-duration="8" data-width="1920" data-height="1080"

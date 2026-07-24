@@ -57,7 +57,10 @@
       .row.done .label { color: var(--done); }
       .row.current .num { color: var(--accent); font-weight: 800; }
       .row.current .label { color: var(--text); font-weight: 700; }
-    </style>
+    
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #content { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+</style>
   </head>
   <body>
     <div id="root" data-composition-id="bullet-points-highlighted" data-start="0" data-duration="6" data-width="1920" data-height="1080"

@@ -29,7 +29,10 @@
       .hero-num { font-size: 220px; font-weight: 900; font-variant-numeric: tabular-nums; }
       .hero-suffix { font-size: 140px; font-weight: 800; margin-left: 8px; }
       .context { font-size: 32px; color: var(--text-dim); max-width: 800px; line-height: 1.35; margin-top: 8px; }
-    </style>
+    
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #box { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+</style>
   </head>
   <body>
     <div id="root" data-composition-id="stathit" data-start="0" data-duration="5" data-width="1920" data-height="1080"
