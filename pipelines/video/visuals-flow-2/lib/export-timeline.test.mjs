@@ -42,9 +42,14 @@ test('buildNativeFcpxml: native generator layers', () => {
     { at: null, note: 'punch' }
   ];
   
+  const sfxClips = [
+    { id: 'sfx1', offsetSec: 10, durationSec: 2, file: 'sfx1.wav' },
+    { id: 'sfx2', offsetSec: 20, durationSec: 2, file: 'sfx2.wav' }
+  ];
+  
   const xml = buildNativeFcpxml({
-    video: 't', screenPath: 'screen.mp4', voPath: 'vo.mp3', total: 30, w: 1920, h: 1080,
-    avatarClips, fullframes, overlayClips, fxClips, markers, srcUrl: (f) => f
+    video: 't', screenPath: 'screen.mp4', voPath: 'vo.mp3', musicPath: 'music-ducked.wav', total: 30, w: 1920, h: 1080,
+    avatarClips, fullframes, overlayClips, fxClips, sfxClips, markers, srcUrl: (f) => f
   });
   
   const spineRe = /<asset-clip ref="[^"]+" offset="[^"]+" duration="[^"]+" start="0s" name="screen"/g;
@@ -63,14 +68,20 @@ test('buildNativeFcpxml: native generator layers', () => {
   const lm1 = (xml.match(/lane="-1"/g) || []).length;
   assert.equal(lm1, 1, '1 clip lane -1');
   
+  const lm2 = (xml.match(/lane="-2"/g) || []).length;
+  assert.equal(lm2, 1, '1 clip lane -2 (music)');
+  
+  const lm3 = (xml.match(/lane="-3"/g) || []).length;
+  assert.equal(lm3, 2, '2 clips lane -3 (sfx)');
+  
   const xmlMarkers = xml.match(/<marker /g) || [];
   assert.equal(xmlMarkers.length, 1, 'exactly 1 marker');
   assert.match(xml, new RegExp(`<marker start="${frames(12)*100}/3000s"`), 'marker start equals frames(at)*100');
   
   const numAssets = (xml.match(/<asset /g) || []).length;
-  assert.equal(numAssets, 9, 'exactly 9 assets');
+  assert.equal(numAssets, 12, 'exactly 12 assets');
   
-  for (const c of [...avatarClips, ...fullframes, ...overlayClips, ...fxClips]) {
+  for (const c of [...avatarClips, ...fullframes, ...overlayClips, ...fxClips, ...sfxClips]) {
     const oOffset = rt(frames(c.offsetSec));
     const escId = c.id.replace('&', '&amp;');
     assert.match(xml, new RegExp(`offset="${oOffset}"[^>]+name="${escId}"`), `offset matches for ${c.id}`);
