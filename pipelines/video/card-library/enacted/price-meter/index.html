@@ -1,10 +1,23 @@
 <!doctype html>
+<!--
+  PRICE · METER   (Hyperframes enacted card)
+  A big odometer-style money readout rolls upward to the running total as
+  cost chips slide into a side stack, each with a tick. A thin meter bar under
+  the number fills proportionally (final total = 100%). In dark register, once
+  the running total crosses vars.warn_at the readout turns negative-rose and
+  stays that way. Variant b stacks chips on the right instead of the left.
+  1920x1080, 30fps, 6 seconds.
+
+  EDITOR: change only the ===== CONTENT ===== block (title, currency, beats[])
+  and the :root colors. Do NOT touch ===== TIMELINE (LOCKED) =====.
+  Render:  npx hyperframes@latest render enacted/price-meter -o out.mp4 --fps 30
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
       :root {
@@ -13,6 +26,7 @@
         --accent: #fb923c;
         --positive: #34d399; --negative: #fb7185; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
+        --mono: 'JetBrains Mono', monospace;
       }
       body.register-light {
         --bg-from: #2b2416; --bg-to: #0a0805;
@@ -22,52 +36,154 @@
       #root { position: relative; width: 1920px; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
-      body.variant-b #frame { flex-direction: row-reverse; }
-      .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 56px; }
-      .marker-sweep { position: relative; display: inline-block; }
-      .marker-sweep::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: var(--accent); transform: scaleX(0); transform-origin: left; }
-      .marker-sweep.active::after { transform: scaleX(1); transition: transform 0.4s ease-out; }
-    
+
+      .title { position: absolute; top: 96px; left: 0; width: 100%; font-size: 64px; font-weight: 800; letter-spacing: -2px; text-align: center; }
+
+      .mk { position: relative; display: inline-block; }
+      .mk-sweep { position: absolute; left: -6px; right: -6px; bottom: 2px; height: 45%; background: var(--accent); z-index: 0; border-radius: 4px; }
+      .mk-text { position: relative; z-index: 1; }
+
+      #card { display: flex; align-items: center; justify-content: center; padding-top: 140px; }
+      #meterCol { position: relative; display: flex; flex-direction: column; align-items: center; gap: 28px; }
+      #readout { font-family: var(--mono); font-size: 200px; font-weight: 800; letter-spacing: -4px; line-height: 1;
+        color: var(--text); white-space: nowrap; }
+      #meterTrack { position: relative; width: 900px; height: 14px; border-radius: 7px; background: rgba(255,255,255,0.1); overflow: hidden; }
+      #meterFill { position: absolute; inset: 0; width: 0%; border-radius: 7px; background: var(--accent); }
+
+      /* side stack of cost chips — left by default, right for variant b */
+      #stack { position: absolute; top: 50%; transform: translateY(-50%); left: 96px;
+        display: flex; flex-direction: column; gap: 20px; width: 420px; }
+      body.variant-b #stack { left: auto; right: 96px; }
+
+      .costChip { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 18px 24px; }
+      .costChip .tick { flex: 0 0 auto; width: 32px; height: 32px; border-radius: 50%;
+        background: rgba(52,211,153,0.16); color: var(--positive); font-size: 18px; font-weight: 900;
+        display: flex; align-items: center; justify-content: center; }
+      .costChip .label { flex: 1 1 auto; font-size: 24px; font-weight: 600; color: var(--text-dim); }
+      .costChip .amount { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--text); }
+
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
-      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
-</style>
+      #meterCol { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+    </style>
   </head>
   <body class="register-dark variant-a">
     <div id="root" data-composition-id="price-meter" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"Costs","beats":[{"label":"Server","amount":"50","at":0.5}]}'>
+      data-composition-variables='{"title":"Monthly Costs","currency":"$","beats":[{"label":"Server","amount":"29","at":0.8},{"label":"CDN","amount":"12","at":1.6},{"label":"Backups","amount":"9","at":2.4}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
-        <div id="card">
+        <div id="card" style="width:100%; height:100%; position:relative;">
           <div class="title" id="title"></div>
-          <div id="text"></div>
+          <div id="stack"></div>
+          <div id="meterCol">
+            <div id="readout"></div>
+            <div id="meterTrack"><div id="meterFill"></div></div>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
-      /* ===== CONTENT ===== */
+      /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DEFAULTS = {
+        title: 'Monthly Costs',
+        currency: '$',
+        beats: [
+          { label: 'Server',  amount: '29', at: 0.8 },
+          { label: 'CDN',     amount: '12', at: 1.6 },
+          { label: 'Backups', amount: '9',  at: 2.4 },
+        ],
+      };
       const DATA = {
-        ...JSON.parse('{"title":"Costs","beats":[{"label":"Server","amount":"50","at":0.5}]}'),
+        ...DEFAULTS,
         ...VARS,
         register: VARS.register ?? 'dark',
         variant: VARS.variant ?? 'a',
-        marker: VARS.marker ?? false
+        marker: VARS.marker ?? false,
+        warn_at: typeof VARS.warn_at === 'number' ? VARS.warn_at : (typeof DEFAULTS.warn_at === 'number' ? DEFAULTS.warn_at : null),
       };
 
       if (DATA.register === 'light') document.body.classList.replace('register-dark', 'register-light');
       if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
 
-      /* ===== TIMELINE ===== */
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
       const $ = (id) => document.getElementById(id);
+
+      // title + marker word wrap
+      (function renderTitle() {
+        const titleEl = $('title');
+        const word = (typeof DATA.marker === 'string' && DATA.marker.trim()) ? DATA.marker.trim() : null;
+        if (word) {
+          const re = new RegExp('(' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i');
+          const parts = DATA.title.split(re);
+          titleEl.innerHTML = parts.map((part) => {
+            if (part.toLowerCase() === word.toLowerCase()) {
+              return `<span class="mk"><span class="mk-sweep"></span><span class="mk-text">${part}</span></span>`;
+            }
+            return part;
+          }).join('');
+        } else {
+          titleEl.textContent = DATA.title;
+        }
+      })();
+
+      const CURRENCY = DATA.currency ?? '$';
+      const fmt = (n) => CURRENCY + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+      const beats = (DATA.beats || []).slice(0, 5);
+      const amounts = beats.map((b) => parseFloat(b.amount) || 0);
+      const cumulative = [];
+      let running = 0;
+      for (let i = 0; i < amounts.length; i++) { running += amounts[i]; cumulative[i] = running; }
+      const finalTotal = cumulative.length ? cumulative[cumulative.length - 1] : 0;
+
+      let warnIndex = -1;
+      if (typeof DATA.warn_at === 'number') {
+        warnIndex = cumulative.findIndex((c) => c >= DATA.warn_at);
+      }
+
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      
-      $('title').textContent = DATA.title; tl.from($('title'), {opacity: 0, y:20}, 0.1);
-      
-      if (DATA.marker && $('title') && DATA.title && DATA.marker_word) {
-         // A real implementation would parse marker_word out of title and wrap it in .marker-sweep
-         // For now just stubbing it since it's just a demo renderer
+      const readoutObj = { n: 0 };
+      $('readout').textContent = fmt(0);
+
+      tl.from('#title', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, 0.1);
+      tl.from('#meterCol', { opacity: 0, scale: 0.92, duration: 0.6, ease: 'power3.out' }, 0.2);
+      tl.from('#stack', { opacity: 0, x: 40, duration: 0.5, ease: 'power2.out' }, 0.3);
+
+      beats.forEach((b, i) => {
+        const targetTotal = cumulative[i];
+        const pct = finalTotal > 0 ? (targetTotal / finalTotal) * 100 : 0;
+
+        tl.to(readoutObj, {
+          n: targetTotal,
+          duration: 0.65,
+          ease: 'power2.out',
+          onUpdate: () => { $('readout').textContent = fmt(readoutObj.n); },
+        }, b.at);
+        tl.to('#meterFill', { width: pct + '%', duration: 0.65, ease: 'power2.out' }, b.at);
+
+        if (DATA.register === 'dark' && warnIndex !== -1 && i === warnIndex) {
+          tl.to('#readout', { color: '#fb7185', duration: 0.4, ease: 'power2.out' }, b.at);
+          tl.to('#meterFill', { backgroundColor: '#fb7185', duration: 0.4, ease: 'power2.out' }, b.at);
+        }
+
+        const chip = document.createElement('div');
+        chip.className = 'costChip';
+        chip.innerHTML = `<span class="tick">✓</span><span class="label"></span><span class="amount"></span>`;
+        chip.querySelector('.label').textContent = b.label;
+        chip.querySelector('.amount').textContent = CURRENCY + amounts[i].toLocaleString('en-US');
+        gsap.set(chip, { opacity: 0, x: -30 });
+        $('stack').appendChild(chip);
+        if (document.body.classList.contains('variant-b')) gsap.set(chip, { x: 30 });
+
+        tl.to(chip, { opacity: 1, x: 0, duration: 0.45, ease: 'power2.out' }, b.at + 0.05);
+        tl.fromTo(chip.querySelector('.tick'), { scale: 0 }, { scale: 1, duration: 0.35, ease: 'back.out(2.4)' }, b.at + 0.2);
+      });
+
+      if (typeof DATA.marker === 'string' && DATA.marker.trim()) {
+        tl.fromTo('.mk-sweep', { scaleX: 0 }, { scaleX: 1, transformOrigin: 'left', duration: 0.35, ease: 'power2.out' }, 0.9);
       }
 
       window.__timelines['price-meter'] = tl;

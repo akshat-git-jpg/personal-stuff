@@ -1,4 +1,15 @@
 <!doctype html>
+<!--
+  COUNTER-TALLY   (Hyperframes enacted card)
+  One huge central number rolls to each beat's value; a tick strip accumulates
+  marks underneath; an optional note pops beside the number and fades on the next.
+  1920x1080, 30fps, 6 seconds.
+
+  EDITOR: change only the ===== CONTENT ===== defaults and :root colors.
+  Do NOT touch ===== TIMELINE (LOCKED). Or render-time:
+    --variables '{"title":"Support Tickets","suffix":"open","beats":[{"value":"1200","note":"baseline","at":0.6}]}'
+  Render:  npx hyperframes@latest render enacted/counter-tally -o out.mp4 --fps 30
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -22,52 +33,155 @@
       #root { position: relative; width: 1920px; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
-      body.variant-b #frame { flex-direction: row-reverse; }
-      .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 56px; }
-      .marker-sweep { position: relative; display: inline-block; }
-      .marker-sweep::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: var(--accent); transform: scaleX(0); transform-origin: left; }
-      .marker-sweep.active::after { transform: scaleX(1); transition: transform 0.4s ease-out; }
-    
+      #card { width: 100%; max-width: 1560px; display: flex; flex-direction: column; align-items: center; }
+
+      .title { font-size: 60px; font-weight: 800; letter-spacing: -1.5px; text-align: center; margin-bottom: 56px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 3px; }
+
+      .stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 48px; }
+      .numberRow { position: relative; display: flex; align-items: baseline; gap: 18px; }
+      body.variant-b .numberRow { flex-direction: row-reverse; }
+      .number {
+        font-size: 280px; font-weight: 900; letter-spacing: -6px; line-height: 1;
+        font-variant-numeric: tabular-nums; color: var(--text);
+      }
+      .suffix { font-size: 58px; font-weight: 700; color: var(--text-dim); }
+
+      .note {
+        position: absolute; left: 100%; top: 50%; margin-left: 36px; transform: translateY(-50%);
+        white-space: nowrap; font-size: 27px; font-weight: 600; color: var(--text-dim);
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+        padding: 12px 24px; border-radius: 16px; opacity: 0;
+      }
+      body.variant-b .note { left: auto; right: 100%; margin-left: 0; margin-right: 36px; }
+
+      .ticks { display: flex; gap: 16px; }
+      .tick {
+        position: relative; width: 40px; height: 40px; border-radius: 10px;
+        background: rgba(251,146,60,0.14); border: 1px solid rgba(251,146,60,0.4);
+        opacity: 0; transform: scale(0);
+      }
+      .tick::after { content: ''; position: absolute; inset: 10px; border-radius: 6px; background: var(--accent); }
+
+      .mk { position: relative; display: inline-block; }
+      .mk-sweep { position: absolute; left: -8px; right: -8px; bottom: 0; height: 45%; background: var(--accent); transform: scaleX(0); z-index: 0; }
+      .mk-text { position: relative; z-index: 1; }
+
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
-</style>
+    </style>
   </head>
   <body class="register-dark variant-a">
     <div id="root" data-composition-id="counter-tally" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"Errors","beats":[{"value":"500","at":0.5}]}'>
+      data-composition-variables='{"title":"Support Tickets","suffix":"open","beats":[{"value":"1200","note":"baseline","at":0.6},{"value":"3400","note":"incident","at":1.9},{"value":"2100","note":"patched","at":3.2},{"value":"950","at":4.5}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div id="card">
           <div class="title" id="title"></div>
-          <div id="text"></div>
+          <div class="stage">
+            <div class="numberRow">
+              <span class="number" id="number">0</span><span class="suffix" id="suffix"></span>
+              <div id="notes"></div>
+            </div>
+            <div class="ticks" id="ticks"></div>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
-      /* ===== CONTENT ===== */
+      /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
+      const DEFAULTS = {
+        title: 'Support Tickets',
+        suffix: 'open',
+        beats: [
+          { value: '1200', note: 'baseline', at: 0.6 },
+          { value: '3400', note: 'incident', at: 1.9 },
+          { value: '2100', note: 'patched', at: 3.2 },
+          { value: '950', at: 4.5 },
+        ],
+      };
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
-        ...JSON.parse('{"title":"Errors","beats":[{"value":"500","at":0.5}]}'),
-        ...VARS,
+        title: VARS.title ?? DEFAULTS.title,
+        suffix: VARS.suffix ?? DEFAULTS.suffix,
+        beats: VARS.beats ?? DEFAULTS.beats,
         register: VARS.register ?? 'dark',
         variant: VARS.variant ?? 'a',
-        marker: VARS.marker ?? false
+        marker: VARS.marker ?? false,
       };
 
       if (DATA.register === 'light') document.body.classList.replace('register-dark', 'register-light');
       if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
+      const isDark = !document.body.classList.contains('register-light');
 
-      /* ===== TIMELINE ===== */
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
       const $ = (id) => document.getElementById(id);
+      const fmt = (n) => Math.round(n).toLocaleString('en-US');
+      const WHITE = '#ffffff';
+      const ROSE = '#fb7185';
+
+      const title = $('title');
+      title.textContent = DATA.title;
+      if (DATA.suffix) $('suffix').textContent = DATA.suffix;
+
+      if (typeof DATA.marker === 'string' && DATA.marker.trim()) {
+        const word = DATA.marker.trim();
+        const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp('(' + escaped + ')', 'i');
+        if (re.test(title.textContent)) {
+          title.innerHTML = title.textContent.replace(
+            re,
+            '<span class="mk"><span class="mk-sweep"></span><span class="mk-text">$1</span></span>'
+          );
+        }
+      }
+
+      const numberEl = $('number');
+      const notesEl = $('notes');
+      const ticksEl = $('ticks');
+
+      const notedBeats = DATA.beats.filter((b) => b.note);
+      const noteEls = notedBeats.map((b) => {
+        const el = document.createElement('div');
+        el.className = 'note';
+        el.textContent = b.note;
+        notesEl.appendChild(el);
+        return { b, el };
+      });
+
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      
-      $('title').textContent = DATA.title; tl.from($('title'), {opacity: 0, y:20}, 0.1);
-      
-      if (DATA.marker && $('title') && DATA.title && DATA.marker_word) {
-         // A real implementation would parse marker_word out of title and wrap it in .marker-sweep
-         // For now just stubbing it since it's just a demo renderer
+      const CHROME_IN = 0.15;
+      tl.from('.title', { opacity: 0, y: -24, duration: 0.6, ease: 'power3.out' }, CHROME_IN);
+      tl.from('.stage', { opacity: 0, scale: 0.94, duration: 0.6, ease: 'power3.out' }, CHROME_IN + 0.05);
+
+      let prevVal = 0;
+      DATA.beats.forEach((b) => {
+        const val = parseFloat(b.value) || 0;
+        const falling = val < prevVal;
+        tl.set(numberEl, { color: isDark && falling ? ROSE : WHITE }, b.at);
+        const counter = { v: prevVal };
+        tl.to(counter, {
+          v: val, duration: 0.6, ease: 'power2.out',
+          onUpdate: () => { numberEl.textContent = fmt(counter.v); },
+        }, b.at);
+
+        const tick = document.createElement('div');
+        tick.className = 'tick';
+        ticksEl.appendChild(tick);
+        tl.to(tick, { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(2)' }, b.at);
+
+        prevVal = val;
+      });
+
+      noteEls.forEach(({ b, el }, i) => {
+        tl.to(el, { opacity: 1, y: -6, duration: 0.35, ease: 'power2.out' }, b.at + 0.08);
+        const next = noteEls[i + 1];
+        if (next) tl.to(el, { opacity: 0, duration: 0.3, ease: 'power2.out' }, next.b.at);
+      });
+
+      if (title.querySelector('.mk-sweep')) {
+        tl.fromTo('.mk-sweep', { scaleX: 0 }, { scaleX: 1, transformOrigin: 'left', duration: 0.35, ease: 'power2.out' }, 0.9);
       }
 
       window.__timelines['counter-tally'] = tl;

@@ -1,4 +1,18 @@
 <!doctype html>
+<!--
+  PIPELINE FLOW   (Hyperframes enacted card)
+  A horizontal chain of node pills connected by track segments. A glowing pulse
+  travels along the track and arrives at the named step on each beat, lighting
+  that node (accent border+fill, dot -> checkmark). Dark register = problem:
+  pulse runs rose and the final beat's node judders instead of succeeding.
+  Light register = solution: pulse runs accent, every beat lands clean.
+  1920x1080, 30fps, 6 seconds.
+
+  EDITOR: change only the ===== CONTENT ===== block (title, steps[], beats[]) and
+  the :root colors. Do NOT touch ===== TIMELINE (LOCKED). Or render-time:
+    --variables '{"title":"CI Pipeline","steps":[{"step":"Install"}],"beats":[{"step":"Install","at":0.9}]}'
+  Render:  npx hyperframes@latest render enacted/pipeline-flow -o out.mp4 --fps 30
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -22,52 +36,193 @@
       #root { position: relative; width: 1920px; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
-      body.variant-b #frame { flex-direction: row-reverse; }
-      .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 56px; }
-      .marker-sweep { position: relative; display: inline-block; }
-      .marker-sweep::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: var(--accent); transform: scaleX(0); transform-origin: left; }
-      .marker-sweep.active::after { transform: scaleX(1); transition: transform 0.4s ease-out; }
-    
+      #card { width: 100%; max-width: 1560px; display: flex; flex-direction: column; align-items: center; }
+      .title { font-size: 68px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 64px; }
+
+      /* marker sweep */
+      .mk { position: relative; display: inline-block; }
+      .mk-sweep { position: absolute; left: 0; bottom: 0; width: 100%; height: 45%; background: var(--accent); transform: scaleX(0); transform-origin: left; z-index: 0; }
+      .mk-text { position: relative; z-index: 1; }
+
+      /* chain */
+      .chain { position: relative; width: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center; }
+      body.variant-b .chain { flex-direction: column; height: 760px; justify-content: center; }
+
+      .node { flex: 0 0 auto; width: 220px; height: 220px; border-radius: 32px; background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; position: relative; }
+      body.variant-b .node { width: 520px; height: 96px; flex-direction: row; border-radius: 22px; }
+
+      .node .dot { position: relative; width: 60px; height: 60px; flex: 0 0 auto; }
+      .node .dot > span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+      .node .ic-dot::after { content: ''; width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.32); }
+      .node .ic-check, .node .ic-fail { font-size: 34px; font-weight: 900; opacity: 0; }
+      .node .ic-check { color: var(--accent); }
+      .node .ic-fail { color: var(--negative); }
+
+      .node .label { font-size: 26px; font-weight: 700; color: var(--text-dim); text-align: center; padding: 0 10px; line-height: 1.25; }
+      body.variant-b .node .label { text-align: left; }
+
+      .track { flex: 1 1 60px; height: 8px; min-width: 40px; border-radius: 4px; background: rgba(255,255,255,0.08); position: relative; overflow: hidden; }
+      body.variant-b .track { width: 8px; height: auto; min-height: 30px; min-width: 0; }
+      .track .fill { position: absolute; inset: 0; background: var(--accent); transform: scaleX(0); transform-origin: left; }
+      body.variant-b .track .fill { transform: scaleY(0); transform-origin: top; }
+
+      .pulse { position: absolute; top: 0; left: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 26px 8px rgba(251,146,60,0.55); opacity: 0; z-index: 5; }
+      body.register-dark .pulse { background: var(--negative); box-shadow: 0 0 26px 8px rgba(251,113,133,0.55); }
+
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
-</style>
+    </style>
   </head>
   <body class="register-dark variant-a">
     <div id="root" data-composition-id="pipeline-flow" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"CI Pipeline","steps":[{"step":"Build"}],"beats":[{"step":"Build","at":0.5}]}'>
+      data-composition-variables='{"title":"CI Pipeline","steps":[{"step":"Install"},{"step":"Build"},{"step":"Test"},{"step":"Deploy"}],"beats":[{"step":"Install","at":0.9},{"step":"Build","at":1.8},{"step":"Test","at":2.7},{"step":"Deploy","at":3.6}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div id="card">
           <div class="title" id="title"></div>
-          <div id="text"></div>
+          <div class="chain" id="chain"></div>
         </div>
       </div>
     </div>
 
     <script>
-      /* ===== CONTENT ===== */
+      /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DEFAULTS = {
+        title: 'CI Pipeline',
+        steps: [{ step: 'Install' }, { step: 'Build' }, { step: 'Test' }, { step: 'Deploy' }],
+        beats: [
+          { step: 'Install', at: 0.9 },
+          { step: 'Build',   at: 1.8 },
+          { step: 'Test',    at: 2.7 },
+          { step: 'Deploy',  at: 3.6 },
+        ],
+      };
       const DATA = {
-        ...JSON.parse('{"title":"CI Pipeline","steps":[{"step":"Build"}],"beats":[{"step":"Build","at":0.5}]}'),
+        ...DEFAULTS,
         ...VARS,
         register: VARS.register ?? 'dark',
         variant: VARS.variant ?? 'a',
-        marker: VARS.marker ?? false
+        marker: VARS.marker ?? false,
       };
 
       if (DATA.register === 'light') document.body.classList.replace('register-dark', 'register-light');
       if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
+      const isVariantB = DATA.variant === 'b';
+      const isDark = DATA.register === 'dark';
 
-      /* ===== TIMELINE ===== */
       const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+      /* title + marker */
+      const titleEl = $('title');
+      if (typeof DATA.marker === 'string' && DATA.marker.trim()) {
+        const word = DATA.marker.trim();
+        const title = DATA.title;
+        const idx = title.toLowerCase().indexOf(word.toLowerCase());
+        if (idx !== -1) {
+          const before = esc(title.slice(0, idx));
+          const match = esc(title.slice(idx, idx + word.length));
+          const after = esc(title.slice(idx + word.length));
+          titleEl.innerHTML = `${before}<span class="mk"><span class="mk-sweep"></span><span class="mk-text">${match}</span></span>${after}`;
+        } else {
+          titleEl.textContent = title;
+        }
+      } else {
+        titleEl.textContent = DATA.title;
+      }
+
+      /* build chain: node, track, node, track, ... */
+      const chainEl = $('chain');
+      const nodeEls = [];
+      const trackFillEls = [];
+      DATA.steps.forEach((s, i) => {
+        const node = document.createElement('div');
+        node.className = 'node';
+        node.dataset.step = s.step;
+        node.innerHTML = `<div class="dot"><span class="ic-dot"></span><span class="ic-check">&#10003;</span><span class="ic-fail">&#10005;</span></div><div class="label"></div>`;
+        node.querySelector('.label').textContent = s.step;
+        chainEl.appendChild(node);
+        nodeEls.push(node);
+        if (i < DATA.steps.length - 1) {
+          const track = document.createElement('div');
+          track.className = 'track';
+          track.innerHTML = '<div class="fill"></div>';
+          chainEl.appendChild(track);
+          trackFillEls.push(track.querySelector('.fill'));
+        }
+      });
+      const pulseEl = document.createElement('div');
+      pulseEl.className = 'pulse';
+      chainEl.appendChild(pulseEl);
+
+      /* measure centers (after layout) */
+      const chainRect = chainEl.getBoundingClientRect();
+      const centers = nodeEls.map((el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          x: r.left - chainRect.left + r.width / 2,
+          y: r.top - chainRect.top + r.height / 2,
+        };
+      });
+
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      
-      $('title').textContent = DATA.title; tl.from($('title'), {opacity: 0, y:20}, 0.1);
-      
-      if (DATA.marker && $('title') && DATA.title && DATA.marker_word) {
-         // A real implementation would parse marker_word out of title and wrap it in .marker-sweep
-         // For now just stubbing it since it's just a demo renderer
+      const CHROME_IN = 0.15;
+
+      tl.from(titleEl, { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, CHROME_IN);
+      tl.from(nodeEls, { opacity: 0, y: isVariantB ? 0 : 24, x: isVariantB ? -24 : 0, stagger: 0.06, duration: 0.5, ease: 'power3.out' }, CHROME_IN + 0.2);
+      tl.from(trackFillEls.length ? chainEl.querySelectorAll('.track') : [], { opacity: 0, duration: 0.4, ease: 'power3.out' }, CHROME_IN + 0.25);
+
+      const beats = (DATA.beats || []).slice().sort((a, b) => a.at - b.at);
+      const stepIndex = {};
+      DATA.steps.forEach((s, i) => { stepIndex[s.step] = i; });
+
+      if (centers.length) {
+        tl.set(pulseEl, {
+          opacity: 1,
+          xPercent: -50,
+          yPercent: -50,
+          x: isVariantB ? chainRect.width / 2 : centers[0].x,
+          y: isVariantB ? centers[0].y : chainRect.height / 2,
+        }, CHROME_IN + 0.35);
+      }
+
+      beats.forEach((b, i) => {
+        const idx = stepIndex[b.step];
+        if (idx === undefined) return;
+        const center = centers[idx];
+        const travelDur = 0.5;
+        const arrive = b.at;
+        tl.to(pulseEl, {
+          x: isVariantB ? chainRect.width / 2 : center.x,
+          y: isVariantB ? center.y : chainRect.height / 2,
+          duration: travelDur,
+          ease: 'power2.out',
+        }, Math.max(arrive - travelDur, CHROME_IN + 0.35));
+
+        if (idx > 0 && trackFillEls[idx - 1]) {
+          const prop = isVariantB ? { scaleY: 1 } : { scaleX: 1 };
+          tl.to(trackFillEls[idx - 1], { ...prop, duration: travelDur, ease: 'power2.out' }, Math.max(arrive - travelDur, CHROME_IN + 0.35));
+        }
+
+        const node = nodeEls[idx];
+        const isFinal = i === beats.length - 1;
+        if (isDark && isFinal) {
+          tl.to(node, { borderColor: 'rgba(251,113,133,0.9)', backgroundColor: 'rgba(251,113,133,0.10)', duration: 0.3, ease: 'power2.out' }, arrive);
+          tl.to(node.querySelector('.ic-dot'), { opacity: 0, duration: 0.2 }, arrive);
+          tl.fromTo(node.querySelector('.ic-fail'), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)' }, arrive);
+          tl.to(node, { keyframes: [{ x: -8 }, { x: 8 }, { x: -6 }, { x: 6 }, { x: 0 }], duration: 0.4, ease: 'power1.inOut' }, arrive + 0.05);
+        } else {
+          tl.to(node, { borderColor: 'rgba(251,146,60,0.9)', backgroundColor: 'rgba(251,146,60,0.10)', duration: 0.3, ease: 'power2.out' }, arrive);
+          tl.to(node.querySelector('.ic-dot'), { opacity: 0, duration: 0.2 }, arrive);
+          tl.fromTo(node.querySelector('.ic-check'), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)' }, arrive);
+        }
+      });
+
+      if (typeof DATA.marker === 'string' && DATA.marker.trim() && titleEl.querySelector('.mk-sweep')) {
+        tl.fromTo('.mk-sweep', { scaleX: 0 }, { scaleX: 1, transformOrigin: 'left', duration: 0.35, ease: 'power2.out' }, 0.9);
       }
 
       window.__timelines['pipeline-flow'] = tl;

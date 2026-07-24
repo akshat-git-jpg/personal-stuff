@@ -1,4 +1,16 @@
 <!doctype html>
+<!--
+  TIMELINE SCRUB   (Hyperframes enacted card, beat kind)
+  A horizontal rail with evenly-spread marker stems. A playhead jumps to each
+  beat's marker with a slight overshoot; the passed segment fills accent, and a
+  label card stamps in above the marker while the previous one tilts back.
+  1920x1080, 30fps, 6 seconds. Enacts: mapping events strictly across time.
+
+  EDITOR: change only the ===== CONTENT ===== defaults (title, beats[]) and the
+  :root colors. Do NOT touch ===== TIMELINE (LOCKED). Or render-time:
+    --variables '{"title":"History","beats":[{"label":"Founded","at":0.6}, ...]}'
+  Render:  npx hyperframes@latest render enacted/timeline-scrub -o out.mp4 --fps 30
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -21,54 +33,145 @@
       html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
       #root { position: relative; width: 1920px; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
-      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
-      body.variant-b #frame { flex-direction: row-reverse; }
-      .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 56px; }
-      .marker-sweep { position: relative; display: inline-block; }
-      .marker-sweep::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: var(--accent); transform: scaleX(0); transform-origin: left; }
-      .marker-sweep.active::after { transform: scaleX(1); transition: transform 0.4s ease-out; }
-    
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 100px 120px; }
+      #card { position: relative; width: 100%; max-width: 1720px; height: 100%; }
+
+      .title { position: absolute; top: 0; left: 0; right: 0; font-size: 60px; font-weight: 800; letter-spacing: -1.5px; text-align: center; }
+
+      #rail-wrap { position: absolute; left: 0; right: 0; top: 70%; }
+      body.variant-b #rail-wrap { top: 26%; }
+
+      #rail { position: relative; height: 6px; border-radius: 3px; background: rgba(255, 239, 219, 0.25); }
+      #rail-fill { position: absolute; left: 0; top: 0; height: 100%; width: 0; border-radius: 3px; background: var(--accent); }
+
+      .stem {
+        position: absolute; top: 50%; width: 4px; height: 30px; border-radius: 2px;
+        background: rgba(255, 239, 219, 0.35); transform: translate(-50%, -50%);
+      }
+
+      #playhead { position: absolute; top: 50%; opacity: 0; }
+      #playhead .bar { position: absolute; left: -3px; top: -50px; width: 6px; height: 100px; border-radius: 3px; background: var(--accent); }
+      #playhead .dot { position: absolute; left: -12px; top: -12px; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 6px rgba(251, 146, 60, 0.2); }
+
+      .stamp {
+        position: absolute; top: 50%; transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px; padding: 14px 26px; font-size: 26px; font-weight: 700;
+        white-space: nowrap; text-align: center;
+      }
+
+      .mk { position: relative; display: inline-block; }
+      .mk-sweep { position: absolute; left: -6px; right: -6px; bottom: 0; height: 45%; background: var(--accent); transform: scaleX(0); transform-origin: left; z-index: 0; }
+      .mk-text { position: relative; z-index: 1; }
+
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
-</style>
+    </style>
   </head>
   <body class="register-dark variant-a">
     <div id="root" data-composition-id="timeline-scrub" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"History","beats":[{"label":"Launch","at":0.5}]}'>
+      data-composition-variables='{"title":"History","beats":[{"label":"Founded","at":0.6},{"label":"Seed Round","at":1.8},{"label":"Public Launch","at":3.0},{"label":"1M Users","at":4.2},{"label":"IPO","at":5.2}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div id="card">
           <div class="title" id="title"></div>
-          <div id="text"></div>
+          <div id="rail-wrap">
+            <div id="rail"><div id="rail-fill"></div></div>
+            <div id="playhead"><div class="bar"></div><div class="dot"></div></div>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
-      /* ===== CONTENT ===== */
+      /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
-        ...JSON.parse('{"title":"History","beats":[{"label":"Launch","at":0.5}]}'),
+        ...JSON.parse('{"title":"History","beats":[{"label":"Founded","at":0.6},{"label":"Seed Round","at":1.8},{"label":"Public Launch","at":3.0},{"label":"1M Users","at":4.2},{"label":"IPO","at":5.2}]}'),
         ...VARS,
         register: VARS.register ?? 'dark',
         variant: VARS.variant ?? 'a',
-        marker: VARS.marker ?? false
+        marker: VARS.marker ?? false,
       };
 
       if (DATA.register === 'light') document.body.classList.replace('register-dark', 'register-light');
       if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
 
-      /* ===== TIMELINE ===== */
+      const isB = DATA.variant === 'b';
+
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
       const $ = (id) => document.getElementById(id);
+
+      const titleEl = $('title');
+      (function renderTitle() {
+        const word = typeof DATA.marker === 'string' ? DATA.marker.trim() : '';
+        if (!word) { titleEl.textContent = DATA.title; return; }
+        const re = new RegExp('(' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i');
+        if (!re.test(DATA.title)) { titleEl.textContent = DATA.title; return; }
+        titleEl.innerHTML = DATA.title.replace(re, '<span class="mk"><span class="mk-sweep"></span><span class="mk-text">$1</span></span>');
+      })();
+
+      const beats = DATA.beats;
+      const n = beats.length;
+      const rail = $('rail');
+      const railFill = $('rail-fill');
+      const playhead = $('playhead');
+      gsap.set(playhead, { xPercent: -50 });
+
+      const railW = rail.clientWidth;
+      const xFor = (i) => n === 1 ? railW / 2 : (i / (n - 1)) * railW;
+
+      const stemEls = beats.map((b, i) => {
+        const stem = document.createElement('div');
+        stem.className = 'stem';
+        stem.style.left = xFor(i) + 'px';
+        rail.appendChild(stem);
+        return stem;
+      });
+
+      const stampEls = beats.map((b, i) => {
+        const stamp = document.createElement('div');
+        stamp.className = 'stamp';
+        stamp.textContent = b.label;
+        stamp.style.left = xFor(i) + 'px';
+        stamp.style.top = isB ? '78px' : '-78px';
+        rail.appendChild(stamp);
+        gsap.set(stamp, { opacity: 0 });
+        return stamp;
+      });
+
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      
-      $('title').textContent = DATA.title; tl.from($('title'), {opacity: 0, y:20}, 0.1);
-      
-      if (DATA.marker && $('title') && DATA.title && DATA.marker_word) {
-         // A real implementation would parse marker_word out of title and wrap it in .marker-sweep
-         // For now just stubbing it since it's just a demo renderer
+      const CHROME_IN = 0.1;
+      tl.from(titleEl, { opacity: 0, y: 20, duration: 0.5, ease: 'power3.out' }, CHROME_IN);
+      if (typeof DATA.marker === 'string' && DATA.marker.trim() && document.querySelector('.mk-sweep')) {
+        tl.fromTo('.mk-sweep', { scaleX: 0 }, { scaleX: 1, transformOrigin: 'left', duration: 0.35, ease: 'power2.out' }, 0.9);
       }
+      tl.from(rail, { opacity: 0, y: isB ? -16 : 16, duration: 0.5, ease: 'power3.out' }, CHROME_IN + 0.15);
+
+      const ACCENT = '#fb923c';
+      const DIM = 'rgba(255, 239, 219, 0.35)';
+
+      beats.forEach((b, i) => {
+        const x = xFor(i);
+        if (i === 0) {
+          tl.fromTo(playhead, { x, opacity: 0, scale: 0.6 }, { x, opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(2)' }, b.at);
+        } else {
+          tl.to(playhead, { x, duration: 0.45, ease: 'back.out(2.2)' }, b.at);
+        }
+        tl.to(railFill, { width: x, duration: 0.45, ease: 'power2.out' }, b.at);
+        tl.to(stemEls[i], { backgroundColor: ACCENT, height: 40, duration: 0.25, ease: 'power2.out' }, b.at);
+
+        if (i > 0) {
+          tl.to(stampEls[i - 1], { opacity: 0.35, rotate: isB ? 6 : -6, scale: 0.9, y: isB ? '+=6' : '-=6', borderColor: 'rgba(255,255,255,0.12)', duration: 0.35, ease: 'power2.out' }, b.at);
+        }
+        tl.fromTo(
+          stampEls[i],
+          { opacity: 0, y: isB ? '+=20' : '-=20', rotate: 8, scale: 0.9 },
+          { opacity: 1, y: 0, rotate: 0, scale: 1, borderColor: 'rgba(251,146,60,0.5)', duration: 0.4, ease: 'back.out(1.7)' },
+          b.at + 0.08
+        );
+      });
 
       window.__timelines['timeline-scrub'] = tl;
     </script>

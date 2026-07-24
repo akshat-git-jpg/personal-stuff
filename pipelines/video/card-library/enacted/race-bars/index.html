@@ -1,4 +1,15 @@
 <!doctype html>
+<!--
+  RACE-BARS   (Hyperframes enacted card)
+  Horizontal lanes race to each beat's values; the leading bar recomputes and
+  glows accent each beat; a bar that fails to advance judders and dims (stalled).
+  1920x1080, 30fps, 6 seconds.
+
+  EDITOR: change only the ===== CONTENT ===== defaults and :root colors.
+  Do NOT touch ===== TIMELINE (LOCKED). Or render-time:
+    --variables '{"title":"Benchmark","products":[{"name":"Node"},{"name":"Bun"}],"beats":[{"values":[{"value":"40"},{"value":"55"}],"at":0.6}]}'
+  Render:  npx hyperframes@latest render enacted/race-bars -o out.mp4 --fps 30
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -22,52 +33,171 @@
       #root { position: relative; width: 1920px; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
-      body.variant-b #frame { flex-direction: row-reverse; }
-      .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 56px; }
-      .marker-sweep { position: relative; display: inline-block; }
-      .marker-sweep::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: var(--accent); transform: scaleX(0); transform-origin: left; }
-      .marker-sweep.active::after { transform: scaleX(1); transition: transform 0.4s ease-out; }
-    
+      #card { width: 100%; max-width: 1560px; display: flex; flex-direction: column; align-items: center; }
+
+      .title { font-size: 68px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 60px; }
+
+      .lanes { position: relative; width: 100%; display: flex; flex-direction: column; gap: 26px; }
+      body.variant-b .lanes { flex-direction: column-reverse; }
+
+      .finish {
+        position: absolute; top: -10px; bottom: -10px; right: 0; width: 5px;
+        background: repeating-linear-gradient(180deg, rgba(255,255,255,0.85) 0 12px, transparent 12px 24px);
+      }
+
+      .lane { display: flex; align-items: center; gap: 32px; }
+      .lane .name {
+        width: 240px; flex: 0 0 auto; text-align: right; font-size: 30px; font-weight: 700;
+        color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .lane .track {
+        position: relative; flex: 1 1 auto; height: 62px; border-radius: 18px;
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); overflow: hidden;
+      }
+      .lane .bar {
+        position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+        border-radius: 18px; background: rgba(255,239,219,0.35);
+      }
+      .lane .value {
+        position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+        font-size: 26px; font-weight: 800; color: var(--text); text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+      }
+
+      .mk { position: relative; display: inline-block; }
+      .mk-sweep { position: absolute; left: -8px; right: -8px; bottom: 0; height: 45%; background: var(--accent); transform: scaleX(0); z-index: 0; }
+      .mk-text { position: relative; z-index: 1; }
+
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
-</style>
+    </style>
   </head>
   <body class="register-dark variant-a">
     <div id="root" data-composition-id="race-bars" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"Benchmark","products":[{"name":"Node"}],"beats":[{"values":[{"value":"100"}],"at":0.5}]}'>
+      data-composition-variables='{"title":"Runtime Benchmark","products":[{"name":"Node"},{"name":"Deno"},{"name":"Bun"},{"name":"Go"}],"beats":[{"values":[{"value":"35"},{"value":"30"},{"value":"45"},{"value":"20"}],"at":0.6},{"values":[{"value":"55"},{"value":"30"},{"value":"60"},{"value":"50"}],"at":1.9},{"values":[{"value":"70"},{"value":"30"},{"value":"78"},{"value":"75"}],"at":3.2},{"values":[{"value":"85"},{"value":"31"},{"value":"96"},{"value":"90"}],"at":4.5}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div id="card">
           <div class="title" id="title"></div>
-          <div id="text"></div>
+          <div class="lanes" id="lanes"></div>
         </div>
       </div>
     </div>
 
     <script>
-      /* ===== CONTENT ===== */
+      /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
+      const DEFAULTS = {
+        title: 'Runtime Benchmark',
+        products: [{ name: 'Node' }, { name: 'Deno' }, { name: 'Bun' }, { name: 'Go' }],
+        beats: [
+          { values: [{ value: '35' }, { value: '30' }, { value: '45' }, { value: '20' }], at: 0.6 },
+          { values: [{ value: '55' }, { value: '30' }, { value: '60' }, { value: '50' }], at: 1.9 },
+          { values: [{ value: '70' }, { value: '30' }, { value: '78' }, { value: '75' }], at: 3.2 },
+          { values: [{ value: '85' }, { value: '31' }, { value: '96' }, { value: '90' }], at: 4.5 },
+        ],
+      };
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
-        ...JSON.parse('{"title":"Benchmark","products":[{"name":"Node"}],"beats":[{"values":[{"value":"100"}],"at":0.5}]}'),
-        ...VARS,
+        title: VARS.title ?? DEFAULTS.title,
+        products: (VARS.products ?? DEFAULTS.products).slice(0, 5),
+        beats: VARS.beats ?? DEFAULTS.beats,
         register: VARS.register ?? 'dark',
         variant: VARS.variant ?? 'a',
-        marker: VARS.marker ?? false
+        marker: VARS.marker ?? false,
       };
 
       if (DATA.register === 'light') document.body.classList.replace('register-dark', 'register-light');
       if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
 
-      /* ===== TIMELINE ===== */
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
       const $ = (id) => document.getElementById(id);
+      const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+      const ACCENT = '#fb923c';
+      const DIM = 'rgba(255,239,219,0.35)';
+
+      const title = $('title');
+      title.textContent = DATA.title;
+
+      if (typeof DATA.marker === 'string' && DATA.marker.trim()) {
+        const word = DATA.marker.trim();
+        const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp('(' + escaped + ')', 'i');
+        if (re.test(title.textContent)) {
+          title.innerHTML = title.textContent.replace(
+            re,
+            '<span class="mk"><span class="mk-sweep"></span><span class="mk-text">$1</span></span>'
+          );
+        }
+      }
+
+      const lanesEl = $('lanes');
+      const bars = [];
+      const valueEls = [];
+      DATA.products.forEach((p) => {
+        const lane = document.createElement('div');
+        lane.className = 'lane';
+        lane.innerHTML =
+          '<div class="name"></div>' +
+          '<div class="track"><div class="bar"><span class="value"></span></div></div>';
+        lane.querySelector('.name').textContent = p.name ?? '';
+        lane.querySelector('.value').textContent = '0';
+        lanesEl.appendChild(lane);
+        bars.push(lane.querySelector('.bar'));
+        valueEls.push(lane.querySelector('.value'));
+      });
+      const finish = document.createElement('div');
+      finish.className = 'finish';
+      lanesEl.style.position = 'relative';
+      lanesEl.appendChild(finish);
+
+      const valueAt = (b, pi) => clamp(parseFloat((b.values && b.values[pi] && b.values[pi].value) || '0') || 0, 0, 100);
+
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      
-      $('title').textContent = DATA.title; tl.from($('title'), {opacity: 0, y:20}, 0.1);
-      
-      if (DATA.marker && $('title') && DATA.title && DATA.marker_word) {
-         // A real implementation would parse marker_word out of title and wrap it in .marker-sweep
-         // For now just stubbing it since it's just a demo renderer
+      const CHROME_IN = 0.15;
+      tl.from('.title', { opacity: 0, y: -24, duration: 0.6, ease: 'power3.out' }, CHROME_IN);
+      tl.from('.lanes', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, CHROME_IN + 0.1);
+
+      const prevVal = DATA.products.map(() => 0);
+      DATA.beats.forEach((b, bi) => {
+        // widths + judder/stall per product
+        DATA.products.forEach((p, pi) => {
+          const val = valueAt(b, pi);
+          const barEl = bars[pi];
+          tl.to(barEl, { width: val + '%', duration: 0.55, ease: 'power2.out' }, b.at);
+          // roll the numeric label deterministically off the same tween's own progress
+          const counter = { v: prevVal[pi] };
+          tl.to(counter, {
+            v: val, duration: 0.55, ease: 'power2.out',
+            onUpdate: () => { valueEls[pi].textContent = String(Math.round(counter.v)); },
+          }, b.at);
+          const increased = val > prevVal[pi];
+          if (bi > 0 && !increased) {
+            tl.to(barEl, { x: -6, duration: 0.05, ease: 'power1.inOut' }, b.at)
+              .to(barEl, { x: 6, duration: 0.08, ease: 'power1.inOut' }, b.at + 0.05)
+              .to(barEl, { x: 0, duration: 0.05, ease: 'power1.inOut' }, b.at + 0.13)
+              .to(barEl, { opacity: 0.45, duration: 0.3, ease: 'power2.out' }, b.at + 0.13);
+          } else {
+            tl.set(barEl, { opacity: 1 }, b.at);
+          }
+          prevVal[pi] = val;
+        });
+        // leading bar recompute
+        let leadIdx = -1, leadVal = -1;
+        DATA.products.forEach((p, pi) => {
+          const val = valueAt(b, pi);
+          if (val > leadVal) { leadVal = val; leadIdx = pi; }
+        });
+        DATA.products.forEach((p, pi) => {
+          const isLead = pi === leadIdx;
+          tl.set(bars[pi], {
+            backgroundColor: isLead ? ACCENT : DIM,
+            boxShadow: isLead ? '0 0 24px rgba(251,146,60,0.45)' : 'none',
+          }, b.at + 0.001);
+        });
+      });
+
+      if (title.querySelector('.mk-sweep')) {
+        tl.fromTo('.mk-sweep', { scaleX: 0 }, { scaleX: 1, transformOrigin: 'left', duration: 0.35, ease: 'power2.out' }, 0.9);
       }
 
       window.__timelines['race-bars'] = tl;

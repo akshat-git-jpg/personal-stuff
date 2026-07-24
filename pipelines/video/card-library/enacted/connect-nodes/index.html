@@ -1,4 +1,16 @@
 <!doctype html>
+<!--
+  CONNECT NODES   (Hyperframes enacted card, beat kind)
+  Each beat pops a labeled circular node onto an invisible ellipse and draws an
+  accent edge from the previous node to it. Earlier edges dim to cream as new
+  ones draw — the newest edge is always the single accent element.
+  1920x1080, 30fps, 6 seconds. Enacts: growth of a connected graph/network.
+
+  EDITOR: change only the ===== CONTENT ===== defaults (title, beats[]) and the
+  :root colors. Do NOT touch ===== TIMELINE (LOCKED). Or render-time:
+    --variables '{"title":"Network","beats":[{"label":"Router","at":0.6}, ...]}'
+  Render:  npx hyperframes@latest render enacted/connect-nodes -o out.mp4 --fps 30
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -21,54 +33,143 @@
       html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
       #root { position: relative; width: 1920px; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
-      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
-      body.variant-b #frame { flex-direction: row-reverse; }
-      .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 56px; }
-      .marker-sweep { position: relative; display: inline-block; }
-      .marker-sweep::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: var(--accent); transform: scaleX(0); transform-origin: left; }
-      .marker-sweep.active::after { transform: scaleX(1); transition: transform 0.4s ease-out; }
-    
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 100px 120px 80px; }
+      #card { width: 100%; max-width: 1720px; height: 100%; display: flex; flex-direction: column; }
+
+      .title { font-size: 60px; font-weight: 800; letter-spacing: -1.5px; text-align: center; margin-bottom: 24px; flex: 0 0 auto; }
+
+      #graph { position: relative; flex: 1 1 auto; width: 100%; }
+      #edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+      .node {
+        position: absolute; width: 150px; height: 150px; border-radius: 50%;
+        background: rgba(255, 255, 255, 0.055);
+        border: 2px solid rgba(255, 239, 219, 0.4);
+        display: flex; align-items: center; justify-content: center;
+        text-align: center; padding: 10px; line-height: 1.15; font-weight: 700;
+        color: var(--text);
+      }
+
+      .mk { position: relative; display: inline-block; }
+      .mk-sweep { position: absolute; left: -6px; right: -6px; bottom: 0; height: 45%; background: var(--accent); transform: scaleX(0); transform-origin: left; z-index: 0; }
+      .mk-text { position: relative; z-index: 1; }
+
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
-</style>
+    </style>
   </head>
   <body class="register-dark variant-a">
     <div id="root" data-composition-id="connect-nodes" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"Network","beats":[{"label":"Server","at":0.5}]}'>
+      data-composition-variables='{"title":"Network","beats":[{"label":"Router","at":0.6},{"label":"App Server","at":1.6},{"label":"Database","at":2.6},{"label":"Cache","at":3.6},{"label":"CDN","at":4.6}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div id="card">
           <div class="title" id="title"></div>
-          <div id="text"></div>
+          <div id="graph">
+            <svg id="edges"></svg>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
-      /* ===== CONTENT ===== */
+      /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
-        ...JSON.parse('{"title":"Network","beats":[{"label":"Server","at":0.5}]}'),
+        ...JSON.parse('{"title":"Network","beats":[{"label":"Router","at":0.6},{"label":"App Server","at":1.6},{"label":"Database","at":2.6},{"label":"Cache","at":3.6},{"label":"CDN","at":4.6}]}'),
         ...VARS,
         register: VARS.register ?? 'dark',
         variant: VARS.variant ?? 'a',
-        marker: VARS.marker ?? false
+        marker: VARS.marker ?? false,
       };
 
       if (DATA.register === 'light') document.body.classList.replace('register-dark', 'register-light');
       if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
 
-      /* ===== TIMELINE ===== */
+      const ACCENT = '#fb923c';
+      const DIM = 'rgba(255, 239, 219, 0.4)';
+
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
       const $ = (id) => document.getElementById(id);
+      const NS = 'http://www.w3.org/2000/svg';
+
+      // Title + marker (single word inside the title gets the accent sweep).
+      const titleEl = $('title');
+      (function renderTitle() {
+        const word = typeof DATA.marker === 'string' ? DATA.marker.trim() : '';
+        if (!word) { titleEl.textContent = DATA.title; return; }
+        const re = new RegExp('(' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i');
+        if (!re.test(DATA.title)) { titleEl.textContent = DATA.title; return; }
+        titleEl.innerHTML = DATA.title.replace(re, '<span class="mk"><span class="mk-sweep"></span><span class="mk-text">$1</span></span>');
+      })();
+
+      // Deterministic ellipse layout — index-seeded jitter, no Math.random().
+      function nodePosition(i, n, w, h, mirror) {
+        const cx = w / 2, cy = h / 2;
+        const rx = w * 0.42, ry = h * 0.38;
+        const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
+        const jx = ((i * 37) % 23 - 11) * 1.8;
+        const jy = ((i * 53) % 19 - 9) * 1.6;
+        let x = cx + Math.cos(angle) * rx + jx;
+        let y = cy + Math.sin(angle) * ry + jy;
+        if (mirror) x = 2 * cx - x;
+        return { x, y };
+      }
+
+      const graph = $('graph');
+      const svg = $('edges');
+      const beats = DATA.beats;
+      const n = beats.length;
+
+      // Build nodes.
+      const nodeEls = beats.map((b) => {
+        const el = document.createElement('div');
+        el.className = 'node';
+        const label = String(b.label ?? '');
+        el.style.fontSize = label.length > 20 ? '15px' : label.length > 12 ? '18px' : '22px';
+        el.textContent = label;
+        graph.appendChild(el);
+        gsap.set(el, { xPercent: -50, yPercent: -50, scale: 0, opacity: 0 });
+        return el;
+      });
+
+      const gw = graph.clientWidth, gh = graph.clientHeight;
+      const positions = beats.map((_, i) => nodePosition(i, n, gw, gh, DATA.variant === 'b'));
+      positions.forEach((p, i) => { nodeEls[i].style.left = p.x + 'px'; nodeEls[i].style.top = p.y + 'px'; });
+
+      // Build edges (line i connects node i to node i+1).
+      const edgeEls = [];
+      for (let i = 1; i < n; i++) {
+        const a = positions[i - 1], b = positions[i];
+        const len = Math.hypot(b.x - a.x, b.y - a.y);
+        const line = document.createElementNS(NS, 'line');
+        line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+        line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+        line.setAttribute('stroke-width', '4');
+        line.setAttribute('stroke-linecap', 'round');
+        line.style.stroke = ACCENT;
+        line.style.strokeDasharray = String(len);
+        line.style.strokeDashoffset = String(len);
+        svg.appendChild(line);
+        edgeEls.push({ el: line, len });
+      }
+
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      
-      $('title').textContent = DATA.title; tl.from($('title'), {opacity: 0, y:20}, 0.1);
-      
-      if (DATA.marker && $('title') && DATA.title && DATA.marker_word) {
-         // A real implementation would parse marker_word out of title and wrap it in .marker-sweep
-         // For now just stubbing it since it's just a demo renderer
+      const CHROME_IN = 0.1;
+      tl.from(titleEl, { opacity: 0, y: 20, duration: 0.5, ease: 'power3.out' }, CHROME_IN);
+      if (typeof DATA.marker === 'string' && DATA.marker.trim() && document.querySelector('.mk-sweep')) {
+        tl.fromTo('.mk-sweep', { scaleX: 0 }, { scaleX: 1, transformOrigin: 'left', duration: 0.35, ease: 'power2.out' }, 0.9);
       }
+
+      beats.forEach((b, i) => {
+        tl.fromTo(nodeEls[i], { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: 'back.out(1.8)' }, b.at);
+        if (i > 0) {
+          const edge = edgeEls[i - 1];
+          tl.fromTo(edge.el, { strokeDashoffset: edge.len }, { strokeDashoffset: 0, duration: 0.4, ease: 'power2.out' }, b.at + 0.05);
+          if (i >= 2) tl.to(edgeEls[i - 2].el, { stroke: DIM, duration: 0.3, ease: 'power2.out' }, b.at + 0.05);
+        }
+      });
 
       window.__timelines['connect-nodes'] = tl;
     </script>

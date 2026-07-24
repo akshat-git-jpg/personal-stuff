@@ -1,4 +1,15 @@
 <!doctype html>
+<!--
+  FILL-GAUGE   (Hyperframes enacted card)
+  A vessel fills stepwise; each beat pours the liquid to a new level and slides in
+  a label chip with a connector tick pointing at that exact level.
+  1920x1080, 30fps, 6 seconds.
+
+  EDITOR: change only the ===== CONTENT ===== defaults and :root colors.
+  Do NOT touch ===== TIMELINE (LOCKED). Or render-time:
+    --variables '{"title":"System Load","unit":"%","beats":[{"label":"App","value":"40","at":0.5}]}'
+  Render:  npx hyperframes@latest render enacted/fill-gauge -o out.mp4 --fps 30
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -22,15 +33,68 @@
       #root { position: relative; width: 1920px; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
-      body.variant-b #frame { flex-direction: row-reverse; }
-      .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 56px; }
-      .marker-sweep { position: relative; display: inline-block; }
-      .marker-sweep::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: var(--accent); transform: scaleX(0); transform-origin: left; }
-      .marker-sweep.active::after { transform: scaleX(1); transition: transform 0.4s ease-out; }
-    
+      #card { width: 100%; max-width: 1560px; display: flex; flex-direction: column; align-items: center; }
+
+      .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 64px; }
+
+      .stage { position: relative; display: flex; align-items: flex-start; justify-content: center; gap: 56px; }
+      body.variant-b .stage { flex-direction: row-reverse; }
+
+      .vessel {
+        position: relative; width: 500px; height: 640px; flex: 0 0 auto;
+        border-radius: 48px; overflow: hidden;
+        background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.14);
+        box-shadow: inset 0 0 60px rgba(0,0,0,0.35);
+      }
+      .liquid {
+        position: absolute; left: 6px; right: 6px; bottom: 6px; height: 0%;
+        border-radius: 0 0 42px 42px;
+        background: linear-gradient(180deg, #fdba74 0%, var(--accent) 40%, #c2540f 100%);
+      }
+      /* dark register (default): vessel DRAINS from a full start level downward */
+      body.register-dark .liquid { bottom: auto; top: 6px; border-radius: 42px 42px 0 0; }
+
+      .meniscus {
+        position: absolute; left: 0; right: 0; top: 0; height: 8px;
+        background: rgba(255,255,255,0.65); box-shadow: 0 0 16px rgba(255,255,255,0.45);
+      }
+      body.register-dark .meniscus { top: auto; bottom: 0; }
+      .liquid .shine {
+        position: absolute; left: 14%; top: 0; bottom: 0; width: 16%;
+        background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0));
+        border-radius: 40px;
+      }
+
+      .labels { position: relative; width: 560px; height: 640px; flex: 0 0 auto; }
+      .chip {
+        position: absolute; left: 0; right: 0; transform: translateY(-50%);
+        display: flex; align-items: center; gap: 20px; opacity: 0;
+      }
+      body.variant-b .chip { flex-direction: row-reverse; }
+      .chip .tick { position: relative; width: 96px; height: 2px; flex: 0 0 auto; background: rgba(255,255,255,0.28); }
+      .chip .tick::after {
+        content: ''; position: absolute; top: -4px; right: -5px; width: 10px; height: 10px;
+        border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px rgba(251,146,60,0.7);
+      }
+      body.variant-b .chip .tick::after { right: auto; left: -5px; }
+      .chip .body {
+        background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 18px; padding: 18px 28px; min-width: 260px;
+      }
+      .chip .label {
+        font-size: 21px; font-weight: 700; color: var(--text-dim);
+        text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;
+      }
+      .chip .value { font-size: 42px; font-weight: 800; letter-spacing: -1px; }
+      .chip .value .unit { font-size: 24px; font-weight: 600; color: var(--text-dim); margin-left: 6px; }
+
+      .mk { position: relative; display: inline-block; }
+      .mk-sweep { position: absolute; left: -8px; right: -8px; bottom: 0; height: 45%; background: var(--accent); transform: scaleX(0); z-index: 0; }
+      .mk-text { position: relative; z-index: 1; }
+
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
-</style>
+    </style>
   </head>
   <body class="register-dark variant-a">
     <div id="root" data-composition-id="fill-gauge" data-start="0" data-duration="6" data-width="1920" data-height="1080"
@@ -39,35 +103,114 @@
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div id="card">
           <div class="title" id="title"></div>
-          <div id="text"></div>
+          <div class="stage">
+            <div class="vessel">
+              <div class="liquid" id="liquid">
+                <div class="meniscus"></div>
+                <div class="shine"></div>
+              </div>
+            </div>
+            <div class="labels" id="labels"></div>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
-      /* ===== CONTENT ===== */
+      /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
+      const DEFAULTS = { title: 'System Load', unit: '%', beats: [
+        { label: 'App', value: '40', at: 0.5 },
+        { label: 'DB',  value: '20', at: 1.5 },
+      ] };
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
-        ...JSON.parse('{"title":"System Load","unit":"%","beats":[{"label":"App","value":"40","at":0.5},{"label":"DB","value":"20","at":1.5}]}'),
-        ...VARS,
+        title: VARS.title ?? DEFAULTS.title,
+        unit: VARS.unit ?? DEFAULTS.unit,
+        beats: VARS.beats ?? DEFAULTS.beats,
         register: VARS.register ?? 'dark',
         variant: VARS.variant ?? 'a',
-        marker: VARS.marker ?? false
+        marker: VARS.marker ?? false,
       };
 
       if (DATA.register === 'light') document.body.classList.replace('register-dark', 'register-light');
       if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
+      const isDark = !document.body.classList.contains('register-light');
 
-      /* ===== TIMELINE ===== */
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
       const $ = (id) => document.getElementById(id);
+      const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+      const VESSEL_H = 640;
+      const CHIP_GAP = 96;
+
+      const title = $('title');
+      title.textContent = DATA.title;
+
+      // marker: wrap the matched word from the title in a sweep-highlight span
+      if (typeof DATA.marker === 'string' && DATA.marker.trim()) {
+        const word = DATA.marker.trim();
+        const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp('(' + escaped + ')', 'i');
+        if (re.test(title.textContent)) {
+          title.innerHTML = title.textContent.replace(
+            re,
+            '<span class="mk"><span class="mk-sweep"></span><span class="mk-text">$1</span></span>'
+          );
+        }
+      }
+
+      // surface-from-top (px) for a given value%, depends on fill anchor direction
+      const surfaceY = (val) => isDark ? VESSEL_H * (val / 100) : VESSEL_H * (1 - val / 100);
+
+      const withY = DATA.beats.map((b) => ({ b, val: clamp(parseFloat(b.value) || 0, 0, 100), raw: surfaceY(clamp(parseFloat(b.value) || 0, 0, 100)) }));
+      const order = [...withY].sort((a, c) => a.raw - c.raw);
+      let prevY = -Infinity;
+      order.forEach((item) => {
+        let y = item.raw;
+        if (y - prevY < CHIP_GAP) y = prevY + CHIP_GAP;
+        item.y = y;
+        prevY = y;
+      });
+      // clamp the stack back inside the column bounds
+      const overflow = prevY - (VESSEL_H - 20);
+      if (overflow > 0) order.forEach((item) => { item.y -= overflow; });
+      order.forEach((item) => { item.y = clamp(item.y, 20, VESSEL_H - 20); });
+
+      const chips = DATA.beats.map((b) => {
+        const item = withY.find((w) => w.b === b);
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.style.top = item.y + 'px';
+        chip.innerHTML =
+          '<div class="tick"></div>' +
+          '<div class="body">' +
+            '<div class="label"></div>' +
+            '<div class="value"><span class="num"></span><span class="unit"></span></div>' +
+          '</div>';
+        chip.querySelector('.label').textContent = b.label ?? '';
+        chip.querySelector('.num').textContent = String(Math.round(item.val));
+        chip.querySelector('.unit').textContent = DATA.unit ?? '';
+        $('labels').appendChild(chip);
+        return { b, chip };
+      });
+
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      
-      const title = $('title'); title.textContent = DATA.title; DATA.beats.forEach((b) => { tl.to('.gauge', {height: b.value+'%'}, b.at); }); tl.from(title, {opacity: 0, y:20}, 0.1);
-      
-      if (DATA.marker && $('title') && DATA.title && DATA.marker_word) {
-         // A real implementation would parse marker_word out of title and wrap it in .marker-sweep
-         // For now just stubbing it since it's just a demo renderer
+      const CHROME_IN = 0.15;
+      tl.from('.title', { opacity: 0, y: -24, duration: 0.6, ease: 'power3.out' }, CHROME_IN);
+      tl.from('.vessel', { opacity: 0, scale: 0.94, duration: 0.6, ease: 'power3.out' }, CHROME_IN + 0.05);
+
+      DATA.beats.forEach((b) => {
+        const val = clamp(parseFloat(b.value) || 0, 0, 100);
+        tl.to('#liquid', { height: val + '%', duration: 0.7, ease: 'power2.out' }, b.at);
+      });
+
+      chips.forEach(({ b, chip }) => {
+        const dir = document.body.classList.contains('variant-b') ? -1 : 1;
+        tl.fromTo(chip, { opacity: 0, x: 40 * dir }, { opacity: 1, x: 0, duration: 0.5, ease: 'power2.out' }, b.at + 0.05);
+      });
+
+      if (title.querySelector('.mk-sweep')) {
+        tl.fromTo('.mk-sweep', { scaleX: 0 }, { scaleX: 1, transformOrigin: 'left', duration: 0.35, ease: 'power2.out' }, 0.9);
       }
 
       window.__timelines['fill-gauge'] = tl;

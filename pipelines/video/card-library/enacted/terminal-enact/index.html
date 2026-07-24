@@ -1,10 +1,23 @@
 <!doctype html>
+<!--
+  TERMINAL · ENACT   (Hyperframes enacted card)
+  A macOS-style terminal window slides into frame, a shell prompt TYPES the
+  real command character-by-character with a blinking block caret, then (if
+  provided) prints dim output lines followed by a green "done" status line.
+  The command is rendered verbatim — never pseudo-code. Variant b reverses
+  the window's entrance direction (slides down instead of up).
+  1920x1080, 30fps, 6 seconds.
+
+  EDITOR: change only the ===== CONTENT ===== block (title, command, output)
+  and the :root colors. Do NOT touch ===== TIMELINE (LOCKED) =====.
+  Render:  npx hyperframes@latest render enacted/terminal-enact -o out.mp4 --fps 30
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
       :root {
@@ -13,6 +26,7 @@
         --accent: #fb923c;
         --positive: #34d399; --negative: #fb7185; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
+        --mono: 'JetBrains Mono', monospace;
       }
       body.register-light {
         --bg-from: #2b2416; --bg-to: #0a0805;
@@ -22,52 +36,150 @@
       #root { position: relative; width: 1920px; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
-      body.variant-b #frame { flex-direction: row-reverse; }
-      .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 56px; }
-      .marker-sweep { position: relative; display: inline-block; }
-      .marker-sweep::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: var(--accent); transform: scaleX(0); transform-origin: left; }
-      .marker-sweep.active::after { transform: scaleX(1); transition: transform 0.4s ease-out; }
-    
+
+      .mk { position: relative; display: inline-block; }
+      .mk-sweep { position: absolute; left: -4px; right: -4px; bottom: 0; height: 45%; background: var(--accent); z-index: 0; border-radius: 3px; }
+      .mk-text { position: relative; z-index: 1; }
+
+      #term { position: relative; width: 1480px; height: 700px; border-radius: 16px; overflow: hidden;
+        background: #0d0a07; border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 60px 120px rgba(0,0,0,0.55); }
+
+      #titleBar { position: relative; height: 68px; display: flex; align-items: center; gap: 14px; padding: 0 26px;
+        background: rgba(255,255,255,0.035); border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .dot { width: 16px; height: 16px; border-radius: 50%; flex: 0 0 auto; }
+      .dot.red { background: #ff5f57; }
+      .dot.yellow { background: #ffbd2e; }
+      .dot.green { background: #28c840; }
+      #titleText { flex: 1 1 auto; text-align: center; margin-right: 62px; font-size: 22px; font-weight: 600;
+        color: var(--text-dim); letter-spacing: 0.3px; }
+
+      #pane { position: relative; padding: 48px 52px; height: calc(100% - 68px); font-family: var(--mono); }
+
+      #promptLine { display: flex; align-items: center; font-size: 40px; line-height: 1.2; }
+      #promptSym { color: var(--positive); font-weight: 700; margin-right: 20px; }
+      #cmdWrap { position: relative; display: inline-flex; }
+      .ch { display: inline-block; visibility: hidden; color: var(--text); font-weight: 500; white-space: pre; }
+      #caret { position: absolute; left: 0; top: 2px; width: 20px; height: 46px; background: rgba(255,255,255,0.85);
+        animation: hf-caret-blink 1s step-start infinite; }
+
+      #outputBlock { margin-top: 34px; font-size: 28px; line-height: 1.6; color: var(--text-dim); opacity: 0; }
+      #statusLine { margin-top: 22px; font-size: 30px; font-weight: 700; color: var(--positive); opacity: 0; }
+
+      @keyframes hf-caret-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
-      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
-</style>
+      #term { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+    </style>
   </head>
   <body class="register-dark variant-a">
     <div id="root" data-composition-id="terminal-enact" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"Build Command","command":"npm run build","output":"Build successful"}'>
+      data-composition-variables='{"title":"Build Command","command":"npm run build","output":"✓ Compiled successfully\n  dist/main.js  128 kB"}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
-        <div id="card">
-          <div class="title" id="title"></div>
-          <div id="text"></div>
+        <div id="term">
+          <div id="titleBar">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <div id="titleText"></div>
+          </div>
+          <div id="pane">
+            <div id="promptLine">
+              <span id="promptSym">$</span>
+              <span id="cmdWrap"><span id="caret"></span></span>
+            </div>
+            <div id="outputBlock"></div>
+            <div id="statusLine">✓ Done</div>
+          </div>
         </div>
       </div>
     </div>
 
     <script>
-      /* ===== CONTENT ===== */
+      /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DEFAULTS = {
+        title: 'Build Command',
+        command: 'npm run build',
+        output: '✓ Compiled successfully\n  dist/main.js  128 kB',
+      };
       const DATA = {
-        ...JSON.parse('{"title":"Build Command","command":"npm run build","output":"Build successful"}'),
+        ...DEFAULTS,
         ...VARS,
         register: VARS.register ?? 'dark',
         variant: VARS.variant ?? 'a',
-        marker: VARS.marker ?? false
+        marker: VARS.marker ?? false,
       };
 
       if (DATA.register === 'light') document.body.classList.replace('register-dark', 'register-light');
       if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
 
-      /* ===== TIMELINE ===== */
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
       const $ = (id) => document.getElementById(id);
+
+      // title bar text + marker word wrap (title bar is the only "heading" text this device has)
+      const titleBarText = DATA.title || 'zsh';
+      (function renderTitleBar() {
+        const el = $('titleText');
+        const word = (typeof DATA.marker === 'string' && DATA.marker.trim()) ? DATA.marker.trim() : null;
+        if (word) {
+          const re = new RegExp('(' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i');
+          const parts = titleBarText.split(re);
+          el.innerHTML = parts.map((part) => {
+            if (part.toLowerCase() === word.toLowerCase()) {
+              return `<span class="mk"><span class="mk-sweep"></span><span class="mk-text">${part}</span></span>`;
+            }
+            return part;
+          }).join('');
+        } else {
+          el.textContent = titleBarText;
+        }
+      })();
+
+      // pre-split the command into one span per character (verbatim, never altered)
+      const COMMAND = String(DATA.command);
+      const CHAR_W = 24; // px — fixed monospace advance used for both spans and caret travel
+      const cmdWrap = $('cmdWrap');
+      const caretEl = $('caret');
+      const chars = COMMAND.split('').map((c) => {
+        const span = document.createElement('span');
+        span.className = 'ch';
+        span.style.width = CHAR_W + 'px';
+        span.textContent = c === ' ' ? ' ' : c;
+        cmdWrap.insertBefore(span, caretEl);
+        return span;
+      });
+
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      
-      if (DATA.title) $('title').textContent = DATA.title; tl.from($('title'), {opacity: 0, y:20}, 0.1);
-      
-      if (DATA.marker && $('title') && DATA.title && DATA.marker_word) {
-         // A real implementation would parse marker_word out of title and wrap it in .marker-sweep
-         // For now just stubbing it since it's just a demo renderer
+
+      // window slides into frame — direction flips for variant b
+      const isB = DATA.variant === 'b';
+      const startY = isB ? -80 : 80;
+      tl.fromTo('#term', { y: startY, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }, 0.3);
+
+      // typing: constant chars/sec across the fixed 0.9s -> 3.2s window
+      const TYPE_START = 0.9, TYPE_END = 3.2;
+      const span_ms = chars.length > 0 ? (TYPE_END - TYPE_START) / chars.length : 0;
+      chars.forEach((span, i) => {
+        const at = TYPE_START + i * span_ms;
+        tl.set(span, { visibility: 'visible' }, at);
+        tl.set(caretEl, { x: (i + 1) * CHAR_W }, at);
+      });
+
+      // output + status
+      if (DATA.output) {
+        $('outputBlock').innerHTML = String(DATA.output)
+          .split('\n')
+          .map((line) => `<div>${line}</div>`)
+          .join('');
+        tl.to('#outputBlock', { opacity: 1, duration: 0.5, ease: 'power2.out' }, 3.6);
+        tl.to('#statusLine', { opacity: 1, duration: 0.4, ease: 'power2.out' }, 4.4);
+      }
+
+      if (typeof DATA.marker === 'string' && DATA.marker.trim()) {
+        tl.fromTo('.mk-sweep', { scaleX: 0 }, { scaleX: 1, transformOrigin: 'left', duration: 0.35, ease: 'power2.out' }, 0.9);
       }
 
       window.__timelines['terminal-enact'] = tl;
