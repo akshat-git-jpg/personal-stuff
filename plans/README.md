@@ -687,3 +687,4 @@ No deploys. 137's test_cmd runs in BOTH card-library and visuals-flow-2
 - 136-vf2-concept-doctrine — PR#94 136-vf2-concept-doctrine: v2 concept/through-line pre-pass + doctrine rules + storyboard self-audit — DONE
 - 137-vf2-enacted-cards — PR#95 137-vf2-enacted-cards: enacted-device card family (12 cards) + catalog metadata + bespoke flywheel — DONE
 - 138-vf2-effects-brand-variants — PR#96 138-vf2-effects-brand-variants: v2 effects vocabulary + brand tokens + variant rotation + motif lane — DONE
+- 139-vf2-sound-mix — PR#97 139-vf2-sound-mix: v2 sound + mix stage (semantic SFX, ducked music, -14 LUFS, audio lanes) — DONE
