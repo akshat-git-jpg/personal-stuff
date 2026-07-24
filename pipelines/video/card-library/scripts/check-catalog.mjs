@@ -64,6 +64,20 @@ for (const card of catalog.cards) {
     else if (!card.variants.every(v => typeof v === 'string')) err(`FAIL: ${card.slug}.variants must be array of strings`);
   }
   if (card.continuity !== undefined && typeof card.continuity !== 'boolean') err(`FAIL: ${card.slug}.continuity must be boolean`);
+  if (card.head_zone !== undefined) {
+    const hz = card.head_zone;
+    if (typeof hz !== 'object' || hz === null) {
+      err(`FAIL: ${card.slug}.head_zone must be an object`);
+    } else {
+      if (typeof hz.x !== 'number' || hz.x < 0 || hz.x > 1) err(`FAIL: ${card.slug}.head_zone.x must be number 0-1`);
+      if (typeof hz.y !== 'number' || hz.y < 0 || hz.y > 1) err(`FAIL: ${card.slug}.head_zone.y must be number 0-1`);
+      if (typeof hz.w !== 'number' || hz.w <= 0 || hz.w > 1) err(`FAIL: ${card.slug}.head_zone.w must be number >0 and <=1`);
+      if (typeof hz.h !== 'number' || hz.h <= 0 || hz.h > 1) err(`FAIL: ${card.slug}.head_zone.h must be number >0 and <=1`);
+      if (typeof hz.x === 'number' && typeof hz.w === 'number' && hz.x + hz.w > 1) err(`FAIL: ${card.slug}.head_zone x+w must be <= 1`);
+      if (typeof hz.y === 'number' && typeof hz.h === 'number' && hz.y + hz.h > 1) err(`FAIL: ${card.slug}.head_zone y+h must be <= 1`);
+      if (hz.radius !== undefined && (!Number.isInteger(hz.radius) || hz.radius < 0)) err(`FAIL: ${card.slug}.head_zone.radius must be positive int`);
+    }
+  }
 }
 
 if (failed) process.exit(1);

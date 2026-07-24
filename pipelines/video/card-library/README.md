@@ -130,3 +130,4 @@ The `catalog.json` supports these optional per-card fields for E8 and v2 resolut
 - `anti_intent`: string — one line, when NOT to (the wrong-pick guard the cue pass reads).
 - `variants`: array of strings (e.g. `["a","b"]`) — visual variants selectable via variable `variant` (legacy cards are being retrofitted to support these).
 - `continuity`: boolean — card reserves a bottom-left 220×80px zone where the through-line motif element may persist.
+- `head_zone`: object `{ x, y, w, h, radius? }` (canvas fractions, radius px int) — the card leaves this region visually clear; assemble composites the host into it during `stage` avatar spans.
