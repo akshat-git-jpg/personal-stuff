@@ -173,10 +173,10 @@ test('E4 exclusion-zones', () => {
 
 test('W3 total-count scaling', () => {
   const T_10min = 600;
-  const c3 = Array.from({ length: 3 }, (_, i) => ({ id: `c${i}`, card: 'overlay/plain', start: 20 + i }));
+  const c6 = Array.from({ length: 6 }, (_, i) => ({ id: `c${i}`, card: 'overlay/plain', start: 20 + i }));
   const res_10min = lintCues({
-    cuesFile: createCues(c3),
-    resolved: createResolved(c3),
+    cuesFile: createCues(c6),
+    resolved: createResolved(c6),
     words: createWords(T_10min),
     catalog
   });
@@ -184,8 +184,8 @@ test('W3 total-count scaling', () => {
   
   const T_3min = 180;
   const res_3min = lintCues({
-    cuesFile: createCues(c3),
-    resolved: createResolved(c3),
+    cuesFile: createCues(c6),
+    resolved: createResolved(c6),
     words: createWords(T_3min),
     catalog
   });
@@ -232,7 +232,22 @@ test('W2 overlay-density', () => {
     words: createWords(900),
     catalog
   });
-  assert(res4.warnings.some(w => w.includes('W2 overlay-density')));
+  assert(!res4.warnings.some(w => w.includes('W2 overlay-density')));
+
+  const c5 = [
+    { id: 'c1', card: 'overlay/plain', start: 10 },
+    { id: 'c2', card: 'overlay/plain', start: 20 },
+    { id: 'c3', card: 'overlay/plain', start: 30 },
+    { id: 'c4', card: 'overlay/plain', start: 40 },
+    { id: 'c5', card: 'overlay/plain', start: 50 }
+  ];
+  const res5 = lintCues({
+    cuesFile: createCues(c5),
+    resolved: createResolved(c5),
+    words: createWords(900),
+    catalog
+  });
+  assert(res5.warnings.some(w => w.includes('W2 overlay-density')));
 });
 
 test('W6 and W7 bare-stretch', () => {
@@ -578,4 +593,41 @@ test('W9 variant-rotation warns on back-to-back same-card-same-variant', () => {
   ];
   const res3 = lintCues({ cuesFile: createCues(cues3), resolved: cues3, words, catalog });
   assert(!res3.warnings.some(w => w.includes('W9 variant-rotation')));
+});
+
+test('W10 enacted-first warns on non-enacted legacy fullframe without legacy_why', () => {
+  const cues = [
+    { id: 'c1', card: 'enacted/stack', start: 10 },
+    { id: 'c2', card: 'fullframe/beat', start: 20 },
+    { id: 'c3', card: 'fullframe/beat', start: 30, legacy_why: 'Because it fits' },
+    { id: 'c4', card: 'section/opener', start: 40 }
+  ];
+  const cFile = {
+    cues: cues.map(c => ({
+      id: c.id,
+      card: c.card,
+      legacy_why: c.legacy_why
+    }))
+  };
+  const resolved = cues.map(c => ({
+    id: c.id,
+    card: c.card,
+    start: c.start,
+    duration: 5,
+    placement: c.card === 'section/opener' || c.card.startsWith('fullframe') || c.card.startsWith('enacted') ? 'fullframe' : 'overlay'
+  }));
+
+  const myCatalog = {
+    cards: [
+      { slug: 'enacted/stack', placement: 'fullframe' },
+      { slug: 'fullframe/beat', placement: 'fullframe' },
+      { slug: 'section/opener', placement: 'fullframe', structural: true }
+    ]
+  };
+
+  const res = lintCues({ cuesFile: cFile, resolved, words: createWords(100), catalog: myCatalog });
+  assert(!res.warnings.some(w => w.includes('W10') && w.includes('c1')));
+  assert(res.warnings.some(w => w.includes('W10 enacted-first') && w.includes('c2')));
+  assert(!res.warnings.some(w => w.includes('W10') && w.includes('c3')));
+  assert(!res.warnings.some(w => w.includes('W10') && w.includes('c4')));
 });

@@ -71,16 +71,17 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - overlay/stat-hit: at most 3 per video (lint E2).
 - Consecutive overlay/stat-hit cues must start at least 90s apart (lint E2).
 - No cue may END in the last 20s of the video except the end-card slugs listed below (lint E4 — a HARD ERROR, not a preference).
-- Consecutive fullframe cues must start at least 35s apart, measured START to START across narration time (lint W1).
-- Consecutive fullframe cues must start no more than 60s apart, measured START to START across narration time (lint W1).
-- At most 3 overlay cues may START within any 60s window (lint W2).
-- Total cue count must be at least 1.0 per minute of video (lint W3).
-- Total cue count must be at most 1.9 per minute of video (lint W3). For a 20-minute video that is 20-38 cues in total — budget before you place.
+- Breathing room, not sparsity — fullframe starts at least 12s apart, measured START to START across narration time (lint W1).
+- Consecutive fullframe cues must start no more than 45s apart, measured START to START across narration time (lint W1).
+- At most 4 overlay cues may START within any 60s window (lint W2).
+- Total cue count must be at least 1.5 per minute of video (lint W3).
+- Total cue count must be at most 4.0 per minute of video (lint W3). For a 20-minute video that is 30-80 cues in total — budget before you place.
 - Within demo segments (segments.json), no stretch longer than 50s may pass without a cue START (lint W6).
 - A fullframe card's exposure may auto-extend at most 20s past its computed end to reach the next base event (resolver post-pass).
-- On base:screen videos, a gap to the next base event of at most 4s is absorbed by extending the previous fullframe card; larger gaps intentionally show the screen recording.
+- On base:screen videos, a gap to the next base event of at most 12s is absorbed by extending the previous fullframe card; larger gaps intentionally show the screen recording.
 - Within narration segments (segments.json), no stretch longer than 20s may pass without a cue START (lint W7). Demo segments keep BARE_GAP_MAX.
 - If concept.json exists, at least 2 cues must carry `motif: true` (the through-line must recur) (lint W8).
+- A fullframe cue on a non-structural legacy (non-`enacted/`) card without `legacy_why` warns (lint W10).
 - End-card slugs exempt from the last-20s rule: brand/, link-in-description/, like-subscribe/
 <!-- END GENERATED CONSTRAINTS -->
 <!-- BEGIN GENERATED ROUTING RULES — edit lib/cue-rules.mjs, then run node lib/build-prompt.mjs -->
@@ -91,9 +92,10 @@ Never two overlapping fullframe cues.
 Cold-open beat allowed in the first 15s (this zone stays sparse — W6 does not police it).
 
 Choosing a card — route by what the VO is doing, matching catalog `purpose` lines:
+- FIRST scan the `enacted/` family (and other cards whose `intent` matches) for a device that DOES the clause; only when none fits may a legacy reveal/text card be used, and then the cue must carry `"legacy_why": "<one line>"`.
 - Narration makes a claim, lists items, or states numbers and the screen does not show it → fullframe canvas beat (`slate/headline-chips`, `comparison/table-rows`, section slates). The screen already shows what is spoken → no graphic.
 - Enumerating pros/cons -> pros-cons; ordered list -> checklist or bullet-points; feature-by-feature comparison -> feature-matrix or summary-table; final judgment -> a verdict card; opening a section -> a section/title card; one reinforced claim -> an overlay card.
-If nothing fits, still set `flagged: true` first; the SESSION then authors the bespoke composition under DESIGN.md + the enacted rules and re-runs resolve — bespoke is a deliberate escalation, never the model's first move. Choosing between cards: read each candidate's intent / anti_intent lines; an anti_intent match is a hard veto.
+Bespoke escalation moves earlier: when the audit WOULD call it labelled (apply the mute test yourself while authoring) and no device fits, set `flagged: true` immediately with a `fix`-style note — do not place a filler text card. Choosing between cards: read each candidate's intent / anti_intent lines; an anti_intent match is a hard veto.
 
 Specificity wins (mandatory): big number -> overlay/stat-hit; plan/credit economics too dense to say -> comparison/credits-math; step walkthrough NOT shown on screen -> process/step-flow; who-should-buy-what payoff -> verdict/persona-match.
 

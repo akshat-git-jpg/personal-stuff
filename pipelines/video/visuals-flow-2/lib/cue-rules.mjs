@@ -19,10 +19,11 @@ export const CUE_RULES = {
   },
   R_CHOOSING: {
     rule: 'Choosing a card — route by what the VO is doing, matching catalog `purpose` lines:\n' +
+      '- FIRST scan the `enacted/` family (and other cards whose `intent` matches) for a device that DOES the clause; only when none fits may a legacy reveal/text card be used, and then the cue must carry `"legacy_why": "<one line>"`.\n' +
       '- Narration makes a claim, lists items, or states numbers and the screen does not show it → fullframe canvas beat (`slate/headline-chips`, `comparison/table-rows`, section slates). The screen already shows what is spoken → no graphic.\n' +
       '- Enumerating pros/cons -> pros-cons; ordered list -> checklist or bullet-points; feature-by-feature comparison -> feature-matrix or summary-table; final judgment -> a verdict card; opening a section -> a section/title card; one reinforced claim -> an overlay card.\n' +
-      'If nothing fits, still set `flagged: true` first; the SESSION then authors the bespoke composition under DESIGN.md + the enacted rules and re-runs resolve — bespoke is a deliberate escalation, never the model\'s first move. Choosing between cards: read each candidate\'s intent / anti_intent lines; an anti_intent match is a hard veto.',
-    why: 'unattributed — predates the fold log',
+      'Bespoke escalation moves earlier: when the audit WOULD call it labelled (apply the mute test yourself while authoring) and no device fits, set `flagged: true` immediately with a `fix`-style note — do not place a filler text card. Choosing between cards: read each candidate\'s intent / anti_intent lines; an anti_intent match is a hard veto.',
+    why: 'owner fold 2026-07-24 — test-01 first v2 run produced 18/19 legacy cards and audit ignored them',
   },
   R_SPECIFICITY: {
     rule: 'Specificity wins (mandatory): big number -> overlay/stat-hit; plan/credit economics too dense to say -> comparison/credits-math; step walkthrough NOT shown on screen -> process/step-flow; who-should-buy-what payoff -> verdict/persona-match.',

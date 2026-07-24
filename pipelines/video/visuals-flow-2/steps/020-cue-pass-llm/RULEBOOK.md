@@ -57,7 +57,9 @@ rule, follow the script and note why in the cue's context.
 Route by what the VO is DOING at that moment, using each catalog card's
 `purpose` line to match.
 
-Rule: `R_CHOOSING` in `lib/cue-rules.mjs` — no dated fold; predates this log.
+Rule: `R_CHOOSING` in `lib/cue-rules.mjs`.
+
+Owner fold 2026-07-24 — test-01 first v2 run produced 18/19 legacy cards and audit ignored them.
 
 Rule: `R_RESULT_REVIEW` in `lib/cue-rules.mjs` — no dated fold; predates this
 log. This is the split for judging a result already on screen (a verdict-chip

@@ -352,12 +352,12 @@ test('extendExposure: (c) base screen gap 3s -> absorbed', async () => {
   assert.equal(out[0].duration, 8); // 5 + 3
 });
 
-test('extendExposure: (d) base screen gap 10s -> unchanged', async () => {
+test('extendExposure: (d) base screen gap 15s -> unchanged', async () => {
   const { extendExposure } = await import('./resolve.mjs');
   const resolved = [
     { id: 'c1', placement: 'fullframe', start: 0, duration: 5 },
   ];
-  const out = extendExposure(resolved, { base: 'screen', total: 15 }); // gap 10
+  const out = extendExposure(resolved, { base: 'screen', total: 20 }); // gap 15
   assert.equal(out[0].duration, 5);
 });
 
