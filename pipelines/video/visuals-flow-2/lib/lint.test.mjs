@@ -32,7 +32,10 @@ function createCues(cues) {
       id: c.id,
       card: c.card,
       flagged: c.flagged || false,
-      beats: c.beats || []
+      beats: c.beats || [],
+      register: c.register,
+      register_why: c.register_why,
+      motif: c.motif
     }))
   };
 }
@@ -489,4 +492,63 @@ test('E7 uncovered-second on base:none', () => {
     manifest: { base: 'none' }
   });
   assert(res.errors.some(e => e.includes('E7 uncovered-second') && e.includes('[35.0–65.0]')));
+});
+
+test('E8 concept-register and W8 motif', () => {
+  const conceptData = {
+    registers: [
+      { from_anchor: 'start of span', to_anchor: 'end of span', register: 'dark' }
+    ]
+  };
+  const words = [
+    { start: 10, end: 11, text: 'start' },
+    { start: 11, end: 12, text: 'of' },
+    { start: 12, end: 13, text: 'span' },
+    { start: 50, end: 51, text: 'middle' },
+    { start: 90, end: 91, text: 'end' },
+    { start: 91, end: 92, text: 'of' },
+    { start: 92, end: 93, text: 'span' },
+    { start: 100, end: 101, text: 'after' }
+  ];
+
+  // E8 mismatch fires
+  const cFail = [
+    { id: 'c1', card: 'overlay/plain', start: 20, register: 'light' },
+    { id: 'c2', card: 'overlay/plain', start: 30, register: 'dark', motif: true }
+  ];
+  const resFail = lintCues({
+    cuesFile: createCues(cFail),
+    resolved: createResolved(cFail),
+    words,
+    catalog,
+    conceptData
+  });
+  assert(resFail.errors.some(e => e.includes('E8 concept-register') && e.includes('c1')));
+  // W8 fires at 1 motif cue
+  assert(resFail.warnings.some(w => w.includes('W8 motif')));
+
+  // register_why suppresses E8; 2 motifs suppresses W8
+  const cPass = [
+    { id: 'c1', card: 'overlay/plain', start: 20, register: 'light', register_why: 'because', motif: true },
+    { id: 'c2', card: 'overlay/plain', start: 30, register: 'dark', motif: true }
+  ];
+  const resPass = lintCues({
+    cuesFile: createCues(cPass),
+    resolved: createResolved(cPass),
+    words,
+    catalog,
+    conceptData
+  });
+  assert(!resPass.errors.some(e => e.includes('E8 concept-register')));
+  assert(!resPass.warnings.some(w => w.includes('W8 motif')));
+
+  // missing conceptData -> all quiet
+  const resQuiet = lintCues({
+    cuesFile: createCues(cFail),
+    resolved: createResolved(cFail),
+    words,
+    catalog
+  });
+  assert(!resQuiet.errors.some(e => e.includes('E8 concept-register')));
+  assert(!resQuiet.warnings.some(w => w.includes('W8 motif')));
 });

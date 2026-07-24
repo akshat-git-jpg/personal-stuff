@@ -120,7 +120,8 @@ EOF
   2. node lib/plan-skeleton.mjs $slug           -> {{SKELETON}}
   3. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   4. ../card-library/catalog.json                -> {{CATALOG}}
-Pre-flight: node lib/feedback-status.mjs must exit 0.
+  5. videos/$slug/concept.json                  -> {{CONCEPT}}
+Pre-flight: node lib/feedback-status.mjs and node lib/lint-concept.mjs $slug must exit 0.
 After the cue pass: run.sh $slug resolve
 EOF
     exit 0

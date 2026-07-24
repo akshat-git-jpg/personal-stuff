@@ -3,7 +3,7 @@ import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
-import { extendExposure } from './resolve.mjs';
+import { extendExposure, findPhrase, normWord } from './resolve.mjs';
 
 const CAP_STAT_HIT = CUE_CONSTANTS.CAP_STAT_HIT.value;
 const SPACING_STAT_HIT = CUE_CONSTANTS.SPACING_STAT_HIT.value;
@@ -26,7 +26,7 @@ const NARRATION_BARE_GAP_MAX = CUE_CONSTANTS.NARRATION_BARE_GAP_MAX.value;
 // W5 stays as the regression detector for that clamp, not as a style hint.
 const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
 
-export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, manifest }) {
+export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, manifest, conceptData }) {
   const errors = [];
   const warnings = [];
   
@@ -296,6 +296,50 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
+  // E8 and W8: concept rules
+  if (conceptData) {
+    const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
+    const resolvedSpans = [];
+    let cursor = 0;
+    for (const reg of conceptData.registers || []) {
+      const from = findPhrase(W, reg.from_anchor, cursor);
+      if (from.err) continue;
+      const to = findPhrase(W, reg.to_anchor, from.idx);
+      if (to.err) continue;
+      resolvedSpans.push({
+        register: reg.register,
+        startTime: from.start,
+        // rough end time for containment check; we assume it covers up to 'to'
+        // wait, we can just find 'to' end
+        endTime: to.start + 1.0 
+      });
+      cursor = to.idx + to.len;
+    }
+
+    let motifCount = 0;
+    for (const c of rawCues) {
+      if (c.motif) motifCount++;
+      
+      if (c.register && c.register !== 'dark' && c.register !== 'light') {
+        errors.push(`E8 concept-register: ${c.id} register must be dark or light, got "${c.register}"`);
+      }
+      
+      const res = validResolved.find(r => r.id === c.id);
+      if (res) {
+        // Find if it falls in a register span. Wait, span is [from.start, to.start] or more accurately up to next span.
+        // Let's just find the last span that starts before or at res.start
+        const span = [...resolvedSpans].reverse().find(s => res.start >= s.startTime);
+        if (span && span.register !== c.register && !c.register_why) {
+          errors.push(`E8 concept-register: ${c.id} starts at ${res.start.toFixed(1)}s inside a ${span.register} span, but cue register is ${c.register || 'missing'} (and no register_why given)`);
+        }
+      }
+    }
+    
+    if (motifCount < CUE_CONSTANTS.MOTIF_MIN.value) {
+      warnings.push(`W8 motif: concept.json exists but fewer than 2 cues carry motif: true (the through-line never recurs) (min ${CUE_CONSTANTS.MOTIF_MIN.value})`);
+    }
+  }
+
   return { errors, warnings };
 }
 
@@ -324,6 +368,12 @@ async function main() {
     segmentsData = JSON.parse(fs.readFileSync(segmentsPath, 'utf8'));
   }
   
+  const conceptPath = path.join(workdir, 'concept.json');
+  let conceptData = null;
+  if (fs.existsSync(conceptPath)) {
+    conceptData = JSON.parse(fs.readFileSync(conceptPath, 'utf8'));
+  }
+  
   const manifest = loadVideoManifest(workdir);
 
   const { errors, warnings } = lintCues({
@@ -332,7 +382,8 @@ async function main() {
     words,
     catalog,
     segmentsData,
-    manifest
+    manifest,
+    conceptData
   });
 
   for (const w of warnings) {

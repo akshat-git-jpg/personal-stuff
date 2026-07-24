@@ -53,6 +53,14 @@ optionally `variables.accent` (a phrase verbatim inside `text`):
 }
 ```
 
+## Whole-video concept
+
+{{CONCEPT}}
+
+- Every cue must serve the thesis (drop decorative cues).
+- The through-line motif should recur — when a cue hosts the motif, say so in a new optional cue field `"motif": true`.
+- Each cue carries `"register": "dark" | "light"` matching the register span its anchor falls in (deviate only with a one-line reason in a new optional `"register_why"`).
+
 ## Rules
 
 <!-- BEGIN GENERATED CONSTRAINTS — edit lib/cue-constants.mjs, then run node lib/build-prompt.mjs -->
@@ -72,6 +80,7 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - A fullframe card's exposure may auto-extend at most 20s past its computed end to reach the next base event (resolver post-pass).
 - On base:screen videos, a gap to the next base event of at most 4s is absorbed by extending the previous fullframe card; larger gaps intentionally show the screen recording.
 - Within narration segments (segments.json), no stretch longer than 20s may pass without a cue START (lint W7). Demo segments keep BARE_GAP_MAX.
+- If concept.json exists, at least 2 cues must carry `motif: true` (the through-line must recur) (lint W8).
 - End-card slugs exempt from the last-20s rule: brand/, link-in-description/, like-subscribe/
 <!-- END GENERATED CONSTRAINTS -->
 <!-- BEGIN GENERATED ROUTING RULES — edit lib/cue-rules.mjs, then run node lib/build-prompt.mjs -->
@@ -146,6 +155,7 @@ consecutive cues of the same card, or keep only the strongest points. Reveal
 too long? Summarize harder.
 
 Variables: fill every non-beat variable the card lists; sentence-case text.
+- Marker rule: cards whose catalog entry declares `marker` support take at most ONE `variables.marker` word, verbatim from the clause.
 Product names: the transcript is ASR output and often GARBLES brand names — all
 on-screen text (variables, reveal text) must use the correct official spelling;
 only anchors stay transcript-verbatim, garbles and all.

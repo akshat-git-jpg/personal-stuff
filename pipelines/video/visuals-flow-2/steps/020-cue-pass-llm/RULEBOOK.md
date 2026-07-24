@@ -315,3 +315,10 @@ A reviewer scores a cues.json against these 10 checks; all 10 must pass (note: c
 8. Every reveal `text` is 2–6 words.
 9. No cue anchors into the first 15s or the last 20s of the video.
 10. Every flagged cue carries a `note` explaining what's missing.
+
+## 2026-07-24 doctrine port (spec delta A)
+
+- **Enact, don't label**: A graphic must DO the argument, not just label what the VO says. If the VO says "it's fast", the graphic should show the speed (e.g. a race track motif), not a chip that says "Fast".
+- **One argument per video**: Every cue must serve the video's core thesis. Decorative cues that just echo facts without advancing the argument dilute the impact.
+- **Registers**: Videos swing between problem (dark) and solution (light) registers. Graphics must match the register span they land in to reinforce the tension, unless they carry a specific reason to deviate.
+- **Single marker word**: Marker-supporting cards get exactly ONE word to highlight. This forces you to pick the verb or noun that matters, rather than highlighting whole clauses.
