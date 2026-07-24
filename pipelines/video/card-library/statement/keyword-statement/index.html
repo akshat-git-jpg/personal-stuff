@@ -121,9 +121,19 @@
       
       const dir = DATA.variant === 'b' ? -118 : 118;
       tl.fromTo('#line .word', { yPercent: dir }, { yPercent: 0, duration: 0.7, ease: 'expo.out', stagger: 0.06 }, 0.2);
-      
+
       if (kwStartIndex !== -1) {
         tl.fromTo('.kw-bg', { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: 'power3.out' }, 0.2 + (kwStartIndex * 0.06) + 0.35);
+      }
+
+      // Post-settle life: the sentence keeps breathing for however long the
+      // resolver holds the card (deterministic, finite repeats cover ~30s) —
+      // a statement frozen mid-audio reads as an editing gap (owner, 2026-07-24).
+      const SETTLED = 2.0;
+      tl.to('#line .mask', { y: -4, duration: 1.6, ease: 'sine.inOut', yoyo: true, repeat: 17, stagger: { each: 0.12 } }, SETTLED);
+      tl.to('#glow', { opacity: 0.55, duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: 11 }, 1.2);
+      if (kwStartIndex !== -1) {
+        tl.to('.kw-bg', { opacity: 0.6, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: 15 }, SETTLED + 0.4);
       }
 
       window.__timelines['statement'] = tl;

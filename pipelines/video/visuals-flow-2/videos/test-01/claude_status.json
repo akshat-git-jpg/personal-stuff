@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-24T14:42:04.669Z",
+  "updated": "2026-07-24T16:22:00.921Z",
   "items": {
     "final-v1:0": {
       "status": "fixed",
@@ -68,6 +68,18 @@
     "final-v1:16": {
       "status": "fixed",
       "message": "label-plate template deleted; UI-pointing moments now use arrow-label with real coordinates (see 3:04 in v2)"
+    },
+    "final-v2:0": {
+      "status": "fixed",
+      "message": "v3: title is now Top 5 AI Video Tools Comparison. Permanent rule + machine gate: headings must read as real headings, no comma constructions (R_COPY)"
+    },
+    "final-v2:1": {
+      "status": "fixed",
+      "message": "v3: all em dashes stripped from on-card copy. New lint ERROR E10 blocks any em/en dash in rendered text forever"
+    },
+    "final-v2:2": {
+      "status": "fixed",
+      "message": "v3: keyword-statement now keeps living after the reveal (staggered word float + glow pulse + keyword pulse, covers ~30s holds). Same treatment pattern available for other statement cards"
     }
   }
 }

@@ -525,6 +525,21 @@ test('E9 overlay-over-graphic: overlay clipping the fullframe edge errors too', 
   assert(res.errors.some(e => e.includes('E9 overlay-over-graphic') && e.includes('c1')));
 });
 
+test('E10 no-dash-copy: em dash in rendered copy errors, metadata exempt', () => {
+  const c = [{ id: 'c1', card: 'overlay/plain', start: 40, duration: 5 }];
+  const cuesFile = createCues(c);
+  cuesFile.cues[0].variables = { text: 'Newest — audio' };
+  cuesFile.cues[0].legacy_why = 'metadata — never rendered';
+  const res = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+  const e10 = res.errors.filter(e => e.includes('E10 no-dash-copy'));
+  assert.equal(e10.length, 1);
+  assert(e10[0].includes('c1 variables.text'));
+
+  cuesFile.cues[0].variables = { text: 'Newest: audio' };
+  const clean = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+  assert(!clean.errors.some(e => e.includes('E10')));
+});
+
 test('E7 uncovered-second on base:none', () => {
   const c = [
     { id: 'c1', card: 'fullframe/beat', start: 10, duration: 5 },

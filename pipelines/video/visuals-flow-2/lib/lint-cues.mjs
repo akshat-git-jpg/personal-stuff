@@ -252,6 +252,26 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
+  // E10 no-dash-copy (owner rule 2026-07-24, test-01 v2 Final Cut :1): em/en
+  // dashes in RENDERED copy read as machine-written text. Scans variables and
+  // beat reveals only — cue metadata (legacy_why, register_why) never renders.
+  {
+    const dashRe = /[—–]/;
+    const scan = (val, where) => {
+      if (typeof val === 'string' && dashRe.test(val)) {
+        errors.push(`E10 no-dash-copy: ${where} contains an em/en dash ("${val}") — use ":", "·", or plain words`);
+      } else if (Array.isArray(val)) {
+        val.forEach((v, i) => scan(v, `${where}[${i}]`));
+      } else if (val && typeof val === 'object') {
+        for (const [k, v] of Object.entries(val)) scan(v, `${where}.${k}`);
+      }
+    };
+    for (const c of rawCues) {
+      scan(c.variables ?? {}, `${c.id} variables`);
+      (c.beats ?? []).forEach((b, i) => scan(b.reveal ?? {}, `${c.id} beat ${i + 1}`));
+    }
+  }
+
   // W5 first-beat-idle: a beat card whose first reveal lands long after the
   // card appears shows an empty scaffold — anchor the cue closer to beat 1.
   for (const r of sortedResolved) {

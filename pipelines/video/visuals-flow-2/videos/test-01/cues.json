@@ -12,7 +12,7 @@
       "register": "dark",
       "motif": true,
       "variables": {
-        "title": "5 AI Video Tools, Compared",
+        "title": "Top 5 AI Video Tools Comparison",
         "platforms": [
           {
             "name": "OpenArt",
@@ -78,7 +78,7 @@
       "register": "light",
       "register_why": "pivot clause — enacts the video's answer (best for you), not the problem",
       "variables": {
-        "text": "Not one winner — which one is best for you",
+        "text": "Not one winner. Which one is best for you",
         "keyword": "for you"
       },
       "beats": [],
@@ -302,13 +302,13 @@
       "beats": [
         {
           "reveal": {
-            "label": "Cinema Studio — 70+ presets"
+            "label": "Cinema Studio: 70+ presets"
           },
           "anchor": "Cinema Studio with over"
         },
         {
           "reveal": {
-            "label": "SoulID — character consistency"
+            "label": "SoulID: character consistency"
           },
           "anchor": "system called SoulID"
         },
@@ -366,7 +366,7 @@
       "register": "light",
       "variables": {
         "name": "OpenArt",
-        "subtitle": "Live demo — text-to-video"
+        "subtitle": "Live demo: text-to-video"
       },
       "beats": [],
       "flagged": false
@@ -429,7 +429,7 @@
       "register": "light",
       "variables": {
         "kicker": "Seedance",
-        "text": "Newest — audio + multi-shot",
+        "text": "Newest: audio + multi-shot",
         "pos": "top-right"
       },
       "beats": [],

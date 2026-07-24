@@ -9,7 +9,7 @@
       "start": 0.1,
       "duration": 10,
       "variables": {
-        "title": "5 AI Video Tools, Compared",
+        "title": "Top 5 AI Video Tools Comparison",
         "platforms": [
           {
             "name": "OpenArt",
@@ -69,7 +69,7 @@
       "start": 32.6,
       "duration": 16.31,
       "variables": {
-        "text": "Not one winner — which one is best for you",
+        "text": "Not one winner. Which one is best for you",
         "keyword": "for you",
         "register": "light",
         "variant": "a"
@@ -260,11 +260,11 @@
         "title": "The Higgsfield stack",
         "beats": [
           {
-            "label": "Cinema Studio — 70+ presets",
+            "label": "Cinema Studio: 70+ presets",
             "at": 0.6
           },
           {
-            "label": "SoulID — character consistency",
+            "label": "SoulID: character consistency",
             "at": 4.71
           },
           {
@@ -316,7 +316,7 @@
       "duration": 5,
       "variables": {
         "name": "OpenArt",
-        "subtitle": "Live demo — text-to-video",
+        "subtitle": "Live demo: text-to-video",
         "register": "light"
       }
     },
@@ -412,7 +412,7 @@
       "duration": 5,
       "variables": {
         "kicker": "Seedance",
-        "text": "Newest — audio + multi-shot",
+        "text": "Newest: audio + multi-shot",
         "pos": "top-right",
         "register": "light",
         "variant": "b"

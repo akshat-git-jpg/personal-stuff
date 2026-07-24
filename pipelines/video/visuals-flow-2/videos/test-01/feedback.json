@@ -88,6 +88,74 @@
       "text": "remove this motion graphic template",
       "t": 185.556454,
       "context": "final@03:05"
+    },
+    "final-v2:0": {
+      "text": "Same feedback i gave earlier. Please make it consistent. THis does not look good for title/header of a motion graphic. - 5 AI video tools, compared.  Heading should have been Top 5 AI Video Tools Comparison, Not such comma separation, look weird, doesn;t look like heading. Please have a long term learning",
+      "t": 1.000834,
+      "context": "final@00:01"
+    },
+    "final-v2:1": {
+      "text": "For Text, never user em dashes, THis indicates AI text.",
+      "t": 37.514167,
+      "context": "final@00:37"
+    },
+    "final-v2:2": {
+      "text": "This motion graphic is static for too long. Anyhting smart we can do to improve this and similar other templates",
+      "t": 43.031024,
+      "context": "final@00:43"
+    },
+    "final-v2:3": {
+      "text": "Workflow and Pricing not syncing with voice. Why this happened, pls tell long term fix.",
+      "t": 56.896722,
+      "context": "final@00:56"
+    },
+    "final-v2:4": {
+      "text": "For this template i want all to be left aligned in center.. Basically all logos should be in 1 line. Make the generic template change",
+      "t": 56.896722,
+      "context": "final@00:56"
+    },
+    "final-v2:5": {
+      "text": "Why green screen ? Is the template wrong?",
+      "t": 85.695416,
+      "context": "final@01:25"
+    },
+    "final-v2:6": {
+      "text": "Please have this screen left aligned only like other screens of same template. Don't switch",
+      "t": 120.56842,
+      "context": "final@02:00"
+    },
+    "final-v2:7": {
+      "text": "Please remove this template only. I am not liking this at all. No need to have this or alternative",
+      "t": 135.439933,
+      "context": "final@02:15",
+      "image": "feedback-images/final-v2-7.png"
+    },
+    "final-v2:8": {
+      "text": "Remove stack template, THis looks very bad",
+      "t": 151.350974,
+      "context": "final@02:31"
+    },
+    "final-v2:9": {
+      "text": "All the subtitles are way out of place. Spelling mistake, random words highlighted, etc. Please make a long term fix",
+      "t": 199.527189,
+      "context": "final@03:19"
+    },
+    "final-v2:10": {
+      "text": "Remove this template. Not Needed",
+      "t": 203.994763,
+      "context": "final@03:23",
+      "image": "feedback-images/final-v2-10.png"
+    },
+    "final-v2:11": {
+      "text": "What is the criteria to decide when to show this text motion graphics. Because this was not at all a appropriate time",
+      "t": 219.987404,
+      "context": "final@03:39"
+    },
+    "final-v2:12": {
+      "text": "remove this template",
+      "t": 254.833888,
+      "context": "final@04:14",
+      "image": "feedback-images/final-v2-12.png"
     }
   },
   "updated": "2026-07-24"
