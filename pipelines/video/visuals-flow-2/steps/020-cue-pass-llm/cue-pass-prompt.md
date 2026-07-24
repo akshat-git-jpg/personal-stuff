@@ -68,7 +68,10 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - At most 3 overlay cues may START within any 60s window (lint W2).
 - Total cue count must be at least 1.0 per minute of video (lint W3).
 - Total cue count must be at most 1.9 per minute of video (lint W3). For a 20-minute video that is 20-38 cues in total — budget before you place.
-- No interior narration stretch may run longer than 50s with no graphic of any kind (lint W6).
+- Within demo segments (segments.json), no stretch longer than 50s may pass without a cue START (lint W6).
+- A fullframe card's exposure may auto-extend at most 20s past its computed end to reach the next base event (resolver post-pass).
+- On base:screen videos, a gap to the next base event of at most 4s is absorbed by extending the previous fullframe card; larger gaps intentionally show the screen recording.
+- Within narration segments (segments.json), no stretch longer than 20s may pass without a cue START (lint W7). Demo segments keep BARE_GAP_MAX.
 - End-card slugs exempt from the last-20s rule: brand/, link-in-description/, like-subscribe/
 <!-- END GENERATED CONSTRAINTS -->
 <!-- BEGIN GENERATED ROUTING RULES — edit lib/cue-rules.mjs, then run node lib/build-prompt.mjs -->
