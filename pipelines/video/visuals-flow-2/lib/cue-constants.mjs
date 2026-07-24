@@ -18,6 +18,7 @@ export const CUE_CONSTANTS = {
   HOLD_EXTEND_CAP:        { value: 20,   rule: 'A fullframe card\'s exposure may auto-extend at most 20s past its computed end to reach the next base event (resolver post-pass).' },
   GAP_ABSORB:             { value: 4,    rule: 'On base:screen videos, a gap to the next base event of at most 4s is absorbed by extending the previous fullframe card; larger gaps intentionally show the screen recording.' },
   NARRATION_BARE_GAP_MAX: { value: 20,   rule: 'Within narration segments (segments.json), no stretch longer than 20s may pass without a cue START (lint W7). Demo segments keep BARE_GAP_MAX.' },
+  MOTIF_MIN:              { value: 2,    rule: 'If concept.json exists, at least 2 cues must carry `motif: true` (the through-line must recur) (lint W8).' },
 };
 
 export const ENDCARD_SLUG_PREFIXES = ['brand/', 'link-in-description/', 'like-subscribe/'];

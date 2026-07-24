@@ -13,8 +13,10 @@ Usage: run.sh <slug> <step>
 Steps:
   status
   transcribe
+  concept-pass
   cue-pass
   resolve
+  audit
   board
   render
   fold
@@ -101,6 +103,17 @@ case "$step" in
     bash steps/010-transcribe-run/run.sh "$slug"
     ;;
 
+  concept-pass)
+    cat <<EOF
+018 is an LLM step, not a command. Assemble the prompt:
+  1. steps/018-concept-pass-llm/concept-pass-prompt.md   (the prompt; fill its placeholders)
+  2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
+  3. cat videos/$slug/segments.json             -> {{SEGMENTS}}
+After the concept pass: node lib/lint-concept.mjs $slug
+EOF
+    exit 0
+    ;;
+
   cue-pass)
     cat <<EOF
 020 is an LLM step, not a command. Assemble the prompt:
@@ -108,7 +121,8 @@ case "$step" in
   2. node lib/plan-skeleton.mjs $slug           -> {{SKELETON}}
   3. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   4. ../card-library/catalog.json                -> {{CATALOG}}
-Pre-flight: node lib/feedback-status.mjs must exit 0.
+  5. videos/$slug/concept.json                  -> {{CONCEPT}}
+Pre-flight: node lib/feedback-status.mjs and node lib/lint-concept.mjs $slug must exit 0.
 After the cue pass: run.sh $slug resolve
 EOF
     exit 0
@@ -116,6 +130,18 @@ EOF
 
   resolve)
     node lib/resolve.mjs "$slug" && node lib/lint-cues.mjs "$slug"
+    ;;
+
+  audit)
+    cat <<EOF
+035 is an LLM step, not a command. Assemble the prompt:
+  1. steps/035-cue-audit-llm/audit-prompt.md     (the prompt; fill its placeholders)
+  2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
+  3. cat videos/$slug/resolved.json             -> {{CUES}}
+  4. node -e "const c=require('../card-library/catalog.json'); c.cards.forEach(card => console.log(card.slug + ': ' + card.purpose));" -> {{CATALOG_PURPOSES}}
+After the audit pass: run.sh $slug board
+EOF
+    exit 0
     ;;
 
   board)
