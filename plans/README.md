@@ -653,3 +653,32 @@ d1/r2/secrets/deploy) — documented in each plan.
 - 130-tp3-state-machine-polish-gate — PR#88 130-tp3-state-machine-polish-gate: tutorial-pipeline-3 section state machine + polish/lint gate — DONE
 - 132-tutorial-vo-worker-ui — PR#90 132-tutorial-vo-worker-ui: tutorial-vo — the tutorial maker's self-serve TTS Worker UI (v1) — DONE
 - 133-tp3-intake-qc-handoff — PR#91 133-tp3-intake-qc-handoff: tutorial-pipeline-3 intake QC + handoff to visuals-flow — DONE
+
+### visuals-flow-2 — Loop-Studio-informed v2 build (2026-07-24)
+
+Implements `docs/specs/2026-07-24-visuals-flow-v2-design.md` (decisions.md
+2026-07-24: new folder, template-first + bespoke flywheel, layered FCPXML
+deliverable, longform-only). Executor: agy for all eight (owner call,
+2026-07-24 — overrides the rules.md prompt-content→claude-p default).
+No deploys. 137's test_cmd runs in BOTH card-library and visuals-flow-2
+(the 2026-07-21 every-directory lesson).
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 134 | vf2-scaffold | Copy v1 spine to pipelines/video/visuals-flow-2, empty videos/, kb-scratch retarget, gate green | — |
+| 135 | vf2-coverage-density-headmodes | video.json manifest, hold-until-next + freeze gap-filler (orange-screen fix), E7/W7 lints, shots mode full/panel | 134 |
+| 136 | vf2-concept-doctrine | 018 concept pass (concept.json + lint), register/motif cue fields + E8/W8, 035 mute-test audit | 134 |
+| 137 | vf2-enacted-cards | 12 enacted cards + label-plate, catalog metadata (register/marker/intent/anti_intent/variants), bespoke cues + promote script | 134, 136 |
+| 138 | vf2-effects-brand-variants | register transitions, brand.json injection, variant rotation + W9, motif lane, captions default-on | 135, 136, 137 |
+| 139 | vf2-sound-mix | synthesized SFX kit, semantic sfx-plan → sound.json, ducked-music mix → master.wav −14 LUFS, FCPXML audio lanes | 135 |
+| 140 | vf2-board-two-tabs | Storyboard play-through + audit/sound/brand preview; Final Cut tab (versions, pinned comments, live check-off, Gates A/B) | 136, 138, 139 |
+| 141 | vf2-docs-registration | v2 PIPELINE/README, visuals-flow-2 skill + symlink, pipelines/CLAUDE.md row, v1 fallback banner | 134–140 |
+
+- 134-vf2-scaffold — copy spine, retarget kb-scratch, prove check.sh in place — TODO
+- 135-vf2-coverage-density-headmodes — extendExposure + freeze filler + narration density + panel mode — TODO
+- 136-vf2-concept-doctrine — concept pre-pass, doctrine lints, storyboard self-audit — TODO
+- 137-vf2-enacted-cards — enacted family + catalog metadata + bespoke flywheel — TODO
+- 138-vf2-effects-brand-variants — effects vocabulary, brand tokens, variant rotation, motif lane — TODO
+- 139-vf2-sound-mix — SFX planner, mix/master, audio lanes — TODO
+- 140-vf2-board-two-tabs — two-tab review dashboard — TODO
+- 141-vf2-docs-registration — docs + skill + map rows — TODO
