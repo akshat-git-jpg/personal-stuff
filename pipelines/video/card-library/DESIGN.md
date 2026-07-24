@@ -59,6 +59,16 @@ deliberate reason.
   (beat cards) — never all at once.
 - No infinite loops, no randomness, no `Date.now()` — renders must be deterministic.
 
+## Ambient motion — never dead on screen
+
+Every fullframe card must keep subtle continuous motion for its ENTIRE duration after the last reveal; overlay cards for their whole visible life. Approved treatments (pick per card, stay subtle):
+- **breathe**: scale 1.000→1.012 on the main group, 6s, ease sine, alternate;
+- **bg-drift**: the radial gradient origin drifts ±2% position, 12s loop;
+- **accent-pulse**: the single accent element's glow/opacity 0.85→1.0, 4s;
+- **float**: hero element translateY ±4px, 7s.
+
+Rules: motion must be seek-deterministic (pure function of t — CSS animations/GSAP timelines are; `Math.random()`/rAF-accumulators are not); never louder than the entrance; never on body text. Marker: the implementing style/timeline block carries the comment `/* hf-ambient */` exactly once per card (machine-checkable).
+
 ## New-card checklist
 
 1. `:root` uses the palette tokens above; Inter loaded.

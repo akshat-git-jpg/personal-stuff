@@ -32,7 +32,10 @@
       #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 180px; }
       #sentence { font-size: 64px; font-weight: 800; line-height: 1.25; letter-spacing: -1.5px; max-width: 1560px; text-align: center; }
       .word { display: inline-block; white-space: pre-wrap; will-change: opacity, color; }
-    </style>
+    
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+</style>
   </head>
   <body>
     <div id="root" data-composition-id="kineticsentence" data-start="0" data-duration="6" data-width="1920" data-height="1080"

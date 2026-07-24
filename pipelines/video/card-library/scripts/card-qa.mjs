@@ -93,6 +93,17 @@ const cards = targetCardSlug
   ? catalog.cards.filter(c => c.slug === targetCardSlug)
   : catalog.cards;
 
+const AMBIENT_REQUIRED = [
+  'enacted/before-after', 'enacted/connect-nodes', 'enacted/counter-tally',
+  'enacted/fill-gauge', 'enacted/pipeline-flow', 'enacted/price-meter',
+  'enacted/race-bars', 'enacted/spotlight-focus', 'enacted/stack-builder',
+  'enacted/terminal-enact', 'enacted/timeline-scrub', 'enacted/verdict-scale',
+  'overlay/label-plate',
+  'overlay/stat-hit', 'overlay/callout', 'overlay/lower-third', 'overlay/tip-banner',
+  'section/bullet-points-highlighted', 'section/tool-intro', 'slate/kinetic-sentence',
+  'statement/keyword-statement', 'title/title-aurora-wave', 'checklist/icon-pills'
+];
+
 for (const card of cards) {
   const minVars = generateVariables(card, 'min');
   const maxVars = generateVariables(card, 'max');
@@ -101,6 +112,11 @@ for (const card of cards) {
   const indexPath = path.join(cardPath, 'index.html');
   const originalHtml = fs.readFileSync(indexPath, 'utf8');
   
+  if (AMBIENT_REQUIRED.includes(card.slug) && !originalHtml.includes('/* hf-ambient */')) {
+    console.error(`FAIL: ${card.slug} missing /* hf-ambient */ marker`);
+    process.exit(1);
+  }
+
   const runVariant = (variant, vars) => {
     const newHtml = originalHtml.replace(
       /data-composition-variables='[^']*'/, 
