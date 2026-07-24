@@ -349,6 +349,16 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
+  // W10 enacted-first
+  for (const c of rawCues) {
+    const cat = bySlug[c.card];
+    if (cat && cat.placement === 'fullframe' && !cat.structural) {
+      if (!c.card.startsWith('enacted/') && !c.legacy_why) {
+        warnings.push(`W10 enacted-first: ${c.id} uses legacy card ${c.card} without legacy_why — prefer the enacted/ family`);
+      }
+    }
+  }
+
   return { errors, warnings };
 }
 

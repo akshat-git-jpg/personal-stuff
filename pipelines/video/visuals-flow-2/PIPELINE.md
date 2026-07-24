@@ -20,7 +20,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `020-cue-pass-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json` (bespoke escalation rule) |
 | `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9) |
 | `035-cue-audit` | [LLM] | `resolved.json` → `audit.json` (mute test) |
-| `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board: two tabs; Final Cut reviews assembled versions; Gates A/B) |
+| `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board; audit-gate blocks labelled fullframes; Final Cut reviews assembled versions) |
 | `050-render-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` (brand-inline; bespoke staging; variant rotation) |
 | `070-shot-pass-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel) |
 | `080-avatar-render-run` | [OWNER live HeyGen] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
@@ -160,6 +160,7 @@ Field semantics:
 - `placement` comes from catalog.json, not from the cue.
 - `register` (optional) — `dark` or `light` matching the register span its anchor falls in.
 - `register_why` (optional) — one-line reason if deviating from the span's register.
+- `legacy_why` (optional) — one-line reason if falling back to a legacy text/reveal card instead of the enacted family.
 - `motif` (optional) — boolean, true if the cue hosts the through-line motif.
 - `flagged: true` — no card fits, needs a novel card (plan 065 surfaces these).
 - `bespoke` (optional) — string, required if `card: "bespoke"`. Sets the composition dirname (`videos/<slug>/bespoke/<dirname>`). When `card: "bespoke"`, `placement` ("fullframe"|"overlay") is also required in the cue, and beats resolve as normal (the composition reads `beats[].at`).
@@ -176,6 +177,29 @@ Field semantics:
   manifest timecodes by hand — the clips themselves don't change).
 
 Single-card cues (`kind: "single"`) have `beats: []` and use catalog `default_duration`.
+
+## audit.json schema
+
+This is the mute-test audit output produced by 035-cue-audit.
+
+```json
+{
+  "video": "<slug>",
+  "items": [
+    {
+      "id": "c01",
+      "verdict": "labelled",
+      "fix": { "card": "<catalog-slug>|bespoke", "how": "<one sentence>" },
+      "accepted": true
+    }
+  ]
+}
+```
+
+Field semantics:
+- `verdict` — either `enacted` or `labelled`.
+- `fix` — object describing the enactment to author (only for `labelled` cues).
+- `accepted` (optional boolean) — the owner's explicit override, passing a labelled cue through the audit gate.
 
 ## shots.json schema
 

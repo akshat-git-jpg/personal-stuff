@@ -17,6 +17,7 @@ Steps:
   cue-pass
   resolve
   audit
+  audit-gate
   board
   render
   fold
@@ -141,9 +142,14 @@ EOF
   2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   3. cat videos/$slug/resolved.json             -> {{CUES}}
   4. node -e "const c=require('../card-library/catalog.json'); c.cards.forEach(card => console.log(card.slug + ': ' + card.purpose));" -> {{CATALOG_PURPOSES}}
-After the audit pass: run.sh $slug board
+  5. node -e "const c=require('../card-library/catalog.json'); c.cards.forEach(card => console.log(card.slug));" -> {{CATALOG_SLUGS}}
+After the audit pass: run.sh $slug audit-gate
 EOF
     exit 0
+    ;;
+
+  audit-gate)
+    node lib/audit-gate.mjs "$slug"
     ;;
 
   board)
