@@ -711,3 +711,17 @@ Independent of each other — raised together.
 - 142-vf2-enact-gate-density-coherence — PR#100 142-vf2-enact-gate-density-coherence: v2 enact enforcement gate + density-constant coherence — DONE
 - 143-cards-ambient-motion-variants — PR#101 143-cards-ambient-motion-variants: living cards — ambient-motion contract + variants for the overused four — DONE
 - 144-vf2-board-playthrough-fidelity — PR#102 144-vf2-board-playthrough-fidelity: v2 board play-through fidelity + handleSave extendExposure fix — DONE
+
+### visuals-flow-2 — avatar parity + review split (2026-07-24, owner review session)
+
+Owner decisions during the test-01 Final Cut review (decisions.md 2026-07-24):
+avatar modes to Loop Studio parity, and storyboard review = composition only
+with effects/sound judged on Final Cut. Executor: agy (standing directive).
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 145 | vf2-avatar-stage-mode | head_zone card contract, mode:"stage" (head composited INTO cards), host-stage card, assemble/FCPXML compositing | — |
+| 146 | vf2-review-surface-split | effects/sound auto-approve (Final-Cut-reviewed), storyboard lane refit (mode labels, derivatives folded) | — |
+
+- 145-vf2-avatar-stage-mode — stage mode + head_zone + host-stage card — TODO
+- 146-vf2-review-surface-split — composition-only storyboard, auto-approved derivatives — TODO
