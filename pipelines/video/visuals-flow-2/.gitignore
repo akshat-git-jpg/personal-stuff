@@ -1,7 +1,9 @@
 # per-video media is regenerable / hub-bound — text artifacts ARE committed
 videos/*/vo.mp3
 videos/*/renders/
+videos/*/renders.run*/
 videos/*/renders-fx/
+videos/*/renders-fx.run*/
 videos/*/slices/
 videos/*/slices-avatar/
 videos/*/screen.mp4
@@ -20,5 +22,6 @@ videos/*/music-ducked.wav
 videos/*/sfx-bus.wav
 videos/*/*.full.mp4
 videos/*/*.full.mp3
-videos/*/versions.run1/
+videos/*/versions.run*/
+videos/*/versions.run*.json
 videos/*/feedback-images/

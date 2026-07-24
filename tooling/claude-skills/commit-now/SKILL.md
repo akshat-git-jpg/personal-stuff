@@ -33,6 +33,7 @@ These rules override anything else in this skill or the user's general guidance:
    - **Merge commits are NOT exempt.** They keep git's standard subject (`Merge branch 'x' into y`) instead of a conventional-commit type, but the single-line rule applies in full — no `# Conflicts:` section, no body. See "Merge & conflict-resolution commits".
 5. **Don't claim a check passed unless you ran it and saw a zero exit code.** If a script doesn't exist in package.json, say so explicitly — don't fabricate output.
 6. **`--no-verify` is allowed only under one condition:** every check the husky hook would have run (format, lint, typecheck, build) has already been run *by this skill* in this session and exited clean. If any check was skipped, failed, or wasn't applicable, you may NOT auto-use `--no-verify` — the user must explicitly authorize it.
+7. **Branch naming: `feature/{small-name}` always.** Whenever a branch is created (or renamed) as part of the commit flow, it MUST be `feature/<small-name>` — a short, lowercase, kebab-case slug (e.g. `feature/flat-account-source`, `feature/qb-fixes`). No `fix/`, `bugfix/`, `chore/`, or long descriptive slugs, regardless of change type. If the current branch doesn't match and was just created for this work, offer to rename it before committing. (Commit-message `type` is still inferred from the change itself, not the prefix.)
 
 ## Workflow
 
@@ -120,7 +121,7 @@ Use `git diff --name-status HEAD` + `git diff --staged --name-status` to build t
 Infer `type` and `scope`, then **show the proposal and ask the user to confirm or override**.
 
 **Type inference** (in priority order):
-1. Branch prefix: `feature/*` → `feat`, `fix/*`/`bugfix/*`/`hotfix/*` → `fix`, `chore/*` → `chore`, `docs/*` → `docs`, `refactor/*` → `refactor`, `test/*` → `test`, `perf/*` → `perf`.
+1. The nature of the work just done: bug fix → `fix`, new capability → `feat`, etc. (All branches are `feature/*` per hard constraint #7, so the prefix carries NO type signal — never let `feature/` force `feat` on a bug fix.)
 2. Diff signal: if only test files changed → `test`; only `*.md` → `docs`; package.json deps only → `chore`.
 3. Default to `feat`.
 
