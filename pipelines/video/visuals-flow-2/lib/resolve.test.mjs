@@ -322,3 +322,50 @@ test('word-sync cue resolves start/at/duration', () => {
   assert.equal(cue.variables.beats[3].at, 1.5); // "the" is W[3], start 1.5
   assert.equal(cue.duration, 4.5); // last at (1.5) + hold (3.0)
 });
+
+test('extendExposure: (a) base none, two fullframes 8s apart -> first extends to second start', async () => {
+  const { extendExposure } = await import('./resolve.mjs');
+  const resolved = [
+    { id: 'c1', placement: 'fullframe', start: 0, duration: 5 },
+    { id: 'c2', placement: 'fullframe', start: 13, duration: 5 },
+  ];
+  const out = extendExposure(resolved, { base: 'none', total: 30 });
+  assert.equal(out[0].duration, 13);
+  assert.equal(out[1].duration, 17); // 5 + 12 (gap is 30 - 18 = 12)
+});
+
+test('extendExposure: (b) gap 25s on base none -> extends exactly 20 (cap)', async () => {
+  const { extendExposure } = await import('./resolve.mjs');
+  const resolved = [
+    { id: 'c1', placement: 'fullframe', start: 0, duration: 5 },
+  ];
+  const out = extendExposure(resolved, { base: 'none', total: 35 }); // end 5, gap 30
+  assert.equal(out[0].duration, 25); // 5 + 20 cap
+});
+
+test('extendExposure: (c) base screen gap 3s -> absorbed', async () => {
+  const { extendExposure } = await import('./resolve.mjs');
+  const resolved = [
+    { id: 'c1', placement: 'fullframe', start: 0, duration: 5 },
+  ];
+  const out = extendExposure(resolved, { base: 'screen', total: 8 }); // gap 3
+  assert.equal(out[0].duration, 8); // 5 + 3
+});
+
+test('extendExposure: (d) base screen gap 10s -> unchanged', async () => {
+  const { extendExposure } = await import('./resolve.mjs');
+  const resolved = [
+    { id: 'c1', placement: 'fullframe', start: 0, duration: 5 },
+  ];
+  const out = extendExposure(resolved, { base: 'screen', total: 15 }); // gap 10
+  assert.equal(out[0].duration, 5);
+});
+
+test('extendExposure: (e) overlays never modified', async () => {
+  const { extendExposure } = await import('./resolve.mjs');
+  const resolved = [
+    { id: 'o1', placement: 'overlay', start: 0, duration: 5 },
+  ];
+  const out = extendExposure(resolved, { base: 'none', total: 15 });
+  assert.equal(out[0].duration, 5);
+});
