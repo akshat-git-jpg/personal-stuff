@@ -74,6 +74,17 @@ bash scripts/check-cards.sh --publish
 It fails on anything uncommitted or unpushed and prints the offending commits.
 Once it passes, render2 serves the new cards within ~15 minutes.
 
+## Template notes (owner feedback loop)
+
+The local gallery (`npm run serve`) has a **Notes** button on every card. Notes
+land in `card-notes.json` (TRACKED — commit it). They are a queue, not a
+command: a session acts on them ONLY when the owner says **"apply my template
+notes"** — then make the edits/deletions, and mark each handled note
+`done: true` with a one-line `resolution` (the gallery renders it struck-through
+with a green check). Never act on open notes unprompted; never edit/delete an
+owner note except to mark it done. Writes 500 on the VPS read-only mount —
+notes are a local-gallery feature.
+
 ## Never commit here
 
 Generated media and test output — the house rule from `pipelines/CLAUDE.md`.

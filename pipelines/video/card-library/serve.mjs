@@ -13,11 +13,27 @@
 // The raw file (no ?play) is what Copy hands you — clean, unmodified HTML.
 
 import { createServer } from "node:http";
-import { readFile, readdir, stat } from "node:fs/promises";
+import { readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { join, extname, normalize, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
+
+// ── per-card owner notes (owner ask 2026-07-24) ──────────────────────────────
+// card-notes.json (TRACKED) maps "type/card" → [{text, at, done, resolution?}].
+// The owner drops notes in the gallery; a session acts on them only when told
+// ("apply my template notes"), then marks each done with a resolution line.
+// On the VPS the repo mount is read-only — writes 500 there; notes are local.
+const NOTES_PATH = join(ROOT, "card-notes.json");
+async function loadNotes() {
+  try { return JSON.parse(await readFile(NOTES_PATH, "utf8")); } catch { return {}; }
+}
+const readBody = (req) => new Promise((resolve, reject) => {
+  let b = "";
+  req.on("data", (c) => { b += c; if (b.length > 1e6) req.destroy(); });
+  req.on("end", () => resolve(b));
+  req.on("error", reject);
+});
 const PORT = process.env.PORT || 4321;
 const IGNORE = new Set(["node_modules", "assets", "compositions", ".git"]);
 const MIME = {
@@ -123,6 +139,29 @@ const GALLERY = `<!DOCTYPE html>
   .btn.copy.done { background:var(--ok); color:#042b1c; }
   .btn.copy.err { background:var(--err); color:#2b0404; }
   .empty { max-width:1400px; margin:0 auto; color:var(--dim); }
+  /* family jump nav */
+  nav#fam { position:sticky; top:0; z-index:5; max-width:1400px; margin:0 auto 26px; padding:10px 0;
+    background:linear-gradient(var(--bg) 82%, transparent); display:flex; flex-wrap:wrap; gap:8px; }
+  nav#fam a { font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--dim);
+    border:1px solid var(--line); border-radius:999px; padding:5px 12px; text-decoration:none; background:var(--panel); }
+  nav#fam a:hover { color:var(--accent); border-color:var(--accent); }
+  nav#fam a .n { color:var(--accent); margin-left:5px; }
+  /* per-card notes */
+  .btn.noteb.has { border-color:var(--accent); color:var(--accent); }
+  .notes { display:none; border-top:1px solid var(--line); padding:12px 16px 14px; }
+  .notes.open { display:block; }
+  .note-item { display:flex; gap:8px; align-items:flex-start; font-size:13.5px; line-height:1.45; padding:7px 0;
+    border-bottom:1px dashed rgba(255,255,255,0.07); }
+  .note-item:last-of-type { border-bottom:none; }
+  .note-item .nd { color:var(--dim); font-size:11.5px; font-family:ui-monospace,Menlo,monospace; flex:none; padding-top:2px; }
+  .note-item .nt { flex:1; min-width:0; white-space:pre-wrap; }
+  .note-item.done .nt { color:var(--dim); text-decoration:line-through; }
+  .note-item .nres { display:block; text-decoration:none; color:var(--ok); font-size:12px; margin-top:2px; }
+  .note-item button { background:none; border:none; color:var(--dim); cursor:pointer; font-size:13px; padding:1px 4px; flex:none; }
+  .note-item button:hover { color:var(--text); }
+  .notes textarea { width:100%; margin-top:9px; font:inherit; font-size:13.5px; line-height:1.45; padding:8px 10px;
+    background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:8px; resize:vertical; min-height:40px; }
+  .notes .nhint { font-size:11.5px; color:var(--dim); margin-top:5px; }
 </style>
 </head>
 <body>
@@ -146,20 +185,104 @@ const GALLERY = `<!DOCTYPE html>
       }
     });
 
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
     (async () => {
       const root = document.getElementById("root");
-      const cards = await fetch("/api/cards", { cache: "no-store" }).then((r) => r.json());
+      const [cards, allNotes] = await Promise.all([
+        fetch("/api/cards", { cache: "no-store" }).then((r) => r.json()),
+        fetch("/api/notes", { cache: "no-store" }).then((r) => r.json()).catch(() => ({})),
+      ]);
       if (!cards.length) {
         root.innerHTML = '<p class="empty">No cards yet. Add one at &lt;type&gt;/&lt;card&gt;/index.html and refresh.</p>';
         return;
       }
-      // Flat board in the server-provided order (gallery-order.json pins the front).
-      const sec = document.createElement("section");
-      sec.innerHTML = '<h2>Templates <span class="count">' + cards.length + '</span></h2>';
-      const grid = document.createElement("div");
-      grid.className = "grid";
-      {
-        for (const c of cards) {
+
+      // Group by family, in the order a video uses them — siblings sit together
+      // so competing devices are compared side by side (owner ask 2026-07-24).
+      const FAMILY_ORDER = ["title", "section", "enacted", "slate", "statement", "checklist",
+        "comparison", "pros-cons", "process", "verdict", "table-of-contents", "overlay",
+        "prompt", "link-in-description", "like-subscribe", "tool-icon", "brand"];
+      const famRank = (t) => { const i = FAMILY_ORDER.indexOf(t); return i === -1 ? FAMILY_ORDER.length : i; };
+      const groups = new Map();
+      for (const c of cards) {
+        if (!groups.has(c.type)) groups.set(c.type, []);
+        groups.get(c.type).push(c);
+      }
+      const famNames = [...groups.keys()].sort((a, b) => famRank(a) - famRank(b) || a.localeCompare(b));
+
+      const nav = document.createElement("nav");
+      nav.id = "fam";
+      nav.innerHTML = famNames.map((f) =>
+        '<a href="#fam-' + esc(f) + '">' + esc(f) + '<span class="n">' + groups.get(f).length + "</span></a>").join("");
+      root.appendChild(nav);
+
+      const noteKey = (c) => c.type + "/" + c.card;
+
+      function renderNotesPanel(panel, c) {
+        const key = noteKey(c);
+        const items = allNotes[key] || [];
+        let html = "";
+        items.forEach((n, i) => {
+          html += '<div class="note-item' + (n.done ? " done" : "") + '">' +
+            '<span class="nd">' + esc(n.at || "") + "</span>" +
+            '<span class="nt">' + esc(n.text) +
+            (n.done && n.resolution ? '<span class="nres">&#10003; ' + esc(n.resolution) + "</span>" : "") +
+            "</span>" +
+            (n.done ? "" :
+              '<button title="edit" data-edit="' + i + '">&#9998;</button>' +
+              '<button title="delete" data-del="' + i + '">&#10005;</button>') +
+            "</div>";
+        });
+        panel.innerHTML = html +
+          '<textarea rows="2" placeholder="Note for this template... (Enter to send)"></textarea>' +
+          '<div class="nhint">Saved to card-notes.json - acted on when you say "apply my template notes"</div>';
+
+        const ta = panel.querySelector("textarea");
+        const post = async (path, body) => {
+          const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) { alert(j.error || "failed"); return null; }
+          return j;
+        };
+        ta.addEventListener("keydown", async (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            const text = ta.value.trim();
+            if (!text) return;
+            const j = await post("/api/notes", { card: key, text });
+            if (j) { allNotes[key] = j.notes; renderNotesPanel(panel, c); panel.querySelector("textarea").focus(); syncBadge(c); }
+          }
+        });
+        panel.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+          if (!confirm("Delete this note?")) return;
+          const j = await post("/api/notes-delete", { card: key, index: +b.dataset.del });
+          if (j) { allNotes[key] = j.notes; renderNotesPanel(panel, c); syncBadge(c); }
+        }));
+        panel.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", async () => {
+          const cur = (allNotes[key] || [])[+b.dataset.edit];
+          const text = prompt("Edit note:", cur ? cur.text : "");
+          if (text === null) return;
+          const j = await post("/api/notes-edit", { card: key, index: +b.dataset.edit, text });
+          if (j) { allNotes[key] = j.notes; renderNotesPanel(panel, c); }
+        }));
+      }
+
+      const badges = {};
+      const syncBadge = (c) => {
+        const open = (allNotes[noteKey(c)] || []).filter((n) => !n.done).length;
+        const b = badges[noteKey(c)];
+        b.textContent = open ? "Notes (" + open + ")" : "Notes";
+        b.classList.toggle("has", open > 0);
+      };
+
+      for (const fam of famNames) {
+        const sec = document.createElement("section");
+        sec.id = "fam-" + fam;
+        sec.innerHTML = '<h2>' + esc(fam) + ' <span class="count">' + groups.get(fam).length + "</span></h2>";
+        const grid = document.createElement("div");
+        grid.className = "grid";
+        for (const c of groups.get(fam)) {
           const el = document.createElement("div");
           el.className = "card";
           const box = document.createElement("div");
@@ -172,8 +295,8 @@ const GALLERY = `<!DOCTYPE html>
           const meta = document.createElement("div");
           meta.className = "meta";
           meta.innerHTML =
-            '<div class="names"><div class="title">' + c.title + '</div>' +
-            '<div class="file">' + c.rel + '</div></div>';
+            '<div class="names"><div class="title">' + esc(c.title) + '</div>' +
+            '<div class="file">' + esc(c.rel) + '</div></div>';
           const actions = document.createElement("div");
           actions.className = "actions";
           const copy = document.createElement("button");
@@ -195,10 +318,22 @@ const GALLERY = `<!DOCTYPE html>
           open.href = "/view?card=" + encodeURIComponent(c.rel);
           open.target = "_blank";
           open.textContent = "Open";
-          actions.append(copy, open);
+          const noteBtn = document.createElement("button");
+          noteBtn.className = "btn noteb";
+          badges[noteKey(c)] = noteBtn;
+          const panel = document.createElement("div");
+          panel.className = "notes";
+          let notesBuilt = false;
+          noteBtn.onclick = () => {
+            if (!notesBuilt) { renderNotesPanel(panel, c); notesBuilt = true; }
+            panel.classList.toggle("open");
+            if (panel.classList.contains("open")) panel.querySelector("textarea").focus();
+          };
+          actions.append(noteBtn, copy, open);
           meta.appendChild(actions);
-          el.append(box, meta);
+          el.append(box, meta, panel);
           grid.appendChild(el);
+          syncBadge(c);
         }
         sec.appendChild(grid);
         root.appendChild(sec);
@@ -220,6 +355,33 @@ createServer(async (req, res) => {
     res.setHeader("content-type", "application/json");
     res.setHeader("cache-control", "no-store");
     return res.end(JSON.stringify(await listCards()));
+  }
+  if (url.pathname === "/api/notes" && req.method === "GET") {
+    res.setHeader("content-type", "application/json");
+    res.setHeader("cache-control", "no-store");
+    return res.end(JSON.stringify(await loadNotes()));
+  }
+  if ((url.pathname === "/api/notes" || url.pathname === "/api/notes-edit" || url.pathname === "/api/notes-delete") && req.method === "POST") {
+    res.setHeader("content-type", "application/json");
+    let body;
+    try { body = JSON.parse(await readBody(req)); } catch { res.statusCode = 400; return res.end('{"error":"bad json"}'); }
+    const card = String(body.card || "");
+    const notes = await loadNotes();
+    if (url.pathname === "/api/notes") {
+      const text = String(body.text || "").trim();
+      if (!card || !text) { res.statusCode = 400; return res.end('{"error":"card and text required"}'); }
+      (notes[card] ??= []).push({ text, at: new Date().toISOString().slice(0, 10), done: false });
+    } else {
+      const i = Number(body.index);
+      if (!Array.isArray(notes[card]) || !(i >= 0 && i < notes[card].length)) { res.statusCode = 400; return res.end('{"error":"no such note"}'); }
+      if (notes[card][i].done) { res.statusCode = 400; return res.end('{"error":"applied notes are read-only"}'); }
+      if (url.pathname === "/api/notes-delete") notes[card].splice(i, 1);
+      else notes[card][i].text = String(body.text || "").trim() || notes[card][i].text;
+      if (!notes[card].length) delete notes[card];
+    }
+    try { await writeFile(NOTES_PATH, JSON.stringify(notes, null, 2) + "\n"); }
+    catch { res.statusCode = 500; return res.end('{"error":"notes are read-only here (VPS mount) - use the local gallery"}'); }
+    return res.end(JSON.stringify({ ok: true, notes: notes[card] ?? [] }));
   }
   if (url.pathname === "/view") {
     const card = (url.searchParams.get("card") || "").replace(/^\/+/, "");
