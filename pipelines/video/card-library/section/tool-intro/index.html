@@ -30,13 +30,17 @@
       .tagline { font-size: 32px; color: var(--text-dim); margin-top: 16px; max-width: 1200px; line-height: 1.4; }
       .chip { margin-top: 32px; padding: 12px 24px; border: 2px solid var(--accent); border-radius: 999px; color: var(--accent); font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
     
+      body.variant-b #frame { align-items: flex-end; text-align: right; }
+      body.variant-b .content { align-items: flex-end; }
+      body.variant-b .name-row { flex-direction: row-reverse; }
+      body.variant-b .progress { left: auto; right: 120px; }
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
 </style>
   </head>
-  <body>
+  <body class="variant-a">
     <div id="root" data-composition-id="toolintro" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"index":2,"total":5,"name":"Higgsfield","tagline":"Video-first platform built around cinematic quality and camera control","tag":"Cinematic video"}'>
+      data-composition-variables='{"index":2,"total":5,"name":"Higgsfield","tagline":"Video-first platform built around cinematic quality and camera control","tag":"Cinematic video","variant":"a"}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div class="progress" id="progress"></div>
@@ -60,7 +64,10 @@
         name: VARS.name ?? 'Higgsfield',
         tagline: VARS.tagline ?? 'Video-first platform built around cinematic quality and camera control',
         tag: VARS.tag ?? 'Cinematic video',
+        variant: VARS.variant ?? 'a',
       };
+      
+      if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
       
       const LOGOS = VARS.__logos ?? {};
       const logoEl = document.getElementById('logo');
@@ -80,9 +87,12 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       
+      const dir24 = DATA.variant === 'b' ? -24 : 24;
+      const dir16 = DATA.variant === 'b' ? -16 : 16;
+
       tl.from('#progress', { opacity: 0, duration: 0.5, ease: 'power2.out' }, 0.1);
-      tl.from('#name', { opacity: 0, y: 24, duration: 0.6, ease: 'power3.out' }, 0.2);
-      tl.from('#tagline', { opacity: 0, y: 16, duration: 0.6, ease: 'power3.out' }, 0.35);
+      tl.from('#name', { opacity: 0, y: dir24, duration: 0.6, ease: 'power3.out' }, 0.2);
+      tl.from('#tagline', { opacity: 0, y: dir16, duration: 0.6, ease: 'power3.out' }, 0.35);
       tl.from('#chip', { opacity: 0, scale: 0.8, duration: 0.5, ease: 'back.out(1.6)' }, 0.8);
 
       window.__timelines['toolintro'] = tl;

@@ -53,13 +53,14 @@
       .kw-phrase { position: relative; display: inline-block; padding: 0 0.18em; margin: 0 -0.18em; white-space: nowrap; }
       .kw-bg { position: absolute; inset: 0; background: color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 8px; z-index: -1; transform-origin: left; will-change: transform; }
     
+      body.variant-b .kw-bg { transform-origin: right; }
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
 </style>
   </head>
-  <body>
+  <body class="variant-a">
     <div id="root" data-composition-id="statement" data-start="0" data-duration="5" data-width="1920" data-height="1080"
-      data-composition-variables='{"text":"You&apos;re also not tied to one company&apos;s AI","keyword":"one company&apos;s AI"}'>
+      data-composition-variables='{"text":"You&apos;re also not tied to one company&apos;s AI","keyword":"one company&apos;s AI","variant":"a"}'>
       <!-- Track 0: background -->
       <div id="bg" class="clip" data-start="0" data-duration="5" data-track-index="0"></div>
       <!-- Track 1: accent glow -->
@@ -80,7 +81,10 @@
       const DATA = {
         text: VARS.text ?? "You're also not tied to one company's AI",
         keyword: VARS.keyword ?? "one company's AI",
+        variant: VARS.variant ?? 'a',
       };
+      
+      if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
 
       /* ===== TIMELINE (LOCKED) ===== */
       const $ = (id) => document.getElementById(id);
@@ -115,7 +119,8 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       
-      tl.fromTo('#line .word', { yPercent: 118 }, { yPercent: 0, duration: 0.7, ease: 'expo.out', stagger: 0.06 }, 0.2);
+      const dir = DATA.variant === 'b' ? -118 : 118;
+      tl.fromTo('#line .word', { yPercent: dir }, { yPercent: 0, duration: 0.7, ease: 'expo.out', stagger: 0.06 }, 0.2);
       
       if (kwStartIndex !== -1) {
         tl.fromTo('.kw-bg', { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: 'power3.out' }, 0.2 + (kwStartIndex * 0.06) + 0.35);

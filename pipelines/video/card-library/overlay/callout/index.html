@@ -36,13 +36,15 @@
       .title { font-size: 32px; font-weight: 800; color: var(--accent); letter-spacing: 0.5px; }
       .text { font-size: 27px; line-height: 1.45; color: var(--text-dim); }
     
+      body.variant-b .panel { border-left: 1px solid rgba(255,255,255,0.12); border-right: 6px solid var(--accent); text-align: right; }
+      body.variant-b .head { flex-direction: row-reverse; }
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #box { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
 </style>
   </head>
-  <body>
+  <body class="variant-a">
     <div id="root" data-composition-id="callout" data-start="0" data-duration="5" data-width="1920" data-height="1080" data-pos="top-right"
-      data-composition-variables='{"kind":"tip","title":"Pro tip","text":"Pin your n8n version in the Docker tag so updates never break your flows.","pos":"top-right"}'>
+      data-composition-variables='{"kind":"tip","title":"Pro tip","text":"Pin your n8n version in the Docker tag so updates never break your flows.","pos":"top-right","variant":"a"}'>
       <div id="box" class="clip" data-start="0" data-duration="5" data-track-index="0">
         <div class="panel" id="panel">
           <div class="kicker" id="kicker" style="display: none;"></div>
@@ -62,7 +64,11 @@
         pos: VARS.pos ?? 'top-right', // top-right | top-left | bottom-right | center
         style: VARS.style, // optional: feature | tip | warning
         kicker: VARS.kicker, // optional
+        variant: VARS.variant ?? 'a',
       };
+      
+      if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
+
       const ICONS = { tip: '💡', warning: '⚠', note: 'i' };
       const root = document.getElementById('root');
       root.dataset.pos = DATA.pos;
@@ -85,7 +91,8 @@
       /* ===== TIMELINE (LOCKED) ===== */
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      tl.from('#box', { opacity: 0, scale: 0.85, y: 16, duration: 0.55, ease: 'back.out(1.6)' }, 0.1);
+      const dir16 = DATA.variant === 'b' ? -16 : 16;
+      tl.from('#box', { opacity: 0, scale: 0.85, y: dir16, duration: 0.55, ease: 'back.out(1.6)' }, 0.1);
       tl.from('.text', { opacity: 0, duration: 0.4, ease: 'none' }, 0.4);
       window.__timelines['callout'] = tl;
     </script>
