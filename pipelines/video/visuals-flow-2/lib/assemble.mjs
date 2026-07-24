@@ -12,7 +12,8 @@ import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
 import * as driftMod from './effects/drift.mjs';
 import * as captionsMod from './effects/captions.mjs';
-import { planCaptions, assEscape } from './captions.mjs';
+import { planCaptions, assEscape, formatAssText } from './captions.mjs';
+import { loadBrand } from './brand-inline.mjs';
 import { createHash } from 'node:crypto';
 
 function formatAssTime(sec) {
@@ -345,7 +346,7 @@ function parseArgs(argv) {
   return opts;
 }
 
-export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', effects = 'on', bubble = 'on', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null }) {
+export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', effects = 'on', bubble = 'on', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} } }) {
   const videoManifest = loadVideoManifest(workdir);
   let segments = planSegments({ resolved, avatarJobs, total });
   segments = absorbSlivers(segments);
@@ -457,7 +458,7 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
           if (cUntil > 0 && cAt < (seg.end - seg.start)) {
             const startStr = formatAssTime(Math.max(0, cAt));
             const endStr = formatAssTime(cUntil);
-            const textASS = c.words.map(w => w.hl ? `{\\1c&H3C92FB&}${assEscape(w.text)}{\\1c&HFFFFFF&}` : assEscape(w.text)).join(' ');
+            const textASS = formatAssText(c.words, brand?.caption?.keywordColor);
             assBody += `Dialogue: 0,${startStr},${endStr},Cap,,0,0,0,,${textASS}\n`;
           }
         }
@@ -881,9 +882,10 @@ async function main() {
   }
 
   const inputs = await loadAssemblyInputs(opts);
-
+  const root = path.resolve(import.meta.dirname, '..');
+  const brandObj = loadBrand(root, { brand: inputs.brand || 'default' });
   const out = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, inputs.video, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, drift: opts.drift, effects: opts.effects, bubble: opts.bubble, jobsN: opts.jobs, noCache: opts.noCache });
+  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, drift: opts.drift, effects: opts.effects, bubble: opts.bubble, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj });
   process.exit(0);
 }
 
