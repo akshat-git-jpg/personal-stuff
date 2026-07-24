@@ -1,0 +1,9 @@
+export const SOUND_CONSTANTS = {
+  POP_CAP: 3,
+  MIN_SPACING: 0.35,
+  HIT_GAIN_DB: -14,
+  POP_GAIN_DB: -16,
+  DRONE_GAIN_DB: -30,
+  RUN_SEMITONES: [0, 4, 7],
+  JITTER_DB: [-0.5, 0, 0.5]
+};
