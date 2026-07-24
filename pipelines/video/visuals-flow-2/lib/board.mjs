@@ -245,6 +245,25 @@ const BOARD_CSS = `
   #fc-input { width:100%; padding:10px; font:inherit; font-size:14px; line-height:1.5; background:#0f0b07; color:var(--text);
     border:1px solid var(--line); border-radius:8px; resize:vertical; min-height:84px; box-sizing:border-box; }
   #fc-input:disabled { opacity:0.5; }
+  /* Final Cut transport (frame.io/Loop-Studio style: scrubber + click transport + kbd layer) */
+  #fc-scrub { width:100%; margin:10px 0 2px; appearance:none; -webkit-appearance:none; height:8px; border-radius:4px;
+    background:linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fc-prog,0%), rgba(255,255,255,0.14) var(--fc-prog,0%)); cursor:pointer; display:block; }
+  #fc-scrub::-webkit-slider-thumb { appearance:none; -webkit-appearance:none; width:18px; height:18px; border-radius:50%;
+    background:#fff; border:none; box-shadow:0 1px 4px rgba(0,0,0,0.5); cursor:grab; }
+  #fc-scrub::-moz-range-thumb { width:18px; height:18px; border-radius:50%; background:#fff; border:none; cursor:grab; }
+  #fc-transport { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:8px 0 2px; }
+  .fc-tbtn { font:inherit; font-weight:700; font-size:14px; padding:9px 14px; border-radius:9px; cursor:pointer;
+    border:1px solid var(--line); background:var(--panel); color:var(--text); }
+  .fc-tbtn:hover { border-color:var(--dim); }
+  #fc-play { background:var(--accent); border-color:var(--accent); color:#1a1008; min-width:92px; }
+  #fc-clock { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:16px; font-weight:700; padding:0 6px; white-space:nowrap; }
+  #fc-clock .cur { color:var(--accent); }
+  #fc-speed { font:inherit; font-size:14px; font-weight:700; padding:8px 10px; border-radius:9px;
+    border:1px solid var(--line); background:var(--panel); color:var(--text); cursor:pointer; }
+  #fc-kbd-hint { margin-top:8px; font-size:12.5px; color:var(--dim); line-height:1.9; }
+  #fc-kbd-hint kbd { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:11px; background:rgba(255,255,255,0.08);
+    border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 7px; color:var(--text); }
+  #fc-kbd-hint strong { color:var(--text); }
   .topbar button { font:inherit; font-weight:700; border-radius:9px; padding:9px 16px; cursor:pointer;
     border:1px solid var(--line); background:var(--panel); color:var(--text); }
   #approveBtn { border-color:var(--ok); color:var(--ok); }
@@ -1182,11 +1201,32 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
     <div style="display:flex; gap:20px; align-items:flex-start;">
       <div style="flex:1;">
         <select id="fc-version"></select>
-        <div style="position:relative; margin-top:10px; background:#000; border-radius:8px; overflow:hidden;" id="fc-video-container">
-          <video id="fc-video" controls style="width:100%; display:block; cursor:crosshair;"></video>
+        <input type="range" id="fc-scrub" min="0" max="0" step="0.01" value="0" />
+        <div id="fc-transport">
+          <button id="fc-play" class="fc-tbtn">&#9654; Play</button>
+          <span id="fc-clock"><span class="cur">0:00.0</span> / <span id="fc-dur">0:00.0</span></span>
+          <button class="fc-tbtn" data-seek="-5">&minus;5s</button>
+          <button class="fc-tbtn" data-seek="5">+5s</button>
+          <button class="fc-tbtn" data-frame="-1">&#8249; frame</button>
+          <button class="fc-tbtn" data-frame="1">frame &#8250;</button>
+          <select id="fc-speed">
+            <option value="0.5">0.5&times;</option>
+            <option value="0.75">0.75&times;</option>
+            <option value="1" selected>1&times;</option>
+            <option value="1.25">1.25&times;</option>
+            <option value="1.5">1.5&times;</option>
+            <option value="2">2&times;</option>
+          </select>
+          <button id="fc-mute" class="fc-tbtn" title="mute/unmute">&#128266;</button>
+        </div>
+        <div style="position:relative; margin-top:8px; background:#000; border-radius:8px; overflow:hidden;" id="fc-video-container">
+          <video id="fc-video" style="width:100%; display:block; cursor:crosshair;"></video>
           <div id="fc-pin-marker" style="position:absolute; width:12px; height:12px; background:var(--err); border:2px solid #fff; border-radius:50%; transform:translate(-50%,-50%); display:none; pointer-events:none; z-index:10; box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>
         </div>
-        <div id="fc-msg" style="margin-top:10px; color:var(--dim);"></div>
+        <div id="fc-kbd-hint">
+          <kbd>Space</kbd> play/pause &middot; <kbd>&larr;</kbd> <kbd>&rarr;</kbd> &plusmn;5s &middot; <kbd>&#8679;</kbd>+<kbd>&larr;</kbd> <kbd>&rarr;</kbd> step a frame &middot; <strong>just start typing</strong> to note the current moment &middot; <strong>click the frame</strong> to pin a note to that exact spot
+        </div>
+        <div id="fc-msg" style="margin-top:6px; color:var(--dim);"></div>
       </div>
       <div style="width:400px; flex:none; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px;">
         <h3>Comments</h3>
@@ -1442,6 +1482,82 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       fcMarker.style.top = y + '%';
       fcMarker.style.display = 'block';
       fcInput.focus();
+    });
+
+    // ── Click transport + keyboard layer (owner ask 2026-07-24: Loop-Studio-
+    // style review player — scrub, ±5s, frame stepping, speed, type-to-note) ──
+    const FC_FPS = 30;
+    const fcScrub = document.getElementById('fc-scrub');
+    const fcPlayBtn = document.getElementById('fc-play');
+    const fcClockCur = document.querySelector('#fc-clock .cur');
+    const fcDurEl = document.getElementById('fc-dur');
+    const fcSpeedSel = document.getElementById('fc-speed');
+    const fcMuteBtn = document.getElementById('fc-mute');
+    let fcScrubbing = false;
+    function fcPaintScrub(t) {
+      const p = fcVideo.duration ? (t / fcVideo.duration * 100) : 0;
+      fcScrub.style.setProperty('--fc-prog', p + '%');
+    }
+    function fcUpdateClock() {
+      fcClockCur.textContent = fmtClock(fcVideo.currentTime);
+      if (!fcScrubbing) { fcScrub.value = fcVideo.currentTime; fcPaintScrub(fcVideo.currentTime); }
+    }
+    fcVideo.addEventListener('loadedmetadata', () => {
+      fcScrub.max = fcVideo.duration;
+      fcDurEl.textContent = fmtClock(fcVideo.duration);
+      fcVideo.playbackRate = +fcSpeedSel.value; // survives version switches
+      fcUpdateClock();
+    });
+    fcVideo.addEventListener('timeupdate', fcUpdateClock);
+    fcVideo.addEventListener('seeked', fcUpdateClock);
+    fcVideo.addEventListener('play', () => { fcPlayBtn.innerHTML = '&#10074;&#10074; Pause'; });
+    fcVideo.addEventListener('pause', () => { fcPlayBtn.innerHTML = '&#9654; Play'; fcUpdateClock(); });
+    fcPlayBtn.addEventListener('click', () => { fcVideo.paused ? fcVideo.play() : fcVideo.pause(); });
+    fcScrub.addEventListener('input', () => {
+      fcScrubbing = true;
+      fcVideo.currentTime = +fcScrub.value;
+      fcClockCur.textContent = fmtClock(+fcScrub.value);
+      fcPaintScrub(+fcScrub.value);
+    });
+    fcScrub.addEventListener('change', () => { fcScrubbing = false; });
+    function fcSeek(d) {
+      fcVideo.currentTime = Math.max(0, Math.min(fcVideo.duration || 0, fcVideo.currentTime + d));
+    }
+    function fcFrameStep(dir) { if (!fcVideo.paused) fcVideo.pause(); fcSeek(dir / FC_FPS); }
+    document.querySelectorAll('#fc-transport [data-seek]').forEach((b) => b.addEventListener('click', () => fcSeek(+b.dataset.seek)));
+    document.querySelectorAll('#fc-transport [data-frame]').forEach((b) => b.addEventListener('click', () => fcFrameStep(+b.dataset.frame)));
+    fcSpeedSel.addEventListener('change', () => { fcVideo.playbackRate = +fcSpeedSel.value; });
+    fcMuteBtn.addEventListener('click', () => {
+      fcVideo.muted = !fcVideo.muted;
+      fcMuteBtn.innerHTML = fcVideo.muted ? '&#128263;' : '&#128266;';
+    });
+
+    function fcTransportKey(e) {
+      if (e.key === ' ') { e.preventDefault(); fcVideo.paused ? fcVideo.play() : fcVideo.pause(); return true; }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); e.shiftKey ? fcFrameStep(-1) : fcSeek(-5); return true; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); e.shiftKey ? fcFrameStep(1) : fcSeek(5); return true; }
+      return false;
+    }
+    document.addEventListener('keydown', (e) => {
+      if (document.getElementById('tab-final-cut').style.display === 'none') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target;
+      const inField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+      if (inField) {
+        // empty comment box: transport keys pass through, so pause→focus never
+        // steals Space/arrows; anything typed keeps the box working as normal
+        if (t === fcInput && fcInput.value === '') fcTransportKey(e);
+        return;
+      }
+      if (fcTransportKey(e)) return;
+      // just start typing → pause and the keystroke lands in the comment box
+      if (e.key.length === 1) {
+        e.preventDefault();
+        if (!fcVideo.paused) fcVideo.pause();
+        fcInput.disabled = false;
+        fcInput.focus();
+        fcInput.value += e.key;
+      }
     });
     // Image attachment state: paste a screenshot into the textarea or pick a
     // file — the image rides the comment so the fixing session can Read it
