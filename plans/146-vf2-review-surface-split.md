@@ -12,7 +12,7 @@ needs: []
 ## Summary
 
 - **Problem statement**: owner decision (decisions.md 2026-07-24): storyboard review = COMPOSITION ONLY (screen vs graphics vs avatar+mode); effects and sound are judged in motion on the Final Cut tab. Today effects.json/sound.json still demand pre-render owner approval, and the storyboard tab gives effects/sound lanes equal visual weight with no mode labels on the avatar lane.
-- **Goals**: (1) `effects-plan` and `sfx-plan` write `approved: true` at generation (supersedes the 2026-07-20 per-artifact effects gate for v2 — owner-directed); assemble/mix no longer block on them; (2) storyboard tab: SCREEN/GRAPHICS/AVATAR lanes prominent, avatar blocks labeled with their mode (full/panel/stage), effects+sound lanes collapsed behind a remembered toggle (reuse the list page's fold pattern); (3) docs/skill updated to the two-scope review model.
+- **Goals**: (1) `effects-plan` and `sfx-plan` write `approved: true` at generation (supersedes the 2026-07-20 per-artifact effects gate for v2 — owner-directed); assemble/mix no longer block on them; (2) storyboard tab: SCREEN/GRAPHICS/AVATAR lanes prominent, avatar blocks labeled with their mode (full/panel/stage), effects+sound lanes collapsed behind a remembered toggle (reuse the list page's fold pattern); (3) a `cut` verb in run.sh — the unattended stage-2 chain (render → effects-plan → sound → mix → assemble --draft → Final Cut URL); (4) docs/skill updated to the owner's confirmed three-stage process (storyboard deep pass → session cuts → Final Cut final review; approval → full-res assemble; DaVinci export optional on request — decisions.md 2026-07-24, two entries).
 - **Executor proposed**: agy (Gemini 3.1 Pro High); ui:true — screenshots required.
 - **Done criteria**: gate green; a fresh effects/sound plan is born approved; lanes fold; mode labels visible.
 - **Stop conditions**: any consumer hard-requires `approved:false` initial state; v1 edits.
@@ -56,7 +56,7 @@ The owner reviews twice: a fast structural pass on the storyboard, then the real
 
 **In scope** (all in `pipelines/video/visuals-flow-2/` plus the skill file):
 - `lib/effects-plan.mjs`, `lib/sound/sfx-plan.mjs` + tests (approved-by-default)
-- `lib/assemble.mjs` (drop the effects-approval refusal; keep `--force` semantics for cues), `run.sh` (`mix` no longer checks sound approval)
+- `lib/assemble.mjs` (drop the effects-approval refusal; keep `--force` semantics for cues), `run.sh` (`mix` no longer checks sound approval; new `cut` verb), `scripts/test-run-sh.sh`
 - `lib/board.mjs` + `lib/board.test.mjs` (lane fold, avatar mode labels, demote Approve-effects button to the folded section)
 - `PIPELINE.md`, `steps/090-assemble-run/README.md` if it names the gate, `pipelines/.claude/skills/visuals-flow-2/SKILL.md`
 
@@ -84,14 +84,26 @@ The owner reviews twice: a fast structural pass on the storyboard, then the real
 
 **Verify**: `node --test lib/board.test.mjs` pass (markup assertions: fold button present, avatar mode label rendered for a panel fixture); serve smoke → lanes folded by default, toggle persists across reload.
 
-### Step 3: docs
+### Step 3: the `cut` verb (unattended stage 2)
 
-- `PIPELINE.md`: effects-plan/sound/mix rows say "auto-approved — reviewed on Final Cut"; 040 row's review-model note gains "storyboard scope = composition (screen/graphics/avatar+mode) only".
-- Skill: update the Review model paragraph + remove "sound.json approval before mix" from the verb table.
+`run.sh` gains `cut)`: refuses unless `cues.json` `approved:true` (echo "approve the storyboard first"); if `shots.json` exists but `avatar-jobs.json` doesn't, warn "shots approved but avatars not rendered — cutting without avatar" and continue; then run in order: `bash steps/050-render-run/run.sh "$slug"` → `node lib/effects-plan.mjs "$slug"` → `node lib/sound/sfx-plan.mjs "$slug"` → `node lib/sound/build-mix.mjs "$slug"` → `bash steps/090-assemble-run/run.sh "$slug" --draft`. Any step failing aborts with that step named. Ends by printing the board Final Cut URL. Add the verb to `usage()` and cover dispatch in `scripts/test-run-sh.sh`'s style.
 
-**Verify**: `grep -n "auto-approved" PIPELINE.md` → present; `bash scripts/check.sh` exit 0.
+**Verify**: `bash run.sh nosuchslug cut` fails cleanly (no workdir); `bash scripts/test-run-sh.sh` → pass.
 
-### Step 4: screenshots (ui:true)
+### Step 4: docs — the confirmed three-stage process
+
+The authority is decisions.md 2026-07-24 (two entries: "Review split refined" + "DaVinci export demoted to OPTIONAL"). Write BOTH docs to this model:
+1. **Storyboard review (owner, the time-investing pass)** — composition only: which graphic where, avatar spans + presentation mode, add/delete, what stays raw screen recording; cue-keyed feedback; this approval also authorizes the HeyGen spend.
+2. **The session cuts** — `run.sh <slug> cut`, unattended.
+3. **Final Cut review (owner, final)** — timing feel, sound, effects on the 720p draft; ≤2 rounds expected; owner approval → full-res `bash run.sh <slug> assemble` (no --draft) = the deliverable `final.mp4`.
+4. **DaVinci** — `run.sh <slug> export` only on explicit owner request; not a stage.
+
+- `PIPELINE.md`: effects-plan/sound/mix rows say "auto-approved — reviewed on Final Cut"; rewrite the 040 row's review-model note to the three-stage text above. Do NOT touch the 095 row (already marked OPTIONAL on main — avoid a rebase conflict).
+- Skill (`pipelines/.claude/skills/visuals-flow-2/SKILL.md`): rewrite the Review model paragraph to the three stages; add `"make the cut", "cut the video"` → `bash run.sh <slug> cut` to the verb table; remove "sound.json approval before mix" from the mix row; note export = on-request only.
+
+**Verify**: `grep -n "auto-approved" PIPELINE.md` → present; `grep -n "cut" run.sh pipelines/.claude/skills/visuals-flow-2/SKILL.md` → verb present in both; `bash scripts/check.sh` exit 0.
+
+### Step 5: screenshots (ui:true)
 
 Storyboard tab: (a) default state — three prominent lanes, avatar mode labels, derivatives folded; (b) unfolded derivatives.
 
@@ -103,8 +115,9 @@ Writer-default unit tests, board markup unit tests, serve smoke, screenshots for
 
 - [ ] check.sh green
 - [ ] Fresh `effects.json`/`sound.json` are born `approved: true`; assemble+mix run without approval steps
+- [ ] `run.sh <slug> cut` chains render→effects→sound→mix→draft unattended, refuses unapproved cues, and prints the Final Cut URL
 - [ ] Storyboard: avatar mode labels; effects/sound folded by default with persisted toggle
-- [ ] Docs + skill reflect the split
+- [ ] Docs + skill carry the three-stage process verbatim (storyboard deep pass / session cuts / Final Cut final review; export on-request)
 - [ ] Two PR screenshots
 
 ## STOP conditions
