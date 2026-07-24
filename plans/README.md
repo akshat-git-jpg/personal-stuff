@@ -683,3 +683,4 @@ No deploys. 137's test_cmd runs in BOTH card-library and visuals-flow-2
 - 140-vf2-board-two-tabs — two-tab review dashboard — TODO
 - 141-vf2-docs-registration — docs + skill + map rows — TODO
 - 134-vf2-scaffold — PR#92 134-vf2-scaffold: visuals-flow-2 scaffold — copy the v1 spine, prove parity — DONE
+- 135-vf2-coverage-density-headmodes — PR#93 135-vf2-coverage-density-headmodes: v2 coverage fix (orange screen), motion density, head layout modes — DONE
