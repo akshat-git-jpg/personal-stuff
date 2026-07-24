@@ -37,161 +37,71 @@
     },
     {
       "id": "c02",
-      "card": "overlay/callout",
+      "card": "overlay/keyword-pop",
       "placement": "overlay",
-      "start": 8.34,
+      "start": 11.23,
       "duration": 5,
       "variables": {
-        "kind": "note",
-        "title": "5 tools, 5 promises",
-        "text": "None of them built for the same person",
+        "text": "5 tools, 5 promises",
         "pos": "top-left",
-        "style": "feature",
         "register": "dark",
         "variant": "a"
       }
     },
     {
       "id": "c03",
-      "card": "overlay/callout",
+      "card": "overlay/keyword-pop",
       "placement": "overlay",
       "start": 24.47,
       "duration": 5,
       "variables": {
-        "kind": "note",
-        "title": "The question",
-        "text": "Which tool wins — and for who?",
+        "kicker": "The question",
+        "text": "Which tool wins?",
         "pos": "top-right",
-        "style": "feature",
         "register": "dark",
         "variant": "b"
       }
     },
     {
       "id": "c04",
-      "card": "enacted/before-after",
+      "card": "statement/keyword-statement",
       "placement": "fullframe",
       "start": 32.6,
-      "duration": 13.93,
+      "duration": 16.31,
       "variables": {
-        "title": "Not one winner",
-        "marker": "winner",
-        "before_label": "One race",
-        "after_label": "Best for you",
-        "before_lines": [
-          {
-            "line": "One overall winner"
-          },
-          {
-            "line": "Generic scores"
-          }
-        ],
-        "after_lines": [
-          {
-            "line": "Five different jobs"
-          },
-          {
-            "line": "Matched to how you work"
-          }
-        ],
+        "text": "Not one winner — which one is best for you",
+        "keyword": "for you",
         "register": "light",
         "variant": "a"
       }
     },
     {
       "id": "c05",
-      "card": "slate/kinetic-sentence",
+      "card": "checklist/icon-pills",
       "placement": "fullframe",
-      "start": 46.53,
-      "duration": 15.75,
+      "start": 48.91,
+      "duration": 13.37,
       "variables": {
-        "text": "So I tested all 5 across the same areas such as features, output quality, workflow, and pricing",
-        "accent": "the same areas",
         "beats": [
           {
-            "text": "So",
-            "accent": false,
-            "at": 0.2
+            "icon": "bolt",
+            "text": "Features",
+            "at": 0.6
           },
           {
-            "text": "I",
-            "accent": false,
-            "at": 0.36
+            "icon": "star",
+            "text": "Output quality",
+            "at": 2.01
           },
           {
-            "text": "tested",
-            "accent": false,
-            "at": 0.93
+            "icon": "gear",
+            "text": "Workflow",
+            "at": 4.07
           },
           {
-            "text": "all",
-            "accent": false,
-            "at": 0.96
-          },
-          {
-            "text": "5",
-            "accent": false,
-            "at": 1.27
-          },
-          {
-            "text": "across",
-            "accent": false,
-            "at": 1.45
-          },
-          {
-            "text": "the",
-            "accent": true,
-            "at": 2
-          },
-          {
-            "text": "same",
-            "accent": true,
-            "at": 2.21
-          },
-          {
-            "text": "areas",
-            "accent": true,
-            "at": 2.55
-          },
-          {
-            "text": "such",
-            "accent": false,
-            "at": 2.98
-          },
-          {
-            "text": "as",
-            "accent": false,
-            "at": 3.37
-          },
-          {
-            "text": "features,",
-            "accent": false,
-            "at": 3.48
-          },
-          {
-            "text": "output",
-            "accent": false,
-            "at": 4.39
-          },
-          {
-            "text": "quality,",
-            "accent": false,
-            "at": 4.84
-          },
-          {
-            "text": "workflow,",
-            "accent": false,
+            "icon": "chart",
+            "text": "Pricing",
             "at": 5.6
-          },
-          {
-            "text": "and",
-            "accent": false,
-            "at": 6.45
-          },
-          {
-            "text": "pricing",
-            "accent": false,
-            "at": 7.49
           }
         ],
         "register": "light"
@@ -207,19 +117,24 @@
         "title": "The gameplan",
         "steps": [
           {
-            "step": "Overviews"
+            "step": "Overviews",
+            "icon": "eye"
           },
           {
-            "step": "Live demos"
+            "step": "Live demos",
+            "icon": "play"
           },
           {
-            "step": "Pricing"
+            "step": "Pricing",
+            "icon": "wallet"
           },
           {
-            "step": "Scorecard"
+            "step": "Scorecard",
+            "icon": "scale"
           },
           {
-            "step": "Verdict"
+            "step": "Verdict",
+            "icon": "star"
           }
         ],
         "beats": [
@@ -250,18 +165,13 @@
     },
     {
       "id": "c07",
-      "card": "overlay/callout",
+      "card": "link-in-description/link-in-description",
       "placement": "overlay",
       "start": 83.87,
-      "duration": 5,
+      "duration": 4,
       "variables": {
-        "kind": "note",
-        "title": "Links below",
-        "text": "All 5 platforms linked in the description",
-        "pos": "top-right",
-        "style": "feature",
-        "register": "light",
-        "variant": "a"
+        "message": "All 5 platforms linked in the description",
+        "register": "light"
       }
     },
     {
@@ -283,34 +193,30 @@
     },
     {
       "id": "c09",
-      "card": "overlay/callout",
+      "card": "overlay/keyword-pop",
       "placement": "overlay",
-      "start": 96.9,
+      "start": 100.35,
       "duration": 5,
       "variables": {
-        "kind": "note",
-        "title": "100+ models",
-        "text": "Flux, Nano Banana, Kling — one subscription",
-        "pos": "top-left",
-        "style": "feature",
+        "kicker": "OpenArt",
+        "text": "100+ AI models",
+        "pos": "top-right",
         "register": "light",
-        "variant": "b"
+        "variant": "a"
       }
     },
     {
       "id": "c10",
-      "card": "overlay/callout",
+      "card": "overlay/keyword-pop",
       "placement": "overlay",
       "start": 105.33,
       "duration": 5,
       "variables": {
-        "kind": "note",
-        "title": "All-in-one",
-        "text": "Images · video · characters · training · audio",
+        "kicker": "OpenArt",
+        "text": "All-in-one",
         "pos": "top-left",
-        "style": "feature",
         "register": "light",
-        "variant": "a"
+        "variant": "b"
       }
     },
     {
@@ -332,23 +238,21 @@
     },
     {
       "id": "c12",
-      "card": "overlay/callout",
+      "card": "overlay/keyword-pop",
       "placement": "overlay",
       "start": 131.51,
       "duration": 5,
       "variables": {
-        "kind": "note",
-        "title": "One interface",
-        "text": "Sora 2, Kling 3.0 & Veo 3.1 in one place",
+        "kicker": "Higgsfield",
+        "text": "One interface",
         "pos": "top-right",
-        "style": "feature",
         "register": "light",
-        "variant": "b"
+        "variant": "a"
       }
     },
     {
       "id": "c13",
-      "card": "enacted/stack-builder",
+      "card": "enacted/connect-nodes",
       "placement": "fullframe",
       "start": 141.58,
       "duration": 10.29,
@@ -418,28 +322,32 @@
     },
     {
       "id": "c17",
-      "card": "overlay/label-plate",
+      "card": "overlay/arrow-label",
       "placement": "overlay",
       "start": 184.29,
       "duration": 5,
       "variables": {
-        "text": "Create → Video",
-        "position": "top-left",
-        "register": "light",
-        "variant": "a"
+        "label": "Create → Video",
+        "tailX": 560,
+        "tailY": 250,
+        "tipX": 315,
+        "tipY": 395,
+        "register": "light"
       }
     },
     {
       "id": "c18",
-      "card": "overlay/label-plate",
+      "card": "overlay/arrow-label",
       "placement": "overlay",
       "start": 201.99,
       "duration": 5,
       "variables": {
-        "text": "Text to Video",
-        "position": "top-center",
-        "register": "light",
-        "variant": "b"
+        "label": "Text to Video",
+        "tailX": 1250,
+        "tailY": 340,
+        "tipX": 965,
+        "tipY": 168,
+        "register": "light"
       }
     },
     {
@@ -498,18 +406,16 @@
     },
     {
       "id": "c20",
-      "card": "overlay/callout",
+      "card": "overlay/keyword-pop",
       "placement": "overlay",
-      "start": 221.4,
+      "start": 223.48,
       "duration": 5,
       "variables": {
-        "kind": "note",
-        "title": "Seedance",
-        "text": "Newest — cinematic video with audio, multi-shot",
-        "pos": "top-left",
-        "style": "feature",
+        "kicker": "Seedance",
+        "text": "Newest — audio + multi-shot",
+        "pos": "top-right",
         "register": "light",
-        "variant": "a"
+        "variant": "b"
       }
     },
     {
@@ -529,18 +435,17 @@
     },
     {
       "id": "c22",
-      "card": "overlay/callout",
+      "card": "overlay/arrow-label",
       "placement": "overlay",
-      "start": 253.24,
+      "start": 251.52,
       "duration": 5,
       "variables": {
-        "kind": "note",
-        "title": "Clip length",
-        "text": "Choose how many seconds to generate",
-        "pos": "top-right",
-        "style": "feature",
-        "register": "light",
-        "variant": "b"
+        "label": "Clip length",
+        "tailX": 620,
+        "tailY": 780,
+        "tipX": 1500,
+        "tipY": 672,
+        "register": "light"
       }
     },
     {

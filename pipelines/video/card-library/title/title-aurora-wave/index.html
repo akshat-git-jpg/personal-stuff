@@ -68,8 +68,18 @@
         -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
       }
       #chips {
-        display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+        display: flex; align-items: flex-start; justify-content: center; flex-wrap: wrap;
         gap: 28px; row-gap: 32px; margin-top: 8px; position: relative;
+      }
+      /* chip column: glass logo tile + tool name below (owner: "tool name with logo") */
+      .chipCol {
+        display: flex; flex-direction: column; align-items: center; gap: 16px;
+        width: 210px; flex-shrink: 0; will-change: transform;
+      }
+      .chipName {
+        font-size: 28px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2;
+        color: rgba(255, 239, 219, 0.62); text-align: center; max-width: 240px;
+        will-change: opacity, transform;
       }
       /* glass chip: dark translucent panel (design-system style), NOT solid
          white — muted logos read on it via a faint inner plate. */
@@ -91,7 +101,17 @@
         width: 100%; height: 100%; object-fit: contain; position: relative;
         filter: saturate(0.62) brightness(1.02); opacity: 0.95;
       }
-      .chip.text { width: auto; padding: 0 46px; font-size: 34px; font-weight: 700; color: var(--text); }
+      /* text fallback: name rendered INSIDE the tile (no duplicate label below) —
+         keeps the square 210px footprint so the row stays symmetric. */
+      .chip.text {
+        padding: 20px; font-size: 30px; font-weight: 700; color: var(--text);
+        text-align: center; line-height: 1.25; overflow-wrap: break-word;
+      }
+      /* dense mode (13+ platforms → 3 rows): smaller tiles so 3 rows + names fit */
+      #chips.dense .chipCol { width: 170px; gap: 12px; }
+      #chips.dense .chip { width: 170px; height: 170px; border-radius: 28px; padding: 34px; }
+      #chips.dense .chipName { font-size: 23px; max-width: 196px; }
+      #chips.dense .chip.text { padding: 14px; font-size: 25px; }
 
       #lightbar {
         position: absolute; top: 0; bottom: 0; width: 8px; pointer-events: none;
@@ -184,13 +204,16 @@
         { baseX: 1200, baseY: 400, ampX: 140, ampY: 70, color: '#c2410c', size: 520, opacity: 0.22 },
       ];
 
-      // Chip layout — same grid math as the source (6 per row, 248px pitch, centered).
+      // Chip layout — mirrors the flex wrap: row capacity from the real container
+      // width (1920 - 2*140 frame padding = 1640), pitch = tile + 28px gap;
+      // dense mode (13+) uses 170px tiles. Each row is centered, like flex.
       function computeChipX(n) {
-        const PER = 6, W = 248, out = [];
+        const GAP = 28, TILE = n > 12 ? 170 : 210, W = TILE + GAP, out = [];
+        const PER = Math.max(1, Math.floor((1640 + GAP) / W));
         for (let i = 0; i < n; i++) {
           const row = Math.floor(i / PER), col = i % PER;
-          const rc = Math.min(PER, n - row * PER), rw = rc * W - 28, xs = 960 - rw / 2;
-          out.push(xs + col * W + 110);
+          const rc = Math.min(PER, n - row * PER), rw = rc * W - GAP, xs = 960 - rw / 2;
+          out.push(xs + col * W + TILE / 2);
         }
         return out;
       }
@@ -200,11 +223,16 @@
       const LOGOS = VARS.__logos ?? {}; // registry logos inlined by resolve (platforms[].logo slugs)
       function build() {
         $('titleText').textContent = DATA.title;
+        $('chips').classList.toggle('dense', DATA.platforms.length > 12);
         $('chips').innerHTML = DATA.platforms
           .map((p) => {
-            if (p.logoSvg) return `<div class="chip">${p.logoSvg}</div>`;
-            if (p.logo && LOGOS[p.logo]) return `<div class="chip"><img src="${LOGOS[p.logo]}" alt="${p.name ?? p.logo}"></div>`;
-            return `<div class="chip text">${p.name}</div>`;
+            const name = p.name ?? p.logo ?? '';
+            if (p.logoSvg)
+              return `<div class="chipCol"><div class="chip">${p.logoSvg}</div><div class="chipName">${name}</div></div>`;
+            if (p.logo && LOGOS[p.logo])
+              return `<div class="chipCol"><div class="chip"><img src="${LOGOS[p.logo]}" alt="${name}"></div><div class="chipName">${name}</div></div>`;
+            // text fallback: name lives inside the tile — no duplicate label below
+            return `<div class="chipCol"><div class="chip text">${name}</div></div>`;
           })
           .join('');
         CHIPX = computeChipX(DATA.platforms.length);
@@ -220,14 +248,18 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
 
-      // 1) Aurora drift — slow continuous swing over the whole 10s clip (deterministic, finite).
-      //    Replaces the sin/cos drift with a long yoyo on each blob's x/y.
+      // 1) Aurora drift — slow continuous swing covering the whole 10s clip
+      //    (deterministic, finite). Per-blob periods desynchronize the drift so the
+      //    background never reads as frozen during the post-sweep hold.
+      const BLOB_PERIODS = [5, 3.6, 4.4]; // seconds per half-swing, one per blob
       const blobs = gsap.utils.toArray('#aurora .blob');
       blobs.forEach((el, i) => {
         const b = AURORA[i];
+        const dur = BLOB_PERIODS[i % BLOB_PERIODS.length];
+        const reps = Math.ceil(10 / dur); // enough yoyo repeats to cover 10s
         tl.to(
           el,
-          { x: b.ampX, y: -b.ampY, duration: 5, ease: 'sine.inOut', yoyo: true, repeat: 1 },
+          { x: b.ampX, y: -b.ampY, duration: dur, ease: 'sine.inOut', yoyo: true, repeat: reps },
           0,
         );
       });
@@ -261,7 +293,12 @@
       // 5) Chips revealed as the bar passes each chip's center.
       //    Source reveals chip i over a +-100px window around barX === CHIPX[i].
       //    Translate each chip's reveal to the timeline moment the bar crosses it.
-      gsap.utils.toArray('#chips .chip').forEach((el, i) => {
+      //    The tile pops first; its name label fades in ~0.12s later; then the whole
+      //    column settles into a gentle idle float to the end of the 10s hold.
+      const REVEAL_DUR = (200 / (BAR_TO - BAR_FROM)) * SWEEP_DUR;
+      gsap.utils.toArray('#chips .chipCol').forEach((col, i) => {
+        const tile = col.querySelector('.chip');
+        const label = col.querySelector('.chipName');
         // progress along the sweep (0..1) at which the bar center reaches this chip
         const prog = (CHIPX[i] - BAR_FROM) / (BAR_TO - BAR_FROM);
         // the eased sweep means linear time != linear position; approximate with the
@@ -270,10 +307,27 @@
         const startProg = Math.max(0, prog - 100 / (BAR_TO - BAR_FROM));
         const at = SWEEP_START + startProg * SWEEP_DUR;
         tl.fromTo(
-          el,
+          tile,
           { opacity: 0, scale: 0.85 },
-          { opacity: 1, scale: 1, duration: 200 / (BAR_TO - BAR_FROM) * SWEEP_DUR, ease: 'power2.out' },
+          { opacity: 1, scale: 1, duration: REVEAL_DUR, ease: 'power2.out' },
           at,
+        );
+        if (label)
+          tl.fromTo(
+            label,
+            { opacity: 0, y: 10 },
+            { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' },
+            at + 0.12,
+          );
+        // idle float — starts just after this chip's reveal, staggered ~0.35s within
+        // a row, alternating direction; finite yoyo repeats carry it past the 10s mark.
+        const floatStart = at + REVEAL_DUR + 0.2 + (i % 6) * 0.35;
+        const FLOAT_DUR = 1.6;
+        const floatReps = Math.max(2, Math.ceil((10 - floatStart) / FLOAT_DUR));
+        tl.to(
+          col,
+          { y: i % 2 ? 6 : -6, duration: FLOAT_DUR, ease: 'sine.inOut', yoyo: true, repeat: floatReps },
+          floatStart,
         );
       });
 

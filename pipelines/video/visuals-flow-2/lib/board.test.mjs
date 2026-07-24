@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, fxDriftActive, appendFinalFeedback, pinFromClick, resolveAndExtend, playthroughView, toggleAuditAccepted } from './board.mjs';
+import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, appendFinalFeedback, pinFromClick, resolveAndExtend, playthroughView, toggleAuditAccepted } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'board');
@@ -906,30 +906,25 @@ test('toggleAuditAccepted: accepts a verdict, un-accepting drops the field, unkn
   assert.ok(!('nope' in noop.cues));
 });
 
-test('fxContext / fxEventsAt / fxDriftActive helpers', () => {
+test('fxContext / fxEventsAt helpers', () => {
   const fullframes = [{ id: 'f1', start: 10, end: 15 }];
   const spans = [{ id: 's1', start: 5, end: 12 }];
-  
+
   assert.equal(fxContext(8, fullframes, spans), 'avatar');
   assert.equal(fxContext(11, fullframes, spans), 'graphic');
   assert.equal(fxContext(2, fullframes, spans), 'screen');
-  
+
   const instances = [
     { type: 'whip', at: 5, enabled: true },
-    { type: 'whip', at: 8, enabled: false },
-    { type: 'drift', start: 4, end: 6, enabled: true }
+    { type: 'whip', at: 8, enabled: false }
   ];
-  
+
   const ev1 = fxEventsAt(4, 5, instances);
   assert.equal(ev1.length, 1);
   assert.equal(ev1[0].at, 5);
-  
+
   const ev2 = fxEventsAt(5, 6, instances);
   assert.equal(ev2.length, 0);
-  
-  assert.equal(fxDriftActive(5, instances, 'screen'), true);
-  assert.equal(fxDriftActive(7, instances, 'screen'), false);
-  assert.equal(fxDriftActive(5, instances, 'avatar'), false);
 });
 
 test('effects-plan approved carry', () => {

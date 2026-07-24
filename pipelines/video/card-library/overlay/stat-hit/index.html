@@ -16,18 +16,21 @@
     <style>
       :root {
         --text: #ffffff;
-        --text-dim: rgba(255,239,219,0.6);
+        --text-dim: rgba(255,239,219,0.82);
         --accent: #fb923c;
+        --panel: rgba(15, 11, 7, 0.88);
         --font: 'Inter', system-ui, sans-serif;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: var(--font); color: var(--text); }
       #root { position: relative; width: 1920px; height: 1080px; }
-      #box { position: absolute; bottom: 110px; left: 110px; display: flex; flex-direction: column; gap: 8px; }
+      #box { position: absolute; bottom: 110px; left: 110px; display: inline-flex; flex-direction: column; gap: 8px;
+        background: var(--panel); border: 1px solid rgba(255,255,255,0.12); border-radius: 28px;
+        padding: 40px 64px 44px 52px; backdrop-filter: blur(14px); box-shadow: 0 26px 60px rgba(0,0,0,0.45); }
       .eyebrow { font-size: 22px; font-weight: 800; text-transform: uppercase; color: var(--accent); letter-spacing: 2px; display: flex; align-items: center; }
       .hero-row { display: flex; align-items: baseline; line-height: 1; }
-      .hero-num { font-size: 220px; font-weight: 900; font-variant-numeric: tabular-nums; }
-      .hero-suffix { font-size: 140px; font-weight: 800; margin-left: 8px; }
+      .hero-num { font-size: 220px; font-weight: 900; font-variant-numeric: tabular-nums; color: var(--text); }
+      .hero-suffix { font-size: 140px; font-weight: 800; margin-left: 8px; color: var(--accent); }
       .context { font-size: 32px; color: var(--text-dim); max-width: 800px; line-height: 1.35; margin-top: 8px; }
     
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }

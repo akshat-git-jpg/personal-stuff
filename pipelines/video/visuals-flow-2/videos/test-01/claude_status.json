@@ -1,0 +1,73 @@
+{
+  "updated": "2026-07-24T14:42:04.669Z",
+  "items": {
+    "final-v1:0": {
+      "status": "fixed",
+      "message": "v2: title card now shows each tool's name under its logo, symmetric centered grid; template stays generic"
+    },
+    "final-v1:1": {
+      "status": "fixed",
+      "message": "v2: title card motion covers the full 10s (chip float + aurora + shimmer); ambient-motion contract applies to all cards"
+    },
+    "final-v1:2": {
+      "status": "fixed",
+      "message": "v2: overlay moved off the title card (~11s). New hard lint error E9: overlays can never overlap a fullframe graphic again"
+    },
+    "final-v1:3": {
+      "status": "fixed",
+      "message": "overlay/callout DELETED from the library; replaced by minimal keyword-pop pill (see 0:26 in v2)"
+    },
+    "final-v1:4": {
+      "status": "fixed",
+      "message": "v2: before-after replaced by simple keyword-statement 'Not one winner — which one is best for you'"
+    },
+    "final-v1:5": {
+      "status": "fixed",
+      "message": "v2: comma-list now icon-pills (one item pops per spoken word). Permanent rule: enumerations route to list cards, never text slates"
+    },
+    "final-v1:6": {
+      "status": "fixed",
+      "message": "cue replaced (see :5); ambient breathe now keeps every card alive through its hold"
+    },
+    "final-v1:7": {
+      "status": "fixed",
+      "message": "moving dot removed from pipeline-flow for good — track fill carries the progress, ✓ badge pops at node corner"
+    },
+    "final-v1:8": {
+      "status": "fixed",
+      "message": "pipeline-flow steps now REQUIRE an icon (28-icon built-in set, extensible) — see 1:05–1:20 in v2"
+    },
+    "final-v1:9": {
+      "status": "fixed",
+      "message": "v2: link-in-description card used at ~1:24"
+    },
+    "final-v1:10": {
+      "status": "fixed",
+      "message": "callout deleted everywhere; overlay-over-graphic now a lint ERROR (E9); this moment is keyword-pop over footage at ~1:41"
+    },
+    "final-v1:11": {
+      "status": "fixed",
+      "message": "callout template deleted from the library — cannot be selected again"
+    },
+    "final-v1:12": {
+      "status": "fixed",
+      "message": "that effect is 'Ken Burns drift' — removed FOREVER (module deleted, regression test guards it); recorded in decisions.md"
+    },
+    "final-v1:13": {
+      "status": "fixed",
+      "message": "stack-builder template deleted from the library"
+    },
+    "final-v1:14": {
+      "status": "fixed",
+      "message": "v2: Higgsfield stack now connect-nodes (graph join). Flag it on v2 if it still reads weak — candidate for a better device"
+    },
+    "final-v1:15": {
+      "status": "fixed",
+      "message": "stat-hit rebuilt with a dark backing plate — verified legible over pure white footage (see 2:39 in v2)"
+    },
+    "final-v1:16": {
+      "status": "fixed",
+      "message": "label-plate template deleted; UI-pointing moments now use arrow-label with real coordinates (see 3:04 in v2)"
+    }
+  }
+}

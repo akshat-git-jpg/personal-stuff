@@ -169,7 +169,7 @@ Rules of thumb:
 - Move / trim / delete freely — every clip is plain media, nothing generated.
 - You can NOT extend a clip past its rendered length; ask for a re-render
   of that piece instead.
-- Effect looks (flash, drift, captions, punch-ins) are baked upstream. To
+- Effect looks (flash, captions, punch-ins) are baked upstream. To
   change one, edit effects.json in the repo and re-export — don't rebuild here.
 - The voiceover on A1 is the master clock: edits that change total duration
   desync everything after the edit point.

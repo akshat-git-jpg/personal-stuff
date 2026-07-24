@@ -3,7 +3,7 @@
   "approved": true,
   "instances": [
     {
-      "id": "sfx-44",
+      "id": "sfx-45",
       "at": 0,
       "sample": "drone_low",
       "semi": 0,
@@ -33,7 +33,7 @@
       "gainDb": -14
     },
     {
-      "id": "sfx-43",
+      "id": "sfx-44",
       "at": 45.92,
       "sample": "swipe",
       "semi": 0,
@@ -41,17 +41,31 @@
     },
     {
       "id": "sfx-6",
-      "at": 46.53,
+      "at": 48.91,
       "sample": "whoosh-up",
       "semi": 0,
       "gainDb": -14
     },
     {
+      "id": "sfx-7",
+      "at": 49.51,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
       "id": "sfx-8",
-      "at": 46.89,
+      "at": 50.919999999999995,
       "sample": "pop",
       "semi": 4,
       "gainDb": -16
+    },
+    {
+      "id": "sfx-9",
+      "at": 54.51,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
     },
     {
       "id": "sfx-10",
@@ -83,7 +97,14 @@
     },
     {
       "id": "sfx-16",
-      "at": 96.9,
+      "at": 100.35,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-17",
+      "at": 105.33,
       "sample": "blip",
       "semi": 0,
       "gainDb": -14
@@ -131,7 +152,7 @@
       "gainDb": -14
     },
     {
-      "id": "sfx-45",
+      "id": "sfx-46",
       "at": 190,
       "sample": "drone_low",
       "semi": 0,
@@ -162,14 +183,7 @@
     },
     {
       "id": "sfx-33",
-      "at": 221.4,
-      "sample": "blip",
-      "semi": 0,
-      "gainDb": -14
-    },
-    {
-      "id": "sfx-35",
-      "at": 253.24,
+      "at": 223.48,
       "sample": "blip",
       "semi": 0,
       "gainDb": -14

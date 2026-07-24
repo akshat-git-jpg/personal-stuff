@@ -9,6 +9,85 @@
       "text": "motion stopped at 2 sec and same still screen is visible for some time.., video editing gap..",
       "t": 5.120467,
       "context": "final@00:05"
+    },
+    "final-v1:2": {
+      "text": "why overlay is coming on top of motion graphics, seen this at other places as well",
+      "t": 9.611632,
+      "context": "final@00:09",
+      "image": "feedback-images/final-v1-2.png"
+    },
+    "final-v1:3": {
+      "text": "this overaly looks bad , lets not use this",
+      "t": 26.378215,
+      "context": "final@00:26",
+      "image": "feedback-images/final-v1-3.png"
+    },
+    "final-v1:4": {
+      "text": "confusing motion graphic. also not syncing with audio. lets use a simple motion graphic here.",
+      "t": 43.012081,
+      "context": "final@00:43"
+    },
+    "final-v1:5": {
+      "text": "comma separated things would have best suited for some list type motion graphic instead of this text type..",
+      "t": 54.673312,
+      "context": "final@00:54"
+    },
+    "final-v1:6": {
+      "text": "this stays static on screen. Why?",
+      "t": 59.996745,
+      "context": "final@00:59"
+    },
+    "final-v1:7": {
+      "text": "this moving dot is overalapping with tick. I am not even sure how this design is supposed to work. Lets just remove moving dot..?",
+      "t": 72.439452,
+      "context": "final@01:12"
+    },
+    "final-v1:8": {
+      "text": "Also this template look too blant. We should have added some logo for each factor.., this are just text",
+      "t": 81.115305,
+      "context": "final@01:21"
+    },
+    "final-v1:9": {
+      "text": "use link-in-description/link-in-description/index.html motion graphic.",
+      "t": 88.048983,
+      "context": "final@01:28"
+    },
+    "final-v1:10": {
+      "text": "again overlay is coming on motion graphic. Why?  Looks very bad. Also lets not use this overlay for now anywhere. I don't like this overlay",
+      "t": 98.320486,
+      "context": "final@01:38",
+      "image": "feedback-images/final-v1-10.png"
+    },
+    "final-v1:11": {
+      "text": "remove this overlay from everywhere. Not liking it.",
+      "t": 109.938372,
+      "context": "final@01:49"
+    },
+    "final-v1:12": {
+      "text": "this slow zoom in out - what is this effect called? Lets removed this forver. Not adding much value",
+      "t": 135.163132,
+      "context": "final@02:15"
+    },
+    "final-v1:13": {
+      "text": "nah bad motion graphic, Pls remove from template",
+      "t": 149.49489,
+      "context": "final@02:29"
+    },
+    "final-v1:14": {
+      "text": "bad choice of motion graphic. How is thjis a stack?",
+      "t": 149.49489,
+      "context": "final@02:29"
+    },
+    "final-v1:15": {
+      "text": "Overlay is not even visible",
+      "t": 159.583647,
+      "context": "final@02:39",
+      "image": "feedback-images/final-v1-15.png"
+    },
+    "final-v1:16": {
+      "text": "remove this motion graphic template",
+      "t": 185.556454,
+      "context": "final@03:05"
     }
   },
   "updated": "2026-07-24"

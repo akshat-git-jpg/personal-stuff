@@ -32,7 +32,6 @@ test('planFx', () => {
     { id: 'w2', type: 'whip', style: 'flash', at: 15, enabled: false },
     { id: 'w3', type: 'whip', style: 'blur', at: 20, enabled: true },
     { id: 'b1', type: 'beat', at: 30, punch: 1.08, enabled: true },
-    { id: 'd1', type: 'drift', at: 40, enabled: true },
     { id: 'bu1', type: 'bubble', at: 50, enabled: true },
     { id: 'c1', type: 'captions', enabled: true }
   ];
@@ -51,9 +50,6 @@ test('planFx', () => {
   // b1: rendered as beat-flash AND dropped as beat-punch
   assert.ok(rendered.find(r => r.id === 'b1' && r.type === 'beat-flash' && r.timelineStart === 29.9));
   assert.ok(dropped.find(d => d.id === 'b1-punch' && d.type === 'beat-punch'));
-  
-  // d1: dropped as drift
-  assert.ok(dropped.find(d => d.id === 'd1' && d.type === 'drift'));
   
   // bu1: dropped as bubble
   assert.ok(dropped.find(d => d.id === 'bu1' && d.type === 'bubble'));

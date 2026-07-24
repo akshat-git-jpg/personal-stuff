@@ -197,7 +197,9 @@ EOF
     ;;
 
   cut)
-    if [[ "$(node -e "try{console.log(require('./videos/$slug/cues.json').approved===true)}catch{console.log('false')}")" != "true" ]]; then
+    # exit-code check, NOT string compare — captured stdout can carry ANSI color
+    # codes (rtk hook / forced-color node), which broke `!= "true"` (2026-07-24)
+    if ! node -e "process.exit(require('./videos/$slug/cues.json').approved===true?0:1)" 2>/dev/null; then
       echo "approve the storyboard first"
       exit 1
     fi

@@ -681,71 +681,6 @@
       "default_duration": 5
     },
     {
-      "slug": "overlay/callout",
-      "kind": "single",
-      "placement": "overlay",
-      "purpose": "transparent tip/warning/note callout box that pops in over screen recording",
-      "variables": {
-        "kind": {
-          "required": true,
-          "type": "string",
-          "role": "free",
-          "example": "tip",
-          "enum": [
-            "tip",
-            "warning",
-            "note"
-          ]
-        },
-        "title": {
-          "required": true,
-          "type": "string",
-          "role": "heading",
-          "example": "Section Title"
-        },
-        "text": {
-          "required": true,
-          "type": "string",
-          "role": "sentence",
-          "example": "This is an example sentence."
-        },
-        "pos": {
-          "required": true,
-          "type": "string",
-          "role": "free",
-          "example": "top-right",
-          "enum": [
-            "top-right",
-            "top-left",
-            "bottom-right",
-            "center"
-          ]
-        },
-        "style": {
-          "required": false,
-          "type": "string",
-          "role": "free",
-          "example": "feature",
-          "enum": [
-            "feature",
-            "tip",
-            "warning"
-          ]
-        },
-        "kicker": {
-          "required": false,
-          "type": "string",
-          "role": "heading",
-          "example": "Section Title"
-        }
-      },
-      "default_duration": 5,
-      "variants": [
-        "a",
-        "b"
-      ]
-    },
-    {
       "slug": "overlay/code-reveal",
       "kind": "single",
       "placement": "overlay",
@@ -1575,6 +1510,52 @@
       "default_duration": 7
     },
     {
+      "slug": "overlay/keyword-pop",
+      "kind": "single",
+      "placement": "overlay",
+      "purpose": "Minimal corner keyword pop \u2014 compact dark pill with an optional brand kicker and one bold short phrase, accent-swept, punctuating a claim over screen-recording footage",
+      "variables": {
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "100+ models",
+          "max_words": 5
+        },
+        "kicker": {
+          "required": false,
+          "type": "string",
+          "role": "label",
+          "example": "OpenArt",
+          "max_words": 3
+        },
+        "pos": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "example": "top-right",
+          "enum": [
+            "top-left",
+            "top-right",
+            "bottom-left",
+            "bottom-right"
+          ]
+        }
+      },
+      "default_duration": 5,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": false,
+      "intent": "Snap a single short keyword/stat/claim into a corner while the demo keeps playing.",
+      "anti_intent": "Sentences, tips or warnings (tip-banner), speaker IDs (lower-third), or multiple simultaneous facts.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
       "slug": "overlay/stat-hit",
       "kind": "single",
       "placement": "overlay",
@@ -1657,9 +1638,9 @@
         "b"
       ],
       "head_zone": {
-        "x": 0.60,
+        "x": 0.6,
         "y": 0.28,
-        "w": 0.30,
+        "w": 0.3,
         "h": 0.53
       }
     },
@@ -2075,6 +2056,42 @@
               "type": "string",
               "role": "label",
               "example": "Build"
+            },
+            "icon": {
+              "type": "string",
+              "role": "free",
+              "required": true,
+              "example": "rocket",
+              "enum": [
+                "brain",
+                "calendar",
+                "person",
+                "bolt",
+                "gear",
+                "lock",
+                "clock",
+                "chart",
+                "chat",
+                "shield",
+                "doc",
+                "search",
+                "star",
+                "cloud",
+                "eye",
+                "play",
+                "tag",
+                "wallet",
+                "list",
+                "video",
+                "image",
+                "mic",
+                "globe",
+                "code",
+                "rocket",
+                "layers",
+                "sliders",
+                "scale"
+              ]
             }
           }
         }
@@ -2160,41 +2177,6 @@
         "a",
         "b"
       ]
-    },
-    {
-      "slug": "enacted/stack-builder",
-      "kind": "beat",
-      "placement": "fullframe",
-      "purpose": "Blocks drop and stack into a column; dark register collapses on final beat if collapse is true",
-      "variables": {
-        "title": {
-          "required": true,
-          "type": "string",
-          "role": "heading",
-          "example": "Tech Stack"
-        }
-      },
-      "beat_shape": {
-        "label": {
-          "type": "string",
-          "role": "label",
-          "example": "Database"
-        }
-      },
-      "max_beats": 6,
-      "default_duration": 6,
-      "register": [
-        "dark",
-        "light"
-      ],
-      "marker": true,
-      "intent": "Show items accumulating or building on top of each other.",
-      "anti_intent": "Showing a linear timeline or a network graph.",
-      "variants": [
-        "a",
-        "b"
-      ],
-      "max_reveal_chars": 40
     },
     {
       "slug": "enacted/connect-nodes",
@@ -2440,38 +2422,6 @@
       "marker": true,
       "intent": "Show a real terminal command being executed.",
       "anti_intent": "Explaining concepts with pseudo-code or abstract steps.",
-      "variants": [
-        "a",
-        "b"
-      ]
-    },
-    {
-      "slug": "overlay/label-plate",
-      "kind": "single",
-      "placement": "overlay",
-      "purpose": "A mono-type plate that snaps in and holds a label; background a translucent dark plate with 1px accent keyline",
-      "variables": {
-        "text": {
-          "required": true,
-          "type": "string",
-          "role": "label",
-          "example": "Warning"
-        },
-        "position": {
-          "required": false,
-          "type": "string",
-          "role": "label",
-          "example": "top-left"
-        }
-      },
-      "default_duration": 5,
-      "register": [
-        "dark",
-        "light"
-      ],
-      "marker": true,
-      "intent": "Apply a simple, persistent label overlay to footage.",
-      "anti_intent": "Presenting large blocks of text or multi-step lists.",
       "variants": [
         "a",
         "b"

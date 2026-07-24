@@ -1,16 +1,19 @@
 <!doctype html>
 <!--
   PIPELINE FLOW   (Hyperframes enacted card)
-  A horizontal chain of node pills connected by track segments. A glowing pulse
-  travels along the track and arrives at the named step on each beat, lighting
-  that node (accent border+fill, dot -> checkmark). Dark register = problem:
-  pulse runs rose and the final beat's node judders instead of succeeding.
-  Light register = solution: pulse runs accent, every beat lands clean.
+  A horizontal chain of node pills connected by track segments. Each node shows
+  a stroke icon for its step; an accent fill wipes along the track and arrives
+  at the named step on each beat, lighting that node (accent border+fill, icon
+  tints accent) while a small check badge pops at the node's corner. Dark
+  register = problem: the final beat's node tints rose, gets an X badge and
+  judders instead of succeeding. Light register = solution: every beat lands clean.
   1920x1080, 30fps, 6 seconds.
 
   EDITOR: change only the ===== CONTENT ===== block (title, steps[], beats[]) and
-  the :root colors. Do NOT touch ===== TIMELINE (LOCKED). Or render-time:
-    --variables '{"title":"CI Pipeline","steps":[{"step":"Install"}],"beats":[{"step":"Install","at":0.9}]}'
+  the :root colors. Do NOT touch ===== TIMELINE (LOCKED). steps are
+  [{step, icon}] (icon REQUIRED, from the ICONS map); beats stay [{step, at}].
+  Or render-time:
+    --variables '{"title":"CI Pipeline","steps":[{"step":"Install","icon":"layers"}],"beats":[{"step":"Install","at":0.9}]}'
   Render:  npx hyperframes@latest render enacted/pipeline-flow -o out.mp4 --fps 30
 -->
 <html lang="en">
@@ -49,25 +52,24 @@
       body.variant-b .chain { flex-direction: column; height: 760px; justify-content: center; }
 
       .node { flex: 0 0 auto; width: 220px; height: 220px; border-radius: 32px; background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; position: relative; }
-      body.variant-b .node { width: 520px; height: 96px; flex-direction: row; border-radius: 22px; }
+      body.variant-b .node { width: 520px; height: 96px; flex-direction: row; justify-content: flex-start; padding: 0 28px; gap: 22px; border-radius: 22px; }
 
-      .node .dot { position: relative; width: 60px; height: 60px; flex: 0 0 auto; }
-      .node .dot > span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-      .node .ic-dot::after { content: ''; width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.32); }
-      .node .ic-check, .node .ic-fail { font-size: 34px; font-weight: 900; opacity: 0; }
-      .node .ic-check { color: var(--accent); }
-      .node .ic-fail { color: var(--negative); }
+      .node .icon { flex: 0 0 auto; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.35); }
+      .node .icon svg { width: 54px; height: 54px; }
+      body.variant-b .node .icon, body.variant-b .node .icon svg { width: 48px; height: 48px; }
+
+      .node .badge { position: absolute; top: -14px; right: -14px; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; line-height: 1; opacity: 0; z-index: 3; }
+      .node .badge-ok { background: var(--accent); color: #1a0f05; }
+      .node .badge-fail { background: var(--negative); color: #1a0f05; }
 
       .node .label { font-size: 26px; font-weight: 700; color: var(--text-dim); text-align: center; padding: 0 10px; line-height: 1.25; }
-      body.variant-b .node .label { text-align: left; }
+      body.variant-b .node .label { text-align: left; padding: 0; }
 
       .track { flex: 1 1 60px; height: 8px; min-width: 40px; border-radius: 4px; background: rgba(255,255,255,0.08); position: relative; overflow: hidden; }
       body.variant-b .track { width: 8px; height: auto; min-height: 30px; min-width: 0; }
       .track .fill { position: absolute; inset: 0; background: var(--accent); transform: scaleX(0); transform-origin: left; }
       body.variant-b .track .fill { transform: scaleY(0); transform-origin: top; }
-
-      .pulse { position: absolute; top: 0; left: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 26px 8px rgba(251,146,60,0.55); opacity: 0; z-index: 5; }
-      body.register-dark .pulse { background: var(--negative); box-shadow: 0 0 26px 8px rgba(251,113,133,0.55); }
+      body.register-dark .track .fill { background: var(--negative); }
 
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
@@ -75,7 +77,7 @@
   </head>
   <body class="register-dark variant-a">
     <div id="root" data-composition-id="pipeline-flow" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"CI Pipeline","steps":[{"step":"Install"},{"step":"Build"},{"step":"Test"},{"step":"Deploy"}],"beats":[{"step":"Install","at":0.9},{"step":"Build","at":1.8},{"step":"Test","at":2.7},{"step":"Deploy","at":3.6}]}'>
+      data-composition-variables='{"title":"CI Pipeline","steps":[{"step":"Install","icon":"layers"},{"step":"Build","icon":"gear"},{"step":"Test","icon":"search"},{"step":"Deploy","icon":"rocket"}],"beats":[{"step":"Install","at":0.9},{"step":"Build","at":1.8},{"step":"Test","at":2.7},{"step":"Deploy","at":3.6}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div id="card">
@@ -87,10 +89,49 @@
 
     <script>
       /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
+      const ICONS = {
+        // the generic, extensible icon source; future cards can copy it,
+        // and a later injected __icons registry is the promotion seam
+        brain:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>',
+        calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+        person:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+        bolt:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+        gear:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+        lock:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+        clock:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+        chart:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+        chat:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+        shield:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+        doc:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+        search:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+        star:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+        cloud:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>',
+        eye:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+        play:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+        tag:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
+        wallet:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>',
+        list:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+        video:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
+        image:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+        mic:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>',
+        globe:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+        code:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+        rocket:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>',
+        layers:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
+        sliders:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>',
+        scale:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>'
+      };
+      const iconSvg = (name) => ICONS[name] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/></svg>';
+
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DEFAULTS = {
         title: 'CI Pipeline',
-        steps: [{ step: 'Install' }, { step: 'Build' }, { step: 'Test' }, { step: 'Deploy' }],
+        steps: [
+          { step: 'Install', icon: 'layers' },
+          { step: 'Build',   icon: 'gear' },
+          { step: 'Test',    icon: 'search' },
+          { step: 'Deploy',  icon: 'rocket' },
+        ],
         beats: [
           { step: 'Install', at: 0.9 },
           { step: 'Build',   at: 1.8 },
@@ -140,7 +181,8 @@
         const node = document.createElement('div');
         node.className = 'node';
         node.dataset.step = s.step;
-        node.innerHTML = `<div class="dot"><span class="ic-dot"></span><span class="ic-check">&#10003;</span><span class="ic-fail">&#10005;</span></div><div class="label"></div>`;
+        node.innerHTML = `<div class="icon"></div><div class="badge badge-ok">&#10003;</div><div class="badge badge-fail">&#10005;</div><div class="label"></div>`;
+        node.querySelector('.icon').innerHTML = iconSvg(s.icon);
         node.querySelector('.label').textContent = s.step;
         chainEl.appendChild(node);
         nodeEls.push(node);
@@ -151,19 +193,6 @@
           chainEl.appendChild(track);
           trackFillEls.push(track.querySelector('.fill'));
         }
-      });
-      const pulseEl = document.createElement('div');
-      pulseEl.className = 'pulse';
-      chainEl.appendChild(pulseEl);
-
-      /* measure centers (after layout) */
-      const chainRect = chainEl.getBoundingClientRect();
-      const centers = nodeEls.map((el) => {
-        const r = el.getBoundingClientRect();
-        return {
-          x: r.left - chainRect.left + r.width / 2,
-          y: r.top - chainRect.top + r.height / 2,
-        };
       });
 
       /* ===== TIMELINE (LOCKED — do not edit) ===== */
@@ -179,45 +208,31 @@
       const stepIndex = {};
       DATA.steps.forEach((s, i) => { stepIndex[s.step] = i; });
 
-      if (centers.length) {
-        tl.set(pulseEl, {
-          opacity: 1,
-          xPercent: -50,
-          yPercent: -50,
-          x: isVariantB ? chainRect.width / 2 : centers[0].x,
-          y: isVariantB ? centers[0].y : chainRect.height / 2,
-        }, CHROME_IN + 0.35);
-      }
-
       beats.forEach((b, i) => {
         const idx = stepIndex[b.step];
         if (idx === undefined) return;
-        const center = centers[idx];
         const travelDur = 0.5;
         const arrive = b.at;
-        tl.to(pulseEl, {
-          x: isVariantB ? chainRect.width / 2 : center.x,
-          y: isVariantB ? center.y : chainRect.height / 2,
-          duration: travelDur,
-          ease: 'power2.out',
-        }, Math.max(arrive - travelDur, CHROME_IN + 0.35));
 
+        /* the track fill wipe is the travel indicator: it sweeps toward the node
+           during the travel window and completes exactly at the beat's arrival */
         if (idx > 0 && trackFillEls[idx - 1]) {
           const prop = isVariantB ? { scaleY: 1 } : { scaleX: 1 };
           tl.to(trackFillEls[idx - 1], { ...prop, duration: travelDur, ease: 'power2.out' }, Math.max(arrive - travelDur, CHROME_IN + 0.35));
         }
 
         const node = nodeEls[idx];
+        const iconEl = node.querySelector('.icon');
         const isFinal = i === beats.length - 1;
         if (isDark && isFinal) {
           tl.to(node, { borderColor: 'rgba(251,113,133,0.9)', backgroundColor: 'rgba(251,113,133,0.10)', duration: 0.3, ease: 'power2.out' }, arrive);
-          tl.to(node.querySelector('.ic-dot'), { opacity: 0, duration: 0.2 }, arrive);
-          tl.fromTo(node.querySelector('.ic-fail'), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)' }, arrive);
+          tl.to(iconEl, { color: '#fb7185', duration: 0.3, ease: 'power2.out' }, arrive);
+          tl.fromTo(node.querySelector('.badge-fail'), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)' }, arrive);
           tl.to(node, { keyframes: [{ x: -8 }, { x: 8 }, { x: -6 }, { x: 6 }, { x: 0 }], duration: 0.4, ease: 'power1.inOut' }, arrive + 0.05);
         } else {
           tl.to(node, { borderColor: 'rgba(251,146,60,0.9)', backgroundColor: 'rgba(251,146,60,0.10)', duration: 0.3, ease: 'power2.out' }, arrive);
-          tl.to(node.querySelector('.ic-dot'), { opacity: 0, duration: 0.2 }, arrive);
-          tl.fromTo(node.querySelector('.ic-check'), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)' }, arrive);
+          tl.to(iconEl, { color: '#fb923c', duration: 0.3, ease: 'power2.out' }, arrive);
+          tl.fromTo(node.querySelector('.badge-ok'), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)' }, arrive);
         }
       });
 

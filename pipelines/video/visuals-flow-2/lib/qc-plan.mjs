@@ -37,7 +37,7 @@ export function expectedForCut(a, b, whip) {
   const into = {
     graphic: `card ${b.id} fully drawn within 6 frames — no half-rendered text, no black or solid-color frame`,
     avatar: `HARD cut to host (no transition frames), host visible immediately, no zoom-in on the host`,
-    screen: `screen recording resumes cleanly; captions visible if speech is running; Ken Burns drift subtle (no jump)`,
+    screen: `screen recording resumes cleanly; captions visible if speech is running; frame static (no zoom/drift — Ken Burns removed by owner rule 2026-07-24)`,
   }[b.kind] || 'next segment starts cleanly';
   const at = whip
     ? 'whip transition (motion-blur streak, ~7 frames; orange flash-wipe if into a graphic — never pink/white-out)'

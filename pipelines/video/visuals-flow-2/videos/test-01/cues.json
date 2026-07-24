@@ -42,84 +42,88 @@
     },
     {
       "id": "c02",
-      "card": "overlay/callout",
-      "anchor": "comparing them is not",
+      "card": "overlay/keyword-pop",
+      "anchor": "really built for the same",
       "lead": 0.4,
       "hold": 3.0,
       "register": "dark",
       "variables": {
-        "kind": "note",
-        "title": "5 tools, 5 promises",
-        "text": "None of them built for the same person",
-        "pos": "top-left",
-        "style": "feature"
+        "text": "5 tools, 5 promises",
+        "pos": "top-left"
       },
       "beats": [],
       "flagged": false
     },
     {
       "id": "c03",
-      "card": "overlay/callout",
+      "card": "overlay/keyword-pop",
       "anchor": "we are going to settle",
       "lead": 0.4,
       "hold": 3.0,
       "register": "dark",
       "variables": {
-        "kind": "note",
-        "title": "The question",
-        "text": "Which tool wins — and for who?",
-        "pos": "top-right",
-        "style": "feature"
+        "kicker": "The question",
+        "text": "Which tool wins?",
+        "pos": "top-right"
       },
       "beats": [],
       "flagged": false
     },
     {
       "id": "c04",
-      "card": "enacted/before-after",
+      "card": "statement/keyword-statement",
       "anchor": "did not go in looking",
       "lead": 0.5,
       "hold": 3.0,
       "register": "light",
       "register_why": "pivot clause — enacts the video's answer (best for you), not the problem",
       "variables": {
-        "title": "Not one winner",
-        "marker": "winner",
-        "before_label": "One race",
-        "after_label": "Best for you",
-        "before_lines": [
-          {
-            "line": "One overall winner"
-          },
-          {
-            "line": "Generic scores"
-          }
-        ],
-        "after_lines": [
-          {
-            "line": "Five different jobs"
-          },
-          {
-            "line": "Matched to how you work"
-          }
-        ]
+        "text": "Not one winner — which one is best for you",
+        "keyword": "for you"
       },
       "beats": [],
-      "flagged": false
+      "flagged": false,
+      "legacy_why": "owner: before-after here read confusing — simple statement requested (Final Cut :4)"
     },
     {
       "id": "c05",
-      "card": "slate/kinetic-sentence",
+      "card": "checklist/icon-pills",
       "anchor": "So I tested all 5",
       "lead": 0.2,
       "hold": 2.0,
       "register": "light",
-      "legacy_why": "word-sync bridge — the spoken sentence itself is the device",
-      "variables": {
-        "text": "So I tested all 5 across the same areas such as features, output quality, workflow, and pricing",
-        "accent": "the same areas"
-      },
-      "beats": [],
+      "legacy_why": "owner routed comma enumerations to list cards (Final Cut :5)",
+      "variables": {},
+      "beats": [
+        {
+          "reveal": {
+            "icon": "bolt",
+            "text": "Features"
+          },
+          "anchor": "such as features"
+        },
+        {
+          "reveal": {
+            "icon": "star",
+            "text": "Output quality"
+          },
+          "anchor": "output quality, workflow"
+        },
+        {
+          "reveal": {
+            "icon": "gear",
+            "text": "Workflow"
+          },
+          "anchor": "and pricing. Now"
+        },
+        {
+          "reveal": {
+            "icon": "chart",
+            "text": "Pricing"
+          },
+          "anchor": "I will give"
+        }
+      ],
       "flagged": false,
       "register_why": "this sentence opens the light span — methodology is the solution framing"
     },
@@ -134,19 +138,24 @@
         "title": "The gameplan",
         "steps": [
           {
-            "step": "Overviews"
+            "step": "Overviews",
+            "icon": "eye"
           },
           {
-            "step": "Live demos"
+            "step": "Live demos",
+            "icon": "play"
           },
           {
-            "step": "Pricing"
+            "step": "Pricing",
+            "icon": "wallet"
           },
           {
-            "step": "Scorecard"
+            "step": "Scorecard",
+            "icon": "scale"
           },
           {
-            "step": "Verdict"
+            "step": "Verdict",
+            "icon": "star"
           }
         ]
       },
@@ -186,17 +195,13 @@
     },
     {
       "id": "c07",
-      "card": "overlay/callout",
+      "card": "link-in-description/link-in-description",
       "anchor": "in the description below",
       "lead": 0.4,
       "hold": 3.0,
       "register": "light",
       "variables": {
-        "kind": "note",
-        "title": "Links below",
-        "text": "All 5 platforms linked in the description",
-        "pos": "top-right",
-        "style": "feature"
+        "message": "All 5 platforms linked in the description"
       },
       "beats": [],
       "flagged": false
@@ -222,34 +227,30 @@
     },
     {
       "id": "c09",
-      "card": "overlay/callout",
-      "anchor": "to over 100 AI",
+      "card": "overlay/keyword-pop",
+      "anchor": "Nano Banana 2",
       "lead": 0.4,
       "hold": 3.0,
       "register": "light",
       "variables": {
-        "kind": "note",
-        "title": "100+ models",
-        "text": "Flux, Nano Banana, Kling — one subscription",
-        "pos": "top-left",
-        "style": "feature"
+        "kicker": "OpenArt",
+        "text": "100+ AI models",
+        "pos": "top-right"
       },
       "beats": [],
       "flagged": false
     },
     {
       "id": "c10",
-      "card": "overlay/callout",
+      "card": "overlay/keyword-pop",
       "anchor": "covers image generation",
       "lead": 0.4,
       "hold": 3.0,
       "register": "light",
       "variables": {
-        "kind": "note",
-        "title": "All-in-one",
-        "text": "Images · video · characters · training · audio",
-        "pos": "top-left",
-        "style": "feature"
+        "kicker": "OpenArt",
+        "text": "All-in-one",
+        "pos": "top-left"
       },
       "beats": [],
       "flagged": false
@@ -275,24 +276,22 @@
     },
     {
       "id": "c12",
-      "card": "overlay/callout",
+      "card": "overlay/keyword-pop",
       "anchor": "aggregates premium video models like Sora",
       "lead": 0.4,
       "hold": 3.0,
       "register": "light",
       "variables": {
-        "kind": "note",
-        "title": "One interface",
-        "text": "Sora 2, Kling 3.0 & Veo 3.1 in one place",
-        "pos": "top-right",
-        "style": "feature"
+        "kicker": "Higgsfield",
+        "text": "One interface",
+        "pos": "top-right"
       },
       "beats": [],
       "flagged": false
     },
     {
       "id": "c13",
-      "card": "enacted/stack-builder",
+      "card": "enacted/connect-nodes",
       "anchor": "wraps them in professional",
       "lead": 0.5,
       "hold": 3.0,
@@ -374,28 +373,34 @@
     },
     {
       "id": "c17",
-      "card": "overlay/label-plate",
+      "card": "overlay/arrow-label",
       "anchor": "over to the left side",
       "lead": 0.4,
       "hold": 3.0,
       "register": "light",
       "variables": {
-        "text": "Create → Video",
-        "position": "top-left"
+        "label": "Create → Video",
+        "tailX": 560,
+        "tailY": 250,
+        "tipX": 315,
+        "tipY": 395
       },
       "beats": [],
       "flagged": false
     },
     {
       "id": "c18",
-      "card": "overlay/label-plate",
+      "card": "overlay/arrow-label",
       "anchor": "use this text to",
       "lead": 0.4,
       "hold": 3.0,
       "register": "light",
       "variables": {
-        "text": "Text to Video",
-        "position": "top-center"
+        "label": "Text to Video",
+        "tailX": 1250,
+        "tailY": 340,
+        "tipX": 965,
+        "tipY": 168
       },
       "beats": [],
       "flagged": false
@@ -417,17 +422,15 @@
     },
     {
       "id": "c20",
-      "card": "overlay/callout",
-      "anchor": "is actually their newest",
+      "card": "overlay/keyword-pop",
+      "anchor": "wherein you can do",
       "lead": 0.4,
       "hold": 3.0,
       "register": "light",
       "variables": {
-        "kind": "note",
-        "title": "Seedance",
-        "text": "Newest — cinematic video with audio, multi-shot",
-        "pos": "top-left",
-        "style": "feature"
+        "kicker": "Seedance",
+        "text": "Newest — audio + multi-shot",
+        "pos": "top-right"
       },
       "beats": [],
       "flagged": false
@@ -450,17 +453,17 @@
     },
     {
       "id": "c22",
-      "card": "overlay/callout",
-      "anchor": "of how many seconds",
+      "card": "overlay/arrow-label",
+      "anchor": "also have here the control",
       "lead": 0.4,
       "hold": 3.0,
       "register": "light",
       "variables": {
-        "kind": "note",
-        "title": "Clip length",
-        "text": "Choose how many seconds to generate",
-        "pos": "top-right",
-        "style": "feature"
+        "label": "Clip length",
+        "tailX": 620,
+        "tailY": 780,
+        "tipX": 1500,
+        "tipY": 672
       },
       "beats": [],
       "flagged": false

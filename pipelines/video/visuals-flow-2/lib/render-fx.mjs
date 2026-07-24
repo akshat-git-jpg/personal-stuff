@@ -79,8 +79,6 @@ export function planFx(instances) {
       if (inst.punch && inst.punch > 1.0) {
         dropped.push({ id: `${inst.id}-punch`, type: 'beat-punch', at: inst.at, reason: `punch-in x${inst.punch} dropped — use Dynamic Zoom on the underlying clip if wanted` });
       }
-    } else if (inst.type === 'drift') {
-      dropped.push({ id: inst.id, type: 'drift', at: inst.at ?? null, reason: 'Ken Burns drift dropped — use Dynamic Zoom on the screen clip if wanted' });
     } else if (inst.type === 'bubble') {
       dropped.push({ id: inst.id, type: 'bubble', at: inst.at ?? null, reason: 'corner bubble is assembly-only for now' });
     }

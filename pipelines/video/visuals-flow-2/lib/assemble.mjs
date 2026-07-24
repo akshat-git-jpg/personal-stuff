@@ -11,7 +11,6 @@ import { registerVersion } from './versions.mjs';
 
 import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
-import * as driftMod from './effects/drift.mjs';
 import * as captionsMod from './effects/captions.mjs';
 import { planCaptions, assEscape, formatAssText } from './captions.mjs';
 import { loadBrand } from './brand-inline.mjs';
@@ -56,9 +55,6 @@ export const FLASH_IN_OPACITIES = beatsMod.CONSTANTS.FLASH_IN_OPACITIES;
 export const FLASH_BAND_OPACITIES = beatsMod.CONSTANTS.FLASH_BAND_OPACITIES;
 export const PUNCH_SCALE = beatsMod.CONSTANTS.PUNCH_SCALE;
 
-export const DRIFT_MAX = driftMod.CONSTANTS.DRIFT_MAX;
-export const DRIFT_MIN_SEG = driftMod.CONSTANTS.DRIFT_MIN_SEG;
-export const DRIFT_PERIOD = driftMod.CONSTANTS.DRIFT_PERIOD;
 
 export function planSegments({ resolved, avatarJobs, total }) {
   const repl = [];
@@ -210,15 +206,6 @@ export const splitAvatarSegments = (segments, words, opts = {}) => {
   return beatsMod.transformSegments(segments, instances, { words, resolved: dummyResolved });
 };
 
-export const driftVF = (screenOrdinal, dur, w, h, opts = {}) => {
-  const ctx = { dur, w, h };
-  const seg = { kind: 'screen', id: 'dummy' };
-  const direction = screenOrdinal % 2 === 0 ? 'in' : 'out';
-  const instance = { segId: 'dummy', direction };
-  const res = driftMod.contribute(seg, [instance], ctx);
-  return res && res.vfSuffix ? res.vfSuffix : '';
-};
-
 export function encoderArgs({ encoder, draft }) {
   if (encoder === 'videotoolbox') {
     return ['-c:v', 'h264_videotoolbox', '-b:v', draft ? '4M' : '12M', '-pix_fmt', 'yuv420p'];
@@ -233,7 +220,7 @@ export function detectEncoder() {
   return (res.stdout || '').includes('h264_videotoolbox') ? 'videotoolbox' : 'x264';
 }
 
-export function assemblyMd(video, segments, overlays, total, outPath, transitions = [], captions = 'on', drift = 'on', audioSource = 'vo.mp3') {
+export function assemblyMd(video, segments, overlays, total, outPath, transitions = [], captions = 'on', audioSource = 'vo.mp3') {
   const getSegId = (s) => s.sub !== undefined ? `${s.id}.${s.sub + 1}` : s.id;
   const seg = segments.map((s) =>
     `| ${mmss(s.start)} | ${mmss(s.end)} | ${s.kind} | ${getSegId(s)} |`);
@@ -244,12 +231,11 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
     : 'Hard cuts.';
 
   const capSentence = captions === 'on' ? ' Captions burned on screen segments.' : '';
-  const driftSentence = drift === 'on' ? ' Ken Burns drift on screen segments.' : '';
 
   const lines = [
     `# ${video} — assembly`,
     '',
-    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: ${audioSource} throughout — screen and avatar audio muted. ${transSentence}${capSentence}${driftSentence} Effects/sound are Final-Cut-reviewed.`,
+    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: ${audioSource} throughout — screen and avatar audio muted. ${transSentence}${capSentence} Effects/sound are Final-Cut-reviewed.`,
     '',
     `Output: ${outPath}`,
     '',
@@ -284,7 +270,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', drift: 'on', effects: 'on', bubble: 'on', jobs: 3, noCache: false, bare: false };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', effects: 'on', bubble: 'on', jobs: 3, noCache: false, bare: false };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -313,11 +299,6 @@ function parseArgs(argv) {
       if (c !== 'on' && c !== 'off') throw new Error('--captions must be on or off');
       opts.captions = c;
     }
-    else if (a === '--drift') {
-      const d = rest.shift();
-      if (d !== 'on' && d !== 'off') throw new Error('--drift must be on or off');
-      opts.drift = d;
-    }
     else if (a === '--effects') {
       const e = rest.shift();
       if (e !== 'on' && e !== 'off') throw new Error('--effects must be on or off');
@@ -337,17 +318,15 @@ function parseArgs(argv) {
   }
   if (opts.bare) {
     const hasCapOn = argv.findIndex(x => x === '--captions') >= 0 && argv[argv.findIndex(x => x === '--captions')+1] === 'on';
-    const hasDriftOn = argv.findIndex(x => x === '--drift') >= 0 && argv[argv.findIndex(x => x === '--drift')+1] === 'on';
     const hasTransWhip = argv.findIndex(x => x === '--transitions') >= 0 && argv[argv.findIndex(x => x === '--transitions')+1] === 'whip';
-    if (hasCapOn || hasDriftOn || hasTransWhip) throw new Error('--bare cannot be combined with explicit --captions on or --drift on or --transitions whip');
+    if (hasCapOn || hasTransWhip) throw new Error('--bare cannot be combined with explicit --captions on or --transitions whip');
     opts.captions = 'off';
-    opts.drift = 'off';
     opts.transitions = 'none';
   }
   return opts;
 }
 
-export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', drift = 'on', effects = 'on', bubble = 'on', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} } }) {
+export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'on', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} } }) {
   const videoManifest = loadVideoManifest(workdir);
   let segments = planSegments({ resolved, avatarJobs, total });
   segments = absorbSlivers(segments);
@@ -381,7 +360,6 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
     whip: transitions !== 'none',
     beat: beats === 'on',
     captions: captions === 'on',
-    drift: drift === 'on',
     bubble: bubble === 'on'
   };
 
@@ -766,7 +744,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return { at: t.at, direction: t.direction, fromIdx, toIdx };
   });
 
-  const md = assemblyMd(video, segments, overlays, total, out, transitionsObj, captions, drift, hasMaster ? 'master.wav' : 'vo.mp3');
+  const md = assemblyMd(video, segments, overlays, total, out, transitionsObj, captions, hasMaster ? 'master.wav' : 'vo.mp3');
   fs.writeFileSync(path.join(workdir, 'assembly.md'), md);
 
   if (!keepTemp) {
@@ -872,7 +850,7 @@ export async function loadAssemblyInputs(opts) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.workdir) {
-    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--captions on|off] [--drift on|off] [--bubble on|off] [--effects on|off]');
+    console.error('usage: node lib/assemble.mjs <slug-or-path> [--screen <path>] [--screen-offset <sec>] [--out <path>] [--draft] [--encoder x264|videotoolbox] [--keep-temp] [--force] [--captions on|off] [--bubble on|off] [--effects on|off]');
     process.exit(1);
   }
 
@@ -889,7 +867,7 @@ async function main() {
   const brandObj = loadBrand(root, { brand: inputs.brand || 'default' });
   const kbWorkdir = path.join(ASSEMBLE_MEDIA_ROOT, inputs.video);
   const out = opts.out ?? path.join(kbWorkdir, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, drift: opts.drift, effects: opts.effects, bubble: opts.bubble, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj });
+  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble: opts.bubble, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj });
 
   const entry = registerVersion(kbWorkdir, out, { draft: opts.draft });
   console.log(`registered version: ${entry.label}`);

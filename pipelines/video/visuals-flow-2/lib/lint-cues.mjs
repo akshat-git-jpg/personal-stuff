@@ -232,6 +232,26 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
+  // E9 overlay-over-graphic (owner rule 2026-07-24, test-01 Final Cut :2/:10):
+  // overlays composite on top of whatever the base track shows — over a
+  // fullframe card's span (INCLUDING its extended-exposure hold) two graphics
+  // stack and read as an editing bug. Overlays may only sit on footage.
+  {
+    const extended = extendExposure(sortedResolved, { base: manifest?.base ?? 'screen', total: T });
+    const fullSpans = extended
+      .filter(c => bySlug[c.card]?.placement === 'fullframe')
+      .map(c => ({ id: c.id, start: c.start, end: c.start + c.duration }));
+    for (const r of sortedResolved) {
+      const cat = bySlug[r.card];
+      if (!cat || cat.placement !== 'overlay') continue;
+      const oEnd = r.start + r.duration;
+      const hit = fullSpans.find(f => r.start < f.end && oEnd > f.start);
+      if (hit) {
+        errors.push(`E9 overlay-over-graphic: ${r.id} (${r.card}) [${r.start.toFixed(1)}–${oEnd.toFixed(1)}] overlaps fullframe ${hit.id} [${hit.start.toFixed(1)}–${hit.end.toFixed(1)}] — overlays sit on footage only; move the anchor past the card (or earlier), or fold the content into the card`);
+      }
+    }
+  }
+
   // W5 first-beat-idle: a beat card whose first reveal lands long after the
   // card appears shows an empty scaffold — anchor the cue closer to beat 1.
   for (const r of sortedResolved) {

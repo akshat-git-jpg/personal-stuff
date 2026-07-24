@@ -54,7 +54,10 @@ and rose only when the meaning is good vs bad. Gold only when something wins.
   24 px, side columns slide in 40 px, badges scale from 90%.
 - Containers appear a beat before their contents; list items appear one by
   one, never all at once.
-- No idle loops, no wiggle, no continuous drift. A graphic settles and holds.
+- No wiggle, no attention-grabbing loops — but a graphic never freezes dead
+  either: after settling it keeps a barely-perceptible ambient breathe
+  (the `/* hf-ambient */` contract, plan 143; owner 2026-07-24: a card that
+  "stops moving while the audio keeps playing" reads as an editing gap).
 
 ## Overlays (graphics over screen recording)
 

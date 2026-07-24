@@ -1,28 +1,168 @@
 {
   "video": "test-01",
   "items": [
-    { "id": "c01", "verdict": "enacted", "fix": null, "note": "five contender logos wipe in — muted, the lineup itself is communicated (motif appearance 1)" },
-    { "id": "c02", "verdict": "labelled", "fix": { "card": "bespoke", "how": "acceptable bridge overlay; a bespoke five-silhouettes tease would enact it but is not worth a fullframe here" } },
-    { "id": "c03", "verdict": "labelled", "fix": { "card": "bespoke", "how": "text overlay poses the question; tolerable as an overlay bridge into the kinetic answer" } },
-    { "id": "c04", "verdict": "enacted", "fix": null, "note": "slider sweep physically replaces the one-winner frame with the best-for-you frame" },
-    { "id": "c05", "verdict": "enacted", "fix": null, "note": "word-sync kinetic typography — muted, the animated sentence carries the full message (word-sync class)" },
-    { "id": "c06", "verdict": "enacted", "fix": null, "note": "agenda enacted as a pipeline the pulse travels — each named step lights as spoken" },
-    { "id": "c07", "verdict": "labelled", "fix": { "card": "bespoke", "how": "utility pointer (links below); enacting it would be noise" } },
-    { "id": "c08", "verdict": "enacted", "fix": null, "note": "logo + TOOL 1 OF 5 progress — the contender card flips face-up (motif)" },
-    { "id": "c09", "verdict": "labelled", "fix": { "card": "enacted/counter-tally", "how": "a count-up to 100+ models would enact scale; kept as overlay to preserve fullframe cadence" } },
-    { "id": "c10", "verdict": "labelled", "fix": { "card": "enacted/connect-nodes", "how": "five capabilities joining one hub would enact all-in-one; overlay kept for cadence — candidate for the full-length pass" } },
-    { "id": "c11", "verdict": "enacted", "fix": null, "note": "motif flip 2 of 5" },
-    { "id": "c12", "verdict": "labelled", "fix": { "card": "enacted/stack-builder", "how": "the three model names could stack; c13 already stacks the Higgsfield tools 7s later — two stacks would double the device" } },
-    { "id": "c13", "verdict": "enacted", "fix": null, "note": "Cinema Studio / SoulID / director-control physically stack into the Higgsfield tower" },
-    { "id": "c14", "verdict": "enacted", "fix": null, "note": "motif flip 3 of 5" },
-    { "id": "c15", "verdict": "enacted", "fix": null, "note": "the 240 counts up — muted, the scale is the message" },
-    { "id": "c16", "verdict": "labelled", "fix": { "card": "bespoke", "how": "nameplate is a label by nature; acceptable demo marker" } },
-    { "id": "c17", "verdict": "labelled", "fix": { "card": "bespoke", "how": "demo waypoint plate; enacting a menu path would duplicate the visible UI click" } },
-    { "id": "c18", "verdict": "labelled", "fix": { "card": "bespoke", "how": "same as c17 — plate names the mode being clicked on screen" } },
-    { "id": "c19", "verdict": "enacted", "fix": null, "note": "word-sync kinetic typography (word-sync class)" },
-    { "id": "c20", "verdict": "labelled", "fix": { "card": "enacted/spotlight-focus", "how": "could spotlight Seedance in the model grid, but the real spotlight moment is the Veo pick at c23 — two spotlights would dilute it" } },
-    { "id": "c21", "verdict": "labelled", "fix": { "card": "bespoke", "how": "UI-tag pointer; the tags are visible on screen — plate suffices" } },
-    { "id": "c22", "verdict": "labelled", "fix": { "card": "bespoke", "how": "minor UI pointer" } },
-    { "id": "c23", "verdict": "enacted", "fix": null, "note": "grid dims, spotlight locks Veo 3.1 — muted, the choice is unmistakable" }
+    {
+      "id": "c01",
+      "verdict": "enacted",
+      "fix": null,
+      "note": "five contender logos wipe in — muted, the lineup itself is communicated (motif appearance 1)"
+    },
+    {
+      "id": "c02",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "acceptable bridge overlay; a bespoke five-silhouettes tease would enact it but is not worth a fullframe here"
+      }
+    },
+    {
+      "id": "c03",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "text overlay poses the question; tolerable as an overlay bridge into the kinetic answer"
+      }
+    },
+    {
+      "id": "c04",
+      "verdict": "labelled",
+      "fix": null,
+      "note": "static keyword-statement states the point rather than enacting it — accepted by owner rule: Final Cut :4 asked for a simple graphic here (before-after read as confusing)",
+      "accepted": true
+    },
+    {
+      "id": "c05",
+      "verdict": "enacted",
+      "fix": null,
+      "note": "icon-pills — muted, the four tested areas physically pop in one per spoken item (list enactment; rerouted from kinetic-sentence per Final Cut :5)"
+    },
+    {
+      "id": "c06",
+      "verdict": "enacted",
+      "fix": null,
+      "note": "agenda enacted as a pipeline the pulse travels — each named step lights as spoken"
+    },
+    {
+      "id": "c07",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "utility pointer (links below); enacting it would be noise"
+      }
+    },
+    {
+      "id": "c08",
+      "verdict": "enacted",
+      "fix": null,
+      "note": "logo + TOOL 1 OF 5 progress — the contender card flips face-up (motif)"
+    },
+    {
+      "id": "c09",
+      "verdict": "labelled",
+      "fix": {
+        "card": "enacted/counter-tally",
+        "how": "a count-up to 100+ models would enact scale; kept as overlay to preserve fullframe cadence"
+      }
+    },
+    {
+      "id": "c10",
+      "verdict": "labelled",
+      "fix": {
+        "card": "enacted/connect-nodes",
+        "how": "five capabilities joining one hub would enact all-in-one; overlay kept for cadence — candidate for the full-length pass"
+      }
+    },
+    {
+      "id": "c11",
+      "verdict": "enacted",
+      "fix": null,
+      "note": "motif flip 2 of 5"
+    },
+    {
+      "id": "c12",
+      "verdict": "labelled",
+      "fix": {
+        "card": "enacted/stack-builder",
+        "how": "the three model names could stack; c13 already stacks the Higgsfield tools 7s later — two stacks would double the device"
+      }
+    },
+    {
+      "id": "c13",
+      "verdict": "enacted",
+      "fix": null,
+      "note": "connect-nodes — Cinema Studio / SoulID / director-control physically join into the Higgsfield graph (stack-builder removed by owner 2026-07-24)"
+    },
+    {
+      "id": "c14",
+      "verdict": "enacted",
+      "fix": null,
+      "note": "motif flip 3 of 5"
+    },
+    {
+      "id": "c15",
+      "verdict": "enacted",
+      "fix": null,
+      "note": "the 240 counts up — muted, the scale is the message"
+    },
+    {
+      "id": "c16",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "nameplate is a label by nature; acceptable demo marker"
+      }
+    },
+    {
+      "id": "c17",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "demo waypoint plate; enacting a menu path would duplicate the visible UI click"
+      }
+    },
+    {
+      "id": "c18",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "same as c17 — plate names the mode being clicked on screen"
+      }
+    },
+    {
+      "id": "c19",
+      "verdict": "enacted",
+      "fix": null,
+      "note": "word-sync kinetic typography (word-sync class)"
+    },
+    {
+      "id": "c20",
+      "verdict": "labelled",
+      "fix": {
+        "card": "enacted/spotlight-focus",
+        "how": "could spotlight Seedance in the model grid, but the real spotlight moment is the Veo pick at c23 — two spotlights would dilute it"
+      }
+    },
+    {
+      "id": "c21",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "UI-tag pointer; the tags are visible on screen — plate suffices"
+      }
+    },
+    {
+      "id": "c22",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "minor UI pointer"
+      }
+    },
+    {
+      "id": "c23",
+      "verdict": "enacted",
+      "fix": null,
+      "note": "grid dims, spotlight locks Veo 3.1 — muted, the choice is unmistakable"
+    }
   ]
 }

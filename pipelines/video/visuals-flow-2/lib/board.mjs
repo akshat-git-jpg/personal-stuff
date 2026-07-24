@@ -320,7 +320,6 @@ const BOARD_CSS = `
   #fxStage.fx-punch .frame { transform:scale(1.08); }
   #fxStage.fx-whipblur .frame { animation:fxWhip 0.25s ease-in; }
   @keyframes fxWhip { 0%{filter:blur(0);transform:translateX(0)} 50%{filter:blur(8px);transform:translateX(-40px)} 100%{filter:blur(0);transform:translateX(0)} }
-  #fxStage.fx-drift .frame { transform:scale(1.04); transition:transform 3s linear; }
   #fxStage .cap { position:absolute; left:8px; right:8px; bottom:10%; text-align:center; font-weight:700; font-size:16px; color:#fff; text-shadow:0 0 4px #000; }
   #fxStage .cap .hl { color:var(--accent); }
   #fxStage .bubble { position:absolute; top:12px; right:12px; width:56px; height:56px; border-radius:50%; border:3px solid var(--accent); background:#2a1d14; display:none; }
@@ -535,16 +534,12 @@ function fxContext(t, fullframes, spans) {
 function fxEventsAt(prevT, t, instances) {
   return instances.filter((i) => i.enabled && typeof i.at === 'number' && i.at > prevT && i.at <= t);
 }
-function fxDriftActive(t, instances, ctx) {
-  return ctx === 'screen' && instances.some((i) => i.type === 'drift' && i.enabled
-    && typeof i.start === 'number' && t >= i.start && t <= i.end);
-}
 `;
 // Node-side bindings for tests:
 const fxSim = {};
 new Function('exports', FX_SIM_HELPERS
-  + '\nexports.fxContext = fxContext; exports.fxEventsAt = fxEventsAt; exports.fxDriftActive = fxDriftActive;')(fxSim);
-export const { fxContext, fxEventsAt, fxDriftActive } = fxSim;
+  + '\nexports.fxContext = fxContext; exports.fxEventsAt = fxEventsAt;')(fxSim);
+export const { fxContext, fxEventsAt } = fxSim;
 
 // Which block the master clock's play-through is inside, given a flat list
 // of { id, start, kind: 'cue'|'gap' } ordered by start. Shared by the
@@ -795,7 +790,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 
   const fxInstances = effects?.instances ?? [];
   const fxPoint = fxInstances.filter((i) => i.type === 'whip' || i.type === 'beat');
-  const fxSpan = fxInstances.filter((i) => i.type === 'drift' && typeof i.start === 'number');
+  const fxSpan = fxInstances.filter((i) => typeof i.start === 'number' && typeof i.end === 'number' && !['captions', 'bubble'].includes(i.type));
   const fxGlobal = fxInstances.filter((i) => i.type === 'captions' || i.type === 'bubble');
   const capChunks = fxInstances.some((i) => i.type === 'captions' && i.enabled) ? planCaptions(words) : [];
   const fxFullframes = resolved.filter((c) => c.placement === 'fullframe').map((c) => ({ id: c.id, start: c.start, end: c.start + c.duration }));
@@ -990,8 +985,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
             fxStage.classList.remove('ctx-graphic', 'ctx-avatar', 'ctx-screen');
             fxStage.classList.add(ctxCls);
           }
-          fxStage.classList.toggle('fx-drift', fxDriftActive(t, FX_DATA.instances, ctx));
-          
+
           fxCtx.textContent = ctx === 'graphic' 
             ? (FX_DATA.fullframes.find(f => t >= f.start && t < f.end)?.id || 'graphic')
             : ctx;
@@ -1053,7 +1047,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
 
   const fxInstances = effects?.instances ?? [];
   const fxPoint = fxInstances.filter((i) => i.type === 'whip' || i.type === 'beat');
-  const fxSpan = fxInstances.filter((i) => i.type === 'drift' && typeof i.start === 'number');
+  const fxSpan = fxInstances.filter((i) => typeof i.start === 'number' && typeof i.end === 'number' && !['captions', 'bubble'].includes(i.type));
   const fxGlobal = fxInstances.filter((i) => i.type === 'captions' || i.type === 'bubble');
 
   const graphicsBlocksHtml = segments.map((seg, i) => {

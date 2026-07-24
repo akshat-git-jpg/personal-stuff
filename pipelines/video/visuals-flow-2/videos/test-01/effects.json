@@ -53,6 +53,16 @@
       "enabled": true
     },
     {
+      "id": "whip-257.6",
+      "type": "whip",
+      "at": 257.57,
+      "direction": "right",
+      "fromIdx": 14,
+      "toIdx": 15,
+      "style": "flash",
+      "enabled": true
+    },
+    {
       "id": "whip-reg-45.9",
       "type": "whip",
       "at": 45.92,
@@ -66,69 +76,6 @@
       "enabled": true,
       "fontPx": 44,
       "yFrac": 0.87
-    },
-    {
-      "id": "drift-screen-02",
-      "type": "drift",
-      "segId": "screen-02",
-      "direction": "in",
-      "start": 10.1,
-      "end": 32.6,
-      "enabled": true
-    },
-    {
-      "id": "drift-screen-03",
-      "type": "drift",
-      "segId": "screen-03",
-      "direction": "out",
-      "start": 81.26,
-      "end": 93.51,
-      "enabled": true
-    },
-    {
-      "id": "drift-screen-04",
-      "type": "drift",
-      "segId": "screen-04",
-      "direction": "in",
-      "start": 99.51,
-      "end": 118.25,
-      "enabled": true
-    },
-    {
-      "id": "drift-screen-05",
-      "type": "drift",
-      "segId": "screen-05",
-      "direction": "out",
-      "start": 124.25,
-      "end": 141.58,
-      "enabled": true
-    },
-    {
-      "id": "drift-screen-06",
-      "type": "drift",
-      "segId": "screen-06",
-      "direction": "in",
-      "start": 157.87,
-      "end": 218.09,
-      "enabled": true
-    },
-    {
-      "id": "drift-screen-07",
-      "type": "drift",
-      "segId": "screen-07",
-      "direction": "out",
-      "start": 221.67,
-      "end": 257.57,
-      "enabled": true
-    },
-    {
-      "id": "drift-screen-08",
-      "type": "drift",
-      "segId": "screen-08",
-      "direction": "in",
-      "start": 264.57,
-      "end": 301.764,
-      "enabled": true
     },
     {
       "id": "bubble",

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions, planAvatarBeats, splitAvatarSegments, driftVF, absorbSlivers } from './assemble.mjs';
+import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions, planAvatarBeats, splitAvatarSegments, absorbSlivers } from './assemble.mjs';
 
 const testTmp = path.resolve(import.meta.dirname, '.test-tmp', 'assemble-it');
 
@@ -71,21 +71,6 @@ test('absorbSlivers: output remains contiguous 0->total', () => {
     assert.equal(out[i-1].end, out[i].start);
   }
   assert.equal(out[out.length - 1].end, 10.5);
-});
-
-test('driftVF: short segment -> empty string', () => {
-  assert.equal(driftVF(0, 3.9, 1920, 1080), '');
-});
-
-test('driftVF: even ordinal pushes in over min(dur, period) then holds', () => {
-  const vf = driftVF(0, 15, 1920, 1080, { max: 0.05, period: 30, minSeg: 4 });
-  assert.ok(vf.includes("scale=w='trunc(iw*(1+0.05*min(t/15.000,1))/2)*2'"), vf);
-  assert.ok(vf.includes(':eval=frame,crop=1920:1080'), vf);
-});
-
-test('driftVF: odd ordinal releases; long segment ramps over period only', () => {
-  const vf = driftVF(1, 40, 1920, 1080, { max: 0.05, period: 30, minSeg: 4 });
-  assert.ok(vf.includes("scale=w='trunc(iw*(1+0.05*max(1-t/30.000,0))/2)*2'"), vf);
 });
 
 test('planSegments: contiguity and edge placement', () => {
@@ -618,20 +603,18 @@ test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg',
   fs.rmSync(tmpDir2, { recursive: true, force: true });
 });
 
-test('Integration: drift on vs off', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
+test('Integration: screen segments stay static (Ken Burns stays removed — owner rule 2026-07-24)', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
   const tmpDir = path.join(testTmp, 'assembly-tmp');
   fs.rmSync(tmpDir, { recursive: true, force: true });
-  const outDriftOn = path.join(testTmp, 'final-drift-on.mp4');
-  const outDriftOff = path.join(testTmp, 'final-drift-off.mp4');
+  const outStatic = path.join(testTmp, 'final-static.mp4');
 
-  // A STATIC but textured screen source: smptehdbars' uniform blocks defeat
-  // the zoom probe (a solid corner has the same luma at any zoom), and live
-  // testsrc2 animates (breaking the drift-off identity check) — so freeze one
-  // textured testsrc2 frame and loop it.
+  // A STATIC but textured screen source: freeze one textured testsrc2 frame
+  // and loop it — any zoom/pan applied to the screen would make later frames
+  // differ from the first.
   const screenStill = path.join(testTmp, 'screen-still.png');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'testsrc2=size=1920x1080:rate=30', '-frames:v', '1', screenStill]);
-  const screenDriftMp4 = path.join(testTmp, 'screen-drift.mp4');
-  spawnSync('ffmpeg', ['-y', '-loop', '1', '-i', screenStill, '-t', '6', '-r', '30', '-pix_fmt', 'yuv420p', screenDriftMp4]);
+  const screenStaticMp4 = path.join(testTmp, 'screen-static.mp4');
+  spawnSync('ffmpeg', ['-y', '-loop', '1', '-i', screenStill, '-t', '6', '-r', '30', '-pix_fmt', 'yuv420p', screenStaticMp4]);
 
   await runAssembly({
     workdir: testTmp,
@@ -639,50 +622,26 @@ test('Integration: drift on vs off', { skip: spawnSync('ffmpeg', ['-version']).e
     resolved: [],
     avatarJobs: [],
     total: 6,
-    screen: screenDriftMp4,
-    out: outDriftOn,
-    encoder: 'x264',
-    keepTemp: true,
-    transitions: 'none',
-    beats: 'off',
-    captions: 'off',
-    drift: 'on',
-    words: []
-  });
-
-  await runAssembly({
-    workdir: testTmp,
-    video: 'it',
-    resolved: [],
-    avatarJobs: [],
-    total: 6,
-    screen: screenDriftMp4,
-    out: outDriftOff,
+    screen: screenStaticMp4,
+    out: outStatic,
     encoder: 'x264',
     keepTemp: false,
     transitions: 'none',
     beats: 'off',
     captions: 'off',
-    drift: 'off',
     words: []
   });
 
   const getMean = (file, time) => {
-    // Check edge region (crossing the first bar boundary in smptehdbars) to easily spot zoom diffs
     const cropStr = 'crop=in_w*0.2:in_h*0.1:0:0';
     const p = spawnSync('ffprobe', ['-v', 'error', '-f', 'lavfi', '-i', `movie=${file},trim=start=${time}:end=${time+0.1},${cropStr},signalstats`, '-show_entries', 'frame_tags=lavfi.signalstats.YAVG', '-of', 'csv=p=0'], { encoding: 'utf8' });
     return parseFloat(p.stdout.split('\n')[0]);
   };
 
-  // With drift on, frame at t=0 and t=5 should differ because it zooms in
-  const onMean0 = getMean(outDriftOn, 0.5);
-  const onMean5 = getMean(outDriftOn, 5.5);
-  assert.ok(Math.abs(onMean0 - onMean5) >= 0.5, `drift ON frames should differ, got ${onMean0} vs ${onMean5}`);
-
-  // With drift off, frame at t=0 and t=5 should be exactly the same
-  const offMean0 = getMean(outDriftOff, 0.5);
-  const offMean5 = getMean(outDriftOff, 5.5);
-  assert.ok(Math.abs(offMean0 - offMean5) < 0.1, `drift OFF frames should match, got ${offMean0} vs ${offMean5}`);
+  // A static source must produce identical frames — no drift, no zoom.
+  const mean0 = getMean(outStatic, 0.5);
+  const mean5 = getMean(outStatic, 5.5);
+  assert.ok(Math.abs(mean0 - mean5) < 0.1, `screen frames should be static, got ${mean0} vs ${mean5}`);
 });
 
 

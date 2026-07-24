@@ -493,6 +493,38 @@ test('W1 fullframe-cadence: skip W1 when either endpoint sits in a demo/playback
   assert(!res.warnings.some(w => w.includes('W1 fullframe-cadence')));
 });
 
+test('E9 overlay-over-graphic: overlay overlapping a fullframe span errors', () => {
+  const c = [
+    { id: 'c1', card: 'fullframe/beat', start: 10, duration: 10 },
+    { id: 'c2', card: 'overlay/plain', start: 12, duration: 5 },
+    { id: 'c3', card: 'overlay/plain', start: 40, duration: 5 }
+  ];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog
+  });
+  const e9 = res.errors.filter(e => e.includes('E9 overlay-over-graphic'));
+  assert.equal(e9.length, 1);
+  assert(e9[0].includes('c2'), e9[0]);
+  assert(!e9[0].includes('c3'));
+});
+
+test('E9 overlay-over-graphic: overlay clipping the fullframe edge errors too', () => {
+  const c = [
+    { id: 'c1', card: 'overlay/plain', start: 8, duration: 5 }, // 8–13 vs card 10–20
+    { id: 'c2', card: 'fullframe/beat', start: 10, duration: 10 }
+  ];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog
+  });
+  assert(res.errors.some(e => e.includes('E9 overlay-over-graphic') && e.includes('c1')));
+});
+
 test('E7 uncovered-second on base:none', () => {
   const c = [
     { id: 'c1', card: 'fullframe/beat', start: 10, duration: 5 },

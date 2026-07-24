@@ -21,7 +21,7 @@ export const CUE_RULES = {
     rule: 'Choosing a card — route by what the VO is doing, matching catalog `purpose` lines:\n' +
       '- FIRST scan the `enacted/` family (and other cards whose `intent` matches) for a device that DOES the clause; only when none fits may a legacy reveal/text card be used, and then the cue must carry `"legacy_why": "<one line>"`.\n' +
       '- Narration makes a claim, lists items, or states numbers and the screen does not show it → fullframe canvas beat (`slate/headline-chips`, `comparison/table-rows`, section slates). The screen already shows what is spoken → no graphic.\n' +
-      '- Enumerating pros/cons -> pros-cons; ordered list -> checklist or bullet-points; feature-by-feature comparison -> feature-matrix or summary-table; final judgment -> a verdict card; opening a section -> a section/title card; one reinforced claim -> an overlay card.\n' +
+      '- Enumerating pros/cons -> pros-cons; ordered list OR a sentence enumerating 3+ comma-separated items -> checklist/icon-pills or bullet-points (one beat per item — never a single text slate); feature-by-feature comparison -> feature-matrix or summary-table; final judgment -> a verdict card; opening a section -> a section/title card; one reinforced claim -> an overlay card.\n' +
       'Bespoke escalation moves earlier: when the audit WOULD call it labelled (apply the mute test yourself while authoring) and no device fits, set `flagged: true` immediately with a `fix`-style note — do not place a filler text card. Choosing between cards: read each candidate\'s intent / anti_intent lines; an anti_intent match is a hard veto.',
     why: 'owner fold 2026-07-24 — test-01 first v2 run produced 18/19 legacy cards and audit ignored them',
   },
@@ -38,20 +38,24 @@ export const CUE_RULES = {
     why: 'unattributed — predates the fold log',
   },
   R_KINETIC: {
-    rule: 'Kinetic-sentence interstitial (mandatory): for a bridge with no footage, UI, or data worth showing and a single spoken point, use `slate/kinetic-sentence` instead of leaving it on camera — a frequent choice, drawn from the same fullframe cadence above, not an extra quota (`statement/keyword-statement` is a close sibling for the same job). `variables.text` is the voiceover verbatim, one sentence, <=18 words, `beats: []` — paraphrasing fails resolution at step 030; split long sentences into two consecutive cues instead. `variables.accent` is the 2-4 verbatim, contiguous words carrying the sentence\'s point (the consequence or substance, e.g. "burns credits", "cool technical features" — not a brand name or number picked for salience). Anchor at the sentence\'s own opening words.',
-    why: 'unattributed — predates the fold log',
+    rule: 'Kinetic-sentence interstitial (mandatory): for a bridge with no footage, UI, or data worth showing and a single spoken point, use `slate/kinetic-sentence` instead of leaving it on camera — a frequent choice, drawn from the same fullframe cadence above, not an extra quota (`statement/keyword-statement` is a close sibling for the same job). A sentence that ENUMERATES 3+ items (comma-separated list, "such as X, Y, Z") is NOT a kinetic-sentence job — route it to a list card (`checklist/icon-pills`, `checklist/bullet-points`) with one beat per item. `variables.text` is the voiceover verbatim, one sentence, <=18 words, `beats: []` — paraphrasing fails resolution at step 030; split long sentences into two consecutive cues instead. `variables.accent` is the 2-4 verbatim, contiguous words carrying the sentence\'s point (the consequence or substance, e.g. "burns credits", "cool technical features" — not a brand name or number picked for salience). Anchor at the sentence\'s own opening words.',
+    why: 'enumeration clause: owner fold 2026-07-24, test-01 Final Cut :5 ("comma separated things would have best suited for some list type motion graphic instead of this text type"); rest predates the fold log',
+  },
+  R_OVERLAY_ON_FOOTAGE: {
+    rule: 'Overlays sit on FOOTAGE only (mandatory): an overlay cue must never overlap a fullframe card\'s on-screen span (including its extended exposure hold) — two graphics stacked on each other read as an editing bug. Anchor the overlay where screen/avatar footage is visible, or fold its content into the fullframe card itself. Enforced as lint error E9.',
+    why: 'owner fold 2026-07-24, test-01 Final Cut :2/:10 — callouts rendered on top of the title card and a tool-intro card',
   },
   R_STRUCTURAL: {
     rule: 'Structural consistency (mandatory): a repeated semantic slot — e.g. the section opener for each compared tool — uses the SAME card every time; mixing cards across parallel items is a defect, not variety. Structural cards (catalog `structural: true`) are exempt from the repetition cap.',
     why: 'owner fold 2026-07-18 — v2 swapped two of five tool openers to different section cards to dodge the repetition cap',
   },
   R_REPETITION: {
-    rule: "Repetition cap (non-structural cards): follow the caps above — for overlay/stat-hit, keep only the numbers the VO leans on most and drop the least impressive rather than exceed the cap. Other overlays: vary callout's style and position when repeating.",
-    why: 'unattributed — predates the fold log',
+    rule: "Repetition cap (non-structural cards): follow the caps above — for overlay/stat-hit, keep only the numbers the VO leans on most and drop the least impressive rather than exceed the cap. Other overlays: vary keyword-pop's corner (pos) and variant when repeating.",
+    why: 'unattributed — predates the fold log; callout reference replaced by keyword-pop (owner removed callout 2026-07-24)',
   },
   R_DEMOS: {
-    rule: 'Demos & step narration (mandatory): do NOT lay a redundant graphic over a click the screen already shows — no `process/step-flow` re-labeling visible steps (step-flow is only for processes NOT on screen). During a demo/playback stretch only `placement: overlay` cards may be used (this is enforced via lint E5). But do NOT leave a long demo stretch bare either: punctuate it with the SPOKEN layer — `overlay/callout`, `overlay/lower-third`, `overlay/tip-banner`, `overlay/stat-hit`, or `overlay/verdict-chips`. Test: echoes the click → skip; adds the narration\'s point/label → keep.',
-    why: 'owner fold 2026-07-18, test-01 c06/c09/c15',
+    rule: 'Demos & step narration (mandatory): do NOT lay a redundant graphic over a click the screen already shows — no `process/step-flow` re-labeling visible steps (step-flow is only for processes NOT on screen). During a demo/playback stretch only `placement: overlay` cards may be used (this is enforced via lint E5). But do NOT leave a long demo stretch bare either: punctuate it with the SPOKEN layer — `overlay/keyword-pop`, `overlay/lower-third`, `overlay/tip-banner`, `overlay/stat-hit`, `overlay/arrow-label`, or `overlay/verdict-chips`. Test: echoes the click → skip; adds the narration\'s point/label → keep.',
+    why: 'owner fold 2026-07-18, test-01 c06/c09/c15; callout replaced by keyword-pop/arrow-label 2026-07-24',
   },
   R_PRICING: {
     rule: 'Pricing (mandatory): no per-tool pricing/credits graphics during tool segments (the pricing page is on screen); consolidate into ONE pricing comparison graphic in the final comparison section. When the `comparison/table-rows` card is used, do NOT also emit stat-hit cues for the same numbers.',

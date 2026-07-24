@@ -32,7 +32,8 @@ via the `visuals-flow` skill (verb router).**
 avatar clips → assembled final.mp4, plans 082+083). **2026-07-19 added the
 assembly EFFECTS layer** (plans 084–094, PRs #41–#51): whip blur-cuts at
 screen↔avatar boundaries, flash+punch refresh beats inside long avatar spans,
-burned captions + Ken Burns drift on screen segments, orphan-sliver absorption,
+burned captions + Ken Burns drift on screen segments (drift later REMOVED for
+good — owner rule 2026-07-24, see EFFECTS.md), orphan-sliver absorption,
 and the scalable architecture — pluggable `lib/effects/` modules, per-video
 `effects.json` manifest (owner-editable per instance), `EFFECTS.md` rulebook,
 and an `analyze reference <url>` verb that auto-discovers effect moments in any

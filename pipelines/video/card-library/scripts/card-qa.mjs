@@ -96,10 +96,9 @@ const cards = targetCardSlug
 const AMBIENT_REQUIRED = [
   'enacted/before-after', 'enacted/connect-nodes', 'enacted/counter-tally',
   'enacted/fill-gauge', 'enacted/pipeline-flow', 'enacted/price-meter',
-  'enacted/race-bars', 'enacted/spotlight-focus', 'enacted/stack-builder',
+  'enacted/race-bars', 'enacted/spotlight-focus',
   'enacted/terminal-enact', 'enacted/timeline-scrub', 'enacted/verdict-scale',
-  'overlay/label-plate',
-  'overlay/stat-hit', 'overlay/callout', 'overlay/lower-third', 'overlay/tip-banner',
+  'overlay/stat-hit', 'overlay/keyword-pop', 'overlay/lower-third', 'overlay/tip-banner',
   'section/bullet-points-highlighted', 'section/tool-intro', 'slate/kinetic-sentence',
   'statement/keyword-statement', 'title/title-aurora-wave', 'checklist/icon-pills'
 ];
