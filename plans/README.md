@@ -682,3 +682,4 @@ No deploys. 137's test_cmd runs in BOTH card-library and visuals-flow-2
 - 139-vf2-sound-mix — SFX planner, mix/master, audio lanes — TODO
 - 140-vf2-board-two-tabs — two-tab review dashboard — TODO
 - 141-vf2-docs-registration — docs + skill + map rows — TODO
+- 134-vf2-scaffold — PR#92 134-vf2-scaffold: visuals-flow-2 scaffold — copy the v1 spine, prove parity — DONE
