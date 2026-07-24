@@ -369,3 +369,24 @@ test('extendExposure: (e) overlays never modified', async () => {
   const out = extendExposure(resolved, { base: 'none', total: 15 });
   assert.equal(out[0].duration, 5);
 });
+
+test('bespoke cue with existing dir resolves; missing dir errors; missing placement errors', async () => {
+  const { resolveCues } = await import('./resolve.mjs');
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'bespoke-'));
+  const bespokeDir = path.join(workdir, 'bespoke', 'test-card');
+  fs.mkdirSync(bespokeDir, { recursive: true });
+  fs.writeFileSync(path.join(bespokeDir, 'index.html'), 'dummy');
+
+  const cues = [
+    { id: 'b1', card: 'bespoke', bespoke: 'test-card', placement: 'fullframe', anchor: "let's look at", beats: [] },
+    { id: 'b2', card: 'bespoke', bespoke: 'missing-dir', placement: 'fullframe', anchor: "let's look at", beats: [] },
+    { id: 'b3', card: 'bespoke', bespoke: 'test-card', anchor: "let's look at", beats: [] },
+  ];
+  const { resolved, errors } = resolveCues(cues, WORDS, CATALOG, null, workdir);
+  assert.equal(resolved.length, 1);
+  assert.equal(resolved[0].id, 'b1');
+  assert.equal(resolved[0].bespoke, 'test-card');
+  assert.ok(errors.some(e => /b2: bespoke dir missing-dir missing index\.html/.test(e)));
+  assert.ok(errors.some(e => /b3: bespoke card requires placement "fullframe" or "overlay"/.test(e)));
+});

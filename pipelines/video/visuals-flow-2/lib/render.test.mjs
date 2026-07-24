@@ -134,3 +134,46 @@ test('CLI: staleness gate exits 1 and mentions stale', () => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /stale/);
 });
+
+test('staging picks the bespoke path (assert on the staged plan/paths, no real render)', () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'bespoke-render-'));
+  
+  // Create bespoke card
+  const bespokeDir = path.join(workdir, 'bespoke', 'test-card');
+  fs.mkdirSync(bespokeDir, { recursive: true });
+  fs.writeFileSync(path.join(bespokeDir, 'index.html'), '<div data-duration="10"></div>');
+
+  // Create cues.json with a bespoke cue
+  const cuesJson = {
+    video: 'vid',
+    approved: true,
+    cues: [
+      { id: 'b1', card: 'bespoke', bespoke: 'test-card', placement: 'fullframe', anchor: 'x y z', beats: [] }
+    ]
+  };
+  fs.writeFileSync(path.join(workdir, 'cues.json'), JSON.stringify(cuesJson));
+  fs.writeFileSync(path.join(workdir, 'transcript.json'), JSON.stringify([{text: 'x', start: 0, end: 1}, {text: 'y', start: 1, end: 2}, {text: 'z', start: 2, end: 3}]));
+  
+  // Resolve
+  spawnSync(process.execPath, [path.join(import.meta.dirname, 'resolve.mjs'), workdir]);
+  
+  // Fake npx and ffprobe
+  const binDir = path.join(workdir, 'bin');
+  fs.mkdirSync(binDir);
+  fs.writeFileSync(path.join(binDir, 'npx'), '#!/bin/bash\ntouch "$7"\n'); // touch the output file (outPath is the 7th arg if args are: hyperframes@..., render, bespoke, --variables-file, vars.json, -o, outPath) Wait, no, args are [hyperframes, render, card, --variables-file, vars.json, --fps, 30, --format, format, --quality, quality, --quiet, -o, outPath]. The last arg is outPath. So we can just use bash -c 'eval last=\\"\${@}\\" && touch "$last"'.
+  fs.writeFileSync(path.join(binDir, 'npx'), '#!/bin/bash\nfor last; do true; done\nmkdir -p "$(dirname "$last")"\ntouch "$last"\n');
+  fs.chmodSync(path.join(binDir, 'npx'), 0o755);
+  fs.writeFileSync(path.join(binDir, 'ffprobe'), '#!/bin/bash\necho "10.0"\n');
+  fs.chmodSync(path.join(binDir, 'ffprobe'), 0o755);
+
+  const env = { ...process.env, PATH: `${binDir}:${process.env.PATH}`, HYPERFRAMES_VERSION: 'fake' };
+  
+  const result = spawnSync(process.execPath, [path.join(import.meta.dirname, 'render.mjs'), workdir], {
+    encoding: 'utf8',
+    env
+  });
+  
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(fs.existsSync(path.join(workdir, 'renders', '0000-b1-bespoke.mp4')));
+});
