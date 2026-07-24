@@ -725,3 +725,4 @@ with effects/sound judged on Final Cut. Executor: agy (standing directive).
 
 - 145-vf2-avatar-stage-mode — stage mode + head_zone + host-stage card — TODO
 - 146-vf2-review-surface-split — composition-only storyboard, auto-approved derivatives — TODO
+- 145-vf2-avatar-stage-mode — PR#103 145-vf2-avatar-stage-mode: avatar stage mode — head composited into a card's designed head zone — DONE
