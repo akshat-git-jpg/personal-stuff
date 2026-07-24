@@ -28,6 +28,15 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
 
 ## Verb Map
 
+**Review model (owner decision, 2026-07-24 — see decisions.md):** two stages.
+Stage 1 = storyboard tab, a quick HIGH-LEVEL pass (structure, card choice,
+density; feedback lands cue-keyed). On short videos (≤10 min) the owner may
+skip stage 1 entirely — the machine gates (lint, audit-gate, overflow) still
+run and approvals can be granted in-flow. Stage 2 = the Final Cut tab on the
+assembled draft — the REAL review (motion, pacing, captions, SFX; timestamped
++ point-pinned comments, versions, live check-off). Sessions should drive
+short videos straight to the draft and hand the owner the Final Cut URL.
+
 | Phrase | `run.sh` verb / CLI | Owner Gate / Behavior |
 |---|---|---|
 | "run v2 graphics", "run the concept pass" | `bash run.sh <slug> concept-pass` | |

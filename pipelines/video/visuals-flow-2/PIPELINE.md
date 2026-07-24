@@ -20,7 +20,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `020-cue-pass-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json` (bespoke escalation rule) |
 | `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9) |
 | `035-cue-audit` | [LLM] | `resolved.json` → `audit.json` (mute test) |
-| `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board; audit-gate blocks labelled fullframes; Final Cut reviews assembled versions) |
+| `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board; audit-gate blocks labelled fullframes; Final Cut reviews assembled versions). **Review model (owner, 2026-07-24): storyboard = quick HIGH-LEVEL pass (structure/placement/density, cue-keyed notes; skippable on short videos — machine gates still run), Final Cut = the real/final review (motion, pacing, captions, SFX; timestamped + pinned comments).** |
 | `050-render-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` (brand-inline; bespoke staging; variant rotation) |
 | `070-shot-pass-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel) |
 | `080-avatar-render-run` | [OWNER live HeyGen] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
