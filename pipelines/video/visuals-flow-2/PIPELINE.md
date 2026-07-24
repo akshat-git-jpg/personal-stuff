@@ -137,6 +137,7 @@ Field semantics:
 - `register_why` (optional) — one-line reason if deviating from the span's register.
 - `motif` (optional) — boolean, true if the cue hosts the through-line motif.
 - `flagged: true` — no card fits, needs a novel card (plan 065 surfaces these).
+- `bespoke` (optional) — string, required if `card: "bespoke"`. Sets the composition dirname (`videos/<slug>/bespoke/<dirname>`). When `card: "bespoke"`, `placement` ("fullframe"|"overlay") is also required in the cue, and beats resolve as normal (the composition reads `beats[].at`).
 - `kind: "word-sync"` cards (catalog) take `variables.text` (the sentence, quoted verbatim from the voiceover) and optional `variables.accent` (a phrase appearing verbatim inside `text`, rendered in the brand accent). They author **no** `beats` — the resolver derives one beat per word from `transcript.json`, so the cue's `anchor` must be the opening words of the sentence itself.
 - Board feedback: every cue block, gap block, and the header carry a feedback box;
   Save writes non-empty entries to `feedback.json` (`items` keyed by cue id,

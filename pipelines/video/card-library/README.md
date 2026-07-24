@@ -120,3 +120,13 @@ fully removed.)
    `data-duration` attributes at one identical value so a global rewrite is safe.
 5. Single-shot cards (no progressive reveals) are exempt; they are `"kind": "single"` in
    catalog.json.
+
+## Catalog metadata fields
+
+The `catalog.json` supports these optional per-card fields for E8 and v2 resolution:
+- `register`: array subset of `["dark","light"]` — which register skins the card implements (CSS class `register-dark`/`register-light` on `<body>`, driven by variable `register`).
+- `marker`: boolean — card renders `variables.marker` (a single word, must appear verbatim inside its main text variable) with the accent sweep treatment.
+- `intent`: string — one line, when to PICK this card.
+- `anti_intent`: string — one line, when NOT to (the wrong-pick guard the cue pass reads).
+- `variants`: array of strings (e.g. `["a","b"]`) — visual variants selectable via variable `variant`.
+- `continuity`: boolean — card reserves a bottom-left 220×80px zone where the through-line motif element may persist.

@@ -81,3 +81,10 @@ deliberate reason.
 - Winner moments may put the logo inside a gold chip (see
   `verdict/persona-match`): `rgba(250,204,21,0.07)` fill, `rgba(250,204,21,0.35)`
   1px border, radius 14px — gold text per the palette's winner rule.
+
+## Enacted device rules
+
+- **Enact, don't label**: The graphic must argue the clause without words. Use the mute test: with audio muted and captions hidden, the moving object alone must communicate the idea.
+- **Registers**: Dark = problem styling. Light = solution styling (gradient `--bg-from: #2b2416; --bg-to: #0a0805`).
+- **Marker**: A single marker word gets the accent sweep treatment.
+- **Real data**: Use real values, logos, and commands. Never use lorem ipsum or pseudo-code.

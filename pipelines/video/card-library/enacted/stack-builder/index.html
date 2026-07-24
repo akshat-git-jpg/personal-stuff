@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --positive: #34d399; --negative: #fb7185; --gold: #facc15;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      body.register-light {
+        --bg-from: #2b2416; --bg-to: #0a0805;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
+      body.variant-b #frame { flex-direction: row-reverse; }
+      .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 56px; }
+      .marker-sweep { position: relative; display: inline-block; }
+      .marker-sweep::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 8px; background: var(--accent); transform: scaleX(0); transform-origin: left; }
+      .marker-sweep.active::after { transform: scaleX(1); transition: transform 0.4s ease-out; }
+    </style>
+  </head>
+  <body class="register-dark variant-a">
+    <div id="root" data-composition-id="stack-builder" data-start="0" data-duration="6" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Tech Stack","beats":[{"label":"Database","at":0.5}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div id="card">
+          <div class="title" id="title"></div>
+          <div id="text"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        ...JSON.parse('{"title":"Tech Stack","beats":[{"label":"Database","at":0.5}]}'),
+        ...VARS,
+        register: VARS.register ?? 'dark',
+        variant: VARS.variant ?? 'a',
+        marker: VARS.marker ?? false
+      };
+
+      if (DATA.register === 'light') document.body.classList.replace('register-dark', 'register-light');
+      if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
+
+      /* ===== TIMELINE ===== */
+      const $ = (id) => document.getElementById(id);
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      
+      $('title').textContent = DATA.title; tl.from($('title'), {opacity: 0, y:20}, 0.1);
+      
+      if (DATA.marker && $('title') && DATA.title && DATA.marker_word) {
+         // A real implementation would parse marker_word out of title and wrap it in .marker-sweep
+         // For now just stubbing it since it's just a demo renderer
+      }
+
+      window.__timelines['stack-builder'] = tl;
+    </script>
+  </body>
+</html>

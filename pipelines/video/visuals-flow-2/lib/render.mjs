@@ -117,7 +117,7 @@ async function main() {
 
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
-  const recomputed = resolveCues(cuesFile.cues, words, catalog, cardLibraryRoot);
+  const recomputed = resolveCues(cuesFile.cues, words, catalog, cardLibraryRoot, workdir);
   const fresh = recomputed.errors.length === 0
     && JSON.stringify(recomputed.resolved) === JSON.stringify(resolved);
   if (!fresh && !opts.force) {
@@ -139,9 +139,16 @@ async function main() {
     try {
       fs.cpSync(path.join(cardLibraryRoot, 'hyperframes.json'), path.join(stagedDir, 'hyperframes.json'));
       fs.cpSync(path.join(cardLibraryRoot, 'meta.json'), path.join(stagedDir, 'meta.json'));
-      const stagedCardDir = path.join(stagedDir, cue.card);
-      fs.mkdirSync(path.dirname(stagedCardDir), { recursive: true });
-      fs.cpSync(path.join(cardLibraryRoot, cue.card), stagedCardDir, { recursive: true });
+      let stagedCardDir;
+      if (cue.card === 'bespoke') {
+        stagedCardDir = path.join(stagedDir, 'bespoke', cue.bespoke);
+        fs.mkdirSync(path.dirname(stagedCardDir), { recursive: true });
+        fs.cpSync(path.join(workdir, 'bespoke', cue.bespoke), stagedCardDir, { recursive: true });
+      } else {
+        stagedCardDir = path.join(stagedDir, cue.card);
+        fs.mkdirSync(path.dirname(stagedCardDir), { recursive: true });
+        fs.cpSync(path.join(cardLibraryRoot, cue.card), stagedCardDir, { recursive: true });
+      }
 
       const indexPath = path.join(stagedCardDir, 'index.html');
       const html = fs.readFileSync(indexPath, 'utf8');

@@ -21,7 +21,7 @@ export const CUE_RULES = {
     rule: 'Choosing a card — route by what the VO is doing, matching catalog `purpose` lines:\n' +
       '- Narration makes a claim, lists items, or states numbers and the screen does not show it → fullframe canvas beat (`slate/headline-chips`, `comparison/table-rows`, section slates). The screen already shows what is spoken → no graphic.\n' +
       '- Enumerating pros/cons -> pros-cons; ordered list -> checklist or bullet-points; feature-by-feature comparison -> feature-matrix or summary-table; final judgment -> a verdict card; opening a section -> a section/title card; one reinforced claim -> an overlay card.\n' +
-      'If nothing fits, set `flagged: true`, `card` to the closest slug, and add a `note` field explaining the gap — never force a bad match.',
+      'If nothing fits, still set `flagged: true` first; the SESSION then authors the bespoke composition under DESIGN.md + the enacted rules and re-runs resolve — bespoke is a deliberate escalation, never the model\'s first move. Choosing between cards: read each candidate\'s intent / anti_intent lines; an anti_intent match is a hard veto.',
     why: 'unattributed — predates the fold log',
   },
   R_SPECIFICITY: {

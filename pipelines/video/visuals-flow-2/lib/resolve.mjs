@@ -102,12 +102,24 @@ export function validateVariable(path, value, spec) {
 // Schema validation against catalog.json contracts — catches wrong-shaped
 // variables/beats BEFORE anything renders (the "undefined on screen" class).
 // A catalog type description containing "optional" marks that field optional.
-export function validateCues(cues, catalog, cardLibraryRoot) {
+export function validateCues(cues, catalog, cardLibraryRoot, workdir) {
   const bySlug = Object.fromEntries(catalog.cards.map((c) => [c.slug, c]));
   const errors = [];
   const regPath = cardLibraryRoot ? path.join(cardLibraryRoot, 'logos', 'registry.json') : null;
   const registry = regPath && fs.existsSync(regPath) ? JSON.parse(fs.readFileSync(regPath, 'utf8')) : {};
   for (const cue of cues) {
+    if (cue.card === 'bespoke') {
+      if (cue.flagged) continue;
+      if (!cue.bespoke) errors.push(`${cue.id}: bespoke card requires "bespoke" dirname`);
+      if (!['fullframe', 'overlay'].includes(cue.placement)) errors.push(`${cue.id}: bespoke card requires placement "fullframe" or "overlay"`);
+      if (cue.bespoke && workdir) {
+        const bespokeDir = path.join(workdir, 'bespoke', cue.bespoke);
+        if (!fs.existsSync(path.join(bespokeDir, 'index.html'))) {
+          errors.push(`${cue.id}: bespoke dir ${cue.bespoke} missing index.html`);
+        }
+      }
+      continue;
+    }
     const cat = bySlug[cue.card];
     if (!cat || cue.flagged) continue; // unknown cards error in resolveCues; flagged cues are parked
     const beats = cue.beats ?? [];
@@ -177,17 +189,22 @@ export function validateCues(cues, catalog, cardLibraryRoot) {
   return errors;
 }
 
-export function resolveCues(cues, words, catalog, cardLibraryRoot) {
+export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
   const bySlug = Object.fromEntries(catalog.cards.map((c) => [c.slug, c]));
-  const errors = [...validateCues(cues, catalog, cardLibraryRoot)];
+  const errors = [...validateCues(cues, catalog, cardLibraryRoot, workdir)];
   const out = [];
   let cursor = 0;
   let lastFullframe = null;
   const findFrom = (phrase, from) => findPhrase(W, phrase, from);
   for (const cue of cues) {
-    const cat = bySlug[cue.card];
-    if (!cat) { errors.push(`${cue.id}: unknown card "${cue.card}"`); continue; }
+    let cat;
+    if (cue.card === 'bespoke') {
+      cat = { kind: cue.beats && cue.beats.length > 0 ? 'beat' : 'single', placement: cue.placement, default_duration: 10 };
+    } else {
+      cat = bySlug[cue.card];
+      if (!cat) { errors.push(`${cue.id}: unknown card "${cue.card}"`); continue; }
+    }
     if (cue.flagged) continue; // flagged cues are skipped, not errors
     const BEAT_LEAD_IN = 0.6; // s a beat card is on screen before its first reveal
 
@@ -233,6 +250,7 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot) {
       start: +start.toFixed(2), duration,
       variables: { ...cue.variables, ...(beats.length ? { beats } : {}) },
     };
+    if (cue.card === 'bespoke') entry.bespoke = cue.bespoke;
     out.push(entry);
     if (entry.placement === 'fullframe') lastFullframe = entry;
   }
@@ -276,7 +294,7 @@ async function main() {
   const words = JSON.parse(fs.readFileSync(transcriptPath, 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
 
-  const { resolved, errors } = resolveCues(cuesFile.cues, words, catalog, cardLibraryRoot);
+  const { resolved, errors } = resolveCues(cuesFile.cues, words, catalog, cardLibraryRoot, workdir);
 
   if (errors.length) {
     for (const e of errors) console.error(e);
