@@ -14,3 +14,4 @@ lib/fixtures/board/slices/
 .DS_Store
 # raw source video segments per test/video — never committed
 videos/*/src/
+assets/sfx/*.wav
