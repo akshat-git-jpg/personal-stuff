@@ -20,6 +20,8 @@ Steps:
   board
   render
   fold
+  sound
+  mix
   shot-pass
   shots
   avatar
@@ -156,6 +158,14 @@ EOF
     node lib/feedback-status.mjs
     echo "060 is an owner step. Proceed manually."
     exit 0
+    ;;
+
+  sound)
+    node lib/sound/sfx-plan.mjs "$slug"
+    ;;
+
+  mix)
+    node lib/sound/build-mix.mjs "$slug"
     ;;
 
   shot-pass)
