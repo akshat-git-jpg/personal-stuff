@@ -18,3 +18,6 @@ assets/sfx/*.wav
 videos/*/master.wav
 videos/*/music-ducked.wav
 videos/*/sfx-bus.wav
+videos/*/*.full.mp4
+videos/*/*.full.mp3
+videos/*/versions.run1/

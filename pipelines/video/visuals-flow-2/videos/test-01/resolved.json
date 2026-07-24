@@ -1,0 +1,578 @@
+{
+  "video": "test-01",
+  "offset": 0,
+  "resolved": [
+    {
+      "id": "c01",
+      "card": "title/title-aurora-wave",
+      "placement": "fullframe",
+      "start": 0.1,
+      "duration": 10,
+      "variables": {
+        "title": "5 AI Video Tools, Compared",
+        "platforms": [
+          {
+            "name": "OpenArt",
+            "logo": "openart"
+          },
+          {
+            "name": "Higgsfield",
+            "logo": "higgsfield"
+          },
+          {
+            "name": "Synthesia",
+            "logo": "synthesia"
+          },
+          {
+            "name": "HeyGen",
+            "logo": "heygen"
+          },
+          {
+            "name": "Arcads",
+            "logo": "arcads"
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c02",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 8.34,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "5 tools, 5 promises",
+        "text": "None of them built for the same person",
+        "pos": "top-left",
+        "style": "feature",
+        "register": "dark",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c03",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 24.47,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "The question",
+        "text": "Which tool wins — and for who?",
+        "pos": "top-right",
+        "style": "feature",
+        "register": "dark",
+        "variant": "b"
+      }
+    },
+    {
+      "id": "c04",
+      "card": "enacted/before-after",
+      "placement": "fullframe",
+      "start": 32.6,
+      "duration": 13.93,
+      "variables": {
+        "title": "Not one winner",
+        "marker": "winner",
+        "before_label": "One race",
+        "after_label": "Best for you",
+        "before_lines": [
+          {
+            "line": "One overall winner"
+          },
+          {
+            "line": "Generic scores"
+          }
+        ],
+        "after_lines": [
+          {
+            "line": "Five different jobs"
+          },
+          {
+            "line": "Matched to how you work"
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c05",
+      "card": "slate/kinetic-sentence",
+      "placement": "fullframe",
+      "start": 46.53,
+      "duration": 15.75,
+      "variables": {
+        "text": "So I tested all 5 across the same areas such as features, output quality, workflow, and pricing",
+        "accent": "the same areas",
+        "beats": [
+          {
+            "text": "So",
+            "accent": false,
+            "at": 0.2
+          },
+          {
+            "text": "I",
+            "accent": false,
+            "at": 0.36
+          },
+          {
+            "text": "tested",
+            "accent": false,
+            "at": 0.93
+          },
+          {
+            "text": "all",
+            "accent": false,
+            "at": 0.96
+          },
+          {
+            "text": "5",
+            "accent": false,
+            "at": 1.27
+          },
+          {
+            "text": "across",
+            "accent": false,
+            "at": 1.45
+          },
+          {
+            "text": "the",
+            "accent": true,
+            "at": 2
+          },
+          {
+            "text": "same",
+            "accent": true,
+            "at": 2.21
+          },
+          {
+            "text": "areas",
+            "accent": true,
+            "at": 2.55
+          },
+          {
+            "text": "such",
+            "accent": false,
+            "at": 2.98
+          },
+          {
+            "text": "as",
+            "accent": false,
+            "at": 3.37
+          },
+          {
+            "text": "features,",
+            "accent": false,
+            "at": 3.48
+          },
+          {
+            "text": "output",
+            "accent": false,
+            "at": 4.39
+          },
+          {
+            "text": "quality,",
+            "accent": false,
+            "at": 4.84
+          },
+          {
+            "text": "workflow,",
+            "accent": false,
+            "at": 5.6
+          },
+          {
+            "text": "and",
+            "accent": false,
+            "at": 6.45
+          },
+          {
+            "text": "pricing",
+            "accent": false,
+            "at": 7.49
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c06",
+      "card": "enacted/pipeline-flow",
+      "placement": "fullframe",
+      "start": 62.28,
+      "duration": 18.98,
+      "variables": {
+        "title": "The gameplan",
+        "steps": [
+          {
+            "step": "Overviews"
+          },
+          {
+            "step": "Live demos"
+          },
+          {
+            "step": "Pricing"
+          },
+          {
+            "step": "Scorecard"
+          },
+          {
+            "step": "Verdict"
+          }
+        ],
+        "beats": [
+          {
+            "step": "Overviews",
+            "at": 0.6
+          },
+          {
+            "step": "Live demos",
+            "at": 5.22
+          },
+          {
+            "step": "Pricing",
+            "at": 9.17
+          },
+          {
+            "step": "Scorecard",
+            "at": 11.17
+          },
+          {
+            "step": "Verdict",
+            "at": 15.98
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c07",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 83.87,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Links below",
+        "text": "All 5 platforms linked in the description",
+        "pos": "top-right",
+        "style": "feature",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c08",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 93.51,
+      "duration": 6,
+      "variables": {
+        "index": 1,
+        "total": 5,
+        "logo": "openart",
+        "name": "OpenArt",
+        "tagline": "100+ models, one workspace",
+        "tag": "Creative hub",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c09",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 96.9,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "100+ models",
+        "text": "Flux, Nano Banana, Kling — one subscription",
+        "pos": "top-left",
+        "style": "feature",
+        "register": "light",
+        "variant": "b"
+      }
+    },
+    {
+      "id": "c10",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 105.33,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "All-in-one",
+        "text": "Images · video · characters · training · audio",
+        "pos": "top-left",
+        "style": "feature",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c11",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 118.25,
+      "duration": 6,
+      "variables": {
+        "index": 2,
+        "total": 5,
+        "logo": "higgsfield",
+        "name": "Higgsfield",
+        "tagline": "Cinematic control, video-first",
+        "tag": "Director's studio",
+        "register": "light",
+        "variant": "b"
+      }
+    },
+    {
+      "id": "c12",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 131.51,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "One interface",
+        "text": "Sora 2, Kling 3.0 & Veo 3.1 in one place",
+        "pos": "top-right",
+        "style": "feature",
+        "register": "light",
+        "variant": "b"
+      }
+    },
+    {
+      "id": "c13",
+      "card": "enacted/stack-builder",
+      "placement": "fullframe",
+      "start": 141.58,
+      "duration": 10.29,
+      "variables": {
+        "title": "The Higgsfield stack",
+        "beats": [
+          {
+            "label": "Cinema Studio — 70+ presets",
+            "at": 0.6
+          },
+          {
+            "label": "SoulID — character consistency",
+            "at": 4.71
+          },
+          {
+            "label": "Director-level control",
+            "at": 6.87
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c14",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 151.87,
+      "duration": 6,
+      "variables": {
+        "index": 3,
+        "total": 5,
+        "logo": "synthesia",
+        "name": "Synthesia",
+        "tagline": "Corporate avatar video, at scale",
+        "tag": "Enterprise avatars",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c15",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 159.05,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Synthesia",
+        "logo": "synthesia",
+        "value": 240,
+        "suffix": "+ AI avatars",
+        "context": "Speaking 140+ languages",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c16",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 176.49,
+      "duration": 5,
+      "variables": {
+        "name": "OpenArt",
+        "subtitle": "Live demo — text-to-video",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c17",
+      "card": "overlay/label-plate",
+      "placement": "overlay",
+      "start": 184.29,
+      "duration": 5,
+      "variables": {
+        "text": "Create → Video",
+        "position": "top-left",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c18",
+      "card": "overlay/label-plate",
+      "placement": "overlay",
+      "start": 201.99,
+      "duration": 5,
+      "variables": {
+        "text": "Text to Video",
+        "position": "top-center",
+        "register": "light",
+        "variant": "b"
+      }
+    },
+    {
+      "id": "c19",
+      "card": "slate/kinetic-sentence",
+      "placement": "fullframe",
+      "start": 218.09,
+      "duration": 3.58,
+      "variables": {
+        "text": "So let's talk about the good ones first",
+        "accent": "good ones",
+        "beats": [
+          {
+            "text": "So",
+            "accent": false,
+            "at": 0.2
+          },
+          {
+            "text": "let's",
+            "accent": false,
+            "at": 0.44
+          },
+          {
+            "text": "talk",
+            "accent": false,
+            "at": 0.62
+          },
+          {
+            "text": "about",
+            "accent": false,
+            "at": 0.96
+          },
+          {
+            "text": "the",
+            "accent": false,
+            "at": 1.01
+          },
+          {
+            "text": "good",
+            "accent": true,
+            "at": 1.16
+          },
+          {
+            "text": "ones",
+            "accent": true,
+            "at": 1.37
+          },
+          {
+            "text": "first",
+            "accent": false,
+            "at": 1.58
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c20",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 221.4,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Seedance",
+        "text": "Newest — cinematic video with audio, multi-shot",
+        "pos": "top-left",
+        "style": "feature",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c21",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 236.6,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Model tags",
+        "text": "NEW + FAST tags mark the ones to try",
+        "edge": "top",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c22",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 253.24,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Clip length",
+        "text": "Choose how many seconds to generate",
+        "pos": "top-right",
+        "style": "feature",
+        "register": "light",
+        "variant": "b"
+      }
+    },
+    {
+      "id": "c23",
+      "card": "enacted/spotlight-focus",
+      "placement": "fullframe",
+      "start": 257.57,
+      "duration": 7,
+      "variables": {
+        "title": "The 4K pick",
+        "marker": "4K",
+        "items": [
+          {
+            "item": "Seedance"
+          },
+          {
+            "item": "Kling 3.0 Omni"
+          },
+          {
+            "item": "Kling 2.7"
+          },
+          {
+            "item": "Veo 3.1"
+          },
+          {
+            "item": "Kling 3.0"
+          }
+        ],
+        "focus": "Veo 3.1",
+        "register": "light",
+        "variant": "a"
+      }
+    }
+  ]
+}

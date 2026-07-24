@@ -1,0 +1,351 @@
+{
+  "video": "test-01",
+  "offset": 0,
+  "resolved": [
+    {
+      "id": "c01",
+      "card": "title/title-aurora-wave",
+      "placement": "fullframe",
+      "start": 0.1,
+      "duration": 11.48,
+      "variables": {
+        "title": "5 AI Video Tools, Compared",
+        "platforms": [
+          {
+            "name": "OpenArt",
+            "logo": "openart"
+          },
+          {
+            "name": "Higgsfield",
+            "logo": "higgsfield"
+          },
+          {
+            "name": "Synthesia",
+            "logo": "synthesia"
+          },
+          {
+            "name": "HeyGen",
+            "logo": "heygen"
+          },
+          {
+            "name": "Arcads",
+            "logo": "arcads"
+          }
+        ]
+      }
+    },
+    {
+      "id": "c02",
+      "card": "statement/keyword-statement",
+      "placement": "fullframe",
+      "start": 11.58,
+      "duration": 5,
+      "variables": {
+        "text": "None of them are built for the same person.",
+        "keyword": "the same person"
+      }
+    },
+    {
+      "id": "c03",
+      "card": "slate/kinetic-sentence",
+      "placement": "fullframe",
+      "start": 25.91,
+      "duration": 4.1,
+      "variables": {
+        "text": "which tool wins and for who",
+        "accent": "and for who",
+        "beats": [
+          {
+            "text": "which",
+            "accent": false,
+            "at": 0.2
+          },
+          {
+            "text": "tool",
+            "accent": false,
+            "at": 0.51
+          },
+          {
+            "text": "wins",
+            "accent": false,
+            "at": 0.76
+          },
+          {
+            "text": "and",
+            "accent": true,
+            "at": 1.03
+          },
+          {
+            "text": "for",
+            "accent": true,
+            "at": 1.29
+          },
+          {
+            "text": "who",
+            "accent": true,
+            "at": 2.1
+          }
+        ]
+      }
+    },
+    {
+      "id": "c04",
+      "card": "statement/keyword-statement",
+      "placement": "fullframe",
+      "start": 44.52,
+      "duration": 5,
+      "variables": {
+        "text": "The real question: which one is best for you.",
+        "keyword": "best for you"
+      }
+    },
+    {
+      "id": "c05",
+      "card": "section/bullet-points-highlighted",
+      "placement": "fullframe",
+      "start": 62.38,
+      "duration": 6,
+      "variables": {
+        "eyebrow": "What we'll cover",
+        "active": 1,
+        "items": [
+          {
+            "label": "Tool overviews"
+          },
+          {
+            "label": "Live demos"
+          },
+          {
+            "label": "Pricing compared"
+          },
+          {
+            "label": "Summary scorecard"
+          },
+          {
+            "label": "Verdict by use case"
+          }
+        ]
+      }
+    },
+    {
+      "id": "c06",
+      "card": "statement/keyword-statement",
+      "placement": "fullframe",
+      "start": 79.76,
+      "duration": 5,
+      "variables": {
+        "text": "Which tool actually deserves your subscription?",
+        "keyword": "your subscription"
+      }
+    },
+    {
+      "id": "c07",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 93.51,
+      "duration": 6,
+      "variables": {
+        "index": 1,
+        "total": 5,
+        "logo": "openart",
+        "name": "OpenArt",
+        "tagline": "100+ models, one workspace",
+        "tag": "Creative hub"
+      }
+    },
+    {
+      "id": "c08",
+      "card": "checklist/icon-pills",
+      "placement": "fullframe",
+      "start": 104.37,
+      "duration": 9.51,
+      "variables": {
+        "beats": [
+          {
+            "icon": "star",
+            "text": "Image generation",
+            "at": 0.6
+          },
+          {
+            "icon": "person",
+            "text": "Character consistency",
+            "at": 2.88
+          },
+          {
+            "icon": "gear",
+            "text": "Custom model training",
+            "at": 5.08
+          },
+          {
+            "icon": "chat",
+            "text": "Storytelling & audio",
+            "at": 6.51
+          }
+        ]
+      }
+    },
+    {
+      "id": "c09",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 118.25,
+      "duration": 6,
+      "variables": {
+        "index": 2,
+        "total": 5,
+        "logo": "higgsfield",
+        "name": "Higgsfield",
+        "tagline": "Director-level cinematic video control",
+        "tag": "Cinematic video"
+      }
+    },
+    {
+      "id": "c10",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 131.51,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "One interface",
+        "text": "Sora 2, Kling 3.0 & Veo 3.1 in one place",
+        "pos": "top-right",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c11",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 141.78,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Cinema Studio",
+        "text": "70+ camera presets for director-level control",
+        "edge": "top"
+      }
+    },
+    {
+      "id": "c12",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 151.87,
+      "duration": 6,
+      "variables": {
+        "index": 3,
+        "total": 5,
+        "logo": "synthesia",
+        "name": "Synthesia",
+        "tagline": "Studio-grade AI avatars for business",
+        "tag": "Corporate video"
+      }
+    },
+    {
+      "id": "c13",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 159.05,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Synthesia",
+        "logo": "synthesia",
+        "value": 240,
+        "suffix": "+ AI avatars",
+        "context": "Speaking 140+ languages"
+      }
+    },
+    {
+      "id": "c14",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 176.49,
+      "duration": 5,
+      "variables": {
+        "name": "OpenArt",
+        "subtitle": "Live demo — text-to-video"
+      }
+    },
+    {
+      "id": "c15",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 201.02,
+      "duration": 5,
+      "variables": {
+        "kind": "note",
+        "title": "Text-to-Video",
+        "text": "Starting from the text-to-video workflow",
+        "pos": "top-left",
+        "style": "feature"
+      }
+    },
+    {
+      "id": "c16",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 220.6,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "OpenArt",
+        "text": "100+ AI models under one subscription",
+        "edge": "bottom"
+      }
+    },
+    {
+      "id": "c17",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 239.52,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "title": "Tip",
+        "text": "The 'new' and 'fast' tagged models are best",
+        "pos": "top-right",
+        "style": "tip"
+      }
+    },
+    {
+      "id": "c18",
+      "card": "enacted/spotlight-focus",
+      "placement": "fullframe",
+      "start": 257.57,
+      "duration": 7,
+      "variables": {
+        "title": "Which model?",
+        "items": [
+          {
+            "item": "C Dances"
+          },
+          {
+            "item": "Kling 3.0"
+          },
+          {
+            "item": "Kling 3.0 Omni"
+          },
+          {
+            "item": "Veo 3.1"
+          }
+        ],
+        "focus": "Veo 3.1",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c19",
+      "card": "overlay/callout",
+      "placement": "overlay",
+      "start": 268.77,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "title": "Budget pick",
+        "text": "Going with the cheaper Veo 3.1 model",
+        "pos": "bottom-right",
+        "style": "feature"
+      }
+    }
+  ]
+}

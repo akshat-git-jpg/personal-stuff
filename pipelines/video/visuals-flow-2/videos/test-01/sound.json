@@ -1,0 +1,192 @@
+{
+  "video": "test-01",
+  "approved": true,
+  "instances": [
+    {
+      "id": "sfx-44",
+      "at": 0,
+      "sample": "drone_low",
+      "semi": 0,
+      "gainDb": -30,
+      "loop": true,
+      "end": 160
+    },
+    {
+      "id": "sfx-2",
+      "at": 0.1,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-1",
+      "at": 0.5,
+      "sample": "riser",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-5",
+      "at": 32.6,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-43",
+      "at": 45.92,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-6",
+      "at": 46.53,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-8",
+      "at": 46.89,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-10",
+      "at": 62.28,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-11",
+      "at": 62.88,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-12",
+      "at": 67.5,
+      "sample": "blip",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-15",
+      "at": 93.51,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-16",
+      "at": 96.9,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-18",
+      "at": 118.25,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-20",
+      "at": 141.58,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-21",
+      "at": 142.18,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-22",
+      "at": 146.29000000000002,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-23",
+      "at": 148.45000000000002,
+      "sample": "pop",
+      "semi": 7,
+      "gainDb": -15.5
+    },
+    {
+      "id": "sfx-24",
+      "at": 151.87,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-45",
+      "at": 190,
+      "sample": "drone_low",
+      "semi": 0,
+      "gainDb": -30,
+      "loop": true,
+      "end": 301.75
+    },
+    {
+      "id": "sfx-29",
+      "at": 218.09,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-31",
+      "at": 218.53,
+      "sample": "blip",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-32",
+      "at": 219.67000000000002,
+      "sample": "blip",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-33",
+      "at": 221.4,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-35",
+      "at": 253.24,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-36",
+      "at": 257.57,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-37",
+      "at": 264.57,
+      "sample": "success",
+      "semi": 0,
+      "gainDb": -14
+    }
+  ]
+}

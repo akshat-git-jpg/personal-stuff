@@ -1,0 +1,16 @@
+{
+  "video": "test-01",
+  "thesis": "There is no single best AI video tool; the one worth paying for is whichever is built for the exact way you already work.",
+  "frame": "It is not one race with a single finish line, it is five specialists auditioning for five different jobs, and you are the one doing the hiring.",
+  "throughline": {
+    "name": "the-five-contenders",
+    "description": "Five labeled contender cards, one per tool (OpenArt, Higgsfield, Synthesia, HeyGen, Arcads), lined up side by side like auditioning candidates.",
+    "evolution": "They enter as five identical blank contenders; the intro sets the stakes and lines them up; each overview flips a card face-up and stamps it with that tool's one-line identity and the creator it is built for; then the first card, OpenArt, steps forward as the live demo begins."
+  },
+  "registers": [
+    { "from_anchor": "5 AI video tools", "to_anchor": "which one is best for you", "register": "dark" },
+    { "from_anchor": "So I tested all 5", "to_anchor": "which tool deserves your subscription", "register": "light" },
+    { "from_anchor": "before we get into the demo", "to_anchor": "video content at a scale", "register": "light" },
+    { "from_anchor": "let's start with Open Art AI", "to_anchor": "the prompt that I want to use", "register": "light" }
+  ]
+}

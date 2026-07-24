@@ -1,0 +1,21 @@
+{
+  "video": "test-01",
+  "confirmed": false,
+  "segments": [
+    {
+      "kind": "narration",
+      "start": 0,
+      "end": 160
+    },
+    {
+      "kind": "demo",
+      "start": 160,
+      "end": 190
+    },
+    {
+      "kind": "narration",
+      "start": 190,
+      "end": 301.75
+    }
+  ]
+}

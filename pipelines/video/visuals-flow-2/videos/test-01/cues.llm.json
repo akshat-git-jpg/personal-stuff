@@ -1,0 +1,501 @@
+{
+  "video": "test-01",
+  "approved": false,
+  "offset": 0,
+  "cues": [
+    {
+      "id": "c01",
+      "card": "title/title-aurora-wave",
+      "anchor": "5 AI video tools",
+      "lead": 0.3,
+      "hold": 3.0,
+      "register": "dark",
+      "motif": true,
+      "variables": {
+        "title": "5 AI Video Tools, Compared",
+        "platforms": [
+          {
+            "name": "OpenArt",
+            "logo": "openart"
+          },
+          {
+            "name": "Higgsfield",
+            "logo": "higgsfield"
+          },
+          {
+            "name": "Synthesia",
+            "logo": "synthesia"
+          },
+          {
+            "name": "HeyGen",
+            "logo": "heygen"
+          },
+          {
+            "name": "Arcads",
+            "logo": "arcads"
+          }
+        ]
+      },
+      "beats": [],
+      "flagged": false,
+      "legacy_why": "structural cold-open — renders the five contender logos (the motif's first appearance)"
+    },
+    {
+      "id": "c02",
+      "card": "overlay/callout",
+      "anchor": "comparing them is not",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "dark",
+      "variables": {
+        "kind": "note",
+        "title": "5 tools, 5 promises",
+        "text": "None of them built for the same person",
+        "pos": "top-left",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c03",
+      "card": "overlay/callout",
+      "anchor": "we are going to settle",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "dark",
+      "variables": {
+        "kind": "note",
+        "title": "The question",
+        "text": "Which tool wins — and for who?",
+        "pos": "top-right",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c04",
+      "card": "enacted/before-after",
+      "anchor": "did not go in looking",
+      "lead": 0.5,
+      "hold": 3.0,
+      "register": "light",
+      "register_why": "pivot clause — enacts the video's answer (best for you), not the problem",
+      "variables": {
+        "title": "Not one winner",
+        "marker": "winner",
+        "before_label": "One race",
+        "after_label": "Best for you",
+        "before_lines": [
+          {
+            "line": "One overall winner"
+          },
+          {
+            "line": "Generic scores"
+          }
+        ],
+        "after_lines": [
+          {
+            "line": "Five different jobs"
+          },
+          {
+            "line": "Matched to how you work"
+          }
+        ]
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c05",
+      "card": "slate/kinetic-sentence",
+      "anchor": "So I tested all 5",
+      "lead": 0.2,
+      "hold": 2.0,
+      "register": "light",
+      "legacy_why": "word-sync bridge — the spoken sentence itself is the device",
+      "variables": {
+        "text": "So I tested all 5 across the same areas such as features, output quality, workflow, and pricing",
+        "accent": "the same areas"
+      },
+      "beats": [],
+      "flagged": false,
+      "register_why": "this sentence opens the light span — methodology is the solution framing"
+    },
+    {
+      "id": "c06",
+      "card": "enacted/pipeline-flow",
+      "anchor": "what we are going to go through",
+      "lead": 0.5,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "title": "The gameplan",
+        "steps": [
+          {
+            "step": "Overviews"
+          },
+          {
+            "step": "Live demos"
+          },
+          {
+            "step": "Pricing"
+          },
+          {
+            "step": "Scorecard"
+          },
+          {
+            "step": "Verdict"
+          }
+        ]
+      },
+      "beats": [
+        {
+          "reveal": {
+            "step": "Overviews"
+          },
+          "anchor": "quick overviews of"
+        },
+        {
+          "reveal": {
+            "step": "Live demos"
+          },
+          "anchor": "live demo of each"
+        },
+        {
+          "reveal": {
+            "step": "Pricing"
+          },
+          "anchor": "look at pricing across"
+        },
+        {
+          "reveal": {
+            "step": "Scorecard"
+          },
+          "anchor": "summary table breaking down"
+        },
+        {
+          "reveal": {
+            "step": "Verdict"
+          },
+          "anchor": "honest verdict used by"
+        }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c07",
+      "card": "overlay/callout",
+      "anchor": "in the description below",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "note",
+        "title": "Links below",
+        "text": "All 5 platforms linked in the description",
+        "pos": "top-right",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c08",
+      "card": "section/tool-intro",
+      "anchor": "OpenART is a browser-based creative hub",
+      "lead": 0.5,
+      "hold": 3.0,
+      "register": "light",
+      "motif": true,
+      "variables": {
+        "index": 1,
+        "total": 5,
+        "logo": "openart",
+        "name": "OpenArt",
+        "tagline": "100+ models, one workspace",
+        "tag": "Creative hub"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c09",
+      "card": "overlay/callout",
+      "anchor": "to over 100 AI",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "note",
+        "title": "100+ models",
+        "text": "Flux, Nano Banana, Kling — one subscription",
+        "pos": "top-left",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c10",
+      "card": "overlay/callout",
+      "anchor": "covers image generation",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "note",
+        "title": "All-in-one",
+        "text": "Images · video · characters · training · audio",
+        "pos": "top-left",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c11",
+      "card": "section/tool-intro",
+      "anchor": "Higgs Field is a video-first platform",
+      "lead": 0.5,
+      "hold": 3.0,
+      "register": "light",
+      "motif": true,
+      "variables": {
+        "index": 2,
+        "total": 5,
+        "logo": "higgsfield",
+        "name": "Higgsfield",
+        "tagline": "Cinematic control, video-first",
+        "tag": "Director's studio"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c12",
+      "card": "overlay/callout",
+      "anchor": "aggregates premium video models like Sora",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "note",
+        "title": "One interface",
+        "text": "Sora 2, Kling 3.0 & Veo 3.1 in one place",
+        "pos": "top-right",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c13",
+      "card": "enacted/stack-builder",
+      "anchor": "wraps them in professional",
+      "lead": 0.5,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "title": "The Higgsfield stack"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "label": "Cinema Studio — 70+ presets"
+          },
+          "anchor": "Cinema Studio with over"
+        },
+        {
+          "reveal": {
+            "label": "SoulID — character consistency"
+          },
+          "anchor": "system called SoulID"
+        },
+        {
+          "reveal": {
+            "label": "Director-level control"
+          },
+          "anchor": "creators who want director-level"
+        }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c14",
+      "card": "section/tool-intro",
+      "anchor": "Synthesia is an AI avatar video platform",
+      "lead": 0.5,
+      "hold": 3.0,
+      "register": "light",
+      "motif": true,
+      "variables": {
+        "index": 3,
+        "total": 5,
+        "logo": "synthesia",
+        "name": "Synthesia",
+        "tagline": "Corporate avatar video, at scale",
+        "tag": "Enterprise avatars"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c15",
+      "card": "overlay/stat-hit",
+      "anchor": "picked from over 240 lifelike",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "eyebrow": "Synthesia",
+        "logo": "synthesia",
+        "value": 240,
+        "suffix": "+ AI avatars",
+        "context": "Speaking 140+ languages"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c16",
+      "card": "overlay/lower-third",
+      "anchor": "let's start with Open Art AI",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "name": "OpenArt",
+        "subtitle": "Live demo — text-to-video"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c17",
+      "card": "overlay/label-plate",
+      "anchor": "over to the left side",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "text": "Create → Video",
+        "position": "top-left"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c18",
+      "card": "overlay/label-plate",
+      "anchor": "use this text to",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "text": "Text to Video",
+        "position": "top-center"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c19",
+      "card": "slate/kinetic-sentence",
+      "anchor": "So let's talk about",
+      "lead": 0.2,
+      "hold": 2.0,
+      "register": "light",
+      "legacy_why": "word-sync bridge — the spoken sentence itself is the device",
+      "variables": {
+        "text": "So let's talk about the good ones first",
+        "accent": "good ones"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c20",
+      "card": "overlay/callout",
+      "anchor": "is actually their newest",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "note",
+        "title": "Seedance",
+        "text": "Newest — cinematic video with audio, multi-shot",
+        "pos": "top-left",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c21",
+      "card": "overlay/tip-banner",
+      "anchor": "new tags with the",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "info",
+        "label": "Model tags",
+        "text": "NEW + FAST tags mark the ones to try",
+        "edge": "top"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c22",
+      "card": "overlay/callout",
+      "anchor": "of how many seconds",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "note",
+        "title": "Clip length",
+        "text": "Choose how many seconds to generate",
+        "pos": "top-right",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c23",
+      "card": "enacted/spotlight-focus",
+      "anchor": "produce a 4K type",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "title": "The 4K pick",
+        "marker": "4K",
+        "items": [
+          {
+            "item": "Seedance"
+          },
+          {
+            "item": "Kling 3.0 Omni"
+          },
+          {
+            "item": "Kling 2.7"
+          },
+          {
+            "item": "Veo 3.1"
+          },
+          {
+            "item": "Kling 3.0"
+          }
+        ],
+        "focus": "Veo 3.1"
+      },
+      "beats": [],
+      "flagged": false
+    }
+  ]
+}

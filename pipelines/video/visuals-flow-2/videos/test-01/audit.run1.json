@@ -1,0 +1,24 @@
+{
+  "video": "test-01",
+  "items": [
+    { "id": "c01", "verdict": "enacted", "fix": "Five product logos wipe in as the hero — muted, the viewer sees exactly which five tools are being compared." },
+    { "id": "c02", "verdict": "labelled", "fix": "Text statement only. Enact 'built for different people' with enacted/spotlight-focus sweeping five tool cards each tagged to a different audience, or bespoke." },
+    { "id": "c03", "verdict": "labelled", "fix": "Word-synced text bridge. Enact the question as a tool-to-persona pairing (bespoke) rather than a spoken line on screen." },
+    { "id": "c04", "verdict": "labelled", "fix": "Text statement only. Enact 'which one is best for YOU' by locking a spotlight on one card among five (enacted/spotlight-focus) or bespoke." },
+    { "id": "c05", "verdict": "labelled", "fix": "An agenda is an inherently labelled list; the highlighted-progress device is the closest it gets to enacted. Keep as the structural nav card (bespoke)." },
+    { "id": "c06", "verdict": "labelled", "fix": "Text statement only. Enact 'which one earns your money' with enacted/verdict-scale or a spotlight on one tool (bespoke)." },
+    { "id": "c07", "verdict": "enacted", "fix": "Logo + TOOL 1 OF 5 progress counter identify the tool and its place in the lineup without audio." },
+    { "id": "c08", "verdict": "labelled", "fix": "Icon+text pills read mostly as labels. Enact the 'all-in-one workspace' idea with enacted/stack-builder stacking each capability into one column." },
+    { "id": "c09", "verdict": "enacted", "fix": "Logo + TOOL 2 OF 5 progress counter carry the tool identity muted." },
+    { "id": "c10", "verdict": "labelled", "fix": "Text callout. Enact 'many premium models under one interface' with enacted/connect-nodes drawing the models into a single hub, or bespoke." },
+    { "id": "c11", "verdict": "labelled", "fix": "Text banner. Enact the scale with overlay/stat-hit counting up to 70+ presets." },
+    { "id": "c12", "verdict": "enacted", "fix": "Logo + TOOL 3 OF 5 progress counter carry the tool identity muted." },
+    { "id": "c13", "verdict": "enacted", "fix": "The hero number counts up to 240 — muted, the count-up communicates the scale of the avatar library." },
+    { "id": "c14", "verdict": "labelled", "fix": "A nameplate lower-third is a label by nature; acceptable as a demo marker (bespoke)." },
+    { "id": "c15", "verdict": "labelled", "fix": "Text callout over the demo. Enact it with overlay/spotlight-click rippling on the actual text-to-video control." },
+    { "id": "c16", "verdict": "labelled", "fix": "Text banner. Enact with overlay/stat-hit counting up to 100+ models." },
+    { "id": "c17", "verdict": "labelled", "fix": "Text tip. Enact by highlighting the 'new'/'fast' tags on screen with overlay/spotlight-click." },
+    { "id": "c18", "verdict": "enacted", "fix": "The grid dims and a spotlight locks onto Veo 3.1 — muted, the viewer sees one model chosen out of many." },
+    { "id": "c19", "verdict": "labelled", "fix": "Text tip. Enact the choice with overlay/spotlight-click on the selected model tile." }
+  ]
+}

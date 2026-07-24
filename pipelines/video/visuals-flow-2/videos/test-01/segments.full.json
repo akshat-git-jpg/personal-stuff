@@ -1,0 +1,145 @@
+{
+  "video": "test-01",
+  "confirmed": false,
+  "segments": [
+    {
+      "kind": "narration",
+      "start": 0,
+      "end": 160
+    },
+    {
+      "kind": "demo",
+      "start": 160,
+      "end": 190
+    },
+    {
+      "kind": "narration",
+      "start": 190,
+      "end": 270
+    },
+    {
+      "kind": "demo",
+      "start": 270,
+      "end": 300
+    },
+    {
+      "kind": "narration",
+      "start": 300,
+      "end": 330
+    },
+    {
+      "kind": "demo",
+      "start": 330,
+      "end": 420,
+      "note": "check for sample-clip playback inside this range"
+    },
+    {
+      "kind": "narration",
+      "start": 420,
+      "end": 465
+    },
+    {
+      "kind": "demo",
+      "start": 465,
+      "end": 520,
+      "note": "check for sample-clip playback inside this range"
+    },
+    {
+      "kind": "narration",
+      "start": 520,
+      "end": 550
+    },
+    {
+      "kind": "demo",
+      "start": 550,
+      "end": 575
+    },
+    {
+      "kind": "narration",
+      "start": 575,
+      "end": 595
+    },
+    {
+      "kind": "demo",
+      "start": 595,
+      "end": 625
+    },
+    {
+      "kind": "narration",
+      "start": 625,
+      "end": 685
+    },
+    {
+      "kind": "demo",
+      "start": 685,
+      "end": 705
+    },
+    {
+      "kind": "narration",
+      "start": 705,
+      "end": 750
+    },
+    {
+      "kind": "demo",
+      "start": 750,
+      "end": 770
+    },
+    {
+      "kind": "narration",
+      "start": 770,
+      "end": 800
+    },
+    {
+      "kind": "demo",
+      "start": 800,
+      "end": 830
+    },
+    {
+      "kind": "narration",
+      "start": 830,
+      "end": 865
+    },
+    {
+      "kind": "demo",
+      "start": 865,
+      "end": 895
+    },
+    {
+      "kind": "narration",
+      "start": 895,
+      "end": 980
+    },
+    {
+      "kind": "demo",
+      "start": 980,
+      "end": 1150,
+      "note": "check for sample-clip playback inside this range"
+    },
+    {
+      "kind": "narration",
+      "start": 1150,
+      "end": 1220
+    },
+    {
+      "kind": "demo",
+      "start": 1220,
+      "end": 1275,
+      "note": "check for sample-clip playback inside this range"
+    },
+    {
+      "kind": "narration",
+      "start": 1275,
+      "end": 1370
+    },
+    {
+      "kind": "demo",
+      "start": 1370,
+      "end": 1405
+    },
+    {
+      "kind": "narration",
+      "start": 1405,
+      "end": 1927.44
+    }
+  ]
+}

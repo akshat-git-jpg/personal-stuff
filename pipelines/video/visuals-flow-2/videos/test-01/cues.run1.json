@@ -1,0 +1,328 @@
+{
+  "video": "test-01",
+  "approved": true,
+  "cues": [
+    {
+      "id": "c01",
+      "card": "title/title-aurora-wave",
+      "anchor": "5 AI video tools",
+      "lead": 0.3,
+      "hold": 3.0,
+      "register": "dark",
+      "motif": true,
+      "variables": {
+        "title": "5 AI Video Tools, Compared",
+        "platforms": [
+          { "name": "OpenArt", "logo": "openart" },
+          { "name": "Higgsfield", "logo": "higgsfield" },
+          { "name": "Synthesia", "logo": "synthesia" },
+          { "name": "HeyGen", "logo": "heygen" },
+          { "name": "Arcads", "logo": "arcads" }
+        ]
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c02",
+      "card": "statement/keyword-statement",
+      "anchor": "built for the same person",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "dark",
+      "variables": {
+        "text": "None of them are built for the same person.",
+        "keyword": "the same person"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c03",
+      "card": "slate/kinetic-sentence",
+      "anchor": "which tool wins and for who",
+      "lead": 0.2,
+      "hold": 2.0,
+      "register": "dark",
+      "variables": {
+        "text": "which tool wins and for who",
+        "accent": "and for who"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c04",
+      "card": "statement/keyword-statement",
+      "anchor": "which one is best for you",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "dark",
+      "variables": {
+        "text": "The real question: which one is best for you.",
+        "keyword": "best for you"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c05",
+      "card": "section/bullet-points-highlighted",
+      "anchor": "quick overviews of all",
+      "lead": 0.5,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "eyebrow": "What we'll cover",
+        "active": 1,
+        "items": [
+          { "label": "Tool overviews" },
+          { "label": "Live demos" },
+          { "label": "Pricing compared" },
+          { "label": "Summary scorecard" },
+          { "label": "Verdict by use case" }
+        ]
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c06",
+      "card": "statement/keyword-statement",
+      "anchor": "which tool deserves your subscription",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "text": "Which tool actually deserves your subscription?",
+        "keyword": "your subscription"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c07",
+      "card": "section/tool-intro",
+      "anchor": "OpenART is a browser-based creative hub",
+      "lead": 0.5,
+      "hold": 3.0,
+      "register": "light",
+      "motif": true,
+      "variables": {
+        "index": 1,
+        "total": 5,
+        "logo": "openart",
+        "name": "OpenArt",
+        "tagline": "100+ models, one workspace",
+        "tag": "Creative hub"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c08",
+      "card": "checklist/icon-pills",
+      "anchor": "all under one subscription",
+      "lead": 0.5,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {},
+      "beats": [
+        { "reveal": { "icon": "star", "text": "Image generation" }, "anchor": "It also covers image generation" },
+        { "reveal": { "icon": "person", "text": "Character consistency" }, "anchor": "creation, character consistency" },
+        { "reveal": { "icon": "gear", "text": "Custom model training" }, "anchor": "custom model training" },
+        { "reveal": { "icon": "chat", "text": "Storytelling & audio" }, "anchor": "storytelling workflows, and audio" }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c09",
+      "card": "section/tool-intro",
+      "anchor": "Higgs Field is a video-first platform",
+      "lead": 0.5,
+      "hold": 3.0,
+      "register": "light",
+      "motif": true,
+      "variables": {
+        "index": 2,
+        "total": 5,
+        "logo": "higgsfield",
+        "name": "Higgsfield",
+        "tagline": "Director-level cinematic video control",
+        "tag": "Cinematic video"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c10",
+      "card": "overlay/callout",
+      "anchor": "aggregates premium video models like Sora",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "note",
+        "title": "One interface",
+        "text": "Sora 2, Kling 3.0 & Veo 3.1 in one place",
+        "pos": "top-right",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c11",
+      "card": "overlay/tip-banner",
+      "anchor": "Cinema Studio with over 70 camera presets",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "info",
+        "label": "Cinema Studio",
+        "text": "70+ camera presets for director-level control",
+        "edge": "top"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c12",
+      "card": "section/tool-intro",
+      "anchor": "Synthesia is an AI avatar video platform",
+      "lead": 0.5,
+      "hold": 3.0,
+      "register": "light",
+      "motif": true,
+      "variables": {
+        "index": 3,
+        "total": 5,
+        "logo": "synthesia",
+        "name": "Synthesia",
+        "tagline": "Studio-grade AI avatars for business",
+        "tag": "Corporate video"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c13",
+      "card": "overlay/stat-hit",
+      "anchor": "picked from over 240 lifelike AI avatars",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "eyebrow": "Synthesia",
+        "logo": "synthesia",
+        "value": 240,
+        "suffix": "+ AI avatars",
+        "context": "Speaking 140+ languages"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c14",
+      "card": "overlay/lower-third",
+      "anchor": "let's start with Open Art AI",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "name": "OpenArt",
+        "subtitle": "Live demo — text-to-video"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c15",
+      "card": "overlay/callout",
+      "anchor": "we are going to use this text to video",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "note",
+        "title": "Text-to-Video",
+        "text": "Starting from the text-to-video workflow",
+        "pos": "top-left",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c16",
+      "card": "overlay/tip-banner",
+      "anchor": "the C Dances is actually their newest model",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "info",
+        "label": "OpenArt",
+        "text": "100+ AI models under one subscription",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c17",
+      "card": "overlay/callout",
+      "anchor": "these are usually the most good",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "tip",
+        "title": "Tip",
+        "text": "The 'new' and 'fast' tagged models are best",
+        "pos": "top-right",
+        "style": "tip"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c18",
+      "card": "enacted/spotlight-focus",
+      "anchor": "produce a 4K type of video",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "title": "Which model?",
+        "items": [
+          { "item": "C Dances" },
+          { "item": "Kling 3.0" },
+          { "item": "Kling 3.0 Omni" },
+          { "item": "Veo 3.1" }
+        ],
+        "focus": "Veo 3.1"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c19",
+      "card": "overlay/callout",
+      "anchor": "we are just going to use a much cheaper",
+      "lead": 0.4,
+      "hold": 3.0,
+      "register": "light",
+      "variables": {
+        "kind": "tip",
+        "title": "Budget pick",
+        "text": "Going with the cheaper Veo 3.1 model",
+        "pos": "bottom-right",
+        "style": "feature"
+      },
+      "beats": [],
+      "flagged": false
+    }
+  ]
+}
