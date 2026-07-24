@@ -26,6 +26,7 @@ Steps:
   shot-pass
   shots
   avatar
+  cut
   assemble
   export
   qc
@@ -193,6 +194,23 @@ EOF
 
   avatar)
     bash steps/080-avatar-render-run/run.sh "$slug"
+    ;;
+
+  cut)
+    if [[ "$(node -e "try{console.log(require('./videos/$slug/cues.json').approved===true)}catch{console.log('false')}")" != "true" ]]; then
+      echo "approve the storyboard first"
+      exit 1
+    fi
+    if [[ -f "videos/$slug/shots.json" ]] && [[ ! -f "videos/$slug/avatar-jobs.json" ]]; then
+      echo "shots approved but avatars not rendered — cutting without avatar"
+    fi
+    echo "Running cut..."
+    bash steps/050-render-run/run.sh "$slug" || { echo "render failed"; exit 1; }
+    node lib/effects-plan.mjs "$slug" || { echo "effects-plan failed"; exit 1; }
+    node lib/sound/sfx-plan.mjs "$slug" || { echo "sfx-plan failed"; exit 1; }
+    node lib/sound/build-mix.mjs "$slug" || { echo "build-mix failed"; exit 1; }
+    bash steps/090-assemble-run/run.sh "$slug" --draft || { echo "assemble failed"; exit 1; }
+    echo "Final Cut URL: http://localhost:8080/ (or equivalent board URL) - Check the Final Cut tab!"
     ;;
 
   assemble)

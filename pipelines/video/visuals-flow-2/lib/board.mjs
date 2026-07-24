@@ -872,7 +872,6 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
       <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
       <button id="approveBtn">Approve graphics</button>
       ${shots ? `<span class="usage-chip">engineMode: ${escapeHtml(shots.shotsFile?.engineMode || 'none')}</span><button id="approveShotsBtn">Approve shots</button>` : ''}
-      ${effects ? `<button id="approveEffectsBtn">Approve effects</button>` : ''}
       <button id="saveBtn">Save</button>
       <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
     </div>
@@ -918,6 +917,18 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
         try { localStorage.setItem('board:list-overview', hide ? 'closed' : 'open'); } catch (e) {}
       }
       if ((() => { try { return localStorage.getItem('board:list-overview'); } catch (e) { return null; } })() === 'closed') toggleOverview();
+
+      function toggleDerivatives() {
+        const lBlock = document.getElementById('derivativesLabelsBlock');
+        const tBlock = document.getElementById('derivativesTracksBlock');
+        const btn = document.getElementById('derivativesToggle');
+        const show = tBlock.style.display === 'none';
+        lBlock.style.display = show ? 'block' : 'none';
+        tBlock.style.display = show ? 'block' : 'none';
+        btn.textContent = show ? 'details ▾' : 'details ▸';
+        try { localStorage.setItem('board:tl-derivatives', show ? 'open' : 'closed'); } catch (e) {}
+      }
+      if ((() => { try { return localStorage.getItem('board:tl-derivatives'); } catch (e) { return null; } })() === 'open') toggleDerivatives();
     </script>
     ${fbBox('_global', 'overall feedback on this video\'s graphics plan — saved with Save, read by the next Claude session')}
     ${fxInstances.length ? `
@@ -1055,8 +1066,11 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       title="${escapeHtml(r.card ?? '')} &middot; ${timecode(r.start)}" style="background:var(${colorVar})">${label}</div>`;
   }).join('');
 
-  const avatarBlocksHtml = (shots?.spans ?? []).map((span) => `<div class="tl-block" data-start="${span.start}" data-dur="${span.duration}"
-    data-detail="shot-${escapeHtml(span.id)}" title="${escapeHtml(span.id)}" style="background:var(--shot)">${escapeHtml(span.id)}</div>`).join('');
+  const avatarBlocksHtml = (shots?.spans ?? []).map((span) => {
+    const mode = shots?.resolved?.find(s => s.id === span.id)?.mode || 'full';
+    return `<div class="tl-block" data-start="${span.start}" data-dur="${span.duration}"
+      data-detail="shot-${escapeHtml(span.id)}" title="${escapeHtml(span.id)}" style="background:var(--shot)">${escapeHtml(span.id)} <small style="opacity:0.8">(${escapeHtml(mode)})</small></div>`;
+  }).join('');
 
   const fxMarksHtml = fxPoint.map((i) => `<div class="tl-mark${i.enabled ? '' : ' fx-off'}" data-start="${i.at}"
     title="${escapeHtml(i.id)}${i.style ? ' · ' + escapeHtml(i.style) : ''}" style="background:var(${i.type === 'whip' ? '--accent' : '--ok'})"></div>`).join('');
@@ -1131,21 +1145,30 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
             <div class="tl-label">SCREEN</div>
             <div class="tl-label">GRAPHICS</div>
             <div class="tl-label">AVATAR</div>
-            <div class="tl-label">EFFECTS</div>
-            ${sound?.instances?.length ? `<div class="tl-label">SOUND</div>` : ''}
+            <div class="tl-label" style="height:24px; border-bottom:1px solid var(--line);"></div>
+            <div id="derivativesLabelsBlock" style="display:none;">
+              <div class="tl-label">EFFECTS</div>
+              ${sound?.instances?.length ? `<div class="tl-label">SOUND</div>` : ''}
+            </div>
           </div>
           <div class="tl-tracks" id="tlTracks">
             <div class="tl-ruler" id="tlRuler"></div>
             <div class="tl-track" id="tlScreen"><div class="tl-screen-bar"></div></div>
             <div class="tl-track" id="tlGraphics">${graphicsBlocksHtml}</div>
             <div class="tl-track" id="tlAvatar">${avatarBlocksHtml}</div>
-            <div class="tl-track" id="tlEffects">${fxChipsHtml}${fxSpansHtml}${fxMarksHtml}</div>
-            ${sound?.instances?.length ? `<div class="tl-track" id="tlSound">${
-              sound.instances.map(inst => {
-                if (typeof inst.at !== 'number') return '';
-                return `<div class="tl-mark" data-start="${inst.at}" title="${escapeHtml(inst.sample || inst.id)}" style="background:#fcd34d"></div>`;
-              }).join('')
-            }</div>` : ''}
+            <div class="tl-track tl-derivatives-toggle-track" style="height:24px; border-bottom:1px solid var(--line); display:flex; align-items:center;">
+               <button id="derivativesToggle" class="fold-toggle" style="margin-left:8px;" onclick="toggleDerivatives()">details ▸</button>
+               ${effects ? `<button id="approveEffectsBtn" style="margin-left:8px; padding:2px 8px; font-size:11px;">Approve effects</button>` : ''}
+            </div>
+            <div id="derivativesTracksBlock" style="display:none;">
+              <div class="tl-track" id="tlEffects">${fxChipsHtml}${fxSpansHtml}${fxMarksHtml}</div>
+              ${sound?.instances?.length ? `<div class="tl-track" id="tlSound">${
+                sound.instances.map(inst => {
+                  if (typeof inst.at !== 'number') return '';
+                  return `<div class="tl-mark" data-start="${inst.at}" title="${escapeHtml(inst.sample || inst.id)}" style="background:#fcd34d"></div>`;
+                }).join('')
+              }</div>` : ''}
+            </div>
             <div class="tl-playhead" id="tlPlayhead"></div>
           </div>
         </div>

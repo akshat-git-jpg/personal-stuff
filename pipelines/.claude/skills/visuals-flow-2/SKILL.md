@@ -28,14 +28,10 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
 
 ## Verb Map
 
-**Review model (owner decision, 2026-07-24 — see decisions.md):** two stages.
-Stage 1 = storyboard tab, a quick HIGH-LEVEL pass (structure, card choice,
-density; feedback lands cue-keyed). On short videos (≤10 min) the owner may
-skip stage 1 entirely — the machine gates (lint, audit-gate, overflow) still
-run and approvals can be granted in-flow. Stage 2 = the Final Cut tab on the
-assembled draft — the REAL review (motion, pacing, captions, SFX; timestamped
-+ point-pinned comments, versions, live check-off). Sessions should drive
-short videos straight to the draft and hand the owner the Final Cut URL.
+**Review model (owner decision, 2026-07-24 — see decisions.md):** three stages.
+Stage 1 (Storyboard) = COMPOSITION ONLY (screen vs graphics vs avatar+mode; feedback lands cue-keyed). On short videos (≤10 min) the owner may skip stage 1 entirely — approvals can be granted in-flow.
+Stage 2 (Unattended Cut) = run the `cut` verb to generate effects, sound, mix, and the assembled draft in one shot.
+Stage 3 (Final Cut) = MOTION AND SOUND REVIEW on the assembled draft — the REAL review (effects, sound, pacing, captions; judged in motion; timestamped + point-pinned comments, versions, live check-off). Sessions should drive short videos straight to the cut and hand the owner the Final Cut URL.
 
 | Phrase | `run.sh` verb / CLI | Owner Gate / Behavior |
 |---|---|---|
@@ -46,10 +42,11 @@ short videos straight to the draft and hand the owner the Final Cut URL.
 | "render the graphics" | `bash run.sh <slug> render` | |
 | "run the shot pass" | `bash run.sh <slug> shot-pass` | |
 | "make the avatar videos" | `bash run.sh <slug> avatar` | **080 live HeyGen** |
+| "make the cut", "cut the video" | `bash run.sh <slug> cut` | |
 | "make the sound plan" | `bash run.sh <slug> sound` | |
-| "mix the audio" | `bash run.sh <slug> mix` | **sound.json approval before mix** |
+| "mix the audio" | `bash run.sh <slug> mix` | |
 | "assemble the video" | `bash run.sh <slug> assemble` | Gate A (prints board URL) |
-| "export the timeline", "resolve export" | `bash run.sh <slug> export` | |
+| "export the timeline", "resolve export" | `bash run.sh <slug> export` | **on-request only** |
 | "qc the video", "filmstrip qc" | `bash run.sh <slug> qc` | |
 | "fold the feedback" | `bash run.sh <slug> fold` | **060 fold** (Gate B check-off) |
 | "analyze reference <url>" | `bash scripts/analyze-reference.sh <url>` | |

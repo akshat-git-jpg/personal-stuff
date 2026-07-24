@@ -51,5 +51,6 @@ grep -q 'bash steps/080-avatar-render-run/run.sh "$slug"' run.sh || fail "missin
 grep -q 'bash steps/090-assemble-run/run.sh "$slug"' run.sh || fail "missing assemble command"
 grep -q 'bash steps/095-resolve-export-run/run.sh "$slug"' run.sh || fail "missing export command"
 grep -q 'bash scripts/qc-video.sh "$slug"' run.sh || fail "missing qc command"
+grep -q 'bash steps/090-assemble-run/run.sh "$slug" --draft' run.sh || fail "missing cut command"
 
 echo "run.sh test OK"
