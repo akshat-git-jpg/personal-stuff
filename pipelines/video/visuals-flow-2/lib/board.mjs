@@ -241,6 +241,10 @@ const BOARD_CSS = `
   .fold-toggle { background:none; border:1px solid var(--line); color:var(--dim); cursor:pointer; font:inherit; font-size:12px;
     font-weight:600; padding:3px 10px; border-radius:6px; margin:2px 0 8px; }
   .fold-toggle:hover { color:var(--text); }
+  .fold-toggle:disabled { opacity:0.4; cursor:default; }
+  #fc-input { width:100%; padding:10px; font:inherit; font-size:14px; line-height:1.5; background:#0f0b07; color:var(--text);
+    border:1px solid var(--line); border-radius:8px; resize:vertical; min-height:84px; box-sizing:border-box; }
+  #fc-input:disabled { opacity:0.5; }
   .topbar button { font:inherit; font-weight:700; border-radius:9px; padding:9px 16px; cursor:pointer;
     border:1px solid var(--line); background:var(--panel); color:var(--text); }
   #approveBtn { border-color:var(--ok); color:var(--ok); }
@@ -1170,7 +1174,13 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       <div style="width:400px; flex:none; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px;">
         <h3>Comments</h3>
         <div id="fc-comments" style="margin:16px 0; max-height:400px; overflow-y:auto; font-size:14px;"></div>
-        <input type="text" id="fc-input" placeholder="Pause video to type comment..." style="width:100%; padding:8px; font:inherit; background:#0f0b07; color:var(--text); border:1px solid var(--line); border-radius:6px;" disabled />
+        <textarea id="fc-input" rows="4" placeholder="Pause video to type comment... (Cmd/Ctrl+Enter to send · paste a screenshot to attach it)" disabled></textarea>
+        <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+          <button id="fc-send" class="fold-toggle" style="margin:0" disabled>Send</button>
+          <button id="fc-attach" class="fold-toggle" style="margin:0" disabled>&#128206; image</button>
+          <input type="file" id="fc-file" accept="image/*" hidden />
+          <span id="fc-img-preview" style="display:none; align-items:center; gap:6px; font-size:12px; color:var(--dim);"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -1361,7 +1371,8 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
         div.style.borderRadius = '4px';
         let html = '';
         if (v.t !== undefined) html += \`<strong style="color:var(--accent); cursor:pointer" onclick="document.getElementById('fc-video').currentTime=\${v.t}; showFcPin(\${v.x ?? 'null'}, \${v.y ?? 'null'})">\${fmtClock(v.t)}</strong> \`;
-        html += escapeHtml(v.text);
+        html += escapeHtml(v.text).replace(/\\n/g, '<br>');
+        if (v.image) html += \`<div style="margin-top:6px;"><a href="/feedback-image/\${encodeURIComponent(k)}" target="_blank"><img src="/feedback-image/\${encodeURIComponent(k)}" style="max-width:100%; max-height:120px; border-radius:6px; border:1px solid var(--line);"/></a></div>\`;
         if (!v.folded) {
           html += \`<span style="float:right; white-space:nowrap;">
             <button class="fc-cbtn" title="edit" onclick="editFcComment('\${k}')">✎</button>
@@ -1387,14 +1398,19 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
 
     fcVideo.addEventListener('pause', () => {
       fcInput.disabled = false;
-      fcInput.placeholder = 'Type comment for ' + fmtClock(fcVideo.currentTime) + '...';
+      document.getElementById('fc-send').disabled = false;
+      document.getElementById('fc-attach').disabled = false;
+      fcInput.placeholder = 'Type comment for ' + fmtClock(fcVideo.currentTime) + '... (Cmd/Ctrl+Enter to send · paste a screenshot to attach)';
       fcInput.focus();
     });
     fcVideo.addEventListener('play', () => {
       fcInput.disabled = true;
+      document.getElementById('fc-send').disabled = true;
+      document.getElementById('fc-attach').disabled = true;
       fcInput.value = '';
       fcMarker.style.display = 'none';
       fcCurrentPin = null;
+      clearFcImage();
     });
     fcVideo.addEventListener('click', (e) => {
       if (!fcVideo.paused) {
@@ -1410,37 +1426,79 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       fcMarker.style.display = 'block';
       fcInput.focus();
     });
-    fcInput.addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter' && fcInput.value.trim()) {
-        const text = fcInput.value.trim();
-        const t = fcVideo.currentTime;
-        const item = { text, t, context: 'final@' + fmtClock(t) };
-        if (fcCurrentPin) {
-          item.x = fcCurrentPin.x;
-          item.y = fcCurrentPin.y;
+    // Image attachment state: paste a screenshot into the textarea or pick a
+    // file — the image rides the comment so the fixing session can Read it
+    // instead of extracting frames by timestamp (owner ask, 2026-07-24).
+    let fcPendingImage = null;
+    const fcPreview = document.getElementById('fc-img-preview');
+    function setFcImage(dataUrl, name) {
+      fcPendingImage = dataUrl;
+      fcPreview.style.display = 'inline-flex';
+      fcPreview.innerHTML = \`<img src="\${dataUrl}" style="height:34px; border-radius:4px; border:1px solid var(--line);"/> \${escapeHtml(name || 'pasted image')} <button class="fc-cbtn" title="remove image" onclick="clearFcImage()">✕</button>\`;
+    }
+    function clearFcImage() {
+      fcPendingImage = null;
+      fcPreview.style.display = 'none';
+      fcPreview.innerHTML = '';
+    }
+    function readFcImageFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      if (file.size > 6 * 1024 * 1024) { alert('image too large (max 6MB)'); return; }
+      const r = new FileReader();
+      r.onload = () => setFcImage(r.result, file.name);
+      r.readAsDataURL(file);
+    }
+    fcInput.addEventListener('paste', (e) => {
+      for (const it of (e.clipboardData?.items || [])) {
+        if (it.kind === 'file' && it.type.startsWith('image/')) {
+          e.preventDefault();
+          readFcImageFile(it.getAsFile());
+          return;
         }
-        fcInput.disabled = true;
-        const label = document.getElementById('fc-version').value;
-        const res = await fetch('/feedback-final', {
-          method: 'POST',
-          body: JSON.stringify({ label, item })
-        });
-        if (res.ok) {
-          // No reload: keep the tab, the video position, and the pin flow
-          // intact (a reload here bounced the owner back to the storyboard
-          // and reset playback — reported 2026-07-24).
-          const data = await res.json();
-          if (data.key) fcItems[data.key] = data.item;
-          fcInput.value = '';
-          fcInput.disabled = false;
-          fcInput.placeholder = 'Pause video to type comment...';
-          fcMarker.style.display = 'none';
-          fcCurrentPin = null;
-          renderFcComments(label);
-        } else {
-          fcInput.disabled = false;
-          alert('failed to save');
-        }
+      }
+    });
+    document.getElementById('fc-attach').addEventListener('click', () => document.getElementById('fc-file').click());
+    document.getElementById('fc-file').addEventListener('change', (e) => { readFcImageFile(e.target.files[0]); e.target.value = ''; });
+
+    async function submitFcComment() {
+      const text = fcInput.value.trim();
+      if (!text && !fcPendingImage) return;
+      const t = fcVideo.currentTime;
+      const item = { text, t, context: 'final@' + fmtClock(t) };
+      if (fcCurrentPin) {
+        item.x = fcCurrentPin.x;
+        item.y = fcCurrentPin.y;
+      }
+      fcInput.disabled = true;
+      document.getElementById('fc-send').disabled = true;
+      const label = document.getElementById('fc-version').value;
+      const res = await fetch('/feedback-final', {
+        method: 'POST',
+        body: JSON.stringify({ label, item, image: fcPendingImage })
+      });
+      document.getElementById('fc-send').disabled = false;
+      if (res.ok) {
+        // No reload: keep the tab, the video position, and the pin flow intact.
+        const data = await res.json();
+        if (data.key) fcItems[data.key] = data.item;
+        fcInput.value = '';
+        fcInput.disabled = false;
+        fcInput.placeholder = 'Pause video to type comment... (Cmd/Ctrl+Enter to send · paste a screenshot to attach it)';
+        fcMarker.style.display = 'none';
+        fcCurrentPin = null;
+        clearFcImage();
+        renderFcComments(label);
+      } else {
+        fcInput.disabled = false;
+        alert('failed to save');
+      }
+    }
+    document.getElementById('fc-send').addEventListener('click', submitFcComment);
+    fcInput.addEventListener('keydown', (e) => {
+      // Enter = newline (it's a paragraph box); Cmd/Ctrl+Enter = send.
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        submitFcComment();
       }
     });
 
@@ -1904,6 +1962,22 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     return res.end(fs.existsSync(p) ? fs.readFileSync(p) : '{"versions":[]}');
   }
 
+  const fbImgMatch = url.pathname.match(/^\/feedback-image\/(.+)$/);
+  if (req.method === 'GET' && fbImgMatch) {
+    const key = decodeURIComponent(fbImgMatch[1]);
+    const fbPath = path.join(workdir, 'feedback.json');
+    const fb = fs.existsSync(fbPath) ? JSON.parse(fs.readFileSync(fbPath, 'utf8')) : { items: {} };
+    const rel = fb.items?.[key]?.image;
+    const imgPath = rel ? path.join(workdir, rel) : null;
+    if (!imgPath || !imgPath.startsWith(path.join(workdir, 'feedback-images')) || !fs.existsSync(imgPath)) {
+      res.statusCode = 404; return res.end('no image');
+    }
+    const ext = path.extname(imgPath).slice(1);
+    res.setHeader('content-type', ext === 'jpg' ? 'image/jpeg' : 'image/' + ext);
+    res.setHeader('cache-control', 'no-store');
+    return res.end(fs.readFileSync(imgPath));
+  }
+
   if (req.method === 'GET' && url.pathname === '/status') {
     const p = path.join(workdir, 'claude_status.json');
     res.setHeader('content-type', 'application/json');
@@ -1968,6 +2042,10 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
       if (!text) { res.statusCode = 400; return res.end('{"ok":false,"error":"empty text"}'); }
       item.text = text;
     } else {
+      if (item.image) {
+        const imgPath = path.join(workdir, item.image);
+        if (imgPath.startsWith(path.join(workdir, 'feedback-images'))) fs.rmSync(imgPath, { force: true });
+      }
       delete fb.items[key];
     }
     fb.updated = new Date().toISOString().slice(0, 10);
@@ -1983,13 +2061,26 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     const fbPath = path.join(workdir, 'feedback.json');
     let fb = fs.existsSync(fbPath) ? JSON.parse(fs.readFileSync(fbPath, 'utf8')) : {};
     fb = appendFinalFeedback(fb, payload.label, payload.item);
-    fb.updated = new Date().toISOString().slice(0, 10);
-    fs.writeFileSync(fbPath, JSON.stringify(fb, null, 2));
     const prefix = 'final-' + payload.label + ':';
     const key = Object.keys(fb.items)
       .filter((k) => k.startsWith(prefix))
       .sort((a, b) => parseInt(a.slice(prefix.length), 10) - parseInt(b.slice(prefix.length), 10))
       .pop();
+    // Optional screenshot attachment (data URL): saved beside feedback.json so
+    // the fixing session can Read the image directly (gitignored — media).
+    if (typeof payload.image === 'string') {
+      const m = payload.image.match(/^data:image\/(png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/s);
+      if (m && m[2].length < 9_000_000) {
+        const ext = m[1] === 'jpeg' ? 'jpg' : m[1];
+        const dir = path.join(workdir, 'feedback-images');
+        fs.mkdirSync(dir, { recursive: true });
+        const fname = key.replace(/[^a-zA-Z0-9_-]/g, '-') + '.' + ext;
+        fs.writeFileSync(path.join(dir, fname), Buffer.from(m[2], 'base64'));
+        fb.items[key].image = 'feedback-images/' + fname;
+      }
+    }
+    fb.updated = new Date().toISOString().slice(0, 10);
+    fs.writeFileSync(fbPath, JSON.stringify(fb, null, 2));
     res.setHeader('content-type', 'application/json');
     return res.end(JSON.stringify({ ok: true, key, item: fb.items[key] }));
   }
