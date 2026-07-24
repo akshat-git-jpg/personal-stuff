@@ -1191,7 +1191,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       <div style="width:400px; flex:none; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px;">
         <h3>Comments</h3>
         <div id="fc-comments" style="margin:16px 0; max-height:400px; overflow-y:auto; font-size:14px;"></div>
-        <textarea id="fc-input" rows="4" placeholder="Pause video to type comment... (Cmd/Ctrl+Enter to send · paste a screenshot to attach it)" disabled></textarea>
+        <textarea id="fc-input" rows="4" placeholder="Pause video to type comment... (Enter to send · Shift+Enter for newline · paste a screenshot to attach)" disabled></textarea>
         <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
           <button id="fc-send" class="fold-toggle" style="margin:0" disabled>Send</button>
           <button id="fc-attach" class="fold-toggle" style="margin:0" disabled>&#128206; image</button>
@@ -1417,7 +1417,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       fcInput.disabled = false;
       document.getElementById('fc-send').disabled = false;
       document.getElementById('fc-attach').disabled = false;
-      fcInput.placeholder = 'Type comment for ' + fmtClock(fcVideo.currentTime) + '... (Cmd/Ctrl+Enter to send · paste a screenshot to attach)';
+      fcInput.placeholder = 'Type comment for ' + fmtClock(fcVideo.currentTime) + '... (Enter to send · Shift+Enter for newline)';
       fcInput.focus();
     });
     fcVideo.addEventListener('play', () => {
@@ -1500,7 +1500,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
         if (data.key) fcItems[data.key] = data.item;
         fcInput.value = '';
         fcInput.disabled = false;
-        fcInput.placeholder = 'Pause video to type comment... (Cmd/Ctrl+Enter to send · paste a screenshot to attach it)';
+        fcInput.placeholder = 'Pause video to type comment... (Enter to send · Shift+Enter for newline · paste a screenshot to attach)';
         fcMarker.style.display = 'none';
         fcCurrentPin = null;
         clearFcImage();
@@ -1512,8 +1512,8 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
     }
     document.getElementById('fc-send').addEventListener('click', submitFcComment);
     fcInput.addEventListener('keydown', (e) => {
-      // Enter = newline (it's a paragraph box); Cmd/Ctrl+Enter = send.
-      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      // Enter = send (owner ask 2026-07-24); Shift+Enter = newline.
+      if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         submitFcComment();
       }
