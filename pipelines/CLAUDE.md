@@ -78,6 +78,7 @@ npx ts-node run.ts --niche <slug>
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/heygen/`](video/heygen/CLAUDE.md) | Avatar asset hub — character registry + reference images, render manifest, HeyGen + fal-lipsync flows | Python + JSON |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/card-library/`](video/card-library/CLAUDE.md) | Visual templates for Video Studio — also the live source for the editor's gallery at render2.agrolloo.com; a card is only real once pushed (see its CLAUDE.md) | HTML/CSS/JS |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/visuals-flow/`](video/visuals-flow/PIPELINE.md) | Beat-synced motion-graphics pipeline — VO mp3 → cues → storyboard review → rendered clips + manifest (uses card-library cards) | Node + Claude steps |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`video/visuals-flow-2/`](video/visuals-flow-2/PIPELINE.md) | v2 of the motion-graphics pipeline — adds concept/through-line pass, enacted cards, coverage+density fixes, head panel mode, sound+mix stage, two-tab review board (spec docs/specs/2026-07-24-visuals-flow-v2-design.md) | Node + Claude steps |
 | [`tools/`](#) | Monetizable and utility tools | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`tools/bank-statement-parser/`](tools/bank-statement-parser/README.md) | Bank statements parsing & reconciliation engine | Python |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`tools/big-comparison-util/`](tools/big-comparison-util/README.md) | Grouping and ranking comparisons utility | Markdown |

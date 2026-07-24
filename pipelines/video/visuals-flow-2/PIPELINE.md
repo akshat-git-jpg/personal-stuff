@@ -15,18 +15,20 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 |---|---|---|
 | `010-transcribe-run` | [RUN] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) → `transcript.json` (word timestamps) |
 | `015-segments-propose` | [RUN] | `transcript.json` → `segments.json` (demo vs narration segments) |
+| `018-concept-pass` | [LLM] | `transcript.json` → `concept.json` (gate `lint-concept`) |
 | `plan-skeleton` | [RUN] | `transcript.json` + `segments.json` → deterministic placement grid (the `{{SKELETON}}` prompt variable) |
-| `020-cue-pass-llm` | [LLM] (pluggable: Sonnet default; agy/Antigravity allowed as form-fillers) | `transcript.json` + `card-library/catalog.json` → `cues.json` |
-| `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables) … (+ lint gate) |
-| `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board: full-script timeline, transcript + inline cue previews + mini-map, per-cue playback; board default = horizontal timeline overview, List toggle = the per-cue detail view) |
-| `050-render-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` |
-| `070-shot-pass-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (full-screen avatar spans; corner+screen-rec is the implicit baseline) |
-| `080-avatar-render-run` | [RUN] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
-| `effects-plan` | [RUN] | `resolved.json` → `effects.json` |
-| `sound` | [RUN] | `resolved.json` + `effects.json` → `sound.json` |
-| `mix` | [RUN] | `vo.mp3` + `sound.json` → `master.wav` + bounces |
-| `090-assemble-run` | [RUN] | `screen.mp4` + `master.wav` (or `vo.mp3`) + `renders/` + avatar clips (`avatar-jobs.json`) → `final.mp4` (kb-scratch) + `assembly.md` |
-| `095-resolve-export-run` | [RUN] | same inputs as 090 → `resolve-export/` in kb-scratch (`timeline.fcpxml` + segment clips) for human touch-up in DaVinci Resolve / Premiere; default = native layered project (spec docs/specs/2026-07-21-native-editor-export-design.md), --baked = pre-encoded WYSIWYG |
+| `020-cue-pass-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json` (bespoke escalation rule) |
+| `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9) |
+| `035-cue-audit` | [LLM] | `resolved.json` → `audit.json` (mute test) |
+| `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board: two tabs; Final Cut reviews assembled versions; Gates A/B) |
+| `050-render-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` (brand-inline; bespoke staging; variant rotation) |
+| `070-shot-pass-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel) |
+| `080-avatar-render-run` | [OWNER live HeyGen] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
+| `effects-plan` | [RUN] | `resolved.json` → `effects.json` (register transitions, motif lane, captions default-on) |
+| `sound` | [RUN] | `resolved.json` + `effects.json` → `sound.json` (gate) |
+| `mix` | [RUN] | `vo.mp3` + `sound.json` → `master.wav` (−14 LUFS, frame-exact) + bounces |
+| `090-assemble-run` | [RUN] | `screen.mp4` + `master.wav` + `renders/` + avatar clips → `final.mp4` (freeze gap-filler, version registry) + `assembly.md` |
+| `095-resolve-export-run` | [RUN] | same inputs as 090 → layered FCPXML + music/sfx lanes + panel transforms |
 | qc (`scripts/qc-video.sh`) | [RUN] + [LLM read] | `final(-draft).mp4` + `assembly.md` + `effects.json` → kb-scratch `qc/` pack (checklist + event contact sheets) → session-read verdicts in committed `qc-report.md` |
 | `060-feedback-fold-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
 | **publish templates** | [RUN] | once the video is done: `cd ../card-library && npm run publish-check` → fails on any card built for this video that is uncommitted or unpushed. Cards only reach the editor's gallery at render2.agrolloo.com once pushed (VPS `repo-sync` cron, ~15 min). See `card-library/CLAUDE.md`. |
@@ -40,21 +42,39 @@ The driver script is the single entry point for the whole chain:
 
 Each `steps/NNN-*/` folder has a `README.md` that remains the detailed reference for what that step does, its exact inputs, and its exact outputs.
 
+## What v2 adds over v1
+
+- **A. Doctrine port + concept pre-pass**: core idea, motif, register map enforced by machine lint (spec [docs/specs/2026-07-24-visuals-flow-v2-design.md](../../docs/specs/2026-07-24-visuals-flow-v2-design.md)).
+- **B. Enacted-device card family**: ~12 new cards that *do* ideas (fill, race, stack), promoted from bespoke via a flywheel.
+- **C. Coverage fix + motion density**: no more orange screen via `extendExposure` + gap filler; always-on karaoke captions and motif.
+- **D. Selection quality**: mute-test self-audit catches bad card picks before render.
+- **E. Sound + mix stage**: semantic SFX, ducked music, −14 LUFS master (frame-exact sync).
+- **F. Effects vocabulary + variants**: marker family, snap-in plates, auto-rotated layout variants for reused cards.
+- **G. Per-video manifest + tokens**: `video.json` and `brand.json` make re-skinning a simple swap.
+- **H. Head layout modes**: full, panel, and hidden compositing for the talking head.
+- **I. Board upgrade**: Storyboard + Final Cut tabs with point-pinned notes, global playback, and version history.
+
 ## `videos/<slug>/` layout
 
 ```
 videos/<slug>/
+  video.json       # v2 manifest (aspect, brand, music mood, format) — committed
   vo.mp3           # input voiceover — gitignored (regenerable from the tts hub)
   transcript.json  # step 010 output — committed
   segments.json    # step 015 output — committed
+  concept.json     # step 018 output (core idea, motif, register map) — committed
   cues.llm.json    # step 020's final output, pre-owner-edits — committed, immutable
   cues.json        # step 020 output, step 040 edits — committed
   resolved.json    # step 030 output — committed
+  audit.json       # step 035 mute-test output — committed
   shots.llm.json   # step 070's final output, pre-owner-edits — committed, immutable
   shots.json       # step 070 output, board edits — committed
   shots.resolved.json  # resolve-shots output (absolute times) — committed
   avatar-jobs.json     # step 080 HeyGen job tracking — committed
   effects.json         # per-instance assembly-effects manifest (node lib/effects-plan.mjs <slug>) — owner-editable, committed; see EFFECTS.md
+  sound.json       # sound output, SFX placement plan — committed
+  bespoke/             # bespoke hyperframes compositions — committed
+  motif/               # per-video through-line assets — committed
   slices/              # per-cue vo slices, step 040's board — gitignored
   slices-avatar/       # per-job vo slices, step 080 — gitignored
   renders/             # step 050's clips — gitignored (regenerable)
@@ -64,6 +84,8 @@ videos/<slug>/
   assembly.md      # step 090 output, the assembly EDL — committed
   qc-report.md     # filmstrip QC verdict table (qc verb output) — committed
   feedback.json    # owner feedback typed on the board (per-cue, per-gap, global) — committed
+
+# Plus ~/kb-scratch/video/visuals-flow/<slug>/versions/ for Final Cut board version history
 ```
 
 `references/<video-id>.md` — committed moment tables from analyzed external reference videos (feeds `EFFECTS.md`).
