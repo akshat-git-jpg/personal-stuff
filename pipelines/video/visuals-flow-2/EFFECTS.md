@@ -1,6 +1,6 @@
 # Effects Layer
 
-The visuals flow has an explicit effects layer that decouples aesthetic rendering instructions from the structural timeline logic.
+The visuals flow has an explicit effects layer that decouples aesthetic rendering instructions from the structural timeline logic. (Audio design lives in lib/sound/ — see PIPELINE.md).
 
 ## Pipeline Architecture
 

@@ -232,7 +232,7 @@ export function detectEncoder() {
   return (res.stdout || '').includes('h264_videotoolbox') ? 'videotoolbox' : 'x264';
 }
 
-export function assemblyMd(video, segments, overlays, total, outPath, transitions = [], captions = 'on', drift = 'on') {
+export function assemblyMd(video, segments, overlays, total, outPath, transitions = [], captions = 'on', drift = 'on', audioSource = 'vo.mp3') {
   const getSegId = (s) => s.sub !== undefined ? `${s.id}.${s.sub + 1}` : s.id;
   const seg = segments.map((s) =>
     `| ${mmss(s.start)} | ${mmss(s.end)} | ${s.kind} | ${getSegId(s)} |`);
@@ -248,7 +248,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
   const lines = [
     `# ${video} — assembly`,
     '',
-    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: vo.mp3 throughout — screen and avatar audio muted. ${transSentence}${capSentence}${driftSentence}`,
+    `Master timeline = voiceover (${total.toFixed(1)}s starts at 00:00.0; any editor-timeline offset is NOT applied here). Audio: ${audioSource} throughout — screen and avatar audio muted. ${transSentence}${capSentence}${driftSentence}`,
     '',
     `Output: ${outPath}`,
     '',
@@ -722,7 +722,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return { clips: timelineClips, overlays, total, w, h };
   }
 
-  const voPath = path.join(workdir, 'vo.mp3');
+  const masterPath = path.join(workdir, 'master.wav');
+  const hasMaster = fs.existsSync(masterPath);
+  const voPath = hasMaster ? masterPath : path.join(workdir, 'vo.mp3');
+  console.log(`using ${hasMaster ? 'master.wav' : 'vo.mp3'} for audio`);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(path.join(tmpDir, 'concat.txt'), concatLines.join('\n') + '\n');
   
@@ -762,8 +765,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return { at: t.at, direction: t.direction, fromIdx, toIdx };
   });
 
-  const assemblyMdContent = assemblyMd(video, segments, overlays, total, out, transitionsObj, captions, drift);
-  fs.writeFileSync(path.join(workdir, 'assembly.md'), assemblyMdContent);
+  const md = assemblyMd(video, segments, overlays, total, out, transitionsObj, captions, drift, hasMaster ? 'master.wav' : 'vo.mp3');
+  fs.writeFileSync(path.join(workdir, 'assembly.md'), md);
 
   if (!keepTemp) {
     fs.rmSync(tmpDir, { recursive: true, force: true });

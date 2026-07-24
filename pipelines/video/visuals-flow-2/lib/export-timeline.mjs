@@ -29,8 +29,8 @@ export function srtFromCaptions(chunks) {
 
 // Native layered project: ONE continuous screen clip on the spine; everything
 // else is a connected clip on its own lane; markers record dropped effects.
-// avatarClips/fullframes/overlayClips/fxClips: [{ id, offsetSec, durationSec, file }]
-export function buildNativeFcpxml({ video, screenPath, voPath, total, w, h, avatarClips, fullframes, overlayClips, fxClips, markers, srcUrl }) {
+// avatarClips/fullframes/overlayClips/fxClips/sfxClips: [{ id, offsetSec, durationSec, file }]
+export function buildNativeFcpxml({ video, screenPath, voPath, musicPath, total, w, h, avatarClips, fullframes, overlayClips, fxClips, sfxClips, markers, srcUrl }) {
   const totalF = frames(total);
   const assets = [];
   let nextId = 2;
@@ -45,19 +45,26 @@ export function buildNativeFcpxml({ video, screenPath, voPath, total, w, h, avat
 
   const screenRef = assetFor(screenPath, { durF: totalF });
   const voRef = assetFor(voPath, { audio: true, durF: totalF });
+  
+  let musicRef;
+  if (musicPath) {
+    musicRef = assetFor(musicPath, { audio: true, durF: totalF });
+  }
 
-  const lane = (items, laneNo) => items.map((c) => {
+  const lane = (items, laneNo, isAudio) => items.map((c) => {
     const durF = Math.max(1, frames(c.offsetSec + c.durationSec) - frames(c.offsetSec));
-    const ref = assetFor(c.file, { durF });
+    const ref = assetFor(c.file, { audio: isAudio, durF });
     return `        <asset-clip lane="${laneNo}" ref="${ref}" offset="${rt(frames(c.offsetSec))}" duration="${rt(durF)}" start="0s" name="${xmlEsc(c.id)}"/>`;
   });
 
   const children = [
     `        <asset-clip lane="-1" ref="${voRef}" offset="${rt(0)}" duration="${rt(totalF)}" start="0s" name="vo"/>`,
-    ...lane(avatarClips, 1),
-    ...lane(fullframes, 2),
-    ...lane(overlayClips, 3),
-    ...lane(fxClips, 4),
+    ...(musicPath ? [`        <asset-clip lane="-2" ref="${musicRef}" offset="${rt(0)}" duration="${rt(totalF)}" start="0s" name="music"/>`] : []),
+    ...lane(sfxClips || [], -3, true),
+    ...lane(avatarClips, 1, false),
+    ...lane(fullframes, 2, false),
+    ...lane(overlayClips, 3, false),
+    ...lane(fxClips, 4, false),
     ...markers.filter((m) => typeof m.at === 'number').map((m) =>
       `        <marker start="${rt(frames(m.at))}" duration="100/3000s" value="${xmlEsc(m.note)}"/>`),
   ].join('\n');
@@ -278,12 +285,35 @@ async function main() {
     const avatarClips = inputs.avatarJobs.map((j) => ({ id: j.id, offsetSec: j.start, durationSec: +(j.end - j.start).toFixed(3), file: j.file }));
     const fxClips = fxManifest.rendered.map((r) => ({ id: r.id, offsetSec: r.timelineStart, durationSec: r.duration, file: r.file }));
     const markers = fxManifest.dropped.map((d) => ({ at: d.at, note: `${d.type}: ${d.reason}` }));
-    const xml = buildNativeFcpxml({ video: inputs.video, screenPath: inputs.screen, voPath, total: inputs.total, w: 1920, h: 1080, avatarClips, fullframes, overlayClips, fxClips, markers, srcUrl });
+    
+    let musicPath = null;
+    const duckedPath = path.join(inputs.workdir, 'music-ducked.wav');
+    if (fs.existsSync(duckedPath)) {
+      musicPath = duckedPath;
+    }
+    
+    let sfxClips = [];
+    const soundPath = path.join(inputs.workdir, 'sound.json');
+    if (fs.existsSync(soundPath)) {
+      const soundData = JSON.parse(fs.readFileSync(soundPath, 'utf8'));
+      if (soundData.approved && soundData.instances) {
+        sfxClips = soundData.instances
+          .filter(i => i.enabled !== false)
+          .map(i => ({
+            id: 'sfx',
+            offsetSec: i.at,
+            durationSec: (i.loop && i.end) ? (i.end - i.at) : 2.0,
+            file: path.resolve(import.meta.dirname, '../assets/sfx', `${i.sample}.wav`)
+          }));
+      }
+    }
+    
+    const xml = buildNativeFcpxml({ video: inputs.video, screenPath: inputs.screen, voPath, musicPath, total: inputs.total, w: 1920, h: 1080, avatarClips, fullframes, overlayClips, fxClips, sfxClips, markers, srcUrl });
     fs.writeFileSync(path.join(exportDir, 'timeline.fcpxml'), xml);
     fs.writeFileSync(path.join(exportDir, 'captions.srt'), srtFromCaptions(planCaptions(inputs.words)));
     fs.writeFileSync(path.join(exportDir, 'README.md'), NATIVE_README(inputs.video));
     console.log(`exported (native): ${exportDir}`);
-    console.log(`avatar: ${avatarClips.length}, graphics: ${fullframes.length}, overlays: ${overlayClips.length}, fx: ${fxClips.length}, markers: ${markers.length}, captions: sidecar SRT`);
+    console.log(`avatar: ${avatarClips.length}, graphics: ${fullframes.length}, overlays: ${overlayClips.length}, fx: ${fxClips.length}, sfx: ${sfxClips.length}, markers: ${markers.length}, captions: sidecar SRT`);
   }
   process.exit(0);
 }
