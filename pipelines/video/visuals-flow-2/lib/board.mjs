@@ -12,7 +12,7 @@ import { createServer as httpCreateServer } from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { resolveCues, normWord } from './resolve.mjs';
+import { resolveCues, normWord, extendExposure } from './resolve.mjs';
 import { lintCues } from './lint-cues.mjs';
 import { mmss } from './render.mjs';
 import { enrichLogos } from './logos-inline.mjs';
@@ -23,6 +23,18 @@ import { loadBrand, injectBrand } from './brand-inline.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
+
+// resolve.mjs's main() CLI applies extendExposure as a post-pass on top of
+// resolveCues; the board's save path must run the identical composition or
+// every board save silently drops the exposure fix (background stays orange
+// only until the owner edits anything).
+export function resolveAndExtend(cues, words, catalog, cardLibraryRoot, workdir) {
+  const { resolved, errors } = resolveCues(cues, words, catalog, cardLibraryRoot, workdir);
+  if (errors.length) return { resolved, errors };
+  const manifest = loadVideoManifest(workdir);
+  const total = words.length ? words[words.length - 1].end + 1.0 : 0;
+  return { resolved: extendExposure(resolved, { base: manifest.base, total }), errors };
+}
 
 // Reads shots.json + computes resolved spans; null when the video has no shot
 // plan yet — every caller must handle null and render the pre-078 board.
@@ -94,6 +106,22 @@ export function mergeEffects(prevEffectsFile, toggles) {
   const merged = { ...prevEffectsFile, instances };
   if (prevEffectsFile.approved === true && changed) merged.approved = false;
   return { merged, changed };
+}
+
+// Owner-side pair of plan 142's audit gate: accepting a labelled verdict
+// writes accepted: true; un-accepting drops the field entirely rather than
+// writing false, so audit.json stays terse for items nobody has touched.
+export function toggleAuditAccepted(audit, id, accepted) {
+  const cues = { ...(audit?.cues ?? {}) };
+  const item = cues[id];
+  if (!item) return { ...audit, cues };
+  if (accepted) {
+    cues[id] = { ...item, accepted: true };
+  } else {
+    const { accepted: _drop, ...rest } = item;
+    cues[id] = rest;
+  }
+  return { ...audit, cues };
 }
 
 function escapeHtml(s) {
@@ -504,6 +532,30 @@ const fxSim = {};
 new Function('exports', FX_SIM_HELPERS
   + '\nexports.fxContext = fxContext; exports.fxEventsAt = fxEventsAt; exports.fxDriftActive = fxDriftActive;')(fxSim);
 export const { fxContext, fxEventsAt, fxDriftActive } = fxSim;
+
+// Which block the master clock's play-through is inside, given a flat list
+// of { id, start, kind: 'cue'|'gap' } ordered by start. Shared by the
+// storyboard tab's timeupdate handler and this test file so the two can't
+// drift: a gap block gets a countdown to the next cue instead of the plain
+// text-panel reveal cue blocks get.
+export const PLAYTHROUGH_HELPERS = `
+function playthroughView(blocks, t) {
+  let active = null;
+  for (const b of blocks) {
+    if (b.start <= t) active = b;
+  }
+  if (!active) return null;
+  if (active.kind === 'gap') {
+    const next = blocks.find((b) => b.kind === 'cue' && b.start > active.start);
+    return { kind: 'gap', id: active.id, nextStart: next ? next.start : null };
+  }
+  return { kind: 'cue', id: active.id };
+}
+`;
+// Node-side bindings for tests:
+const playthroughSim = {};
+new Function('exports', PLAYTHROUGH_HELPERS + '\nexports.playthroughView = playthroughView;')(playthroughSim);
+export const { playthroughView } = playthroughSim;
 
 // Probe times for the overflow shim: just after each beat reveals, plus just
 // before the card ends (catches a final state that never got a mid-beat check).
@@ -1354,7 +1406,7 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
 
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
-  const { resolved, errors } = resolveCues(merged.cues ?? [], words, catalog, cardLibraryRoot);
+  const { resolved, errors } = resolveAndExtend(merged.cues ?? [], words, catalog, cardLibraryRoot, workdir);
 
   let mergedShots = null;
   let resolvedSpans = null;
