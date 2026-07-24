@@ -705,3 +705,35 @@ test('assemble: effects.json approved=false exits unless --force is passed', () 
   const res2 = spawnSync('node', [bin, workdir]);
   assert.ok(!res2.stderr.toString().includes('effects.json approved=false'));
 });
+
+test('fillGapsWithFreeze: base screen preserves screen segments', async () => {
+  const { fillGapsWithFreeze } = await import('./assemble.mjs');
+  const segments = [
+    { kind: 'screen', id: 's1', start: 0, end: 5 },
+    { kind: 'graphic', id: 'g1', start: 5, end: 10 }
+  ];
+  const out = fillGapsWithFreeze(segments, { base: 'screen' });
+  assert.equal(out[0].kind, 'screen');
+});
+
+test('fillGapsWithFreeze: base none converts screen to freeze', async () => {
+  const { fillGapsWithFreeze } = await import('./assemble.mjs');
+  const segments = [
+    { kind: 'screen', id: 's1', start: 0, end: 5 },
+    { kind: 'graphic', id: 'g1', start: 5, end: 10 },
+    { kind: 'screen', id: 's2', start: 10, end: 15 },
+    { kind: 'avatar', id: 'a1', start: 15, end: 20 },
+    { kind: 'screen', id: 's3', start: 20, end: 25 },
+  ];
+  const out = fillGapsWithFreeze(segments, { base: 'none' });
+  
+  assert.equal(out[0].kind, 'freeze');
+  assert.equal(out[0].from, 'g1');
+  
+  assert.equal(out[2].kind, 'freeze');
+  assert.equal(out[2].from, 'g1');
+  
+  assert.equal(out[4].kind, 'freeze');
+  assert.equal(out[4].from, 'a1');
+});
+

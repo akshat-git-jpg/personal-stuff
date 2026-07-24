@@ -13,12 +13,17 @@ const catalog = {
 };
 
 function createResolved(cues) {
-  return cues.map(c => ({
-    id: c.id,
-    card: c.card,
-    start: c.start,
-    duration: c.duration || 5
-  }));
+  return cues.map(c => {
+    let placement = 'overlay';
+    if (c.card.startsWith('fullframe') || c.card.startsWith('section')) placement = 'fullframe';
+    return {
+      id: c.id,
+      card: c.card,
+      placement,
+      start: c.start,
+      duration: c.duration || 5
+    };
+  });
 }
 
 function createCues(cues) {
@@ -227,32 +232,47 @@ test('W2 overlay-density', () => {
   assert(res4.warnings.some(w => w.includes('W2 overlay-density')));
 });
 
-test('W6 bare-stretch', () => {
-  // two overlays 65s apart (end 25 -> start 90) => a 65s bare interior stretch
+test('W6 and W7 bare-stretch', () => {
   const cFail = [
     { id: 'c1', card: 'overlay/plain', start: 20, duration: 5 },
-    { id: 'c2', card: 'overlay/plain', start: 90, duration: 5 }
+    { id: 'c2', card: 'overlay/plain', start: 90, duration: 5 },
+    { id: 'c3', card: 'overlay/plain', start: 160, duration: 5 }
   ];
   const resFail = lintCues({
     cuesFile: createCues(cFail),
     resolved: createResolved(cFail),
     words: createWords(900),
-    catalog
+    catalog,
+    segmentsData: {
+      segments: [
+        { kind: 'narration', start: 0, end: 85 },
+        { kind: 'demo', start: 85, end: 200 }
+      ]
+    }
   });
-  assert(resFail.warnings.some(w => w.includes('W6 bare-stretch')));
+  assert(resFail.warnings.some(w => w.includes('W7 bare-stretch') && w.includes('70.0s'))); // between c1 and c2
+  assert(resFail.warnings.some(w => w.includes('W6 bare-stretch') && w.includes('70.0s'))); // between c2 and c3
 
-  // same pair only 35s apart (end 25 -> start 60) => within BARE_GAP_MAX
   const cPass = [
     { id: 'c1', card: 'overlay/plain', start: 20, duration: 5 },
-    { id: 'c2', card: 'overlay/plain', start: 60, duration: 5 }
+    { id: 'c2', card: 'overlay/plain', start: 35, duration: 5 },
+    { id: 'c3', card: 'overlay/plain', start: 50, duration: 5 },
+    { id: 'c4', card: 'overlay/plain', start: 90, duration: 5 }
   ];
   const resPass = lintCues({
     cuesFile: createCues(cPass),
     resolved: createResolved(cPass),
     words: createWords(900),
-    catalog
+    catalog,
+    segmentsData: {
+      segments: [
+        { kind: 'narration', start: 0, end: 50 },
+        { kind: 'demo', start: 50, end: 200 }
+      ]
+    }
   });
   assert(!resPass.warnings.some(w => w.includes('W6 bare-stretch')));
+  assert(!resPass.warnings.some(w => w.includes('W7 bare-stretch')));
 });
 
 test('W4 reveal-wordcount', () => {
@@ -455,3 +475,18 @@ test('W1 fullframe-cadence: skip W1 when either endpoint sits in a demo/playback
   assert(!res.warnings.some(w => w.includes('W1 fullframe-cadence')));
 });
 
+test('E7 uncovered-second on base:none', () => {
+  const c = [
+    { id: 'c1', card: 'fullframe/beat', start: 10, duration: 5 },
+    { id: 'c2', card: 'fullframe/beat', start: 65, duration: 5 }, // gap of 50s. capped to 20 extension -> hole 35-65
+  ];
+  const T = 100;
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(T),
+    catalog,
+    manifest: { base: 'none' }
+  });
+  assert(res.errors.some(e => e.includes('E7 uncovered-second') && e.includes('[35.0–65.0]')));
+});

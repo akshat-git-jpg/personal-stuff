@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { wordSyncBeats } from './kinetic-sentence.mjs';
+import { CUE_CONSTANTS } from './cue-constants.mjs';
+import { loadVideoManifest } from './video-manifest.mjs';
 
 export function normWord(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ''); }
 
@@ -237,6 +239,26 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot) {
   return { resolved: out, errors };
 }
 
+// Post-pass: kill hold-expiry gaps (spec delta C). Fullframe exposure extends
+// to the next base event: always on base:none (up to HOLD_EXTEND_CAP, else E7
+// in lint), and only across gaps <= GAP_ABSORB on base:screen.
+export function extendExposure(resolved, { base, total }) {
+  const fulls = resolved.filter((c) => c.placement === 'fullframe');
+  const out = resolved.map((c) => ({ ...c }));
+  const byId = Object.fromEntries(out.map((c) => [c.id, c]));
+  for (let i = 0; i < fulls.length; i++) {
+    const cur = byId[fulls[i].id];
+    const end = cur.start + cur.duration;
+    const nextStart = i + 1 < fulls.length ? fulls[i + 1].start : total;
+    const gap = +(nextStart - end).toFixed(2);
+    if (gap <= 0) continue;
+    const maxExtend = CUE_CONSTANTS.HOLD_EXTEND_CAP.value;
+    const wanted = base === 'none' ? gap : (gap <= CUE_CONSTANTS.GAP_ABSORB.value ? gap : 0);
+    const grant = Math.min(wanted, maxExtend);
+    if (grant > 0) cur.duration = +(cur.duration + grant).toFixed(2);
+  }
+  return out;
+}
 
 async function main() {
   const arg = process.argv[2];
@@ -261,9 +283,12 @@ async function main() {
     process.exit(1);
   }
 
+  const manifest = loadVideoManifest(workdir);
+  const extended = extendExposure(resolved, { base: manifest.base, total: words[words.length-1].end + 1.0 });
+
   fs.writeFileSync(
     path.join(workdir, 'resolved.json'),
-    JSON.stringify({ video: cuesFile.video, offset: cuesFile.offset ?? 0, resolved }, null, 2),
+    JSON.stringify({ video: cuesFile.video, offset: cuesFile.offset ?? 0, resolved: extended }, null, 2),
   );
 }
 

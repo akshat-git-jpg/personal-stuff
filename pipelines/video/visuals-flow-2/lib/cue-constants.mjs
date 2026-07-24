@@ -14,7 +14,10 @@ export const CUE_CONSTANTS = {
   DENSITY_OVERLAY_WINDOW: { value: 60,   rule: null }, // referenced by the rule above
   TARGET_RATE_MIN:        { value: 1.0,  rule: 'Total cue count must be at least 1.0 per minute of video (lint W3).' },
   TARGET_RATE_MAX:        { value: 1.9,  rule: 'Total cue count must be at most 1.9 per minute of video (lint W3). For a 20-minute video that is 20-38 cues in total — budget before you place.' },
-  BARE_GAP_MAX:           { value: 50,   rule: 'No interior narration stretch may run longer than 50s with no graphic of any kind (lint W6).' },
+  BARE_GAP_MAX:           { value: 50,   rule: 'Within demo segments (segments.json), no stretch longer than 50s may pass without a cue START (lint W6).' },
+  HOLD_EXTEND_CAP:        { value: 20,   rule: 'A fullframe card\'s exposure may auto-extend at most 20s past its computed end to reach the next base event (resolver post-pass).' },
+  GAP_ABSORB:             { value: 4,    rule: 'On base:screen videos, a gap to the next base event of at most 4s is absorbed by extending the previous fullframe card; larger gaps intentionally show the screen recording.' },
+  NARRATION_BARE_GAP_MAX: { value: 20,   rule: 'Within narration segments (segments.json), no stretch longer than 20s may pass without a cue START (lint W7). Demo segments keep BARE_GAP_MAX.' },
 };
 
 export const ENDCARD_SLUG_PREFIXES = ['brand/', 'link-in-description/', 'like-subscribe/'];

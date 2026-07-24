@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
+import { loadVideoManifest } from './video-manifest.mjs';
+import { extendExposure } from './resolve.mjs';
 
 const CAP_STAT_HIT = CUE_CONSTANTS.CAP_STAT_HIT.value;
 const SPACING_STAT_HIT = CUE_CONSTANTS.SPACING_STAT_HIT.value;
@@ -19,11 +21,12 @@ const DENSITY_OVERLAY_MAX = CUE_CONSTANTS.DENSITY_OVERLAY_MAX.value;
 const TARGET_RATE_MIN = CUE_CONSTANTS.TARGET_RATE_MIN.value;
 const TARGET_RATE_MAX = CUE_CONSTANTS.TARGET_RATE_MAX.value;
 const BARE_GAP_MAX = CUE_CONSTANTS.BARE_GAP_MAX.value; // W6: max interior seconds with NO graphic (any placement) before/after any cue
+const NARRATION_BARE_GAP_MAX = CUE_CONSTANTS.NARRATION_BARE_GAP_MAX.value;
 // Dead air is now designed out by the resolver's BEAT_LEAD_IN clamp (plan 116);
 // W5 stays as the regression detector for that clamp, not as a style hint.
 const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
 
-export function lintCues({ cuesFile, resolved, words, catalog, segmentsData }) {
+export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, manifest }) {
   const errors = [];
   const warnings = [];
   
@@ -178,19 +181,45 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData }) {
     warnings.push(`W3 total-count: ${count} cues is outside the scaled band [${targetMin}, ${targetMax}] (rate ${TARGET_RATE_MIN}-${TARGET_RATE_MAX}/min) for a ${(T/60).toFixed(1)}min video`);
   }
 
-  // W6 bare-stretch: no interior stretch should sit longer than BARE_GAP_MAX
-  // seconds with NO graphic of any kind (fullframe OR overlay) on screen. This
-  // is the direct guard against the "long stretches of video without motion
-  // graphics" the owner flagged — punctuate demos/bridges with a lightweight
-  // overlay or statement. Only gaps BETWEEN cues are checked; the cold-open
-  // (first ~15s) and end-zone (last ZONE_END s, kept graphics-free by E4) are
-  // deliberately sparse and are not flagged.
+  // W6/W7 bare-stretch: no interior stretch should sit longer than max
+  // seconds with NO cue start. Punctuate demos/bridges with a lightweight
+  // overlay or statement.
   for (let i = 1; i < sortedResolved.length; i++) {
     const prev = sortedResolved[i - 1];
     const curr = sortedResolved[i];
-    const gap = narrationGap(prev.start + prev.duration, curr.start);
-    if (gap > BARE_GAP_MAX) {
-      warnings.push(`W6 bare-stretch: ${gap.toFixed(1)}s with no graphic between ${prev.id} (ends ${(prev.start + prev.duration).toFixed(1)}s) and ${curr.id} (starts ${curr.start.toFixed(1)}s) — max ${BARE_GAP_MAX}s; punctuate with a lightweight overlay or statement card`);
+    const gap = curr.start - prev.start;
+    const kind = kindAt(prev.start);
+    if (kind === 'demo' || kind === 'playback') {
+      if (gap > BARE_GAP_MAX) {
+        warnings.push(`W6 bare-stretch: ${gap.toFixed(1)}s between ${prev.id} (starts ${prev.start.toFixed(1)}s) and ${curr.id} (starts ${curr.start.toFixed(1)}s) inside a demo segment — max ${BARE_GAP_MAX}s`);
+      }
+    } else {
+      if (gap > NARRATION_BARE_GAP_MAX) {
+        warnings.push(`W7 bare-stretch: ${gap.toFixed(1)}s between ${prev.id} (starts ${prev.start.toFixed(1)}s) and ${curr.id} (starts ${curr.start.toFixed(1)}s) inside a narration segment — max ${NARRATION_BARE_GAP_MAX}s`);
+      }
+    }
+  }
+
+  // E7 uncovered-second
+  if (manifest?.base === 'none') {
+    const extended = extendExposure(sortedResolved, { base: 'none', total: T });
+    const fulls = extended.filter(c => bySlug[c.card]?.placement === 'fullframe').sort((a, b) => a.start - b.start);
+    if (fulls.length > 0) {
+      const activeStart = fulls[0].start;
+      const activeEnd = T - ZONE_END;
+      let cursor = activeStart;
+      for (const f of fulls) {
+        if (f.start > cursor) {
+          const gapEnd = Math.min(f.start, activeEnd);
+          if (cursor < gapEnd) {
+            errors.push(`E7 uncovered-second: base is none, but [${cursor.toFixed(1)}–${gapEnd.toFixed(1)}] is not covered by a fullframe card`);
+          }
+        }
+        cursor = Math.max(cursor, f.start + f.duration);
+      }
+      if (cursor < activeEnd) {
+        errors.push(`E7 uncovered-second: base is none, but [${cursor.toFixed(1)}–${activeEnd.toFixed(1)}] is not covered by a fullframe card`);
+      }
     }
   }
 
@@ -294,13 +323,16 @@ async function main() {
   if (fs.existsSync(segmentsPath)) {
     segmentsData = JSON.parse(fs.readFileSync(segmentsPath, 'utf8'));
   }
+  
+  const manifest = loadVideoManifest(workdir);
 
   const { errors, warnings } = lintCues({
     cuesFile,
     resolved: resolvedFile.resolved,
     words,
     catalog,
-    segmentsData
+    segmentsData,
+    manifest
   });
 
   for (const w of warnings) {
