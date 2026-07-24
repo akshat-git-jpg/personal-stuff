@@ -248,6 +248,10 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
     }
     
     let vars = { ...cue.variables, ...(beats.length ? { beats } : {}) };
+    // Cue-level register must reach the card as a variable — cards skin
+    // themselves off VARS.register (found 2026-07-24: every card rendered its
+    // dark default because this merge was missing).
+    if (cue.register && vars.register === undefined) vars.register = cue.register;
     if (cat.variants && cat.variants.length > 0) {
       const useCount = cardUseCounts[cue.card] || 0;
       if (cue.variables && cue.variables.variant !== undefined) {

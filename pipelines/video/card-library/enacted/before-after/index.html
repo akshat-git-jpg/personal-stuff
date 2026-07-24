@@ -50,7 +50,9 @@
       body.variant-b .tab.after { top: auto; bottom: -1px; border-radius: 16px 16px 0 0; }
 
       .panel { position: relative; width: 100%; height: 720px; border-radius: 28px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); }
-      .layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+      /* Opaque backdrop: without it the clipped top layer's translucent chips
+         let the other layer's text bleed through (double-text, found 2026-07-24). */
+      .layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #140e08; }
       .chip-col { display: flex; flex-direction: column; gap: 22px; align-items: stretch; width: 100%; padding: 0 90px; }
       .chip { font-size: 32px; font-weight: 600; padding: 22px 36px; border-radius: 18px; line-height: 1.3; }
       .before-layer .chip { background: rgba(251,113,133,0.10); border: 1px solid rgba(251,113,133,0.30); color: var(--text); }
