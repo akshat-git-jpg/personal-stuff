@@ -689,3 +689,4 @@ No deploys. 137's test_cmd runs in BOTH card-library and visuals-flow-2
 - 138-vf2-effects-brand-variants — PR#96 138-vf2-effects-brand-variants: v2 effects vocabulary + brand tokens + variant rotation + motif lane — DONE
 - 139-vf2-sound-mix — PR#97 139-vf2-sound-mix: v2 sound + mix stage (semantic SFX, ducked music, -14 LUFS, audio lanes) — DONE
 - 140-vf2-board-two-tabs — PR#98 140-vf2-board-two-tabs: v2 board — two-tab review dashboard (storyboard + Final Cut) — DONE
+- 141-vf2-docs-registration — PR#99 141-vf2-docs-registration: v2 docs, skill, and repo registration — DONE
