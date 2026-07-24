@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, fxDriftActive, appendFinalFeedback, pinFromClick } from './board.mjs';
+import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, fxDriftActive, appendFinalFeedback, pinFromClick, resolveAndExtend, playthroughView, toggleAuditAccepted } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'board');
@@ -201,6 +201,58 @@ test('POST /approve sets cues.json approved: true', async () => {
     server.close();
   }
 });
+test('resolveAndExtend: applies the same post-pass as resolve.mjs main() — a save can\'t drop exposure', () => {
+  const words = [
+    { text: 'alpha', start: 0.5, end: 0.8 },
+    { text: 'bravo', start: 1.0, end: 1.3 },
+    { text: 'charlie', start: 1.5, end: 1.8 },
+    { text: 'delta', start: 2.0, end: 2.3 },
+    { text: 'echo', start: 8.5, end: 8.8 },
+    { text: 'foxtrot', start: 9.0, end: 9.3 },
+    { text: 'golf', start: 9.5, end: 9.8 },
+    { text: 'hotel', start: 10.0, end: 10.3 },
+  ];
+  const catalog = { cards: [{ slug: 'test/full', kind: 'single', placement: 'fullframe', default_duration: 3, variables: {} }] };
+  const cues = [
+    { id: 'f1', card: 'test/full', anchor: 'alpha bravo charlie delta', variables: {} },
+    { id: 'f2', card: 'test/full', anchor: 'echo foxtrot golf hotel', variables: {} },
+  ];
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'extend-'));
+  fs.writeFileSync(path.join(workdir, 'video.json'), JSON.stringify({ base: 'none' }));
+
+  const { resolved, errors } = resolveAndExtend(cues, words, catalog, null, workdir);
+  assert.deepEqual(errors, []);
+  assert.equal(resolved[0].start, 0);
+  // unextended duration would be the card default (3s, ending at 3s); the
+  // post-pass must extend f1 all the way to f2's start on base:none.
+  assert.equal(resolved[0].duration, 8);
+  assert.equal(resolved[0].start + resolved[0].duration, resolved[1].start);
+});
+
+test('playthroughView: picks the active block and a gap carries the next cue\'s start', () => {
+  const blocks = [
+    { id: 'seg-0', start: 0, kind: 'cue' },
+    { id: 'seg-1', start: 5, kind: 'gap' },
+    { id: 'seg-2', start: 12, kind: 'cue' },
+  ];
+  assert.equal(playthroughView(blocks, -1), null);
+  assert.deepEqual(playthroughView(blocks, 0), { kind: 'cue', id: 'seg-0' });
+  assert.deepEqual(playthroughView(blocks, 4.9), { kind: 'cue', id: 'seg-0' });
+  assert.deepEqual(playthroughView(blocks, 5), { kind: 'gap', id: 'seg-1', nextStart: 12 });
+  assert.deepEqual(playthroughView(blocks, 11.9), { kind: 'gap', id: 'seg-1', nextStart: 12 });
+  assert.deepEqual(playthroughView(blocks, 12), { kind: 'cue', id: 'seg-2' });
+  assert.deepEqual(playthroughView(blocks, 999), { kind: 'cue', id: 'seg-2' });
+});
+
+test('playthroughView: a trailing gap (no next cue) reports nextStart null', () => {
+  const blocks = [
+    { id: 'seg-0', start: 0, kind: 'cue' },
+    { id: 'seg-1', start: 5, kind: 'gap' },
+  ];
+  assert.deepEqual(playthroughView(blocks, 7), { kind: 'gap', id: 'seg-1', nextStart: null });
+});
+
 test('buildSegments: words fully covered, no duplication, contiguous order', () => {
   const words = JSON.parse(fs.readFileSync(path.join(FIXTURE_DIR, 'transcript.json'), 'utf8'));
   const resolved = JSON.parse(fs.readFileSync(path.join(FIXTURE_DIR, 'resolved.json'), 'utf8')).resolved;
@@ -465,7 +517,13 @@ test('save: incremental slices only re-encode changed cues', async () => {
 
     await new Promise(resolve => setTimeout(resolve, 50));
 
-    cuesFile.cues[0].hold = (cuesFile.cues[0].hold || 3) + 1;
+    // +1 no longer moves the cache key on this fixture: c01 is the sole
+    // fullframe cue, so resolveAndExtend's post-pass (plan 144) pads it all
+    // the way to the transcript end regardless of hold, for any increment
+    // that doesn't push its unextended span past that boundary. Jump hold
+    // far enough that the unextended end overtakes the boundary and the
+    // post-pass skips extension, so the resolved duration actually changes.
+    cuesFile.cues[0].hold = (cuesFile.cues[0].hold || 3) + 6;
     res = await fetch(`${base}/save`, { method: 'POST', body: JSON.stringify(cuesFile) });
     assert.equal((await res.json()).ok, true);
 
@@ -832,6 +890,21 @@ test('mergeEffects only applies enabled', () => {
   const { merged } = mergeEffects(prev, toggles);
   assert.equal(merged.instances[0].enabled, false);
   assert.equal(merged.instances[0].punch, 1.05);
+});
+
+test('toggleAuditAccepted: accepts a verdict, un-accepting drops the field, unknown id is a no-op', () => {
+  const audit = { cues: { c01: { verdict: 'labelled', fix: 'wrong card' }, c02: { verdict: 'ok' } } };
+
+  const accepted = toggleAuditAccepted(audit, 'c01', true);
+  assert.equal(accepted.cues.c01.accepted, true);
+  assert.equal(accepted.cues.c01.verdict, 'labelled');
+  assert.equal(accepted.cues.c02.accepted, undefined);
+
+  const unaccepted = toggleAuditAccepted(accepted, 'c01', false);
+  assert.ok(!('accepted' in unaccepted.cues.c01));
+
+  const noop = toggleAuditAccepted(audit, 'nope', true);
+  assert.ok(!('nope' in noop.cues));
 });
 
 test('fxContext / fxEventsAt / fxDriftActive helpers', () => {
