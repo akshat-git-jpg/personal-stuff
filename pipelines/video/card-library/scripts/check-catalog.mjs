@@ -46,6 +46,24 @@ for (const card of catalog.cards) {
   for (const [k, spec] of Object.entries(card.beat_shape ?? {})) {
     checkSpec(spec, `${card.slug}.beat_shape.${k}`);
   }
+  if (card.register !== undefined) {
+    if (!Array.isArray(card.register)) err(`FAIL: ${card.slug}.register must be an array`);
+    else if (!card.register.every(r => r === 'dark' || r === 'light')) err(`FAIL: ${card.slug}.register must be array subset of ["dark","light"]`);
+  }
+  if (card.marker !== undefined && typeof card.marker !== 'boolean') err(`FAIL: ${card.slug}.marker must be boolean`);
+  if (card.intent !== undefined) {
+    if (typeof card.intent !== 'string') err(`FAIL: ${card.slug}.intent must be string`);
+    else if (card.intent.includes('\n')) err(`FAIL: ${card.slug}.intent must be one line`);
+  }
+  if (card.anti_intent !== undefined) {
+    if (typeof card.anti_intent !== 'string') err(`FAIL: ${card.slug}.anti_intent must be string`);
+    else if (card.anti_intent.includes('\n')) err(`FAIL: ${card.slug}.anti_intent must be one line`);
+  }
+  if (card.variants !== undefined) {
+    if (!Array.isArray(card.variants)) err(`FAIL: ${card.slug}.variants must be an array`);
+    else if (!card.variants.every(v => typeof v === 'string')) err(`FAIL: ${card.slug}.variants must be array of strings`);
+  }
+  if (card.continuity !== undefined && typeof card.continuity !== 'boolean') err(`FAIL: ${card.slug}.continuity must be boolean`);
 }
 
 if (failed) process.exit(1);

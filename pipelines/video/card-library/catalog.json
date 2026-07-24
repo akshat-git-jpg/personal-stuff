@@ -4,7 +4,7 @@
       "slug": "prompt/prompt-typing",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "a 'Prompt' panel that types its text out over the clip; [m:ss] timestamp tags glow orange, a caret blinks, the box auto-scrolls — for showing an AI-tool/video prompt being written",
+      "purpose": "a 'Prompt' panel that types its text out over the clip; [m:ss] timestamp tags glow orange, a caret blinks, the box auto-scrolls \u2014 for showing an AI-tool/video prompt being written",
       "variables": {
         "title": {
           "required": true,
@@ -25,7 +25,7 @@
       "slug": "tool-icon/tool-glass-tile",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "hero for one tool/model: a glassy app-icon tile with the tool's (muted) logo, its name beneath, and an optional subtitle — the 'this is the tool' beat",
+      "purpose": "hero for one tool/model: a glassy app-icon tile with the tool's (muted) logo, its name beneath, and an optional subtitle \u2014 the 'this is the tool' beat",
       "variables": {
         "logo": {
           "type": "string",
@@ -55,7 +55,7 @@
       "slug": "statement/keyword-statement",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "a single punchy centered statement revealed word-by-word with one keyword phrase highlighted in the accent — a standalone emphasis beat (distinct from running captions)",
+      "purpose": "a single punchy centered statement revealed word-by-word with one keyword phrase highlighted in the accent \u2014 a standalone emphasis beat (distinct from running captions)",
       "variables": {
         "text": {
           "required": true,
@@ -102,7 +102,7 @@
       "slug": "checklist/icon-pills",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "vertical list of icon-tile + text-pill rows revealing one per beat, accent-outlined with a soft glow; optional keyword highlight per row — for enumerating features/capabilities",
+      "purpose": "vertical list of icon-tile + text-pill rows revealing one per beat, accent-outlined with a soft glow; optional keyword highlight per row \u2014 for enumerating features/capabilities",
       "variables": {},
       "beat_shape": {
         "icon": {
@@ -1293,7 +1293,7 @@
         "title",
         "comparison-coldopen"
       ],
-      "purpose": "title card with drifting aurora blobs and a light bar that wipes logo chips into view — THE cold-open pick for multi-product comparisons (products become the visual hero)",
+      "purpose": "title card with drifting aurora blobs and a light bar that wipes logo chips into view \u2014 THE cold-open pick for multi-product comparisons (products become the visual hero)",
       "variables": {
         "title": {
           "required": true,
@@ -1330,7 +1330,7 @@
         "title",
         "comparison-coldopen"
       ],
-      "purpose": "title card with a breathing vignette background; title scales in and uniform tool tiles cascade then gently bob — a strong comparison cold-open (products are the hero, every tile identical size)",
+      "purpose": "title card with a breathing vignette background; title scales in and uniform tool tiles cascade then gently bob \u2014 a strong comparison cold-open (products are the hero, every tile identical size)",
       "variables": {
         "title": {
           "required": true,
@@ -1366,7 +1366,7 @@
       "roles": [
         "comparison-coldopen"
       ],
-      "purpose": "comparison cold open: two large logo tiles side by side with the product name beneath each and a VS badge between — the compared products ARE the visual hero",
+      "purpose": "comparison cold open: two large logo tiles side by side with the product name beneath each and a VS badge between \u2014 the compared products ARE the visual hero",
       "variables": {
         "title": {
           "type": "string",
@@ -1533,7 +1533,7 @@
       "slug": "verdict/verdict-trophy",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "verdict card with confetti and a trophy dropping in before the winner card lifts with a gold pulse. ONE winner per card — a dual verdict gets one card per winner, back to back",
+      "purpose": "verdict card with confetti and a trophy dropping in before the winner card lifts with a gold pulse. ONE winner per card \u2014 a dual verdict gets one card per winner, back to back",
       "variables": {
         "eyebrow": {
           "required": true,
@@ -1645,7 +1645,7 @@
       "slug": "verdict/winners-podium",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "side-by-side verdict winners over a confetti stage, one tool column per beat; scales 2-4 winners (layout derives from count). Use for a multi-winner finale — co-winners (ranked:false, all gold) or a ranked podium (ranked:true → gold/silver/bronze/steel). ONE tool per beat.",
+      "purpose": "side-by-side verdict winners over a confetti stage, one tool column per beat; scales 2-4 winners (layout derives from count). Use for a multi-winner finale \u2014 co-winners (ranked:false, all gold) or a ranked podium (ranked:true \u2192 gold/silver/bronze/steel). ONE tool per beat.",
       "variables": {
         "eyebrow": {
           "required": true,
@@ -1687,7 +1687,7 @@
       "slug": "verdict/persona-match",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "use-case verdict: persona → winning tool pairs, one pair per beat",
+      "purpose": "use-case verdict: persona \u2192 winning tool pairs, one pair per beat",
       "variables": {
         "title": {
           "required": true,
@@ -1725,7 +1725,7 @@
       "slug": "comparison/credits-math",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "credit/unit economics rows: plan → credits → what that actually buys, one row per beat",
+      "purpose": "credit/unit economics rows: plan \u2192 credits \u2192 what that actually buys, one row per beat",
       "variables": {
         "title": {
           "required": true,
@@ -1888,6 +1888,563 @@
       "default_duration": 6,
       "max_beats": 18,
       "max_reveal_chars": 24
+    },
+    {
+      "slug": "enacted/fill-gauge",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "a labeled vessel fills stepwise; each beat adds a measured pour + label chip",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "System Load"
+        },
+        "unit": {
+          "required": false,
+          "type": "string",
+          "role": "label",
+          "example": "%"
+        }
+      },
+      "beat_shape": {
+        "label": {
+          "type": "string",
+          "role": "label",
+          "example": "App"
+        },
+        "value": {
+          "type": "string",
+          "role": "value",
+          "example": "40"
+        }
+      },
+      "max_beats": 6,
+      "default_duration": 6,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Show a metric or capacity filling up stepwise.",
+      "anti_intent": "Showing multiple items racing or comparing static values without a total.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "enacted/race-bars",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "Products race as horizontal bars; each beat advances all bars to given values; a stalled bar visibly judders and stops",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Benchmark"
+        },
+        "products": {
+          "required": true,
+          "type": "array",
+          "item_shape": {
+            "name": {
+              "required": true,
+              "type": "string",
+              "role": "label",
+              "example": "Node"
+            }
+          }
+        }
+      },
+      "beat_shape": {
+        "values": {
+          "type": "array",
+          "item_shape": {
+            "value": {
+              "type": "string",
+              "role": "value",
+              "example": "100"
+            }
+          }
+        }
+      },
+      "max_beats": 5,
+      "default_duration": 6,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Compare performance or progress of multiple items racing simultaneously.",
+      "anti_intent": "Showing a single item filling up or stacking up.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "enacted/counter-tally",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "One huge number rolls to each beat's value; a tick strip accumulates marks underneath",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Errors"
+        },
+        "suffix": {
+          "required": false,
+          "type": "string",
+          "role": "label",
+          "example": "reqs"
+        }
+      },
+      "beat_shape": {
+        "value": {
+          "type": "string",
+          "role": "value",
+          "example": "500"
+        },
+        "note": {
+          "type": "string",
+          "role": "label",
+          "example": "spike"
+        }
+      },
+      "max_beats": 6,
+      "default_duration": 6,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Count or tally a single growing number over time with tick marks.",
+      "anti_intent": "Showing fractions, percentages, or items racing.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "enacted/pipeline-flow",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "A node chain with a pulse that travels; each beat lights the named step",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "CI Pipeline"
+        },
+        "steps": {
+          "required": true,
+          "type": "array",
+          "item_shape": {
+            "step": {
+              "type": "string",
+              "role": "label",
+              "example": "Build"
+            }
+          }
+        }
+      },
+      "beat_shape": {
+        "step": {
+          "type": "string",
+          "role": "label",
+          "example": "Build"
+        }
+      },
+      "max_beats": 6,
+      "default_duration": 6,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Show progress through a linear sequence of steps.",
+      "anti_intent": "Showing branching logic or a growing network graph.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "enacted/before-after",
+      "kind": "single",
+      "placement": "fullframe",
+      "purpose": "Split panel; an accent slider sweeps left->right revealing AFTER over BEFORE",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Migration"
+        },
+        "before_label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "Old"
+        },
+        "after_label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "New"
+        },
+        "before_lines": {
+          "required": true,
+          "type": "array",
+          "item_shape": {
+            "line": {
+              "type": "string",
+              "role": "sentence",
+              "example": "Slow"
+            }
+          }
+        },
+        "after_lines": {
+          "required": true,
+          "type": "array",
+          "item_shape": {
+            "line": {
+              "type": "string",
+              "role": "sentence",
+              "example": "Fast"
+            }
+          }
+        }
+      },
+      "default_duration": 8,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Directly compare an old state versus a new state.",
+      "anti_intent": "Comparing two current alternatives or competitors.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "enacted/stack-builder",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "Blocks drop and stack into a column; dark register collapses on final beat if collapse is true",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Tech Stack"
+        }
+      },
+      "beat_shape": {
+        "label": {
+          "type": "string",
+          "role": "label",
+          "example": "Database"
+        }
+      },
+      "max_beats": 6,
+      "default_duration": 6,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Show items accumulating or building on top of each other.",
+      "anti_intent": "Showing a linear timeline or a network graph.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "enacted/connect-nodes",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "Each beat adds a labeled node and draws an accent edge to the previous one, growing a graph",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Network"
+        }
+      },
+      "beat_shape": {
+        "label": {
+          "type": "string",
+          "role": "label",
+          "example": "Server"
+        }
+      },
+      "max_beats": 6,
+      "default_duration": 6,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Demonstrate the growth of a connected graph or network.",
+      "anti_intent": "Showing a strict linear process or pipeline.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "enacted/spotlight-focus",
+      "kind": "single",
+      "placement": "fullframe",
+      "purpose": "A dimmed grid of items; a spotlight sweeps then locks on focus, others fall to 25% opacity",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Selection"
+        },
+        "items": {
+          "required": true,
+          "type": "array",
+          "item_shape": {
+            "item": {
+              "type": "string",
+              "role": "label",
+              "example": "Option A"
+            }
+          }
+        },
+        "focus": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "Option A"
+        }
+      },
+      "default_duration": 7,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Highlight one specific item out of many alternatives.",
+      "anti_intent": "Showing sequential progress or comparing two items head-to-head.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "enacted/timeline-scrub",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "A horizontal timeline; the playhead jumps to each beat's marker, stamping a label above it",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "History"
+        }
+      },
+      "beat_shape": {
+        "label": {
+          "type": "string",
+          "role": "label",
+          "example": "Launch"
+        }
+      },
+      "max_beats": 6,
+      "default_duration": 6,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Map events strictly across time.",
+      "anti_intent": "Showing a logical pipeline or stacking architecture.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "enacted/verdict-scale",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "A balance scale; each beat drops a weight chip on side and the beam tips accordingly; final tilt = verdict",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Decision"
+        },
+        "left_label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "Pros"
+        },
+        "right_label": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "Cons"
+        }
+      },
+      "beat_shape": {
+        "side": {
+          "type": "string",
+          "role": "label",
+          "example": "left"
+        },
+        "label": {
+          "type": "string",
+          "role": "label",
+          "example": "Fast"
+        }
+      },
+      "max_beats": 6,
+      "default_duration": 6,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Weigh opposing factors to reach a tilted verdict.",
+      "anti_intent": "Showing independent metrics or absolute values.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "enacted/price-meter",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "An odometer-style money readout rises as cost chips slide in; dark register colors total negative-rose past warn_at",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Costs"
+        },
+        "currency": {
+          "required": false,
+          "type": "string",
+          "role": "label",
+          "example": "$"
+        }
+      },
+      "beat_shape": {
+        "label": {
+          "type": "string",
+          "role": "label",
+          "example": "Server"
+        },
+        "amount": {
+          "type": "string",
+          "role": "value",
+          "example": "50"
+        }
+      },
+      "max_beats": 5,
+      "default_duration": 6,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Accumulate costs or prices over time to show a total.",
+      "anti_intent": "Counting non-monetary items or showing raw volume.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "enacted/terminal-enact",
+      "kind": "single",
+      "placement": "fullframe",
+      "purpose": "A zsh-style window slides in and TYPES command with a blinking caret, then prints output. (This is the \"show the real thing\" device \u2014 the command must be real, never pseudo-code.)",
+      "variables": {
+        "title": {
+          "required": false,
+          "type": "string",
+          "role": "heading",
+          "example": "Build Command"
+        },
+        "command": {
+          "required": true,
+          "type": "string",
+          "role": "free",
+          "example": "npm run build"
+        },
+        "output": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "example": "Build successful"
+        }
+      },
+      "default_duration": 10,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Show a real terminal command being executed.",
+      "anti_intent": "Explaining concepts with pseudo-code or abstract steps.",
+      "variants": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "slug": "overlay/label-plate",
+      "kind": "single",
+      "placement": "overlay",
+      "purpose": "A mono-type plate that snaps in and holds a label; background a translucent dark plate with 1px accent keyline",
+      "variables": {
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "example": "Warning"
+        },
+        "position": {
+          "required": false,
+          "type": "string",
+          "role": "label",
+          "example": "top-left"
+        }
+      },
+      "default_duration": 5,
+      "register": [
+        "dark",
+        "light"
+      ],
+      "marker": true,
+      "intent": "Apply a simple, persistent label overlay to footage.",
+      "anti_intent": "Presenting large blocks of text or multi-step lists.",
+      "variants": [
+        "a",
+        "b"
+      ]
     }
   ]
 }
