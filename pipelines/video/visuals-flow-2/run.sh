@@ -13,6 +13,7 @@ Usage: run.sh <slug> <step>
 Steps:
   status
   transcribe
+  concept-pass
   cue-pass
   resolve
   board
@@ -99,6 +100,17 @@ case "$step" in
 
   transcribe)
     bash steps/010-transcribe-run/run.sh "$slug"
+    ;;
+
+  concept-pass)
+    cat <<EOF
+018 is an LLM step, not a command. Assemble the prompt:
+  1. steps/018-concept-pass-llm/concept-pass-prompt.md   (the prompt; fill its placeholders)
+  2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
+  3. cat videos/$slug/segments.json             -> {{SEGMENTS}}
+After the concept pass: node lib/lint-concept.mjs $slug
+EOF
+    exit 0
     ;;
 
   cue-pass)
