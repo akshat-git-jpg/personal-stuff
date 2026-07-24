@@ -28,7 +28,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `sound` | [RUN] | `resolved.json` + `effects.json` → `sound.json` (gate) |
 | `mix` | [RUN] | `vo.mp3` + `sound.json` → `master.wav` (−14 LUFS, frame-exact) + bounces |
 | `090-assemble-run` | [RUN] | `screen.mp4` + `master.wav` + `renders/` + avatar clips → `final.mp4` (freeze gap-filler, version registry) + `assembly.md` |
-| `095-resolve-export-run` | [RUN] | same inputs as 090 → layered FCPXML + music/sfx lanes + panel transforms |
+| `095-resolve-export-run` | [RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)] | same inputs as 090 → layered FCPXML + music/sfx lanes + panel transforms |
 | qc (`scripts/qc-video.sh`) | [RUN] + [LLM read] | `final(-draft).mp4` + `assembly.md` + `effects.json` → kb-scratch `qc/` pack (checklist + event contact sheets) → session-read verdicts in committed `qc-report.md` |
 | `060-feedback-fold-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
 | **publish templates** | [RUN] | once the video is done: `cd ../card-library && npm run publish-check` → fails on any card built for this video that is uncommitted or unpushed. Cards only reach the editor's gallery at render2.agrolloo.com once pushed (VPS `repo-sync` cron, ~15 min). See `card-library/CLAUDE.md`. |
