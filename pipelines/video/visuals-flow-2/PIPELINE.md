@@ -76,6 +76,26 @@ Any flow may call `lib/resolve.mjs`, `lib/render.mjs`, or `lib/board.mjs`
 directly with a path argument instead of a slug — this flow's steps are not
 the only caller. Full caller contract: [INTEGRATION.md](INTEGRATION.md).
 
+## concept.json schema
+
+This schema defines the whole-video concept.
+
+```json
+{
+  "video": "<slug>",
+  "thesis": "one-sentence ARGUMENT (not the topic) the whole video makes",
+  "frame": "the plain-language analogy that makes the hardest idea digestible",
+  "throughline": {
+    "name": "short id, e.g. the-race-track",
+    "description": "the recurring visual object/motif",
+    "evolution": "how it changes from first to last appearance"
+  },
+  "registers": [
+    { "from_anchor": "verbatim >=3 words", "to_anchor": "verbatim >=3 words", "register": "dark" }
+  ]
+}
+```
+
 ## cues.json schema
 
 This is the interface plans 064 (writes it) and 065 (edits it) build against. Change it in one place only — this README — and update both consumers.
@@ -110,8 +130,12 @@ Field semantics:
 - `hold` — seconds held after the last beat (default 3.0).
 - `variables` — card variables excluding beats.
 - `logo` / `productLogos` (optional) — in variables or beats, a registry slug for a tool logo.
+- `marker` (optional) — in variables for marker-supporting cards, at most ONE word verbatim from the clause.
 - `beats[].reveal` — the card-specific beat item (shape per catalog.json `beat_shape`, WITHOUT `at` — the resolver adds it).
 - `placement` comes from catalog.json, not from the cue.
+- `register` (optional) — `dark` or `light` matching the register span its anchor falls in.
+- `register_why` (optional) — one-line reason if deviating from the span's register.
+- `motif` (optional) — boolean, true if the cue hosts the through-line motif.
 - `flagged: true` — no card fits, needs a novel card (plan 065 surfaces these).
 - `kind: "word-sync"` cards (catalog) take `variables.text` (the sentence, quoted verbatim from the voiceover) and optional `variables.accent` (a phrase appearing verbatim inside `text`, rendered in the brand accent). They author **no** `beats` — the resolver derives one beat per word from `transcript.json`, so the cue's `anchor` must be the opening words of the sentence itself.
 - Board feedback: every cue block, gap block, and the header carry a feedback box;
