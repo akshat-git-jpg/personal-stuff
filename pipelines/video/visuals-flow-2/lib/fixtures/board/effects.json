@@ -1,0 +1,11 @@
+{
+  "video": "board-fixture",
+  "approved": false,
+  "instances": [
+    { "id": "whip-5.0", "type": "whip", "at": 5.0, "direction": "right", "fromIdx": 0, "toIdx": 1, "style": "flash", "enabled": true },
+    { "id": "beat-12.0", "type": "beat", "at": 12.0, "punch": 1.08, "enabled": true },
+    { "id": "drift-screen-01", "type": "drift", "segId": "screen-01", "direction": "in", "start": 14.0, "end": 22.0, "enabled": true },
+    { "id": "captions", "type": "captions", "enabled": true, "fontPx": 44, "yFrac": 0.87 },
+    { "id": "bubble", "type": "bubble", "enabled": true }
+  ]
+}
