@@ -45,12 +45,41 @@ cd "$pipeline_root"
 # and better proper-noun spelling than local small.en — test-01 finding).
 # Falls back to local whisper when the key is missing or the API call fails.
 [ -z "${GROQ_API_KEY:-}" ] && [ -f "$HOME/.zshenv" ] && source "$HOME/.zshenv" 2>/dev/null || true
+engine=""
 if [ -n "${GROQ_API_KEY:-}" ]; then
   if node lib/transcribe-groq.mjs "$workdir"; then
-    exit 0
+    engine="groq"
+  else
+    echo "groq path failed — falling back to local whisper" >&2
   fi
-  echo "groq path failed — falling back to local whisper" >&2
 fi
-cd "$workdir"
-# Pinned version; central pin for the flow is in lib/render.mjs
-npx hyperframes@0.7.62 transcribe vo.mp3 --json -m small.en "$@"
+if [ -z "$engine" ]; then
+  cd "$workdir"
+  # Pinned version; central pin for the flow is in lib/render.mjs
+  npx hyperframes@0.7.62 transcribe vo.mp3 --json -m small.en "$@"
+  cd "$pipeline_root"
+  engine="whisper"
+fi
+
+# Transcript quality pass (plan 149) — step 090 burns captions from transcript
+# words VERBATIM, so raw ASR punctuation ships unedited unless fixed here,
+# BEFORE the cue pass reads transcript.json (anchors quote it verbatim; a
+# later text edit would silently break every anchor).
+raw_backup="$workdir/transcript.$engine-raw.bak.json"
+cp "$workdir/transcript.json" "$raw_backup"
+
+if [ -f "$workdir/script.txt" ]; then
+  echo "script.txt present — aligning it to the ASR word times (script-first mode)"
+  if ! node lib/transcript-quality.mjs align "$workdir"; then
+    echo "error: script alignment failed the timing-integrity gate (see above) — transcript.json left as the raw ASR output ($raw_backup)" >&2
+    exit 1
+  fi
+else
+  cat <<EOF
+No script.txt — run the ASR cleanup pass before the cue pass reads this transcript:
+  1. Feed steps/010-transcribe-run/cleanup-prompt.md plus $workdir/transcript.json to your executor.
+  2. Save its cleaned word list as JSON, e.g. $workdir/transcript.cleaned.json.
+  3. node lib/transcript-quality.mjs apply "$workdir" "$workdir/transcript.cleaned.json"
+transcript.json remains the raw ASR output ($raw_backup) until the cleanup pass is applied.
+EOF
+fi
