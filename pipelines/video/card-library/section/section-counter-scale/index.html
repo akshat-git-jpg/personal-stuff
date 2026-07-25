@@ -34,6 +34,7 @@
         --text-ter: rgba(255, 239, 219, 0.4);
         --accent: #fb923c;
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+        --hero-size: 200px; /* the big counting stat number is the hero */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -52,17 +53,17 @@
         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
       }
       #number {
-        font-size: 220px; font-weight: 800; line-height: 0.9; letter-spacing: -10px;
+        font-size: var(--hero-size); font-weight: 800; line-height: 1.0; letter-spacing: -0.035em;
         background: linear-gradient(180deg, #ffffff 0%, var(--accent) 100%);
         -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
         font-feature-settings: 'tnum'; transform-origin: center; will-change: transform;
       }
       #sectionLabel {
-        font-size: 18px; font-weight: 600; letter-spacing: 6px; color: var(--text-ter);
+        font-size: 24px; font-weight: 600; letter-spacing: 0.12em; color: var(--accent);
         text-transform: uppercase; margin-top: -6px;
       }
       #title {
-        font-size: 56px; font-weight: 700; letter-spacing: -2px; color: var(--text);
+        font-size: 56px; font-weight: 700; letter-spacing: -0.015em; color: var(--text);
         margin-top: 14px; will-change: transform, opacity;
         display: flex; align-items: center; gap: 20px;
       }
