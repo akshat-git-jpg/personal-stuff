@@ -742,3 +742,4 @@ silently renders full-screen. 147 builds that foundation first.
 - 146-vf2-review-surface-split — PR#104 146-vf2-review-surface-split: review-surface split — composition-only storyboard, effects/sound on Final Cut — DONE
 - 147-vf2-avatar-per-span-modes — PR#105 147-vf2-avatar-per-span-modes: per-span avatar mode (full/panel) end to end, and make panel actually composite — DONE
 - 148-vf2-avatar-stage-mode-remainder — PR#106 148-vf2-avatar-stage-mode-remainder: avatar stage mode — plan 145's unimplemented Steps 2-5 — DONE
+- 149-vf2-transcript-quality — PR#107 149-vf2-transcript-quality: a real step 010 transcript pass instead of raw ASR — DONE
