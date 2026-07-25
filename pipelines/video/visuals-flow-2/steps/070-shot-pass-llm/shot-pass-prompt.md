@@ -23,7 +23,7 @@ content — no other text.
     {
       "id": "s01",
       "kind": "avatar-full",
-      "mode": "panel", // or "stage" or "full"
+      "mode": "full", // or "side" — REQUIRED, no default
       "from_anchor": "verbatim first words of the span",
       "to_anchor": "verbatim last words of the span",
       "note": "why this is a host moment",
@@ -33,11 +33,25 @@ content — no other text.
 }
 ```
 
-## Modes
+## Modes — every span MUST declare one
 
-- `"full"`: A standard full-screen host moment.
-- `"panel"`: The host sits inset in the corner over the screen recording (for UI demos/screen capture).
-- `"stage"`: The host sits inset inside a host-driven fullframe card (requires a card with a `head_zone`).
+`mode` is REQUIRED on every span. There is no default; omitting it is an error.
+
+- `"full"` — the host takes the whole frame. Use when the host IS the content:
+  the intro, the conclusion, a verdict, a reaction, a transition between tools.
+  Nothing on screen competes with them.
+- `"side"` — motion graphics fill the left 1200px, the host the right 720px, for
+  the whole span. Use when the host is talking about a point that HAS a graphic:
+  a claim with evidence, a comparison being narrated, a takeaway being explained.
+  The graphic and the host are both load-bearing.
+
+A `side` span MUST be covered by exactly one fullframe cue, and that cue's card
+MUST be side-capable (listed under "Side-capable cards" below). A `side` span
+that covers a card not on that list is a defect.
+
+Prefer `side` whenever a fullframe graphic already occupies the window and the
+host has something to say over it — that is the case this mode exists for. Reach
+for `full` when the host needs the frame to themselves.
 
 ## Rules
 
@@ -45,13 +59,12 @@ content — no other text.
    Misspellings in the transcript are quoted as-is.
 2. U-curve: host-heavy open (intro + overview), lean hands-on middle, host-heavy
    close (verdicts shrinking → pricing wrap → conclusion).
-3. Cadence: never let more than ~3 minutes pass without a full-screen host
-   moment. The cycle is fast and regular — host bridge → content run → back to
-   host. Fill the middle with SHORT bridges (10–30s — a one-line verdict, a
-   reaction, a transition between tools) at natural pauses, never over
-   hands-on narration.
-4. Total full-screen time: budget against the constraints below. Mid-video
-   spans are short bridges; only the intro and the conclusion may run longer.
+3. Cadence: never let more than ~3 minutes pass without a host moment. The
+   cycle is fast and regular — host bridge → content run → back to host. Fill
+   the middle with SHORT bridges (10–30s — a one-line verdict, a reaction, a
+   transition between tools) at natural pauses, never over hands-on narration.
+4. Total host time: budget against the constraints below. Mid-video spans are
+   short bridges; only the intro and the conclusion may run longer.
 
 <!-- BEGIN GENERATED SHOT CONSTRAINTS — edit lib/shot-constants.mjs, then run node lib/build-shot-prompt.mjs -->
 These are HARD constraints checked by lib/lint-shots.mjs after you produce shots.json.
@@ -68,10 +81,13 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - A panel-mode avatar occupies 28% of canvas width, inset bottom-right, preserving the source clip aspect ratio.
 - A panel-mode avatar sits 32px from the right and bottom canvas edges.
 - A panel-mode avatar is masked to a rounded rectangle of radius 24px.
-- A stage-mode avatar is masked to a rounded rectangle of radius 24px inside the card head zone.
+- In side mode the motion-graphics card renders 1200px wide at x=0, full canvas height.
+- In side mode the host occupies the right 720px of the canvas, full height, cover-cropped from the source clip. The split is a hard edge — no inset, no corner radius.
 <!-- END GENERATED SHOT CONSTRAINTS -->
-5. NEVER place a span over a fullframe graphics cue — the fullframe times are
-   listed below; plan around them. Overlay cues are fine to overlap.
+5. A `full` span must NEVER overlap a fullframe graphics cue — those windows are
+   listed below; plan around them. A `side` span is the opposite: it REQUIRES a
+   covering fullframe cue whose card is side-capable. Overlay cues are fine to
+   overlap in either mode.
 6. Span boundaries at sentence starts/ends.
 7. When narration describes on-screen actions (click/open/type/select/drag),
    that stretch belongs to the screen recording — not to the avatar.
@@ -82,6 +98,10 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 ## Fullframe graphics cues (plan around these — [start, end] seconds)
 
 <FULLFRAME_CUES>
+
+## Side-capable cards (a `side` span may only cover one of these)
+
+<SIDE_CAPABLE_CARDS>
 
 ## Transcript (word-timestamped, verbatim)
 
