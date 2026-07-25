@@ -9,7 +9,11 @@ convention as 020's pair.
 ## The model (fixed by design, don't re-litigate)
 
 - A corner avatar over screen recording is the **baseline for the whole video**.
-  A human is always on screen. This pass picks ONLY the full-screen host moments.
+  A human is always on screen. This pass picks ONLY the host moments.
+- **Modes**: "full" (default) cuts out the background and shows the host full-screen.
+  "panel" composites them in a pip over the screen. Use "panel" for situations where
+  the screen must stay visible without the avatar obscuring too much of it
+  (e.g. detailed charts, complex code).
 - Spans are planned AGAINST the approved graphics: never overlap a fullframe
   cue (lint E2). Overlay cards over a full-screen avatar are fine.
 - Budget discipline comes from HeyGen 4 being metered at production
@@ -46,6 +50,7 @@ never over hands-on narration.
 ## Output contract
 
 - Spans in transcript order, ids `s01, s02, …`, `kind: "avatar-full"` only.
+  Include `mode: "full"` or `mode: "panel"` for each span.
 - `note` — one short line saying why this span is host-worthy (the owner reads
   it on the board).
 - A span you want but can't place cleanly: `flagged: true` + note, don't force it.

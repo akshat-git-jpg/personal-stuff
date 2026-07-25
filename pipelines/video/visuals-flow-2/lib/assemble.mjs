@@ -9,6 +9,7 @@ import { EFFECT_MODULES } from './effects/registry.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { registerVersion } from './versions.mjs';
 import { loadConceptSpans } from './concept-spans.mjs';
+import { SHOT_CONSTANTS } from './shot-constants.mjs';
 
 import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
@@ -39,6 +40,18 @@ function jobKey(args) {
 
 const EPS = 0.05;
 export const CANVAS = { w: 1920, h: 1080, fps: 30 };
+
+// Panel geometry: an inset rounded-rect PIP, bottom-right, preserving the
+// source clip's aspect. Dimensions are forced EVEN because yuv420p encoding
+// rejects odd width/height.
+export function planPanelGeometry({ canvas, constants, srcAspect = 16 / 9 }) {
+  const { w: W, h: H } = canvas;
+  const inset = constants.PANEL_INSET_PX.value;
+  const pw = Math.round((W * constants.PANEL_WIDTH_FRAC.value) / 2) * 2;
+  const ph = Math.round(pw / srcAspect / 2) * 2;
+  return { w: pw, h: ph, x: W - pw - inset, y: H - ph - inset, radius: constants.PANEL_RADIUS_PX.value };
+}
+
 export const ASSEMBLE_MEDIA_ROOT = process.env.ASSEMBLE_MEDIA_ROOT
   ?? path.join(os.homedir(), 'kb-scratch', 'video', 'visuals-flow-2');
 
@@ -63,6 +76,7 @@ export function planSegments({ resolved, avatarJobs, total }) {
     repl.push({ kind: 'graphic', id: c.id, start: c.start,
       end: Math.min(+(c.start + c.duration).toFixed(3), total) });
   }
+  // Base selection must stay full-only — a panel must not replace the base.
   for (const j of avatarJobs.filter((j) => j.kind === 'avatar-full')) {
     repl.push({ kind: 'avatar', id: j.id, start: j.start,
       end: Math.min(j.end, total) });
@@ -126,6 +140,7 @@ export function planSegmentOverlays(segments, overlays) {
           id: o.id,
           file: o.file,
           ...(o.chroma ? { chroma: o.chroma } : {}),
+          ...(o.isPanel ? { isPanel: o.isPanel } : {}),
           trimStart: +Math.max(seg.start - o.start, 0).toFixed(3),
           at: +(s - seg.start).toFixed(3),
           until: +(e - seg.start).toFixed(3),
@@ -333,7 +348,7 @@ function parseArgs(argv) {
   return opts;
 }
 
-export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'on', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} } }) {
+export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'on', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} } }) {
   const videoManifest = loadVideoManifest(workdir);
   let segments = planSegments({ resolved, avatarJobs, total });
   segments = absorbSlivers(segments);
@@ -343,6 +358,11 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
     return { id: c.id, start: c.start, end: c.start + c.duration, file: path.join(renderDir, planRender(c).outFile), ...(c.chroma ? { chroma: c.chroma } : {}) };
   });
+
+  const panelOverlays = panelJobs.map(j => ({
+    id: j.id, start: j.start, end: j.end, file: j.file, isPanel: true
+  }));
+  overlays.push(...panelOverlays);
 
   const tmpDir = path.join(workdir, 'assembly-tmp');
   fs.mkdirSync(tmpDir, { recursive: true });
@@ -585,11 +605,20 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
           const nextV = `b${j + 1}`;
           const adjustedAt = +(o.at - startTrim).toFixed(3);
           const adjustedUntil = +(o.until - startTrim).toFixed(3);
-          // Chroma cards carry no alpha of their own — key the plate out first,
-          // otherwise the overlay lands as a solid colour block (owner v2:5).
-          const keyFilter = o.chroma ? `,colorkey=${o.chroma}:0.30:0.10` : '';
-          chain += `[${globalInputIdx}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${w}:${h}${keyFilter}[${oj}];`;
-          chain += `[${lastV}][${oj}]overlay=eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
+          if (o.isPanel) {
+            const g = planPanelGeometry({ canvas: CANVAS, constants: SHOT_CONSTANTS });
+            const r = g.radius;
+            chain += `[${globalInputIdx}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${g.w}:${g.h},format=yuva444p,` +
+              `geq=lum='lum(X,Y)':cb='cb(X,Y)':cr='cr(X,Y)':` +
+              `a='if(lt(hypot(max(abs(X-W/2)-(W/2-${r}),0),max(abs(Y-H/2)-(H/2-${r}),0)),${r + 0.5}),255,0)'[${oj}];`;
+            chain += `[${lastV}][${oj}]overlay=x=${g.x}:y=${g.y}:eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
+          } else {
+            // Chroma cards carry no alpha of their own — key the plate out first,
+            // otherwise the overlay lands as a solid colour block (owner v2:5).
+            const keyFilter = o.chroma ? `,colorkey=${o.chroma}:0.30:0.10` : '';
+            chain += `[${globalInputIdx}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${w}:${h}${keyFilter}[${oj}];`;
+            chain += `[${lastV}][${oj}]overlay=eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
+          }
           lastV = nextV;
           globalInputIdx++;
         }
@@ -803,6 +832,7 @@ export async function loadAssemblyInputs(opts) {
   const shotsPath = path.join(workdir, 'shots.json');
   const avatarJobsPath = path.join(workdir, 'avatar-jobs.json');
   let avatarJobs = [];
+  let panelJobs = [];
   let cornerJobs = [];
   if (fs.existsSync(shotsPath)) {
     const shotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
@@ -816,6 +846,7 @@ export async function loadAssemblyInputs(opts) {
     }
     const avatarJobsFile = JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8'));
     avatarJobs = avatarJobsFile.jobs.filter(j => j.kind === 'avatar-full');
+    panelJobs = avatarJobsFile.jobs.filter(j => j.kind === 'avatar-panel' && j.file && fs.existsSync(j.file));
     // Corner chunks composited as the top-right bubble (plan 100). Absent files
     // are dropped so the bubble module simply no-ops rather than failing assembly.
     cornerJobs = avatarJobsFile.jobs.filter(j => j.kind === 'corner' && j.file && fs.existsSync(j.file));
@@ -858,7 +889,7 @@ export async function loadAssemblyInputs(opts) {
     console.warn('warning: screen source duration + offset is more than 2s short of the last screen segment end');
   }
   
-  return { workdir, video, resolved, avatarJobs, cornerJobs, words, total, screen };
+  return { workdir, video, resolved, avatarJobs, panelJobs, cornerJobs, words, total, screen };
 }
 
 async function main() {

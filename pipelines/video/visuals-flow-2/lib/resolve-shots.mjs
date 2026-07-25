@@ -2,15 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { normWord, findPhrase } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
-import { loadVideoManifest } from './video-manifest.mjs';
-
 export const ENGINE_MODES = ['test', 'production'];
 export const SNAP_EDGE = 1.5;
 
 // Spans are matched with the same forward-cursor discipline as cues: each
 // span's from_anchor is searched after the previous span's to_anchor, so
 // repeated phrases resolve in transcript order.
-export function resolveShots(shotsFile, words, manifest = { head_layout: 'full' }) {
+export function resolveShots(shotsFile, words) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
   const total = W.length > 0 ? W[W.length - 1].end : 0;
   const errors = [];
@@ -33,6 +31,8 @@ export function resolveShots(shotsFile, words, manifest = { head_layout: 'full' 
     seen.add(span.id);
     if (span.flagged) continue; // parked, same semantics as flagged cues
     if (span.kind !== 'avatar-full') { errors.push(`${span.id}: unknown kind "${span.kind}" — only "avatar-full" exists today`); continue; }
+    const mode = span.mode ?? 'full';
+    if (mode !== 'full' && mode !== 'panel') { errors.push(`${span.id}: unknown mode "${span.mode}" — must be "full" or "panel"`); continue; }
     const a = findPhrase(W, span.from_anchor ?? '', cursor);
     if (a.err) { errors.push(`${span.id} from_anchor: ${a.err}`); continue; }
     const b = findPhrase(W, span.to_anchor ?? '', a.idx + a.len);
@@ -49,9 +49,8 @@ export function resolveShots(shotsFile, words, manifest = { head_layout: 'full' 
       end = total;
       snapped = true;
     }
-    const resolvedKind = (span.kind === 'avatar-full' && manifest.head_layout === 'panel') ? 'avatar-panel' : span.kind;
     const spanObj = {
-      id: span.id, kind: resolvedKind,
+      id: span.id, kind: span.kind, mode,
       start, end, duration: +(end - start).toFixed(2),
       note: span.note ?? '',
     };
@@ -71,9 +70,8 @@ async function main() {
   const workdir = resolveWorkdir(arg);
   const shotsFile = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.json'), 'utf8'));
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
-  const manifest = loadVideoManifest(workdir);
 
-  const { spans, errors } = resolveShots(shotsFile, words, manifest);
+  const { spans, errors } = resolveShots(shotsFile, words);
   if (errors.length) {
     for (const e of errors) console.error(e);
     process.exit(1);

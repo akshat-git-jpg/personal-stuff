@@ -23,6 +23,7 @@ content — no other text.
     {
       "id": "s01",
       "kind": "avatar-full",
+      "mode": "panel",
       "from_anchor": "verbatim first words of the span",
       "to_anchor": "verbatim last words of the span",
       "note": "why this is a host moment",
@@ -58,6 +59,9 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - Expect one avatar span starting within the first 15% of the voiceover (U-curve shape).
 - Expect one avatar span starting within the last 15% of the voiceover (U-curve shape).
 - Consecutive avatar spans must start no more than 180s apart (lint warning) — host and content cycle tighter than the old 300s.
+- A panel-mode avatar occupies 28% of canvas width, inset bottom-right, preserving the source clip aspect ratio.
+- A panel-mode avatar sits 32px from the right and bottom canvas edges.
+- A panel-mode avatar is masked to a rounded rectangle of radius 24px.
 <!-- END GENERATED SHOT CONSTRAINTS -->
 5. NEVER place a span over a fullframe graphics cue — the fullframe times are
    listed below; plan around them. Overlay cues are fine to overlap.

@@ -655,6 +655,14 @@ test('fillGapsWithFreeze: base screen preserves screen segments', async () => {
   assert.equal(out[0].kind, 'screen');
 });
 
+test('planPanelGeometry returns exact integers, both dimensions even', async () => {
+  const { planPanelGeometry } = await import('./assemble.mjs');
+  const { SHOT_CONSTANTS } = await import('./shot-constants.mjs');
+  
+  const g = planPanelGeometry({ canvas: { w: 1920, h: 1080 }, constants: SHOT_CONSTANTS });
+  assert.deepEqual(g, { w: 538, h: 302, x: 1350, y: 746, radius: 24 });
+});
+
 test('fillGapsWithFreeze: base none converts screen to freeze', async () => {
   const { fillGapsWithFreeze } = await import('./assemble.mjs');
   const segments = [

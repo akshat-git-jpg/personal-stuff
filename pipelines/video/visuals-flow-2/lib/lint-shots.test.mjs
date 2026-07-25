@@ -160,8 +160,26 @@ test('clean plan silent -> no E5/W5', () => {
     resolvedCues: [],
     words: Array.from({ length: 200 }, (_, i) => ({ text: 'w', start: i, end: i + 1 })) // total 200
   });
-  // Wait, start 10 -> screen 10s. mid gap 10s. end gap 100s. All >= 5s.
-  // W2 budget target might trigger if not enough duration, but we just check E5/W5.
   assert.ok(!errors.some(e => e.startsWith('E5')));
   assert.ok(!warnings.some(w => w.startsWith('W5')));
+});
+
+test('200s panel span does not trip the 300s full cap', () => {
+  const shotsResolved = { spans: [{ id: 's1', mode: 'panel', start: 10, end: 360, duration: 350 }] };
+  const { errors } = lintShots({ shotsResolved, resolvedCues: [], words });
+  assert.ok(!errors.some(e => e.startsWith('E4')));
+});
+
+test('panel span overlapping a fullframe cue errors with specific message', () => {
+  const shotsResolved = { spans: [{ id: 's1', mode: 'panel', start: 90, end: 130, duration: 40 }] };
+  const res1 = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', placement: 'fullframe', start: 100, duration: 20 }], words });
+  const e2 = res1.errors.find(e => e.startsWith('E2'));
+  assert.ok(e2 && e2.includes('panels belong over screen/demo footage'));
+});
+
+test('panel span over a screen segment is clean', () => {
+  // Screen segment is inferred between avatars or when no fullframe overlaps it.
+  const shotsResolved = { spans: [{ id: 's1', mode: 'panel', start: 10, end: 50, duration: 40 }] };
+  const res1 = lintShots({ shotsResolved, resolvedCues: [], words });
+  assert.ok(!res1.errors.some(e => e.startsWith('E2')));
 });
