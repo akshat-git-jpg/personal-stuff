@@ -6,6 +6,7 @@
     "serve": "node serve.mjs",
     "check-catalog": "node scripts/check-catalog.mjs",
     "check-logos": "node scripts/check-logos.mjs",
+    "check-side": "node scripts/check-side.mjs",
     "check": "bash scripts/check-cards.sh",
     "publish-check": "bash scripts/check-cards.sh --publish",
     "preview": "npx --yes hyperframes@latest preview",

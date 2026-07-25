@@ -4,6 +4,7 @@
       "slug": "prompt/prompt\u002dtyping",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "a 'Prompt' panel that types its text out over the clip; [m:ss] timestamp tags glow orange, a caret blinks, the box auto\u002dscrolls — for showing an AI\u002dtool/video prompt being written",
       "variables": {
         "title": {
@@ -25,6 +26,7 @@
       "slug": "tool\u002dicon/tool\u002dglass\u002dtile",
       "kind": "single",
       "placement": "fullframe",
+      "side": true,
       "purpose": "hero for one tool/model: a glassy app\u002dicon tile with the tool's (muted) logo, its name beneath, and an optional subtitle — the 'this is the tool' beat",
       "variables": {
         "logo": {
@@ -55,6 +57,7 @@
       "slug": "statement/keyword\u002dstatement",
       "kind": "single",
       "placement": "fullframe",
+      "side": true,
       "purpose": "a single punchy centered statement revealed word\u002dby\u002dword with one keyword phrase highlighted in the accent — a standalone emphasis beat (distinct from running captions)",
       "variables": {
         "text": {
@@ -80,6 +83,7 @@
       "slug": "checklist/checklist",
       "kind": "beat",
       "placement": "fullframe",
+      "side": true,
       "purpose": "vertical checklist; each row's box fills and checkmark draws in as it reveals on its beat",
       "variables": {
         "title": {
@@ -106,6 +110,7 @@
       "slug": "checklist/icon\u002dpills",
       "kind": "beat",
       "placement": "fullframe",
+      "side": true,
       "purpose": "vertical list of icon\u002dtile + text\u002dpill rows revealing one per beat, accent\u002doutlined with a soft glow; optional keyword highlight per row — for enumerating features/capabilities",
       "variables": {},
       "beat_shape": {
@@ -153,6 +158,7 @@
       "slug": "comparison/bar\u002dchart",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "horizontal bar chart racing from zero to each product's value",
       "variables": {
         "title": {
@@ -202,6 +208,7 @@
       "slug": "comparison/billing\u002ddiscount",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "monthly vs yearly plan cards side by side with a savings stamp on the yearly plan",
       "variables": {
         "title": {
@@ -241,6 +248,7 @@
       "slug": "comparison/checkout\u002dsummary",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "cart summary panel where a coupon code applies and the total counts down",
       "variables": {
         "title": {
@@ -292,6 +300,7 @@
       "slug": "comparison/comparison\u002dstorm\u002dcascade",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "comparison table over a storm/particle background; rows cascade in and the winner column glows",
       "variables": {
         "eyebrow": {
@@ -331,6 +340,7 @@
       "slug": "comparison/comparison\u002dtier\u002dlist",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "S/A/B/C/F tier list ranking tools with logo pills sliding into each tier row",
       "variables": {
         "eyebrow": {
@@ -346,6 +356,7 @@
       "slug": "comparison/feature\u002dmatrix",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "feature comparison matrix; each row of check/cross/value cells reveals on its beat",
       "variables": {
         "products": {
@@ -376,6 +387,7 @@
       "slug": "comparison/head\u002dto\u002dhead",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "two\u002dcontender VS panel with stats stacked on each side and a center VS badge",
       "variables": {
         "left": {
@@ -463,6 +475,7 @@
       "slug": "comparison/pricing\u002dtiers",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "2\u002d3 column pricing plan cards with one plan flagged as recommended",
       "variables": {
         "heading": {
@@ -534,6 +547,7 @@
       "slug": "comparison/savings\u002dstacker",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "full\u002dprice bar that slices off discount chunks one by one down to a final price",
       "variables": {
         "title": {
@@ -583,6 +597,7 @@
       "slug": "comparison/summary\u002dtable",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "scored comparison matrix with a reason column; each factor row reveals on its beat",
       "variables": {
         "products": {
@@ -944,6 +959,7 @@
       "slug": "pros\u002dcons/pros\u002dcons",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "two\u002dcolumn pros vs cons; each row reveals on its beat",
       "variables": {
         "title": {
@@ -980,6 +996,7 @@
       "slug": "section/bullet\u002dpoints",
       "kind": "beat",
       "placement": "fullframe",
+      "side": true,
       "purpose": "plain numbered agenda list; each row reveals on its beat",
       "variables": {
         "eyebrow": {
@@ -1006,6 +1023,7 @@
       "slug": "section/bullet\u002dpoints\u002dhighlighted",
       "kind": "single",
       "placement": "fullframe",
+      "side": true,
       "purpose": "re\u002dshown table\u002dof\u002dcontents that dims done/upcoming items and highlights the current section",
       "variables": {
         "eyebrow": {
@@ -1037,6 +1055,7 @@
       "slug": "section/key\u002dtakeaways",
       "kind": "beat",
       "placement": "fullframe",
+      "side": true,
       "purpose": "end\u002dof\u002dvideo recap; each takeaway ticks in with a check badge on its beat",
       "variables": {
         "eyebrow": {
@@ -1069,6 +1088,7 @@
       "slug": "section/section\u002dcard\u002dflip",
       "kind": "single",
       "placement": "fullframe",
+      "side": true,
       "purpose": "section divider where a glass card flips up from below and settles with a spring bounce",
       "variables": {
         "number": {
@@ -1091,6 +1111,7 @@
       "slug": "section/section\u002dcounter\u002dscale",
       "kind": "single",
       "placement": "fullframe",
+      "side": true,
       "purpose": "section divider where a big number counts up then scales down as the title and dots ripple in",
       "variables": {
         "number": {
@@ -1123,6 +1144,7 @@
       "slug": "section/section\u002dparticle\u002dstorm",
       "kind": "single",
       "placement": "fullframe",
+      "side": true,
       "purpose": "section divider with drifting light streaks and particles behind an elastic title pop",
       "variables": {
         "number": {
@@ -1145,6 +1167,7 @@
       "slug": "table\u002dof\u002dcontents/table\u002dof\u002dcontents",
       "kind": "beat",
       "placement": "fullframe",
+      "side": true,
       "purpose": "numbered table\u002dof\u002dcontents list; each row reveals on its beat",
       "variables": {
         "eyebrow": {
@@ -1171,6 +1194,7 @@
       "slug": "title/title\u002daurora\u002dwave",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "roles": [
         "title",
         "comparison\u002dcoldopen"
@@ -1208,6 +1232,7 @@
       "slug": "title/title\u002dcinematic\u002dfloat",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "roles": [
         "title",
         "comparison\u002dcoldopen"
@@ -1245,6 +1270,7 @@
       "slug": "title/title\u002dversus",
       "kind": "single",
       "placement": "fullframe",
+      "side": true,
       "roles": [
         "comparison\u002dcoldopen"
       ],
@@ -1284,6 +1310,7 @@
       "slug": "title/title\u002dkinetic\u002dlines",
       "kind": "single",
       "placement": "fullframe",
+      "side": true,
       "purpose": "title card with kinetic line\u002dby\u002dline text reveal for kicker, title, and subtitle",
       "variables": {
         "kicker": {
@@ -1311,6 +1338,7 @@
       "slug": "title/title\u002dstorm\u002dpop",
       "kind": "single",
       "placement": "fullframe",
+      "side": true,
       "purpose": "title card with a storm background and the title popping in with an elastic overshoot",
       "variables": {
         "title": {
@@ -1326,6 +1354,7 @@
       "slug": "verdict/verdict\u002dbadges",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "verdict card where the winner slides in and five achievement badges pop in one by one",
       "variables": {
         "eyebrow": {
@@ -1359,6 +1388,7 @@
       "slug": "verdict/verdict\u002dreport\u002dcard",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "verdict report card with a glowing letter grade; each sub\u002dgrade reveals on its beat",
       "variables": {
         "eyebrow": {
@@ -1415,6 +1445,7 @@
       "slug": "verdict/verdict\u002dtrophy",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "verdict card with confetti and a trophy dropping in before the winner card lifts with a gold pulse. ONE winner per card — a dual verdict gets one card per winner, back to back",
       "variables": {
         "eyebrow": {
@@ -1485,6 +1516,7 @@
       "slug": "section/tool\u002dintro",
       "kind": "single",
       "placement": "fullframe",
+      "side": true,
       "purpose": "section opener for one tool/product: TOOL N OF M progress, huge name, positioning line, category chip",
       "variables": {
         "index": {
@@ -1525,53 +1557,13 @@
       "variants": [
         "a",
         "b"
-      ],
-      "head_zone": {
-        "x": 0.6,
-        "y": 0.28,
-        "w": 0.3,
-        "h": 0.53
-      }
-    },
-    {
-      "slug": "section/host-stage",
-      "kind": "beat",
-      "placement": "fullframe",
-      "purpose": "host makes a point to camera while supporting chips land beside them",
-      "variables": {
-        "eyebrow": {
-          "type": "string",
-          "required": true,
-          "role": "heading",
-          "example": "Eyebrow"
-        },
-        "title": {
-          "type": "string",
-          "required": true,
-          "role": "heading",
-          "example": "Section Title"
-        }
-      },
-      "beat_shape": {
-        "text": {
-          "required": true,
-          "type": "string",
-          "role": "sentence",
-          "example": "This is an example sentence."
-        }
-      },
-      "max_beats": 3,
-      "max_reveal_chars": 28,
-      "structural": false,
-      "head_zone": { "x": 0.58, "y": 0.20, "w": 0.34, "h": 0.60 },
-      "intent": "host makes a point to camera while supporting chips land beside them",
-      "anti_intent": "no avatar footage exists for this span, or the span is over live demo footage",
-      "default_duration": 8
+      ]
     },
     {
       "slug": "verdict/winners\u002dpodium",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "side\u002dby\u002dside verdict winners over a confetti stage, one tool column per beat; scales 2\u002d4 winners (layout derives from count). Use for a multi\u002dwinner finale — co\u002dwinners (ranked:false, all gold) or a ranked podium (ranked:true → gold/silver/bronze/steel). ONE tool per beat.",
       "variables": {
         "eyebrow": {
@@ -1614,6 +1606,7 @@
       "slug": "verdict/persona\u002dmatch",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "use\u002dcase verdict: persona → winning tool pairs, one pair per beat",
       "variables": {
         "title": {
@@ -1652,6 +1645,7 @@
       "slug": "comparison/credits\u002dmath",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "credit/unit economics rows: plan → credits → what that actually buys, one row per beat",
       "variables": {
         "title": {
@@ -1696,6 +1690,7 @@
       "slug": "process/step\u002dflow",
       "kind": "beat",
       "placement": "fullframe",
+      "side": true,
       "purpose": "numbered step flow: process walkthrough nodes revealing left to right, one step per beat",
       "variables": {
         "title": {
@@ -1722,6 +1717,7 @@
       "slug": "comparison/table\u002drows",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "comparison table that builds one row per beat as each product's numbers are spoken; cells pipe\u002dseparated in beat text",
       "variables": {
         "title": {
@@ -1759,6 +1755,7 @@
       "slug": "slate/headline\u002dchips",
       "kind": "beat",
       "placement": "fullframe",
+      "side": true,
       "purpose": "canvas beat: a spoken headline sentence plus pill chips ticking in one per beat (lists, consequences, criteria)",
       "variables": {
         "headline": {
@@ -1786,6 +1783,7 @@
       "slug": "slate/kinetic\u002dsentence",
       "kind": "word\u002dsync",
       "placement": "fullframe",
+      "side": true,
       "purpose": "one spoken sentence alone on the ambient canvas; words appear as spoken and an accent phrase colorizes with them; used INSTEAD of a talking\u002dhead bridge",
       "variables": {
         "text": {
@@ -1821,6 +1819,7 @@
       "slug": "enacted/fill\u002dgauge",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "a labeled vessel fills stepwise; each beat adds a measured pour + label chip",
       "variables": {
         "title": {
@@ -1867,6 +1866,7 @@
       "slug": "enacted/race\u002dbars",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "Products race as horizontal bars; each beat advances all bars to given values; a stalled bar visibly judders and stops",
       "variables": {
         "title": {
@@ -1919,6 +1919,7 @@
       "slug": "enacted/counter\u002dtally",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "One huge number rolls to each beat's value; a tick strip accumulates marks underneath",
       "variables": {
         "title": {
@@ -1965,6 +1966,7 @@
       "slug": "enacted/pipeline\u002dflow",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "A node chain with a pulse that travels; each beat lights the named step",
       "variables": {
         "title": {
@@ -2047,6 +2049,7 @@
       "slug": "enacted/before\u002dafter",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "Split panel; an accent slider sweeps left\u002d>right revealing AFTER over BEFORE",
       "variables": {
         "title": {
@@ -2107,6 +2110,7 @@
       "slug": "enacted/spotlight\u002dfocus",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "A dimmed grid of items; a spotlight sweeps then locks on focus, others fall to 25% opacity",
       "variables": {
         "title": {
@@ -2150,6 +2154,7 @@
       "slug": "enacted/timeline\u002dscrub",
       "kind": "beat",
       "placement": "fullframe",
+      "side": false,
       "purpose": "A horizontal timeline; the playhead jumps to each beat's marker, stamping a label above it",
       "variables": {
         "title": {
@@ -2185,6 +2190,7 @@
       "slug": "enacted/terminal\u002denact",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "A zsh\u002dstyle window slides in and TYPES command with a blinking caret, then prints output. (This is the \"show the real thing\" device — the command must be real, never pseudo\u002dcode.)",
       "variables": {
         "title": {
@@ -2223,6 +2229,7 @@
       "slug": "enacted/promise\u002dsplit",
       "kind": "single",
       "placement": "fullframe",
+      "side": false,
       "purpose": "two products share one promise, then the frame splits and each side takes the bet it actually makes: for the sentence shape \"A and B both promise X, but one does P and the other does Q\"",
       "variables": {
         "promise": {

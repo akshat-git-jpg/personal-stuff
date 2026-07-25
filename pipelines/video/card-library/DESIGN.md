@@ -38,7 +38,8 @@ deliberate reason.
 ## Layout
 
 - Canvas 1920x1080, content in a centered `#frame` with ~120px padding; content
-  block max-width ~1560px.
+  block max-width ~1560px. Cards ready for the side avatar mode (below) follow
+  relative rules instead — the 1920/1560 numbers apply to the full canvas only.
 - Panels: `rgba(255,255,255,0.04)` fill + 1px `rgba(255,255,255,0.1)` border +
   border-radius 24px, padding ~40px.
 - Respect the capacity you declare: pick font sizes so `max_beats` rows at
@@ -46,6 +47,34 @@ deliberate reason.
   numbers in the card's `catalog.json` entry. If content can overflow, the card
   is not done.
 - **Survives worst-case content**: layouts must hold at both the minimum and maximum item counts the catalog allows, and at every string's `max_words`. Grid ratios must be computed from item count, never hardcoded for one count.
+
+## Side-ready cards (side avatar mode)
+
+In side mode the host takes the right 720px and the card renders into the left
+**1200 × 1080**. The renderer bakes this by rewriting only `data-width` on
+`#root` — it does not touch your CSS. So a side-ready card must lay out
+**relative to its root**, and a card that hardcodes 1920px cannot work.
+
+A card marked `"side": true` in `catalog.json` MUST satisfy all of:
+
+1. **No hardcoded canvas width.** `html`, `body` and `#root` size with `100%`
+   (or `100vw`/`100vh`), never `1920px`. The string `1920px` must not appear
+   anywhere in the file. `data-width="1920"` on `#root` stays — that attribute
+   is the thing the renderer rewrites.
+2. **Type size does not change.** The point of side mode is that the graphic
+   still reads. Never shrink a font to make a layout fit; re-stack it instead
+   (row → column, 2-up → 1-up, horizontal chips → wrapped chips).
+3. **Content widths are relative.** `max-width` in `%` or `vw`, or a px value
+   that is ≤ 1080 so it still fits inside the 1200 column with padding. The
+   old "content block max-width ~1560px" rule applies to the full canvas only.
+4. **Nothing clips or overlaps at 1200 × 1080**, verified by rendering — not
+   by reading the CSS.
+
+A card that cannot meet these without shrinking type declares `"side": false`.
+That is a legitimate outcome, not a failure: dense tables and wide matrices have
+a real minimum width. The shot pass then cannot place a side span over it.
+
+Verify with `node scripts/card-qa.mjs <slug> --side` and LOOK at the sheet.
 
 ## Motion
 
