@@ -87,11 +87,23 @@ fs.mkdirSync(outDir, { recursive: true });
 
 const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
 
-const targetCardSlug = process.argv[2];
+const cliArgs = process.argv.slice(2);
+const sideMode = cliArgs.includes('--side');
+const targetCardSlug = cliArgs.find(a => !a.startsWith('--'));
 
-const cards = targetCardSlug 
+const cards = targetCardSlug
   ? catalog.cards.filter(c => c.slug === targetCardSlug)
   : catalog.cards;
+
+// Side mode: the renderer bakes the 1200px side-cue canvas by rewriting only
+// data-width on #root (see visuals-flow-2/lib/render.mjs rewriteCanvas) — it
+// never touches CSS. Mirror exactly that single-attribute rewrite here, on a
+// throwaway copy of the card, so QA renders what the pipeline will actually
+// produce.
+const SIDE_WIDTH = 1200;
+function rewriteCanvasWidth(html) {
+  return html.replace(/data-width="1920"/g, `data-width="${SIDE_WIDTH}"`);
+}
 
 const AMBIENT_REQUIRED = [
   'enacted/before-after', 'enacted/counter-tally',
@@ -106,49 +118,68 @@ const AMBIENT_REQUIRED = [
 for (const card of cards) {
   const minVars = generateVariables(card, 'min');
   const maxVars = generateVariables(card, 'max');
-  
-  const cardPath = path.join(process.cwd(), card.slug);
-  const indexPath = path.join(cardPath, 'index.html');
+
+  const realCardPath = path.join(process.cwd(), card.slug);
+
+  // Side mode renders a throwaway copy so the real card file is never touched
+  // — the temp copy gets its data-width rewritten the same way the pipeline
+  // does it, and render points at that temp directory instead of the slug.
+  let renderDir = realCardPath;
+  let tempDir = null;
+  if (sideMode) {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'card-qa-side-'));
+    renderDir = path.join(tempDir, path.basename(card.slug));
+    fs.cpSync(realCardPath, renderDir, { recursive: true });
+    const rewritten = rewriteCanvasWidth(fs.readFileSync(path.join(renderDir, 'index.html'), 'utf8'));
+    fs.writeFileSync(path.join(renderDir, 'index.html'), rewritten);
+  }
+
+  const indexPath = path.join(renderDir, 'index.html');
   const originalHtml = fs.readFileSync(indexPath, 'utf8');
-  
+
   if (AMBIENT_REQUIRED.includes(card.slug) && !originalHtml.includes('/* hf-ambient */')) {
     console.error(`FAIL: ${card.slug} missing /* hf-ambient */ marker`);
     process.exit(1);
   }
 
+  const suffix = sideMode ? '-side' : '';
+  const slugFile = card.slug.split('/').join('-');
+
   const runVariant = (variant, vars) => {
     const newHtml = originalHtml.replace(
-      /data-composition-variables='[^']*'/, 
+      /data-composition-variables='[^']*'/,
       `data-composition-variables='${JSON.stringify(vars).replace(/'/g, "&apos;")}'`
     );
     fs.writeFileSync(indexPath, newHtml);
-    
+
     try {
-      const mp4Path = `/tmp/${card.slug.split('/').join('-')}-${variant}.mp4`;
-      const pngPath = `/tmp/${card.slug.split('/').join('-')}-${variant}.png`;
-      execSync(`npx --yes hyperframes@0.7.62 render ${card.slug} -o ${mp4Path}`, { stdio: 'ignore' });
-      
+      const mp4Path = `/tmp/${slugFile}${suffix}-${variant}.mp4`;
+      const pngPath = `/tmp/${slugFile}${suffix}-${variant}.png`;
+      execSync(`npx --yes hyperframes@0.7.62 render ${renderDir} -o ${mp4Path}`, { stdio: 'ignore' });
+
       const duration = card.default_duration || 5;
       const ss = duration * 0.8;
-      
+
       execSync(`ffmpeg -v error -ss ${ss} -i ${mp4Path} -frames:v 1 ${pngPath} -y`, { stdio: 'ignore' });
       return pngPath;
     } finally {
       fs.writeFileSync(indexPath, originalHtml);
     }
   };
-  
-  console.log(`Processing ${card.slug}...`);
+
+  console.log(`Processing ${card.slug}${sideMode ? ' (side)' : ''}...`);
   const minPng = runVariant('min', minVars);
   const maxPng = runVariant('max', maxVars);
-  
-  const finalSheet = path.join(outDir, `${card.slug.split('/').join('-')}.png`);
-  
+
+  const finalSheet = path.join(outDir, `${slugFile}${suffix}.png`);
+
   try {
     const filter = `[0:v]drawtext=text='MIN':fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:x=10:y=10[v0];[1:v]drawtext=text='MAX':fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:x=10:y=10[v1];[v0][v1]vstack`;
     execSync(`ffmpeg -v error -y -i ${minPng} -i ${maxPng} -filter_complex "${filter}" ${finalSheet}`, { stdio: 'ignore' });
     console.log(`Wrote ${finalSheet}`);
   } catch (e) {
     console.error(`Failed to stitch sheet for ${card.slug}`, e);
+  } finally {
+    if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
   }
 }
