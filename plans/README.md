@@ -740,3 +740,4 @@ silently renders full-screen. 147 builds that foundation first.
 - 146-vf2-review-surface-split — composition-only storyboard, auto-approved derivatives — TODO
 - 145-vf2-avatar-stage-mode — PR#103 145-vf2-avatar-stage-mode: avatar stage mode — head composited into a card's designed head zone — DONE
 - 146-vf2-review-surface-split — PR#104 146-vf2-review-surface-split: review-surface split — composition-only storyboard, effects/sound on Final Cut — DONE
+- 147-vf2-avatar-per-span-modes — PR#105 147-vf2-avatar-per-span-modes: per-span avatar mode (full/panel) end to end, and make panel actually composite — DONE
