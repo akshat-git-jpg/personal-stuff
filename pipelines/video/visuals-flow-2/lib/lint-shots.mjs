@@ -24,7 +24,7 @@ const MIN_SCREEN_WARN = 5;
 
                                     //     presence mid-video, not just the U-curve ends)
 
-export function lintShots({ shotsResolved, resolvedCues, words }) {
+export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
   const errors = [];
   const warnings = [];
   if (!words || words.length === 0) return { errors, warnings };
@@ -68,7 +68,7 @@ export function lintShots({ shotsResolved, resolvedCues, words }) {
       if (s.start < cEnd && c.start < s.end) {
         if (s.mode === 'panel') {
           errors.push(`E2 fullframe-collision: panel span ${s.id} (${s.start.toFixed(1)}–${s.end.toFixed(1)}s) overlaps fullframe cue ${c.id} — panels belong over screen/demo footage`);
-        } else {
+        } else if (s.mode !== 'stage') {
           errors.push(`E2 fullframe-collision: ${s.id} (${s.start.toFixed(1)}–${s.end.toFixed(1)}s) overlaps fullframe cue ${c.id} (${c.start.toFixed(1)}–${cEnd.toFixed(1)}s)`);
         }
       }
@@ -86,7 +86,7 @@ export function lintShots({ shotsResolved, resolvedCues, words }) {
   }
 
   // E4 budget-cap / W2 budget-target
-  const fullSpans = spans.filter((s) => s.mode !== 'panel');
+  const fullSpans = spans.filter((s) => s.mode !== 'panel' && s.mode !== 'stage');
   const total = fullSpans.reduce((sum, s) => sum + s.duration, 0);
   if (total > AVATAR_FULL_CAP) {
     errors.push(`E4 budget-cap: ${total.toFixed(0)}s total full-screen avatar exceeds cap ${AVATAR_FULL_CAP}s`);
@@ -115,6 +115,28 @@ export function lintShots({ shotsResolved, resolvedCues, words }) {
     }
   }
 
+  // E6 stage-coverage
+  const stageSpans = spans.filter(s => s.mode === 'stage');
+  for (const s of stageSpans) {
+    const overlappingCues = fullframes.filter(c => s.start < c.start + c.duration && c.start < s.end);
+    if (overlappingCues.length === 0) {
+      errors.push(`E6 stage-coverage: stage span ${s.id} has no covering cue`);
+    } else if (overlappingCues.length > 1) {
+      errors.push(`E6 stage-coverage: stage span ${s.id} crosses two cues`);
+    } else {
+      const c = overlappingCues[0];
+      const cardDef = catalog?.cards?.find(card => card.slug === c.slug);
+      if (!cardDef?.head_zone) {
+        errors.push(`E6 stage-coverage: stage span ${s.id} covering card ${c.slug} has no head_zone`);
+      } else {
+        const cEnd = c.start + c.duration;
+        if (s.start < c.start || s.end > cEnd) {
+          warnings.push(`W6 stage-outlives: stage span ${s.id} outlives its covering cue`);
+        }
+      }
+    }
+  }
+
   return { errors, warnings };
 }
 
@@ -129,8 +151,9 @@ async function main() {
   const shotsResolved = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.resolved.json'), 'utf8'));
   const resolvedFile = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
+  const catalog = JSON.parse(fs.readFileSync(path.join(workdir, '../../../../card-library/catalog.json'), 'utf8'));
 
-  const { errors, warnings } = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words });
+  const { errors, warnings } = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog });
   for (const w of warnings) console.log(w);
   if (errors.length) {
     for (const e of errors) console.error(e);

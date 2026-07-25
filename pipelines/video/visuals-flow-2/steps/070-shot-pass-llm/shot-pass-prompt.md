@@ -23,7 +23,7 @@ content — no other text.
     {
       "id": "s01",
       "kind": "avatar-full",
-      "mode": "panel",
+      "mode": "panel", // or "stage" or "full"
       "from_anchor": "verbatim first words of the span",
       "to_anchor": "verbatim last words of the span",
       "note": "why this is a host moment",
@@ -32,6 +32,12 @@ content — no other text.
   ]
 }
 ```
+
+## Modes
+
+- `"full"`: A standard full-screen host moment.
+- `"panel"`: The host sits inset in the corner over the screen recording (for UI demos/screen capture).
+- `"stage"`: The host sits inset inside a host-driven fullframe card (requires a card with a `head_zone`).
 
 ## Rules
 
@@ -62,6 +68,7 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - A panel-mode avatar occupies 28% of canvas width, inset bottom-right, preserving the source clip aspect ratio.
 - A panel-mode avatar sits 32px from the right and bottom canvas edges.
 - A panel-mode avatar is masked to a rounded rectangle of radius 24px.
+- A stage-mode avatar is masked to a rounded rectangle of radius 24px inside the card head zone.
 <!-- END GENERATED SHOT CONSTRAINTS -->
 5. NEVER place a span over a fullframe graphics cue — the fullframe times are
    listed below; plan around them. Overlay cues are fine to overlap.

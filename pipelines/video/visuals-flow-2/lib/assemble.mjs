@@ -52,6 +52,28 @@ export function planPanelGeometry({ canvas, constants, srcAspect = 16 / 9 }) {
   return { w: pw, h: ph, x: W - pw - inset, y: H - ph - inset, radius: constants.PANEL_RADIUS_PX.value };
 }
 
+// Stage geometry: the host fills the covering card's declared head_zone.
+// The clip is cover-cropped to the zone's aspect (scale up, crop centre) so the
+// face is never letterboxed or squashed. Dimensions forced EVEN for yuv420p.
+export function planStageGeometry({ zone, canvas, radiusPx, srcAspect = 16 / 9 }) {
+  const { w: W, h: H } = canvas;
+  const zw = Math.round((zone.w * W) / 2) * 2;
+  const zh = Math.round((zone.h * H) / 2) * 2;
+  const zoneAspect = zw / zh;
+  // cover: scale so the SHORT side fills, then centre-crop the overflow
+  const scaleW = zoneAspect > srcAspect ? zw : Math.round((zh * srcAspect) / 2) * 2;
+  const scaleH = zoneAspect > srcAspect ? Math.round((zw / srcAspect) / 2) * 2 : zh;
+  return {
+    scaleW, scaleH,
+    cropW: zw, cropH: zh,
+    cropX: Math.round((scaleW - zw) / 2),
+    cropY: Math.round((scaleH - zh) / 2),
+    x: Math.round(zone.x * W),
+    y: Math.round(zone.y * H),
+    radius: zone.radius ?? radiusPx,
+  };
+}
+
 export const ASSEMBLE_MEDIA_ROOT = process.env.ASSEMBLE_MEDIA_ROOT
   ?? path.join(os.homedir(), 'kb-scratch', 'video', 'visuals-flow-2');
 
@@ -141,6 +163,7 @@ export function planSegmentOverlays(segments, overlays) {
           file: o.file,
           ...(o.chroma ? { chroma: o.chroma } : {}),
           ...(o.isPanel ? { isPanel: o.isPanel } : {}),
+          ...(o.isStage ? { isStage: o.isStage, zone: o.zone } : {}),
           trimStart: +Math.max(seg.start - o.start, 0).toFixed(3),
           at: +(s - seg.start).toFixed(3),
           until: +(e - seg.start).toFixed(3),
@@ -348,7 +371,7 @@ function parseArgs(argv) {
   return opts;
 }
 
-export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'on', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} } }) {
+export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], stageJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'on', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} }, catalog }) {
   const videoManifest = loadVideoManifest(workdir);
   let segments = planSegments({ resolved, avatarJobs, total });
   segments = absorbSlivers(segments);
@@ -362,7 +385,15 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
   const panelOverlays = panelJobs.map(j => ({
     id: j.id, start: j.start, end: j.end, file: j.file, isPanel: true
   }));
-  overlays.push(...panelOverlays);
+  const stageOverlays = stageJobs.map(j => {
+    const overlappingCues = resolved.filter(c => c.placement === 'fullframe' && j.start < c.start + c.duration && c.start < j.end);
+    const cue = overlappingCues[0];
+    const cardDef = catalog?.cards?.find(card => card.slug === cue?.slug);
+    return {
+      id: j.id, start: j.start, end: j.end, file: j.file, isStage: true, zone: j.zone || cardDef?.head_zone
+    };
+  });
+  overlays.push(...panelOverlays, ...stageOverlays);
 
   const tmpDir = path.join(workdir, 'assembly-tmp');
   fs.mkdirSync(tmpDir, { recursive: true });
@@ -612,6 +643,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
               `geq=lum='lum(X,Y)':cb='cb(X,Y)':cr='cr(X,Y)':` +
               `a='if(lt(hypot(max(abs(X-W/2)-(W/2-${r}),0),max(abs(Y-H/2)-(H/2-${r}),0)),${r + 0.5}),255,0)'[${oj}];`;
             chain += `[${lastV}][${oj}]overlay=x=${g.x}:y=${g.y}:eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
+          } else if (o.isStage) {
+            const g = planStageGeometry({ zone: o.zone, canvas: CANVAS, radiusPx: SHOT_CONSTANTS.STAGE_HEAD_RADIUS_PX.value });
+            const r = g.radius;
+            chain += `[${globalInputIdx}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${g.scaleW}:${g.scaleH},crop=${g.cropW}:${g.cropH}:${g.cropX}:${g.cropY},format=yuva444p,` +
+              `geq=lum='lum(X,Y)':cb='cb(X,Y)':cr='cr(X,Y)':` +
+              `a='if(lt(hypot(max(abs(X-W/2)-(W/2-${r}),0),max(abs(Y-H/2)-(H/2-${r}),0)),${r + 0.5}),255,0)'[${oj}];`;
+            chain += `[${lastV}][${oj}]overlay=x=${g.x}:y=${g.y}:eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
           } else {
             // Chroma cards carry no alpha of their own — key the plate out first,
             // otherwise the overlay lands as a solid colour block (owner v2:5).
@@ -833,6 +871,7 @@ export async function loadAssemblyInputs(opts) {
   const avatarJobsPath = path.join(workdir, 'avatar-jobs.json');
   let avatarJobs = [];
   let panelJobs = [];
+  let stageJobs = [];
   let cornerJobs = [];
   if (fs.existsSync(shotsPath)) {
     const shotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
@@ -847,6 +886,7 @@ export async function loadAssemblyInputs(opts) {
     const avatarJobsFile = JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8'));
     avatarJobs = avatarJobsFile.jobs.filter(j => j.kind === 'avatar-full');
     panelJobs = avatarJobsFile.jobs.filter(j => j.kind === 'avatar-panel' && j.file && fs.existsSync(j.file));
+    stageJobs = avatarJobsFile.jobs.filter(j => j.kind === 'avatar-stage' && j.file && fs.existsSync(j.file));
     // Corner chunks composited as the top-right bubble (plan 100). Absent files
     // are dropped so the bubble module simply no-ops rather than failing assembly.
     cornerJobs = avatarJobsFile.jobs.filter(j => j.kind === 'corner' && j.file && fs.existsSync(j.file));
@@ -889,7 +929,7 @@ export async function loadAssemblyInputs(opts) {
     console.warn('warning: screen source duration + offset is more than 2s short of the last screen segment end');
   }
   
-  return { workdir, video, resolved, avatarJobs, panelJobs, cornerJobs, words, total, screen };
+  return { workdir, video, resolved, avatarJobs, panelJobs, stageJobs, cornerJobs, words, total, screen, catalog };
 }
 
 async function main() {
@@ -912,7 +952,7 @@ async function main() {
   const brandObj = loadBrand(root, { brand: inputs.brand || 'default' });
   const kbWorkdir = path.join(ASSEMBLE_MEDIA_ROOT, inputs.video);
   const out = opts.out ?? path.join(kbWorkdir, opts.draft ? 'final-draft.mp4' : 'final.mp4');
-  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble: opts.bubble, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj });
+  await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble: opts.bubble, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj, catalog: inputs.catalog });
 
   const entry = registerVersion(kbWorkdir, out, { draft: opts.draft });
   console.log(`registered version: ${entry.label}`);

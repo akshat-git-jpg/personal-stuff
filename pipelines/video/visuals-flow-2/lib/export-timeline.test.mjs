@@ -256,3 +256,19 @@ test('buildNativeFcpxml: panel clips receive adjust-transform', async () => {
   assert.match(xml, /<adjust-transform position="659 -357" scale="0\.2802\d+ 0\.2802\d+"\/>/);
   assert.match(xml, /name="panel:p1"/);
 });
+
+test('buildNativeFcpxml: stage clips receive adjust-crop and adjust-transform', async () => {
+  const { buildNativeFcpxml } = await import('./export-timeline.mjs');
+  const xml = buildNativeFcpxml({
+    video: 't', screenPath: 'screen.mp4', voPath: 'vo.mp3', total: 30, w: 1920, h: 1080,
+    avatarClips: [
+      { id: 'stage:s1', isStage: true, zone: { x: 0.5, y: 0.5, w: 0.2, h: 0.2 }, offsetSec: 2, durationSec: 5, file: 's1.mp4' }
+    ],
+    fullframes: [], overlayClips: [], fxClips: [], sfxClips: [], markers: [], srcUrl: (f) => f
+  });
+  
+  assert.match(xml, /<video lane="1"/);
+  assert.match(xml, /<adjust-crop mode="trim" left="[^"]+" right="[^"]+" top="[^"]+" bottom="[^"]+"\/>/);
+  assert.match(xml, /<adjust-transform position="[^"]+" scale="[^"]+"\/>/);
+  assert.match(xml, /name="stage:s1"/);
+});
