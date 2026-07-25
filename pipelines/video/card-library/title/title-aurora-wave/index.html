@@ -37,6 +37,7 @@
         --chip-bg: rgba(255, 255, 255, 0.05);
         --chip-border: rgba(255, 255, 255, 0.14);
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+        --hero-size: 144px;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -61,7 +62,7 @@
         max-width: 1700px; width: 100%;
       }
       #title {
-        font-size: 88px; font-weight: 700; letter-spacing: -3px; line-height: 1.04;
+        font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0;
         text-align: center; color: var(--text); will-change: transform, opacity;
       }
       #titleText {
@@ -78,7 +79,7 @@
       }
       .chipName {
         font-size: 28px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2;
-        color: rgba(255, 239, 219, 0.62); text-align: center; max-width: 240px;
+        color: var(--accent); text-align: center; max-width: 240px;
         will-change: opacity, transform;
       }
       /* glass chip: dark translucent panel (design-system style), NOT solid
