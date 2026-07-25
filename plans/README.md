@@ -793,3 +793,4 @@ Not just size — five levers move together: scale, contrast (headlines were set
 - 150-vf2-avatar-side-mode — PR#108 150-vf2-avatar-side-mode: delete stage, add side-by-side avatar mode — DONE
 - 151-cards-side-contract-batch-a — PR#109 151-cards-side-contract-batch-a: side-ready card contract + convert 21 cards — DONE
 - 152-cards-side-batch-b — PR#110 152-cards-side-batch-b: convert the 27 dense cards to side-ready — DONE
+- 153-cards-type-scale-impact — PR#111 153-cards-type-scale-impact: make card text impactful (hero type scale + hierarchy gate) — DONE
