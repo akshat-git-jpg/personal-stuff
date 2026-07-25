@@ -26,7 +26,7 @@
       "slug": "tool\u002dicon/tool\u002dglass\u002dtile",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "hero for one tool/model: a glassy app\u002dicon tile with the tool's (muted) logo, its name beneath, and an optional subtitle — the 'this is the tool' beat",
       "variables": {
         "logo": {
@@ -57,7 +57,7 @@
       "slug": "statement/keyword\u002dstatement",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "a single punchy centered statement revealed word\u002dby\u002dword with one keyword phrase highlighted in the accent — a standalone emphasis beat (distinct from running captions)",
       "variables": {
         "text": {
@@ -83,7 +83,7 @@
       "slug": "checklist/checklist",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "vertical checklist; each row's box fills and checkmark draws in as it reveals on its beat",
       "variables": {
         "title": {
@@ -110,7 +110,7 @@
       "slug": "checklist/icon\u002dpills",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "vertical list of icon\u002dtile + text\u002dpill rows revealing one per beat, accent\u002doutlined with a soft glow; optional keyword highlight per row — for enumerating features/capabilities",
       "variables": {},
       "beat_shape": {
@@ -996,7 +996,7 @@
       "slug": "section/bullet\u002dpoints",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "plain numbered agenda list; each row reveals on its beat",
       "variables": {
         "eyebrow": {
@@ -1023,7 +1023,7 @@
       "slug": "section/bullet\u002dpoints\u002dhighlighted",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "re\u002dshown table\u002dof\u002dcontents that dims done/upcoming items and highlights the current section",
       "variables": {
         "eyebrow": {
@@ -1055,7 +1055,7 @@
       "slug": "section/key\u002dtakeaways",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "end\u002dof\u002dvideo recap; each takeaway ticks in with a check badge on its beat",
       "variables": {
         "eyebrow": {
@@ -1088,7 +1088,7 @@
       "slug": "section/section\u002dcard\u002dflip",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "section divider where a glass card flips up from below and settles with a spring bounce",
       "variables": {
         "number": {
@@ -1111,7 +1111,7 @@
       "slug": "section/section\u002dcounter\u002dscale",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "section divider where a big number counts up then scales down as the title and dots ripple in",
       "variables": {
         "number": {
@@ -1144,7 +1144,7 @@
       "slug": "section/section\u002dparticle\u002dstorm",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "section divider with drifting light streaks and particles behind an elastic title pop",
       "variables": {
         "number": {
@@ -1167,7 +1167,7 @@
       "slug": "table\u002dof\u002dcontents/table\u002dof\u002dcontents",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "numbered table\u002dof\u002dcontents list; each row reveals on its beat",
       "variables": {
         "eyebrow": {
@@ -1270,7 +1270,7 @@
       "slug": "title/title\u002dversus",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "roles": [
         "comparison\u002dcoldopen"
       ],
@@ -1310,7 +1310,7 @@
       "slug": "title/title\u002dkinetic\u002dlines",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "title card with kinetic line\u002dby\u002dline text reveal for kicker, title, and subtitle",
       "variables": {
         "kicker": {
@@ -1338,7 +1338,7 @@
       "slug": "title/title\u002dstorm\u002dpop",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "title card with a storm background and the title popping in with an elastic overshoot",
       "variables": {
         "title": {
@@ -1516,7 +1516,7 @@
       "slug": "section/tool\u002dintro",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "section opener for one tool/product: TOOL N OF M progress, huge name, positioning line, category chip",
       "variables": {
         "index": {
@@ -1690,7 +1690,7 @@
       "slug": "process/step\u002dflow",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "numbered step flow: process walkthrough nodes revealing left to right, one step per beat",
       "variables": {
         "title": {
@@ -1755,7 +1755,7 @@
       "slug": "slate/headline\u002dchips",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "canvas beat: a spoken headline sentence plus pill chips ticking in one per beat (lists, consequences, criteria)",
       "variables": {
         "headline": {
@@ -1783,7 +1783,7 @@
       "slug": "slate/kinetic\u002dsentence",
       "kind": "word\u002dsync",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "one spoken sentence alone on the ambient canvas; words appear as spoken and an accent phrase colorizes with them; used INSTEAD of a talking\u002dhead bridge",
       "variables": {
         "text": {
