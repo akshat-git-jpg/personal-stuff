@@ -150,7 +150,7 @@
         }
       },
       "max_beats": 4,
-      "max_reveal_chars": 40,
+      "max_reveal_chars": 28,
       "default_duration": 8,
       "pre_beat_render": "chrome"
     },
@@ -379,7 +379,7 @@
         }
       },
       "default_duration": 7,
-      "max_beats": 8,
+      "max_beats": 6,
       "max_reveal_chars": 24,
       "pre_beat_render": "frame"
     },
@@ -630,7 +630,7 @@
         }
       },
       "default_duration": 7,
-      "max_beats": 7,
+      "max_beats": 4,
       "max_reveal_chars": 28,
       "pre_beat_render": "frame"
     },
@@ -988,7 +988,7 @@
         }
       },
       "default_duration": 6,
-      "max_beats": 8,
+      "max_beats": 6,
       "max_reveal_chars": 45,
       "pre_beat_render": "chrome"
     },
@@ -1015,8 +1015,8 @@
         }
       },
       "default_duration": 6,
-      "max_beats": 6,
-      "max_reveal_chars": 50,
+      "max_beats": 5,
+      "max_reveal_chars": 44,
       "pre_beat_render": "chrome"
     },
     {
@@ -1186,8 +1186,8 @@
         }
       },
       "default_duration": 9,
-      "max_beats": 7,
-      "max_reveal_chars": 45,
+      "max_beats": 6,
+      "max_reveal_chars": 40,
       "pre_beat_render": "chrome"
     },
     {
@@ -1682,7 +1682,7 @@
         }
       },
       "default_duration": 7,
-      "max_beats": 6,
+      "max_beats": 4,
       "max_reveal_chars": 40,
       "pre_beat_render": "chrome"
     },
