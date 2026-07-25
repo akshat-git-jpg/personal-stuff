@@ -5,7 +5,7 @@ import { lintShots } from './lint-shots.mjs';
 const words = Array.from({ length: 1200 }, (_, i) => ({ text: `w${i}`, start: i, end: i + 1 }));
 const mockCatalog = {
   cards: [
-    { slug: 'section/host-stage', head_zone: { x: 0.5, y: 0.5, w: 0.1, h: 0.1 } },
+    { slug: 'section/host-side', side: true },
     { slug: 'prompt/prompt-typing' }
   ]
 };
@@ -196,29 +196,29 @@ test('panel span over a screen segment is clean', () => {
   assert.ok(!res1.errors.some(e => e.startsWith('E2')));
 });
 
-test('valid stage span inside a head_zone cue', () => {
-  const shotsResolved = { spans: [{ id: 's1', mode: 'stage', start: 10, end: 20, duration: 10 }] };
-  const res = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', slug: 'section/host-stage', placement: 'fullframe', start: 5, duration: 20 }], words, catalog: mockCatalog });
+test('valid side span inside a side-capable cue', () => {
+  const shotsResolved = { spans: [{ id: 's1', mode: 'side', start: 10, end: 20, duration: 10 }] };
+  const res = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', slug: 'section/host-side', placement: 'fullframe', start: 5, duration: 20 }], words, catalog: mockCatalog });
   assert.ok(!res.errors.some(e => e.startsWith('E6')));
   assert.ok(!res.errors.some(e => e.startsWith('E2')));
 });
 
-test('stage span with no covering cue → error', () => {
-  const shotsResolved = { spans: [{ id: 's1', mode: 'stage', start: 10, end: 20, duration: 10 }] };
+test('side span with no covering cue → error', () => {
+  const shotsResolved = { spans: [{ id: 's1', mode: 'side', start: 10, end: 20, duration: 10 }] };
   const res = lintShots({ shotsResolved, resolvedCues: [], words, catalog: mockCatalog });
   const e6 = res.errors.find(e => e.startsWith('E6'));
   assert.ok(e6 && e6.includes('has no covering cue'));
 });
 
-test('stage span covered by a card lacking head_zone → error', () => {
-  const shotsResolved = { spans: [{ id: 's1', mode: 'stage', start: 10, end: 20, duration: 10 }] };
+test('side span covered by a card that is not side-capable → error', () => {
+  const shotsResolved = { spans: [{ id: 's1', mode: 'side', start: 10, end: 20, duration: 10 }] };
   const res = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', slug: 'prompt/prompt-typing', placement: 'fullframe', start: 5, duration: 20 }], words, catalog: mockCatalog });
   const e6 = res.errors.find(e => e.startsWith('E6'));
-  assert.ok(e6 && e6.includes('has no head_zone'));
+  assert.ok(e6 && e6.includes('is not side-capable'));
 });
 
-test('long stage span does not trip the full-screen cap', () => {
-  const shotsResolved = { spans: [{ id: 's1', mode: 'stage', start: 10, end: 360, duration: 350 }] };
-  const res = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', slug: 'section/host-stage', placement: 'fullframe', start: 5, duration: 400 }], words, catalog: mockCatalog });
-  assert.ok(!res.errors.some(e => e.startsWith('E4')));
+test('long side span DOES trip the full-screen cap', () => {
+  const shotsResolved = { spans: [{ id: 's1', mode: 'side', start: 10, end: 360, duration: 350 }] };
+  const res = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', slug: 'section/host-side', placement: 'fullframe', start: 5, duration: 400 }], words, catalog: mockCatalog });
+  assert.ok(res.errors.some(e => e.startsWith('E4')));
 });
