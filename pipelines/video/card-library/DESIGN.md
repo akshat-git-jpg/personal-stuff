@@ -30,10 +30,55 @@ deliberate reason.
 ## Typography
 
 - Font: `'Inter', system-ui, sans-serif` (Google Fonts link, weights 400–900). Every card.
-- Titles: 52–72px, weight 800, negative letter-spacing (-1 to -2px).
-- List/row content: 24–40px, weight 400–600, line-height ~1.35.
-- Labels/eyebrows: 18–22px, often uppercase with wide letter-spacing, `--accent` or `--text-dim`.
-- Hero numbers (grades, stats): up to 220px, weight 900.
+
+**The canvas is video, not web.** Type that looks generous in a browser reads as
+timid at 1080p on a phone. Size against the FRAME, not against a document.
+
+**Size alone is not the fix.** Enlarged type with default tracking and loose
+leading looks *bigger*, not *designed*. Five things move together:
+
+- **Hero** (the one thing the card is about): **120–200px**, weight **800–900**,
+  `letter-spacing: -0.035em`, `line-height: 1.0`. Every fullframe card declares
+  its hero size once as `--hero-size` in `:root` and uses
+  `font-size: var(--hero-size)` on that element.
+- **Secondary** (names, row content, values): 40–56px, weight 600–700,
+  `letter-spacing: -0.015em`, `line-height: 1.2`.
+- **Labels / eyebrows**: 22–28px, weight 700, uppercase, `letter-spacing: 0.12em`
+  (wide — the opposite of the hero), colour `var(--accent)`.
+- **Hero numbers** (grades, stats): up to 280px, weight 900, same tracking as hero.
+
+**Tracking is in `em`, never `px`.** A fixed `-1.5px` is meaningful at 40px and
+invisible at 160px. `-0.035em` scales with the type, which is why it survives a
+size change and a px value does not. This was the single most-missed rule in the
+pre-2026-07-25 library.
+
+**Contrast, not just scale.** The hero is `var(--text)`. A headline set in
+`var(--text-dim)` recedes no matter how large it is — that combination (large but
+grey) is what read as "subtle" to the owner.
+
+**Hierarchy is the point.** The hero must be at least **2.5×** the next-largest
+text on the card. A card where everything sits in a narrow band reads as flat
+however large the type is — a 2× spread across the whole library is what produced
+the original complaint.
+
+**The bands and the ratio must agree.** Secondary is capped at BOTH 56px and
+`hero ÷ 2.5`, whichever is smaller. So a 56px secondary requires a hero of at
+least 140px; a 120px hero allows a secondary of at most 48px. Pick the hero
+first, then derive the ceiling — do not set both from the bands independently.
+
+**One accented word per card.** Every fullframe card colours at least one text
+element `var(--accent)`. Colour marks meaning; a card where the accent only
+appears in dividers and underlines never tells the eye where to land.
+
+**Never style the headline as a subordinate.** The idea-carrying line uses
+`--text` at hero size, not `--text-dim` at body size.
+
+**Big type means fewer words.** Growing the hero shrinks capacity, so
+`max_beats` / `max_reveal_chars` in `catalog.json` must come DOWN to match —
+verify with the `max` variant in `card-qa`, and reduce the declared capacity
+until it fits. Never shrink the hero to fit more words; cut the words.
+
+These rules are enforced by `scripts/check-type-scale.mjs`.
 
 ## Layout
 
@@ -45,7 +90,8 @@ deliberate reason.
 - Respect the capacity you declare: pick font sizes so `max_beats` rows at
   `max_reveal_chars` characters fit without overflow — then record those two
   numbers in the card's `catalog.json` entry. If content can overflow, the card
-  is not done.
+  is not done. See "Big type means fewer words" above: capacity comes down to
+  match the hero, never the other way around.
 - **Survives worst-case content**: layouts must hold at both the minimum and maximum item counts the catalog allows, and at every string's `max_words`. Grid ratios must be computed from item count, never hardcoded for one count.
 
 ## Side-ready cards (side avatar mode)

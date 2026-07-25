@@ -83,6 +83,11 @@ if ! npm run check-side -s; then
   err "side contract validation failed"
 fi
 
+echo "==> type scale contract check"
+if ! npm run check-type-scale -s; then
+  err "type scale validation failed"
+fi
+
 echo "==> nothing left untracked"
 untracked=$(git ls-files --others --exclude-standard . 2>/dev/null)
 if [ -n "$untracked" ]; then
