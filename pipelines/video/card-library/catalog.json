@@ -1534,6 +1534,41 @@
       }
     },
     {
+      "slug": "section/host-stage",
+      "kind": "beat",
+      "placement": "fullframe",
+      "purpose": "host makes a point to camera while supporting chips land beside them",
+      "variables": {
+        "eyebrow": {
+          "type": "string",
+          "required": true,
+          "role": "heading",
+          "example": "Eyebrow"
+        },
+        "title": {
+          "type": "string",
+          "required": true,
+          "role": "heading",
+          "example": "Section Title"
+        }
+      },
+      "beat_shape": {
+        "text": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "This is an example sentence."
+        }
+      },
+      "max_beats": 3,
+      "max_reveal_chars": 28,
+      "structural": false,
+      "head_zone": { "x": 0.58, "y": 0.20, "w": 0.34, "h": 0.60 },
+      "intent": "host makes a point to camera while supporting chips land beside them",
+      "anti_intent": "no avatar footage exists for this span, or the span is over live demo footage",
+      "default_duration": 8
+    },
+    {
       "slug": "verdict/winners\u002dpodium",
       "kind": "beat",
       "placement": "fullframe",
