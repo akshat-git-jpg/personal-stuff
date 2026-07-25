@@ -47,6 +47,15 @@ const isDir = async (p) => { try { return (await stat(p)).isDirectory(); } catch
 const isFile = async (p) => { try { return (await stat(p)).isFile(); } catch { return false; } };
 const pretty = (s) => s.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+// HTML entities -> text. &amp; must be last so "&amp;lt;" doesn't become "<".
+const NAMED = { lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+const decodeEntities = (s) =>
+  s
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&(lt|gt|quot|apos|nbsp);/g, (_, n) => NAMED[n])
+    .replace(/&amp;/g, "&");
+
 // injected into a card when served with ?play. The cards are a fixed 1920x1080
 // #root with a PAUSED timeline. This (a) scales #root to fit whatever viewport it's
 // shown in (preview box or full window), and (b) loops the timeline so motion shows.
@@ -80,7 +89,10 @@ async function listCards() {
       if (!(await isFile(file))) continue;
       const html = await readFile(file, "utf8");
       const m = html.match(/<title>([^<]*)<\/title>/i);
-      cards.push({ type, card, rel: `${type}/${card}/index.html`, title: (m && m[1].trim()) || pretty(card) });
+      // The <title> is raw HTML source, so it carries entities ("Like &amp;
+      // Subscribe"). Decode here — the client re-escapes on render, and without
+      // this the card shows a literal "&amp;".
+      cards.push({ type, card, rel: `${type}/${card}/index.html`, title: (m && decodeEntities(m[1].trim())) || pretty(card) });
     }
   }
   // Optional gallery-order.json at ROOT pins the FRONT of the list to an exact
@@ -127,12 +139,14 @@ const GALLERY = `<!DOCTYPE html>
   .card { background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
   .preview { position:relative; width:100%; aspect-ratio:16/9; background:#000; border-bottom:1px solid var(--line); overflow:hidden; }
   .preview iframe { position:absolute; top:0; left:0; width:1920px; height:1080px; border:0; transform-origin:top left; }
-  .meta { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; }
+  /* names sit on their own row above the buttons — side by side, three buttons
+     left the name column ~90px and every title/path ellipsised away. */
+  .meta { display:flex; flex-direction:column; align-items:stretch; gap:11px; padding:14px 16px; }
   .names { min-width:0; }
-  .title { font-size:16px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .title { font-size:16px; font-weight:700; line-height:1.25; overflow-wrap:anywhere; }
   .file { font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--dim); margin-top:3px;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .actions { display:flex; gap:8px; flex-shrink:0; }
+    line-height:1.35; overflow-wrap:anywhere; }
+  .actions { display:flex; gap:8px; flex-shrink:0; justify-content:flex-end; }
   .btn { font:inherit; font-size:13px; font-weight:600; border-radius:9px; padding:9px 14px; cursor:pointer;
     border:1px solid var(--line); background:transparent; color:var(--text); text-decoration:none; display:inline-block; }
   .btn.copy { background:var(--accent); color:#1a0f05; border-color:transparent; }
@@ -295,8 +309,9 @@ const GALLERY = `<!DOCTYPE html>
           const meta = document.createElement("div");
           meta.className = "meta";
           meta.innerHTML =
-            '<div class="names"><div class="title">' + esc(c.title) + '</div>' +
-            '<div class="file">' + esc(c.rel) + '</div></div>';
+            '<div class="names">' +
+            '<div class="title" title="' + esc(c.title) + '">' + esc(c.title) + '</div>' +
+            '<div class="file" title="' + esc(c.rel) + '">' + esc(c.rel) + '</div></div>';
           const actions = document.createElement("div");
           actions.className = "actions";
           const copy = document.createElement("button");

@@ -41,6 +41,11 @@
       "context": "final@02:56",
       "applied": "2026-07-25 — c10 now runs to 176.6s, covering \"Still, neutral so far\" which ends at 176.2s",
       "folded": "2026-07-25 — same fix as final-v2:2 — measured from the card END, not its anchor, which is why it catches a card exiting during a later sentence"
+    },
+    "final-v3:0": {
+      "text": "Pls add cta for link in desscription whenever mentioned. For first time mention you can use link scrim one template, for rest we can use link in description green card template, if green card template is not fixed then pls fix it",
+      "t": 185.742126,
+      "context": "final@03:05"
     }
   },
   "updated": "2026-07-25"

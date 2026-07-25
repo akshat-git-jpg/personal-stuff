@@ -743,3 +743,31 @@ silently renders full-screen. 147 builds that foundation first.
 - 147-vf2-avatar-per-span-modes — PR#105 147-vf2-avatar-per-span-modes: per-span avatar mode (full/panel) end to end, and make panel actually composite — DONE
 - 148-vf2-avatar-stage-mode-remainder — PR#106 148-vf2-avatar-stage-mode-remainder: avatar stage mode — plan 145's unimplemented Steps 2-5 — DONE
 - 149-vf2-transcript-quality — PR#107 149-vf2-transcript-quality: a real step 010 transcript pass instead of raw ASR — DONE
+
+### Avatar side mode — 150 / 151 / 152 (2026-07-25)
+
+Owner reversed the 2026-07-24 "Loop Studio parity" mode set after test-03 came
+out entirely full-screen (decisions.md 2026-07-25). Root cause: the modes were
+enforced downstream but never taught upstream — the 070 prompt's Modes block was
+descriptive only, `resolve-shots` silently defaulted `mode ?? 'full'`, and prompt
+rules 5 and 7 forbid exactly what `stage` and `panel` require. `stage` is deleted
+(148 landed it hours earlier — the reversal is a design call, not a defect in
+148); `panel` and corner bubble stay code-live but rule-dead; `side` (graphics
+left 1200px, host right 720px) becomes the second main mode alongside `full`.
+
+Run these in order — 151 and 152 both consume the geometry and lint 150 defines.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 150 | vf2-avatar-side-mode | deletes stage; `side` mode end to end (geometry, assemble, FCPXML, lint, `rewriteCanvas`); `mode` becomes REQUIRED; rewrites the 070 rulebook so mode is a real decision | — |
+| 151 | cards-side-contract-batch-a | side-ready contract in DESIGN.md, REQUIRED `side` boolean on all 48 fullframe cards, `check-side.mjs` gate, `card-qa --side`, deletes host-stage; converts the 21 reflowable cards | 150 |
+| 152 | cards-side-batch-b | converts the 27 dense cards (comparison, enacted, verdict, pros-cons); documents every card that stays `side: false` and why | 151 |
+
+Owner constraint running through 151/152, verbatim: *"I don't want to suffer the
+quality of the motion graphics just because we have a side avatar."* No scaling a
+1920 card into the column — a side-ready card reflows at full type size, and one
+that cannot declares `side: false` and is excluded by lint.
+
+- 150-vf2-avatar-side-mode — delete stage, add side-by-side avatar mode — TODO
+- 151-cards-side-contract-batch-a — side contract + gate + 21 cards — TODO (needs 150)
+- 152-cards-side-batch-b — the 27 dense cards — TODO (needs 151)
