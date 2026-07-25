@@ -78,6 +78,11 @@ if ! npm run check-catalog -s; then
   err "catalog contract validation failed"
 fi
 
+echo "==> side contract check"
+if ! npm run check-side -s; then
+  err "side contract validation failed"
+fi
+
 echo "==> nothing left untracked"
 untracked=$(git ls-files --others --exclude-standard . 2>/dev/null)
 if [ -n "$untracked" ]; then
