@@ -28,7 +28,13 @@
       "text": "It should be arranged left centered. Basically logos should be in one line",
       "at": "2026-07-24",
       "done": true,
-      "resolution": "rows left-aligned \u2014 icon tiles now stack in one vertical line"
+      "resolution": "rows left-aligned — icon tiles now stack in one vertical line"
+    },
+    {
+      "text": "why only first text is big , pls revert back to earlire text size",
+      "at": "2026-07-25",
+      "done": true,
+      "resolution": "Dropped the first-row hero rule entirely — parallel checklist rows, no hero. Restores the shared icon/pill left edge too."
     }
   ],
   "enacted/verdict-scale": [
@@ -61,6 +67,30 @@
       "at": "2026-07-24",
       "done": true,
       "resolution": "title 88px -> 112px weight 800, chip names 22 -> 26px"
+    }
+  ],
+  "slate/kinetic-sentence": [
+    {
+      "text": "too big text, revert back to earlier text size",
+      "at": "2026-07-25",
+      "done": true,
+      "resolution": "Reverted 148px -> 64px (and leading 1.0 -> 1.25). Tagged hero_shape \"prose\" so the 120px floor no longer applies."
+    }
+  ],
+  "comparison/credits-math": [
+    {
+      "text": "decrease heading text size",
+      "at": "2026-07-25",
+      "done": true,
+      "resolution": "Heading reverted 120px -> 40px; card tagged hero_shape \"none\" so the DATA is the largest text again."
+    }
+  ],
+  "statement/keyword-statement": [
+    {
+      "text": "too big text, revert back to earlier text size",
+      "at": "2026-07-25",
+      "done": true,
+      "resolution": "Reverted 150px -> 70px (leading 1.0 -> 1.18). Tagged hero_shape \"prose\"; accent plate no longer clips descenders."
     }
   ]
 }

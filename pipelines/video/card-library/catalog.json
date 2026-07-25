@@ -55,6 +55,7 @@
     },
     {
       "slug": "statement/keyword\u002dstatement",
+      "hero_shape": "prose",
       "kind": "single",
       "placement": "fullframe",
       "side": true,
@@ -108,6 +109,7 @@
     },
     {
       "slug": "checklist/icon\u002dpills",
+      "hero_shape": "none",
       "kind": "beat",
       "placement": "fullframe",
       "side": true,
@@ -1643,6 +1645,7 @@
     },
     {
       "slug": "comparison/credits\u002dmath",
+      "hero_shape": "none",
       "kind": "beat",
       "placement": "fullframe",
       "side": true,
@@ -1781,6 +1784,7 @@
     },
     {
       "slug": "slate/kinetic\u002dsentence",
+      "hero_shape": "prose",
       "kind": "word\u002dsync",
       "placement": "fullframe",
       "side": true,

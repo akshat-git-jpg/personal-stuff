@@ -29,7 +29,8 @@
         --text-dim: rgba(255, 239, 219, 0.62);
         --accent: #fb923c;
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
-        --hero-size: 150px; /* the whole statement line is the hero */
+        --hero-size: 70px; /* prose hero: a whole statement line, not a headline. At 150px it ran edge-to-edge and
+                              the .kw accent plate clipped descenders. See DESIGN.md → "Hero scale assumes a short hero". */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -42,7 +43,7 @@
 
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 140px; }
 
-      #line { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; max-width: 1500px; margin: 0 auto; }
+      #line { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.015em; line-height: 1.18; color: var(--text); text-align: center; max-width: 1500px; margin: 0 auto; }
       
       .mask { display: inline-block; overflow: hidden; vertical-align: top; margin-right: 0.26em; padding: 0.08em 0 0.18em; margin-top: -0.08em; margin-bottom: -0.18em; }
       #line > .mask:last-child, #line > .kw-phrase:last-child .mask:last-child { margin-right: 0; }

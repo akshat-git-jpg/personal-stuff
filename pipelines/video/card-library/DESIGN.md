@@ -76,7 +76,43 @@ appears in dividers and underlines never tells the eye where to land.
 **Big type means fewer words.** Growing the hero shrinks capacity, so
 `max_beats` / `max_reveal_chars` in `catalog.json` must come DOWN to match —
 verify with the `max` variant in `card-qa`, and reduce the declared capacity
-until it fits. Never shrink the hero to fit more words; cut the words.
+until it fits. On a **short-hero** card, never shrink the hero to fit more
+words; cut the words.
+
+### Hero scale assumes a SHORT hero
+
+Everything above is calibrated for a hero that is a title, a section name, or a
+number. Applied blind it breaks three card shapes — which is exactly what the
+2026-07-26 owner review caught: four cards, one bug. A card declares its shape
+in `catalog.json` via **`hero_shape`**; absent means `short`, so most of the
+library is unaffected.
+
+| `hero_shape` | The hero is… | Rule |
+|---|---|---|
+| `short` (default) | a title, section name, or number | 120–200px floor, 2.5× ratio. Unchanged. |
+| `prose` | a whole sentence — the sentence IS the card | Floor drops to **60px**. The ratio is skipped: the sentence is the only text there is, so "2.5× the next-largest" measures nothing. |
+| `none` | nothing — the card has no hero | Exempt from `--hero-size`, the floor, and the ratio. A `none` card must NOT declare `--hero-size`. |
+
+Two shapes qualify as `none`, for opposite reasons:
+
+- **Parallel lists** (`checklist/icon-pills`) — no item outranks another. Sizing
+  row 1 up invents a hierarchy the content does not have, and reads as a bug
+  rather than as emphasis. It also breaks the icon column: a 120px tile beside
+  72px ones pushes that row's pill off the shared left edge.
+- **Dense tables** (`comparison/credits-math`) — the DATA is what the card is
+  about; the heading only names it. Promoting the heading to 120px made it 3.75×
+  the rows it labels and inverted the hierarchy. On these cards the largest text
+  must be the content.
+
+At 120px+ a full sentence runs three lines edge-to-edge with no margin, and an
+accent plate behind it (`statement/keyword-statement`'s `.kw`) clips descenders
+once `line-height` goes to 1.0. **Leading follows size**: 1.0 is a hero setting.
+Prose at 64–70px wants 1.18–1.25, or the lines collide.
+
+**The other four levers are not shape-dependent.** Em-based tracking, full
+`--text` contrast, weight, and one accented word apply to every fullframe card.
+Only *scale* is shape-sensitive — a useful thing to know, because scale was the
+one lever that overshot when all five moved together.
 
 These rules are enforced by `scripts/check-type-scale.mjs`.
 

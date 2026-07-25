@@ -28,7 +28,7 @@
         --text-dim: rgba(255, 239, 219, 0.62);
         --accent: #fb923c;
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
-        --hero-size: 128px; /* no separate title on this card — the first row IS the hero (the opening point, everything after supports it) */
+        /* no --hero-size: parallel checklist rows, no hero (hero_shape "none" in catalog.json) */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -58,7 +58,7 @@
         flex: 0 0 auto; border-radius: 44px; 
         border: 2px solid var(--accent); background: rgba(0, 0, 0, 0.35); 
         box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 40%, transparent); 
-        padding: 18px 34px; font-size: 34px; font-weight: 600; color: #ffffff; 
+        padding: 18px 34px; font-size: 34px; font-weight: 600; letter-spacing: -0.015em; color: #ffffff;
         will-change: transform, opacity; white-space: pre-wrap; text-align: center;
       }
 
@@ -68,12 +68,11 @@
         border-radius: 8px; padding: 0 0.18em;
       }
 
-      /* first row is the hero: the opening point, sized up and weighted so the
-         eye lands there first; every row after it is supporting detail at the
-         original secondary size. */
-      .row:first-child .pill { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); }
-      .row:first-child .icon-tile { width: 120px; height: 120px; border-radius: 30px; }
-      .row:first-child .icon-tile svg { width: 60px; height: 60px; }
+      /* NO first-row hero. These rows are parallel checklist items — row 1 does not
+         outrank row 2, so sizing it up invents a hierarchy the content does not have
+         and reads as a bug. It also broke the icon-column alignment (a 120px tile
+         against 72px ones pushes row 1's pill out of the shared left edge).
+         hero_shape "none" in catalog.json. */
 
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
