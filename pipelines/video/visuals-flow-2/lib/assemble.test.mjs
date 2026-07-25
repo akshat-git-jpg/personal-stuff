@@ -695,3 +695,69 @@ test('assemblyMd tolerates register transitions with no segment indices', () => 
   assert.ok(md.includes('lift'));
   assert.ok(md.includes('n/a'));
 });
+
+test('Integration: ffmpeg runAssembly panel composite', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
+  const tmpDirPanel = path.join(testTmp, 'assembly-panel');
+  fs.rmSync(tmpDirPanel, { recursive: true, force: true });
+  const outPanel = path.join(testTmp, 'final-panel.mp4');
+  if (fs.existsSync(outPanel)) fs.unlinkSync(outPanel);
+
+  const screenMp4 = path.join(testTmp, 'screen-yellow.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=yellow:s=1920x1080:r=30', '-t', '5', '-pix_fmt', 'yuv420p', screenMp4]);
+  
+  const panelFile = path.join(testTmp, 'panel-blue.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=1920x1080:r=30', '-t', '5', '-pix_fmt', 'yuv420p', panelFile]);
+
+  const voMp3 = path.join(testTmp, 'vo.mp3');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-t', '5', '-q:a', '9', voMp3]);
+
+  const panelJobs = [
+    { kind: 'avatar-panel', id: 'p01', start: 1, end: 4, file: panelFile }
+  ];
+
+  const { runAssembly, planPanelGeometry } = await import('./assemble.mjs');
+  const { SHOT_CONSTANTS } = await import('./shot-constants.mjs');
+
+  await runAssembly({
+    workdir: testTmp,
+    video: 'it',
+    resolved: [],
+    avatarJobs: [],
+    panelJobs,
+    total: 5,
+    screen: screenMp4,
+    out: outPanel,
+    encoder: 'x264',
+    keepTemp: true,
+    transitions: 'none',
+    beats: 'off',
+    captions: 'off',
+    words: []
+  });
+
+  assert.ok(fs.existsSync(outPanel));
+  
+  const framePanel = path.join(testTmp, 'frame-panel.png');
+  spawnSync('ffmpeg', ['-y', '-ss', '2', '-i', outPanel, '-frames:v', '1', '-pix_fmt', 'gray', framePanel]);
+  
+  const getMeanY = (file, cropStr) => {
+    const p = spawnSync('ffprobe', ['-v', 'error', '-f', 'lavfi', '-i', `movie=${file},${cropStr},signalstats`, '-show_entries', 'frame_tags=lavfi.signalstats.YAVG', '-of', 'csv=p=0'], { encoding: 'utf8' });
+    return parseFloat(p.stdout);
+  };
+  
+  const g = planPanelGeometry({ canvas: { w: 1920, h: 1080 }, constants: SHOT_CONSTANTS });
+
+  const cropInside = `crop=${g.w - 100}:${g.h - 100}:${g.x + 50}:${g.y + 50}`;
+  const meanInside = getMeanY(framePanel, cropInside);
+  
+  const cropOutside = `crop=200:200:0:0`;
+  const meanOutside = getMeanY(framePanel, cropOutside);
+  
+  const cornerSize = 4;
+  const cropCorner = `crop=${cornerSize}:${cornerSize}:${g.x}:${g.y}`;
+  const meanCorner = getMeanY(framePanel, cropCorner);
+
+  assert.ok(Math.abs(meanInside - 29) < 10, `inside panel should be blue (Y~29), got ${meanInside}`);
+  assert.ok(Math.abs(meanOutside - 226) < 10, `outside panel should be yellow (Y~226), got ${meanOutside}`);
+  assert.ok(Math.abs(meanCorner - 226) < 10, `panel corner should be base color (Y~226), got ${meanCorner}`);
+});
