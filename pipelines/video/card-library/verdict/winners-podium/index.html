@@ -36,8 +36,8 @@
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
-      #root { position: relative; width: 1920px; height: 1080px; }
+      html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 100%; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 6%, rgba(250,204,21,0.14) -10%, var(--bg-from) 34%, var(--bg-to) 78%); }
 
       #confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
@@ -49,6 +49,14 @@
 
       /* columns row — gap + column count set at build from winner count */
       #cols { display: grid; gap: 40px; width: 100%; max-width: 1620px; align-items: stretch; justify-content: center; }
+
+      /* side mode (1200px canvas): the fixed per-column px widths (SCALE table,
+         sized for the 1920 canvas) no longer fit side by side. Let the columns
+         share the available width evenly instead of shrinking their contents —
+         font sizes and logo plates stay exactly the size SCALE picked. */
+      @media (max-width: 1300px) {
+        #cols { grid-template-columns: repeat(var(--n), 1fr) !important; }
+      }
 
       .col {
         position: relative; display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -144,6 +152,7 @@
 
       const colsWrap = document.getElementById('cols');
       colsWrap.style.gridTemplateColumns = `repeat(${N}, ${SCALE.col}px)`;
+      colsWrap.style.setProperty('--n', N);
       colsWrap.style.gap = SCALE.gap + 'px';
 
       const els = [];
@@ -184,14 +193,15 @@
       });
 
       // deterministic confetti field (40 pieces) — ported from verdict-trophy
+      const ROOT_W = document.getElementById('root').getBoundingClientRect().width;
       const CONFETTI = Array.from({ length: 40 }).map((_, i) => {
         const h = (i * 9301 + 49297) % 233280;
         const r = h / 233280;
         return {
           // spawn inside a safe band so sway + rotation never push a piece past
           // the frame edge (the board overflow probe flags ANY element leaving
-          // 1920x1080, parent overflow:hidden notwithstanding).
-          startX: 60 + r * 1800,
+          // the canvas, parent overflow:hidden notwithstanding).
+          startX: 60 + r * (ROOT_W - 120),
           startY: -50 - (((h * 7) % 233280) / 233280) * 200,
           fallSpeed: 1.4 + (((h * 11) % 233280) / 233280) * 2.4,
           swayPhase: (((h * 13) % 233280) / 233280) * Math.PI * 2,

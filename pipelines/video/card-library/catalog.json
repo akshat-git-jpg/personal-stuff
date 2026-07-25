@@ -1354,7 +1354,7 @@
       "slug": "verdict/verdict\u002dbadges",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "verdict card where the winner slides in and five achievement badges pop in one by one",
       "variables": {
         "eyebrow": {
@@ -1388,7 +1388,7 @@
       "slug": "verdict/verdict\u002dreport\u002dcard",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "verdict report card with a glowing letter grade; each sub\u002dgrade reveals on its beat",
       "variables": {
         "eyebrow": {
@@ -1445,7 +1445,7 @@
       "slug": "verdict/verdict\u002dtrophy",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "verdict card with confetti and a trophy dropping in before the winner card lifts with a gold pulse. ONE winner per card — a dual verdict gets one card per winner, back to back",
       "variables": {
         "eyebrow": {
@@ -1563,7 +1563,7 @@
       "slug": "verdict/winners\u002dpodium",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "side\u002dby\u002dside verdict winners over a confetti stage, one tool column per beat; scales 2\u002d4 winners (layout derives from count). Use for a multi\u002dwinner finale — co\u002dwinners (ranked:false, all gold) or a ranked podium (ranked:true → gold/silver/bronze/steel). ONE tool per beat.",
       "variables": {
         "eyebrow": {
@@ -1606,7 +1606,7 @@
       "slug": "verdict/persona\u002dmatch",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "use\u002dcase verdict: persona → winning tool pairs, one pair per beat",
       "variables": {
         "title": {
