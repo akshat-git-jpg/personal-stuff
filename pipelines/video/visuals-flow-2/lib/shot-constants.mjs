@@ -15,4 +15,5 @@ export const SHOT_CONSTANTS = {
   PANEL_WIDTH_FRAC:   { value: 0.28, rule: 'A panel-mode avatar occupies 28% of canvas width, inset bottom-right, preserving the source clip aspect ratio.' },
   PANEL_INSET_PX:     { value: 32,   rule: 'A panel-mode avatar sits 32px from the right and bottom canvas edges.' },
   PANEL_RADIUS_PX:    { value: 24,   rule: 'A panel-mode avatar is masked to a rounded rectangle of radius 24px.' },
+  STAGE_HEAD_RADIUS_PX: { value: 24, rule: 'A stage-mode avatar is masked to a rounded rectangle of radius 24px inside the card head zone.' },
 };

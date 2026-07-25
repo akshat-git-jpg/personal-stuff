@@ -227,7 +227,7 @@ This README is the schema's single home (same one-place rule as cues.json).
 Field semantics:
 - `from_anchor`/`to_anchor` (verbatim, ≥3 words, forward order; span = first word of from_anchor → last word of to_anchor)
 - `kind` (`avatar-full` only today; enum exists for additive future kinds)
-- `mode` (`full` | `panel`, default `full`; how the avatar is presented on screen)
+- `mode` (`full` | `panel` | `stage`, default `full`; how the avatar is presented on screen). A stage span **must be fully contained inside ONE fullframe cue whose card declares a `head_zone`**.
 - `engineMode` (`test` = every span renders HeyGen 3 template; `production` = full-screen→HeyGen 4, corner→HeyGen 3 — **a validation error until the owner explicitly enables it**)
 - `flagged` (parked span)
 - `approved` (board gate, same lifecycle as cues.json)

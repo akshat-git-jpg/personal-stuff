@@ -32,7 +32,7 @@ export function resolveShots(shotsFile, words) {
     if (span.flagged) continue; // parked, same semantics as flagged cues
     if (span.kind !== 'avatar-full') { errors.push(`${span.id}: unknown kind "${span.kind}" — only "avatar-full" exists today`); continue; }
     const mode = span.mode ?? 'full';
-    if (mode !== 'full' && mode !== 'panel') { errors.push(`${span.id}: unknown mode "${span.mode}" — must be "full" or "panel"`); continue; }
+    if (mode !== 'full' && mode !== 'panel' && mode !== 'stage') { errors.push(`${span.id}: unknown mode "${span.mode}" — must be "full", "panel", or "stage"`); continue; }
     const a = findPhrase(W, span.from_anchor ?? '', cursor);
     if (a.err) { errors.push(`${span.id} from_anchor: ${a.err}`); continue; }
     const b = findPhrase(W, span.to_anchor ?? '', a.idx + a.len);

@@ -119,30 +119,26 @@ test('snap at 1.4s, no snap at 1.6s, sets snapped flag', () => {
 });
 
 test('absent mode defaults to full', () => {
-  const { spans, errors } = resolveShots({
-    engineMode: 'test',
-    spans: [{ id: 's01', kind: 'avatar-full', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }]
-  }, words);
-  assert.deepEqual(errors, []);
-  assert.equal(spans.length, 1);
+  const { spans, errors } = resolveShots({ engineMode: 'test', spans: [{ id: 's01', kind: 'avatar-full', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }] }, words);
+  assert.equal(errors.length, 0);
   assert.equal(spans[0].mode, 'full');
 });
 
 test('mode: "panel" is carried through', () => {
-  const { spans, errors } = resolveShots({
-    engineMode: 'test',
-    spans: [{ id: 's01', kind: 'avatar-full', mode: 'panel', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }]
-  }, words);
-  assert.deepEqual(errors, []);
-  assert.equal(spans.length, 1);
+  const { spans, errors } = resolveShots({ engineMode: 'test', spans: [{ id: 's01', kind: 'avatar-full', mode: 'panel', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }] }, words);
+  assert.equal(errors.length, 0);
   assert.equal(spans[0].mode, 'panel');
 });
 
+test('mode: "stage" is carried through', () => {
+  const { spans, errors } = resolveShots({ engineMode: 'test', spans: [{ id: 's01', kind: 'avatar-full', mode: 'stage', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }] }, words);
+  assert.equal(errors.length, 0);
+  assert.equal(spans[0].mode, 'stage');
+});
+
 test('mode: "bogus" -> error mentioning bogus', () => {
-  const { errors } = resolveShots({
-    engineMode: 'test',
-    spans: [{ id: 's01', kind: 'avatar-full', mode: 'bogus', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }]
-  }, words);
+  const { spans, errors } = resolveShots({ engineMode: 'test', spans: [{ id: 's01', kind: 'avatar-full', mode: 'bogus', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }] }, words);
   assert.equal(errors.length, 1);
   assert.ok(errors[0].includes('bogus'));
+  assert.equal(spans.length, 0);
 });
