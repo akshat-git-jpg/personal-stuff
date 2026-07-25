@@ -1,10 +1,10 @@
 {
   "cards": [
     {
-      "slug": "prompt/prompt-typing",
+      "slug": "prompt/prompt\u002dtyping",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "a 'Prompt' panel that types its text out over the clip; [m:ss] timestamp tags glow orange, a caret blinks, the box auto-scrolls \u2014 for showing an AI-tool/video prompt being written",
+      "purpose": "a 'Prompt' panel that types its text out over the clip; [m:ss] timestamp tags glow orange, a caret blinks, the box auto\u002dscrolls — for showing an AI\u002dtool/video prompt being written",
       "variables": {
         "title": {
           "required": true,
@@ -22,10 +22,10 @@
       "default_duration": 12
     },
     {
-      "slug": "tool-icon/tool-glass-tile",
+      "slug": "tool\u002dicon/tool\u002dglass\u002dtile",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "hero for one tool/model: a glassy app-icon tile with the tool's (muted) logo, its name beneath, and an optional subtitle \u2014 the 'this is the tool' beat",
+      "purpose": "hero for one tool/model: a glassy app\u002dicon tile with the tool's (muted) logo, its name beneath, and an optional subtitle — the 'this is the tool' beat",
       "variables": {
         "logo": {
           "type": "string",
@@ -46,16 +46,16 @@
           "role": "descriptor",
           "max_words": 6,
           "omit_unless": "it states what the tool IS or DOES in words the logo and name do not already carry. Never flow narration about the video itself ('First up in the demo', 'Next tool').",
-          "example": "Caption-first short-form editor"
+          "example": "Caption\u002dfirst short\u002dform editor"
         }
       },
       "default_duration": 6
     },
     {
-      "slug": "statement/keyword-statement",
+      "slug": "statement/keyword\u002dstatement",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "a single punchy centered statement revealed word-by-word with one keyword phrase highlighted in the accent \u2014 a standalone emphasis beat (distinct from running captions)",
+      "purpose": "a single punchy centered statement revealed word\u002dby\u002dword with one keyword phrase highlighted in the accent — a standalone emphasis beat (distinct from running captions)",
       "variables": {
         "text": {
           "required": true,
@@ -103,10 +103,10 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "checklist/icon-pills",
+      "slug": "checklist/icon\u002dpills",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "vertical list of icon-tile + text-pill rows revealing one per beat, accent-outlined with a soft glow; optional keyword highlight per row \u2014 for enumerating features/capabilities",
+      "purpose": "vertical list of icon\u002dtile + text\u002dpill rows revealing one per beat, accent\u002doutlined with a soft glow; optional keyword highlight per row — for enumerating features/capabilities",
       "variables": {},
       "beat_shape": {
         "icon": {
@@ -150,7 +150,7 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "comparison/bar-chart",
+      "slug": "comparison/bar\u002dchart",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "horizontal bar chart racing from zero to each product's value",
@@ -199,7 +199,7 @@
       "default_duration": 6
     },
     {
-      "slug": "comparison/billing-discount",
+      "slug": "comparison/billing\u002ddiscount",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "monthly vs yearly plan cards side by side with a savings stamp on the yearly plan",
@@ -238,7 +238,7 @@
       "default_duration": 7
     },
     {
-      "slug": "comparison/checkout-summary",
+      "slug": "comparison/checkout\u002dsummary",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "cart summary panel where a coupon code applies and the total counts down",
@@ -289,7 +289,7 @@
       "default_duration": 7
     },
     {
-      "slug": "comparison/comparison-storm-cascade",
+      "slug": "comparison/comparison\u002dstorm\u002dcascade",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "comparison table over a storm/particle background; rows cascade in and the winner column glows",
@@ -328,7 +328,7 @@
       "default_duration": 13
     },
     {
-      "slug": "comparison/comparison-tier-list",
+      "slug": "comparison/comparison\u002dtier\u002dlist",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "S/A/B/C/F tier list ranking tools with logo pills sliding into each tier row",
@@ -343,7 +343,7 @@
       "default_duration": 13
     },
     {
-      "slug": "comparison/feature-matrix",
+      "slug": "comparison/feature\u002dmatrix",
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "feature comparison matrix; each row of check/cross/value cells reveals on its beat",
@@ -373,10 +373,10 @@
       "pre_beat_render": "frame"
     },
     {
-      "slug": "comparison/head-to-head",
+      "slug": "comparison/head\u002dto\u002dhead",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "two-contender VS panel with stats stacked on each side and a center VS badge",
+      "purpose": "two\u002dcontender VS panel with stats stacked on each side and a center VS badge",
       "variables": {
         "left": {
           "type": "object",
@@ -460,10 +460,10 @@
       "default_duration": 5.5
     },
     {
-      "slug": "comparison/pricing-tiers",
+      "slug": "comparison/pricing\u002dtiers",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "2-3 column pricing plan cards with one plan flagged as recommended",
+      "purpose": "2\u002d3 column pricing plan cards with one plan flagged as recommended",
       "variables": {
         "heading": {
           "required": true,
@@ -531,10 +531,10 @@
       "default_duration": 8
     },
     {
-      "slug": "comparison/savings-stacker",
+      "slug": "comparison/savings\u002dstacker",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "full-price bar that slices off discount chunks one by one down to a final price",
+      "purpose": "full\u002dprice bar that slices off discount chunks one by one down to a final price",
       "variables": {
         "title": {
           "required": true,
@@ -572,7 +572,7 @@
               "type": "string",
               "required": true,
               "role": "value",
-              "example": "-20%"
+              "example": "\u002d20%"
             }
           }
         }
@@ -580,7 +580,7 @@
       "default_duration": 8
     },
     {
-      "slug": "comparison/summary-table",
+      "slug": "comparison/summary\u002dtable",
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "scored comparison matrix with a reason column; each factor row reveals on its beat",
@@ -620,10 +620,10 @@
       "pre_beat_render": "frame"
     },
     {
-      "slug": "like-subscribe/like-subscribe",
+      "slug": "like\u002dsubscribe/like\u002dsubscribe",
       "kind": "single",
       "placement": "overlay",
-      "purpose": "chroma-key subscribe button overlay that rings the bell and presses on click",
+      "purpose": "chroma\u002dkey subscribe button overlay that rings the bell and presses on click",
       "variables": {
         "subscribeText": {
           "required": true,
@@ -635,11 +635,11 @@
       "default_duration": 5
     },
     {
-      "slug": "link-in-description/link-in-description",
+      "slug": "link\u002din\u002ddescription/link\u002din\u002ddescription",
       "kind": "single",
       "placement": "overlay",
       "chroma": "0x00b140",
-      "purpose": "chroma-key pill overlay pointing viewers to the link in the description",
+      "purpose": "chroma\u002dkey pill overlay pointing viewers to the link in the description",
       "variables": {
         "message": {
           "required": true,
@@ -651,10 +651,10 @@
       "default_duration": 4
     },
     {
-      "slug": "overlay/code-reveal",
+      "slug": "overlay/code\u002dreveal",
       "kind": "single",
       "placement": "overlay",
-      "purpose": "transparent overlay decoding a redacted coupon code with a copy-flash sweep",
+      "purpose": "transparent overlay decoding a redacted coupon code with a copy\u002dflash sweep",
       "variables": {
         "eyebrow": {
           "required": true,
@@ -684,10 +684,10 @@
       "default_duration": 5
     },
     {
-      "slug": "overlay/deal-stamp",
+      "slug": "overlay/deal\u002dstamp",
       "kind": "single",
       "placement": "overlay",
-      "purpose": "transparent overlay slamming in a discounted price with a strike-through original and save stamp",
+      "purpose": "transparent overlay slamming in a discounted price with a strike\u002dthrough original and save stamp",
       "variables": {
         "eyebrow": {
           "required": true,
@@ -735,10 +735,10 @@
       "default_duration": 5
     },
     {
-      "slug": "overlay/lower-third",
+      "slug": "overlay/lower\u002dthird",
       "kind": "single",
       "placement": "overlay",
-      "purpose": "transparent lower-third name + subtitle pill sliding in at bottom-left",
+      "purpose": "transparent lower\u002dthird name + subtitle pill sliding in at bottom\u002dleft",
       "variables": {
         "name": {
           "required": true,
@@ -756,7 +756,7 @@
       "default_duration": 5
     },
     {
-      "slug": "overlay/savings-badge",
+      "slug": "overlay/savings\u002dbadge",
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent overlay punching in a big savings amount next to a round seal",
@@ -804,16 +804,16 @@
           "example": "center",
           "enum": [
             "center",
-            "bottom-left",
-            "bottom-right",
-            "top-right"
+            "bottom\u002dleft",
+            "bottom\u002dright",
+            "top\u002dright"
           ]
         }
       },
       "default_duration": 5
     },
     {
-      "slug": "overlay/score-pill",
+      "slug": "overlay/score\u002dpill",
       "kind": "single",
       "placement": "overlay",
       "purpose": "spoken score badge: label + animated N/10 pill (optional logo; gold only when winner) at the second the score is said",
@@ -846,10 +846,10 @@
       "default_duration": 4
     },
     {
-      "slug": "overlay/step-card",
+      "slug": "overlay/step\u002dcard",
       "kind": "single",
       "placement": "overlay",
-      "purpose": "transparent step-progress pill (Step X of Y) with a progress-dot row for tutorial footage",
+      "purpose": "transparent step\u002dprogress pill (Step X of Y) with a progress\u002ddot row for tutorial footage",
       "variables": {
         "step": {
           "required": true,
@@ -869,10 +869,10 @@
       "default_duration": 5
     },
     {
-      "slug": "overlay/tip-banner",
+      "slug": "overlay/tip\u002dbanner",
       "kind": "single",
       "placement": "overlay",
-      "purpose": "transparent full-width tip/warning banner sliding in along the bottom or top edge",
+      "purpose": "transparent full\u002dwidth tip/warning banner sliding in along the bottom or top edge",
       "variables": {
         "kind": {
           "required": true,
@@ -916,10 +916,10 @@
       ]
     },
     {
-      "slug": "overlay/verdict-chips",
+      "slug": "overlay/verdict\u002dchips",
       "kind": "beat",
       "placement": "overlay",
-      "purpose": "spoken pros/cons pinned to footage: green-check / rose-cross pill chips tick in one per beat and persist, anchored bottom-left",
+      "purpose": "spoken pros/cons pinned to footage: green\u002dcheck / rose\u002dcross pill chips tick in one per beat and persist, anchored bottom\u002dleft",
       "variables": {},
       "beat_shape": {
         "text": {
@@ -941,10 +941,10 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "pros-cons/pros-cons",
+      "slug": "pros\u002dcons/pros\u002dcons",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "two-column pros vs cons; each row reveals on its beat",
+      "purpose": "two\u002dcolumn pros vs cons; each row reveals on its beat",
       "variables": {
         "title": {
           "required": true,
@@ -977,7 +977,7 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "section/bullet-points",
+      "slug": "section/bullet\u002dpoints",
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "plain numbered agenda list; each row reveals on its beat",
@@ -1003,10 +1003,10 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "section/bullet-points-highlighted",
+      "slug": "section/bullet\u002dpoints\u002dhighlighted",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "re-shown table-of-contents that dims done/upcoming items and highlights the current section",
+      "purpose": "re\u002dshown table\u002dof\u002dcontents that dims done/upcoming items and highlights the current section",
       "variables": {
         "eyebrow": {
           "required": true,
@@ -1034,10 +1034,10 @@
       "default_duration": 6
     },
     {
-      "slug": "section/key-takeaways",
+      "slug": "section/key\u002dtakeaways",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "end-of-video recap; each takeaway ticks in with a check badge on its beat",
+      "purpose": "end\u002dof\u002dvideo recap; each takeaway ticks in with a check badge on its beat",
       "variables": {
         "eyebrow": {
           "required": true,
@@ -1066,7 +1066,7 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "section/section-card-flip",
+      "slug": "section/section\u002dcard\u002dflip",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "section divider where a glass card flips up from below and settles with a spring bounce",
@@ -1088,7 +1088,7 @@
       "structural": true
     },
     {
-      "slug": "section/section-counter-scale",
+      "slug": "section/section\u002dcounter\u002dscale",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "section divider where a big number counts up then scales down as the title and dots ripple in",
@@ -1120,7 +1120,7 @@
       "structural": true
     },
     {
-      "slug": "section/section-particle-storm",
+      "slug": "section/section\u002dparticle\u002dstorm",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "section divider with drifting light streaks and particles behind an elastic title pop",
@@ -1142,10 +1142,10 @@
       "structural": true
     },
     {
-      "slug": "table-of-contents/table-of-contents",
+      "slug": "table\u002dof\u002dcontents/table\u002dof\u002dcontents",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "numbered table-of-contents list; each row reveals on its beat",
+      "purpose": "numbered table\u002dof\u002dcontents list; each row reveals on its beat",
       "variables": {
         "eyebrow": {
           "required": true,
@@ -1168,14 +1168,14 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "title/title-aurora-wave",
+      "slug": "title/title\u002daurora\u002dwave",
       "kind": "single",
       "placement": "fullframe",
       "roles": [
         "title",
-        "comparison-coldopen"
+        "comparison\u002dcoldopen"
       ],
-      "purpose": "title card with drifting aurora blobs and a light bar that wipes logo chips into view \u2014 THE cold-open pick for multi-product comparisons (products become the visual hero)",
+      "purpose": "title card with drifting aurora blobs and a light bar that wipes logo chips into view — THE cold\u002dopen pick for multi\u002dproduct comparisons (products become the visual hero)",
       "variables": {
         "title": {
           "required": true,
@@ -1205,14 +1205,14 @@
       "default_duration": 10
     },
     {
-      "slug": "title/title-cinematic-float",
+      "slug": "title/title\u002dcinematic\u002dfloat",
       "kind": "single",
       "placement": "fullframe",
       "roles": [
         "title",
-        "comparison-coldopen"
+        "comparison\u002dcoldopen"
       ],
-      "purpose": "title card with a breathing vignette background; title scales in and uniform tool tiles cascade then gently bob \u2014 a strong comparison cold-open (products are the hero, every tile identical size)",
+      "purpose": "title card with a breathing vignette background; title scales in and uniform tool tiles cascade then gently bob — a strong comparison cold\u002dopen (products are the hero, every tile identical size)",
       "variables": {
         "title": {
           "required": true,
@@ -1242,13 +1242,13 @@
       "default_duration": 10
     },
     {
-      "slug": "title/title-versus",
+      "slug": "title/title\u002dversus",
       "kind": "single",
       "placement": "fullframe",
       "roles": [
-        "comparison-coldopen"
+        "comparison\u002dcoldopen"
       ],
-      "purpose": "comparison cold open: two large logo tiles side by side with the product name beneath each and a VS badge between \u2014 the compared products ARE the visual hero",
+      "purpose": "comparison cold open: two large logo tiles side by side with the product name beneath each and a VS badge between — the compared products ARE the visual hero",
       "variables": {
         "title": {
           "type": "string",
@@ -1281,10 +1281,10 @@
       "default_duration": 10
     },
     {
-      "slug": "title/title-kinetic-lines",
+      "slug": "title/title\u002dkinetic\u002dlines",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "title card with kinetic line-by-line text reveal for kicker, title, and subtitle",
+      "purpose": "title card with kinetic line\u002dby\u002dline text reveal for kicker, title, and subtitle",
       "variables": {
         "kicker": {
           "required": true,
@@ -1308,7 +1308,7 @@
       "default_duration": 10
     },
     {
-      "slug": "title/title-storm-pop",
+      "slug": "title/title\u002dstorm\u002dpop",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "title card with a storm background and the title popping in with an elastic overshoot",
@@ -1323,7 +1323,7 @@
       "default_duration": 10
     },
     {
-      "slug": "verdict/verdict-badges",
+      "slug": "verdict/verdict\u002dbadges",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "verdict card where the winner slides in and five achievement badges pop in one by one",
@@ -1356,10 +1356,10 @@
       "default_duration": 8
     },
     {
-      "slug": "verdict/verdict-report-card",
+      "slug": "verdict/verdict\u002dreport\u002dcard",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "verdict report card with a glowing letter grade; each sub-grade reveals on its beat",
+      "purpose": "verdict report card with a glowing letter grade; each sub\u002dgrade reveals on its beat",
       "variables": {
         "eyebrow": {
           "required": true,
@@ -1412,10 +1412,10 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "verdict/verdict-trophy",
+      "slug": "verdict/verdict\u002dtrophy",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "verdict card with confetti and a trophy dropping in before the winner card lifts with a gold pulse. ONE winner per card \u2014 a dual verdict gets one card per winner, back to back",
+      "purpose": "verdict card with confetti and a trophy dropping in before the winner card lifts with a gold pulse. ONE winner per card — a dual verdict gets one card per winner, back to back",
       "variables": {
         "eyebrow": {
           "required": true,
@@ -1445,10 +1445,10 @@
       "default_duration": 7
     },
     {
-      "slug": "overlay/stat-hit",
+      "slug": "overlay/stat\u002dhit",
       "kind": "single",
       "placement": "overlay",
-      "purpose": "big animated stat: count-up hero number + label + context line, transparent overlay for demo footage",
+      "purpose": "big animated stat: count\u002dup hero number + label + context line, transparent overlay for demo footage",
       "variables": {
         "eyebrow": {
           "required": true,
@@ -1482,7 +1482,7 @@
       "default_duration": 5
     },
     {
-      "slug": "section/tool-intro",
+      "slug": "section/tool\u002dintro",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "section opener for one tool/product: TOOL N OF M progress, huge name, positioning line, category chip",
@@ -1534,10 +1534,10 @@
       }
     },
     {
-      "slug": "verdict/winners-podium",
+      "slug": "verdict/winners\u002dpodium",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "side-by-side verdict winners over a confetti stage, one tool column per beat; scales 2-4 winners (layout derives from count). Use for a multi-winner finale \u2014 co-winners (ranked:false, all gold) or a ranked podium (ranked:true \u2192 gold/silver/bronze/steel). ONE tool per beat.",
+      "purpose": "side\u002dby\u002dside verdict winners over a confetti stage, one tool column per beat; scales 2\u002d4 winners (layout derives from count). Use for a multi\u002dwinner finale — co\u002dwinners (ranked:false, all gold) or a ranked podium (ranked:true → gold/silver/bronze/steel). ONE tool per beat.",
       "variables": {
         "eyebrow": {
           "required": true,
@@ -1576,10 +1576,10 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "verdict/persona-match",
+      "slug": "verdict/persona\u002dmatch",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "use-case verdict: persona \u2192 winning tool pairs, one pair per beat",
+      "purpose": "use\u002dcase verdict: persona → winning tool pairs, one pair per beat",
       "variables": {
         "title": {
           "required": true,
@@ -1614,10 +1614,10 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "comparison/credits-math",
+      "slug": "comparison/credits\u002dmath",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "credit/unit economics rows: plan \u2192 credits \u2192 what that actually buys, one row per beat",
+      "purpose": "credit/unit economics rows: plan → credits → what that actually buys, one row per beat",
       "variables": {
         "title": {
           "required": true,
@@ -1658,7 +1658,7 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "process/step-flow",
+      "slug": "process/step\u002dflow",
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "numbered step flow: process walkthrough nodes revealing left to right, one step per beat",
@@ -1684,10 +1684,10 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "comparison/table-rows",
+      "slug": "comparison/table\u002drows",
       "kind": "beat",
       "placement": "fullframe",
-      "purpose": "comparison table that builds one row per beat as each product's numbers are spoken; cells pipe-separated in beat text",
+      "purpose": "comparison table that builds one row per beat as each product's numbers are spoken; cells pipe\u002dseparated in beat text",
       "variables": {
         "title": {
           "required": true,
@@ -1706,7 +1706,7 @@
           "type": "string",
           "role": "sentence",
           "example": "Kling 3.0|15s|1080p|*30 cr",
-          "note": "pipe-separated cells; prefix a non-first cell with * to render it as a GOOD (green) pill or ! as a BAD (rose) pill \u2014 mark the standout value per column"
+          "note": "pipe\u002dseparated cells; prefix a non\u002dfirst cell with * to render it as a GOOD (green) pill or ! as a BAD (rose) pill — mark the standout value per column"
         },
         "logo": {
           "required": false,
@@ -1721,7 +1721,7 @@
       "pre_beat_render": "frame"
     },
     {
-      "slug": "slate/headline-chips",
+      "slug": "slate/headline\u002dchips",
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "canvas beat: a spoken headline sentence plus pill chips ticking in one per beat (lists, consequences, criteria)",
@@ -1731,7 +1731,7 @@
           "required": true,
           "role": "heading",
           "max_words": 7,
-          "example": "Publish-ready beats raw speed"
+          "example": "Publish\u002dready beats raw speed"
         }
       },
       "beat_shape": {
@@ -1748,10 +1748,10 @@
       "pre_beat_render": "chrome"
     },
     {
-      "slug": "slate/kinetic-sentence",
-      "kind": "word-sync",
+      "slug": "slate/kinetic\u002dsentence",
+      "kind": "word\u002dsync",
       "placement": "fullframe",
-      "purpose": "one spoken sentence alone on the ambient canvas; words appear as spoken and an accent phrase colorizes with them; used INSTEAD of a talking-head bridge",
+      "purpose": "one spoken sentence alone on the ambient canvas; words appear as spoken and an accent phrase colorizes with them; used INSTEAD of a talking\u002dhead bridge",
       "variables": {
         "text": {
           "required": true,
@@ -1783,7 +1783,7 @@
       "max_reveal_chars": 24
     },
     {
-      "slug": "enacted/fill-gauge",
+      "slug": "enacted/fill\u002dgauge",
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "a labeled vessel fills stepwise; each beat adds a measured pour + label chip",
@@ -1829,7 +1829,7 @@
       "max_reveal_chars": 40
     },
     {
-      "slug": "enacted/race-bars",
+      "slug": "enacted/race\u002dbars",
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "Products race as horizontal bars; each beat advances all bars to given values; a stalled bar visibly judders and stops",
@@ -1881,7 +1881,7 @@
       "max_reveal_chars": 40
     },
     {
-      "slug": "enacted/counter-tally",
+      "slug": "enacted/counter\u002dtally",
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "One huge number rolls to each beat's value; a tick strip accumulates marks underneath",
@@ -1927,7 +1927,7 @@
       "max_reveal_chars": 40
     },
     {
-      "slug": "enacted/pipeline-flow",
+      "slug": "enacted/pipeline\u002dflow",
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "A node chain with a pulse that travels; each beat lights the named step",
@@ -2009,10 +2009,10 @@
       "max_reveal_chars": 40
     },
     {
-      "slug": "enacted/before-after",
+      "slug": "enacted/before\u002dafter",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "Split panel; an accent slider sweeps left->right revealing AFTER over BEFORE",
+      "purpose": "Split panel; an accent slider sweeps left\u002d>right revealing AFTER over BEFORE",
       "variables": {
         "title": {
           "required": true,
@@ -2069,7 +2069,7 @@
       ]
     },
     {
-      "slug": "enacted/spotlight-focus",
+      "slug": "enacted/spotlight\u002dfocus",
       "kind": "single",
       "placement": "fullframe",
       "purpose": "A dimmed grid of items; a spotlight sweeps then locks on focus, others fall to 25% opacity",
@@ -2105,14 +2105,14 @@
       ],
       "marker": true,
       "intent": "Highlight one specific item out of many alternatives.",
-      "anti_intent": "Showing sequential progress or comparing two items head-to-head.",
+      "anti_intent": "Showing sequential progress or comparing two items head\u002dto\u002dhead.",
       "variants": [
         "a",
         "b"
       ]
     },
     {
-      "slug": "enacted/timeline-scrub",
+      "slug": "enacted/timeline\u002dscrub",
       "kind": "beat",
       "placement": "fullframe",
       "purpose": "A horizontal timeline; the playhead jumps to each beat's marker, stamping a label above it",
@@ -2147,10 +2147,10 @@
       "max_reveal_chars": 40
     },
     {
-      "slug": "enacted/terminal-enact",
+      "slug": "enacted/terminal\u002denact",
       "kind": "single",
       "placement": "fullframe",
-      "purpose": "A zsh-style window slides in and TYPES command with a blinking caret, then prints output. (This is the \"show the real thing\" device \u2014 the command must be real, never pseudo-code.)",
+      "purpose": "A zsh\u002dstyle window slides in and TYPES command with a blinking caret, then prints output. (This is the \"show the real thing\" device — the command must be real, never pseudo\u002dcode.)",
       "variables": {
         "title": {
           "required": false,
@@ -2178,11 +2178,109 @@
       ],
       "marker": true,
       "intent": "Show a real terminal command being executed.",
-      "anti_intent": "Explaining concepts with pseudo-code or abstract steps.",
+      "anti_intent": "Explaining concepts with pseudo\u002dcode or abstract steps.",
       "variants": [
         "a",
         "b"
       ]
+    },
+    {
+      "slug": "enacted/promise\u002dsplit",
+      "kind": "single",
+      "placement": "fullframe",
+      "purpose": "two products share one promise, then the frame splits and each side takes the bet it actually makes: for the sentence shape \"A and B both promise X, but one does P and the other does Q\"",
+      "variables": {
+        "promise": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "max_words": 8,
+          "example": "Both promise viral\u002dready shorts"
+        },
+        "left": {
+          "type": "object",
+          "required": true,
+          "shape": {
+            "name": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "max_words": 3,
+              "example": "Submagic"
+            },
+            "logo": {
+              "type": "string",
+              "required": false,
+              "role": "logo_slug",
+              "example": "submagic"
+            },
+            "verdict": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "max_words": 5,
+              "example": "Output ready to publish"
+            }
+          }
+        },
+        "right": {
+          "type": "object",
+          "required": true,
+          "shape": {
+            "name": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "max_words": 3,
+              "example": "OpusClip"
+            },
+            "logo": {
+              "type": "string",
+              "required": false,
+              "role": "logo_slug",
+              "example": "opusclip"
+            },
+            "verdict": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "max_words": 5,
+              "example": "Speed at all costs"
+            }
+          }
+        }
+      },
+      "default_duration": 8,
+      "roles": [
+        "comparison\u002dcoldopen"
+      ],
+      "intent": "One spoken sentence sets a shared promise and then divides it into two opposing bets; the split enacts the divergence.",
+      "anti_intent": "More than two products, no shared promise, or numeric stats (use head\u002dto\u002dhead or table\u002drows)."
+    },
+    {
+      "slug": "link\u002din\u002ddescription/link\u002dscrim",
+      "kind": "single",
+      "placement": "overlay",
+      "purpose": "full\u002dframe dim scrim behind a centred link lockup with a nudging down\u002darrow: the high\u002dsalience \"links in the description\" call\u002dout",
+      "variables": {
+        "message": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "max_words": 6,
+          "example": "Links in the description"
+        },
+        "kicker": {
+          "required": false,
+          "type": "string",
+          "role": "label",
+          "max_words": 4,
+          "example": "Try both tools"
+        }
+      },
+      "default_duration": 5,
+      "intent": "The VO points the viewer to the description and it must actually land; dimming the footage removes every competing target.",
+      "anti_intent": "A passing mention of the link mid\u002ddemo where dimming the screen would hide something the viewer needs to see."
     }
   ]
 }

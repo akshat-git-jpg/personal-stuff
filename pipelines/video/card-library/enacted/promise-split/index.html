@@ -1,0 +1,151 @@
+<!doctype html>
+<!--
+  COMPARISON · Promise Split
+  Two products share ONE promise, then the frame splits and each side takes the
+  bet it actually makes. Built for the sentence shape "A and B both promise X,
+  but one does P and the other does Q" — the split ENACTS the divergence instead
+  of captioning it.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and the     │
+  │  :root colors. Do NOT touch the  ===== TIMELINE (LOCKED) =====  script.  │
+  └─────────────────────────────────────────────────────────────────────────┘
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Promise Split</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #0d0906;
+        --accent: #fb923c;
+        --accent-2: #facc15;
+        --text: #ffffff;
+        --dim: rgba(255, 255, 255, 0.62);
+        --panel: rgba(255, 255, 255, 0.045);
+        --stroke: rgba(255, 255, 255, 0.1);
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; font-family: var(--font); color: var(--text); background: var(--bg); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+      #bg { position: absolute; inset: 0; background:
+        radial-gradient(circle at 22% 26%, rgba(251,146,60,0.20) 0%, transparent 58%),
+        radial-gradient(circle at 80% 78%, rgba(250,204,21,0.13) 0%, transparent 60%),
+        var(--bg); }
+
+      #promise { position: absolute; top: 118px; left: 0; right: 0; text-align: center; }
+      #promiseText { font-size: 46px; font-weight: 600; letter-spacing: -0.4px; color: var(--dim); }
+      #promiseText b { color: var(--text); font-weight: 700; }
+
+      #split { position: absolute; left: 960px; top: 250px; width: 2px; height: 620px;
+        background: linear-gradient(180deg, transparent, var(--accent) 22%, var(--accent) 78%, transparent);
+        transform-origin: 50% 50%; opacity: 0; }
+
+      #stage { position: absolute; top: 262px; left: 0; right: 0; display: flex; justify-content: center; gap: 150px; }
+      .side { width: 620px; display: flex; flex-direction: column; align-items: center; }
+      .tile { width: 168px; height: 168px; border-radius: 34px; background: var(--panel);
+        border: 1px solid var(--stroke); display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 18px 48px rgba(0,0,0,0.42); }
+      .tile img { width: 58%; height: 58%; object-fit: contain; filter: saturate(0.5) brightness(0.95); opacity: 0.9; }
+      .tile .fallback { font-size: 68px; font-weight: 800; color: var(--dim); }
+      .name { margin-top: 26px; font-size: 42px; font-weight: 700; letter-spacing: -0.5px; }
+      .verdict { margin-top: 30px; padding: 18px 34px; border-radius: 999px;
+        background: rgba(251,146,60,0.10); border: 1px solid rgba(251,146,60,0.34);
+        font-size: 34px; font-weight: 600; color: var(--text); white-space: nowrap; }
+      .rule { margin-top: 26px; width: 96px; height: 3px; border-radius: 2px; background: var(--accent); transform: scaleX(0); transform-origin: 50% 50%; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="promise-split"
+      data-start="0"
+      data-duration="8"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"promise":"Both promise viral-ready shorts","left":{"name":"Submagic","logo":"submagic","verdict":"Output ready to publish"},"right":{"name":"OpusClip","logo":"opusclip","verdict":"Speed at all costs"}}'
+    >
+      <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="8" data-track-index="1">
+        <div id="promise"><div id="promiseText"></div></div>
+        <div id="split"></div>
+        <div id="stage"></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== (editor edits ONLY this) */
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        promise: VARS.promise ?? 'Both promise viral-ready shorts',
+        left: VARS.left ?? { name: 'Submagic', logo: 'submagic', verdict: 'Output ready to publish' },
+        right: VARS.right ?? { name: 'OpusClip', logo: 'opusclip', verdict: 'Speed at all costs' },
+      };
+
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
+      const $ = (id) => document.getElementById(id);
+      const LOGOS = VARS.__logos ?? {};
+
+      function sideHtml(p, side) {
+        const src = LOGOS[p.logo];
+        const logo = src
+          ? `<img class="logo" src="${src}" alt="">`
+          : `<span class="fallback">${(p.name || '?')[0]}</span>`;
+        return `
+          <div class="side" data-side="${side}">
+            <div class="tile">${logo}</div>
+            <div class="name">${p.name || ''}</div>
+            <div class="rule"></div>
+            <div class="verdict">${p.verdict || ''}</div>
+          </div>`;
+      }
+
+      function build() {
+        $('promiseText').innerHTML = DATA.promise;
+        $('stage').innerHTML = sideHtml(DATA.left, 'left') + sideHtml(DATA.right, 'right');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      const sides = gsap.utils.toArray('.side');
+      const tiles = gsap.utils.toArray('.side .tile');
+      const names = gsap.utils.toArray('.side .name');
+      const rules = gsap.utils.toArray('.side .rule');
+      const verdicts = gsap.utils.toArray('.side .verdict');
+
+      // Phase 1 — the shared promise, both products as one group.
+      tl.fromTo('#promiseText', { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 0);
+      tl.fromTo(tiles, { opacity: 0, y: 40, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.12, ease: 'back.out(1.5)' }, 0.25);
+      tl.fromTo(names, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: 'power2.out' }, 0.5);
+
+      // Phase 2 — the split: the sentence turns, the sides separate and each
+      // takes its own bet.
+      tl.fromTo('#split', { opacity: 0, scaleY: 0.2 }, { opacity: 1, scaleY: 1, duration: 0.55, ease: 'power3.inOut' }, 2.3);
+      tl.to(sides[0], { x: -46, duration: 0.7, ease: 'power2.out' }, 2.35);
+      tl.to(sides[1], { x: 46, duration: 0.7, ease: 'power2.out' }, 2.35);
+      tl.to('#promiseText', { opacity: 0.45, duration: 0.5, ease: 'power2.out' }, 2.35);
+      tl.to(rules, { scaleX: 1, duration: 0.45, stagger: 0.12, ease: 'power2.out' }, 2.6);
+      tl.fromTo(verdicts, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.16, ease: 'power3.out' }, 2.75);
+
+      // Life through the hold — a slow breath so the frame never freezes.
+      tl.to(tiles, { y: -8, duration: 1.6, ease: 'sine.inOut', yoyo: true, repeat: 3, stagger: 0.2 }, 3.6);
+      tl.to('#split', { opacity: 0.6, duration: 1.4, ease: 'sine.inOut', yoyo: true, repeat: 3 }, 3.6);
+
+      window.__timelines['promise-split'] = tl;
+    </script>
+  </body>
+</html>

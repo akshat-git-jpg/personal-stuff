@@ -479,3 +479,32 @@ test('chroma-key cards carry their key colour into the resolved entry (owner v2:
   assert.equal(resolved[0].chroma, '0x00b140');
   assert.ok(!('chroma' in resolved[1]));
 });
+
+test('sentenceEndAfter finds the terminal punctuation of the current sentence', async () => {
+  const { sentenceEndAfter } = await import('./resolve.mjs');
+  const W = [
+    { text: 'this', end: 1 }, { text: 'is', end: 2 }, { text: 'one.', end: 3 },
+    { text: 'and', end: 4 }, { text: 'two!', end: 5 },
+  ];
+  assert.equal(sentenceEndAfter(W, 0), 3);
+  assert.equal(sentenceEndAfter(W, 3), 5);
+  assert.equal(sentenceEndAfter([{ text: 'no', end: 1 }], 0), null);
+});
+
+// Owner v2:2 / v2:5 2026-07-25 — a single card used cat.default_duration, a
+// constant unrelated to the sentence, so it vanished mid-narration.
+test('a fullframe card holds until its sentence finishes (owner v2:2/v2:5)', () => {
+  const words = [
+    { text: "let's", start: 0.0 }, { text: 'look', start: 0.5 }, { text: 'at', start: 1.0 },
+    { text: 'the', start: 1.5 }, { text: 'thing', start: 2.0 }, { text: 'that', start: 2.5 },
+    { text: 'keeps', start: 3.0 }, { text: 'going', start: 3.5 }, { text: 'on.', start: 9.0 },
+  ].map(w => ({ ...w, end: w.start + 0.4 }));
+  const catalog = { cards: [{ slug: 'statement/keyword-statement', kind: 'single', placement: 'fullframe', default_duration: 3 }] };
+  const cues = [{ id: 'c01', card: 'statement/keyword-statement', anchor: "let's look at", variables: { text: 'x' } }];
+  const { resolved, errors } = resolveCues(cues, words, catalog);
+  assert.deepEqual(errors, []);
+  // sentence ends at 9.4s; card starts at -0.5 clamped to 0 → duration reaches the sentence end + tail
+  assert.ok(resolved[0].duration > 3, `expected > default 3, got ${resolved[0].duration}`);
+  assert.ok(Math.abs(resolved[0].start + resolved[0].duration - 9.8) < 0.2,
+    `card should end ~9.8s (sentence 9.4 + 0.4 tail), got ${resolved[0].start + resolved[0].duration}`);
+});

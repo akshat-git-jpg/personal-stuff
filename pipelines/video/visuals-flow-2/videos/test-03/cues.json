@@ -28,30 +28,26 @@
     },
     {
       "id": "c02",
-      "card": "slate/headline-chips",
-      "anchor": "But one focuses on speed",
+      "card": "enacted/promise-split",
+      "anchor": "Now, Submagic and Opus Clips",
       "lead": 0.5,
       "hold": 3,
       "register": "dark",
       "motif": true,
-      "legacy_why": "a claim followed by its two halves spoken in one sentence; head-to-head needs numeric stats and none are spoken this early",
       "variables": {
-        "headline": "Two Different Bets"
-      },
-      "beats": [
-        {
-          "reveal": {
-            "text": "Speed at all costs"
-          },
-          "anchor": "at all costs"
+        "promise": "Both promise viral-ready shorts",
+        "left": {
+          "name": "Submagic",
+          "logo": "submagic",
+          "verdict": "Output ready to publish"
         },
-        {
-          "reveal": {
-            "text": "Output ready to publish"
-          },
-          "anchor": "actually ready to publish"
+        "right": {
+          "name": "OpusClip",
+          "logo": "opusclip",
+          "verdict": "Speed at all costs"
         }
-      ],
+      },
+      "beats": [],
       "flagged": false
     },
     {
@@ -148,13 +144,14 @@
     },
     {
       "id": "c07",
-      "card": "link-in-description/link-in-description",
+      "card": "link-in-description/link-scrim",
       "anchor": "you will find the links in the description",
       "lead": 0.3,
       "hold": 2,
       "register": "light",
       "variables": {
-        "message": "Try both tools: links in the description"
+        "message": "Links in the description",
+        "kicker": "Try both tools"
       },
       "beats": [],
       "flagged": false

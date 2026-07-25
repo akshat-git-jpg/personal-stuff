@@ -4,14 +4,6 @@
   "engineMode": "test",
   "spans": [
     {
-      "id": "s01",
-      "kind": "avatar-full",
-      "start": 10.6,
-      "end": 22.38,
-      "duration": 11.78,
-      "note": "U-curve open: the host states the pain and names the two contenders. Sits in the clear stretch between the cold-open title (ends 10.6s) and the headline-chips card (starts 24.5s)."
-    },
-    {
       "id": "s02",
       "kind": "avatar-full",
       "start": 54,

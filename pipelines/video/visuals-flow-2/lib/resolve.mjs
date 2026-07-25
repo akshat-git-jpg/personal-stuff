@@ -189,6 +189,32 @@ export function validateCues(cues, catalog, cardLibraryRoot, workdir) {
   return errors;
 }
 
+// End time of the sentence containing (or following) word `idx`. Transcript
+// words carry their punctuation, so a terminal mark is the sentence boundary.
+// Returns null when the passage runs to the end with no terminal punctuation.
+export function sentenceEndAfter(W, idx) {
+  for (let i = Math.max(0, idx); i < W.length; i++) {
+    if (/[.!?]["')\]]*$/.test(W[i].text)) return W[i].end;
+  }
+  return null;
+}
+
+// If time `t` falls in the MIDDLE of a spoken sentence, return that sentence's
+// end; null when it lands cleanly on a boundary or in silence. This — not the
+// anchor's sentence — is the right measure: a card is anchored where it appears
+// but must not VANISH mid-thought, and the two are often different sentences
+// (owner v2:5: the before-after card was anchored at "biggest strength is
+// polish" yet exited during the later "Still, neutral so far").
+export function sentenceEndIfMidSentence(W, t) {
+  let last = -1;
+  for (let i = 0; i < W.length; i++) {
+    if (W[i].start <= t) last = i; else break;
+  }
+  if (last < 0) return null;
+  if (/[.!?]["')\]]*$/.test(W[last].text)) return null; // sentence already closed
+  return sentenceEndAfter(W, last);
+}
+
 export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
   const bySlug = Object.fromEntries(catalog.cards.map((c) => [c.slug, c]));
@@ -213,6 +239,9 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
     const a = findFrom(cue.anchor, cursor);
     if (a.err) { errors.push(`${cue.id}: ${a.err}`); continue; }
     cursor = a.idx + a.len;
+    // Index of the last transcript word this cue is anchored to. Sentence-aware
+    // exposure measures from here; beat cards move it to their final beat.
+    let lastAnchorIdx = a.idx + a.len - 1;
     const lead = cue.lead ?? 0.5;
     const hold = cue.hold ?? 3.0;
     let start = Math.max(0, a.start - lead);
@@ -246,6 +275,7 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
           failed = true;
           break;
         }
+        lastAnchorIdx = m.idx + m.len - 1;
         abs.push({ reveal: b.reveal, at: m.start });
       }
       if (!failed) {
@@ -254,7 +284,30 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
       }
     }
     if (failed) continue;
-    const duration = beats.length ? +(beats[beats.length - 1].at + hold).toFixed(2) : cat.default_duration;
+    let duration = beats.length ? +(beats[beats.length - 1].at + hold).toFixed(2) : cat.default_duration;
+
+    // Sentence-aware exposure (owner v2:2 / v2:5 2026-07-25, "this motion
+    // graphic ends before he completes the sentence ... need a better solve").
+    // A single card's duration was `cat.default_duration` — a CONSTANT with no
+    // relationship to the clause it illustrates — so any sentence longer than
+    // that default left the card gone while the owner was still talking about
+    // it. Hold until the sentence finishes, plus a tail. Floored at whatever
+    // the card already earned, and the EXTENSION is capped by HOLD_EXTEND_CAP
+    // so a run-on sentence cannot pin a card up forever.
+    // Structural section openers are EXEMPT: their job is to announce the
+    // section and hand over to footage of the tool, not to hold the frame for a
+    // whole sentence. test-03's OpusClip opener sits inside a 24s run-on, and
+    // holding it that long swallowed the 22.6s of screen recording that owner
+    // v2:4 specifically praised. Content cards hold their thought; openers get
+    // out of the way.
+    if (cat.placement === 'fullframe' && !cat.structural) {
+      const sEnd = sentenceEndIfMidSentence(W, start + duration);
+      if (sEnd !== null) {
+        const wanted = +(sEnd + CUE_CONSTANTS.EXPOSURE_TAIL.value - start).toFixed(2);
+        const capped = Math.min(wanted, duration + CUE_CONSTANTS.HOLD_EXTEND_CAP.value);
+        if (capped > duration) duration = capped;
+      }
+    }
     if (cat.placement === 'fullframe' && lastFullframe && start < lastFullframe.start + lastFullframe.duration) {
       errors.push(`${cue.id}: overlaps previous fullframe cue ${lastFullframe.id} (${start} < ${(lastFullframe.start + lastFullframe.duration).toFixed(2)})`);
       continue;
@@ -294,6 +347,9 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
     // wrong?". The template was fine; assemble never keyed it. Carrying the
     // key colour here is what lets assemble do it.
     if (cat.chroma) entry.chroma = cat.chroma;
+    // Carried so extendExposure can protect the footage beat that belongs to a
+    // section (owner v2:4) without needing the catalog.
+    if (cat.structural) entry.structural = true;
     if (cue.card === 'bespoke') entry.bespoke = cue.bespoke;
     out.push(entry);
     if (entry.placement === 'fullframe') lastFullframe = entry;
@@ -315,7 +371,16 @@ export function extendExposure(resolved, { base, total }) {
     const gap = +(nextStart - end).toFixed(2);
     if (gap <= 0) continue;
     const maxExtend = CUE_CONSTANTS.HOLD_EXTEND_CAP.value;
-    const wanted = base === 'none' ? gap : (gap <= CUE_CONSTANTS.GAP_ABSORB.value ? gap : 0);
+    let wanted = base === 'none' ? gap : (gap <= CUE_CONSTANTS.GAP_ABSORB.value ? gap : 0);
+    // A section opener owns a footage beat: "opener, then the tool on screen".
+    // Absorbing the whole gap deleted it — owner v2:4 2026-07-25: OpusClip got
+    // its intro then 22.6s of screen recording, while Submagic's intro absorbed
+    // its 8.4s gap and cut straight to the next graphic. Leave the section its
+    // footage; per-section DURATIONS may still differ freely, only the shape is
+    // held constant.
+    if (cur.structural && wanted > 0) {
+      wanted = Math.max(0, wanted - CUE_CONSTANTS.SECTION_FOOTAGE_MIN.value);
+    }
     const grant = Math.min(wanted, maxExtend);
     if (grant > 0) cur.duration = +(cur.duration + grant).toFixed(2);
   }

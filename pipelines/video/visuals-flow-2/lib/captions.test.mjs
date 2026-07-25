@@ -157,3 +157,19 @@ print(count_accent(sys.argv[1]), count_accent(sys.argv[2]))
   
   fs.rmSync(path.join(import.meta.dirname, tmp), { recursive: true, force: true });
 });
+
+// Owner v2:1 2026-07-25 — only single-word brands were highlighted, so
+// "Submagic" lit up and "Opus Clips" did not.
+test('multi-word brands highlight every word, and stay separate words', async () => {
+  const { planCaptions } = await import('./captions.mjs');
+  const mk = (t, s, e) => ({ text: t, start: s, end: e });
+  const out = planCaptions([
+    mk('Now,', 0, 0.2), mk('Submagic', 0.2, 0.6), mk('and', 0.6, 0.8),
+    mk('Opus', 0.8, 1.1), mk('Clips', 1.1, 1.4),
+  ]);
+  const words = out.flatMap(c => c.words);
+  const hl = words.filter(w => w.hl).map(w => w.text);
+  assert.deepEqual(hl, ['Submagic', 'Opus', 'Clips']);
+  // words are NOT merged — the caption still reads as spoken
+  assert.ok(words.some(w => w.text === 'Opus') && words.some(w => w.text === 'Clips'));
+});

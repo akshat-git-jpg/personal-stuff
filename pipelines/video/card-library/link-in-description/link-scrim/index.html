@@ -1,0 +1,130 @@
+<!doctype html>
+<!--
+  OVERLAY · Link Scrim
+  The link callout that actually registers: the whole frame dims behind a
+  CENTRED lockup, so the eye has nowhere else to go. Replaces the corner-pill
+  treatment, which read as decoration and was routinely missed.
+
+  TRANSPARENT background by design — no chroma-key plate. visuals-flow-2 renders
+  overlays to an alpha .mov and composites them directly, so the scrim is a real
+  semi-transparent layer rather than a colour that has to be keyed out.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and the     │
+  │  :root colors. Do NOT touch the  ===== TIMELINE (LOCKED) =====  script.  │
+  └─────────────────────────────────────────────────────────────────────────┘
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Link Scrim</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --scrim: rgba(6, 4, 2, 0.62);
+        --accent: #fb923c;
+        --text: #ffffff;
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      /* transparent — the compositor supplies the footage underneath */
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent;
+        font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 1920px; height: 1080px; }
+
+      #scrim { position: absolute; inset: 0; background: var(--scrim); opacity: 0; }
+
+      #lockup { position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 34px; }
+
+      #pill { display: flex; align-items: center; gap: 26px; padding: 34px 62px; border-radius: 999px;
+        background: linear-gradient(180deg, rgba(22,14,7,0.96), rgba(12,8,4,0.96));
+        border: 1px solid rgba(251,146,60,0.42);
+        box-shadow: 0 26px 70px rgba(0,0,0,0.55), 0 0 0 10px rgba(251,146,60,0.07);
+        opacity: 0; }
+      #msg { font-size: 60px; font-weight: 700; letter-spacing: -0.8px; white-space: nowrap; }
+      #msg em { font-style: normal; color: var(--accent); }
+
+      #arrow { width: 54px; height: 54px; flex: none; }
+      #arrow svg { width: 100%; height: 100%; display: block; }
+
+      #kicker { font-size: 28px; font-weight: 600; letter-spacing: 3.2px; text-transform: uppercase;
+        color: rgba(255,255,255,0.62); opacity: 0; }
+
+      #underline { width: 0; height: 4px; border-radius: 2px; background: var(--accent); opacity: 0.85; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="link-scrim"
+      data-start="0"
+      data-duration="5"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"message":"Links in the description","kicker":"Try both tools"}'
+    >
+      <div id="scrim" class="clip" data-start="0" data-duration="5" data-track-index="0"></div>
+      <div id="lockup" class="clip" data-start="0" data-duration="5" data-track-index="1">
+        <div id="kicker"></div>
+        <div id="pill">
+          <div id="arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.4"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 4v14" /><path d="M6 12l6 6 6-6" />
+            </svg>
+          </div>
+          <div id="msg"></div>
+        </div>
+        <div id="underline"></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== (editor edits ONLY this) */
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        message: VARS.message ?? 'Links in the description',
+        kicker: VARS.kicker ?? '',
+      };
+
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
+      const $ = (id) => document.getElementById(id);
+      $('msg').innerHTML = DATA.message;
+      $('kicker').textContent = DATA.kicker;
+      if (!DATA.kicker) $('kicker').style.display = 'none';
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Dim the world, then place the lockup in the middle of it.
+      tl.to('#scrim', { opacity: 1, duration: 0.45, ease: 'power2.out' }, 0);
+      if (DATA.kicker) {
+        tl.fromTo('#kicker', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 0.2);
+      }
+      tl.fromTo('#pill', { opacity: 0, y: 34, scale: 0.94 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: 'back.out(1.6)' }, 0.3);
+      tl.fromTo('#underline', { width: 0 }, { width: 260, duration: 0.5, ease: 'power3.out' }, 0.7);
+
+      // The arrow keeps nudging down — the one thing on screen still moving.
+      tl.to('#arrow', { y: 10, duration: 0.7, ease: 'sine.inOut', yoyo: true, repeat: 4 }, 0.9);
+
+      // Release the frame back to the footage.
+      tl.to('#underline', { width: 0, duration: 0.3, ease: 'power2.in' }, 4.3);
+      tl.to(['#pill', '#kicker'], { opacity: 0, y: -18, duration: 0.35, ease: 'power2.in' }, 4.4);
+      tl.to('#scrim', { opacity: 0, duration: 0.4, ease: 'power2.in' }, 4.55);
+
+      window.__timelines['link-scrim'] = tl;
+    </script>
+  </body>
+</html>

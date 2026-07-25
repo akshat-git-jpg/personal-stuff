@@ -83,6 +83,8 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - If concept.json exists, at least 2 cues must carry `motif: true` (the through-line must recur) (lint W8).
 - A fullframe cue on a non-structural legacy (non-`enacted/`) card without `legacy_why` warns (lint W10).
 - Consecutive beats within one cue must anchor no more than 15s apart. Beats narrate one continuous passage; a larger gap means the anchor text matched a later repeat of the same words, and the reveal fires against the wrong sentence (resolver error).
+- A fullframe card stays on screen until the sentence it illustrates has finished being spoken, plus 0.4s. Card exposure follows the narration, never a fixed per-card default (resolver post-pass).
+- A section opener must be followed by at least 4s of footage before the next fullframe card, so every tool section reads as "opener, then the tool on screen" (lint W11).
 - End-card slugs exempt from the last-20s rule: brand/, link-in-description/, like-subscribe/
 <!-- END GENERATED CONSTRAINTS -->
 <!-- BEGIN GENERATED ROUTING RULES — edit lib/cue-rules.mjs, then run node lib/build-prompt.mjs -->
@@ -96,7 +98,7 @@ Choosing a card — route by what the VO is doing, matching catalog `purpose` li
 - FIRST scan the `enacted/` family (and other cards whose `intent` matches) for a device that DOES the clause; only when none fits may a legacy reveal/text card be used, and then the cue must carry `"legacy_why": "<one line>"`.
 - Narration makes a claim, lists items, or states numbers and the screen does not show it → fullframe canvas beat (`slate/headline-chips`, `comparison/table-rows`, section slates). The screen already shows what is spoken → no graphic.
 - Enumerating pros/cons -> pros-cons; ordered list OR a sentence enumerating 3+ comma-separated items -> checklist/icon-pills or bullet-points (one beat per item — never a single text slate); feature-by-feature comparison -> feature-matrix or summary-table; final judgment -> a verdict card; opening a section -> a section/title card; one reinforced claim -> an overlay card.
-Bespoke escalation moves earlier: when the audit WOULD call it labelled (apply the mute test yourself while authoring) and no device fits, set `flagged: true` immediately with a `fix`-style note — do not place a filler text card. Choosing between cards: read each candidate's intent / anti_intent lines; an anti_intent match is a hard veto.
+Bespoke escalation moves earlier: when the audit WOULD call it labelled (apply the mute test yourself while authoring) and no device fits, set `flagged: true` immediately with a `fix`-style note — do not place a filler text card. Choosing between cards: read each candidate's intent / anti_intent lines; an anti_intent match is a hard veto. PROPOSE A NEW CARD (mandatory): when no existing card enacts the clause, the answer is a NEW TEMPLATE, not the nearest existing one. Name the card you would build and give a one-line spec of what it DOES, in the cue's `fix` note. Never settle for a weaker existing card and never accept "labelled" as the outcome just because the catalog is short — the library is meant to grow with the videos.
 
 Specificity wins (mandatory): big number -> overlay/stat-hit; plan/credit economics too dense to say -> comparison/credits-math; step walkthrough NOT shown on screen -> process/step-flow; who-should-buy-what payoff -> verdict/persona-match.
 

@@ -22,6 +22,8 @@ export const CUE_CONSTANTS = {
   VARIANT_REPEAT_WINDOW: { value: 1, desc: "A specific variant of a card cannot be used again until {value} other variants or cards have appeared." },
   ENACTED_FIRST:          { value: 1,    rule: 'A fullframe cue on a non-structural legacy (non-`enacted/`) card without `legacy_why` warns (lint W10).' },
   BEAT_GAP_MAX:           { value: 15,   rule: 'Consecutive beats within one cue must anchor no more than 15s apart. Beats narrate one continuous passage; a larger gap means the anchor text matched a later repeat of the same words, and the reveal fires against the wrong sentence (resolver error).' },
+  EXPOSURE_TAIL:          { value: 0.4,  rule: 'A fullframe card stays on screen until the sentence it illustrates has finished being spoken, plus 0.4s. Card exposure follows the narration, never a fixed per-card default (resolver post-pass).' },
+  SECTION_FOOTAGE_MIN:    { value: 4,    rule: 'A section opener must be followed by at least 4s of footage before the next fullframe card, so every tool section reads as "opener, then the tool on screen" (lint W11).' },
 };
 
 export const ENDCARD_SLUG_PREFIXES = ['brand/', 'link-in-description/', 'like-subscribe/'];

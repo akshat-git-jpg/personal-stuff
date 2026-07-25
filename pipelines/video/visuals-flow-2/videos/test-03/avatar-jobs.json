@@ -4,18 +4,6 @@
   "engineMode": "test",
   "jobs": [
     {
-      "id": "s01",
-      "kind": "avatar-full",
-      "start": 10.6,
-      "end": 22.38,
-      "duration": 11.78,
-      "audio": "slices-avatar/s01.mp3",
-      "video_id": "ccfe1a5ca6134957b826f540126847dc",
-      "status": "submitted",
-      "submitted_at": "2026-07-25T04:54:03.025Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/test-03/s01.mp4"
-    },
-    {
       "id": "s02",
       "kind": "avatar-full",
       "start": 54,

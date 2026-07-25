@@ -8,8 +8,8 @@
       "kind": "avatar-full",
       "from_anchor": "you're not saving time",
       "to_anchor": "into viral-ready shorts",
-      "note": "U-curve open: the host states the pain and names the two contenders. Sits in the clear stretch between the cold-open title (ends 10.6s) and the headline-chips card (starts 24.5s).",
-      "flagged": false
+      "note": "FLAGGED 2026-07-25 — no window left. The v2 feedback fixes extended the cold-open title to 15.3s and gave promise-split the naming + divergence sentences to 39.6s, so 0.6-39.6s is now unbroken fullframe graphics and a full-screen host cannot sit there without covering them (lint E2). The clip is already rendered and free to reuse if the owner would rather trade graphics density for an opening host moment. Original note: U-curve open, host states the pain and names the two contenders.",
+      "flagged": true
     },
     {
       "id": "s02",

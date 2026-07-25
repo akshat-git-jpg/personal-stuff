@@ -3,7 +3,7 @@
   "approved": true,
   "instances": [
     {
-      "id": "sfx-28",
+      "id": "sfx-27",
       "at": 0,
       "sample": "drone_low",
       "semi": 0,
@@ -20,104 +20,97 @@
     },
     {
       "id": "sfx-3",
-      "at": 24.5,
+      "at": 15.26,
       "sample": "whoosh-up",
       "semi": 0,
       "gainDb": -14
     },
     {
-      "id": "sfx-4",
-      "at": 25.1,
-      "sample": "pop",
-      "semi": 0,
-      "gainDb": -16.5
-    },
-    {
-      "id": "sfx-5",
-      "at": 29.72,
-      "sample": "pop",
-      "semi": 4,
-      "gainDb": -16
-    },
-    {
-      "id": "sfx-25",
+      "id": "sfx-24",
       "at": 30.72,
       "sample": "swipe",
       "semi": 0,
       "gainDb": -14
     },
     {
-      "id": "sfx-6",
+      "id": "sfx-4",
       "at": 39.56,
       "sample": "whoosh-up",
       "semi": 0,
       "gainDb": -14
     },
     {
-      "id": "sfx-26",
+      "id": "sfx-25",
       "at": 82.58,
       "sample": "swipe",
       "semi": 0,
       "gainDb": -14
     },
     {
-      "id": "sfx-9",
+      "id": "sfx-7",
       "at": 85.22,
       "sample": "whoosh-up",
       "semi": 0,
       "gainDb": -14
     },
     {
-      "id": "sfx-10",
+      "id": "sfx-8",
       "at": 85.82,
-      "sample": "blip",
+      "sample": "pop",
       "semi": 0,
       "gainDb": -16.5
     },
     {
-      "id": "sfx-11",
+      "id": "sfx-9",
       "at": 88.96,
-      "sample": "blip",
+      "sample": "pop",
       "semi": 4,
       "gainDb": -16
     },
     {
-      "id": "sfx-14",
+      "id": "sfx-12",
       "at": 123.08,
       "sample": "whoosh-up",
       "semi": 0,
       "gainDb": -14
     },
     {
-      "id": "sfx-27",
+      "id": "sfx-21",
+      "at": 145.8,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-26",
       "at": 150.97,
       "sample": "swipe",
       "semi": 0,
       "gainDb": -14
     },
     {
-      "id": "sfx-15",
+      "id": "sfx-13",
       "at": 151.63,
       "sample": "whoosh-up",
       "semi": 0,
       "gainDb": -14
     },
     {
-      "id": "sfx-16",
+      "id": "sfx-14",
       "at": 166.07,
       "sample": "whoosh-up",
       "semi": 0,
       "gainDb": -14
     },
     {
-      "id": "sfx-19",
+      "id": "sfx-17",
       "at": 261.33,
       "sample": "blip",
       "semi": 0,
       "gainDb": -14
     },
     {
-      "id": "sfx-20",
+      "id": "sfx-18",
       "at": 266.33,
       "sample": "success",
       "semi": 0,

@@ -22,6 +22,7 @@ const TARGET_RATE_MIN = CUE_CONSTANTS.TARGET_RATE_MIN.value;
 const TARGET_RATE_MAX = CUE_CONSTANTS.TARGET_RATE_MAX.value;
 const BARE_GAP_MAX = CUE_CONSTANTS.BARE_GAP_MAX.value; // W6: max interior seconds with NO graphic (any placement) before/after any cue
 const NARRATION_BARE_GAP_MAX = CUE_CONSTANTS.NARRATION_BARE_GAP_MAX.value;
+const SECTION_FOOTAGE_MIN = CUE_CONSTANTS.SECTION_FOOTAGE_MIN.value; // W11: footage a section opener must hand over to
 // Dead air is now designed out by the resolver's BEAT_LEAD_IN clamp (plan 116);
 // W5 stays as the regression detector for that clamp, not as a style hint.
 const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
@@ -196,6 +197,23 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     } else {
       if (gap > NARRATION_BARE_GAP_MAX) {
         warnings.push(`W7 bare-stretch: ${gap.toFixed(1)}s between ${prev.id} (starts ${prev.start.toFixed(1)}s) and ${curr.id} (starts ${curr.start.toFixed(1)}s) inside a narration segment — max ${NARRATION_BARE_GAP_MAX}s`);
+      }
+    }
+  }
+
+  // W11 section-footage (owner rule 2026-07-25, test-03 Final Cut v2:4). Every
+  // section must read the same way: the opener, then the tool actually on
+  // screen. Two openers where one is followed by 22.6s of screen recording and
+  // the other cuts straight to the next graphic reads as an editing mistake.
+  {
+    const MIN = SECTION_FOOTAGE_MIN;
+    const fulls = sortedResolved.filter((c) => c.placement === 'fullframe');
+    for (let i = 0; i < fulls.length - 1; i++) {
+      const cur = fulls[i];
+      if (!bySlug[cur.card]?.structural) continue;
+      const footage = +(fulls[i + 1].start - (cur.start + cur.duration)).toFixed(2);
+      if (footage < MIN) {
+        warnings.push(`W11 section-footage: ${cur.id} (${cur.card}) is followed by only ${footage.toFixed(1)}s of footage before ${fulls[i + 1].id} (min ${MIN}s) — a section opener should hand over to the tool on screen, not cut straight to another graphic`);
       }
     }
   }

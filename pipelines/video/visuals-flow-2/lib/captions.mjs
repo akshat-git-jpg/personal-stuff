@@ -12,6 +12,31 @@ export const CAP_ACCENT_LEXICON = [
   'submagic', 'opusclip',
 ];
 
+// Brands the speaker says as SEVERAL words. markKeyword() tests one word at a
+// time, so "Opus Clips" never matched and only single-word brands lit up —
+// owner v2:1 2026-07-25: "why only Submagic is coloured and not Opus Clips".
+// Every word of the phrase gets highlighted, and the words stay SEPARATE so the
+// caption still reads exactly as spoken.
+export const CAP_ACCENT_PHRASES = [
+  ['opus', 'clips'],
+  ['opus', 'clip'],
+];
+
+// Indices of words belonging to a multi-word brand phrase.
+export function phraseAccentIndices(words) {
+  const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const hit = new Set();
+  for (let i = 0; i < words.length; i++) {
+    for (const phrase of CAP_ACCENT_PHRASES) {
+      if (i + phrase.length > words.length) continue;
+      if (phrase.every((p, k) => norm(words[i + k].text ?? words[i + k].word) === p)) {
+        for (let k = 0; k < phrase.length; k++) hit.add(i + k);
+      }
+    }
+  }
+  return hit;
+}
+
 // Whisper writes brand names phonetically ("Higgs Field", "Hey Gen"), and the
 // mis-spelling then burns into the captions — owner v2:9 2026-07-24, "Spelling
 // mistake". One lexicon drives both the correction and the highlight so a new
@@ -148,10 +173,13 @@ export function planCaptions(rawWords, opts = {}) {
     out.push({
       i,
       text,
-      words: chunkWords.map(w => {
-        const wt = fixSpelling(w.text || w.word || '');
-        return { text: wt, hl: markKeyword(wt) };
-      }),
+      words: (() => {
+        const accent = phraseAccentIndices(chunkWords);
+        return chunkWords.map((w, k) => {
+          const wt = fixSpelling(w.text || w.word || '');
+          return { text: wt, hl: markKeyword(wt) || accent.has(k) };
+        });
+      })(),
       start: +(start).toFixed(3),
       end: +(end).toFixed(3)
     });

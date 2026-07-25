@@ -3,22 +3,12 @@
   "approved": true,
   "instances": [
     {
-      "id": "whip-24.5",
+      "id": "whip-82.8",
       "type": "whip",
-      "at": 24.5,
+      "at": 82.8,
       "direction": "right",
-      "fromIdx": 1,
-      "toIdx": 2,
-      "style": "flash",
-      "enabled": true
-    },
-    {
-      "id": "whip-85.2",
-      "type": "whip",
-      "at": 85.22,
-      "direction": "right",
-      "fromIdx": 4,
-      "toIdx": 5,
+      "fromIdx": 3,
+      "toIdx": 4,
       "style": "flash",
       "enabled": true
     },
@@ -27,9 +17,19 @@
       "type": "whip",
       "at": 123.08,
       "direction": "right",
-      "fromIdx": 6,
-      "toIdx": 7,
+      "fromIdx": 5,
+      "toIdx": 6,
       "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-145.8",
+      "type": "whip",
+      "at": 145.8,
+      "direction": "right",
+      "fromIdx": 8,
+      "toIdx": 9,
+      "style": "blur",
       "enabled": true
     },
     {
@@ -37,8 +37,18 @@
       "type": "whip",
       "at": 151.63,
       "direction": "right",
-      "fromIdx": 8,
-      "toIdx": 9,
+      "fromIdx": 9,
+      "toIdx": 10,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-166.1",
+      "type": "whip",
+      "at": 166.07,
+      "direction": "right",
+      "fromIdx": 11,
+      "toIdx": 12,
       "style": "flash",
       "enabled": true
     },
