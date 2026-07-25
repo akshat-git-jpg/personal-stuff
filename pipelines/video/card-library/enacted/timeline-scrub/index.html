@@ -25,6 +25,7 @@
         --accent: #fb923c;
         --positive: #34d399; --negative: #fb7185; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 150px;
       }
       body.register-light {
         --bg-from: #2b2416; --bg-to: #0a0805;
@@ -36,7 +37,7 @@
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 100px 120px; }
       #card { position: relative; width: 100%; max-width: 1720px; height: 100%; }
 
-      .title { position: absolute; top: 0; left: 0; right: 0; font-size: 60px; font-weight: 800; letter-spacing: -1.5px; text-align: center; }
+      .title { position: absolute; top: 0; left: 0; right: 0; font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; }
 
       #rail-wrap { position: absolute; left: 0; right: 0; top: 70%; }
       body.variant-b #rail-wrap { top: 26%; }
@@ -57,6 +58,7 @@
         position: absolute; top: 50%; transform: translate(-50%, -50%);
         background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 16px; padding: 14px 26px; font-size: 26px; font-weight: 700;
+        color: var(--accent);
         white-space: nowrap; text-align: center;
       }
 

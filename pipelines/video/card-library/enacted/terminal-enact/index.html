@@ -27,6 +27,7 @@
         --positive: #34d399; --negative: #fb7185; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
         --mono: 'JetBrains Mono', monospace;
+        --hero-size: 130px;
       }
       body.register-light {
         --bg-from: #2b2416; --bg-to: #0a0805;
@@ -57,14 +58,17 @@
       #pane { position: relative; padding: 48px 52px; height: calc(100% - 68px); font-family: var(--mono); }
 
       #promptLine { display: flex; align-items: center; font-size: 40px; line-height: 1.2; }
-      #promptSym { color: var(--positive); font-weight: 700; margin-right: 20px; }
+      #promptSym { color: var(--accent); font-weight: 700; margin-right: 20px; }
       #cmdWrap { position: relative; display: inline-flex; }
       .ch { display: inline-block; visibility: hidden; color: var(--text); font-weight: 500; white-space: pre; }
       #caret { position: absolute; left: 0; top: 2px; width: 20px; height: 46px; background: rgba(255,255,255,0.85);
         animation: hf-caret-blink 1s step-start infinite; }
 
       #outputBlock { margin-top: 34px; font-size: 28px; line-height: 1.6; color: var(--text-dim); opacity: 0; }
-      #statusLine { margin-top: 22px; font-size: 30px; font-weight: 700; color: var(--positive); opacity: 0; }
+      #statusLine {
+        margin-top: 30px; font-family: var(--font); font-size: var(--hero-size); font-weight: 800;
+        letter-spacing: -0.035em; line-height: 1.0; color: var(--positive); opacity: 0;
+      }
 
       @keyframes hf-caret-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 

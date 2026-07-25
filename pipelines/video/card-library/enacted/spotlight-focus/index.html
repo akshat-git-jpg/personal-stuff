@@ -25,6 +25,7 @@
         --accent: #fb923c;
         --positive: #34d399; --negative: #fb7185; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 150px;
       }
       body.register-light {
         --bg-from: #2b2416; --bg-to: #0a0805;
@@ -36,7 +37,7 @@
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 110px 130px; }
       #card { width: 100%; max-width: 1660px; height: 100%; display: flex; flex-direction: column; position: relative; }
 
-      .title { font-size: 64px; font-weight: 800; letter-spacing: -1.5px; text-align: center; margin-bottom: 48px; flex: 0 0 auto; }
+      .title { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; margin-bottom: 40px; flex: 0 0 auto; }
 
       #gridWrap { position: relative; flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
       body.variant-b #gridWrap { flex-direction: row-reverse; } /* layout is symmetric; kept for contract parity */
@@ -53,7 +54,7 @@
       }
       .tile .tick {
         position: absolute; top: -16px; right: -16px; width: 52px; height: 52px;
-        border-radius: 50%; background: var(--accent); color: #1a0f02;
+        border-radius: 50%; background: rgba(255,255,255,0.95); color: var(--accent);
         display: flex; align-items: center; justify-content: center;
         font-size: 26px; font-weight: 900; opacity: 0; transform: scale(0);
       }

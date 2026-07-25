@@ -27,6 +27,7 @@
         --accent: #fb923c;
         --positive: #34d399; --negative: #fb7185; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 130px;
       }
       body.register-light {
         --bg-from: #2b2416; --bg-to: #0a0805;
@@ -37,19 +38,19 @@
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
       #card { width: 100%; max-width: 1680px; display: flex; flex-direction: column; align-items: center; }
-      .title { font-size: 68px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 48px; }
+      .title { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; margin-bottom: 24px; }
 
       .mk { position: relative; display: inline-block; }
       .mk-sweep { position: absolute; left: 0; bottom: 0; width: 100%; height: 45%; background: var(--accent); transform: scaleX(0); transform-origin: left; z-index: 0; }
       .mk-text { position: relative; z-index: 1; }
 
       .panelWrap { position: relative; width: 100%; }
-      .tab { position: absolute; top: -1px; padding: 14px 36px; font-size: 24px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; border-radius: 0 0 16px 16px; z-index: 3; }
+      .tab { position: absolute; top: -1px; padding: 14px 36px; font-size: 24px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 0 0 16px 16px; z-index: 3; }
       .tab.before { left: 56px; background: rgba(251,113,133,0.18); color: var(--negative); }
       .tab.after { right: 56px; background: rgba(52,211,153,0.18); color: var(--positive); }
       body.variant-b .tab.after { top: auto; bottom: -1px; border-radius: 16px 16px 0 0; }
 
-      .panel { position: relative; width: 100%; height: 720px; border-radius: 28px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); }
+      .panel { position: relative; width: 100%; height: 680px; border-radius: 28px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); }
       /* Opaque backdrop: without it the clipped top layer's translucent chips
          let the other layer's text bleed through (double-text, found 2026-07-24). */
       .layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #140e08; }
@@ -57,6 +58,7 @@
       .chip { font-size: 32px; font-weight: 600; padding: 22px 36px; border-radius: 18px; line-height: 1.3; }
       .before-layer .chip { background: rgba(251,113,133,0.10); border: 1px solid rgba(251,113,133,0.30); color: var(--text); }
       .after-layer .chip { background: rgba(52,211,153,0.10); border: 1px solid rgba(52,211,153,0.32); color: var(--text); }
+      .after-layer .chip:first-child { color: var(--accent); }
       .after-layer { clip-path: inset(0 100% 0 0); }
 
       .slider { position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--accent); box-shadow: 0 0 24px 6px rgba(251,146,60,0.5); z-index: 4; }
