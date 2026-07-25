@@ -98,7 +98,7 @@ const AMBIENT_REQUIRED = [
   'enacted/fill-gauge', 'enacted/pipeline-flow',
   'enacted/race-bars', 'enacted/spotlight-focus',
   'enacted/terminal-enact', 'enacted/timeline-scrub',
-  'overlay/stat-hit', 'overlay/keyword-pop', 'overlay/lower-third', 'overlay/tip-banner',
+  'overlay/stat-hit', 'overlay/lower-third', 'overlay/tip-banner',
   'section/bullet-points-highlighted', 'section/tool-intro', 'slate/kinetic-sentence',
   'statement/keyword-statement', 'title/title-aurora-wave', 'checklist/icon-pills'
 ];

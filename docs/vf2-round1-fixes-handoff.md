@@ -24,7 +24,7 @@ pushed to `main`. Working dir for all commands: `pipelines/video/visuals-flow-2/
 
 ## What to test in the new session
 
-1. Open the Final Cut tab, pick **v5**, watch with sound. Expect: audible
+1. Open the Final Cut tab, pick **v4** (the newest render — there is no v5), watch with sound. Expect: audible
    whooshes/pops synced to card entrances and beats, no Ken Burns zoom on
    screen segments, no em dashes anywhere on cards, "Top 5 AI Video Tools
    Comparison" title with logo+name chips that keep moving all 10s.

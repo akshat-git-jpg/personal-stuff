@@ -1,0 +1,3 @@
+file '/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow-2/videos/test-03/src/intro.mp4'
+file '/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow-2/videos/test-03/src/body.mp4'
+file '/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow-2/videos/test-03/src/conclusion.mp4'

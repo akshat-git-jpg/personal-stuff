@@ -1,0 +1,66 @@
+{
+  "video": "test-03",
+  "template": "specs-man",
+  "engineMode": "test",
+  "jobs": [
+    {
+      "id": "s01",
+      "kind": "avatar-full",
+      "start": 10.6,
+      "end": 22.38,
+      "duration": 11.78,
+      "audio": "slices-avatar/s01.mp3",
+      "video_id": "ccfe1a5ca6134957b826f540126847dc",
+      "status": "submitted",
+      "submitted_at": "2026-07-25T04:54:03.025Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/test-03/s01.mp4"
+    },
+    {
+      "id": "s02",
+      "kind": "avatar-full",
+      "start": 54,
+      "end": 82.8,
+      "duration": 28.8,
+      "audio": "slices-avatar/s02.mp3",
+      "video_id": "698ea4f94f4c43edbcbb52535d84b078",
+      "status": "submitted",
+      "submitted_at": "2026-07-25T04:56:36.569Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/test-03/s02.mp4"
+    },
+    {
+      "id": "s03",
+      "kind": "avatar-full",
+      "start": 132.44,
+      "end": 145.8,
+      "duration": 13.36,
+      "audio": "slices-avatar/s03.mp3",
+      "video_id": "d98f083d6bd74b4f85d0f03a14dbcfed",
+      "status": "submitted",
+      "submitted_at": "2026-07-25T04:58:53.128Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/test-03/s03.mp4"
+    },
+    {
+      "id": "corner-01",
+      "kind": "corner",
+      "start": 0,
+      "end": 300,
+      "duration": 300,
+      "audio": "slices-avatar/corner-01.mp3",
+      "video_id": "a2a4cbd922714bbea158c9e3aefb48a1",
+      "status": "submitted",
+      "submitted_at": "2026-07-25T05:01:18.478Z"
+    },
+    {
+      "id": "corner-02",
+      "kind": "corner",
+      "start": 300,
+      "end": 300.23,
+      "duration": 0.23,
+      "audio": "slices-avatar/corner-02.mp3",
+      "video_id": null,
+      "status": "failed",
+      "submitted_at": "2026-07-25T05:03:32.895Z",
+      "error": "✖ HTTP 500 POST /v1/audio/fast_asr\n{\"code\":400718,\"data\":{\"provider\":\"elevenlabs\",\"template_vars\":{\"provider\":\"elevenlabs\"}},\"message\":\"Something went wrong with our voice providers. Please try again later.\"}"
+    }
+  ]
+}

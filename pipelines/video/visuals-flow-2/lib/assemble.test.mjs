@@ -676,3 +676,14 @@ test('fillGapsWithFreeze: base none converts screen to freeze', async () => {
   assert.equal(out[4].from, 'a1');
 });
 
+
+test('assemblyMd tolerates register transitions with no segment indices', () => {
+  const segments = [{ kind: 'screen', id: 'screen-01', start: 0, end: 10 }];
+  const transitions = [
+    { at: 5, direction: 'right', fromIdx: 0, toIdx: 0 },
+    { at: 30.7, direction: 'lift' },   // register whip: no fromIdx/toIdx
+  ];
+  const md = assemblyMd('t', segments, [], 60, '/tmp/out.mp4', transitions);
+  assert.ok(md.includes('lift'));
+  assert.ok(md.includes('n/a'));
+});

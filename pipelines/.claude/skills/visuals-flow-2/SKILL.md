@@ -31,10 +31,34 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
 
 ## Verb Map
 
-**Review model (owner decision, 2026-07-24 — see decisions.md):** three stages.
-Stage 1 (Storyboard) = COMPOSITION ONLY (screen vs graphics vs avatar+mode; feedback lands cue-keyed). On short videos (≤10 min) the owner may skip stage 1 entirely — approvals can be granted in-flow.
-Stage 2 (Unattended Cut) = run the `cut` verb to generate effects, sound, mix, and the assembled draft in one shot.
-Stage 3 (Final Cut) = MOTION AND SOUND REVIEW on the assembled draft — the REAL review (effects, sound, pacing, captions; judged in motion; timestamped + point-pinned comments, versions, live check-off). Sessions should drive short videos straight to the cut and hand the owner the Final Cut URL.
+**Review model (owner reaffirmed 2026-07-25 — see decisions.md):** two owner
+gates, and **neither is skippable at any video length**.
+
+This section had DRIFTED. decisions.md carries three owner entries from
+2026-07-24: the first allowed short videos to skip the storyboard, and the third
+(the owner's confirmed process, same day) replaced it with "storyboard review —
+the time-investing pass ... this approval also authorizes the HeyGen spend".
+This skill kept quoting the FIRST one, so sessions kept driving short videos
+straight to the cut. The "≤10 min may skip stage 1" rule is dead; when this file
+and decisions.md disagree, decisions.md wins.
+
+**Gate 1 — Storyboard (PLAN review, comes first).** The owner reviews and
+finalises the whole plan before ANY render:
+- where an avatar appears, and **which avatar variation** each span uses
+  (full screen / bubble / panel / side view / avatar with motion graphics)
+- where motion graphics appear, and **which card** each one uses
+- the **text on every card**
+
+The shot pass (070) therefore runs BEFORE this gate, not after — avatar spans
+must be on the board when the owner reviews. Nothing renders until the owner
+approves both `cues.json` and `shots.json`.
+
+**Gate 2 — Final Cut (OUTPUT review).** The assembled draft, which must contain
+**everything the final video will have** — graphics, avatar layer, effects,
+sound, captions. Judged in motion, timestamped comments, versions, live
+check-off. It is not a plan review: plan-class defects should already be gone.
+
+Between the gates the session runs unattended: render → avatar renders → cut.
 
 | Phrase | `run.sh` verb / CLI | Owner Gate / Behavior |
 |---|---|---|
@@ -51,5 +75,5 @@ Stage 3 (Final Cut) = MOTION AND SOUND REVIEW on the assembled draft — the REA
 | "assemble the video" | `bash run.sh <slug> assemble` | Gate A (prints board URL) |
 | "export the timeline", "resolve export" | `bash run.sh <slug> export` | **on-request only** |
 | "qc the video", "filmstrip qc" | `bash run.sh <slug> qc` | |
-| "fold the feedback" | `bash run.sh <slug> fold` | **060 fold** (Gate B check-off) |
+| "fold the feedback", "feedback is done", "I'm done reviewing" | **invoke the `visuals-flow-feedback` skill** (it wraps `bash run.sh <slug> fold`) | **060 fold** (Gate B check-off) |
 | "analyze reference <url>" | `bash scripts/analyze-reference.sh <url>` | |

@@ -16,11 +16,23 @@ export function auditGate({ audit, resolved }) {
     return { errors, warnings };
   }
 
+  // resolve.mjs writes { video, offset, resolved: [...] }. This read the
+  // never-populated `.cues` key instead, so resolvedMap was always empty,
+  // every lookup missed, and the gate returned clean for ANY input — it has
+  // never once blocked a labelled fullframe (found 2026-07-25, test-03).
+  // Both shapes and a bare array are accepted so the gate cannot silently
+  // go quiet again if the file shape moves.
+  const cues = Array.isArray(resolved) ? resolved
+    : Array.isArray(resolved.resolved) ? resolved.resolved
+    : Array.isArray(resolved.cues) ? resolved.cues
+    : null;
+  if (!cues) {
+    errors.push('resolved.json has no cue array (expected `resolved`, `cues`, or a bare array)');
+    return { errors, warnings };
+  }
   const resolvedMap = new Map();
-  if (resolved && Array.isArray(resolved.cues)) {
-    for (const cue of resolved.cues) {
-      resolvedMap.set(cue.id, cue);
-    }
+  for (const cue of cues) {
+    resolvedMap.set(cue.id, cue);
   }
 
   if (audit && Array.isArray(audit.items)) {

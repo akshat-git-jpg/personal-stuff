@@ -7,7 +7,7 @@
       "card": "pros-cons/pros-cons",
       "anchor": "let's look at the pros and cons",
       "lead": 0.5,
-      "hold": 3.0,
+      "hold": 3,
       "variables": {
         "title": "Fixture"
       },
@@ -31,12 +31,13 @@
     },
     {
       "id": "c02",
-      "card": "overlay/keyword-pop",
+      "card": "overlay/tip-banner",
       "anchor": "keep this tip in mind",
       "variables": {
-        "kicker": "Heads up",
+        "kind": "tip",
+        "label": "Heads up",
         "text": "Free tier resets monthly",
-        "pos": "bottom-right"
+        "edge": "bottom"
       },
       "beats": [],
       "flagged": false

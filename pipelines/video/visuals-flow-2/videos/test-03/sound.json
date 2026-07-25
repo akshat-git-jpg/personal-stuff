@@ -1,0 +1,127 @@
+{
+  "video": "test-03",
+  "approved": true,
+  "instances": [
+    {
+      "id": "sfx-28",
+      "at": 0,
+      "sample": "drone_low",
+      "semi": 0,
+      "gainDb": -30,
+      "loop": true,
+      "end": 190
+    },
+    {
+      "id": "sfx-1",
+      "at": 0.5,
+      "sample": "riser",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-3",
+      "at": 24.5,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-4",
+      "at": 25.1,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-5",
+      "at": 29.72,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-25",
+      "at": 30.72,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-6",
+      "at": 39.56,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-26",
+      "at": 82.58,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-9",
+      "at": 85.22,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-10",
+      "at": 85.82,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-11",
+      "at": 88.96,
+      "sample": "blip",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-14",
+      "at": 123.08,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-27",
+      "at": 150.97,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-15",
+      "at": 151.63,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-16",
+      "at": 166.07,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-19",
+      "at": 261.33,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-20",
+      "at": 266.33,
+      "sample": "success",
+      "semi": 0,
+      "gainDb": -14
+    }
+  ]
+}

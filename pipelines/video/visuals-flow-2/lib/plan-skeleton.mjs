@@ -6,8 +6,8 @@ import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
 // keeps W1 satisfied. Slots are laid only across narration time, because a
 // fullframe inside demo/playback is a hard error (lint E5, plan 117).
 export function buildSlots(segments, total, C) {
-  const MIN = C.GAP_FULLFRAME_MIN.value;   // 35
-  const MAX = C.GAP_FULLFRAME_MAX.value;   // 60
+  const MIN = C.GAP_FULLFRAME_MIN.value;
+  const MAX = C.GAP_FULLFRAME_MAX.value;
   const endZone = total - C.ZONE_END.value;
 
   // Narration runs, trimmed to the end zone.
@@ -20,7 +20,7 @@ export function buildSlots(segments, total, C) {
   // skipped, not counted, so a long demo never manufactures a cadence debt.
   const slots = [];
   let carried = 0;        // narration seconds accumulated since the last slot
-  const TARGET = (MIN + MAX) / 2;  // 47.5 — aim mid-band so both bounds hold
+  const TARGET = (MIN + MAX) / 2;  // aim mid-band so both bounds hold
   for (const run of runs) {
     let t = run.start;
     while (t < run.end) {

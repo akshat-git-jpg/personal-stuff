@@ -1,0 +1,37 @@
+{
+  "video": "test-03",
+  "thesis": "Automating the edit only pays off if the output is postable as-is; a tool that hands back clips you still have to fix has moved the work, not removed it.",
+  "frame": "A dishwasher that returns the plates still dirty: the cycle finished in minutes, but you are standing at the sink washing up anyway.",
+  "throughline": {
+    "name": "the-clip-card",
+    "description": "One vertical short-form clip rectangle standing in for a single output clip: the thing both tools promise to hand you.",
+    "evolution": "Opens as a bare grey rectangle behind the pain statement (fast, but empty). Picks up raw unstyled auto-captions where OpusClip's speed is described. Picks up styled captions, emphasis and native layout where Submagic's polish is described. Ends as two cards side by side: one ready to post, one still wearing a fix-list badge."
+  },
+  "registers": [
+    {
+      "from_anchor": "If you're turning long",
+      "to_anchor": "actually ready to publish",
+      "register": "dark"
+    },
+    {
+      "from_anchor": "So by the end of this",
+      "to_anchor": "just real outputs",
+      "register": "light"
+    },
+    {
+      "from_anchor": "for a quick overview, we're going to start off",
+      "to_anchor": "clips still need cleanup",
+      "register": "dark"
+    },
+    {
+      "from_anchor": "afterwards. Submagic, on",
+      "to_anchor": "polish and customization",
+      "register": "light"
+    },
+    {
+      "from_anchor": "Seeing this side by side",
+      "to_anchor": "starts uploading the video",
+      "register": "light"
+    }
+  ]
+}

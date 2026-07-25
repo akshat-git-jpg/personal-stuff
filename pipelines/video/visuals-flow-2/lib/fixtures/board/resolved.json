@@ -25,14 +25,15 @@
     },
     {
       "id": "c02",
-      "card": "overlay/keyword-pop",
+      "card": "overlay/tip-banner",
       "placement": "overlay",
       "start": 6,
       "duration": 5,
       "variables": {
-        "kicker": "Heads up",
+        "kind": "tip",
+        "label": "Heads up",
         "text": "Free tier resets monthly",
-        "pos": "bottom-right"
+        "edge": "bottom"
       }
     }
   ]

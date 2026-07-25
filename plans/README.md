@@ -722,8 +722,21 @@ with effects/sound judged on Final Cut. Executor: agy (standing directive).
 |---|---|---|---|
 | 145 | vf2-avatar-stage-mode | head_zone card contract, mode:"stage" (head composited INTO cards), host-stage card, assemble/FCPXML compositing | — |
 | 146 | vf2-review-surface-split | effects/sound auto-approve (Final-Cut-reviewed), storyboard lane refit (mode labels, derivatives folded) | — |
+| 147 | vf2-avatar-per-span-modes | per-span `mode` (full/panel) end to end; real panel compositing; removes the dead head_layout panel path | — |
+| 148 | vf2-avatar-stage-mode-remainder | plan 145's unlanded Steps 2-5: host-stage card, mode:"stage", zone compositing, FCPXML | 147 |
 
-- 145-vf2-avatar-stage-mode — stage mode + head_zone + host-stage card — TODO
+**145 closed `boss:done` on 2026-07-24 with only Step 1 landed** (the `head_zone`
+catalog contract + validation + the `tool-intro` retrofit). Steps 2-5 never
+shipped — verified 2026-07-25: `grep -c stage` is 0 across resolve-shots,
+lint-shots, assemble and export-timeline, and `section/host-stage/` does not
+exist. 148 carries that remainder. 147 exists because 145 named "the panel
+branch in assemble.mjs" as its exemplar and no such branch was ever written —
+`head_layout: "panel"` computes a kind that nothing consumes, so a panel span
+silently renders full-screen. 147 builds that foundation first.
+
+- 145-vf2-avatar-stage-mode — stage mode + head_zone + host-stage card — PARTIAL (Step 1 only; remainder → 148)
+- 147-vf2-avatar-per-span-modes — per-span mode enum + panel compositing — TODO
+- 148-vf2-avatar-stage-mode-remainder — stage mode on 147's foundation — TODO (needs 147)
 - 146-vf2-review-surface-split — composition-only storyboard, auto-approved derivatives — TODO
 - 145-vf2-avatar-stage-mode — PR#103 145-vf2-avatar-stage-mode: avatar stage mode — head composited into a card's designed head zone — DONE
 - 146-vf2-review-surface-split — PR#104 146-vf2-review-surface-split: review-surface split — composition-only storyboard, effects/sound on Final Cut — DONE

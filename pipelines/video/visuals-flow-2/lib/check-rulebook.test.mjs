@@ -17,12 +17,13 @@ test('check-rulebook: baseline passes on the repo as committed', () => {
 test('check-rulebook: mutating a constant makes the gate fail, naming the constant', async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'check-rulebook-drift-'));
   const constantsSrc = fs.readFileSync(REAL_CONSTANTS_PATH, 'utf8');
-  const target = "GAP_FULLFRAME_MAX:      { value: 60,   rule: 'Consecutive fullframe cues must start no more than 60s apart, measured START to START across narration time (lint W1).' },";
-  assert.ok(constantsSrc.includes(target), 'fixture target line not found in cue-constants.mjs — update this test to match');
-  const mutatedSrc = constantsSrc.replace(
-    target,
-    "GAP_FULLFRAME_MAX:      { value: 999,  rule: 'Consecutive fullframe cues must start no more than 999s apart, measured START to START across narration time (lint W1).' },",
-  );
+  // Match the line and its current value rather than a literal: the band gets
+  // retuned (35/60 -> 12/45, 2026-07), and a hardcoded fixture rots silently
+  // into "target line not found" instead of testing the gate.
+  const line = constantsSrc.match(/^.*GAP_FULLFRAME_MAX:\s*\{ value: (\d+(?:\.\d+)?).*$/m);
+  assert.ok(line, 'GAP_FULLFRAME_MAX line not found in cue-constants.mjs — update this test to match');
+  const [target, value] = line;
+  const mutatedSrc = constantsSrc.replace(target, target.replaceAll(value, '999'));
 
   const mutatedPath = path.join(tmp, 'cue-constants.mjs');
   fs.writeFileSync(mutatedPath, mutatedSrc);

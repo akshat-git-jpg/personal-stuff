@@ -678,3 +678,20 @@ test('W10 enacted-first warns on non-enacted legacy fullframe without legacy_why
   assert(!res.warnings.some(w => w.includes('W10') && w.includes('c3')));
   assert(!res.warnings.some(w => w.includes('W10') && w.includes('c4')));
 });
+
+test('E11 no-filler-slate: navigational sentence errors, substantive one passes', () => {
+  const c = [{ id: 'c1', card: 'slate/kinetic-sentence', start: 40, duration: 5 }];
+  const cuesFile = createCues(c);
+
+  // The exact line the owner flagged at test-01 v2 (final-v2:11).
+  cuesFile.cues[0].variables = { text: "So let's talk about the good ones first", accent: 'good ones' };
+  const res = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+  const e11 = res.errors.filter(e => e.includes('E11 no-filler-slate'));
+  assert.equal(e11.length, 1);
+  assert(e11[0].includes('c1'));
+
+  // A sentence that actually states something stays legal.
+  cuesFile.cues[0].variables = { text: 'The free tier burns credits in a week', accent: 'burns credits' };
+  const clean = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+  assert(!clean.errors.some(e => e.includes('E11')));
+});

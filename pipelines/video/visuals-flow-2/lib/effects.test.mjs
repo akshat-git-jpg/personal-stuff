@@ -45,3 +45,27 @@ test('per-id overrides survive regeneration', () => {
   const second = runPlan(dir);
   assert.equal(second.instances.find((i) => i.id === target.id).enabled, false, 'enabled override preserved on regen');
 });
+
+// Regression: effects-plan.mjs loaded conceptSpans but assemble.mjs did not, so
+// assemble re-planned without them, failed to recognise the whip-reg-* entries
+// effects.json asked for, and dropped every register transition.
+test('whip register transitions survive a plan/assemble round trip', async () => {
+  const whip = await import('./effects/whip.mjs');
+  const conceptSpans = [
+    { register: 'dark', start: 0, end: 30.7 },
+    { register: 'light', start: 31.6, end: 82.6 },
+    { register: 'dark', start: 83.0, end: 120.0 },
+  ];
+  const base = { segments: [], overlays: [], words: [], resolved: [] };
+
+  const planned = whip.plan({ ...base, conceptSpans }).filter((i) => i.style === 'register');
+  assert.ok(planned.length >= 2, 'expected register transitions when spans are present');
+
+  // assemble's view: same ctx shape must reproduce the same ids
+  const replanned = whip.plan({ ...base, conceptSpans }).filter((i) => i.style === 'register');
+  assert.deepEqual(replanned.map((i) => i.id), planned.map((i) => i.id));
+
+  // and without spans they vanish — which is exactly the bug that shipped
+  const without = whip.plan(base).filter((i) => i.style === 'register');
+  assert.equal(without.length, 0);
+});

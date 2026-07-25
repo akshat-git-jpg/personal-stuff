@@ -73,8 +73,12 @@ case "$step" in
     [[ -d "videos/$slug/renders/" ]] && renders_present="present"
     
     shots_present="missing"
-    [[ -f "videos/$slug/shots.json" ]] && shots_present="present"
-    
+    shots_approved="NOT approved"
+    if [[ -f "videos/$slug/shots.json" ]]; then
+      shots_present="present"
+      shots_approved=$(node -e "const s=require('./videos/$slug/shots.json');console.log(s.approved?'approved':'NOT approved')")
+    fi
+
     echo "artifact          status"
     echo "--------          ------"
     echo "transcript.json   $transcript_present"
@@ -82,8 +86,11 @@ case "$step" in
     echo "cues.json         $cues_present ($cues_approved)"
     echo "resolved.json     $resolved_present"
     echo "renders/          $renders_present"
-    echo "shots.json        $shots_present"
-    
+    echo "shots.json        $shots_present ($shots_approved)"
+
+    # Order follows the 2026-07-25 review model (decisions.md): shot-pass runs
+    # BEFORE the storyboard gate, and that single gate approves cues AND shots.
+    # Nothing renders until both are approved.
     if [[ "$transcript_present" == "missing" ]]; then
       echo "next: run.sh $slug transcribe"
     elif [[ "$segments_present" == "missing" ]]; then
@@ -92,14 +99,14 @@ case "$step" in
       echo "next: run.sh $slug cue-pass"
     elif [[ "$resolved_present" == "missing" ]]; then
       echo "next: run.sh $slug resolve"
-    elif [[ "$cues_approved" == "NOT approved" ]]; then
-      echo "next: run.sh $slug board  (OWNER GATE)"
+    elif [[ "$shots_present" == "missing" ]]; then
+      echo "next: run.sh $slug shot-pass  (before the storyboard gate)"
+    elif [[ "$cues_approved" == "NOT approved" || "$shots_approved" == "NOT approved" ]]; then
+      echo "next: run.sh $slug board  (OWNER GATE 1 — storyboard: approve cues AND shots)"
     elif [[ "$renders_present" == "missing" ]]; then
       echo "next: run.sh $slug render"
-    elif [[ "$shots_present" == "missing" ]]; then
-      echo "next: run.sh $slug shot-pass"
     else
-      echo "next: run.sh $slug assemble"
+      echo "next: run.sh $slug cut  (then OWNER GATE 2 — final cut)"
     fi
     ;;
 

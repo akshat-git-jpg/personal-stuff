@@ -1,15 +1,21 @@
 # 070 · shot-pass  ·  [LLM] (Sonnet default; same pluggability as 020)
 
-Decide which stretches of the video the **full-screen avatar** speaks — AFTER the
-graphics cues are approved, so spans are planned around fullframe cards. Corner
-avatar + screen recording is the implicit baseline everywhere else (design doc:
+Decide which stretches of the video the **full-screen avatar** speaks. Spans are
+planned around the RESOLVED fullframe cards. Corner avatar + screen recording is
+the implicit baseline everywhere else (design doc:
 `docs/specs/2026-07-18-avatar-shot-plan-design.md`).
 
-- **In:** `node lib/transcript-text.mjs <slug>` output + `videos/<slug>/resolved.json` (approved cues)
+**Runs BEFORE the 040 storyboard gate** (owner decision 2026-07-25,
+decisions.md). The owner reviews graphics and avatar together in one sitting, so
+the spans must already exist when the board opens. This step therefore reads
+`resolved.json` while `cues.json` is still `approved: false` — approval for BOTH
+cues and shots happens at 040, not before.
+
+- **In:** `node lib/transcript-text.mjs <slug>` output + `videos/<slug>/resolved.json` (resolved cues; approval comes later, at 040)
 - **Out:** `videos/<slug>/shots.json` → snapshot the converged LLM output to `shots.llm.json` (committed, immutable) before any owner edit
 - **How:** paste **the prompt only** (`shot-pass-prompt.md`, placeholders filled) into the executor
   session. It is self-contained; `RULEBOOK.md` is the judgment archive the 060 fold maintains.
   Fix-loop: `node lib/resolve-shots.mjs <slug> && node lib/lint-shots.mjs <slug>`,
   feed errors back verbatim, ≤3 rounds; errors surviving round 3 escalate to the owner.
-- **Pre-flight:** `node lib/feedback-status.mjs` must exit 0 (unfolded feedback = unapplied lessons), and `cues.json` must have `approved: true`.
+- **Pre-flight:** `node lib/feedback-status.mjs` must exit 0 (unfolded feedback = unapplied lessons), and `resolved.json` must be fresh for the current `cues.json`. Do NOT require `cues.json approved: true` — under the 2026-07-25 review model this step runs before that approval exists.
 - **Next:** owner reviews spans on the board (plan 079), then avatar render (plan 080).

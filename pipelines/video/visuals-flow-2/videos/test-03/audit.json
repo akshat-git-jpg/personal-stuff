@@ -1,0 +1,92 @@
+{
+  "video": "test-03",
+  "items": [
+    {
+      "id": "c01",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c02",
+      "verdict": "labelled",
+      "accepted": true,
+      "fix": {
+        "card": "enacted/race-bars",
+        "how": "Race two bars to a 'ready to post' line so the trade-off is shown rather than captioned; accepted as-is because no numbers are spoken this early and race-bars would require fabricating values."
+      }
+    },
+    {
+      "id": "c03",
+      "verdict": "labelled",
+      "accepted": true,
+      "fix": {
+        "card": "checklist/icon-pills",
+        "how": "One icon pill per audience would show WHO instead of asserting it; accepted as-is because the four audiences are spoken as five consecutive words and cannot yield four non-overlapping 3-word beat anchors."
+      }
+    },
+    {
+      "id": "c04",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "Two input funnels feeding one output shape by different routes, so 'same problem, different approach' is shown while the footage keeps playing."
+      }
+    },
+    {
+      "id": "c05",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "A checklist ticking the three 'same' controls (same video, same goal, same criteria) as an overlay rather than a sentence."
+      }
+    },
+    {
+      "id": "c06",
+      "verdict": "labelled",
+      "accepted": true,
+      "fix": {
+        "card": "bespoke",
+        "how": "An agenda is a text artifact by its nature; enacting it would misrepresent what it is. table-of-contents is the purpose-built card and the routing rule names it for exactly this clause."
+      }
+    },
+    {
+      "id": "c07",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c08",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c09",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c10",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c11",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "Identity is inherently a label; a lower-third naming the tool being demoed is the correct device for it."
+      }
+    },
+    {
+      "id": "c12",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "Show one video file splitting into two arrows toward each tool, so 'identical input' is enacted rather than stated."
+      }
+    },
+    {
+      "id": "c13",
+      "verdict": "labelled",
+      "fix": {
+        "card": "bespoke",
+        "how": "Tint two caption lines in the two speaker colours so the multi-speaker feature demonstrates itself."
+      }
+    }
+  ]
+}

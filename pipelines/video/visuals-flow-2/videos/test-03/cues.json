@@ -1,0 +1,283 @@
+{
+  "video": "test-03",
+  "approved": true,
+  "cues": [
+    {
+      "id": "c01",
+      "card": "title/title-versus",
+      "anchor": "If you're turning long",
+      "lead": 0.3,
+      "hold": 3,
+      "register": "dark",
+      "legacy_why": "cold open for a two-product comparison; the routing rule names title/title-versus specifically and no enacted device introduces two contenders",
+      "variables": {
+        "title": "Which One Ships Postable Clips",
+        "platforms": [
+          {
+            "name": "Submagic",
+            "logo": "submagic"
+          },
+          {
+            "name": "OpusClip",
+            "logo": "opusclip"
+          }
+        ]
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c02",
+      "card": "slate/headline-chips",
+      "anchor": "But one focuses on speed",
+      "lead": 0.5,
+      "hold": 3,
+      "register": "dark",
+      "motif": true,
+      "legacy_why": "a claim followed by its two halves spoken in one sentence; head-to-head needs numeric stats and none are spoken this early",
+      "variables": {
+        "headline": "Two Different Bets"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "text": "Speed at all costs"
+          },
+          "anchor": "at all costs"
+        },
+        {
+          "reveal": {
+            "text": "Output ready to publish"
+          },
+          "anchor": "actually ready to publish"
+        }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c03",
+      "card": "statement/keyword-statement",
+      "anchor": "this video is going to be",
+      "lead": 0.4,
+      "hold": 2.5,
+      "register": "light",
+      "legacy_why": "a single spoken assertion about who the video is for; no enacted device carries a plain claim",
+      "variables": {
+        "text": "For creators repurposing long-form content without babysitting every clip.",
+        "keyword": "without babysitting"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c04",
+      "card": "overlay/tip-banner",
+      "anchor": "both of these platforms solve",
+      "lead": 0.4,
+      "hold": 2,
+      "register": "light",
+      "variables": {
+        "kind": "info",
+        "label": "Same problem",
+        "text": "Both turn long video into shorts. The approaches differ.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c05",
+      "card": "overlay/tip-banner",
+      "anchor": "the same evaluation criteria",
+      "lead": 0.4,
+      "hold": 2,
+      "register": "light",
+      "variables": {
+        "kind": "tip",
+        "label": "Fair test",
+        "text": "Same video, same goal, same scoring criteria.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c06",
+      "card": "table-of-contents/table-of-contents",
+      "anchor": "in this video, I'm going to be walking",
+      "lead": 0.5,
+      "hold": 3,
+      "register": "light",
+      "legacy_why": "an agenda read aloud item by item; table-of-contents is the purpose-built card and no enacted device lists upcoming sections",
+      "variables": {
+        "eyebrow": "What This Video Covers"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "label": "Quick overview of both tools"
+          },
+          "anchor": "a quick overview of Submagic"
+        },
+        {
+          "reveal": {
+            "label": "Live demo, same video"
+          },
+          "anchor": "a live demo using"
+        },
+        {
+          "reveal": {
+            "label": "Captions, layouts and polish"
+          },
+          "anchor": "a breakdown of captions"
+        },
+        {
+          "reveal": {
+            "label": "Pricing and real world value"
+          },
+          "anchor": "pricing and real world value"
+        },
+        {
+          "reveal": {
+            "label": "The honest verdict"
+          },
+          "anchor": "my honest verdict on which"
+        }
+      ],
+      "flagged": false
+    },
+    {
+      "id": "c07",
+      "card": "link-in-description/link-in-description",
+      "anchor": "you will find the links in the description",
+      "lead": 0.3,
+      "hold": 2,
+      "register": "light",
+      "variables": {
+        "message": "Try both tools: links in the description"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c08",
+      "card": "section/tool-intro",
+      "anchor": "Opus Clips is an AI-powered",
+      "lead": 0.5,
+      "hold": 3,
+      "register": "dark",
+      "variables": {
+        "index": 1,
+        "total": 2,
+        "logo": "opusclip",
+        "name": "OpusClip",
+        "tagline": "Finds viral moments automatically",
+        "tag": "Automation first"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c09",
+      "card": "section/tool-intro",
+      "anchor": "Submagic, on the other hand",
+      "lead": 0.5,
+      "hold": 3,
+      "register": "light",
+      "variables": {
+        "index": 2,
+        "total": 2,
+        "logo": "submagic",
+        "name": "Submagic",
+        "tagline": "Captions, pacing and style",
+        "tag": "Polish first"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c10",
+      "card": "enacted/before-after",
+      "anchor": "Its biggest strength is polish",
+      "lead": 0.5,
+      "hold": 3,
+      "register": "light",
+      "motif": true,
+      "variables": {
+        "title": "One Clip, Two Finishes",
+        "before_label": "Clipped Only",
+        "after_label": "Finished",
+        "before_lines": [
+          {
+            "line": "Raw auto captions"
+          },
+          {
+            "line": "Generic layout"
+          },
+          {
+            "line": "Still needs an edit"
+          }
+        ],
+        "after_lines": [
+          {
+            "line": "Styled captions"
+          },
+          {
+            "line": "Native to TikTok and Reels"
+          },
+          {
+            "line": "Post as is"
+          }
+        ]
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c11",
+      "card": "overlay/lower-third",
+      "anchor": "let's start off with Submagic",
+      "lead": 0.4,
+      "hold": 2,
+      "register": "light",
+      "variables": {
+        "name": "Submagic",
+        "subtitle": "Caption-first short-form editor"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c12",
+      "card": "overlay/tip-banner",
+      "anchor": "uploading that right onto it",
+      "lead": 0.4,
+      "hold": 2,
+      "register": "light",
+      "variables": {
+        "kind": "info",
+        "label": "Same input",
+        "text": "The identical long video goes into both tools.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
+      "id": "c13",
+      "card": "overlay/tip-banner",
+      "anchor": "different colors for each speakers",
+      "lead": 0.4,
+      "hold": 2,
+      "register": "light",
+      "variables": {
+        "kind": "tip",
+        "label": "Multi-speaker",
+        "text": "Each speaker gets their own caption colour.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "flagged": false
+    }
+  ]
+}

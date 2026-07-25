@@ -5,16 +5,49 @@ export const CAP_TAIL = 0.4;
 export const CAP_FONT_PX = 44;
 export const CAP_Y_FRAC = 0.87;
 
+// Brands seen across videos so far. This wants to become per-video config
+// rather than a growing global — see the note in tests/TESTS.md (2026-07-25).
 export const CAP_ACCENT_LEXICON = [
-  'heygen', 'openart', 'higgsfield', 'synthesia', 'arcads'
+  'heygen', 'openart', 'higgsfield', 'synthesia', 'arcads',
+  'submagic', 'opusclip',
 ];
+
+// Whisper writes brand names phonetically ("Higgs Field", "Hey Gen"), and the
+// mis-spelling then burns into the captions — owner v2:9 2026-07-24, "Spelling
+// mistake". One lexicon drives both the correction and the highlight so a new
+// brand only has to be declared once.
+export const CAP_SPELLING_FIXES = [
+  [/\bhiggs\s+field\b/gi, 'Higgsfield'],
+  [/\bhey\s+gen\b/gi, 'HeyGen'],
+  [/\bopen\s+art\b/gi, 'OpenArt'],
+  [/\bsynthesi(?:a|er)\b/gi, 'Synthesia'],
+  [/\bar\s*cads\b/gi, 'Arcads'],
+  [/\bsome\s+magic\b/gi, 'Submagic'],   // test-03: Groq heard the brand as two real words
+  [/\bsub\s+magic\b/gi, 'Submagic'],
+];
+
+export function fixSpelling(text) {
+  if (!text) return text;
+  let out = String(text);
+  for (const [re, to] of CAP_SPELLING_FIXES) out = out.replace(re, to);
+  return out;
+}
+
+// Words that are ALL-CAPS by convention rather than for emphasis. Highlighting
+// these lit up almost every caption in an AI-tools video, which is what the
+// owner read as "random words highlighted" (v2:9).
+export const CAP_CAPS_STOPWORDS = new Set(['ai', 'ui', 'ux', 'api', 'hd', 'id', 'ok', 'pc', 'tv', 'us', 'it', 'a', 'i']);
 
 export function markKeyword(text, lexicon = CAP_ACCENT_LEXICON) {
   if (!text) return false;
   const t = text.replace(/[.,!?;:]+$/, '');
-  if (/[\d$%€£]/.test(t)) return true;                    // numbers, money, percent
   if (lexicon.includes(t.toLowerCase())) return true;      // brand names
-  if (t.length >= 2 && t === t.toUpperCase() && /[A-Z]/.test(t)) return true; // ALL-CAPS emphasis
+  // Only figures that carry weight: money, percentages, and numbers of 2+
+  // digits. Highlighting every "5" and "3" in a five-tool comparison is noise.
+  if (/[$%€£]/.test(t)) return true;
+  if (/\d{2,}/.test(t)) return true;
+  // ALL-CAPS emphasis, minus the conventional acronyms above.
+  if (t.length >= 2 && t === t.toUpperCase() && /[A-Z]/.test(t) && !CAP_CAPS_STOPWORDS.has(t.toLowerCase())) return true;
   return false;
 }
 
@@ -39,8 +72,33 @@ export function formatAssText(words, keywordColor = '#fb923c') {
   return words.map(w => w.hl ? `{\\1c&H${bgr}&}${assEscape(w.text)}{\\1c&HFFFFFF&}` : assEscape(w.text)).join(' ');
 }
 
-export function planCaptions(words, opts = {}) {
-  if (!words || words.length === 0) return [];
+// Whisper splits one-word brands into two ("Higgs Field"). Merge the pair back
+// into a single word, spanning both timings, BEFORE chunking — otherwise the
+// correction would change the word count mid-chunk and desync the highlight.
+export function mergeBrandWords(words) {
+  const out = [];
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    const next = words[i + 1];
+    if (next) {
+      const wt = w.text || w.word || '';
+      const nt = next.text || next.word || '';
+      const trailing = (nt.match(/[.,!?;:]+$/) || [''])[0];
+      const joined = fixSpelling(`${wt} ${nt.slice(0, nt.length - trailing.length)}`);
+      if (!joined.includes(' ')) {
+        out.push({ ...w, text: joined + trailing, start: w.start, end: next.end });
+        i++;
+        continue;
+      }
+    }
+    out.push({ ...w, text: fixSpelling(w.text || w.word || '') });
+  }
+  return out;
+}
+
+export function planCaptions(rawWords, opts = {}) {
+  if (!rawWords || rawWords.length === 0) return [];
+  const words = mergeBrandWords(rawWords);
 
   const chunks = [];
   let currentWords = [];
@@ -91,7 +149,7 @@ export function planCaptions(words, opts = {}) {
       i,
       text,
       words: chunkWords.map(w => {
-        const wt = w.text || w.word || '';
+        const wt = fixSpelling(w.text || w.word || '');
         return { text: wt, hl: markKeyword(wt) };
       }),
       start: +(start).toFixed(3),

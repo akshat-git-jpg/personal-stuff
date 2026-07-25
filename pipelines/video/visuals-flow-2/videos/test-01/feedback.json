@@ -3,159 +3,214 @@
     "final-v1:0": {
       "text": "i want tool name with logo, also make sure to make it generic. It should be symmetric",
       "t": 3.476272,
-      "context": "final@00:03"
+      "context": "final@00:03",
+      "applied": "2026-07-25 — v2: title card now shows each tool's name under its logo, symmetric centered grid; template stays generic",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:1": {
       "text": "motion stopped at 2 sec and same still screen is visible for some time.., video editing gap..",
       "t": 5.120467,
-      "context": "final@00:05"
+      "context": "final@00:05",
+      "applied": "2026-07-25 — v2: title card motion covers the full 10s (chip float + aurora + shimmer); ambient-motion contract applies to all cards",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:2": {
       "text": "why overlay is coming on top of motion graphics, seen this at other places as well",
       "t": 9.611632,
       "context": "final@00:09",
-      "image": "feedback-images/final-v1-2.png"
+      "image": "feedback-images/final-v1-2.png",
+      "applied": "2026-07-25 — v2: overlay moved off the title card (~11s). New hard lint error E9: overlays can never overlap a fullframe graphic again",
+      "folded": "2026-07-25 — E9 overlay-over-graphic (lint error) + R_OVERLAY_ON_FOOTAGE"
     },
     "final-v1:3": {
       "text": "this overaly looks bad , lets not use this",
       "t": 26.378215,
       "context": "final@00:26",
-      "image": "feedback-images/final-v1-3.png"
+      "image": "feedback-images/final-v1-3.png",
+      "applied": "2026-07-25 — overlay/callout DELETED from the library; replaced by minimal keyword-pop pill (see 0:26 in v2)",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:4": {
       "text": "confusing motion graphic. also not syncing with audio. lets use a simple motion graphic here.",
       "t": 43.012081,
-      "context": "final@00:43"
+      "context": "final@00:43",
+      "applied": "2026-07-25 — v2: before-after replaced by simple keyword-statement 'Not one winner — which one is best for you'",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:5": {
       "text": "comma separated things would have best suited for some list type motion graphic instead of this text type..",
       "t": 54.673312,
-      "context": "final@00:54"
+      "context": "final@00:54",
+      "applied": "2026-07-25 — v2: comma-list now icon-pills (one item pops per spoken word). Permanent rule: enumerations route to list cards, never text slates",
+      "folded": "2026-07-25 — R_KINETIC enumeration clause routes 3+ item sentences to a list card"
     },
     "final-v1:6": {
       "text": "this stays static on screen. Why?",
       "t": 59.996745,
-      "context": "final@00:59"
+      "context": "final@00:59",
+      "applied": "2026-07-25 — cue replaced (see :5); ambient breathe now keeps every card alive through its hold",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:7": {
       "text": "this moving dot is overalapping with tick. I am not even sure how this design is supposed to work. Lets just remove moving dot..?",
       "t": 72.439452,
-      "context": "final@01:12"
+      "context": "final@01:12",
+      "applied": "2026-07-25 — moving dot removed from pipeline-flow for good — track fill carries the progress, ✓ badge pops at node corner",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:8": {
       "text": "Also this template look too blant. We should have added some logo for each factor.., this are just text",
       "t": 81.115305,
-      "context": "final@01:21"
+      "context": "final@01:21",
+      "applied": "2026-07-25 — pipeline-flow steps now REQUIRE an icon (28-icon built-in set, extensible) — see 1:05–1:20 in v2",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:9": {
       "text": "use link-in-description/link-in-description/index.html motion graphic.",
       "t": 88.048983,
-      "context": "final@01:28"
+      "context": "final@01:28",
+      "applied": "2026-07-25 — v2: link-in-description card used at ~1:24",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:10": {
       "text": "again overlay is coming on motion graphic. Why?  Looks very bad. Also lets not use this overlay for now anywhere. I don't like this overlay",
       "t": 98.320486,
       "context": "final@01:38",
-      "image": "feedback-images/final-v1-10.png"
+      "image": "feedback-images/final-v1-10.png",
+      "applied": "2026-07-25 — callout deleted everywhere; overlay-over-graphic now a lint ERROR (E9); this moment is keyword-pop over footage at ~1:41",
+      "folded": "2026-07-25 — E9 overlay-over-graphic (lint error) + R_OVERLAY_ON_FOOTAGE"
     },
     "final-v1:11": {
       "text": "remove this overlay from everywhere. Not liking it.",
       "t": 109.938372,
-      "context": "final@01:49"
+      "context": "final@01:49",
+      "applied": "2026-07-25 — callout template deleted from the library — cannot be selected again",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:12": {
       "text": "this slow zoom in out - what is this effect called? Lets removed this forver. Not adding much value",
       "t": 135.163132,
-      "context": "final@02:15"
+      "context": "final@02:15",
+      "applied": "2026-07-25 — that effect is 'Ken Burns drift' — removed FOREVER (module deleted, regression test guards it); recorded in decisions.md",
+      "folded": "2026-07-25 — lib/effects/drift.mjs deleted; integration test fails if Ken Burns returns on screen segments"
     },
     "final-v1:13": {
       "text": "nah bad motion graphic, Pls remove from template",
       "t": 149.49489,
-      "context": "final@02:29"
+      "context": "final@02:29",
+      "applied": "2026-07-25 — stack-builder template deleted from the library",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:14": {
       "text": "bad choice of motion graphic. How is thjis a stack?",
       "t": 149.49489,
-      "context": "final@02:29"
+      "context": "final@02:29",
+      "applied": "2026-07-25 — v2: Higgsfield stack now connect-nodes (graph join). Flag it on v2 if it still reads weak — candidate for a better device",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:15": {
       "text": "Overlay is not even visible",
       "t": 159.583647,
       "context": "final@02:39",
-      "image": "feedback-images/final-v1-15.png"
+      "image": "feedback-images/final-v1-15.png",
+      "applied": "2026-07-25 — stat-hit rebuilt with a dark backing plate — verified legible over pure white footage (see 2:39 in v2)",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v1:16": {
       "text": "remove this motion graphic template",
       "t": 185.556454,
-      "context": "final@03:05"
+      "context": "final@03:05",
+      "applied": "2026-07-25 — label-plate template deleted; UI-pointing moments now use arrow-label with real coordinates (see 3:04 in v2)",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v2:0": {
       "text": "Same feedback i gave earlier. Please make it consistent. THis does not look good for title/header of a motion graphic. - 5 AI video tools, compared.  Heading should have been Top 5 AI Video Tools Comparison, Not such comma separation, look weird, doesn;t look like heading. Please have a long term learning",
       "t": 1.000834,
-      "context": "final@00:01"
+      "context": "final@00:01",
+      "applied": "2026-07-25 — v3: title is now Top 5 AI Video Tools Comparison. Permanent rule + machine gate: headings must read as real headings, no comma constructions (R_COPY)",
+      "folded": "2026-07-25 — R_COPY heading style (Title Case, no comma-appositive)"
     },
     "final-v2:1": {
       "text": "For Text, never user em dashes, THis indicates AI text.",
       "t": 37.514167,
-      "context": "final@00:37"
+      "context": "final@00:37",
+      "applied": "2026-07-25 — v3: all em dashes stripped from on-card copy. New lint ERROR E10 blocks any em/en dash in rendered text forever",
+      "folded": "2026-07-25 — E10 no-dash-copy (lint error) on all rendered text"
     },
     "final-v2:2": {
       "text": "This motion graphic is static for too long. Anyhting smart we can do to improve this and similar other templates",
       "t": 43.031024,
-      "context": "final@00:43"
+      "context": "final@00:43",
+      "applied": "2026-07-25 — v3: keyword-statement now keeps living after the reveal (staggered word float + glow pulse + keyword pulse, covers ~30s holds). Same treatment pattern available for other statement cards",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v2:3": {
       "text": "Workflow and Pricing not syncing with voice. Why this happened, pls tell long term fix.",
       "t": 56.896722,
-      "context": "final@00:56"
+      "context": "final@00:56",
+      "folded": "2026-07-25 — BEAT_GAP_MAX=15s resolver error — a beat anchor matching a later repeat of the same words now fails instead of drifting silently"
     },
     "final-v2:4": {
       "text": "For this template i want all to be left aligned in center.. Basically all logos should be in 1 line. Make the generic template change",
       "t": 56.896722,
-      "context": "final@00:56"
+      "context": "final@00:56",
+      "applied": "2026-07-25 — icon-pills rows left-aligned in v4 (owner template note)",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v2:5": {
       "text": "Why green screen ? Is the template wrong?",
       "t": 85.695416,
-      "context": "final@01:25"
+      "context": "final@01:25",
+      "folded": "2026-07-25 — catalog `chroma` field + colorkey in assemble.mjs; chroma cards are keyed at composite instead of shipping as a coloured plate"
     },
     "final-v2:6": {
       "text": "Please have this screen left aligned only like other screens of same template. Don't switch",
       "t": 120.56842,
-      "context": "final@02:00"
+      "context": "final@02:00",
+      "folded": "2026-07-25 — structural cards pin variants[0] in resolve.mjs instead of rotating layout across a repeated slot"
     },
     "final-v2:7": {
       "text": "Please remove this template only. I am not liking this at all. No need to have this or alternative",
       "t": 135.439933,
       "context": "final@02:15",
-      "image": "feedback-images/final-v2-7.png"
+      "image": "feedback-images/final-v2-7.png",
+      "applied": "2026-07-25 — keyword-pop removed from the catalog and the card deleted; test-01 keeps its cues as shipped history",
+      "folded": "2026-07-25 — overlay/keyword-pop deleted (card + catalog + card-qa); R_DEMOS gains a no-generic-pill clause recording that callout, arrow-label and keyword-pop were each rejected in turn and no replacement is wanted"
     },
     "final-v2:8": {
       "text": "Remove stack template, THis looks very bad",
       "t": 151.350974,
-      "context": "final@02:31"
+      "context": "final@02:31",
+      "applied": "2026-07-25 — stack-builder cue remapped off the deleted card in v4",
+      "folded": "2026-07-25 — enacted/stack-builder removed from the catalog entirely"
     },
     "final-v2:9": {
       "text": "All the subtitles are way out of place. Spelling mistake, random words highlighted, etc. Please make a long term fix",
       "t": 199.527189,
-      "context": "final@03:19"
+      "context": "final@03:19",
+      "folded": "2026-07-25 — lib/captions.mjs: brand-name merge + spelling lexicon, ALL-CAPS stopwords, digit highlighting restricted to money/percent/2+ digits"
     },
     "final-v2:10": {
       "text": "Remove this template. Not Needed",
       "t": 203.994763,
       "context": "final@03:23",
-      "image": "feedback-images/final-v2-10.png"
+      "image": "feedback-images/final-v2-10.png",
+      "applied": "2026-07-25 — arrow-label deleted; c18 remapped in v4",
+      "folded": "2026-07-25 — instance-only, no rule"
     },
     "final-v2:11": {
       "text": "What is the criteria to decide when to show this text motion graphics. Because this was not at all a appropriate time",
       "t": 219.987404,
-      "context": "final@03:39"
+      "context": "final@03:39",
+      "folded": "2026-07-25 — R_KINETIC substance clause + E11 no-filler-slate (lint error) on navigational sentences"
     },
     "final-v2:12": {
       "text": "remove this template",
       "t": 254.833888,
       "context": "final@04:14",
-      "image": "feedback-images/final-v2-12.png"
+      "image": "feedback-images/final-v2-12.png",
+      "applied": "2026-07-25 — arrow-label deleted; c22 remapped in v4",
+      "folded": "2026-07-25 — instance-only, no rule"
     }
   },
   "updated": "2026-07-24"

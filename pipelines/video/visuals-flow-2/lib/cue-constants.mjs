@@ -21,6 +21,7 @@ export const CUE_CONSTANTS = {
   MOTIF_MIN:              { value: 2,    rule: 'If concept.json exists, at least 2 cues must carry `motif: true` (the through-line must recur) (lint W8).' },
   VARIANT_REPEAT_WINDOW: { value: 1, desc: "A specific variant of a card cannot be used again until {value} other variants or cards have appeared." },
   ENACTED_FIRST:          { value: 1,    rule: 'A fullframe cue on a non-structural legacy (non-`enacted/`) card without `legacy_why` warns (lint W10).' },
+  BEAT_GAP_MAX:           { value: 15,   rule: 'Consecutive beats within one cue must anchor no more than 15s apart. Beats narrate one continuous passage; a larger gap means the anchor text matched a later repeat of the same words, and the reveal fires against the wrong sentence (resolver error).' },
 };
 
 export const ENDCARD_SLUG_PREFIXES = ['brand/', 'link-in-description/', 'like-subscribe/'];

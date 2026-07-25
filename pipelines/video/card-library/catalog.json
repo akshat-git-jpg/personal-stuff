@@ -638,6 +638,7 @@
       "slug": "link-in-description/link-in-description",
       "kind": "single",
       "placement": "overlay",
+      "chroma": "0x00b140",
       "purpose": "chroma-key pill overlay pointing viewers to the link in the description",
       "variables": {
         "message": {
@@ -1442,52 +1443,6 @@
         }
       },
       "default_duration": 7
-    },
-    {
-      "slug": "overlay/keyword-pop",
-      "kind": "single",
-      "placement": "overlay",
-      "purpose": "Minimal corner keyword pop \u2014 compact dark pill with an optional brand kicker and one bold short phrase, accent-swept, punctuating a claim over screen-recording footage",
-      "variables": {
-        "text": {
-          "required": true,
-          "type": "string",
-          "role": "label",
-          "example": "100+ models",
-          "max_words": 5
-        },
-        "kicker": {
-          "required": false,
-          "type": "string",
-          "role": "label",
-          "example": "OpenArt",
-          "max_words": 3
-        },
-        "pos": {
-          "required": false,
-          "type": "string",
-          "role": "free",
-          "example": "top-right",
-          "enum": [
-            "top-left",
-            "top-right",
-            "bottom-left",
-            "bottom-right"
-          ]
-        }
-      },
-      "default_duration": 5,
-      "register": [
-        "dark",
-        "light"
-      ],
-      "marker": false,
-      "intent": "Snap a single short keyword/stat/claim into a corner while the demo keeps playing.",
-      "anti_intent": "Sentences, tips or warnings (tip-banner), speaker IDs (lower-third), or multiple simultaneous facts.",
-      "variants": [
-        "a",
-        "b"
-      ]
     },
     {
       "slug": "overlay/stat-hit",

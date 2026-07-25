@@ -1,0 +1,82 @@
+{
+  "video": "test-03",
+  "approved": true,
+  "instances": [
+    {
+      "id": "whip-24.5",
+      "type": "whip",
+      "at": 24.5,
+      "direction": "right",
+      "fromIdx": 1,
+      "toIdx": 2,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-85.2",
+      "type": "whip",
+      "at": 85.22,
+      "direction": "right",
+      "fromIdx": 4,
+      "toIdx": 5,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-123.1",
+      "type": "whip",
+      "at": 123.08,
+      "direction": "right",
+      "fromIdx": 6,
+      "toIdx": 7,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-151.6",
+      "type": "whip",
+      "at": 151.63,
+      "direction": "right",
+      "fromIdx": 8,
+      "toIdx": 9,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-reg-30.7",
+      "type": "whip",
+      "at": 30.72,
+      "direction": "lift",
+      "style": "register",
+      "enabled": true
+    },
+    {
+      "id": "whip-reg-82.6",
+      "type": "whip",
+      "at": 82.58,
+      "direction": "drop",
+      "style": "register",
+      "enabled": true
+    },
+    {
+      "id": "whip-reg-151.0",
+      "type": "whip",
+      "at": 150.97,
+      "direction": "lift",
+      "style": "register",
+      "enabled": true
+    },
+    {
+      "id": "captions",
+      "type": "captions",
+      "enabled": true,
+      "fontPx": 44,
+      "yFrac": 0.87
+    },
+    {
+      "id": "bubble",
+      "type": "bubble",
+      "enabled": true
+    }
+  ]
+}

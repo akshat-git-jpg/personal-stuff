@@ -5,7 +5,7 @@ import { planSegments, absorbSlivers, fillGapsWithFreeze, CANVAS } from './assem
 import { resolveWorkdir } from './workdir.mjs';
 import { EFFECT_MODULES } from './effects/registry.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
-import { findPhrase, normWord } from './resolve.mjs';
+import { loadConceptSpans } from './concept-spans.mjs';
 
 function main() {
   if (process.argv.length < 3) {
@@ -60,25 +60,7 @@ function main() {
 
   const defaultInstances = [];
   
-  let conceptSpans = [];
-  const conceptPath = path.join(workdir, 'concept.json');
-  if (fs.existsSync(conceptPath)) {
-    const conceptData = JSON.parse(fs.readFileSync(conceptPath, 'utf8'));
-    const W = words.map(x => ({ ...x, n: normWord(x.text) })).filter(x => x.n);
-    let cursor = 0;
-    for (const reg of conceptData.registers || []) {
-      const from = findPhrase(W, reg.from_anchor, cursor);
-      if (from.err) continue;
-      const to = findPhrase(W, reg.to_anchor, from.idx);
-      if (to.err) continue;
-      conceptSpans.push({
-        register: reg.register,
-        start: from.start,
-        end: to.start + 1.0
-      });
-      cursor = to.idx + to.len;
-    }
-  }
+  const conceptSpans = loadConceptSpans(workdir, words);
 
   let ctx = { segments, overlays, words, resolved, total, w, h, VF, conceptSpans, workdir };
   

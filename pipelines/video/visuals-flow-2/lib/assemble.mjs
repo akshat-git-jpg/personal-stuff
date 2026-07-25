@@ -8,6 +8,7 @@ import { resolveWorkdir } from './workdir.mjs';
 import { EFFECT_MODULES } from './effects/registry.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { registerVersion } from './versions.mjs';
+import { loadConceptSpans } from './concept-spans.mjs';
 
 import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
@@ -124,6 +125,7 @@ export function planSegmentOverlays(segments, overlays) {
         local.push({
           id: o.id,
           file: o.file,
+          ...(o.chroma ? { chroma: o.chroma } : {}),
           trimStart: +Math.max(seg.start - o.start, 0).toFixed(3),
           at: +(s - seg.start).toFixed(3),
           until: +(e - seg.start).toFixed(3),
@@ -222,6 +224,11 @@ export function detectEncoder() {
 
 export function assemblyMd(video, segments, overlays, total, outPath, transitions = [], captions = 'on', audioSource = 'vo.mp3') {
   const getSegId = (s) => s.sub !== undefined ? `${s.id}.${s.sub + 1}` : s.id;
+  // Register whips (style:"register") mark a dark<->light change, not a segment
+  // boundary, so they legitimately carry no fromIdx/toIdx. This threw on
+  // segments[undefined] the first time they actually reached assembly
+  // (2026-07-25 — they had always been dropped upstream before then).
+  const segIdAt = (i) => (i === undefined || !segments[i]) ? 'n/a' : getSegId(segments[i]);
   const seg = segments.map((s) =>
     `| ${mmss(s.start)} | ${mmss(s.end)} | ${s.kind} | ${getSegId(s)} |`);
   const ov = overlays.map((o) =>
@@ -255,7 +262,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 
   if (transitions.length > 0) {
     const tr = transitions.map((t) =>
-      `| ${mmss(t.at)} | ${t.direction} | ${getSegId(segments[t.fromIdx])} | ${getSegId(segments[t.toIdx])} |`);
+      `| ${mmss(t.at)} | ${t.direction} | ${segIdAt(t.fromIdx)} | ${segIdAt(t.toIdx)} |`);
     lines.push(
       '## Transitions',
       '',
@@ -334,7 +341,7 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
 
   const renderDir = path.join(workdir, 'renders');
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
-    return { id: c.id, start: c.start, end: c.start + c.duration, file: path.join(renderDir, planRender(c).outFile) };
+    return { id: c.id, start: c.start, end: c.start + c.duration, file: path.join(renderDir, planRender(c).outFile), ...(c.chroma ? { chroma: c.chroma } : {}) };
   });
 
   const tmpDir = path.join(workdir, 'assembly-tmp');
@@ -369,7 +376,11 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
   const defaultInstances = [];
   const enabledInstances = [];
   
-  let ctx = { segments, overlays, words, resolved, avatarJobs, cornerJobs, total, w, h, VF, screen };
+  // conceptSpans must match what effects-plan.mjs used, or the whip-reg
+  // transitions it wrote into effects.json look "unknown" here and get dropped.
+  const conceptSpans = loadConceptSpans(workdir, words);
+
+  let ctx = { segments, overlays, words, resolved, avatarJobs, cornerJobs, total, w, h, VF, screen, conceptSpans, workdir };
   
   for (const mod of EFFECT_MODULES) {
     if (mod.plan) {
@@ -574,7 +585,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
           const nextV = `b${j + 1}`;
           const adjustedAt = +(o.at - startTrim).toFixed(3);
           const adjustedUntil = +(o.until - startTrim).toFixed(3);
-          chain += `[${globalInputIdx}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${w}:${h}[${oj}];`;
+          // Chroma cards carry no alpha of their own — key the plate out first,
+          // otherwise the overlay lands as a solid colour block (owner v2:5).
+          const keyFilter = o.chroma ? `,colorkey=${o.chroma}:0.30:0.10` : '';
+          chain += `[${globalInputIdx}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${w}:${h}${keyFilter}[${oj}];`;
           chain += `[${lastV}][${oj}]overlay=eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
           lastV = nextV;
           globalInputIdx++;

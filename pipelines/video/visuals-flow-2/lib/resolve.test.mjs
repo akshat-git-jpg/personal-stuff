@@ -411,3 +411,71 @@ test('variant rotation', () => {
   assert.equal(resolved[3].variables.variant, 'b'); // count is 3, 3%2 = 1 -> 'b'
 });
 
+
+// --- Folded from test-01 Final Cut round 2 (2026-07-24) ---
+
+test('structural card pins its variant instead of rotating (owner v2:6)', () => {
+  const catalog = { cards: [{
+    slug: 'section/tool-intro', kind: 'single', placement: 'fullframe',
+    default_duration: 3, structural: true, variants: ['a', 'b'],
+  }] };
+  const cues = [
+    { id: 'c01', card: 'section/tool-intro', anchor: "let's look at the", variables: {} },
+    { id: 'c02', card: 'section/tool-intro', anchor: "it's not all good", variables: {} },
+    { id: 'c03', card: 'section/tool-intro', anchor: "let's look at the", variables: {} },
+  ];
+  const { resolved, errors } = resolveCues(cues, WORDS, catalog);
+  assert.deepEqual(errors, []);
+  assert.deepEqual(resolved.map(c => c.variables.variant), ['a', 'a', 'a']);
+});
+
+test('explicit variant still wins over the structural pin', () => {
+  const catalog = { cards: [{
+    slug: 'section/tool-intro', kind: 'single', placement: 'fullframe',
+    default_duration: 6, structural: true, variants: ['a', 'b'],
+  }] };
+  const cues = [{ id: 'c01', card: 'section/tool-intro', anchor: "let's look at the", variables: { variant: 'b' } }];
+  const { resolved } = resolveCues(cues, WORDS, catalog);
+  assert.equal(resolved[0].variables.variant, 'b');
+});
+
+test('beat anchoring to a far repeat of the same words errors (owner v2:3)', () => {
+  // "the free tier" is spoken at 3.0s and again at 40.0s. A beat quoting it
+  // must not silently resolve to the far copy and fire against the wrong line.
+  const words = [];
+  for (let i = 0; i < 100; i++) words.push({ text: `filler${i}`, start: i * 0.5, end: i * 0.5 + 0.4 });
+  const put = (idx, arr) => arr.forEach((t, k) => { words[idx + k] = { text: t, start: (idx + k) * 0.5, end: (idx + k) * 0.5 + 0.4 }; });
+  put(0, ['now', 'here', 'is', 'the', 'plan']);
+  put(6, ['the', 'free', 'tier']);   // 3.0s
+  put(80, ['the', 'free', 'tier']);  // 40.0s — 37s later
+
+  const catalog = { cards: [{
+    slug: 'pros-cons/pros-cons', kind: 'beat', placement: 'fullframe', default_duration: 6,
+    beat_shape: { kind: { type: 'string', required: true, enum: ['pro', 'con'] }, text: { type: 'string', required: true } },
+  }] };
+  const cues = [{
+    id: 'c01', card: 'pros-cons/pros-cons', anchor: 'now here is', variables: { title: 'Notion' },
+    beats: [
+      { reveal: { kind: 'pro', text: 'First' }, anchor: 'the free tier' },
+      { reveal: { kind: 'con', text: 'Second' }, anchor: 'the free tier' },
+    ],
+  }];
+  const { resolved, errors } = resolveCues(cues, words, catalog);
+  assert.equal(resolved.length, 0);
+  assert.match(errors.join(' '), /later repeat/);
+});
+
+test('chroma-key cards carry their key colour into the resolved entry (owner v2:5)', () => {
+  const catalog = { cards: [
+    { slug: 'link-in-description/link-in-description', kind: 'single', placement: 'overlay', default_duration: 4, chroma: '0x00b140' },
+    { slug: 'overlay/simple-overlay', kind: 'single', placement: 'overlay', default_duration: 4 },
+  ] };
+  const cues = [
+    { id: 'c01', card: 'link-in-description/link-in-description', anchor: "let's look at the", variables: { message: 'Link below' } },
+    { id: 'c02', card: 'overlay/simple-overlay', anchor: 'the mobile app crawls', variables: {} },
+  ];
+  const { resolved, errors } = resolveCues(cues, WORDS, catalog);
+  assert.deepEqual(errors, []);
+  assert.equal(resolved[0].chroma, '0x00b140');
+  assert.ok(!('chroma' in resolved[1]));
+});

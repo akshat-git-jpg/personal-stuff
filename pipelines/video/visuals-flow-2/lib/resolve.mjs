@@ -208,6 +208,7 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
     }
     if (cue.flagged) continue; // flagged cues are skipped, not errors
     const BEAT_LEAD_IN = 0.6; // s a beat card is on screen before its first reveal
+    const BEAT_GAP_MAX = CUE_CONSTANTS.BEAT_GAP_MAX.value;
 
     const a = findFrom(cue.anchor, cursor);
     if (a.err) { errors.push(`${cue.id}: ${a.err}`); continue; }
@@ -233,6 +234,18 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
         const m = findFrom(b.anchor, cursor);
         if (m.err) { errors.push(`${cue.id} beat: ${m.err}`); failed = true; break; }
         cursor = m.idx + m.len;
+        // findFrom only ever searches FORWARD, so an anchor phrase that also
+        // occurs later in the script silently matches the later copy and the
+        // reveal fires against the wrong sentence — owner v2:3 2026-07-24,
+        // "Workflow and Pricing not syncing with voice ... pls tell long term
+        // fix". Beats of one cue narrate one continuous passage, so a large
+        // jump between them is the signature of that mis-match.
+        const prev = abs[abs.length - 1];
+        if (prev && m.start - prev.at > BEAT_GAP_MAX) {
+          errors.push(`${cue.id} beat "${b.anchor}": resolves ${(m.start - prev.at).toFixed(1)}s after the previous beat (max ${BEAT_GAP_MAX}s) — the anchor almost certainly matched a later repeat of the same words; quote a longer, unique phrase from the sentence this reveal belongs to`);
+          failed = true;
+          break;
+        }
         abs.push({ reveal: b.reveal, at: m.start });
       }
       if (!failed) {
@@ -256,6 +269,14 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
       const useCount = cardUseCounts[cue.card] || 0;
       if (cue.variables && cue.variables.variant !== undefined) {
         vars.variant = cue.variables.variant;
+      } else if (cat.structural) {
+        // A structural card fills a REPEATED semantic slot (the per-tool
+        // section opener). Rotating its variant makes the same slot look
+        // different on each tool — owner v2:6 2026-07-24, "have this screen
+        // left aligned only like other screens of same template. Don't
+        // switch". Variety is for non-structural cards; a structural card's
+        // whole job is looking identical every time it comes round.
+        vars.variant = cat.variants[0];
       } else {
         vars.variant = cat.variants[useCount % cat.variants.length];
       }
@@ -267,6 +288,12 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
       start: +start.toFixed(2), duration,
       variables: vars,
     };
+    // A card that paints a chroma-key plate instead of real transparency must
+    // be keyed out at composite or it ships as a coloured rectangle over the
+    // footage — owner v2:5 2026-07-24, "Why green screen? Is the template
+    // wrong?". The template was fine; assemble never keyed it. Carrying the
+    // key colour here is what lets assemble do it.
+    if (cat.chroma) entry.chroma = cat.chroma;
     if (cue.card === 'bespoke') entry.bespoke = cue.bespoke;
     out.push(entry);
     if (entry.placement === 'fullframe') lastFullframe = entry;

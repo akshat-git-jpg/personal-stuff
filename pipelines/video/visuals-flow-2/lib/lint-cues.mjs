@@ -200,10 +200,15 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
-  // W9 variant-rotation
+  // W9 variant-rotation. Structural cards are EXEMPT: they fill a repeated
+  // semantic slot and the resolver deliberately pins them to variants[0], so
+  // "same card, same variant, back to back" is the intended result there, not
+  // a defect (owner v2:6 2026-07-24 — "don't switch"). Without this exemption
+  // W9 nags on exactly the behaviour the owner asked for.
   for (let i = 1; i < sortedResolved.length; i++) {
     const prev = sortedResolved[i - 1];
     const curr = sortedResolved[i];
+    if (bySlug[curr.card]?.structural) continue;
     if (prev.card === curr.card && prev.variables?.variant && curr.variables?.variant && prev.variables.variant === curr.variables.variant) {
       warnings.push(`W9 variant-rotation: ${curr.id} uses the same card and variant ("${curr.variables.variant}") as the immediately preceding cue ${prev.id} — rotate the variant or vary the device`);
     }
@@ -269,6 +274,25 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     for (const c of rawCues) {
       scan(c.variables ?? {}, `${c.id} variables`);
       (c.beats ?? []).forEach((b, i) => scan(b.reveal ?? {}, `${c.id} beat ${i + 1}`));
+    }
+  }
+
+  // E11 no-filler-slate (owner rule 2026-07-24, test-01 v2 Final Cut :11 —
+  // "what is the criteria to decide when to show this text motion graphics.
+  // Because this was not at all a appropriate time"). A kinetic-sentence or
+  // keyword-statement takes the WHOLE frame, so the sentence it shows has to
+  // be worth the frame. What shipped was "So let's talk about the good ones
+  // first" — a discourse marker with no claim in it, covering a live product
+  // walkthrough. Navigational phrases belong on a section card, or nowhere.
+  {
+    const SENTENCE_CARDS = new Set(['slate/kinetic-sentence', 'statement/keyword-statement']);
+    const FILLER_RE = /^(?:so|now|and|but|ok|okay|alright|right|well)?[\s,]*(?:let'?s\s+(?:talk|look|dive|jump|get|move|start|begin|see|check)\b|first\s+up\b|next\s+up\b|moving\s+on\b|before\s+we\b|to\s+start\s+with\b|with\s+that\s+said\b)/i;
+    for (const c of rawCues) {
+      if (!SENTENCE_CARDS.has(c.card)) continue;
+      const text = c.variables?.text;
+      if (typeof text === 'string' && FILLER_RE.test(text.trim())) {
+        errors.push(`E11 no-filler-slate: ${c.id} (${c.card}) shows "${text}" — that is a navigational phrase, not a point. A full-frame sentence card must state a claim, consequence, or substance; route the transition to a section card or drop the cue`);
+      }
     }
   }
 

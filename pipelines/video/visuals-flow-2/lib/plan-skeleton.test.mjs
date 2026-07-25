@@ -70,11 +70,26 @@ test('Count plausible', () => {
 });
 
 test('Degenerate input', () => {
-  const shortTotal = 60;
-  const shortSegments = [{ kind: 'narration', start: 0, end: shortTotal }];
-  assert.deepEqual(buildSlots(shortSegments, shortTotal, CUE_CONSTANTS), []);
-  
+  // Whole video sits inside the end zone: nothing survives the trim.
+  const tinyTotal = CUE_CONSTANTS.ZONE_END.value;
+  const tinySegments = [{ kind: 'narration', start: 0, end: tinyTotal }];
+  assert.deepEqual(buildSlots(tinySegments, tinyTotal, CUE_CONSTANTS), []);
+
+  // No segments at all.
+  assert.deepEqual(buildSlots([], 600, CUE_CONSTANTS), []);
+
   const demoTotal = 600;
   const demoSegments = [{ kind: 'demo', start: 0, end: demoTotal }];
   assert.deepEqual(buildSlots(demoSegments, demoTotal, CUE_CONSTANTS), []);
+});
+
+// Under the 35/60 band a 60s video planned no fullframe at all. The retune to
+// 12/45 ("breathing room, not sparsity") means short videos now get one, which
+// is the intent — locked in here so the next retune has to face the question.
+test('Short video still gets a fullframe slot', () => {
+  const total = 60;
+  const segments = [{ kind: 'narration', start: 0, end: total }];
+  const slots = buildSlots(segments, total, CUE_CONSTANTS);
+  assert.strictEqual(slots.length, 1);
+  assert.ok(slots[0].at <= total - CUE_CONSTANTS.ZONE_END.value);
 });

@@ -1,0 +1,39 @@
+{
+  "video": "test-03",
+  "approved": true,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s01",
+      "kind": "avatar-full",
+      "from_anchor": "you're not saving time",
+      "to_anchor": "into viral-ready shorts",
+      "note": "U-curve open: the host states the pain and names the two contenders. Sits in the clear stretch between the cold-open title (ends 10.6s) and the headline-chips card (starts 24.5s).",
+      "flagged": false
+    },
+    {
+      "id": "s02",
+      "kind": "avatar-full",
+      "from_anchor": "both of these platforms solve",
+      "to_anchor": "just real outputs",
+      "note": "Setup bridge: same problem, different approaches, and the terms of the fair test. Pure to-camera framing with nothing on screen worth showing; the two tip-banner overlays ride on top, which is allowed.",
+      "flagged": false
+    },
+    {
+      "id": "s03",
+      "kind": "avatar-full",
+      "from_anchor": "it automatically finds moments",
+      "to_anchor": "be its creative control",
+      "note": "Mid-video bridge: the host delivers OpusClip's verdict (fast, but creative control is the price). Ends at 145.8s, clear of the Submagic opener card that starts at 151.6s.",
+      "flagged": false
+    },
+    {
+      "id": "s04",
+      "kind": "avatar-full",
+      "from_anchor": "let's move over to Opus Clips",
+      "to_anchor": "starts uploading the video",
+      "note": "FLAGGED, do not render. The U-curve wants a host close in the last 15% (255s to 300s), but this 5-minute window is a TRIM of an 18-minute source: it ends mid-upload during the hands-on demo, and the real conclusion sits at roughly 16:37 in the full video. Placing a full-screen host over live demo narration would break rule 7. Extend the window to the real conclusion before rendering a closing span.",
+      "flagged": true
+    }
+  ]
+}
