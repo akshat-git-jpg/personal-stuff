@@ -771,3 +771,22 @@ that cannot declares `side: false` and is excluded by lint.
 - 150-vf2-avatar-side-mode — delete stage, add side-by-side avatar mode — TODO
 - 151-cards-side-contract-batch-a — side contract + gate + 21 cards — TODO (needs 150)
 - 152-cards-side-batch-b — the 27 dense cards — TODO (needs 151)
+
+### Card type scale — 153 (2026-07-25)
+
+Owner reviewed rendered frames and found the text *"very subtle… not impactful…
+Especially the title."* Measured cause: the median card's largest text is **64px
+on a 1080-tall frame — 5.9% of frame height**, and 47 of 61 cards never exceed
+90px. `DESIGN.md` caps titles at 52–72px while allowing hero *numbers* to 220px,
+so words were structurally forbidden from being the hero. A web type scale on a
+video canvas, obeyed correctly by all 61 cards.
+
+Not just size — five levers move together: scale, contrast (headlines were set in
+`--text-dim`), weight, **em-based tracking** (a fixed `-1.5px` is invisible at
+160px), and tight leading. The typeface is NOT a lever; Inter stays.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 153 | cards-type-scale-impact | `--hero-size` contract (≥120px, ≥2.5× the next-largest), em tracking, one accent per card, `check-type-scale.mjs` gate; applied to all 49 fullframe cards | 152 |
+
+- 153-cards-type-scale-impact — hero type scale + hierarchy gate — TODO (needs 152; PARKED, owner runs it after the side-mode batch)
