@@ -15,5 +15,6 @@ export const SHOT_CONSTANTS = {
   PANEL_WIDTH_FRAC:   { value: 0.28, rule: 'A panel-mode avatar occupies 28% of canvas width, inset bottom-right, preserving the source clip aspect ratio.' },
   PANEL_INSET_PX:     { value: 32,   rule: 'A panel-mode avatar sits 32px from the right and bottom canvas edges.' },
   PANEL_RADIUS_PX:    { value: 24,   rule: 'A panel-mode avatar is masked to a rounded rectangle of radius 24px.' },
-  STAGE_HEAD_RADIUS_PX: { value: 24, rule: 'A stage-mode avatar is masked to a rounded rectangle of radius 24px inside the card head zone.' },
+  SIDE_GRAPHICS_W:    { value: 1200, rule: 'In side mode the motion-graphics card renders 1200px wide at x=0, full canvas height.' },
+  SIDE_AVATAR_W:      { value: 720,  rule: 'In side mode the host occupies the right 720px of the canvas, full height, cover-cropped from the source clip. The split is a hard edge — no inset, no corner radius.' },
 };
