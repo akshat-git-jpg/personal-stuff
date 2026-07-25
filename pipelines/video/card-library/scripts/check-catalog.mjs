@@ -64,6 +64,13 @@ for (const card of catalog.cards) {
     else if (!card.variants.every(v => typeof v === 'string')) err(`FAIL: ${card.slug}.variants must be array of strings`);
   }
   if (card.continuity !== undefined && typeof card.continuity !== 'boolean') err(`FAIL: ${card.slug}.continuity must be boolean`);
+  if (card.placement === 'fullframe') {
+    if (typeof card.side !== 'boolean') {
+      err(`FAIL: ${card.slug}.side must be a boolean (true = renders correctly at 1200x1080; false = needs full canvas). This key is REQUIRED on fullframe cards so the decision is deliberate.`);
+    }
+  } else if (card.side !== undefined) {
+    err(`FAIL: ${card.slug}.side only applies to fullframe cards`);
+  }
 }
 
 if (failed) process.exit(1);
