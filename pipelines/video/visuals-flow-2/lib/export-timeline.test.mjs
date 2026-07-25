@@ -242,3 +242,17 @@ test('Integration: export mode', { skip: spawnSync('ffmpeg', ['-version']).error
   const probe = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=codec_name', '-of', 'csv=p=0', firstSeg], { encoding: 'utf8' });
   assert.equal(probe.stdout.trim(), 'h264', 'segment ffprobes to h264');
 });
+
+test('buildNativeFcpxml: panel clips receive adjust-transform', async () => {
+  const { buildNativeFcpxml } = await import('./export-timeline.mjs');
+  const xml = buildNativeFcpxml({
+    video: 't', screenPath: 'screen.mp4', voPath: 'vo.mp3', total: 30, w: 1920, h: 1080,
+    avatarClips: [
+      { id: 'panel:p1', isPanel: true, offsetSec: 2, durationSec: 5, file: 'p1.mp4' }
+    ],
+    fullframes: [], overlayClips: [], fxClips: [], sfxClips: [], markers: [], srcUrl: (f) => f
+  });
+  
+  assert.match(xml, /<adjust-transform position="659 -357" scale="0\.2802\d+ 0\.2802\d+"\/>/);
+  assert.match(xml, /name="panel:p1"/);
+});

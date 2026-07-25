@@ -118,25 +118,31 @@ test('snap at 1.4s, no snap at 1.6s, sets snapped flag', () => {
   assert.equal(spans4[0].snapped, undefined);
 });
 
-test('panel layout converts avatar-full to avatar-panel', () => {
-  const manifest = { head_layout: 'panel' };
+test('absent mode defaults to full', () => {
   const { spans, errors } = resolveShots({
     engineMode: 'test',
     spans: [{ id: 's01', kind: 'avatar-full', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }]
-  }, words, manifest);
+  }, words);
   assert.deepEqual(errors, []);
   assert.equal(spans.length, 1);
-  assert.equal(spans[0].kind, 'avatar-panel');
+  assert.equal(spans[0].mode, 'full');
 });
 
-test('corner layout leaves avatar-full unchanged', () => {
-  const manifest = { head_layout: 'corner' };
+test('mode: "panel" is carried through', () => {
   const { spans, errors } = resolveShots({
     engineMode: 'test',
-    spans: [{ id: 's01', kind: 'avatar-full', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }]
-  }, words, manifest);
+    spans: [{ id: 's01', kind: 'avatar-full', mode: 'panel', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }]
+  }, words);
   assert.deepEqual(errors, []);
   assert.equal(spans.length, 1);
-  assert.equal(spans[0].kind, 'avatar-full');
+  assert.equal(spans[0].mode, 'panel');
 });
 
+test('mode: "bogus" -> error mentioning bogus', () => {
+  const { errors } = resolveShots({
+    engineMode: 'test',
+    spans: [{ id: 's01', kind: 'avatar-full', mode: 'bogus', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }]
+  }, words);
+  assert.equal(errors.length, 1);
+  assert.ok(errors[0].includes('bogus'));
+});

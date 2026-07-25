@@ -767,10 +767,11 @@ function buildDetailBlocks(cues, segments, shots, feedbackItems, audit = null) {
   if (shots?.spans?.length) {
     for (const span of shots.spans) {
       const origSpan = shots.shotsFile?.spans?.find(s => s.id === span.id) || span;
+      const label = origSpan.mode === 'panel' ? '[P]' : '[A]';
       const noteHtml = span.note ? ` &mdash; ${escapeHtml(span.note)}` : '';
       const id = `shot-${escapeHtml(span.id)}`;
       const shotHtml = `<div class="timeline-block shot-block" id="${id}">
-  <div class="shot-header">🧍 <b>${escapeHtml(span.id)}</b> avatar-full &middot; ${timecode(span.start)} &rarr; ${timecode(span.start + span.duration)} &middot; ${span.duration}s${noteHtml}</div>
+  <div class="shot-header">🧍 <b>${escapeHtml(span.id)}</b> ${label} &middot; ${timecode(span.start)} &rarr; ${timecode(span.start + span.duration)} &middot; ${span.duration}s${noteHtml}</div>
   <textarea class="shot-frag">${escapeHtml(JSON.stringify(origSpan, null, 2))}</textarea>
   ${fbBox(span.id, 'feedback on this shot span (read by the next Claude session)')}
 </div>`;
@@ -857,7 +858,9 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
       if (span.start > t) {
         items.push(`<div class="minimap-seg" style="flex-grow:${span.start - t}; background:var(--line)"></div>`);
       }
-      items.push(`<div class="minimap-seg" title="${timecode(span.start)} &middot; ${escapeHtml(span.id)} &middot; avatar-full" style="flex-grow:${span.duration}; background:var(--shot)" onclick="document.getElementById('shot-${escapeHtml(span.id)}').scrollIntoView({behavior:'smooth'})"></div>`);
+      const origSpan = shots.shotsFile?.spans?.find(s => s.id === span.id) || span;
+      const label = origSpan.mode === 'panel' ? '[P]' : '[A]';
+      items.push(`<div class="minimap-seg" title="${timecode(span.start)} &middot; ${escapeHtml(span.id)} &middot; ${label}" style="flex-grow:${span.duration}; background:var(--shot)" onclick="document.getElementById('shot-${escapeHtml(span.id)}').scrollIntoView({behavior:'smooth'})"></div>`);
       t = span.start + span.duration;
     }
     if (t < totalDuration) {

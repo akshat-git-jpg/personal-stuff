@@ -234,6 +234,20 @@ test('planJobs spansOnly → no corner jobs', async () => {
   assert.ok(jobs.every(j => j.kind === 'avatar-full'));
 });
 
+test('span mode dictates job kind', () => {
+  const jobs = planJobs({
+    spans: [
+      { id: 's01', start: 10, end: 20 },
+      { id: 's02', mode: 'panel', start: 20, end: 30 },
+      { id: 's03', mode: 'full', start: 30, end: 40 }
+    ]
+  }, 100, { spansOnly: true });
+  assert.equal(jobs.length, 3);
+  assert.equal(jobs[0].kind, 'avatar-full');
+  assert.equal(jobs[1].kind, 'avatar-panel');
+  assert.equal(jobs[2].kind, 'avatar-full');
+});
+
 test('retry run flushes skipped jobs after the last submit (s03-retry incident)', (t) => {
   const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), 'avatar-render-flush-'));
   const workdir = path.join(tmpdir, 'videos', 'vid');

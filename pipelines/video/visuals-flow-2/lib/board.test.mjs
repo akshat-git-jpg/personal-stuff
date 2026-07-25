@@ -688,7 +688,7 @@ test('loadShots: parses, handles missing/corrupt, resolves spans', () => {
   
   assert.equal(loadShots(dir, words), null);
 
-  fs.writeFileSync(path.join(dir, 'shots.json'), JSON.stringify({ engineMode: 'test', spans: [{ id: 's1', from_anchor: 'one two three', to_anchor: 'four five six', kind: 'avatar-full' }] }));
+  fs.writeFileSync(path.join(dir, 'shots.json'), JSON.stringify({ engineMode: 'test', spans: [{ id: 's1', from_anchor: 'one two three', to_anchor: 'four five six', kind: 'avatar-full', mode: 'full' }] }));
   const loaded = loadShots(dir, words);
   assert.equal(loaded.spans.length, 1);
   assert.equal(loaded.spans[0].start, 0);
@@ -715,8 +715,8 @@ test('renderBoardPage: no-shots vs shots layout', async () => {
   fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify({
     engineMode: 'test',
     spans: [
-      { id: 's01', from_anchor: "let's look at", to_anchor: "pros and cons", kind: 'avatar-full' },
-      { id: 's02', from_anchor: "great support team", to_anchor: "tip in mind", kind: 'avatar-full' }
+      { id: 's01', from_anchor: "let's look at", to_anchor: "pros and cons", kind: 'avatar-full', mode: 'full' },
+      { id: 's02', from_anchor: "great support team", to_anchor: "tip in mind", kind: 'avatar-full', mode: 'panel' }
     ]
   }));
   const { server: s2, base: b2 } = await startServer(workdir);
@@ -729,6 +729,8 @@ test('renderBoardPage: no-shots vs shots layout', async () => {
     const blocks = html.match(/class="[^"]*shot-block[^"]*"/g);
     assert.ok(blocks && blocks.length === 2, 'has two shot blocks');
     assert.match(html, /in-shot/, 'has tint');
+    assert.match(html, /s01<\/b>\s*\[A\]/, 's01 is labeled [A]');
+    assert.match(html, /s02<\/b>\s*\[P\]/, 's02 is labeled [P]');
   } finally {
     s2.close();
   }
@@ -739,7 +741,7 @@ test('save: cue change with approved shots un-approves shots and warns', async (
   fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify({
     approved: true,
     engineMode: 'test',
-    spans: [{ id: 's01', from_anchor: "let's look at", to_anchor: "pros and cons", kind: 'avatar-full' }]
+    spans: [{ id: 's01', from_anchor: "let's look at", to_anchor: "pros and cons", kind: 'avatar-full', mode: 'full' }]
   }));
   const { server, base } = await startServer(workdir);
   try {

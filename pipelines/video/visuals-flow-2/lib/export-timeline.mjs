@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { loadAssemblyInputs, runAssembly, ASSEMBLE_MEDIA_ROOT, detectEncoder } from './assemble.mjs';
+import { loadAssemblyInputs, runAssembly, ASSEMBLE_MEDIA_ROOT, detectEncoder, planPanelGeometry } from './assemble.mjs';
 import { planRender } from './render.mjs';
 import { planCaptions } from './captions.mjs';
+import { SHOT_CONSTANTS } from './shot-constants.mjs';
 
 const FPS = 30;
 export const frames = (sec) => Math.round(sec * FPS);
@@ -54,6 +55,15 @@ export function buildNativeFcpxml({ video, screenPath, voPath, musicPath, total,
   const lane = (items, laneNo, isAudio) => items.map((c) => {
     const durF = Math.max(1, frames(c.offsetSec + c.durationSec) - frames(c.offsetSec));
     const ref = assetFor(c.file, { audio: isAudio, durF });
+    if (c.isPanel) {
+      const g = planPanelGeometry({ canvas: { w, h }, constants: SHOT_CONSTANTS });
+      const px = g.x + g.w / 2 - w / 2;
+      const py = h / 2 - (g.y + g.h / 2);
+      const s = g.w / w;
+      return `        <asset-clip lane="${laneNo}" ref="${ref}" offset="${rt(frames(c.offsetSec))}" duration="${rt(durF)}" start="0s" name="${xmlEsc(c.id)}">
+          <adjust-transform position="${px} ${py}" scale="${s} ${s}"/>
+        </asset-clip>`;
+    }
     return `        <asset-clip lane="${laneNo}" ref="${ref}" offset="${rt(frames(c.offsetSec))}" duration="${rt(durF)}" start="0s" name="${xmlEsc(c.id)}"/>`;
   });
 
@@ -282,7 +292,10 @@ async function main() {
     const cueClip = (c) => ({ id: c.id, offsetSec: c.start, durationSec: c.duration, file: path.join(renderDir, planRender(c).outFile) });
     const fullframes = inputs.resolved.filter((c) => c.placement === 'fullframe').map(cueClip);
     const overlayClips = inputs.resolved.filter((c) => c.placement === 'overlay').map(cueClip);
-    const avatarClips = inputs.avatarJobs.map((j) => ({ id: j.id, offsetSec: j.start, durationSec: +(j.end - j.start).toFixed(3), file: j.file }));
+    const avatarClips = [
+      ...inputs.avatarJobs.map((j) => ({ id: j.id, offsetSec: j.start, durationSec: +(j.end - j.start).toFixed(3), file: j.file })),
+      ...inputs.panelJobs.map((j) => ({ id: `panel:${j.id}`, isPanel: true, offsetSec: j.start, durationSec: +(j.end - j.start).toFixed(3), file: j.file }))
+    ];
     const fxClips = fxManifest.rendered.map((r) => ({ id: r.id, offsetSec: r.timelineStart, durationSec: r.duration, file: r.file }));
     const markers = fxManifest.dropped.map((d) => ({ at: d.at, note: `${d.type}: ${d.reason}` }));
     

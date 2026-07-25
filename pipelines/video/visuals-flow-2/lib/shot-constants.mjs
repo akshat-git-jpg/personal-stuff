@@ -12,4 +12,7 @@ export const SHOT_CONSTANTS = {
   FRONT_ZONE:         { value: 0.15, rule: 'Expect one avatar span starting within the first 15% of the voiceover (U-curve shape).' },
   BACK_ZONE:          { value: 0.15, rule: 'Expect one avatar span starting within the last 15% of the voiceover (U-curve shape).' },
   GAP_AVATAR_MAX:     { value: 180, rule: 'Consecutive avatar spans must start no more than 180s apart (lint warning) — host and content cycle tighter than the old 300s.' },
+  PANEL_WIDTH_FRAC:   { value: 0.28, rule: 'A panel-mode avatar occupies 28% of canvas width, inset bottom-right, preserving the source clip aspect ratio.' },
+  PANEL_INSET_PX:     { value: 32,   rule: 'A panel-mode avatar sits 32px from the right and bottom canvas edges.' },
+  PANEL_RADIUS_PX:    { value: 24,   rule: 'A panel-mode avatar is masked to a rounded rectangle of radius 24px.' },
 };

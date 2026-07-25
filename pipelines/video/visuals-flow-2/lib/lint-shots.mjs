@@ -66,7 +66,11 @@ export function lintShots({ shotsResolved, resolvedCues, words }) {
     for (const c of fullframes) {
       const cEnd = c.start + c.duration;
       if (s.start < cEnd && c.start < s.end) {
-        errors.push(`E2 fullframe-collision: ${s.id} (${s.start.toFixed(1)}–${s.end.toFixed(1)}s) overlaps fullframe cue ${c.id} (${c.start.toFixed(1)}–${cEnd.toFixed(1)}s)`);
+        if (s.mode === 'panel') {
+          errors.push(`E2 fullframe-collision: panel span ${s.id} (${s.start.toFixed(1)}–${s.end.toFixed(1)}s) overlaps fullframe cue ${c.id} — panels belong over screen/demo footage`);
+        } else {
+          errors.push(`E2 fullframe-collision: ${s.id} (${s.start.toFixed(1)}–${s.end.toFixed(1)}s) overlaps fullframe cue ${c.id} (${c.start.toFixed(1)}–${cEnd.toFixed(1)}s)`);
+        }
       }
     }
   }
@@ -82,12 +86,13 @@ export function lintShots({ shotsResolved, resolvedCues, words }) {
   }
 
   // E4 budget-cap / W2 budget-target
-  const total = spans.reduce((sum, s) => sum + s.duration, 0);
+  const fullSpans = spans.filter((s) => s.mode !== 'panel');
+  const total = fullSpans.reduce((sum, s) => sum + s.duration, 0);
   if (total > AVATAR_FULL_CAP) {
     errors.push(`E4 budget-cap: ${total.toFixed(0)}s total full-screen avatar exceeds cap ${AVATAR_FULL_CAP}s`);
   }
   const target = AVATAR_FULL_TARGET * (T / 1800);
-  if (spans.length && total < target * 0.5) {
+  if (fullSpans.length && total < target * 0.5) {
     warnings.push(`W2 budget-target: ${total.toFixed(0)}s total is under half the scaled target (~${target.toFixed(0)}s for a ${(T / 60).toFixed(1)}min video) — don't be stingy relative to the target`);
   }
 
