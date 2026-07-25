@@ -790,3 +790,4 @@ Not just size — five levers move together: scale, contrast (headlines were set
 | 153 | cards-type-scale-impact | `--hero-size` contract (≥120px, ≥2.5× the next-largest), em tracking, one accent per card, `check-type-scale.mjs` gate; applied to all 49 fullframe cards | 152 |
 
 - 153-cards-type-scale-impact — hero type scale + hierarchy gate — TODO (needs 152; PARKED, owner runs it after the side-mode batch)
+- 150-vf2-avatar-side-mode — PR#108 150-vf2-avatar-side-mode: delete stage, add side-by-side avatar mode — DONE
