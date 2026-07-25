@@ -13,7 +13,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 
 | Step | Actor | In → Out |
 |---|---|---|
-| `010-transcribe-run` | [RUN] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) → `transcript.json` (word timestamps) |
+| `010-transcribe-run` | [RUN] + quality pass [RUN/LLM] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) + optional `script.txt` → `transcript.json` (word timestamps, cleaned — never raw ASR punctuation; script-first alignment when `script.txt` exists, else an LLM cleanup pass, both gated by `checkTimingIntegrity()`) |
 | `015-segments-propose` | [RUN] | `transcript.json` → `segments.json` (demo vs narration segments) |
 | `018-concept-pass` | [LLM] | `transcript.json` → `concept.json` (gate `lint-concept`) |
 | `plan-skeleton` | [RUN] | `transcript.json` + `segments.json` → deterministic placement grid (the `{{SKELETON}}` prompt variable) |
@@ -60,7 +60,9 @@ Each `steps/NNN-*/` folder has a `README.md` that remains the detailed reference
 videos/<slug>/
   video.json       # v2 manifest (aspect, brand, music mood, format) — committed
   vo.mp3           # input voiceover — gitignored (regenerable from the tts hub)
-  transcript.json  # step 010 output — committed
+  script.txt       # optional input — when present, wins as the authoritative caption text (step 010 script-first mode)
+  transcript.json  # step 010 output, cleaned (never raw ASR punctuation) — committed
+  transcript.<engine>-raw.bak.json  # step 010's raw ASR backup, pre-cleanup — committed
   segments.json    # step 015 output — committed
   concept.json     # step 018 output (core idea, motif, register map) — committed
   cues.llm.json    # step 020's final output, pre-owner-edits — committed, immutable
