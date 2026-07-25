@@ -663,6 +663,14 @@ test('planPanelGeometry returns exact integers, both dimensions even', async () 
   assert.deepEqual(g, { w: 538, h: 302, x: 1350, y: 746, radius: 24 });
 });
 
+test('planSideGeometry returns exact integers, both dimensions even', async () => {
+  const { planSideGeometry } = await import('./assemble.mjs');
+  const { SHOT_CONSTANTS } = await import('./shot-constants.mjs');
+
+  const g = planSideGeometry({ canvas: { w: 1920, h: 1080 }, constants: SHOT_CONSTANTS });
+  assert.deepEqual(g, { scaleW: 1920, scaleH: 1080, cropW: 720, cropH: 1080, cropX: 600, cropY: 0, x: 1200, y: 0, radius: 0 });
+});
+
 test('fillGapsWithFreeze: base none converts screen to freeze', async () => {
   const { fillGapsWithFreeze } = await import('./assemble.mjs');
   const segments = [
@@ -762,53 +770,23 @@ test('Integration: ffmpeg runAssembly panel composite', { skip: spawnSync('ffmpe
   assert.ok(Math.abs(meanCorner - 226) < 10, `panel corner should be base color (Y~226), got ${meanCorner}`);
 });
 
-test('planStageGeometry: centered zone', async () => {
-  const { planStageGeometry } = await import('./assemble.mjs');
-  const { SHOT_CONSTANTS } = await import('./shot-constants.mjs');
-  const zone = { w: 0.5, h: 0.5, x: 0.25, y: 0.25 };
-  const canvas = { w: 1920, h: 1080 };
-  const g = planStageGeometry({ zone, canvas, radiusPx: SHOT_CONSTANTS.STAGE_HEAD_RADIUS_PX.value });
-  assert.equal(g.cropW % 2, 0);
-  assert.equal(g.cropH % 2, 0);
-  assert.equal(g.cropW, 960);
-  assert.equal(g.cropH, 540);
-  assert.equal(g.x, 480);
-  assert.equal(g.y, 270);
-  assert.ok(g.x >= 0 && g.x + g.cropW <= 1920);
-});
+test('Integration: ffmpeg runAssembly side composite', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
+  const tmpDirSide = path.join(testTmp, 'assembly-side');
+  fs.rmSync(tmpDirSide, { recursive: true, force: true });
+  const outSide = path.join(testTmp, 'final-side.mp4');
+  if (fs.existsSync(outSide)) fs.unlinkSync(outSide);
 
-test('planStageGeometry: off-center zone', async () => {
-  const { planStageGeometry } = await import('./assemble.mjs');
-  const { SHOT_CONSTANTS } = await import('./shot-constants.mjs');
-  const zone = { w: 0.3, h: 0.4, x: 0.6, y: 0.1 };
-  const canvas = { w: 1920, h: 1080 };
-  const g = planStageGeometry({ zone, canvas, radiusPx: SHOT_CONSTANTS.STAGE_HEAD_RADIUS_PX.value });
-  assert.equal(g.cropW % 2, 0);
-  assert.equal(g.cropH % 2, 0);
-  assert.equal(g.cropW, 576);
-  assert.equal(g.cropH, 432);
-  assert.equal(g.x, 1152);
-  assert.equal(g.y, 108);
-});
+  const screenMp4 = path.join(testTmp, 'screen-black.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=black:s=1920x1080:r=30', '-t', '5', '-pix_fmt', 'yuv420p', screenMp4]);
 
-test('Integration: ffmpeg runAssembly stage composite', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
-  const tmpDirStage = path.join(testTmp, 'assembly-stage');
-  fs.rmSync(tmpDirStage, { recursive: true, force: true });
-  const outStage = path.join(testTmp, 'final-stage.mp4');
-  if (fs.existsSync(outStage)) fs.unlinkSync(outStage);
+  const sideFile = path.join(testTmp, 'side-blue.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=1920x1080:r=30', '-t', '5', '-pix_fmt', 'yuv420p', sideFile]);
 
-  const screenMp4 = path.join(testTmp, 'screen-yellow.mp4');
-  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=yellow:s=1920x1080:r=30', '-t', '5', '-pix_fmt', 'yuv420p', screenMp4]);
-  
-  const stageFile = path.join(testTmp, 'stage-blue.mp4');
-  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=1920x1080:r=30', '-t', '5', '-pix_fmt', 'yuv420p', stageFile]);
-
-  const zone = { w: 0.4, h: 0.4, x: 0.1, y: 0.1 };
-  const stageJobs = [
-    { kind: 'stage', id: 's01', start: 1, end: 4, file: stageFile, zone }
+  const sideJobs = [
+    { kind: 'avatar-side', id: 's01', start: 1, end: 4, file: sideFile }
   ];
 
-  const { runAssembly, planStageGeometry } = await import('./assemble.mjs');
+  const { runAssembly, planSideGeometry } = await import('./assemble.mjs');
   const { SHOT_CONSTANTS } = await import('./shot-constants.mjs');
 
   await runAssembly({
@@ -817,10 +795,10 @@ test('Integration: ffmpeg runAssembly stage composite', { skip: spawnSync('ffmpe
     resolved: [],
     avatarJobs: [],
     panelJobs: [],
-    stageJobs,
+    sideJobs,
     total: 5,
     screen: screenMp4,
-    out: outStage,
+    out: outSide,
     encoder: 'x264',
     keepTemp: true,
     transitions: 'none',
@@ -829,26 +807,27 @@ test('Integration: ffmpeg runAssembly stage composite', { skip: spawnSync('ffmpe
     words: []
   });
 
-  assert.ok(fs.existsSync(outStage));
-  
-  const frameStage = path.join(testTmp, 'frame-stage.png');
-  spawnSync('ffmpeg', ['-y', '-ss', '2', '-i', outStage, '-frames:v', '1', '-pix_fmt', 'gray', frameStage]);
-  
+  assert.ok(fs.existsSync(outSide));
+
+  const frameSide = path.join(testTmp, 'frame-side.png');
+  spawnSync('ffmpeg', ['-y', '-ss', '2', '-i', outSide, '-frames:v', '1', '-pix_fmt', 'gray', frameSide]);
+
   const getMeanY = (file, cropStr) => {
     const p = spawnSync('ffprobe', ['-v', 'error', '-f', 'lavfi', '-i', `movie=${file},${cropStr},signalstats`, '-show_entries', 'frame_tags=lavfi.signalstats.YAVG', '-of', 'csv=p=0'], { encoding: 'utf8' });
     return parseFloat(p.stdout);
   };
-  
-  const g = planStageGeometry({ zone, canvas: { w: 1920, h: 1080 }, radiusPx: SHOT_CONSTANTS.STAGE_HEAD_RADIUS_PX.value });
 
-  // Inside the zone, it should be the host video (blue color). Y for blue is ~29
+  const g = planSideGeometry({ canvas: { w: 1920, h: 1080 }, constants: SHOT_CONSTANTS });
+
+  // Inside the side box (x 1200-1920), it should be the host video (blue). Y for blue is ~29
   const cropInside = `crop=${g.cropW - 100}:${g.cropH - 100}:${g.x + 50}:${g.y + 50}`;
-  const meanInside = getMeanY(frameStage, cropInside);
-  
-  // Outside the zone, it should be the card background (yellow color). Y for yellow is ~226
-  const cropOutside = `crop=200:200:1500:800`;
-  const meanOutside = getMeanY(frameStage, cropOutside);
+  const meanInside = getMeanY(frameSide, cropInside);
 
-  assert.ok(Math.abs(meanInside - 29) < 10, `inside stage zone should be host (blue, Y~29), got ${meanInside}`);
-  assert.ok(Math.abs(meanOutside - 226) < 10, `outside stage zone should be card (yellow, Y~226), got ${meanOutside}`);
+  // Outside the side box (x 0-1200), it should still be the black base — proves the
+  // avatar did NOT take the full frame.
+  const cropOutside = `crop=200:200:400:400`;
+  const meanOutside = getMeanY(frameSide, cropOutside);
+
+  assert.ok(Math.abs(meanInside - 29) < 10, `inside side box should be host (blue, Y~29), got ${meanInside}`);
+  assert.ok(Math.abs(meanOutside - 16) < 10, `outside side box should be base (black, Y~16), got ${meanOutside}`);
 });

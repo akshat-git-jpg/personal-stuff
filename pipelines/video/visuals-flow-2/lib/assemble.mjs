@@ -52,13 +52,14 @@ export function planPanelGeometry({ canvas, constants, srcAspect = 16 / 9 }) {
   return { w: pw, h: ph, x: W - pw - inset, y: H - ph - inset, radius: constants.PANEL_RADIUS_PX.value };
 }
 
-// Stage geometry: the host fills the covering card's declared head_zone.
-// The clip is cover-cropped to the zone's aspect (scale up, crop centre) so the
-// face is never letterboxed or squashed. Dimensions forced EVEN for yuv420p.
-export function planStageGeometry({ zone, canvas, radiusPx, srcAspect = 16 / 9 }) {
+// Side geometry: the host occupies a fixed right-hand column, the motion-graphics
+// card the left. The clip is cover-cropped to the column's aspect (scale up, crop
+// centre) so the face is never letterboxed or squashed. Dimensions forced EVEN for
+// yuv420p. This is the former planStageGeometry maths with a constant zone.
+export function planSideGeometry({ canvas, constants, srcAspect = 16 / 9 }) {
   const { w: W, h: H } = canvas;
-  const zw = Math.round((zone.w * W) / 2) * 2;
-  const zh = Math.round((zone.h * H) / 2) * 2;
+  const zw = Math.round(constants.SIDE_AVATAR_W.value / 2) * 2;
+  const zh = Math.round(H / 2) * 2;
   const zoneAspect = zw / zh;
   // cover: scale so the SHORT side fills, then centre-crop the overflow
   const scaleW = zoneAspect > srcAspect ? zw : Math.round((zh * srcAspect) / 2) * 2;
@@ -68,9 +69,9 @@ export function planStageGeometry({ zone, canvas, radiusPx, srcAspect = 16 / 9 }
     cropW: zw, cropH: zh,
     cropX: Math.round((scaleW - zw) / 2),
     cropY: Math.round((scaleH - zh) / 2),
-    x: Math.round(zone.x * W),
-    y: Math.round(zone.y * H),
-    radius: zone.radius ?? radiusPx,
+    x: W - zw,
+    y: 0,
+    radius: 0,
   };
 }
 
