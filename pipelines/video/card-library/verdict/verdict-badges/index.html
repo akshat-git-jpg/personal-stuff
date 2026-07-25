@@ -38,10 +38,10 @@
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
-        width: 1920px; height: 1080px; overflow: hidden;
+        width: 100%; height: 1080px; overflow: hidden;
         background: #000; font-family: var(--font); color: var(--text);
       }
-      #root { position: relative; width: 1920px; height: 1080px; }
+      #root { position: relative; width: 100%; height: 1080px; }
 
       #bg {
         position: absolute; inset: 0;
@@ -82,6 +82,18 @@
       #winnerCol .content-row { padding-right: 0; }
       #badgesCol .content-row { padding-left: calc(280px + 64px); }
       #badgesCol #winnerSpacer { width: 280px; flex-shrink: 0; }
+
+      /* side mode (1200px canvas): the two columns no longer fit next to each
+         other, so stack winner over badges instead of shrinking either. */
+      @media (max-width: 1300px) {
+        .col-wrap { flex-direction: column; padding: 90px 130px; }
+        #winnerCol { justify-content: flex-start; }
+        #badgesCol { justify-content: flex-end; }
+        .content-row { flex-direction: column; align-items: flex-start; gap: 28px; max-width: 100%; }
+        #badgesCol .content-row { padding-left: 0; }
+        #badgesCol #winnerSpacer { display: none; }
+        #winner .reason { max-width: 100%; }
+      }
     </style>
   </head>
   <body>

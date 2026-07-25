@@ -35,10 +35,10 @@
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
-        width: 1920px; height: 1080px; overflow: hidden;
+        width: 100%; height: 1080px; overflow: hidden;
         background: #000; font-family: var(--font); color: var(--text);
       }
-      #root { position: relative; width: 1920px; height: 1080px; }
+      #root { position: relative; width: 100%; height: 1080px; }
 
       #bg {
         position: absolute; inset: 0;
@@ -134,11 +134,12 @@
       const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 
       // deterministic confetti field (40 pieces) — LCG-style seeding, ported as-is
+      const ROOT_W = $('root').getBoundingClientRect().width;
       const CONFETTI = Array.from({ length: 40 }).map((_, i) => {
         const h = (i * 9301 + 49297) % 233280;
         const r = h / 233280;
         return {
-          startX: r * 1920,
+          startX: r * ROOT_W,
           startY: -50 - (((h * 7) % 233280) / 233280) * 200,
           fallSpeed: 1.5 + (((h * 11) % 233280) / 233280) * 2.5,
           swayPhase: (((h * 13) % 233280) / 233280) * Math.PI * 2,

@@ -158,7 +158,7 @@
       "slug": "comparison/bar\u002dchart",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "horizontal bar chart racing from zero to each product's value",
       "variables": {
         "title": {
@@ -208,7 +208,7 @@
       "slug": "comparison/billing\u002ddiscount",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "monthly vs yearly plan cards side by side with a savings stamp on the yearly plan",
       "variables": {
         "title": {
@@ -248,7 +248,7 @@
       "slug": "comparison/checkout\u002dsummary",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "cart summary panel where a coupon code applies and the total counts down",
       "variables": {
         "title": {
@@ -300,7 +300,7 @@
       "slug": "comparison/comparison\u002dstorm\u002dcascade",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "comparison table over a storm/particle background; rows cascade in and the winner column glows",
       "variables": {
         "eyebrow": {
@@ -340,7 +340,7 @@
       "slug": "comparison/comparison\u002dtier\u002dlist",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "S/A/B/C/F tier list ranking tools with logo pills sliding into each tier row",
       "variables": {
         "eyebrow": {
@@ -356,7 +356,7 @@
       "slug": "comparison/feature\u002dmatrix",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "feature comparison matrix; each row of check/cross/value cells reveals on its beat",
       "variables": {
         "products": {
@@ -387,7 +387,7 @@
       "slug": "comparison/head\u002dto\u002dhead",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "two\u002dcontender VS panel with stats stacked on each side and a center VS badge",
       "variables": {
         "left": {
@@ -475,7 +475,7 @@
       "slug": "comparison/pricing\u002dtiers",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "2\u002d3 column pricing plan cards with one plan flagged as recommended",
       "variables": {
         "heading": {
@@ -547,7 +547,7 @@
       "slug": "comparison/savings\u002dstacker",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "full\u002dprice bar that slices off discount chunks one by one down to a final price",
       "variables": {
         "title": {
@@ -959,7 +959,7 @@
       "slug": "pros\u002dcons/pros\u002dcons",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "two\u002dcolumn pros vs cons; each row reveals on its beat",
       "variables": {
         "title": {
@@ -1354,7 +1354,7 @@
       "slug": "verdict/verdict\u002dbadges",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "verdict card where the winner slides in and five achievement badges pop in one by one",
       "variables": {
         "eyebrow": {
@@ -1388,7 +1388,7 @@
       "slug": "verdict/verdict\u002dreport\u002dcard",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "verdict report card with a glowing letter grade; each sub\u002dgrade reveals on its beat",
       "variables": {
         "eyebrow": {
@@ -1445,7 +1445,7 @@
       "slug": "verdict/verdict\u002dtrophy",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "verdict card with confetti and a trophy dropping in before the winner card lifts with a gold pulse. ONE winner per card — a dual verdict gets one card per winner, back to back",
       "variables": {
         "eyebrow": {
@@ -1563,7 +1563,7 @@
       "slug": "verdict/winners\u002dpodium",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "side\u002dby\u002dside verdict winners over a confetti stage, one tool column per beat; scales 2\u002d4 winners (layout derives from count). Use for a multi\u002dwinner finale — co\u002dwinners (ranked:false, all gold) or a ranked podium (ranked:true → gold/silver/bronze/steel). ONE tool per beat.",
       "variables": {
         "eyebrow": {
@@ -1606,7 +1606,7 @@
       "slug": "verdict/persona\u002dmatch",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "use\u002dcase verdict: persona → winning tool pairs, one pair per beat",
       "variables": {
         "title": {
@@ -1645,7 +1645,7 @@
       "slug": "comparison/credits\u002dmath",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "credit/unit economics rows: plan → credits → what that actually buys, one row per beat",
       "variables": {
         "title": {
@@ -1717,7 +1717,7 @@
       "slug": "comparison/table\u002drows",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "comparison table that builds one row per beat as each product's numbers are spoken; cells pipe\u002dseparated in beat text",
       "variables": {
         "title": {
@@ -1819,7 +1819,7 @@
       "slug": "enacted/fill\u002dgauge",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "a labeled vessel fills stepwise; each beat adds a measured pour + label chip",
       "variables": {
         "title": {
@@ -1866,7 +1866,7 @@
       "slug": "enacted/race\u002dbars",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "Products race as horizontal bars; each beat advances all bars to given values; a stalled bar visibly judders and stops",
       "variables": {
         "title": {
@@ -1919,7 +1919,7 @@
       "slug": "enacted/counter\u002dtally",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "One huge number rolls to each beat's value; a tick strip accumulates marks underneath",
       "variables": {
         "title": {
@@ -1966,7 +1966,7 @@
       "slug": "enacted/pipeline\u002dflow",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "A node chain with a pulse that travels; each beat lights the named step",
       "variables": {
         "title": {
@@ -2049,7 +2049,7 @@
       "slug": "enacted/before\u002dafter",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "Split panel; an accent slider sweeps left\u002d>right revealing AFTER over BEFORE",
       "variables": {
         "title": {
@@ -2093,7 +2093,7 @@
           }
         }
       },
-      "default_duration": 8,
+      "default_duration": 6,
       "register": [
         "dark",
         "light"
@@ -2110,7 +2110,7 @@
       "slug": "enacted/spotlight\u002dfocus",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "A dimmed grid of items; a spotlight sweeps then locks on focus, others fall to 25% opacity",
       "variables": {
         "title": {
@@ -2154,7 +2154,7 @@
       "slug": "enacted/timeline\u002dscrub",
       "kind": "beat",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "A horizontal timeline; the playhead jumps to each beat's marker, stamping a label above it",
       "variables": {
         "title": {
@@ -2190,7 +2190,7 @@
       "slug": "enacted/terminal\u002denact",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "A zsh\u002dstyle window slides in and TYPES command with a blinking caret, then prints output. (This is the \"show the real thing\" device — the command must be real, never pseudo\u002dcode.)",
       "variables": {
         "title": {
@@ -2212,7 +2212,7 @@
           "example": "Build successful"
         }
       },
-      "default_duration": 10,
+      "default_duration": 6,
       "register": [
         "dark",
         "light"
@@ -2229,7 +2229,7 @@
       "slug": "enacted/promise\u002dsplit",
       "kind": "single",
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "purpose": "two products share one promise, then the frame splits and each side takes the bet it actually makes: for the sentence shape \"A and B both promise X, but one does P and the other does Q\"",
       "variables": {
         "promise": {
