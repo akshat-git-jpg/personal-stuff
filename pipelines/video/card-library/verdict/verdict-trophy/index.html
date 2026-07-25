@@ -30,7 +30,9 @@
       :root {
         --text: #ffffff;
         --text-sec: rgba(255, 239, 219, 0.65);
+        --accent: #fb923c;
         --gold: #facc15;
+        --hero-size: 190px; /* the trophy IS the verdict moment here — a Hero (not a hero number) */
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -51,8 +53,8 @@
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 140px; }
       #content { display: flex; flex-direction: column; align-items: center; gap: 24px; }
 
-      #trophy { font-size: 160px; line-height: 1; will-change: transform, opacity, filter; }
-      .eyebrow { font-size: 18px; font-weight: 700; letter-spacing: 8px; color: var(--gold); text-transform: uppercase; }
+      #trophy { font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1; will-change: transform, opacity, filter; }
+      .eyebrow { font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; }
 
       #winnerCard {
         background: #fff; padding: 26px 44px; border-radius: 22px;
@@ -60,7 +62,7 @@
       }
       #winnerCard .logo { width: 84px; height: 84px; background: #fff; border-radius: 16px; padding: 8px; display: flex; align-items: center; justify-content: center; }
       #winnerCard .logo svg { width: 100%; height: 100%; object-fit: contain; }
-      #winnerCard .name { font-size: 64px; font-weight: 800; color: #0a0805; letter-spacing: -2px; line-height: 1; }
+      #winnerCard .name { font-size: 48px; font-weight: 800; color: #0a0805; letter-spacing: -0.015em; line-height: 1; }
 
       #reason { font-size: 24px; color: var(--text-sec); margin-top: 12px; text-align: center; max-width: 1000px; line-height: 1.4; will-change: opacity; }
     </style>
