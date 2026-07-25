@@ -41,10 +41,10 @@
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
-        width: 1920px; height: 1080px; overflow: hidden;
+        width: 100%; height: 1080px; overflow: hidden;
         background: #000; font-family: var(--font); color: var(--text);
       }
-      #root { position: relative; width: 1920px; height: 1080px; }
+      #root { position: relative; width: 100%; height: 1080px; }
 
       #bg {
         position: absolute; inset: 0;
@@ -144,6 +144,7 @@
       const HOLD = DURATION; // seconds
 
       const ACCENT = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#fb923c';
+      const ROOT_W = $('root').getBoundingClientRect().width;
       const GRID = `1.4fr ${DATA.tools.map(() => '1fr').join(' ')}`;
       const hasWinner = DATA.winnerColumn !== null && DATA.winnerColumn !== undefined;
 
@@ -156,7 +157,7 @@
       const PARTICLES = Array.from({ length: 22 }).map((_, i) => {
         const h = (i * 9301 + 49297) % 233280, r = h / 233280;
         return {
-          startX: r * 1920,
+          startX: r * ROOT_W,
           startY: ((h * 7) % 233280) / 233280 * 1080,
           drift: 80 + (((h * 11) % 233280) / 233280) * 180,
           size: 2 + (((h * 13) % 233280) / 233280) * 5,
@@ -226,7 +227,7 @@
           el,
           { x: 0, opacity: 0 },
           {
-            x: 1920 + s.len * 2,
+            x: ROOT_W + s.len * 2,
             duration: CYCLE,
             ease: 'none',
             repeat: repeats,

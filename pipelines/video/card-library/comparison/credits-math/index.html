@@ -18,10 +18,17 @@
         --font: 'Inter', system-ui, sans-serif;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
-      #root { position: relative; width: 1920px; height: 1080px; }
+      html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 100%; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 120px 240px; }
+
+      /* side mode (1200px canvas): 240px side padding was tuned for the 1920
+         canvas; keep the same absolute margin ratio by shrinking it so rows
+         still have real content width instead of being squeezed to a sliver. */
+      @media (max-width: 1300px) {
+        #frame { padding: 100px 90px; }
+      }
       .slide-title { display: flex; align-items: center; gap: 20px; margin-bottom: 64px; will-change: transform, opacity; }
       .slide-title .mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); box-shadow: 0 0 26px rgba(251, 146, 60, 0.5); }
       .slide-title .title-text { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
