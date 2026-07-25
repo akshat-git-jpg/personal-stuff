@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
-import { mmss, rewriteDuration, manifestMd, planRender, manifestCues } from './render.mjs';
+import { mmss, rewriteDuration, rewriteCanvas, manifestMd, planRender, manifestCues } from './render.mjs';
 
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'render');
 test.before(() => {
@@ -24,6 +24,27 @@ test('rewriteDuration: mixed data-duration values error, html unchanged', () => 
   const { html: out, error } = rewriteDuration(html, 24.5);
   assert.ok(error);
   assert.equal(out, html);
+});
+
+test('rewriteCanvas: no data-width attribute errors', () => {
+  const html = '<div data-duration="6"></div>';
+  const { html: out, error } = rewriteCanvas(html, 1200);
+  assert.ok(error);
+  assert.equal(out, html);
+});
+
+test('rewriteCanvas: mixed data-width values error, html unchanged', () => {
+  const html = '<div data-width="1920"></div><div data-width="960"></div>';
+  const { html: out, error } = rewriteCanvas(html, 1200);
+  assert.ok(error);
+  assert.equal(out, html);
+});
+
+test('rewriteCanvas: single data-width value is rewritten to 1200', () => {
+  const html = '<div id="root" data-width="1920"></div>';
+  const { html: out, error } = rewriteCanvas(html, 1200);
+  assert.equal(error, null);
+  assert.equal(out, '<div id="root" data-width="1200"></div>');
 });
 
 test('mmss formats minutes:seconds.decisecond', () => {

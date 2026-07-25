@@ -31,8 +31,9 @@ export function resolveShots(shotsFile, words) {
     seen.add(span.id);
     if (span.flagged) continue; // parked, same semantics as flagged cues
     if (span.kind !== 'avatar-full') { errors.push(`${span.id}: unknown kind "${span.kind}" — only "avatar-full" exists today`); continue; }
-    const mode = span.mode ?? 'full';
-    if (mode !== 'full' && mode !== 'panel' && mode !== 'stage') { errors.push(`${span.id}: unknown mode "${span.mode}" — must be "full", "panel", or "stage"`); continue; }
+    if (span.mode === undefined) { errors.push(`${span.id}: mode is required — must be "full" or "side" ("panel" is supported but not currently planned)`); continue; }
+    const mode = span.mode;
+    if (mode !== 'full' && mode !== 'panel' && mode !== 'side') { errors.push(`${span.id}: unknown mode "${span.mode}" — must be "full", "panel", or "side"`); continue; }
     const a = findPhrase(W, span.from_anchor ?? '', cursor);
     if (a.err) { errors.push(`${span.id} from_anchor: ${a.err}`); continue; }
     const b = findPhrase(W, span.to_anchor ?? '', a.idx + a.len);

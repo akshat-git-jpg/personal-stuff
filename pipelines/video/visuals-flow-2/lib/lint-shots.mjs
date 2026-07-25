@@ -68,7 +68,7 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
       if (s.start < cEnd && c.start < s.end) {
         if (s.mode === 'panel') {
           errors.push(`E2 fullframe-collision: panel span ${s.id} (${s.start.toFixed(1)}–${s.end.toFixed(1)}s) overlaps fullframe cue ${c.id} — panels belong over screen/demo footage`);
-        } else if (s.mode !== 'stage') {
+        } else if (s.mode !== 'side') {
           errors.push(`E2 fullframe-collision: ${s.id} (${s.start.toFixed(1)}–${s.end.toFixed(1)}s) overlaps fullframe cue ${c.id} (${c.start.toFixed(1)}–${cEnd.toFixed(1)}s)`);
         }
       }
@@ -86,7 +86,7 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
   }
 
   // E4 budget-cap / W2 budget-target
-  const fullSpans = spans.filter((s) => s.mode !== 'panel' && s.mode !== 'stage');
+  const fullSpans = spans.filter((s) => s.mode !== 'panel');
   const total = fullSpans.reduce((sum, s) => sum + s.duration, 0);
   if (total > AVATAR_FULL_CAP) {
     errors.push(`E4 budget-cap: ${total.toFixed(0)}s total full-screen avatar exceeds cap ${AVATAR_FULL_CAP}s`);
@@ -115,23 +115,23 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
     }
   }
 
-  // E6 stage-coverage
-  const stageSpans = spans.filter(s => s.mode === 'stage');
-  for (const s of stageSpans) {
+  // E6 side-coverage
+  const sideSpans = spans.filter(s => s.mode === 'side');
+  for (const s of sideSpans) {
     const overlappingCues = fullframes.filter(c => s.start < c.start + c.duration && c.start < s.end);
     if (overlappingCues.length === 0) {
-      errors.push(`E6 stage-coverage: stage span ${s.id} has no covering cue`);
+      errors.push(`E6 side-coverage: side span ${s.id} has no covering cue`);
     } else if (overlappingCues.length > 1) {
-      errors.push(`E6 stage-coverage: stage span ${s.id} crosses two cues`);
+      errors.push(`E6 side-coverage: side span ${s.id} crosses two cues`);
     } else {
       const c = overlappingCues[0];
       const cardDef = catalog?.cards?.find(card => card.slug === c.slug);
-      if (!cardDef?.head_zone) {
-        errors.push(`E6 stage-coverage: stage span ${s.id} covering card ${c.slug} has no head_zone`);
+      if (!cardDef?.side) {
+        errors.push(`E6 side-coverage: side span ${s.id} covering card ${c.slug} is not side-capable (catalog "side" is not true)`);
       } else {
         const cEnd = c.start + c.duration;
         if (s.start < c.start || s.end > cEnd) {
-          warnings.push(`W6 stage-outlives: stage span ${s.id} outlives its covering cue`);
+          warnings.push(`W6 side-outlives: side span ${s.id} outlives its covering cue`);
         }
       }
     }

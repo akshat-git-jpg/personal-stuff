@@ -17,5 +17,11 @@ cues and shots happens at 040, not before.
   session. It is self-contained; `RULEBOOK.md` is the judgment archive the 060 fold maintains.
   Fix-loop: `node lib/resolve-shots.mjs <slug> && node lib/lint-shots.mjs <slug>`,
   feed errors back verbatim, ≤3 rounds; errors surviving round 3 escalate to the owner.
+
+  Fill `<SIDE_CAPABLE_CARDS>` with:
+
+  ```bash
+  node -e "const c=require('../../../card-library/catalog.json');const s=(c.cards||[]).filter(x=>x.placement==='fullframe'&&x.side===true).map(x=>'- '+x.slug);console.log(s.length?s.join('\n'):'(none yet — no side spans may be planned)')"
+  ```
 - **Pre-flight:** `node lib/feedback-status.mjs` must exit 0 (unfolded feedback = unapplied lessons), and `resolved.json` must be fresh for the current `cues.json`. Do NOT require `cues.json approved: true` — under the 2026-07-25 review model this step runs before that approval exists.
 - **Next:** owner reviews spans on the board (plan 079), then avatar render (plan 080).

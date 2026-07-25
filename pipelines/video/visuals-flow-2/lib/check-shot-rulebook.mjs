@@ -83,12 +83,17 @@ export function checkShotRulebook({
     fail('RULEBOOK.md has no pointer to lib/shot-constants.mjs');
   }
 
-  // Drift gate 4: The prompt must document all supported avatar modes so the model understands them.
-  if (!prompt.includes('"panel"')) {
-    fail('shot-pass-prompt.md must explain "panel" mode');
+  // Drift gate 4: The prompt must document the modes it offers the model —
+  // "full" and "side" only. "panel" is deliberately left off the offered set
+  // (code-live, rule-dead — owner 2026-07-25) and "stage" no longer exists.
+  if (!prompt.includes('"full"')) {
+    fail('shot-pass-prompt.md must explain "full" mode');
   }
-  if (!prompt.includes('"stage"')) {
-    fail('shot-pass-prompt.md must explain "stage" mode');
+  if (!prompt.includes('"side"')) {
+    fail('shot-pass-prompt.md must explain "side" mode');
+  }
+  if (/"stage"/.test(prompt)) {
+    fail('shot-pass-prompt.md still mentions "stage" mode — it was removed');
   }
 }
 

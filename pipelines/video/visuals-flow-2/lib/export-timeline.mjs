@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { loadAssemblyInputs, runAssembly, ASSEMBLE_MEDIA_ROOT, detectEncoder, planPanelGeometry, planStageGeometry } from './assemble.mjs';
+import { loadAssemblyInputs, runAssembly, ASSEMBLE_MEDIA_ROOT, detectEncoder, planPanelGeometry, planSideGeometry } from './assemble.mjs';
 import { planRender } from './render.mjs';
 import { planCaptions } from './captions.mjs';
 import { SHOT_CONSTANTS } from './shot-constants.mjs';
@@ -64,8 +64,8 @@ export function buildNativeFcpxml({ video, screenPath, voPath, musicPath, total,
           <adjust-transform position="${px} ${py}" scale="${s} ${s}"/>
         </asset-clip>`;
     }
-    if (c.isStage) {
-      const g = planStageGeometry({ zone: c.zone, canvas: { w, h }, radiusPx: SHOT_CONSTANTS.STAGE_HEAD_RADIUS_PX.value });
+    if (c.isSide) {
+      const g = planSideGeometry({ canvas: { w, h }, constants: SHOT_CONSTANTS });
       const px = g.x + g.cropW / 2 - w / 2;
       const py = h / 2 - (g.y + g.cropH / 2);
       const s = g.scaleW / w;
@@ -309,12 +309,9 @@ async function main() {
     const avatarClips = [
       ...inputs.avatarJobs.map((j) => ({ id: j.id, offsetSec: j.start, durationSec: +(j.end - j.start).toFixed(3), file: j.file })),
       ...inputs.panelJobs.map((j) => ({ id: `panel:${j.id}`, isPanel: true, offsetSec: j.start, durationSec: +(j.end - j.start).toFixed(3), file: j.file })),
-      ...(inputs.stageJobs || []).map((j) => {
-        const overlappingCues = inputs.resolved.filter(c => c.placement === 'fullframe' && j.start < c.start + c.duration && c.start < j.end);
-        const cue = overlappingCues[0];
-        const cardDef = inputs.catalog?.cards?.find(card => card.slug === cue?.slug);
-        return { id: `stage:${j.id}`, isStage: true, zone: cardDef?.head_zone, offsetSec: j.start, durationSec: +(j.end - j.start).toFixed(3), file: j.file };
-      })
+      ...(inputs.sideJobs || []).map((j) => (
+        { id: `side:${j.id}`, isSide: true, offsetSec: j.start, durationSec: +(j.end - j.start).toFixed(3), file: j.file }
+      ))
     ];
     const fxClips = fxManifest.rendered.map((r) => ({ id: r.id, offsetSec: r.timelineStart, durationSec: r.duration, file: r.file }));
     const markers = fxManifest.dropped.map((d) => ({ at: d.at, note: `${d.type}: ${d.reason}` }));

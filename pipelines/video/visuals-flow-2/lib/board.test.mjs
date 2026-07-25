@@ -736,6 +736,50 @@ test('renderBoardPage: no-shots vs shots layout', async () => {
   }
 });
 
+test('renderBoardPage: a side span is labeled [S], distinct from a full [A]', async () => {
+  const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'board-side-'));
+  fs.writeFileSync(path.join(dir, 'cues.json'), JSON.stringify({ video: 'side-fixture', approved: false, cues: [] }));
+  fs.writeFileSync(path.join(dir, 'resolved.json'), JSON.stringify({ video: 'side-fixture', resolved: [] }));
+  fs.writeFileSync(path.join(dir, 'transcript.json'), JSON.stringify([
+    { text: "let's", start: 0.0, end: 0.3 },
+    { text: 'look', start: 0.5, end: 0.8 },
+    { text: 'at', start: 1.0, end: 1.2 },
+    { text: 'this', start: 1.5, end: 1.7 },
+    { text: 'chart', start: 2.0, end: 2.3 },
+    { text: 'now', start: 2.5, end: 2.7 },
+  ]));
+  fs.copyFileSync(path.join(FIXTURE_DIR, 'vo.mp3'), path.join(dir, 'vo.mp3'));
+  fs.writeFileSync(path.join(dir, 'shots.json'), JSON.stringify({
+    engineMode: 'test',
+    spans: [
+      { id: 's01', from_anchor: "let's look at", to_anchor: "this chart now", kind: 'avatar-full', mode: 'full' },
+    ]
+  }));
+  const { server, base } = await startServer(dir);
+  try {
+    const res = await fetch(`${base}/list`);
+    const html = await res.text();
+    assert.match(html, /s01<\/b>\s*\[A\]/, 's01 (mode full) is labeled [A]');
+  } finally {
+    server.close();
+  }
+
+  fs.writeFileSync(path.join(dir, 'shots.json'), JSON.stringify({
+    engineMode: 'test',
+    spans: [
+      { id: 's01', from_anchor: "let's look at", to_anchor: "this chart now", kind: 'avatar-full', mode: 'side' },
+    ]
+  }));
+  const { server: s2, base: b2 } = await startServer(dir);
+  try {
+    const res = await fetch(`${b2}/list`);
+    const html = await res.text();
+    assert.match(html, /s01<\/b>\s*\[S\]/, 's01 (mode side) is labeled [S]');
+  } finally {
+    s2.close();
+  }
+});
+
 test('save: cue change with approved shots un-approves shots and warns', async () => {
   const workdir = makeWorkdir();
   fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify({
