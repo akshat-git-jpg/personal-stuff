@@ -29,19 +29,19 @@
         --bg-from: #2b2416; --bg-to: #0a0805;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
-      #root { position: relative; width: 1920px; height: 1080px; }
+      html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 100%; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
       #card { width: 100%; max-width: 1560px; display: flex; flex-direction: column; align-items: center; }
 
       .title { font-size: 72px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 64px; }
 
-      .stage { position: relative; display: flex; align-items: flex-start; justify-content: center; gap: 56px; }
+      .stage { position: relative; display: flex; align-items: flex-start; justify-content: center; gap: 2.917vw; }
       body.variant-b .stage { flex-direction: row-reverse; }
 
       .vessel {
-        position: relative; width: 500px; height: 640px; flex: 0 0 auto;
+        position: relative; width: 26.04vw; height: 33.33vw; flex: 0 0 auto;
         border-radius: 48px; overflow: hidden;
         background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.14);
         box-shadow: inset 0 0 60px rgba(0,0,0,0.35);
@@ -65,7 +65,7 @@
         border-radius: 40px;
       }
 
-      .labels { position: relative; width: 560px; height: 640px; flex: 0 0 auto; }
+      .labels { position: relative; width: 29.17vw; height: 33.33vw; flex: 0 0 auto; }
       .chip {
         position: absolute; left: 0; right: 0; transform: translateY(-50%);
         display: flex; align-items: center; gap: 20px; opacity: 0;
@@ -139,7 +139,12 @@
       /* ===== TIMELINE (LOCKED — do not edit) ===== */
       const $ = (id) => document.getElementById(id);
       const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-      const VESSEL_H = 640;
+      // read the rendered height rather than hardcoding 640 — .vessel is sized
+      // in vw so it scales with the canvas (side mode renders at 1200 wide).
+      const VESSEL_H = document.querySelector('.vessel').getBoundingClientRect().height;
+      // fixed, NOT scaled with VESSEL_H — the chip's own height (font-size,
+      // padding) never shrinks, so the minimum gap between stacked chips stays
+      // the same physical size regardless of canvas width.
       const CHIP_GAP = 96;
 
       const title = $('title');
@@ -162,24 +167,16 @@
       const surfaceY = (val) => isDark ? VESSEL_H * (val / 100) : VESSEL_H * (1 - val / 100);
 
       const withY = DATA.beats.map((b) => ({ b, val: clamp(parseFloat(b.value) || 0, 0, 100), raw: surfaceY(clamp(parseFloat(b.value) || 0, 0, 100)) }));
-      const order = [...withY].sort((a, c) => a.raw - c.raw);
-      let prevY = -Infinity;
-      order.forEach((item) => {
-        let y = item.raw;
-        if (y - prevY < CHIP_GAP) y = prevY + CHIP_GAP;
-        item.y = y;
-        prevY = y;
-      });
-      // clamp the stack back inside the column bounds
-      const overflow = prevY - (VESSEL_H - 20);
-      if (overflow > 0) order.forEach((item) => { item.y -= overflow; });
-      order.forEach((item) => { item.y = clamp(item.y, 20, VESSEL_H - 20); });
 
+      // build the chip DOM first so we can measure its REAL rendered height —
+      // the chip's font sizes never shrink, so its height is fixed regardless
+      // of canvas width, but a constant tuned for the 1920 vessel would be
+      // wrong once VESSEL_H shrinks in side mode. Position (top) is set below,
+      // once the minimum gap is known.
       const chips = DATA.beats.map((b) => {
         const item = withY.find((w) => w.b === b);
         const chip = document.createElement('div');
         chip.className = 'chip';
-        chip.style.top = item.y + 'px';
         chip.innerHTML =
           '<div class="tick"></div>' +
           '<div class="body">' +
@@ -190,8 +187,25 @@
         chip.querySelector('.num').textContent = String(Math.round(item.val));
         chip.querySelector('.unit').textContent = DATA.unit ?? '';
         $('labels').appendChild(chip);
-        return { b, chip };
+        return { b, item, chip };
       });
+      const measuredGap = chips.length ? chips[0].chip.getBoundingClientRect().height + 12 : CHIP_GAP;
+      const gap = Math.max(CHIP_GAP, measuredGap);
+
+      const order = [...withY].sort((a, c) => a.raw - c.raw);
+      let prevY = -Infinity;
+      order.forEach((item) => {
+        let y = item.raw;
+        if (y - prevY < gap) y = prevY + gap;
+        item.y = y;
+        prevY = y;
+      });
+      // clamp the stack back inside the column bounds
+      const overflow = prevY - (VESSEL_H - 20);
+      if (overflow > 0) order.forEach((item) => { item.y -= overflow; });
+      order.forEach((item) => { item.y = clamp(item.y, 20, VESSEL_H - 20); });
+
+      chips.forEach(({ item, chip }) => { chip.style.top = item.y + 'px'; });
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
