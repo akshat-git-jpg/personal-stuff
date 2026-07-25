@@ -16,19 +16,20 @@
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
         --accent: #fb923c;
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 150px; /* the tool name is the hero */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
       #root { position: relative; width: 100%; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 120px; }
-      .progress { font-size: 20px; font-weight: 800; text-transform: uppercase; color: var(--accent); letter-spacing: 2px; position: absolute; top: 110px; left: 120px; }
+      .progress { font-size: 24px; font-weight: 800; text-transform: uppercase; color: var(--accent); letter-spacing: 0.12em; position: absolute; top: 110px; left: 120px; }
       .content { display: flex; flex-direction: column; align-items: flex-start; max-width: 1560px; }
       .name-row { display: flex; align-items: center; gap: 24px; }
       .logo { width: 96px; height: 96px; border-radius: 14px; display: none; object-fit: contain; filter:saturate(0.5) brightness(0.95); opacity:0.9; }
-      .name { font-size: 130px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+      .name { font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); }
       .tagline { font-size: 32px; color: var(--text-dim); margin-top: 16px; max-width: 1200px; line-height: 1.4; }
-      .chip { margin-top: 32px; padding: 12px 24px; border: 2px solid var(--accent); border-radius: 999px; color: var(--accent); font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+      .chip { margin-top: 32px; padding: 12px 24px; border: 2px solid var(--accent); border-radius: 999px; color: var(--accent); font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; }
     
       body.variant-b #frame { align-items: flex-end; text-align: right; }
       body.variant-b .content { align-items: flex-end; }

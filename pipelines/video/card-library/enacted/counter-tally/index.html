@@ -24,6 +24,7 @@
         --accent: #fb923c;
         --positive: #34d399; --negative: #fb7185; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 280px;
       }
       body.register-light {
         --bg-from: #2b2416; --bg-to: #0a0805;
@@ -35,16 +36,16 @@
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
       #card { width: 100%; max-width: 1560px; display: flex; flex-direction: column; align-items: center; }
 
-      .title { font-size: 60px; font-weight: 800; letter-spacing: -1.5px; text-align: center; margin-bottom: 56px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 3px; }
+      .title { font-size: 26px; font-weight: 700; letter-spacing: 0.12em; text-align: center; margin-bottom: 40px; color: var(--text-dim); text-transform: uppercase; }
 
       .stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 48px; }
       .numberRow { position: relative; display: flex; align-items: baseline; gap: 18px; }
       body.variant-b .numberRow { flex-direction: row-reverse; }
       .number {
-        font-size: 280px; font-weight: 900; letter-spacing: -6px; line-height: 1;
+        font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1;
         font-variant-numeric: tabular-nums; color: var(--text);
       }
-      .suffix { font-size: 58px; font-weight: 700; color: var(--text-dim); }
+      .suffix { font-size: 52px; font-weight: 700; color: var(--accent); }
 
       .note {
         position: absolute; left: 100%; top: 50%; margin-left: 36px; transform: translateY(-50%);

@@ -27,13 +27,14 @@
         --accent: #fb923c; --yes: #34d399;
         --card: rgba(255, 255, 255, 0.04); --card-line: rgba(255, 255, 255, 0.1);
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 150px; /* hero = the heading; the per-plan price is secondary (repeated 2-3x) */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
       #root { position: relative; width: 100%; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 18%, var(--bg-from) 0%, var(--bg-to) 62%); }
       #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px 120px; gap: 56px; }
-      #heading { font-size: 56px; font-weight: 900; letter-spacing: -1.5px; text-align: center; will-change: transform, opacity; }
+      #heading { font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; will-change: transform, opacity; }
       #cards { display: flex; align-items: stretch; justify-content: center; gap: 36px; width: 100%; }
 
       .card { position: relative; flex: 1; max-width: 440px; background: var(--card); border: 1px solid var(--card-line);
@@ -44,10 +45,10 @@
       .badge { position: absolute; top: -20px; left: 50%; background: var(--accent); color: #1a0d02;
         font-size: 20px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; padding: 9px 22px; border-radius: 999px;
         white-space: nowrap; box-shadow: 0 10px 26px rgba(0,0,0,0.4); will-change: transform, opacity; }
-      .pname { font-size: 26px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
+      .pname { font-size: 26px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
       .priceRow { display: flex; align-items: baseline; gap: 8px; will-change: transform, opacity; }
       .monthly-price { font-size: 32px; font-weight: 600; color: var(--text-dim); text-decoration: line-through; margin-right: 4px; }
-      .price { font-size: 76px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+      .price { font-size: 56px; font-weight: 900; letter-spacing: -0.015em; line-height: 1; }
       .period { font-size: 28px; font-weight: 600; color: var(--text-dim); }
       .billing-note { font-size: 16px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: -12px; margin-bottom: 4px; }
       .tagline { font-size: 24px; color: var(--text-dim); line-height: 1.4; min-height: 34px; }

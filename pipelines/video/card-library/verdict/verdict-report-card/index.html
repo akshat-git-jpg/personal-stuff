@@ -36,12 +36,13 @@
         --bg-to:          #0a0805;             /* near-black warm undertone            */
         --text-primary:   #ffffff;
         --text-secondary: rgba(255, 239, 219, 0.65);
-        --accent-solid:   #fb923c;             /* orange accent (eyebrow, reason bar)  */
+        --accent:         #fb923c;             /* orange accent (eyebrow, reason bar)  */
         --win:            #facc15;             /* gold (grade A+)                       */
         --grade-from:     #facc15;             /* A+ gradient start */
         --grade-to:       #fb923c;             /* A+ gradient end   */
         --card-bg:        rgba(255, 255, 255, 0.05);
         --card-border:    rgba(255, 255, 255, 0.14);
+        --hero-size:      220px;               /* the letter GRADE is the hero — a "hero number" */
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
       }
 
@@ -81,8 +82,8 @@
       .header { display: flex; align-items: center; justify-content: space-between; gap: 36px; }
 
       .eyebrow {
-        font-size: 16px; font-weight: 700; letter-spacing: 6px;
-        text-transform: uppercase; color: var(--accent-solid);
+        font-size: 24px; font-weight: 700; letter-spacing: 0.12em;
+        text-transform: uppercase; color: var(--accent);
       }
       .winnerRow { display: flex; align-items: center; gap: 18px; margin-top: 16px; }
       .logoBox {
@@ -91,12 +92,15 @@
       }
       .logoBox svg { width: 100%; height: 100%; }
       .winnerName {
-        font-size: 68px; font-weight: 800; color: var(--text-primary);
-        letter-spacing: -2.5px; line-height: 1;
+        font-size: 48px; font-weight: 800; color: var(--text-primary);
+        letter-spacing: -0.015em; line-height: 1;
       }
 
+      /* HERO — the letter grade. Gold/orange gradient text-fill is the
+         DESIGN.md palette's legitimate "verdict-winner moment" exception to
+         plain var(--text) (grades are gold per the palette table). */
       .grade {
-        font-size: 220px; font-weight: 900; line-height: 0.85; letter-spacing: -10px;
+        font-size: var(--hero-size); font-weight: 900; line-height: 1.0; letter-spacing: -0.035em;
         background: linear-gradient(135deg, var(--grade-from) 0%, var(--grade-to) 100%);
         -webkit-background-clip: text; background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -118,7 +122,7 @@
       .reason {
         margin-top: 36px; font-size: 22px; font-style: italic;
         color: var(--text-secondary); line-height: 1.5;
-        padding-left: 18px; border-left: 3px solid var(--accent-solid);
+        padding-left: 18px; border-left: 3px solid var(--accent);
         will-change: opacity;
       }
     </style>

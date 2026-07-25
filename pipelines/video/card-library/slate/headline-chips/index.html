@@ -27,13 +27,14 @@
         --pill: rgba(255, 255, 255, 0.04);
         --pill-line: rgba(255, 255, 255, 0.1);
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 140px; /* headline is the hero — the one sentence the card is about */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
       #root { position: relative; width: 100%; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 28% 18%, var(--bg-from) 0%, var(--bg-to) 60%); }
-      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 150px 220px; }
-      #headline { font-size: 40px; font-weight: 700; line-height: 1.28; letter-spacing: -0.5px; max-width: 1200px; margin-bottom: 64px; will-change: transform, opacity; }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 130px 180px; }
+      #headline { font-size: var(--hero-size); font-weight: 800; line-height: 1.0; letter-spacing: -0.035em; color: var(--text); max-width: 1560px; margin-bottom: 40px; will-change: transform, opacity; }
       #chips { display: flex; flex-direction: column; gap: 28px; }
       .chip { display: flex; align-items: center; gap: 26px; background: var(--pill); border: 1px solid var(--pill-line);
         border-radius: 999px; padding: 20px 40px 20px 24px; will-change: transform, opacity; }
@@ -42,6 +43,8 @@
       .icon svg { width: 26px; height: 26px; }
       .icon svg path, .icon svg circle { fill: var(--accent); }
       .label { font-size: 30px; font-weight: 600; letter-spacing: -0.2px; }
+      /* first chip carries the accent — draws the eye to the top of the list */
+      .chip:first-child .label { color: var(--accent); }
     </style>
   </head>
   <body>

@@ -37,6 +37,7 @@
         --accent-to: #c2410c;
         --accent-glow: rgba(251, 146, 60, 0.45);
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+        --hero-size: 160px; /* the section title is the hero; the number is a small index badge */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -65,7 +66,7 @@
         transform-origin: center bottom; will-change: transform, opacity;
       }
       #number {
-        font-size: 180px; font-weight: 700; line-height: 0.85; letter-spacing: -8px;
+        font-size: 56px; font-weight: 700; line-height: 0.9; letter-spacing: -0.015em;
         background: linear-gradient(135deg, var(--accent-from) 0%, var(--accent-to) 100%);
         -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
         font-feature-settings: 'tnum';
@@ -75,12 +76,12 @@
         border-left: 1px solid rgba(255, 255, 255, 0.18);
       }
       #meta .label {
-        font-size: 16px; font-weight: 600; letter-spacing: 6px; color: var(--text-ter);
+        font-size: 24px; font-weight: 600; letter-spacing: 0.12em; color: var(--accent);
         text-transform: uppercase;
       }
       #meta .title {
-        font-size: 52px; font-weight: 700; letter-spacing: -2px; color: var(--text);
-        line-height: 1; max-width: 540px;
+        font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; color: var(--text);
+        line-height: 1.0; max-width: 700px;
       }
     </style>
   </head>

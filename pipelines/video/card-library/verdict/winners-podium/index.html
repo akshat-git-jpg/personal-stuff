@@ -28,6 +28,7 @@
         --text-dim: rgba(255, 239, 219, 0.62);
         --accent: #fb923c;
         --gold: #facc15;
+        --hero-size: 130px; /* the trophy is the verdict moment across every column, not any one name */
         /* medal hues — a deliberate exception to the one-accent rule, scoped to
            ranked podiums (DESIGN.md "no new hues without a deliberate reason"). */
         --silver: #d8dde6;
@@ -44,8 +45,13 @@
       .conf { position: absolute; border-radius: 2px; opacity: 0.85; will-change: transform, top, left; }
 
       #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px 120px; }
-      #eyebrow { font-size: 20px; font-weight: 700; letter-spacing: 8px; color: var(--gold); text-transform: uppercase; margin-bottom: 44px; will-change: transform, opacity; }
-      #eyebrow .cup { filter: none; }
+      /* HERO — the trophy is the one idea every column shares ("the verdict is
+         decided"); with 2-4 co-equal winner names on screen at once, no single
+         name can be the card's hero without breaking the row layout (DESIGN.md
+         "Secondary (names, row content, values): 40-56px" already covers .name). */
+      #eyebrow { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-bottom: 44px; will-change: transform, opacity; }
+      #eyebrow .cup { font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1; color: var(--text); filter: none; }
+      #eyebrowText { font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; }
 
       /* columns row — gap + column count set at build from winner count */
       #cols { display: grid; gap: 40px; width: 100%; max-width: 1620px; align-items: stretch; justify-content: center; }
@@ -95,7 +101,7 @@
         filter: saturate(0.62) brightness(1.02); opacity: 0.95; }
       .logoPlate .initial { font-weight: 900; color: var(--text); opacity: 0.9; }
 
-      .name { font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; line-height: 1.05; }
+      .name { font-weight: 800; letter-spacing: -0.015em; margin-bottom: 12px; line-height: 1.05; }
       .reason { color: var(--text-dim); font-weight: 500; line-height: 1.32; }
 
       .glow { position: absolute; inset: 0; border-radius: 26px; opacity: 0; pointer-events: none;
@@ -140,10 +146,10 @@
       // Everything that must scale with the winner count lives in ONE table,
       // so 2 reads big and 4 stays clean without a separate layout.
       const SCALE = {
-        2: { col: 640, gap: 56, plate: 150, name: 58, reason: 27, badge: 17, pad: '46px 40px 40px' },
+        2: { col: 640, gap: 56, plate: 150, name: 56, reason: 27, badge: 17, pad: '46px 40px 40px' },
         3: { col: 470, gap: 44, plate: 128, name: 48, reason: 24, badge: 15, pad: '42px 30px 34px' },
         4: { col: 366, gap: 34, plate: 108, name: 40, reason: 21, badge: 14, pad: '36px 22px 30px' },
-      }[N] || { col: 640, gap: 56, plate: 150, name: 58, reason: 27, badge: 17, pad: '46px 40px 40px' };
+      }[N] || { col: 640, gap: 56, plate: 150, name: 56, reason: 27, badge: 17, pad: '46px 40px 40px' };
 
       const MEDALS = ['gold', 'silver', 'bronze', 'steel'];
       const MEDAL_LABEL = ['1st', '2nd', '3rd', '4th'];

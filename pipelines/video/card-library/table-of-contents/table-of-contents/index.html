@@ -33,6 +33,7 @@
         --text: #ffffff;
         --accent: #fb923c;
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+        --hero-size: 130px; /* eyebrow IS the section heading (catalog role: heading) */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -53,12 +54,12 @@
       }
       #inner { display: flex; flex-direction: column; gap: 56px; max-width: 1400px; width: 100%; }
 
-      .eyebrow { font-size: 18px; font-weight: 600; letter-spacing: 6px; color: var(--accent); text-transform: uppercase; will-change: transform, opacity; }
+      .eyebrow { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); will-change: transform, opacity; }
       ol { list-style: none; display: flex; flex-direction: column; gap: 28px; }
       li { will-change: transform, opacity; }
       .item { display: flex; align-items: baseline; gap: 36px; }
       .num { font-variant-numeric: tabular-nums; font-size: 36px; font-weight: 500; color: var(--accent); min-width: 64px; }
-      .label { font-size: 52px; font-weight: 600; letter-spacing: -1.5px; color: var(--text); line-height: 1.1; }
+      .label { font-size: 52px; font-weight: 600; letter-spacing: -0.015em; color: var(--text); line-height: 1.1; }
     </style>
   </head>
   <body>
@@ -104,7 +105,7 @@
           ? window.__hyperframes.getVariables()
           : null) || {};
       const DATA = {
-        eyebrow: VARS.eyebrow ?? 'In this video', // the small uppercase label up top
+        eyebrow: VARS.eyebrow ?? 'In this video', // the hero heading (catalog role: heading)
         beats: VARS.beats ?? [
           { label: 'Eliminated — and why', at: 0.4 },
           { label: 'Situational picks',    at: 0.8 },

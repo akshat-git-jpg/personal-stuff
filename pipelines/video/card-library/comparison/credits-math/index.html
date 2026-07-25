@@ -16,6 +16,7 @@
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
         --accent: #fb923c;
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 120px; /* dense row-list card, side-mode too — hero kept at the DESIGN.md floor */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -29,13 +30,13 @@
       @media (max-width: 1300px) {
         #frame { padding: 100px 90px; }
       }
-      .slide-title { display: flex; align-items: center; gap: 20px; margin-bottom: 64px; will-change: transform, opacity; }
+      .slide-title { display: flex; align-items: center; gap: 20px; margin-bottom: 48px; will-change: transform, opacity; }
       .slide-title .mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); box-shadow: 0 0 26px rgba(251, 146, 60, 0.5); }
-      .slide-title .title-text { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; }
-      #rows { display: flex; flex-direction: column; gap: 40px; width: 100%; }
-      .row { display: flex; align-items: flex-start; gap: 64px; will-change: transform, opacity; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 32px; }
+      .slide-title .title-text { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); }
+      #rows { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+      .row { display: flex; align-items: flex-start; gap: 64px; will-change: transform, opacity; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 24px; }
       .row:last-child { border-bottom: none; }
-      .label { width: 320px; flex-shrink: 0; font-size: 25px; font-weight: 700; color: var(--accent); }
+      .label { width: 320px; flex-shrink: 0; font-size: 25px; font-weight: 700; letter-spacing: 0.02em; color: var(--accent); }
       .content { display: flex; flex-direction: column; gap: 8px; }
       .math { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; }
       .note { font-size: 19px; color: var(--text-dim); }

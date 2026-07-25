@@ -24,6 +24,7 @@
         --accent: #fb923c;
         --positive: #34d399; --negative: #fb7185; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 150px;
       }
       body.register-light {
         --bg-from: #2b2416; --bg-to: #0a0805;
@@ -35,7 +36,7 @@
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
       #card { width: 100%; max-width: 1560px; display: flex; flex-direction: column; align-items: center; }
 
-      .title { font-size: 68px; font-weight: 800; letter-spacing: -2px; text-align: center; margin-bottom: 60px; }
+      .title { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; margin-bottom: 60px; }
 
       .lanes { position: relative; width: 100%; display: flex; flex-direction: column; gap: 26px; }
       body.variant-b .lanes { flex-direction: column-reverse; }
@@ -47,8 +48,9 @@
 
       .lane { display: flex; align-items: center; gap: 32px; }
       .lane .name {
-        width: 240px; flex: 0 0 auto; text-align: right; font-size: 30px; font-weight: 700;
-        color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        width: 240px; flex: 0 0 auto; text-align: right; font-size: 26px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.12em;
+        color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       .lane .track {
         position: relative; flex: 1 1 auto; height: 62px; border-radius: 18px;

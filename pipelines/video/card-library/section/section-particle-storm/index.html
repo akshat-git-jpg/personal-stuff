@@ -34,6 +34,7 @@
         --text: #fff;
         --accent: #fb923c;
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+        --hero-size: 170px; /* the section title is the hero */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -57,11 +58,11 @@
         display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
       }
       #eyebrow {
-        font-size: 18px; font-weight: 700; letter-spacing: 6px; color: var(--accent);
+        font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent);
         text-transform: uppercase;
       }
       #title {
-        font-size: 96px; font-weight: 800; letter-spacing: -3px; color: var(--text); line-height: 1.02;
+        font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; color: var(--text); line-height: 1.0;
         text-shadow: 0 0 40px rgba(167, 139, 250, 0.45); margin-top: 18px;
         will-change: transform, opacity;
       }

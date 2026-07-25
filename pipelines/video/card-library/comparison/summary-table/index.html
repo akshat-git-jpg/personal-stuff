@@ -22,6 +22,7 @@
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.55);
         --accent: #fb923c;
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 130px; /* dense grid card — hero is the slide title, kept low-end per DESIGN.md */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -34,7 +35,7 @@
       /* title: accent mark + heading, real gap, sentence case (no emoji, no all-caps) */
       .slide-title { display: flex; align-items: center; gap: 20px; align-self: flex-start; will-change: transform, opacity; }
       .slide-title .mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); flex: none; box-shadow: 0 0 26px rgba(251, 146, 60, 0.5); }
-      .slide-title .title-text { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
+      .slide-title .title-text { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); }
 
       #table { width: 100%; }
       .grid { display: grid; gap: 0; width: 100%; }
@@ -42,7 +43,7 @@
 
       /* header row: product names white/bold; label columns are orange eyebrows */
       .hcell { font-size: 28px; font-weight: 800; justify-content: center; color: var(--text); }
-      .hcell.feat, .hcell.reason { font-size: 23px; color: var(--text-dim); letter-spacing: 1.5px; justify-content: flex-start; text-transform: uppercase; }
+      .hcell.feat, .hcell.reason { font-size: 24px; color: var(--accent); letter-spacing: 0.12em; justify-content: flex-start; text-transform: uppercase; }
 
       /* body rows: hairline top divider, transparent (no boxes, no striping) */
       .frow .cell { border-top: 1px solid rgba(255, 255, 255, 0.08); }
@@ -53,7 +54,7 @@
   </head>
   <body>
     <div id="root" data-composition-id="summary-table" data-start="0" data-duration="7" data-width="1920" data-height="1080"
-      data-composition-variables='{"products":["OpenArt","Higgsfield","Synthesia","HeyGen","Arcads"],"beats":[{"name":"Ease of Use","values":["3.5 / 5","4 / 5","5 / 5","4.5 / 5","4 / 5","Synthesia is the most beginner-friendly. HeyGen close behind. OpenArt takes a session or two to get comfortable with."],"at":0.6},{"name":"Features","values":["5 / 5","3.5 / 5","3.5 / 5","3.5 / 5","3 / 5","OpenArt covers the most creative ground. Arcads scores lower — intentionally focused on one output type."],"at":0.74},{"name":"Output Quality","values":["4.5 / 5","4.5 / 5","4 / 5","4 / 5","4 / 5","OpenArt & Higgsfield tie at top. All five produce results you can actually use."],"at":0.88},{"name":"Use Case Fit","values":["5 / 5","3.5 / 5","5 / 5","5 / 5","5 / 5","Four tools are best-in-class for their niche. Higgsfield&#39;s cinematic focus serves a narrower range of creators."],"at":1.02},{"name":"Pricing & Value","values":["4.5 / 5","3.5 / 5","3.5 / 5","4 / 5","3.5 / 5","OpenArt leads — most creative ground per dollar. HeyGen strong for solo creators. Arcads premium only makes sense at volume."],"at":1.16}]}'>
+      data-composition-variables='{"products":["OpenArt","Higgsfield","Synthesia","HeyGen","Arcads"],"beats":[{"name":"Ease of Use","values":["3.5 / 5","4 / 5","5 / 5","4.5 / 5","4 / 5","Synthesia is the most beginner-friendly. HeyGen close behind. OpenArt takes a session or two to get comfortable with."],"at":0.6},{"name":"Features","values":["5 / 5","3.5 / 5","3.5 / 5","3.5 / 5","3 / 5","OpenArt covers the most creative ground. Arcads scores lower — intentionally focused on one output type."],"at":0.74},{"name":"Output Quality","values":["4.5 / 5","4.5 / 5","4 / 5","4 / 5","4 / 5","OpenArt & Higgsfield tie at top. All five produce results you can actually use."],"at":0.88},{"name":"Use Case Fit","values":["5 / 5","3.5 / 5","5 / 5","5 / 5","5 / 5","Four tools are best-in-class for their niche. Higgsfield&#39;s cinematic focus serves a narrower range of creators."],"at":1.02}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
 
@@ -81,7 +82,6 @@
           { name: 'Features', values: ['5 / 5', '3.5 / 5', '3.5 / 5', '3.5 / 5', '3 / 5', 'OpenArt covers the most creative ground. Arcads scores lower — intentionally focused on one output type.'], at: 0.74 },
           { name: 'Output Quality', values: ['4.5 / 5', '4.5 / 5', '4 / 5', '4 / 5', '4 / 5', 'OpenArt & Higgsfield tie at top. All five produce results you can actually use.'], at: 0.88 },
           { name: 'Use Case Fit', values: ['5 / 5', '3.5 / 5', '5 / 5', '5 / 5', '5 / 5', "Four tools are best-in-class for their niche. Higgsfield's cinematic focus serves a narrower range of creators."], at: 1.02 },
-          { name: 'Pricing & Value', values: ['4.5 / 5', '3.5 / 5', '3.5 / 5', '4 / 5', '3.5 / 5', 'OpenArt leads — most creative ground per dollar. HeyGen strong for solo creators. Arcads premium only makes sense at volume.'], at: 1.16 },
         ],
         productLogos: VARS.productLogos,
       };

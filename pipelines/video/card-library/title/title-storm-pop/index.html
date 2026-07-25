@@ -36,6 +36,7 @@
         --title-glow: rgba(167, 139, 250, 0.35); /* soft purple glow on the title */
         --chip-bg: #ffffff;
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+        --hero-size: 144px;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -65,13 +66,14 @@
       }
 
       #title {
-        font-size: 88px; font-weight: 700; letter-spacing: -3px; line-height: 1.04;
+        font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0;
         text-align: center; color: var(--text);
         text-shadow: 0 0 32px var(--title-glow);
         will-change: transform, opacity;
       }
 
-      #chips { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 28px; row-gap: 32px; margin-top: 8px; }
+      #chips { display: flex; align-items: flex-start; justify-content: center; flex-wrap: wrap; gap: 28px; row-gap: 32px; margin-top: 8px; }
+      .chipCol { display: flex; flex-direction: column; align-items: center; gap: 12px; flex-shrink: 0; will-change: transform; }
       .chip {
         width: 220px; height: 220px; border-radius: 36px; background: var(--chip-bg);
         display: flex; align-items: center; justify-content: center; padding: 26px; flex-shrink: 0;
@@ -80,7 +82,15 @@
       }
       .chip svg { width: 100%; height: 100%; object-fit: contain; }
       /* text-only fallback chip (no logo) */
-      .chip.text { width: auto; padding: 0 48px; font-size: 36px; font-weight: 700; color: #0a0805; }
+      .chip.text { width: auto; padding: 0 48px; font-size: 36px; font-weight: 700; color: var(--text); }
+      /* tool name below each chip — the one persistently-visible accented text
+         element on this card (a hidden fallback glyph doesn't count, see
+         DESIGN.md → Typography "one accented word per card") */
+      .chipName {
+        font-size: 24px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.2;
+        color: var(--accent); text-align: center; max-width: 220px;
+        will-change: opacity, transform;
+      }
     </style>
   </head>
   <body>
@@ -200,8 +210,8 @@
         $('chips').innerHTML = DATA.platforms
           .map((p) =>
             p.logoSvg
-              ? `<div class="chip"><div class="chipInner">${p.logoSvg}</div></div>`
-              : `<div class="chip text">${p.name}</div>`,
+              ? `<div class="chipCol"><div class="chip"><div class="chipInner">${p.logoSvg}</div></div><div class="chipName">${p.name}</div></div>`
+              : `<div class="chipCol"><div class="chip text">${p.name}</div></div>`,
           )
           .join('');
         // unwrap inner so the svg sizes to the chip
@@ -318,6 +328,14 @@
           stagger: 4 / FPS,
         },
         28 / FPS,
+      );
+
+      // chip names fade in just after their chip pops
+      tl.fromTo(
+        '#chips .chipName',
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', stagger: 4 / FPS },
+        34 / FPS,
       );
 
       window.__timelines['storm'] = tl;

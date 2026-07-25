@@ -25,23 +25,24 @@
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
         --accent: #fb923c; --card: rgba(255, 255, 255, 0.04); --card-line: rgba(255, 255, 255, 0.1);
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 140px; /* hero = the headline; prices are secondary (two repeated instances) */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
       #root { position: relative; width: 100%; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 18%, var(--bg-from) 0%, var(--bg-to) 62%); }
       #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px; gap: 60px; }
-      #title { font-size: 58px; font-weight: 900; letter-spacing: -1.5px; text-align: center; will-change: transform, opacity; }
+      #title { font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; will-change: transform, opacity; }
       #cards { display: flex; align-items: stretch; justify-content: center; gap: 46px; }
 
       .card { position: relative; width: 460px; background: var(--card); border: 1px solid var(--card-line); border-radius: 28px;
         padding: 48px 44px; display: flex; flex-direction: column; gap: 16px; align-items: flex-start; will-change: transform, opacity; }
       .card.best { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent);
         box-shadow: 0 0 56px color-mix(in srgb, var(--accent) 24%, transparent); }
-      .plan { font-size: 28px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); }
+      .plan { font-size: 28px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
       .card.best .plan { color: var(--accent); }
       .priceRow { display: flex; align-items: baseline; gap: 12px; will-change: transform, opacity; }
-      .price { font-size: 88px; font-weight: 900; letter-spacing: -2.5px; line-height: 1; }
+      .price { font-size: 56px; font-weight: 900; letter-spacing: -0.015em; line-height: 1; }
       .per { font-size: 28px; font-weight: 600; color: var(--text-dim); }
       .was { font-size: 34px; font-weight: 700; color: var(--text-dim); text-decoration: line-through; }
       .note { font-size: 25px; font-weight: 500; color: var(--text-dim); margin-top: 4px; }

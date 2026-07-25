@@ -21,19 +21,23 @@
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
         --left: #fb923c; --right: #38bdf8; --accent: #facc15;
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 140px; /* hero = static headline above the arena */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
       #root { position: relative; width: 100%; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, var(--bg-from) 0%, var(--bg-to) 65%); }
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 100px; }
-      .arena { display: flex; align-items: stretch; gap: 0; width: 100%; max-width: 1640px; position: relative; }
+      #stack { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; max-width: 1640px; }
+      .eyebrow { font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; }
+      .hero-title { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; margin-bottom: 20px; }
+      .arena { display: flex; align-items: stretch; gap: 0; width: 100%; position: relative; }
       .side { flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 56px 52px; text-align: center; }
       .side.l { border-top: 5px solid var(--left); }
       .side.r { border-top: 5px solid var(--right); }
       .logoBox { width: 110px; height: 110px; margin: 0 auto 26px; background: #fff; border-radius: 22px; padding: 16px; display: flex; }
       .logoBox svg { width: 100%; height: 100%; }
-      .name { font-size: 56px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 30px; }
+      .name { font-size: 56px; font-weight: 800; letter-spacing: -0.015em; margin-bottom: 30px; }
       .stat { display: flex; align-items: baseline; justify-content: space-between; padding: 16px 6px; border-bottom: 1px solid rgba(255,255,255,0.08); }
       .stat .k { font-size: 24px; color: var(--text-dim); }
       .stat .v { font-size: 32px; font-weight: 800; }
@@ -49,19 +53,23 @@
       data-composition-variables='{"left":{"name":"Hostinger","stats":[{"label":"From / mo","value":"$4"},{"label":"Setup","value":"1-click"},{"label":"Support","value":"24/7"}]},"right":{"name":"Railway","stats":[{"label":"From / mo","value":"$5"},{"label":"Setup","value":"Manual"},{"label":"Support","value":"Community"}]}}'>
       <div id="bg" class="clip" data-start="0" data-duration="5.5" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="5.5" data-track-index="1">
-        <div class="arena">
-          <div class="side l" id="sideL">
-            <div class="logoBox" id="logoL"></div>
-            <div class="name" id="nameL"></div>
-            <div id="statsL"></div>
+        <div id="stack">
+          <div class="eyebrow">The matchup</div>
+          <div class="hero-title">Head to head</div>
+          <div class="arena">
+            <div class="side l" id="sideL">
+              <div class="logoBox" id="logoL"></div>
+              <div class="name" id="nameL"></div>
+              <div id="statsL"></div>
+            </div>
+            <div class="gap"></div>
+            <div class="side r" id="sideR">
+              <div class="logoBox" id="logoR"></div>
+              <div class="name" id="nameR"></div>
+              <div id="statsR"></div>
+            </div>
+            <div class="vs" id="vs">VS</div>
           </div>
-          <div class="gap"></div>
-          <div class="side r" id="sideR">
-            <div class="logoBox" id="logoR"></div>
-            <div class="name" id="nameR"></div>
-            <div id="statsR"></div>
-          </div>
-          <div class="vs" id="vs">VS</div>
         </div>
       </div>
     </div>

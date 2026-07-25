@@ -29,6 +29,7 @@
         --dim: rgba(255, 239, 219, 0.4);  /* upcoming items */
         --done: rgba(255, 239, 219, 0.55); /* already-covered items */
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+        --hero-size: 130px; /* eyebrow IS the section heading (catalog role: heading) */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -37,7 +38,7 @@
 
       #content { position: absolute; inset: 0; padding: 130px 200px; display: flex; align-items: center; justify-content: center; }
       #inner { display: flex; flex-direction: column; gap: 30px; max-width: 1500px; width: 100%; }
-      .eyebrow { font-size: 22px; font-weight: 700; letter-spacing: 6px; color: var(--accent); text-transform: uppercase; will-change: transform, opacity; }
+      .eyebrow { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); will-change: transform, opacity; }
       ol { list-style: none; display: flex; flex-direction: column; gap: 14px; }
 
       .row { position: relative; display: flex; align-items: center; gap: 32px; padding: 16px 30px; border-radius: 18px; will-change: transform, opacity; }
@@ -47,7 +48,7 @@
         border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-left: 7px solid var(--accent);
         box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 18%, transparent); will-change: transform, opacity; }
       .num { font-variant-numeric: tabular-nums; font-size: 40px; font-weight: 600; min-width: 70px; text-align: center; will-change: transform, opacity; }
-      .label { font-size: 54px; font-weight: 600; letter-spacing: -1.5px; line-height: 1.1; }
+      .label { font-size: 52px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.1; }
 
       .row.upcoming { opacity: 0.4; }
       .row.upcoming .num { color: var(--dim); }

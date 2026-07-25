@@ -34,6 +34,7 @@
         --chip-bg: rgba(255, 255, 255, 0.05);
         --chip-border: rgba(255, 255, 255, 0.14);
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+        --hero-size: 200px;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -58,8 +59,13 @@
         max-width: 1700px; width: 100%;
       }
 
+      /* the compared question IS the hero — it carries the idea; the product
+         names below are secondary (the products themselves are the visual
+         hero of the LOCKUP, but the comparison question is the hero of the
+         TYPE SCALE — DESIGN.md Typography). */
       #titleContainer {
-        font-size: 44px; font-weight: 600; color: rgba(255, 255, 255, 0.85);
+        font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0;
+        color: var(--text); text-align: center;
         will-change: transform, opacity;
       }
 
@@ -94,7 +100,7 @@
       }
 
       .product-name {
-        font-size: 64px; font-weight: 800; color: var(--text);
+        font-size: 56px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; color: var(--text);
         will-change: transform, opacity;
       }
 

@@ -34,6 +34,7 @@
         --text-sec: rgba(255, 239, 219, 0.65);
         --text-ter: rgba(255, 239, 219, 0.4);
         --accent: #fb923c;
+        --hero-size: 160px; /* winner NAME is the hero — text hero, lean lower of the 140-180 band */
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -60,18 +61,18 @@
       .content-row { display: flex; align-items: center; gap: 64px; width: 100%; max-width: 1700px; }
 
       #winner { flex-shrink: 0; display: flex; flex-direction: column; gap: 18px; will-change: transform, opacity; }
-      #winner .eyebrow { font-size: 16px; font-weight: 700; letter-spacing: 6px; color: var(--accent); text-transform: uppercase; }
+      #winner .eyebrow { font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; }
       #winner .logo {
         width: 280px; height: 280px; background: #fff; border-radius: 32px; padding: 36px;
         display: flex; align-items: center; justify-content: center;
         box-shadow: 0 24px 80px rgba(167, 139, 250, 0.35), 0 0 48px rgba(167, 139, 250, 0.22);
       }
       #winner .logo svg { width: 100%; height: 100%; object-fit: contain; }
-      #winner .name { font-size: 64px; font-weight: 800; color: var(--text); letter-spacing: -2.5px; line-height: 1; }
+      #winner .name { font-size: var(--hero-size); font-weight: 800; color: var(--text); letter-spacing: -0.035em; line-height: 1.0; }
       #winner .reason { font-size: 20px; color: var(--text-sec); line-height: 1.4; max-width: 340px; }
 
       #badges { flex: 1; display: flex; flex-direction: column; gap: 16px; }
-      #badges .head { font-size: 16px; font-weight: 700; letter-spacing: 5px; color: var(--text-ter); text-transform: uppercase; margin-bottom: 4px; }
+      #badges .head { font-size: 22px; font-weight: 700; letter-spacing: 0.12em; color: var(--text-ter); text-transform: uppercase; margin-bottom: 4px; }
       .badge { display: flex; align-items: center; gap: 18px; padding: 16px 24px; border-radius: 16px; will-change: transform, opacity; }
       .badge .ic { font-size: 38px; line-height: 1; }
       .badge .label { font-size: 22px; font-weight: 800; letter-spacing: 1.5px; }
