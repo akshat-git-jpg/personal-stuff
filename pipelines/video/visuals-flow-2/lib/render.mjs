@@ -7,6 +7,7 @@ import { resolveCues, extendExposure } from './resolve.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { loadBrand, injectBrand } from './brand-inline.mjs';
+import { SHOT_CONSTANTS } from './shot-constants.mjs';
 
 const HYPERFRAMES = process.env.HYPERFRAMES_VERSION ? `hyperframes@${process.env.HYPERFRAMES_VERSION}` : 'hyperframes@0.7.62';
 const DURATION_TOLERANCE = 0.15;
@@ -37,6 +38,27 @@ export function rewriteDuration(html, seconds) {
     return { html, error: `mixed data-duration values: ${[...values].sort().join(', ')}` };
   }
   const newHtml = html.replace(/data-duration="[0-9.]+"/g, `data-duration="${seconds}"`);
+  return { html: newHtml, error: null };
+}
+
+// Side-mode cues render the card into the left column instead of the full canvas.
+// The hyperframes CLI has no size flag — the canvas comes from the card's own
+// data-width — so bake it into the staged HTML, exactly as rewriteDuration does
+// for duration. A side-ready card lays out relative to its root, so changing
+// data-width is sufficient; a card with hardcoded 1920px CSS is rejected by
+// card-library's side gate, not here.
+export function rewriteCanvas(html, width) {
+  const re = /data-width="(\d+)"/g;
+  const values = new Set();
+  let m;
+  while ((m = re.exec(html))) values.add(m[1]);
+  if (values.size === 0) {
+    return { html, error: 'no data-width attribute found' };
+  }
+  if (values.size > 1) {
+    return { html, error: `mixed data-width values: ${[...values].sort().join(', ')}` };
+  }
+  const newHtml = html.replace(/data-width="\d+"/g, `data-width="${width}"`);
   return { html: newHtml, error: null };
 }
 
@@ -163,10 +185,18 @@ async function main() {
 
       const indexPath = path.join(stagedCardDir, 'index.html');
       const html = fs.readFileSync(indexPath, 'utf8');
-      const { html: newHtml, error: rewriteError } = rewriteDuration(html, cue.duration);
+      let { html: newHtml, error: rewriteError } = rewriteDuration(html, cue.duration);
       if (rewriteError) {
         errors.push(`${cue.id}: data-duration rewrite failed: ${rewriteError}`);
         continue;
+      }
+      if (cue.sideMode) {
+        const { html: canvasHtml, error: canvasError } = rewriteCanvas(newHtml, SHOT_CONSTANTS.SIDE_GRAPHICS_W.value);
+        if (canvasError) {
+          errors.push(`${cue.id}: data-width rewrite failed: ${canvasError}`);
+          continue;
+        }
+        newHtml = canvasHtml;
       }
       fs.writeFileSync(indexPath, injectBrand(newHtml, brand));
 
