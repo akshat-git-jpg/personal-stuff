@@ -82,6 +82,14 @@ export function checkShotRulebook({
   if (!rulebook.includes('shot-constants.mjs')) {
     fail('RULEBOOK.md has no pointer to lib/shot-constants.mjs');
   }
+
+  // Drift gate 4: The prompt must document all supported avatar modes so the model understands them.
+  if (!prompt.includes('"panel"')) {
+    fail('shot-pass-prompt.md must explain "panel" mode');
+  }
+  if (!prompt.includes('"stage"')) {
+    fail('shot-pass-prompt.md must explain "stage" mode');
+  }
 }
 
 function main() {
