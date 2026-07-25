@@ -55,7 +55,7 @@ export function planPanelGeometry({ canvas, constants, srcAspect = 16 / 9 }) {
 // Side geometry: the host occupies a fixed right-hand column, the motion-graphics
 // card the left. The clip is cover-cropped to the column's aspect (scale up, crop
 // centre) so the face is never letterboxed or squashed. Dimensions forced EVEN for
-// yuv420p. This is the former planStageGeometry maths with a constant zone.
+// yuv420p. This preserves the prior cover-crop maths with a fixed zone instead of an arbitrary one.
 export function planSideGeometry({ canvas, constants, srcAspect = 16 / 9 }) {
   const { w: W, h: H } = canvas;
   const zw = Math.round(constants.SIDE_AVATAR_W.value / 2) * 2;
