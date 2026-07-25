@@ -38,6 +38,7 @@
         --cross: rgba(255, 239, 219, 0.22);
         --divider: rgba(255, 200, 100, 0.1);
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+        --hero-size: 130px; /* hero = static headline above the grid (dense table, no single dominant cell) */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -58,7 +59,8 @@
       #frame { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: flex-start; padding: 140px; }
       #content { display: flex; flex-direction: column; gap: 56px; width: 100%; }
 
-      .eyebrow { font-size: 18px; font-weight: 600; letter-spacing: 6px; color: var(--accent); text-transform: uppercase; }
+      .eyebrow { font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; }
+      .hero-title { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); }
 
       .table-row { display: grid; gap: 24px; align-items: center; }
       #header { padding-bottom: 18px; will-change: transform, opacity; }
@@ -103,6 +105,7 @@
       <div id="frame" class="clip" data-start="0" data-duration="13" data-track-index="3">
         <div id="content">
           <div class="eyebrow" id="eyebrow"></div>
+          <div class="hero-title">The comparison</div>
           <div class="table-row" id="header"></div>
           <div id="hairlineWrap" style="width:100%"><div id="hairline"></div></div>
           <div id="rows"></div>

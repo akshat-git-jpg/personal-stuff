@@ -22,6 +22,7 @@
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6); --accent: #fb923c;
         --track: rgba(255,255,255,0.06);
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 130px; /* hero = chart title, the one idea the card is about */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -29,9 +30,9 @@
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 130px; }
       #chart { width: 100%; max-width: 1500px; }
-      .title { font-size: 60px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 56px; }
+      .title { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); margin-bottom: 56px; }
       .bar { display: grid; grid-template-columns: 320px 1fr 200px; align-items: center; gap: 28px; margin: 26px 0; }
-      .bar .lbl { font-size: 32px; font-weight: 600; color: var(--text); text-align: right; }
+      .bar .lbl { font-size: 32px; font-weight: 600; color: var(--accent); text-align: right; }
       .bar .track { height: 56px; background: var(--track); border-radius: 12px; overflow: hidden; }
       .bar .fill { height: 100%; border-radius: 12px; transform-origin: left center; }
       .bar .num { font-size: 38px; font-weight: 800; }

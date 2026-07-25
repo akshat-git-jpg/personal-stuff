@@ -28,6 +28,7 @@
         --panel: rgba(255, 255, 255, 0.05); --panel-line: rgba(255, 255, 255, 0.12);
         --field: rgba(255, 255, 255, 0.04);
         --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 170px; /* hero = the final total, a hero-number per DESIGN.md */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -37,7 +38,7 @@
 
       #panel { width: 900px; background: var(--panel); border: 1px solid var(--panel-line); border-radius: 28px;
         padding: 54px 60px; backdrop-filter: blur(10px); box-shadow: 0 30px 70px rgba(0,0,0,0.4); will-change: transform, opacity; }
-      #ttl { font-size: 44px; font-weight: 900; letter-spacing: -1px; margin-bottom: 36px; will-change: transform, opacity; }
+      #ttl { font-size: 44px; font-weight: 900; letter-spacing: -0.015em; margin-bottom: 36px; will-change: transform, opacity; }
       .row { display: flex; align-items: baseline; justify-content: space-between; font-size: 36px; font-weight: 600; padding: 16px 0; }
       .row .k { color: var(--text-dim); }
       .row .v { font-variant-numeric: tabular-nums; font-weight: 700; }
@@ -55,9 +56,9 @@
 
       #discountRow { color: var(--ok); will-change: transform, opacity; }
       #discountRow .k, #discountRow .v { color: var(--ok); }
-      #totalRow { padding-top: 24px; }
+      #totalRow { padding-top: 24px; align-items: center; }
       #totalRow .k { font-size: 40px; font-weight: 800; color: var(--text); }
-      #total { font-size: 68px; font-weight: 900; letter-spacing: -2px; color: var(--text); will-change: transform; }
+      #total { font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); will-change: transform; }
     </style>
   </head>
   <body>
