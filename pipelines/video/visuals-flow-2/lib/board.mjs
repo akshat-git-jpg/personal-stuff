@@ -767,7 +767,7 @@ function buildDetailBlocks(cues, segments, shots, feedbackItems, audit = null) {
   if (shots?.spans?.length) {
     for (const span of shots.spans) {
       const origSpan = shots.shotsFile?.spans?.find(s => s.id === span.id) || span;
-      const label = origSpan.mode === 'panel' ? '[P]' : '[A]';
+      const label = origSpan.mode === 'panel' ? '[P]' : (origSpan.mode === 'side' ? '[S]' : '[A]');
       const noteHtml = span.note ? ` &mdash; ${escapeHtml(span.note)}` : '';
       const id = `shot-${escapeHtml(span.id)}`;
       const shotHtml = `<div class="timeline-block shot-block" id="${id}">
@@ -859,7 +859,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
         items.push(`<div class="minimap-seg" style="flex-grow:${span.start - t}; background:var(--line)"></div>`);
       }
       const origSpan = shots.shotsFile?.spans?.find(s => s.id === span.id) || span;
-      const label = origSpan.mode === 'panel' ? '[P]' : '[A]';
+      const label = origSpan.mode === 'panel' ? '[P]' : (origSpan.mode === 'side' ? '[S]' : '[A]');
       items.push(`<div class="minimap-seg" title="${timecode(span.start)} &middot; ${escapeHtml(span.id)} &middot; ${label}" style="flex-grow:${span.duration}; background:var(--shot)" onclick="document.getElementById('shot-${escapeHtml(span.id)}').scrollIntoView({behavior:'smooth'})"></div>`);
       t = span.start + span.duration;
     }
@@ -1083,7 +1083,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
   }).join('');
 
   const avatarBlocksHtml = (shots?.spans ?? []).map((span) => {
-    const mode = shots?.resolved?.find(s => s.id === span.id)?.mode || 'full';
+    const mode = shots?.resolved?.find(s => s.id === span.id)?.mode || '?';
     return `<div class="tl-block" data-start="${span.start}" data-dur="${span.duration}"
       data-detail="shot-${escapeHtml(span.id)}" title="${escapeHtml(span.id)}" style="background:var(--shot)">${escapeHtml(span.id)} <small style="opacity:0.8">(${escapeHtml(mode)})</small></div>`;
   }).join('');
