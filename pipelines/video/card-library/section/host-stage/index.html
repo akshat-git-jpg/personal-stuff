@@ -108,12 +108,12 @@
       /* ===== CONTENT ===== */
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
-        eyebrow: VARS.eyebrow ?? 'Eyebrow',
-        title: VARS.title ?? 'Section Title',
+        eyebrow: VARS.eyebrow ?? 'ARCHITECTURE',
+        title: VARS.title ?? 'Distributed Systems',
         beats: VARS.beats ?? [
-          { text: 'Point one', at: 0.5 },
-          { text: 'Point two', at: 1.0 },
-          { text: 'Point three', at: 1.5 }
+          { text: 'CAP Theorem', at: 0.5 },
+          { text: 'Eventual Consistency', at: 1.0 },
+          { text: 'Leader Election', at: 1.5 }
         ]
       };
       

@@ -163,6 +163,7 @@ export function planSegmentOverlays(segments, overlays) {
           file: o.file,
           ...(o.chroma ? { chroma: o.chroma } : {}),
           ...(o.isPanel ? { isPanel: o.isPanel } : {}),
+          ...(o.isStage ? { isStage: o.isStage, zone: o.zone } : {}),
           trimStart: +Math.max(seg.start - o.start, 0).toFixed(3),
           at: +(s - seg.start).toFixed(3),
           until: +(e - seg.start).toFixed(3),
@@ -389,7 +390,7 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
     const cue = overlappingCues[0];
     const cardDef = catalog?.cards?.find(card => card.slug === cue?.slug);
     return {
-      id: j.id, start: j.start, end: j.end, file: j.file, isStage: true, zone: cardDef?.head_zone
+      id: j.id, start: j.start, end: j.end, file: j.file, isStage: true, zone: j.zone || cardDef?.head_zone
     };
   });
   overlays.push(...panelOverlays, ...stageOverlays);

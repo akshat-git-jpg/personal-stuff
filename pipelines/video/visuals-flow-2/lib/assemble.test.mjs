@@ -761,3 +761,94 @@ test('Integration: ffmpeg runAssembly panel composite', { skip: spawnSync('ffmpe
   assert.ok(Math.abs(meanOutside - 226) < 10, `outside panel should be yellow (Y~226), got ${meanOutside}`);
   assert.ok(Math.abs(meanCorner - 226) < 10, `panel corner should be base color (Y~226), got ${meanCorner}`);
 });
+
+test('planStageGeometry: centered zone', async () => {
+  const { planStageGeometry } = await import('./assemble.mjs');
+  const { SHOT_CONSTANTS } = await import('./shot-constants.mjs');
+  const zone = { w: 0.5, h: 0.5, x: 0.25, y: 0.25 };
+  const canvas = { w: 1920, h: 1080 };
+  const g = planStageGeometry({ zone, canvas, radiusPx: SHOT_CONSTANTS.STAGE_HEAD_RADIUS_PX.value });
+  assert.equal(g.cropW % 2, 0);
+  assert.equal(g.cropH % 2, 0);
+  assert.equal(g.cropW, 960);
+  assert.equal(g.cropH, 540);
+  assert.equal(g.x, 480);
+  assert.equal(g.y, 270);
+  assert.ok(g.x >= 0 && g.x + g.cropW <= 1920);
+});
+
+test('planStageGeometry: off-center zone', async () => {
+  const { planStageGeometry } = await import('./assemble.mjs');
+  const { SHOT_CONSTANTS } = await import('./shot-constants.mjs');
+  const zone = { w: 0.3, h: 0.4, x: 0.6, y: 0.1 };
+  const canvas = { w: 1920, h: 1080 };
+  const g = planStageGeometry({ zone, canvas, radiusPx: SHOT_CONSTANTS.STAGE_HEAD_RADIUS_PX.value });
+  assert.equal(g.cropW % 2, 0);
+  assert.equal(g.cropH % 2, 0);
+  assert.equal(g.cropW, 576);
+  assert.equal(g.cropH, 432);
+  assert.equal(g.x, 1152);
+  assert.equal(g.y, 108);
+});
+
+test('Integration: ffmpeg runAssembly stage composite', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
+  const tmpDirStage = path.join(testTmp, 'assembly-stage');
+  fs.rmSync(tmpDirStage, { recursive: true, force: true });
+  const outStage = path.join(testTmp, 'final-stage.mp4');
+  if (fs.existsSync(outStage)) fs.unlinkSync(outStage);
+
+  const screenMp4 = path.join(testTmp, 'screen-yellow.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=yellow:s=1920x1080:r=30', '-t', '5', '-pix_fmt', 'yuv420p', screenMp4]);
+  
+  const stageFile = path.join(testTmp, 'stage-blue.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=1920x1080:r=30', '-t', '5', '-pix_fmt', 'yuv420p', stageFile]);
+
+  const zone = { w: 0.4, h: 0.4, x: 0.1, y: 0.1 };
+  const stageJobs = [
+    { kind: 'stage', id: 's01', start: 1, end: 4, file: stageFile, zone }
+  ];
+
+  const { runAssembly, planStageGeometry } = await import('./assemble.mjs');
+  const { SHOT_CONSTANTS } = await import('./shot-constants.mjs');
+
+  await runAssembly({
+    workdir: testTmp,
+    video: 'it',
+    resolved: [],
+    avatarJobs: [],
+    panelJobs: [],
+    stageJobs,
+    total: 5,
+    screen: screenMp4,
+    out: outStage,
+    encoder: 'x264',
+    keepTemp: true,
+    transitions: 'none',
+    beats: 'off',
+    captions: 'off',
+    words: []
+  });
+
+  assert.ok(fs.existsSync(outStage));
+  
+  const frameStage = path.join(testTmp, 'frame-stage.png');
+  spawnSync('ffmpeg', ['-y', '-ss', '2', '-i', outStage, '-frames:v', '1', '-pix_fmt', 'gray', frameStage]);
+  
+  const getMeanY = (file, cropStr) => {
+    const p = spawnSync('ffprobe', ['-v', 'error', '-f', 'lavfi', '-i', `movie=${file},${cropStr},signalstats`, '-show_entries', 'frame_tags=lavfi.signalstats.YAVG', '-of', 'csv=p=0'], { encoding: 'utf8' });
+    return parseFloat(p.stdout);
+  };
+  
+  const g = planStageGeometry({ zone, canvas: { w: 1920, h: 1080 }, radiusPx: SHOT_CONSTANTS.STAGE_HEAD_RADIUS_PX.value });
+
+  // Inside the zone, it should be the host video (blue color). Y for blue is ~29
+  const cropInside = `crop=${g.cropW - 100}:${g.cropH - 100}:${g.x + 50}:${g.y + 50}`;
+  const meanInside = getMeanY(frameStage, cropInside);
+  
+  // Outside the zone, it should be the card background (yellow color). Y for yellow is ~226
+  const cropOutside = `crop=200:200:1500:800`;
+  const meanOutside = getMeanY(frameStage, cropOutside);
+
+  assert.ok(Math.abs(meanInside - 29) < 10, `inside stage zone should be host (blue, Y~29), got ${meanInside}`);
+  assert.ok(Math.abs(meanOutside - 226) < 10, `outside stage zone should be card (yellow, Y~226), got ${meanOutside}`);
+});
