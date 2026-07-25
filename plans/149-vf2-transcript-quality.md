@@ -187,6 +187,27 @@ Run the cleanup over test-03's committed raw transcript (`transcript.groq-raw.ba
 - **Any design that would run cleanup after the cue pass.** Anchors quote the transcript verbatim; editing text later silently breaks every anchor.
 - Editing any `videos/**` file other than the target slug's transcript — `videos/test-03/` holds live owner review data.
 
+## Verification
+
+Real cleanup run over test-03's committed raw transcript (`videos/test-03/transcript.groq-raw.bak.json`, read-only — output written only to the gitignored `lib/.test-tmp/`), applying `cleanup-prompt.md`'s rules by hand: trim each sentence-opening discourse filler ("Now,"/"Okay,") and merge the one ASR brand-split ("Some"+"Magic" → "Submagic"). Captured as a committed regression test: `real cleanup run over test-03 raw transcript: comma count drops, zero integrity errors` in `lib/transcript-quality.test.mjs`.
+
+- Word count: 806 → 791 (14 fillers dropped, one two-word brand merged into one)
+- Comma count: 71 → 57
+- Integrity errors: 0 (`checkTimingIntegrity(before, cleaned)` returns `[]` — timings stayed monotonic and in-span)
+
+### Three before/after caption lines
+
+1. Before: `Now, Some Magic and Opus Clips both promise to turn long`
+   After: `Submagic and Opus Clips both promise to turn long`
+2. Before: `Now, first of all, let's start off with`
+   After: `first of all, let's start off with`
+3. Before: `Now, basically, this is how the video is going to be`
+   After: `basically, this is how the video is going to be`
+
+### Rendered caption frame
+
+Not produced. test-03's source media (`vo.mp3` / screen recording) is gitignored and absent from this worktree, so there is no audio/video to render a frame from. Producing one would need the media restored locally, plus a render target outside `videos/test-03/` — the standing rule forbids writing under `videos/**`, and the render step's source media lives only inside the slug's own folder.
+
 ## Maintenance notes
 
 - Better punctuation also improves **card exposure**, because `resolve.mjs`'s `sentenceEndIfMidSentence` finds sentence boundaries from word-final punctuation. Expect card durations to shift after this lands; that is the feature, not a regression.

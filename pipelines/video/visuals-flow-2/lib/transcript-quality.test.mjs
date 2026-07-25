@@ -138,3 +138,35 @@ test('CLI apply: fails loudly and leaves transcript.json untouched on a desynced
   const stillRaw = JSON.parse(fs.readFileSync(path.join(wd, 'transcript.json'), 'utf8'));
   assert.deepEqual(stillRaw, asr);
 });
+
+// Regression for a real cleanup pass over test-03's committed raw transcript
+// (plan 149): drop each sentence-opening discourse filler ("Now,"/"Okay,"),
+// merge the one ASR brand-split ("Some"+"Magic" -> "Submagic"), and confirm
+// the result still clears checkTimingIntegrity with fewer commas than the
+// source. The filler indices and merge pair below were found by hand-reading
+// the fixture; re-derive them if the fixture ever changes.
+const TEST_03_RAW = path.join(import.meta.dirname, '..', 'videos', 'test-03', 'transcript.groq-raw.bak.json');
+
+test('real cleanup run over test-03 raw transcript: comma count drops, zero integrity errors', () => {
+  const before = JSON.parse(fs.readFileSync(TEST_03_RAW, 'utf8'));
+
+  const fillerIndices = new Set([33, 91, 119, 185, 242, 263, 273, 286, 326, 382, 494, 535, 621, 693]);
+  const mergePair = [34, 35, 'Submagic']; // "Some" + "Magic" -> "Submagic"
+
+  const cleaned = [];
+  for (let i = 0; i < before.length; i++) {
+    if (fillerIndices.has(i) || i === mergePair[1]) continue;
+    if (i === mergePair[0]) {
+      cleaned.push({ text: mergePair[2], start: before[i].start, end: before[mergePair[1]].end });
+      continue;
+    }
+    cleaned.push({ ...before[i] });
+  }
+
+  const commaCount = (arr) => arr.filter(w => /,/.test(w.text)).length;
+  const errors = checkTimingIntegrity(before, cleaned);
+
+  assert.deepEqual(errors, []);
+  assert.ok(commaCount(cleaned) < commaCount(before), `comma count did not drop: ${commaCount(before)} -> ${commaCount(cleaned)}`);
+  assert.equal(cleaned.length, before.length - fillerIndices.size - 1);
+});
