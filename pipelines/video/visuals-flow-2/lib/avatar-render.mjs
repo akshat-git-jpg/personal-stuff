@@ -40,7 +40,7 @@ export function planCornerChunksRange(rangeStart, rangeEnd, chunk = CORNER_CHUNK
 export function planJobs(shotsResolved, totalDuration, { spansOnly = false, cornerRange = null } = {}) {
   const spanJobs = (shotsResolved.spans || []).map((s) => ({
     id: s.id,
-    kind: s.mode === 'stage' ? 'avatar-stage' : (s.mode === 'panel' ? 'avatar-panel' : 'avatar-full'),
+    kind: s.mode === 'side' ? 'avatar-side' : (s.mode === 'panel' ? 'avatar-panel' : 'avatar-full'),
     start: s.start,
     end: s.end,
   }));

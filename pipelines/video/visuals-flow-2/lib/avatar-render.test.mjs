@@ -91,9 +91,9 @@ test('CLI tests', (t) => {
     video: 'test-01',
     approved: true,
     engineMode: 'test',
-    spans: [{ id: 's01', kind: 'avatar-full', from_anchor: "hello world this", to_anchor: "is a test" }]
+    spans: [{ id: 's01', kind: 'avatar-full', mode: 'full', from_anchor: "hello world this", to_anchor: "is a test" }]
   }));
-  
+
   // Create silent vo.mp3
   spawnSync('ffmpeg', ['-f', 'lavfi', '-i', 'anullsrc', '-t', '35', '-q:a', '9', path.join(workdir, 'vo.mp3')]);
   
@@ -212,7 +212,7 @@ test('CLI tests', (t) => {
   // Case 12: Slice duration precise check
   // Resolve a new shot "s02" to trigger a fresh slice
   const newShots = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.json'), 'utf8'));
-  newShots.spans = [{ id: 's02', kind: 'avatar-full', from_anchor: "hello world this", to_anchor: "is a test" }];
+  newShots.spans = [{ id: 's02', kind: 'avatar-full', mode: 'full', from_anchor: "hello world this", to_anchor: "is a test" }];
   fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify(newShots));
   const rs3 = spawnSync(process.execPath, [path.resolve(import.meta.dirname, 'resolve-shots.mjs'), workdir], { encoding: 'utf8' });
   if (rs3.status !== 0) throw new Error(rs3.stderr);
@@ -262,8 +262,8 @@ test('retry run flushes skipped jobs after the last submit (s03-retry incident)'
   fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify({
     video: 'vid', approved: true, engineMode: 'test',
     spans: [
-      { id: 's01', kind: 'avatar-full', from_anchor: 'w0 w1 w2', to_anchor: 'w3 w4 w5' },
-      { id: 's02', kind: 'avatar-full', from_anchor: 'w6 w7 w8', to_anchor: 'w9 w10 w11' }
+      { id: 's01', kind: 'avatar-full', mode: 'full', from_anchor: 'w0 w1 w2', to_anchor: 'w3 w4 w5' },
+      { id: 's02', kind: 'avatar-full', mode: 'full', from_anchor: 'w6 w7 w8', to_anchor: 'w9 w10 w11' }
     ]
   }));
   spawnSync('ffmpeg', ['-f', 'lavfi', '-i', 'anullsrc', '-t', '65', '-q:a', '9', path.join(workdir, 'vo.mp3')]);
