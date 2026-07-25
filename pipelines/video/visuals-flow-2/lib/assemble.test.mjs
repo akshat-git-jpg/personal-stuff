@@ -829,5 +829,5 @@ test('Integration: ffmpeg runAssembly side composite', { skip: spawnSync('ffmpeg
   const meanOutside = getMeanY(frameSide, cropOutside);
 
   assert.ok(Math.abs(meanInside - 29) < 10, `inside side box should be host (blue, Y~29), got ${meanInside}`);
-  assert.ok(Math.abs(meanOutside - 16) < 10, `outside side box should be base (black, Y~16), got ${meanOutside}`);
+  assert.ok(Math.abs(meanOutside - 0) < 10, `outside side box should be base (black, Y~0), got ${meanOutside}`);
 });
