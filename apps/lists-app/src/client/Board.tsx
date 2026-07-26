@@ -65,8 +65,14 @@ export default function Board({ onLogout }: { onLogout: () => void }) {
   }, [trimmedQuery, items, categories])
 
   const selected = categories.find((c) => c.id === selectedId) ?? null
+  // Sorted, not just filtered: reorder updates `position`, so render order has
+  // to read from it — otherwise a dropped row snaps back to its array slot.
+  // Mirrors the server's `ORDER BY position, created_at`.
   const selectedItems = useMemo(
-    () => items.filter((it) => it.category_id === selectedId),
+    () =>
+      items
+        .filter((it) => it.category_id === selectedId)
+        .sort((a, b) => a.position - b.position || a.created_at - b.created_at),
     [items, selectedId],
   )
 
