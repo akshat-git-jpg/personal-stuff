@@ -790,6 +790,23 @@ Not just size — five levers move together: scale, contrast (headlines were set
 | 153 | cards-type-scale-impact | `--hero-size` contract (≥120px, ≥2.5× the next-largest), em tracking, one accent per card, `check-type-scale.mjs` gate; applied to all 49 fullframe cards | 152 |
 
 - 153-cards-type-scale-impact — hero type scale + hierarchy gate — TODO (needs 152; PARKED, owner runs it after the side-mode batch)
+
+## 154 — chroma on the FCPXML export path
+
+`assemble.mjs` keys the green plate out of `link-in-description` for the mp4;
+`export-timeline.mjs` never learned about `chroma`, so a Resolve export lands
+that card as a solid green rectangle — in both the native and `--baked` modes.
+
+Third instance of the pipeline's recurring failure class: *computed on one
+surface, never consumed on the next*. The fix pre-keys to ProRes 4444 (FCPXML
+cannot carry a keyer Resolve will honour) and puts both renditions behind one
+shared recipe so they cannot drift.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 154 | vf2-chroma-keyed-export | `lib/chroma.mjs` (one key recipe), `lib/render-keyed.mjs` (alpha-baked ProRes 4444), substitution in both export modes, plus the first tests on the colorkey branch | none |
+
+- 154-vf2-chroma-keyed-export — key the chroma plate on the FCPXML export path — TODO
 - 150-vf2-avatar-side-mode — PR#108 150-vf2-avatar-side-mode: delete stage, add side-by-side avatar mode — DONE
 - 151-cards-side-contract-batch-a — PR#109 151-cards-side-contract-batch-a: side-ready card contract + convert 21 cards — DONE
 - 152-cards-side-batch-b — PR#110 152-cards-side-batch-b: convert the 27 dense cards to side-ready — DONE
