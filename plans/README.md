@@ -842,3 +842,4 @@ never regenerated. That is the "better solve" the owner asked for in v2:5.
 - 151-cards-side-contract-batch-a — PR#109 151-cards-side-contract-batch-a: side-ready card contract + convert 21 cards — DONE
 - 152-cards-side-batch-b — PR#110 152-cards-side-batch-b: convert the 27 dense cards to side-ready — DONE
 - 153-cards-type-scale-impact — PR#111 153-cards-type-scale-impact: make card text impactful (hero type scale + hierarchy gate) — DONE
+- 157-cards-bad-clip-montage — PR#115 157-cards-bad-clip-montage: new card that enacts the hook instead of titling it — DONE
