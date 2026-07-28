@@ -28,7 +28,7 @@
       "card": "enacted/promise-split",
       "placement": "fullframe",
       "start": 15.26,
-      "duration": 24.3,
+      "duration": 8,
       "variables": {
         "promise": "Both promise viral-ready shorts",
         "left": {
@@ -49,7 +49,7 @@
       "card": "statement/keyword-statement",
       "placement": "fullframe",
       "start": 39.56,
-      "duration": 12.88,
+      "duration": 5,
       "variables": {
         "text": "For creators repurposing long-form content without babysitting every clip.",
         "keyword": "without babysitting",
@@ -173,7 +173,7 @@
       "card": "enacted/before-after",
       "placement": "fullframe",
       "start": 166.07,
-      "duration": 8.14,
+      "duration": 10.16,
       "variables": {
         "title": "One Clip, Two Finishes",
         "before_label": "Clipped Only",

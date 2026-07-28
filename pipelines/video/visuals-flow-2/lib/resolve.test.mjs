@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
-import { normWord, resolveCues } from './resolve.mjs';
+import { normWord, resolveCues, lastSentenceBoundaryAtOrBefore } from './resolve.mjs';
 
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'resolve');
 test.before(() => {
@@ -503,8 +503,43 @@ test('a fullframe card holds until its sentence finishes (owner v2:2/v2:5)', () 
   const cues = [{ id: 'c01', card: 'statement/keyword-statement', anchor: "let's look at", variables: { text: 'x' } }];
   const { resolved, errors } = resolveCues(cues, words, catalog);
   assert.deepEqual(errors, []);
-  // sentence ends at 9.4s; card starts at -0.5 clamped to 0 → duration reaches the sentence end + tail
+  // sentence ends at 9.4s; card starts at -0.5 clamped to 0 → duration reaches the sentence end exactly, with no tail (owner ruling 2026-07-28, plan 155)
   assert.ok(resolved[0].duration > 3, `expected > default 3, got ${resolved[0].duration}`);
-  assert.ok(Math.abs(resolved[0].start + resolved[0].duration - 9.8) < 0.2,
-    `card should end ~9.8s (sentence 9.4 + 0.4 tail), got ${resolved[0].start + resolved[0].duration}`);
+  assert.ok(Math.abs(resolved[0].start + resolved[0].duration - 9.4) < 0.2,
+    `card should end ~9.4s (sentence 9.4), got ${resolved[0].start + resolved[0].duration}`);
+});
+
+
+test('exposure ends on a sentence boundary, never mid-sentence', () => {
+  const W = [
+    { text: 'Alpha', start: 0.0, end: 0.5 },
+    { text: 'beta.', start: 0.5, end: 1.0 },
+    { text: 'Gamma', start: 1.0, end: 1.5 },
+    { text: 'delta.', start: 1.5, end: 3.0 },
+    { text: 'Epsilon', start: 3.0, end: 4.0 },
+  ];
+  assert.equal(lastSentenceBoundaryAtOrBefore(W, 2.0), 1.0);
+  assert.equal(lastSentenceBoundaryAtOrBefore(W, 3.5), 3.0);
+  assert.equal(lastSentenceBoundaryAtOrBefore(W, 0.2), null);
+});
+
+test('exposure is independent of the card default_duration', () => {
+  // Same cue, same transcript, two different card default_durations.
+  // The resolved END must be identical — this is the regression that
+  // commit 6813379 introduced by changing before-after 8 -> 6.
+  const W = [
+    { text: 'One', start: 0.0, end: 1.0 },
+    { text: 'two.', start: 1.0, end: 2.0 },
+    { text: 'Three', start: 2.0, end: 3.0 },
+    { text: 'four.', start: 3.0, end: 4.0 },
+    { text: 'Five', start: 4.0, end: 20.0 },
+  ];
+  const cues = [{ id: 'c1', card: 'x/y', anchor: 'One two. Three', lead: 0, hold: 0, beats: [], variables: {} }];
+  const mk = (dd) => ({ cards: [{ slug: 'x/y', kind: 'single', placement: 'fullframe', default_duration: dd, variables: {} }] });
+  const a = resolveCues(cues, W, mk(2));
+  const b = resolveCues(cues, W, mk(3));
+  const endA = a.resolved[0].start + a.resolved[0].duration;
+  const endB = b.resolved[0].start + b.resolved[0].duration;
+  assert.equal(+endA.toFixed(2), +endB.toFixed(2));
+  assert.equal(+endA.toFixed(2), 4.0); // the last boundary inside the 12s window
 });
