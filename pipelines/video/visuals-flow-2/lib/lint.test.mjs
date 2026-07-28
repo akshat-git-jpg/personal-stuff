@@ -695,3 +695,39 @@ test('E11 no-filler-slate: navigational sentence errors, substantive one passes'
   const clean = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
   assert(!clean.errors.some(e => e.includes('E11')));
 });
+
+test('W12 fires when fullframe cards cover the whole opening', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 0.6, duration: 14.7, placement: 'fullframe' },
+  ];
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x', beats: [] }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(100), catalog });
+  assert.ok(warnings.some((w) => w.startsWith('W12 opening-host-coverage')));
+});
+
+test('W12 stays silent when the opening leaves room for the host', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 8.0, duration: 4.0, placement: 'fullframe' },
+  ];
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x', beats: [] }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(100), catalog });
+  assert.ok(!warnings.some((w) => w.startsWith('W12 opening-host-coverage')));
+});
+
+test('W13 fires on a long fullframe with no beats', () => {
+  const resolved = [
+    { id: 'c02', card: 'enacted/promise-split', start: 15.3, duration: 24.3, placement: 'fullframe' },
+  ];
+  const cuesFile = { cues: [{ id: 'c02', card: 'enacted/promise-split', beats: [] }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(100), catalog });
+  assert.ok(warnings.some((w) => w.startsWith('W13 frozen-fullframe') && w.includes('c02')));
+});
+
+test('W13 stays silent when a long fullframe carries beats', () => {
+  const resolved = [
+    { id: 'c02', card: 'enacted/promise-split', start: 15.3, duration: 24.3, placement: 'fullframe' },
+  ];
+  const cuesFile = { cues: [{ id: 'c02', card: 'enacted/promise-split', beats: [{ at: 5 }, { at: 12 }, { at: 19 }] }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(100), catalog });
+  assert.ok(!warnings.some((w) => w.startsWith('W13 frozen-fullframe')));
+});
