@@ -592,22 +592,36 @@ test('GET /calibrate-card/<unknown> returns 404', async () => {
   }
 });
 
-test('synthCalibrationVars: every beat card synthesizes exactly max_beats beats, each within max_reveal_chars', () => {
+test('synthCalibrationVars: every beat card synthesizes exactly max_beats beats, filling the appropriate structure based on beat_source', () => {
   for (const card of BEAT_CARDS) {
     const { variables, beats } = synthCalibrationVars(card);
     assert.equal(beats.length, card.max_beats, `${card.slug}: expected ${card.max_beats} beats`);
-    for (const beat of beats) {
-      assert.equal(typeof beat.at, 'number');
-      for (const [key, value] of Object.entries(beat)) {
-        if (key === 'at' || key === 'color') continue; // color is a CSS value, not reveal text
-        if (typeof value === 'string') {
-          assert.ok(value.length <= card.max_reveal_chars, `${card.slug} beat.${key} is ${value.length} chars, max ${card.max_reveal_chars}`);
+    
+    if (card.beat_source === 'variables') {
+      const arr = variables[card.beat_var];
+      assert.ok(Array.isArray(arr), `${card.slug}: beat_var "${card.beat_var}" must be an array`);
+      assert.equal(arr.length, card.max_beats, `${card.slug}: beat_var array must have exactly max_beats entries`);
+      
+      for (const beat of beats) {
+        assert.deepEqual(Object.keys(beat), ['at'], `${card.slug}: variables-driven beats must carry only timing (got keys: ${Object.keys(beat).join(', ')})`);
+        assert.equal(typeof beat.at, 'number');
+      }
+    } else {
+      // beat_source === 'beat'
+      for (const beat of beats) {
+        assert.equal(typeof beat.at, 'number');
+        for (const [key, value] of Object.entries(beat)) {
+          if (key === 'at' || key === 'color') continue; // color is a CSS value, not reveal text
+          if (typeof value === 'string') {
+            assert.ok(value.length <= card.max_reveal_chars, `${card.slug} beat.${key} is ${value.length} chars, max ${card.max_reveal_chars}`);
+          }
+        }
+        if (Array.isArray(beat.values) && Array.isArray(variables.products)) {
+          assert.equal(beat.values.length, variables.products.length, `${card.slug}: values must match products 1:1`);
         }
       }
-      if (Array.isArray(beat.values) && Array.isArray(variables.products)) {
-        assert.equal(beat.values.length, variables.products.length, `${card.slug}: values must match products 1:1`);
-      }
     }
+
     for (const [key, spec] of Object.entries(card.variables ?? {})) {
       const isString = typeof spec === 'string';
       const desc = isString ? spec : (spec.descriptor || spec.type || '');

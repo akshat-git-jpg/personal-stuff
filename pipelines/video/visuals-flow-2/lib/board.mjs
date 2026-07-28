@@ -1885,11 +1885,32 @@ const CALIBRATE_OVERRIDES = {
 // card-library/DESIGN.md's "measure honestly" checklist item.
 export function synthCalibrationVars(card) {
   const maxBeats = card.max_beats ?? 0;
-  const maxChars = card.max_reveal_chars ?? 20;
+  const maxChars = card.beat_source === 'variables' ? undefined : (card.max_reveal_chars ?? 20);
   const override = CALIBRATE_OVERRIDES[card.slug] ?? {};
 
   const variables = {};
   for (const [key, spec] of Object.entries(card.variables ?? {})) {
+    if (card.beat_source === 'variables' && key === card.beat_var) {
+      const arr = [];
+      for (let i = 0; i < maxBeats; i++) {
+        if (spec.item_shape) {
+          const item = {};
+          for (const [k, v] of Object.entries(spec.item_shape)) {
+            const isStr = typeof v === 'string';
+            const desc = isStr ? v : (v.descriptor || v.type || '');
+            if (isStr ? /^number/i.test(desc) : v.type === 'number') item[k] = 88;
+            else if (isStr ? /^boolean/i.test(desc) : v.type === 'boolean') item[k] = i % 2 === 0;
+            else item[k] = `Calibration ${i + 1}`;
+          }
+          arr.push(item);
+        } else {
+          arr.push(`Calibration ${i + 1}`);
+        }
+      }
+      variables[key] = arr;
+      continue;
+    }
+
     const isString = typeof spec === 'string';
     const desc = isString ? spec : (spec.descriptor || spec.type || '');
     if (isString ? /\(optional\)/i.test(desc) : spec.required === false) continue;
@@ -1901,23 +1922,25 @@ export function synthCalibrationVars(card) {
   const beats = [];
   for (let i = 0; i < maxBeats; i++) {
     const beat = { at: +((i + 1) * (card.default_duration / (maxBeats + 1))).toFixed(2) };
-    for (const [key, spec] of Object.entries(card.beat_shape ?? {})) {
-      const isString = typeof spec === 'string';
-      const desc = isString ? spec : (spec.descriptor || spec.type || '');
-      if (isString ? /\(optional\)/i.test(desc) : spec.required === false) continue;
-      const overridden = override.beatField?.(key, i);
-      if (overridden !== undefined) { beat[key] = overridden; continue; }
-      // values arrays keyed one-per-product ride along whatever "products" synthesized to.
-      if (key === 'values' && Array.isArray(variables.products) && (isString ? /per product/i.test(desc) : spec.type === 'array')) {
-        beat.values = variables.products.map((_, j) => (
-          /true\/false/i.test(desc) && j % 2 === 0 ? true : fillerText(maxChars)
-        ));
-        continue;
+    if (card.beat_source !== 'variables') {
+      for (const [key, spec] of Object.entries(card.beat_shape ?? {})) {
+        const isString = typeof spec === 'string';
+        const desc = isString ? spec : (spec.descriptor || spec.type || '');
+        if (isString ? /\(optional\)/i.test(desc) : spec.required === false) continue;
+        const overridden = override.beatField?.(key, i);
+        if (overridden !== undefined) { beat[key] = overridden; continue; }
+        // values arrays keyed one-per-product ride along whatever "products" synthesized to.
+        if (key === 'values' && Array.isArray(variables.products) && (isString ? /per product/i.test(desc) : spec.type === 'array')) {
+          beat.values = variables.products.map((_, j) => (
+            /true\/false/i.test(desc) && j % 2 === 0 ? true : fillerText(maxChars)
+          ));
+          continue;
+        }
+        const enumOpts = isString ? parseEnumOptions(desc) : (spec.enum || parseEnumOptions(desc));
+        if (enumOpts) { beat[key] = enumOpts[i % enumOpts.length]; continue; }
+        if (isString ? /^number/i.test(desc) : spec.type === 'number') { beat[key] = 88; continue; }
+        beat[key] = fillerText(maxChars);
       }
-      const enumOpts = isString ? parseEnumOptions(desc) : (spec.enum || parseEnumOptions(desc));
-      if (enumOpts) { beat[key] = enumOpts[i % enumOpts.length]; continue; }
-      if (isString ? /^number/i.test(desc) : spec.type === 'number') { beat[key] = 88; continue; }
-      beat[key] = fillerText(maxChars);
     }
     beats.push(beat);
   }
