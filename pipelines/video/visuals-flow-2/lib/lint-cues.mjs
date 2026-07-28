@@ -223,11 +223,13 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
 
   // W12 opening-host-coverage
   {
-    let intervals = [];
+    const introPart = (segmentsData?.structure ?? []).find((s) => s.part === 'intro');
+    const BY = introPart ? introPart.end : HOST_VISIBLE_BY;
+    let intervals = []; 
     for (const r of sortedResolved) {
       if (r.placement === 'fullframe') {
         const start = Math.max(0, r.start);
-        const end = Math.min(HOST_VISIBLE_BY, r.start + r.duration);
+        const end = Math.min(BY, r.start + r.duration);
         if (start < end) {
           intervals.push([start, end]);
         }
@@ -249,9 +251,10 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     if (current) {
       covered += current[1] - current[0];
     }
-    const freeTime = HOST_VISIBLE_BY - covered;
+    const freeTime = BY - covered;
     if (freeTime < OPENING_HOST_MIN) {
-      warnings.push(`W12 opening-host-coverage: the first ${HOST_VISIBLE_BY}s leaves only ${freeTime.toFixed(1)}s for the presenter on screen (min ${OPENING_HOST_MIN}s)`);
+      const windowName = introPart ? 'the intro' : `the first ${BY}s`;
+      warnings.push(`W12 opening-host-coverage: ${windowName} leaves only ${freeTime.toFixed(1)}s for the presenter on screen (min ${OPENING_HOST_MIN}s)`);
     }
   }
 
@@ -262,6 +265,18 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
       if (c && (!c.beats || c.beats.length === 0)) {
         warnings.push(`W13 frozen-fullframe: ${r.id} holds the screen for ${r.duration.toFixed(1)}s without any beats (max ${MAX_FULLFRAME_ONSCREEN}s)`);
       }
+    }
+  }
+
+  // W14 zone-underserved (owner 2026-07-28). Not an editorial rule — a zone
+  // the owner recorded and named, carrying no graphics at all, is a gap
+  // rather than a style choice. test-03's conclusion had zero cues because
+  // the cut never reached it. What goes IN the zone stays the cue pass's call.
+  for (const part of (segmentsData?.structure ?? [])) {
+    if (part.part === 'body') continue;
+    const inZone = sortedResolved.filter((r) => r.start >= part.start && r.start < part.end);
+    if (inZone.length === 0) {
+      warnings.push(`W14 zone-underserved: the ${part.part} (${part.start.toFixed(1)}s-${part.end.toFixed(1)}s) has no cues at all — it is the part of the video that matters most and it is carrying no graphics`);
     }
   }
 

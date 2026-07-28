@@ -85,7 +85,8 @@ function findNearestSentence(sentences, time) {
   return nearest.text;
 }
 
-export function buildSkeleton(total, segments, transcriptWords, C) {
+export function buildSkeleton(total, segmentsData, transcriptWords, C) {
+  const segments = segmentsData.segments || segmentsData;
   const slots = buildSlots(segments, total, C);
   const budget = buildBudget(total, C);
   const zones = buildZones(segments, total, C);
@@ -104,7 +105,7 @@ export function buildSkeleton(total, segments, transcriptWords, C) {
     overlayCapacity.push({ windowStart: t, windowEnd: Math.min(t + window, total), max });
   }
 
-  return { budget, zones, slots: enhancedSlots, overlayCapacity };
+  return { budget, zones, slots: enhancedSlots, overlayCapacity, structure: segmentsData.structure };
 }
 
 // Workdirs live at <visuals-flow>/videos/<slug> — the '..', '..' hop belongs to
@@ -114,9 +115,17 @@ export function resolveVideoDir(root, slug) {
 }
 
 function renderMarkdown(skeleton, total) {
-  const { budget, zones, slots, overlayCapacity } = skeleton;
+  const { budget, zones, slots, overlayCapacity, structure } = skeleton;
   
   let md = [];
+  
+  if (structure && structure.length > 0) {
+    md.push(`VIDEO STRUCTURE (measured from the source files — these are exact):`);
+    for (const part of structure) {
+      md.push(`  ${part.part.padEnd(10)}  ${part.start.toFixed(1)}s - ${part.end.toFixed(1)}s`);
+    }
+    md.push(``);
+  }
   
   md.push(`## Budget`);
   md.push(`- Total duration: ${total.toFixed(1)}s`);
@@ -190,7 +199,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   
   const total = transcriptWords.length > 0 ? transcriptWords[transcriptWords.length - 1].end : 0;
   
-  const skeleton = buildSkeleton(total, segmentsData.segments, transcriptWords, CUE_CONSTANTS);
+  const skeleton = buildSkeleton(total, segmentsData, transcriptWords, CUE_CONSTANTS);
   
   if (isJson) {
     console.log(JSON.stringify(skeleton, null, 2));
