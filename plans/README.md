@@ -973,3 +973,4 @@ decisions.md on 2026-07-28. Both are absorbable by v2 (verified: v2 exports
 | 165 | retire-visuals-flow-v1 | repoints the two hard deps at v2, deletes the folder (5.9 GB, 149 tracked files), its skill and symlink, and the routing docs; leaves decisions.md and docs/specs untouched as historical record | 163 (same file) |
 
 - 165-retire-visuals-flow-v1 — delete the superseded v1 pipeline — TODO (needs 163)
+- 163-cards-beat-source-contract — PR#121 163-cards-beat-source-contract: array-driven beats become a declared pattern — DONE
