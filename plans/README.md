@@ -887,3 +887,4 @@ AVAILABLE to the cue pass, never REQUIRED — per the owner ruling above.
 - 156-vf2-intro-must-breathe — PR#114 156-vf2-intro-must-breathe: opening-host-coverage + frozen-fullframe lints — DONE
 - 159-vf2-source-structure — PR#117 159-vf2-source-structure: teach the pipeline the three source files — DONE
 - 161-cards-intro-family — PR#119 161-cards-intro-family: the three intro beats that render as text slates — DONE
+- 160-vf2-intro-conclusion-zones — PR#118 160-vf2-intro-conclusion-zones: intro and conclusion become high-stakes zones — DONE
