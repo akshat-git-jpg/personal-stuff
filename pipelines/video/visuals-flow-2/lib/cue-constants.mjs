@@ -32,6 +32,14 @@ export const CUE_CONSTANTS = {
     value: 12,
     rule: 'A fullframe card may hold the screen for at most 12s. Exposure extends to the last sentence boundary that fits inside this window; past it the footage takes the frame back.',
   },
+  HOST_VISIBLE_BY: {
+    value: 15,
+    rule: 'The presenter must be visible within the first 15s. A tutorial that opens on wall-to-wall graphics has no one on screen to trust.',
+  },
+  OPENING_HOST_MIN: {
+    value: 3,
+    rule: 'At least 3s of the opening window must be free of fullframe cards, so the presenter actually lands rather than flashing between cards.',
+  },
   SECTION_FOOTAGE_MIN:    { value: 4,    rule: 'A section opener must be followed by at least 4s of footage before the next fullframe card, so every tool section reads as "opener, then the tool on screen" (lint W11).' },
 };
 
