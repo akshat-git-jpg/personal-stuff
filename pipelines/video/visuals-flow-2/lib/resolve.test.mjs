@@ -503,10 +503,10 @@ test('a fullframe card holds until its sentence finishes (owner v2:2/v2:5)', () 
   const cues = [{ id: 'c01', card: 'statement/keyword-statement', anchor: "let's look at", variables: { text: 'x' } }];
   const { resolved, errors } = resolveCues(cues, words, catalog);
   assert.deepEqual(errors, []);
-  // sentence ends at 9.4s; card starts at -0.5 clamped to 0 → duration reaches the sentence end + tail
+  // sentence ends at 9.4s; card starts at -0.5 clamped to 0 → duration reaches the sentence end exactly, with no tail (owner ruling 2026-07-28, plan 155)
   assert.ok(resolved[0].duration > 3, `expected > default 3, got ${resolved[0].duration}`);
-  assert.ok(Math.abs(resolved[0].start + resolved[0].duration - 9.8) < 0.2,
-    `card should end ~9.8s (sentence 9.4 + 0.4 tail), got ${resolved[0].start + resolved[0].duration}`);
+  assert.ok(Math.abs(resolved[0].start + resolved[0].duration - 9.4) < 0.2,
+    `card should end ~9.4s (sentence 9.4), got ${resolved[0].start + resolved[0].duration}`);
 });
 
 
