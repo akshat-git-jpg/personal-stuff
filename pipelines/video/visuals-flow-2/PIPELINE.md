@@ -97,6 +97,10 @@ committed so each video's graphics data is reviewable in one place; media
 (voiceover, slices, rendered clips) is regenerable and never lands in git —
 same house rule as the rest of `pipelines/`.
 
+## Source files (`src/`)
+
+Every video's `src/` directory must contain `intro.mp4`, `body.mp4`, and `conclusion.mp4`. `intro.mp4` and `conclusion.mp4` are required, and their absence is a hard error during processing. The `structure` field in `segments.json` is derived by measuring these files, and is distinct from the `segments` array (which describes demo vs narration on screen).
+
 ## Independence
 
 Any flow may call `lib/resolve.mjs`, `lib/render.mjs`, or `lib/board.mjs`

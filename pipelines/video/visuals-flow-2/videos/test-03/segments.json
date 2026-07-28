@@ -1,1 +1,1 @@
-{"video":"test-03","confirmed":false,"segments":[{"kind":"narration","start":0,"end":190},{"kind":"demo","start":190,"end":300.23}]}
+{"video":"test-03","confirmed":false,"structure":[{"part":"intro","start":0,"end":117.567},{"part":"body","start":117.567,"end":997.3},{"part":"conclusion","start":997.3,"end":1076.533}],"segments":[{"kind":"narration","start":0,"end":190},{"kind":"demo","start":190,"end":300.23}]}

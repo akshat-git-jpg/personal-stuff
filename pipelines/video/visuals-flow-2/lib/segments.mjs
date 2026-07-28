@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { sourceStructure } from './source-structure.mjs';
 
 const DEMO_CUES = [
   'click on', 'clicking on', 'go over to', 'going to go over', 'over here',
@@ -122,9 +123,24 @@ if (process.argv[1] && process.argv[1] === fileURLToPath(import.meta.url)) {
     const transcript = JSON.parse(fs.readFileSync(transcriptPath, 'utf8'));
     const segments = proposeSegments(transcript);
     
+    const total = transcript.length > 0 ? transcript[transcript.length - 1].end : 0;
+    const res = sourceStructure(workdir, { total });
+    
+    for (const w of res.warnings) {
+      console.error(w);
+    }
+    
+    if (res.errors.length > 0) {
+      for (const e of res.errors) {
+        console.error(e);
+      }
+      process.exit(1);
+    }
+    
     const out = {
       video: slug,
       confirmed: false,
+      structure: res.structure,
       segments
     };
     
