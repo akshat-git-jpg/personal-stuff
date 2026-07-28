@@ -1,0 +1,208 @@
+<!doctype html>
+<!--
+  AUDIENCE FIT
+  Who this video is for.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; 
+        --bg-to: #0a0805;
+        --text: #ffffff; 
+        --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --positive: #34d399; 
+        --negative: #fb7185; 
+        --gold: #facc15;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+      
+      * { 
+        margin: 0; 
+        padding: 0; 
+        box-sizing: border-box; 
+      }
+      
+      html, body { 
+        width: 100%; 
+        height: 1080px; 
+        overflow: hidden; 
+        background: #000; 
+        font-family: var(--font); 
+        color: var(--text); 
+      }
+      
+      #root { 
+        position: relative; 
+        width: 100%; 
+        height: 1080px; 
+      }
+      
+      #bg { 
+        position: absolute; 
+        inset: 0; 
+        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); 
+      }
+      
+      #frame { 
+        position: absolute; 
+        inset: 0; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 140px; 
+      }
+      
+      #rows { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 34px; 
+        align-items: flex-start; 
+        justify-content: center; 
+      }
+      
+      .row { 
+        display: flex; 
+        align-items: center; 
+        gap: 24px; 
+      }
+      
+      .icon-tile { 
+        flex: 0 0 auto; 
+        width: 88px; 
+        height: 88px; 
+        border-radius: 22px; 
+        border: 2px solid var(--accent); 
+        background: rgba(0, 0, 0, 0.35); 
+        box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 40%, transparent); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        color: var(--accent); 
+      }
+      
+      .icon-tile svg { 
+        width: 44px; 
+        height: 44px; 
+      }
+      
+      .label { 
+        font-size: 56px; 
+        font-weight: 600; 
+        color: var(--text); 
+      }
+      
+      .title { 
+        font-size: 64px; 
+        font-weight: 800; 
+        color: var(--accent); 
+        margin-top: 24px; 
+        letter-spacing: -0.02em; 
+      }
+
+      @keyframes hf-ambient-breathe { 
+        from { transform: scale(1); } 
+        to { transform: scale(1.012); } 
+      }
+      #frame { 
+        animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ 
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="audience-fit" data-start="0" data-duration="7" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Who This Is For","personas":[{"label":"Creators","icon":"person"},{"label":"Podcasters","icon":"chat"},{"label":"Coaches","icon":"brain"},{"label":"Educators","icon":"calendar"}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
+        <div id="rows">
+          <div id="personas"></div>
+          <div class="title" id="title"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const ICONS = {
+        brain:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>',
+        calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+        person:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+        chat:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+      };
+      const iconSvg = (name) => ICONS[name] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/></svg>';
+
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DEFAULTS = {
+        title: "Who This Is For",
+        personas: [
+          { label: "Creators", icon: "person" },
+          { label: "Podcasters", icon: "chat" },
+          { label: "Coaches", icon: "brain" },
+          { label: "Educators", icon: "calendar" }
+        ]
+      };
+      const DATA = { ...DEFAULTS, ...VARS };
+
+      const $ = (id) => document.getElementById(id);
+      
+      $('title').textContent = DATA.title;
+      
+      const personasEl = $('personas');
+      personasEl.style.display = 'flex';
+      personasEl.style.flexDirection = 'column';
+      personasEl.style.gap = '34px';
+      
+      const elements = (DATA.personas || []).map((p, i) => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.id = 'persona-' + i;
+        
+        row.innerHTML = `
+          <div class="icon-tile">${iconSvg(p.icon)}</div>
+          <div class="label">${p.label}</div>
+        `;
+        personasEl.appendChild(row);
+        
+        return {
+          tile: row.querySelector('.icon-tile'),
+          label: row.querySelector('.label')
+        };
+      });
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      
+      const CHROME_IN = 0.2;
+      
+      // We want them to land one per beat.
+      // E.g., beat 1: 1.5s -> first one lands.
+      // We have up to 4 personas. Let's space them out: 0.5s, 1.5s, 2.5s, 3.5s
+      
+      elements.forEach(({ tile, label }, i) => {
+        const at = 0.5 + i * 1.0;
+        
+        // Initial setup for GSAP
+        tl.set(tile, { opacity: 0, scale: 0.8 }, 0);
+        tl.set(label, { opacity: 0, x: -24 }, 0);
+        
+        tl.to(tile, { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.4)' }, at);
+        tl.to(label, { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out' }, at + 0.05);
+      });
+      
+      // Finally, summarize with the title line
+      const titleTime = 0.5 + elements.length * 1.0;
+      
+      tl.fromTo('.title', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, titleTime);
+
+      window.__timelines['audience-fit'] = tl;
+    </script>
+  </body>
+</html>
