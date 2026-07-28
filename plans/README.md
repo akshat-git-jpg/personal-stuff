@@ -931,3 +931,24 @@ right, and dropping it is what turned main red).
 | 163 | cards-beat-source-contract | required `beat_source` (`beat` \| `variables`) + `beat_var`, per-pattern enforcement in `check-catalog.mjs` with a fail-proof, inert `max_reveal_chars` removed, calibrate synthesizes real content for array-driven cards; no card HTML touched | none |
 
 - 163-cards-beat-source-contract — array-driven beats become a declared pattern — TODO
+
+## 164 — Zone Plan gate (2026-07-28)
+
+Owner request: *"First I want to review the motion graphics which we are
+planning to use in intro and conclusion, whether we are planning to use
+existing motion graphics or we are using some new motion graphic which we'll be
+making. Once that is approved, we can go with our usual review flow."*
+
+A new FIRST review stage, before the storyboard. For the intro and conclusion
+only, it lists every cue's chosen card marked EXISTING or NEW-to-build, surfaces
+the one-line spec from `R_CHOOSING`'s propose-a-new-card `fix` note, and gates
+`render.mjs` until approved — same flag-in-JSON pattern as `cues.approved` /
+`shots.approved`. Any change to the plan resets approval to false.
+
+Review model becomes: **Zone Plan → Storyboard → Unattended Cut → Final Cut.**
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 164 | vf2-zone-plan-gate | `lib/zone-plan.mjs`, a third board tab, a `zone-plan` verb, and a render refusal until approved | 159 (landed) |
+
+- 164-vf2-zone-plan-gate — approve intro/conclusion cards before anything renders — TODO
