@@ -1,10 +1,10 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh && node lib/lint-cues.mjs test-03-conclusion
 ui: true
 deploy:
-needs: [plan 155 and 156 change exposure and add lints — land both first so the conclusion is cued under the final rules]
+needs: [plan 162 MUST land first — E7 and exposure absorption are avatar-blind until it does. 155/156/159/160 already landed.]
 ---
 
 # Plan 158: Cut and cue the conclusion — the payoff the video never reaches
@@ -83,7 +83,13 @@ export const MANIFEST_DEFAULTS = { base: 'screen', aspect: '16:9', brand: 'defau
 
 So `base: "none"` is legal and is correct here — there is no screen recording over the conclusion, only the presenter.
 
-**`base: "none"` changes exposure behaviour.** `lib/resolve.mjs` (line 374):
+**`base: "none"` means NO FOOTAGE AT ALL, not "no screen recording".** This is the correction that blocked the first attempt at this plan (2026-07-28). `lib/assemble.mjs`'s `fillGapsWithFreeze` turns every segment of kind `screen` into a **freeze frame** when base is `none`, which is exactly why `E7 uncovered-second` demands that fullframe cards cover every active second. The first version of this plan set `base: "none"` **and never ran the avatar step**, so the conclusion had no presenter: a 79.2s video that must be 100% graphics, with a 20s end-exclusion zone (E4) and two mandatory end CTAs that must sit on footage (E9), is correctly impossible.
+
+The resolution is footage, not a weaker rule. **Step 5b runs the avatar step**, so `avatar-full` spans carry the presenter; cards then cover only what they should, the CTAs sit on avatar footage, and E4/E7/E9 are all satisfiable together. `decisions.md` 2026-07-28 records that E4 and E9 are NOT to be weakened, and that setting `base: "screen"` to escape this is rejected — it reintroduces the 300s screen-recording cap this plan exists to remove. The first crew tried exactly that (`825802d "Fix E4 and E9 by setting base to screen"`); do not repeat it.
+
+**Plan 162 must land before this one.** Until it does, `lib/lint-cues.mjs` has zero awareness of avatar spans (E7 counts only cards as coverage) and `extendExposure` absorbs straight across an avatar span. With avatar spans present but 162 absent, this plan will fail again for a different reason.
+
+**`base: "none"` also changes exposure behaviour.** `lib/resolve.mjs` (line 374):
 
 ```js
     let wanted = base === 'none' ? gap : (gap <= CUE_CONSTANTS.GAP_ABSORB.value ? gap : 0);
@@ -179,6 +185,41 @@ node lib/lint-cues.mjs test-03-conclusion; echo "exit=$?"
 
 `node -e "const c=require('./videos/test-03-conclusion/cues.json').cues;console.log(c.map(q=>q.card).join('\n'))"` -> includes `like-subscribe/like-subscribe`, at least one `verdict/*`, and `link-in-description/link-in-description` (NOT `link-scrim`).
 
+### Step 5b: Shot pass + avatar — the conclusion needs a presenter
+
+**This step is why the first attempt failed and must not be skipped.** Without avatar spans the conclusion has no footage at all, every second must be a card, and E4/E9 become unsatisfiable.
+
+```bash
+cd pipelines/video/visuals-flow-2
+bash run.sh test-03-conclusion shot-pass
+```
+
+The shot pass authors `shots.json` — presenter spans with a `mode`. Two decisions, made here:
+
+1. **`mode: "full"` for every span.** `side` splits the frame with a graphics column and this is a talking-head payoff; do not use it here.
+2. **The presenter must carry the CTA stretch.** The final ~20s (link, comment, subscribe, sign-off) sits inside the E4 end-exclusion zone where non-endcard fullframes may not end, so it must be presenter footage with the CTA overlays on top. Ensure a span covers it.
+
+Then submit the avatar renders. **Avatar III test renders are pre-authorized** (owner rule 2026-07-24 — Avatar III unlimited mode is free); anything metered stays owner-run. `engineMode` must remain `"test"`.
+
+```bash
+bash run.sh test-03-conclusion avatar
+```
+
+**Verify**:
+```bash
+cd pipelines/video/visuals-flow-2 && node -e "
+const j=require('./videos/test-03-conclusion/avatar-jobs.json').jobs;
+const full=j.filter(x=>x.kind==='avatar-full');
+console.log('avatar-full spans:', full.length);
+console.log('covers to:', Math.max(...full.map(x=>x.end)).toFixed(1), 's of ~79.2s');
+"
+```
+-> at least one `avatar-full` span, and coverage extending into the final 20s.
+
+Then re-run the lint now that footage exists:
+
+**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03-conclusion; echo "exit=$?"` -> `exit=0`, with **no E4, E7 or E9 errors**. If E7 still reports uncovered seconds where an avatar span exists, plan 162 has not landed — STOP and report.
+
 ### Step 6: Render
 
 **Verify**: `cd pipelines/video/visuals-flow-2 && node lib/render.mjs test-03-conclusion && ls videos/test-03-conclusion/renders/ | wc -l` -> equals the cue count from Step 5.
@@ -235,7 +276,8 @@ There are no unit tests to add — this plan produces a video, and the repo's ow
 - [ ] `videos/test-03-conclusion/` exists with `video.json` `base: "none"`
 - [ ] `vo.mp3` duration is within `78.5`–`80.0`s
 - [ ] `transcript.json` has >150 words ending near 79s
-- [ ] `node lib/lint-cues.mjs test-03-conclusion` exits 0 with no `E` lines
+- [ ] `node lib/lint-cues.mjs test-03-conclusion` exits 0 with no `E` lines (specifically no E4, E7 or E9)
+- [ ] `avatar-jobs.json` has at least one `avatar-full` span, and presenter footage covers the final 20s where the CTAs sit
 - [ ] cues include a `verdict/*` card, `like-subscribe/like-subscribe`, and the link PILL (not the scrim)
 - [ ] `bash run.sh test-03-conclusion assemble` registers a version ~79s long
 - [ ] the subscribe frame's green fraction is under 2% and the presenter is visible behind the pill
@@ -247,6 +289,9 @@ There are no unit tests to add — this plan produces a video, and the repo's ow
 - The subscribe frame's green fraction is above 2%. The `like-subscribe` transparency fix has regressed or the card was re-rendered from a stale copy. Stop and report the fraction.
 - The cue pass emits two verdict cards each naming a different winner — `R_VERDICTS` allows one winner per card but the narration has exactly one overall winner. Stop and report rather than picking.
 - `bash run.sh test-03-conclusion assemble` produces a video whose duration is not within 2s of 79.2s. Stop and report the actual duration — a large mismatch means the VO tail offset in Step 2 is wrong.
+- You are about to set `base: "screen"` to make E4/E9 pass. REJECTED (`decisions.md` 2026-07-28) — it reintroduces the 300s screen-recording cap this plan exists to remove. The first crew did exactly this in `825802d`. Stop and report.
+- You are about to weaken E4, E9, or exempt `base:"none"` from the exclusion zone. All three were rejected. Stop and report.
+- E7 reports uncovered seconds across a span where an `avatar-full` job exists — plan 162 has not landed. Stop; do not compensate by adding cards.
 - Any step needs a change under `lib/`. Report the limitation; do not patch the pipeline inside this plan.
 
 ## Maintenance notes
