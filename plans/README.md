@@ -910,3 +910,24 @@ week of *computed on one surface, never consumed on the next*.
 | 162 | vf2-avatar-aware-coverage | E7 counts `avatar-full` spans as covered; absorption stops at the next avatar span; both driven by `avatar-jobs.json`, panel/side/bubble deliberately excluded because they do not replace the base | none |
 
 - 162-vf2-avatar-aware-coverage — E7 and absorption account for the presenter — TODO (unblocks 158/PR#116)
+
+## 163 — beat_source contract (2026-07-28)
+
+Owner decision: **ratify the array-driven beat pattern rather than rewrite four
+freshly frame-verified cards — but make it declared.** 4 of 26 beat/word-sync
+cards (`enacted/bad-clip-montage` + the plan-161 intro family) carry no
+`beat_shape`; they drive content from a variables array and their beats carry
+timing only. Expressed as an ABSENCE, that cannot be told apart from an
+omission and cannot be enforced: their `max_reveal_chars` is inert and the
+calibrate page renders them with generic placeholders, so reveal text is
+unverifiable on the surface that exists to verify it.
+
+Relaxes part of `f35e9b8` — `max_reveal_chars` becomes conditional on the
+pattern. `max_beats` stays required for everyone (that half of the fix was
+right, and dropping it is what turned main red).
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 163 | cards-beat-source-contract | required `beat_source` (`beat` \| `variables`) + `beat_var`, per-pattern enforcement in `check-catalog.mjs` with a fail-proof, inert `max_reveal_chars` removed, calibrate synthesizes real content for array-driven cards; no card HTML touched | none |
+
+- 163-cards-beat-source-contract — array-driven beats become a declared pattern — TODO
