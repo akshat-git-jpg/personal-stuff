@@ -18,6 +18,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `018-concept-pass` | [LLM] | `transcript.json` → `concept.json` (gate `lint-concept`) |
 | `plan-skeleton` | [RUN] | `transcript.json` + `segments.json` → deterministic placement grid (the `{{SKELETON}}` prompt variable) |
 | `020-cue-pass-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json` (bespoke escalation rule) |
+| `zone-plan` | [RUN] | `cues.json` + `segments.json` → `zone-plan.json` (prevents wasting render cycles on intro/conclusion concepts that need board approval before production) |
 | `030-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9) |
 | `035-cue-audit` | [LLM] | `resolved.json` → `audit.json` (mute test) |
 | `040-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` (localhost:4322 board; audit-gate blocks labelled fullframes). **Review model (owner, 2026-07-24): 1. Storyboard = COMPOSITION ONLY (screen vs graphics vs avatar+mode, skippable on short videos). 2. Unattended cut = effects/sound/mix/assemble draft. 3. Final Cut = MOTION AND SOUND REVIEW (effects, sound, pacing, captions; judged in motion).** |
@@ -67,6 +68,7 @@ videos/<slug>/
   concept.json     # step 018 output (core idea, motif, register map) — committed
   cues.llm.json    # step 020's final output, pre-owner-edits — committed, immutable
   cues.json        # step 020 output, step 040 edits — committed
+  zone-plan.json   # zone-plan gate output — committed
   resolved.json    # step 030 output — committed
   audit.json       # step 035 mute-test output — committed
   shots.llm.json   # step 070's final output, pre-owner-edits — committed, immutable
@@ -183,6 +185,38 @@ Field semantics:
   manifest timecodes by hand — the clips themselves don't change).
 
 Single-card cues (`kind: "single"`) have `beats: []` and use catalog `default_duration`.
+
+## zone-plan.json schema
+
+This gate prevents wasting render cycles on intro/conclusion concepts that need board approval before production. The owner reviews the `Zone Plan` tab on the board and approves it.
+
+```json
+{
+  "video": "notion-vs-asana",
+  "approved": true,
+  "zones": [
+    {
+      "part": "intro",
+      "start": 0,
+      "end": 15,
+      "items": [
+        {
+          "id": "c01",
+          "at": 1.0,
+          "card": "some-existing-card",
+          "status": "existing",
+          "placement": "fullframe",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    }
+  ]
+}
+```
+- `approved`: boolean gate; rendering refuses to proceed if this is false (unless `--force` is used). Resets to false if cues change.
+- `zones`: lists each zone part (e.g. `intro`, `conclusion`) and its bounds.
+- `items`: the filtered list of cues in the zone; `status` is `existing` (found in catalog) or `new` (bespoke card to build).
 
 ## audit.json schema
 

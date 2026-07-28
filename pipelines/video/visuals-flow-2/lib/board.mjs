@@ -543,6 +543,14 @@ const SAVE_ACTIONS_JS = `
       location.reload();
     };
   }
+
+  const approveZonePlanBtn = document.getElementById('approveZonePlanBtn');
+  if (approveZonePlanBtn) {
+    approveZonePlanBtn.onclick = async () => {
+      await fetch('/approve-zone-plan', { method: 'POST' });
+      location.reload();
+    };
+  }
 `;
 
 function timecode(secs) {
@@ -795,7 +803,7 @@ function buildDetailBlocks(cues, segments, shots, feedbackItems, audit = null) {
   return blocks;
 }
 
-function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null) {
+function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null, zonePlan = null) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
@@ -889,7 +897,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 <body>
   <div class="sticky-header">
     <div class="topbar">
-      <span class="view-toggle"><a href="/">Storyboard</a><a href="/#final-cut">Final Cut</a></span>
+      <span class="view-toggle"><a href="/#zone-plan">Zone Plan</a><a href="/">Storyboard</a><a href="/#final-cut">Final Cut</a></span>
       <span class="view-toggle" style="margin-left:8px;"><a href="/">Timeline</a><a href="/list" class="active">List</a></span>
       <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
       <div>duration: ${timecode(totalDuration)}</div>
@@ -1054,7 +1062,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 // previews — clicking a block moves its buildDetailBlocks HTML (shared with
 // /list) into a docked panel and only then loads its card iframe. Delivers
 // GFX-08 (global play-through) via the master playhead.
-function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null) {
+function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null, zonePlan = null) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
@@ -1107,6 +1115,66 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
     `<div class="detail-item" id="detail-${b.id}">${b.html.replace('<iframe loading="lazy" src=', '<iframe loading="lazy" data-src=')}</div>`
   ).join('\n');
 
+  let zonePlanHtml = '';
+  if (zonePlan) {
+    const items = zonePlan.zones.flatMap(z => z.items);
+    const existing = items.filter(i => i.status === 'existing').length;
+    const toBuild = items.filter(i => i.status === 'new').length;
+    const summaryHtml = `<div>${items.length} cues &middot; ${existing} existing &middot; ${toBuild} to build</div>`;
+    
+    const zonesHtml = zonePlan.zones.map(z => {
+      const itemsHtml = z.items.map(item => {
+        const badge = item.status === 'existing' 
+          ? `<span class="usage-chip" style="color:var(--ok); border-color:var(--ok)">EXISTING</span>`
+          : `<span class="usage-chip" style="color:var(--err); border-color:var(--err); font-weight:bold;">NEW &mdash; to build</span>`;
+        const proposal = item.status === 'new' && item.proposal 
+          ? `<div style="margin-top:4px; font-size:13px; color:var(--text); background:var(--panel); padding:8px; border-radius:4px; border:1px solid var(--line);">${escapeHtml(item.proposal)}</div>` 
+          : '';
+        const flagged = item.flagged ? `<span class="usage-chip" style="color:var(--err); border-color:var(--err)">flagged</span> ` : '';
+        return `<div style="margin-bottom:12px; padding:12px; border-bottom:1px solid var(--line);">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+            <span style="font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--dim)">${timecode(item.at)}</span>
+            <strong style="font-family:ui-monospace,Menlo,monospace; font-size:12px;">#${escapeHtml(item.id)}</strong>
+            <span style="color:var(--dim)">${escapeHtml(item.card)}</span>
+            ${badge}
+            ${flagged}
+          </div>
+          ${proposal}
+        </div>`;
+      }).join('');
+      
+      return `
+        <div style="margin-bottom:32px;">
+          <h2 style="font-size:16px; margin-bottom:12px; text-transform:capitalize;">${escapeHtml(z.part)} zone <span style="font-size:13px; font-weight:normal; color:var(--dim); font-family:ui-monospace,Menlo,monospace;">(${timecode(z.start)} &rarr; ${timecode(z.end)})</span></h2>
+          ${itemsHtml || '<div style="color:var(--dim); font-size:13px;">(no graphics planned)</div>'}
+        </div>
+      `;
+    }).join('');
+
+    zonePlanHtml = `
+  <div id="tab-zone-plan" style="display:none;">
+    <div class="sticky-header">
+      <div class="topbar">
+        <span class="view-toggle" id="tab-toggle-zp">
+          <button data-target="tab-zone-plan" class="tab-btn active" onclick="switchTab(this)">Zone Plan</button>
+          <button data-target="tab-storyboard" class="tab-btn" onclick="switchTab(this)">Storyboard</button>
+          <button data-target="tab-final-cut" class="tab-btn" onclick="switchTab(this)">Final Cut</button>
+        </span>
+        <span class="view-toggle" style="margin-left:8px;"><a href="/" class="active">Timeline</a><a href="/list">List</a></span>
+        <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong> — zone plan</div>
+        ${summaryHtml}
+        <button id="approveZonePlanBtn" style="border-color:var(--ok); color:var(--ok);">Approve zone plan</button>
+      </div>
+      <div id="banner-zone-plan">
+        ${zonePlan.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}
+      </div>
+    </div>
+    <div style="max-width:800px; margin:0 auto; padding-top:20px;">
+      ${zonesHtml}
+    </div>
+  </div>`;
+  }
+
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -1119,21 +1187,28 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
   function switchTab(btn) { applyTab(btn.dataset.target, true); }
   function applyTab(target, push) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.target === target));
+    const zp = document.getElementById('tab-zone-plan');
+    if (zp) zp.style.display = target === 'tab-zone-plan' ? 'block' : 'none';
     document.getElementById('tab-storyboard').style.display = target === 'tab-storyboard' ? 'block' : 'none';
     document.getElementById('tab-final-cut').style.display = target === 'tab-final-cut' ? 'block' : 'none';
-    const wantHash = target === 'tab-final-cut' ? '#final-cut' : '';
+    const wantHash = target === 'tab-final-cut' ? '#final-cut' : (target === 'tab-zone-plan' ? '#zone-plan' : '');
     if (push && (location.hash || '') !== wantHash) history.pushState(null, '', location.pathname + wantHash);
     if (target === 'tab-final-cut') initFinalCut();
   }
-  window.addEventListener('popstate', () => applyTab(location.hash === '#final-cut' ? 'tab-final-cut' : 'tab-storyboard', false));
-  window.addEventListener('DOMContentLoaded', () => { if (location.hash === '#final-cut') applyTab('tab-final-cut', false); });
+  window.addEventListener('popstate', () => applyTab(location.hash === '#final-cut' ? 'tab-final-cut' : (location.hash === '#zone-plan' ? 'tab-zone-plan' : 'tab-storyboard'), false));
+  window.addEventListener('DOMContentLoaded', () => { 
+    if (location.hash === '#final-cut') applyTab('tab-final-cut', false);
+    else if (location.hash === '#zone-plan') applyTab('tab-zone-plan', false);
+  });
 </script>
 </head>
 <body>
+  ${zonePlanHtml}
   <div id="tab-storyboard">
     <div class="sticky-header">
       <div class="topbar">
         <span class="view-toggle" id="tab-toggle">
+          ${zonePlan ? '<button data-target="tab-zone-plan" class="tab-btn" onclick="switchTab(this)">Zone Plan</button>' : ''}
           <button data-target="tab-storyboard" class="tab-btn active" onclick="switchTab(this)">Storyboard</button>
           <button data-target="tab-final-cut" class="tab-btn" onclick="switchTab(this)">Final Cut</button>
         </span>
@@ -1203,6 +1278,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
   <div id="tab-final-cut" style="display:none; padding:20px;">
     <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
       <span class="view-toggle">
+        ${zonePlan ? '<button data-target="tab-zone-plan" class="tab-btn" onclick="switchTab(this)">Zone Plan</button>' : ''}
         <button data-target="tab-storyboard" class="tab-btn" onclick="switchTab(this)">Storyboard</button>
         <button data-target="tab-final-cut" class="tab-btn active" onclick="switchTab(this)">Final Cut</button>
       </span>
@@ -1835,6 +1911,16 @@ async function handleApprove(req, res, workdir) {
   res.end(JSON.stringify({ ok: true }));
 }
 
+async function handleApproveZonePlan(req, res, workdir) {
+  await readBody(req);
+  const zpPath = path.join(workdir, 'zone-plan.json');
+  const zonePlan = JSON.parse(fs.readFileSync(zpPath, 'utf8'));
+  zonePlan.approved = true;
+  fs.writeFileSync(zpPath, JSON.stringify(zonePlan, null, 2));
+  res.setHeader('content-type', 'application/json');
+  res.end(JSON.stringify({ ok: true }));
+}
+
 async function handleApproveShots(req, res, workdir) {
   await readBody(req);
   const shotsPath = path.join(workdir, 'shots.json');
@@ -2043,7 +2129,9 @@ function loadBoardData(workdir) {
   const sound = fs.existsSync(soundPath) ? JSON.parse(fs.readFileSync(soundPath, 'utf8')) : null;
   const auditPath = path.join(workdir, 'audit.json');
   const audit = fs.existsSync(auditPath) ? JSON.parse(fs.readFileSync(auditPath, 'utf8')) : null;
-  return { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit };
+  const zpPath = path.join(workdir, 'zone-plan.json');
+  const zonePlan = fs.existsSync(zpPath) ? JSON.parse(fs.readFileSync(zpPath, 'utf8')) : null;
+  return { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, zonePlan };
 }
 
 async function handleRequest(req, res, workdir, cardLibraryRoot) {
@@ -2063,17 +2151,17 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
   }
 
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index')) {
-    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit } = loadBoardData(workdir);
+    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, zonePlan } = loadBoardData(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderTimelinePage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit));
+    return res.end(renderTimelinePage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, zonePlan));
   }
 
   if (req.method === 'GET' && url.pathname === '/list') {
-    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit } = loadBoardData(workdir);
+    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, zonePlan } = loadBoardData(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit));
+    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, zonePlan));
   }
 
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);
@@ -2109,6 +2197,10 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
 
   if (req.method === 'POST' && url.pathname === '/approve-shots') {
     return handleApproveShots(req, res, workdir);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/approve-zone-plan') {
+    return handleApproveZonePlan(req, res, workdir);
   }
 
   if (req.method === 'POST' && url.pathname === '/approve-effects') {

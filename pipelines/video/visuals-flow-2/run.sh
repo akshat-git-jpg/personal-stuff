@@ -18,6 +18,7 @@ Steps:
   resolve
   audit
   audit-gate
+  zone-plan
   board
   render
   fold
@@ -69,6 +70,13 @@ case "$step" in
     resolved_present="missing"
     [[ -f "videos/$slug/resolved.json" ]] && resolved_present="present"
     
+    zone_plan_present="missing"
+    zone_plan_approved="NOT approved"
+    if [[ -f "videos/$slug/zone-plan.json" ]]; then
+      zone_plan_present="present"
+      zone_plan_approved=$(node -e "const z=require('./videos/$slug/zone-plan.json');console.log(z.approved?'approved':'NOT approved')")
+    fi
+    
     renders_present="missing"
     [[ -d "videos/$slug/renders/" ]] && renders_present="present"
     
@@ -85,6 +93,7 @@ case "$step" in
     echo "segments.json     $segments_present"
     echo "cues.json         $cues_present ($cues_approved)"
     echo "resolved.json     $resolved_present"
+    echo "zone-plan.json    $zone_plan_present ($zone_plan_approved)"
     echo "renders/          $renders_present"
     echo "shots.json        $shots_present ($shots_approved)"
 
@@ -158,6 +167,10 @@ EOF
 
   audit-gate)
     node lib/audit-gate.mjs "$slug"
+    ;;
+
+  zone-plan)
+    node lib/zone-plan.mjs "$slug"
     ;;
 
   board)
