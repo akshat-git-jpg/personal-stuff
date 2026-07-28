@@ -1,3 +1,0 @@
-- **Probe**: test-01
-- **Why**: verifies E5 orphan-screen and snapping edges
-- **Status**: pass

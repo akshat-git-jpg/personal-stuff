@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { validateVariable } from '../../visuals-flow/lib/resolve.mjs';
+import { validateVariable } from '../../visuals-flow-2/lib/resolve.mjs';
 
 const ROLES = ['heading', 'sentence', 'label', 'descriptor', 'value', 'logo_slug', 'icon_name', 'free'];
 const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
