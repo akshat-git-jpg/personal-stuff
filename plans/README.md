@@ -886,3 +886,4 @@ AVAILABLE to the cue pass, never REQUIRED — per the owner ruling above.
 - 155-vf2-exposure-follows-narration — PR#113 155-vf2-exposure-follows-narration: exposure follows the narration, not default_duration — DONE
 - 156-vf2-intro-must-breathe — PR#114 156-vf2-intro-must-breathe: opening-host-coverage + frozen-fullframe lints — DONE
 - 159-vf2-source-structure — PR#117 159-vf2-source-structure: teach the pipeline the three source files — DONE
+- 161-cards-intro-family — PR#119 161-cards-intro-family: the three intro beats that render as text slates — DONE
