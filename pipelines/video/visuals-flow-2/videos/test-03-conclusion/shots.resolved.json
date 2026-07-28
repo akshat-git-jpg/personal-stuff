@@ -1,0 +1,17 @@
+{
+  "video": "test-03-conclusion",
+  "offset": 0,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s01",
+      "kind": "avatar-full",
+      "mode": "full",
+      "start": 49.28,
+      "end": 79.02,
+      "duration": 29.74,
+      "note": "CTA stretch requires full avatar",
+      "snapped": true
+    }
+  ]
+}
