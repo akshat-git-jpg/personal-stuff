@@ -975,3 +975,4 @@ decisions.md on 2026-07-28. Both are absorbable by v2 (verified: v2 exports
 - 165-retire-visuals-flow-v1 — delete the superseded v1 pipeline — TODO (needs 163)
 - 163-cards-beat-source-contract — PR#121 163-cards-beat-source-contract: array-driven beats become a declared pattern — DONE
 - 164-vf2-zone-plan-gate — PR#122 164-vf2-zone-plan-gate: approve intro/conclusion cards before anything renders — DONE
+- 165-retire-visuals-flow-v1 — PR#123 165-retire-visuals-flow-v1: delete the superseded v1 pipeline — DONE
