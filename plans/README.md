@@ -888,3 +888,25 @@ AVAILABLE to the cue pass, never REQUIRED — per the owner ruling above.
 - 159-vf2-source-structure — PR#117 159-vf2-source-structure: teach the pipeline the three source files — DONE
 - 161-cards-intro-family — PR#119 161-cards-intro-family: the three intro beats that render as text slates — DONE
 - 160-vf2-intro-conclusion-zones — PR#118 160-vf2-intro-conclusion-zones: intro and conclusion become high-stakes zones — DONE
+
+## 162 — coverage and absorption must see the avatar (2026-07-28)
+
+Plan 158's crew reported E4 + E9 as mutually unsatisfiable on a 79.2s
+`base:"none"` conclusion and proposed weakening one of them. Rejected — see
+`decisions.md` 2026-07-28. `base:"none"` means *no footage at all*
+(`fillGapsWithFreeze` turns every screen second into a freeze frame), which is
+why E7 demands full card coverage; plan 158 set it AND never ran the avatar
+step, so the conclusion had no presenter and a 100%-graphics 80s video with a
+20s end-exclusion zone plus mandatory CTAs is correctly impossible.
+
+Judging it surfaced a genuine latent bug: `lib/lint-cues.mjs` has ZERO
+references to avatar, so E7 counts only cards as coverage, and
+`extendExposure`'s `base:'none'` branch absorbs straight across an avatar span
+— burying the presenter, exactly what W12 exists to catch. Fourth instance this
+week of *computed on one surface, never consumed on the next*.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 162 | vf2-avatar-aware-coverage | E7 counts `avatar-full` spans as covered; absorption stops at the next avatar span; both driven by `avatar-jobs.json`, panel/side/bubble deliberately excluded because they do not replace the base | none |
+
+- 162-vf2-avatar-aware-coverage — E7 and absorption account for the presenter — TODO (unblocks 158/PR#116)
