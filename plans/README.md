@@ -806,7 +806,38 @@ shared recipe so they cannot drift.
 |---|---|---|---|
 | 154 | vf2-chroma-keyed-export | `lib/chroma.mjs` (one key recipe), `lib/render-keyed.mjs` (alpha-baked ProRes 4444), substitution in both export modes, plus the first tests on the colorkey branch | none |
 
-- 154-vf2-chroma-keyed-export — key the chroma plate on the FCPXML export path — TODO
+- 154-vf2-chroma-keyed-export — key the chroma plate on the FCPXML export path — REJECTED 2026-07-28 (PR#112 closed). The plate was the defect, not the export gap: overlay cues already render ProRes `yuva444p12le`, which carries real alpha, so the green plate was painted into a format that never needed it and keyed back out imperfectly (14% spill in the pill's shadow). Both chroma cards are now authored transparent and `chroma` is gone from `catalog.json` — with no card declaring chroma there is nothing to key on the export path, so this plan would have shipped dead code.
+
+## 155–158 — the test-03 fold batch (2026-07-28)
+
+Four plans out of one feedback fold plus an intro/conclusion brainstorm. 155 and
+156 are a pair: 155 stops cards ending mid-sentence and introduces
+`MAX_FULLFRAME_ONSCREEN`, which 156's frozen-frame lint reads. 158 wants both
+landed first so the conclusion is cued under the final rules. 157 is independent.
+
+The measurement behind 156 and 157: test-03's first 53s are three back-to-back
+fullframe cards, the presenter first appears at 0:54, and mean frame-to-frame
+delta sits at 0.01 — a still image — for 20 consecutive seconds inside a cue
+carrying `beats: []` across a 24.3s hold.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 155 | vf2-exposure-follows-narration | exposure derives from sentence boundaries + the next cue instead of `default_duration`; `MAX_FULLFRAME_ONSCREEN`; a test pinning that the resolved end does not move when a card's `default_duration` does | none |
+| 156 | vf2-intro-must-breathe | `W12 opening-host-coverage` + `W13 frozen-fullframe` lints, `HOST_VISIBLE_BY`/`OPENING_HOST_MIN`, and the `R_OPENING` rulebook entry | 155 |
+| 157 | cards-bad-clip-montage | new `enacted/bad-clip-montage` card that enacts the hook (three failure states, one per beat) instead of titling it, with a rendered-frame inspection gate | none |
+| 158 | vf2-cut-the-conclusion | stands up `videos/test-03-conclusion/` (`base: "none"`, 79.2s) and cues the payoff with the existing `verdict/` family + the now-transparent `like-subscribe` | 155, 156 |
+
+Why 155 exists at all: the 2026-07-25 fold "fixed" cards exiting mid-sentence,
+but the fix only worked because `enacted/before-after` happened to carry
+`default_duration: 8`. Commit `6813379` reduced it to 6 and the fix silently
+unwound — c10 went back to vanishing 2s before "Still, neutral so far" ends.
+Nobody noticed because `resolved.json` was committed with the old numbers and
+never regenerated. That is the "better solve" the owner asked for in v2:5.
+
+- 155-vf2-exposure-follows-narration — exposure follows the narration, not `default_duration` — TODO
+- 156-vf2-intro-must-breathe — opening-host-coverage + frozen-fullframe lints — TODO (needs 155)
+- 157-cards-bad-clip-montage — new card that enacts the hook — TODO
+- 158-vf2-cut-the-conclusion — cut and cue the 79s conclusion — TODO (needs 155, 156)
 - 150-vf2-avatar-side-mode — PR#108 150-vf2-avatar-side-mode: delete stage, add side-by-side avatar mode — DONE
 - 151-cards-side-contract-batch-a — PR#109 151-cards-side-contract-batch-a: side-ready card contract + convert 21 cards — DONE
 - 152-cards-side-batch-b — PR#110 152-cards-side-batch-b: convert the 27 dense cards to side-ready — DONE
