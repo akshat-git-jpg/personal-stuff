@@ -838,6 +838,46 @@ never regenerated. That is the "better solve" the owner asked for in v2:5.
 - 156-vf2-intro-must-breathe — opening-host-coverage + frozen-fullframe lints — TODO (needs 155)
 - 157-cards-bad-clip-montage — new card that enacts the hook — TODO
 - 158-vf2-cut-the-conclusion — cut and cue the 79s conclusion — TODO (needs 155, 156)
+
+## 159–161 — intro and conclusion, permanently (2026-07-28)
+
+The owner's constraint: *"I don't want to keep going back and forth for every
+video. Intro and Conclusion are most important and I want best quality there."*
+155–158 fix test-03; this batch is the durable answer.
+
+**Root cause.** Every video is recorded as three files — `src/intro.mp4`,
+`src/body.mp4`, `src/conclusion.mp4` — and `concat.txt` lists them. **No
+pipeline code reads any of it.** The structure is used once to glue the audio
+and then discarded, after which `segments.mjs` re-guesses structure by
+keyword-matching the transcript for demo words in rolling windows. The pipeline
+cannot point at the intro, so there has never been anywhere to put a lasting
+answer about intros — which is why every fix has landed per-video. Third
+instance this week of *computed on one surface, never consumed on the next*
+(the others: the chroma plate, and the exposure regression behind 155).
+
+**Two owner rulings shape this batch** (2026-07-28):
+- On encoding a required intro formula: *"its subjective. Pls dont make this
+  hardcoded."* So no plan here defines required slots. 160 tells the cue pass
+  WHERE the zones are and that they matter; WHAT goes in them stays judgment.
+- On the gate: *"block if drive doesn't hav intro and conclusion files."* The
+  hard failure is on the INPUT, not on editorial content — a video whose
+  conclusion was never recorded is the actual root cause of test-03's missing
+  payoff.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 159 | vf2-source-structure | `lib/source-structure.mjs` measures the three files into exact intro/body/conclusion spans, written as a NEW `structure` field (not a segment `kind`, which would silently reclassify the opening); hard error when `intro.mp4`/`conclusion.mp4` is missing; warns when a recorded part never reached the cut | none |
+| 160 | vf2-intro-conclusion-zones | the zones reach the cue-pass prompt, `R_ZONES` guidance, W12 retargeted from a fixed 15s to the measured intro (117.6s on test-03), new `W14 zone-underserved` | 159, 156 |
+| 161 | cards-intro-family | `statement/promise-payoff`, `checklist/audience-fit`, `section/proof-of-work` — the three intro beats that currently render as text slates | — |
+
+Card-family scope: 161 builds three, not four. `enacted/bad-clip-montage` (the
+hook) landed via 157/PR#115; the contrast beat is already served by
+`enacted/promise-split` and the roadmap by `table-of-contents`. Cards are
+AVAILABLE to the cue pass, never REQUIRED — per the owner ruling above.
+
+- 159-vf2-source-structure — teach the pipeline the three source files — TODO
+- 160-vf2-intro-conclusion-zones — intro/conclusion become high-stakes zones — TODO (needs 159, 156)
+- 161-cards-intro-family — promise-payoff, audience-fit, proof-of-work — TODO
 - 150-vf2-avatar-side-mode — PR#108 150-vf2-avatar-side-mode: delete stage, add side-by-side avatar mode — DONE
 - 151-cards-side-contract-batch-a — PR#109 151-cards-side-contract-batch-a: side-ready card contract + convert 21 cards — DONE
 - 152-cards-side-batch-b — PR#110 152-cards-side-batch-b: convert the 27 dense cards to side-ready — DONE
