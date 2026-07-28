@@ -16,7 +16,13 @@
     "avatar_id": "6bdc449aaabf4f998c34ac7490260285",
     "template_id": "e5e542d6c1ca474eadb31ebfde9b488e",
     "image": "characters/specs-man/source.jpeg",
-    "description": "Man with Specs Black Shirt — photo→Avatar III look; DEFAULT man template (owner 2026-07-28). template_id replaces the 2026-07-20 tutorial template ac366a12ded942989d22735c23f3794d, which was used for visuals-flow test-02 and test-03"
+    "description": "Man with Specs Black Shirt — photo→Avatar III look; DEFAULT man template (owner 2026-07-28). Previous template kept as specs-man-2"
+  },
+  "specs-man-2": {
+    "avatar_id": "6bdc449aaabf4f998c34ac7490260285",
+    "template_id": "ac366a12ded942989d22735c23f3794d",
+    "image": "characters/specs-man/source.jpeg",
+    "description": "Man with Specs Black Shirt, HeyGen 3 tutorial template (owner-provided 2026-07-20) — same avatar as specs-man, older template. Was the default until 2026-07-28; visuals-flow test-02 and test-03 were rendered with this one, so keep it to reproduce them"
   },
   "woman-laptop": {
     "avatar_id": "3949a56f150941bd860d68c64e6f8f0b",
