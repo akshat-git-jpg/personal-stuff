@@ -1,4 +1,5 @@
 {
+  "updated": "2026-07-28T08:07:18.282Z",
   "items": {
     "final-v2:0": {
       "status": "fixed",
@@ -23,6 +24,10 @@
     "final-v2:5": {
       "status": "fixed",
       "message": "c10 now runs to 176.6s, covering \"Still, neutral so far\" which ends at 176.2s"
+    },
+    "final-v3:0": {
+      "status": "fixed",
+      "message": "c14 link-in-description CTA added at 183.1s covering the second description mention; both chroma cards re-authored transparent (link-in-description had green spill, like-subscribe shipped as a full-screen green rectangle)"
     }
   }
 }

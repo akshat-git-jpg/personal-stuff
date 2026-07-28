@@ -231,6 +231,19 @@
       "flagged": false
     },
     {
+      "id": "c14",
+      "card": "link-in-description/link-in-description",
+      "anchor": "check the links in the description",
+      "lead": 0.3,
+      "hold": 2,
+      "register": "light",
+      "variables": {
+        "message": "Links in the description"
+      },
+      "beats": [],
+      "flagged": false
+    },
+    {
       "id": "c11",
       "card": "overlay/lower-third",
       "anchor": "let's start off with Submagic",

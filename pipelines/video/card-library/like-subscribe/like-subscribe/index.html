@@ -6,9 +6,12 @@
   with a glowing border before fading out + sliding down.
   1920x1080, 30fps, 5 seconds (150 frames).
 
-  THIS IS AN OVERLAY — it has no real background of its own. Drop it onto your
-  footage by keying out the GREEN CHROMA-KEY background. To change the key color,
-  edit --bg in :root (e.g. a different key color, or "transparent" + render mov).
+  THIS IS AN OVERLAY — it has no real background of its own, and it does not
+  need one: overlays render as .mov (ProRes yuva444p12le), which carries a real
+  alpha channel. Drop it straight onto your footage. Do NOT reintroduce a
+  chroma-key plate — this card shipped one while its catalog entry declared no
+  `chroma`, so nothing ever keyed it and it composited as a solid green
+  rectangle over the whole frame (found 2026-07-27).
 
   ┌─────────────────────────────────────────────────────────────────────────┐
   │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
@@ -36,7 +39,7 @@
     <style>
       /* ===== THEME (editor may change these colors) ===== */
       :root {
-        --bg: #00b140; /* chroma-key green (key this out). use "transparent" or any color */
+        --bg: transparent; /* overlays render to alpha-bearing mov — never a chroma plate */
         --accent: #fb923c;
         --accent-deep: #ea7a22;
         --ink: #1a0f03; /* dark text/icon on the accent fill */

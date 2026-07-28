@@ -81,4 +81,8 @@ export const CUE_RULES = {
     rule: 'Beat cards must not idle: anchor so the FIRST beat lands within ~8s of the card appearing — when the VO rambles before its first data point, anchor at the sentence right before the first beat, not the section opener.',
     why: 'owner fold 2026-07-20, test-02 c29 — 18.9s of empty table scaffold',
   },
+  R_LINK_CTA: {
+    rule: 'Link CTA (mandatory): EVERY time the VO points the viewer to the description — "link/links in the description", "check the description", "linked below" — emit a CTA cue anchored at that phrase. Never leave a description mention uncovered. Which card is positional, not a judgment call: the FIRST mention in the video uses `link-in-description/link-scrim` (full-frame dim scrim — it takes the whole screen once, when the ask is new and deserves it); EVERY later mention uses `link-in-description/link-in-description` (transparent pill overlay), which rides on footage and never hides a demo. Use the scrim exactly once per video. Count mentions across the WHOLE script including the conclusion, not just the stretch you are cueing.',
+    why: 'owner fold 2026-07-27, test-03 final-v3:0 ("Pls add cta for link in description whenever mentioned. For first time mention you can use link scrim one template, for rest we can use link in description green card template"). The v2 fold placed ONE scrim cue by hand as an instance fix and nothing generalized it, so of the three description mentions in test-03 the second got no card at all and the third sits in a conclusion that has never been cut — the recurring "fixed on one surface, never taught to the next" shape',
+  },
 };

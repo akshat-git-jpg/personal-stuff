@@ -173,7 +173,7 @@
       "card": "enacted/before-after",
       "placement": "fullframe",
       "start": 166.07,
-      "duration": 10.56,
+      "duration": 8.14,
       "variables": {
         "title": "One Clip, Two Finishes",
         "before_label": "Clipped Only",
@@ -202,6 +202,17 @@
         ],
         "register": "light",
         "variant": "a"
+      }
+    },
+    {
+      "id": "c14",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 183.05,
+      "duration": 4,
+      "variables": {
+        "message": "Links in the description",
+        "register": "light"
       }
     },
     {

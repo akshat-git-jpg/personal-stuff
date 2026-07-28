@@ -4,49 +4,51 @@
       "text": "motion graphics goes away at 11sec but he mebtion submagic and opus clicp at 17?",
       "t": 17.440062,
       "context": "final@00:17",
-      "applied": "2026-07-25 — c02 re-anchored to the naming sentence (15.8s) on the new enacted/promise-split card, so both products are on screen when they are named",
-      "folded": "2026-07-25 — NEW card enacted/promise-split + R_CHOOSING propose-a-new-card clause — when no card enacts the clause the answer is a new template, not the nearest existing one"
+      "applied": "2026-07-25 \u2014 c02 re-anchored to the naming sentence (15.8s) on the new enacted/promise-split card, so both products are on screen when they are named",
+      "folded": "2026-07-25 \u2014 NEW card enacted/promise-split + R_CHOOSING propose-a-new-card clause \u2014 when no card enacts the clause the answer is a new template, not the nearest existing one"
     },
     "final-v2:1": {
       "text": "WHy only Submagic is coloured and not Opus Clips. Please make this long term better. Discuss the approach with me first",
       "t": 16.521322,
       "context": "final@00:16",
-      "applied": "2026-07-25 — captions re-planned; \"Opus\" and \"Clips\" now both highlight alongside \"Submagic\"",
-      "folded": "2026-07-25 — lib/captions.mjs CAP_ACCENT_PHRASES + phraseAccentIndices — multi-word brands highlight every word while staying separate words, so captions still read as spoken"
+      "applied": "2026-07-25 \u2014 captions re-planned; \"Opus\" and \"Clips\" now both highlight alongside \"Submagic\"",
+      "folded": "2026-07-25 \u2014 lib/captions.mjs CAP_ACCENT_PHRASES + phraseAccentIndices \u2014 multi-word brands highlight every word while staying separate words, so captions still read as spoken"
     },
     "final-v2:2": {
       "text": "Again this motion graphics ends before he completes sentenece.",
       "t": 41.99104,
       "context": "final@00:41",
-      "applied": "2026-07-25 — c03 now runs 39.6-52.4s, covering the sentence that ends at 52.0s",
-      "folded": "2026-07-25 — sentence-aware exposure in resolve.mjs (sentenceEndIfMidSentence + EXPOSURE_TAIL): a fullframe card may never exit mid-sentence; duration follows the narration instead of cat.default_duration"
+      "applied": "2026-07-25 \u2014 c03 now runs 39.6-52.4s, covering the sentence that ends at 52.0s",
+      "folded": "2026-07-25 \u2014 sentence-aware exposure in resolve.mjs (sentenceEndIfMidSentence + EXPOSURE_TAIL): a fullframe card may never exit mid-sentence; duration follows the narration instead of cat.default_duration"
     },
     "final-v2:3": {
       "text": "Lets make one more templates for link in description. It greys out background and it should be in center and more visible. Currently this template doesn't register in brain",
       "t": 113.526665,
       "context": "final@01:53",
-      "applied": "2026-07-25 — c07 switched to the new link-in-description/link-scrim card",
-      "folded": "2026-07-25 — NEW card link-in-description/link-scrim — full-frame dim scrim, centred lockup, authored transparent so it needs no chroma key"
+      "applied": "2026-07-25 \u2014 c07 switched to the new link-in-description/link-scrim card",
+      "folded": "2026-07-25 \u2014 NEW card link-in-description/link-scrim \u2014 full-frame dim scrim, centred lockup, authored transparent so it needs no chroma key"
     },
     "final-v2:4": {
       "text": "Opus clip part stayed from  2:04 to 2:09 and then shows screen recoridng. Submagic part stays singificatly longer with no screen recording for opus clips.. Such unsymmetry looks very weird. Have asked before as well, try to have videos symmetrical",
       "t": 152.734894,
       "context": "final@02:32",
-      "applied": "2026-07-25 — c09 no longer absorbs its gap: 10.4s card then 4s of Submagic footage before the next graphic",
-      "folded": "2026-07-25 — structural cards reserve SECTION_FOOTAGE_MIN from exposure absorption + lint W11 section-footage — a section opener always hands over to footage; per-section durations stay free to differ"
+      "applied": "2026-07-25 \u2014 c09 no longer absorbs its gap: 10.4s card then 4s of Submagic footage before the next graphic",
+      "folded": "2026-07-25 \u2014 structural cards reserve SECTION_FOOTAGE_MIN from exposure absorption + lint W11 section-footage \u2014 a section opener always hands over to footage; per-section durations stay free to differ"
     },
     "final-v2:5": {
       "text": "He completed ' neutral so far' here but motion graphic went away before. If you noticed such timing sync gaps keep happening, need a better solve here",
       "t": 176.150412,
       "context": "final@02:56",
-      "applied": "2026-07-25 — c10 now runs to 176.6s, covering \"Still, neutral so far\" which ends at 176.2s",
-      "folded": "2026-07-25 — same fix as final-v2:2 — measured from the card END, not its anchor, which is why it catches a card exiting during a later sentence"
+      "applied": "2026-07-25 \u2014 c10 now runs to 176.6s, covering \"Still, neutral so far\" which ends at 176.2s",
+      "folded": "2026-07-25 \u2014 same fix as final-v2:2 \u2014 measured from the card END, not its anchor, which is why it catches a card exiting during a later sentence"
     },
     "final-v3:0": {
       "text": "Pls add cta for link in desscription whenever mentioned. For first time mention you can use link scrim one template, for rest we can use link in description green card template, if green card template is not fixed then pls fix it",
       "t": 185.742126,
-      "context": "final@03:05"
+      "context": "final@03:05",
+      "applied": "2026-07-28 \u2014 new cue c14 (link-in-description pill) at 183.1s covers the second description mention at 185.3s; v4 assembled and the frame verified",
+      "folded": "2026-07-28 \u2014 R_LINK_CTA in lib/cue-rules.mjs: EVERY description mention gets a CTA, first=link-scrim, later=pill, counted across the whole script. Both chroma cards re-authored transparent (overlays already render alpha-bearing ProRes), chroma removed from catalog \u2014 link-in-description had 14% green spill in its shadow and like-subscribe composited as a full-screen green rectangle because it declared no chroma at all"
     }
   },
-  "updated": "2026-07-25"
+  "updated": "2026-07-28"
 }

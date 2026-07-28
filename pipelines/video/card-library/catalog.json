@@ -640,7 +640,7 @@
       "slug": "like\u002dsubscribe/like\u002dsubscribe",
       "kind": "single",
       "placement": "overlay",
-      "purpose": "chroma\u002dkey subscribe button overlay that rings the bell and presses on click",
+      "purpose": "transparent subscribe button overlay that rings the bell and presses on click",
       "variables": {
         "subscribeText": {
           "required": true,
@@ -655,8 +655,7 @@
       "slug": "link\u002din\u002ddescription/link\u002din\u002ddescription",
       "kind": "single",
       "placement": "overlay",
-      "chroma": "0x00b140",
-      "purpose": "chroma\u002dkey pill overlay pointing viewers to the link in the description",
+      "purpose": "transparent pill overlay pointing viewers to the link in the description",
       "variables": {
         "message": {
           "required": true,

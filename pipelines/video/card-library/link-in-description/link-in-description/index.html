@@ -4,9 +4,11 @@
   A pill at 70% height slides up + fades in, breathes with a glowing border,
   then fades out + slides down. 1920x1080, 30fps, 4 seconds (120 frames).
 
-  THIS IS AN OVERLAY — it has no real background of its own. Drop it onto your
-  footage by keying out the GREEN CHROMA-KEY background. To change the key color,
-  edit --bg in :root (e.g. a different key color, or "transparent" + render mov).
+  THIS IS AN OVERLAY — it has no real background of its own, and it does not
+  need one: overlays render as .mov (ProRes yuva444p12le), which carries a real
+  alpha channel. Drop it straight onto your footage. Do NOT reintroduce a
+  chroma-key plate — keying an opaque colour back out leaves green spill in the
+  pill's soft shadow (measured 14% of the halo before this was made transparent).
 
   ┌─────────────────────────────────────────────────────────────────────────┐
   │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
@@ -33,7 +35,7 @@
     <style>
       /* ===== THEME (editor may change these colors) ===== */
       :root {
-        --bg: #00b140; /* chroma-key green (key this out). use "transparent" or any color */
+        --bg: transparent; /* overlays render to alpha-bearing mov — never a chroma plate */
         --accent: #fb923c;
         --text: #ffffff;
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
