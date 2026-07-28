@@ -976,3 +976,31 @@ decisions.md on 2026-07-28. Both are absorbable by v2 (verified: v2 exports
 - 163-cards-beat-source-contract — PR#121 163-cards-beat-source-contract: array-driven beats become a declared pattern — DONE
 - 164-vf2-zone-plan-gate — PR#122 164-vf2-zone-plan-gate: approve intro/conclusion cards before anything renders — DONE
 - 165-retire-visuals-flow-v1 — PR#123 165-retire-visuals-flow-v1: delete the superseded v1 pipeline — DONE
+
+## 166 — E9 avatar-blindness + lint-shots catalog path (2026-07-28)
+
+Two bugs verified on main @ `bb53892`, found because plan 158's crew hit them
+and REPORTED rather than patched (its STOP condition forbids `lib/*.mjs` edits).
+That is the process working; 158 stays untouched.
+
+**Bug 1** is a scope gap in plan 162, which I wrote. 162 taught `extendExposure`
+about avatar spans and updated E7 — but E9 makes its own call 29 lines below in
+the same file and was missed, so it measures a fullframe hold the pipeline will
+never produce and reports plan 158's two mandatory end CTAs as overlapping a
+card they sit beside. Lesson: when a function gains a parameter that changes its
+result, EVERY call site is in scope. Note E9 must keep passing the real `base` —
+E7 hardcodes `'none'` only because it sits inside a `base === 'none'` guard.
+
+**Bug 2**: `lint-shots.mjs:154` resolves `catalog.json` one directory too high
+and throws ENOENT for every workdir, breaking `run.sh <slug> shots`. The fix is
+not `4` → `3`: `resolveWorkdir` accepts arbitrary absolute paths, so any
+workdir-relative count is fragile — anchor to `import.meta.dirname` like
+`assemble.mjs:845`. `lint-shots.test.mjs` exists AND is registered in check.sh,
+but every case calls the pure function with a mock catalog, so a broken path in
+`main()` survived a passing test file.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 166 | vf2-e9-avatar-and-catalog-path | `avatarSpans` on E9's `extendExposure` call, module-anchored catalog path in lint-shots, and three regression tests that must be seen RED first | none |
+
+- 166-vf2-e9-avatar-and-catalog-path — fix E9 avatar-blindness + lint-shots path — TODO (unblocks 158/PR#116)
