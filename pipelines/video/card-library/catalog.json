@@ -56,6 +56,8 @@
     {
       "slug": "statement/promise\u002dpayoff",
       "kind": "beat",
+      "beat_source": "variables",
+      "beat_var": "options",
       "placement": "fullframe",
       "side": true,
       "hero_shape": "short",
@@ -83,7 +85,6 @@
         }
       },
       "max_beats": 4,
-      "max_reveal_chars": 60,
       "default_duration": 7,
       "register": ["dark"]
     },
@@ -117,6 +118,8 @@
     {
       "slug": "checklist/audience\u002dfit",
       "kind": "beat",
+      "beat_source": "variables",
+      "beat_var": "personas",
       "placement": "fullframe",
       "side": true,
       "hero_shape": "none",
@@ -150,7 +153,6 @@
         }
       },
       "max_beats": 4,
-      "max_reveal_chars": 60,
       "default_duration": 7,
       "register": ["dark"]
     },
@@ -168,6 +170,7 @@
           "example": "Section Title"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "text": {
           "required": true,
@@ -189,6 +192,7 @@
       "side": true,
       "purpose": "vertical list of icon\u002dtile + text\u002dpill rows revealing one per beat, accent\u002doutlined with a soft glow; optional keyword highlight per row — for enumerating features/capabilities",
       "variables": {},
+      "beat_source": "beat",
       "beat_shape": {
         "icon": {
           "required": true,
@@ -440,6 +444,7 @@
           "type": "array"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "name": {
           "required": true,
@@ -685,6 +690,7 @@
           "type": "array"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "name": {
           "required": true,
@@ -1011,6 +1017,7 @@
       "placement": "overlay",
       "purpose": "spoken pros/cons pinned to footage: green\u002dcheck / rose\u002dcross pill chips tick in one per beat and persist, anchored bottom\u002dleft",
       "variables": {},
+      "beat_source": "beat",
       "beat_shape": {
         "text": {
           "required": true,
@@ -1044,6 +1051,7 @@
           "example": "Section Title"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "kind": {
           "required": true,
@@ -1070,6 +1078,8 @@
     {
       "slug": "section/proof\u002dof\u002dwork",
       "kind": "beat",
+      "beat_source": "variables",
+      "beat_var": "facts",
       "placement": "fullframe",
       "side": false,
       "hero_shape": "none",
@@ -1103,7 +1113,6 @@
         }
       },
       "max_beats": 4,
-      "max_reveal_chars": 60,
       "default_duration": 8,
       "register": ["dark"]
     },
@@ -1121,6 +1130,7 @@
           "example": "Section Title"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "label": {
           "required": true,
@@ -1186,6 +1196,7 @@
           "example": "Section Title"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "label": {
           "required": true,
@@ -1292,6 +1303,7 @@
           "example": "Section Title"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "label": {
           "required": true,
@@ -1531,6 +1543,7 @@
           "example": "This is an example sentence."
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "subject": {
           "required": true,
@@ -1692,6 +1705,7 @@
           "type": "boolean"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "name": {
           "required": true,
@@ -1731,6 +1745,7 @@
           "example": "Section Title"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "persona": {
           "required": true,
@@ -1777,6 +1792,7 @@
           "example": "heygen"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "label": {
           "required": true,
@@ -1816,6 +1832,7 @@
           "example": "Section Title"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "label": {
           "required": true,
@@ -1847,6 +1864,7 @@
           "type": "array"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "text": {
           "required": true,
@@ -1882,6 +1900,7 @@
           "example": "Publish\u002dready beats raw speed"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "text": {
           "required": true,
@@ -1916,6 +1935,7 @@
           "example": "example"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "text": {
           "required": true,
@@ -1952,6 +1972,7 @@
           "example": "%"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "label": {
           "type": "string",
@@ -2005,6 +2026,7 @@
           }
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "values": {
           "type": "array",
@@ -2052,6 +2074,7 @@
           "example": "reqs"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "value": {
           "type": "string",
@@ -2140,6 +2163,7 @@
           }
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "step": {
           "type": "string",
@@ -2165,6 +2189,8 @@
     {
       "slug": "enacted/bad-clip-montage",
       "kind": "beat",
+      "beat_source": "variables",
+      "beat_var": "clips",
       "placement": "fullframe",
       "side": false,
       "hero_shape": "none",
@@ -2193,7 +2219,6 @@
         }
       },
       "max_beats": 3,
-      "max_reveal_chars": 28,
       "default_duration": 9,
       "register": ["dark"]
     },
@@ -2316,6 +2341,7 @@
           "example": "History"
         }
       },
+      "beat_source": "beat",
       "beat_shape": {
         "label": {
           "type": "string",

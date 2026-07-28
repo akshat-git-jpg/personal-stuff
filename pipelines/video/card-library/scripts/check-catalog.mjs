@@ -74,11 +74,27 @@ for (const card of catalog.cards) {
     if (typeof card.max_beats !== 'number' || card.max_beats < 1) {
       err(`FAIL: ${card.slug}.max_beats must be a number >= 1 on a ${card.kind} card — visuals-flow-2 synthesizes 0 beats without it`);
     }
-    if (typeof card.max_reveal_chars !== 'number' || card.max_reveal_chars < 1) {
-      err(`FAIL: ${card.slug}.max_reveal_chars must be a number >= 1 on a ${card.kind} card`);
+    if (card.beat_source !== 'beat' && card.beat_source !== 'variables') {
+      err(`FAIL: ${card.slug}.beat_source must be "beat" or "variables"`);
+    } else if (card.beat_source === 'beat') {
+      if (!card.beat_shape) err(`FAIL: ${card.slug} has beat_source "beat" but missing beat_shape`);
+      if (typeof card.max_reveal_chars !== 'number' || card.max_reveal_chars < 1) {
+        err(`FAIL: ${card.slug}.max_reveal_chars must be a number >= 1 for beat_source "beat"`);
+      }
+    } else if (card.beat_source === 'variables') {
+      if (!card.beat_var) err(`FAIL: ${card.slug} has beat_source "variables" but missing beat_var`);
+      else if (!card.variables || !card.variables[card.beat_var] || card.variables[card.beat_var].type !== 'array') {
+        err(`FAIL: ${card.slug} beat_var "${card.beat_var}" must exist in variables with type "array"`);
+      }
+      if (card.beat_shape !== undefined) err(`FAIL: ${card.slug} has beat_source "variables" but declares beat_shape`);
+      if (card.max_reveal_chars !== undefined) err(`FAIL: ${card.slug} has beat_source "variables" but declares max_reveal_chars`);
     }
-  } else if (card.max_beats !== undefined || card.max_reveal_chars !== undefined) {
-    err(`FAIL: ${card.slug} declares max_beats/max_reveal_chars but kind is "${card.kind}" — only beat/word-sync cards reveal over time`);
+  } else {
+    for (const key of ['beat_source', 'beat_shape', 'max_reveal_chars', 'max_beats']) {
+      if (card[key] !== undefined) {
+        err(`FAIL: ${card.slug} declares ${key} but kind is "${card.kind}" — only beat/word-sync cards reveal over time`);
+      }
+    }
   }
   if (card.placement === 'fullframe') {
     if (typeof card.side !== 'boolean') {
