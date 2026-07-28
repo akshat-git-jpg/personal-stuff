@@ -557,3 +557,44 @@ test('extendExposure: avatar-full span bounds absorption on base none', async ()
   const out2 = extendExposure(resolved, { base: 'none', total: 60 });
   assert.equal(out2[0].duration, 30);
 });
+
+// Boundary matrix for the avatar clamp in extendExposure. Plan 158 was blocked
+// three times by three distinct bugs in this one code path, each visible only
+// once the previous was fixed, so this covers every span/card boundary
+// relationship rather than the single case that happened to be reported.
+// The card is c1: start 10, duration 5 -> natural end 15. No second fullframe,
+// so nextStart = total = 100 and an unclamped card absorbs HOLD_EXTEND_CAP (20).
+const clampCase = async (avatarSpans) => {
+  const { extendExposure } = await import('./resolve.mjs');
+  const resolved = [{ id: 'c1', placement: 'fullframe', start: 10, duration: 5 }];
+  const out = extendExposure(resolved, { base: 'none', total: 100, avatarSpans });
+  const c = out.find((x) => x.id === 'c1');
+  return +(c.start + c.duration).toFixed(2);
+};
+
+test('avatar clamp: span starts EXACTLY at the card end -> no extension', async () => {
+  // The regression that blocked plan 158 a third time. `s > end + 0.001`
+  // skipped this case and the card absorbed the full 20s cap.
+  assert.equal(await clampCase([[15, 45]]), 15);
+});
+
+test('avatar clamp: span starts just after the card end -> clamps to the span', async () => {
+  assert.equal(await clampCase([[18, 45]]), 18);
+});
+
+test('avatar clamp: span starts just BEFORE the card end -> no extension', async () => {
+  // The card already reaches the presenter; it must not be extended further.
+  assert.equal(await clampCase([[14.5, 45]]), 15);
+});
+
+test('avatar clamp: span starts beyond the cap -> HOLD_EXTEND_CAP still binds', async () => {
+  assert.equal(await clampCase([[80, 95]]), 35);
+});
+
+test('avatar clamp: no spans -> unchanged behaviour (cap only)', async () => {
+  assert.equal(await clampCase([]), 35);
+});
+
+test('avatar clamp: earlier spans are skipped, the first at-or-after wins', async () => {
+  assert.equal(await clampCase([[0, 5], [8, 12], [15, 45]]), 15);
+});

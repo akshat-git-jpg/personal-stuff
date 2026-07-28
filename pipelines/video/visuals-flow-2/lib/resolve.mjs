@@ -408,8 +408,21 @@ export function extendExposure(resolved, { base, total, avatarSpans = [] }) {
     // A card must not be held over the presenter. On base:'none' the whole gap
     // is absorbed by default, which silently buried an avatar span — the same
     // defect W12 (plan 156) exists to catch on the opening.
-    const nextAvatar = avatarSpans.find(([s]) => s > end + 0.001);
-    const limit = nextAvatar ? Math.min(nextStart, nextAvatar[0]) : nextStart;
+    // Find the first span still RELEVANT at the card's end — i.e. the first
+    // one that has not already finished. Keying on the span's END rather than
+    // its start covers every boundary relationship in one test:
+    //   - span starts exactly at `end` (the NORMAL arrangement, since resolve
+    //     places the avatar right where the card ends) -> limit = end, no
+    //     extension. The original `s > end + 0.001` skipped exactly this case,
+    //     so the card absorbed the full HOLD_EXTEND_CAP and sat on top of the
+    //     presenter — a 0.02s input change swung the result by 20 seconds.
+    //   - span already running at `end` -> clamp to `end`, never extend
+    //     further into a presenter the card is already touching.
+    //   - span starts later -> clamp to its start.
+    // (plan 158, blocked three times by three bugs in this path; 2026-07-28)
+    const EPS = 0.001;
+    const nextAvatar = avatarSpans.find(([, e]) => e > end + EPS);
+    const limit = nextAvatar ? Math.min(nextStart, Math.max(nextAvatar[0], end)) : nextStart;
     const gap = +(limit - end).toFixed(2);
 
     const maxExtend = CUE_CONSTANTS.HOLD_EXTEND_CAP.value;
