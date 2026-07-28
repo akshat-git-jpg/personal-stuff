@@ -2049,6 +2049,39 @@
       "max_reveal_chars": 40
     },
     {
+      "slug": "enacted/bad-clip-montage",
+      "kind": "beat",
+      "placement": "fullframe",
+      "side": false,
+      "hero_shape": "none",
+      "purpose": "A vertical short-form clip frame that cycles three ways an auto-generated clip comes back broken; each beat lights one failure",
+      "intent": "The VO claims automated clipping still leaves work behind, and no footage of a bad clip is on screen.",
+      "anti_intent": "Praising a tool's output, or any moment where real footage of the actual result is already visible.",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "Automated, Then Fixed By Hand"
+        },
+        "clips": {
+          "required": true,
+          "type": "array",
+          "item_shape": {
+            "label": {
+              "type": "string",
+              "role": "label",
+              "required": true,
+              "max_words": 4,
+              "example": "Captions land late"
+            }
+          }
+        }
+      },
+      "default_duration": 9,
+      "register": ["dark"]
+    },
+    {
       "slug": "enacted/before\u002dafter",
       "kind": "single",
       "placement": "fullframe",
