@@ -953,3 +953,23 @@ Review model becomes: **Zone Plan → Storyboard → Unattended Cut → Final Cu
 
 - 164-vf2-zone-plan-gate — approve intro/conclusion cards before anything renders — TODO
 - 162-vf2-avatar-aware-coverage — PR#120 162-vf2-avatar-aware-coverage: E7 and absorption must see the presenter — DONE
+
+## 165 — retire visuals-flow v1 (2026-07-28)
+
+Owner: *"I want to remove visual flow… visual flow 2 is already doing things."*
+Correct — the 2026-07-24 v2 design froze v1 "as fallback once v2 is proven"; it
+is proven.
+
+Not an `rm -rf` though: v1 is **load-bearing for the card-library gate boss runs
+on every card PR**. `check-catalog.mjs` imports `validateVariable` from
+`visuals-flow/lib/resolve.mjs`, and `check-cards.sh` reads its palette from
+`visuals-flow/EDITOR-STYLE-GUIDE.md`. Deleting blind turns that gate red and
+parks unrelated merges — the exact misleading-attribution failure recorded in
+decisions.md on 2026-07-28. Both are absorbable by v2 (verified: v2 exports
+`validateVariable`, and the two style guides' palettes diff clean).
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 165 | retire-visuals-flow-v1 | repoints the two hard deps at v2, deletes the folder (5.9 GB, 149 tracked files), its skill and symlink, and the routing docs; leaves decisions.md and docs/specs untouched as historical record | 163 (same file) |
+
+- 165-retire-visuals-flow-v1 — delete the superseded v1 pipeline — TODO (needs 163)
