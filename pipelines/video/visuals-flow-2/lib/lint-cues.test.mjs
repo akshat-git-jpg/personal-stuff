@@ -731,3 +731,71 @@ test('W13 stays silent when a long fullframe carries beats', () => {
   const { warnings } = lintCues({ cuesFile, resolved, words: createWords(100), catalog });
   assert.ok(!warnings.some((w) => w.startsWith('W13 frozen-fullframe')));
 });
+
+test('W14 fires for a conclusion zone with no cues in range', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 10, duration: 5, placement: 'fullframe' }
+  ];
+  const segmentsData = {
+    structure: [
+      { part: 'intro', start: 0, end: 20 },
+      { part: 'body', start: 20, end: 100 },
+      { part: 'conclusion', start: 100, end: 120 }
+    ]
+  };
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x' }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(120), catalog, segmentsData });
+  assert.ok(warnings.some((w) => w.startsWith('W14 zone-underserved') && w.includes('conclusion')));
+});
+
+test('W14 stays silent when the conclusion zone contains at least one cue', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 105, duration: 5, placement: 'fullframe' }
+  ];
+  const segmentsData = {
+    structure: [
+      { part: 'intro', start: 0, end: 20 },
+      { part: 'body', start: 20, end: 100 },
+      { part: 'conclusion', start: 100, end: 120 }
+    ]
+  };
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x' }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(120), catalog, segmentsData });
+  assert.ok(!warnings.some((w) => w.startsWith('W14 zone-underserved') && w.includes('conclusion')));
+});
+
+test('W14 never fires for body', () => {
+  const resolved = [];
+  const segmentsData = {
+    structure: [
+      { part: 'body', start: 20, end: 100 }
+    ]
+  };
+  const cuesFile = { cues: [] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(120), catalog, segmentsData });
+  assert.ok(!warnings.some((w) => w.startsWith('W14 zone-underserved') && w.includes('body')));
+});
+
+test('W12 uses the measured intro end when structure is present (fires)', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 0, duration: 115, placement: 'fullframe' }
+  ];
+  const segmentsData = {
+    structure: [
+      { part: 'intro', start: 0, end: 117 }
+    ]
+  };
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x' }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(120), catalog, segmentsData });
+  assert.ok(warnings.some((w) => w.startsWith('W12 opening-host-coverage')));
+});
+
+test('W12 falls back to HOST_VISIBLE_BY when structure is absent', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 0, duration: 15, placement: 'fullframe' }
+  ];
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x' }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(120), catalog });
+  assert.ok(warnings.some((w) => w.startsWith('W12 opening-host-coverage')));
+});
+
