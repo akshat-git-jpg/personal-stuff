@@ -2078,6 +2078,8 @@
           }
         }
       },
+      "max_beats": 3,
+      "max_reveal_chars": 28,
       "default_duration": 9,
       "register": ["dark"]
     },
