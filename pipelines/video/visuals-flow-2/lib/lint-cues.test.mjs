@@ -827,3 +827,39 @@ test('E7 avatar awareness', () => {
   });
   assert(!res4.errors.some(e => e.includes('E7 uncovered-second')));
 });
+
+test('E9 does not fire when an overlay sits over an avatar span that clamps the card', () => {
+  const resolved = [
+    { id: 'c1', card: 'verdict/verdict-trophy', start: 10, duration: 5, placement: 'fullframe' },
+    { id: 'c2', card: 'like-subscribe/like-subscribe', start: 30, duration: 5, placement: 'overlay' },
+  ];
+  const avatarJobs = { jobs: [{ id: 's1', kind: 'avatar-full', start: 20, end: 60 }] };
+  const augmentedCatalog = { cards: [...catalog.cards, { slug: 'verdict/verdict-trophy', placement: 'fullframe' }, { slug: 'like-subscribe/like-subscribe', placement: 'overlay' }] };
+  const { errors } = lintCues({
+    cuesFile: createCues(resolved),
+    resolved: resolved,
+    words: createWords(80),
+    catalog: augmentedCatalog,
+    manifest: { base: 'none' },
+    avatarJobs
+  });
+  assert.ok(!errors.some((e) => e.startsWith('E9 overlay-over-graphic')));
+});
+
+test('E9 still fires when an overlay genuinely overlaps a fullframe card', () => {
+  const resolved = [
+    { id: 'c1', card: 'verdict/verdict-trophy', start: 10, duration: 20, placement: 'fullframe' },
+    { id: 'c2', card: 'like-subscribe/like-subscribe', start: 15, duration: 5, placement: 'overlay' },
+  ];
+  const augmentedCatalog = { cards: [...catalog.cards, { slug: 'verdict/verdict-trophy', placement: 'fullframe' }, { slug: 'like-subscribe/like-subscribe', placement: 'overlay' }] };
+  const { errors } = lintCues({
+    cuesFile: createCues(resolved),
+    resolved: resolved,
+    words: createWords(80),
+    catalog: augmentedCatalog,
+    manifest: { base: 'screen' },
+    avatarJobs: null
+  });
+  assert.ok(errors.some((e) => e.startsWith('E9 overlay-over-graphic')));
+});
+
