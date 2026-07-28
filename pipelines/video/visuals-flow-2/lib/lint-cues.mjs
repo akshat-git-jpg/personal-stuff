@@ -339,7 +339,14 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
   // fullframe card's span (INCLUDING its extended-exposure hold) two graphics
   // stack and read as an editing bug. Overlays may only sit on footage.
   {
-    const extended = extendExposure(sortedResolved, { base: manifest?.base ?? 'screen', total: T });
+    const extended = extendExposure(sortedResolved, {
+      base: manifest?.base ?? 'screen',
+      total: T,
+      // Same spans E7 uses. Without them the clamp in extendExposure never
+      // applies here, so E9 measures a hold the pipeline will never produce
+      // and reports end CTAs as overlapping a card they sit beside.
+      avatarSpans: avatarFullSpans(avatarJobs),
+    });
     const fullSpans = extended
       .filter(c => bySlug[c.card]?.placement === 'fullframe')
       .map(c => ({ id: c.id, start: c.start, end: c.start + c.duration }));

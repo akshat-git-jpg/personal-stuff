@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { lintShots } from './lint-shots.mjs';
+import { spawnSync } from 'node:child_process';
+import path from 'node:path';
 
 const words = Array.from({ length: 1200 }, (_, i) => ({ text: `w${i}`, start: i, end: i + 1 }));
 const mockCatalog = {
@@ -221,4 +223,13 @@ test('long side span DOES trip the full-screen cap', () => {
   const shotsResolved = { spans: [{ id: 's1', mode: 'side', start: 10, end: 360, duration: 350 }] };
   const res = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', slug: 'section/host-side', placement: 'fullframe', start: 5, duration: 400 }], words, catalog: mockCatalog });
   assert.ok(res.errors.some(e => e.startsWith('E4')));
+});
+
+test('lint-shots CLI resolves the real catalog from a workdir', () => {
+  // The bug lived in main(), which no test touched: every case called
+  // lintShots({ catalog: mockCatalog }) and never resolved a path.
+  const res = spawnSync(process.execPath, ['lib/lint-shots.mjs', 'test-03'], {
+    cwd: path.resolve(import.meta.dirname, '..'), encoding: 'utf8',
+  });
+  assert.ok(!/ENOENT/.test(res.stderr), `lint-shots threw ENOENT:\n${res.stderr.slice(-500)}`);
 });
