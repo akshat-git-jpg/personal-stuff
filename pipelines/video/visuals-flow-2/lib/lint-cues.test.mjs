@@ -1,0 +1,865 @@
+import test from 'node:test';
+import assert from 'node:assert';
+import { lintCues } from './lint-cues.mjs';
+
+const catalog = {
+  cards: [
+    { slug: 'fullframe/beat', placement: 'fullframe', pre_beat_render: 'chrome' },
+    { slug: 'overlay/beat', placement: 'overlay', pre_beat_render: 'chrome' },
+    { slug: 'section/opener', placement: 'fullframe', structural: true },
+    { slug: 'overlay/stat-hit', placement: 'overlay' },
+    { slug: 'overlay/plain', placement: 'overlay' }
+  ]
+};
+
+function createResolved(cues) {
+  return cues.map(c => {
+    let placement = 'overlay';
+    if (c.card.startsWith('fullframe') || c.card.startsWith('section')) placement = 'fullframe';
+    return {
+      id: c.id,
+      card: c.card,
+      placement,
+      start: c.start,
+      duration: c.duration || 5
+    };
+  });
+}
+
+function createCues(cues) {
+  return {
+    cues: cues.map(c => ({
+      id: c.id,
+      card: c.card,
+      flagged: c.flagged || false,
+      beats: c.beats || [],
+      register: c.register,
+      register_why: c.register_why,
+      motif: c.motif
+    }))
+  };
+}
+
+function createWords(end) {
+  return [{ start: 0, end: 0, text: 'start' }, { start: end, end: end, text: 'end' }];
+}
+
+test('E1 stat-hit-cap', () => {
+  const c = [
+    { id: 'c1', card: 'overlay/stat-hit', start: 10 },
+    { id: 'c2', card: 'overlay/stat-hit', start: 110 },
+    { id: 'c3', card: 'overlay/stat-hit', start: 210 },
+    { id: 'c4', card: 'overlay/stat-hit', start: 310 }
+  ];
+  const res4 = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog
+  });
+  assert(res4.errors.some(e => e.includes('E1 stat-hit-cap')));
+
+  const res3 = lintCues({
+    cuesFile: createCues(c.slice(0, 3)),
+    resolved: createResolved(c.slice(0, 3)),
+    words: createWords(900),
+    catalog
+  });
+  assert(!res3.errors.some(e => e.includes('E1 stat-hit-cap')));
+});
+
+test('E2 stat-hit-spacing', () => {
+  const cFail = [
+    { id: 'c1', card: 'overlay/stat-hit', start: 10 },
+    { id: 'c2', card: 'overlay/stat-hit', start: 70 }
+  ];
+  const resFail = lintCues({
+    cuesFile: createCues(cFail),
+    resolved: createResolved(cFail),
+    words: createWords(900),
+    catalog
+  });
+  assert(resFail.errors.some(e => e.includes('E2 stat-hit-spacing')));
+
+  const cPass = [
+    { id: 'c1', card: 'overlay/stat-hit', start: 10 },
+    { id: 'c2', card: 'overlay/stat-hit', start: 105 }
+  ];
+  const resPass = lintCues({
+    cuesFile: createCues(cPass),
+    resolved: createResolved(cPass),
+    words: createWords(900),
+    catalog
+  });
+  assert(!resPass.errors.some(e => e.includes('E2 stat-hit-spacing')));
+});
+
+test('E3 card-repetition', () => {
+  const c = [
+    { id: 'c1', card: 'fullframe/beat', start: 20 },
+    { id: 'c2', card: 'fullframe/beat', start: 70 },
+    { id: 'c3', card: 'fullframe/beat', start: 120 },
+    { id: 'c4', card: 'fullframe/beat', start: 170 }
+  ];
+  const resFail = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog
+  });
+  assert(resFail.errors.some(e => e.includes('E3 card-repetition')));
+
+  const cOverlay = [
+    { id: 'c1', card: 'overlay/plain', start: 20 },
+    { id: 'c2', card: 'overlay/plain', start: 30 },
+    { id: 'c3', card: 'overlay/plain', start: 40 },
+    { id: 'c4', card: 'overlay/plain', start: 50 }
+  ];
+  const resOverlay = lintCues({
+    cuesFile: createCues(cOverlay),
+    resolved: createResolved(cOverlay),
+    words: createWords(900),
+    catalog
+  });
+  assert(!resOverlay.errors.some(e => e.includes('E3 card-repetition')));
+});
+
+test('E4 exclusion-zones', () => {
+  const cEarly = [{ id: 'c1', card: 'overlay/plain', start: 5 }];
+  const resEarly = lintCues({
+    cuesFile: createCues(cEarly),
+    resolved: createResolved(cEarly),
+    words: createWords(900),
+    catalog
+  });
+  assert(!resEarly.errors.some(e => e.includes('E4 exclusion-zones')));
+
+  const cLate = [{ id: 'c1', card: 'overlay/plain', start: 885, duration: 10 }];
+  const resLate = lintCues({
+    cuesFile: createCues(cLate),
+    resolved: createResolved(cLate),
+    words: createWords(900),
+    catalog
+  });
+  assert(resLate.errors.some(e => e.includes('E4 exclusion-zones')));
+
+  const cLateBrand = [{ id: 'c1', card: 'brand/outro', start: 885, duration: 10 }];
+  const resLateBrand = lintCues({
+    cuesFile: createCues(cLateBrand),
+    resolved: createResolved(cLateBrand),
+    words: createWords(900),
+    catalog
+  });
+  assert(!resLateBrand.errors.some(e => e.includes('E4 exclusion-zones')));
+
+  const cLateLink = [{ id: 'c1', card: 'link-in-description/something', start: 885, duration: 10 }];
+  const resLateLink = lintCues({
+    cuesFile: createCues(cLateLink),
+    resolved: createResolved(cLateLink),
+    words: createWords(900),
+    catalog
+  });
+  assert(!resLateLink.errors.some(e => e.includes('E4 exclusion-zones')));
+
+  const cPass = [{ id: 'c1', card: 'overlay/plain', start: 20, duration: 10 }];
+  const resPass = lintCues({
+    cuesFile: createCues(cPass),
+    resolved: createResolved(cPass),
+    words: createWords(900),
+    catalog
+  });
+  assert(!resPass.errors.some(e => e.includes('E4 exclusion-zones')));
+});
+
+test('W3 total-count scaling', () => {
+  const T_10min = 600;
+  const c6 = Array.from({ length: 6 }, (_, i) => ({ id: `c${i}`, card: 'overlay/plain', start: 20 + i }));
+  const res_10min = lintCues({
+    cuesFile: createCues(c6),
+    resolved: createResolved(c6),
+    words: createWords(T_10min),
+    catalog
+  });
+  assert(res_10min.warnings.some(w => w.includes('W3 total-count')));
+  
+  const T_3min = 180;
+  const res_3min = lintCues({
+    cuesFile: createCues(c6),
+    resolved: createResolved(c6),
+    words: createWords(T_3min),
+    catalog
+  });
+  assert(!res_3min.warnings.some(w => w.includes('W3 total-count')));
+});
+
+test('W1 fullframe-cadence gap', () => {
+  const c = [
+    { id: 'c1', card: 'fullframe/beat', start: 20 },
+    { id: 'c2', card: 'fullframe/beat', start: 140 }
+  ];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog
+  });
+  assert(res.warnings.some(w => w.includes('W1 fullframe-cadence')));
+});
+
+test('W2 overlay-density', () => {
+  const c3 = [
+    { id: 'c1', card: 'overlay/plain', start: 10 },
+    { id: 'c2', card: 'overlay/plain', start: 30 },
+    { id: 'c3', card: 'overlay/plain', start: 50 }
+  ];
+  const res3 = lintCues({
+    cuesFile: createCues(c3),
+    resolved: createResolved(c3),
+    words: createWords(900),
+    catalog
+  });
+  assert(!res3.warnings.some(w => w.includes('W2 overlay-density')));
+
+  const c4 = [
+    { id: 'c1', card: 'overlay/plain', start: 10 },
+    { id: 'c2', card: 'overlay/plain', start: 20 },
+    { id: 'c3', card: 'overlay/plain', start: 30 },
+    { id: 'c4', card: 'overlay/plain', start: 40 }
+  ];
+  const res4 = lintCues({
+    cuesFile: createCues(c4),
+    resolved: createResolved(c4),
+    words: createWords(900),
+    catalog
+  });
+  assert(!res4.warnings.some(w => w.includes('W2 overlay-density')));
+
+  const c5 = [
+    { id: 'c1', card: 'overlay/plain', start: 10 },
+    { id: 'c2', card: 'overlay/plain', start: 20 },
+    { id: 'c3', card: 'overlay/plain', start: 30 },
+    { id: 'c4', card: 'overlay/plain', start: 40 },
+    { id: 'c5', card: 'overlay/plain', start: 50 }
+  ];
+  const res5 = lintCues({
+    cuesFile: createCues(c5),
+    resolved: createResolved(c5),
+    words: createWords(900),
+    catalog
+  });
+  assert(res5.warnings.some(w => w.includes('W2 overlay-density')));
+});
+
+test('W6 and W7 bare-stretch', () => {
+  const cFail = [
+    { id: 'c1', card: 'overlay/plain', start: 20, duration: 5 },
+    { id: 'c2', card: 'overlay/plain', start: 90, duration: 5 },
+    { id: 'c3', card: 'overlay/plain', start: 160, duration: 5 }
+  ];
+  const resFail = lintCues({
+    cuesFile: createCues(cFail),
+    resolved: createResolved(cFail),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      segments: [
+        { kind: 'narration', start: 0, end: 85 },
+        { kind: 'demo', start: 85, end: 200 }
+      ]
+    }
+  });
+  assert(resFail.warnings.some(w => w.includes('W7 bare-stretch') && w.includes('70.0s'))); // between c1 and c2
+  assert(resFail.warnings.some(w => w.includes('W6 bare-stretch') && w.includes('70.0s'))); // between c2 and c3
+
+  const cPass = [
+    { id: 'c1', card: 'overlay/plain', start: 20, duration: 5 },
+    { id: 'c2', card: 'overlay/plain', start: 35, duration: 5 },
+    { id: 'c3', card: 'overlay/plain', start: 50, duration: 5 },
+    { id: 'c4', card: 'overlay/plain', start: 90, duration: 5 }
+  ];
+  const resPass = lintCues({
+    cuesFile: createCues(cPass),
+    resolved: createResolved(cPass),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      segments: [
+        { kind: 'narration', start: 0, end: 50 },
+        { kind: 'demo', start: 50, end: 200 }
+      ]
+    }
+  });
+  assert(!resPass.warnings.some(w => w.includes('W6 bare-stretch')));
+  assert(!resPass.warnings.some(w => w.includes('W7 bare-stretch')));
+});
+
+test('W4 reveal-wordcount', () => {
+  const c = [{
+    id: 'c1',
+    card: 'fullframe/beat',
+    start: 20,
+    beats: [{ reveal: { text: 'one two three four five six seven' } }]
+  }];
+  const resFail = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog
+  });
+  assert(resFail.warnings.some(w => w.includes('W4 reveal-wordcount')));
+});
+
+test('flagged cues are ignored', () => {
+  const c = [
+    { id: 'c1', card: 'overlay/plain', start: 890, duration: 10, flagged: true },
+    { id: 'c2', card: 'overlay/stat-hit', start: 110 },
+    { id: 'c3', card: 'overlay/stat-hit', start: 210 },
+    { id: 'c4', card: 'overlay/stat-hit', start: 310 }
+  ];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c), // createResolved doesn't know about flagged, but lintCues filters it
+    words: createWords(900),
+    catalog
+  });
+  // Should only count 3 stat-hits, so no E1
+  assert(!res.errors.some(e => e.includes('E1 stat-hit-cap')));
+  // c1 is ignored, so no E4 (end zone)
+  assert(!res.errors.some(e => e.includes('E4 exclusion-zones')));
+});
+
+test('E3 exemption: structural fullframe cards repeat freely (one per compared item)', () => {
+  const c = [
+    { id: 'c1', card: 'section/opener', start: 20 },
+    { id: 'c2', card: 'section/opener', start: 120 },
+    { id: 'c3', card: 'section/opener', start: 220 },
+    { id: 'c4', card: 'section/opener', start: 320 },
+    { id: 'c5', card: 'section/opener', start: 420 }
+  ];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog
+  });
+  assert(!res.errors.some(e => e.includes('E3 card-repetition')));
+});
+
+test('E4 short-video guard', () => {
+  const c = [{ id: 'c1', card: 'overlay/plain', start: 10 }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(30), // video is 30 seconds
+    catalog
+  });
+  const e4Errors = res.errors.filter(e => e.includes('E4 exclusion zones'));
+  assert.equal(e4Errors.length, 1);
+  assert.match(e4Errors[0], /video too short/);
+});
+
+test('W5 first-beat-idle: fullframe card over threshold is an error', () => {
+  const c = [{
+    id: 'c1',
+    card: 'fullframe/beat',
+    start: 20,
+    beats: [{ reveal: { text: 'one' }, at: 3.0 }]
+  }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c).map(r => ({ ...r, variables: { beats: c[0].beats } })),
+    words: createWords(900),
+    catalog
+  });
+  assert(res.errors.some(e => e.includes('W5 first-beat-idle')));
+  assert(!res.warnings.some(w => w.includes('W5 first-beat-idle')));
+});
+
+test('W5 first-beat-idle: overlay card over threshold is a warning', () => {
+  const c = [{
+    id: 'c1',
+    card: 'overlay/beat',
+    start: 20,
+    beats: [{ reveal: { text: 'one' }, at: 3.0 }]
+  }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c).map(r => ({ ...r, variables: { beats: c[0].beats } })),
+    words: createWords(900),
+    catalog
+  });
+  assert(!res.errors.some(e => e.includes('W5 first-beat-idle')));
+});
+
+test('E5 demo-coverage: confirmed: true + fullframe inside demo -> error', () => {
+  const c = [{ id: 'c1', card: 'fullframe/beat', start: 25, duration: 10 }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      confirmed: true,
+      segments: [
+        { kind: 'narration', start: 0, end: 20 },
+        { kind: 'demo', start: 20, end: 100 }
+      ]
+    }
+  });
+  assert(res.errors.some(e => e.includes('E5 demo-coverage')));
+  assert(!res.warnings.some(w => w.includes('E5 demo-coverage')));
+});
+
+test('E5 demo-coverage: confirmed: false + fullframe inside demo -> warning', () => {
+  const c = [{ id: 'c1', card: 'fullframe/beat', start: 25, duration: 10 }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      confirmed: false,
+      segments: [
+        { kind: 'narration', start: 0, end: 20 },
+        { kind: 'demo', start: 20, end: 100 }
+      ]
+    }
+  });
+  assert(!res.errors.some(e => e.includes('E5 demo-coverage')));
+  assert(res.warnings.some(w => w.includes('E5 demo-coverage')));
+});
+
+test('E5 demo-coverage: overlay inside demo -> neither', () => {
+  const c = [{ id: 'c1', card: 'overlay/plain', start: 25, duration: 10 }];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      confirmed: true,
+      segments: [
+        { kind: 'narration', start: 0, end: 20 },
+        { kind: 'demo', start: 20, end: 100 }
+      ]
+    }
+  });
+  assert(!res.errors.some(e => e.includes('E5 demo-coverage')));
+  assert(!res.warnings.some(w => w.includes('E5 demo-coverage')));
+});
+
+test('W1 fullframe-cadence: narration gap ignores demo segments', () => {
+  const c = [
+    { id: 'c1', card: 'fullframe/beat', start: 10 },
+    { id: 'c2', card: 'fullframe/beat', start: 310 }
+  ];
+  // elapsed gap is 300s. But if we have a 260s demo between them, narration gap is 40s.
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      confirmed: true,
+      segments: [
+        { kind: 'narration', start: 0, end: 20 },
+        { kind: 'demo', start: 20, end: 280 }, // 260s demo
+        { kind: 'narration', start: 280, end: 900 }
+      ]
+    }
+  });
+  assert(!res.warnings.some(w => w.includes('W1 fullframe-cadence')));
+});
+
+test('W1 fullframe-cadence: skip W1 when either endpoint sits in a demo/playback segment', () => {
+  const c = [
+    { id: 'c1', card: 'fullframe/beat', start: 30 },
+    { id: 'c2', card: 'fullframe/beat', start: 140 }
+  ];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog,
+    segmentsData: {
+      confirmed: true,
+      segments: [
+        { kind: 'narration', start: 0, end: 20 },
+        { kind: 'demo', start: 20, end: 200 }
+      ]
+    }
+  });
+  assert.equal(res.errors.filter(e => e.includes('E5 demo-coverage')).length, 2);
+  assert(!res.warnings.some(w => w.includes('W1 fullframe-cadence')));
+});
+
+test('E9 overlay-over-graphic: overlay overlapping a fullframe span errors', () => {
+  const c = [
+    { id: 'c1', card: 'fullframe/beat', start: 10, duration: 10 },
+    { id: 'c2', card: 'overlay/plain', start: 12, duration: 5 },
+    { id: 'c3', card: 'overlay/plain', start: 40, duration: 5 }
+  ];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog
+  });
+  const e9 = res.errors.filter(e => e.includes('E9 overlay-over-graphic'));
+  assert.equal(e9.length, 1);
+  assert(e9[0].includes('c2'), e9[0]);
+  assert(!e9[0].includes('c3'));
+});
+
+test('E9 overlay-over-graphic: overlay clipping the fullframe edge errors too', () => {
+  const c = [
+    { id: 'c1', card: 'overlay/plain', start: 8, duration: 5 }, // 8–13 vs card 10–20
+    { id: 'c2', card: 'fullframe/beat', start: 10, duration: 10 }
+  ];
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(900),
+    catalog
+  });
+  assert(res.errors.some(e => e.includes('E9 overlay-over-graphic') && e.includes('c1')));
+});
+
+test('E10 no-dash-copy: em dash in rendered copy errors, metadata exempt', () => {
+  const c = [{ id: 'c1', card: 'overlay/plain', start: 40, duration: 5 }];
+  const cuesFile = createCues(c);
+  cuesFile.cues[0].variables = { text: 'Newest — audio' };
+  cuesFile.cues[0].legacy_why = 'metadata — never rendered';
+  const res = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+  const e10 = res.errors.filter(e => e.includes('E10 no-dash-copy'));
+  assert.equal(e10.length, 1);
+  assert(e10[0].includes('c1 variables.text'));
+
+  cuesFile.cues[0].variables = { text: 'Newest: audio' };
+  const clean = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+  assert(!clean.errors.some(e => e.includes('E10')));
+});
+
+test('E7 uncovered-second on base:none', () => {
+  const c = [
+    { id: 'c1', card: 'fullframe/beat', start: 10, duration: 5 },
+    { id: 'c2', card: 'fullframe/beat', start: 65, duration: 5 }, // gap of 50s. capped to 20 extension -> hole 35-65
+  ];
+  const T = 100;
+  const res = lintCues({
+    cuesFile: createCues(c),
+    resolved: createResolved(c),
+    words: createWords(T),
+    catalog,
+    manifest: { base: 'none' }
+  });
+  assert(res.errors.some(e => e.includes('E7 uncovered-second') && e.includes('[35.0–65.0]')));
+});
+
+test('E8 concept-register and W8 motif', () => {
+  const conceptData = {
+    registers: [
+      { from_anchor: 'start of span', to_anchor: 'end of span', register: 'dark' }
+    ]
+  };
+  const words = [
+    { start: 10, end: 11, text: 'start' },
+    { start: 11, end: 12, text: 'of' },
+    { start: 12, end: 13, text: 'span' },
+    { start: 50, end: 51, text: 'middle' },
+    { start: 90, end: 91, text: 'end' },
+    { start: 91, end: 92, text: 'of' },
+    { start: 92, end: 93, text: 'span' },
+    { start: 100, end: 101, text: 'after' }
+  ];
+
+  // E8 mismatch fires
+  const cFail = [
+    { id: 'c1', card: 'overlay/plain', start: 20, register: 'light' },
+    { id: 'c2', card: 'overlay/plain', start: 30, register: 'dark', motif: true }
+  ];
+  const resFail = lintCues({
+    cuesFile: createCues(cFail),
+    resolved: createResolved(cFail),
+    words,
+    catalog,
+    conceptData
+  });
+  assert(resFail.errors.some(e => e.includes('E8 concept-register') && e.includes('c1')));
+  // W8 fires at 1 motif cue
+  assert(resFail.warnings.some(w => w.includes('W8 motif')));
+
+  // register_why suppresses E8; 2 motifs suppresses W8
+  const cPass = [
+    { id: 'c1', card: 'overlay/plain', start: 20, register: 'light', register_why: 'because', motif: true },
+    { id: 'c2', card: 'overlay/plain', start: 30, register: 'dark', motif: true }
+  ];
+  const resPass = lintCues({
+    cuesFile: createCues(cPass),
+    resolved: createResolved(cPass),
+    words,
+    catalog,
+    conceptData
+  });
+  assert(!resPass.errors.some(e => e.includes('E8 concept-register')));
+  assert(!resPass.warnings.some(w => w.includes('W8 motif')));
+
+  // missing conceptData -> all quiet
+  const resQuiet = lintCues({
+    cuesFile: createCues(cFail),
+    resolved: createResolved(cFail),
+    words,
+    catalog
+  });
+  assert(!resQuiet.errors.some(e => e.includes('E8 concept-register')));
+  assert(!resQuiet.warnings.some(w => w.includes('W8 motif')));
+});
+
+test('W9 variant-rotation warns on back-to-back same-card-same-variant', () => {
+  const catalog = { cards: [ { slug: 'slate/test', placement: 'fullframe' } ] };
+  const words = [ { start: 0, end: 1, text: 'test' } ];
+  
+  const cues1 = [
+    { id: 'c1', card: 'slate/test', start: 10, variables: { variant: 'a' } },
+    { id: 'c2', card: 'slate/test', start: 20, variables: { variant: 'a' } }
+  ];
+  const res1 = lintCues({ cuesFile: createCues(cues1), resolved: cues1, words, catalog });
+  assert(res1.warnings.some(w => w.includes('W9 variant-rotation')));
+
+  const cues2 = [
+    { id: 'c1', card: 'slate/test', start: 10, variables: { variant: 'a' } },
+    { id: 'c2', card: 'slate/test', start: 20, variables: { variant: 'b' } }
+  ];
+  const res2 = lintCues({ cuesFile: createCues(cues2), resolved: cues2, words, catalog });
+  assert(!res2.warnings.some(w => w.includes('W9 variant-rotation')));
+
+  const cues3 = [
+    { id: 'c1', card: 'slate/test', start: 10, variables: { variant: 'a' } },
+    { id: 'c2', card: 'slate/other', start: 20, variables: { variant: 'a' } },
+    { id: 'c3', card: 'slate/test', start: 30, variables: { variant: 'a' } }
+  ];
+  const res3 = lintCues({ cuesFile: createCues(cues3), resolved: cues3, words, catalog });
+  assert(!res3.warnings.some(w => w.includes('W9 variant-rotation')));
+});
+
+test('W10 enacted-first warns on non-enacted legacy fullframe without legacy_why', () => {
+  const cues = [
+    { id: 'c1', card: 'enacted/stack', start: 10 },
+    { id: 'c2', card: 'fullframe/beat', start: 20 },
+    { id: 'c3', card: 'fullframe/beat', start: 30, legacy_why: 'Because it fits' },
+    { id: 'c4', card: 'section/opener', start: 40 }
+  ];
+  const cFile = {
+    cues: cues.map(c => ({
+      id: c.id,
+      card: c.card,
+      legacy_why: c.legacy_why
+    }))
+  };
+  const resolved = cues.map(c => ({
+    id: c.id,
+    card: c.card,
+    start: c.start,
+    duration: 5,
+    placement: c.card === 'section/opener' || c.card.startsWith('fullframe') || c.card.startsWith('enacted') ? 'fullframe' : 'overlay'
+  }));
+
+  const myCatalog = {
+    cards: [
+      { slug: 'enacted/stack', placement: 'fullframe' },
+      { slug: 'fullframe/beat', placement: 'fullframe' },
+      { slug: 'section/opener', placement: 'fullframe', structural: true }
+    ]
+  };
+
+  const res = lintCues({ cuesFile: cFile, resolved, words: createWords(100), catalog: myCatalog });
+  assert(!res.warnings.some(w => w.includes('W10') && w.includes('c1')));
+  assert(res.warnings.some(w => w.includes('W10 enacted-first') && w.includes('c2')));
+  assert(!res.warnings.some(w => w.includes('W10') && w.includes('c3')));
+  assert(!res.warnings.some(w => w.includes('W10') && w.includes('c4')));
+});
+
+test('E11 no-filler-slate: navigational sentence errors, substantive one passes', () => {
+  const c = [{ id: 'c1', card: 'slate/kinetic-sentence', start: 40, duration: 5 }];
+  const cuesFile = createCues(c);
+
+  // The exact line the owner flagged at test-01 v2 (final-v2:11).
+  cuesFile.cues[0].variables = { text: "So let's talk about the good ones first", accent: 'good ones' };
+  const res = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+  const e11 = res.errors.filter(e => e.includes('E11 no-filler-slate'));
+  assert.equal(e11.length, 1);
+  assert(e11[0].includes('c1'));
+
+  // A sentence that actually states something stays legal.
+  cuesFile.cues[0].variables = { text: 'The free tier burns credits in a week', accent: 'burns credits' };
+  const clean = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+  assert(!clean.errors.some(e => e.includes('E11')));
+});
+
+test('W12 fires when fullframe cards cover the whole opening', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 0.6, duration: 14.7, placement: 'fullframe' },
+  ];
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x', beats: [] }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(100), catalog });
+  assert.ok(warnings.some((w) => w.startsWith('W12 opening-host-coverage')));
+});
+
+test('W12 stays silent when the opening leaves room for the host', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 8.0, duration: 4.0, placement: 'fullframe' },
+  ];
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x', beats: [] }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(100), catalog });
+  assert.ok(!warnings.some((w) => w.startsWith('W12 opening-host-coverage')));
+});
+
+test('W13 fires on a long fullframe with no beats', () => {
+  const resolved = [
+    { id: 'c02', card: 'enacted/promise-split', start: 15.3, duration: 24.3, placement: 'fullframe' },
+  ];
+  const cuesFile = { cues: [{ id: 'c02', card: 'enacted/promise-split', beats: [] }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(100), catalog });
+  assert.ok(warnings.some((w) => w.startsWith('W13 frozen-fullframe') && w.includes('c02')));
+});
+
+test('W13 stays silent when a long fullframe carries beats', () => {
+  const resolved = [
+    { id: 'c02', card: 'enacted/promise-split', start: 15.3, duration: 24.3, placement: 'fullframe' },
+  ];
+  const cuesFile = { cues: [{ id: 'c02', card: 'enacted/promise-split', beats: [{ at: 5 }, { at: 12 }, { at: 19 }] }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(100), catalog });
+  assert.ok(!warnings.some((w) => w.startsWith('W13 frozen-fullframe')));
+});
+
+test('W14 fires for a conclusion zone with no cues in range', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 10, duration: 5, placement: 'fullframe' }
+  ];
+  const segmentsData = {
+    structure: [
+      { part: 'intro', start: 0, end: 20 },
+      { part: 'body', start: 20, end: 100 },
+      { part: 'conclusion', start: 100, end: 120 }
+    ]
+  };
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x' }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(120), catalog, segmentsData });
+  assert.ok(warnings.some((w) => w.startsWith('W14 zone-underserved') && w.includes('conclusion')));
+});
+
+test('W14 stays silent when the conclusion zone contains at least one cue', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 105, duration: 5, placement: 'fullframe' }
+  ];
+  const segmentsData = {
+    structure: [
+      { part: 'intro', start: 0, end: 20 },
+      { part: 'body', start: 20, end: 100 },
+      { part: 'conclusion', start: 100, end: 120 }
+    ]
+  };
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x' }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(120), catalog, segmentsData });
+  assert.ok(!warnings.some((w) => w.startsWith('W14 zone-underserved') && w.includes('conclusion')));
+});
+
+test('W14 never fires for body', () => {
+  const resolved = [];
+  const segmentsData = {
+    structure: [
+      { part: 'body', start: 20, end: 100 }
+    ]
+  };
+  const cuesFile = { cues: [] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(120), catalog, segmentsData });
+  assert.ok(!warnings.some((w) => w.startsWith('W14 zone-underserved') && w.includes('body')));
+});
+
+test('W12 uses the measured intro end when structure is present (fires)', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 0, duration: 115, placement: 'fullframe' }
+  ];
+  const segmentsData = {
+    structure: [
+      { part: 'intro', start: 0, end: 117 }
+    ]
+  };
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x' }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(120), catalog, segmentsData });
+  assert.ok(warnings.some((w) => w.startsWith('W12 opening-host-coverage')));
+});
+
+test('W12 falls back to HOST_VISIBLE_BY when structure is absent', () => {
+  const resolved = [
+    { id: 'c01', card: 'title/x', start: 0, duration: 15, placement: 'fullframe' }
+  ];
+  const cuesFile = { cues: [{ id: 'c01', card: 'title/x' }] };
+  const { warnings } = lintCues({ cuesFile, resolved, words: createWords(120), catalog });
+  assert.ok(warnings.some((w) => w.startsWith('W12 opening-host-coverage')));
+});
+
+test('E7 avatar awareness', () => {
+  const c = [{ id: 'c1', card: 'fullframe/beat', start: 0, duration: 30 }];
+  const T = 80;
+  
+  const res1 = lintCues({
+    cuesFile: createCues(c), resolved: createResolved(c), words: createWords(T),
+    catalog, manifest: { base: 'none' }, avatarJobs: { jobs: [{ kind: 'avatar-full', start: 30, end: 60 }] }
+  });
+  assert(!res1.errors.some(e => e.includes('E7 uncovered-second')));
+
+  const res2 = lintCues({
+    cuesFile: createCues(c), resolved: createResolved(c), words: createWords(T),
+    catalog, manifest: { base: 'none' }
+  });
+  assert(res2.errors.some(e => e.includes('E7 uncovered-second')));
+
+  const res3 = lintCues({
+    cuesFile: createCues(c), resolved: createResolved(c), words: createWords(T),
+    catalog, manifest: { base: 'none' }, avatarJobs: { jobs: [{ kind: 'panel', start: 30, end: 60 }] }
+  });
+  assert(res3.errors.some(e => e.includes('E7 uncovered-second')));
+
+  const res4 = lintCues({
+    cuesFile: createCues(c), resolved: createResolved(c), words: createWords(T),
+    catalog, manifest: { base: 'screen' }, avatarJobs: { jobs: [{ kind: 'avatar-full', start: 30, end: 60 }] }
+  });
+  assert(!res4.errors.some(e => e.includes('E7 uncovered-second')));
+});
+
+test('E9 does not fire when an overlay sits over an avatar span that clamps the card', () => {
+  const resolved = [
+    { id: 'c1', card: 'verdict/verdict-trophy', start: 10, duration: 5, placement: 'fullframe' },
+    { id: 'c2', card: 'like-subscribe/like-subscribe', start: 30, duration: 5, placement: 'overlay' },
+  ];
+  const avatarJobs = { jobs: [{ id: 's1', kind: 'avatar-full', start: 20, end: 60 }] };
+  const augmentedCatalog = { cards: [...catalog.cards, { slug: 'verdict/verdict-trophy', placement: 'fullframe' }, { slug: 'like-subscribe/like-subscribe', placement: 'overlay' }] };
+  const { errors } = lintCues({
+    cuesFile: createCues(resolved),
+    resolved: resolved,
+    words: createWords(80),
+    catalog: augmentedCatalog,
+    manifest: { base: 'none' },
+    avatarJobs
+  });
+  assert.ok(!errors.some((e) => e.startsWith('E9 overlay-over-graphic')));
+});
+
+test('E9 still fires when an overlay genuinely overlaps a fullframe card', () => {
+  const resolved = [
+    { id: 'c1', card: 'verdict/verdict-trophy', start: 10, duration: 20, placement: 'fullframe' },
+    { id: 'c2', card: 'like-subscribe/like-subscribe', start: 15, duration: 5, placement: 'overlay' },
+  ];
+  const augmentedCatalog = { cards: [...catalog.cards, { slug: 'verdict/verdict-trophy', placement: 'fullframe' }, { slug: 'like-subscribe/like-subscribe', placement: 'overlay' }] };
+  const { errors } = lintCues({
+    cuesFile: createCues(resolved),
+    resolved: resolved,
+    words: createWords(80),
+    catalog: augmentedCatalog,
+    manifest: { base: 'screen' },
+    avatarJobs: null
+  });
+  assert.ok(errors.some((e) => e.startsWith('E9 overlay-over-graphic')));
+});
+

@@ -126,6 +126,16 @@ async function main() {
 
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
   const workdir = resolveWorkdir(opts.workdir);
+
+  const zonePlanPath = path.join(workdir, 'zone-plan.json');
+  if (fs.existsSync(zonePlanPath)) {
+    const zonePlan = JSON.parse(fs.readFileSync(zonePlanPath, 'utf8'));
+    if (zonePlan.approved !== true && !opts.force) {
+      console.error('refusing to render: zone-plan.json approved=false — review the Zone Plan tab (node lib/board.mjs <slug>) or pass --force');
+      process.exit(1);
+    }
+  }
+
   const cuesPath = path.join(workdir, 'cues.json');
   
   const cuesFile = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));

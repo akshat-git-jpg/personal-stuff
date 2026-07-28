@@ -838,7 +838,170 @@ never regenerated. That is the "better solve" the owner asked for in v2:5.
 - 156-vf2-intro-must-breathe — opening-host-coverage + frozen-fullframe lints — TODO (needs 155)
 - 157-cards-bad-clip-montage — new card that enacts the hook — TODO
 - 158-vf2-cut-the-conclusion — cut and cue the 79s conclusion — TODO (needs 155, 156)
+
+## 159–161 — intro and conclusion, permanently (2026-07-28)
+
+The owner's constraint: *"I don't want to keep going back and forth for every
+video. Intro and Conclusion are most important and I want best quality there."*
+155–158 fix test-03; this batch is the durable answer.
+
+**Root cause.** Every video is recorded as three files — `src/intro.mp4`,
+`src/body.mp4`, `src/conclusion.mp4` — and `concat.txt` lists them. **No
+pipeline code reads any of it.** The structure is used once to glue the audio
+and then discarded, after which `segments.mjs` re-guesses structure by
+keyword-matching the transcript for demo words in rolling windows. The pipeline
+cannot point at the intro, so there has never been anywhere to put a lasting
+answer about intros — which is why every fix has landed per-video. Third
+instance this week of *computed on one surface, never consumed on the next*
+(the others: the chroma plate, and the exposure regression behind 155).
+
+**Two owner rulings shape this batch** (2026-07-28):
+- On encoding a required intro formula: *"its subjective. Pls dont make this
+  hardcoded."* So no plan here defines required slots. 160 tells the cue pass
+  WHERE the zones are and that they matter; WHAT goes in them stays judgment.
+- On the gate: *"block if drive doesn't hav intro and conclusion files."* The
+  hard failure is on the INPUT, not on editorial content — a video whose
+  conclusion was never recorded is the actual root cause of test-03's missing
+  payoff.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 159 | vf2-source-structure | `lib/source-structure.mjs` measures the three files into exact intro/body/conclusion spans, written as a NEW `structure` field (not a segment `kind`, which would silently reclassify the opening); hard error when `intro.mp4`/`conclusion.mp4` is missing; warns when a recorded part never reached the cut | none |
+| 160 | vf2-intro-conclusion-zones | the zones reach the cue-pass prompt, `R_ZONES` guidance, W12 retargeted from a fixed 15s to the measured intro (117.6s on test-03), new `W14 zone-underserved` | 159, 156 |
+| 161 | cards-intro-family | `statement/promise-payoff`, `checklist/audience-fit`, `section/proof-of-work` — the three intro beats that currently render as text slates | — |
+
+Card-family scope: 161 builds three, not four. `enacted/bad-clip-montage` (the
+hook) landed via 157/PR#115; the contrast beat is already served by
+`enacted/promise-split` and the roadmap by `table-of-contents`. Cards are
+AVAILABLE to the cue pass, never REQUIRED — per the owner ruling above.
+
+- 159-vf2-source-structure — teach the pipeline the three source files — TODO
+- 160-vf2-intro-conclusion-zones — intro/conclusion become high-stakes zones — TODO (needs 159, 156)
+- 161-cards-intro-family — promise-payoff, audience-fit, proof-of-work — TODO
 - 150-vf2-avatar-side-mode — PR#108 150-vf2-avatar-side-mode: delete stage, add side-by-side avatar mode — DONE
 - 151-cards-side-contract-batch-a — PR#109 151-cards-side-contract-batch-a: side-ready card contract + convert 21 cards — DONE
 - 152-cards-side-batch-b — PR#110 152-cards-side-batch-b: convert the 27 dense cards to side-ready — DONE
 - 153-cards-type-scale-impact — PR#111 153-cards-type-scale-impact: make card text impactful (hero type scale + hierarchy gate) — DONE
+- 157-cards-bad-clip-montage — PR#115 157-cards-bad-clip-montage: new card that enacts the hook instead of titling it — DONE
+- 155-vf2-exposure-follows-narration — PR#113 155-vf2-exposure-follows-narration: exposure follows the narration, not default_duration — DONE
+- 156-vf2-intro-must-breathe — PR#114 156-vf2-intro-must-breathe: opening-host-coverage + frozen-fullframe lints — DONE
+- 159-vf2-source-structure — PR#117 159-vf2-source-structure: teach the pipeline the three source files — DONE
+- 161-cards-intro-family — PR#119 161-cards-intro-family: the three intro beats that render as text slates — DONE
+- 160-vf2-intro-conclusion-zones — PR#118 160-vf2-intro-conclusion-zones: intro and conclusion become high-stakes zones — DONE
+
+## 162 — coverage and absorption must see the avatar (2026-07-28)
+
+Plan 158's crew reported E4 + E9 as mutually unsatisfiable on a 79.2s
+`base:"none"` conclusion and proposed weakening one of them. Rejected — see
+`decisions.md` 2026-07-28. `base:"none"` means *no footage at all*
+(`fillGapsWithFreeze` turns every screen second into a freeze frame), which is
+why E7 demands full card coverage; plan 158 set it AND never ran the avatar
+step, so the conclusion had no presenter and a 100%-graphics 80s video with a
+20s end-exclusion zone plus mandatory CTAs is correctly impossible.
+
+Judging it surfaced a genuine latent bug: `lib/lint-cues.mjs` has ZERO
+references to avatar, so E7 counts only cards as coverage, and
+`extendExposure`'s `base:'none'` branch absorbs straight across an avatar span
+— burying the presenter, exactly what W12 exists to catch. Fourth instance this
+week of *computed on one surface, never consumed on the next*.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 162 | vf2-avatar-aware-coverage | E7 counts `avatar-full` spans as covered; absorption stops at the next avatar span; both driven by `avatar-jobs.json`, panel/side/bubble deliberately excluded because they do not replace the base | none |
+
+- 162-vf2-avatar-aware-coverage — E7 and absorption account for the presenter — TODO (unblocks 158/PR#116)
+
+## 163 — beat_source contract (2026-07-28)
+
+Owner decision: **ratify the array-driven beat pattern rather than rewrite four
+freshly frame-verified cards — but make it declared.** 4 of 26 beat/word-sync
+cards (`enacted/bad-clip-montage` + the plan-161 intro family) carry no
+`beat_shape`; they drive content from a variables array and their beats carry
+timing only. Expressed as an ABSENCE, that cannot be told apart from an
+omission and cannot be enforced: their `max_reveal_chars` is inert and the
+calibrate page renders them with generic placeholders, so reveal text is
+unverifiable on the surface that exists to verify it.
+
+Relaxes part of `f35e9b8` — `max_reveal_chars` becomes conditional on the
+pattern. `max_beats` stays required for everyone (that half of the fix was
+right, and dropping it is what turned main red).
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 163 | cards-beat-source-contract | required `beat_source` (`beat` \| `variables`) + `beat_var`, per-pattern enforcement in `check-catalog.mjs` with a fail-proof, inert `max_reveal_chars` removed, calibrate synthesizes real content for array-driven cards; no card HTML touched | none |
+
+- 163-cards-beat-source-contract — array-driven beats become a declared pattern — TODO
+
+## 164 — Zone Plan gate (2026-07-28)
+
+Owner request: *"First I want to review the motion graphics which we are
+planning to use in intro and conclusion, whether we are planning to use
+existing motion graphics or we are using some new motion graphic which we'll be
+making. Once that is approved, we can go with our usual review flow."*
+
+A new FIRST review stage, before the storyboard. For the intro and conclusion
+only, it lists every cue's chosen card marked EXISTING or NEW-to-build, surfaces
+the one-line spec from `R_CHOOSING`'s propose-a-new-card `fix` note, and gates
+`render.mjs` until approved — same flag-in-JSON pattern as `cues.approved` /
+`shots.approved`. Any change to the plan resets approval to false.
+
+Review model becomes: **Zone Plan → Storyboard → Unattended Cut → Final Cut.**
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 164 | vf2-zone-plan-gate | `lib/zone-plan.mjs`, a third board tab, a `zone-plan` verb, and a render refusal until approved | 159 (landed) |
+
+- 164-vf2-zone-plan-gate — approve intro/conclusion cards before anything renders — TODO
+- 162-vf2-avatar-aware-coverage — PR#120 162-vf2-avatar-aware-coverage: E7 and absorption must see the presenter — DONE
+
+## 165 — retire visuals-flow v1 (2026-07-28)
+
+Owner: *"I want to remove visual flow… visual flow 2 is already doing things."*
+Correct — the 2026-07-24 v2 design froze v1 "as fallback once v2 is proven"; it
+is proven.
+
+Not an `rm -rf` though: v1 is **load-bearing for the card-library gate boss runs
+on every card PR**. `check-catalog.mjs` imports `validateVariable` from
+`visuals-flow/lib/resolve.mjs`, and `check-cards.sh` reads its palette from
+`visuals-flow/EDITOR-STYLE-GUIDE.md`. Deleting blind turns that gate red and
+parks unrelated merges — the exact misleading-attribution failure recorded in
+decisions.md on 2026-07-28. Both are absorbable by v2 (verified: v2 exports
+`validateVariable`, and the two style guides' palettes diff clean).
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 165 | retire-visuals-flow-v1 | repoints the two hard deps at v2, deletes the folder (5.9 GB, 149 tracked files), its skill and symlink, and the routing docs; leaves decisions.md and docs/specs untouched as historical record | 163 (same file) |
+
+- 165-retire-visuals-flow-v1 — delete the superseded v1 pipeline — TODO (needs 163)
+- 163-cards-beat-source-contract — PR#121 163-cards-beat-source-contract: array-driven beats become a declared pattern — DONE
+- 164-vf2-zone-plan-gate — PR#122 164-vf2-zone-plan-gate: approve intro/conclusion cards before anything renders — DONE
+- 165-retire-visuals-flow-v1 — PR#123 165-retire-visuals-flow-v1: delete the superseded v1 pipeline — DONE
+
+## 166 — E9 avatar-blindness + lint-shots catalog path (2026-07-28)
+
+Two bugs verified on main @ `bb53892`, found because plan 158's crew hit them
+and REPORTED rather than patched (its STOP condition forbids `lib/*.mjs` edits).
+That is the process working; 158 stays untouched.
+
+**Bug 1** is a scope gap in plan 162, which I wrote. 162 taught `extendExposure`
+about avatar spans and updated E7 — but E9 makes its own call 29 lines below in
+the same file and was missed, so it measures a fullframe hold the pipeline will
+never produce and reports plan 158's two mandatory end CTAs as overlapping a
+card they sit beside. Lesson: when a function gains a parameter that changes its
+result, EVERY call site is in scope. Note E9 must keep passing the real `base` —
+E7 hardcodes `'none'` only because it sits inside a `base === 'none'` guard.
+
+**Bug 2**: `lint-shots.mjs:154` resolves `catalog.json` one directory too high
+and throws ENOENT for every workdir, breaking `run.sh <slug> shots`. The fix is
+not `4` → `3`: `resolveWorkdir` accepts arbitrary absolute paths, so any
+workdir-relative count is fragile — anchor to `import.meta.dirname` like
+`assemble.mjs:845`. `lint-shots.test.mjs` exists AND is registered in check.sh,
+but every case calls the pure function with a mock catalog, so a broken path in
+`main()` survived a passing test file.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 166 | vf2-e9-avatar-and-catalog-path | `avatarSpans` on E9's `extendExposure` call, module-anchored catalog path in lint-shots, and three regression tests that must be seen RED first | none |
+
+- 166-vf2-e9-avatar-and-catalog-path — fix E9 avatar-blindness + lint-shots path — TODO (unblocks 158/PR#116)
+- 166-vf2-e9-avatar-and-catalog-path — PR#124 166-vf2-e9-avatar-and-catalog-path: E9 must see the avatar; lint-shots must find the catalog — DONE

@@ -23,11 +23,24 @@ const TARGET_RATE_MAX = CUE_CONSTANTS.TARGET_RATE_MAX.value;
 const BARE_GAP_MAX = CUE_CONSTANTS.BARE_GAP_MAX.value; // W6: max interior seconds with NO graphic (any placement) before/after any cue
 const NARRATION_BARE_GAP_MAX = CUE_CONSTANTS.NARRATION_BARE_GAP_MAX.value;
 const SECTION_FOOTAGE_MIN = CUE_CONSTANTS.SECTION_FOOTAGE_MIN.value; // W11: footage a section opener must hand over to
+const HOST_VISIBLE_BY = CUE_CONSTANTS.HOST_VISIBLE_BY.value;
+const OPENING_HOST_MIN = CUE_CONSTANTS.OPENING_HOST_MIN.value;
+const MAX_FULLFRAME_ONSCREEN = CUE_CONSTANTS.MAX_FULLFRAME_ONSCREEN.value;
 // Dead air is now designed out by the resolver's BEAT_LEAD_IN clamp (plan 116);
 // W5 stays as the regression detector for that clamp, not as a style hint.
 const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
 
-export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, manifest, conceptData }) {
+// Only `avatar-full` REPLACES the base — panel/side/bubble composite on top of
+// it, so a second under a panel avatar is still a screen second and would
+// still freeze. Mirrors the filter in assemble.mjs's base selection.
+export function avatarFullSpans(avatarJobs) {
+  return (avatarJobs?.jobs ?? [])
+    .filter((j) => j.kind === 'avatar-full' && Number.isFinite(j.start) && Number.isFinite(j.end))
+    .map((j) => [j.start, j.end])
+    .sort((a, b) => a[0] - b[0]);
+}
+
+export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, manifest, conceptData, avatarJobs = null }) {
   const errors = [];
   const warnings = [];
   
@@ -218,6 +231,65 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
+  // W12 opening-host-coverage
+  {
+    const introPart = (segmentsData?.structure ?? []).find((s) => s.part === 'intro');
+    const BY = introPart ? introPart.end : HOST_VISIBLE_BY;
+    let intervals = []; 
+    for (const r of sortedResolved) {
+      if (r.placement === 'fullframe') {
+        const start = Math.max(0, r.start);
+        const end = Math.min(BY, r.start + r.duration);
+        if (start < end) {
+          intervals.push([start, end]);
+        }
+      }
+    }
+    intervals.sort((a, b) => a[0] - b[0]);
+    let covered = 0;
+    let current = null;
+    for (const int of intervals) {
+      if (!current) {
+        current = [...int];
+      } else if (int[0] <= current[1]) {
+        current[1] = Math.max(current[1], int[1]);
+      } else {
+        covered += current[1] - current[0];
+        current = [...int];
+      }
+    }
+    if (current) {
+      covered += current[1] - current[0];
+    }
+    const freeTime = BY - covered;
+    if (freeTime < OPENING_HOST_MIN) {
+      const windowName = introPart ? 'the intro' : `the first ${BY}s`;
+      warnings.push(`W12 opening-host-coverage: ${windowName} leaves only ${freeTime.toFixed(1)}s for the presenter on screen (min ${OPENING_HOST_MIN}s)`);
+    }
+  }
+
+  // W13 frozen-fullframe
+  for (const r of sortedResolved) {
+    if (r.placement === 'fullframe' && r.duration > MAX_FULLFRAME_ONSCREEN) {
+      const c = rawCues.find(cue => cue.id === r.id);
+      if (c && (!c.beats || c.beats.length === 0)) {
+        warnings.push(`W13 frozen-fullframe: ${r.id} holds the screen for ${r.duration.toFixed(1)}s without any beats (max ${MAX_FULLFRAME_ONSCREEN}s)`);
+      }
+    }
+  }
+
+  // W14 zone-underserved (owner 2026-07-28). Not an editorial rule — a zone
+  // the owner recorded and named, carrying no graphics at all, is a gap
+  // rather than a style choice. test-03's conclusion had zero cues because
+  // the cut never reached it. What goes IN the zone stays the cue pass's call.
+  for (const part of (segmentsData?.structure ?? [])) {
+    if (part.part === 'body') continue;
+    const inZone = sortedResolved.filter((r) => r.start >= part.start && r.start < part.end);
+    if (inZone.length === 0) {
+      warnings.push(`W14 zone-underserved: the ${part.part} (${part.start.toFixed(1)}s-${part.end.toFixed(1)}s) has no cues at all — it is the part of the video that matters most and it is carrying no graphics`);
+    }
+  }
+
   // W9 variant-rotation. Structural cards are EXEMPT: they fill a repeated
   // semantic slot and the resolver deliberately pins them to variants[0], so
   // "same card, same variant, back to back" is the intended result there, not
@@ -232,25 +304,32 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
-  // E7 uncovered-second
+  // E7 uncovered-second. "Uncovered" means the second would render as a FREEZE
+  // frame — assemble.mjs only freezes segments of kind `screen`, and an
+  // avatar-full span replaces the base, so a second under the presenter needs
+  // no card. Without this, E7 demanded card coverage over the presenter and
+  // pushed cards into the end-exclusion zone (plan 158, 2026-07-28).
   if (manifest?.base === 'none') {
-    const extended = extendExposure(sortedResolved, { base: 'none', total: T });
+    const extended = extendExposure(sortedResolved, { base: 'none', total: T, avatarSpans: avatarFullSpans(avatarJobs) });
     const fulls = extended.filter(c => bySlug[c.card]?.placement === 'fullframe').sort((a, b) => a.start - b.start);
     if (fulls.length > 0) {
-      const activeStart = fulls[0].start;
       const activeEnd = T - ZONE_END;
-      let cursor = activeStart;
-      for (const f of fulls) {
-        if (f.start > cursor) {
-          const gapEnd = Math.min(f.start, activeEnd);
+      const spans = [
+        ...fulls.map(f => [f.start, f.start + f.duration]),
+        ...avatarFullSpans(avatarJobs),
+      ].sort((a, b) => a[0] - b[0]);
+      let cursor = spans[0][0];
+      for (const [s, e] of spans) {
+        if (s > cursor) {
+          const gapEnd = Math.min(s, activeEnd);
           if (cursor < gapEnd) {
-            errors.push(`E7 uncovered-second: base is none, but [${cursor.toFixed(1)}–${gapEnd.toFixed(1)}] is not covered by a fullframe card`);
+            errors.push(`E7 uncovered-second: base is none, but [${cursor.toFixed(1)}–${gapEnd.toFixed(1)}] is covered by neither a fullframe card nor the presenter`);
           }
         }
-        cursor = Math.max(cursor, f.start + f.duration);
+        cursor = Math.max(cursor, e);
       }
       if (cursor < activeEnd) {
-        errors.push(`E7 uncovered-second: base is none, but [${cursor.toFixed(1)}–${activeEnd.toFixed(1)}] is not covered by a fullframe card`);
+        errors.push(`E7 uncovered-second: base is none, but [${cursor.toFixed(1)}–${activeEnd.toFixed(1)}] is covered by neither a fullframe card nor the presenter`);
       }
     }
   }
@@ -260,7 +339,14 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
   // fullframe card's span (INCLUDING its extended-exposure hold) two graphics
   // stack and read as an editing bug. Overlays may only sit on footage.
   {
-    const extended = extendExposure(sortedResolved, { base: manifest?.base ?? 'screen', total: T });
+    const extended = extendExposure(sortedResolved, {
+      base: manifest?.base ?? 'screen',
+      total: T,
+      // Same spans E7 uses. Without them the clamp in extendExposure never
+      // applies here, so E9 measures a hold the pipeline will never produce
+      // and reports end CTAs as overlapping a card they sit beside.
+      avatarSpans: avatarFullSpans(avatarJobs),
+    });
     const fullSpans = extended
       .filter(c => bySlug[c.card]?.placement === 'fullframe')
       .map(c => ({ id: c.id, start: c.start, end: c.start + c.duration }));
@@ -477,6 +563,12 @@ async function main() {
   
   const manifest = loadVideoManifest(workdir);
 
+  const avatarJobsPath = path.join(workdir, 'avatar-jobs.json');
+  let avatarJobs = null;
+  if (fs.existsSync(avatarJobsPath)) {
+    avatarJobs = JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8'));
+  }
+
   const { errors, warnings } = lintCues({
     cuesFile,
     resolved: resolvedFile.resolved,
@@ -484,7 +576,8 @@ async function main() {
     catalog,
     segmentsData,
     manifest,
-    conceptData
+    conceptData,
+    avatarJobs
   });
 
   for (const w of warnings) {

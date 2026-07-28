@@ -8,7 +8,7 @@
 | `040-polish-lint` | [LLM + RUN] | verified script.json → polished script.json (zero flags) — plan 130 |
 | `050-publish-ui` | [RUN] | polished script.json → UI store (Worker) — plan 132 |
 | `060-intake-qc` | [RUN] | Drive recordings → intake-report.md — plan 133 |
-| `070-handoff-visuals` | [RUN] | locked audio + recordings → visuals-flow `videos/<slug>/{vo.mp3,screen.mp4}` — plan 133 |
+| `070-handoff-visuals` | [RUN] | locked audio + recordings → visuals-flow-2 `videos/<slug>/{vo.mp3,screen.mp4}` — plan 133 |
 
 ```
 videos/<slug>/
@@ -24,7 +24,7 @@ videos/<slug>/
   intake-report.md       # committed — gate 1 QC report
 ```
 
-Handoff outputs (written to `pipelines/video/visuals-flow/videos/<slug>/`):
+Handoff outputs (written to `pipelines/video/visuals-flow-2/videos/<slug>/`):
 - `vo.mp3`: The complete, normalized voiceover track (sections + gaps).
 - `screen.mp4`: The VO-aligned screen recording (trimmed clips + freeze-filled talk sections).
 

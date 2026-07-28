@@ -4,6 +4,7 @@ import { resolveWorkdir } from './workdir.mjs';
 import { wordSyncBeats } from './kinetic-sentence.mjs';
 import { CUE_CONSTANTS } from './cue-constants.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
+import { avatarFullSpans } from './lint-cues.mjs';
 
 export function normWord(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ''); }
 
@@ -215,15 +216,28 @@ export function sentenceEndIfMidSentence(W, t) {
   return sentenceEndAfter(W, last);
 }
 
+// The latest sentence end at or before time `t`, or null when no sentence ends
+// in [0, t]. Exposure lands the card here so it can never stop mid-sentence:
+// a boundary is the only safe place to take the frame away from a thought.
+export function lastSentenceBoundaryAtOrBefore(W, t) {
+  let best = null;
+  for (const w of W) {
+    if (w.end > t) break;
+    if (/[.!?]["')\]]*$/.test(w.text)) best = w.end;
+  }
+  return best;
+}
+
+
 export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
   const bySlug = Object.fromEntries(catalog.cards.map((c) => [c.slug, c]));
   const errors = [...validateCues(cues, catalog, cardLibraryRoot, workdir)];
-  const out = [];
-  let cursor = 0;
-  let lastFullframe = null;
-  const cardUseCounts = {};
   const findFrom = (phrase, from) => findPhrase(W, phrase, from);
+
+  // Pass 1: resolve anchors
+  const resolvedAnchors = [];
+  let cursor = 0;
   for (const cue of cues) {
     let cat;
     if (cue.card === 'bespoke') {
@@ -284,30 +298,50 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
       }
     }
     if (failed) continue;
+    resolvedAnchors.push({ cue, cat, start, hold, beats });
+  }
+
+  const allStarts = resolvedAnchors.map((r) => r.start).sort((a, b) => a - b);
+
+  // Pass 2: compute durations and build output
+  const out = [];
+  let lastFullframe = null;
+  const cardUseCounts = {};
+
+  for (const r of resolvedAnchors) {
+    const { cue, cat, beats, hold } = r;
+    let { start } = r;
+    const nextStart = allStarts.find((s) => s > start + 0.001) ?? null;
     let duration = beats.length ? +(beats[beats.length - 1].at + hold).toFixed(2) : cat.default_duration;
 
-    // Sentence-aware exposure (owner v2:2 / v2:5 2026-07-25, "this motion
-    // graphic ends before he completes the sentence ... need a better solve").
-    // A single card's duration was `cat.default_duration` — a CONSTANT with no
-    // relationship to the clause it illustrates — so any sentence longer than
-    // that default left the card gone while the owner was still talking about
-    // it. Hold until the sentence finishes, plus a tail. Floored at whatever
-    // the card already earned, and the EXTENSION is capped by HOLD_EXTEND_CAP
-    // so a run-on sentence cannot pin a card up forever.
-    // Structural section openers are EXEMPT: their job is to announce the
-    // section and hand over to footage of the tool, not to hold the frame for a
-    // whole sentence. test-03's OpusClip opener sits inside a 24s run-on, and
-    // holding it that long swallowed the 22.6s of screen recording that owner
-    // v2:4 specifically praised. Content cards hold their thought; openers get
-    // out of the way.
+    // Exposure follows the NARRATION, not `default_duration` (owner v2:5,
+    // "need a better solve here"). The old rule looked up the sentence in
+    // progress at `start + default_duration`, so a card's narration coverage
+    // depended on a per-card motion constant: reducing before-after's
+    // default_duration 8 -> 6 (commit 6813379) silently unwound the fix and
+    // the card went back to vanishing mid-sentence. It also added
+    // a 0.4s tail past the sentence end, which in contiguous speech lands
+    // INSIDE the next sentence — the very defect the block existed to stop.
+    //
+    // Now: hold the frame until the last sentence boundary that fits before
+    // the next cue and before MAX_FULLFRAME_ONSCREEN. Ending exactly on a
+    // boundary means the card can never cut a thought in half, and nothing
+    // about the card's own duration constant enters the result.
+    // Structural section openers stay exempt: their job is to announce and
+    // hand over to footage of the tool (owner v2:4).
     if (cat.placement === 'fullframe' && !cat.structural) {
-      const sEnd = sentenceEndIfMidSentence(W, start + duration);
-      if (sEnd !== null) {
-        const wanted = +(sEnd + CUE_CONSTANTS.EXPOSURE_TAIL.value - start).toFixed(2);
+      const hardStop = Math.min(
+        nextStart ?? Infinity,
+        start + CUE_CONSTANTS.MAX_FULLFRAME_ONSCREEN.value,
+      );
+      const boundary = lastSentenceBoundaryAtOrBefore(W, hardStop);
+      if (boundary !== null) {
+        const wanted = +(boundary - start).toFixed(2);
         const capped = Math.min(wanted, duration + CUE_CONSTANTS.HOLD_EXTEND_CAP.value);
         if (capped > duration) duration = capped;
       }
     }
+
     if (cat.placement === 'fullframe' && lastFullframe && start < lastFullframe.start + lastFullframe.duration) {
       errors.push(`${cue.id}: overlaps previous fullframe cue ${lastFullframe.id} (${start} < ${(lastFullframe.start + lastFullframe.duration).toFixed(2)})`);
       continue;
@@ -360,7 +394,7 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
 // Post-pass: kill hold-expiry gaps (spec delta C). Fullframe exposure extends
 // to the next base event: always on base:none (up to HOLD_EXTEND_CAP, else E7
 // in lint), and only across gaps <= GAP_ABSORB on base:screen.
-export function extendExposure(resolved, { base, total }) {
+export function extendExposure(resolved, { base, total, avatarSpans = [] }) {
   const fulls = resolved.filter((c) => c.placement === 'fullframe');
   const out = resolved.map((c) => ({ ...c }));
   const byId = Object.fromEntries(out.map((c) => [c.id, c]));
@@ -368,10 +402,18 @@ export function extendExposure(resolved, { base, total }) {
     const cur = byId[fulls[i].id];
     const end = cur.start + cur.duration;
     const nextStart = i + 1 < fulls.length ? fulls[i + 1].start : total;
-    const gap = +(nextStart - end).toFixed(2);
-    if (gap <= 0) continue;
+    const rawGap = +(nextStart - end).toFixed(2);
+    if (rawGap <= 0) continue;
+
+    // A card must not be held over the presenter. On base:'none' the whole gap
+    // is absorbed by default, which silently buried an avatar span — the same
+    // defect W12 (plan 156) exists to catch on the opening.
+    const nextAvatar = avatarSpans.find(([s]) => s > end + 0.001);
+    const limit = nextAvatar ? Math.min(nextStart, nextAvatar[0]) : nextStart;
+    const gap = +(limit - end).toFixed(2);
+
     const maxExtend = CUE_CONSTANTS.HOLD_EXTEND_CAP.value;
-    let wanted = base === 'none' ? gap : (gap <= CUE_CONSTANTS.GAP_ABSORB.value ? gap : 0);
+    let wanted = base === 'none' ? gap : (rawGap <= CUE_CONSTANTS.GAP_ABSORB.value ? gap : 0);
     // A section opener owns a footage beat: "opener, then the tool on screen".
     // Absorbing the whole gap deleted it — owner v2:4 2026-07-25: OpusClip got
     // its intro then 22.6s of screen recording, while Submagic's intro absorbed
@@ -411,7 +453,18 @@ async function main() {
   }
 
   const manifest = loadVideoManifest(workdir);
-  const extended = extendExposure(resolved, { base: manifest.base, total: words[words.length-1].end + 1.0 });
+
+  const avatarJobsPath = path.join(workdir, 'avatar-jobs.json');
+  let avatarJobs = null;
+  if (fs.existsSync(avatarJobsPath)) {
+    avatarJobs = JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8'));
+  }
+
+  const extended = extendExposure(resolved, {
+    base: manifest.base,
+    total: words[words.length-1].end + 1.0,
+    avatarSpans: avatarFullSpans(avatarJobs)
+  });
 
   fs.writeFileSync(
     path.join(workdir, 'resolved.json'),

@@ -151,7 +151,8 @@ async function main() {
   const shotsResolved = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.resolved.json'), 'utf8'));
   const resolvedFile = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
-  const catalog = JSON.parse(fs.readFileSync(path.join(workdir, '../../../../card-library/catalog.json'), 'utf8'));
+  const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
+  const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
 
   const { errors, warnings } = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog });
   for (const w of warnings) console.log(w);

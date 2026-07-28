@@ -2,7 +2,13 @@
 ---
 executor: claude-p       # claude-p | agy
 model:                   # blank = executor default (claude-p: sonnet)
-test_cmd:                # REQUIRED for boss: one command, exit 0 = pass (this is the merge gate)
+test_cmd:                # REQUIRED for boss: one command, exit 0 = pass (this is the merge gate).
+                         # It must be able to FAIL on this plan's own deliverable. A repo-wide
+                         # suite that passes while the deliverable is broken is not a gate:
+                         # plan 158's `check.sh` reported 314/314 green while the video workdir
+                         # it produced failed its own lint (2026-07-28). If the deliverable is a
+                         # video workdir, chain the per-video check:
+                         #   cd <dir> && bash scripts/check.sh && node lib/lint-cues.mjs <slug>
 ui:                      # true if this plan touches user-facing UI — crew must attach a screenshot to the PR (test_cmd alone can't judge how it looks)
 deploy:                  # blank = no deploy; else the deploy command boss runs after merge
 needs: []                # optional notes (shared target, ordering)
