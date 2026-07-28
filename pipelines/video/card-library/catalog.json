@@ -54,6 +54,40 @@
       "default_duration": 6
     },
     {
+      "slug": "statement/promise\u002dpayoff",
+      "kind": "beat",
+      "placement": "fullframe",
+      "side": true,
+      "hero_shape": "short",
+      "purpose": "the viewer sees the decision they will be able to make by the end, resolving on beats",
+      "intent": "promise payoff beat",
+      "anti_intent": "a final verdict (use verdict family instead)",
+      "variables": {
+        "question": {
+          "type": "string",
+          "required": true,
+          "role": "heading",
+          "example": "Which One Ships Clips You Can Post?"
+        },
+        "options": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "label": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "Speed first"
+            }
+          }
+        }
+      },
+      "max_beats": 4,
+      "max_reveal_chars": 60,
+      "default_duration": 7,
+      "register": ["dark"]
+    },
+    {
       "slug": "statement/keyword\u002dstatement",
       "hero_shape": "prose",
       "kind": "single",
@@ -79,6 +113,46 @@
         "a",
         "b"
       ]
+    },
+    {
+      "slug": "checklist/audience\u002dfit",
+      "kind": "beat",
+      "placement": "fullframe",
+      "side": true,
+      "hero_shape": "none",
+      "purpose": "who this video is for — persona chips landing one per beat",
+      "intent": "audience fit",
+      "anti_intent": "detailed comparisons",
+      "variables": {
+        "title": {
+          "type": "string",
+          "required": true,
+          "role": "heading",
+          "example": "Who This Is For"
+        },
+        "personas": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "label": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "Creators"
+            },
+            "icon": {
+              "type": "string",
+              "required": true,
+              "role": "free",
+              "example": "person"
+            }
+          }
+        }
+      },
+      "max_beats": 4,
+      "max_reveal_chars": 60,
+      "default_duration": 7,
+      "register": ["dark"]
     },
     {
       "slug": "checklist/checklist",
@@ -992,6 +1066,46 @@
       "max_beats": 6,
       "max_reveal_chars": 45,
       "pre_beat_render": "chrome"
+    },
+    {
+      "slug": "section/proof\u002dof\u002dwork",
+      "kind": "beat",
+      "placement": "fullframe",
+      "side": false,
+      "hero_shape": "none",
+      "purpose": "why the viewer should believe the comparison — the test setup stats counting up",
+      "intent": "proof of work stats",
+      "anti_intent": "explaining individual features",
+      "variables": {
+        "method": {
+          "type": "string",
+          "required": true,
+          "role": "heading",
+          "example": "Same Footage, Both Tools"
+        },
+        "facts": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "value": {
+              "type": "string",
+              "required": true,
+              "role": "value",
+              "example": "1"
+            },
+            "label": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "long-form video"
+            }
+          }
+        }
+      },
+      "max_beats": 4,
+      "max_reveal_chars": 60,
+      "default_duration": 8,
+      "register": ["dark"]
     },
     {
       "slug": "section/bullet\u002dpoints",

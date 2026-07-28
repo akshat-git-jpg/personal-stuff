@@ -1,0 +1,249 @@
+<!doctype html>
+<!--
+  PROMISE PAYOFF
+  The viewer sees the decision they will be able to make by the end.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; 
+        --bg-to: #0a0805;
+        --text: #ffffff; 
+        --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --positive: #34d399; 
+        --negative: #fb7185; 
+        --gold: #facc15;
+        --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 130px;
+      }
+      
+      * { 
+        margin: 0; 
+        padding: 0; 
+        box-sizing: border-box; 
+      }
+      
+      html, body { 
+        width: 100%; 
+        height: 1080px; 
+        overflow: hidden; 
+        background: #000; 
+        font-family: var(--font); 
+        color: var(--text); 
+      }
+      
+      #root { 
+        position: relative; 
+        width: 100%; 
+        height: 1080px; 
+      }
+      
+      #bg { 
+        position: absolute; 
+        inset: 0; 
+        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); 
+      }
+      
+      #frame { 
+        position: absolute; 
+        inset: 0; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 120px; 
+      }
+      
+      .question { 
+        font-size: var(--hero-size); 
+        font-weight: 800; 
+        letter-spacing: -0.035em; 
+        line-height: 1.1; 
+        color: var(--text); 
+        text-align: center; 
+        margin-bottom: 80px; 
+        max-width: 1500px; 
+      }
+      
+      .options-row { 
+        display: flex; 
+        gap: 40px; 
+        justify-content: center; 
+        width: 100%; 
+        max-width: 1400px; 
+      }
+      
+      .plate { 
+        flex: 1; 
+        height: 180px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 24px; 
+        background: rgba(255, 255, 255, 0.03); 
+        border: 2px solid rgba(255, 255, 255, 0.1); 
+        border-radius: 24px; 
+        color: rgba(255, 255, 255, 0.4); 
+        font-size: 48px; 
+        font-weight: 700; 
+        transition: all 0.3s; 
+        position: relative; 
+        overflow: hidden; 
+      }
+      
+      .plate .icon { 
+        width: 64px; 
+        height: 64px; 
+        fill: currentColor; 
+      }
+      
+      .plate.resolved { 
+        color: var(--text); 
+        border-color: rgba(255, 255, 255, 0.3); 
+        background: rgba(255, 255, 255, 0.06); 
+      }
+      
+      .plate.winner { 
+        color: var(--accent); 
+        border-color: var(--accent); 
+        background: rgba(251, 146, 60, 0.1); 
+      }
+      
+      .plate.winner .icon { 
+        fill: var(--accent); 
+      }
+
+      .icon-lock, .icon-check { 
+        position: absolute; 
+      }
+      
+      .icon-check { 
+        opacity: 0; 
+        transform: scale(0.5); 
+      }
+      
+      .icon-wrap { 
+        position: relative; 
+        width: 64px; 
+        height: 64px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+      }
+
+      @keyframes hf-ambient-breathe { 
+        from { transform: scale(1); } 
+        to { transform: scale(1.012); } 
+      }
+      #frame { 
+        animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ 
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="promise-payoff" data-start="0" data-duration="7" data-width="1920" data-height="1080"
+      data-composition-variables='{"question":"Which One Ships Clips You Can Post?","options":[{"label":"Speed first"},{"label":"Publish ready"}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="7" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="7" data-track-index="1">
+        <div class="question" id="question"></div>
+        <div class="options-row" id="options"></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DEFAULTS = {
+        question: "Which One Ships Clips You Can Post?",
+        options: [{ label: "Speed first" }, { label: "Publish ready" }]
+      };
+      const DATA = { ...DEFAULTS, ...VARS };
+
+      const $ = (id) => document.getElementById(id);
+      
+      $('question').textContent = DATA.question;
+      const opts = $('options');
+      
+      const lockSvg = `<svg class="icon icon-lock" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>`;
+      const checkSvg = `<svg class="icon icon-check" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>`;
+
+      // Render plates
+      (DATA.options || []).forEach((opt, i) => {
+        const p = document.createElement('div');
+        p.className = 'plate';
+        p.id = 'plate-' + i;
+        
+        const w = document.createElement('div');
+        w.className = 'icon-wrap';
+        w.innerHTML = lockSvg + checkSvg;
+
+        const lbl = document.createElement('div');
+        lbl.textContent = opt.label;
+
+        p.appendChild(w);
+        p.appendChild(lbl);
+        opts.appendChild(p);
+      });
+
+      /* ===== TIMELINE (LOCKED) ===== */
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      
+      // Intro animations
+      tl.from('.question', { opacity: 0, y: 30, duration: 0.6, ease: 'power3.out' }, 0.2);
+      tl.from('.plate', { opacity: 0, y: 30, stagger: 0.2, duration: 0.6, ease: 'power3.out' }, 0.5);
+
+      const numOpts = (DATA.options || []).length;
+      let winnerIdx = DATA.winner;
+      if (winnerIdx === undefined) {
+        winnerIdx = numOpts - 1; // Default to last option winning if not specified
+      }
+
+      // Timing for beat resolution
+      // 1.5s -> initial state
+      // 4.0s -> plate 0 resolved
+      // 6.0s -> plate 1 resolved and lit up
+      const resolveTime = (idx) => 2.5 + idx * 2.0; 
+
+      (DATA.options || []).forEach((opt, i) => {
+        const rt = resolveTime(i);
+        
+        // 1) Animate lock to check
+        tl.to('#plate-' + i + ' .icon-lock', { opacity: 0, scale: 0.5, duration: 0.3, ease: 'power2.in' }, rt);
+        tl.to('#plate-' + i + ' .icon-check', { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.5)' }, rt + 0.1);
+        
+        // 2) Brighten text and border to indicate resolution
+        tl.to('#plate-' + i, { 
+          color: 'rgba(255,255,255,1)', 
+          borderColor: 'rgba(255,255,255,0.3)', 
+          backgroundColor: 'rgba(255,255,255,0.06)', 
+          duration: 0.4 
+        }, rt);
+        
+        // 3) Light up winner
+        if (i === winnerIdx) {
+           tl.to('#plate-' + i, { 
+             color: 'var(--accent)', 
+             borderColor: 'var(--accent)', 
+             backgroundColor: 'rgba(251,146,60,0.1)', 
+             duration: 0.5 
+           }, rt + 0.5);
+           
+           tl.to('#plate-' + i + ' .icon-check', { 
+             fill: 'var(--accent)', 
+             duration: 0.5 
+           }, rt + 0.5);
+        }
+      });
+
+      window.__timelines['promise-payoff'] = tl;
+    </script>
+  </body>
+</html>
