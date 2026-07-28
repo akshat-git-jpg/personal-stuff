@@ -1004,3 +1004,4 @@ but every case calls the pure function with a mock catalog, so a broken path in
 | 166 | vf2-e9-avatar-and-catalog-path | `avatarSpans` on E9's `extendExposure` call, module-anchored catalog path in lint-shots, and three regression tests that must be seen RED first | none |
 
 - 166-vf2-e9-avatar-and-catalog-path — fix E9 avatar-blindness + lint-shots path — TODO (unblocks 158/PR#116)
+- 166-vf2-e9-avatar-and-catalog-path — PR#124 166-vf2-e9-avatar-and-catalog-path: E9 must see the avatar; lint-shots must find the catalog — DONE
