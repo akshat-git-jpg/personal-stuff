@@ -885,3 +885,4 @@ AVAILABLE to the cue pass, never REQUIRED — per the owner ruling above.
 - 157-cards-bad-clip-montage — PR#115 157-cards-bad-clip-montage: new card that enacts the hook instead of titling it — DONE
 - 155-vf2-exposure-follows-narration — PR#113 155-vf2-exposure-follows-narration: exposure follows the narration, not default_duration — DONE
 - 156-vf2-intro-must-breathe — PR#114 156-vf2-intro-must-breathe: opening-host-coverage + frozen-fullframe lints — DONE
+- 159-vf2-source-structure — PR#117 159-vf2-source-structure: teach the pipeline the three source files — DONE
