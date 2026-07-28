@@ -952,3 +952,4 @@ Review model becomes: **Zone Plan → Storyboard → Unattended Cut → Final Cu
 | 164 | vf2-zone-plan-gate | `lib/zone-plan.mjs`, a third board tab, a `zone-plan` verb, and a render refusal until approved | 159 (landed) |
 
 - 164-vf2-zone-plan-gate — approve intro/conclusion cards before anything renders — TODO
+- 162-vf2-avatar-aware-coverage — PR#120 162-vf2-avatar-aware-coverage: E7 and absorption must see the presenter — DONE
