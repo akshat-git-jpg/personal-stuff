@@ -799,3 +799,31 @@ test('W12 falls back to HOST_VISIBLE_BY when structure is absent', () => {
   assert.ok(warnings.some((w) => w.startsWith('W12 opening-host-coverage')));
 });
 
+test('E7 avatar awareness', () => {
+  const c = [{ id: 'c1', card: 'fullframe/beat', start: 0, duration: 30 }];
+  const T = 80;
+  
+  const res1 = lintCues({
+    cuesFile: createCues(c), resolved: createResolved(c), words: createWords(T),
+    catalog, manifest: { base: 'none' }, avatarJobs: { jobs: [{ kind: 'avatar-full', start: 30, end: 60 }] }
+  });
+  assert(!res1.errors.some(e => e.includes('E7 uncovered-second')));
+
+  const res2 = lintCues({
+    cuesFile: createCues(c), resolved: createResolved(c), words: createWords(T),
+    catalog, manifest: { base: 'none' }
+  });
+  assert(res2.errors.some(e => e.includes('E7 uncovered-second')));
+
+  const res3 = lintCues({
+    cuesFile: createCues(c), resolved: createResolved(c), words: createWords(T),
+    catalog, manifest: { base: 'none' }, avatarJobs: { jobs: [{ kind: 'panel', start: 30, end: 60 }] }
+  });
+  assert(res3.errors.some(e => e.includes('E7 uncovered-second')));
+
+  const res4 = lintCues({
+    cuesFile: createCues(c), resolved: createResolved(c), words: createWords(T),
+    catalog, manifest: { base: 'screen' }, avatarJobs: { jobs: [{ kind: 'avatar-full', start: 30, end: 60 }] }
+  });
+  assert(!res4.errors.some(e => e.includes('E7 uncovered-second')));
+});

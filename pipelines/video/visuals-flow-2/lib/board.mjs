@@ -14,7 +14,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveCues, normWord, extendExposure } from './resolve.mjs';
-import { lintCues } from './lint-cues.mjs';
+import { lintCues, avatarFullSpans } from './lint-cues.mjs';
 import { mmss } from './render.mjs';
 import { enrichLogos } from './logos-inline.mjs';
 import { resolveShots } from './resolve-shots.mjs';
@@ -34,7 +34,14 @@ export function resolveAndExtend(cues, words, catalog, cardLibraryRoot, workdir)
   if (errors.length) return { resolved, errors };
   const manifest = loadVideoManifest(workdir);
   const total = words.length ? words[words.length - 1].end + 1.0 : 0;
-  return { resolved: extendExposure(resolved, { base: manifest.base, total }), errors };
+
+  const avatarJobsPath = path.join(workdir, 'avatar-jobs.json');
+  let avatarJobs = null;
+  if (fs.existsSync(avatarJobsPath)) {
+    avatarJobs = JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8'));
+  }
+
+  return { resolved: extendExposure(resolved, { base: manifest.base, total, avatarSpans: avatarFullSpans(avatarJobs) }), errors };
 }
 
 // Reads shots.json + computes resolved spans; null when the video has no shot
