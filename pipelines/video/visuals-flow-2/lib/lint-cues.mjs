@@ -30,7 +30,17 @@ const MAX_FULLFRAME_ONSCREEN = CUE_CONSTANTS.MAX_FULLFRAME_ONSCREEN.value;
 // W5 stays as the regression detector for that clamp, not as a style hint.
 const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
 
-export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, manifest, conceptData }) {
+// Only `avatar-full` REPLACES the base — panel/side/bubble composite on top of
+// it, so a second under a panel avatar is still a screen second and would
+// still freeze. Mirrors the filter in assemble.mjs's base selection.
+export function avatarFullSpans(avatarJobs) {
+  return (avatarJobs?.jobs ?? [])
+    .filter((j) => j.kind === 'avatar-full' && Number.isFinite(j.start) && Number.isFinite(j.end))
+    .map((j) => [j.start, j.end])
+    .sort((a, b) => a[0] - b[0]);
+}
+
+export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, manifest, conceptData, avatarJobs = null }) {
   const errors = [];
   const warnings = [];
   
@@ -294,25 +304,32 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
-  // E7 uncovered-second
+  // E7 uncovered-second. "Uncovered" means the second would render as a FREEZE
+  // frame — assemble.mjs only freezes segments of kind `screen`, and an
+  // avatar-full span replaces the base, so a second under the presenter needs
+  // no card. Without this, E7 demanded card coverage over the presenter and
+  // pushed cards into the end-exclusion zone (plan 158, 2026-07-28).
   if (manifest?.base === 'none') {
-    const extended = extendExposure(sortedResolved, { base: 'none', total: T });
+    const extended = extendExposure(sortedResolved, { base: 'none', total: T, avatarSpans: avatarFullSpans(avatarJobs) });
     const fulls = extended.filter(c => bySlug[c.card]?.placement === 'fullframe').sort((a, b) => a.start - b.start);
     if (fulls.length > 0) {
-      const activeStart = fulls[0].start;
       const activeEnd = T - ZONE_END;
-      let cursor = activeStart;
-      for (const f of fulls) {
-        if (f.start > cursor) {
-          const gapEnd = Math.min(f.start, activeEnd);
+      const spans = [
+        ...fulls.map(f => [f.start, f.start + f.duration]),
+        ...avatarFullSpans(avatarJobs),
+      ].sort((a, b) => a[0] - b[0]);
+      let cursor = spans[0][0];
+      for (const [s, e] of spans) {
+        if (s > cursor) {
+          const gapEnd = Math.min(s, activeEnd);
           if (cursor < gapEnd) {
-            errors.push(`E7 uncovered-second: base is none, but [${cursor.toFixed(1)}–${gapEnd.toFixed(1)}] is not covered by a fullframe card`);
+            errors.push(`E7 uncovered-second: base is none, but [${cursor.toFixed(1)}–${gapEnd.toFixed(1)}] is covered by neither a fullframe card nor the presenter`);
           }
         }
-        cursor = Math.max(cursor, f.start + f.duration);
+        cursor = Math.max(cursor, e);
       }
       if (cursor < activeEnd) {
-        errors.push(`E7 uncovered-second: base is none, but [${cursor.toFixed(1)}–${activeEnd.toFixed(1)}] is not covered by a fullframe card`);
+        errors.push(`E7 uncovered-second: base is none, but [${cursor.toFixed(1)}–${activeEnd.toFixed(1)}] is covered by neither a fullframe card nor the presenter`);
       }
     }
   }
@@ -539,6 +556,12 @@ async function main() {
   
   const manifest = loadVideoManifest(workdir);
 
+  const avatarJobsPath = path.join(workdir, 'avatar-jobs.json');
+  let avatarJobs = null;
+  if (fs.existsSync(avatarJobsPath)) {
+    avatarJobs = JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8'));
+  }
+
   const { errors, warnings } = lintCues({
     cuesFile,
     resolved: resolvedFile.resolved,
@@ -546,7 +569,8 @@ async function main() {
     catalog,
     segmentsData,
     manifest,
-    conceptData
+    conceptData,
+    avatarJobs
   });
 
   for (const w of warnings) {

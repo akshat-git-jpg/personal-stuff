@@ -4,6 +4,7 @@ import { resolveWorkdir } from './workdir.mjs';
 import { wordSyncBeats } from './kinetic-sentence.mjs';
 import { CUE_CONSTANTS } from './cue-constants.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
+import { avatarFullSpans } from './lint-cues.mjs';
 
 export function normWord(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ''); }
 
@@ -393,7 +394,7 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
 // Post-pass: kill hold-expiry gaps (spec delta C). Fullframe exposure extends
 // to the next base event: always on base:none (up to HOLD_EXTEND_CAP, else E7
 // in lint), and only across gaps <= GAP_ABSORB on base:screen.
-export function extendExposure(resolved, { base, total }) {
+export function extendExposure(resolved, { base, total, avatarSpans = [] }) {
   const fulls = resolved.filter((c) => c.placement === 'fullframe');
   const out = resolved.map((c) => ({ ...c }));
   const byId = Object.fromEntries(out.map((c) => [c.id, c]));
@@ -401,10 +402,18 @@ export function extendExposure(resolved, { base, total }) {
     const cur = byId[fulls[i].id];
     const end = cur.start + cur.duration;
     const nextStart = i + 1 < fulls.length ? fulls[i + 1].start : total;
-    const gap = +(nextStart - end).toFixed(2);
-    if (gap <= 0) continue;
+    const rawGap = +(nextStart - end).toFixed(2);
+    if (rawGap <= 0) continue;
+
+    // A card must not be held over the presenter. On base:'none' the whole gap
+    // is absorbed by default, which silently buried an avatar span — the same
+    // defect W12 (plan 156) exists to catch on the opening.
+    const nextAvatar = avatarSpans.find(([s]) => s > end + 0.001);
+    const limit = nextAvatar ? Math.min(nextStart, nextAvatar[0]) : nextStart;
+    const gap = +(limit - end).toFixed(2);
+
     const maxExtend = CUE_CONSTANTS.HOLD_EXTEND_CAP.value;
-    let wanted = base === 'none' ? gap : (gap <= CUE_CONSTANTS.GAP_ABSORB.value ? gap : 0);
+    let wanted = base === 'none' ? gap : (rawGap <= CUE_CONSTANTS.GAP_ABSORB.value ? gap : 0);
     // A section opener owns a footage beat: "opener, then the tool on screen".
     // Absorbing the whole gap deleted it — owner v2:4 2026-07-25: OpusClip got
     // its intro then 22.6s of screen recording, while Submagic's intro absorbed
@@ -444,7 +453,18 @@ async function main() {
   }
 
   const manifest = loadVideoManifest(workdir);
-  const extended = extendExposure(resolved, { base: manifest.base, total: words[words.length-1].end + 1.0 });
+
+  const avatarJobsPath = path.join(workdir, 'avatar-jobs.json');
+  let avatarJobs = null;
+  if (fs.existsSync(avatarJobsPath)) {
+    avatarJobs = JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8'));
+  }
+
+  const extended = extendExposure(resolved, {
+    base: manifest.base,
+    total: words[words.length-1].end + 1.0,
+    avatarSpans: avatarFullSpans(avatarJobs)
+  });
 
   fs.writeFileSync(
     path.join(workdir, 'resolved.json'),

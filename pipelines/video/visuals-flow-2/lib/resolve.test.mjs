@@ -543,3 +543,17 @@ test('exposure is independent of the card default_duration', () => {
   assert.equal(+endA.toFixed(2), +endB.toFixed(2));
   assert.equal(+endA.toFixed(2), 4.0); // the last boundary inside the 12s window
 });
+
+test('extendExposure: avatar-full span bounds absorption on base none', async () => {
+  const { extendExposure } = await import('./resolve.mjs');
+  const resolved = [
+    { id: 'c1', placement: 'fullframe', start: 0, duration: 10 },
+  ];
+  // avatar-full at 20s bounds the gap to 20-10=10s.
+  const out1 = extendExposure(resolved, { base: 'none', total: 60, avatarSpans: [[20, 30]] });
+  assert.equal(out1[0].duration, 20);
+
+  // without avatar data, it absorbs toward 60s, capped at HOLD_EXTEND_CAP (20s) -> 10+20=30
+  const out2 = extendExposure(resolved, { base: 'none', total: 60 });
+  assert.equal(out2[0].duration, 30);
+});
