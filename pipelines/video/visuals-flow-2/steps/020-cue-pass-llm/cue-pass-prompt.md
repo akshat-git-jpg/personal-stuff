@@ -83,8 +83,7 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - If concept.json exists, at least 2 cues must carry `motif: true` (the through-line must recur) (lint W8).
 - A fullframe cue on a non-structural legacy (non-`enacted/`) card without `legacy_why` warns (lint W10).
 - Consecutive beats within one cue must anchor no more than 15s apart. Beats narrate one continuous passage; a larger gap means the anchor text matched a later repeat of the same words, and the reveal fires against the wrong sentence (resolver error).
-- A fullframe card stays on screen until the sentence it illustrates has finished being spoken, ending ON that sentence boundary with no trailing pad. Card exposure follows the narration, never a fixed per-card default (resolver post-pass).
-- A fullframe card may hold the screen for at most 12s. Exposure extends to the last sentence boundary that fits inside this window; past it the footage takes the frame back.
+- A fullframe card stays on screen until the sentence it illustrates has finished being spoken, ending ON that sentence boundary with no trailing pad — card exposure follows the narration, never a fixed per-card default. It may hold the screen for at most 12s: exposure extends to the last sentence boundary that fits inside this window, and past it the footage takes the frame back.
 - The presenter must be visible within the first 15s. A tutorial that opens on wall-to-wall graphics has no one on screen to trust.
 - At least 3s of the opening window must be free of fullframe cards, so the presenter actually lands rather than flashing between cards.
 - A section opener must be followed by at least 4s of footage before the next fullframe card, so every tool section reads as "opener, then the tool on screen" (lint W11).

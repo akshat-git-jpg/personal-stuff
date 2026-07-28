@@ -319,7 +319,7 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
     // depended on a per-card motion constant: reducing before-after's
     // default_duration 8 -> 6 (commit 6813379) silently unwound the fix and
     // the card went back to vanishing mid-sentence. It also added
-    // EXPOSURE_TAIL past the sentence end, which in contiguous speech lands
+    // a 0.4s tail past the sentence end, which in contiguous speech lands
     // INSIDE the next sentence — the very defect the block existed to stop.
     //
     // Now: hold the frame until the last sentence boundary that fits before

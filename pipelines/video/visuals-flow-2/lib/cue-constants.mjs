@@ -22,15 +22,16 @@ export const CUE_CONSTANTS = {
   VARIANT_REPEAT_WINDOW: { value: 1, desc: "A specific variant of a card cannot be used again until {value} other variants or cards have appeared." },
   ENACTED_FIRST:          { value: 1,    rule: 'A fullframe cue on a non-structural legacy (non-`enacted/`) card without `legacy_why` warns (lint W10).' },
   BEAT_GAP_MAX:           { value: 15,   rule: 'Consecutive beats within one cue must anchor no more than 15s apart. Beats narrate one continuous passage; a larger gap means the anchor text matched a later repeat of the same words, and the reveal fires against the wrong sentence (resolver error).' },
-  // The 0.4s tail is NO LONGER added to exposure (plan 155): ending exactly on
-  // the sentence boundary is the fix, because a tail past the boundary lands
-  // inside the next sentence in contiguous speech. The value is kept for any
-  // future non-exposure use; the rule below states only what the resolver
-  // actually does, since build-prompt injects it into the cue-pass prompt.
-  EXPOSURE_TAIL:          { value: 0.4,  rule: 'A fullframe card stays on screen until the sentence it illustrates has finished being spoken, ending ON that sentence boundary with no trailing pad. Card exposure follows the narration, never a fixed per-card default (resolver post-pass).' },
+  // EXPOSURE_TAIL was retired 2026-07-28. Plan 155 stopped adding its 0.4s pad
+  // (a tail past a sentence boundary lands inside the NEXT sentence in
+  // contiguous speech — the very defect it was meant to avoid), leaving a
+  // constant with zero live consumers whose only remaining job was to inject
+  // its rule text into the cue-pass prompt. That sentence now lives on
+  // MAX_FULLFRAME_ONSCREEN, which the resolver actually reads, so the guidance
+  // the model receives stays attached to a number that is real.
   MAX_FULLFRAME_ONSCREEN: {
     value: 12,
-    rule: 'A fullframe card may hold the screen for at most 12s. Exposure extends to the last sentence boundary that fits inside this window; past it the footage takes the frame back.',
+    rule: 'A fullframe card stays on screen until the sentence it illustrates has finished being spoken, ending ON that sentence boundary with no trailing pad — card exposure follows the narration, never a fixed per-card default. It may hold the screen for at most 12s: exposure extends to the last sentence boundary that fits inside this window, and past it the footage takes the frame back.',
   },
   HOST_VISIBLE_BY: {
     value: 15,
