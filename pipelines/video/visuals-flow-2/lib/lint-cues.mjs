@@ -23,6 +23,9 @@ const TARGET_RATE_MAX = CUE_CONSTANTS.TARGET_RATE_MAX.value;
 const BARE_GAP_MAX = CUE_CONSTANTS.BARE_GAP_MAX.value; // W6: max interior seconds with NO graphic (any placement) before/after any cue
 const NARRATION_BARE_GAP_MAX = CUE_CONSTANTS.NARRATION_BARE_GAP_MAX.value;
 const SECTION_FOOTAGE_MIN = CUE_CONSTANTS.SECTION_FOOTAGE_MIN.value; // W11: footage a section opener must hand over to
+const HOST_VISIBLE_BY = CUE_CONSTANTS.HOST_VISIBLE_BY.value;
+const OPENING_HOST_MIN = CUE_CONSTANTS.OPENING_HOST_MIN.value;
+const MAX_FULLFRAME_ONSCREEN = CUE_CONSTANTS.MAX_FULLFRAME_ONSCREEN.value;
 // Dead air is now designed out by the resolver's BEAT_LEAD_IN clamp (plan 116);
 // W5 stays as the regression detector for that clamp, not as a style hint.
 const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
@@ -214,6 +217,50 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
       const footage = +(fulls[i + 1].start - (cur.start + cur.duration)).toFixed(2);
       if (footage < MIN) {
         warnings.push(`W11 section-footage: ${cur.id} (${cur.card}) is followed by only ${footage.toFixed(1)}s of footage before ${fulls[i + 1].id} (min ${MIN}s) — a section opener should hand over to the tool on screen, not cut straight to another graphic`);
+      }
+    }
+  }
+
+  // W12 opening-host-coverage
+  {
+    let intervals = [];
+    for (const r of sortedResolved) {
+      if (r.placement === 'fullframe') {
+        const start = Math.max(0, r.start);
+        const end = Math.min(HOST_VISIBLE_BY, r.start + r.duration);
+        if (start < end) {
+          intervals.push([start, end]);
+        }
+      }
+    }
+    intervals.sort((a, b) => a[0] - b[0]);
+    let covered = 0;
+    let current = null;
+    for (const int of intervals) {
+      if (!current) {
+        current = [...int];
+      } else if (int[0] <= current[1]) {
+        current[1] = Math.max(current[1], int[1]);
+      } else {
+        covered += current[1] - current[0];
+        current = [...int];
+      }
+    }
+    if (current) {
+      covered += current[1] - current[0];
+    }
+    const freeTime = HOST_VISIBLE_BY - covered;
+    if (freeTime < OPENING_HOST_MIN) {
+      warnings.push(`W12 opening-host-coverage: the first ${HOST_VISIBLE_BY}s leaves only ${freeTime.toFixed(1)}s for the presenter on screen (min ${OPENING_HOST_MIN}s)`);
+    }
+  }
+
+  // W13 frozen-fullframe
+  for (const r of sortedResolved) {
+    if (r.placement === 'fullframe' && r.duration > MAX_FULLFRAME_ONSCREEN) {
+      const c = rawCues.find(cue => cue.id === r.id);
+      if (c && (!c.beats || c.beats.length === 0)) {
+        warnings.push(`W13 frozen-fullframe: ${r.id} holds the screen for ${r.duration.toFixed(1)}s without any beats (max ${MAX_FULLFRAME_ONSCREEN}s)`);
       }
     }
   }

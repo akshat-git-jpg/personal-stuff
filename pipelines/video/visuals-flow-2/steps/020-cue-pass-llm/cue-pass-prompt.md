@@ -85,6 +85,8 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - Consecutive beats within one cue must anchor no more than 15s apart. Beats narrate one continuous passage; a larger gap means the anchor text matched a later repeat of the same words, and the reveal fires against the wrong sentence (resolver error).
 - A fullframe card stays on screen until the sentence it illustrates has finished being spoken, ending ON that sentence boundary with no trailing pad. Card exposure follows the narration, never a fixed per-card default (resolver post-pass).
 - A fullframe card may hold the screen for at most 12s. Exposure extends to the last sentence boundary that fits inside this window; past it the footage takes the frame back.
+- The presenter must be visible within the first 15s. A tutorial that opens on wall-to-wall graphics has no one on screen to trust.
+- At least 3s of the opening window must be free of fullframe cards, so the presenter actually lands rather than flashing between cards.
 - A section opener must be followed by at least 4s of footage before the next fullframe card, so every tool section reads as "opener, then the tool on screen" (lint W11).
 - End-card slugs exempt from the last-20s rule: brand/, link-in-description/, like-subscribe/
 <!-- END GENERATED CONSTRAINTS -->
@@ -130,6 +132,8 @@ Verdicts (mandatory): one winner per verdict card. Two favorites = two verdict c
 Units (mandatory): numeric values on cards carry their unit (prefix "$", suffix "ms"/"/mo") — never a bare number.
 
 Beat cards must not idle: anchor so the FIRST beat lands within ~8s of the card appearing — when the VO rambles before its first data point, anchor at the sentence right before the first beat, not the section opener.
+
+The opening must breathe (mandatory): the presenter must be visible within the first 15s — do NOT cover the opening with back-to-back fullframe cards, and never let a fullframe card hold the screen past 12s with no beats. A card with no beats is a still image: if the point needs 20 seconds of screen time it needs beats or two cues, not one long hold. When the VO is doing the work and there is nothing to enact, place NO card and leave the presenter on screen. Enforced as lint warnings W12 (opening-host-coverage) and W13 (frozen-fullframe).
 
 Link CTA (mandatory): EVERY time the VO points the viewer to the description — "link/links in the description", "check the description", "linked below" — emit a CTA cue anchored at that phrase. Never leave a description mention uncovered. Which card is positional, not a judgment call: the FIRST mention in the video uses `link-in-description/link-scrim` (full-frame dim scrim — it takes the whole screen once, when the ask is new and deserves it); EVERY later mention uses `link-in-description/link-in-description` (transparent pill overlay), which rides on footage and never hides a demo. Use the scrim exactly once per video. Count mentions across the WHOLE script including the conclusion, not just the stretch you are cueing.
 <!-- END GENERATED ROUTING RULES -->
