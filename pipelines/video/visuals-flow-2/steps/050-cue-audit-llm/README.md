@@ -1,6 +1,6 @@
-# 035-cue-audit-llm
+# 050 · cue-audit · [LLM]
 
-This step runs the storyboard self-audit (the "mute test"). It runs AFTER 030 resolve+lint, and BEFORE the 040 owner board.
+This step runs the storyboard self-audit (the "mute test"). It runs AFTER 040 resolve+lint, and BEFORE the 080 owner board.
 
 - **Inputs**: `resolved.json`, `transcript.json`, catalog slug-purpose pairs
 - **Output**: `audit.json` (committed)

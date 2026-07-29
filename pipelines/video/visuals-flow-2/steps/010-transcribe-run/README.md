@@ -11,10 +11,10 @@
   (`npx hyperframes@latest transcribe vo.mp3 --json -m small.en`, ~8 min) when the
   key is missing or the API errors. Both write the same flat
   `[{text,start,end}]` transcript.json.
-- **Next:** step 020 — the cue pass reads `transcript.json`
+- **Next:** step 030 — the cue pass reads `transcript.json`
 
 **Transcript quality pass (before the cue pass, always — plan 149).** Whisper's
-punctuation is a prosody guess, not a proofread, and step 090 burns captions
+punctuation is a prosody guess, not a proofread, and step 110 burns captions
 from transcript words VERBATIM — commas, run-ons, and brand-name garbles all
 ship onto the final video unedited unless fixed here. `run.sh` always keeps
 the raw engine output as `transcript.<engine>-raw.bak.json` first, then runs

@@ -1,4 +1,4 @@
-# 060 · feedback-fold · [OPUS] (the learning step)
+# 130 · feedback-fold · [OPUS] (the learning step)
 
 Owner feedback must never be applied ad-hoc and forgotten — this step is the
 guarantee that a correction given once is never needed twice.
@@ -51,7 +51,7 @@ guarantee that a correction given once is never needed twice.
 }
 ```
 - `context` — snapshotted automatically by the board at creation (card/anchor/start for cues, start/end/excerpt for gaps).
-- `applied` — set by whoever performs the this-video edit (usually the next Claude session or 060 itself).
+- `applied` — set by whoever performs the this-video edit (usually the next Claude session or 130 itself).
 - `folded` — set when the lesson becomes a rule.
 
 ## Why a smart model

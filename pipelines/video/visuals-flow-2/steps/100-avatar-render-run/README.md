@@ -1,11 +1,11 @@
-# 080 · avatar-render  ·  [RUN]  (submit + download are separate invocations)
+# 100 · avatar-render  ·  [RUN]  (submit + download are separate invocations)
 
 Turn the approved shot plan into avatar clips: one HeyGen 3 TEMPLATE render per
 full-screen span + contiguous corner chunks covering the whole VO. Test mode
 only (`engineMode: "test"`) — the HeyGen 4 production path does not exist yet
 (design doc `docs/specs/2026-07-18-avatar-shot-plan-design.md`).
 
-The corner chunks are no longer just editor reference: step 090 (assemble) now
+The corner chunks are no longer just editor reference: step 110 (assemble) now
 composites them automatically as the top-right host bubble on screen segments
 (the `bubble` effect module — see `EFFECTS.md`). Render them whenever you want
 the host present outside full-screen spans; drop `--spans-only` to include them.

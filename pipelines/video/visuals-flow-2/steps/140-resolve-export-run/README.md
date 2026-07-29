@@ -1,4 +1,4 @@
-# 095 — Resolve timeline export
+# 140 · resolve-export · [RUN]
 
 Same gates as assembly (the exporter enforces them itself: cues approved +
 rendered, shots approved with clips downloaded, screen.mp4 present).
