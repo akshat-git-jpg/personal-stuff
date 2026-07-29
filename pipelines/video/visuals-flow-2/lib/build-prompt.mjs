@@ -9,7 +9,7 @@ export const END_MARKER = '<!-- END GENERATED CONSTRAINTS -->';
 export const RULES_BEGIN_MARKER = '<!-- BEGIN GENERATED ROUTING RULES — edit lib/cue-rules.mjs, then run node lib/build-prompt.mjs -->';
 export const RULES_END_MARKER = '<!-- END GENERATED ROUTING RULES -->';
 
-export const PROMPT_PATH = path.resolve(import.meta.dirname, '..', 'steps', '020-cue-pass-llm', 'cue-pass-prompt.md');
+export const PROMPT_PATH = path.resolve(import.meta.dirname, '..', 'steps', '030-cue-pass-llm', 'cue-pass-prompt.md');
 
 // Returns one entry per rendered bullet, tagged with the constant key that
 // produced it — lets check-rulebook.mjs name the offending constant on drift

@@ -5,7 +5,7 @@ import { SHOT_CONSTANTS } from './shot-constants.mjs';
 export const SHOT_BEGIN_MARKER = '<!-- BEGIN GENERATED SHOT CONSTRAINTS — edit lib/shot-constants.mjs, then run node lib/build-shot-prompt.mjs -->';
 export const SHOT_END_MARKER = '<!-- END GENERATED SHOT CONSTRAINTS -->';
 
-export const SHOT_PROMPT_PATH = path.resolve(import.meta.dirname, '..', 'steps', '070-shot-pass-llm', 'shot-pass-prompt.md');
+export const SHOT_PROMPT_PATH = path.resolve(import.meta.dirname, '..', 'steps', '060-shot-pass-llm', 'shot-pass-prompt.md');
 
 // Returns one entry per rendered bullet, tagged with the constant key that
 // produced it — lets check-shot-rulebook.mjs name the offending constant on
