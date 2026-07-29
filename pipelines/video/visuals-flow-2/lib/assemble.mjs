@@ -11,6 +11,7 @@ import { loadVideoManifest } from './video-manifest.mjs';
 import { registerVersion } from './versions.mjs';
 import { loadConceptSpans } from './concept-spans.mjs';
 import { SHOT_CONSTANTS } from './shot-constants.mjs';
+import { readFinalCut } from './final-cut.mjs';
 
 import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
@@ -967,6 +968,15 @@ async function main() {
   const root = path.resolve(import.meta.dirname, '..');
   const brandObj = loadBrand(root, { brand: inputs.brand || 'default' });
   const kbWorkdir = path.join(ASSEMBLE_MEDIA_ROOT, inputs.video);
+
+  if (!opts.draft && !opts.force) {
+    const fc = readFinalCut(inputs.workdir);
+    if (!fc.approved) {
+      console.error('refusing to build the full-resolution final: final-cut.json approved=false — review the Final Cut tab (node lib/board.mjs <slug>) or pass --force. Use --draft for a review copy.');
+      process.exit(1);
+    }
+  }
+
   const out = opts.out ?? path.join(kbWorkdir, opts.draft ? 'final-draft.mp4' : 'final.mp4');
   await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble: opts.bubble, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj, catalog: inputs.catalog });
 

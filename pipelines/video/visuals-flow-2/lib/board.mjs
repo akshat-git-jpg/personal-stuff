@@ -551,6 +551,16 @@ const SAVE_ACTIONS_JS = `
       location.reload();
     };
   }
+
+  const fcApproveBtn = document.getElementById('fc-approve-btn');
+  if (fcApproveBtn) {
+    fcApproveBtn.onclick = async () => {
+      const ver = document.getElementById('fc-version').value;
+      if (!ver) return;
+      await fetch('/approve-final-cut', { method: 'POST', body: JSON.stringify({ version: ver }) });
+      location.reload();
+    };
+  }
 `;
 
 function timecode(secs) {
@@ -1315,7 +1325,10 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
         <div id="fc-msg" style="margin-top:6px; color:var(--dim);"></div>
       </div>
       <div style="width:400px; flex:none; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px;">
-        <h3>Comments</h3>
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <h3>Comments</h3>
+          <button id="fc-approve-btn" class="fc-tbtn" style="border-color:var(--ok); color:var(--ok);" disabled>Approve final cut</button>
+        </div>
         <div id="fc-comments" style="margin:16px 0; max-height:400px; overflow-y:auto; font-size:14px;"></div>
         <textarea id="fc-input" rows="4" placeholder="Pause video to type comment... (Enter to send · Shift+Enter for newline · paste a screenshot to attach)" disabled></textarea>
         <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
@@ -1477,6 +1490,8 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
         const data = await s.json();
         fcStatus = data.items || {};
       } catch (e) {}
+      const btn = document.getElementById('fc-approve-btn');
+      if (btn) btn.disabled = false;
       renderFcComments(label);
     }
 
@@ -1941,6 +1956,18 @@ async function handleApproveEffects(req, res, workdir) {
   res.end(JSON.stringify({ ok: true }));
 }
 
+async function handleApproveFinalCut(req, res, workdir) {
+  const body = await readBody(req);
+  let payload;
+  try { payload = JSON.parse(body); } catch(e) { res.statusCode = 400; return res.end('{"ok":false}'); }
+  if (!payload.version) { res.statusCode = 400; return res.end('{"ok":false,"error":"missing version"}'); }
+  const fcPath = path.join(workdir, 'final-cut.json');
+  const fc = { approved: true, version: payload.version };
+  fs.writeFileSync(fcPath, JSON.stringify(fc, null, 2));
+  res.setHeader('content-type', 'application/json');
+  res.end(JSON.stringify({ ok: true }));
+}
+
 function fillerText(chars) {
   if (chars <= 0) return '';
   let s = '';
@@ -2205,6 +2232,10 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
 
   if (req.method === 'POST' && url.pathname === '/approve-effects') {
     return handleApproveEffects(req, res, workdir);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/approve-final-cut') {
+    return handleApproveFinalCut(req, res, workdir);
   }
 
   if (req.method === 'GET' && url.pathname === '/vo.mp3') {
