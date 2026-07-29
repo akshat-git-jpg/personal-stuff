@@ -598,3 +598,30 @@ test('avatar clamp: no spans -> unchanged behaviour (cap only)', async () => {
 test('avatar clamp: earlier spans are skipped, the first at-or-after wins', async () => {
   assert.equal(await clampCase([[0, 5], [8, 12], [15, 45]]), 15);
 });
+
+// Class-level guard. Three consecutive plans (162, 166, and the 2026-07-29
+// batch) were blocked by a DIFFERENT extendExposure call site missing
+// avatarSpans: first E7, then E9, then render.mjs + assemble.mjs's freshness
+// checks. Each fix targeted the one site that had been reported. This asserts
+// the property across the whole library instead, so a fourth omission fails
+// here rather than in a video three steps later.
+test('every extendExposure call site passes avatarSpans', () => {
+  const libDir = path.resolve(import.meta.dirname);
+  const offenders = [];
+  for (const f of fs.readdirSync(libDir)) {
+    if (!f.endsWith('.mjs') || f.endsWith('.test.mjs')) continue;
+    const src = fs.readFileSync(path.join(libDir, f), 'utf8');
+    // Each call spans several lines; match from the call to its closing brace.
+    const re = /extendExposure\s*\(([\s\S]*?)\}\s*\)/g;
+    let m;
+    while ((m = re.exec(src))) {
+      // The definition in resolve.mjs is not a call site.
+      if (/export function extendExposure/.test(src.slice(Math.max(0, m.index - 40), m.index))) continue;
+      if (!/avatarSpans/.test(m[1])) {
+        const line = src.slice(0, m.index).split('\n').length;
+        offenders.push(`${f}:${line}`);
+      }
+    }
+  }
+  assert.deepEqual(offenders, [], `extendExposure called without avatarSpans at: ${offenders.join(', ')}`);
+});
