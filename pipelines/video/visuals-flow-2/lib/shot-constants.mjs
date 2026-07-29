@@ -1,6 +1,6 @@
 // Single source of truth for shot-pass constraints.
 // lib/lint-shots.mjs enforces these; lib/build-shot-prompt.mjs renders them
-// into steps/070-shot-pass-llm/shot-pass-prompt.md; lib/check-shot-rulebook.mjs
+// into steps/060-shot-pass-llm/shot-pass-prompt.md; lib/check-shot-rulebook.mjs
 // fails if the rendered block and these values disagree. Never restate a number
 // in prose — add it here and regenerate.
 export const SHOT_CONSTANTS = {

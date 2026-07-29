@@ -5,6 +5,7 @@ import { loadAssemblyInputs, runAssembly, ASSEMBLE_MEDIA_ROOT, detectEncoder, pl
 import { planRender } from './render.mjs';
 import { planCaptions } from './captions.mjs';
 import { SHOT_CONSTANTS } from './shot-constants.mjs';
+import { readFinalCut } from './final-cut.mjs';
 
 const FPS = 30;
 export const frames = (sec) => Math.round(sec * FPS);
@@ -246,6 +247,15 @@ async function main() {
     process.exit(1);
   }
   const inputs = await loadAssemblyInputs({ workdir: opts.workdir, screen: null, screenOffset: 0, force: opts.force });
+  
+  if (!opts.force) {
+    const fc = readFinalCut(inputs.workdir);
+    if (!fc.approved) {
+      console.error('refusing to build the full-resolution final: final-cut.json approved=false — review the Final Cut tab (node lib/board.mjs <slug>) or pass --force. Use --draft for a review copy.');
+      process.exit(1);
+    }
+  }
+
   const exportDir = opts.out ?? path.join(ASSEMBLE_MEDIA_ROOT, inputs.video, 'resolve-export');
   const voPath = path.join(inputs.workdir, 'vo.mp3');
 

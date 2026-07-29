@@ -1,7 +1,7 @@
 // Single source of truth for cue-pass ROUTING rules (which card fires when,
 // and how cards relate to each other). Numbers live in lib/cue-constants.mjs;
 // per-card "fire me when X" lives on the card's catalog.json entry.
-// lib/build-prompt.mjs renders these into steps/020-cue-pass-llm/cue-pass-prompt.md;
+// lib/build-prompt.mjs renders these into steps/030-cue-pass-llm/cue-pass-prompt.md;
 // lib/check-rulebook.mjs fails if RULEBOOK.md restates one instead of citing it.
 // Never restate a rule in prose — add it here and regenerate.
 export const CUE_RULES = {
