@@ -1,4 +1,4 @@
-# 030 · cue-pass · [LLM] (pluggable: Sonnet default; agy/Antigravity allowed as form-fillers)
+# 030 · place graphics · [LLM] (pluggable: Sonnet default; agy/Antigravity allowed as form-fillers)
 
 - **In:** `videos/<slug>/transcript.json`, `card-library/catalog.json`
 - **Out:** `videos/<slug>/cues.json`

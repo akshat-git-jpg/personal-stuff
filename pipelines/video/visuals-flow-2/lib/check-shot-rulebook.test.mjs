@@ -6,7 +6,7 @@ import path from 'node:path';
 import { checkShotRulebook } from './check-shot-rulebook.mjs';
 
 const REAL_CONSTANTS_PATH = path.join(import.meta.dirname, 'shot-constants.mjs');
-const REAL_PROMPT_PATH = path.join(import.meta.dirname, '..', 'steps', '070-shot-pass-llm', 'shot-pass-prompt.md');
+const REAL_PROMPT_PATH = path.join(import.meta.dirname, '..', 'steps', '060-place-avatar-llm', 'shot-pass-prompt.md');
 
 test('check-shot-rulebook: baseline passes on the repo as committed', () => {
   assert.doesNotThrow(() => checkShotRulebook());

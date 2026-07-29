@@ -1,4 +1,4 @@
-# 050 · cue-audit · [LLM]
+# 050 · review graphics · [LLM]
 
 This step runs the storyboard self-audit (the "mute test"). It runs AFTER 040 resolve+lint, and BEFORE the 080 owner board.
 

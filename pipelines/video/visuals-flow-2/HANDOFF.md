@@ -85,7 +85,7 @@ Caller contract for other pipelines: `INTEGRATION.md`.
   wav, extracts vo.mp3 itself, slug-or-path arg. NOTE: test-01's transcript is
   from the LOCAL engine with garbled names ("Heigen"); anchors quote the
   garbles verbatim by design — leave test-01's transcript alone.
-- **020 cue pass**: prompt = `steps/020-cue-pass-llm/cue-pass-prompt.md` +
+- **020 cue pass**: prompt = `steps/030-place-graphics-llm/cue-pass-prompt.md` +
   catalog + transcript. Convention since plan 076: the final LLM output is
   snapshotted to `cues.llm.json` (committed, immutable) BEFORE owner edits —
   `lib/edit-delta.mjs` diffs it against the approved cues.json at fold time.
@@ -150,7 +150,7 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 
 ## Where the rules live (seven surfaces)
 
-1. `steps/020-cue-pass-llm/cue-pass-prompt.md` — the operative ruleset the
+1. `steps/030-place-graphics-llm/cue-pass-prompt.md` — the operative ruleset the
    cue-pass model reads. Its constraints block is generated; never hand-edit
    between the markers.
 2. `lib/cue-constants.mjs` — the numbers. The single source for every
@@ -160,9 +160,9 @@ Caller contract for other pipelines: `INTEGRATION.md`.
    placement, `structural`.
 5. `card-library/DESIGN.md` — the visual rules every card obeys, and the
    palette.
-6. `steps/020-cue-pass-llm/RULEBOOK.md` — the judgment archive. Dated owner
+6. `steps/030-place-graphics-llm/RULEBOOK.md` — the judgment archive. Dated owner
    folds and the WHY.
-7. `steps/070-shot-pass-llm/` + `lib/lint-shots.mjs` — the avatar-span
+7. `steps/060-place-avatar-llm/` + `lib/lint-shots.mjs` — the avatar-span
    equivalents of 1 to 3.
 
 Assembly effects are a different domain from cue selection: `EFFECTS.md` +
@@ -245,11 +245,11 @@ brainstorms.** Standing next steps in priority order:
    Feedback via board boxes or plain chat → 060 fold. Per-instance kills:
    `videos/test-01/effects.json` (still `approved:false` — approving it on the
    board retires the `--force` on exports). The 1080p ship render is one
-   command away (`bash steps/090-assemble-run/run.sh test-01`, no --draft;
+   command away (`bash steps/110-build-video-run/run.sh test-01`, no --draft;
    plan 102 landed — cold-cache full draft benchmarked at 3m16s). NEW tools
    for this watch: `bash scripts/qc-video.sh test-01` + the "qc the video"
    verb (filmstrip pre-check), and the native editor project
-   (`bash steps/095-resolve-export-run/run.sh test-01 --force` → import in
+   (`bash steps/140-davinci-export-run/run.sh test-01 --force` → import in
    Resolve) for hands-on review/fixes.
 1b. **Corner bubble needs footage**: the bubble module is live but no-ops
    until a HeyGen run WITHOUT `--spans-only` produces corner clips
@@ -297,7 +297,7 @@ node lib/feedback-status.mjs                       # MUST exit 0 before any new 
 bash steps/010-transcribe-run/run.sh <slug-or-path>
 node lib/segments.mjs <slug> --propose             # 015: proposes segments.json; MUST set confirmed: true
 node lib/plan-skeleton.mjs <slug>                  # emits the {{SKELETON}} placement grid for the prompt
-# 020: Sonnet session with steps/020-cue-pass-llm/cue-pass-prompt.md (the prompt only;
+# 020: Sonnet session with steps/030-place-graphics-llm/cue-pass-prompt.md (the prompt only;
 #      RULEBOOK.md is the 060 fold's archive). Fill placeholders with catalog.json +
 #      `node lib/transcript-text.mjs <slug>` output (never raw transcript.json)
 #      -> videos/<slug>/cues.json, then snapshot to cues.llm.json after the
@@ -307,17 +307,17 @@ node lib/lint-cues.mjs <slug>                      # errors -> feed back to 020,
 node lib/board.mjs [<slug>]                        # review at :4322, Save/Approve (+ /calibrate)
 node lib/render.mjs <slug> [--quality draft]       # refuses unapproved/stale; --force exists
 node lib/edit-delta.mjs <slug>                     # owner-edit diff for the fold
-# 070 (after cues approved): Sonnet session with steps/070-shot-pass-llm/shot-pass-prompt.md
+# 070 (after cues approved): Sonnet session with steps/060-place-avatar-llm/shot-pass-prompt.md
 #      (the prompt only). Inputs: fullframe cue times + `node lib/transcript-text.mjs <slug>`
 #      output -> videos/<slug>/shots.json, snapshot shots.llm.json
 node lib/resolve-shots.mjs <slug>                  # anchors -> shots.resolved.json
 node lib/lint-shots.mjs <slug>                     # budget/overlap/U-curve; errors -> back to 070
 #      then board: review shot lane, "Approve shots"
-bash steps/080-avatar-render-run/run.sh <slug> --template <registry-slug> --submit [--spans-only]  # OWNER-RUN (live HeyGen; --spans-only skips the corner track)
-bash steps/080-avatar-render-run/run.sh <slug> --download                            # re-run until no "pending:"
+bash steps/100-render-avatar-run/run.sh <slug> --template <registry-slug> --submit [--spans-only]  # OWNER-RUN (live HeyGen; --spans-only skips the corner track)
+bash steps/100-render-avatar-run/run.sh <slug> --download                            # re-run until no "pending:"
 # 090 (needs videos/<slug>/screen.mp4, VO-aligned, owner-provided):
-bash steps/090-assemble-run/run.sh <slug> [--draft] [--encoder x264|videotoolbox]    # -> kb-scratch final.mp4 (+ assembly.md EDL); --draft = 720p final-draft.mp4
-bash steps/095-resolve-export-run/run.sh <slug> [--baked] [--bundle]   # -> native layered editor project (default) or baked WYSIWYG (--baked)
+bash steps/110-build-video-run/run.sh <slug> [--draft] [--encoder x264|videotoolbox]    # -> kb-scratch final.mp4 (+ assembly.md EDL); --draft = 720p final-draft.mp4
+bash steps/140-davinci-export-run/run.sh <slug> [--baked] [--bundle]   # -> native layered editor project (default) or baked WYSIWYG (--baked)
 bash scripts/qc-video.sh <slug> [--final]          # -> kb-scratch qc/ pack; then READ the sheets (skill verb "qc the video")
 bash scripts/check.sh                              # flow gate
 (cd ../card-library && bash scripts/beat-smoke.sh) # card gate

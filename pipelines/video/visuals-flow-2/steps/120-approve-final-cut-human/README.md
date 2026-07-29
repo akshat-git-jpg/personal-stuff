@@ -1,4 +1,4 @@
-# Step 120: Final Cut Review (Owner)
+# 120 · approve final cut · [HUMAN]
 
 **What you judge**: motion, sound, pacing, and captions — evaluated in motion, not from stills.
 **How**: use the Final Cut tab on the board, leave timestamped and pinned comments, compare versions, and use live check-off.

@@ -1,4 +1,4 @@
-# Step 070: Zone Review (Owner)
+# 070 · approve intro + outro · [HUMAN]
 
 **What you approve**: the cards planned for the intro and conclusion, each marked EXISTING or NEW-to-build, plus the one-line spec of any proposed new card.
 

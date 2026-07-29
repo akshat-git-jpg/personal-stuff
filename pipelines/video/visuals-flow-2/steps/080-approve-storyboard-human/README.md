@@ -1,4 +1,4 @@
-# 080 · storyboard-review · [OWNER]
+# 080 · approve storyboard · [HUMAN]
 
 **MANDATORY GATE 1 — never skipped, at any video length** (owner decision
 2026-07-25, decisions.md). This is the PLAN review: the owner finalises avatar

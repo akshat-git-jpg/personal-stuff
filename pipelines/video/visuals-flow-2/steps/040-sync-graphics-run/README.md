@@ -1,4 +1,4 @@
-# 040 · resolve · [RUN]
+# 040 · sync graphics · [RUN]
 
 - **In:** `videos/<slug>/cues.json`, `videos/<slug>/transcript.json`, `card-library/catalog.json`
 - **Out:** `videos/<slug>/resolved.json` (absolute times + merged variables)

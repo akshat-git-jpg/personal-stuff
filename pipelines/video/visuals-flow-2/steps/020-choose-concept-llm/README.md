@@ -1,4 +1,4 @@
-# 020 · concept-pass · [LLM]
+# 020 · choose concept · [LLM]
 
 This step authors the whole-video concept, establishing the core thesis, the recurring visual motif, and the register map (dark vs. light).
 

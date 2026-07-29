@@ -1,4 +1,4 @@
-# 090 · render · [RUN]
+# 090 · render graphics · [RUN]
 
 - **In:** `videos/<slug>/resolved.json`
 - **Out:** `videos/<slug>/renders/*.mp4|mov` (final clips, gitignored) +

@@ -15,39 +15,39 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 |---|---|---|
 | `010-transcribe-run` | [RUN] + quality pass [RUN/LLM] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) + optional `script.txt` → `transcript.json` (word timestamps, cleaned — never raw ASR punctuation; script-first alignment when `script.txt` exists, else an LLM cleanup pass, both gated by `checkTimingIntegrity()`) |
 | `015-segments-propose` | [RUN] | `transcript.json` → `segments.json` (demo vs narration segments) |
-| `020-concept-pass-llm` | [LLM] | `transcript.json` → `concept.json` (gate `lint-concept`) |
+| `020-choose-concept-llm` | [LLM] | `transcript.json` → `concept.json` (gate `lint-concept`) |
 | `plan-skeleton` | [RUN] | `transcript.json` + `segments.json` → deterministic placement grid (the `{{SKELETON}}` prompt variable) |
-| `030-cue-pass-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json` (bespoke escalation rule) |
-| `040-resolve-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9) |
-| `050-cue-audit-llm` | [LLM] | `resolved.json` → `audit.json` (mute test) |
-| `060-shot-pass-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel) |
-| `070-zone-review-owner` | [OWNER] | `cues.json` + `segments.json` → `zone-plan.json` (**REVIEW 1: Zone Plan**. Prevents wasting render cycles on intro/conclusion concepts that need board approval before production) |
-| `080-storyboard-review-owner` | [OWNER] | `resolved.json` → approved `cues.json` + `shots.json` (**REVIEW 2: Storyboard**. Composition only — screen vs graphics vs avatar+mode, skippable on short videos. Localhost:4322 board; audit-gate blocks labelled fullframes) |
-| `090-render-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` (brand-inline; bespoke staging; variant rotation) |
-| `100-avatar-render-run` | [OWNER live HeyGen] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
+| `030-place-graphics-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json` (bespoke escalation rule) |
+| `040-sync-graphics-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9) |
+| `050-review-graphics-llm` | [LLM] | `resolved.json` → `audit.json` (mute test) |
+| `060-place-avatar-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel) |
+| `070-approve-intro-outro-human` | [OWNER] | `cues.json` + `segments.json` → `zone-plan.json` (**REVIEW 1: Zone Plan**. Prevents wasting render cycles on intro/conclusion concepts that need board approval before production) |
+| `080-approve-storyboard-human` | [OWNER] | `resolved.json` → approved `cues.json` + `shots.json` (**REVIEW 2: Storyboard**. Composition only — screen vs graphics vs avatar+mode, skippable on short videos. Localhost:4322 board; audit-gate blocks labelled fullframes) |
+| `090-render-graphics-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` (brand-inline; bespoke staging; variant rotation) |
+| `100-render-avatar-run` | [OWNER live HeyGen] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
 | `effects-plan` | [RUN] | `resolved.json` → `effects.json` (auto-approved — reviewed on Final Cut; register transitions, motif lane, captions default-on) |
 | `sound` | [RUN] | `resolved.json` + `effects.json` → `sound.json` (auto-approved — reviewed on Final Cut) |
 | `mix` | [RUN] | `vo.mp3` + `sound.json` → `master.wav` (auto-approved — reviewed on Final Cut; −14 LUFS, frame-exact) + bounces |
-| `110-assemble-run` | [RUN] | `screen.mp4` + `master.wav` + `renders/` + avatar clips → `final.mp4` (freeze gap-filler, version registry) + `assembly.md` |
-| `120-final-cut-review-owner` | [OWNER] | `final.mp4` → `final-cut.json` (**REVIEW 3: Final Cut**. Motion and sound review — effects, sound, pacing, captions; judged in motion) |
-| `130-feedback-fold-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
-| `140-resolve-export-run` | [RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)] | same inputs as 110 → layered FCPXML + music/sfx lanes + panel transforms |
+| `110-build-video-run` | [RUN] | `screen.mp4` + `master.wav` + `renders/` + avatar clips → `final.mp4` (freeze gap-filler, version registry) + `assembly.md` |
+| `120-approve-final-cut-human` | [OWNER] | `final.mp4` → `final-cut.json` (**REVIEW 3: Final Cut**. Motion and sound review — effects, sound, pacing, captions; judged in motion) |
+| `130-learn-from-feedback-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
+| `140-davinci-export-run` | [RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)] | same inputs as 110 → layered FCPXML + music/sfx lanes + panel transforms |
 | qc (`scripts/qc-video.sh`) | [RUN] + [LLM read] | `final(-draft).mp4` + `assembly.md` + `effects.json` → kb-scratch `qc/` pack (checklist + event contact sheets) → session-read verdicts in committed `qc-report.md` |
 
 **Old to New Step Number Map:**
-- 018-concept-pass → 020-concept-pass-llm
-- 020-cue-pass-llm → 030-cue-pass-llm
-- 030-resolve-run → 040-resolve-run
-- 035-cue-audit → 050-cue-audit-llm
-- 070-shot-pass-llm → 060-shot-pass-llm
-- zone-plan → 070-zone-review-owner
-- 040-storyboard-review-owner → 080-storyboard-review-owner
-- 050-render-run → 090-render-run
-- 080-avatar-render-run → 100-avatar-render-run
-- 090-assemble-run → 110-assemble-run
-- (new) 120-final-cut-review-owner
-- 060-feedback-fold-opus → 130-feedback-fold-opus
-- 095-resolve-export-run → 140-resolve-export-run
+- 018-concept-pass → 020-choose-concept-llm
+- 030-place-graphics-llm → 030-place-graphics-llm
+- 040-sync-graphics-run → 040-sync-graphics-run
+- 035-cue-audit → 050-review-graphics-llm
+- 060-place-avatar-llm → 060-place-avatar-llm
+- zone-plan → 070-approve-intro-outro-human
+- 080-approve-storyboard-human → 080-approve-storyboard-human
+- 090-render-graphics-run → 090-render-graphics-run
+- 100-render-avatar-run → 100-render-avatar-run
+- 110-build-video-run → 110-build-video-run
+- (new) 120-approve-final-cut-human
+- 130-learn-from-feedback-opus → 130-learn-from-feedback-opus
+- 140-davinci-export-run → 140-davinci-export-run
 | **publish templates** | [RUN] | once the video is done: `cd ../card-library && npm run publish-check` → fails on any card built for this video that is uncommitted or unpushed. Cards only reach the editor's gallery at render2.agrolloo.com once pushed (VPS `repo-sync` cron, ~15 min). See `card-library/CLAUDE.md`. |
 
 ### The entry point

@@ -29,7 +29,7 @@ export function checkShotRulebook({
   promptPath,
   shotConstants = SHOT_CONSTANTS,
 } = {}) {
-  const shotPassStepDir = path.resolve(import.meta.dirname, '..', 'steps', '060-shot-pass-llm');
+  const shotPassStepDir = path.resolve(import.meta.dirname, '..', 'steps', '060-place-avatar-llm');
   rulebookPath ??= path.join(shotPassStepDir, 'RULEBOOK.md');
   promptPath ??= path.join(shotPassStepDir, 'shot-pass-prompt.md');
 

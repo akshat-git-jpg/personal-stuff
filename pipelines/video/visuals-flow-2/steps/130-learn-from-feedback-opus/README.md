@@ -1,4 +1,4 @@
-# 130 · feedback-fold · [OPUS] (the learning step)
+# 130 · learn from feedback · [OPUS] (the learning step)
 
 Owner feedback must never be applied ad-hoc and forgotten — this step is the
 guarantee that a correction given once is never needed twice.
@@ -17,7 +17,7 @@ guarantee that a correction given once is never needed twice.
    - **Explicit (typed)**: pending items from `node lib/feedback-status.mjs`.
    - **Implicit (edits)**: run `node lib/edit-delta.mjs <slug>` for each video reviewed since the last fold. Treat systematic edits (the same kind of change 3+ times, e.g. reveals consistently shortened, holds consistently raised) as feedback items to fold. Treat one-off edits as already-applied instance fixes needing no rule.
 2. For each item, decide WHERE the lesson lives, and edit that surface:
-   - selection/timing/density mistake → `steps/030-cue-pass-llm/RULEBOOK.md`
+   - selection/timing/density mistake → `steps/030-place-graphics-llm/RULEBOOK.md`
      AND the compressed rule in `cue-pass-prompt.md` (both, always — the prompt
      is what the model actually sees)
    - quantitative selection rule (caps, spacing, zones, density) → `lib/lint-cues.mjs` thresholds

@@ -1,9 +1,9 @@
-# 140 · resolve-export · [RUN]
+# 140 · davinci export · [RUN]
 
 Same gates as assembly (the exporter enforces them itself: cues approved +
 rendered, shots approved with clips downloaded, screen.mp4 present).
 
-    bash steps/140-resolve-export-run/run.sh <slug> [--baked] [--bundle] [--force]
+    bash steps/140-davinci-export-run/run.sh <slug> [--baked] [--bundle] [--force]
 
 DEFAULT is the NATIVE layered project (near-instant, no encoding):
 continuous screen on the spine, avatar/graphics/overlays/FX clips each on

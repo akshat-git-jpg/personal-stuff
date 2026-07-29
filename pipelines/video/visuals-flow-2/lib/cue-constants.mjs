@@ -1,6 +1,6 @@
 // Single source of truth for cue-pass constraints.
 // lib/lint-cues.mjs enforces these; lib/build-prompt.mjs renders them into
-// steps/030-cue-pass-llm/cue-pass-prompt.md; lib/check-rulebook.mjs fails if
+// steps/030-place-graphics-llm/cue-pass-prompt.md; lib/check-rulebook.mjs fails if
 // the rendered block and these values disagree. Never restate a number in
 // prose — add it here and regenerate.
 export const CUE_CONSTANTS = {
