@@ -1037,3 +1037,4 @@ old→new map in `PIPELINE.md` is how they stay readable.
 
 - 167-vf2-renumber-steps-and-three-reviews — numeric order becomes run order + 3 explicit reviews — TODO (needs 164)
 - 167-vf2-renumber-steps-and-three-reviews — PR#125 167-vf2-renumber-steps-and-three-reviews: numeric order becomes run order, plus the three owner reviews — DONE
+- 158-vf2-cut-the-conclusion — PR#116 158-vf2-cut-the-conclusion: cut and cue the 79s conclusion the video never reaches — DONE
