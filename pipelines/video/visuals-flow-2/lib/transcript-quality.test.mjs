@@ -145,7 +145,11 @@ test('CLI apply: fails loudly and leaves transcript.json untouched on a desynced
 // the result still clears checkTimingIntegrity with fewer commas than the
 // source. The filler indices and merge pair below were found by hand-reading
 // the fixture; re-derive them if the fixture ever changes.
-const TEST_03_RAW = path.join(import.meta.dirname, '..', 'videos', 'test-03', 'transcript.groq-raw.bak.json');
+// Committed fixture, NOT a live video workdir. This test used to read
+// videos/test-03/transcript.groq-raw.bak.json directly and broke the moment
+// that video was cleaned up for a fresh run (2026-07-30) — a test must never
+// depend on a workdir someone is expected to wipe.
+const TEST_03_RAW = path.join(import.meta.dirname, 'fixtures', 'raw-transcript-groq.json');
 
 test('real cleanup run over test-03 raw transcript: comma count drops, zero integrity errors', () => {
   const before = JSON.parse(fs.readFileSync(TEST_03_RAW, 'utf8'));

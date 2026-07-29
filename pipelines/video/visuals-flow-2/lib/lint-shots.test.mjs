@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { lintShots } from './lint-shots.mjs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
+import fs from 'node:fs';
+import os from 'node:os';
 
 const words = Array.from({ length: 1200 }, (_, i) => ({ text: `w${i}`, start: i, end: i + 1 }));
 const mockCatalog = {
@@ -228,8 +230,27 @@ test('long side span DOES trip the full-screen cap', () => {
 test('lint-shots CLI resolves the real catalog from a workdir', () => {
   // The bug lived in main(), which no test touched: every case called
   // lintShots({ catalog: mockCatalog }) and never resolved a path.
-  const res = spawnSync(process.execPath, ['lib/lint-shots.mjs', 'test-03'], {
-    cwd: path.resolve(import.meta.dirname, '..'), encoding: 'utf8',
-  });
-  assert.ok(!/ENOENT/.test(res.stderr), `lint-shots threw ENOENT:\n${res.stderr.slice(-500)}`);
+  //
+  // Built on a throwaway workdir rather than a real video. This used to run
+  // against `test-03` and broke the moment that video was cleaned up for a
+  // fresh run (2026-07-30) — a test must never depend on a workdir someone is
+  // expected to wipe.
+  const root = path.resolve(import.meta.dirname, '..');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lint-shots-cli-'));
+  try {
+    const words = [
+      { text: 'welcome', start: 0.0, end: 0.4 },
+      { text: 'back', start: 0.4, end: 0.8 },
+      { text: 'everyone', start: 0.8, end: 1.4 },
+    ];
+    fs.writeFileSync(path.join(dir, 'transcript.json'), JSON.stringify(words));
+    fs.writeFileSync(path.join(dir, 'resolved.json'), JSON.stringify({ video: 'tmp', resolved: [] }));
+    fs.writeFileSync(path.join(dir, 'shots.resolved.json'), JSON.stringify({ video: 'tmp', shots: [] }));
+
+    const res = spawnSync(process.execPath, ['lib/lint-shots.mjs', dir], { cwd: root, encoding: 'utf8' });
+    assert.ok(!/ENOENT/.test(res.stderr), `lint-shots threw ENOENT:\n${res.stderr.slice(-500)}`);
+    assert.equal(res.status, 0, res.stderr);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
