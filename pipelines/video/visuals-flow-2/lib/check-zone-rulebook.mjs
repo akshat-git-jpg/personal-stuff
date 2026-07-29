@@ -37,7 +37,7 @@ export function checkZoneRulebook({
   zoneConstants = ZONE_CONSTANTS,
   zoneRules = ZONE_RULES,
 } = {}) {
-  const stepDir = path.resolve(import.meta.dirname, '..', 'steps', '035-place-intro-outro-llm');
+  const stepDir = path.resolve(import.meta.dirname, '..', 'steps', '035-pick-or-propose-intro-outro-llm');
   rulebookPath ??= path.join(stepDir, 'RULEBOOK.md');
   promptPath ??= path.join(stepDir, 'zone-pass-prompt.md');
 

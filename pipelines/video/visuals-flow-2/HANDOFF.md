@@ -85,7 +85,7 @@ Caller contract for other pipelines: `INTEGRATION.md`.
   wav, extracts vo.mp3 itself, slug-or-path arg. NOTE: test-01's transcript is
   from the LOCAL engine with garbled names ("Heigen"); anchors quote the
   garbles verbatim by design — leave test-01's transcript alone.
-- **020 cue pass**: prompt = `steps/030-place-graphics-llm/cue-pass-prompt.md` +
+- **020 cue pass**: prompt = `steps/030-pick-or-propose-graphics-llm/cue-pass-prompt.md` +
   catalog + transcript. Convention since plan 076: the final LLM output is
   snapshotted to `cues.llm.json` (committed, immutable) BEFORE owner edits —
   `lib/edit-delta.mjs` diffs it against the approved cues.json at fold time.
@@ -150,7 +150,7 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 
 ## Where the rules live (seven surfaces)
 
-1. `steps/030-place-graphics-llm/cue-pass-prompt.md` — the operative ruleset the
+1. `steps/030-pick-or-propose-graphics-llm/cue-pass-prompt.md` — the operative ruleset the
    cue-pass model reads. Its constraints block is generated; never hand-edit
    between the markers.
 2. `lib/cue-constants.mjs` — the numbers. The single source for every
@@ -160,7 +160,7 @@ Caller contract for other pipelines: `INTEGRATION.md`.
    placement, `structural`.
 5. `card-library/DESIGN.md` — the visual rules every card obeys, and the
    palette.
-6. `steps/030-place-graphics-llm/RULEBOOK.md` — the judgment archive. Dated owner
+6. `steps/030-pick-or-propose-graphics-llm/RULEBOOK.md` — the judgment archive. Dated owner
    folds and the WHY.
 7. `steps/060-place-avatar-llm/` + `lib/lint-shots.mjs` — the avatar-span
    equivalents of 1 to 3.
@@ -297,7 +297,7 @@ node lib/feedback-status.mjs                       # MUST exit 0 before any new 
 bash steps/010-transcribe-run/run.sh <slug-or-path>
 node lib/segments.mjs <slug> --propose             # 015: proposes segments.json; MUST set confirmed: true
 node lib/plan-skeleton.mjs <slug>                  # emits the {{SKELETON}} placement grid for the prompt
-# 020: Sonnet session with steps/030-place-graphics-llm/cue-pass-prompt.md (the prompt only;
+# 020: Sonnet session with steps/030-pick-or-propose-graphics-llm/cue-pass-prompt.md (the prompt only;
 #      RULEBOOK.md is the 060 fold's archive). Fill placeholders with catalog.json +
 #      `node lib/transcript-text.mjs <slug>` output (never raw transcript.json)
 #      -> videos/<slug>/cues.json, then snapshot to cues.llm.json after the

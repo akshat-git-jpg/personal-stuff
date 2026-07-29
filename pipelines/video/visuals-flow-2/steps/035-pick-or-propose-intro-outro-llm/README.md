@@ -1,4 +1,4 @@
-# 035 · place intro + outro · [LLM] (Sonnet default; same pluggability as 030)
+# 035 · pick or propose intro + outro · [LLM] (Sonnet default; same pluggability as 030)
 
 Author the graphics for the **intro and the conclusion only**. These two zones
 are the ones the owner judges hardest, so they get their own pass, their own

@@ -34,9 +34,13 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
 **Review model (owner reaffirmed 2026-07-29 — see decisions.md):** three owner
 gates, and **none is skippable at any video length**.
 
-**Gate 1 — Zone Plan (PLAN review, comes first).** The owner reviews the concept 
-placement on the timeline to prevent wasting render cycles on intro/conclusion concepts
-that need board approval before production.
+**Gate 1 — Card Plan (step 037, comes first).** Every card the video will use —
+body, intro and conclusion — marked EXISTING or NEW-to-build, approved before
+anything is built or rendered. `bash run.sh <slug> outline` reads it as text;
+the Card Plan tab on the board is where it is approved. A NEW card goes to step
+038, which builds it into the shared collection. This replaced the zone-only
+070 gate on 2026-07-30 — the body's build-vs-reuse call was previously made by
+nobody.
 
 **Gate 2 — Storyboard (COMPOSITION review).** The owner reviews and
 finalises the whole plan before ANY render:

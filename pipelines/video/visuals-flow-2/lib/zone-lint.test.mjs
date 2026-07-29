@@ -7,7 +7,6 @@ import assert from 'node:assert/strict';
 import { lintCues } from './lint-cues.mjs';
 import { ZONE_CONSTANTS } from './zone-constants.mjs';
 import { mergeIntervals, subtractIntervals, parseFreezeLog, stillRuns, checkZoneStillness } from './stillness.mjs';
-import { appendZoneFeedback } from './zone-plan.mjs';
 
 const INTRO_END = 117.6; // test-03's measured intro
 
@@ -225,24 +224,4 @@ test('checkZoneStillness reports not-applicable when there is no footage', () =>
   });
   assert.equal(checked, false);
   assert.deepEqual(warnings, []);
-});
-
-// ---- 070 gate feedback ----
-
-test('appendZoneFeedback tags the zone and numbers keys per zone', () => {
-  let fb = appendZoneFeedback({}, 'intro', { text: 'promise card is weak', cue: 'z1', card: 'title/title-versus' });
-  fb = appendZoneFeedback(fb, 'intro', { text: 'second note' });
-  fb = appendZoneFeedback(fb, 'conclusion', { text: 'needs the CTA earlier' });
-  assert.deepEqual(Object.keys(fb.items).sort(), ['zone-conclusion:1', 'zone-intro:1', 'zone-intro:2']);
-  assert.equal(fb.items['zone-intro:1'].zone, 'intro');
-  assert.equal(fb.items['zone-intro:1'].context.cue, 'z1');
-  // A zone-level note carries no cue context — it is about the whole zone.
-  assert.equal(fb.items['zone-intro:2'].context, undefined);
-});
-
-test('appendZoneFeedback never collides with storyboard or final-cut keys', () => {
-  const fb = appendZoneFeedback({ items: { c05: { text: 'x' }, 'final-v1:1': { text: 'y' } } }, 'intro', { text: 'z' });
-  assert.ok(fb.items.c05, 'storyboard item survived');
-  assert.ok(fb.items['final-v1:1'], 'final-cut item survived');
-  assert.ok(fb.items['zone-intro:1'], 'zone item added');
 });

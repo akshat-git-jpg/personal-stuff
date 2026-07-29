@@ -128,11 +128,11 @@ async function main() {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
   const workdir = resolveWorkdir(opts.workdir);
 
-  const zonePlanPath = path.join(workdir, 'zone-plan.json');
-  if (fs.existsSync(zonePlanPath)) {
-    const zonePlan = JSON.parse(fs.readFileSync(zonePlanPath, 'utf8'));
-    if (zonePlan.approved !== true && !opts.force) {
-      console.error('refusing to render: zone-plan.json approved=false — review the Zone Plan tab (node lib/board.mjs <slug>) or pass --force');
+  const cardPlanPath = path.join(workdir, 'card-plan.json');
+  if (fs.existsSync(cardPlanPath)) {
+    const cardPlan = JSON.parse(fs.readFileSync(cardPlanPath, 'utf8'));
+    if (cardPlan.approved !== true && !opts.force) {
+      console.error('refusing to render: card-plan.json approved=false — review the Card Plan tab (node lib/board.mjs <slug>) or pass --force');
       process.exit(1);
     }
   }
@@ -191,16 +191,9 @@ async function main() {
     try {
       fs.cpSync(path.join(cardLibraryRoot, 'hyperframes.json'), path.join(stagedDir, 'hyperframes.json'));
       fs.cpSync(path.join(cardLibraryRoot, 'meta.json'), path.join(stagedDir, 'meta.json'));
-      let stagedCardDir;
-      if (cue.card === 'bespoke') {
-        stagedCardDir = path.join(stagedDir, 'bespoke', cue.bespoke);
-        fs.mkdirSync(path.dirname(stagedCardDir), { recursive: true });
-        fs.cpSync(path.join(workdir, 'bespoke', cue.bespoke), stagedCardDir, { recursive: true });
-      } else {
-        stagedCardDir = path.join(stagedDir, cue.card);
-        fs.mkdirSync(path.dirname(stagedCardDir), { recursive: true });
-        fs.cpSync(path.join(cardLibraryRoot, cue.card), stagedCardDir, { recursive: true });
-      }
+      const stagedCardDir = path.join(stagedDir, cue.card);
+      fs.mkdirSync(path.dirname(stagedCardDir), { recursive: true });
+      fs.cpSync(path.join(cardLibraryRoot, cue.card), stagedCardDir, { recursive: true });
 
       const indexPath = path.join(stagedCardDir, 'index.html');
       const html = fs.readFileSync(indexPath, 'utf8');

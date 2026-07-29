@@ -100,7 +100,8 @@ Choosing a card — route by what the VO is doing, matching catalog `purpose` li
 - FIRST scan the `enacted/` family (and other cards whose `intent` matches) for a device that DOES the clause; only when none fits may a legacy reveal/text card be used, and then the cue must carry `"legacy_why": "<one line>"`.
 - Narration makes a claim, lists items, or states numbers and the screen does not show it → fullframe canvas beat (`slate/headline-chips`, `comparison/table-rows`, section slates). The screen already shows what is spoken → no graphic.
 - Enumerating pros/cons -> pros-cons; ordered list OR a sentence enumerating 3+ comma-separated items -> checklist/icon-pills or bullet-points (one beat per item — never a single text slate); feature-by-feature comparison -> feature-matrix or summary-table; final judgment -> a verdict card; opening a section -> a section/title card; one reinforced claim -> an overlay card.
-Bespoke escalation moves earlier: when the audit WOULD call it labelled (apply the mute test yourself while authoring) and no device fits, set `flagged: true` immediately with a `fix`-style note — do not place a filler text card. Choosing between cards: read each candidate's intent / anti_intent lines; an anti_intent match is a hard veto. PROPOSE A NEW CARD (mandatory): when no existing card enacts the clause, the answer is a NEW TEMPLATE, not the nearest existing one. Name the card you would build and give a one-line spec of what it DOES, in the cue's `fix` note. Never settle for a weaker existing card and never accept "labelled" as the outcome just because the catalog is short — the library is meant to grow with the videos.
+Choosing between cards: read each candidate's intent / anti_intent lines; an anti_intent match is a hard veto.
+PROPOSE A NEW CARD — a first-class outcome, not a last resort. Apply the mute test yourself while authoring: the moment you would have to accept "labelled", or no device enacts the clause, propose the card that would. Set `card` to the slug you would build (`<family>/<name>`, a slug that is NOT in the catalog) and add a `propose` object alongside it: `{"does": "<what the card DOES on screen, one line>", "kind": "single|beat", "placement": "fullframe|overlay", "beats": <count, beat cards only>, "variables": ["<what varies>"]}`. Never place a filler text card, never settle for a weaker existing card, and never accept "labelled" because the catalog is short. The owner approves or kills each proposal at step 037 and step 038 builds the survivors into the shared collection, so a proposal costs nothing if rejected and grows the library if accepted. Reserve `flagged: true` for the rare case where you cannot even describe the card that would work.
 
 Specificity wins (mandatory): big number -> overlay/stat-hit; plan/credit economics too dense to say -> comparison/credits-math; step walkthrough NOT shown on screen -> process/step-flow; who-should-buy-what payoff -> verdict/persona-match.
 
@@ -198,5 +199,9 @@ TRANSCRIPT (verbatim word sequence via `node lib/transcript-text.mjs <slug>` —
 
 - raw JSON only — no markdown fences, no commentary.
 - `flagged` cues are allowed; never skip a point because no card fits.
+- Proposing a card that does not exist yet is EXPECTED, not an error. Set `card`
+  to the slug you would build and add a `propose` object:
+  `{"does": "...", "kind": "single|beat", "placement": "fullframe|overlay", "beats": 3, "variables": ["..."]}`.
+  Every other field on the cue (anchor, beats, variables) is authored as normal.
 - When unsure between two cards, prefer the one whose `purpose` line matches
   the VO's action more closely.

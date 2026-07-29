@@ -109,20 +109,12 @@ export function validateCues(cues, catalog, cardLibraryRoot, workdir) {
   const regPath = cardLibraryRoot ? path.join(cardLibraryRoot, 'logos', 'registry.json') : null;
   const registry = regPath && fs.existsSync(regPath) ? JSON.parse(fs.readFileSync(regPath, 'utf8')) : {};
   for (const cue of cues) {
-    if (cue.card === 'bespoke') {
-      if (cue.flagged) continue;
-      if (!cue.bespoke) errors.push(`${cue.id}: bespoke card requires "bespoke" dirname`);
-      if (!['fullframe', 'overlay'].includes(cue.placement)) errors.push(`${cue.id}: bespoke card requires placement "fullframe" or "overlay"`);
-      if (cue.bespoke && workdir) {
-        const bespokeDir = path.join(workdir, 'bespoke', cue.bespoke);
-        if (!fs.existsSync(path.join(bespokeDir, 'index.html'))) {
-          errors.push(`${cue.id}: bespoke dir ${cue.bespoke} missing index.html`);
-        }
-      }
-      continue;
-    }
     const cat = bySlug[cue.card];
-    if (!cat || cue.flagged) continue; // unknown cards error in resolveCues; flagged cues are parked
+    // An unbuilt card is legal HERE and only here: this validator runs before
+    // the 037 gate, where a cue may still name a card that step 038 has not
+    // built yet. resolveCues rejects it — by then 038 has run and an unknown
+    // card is a real error (owner 2026-07-30).
+    if (!cat || cue.flagged) continue;
     const beats = cue.beats ?? [];
     const vars = cue.variables ?? {};
     if (cat.kind === 'single' && beats.length > 0) {
@@ -239,14 +231,15 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
   const resolvedAnchors = [];
   let cursor = 0;
   for (const cue of cues) {
-    let cat;
-    if (cue.card === 'bespoke') {
-      cat = { kind: cue.beats && cue.beats.length > 0 ? 'beat' : 'single', placement: cue.placement, default_duration: 10 };
-    } else {
-      cat = bySlug[cue.card];
-      if (!cat) { errors.push(`${cue.id}: unknown card "${cue.card}"`); continue; }
-    }
-    if (cue.flagged) continue; // flagged cues are skipped, not errors
+    // A flagged cue is parked — it renders nothing, so it is not held to any
+    // card contract. Checked BEFORE the catalog lookup: the reverse order made
+    // flagging useless for the one case it existed to serve, because a cue
+    // naming an unbuilt card errored before the skip could fire (2026-07-29).
+    if (cue.flagged) continue;
+    const cat = bySlug[cue.card];
+    // By this point step 038 has built every card the owner approved at 037,
+    // so an unknown card is a genuine error rather than a proposal.
+    if (!cat) { errors.push(`${cue.id}: unknown card "${cue.card}" — build it at step 038, or flag the cue`); continue; }
     const BEAT_LEAD_IN = 0.6; // s a beat card is on screen before its first reveal
     const BEAT_GAP_MAX = CUE_CONSTANTS.BEAT_GAP_MAX.value;
 
@@ -384,7 +377,6 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
     // Carried so extendExposure can protect the footage beat that belongs to a
     // section (owner v2:4) without needing the catalog.
     if (cat.structural) entry.structural = true;
-    if (cue.card === 'bespoke') entry.bespoke = cue.bespoke;
     out.push(entry);
     if (entry.placement === 'fullframe') lastFullframe = entry;
   }
@@ -442,10 +434,28 @@ export function extendExposure(resolved, { base, total, avatarSpans = [] }) {
   return out;
 }
 
+// Anchor findability, independent of the catalog. resolveCues can only check
+// this for cues whose card already exists, so a cue proposing a NEW card would
+// otherwise reach the 037 gate with its anchor unverified — and the owner would
+// approve a plan that cannot resolve. Same forward-only cursor as resolveCues,
+// so a pass here means the same thing it will mean at 040.
+export function validateAnchors(cues, words) {
+  const W = words.map((w) => ({ ...w, n: normWord(w.text ?? w.word ?? '') }));
+  const errors = [];
+  let cursor = 0;
+  for (const cue of cues ?? []) {
+    if (cue.flagged) continue;
+    const a = findPhrase(W, cue.anchor ?? '', cursor);
+    if (a.err) { errors.push(`${cue.id}: ${a.err}`); continue; }
+    cursor = a.idx + a.len;
+  }
+  return errors;
+}
+
 async function main() {
   const arg = process.argv[2];
   if (!arg) {
-    console.error('usage: node lib/resolve.mjs <slug-or-path>');
+    console.error('usage: node lib/resolve.mjs <slug-or-path> [--validate-only]');
     process.exit(1);
   }
   const workdir = resolveWorkdir(arg);
@@ -457,6 +467,26 @@ async function main() {
   const cuesFile = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
   const words = JSON.parse(fs.readFileSync(transcriptPath, 'utf8'));
   const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+
+  // Pre-037 mode: check everything that does not require the card to exist, so
+  // the owner never approves a card plan built on cues that cannot resolve.
+  // Writes nothing — resolved.json is 040's artifact, and 040 runs after 038.
+  if (process.argv.includes('--validate-only')) {
+    const errs = [
+      ...validateCues(cuesFile.cues, catalog, cardLibraryRoot, workdir),
+      ...validateAnchors(cuesFile.cues, words),
+    ];
+    for (const e of errs) console.error(e);
+    const unbuilt = (cuesFile.cues ?? []).filter(
+      (c) => !c.flagged && !catalog.cards.some((k) => k.slug === c.card),
+    );
+    if (unbuilt.length) {
+      console.log(`${unbuilt.length} cue(s) name a card that does not exist yet: ${unbuilt.map((c) => `${c.id}=${c.card}`).join(', ')}`);
+      console.log('That is expected before step 038 — approve or kill each at the 037 gate.');
+    }
+    console.log(errs.length ? `${errs.length} error(s)` : 'clean — ready for the 037 card plan');
+    process.exit(errs.length ? 1 : 0);
+  }
 
   const { resolved, errors } = resolveCues(cuesFile.cues, words, catalog, cardLibraryRoot, workdir);
 

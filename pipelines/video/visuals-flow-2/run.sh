@@ -2,8 +2,9 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-# Do NOT add an --all or all step. The chain has three human gates 
-# (owner approval at 040, the Opus-only fold at 060, live HeyGen at 080)
+# Do NOT add an --all or all step. The chain has three human gates
+# (037 card plan, 080 storyboard, 120 final cut), an Opus-only fold at 130,
+# and live HeyGen at 100
 # and a driver that walks past them would be actively dangerous.
 
 usage() {
@@ -15,10 +16,14 @@ Steps:
   transcribe
   concept-pass
   cue-pass
+  validate
   resolve
+  zone-pass
+  stillness
   audit
   audit-gate
-  zone-plan
+  card-plan
+  outline
   board
   render
   fold
@@ -70,11 +75,11 @@ case "$step" in
     resolved_present="missing"
     [[ -f "videos/$slug/resolved.json" ]] && resolved_present="present"
     
-    zone_plan_present="missing"
-    zone_plan_approved="NOT approved"
-    if [[ -f "videos/$slug/zone-plan.json" ]]; then
-      zone_plan_present="present"
-      zone_plan_approved=$(node -e "const z=require('./videos/$slug/zone-plan.json');console.log(z.approved?'approved':'NOT approved')")
+    card_plan_present="missing"
+    card_plan_approved="NOT approved"
+    if [[ -f "videos/$slug/card-plan.json" ]]; then
+      card_plan_present="present"
+      card_plan_approved=$(node -e "const z=require('./videos/$slug/card-plan.json');console.log(z.approved?'approved':'NOT approved')")
     fi
     
     renders_present="missing"
@@ -93,7 +98,7 @@ case "$step" in
     echo "segments.json     $segments_present"
     echo "cues.json         $cues_present ($cues_approved)"
     echo "resolved.json     $resolved_present"
-    echo "zone-plan.json    $zone_plan_present ($zone_plan_approved)"
+    echo "card-plan.json    $card_plan_present ($card_plan_approved)"
     echo "renders/          $renders_present"
     echo "shots.json        $shots_present ($shots_approved)"
 
@@ -103,19 +108,21 @@ case "$step" in
     if [[ "$transcript_present" == "missing" ]]; then
       echo "next: run.sh $slug transcribe"
     elif [[ "$segments_present" == "missing" ]]; then
-      echo "next: create segments.json (see steps/030-place-graphics-llm/README.md)"
+      echo "next: create segments.json (see steps/030-pick-or-propose-graphics-llm/README.md)"
     elif [[ "$cues_present" == "missing" ]]; then
       echo "next: run.sh $slug cue-pass"
+    elif [[ "$card_plan_approved" == "NOT approved" ]]; then
+      echo "next: run.sh $slug outline, then run.sh $slug board  (HUMAN GATE 1 — 037 card plan)"
     elif [[ "$resolved_present" == "missing" ]]; then
-      echo "next: run.sh $slug resolve"
+      echo "next: run.sh $slug resolve  (build any NEW cards at step 038 first)"
     elif [[ "$shots_present" == "missing" ]]; then
       echo "next: run.sh $slug shot-pass  (before the storyboard gate)"
     elif [[ "$cues_approved" == "NOT approved" || "$shots_approved" == "NOT approved" ]]; then
-      echo "next: run.sh $slug board  (OWNER GATE 1 — storyboard: approve cues AND shots)"
+      echo "next: run.sh $slug board  (HUMAN GATE 2 — 080 storyboard: approve cues AND shots)"
     elif [[ "$renders_present" == "missing" ]]; then
       echo "next: run.sh $slug render"
     else
-      echo "next: run.sh $slug cut  (then OWNER GATE 2 — final cut)"
+      echo "next: run.sh $slug cut  (then HUMAN GATE 3 — 120 final cut)"
     fi
     ;;
 
@@ -125,7 +132,7 @@ case "$step" in
 
   concept-pass)
     cat <<EOF
-018 is an LLM step, not a command. Assemble the prompt:
+020 is an LLM step, not a command. Assemble the prompt:
   1. steps/020-choose-concept-llm/concept-pass-prompt.md   (the prompt; fill its placeholders)
   2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   3. cat videos/$slug/segments.json             -> {{SEGMENTS}}
@@ -138,14 +145,14 @@ EOF
     cat <<EOF
 030 is an LLM step, not a command. It authors the BODY only.
 Assemble the prompt:
-  1. steps/030-place-graphics-llm/cue-pass-prompt.md   (the prompt; fill its placeholders)
+  1. steps/030-pick-or-propose-graphics-llm/cue-pass-prompt.md   (the prompt; fill its placeholders)
   2. node lib/plan-skeleton.mjs $slug           -> {{SKELETON}}
   3. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   4. ../card-library/catalog.json                -> {{CATALOG}}
   5. videos/$slug/concept.json                  -> {{CONCEPT}}
 Pre-flight: node lib/feedback-status.mjs and node lib/lint-concept.mjs $slug must exit 0.
 The intro and conclusion are authored separately: run.sh $slug zone-pass
-After the cue pass: run.sh $slug resolve
+After both passes: run.sh $slug validate, then card-plan (HUMAN GATE 1 at 037)
 EOF
     exit 0
     ;;
@@ -155,16 +162,22 @@ EOF
 035 is an LLM step, not a command. It authors the INTRO and CONCLUSION only,
 against their own rulebook (lib/zone-rules.mjs + lib/zone-constants.mjs).
 Assemble the prompt:
-  1. steps/035-place-intro-outro-llm/zone-pass-prompt.md  (the prompt; fill its placeholders)
+  1. steps/035-pick-or-propose-intro-outro-llm/zone-pass-prompt.md  (the prompt; fill its placeholders)
   2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   3. ../card-library/catalog.json                -> {{CATALOG}}
   4. the "structure" array in videos/$slug/segments.json -> {{STRUCTURE}}
 Pre-flight: node lib/feedback-status.mjs must exit 0, and segments.json must
 carry a "structure" block (no measured zones = nothing for this step to do).
 Every cue it emits must carry a "zone" field of "intro" or "conclusion".
-After the zone pass: run.sh $slug resolve, then node lib/stillness.mjs $slug
+After the zone pass: run.sh $slug validate, then card-plan (HUMAN GATE 1 at 037).
+Stillness (W18) needs absolute times, so it runs after 040: node lib/stillness.mjs $slug
 EOF
     exit 0
+    ;;
+
+  validate)
+    # Pre-037: everything checkable before the cards exist. Writes nothing.
+    node lib/resolve.mjs "$slug" --validate-only
     ;;
 
   resolve)
@@ -177,7 +190,7 @@ EOF
 
   audit)
     cat <<EOF
-035 is an LLM step, not a command. Assemble the prompt:
+050 is an LLM step, not a command. Assemble the prompt:
   1. steps/050-review-graphics-llm/audit-prompt.md     (the prompt; fill its placeholders)
   2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   3. cat videos/$slug/resolved.json             -> {{CUES}}
@@ -192,8 +205,12 @@ EOF
     node lib/audit-gate.mjs "$slug"
     ;;
 
-  zone-plan)
-    node lib/zone-plan.mjs "$slug"
+  card-plan)
+    node lib/card-plan.mjs "$slug"
+    ;;
+
+  outline)
+    node lib/card-plan.mjs "$slug" --outline
     ;;
 
   board)
@@ -206,7 +223,7 @@ EOF
 
   fold)
     node lib/feedback-status.mjs
-    echo "060 is an owner step. Proceed manually."
+    echo "130 is an Opus-class step. Proceed manually."
     exit 0
     ;;
 
@@ -220,7 +237,7 @@ EOF
 
   shot-pass)
     cat <<EOF
-070 is an LLM step, not a command. Assemble the prompt:
+060 is an LLM step, not a command. Assemble the prompt:
   1. steps/060-place-avatar-llm/shot-pass-prompt.md (the prompt; fill its placeholders)
   2. node lib/plan-skeleton.mjs $slug           -> {{SKELETON}}
   3. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}

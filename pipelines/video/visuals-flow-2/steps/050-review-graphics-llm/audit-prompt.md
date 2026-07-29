@@ -6,7 +6,9 @@ For EVERY cue, answer the mute test: "with audio muted and captions hidden, woul
 - If no (e.g. it's just a text chip that says "Fast" for a clause about speed): `verdict: "labelled"`.
 
 For `labelled` cues, provide a structured `fix`.
-Rule: every `fix` naming a card MUST use a slug verbatim from `{{CATALOG_SLUGS}}`. When no listed card enacts the clause, the fix is the literal word `bespoke` plus one sentence describing the enactment to author. Inventing slugs is a defect.
+Rule: every `fix` naming a card MUST use a slug verbatim from `{{CATALOG_SLUGS}}`. Inventing a slug is a defect.
+
+When NO listed card enacts the clause, the fix is the literal word `new` plus one sentence describing the card that should exist. Do not settle for the nearest weaker card and do not accept `labelled` as the outcome just because the catalog is short. A `new` fix sends the cue back through the card plan: the owner approves or kills the proposal at step 037, step 038 builds what survives, and the catalog is larger for every video after this one.
 
 Output ONLY a JSON object matching this schema:
 ```json
@@ -16,7 +18,7 @@ Output ONLY a JSON object matching this schema:
     {
       "id": "c01",
       "verdict": "labelled",
-      "fix": { "card": "<catalog-slug>|bespoke", "how": "<one sentence>" }
+      "fix": { "card": "<catalog-slug>|new", "how": "<one sentence>" }
     }
   ]
 }

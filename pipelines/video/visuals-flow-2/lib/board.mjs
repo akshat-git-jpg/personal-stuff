@@ -22,7 +22,7 @@ import { resolveWorkdir } from './workdir.mjs';
 import { planCaptions } from './captions.mjs';
 import { loadBrand, injectBrand } from './brand-inline.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
-import { appendZoneFeedback, ZONE_PARTS } from './zone-plan.mjs';
+import { appendCardPlanFeedback, PLAN_PARTS } from './card-plan.mjs';
 
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
 
@@ -545,23 +545,24 @@ const SAVE_ACTIONS_JS = `
     };
   }
 
-  const approveZonePlanBtn = document.getElementById('approveZonePlanBtn');
-  if (approveZonePlanBtn) {
-    approveZonePlanBtn.onclick = async () => {
-      await fetch('/approve-zone-plan', { method: 'POST' });
+  const approveCardPlanBtn = document.getElementById('approveCardPlanBtn');
+  if (approveCardPlanBtn) {
+    approveCardPlanBtn.onclick = async () => {
+      await fetch('/approve-card-plan', { method: 'POST' });
       location.reload();
     };
   }
 
-  // Zone-gate notes. Saving one records WHY a zone card is right or wrong;
-  // the 130 fold routes it to the intro/outro rulebook only.
-  document.querySelectorAll('.zone-note-save').forEach((btn) => {
+  // Card-plan notes. Saving one records WHY a card is right or wrong; the 130
+  // fold routes it by section — intro/conclusion notes to the 035 rulebook,
+  // body notes to the 030 one, never across.
+  document.querySelectorAll('.plan-note-save').forEach((btn) => {
     btn.onclick = async () => {
       const input = btn.previousElementSibling;
       const text = (input.value || '').trim();
       if (!text) return;
       btn.disabled = true;
-      await fetch('/zone-feedback', {
+      await fetch('/card-feedback', {
         method: 'POST',
         body: JSON.stringify({
           part: input.dataset.part,
@@ -835,7 +836,7 @@ function buildDetailBlocks(cues, segments, shots, feedbackItems, audit = null) {
   return blocks;
 }
 
-function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null, zonePlan = null) {
+function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null, cardPlan = null) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
@@ -929,7 +930,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 <body>
   <div class="sticky-header">
     <div class="topbar">
-      <span class="view-toggle"><a href="/#zone-plan">Zone Plan</a><a href="/">Storyboard</a><a href="/#final-cut">Final Cut</a></span>
+      <span class="view-toggle"><a href="/#card-plan">Card Plan</a><a href="/">Storyboard</a><a href="/#final-cut">Final Cut</a></span>
       <span class="view-toggle" style="margin-left:8px;"><a href="/">Timeline</a><a href="/list" class="active">List</a></span>
       <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
       <div>duration: ${timecode(totalDuration)}</div>
@@ -1094,7 +1095,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 // previews — clicking a block moves its buildDetailBlocks HTML (shared with
 // /list) into a docked panel and only then loads its card iframe. Delivers
 // GFX-08 (global play-through) via the master playhead.
-function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null, zonePlan = null) {
+function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null, cardPlan = null) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
@@ -1147,20 +1148,24 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
     `<div class="detail-item" id="detail-${b.id}">${b.html.replace('<iframe loading="lazy" src=', '<iframe loading="lazy" data-src=')}</div>`
   ).join('\n');
 
-  let zonePlanHtml = '';
-  if (zonePlan) {
-    const items = zonePlan.zones.flatMap(z => z.items);
+  let cardPlanHtml = '';
+  if (cardPlan) {
+    const items = cardPlan.sections.flatMap(s => s.items);
     const existing = items.filter(i => i.status === 'existing').length;
     const toBuild = items.filter(i => i.status === 'new').length;
     const summaryHtml = `<div>${items.length} cues &middot; ${existing} existing &middot; ${toBuild} to build</div>`;
 
-    // Gate feedback already recorded, grouped by zone so each card can show
-    // its own history. Keys are `zone-<part>:<n>` (see lib/zone-plan.mjs).
-    const zoneComments = {};
+    // Gate feedback already recorded, grouped by section so each card can show
+    // its own history. Keys are `zone-<part>:<n>` for the intro/conclusion and
+    // `card-body:<n>` for the body — the prefix is what routes the lesson to
+    // the right rulebook at 130 (see lib/card-plan.mjs).
+    const planComments = {};
     for (const [key, it] of Object.entries(feedbackItems ?? {})) {
-      if (!key.startsWith('zone-')) continue;
-      const part = it.zone ?? key.slice('zone-'.length).split(':')[0];
-      (zoneComments[part] ??= []).push({
+      let part = null;
+      if (key.startsWith('zone-')) part = it.zone ?? key.slice('zone-'.length).split(':')[0];
+      else if (key.startsWith('card-body:')) part = 'body';
+      else continue;
+      (planComments[part] ??= []).push({
         text: it.text ?? '',
         added: it.added ?? '',
         folded: Boolean(it.folded),
@@ -1168,83 +1173,102 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       });
     }
 
-    const zonesHtml = zonePlan.zones.map(z => {
-      const itemsHtml = z.items.map(item => {
-        const badge = item.status === 'existing' 
+    const rulebookOf = (part) => part === 'body'
+      ? 'the body rulebook (030)'
+      : 'the intro/outro rulebook (035)';
+
+    const sectionsHtml = cardPlan.sections.map(s => {
+      const itemsHtml = s.items.map(item => {
+        const badge = item.status === 'existing'
           ? `<span class="usage-chip" style="color:var(--ok); border-color:var(--ok)">EXISTING</span>`
           : `<span class="usage-chip" style="color:var(--err); border-color:var(--err); font-weight:bold;">NEW &mdash; to build</span>`;
-        const proposal = item.status === 'new' && item.proposal 
-          ? `<div style="margin-top:4px; font-size:13px; color:var(--text); background:var(--panel); padding:8px; border-radius:4px; border:1px solid var(--line);">${escapeHtml(item.proposal)}</div>` 
+        // The proposal is a structured spec, so the owner can judge the card
+        // without opening anything: what it does, what kind it is, how many
+        // beats, what varies.
+        const p = item.proposal;
+        const specBits = p ? [
+          p.kind ? `kind: ${p.kind}` : null,
+          p.beats ? `${p.beats} beats` : null,
+          p.placement ? p.placement : null,
+          Array.isArray(p.variables) && p.variables.length ? `vars: ${p.variables.join(', ')}` : null,
+        ].filter(Boolean) : [];
+        const proposal = item.status === 'new' && p
+          ? `<div style="margin-top:4px; font-size:13px; color:var(--text); background:var(--panel); padding:8px; border-radius:4px; border:1px solid var(--line);">${escapeHtml(p.does ?? '')}${specBits.length ? `<div style="margin-top:4px; font-size:12px; color:var(--dim); font-family:ui-monospace,Menlo,monospace;">${escapeHtml(specBits.join(' &middot; '))}</div>` : ''}</div>`
           : '';
         const flagged = item.flagged ? `<span class="usage-chip" style="color:var(--err); border-color:var(--err)">flagged</span> ` : '';
-        // Why-box. Approving or rejecting a zone card used to record nothing,
-        // so the lesson died at the gate; these notes fold into the zone
-        // rulebook (see appendZoneFeedback in lib/zone-plan.mjs).
-        const priorHtml = (zoneComments[z.part] ?? [])
+        // Why-box. Approving or rejecting a card used to record nothing, so the
+        // lesson died at the gate (see appendCardPlanFeedback in lib/card-plan.mjs).
+        const priorHtml = (planComments[s.part] ?? [])
           .filter((c) => c.cue === item.id)
           .map((c) => `<div style="font-size:12px; color:var(--dim); margin-top:6px;">&ldquo;${escapeHtml(c.text)}&rdquo; <span style="opacity:.7">${escapeHtml(c.added ?? '')}${c.folded ? ' &middot; folded' : ''}</span></div>`)
           .join('');
         return `<div style="margin-bottom:12px; padding:12px; border-bottom:1px solid var(--line);">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
-            <span style="font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--dim)">${timecode(item.at)}</span>
             <strong style="font-family:ui-monospace,Menlo,monospace; font-size:12px;">#${escapeHtml(item.id)}</strong>
-            <span style="color:var(--dim)">${escapeHtml(item.card)}</span>
+            <span style="color:var(--dim)">${escapeHtml(item.card ?? '(none)')}</span>
+            <span class="usage-chip">${escapeHtml(item.placement ?? '?')}</span>
             ${badge}
             ${flagged}
           </div>
+          ${item.anchor ? `<div style="font-size:12px; color:var(--dim); font-style:italic;">@ &ldquo;${escapeHtml(item.anchor)}&rdquo;</div>` : ''}
           ${proposal}
           ${priorHtml}
           <div style="margin-top:8px; display:flex; gap:6px;">
-            <input class="zone-note" data-part="${escapeHtml(z.part)}" data-cue="${escapeHtml(item.id)}" data-card="${escapeHtml(item.card)}"
-                   placeholder="why is this right or wrong? (folds into the intro/outro rulebook)"
+            <input class="plan-note" data-part="${escapeHtml(s.part)}" data-cue="${escapeHtml(item.id)}" data-card="${escapeHtml(item.card ?? '')}"
+                   placeholder="why is this right or wrong? (folds into ${escapeHtml(rulebookOf(s.part))})"
                    style="flex:1; font-size:12px; padding:6px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:4px;">
-            <button class="zone-note-save" style="font-size:12px;">Save</button>
+            <button class="plan-note-save" style="font-size:12px;">Save</button>
           </div>
         </div>`;
       }).join('');
-      
-      // Zone-level box: not every note is about one card. "the whole intro
+
+      // Section-level box: not every note is about one card. "the whole intro
       // feels flat" is the most useful kind of feedback here and had nowhere
       // to live when the only inputs were per-cue.
-      const zoneLevel = (zoneComments[z.part] ?? [])
+      const sectionLevel = (planComments[s.part] ?? [])
         .filter((c) => !c.cue)
         .map((c) => `<div style="font-size:12px; color:var(--dim); margin-top:6px;">&ldquo;${escapeHtml(c.text)}&rdquo; <span style="opacity:.7">${escapeHtml(c.added ?? '')}${c.folded ? ' &middot; folded' : ''}</span></div>`)
         .join('');
+      // The body has no measured span — only the zones are measured from the
+      // source recordings, so a timecode range is shown only where one exists.
+      const span = s.start != null
+        ? ` <span style="font-size:13px; font-weight:normal; color:var(--dim); font-family:ui-monospace,Menlo,monospace;">(${timecode(s.start)} &rarr; ${timecode(s.end)})</span>`
+        : '';
       return `
         <div style="margin-bottom:32px;">
-          <h2 style="font-size:16px; margin-bottom:12px; text-transform:capitalize;">${escapeHtml(z.part)} zone <span style="font-size:13px; font-weight:normal; color:var(--dim); font-family:ui-monospace,Menlo,monospace;">(${timecode(z.start)} &rarr; ${timecode(z.end)})</span></h2>
+          <h2 style="font-size:16px; margin-bottom:12px; text-transform:capitalize;">${escapeHtml(s.part)}${span}</h2>
           ${itemsHtml || '<div style="color:var(--dim); font-size:13px;">(no graphics planned)</div>'}
-          ${zoneLevel}
+          ${sectionLevel}
           <div style="margin-top:10px; display:flex; gap:6px;">
-            <input class="zone-note" data-part="${escapeHtml(z.part)}"
-                   placeholder="a note about the ${escapeHtml(z.part)} as a whole"
+            <input class="plan-note" data-part="${escapeHtml(s.part)}"
+                   placeholder="a note about the ${escapeHtml(s.part)} as a whole"
                    style="flex:1; font-size:12px; padding:6px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:4px;">
-            <button class="zone-note-save" style="font-size:12px;">Save</button>
+            <button class="plan-note-save" style="font-size:12px;">Save</button>
           </div>
         </div>
       `;
     }).join('');
 
-    zonePlanHtml = `
-  <div id="tab-zone-plan" style="display:none;">
+    cardPlanHtml = `
+  <div id="tab-card-plan" style="display:none;">
     <div class="sticky-header">
       <div class="topbar">
-        <span class="view-toggle" id="tab-toggle-zp">
-          <button data-target="tab-zone-plan" class="tab-btn active" onclick="switchTab(this)">Zone Plan</button>
+        <span class="view-toggle" id="tab-toggle-cp">
+          <button data-target="tab-card-plan" class="tab-btn active" onclick="switchTab(this)">Card Plan</button>
           <button data-target="tab-storyboard" class="tab-btn" onclick="switchTab(this)">Storyboard</button>
           <button data-target="tab-final-cut" class="tab-btn" onclick="switchTab(this)">Final Cut</button>
         </span>
         <span class="view-toggle" style="margin-left:8px;"><a href="/" class="active">Timeline</a><a href="/list">List</a></span>
-        <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong> — zone plan</div>
+        <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong> — card plan</div>
         ${summaryHtml}
-        <button id="approveZonePlanBtn" style="border-color:var(--ok); color:var(--ok);">Approve zone plan</button>
+        <button id="approveCardPlanBtn" style="border-color:var(--ok); color:var(--ok);">Approve card plan</button>
       </div>
-      <div id="banner-zone-plan">
-        ${zonePlan.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}
+      <div id="banner-card-plan">
+        ${cardPlan.approved ? `<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ${toBuild > 0 ? 'build the NEW cards (step 038), then <code>run.sh &lt;slug&gt; resolve</code>' : 'ready for <code>run.sh &lt;slug&gt; resolve</code>'}</div>` : ''}
       </div>
     </div>
     <div style="max-width:800px; margin:0 auto; padding-top:20px;">
-      ${zonesHtml}
+      ${sectionsHtml}
     </div>
   </div>`;
   }
@@ -1261,28 +1285,28 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
   function switchTab(btn) { applyTab(btn.dataset.target, true); }
   function applyTab(target, push) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.target === target));
-    const zp = document.getElementById('tab-zone-plan');
-    if (zp) zp.style.display = target === 'tab-zone-plan' ? 'block' : 'none';
+    const zp = document.getElementById('tab-card-plan');
+    if (zp) zp.style.display = target === 'tab-card-plan' ? 'block' : 'none';
     document.getElementById('tab-storyboard').style.display = target === 'tab-storyboard' ? 'block' : 'none';
     document.getElementById('tab-final-cut').style.display = target === 'tab-final-cut' ? 'block' : 'none';
-    const wantHash = target === 'tab-final-cut' ? '#final-cut' : (target === 'tab-zone-plan' ? '#zone-plan' : '');
+    const wantHash = target === 'tab-final-cut' ? '#final-cut' : (target === 'tab-card-plan' ? '#card-plan' : '');
     if (push && (location.hash || '') !== wantHash) history.pushState(null, '', location.pathname + wantHash);
     if (target === 'tab-final-cut') initFinalCut();
   }
-  window.addEventListener('popstate', () => applyTab(location.hash === '#final-cut' ? 'tab-final-cut' : (location.hash === '#zone-plan' ? 'tab-zone-plan' : 'tab-storyboard'), false));
+  window.addEventListener('popstate', () => applyTab(location.hash === '#final-cut' ? 'tab-final-cut' : (location.hash === '#card-plan' ? 'tab-card-plan' : 'tab-storyboard'), false));
   window.addEventListener('DOMContentLoaded', () => { 
     if (location.hash === '#final-cut') applyTab('tab-final-cut', false);
-    else if (location.hash === '#zone-plan') applyTab('tab-zone-plan', false);
+    else if (location.hash === '#card-plan') applyTab('tab-card-plan', false);
   });
 </script>
 </head>
 <body>
-  ${zonePlanHtml}
+  ${cardPlanHtml}
   <div id="tab-storyboard">
     <div class="sticky-header">
       <div class="topbar">
         <span class="view-toggle" id="tab-toggle">
-          ${zonePlan ? '<button data-target="tab-zone-plan" class="tab-btn" onclick="switchTab(this)">Zone Plan</button>' : ''}
+          ${cardPlan ? '<button data-target="tab-card-plan" class="tab-btn" onclick="switchTab(this)">Card Plan</button>' : ''}
           <button data-target="tab-storyboard" class="tab-btn active" onclick="switchTab(this)">Storyboard</button>
           <button data-target="tab-final-cut" class="tab-btn" onclick="switchTab(this)">Final Cut</button>
         </span>
@@ -1352,7 +1376,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
   <div id="tab-final-cut" style="display:none; padding:20px;">
     <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
       <span class="view-toggle">
-        ${zonePlan ? '<button data-target="tab-zone-plan" class="tab-btn" onclick="switchTab(this)">Zone Plan</button>' : ''}
+        ${cardPlan ? '<button data-target="tab-card-plan" class="tab-btn" onclick="switchTab(this)">Card Plan</button>' : ''}
         <button data-target="tab-storyboard" class="tab-btn" onclick="switchTab(this)">Storyboard</button>
         <button data-target="tab-final-cut" class="tab-btn active" onclick="switchTab(this)">Final Cut</button>
       </span>
@@ -1990,12 +2014,12 @@ async function handleApprove(req, res, workdir) {
   res.end(JSON.stringify({ ok: true }));
 }
 
-async function handleApproveZonePlan(req, res, workdir) {
+async function handleApproveCardPlan(req, res, workdir) {
   await readBody(req);
-  const zpPath = path.join(workdir, 'zone-plan.json');
-  const zonePlan = JSON.parse(fs.readFileSync(zpPath, 'utf8'));
-  zonePlan.approved = true;
-  fs.writeFileSync(zpPath, JSON.stringify(zonePlan, null, 2));
+  const zpPath = path.join(workdir, 'card-plan.json');
+  const cardPlan = JSON.parse(fs.readFileSync(zpPath, 'utf8'));
+  cardPlan.approved = true;
+  fs.writeFileSync(zpPath, JSON.stringify(cardPlan, null, 2));
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
 }
@@ -2220,9 +2244,9 @@ function loadBoardData(workdir) {
   const sound = fs.existsSync(soundPath) ? JSON.parse(fs.readFileSync(soundPath, 'utf8')) : null;
   const auditPath = path.join(workdir, 'audit.json');
   const audit = fs.existsSync(auditPath) ? JSON.parse(fs.readFileSync(auditPath, 'utf8')) : null;
-  const zpPath = path.join(workdir, 'zone-plan.json');
-  const zonePlan = fs.existsSync(zpPath) ? JSON.parse(fs.readFileSync(zpPath, 'utf8')) : null;
-  return { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, zonePlan };
+  const zpPath = path.join(workdir, 'card-plan.json');
+  const cardPlan = fs.existsSync(zpPath) ? JSON.parse(fs.readFileSync(zpPath, 'utf8')) : null;
+  return { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan };
 }
 
 async function handleRequest(req, res, workdir, cardLibraryRoot) {
@@ -2242,17 +2266,17 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
   }
 
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index')) {
-    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, zonePlan } = loadBoardData(workdir);
+    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan } = loadBoardData(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderTimelinePage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, zonePlan));
+    return res.end(renderTimelinePage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan));
   }
 
   if (req.method === 'GET' && url.pathname === '/list') {
-    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, zonePlan } = loadBoardData(workdir);
+    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan } = loadBoardData(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, zonePlan));
+    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan));
   }
 
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);
@@ -2290,21 +2314,21 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
     return handleApproveShots(req, res, workdir);
   }
 
-  if (req.method === 'POST' && url.pathname === '/approve-zone-plan') {
-    return handleApproveZonePlan(req, res, workdir);
+  if (req.method === 'POST' && url.pathname === '/approve-card-plan') {
+    return handleApproveCardPlan(req, res, workdir);
   }
 
-  if (req.method === 'POST' && url.pathname === '/zone-feedback') {
+  if (req.method === 'POST' && url.pathname === '/card-feedback') {
     const body = await readBody(req);
     let payload;
     try { payload = JSON.parse(body); } catch (e) { res.statusCode = 400; return res.end('{"ok":false}'); }
     const part = String(payload.part ?? '');
     const text = String(payload.text ?? '').trim();
-    if (!ZONE_PARTS.includes(part)) { res.statusCode = 400; return res.end('{"ok":false,"error":"unknown zone"}'); }
+    if (!PLAN_PARTS.includes(part)) { res.statusCode = 400; return res.end('{"ok":false,"error":"unknown part"}'); }
     if (!text) { res.statusCode = 400; return res.end('{"ok":false,"error":"empty text"}'); }
     const fbPath = path.join(workdir, 'feedback.json');
     const fb = fs.existsSync(fbPath) ? JSON.parse(fs.readFileSync(fbPath, 'utf8')) : {};
-    const next = appendZoneFeedback(fb, part, { text, cue: payload.cue ?? null, card: payload.card ?? null });
+    const next = appendCardPlanFeedback(fb, part, { text, cue: payload.cue ?? null, card: payload.card ?? null });
     fs.writeFileSync(fbPath, JSON.stringify(next, null, 2));
     res.setHeader('content-type', 'application/json');
     return res.end('{"ok":true}');

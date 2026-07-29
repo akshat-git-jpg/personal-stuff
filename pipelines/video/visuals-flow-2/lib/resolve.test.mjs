@@ -370,25 +370,42 @@ test('extendExposure: (e) overlays never modified', async () => {
   assert.equal(out[0].duration, 5);
 });
 
-test('bespoke cue with existing dir resolves; missing dir errors; missing placement errors', async () => {
+test('an unknown card errors at resolve — 038 should have built it', async () => {
   const { resolveCues } = await import('./resolve.mjs');
-  fs.mkdirSync(TMP_ROOT, { recursive: true });
-  const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'bespoke-'));
-  const bespokeDir = path.join(workdir, 'bespoke', 'test-card');
-  fs.mkdirSync(bespokeDir, { recursive: true });
-  fs.writeFileSync(path.join(bespokeDir, 'index.html'), 'dummy');
+  const cues = [{ id: 'u1', card: 'race/cost-race', placement: 'fullframe', anchor: "let's look at", beats: [] }];
+  const { resolved, errors } = resolveCues(cues, WORDS, CATALOG, null, null);
+  assert.equal(resolved.length, 0);
+  assert.ok(errors.some((e) => /u1: unknown card "race\/cost-race"/.test(e)), errors.join('; '));
+});
 
+test('a FLAGGED cue naming an unknown card is parked, not an error', async () => {
+  // Regression, 2026-07-29. resolveCues looked the card up BEFORE honouring
+  // `flagged`, so flagging could not park a cue that named a card which did not
+  // exist yet — exactly the case flagging existed for. One proposal took the
+  // whole video down: resolve exited 1 and wrote no resolved.json at all.
+  const { resolveCues } = await import('./resolve.mjs');
   const cues = [
-    { id: 'b1', card: 'bespoke', bespoke: 'test-card', placement: 'fullframe', anchor: "let's look at", beats: [] },
-    { id: 'b2', card: 'bespoke', bespoke: 'missing-dir', placement: 'fullframe', anchor: "let's look at", beats: [] },
-    { id: 'b3', card: 'bespoke', bespoke: 'test-card', anchor: "let's look at", beats: [] },
+    { id: 'f1', card: 'race/cost-race', flagged: true, placement: 'fullframe', anchor: "let's look at", beats: [] },
+    { id: 'k1', card: 'overlay/simple-overlay', placement: 'overlay', anchor: "let's look at", beats: [] },
   ];
-  const { resolved, errors } = resolveCues(cues, WORDS, CATALOG, null, workdir);
-  assert.equal(resolved.length, 1);
-  assert.equal(resolved[0].id, 'b1');
-  assert.equal(resolved[0].bespoke, 'test-card');
-  assert.ok(errors.some(e => /b2: bespoke dir missing-dir missing index\.html/.test(e)));
-  assert.ok(errors.some(e => /b3: bespoke card requires placement "fullframe" or "overlay"/.test(e)));
+  const { resolved, errors } = resolveCues(cues, WORDS, CATALOG, null, null);
+  assert.deepEqual(errors, [], 'a flagged cue must not error');
+  assert.ok(!resolved.some((r) => r.id === 'f1'), 'flagged cue renders nothing');
+  assert.ok(resolved.some((r) => r.id === 'k1'), 'the rest of the video still resolves');
+});
+
+test('validateCues tolerates an unbuilt card — it runs before the 037 gate', async () => {
+  // The card plan is approved before step 038 builds anything, so this
+  // validator must not reject a cue for naming a card that does not exist yet.
+  // It still validates everything else about the cue.
+  const { validateCues } = await import('./resolve.mjs');
+  const errors = validateCues(
+    [{ id: 'p1', card: 'race/cost-race', placement: 'fullframe', anchor: "let's look at", beats: [] }],
+    CATALOG,
+    null,
+    null,
+  );
+  assert.deepEqual(errors, []);
 });
 
 test('variant rotation', () => {

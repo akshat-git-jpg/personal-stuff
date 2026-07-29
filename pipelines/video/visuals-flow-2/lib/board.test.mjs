@@ -1052,3 +1052,99 @@ test('pinFromClick percentage math bounds', () => {
   assert.equal(p3.x, 100);
   assert.equal(p3.y, 100);
 });
+
+// ---- 037 card plan gate ----
+
+function makeCardPlanWorkdir() {
+  const dir = makeWorkdir();
+  fs.writeFileSync(
+    path.join(dir, 'card-plan.json'),
+    JSON.stringify({
+      video: 'fixture',
+      approved: false,
+      sections: [
+        {
+          part: 'intro',
+          start: 0,
+          end: 10,
+          items: [{
+            id: 'z01', card: 'title/title-versus', status: 'existing',
+            placement: 'fullframe', anchor: 'welcome back everyone',
+            flagged: false, proposal: null,
+          }],
+        },
+        {
+          part: 'body',
+          items: [{
+            id: 'c99', card: 'race/cost-race', status: 'new',
+            placement: 'fullframe', anchor: 'it really adds up',
+            flagged: false,
+            proposal: { does: 'bars race as the monthly cost climbs', kind: 'beat', beats: 3, variables: ['title'] },
+          }],
+        },
+      ],
+    }),
+  );
+  return dir;
+}
+
+test('Card Plan tab renders NEW chips, the proposal spec, and a note box per card', async () => {
+  const { server, base } = await startServer(makeCardPlanWorkdir());
+  try {
+    const html = await (await fetch(`${base}/`)).text();
+    assert.match(html, /tab-card-plan/);
+    assert.match(html, />Card Plan</);
+    // The chip that was dead before 2026-07-30: the old plan read resolved.json,
+    // where a not-yet-built card can never appear.
+    assert.match(html, /NEW &mdash; to build/);
+    assert.match(html, /bars race as the monthly cost climbs/);
+    assert.match(html, /kind: beat/);
+    // anchors, not timecodes — this gate runs before resolve
+    assert.match(html, /welcome back everyone/);
+    // one note box per card (2) plus one per section (2)
+    assert.equal((html.match(/class="plan-note"/g) ?? []).length, 4);
+    // routing is visible to the owner in the placeholder text
+    assert.match(html, /folds into the intro\/outro rulebook \(035\)/);
+    assert.match(html, /folds into the body rulebook \(030\)/);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /card-feedback keys body and zone notes into different spaces', async () => {
+  // The key prefix is what routes the lesson at 130 — a body note that landed
+  // in the zone key space would edit the wrong rulebook.
+  const dir = makeCardPlanWorkdir();
+  const { server, base } = await startServer(dir);
+  try {
+    const post = (body) => fetch(`${base}/card-feedback`, { method: 'POST', body: JSON.stringify(body) });
+
+    assert.equal((await post({ part: 'body', cue: 'c99', card: 'race/cost-race', text: 'do not build this' })).status, 200);
+    assert.equal((await post({ part: 'intro', text: 'opens flat' })).status, 200);
+    assert.equal((await post({ part: 'outro', text: 'x' })).status, 400, 'unknown part must be rejected');
+    assert.equal((await post({ part: 'body', text: '   ' })).status, 400, 'empty text must be rejected');
+
+    const fb = JSON.parse(fs.readFileSync(path.join(dir, 'feedback.json'), 'utf8'));
+    assert.deepEqual(Object.keys(fb.items).sort(), ['card-body:1', 'zone-intro:1']);
+    assert.equal(fb.items['card-body:1'].context.cue, 'c99');
+    assert.equal(fb.items['zone-intro:1'].zone, 'intro');
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /approve-card-plan flips approved and the banner names the next step', async () => {
+  const dir = makeCardPlanWorkdir();
+  const { server, base } = await startServer(dir);
+  try {
+    assert.equal(JSON.parse(fs.readFileSync(path.join(dir, 'card-plan.json'), 'utf8')).approved, false);
+    assert.equal((await fetch(`${base}/approve-card-plan`, { method: 'POST' })).status, 200);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(dir, 'card-plan.json'), 'utf8')).approved, true);
+
+    // With a NEW card still unbuilt, the banner must point at 038, not at resolve.
+    const html = await (await fetch(`${base}/`)).text();
+    assert.match(html, /build the NEW cards \(step 038\)/);
+  } finally {
+    server.close();
+  }
+});

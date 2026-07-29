@@ -9,7 +9,7 @@ live copy of a rule is a copy that drifts.
 
 The 130 fold maintains this file. Feedback given at the **070 intro/outro gate**
 folds here and ONLY here; body feedback folds into
-`steps/030-place-graphics-llm/RULEBOOK.md` and never reaches this file.
+`steps/030-pick-or-propose-graphics-llm/RULEBOOK.md` and never reaches this file.
 
 ## Inputs and outputs
 

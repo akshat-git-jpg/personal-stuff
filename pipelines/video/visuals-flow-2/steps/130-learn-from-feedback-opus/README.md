@@ -17,18 +17,25 @@ guarantee that a correction given once is never needed twice.
    - **Explicit (typed)**: pending items from `node lib/feedback-status.mjs`.
    - **Implicit (edits)**: run `node lib/edit-delta.mjs <slug>` for each video reviewed since the last fold. Treat systematic edits (the same kind of change 3+ times, e.g. reveals consistently shortened, holds consistently raised) as feedback items to fold. Treat one-off edits as already-applied instance fixes needing no rule.
 2. For each item, decide WHERE the lesson lives, and edit that surface:
-   - **any item tagged `zone` (key `zone-intro:*` / `zone-conclusion:*`, raised at
-     the 070 gate) → `steps/035-place-intro-outro-llm/RULEBOOK.md` and
+   - **any item keyed `zone-intro:*` / `zone-conclusion:*` (raised at the 037
+     card-plan gate, or anywhere else about a zone) →
+     `steps/035-pick-or-propose-intro-outro-llm/RULEBOOK.md` and
      `lib/zone-rules.mjs` / `lib/zone-constants.mjs`, then
      `node lib/build-zone-prompt.mjs`. NEVER into the body's rulebook.** The
      separation is the owner's explicit instruction (2026-07-29): intro and
      conclusion have their own rules, guidelines and execution. A zone lesson
      that edits `lib/cue-rules.mjs` re-couples what this split exists to
      separate — and the reverse is equally wrong: a body lesson never edits the
-     zone rulebook.
-   - selection/timing/density mistake **in the body** → `steps/030-place-graphics-llm/RULEBOOK.md`
+     zone rulebook. **The key is the routing**, not the gate it came from: 037
+     raises both kinds, and the prefix is what tells them apart.
+   - selection/timing/density mistake **in the body** — including items keyed
+     `card-body:*` from the 037 gate → `steps/030-pick-or-propose-graphics-llm/RULEBOOK.md`
      AND the compressed rule in `cue-pass-prompt.md` (both, always — the prompt
      is what the model actually sees)
+   - **"this card should exist" / "stop proposing this kind of card"** → the
+     `R_CHOOSING` propose clause in `lib/cue-rules.mjs` (body) or
+     `R_ZONE_SHARED_CATALOG` in `lib/zone-rules.mjs` (zones), then rebuild the
+     prompt. A rejected proposal that changes no rule comes back next video.
    - quantitative selection rule (caps, spacing, zones, density) → `lib/lint-cues.mjs` thresholds
    - visual/design mistake → `card-library/DESIGN.md`, or the card itself
    - wrong card contract (shapes, limits, purpose wording) → `card-library/catalog.json`

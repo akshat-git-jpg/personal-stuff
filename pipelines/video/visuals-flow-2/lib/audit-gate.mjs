@@ -46,7 +46,7 @@ export function auditGate({ audit, resolved }) {
         }
 
         if (cue.placement === 'fullframe') {
-          errors.push(`${item.id}: labelled fullframe — re-author (enacted device or bespoke) or mark accepted:true in audit.json`);
+          errors.push(`${item.id}: labelled fullframe — re-author with an enacted device, propose a new card, or mark accepted:true in audit.json`);
         } else if (cue.placement === 'overlay') {
           warnings.push(`${item.id}: labelled overlay`);
         }

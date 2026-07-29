@@ -53,7 +53,7 @@ There is deliberately NO required structure for either zone — no mandatory hoo
 
 Motion is the quality bar in a zone, not cue count. A zone can be dense with cues and still feel dead if the cards are static slates and the footage underneath is not moving. Before you finish, walk the zone start to end and ask what is MOVING at each second: a card revealing beats, footage in motion, or the presenter. If the answer for some stretch is "nothing", that stretch is the defect — fix it there rather than adding another card somewhere easier.
 
-There is ONE card collection, shared with the body. No card is reserved for a zone and no card is forbidden in one — a body card is a fine choice in an intro when it genuinely fits. New cards built for a zone join that same collection and become available everywhere. Choose on merit, never on where the card came from.
+There is ONE card collection, shared with the body. No card is reserved for a zone and no card is forbidden in one — a body card is a fine choice in an intro when it genuinely fits. Choose on merit, never on where the card came from. Commissioning a NEW card for a zone is an expected outcome, not a failure: set `card` to the slug you would build (a slug NOT in the catalog) and add a `propose` object `{"does", "kind", "placement", "beats", "variables"}`. The owner approves or kills it at step 037, step 038 builds it, and it joins the shared collection — so the body can use it on the next video.
 
 The presenter must actually land in the intro. Do not wallpaper the opening with fullframe cards — leave the host real time on screen early, because a tutorial that opens on wall-to-wall graphics has nobody on it to trust yet. The same applies in reverse at the conclusion: the payoff lands better from a person than from a slate.
 <!-- END GENERATED ZONE RULES -->
@@ -96,10 +96,26 @@ stretch, not by adding a card somewhere more convenient.
 ## Commissioning a new card
 
 There is one shared card collection. No card is reserved for a zone, and none is
-forbidden in one — a body card is a fine choice when it genuinely fits. Equally,
-if nothing in the catalog does the job, do not settle for the nearest slate:
-flag the cue and describe the card you want. New cards built for a zone join the
-shared collection and become available everywhere.
+forbidden in one — a body card is a fine choice when it genuinely fits.
+
+If nothing in the catalog does the job, do not settle for the nearest slate.
+Propose the card: set `card` to the slug you would build (a slug that is NOT in
+the catalog) and add a `propose` object alongside it.
+
+```json
+"propose": {
+  "does": "<what the card DOES on screen, one line>",
+  "kind": "single|beat",
+  "placement": "fullframe|overlay",
+  "beats": 3,
+  "variables": ["<what varies>"]
+}
+```
+
+The owner approves or kills each proposal at step 037; step 038 builds the
+survivors. A card built for a zone joins the shared collection and is available
+to the body on the next video. Reserve `flagged: true` for the rare case where
+you cannot even describe the card that would work.
 
 ## Rubric
 

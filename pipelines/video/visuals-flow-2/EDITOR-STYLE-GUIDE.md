@@ -79,6 +79,6 @@ and rose only when the meaning is good vs bad. Gold only when something wins.
 
 Not your call, and not in this guide. Which graphic fires when, and how often,
 is decided by the pipeline: the rules live in
-`steps/030-place-graphics-llm/cue-pass-prompt.md`, the numbers in
+`steps/030-pick-or-propose-graphics-llm/cue-pass-prompt.md`, the numbers in
 `lib/cue-constants.mjs`, and `lib/lint-cues.mjs` enforces both.
 This guide covers only how a hand-built graphic should LOOK.

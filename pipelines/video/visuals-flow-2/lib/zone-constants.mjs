@@ -7,7 +7,7 @@
 // separate"), so a body number can never quietly become a zone number.
 //
 // lib/lint-cues.mjs enforces these; lib/build-zone-prompt.mjs renders them into
-// steps/035-place-intro-outro-llm/zone-pass-prompt.md; lib/check-zone-rulebook.mjs
+// steps/035-pick-or-propose-intro-outro-llm/zone-pass-prompt.md; lib/check-zone-rulebook.mjs
 // fails if the rendered block and these values disagree. Never restate a number
 // in prose — add it here and regenerate.
 //

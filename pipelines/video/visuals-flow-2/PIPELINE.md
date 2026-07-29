@@ -17,14 +17,15 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `015-segments-propose` | [RUN] | `transcript.json` → `segments.json` (demo vs narration segments) |
 | `020-choose-concept-llm` | [LLM] | `transcript.json` → `concept.json` (gate `lint-concept`) |
 | `plan-skeleton` | [RUN] | `transcript.json` + `segments.json` → deterministic placement grid (the `{{SKELETON}}` prompt variable) |
-| `030-place-graphics-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json`, **BODY ONLY** (bespoke escalation rule) |
-| `035-place-intro-outro-llm` | [LLM] (pluggable) | `transcript.json` + `catalog.json` + `segments.json`'s `structure` → zone cues in `cues.json`, each carrying a `zone` field. Own rulebook (`lib/zone-rules.mjs`) and own numbers (`lib/zone-constants.mjs`) — nothing shared with the body pass |
+| `030-pick-or-propose-graphics-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json`, **BODY ONLY**. Picks from the catalog OR proposes a card that should exist (approved at 037, built at 038) |
+| `035-pick-or-propose-intro-outro-llm` | [LLM] (pluggable) | `transcript.json` + `catalog.json` + `segments.json`'s `structure` → zone cues in `cues.json`, each carrying a `zone` field. Own rulebook (`lib/zone-rules.mjs`) and own numbers (`lib/zone-constants.mjs`) — nothing shared with the body pass |
+| `037-approve-card-plan-human` | [OWNER] | `cues.json` + `catalog.json` → `card-plan.json` (**REVIEW 1: Card Plan**. Every card the video uses — body AND zones — marked EXISTING or NEW-to-build, approved before anything is built or rendered. Reads `cues.json`, not `resolved.json`, so an unbuilt card is visible. Per-card and per-section notes write `zone-*` / `card-body:*` items into `feedback.json`, routed to the matching rulebook and never across) |
+| `038-build-cards-llm` | [LLM] (Sonnet) | approved NEW proposals → new cards in `card-library/<type>/<name>/` + `catalog.json` entries, committed and pushed. Skipped when nothing is NEW. Procedure lives in `card-library/CLAUDE.md` |
 | `040-sync-graphics-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9, and the zone bar W15/W16/W17/W19) |
 | `050-review-graphics-llm` | [LLM] | `resolved.json` → `audit.json` (mute test) |
 | `060-place-avatar-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel) |
-| `070-approve-intro-outro-human` | [OWNER] | `cues.json` + `segments.json` → `zone-plan.json` (**REVIEW 1: Zone Plan**. Prevents wasting render cycles on intro/conclusion concepts that need board approval before production. Per-card and per-zone note boxes write `zone-*` items into `feedback.json`, which fold into the 035 rulebook ONLY) |
 | `080-approve-storyboard-human` | [OWNER] | `resolved.json` → approved `cues.json` + `shots.json` (**REVIEW 2: Storyboard**. Composition only — screen vs graphics vs avatar+mode, skippable on short videos. Localhost:4322 board; audit-gate blocks labelled fullframes) |
-| `090-render-graphics-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` (brand-inline; bespoke staging; variant rotation) |
+| `090-render-graphics-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` (brand-inline; variant rotation) |
 | `100-render-avatar-run` | [OWNER live HeyGen] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
 | `effects-plan` | [RUN] | `resolved.json` → `effects.json` (auto-approved — reviewed on Final Cut; register transitions, motif lane, captions default-on) |
 | `sound` | [RUN] | `resolved.json` + `effects.json` → `sound.json` (auto-approved — reviewed on Final Cut) |
@@ -35,20 +36,14 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `140-davinci-export-run` | [RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)] | same inputs as 110 → layered FCPXML + music/sfx lanes + panel transforms |
 | qc (`scripts/qc-video.sh`) | [RUN] + [LLM read] | `final(-draft).mp4` + `assembly.md` + `effects.json` → kb-scratch `qc/` pack (checklist + event contact sheets) → session-read verdicts in committed `qc-report.md` |
 
-**Old to New Step Number Map:**
-- 018-concept-pass → 020-choose-concept-llm
-- 030-place-graphics-llm → 030-place-graphics-llm
-- 040-sync-graphics-run → 040-sync-graphics-run
-- 035-cue-audit → 050-review-graphics-llm
-- 060-place-avatar-llm → 060-place-avatar-llm
-- zone-plan → 070-approve-intro-outro-human
-- 080-approve-storyboard-human → 080-approve-storyboard-human
-- 090-render-graphics-run → 090-render-graphics-run
-- 100-render-avatar-run → 100-render-avatar-run
-- 110-build-video-run → 110-build-video-run
-- (new) 120-approve-final-cut-human
-- 130-learn-from-feedback-opus → 130-learn-from-feedback-opus
-- 140-davinci-export-run → 140-davinci-export-run
+**Step history:**
+- 2026-07-29 — steps renumbered and renamed to say what they do (`place graphics` → `pick or propose graphics`, `resolve` split into `sync-graphics` and `davinci-export`, `owner` → `human`).
+- 2026-07-30 — `037-approve-card-plan-human` added and `070-approve-intro-outro-human` removed: the zone-only gate became one gate over the whole video's cards. `038-build-cards-llm` added. The `bespoke` card path was removed entirely — every new card now goes to the shared catalog.
+
+(The previous old→new mapping table lived here and was destroyed by two rounds of
+automated renaming rewriting both of its columns; git history is the reliable
+record. Do not reintroduce a table that a path-rename sweep will silently corrupt.)
+
 | **publish templates** | [RUN] | once the video is done: `cd ../card-library && npm run publish-check` → fails on any card built for this video that is uncommitted or unpushed. Cards only reach the editor's gallery at render2.agrolloo.com once pushed (VPS `repo-sync` cron, ~15 min). See `card-library/CLAUDE.md`. |
 
 ### The entry point
@@ -63,7 +58,7 @@ Each `steps/NNN-*/` folder has a `README.md` that remains the detailed reference
 ## What v2 adds over v1
 
 - **A. Doctrine port + concept pre-pass**: core idea, motif, register map enforced by machine lint (spec [docs/specs/2026-07-24-visuals-flow-v2-design.md](../../docs/specs/2026-07-24-visuals-flow-v2-design.md)).
-- **B. Enacted-device card family**: ~12 new cards that *do* ideas (fill, race, stack), promoted from bespoke via a flywheel.
+- **B. Enacted-device card family**: ~12 new cards that *do* ideas (fill, race, stack). The flywheel is steps 037→038: a pass proposes the card it wants, the owner approves it, it is built into the shared collection, and every later video can use it.
 - **C. Coverage fix + motion density**: no more orange screen via `extendExposure` + gap filler; always-on karaoke captions and motif.
 - **D. Selection quality**: mute-test self-audit catches bad card picks before render.
 - **E. Sound + mix stage**: semantic SFX, ducked music, −14 LUFS master (frame-exact sync).
@@ -85,7 +80,7 @@ videos/<slug>/
   concept.json     # step 018 output (core idea, motif, register map) — committed
   cues.llm.json    # step 020's final output, pre-owner-edits — committed, immutable
   cues.json        # step 020 output, step 040 edits — committed
-  zone-plan.json   # zone-plan gate output — committed
+  card-plan.json   # step 037 gate output — committed
   resolved.json    # step 030 output — committed
   audit.json       # step 035 mute-test output — committed
   shots.llm.json   # step 070's final output, pre-owner-edits — committed, immutable
@@ -94,7 +89,6 @@ videos/<slug>/
   avatar-jobs.json     # step 080 HeyGen job tracking — committed
   effects.json         # per-instance assembly-effects manifest (node lib/effects-plan.mjs <slug>) — owner-editable, committed; see EFFECTS.md
   sound.json       # sound output, SFX placement plan — committed
-  bespoke/             # bespoke hyperframes compositions — committed
   motif/               # per-video through-line assets — committed
   slices/              # per-cue vo slices, step 040's board — gitignored
   slices-avatar/       # per-job vo slices, step 080 — gitignored
@@ -188,7 +182,7 @@ Field semantics:
 - `legacy_why` (optional) — one-line reason if falling back to a legacy text/reveal card instead of the enacted family.
 - `motif` (optional) — boolean, true if the cue hosts the through-line motif.
 - `flagged: true` — no card fits, needs a novel card (plan 065 surfaces these).
-- `bespoke` (optional) — string, required if `card: "bespoke"`. Sets the composition dirname (`videos/<slug>/bespoke/<dirname>`). When `card: "bespoke"`, `placement` ("fullframe"|"overlay") is also required in the cue, and beats resolve as normal (the composition reads `beats[].at`).
+- `propose` (optional) — object, present when `card` names a card that does not exist yet. `{ does, kind, placement, beats, variables }` — what the card DOES, whether it is `single` or `beat`, how many beats, and what varies. The owner approves or kills it at 037; 038 builds what survives. A cue carrying `propose` is legal through `validateCues` but rejected by `resolveCues`, because by step 040 the card must exist.
 - `kind: "word-sync"` cards (catalog) take `variables.text` (the sentence, quoted verbatim from the voiceover) and optional `variables.accent` (a phrase appearing verbatim inside `text`, rendered in the brand accent). They author **no** `beats` — the resolver derives one beat per word from `transcript.json`, so the cue's `anchor` must be the opening words of the sentence itself.
 - Board feedback: every cue block, gap block, and the header carry a feedback box;
   Save writes non-empty entries to `feedback.json` (`items` keyed by cue id,
@@ -203,15 +197,22 @@ Field semantics:
 
 Single-card cues (`kind: "single"`) have `beats: []` and use catalog `default_duration`.
 
-## zone-plan.json schema
+## card-plan.json schema
 
-This gate prevents wasting render cycles on intro/conclusion concepts that need board approval before production. The owner reviews the `Zone Plan` tab on the board and approves it.
+The 037 gate. Every card the video will use, body and zones alike, marked
+EXISTING or NEW-to-build — approved before anything is built or rendered.
+
+Built from `cues.json`, **not** `resolved.json`: a cue naming a card that does
+not exist yet can never reach `resolved.json`, because `resolve.mjs` refuses
+unknown cards and writes nothing. The zone-only gate this replaced read
+`resolved.json`, so its "NEW — to build" chip could only ever fire for a card
+somebody had already hand-built.
 
 ```json
 {
   "video": "notion-vs-asana",
   "approved": true,
-  "zones": [
+  "sections": [
     {
       "part": "intro",
       "start": 0,
@@ -219,10 +220,10 @@ This gate prevents wasting render cycles on intro/conclusion concepts that need 
       "items": [
         {
           "id": "c01",
-          "at": 1.0,
-          "card": "some-existing-card",
+          "card": "title/title-versus",
           "status": "existing",
           "placement": "fullframe",
+          "anchor": "welcome back everyone",
           "flagged": false,
           "proposal": null
         }
@@ -231,9 +232,10 @@ This gate prevents wasting render cycles on intro/conclusion concepts that need 
   ]
 }
 ```
-- `approved`: boolean gate; rendering refuses to proceed if this is false (unless `--force` is used). Resets to false if cues change.
-- `zones`: lists each zone part (e.g. `intro`, `conclusion`) and its bounds.
-- `items`: the filtered list of cues in the zone; `status` is `existing` (found in catalog) or `new` (bespoke card to build).
+- `approved`: boolean gate; `render.mjs` refuses while false (unless `--force`). Resets to false whenever the plan changes — including when 038 builds a card and its `status` flips `new` → `existing`, so the built card is looked at before it reaches a video.
+- `sections`: one per `intro` / `body` / `conclusion` that has cues; empty ones are dropped. `start`/`end` appear only for the zones, which are the only parts measured from the source recordings — the body has no span.
+- `items`: `status` is `existing` (found in `catalog.json`) or `new` (to be built at 038). `anchor` rather than a timestamp: this gate runs before 040 puts the plan on a clock.
+- `proposal`: the structured spec of a NEW card (`does` / `kind` / `placement` / `beats` / `variables`), taken from the cue's `propose` field.
 
 ## audit.json schema
 
@@ -246,7 +248,7 @@ This is the mute-test audit output produced by 035-cue-audit.
     {
       "id": "c01",
       "verdict": "labelled",
-      "fix": { "card": "<catalog-slug>|bespoke", "how": "<one sentence>" },
+      "fix": { "card": "<catalog-slug>|new", "how": "<one sentence>" },
       "accepted": true
     }
   ]

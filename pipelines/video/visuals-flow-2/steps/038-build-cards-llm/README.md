@@ -1,0 +1,87 @@
+# 038 · build cards · [LLM] (Sonnet — this is taste-setting work)
+
+Build every card the owner approved as NEW at step 037, into the **shared**
+card collection. Then the video continues at 040 with a catalog that contains
+everything its cues name.
+
+- **In:** `videos/<slug>/card-plan.json` (`approved: true`), the `proposal`
+  block on each `status: "new"` item
+- **Out:** new cards in `../card-library/<type>/<card-name>/`, each with a
+  `catalog.json` entry — committed **and pushed**
+- **Skip when:** `card-plan.json` has no `status: "new"` items. Most videos.
+- **Next:** `run.sh <slug> resolve` (step 040)
+
+## This step owns almost nothing
+
+**The authoring procedure lives in `../card-library/CLAUDE.md` ("Adding a new
+card") and the visual rules in `../card-library/DESIGN.md`.** Read them and
+follow them. Do not restate them here — one authoritative home, referenced, not
+recopied.
+
+What is specific to this step is only:
+
+1. **The work list comes from `card-plan.json`.** Build exactly the
+   `status: "new"` cards, and nothing else. A card the owner did not approve
+   does not get built because it seemed like a good idea while you were in there.
+2. **The card goes in the shared collection, not the video's folder.** There is
+   ONE card collection. A card born for an intro is available to the body on the
+   next video — that is the whole reason proposals are worth approving (owner,
+   2026-07-29: *"there will be one template collection which body and intro,
+   conclusion anyone can use. lets keep on maintaining that collection"*).
+3. **The proposal is the spec.** `does` / `kind` / `placement` / `beats` /
+   `variables` came from the pass and survived the owner's review. Build that
+   card. If the spec turns out to be unbuildable as written, stop and report —
+   do not quietly build something else, because the owner approved the spec, not
+   your judgement of it.
+
+## The catalog entry
+
+The card is invisible to the cue passes until `catalog.json` has it. Minimum
+shape (this is the stub the retired `scripts/promote-bespoke.mjs` used to print):
+
+```json
+{
+  "slug": "<type>/<card-name>",
+  "kind": "single | beat",
+  "placement": "fullframe | overlay",
+  "purpose": "",
+  "intent": "",
+  "anti_intent": "",
+  "variables": {}
+}
+```
+
+`purpose`, `intent` and `anti_intent` are not optional padding — they are what
+the next cue pass routes on, and `anti_intent` is a hard veto during selection.
+A card with empty routing fields will sit in the catalog unused, which is the
+same as not having built it.
+
+## Done means pushed
+
+A card committed but not pushed is invisible to the editor **forever, silently**
+— nothing errors, it just never appears (`card-library/CLAUDE.md`; this actually
+happened to `verdict/winners-podium`, which sat untracked for a day).
+
+Gates, all of which must pass before this step is done:
+
+```bash
+cd ../card-library
+npx hyperframes@latest lint <type>/<card-name>   # font/Studio warnings are expected
+node scripts/card-qa.mjs <type>/<card-name>      # the max variant must not clip or overlap
+node scripts/check-catalog.mjs
+bash scripts/beat-smoke.sh                       # beat cards only
+bash scripts/check-cards.sh --publish            # also requires everything PUSHED
+```
+
+Then, back in the pipeline, `node lib/card-plan.mjs <slug>` — the rebuilt plan
+flips the card from NEW to EXISTING, which **resets the 037 approval on
+purpose**: the owner approved a spec, and now there is a real card to look at.
+Re-approving is one click, and it is the only moment the built card is compared
+against what was asked for before it reaches a video.
+
+## Why a real model, not a form-filler
+
+Writing a card is design work against `DESIGN.md` — palette, type scale, layout
+capacity at the declared caps, and the shared TIMELINE motion feel. A cheap
+model produces a card that lints clean and looks wrong, and the cost lands on
+the owner at the 080 board. Route this to Sonnet or better.

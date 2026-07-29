@@ -48,7 +48,7 @@ export function checkRulebook({
   cueRules = CUE_RULES,
 } = {}) {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
-  const cuePassStepDir = path.resolve(import.meta.dirname, '..', 'steps', '030-place-graphics-llm');
+  const cuePassStepDir = path.resolve(import.meta.dirname, '..', 'steps', '030-pick-or-propose-graphics-llm');
   rulebookPath ??= path.join(cuePassStepDir, 'RULEBOOK.md');
   promptPath ??= path.join(cuePassStepDir, 'cue-pass-prompt.md');
   catalogPath ??= path.join(cardLibraryRoot, 'catalog.json');

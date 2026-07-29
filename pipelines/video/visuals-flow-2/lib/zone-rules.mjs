@@ -26,7 +26,7 @@ export const ZONE_RULES = {
     why: 'test-03 intro measured 3.57 cues/min against a 2.30/min body — DENSER than the body — and was still rejected. 4 fullframes, 1 enacted, and 20 consecutive seconds at ~0.01 mean frame delta (a still image). Density was never the problem',
   },
   R_ZONE_SHARED_CATALOG: {
-    rule: 'There is ONE card collection, shared with the body. No card is reserved for a zone and no card is forbidden in one — a body card is a fine choice in an intro when it genuinely fits. New cards built for a zone join that same collection and become available everywhere. Choose on merit, never on where the card came from.',
+    rule: 'There is ONE card collection, shared with the body. No card is reserved for a zone and no card is forbidden in one — a body card is a fine choice in an intro when it genuinely fits. Choose on merit, never on where the card came from. Commissioning a NEW card for a zone is an expected outcome, not a failure: set `card` to the slug you would build (a slug NOT in the catalog) and add a `propose` object `{"does", "kind", "placement", "beats", "variables"}`. The owner approves or kills it at step 037, step 038 builds it, and it joins the shared collection — so the body can use it on the next video.',
     why: 'owner 2026-07-29: "No need to restrict on templates. Also there will be one template collection which body and intro,conclusion anyone can use. lets keep on maintaining that collection" — the owner rejected a zone-only card family',
   },
   R_ZONE_HOST: {

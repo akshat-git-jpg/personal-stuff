@@ -288,20 +288,43 @@ The correct cue for that bridge:
 
 ## Novel cards (flagged cues)
 
-Flagged cues are reviewed on the storyboard board (plan 065), not
-auto-corrected. When a flag is approved:
+**Proposing a card is the normal path; flagging is the rare one.** They are
+different acts and the pass must not confuse them:
 
-1. Author the new card into the library following BOTH card-library contracts:
-   the Beat contract (card-library `README.md`) for timing mechanics, and the
-   design system (card-library `DESIGN.md`) for palette, typography, layout,
-   and motion — including honestly measured `max_beats`/`max_reveal_chars`.
-2. Add a matching entry to `catalog.json` (beat-smoke.sh enforces the fields).
+| | When | How | What happens |
+|---|---|---|---|
+| **Propose** | You can describe the card that would enact the clause | `card` = the slug you would build (not in the catalog) + a `propose` object | Owner approves or kills it at **037**; **038** builds the survivors into the shared collection |
+| **Flag** | You cannot even describe a card that would work | `flagged: true` | The cue is parked — it renders nothing and holds nothing up |
 
-This grows the catalog so future videos flag less over time. Authoring
-executor is Opus (owner decision 2026-07-18 — card authoring is occasional
-library growth, not the per-video loop, so the Opus-stays-out-of-the-loop rule
-doesn't apply); Antigravity is only used under the recorded
-render-plus-visual-inspection mitigation (decisions.md 2026-07-07).
+The `propose` object is the spec 038 builds from, so it has to be buildable:
+
+```json
+"propose": {
+  "does": "bars race left-to-right as the monthly cost climbs",
+  "kind": "beat",
+  "placement": "fullframe",
+  "beats": 3,
+  "variables": ["title", "items[].label", "items[].value"]
+}
+```
+
+Authoring the card itself follows BOTH card-library contracts — the Beat
+contract (`card-library/README.md`) for timing mechanics and the design system
+(`card-library/DESIGN.md`) for palette, typography, layout and motion, including
+honestly measured `max_beats`/`max_reveal_chars` — plus a matching
+`catalog.json` entry. That procedure lives in `card-library/CLAUDE.md`; step
+`038-build-cards-llm` points at it rather than restating it.
+
+This is what grows the catalog, so later videos need fewer proposals. Card
+authoring is occasional library growth rather than the per-video loop, so it
+routes to a capable model (owner decision 2026-07-18); Antigravity only under
+the recorded render-plus-visual-inspection mitigation (decisions.md 2026-07-07).
+
+**Until 2026-07-30 this could not work.** A cue naming a card that did not exist
+made `resolve.mjs` exit 1 and write no `resolved.json` at all, so obeying the
+propose rule took the whole video down and the only survivable move was the one
+the rule forbids — settle for the nearest existing card. Flagging did not help
+either: the catalog lookup ran before the `flagged` check.
 
 ## Rubric
 

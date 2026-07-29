@@ -13,7 +13,7 @@ export const END_MARKER = '<!-- END GENERATED ZONE CONSTRAINTS -->';
 export const RULES_BEGIN_MARKER = '<!-- BEGIN GENERATED ZONE RULES — edit lib/zone-rules.mjs, then run node lib/build-zone-prompt.mjs -->';
 export const RULES_END_MARKER = '<!-- END GENERATED ZONE RULES -->';
 
-export const PROMPT_PATH = path.resolve(import.meta.dirname, '..', 'steps', '035-place-intro-outro-llm', 'zone-pass-prompt.md');
+export const PROMPT_PATH = path.resolve(import.meta.dirname, '..', 'steps', '035-pick-or-propose-intro-outro-llm', 'zone-pass-prompt.md');
 
 export function renderConstraintLines(zoneConstants = ZONE_CONSTANTS) {
   const lines = [];

@@ -1,0 +1,81 @@
+# 037 · approve card plan · [HUMAN]
+
+**MANDATORY GATE 1.** Every card the video will use — body, intro and conclusion
+— in one list, each marked EXISTING or NEW-to-build, with the spec of any
+proposed new card. You approve the plan here, before a single card is built and
+long before anything renders.
+
+- **In:** `videos/<slug>/cues.json` (both passes: 030 body + 035 zones),
+  `card-library/catalog.json`
+- **Out:** `videos/<slug>/card-plan.json` with `approved: true`
+- **Run:** `bash run.sh <slug> outline` to read it as text, then
+  `bash run.sh <slug> board` and open the **Card Plan** tab to approve
+- **What it blocks:** `render.mjs` refuses while `card-plan.json` is
+  `approved: false`. Any change to the plan resets the approval — you approved a
+  specific set of cards, not the file's existence.
+- **Next:** step 038 builds whatever came out NEW. If nothing is NEW, go
+  straight to `run.sh <slug> resolve` (step 040).
+
+## Why this gate, here
+
+**Build-vs-reuse is the cheapest decision in the pipeline and the most expensive
+to defer.** Killing a proposed card here costs one line. Discovering at the Final
+Cut that the card was wrong costs a re-author, a re-render and a re-assemble.
+
+**It reads `cues.json`, not `resolved.json`** — that is the whole point. A cue
+naming a card that does not exist yet can never appear in `resolved.json`,
+because `resolve.mjs` refuses unknown cards and writes nothing. The old
+zone-only gate read `resolved.json`, so its "NEW — to build" chip could only
+ever fire for a card somebody had already hand-built. It was downstream of the
+decision it existed to make.
+
+**No timestamps here, and that is deliberate.** Cues carry anchor phrases, not
+seconds; 040 is what puts them on a clock. The question this gate asks is *is
+this the right card for this clause*, which the anchor answers better than a
+timecode would.
+
+## Replaces step 070
+
+070 (`approve-intro-outro`) was this gate scoped to the intro and conclusion
+only, which left the body's build-vs-reuse call unmade by anybody. Generalising
+it to the whole video left 070 with no remaining job, so it is gone. The human
+gate count is unchanged: **037, 080, 120**.
+
+The intro/conclusion keep their own rulebook, their own numbers and their own
+pass — only the approval *surface* merged. Nothing about the 2026-07-29
+separation changed.
+
+## Say why, not just yes or no
+
+Every card has a note box, and every section has one for the section as a whole.
+What you write is routed by **which section the card is in**, and the routing is
+the owner's standing instruction (2026-07-29) — a zone lesson must never edit
+the body's rulebook, and the reverse:
+
+| Section | Feedback key | Folds into |
+|---|---|---|
+| intro | `zone-intro:<n>` | `steps/035-pick-or-propose-intro-outro-llm/RULEBOOK.md` |
+| conclusion | `zone-conclusion:<n>` | same — the zone rulebook |
+| body | `card-body:<n>` | `steps/030-pick-or-propose-graphics-llm/RULEBOOK.md` |
+
+Rejecting a card without a note teaches the pipeline nothing and the same card
+comes back on the next video. That was the actual behaviour until 2026-07-29.
+
+## What to look for
+
+- **A NEW card you do not want.** Say so in the note — that is a rule, not a
+  one-off. The card is never built.
+- **A NEW card you do want.** Approve it. 038 builds it into the shared
+  collection and the body can use it on the next video too.
+- **An existing card doing the wrong job.** The classic failure is settling for
+  the nearest card because the catalog is short. If the honest answer is a card
+  that does not exist, the pass should have proposed one — say that.
+- **A repeated semantic slot using different cards.** Parallel items (the
+  section opener for each compared tool) must use the SAME card. Mixing is a
+  defect, not variety.
+- **Anything flagged.** A flagged cue is the pass telling you it had no good
+  answer.
+
+**Not a checklist.** What belongs in an intro is a judgment call about that
+script; this gate checks that cards were *chosen deliberately*, not that
+particular slots are filled (owner ruling, `decisions.md` 2026-07-28).
