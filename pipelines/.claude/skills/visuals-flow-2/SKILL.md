@@ -63,7 +63,12 @@ Between the gates the session runs unattended: render → avatar renders → cut
 | Phrase | `run.sh` verb / CLI | Owner Gate / Behavior |
 |---|---|---|
 | "run v2 graphics", "run the concept pass" | `bash run.sh <slug> concept-pass` | |
-| "run the cue pass" | `bash run.sh <slug> cue-pass` | |
+| "run the cue pass" | `bash run.sh <slug> cue-pass` | authors the BODY only |
+| "run the zone pass", "do the intro and outro" | `bash run.sh <slug> zone-pass` | authors the INTRO + CONCLUSION only, own rulebook |
+| "check the cues", "validate the plan" | `bash run.sh <slug> validate` | pre-037; tolerates cards 038 has not built yet |
+| "show me the card plan", "outline the cues" | `bash run.sh <slug> outline` | text view of the 037 plan |
+| "approve the cards", "card plan" | `bash run.sh <slug> card-plan` then `board` | **037 card plan approval** |
+| "build the new cards" | step 038 — see `steps/038-build-cards-llm/README.md` | only when 037 left something NEW |
 | "audit the cues" | `bash run.sh <slug> audit` | |
 | "run the shot pass" | `bash run.sh <slug> shot-pass` | |
 | "open my v2 board", "open my storyboard", "final cut review" | `bash run.sh <slug> board` | **080 storyboard approval** or **120 final cut approval** |

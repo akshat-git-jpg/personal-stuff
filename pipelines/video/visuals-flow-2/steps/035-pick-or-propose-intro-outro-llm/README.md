@@ -17,7 +17,9 @@ rulebook, and their own numbers — nothing here is shared with the body.
   into the executor. Fill `{{CATALOG}}` with `card-library/catalog.json`,
   `{{TRANSCRIPT}}` with `node lib/transcript-text.mjs <slug>`, and
   `{{STRUCTURE}}` with the `structure` array from `segments.json`.
-- **Next:** step 040 syncs every cue — body and zone alike — into absolute times.
+- **Next:** `run.sh <slug> validate`, then the 037 card-plan gate (which covers
+  body and zone cues together), then 038 if anything came out NEW, then 040 syncs
+  every cue — body and zone alike — into absolute times.
 
 ## Why this is its own step
 
@@ -57,6 +59,7 @@ it reports *not applicable* rather than passing silently.
 
 There is ONE shared card collection. No card is reserved for a zone and none is
 forbidden in one — choose on merit. Commissioning a **new** card for a zone is
-an expected outcome: flag the cue, describe the card, and the owner approves it
-at step 070 before anything renders. New zone cards join the shared collection
-and become available to the body too.
+an expected outcome: name the slug you would build, describe it in a `propose`
+object, and the owner approves or kills it at step 037 — step 038 then builds
+what survived, before anything renders. New zone cards join the shared
+collection and become available to the body too.

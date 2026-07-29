@@ -1,4 +1,4 @@
-# Shot-pass rulebook (step 070)
+# Shot-pass rulebook (step 060)
 
 Judgment rules for choosing full-screen avatar spans. The quantitative half is
 machine-enforced by `lib/lint-shots.mjs`, whose constants live in

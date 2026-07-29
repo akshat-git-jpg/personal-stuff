@@ -27,3 +27,17 @@
   automatic over all screen segments; side view has no HeyGen id (fal-lipsync
   flow only); and there is no mode where the avatar shares a frame with a card.
   Gate 1 cannot offer the variation choice until those modes exist.
+
+- **2026-07-30**: The gate numbering above is superseded. There are **THREE**
+  human gates, not two, and gate 1 is no longer the storyboard:
+  **Gate 1 = 037 card plan** (which cards, EXISTING vs NEW-to-build, body and
+  zones together — approved before anything is built or rendered),
+  **Gate 2 = 080 storyboard** (composition, with the real cards playing),
+  **Gate 3 = 120 final cut** (motion and sound, judged on the assembled draft).
+  The 2026-07-25 entry's reasoning still holds in full — plan defects are cheap
+  on a storyboard and expensive in a final cut — 037 just pushes the cheapest
+  class of them (wrong card, or a card that should exist and doesn't) one step
+  earlier still, to before the card is built. `070-approve-intro-outro-human`
+  was absorbed into 037 and deleted: it was this gate scoped to the zones only,
+  which left the body's build-vs-reuse call unmade by anybody.
+  See the root `decisions.md` entry of the same date for the full rationale.

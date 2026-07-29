@@ -14,6 +14,7 @@ Usage: run.sh <slug> <step>
 Steps:
   status
   transcribe
+  segments
   concept-pass
   cue-pass
   validate
@@ -108,11 +109,11 @@ case "$step" in
     if [[ "$transcript_present" == "missing" ]]; then
       echo "next: run.sh $slug transcribe"
     elif [[ "$segments_present" == "missing" ]]; then
-      echo "next: create segments.json (see steps/030-pick-or-propose-graphics-llm/README.md)"
+      echo "next: run.sh $slug segments  (then set confirmed: true in segments.json)"
     elif [[ "$cues_present" == "missing" ]]; then
       echo "next: run.sh $slug cue-pass"
     elif [[ "$card_plan_approved" == "NOT approved" ]]; then
-      echo "next: run.sh $slug outline, then run.sh $slug board  (HUMAN GATE 1 — 037 card plan)"
+      echo "next: run.sh $slug validate, then outline + board  (HUMAN GATE 1 — 037 card plan)"
     elif [[ "$resolved_present" == "missing" ]]; then
       echo "next: run.sh $slug resolve  (build any NEW cards at step 038 first)"
     elif [[ "$shots_present" == "missing" ]]; then
@@ -128,6 +129,13 @@ case "$step" in
 
   transcribe)
     bash steps/010-transcribe-run/run.sh "$slug"
+    ;;
+
+  segments)
+    # Writes segments.json INCLUDING the measured intro/body/conclusion spans
+    # (`structure`), read from src/. Without those the zone pass at 035 has
+    # nothing to author against. Set `confirmed: true` in the file afterwards.
+    node lib/segments.mjs "$slug" --propose
     ;;
 
   concept-pass)

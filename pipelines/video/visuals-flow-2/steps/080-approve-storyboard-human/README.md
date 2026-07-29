@@ -1,9 +1,12 @@
 # 080 · approve storyboard · [HUMAN]
 
-**MANDATORY GATE 1 — never skipped, at any video length** (owner decision
-2026-07-25, decisions.md). This is the PLAN review: the owner finalises avatar
-placement and variation, motion-graphics placement, card choice, and on-card
-text BEFORE anything renders. The earlier "≤10 min videos may skip this and go
+**MANDATORY GATE 2 — never skipped, at any video length** (owner decision
+2026-07-25, decisions.md; renumbered 2026-07-30 when the 037 card plan became
+gate 1). This is the COMPOSITION review — 037 already settled *which cards*, so
+this gate is about how the plan sits on the timeline: the owner finalises avatar
+placement and variation, motion-graphics placement, on-card text, and any final
+card swap BEFORE anything renders. 037 decided build-vs-reuse from a list; here
+the real card plays in an iframe, which is the first time it can be judged. The earlier "≤10 min videos may skip this and go
 straight to the cut" rule is revoked — it pushed card-choice errors into the
 Final Cut, where each one costs a full re-render.
 

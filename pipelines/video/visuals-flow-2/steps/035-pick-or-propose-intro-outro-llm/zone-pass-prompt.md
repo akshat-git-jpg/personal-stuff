@@ -37,9 +37,10 @@ with the body pass's `c` ids. Anchors are quoted **verbatim** from the
 transcript — they are matched by string, so an approximation resolves to the
 wrong second or fails outright.
 
-To request a card that does not exist yet, set `"card": "flag"` and add
-`"flag_why"` describing the card you actually want. That is an expected outcome
-here, not a failure — the owner approves new zone cards at step 070 before
+To request a card that does not exist yet, set `card` to the slug you would
+build and add a `propose` object (full shape under "Commissioning a new card"
+below). That is an expected outcome here, not a failure — the owner approves or
+kills each proposal at step 037 and step 038 builds the survivors, all before
 anything renders.
 
 ## The rules

@@ -9,7 +9,7 @@
   `card-library/catalog.json`, and `{{TRANSCRIPT}}` with the output of
   `node lib/transcript-text.mjs <slug>` (never raw `transcript.json`). Write the
   raw JSON output to `videos/<slug>/cues.json`.
-- **Next:** step 040 resolves `cues.json` into absolute times. Fix-loop: run `node lib/resolve.mjs <slug> && node lib/lint-cues.mjs <slug>` — feed any errors back to the same executor and re-run, up to 3 rounds; errors after round 3 go to the owner. After the fix-loop converges, copy the final cues.json to `videos/<slug>/cues.llm.json` BEFORE any human/board edit. This file is committed and never edited afterward — it is the baseline the owner's edits are measured against.
+- **Next:** `run.sh <slug> validate` (catches bad anchors and over-cap beats without needing the cards to exist), then the 037 card-plan gate, then 038 if anything came out NEW, then step 040 resolves `cues.json` into absolute times. Fix-loop: run `node lib/resolve.mjs <slug> && node lib/lint-cues.mjs <slug>` — feed any errors back to the same executor and re-run, up to 3 rounds; errors after round 3 go to the owner. After the fix-loop converges, copy the final cues.json to `videos/<slug>/cues.llm.json` BEFORE any human/board edit. This file is committed and never edited afterward — it is the baseline the owner's edits are measured against.
 
 This is the only step with a judgment call — everything else in the pipeline is
 scripted and costs zero tokens. See `RULEBOOK.md` for the full rubric (density,
