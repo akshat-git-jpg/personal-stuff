@@ -4,6 +4,7 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { mmss, planRender } from './render.mjs';
 import { resolveCues, extendExposure } from './resolve.mjs';
+import { avatarFullSpans } from './lint-cues.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { EFFECT_MODULES } from './effects/registry.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
@@ -562,7 +563,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       const fromIdx = segments.findIndex(s => s.id === seg.from);
       const isHead = fromIdx > i;
       if (isHead) {
-        seekArgs = ['-frames:v', '1'];
+        // Read only the first sliver of the source and let the existing
+        // `tpad=stop_mode=clone` hold that frame for the rest of the segment —
+        // the mirror image of the tail case below. `-frames:v 1` was used here
+        // and is an OUTPUT option: spliced before `-i` ffmpeg rejects it with
+        // "Option frames:v cannot be applied to input url". Latent on
+        // base:"screen" (no freezes); base:"none" fills gaps with freezes and
+        // exposed it (found 2026-07-29). `-ss`/`-t` are genuine input options,
+        // so this works in both the filter_complex and the plain -vf branch.
+        seekArgs = ['-ss', '0', '-t', '0.05'];
       } else {
         seekArgs = ['-sseof', '-0.05'];
       }
@@ -849,9 +858,19 @@ export async function loadAssemblyInputs(opts) {
   // Freshness must compare post-extendExposure output — resolved.json is written
   // after the post-pass, so a raw recompute is always "stale" for any video with
   // an extended fullframe (bug found on test-01's first draft, 2026-07-24).
+  // avatarSpans is REQUIRED here, not optional: resolved.json was written by
+  // resolve.mjs WITH it, so recomputing without it can never match and the
+  // freshness guard below trips unconditionally on any video carrying
+  // avatar-full spans (found 2026-07-29, third plan blocked by a missed
+  // extendExposure call site).
+  const freshnessAvatarJobs = (() => {
+    const p = path.join(workdir, 'avatar-jobs.json');
+    return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+  })();
   const recomputedExtended = extendExposure(recomputed.resolved, {
     base: loadVideoManifest(workdir).base,
     total: words.length ? words[words.length - 1].end + 1.0 : 0,
+    avatarSpans: avatarFullSpans(freshnessAvatarJobs),
   });
   const fresh = recomputed.errors.length === 0
     && JSON.stringify(recomputedExtended) === JSON.stringify(resolved);
@@ -898,7 +917,11 @@ export async function loadAssemblyInputs(opts) {
     console.error(`missing file: ${voPath}`);
     process.exit(1);
   }
-  if (!fs.existsSync(screen)) {
+  // base:"none" means there IS no screen recording — every screen segment is
+  // replaced by a freeze frame (see fillGapsWithFreeze). Requiring the file
+  // unconditionally made a base:"none" video impossible to assemble at all,
+  // and the only way past it was a dummy file (found 2026-07-29).
+  if (loadVideoManifest(workdir).base !== 'none' && !fs.existsSync(screen)) {
     console.error(`missing file: ${screen}`);
     process.exit(1);
   }

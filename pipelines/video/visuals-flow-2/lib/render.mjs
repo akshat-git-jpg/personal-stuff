@@ -4,6 +4,7 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { enrichLogos } from './logos-inline.mjs';
 import { resolveCues, extendExposure } from './resolve.mjs';
+import { avatarFullSpans } from './lint-cues.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { loadBrand, injectBrand } from './brand-inline.mjs';
@@ -157,9 +158,17 @@ async function main() {
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
   const recomputed = resolveCues(cuesFile.cues, words, catalog, cardLibraryRoot, workdir);
   // Compare post-extendExposure output — see the matching note in assemble.mjs.
+  // avatarSpans is REQUIRED: resolved.json was written with it, so omitting it
+  // here makes the freshness comparison fail for every video with avatar-full
+  // spans (found 2026-07-29).
+  const freshnessAvatarJobs = (() => {
+    const p = path.join(workdir, 'avatar-jobs.json');
+    return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+  })();
   const recomputedExtended = extendExposure(recomputed.resolved, {
     base: manifest.base,
     total: words.length ? words[words.length - 1].end + 1.0 : 0,
+    avatarSpans: avatarFullSpans(freshnessAvatarJobs),
   });
   const fresh = recomputed.errors.length === 0
     && JSON.stringify(recomputedExtended) === JSON.stringify(resolved);
