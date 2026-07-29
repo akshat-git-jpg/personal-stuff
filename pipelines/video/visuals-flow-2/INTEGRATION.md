@@ -57,7 +57,7 @@ run against an unapproved `cues.json`.
 Step 020 is the one judgment call in the whole flow — everything else above
 is zero-token. Inside `tutorial-pipeline-2`'s conventions, this is a
 `[SONNET]` step: a Claude Code session on model Sonnet, prompt =
-`steps/020-cue-pass-llm/cue-pass-prompt.md` (self-contained; `RULEBOOK.md` is its
+`steps/030-cue-pass-llm/cue-pass-prompt.md` (self-contained; `RULEBOOK.md` is its
 fold-maintained source, not a session input), inputs =
 `node lib/transcript-text.mjs <workdir>` output + `card-library/catalog.json`,
 output = `<workdir>/cues.json`.

@@ -1005,3 +1005,35 @@ but every case calls the pure function with a mock catalog, so a broken path in
 
 - 166-vf2-e9-avatar-and-catalog-path — fix E9 avatar-blindness + lint-shots path — TODO (unblocks 158/PR#116)
 - 166-vf2-e9-avatar-and-catalog-path — PR#124 166-vf2-e9-avatar-and-catalog-path: E9 must see the avatar; lint-shots must find the catalog — DONE
+
+## 167 — renumber the steps, make the three reviews explicit (2026-07-29)
+
+Owner: *"fix the numbering pls, steps sequence looks confusing… add explicit
+steps for human reviewer for intro and conclusion, then each cue on storyboard,
+then 3rd review of full video on final cut."*
+
+Numbers did not match run order — the shot pass was `070` but ran BEFORE the
+`040` storyboard review, and the feedback fold was `060` but ran last. Only one
+of the three human reviews existed as a step; the Final Cut review gated nothing
+at all, so a video could reach full resolution and be exported with the owner's
+comments untriaged.
+
+Owner decisions this batch: full clean renumber (not a minimal patch); keep plan
+164 and give its gate a step folder rather than rebuilding it; and REVIEW 3
+becomes a real gate on the full-resolution final and the Resolve export.
+
+Target sequence: 010 transcribe · 020 concept · 030 cue pass · 040 resolve ·
+050 audit · 060 shot pass · **070 REVIEW 1 intro+conclusion** ·
+**080 REVIEW 2 storyboard** · 090 render · 100 avatar · 110 assemble ·
+**120 REVIEW 3 final cut** · 130 feedback fold · 140 resolve export.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 167 | vf2-renumber-steps-and-three-reviews | `git mv` renumber (history preserved), repointed code paths, two new owner-review step folders, and a per-version Final Cut gate that blocks the full-res final and the export while leaving `--draft` open | 164 |
+
+Historical records (`decisions.md`, `plans/*`, `docs/specs/*`, `tests/TESTS.md`)
+keep their original numbers — rewriting them would falsify the record; an
+old→new map in `PIPELINE.md` is how they stay readable.
+
+- 167-vf2-renumber-steps-and-three-reviews — numeric order becomes run order + 3 explicit reviews — TODO (needs 164)
+- 167-vf2-renumber-steps-and-three-reviews — PR#125 167-vf2-renumber-steps-and-three-reviews: numeric order becomes run order, plus the three owner reviews — DONE

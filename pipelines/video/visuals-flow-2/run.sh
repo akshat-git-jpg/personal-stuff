@@ -103,7 +103,7 @@ case "$step" in
     if [[ "$transcript_present" == "missing" ]]; then
       echo "next: run.sh $slug transcribe"
     elif [[ "$segments_present" == "missing" ]]; then
-      echo "next: create segments.json (see steps/020-cue-pass-llm/README.md)"
+      echo "next: create segments.json (see steps/030-cue-pass-llm/README.md)"
     elif [[ "$cues_present" == "missing" ]]; then
       echo "next: run.sh $slug cue-pass"
     elif [[ "$resolved_present" == "missing" ]]; then
@@ -126,7 +126,7 @@ case "$step" in
   concept-pass)
     cat <<EOF
 018 is an LLM step, not a command. Assemble the prompt:
-  1. steps/018-concept-pass-llm/concept-pass-prompt.md   (the prompt; fill its placeholders)
+  1. steps/020-concept-pass-llm/concept-pass-prompt.md   (the prompt; fill its placeholders)
   2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   3. cat videos/$slug/segments.json             -> {{SEGMENTS}}
 After the concept pass: node lib/lint-concept.mjs $slug
@@ -137,7 +137,7 @@ EOF
   cue-pass)
     cat <<EOF
 020 is an LLM step, not a command. Assemble the prompt:
-  1. steps/020-cue-pass-llm/cue-pass-prompt.md   (the prompt; fill its placeholders)
+  1. steps/030-cue-pass-llm/cue-pass-prompt.md   (the prompt; fill its placeholders)
   2. node lib/plan-skeleton.mjs $slug           -> {{SKELETON}}
   3. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   4. ../card-library/catalog.json                -> {{CATALOG}}
@@ -155,7 +155,7 @@ EOF
   audit)
     cat <<EOF
 035 is an LLM step, not a command. Assemble the prompt:
-  1. steps/035-cue-audit-llm/audit-prompt.md     (the prompt; fill its placeholders)
+  1. steps/050-cue-audit-llm/audit-prompt.md     (the prompt; fill its placeholders)
   2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   3. cat videos/$slug/resolved.json             -> {{CUES}}
   4. node -e "const c=require('../card-library/catalog.json'); c.cards.forEach(card => console.log(card.slug + ': ' + card.purpose));" -> {{CATALOG_PURPOSES}}
@@ -174,11 +174,11 @@ EOF
     ;;
 
   board)
-    bash steps/040-storyboard-review-owner/run.sh "$slug"
+    bash steps/080-storyboard-review-owner/run.sh "$slug"
     ;;
 
   render)
-    bash steps/050-render-run/run.sh "$slug"
+    bash steps/090-render-run/run.sh "$slug"
     ;;
 
   fold)
@@ -198,7 +198,7 @@ EOF
   shot-pass)
     cat <<EOF
 070 is an LLM step, not a command. Assemble the prompt:
-  1. steps/070-shot-pass-llm/shot-pass-prompt.md (the prompt; fill its placeholders)
+  1. steps/060-shot-pass-llm/shot-pass-prompt.md (the prompt; fill its placeholders)
   2. node lib/plan-skeleton.mjs $slug           -> {{SKELETON}}
   3. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   4. ../card-library/catalog.json                -> {{CATALOG}}
@@ -213,7 +213,7 @@ EOF
     ;;
 
   avatar)
-    bash steps/080-avatar-render-run/run.sh "$slug"
+    bash steps/100-avatar-render-run/run.sh "$slug"
     ;;
 
   cut)
@@ -227,20 +227,20 @@ EOF
       echo "shots approved but avatars not rendered — cutting without avatar"
     fi
     echo "Running cut..."
-    bash steps/050-render-run/run.sh "$slug" || { echo "render failed"; exit 1; }
+    bash steps/090-render-run/run.sh "$slug" || { echo "render failed"; exit 1; }
     node lib/effects-plan.mjs "$slug" || { echo "effects-plan failed"; exit 1; }
     node lib/sound/sfx-plan.mjs "$slug" || { echo "sfx-plan failed"; exit 1; }
     node lib/sound/build-mix.mjs "$slug" || { echo "build-mix failed"; exit 1; }
-    bash steps/090-assemble-run/run.sh "$slug" --draft || { echo "assemble failed"; exit 1; }
+    bash steps/110-assemble-run/run.sh "$slug" --draft || { echo "assemble failed"; exit 1; }
     echo "Final Cut URL: http://localhost:8080/ (or equivalent board URL) - Check the Final Cut tab!"
     ;;
 
   assemble)
-    bash steps/090-assemble-run/run.sh "$slug"
+    bash steps/110-assemble-run/run.sh "$slug"
     ;;
 
   export)
-    bash steps/095-resolve-export-run/run.sh "$slug"
+    bash steps/140-resolve-export-run/run.sh "$slug"
     ;;
 
   qc)
