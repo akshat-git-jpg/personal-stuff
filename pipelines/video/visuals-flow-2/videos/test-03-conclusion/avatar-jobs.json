@@ -1,0 +1,15 @@
+{
+  "video": "test-03-conclusion",
+  "engineMode": "test",
+  "jobs": [
+    {
+      "id": "s01",
+      "kind": "avatar-full",
+      "start": 49.28,
+      "end": 79.02,
+      "duration": 29.74,
+      "status": "completed",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/test-03-conclusion/s01.mp4"
+    }
+  ]
+}

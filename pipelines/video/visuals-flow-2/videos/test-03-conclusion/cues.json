@@ -1,0 +1,101 @@
+{
+  "video": "test-03-conclusion",
+  "approved": true,
+  "cues": [
+    {
+      "id": "c01",
+      "card": "verdict/persona-match",
+      "anchor": "first of all, on Opus Clips",
+      "lead": 0.0,
+      "hold": 2.0,
+      "register": "light",
+      "legacy_why": "plan explicitly names verdict/persona-match",
+      "variables": {
+        "title": "Which Tool Is For You?"
+      },
+      "beats": [
+        {
+          "anchor": "choose Opus Clips if your top",
+          "reveal": {
+            "persona": "Speed over polish",
+            "winner": "OpusClip",
+            "logo": "opusclip"
+          }
+        },
+        {
+          "anchor": "Choose Submagic if you want",
+          "reveal": {
+            "persona": "Native TikTok feel",
+            "winner": "Submagic",
+            "logo": "submagic"
+          }
+        }
+      ]
+    },
+    {
+      "id": "c02",
+      "card": "verdict/verdict-report-card",
+      "anchor": "So the overall verdict is that Opus Clips",
+      "lead": 0.0,
+      "hold": 0.0,
+      "register": "light",
+      "legacy_why": "plan explicitly names verdict/verdict-report-card",
+      "variables": {
+        "eyebrow": "Overall Verdict",
+        "winner": "Submagic",
+        "grade": "A",
+        "reason": "Quality, consistency, and time-saving"
+      },
+      "beats": [
+        {
+          "anchor": "So if quality",
+          "reveal": {
+            "subject": "Quality",
+            "grade": "A",
+            "color": "green"
+          }
+        },
+        {
+          "anchor": "consistency, and time",
+          "reveal": {
+            "subject": "Consistency",
+            "grade": "A",
+            "color": "green"
+          }
+        },
+        {
+          "anchor": "saving matters to",
+          "reveal": {
+            "subject": "Time-saving",
+            "grade": "A",
+            "color": "green"
+          }
+        }
+      ]
+    },
+    {
+      "id": "c03",
+      "card": "link-in-description/link-in-description",
+      "anchor": "the links are in the description",
+      "lead": 0.0,
+      "hold": 2.0,
+      "register": "light",
+      "legacy_why": "plan explicitly names link-in-description",
+      "variables": {
+        "message": "Try Submagic or OpusClip"
+      }
+    },
+    {
+      "id": "c04",
+      "card": "like-subscribe/like-subscribe",
+      "anchor": "turn on the bell icon and subscribe",
+      "lead": 0.0,
+      "hold": 2.0,
+      "register": "light",
+      "legacy_why": "plan explicitly names like-subscribe",
+      "variables": {
+        "subscribeText": "Subscribe for more comparisons"
+      }
+    }
+  ]
+}
