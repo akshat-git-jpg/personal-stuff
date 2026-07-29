@@ -36,6 +36,33 @@ export function buildZonePlan({ structure, resolved, cues, catalogSlugs }) {
   return zones;
 }
 
+// Feedback given AT the 070 gate. Until 2026-07-29 this gate was binary —
+// zone-plan.json carried `approved: true|false` and nothing else — so rejecting
+// a proposed intro card recorded no reason anywhere, and the same card came
+// back on the next video. Owner: intro/conclusion rules, guidelines and
+// execution are separate from the body's, so these items are tagged `zone` and
+// the 130 fold routes them to steps/035-place-intro-outro-llm/RULEBOOK.md ONLY.
+//
+// Keys are `zone-<part>:<n>` so they never collide with the storyboard's
+// cue-keyed items or the Final Cut's `final-*` ones, and so feedback-status
+// counts them like any other pending item.
+export function appendZoneFeedback(fb, part, item) {
+  const out = { ...(fb ?? {}) };
+  out.items = { ...(out.items ?? {}) };
+  const prefix = `zone-${part}:`;
+  const next = Object.keys(out.items)
+    .filter((k) => k.startsWith(prefix))
+    .reduce((max, k) => Math.max(max, parseInt(k.slice(prefix.length), 10) || 0), 0) + 1;
+  out.items[`${prefix}${next}`] = {
+    zone: part,
+    text: String(item?.text ?? '').trim(),
+    added: new Date().toISOString().slice(0, 10),
+    ...(item?.cue ? { context: { cue: item.cue, card: item.card ?? null } } : {}),
+  };
+  out.updated = new Date().toISOString().slice(0, 10);
+  return out;
+}
+
 export function summarize(zones) {
   const items = zones.flatMap((z) => z.items);
   return {

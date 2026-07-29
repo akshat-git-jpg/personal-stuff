@@ -22,6 +22,7 @@ import { resolveWorkdir } from './workdir.mjs';
 import { planCaptions } from './captions.mjs';
 import { loadBrand, injectBrand } from './brand-inline.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
+import { appendZoneFeedback, ZONE_PARTS } from './zone-plan.mjs';
 
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
 
@@ -551,6 +552,27 @@ const SAVE_ACTIONS_JS = `
       location.reload();
     };
   }
+
+  // Zone-gate notes. Saving one records WHY a zone card is right or wrong;
+  // the 130 fold routes it to the intro/outro rulebook only.
+  document.querySelectorAll('.zone-note-save').forEach((btn) => {
+    btn.onclick = async () => {
+      const input = btn.previousElementSibling;
+      const text = (input.value || '').trim();
+      if (!text) return;
+      btn.disabled = true;
+      await fetch('/zone-feedback', {
+        method: 'POST',
+        body: JSON.stringify({
+          part: input.dataset.part,
+          cue: input.dataset.cue || null,
+          card: input.dataset.card || null,
+          text,
+        }),
+      });
+      location.reload();
+    };
+  });
 
   const fcApproveBtn = document.getElementById('fc-approve-btn');
   if (fcApproveBtn) {
@@ -1131,7 +1153,21 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
     const existing = items.filter(i => i.status === 'existing').length;
     const toBuild = items.filter(i => i.status === 'new').length;
     const summaryHtml = `<div>${items.length} cues &middot; ${existing} existing &middot; ${toBuild} to build</div>`;
-    
+
+    // Gate feedback already recorded, grouped by zone so each card can show
+    // its own history. Keys are `zone-<part>:<n>` (see lib/zone-plan.mjs).
+    const zoneComments = {};
+    for (const [key, it] of Object.entries(feedbackItems ?? {})) {
+      if (!key.startsWith('zone-')) continue;
+      const part = it.zone ?? key.slice('zone-'.length).split(':')[0];
+      (zoneComments[part] ??= []).push({
+        text: it.text ?? '',
+        added: it.added ?? '',
+        folded: Boolean(it.folded),
+        cue: it.context?.cue ?? null,
+      });
+    }
+
     const zonesHtml = zonePlan.zones.map(z => {
       const itemsHtml = z.items.map(item => {
         const badge = item.status === 'existing' 
@@ -1141,6 +1177,13 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
           ? `<div style="margin-top:4px; font-size:13px; color:var(--text); background:var(--panel); padding:8px; border-radius:4px; border:1px solid var(--line);">${escapeHtml(item.proposal)}</div>` 
           : '';
         const flagged = item.flagged ? `<span class="usage-chip" style="color:var(--err); border-color:var(--err)">flagged</span> ` : '';
+        // Why-box. Approving or rejecting a zone card used to record nothing,
+        // so the lesson died at the gate; these notes fold into the zone
+        // rulebook (see appendZoneFeedback in lib/zone-plan.mjs).
+        const priorHtml = (zoneComments[z.part] ?? [])
+          .filter((c) => c.cue === item.id)
+          .map((c) => `<div style="font-size:12px; color:var(--dim); margin-top:6px;">&ldquo;${escapeHtml(c.text)}&rdquo; <span style="opacity:.7">${escapeHtml(c.added ?? '')}${c.folded ? ' &middot; folded' : ''}</span></div>`)
+          .join('');
         return `<div style="margin-bottom:12px; padding:12px; border-bottom:1px solid var(--line);">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
             <span style="font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--dim)">${timecode(item.at)}</span>
@@ -1150,13 +1193,34 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
             ${flagged}
           </div>
           ${proposal}
+          ${priorHtml}
+          <div style="margin-top:8px; display:flex; gap:6px;">
+            <input class="zone-note" data-part="${escapeHtml(z.part)}" data-cue="${escapeHtml(item.id)}" data-card="${escapeHtml(item.card)}"
+                   placeholder="why is this right or wrong? (folds into the intro/outro rulebook)"
+                   style="flex:1; font-size:12px; padding:6px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:4px;">
+            <button class="zone-note-save" style="font-size:12px;">Save</button>
+          </div>
         </div>`;
       }).join('');
       
+      // Zone-level box: not every note is about one card. "the whole intro
+      // feels flat" is the most useful kind of feedback here and had nowhere
+      // to live when the only inputs were per-cue.
+      const zoneLevel = (zoneComments[z.part] ?? [])
+        .filter((c) => !c.cue)
+        .map((c) => `<div style="font-size:12px; color:var(--dim); margin-top:6px;">&ldquo;${escapeHtml(c.text)}&rdquo; <span style="opacity:.7">${escapeHtml(c.added ?? '')}${c.folded ? ' &middot; folded' : ''}</span></div>`)
+        .join('');
       return `
         <div style="margin-bottom:32px;">
           <h2 style="font-size:16px; margin-bottom:12px; text-transform:capitalize;">${escapeHtml(z.part)} zone <span style="font-size:13px; font-weight:normal; color:var(--dim); font-family:ui-monospace,Menlo,monospace;">(${timecode(z.start)} &rarr; ${timecode(z.end)})</span></h2>
           ${itemsHtml || '<div style="color:var(--dim); font-size:13px;">(no graphics planned)</div>'}
+          ${zoneLevel}
+          <div style="margin-top:10px; display:flex; gap:6px;">
+            <input class="zone-note" data-part="${escapeHtml(z.part)}"
+                   placeholder="a note about the ${escapeHtml(z.part)} as a whole"
+                   style="flex:1; font-size:12px; padding:6px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:4px;">
+            <button class="zone-note-save" style="font-size:12px;">Save</button>
+          </div>
         </div>
       `;
     }).join('');
@@ -2228,6 +2292,22 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
 
   if (req.method === 'POST' && url.pathname === '/approve-zone-plan') {
     return handleApproveZonePlan(req, res, workdir);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/zone-feedback') {
+    const body = await readBody(req);
+    let payload;
+    try { payload = JSON.parse(body); } catch (e) { res.statusCode = 400; return res.end('{"ok":false}'); }
+    const part = String(payload.part ?? '');
+    const text = String(payload.text ?? '').trim();
+    if (!ZONE_PARTS.includes(part)) { res.statusCode = 400; return res.end('{"ok":false,"error":"unknown zone"}'); }
+    if (!text) { res.statusCode = 400; return res.end('{"ok":false,"error":"empty text"}'); }
+    const fbPath = path.join(workdir, 'feedback.json');
+    const fb = fs.existsSync(fbPath) ? JSON.parse(fs.readFileSync(fbPath, 'utf8')) : {};
+    const next = appendZoneFeedback(fb, part, { text, cue: payload.cue ?? null, card: payload.card ?? null });
+    fs.writeFileSync(fbPath, JSON.stringify(next, null, 2));
+    res.setHeader('content-type', 'application/json');
+    return res.end('{"ok":true}');
   }
 
   if (req.method === 'POST' && url.pathname === '/approve-effects') {

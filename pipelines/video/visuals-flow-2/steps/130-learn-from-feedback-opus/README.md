@@ -17,7 +17,16 @@ guarantee that a correction given once is never needed twice.
    - **Explicit (typed)**: pending items from `node lib/feedback-status.mjs`.
    - **Implicit (edits)**: run `node lib/edit-delta.mjs <slug>` for each video reviewed since the last fold. Treat systematic edits (the same kind of change 3+ times, e.g. reveals consistently shortened, holds consistently raised) as feedback items to fold. Treat one-off edits as already-applied instance fixes needing no rule.
 2. For each item, decide WHERE the lesson lives, and edit that surface:
-   - selection/timing/density mistake → `steps/030-place-graphics-llm/RULEBOOK.md`
+   - **any item tagged `zone` (key `zone-intro:*` / `zone-conclusion:*`, raised at
+     the 070 gate) → `steps/035-place-intro-outro-llm/RULEBOOK.md` and
+     `lib/zone-rules.mjs` / `lib/zone-constants.mjs`, then
+     `node lib/build-zone-prompt.mjs`. NEVER into the body's rulebook.** The
+     separation is the owner's explicit instruction (2026-07-29): intro and
+     conclusion have their own rules, guidelines and execution. A zone lesson
+     that edits `lib/cue-rules.mjs` re-couples what this split exists to
+     separate — and the reverse is equally wrong: a body lesson never edits the
+     zone rulebook.
+   - selection/timing/density mistake **in the body** → `steps/030-place-graphics-llm/RULEBOOK.md`
      AND the compressed rule in `cue-pass-prompt.md` (both, always — the prompt
      is what the model actually sees)
    - quantitative selection rule (caps, spacing, zones, density) → `lib/lint-cues.mjs` thresholds
@@ -26,7 +35,8 @@ guarantee that a correction given once is never needed twice.
      (machine-enforced surfaces beat prose — prefer a catalog field + resolver
      validation over a rulebook sentence when both could work)
    - flow/tooling mistake → the step README or lib script involved
-3. Run the gates the edits touch: `node lib/check-rulebook.mjs`, board/resolver
+3. Run the gates the edits touch: `node lib/check-rulebook.mjs`,
+   `node lib/check-zone-rulebook.mjs` if a zone surface changed, board/resolver
    tests, `card-library/scripts/beat-smoke.sh` if catalog changed.
 4. Mark each item in its feedback.json to indicate it is DONE. An item is DONE only when it carries `applied`, `folded`, or an explicit marker indicating it wasn't needed.
    - `applied`: `<date> — <what was edited in cues.json>` (or `"<date> — not needed"`)

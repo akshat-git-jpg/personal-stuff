@@ -136,20 +136,43 @@ EOF
 
   cue-pass)
     cat <<EOF
-020 is an LLM step, not a command. Assemble the prompt:
+030 is an LLM step, not a command. It authors the BODY only.
+Assemble the prompt:
   1. steps/030-place-graphics-llm/cue-pass-prompt.md   (the prompt; fill its placeholders)
   2. node lib/plan-skeleton.mjs $slug           -> {{SKELETON}}
   3. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   4. ../card-library/catalog.json                -> {{CATALOG}}
   5. videos/$slug/concept.json                  -> {{CONCEPT}}
 Pre-flight: node lib/feedback-status.mjs and node lib/lint-concept.mjs $slug must exit 0.
+The intro and conclusion are authored separately: run.sh $slug zone-pass
 After the cue pass: run.sh $slug resolve
+EOF
+    exit 0
+    ;;
+
+  zone-pass)
+    cat <<EOF
+035 is an LLM step, not a command. It authors the INTRO and CONCLUSION only,
+against their own rulebook (lib/zone-rules.mjs + lib/zone-constants.mjs).
+Assemble the prompt:
+  1. steps/035-place-intro-outro-llm/zone-pass-prompt.md  (the prompt; fill its placeholders)
+  2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
+  3. ../card-library/catalog.json                -> {{CATALOG}}
+  4. the "structure" array in videos/$slug/segments.json -> {{STRUCTURE}}
+Pre-flight: node lib/feedback-status.mjs must exit 0, and segments.json must
+carry a "structure" block (no measured zones = nothing for this step to do).
+Every cue it emits must carry a "zone" field of "intro" or "conclusion".
+After the zone pass: run.sh $slug resolve, then node lib/stillness.mjs $slug
 EOF
     exit 0
     ;;
 
   resolve)
     node lib/resolve.mjs "$slug" && node lib/lint-cues.mjs "$slug"
+    ;;
+
+  stillness)
+    node lib/stillness.mjs "$slug"
     ;;
 
   audit)

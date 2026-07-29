@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
+import { ZONE_CONSTANTS, ENACTED_PREFIX } from './zone-constants.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { extendExposure, findPhrase, normWord } from './resolve.mjs';
 
@@ -26,6 +27,12 @@ const SECTION_FOOTAGE_MIN = CUE_CONSTANTS.SECTION_FOOTAGE_MIN.value; // W11: foo
 const HOST_VISIBLE_BY = CUE_CONSTANTS.HOST_VISIBLE_BY.value;
 const OPENING_HOST_MIN = CUE_CONSTANTS.OPENING_HOST_MIN.value;
 const MAX_FULLFRAME_ONSCREEN = CUE_CONSTANTS.MAX_FULLFRAME_ONSCREEN.value;
+// Zone numbers live in their own module — see the header of lib/zone-constants.mjs
+// for why a body constant must never stand in for a zone one.
+const ZONE_GAP_FULLFRAME_MAX = ZONE_CONSTANTS.ZONE_GAP_FULLFRAME_MAX.value;
+const ZONE_ENACTED_FRACTION = ZONE_CONSTANTS.ZONE_ENACTED_FRACTION.value;
+const ZONE_ENACTED_MIN = ZONE_CONSTANTS.ZONE_ENACTED_MIN.value;
+const ZONE_RATE_MIN = ZONE_CONSTANTS.ZONE_RATE_MIN.value;
 // Dead air is now designed out by the resolver's BEAT_LEAD_IN clamp (plan 116);
 // W5 stays as the regression detector for that clamp, not as a style hint.
 const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
@@ -287,6 +294,76 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     const inZone = sortedResolved.filter((r) => r.start >= part.start && r.start < part.end);
     if (inZone.length === 0) {
       warnings.push(`W14 zone-underserved: the ${part.part} (${part.start.toFixed(1)}s-${part.end.toFixed(1)}s) has no cues at all — it is the part of the video that matters most and it is carrying no graphics`);
+    }
+  }
+
+  // W15/W16/W17 — the zone quality bar (owner 2026-07-29). W14 above only ever
+  // fires on a zone with LITERALLY zero cues, so a 117s intro carrying one card
+  // passed every check the pipeline had. These three are what "intro and
+  // conclusion get their own rules" actually means in enforcement terms.
+  //
+  // Note what is deliberately NOT here: a raised cue-rate ceiling. test-03's
+  // rejected intro was already denser than its body (3.57 vs 2.30 cues/min).
+  // The zone bar is about MOTION and about not leaving visible dead patches.
+  // W18 (zone-still) is the fourth rule and lives in lib/stillness.mjs, because
+  // it has to measure the footage rather than read resolved.json.
+  for (const part of (segmentsData?.structure ?? [])) {
+    if (part.part === 'body') continue;
+    const inZone = sortedResolved.filter((r) => r.start >= part.start && r.start < part.end);
+    if (inZone.length === 0) continue; // already reported by W14
+
+    // W15 zone-gap — measured from the zone OPENING, not just between cards. A
+    // zone whose first fullframe lands 30s in has a 30s hole even though every
+    // card-to-card gap is fine.
+    const zoneFulls = inZone.filter((r) => r.placement === 'fullframe');
+    if (zoneFulls.length) {
+      const firstGap = +(zoneFulls[0].start - part.start).toFixed(2);
+      if (firstGap > ZONE_GAP_FULLFRAME_MAX) {
+        warnings.push(`W15 zone-gap: the ${part.part} runs ${firstGap.toFixed(1)}s before its first fullframe cue ${zoneFulls[0].id} (max ${ZONE_GAP_FULLFRAME_MAX}s from the zone opening)`);
+      }
+      for (let i = 1; i < zoneFulls.length; i++) {
+        const gap = +(zoneFulls[i].start - zoneFulls[i - 1].start).toFixed(2);
+        if (gap > ZONE_GAP_FULLFRAME_MAX) {
+          warnings.push(`W15 zone-gap: ${zoneFulls[i - 1].id} -> ${zoneFulls[i].id} in the ${part.part} is ${gap.toFixed(1)}s apart (max ${ZONE_GAP_FULLFRAME_MAX}s) — the body's larger gap does not apply in a zone`);
+        }
+      }
+
+      // W16 zone-motion — the rule the owner actually asked for. An `enacted/`
+      // card animates the idea; a title/statement slate just names it.
+      const enacted = zoneFulls.filter((r) => String(r.card).startsWith(ENACTED_PREFIX));
+      const needed = Math.max(ZONE_ENACTED_MIN, Math.ceil(zoneFulls.length * ZONE_ENACTED_FRACTION));
+      if (enacted.length < needed) {
+        warnings.push(`W16 zone-motion: the ${part.part} has ${enacted.length} enacted card(s) of ${zoneFulls.length} fullframe (needs ${needed} — at least ${ZONE_ENACTED_FRACTION * 100}% and never fewer than ${ZONE_ENACTED_MIN}) — static slates are what made this zone read flat`);
+      }
+    }
+
+    // W17 zone-rate — a regression floor, not a padding target.
+    const zoneMinutes = (part.end - part.start) / 60;
+    if (zoneMinutes > 0) {
+      const rate = inZone.length / zoneMinutes;
+      if (rate < ZONE_RATE_MIN) {
+        warnings.push(`W17 zone-rate: the ${part.part} carries ${inZone.length} cues over ${(part.end - part.start).toFixed(1)}s = ${rate.toFixed(2)}/min (min ${ZONE_RATE_MIN.toFixed(1)}/min)`);
+      }
+    }
+  }
+
+  // W19 zone-authorship — the two passes must not write into each other's
+  // territory. A `zone` field that disagrees with where the cue actually
+  // anchors means the zone pass mis-anchored; an untagged cue landing inside a
+  // zone means the body pass wandered in. Both are warnings, not errors:
+  // workdirs cued before the split (test-01, test-03) are legitimately untagged
+  // throughout and must not become un-lintable.
+  if ((segmentsData?.structure ?? []).length) {
+    const partAt = (t) => (segmentsData.structure.find((s) => t >= s.start && t < s.end) ?? {}).part ?? null;
+    for (const r of sortedResolved) {
+      const raw = rawCues.find((c) => c.id === r.id);
+      const declared = raw?.zone ?? null;
+      const actual = partAt(r.start);
+      if (declared && declared !== actual) {
+        warnings.push(`W19 zone-authorship: ${r.id} declares zone "${declared}" but its anchor resolves to ${actual ?? 'outside every part'} at ${r.start.toFixed(1)}s`);
+      } else if (!declared && actual && actual !== 'body') {
+        warnings.push(`W19 zone-authorship: ${r.id} carries no zone field but anchors inside the ${actual} at ${r.start.toFixed(1)}s — the ${actual} is authored by step 035, not the body pass`);
+      }
     }
   }
 
