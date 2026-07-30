@@ -225,6 +225,34 @@ Known debt: 39 of 52 fullframe cards are text-only today. The two used as produc
 verdicts (`spotlight-focus`, `race-bars`) were fixed when the rule landed; the rest
 are a sweep, not a blocker, and no NEW card may be added text-only.
 
+## Declared capacity is not yet measured for most cards (2026-07-30)
+
+`scripts/overflow-probe.mjs` renders every card headless at 1920x1080, per layout
+variant, filled to its declared capacity, and measures every element against the
+canvas. Run it with `npm run overflow-check`.
+
+**Current state: 31 cards overflow at their declared capacity** (37 card/variant
+combinations of 70). This is not a probe artifact — it was checked against known
+ground truth: `enacted/pipeline-flow` with the REAL shipped content (3-word title,
+3 steps) measures clean, while the same card filled to its declared max (6 beats)
+overflows with the same offenders (`#card #title #chain`) the board reported for the
+frame that actually shipped clipped.
+
+So the declared numbers are too generous, exactly as `decisions.md` 2026-07-17
+predicted when it recorded them as *"conservative estimates from layout math,
+unverified until video #1"*.
+
+**The usual culprit is `max_beats`, not a text field.** pipeline-flow's title was
+fine at 3 words; six beats cannot fit its vertical chain. Deriving a cap therefore
+has to consider `max_beats` and `max_reveal_chars`, not just `max_words` — shrinking
+a text field to fix a beat-count overflow never converges, and the probe now reports
+`UNATTRIBUTED` in that case rather than writing a nonsense cap.
+
+The probe is deliberately NOT yet a blocking gate in `check-cards.sh`: it would fail
+on 31 cards and stop all card work until every cap is corrected. Correcting them is
+the outstanding sweep. Until then: run `npm run overflow-check` on any card you
+touch, and never add a NEW card that the probe reports.
+
 ## New-card checklist
 
 1. `:root` uses the palette tokens above; Inter loaded.

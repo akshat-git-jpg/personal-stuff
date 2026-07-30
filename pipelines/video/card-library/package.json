@@ -13,7 +13,9 @@
     "preview": "npx --yes hyperframes@latest preview",
     "lint": "npx --yes hyperframes@latest lint",
     "render": "npx --yes hyperframes@latest render",
-    "card-qa": "node scripts/card-qa.mjs"
+    "card-qa": "node scripts/card-qa.mjs",
+    "overflow-check": "node scripts/overflow-probe.mjs",
+    "overflow-derive": "node scripts/overflow-probe.mjs --derive"
   },
   "dependencies": {
     "puppeteer-core": "^23.0.0"

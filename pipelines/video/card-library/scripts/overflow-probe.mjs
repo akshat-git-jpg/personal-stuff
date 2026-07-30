@@ -127,6 +127,20 @@ export function resolveChrome() {
 
 let browserCache = null;
 
+// The browser is cached across probes for speed, which means it outlives any single
+// call. main() closed it; a test file that imports probeCardVariant directly never
+// runs main(), so the handle stayed open and `node --test` hung forever after
+// printing all its oks (boss dispatch 3, 2026-07-30). Anything that imports this
+// module MUST call closeBrowser() when it is done — the tests do it in an after()
+// hook. Idempotent, so calling it twice or with no browser open is safe.
+export async function closeBrowser() {
+  if (browserCache) {
+    const b = browserCache;
+    browserCache = null;
+    await b.close();
+  }
+}
+
 export async function probeCardVariant(cardSlug, variant, variables, times) {
   if (!browserCache) {
     const executablePath = resolveChrome();
@@ -254,7 +268,24 @@ async function main() {
            const regex = new RegExp(`("${field.keyName || field.path}"\\s*:\\s*{[^}]*?"type"\\s*:\\s*"string"([^}]*?))}`, 'g');
            catalogText = catalogText.replace(regex, `$1, "max_words": ${bestWords}}`);
         } else if (bestWords === 0) {
-           console.log(`STOP CONDITION: ${card.slug}.${field.path} capacity is below 1 word!`);
+           // Shrinking this field to one word did not clear the overflow, which means
+           // this field is NOT the cause. On enacted/pipeline-flow the real culprit is
+           // `max_beats` (6 beats cannot fit the vertical chain) while the title was
+           // already fine at 3 words — reporting "title capacity below 1 word" there
+           // was simply wrong, and would have written a nonsense cap. Report the
+           // offending ELEMENTS so a human can see which declared capacity is at
+           // fault, and change nothing. (2026-07-30)
+           const probe = await probeCardVariant(
+             card.slug, variants[0],
+             fillToCapacity(card, variants[0], { [field.path]: 1 }),
+             probeTimes(card, fillToCapacity(card, variants[0], { [field.path]: 1 })),
+           );
+           console.log(
+             `UNATTRIBUTED ${card.slug}: shrinking ${field.path} to 1 word does not fix the ` +
+             `overflow — offenders ${probe.offenders.join(',') || '(none reported)'}. ` +
+             `The cause is another declared capacity (often max_beats or max_reveal_chars), ` +
+             `not this field. No cap written.`,
+           );
         }
       }
       
@@ -273,10 +304,8 @@ async function main() {
     }
   }
   
-  if (browserCache) {
-    await browserCache.close();
-  }
-  
+  await closeBrowser();
+
   if (isDerive) {
     fs.writeFileSync(catalogPath, catalogText);
   }
@@ -287,9 +316,13 @@ async function main() {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(err => {
-    console.error(err);
-    if (browserCache) browserCache.close();
-    process.exit(1);
-  });
+  main()
+    .catch(async (err) => {
+      console.error(err);
+      await closeBrowser();
+      process.exit(1);
+    })
+    // A thrown error mid-run leaves the browser open and the process hanging, which
+    // looks identical to a passing-but-stuck run. Always tear down.
+    .finally(() => closeBrowser());
 }

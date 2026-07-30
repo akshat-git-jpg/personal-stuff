@@ -244,6 +244,21 @@ Also unit-test the pure helpers (`fillToCapacity`, `probeTimes`) with no browser
 
 ### Step 5 — Derive the caps
 
+> **CORRECTION (2026-07-30, after execution).** This step as originally written was
+> wrong and cost the run: it specced deriving `max_words` on **text fields only**.
+> The usual culprit is **`max_beats`** — `enacted/pipeline-flow`'s title was already
+> fine at 3 words, but six beats cannot fit its vertical chain. Shrinking a text
+> field to fix a beat-count overflow never converges, which made derive report
+> `"title capacity is below 1 word"` — a nonsense cap it would have written into the
+> catalog. A derive pass MUST decide which declared capacity owns the failure
+> (`max_beats` / `max_reveal_chars` / a specific `max_words`) before searching, and
+> report `UNATTRIBUTED` rather than guessing. The probe now does the reporting half;
+> the attribution search is the outstanding work.
+>
+> Measured reality: **31 cards (37 of 70 card/variant combos) overflow at their
+> declared capacity.** Verified against ground truth, not assumed — see DESIGN.md
+> "Declared capacity is not yet measured for most cards".
+
 Run `node scripts/overflow-probe.mjs --derive`. It writes measured `max_words` into `catalog.json` for the cards that need them. Ten non-structural cards declare `variants` and only `enacted/pipeline-flow` currently has an explicit cap:
 
 `statement/keyword-statement`, `overlay/tip-banner`, `enacted/fill-gauge`, `enacted/race-bars`, `enacted/counter-tally`, `enacted/before-after`, `enacted/spotlight-focus`, `enacted/timeline-scrub`, `enacted/terminal-enact`.
@@ -251,6 +266,12 @@ Run `node scripts/overflow-probe.mjs --derive`. It writes measured `max_words` i
 **Verify**: `node scripts/check-catalog.mjs` → `catalog ok`; `git diff --stat catalog.json` shows only added `max_words` lines (**no mass re-encoding** — if the diff is hundreds of lines, the JSON was round-tripped: revert and use text surgery); `node scripts/overflow-probe.mjs` → exit 0, every card `ok`.
 
 ### Step 6 — Wire the gate into `check-cards.sh`
+
+> **DEFERRED (2026-07-30).** Wiring this today makes `check-cards.sh` fail on 31
+> cards and blocks all card work until every cap is corrected. The probe ships as
+> `npm run overflow-check` instead, and the blocking gate lands together with the
+> corrected caps from Step 5. `LESSONS.md`: a plan that is honestly TODO beats a
+> feature that is dishonestly done.
 
 Add a section, matching the existing style:
 

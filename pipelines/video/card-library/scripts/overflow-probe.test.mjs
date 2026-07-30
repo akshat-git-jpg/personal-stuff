@@ -1,9 +1,15 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert';
-import { probeCardVariant, fillToCapacity, probeTimes } from './overflow-probe.mjs';
+import { probeCardVariant, fillToCapacity, probeTimes, closeBrowser } from './overflow-probe.mjs';
+
+// probeCardVariant caches a headless browser at module scope. Without this the
+// suite prints every ok and then hangs forever on the open handle — which is
+// indistinguishable from a passing run that never exits, and is exactly what
+// blocked this plan's test_cmd (2026-07-30).
+after(closeBrowser);
 
 // The gate is worthless unless it can fail. This fixture is the real defect:
 // enacted/pipeline-flow, title "Submagic: Straight To Posted", variant "b".
@@ -71,4 +77,15 @@ test('probeTimes includes every beat at', () => {
   const times = probeTimes(card, vars);
   assert.ok(times.includes(1));
   assert.ok(times.includes(2.5));
+});
+
+// The suite used to print all four oks and then hang forever: probeCardVariant
+// caches a headless browser at module scope and only main() closed it, so a test
+// file that imports the function directly leaked the handle. That looks identical
+// to a passing run to any caller reading stdout, and it is what made this plan's
+// test_cmd unpassable (boss dispatch 3, 2026-07-30). Guard the contract itself.
+test('closeBrowser is exported and idempotent', async () => {
+  assert.equal(typeof closeBrowser, 'function', 'importers need a way to release the browser');
+  await closeBrowser();
+  await closeBrowser(); // twice, and with nothing open, must not throw
 });
