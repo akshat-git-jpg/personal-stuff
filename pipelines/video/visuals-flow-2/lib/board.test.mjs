@@ -1635,3 +1635,33 @@ test('every graphic and card-plan row ships a reviewed tick', async () => {
     server.close();
   }
 });
+
+// ---- global video picker --------------------------------------------------
+test('?video= switches the WHOLE board, not just the Run tab', async () => {
+  // The board used to be pinned to its launch workdir, so switching meant
+  // restarting the server (owner hit this on a 19h-old process, 2026-07-30).
+  const launch = makeWorkdir();
+  const { server, base } = await startServer(launch);
+  try {
+    const html = await (await fetch(`${base}/`)).text();
+    assert.match(html, /id="videoPicker"/, 'the picker must be on the storyboard, not only Run');
+    assert.match(html, /\?video=' \+ encodeURIComponent/);
+    assert.match(html, /location\.hash/, 'switching must keep the tab you were on');
+    assert.match(html, /unsaved feedback/, 'must not silently drop unsaved work');
+  } finally {
+    server.close();
+  }
+});
+
+test('requestedWorkdir only accepts a bootable video under videos/', async () => {
+  const { requestedWorkdir } = await import('./board.mjs');
+  const launch = makeWorkdir();
+  const u = (q) => new URL(`http://x/${q}`);
+  assert.equal(requestedWorkdir(u(''), launch), launch, 'no param keeps the launch video');
+  for (const bad of ['../../etc', 'does-not-exist', '']) {
+    assert.equal(
+      requestedWorkdir(u(`?video=${encodeURIComponent(bad)}`), launch), launch,
+      `"${bad}" must fall back, never resolve`,
+    );
+  }
+});

@@ -509,6 +509,29 @@ const INIT_BLOCK_JS = `
 // the two views.
 const SAVE_ACTIONS_JS = `
   let FB_DIRTY = false;
+  // ---- global video picker ----------------------------------------------
+  // Switching reloads with ?video=<slug>; every tab then resolves that video
+  // server-side, so this moves the whole board, not just one tab.
+  (async function initVideoPicker() {
+    var sel = document.getElementById('videoPicker');
+    if (!sel) return;
+    try {
+      var d = await (await fetch('/run-videos')).json();
+      var cur = new URLSearchParams(location.search).get('video') || d.current;
+      sel.innerHTML = d.videos.map(function (v) {
+        return '<option value="' + v + '"' + (v === cur ? ' selected' : '') + '>' + v + '</option>';
+      }).join('');
+      sel.addEventListener('change', function () {
+        if (typeof FB_DIRTY !== 'undefined' && FB_DIRTY
+            && !confirm('You have unsaved feedback. Switch video and lose it?')) {
+          sel.value = cur; return;
+        }
+        // keep the tab you were on
+        location.href = location.pathname + '?video=' + encodeURIComponent(sel.value) + location.hash;
+      });
+    } catch (e) { /* the board still works on its launch video */ }
+  })();
+
   // ---- reviewed-and-collapsed -------------------------------------------
   // A view preference, kept in localStorage per video. NOT in cues.json:
   // handleSave un-approves the video whenever cues change, so a review
@@ -1484,7 +1507,9 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
           <button data-target="tab-final-cut" class="tab-btn" onclick="switchTab(this)">Final Cut</button>
         </span>
         <span class="view-toggle" style="margin-left:8px;"><a href="/" class="active">Timeline</a><a href="/list">List</a></span>
-        <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong> — card plan</div>
+        <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong> — card plan
+          <select id="videoPicker" style="margin-left:6px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:4px; padding:3px 5px; font-size:12px;"></select>
+        </div>
         ${summaryHtml}
         <button id="approveCardPlanBtn" style="border-color:var(--ok); color:var(--ok);">Approve card plan</button>
       </div>
@@ -1642,7 +1667,9 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
           <button data-target="tab-final-cut" class="tab-btn" onclick="switchTab(this)">Final Cut</button>
         </span>
         <span class="view-toggle" style="margin-left:8px;"><a href="/" class="active">Timeline</a><a href="/list">List</a></span>
-        <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
+        <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong>
+          <select id="videoPicker" style="margin-left:6px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:4px; padding:3px 5px; font-size:12px;"></select>
+        </div>
         <div>duration: ${timecode(totalDuration)}</div>
         <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
         <button id="approveBtn"${hasResolved ? '' : ' disabled title="nothing to approve until step 040 resolves the cues"'}>Approve graphics</button>
@@ -2686,8 +2713,26 @@ function loadBoardData(workdir) {
   return { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan, hasResolved };
 }
 
-async function handleRequest(req, res, workdir, cardLibraryRoot) {
+// Which video this request is for. The board used to be pinned to the workdir
+// it launched with, so switching meant restarting the server — and the Run
+// tab's picker could only ever move its own tab. A slug arrives from a query
+// string, so it must resolve to a direct child of videos/ or it is ignored.
+export function requestedWorkdir(url, launchWorkdir) {
+  const want = url.searchParams.get('video');
+  if (!want) return launchWorkdir;
+  const videosDir = videosRoot();
+  const target = path.join(videosDir, want);
+  if (path.dirname(target) !== videosDir || !fs.existsSync(target)) return launchWorkdir;
+  for (const f of BOOT_FILES) if (!fs.existsSync(path.join(target, f))) return launchWorkdir;
+  return target;
+}
+
+async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
   const url = new URL(req.url, 'http://localhost');
+  const workdir = requestedWorkdir(url, launchWorkdir);
+  // Slices are cut per video and only on demand, so a switched-to video gets
+  // them the first time it is opened rather than at server start.
+  if (workdir !== launchWorkdir) ensureSlices(workdir);
 
   if (req.method === 'POST') {
     const host = req.headers.host || '';
