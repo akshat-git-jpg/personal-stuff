@@ -1458,3 +1458,180 @@ test('the page title names the video, so two boards are distinguishable', async 
     server.close();
   }
 });
+
+// ---- screenshot attachment on storyboard feedback -------------------------
+// Final Cut took images; the storyboard boxes did not, so "this card is wrong"
+// arrived with no picture of what was wrong (owner, 2026-07-30).
+
+const PNG_1PX = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+async function saveFb(base, cues, feedback, feedbackImages) {
+  const body = { video: 'x', approved: false, cues, feedback };
+  if (feedbackImages !== undefined) body.feedbackImages = feedbackImages;
+  return fetch(`${base}/save`, { method: 'POST', body: JSON.stringify(body) });
+}
+
+test('a storyboard comment can carry a screenshot, and it serves back', async () => {
+  const workdir = makeWorkdir();
+  const cues = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8')).cues;
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await saveFb(base, cues, { c01: 'wrong card here' }, { c01: PNG_1PX });
+    assert.equal((await res.json()).ok, true);
+
+    const fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.equal(fb.items.c01.image, 'feedback-images/c01.png');
+    assert.equal(fb.items.c01.text, 'wrong card here');
+    assert.ok(fs.existsSync(path.join(workdir, fb.items.c01.image)));
+
+    const img = await fetch(`${base}/feedback-image/c01`);
+    assert.equal(img.status, 200);
+    assert.equal(img.headers.get('content-type'), 'image/png');
+  } finally {
+    server.close();
+  }
+});
+
+test('a screenshot attaches to a comment whose text did NOT change', async () => {
+  // The common case: you write the comment, then go take the screenshot. The
+  // text loop only fires on a text change, so attaching had to live outside it.
+  const workdir = makeWorkdir();
+  const cues = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8')).cues;
+  const { server, base } = await startServer(workdir);
+  try {
+    await saveFb(base, cues, { c02: 'this one too' });
+    await saveFb(base, cues, { c02: 'this one too' }, { c02: PNG_1PX });
+    const fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.equal(fb.items.c02.image, 'feedback-images/c02.png');
+    assert.equal(fb.items.c02.text, 'this one too', 'the text must survive untouched');
+  } finally {
+    server.close();
+  }
+});
+
+test('clearing or deleting a comment takes its screenshot off disk', async () => {
+  const workdir = makeWorkdir();
+  const cues = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8')).cues;
+  const { server, base } = await startServer(workdir);
+  try {
+    await saveFb(base, cues, { c01: 'a', c02: 'b' }, { c01: PNG_1PX, c02: PNG_1PX });
+    assert.ok(fs.existsSync(path.join(workdir, 'feedback-images', 'c01.png')));
+
+    // explicit clear
+    await saveFb(base, cues, { c01: 'a', c02: 'b' }, { c02: null });
+    let fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.equal(fb.items.c02.image, undefined);
+    assert.ok(!fs.existsSync(path.join(workdir, 'feedback-images', 'c02.png')));
+
+    // deleting the comment entirely
+    await saveFb(base, cues, { c01: '', c02: 'b' });
+    fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.equal(fb.items.c01, undefined);
+    assert.ok(!fs.existsSync(path.join(workdir, 'feedback-images', 'c01.png')), 'no orphaned images');
+  } finally {
+    server.close();
+  }
+});
+
+test('a non-image payload is refused rather than written to disk', async () => {
+  const workdir = makeWorkdir();
+  const cues = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8')).cues;
+  const { server, base } = await startServer(workdir);
+  try {
+    for (const junk of ['javascript:alert(1)', 'data:text/html;base64,PHNjcmlwdD4=', '../../etc/passwd']) {
+      await saveFb(base, cues, { c03: 'x' }, { c03: junk });
+      const fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+      assert.equal(fb.items.c03.image, undefined, `must reject ${junk}`);
+    }
+  } finally {
+    server.close();
+  }
+});
+
+test('a folded comment cannot have a screenshot attached', async () => {
+  // Folded items are read-only history everywhere else; the image path must
+  // not be a back door into them.
+  const workdir = makeWorkdir();
+  const cues = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8')).cues;
+  fs.writeFileSync(
+    path.join(workdir, 'feedback.json'),
+    JSON.stringify({ video: 'x', items: { c01: { text: 'old', folded: '2026-07-01' } } }),
+  );
+  const { server, base } = await startServer(workdir);
+  try {
+    await saveFb(base, cues, { c01: 'old' }, { c01: PNG_1PX });
+    const fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.equal(fb.items.c01.image, undefined);
+    assert.equal(fb.items.c01.folded, '2026-07-01');
+  } finally {
+    server.close();
+  }
+});
+
+test('every feedback box ships the attach control', async () => {
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    for (const p of ['/', '/list']) {
+      const html = await (await fetch(`${base}${p}`)).text();
+      assert.match(html, /class="fb-attach"/, `${p} needs the attach button`);
+      assert.match(html, /class="fb-file"/);
+      // paste is the way you actually attach a screenshot you just took
+      assert.match(html, /textarea\.feedback/);
+      assert.match(html, /clipboardData/);
+      // and it must live in the same block as the save collector, or
+      // FB_IMAGES is undefined at save time
+      assert.match(html, /payload\.feedbackImages = FB_IMAGES/);
+      assert.match(html, /var FB_IMAGES = \{\}/);
+    }
+  } finally {
+    server.close();
+  }
+});
+
+test('all three feedback views ship the SAME attach control', async () => {
+  // fbBox is defined three times (timeline, list, card plan). An edit applied
+  // to one copy leaves the other two behind — caught exactly that way.
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    for (const p of ['/', '/list']) {
+      const html = await (await fetch(`${base}${p}`)).text();
+      const titles = new Set([...html.matchAll(/class="fb-attach" title="([^"]*)"/g)].map((m) => m[1]));
+      assert.equal(titles.size, 1, `${p} has drifted copies: ${[...titles].join(' | ')}`);
+      assert.match([...titles][0], /paste one into the box/);
+      const attach = (html.match(/class="fb-attach"/g) || []).length;
+      const boxes = (html.match(/textarea class="feedback"/g) || []).length;
+      assert.equal(attach, boxes, `${p}: every feedback box needs exactly one attach control`);
+    }
+  } finally {
+    server.close();
+  }
+});
+
+// ---- reviewed / collapse --------------------------------------------------
+test('every graphic and card-plan row ships a reviewed tick', async () => {
+  const workdir = makeWorkdir();
+  fs.writeFileSync(path.join(workdir, 'card-plan.json'), JSON.stringify({
+    video: 'x', approved: false,
+    sections: [{ part: 'body', items: [{ id: 'c01', card: 'a/b', status: 'existing' }] }],
+  }));
+  const { server, base } = await startServer(workdir);
+  try {
+    const html = await (await fetch(`${base}/`)).text();
+    assert.match(html, /data-rid="sb:c01"/, 'storyboard tile needs a review id');
+    assert.match(html, /data-rid="cp:c01"/, 'card plan row needs its own review id');
+    assert.equal(
+      (html.match(/class="rev-input"/g) || []).length,
+      (html.match(/class="reviewable"|reviewable /g) || []).length,
+      'one tick per reviewable block',
+    );
+    // state is a view preference, never cue data — writing it to cues.json
+    // would un-approve the video on the next save
+    assert.match(html, /board:reviewed:/);
+    assert.doesNotMatch(html, /feedback\[t\.dataset\.ref\] = t\.value; feedback\.reviewed/);
+    // collapsing must drop the live card iframe, not just hide it
+    assert.match(html, /f\.dataset\.revSrc = f\.src/);
+    assert.match(html, /revAll\(true\)/);
+  } finally {
+    server.close();
+  }
+});

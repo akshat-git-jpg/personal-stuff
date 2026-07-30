@@ -33,6 +33,11 @@ import { stepView, summarize as summarizeRun, nextStep, readRunLog, writeRunLog,
 // to start made Gate 1 unreachable on exactly the videos it exists for.
 // resolved.json is a requirement of the Storyboard tab, not of the board.
 const BOOT_FILES = ['cues.json', 'vo.mp3'];
+// One definition, used by the storyboard tiles and the card plan rows alike.
+// fbBox taught us what three drifting copies of the same control costs.
+const REV_BOX = '<label class="rev" title="mark reviewed and collapse this card">'
+  + '<input type="checkbox" class="rev-input"/> reviewed</label>';
+
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
 
 function videosRoot() {
@@ -234,6 +239,24 @@ async function readBody(req) {
 // Run tab. The status lives on the RIGHT as an emoji, so the eye scans one
 // column to see where the video is instead of reading every row.
 const RUN_CSS = `
+  /* Reviewed-and-collapsed. Everything but the header row is hidden, so the
+     tile keeps its place in the timeline instead of vanishing. */
+  .rev { display:inline-flex; align-items:center; gap:5px; margin-left:auto; font-size:11px;
+    color:var(--dim); cursor:pointer; user-select:none; white-space:nowrap; }
+  .rev input { cursor:pointer; }
+  .reviewable.is-reviewed > *:not(.rev-head) { display:none !important; }
+  .reviewable.is-reviewed { opacity:.62; }
+  .reviewable.is-reviewed .rev { color:var(--ok); }
+  .reviewable.is-reviewed .rev-head { cursor:pointer; margin-bottom:0 !important; }
+  .rev-head { display:flex; align-items:center; gap:10px; }
+  .fb-shot { display:flex; align-items:center; gap:8px; margin-top:4px; }
+  .fb-attach { background:none; border:1px solid var(--line); border-radius:5px; color:var(--dim);
+    cursor:pointer; font-size:13px; line-height:1; padding:4px 8px; }
+  .fb-attach:hover { color:var(--text); border-color:var(--accent); }
+  .fb-attach.has-image { border-color:var(--ok); color:var(--ok); }
+  .fb-thumb img { height:38px; border-radius:4px; border:1px solid var(--line); vertical-align:middle; }
+  .fb-clear { background:none; border:none; color:var(--dim); cursor:pointer; font-size:15px; padding:0 4px; }
+  .fb-clear:hover { color:#ef4444; }
   .run-row { display:flex; flex-direction:column; gap:2px; border:1px solid var(--line); border-radius:8px;
              padding:13px 16px; margin-bottom:8px; background:var(--panel); transition:border-color .12s; }
   /* Dim the TEXT of an unstarted step, never the row — parent opacity also
@@ -486,6 +509,141 @@ const INIT_BLOCK_JS = `
 // the two views.
 const SAVE_ACTIONS_JS = `
   let FB_DIRTY = false;
+  // ---- reviewed-and-collapsed -------------------------------------------
+  // A view preference, kept in localStorage per video. NOT in cues.json:
+  // handleSave un-approves the video whenever cues change, so a review
+  // checkbox living there would silently revoke your own approval.
+  var REV_KEY = 'board:reviewed:' + (typeof VIDEO === 'string' ? VIDEO : '');
+  function revLoad() {
+    try { return new Set(JSON.parse(localStorage.getItem(REV_KEY) || '[]')); }
+    catch (e) { return new Set(); }
+  }
+  function revSave(set) {
+    try { localStorage.setItem(REV_KEY, JSON.stringify([...set])); } catch (e) {}
+  }
+  function revApply(el, on) {
+    el.classList.toggle('is-reviewed', on);
+    var cb = el.querySelector('.rev-input');
+    if (cb) cb.checked = on;
+    // Drop the live card iframe while collapsed. A long video holds 30+ of
+    // them, so collapsing as you go should make the page lighter, not just
+    // shorter.
+    el.querySelectorAll('iframe').forEach(function (f) {
+      if (on) { if (f.src) { f.dataset.revSrc = f.src; f.removeAttribute('src'); } }
+      else if (f.dataset.revSrc) { f.src = f.dataset.revSrc; delete f.dataset.revSrc; }
+    });
+    revCount();
+  }
+  function revCount() {
+    var all = document.querySelectorAll('.reviewable');
+    var done = document.querySelectorAll('.reviewable.is-reviewed');
+    var out = document.getElementById('revCount');
+    if (out) out.textContent = all.length ? done.length + ' / ' + all.length + ' reviewed' : '';
+  }
+  function revSet(el, on) {
+    var set = revLoad();
+    if (on) set.add(el.dataset.rid); else set.delete(el.dataset.rid);
+    revSave(set);
+    revApply(el, on);
+  }
+  function revAll(on) {
+    document.querySelectorAll('.reviewable').forEach(function (el) { revSet(el, on); });
+  }
+  document.addEventListener('change', function (e) {
+    var cb = e.target.closest && e.target.closest('.rev-input');
+    if (!cb) return;
+    revSet(cb.closest('.reviewable'), cb.checked);
+  });
+  // Clicking the collapsed header re-opens it, so you are never stuck.
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.rev') || e.target.closest('a') || e.target.closest('button')) return;
+    var head = e.target.closest && e.target.closest('.rev-head');
+    if (!head) return;
+    var el = head.closest('.reviewable');
+    if (el && el.classList.contains('is-reviewed')) revSet(el, false);
+  });
+  window.addEventListener('DOMContentLoaded', function () {
+    var set = revLoad();
+    document.querySelectorAll('.reviewable').forEach(function (el) {
+      if (set.has(el.dataset.rid)) revApply(el, true);
+    });
+    revCount();
+  });
+
+  // ---- screenshot attachment on storyboard feedback ----------------------
+  // Final Cut already took images; the storyboard boxes did not, so a comment
+  // like "this card is wrong" arrived with no picture of what was wrong.
+  // Pending attachments, keyed by cue ref, sent with the next Save.
+  var FB_IMAGES = {};
+
+  function fbShotFor(ref) { return document.querySelector('.fb-shot[data-ref="' + CSS.escape(ref) + '"]'); }
+
+  function fbSetThumb(ref, dataUrl) {
+    var box = fbShotFor(ref);
+    if (!box) return;
+    var thumb = box.querySelector('.fb-thumb');
+    var btn = box.querySelector('.fb-attach');
+    if (dataUrl) {
+      thumb.innerHTML = '<img src="' + dataUrl + '" alt="attached screenshot"/>'
+        + '<button type="button" class="fb-clear" title="remove screenshot">&times;</button>';
+      btn.classList.add('has-image');
+    } else {
+      thumb.innerHTML = '';
+      btn.classList.remove('has-image');
+    }
+  }
+
+  function fbAttach(ref, file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    if (file.size > 6 * 1024 * 1024) { alert('image too large (max 6MB)'); return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      FB_IMAGES[ref] = reader.result;
+      fbSetThumb(ref, reader.result);
+      FB_DIRTY = true;   // an attachment is unsaved work like any other
+    };
+    reader.readAsDataURL(file);
+  }
+
+  document.addEventListener('click', function (e) {
+    var attach = e.target.closest('.fb-attach');
+    if (attach) {
+      e.preventDefault();
+      attach.parentElement.querySelector('.fb-file').click();
+      return;
+    }
+    var clear = e.target.closest('.fb-clear');
+    if (clear) {
+      e.preventDefault();
+      var ref = clear.closest('.fb-shot').dataset.ref;
+      FB_IMAGES[ref] = null;        // null tells the server to drop it
+      fbSetThumb(ref, null);
+      FB_DIRTY = true;
+    }
+  });
+
+  document.addEventListener('change', function (e) {
+    var f = e.target.closest('.fb-file');
+    if (!f) return;
+    fbAttach(f.closest('.fb-shot').dataset.ref, f.files && f.files[0]);
+    f.value = '';
+  });
+
+  // Paste straight into the comment box — the way you actually attach a
+  // screenshot you just took.
+  document.addEventListener('paste', function (e) {
+    var ta = e.target.closest && e.target.closest('textarea.feedback');
+    if (!ta || !e.clipboardData) return;
+    var items = e.clipboardData.items || [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].kind === 'file' && items[i].type.startsWith('image/')) {
+        e.preventDefault();
+        fbAttach(ta.dataset.ref, items[i].getAsFile());
+        return;
+      }
+    }
+  });
+
   window.addEventListener('beforeunload', (e) => { if (FB_DIRTY) { e.preventDefault(); e.returnValue = ''; } });
   document.addEventListener('input', (e) => { if (e.target.classList && e.target.classList.contains('feedback')) FB_DIRTY = true; });
 
@@ -530,6 +688,9 @@ const SAVE_ACTIONS_JS = `
     const feedback = {};
     document.querySelectorAll('textarea.feedback').forEach((t) => { feedback[t.dataset.ref] = t.value; });
     const payload = { video: VIDEO, approved: APPROVED, cues, feedback };
+    // Only refs the owner actually touched this session — sending every
+    // existing image back would re-encode and rewrite files on every save.
+    if (Object.keys(FB_IMAGES).length) payload.feedbackImages = FB_IMAGES;
     if (document.querySelectorAll('.shot-block').length > 0) payload.spans = spans;
     const toggles = [...document.querySelectorAll('.fx-toggle')];
     if (toggles.length > 0) {
@@ -752,7 +913,17 @@ function buildDetailBlocks(cues, segments, shots, feedbackItems, audit = null) {
     const foldedHtml = feedbackItems[ref]?.folded
       ? `<div class="feedback-folded">✓ folded ${escapeHtml(feedbackItems[ref].folded)} — "${escapeHtml(feedbackItems[ref].text)}"</div>`
       : '';
-    return `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>${foldedHtml}`;
+    const img = feedbackItems[ref]?.folded ? null : feedbackItems[ref]?.image;
+    // Paste or attach a screenshot, same as the Final Cut tab. The thumbnail is
+    // the receipt: without it there is no way to tell an attached comment from
+    // a plain one until the fixing session opens feedback.json.
+    const shotHtml = `
+      <div class="fb-shot" data-ref="${escapeHtml(ref)}">
+        <button type="button" class="fb-attach" title="attach a screenshot — or just paste one into the box above">&#128206; screenshot</button>
+        <input type="file" class="fb-file" accept="image/*" hidden />
+        <span class="fb-thumb">${img ? `<a href="/feedback-image/${encodeURIComponent(ref)}" target="_blank"><img src="/feedback-image/${encodeURIComponent(ref)}" alt="attached screenshot"/></a><button type="button" class="fb-clear" title="remove screenshot">&times;</button>` : ''}</span>
+      </div>`;
+    return `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>${shotHtml}${foldedHtml}`;
   };
 
   const blocks = segments.map((seg, idx) => {
@@ -829,8 +1000,8 @@ function buildDetailBlocks(cues, segments, shots, feedbackItems, audit = null) {
 
     const excerptDiv = seg.words.length ? `<div class="excerpt">${excerptHtml}</div>` : '';
 
-    html = `<div class="timeline-block tile ${cue.flagged ? 'flagged' : ''}${inShot}" id="${id}" data-id="${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}" data-start="${r ? r.start : 0}">
-      <div class="tile-header">${header}</div>
+    html = `<div class="timeline-block tile reviewable ${cue.flagged ? 'flagged' : ''}${inShot}" id="${id}" data-id="${escapeHtml(cue.id)}" data-rid="sb:${escapeHtml(cue.id)}" data-card="${escapeHtml(cue.card)}" data-lead="${cue.lead ?? ''}" data-start="${r ? r.start : 0}">
+      <div class="tile-header rev-head">${header}${REV_BOX}</div>
       ${excerptDiv}
       <div class="anchor"><strong>${escapeHtml(cue.anchor ?? '')}</strong></div>
       <ul class="beats">${beatLines}</ul>
@@ -877,7 +1048,17 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
     const foldedHtml = feedbackItems[ref]?.folded
       ? `<div class="feedback-folded">✓ folded ${escapeHtml(feedbackItems[ref].folded)} — "${escapeHtml(feedbackItems[ref].text)}"</div>`
       : '';
-    return `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>${foldedHtml}`;
+    const img = feedbackItems[ref]?.folded ? null : feedbackItems[ref]?.image;
+    // Paste or attach a screenshot, same as the Final Cut tab. The thumbnail is
+    // the receipt: without it there is no way to tell an attached comment from
+    // a plain one until the fixing session opens feedback.json.
+    const shotHtml = `
+      <div class="fb-shot" data-ref="${escapeHtml(ref)}">
+        <button type="button" class="fb-attach" title="attach a screenshot — or just paste one into the box above">&#128206; screenshot</button>
+        <input type="file" class="fb-file" accept="image/*" hidden />
+        <span class="fb-thumb">${img ? `<a href="/feedback-image/${encodeURIComponent(ref)}" target="_blank"><img src="/feedback-image/${encodeURIComponent(ref)}" alt="attached screenshot"/></a><button type="button" class="fb-clear" title="remove screenshot">&times;</button>` : ''}</span>
+      </div>`;
+    return `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>${shotHtml}${foldedHtml}`;
   };
   
   const segments = buildSegments(words, resolved);
@@ -1136,7 +1317,17 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
     const foldedHtml = feedbackItems[ref]?.folded
       ? `<div class="feedback-folded">✓ folded ${escapeHtml(feedbackItems[ref].folded)} — "${escapeHtml(feedbackItems[ref].text)}"</div>`
       : '';
-    return `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>${foldedHtml}`;
+    const img = feedbackItems[ref]?.folded ? null : feedbackItems[ref]?.image;
+    // Paste or attach a screenshot, same as the Final Cut tab. The thumbnail is
+    // the receipt: without it there is no way to tell an attached comment from
+    // a plain one until the fixing session opens feedback.json.
+    const shotHtml = `
+      <div class="fb-shot" data-ref="${escapeHtml(ref)}">
+        <button type="button" class="fb-attach" title="attach a screenshot — or just paste one into the box above">&#128206; screenshot</button>
+        <input type="file" class="fb-file" accept="image/*" hidden />
+        <span class="fb-thumb">${img ? `<a href="/feedback-image/${encodeURIComponent(ref)}" target="_blank"><img src="/feedback-image/${encodeURIComponent(ref)}" alt="attached screenshot"/></a><button type="button" class="fb-clear" title="remove screenshot">&times;</button>` : ''}</span>
+      </div>`;
+    return `<textarea class="feedback" data-ref="${escapeHtml(ref)}" placeholder="${escapeHtml(placeholder)}">${fb(ref)}</textarea>${shotHtml}${foldedHtml}`;
   };
 
   const segments = buildSegments(words, resolved);
@@ -1234,13 +1425,14 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
           .filter((c) => c.cue === item.id)
           .map((c) => `<div style="font-size:12px; color:var(--dim); margin-top:6px;">&ldquo;${escapeHtml(c.text)}&rdquo; <span style="opacity:.7">${escapeHtml(c.added ?? '')}${c.folded ? ' &middot; folded' : ''}</span></div>`)
           .join('');
-        return `<div style="margin-bottom:12px; padding:12px; border-bottom:1px solid var(--line);">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        return `<div class="reviewable" data-rid="cp:${escapeHtml(item.id)}" style="margin-bottom:12px; padding:12px; border-bottom:1px solid var(--line);">
+          <div class="rev-head" style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
             <strong style="font-family:ui-monospace,Menlo,monospace; font-size:12px;">#${escapeHtml(item.id)}</strong>
             <span style="color:var(--dim)">${escapeHtml(item.card ?? '(none)')}</span>
             <span class="usage-chip">${escapeHtml(item.placement ?? '?')}</span>
             ${badge}
             ${flagged}
+            ${REV_BOX}
           </div>
           ${item.anchor ? `<div style="font-size:12px; color:var(--dim); font-style:italic;">@ &ldquo;${escapeHtml(item.anchor)}&rdquo;</div>` : ''}
           ${proposal}
@@ -1457,6 +1649,9 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
         ${shots ? `<span class="usage-chip">engineMode: ${escapeHtml(shots.shotsFile?.engineMode || 'none')}</span><button id="approveShotsBtn">Approve shots</button>` : ''}
         ${effects ? `<button id="approveEffectsBtn">Approve effects</button>` : ''}
         <button id="saveBtn">Save</button>
+        <span id="revCount" style="color:var(--dim); font-size:12px;"></span>
+        <button class="fold-toggle" onclick="revAll(true)" title="collapse every card">mark all reviewed</button>
+        <button class="fold-toggle" onclick="revAll(false)" title="expand every card">expand all</button>
         <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
       </div>
       <div id="banner">
@@ -1988,6 +2183,30 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
 </html>`;
 }
 
+// Screenshot attachment, shared by the Final Cut and Storyboard feedback paths.
+// Saved beside feedback.json so the fixing session can Read the image directly
+// (gitignored — media). Returns the workdir-relative path, or null if the
+// payload was not a usable image.
+export function saveFeedbackImage(workdir, key, dataUrl) {
+  if (typeof dataUrl !== 'string') return null;
+  const m = dataUrl.match(/^data:image\/(png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/s);
+  if (!m || m[2].length >= 9_000_000) return null;
+  const ext = m[1] === 'jpeg' ? 'jpg' : m[1];
+  const dir = path.join(workdir, 'feedback-images');
+  fs.mkdirSync(dir, { recursive: true });
+  const fname = String(key).replace(/[^a-zA-Z0-9_-]/g, '-') + '.' + ext;
+  fs.writeFileSync(path.join(dir, fname), Buffer.from(m[2], 'base64'));
+  return 'feedback-images/' + fname;
+}
+
+// Deleting a comment must take its screenshot with it, or feedback-images/
+// fills with orphans nothing references.
+export function dropFeedbackImage(workdir, item) {
+  if (!item?.image) return;
+  const p = path.join(workdir, item.image);
+  if (p.startsWith(path.join(workdir, 'feedback-images'))) fs.rmSync(p, { force: true });
+}
+
 async function handleSave(req, res, workdir, cardLibraryRoot) {
   const body = await readBody(req);
   let cuesFile;
@@ -2004,7 +2223,7 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   // (offset, future additions) survive a save. feedback is board-only — it goes
   // to feedback.json, never into cues.json.
   const prev = fs.existsSync(cuesPath) ? JSON.parse(fs.readFileSync(cuesPath, 'utf8')) : {};
-  const { feedback, ...incoming } = cuesFile;
+  const { feedback, feedbackImages, ...incoming } = cuesFile;
   const merged = { ...prev, ...incoming };
 
   // key-order-insensitive comparison — cues.json may have been written by a
@@ -2060,7 +2279,7 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
     for (const [ref, v] of Object.entries(feedback ?? {})) {
       const text = String(v ?? '').trim();
       if (items[ref]?.folded) continue;            // folded items are immutable here
-      if (!text) { delete items[ref]; continue; }
+      if (!text) { dropFeedbackImage(workdir, items[ref]); delete items[ref]; continue; }
       if (items[ref]?.text !== text) {
         if (!items[ref]) {
           const item = { text, added: today };
@@ -2089,6 +2308,22 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
         }
       }
     }
+
+    // Attach screenshots. Kept OUT of the text loop on purpose: that loop only
+    // fires when the text changed, and attaching a screenshot to a comment you
+    // already wrote is the common case. `null` clears an existing one.
+    for (const [ref, dataUrl] of Object.entries(feedbackImages ?? {})) {
+      if (!items[ref] || items[ref].folded) continue;
+      if (dataUrl === null) {
+        dropFeedbackImage(workdir, items[ref]);
+        const { image, ...rest } = items[ref];
+        items[ref] = rest;
+        continue;
+      }
+      const saved = saveFeedbackImage(workdir, ref, dataUrl);
+      if (saved) items[ref] = { ...items[ref], image: saved };
+    }
+
     fs.writeFileSync(fbPath, JSON.stringify({ video: merged.video, updated: today, items }, null, 2));
   }
 
@@ -2732,17 +2967,8 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
       .pop();
     // Optional screenshot attachment (data URL): saved beside feedback.json so
     // the fixing session can Read the image directly (gitignored — media).
-    if (typeof payload.image === 'string') {
-      const m = payload.image.match(/^data:image\/(png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/s);
-      if (m && m[2].length < 9_000_000) {
-        const ext = m[1] === 'jpeg' ? 'jpg' : m[1];
-        const dir = path.join(workdir, 'feedback-images');
-        fs.mkdirSync(dir, { recursive: true });
-        const fname = key.replace(/[^a-zA-Z0-9_-]/g, '-') + '.' + ext;
-        fs.writeFileSync(path.join(dir, fname), Buffer.from(m[2], 'base64'));
-        fb.items[key].image = 'feedback-images/' + fname;
-      }
-    }
+    const savedImage = saveFeedbackImage(workdir, key, payload.image);
+    if (savedImage) fb.items[key].image = savedImage;
     fb.updated = new Date().toISOString().slice(0, 10);
     fs.writeFileSync(fbPath, JSON.stringify(fb, null, 2));
     res.setHeader('content-type', 'application/json');
