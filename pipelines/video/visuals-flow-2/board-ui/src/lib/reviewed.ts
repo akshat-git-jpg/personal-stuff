@@ -57,5 +57,5 @@ export function useReviewed(video: string) {
     });
   };
 
-  return { has, toggle, count: reviewed.size, setAll };
+  return { items: reviewed, has, toggle, count: reviewed.size, setAll };
 }

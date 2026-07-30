@@ -6,6 +6,10 @@ import path from 'node:path';
 const CHROME = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const HASHES = ['', '#card-plan', '#storyboard', '#final-cut'];
 
+// 30+ iframed tiles, measured ~20s+ on storyboard, plans 173/174 will add more.
+// Need 60s floor so it does not flake on a loaded machine.
+const CHROME_TIMEOUT_MS = Number(process.env.BOARD_UI_SMOKE_TIMEOUT_MS ?? 60000);
+
 if (!fs.existsSync(CHROME)) {
   console.log('SKIP board-ui smoke: no Chrome');
   process.exit(0);
@@ -57,7 +61,7 @@ try {
         fs.writeFileSync(path.join(tmpDir, 'chrome-out.html'), out);
         fs.rmSync(profileDir, { recursive: true, force: true });
         reject(new Error(`Chrome dump-dom timeout on ${hash || 'run'}. stderr:\n${err}`));
-      }, 20000);
+      }, CHROME_TIMEOUT_MS);
       child = spawn(CHROME, [
         '--headless=new',
         '--no-sandbox',
@@ -121,9 +125,24 @@ try {
       if (!dom.includes('plan-note"')) throw new Error('plan-note not found on #card-plan');
     }
     if (hash === '#storyboard') {
+      if (!dom.includes('class="timeline-block tile reviewable')) throw new Error('tile reviewable not found');
+      if (!dom.includes('class="excerpt"')) throw new Error('excerpt not found');
+      if (!dom.includes('<mark>')) throw new Error('mark not found');
+      if (!dom.includes('class="preview"')) throw new Error('preview not found');
+      if (!dom.includes('src="/card/')) throw new Error('iframe src /card/ not found');
+      if (!dom.includes('src="/slice/')) throw new Error('audio src /slice/ not found');
+      if (!dom.includes('class="frag"')) throw new Error('textarea.frag not found');
       const fbShots = dom.match(/class="fb-shot"/g);
-      if (!fbShots || fbShots.length !== 1) throw new Error('Expected exactly one .fb-shot on #storyboard');
-      if (!dom.includes('class="fb-attach"')) throw new Error('fb-attach button not found on #storyboard');
+      const tiles = dom.match(/class="timeline-block tile reviewable"/g) || [];
+      if (!fbShots || fbShots.length < tiles.length) throw new Error('Expected at least one .fb-shot per tile');
+      
+      const idxSlot = dom.indexOf('<div class="action-slot">');
+      const slotMatch = idxSlot > -1 ? dom.slice(idxSlot, idxSlot + 300) : '';
+      if (!slotMatch.includes('Approve graphics')) throw new Error('Approve graphics not found inside .action-slot');
+      
+      const idxRow2 = dom.indexOf('<div class="app-header-row2">');
+      const row2Match = idxRow2 > -1 ? dom.slice(idxRow2, idxRow2 + 500) : '';
+      if (!row2Match.includes('Save')) throw new Error('Save not found inside .app-header-row2');
     }
 
     
@@ -156,9 +175,9 @@ try {
         if (child) child.kill('SIGKILL');
         fs.rmSync(profileDir, { recursive: true, force: true });
         reject(new Error(`Chrome dump-dom timeout on ${hash}`));
-      }, 20000);
+      }, CHROME_TIMEOUT_MS);
       child = spawn(CHROME, [
-        '--headless', '--no-sandbox', '--disable-background-networking',
+        '--headless=new', '--no-sandbox', '--disable-background-networking',
         `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
         '--virtual-time-budget=8000', '--dump-dom', url
       ]);
@@ -195,7 +214,7 @@ try {
         reject(new Error(`Chrome screenshot timeout on static ${hash}`));
       }, 10000);
       child = spawn(CHROME, [
-        '--headless', '--no-sandbox', `--user-data-dir=${profileDir}`,
+        '--headless=new', '--no-sandbox', `--user-data-dir=${profileDir}`,
         '--disable-gpu', '--hide-scrollbars', `--window-size=1400,1000`,
         `--screenshot=${outPath}`, `file://${staticHtmlPath}`
       ]);
@@ -222,6 +241,66 @@ try {
       });
     });
   }
+  // pre-040 degraded
+  const workdirPre = path.join(tmpDir, 'smoke-pre');
+  fs.mkdirSync(workdirPre, { recursive: true });
+  ['cues.json', 'transcript.json'].forEach(f => {
+    fs.copyFileSync(path.join(workdir, f), path.join(workdirPre, f));
+  });
+  fs.copyFileSync(path.join(workdir, 'vo.mp3'), path.join(workdirPre, 'vo.mp3'));
+  fs.copyFileSync(path.join(workdir, 'card-plan.json'), path.join(workdirPre, 'card-plan.json'));
+
+  const serverPre = boardMod.createServer(workdirPre);
+  const portPre = await new Promise((resolve) => {
+    serverPre.listen(0, '127.0.0.1', () => resolve(serverPre.address().port));
+  });
+
+  try {
+    const urlPre = `http://127.0.0.1:${portPre}/app/?video=smoke-pre#storyboard`;
+    const domPre = await new Promise((resolve, reject) => {
+      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
+      let child;
+      const timeout = setTimeout(() => {
+        if (child) child.kill('SIGKILL');
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(new Error(`Chrome dump-dom timeout on pre-040`));
+      }, CHROME_TIMEOUT_MS);
+      child = spawn(CHROME, [
+        '--headless=new', '--no-sandbox', '--disable-background-networking',
+        `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
+        '--virtual-time-budget=8000', '--dump-dom', urlPre
+      ]);
+      let out = '';
+      child.stdout.on('data', d => {
+        out += d;
+        if (out.includes('</html>')) {
+          clearTimeout(timeout);
+          child.kill('SIGKILL');
+          resolve(out);
+        }
+      });
+      child.on('close', () => {
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+      });
+      child.on('error', e => {
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(e);
+      });
+    });
+
+    if (!domPre.includes('no <code>resolved.json</code> yet')) {
+      throw new Error('no resolved banner not found');
+    }
+    if (!domPre.match(/disabled[^>]*>Approve graphics/)) {
+      throw new Error('Approve graphics should be disabled');
+    }
+  } finally {
+    if (serverPre.closeAllConnections) serverPre.closeAllConnections();
+    serverPre.close();
+  }
+
   console.log('board-ui smoke OK');
   process.exit(0);
 } finally {
