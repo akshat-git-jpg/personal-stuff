@@ -26,3 +26,8 @@ videos/*/*.full.mp3
 videos/*/versions.run*/
 videos/*/versions.run*.json
 videos/*/feedback-images/
+board-ui/node_modules/
+board-ui/dist/
+.test-tmp/
+debug-*.mjs
+test-*.mjs

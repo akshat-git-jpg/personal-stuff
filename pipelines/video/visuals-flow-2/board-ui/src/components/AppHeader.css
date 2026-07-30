@@ -1,0 +1,20 @@
+.app-header { position: sticky; top: 0; z-index: 100; background: var(--bg);
+  border-bottom: 1px solid var(--line); padding: 10px 24px 8px; }
+.app-header-row1 { display: flex; align-items: center; gap: 16px; min-height: 46px; }
+.app-header-row2 { display: flex; align-items: center; gap: 10px; min-height: 34px;
+  font-size: 12px; color: var(--dim); }
+.app-tabs { display: flex; gap: 2px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
+.app-tabs .tab-btn { padding: 5px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  color: var(--dim); background: none; border: 0; font-family: inherit; cursor: pointer;
+  white-space: nowrap; line-height: 1.4; }
+.app-tabs .tab-btn.active { color: var(--accent); background: rgba(251,146,60,0.12); }
+.app-video { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--dim); }
+.app-video select { font: inherit; font-size: 13px; font-weight: 600; padding: 4px 8px;
+  background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; }
+.app-meta { font-size: 13px; color: var(--dim); }
+.action-slot { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.action-slot button { font: inherit; font-weight: 700; border-radius: 9px; padding: 8px 14px;
+  cursor: pointer; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
+.action-slot button.approve { border-color: var(--ok); color: var(--ok); }
+.action-slot button:disabled { cursor: not-allowed; opacity: .38;
+  border-color: var(--line) !important; color: var(--dim) !important; background: transparent; }
