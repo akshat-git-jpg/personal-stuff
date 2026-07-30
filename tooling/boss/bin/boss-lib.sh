@@ -120,13 +120,14 @@ boss_tree_kill() {
 
 # boss_stall_check <pr> — call ONLY when the executor reports alive/working. Echoes
 # `working`, `STALLED(<n>m)`, or `STALLED-KILLED(<n>m)`. Fingerprint = worktree HEAD
-# + tree CPU + output size; when it stops moving for BOSS_STALL_WARN_MIN it warns,
+# + worktree dirt + the executor's own `progress` signal + bucketed tree CPU +
+# output size; when it stops moving for BOSS_STALL_WARN_MIN it warns,
 # and past BOSS_STALL_KILL_MIN it kills the tree so the normal dead → one-fix-up →
 # blocked policy takes over. Per-PR overrides: meta stall_warn / stall_kill.
 BOSS_STALL_WARN_MIN="${BOSS_STALL_WARN_MIN:-15}"
 BOSS_STALL_KILL_MIN="${BOSS_STALL_KILL_MIN:-45}"
 boss_stall_check() {
-  local pr="$1" pid wt out head cpu osize fp now warn kill_ sw sk last_fp progress_at idle
+  local pr="$1" pid wt out head cpu wtfp exp osize fp now warn kill_ sw sk last_fp progress_at idle
   pid=$(meta_get "$pr" pid); [ -n "$pid" ] || { echo working; return; }
   wt=$(meta_get "$pr" worktree); out=$(meta_get "$pr" out)
   head=$(git -C "$wt" rev-parse HEAD 2>/dev/null || echo none)
@@ -134,11 +135,21 @@ boss_stall_check() {
   # check entirely (2026-07-30, PR#128): a deadlocked Chrome/node tree still
   # trickled ~1 CPU-second every ~7 minutes, which changed the fingerprint on
   # every poll, reset progress_at, and let a dead-stuck crew run 87m — clean past
-  # both thresholds. A genuinely computing crew accrues 60+ CPU-seconds well
-  # inside the warn window; a hung one takes hours to move one bucket.
+  # both thresholds. Bucketing kills that trickle.
   cpu=$(( $(boss_tree_cpu "$pid") / 60 ))
+  # WORKTREE DIRT is the load-bearing liveness signal, NOT cpu. Bucketed CPU alone
+  # false-positived within the hour (same night, PR#128 fix-up): agy is I/O-bound
+  # on model inference and accrued under 5 CPU-seconds across 15 minutes of real
+  # work, while HEAD sat still because it edits for a long stretch before it
+  # commits. status+shortstat moves on every save, so an editing crew reads as
+  # working; a hung one leaves the tree frozen.
+  wtfp=$( { git -C "$wt" status --porcelain -uall 2>/dev/null
+            git -C "$wt" diff HEAD --shortstat 2>/dev/null; } | cksum | tr -d ' ')
+  # Optional per-executor activity signal (agy: its streaming CLI log size). Silent
+  # no-op for executors that don't implement the verb, e.g. claude-p.
+  exp=$("$BOSS_HOME/executors/$(meta_get "$pr" executor).sh" progress "$pr" 2>/dev/null)
   osize=$(wc -c < "$out" 2>/dev/null | tr -d ' '); osize="${osize:-0}"
-  fp="$head|$cpu|$osize"; now=$(date +%s)
+  fp="$head|$wtfp|${exp:-na}|$cpu|$osize"; now=$(date +%s)
   sw=$(meta_get "$pr" stall_warn); warn=$(( ${sw:-$BOSS_STALL_WARN_MIN} ))
   sk=$(meta_get "$pr" stall_kill); kill_=$(( ${sk:-$BOSS_STALL_KILL_MIN} ))
   last_fp=$(meta_get "$pr" stall_fp); progress_at=$(meta_get "$pr" progress_at)

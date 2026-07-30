@@ -26,6 +26,18 @@ case "$verb" in
   alive)
     pid=$(meta_get "$id" pid) || exit 2; [ -z "$pid" ] && exit 2
     kill -0 "$pid" 2>/dev/null && exit 0; exit 1 ;;
+  progress)
+    # Optional verb consumed by boss_stall_check. agy streams an incremental CLI
+    # log, and its SIZE is the only signal that moves while the model is thinking:
+    # HEAD sits still (agy edits for a long stretch before committing), the
+    # worktree sits still between saves, the JSON envelope isn't written until
+    # exit, and agy is I/O-bound so CPU barely accrues (<5 CPU-seconds across 15
+    # real working minutes). 2026-07-31: without this, a healthy fix-up crew was
+    # flagged STALLED at 15m while it was mid-inference.
+    pid=$(meta_get "$id" pid) || exit 0; [ -n "$pid" ] || exit 0
+    lg=$(lsof -p "$pid" 2>/dev/null | awk '/antigravity-cli\/log\/.*\.log$/{print $NF; exit}')
+    [ -n "$lg" ] && wc -c < "$lg" 2>/dev/null | tr -d ' '
+    exit 0 ;;
   collect)
     out=$(meta_get "$id" out) || out="$STATE_DIR/$id.out"
     [ -f "$out" ] && [ -s "$out" ] || { echo "dead no output"; exit 0; }
