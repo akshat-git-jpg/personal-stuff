@@ -1113,3 +1113,4 @@ therefore of every plan's boss merge gate.
 - 173-vf2-board-ui-timeline-canvas — timeline lanes, detail dock, play-through, FX stage — TODO (needs 172)
 - 174-vf2-board-ui-final-cut-and-cutover — Final Cut + Calibrate in the SPA, `/` cutover, legacy deleted — TODO (needs 173)
 - 169-vf2-board-data-api — PR#127 169-vf2-board-data-api: Board data API — everything the React board will render, as JSON — DONE
+- 170-vf2-board-ui-shell — PR#128 170-vf2-board-ui-shell: board-ui shell — Vite+React SPA, one shared sticky header, hash router, Run tab — DONE
