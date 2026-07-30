@@ -4,6 +4,7 @@ import { fetchBoardData, BoardData } from './lib/api';
 import { AppHeader } from './components/AppHeader';
 import { RunTab } from './tabs/RunTab';
 import { CardPlanTab } from './tabs/CardPlanTab';
+import { StoryboardTab } from './tabs/StoryboardTab';
 import { FeedbackProvider, useFeedback } from './lib/feedback';
 import { FeedbackBox } from './components/FeedbackBox';
 
@@ -107,12 +108,14 @@ export function App() {
           />
         )}
         {tab === 'storyboard' && (
-          <div className="tab-placeholder" style={{ padding: 24 }}>
-            Storyboard — ships in plan 172
-            <div style={{ maxWidth: 600, marginTop: 24 }}>
-              <FeedbackBox refKey="_global" placeholder="global feedback" />
-            </div>
-          </div>
+          <StoryboardTab
+            video={boardData.video!}
+            boardData={boardData}
+            onMeta={setMeta}
+            onActions={setActions}
+            onSecondary={setSecondary}
+            onRefetch={refetch}
+          />
         )}
         {tab === 'final-cut' && <div className="tab-placeholder" style={{ padding: 24 }}>Final Cut — ships in plan 173</div>}
       </main>
