@@ -14,5 +14,8 @@
     "lint": "npx --yes hyperframes@latest lint",
     "render": "npx --yes hyperframes@latest render",
     "card-qa": "node scripts/card-qa.mjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "^23.0.0"
   }
 }

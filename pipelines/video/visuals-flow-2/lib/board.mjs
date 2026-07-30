@@ -23,6 +23,7 @@ import { planCaptions } from './captions.mjs';
 import { loadBrand, injectBrand } from './brand-inline.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { appendCardPlanFeedback, PLAN_PARTS } from './card-plan.mjs';
+import { MEASURE_OVERFLOW_SRC } from './overflow-measure.mjs';
 import { stepView, summarize as summarizeRun, nextStep, readRunLog, writeRunLog, setStep, resolveStepId } from './run-log.mjs';
 
 // What the board needs to BOOT. resolved.json is deliberately not here: it is
@@ -161,21 +162,7 @@ function injectShim(html, variables) {
     tl.time(Math.min(t, tl.duration()));
     return true;
   }
-  function __measureOverflow() {
-    const W = 1920, H = 1080, TOL = 2;
-    const offenders = [];
-    for (const el of document.querySelectorAll('body *')) {
-      const r = el.getBoundingClientRect();
-      if (r.width === 0 || r.height === 0) continue;
-      if (r.right > W + TOL || r.bottom > H + TOL || r.left < -TOL || r.top < -TOL) {
-        offenders.push((el.id ? '#' + el.id : el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : '')));
-        if (offenders.length >= 5) break;
-      }
-    }
-    const doc = document.documentElement;
-    const scrolled = doc.scrollWidth > W + TOL || doc.scrollHeight > H + TOL;
-    return { broken: offenders.length > 0 || scrolled, offenders };
-  }
+  ${MEASURE_OVERFLOW_SRC}
   function __runProbe(times) {
     let i = 0;
     function step() {
