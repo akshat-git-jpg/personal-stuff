@@ -1,0 +1,16 @@
+.fb-shot { height: 44px; display: flex; align-items: center; gap: 8px; }
+.fb-attach { font: inherit; font-size: 12px; color: var(--dim); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer;
+  line-height: 1; white-space: nowrap; }
+.fb-attach:hover { color: var(--text); border-color: var(--accent); }
+.fb-thumb-chip { display: inline-flex; align-items: center; gap: 2px;
+  border: 1px solid var(--ok); border-radius: 6px; padding: 2px; }
+.fb-thumb-chip img { height: 34px; border-radius: 4px; display: block; }
+.fb-clear { background: none; border: none; color: var(--dim); cursor: pointer;
+  font-size: 15px; padding: 0 6px; }
+.fb-clear:hover { color: var(--err); }
+.feedback { width: 100%; min-height: 34px; font: inherit; font-size: 12px; margin: 8px 0 4px;
+  background: rgba(251,146,60,0.05); color: var(--text);
+  border: 1px dashed rgba(251,146,60,0.4); border-radius: 6px; padding: 6px 8px; }
+.feedback:focus { border-style: solid; outline: none; }
+.feedback-folded { font-size: 12px; color: var(--dim); margin-bottom: 8px; }

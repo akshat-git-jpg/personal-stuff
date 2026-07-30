@@ -3,14 +3,31 @@ import { Tab, tabForHash, urlForTab, videoFromSearch } from './lib/router';
 import { fetchBoardData, BoardData } from './lib/api';
 import { AppHeader } from './components/AppHeader';
 import { RunTab } from './tabs/RunTab';
+import { CardPlanTab } from './tabs/CardPlanTab';
+import { FeedbackProvider, useFeedback } from './lib/feedback';
+import { FeedbackBox } from './components/FeedbackBox';
 
 export function App() {
   const [tab, setTab] = useState<Tab>(() => tabForHash(location.hash));
   const [boardData, setBoardData] = useState<BoardData | null>(null);
   const [videos, setVideos] = useState<string[]>([]);
   const [dirty, setDirty] = useState(false);
+  
   const [meta, setMeta] = useState<ReactNode>(null);
+  const [actions, setActions] = useState<ReactNode>(null);
+  const [secondary, setSecondary] = useState<ReactNode>(null);
+  
   const video = videoFromSearch(location.search) || '';
+
+  const refetch = async () => {
+    if (!video) return;
+    try {
+      const data = await fetchBoardData(video);
+      setBoardData(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     const onHashChange = () => setTab(tabForHash(location.hash));
@@ -34,8 +51,6 @@ export function App() {
       }
     }).catch(err => console.error(err));
   }, [video]);
-
-
 
   useEffect(() => {
     if (!boardData) return;
@@ -67,21 +82,48 @@ export function App() {
   if (!boardData) return <div style={{ padding: 24 }}>Loading...</div>;
 
   return (
-    <div>
+    <FeedbackProvider initialItems={boardData.feedback}>
+      <FeedbackStateSync onDirty={setDirty} />
       <AppHeader
         video={boardData.video || video}
         videos={videos}
         tab={tab}
         dirty={dirty}
         meta={meta}
+        actions={actions}
+        secondary={secondary}
         onTab={onTab}
       />
       <main>
         {tab === 'run' && <RunTab video={boardData.video} onMeta={setMeta} />}
-        {tab === 'card-plan' && <div className="tab-placeholder" style={{ padding: 24 }}>Card Plan — ships in plan 171</div>}
-        {tab === 'storyboard' && <div className="tab-placeholder" style={{ padding: 24 }}>Storyboard — ships in plan 172</div>}
+        {tab === 'card-plan' && (
+          <CardPlanTab
+            video={boardData.video}
+            cardPlan={boardData.cardPlan!}
+            onMeta={setMeta}
+            onActions={setActions}
+            onSecondary={setSecondary}
+            onRefetch={refetch}
+          />
+        )}
+        {tab === 'storyboard' && (
+          <div className="tab-placeholder" style={{ padding: 24 }}>
+            Storyboard — ships in plan 172
+            <div style={{ maxWidth: 600, marginTop: 24 }}>
+              <FeedbackBox refKey="_global" placeholder="global feedback" />
+            </div>
+          </div>
+        )}
         {tab === 'final-cut' && <div className="tab-placeholder" style={{ padding: 24 }}>Final Cut — ships in plan 173</div>}
       </main>
-    </div>
+    </FeedbackProvider>
   );
+}
+
+function FeedbackStateSync({ onDirty }: { onDirty: (d: boolean) => void }) {
+  const fb = useFeedback();
+  useEffect(() => {
+    onDirty(fb.dirty);
+  }, [fb.dirty, onDirty]);
+  return null;
 }

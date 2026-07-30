@@ -11,8 +11,8 @@
 .app-video { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--dim); }
 .app-video select { font: inherit; font-size: 13px; font-weight: 600; padding: 4px 8px;
   background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; }
-.app-meta { font-size: 13px; color: var(--dim); }
-.action-slot { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.app-meta { white-space: nowrap; font-size: 13px; color: var(--dim); }
+.action-slot { align-self: stretch; white-space: nowrap; margin-left: auto; display: flex; align-items: center; gap: 8px; }
 .action-slot button { font: inherit; font-weight: 700; border-radius: 9px; padding: 8px 14px;
   cursor: pointer; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
 .action-slot button.approve { border-color: var(--ok); color: var(--ok); }
