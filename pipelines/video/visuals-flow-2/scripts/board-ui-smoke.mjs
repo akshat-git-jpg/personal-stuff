@@ -6,6 +6,10 @@ import path from 'node:path';
 const CHROME = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const HASHES = ['', '#card-plan', '#storyboard', '#final-cut'];
 
+// 30+ iframed tiles, measured ~20s+ on storyboard, plans 173/174 will add more.
+// Need 60s floor so it does not flake on a loaded machine.
+const CHROME_TIMEOUT_MS = Number(process.env.BOARD_UI_SMOKE_TIMEOUT_MS ?? 60000);
+
 if (!fs.existsSync(CHROME)) {
   console.log('SKIP board-ui smoke: no Chrome');
   process.exit(0);
@@ -57,7 +61,7 @@ try {
         fs.writeFileSync(path.join(tmpDir, 'chrome-out.html'), out);
         fs.rmSync(profileDir, { recursive: true, force: true });
         reject(new Error(`Chrome dump-dom timeout on ${hash || 'run'}. stderr:\n${err}`));
-      }, 20000);
+      }, CHROME_TIMEOUT_MS);
       child = spawn(CHROME, [
         '--headless=new',
         '--no-sandbox',
@@ -171,7 +175,7 @@ try {
         if (child) child.kill('SIGKILL');
         fs.rmSync(profileDir, { recursive: true, force: true });
         reject(new Error(`Chrome dump-dom timeout on ${hash}`));
-      }, 20000);
+      }, CHROME_TIMEOUT_MS);
       child = spawn(CHROME, [
         '--headless=new', '--no-sandbox', '--disable-background-networking',
         `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
@@ -260,7 +264,7 @@ try {
         if (child) child.kill('SIGKILL');
         fs.rmSync(profileDir, { recursive: true, force: true });
         reject(new Error(`Chrome dump-dom timeout on pre-040`));
-      }, 20000);
+      }, CHROME_TIMEOUT_MS);
       child = spawn(CHROME, [
         '--headless=new', '--no-sandbox', '--disable-background-networking',
         `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
