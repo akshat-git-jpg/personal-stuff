@@ -28,8 +28,12 @@ fm_get() {
     n==1 && $0 ~ "^"k":" {
       sub("^"k":[[:space:]]*","")
       # Strip a YAML inline comment (whitespace + #) on unquoted scalars only;
-      # a # inside a quoted value or with no leading space is kept verbatim.
-      if ($0 !~ /^["'\''].*["'\''][[:space:]]*$/) sub(/[[:space:]]+#.*$/,"")
+      # a # inside a quoted value is kept verbatim. An EMPTY value whose line
+      # carries only a comment (`model:   # blank = default`) lands with the #
+      # at position 1 once the key+spaces are consumed — strip that too, else
+      # the comment text becomes the value (2026-07-30: PR#126 dispatched agy
+      # with --model "# blank = agy default ...", which agy rejected in ~1s).
+      if ($0 !~ /^["'\''].*["'\''][[:space:]]*$/) { sub(/[[:space:]]+#.*$/,""); sub(/^#.*$/,"") }
       sub(/[[:space:]]+$/,"")
       gsub(/^"|"$/,""); gsub(/^'\''|'\''$/,"")
       print; exit
