@@ -35,8 +35,7 @@
             "label": "Layouts need reworking",
             "at": 8.44
           }
-        ],
-        "register": "dark"
+        ]
       }
     },
     {
@@ -56,8 +55,7 @@
           "name": "OpusClip",
           "logo": "opusclip",
           "verdict": "Speed at all costs"
-        },
-        "register": "dark"
+        }
       }
     },
     {
@@ -85,8 +83,7 @@
             "label": "Quietly creates more work",
             "at": 3.12
           }
-        ],
-        "register": "light"
+        ]
       }
     },
     {
@@ -125,7 +122,6 @@
             "at": 4.02
           }
         ],
-        "register": "light",
         "variant": "a"
       }
     },
@@ -157,8 +153,7 @@
             "text": "No marketing promises",
             "at": 9.52
           }
-        ],
-        "register": "light"
+        ]
       }
     },
     {
@@ -191,7 +186,6 @@
             "at": 17.2
           }
         ],
-        "register": "light",
         "variant": "a"
       }
     },
@@ -201,9 +195,7 @@
       "placement": "overlay",
       "start": 109.64,
       "duration": 5,
-      "variables": {
-        "register": "light"
-      }
+      "variables": {}
     },
     {
       "id": "c01",
@@ -218,7 +210,6 @@
         "name": "OpusClip",
         "tagline": "Automation first clipping",
         "tag": "AI Clipping",
-        "register": "dark",
         "variant": "a"
       },
       "structural": true
@@ -247,8 +238,7 @@
             "text": "Clips still need cleanup",
             "at": 10.24
           }
-        ],
-        "register": "dark"
+        ]
       }
     },
     {
@@ -264,7 +254,6 @@
         "name": "Submagic",
         "tagline": "Polish first editing",
         "tag": "Short Form Editor",
-        "register": "light",
         "variant": "a"
       },
       "structural": true
@@ -288,8 +277,7 @@
             "text": "Not fully hands off",
             "at": 4.6
           }
-        ],
-        "register": "light"
+        ]
       }
     },
     {
@@ -298,9 +286,7 @@
       "placement": "overlay",
       "start": 182.9,
       "duration": 4,
-      "variables": {
-        "register": "light"
-      }
+      "variables": {}
     },
     {
       "id": "c06",
@@ -313,7 +299,6 @@
         "label": "The Test",
         "text": "Same source video, same goal, both tools",
         "edge": "bottom",
-        "register": "light",
         "variant": "a"
       }
     },
@@ -325,8 +310,7 @@
       "duration": 5,
       "variables": {
         "name": "Submagic",
-        "subtitle": "Template Then AI Edit",
-        "register": "light"
+        "subtitle": "Template Then AI Edit"
       }
     },
     {
@@ -340,7 +324,6 @@
         "label": "Submagic",
         "text": "Multi speaker theme colors each voice separately",
         "edge": "top",
-        "register": "light",
         "variant": "a"
       }
     },
@@ -352,8 +335,7 @@
       "duration": 5,
       "variables": {
         "name": "OpusClip",
-        "subtitle": "Same Video Second Tool",
-        "register": "light"
+        "subtitle": "Same Video Second Tool"
       }
     },
     {
@@ -367,7 +349,6 @@
         "label": "OpusClip",
         "text": "Caption font and color are picked by hand here",
         "edge": "bottom",
-        "register": "light",
         "variant": "a"
       }
     },
@@ -382,7 +363,6 @@
         "label": "Rights",
         "text": "Only clip content you own or have permission to use",
         "edge": "top",
-        "register": "light",
         "variant": "a"
       }
     },
@@ -397,7 +377,6 @@
         "label": "OpusClip",
         "text": "Auto hook writes a text hook onto the top 10 clips",
         "edge": "bottom",
-        "register": "light",
         "variant": "a"
       }
     },
@@ -412,7 +391,6 @@
         "label": "OpusClip",
         "text": "You can force specific moments into the clip set",
         "edge": "top",
-        "register": "light",
         "variant": "a"
       }
     },
@@ -427,8 +405,7 @@
         "logo": "opusclip",
         "value": 5,
         "suffix": " min",
-        "context": "Quoted time to generate the clips",
-        "register": "light"
+        "context": "Quoted time to generate the clips"
       }
     },
     {
@@ -442,7 +419,6 @@
         "label": "Submagic",
         "text": "B roll, transitions and magic zooms are all editable",
         "edge": "bottom",
-        "register": "light",
         "variant": "a"
       }
     },
@@ -474,8 +450,7 @@
             "verdict": "yes",
             "at": 7.2
           }
-        ],
-        "register": "light"
+        ]
       }
     },
     {
@@ -514,7 +489,6 @@
             "at": 8.22
           }
         ],
-        "register": "light",
         "variant": "b"
       }
     },
@@ -546,8 +520,7 @@
             "verdict": "no",
             "at": 18.28
           }
-        ],
-        "register": "dark"
+        ]
       }
     },
     {
@@ -594,7 +567,6 @@
             "at": 5.76
           }
         ],
-        "register": "dark",
         "variant": "a"
       }
     },
@@ -606,8 +578,7 @@
       "duration": 12.32,
       "variables": {
         "number": "04",
-        "title": "Pricing And Value",
-        "register": "dark"
+        "title": "Pricing And Value"
       },
       "structural": true
     },
@@ -711,8 +682,7 @@
             "accent": true,
             "at": 5.5
           }
-        ],
-        "register": "dark"
+        ]
       }
     },
     {
@@ -726,7 +696,6 @@
         "label": "Submagic",
         "text": "Not paying for more clips, paying for fewer fixes",
         "edge": "bottom",
-        "register": "dark",
         "variant": "a"
       }
     },
@@ -772,8 +741,7 @@
               "value": "41% off"
             }
           ]
-        },
-        "register": "light"
+        }
       }
     },
     {
@@ -787,8 +755,7 @@
         "logo": "opusclip",
         "score": 4,
         "max": 5,
-        "winner": false,
-        "register": "light"
+        "winner": false
       }
     },
     {
@@ -802,8 +769,7 @@
         "logo": "submagic",
         "score": 5,
         "max": 5,
-        "winner": false,
-        "register": "light"
+        "winner": false
       }
     },
     {
@@ -817,8 +783,7 @@
         "logo": "opusclip",
         "score": 3.5,
         "max": 5,
-        "winner": false,
-        "register": "light"
+        "winner": false
       }
     },
     {
@@ -842,8 +807,7 @@
             "logo": "submagic",
             "at": 7.78
           }
-        ],
-        "register": "light"
+        ]
       }
     },
     {
@@ -867,8 +831,7 @@
             "logo": "opusclip",
             "at": 6.26
           }
-        ],
-        "register": "light"
+        ]
       }
     },
     {
@@ -915,7 +878,6 @@
             "at": 7.3
           }
         ],
-        "register": "light",
         "variant": "a"
       }
     },
@@ -940,7 +902,6 @@
           "opusclip",
           "submagic"
         ],
-        "register": "light",
         "variant": "a"
       }
     },
@@ -950,9 +911,7 @@
       "placement": "overlay",
       "start": 1051.87,
       "duration": 4,
-      "variables": {
-        "register": "light"
-      }
+      "variables": {}
     },
     {
       "id": "z14",
@@ -960,9 +919,7 @@
       "placement": "overlay",
       "start": 1065.63,
       "duration": 5,
-      "variables": {
-        "register": "light"
-      }
+      "variables": {}
     }
   ]
 }
