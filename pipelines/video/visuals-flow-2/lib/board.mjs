@@ -24,6 +24,7 @@ import { loadBrand, injectBrand } from './brand-inline.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { appendCardPlanFeedback, PLAN_PARTS } from './card-plan.mjs';
 import { MEASURE_OVERFLOW_SRC } from './overflow-measure.mjs';
+import { computeProbeTimes, loadBoardData, buildBoardData } from './board-data.mjs';
 import { stepView, summarize as summarizeRun, nextStep, readRunLog, writeRunLog, setStep, resolveStepId } from './run-log.mjs';
 
 // What the board needs to BOOT. resolved.json is deliberately not here: it is
@@ -850,12 +851,7 @@ export const { playthroughView } = playthroughSim;
 
 // Probe times for the overflow shim: just after each beat reveals, plus just
 // before the card ends (catches a final state that never got a mid-beat check).
-function computeProbeTimes(beats, duration) {
-  const times = (beats ?? []).map((b) => +(b.at + 0.6).toFixed(2)).filter((t) => t >= 0);
-  const end = +(duration - 0.1).toFixed(2);
-  if (end >= 0) times.push(end);
-  return times;
-}
+
 
 export function buildSegments(words, resolved, { gapMinWords = 8 } = {}) {
   const cues = [...resolved].sort((a, b) => a.start - b.start);
@@ -2701,24 +2697,7 @@ function serveSlice(res, workdir, id) {
   res.end(fs.readFileSync(slicePath));
 }
 
-function loadBoardData(workdir) {
-  const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
-  const resolvedPath = path.join(workdir, 'resolved.json');
-  const hasResolved = fs.existsSync(resolvedPath);
-  const resolved = hasResolved ? JSON.parse(fs.readFileSync(resolvedPath, 'utf8')).resolved : [];
-  const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
-  const fbPath = path.join(workdir, 'feedback.json');
-  const feedbackItems = fs.existsSync(fbPath) ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items) : {};
-  const shots = loadShots(workdir, words);
-  const effects = loadEffects(workdir);
-  const soundPath = path.join(workdir, 'sound.json');
-  const sound = fs.existsSync(soundPath) ? JSON.parse(fs.readFileSync(soundPath, 'utf8')) : null;
-  const auditPath = path.join(workdir, 'audit.json');
-  const audit = fs.existsSync(auditPath) ? JSON.parse(fs.readFileSync(auditPath, 'utf8')) : null;
-  const zpPath = path.join(workdir, 'card-plan.json');
-  const cardPlan = fs.existsSync(zpPath) ? JSON.parse(fs.readFileSync(zpPath, 'utf8')) : null;
-  return { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan, hasResolved };
-}
+
 
 // Which video this request is for. The board used to be pinned to the workdir
 // it launched with, so switching meant restarting the server — and the Run
@@ -2823,6 +2802,22 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
         next: next ? next.id : null,
       }),
     );
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/board-data') {
+    res.setHeader('content-type', 'application/json; charset=utf-8');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(JSON.stringify(buildBoardData(workdir, cardLibraryRoot, { buildSegments })));
+  }
+  if (req.method === 'GET' && url.pathname === '/api/calibrate-data') {
+    const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
+    const cards = catalog.cards.filter((c) => c.kind === 'beat').map((card) => ({
+      slug: card.slug, max_beats: card.max_beats ?? 0, max_reveal_chars: card.max_reveal_chars ?? null,
+      probeTimes: computeProbeTimes(synthCalibrationVars(card).beats, card.default_duration),
+    }));
+    res.setHeader('content-type', 'application/json; charset=utf-8');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(JSON.stringify({ cards }));
   }
 
   if (req.method === 'GET' && url.pathname === '/list') {
