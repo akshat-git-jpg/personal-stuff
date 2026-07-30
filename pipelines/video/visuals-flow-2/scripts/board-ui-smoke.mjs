@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 const CHROME = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const HASHES = ['', '#card-plan', '#storyboard', '#final-cut'];
+const HASHES = ['', '#card-plan', '#storyboard', '#final-cut', '#calibrate'];
 
 // 30+ iframed tiles, measured ~20s+ on storyboard, plans 173/174 will add more.
 // Need 60s floor so it does not flake on a loaded machine.
@@ -34,7 +34,7 @@ fs.writeFileSync(path.join(workdir, 'card-plan.json'), JSON.stringify({
   video: 'smoke',
   approved: false,
   sections: [
-    { part: 'body', items: [{ id: 'c01', card: 'a/b', status: 'existing' }] }
+    { part: 'body', items: [{ id: 'c01', card: 'a/b', status: 'existing' }, { id: 'c02', card: 'c/d', status: 'new' }] }
   ]
 }));
 
@@ -113,6 +113,8 @@ try {
     if (probe.headerCount !== 1) throw new Error(`headerCount is ${probe.headerCount} on ${hash || 'run'}`);
     if (probe.header.y !== 0) throw new Error(`header.y is ${probe.header.y} on ${hash || 'run'}`);
     if (!dom.includes('id="videoPicker"')) throw new Error(`videoPicker not found on ${hash || 'run'}`);
+    if (!dom.includes(`<title>${slug} — visuals-flow board</title>`)) throw new Error(`page title missing or wrong on ${hash || 'run'}`);
+
     if (hash === '#card-plan') {
       
       const idx = dom.indexOf('<div class="action-slot">');
@@ -123,6 +125,7 @@ try {
       }
       if (!dom.includes('data-rid="cp:c01"')) throw new Error('data-rid="cp:c01" not found on #card-plan');
       if (!dom.includes('plan-note"')) throw new Error('plan-note not found on #card-plan');
+      if (!dom.includes('NEW — to build')) throw new Error('NEW — to build chip not found on #card-plan');
     }
     if (hash === '#storyboard') {
       if (!dom.includes('class="tl-ruler"')) throw new Error('tl-ruler not found');
@@ -148,6 +151,22 @@ try {
       const row2Match = idxRow2 > -1 ? dom.slice(idxRow2, idxRow2 + 500) : '';
       if (!row2Match.includes('Save')) throw new Error('Save not found inside .app-header-row2');
     }
+    if (hash === '#final-cut') {
+      const idxSlot = dom.indexOf('<div class="action-slot">');
+      const slotMatch = idxSlot > -1 ? dom.slice(idxSlot, idxSlot + 300) : '';
+      if (!slotMatch.includes('Approve final cut')) throw new Error('Approve final cut not found inside .action-slot on #final-cut');
+      if (!dom.includes('id="fc-transport"')) throw new Error('#fc-transport not found on #final-cut');
+      if (!dom.includes('id="fc-scrub"')) throw new Error('#fc-scrub not found on #final-cut');
+      const idxPanel = dom.indexOf('class="fc-panel"');
+      const panelMatch = idxPanel > -1 ? dom.slice(idxPanel, idxPanel + 1000) : '';
+      if (panelMatch.includes('Approve final cut')) throw new Error('Approve final cut found inside comments panel on #final-cut');
+    }
+    if (hash === '#calibrate') {
+      if (!dom.includes('class="timeline-block tile reviewable"')) throw new Error('no calibrate tile found on #calibrate');
+    }
+    if (hash === '') {
+      if (!dom.includes('✅') && !dom.includes('❌') && !dom.includes('⏳')) throw new Error('Run tab emojis not found');
+    }
 
     
     if (expectedTabs === null) {
@@ -161,6 +180,18 @@ try {
         throw new Error(`slot.y changed on ${hash || 'run'}: expected ${expectedSlot.y} got ${probe.slot.y}`);
       }
     }
+  }
+
+
+  // Check server post-cutover redirects
+  {
+    
+    const resList = await fetch(`http://127.0.0.1:${port}/list?video=test-01`, { redirect: 'manual' });
+    if (resList.status !== 302 || resList.headers.get('location') !== '/?video=test-01#storyboard') {
+      throw new Error('/list?video=test-01 did not 302 to /?video=test-01#storyboard');
+    }
+    const resBare = await fetch(`http://127.0.0.1:${port}/`, { redirect: 'manual' });
+    if (resBare.status !== 302) throw new Error('/ did not 302');
   }
 
   // 5. screenshots
