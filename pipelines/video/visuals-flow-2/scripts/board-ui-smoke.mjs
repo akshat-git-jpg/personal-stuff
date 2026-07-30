@@ -125,7 +125,7 @@ try {
       }
       if (!dom.includes('data-rid="cp:c01"')) throw new Error('data-rid="cp:c01" not found on #card-plan');
       if (!dom.includes('plan-note"')) throw new Error('plan-note not found on #card-plan');
-      if (!dom.includes('build the NEW cards')) throw new Error('build the NEW cards banner not found on #card-plan');
+      if (!dom.includes('NEW — to build')) throw new Error('NEW — to build chip not found on #card-plan');
     }
     if (hash === '#storyboard') {
       if (!dom.includes('class="tl-ruler"')) throw new Error('tl-ruler not found');
