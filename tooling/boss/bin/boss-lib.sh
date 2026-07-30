@@ -130,7 +130,13 @@ boss_stall_check() {
   pid=$(meta_get "$pr" pid); [ -n "$pid" ] || { echo working; return; }
   wt=$(meta_get "$pr" worktree); out=$(meta_get "$pr" out)
   head=$(git -C "$wt" rev-parse HEAD 2>/dev/null || echo none)
-  cpu=$(boss_tree_cpu "$pid")
+  # CPU is BUCKETED into minutes, not used raw. Raw CPU-seconds defeated this
+  # check entirely (2026-07-30, PR#128): a deadlocked Chrome/node tree still
+  # trickled ~1 CPU-second every ~7 minutes, which changed the fingerprint on
+  # every poll, reset progress_at, and let a dead-stuck crew run 87m — clean past
+  # both thresholds. A genuinely computing crew accrues 60+ CPU-seconds well
+  # inside the warn window; a hung one takes hours to move one bucket.
+  cpu=$(( $(boss_tree_cpu "$pid") / 60 ))
   osize=$(wc -c < "$out" 2>/dev/null | tr -d ' '); osize="${osize:-0}"
   fp="$head|$cpu|$osize"; now=$(date +%s)
   sw=$(meta_get "$pr" stall_warn); warn=$(( ${sw:-$BOSS_STALL_WARN_MIN} ))
