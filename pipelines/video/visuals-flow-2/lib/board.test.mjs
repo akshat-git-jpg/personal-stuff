@@ -1684,3 +1684,20 @@ test('the URL always names the video, and both pickers navigate', async () => {
     server.close();
   }
 });
+
+test('the URL wins over the launch video everywhere on the page', async () => {
+  // Reported: URL said ?video=test-01 while the Run tab rendered opusclip's
+  // ledger. The tab was reading /run-videos' `current` (the LAUNCH workdir)
+  // instead of the URL the page was rendered for.
+  const launch = makeWorkdir();
+  const { server, base } = await startServer(launch);
+  try {
+    const html = await (await fetch(`${base}/?video=${path.basename(launch)}`)).text();
+    // picker selection, picker init and the ledger fetch must all read the URL
+    assert.equal((html.match(/URLSearchParams\(location\.search\)\.get\('video'\)/g) || []).length, 3);
+    // and none of them may fall back to the launch video first
+    assert.doesNotMatch(html, /v === d\.current \? ' selected'/);
+  } finally {
+    server.close();
+  }
+});

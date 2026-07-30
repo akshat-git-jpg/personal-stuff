@@ -1597,8 +1597,10 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       + '</div>' + body + '</div>';
   }
   async function loadRun(video) {
-    var picker = document.getElementById('runVideoPicker');
-    var target = video || (picker && picker.value) || '';
+    var target = video
+      || new URLSearchParams(location.search).get('video')
+      || (document.getElementById('runVideoPicker') || {}).value
+      || '';
     var box = document.getElementById('runSteps');
     try {
       var r = await fetch('/run-log' + (target ? '?video=' + encodeURIComponent(target) : ''));
@@ -1624,8 +1626,11 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
     try {
       var r = await fetch('/run-videos');
       var d = await r.json();
+      // The URL wins over the server's launch video: the page was rendered for
+      // whatever ?video= says, so the picker and the ledger must agree with it.
+      var cur = new URLSearchParams(location.search).get('video') || d.current;
       picker.innerHTML = d.videos.map(function (v) {
-        return '<option value="' + esc(v) + '"' + (v === d.current ? ' selected' : '') + '>' + esc(v) + '</option>';
+        return '<option value="' + esc(v) + '"' + (v === cur ? ' selected' : '') + '>' + esc(v) + '</option>';
       }).join('');
       // Navigate, don't swap content: the URL must always name the video you
       // are looking at, and switching must move every tab, not just this one.
