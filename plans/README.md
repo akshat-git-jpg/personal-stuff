@@ -1074,3 +1074,41 @@ non-structural variant cards to `variants[0]`. As 168 lands real caps they resum
 rotating — that is the visible sign it worked.
 
 - 168-card-capacity-measured-at-build-time — measure card capacity once at build time so overflow never reaches a review — TODO
+
+## 169–174 — the review board becomes a React SPA under one header (2026-07-30)
+
+Owner brief: the board's four tabs each render their own topbar, so switching
+tabs teleports every control (Run 3, Card Plan 5, Storyboard 11, Final Cut 1);
+Final Cut has no video picker and hides its approve inside the Comments panel;
+the screenshot-attach affordance is unstyled on `/list` (its CSS lives in
+RUN_CSS, which that page never includes) and shifts layout when a thumbnail
+appears. Owner decision (2026-07-30, over in-place componentization): rebuild
+the UI as a **React/Vite SPA** like `apps/tutorial-tracker-app` — one component
+per concern — served as a locally-built bundle by the same Node server. The
+server keeps every data/gate/media route unchanged; the tile visual language is
+ported, not redesigned; hash-tab and `?video=` semantics are regression-pinned.
+All approves live in the shared header's right-aligned action slot (owner call).
+Legacy board stays live at `/` until the final cutover plan, so daily reviews
+never break mid-migration.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 169 | vf2-board-data-api | `lib/board-data.mjs` + `GET /api/board-data` / `/api/calibrate-data` — the SPA's whole data contract as JSON; legacy pages untouched | none |
+| 170 | vf2-board-ui-shell | `board-ui/` (Vite+React+TS, no tailwind), ONE sticky AppHeader (tabs + single picker + action slot), hash router with the two URL-preservation contracts, Run tab, served at `/app`, headless-Chrome smoke gate proving the chrome's y-position is identical on all four tabs | 169 |
+| 171 | vf2-board-ui-feedback-and-card-plan | the ONE `FeedbackBox` (attach affordance reworked: styled chip, fixed-height thumb slot, always-visible remove), FeedbackProvider (dirty + pending images), Card Plan tab with approve in the action slot | 170 |
+| 172 | vf2-board-ui-storyboard-tiles | CueTile/GapBlock/ShotBlock ported pixel-faithful, list mode, reviewed-collapse with iframe unload, full Save collector + Approve graphics/shots/effects in the slot, pre-040 degraded board | 171 |
+| 173 | vf2-board-ui-timeline-canvas | timeline lanes + zoom/ruler/playhead, detail dock reusing CueTile (edits survive undocking), master play-through, FX sim stage, derivatives fold, live Timeline/List toggle | 172 |
+| 174 | vf2-board-ui-final-cut-and-cutover | Final Cut tab (approve moves to the slot, picker arrives via the shared header) + Calibrate route, `/` serves the SPA, legacy render functions deleted, board.test.mjs re-pointed per an explicit disposition table, steps/080 builds the UI if stale | 173 |
+
+Strictly ordered — dispatch one at a time; each leaves the board fully usable.
+Verification story: server contracts stay in node --test; pure client logic in
+vitest; the rendered app in `scripts/board-ui-smoke.mjs` (real server + headless
+Chrome + a `probe=layout` meta the app emits), which is part of `check.sh` and
+therefore of every plan's boss merge gate.
+
+- 169-vf2-board-data-api — the board's data as JSON, the SPA contract — TODO
+- 170-vf2-board-ui-shell — React shell, one shared sticky header, Run tab, layout-stability smoke gate — TODO (needs 169)
+- 171-vf2-board-ui-feedback-and-card-plan — single FeedbackBox with reworked attach + Card Plan tab — TODO (needs 170)
+- 172-vf2-board-ui-storyboard-tiles — storyboard tiles/list/save/approve, tile look preserved — TODO (needs 171)
+- 173-vf2-board-ui-timeline-canvas — timeline lanes, detail dock, play-through, FX stage — TODO (needs 172)
+- 174-vf2-board-ui-final-cut-and-cutover — Final Cut + Calibrate in the SPA, `/` cutover, legacy deleted — TODO (needs 173)
