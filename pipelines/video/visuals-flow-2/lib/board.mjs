@@ -1545,7 +1545,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       if (el) el.style.display = id === target ? 'block' : 'none';
     });
     var wantHash = TAB_HASH[target] || '';
-    if (push && (location.hash || '') !== wantHash) history.pushState(null, '', location.pathname + wantHash);
+    if (push && (location.hash || '') !== wantHash) history.pushState(null, '', location.pathname + location.search + wantHash);
     if (target === 'tab-final-cut') initFinalCut();
     if (target === 'tab-run') loadRun();
   }
