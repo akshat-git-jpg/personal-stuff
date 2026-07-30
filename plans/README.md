@@ -1115,3 +1115,4 @@ therefore of every plan's boss merge gate.
 - 169-vf2-board-data-api — PR#127 169-vf2-board-data-api: Board data API — everything the React board will render, as JSON — DONE
 - 170-vf2-board-ui-shell — PR#128 170-vf2-board-ui-shell: board-ui shell — Vite+React SPA, one shared sticky header, hash router, Run tab — DONE
 - 171-vf2-board-ui-feedback-and-card-plan — PR#129 171-vf2-board-ui-feedback-and-card-plan: FeedbackBox (attach affordance rework) + Card Plan tab — DONE
+- 172-vf2-board-ui-storyboard-tiles — PR#130 172-vf2-board-ui-storyboard-tiles: Storyboard part 1 — tiles, list mode, Save/Approve wiring — DONE
