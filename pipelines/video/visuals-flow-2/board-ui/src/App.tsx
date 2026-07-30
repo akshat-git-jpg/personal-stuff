@@ -35,25 +35,27 @@ export function App() {
     }).catch(err => console.error(err));
   }, [video]);
 
+
+
   useEffect(() => {
     if (!boardData) return;
     if (new URLSearchParams(location.search).get('probe') !== 'layout') return;
     setTimeout(() => {
       const r = (sel: string) => {
-        const b = document.querySelector(sel)?.getBoundingClientRect();
-        return b ? { y: Math.round(b.y), h: Math.round(b.height) } : null;
+        const el = document.querySelector(sel);
+        return el ? { y: Math.round(el.getBoundingClientRect().y), h: Math.round(el.getBoundingClientRect().height) } : { y: -1, h: -1 };
       };
       const m = document.createElement('meta');
       m.name = 'layout-probe';
       m.content = JSON.stringify({
-        hash: location.hash, header: r('.app-header'), tabs: r('.app-tabs'),
-        slot: r('.action-slot'), row2: r('.app-header-row2'),
+        hash: location.hash,
+        header: r('.app-header'),
+        tabs: r('.app-tabs'),
+        slot: r('.action-slot'),
+        row2: r('.app-header-row2'),
         headerCount: document.querySelectorAll('.app-header').length,
       });
       document.head.appendChild(m);
-      if ((window as any).__keepAlive) {
-        clearInterval((window as any).__keepAlive);
-      }
     }, 100);
   }, [boardData]);
 

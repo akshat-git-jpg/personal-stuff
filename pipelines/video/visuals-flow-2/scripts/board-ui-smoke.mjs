@@ -50,30 +50,53 @@ try {
     
     // 3. dumpDom
     const dom = await new Promise((resolve, reject) => {
-      const child = spawn(CHROME, [
+      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
+      let child;
+      const timeout = setTimeout(() => {
+        if (child) child.kill('SIGKILL');
+        fs.writeFileSync(path.join(tmpDir, 'chrome-out.html'), out);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(new Error(`Chrome dump-dom timeout on ${hash || 'run'}. stderr:\n${err}`));
+      }, 20000);
+      child = spawn(CHROME, [
         '--headless=new',
         '--no-sandbox',
         '--password-store=basic',
         '--use-mock-keychain',
         '--no-proxy-server',
-        `--user-data-dir=${path.join(tmpDir, 'chrome-profile')}`,
-        '--incognito',
+        '--disable-background-networking',
+        '--disable-sync',
+        `--user-data-dir=${profileDir}`,
         '--disable-gpu',
         '--hide-scrollbars',
         '--virtual-time-budget=8000',
         '--dump-dom',
+        '--enable-logging',
+        '--v=1',
         url
       ]);
       let out = '';
       let err = '';
-      child.stdout.on('data', d => out += d);
+      child.stdout.on('data', d => {
+        out += d;
+        if (out.includes('</html>')) {
+          clearTimeout(timeout);
+          child.kill('SIGKILL');
+          fs.writeFileSync(path.join(tmpDir, 'chrome-out.html'), out);
+          resolve(out);
+        }
+      });
       child.stderr.on('data', d => err += d);
       child.on('close', code => {
-        if (code !== 0) console.error('Chrome dump-dom error:', err);
-        fs.writeFileSync(path.join(tmpDir, 'chrome-out.html'), out);
-        resolve(out);
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        if (code !== 0 && !out.includes('</html>')) console.error('Chrome dump-dom error:', err);
       });
-      child.on('error', reject);
+      child.on('error', err => {
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(err);
+      });
     });
 
     const match = dom.match(/<meta\s+name="layout-probe"\s+content="([^"]+)">/);
@@ -98,30 +121,93 @@ try {
         throw new Error(`slot.y changed on ${hash || 'run'}: expected ${expectedSlot.y} got ${probe.slot.y}`);
       }
     }
+  }
 
-    // 5. screenshots
-    await new Promise((resolve, reject) => {
-      const child = spawn(CHROME, [
-        '--headless=new',
-        '--no-sandbox',
-        '--password-store=basic',
-        '--use-mock-keychain',
-        '--no-proxy-server',
-        `--user-data-dir=${path.join(tmpDir, 'chrome-profile')}`,
-        '--incognito',
-        '--disable-gpu',
-        '--hide-scrollbars',
-        '--virtual-time-budget=8000',
-        `--window-size=1400,1000`,
-        `--screenshot=${path.join(tmpDir, `tab-${hash ? hash.slice(1) : 'run'}.png`)}`,
-        url
+  // 5. screenshots
+  const distAssets = fs.readdirSync(path.join(process.cwd(), 'board-ui/dist/assets'));
+  const cssFile = distAssets.find(f => f.endsWith('.css'));
+  const cssContent = fs.readFileSync(path.join(process.cwd(), 'board-ui/dist/assets', cssFile), 'utf8');
+
+  for (const hash of ['#run', '#card-plan', '#storyboard', '#final-cut']) {
+    const url = `http://127.0.0.1:${port}/app/?video=${slug}${hash}`;
+    const outPath = path.join(workdir, `tab-${hash ? hash.slice(1) : 'run'}.png`);
+    
+    const domOut = await new Promise((resolve, reject) => {
+      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
+      let child;
+      const timeout = setTimeout(() => {
+        if (child) child.kill('SIGKILL');
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(new Error(`Chrome dump-dom timeout on ${hash}`));
+      }, 20000);
+      child = spawn(CHROME, [
+        '--headless', '--no-sandbox', '--disable-background-networking',
+        `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
+        '--virtual-time-budget=8000', '--dump-dom', url
       ]);
-      child.on('close', resolve);
-      child.on('error', reject);
+      let out = '';
+      child.stdout.on('data', d => {
+        out += d;
+        if (out.includes('</html>')) {
+          clearTimeout(timeout);
+          child.kill('SIGKILL');
+          resolve(out);
+        }
+      });
+      child.on('close', () => {
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+      });
+      child.on('error', e => {
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(e);
+      });
+    });
+
+    const injectedHtml = domOut.replace(/<link[^>]+rel="stylesheet"[^>]+>/, `<style>${cssContent}</style>`);
+    const staticHtmlPath = path.resolve(process.cwd(), tmpDir, `shot-${hash ? hash.slice(1) : 'run'}.html`);
+    fs.writeFileSync(staticHtmlPath, injectedHtml);
+
+    await new Promise((resolve, reject) => {
+      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
+      let child;
+      const timeout = setTimeout(() => {
+        if (child) child.kill('SIGKILL');
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(new Error(`Chrome screenshot timeout on static ${hash}`));
+      }, 10000);
+      child = spawn(CHROME, [
+        '--headless', '--no-sandbox', `--user-data-dir=${profileDir}`,
+        '--disable-gpu', '--hide-scrollbars', `--window-size=1400,1000`,
+        `--screenshot=${outPath}`, `file://${staticHtmlPath}`
+      ]);
+      const poll = setInterval(() => {
+        if (fs.existsSync(outPath) && fs.statSync(outPath).size > 1000) {
+          clearInterval(poll);
+          clearTimeout(timeout);
+          child.kill('SIGKILL');
+          resolve();
+        }
+      }, 100);
+      child.on('close', code => {
+        clearInterval(poll);
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        if (fs.existsSync(outPath)) resolve();
+        else reject(new Error(`Screenshot missing on ${hash}`));
+      });
+      child.on('error', e => {
+        clearInterval(poll);
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(e);
+      });
     });
   }
   console.log('board-ui smoke OK');
   process.exit(0);
 } finally {
+  if (server.closeAllConnections) server.closeAllConnections();
   server.close();
 }

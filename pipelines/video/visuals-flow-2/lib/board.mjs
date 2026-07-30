@@ -2714,7 +2714,8 @@ export function requestedWorkdir(url, launchWorkdir) {
 }
 
 async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
-  const url = new URL(req.url, 'http://localhost');
+  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  res.setHeader('Connection', 'close');
   const workdir = requestedWorkdir(url, launchWorkdir);
   // Slices are cut per video and only on demand, so a switched-to video gets
   // them the first time it is opened rather than at server start.
@@ -2771,7 +2772,7 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     // which may be an external path outside videos/ (resolveWorkdir allows it),
     // so it must NOT be looked up by slug.
     let target = workdir;
-    if (want) {
+    if (want && want !== path.basename(workdir)) {
       const videosDir = videosRoot();
       target = path.join(videosDir, want);
       // The slug arrives from a query string, so confirm it resolves to a
