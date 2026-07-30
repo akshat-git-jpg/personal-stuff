@@ -1,10 +1,15 @@
 export interface BoardData {
   video: string;
   videos: string[];
-  cards: any[]; // Placeholder for actual schema if needed
+  cards: any[];
   cues?: any[];
   transcript?: any;
-  feedback?: any[];
+  feedback?: Record<string, any>;
+  cardPlan?: {
+    approved: boolean;
+    sections: any[];
+    comments: Record<string, any[]>;
+  };
 }
 
 export async function fetchBoardData(video: string | null): Promise<BoardData> {

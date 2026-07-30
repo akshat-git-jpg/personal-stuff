@@ -1,0 +1,12 @@
+.rev {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--dim);
+  cursor: pointer;
+  user-select: none;
+}
+.rev-on {
+  color: var(--ok);
+}

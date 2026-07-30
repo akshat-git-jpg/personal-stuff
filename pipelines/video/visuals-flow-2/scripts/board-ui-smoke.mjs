@@ -109,6 +109,23 @@ try {
     if (probe.headerCount !== 1) throw new Error(`headerCount is ${probe.headerCount} on ${hash || 'run'}`);
     if (probe.header.y !== 0) throw new Error(`header.y is ${probe.header.y} on ${hash || 'run'}`);
     if (!dom.includes('id="videoPicker"')) throw new Error(`videoPicker not found on ${hash || 'run'}`);
+    if (hash === '#card-plan') {
+      
+      const idx = dom.indexOf('<div class="action-slot">');
+      const actionSlotMatch = idx > -1 ? [dom.slice(idx, idx + 200)] : null;
+
+      if (!actionSlotMatch || !actionSlotMatch[0].includes('Approve card plan')) {
+        throw new Error('Approve card plan not found inside .action-slot');
+      }
+      if (!dom.includes('data-rid="cp:c01"')) throw new Error('data-rid="cp:c01" not found on #card-plan');
+      if (!dom.includes('plan-note"')) throw new Error('plan-note not found on #card-plan');
+    }
+    if (hash === '#storyboard') {
+      const fbShots = dom.match(/class="fb-shot"/g);
+      if (!fbShots || fbShots.length !== 1) throw new Error('Expected exactly one .fb-shot on #storyboard');
+      if (!dom.includes('class="fb-attach"')) throw new Error('fb-attach button not found on #storyboard');
+    }
+
     
     if (expectedTabs === null) {
       expectedTabs = probe.tabs;
