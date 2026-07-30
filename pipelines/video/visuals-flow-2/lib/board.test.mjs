@@ -1665,3 +1665,22 @@ test('requestedWorkdir only accepts a bootable video under videos/', async () =>
     );
   }
 });
+
+test('the URL always names the video, and both pickers navigate', async () => {
+  // A bare "/" hid which video you were on — the Run tab's picker swapped
+  // content client-side while the URL still said nothing (owner, 2026-07-30).
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const r = await fetch(`${base}/`, { redirect: 'manual' });
+    assert.equal(r.status, 302);
+    assert.match(r.headers.get('location'), new RegExp(`\\?video=${path.basename(workdir)}$`));
+
+    const html = await (await fetch(`${base}/?video=${path.basename(workdir)}`)).text();
+    // both the Run picker and the topbar picker navigate; neither swaps in place
+    assert.equal((html.match(/location\.pathname \+ '\?video='/g) || []).length, 2);
+    assert.doesNotMatch(html, /picker\.addEventListener\('change', function \(\) \{ loadRun/);
+  } finally {
+    server.close();
+  }
+});

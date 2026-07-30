@@ -1627,9 +1627,11 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
       picker.innerHTML = d.videos.map(function (v) {
         return '<option value="' + esc(v) + '"' + (v === d.current ? ' selected' : '') + '>' + esc(v) + '</option>';
       }).join('');
-      // The picker switches the Run tab only. Every other tab stays bound to
-      // the workdir the board was started against.
-      picker.addEventListener('change', function () { loadRun(picker.value); });
+      // Navigate, don't swap content: the URL must always name the video you
+      // are looking at, and switching must move every tab, not just this one.
+      picker.addEventListener('change', function () {
+        location.href = location.pathname + '?video=' + encodeURIComponent(picker.value) + location.hash;
+      });
     } catch (e) { /* the tab still works against the current video */ }
   }
   window.addEventListener('DOMContentLoaded', function () { initRunPicker().then(function () { loadRun(); }); });
@@ -2745,6 +2747,15 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
       res.statusCode = 403;
       return res.end('forbidden origin');
     }
+  }
+
+  // A bare "/" hides which video you are on, which is how a stale tab gets
+  // reviewed by mistake. Redirect so the URL always says.
+  if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index')
+      && !url.searchParams.get('video')) {
+    res.statusCode = 302;
+    res.setHeader('location', `${url.pathname}?video=${encodeURIComponent(path.basename(workdir))}${''}`);
+    return res.end();
   }
 
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index')) {
