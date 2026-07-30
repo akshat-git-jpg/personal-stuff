@@ -1116,3 +1116,4 @@ therefore of every plan's boss merge gate.
 - 170-vf2-board-ui-shell — PR#128 170-vf2-board-ui-shell: board-ui shell — Vite+React SPA, one shared sticky header, hash router, Run tab — DONE
 - 171-vf2-board-ui-feedback-and-card-plan — PR#129 171-vf2-board-ui-feedback-and-card-plan: FeedbackBox (attach affordance rework) + Card Plan tab — DONE
 - 172-vf2-board-ui-storyboard-tiles — PR#130 172-vf2-board-ui-storyboard-tiles: Storyboard part 1 — tiles, list mode, Save/Approve wiring — DONE
+- 173-vf2-board-ui-timeline-canvas — PR#131 173-vf2-board-ui-timeline-canvas: Storyboard part 2 — timeline canvas, detail dock, play-through, FX stage — DONE
