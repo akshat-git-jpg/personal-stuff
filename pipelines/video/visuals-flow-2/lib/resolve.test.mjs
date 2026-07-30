@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
-import { normWord, resolveCues, lastSentenceBoundaryAtOrBefore } from './resolve.mjs';
+import { normWord, resolveCues, lastSentenceBoundaryAtOrBefore, lacksExplicitTextCap } from './resolve.mjs';
 
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'resolve');
 test.before(() => {
@@ -641,4 +641,66 @@ test('every extendExposure call site passes avatarSpans', () => {
     }
   }
   assert.deepEqual(offenders, [], `extendExposure called without avatarSpans at: ${offenders.join(', ')}`);
+});
+
+// c17 shipped a clipped frame on 2026-07-30: enacted/pipeline-flow's `title` carried
+// only the generic ROLE_DEFAULTS heading cap (7 words), the rotation moved it to its
+// vertical variant, and 4 words already wrap there. The rotation picks the layout
+// AFTER the copy is authored, so it must not move a card whose text capacity was
+// never measured for its tightest variant.
+test('variant rotation requires a card-specific text cap', async (t) => {
+  await t.test('a generic role default is not enough — the card is pinned', () => {
+    const cat = {
+      slug: 'x/generic', kind: 'single', placement: 'fullframe', variants: ['a', 'b'],
+      variables: { title: { required: true, type: 'string', role: 'heading' } },
+    };
+    assert.equal(lacksExplicitTextCap(cat), true, 'role default only => pinned');
+  });
+
+  await t.test('an explicit cap releases the rotation', () => {
+    const cat = {
+      slug: 'x/measured', kind: 'single', placement: 'fullframe', variants: ['a', 'b'],
+      variables: { title: { required: true, type: 'string', role: 'heading', max_words: 3 } },
+    };
+    assert.equal(lacksExplicitTextCap(cat), false, 'explicit cap => may rotate');
+  });
+
+  await t.test('max_reveal_chars counts as explicit for beat fields', () => {
+    const capped = {
+      slug: 'x/beats', kind: 'beat', placement: 'fullframe', variants: ['a', 'b'],
+      max_reveal_chars: 24,
+      variables: { title: { type: 'string', role: 'heading', max_words: 3 } },
+      beat_shape: { label: { type: 'string', role: 'label' } },
+    };
+    assert.equal(lacksExplicitTextCap(capped), false);
+    const uncapped = { ...capped, max_reveal_chars: undefined };
+    assert.equal(lacksExplicitTextCap(uncapped), true);
+  });
+
+  await t.test('non-text roles carry no length risk', () => {
+    const cat = {
+      slug: 'x/logo', kind: 'single', placement: 'fullframe', variants: ['a', 'b'],
+      variables: {
+        logo: { type: 'string', role: 'logo_slug' },
+        icon: { type: 'string', role: 'icon_name' },
+        n: { type: 'number' },
+      },
+    };
+    assert.equal(lacksExplicitTextCap(cat), false, 'enums and refs do not need caps');
+  });
+
+  await t.test('the real catalog: only measured cards rotate', () => {
+    const cards = JSON.parse(
+      fs.readFileSync(path.join(import.meta.dirname, '..', '..', 'card-library', 'catalog.json'), 'utf8'),
+    ).cards;
+    const variantCards = cards.filter((c) => c.variants?.length && !c.structural);
+    assert.ok(variantCards.length > 0, 'the catalog must still declare variant cards');
+    for (const c of variantCards.filter((c) => !lacksExplicitTextCap(c))) {
+      // Anything allowed to rotate must have been measured — assert the cap is real.
+      const caps = Object.values(c.variables ?? {}).some(
+        (s) => s?.max_words !== undefined || s?.max_chars !== undefined,
+      ) || c.max_reveal_chars !== undefined;
+      assert.ok(caps, `${c.slug} rotates but declares no explicit cap`);
+    }
+  });
 });

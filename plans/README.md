@@ -1038,3 +1038,39 @@ old→new map in `PIPELINE.md` is how they stay readable.
 - 167-vf2-renumber-steps-and-three-reviews — numeric order becomes run order + 3 explicit reviews — TODO (needs 164)
 - 167-vf2-renumber-steps-and-three-reviews — PR#125 167-vf2-renumber-steps-and-three-reviews: numeric order becomes run order, plus the three owner reviews — DONE
 - 158-vf2-cut-the-conclusion — PR#116 158-vf2-cut-the-conclusion: cut and cue the 79s conclusion the video never reaches — DONE
+
+## 168 — card capacity is measured at build time, not guessed (2026-07-30)
+
+`enacted/pipeline-flow` shipped a visibly clipped frame (`c17`,
+opusclip-vs-submagic): its title wrapped to two lines in the vertical variant and
+pushed the last node off the canvas. Every gate passed.
+
+Three verified causes, and the defect needed all three: `card-qa.mjs` never renders
+a card's **layout** variants at all (its `variant` arg means min/max *content
+fill*); the only correct detector is `__measureOverflow()` inside `board.mjs`,
+which paints a badge and has **zero consumers**; and `ROLE_DEFAULTS` gives every
+heading a generic 7-word cap that knows nothing about a card's layout, so a 4-word
+title passed. Also verified: `hyperframes check` does NOT cover this class — it
+finds text overflowing its *container*, while c17's elements left the *canvas*.
+
+Owner's framing, which set the design: *"can't we find the limit when building a
+card itself? why to do it later again and again."* Overflow depends only on the
+card's CSS, variant, font size and content volume — none of which vary per video —
+so capacity is measured ONCE at build time, written into `catalog.json`, and then
+enforced free forever by `validateVariable` at step 040. No per-video check, and
+no new pipeline step (an earlier `045-check-overflow-run` idea was dropped as
+strictly worse).
+
+The browser dependency is `puppeteer-core` only, launched against the Chrome
+hyperframes has **already** cached (`npx hyperframes browser path`) — no second
+Chromium download.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 168 | card-capacity-measured-at-build-time | shared `overflow-measure.mjs` (board + gate, one source), `scripts/overflow-probe.mjs` with a `--derive` mode that writes measured `max_words` per variant into `catalog.json`, a gate in `check-cards.sh`, and a prove-it-can-fail test built from the real c17 input | none (the `resolve.mjs` rotation guard already landed) |
+
+The rotation guard is the tell: `lacksExplicitTextCap` currently pins nine
+non-structural variant cards to `variants[0]`. As 168 lands real caps they resume
+rotating — that is the visible sign it worked.
+
+- 168-card-capacity-measured-at-build-time — measure card capacity once at build time so overflow never reaches a review — TODO

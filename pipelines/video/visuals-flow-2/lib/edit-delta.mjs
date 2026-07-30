@@ -223,6 +223,21 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       console.error(`error: cues.llm.json missing in ${workdir}`);
       process.exit(2);
     }
+    // cues.llm.json is the pass's output and is meant to be written ONCE, then left
+    // alone — it is the baseline every later edit is measured against. Re-copying it
+    // after each fix makes the two files identical and the delta reads "0 edited",
+    // which is indistinguishable from a pass that needed no correction. That is the
+    // convergence signal LESSONS.md calls the trend that matters, so a destroyed
+    // baseline has to announce itself rather than report a clean zero.
+    // (opusclip-vs-submagic, 2026-07-30: snapshotted after every fix; 11 anchor
+    // rewrites, 13 register additions and a card swap all measured as zero.)
+    if (fs.readFileSync(llmPath, 'utf8') === fs.readFileSync(appPath, 'utf8')) {
+      console.error(
+        'WARNING: cues.llm.json is byte-identical to cues.json, so this delta measures nothing. ' +
+        'Either the pass genuinely needed no edits, or the snapshot was overwritten after edits were made. ' +
+        'Snapshot once, when the pass converges, and never again.',
+      );
+    }
   } else {
     llmPath = args[0];
     appPath = args[1];

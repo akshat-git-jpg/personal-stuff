@@ -1,14 +1,22 @@
-# 038 · build cards · [LLM] (Sonnet — this is taste-setting work)
+# 038 · build cards, then the owner reviews them · [LLM] (Sonnet) + [OWNER]
 
 Build every card the owner approved as NEW at step 037, into the **shared**
-card collection. Then the video continues at 040 with a catalog that contains
-everything its cues name.
+card collection, **and then show it to them**. Then the video continues at 040
+with a catalog that contains everything its cues name.
+
+This step is two things, which is why its folder says both. At 037 the owner
+approved a written *spec*. Nobody has seen the actual card. Landing it flips its
+plan item from `new` to `existing`, and that change resets the 037 approval by
+design (`lib/card-plan.mjs`), so the built card goes back in front of the owner
+before 090 will render it. See "The review is not optional" below.
 
 - **In:** `videos/<slug>/card-plan.json` (`approved: true`), the `proposal`
   block on each `status: "new"` item
 - **Out:** new cards in `../card-library/<type>/<card-name>/`, each with a
-  `catalog.json` entry — committed **and pushed**
+  `catalog.json` entry (committed **and pushed**), plus a re-approved
+  `card-plan.json`
 - **Skip when:** `card-plan.json` has no `status: "new"` items. Most videos.
+  Record it as `skipped` in the run ledger with the reason, do not leave it blank.
 - **Next:** `run.sh <slug> resolve` (step 040)
 
 ## This step owns almost nothing
@@ -73,11 +81,25 @@ bash scripts/beat-smoke.sh                       # beat cards only
 bash scripts/check-cards.sh --publish            # also requires everything PUSHED
 ```
 
-Then, back in the pipeline, `node lib/card-plan.mjs <slug>` — the rebuilt plan
+## The review is not optional
+
+Back in the pipeline, run `node lib/card-plan.mjs <slug>`. The rebuilt plan
 flips the card from NEW to EXISTING, which **resets the 037 approval on
 purpose**: the owner approved a spec, and now there is a real card to look at.
+
+```bash
+node lib/card-plan.mjs <slug>     # rebuild; approval resets to false
+bash run.sh <slug> board          # Card Plan tab; owner re-approves
+```
+
 Re-approving is one click, and it is the only moment the built card is compared
-against what was asked for before it reaches a video.
+against what was asked for before it reaches a video. It is enforced, not
+merely advised: `render.mjs` refuses to run while `card-plan.json` is
+`approved: false`, so a card nobody looked at cannot reach 090.
+
+Do not `--force` past it. The whole reason 037 approves a spec rather than a
+finished card is that the card does not exist yet; this is where that debt is
+settled.
 
 ## Why a real model, not a form-filler
 

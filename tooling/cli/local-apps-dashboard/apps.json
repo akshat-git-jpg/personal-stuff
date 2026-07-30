@@ -91,7 +91,7 @@
     {
       "id": "graphics-board",
       "name": "graphics storyboard",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow",
+      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow-2",
       "start": "node lib/board.mjs",
       "port": 4322,
       "ports": [4322],

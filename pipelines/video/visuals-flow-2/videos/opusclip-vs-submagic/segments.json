@@ -1,0 +1,83 @@
+{
+  "video": "opusclip-vs-submagic",
+  "confirmed": true,
+  "structure": [
+    {
+      "part": "intro",
+      "start": 0,
+      "end": 117.567
+    },
+    {
+      "part": "body",
+      "start": 117.567,
+      "end": 997.3
+    },
+    {
+      "part": "conclusion",
+      "start": 997.3,
+      "end": 1076.533
+    }
+  ],
+  "segments": [
+    {
+      "kind": "narration",
+      "start": 0,
+      "end": 190.4,
+      "note": "hook, who-it's-for, test criteria, agenda, then the spoken overview of both tools — screen sits on a dashboard that is not being demonstrated, so fullframe cards are wanted here"
+    },
+    {
+      "kind": "demo",
+      "start": 190.4,
+      "end": 525.5,
+      "note": "hands-on in both tools: Submagic template/upload/AI edit, then OpusClip font, clip settings, AI clipping, B-roll panel, export. Overlay only — do not re-label clicks the screen already shows"
+    },
+    {
+      "kind": "playback",
+      "start": 525.5,
+      "end": 551.3,
+      "note": "the Submagic-generated clip plays (volcano/ash-storm footage with its own captions) — this IS the output being judged, never cover it"
+    },
+    {
+      "kind": "narration",
+      "start": 551.3,
+      "end": 589.8,
+      "note": "verdict on the Submagic output (cleaner captions, publish-ready not AI-generated), plus the one-line handoff to the OpusClip result"
+    },
+    {
+      "kind": "playback",
+      "start": 589.8,
+      "end": 608.9,
+      "note": "the OpusClip-generated clip plays (same source footage, its own captions) — the side-by-side comparison point, never cover it"
+    },
+    {
+      "kind": "narration",
+      "start": 608.9,
+      "end": 673.3,
+      "note": "verdict on the OpusClip output (basic captions, pacing off, clips look unfinished, post-work adds up) and the turn into pricing"
+    },
+    {
+      "kind": "demo",
+      "start": 673.3,
+      "end": 840.2,
+      "note": "reading both pricing pages off screen — OpusClip free/starter/pro/business then Submagic starter/pro/business+API. Overlay stat-hits over the real page, not a fullframe price card duplicating it"
+    },
+    {
+      "kind": "narration",
+      "start": 840.2,
+      "end": 855.61,
+      "note": "bridge out of pricing and into the summary table — the table is not on screen yet, so this is the place for a fullframe section card"
+    },
+    {
+      "kind": "demo",
+      "start": 855.61,
+      "end": 997.3,
+      "note": "the scored comparison table is on screen and read row by row (ease of use, caption quality, customization, time to publish, pricing). A fullframe comparison card here would duplicate what the screen already shows — overlay score hits only"
+    },
+    {
+      "kind": "narration",
+      "start": 997.3,
+      "end": 1074.83,
+      "note": "conclusion: per-tool choose/avoid guidance, overall verdict, then the CTA block — fullframe cards wanted"
+    }
+  ]
+}

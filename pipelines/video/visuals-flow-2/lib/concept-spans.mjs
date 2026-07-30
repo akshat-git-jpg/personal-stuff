@@ -16,11 +16,18 @@ export function loadConceptSpans(workdir, words) {
   if (!fs.existsSync(conceptPath)) return [];
 
   const conceptData = JSON.parse(fs.readFileSync(conceptPath, 'utf8'));
+  return spansFromRegisters(conceptData.registers, words);
+}
+
+// The span geometry itself, off a parsed registers array. lint-concept.mjs gates
+// narration coverage on this so the figure it enforces describes the SAME spans
+// that render, rather than a second measurement that can drift from them.
+export function spansFromRegisters(registers, words) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
 
   const spans = [];
   let cursor = 0;
-  for (const reg of conceptData.registers || []) {
+  for (const reg of registers || []) {
     const from = findPhrase(W, reg.from_anchor, cursor);
     if (from.err) continue;
     const to = findPhrase(W, reg.to_anchor, from.idx);

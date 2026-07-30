@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, appendFinalFeedback, pinFromClick, resolveAndExtend, playthroughView, toggleAuditAccepted } from './board.mjs';
+import { createServer, latestWorkdir, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, appendFinalFeedback, pinFromClick, resolveAndExtend, playthroughView, toggleAuditAccepted } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'board');
@@ -1144,6 +1144,316 @@ test('POST /approve-card-plan flips approved and the banner names the next step'
     // With a NEW card still unbuilt, the banner must point at 038, not at resolve.
     const html = await (await fetch(`${base}/`)).text();
     assert.match(html, /build the NEW cards \(step 038\)/);
+  } finally {
+    server.close();
+  }
+});
+
+// ---- Run tab -------------------------------------------------------------
+// The Run tab is the page a non-technical person opens instead of reading the
+// terminal, so these check the two things that would make it lie: answering for
+// a workdir it was not asked about, and showing a step as done with no record.
+
+test('GET /run-log answers for the board\'s own workdir, even outside videos/', async () => {
+  // The test workdirs live under lib/.test-tmp, not videos/. A slug-based
+  // lookup would 404 here — and so would any board started on an external path.
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/run-log`);
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.steps.length >= 15, true, 'every step folder should appear');
+    assert.equal(data.video, path.basename(workdir));
+    assert.ok(data.summary);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /run-log marks an inferred step and never invents a summary for it', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const data = await (await fetch(`${base}/run-log`)).json();
+    const resolved = data.steps.find((s) => s.number === '040');
+    assert.equal(resolved.status, 'done', 'resolved.json is staged by the fixture');
+    assert.equal(resolved.derived, true);
+    assert.equal(resolved.did, undefined, 'nothing was recorded, so nothing may be shown');
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /run-log prefers a recorded entry over the artifact probe', async () => {
+  const workdir = makeWorkdir();
+  fs.writeFileSync(
+    path.join(workdir, 'run-log.json'),
+    JSON.stringify({
+      video: 'x',
+      steps: { '040-sync-graphics-run': { status: 'blocked', issues: 'anchor c07 not found' } },
+    }),
+  );
+  const { server, base } = await startServer(workdir);
+  try {
+    const data = await (await fetch(`${base}/run-log`)).json();
+    const s = data.steps.find((v) => v.number === '040');
+    assert.equal(s.status, 'blocked');
+    assert.equal(s.issues, 'anchor c07 not found');
+    assert.ok(!s.derived);
+    assert.equal(data.summary.blocked, 1);
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /run-log refuses a video slug that escapes videos/', async () => {
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    for (const bad of ['../../etc', '../..', 'nope']) {
+      const res = await fetch(`${base}/run-log?video=${encodeURIComponent(bad)}`);
+      assert.equal(res.status, 404, `${bad} must not resolve`);
+    }
+  } finally {
+    server.close();
+  }
+});
+
+test('GET /run-videos lists the real videos plus the current one', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const data = await (await fetch(`${base}/run-videos`)).json();
+    assert.equal(data.current, path.basename(workdir));
+    assert.ok(Array.isArray(data.videos));
+    assert.deepEqual([...data.videos].sort(), data.videos, 'listed in a stable order');
+  } finally {
+    server.close();
+  }
+});
+
+test('the board page ships the Run tab and lands on it', async () => {
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    const html = await (await fetch(`${base}/`)).text();
+    assert.match(html, /id="tab-run"/);
+    assert.match(html, /id="runVideoPicker"/);
+    // No hash means Run; storyboard got its own explicit hash.
+    assert.match(html, /HASH_TAB\[location\.hash\] \|\| 'tab-run'/);
+    assert.match(html, /'#storyboard': 'tab-storyboard'/);
+  } finally {
+    server.close();
+  }
+});
+
+test('approving a gate records it in the ledger, with a real timestamp', async () => {
+  // The board writes this itself rather than asking a session to remember —
+  // a status kept by a second hand drifts from the thing it describes.
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const before = await (await fetch(`${base}/run-log`)).json();
+    assert.equal(before.steps.find((s) => s.number === '080').status, 'todo');
+
+    const res = await fetch(`${base}/approve`, { method: 'POST' });
+    assert.equal(res.status, 200);
+
+    // This fixture has no shots.json, so graphics alone completes the gate.
+    const after = await (await fetch(`${base}/run-log`)).json();
+    const gate = after.steps.find((s) => s.number === '080');
+    assert.equal(gate.status, 'done');
+    assert.ok(!gate.derived, 'now a real record, not an inference');
+    assert.match(gate.did, /Owner approved the storyboard/);
+    assert.match(gate.output, /cues\.json approved=true/);
+    assert.ok(Date.parse(gate.ended) > 0, 'must carry when it was approved');
+    assert.equal(gate.issues, 'none found');
+  } finally {
+    server.close();
+  }
+});
+
+test('a broken ledger cannot block an approval', async () => {
+  const workdir = makeWorkdir();
+  fs.writeFileSync(path.join(workdir, 'run-log.json'), '{not json');
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/approve`, { method: 'POST' });
+    assert.equal(res.status, 200, 'the approval itself must still land');
+    const cues = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+    assert.equal(cues.approved, true);
+  } finally {
+    server.close();
+  }
+});
+
+test('gate 080 stays running until BOTH halves are approved', async () => {
+  // Two clicks, one gate. Calling it done after the first would report a gate
+  // passed that the owner is still halfway through.
+  const workdir = makeWorkdir();
+  fs.writeFileSync(
+    path.join(workdir, 'shots.json'),
+    JSON.stringify({ video: 'x', approved: false, shots: [] }),
+  );
+  const { server, base } = await startServer(workdir);
+  try {
+    await fetch(`${base}/approve`, { method: 'POST' });
+    let gate = (await (await fetch(`${base}/run-log`)).json()).steps.find((s) => s.number === '080');
+    assert.equal(gate.status, 'running', 'graphics approved, shots not');
+    assert.match(gate.issues, /waiting on the owner to approve the avatar shots/);
+
+    await fetch(`${base}/approve-shots`, { method: 'POST' });
+    gate = (await (await fetch(`${base}/run-log`)).json()).steps.find((s) => s.number === '080');
+    assert.equal(gate.status, 'done');
+    assert.match(gate.did, /graphics and avatar shots/);
+  } finally {
+    server.close();
+  }
+});
+
+// ---- no-arg mode (the local-apps dashboard) -------------------------------
+
+test('latestWorkdir skips a video that is not board-ready yet', () => {
+  // A fresh video gets cues.json long before resolved.json. Sorting on
+  // cues.json alone made the newest, least-ready video win and then throw,
+  // which is how the dashboard entry broke the moment a new video was started.
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const videos = fs.mkdtempSync(path.join(TMP_ROOT, 'videos-'));
+
+  const ready = path.join(videos, 'finished');
+  fs.mkdirSync(ready);
+  for (const f of ['cues.json', 'resolved.json', 'vo.mp3']) {
+    fs.copyFileSync(path.join(FIXTURE_DIR, f), path.join(ready, f));
+  }
+
+  const inFlight = path.join(videos, 'in-flight');
+  fs.mkdirSync(inFlight);
+  fs.copyFileSync(path.join(FIXTURE_DIR, 'cues.json'), path.join(inFlight, 'cues.json'));
+  // newer than the finished one, so it wins on mtime and must still be skipped
+  const later = new Date(Date.now() + 60_000);
+  fs.utimesSync(path.join(inFlight, 'cues.json'), later, later);
+
+  assert.equal(latestWorkdir(videos), ready);
+});
+
+test('latestWorkdir returns null when nothing is bootable, rather than a workdir that throws', () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const videos = fs.mkdtempSync(path.join(TMP_ROOT, 'videos-none-'));
+  const d = path.join(videos, 'just-started');
+  fs.mkdirSync(d);
+  fs.copyFileSync(path.join(FIXTURE_DIR, 'cues.json'), path.join(d, 'cues.json'));
+
+  assert.equal(latestWorkdir(videos), null, 'no vo.mp3, so the board cannot serve it');
+  assert.throws(() => createServer(d), /missing vo\.mp3/);
+});
+
+test('the board opens a video that has not reached step 040 yet', () => {
+  // The 037 gate is reviewed ON this board. Requiring resolved.json to boot
+  // made that gate unreachable: 040 writes resolved.json, but it refuses any
+  // cue naming a card that only 038 builds AFTER 037 approves it.
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'pre-040-'));
+  for (const f of ['cues.json', 'transcript.json', 'vo.mp3']) {
+    fs.copyFileSync(path.join(FIXTURE_DIR, f), path.join(dir, f));
+  }
+  assert.ok(!fs.existsSync(path.join(dir, 'resolved.json')));
+  assert.doesNotThrow(() => createServer(dir), 'Gate 1 must be reachable before 040');
+});
+
+test('a pre-040 board serves the Card Plan gate but will not let you approve an empty storyboard', async () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'pre-040-serve-'));
+  for (const f of ['cues.json', 'transcript.json', 'vo.mp3']) {
+    fs.copyFileSync(path.join(FIXTURE_DIR, f), path.join(dir, f));
+  }
+  fs.writeFileSync(
+    path.join(dir, 'card-plan.json'),
+    JSON.stringify({
+      video: 'x',
+      approved: false,
+      sections: [{ part: 'body', items: [{ id: 'c01', card: 'race/cost-race', status: 'new', proposal: { does: 'bars race' } }] }],
+    }),
+  );
+  const { server, base } = await startServer(dir);
+  try {
+    const res = await fetch(`${base}/`);
+    assert.equal(res.status, 200);
+    const html = await res.text();
+    assert.match(html, /id="tab-card-plan"/, 'the gate must render');
+    assert.match(html, /NEW/, 'the unbuilt card must be visible — that is the point of the gate');
+    // and the storyboard must not offer to approve cues that do not exist yet
+    assert.match(html, /id="approveBtn" disabled/);
+    assert.match(html, /no <code>resolved\.json<\/code> yet/);
+  } finally {
+    server.close();
+  }
+});
+
+test('the card plan spec line is not double-escaped', async () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'spec-esc-'));
+  for (const f of ['cues.json', 'resolved.json', 'transcript.json', 'vo.mp3']) {
+    fs.copyFileSync(path.join(FIXTURE_DIR, f), path.join(dir, f));
+  }
+  fs.writeFileSync(
+    path.join(dir, 'card-plan.json'),
+    JSON.stringify({
+      video: 'x',
+      approved: false,
+      sections: [{ part: 'body', items: [{ id: 'c01', card: 'race/cost-race', status: 'new',
+        proposal: { does: 'bars race as cost climbs', kind: 'beat', beats: 3, placement: 'fullframe' } }] }],
+    }),
+  );
+  const { server, base } = await startServer(dir);
+  try {
+    const html = await (await fetch(`${base}/`)).text();
+    // joining the entity BEFORE escaping turned "&" into "&amp;", so the
+    // separator rendered as the literal text "&middot;" on the page
+    assert.doesNotMatch(html, /&amp;middot;/, 'the separator must render as a dot, not as text');
+    assert.match(html, /3 beats/);
+  } finally {
+    server.close();
+  }
+});
+
+test('latestWorkdir handles an empty or absent videos dir', () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const empty = fs.mkdtempSync(path.join(TMP_ROOT, 'videos-empty-'));
+  assert.equal(latestWorkdir(empty), null);
+  assert.equal(latestWorkdir(path.join(empty, 'nope')), null);
+});
+
+test('the Run tab ships one status emoji per state, right-aligned', async () => {
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    const html = await (await fetch(`${base}/`)).text();
+    for (const [status, emoji] of [
+      ['done', '✅'], ['running', '🔄'], ['blocked', '❌'], ['skipped', '⏭️'], ['todo', '⚪'],
+    ]) {
+      assert.ok(html.includes(emoji), `${status} needs its emoji`);
+    }
+    // margin-left:auto is what pushes the mark into its own right-hand column
+    assert.match(html, /\.run-mark \{[^}]*margin-left:auto/);
+    // running spins, so "in progress" reads as motion rather than a static icon
+    assert.match(html, /\.run-mark\.spin \{[^}]*animation:run-spin/);
+    // an unstarted row must dim its text WITHOUT dimming the emoji column
+    assert.doesNotMatch(html, /\.run-row\.is-todo \{[^}]*opacity/);
+  } finally {
+    server.close();
+  }
+});
+
+test('the page title names the video, so two boards are distinguishable', async () => {
+  // Two sessions running in parallel land on different ports (4322, 4323...).
+  // With a generic title, both browser tabs read the same and it is easy to
+  // review the wrong video — reported from a live parallel run, 2026-07-30.
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    for (const p of ['/', '/list']) {
+      const html = await (await fetch(`${base}${p}`)).text();
+      const title = html.match(/<title>([^<]*)<\/title>/)[1];
+      assert.match(title, /visuals-flow board/);
+      assert.doesNotMatch(title, /^Graphics storyboard timeline$/, `${p} must name the video`);
+    }
   } finally {
     server.close();
   }

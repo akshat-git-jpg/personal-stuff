@@ -221,6 +221,35 @@ export function lastSentenceBoundaryAtOrBefore(W, t) {
 }
 
 
+// A card with `variants` needs a CARD-SPECIFIC text cap, not the generic one.
+//
+// ROLE_DEFAULTS above already caps every text role (heading 7 words, label 5,
+// sentence 18) — so nothing is literally uncapped, and that is precisely the trap
+// c17 fell into on 2026-07-30: its 4-word title passed the generic heading limit of
+// 7 and then clipped off the canvas, because a role default knows nothing about this
+// card's layout and less about which of its variants the rotation will pick.
+//
+// An EXPLICIT max_words/max_chars on the field is the only evidence that somebody
+// measured this card. Absent that, the rotation must not move the card to a layout
+// the copy was never written against.
+export function lacksExplicitTextCap(cat) {
+  const TEXT_ROLES = new Set(['heading', 'label', 'sentence', 'value', 'free']);
+  const generic = (spec) =>
+    spec && spec.type === 'string' && TEXT_ROLES.has(spec.role) &&
+    spec.max_words === undefined && spec.max_chars === undefined;
+
+  for (const spec of Object.values(cat.variables ?? {})) {
+    if (generic(spec)) return true;
+  }
+  // max_reveal_chars caps every beat field at once, so it counts as explicit.
+  if (!cat.max_reveal_chars) {
+    for (const spec of Object.values(cat.beat_shape ?? {})) {
+      if (generic(spec)) return true;
+    }
+  }
+  return false;
+}
+
 export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
   const W = words.map((x) => ({ ...x, n: normWord(x.text) })).filter((x) => x.n);
   const bySlug = Object.fromEntries(catalog.cards.map((c) => [c.slug, c]));
@@ -356,6 +385,20 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
         // left aligned only like other screens of same template. Don't
         // switch". Variety is for non-structural cards; a structural card's
         // whole job is looking identical every time it comes round.
+        vars.variant = cat.variants[0];
+      } else if (lacksExplicitTextCap(cat)) {
+        // The rotation picks the layout AFTER the copy was authored, so a title
+        // written against variant A's roomy layout can land in B's tight one,
+        // wrap, and clip off the canvas — which is exactly how c17 shipped a
+        // broken frame on 2026-07-30 (enacted/pipeline-flow, whose `title` had
+        // only the generic 7-word heading default, rotated onto its vertical
+        // variant where 4 words already wrap).
+        //
+        // A card may only be rotated once its text fields declare the capacity
+        // of its TIGHTEST variant (DESIGN.md). Until then it is pinned to
+        // variants[0] — the layout the copy was actually written against. Losing
+        // some visual variety is strictly better than shipping a clipped card,
+        // and the pin disappears the moment the caps are declared.
         vars.variant = cat.variants[0];
       } else {
         vars.variant = cat.variants[useCount % cat.variants.length];

@@ -22,7 +22,7 @@
 
   This is a Hyperframes composition: HTML + GSAP. Render it with
     npx hyperframes@latest render like-subscribe/like-subscribe -o out.mp4 --fps 30
-  Override: --variables '{"subscribeText":"Subscribe"}'
+  No variables — the CTA copy is constant (owner rule 2026-07-30)
 -->
 <html lang="en">
   <head>
@@ -88,7 +88,7 @@
       data-duration="5"
       data-width="1920"
       data-height="1080"
-      data-composition-variables='{"subscribeText":"Subscribe"}'
+      data-composition-variables='{}'
     >
       <!-- Track 0: chroma-key background (static, always on) -->
       <div id="bg" class="clip" data-start="0" data-duration="5" data-track-index="0"></div>
@@ -112,14 +112,15 @@
          ===== CONTENT =====  (editor / Gemini edits ONLY this)
          ===================================================== */
       // Per-video values can ALSO be passed at render time with
-      //   --variables '{"subscribeText":"Subscribe"}'
+      //   (no variables — the CTA copy is constant, owner rule 2026-07-30)
       // (no code editing needed). Those override the defaults below.
       const VARS =
         (window.__hyperframes && window.__hyperframes.getVariables
           ? window.__hyperframes.getVariables()
           : null) || {};
+      // Owner rule 2026-07-30: CTA copy is CONSTANT, never authored per video.
       const DATA = {
-        subscribeText: VARS.subscribeText ?? 'Subscribe',
+        subscribeText: 'Subscribe',
       };
 
       /* =====================================================

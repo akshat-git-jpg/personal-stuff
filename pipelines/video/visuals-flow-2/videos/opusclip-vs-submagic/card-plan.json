@@ -1,0 +1,378 @@
+{
+  "video": "opusclip-vs-submagic",
+  "approved": true,
+  "sections": [
+    {
+      "part": "intro",
+      "start": 0,
+      "end": 117.567,
+      "items": [
+        {
+          "id": "z01",
+          "card": "enacted/bad-clip-montage",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "spending more time fixing captions",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z02",
+          "card": "enacted/promise-split",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "both promise to turn long videos",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z03",
+          "card": "statement/promise-payoff",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "By the end of this video",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z04",
+          "card": "checklist/audience-fit",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "going to be for creators",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z05",
+          "card": "enacted/pipeline-flow",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "Both of these platforms solve",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z06",
+          "card": "checklist/checklist",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "the same evaluation criteria",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z07",
+          "card": "enacted/timeline-scrub",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "walking you through a quick overview",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z08",
+          "card": "link-in-description/link-scrim",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "you will find the links in the description",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    },
+    {
+      "part": "body",
+      "start": 117.567,
+      "end": 997.3,
+      "items": [
+        {
+          "id": "c01",
+          "card": "section/tool-intro",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "we're going to start off with OpusClip",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c02",
+          "card": "pros-cons/pros-cons",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "biggest strength is going to be speed",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c03",
+          "card": "section/tool-intro",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "on the other hand, is a short-form editing tool",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c04",
+          "card": "pros-cons/pros-cons",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "biggest strength is polish and customization",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c05",
+          "card": "link-in-description/link-in-description",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "check the links in the description",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c06",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "For this demo, I will be uploading",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c07",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "choose a template and you can go ahead",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c08",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "go with a multi-speaker theme",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c09",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "Let's move over to OpusClip",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c10",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "what font would you like to go with",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c11",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "unauthorized clipping of others' content",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c12",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "there's auto hook",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c13",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "include specific moments for yourself",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c14",
+          "card": "overlay/stat-hit",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "give you an ETA of five minutes",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c15",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "You can add magic zooms",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c16",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "You can see that with Submagic",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c17",
+          "card": "enacted/pipeline-flow",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "That is the key difference",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c18",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "This generation right here took",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c19",
+          "card": "enacted/pipeline-flow",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "you still need to adjust your captions",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c20",
+          "card": "slate/kinetic-sentence",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "once you factor in the extra editing time",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c21",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "You're not paying for more clips",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c22",
+          "card": "comparison/head-to-head",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "Now that we have gone and talked",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c23",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "I will give OpusClip a 4 out of 5",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c24",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "Submagic gets 5 out of 5",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c25",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "Time to publish",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    },
+    {
+      "part": "conclusion",
+      "start": 997.3,
+      "end": 1076.533,
+      "items": [
+        {
+          "id": "z09",
+          "card": "verdict/persona-match",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "To give you an individual conclusion",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z10",
+          "card": "verdict/persona-match",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "Choose Submagic if you want short-form",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z11",
+          "card": "enacted/race-bars",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "The overall verdict is that OpusClip",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z12",
+          "card": "enacted/spotlight-focus",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "If quality, consistency, and time saving",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z13",
+          "card": "link-in-description/link-in-description",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "the links are in the description",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z14",
+          "card": "like-subscribe/like-subscribe",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "turn on the bell icon and subscribe",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    }
+  ]
+}

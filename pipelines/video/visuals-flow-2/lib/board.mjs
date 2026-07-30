@@ -23,8 +23,20 @@ import { planCaptions } from './captions.mjs';
 import { loadBrand, injectBrand } from './brand-inline.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { appendCardPlanFeedback, PLAN_PARTS } from './card-plan.mjs';
+import { stepView, summarize as summarizeRun, nextStep, readRunLog, writeRunLog, setStep, resolveStepId } from './run-log.mjs';
 
+// What the board needs to BOOT. resolved.json is deliberately not here: it is
+// produced by 040, and 040 refuses any cue naming a card that does not exist
+// yet — a card that only 038 builds, AFTER the owner approves it at 037. Since
+// 037's review surface is this board's Card Plan tab, requiring resolved.json
+// to start made Gate 1 unreachable on exactly the videos it exists for.
+// resolved.json is a requirement of the Storyboard tab, not of the board.
+const BOOT_FILES = ['cues.json', 'vo.mp3'];
 const REQUIRED_FILES = ['cues.json', 'resolved.json', 'vo.mp3'];
+
+function videosRoot() {
+  return path.join(path.resolve(import.meta.dirname, '..'), 'videos');
+}
 
 // resolve.mjs's main() CLI applies extendExposure as a post-pass on top of
 // resolveCues; the board's save path must run the identical composition or
@@ -192,6 +204,9 @@ function injectShim(html, variables) {
 
 function ensureSlices(workdir) {
   const resolvedPath = path.join(workdir, 'resolved.json');
+  // Slices are cut per RESOLVED cue, so before 040 there is nothing to cut.
+  // The Card Plan and Run tabs play no per-cue audio, so this is a clean no-op.
+  if (!fs.existsSync(resolvedPath)) return;
   const { resolved } = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
   const slicesDir = path.join(workdir, 'slices');
   fs.mkdirSync(slicesDir, { recursive: true });
@@ -228,6 +243,32 @@ async function readBody(req) {
   for await (const chunk of req) chunks.push(chunk);
   return Buffer.concat(chunks).toString('utf8');
 }
+
+// Run tab. The status lives on the RIGHT as an emoji, so the eye scans one
+// column to see where the video is instead of reading every row.
+const RUN_CSS = `
+  .run-row { display:flex; flex-direction:column; gap:2px; border:1px solid var(--line); border-radius:8px;
+             padding:13px 16px; margin-bottom:8px; background:var(--panel); transition:border-color .12s; }
+  /* Dim the TEXT of an unstarted step, never the row — parent opacity also
+     dims the status emoji, and the one column the eye scans must stay legible
+     at every status. */
+  .run-row.is-todo { background:transparent; }
+  .run-row.is-todo .run-num, .run-row.is-todo .run-name { color:var(--dim); font-weight:500; }
+  .run-row.is-running { border-color:#fb923c; }
+  .run-row.is-blocked { border-color:#ef4444; }
+  .run-head { display:flex; align-items:center; gap:10px; }
+  .run-num { color:var(--dim); font-variant-numeric:tabular-nums; font-size:13px; }
+  .run-name { font-size:14px; font-weight:600; }
+  .run-kind { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--dim);
+              border:1px solid var(--line); border-radius:3px; padding:1px 5px; }
+  .run-mark { margin-left:auto; font-size:19px; line-height:1; flex-shrink:0; }
+  .run-mark.spin { display:inline-block; animation:run-spin 1.4s linear infinite; }
+  @keyframes run-spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+  .run-fields { margin-top:8px; padding-left:2px; }
+  .run-field { display:flex; gap:10px; margin-top:5px; font-size:13px; line-height:1.55; }
+  .run-field b { color:var(--dim); font-weight:500; min-width:50px; flex-shrink:0; }
+  .run-inferred { margin-top:7px; font-size:12px; color:var(--dim); font-style:italic; }
+`;
 
 const BOARD_CSS = `
   :root { --bg:#0f0b07; --panel:#181210; --line:rgba(255,255,255,0.10);
@@ -276,6 +317,10 @@ const BOARD_CSS = `
     border:1px solid var(--line); background:var(--panel); color:var(--text); }
   #approveBtn { border-color:var(--ok); color:var(--ok); }
   #saveBtn { border-color:var(--accent); color:var(--accent); }
+  /* A disabled approve must LOOK disabled. Nothing styled :disabled before, so
+     the button kept its green "ready to approve" outline while doing nothing. */
+  .topbar button:disabled { cursor:not-allowed; opacity:.38; border-color:var(--line) !important;
+    color:var(--dim) !important; background:transparent; }
   .banner { margin-bottom:16px; padding:10px 36px 10px 14px; border-radius:9px; font-size:13px; position:relative; }
   .banner-x { position:absolute; top:6px; right:8px; background:none; border:none; color:inherit; cursor:pointer; font-size:15px; line-height:1; padding:4px; opacity:0.7; }
   .banner-x:hover { opacity:1; }
@@ -836,7 +881,7 @@ function buildDetailBlocks(cues, segments, shots, feedbackItems, audit = null) {
   return blocks;
 }
 
-function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null, cardPlan = null) {
+function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null, cardPlan = null, hasResolved = true) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
@@ -924,7 +969,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Graphics storyboard timeline</title>
+<title>${escapeHtml(cuesFile.video ?? "?")} — visuals-flow board</title>
 <style>${BOARD_CSS}</style>
 </head>
 <body>
@@ -1095,7 +1140,7 @@ function renderBoardPage(cuesFile, resolved, words, feedbackItems = {}, shots = 
 // previews — clicking a block moves its buildDetailBlocks HTML (shared with
 // /list) into a docked panel and only then loads its card iframe. Delivers
 // GFX-08 (global play-through) via the master playhead.
-function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null, cardPlan = null) {
+function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots = null, effects = null, sound = null, audit = null, cardPlan = null, hasResolved = true) {
   const byId = new Map(resolved.map((r) => [r.id, r]));
   const cues = cuesFile.cues || [];
   const flaggedCount = cues.filter((c) => c.flagged).length;
@@ -1193,7 +1238,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
           Array.isArray(p.variables) && p.variables.length ? `vars: ${p.variables.join(', ')}` : null,
         ].filter(Boolean) : [];
         const proposal = item.status === 'new' && p
-          ? `<div style="margin-top:4px; font-size:13px; color:var(--text); background:var(--panel); padding:8px; border-radius:4px; border:1px solid var(--line);">${escapeHtml(p.does ?? '')}${specBits.length ? `<div style="margin-top:4px; font-size:12px; color:var(--dim); font-family:ui-monospace,Menlo,monospace;">${escapeHtml(specBits.join(' &middot; '))}</div>` : ''}</div>`
+          ? `<div style="margin-top:4px; font-size:13px; color:var(--text); background:var(--panel); padding:8px; border-radius:4px; border:1px solid var(--line);">${escapeHtml(p.does ?? '')}${specBits.length ? `<div style="margin-top:4px; font-size:12px; color:var(--dim); font-family:ui-monospace,Menlo,monospace;">${specBits.map(escapeHtml).join(' &middot; ')}</div>` : ''}</div>`
           : '';
         const flagged = item.flagged ? `<span class="usage-chip" style="color:var(--err); border-color:var(--err)">flagged</span> ` : '';
         // Why-box. Approving or rejecting a card used to record nothing, so the
@@ -1254,6 +1299,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
     <div class="sticky-header">
       <div class="topbar">
         <span class="view-toggle" id="tab-toggle-cp">
+          <button data-target="tab-run" class="tab-btn" onclick="switchTab(this)">Run</button>
           <button data-target="tab-card-plan" class="tab-btn active" onclick="switchTab(this)">Card Plan</button>
           <button data-target="tab-storyboard" class="tab-btn" onclick="switchTab(this)">Storyboard</button>
           <button data-target="tab-final-cut" class="tab-btn" onclick="switchTab(this)">Final Cut</button>
@@ -1277,35 +1323,141 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Graphics storyboard timeline</title>
-<style>${BOARD_CSS}${TIMELINE_CSS}</style>
+<title>${escapeHtml(cuesFile.video ?? "?")} — visuals-flow board</title>
+<style>${BOARD_CSS}${TIMELINE_CSS}${RUN_CSS}</style>
 <script>
   // Tab switching is hash-backed so browser back/forward works and a reload
   // restores the tab you were on (owner-reported gap, 2026-07-24).
+  // Run is the landing tab: the point of it is that someone who has not been
+  // watching the terminal can open one URL and see where the video is.
+  // #storyboard is now an explicit hash, because "no hash" belongs to Run.
+  var HASH_TAB = { '#run': 'tab-run', '#card-plan': 'tab-card-plan', '#storyboard': 'tab-storyboard', '#final-cut': 'tab-final-cut' };
+  var TAB_HASH = { 'tab-run': '', 'tab-card-plan': '#card-plan', 'tab-storyboard': '#storyboard', 'tab-final-cut': '#final-cut' };
   function switchTab(btn) { applyTab(btn.dataset.target, true); }
   function applyTab(target, push) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.target === target));
-    const zp = document.getElementById('tab-card-plan');
-    if (zp) zp.style.display = target === 'tab-card-plan' ? 'block' : 'none';
-    document.getElementById('tab-storyboard').style.display = target === 'tab-storyboard' ? 'block' : 'none';
-    document.getElementById('tab-final-cut').style.display = target === 'tab-final-cut' ? 'block' : 'none';
-    const wantHash = target === 'tab-final-cut' ? '#final-cut' : (target === 'tab-card-plan' ? '#card-plan' : '');
+    ['tab-run','tab-card-plan','tab-storyboard','tab-final-cut'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = id === target ? 'block' : 'none';
+    });
+    var wantHash = TAB_HASH[target] || '';
     if (push && (location.hash || '') !== wantHash) history.pushState(null, '', location.pathname + wantHash);
     if (target === 'tab-final-cut') initFinalCut();
+    if (target === 'tab-run') loadRun();
   }
-  window.addEventListener('popstate', () => applyTab(location.hash === '#final-cut' ? 'tab-final-cut' : (location.hash === '#card-plan' ? 'tab-card-plan' : 'tab-storyboard'), false));
-  window.addEventListener('DOMContentLoaded', () => { 
-    if (location.hash === '#final-cut') applyTab('tab-final-cut', false);
-    else if (location.hash === '#card-plan') applyTab('tab-card-plan', false);
-  });
+  function tabForHash() { return HASH_TAB[location.hash] || 'tab-run'; }
+  window.addEventListener('popstate', () => applyTab(tabForHash(), false));
+  window.addEventListener('DOMContentLoaded', () => applyTab(tabForHash(), false));
+
+  // ---- Run tab ----------------------------------------------------------
+  // Read-only. It renders run-log.json plus, for steps with no entry, a status
+  // inferred from the artifacts on disk — those are labelled, because an
+  // inferred step has no record of what was done or what went wrong.
+  // One emoji per status, right-aligned into a single column.
+  var RUN_MARK = {
+    done:    ['✅', 'done'],
+    running: ['🔄', 'in progress'],
+    blocked: ['❌', 'blocked'],
+    skipped: ['⏭️', 'skipped'],
+    todo:    ['⚪', 'to do']
+  };
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+  function runFieldRow(label, value) {
+    if (!value) return '';
+    return '<div class="run-field"><b>' + label + '</b><span>' + esc(value) + '</span></div>';
+  }
+  function runStepRow(s) {
+    var mark = RUN_MARK[s.status] || RUN_MARK.todo;
+    // The step id stays verbatim — it is the canonical name — but the leading
+    // number is split off so the names line up in a column.
+    var name = s.id.slice(4);
+    var body = '';
+    if (s.derived) {
+      body = '<div class="run-inferred">status inferred from the files on disk — this step ran before the ledger, '
+           + 'so nothing was recorded about it</div>';
+    } else {
+      var fields = runFieldRow('did', s.did) + runFieldRow('issues', s.issues) + runFieldRow('output', s.output);
+      if (fields) body = '<div class="run-fields">' + fields + '</div>';
+    }
+    return '<div class="run-row is-' + esc(s.status) + '">'
+      + '<div class="run-head">'
+      + '<span class="run-num">' + esc(s.number) + '</span>'
+      + '<span class="run-name">' + esc(name) + '</span>'
+      + '<span class="run-kind">' + esc(s.kind) + '</span>'
+      + '<span class="run-mark' + (s.status === 'running' ? ' spin' : '') + '" title="' + esc(mark[1]) + '">'
+      + mark[0] + '</span>'
+      + '</div>' + body + '</div>';
+  }
+  async function loadRun(video) {
+    var picker = document.getElementById('runVideoPicker');
+    var target = video || (picker && picker.value) || '';
+    var box = document.getElementById('runSteps');
+    try {
+      var r = await fetch('/run-log' + (target ? '?video=' + encodeURIComponent(target) : ''));
+      var data = await r.json();
+      if (data.error) { box.innerHTML = '<div style="color:#ef4444;">' + esc(data.error) + '</div>'; return; }
+      box.innerHTML = data.steps.map(runStepRow).join('');
+      var sm = data.summary;
+      document.getElementById('runSummary').innerHTML =
+        '<span style="font-size:14px;">✅ ' + sm.done + ' / ' + sm.total + '</span>'
+        + (sm.running ? '<span style="margin-left:12px;">🔄 ' + sm.running + '</span>' : '')
+        + (sm.blocked ? '<span style="margin-left:12px;">❌ ' + sm.blocked + '</span>' : '')
+        + (sm.derived ? '<span style="margin-left:12px; font-size:12px;">(' + sm.derived + ' inferred)</span>' : '');
+      document.getElementById('runBanner').innerHTML = data.next
+        ? '<div class="banner">next: <code>' + esc(data.next) + '</code></div>'
+        : '<div class="banner ok">every step is done</div>';
+    } catch (e) {
+      box.innerHTML = '<div style="color:#ef4444;">could not load the run log: ' + esc(e.message) + '</div>';
+    }
+  }
+  async function initRunPicker() {
+    var picker = document.getElementById('runVideoPicker');
+    if (!picker) return;
+    try {
+      var r = await fetch('/run-videos');
+      var d = await r.json();
+      picker.innerHTML = d.videos.map(function (v) {
+        return '<option value="' + esc(v) + '"' + (v === d.current ? ' selected' : '') + '>' + esc(v) + '</option>';
+      }).join('');
+      // The picker switches the Run tab only. Every other tab stays bound to
+      // the workdir the board was started against.
+      picker.addEventListener('change', function () { loadRun(picker.value); });
+    } catch (e) { /* the tab still works against the current video */ }
+  }
+  window.addEventListener('DOMContentLoaded', function () { initRunPicker().then(function () { loadRun(); }); });
 </script>
 </head>
 <body>
+  <div id="tab-run" style="display:none;">
+    <div class="sticky-header">
+      <div class="topbar">
+        <span class="view-toggle">
+          <button data-target="tab-run" class="tab-btn active" onclick="switchTab(this)">Run</button>
+          ${cardPlan ? '<button data-target="tab-card-plan" class="tab-btn" onclick="switchTab(this)">Card Plan</button>' : ''}
+          <button data-target="tab-storyboard" class="tab-btn" onclick="switchTab(this)">Storyboard</button>
+          <button data-target="tab-final-cut" class="tab-btn" onclick="switchTab(this)">Final Cut</button>
+        </span>
+        <div>video:
+          <select id="runVideoPicker" style="background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:4px; padding:4px 6px; font-size:13px;"></select>
+        </div>
+        <div id="runSummary" style="color:var(--dim); font-size:13px;"></div>
+      </div>
+      <div id="runBanner" style="max-width:860px; margin:0 auto; padding:0 20px;"></div>
+    </div>
+    <div style="max-width:860px; margin:0 auto; padding:16px 20px 60px;">
+      <div id="runSteps" style="color:var(--dim);">loading…</div>
+    </div>
+  </div>
   ${cardPlanHtml}
   <div id="tab-storyboard">
     <div class="sticky-header">
       <div class="topbar">
         <span class="view-toggle" id="tab-toggle">
+          <button data-target="tab-run" class="tab-btn" onclick="switchTab(this)">Run</button>
           ${cardPlan ? '<button data-target="tab-card-plan" class="tab-btn" onclick="switchTab(this)">Card Plan</button>' : ''}
           <button data-target="tab-storyboard" class="tab-btn active" onclick="switchTab(this)">Storyboard</button>
           <button data-target="tab-final-cut" class="tab-btn" onclick="switchTab(this)">Final Cut</button>
@@ -1314,13 +1466,14 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
         <div>video: <strong>${escapeHtml(cuesFile.video ?? '')}</strong></div>
         <div>duration: ${timecode(totalDuration)}</div>
         <div>${cues.length} graphics &middot; ${flaggedCount} flagged</div>
-        <button id="approveBtn">Approve graphics</button>
+        <button id="approveBtn"${hasResolved ? '' : ' disabled title="nothing to approve until step 040 resolves the cues"'}>Approve graphics</button>
         ${shots ? `<span class="usage-chip">engineMode: ${escapeHtml(shots.shotsFile?.engineMode || 'none')}</span><button id="approveShotsBtn">Approve shots</button>` : ''}
         ${effects ? `<button id="approveEffectsBtn">Approve effects</button>` : ''}
         <button id="saveBtn">Save</button>
         <a href="/calibrate" style="color:var(--dim); font-size:13px;">calibrate</a>
       </div>
       <div id="banner">
+        ${hasResolved ? '' : `<div class="banner">no <code>resolved.json</code> yet, so this timeline is empty &mdash; it is written by step 040. Approve the card plan first (Gate 1, the <a href="#card-plan">Card Plan</a> tab), build any NEW cards at 038, then run <code>run.sh ${escapeHtml(cuesFile.video ?? '&lt;slug&gt;')} resolve</code>.</div>`}
         ${cuesFile.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>approved — ready for <code>node lib/render.mjs</code></div>' : ''}
         ${shots && shots.shotsFile?.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>shot plan approved — ready for the avatar render step</div>' : ''}
         ${effects && effects.approved ? '<div class="banner ok"><button class="banner-x" title="dismiss" onclick="this.parentElement.remove()">&times;</button>effects approved — ready for step 090 assemble</div>' : ''}
@@ -1376,6 +1529,7 @@ function renderTimelinePage(cuesFile, resolved, words, feedbackItems = {}, shots
   <div id="tab-final-cut" style="display:none; padding:20px;">
     <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
       <span class="view-toggle">
+        <button data-target="tab-run" class="tab-btn" onclick="switchTab(this)">Run</button>
         ${cardPlan ? '<button data-target="tab-card-plan" class="tab-btn" onclick="switchTab(this)">Card Plan</button>' : ''}
         <button data-target="tab-storyboard" class="tab-btn" onclick="switchTab(this)">Storyboard</button>
         <button data-target="tab-final-cut" class="tab-btn active" onclick="switchTab(this)">Final Cut</button>
@@ -2004,12 +2158,68 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   res.end(JSON.stringify({ ok: true, errors: resErrors, warnings: resWarnings }));
 }
 
+// Gates are recorded in the ledger by the board itself, at the moment the owner
+// clicks approve. Doing it here and not asking a session to remember is the
+// whole lesson of the claude_status.json / feedback.json split brain: a status
+// written by a second hand drifts from the thing it claims to describe.
+// A ledger write must never break an approval, so it is best-effort.
+function recordGate(workdir, stepNumber, did, output) {
+  try {
+    const id = resolveStepId(stepNumber);
+    writeRunLog(workdir, setStep(readRunLog(workdir), id, 'done', { did, output }));
+  } catch (e) {
+    console.error(`run-log: could not record ${stepNumber}: ${e.message}`);
+  }
+}
+
+// 080 approves BOTH the graphics and the avatar shots, and they are two
+// separate clicks. Recording it done on the first click would claim a gate
+// passed that the owner is still halfway through, so it stays `running` with
+// the outstanding half named until both are in.
+function recordStoryboardGate(workdir) {
+  const approved = (name) => {
+    try {
+      return JSON.parse(fs.readFileSync(path.join(workdir, name), 'utf8')).approved === true;
+    } catch {
+      return false;
+    }
+  };
+  const cues = approved('cues.json');
+  const shots = approved('shots.json');
+  const hasShots = fs.existsSync(path.join(workdir, 'shots.json'));
+
+  // A video with no avatar pass has no shots to approve, so cues alone finish it.
+  if (cues && (shots || !hasShots)) {
+    recordGate(
+      workdir,
+      '080',
+      hasShots
+        ? 'Owner approved the storyboard composition: graphics and avatar shots.'
+        : 'Owner approved the storyboard composition (graphics; this video has no avatar shots).',
+      hasShots ? 'cues.json + shots.json approved=true' : 'cues.json approved=true',
+    );
+    return;
+  }
+  try {
+    const waiting = !cues ? 'graphics' : 'avatar shots';
+    writeRunLog(
+      workdir,
+      setStep(readRunLog(workdir), resolveStepId('080'), 'running', {
+        issues: `waiting on the owner to approve the ${waiting}`,
+      }),
+    );
+  } catch (e) {
+    console.error(`run-log: could not record 080: ${e.message}`);
+  }
+}
+
 async function handleApprove(req, res, workdir) {
   await readBody(req);
   const cuesPath = path.join(workdir, 'cues.json');
   const cuesFile = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
   cuesFile.approved = true;
   fs.writeFileSync(cuesPath, JSON.stringify(cuesFile, null, 2));
+  recordStoryboardGate(workdir);
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
 }
@@ -2020,6 +2230,7 @@ async function handleApproveCardPlan(req, res, workdir) {
   const cardPlan = JSON.parse(fs.readFileSync(zpPath, 'utf8'));
   cardPlan.approved = true;
   fs.writeFileSync(zpPath, JSON.stringify(cardPlan, null, 2));
+  recordGate(workdir, '037', 'Owner approved the card plan — every card the video will use, body and zones.', 'card-plan.json approved=true');
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
 }
@@ -2030,6 +2241,7 @@ async function handleApproveShots(req, res, workdir) {
   const shotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
   shotsFile.approved = true;
   fs.writeFileSync(shotsPath, JSON.stringify(shotsFile, null, 2));
+  recordStoryboardGate(workdir);
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
 }
@@ -2052,6 +2264,7 @@ async function handleApproveFinalCut(req, res, workdir) {
   const fcPath = path.join(workdir, 'final-cut.json');
   const fc = { approved: true, version: payload.version };
   fs.writeFileSync(fcPath, JSON.stringify(fc, null, 2));
+  recordGate(workdir, '120', `Owner approved the final cut (version ${payload.version}).`, `final-cut.json approved=true, version ${payload.version}`);
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
 }
@@ -2234,7 +2447,9 @@ function serveSlice(res, workdir, id) {
 
 function loadBoardData(workdir) {
   const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
-  const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
+  const resolvedPath = path.join(workdir, 'resolved.json');
+  const hasResolved = fs.existsSync(resolvedPath);
+  const resolved = hasResolved ? JSON.parse(fs.readFileSync(resolvedPath, 'utf8')).resolved : [];
   const words = JSON.parse(fs.readFileSync(path.join(workdir, 'transcript.json'), 'utf8'));
   const fbPath = path.join(workdir, 'feedback.json');
   const feedbackItems = fs.existsSync(fbPath) ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items) : {};
@@ -2246,7 +2461,7 @@ function loadBoardData(workdir) {
   const audit = fs.existsSync(auditPath) ? JSON.parse(fs.readFileSync(auditPath, 'utf8')) : null;
   const zpPath = path.join(workdir, 'card-plan.json');
   const cardPlan = fs.existsSync(zpPath) ? JSON.parse(fs.readFileSync(zpPath, 'utf8')) : null;
-  return { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan };
+  return { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan, hasResolved };
 }
 
 async function handleRequest(req, res, workdir, cardLibraryRoot) {
@@ -2266,17 +2481,72 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
   }
 
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index')) {
-    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan } = loadBoardData(workdir);
+    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan, hasResolved } = loadBoardData(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderTimelinePage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan));
+    return res.end(renderTimelinePage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan, hasResolved));
+  }
+
+  // The Run tab is read-only and needs nothing but run-log.json plus the
+  // artifact probe, so unlike the rest of the board it can answer for ANY video
+  // without rebuilding cue/render state. That is what makes the picker cheap.
+  if (req.method === 'GET' && url.pathname === '/run-videos') {
+    const videosDir = videosRoot();
+    const videos = fs.existsSync(videosDir)
+      ? fs.readdirSync(videosDir, { withFileTypes: true })
+          .filter((d) => d.isDirectory())
+          .map((d) => d.name)
+          .sort()
+      : [];
+    res.setHeader('content-type', 'application/json; charset=utf-8');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(JSON.stringify({ current: path.basename(workdir), videos }));
+  }
+
+  if (req.method === 'GET' && url.pathname === '/run-log') {
+    const want = url.searchParams.get('video');
+    // With no ?video, answer for the workdir the board was started against —
+    // which may be an external path outside videos/ (resolveWorkdir allows it),
+    // so it must NOT be looked up by slug.
+    let target = workdir;
+    if (want) {
+      const videosDir = videosRoot();
+      target = path.join(videosDir, want);
+      // The slug arrives from a query string, so confirm it resolves to a
+      // direct child of videos/ — that rejects "../.." before it reaches the
+      // filesystem.
+      if (path.dirname(target) !== videosDir || !fs.existsSync(target)) {
+        res.statusCode = 404;
+        res.setHeader('content-type', 'application/json; charset=utf-8');
+        return res.end(JSON.stringify({ error: `no such video: ${want}` }));
+      }
+    }
+    let steps;
+    try {
+      steps = stepView(target);
+    } catch (e) {
+      res.statusCode = 500;
+      res.setHeader('content-type', 'application/json; charset=utf-8');
+      return res.end(JSON.stringify({ error: e.message }));
+    }
+    const next = nextStep(steps);
+    res.setHeader('content-type', 'application/json; charset=utf-8');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(
+      JSON.stringify({
+        video: want || path.basename(target),
+        steps,
+        summary: summarizeRun(steps),
+        next: next ? next.id : null,
+      }),
+    );
   }
 
   if (req.method === 'GET' && url.pathname === '/list') {
-    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan } = loadBoardData(workdir);
+    const { cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan, hasResolved } = loadBoardData(workdir);
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.setHeader('cache-control', 'no-store');
-    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan));
+    return res.end(renderBoardPage(cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan, hasResolved));
   }
 
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);
@@ -2498,7 +2768,7 @@ async function handleRequest(req, res, workdir, cardLibraryRoot) {
 
 export function createServer(workdir) {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
-  for (const name of REQUIRED_FILES) {
+  for (const name of BOOT_FILES) {
     if (!fs.existsSync(path.join(workdir, name))) {
       throw new Error(`workdir missing ${name}: ${path.join(workdir, name)}`);
     }
@@ -2518,16 +2788,43 @@ export function createServer(workdir) {
 
 // No-arg mode (used by the local-apps dashboard): most recently touched video
 // workdir that has a cues.json.
-function latestWorkdir() {
-  const videosDir = path.join(path.resolve(import.meta.dirname, '..'), 'videos');
+// Pick the newest workdir the board can actually OPEN, which means every file
+// in REQUIRED_FILES, not just cues.json. Sorting on cues.json alone made the
+// dashboard fail the moment a new video was started: a fresh workdir gets
+// cues.json long before resolved.json, so it won the sort and then threw.
+export function latestWorkdir(videosDir = path.join(path.resolve(import.meta.dirname, '..'), 'videos')) {
   if (!fs.existsSync(videosDir)) return null;
-  const candidates = fs.readdirSync(videosDir, { withFileTypes: true })
+  const dirs = fs
+    .readdirSync(videosDir, { withFileTypes: true })
     .filter((d) => d.isDirectory() && fs.existsSync(path.join(videosDir, d.name, 'cues.json')))
-    .map((d) => ({ name: d.name, mtime: fs.statSync(path.join(videosDir, d.name, 'cues.json')).mtimeMs }))
+    .map((d) => {
+      const dir = path.join(videosDir, d.name);
+      return {
+        name: d.name,
+        dir,
+        mtime: fs.statSync(path.join(dir, 'cues.json')).mtimeMs,
+        missing: BOOT_FILES.filter((f) => !fs.existsSync(path.join(dir, f))),
+      };
+    })
     .sort((a, b) => b.mtime - a.mtime);
-  if (!candidates.length) return null;
-  console.log(`no workdir given — using latest: videos/${candidates[0].name}`);
-  return path.join(videosDir, candidates[0].name);
+
+  const usable = dirs.filter((d) => d.missing.length === 0);
+  if (usable.length) {
+    const skipped = dirs.filter((d) => d.missing.length && d.mtime > usable[0].mtime);
+    for (const s of skipped) {
+      console.log(`skipping videos/${s.name} — not ready for the board yet (no ${s.missing.join(', ')})`);
+    }
+    console.log(`no workdir given — using latest: videos/${usable[0].name}`);
+    return usable[0].dir;
+  }
+
+  // Say WHY rather than a bare "no video found": the usual cause is a video
+  // mid-flight, which is not an error, just not board-ready.
+  if (dirs.length) {
+    console.error('no video is ready for the board yet:');
+    for (const d of dirs) console.error(`  videos/${d.name} — missing ${d.missing.join(', ')}`);
+  }
+  return null;
 }
 
 function listenOnFreePort(server, startPort, attempts = 10) {

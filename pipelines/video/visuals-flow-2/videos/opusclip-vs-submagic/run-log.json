@@ -1,0 +1,94 @@
+{
+  "video": "opusclip-vs-submagic",
+  "updated": "2026-07-30T06:59:23.282Z",
+  "steps": {
+    "037-approve-card-plan-human": {
+      "status": "done",
+      "ended": "2026-07-29T20:03:06.487Z",
+      "started": "2026-07-29T19:27:24.699Z",
+      "did": "Owner approved the card plan — every card the video will use, body and zones.",
+      "output": "card-plan.json approved=true",
+      "issues": "none found"
+    },
+    "010-transcribe-run": {
+      "status": "done",
+      "ended": "2026-07-29T19:30:06.595Z",
+      "started": "2026-07-29T19:30:06.595Z",
+      "did": "Groq whisper-large-v3-turbo on the concat of src/intro+body+conclusion (2838 words), then the mandatory ASR cleanup pass: 46 leading 'Now' and 30 'So' fillers dropped, brands merged to Submagic/OpusClip/Hormozi. Cleaned text authored by hand and timed via alignScriptToWords, verified zero drift (38 unmatched tokens, all deliberate brand merges or hyphen compounds) before applying.",
+      "issues": "Two stray script notes were read aloud and are preserved because 010 may only drop fillers, not content words: 'Still neutral so far.' (174s) and 'Clean, clear and done.' (~1070s). Also a 'would catch, would catch' stutter (~400s) and a 'BC ratio' garble (~420s). All four need an editorial decision, not a pipeline fix.",
+      "output": "transcript.json 2736 words, transcript.groq-raw.bak.json, vo.mp3, screen.mp4 1076.53s"
+    },
+    "015-map-segments-run": {
+      "status": "done",
+      "ended": "2026-07-29T19:30:06.641Z",
+      "started": "2026-07-29T19:30:06.641Z",
+      "did": "Ran the proposer, then corrected it against the actual footage and confirmed. Marked the two generated sample clips as 'playback' (525.5-551.3 Submagic, 589.8-608.9 OpusClip) and moved the pricing pages and the on-screen comparison table to 'demo'.",
+      "issues": "The auto-proposal labelled both sample-clip playbacks as narration, which would have allowed a fullframe card over the clip that IS the video's proof — a frame at 535s shows it playing full screen. Corrected.",
+      "output": "segments.json confirmed=true, structure intro 0-117.6 / body 117.6-997.3 / conclusion 997.3-1076.5, 386.2s narration + 643.7s demo + 44.9s playback"
+    },
+    "020-choose-concept-llm": {
+      "status": "done",
+      "ended": "2026-07-29T19:30:06.683Z",
+      "started": "2026-07-29T19:30:06.683Z",
+      "did": "Authored the concept: thesis that automated clipping only saves time if the clip is publish-ready, frame of two belts feeding one POSTED door, motif 'the-rework-bin', 8 register spans verified against findPhrase in forward order.",
+      "issues": "none found",
+      "output": "concept.json, lint-concept exit 0, narration coverage 91.4% (353.2s of 386.2s)"
+    },
+    "030-pick-or-propose-graphics-llm": {
+      "status": "done",
+      "ended": "2026-07-29T19:30:06.729Z",
+      "started": "2026-07-29T19:30:06.729Z",
+      "did": "Authored 25 BODY cues (8 fullframe, 17 overlay). Motif recurs as enacted/pipeline-flow twice: Submagic's 3-station chain to Posted at 572s vs OpusClip's 4-station chain with the cleanup lap at 632s. Pricing consolidated into one head-to-head at 840s per the mandatory pricing rule.",
+      "issues": "Two demo stretches left deliberately bare (311-364.5s, 394.4-447.2s, ~53s each), which trips W6. The rulebook prefers bare over a decorative label when every line in the window is click-echo. Also rejected enacted/bad-clip-montage for the OpusClip verdict: frames at 615-635s show the clip result still on screen, which its anti_intent hard-vetoes.",
+      "output": "cues.json body c01-c25, cues.llm.json snapshot, validate clean"
+    },
+    "035-pick-or-propose-intro-outro-llm": {
+      "status": "done",
+      "ended": "2026-07-29T19:30:06.773Z",
+      "started": "2026-07-29T19:30:06.773Z",
+      "did": "Authored 8 intro + 6 conclusion cues against the zone rulebook and merged them into cues.json in script order (z01-z08, c01-c25, z09-z14). Intro 7 fullframe with 4 enacted; conclusion 4 fullframe with 2 enacted.",
+      "issues": "Needed a 4th enacted card for the intro to meet W16 at 7 fullframe, and nothing in the catalog fit the fair-test clause, so z05 proposes enacted/same-input-split rather than settling for a slate. Owner approved it at 037.",
+      "output": "cues.json 39 cues, zone bar verified: W15 all gaps <=20s, W16 4/7 and 2/4 enacted, W17 4.08 and 4.54 cues/min"
+    },
+    "038-build-cards-llm-and-review-human": {
+      "status": "skipped",
+      "started": "2026-07-29T19:47:25.976Z",
+      "did": "Built enacted/same-input-split. Owner rejected it: the template was not intuitive and was complicated to follow. Removed it and re-cued the slot to an existing card, so nothing is NEW any more. z05 is now enacted/pipeline-flow showing the three steps both tools promise (Long Video, Find Moments, Short Clips).",
+      "issues": "Recorded as feedback zone-intro:1, scoped to LEGIBILITY: a newly built template must read instantly on one viewing with no audio. It is deliberately NOT a rule about card count or about avoiding new cards — proposing one stays a first-class outcome. Two build findings worth keeping although the card is gone: lib/logos-inline.mjs resolves logos only from logo, productLogos[], platforms[].logo, beats[].logo and left/right.logo, so any new card using another shape gets silent letter fallbacks; and scripts/beat-smoke.sh is stale (asserts 48 total and 15 beat cards against 64 and 25) and fails before reaching any card.",
+      "output": "card-library restored to 64 cards, no local changes; cues.json z05 re-cued; card-plan 39 existing, 0 to build",
+      "ended": "2026-07-29T20:01:46.553Z"
+    },
+    "040-sync-graphics-run": {
+      "status": "done",
+      "started": "2026-07-30T06:59:23.118Z",
+      "issues": "W1 fullframe-cadence: c22 starts 11.1s after c20 (minimum gap 12s) W1 fullframe-cadence: z11 starts 11.7s after z10 (minimum gap 12s) W7 bare-stretch: 21.5s between z03 (starts 33.4s) and z05 (starts 54.9s) inside a narration segment — max 20s W7 bare-stretch: 25.2s between z07 (starts 84.4s) and z08 (starts 109.6s) inside a narration segment — max 20s W7 bare-stretch: 20.3s between c01 (starts 119.7s) and c02 (starts 140.0s) inside a narration segment — max 20s",
+      "did": "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint.",
+      "output": "resolved.json",
+      "ended": "2026-07-30T06:59:23.282Z"
+    },
+    "050-review-graphics-llm": {
+      "status": "done",
+      "started": "2026-07-29T20:24:59.921Z",
+      "issues": "z06 was labelled and has been re-authored: checklist/checklist mirrored a five-item spoken list back as a five-item text list, so muted it added a layout and nothing else. Now checklist/icon-pills, 4 beats, each criterion carrying a concept icon. c20 (slate/kinetic-sentence) remains labelled and BLOCKS the audit gate — it needs the owner's accepted:true or a re-author. My own proposed fix (enacted/fill-gauge) is worse: the voiceover names no value figure, so the gauge would have to invent one, which DESIGN.md's real-data rule forbids. Underlying tension worth folding: the routing rules MANDATE kinetic-sentence for a single-point bridge and a list card for a 3+ item spoken list, and both are text devices the mute test can only ever call labelled, so the audit will keep raising them on correctly-built plans.",
+      "ended": "2026-07-29T20:29:07.792Z",
+      "did": "Ran the mute test over all 39 resolved cues: does the moving object ADD structure, data, comparison or enactment, or merely restate a word the voiceover already said. 37 enacted, 2 labelled.",
+      "output": "audit.json 39 items, 1 labelled (c20) pending owner decision; z06 re-cued and re-resolved"
+    },
+    "060-place-avatar-llm": {
+      "status": "blocked",
+      "started": "2026-07-29T20:29:07.877Z",
+      "ended": "2026-07-29T20:30:13.563Z",
+      "did": "Not started. Guardrail 1 pre-flight (node lib/feedback-status.mjs) exits 1, so no LLM pass may run.",
+      "issues": "One unfolded feedback item: zone-intro:1, the rejection of enacted/same-input-split as not intuitive. The gate exists so a later pass never authors with an unapplied lesson, so the fold (130) has to land first. The fold edits the zone RULEBOOK and the visuals-flow-feedback skill requires the owner to approve the solve before anything is applied, so this is the owner's call, not a step I can clear myself.",
+      "output": "none — blocked before the prompt was assembled"
+    },
+    "130-learn-from-feedback-opus": {
+      "status": "done",
+      "ended": "2026-07-30T04:57:53.503Z",
+      "started": "2026-07-30T04:57:53.503Z",
+      "did": "Folded four feedback items via the visuals-flow-feedback skill: ingested all four sources (board, template notes, chat, implicit edits), root-caused each, applied three durable rule changes and one instance fix.",
+      "issues": "Two deliberate deviations, both flagged to the owner: zone-intro:1 routed to card-library/DESIGN.md rather than the zone rulebook the routing table prescribes, because the lesson is about card construction and the body pass proposes cards too; and 37 fullframe cards remain text-only after the logo rule, recorded as debt in DESIGN.md rather than swept now.",
+      "output": "DESIGN.md (2 sections + 2 checklist items), steps/130 README (traceability rule), lib/edit-delta.mjs (baseline guard + test), enacted/spotlight-focus + enacted/race-bars (productLogos), feedback.json 3 items folded, tests/TESTS.md 2 lines"
+    }
+  }
+}

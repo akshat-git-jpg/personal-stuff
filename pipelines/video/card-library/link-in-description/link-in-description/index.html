@@ -12,7 +12,7 @@
 
   ┌─────────────────────────────────────────────────────────────────────────┐
   │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
-  │  the  :root  colors below. Change message / colors there.                │
+  │  the  :root  colors below. The CTA copy is CONSTANT.                        │
   │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
   │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
   └─────────────────────────────────────────────────────────────────────────┘
@@ -71,7 +71,7 @@
       data-duration="4"
       data-width="1920"
       data-height="1080"
-      data-composition-variables='{"message":"Link in description"}'
+      data-composition-variables='{}'
     >
       <!-- Track 0: chroma-key background (static, always on) -->
       <div id="bg" class="clip" data-start="0" data-duration="4" data-track-index="0"></div>
@@ -92,14 +92,17 @@
          ===== CONTENT =====  (editor / Gemini edits ONLY this)
          ===================================================== */
       // Per-video values can ALSO be passed at render time with
-      //   --variables '{"message":"Free template below"}'
+      //   (no variables — the CTA copy is constant, owner rule 2026-07-30)
       // (no code editing needed). Those override the defaults below.
       const VARS =
         (window.__hyperframes && window.__hyperframes.getVariables
           ? window.__hyperframes.getVariables()
           : null) || {};
+      // Owner rule 2026-07-30: CTA copy is CONSTANT, never authored per video. The
+      // ask is identical every time, so a per-cue variable only invited drift
+      // ("Both tools linked in the description" one cue, something else the next).
       const DATA = {
-        message: VARS.message ?? 'Link in description', // the pill text
+        message: 'Link in description',
       };
 
       /* =====================================================

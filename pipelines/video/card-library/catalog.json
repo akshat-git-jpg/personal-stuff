@@ -721,14 +721,7 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent subscribe button overlay that rings the bell and presses on click",
-      "variables": {
-        "subscribeText": {
-          "required": true,
-          "type": "string",
-          "role": "sentence",
-          "example": "This is an example sentence."
-        }
-      },
+      "variables": {},
       "default_duration": 5
     },
     {
@@ -736,14 +729,7 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "transparent pill overlay pointing viewers to the link in the description",
-      "variables": {
-        "message": {
-          "required": true,
-          "type": "string",
-          "role": "sentence",
-          "example": "This is an example sentence."
-        }
-      },
+      "variables": {},
       "default_duration": 4
     },
     {
@@ -2013,6 +1999,12 @@
           "role": "heading",
           "example": "Benchmark"
         },
+        "productLogos": {
+          "required": false,
+          "type": "array",
+          "role": "logo_slug_list",
+          "note": "index\u002daligned with products; every graphic should carry a colour mark, not text alone (owner 2026\u002d07\u002d30)"
+        },
         "products": {
           "required": true,
           "type": "array",
@@ -2113,6 +2105,8 @@
           "required": true,
           "type": "string",
           "role": "heading",
+          "max_words": 3,
+          "note": "3 words is variant B's limit (vertical chain, least vertical headroom). Declared capacity must be the TIGHTEST variant's, because resolve.mjs picks the variant after the copy is written (c17 overflowed this way, 2026\u002d07\u002d30).",
           "example": "CI Pipeline"
         },
         "steps": {
@@ -2295,6 +2289,12 @@
           "type": "string",
           "role": "heading",
           "example": "Selection"
+        },
+        "productLogos": {
+          "required": false,
+          "type": "array",
+          "role": "logo_slug_list",
+          "note": "index\u002daligned with items; every graphic should carry a colour mark, not text alone (owner 2026\u002d07\u002d30)"
         },
         "items": {
           "required": true,
@@ -2482,22 +2482,7 @@
       "kind": "single",
       "placement": "overlay",
       "purpose": "full\u002dframe dim scrim behind a centred link lockup with a nudging down\u002darrow: the high\u002dsalience \"links in the description\" call\u002dout",
-      "variables": {
-        "message": {
-          "required": true,
-          "type": "string",
-          "role": "label",
-          "max_words": 6,
-          "example": "Links in the description"
-        },
-        "kicker": {
-          "required": false,
-          "type": "string",
-          "role": "label",
-          "max_words": 4,
-          "example": "Try both tools"
-        }
-      },
+      "variables": {},
       "default_duration": 5,
       "intent": "The VO points the viewer to the description and it must actually land; dimming the footage removes every competing target.",
       "anti_intent": "A passing mention of the link mid\u002ddemo where dimming the screen would hide something the viewer needs to see."

@@ -12,7 +12,8 @@ rulebook, and their own numbers — nothing here is shared with the body.
   `cues.zones.llm.json` (committed, immutable) before any owner edit
 - **Pre-flight:** `node lib/feedback-status.mjs` must exit 0, and
   `segments.json` must carry a `structure` block — without measured spans there
-  are no zones to author and this step has nothing to do
+  are no zones to author and this step has nothing to do. `structure` is written
+  by step 015 (`bash run.sh <slug> segments`)
 - **Run:** paste **the prompt only** (`zone-pass-prompt.md`, placeholders filled)
   into the executor. Fill `{{CATALOG}}` with `card-library/catalog.json`,
   `{{TRANSCRIPT}}` with `node lib/transcript-text.mjs <slug>`, and

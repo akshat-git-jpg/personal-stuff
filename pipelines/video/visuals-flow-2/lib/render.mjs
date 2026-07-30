@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { enrichLogos } from './logos-inline.mjs';
 import { resolveCues, extendExposure } from './resolve.mjs';
 import { avatarFullSpans } from './lint-cues.mjs';
@@ -12,6 +13,57 @@ import { SHOT_CONSTANTS } from './shot-constants.mjs';
 
 const HYPERFRAMES = process.env.HYPERFRAMES_VERSION ? `hyperframes@${process.env.HYPERFRAMES_VERSION}` : 'hyperframes@0.7.62';
 const DURATION_TOLERANCE = 0.15;
+
+const CACHE_TTL_MS = 14 * 24 * 60 * 60 * 1000;
+export const DEFAULT_JOBS = 3;
+
+// Hash the STAGED directory rather than a hand-listed set of inputs. The staged
+// tree is literally what the renderer reads, so the key cannot silently miss an
+// input — the classic way a content cache starts serving stale output. It
+// already contains the card files, the brand-injected html with its rewritten
+// duration/canvas, and vars.json with the enriched logos.
+export function hashRenderInputs(stagedDir, args) {
+  const h = createHash('sha1');
+  const walk = (dir, rel = '') => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const abs = path.join(dir, e.name);
+      const r = rel ? `${rel}/${e.name}` : e.name;
+      if (e.isDirectory()) walk(abs, r);
+      else { h.update(r); h.update('\0'); h.update(fs.readFileSync(abs)); h.update('\0'); }
+    }
+  };
+  walk(stagedDir);
+  // The spawn args carry quality, format and output naming, none of which live
+  // in the staged tree.
+  for (const a of args) { h.update(String(a)); h.update(' '); }
+  h.update(HYPERFRAMES);
+  return h.digest('hex');
+}
+
+export function pruneCache(cacheDir, now = Date.now(), ttl = CACHE_TTL_MS) {
+  if (!fs.existsSync(cacheDir)) return 0;
+  let removed = 0;
+  for (const f of fs.readdirSync(cacheDir)) {
+    const p = path.join(cacheDir, f);
+    try {
+      if (now - fs.statSync(p).mtimeMs > ttl) { fs.rmSync(p, { force: true }); removed++; }
+    } catch { /* a file that vanished under us needs no pruning */ }
+  }
+  return removed;
+}
+
+// A bounded worker pool. Each render is an independent staged dir and an
+// independent output file, so the only shared state is the results array.
+export async function runPool(items, nWorkers, fn) {
+  let i = 0;
+  const workers = Array.from({ length: Math.max(1, nWorkers) }, async () => {
+    while (i < items.length) {
+      const idx = i++;
+      await fn(items[idx], idx);
+    }
+  });
+  await Promise.all(workers);
+}
 
 export function mmss(seconds) {
   const s = Math.max(0, seconds);
@@ -104,7 +156,7 @@ export function manifestMd(video, cues, offset = 0) {
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, only: null, quality: 'standard', force: false };
+  const opts = { workdir: null, only: null, quality: 'standard', force: false, jobs: DEFAULT_JOBS, noCache: false };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -112,6 +164,8 @@ function parseArgs(argv) {
     if (a === '--only') opts.only = rest.shift();
     else if (a === '--quality') opts.quality = rest.shift();
     else if (a === '--force') opts.force = true;
+    else if (a === '--jobs') opts.jobs = Math.max(1, parseInt(rest.shift(), 10) || DEFAULT_JOBS);
+    else if (a === '--no-cache') opts.noCache = true;
     else throw new Error(`unknown argument: ${a}`);
   }
   return opts;
@@ -121,7 +175,7 @@ function parseArgs(argv) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.workdir) {
-    console.error('usage: node lib/render.mjs <slug-or-path> [--only <cueId>] [--quality draft|standard] [--force]');
+    console.error('usage: node lib/render.mjs <slug-or-path> [--only <cueId>] [--quality draft|standard] [--force] [--jobs N] [--no-cache]');
     process.exit(1);
   }
 
@@ -184,9 +238,13 @@ async function main() {
   const cues = opts.only ? resolved.filter((c) => c.id === opts.only) : resolved;
 
   const errors = [];
-  const rendered = [];
+  const cacheDir = path.join(workdir, 'render-cache');
+  fs.mkdirSync(cacheDir, { recursive: true });
+  pruneCache(cacheDir);
+  let cacheHits = 0;
+  let cacheMisses = 0;
 
-  for (const cue of cues) {
+  async function renderOne(cue) {
     const stagedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hf-render-'));
     try {
       fs.cpSync(path.join(cardLibraryRoot, 'hyperframes.json'), path.join(stagedDir, 'hyperframes.json'));
@@ -200,13 +258,13 @@ async function main() {
       let { html: newHtml, error: rewriteError } = rewriteDuration(html, cue.duration);
       if (rewriteError) {
         errors.push(`${cue.id}: data-duration rewrite failed: ${rewriteError}`);
-        continue;
+        return;
       }
       if (cue.sideMode) {
         const { html: canvasHtml, error: canvasError } = rewriteCanvas(newHtml, SHOT_CONSTANTS.SIDE_GRAPHICS_W.value);
         if (canvasError) {
           errors.push(`${cue.id}: data-width rewrite failed: ${canvasError}`);
-          continue;
+          return;
         }
         newHtml = canvasHtml;
       }
@@ -215,20 +273,42 @@ async function main() {
       const { variables: enrichedVars, missing } = enrichLogos(cue.variables, cardLibraryRoot);
       if (missing.length > 0) {
         errors.push(`${cue.id}: missing logo slugs in registry: ${missing.join(', ')}`);
-        continue;
+        return;
       }
       fs.writeFileSync(path.join(stagedDir, 'vars.json'), JSON.stringify(enrichedVars));
 
       const { args, outFile } = planRender(cue, opts.quality);
       const outPath = path.join(renderDir, outFile);
       const spawnArgs = [HYPERFRAMES, ...args, '-o', outPath];
-      const result = spawnSync('npx', spawnArgs, { cwd: stagedDir, encoding: 'utf8' });
+
+      const key = hashRenderInputs(stagedDir, spawnArgs);
+      const cachePath = path.join(cacheDir, `${key}${path.extname(outFile)}`);
+      if (!opts.noCache && fs.existsSync(cachePath)) {
+        fs.copyFileSync(cachePath, outPath);
+        // Touch it so a card still in use survives the 14-day prune.
+        const now = new Date();
+        fs.utimesSync(cachePath, now, now);
+        cacheHits++;
+        return;
+      }
+
+      const result = await new Promise((resolve) => {
+        const child = spawn('npx', spawnArgs, { cwd: stagedDir, stdio: ['ignore', 'pipe', 'pipe'] });
+        let out = ''; let err = '';
+        child.stdout.setEncoding('utf8');
+        child.stderr.setEncoding('utf8');
+        child.stdout.on('data', (d) => { out += d; });
+        child.stderr.on('data', (d) => { err += d; });
+        child.on('error', (e) => resolve({ status: -1, stdout: out, stderr: String(e) }));
+        child.on('close', (code) => resolve({ status: code, stdout: out, stderr: err }));
+      });
       if (result.status !== 0) {
         console.error(result.stdout ?? '');
         console.error(result.stderr ?? '');
         errors.push(`${cue.id}: render failed (exit ${result.status})`);
-        continue;
+        return;
       }
+      cacheMisses++;
 
       const probe = spawnSync(
         'ffprobe',
@@ -238,14 +318,29 @@ async function main() {
       const actualDuration = parseFloat(probe.stdout);
       if (!Number.isFinite(actualDuration) || Math.abs(actualDuration - cue.duration) > DURATION_TOLERANCE) {
         errors.push(`${cue.id}: rendered duration ${actualDuration} != expected ${cue.duration}`);
-        continue;
+        return;
       }
 
-      rendered.push(cue);
+      // Only a clip that passed the duration check earns a cache entry, so a
+      // bad render can never be served back on the next run.
+      fs.copyFileSync(outPath, cachePath);
+    } catch (e) {
+      // One unrenderable cue must not take the other 22 down with it. Before
+      // the pool this threw straight out of the loop and killed the whole run;
+      // inside a pool it would also abandon every worker still in flight.
+      // A card deleted from the catalog is the common cause.
+      errors.push(`${cue.id}: ${e.code === 'ENOENT' ? `card "${cue.card}" is not in the card library` : e.message}`);
     } finally {
       fs.rmSync(stagedDir, { recursive: true, force: true });
     }
   }
+
+  const started = Date.now();
+  await runPool(cues, opts.jobs, renderOne);
+  // Workers finish out of order, so sort for a stable, diffable error list.
+  errors.sort();
+  const secs = ((Date.now() - started) / 1000).toFixed(1);
+  console.log(`renders: ${cacheHits} cached, ${cacheMisses} rendered (jobs=${opts.jobs}) in ${secs}s`);
 
   const cuesForManifest = manifestCues(resolved, renderDir);
   if (cuesForManifest.length < resolved.length) {

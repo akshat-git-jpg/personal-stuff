@@ -1,0 +1,968 @@
+{
+  "video": "opusclip-vs-submagic",
+  "offset": 0,
+  "resolved": [
+    {
+      "id": "z01",
+      "card": "enacted/bad-clip-montage",
+      "placement": "fullframe",
+      "start": 3.94,
+      "duration": 13.76,
+      "variables": {
+        "title": "Automated Then Fixed By Hand",
+        "marker": "Fixed",
+        "clips": [
+          {
+            "label": "Captions need fixing"
+          },
+          {
+            "label": "Pacing needs fixing"
+          },
+          {
+            "label": "Layouts need reworking"
+          }
+        ],
+        "beats": [
+          {
+            "label": "Captions need fixing",
+            "at": 0.6
+          },
+          {
+            "label": "Pacing needs fixing",
+            "at": 6.02
+          },
+          {
+            "label": "Layouts need reworking",
+            "at": 8.44
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "z02",
+      "card": "enacted/promise-split",
+      "placement": "fullframe",
+      "start": 17.7,
+      "duration": 15.72,
+      "variables": {
+        "promise": "Both promise viral-ready shorts",
+        "left": {
+          "name": "Submagic",
+          "logo": "submagic",
+          "verdict": "Output ready to publish"
+        },
+        "right": {
+          "name": "OpusClip",
+          "logo": "opusclip",
+          "verdict": "Speed at all costs"
+        },
+        "register": "dark"
+      }
+    },
+    {
+      "id": "z03",
+      "card": "statement/promise-payoff",
+      "placement": "fullframe",
+      "start": 33.42,
+      "duration": 5.38,
+      "variables": {
+        "question": "Which One Ships Clips You Can Post?",
+        "options": [
+          {
+            "label": "Speed first"
+          },
+          {
+            "label": "Publish ready"
+          }
+        ],
+        "beats": [
+          {
+            "label": "Worth using",
+            "at": 0.6
+          },
+          {
+            "label": "Quietly creates more work",
+            "at": 3.12
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z05",
+      "card": "enacted/pipeline-flow",
+      "placement": "fullframe",
+      "start": 54.9,
+      "duration": 17.16,
+      "variables": {
+        "title": "Both Tools Promise",
+        "steps": [
+          {
+            "step": "Long Video",
+            "icon": "video"
+          },
+          {
+            "step": "Find Moments",
+            "icon": "search"
+          },
+          {
+            "step": "Short Clips",
+            "icon": "play"
+          }
+        ],
+        "beats": [
+          {
+            "step": "Long Video",
+            "at": 0.6
+          },
+          {
+            "step": "Find Moments",
+            "at": 2.32
+          },
+          {
+            "step": "Short Clips",
+            "at": 4.02
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z06",
+      "card": "checklist/icon-pills",
+      "placement": "fullframe",
+      "start": 72.06,
+      "duration": 12.36,
+      "variables": {
+        "beats": [
+          {
+            "icon": "chat",
+            "text": "Caption quality",
+            "at": 0.6
+          },
+          {
+            "icon": "gear",
+            "text": "Pacing and customization",
+            "at": 4.16
+          },
+          {
+            "icon": "chart",
+            "text": "Value for money",
+            "at": 6.62
+          },
+          {
+            "icon": "shield",
+            "text": "No marketing promises",
+            "at": 9.52
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z07",
+      "card": "enacted/timeline-scrub",
+      "placement": "fullframe",
+      "start": 84.42,
+      "duration": 18.7,
+      "variables": {
+        "title": "What This Video Covers",
+        "beats": [
+          {
+            "label": "Overview",
+            "at": 0.6
+          },
+          {
+            "label": "Live demo",
+            "at": 4.52
+          },
+          {
+            "label": "Captions and layout",
+            "at": 8.42
+          },
+          {
+            "label": "Pricing and value",
+            "at": 12.38
+          },
+          {
+            "label": "Verdict",
+            "at": 17.2
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z08",
+      "card": "link-in-description/link-scrim",
+      "placement": "overlay",
+      "start": 109.64,
+      "duration": 5,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "c01",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 119.74,
+      "duration": 6,
+      "variables": {
+        "index": 1,
+        "total": 2,
+        "logo": "opusclip",
+        "name": "OpusClip",
+        "tagline": "Automation first clipping",
+        "tag": "AI Clipping",
+        "register": "dark",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c02",
+      "card": "pros-cons/pros-cons",
+      "placement": "fullframe",
+      "start": 140,
+      "duration": 13.68,
+      "variables": {
+        "title": "OpusClip At A Glance",
+        "beats": [
+          {
+            "kind": "pro",
+            "text": "Clips generated fast",
+            "at": 0.6
+          },
+          {
+            "kind": "con",
+            "text": "Little creative control",
+            "at": 3.14
+          },
+          {
+            "kind": "con",
+            "text": "Clips still need cleanup",
+            "at": 10.24
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c03",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 153.68,
+      "duration": 9.02,
+      "variables": {
+        "index": 2,
+        "total": 2,
+        "logo": "submagic",
+        "name": "Submagic",
+        "tagline": "Polish first editing",
+        "tag": "Short Form Editor",
+        "register": "light",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c04",
+      "card": "pros-cons/pros-cons",
+      "placement": "fullframe",
+      "start": 166.7,
+      "duration": 9.58,
+      "variables": {
+        "title": "Submagic At A Glance",
+        "beats": [
+          {
+            "kind": "pro",
+            "text": "Polish and customization",
+            "at": 0.6
+          },
+          {
+            "kind": "con",
+            "text": "Not fully hands off",
+            "at": 4.6
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c05",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 182.9,
+      "duration": 4,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "c06",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 190.06,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "The Test",
+        "text": "Same source video, same goal, both tools",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c07",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 215.38,
+      "duration": 5,
+      "variables": {
+        "name": "Submagic",
+        "subtitle": "Template Then AI Edit",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c08",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 258.62,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Submagic",
+        "text": "Multi speaker theme colors each voice separately",
+        "edge": "top",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c09",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 278.43,
+      "duration": 5,
+      "variables": {
+        "name": "OpusClip",
+        "subtitle": "Same Video Second Tool",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c10",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 310.73,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "OpusClip",
+        "text": "Caption font and color are picked by hand here",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c11",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 364.17,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Rights",
+        "text": "Only clip content you own or have permission to use",
+        "edge": "top",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c12",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 386.75,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "OpusClip",
+        "text": "Auto hook writes a text hook onto the top 10 clips",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c13",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 394.15,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "OpusClip",
+        "text": "You can force specific moments into the clip set",
+        "edge": "top",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c14",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 446.87,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "OpusClip",
+        "logo": "opusclip",
+        "value": 5,
+        "suffix": " min",
+        "context": "Quoted time to generate the clips",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c15",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 480.69,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Submagic",
+        "text": "B roll, transitions and magic zooms are all editable",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c16",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 556.92,
+      "duration": 8.2,
+      "variables": {
+        "beats": [
+          {
+            "text": "Captions are cleaner",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Emphasis is clearer",
+            "verdict": "yes",
+            "at": 1.58
+          },
+          {
+            "text": "Layout feels intentional",
+            "verdict": "yes",
+            "at": 3.68
+          },
+          {
+            "text": "Control over highlights, pacing",
+            "verdict": "yes",
+            "at": 7.2
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c17",
+      "card": "enacted/pipeline-flow",
+      "placement": "fullframe",
+      "start": 571.32,
+      "duration": 10.9,
+      "variables": {
+        "title": "Straight To Posted",
+        "steps": [
+          {
+            "step": "Auto Edit",
+            "icon": "bolt"
+          },
+          {
+            "step": "Publish Ready",
+            "icon": "star"
+          },
+          {
+            "step": "Posted",
+            "icon": "rocket"
+          }
+        ],
+        "beats": [
+          {
+            "step": "Auto Edit",
+            "at": 0.6
+          },
+          {
+            "step": "Publish Ready",
+            "at": 2.44
+          },
+          {
+            "step": "Posted",
+            "at": 8.22
+          }
+        ],
+        "register": "light",
+        "variant": "b"
+      }
+    },
+    {
+      "id": "c18",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 611.64,
+      "duration": 19.28,
+      "variables": {
+        "beats": [
+          {
+            "text": "Slow to generate and export",
+            "verdict": "no",
+            "at": 0.6
+          },
+          {
+            "text": "Captions are pretty basic",
+            "verdict": "no",
+            "at": 10.76
+          },
+          {
+            "text": "Pacing often feels off",
+            "verdict": "no",
+            "at": 13.32
+          },
+          {
+            "text": "Clips do not look finished",
+            "verdict": "no",
+            "at": 18.28
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c19",
+      "card": "enacted/pipeline-flow",
+      "placement": "fullframe",
+      "start": 632.04,
+      "duration": 13.86,
+      "variables": {
+        "title": "The Cleanup Lap",
+        "steps": [
+          {
+            "step": "Adjust Captions",
+            "icon": "doc"
+          },
+          {
+            "step": "Fix Emphasis",
+            "icon": "star"
+          },
+          {
+            "step": "Clean Pacing",
+            "icon": "clock"
+          },
+          {
+            "step": "Rework Layout",
+            "icon": "layers"
+          }
+        ],
+        "beats": [
+          {
+            "step": "Adjust Captions",
+            "at": 0.6
+          },
+          {
+            "step": "Fix Emphasis",
+            "at": 3.42
+          },
+          {
+            "step": "Clean Pacing",
+            "at": 4.42
+          },
+          {
+            "step": "Rework Layout",
+            "at": 5.76
+          }
+        ],
+        "register": "dark",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c26",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 645.9,
+      "duration": 12.32,
+      "variables": {
+        "number": "04",
+        "title": "Pricing And Value",
+        "register": "dark"
+      },
+      "structural": true
+    },
+    {
+      "id": "c20",
+      "card": "slate/kinetic-sentence",
+      "placement": "fullframe",
+      "start": 662.22,
+      "duration": 10.24,
+      "variables": {
+        "text": "once you factor in the extra editing time needed to make clips usable, the value does significantly drop",
+        "accent": "significantly drop",
+        "beats": [
+          {
+            "text": "once",
+            "accent": false,
+            "at": 0.2
+          },
+          {
+            "text": "you",
+            "accent": false,
+            "at": 0.46
+          },
+          {
+            "text": "factor",
+            "accent": false,
+            "at": 0.6
+          },
+          {
+            "text": "in",
+            "accent": false,
+            "at": 0.96
+          },
+          {
+            "text": "the",
+            "accent": false,
+            "at": 1.18
+          },
+          {
+            "text": "extra",
+            "accent": false,
+            "at": 1.18
+          },
+          {
+            "text": "editing",
+            "accent": false,
+            "at": 1.72
+          },
+          {
+            "text": "time",
+            "accent": false,
+            "at": 2.06
+          },
+          {
+            "text": "needed",
+            "accent": false,
+            "at": 2.54
+          },
+          {
+            "text": "to",
+            "accent": false,
+            "at": 2.82
+          },
+          {
+            "text": "make",
+            "accent": false,
+            "at": 2.98
+          },
+          {
+            "text": "clips",
+            "accent": false,
+            "at": 3.2
+          },
+          {
+            "text": "usable,",
+            "accent": false,
+            "at": 3.46
+          },
+          {
+            "text": "the",
+            "accent": false,
+            "at": 4.1
+          },
+          {
+            "text": "value",
+            "accent": false,
+            "at": 4.22
+          },
+          {
+            "text": "does",
+            "accent": false,
+            "at": 4.54
+          },
+          {
+            "text": "significantly",
+            "accent": true,
+            "at": 4.94
+          },
+          {
+            "text": "drop",
+            "accent": true,
+            "at": 5.5
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c21",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 744.28,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Submagic",
+        "text": "Not paying for more clips, paying for fewer fixes",
+        "edge": "bottom",
+        "register": "dark",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c22",
+      "card": "comparison/head-to-head",
+      "placement": "fullframe",
+      "start": 840.25,
+      "duration": 9.94,
+      "variables": {
+        "left": {
+          "name": "OpusClip",
+          "logo": "opusclip",
+          "stats": [
+            {
+              "label": "Starter",
+              "value": "$12 / mo"
+            },
+            {
+              "label": "Pro",
+              "value": "$23 / mo"
+            },
+            {
+              "label": "Yearly",
+              "value": "50% off"
+            }
+          ]
+        },
+        "right": {
+          "name": "Submagic",
+          "logo": "submagic",
+          "stats": [
+            {
+              "label": "Starter",
+              "value": "$19 / mo"
+            },
+            {
+              "label": "Pro",
+              "value": "$39 / mo"
+            },
+            {
+              "label": "Yearly",
+              "value": "41% off"
+            }
+          ]
+        },
+        "register": "light"
+      }
+    },
+    {
+      "id": "c23",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 895.39,
+      "duration": 4,
+      "variables": {
+        "label": "OpusClip",
+        "logo": "opusclip",
+        "score": 4,
+        "max": 5,
+        "winner": false,
+        "register": "light"
+      }
+    },
+    {
+      "id": "c24",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 924.13,
+      "duration": 4,
+      "variables": {
+        "label": "Submagic Captions",
+        "logo": "submagic",
+        "score": 5,
+        "max": 5,
+        "winner": false,
+        "register": "light"
+      }
+    },
+    {
+      "id": "c25",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 954.01,
+      "duration": 4,
+      "variables": {
+        "label": "OpusClip Publish",
+        "logo": "opusclip",
+        "score": 3.5,
+        "max": 5,
+        "winner": false,
+        "register": "light"
+      }
+    },
+    {
+      "id": "z09",
+      "card": "verdict/persona-match",
+      "placement": "fullframe",
+      "start": 1002.97,
+      "duration": 12.78,
+      "variables": {
+        "title": "Choose OpusClip When",
+        "beats": [
+          {
+            "persona": "Speed is the top priority",
+            "winner": "OpusClip",
+            "logo": "opusclip",
+            "at": 0.6
+          },
+          {
+            "persona": "You care about polish",
+            "winner": "Submagic",
+            "logo": "submagic",
+            "at": 7.78
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z10",
+      "card": "verdict/persona-match",
+      "placement": "fullframe",
+      "start": 1015.75,
+      "duration": 11.7,
+      "variables": {
+        "title": "Choose Submagic When",
+        "beats": [
+          {
+            "persona": "You want native looking shorts",
+            "winner": "Submagic",
+            "logo": "submagic",
+            "at": 0.6
+          },
+          {
+            "persona": "You want zero control",
+            "winner": "OpusClip",
+            "logo": "opusclip",
+            "at": 6.26
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z11",
+      "card": "enacted/race-bars",
+      "placement": "fullframe",
+      "start": 1027.45,
+      "duration": 15.24,
+      "variables": {
+        "title": "Generated Fast vs Actually Posted",
+        "products": [
+          {
+            "name": "OpusClip"
+          },
+          {
+            "name": "Submagic"
+          }
+        ],
+        "productLogos": [
+          "opusclip",
+          "submagic"
+        ],
+        "beats": [
+          {
+            "values": [
+              {
+                "value": "90"
+              },
+              {
+                "value": "70"
+              }
+            ],
+            "at": 0.6
+          },
+          {
+            "values": [
+              {
+                "value": "90"
+              },
+              {
+                "value": "100"
+              }
+            ],
+            "at": 7.3
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z12",
+      "card": "enacted/spotlight-focus",
+      "placement": "fullframe",
+      "start": 1042.69,
+      "duration": 7,
+      "variables": {
+        "title": "The Better Tool Overall",
+        "items": [
+          {
+            "item": "OpusClip"
+          },
+          {
+            "item": "Submagic"
+          }
+        ],
+        "focus": "Submagic",
+        "productLogos": [
+          "opusclip",
+          "submagic"
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z13",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 1051.87,
+      "duration": 4,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "z14",
+      "card": "like-subscribe/like-subscribe",
+      "placement": "overlay",
+      "start": 1065.63,
+      "duration": 5,
+      "variables": {
+        "register": "light"
+      }
+    }
+  ]
+}

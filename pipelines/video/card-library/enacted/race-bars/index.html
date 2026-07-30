@@ -7,7 +7,7 @@
 
   EDITOR: change only the ===== CONTENT ===== defaults and :root colors.
   Do NOT touch ===== TIMELINE (LOCKED). Or render-time:
-    --variables '{"title":"Benchmark","products":[{"name":"Node"},{"name":"Bun"}],"beats":[{"values":[{"value":"40"},{"value":"55"}],"at":0.6}]}'
+    --variables '{"title":"Benchmark","products":[{"name":"OpusClip"},{"name":"Submagic"}],"productLogos":["opusclip","submagic"],"beats":[{"values":[{"value":"40"},{"value":"55"}],"at":0.6}]}'
   Render:  npx hyperframes@latest render enacted/race-bars -o out.mp4 --fps 30
 -->
 <html lang="en">
@@ -47,8 +47,14 @@
       }
 
       .lane { display: flex; align-items: center; gap: 32px; }
+      /* Owner rule 2026-07-30: a graphic must carry a colour mark, not text alone.
+         productLogos[] is index-aligned with products[] and is a shape
+         lib/logos-inline.mjs already inlines, so slugs resolve with no library change. */
+      .lane .logoTile { width: 56px; height: 56px; border-radius: 14px; overflow: hidden; flex: 0 0 auto; }
+      .lane .logoTile.is-dark { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10); }
+      .lane .logoTile img { width: 100%; height: 100%; object-fit: cover; display: block; }
       .lane .name {
-        width: 240px; flex: 0 0 auto; text-align: right; font-size: 26px; font-weight: 700;
+        width: 200px; flex: 0 0 auto; text-align: right; font-size: 26px; font-weight: 700;
         text-transform: uppercase; letter-spacing: 0.12em;
         color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
@@ -75,7 +81,7 @@
   </head>
   <body class="register-dark variant-a">
     <div id="root" data-composition-id="race-bars" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"Runtime Benchmark","products":[{"name":"Node"},{"name":"Deno"},{"name":"Bun"},{"name":"Go"}],"beats":[{"values":[{"value":"35"},{"value":"30"},{"value":"45"},{"value":"20"}],"at":0.6},{"values":[{"value":"55"},{"value":"30"},{"value":"60"},{"value":"50"}],"at":1.9},{"values":[{"value":"70"},{"value":"30"},{"value":"78"},{"value":"75"}],"at":3.2},{"values":[{"value":"85"},{"value":"31"},{"value":"96"},{"value":"90"}],"at":4.5}]}'>
+      data-composition-variables='{"title":"Runtime Benchmark","products":[{"name":"OpusClip"},{"name":"Submagic"}],"productLogos":["opusclip","submagic"],"beats":[{"values":[{"value":"30"},{"value":"22"}],"at":0.6},{"values":[{"value":"62"},{"value":"48"}],"at":1.9},{"values":[{"value":"78"},{"value":"74"}],"at":3.1},{"values":[{"value":"78"},{"value":"100"}],"at":4.3}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div id="card">
@@ -89,12 +95,13 @@
       /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
       const DEFAULTS = {
         title: 'Runtime Benchmark',
-        products: [{ name: 'Node' }, { name: 'Deno' }, { name: 'Bun' }, { name: 'Go' }],
+        products: [{ name: 'OpusClip' }, { name: 'Submagic' }],
+        productLogos: ['opusclip', 'submagic'],
         beats: [
-          { values: [{ value: '35' }, { value: '30' }, { value: '45' }, { value: '20' }], at: 0.6 },
-          { values: [{ value: '55' }, { value: '30' }, { value: '60' }, { value: '50' }], at: 1.9 },
-          { values: [{ value: '70' }, { value: '30' }, { value: '78' }, { value: '75' }], at: 3.2 },
-          { values: [{ value: '85' }, { value: '31' }, { value: '96' }, { value: '90' }], at: 4.5 },
+          { values: [{ value: '30' }, { value: '22' }], at: 0.6 },
+          { values: [{ value: '62' }, { value: '48' }], at: 1.9 },
+          { values: [{ value: '78' }, { value: '74' }], at: 3.1 },
+          { values: [{ value: '78' }, { value: '100' }], at: 4.3 },
         ],
       };
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
@@ -134,10 +141,19 @@
       const lanesEl = $('lanes');
       const bars = [];
       const valueEls = [];
-      DATA.products.forEach((p) => {
+      const LOGOS = VARS.__logos ?? {};
+      const LOGO_DARK = VARS.__logoDark ?? {};
+      const logoSlugs = VARS.productLogos ?? DEFAULTS.productLogos ?? [];
+
+      DATA.products.forEach((p, pi) => {
         const lane = document.createElement('div');
         lane.className = 'lane';
+        const slug = logoSlugs[pi];
+        const logoHtml = slug && LOGOS[slug]
+          ? `<div class="logoTile${LOGO_DARK[slug] ? ' is-dark' : ''}"><img src="${LOGOS[slug]}" alt=""></div>`
+          : '';
         lane.innerHTML =
+          logoHtml +
           '<div class="name"></div>' +
           '<div class="track"><div class="bar"><span class="value"></span></div></div>';
         lane.querySelector('.name').textContent = p.name ?? '';

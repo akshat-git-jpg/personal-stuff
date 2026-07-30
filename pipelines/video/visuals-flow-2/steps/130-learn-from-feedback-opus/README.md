@@ -11,6 +11,35 @@ guarantee that a correction given once is never needed twice.
 - **Run:** owner says "fold the feedback" (or it runs at the end of any session
   where feedback was given)
 
+## A folded lesson must be traceable to what the owner said
+
+**Owner correction, 2026-07-30.** The owner rejected a built card as *"not
+intuitive, complicated to follow"*. The session recorded that as two general rules
+— "an intro card gets ONE moving idea" and "prefer reusing a proven enacted card
+over commissioning a device" — and the owner had to come back with *"this rule is
+not required, my feedback was [the narrower thing]"*.
+
+Both invented rules were wrong, and the second was worse than wrong: it
+contradicted `R_ZONE_SHARED_CATALOG`, which states that commissioning a new card
+is "an expected outcome, not a last resort". It would have been folded into the
+same rulebook that says the opposite, and every later pass would have inherited
+the contradiction.
+
+Nothing in this step or in `appendCardPlanFeedback` prevented it: the stored text
+is whatever the session writes, and the fold applies it.
+
+So, before a lesson is written to any surface:
+
+1. **Quote, do not paraphrase.** The recorded item must contain the owner's own
+   words. If the lesson is broader than what they said, that widening is a
+   proposal to raise in Phase 3 — not something to record as their instruction.
+2. **Scope to the evidence.** One rejection is evidence about that one artifact.
+   A standing rule needs either the owner saying so or the same rejection three
+   times (the same threshold this step already uses for implicit edits).
+3. **Contradiction-check.** Grep the target surface and its siblings for a rule
+   the new lesson would reverse. If one exists, it is a conflict for the owner to
+   settle, not a silent overwrite — the same instruction Phase 3 already carries.
+
 ## Procedure
 
 1. Collect feedback from two inputs:

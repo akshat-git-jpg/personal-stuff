@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
-import { mmss, rewriteDuration, rewriteCanvas, manifestMd, planRender, manifestCues } from './render.mjs';
+import { mmss, rewriteDuration, rewriteCanvas, manifestMd, planRender, manifestCues, hashRenderInputs, pruneCache, runPool, DEFAULT_JOBS } from './render.mjs';
 
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'render');
 test.before(() => {
@@ -185,4 +185,89 @@ test('render refuses while the 037 card plan is unapproved, and --force override
   );
   const allowed = spawnSync(process.execPath, [path.join(import.meta.dirname, 'render.mjs'), workdir], { encoding: 'utf8' });
   assert.doesNotMatch(allowed.stderr ?? '', /card-plan\.json approved=false/);
+});
+
+// ---- cache + pool ---------------------------------------------------------
+// 090 was a sequential loop with no cache at all: every `cut` re-rendered all
+// 39 cards even when one word of copy had changed. Measured on test-01's 14
+// renderable cues, M2 Pro: jobs=1 118.5s, jobs=3 68.2s, warm cache 0.2s.
+
+test('hashRenderInputs changes when ANY staged input changes', () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const a = fs.mkdtempSync(path.join(TMP_ROOT, 'hash-a-'));
+  fs.mkdirSync(path.join(a, 'card'));
+  fs.writeFileSync(path.join(a, 'card', 'index.html'), '<div data-duration="6"></div>');
+  fs.writeFileSync(path.join(a, 'vars.json'), '{"title":"one"}');
+  const args = ['hyperframes', 'render', '--format', 'mp4'];
+
+  const base = hashRenderInputs(a, args);
+  assert.equal(hashRenderInputs(a, args), base, 'stable for identical inputs');
+
+  // a variables-only change must bust the key — this is exactly what an
+  // mtime-based cache would miss, serving a stale clip silently
+  fs.writeFileSync(path.join(a, 'vars.json'), '{"title":"two"}');
+  assert.notEqual(hashRenderInputs(a, args), base, 'variables must be in the key');
+
+  fs.writeFileSync(path.join(a, 'vars.json'), '{"title":"one"}');
+  assert.equal(hashRenderInputs(a, args), base, 'and back again');
+
+  // card markup
+  fs.writeFileSync(path.join(a, 'card', 'index.html'), '<div data-duration="9"></div>');
+  assert.notEqual(hashRenderInputs(a, args), base, 'card html must be in the key');
+
+  // a new file anywhere in the tree
+  fs.writeFileSync(path.join(a, 'card', 'index.html'), '<div data-duration="6"></div>');
+  fs.writeFileSync(path.join(a, 'card', 'extra.css'), 'body{}');
+  assert.notEqual(hashRenderInputs(a, args), base, 'an added file must be in the key');
+});
+
+test('hashRenderInputs separates quality and format', () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const d = fs.mkdtempSync(path.join(TMP_ROOT, 'hash-args-'));
+  fs.writeFileSync(path.join(d, 'vars.json'), '{}');
+  assert.notEqual(
+    hashRenderInputs(d, ['hf', '--format', 'mp4']),
+    hashRenderInputs(d, ['hf', '--format', 'mov']),
+    'a draft mp4 and an overlay mov are not interchangeable',
+  );
+});
+
+test('pruneCache drops only entries past the TTL', () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'prune-'));
+  const fresh = path.join(dir, 'fresh.mp4');
+  const stale = path.join(dir, 'stale.mp4');
+  fs.writeFileSync(fresh, 'x');
+  fs.writeFileSync(stale, 'x');
+  const old = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
+  fs.utimesSync(stale, old, old);
+
+  assert.equal(pruneCache(dir), 1);
+  assert.ok(fs.existsSync(fresh));
+  assert.ok(!fs.existsSync(stale));
+  assert.equal(pruneCache(path.join(dir, 'nope')), 0, 'a missing cache dir is not an error');
+});
+
+test('runPool runs every item and bounds concurrency', async () => {
+  const items = Array.from({ length: 12 }, (_, i) => i);
+  const seen = [];
+  let inFlight = 0;
+  let peak = 0;
+  await runPool(items, 3, async (n) => {
+    inFlight++;
+    peak = Math.max(peak, inFlight);
+    await new Promise((r) => setTimeout(r, 5));
+    seen.push(n);
+    inFlight--;
+  });
+  assert.equal(seen.length, 12, 'every item must run exactly once');
+  assert.deepEqual([...seen].sort((a, b) => a - b), items);
+  assert.ok(peak <= 3, `concurrency must stay bounded, saw ${peak}`);
+  assert.ok(peak > 1, 'and must actually overlap');
+});
+
+test('runPool with one worker is plain sequential order', async () => {
+  const seen = [];
+  await runPool([1, 2, 3], 1, async (n) => { seen.push(n); });
+  assert.deepEqual(seen, [1, 2, 3]);
 });

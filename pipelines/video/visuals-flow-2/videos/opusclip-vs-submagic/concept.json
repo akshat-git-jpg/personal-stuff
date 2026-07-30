@@ -1,0 +1,52 @@
+{
+  "video": "opusclip-vs-submagic",
+  "thesis": "Automated clipping only saves time if the clip comes out publish-ready: OpusClip wins on raw speed, but Submagic wins the only race that counts, getting posted.",
+  "frame": "Two conveyor belts feeding one door marked POSTED. OpusClip's belt runs faster but tips every clip into a REWORK bin first, so the clip reaches the door late by the desk clock even though it left the machine early. Submagic's belt runs a touch slower and goes straight through. Time saved is measured at the door, never at the machine.",
+  "throughline": {
+    "name": "the-rework-bin",
+    "description": "A single vertical short-form clip tile riding a belt toward a door marked POSTED, with a side chute labelled REWORK waiting to catch anything that is not finished. The bin's fill level is the video's running score.",
+    "evolution": "Opens in the hook as one belt and an already-overflowing REWORK bin (the cost the viewer is living with). At the overviews the belt forks in two, one lane per tool, bin still shared. Through the demos each tool drops its own clip tile onto its lane and the bin sits idle and unexplained. The moment the two sample clips have played it pays off: OpusClip's tile visibly diverts into REWORK while Submagic's rolls clean through the POSTED door. At pricing the bin is re-labelled with the editing hours the cheaper plan hides, so the money argument lands on the same object. In the summary table each losing row drops one more tile into the bin. In the conclusion the lanes collapse back to a single belt, Submagic's tile passes through the door, and the bin is finally empty."
+  },
+  "registers": [
+    {
+      "from_anchor": "If you're turning long videos",
+      "to_anchor": "actually ready to publish",
+      "register": "dark"
+    },
+    {
+      "from_anchor": "By the end of this video",
+      "to_anchor": "links in the description",
+      "register": "light"
+    },
+    {
+      "from_anchor": "OpusClip is an AI-powered clipping tool",
+      "to_anchor": "still need cleanup afterwards",
+      "register": "dark"
+    },
+    {
+      "from_anchor": "on the other hand, is a short-form editing tool",
+      "to_anchor": "makes the difference very obvious",
+      "register": "light"
+    },
+    {
+      "from_anchor": "You can see that with Submagic",
+      "to_anchor": "clearly starts pulling ahead",
+      "register": "light"
+    },
+    {
+      "from_anchor": "This generation right here took",
+      "to_anchor": "not for actual finished results",
+      "register": "dark"
+    },
+    {
+      "from_anchor": "Now that we have gone and talked",
+      "to_anchor": "summary table out for ourselves",
+      "register": "light"
+    },
+    {
+      "from_anchor": "To give you an individual conclusion",
+      "to_anchor": "Have a great day",
+      "register": "light"
+    }
+  ]
+}

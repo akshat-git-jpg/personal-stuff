@@ -11,7 +11,7 @@
   (`npx hyperframes@latest transcribe vo.mp3 --json -m small.en`, ~8 min) when the
   key is missing or the API errors. Both write the same flat
   `[{text,start,end}]` transcript.json.
-- **Next:** step 030 — the cue pass reads `transcript.json`
+- **Next:** step 015 maps the segments; 020 and 030 then read `transcript.json`
 
 **Transcript quality pass (before the cue pass, always — plan 149).** Whisper's
 punctuation is a prosody guess, not a proofread, and step 110 burns captions

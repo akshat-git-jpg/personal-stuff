@@ -14,19 +14,45 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
 1. **Pre-flight for ANY LLM pass** (concept, cue, audit or shot): `node lib/feedback-status.mjs`
    must exit 0. Non-zero = unfolded owner feedback = unapplied lessons — run the
    fold first or stop and tell the owner.
-2. **060 feedback-fold is Opus-class ONLY.** If the current session is not
+2. **Close every step in the run ledger, and name steps ONLY by their folder id.**
+   The owner follows a run from the board's Run tab, not the terminal, so a step
+   that is not recorded did not visibly happen. Two rules, both non-negotiable:
+
+   - **Task names are the step folder ids**, verbatim:
+     `030-pick-or-propose-graphics-llm`, never "body cue pass", "cue pass" or
+     "body graphics LLM". The same step must read identically on every video.
+     `node lib/run-log.mjs <slug>` prints the full list.
+   - **Every `-llm` / `-opus` step you run gets closed out** the moment it
+     finishes, before you move on:
+     ```
+     node lib/run-log.mjs <slug> 030 running
+     node lib/run-log.mjs <slug> 030 done \
+       --did "Placed 23 body cues from the catalog, proposed 2 cards that do not exist yet." \
+       --issues "2 W7 bare-stretch warnings in the 3-4 min talking-head stretch, left as-is." \
+       --output "cues.json — 23 cues, 2 marked NEW for step 038"
+     ```
+     `did` and `output` are required; a missing one is refused rather than
+     written half-empty. Omitted `issues` becomes an explicit "none found", so
+     never omit it when there WERE issues. Write plain sentences the owner can
+     read cold, not counts.
+
+   The `-run` steps record themselves through `run.sh`. The three `-human` gates
+   are recorded by the board when the owner approves. You are responsible only
+   for the model-run steps.
+
+3. **130 feedback-fold is Opus-class ONLY.** If the current session is not
    Opus-class, refuse the fold verb and say why.
-3. **Live HeyGen: Avatar III test renders are pre-authorized** (owner rule
+4. **Live HeyGen: Avatar III test renders are pre-authorized** (owner rule
    2026-07-24 — Avatar III unlimited mode is free): sessions may submit
    Avatar III for TESTING without asking each time. Anything metered
    (Avatar IV, generative credits) and production renders stay owner-run —
    explicit ask in THIS conversation. Never submit from a cron. Download is
    safe to re-run.
-4. **`engineMode` stays `"test"`.** Production (HeyGen 4) is a validation error
+5. **`engineMode` stays `"test"`.** Production (HeyGen 4) is a validation error
    by design until the owner flips it.
-5. **Snapshot before owner edits**: after a cue/shot pass converges, copy the
+6. **Snapshot before owner edits**: after a cue/shot pass converges, copy the
    final LLM output to `cues.llm.json` / `shots.llm.json` (committed, immutable).
-6. Never edit RULEBOOK/prompt/DESIGN/catalog/lint constants mid-run — rule
+7. Never edit RULEBOOK/prompt/DESIGN/catalog/lint constants mid-run — rule
    changes go through the 130 fold, not through operating sessions.
 
 ## Verb Map
@@ -62,13 +88,15 @@ Between the gates the session runs unattended: render → avatar renders → cut
 
 | Phrase | `run.sh` verb / CLI | Owner Gate / Behavior |
 |---|---|---|
+| "where are we", "what's the status", "show me the run" | `bash run.sh <slug> status` (or the board's **Run** tab) | reads `run-log.json`; steps with no entry are labelled as inferred |
+| "map the segments", "propose segments" | `bash run.sh <slug> segments` | writes `structure` + `segments`; owner then sets `confirmed: true`. 035 refuses without `structure` |
 | "run v2 graphics", "run the concept pass" | `bash run.sh <slug> concept-pass` | |
 | "run the cue pass" | `bash run.sh <slug> cue-pass` | authors the BODY only |
 | "run the zone pass", "do the intro and outro" | `bash run.sh <slug> zone-pass` | authors the INTRO + CONCLUSION only, own rulebook |
 | "check the cues", "validate the plan" | `bash run.sh <slug> validate` | pre-037; tolerates cards 038 has not built yet |
 | "show me the card plan", "outline the cues" | `bash run.sh <slug> outline` | text view of the 037 plan |
 | "approve the cards", "card plan" | `bash run.sh <slug> card-plan` then `board` | **037 card plan approval** |
-| "build the new cards" | step 038 — see `steps/038-build-cards-llm/README.md` | only when 037 left something NEW |
+| "build the new cards" | step 038 — see `steps/038-build-cards-llm-and-review-human/README.md` | only when 037 left something NEW |
 | "audit the cues" | `bash run.sh <slug> audit` | |
 | "run the shot pass" | `bash run.sh <slug> shot-pass` | |
 | "open my v2 board", "open my storyboard", "final cut review" | `bash run.sh <slug> board` | **080 storyboard approval** or **120 final cut approval** |

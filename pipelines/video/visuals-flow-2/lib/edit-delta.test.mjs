@@ -1,5 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { editDelta, formatDelta, shotsDelta, formatShotsDelta } from './edit-delta.mjs';
 
 test('editDelta: identical files yield zero totals', () => {
@@ -86,4 +90,31 @@ test('formatShotsDelta prints the totals line', () => {
   };
   const formatted = formatShotsDelta(summary);
   assert.match(formatted, /1 edited, 1 added, 1 removed/);
+});
+
+// cues.llm.json is the baseline every later edit is measured against, so it is
+// written once and then left alone. Re-copying it after each fix makes the files
+// identical and the delta reports "0 edited" — indistinguishable from a pass that
+// needed no correction, which is exactly how opusclip-vs-submagic lost the signal
+// for 11 anchor rewrites, 13 register additions and a card swap (2026-07-30).
+test('an overwritten baseline announces itself instead of reporting a clean zero', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'edit-delta-identical-'));
+  const cues = JSON.stringify({ cues: [{ id: 'c01', card: 'x/y', anchor: 'a b c' }] });
+  fs.writeFileSync(path.join(dir, 'cues.json'), cues);
+  fs.writeFileSync(path.join(dir, 'cues.llm.json'), cues);
+
+  const cli = path.join(import.meta.dirname, 'edit-delta.mjs');
+  const r = spawnSync(process.execPath, [cli, dir], { encoding: 'utf8' });
+  assert.equal(r.status, 0, 'it warns, it does not fail the step');
+  assert.match(r.stderr, /measures nothing/i);
+  assert.match(r.stderr, /Snapshot once/i);
+
+  // and stays quiet when the baseline is intact
+  fs.writeFileSync(
+    path.join(dir, 'cues.json'),
+    JSON.stringify({ cues: [{ id: 'c01', card: 'x/y', anchor: 'changed anchor here' }] }),
+  );
+  const ok = spawnSync(process.execPath, [cli, dir], { encoding: 'utf8' });
+  assert.doesNotMatch(ok.stderr, /measures nothing/i);
+  fs.rmSync(dir, { recursive: true, force: true });
 });

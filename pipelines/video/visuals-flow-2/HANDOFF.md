@@ -75,9 +75,10 @@ Caller contract for other pipelines: `INTEGRATION.md`.
 ## State: proven end to end
 
 - **The full flow ran on real content**: test-01, a 32-min "5 AI video tools"
-  comparison (`videos/test-01/`). 010 transcribe → 020 cue pass (Sonnet) →
-  030 resolve → 040 owner board review (two feedback rounds, all folded) →
-  050 render: **18/18 clips rendered 2026-07-18, ffprobe-verified,
+  comparison (`videos/test-01/`). It ran under the pre-2026-07-29 numbering, kept
+  verbatim here because that is what the run logs say: 010 transcribe → 020 cue
+  pass (Sonnet) → 030 resolve → 040 owner board review (two feedback rounds, all
+  folded) → 050 render: **18/18 clips rendered 2026-07-18, ffprobe-verified,
   `manifest.md` written, owner-approved.** Pending only: hand `renders/` +
   `manifest.md` to the human editor and collect their reaction (feeds GFX-06).
 - **010 transcribe**: Groq whisper-large-v3-turbo fast path (22s for 32 min,
@@ -85,29 +86,29 @@ Caller contract for other pipelines: `INTEGRATION.md`.
   wav, extracts vo.mp3 itself, slug-or-path arg. NOTE: test-01's transcript is
   from the LOCAL engine with garbled names ("Heigen"); anchors quote the
   garbles verbatim by design — leave test-01's transcript alone.
-- **020 cue pass**: prompt = `steps/030-pick-or-propose-graphics-llm/cue-pass-prompt.md` +
+- **030 cue pass**: prompt = `steps/030-pick-or-propose-graphics-llm/cue-pass-prompt.md` +
   catalog + transcript. Convention since plan 076: the final LLM output is
   snapshotted to `cues.llm.json` (committed, immutable) BEFORE owner edits —
   `lib/edit-delta.mjs` diffs it against the approved cues.json at fold time.
-  Fix-loop: resolve + lint, errors fed back, ≤3 rounds (020 README).
-- **030 resolve + lint**: anchor matching, schema validation, non-adjacent
+  Fix-loop: resolve + lint, errors fed back, ≤3 rounds (030 README).
+- **040 sync-graphics (resolve + lint)**: anchor matching, schema validation, non-adjacent
   fullframe overlap, cursor past whole anchor phrases. `lib/lint-cues.mjs`
   machine-enforces the rubric: stat-hit cap/spacing, repetition cap
   (structural cards exempt — see catalog `structural: true`), exclusion zones
   as errors; density cadence/count/word-count as warnings.
-- **040 board** (localhost:4322, binds 127.0.0.1, walks ports when taken):
+- **080 board** (localhost:4322, binds 127.0.0.1, walks ports when taken):
   full-script timeline, live card previews, per-block feedback boxes with the
   full lifecycle (`{text, added, context, applied?, folded?}` — folded items
   are read-only history; unload warns on unsaved feedback), lint results in
   the Save banner (dismissable), DOM-overflow badges on tiles, `/calibrate`
   page rendering every beat card at its declared caps. Save resets `approved`
   when cues actually change (key-order-insensitive compare).
-- **050 render**: refuses unapproved (`--force` to override) or stale
+- **090 render**: refuses unapproved (`--force` to override) or stale
   `resolved.json`; staged per-cue renders (data-duration rewrite in a temp
   copy — the ONLY way to set duration), mp4 fullframe / transparent mov
   overlay, ffprobe duration checks, `manifest.md` derived from files on disk
   (so `--only` re-renders never clobber it), pinned hyperframes version.
-- **060 feedback-fold** exercised twice on 2026-07-18: 9 owner items captured →
+- **130 feedback-fold** exercised twice on 2026-07-18: 9 owner items captured →
   applied to test-01 AND folded into rules (see TESTS.md "Folded lessons" +
   "Convergence"). Pre-flight: `node lib/feedback-status.mjs` exits 1 while any
   item is unprocessed — run it before ANY new cue pass.
@@ -115,7 +116,7 @@ Caller contract for other pipelines: `INTEGRATION.md`.
   finale card (gold winner chips); section-counter-scale gained an optional
   logo slot; ALL logos render muted per DESIGN.md's "Tool logos" rule
   (saturate .5, small); section openers carry `structural: true`.
-- **070 shot pass** (avatar phase, landed 2026-07-18): after cue approval,
+- **060 shot pass** (avatar phase, landed 2026-07-18): after cue approval,
   an LLM pass proposes full-screen avatar spans (`shots.json`, anchored like
   cues; snapshot `shots.llm.json`). `lib/resolve-shots.mjs` + `lib/lint-shots.mjs`
   enforce: ≤300s TOTAL full-screen (E4, no force bypass — the owner's hard
@@ -127,13 +128,13 @@ Caller contract for other pipelines: `INTEGRATION.md`.
   blocks are editable JSON + feedback boxes; "Approve graphics" and "Approve
   shots" are separate gates (owner questioned, then kept: one review sitting,
   two flags — editing cues auto-un-approves shots).
-- **080 avatar render**: submit + download verbs over the heygen-web CLI
+- **100 avatar render**: submit + download verbs over the heygen-web CLI
   (HeyGen 3 templates only; `engineMode: "test"` is the only implementable
   mode — production/HeyGen 4 is a validation error until the owner flips it).
   tp-1 anti-ban pacing, idempotent `avatar-jobs.json`, one-attempt downloads,
   `avatar-manifest.md` (separate from manifest.md on purpose — render.mjs
   rewrites that from disk). `--spans-only` skips the corner track.
-- **090 assemble** (plans 082+083, landed 2026-07-18, PRs #39/#40):
+- **110 assemble** (plans 082+083, landed 2026-07-18, PRs #39/#40):
   deterministic final-video build — screen recording base track (VO-aligned,
   `videos/<slug>/screen.mp4`, owner-provided, gitignored), avatar spans +
   fullframe graphics swapped in at exact times, overlays composited INSIDE the
@@ -175,15 +176,16 @@ control lives in `videos/<slug>/effects.json` (regenerate:
 
 ## Model routing (owner-decided, do not re-litigate)
 
-- 020 cue pass: Sonnet (agy/Gemini approved as a free alternate to trial).
-- 070 shot pass: Sonnet-class or better, run in-session via the `visuals-flow`
-  skill (pilot ran on Fable 2026-07-18; it's form-filling like 020).
-- 080 avatar submits: LIVE HeyGen, owner-run only, owner names the template
+- 030 cue pass (body) and 035 zone pass: Sonnet (agy/Gemini approved as a free
+  alternate to trial).
+- 060 shot pass: Sonnet-class or better, run in-session via the `visuals-flow-2`
+  skill (pilot ran on Fable 2026-07-18; it's form-filling like 030).
+- 100 avatar submits: LIVE HeyGen, owner-run only, owner names the template
   slug (pilot: `girl-1`). HeyGen 3 only — the heygen-web hard rule.
-- Novel-card authoring + card redesigns: Opus-class. Antigravity only under
+- 038 card building + card redesigns: Opus-class. Antigravity only under
   the recorded render-plus-visual-inspection mitigation (the root decisions.md,
   entries tagged (visuals-flow, owner), 2026-07-07).
-- **060 feedback-fold: Opus-class ONLY.** Trigger: owner says "fold the feedback".
+- **130 feedback-fold: Opus-class ONLY.** Trigger: owner says "fold the feedback".
 - Plan execution (boss): default agy per `tooling/boss/data/rules.md`;
   claude-p sonnet for taste-judged/tricky. Visual output always rendered and
   inspected before landing.
@@ -242,7 +244,7 @@ brainstorms.** Standing next steps in priority order:
    FLASH_GAIN/TRANSITION_DUR in whip.mjs + EFFECTS.md row); (b) cuts TO the
    host now instant + no zoom-ins on short host clips — the D3 VETO window
    (revert = 2 commits, plan 101); (c) orange keyword words in captions.
-   Feedback via board boxes or plain chat → 060 fold. Per-instance kills:
+   Feedback via board boxes or plain chat → 130 fold. Per-instance kills:
    `videos/test-01/effects.json` (still `approved:false` — approving it on the
    board retires the `--force` on exports). The 1080p ship render is one
    command away (`bash steps/110-build-video-run/run.sh test-01`, no --draft;
@@ -282,7 +284,7 @@ brainstorms.** Standing next steps in priority order:
    not a new pass.
 6. **Global play-through on the board** (`GFX-08`, owner-deferred).
 7. **agy cue-pass trial** (`GFX-11`): unblocked — lint is the objective rubric half.
-8. **Density calibration**: not a task; the 060 fold loop + Convergence
+8. **Density calibration**: not a task; the 130 fold loop + Convergence
    metrics do this across the first few real videos.
 9. **Aesthetic visual QC beyond overflow** (`GFX-10`): open problem, revisit
    only with a cheap mechanism.
@@ -295,27 +297,38 @@ brainstorms.** Standing next steps in priority order:
 cd pipelines/video/visuals-flow-2
 node lib/feedback-status.mjs                       # MUST exit 0 before any new cue pass
 bash steps/010-transcribe-run/run.sh <slug-or-path>
-node lib/segments.mjs <slug> --propose             # 015: proposes segments.json; MUST set confirmed: true
+bash run.sh <slug> segments                        # 015: needs src/{intro,body,conclusion}.mp4;
+#      writes structure + segments. MUST then set confirmed: true by hand.
+#      Read its stderr: an "entirely OUTSIDE this cut" warning means a part you
+#      recorded will not reach the video (steps/015-map-segments-run/README.md)
 node lib/plan-skeleton.mjs <slug>                  # emits the {{SKELETON}} placement grid for the prompt
-# 020: Sonnet session with steps/030-pick-or-propose-graphics-llm/cue-pass-prompt.md (the prompt only;
-#      RULEBOOK.md is the 060 fold's archive). Fill placeholders with catalog.json +
+# 020: concept pass -> concept.json (bash run.sh <slug> concept-pass prints the prompt recipe)
+# 030: Sonnet session with steps/030-pick-or-propose-graphics-llm/cue-pass-prompt.md (the prompt only;
+#      RULEBOOK.md is the 130 fold's archive). Fill placeholders with catalog.json +
 #      `node lib/transcript-text.mjs <slug>` output (never raw transcript.json)
-#      -> videos/<slug>/cues.json, then snapshot to cues.llm.json after the
-#      fix-loop converges
-node lib/resolve.mjs <slug>
-node lib/lint-cues.mjs <slug>                      # errors -> feed back to 020, <=3 rounds
+#      -> videos/<slug>/cues.json BODY cues, then snapshot to cues.llm.json after
+#      the fix-loop converges
+# 035: zone pass, own rulebook -> intro + conclusion cues appended to cues.json.
+#      Needs segments.json's structure block; refuses without it
+bash run.sh <slug> validate                        # pre-037; tolerates cards 038 has not built yet
+bash run.sh <slug> card-plan && bash run.sh <slug> board   # HUMAN GATE 1 (037): approve every card,
+#      body and zones, EXISTING or NEW. `outline` prints the same plan as text
+# 038: build whatever 037 left NEW -> card-library, committed AND pushed.
+#      Skip when nothing is NEW. Procedure: steps/038-build-cards-llm-and-review-human/README.md
+node lib/resolve.mjs <slug>                        # 040 sync-graphics
+node lib/lint-cues.mjs <slug>                      # errors -> feed back to 030/035, <=3 rounds
 node lib/board.mjs [<slug>]                        # review at :4322, Save/Approve (+ /calibrate)
-node lib/render.mjs <slug> [--quality draft]       # refuses unapproved/stale; --force exists
+node lib/render.mjs <slug> [--quality draft]       # 090; refuses unapproved/stale; --force exists
 node lib/edit-delta.mjs <slug>                     # owner-edit diff for the fold
-# 070 (after cues approved): Sonnet session with steps/060-place-avatar-llm/shot-pass-prompt.md
+# 060 (after cues approved): Sonnet session with steps/060-place-avatar-llm/shot-pass-prompt.md
 #      (the prompt only). Inputs: fullframe cue times + `node lib/transcript-text.mjs <slug>`
 #      output -> videos/<slug>/shots.json, snapshot shots.llm.json
 node lib/resolve-shots.mjs <slug>                  # anchors -> shots.resolved.json
-node lib/lint-shots.mjs <slug>                     # budget/overlap/U-curve; errors -> back to 070
-#      then board: review shot lane, "Approve shots"
+node lib/lint-shots.mjs <slug>                     # budget/overlap/U-curve; errors -> back to 060
+#      then board: HUMAN GATE 2 (080) review shot lane, "Approve shots"
 bash steps/100-render-avatar-run/run.sh <slug> --template <registry-slug> --submit [--spans-only]  # OWNER-RUN (live HeyGen; --spans-only skips the corner track)
 bash steps/100-render-avatar-run/run.sh <slug> --download                            # re-run until no "pending:"
-# 090 (needs videos/<slug>/screen.mp4, VO-aligned, owner-provided):
+# 110 (needs videos/<slug>/screen.mp4, VO-aligned, owner-provided):
 bash steps/110-build-video-run/run.sh <slug> [--draft] [--encoder x264|videotoolbox]    # -> kb-scratch final.mp4 (+ assembly.md EDL); --draft = 720p final-draft.mp4
 bash steps/140-davinci-export-run/run.sh <slug> [--baked] [--bundle]   # -> native layered editor project (default) or baked WYSIWYG (--baked)
 bash scripts/qc-video.sh <slug> [--final]          # -> kb-scratch qc/ pack; then READ the sheets (skill verb "qc the video")

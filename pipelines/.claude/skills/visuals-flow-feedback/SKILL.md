@@ -1,6 +1,6 @@
 ---
 name: visuals-flow-feedback
-description: Close the loop on owner feedback for a visuals-flow-2 video — ingest every feedback source, root-cause each item, answer the owner's questions, discuss the solve, then present ONE summary for approval; only after approval apply durable fixes and re-cut. Wraps the 060 feedback-fold step. Triggers on "feedback is done", "I'm done with feedback", "I've finished reviewing", "fold my feedback", "process my feedback", "done with the final cut review", "/visuals-flow-feedback".
+description: Close the loop on owner feedback for a visuals-flow-2 video — ingest every feedback source, root-cause each item, answer the owner's questions, discuss the solve, then present ONE summary for approval; only after approval apply durable fixes and re-cut. Wraps the 130 feedback-fold step. Triggers on "feedback is done", "I'm done with feedback", "I've finished reviewing", "fold my feedback", "process my feedback", "done with the final cut review", "/visuals-flow-feedback".
 ---
 
 # visuals-flow-feedback — the feedback conversation
@@ -9,14 +9,14 @@ Run everything from `pipelines/video/visuals-flow-2/`.
 
 The owner reviews a cut and leaves comments. This skill turns those comments into
 **durable rule changes plus a new cut**, through a conversation rather than a
-silent batch. The 060 step (`steps/060-feedback-fold-opus/README.md`) stays the
+silent batch. The 130 step (`steps/130-learn-from-feedback-opus/README.md`) stays the
 authority on *which surface owns a lesson*; this skill owns the conversation
-around it and calls that procedure as its execution phase. Never restate 060's
+around it and calls that procedure as its execution phase. Never restate 130's
 surface-routing table here — read it at execute time so the two cannot drift.
 
 ## Hard gates (check before anything)
 
-1. **Opus-class only.** 060 is an Opus-class step by owner decision (2026-07-18):
+1. **Opus-class only.** 130 is an Opus-class step by owner decision (2026-07-18):
    folding feedback into durable rules is judgment work. If the current session
    is not Opus-class, say so and stop.
 2. **Never skip the discussion.** Phases 2–4 are the point of this skill. Do not
@@ -36,7 +36,7 @@ Never work from the board alone; three of the four sources are silent.
 | Board comments | `node lib/feedback-status.mjs` (exit 1 = pending items) | Primary. Items carry `t` (timestamp) and sometimes `image` (a pinned screenshot — **open it**, it usually names the card). |
 | Template notes | `../card-library/card-notes.json` | The gallery's per-card Notes queue. Only act on notes with `done: false`. |
 | Chat feedback | this conversation | Anything the owner said directly instead of typing on the board. Easy to lose — write it into the Phase 4 summary like any other item. |
-| Implicit edits | `node lib/edit-delta.mjs <slug>` | 060's rule: the SAME kind of hand-edit 3+ times is a feedback item worth folding; one-off edits are instance fixes needing no rule. |
+| Implicit edits | `node lib/edit-delta.mjs <slug>` | 130's rule: the SAME kind of hand-edit 3+ times is a feedback item worth folding; one-off edits are instance fixes needing no rule. |
 
 Then **map every item to what it actually points at**. Board comments are
 timestamp-keyed, not cue-keyed, so:
@@ -77,8 +77,8 @@ Recurring root-cause shapes in this pipeline — check these before inventing a 
 theory:
 
 - **Computed on one surface, never consumed on the next.** Found four times on
-  2026-07-25 alone (register transitions dropped at assemble; the 035 audit gate
-  reading `resolved.cues` when resolve writes `resolved`; `resolvedKind` computed
+  2026-07-25 alone (register transitions dropped at assemble; the audit gate, now
+  050, reading `resolved.cues` when resolve writes `resolved`; `resolvedKind` computed
   for panel while avatar-render hardcodes `avatar-full`; `register` linted but
   never merged into card variables). If a field exists, grep for its *consumer*.
 - **Generated artifact stale vs its source.** `cue-pass-prompt.md` is generated
@@ -99,7 +99,7 @@ them directly** — those questions are part of the deliverable, not noise aroun
 Then propose the solve per item and let the owner push back. Bring:
 
 - the root cause in one sentence;
-- the surface you propose to change, and why that one (060's table decides);
+- the surface you propose to change, and why that one (130's table decides);
 - anything you cannot fix and why;
 - any place two owner instructions conflict — surface it, do not silently pick.
 
@@ -128,7 +128,7 @@ End by asking for approval to proceed. Stop. Do not edit files yet.
 
 ## Phase 5 — Execute (only after approval)
 
-Follow `steps/060-feedback-fold-opus/README.md` for surface routing. On top of it:
+Follow `steps/130-learn-from-feedback-opus/README.md` for surface routing. On top of it:
 
 ### Mark BOTH files, or the gate lies
 

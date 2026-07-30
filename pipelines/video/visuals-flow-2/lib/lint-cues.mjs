@@ -54,7 +54,9 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
   const segments = segmentsData?.segments || [];
   const confirmed = segmentsData?.confirmed ?? false;
   if (!segmentsData) {
-    warnings.push(`W7 no-segment-map: no segments.json — cadence rules assume the whole video is narration; run 'node lib/segments.mjs <slug> --propose'`);
+    // W20, not W7: `W7 bare-stretch` below is a different check, and the fold
+    // routes lessons by code. Two checks sharing a code route to one rulebook.
+    warnings.push(`W20 no-segment-map: no segments.json — cadence rules assume the whole video is narration; run step 015 ('bash run.sh <slug> segments')`);
   }
 
   const kindAt = (t) => (segments.find(s => t >= s.start && t < s.end) ?? {}).kind ?? 'narration';

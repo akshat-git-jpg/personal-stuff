@@ -4,8 +4,8 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 
 # Do NOT add an --all or all step. The chain has three human gates
 # (037 card plan, 080 storyboard, 120 final cut), an Opus-only fold at 130,
-# and live HeyGen at 100
-# and a driver that walks past them would be actively dangerous.
+# and live HeyGen at 100, and a driver that walks past them would be
+# actively dangerous.
 
 usage() {
   cat <<EOF
@@ -33,6 +33,7 @@ Steps:
   shot-pass
   shots
   avatar
+  avatar-download
   cut
   assemble
   export
@@ -52,6 +53,48 @@ fi
 
 slug="$1"
 step="$2"
+
+# Record a deterministic step into videos/<slug>/run-log.json as it runs, so the
+# board's Run tab and `status` can say what happened without anyone reading the
+# terminal. The `did`/`output` strings are fixed because a script does the same
+# thing every time; `issues` is scraped from the step's own output, so a run that
+# printed warnings never gets filed as clean.
+#
+# Ledger writes must never take a step down: every call is `|| true`.
+record() {
+  node lib/run-log.mjs "$slug" "$@" >/dev/null 2>&1 || true
+}
+
+# record_step <step-number> <did> <output> -- <command...>
+record_step() {
+  local num="$1" did="$2" out="$3"
+  shift 3
+  [[ "${1:-}" == "--" ]] && shift
+
+  record "$num" running
+
+  local logfile rc issues
+  logfile="$(mktemp)"
+  # tee keeps the output live in the terminal while capturing it; PIPESTATUS[0]
+  # is the real exit code, which `set -o pipefail` alone would not give us here.
+  set +e
+  "$@" 2>&1 | tee "$logfile"
+  rc="${PIPESTATUS[0]}"
+  set -e
+
+  issues="$(grep -aiE '^[[:space:]]*(W[0-9]+|E[0-9]+|warn|warning|error)' "$logfile" | head -5 | tr '\n' ' ' | cut -c1-500)"
+  if [[ "$rc" -eq 0 ]]; then
+    if [[ -n "$issues" ]]; then
+      record "$num" done --did "$did" --output "$out" --issues "$issues"
+    else
+      record "$num" done --did "$did" --output "$out"
+    fi
+  else
+    record "$num" blocked --issues "${issues:-exited $rc, see terminal}"
+  fi
+  rm -f "$logfile"
+  return "$rc"
+}
 
 case "$step" in
   status)
@@ -93,6 +136,13 @@ case "$step" in
       shots_approved=$(node -e "const s=require('./videos/$slug/shots.json');console.log(s.approved?'approved':'NOT approved')")
     fi
 
+    # The ledger first: what each step did, from run-log.json. Steps with no
+    # entry fall back to probing the artifacts and are labelled as inferred, so
+    # a video that ran before the ledger existed still reads correctly.
+    # The board's Run tab renders this same view — one source, no disagreement.
+    node lib/run-log.mjs "$slug"
+    echo
+
     echo "artifact          status"
     echo "--------          ------"
     echo "transcript.json   $transcript_present"
@@ -128,17 +178,20 @@ case "$step" in
     ;;
 
   transcribe)
-    bash steps/010-transcribe-run/run.sh "$slug"
+    record_step 010 "Transcribed the voiceover to word-level timestamps and ran the quality pass." \
+      "transcript.json" -- bash steps/010-transcribe-run/run.sh "$slug"
     ;;
 
   segments)
     # Writes segments.json INCLUDING the measured intro/body/conclusion spans
     # (`structure`), read from src/. Without those the zone pass at 035 has
     # nothing to author against. Set `confirmed: true` in the file afterwards.
-    node lib/segments.mjs "$slug" --propose
+    record_step 015 "Measured the intro/body/conclusion spans from src/ and proposed the demo vs narration split." \
+      "segments.json (still needs confirmed: true)" -- node lib/segments.mjs "$slug" --propose
     ;;
 
   concept-pass)
+    record 020 running
     cat <<EOF
 020 is an LLM step, not a command. Assemble the prompt:
   1. steps/020-choose-concept-llm/concept-pass-prompt.md   (the prompt; fill its placeholders)
@@ -150,6 +203,7 @@ EOF
     ;;
 
   cue-pass)
+    record 030 running
     cat <<EOF
 030 is an LLM step, not a command. It authors the BODY only.
 Assemble the prompt:
@@ -166,6 +220,7 @@ EOF
     ;;
 
   zone-pass)
+    record 035 running
     cat <<EOF
 035 is an LLM step, not a command. It authors the INTRO and CONCLUSION only,
 against their own rulebook (lib/zone-rules.mjs + lib/zone-constants.mjs).
@@ -189,7 +244,11 @@ EOF
     ;;
 
   resolve)
-    node lib/resolve.mjs "$slug" && node lib/lint-cues.mjs "$slug"
+    # Kept as a function so the command reads literally, both here and to the
+    # grep in scripts/test-run-sh.sh that pins it.
+    do_resolve() { node lib/resolve.mjs "$slug" && node lib/lint-cues.mjs "$slug"; }
+    record_step 040 "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint." \
+      "resolved.json" -- do_resolve
     ;;
 
   stillness)
@@ -197,6 +256,7 @@ EOF
     ;;
 
   audit)
+    record 050 running
     cat <<EOF
 050 is an LLM step, not a command. Assemble the prompt:
   1. steps/050-review-graphics-llm/audit-prompt.md     (the prompt; fill its placeholders)
@@ -226,10 +286,12 @@ EOF
     ;;
 
   render)
-    bash steps/090-render-graphics-run/run.sh "$slug"
+    record_step 090 "Rendered every approved cue to a clip and wrote the editor manifest." \
+      "renders/ + manifest.md" -- bash steps/090-render-graphics-run/run.sh "$slug"
     ;;
 
   fold)
+    record 130 running
     node lib/feedback-status.mjs
     echo "130 is an Opus-class step. Proceed manually."
     exit 0
@@ -244,6 +306,7 @@ EOF
     ;;
 
   shot-pass)
+    record 060 running
     cat <<EOF
 060 is an LLM step, not a command. Assemble the prompt:
   1. steps/060-place-avatar-llm/shot-pass-prompt.md (the prompt; fill its placeholders)
@@ -261,7 +324,8 @@ EOF
     ;;
 
   avatar)
-    bash steps/100-render-avatar-run/run.sh "$slug"
+    record_step 100 "Submitted or downloaded the HeyGen avatar clips for the approved shot spans." \
+      "avatar-jobs.json + avatar clips in kb-scratch" -- bash steps/100-render-avatar-run/run.sh "$slug"
     ;;
 
   cut)
@@ -275,20 +339,48 @@ EOF
       echo "shots approved but avatars not rendered — cutting without avatar"
     fi
     echo "Running cut..."
-    bash steps/090-render-graphics-run/run.sh "$slug" || { echo "render failed"; exit 1; }
+    # Graphics render FIRST, on purpose. If avatar jobs are already submitted,
+    # HeyGen is rendering them server-side this whole time, so the local CPU
+    # work and the remote wait overlap instead of running one after the other.
+    # Submitting stays an explicit owner action (`run.sh <slug> avatar --submit`);
+    # this only stops you idling while it happens.
+    record_step 090 "Rendered every approved cue to a clip and wrote the editor manifest." \
+      "renders/ + manifest.md" -- bash steps/090-render-graphics-run/run.sh "$slug" \
+      || { echo "render failed"; exit 1; }
     node lib/effects-plan.mjs "$slug" || { echo "effects-plan failed"; exit 1; }
     node lib/sound/sfx-plan.mjs "$slug" || { echo "sfx-plan failed"; exit 1; }
     node lib/sound/build-mix.mjs "$slug" || { echo "build-mix failed"; exit 1; }
-    bash steps/110-build-video-run/run.sh "$slug" --draft || { echo "assemble failed"; exit 1; }
+
+    # Collect whatever HeyGen finished while the graphics were rendering.
+    # Downloading is idempotent and free, so a re-run is always safe.
+    if [[ -f "videos/$slug/avatar-jobs.json" ]]; then
+      echo "collecting avatar clips (HeyGen rendered these while the graphics did)..."
+      bash steps/100-render-avatar-run/run.sh "$slug" --download || \
+        echo "warning: some avatar clips are still pending — re-run: run.sh $slug avatar-download"
+    fi
+
+    record_step 110 "Assembled the screen recording, graphics, avatar clips and mastered audio into a draft cut." \
+      "final-draft.mp4 + assembly.md" -- bash steps/110-build-video-run/run.sh "$slug" --draft \
+      || { echo "assemble failed"; exit 1; }
     echo "Final Cut URL: http://localhost:8080/ (or equivalent board URL) - Check the Final Cut tab!"
     ;;
 
+  avatar-download)
+    # Split out so the overlap is a named thing: submit, go do other work, then
+    # collect. Safe to re-run until nothing is pending.
+    record_step 100 "Downloaded the finished HeyGen avatar clips." \
+      "avatar clips in kb-scratch + avatar-manifest.md" \
+      -- bash steps/100-render-avatar-run/run.sh "$slug" --download
+    ;;
+
   assemble)
-    bash steps/110-build-video-run/run.sh "$slug"
+    record_step 110 "Assembled the screen recording, graphics, avatar clips and mastered audio into the cut." \
+      "final.mp4 + assembly.md" -- bash steps/110-build-video-run/run.sh "$slug"
     ;;
 
   export)
-    bash steps/140-davinci-export-run/run.sh "$slug"
+    record_step 140 "Exported the layered timeline for DaVinci." \
+      "FCPXML timeline" -- bash steps/140-davinci-export-run/run.sh "$slug"
     ;;
 
   qc)

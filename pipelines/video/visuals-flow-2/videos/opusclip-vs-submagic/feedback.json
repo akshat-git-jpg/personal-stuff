@@ -1,0 +1,40 @@
+{
+  "items": {
+    "zone-intro:1": {
+      "zone": "intro",
+      "text": "The new template built for this slot was not intuitive \u2014 it was complicated to follow. A viewer could not tell at a glance what it was showing: the source tile, the two rails, the travelling clones and the condition chips all had to be pieced together before the point landed. The lesson is about legibility, not about card count or about whether to commission cards: a newly built template has to read INSTANTLY, on one viewing, with no audio. If it needs the viewer to work out how to read it, it fails regardless of how well it maps to the clause. Proposing a new card stays a first-class outcome; this particular one was not followable.",
+      "added": "2026-07-29",
+      "context": {
+        "cue": "z05",
+        "card": "enacted/same-input-split"
+      },
+      "folded": true,
+      "resolution": "card-library/DESIGN.md \u2014 new-card checklist item 7 now requires the mute test answered FROM A RENDERED FRAME, and a new section explains that lint/card-qa/check-type-scale all pass on a card nobody can follow. Deliberately NOT routed to the zone rulebook: the lesson is about how a card is BUILT, and the body pass proposes cards too, so the zone rulebook would have hidden it from half the pipeline."
+    },
+    "_global:player": {
+      "text": "Could not play the video on the per-cue player \u2014 it showed 0:00 / 0:00. Root cause: the board serves per-cue audio from videos/<slug>/slices/<cueId>.mp3 and builds those at boot only when resolved.json is present. Gate 1 (037) has to be reviewed BEFORE 040 exists, so the board was started without resolved.json, booted in card-plan-only mode, and never sliced. Restarting after 040 produced all 39 slices. Nothing was wrong with the player; it was rendering a dead <audio> element with no way to say so.",
+      "added": "2026-07-30",
+      "folded": true,
+      "resolution": "No rule change. Instance cause: the board was started before resolved.json existed (Gate 1 requires it pre-040), so it booted in card-plan-only mode and never built slices. Restarting after 040 produced all 39. Noted here so the next session recognises 0:00/0:00 as \"restart the board\", not a broken player."
+    },
+    "_global:logo-on-every-graphic": {
+      "text": "Standing preference: every motion graphic should carry a colour logo, image or icon \u2014 not text alone. Raised against enacted/spotlight-focus, which named OpusClip and Submagic as bare text with no marks. Survey: 39 of 52 fullframe cards in the catalog are text-only; only 13 accept a logo slug.",
+      "added": "2026-07-30",
+      "folded": true,
+      "resolution": "card-library/DESIGN.md \u2014 new section \"A graphic carries a mark, not text alone\" plus checklist item 6. Templates changed: enacted/spotlight-focus and enacted/race-bars now accept productLogos[] (index-aligned, a shape logos-inline.mjs already inlines) and render the colour mark; z11/z12 cues updated and verified through the render path. Remaining debt recorded in DESIGN.md: 39 of 52 fullframe cards are text-only, which is a sweep, but no NEW card may be added text-only."
+    },
+    "_global:cta-copy-constant": {
+      "text": "pls dont make link in descirption, subscribe related teampltes - text dynamic. lets keep it constant and simple..",
+      "added": "2026-07-30",
+      "folded": true,
+      "resolution": "The ask is identical in every video, so a per-cue text variable bought nothing and invited drift between cues (this video had 'Both tools linked in the description' on one cue and 'Link in description' on another). Copy is now baked into all three CTA cards: link-scrim 'Links in the description', link-in-description 'Link in description', like-subscribe 'Subscribe'. Machine-enforced rather than prose: all three catalog entries now declare variables:{} so the resolver rejects any authored copy. link-scrim's `kicker` was a second authored line and its element, CSS, render lines and tween were removed rather than left as an unreachable branch. Misleading '--variables' override comments in the card headers corrected. R_LINK_CTA in lib/cue-rules.mjs now states CTA cards carry NO variables, and cue-pass-prompt.md regenerated so the pass actually sees it."
+    },
+    "_global:overflow-not-gated": {
+      "text": "why was this overflow issue not fixed. this card looks bad. more than fix - i want rca why this was not auotmaltically fixed and hiw to avoid this long term",
+      "added": "2026-07-30",
+      "folded": true,
+      "resolution": "RCA, three independent gaps \u2014 the defect needed all three. (1) THE PROBE IS A BADGE, NOT A GATE. The overflow measurement lives entirely inside board.mjs as client-side JS in the preview iframe (measures against W=1920 H=1080 TOL=2, posts __overflow, paints a red badge). Grepped for consumers: none. So the pipeline DETECTS the clipping and ships it anyway; it is caught only if a human happens to look at that tile. Same shape decisions.md logs four times on 2026-07-25: computed on one surface, never consumed on the next. (2) card-qa TESTS THE CARD, NEVER THE CUE. It renders each card's own min/max variants from declared capacity \u2014 synthetic content. It never saw title='Submagic: Straight To Posted' with a 3-node vertical chain, so the card was certified 'no clipping at max' while the real cue overflowed. (3) THE VARIANT ROTATION MOVED THE GOALPOSTS AFTER THE COPY WAS WRITTEN. resolve.mjs:361 rotates variants by use count; pipeline-flow is used 3x so c17 got variant b (vertical, least vertical headroom) while z05/c19 stayed on a. The cue pass wrote a 4-word title against a's horizontal layout, the resolver silently swapped the layout, and nothing re-checked fit. `title` had no max_words at all, so no cap could reject it. FIXED: catalog now caps pipeline-flow title at max_words 3 (variant b's real limit) \u2014 proven to bite, it rejected all three existing titles at 040 before I shortened them; titles are now 'Both Tools Promise' / 'Straight To Posted' / 'The Cleanup Lap', frame-verified at 1920x1080 in variant b. DESIGN.md gains 'Declared capacity is the TIGHTEST variant's capacity'. STILL OPEN (architectural, needs a plan not an inline hack): promote the board's overflow probe into a headless per-cue gate that runs against resolved.json at each beat time and fails 040/090. The measurement is DOM-based so it needs a browser, but card-qa already renders headlessly, so the machinery exists. Until that lands, overflow on REAL cue content is caught by eye only."
+    }
+  },
+  "updated": "2026-07-30"
+}

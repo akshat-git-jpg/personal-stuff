@@ -54,3 +54,28 @@ grep -q 'bash scripts/qc-video.sh "$slug"' run.sh || fail "missing qc command"
 grep -q 'bash steps/110-build-video-run/run.sh "$slug" --draft' run.sh || fail "missing cut command"
 
 echo "run.sh test OK"
+
+# A session verb hands out a prompt; there is no process for record_step to wrap,
+# so the verb itself must file the step as running. Without this the `running`
+# state depends on the model remembering, which is how five steps of real work
+# ended up with no ledger entry at all.
+tmpwd=$(mktemp -d)
+bash run.sh "$tmpwd" cue-pass >/dev/null
+grep -q '"030-pick-or-propose-graphics-llm"' "$tmpwd/run-log.json" \
+  || fail "cue-pass must record 030 in the ledger"
+grep -q '"status": "running"' "$tmpwd/run-log.json" \
+  || fail "cue-pass must record 030 as running"
+for v in concept-pass zone-pass audit shot-pass; do
+  grep -qE "^    record [0-9]{3} running$" <(sed -n "/^  $v)\$/,+1p" run.sh) \
+    || fail "$v must record its step as running"
+done
+rm -rf "$tmpwd"
+
+# ...but never into the pipeline root: this harness drives verbs with slug "." and
+# resolveWorkdir(".") is the root, so an unguarded write litters a run-log.json
+# beside run.sh that records nothing and is not gitignored.
+rm -f run-log.json
+bash run.sh . cue-pass >/dev/null
+[[ -f run-log.json ]] && { rm -f run-log.json; fail "run.sh . cue-pass must not write run-log.json into the pipeline root"; }
+
+echo "run.sh session-ledger tests OK"

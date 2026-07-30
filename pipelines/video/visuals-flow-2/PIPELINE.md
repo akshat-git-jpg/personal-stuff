@@ -14,13 +14,13 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | Step | Actor | In → Out |
 |---|---|---|
 | `010-transcribe-run` | [RUN] + quality pass [RUN/LLM] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) + optional `script.txt` → `transcript.json` (word timestamps, cleaned — never raw ASR punctuation; script-first alignment when `script.txt` exists, else an LLM cleanup pass, both gated by `checkTimingIntegrity()`) |
-| `015-segments-propose` | [RUN] | `transcript.json` → `segments.json` (demo vs narration segments) |
-| `020-choose-concept-llm` | [LLM] | `transcript.json` → `concept.json` (gate `lint-concept`) |
+| `015-map-segments-run` | [RUN] | `transcript.json` + `src/*.mp4` → `segments.json` (measured intro/body/conclusion `structure` + demo vs narration `segments`; owner sets `confirmed: true`, which promotes lint E5 from warning to error) |
+| `020-choose-concept-llm` | [LLM] | `transcript.json` + `segments.json` → `concept.json` (gate `lint-concept` — required fields, anchors resolving in forward order, and ≥80% **narration** coverage by the register map; `segments.json` is what narration time is measured from) |
 | `plan-skeleton` | [RUN] | `transcript.json` + `segments.json` → deterministic placement grid (the `{{SKELETON}}` prompt variable) |
 | `030-pick-or-propose-graphics-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json`, **BODY ONLY**. Picks from the catalog OR proposes a card that should exist (approved at 037, built at 038) |
 | `035-pick-or-propose-intro-outro-llm` | [LLM] (pluggable) | `transcript.json` + `catalog.json` + `segments.json`'s `structure` → zone cues in `cues.json`, each carrying a `zone` field. Own rulebook (`lib/zone-rules.mjs`) and own numbers (`lib/zone-constants.mjs`) — nothing shared with the body pass |
 | `037-approve-card-plan-human` | [OWNER] | `cues.json` + `catalog.json` → `card-plan.json` (**REVIEW 1: Card Plan**. Every card the video uses — body AND zones — marked EXISTING or NEW-to-build, approved before anything is built or rendered. Reads `cues.json`, not `resolved.json`, so an unbuilt card is visible. Per-card and per-section notes write `zone-*` / `card-body:*` items into `feedback.json`, routed to the matching rulebook and never across) |
-| `038-build-cards-llm` | [LLM] (Sonnet) | approved NEW proposals → new cards in `card-library/<type>/<name>/` + `catalog.json` entries, committed and pushed. Skipped when nothing is NEW. Procedure lives in `card-library/CLAUDE.md` |
+| `038-build-cards-llm-and-review-human` | [LLM] (Sonnet) + [OWNER] | approved NEW proposals → new cards in `card-library/<type>/<name>/` + `catalog.json` entries, committed and pushed. Skipped when nothing is NEW. **Then the owner reviews the built card**: landing it flips its plan item `new` → `existing`, which resets the 037 approval by design, so a card nobody has looked at cannot reach 090. Procedure lives in `card-library/CLAUDE.md` |
 | `040-sync-graphics-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9, and the zone bar W15/W16/W17/W19) |
 | `050-review-graphics-llm` | [LLM] | `resolved.json` → `audit.json` (mute test) |
 | `060-place-avatar-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel) |
@@ -35,16 +35,16 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `130-learn-from-feedback-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
 | `140-davinci-export-run` | [RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)] | same inputs as 110 → layered FCPXML + music/sfx lanes + panel transforms |
 | qc (`scripts/qc-video.sh`) | [RUN] + [LLM read] | `final(-draft).mp4` + `assembly.md` + `effects.json` → kb-scratch `qc/` pack (checklist + event contact sheets) → session-read verdicts in committed `qc-report.md` |
+| **publish templates** | [RUN] | once the video is done: `cd ../card-library && npm run publish-check` → fails on any card built for this video that is uncommitted or unpushed. Cards only reach the editor's gallery at render2.agrolloo.com once pushed (VPS `repo-sync` cron, ~15 min). See `card-library/CLAUDE.md`. |
 
 **Step history:**
 - 2026-07-29 — steps renumbered and renamed to say what they do (`place graphics` → `pick or propose graphics`, `resolve` split into `sync-graphics` and `davinci-export`, `owner` → `human`).
-- 2026-07-30 — `037-approve-card-plan-human` added and `070-approve-intro-outro-human` removed: the zone-only gate became one gate over the whole video's cards. `038-build-cards-llm` added. The `bespoke` card path was removed entirely — every new card now goes to the shared catalog.
+- 2026-07-30 — `037-approve-card-plan-human` added and `070-approve-intro-outro-human` removed: the zone-only gate became one gate over the whole video's cards. `038-build-cards-llm-and-review-human` added. The `bespoke` card path was removed entirely — every new card now goes to the shared catalog.
+- 2026-07-30 — `015-map-segments-run` given a folder. The stage always existed as `lib/segments.mjs --propose`, but this table named a folder (`015-segments-propose`) that was never on disk, so its owner action (`confirmed: true`) and its outside-the-cut warning were documented nowhere a step reader would look.
 
 (The previous old→new mapping table lived here and was destroyed by two rounds of
 automated renaming rewriting both of its columns; git history is the reliable
 record. Do not reintroduce a table that a path-rename sweep will silently corrupt.)
-
-| **publish templates** | [RUN] | once the video is done: `cd ../card-library && npm run publish-check` → fails on any card built for this video that is uncommitted or unpushed. Cards only reach the editor's gallery at render2.agrolloo.com once pushed (VPS `repo-sync` cron, ~15 min). See `card-library/CLAUDE.md`. |
 
 ### The entry point
 
@@ -57,7 +57,7 @@ Each `steps/NNN-*/` folder has a `README.md` that remains the detailed reference
 
 ## What v2 adds over v1
 
-- **A. Doctrine port + concept pre-pass**: core idea, motif, register map enforced by machine lint (spec [docs/specs/2026-07-24-visuals-flow-v2-design.md](../../docs/specs/2026-07-24-visuals-flow-v2-design.md)).
+- **A. Doctrine port + concept pre-pass**: core idea, motif, register map enforced by machine lint (spec [docs/specs/2026-07-24-visuals-flow-v2-design.md](../../../docs/specs/2026-07-24-visuals-flow-v2-design.md)).
 - **B. Enacted-device card family**: ~12 new cards that *do* ideas (fill, race, stack). The flywheel is steps 037→038: a pass proposes the card it wants, the owner approves it, it is built into the shared collection, and every later video can use it.
 - **C. Coverage fix + motion density**: no more orange screen via `extendExposure` + gap filler; always-on karaoke captions and motif.
 - **D. Selection quality**: mute-test self-audit catches bad card picks before render.
@@ -77,28 +77,29 @@ videos/<slug>/
   transcript.json  # step 010 output, cleaned (never raw ASR punctuation) — committed
   transcript.<engine>-raw.bak.json  # step 010's raw ASR backup, pre-cleanup — committed
   segments.json    # step 015 output — committed
-  concept.json     # step 018 output (core idea, motif, register map) — committed
-  cues.llm.json    # step 020's final output, pre-owner-edits — committed, immutable
-  cues.json        # step 020 output, step 040 edits — committed
+  concept.json     # step 020 output (core idea, motif, register map) — committed
+  cues.llm.json    # steps 030+035's final output, pre-owner-edits — committed, immutable
+  cues.json        # steps 030 (body) + 035 (zones) output, step 080 board edits — committed
   card-plan.json   # step 037 gate output — committed
-  resolved.json    # step 030 output — committed
-  audit.json       # step 035 mute-test output — committed
-  shots.llm.json   # step 070's final output, pre-owner-edits — committed, immutable
-  shots.json       # step 070 output, board edits — committed
+  resolved.json    # step 040 output — committed
+  audit.json       # step 050 mute-test output — committed
+  shots.llm.json   # step 060's final output, pre-owner-edits — committed, immutable
+  shots.json       # step 060 output, board edits — committed
   shots.resolved.json  # resolve-shots output (absolute times) — committed
-  avatar-jobs.json     # step 080 HeyGen job tracking — committed
+  avatar-jobs.json     # step 100 HeyGen job tracking — committed
   effects.json         # per-instance assembly-effects manifest (node lib/effects-plan.mjs <slug>) — owner-editable, committed; see EFFECTS.md
   sound.json       # sound output, SFX placement plan — committed
   motif/               # per-video through-line assets — committed
-  slices/              # per-cue vo slices, step 040's board — gitignored
-  slices-avatar/       # per-job vo slices, step 080 — gitignored
-  renders/             # step 050's clips — gitignored (regenerable)
-  manifest.md      # step 050 output, at the workdir root — committed
-  avatar-manifest.md   # step 080 output — committed
+  slices/              # per-cue vo slices, the 080 board's — gitignored
+  slices-avatar/       # per-job vo slices, step 100 — gitignored
+  renders/             # step 090's clips — gitignored (regenerable)
+  manifest.md      # step 090 output, at the workdir root — committed
+  avatar-manifest.md   # step 100 output — committed
   screen.mp4       # VO-aligned screen recording (owner-provided) — gitignored
-  assembly.md      # step 090 output, the assembly EDL — committed
+  assembly.md      # step 110 output, the assembly EDL — committed
   qc-report.md     # filmstrip QC verdict table (qc verb output) — committed
   feedback.json    # owner feedback typed on the board (per-cue, per-gap, global) — committed
+  run-log.json     # the run ledger: what each step did — committed
 
 # Plus ~/kb-scratch/video/visuals-flow/<slug>/versions/ for Final Cut board version history
 ```
@@ -192,7 +193,7 @@ Field semantics:
   final timeline (e.g. 6.0 if a cold-open precedes it). All cue/beat times stay
   VO-relative; the offset is applied ONLY to manifest.md's "place at" column, so
   the editor always drops clips at real timeline timecodes. If the VO shifts after
-  rendering, update `offset` in cues.json, re-run step 030 then 050 (or shift the
+  rendering, update `offset` in cues.json, re-run step 040 then 090 (or shift the
   manifest timecodes by hand — the clips themselves don't change).
 
 Single-card cues (`kind: "single"`) have `beats: []` and use catalog `default_duration`.
@@ -237,9 +238,52 @@ somebody had already hand-built.
 - `items`: `status` is `existing` (found in `catalog.json`) or `new` (to be built at 038). `anchor` rather than a timestamp: this gate runs before 040 puts the plan on a clock.
 - `proposal`: the structured spec of a NEW card (`does` / `kind` / `placement` / `beats` / `variables`), taken from the cue's `propose` field.
 
+## run-log.json schema
+
+The run ledger. It exists because `run.sh <slug> status` used to reconstruct
+progress by probing for files, which can report `resolved.json present` but can
+never report what a step actually did. The board's **Run** tab and `run.sh
+<slug> status` render this same view, so the page and the terminal cannot
+disagree.
+
+```json
+{
+  "video": "<slug>",
+  "updated": "2026-07-30T09:19:41.204Z",
+  "steps": {
+    "030-pick-or-propose-graphics-llm": {
+      "status": "done",
+      "started": "2026-07-30T09:12:04.881Z",
+      "ended": "2026-07-30T09:19:41.204Z",
+      "did": "Placed 23 body cues from the catalog, proposed 2 cards that don't exist yet.",
+      "issues": "2 W7 bare-stretch warnings in the 3-4 min talking-head stretch, left as-is.",
+      "output": "cues.json — 23 cues, 2 marked NEW for step 038"
+    }
+  }
+}
+```
+
+- **Keys are step folder names**, read from `steps/` at load time. There is no
+  second list to maintain, and `lib/run-log.mjs` **refuses** a key that is not a
+  folder — which is what stops the same step being logged as "body cue pass" on
+  one video and "body graphics LLM" on the next.
+- `status`: `todo` | `running` | `done` | `blocked` | `skipped`.
+- `done` **requires** `did` and `output`. A missing one is refused rather than
+  written half-empty. An omitted `issues` is stored as an explicit
+  `"none found"`, because a blank field must never read as "nobody checked".
+- **Who writes what**: the `-run` steps record themselves through `run.sh`
+  (`record_step`, which also scrapes their warning lines into `issues`); the
+  three `-human` gates are recorded by the board at the moment the owner
+  approves; the `-llm`/`-opus` steps are closed out by the session via
+  `node lib/run-log.mjs <slug> <step> done --did … --issues … --output …`.
+- **Steps with no entry fall back to probing the artifacts** and are marked
+  `derived`, rendered as "inferred from the files on disk". A derived entry
+  carries no summary, because none was ever written. This is what keeps videos
+  that predate the ledger from showing as a blank page.
+
 ## audit.json schema
 
-This is the mute-test audit output produced by 035-cue-audit.
+This is the mute-test audit output produced by `050-review-graphics-llm`.
 
 ```json
 {

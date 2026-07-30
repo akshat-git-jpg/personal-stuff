@@ -41,21 +41,30 @@ or an external path (anything containing `/`, or an existing dir) — see
 
 ```
 bash steps/010-transcribe-run/run.sh <workdir>   # skip if transcript.json already exists
-# 020 — see section 4
-node lib/resolve.mjs <workdir>
+bash run.sh <slug> segments                      # 015, then set confirmed: true
+# 030 (body cues) + 035 (intro/conclusion cues) — see section 4
+bash run.sh <slug> card-plan && bash run.sh <slug> board   # 037 OWNER gate: approve the cards
+# 038: build anything 037 marked NEW, into card-library
+node lib/resolve.mjs <workdir>                   # 040
 node lib/lint-cues.mjs <workdir>
-node lib/board.mjs <workdir>                     # OWNER gate — see section 5
-node lib/render.mjs <workdir>
+node lib/board.mjs <workdir>                     # 080 OWNER gate — see section 5
+node lib/render.mjs <workdir>                    # 090
 ```
 
 `resolve` and `lint` are the deterministic checks the cue pass must satisfy
 before the board; `board` is where the owner approves; `render` refuses to
-run against an unapproved `cues.json`.
+run against an unapproved `cues.json` or an unapproved `card-plan.json`.
+
+Two owner gates sit in that list, not one. 037 approves which cards the video
+will use, before any of them are built or rendered; 080 approves the composition
+once they exist.
 
 ## 4. Running the cue pass from another pipeline
 
-Step 020 is the one judgment call in the whole flow — everything else above
-is zero-token. Inside `tutorial-pipeline-2`'s conventions, this is a
+Step 030 is the main judgment call in the flow. Everything deterministic above
+is zero-token; the other LLM passes are 020 (concept), 035 (intro and
+conclusion) and 038 (building a card 037 approved). Inside
+`tutorial-pipeline-2`'s conventions, this is a
 `[SONNET]` step: a Claude Code session on model Sonnet, prompt =
 `steps/030-pick-or-propose-graphics-llm/cue-pass-prompt.md` (self-contained; `RULEBOOK.md` is its
 fold-maintained source, not a session input), inputs =

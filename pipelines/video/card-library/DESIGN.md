@@ -130,6 +130,27 @@ These rules are enforced by `scripts/check-type-scale.mjs`.
   match the hero, never the other way around.
 - **Survives worst-case content**: layouts must hold at both the minimum and maximum item counts the catalog allows, and at every string's `max_words`. Grid ratios must be computed from item count, never hardcoded for one count.
 
+## Declared capacity is the TIGHTEST variant's capacity
+
+**Found 2026-07-30.** `resolve.mjs` rotates a reused card's `variant` by use count
+(`cat.variants[useCount % cat.variants.length]`) — so the variant is chosen AFTER
+the copy is authored, and the pass that wrote the copy could not know which layout
+it would land in.
+
+`enacted/pipeline-flow` has variants `a` (horizontal chain) and `b` (vertical). A
+4-word title fits `a` comfortably; in `b` it wraps to two lines, pushes the chain
+down, and clips both the title top and the last node off the canvas. `title` had no
+`max_words` at all, so nothing rejected it.
+
+So for any card declaring `variants`:
+
+- Every capacity you declare (`max_words`, `max_beats`, `max_reveal_chars`) must be
+  the limit of the variant with the LEAST room, not the roomiest one or the default.
+- Verify with `card-qa` **in each variant**, not just the default.
+- Prefer a machine-checkable cap on the catalog field over a note in prose:
+  `validateVariable` already enforces `max_words`, so a cap fails at 040 instead of
+  rendering clipped.
+
 ## Side-ready cards (side avatar mode)
 
 In side mode the host takes the right 720px and the card renders into the left
@@ -180,6 +201,30 @@ Every fullframe card must keep subtle continuous motion for its ENTIRE duration 
 
 Rules: motion must be seek-deterministic (pure function of t — CSS animations/GSAP timelines are; `Math.random()`/rAF-accumulators are not); never louder than the entrance; never on body text. Marker: the implementing style/timeline block carries the comment `/* hf-ambient */` exactly once per card (machine-checkable).
 
+## A graphic carries a mark, not text alone
+
+**Owner rule, 2026-07-30.** Every fullframe card must put at least one non-text
+element on screen — a colour logo, an image, or a concept icon. Raised against
+`enacted/spotlight-focus`, which named OpusClip and Submagic as bare text with no
+marks and read as a wireframe.
+
+- **A card that names products MUST accept logo slugs.** Use a shape
+  `lib/logos-inline.mjs` already inlines — `logo`, `productLogos[]` (index-aligned
+  with the item array), `platforms[].logo`, `beats[].logo`, or `left/right.logo`.
+  Inventing a new shape means the slugs silently resolve to nothing and the card
+  falls back to letters, which is how this rule got raised in the first place.
+- **A card that names no product** carries concept icons instead
+  (`checklist/icon-pills`, `enacted/pipeline-flow`) or a drawn object
+  (`enacted/bad-clip-montage`'s clip frame). A heading plus rows of words is not
+  enough on its own.
+- Logo tiles follow "Tool logos" below: square, consistent radius, no trimming and
+  no `saturate()`/`brightness()`. Add the 1px inset only when `__logoDark[slug]`
+  is true.
+
+Known debt: 39 of 52 fullframe cards are text-only today. The two used as product
+verdicts (`spotlight-focus`, `race-bars`) were fixed when the rule landed; the rest
+are a sweep, not a blocker, and no NEW card may be added text-only.
+
 ## New-card checklist
 
 1. `:root` uses the palette tokens above; Inter loaded.
@@ -191,7 +236,9 @@ Rules: motion must be seek-deterministic (pure function of t — CSS animations/
 4. `npx hyperframes@latest lint <card>` passes (the 2 known warnings are OK).
 5. Before shipping: render once and LOOK at the midpoint frame — layout intact,
    text readable at YouTube compression sizes.
-6. Not a near-duplicate: check `catalog.json` purposes first; a variant of an
+6. Carries a non-text mark — logo, image or concept icon (see "A graphic carries a mark, not text alone"). A card naming products accepts logo slugs via a shape `logos-inline.mjs` already inlines.
+7. **Legible on one viewing.** Render it and answer the mute test FROM THE FRAME: with audio off and captions hidden, is it clear what the card is showing without working it out? `lint`, `card-qa` and `check-type-scale` all pass on a card nobody can follow — `enacted/same-input-split` passed every gate and was rejected as "not intuitive, complicated to follow" (2026-07-30). The 050 mute test audits the cue PLAN against catalog purposes; it never sees your pixels.
+8. Not a near-duplicate: check `catalog.json` purposes first; a variant of an
    existing card should be new `beats`/variables on the existing card, not a new folder.
 
 ## Tool logos (added 2026-07-18)

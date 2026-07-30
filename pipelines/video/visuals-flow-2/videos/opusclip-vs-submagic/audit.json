@@ -1,0 +1,166 @@
+{
+  "video": "opusclip-vs-submagic",
+  "items": [
+    {
+      "id": "z01",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z02",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z03",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z05",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z06",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z07",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z08",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c01",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c02",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c03",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c04",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c05",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c06",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c07",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c08",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c09",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c10",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c11",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c12",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c13",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c14",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c15",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c16",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c17",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c18",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c19",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c26",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c20",
+      "verdict": "labelled",
+      "fix": {
+        "card": "enacted/fill-gauge",
+        "how": "A kinetic sentence IS the sentence, so muted it communicates only by being read. The clause is a value claim (\"factor in the extra editing time and the value drops\"), which a gauge can enact: fill it with the plan price, then drain it as each cleanup task is added. OWNER OVERRIDE 2026-07-30: accepted. The routing rules mandate kinetic-sentence for a single-point bridge, and the fill-gauge alternative would have to invent a value the voiceover never states, which the real-data rule forbids."
+      },
+      "accepted": true
+    },
+    {
+      "id": "c21",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c22",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c23",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c24",
+      "verdict": "enacted"
+    },
+    {
+      "id": "c25",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z09",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z10",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z11",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z12",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z13",
+      "verdict": "enacted"
+    },
+    {
+      "id": "z14",
+      "verdict": "enacted"
+    }
+  ]
+}
