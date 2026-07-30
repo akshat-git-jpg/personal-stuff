@@ -6,4 +6,7 @@ node lib/check-rulebook.mjs
 node lib/check-shot-rulebook.mjs
 node lib/check-zone-rulebook.mjs
 bash scripts/test-run-sh.sh
+# board-ui (React SPA) — unit tests, type-checked build, rendered-app smoke (plan 170)
+( cd board-ui && { [ -d node_modules ] || npm ci; } && npx vitest run && npm run build )
+node scripts/board-ui-smoke.mjs
 echo "visuals-flow check OK"

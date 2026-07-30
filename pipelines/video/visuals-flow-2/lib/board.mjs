@@ -2714,7 +2714,8 @@ export function requestedWorkdir(url, launchWorkdir) {
 }
 
 async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
-  const url = new URL(req.url, 'http://localhost');
+  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  res.setHeader('Connection', 'close');
   const workdir = requestedWorkdir(url, launchWorkdir);
   // Slices are cut per video and only on demand, so a switched-to video gets
   // them the first time it is opened rather than at server start.
@@ -2735,7 +2736,7 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
 
   // A bare "/" hides which video you are on, which is how a stale tab gets
   // reviewed by mistake. Redirect so the URL always says.
-  if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index')
+  if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index' || url.pathname === '/app' || url.pathname === '/app/')
       && !url.searchParams.get('video')) {
     res.statusCode = 302;
     res.setHeader('location', `${url.pathname}?video=${encodeURIComponent(path.basename(workdir))}${''}`);
@@ -2771,7 +2772,7 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     // which may be an external path outside videos/ (resolveWorkdir allows it),
     // so it must NOT be looked up by slug.
     let target = workdir;
-    if (want) {
+    if (want && want !== path.basename(workdir)) {
       const videosDir = videosRoot();
       target = path.join(videosDir, want);
       // The slug arrives from a query string, so confirm it resolves to a
@@ -3031,8 +3032,32 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     return res.end(JSON.stringify({ ok: true, key, item: fb.items[key] }));
   }
 
+  if (req.method === 'GET' && (url.pathname === '/app' || url.pathname.startsWith('/app/'))) {
+    return serveUi(res, url.pathname);
+  }
+
   res.statusCode = 404;
   res.end('not found');
+}
+
+const UI_DIST = path.resolve(import.meta.dirname, '..', 'board-ui', 'dist');
+const UI_MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript',
+  '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.map': 'application/json' };
+function serveUi(res, pathname) {
+  if (!fs.existsSync(path.join(UI_DIST, 'index.html'))) {
+    res.statusCode = 503;
+    return res.end('board-ui not built — run: cd board-ui && npm ci && npm run build');
+  }
+  const rel = pathname === '/app' || pathname === '/app/' ? 'index.html'
+    : decodeURIComponent(pathname.slice('/app/'.length));
+  const file = path.join(UI_DIST, rel);
+  if (!file.startsWith(UI_DIST + path.sep) && file !== path.join(UI_DIST, 'index.html')) {
+    res.statusCode = 403; return res.end('forbidden');
+  }
+  if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { res.statusCode = 404; return res.end('not found'); }
+  res.setHeader('content-type', UI_MIME[path.extname(file)] ?? 'application/octet-stream');
+  res.setHeader('cache-control', 'no-store');
+  return res.end(fs.readFileSync(file));
 }
 
 export function createServer(workdir) {
