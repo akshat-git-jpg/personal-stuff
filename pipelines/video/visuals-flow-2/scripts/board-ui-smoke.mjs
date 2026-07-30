@@ -125,17 +125,21 @@ try {
       if (!dom.includes('plan-note"')) throw new Error('plan-note not found on #card-plan');
     }
     if (hash === '#storyboard') {
-      if (!dom.includes('class="timeline-block tile reviewable')) throw new Error('tile reviewable not found');
-      if (!dom.includes('class="excerpt"')) throw new Error('excerpt not found');
-      if (!dom.includes('<mark>')) throw new Error('mark not found');
-      if (!dom.includes('class="preview"')) throw new Error('preview not found');
-      if (!dom.includes('src="/card/')) throw new Error('iframe src /card/ not found');
-      if (!dom.includes('src="/slice/')) throw new Error('audio src /slice/ not found');
-      if (!dom.includes('class="frag"')) throw new Error('textarea.frag not found');
-      const fbShots = dom.match(/class="fb-shot"/g);
-      const tiles = dom.match(/class="timeline-block tile reviewable"/g) || [];
-      if (!fbShots || fbShots.length < tiles.length) throw new Error('Expected at least one .fb-shot per tile');
+      if (!dom.includes('class="tl-ruler"')) throw new Error('tl-ruler not found');
+      const ticks = dom.match(/class="tl-tick"/g) || [];
+      if (ticks.length < 2) throw new Error(`Expected >=2 tl-tick, found ${ticks.length}`);
       
+      const graphicsTrackIdx = dom.indexOf('id="tlGraphics"');
+      const graphicsTrackSlice = dom.slice(graphicsTrackIdx, graphicsTrackIdx + 1000);
+      const blocks = graphicsTrackSlice.match(/class="tl-block"/g) || [];
+      if (blocks.length < 1) throw new Error('Expected >=1 tl-block in graphics track');
+      
+      if (!dom.includes('id="detail-panel"')) throw new Error('detail-panel not found');
+      if (!dom.includes('click a block to preview')) throw new Error('detail dock placeholder not found');
+      
+      if (!dom.includes('Timeline</button>')) throw new Error('Timeline toggle not found');
+      if (!dom.includes('List</button>')) throw new Error('List toggle not found');
+
       const idxSlot = dom.indexOf('<div class="action-slot">');
       const slotMatch = idxSlot > -1 ? dom.slice(idxSlot, idxSlot + 300) : '';
       if (!slotMatch.includes('Approve graphics')) throw new Error('Approve graphics not found inside .action-slot');
