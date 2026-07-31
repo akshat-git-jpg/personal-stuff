@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "approved": false,
+  "approved": true,
   "offset": 0,
   "cues": [
     {
@@ -1027,5 +1027,6 @@
       "lead": 0.3,
       "register": "light"
     }
-  ]
+  ],
+  "approved_note": "owner chat approval 2026-07-31: all approved (round-2 storyboard re-approval)"
 }

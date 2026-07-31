@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "approved": false,
+  "approved": true,
   "engineMode": "test",
   "spans": [
     {
@@ -93,5 +93,6 @@
       "note": "outro sign-off — CTA overlays (link, like+subscribe) composite over the host",
       "flagged": false
     }
-  ]
+  ],
+  "approved_note": "owner chat approval 2026-07-31: go ahead on avatar (engineMode test, Avatar III pre-authorized)"
 }

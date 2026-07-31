@@ -89,7 +89,11 @@ record_step() {
   # an explicit "+N more" so truncation is visible instead of silent.
   local issue_total
   issue_total="$(grep -aciE '^[[:space:]]*(W[0-9]+|E[0-9]+|warn|warning|error)' "$logfile" || true)"
-  issues="$(grep -aiE '^[[:space:]]*(W[0-9]+|E[0-9]+|warn|warning|error)' "$logfile" | head -8 | cut -c1-220 | paste -sd '|' - | sed 's/|/  |  /g')"
+  # `|| true` is load-bearing: zero warning lines makes grep exit 1, and under
+  # `set -euo pipefail` that killed record_step AFTER the step command had
+  # succeeded — the ledger stayed "running" on a clean run (bitten 2026-07-31,
+  # both 090 and 100 on opusclip-vs-submagic).
+  issues="$(grep -aiE '^[[:space:]]*(W[0-9]+|E[0-9]+|warn|warning|error)' "$logfile" | head -8 | cut -c1-220 | paste -sd '|' - | sed 's/|/  |  /g' || true)"
   if [[ "${issue_total:-0}" -gt 8 ]]; then
     issues="$issues  |  (+$((issue_total - 8)) more warning/error lines — re-run the verb to see all)"
   fi
