@@ -1,0 +1,98 @@
+{
+  "video": "opusclip-vs-submagic",
+  "offset": 0,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s01",
+      "kind": "avatar-full",
+      "mode": "full",
+      "start": 39.96,
+      "end": 52.04,
+      "duration": 12.08,
+      "note": "audience address — who this video is for, host to camera between the promise cards"
+    },
+    {
+      "id": "s02",
+      "kind": "avatar-full",
+      "mode": "full",
+      "start": 177.02,
+      "end": 189.76,
+      "duration": 12.74,
+      "note": "overview -> demo bridge; host hands over to the screen recording"
+    },
+    {
+      "id": "s03",
+      "kind": "avatar-full",
+      "mode": "full",
+      "start": 276.35,
+      "end": 286.99,
+      "duration": 10.64,
+      "note": "cadence beat at the Submagic -> OpusClip transition, before the hands-on upload"
+    },
+    {
+      "id": "s04",
+      "kind": "avatar-full",
+      "mode": "full",
+      "start": 497.31,
+      "end": 514.63,
+      "duration": 17.32,
+      "note": "demos wrap -> results transition; natural pause before the Submagic playback"
+    },
+    {
+      "id": "s05",
+      "kind": "avatar-full",
+      "mode": "full",
+      "start": 552.32,
+      "end": 571.2,
+      "duration": 18.88,
+      "note": "Submagic verdict — host reaction to the generated clip, ends as race-bars takes over"
+    },
+    {
+      "id": "s06",
+      "kind": "avatar-full",
+      "mode": "full",
+      "start": 609.36,
+      "end": 630.96,
+      "duration": 21.6,
+      "note": "OpusClip verdict — host reaction; the cleanup-lap card follows"
+    },
+    {
+      "id": "s07",
+      "kind": "avatar-full",
+      "mode": "full",
+      "start": 738.98,
+      "end": 752.54,
+      "duration": 13.56,
+      "note": "value commentary, not a screen walk — fewer-fixes argument is a host point"
+    },
+    {
+      "id": "s08",
+      "kind": "avatar-full",
+      "mode": "full",
+      "start": 823.47,
+      "end": 839.11,
+      "duration": 15.64,
+      "note": "cadence beat — the free-trial / annual-discount aside is host commentary between the two pricing walks"
+    },
+    {
+      "id": "s09",
+      "kind": "avatar-full",
+      "mode": "full",
+      "start": 983.05,
+      "end": 995.83,
+      "duration": 12.78,
+      "note": "summary-table verdict — the takes-the-win line lands on the host"
+    },
+    {
+      "id": "s10",
+      "kind": "avatar-full",
+      "mode": "full",
+      "start": 1052.17,
+      "end": 1074.83,
+      "duration": 22.66,
+      "note": "outro sign-off — CTA overlays (link, like+subscribe) composite over the host",
+      "snapped": true
+    }
+  ]
+}
