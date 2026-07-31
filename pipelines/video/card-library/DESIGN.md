@@ -302,6 +302,38 @@ touch, and never add a NEW card that the probe reports.
 
 ## New-card checklist
 
+0. **Owner previews the LOOK before you build (owner rule 2026-07-31).** Before
+   writing any code for a new card, give the owner 1–2 image-generation
+   prompts (they run them in Google Gemini/Flow) — one per key moment of the
+   card — and wait for their verdict. A text description is not a preview;
+   `intro/versus-cold-open` was approved from generated frames and built to
+   match them exactly. Build each prompt from this template, filling the
+   [BRACKETS]:
+
+   ```
+   Flat 2D motion-graphics still frame, 16:9, 1920x1080, from a premium dark
+   tech explainer video.
+
+   TEXT RULE: the ONLY text anywhere in the image is: [EXACT TEXT LIST].
+   No headline, no tagline, no subtitle, no watermark, no other words at all.
+
+   Background: near-black warm brown (#0d0906), one very soft dim orange glow
+   upper-left — subtle, not flooding the frame. Generous dark negative space.
+
+   [COMPOSITION: what sits where, sizes/proportions, which elements are matte
+   dark panels (rounded corners, thin 2px orange keyline at 60% opacity) and
+   which carry the accent. Describe the card's KEY MOMENT as a frozen frame.]
+
+   Style: flat design, matte surfaces, crisp vector edges, single accent
+   color (white + orange #fb923c), Swiss/Apple-keynote minimalism.
+   NO 3D extrusion, NO lens flares, NO sparkles, NO light streaks,
+   NO gradients on text, NO photographic realism.
+   ```
+
+   The TEXT RULE allow-list and the NO-list are what keep the generator from
+   inventing headlines and gloss — both happened without them. After the owner
+   approves, the generated frames are the visual contract: build to match.
+
 1. `:root` uses the palette tokens above; Inter loaded.
 2. Beat contract met if progressive-reveal (README.md), incl. `beats` defaults that
    reproduce a good-looking standalone preview.

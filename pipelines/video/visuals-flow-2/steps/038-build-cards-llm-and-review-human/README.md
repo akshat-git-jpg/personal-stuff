@@ -41,6 +41,14 @@ What is specific to this step is only:
    card. If the spec turns out to be unbuildable as written, stop and report —
    do not quietly build something else, because the owner approved the spec, not
    your judgement of it.
+4. **The owner previews the LOOK before any code (owner rule 2026-07-31).**
+   The 037 approval covered WHAT the card does; it did not cover how it looks.
+   Before building each new card, produce 1–2 image-generation prompts from
+   the template in `../card-library/DESIGN.md` (New-card checklist, item 0) —
+   one per key moment — hand them to the owner to run in Google Gemini/Flow,
+   and wait for the verdict. The approved frames are the visual contract:
+   build to match them. This applies to EVERY new card, including ones
+   commissioned mid-fold outside this step.
 
 ## The catalog entry
 
