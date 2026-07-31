@@ -22,7 +22,7 @@ export function FinalCutTab({
   onSecondary: (node: ReactNode) => void;
   onRefetch: () => void;
 }) {
-  const [versions, setVersions] = useState<string[]>([]);
+  const [versions, setVersions] = useState<{ label: string; placeholder: boolean }[]>([]);
   const [version, setVersion] = useState<string>('');
   const [statusMsg, setStatusMsg] = useState('');
   const [fcItems, setFcItems] = useState<Record<string, FcItem>>({});
@@ -70,7 +70,11 @@ export function FinalCutTab({
         disabled={versions.length === 0}>
         {versions.length === 0
           ? <option value="">No versions available</option>
-          : versions.map(v => <option key={v} value={v}>{v}</option>)}
+          : versions.map(v => (
+              <option key={v.label} value={v.label}>
+                {v.label}{v.placeholder ? ' · placeholder avatar' : ''}
+              </option>
+            ))}
       </select>
     );
     return () => {
@@ -82,16 +86,18 @@ export function FinalCutTab({
 
   // Load versions
   useEffect(() => {
-    // The server returns { versions: [{ label, file, created, draft }] },
-    // oldest first — NOT a bare string[]. Treating it as an array made
-    // .reverse() throw and left the tab on "No versions available" forever
-    // (owner report 2026-07-31, draft v1 invisible).
+    // The server returns { versions: [{ label, file, created, draft,
+    // placeholder }] }, oldest first — NOT a bare string[]. Treating it as an
+    // array made .reverse() throw and left the tab on "No versions available"
+    // forever (owner report 2026-07-31, draft v1 invisible). `placeholder`
+    // marks a draft whose avatar spans are labelled stills (HeyGen clips were
+    // still rendering when it was cut).
     fetch('/versions?video=' + encodeURIComponent(video))
       .then(r => r.json())
-      .then((data: { versions?: { label: string }[] }) => {
-        const labels = (data.versions ?? []).map(v => v.label).reverse();
-        setVersions(labels);
-        if (labels.length) setVersion(labels[0]);
+      .then((data: { versions?: { label: string; placeholder?: boolean }[] }) => {
+        const list = (data.versions ?? []).map(v => ({ label: v.label, placeholder: !!v.placeholder })).reverse();
+        setVersions(list);
+        if (list.length) setVersion(list[0].label);
       });
   }, [video]);
 

@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions, planAvatarBeats, splitAvatarSegments, absorbSlivers } from './assemble.mjs';
+import { registerVersion } from './versions.mjs';
 
 const testTmp = path.resolve(import.meta.dirname, '.test-tmp', 'assemble-it');
 
@@ -830,4 +831,64 @@ test('Integration: ffmpeg runAssembly side composite', { skip: spawnSync('ffmpeg
 
   assert.ok(Math.abs(meanInside - 29) < 10, `inside side box should be host (blue, Y~29), got ${meanInside}`);
   assert.ok(Math.abs(meanOutside - 0) < 10, `outside side box should be base (black, Y~0), got ${meanOutside}`);
+});
+
+test('Integration: placeholder still fills an undownloaded avatar span in a draft', { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
+  // A review draft must assemble BEFORE HeyGen finishes (owner ask 2026-07-31):
+  // the span renders the template's reference still, dimmed with a label band,
+  // and the version registers placeholder:true.
+  const still = path.join(testTmp, 'placeholder-still.png');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=red:s=1920x1080', '-frames:v', '1', still]);
+
+  const outPh = path.join(testTmp, 'final-placeholder.mp4');
+  if (fs.existsSync(outPh)) fs.unlinkSync(outPh);
+
+  const avatarJobs = [
+    { purpose: 'avatar-full', id: 's01', start: 8, end: 20, placeholder: true, placeholderFile: still }
+  ];
+
+  await runAssembly({
+    workdir: testTmp,
+    video: 'it',
+    resolved: [],
+    avatarJobs,
+    total: 30,
+    screen: path.join(testTmp, 'screen.mp4'),
+    out: outPh,
+    draft: true,
+    encoder: 'x264',
+    keepTemp: false,
+    beats: 'off',
+    transitions: 'none'
+  });
+
+  assert.ok(fs.existsSync(outPh));
+
+  const frame = path.join(testTmp, 'ph-frame.png');
+  spawnSync('ffmpeg', ['-y', '-ss', '12', '-i', outPh, '-frames:v', '1', frame]);
+
+  const stat = (cropStr, key) => {
+    const p = spawnSync('ffprobe', ['-v', 'error', '-f', 'lavfi', '-i', `movie=${frame},${cropStr},signalstats`, '-show_entries', `frame_tags=lavfi.signalstats.${key}`, '-of', 'csv=p=0'], { encoding: 'utf8' });
+    return parseFloat(p.stdout);
+  };
+  // Center of the frame is the red still (V chroma ~= 255 for red — decisive
+  // against both the testsrc screen and black).
+  const vCenter = stat('crop=400:300:760:200', 'VAVG');
+  assert.ok(vCenter > 180, `placeholder span should show the red still (VAVG>180), got ${vCenter}`);
+  // Draft-scaled frame is 1280x720; the label band is the bottom ~46px —
+  // darker than the raw still (red Y ~76 dimmed under a black@0.55 band).
+  const yBand = stat('crop=1280:36:0:684', 'YAVG');
+  assert.ok(yBand < 55, `label band should darken the bottom (YAVG<55), got ${yBand}`);
+});
+
+test('registerVersion records the placeholder flag', () => {
+  const dir = fs.mkdtempSync(path.join(testTmp, 'versions-'));
+  const src = path.join(dir, 'src.mp4');
+  fs.writeFileSync(src, 'x');
+  const e1 = registerVersion(dir, src, { draft: true, placeholder: true });
+  assert.equal(e1.placeholder, true);
+  const e2 = registerVersion(dir, src, { draft: true });
+  assert.equal(e2.placeholder, undefined);
+  const onDisk = JSON.parse(fs.readFileSync(path.join(dir, 'versions.json'), 'utf8'));
+  assert.equal(onDisk.versions.find(v => v.label === e1.label).placeholder, true);
 });

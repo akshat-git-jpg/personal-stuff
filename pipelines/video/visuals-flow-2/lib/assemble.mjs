@@ -549,10 +549,25 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
     let startTrim = 0;
     let endTrim = 0;
-    
-    const tOut = whipInstances.find(t => Math.abs(t.at - seg.end) < 0.01);
-    const tIn = whipInstances.find(t => Math.abs(t.at - seg.start) < 0.01);
-    
+
+    // Placeholder-avatar segments (review drafts assembled before HeyGen
+    // finishes, owner ask 2026-07-31): a still image stands in for the clip.
+    // Transitions at a placeholder boundary are skipped — the whip machinery
+    // slices the avatar FILE, which a placeholder job does not have; a hard
+    // cut is fine for a review draft.
+    const segAvatarJob = seg.kind === 'avatar' ? avatarJobs.find(j => j.id === seg.id) : null;
+    const nextBaseSeg = segments[i + 1];
+    const nextAvatarJob = nextBaseSeg?.kind === 'avatar' ? avatarJobs.find(j => j.id === nextBaseSeg.id) : null;
+    const prevBaseSeg = segments[i - 1];
+    const prevAvatarJob = prevBaseSeg?.kind === 'avatar' ? avatarJobs.find(j => j.id === prevBaseSeg.id) : null;
+
+    const tOut = (segAvatarJob?.placeholder || nextAvatarJob?.placeholder)
+      ? undefined
+      : whipInstances.find(t => Math.abs(t.at - seg.end) < 0.01);
+    const tIn = (segAvatarJob?.placeholder || prevAvatarJob?.placeholder)
+      ? undefined
+      : whipInstances.find(t => Math.abs(t.at - seg.start) < 0.01);
+
     if (tOut) endTrim = TRANSITION_DUR / 2;
     if (tIn) startTrim = TRANSITION_DUR / 2;
 
@@ -589,15 +604,29 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       }
     } else if (seg.kind === 'avatar') {
       const job = avatarJobs.find(j => j.id === seg.id);
-      src = job.file;
-      const contentStartTrim = Math.max(0, startTrim - pStart);
-      seekArgs = ['-ss', String(seg.start + pStart - job.start + contentStartTrim)];
+      if (job.placeholder) {
+        // Loop the reference still for the span; the master VO keeps playing
+        // underneath, so pacing review works before HeyGen delivers.
+        src = job.placeholderFile;
+        seekArgs = ['-loop', '1', '-framerate', String(CANVAS.fps), '-t', String(dur + 2)];
+      } else {
+        src = job.file;
+        const contentStartTrim = Math.max(0, startTrim - pStart);
+        seekArgs = ['-ss', String(seg.start + pStart - job.start + contentStartTrim)];
+      }
     } else if (seg.kind === 'graphic') {
       const cue = resolved.find(c => c.id === seg.id);
       src = path.join(renderDir, planRender(cue).outFile);
     }
     
     let punchVF = VF;
+    // Placeholder spans are visually marked so a reviewer never mistakes the
+    // still for the final look: slight dim + a labelled band along the bottom.
+    if (segAvatarJob?.placeholder) {
+      punchVF += ",eq=brightness=-0.05" +
+        ",drawbox=x=0:y=ih-70:w=iw:h=70:color=black@0.55:t=fill" +
+        ",drawtext=fontfile=/System/Library/Fonts/Helvetica.ttc:text='AVATAR PLACEHOLDER - clip rendering on HeyGen':fontcolor=white@0.9:fontsize=30:x=28:y=h-48";
+    }
     const contribCtx = { ...ctx, dur, startTrim, endTrim, capDir, capChunks };
     let finalVFSuffix = '';
     let inputs = [];
@@ -917,8 +946,26 @@ export async function loadAssemblyInputs(opts) {
     const missing = avatarJobs.filter(j => !j.file || !fs.existsSync(j.file));
     if (missing.length > 0) {
       const missingIds = missing.map(j => j.id).join(', ');
-      console.error(`run "download the avatar videos" first. missing: ${missingIds}`);
-      process.exit(1);
+      if (opts.draft) {
+        // Review drafts do not wait for HeyGen (owner ask 2026-07-31): spans
+        // whose clip has not downloaded render as the template's reference
+        // still, visibly labelled. A re-cut after downloads swaps in the real
+        // clips automatically (the file's presence changes the segment cache
+        // key). The FINAL assemble below still refuses to ship a placeholder.
+        const template = avatarJobsFile.template;
+        const regPath = path.resolve(import.meta.dirname, '..', '..', 'heygen', 'registry.json');
+        const reg = fs.existsSync(regPath) ? JSON.parse(fs.readFileSync(regPath, 'utf8')) : {};
+        const still = reg[template]?.image ? path.resolve(path.dirname(regPath), reg[template].image) : null;
+        if (!still || !fs.existsSync(still)) {
+          console.error(`cannot placeholder ${missingIds}: no reference image for template "${template}" in video/heygen/registry.json`);
+          process.exit(1);
+        }
+        for (const j of missing) { j.placeholder = true; j.placeholderFile = still; }
+        console.error(`draft: ${missing.length} avatar clip(s) still rendering on HeyGen (${missingIds}) — using the "${template}" reference still; re-run the cut once downloads finish to swap in the real clips`);
+      } else {
+        console.error(`run "download the avatar videos" first. missing: ${missingIds}`);
+        process.exit(1);
+      }
     }
   }
 
@@ -991,8 +1038,9 @@ async function main() {
   const out = opts.out ?? path.join(kbWorkdir, opts.draft ? 'final-draft.mp4' : 'final.mp4');
   await runAssembly({ ...inputs, screenOffset: opts.screenOffset, out, draft: opts.draft, encoder: opts.encoder ?? detectEncoder(), keepTemp: opts.keepTemp, transitions: opts.transitions, beats: opts.beats, captions: opts.captions, effects: opts.effects, bubble: opts.bubble, jobsN: opts.jobs, noCache: opts.noCache, brand: brandObj, catalog: inputs.catalog });
 
-  const entry = registerVersion(kbWorkdir, out, { draft: opts.draft });
-  console.log(`registered version: ${entry.label}`);
+  const usedPlaceholders = inputs.avatarJobs.some((j) => j.placeholder);
+  const entry = registerVersion(kbWorkdir, out, { draft: opts.draft, placeholder: usedPlaceholders });
+  console.log(`registered version: ${entry.label}${usedPlaceholders ? ' (placeholder avatar — re-cut after avatar-download to swap in real clips)' : ''}`);
   console.log(`board: node lib/board.mjs ${inputs.video}  →  http://127.0.0.1:4322/`);
   console.log('Final Cut hint: Review the video in the Final Cut tab of the board.');
   process.exit(0);

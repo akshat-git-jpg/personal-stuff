@@ -14,7 +14,7 @@ export function nextLabel(versionsJson) {
   return `v${max + 1}`;
 }
 
-export function registerVersion(kbWorkdir, finalMp4Path, { label, draft = false } = {}) {
+export function registerVersion(kbWorkdir, finalMp4Path, { label, draft = false, placeholder = false } = {}) {
   const versionsJsonPath = path.join(kbWorkdir, 'versions.json');
   const versionsDir = path.join(kbWorkdir, 'versions');
   
@@ -42,7 +42,10 @@ export function registerVersion(kbWorkdir, finalMp4Path, { label, draft = false 
     label: finalLabel,
     file: destFile,
     created: new Date().toISOString(),
-    draft: !!draft
+    draft: !!draft,
+    // Marks a draft assembled with placeholder stills standing in for
+    // not-yet-downloaded HeyGen clips — surfaced in the board's version picker.
+    ...(placeholder ? { placeholder: true } : {})
   };
 
   if (existingIdx !== -1) {

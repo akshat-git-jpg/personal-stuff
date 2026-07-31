@@ -44,3 +44,14 @@ Inside long avatar spans, the pipeline automatically inserts a "refresh beat" ev
 ## Ken Burns drift
 
 Screen segments ≥4s get a slow Ken Burns drift (alternating zoom in/out, max 5%) applied underneath captions. Pass `--drift off` to disable.
+
+## Placeholder-avatar drafts (owner ask 2026-07-31)
+
+A `--draft` assemble no longer waits for HeyGen: any avatar-full span whose
+clip has not been downloaded renders the template's reference still (from
+`video/heygen/registry.json`), dimmed and labelled "AVATAR PLACEHOLDER", with
+hard cuts at its boundaries. The version registers `placeholder: true` and the
+board's version picker shows "· placeholder avatar". Review starts
+immediately; re-run the cut after `avatar-download` completes and the real
+clips swap in automatically (the file's presence changes the segment cache
+key). The full-resolution FINAL assemble still refuses missing clips.
