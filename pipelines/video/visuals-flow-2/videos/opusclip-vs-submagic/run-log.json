@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "updated": "2026-07-31T07:18:50.837Z",
+  "updated": "2026-07-31T07:33:14.189Z",
   "steps": {
     "037-approve-card-plan-human": {
       "status": "done",
@@ -75,12 +75,12 @@
       "output": "audit.json 39 items, 1 labelled (c20) pending owner decision; z06 re-cued and re-resolved"
     },
     "060-place-avatar-llm": {
-      "status": "blocked",
-      "started": "2026-07-29T20:29:07.877Z",
-      "ended": "2026-07-29T20:30:13.563Z",
-      "did": "Not started. Guardrail 1 pre-flight (node lib/feedback-status.mjs) exits 1, so no LLM pass may run.",
-      "issues": "One unfolded feedback item: zone-intro:1, the rejection of enacted/same-input-split as not intuitive. The gate exists so a later pass never authors with an unapplied lesson, so the fold (130) has to land first. The fold edits the zone RULEBOOK and the visuals-flow-feedback skill requires the owner to approve the solve before anything is applied, so this is the owner's call, not a step I can clear myself.",
-      "output": "none — blocked before the prompt was assembled"
+      "status": "done",
+      "started": "2026-07-31T07:26:37.128Z",
+      "did": "Authored the shot plan: 10 full-screen host spans, 154s total against the 143s scaled target (cap 300s), U-curve shaped — audience address (40s) and pre-demo bridge front-load the intro; short cadence beats at the Submagic-to-OpusClip transition, the export-to-results transition, and the free-trial pricing aside carry the middle; both tool verdicts, the summary-table takes-the-win line, and the outro sign-off land on the host. Every span boundary sits on sentence edges and no span overlaps a fullframe cue. No side-mode spans: the one natural candidate (the overall-verdict line over race-bars z11) resolves under the 10s span minimum and was dropped rather than forced.",
+      "issues": "One W4 span-cadence warning stands: 210s without host between s03 (287s) and s04 (497s) — the OpusClip settings walkthrough is continuous hands-on narration and the rulebook forbids host cutaways over it; no clean pause exists. Five W5 short-screen slivers (0.1-4.9s) between span edges and cue windows are word-boundary artifacts for assemble to absorb. Also fixed two dishonest Run-tab ticks the owner flagged: cues.json approved reset to false (round-2 edits bypassed the board's auto-un-approve) and my frame-verification renders deleted so 090 no longer reads as done by inference.",
+      "output": "shots.json 10 spans (engineMode test, approved false), shots.llm.json snapshot, lint-shots 0 errors / 1 W4 + 5 W5 warnings, resolved spans clean",
+      "ended": "2026-07-31T07:33:14.189Z"
     },
     "130-learn-from-feedback-opus": {
       "status": "done",
@@ -89,6 +89,14 @@
       "issues": "Found and fixed a second board data-loss bug: Save wiped register/motif/legacy_why from every cue because collectCues rebuilt cues from the tile fragment alone; fields restored, round-trip fixed, regression-tested. Also self-inflicted and corrected: cat > clobbered the tracked plan-172 collector tests (restored from HEAD, my tests appended). W21 renumbered from W20 (collided with no-segment-map). z07 timeline-scrub keeps its 18.7s span deliberately — its beats genuinely cover the narration.",
       "output": "cues.json (z01 beats, c26 unnumbered, registers/motif/legacy_why restored), resolved.json re-resolved 0 errors, lib/resolve.mjs first-boundary exposure + hold_full + marker in E12, lib/cue-constants.mjs GAP_ABSORB 4, lib/lint-cues.mjs W21+W22, lib/cue-rules.mjs R_STRUCTURAL+R_NO_IDLE clauses (prompt regenerated, rulebook ok), catalog hold_full x12 + section number optional, section-card-flip title-only mode, like-subscribe lockup rebuild, board-ui collector round-trip fix + errors-only banner, vitest 34/34, check.sh green, card check OK, feedback.json 5/5 folded (exit 0), claude_status.json check-offs.",
       "ended": "2026-07-31T07:18:50.837Z"
+    },
+    "080-approve-storyboard-human": {
+      "status": "done",
+      "ended": "2026-07-31T07:26:06.092Z",
+      "started": "2026-07-31T07:26:06.092Z",
+      "did": "Owner approved the storyboard composition (graphics; this video has no avatar shots).",
+      "output": "cues.json approved=true",
+      "issues": "none found"
     }
   }
 }
