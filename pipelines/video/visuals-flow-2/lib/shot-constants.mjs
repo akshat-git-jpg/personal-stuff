@@ -18,3 +18,15 @@ export const SHOT_CONSTANTS = {
   SIDE_GRAPHICS_W:    { value: 1200, rule: 'In side mode the motion-graphics card renders 1200px wide at x=0, full canvas height.' },
   SIDE_AVATAR_W:      { value: 720,  rule: 'In side mode the host occupies the right 720px of the canvas, full height, cover-cropped from the source clip. The split is a hard edge — no inset, no corner radius.' },
 };
+
+// "purpose" says what a rendered avatar file is FOR (a planned host moment vs
+// the corner-bubble baseline track vs a side/panel composite) — HeyGen renders
+// every job identically, so this is downstream routing, not a render option.
+// Renamed from "kind" 2026-07-31 (owner: "kind" vs "mode" was unreadable).
+// Lives here (dependency-free module) so avatar-render, assemble and lint-cues
+// can all share it without an import cycle. Readers use this accessor so
+// legacy artifacts that still say "kind" (older videos, immutable *.llm.json
+// snapshots) keep working.
+export function jobPurpose(j) {
+  return j.purpose ?? j.kind;
+}

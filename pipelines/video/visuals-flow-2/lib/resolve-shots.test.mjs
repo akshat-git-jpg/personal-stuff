@@ -26,17 +26,29 @@ test('to_anchor before from_anchor in the transcript → error mentioning to_anc
   assert.ok(errors[0].includes('to_anchor'));
 });
 
-test('unknown kind → error; flagged: true span → skipped, no error', () => {
+test('unknown purpose → error; flagged: true span → skipped, no error', () => {
   const { spans, errors } = resolveShots({
     engineMode: 'test',
     spans: [
-      { id: 's01', kind: 'unknown', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' },
-      { id: 's02', kind: 'avatar-full', flagged: true, from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }
+      { id: 's01', purpose: 'unknown', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' },
+      { id: 's02', purpose: 'avatar-full', flagged: true, from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }
     ]
   }, words);
   assert.equal(spans.length, 0);
   assert.equal(errors.length, 1);
-  assert.ok(errors[0].includes('unknown kind'));
+  assert.ok(errors[0].includes('unknown purpose'));
+});
+
+test('legacy "kind" field still resolves (renamed to "purpose" 2026-07-31)', () => {
+  const { spans, errors } = resolveShots({
+    engineMode: 'test',
+    spans: [
+      { id: 's01', kind: 'avatar-full', mode: 'full', from_anchor: 'w10 w11 w12', to_anchor: 'w20 w21 w22' }
+    ]
+  }, words);
+  assert.equal(errors.length, 0);
+  assert.equal(spans.length, 1);
+  assert.equal(spans[0].purpose, 'avatar-full');
 });
 
 test('engineMode: "production" → error containing not implemented; engineMode: "nope" → error containing invalid', () => {

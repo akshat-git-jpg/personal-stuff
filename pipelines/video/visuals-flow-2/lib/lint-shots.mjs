@@ -33,7 +33,7 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
 
   // E5 orphan-screen / W5 short-screen
   try {
-    const avatarJobs = spans.map(s => ({ kind: 'avatar-full', id: s.id, start: s.start, end: s.end }));
+    const avatarJobs = spans.map(s => ({ purpose: 'avatar-full', id: s.id, start: s.start, end: s.end }));
     const baseSegments = planSegments({ resolved: resolvedCues || [], avatarJobs, total: T });
     for (let i = 0; i < baseSegments.length; i++) {
       const seg = baseSegments[i];

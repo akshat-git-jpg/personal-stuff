@@ -10,7 +10,7 @@ import { EFFECT_MODULES } from './effects/registry.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { registerVersion } from './versions.mjs';
 import { loadConceptSpans } from './concept-spans.mjs';
-import { SHOT_CONSTANTS } from './shot-constants.mjs';
+import { SHOT_CONSTANTS, jobPurpose } from './shot-constants.mjs';
 import { readFinalCut } from './final-cut.mjs';
 
 import * as whipMod from './effects/whip.mjs';
@@ -102,7 +102,7 @@ export function planSegments({ resolved, avatarJobs, total }) {
       end: Math.min(+(c.start + c.duration).toFixed(3), total) });
   }
   // Base selection must stay full-only — a panel must not replace the base.
-  for (const j of avatarJobs.filter((j) => j.kind === 'avatar-full')) {
+  for (const j of avatarJobs.filter((j) => jobPurpose(j) === 'avatar-full')) {
     repl.push({ kind: 'avatar', id: j.id, start: j.start,
       end: Math.min(j.end, total) });
   }
@@ -897,12 +897,12 @@ export async function loadAssemblyInputs(opts) {
       process.exit(1);
     }
     const avatarJobsFile = JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8'));
-    avatarJobs = avatarJobsFile.jobs.filter(j => j.kind === 'avatar-full');
-    panelJobs = avatarJobsFile.jobs.filter(j => j.kind === 'avatar-panel' && j.file && fs.existsSync(j.file));
-    sideJobs = avatarJobsFile.jobs.filter(j => j.kind === 'avatar-side' && j.file && fs.existsSync(j.file));
+    avatarJobs = avatarJobsFile.jobs.filter(j => jobPurpose(j) === 'avatar-full');
+    panelJobs = avatarJobsFile.jobs.filter(j => jobPurpose(j) === 'avatar-panel' && j.file && fs.existsSync(j.file));
+    sideJobs = avatarJobsFile.jobs.filter(j => jobPurpose(j) === 'avatar-side' && j.file && fs.existsSync(j.file));
     // Corner chunks composited as the top-right bubble (plan 100). Absent files
     // are dropped so the bubble module simply no-ops rather than failing assembly.
-    cornerJobs = avatarJobsFile.jobs.filter(j => j.kind === 'corner' && j.file && fs.existsSync(j.file));
+    cornerJobs = avatarJobsFile.jobs.filter(j => jobPurpose(j) === 'corner' && j.file && fs.existsSync(j.file));
     const missing = avatarJobs.filter(j => !j.file || !fs.existsSync(j.file));
     if (missing.length > 0) {
       const missingIds = missing.map(j => j.id).join(', ');

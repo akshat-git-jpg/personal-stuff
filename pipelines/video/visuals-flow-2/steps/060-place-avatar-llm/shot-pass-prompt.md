@@ -22,7 +22,7 @@ content — no other text.
   "spans": [
     {
       "id": "s01",
-      "kind": "avatar-full",
+      "purpose": "avatar-full",
       "mode": "full", // or "side" — REQUIRED, no default
       "from_anchor": "verbatim first words of the span",
       "to_anchor": "verbatim last words of the span",

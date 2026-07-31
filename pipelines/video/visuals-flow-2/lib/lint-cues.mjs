@@ -5,6 +5,7 @@ import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
 import { ZONE_CONSTANTS, ENACTED_PREFIX } from './zone-constants.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { extendExposure, findPhrase, normWord } from './resolve.mjs';
+import { jobPurpose } from './shot-constants.mjs';
 
 const CAP_STAT_HIT = CUE_CONSTANTS.CAP_STAT_HIT.value;
 const SPACING_STAT_HIT = CUE_CONSTANTS.SPACING_STAT_HIT.value;
@@ -42,7 +43,7 @@ const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
 // still freeze. Mirrors the filter in assemble.mjs's base selection.
 export function avatarFullSpans(avatarJobs) {
   return (avatarJobs?.jobs ?? [])
-    .filter((j) => j.kind === 'avatar-full' && Number.isFinite(j.start) && Number.isFinite(j.end))
+    .filter((j) => jobPurpose(j) === 'avatar-full' && Number.isFinite(j.start) && Number.isFinite(j.end))
     .map((j) => [j.start, j.end])
     .sort((a, b) => a[0] - b[0]);
 }

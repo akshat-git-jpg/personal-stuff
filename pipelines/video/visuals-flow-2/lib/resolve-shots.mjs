@@ -30,7 +30,10 @@ export function resolveShots(shotsFile, words) {
     if (!span.id || seen.has(span.id)) { errors.push(`duplicate or missing span id: "${span.id}"`); continue; }
     seen.add(span.id);
     if (span.flagged) continue; // parked, same semantics as flagged cues
-    if (span.kind !== 'avatar-full') { errors.push(`${span.id}: unknown kind "${span.kind}" — only "avatar-full" exists today`); continue; }
+    // "purpose" renamed from "kind" 2026-07-31 (owner: confusable with "mode");
+    // legacy "kind" still accepted so committed shots.json/llm snapshots resolve.
+    const purpose = span.purpose ?? span.kind;
+    if (purpose !== 'avatar-full') { errors.push(`${span.id}: unknown purpose "${purpose}" — only "avatar-full" exists today`); continue; }
     if (span.mode === undefined) { errors.push(`${span.id}: mode is required — must be "full" or "side" ("panel" is supported but not currently planned)`); continue; }
     const mode = span.mode;
     if (mode !== 'full' && mode !== 'panel' && mode !== 'side') { errors.push(`${span.id}: unknown mode "${span.mode}" — must be "full", "panel", or "side"`); continue; }
@@ -51,7 +54,7 @@ export function resolveShots(shotsFile, words) {
       snapped = true;
     }
     const spanObj = {
-      id: span.id, kind: span.kind, mode,
+      id: span.id, purpose, mode,
       start, end, duration: +(end - start).toFixed(2),
       note: span.note ?? '',
     };

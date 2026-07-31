@@ -3,6 +3,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { planSegments, absorbSlivers, fillGapsWithFreeze, CANVAS } from './assemble.mjs';
 import { resolveWorkdir } from './workdir.mjs';
+import { jobPurpose } from './shot-constants.mjs';
 import { EFFECT_MODULES } from './effects/registry.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { loadConceptSpans } from './concept-spans.mjs';
@@ -30,7 +31,7 @@ function main() {
   let avatarJobs = [];
   if (fs.existsSync(shotsPath) && fs.existsSync(avatarJobsPath)) {
     const avatarJobsFile = JSON.parse(fs.readFileSync(avatarJobsPath, 'utf8'));
-    avatarJobs = avatarJobsFile.jobs.filter(j => j.kind === 'avatar-full');
+    avatarJobs = avatarJobsFile.jobs.filter(j => jobPurpose(j) === 'avatar-full');
   }
 
   const voPath = path.join(workdir, 'vo.mp3');

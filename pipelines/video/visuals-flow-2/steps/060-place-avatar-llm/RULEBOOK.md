@@ -49,8 +49,11 @@ never over hands-on narration.
 
 ## Output contract
 
-- Spans in transcript order, ids `s01, s02, …`, `kind: "avatar-full"` only.
-  Include `mode: "full"` or `mode: "panel"` for each span.
+- Spans in transcript order, ids `s01, s02, …`, `purpose: "avatar-full"` only
+  (renamed from `kind` 2026-07-31 — purpose says what the rendered file is FOR;
+  `mode` says how it is laid out on screen).
+  Include `mode: "full"` or `mode: "side"` for each span ("panel" validates but
+  is not currently planned).
 - `note` — one short line saying why this span is host-worthy (the owner reads
   it on the board).
 - A span you want but can't place cleanly: `flagged: true` + note, don't force it.

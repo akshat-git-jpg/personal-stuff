@@ -3,6 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { resolveShots } from './resolve-shots.mjs';
+import { jobPurpose } from './shot-constants.mjs';
 import { lintShots } from './lint-shots.mjs';
 import { mmss } from './render.mjs';
 import { resolveWorkdir } from './workdir.mjs';
@@ -40,7 +41,7 @@ export function planCornerChunksRange(rangeStart, rangeEnd, chunk = CORNER_CHUNK
 export function planJobs(shotsResolved, totalDuration, { spansOnly = false, cornerRange = null } = {}) {
   const spanJobs = (shotsResolved.spans || []).map((s) => ({
     id: s.id,
-    kind: s.mode === 'side' ? 'avatar-side' : (s.mode === 'panel' ? 'avatar-panel' : 'avatar-full'),
+    purpose: s.mode === 'side' ? 'avatar-side' : (s.mode === 'panel' ? 'avatar-panel' : 'avatar-full'),
     start: s.start,
     end: s.end,
   }));
@@ -50,15 +51,15 @@ export function planJobs(shotsResolved, totalDuration, { spansOnly = false, corn
   } else if (!spansOnly) {
     cornerChunks = planCornerChunks(totalDuration);
   }
-  const cornerJobs = cornerChunks.map((c) => ({ ...c, kind: 'corner' }));
+  const cornerJobs = cornerChunks.map((c) => ({ ...c, purpose: 'corner' }));
   return [...spanJobs, ...cornerJobs].map((j) => ({ ...j, duration: +(j.end - j.start).toFixed(2) }));
 }
 
 export function avatarManifestMd(video, jobs, offset = 0) {
   const done = jobs.filter((j) => j.file);
   const rows = done.sort((a, b) => a.start - b.start).map((j) =>
-    `| ${mmss(j.start + offset)} | ${path.basename(j.file)} | ${j.duration}s | ${j.kind} |`);
-  const cornerNote = jobs.some((j) => j.kind === 'corner')
+    `| ${mmss(j.start + offset)} | ${path.basename(j.file)} | ${j.duration}s | ${jobPurpose(j)} |`);
+  const cornerNote = jobs.some((j) => jobPurpose(j) === 'corner')
     ? `Corner chunks are contiguous — drop them in sequence from ${mmss(offset)}; the editor cuts the corner during avatar-full spans.`
     : 'Full-screen avatar clips only (corner track not rendered for this video).';
   return [
@@ -66,7 +67,7 @@ export function avatarManifestMd(video, jobs, offset = 0) {
     '',
     cornerNote,
     '',
-    '| place at | file | duration | kind |',
+    '| place at | file | duration | purpose |',
     '|---|---|---|---|',
     ...rows,
     '',
@@ -231,7 +232,7 @@ async function main() {
       } catch (e) {}
 
       const newJob = {
-        id: job.id, kind: job.kind, start: job.start, end: job.end, duration: job.duration,
+        id: job.id, purpose: jobPurpose(job), start: job.start, end: job.end, duration: job.duration,
         audio: audioPath, video_id, status, submitted_at: new Date().toISOString()
       };
       // Surface the CLI's voice instead of swallowing it (s03 incident 2026-07-18:

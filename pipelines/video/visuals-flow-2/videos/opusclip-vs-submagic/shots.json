@@ -5,93 +5,93 @@
   "spans": [
     {
       "id": "s01",
-      "kind": "avatar-full",
       "mode": "full",
       "from_anchor": "This video is going to be",
       "to_anchor": "without babysitting every clip",
       "note": "audience address — who this video is for, host to camera between the promise cards",
-      "flagged": false
+      "flagged": false,
+      "purpose": "avatar-full"
     },
     {
       "id": "s02",
-      "kind": "avatar-full",
       "mode": "full",
       "from_anchor": "Again, before we jump into",
       "to_anchor": "makes the difference very obvious",
       "note": "overview -> demo bridge; host hands over to the screen recording",
-      "flagged": false
+      "flagged": false,
+      "purpose": "avatar-full"
     },
     {
       "id": "s03",
-      "kind": "avatar-full",
       "mode": "full",
       "from_anchor": "So that's pretty cool",
       "to_anchor": "adding the same details",
       "note": "cadence beat at the Submagic -> OpusClip transition, before the hands-on upload",
-      "flagged": false
+      "flagged": false,
+      "purpose": "avatar-full"
     },
     {
       "id": "s04",
-      "kind": "avatar-full",
       "mode": "full",
       "from_anchor": "Once this is done as well",
       "to_anchor": "see what it has brought us",
       "note": "demos wrap -> results transition; natural pause before the Submagic playback",
-      "flagged": false
+      "flagged": false,
+      "purpose": "avatar-full"
     },
     {
       "id": "s05",
-      "kind": "avatar-full",
       "mode": "full",
       "from_anchor": "You can see that with Submagic",
       "to_anchor": "native to short-form platforms",
       "note": "Submagic verdict — host reaction to the generated clip, ends as race-bars takes over",
-      "flagged": false
+      "flagged": false,
+      "purpose": "avatar-full"
     },
     {
       "id": "s06",
-      "kind": "avatar-full",
       "mode": "full",
       "from_anchor": "This generation right here took",
       "to_anchor": "They just don't look finished",
       "note": "OpusClip verdict — host reaction; the cleanup-lap card follows",
-      "flagged": false
+      "flagged": false,
+      "purpose": "avatar-full"
     },
     {
       "id": "s07",
-      "kind": "avatar-full",
       "mode": "full",
       "from_anchor": "Submagic, on the other hand, justifies",
       "to_anchor": "that difference compounds fast",
       "note": "value commentary, not a screen walk — fewer-fixes argument is a host point",
-      "flagged": false
+      "flagged": false,
+      "purpose": "avatar-full"
     },
     {
       "id": "s08",
-      "kind": "avatar-full",
       "mode": "full",
       "from_anchor": "Another great thing about this",
       "to_anchor": "41% annual discount, which is pretty cool",
       "note": "cadence beat — the free-trial / annual-discount aside is host commentary between the two pricing walks",
-      "flagged": false
+      "flagged": false,
+      "purpose": "avatar-full"
     },
     {
       "id": "s09",
-      "kind": "avatar-full",
       "mode": "full",
       "from_anchor": "As you can see, OpusClip is solid",
       "to_anchor": "before the publishing is done",
       "note": "summary-table verdict — the takes-the-win line lands on the host",
-      "flagged": false
+      "flagged": false,
+      "purpose": "avatar-full"
     },
     {
       "id": "s10",
-      "kind": "avatar-full",
       "mode": "full",
       "from_anchor": "the links are in the description",
       "to_anchor": "Have a great day. Goodbye",
       "note": "outro sign-off — CTA overlays (link, like+subscribe) composite over the host",
-      "flagged": false
+      "flagged": false,
+      "purpose": "avatar-full"
     }
   ],
   "approved_note": "owner chat approval 2026-07-31: go ahead on avatar (engineMode test, Avatar III pre-authorized)"

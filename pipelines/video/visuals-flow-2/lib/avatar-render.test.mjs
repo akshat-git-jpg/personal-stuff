@@ -27,7 +27,7 @@ test('planCornerChunksRange → single sub-300s window is one chunk', () => {
 test('planJobs cornerRange → only the ranged corner chunk, no whole-VO track', () => {
   const jobs = planJobs({ spans: [] }, 2167, { cornerRange: [113.67, 293.67] });
   assert.strictEqual(jobs.length, 1);
-  assert.strictEqual(jobs[0].kind, 'corner');
+  assert.strictEqual(jobs[0].purpose, 'corner');
   assert.strictEqual(jobs[0].start, 113.67);
   assert.strictEqual(jobs[0].duration, 180);
 });
@@ -231,10 +231,10 @@ test('planJobs spansOnly → no corner jobs', async () => {
   const { planJobs } = await import('./avatar-render.mjs');
   const jobs = planJobs({ spans: [{ id: 's01', start: 10, end: 40 }] }, 650, { spansOnly: true });
   assert.equal(jobs.length, 1);
-  assert.ok(jobs.every(j => j.kind === 'avatar-full'));
+  assert.ok(jobs.every(j => j.purpose === 'avatar-full'));
 });
 
-test('span mode dictates job kind', () => {
+test('span mode dictates job purpose', () => {
   const jobs = planJobs({
     spans: [
       { id: 's01', start: 10, end: 20 },
@@ -243,9 +243,9 @@ test('span mode dictates job kind', () => {
     ]
   }, 100, { spansOnly: true });
   assert.equal(jobs.length, 3);
-  assert.equal(jobs[0].kind, 'avatar-full');
-  assert.equal(jobs[1].kind, 'avatar-panel');
-  assert.equal(jobs[2].kind, 'avatar-full');
+  assert.equal(jobs[0].purpose, 'avatar-full');
+  assert.equal(jobs[1].purpose, 'avatar-panel');
+  assert.equal(jobs[2].purpose, 'avatar-full');
 });
 
 test('retry run flushes skipped jobs after the last submit (s03-retry incident)', (t) => {
