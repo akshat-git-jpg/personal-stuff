@@ -73,7 +73,7 @@
       data-duration="8"
       data-width="1920"
       data-height="1080"
-      data-composition-variables='{"promise":"Both promise viral-ready shorts","left":{"name":"Submagic","logo":"submagic","verdict":"Output ready to publish"},"right":{"name":"OpusClip","logo":"opusclip","verdict":"Speed at all costs"}}'
+      data-composition-variables='{"promise":"Both promise viral-ready shorts","sides":[{"name":"Submagic","logo":"submagic","verdict":"Output ready to publish"},{"name":"OpusClip","logo":"opusclip","verdict":"Speed at all costs"}],"beats":[{"name":"OpusClip","at":2.5},{"name":"Submagic","at":4.3}]}'
     >
       <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="8" data-track-index="1">
@@ -89,10 +89,15 @@
         (window.__hyperframes && window.__hyperframes.getVariables
           ? window.__hyperframes.getVariables()
           : null) || {};
+      const SIDES = VARS.sides ?? (VARS.left && VARS.right ? [VARS.left, VARS.right] : null);
       const DATA = {
         promise: VARS.promise ?? 'Both promise viral-ready shorts',
-        left: VARS.left ?? { name: 'Submagic', logo: 'submagic', verdict: 'Output ready to publish' },
-        right: VARS.right ?? { name: 'OpusClip', logo: 'opusclip', verdict: 'Speed at all costs' },
+        left: SIDES?.[0] ?? { name: 'Submagic', logo: 'submagic', verdict: 'Output ready to publish' },
+        right: SIDES?.[1] ?? { name: 'OpusClip', logo: 'opusclip', verdict: 'Speed at all costs' },
+        // Word-anchored beats [{name, at}] — each side's verdict lands when the
+        // narration actually says it (owner final-v1:1, 2026-07-31). Without
+        // beats the card keeps its original fixed timing.
+        beats: Array.isArray(VARS.beats) ? VARS.beats : null,
       };
 
       /* ===== TIMELINE (LOCKED — do not edit) ===== */
@@ -134,17 +139,37 @@
       tl.fromTo(names, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: 'power2.out' }, 0.5);
 
       // Phase 2 — the split: the sentence turns, the sides separate and each
-      // takes its own bet.
-      tl.fromTo('#split', { opacity: 0, scaleY: 0.2 }, { opacity: 1, scaleY: 1, duration: 0.55, ease: 'power3.inOut' }, 2.3);
-      tl.to(sides[0], { x: -46, duration: 0.7, ease: 'power2.out' }, 2.35);
-      tl.to(sides[1], { x: 46, duration: 0.7, ease: 'power2.out' }, 2.35);
-      tl.to('#promiseText', { opacity: 0.45, duration: 0.5, ease: 'power2.out' }, 2.35);
-      tl.to(rules, { scaleX: 1, duration: 0.45, stagger: 0.12, ease: 'power2.out' }, 2.6);
-      tl.fromTo(verdicts, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.16, ease: 'power3.out' }, 2.75);
+      // takes its own bet. With word-anchored beats, the split fires just
+      // ahead of the first spoken verdict and each side's verdict lands AT its
+      // words; without beats, the original fixed timing plays.
+      const beatFor = (sideEl) => {
+        const name = sideEl.querySelector('.name')?.textContent?.trim();
+        return DATA.beats?.find((b) => b.name === name) ?? null;
+      };
+      const splitAt = DATA.beats?.length ? Math.max(1.2, (DATA.beats[0].at ?? 2.3) - 0.45) : 2.3;
 
-      // Life through the hold — a slow breath so the frame never freezes.
-      tl.to(tiles, { y: -8, duration: 1.6, ease: 'sine.inOut', yoyo: true, repeat: 3, stagger: 0.2 }, 3.6);
-      tl.to('#split', { opacity: 0.6, duration: 1.4, ease: 'sine.inOut', yoyo: true, repeat: 3 }, 3.6);
+      tl.fromTo('#split', { opacity: 0, scaleY: 0.2 }, { opacity: 1, scaleY: 1, duration: 0.55, ease: 'power3.inOut' }, splitAt);
+      tl.to(sides[0], { x: -46, duration: 0.7, ease: 'power2.out' }, splitAt + 0.05);
+      tl.to(sides[1], { x: 46, duration: 0.7, ease: 'power2.out' }, splitAt + 0.05);
+      tl.to('#promiseText', { opacity: 0.45, duration: 0.5, ease: 'power2.out' }, splitAt + 0.05);
+
+      let lastLand = splitAt + 0.45;
+      sides.forEach((sideEl, i) => {
+        const beat = beatFor(sideEl);
+        const at = beat ? Math.max(splitAt + 0.2, beat.at) : splitAt + 0.3 + i * 0.16;
+        lastLand = Math.max(lastLand, at + 0.55);
+        tl.to(rules[i], { scaleX: 1, duration: 0.45, ease: 'power2.out' }, at - 0.15);
+        tl.fromTo(verdicts[i], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, at);
+      });
+
+      // Life from entry to the end — a continuous slow breath so neither the
+      // shared-promise setup (entry phase) nor the post-verdict hold ever
+      // reads as a still frame.
+      // repeat is bounded, not -1: an infinite tween makes the timeline
+      // duration Infinity and the frame-seeking renderer dies with "Set
+      // maximum size exceeded". 14 yoyo cycles cover ~45s, past any exposure.
+      tl.to(tiles, { y: -8, duration: 1.6, ease: 'sine.inOut', yoyo: true, repeat: 14, stagger: 0.2 }, 1.6);
+      tl.to('#split', { opacity: 0.6, duration: 1.4, ease: 'sine.inOut', yoyo: true, repeat: 14 }, splitAt + 1.2);
 
       window.__timelines['promise-split'] = tl;
     </script>

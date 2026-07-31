@@ -2258,7 +2258,8 @@
         "a",
         "b"
       ],
-      "max_reveal_chars": 40
+      "max_reveal_chars": 40,
+      "entry_phase": true
     },
     {
       "slug": "enacted/bad-clip-montage",
@@ -2487,7 +2488,7 @@
     },
     {
       "slug": "enacted/promise-split",
-      "kind": "single",
+      "kind": "beat",
       "placement": "fullframe",
       "side": true,
       "purpose": "two products share one promise, then the frame splits and each side takes the bet it actually makes: for the sentence shape \"A and B both promise X, but one does P and the other does Q\"",
@@ -2499,36 +2500,10 @@
           "max_words": 8,
           "example": "Both promise viral-ready shorts"
         },
-        "left": {
-          "type": "object",
+        "sides": {
+          "type": "array",
           "required": true,
-          "shape": {
-            "name": {
-              "type": "string",
-              "required": true,
-              "role": "label",
-              "max_words": 3,
-              "example": "Submagic"
-            },
-            "logo": {
-              "type": "string",
-              "required": false,
-              "role": "logo_slug",
-              "example": "submagic"
-            },
-            "verdict": {
-              "type": "string",
-              "required": true,
-              "role": "label",
-              "max_words": 5,
-              "example": "Output ready to publish"
-            }
-          }
-        },
-        "right": {
-          "type": "object",
-          "required": true,
-          "shape": {
+          "item_shape": {
             "name": {
               "type": "string",
               "required": true,
@@ -2557,7 +2532,12 @@
         "comparison-coldopen"
       ],
       "intent": "One spoken sentence sets a shared promise and then divides it into two opposing bets; the split enacts the divergence.",
-      "anti_intent": "More than two products, no shared promise, or numeric stats (use head-to-head or table-rows)."
+      "anti_intent": "More than two products, no shared promise, or numeric stats (use head-to-head or table-rows).",
+      "beat_source": "variables",
+      "beat_var": "sides",
+      "max_beats": 2,
+      "note": "Beat card since 2026-07-31 (owner final-v1:1): sides[2] in on-screen order left,right; each beat reveal.name times that side's verdict to its spoken words, so the card stays dynamic and covers the whole concept. Beats in SPOKEN order.",
+      "entry_phase": true
     },
     {
       "slug": "link-in-description/link-scrim",

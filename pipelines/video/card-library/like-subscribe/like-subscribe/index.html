@@ -56,43 +56,41 @@
 
       #bg { position: absolute; inset: 0; background: var(--bg); }
 
-      #anchor { position: absolute; left: 0; right: 0; top: 70%; display: flex; justify-content: center; }
+      /* Low and out of the way — this is a passing CTA, not a hero. The old
+         lockup sat at 70% (mid-frame, over the host's chest) at hero scale and
+         the owner rejected it ("looks very bad", 2026-07-31). */
+      #anchor { position: absolute; left: 0; right: 0; top: 78%; display: flex; justify-content: center; }
 
       /* The lockup bar — dark glass, accent keyline (>=2px @ >=0.6 alpha per
          DESIGN.md: a stroke meant to read as a complete shape must survive
          encode). GSAP animates #bar, never the .clip. */
       #bar {
         position: relative;
-        display: flex; align-items: center; gap: 34px;
-        padding: 24px 44px; border-radius: 999px; white-space: nowrap;
-        background: linear-gradient(180deg, rgba(22,14,7,0.96), rgba(12,8,4,0.96));
-        border: 2.5px solid rgba(251,146,60,0.75);
+        display: flex; align-items: center; gap: 22px;
+        padding: 14px 28px; border-radius: 999px; white-space: nowrap;
+        background: rgba(14, 9, 4, 0.9);
+        border: 2px solid rgba(251, 146, 60, 0.65);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
         will-change: transform, opacity;
       }
 
-      #thumb { width: 56px; height: 56px; color: var(--dim); will-change: transform; }
-      #thumb svg { width: 56px; height: 56px; display: block; }
+      #thumb { width: 34px; height: 34px; color: var(--dim); will-change: transform; }
+      #thumb svg { width: 34px; height: 34px; display: block; }
 
-      .divider { width: 2px; height: 44px; border-radius: 1px; background: rgba(255,239,219,0.18); }
+      .divider { width: 1.5px; height: 28px; border-radius: 1px; background: rgba(255,239,219,0.16); }
 
-      /* The Subscribe button — solid accent, gradient for depth, top sheen. */
+      /* The Subscribe button — flat accent, no gradient, no sheen. */
       #subPill {
         position: relative;
         display: flex; align-items: center;
-        padding: 20px 46px; border-radius: 999px;
-        background: linear-gradient(180deg, var(--accent) 0%, var(--accent-deep) 100%);
+        padding: 11px 26px; border-radius: 999px;
+        background: var(--accent);
         will-change: transform;
       }
-      #sheen {
-        position: absolute; left: 8%; right: 8%; top: 3px; height: 40%;
-        border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0));
-        pointer-events: none;
-      }
-      #subPill .label { font-size: 42px; font-weight: 800; letter-spacing: 0.2px; color: var(--ink); }
+      #subPill .label { font-size: 26px; font-weight: 700; letter-spacing: 0.2px; color: var(--ink); }
 
-      #bell { width: 50px; height: 50px; color: var(--dim); will-change: transform; transform-origin: 50% 18%; }
-      #bell svg { width: 50px; height: 50px; display: block; }
+      #bell { width: 30px; height: 30px; color: var(--dim); will-change: transform; transform-origin: 50% 18%; }
+      #bell svg { width: 30px; height: 30px; display: block; }
     </style>
   </head>
   <body>
@@ -123,7 +121,6 @@
           </span>
           <span class="divider"></span>
           <div id="subPill">
-            <span id="sheen"></span>
             <span class="label" id="subLabel"></span>
           </div>
           <span class="divider"></span>
@@ -199,14 +196,16 @@
       // Exit: fade out + slide down (12px) over the last 0.5s.
       tl.to(bar, { opacity: 0, y: 12, duration: 0.5, ease: 'power2.in', overwrite: 'auto' }, DURATION - 0.5);
 
-      // Breathing glow: deterministic sine of the current frame, driven by the
-      // timeline tick (NOT requestAnimationFrame) so it stays frame-seekable.
+      // Subtle keyline pulse: deterministic sine of the current frame, driven
+      // by the timeline tick (NOT requestAnimationFrame) so it stays
+      // frame-seekable. The old version was a 34-54px orange glow blob —
+      // rejected by the owner ("looks very bad", 2026-07-31); now the accent
+      // ring just breathes faintly under a fixed drop shadow.
       function applyGlow(time) {
         const f = time * FPS;
         const glow = (Math.sin(f * 0.06) + 1) / 2;
-        const glowOpacity = 0.3 + glow * 0.22;
         bar.style.boxShadow =
-          `0 0 ${34 + glow * 20}px rgba(251,146,60,${glowOpacity}), 0 12px 34px rgba(0,0,0,0.5)`;
+          `0 0 ${10 + glow * 6}px rgba(251,146,60,${0.10 + glow * 0.08}), 0 8px 24px rgba(0,0,0,0.45)`;
       }
       tl.eventCallback('onUpdate', () => applyGlow(tl.time()));
       applyGlow(0); // initial paused frame
