@@ -33,3 +33,13 @@
   color: var(--text);
 }
 .app-header-row2 > button:hover { border-color: var(--dim); }
+
+/* An approved gate reads as a calm green ✓ state — NOT the washed-out
+   disabled look (that means "you can't do this"; approved means "done"). */
+.action-slot button.approved:disabled {
+  opacity: 1;
+  border-color: var(--ok) !important;
+  color: var(--ok) !important;
+  background: rgba(52, 211, 153, 0.08);
+  cursor: default;
+}

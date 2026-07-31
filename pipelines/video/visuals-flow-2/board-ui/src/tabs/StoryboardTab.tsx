@@ -166,16 +166,27 @@ export function StoryboardTab({
 
     const hasResolved = boardData.hasResolved;
 
+    // Approved = ✓ on the button, disabled until an edit un-approves (the
+    // server drops `approved` whenever cues change, so the refetch re-enables
+    // it exactly when re-approval is meaningful).
+    const cuesApproved = !!boardData.approved?.cues;
     const acts = (
       <>
-        <button id="approveBtn" disabled={!hasResolved} title={!hasResolved ? 'nothing to approve until step 040 resolves the cues' : undefined} onClick={() => handleApprove('/approve')}>Approve graphics</button>
+        <button id="approveBtn" className={cuesApproved ? 'approved' : ''} disabled={!hasResolved || cuesApproved}
+          title={!hasResolved ? 'nothing to approve until step 040 resolves the cues'
+            : cuesApproved ? 'approved — editing and saving cues re-opens this' : undefined}
+          onClick={() => handleApprove('/approve')}>{cuesApproved ? '✓ graphics approved' : 'Approve graphics'}</button>
         {shots && (
           <>
             <span className="usage-chip" style={{ marginLeft: 8 }}>engineMode: {shots.engineMode}</span>
-            <button id="approveShotsBtn" onClick={() => handleApprove('/approve-shots')}>Approve shots</button>
+            <button id="approveShotsBtn" className={shots.approved ? 'approved' : ''} disabled={!!shots.approved}
+              title={shots.approved ? 'approved — editing spans re-opens this' : undefined}
+              onClick={() => handleApprove('/approve-shots')}>{shots.approved ? '✓ shots approved' : 'Approve shots'}</button>
           </>
         )}
-        {effects && <button id="approveEffectsBtn" onClick={() => handleApprove('/approve-effects')}>Approve effects</button>}
+        {effects && <button id="approveEffectsBtn" className={effects.approved ? 'approved' : ''} disabled={!!effects.approved}
+          title={effects.approved ? 'approved — toggling effects re-opens this' : undefined}
+          onClick={() => handleApprove('/approve-effects')}>{effects.approved ? '✓ effects approved' : 'Approve effects'}</button>}
       </>
     );
     onActions(acts);
@@ -380,9 +391,10 @@ export function StoryboardTab({
     <div className="timeline">
       {banners.map(b => <Banner key={b.id} html={b.html} kind={b.kind} onDismiss={() => removeBanner(b.id)} />)}
       
-      {boardData.approved?.cues && <Banner html="approved — ready for <code>node lib/render.mjs</code>" kind="ok" onDismiss={() => {}} />}
-      {shots?.approved && <Banner html="shot plan approved — ready for the avatar render step" kind="ok" onDismiss={() => {}} />}
-      {effects?.approved && <Banner html="effects approved — ready for step 090 assemble" kind="ok" onDismiss={() => {}} />}
+      {/* Approved state lives ON the approve buttons (✓ + disabled), not in
+          banners — the "ready for step NNN" halves were pipeline guidance the
+          Run tab's `next:` line already gives; the owner only needs the fact
+          of approval (owner decluttering ask, 2026-07-31). */}
       {shots?.errors?.length > 0 && <Banner html={`shots: ${shots.errors.join('<br>')}`} kind="err" onDismiss={() => {}} />}
 
       {pre040Banner}

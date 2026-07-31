@@ -122,7 +122,6 @@ export function TimelineCanvas({
             </div>
             <div className="tl-track tl-derivatives-toggle-track" style={{ height: 24, borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', position: 'relative', width: trackWidth }}>
                <button id="derivativesToggle" className="fold-toggle" style={{ marginLeft: 8, margin: '2px 0 2px 8px', background: 'transparent', border: 'none', color: 'var(--dim)', fontSize: 11, cursor: 'pointer' }} onClick={toggleDerivatives}>details {derivativesOpen ? '▾' : '▸'}</button>
-               {effectsEnabled && <button id="approveEffectsBtn" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11, background: 'transparent', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 12, cursor: 'pointer' }} onClick={() => fetch('/approve-effects', { method: 'POST' })}>Approve effects</button>}
             </div>
             <div id="derivativesTracksBlock" style={{ display: derivativesOpen ? 'block' : 'none' }}>
               <div className="tl-track" id="tlEffects" style={{ height: 42, borderBottom: '1px solid var(--line)', position: 'relative', width: trackWidth }}>

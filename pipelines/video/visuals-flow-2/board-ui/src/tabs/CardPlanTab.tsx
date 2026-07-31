@@ -15,7 +15,6 @@ export function CardPlanTab({ video, cardPlan, onMeta, onActions, onSecondary, o
   onRefetch: () => Promise<void>;
 }) {
   const reviewed = useReviewed(video);
-  const [approvedDismissed, setApprovedDismissed] = useState(false);
   const [inFlight, setInFlight] = useState(false);
   const [noteValues, setNoteValues] = useState<Record<string, string>>({});
 
@@ -47,12 +46,14 @@ export function CardPlanTab({ video, cardPlan, onMeta, onActions, onSecondary, o
     // yet): the tab stays in the strip for chrome consistency, but approving
     // a plan that does not exist must be impossible — the POST would 500 on
     // the missing file.
+    const planApproved = !!cardPlan?.approved;
     onActions(
-      <button className="approve plan-approve-btn" onClick={approveCardPlan}
-        disabled={!cardPlan}
-        title={!cardPlan ? 'no card plan yet — step 035 writes card-plan.json' : undefined}
+      <button className={`approve plan-approve-btn ${planApproved ? 'approved' : ''}`} onClick={approveCardPlan}
+        disabled={!cardPlan || planApproved}
+        title={!cardPlan ? 'no card plan yet — step 035 writes card-plan.json'
+          : planApproved ? 'approved — the pipeline continues from the Run tab' : undefined}
         style={{ borderColor: 'var(--ok)', color: 'var(--ok)' }}>
-        Approve card plan
+        {planApproved ? '✓ card plan approved' : 'Approve card plan'}
       </button>
     );
 
@@ -105,12 +106,10 @@ export function CardPlanTab({ video, cardPlan, onMeta, onActions, onSecondary, o
 
   return (
     <div className="card-plan-tab">
-      {cardPlan.approved && !approvedDismissed && (
-        <div className="banner" style={{ marginBottom: '20px' }}>
-          <button className="banner-x" title="dismiss" onClick={() => setApprovedDismissed(true)}>×</button>
-          approved — {numToBuild > 0 ? 'build the NEW cards (step 038), then run.sh <slug> resolve' : 'ready for run.sh <slug> resolve'}
-        </div>
-      )}
+      {/* No approved banner: the ✓ lives on the approve button, and the
+          next-step guidance ("build the NEW cards, step 038") is the Run
+          tab's `next:` line — pipeline-facing, not owner-facing (owner
+          decluttering ask, 2026-07-31). */}
       {sections.map((s: any, idx: number) => {
         const comments = cardPlan.comments?.[s.part] || [];
         const sectionComments = comments.filter((c: any) => !c.cue);

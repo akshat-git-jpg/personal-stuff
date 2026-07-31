@@ -238,8 +238,12 @@ try {
         reject(e);
       });
     });
-    if (!domApproved.includes('build the NEW cards')) {
-      throw new Error('approved card plan with NEW items must show the "build the NEW cards" banner');
+    // Approved state lives on the button (banners removed — owner 2026-07-31)
+    if (!domApproved.includes('✓ card plan approved')) {
+      throw new Error('approved card plan must show the ✓ approved button state');
+    }
+    if (domApproved.includes('build the NEW cards')) {
+      throw new Error('approved banner should be gone from #card-plan');
     }
   }
 
