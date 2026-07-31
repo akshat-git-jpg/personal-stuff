@@ -2548,6 +2548,66 @@
       "default_duration": 5,
       "intent": "The VO points the viewer to the description and it must actually land; dimming the footage removes every competing target.",
       "anti_intent": "A passing mention of the link mid-demo where dimming the screen would hide something the viewer needs to see."
+    },
+    {
+      "slug": "intro/versus-cold-open",
+      "kind": "beat",
+      "beat_source": "variables",
+      "beat_var": "pains",
+      "max_beats": 4,
+      "placement": "fullframe",
+      "side": false,
+      "entry_phase": true,
+      "purpose": "comparison video cold open, two acts: a film strip of clip cards drifts toward a closed POSTED slot while each spoken pain stamps its card in word-sync; then the strip sweeps out and the two products land as a VS matchup. For the sentence shape 'if you are still fixing A, B and C instead of posting, these two tools claim to fix it'",
+      "variables": {
+        "platforms": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "name": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "max_words": 3,
+              "example": "Submagic"
+            },
+            "logo": {
+              "type": "string",
+              "required": false,
+              "role": "logo_slug",
+              "example": "submagic"
+            }
+          }
+        },
+        "pains": {
+          "type": "array",
+          "required": true,
+          "item_shape": {
+            "label": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "max_words": 2,
+              "example": "Captions"
+            }
+          }
+        },
+        "marker": {
+          "type": "string",
+          "required": true,
+          "role": "label",
+          "max_words": 1,
+          "example": "VS"
+        }
+      },
+      "default_duration": 18,
+      "roles": [
+        "comparison-coldopen",
+        "intro"
+      ],
+      "intent": "The intro hook enacted: named pains pile up against a POSTED gate that never opens, and the video answer — the matchup — takes the frame.",
+      "anti_intent": "Not for single-product videos, not for mid-video sections, and never without word-anchored beats — the stamps ARE the sync. Max 3 pains.",
+      "note": "Owner-commissioned intro template 2026-07-31 (final-v4:0). The beat whose label matches the marker variable times Act 2 (the sweep to the matchup); pain beats stamp their clip cards in word-sync. entry_phase: the strip entrance is real content, so the cue anchor places the card."
     }
   ]
 }
