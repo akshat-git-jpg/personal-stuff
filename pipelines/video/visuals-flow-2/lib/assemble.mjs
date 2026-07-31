@@ -177,10 +177,23 @@ export function planSegmentOverlays(segments, overlays) {
   });
 }
 
-export const SLIVER_GRAPHIC = 2.5;
+// A screen appearance must be long enough to show something meaningful —
+// "what was the point of that small amount of time where you showed screen
+// recording?" (owner final-v1:3, 2026-07-31; a 2.9s sliver escaped the old
+// 2.5 cap by 0.4s). Absorption is ASYMMETRIC because the two directions look
+// completely different on screen: a card holding its FINISHED last frame for
+// up to 6s reads as a hold (padEnd), but padding a card's head clones its
+// pre-entrance frame — near-black background — so that stays glitch-length
+// only (2.5s; a 2.9s sliver padded this way shipped as a black hold in v2).
+// Longer pre-card slivers are a planning problem: entry_phase cards anchor
+// flush to the avatar end, and lint W5/E5 flags what remains. Avatar clips
+// are fixed-length renders, so avatar absorption stays a brief 1s freeze.
+export const SLIVER_GRAPHIC_HOLD = 6;
+export const SLIVER_GRAPHIC_HEAD = 2.5;
+export const SLIVER_GRAPHIC = SLIVER_GRAPHIC_HOLD; // max reach, for lint mirrors
 export const SLIVER_AVATAR = 1.0;
 
-export function absorbSlivers(segments, { graphicMax = SLIVER_GRAPHIC, avatarMax = SLIVER_AVATAR } = {}) {
+export function absorbSlivers(segments, { graphicHoldMax = SLIVER_GRAPHIC_HOLD, graphicHeadMax = SLIVER_GRAPHIC_HEAD, avatarMax = SLIVER_AVATAR } = {}) {
   const currentSegments = JSON.parse(JSON.stringify(segments));
   let changed = true;
   while (changed) {
@@ -193,16 +206,14 @@ export function absorbSlivers(segments, { graphicMax = SLIVER_GRAPHIC, avatarMax
       const next = j < currentSegments.length - 1 ? currentSegments[j + 1] : null;
       
       let absorbed = false;
-      if (dur <= graphicMax) {
-        if (prev && prev.kind === 'graphic') {
-          prev.end = seg.end;
-          prev.padEnd = +( (prev.padEnd || 0) + dur ).toFixed(3);
-          absorbed = true;
-        } else if (next && next.kind === 'graphic') {
-          next.start = seg.start;
-          next.padStart = +( (next.padStart || 0) + dur ).toFixed(3);
-          absorbed = true;
-        }
+      if (dur <= graphicHoldMax && prev && prev.kind === 'graphic') {
+        prev.end = seg.end;
+        prev.padEnd = +( (prev.padEnd || 0) + dur ).toFixed(3);
+        absorbed = true;
+      } else if (dur <= graphicHeadMax && next && next.kind === 'graphic') {
+        next.start = seg.start;
+        next.padStart = +( (next.padStart || 0) + dur ).toFixed(3);
+        absorbed = true;
       }
       if (!absorbed && dur <= avatarMax) {
         if (prev && prev.kind === 'avatar') {
@@ -318,7 +329,7 @@ export function assemblyMd(video, segments, overlays, total, outPath, transition
 }
 
 function parseArgs(argv) {
-  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', effects: 'on', bubble: 'on', jobs: 3, noCache: false, bare: false };
+  const opts = { workdir: null, screen: null, screenOffset: 0, out: null, draft: false, encoder: null, keepTemp: false, force: false, transitions: 'whip', beats: 'on', captions: 'on', effects: 'on', bubble: 'off', jobs: 3, noCache: false, bare: false };
   const rest = [...argv];
   opts.workdir = rest.shift();
   while (rest.length) {
@@ -374,7 +385,7 @@ function parseArgs(argv) {
   return opts;
 }
 
-export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], sideJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'on', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} }, catalog }) {
+export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], sideJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'off', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} }, catalog }) {
   const videoManifest = loadVideoManifest(workdir);
   let segments = planSegments({ resolved, avatarJobs, total });
   segments = absorbSlivers(segments);

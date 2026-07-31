@@ -33,4 +33,8 @@ export const ZONE_RULES = {
     rule: 'The presenter must actually land in the intro. Do not wallpaper the opening with fullframe cards — leave the host real time on screen early, because a tutorial that opens on wall-to-wall graphics has nobody on it to trust yet. The same applies in reverse at the conclusion: the payoff lands better from a person than from a slate.',
     why: 'lint W12 (opening-host-coverage) exists because test-03 did not show the presenter until 0:54',
   },
+  R_ZONE_OPEN_COVER: {
+    rule: 'The video opens on a fullframe card or the full-screen host — NEVER on bare screen recording (hard rule, lint E13). Anchor the intro\'s first fullframe cue at the opening line of the script: the resolver pulls a card starting within ~6s back to t=0 (hero state until its first beat), but a first card any later leaves an uncoverable hole. This composes with R_ZONE_HOST: cover second zero, then get the host on screen early.',
+    why: 'owner fold 2026-07-31, opusclip-vs-submagic final-v1:0 — the cut opened on 5.2s of raw screen recording before z01: "A video should either start only with full screen avtar or it should start with motion graphic. I want to make this as a rule"',
+  },
 };

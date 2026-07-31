@@ -344,7 +344,20 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
         abs.push({ reveal: b.reveal, at: m.start });
       }
       if (!failed) {
-        if (abs.length) start = Math.max(0, +(abs[0].at - BEAT_LEAD_IN).toFixed(2));
+        if (abs.length) {
+          // Default: the first beat fixes placement (anti-dead-air, owner
+          // 2026-07-21). A card that declares entry_phase has REAL content
+          // from entry (e.g. promise-split's shared-promise setup), so its
+          // anchor keeps placing it — capped at ENTRY_LEAD_MAX before beat 1
+          // so a mis-anchored cue still cannot idle an empty scaffold
+          // (final-v1:1 2026-07-31: the beat override yanked z02 past the
+          // shared-promise sentence it exists to cover).
+          const ENTRY_LEAD_MAX = 8;
+          const beatStart = Math.max(0, +(abs[0].at - BEAT_LEAD_IN).toFixed(2));
+          start = cat.entry_phase === true
+            ? Math.min(beatStart, Math.max(start, +(abs[0].at - ENTRY_LEAD_MAX).toFixed(2)))
+            : beatStart;
+        }
         for (const x of abs) beats.push({ ...x.reveal, at: +(x.at - start).toFixed(2) });
       }
     }
@@ -489,10 +502,51 @@ export function extendExposure(resolved, { base, total, avatarSpans = [] }) {
   const fulls = resolved.filter((c) => c.placement === 'fullframe');
   const out = resolved.map((c) => ({ ...c }));
   const byId = Object.fromEntries(out.map((c) => [c.id, c]));
+
+  // Pre-gap cover: a short stretch of bare screen recording BEFORE a fullframe
+  // card is dead air — the special case at t=0 is the owner's opening rule
+  // (final-v1:0, 2026-07-31: "start with full screen avatar or motion
+  // graphic"), and the general case is the pointless sliver (final-v1:3, the
+  // 2.9s of screen between an avatar and z05). Assembly-level absorption can
+  // only clone the card's first frame — its pre-entrance background, which
+  // reads as a black hold — so the card's START is pulled back instead: its
+  // entrance animation fills the gap, and beat times (card-relative) shift by
+  // the granted head so every reveal stays word-anchored.
+  {
+    const cap = CUE_CONSTANTS.HEAD_COVER.value;
+    for (let i = 0; i < fulls.length; i++) {
+      const cur = byId[fulls[i].id];
+      const prevFullEnd = i > 0 ? byId[fulls[i - 1].id].start + byId[fulls[i - 1].id].duration : 0;
+      const prevAvatarEnd = Math.max(0, ...avatarSpans.filter(([, e]) => e <= cur.start + 0.001).map(([, e]) => e));
+      const prevEnd = Math.max(prevFullEnd, prevAvatarEnd);
+      const avatarCoversGap = avatarSpans.some(([s, e]) => s < cur.start - 0.001 && e > prevEnd + 0.001);
+      // ONLY the opening qualifies (owner final-v1:0). A general geometric
+      // pull-back was tried twice and reverted twice: resolve cannot see
+      // segments.json or the register spans, so it dragged cards across
+      // register boundaries and into demo footage (E5/E8 on z03/c03/c22).
+      // After-avatar slivers are solved at their root instead: entry_phase
+      // cards keep their ANCHOR placement (see the beat-start override), so a
+      // card anchored flush to an avatar end starts there, not at beat 1.
+      const gap = +(cur.start - prevEnd).toFixed(2);
+      if (gap > 0 && gap <= cap && !avatarCoversGap && prevEnd === 0) {
+        cur.start = +(cur.start - gap).toFixed(2);
+        cur.duration = +(cur.duration + gap).toFixed(2);
+        if (Array.isArray(cur.variables?.beats)) {
+          cur.variables = {
+            ...cur.variables,
+            beats: cur.variables.beats.map((b) => ({ ...b, at: +(b.at + gap).toFixed(2) })),
+          };
+        }
+      }
+    }
+  }
   for (let i = 0; i < fulls.length; i++) {
     const cur = byId[fulls[i].id];
     const end = cur.start + cur.duration;
-    const nextStart = i + 1 < fulls.length ? fulls[i + 1].start : total;
+    // Read the next card's start from the OUTPUT copy — the pre-gap cover
+    // above may have pulled it back, and extending toward its original start
+    // would overlap the moved card.
+    const nextStart = i + 1 < fulls.length ? byId[fulls[i + 1].id].start : total;
     const rawGap = +(nextStart - end).toFixed(2);
     if (rawGap <= 0) continue;
 

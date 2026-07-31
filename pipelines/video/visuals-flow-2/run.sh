@@ -341,8 +341,10 @@ EOF
     # --submit is mandatory: avatar-render.mjs exits with usage when called
     # bare, so the verb as previously written always failed (found 2026-07-31).
     # Download stays its own verb below.
+    # --spans-only: the owner rejected the corner-bubble baseline on the first
+    # assembled cut (2026-07-31) — only the planned host spans render now.
     record_step 100 "Submitted the HeyGen avatar clips for the approved shot spans." \
-      "avatar-jobs.json + avatar clips in kb-scratch" -- bash steps/100-render-avatar-run/run.sh "$slug" --submit --template "${AVATAR_TEMPLATE:-specs-man}"
+      "avatar-jobs.json + avatar clips in kb-scratch" -- bash steps/100-render-avatar-run/run.sh "$slug" --submit --spans-only --template "${AVATAR_TEMPLATE:-specs-man}"
     ;;
 
   cut)

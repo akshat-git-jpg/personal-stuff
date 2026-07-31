@@ -256,7 +256,8 @@ test('retry run flushes skipped jobs after the last submit (s03-retry incident)'
   fs.mkdirSync(workdir, { recursive: true });
   fs.mkdirSync(mediaRoot, { recursive: true });
 
-  const words = Array.from({ length: 12 }, (_, i) => ({ start: i * 5, end: i * 5 + 5, text: `w${i}` }));
+  // w5/w11 end sentences so the spans sit on sentence boundaries (E7, 2026-07-31)
+  const words = Array.from({ length: 12 }, (_, i) => ({ start: i * 5, end: i * 5 + 5, text: (i === 5 || i === 11) ? `w${i}.` : `w${i}` }));
   fs.writeFileSync(path.join(workdir, 'transcript.json'), JSON.stringify(words));
   fs.writeFileSync(path.join(workdir, 'resolved.json'), JSON.stringify({ video: 'vid', resolved: [] }));
   fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify({

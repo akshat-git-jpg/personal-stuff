@@ -82,7 +82,28 @@ export function boundarySegments(instance, ctx) {
     sliceA = ['-ss', String(sourceStartA), '-to', String(sourceEndA), '-i', gFile];
   }
 
-  if (toSeg.kind === 'screen') {
+  if (toSeg.kind === 'graphic' && instance.style === 'flash') {
+    // A flash INTO a graphic must not sample the incoming card: a card whose
+    // first frame already shows its layout reads as a dim blurred ghost that
+    // then "enters again" after the blip (owner final-v1:2, 2026-07-31). Carry
+    // the OUTGOING footage through the flash instead — the card's first
+    // visible frame is its real entrance. The screen recording genuinely
+    // continues past the boundary; an avatar clip or card render ENDS at it,
+    // so those reuse their last half-second before b (slicing past their EOF
+    // produced an empty, unreadable transition segment).
+    if (fromSeg.kind === 'screen') {
+      sliceB = ['-ss', String(b + screenOffset), '-to', String(b + half + screenOffset), '-i', screen];
+    } else if (fromSeg.kind === 'avatar') {
+      const j = avatarJobs.find(j => j.id === fromSeg.id);
+      const sourceStartB = Math.max(0, b - half - j.start);
+      sliceB = ['-ss', String(sourceStartB), '-to', String(sourceStartB + half), '-i', j.file];
+    } else {
+      const cue = ctx.resolved.find(c => c.id === fromSeg.id);
+      const gFile = ctx.graphicFile(cue);
+      const sourceStartB = Math.max(0, b - half - fromSeg.start);
+      sliceB = ['-ss', String(sourceStartB), '-to', String(sourceStartB + half), '-i', gFile];
+    }
+  } else if (toSeg.kind === 'screen') {
     sliceB = ['-ss', String(b + screenOffset), '-to', String(b + half + screenOffset), '-i', screen];
   } else if (toSeg.kind === 'avatar') {
     const j = avatarJobs.find(j => j.id === toSeg.id);

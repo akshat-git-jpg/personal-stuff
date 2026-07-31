@@ -57,6 +57,8 @@ Motion is the quality bar in a zone, not cue count. A zone can be dense with cue
 There is ONE card collection, shared with the body. No card is reserved for a zone and no card is forbidden in one — a body card is a fine choice in an intro when it genuinely fits. Choose on merit, never on where the card came from. Commissioning a NEW card for a zone is an expected outcome, not a failure: set `card` to the slug you would build (a slug NOT in the catalog) and add a `propose` object `{"does", "kind", "placement", "beats", "variables"}`. The owner approves or kills it at step 037, step 038 builds it, and it joins the shared collection — so the body can use it on the next video.
 
 The presenter must actually land in the intro. Do not wallpaper the opening with fullframe cards — leave the host real time on screen early, because a tutorial that opens on wall-to-wall graphics has nobody on it to trust yet. The same applies in reverse at the conclusion: the payoff lands better from a person than from a slate.
+
+The video opens on a fullframe card or the full-screen host — NEVER on bare screen recording (hard rule, lint E13). Anchor the intro's first fullframe cue at the opening line of the script: the resolver pulls a card starting within ~6s back to t=0 (hero state until its first beat), but a first card any later leaves an uncoverable hole. This composes with R_ZONE_HOST: cover second zero, then get the host on screen early.
 <!-- END GENERATED ZONE RULES -->
 
 ## The constraints

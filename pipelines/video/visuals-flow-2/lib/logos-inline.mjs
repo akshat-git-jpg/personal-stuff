@@ -14,7 +14,11 @@ export function enrichLogos(variables, cardLibraryRoot) {
   for (const s of variables.productLogos ?? []) if (typeof s === 'string') refs.add(s);
   for (const p of variables.platforms ?? []) if (typeof p?.logo === 'string') refs.add(p.logo);
   for (const b of variables.beats ?? []) if (typeof b.logo === 'string') refs.add(b.logo);
-  for (const side of [variables.left, variables.right]) {
+  // left/right (legacy) and sides[] (promise-split since its beat-card
+  // conversion, 2026-07-31 — the restructure shipped letter fallbacks because
+  // this walker didn't know the new shape; the 038 build note called this
+  // exact gap).
+  for (const side of [variables.left, variables.right, ...(Array.isArray(variables.sides) ? variables.sides : [])]) {
     if (typeof side?.logo === 'string') refs.add(side.logo);
   }
   const logos = {};

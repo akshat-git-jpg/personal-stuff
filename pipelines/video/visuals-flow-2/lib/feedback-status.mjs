@@ -23,6 +23,14 @@ function checkWorkdir(workdir) {
     if (fb && fb.items) {
       const today = new Date().getTime();
       for (const [ref, item] of Object.entries(fb.items)) {
+        // deferred: the owner explicitly parked the item ("ignore v1:5 for
+        // now", 2026-07-31). It is neither applied nor folded — marking it
+        // either would lie — but it must not block later passes; it stays in
+        // the file with a deferred_note until the owner reopens it.
+        if (item.deferred) {
+          console.error(`note: ${path.basename(workdir)} ${ref} is deferred by the owner — ${item.deferred_note ?? 'no note'}`);
+          continue;
+        }
         if (!item.applied && !item.folded) {
           const ageDays = item.added ? Math.floor((today - new Date(item.added).getTime()) / (1000 * 3600 * 24)) : 0;
           pending.push({

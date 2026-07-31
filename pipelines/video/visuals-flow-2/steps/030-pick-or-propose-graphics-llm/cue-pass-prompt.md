@@ -79,6 +79,7 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - Within demo segments (segments.json), no stretch longer than 50s may pass without a cue START (lint W6).
 - A fullframe card's exposure may auto-extend at most 20s past its computed end to reach the next base event (resolver post-pass).
 - On base:screen videos, a gap to the next base event of at most 4s is absorbed by extending the previous fullframe card (a sub-4s footage flash reads as a glitch); anything longer intentionally returns to the screen recording. Was 12 until 2026-07-31: a 12s absorption re-inflated finished cards into exactly the static-screen holds the owner kept flagging (z05#2).
+- The video must open on a fullframe card or a full-screen avatar, never bare screen recording (owner rule, final-v1:0 2026-07-31). When the first fullframe cue starts within 6s of t=0 and no avatar span covers the opening, the resolver pulls its start to 0 (hero state until its first beat; card-relative beat times shift accordingly). An opening gap the resolver cannot close is lint error E13.
 - Within narration segments (segments.json), no stretch longer than 20s may pass without a cue START (lint W7). Demo segments keep BARE_GAP_MAX.
 - If concept.json exists, at least 2 cues must carry `motif: true` (the through-line must recur) (lint W8).
 - A fullframe cue on a non-structural legacy (non-`enacted/`) card without `legacy_why` warns (lint W10).
@@ -132,6 +133,8 @@ Verdicts (mandatory): one winner per verdict card. Two favorites = two verdict c
 Units (mandatory): numeric values on cards carry their unit (prefix "$", suffix "ms"/"/mo") — never a bare number.
 
 Beat cards must not idle: anchor so the FIRST beat lands within ~8s of the card appearing — when the VO rambles before its first data point, anchor at the sentence right before the first beat, not the section opener. And every beat's anchor is the phrase that NAMES that reveal — never re-paced for visual rhythm: striking or lighting an item seconds before or after the VO actually says it reads as "total out of sync" (owner 2026-07-31, z01#2 — the VO named three items in 1.6s and the beats were spread over 8s).
+
+A fullframe card explaining a concept the VO names in 2+ parts (two promises, three criteria, a then-vs-now) must be a BEAT card with each part's beat anchored to the phrase that speaks it — never a single-shot card that shows every part at entry. A single-shot card over a multi-part concept front-loads all its content, then either squats static while the VO catches up or leaves before the concept is finished; word-anchored beats keep the card moving AND on screen exactly as long as the concept runs. If the natural card for the moment has no beat support, pick the beat-capable alternative or propose the beat variant at 037.
 
 The opening must breathe (mandatory): the presenter must be visible within the first 15s — do NOT cover the opening with back-to-back fullframe cards, and never let a fullframe card hold the screen past 12s with no beats. A card with no beats is a still image: if the point needs 20 seconds of screen time it needs beats or two cues, not one long hold. When the VO is doing the work and there is nothing to enact, place NO card and leave the presenter on screen. Enforced as lint warnings W12 (opening-host-coverage) and W13 (frozen-fullframe).
 

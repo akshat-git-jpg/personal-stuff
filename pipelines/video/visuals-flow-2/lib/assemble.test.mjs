@@ -46,11 +46,11 @@ test('absorbSlivers: 2s sliver between two avatars -> NOT absorbed (over avatarM
   assert.equal(out[1].kind, 'screen');
 });
 
-test('absorbSlivers: 6s screen segment untouched', () => {
+test('absorbSlivers: screen segment over the 6s cap untouched', () => {
   const segments = [
     { kind: 'graphic', start: 0, end: 10, id: 'g1' },
-    { kind: 'screen', start: 10, end: 16, id: 's1' },
-    { kind: 'graphic', start: 16, end: 20, id: 'g2' }
+    { kind: 'screen', start: 10, end: 16.5, id: 's1' },
+    { kind: 'graphic', start: 16.5, end: 20, id: 'g2' }
   ];
   const out = absorbSlivers(segments);
   assert.equal(out.length, 3);
@@ -372,21 +372,21 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-t', '68', '-q:a', '9', voMp3]);
 
   const resolved = [
-    { id: 'c1', placement: 'fullframe', start: 3, duration: 2, card: 'green' },
+    { id: 'c1', placement: 'fullframe', start: 6.5, duration: 2, card: 'green' },
     { id: 'c2', placement: 'fullframe', start: 67, duration: 2, card: 'blue' },
-    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
+    { id: 'o1', placement: 'overlay', start: 2, duration: 1, card: 'black' }
   ];
-  const ffFile1 = path.join(testTmp, 'renders', '0003-c1-green.mp4');
+  const ffFile1 = path.join(testTmp, 'renders', '0006-c1-green.mp4');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=green:s=1920x1080:r=30', '-t', '2', '-pix_fmt', 'yuv420p', ffFile1]);
 
   const ffFile2 = path.join(testTmp, 'renders', '0107-c2-blue.mp4');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=1920x1080:r=30', '-t', '2', '-pix_fmt', 'yuv420p', ffFile2]);
 
-  const ovFile = path.join(testTmp, 'renders', '0005-o1-black.mov');
+  const ovFile = path.join(testTmp, 'renders', '0002-o1-black.mov');
   spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=black@0.0:s=1920x1080:r=30,format=yuva420p', '-t', '1', '-c:v', 'qtrle', ovFile]);
 
   const avatarJobs = [
-    { kind: 'avatar-full', id: 's01', start: 6, end: 66, file: avatarFile } // restored back to 6 from 6 to 5 to make the screen between c1 (ends 4) and s01 (starts 5) exactly 1.0s, which gets absorbed
+    { kind: 'avatar-full', id: 's01', start: 8.5, end: 66, file: avatarFile } // screen head runs 0-6.5 (must exceed the 6s sliver cap, 2026-07-31); c1 6.5-8.5 hands straight to the avatar
   ];
   const words = [
     { start: 0, end: 5, word: 'hello_world' },
@@ -434,7 +434,7 @@ test('Integration: ffmpeg runAssembly', { skip: spawnSync('ffmpeg', ['-version']
   const avatarSubFiles = tsFiles.filter(f => f.includes('s01') && !f.includes('-trans-')).sort();
   assert.equal(avatarSubFiles.length, 3, 'should have 3 avatar sub-segments');
   
-  const subDurations = [19.5, 20.0, 20.4]; // trimmed 0.1 off first and last
+  const subDurations = [17.0, 20.0, 20.4]; // graphic>avatar has no transition, so no head trim; 0.1 trimmed at the avatar>graphic tail
   for (let i = 0; i < 3; i++) {
     const p = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path.join(tmpDir, avatarSubFiles[i])], { encoding: 'utf8' });
     const d = parseFloat(p.stdout);
@@ -483,11 +483,11 @@ test('Integration: ffmpeg draft runAssembly', { skip: spawnSync('ffmpeg', ['-ver
   if (fs.existsSync(outDraft)) fs.unlinkSync(outDraft);
 
   const resolved = [
-    { id: 'c1', placement: 'fullframe', start: 3, duration: 2, card: 'green' },
-    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
+    { id: 'c1', placement: 'fullframe', start: 6.5, duration: 2, card: 'green' },
+    { id: 'o1', placement: 'overlay', start: 2, duration: 1, card: 'black' }
   ];
   const avatarJobs = [
-    { kind: 'avatar-full', id: 's01', start: 6, end: 66, file: path.join(testTmp, 'media', 's01.mp4') }
+    { kind: 'avatar-full', id: 's01', start: 8.5, end: 66, file: path.join(testTmp, 'media', 's01.mp4') }
   ];
 
   await runAssembly({
@@ -523,11 +523,11 @@ test('Integration: ffmpeg runAssembly none transitions', { skip: spawnSync('ffmp
   if (fs.existsSync(outNone)) fs.unlinkSync(outNone);
 
   const resolved = [
-    { id: 'c1', placement: 'fullframe', start: 3, duration: 2, card: 'green' },
-    { id: 'o1', placement: 'overlay', start: 5.5, duration: 1, card: 'black' }
+    { id: 'c1', placement: 'fullframe', start: 6.5, duration: 2, card: 'green' },
+    { id: 'o1', placement: 'overlay', start: 2, duration: 1, card: 'black' }
   ];
   const avatarJobs = [
-    { kind: 'avatar-full', id: 's01', start: 6, end: 66, file: path.join(testTmp, 'media', 's01.mp4') }
+    { kind: 'avatar-full', id: 's01', start: 8.5, end: 66, file: path.join(testTmp, 'media', 's01.mp4') }
   ];
   
   const words = [
@@ -568,7 +568,7 @@ test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg',
   if (fs.existsSync(outOff)) fs.unlinkSync(outOff);
 
   const resolved = [
-    { id: 'c1', placement: 'fullframe', start: 3, duration: 2, card: 'green' }
+    { id: 'c1', placement: 'fullframe', start: 6.5, duration: 2, card: 'green' }
   ];
   const avatarJobs = [];
   
@@ -581,7 +581,7 @@ test('Integration: ffmpeg runAssembly captions off', { skip: spawnSync('ffmpeg',
     video: 'it',
     resolved,
     avatarJobs,
-    total: 10,
+    total: 16,
     screen: path.join(testTmp, 'screen.mp4'),
     out: outOff,
     encoder: 'x264',

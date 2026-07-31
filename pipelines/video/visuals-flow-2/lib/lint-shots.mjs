@@ -19,8 +19,12 @@ const FRONT_ZONE = SC.FRONT_ZONE.value;
 const BACK_ZONE = SC.BACK_ZONE.value;
 const GAP_AVATAR_MAX = SC.GAP_AVATAR_MAX.value;
 
-const MIN_SCREEN_ERROR = 2.5;
-const MIN_SCREEN_WARN = 5;
+// Raised 2.5→6 / 5→8 with SLIVER_GRAPHIC (owner final-v1:3, 2026-07-31):
+// screen time under 6s shows nothing meaningful. Graphic-adjacent slivers are
+// auto-absorbed at assembly; between two avatars nothing can absorb, so the
+// plan itself must change — hence the hard error.
+const MIN_SCREEN_ERROR = 6;
+const MIN_SCREEN_WARN = 8;
 
                                     //     presence mid-video, not just the U-curve ends)
 
@@ -29,6 +33,40 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
   const warnings = [];
   if (!words || words.length === 0) return { errors, warnings };
   const T = words[words.length - 1].end;
+
+  // E7 sentence-cut: a full-screen host span must start on a sentence START
+  // and end on a sentence END — a mid-sentence camera cut reads as a jump and
+  // "looks very weird" (owner final-v1:4, 2026-07-31; was only a "prefer" in
+  // the rulebook, so s03 shipped anchored mid-sentence). Sentence edges come
+  // from transcript punctuation; the video edges count as boundaries too.
+  {
+    const TOL = 0.35;
+    const BREATH = 0.12;
+    const wordText = (w) => w.text ?? w.word ?? '';
+    // Each sentence start carries the silence before it: a start with no
+    // audible gap cuts flush against the previous word and still READS as
+    // mid-sentence (owner final-v1:4 — s03 sat on a legal sentence start whose
+    // preceding word ended the same instant).
+    const sentenceStarts = [{ t: words[0].start, gap: Infinity }];
+    const sentenceEnds = [T];
+    for (let i = 0; i < words.length - 1; i++) {
+      if (/[.!?]["')\]]?$/.test(wordText(words[i]).trim())) {
+        sentenceEnds.push(words[i].end);
+        sentenceStarts.push({ t: words[i + 1].start, gap: +(words[i + 1].start - words[i].end).toFixed(3) });
+      }
+    }
+    for (const s of shotsResolved.spans ?? []) {
+      const hit = sentenceStarts.find((x) => Math.abs(x.t - s.start) <= TOL);
+      if (!hit) {
+        errors.push(`E7 sentence-cut: span ${s.id} starts at ${s.start.toFixed(2)}s, mid-sentence — a full-screen host span must start where a sentence starts`);
+      } else if (hit.gap < BREATH) {
+        warnings.push(`W7 flush-cut: span ${s.id} starts at a sentence start with only ${hit.gap.toFixed(2)}s of silence before it — the cut reads as mid-sentence; prefer the neighbouring sentence with a real breath before it`);
+      }
+      if (!sentenceEnds.some((t) => Math.abs(t - s.end) <= TOL)) {
+        errors.push(`E7 sentence-cut: span ${s.id} ends at ${s.end.toFixed(2)}s, mid-sentence — a full-screen host span must end where a sentence ends`);
+      }
+    }
+  }
   const spans = [...(shotsResolved.spans ?? [])].sort((a, b) => a.start - b.start);
 
   // E5 orphan-screen / W5 short-screen

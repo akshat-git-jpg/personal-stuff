@@ -36,7 +36,7 @@ const ZONE_ENACTED_MIN = ZONE_CONSTANTS.ZONE_ENACTED_MIN.value;
 const ZONE_RATE_MIN = ZONE_CONSTANTS.ZONE_RATE_MIN.value;
 // Dead air is now designed out by the resolver's BEAT_LEAD_IN clamp (plan 116);
 // W5 stays as the regression detector for that clamp, not as a style hint.
-const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5 };
+const FIRST_BEAT_IDLE_MAX = { chrome: 1.2, frame: 2.5, entry: 8 };
 
 // Only `avatar-full` REPLACES the base — panel/side/bubble composite on top of
 // it, so a second under a panel avatar is still a screen second and would
@@ -337,6 +337,19 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
+  // E13 open-cover — the video must open on a fullframe card or the full-screen
+  // host, never bare screen recording (owner rule final-v1:0, 2026-07-31).
+  // resolve's head-cover pulls the first card to 0 when it can; this error is
+  // the backstop for the plans it cannot fix (first card too far in, no span).
+  {
+    const firstFull = sortedResolved.find((r) => r.placement === 'fullframe');
+    const firstSpanStart = avatarFullSpans(avatarJobs)[0]?.[0] ?? Infinity;
+    const firstCover = Math.min(firstFull ? firstFull.start : Infinity, firstSpanStart);
+    if (firstCover > 0.5) {
+      errors.push(`E13 open-cover: nothing covers the opening — the first fullframe card or avatar span starts at ${firstCover === Infinity ? 'never' : firstCover.toFixed(1) + 's'} (the video must open on a card or the host, not bare screen recording)`);
+    }
+  }
+
   // W15/W16/W17 — the zone quality bar (owner 2026-07-29). W14 above only ever
   // fires on a zone with LITERALLY zero cues, so a 117s intro carrying one card
   // passed every check the pipeline had. These three are what "intro and
@@ -525,7 +538,7 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     const firstAt = Math.min(...ats);
     const cat = bySlug[r.card];
     if (!cat) continue;
-    const pre = cat.pre_beat_render || 'chrome';
+    const pre = cat.entry_phase === true ? 'entry' : (cat.pre_beat_render || 'chrome');
     const limit = FIRST_BEAT_IDLE_MAX[pre] ?? FIRST_BEAT_IDLE_MAX.chrome;
     if (firstAt > limit) {
       const msg = `W5 first-beat-idle: ${r.id} shows its first beat ${firstAt.toFixed(1)}s after the card appears (max ${limit}s) — move the cue anchor closer to the first beat`;

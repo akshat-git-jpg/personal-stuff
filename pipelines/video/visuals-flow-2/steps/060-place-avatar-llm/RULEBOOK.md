@@ -8,8 +8,11 @@ convention as 020's pair.
 
 ## The model (fixed by design, don't re-litigate)
 
-- A corner avatar over screen recording is the **baseline for the whole video**.
-  A human is always on screen. This pass picks ONLY the host moments.
+- The full-screen host spans this pass plans are the video's ONLY avatar
+  presence. There is no corner-bubble baseline: the owner rejected it on the
+  first assembled cut ("I don't want bubble", 2026-07-31) — screen recording
+  stands on its own between host moments. (The corner machinery still exists
+  but is off by default everywhere.)
 - **Modes**: "full" (default) cuts out the background and shows the host full-screen.
   "panel" composites them in a pip over the screen. Use "panel" for situations where
   the screen must stay visible without the avatar obscuring too much of it
@@ -44,8 +47,10 @@ never over hands-on narration.
   Both verbatim from the transcript, ≥3 words, in transcript order
   (forward-cursor matching, same semantics as cue anchors).
 - ASR garbles are quoted verbatim ("Heigen" stays "Heigen") — same rule as 020.
-- Prefer span boundaries at sentence starts/ends — a mid-sentence camera cut
-  reads as a jump.
+- Span boundaries sit ON sentence starts/ends — a mid-sentence camera cut reads
+  as a jump. Hard rule since 2026-07-31 (owner final-v1:4, s03 shipped starting
+  mid-sentence under the old "prefer"): lint E7 rejects any span whose start is
+  not a sentence start or whose end is not a sentence end.
 
 ## Output contract
 
