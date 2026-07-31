@@ -1118,3 +1118,4 @@ therefore of every plan's boss merge gate.
 - 172-vf2-board-ui-storyboard-tiles — PR#130 172-vf2-board-ui-storyboard-tiles: Storyboard part 1 — tiles, list mode, Save/Approve wiring — DONE
 - 173-vf2-board-ui-timeline-canvas — PR#131 173-vf2-board-ui-timeline-canvas: Storyboard part 2 — timeline canvas, detail dock, play-through, FX stage — DONE
 - 174-vf2-board-ui-final-cut-and-cutover — PR#132 174-vf2-board-ui-final-cut-and-cutover: Final Cut + Calibrate in the SPA, and the / cutover — DONE
+- 175-vf2-per-cue-frame-gate — overflow probe becomes a per-cue GATE: E13 at 040 (real variables, real beat times, headless) + accent-visibility pixel check at 090 (render-only color-loss class) — TODO

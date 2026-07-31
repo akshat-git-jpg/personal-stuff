@@ -40,7 +40,7 @@
   </head>
   <body>
     <div id="root" data-composition-id="barchart" data-start="0" data-duration="6" data-width="1920" data-height="1080"
-      data-composition-variables='{"title":"Cold start (ms · lower is better)","bars":[{"label":"Fly.io","value":30,"color":"#38bdf8","suffix":"ms"},{"label":"Hostinger","value":42,"color":"#fb923c","suffix":"ms"},{"label":"Railway","value":88,"color":"#fb7185","suffix":"ms"}]}'>
+      data-composition-variables='{"title":"Cold start (ms · lower is better)","bars":[{"label":"Fly.io","value":30,"color":"#38bdf8","suffix":"ms"},{"label":"Hostinger","value":42,"color":"#fb923c","suffix":"ms"},{"label":"Railway","value":88,"color":"#ef4444","suffix":"ms"}]}'>
       <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
       <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
         <div id="chart"><div class="title" id="title"></div><div id="bars"></div></div>
@@ -55,7 +55,7 @@
         bars: VARS.bars ?? [
           { label: 'Fly.io', value: 30, color: '#38bdf8', suffix: 'ms' },
           { label: 'Hostinger', value: 42, color: '#fb923c', suffix: 'ms' },
-          { label: 'Railway', value: 88, color: '#fb7185', suffix: 'ms' },
+          { label: 'Railway', value: 88, color: '#ef4444', suffix: 'ms' },
         ],
       };
 
@@ -64,7 +64,7 @@
       const max = Math.max(...DATA.bars.map((b) => Number(b.value) || 0), 1);
       // fallback palette: a missing bar color must never render an invisible bar
       // (linear-gradient(undefined) is invalid CSS -> no fill at all)
-      const PALETTE = ['#fb923c', '#38bdf8', '#facc15', '#fb7185', '#4ade80', '#a78bfa'];
+      const PALETTE = ['#fb923c', '#38bdf8', '#facc15', '#ef4444', '#4ade80', '#a78bfa'];
       function build() {
         $('title').textContent = DATA.title;
         $('bars').innerHTML = DATA.bars

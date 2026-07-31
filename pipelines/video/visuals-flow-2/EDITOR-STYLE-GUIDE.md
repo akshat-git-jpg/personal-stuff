@@ -20,11 +20,14 @@ Use these exact values. No other hues.
 | Secondary text | `rgba(255, 239, 219, 0.55-0.65)` | warm cream. Never use plain grey for dim text |
 | Accent (THE brand color) | `#FB923C` | orange. Labels, highlights, active states, buttons |
 | Positive / pro / yes | `#34D399` | green |
-| Negative / con / no | `#FB7185` | rose. For a muted "no", white at 28% opacity also appears |
+| Negative / con / no | `#EF4444` | red — failure markers only (X badges, cons, a failed step). For a muted "no", white at 28% opacity also appears |
 | Winner / top grade / gold moment | `#FACC15` | ONLY for verdict-winner moments, never decoration |
 
 Rules: dark warm background always. One orange accent per composition. Green
-and rose only when the meaning is good vs bad. Gold only when something wins.
+and red only when the meaning is good vs bad — and red only as a STATIC mark
+(cons, a no-pill), never on motion: connecting lines, fills and sweeps stay
+orange in every register, and chains never end on a red "failed" node (owner,
+2026-07-31). Rose is banned.
 
 ## Typography
 

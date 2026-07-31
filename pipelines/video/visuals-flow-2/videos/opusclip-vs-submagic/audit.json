@@ -116,7 +116,8 @@
         "card": "enacted/fill-gauge",
         "how": "A kinetic sentence IS the sentence, so muted it communicates only by being read. The clause is a value claim (\"factor in the extra editing time and the value drops\"), which a gauge can enact: fill it with the plan price, then drain it as each cleanup task is added. OWNER OVERRIDE 2026-07-30: accepted. The routing rules mandate kinetic-sentence for a single-point bridge, and the fill-gauge alternative would have to invent a value the voiceover never states, which the real-data rule forbids."
       },
-      "accepted": true
+      "accepted": true,
+      "resolution": "Owner decision arrived via the 2026-07-31 feedback fold: the cue was WRONG USAGE, not a wrong card — an 18-word subordinate clause at 64px is not a statement. Re-authored to the verbatim core clause \"the value does significantly drop\" (5 words, 120px bucket) under the new R_KINETIC statement test; kinetic-sentence stays the right device for this single-point bridge."
     },
     {
       "id": "c21",

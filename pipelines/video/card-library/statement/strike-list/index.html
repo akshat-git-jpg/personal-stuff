@@ -1,0 +1,173 @@
+<!doctype html>
+<!--
+  STRIKE LIST   (Hyperframes statement card)
+  A hero statement holds the frame while the supporting items beneath it —
+  each carrying a concept icon — are STRUCK OUT one per beat: the strike line
+  draws across in red, the item dims, the icon tints. On the final beat the
+  title's marker word gets the accent sweep. Enacts "these things keep
+  failing / keep needing hand-fixing" without a diagram to decode: one focal
+  column, one action per beat, readable muted on one viewing.
+  1920x1080, 30fps, 8 seconds.
+
+  EDITOR: change only the ===== CONTENT ===== block (title, marker, items[])
+  and the :root colors. Do NOT touch ===== TIMELINE (LOCKED). items are
+  [{label, icon}] (icon REQUIRED, from the ICONS map); beats are injected by
+  the resolver as [{label, at}].
+  Render:  npx hyperframes@latest render statement/strike-list -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --negative: #ef4444;
+        --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 140px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 100%; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      #frame { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 84px; padding: 100px 120px; }
+
+      .title { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; max-width: 92%; }
+
+      /* marker (fired on the last beat): the word tints accent and a thick
+         underline sweeps in beneath it — no plate, so nothing to mis-stack
+         at hero size (a 10px bar also clears the keyline minimum) */
+      .mk { position: relative; display: inline-block; }
+      .mk-underline { position: absolute; left: 0.02em; right: 0.02em; bottom: -0.04em; height: 10px; border-radius: 5px; background: var(--accent); }
+      .mk-text { position: relative; }
+
+      #items { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 72px; flex-wrap: wrap; }
+      .item { position: relative; display: flex; align-items: center; gap: 22px; font-size: 56px; font-weight: 700; letter-spacing: -0.015em; color: var(--text); }
+      .item .icon { flex: 0 0 auto; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; color: var(--accent); }
+      .item .icon svg { width: 52px; height: 52px; }
+      /* the strike: 6px at full alpha — a stroke the viewer must READ as a
+         complete shape survives render + encode (DESIGN.md keyline rule) */
+      .item .strike { position: absolute; left: -14px; right: -14px; top: 50%; height: 6px; margin-top: -3px; border-radius: 3px; background: var(--negative); z-index: 2; box-shadow: 0 0 18px rgba(239,68,68,0.45); }
+
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+      /* hold loop (DESIGN.md "Long holds need a visible loop"): after the
+         strikes land, their glow keeps rolling across the items one at a time */
+      @keyframes hf-strike-roll { 0%, 100% { box-shadow: 0 0 12px rgba(239,68,68,0.25); } 50% { box-shadow: 0 0 26px rgba(239,68,68,0.6); } }
+      .item .strike { animation: hf-strike-roll 5s ease-in-out infinite; }
+      .item:nth-child(2) .strike { animation-delay: 1.6s; }
+      .item:nth-child(3) .strike { animation-delay: 3.2s; }
+      .item:nth-child(4) .strike { animation-delay: 4.8s; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="strike-list" data-start="0" data-duration="8" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"Automating It Badly","marker":"Badly","items":[{"label":"Captions","icon":"doc"},{"label":"Pacing","icon":"clock"},{"label":"Layouts","icon":"layers"}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="8" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="8" data-track-index="1">
+        <div class="title" id="title"></div>
+        <div id="items"></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
+      const ICONS = {
+        // the generic, extensible icon source (copied from enacted/pipeline-flow,
+        // the library's promotion seam for a shared __icons registry)
+        doc:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+        clock:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+        layers:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
+        bolt:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+        video:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
+        search:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+        chat:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+        gear:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
+      };
+
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DEFAULTS = {
+        title: 'Automating It Badly',
+        marker: 'Badly',
+        items: [
+          { label: 'Captions', icon: 'doc' },
+          { label: 'Pacing', icon: 'clock' },
+          { label: 'Layouts', icon: 'layers' }
+        ]
+      };
+      const DATA = { ...DEFAULTS, ...VARS };
+
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+      // Title, with the marker word wrapped for the sweep
+      const titleEl = $('title');
+      const marker = typeof DATA.marker === 'string' ? DATA.marker.trim() : '';
+      const mIdx = marker ? DATA.title.toLowerCase().indexOf(marker.toLowerCase()) : -1;
+      if (mIdx !== -1) {
+        titleEl.innerHTML = esc(DATA.title.slice(0, mIdx))
+          + '<span class="mk"><span class="mk-text">' + esc(DATA.title.slice(mIdx, mIdx + marker.length)) + '</span><span class="mk-underline"></span></span>'
+          + esc(DATA.title.slice(mIdx + marker.length));
+      } else {
+        titleEl.textContent = DATA.title;
+      }
+
+      const itemsEl = $('items');
+      const itemEls = (DATA.items || []).map((it) => {
+        const el = document.createElement('div');
+        el.className = 'item';
+        const ic = document.createElement('div');
+        ic.className = 'icon';
+        ic.innerHTML = ICONS[it.icon] || ICONS.doc;
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = it.label;
+        const strike = document.createElement('div');
+        strike.className = 'strike';
+        el.appendChild(ic); el.appendChild(label); el.appendChild(strike);
+        itemsEl.appendChild(el);
+        return el;
+      });
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.from(titleEl, { opacity: 0, y: 28, duration: 0.6, ease: 'power3.out' }, 0.2);
+      tl.from(itemEls, { opacity: 0, y: 22, stagger: 0.12, duration: 0.5, ease: 'power2.out' }, 0.5);
+
+      // Beats: the resolver injects variables.beats as [{label, at}]. Without
+      // them (bare preview) strike on a demo cadence.
+      const fallbackAt = (i) => 1.6 + i * 1.4;
+      const beats = (Array.isArray(DATA.beats) && DATA.beats.length)
+        ? DATA.beats
+        : (DATA.items || []).map((it, i) => ({ label: it.label, at: fallbackAt(i) }));
+
+      let lastAt = 0;
+      beats.forEach((b, bi) => {
+        const i = (DATA.items || []).findIndex((it) => it.label === b.label);
+        if (i === -1) return; // lint E12 rejects this upstream of any render
+        const at = Math.max(1.3, typeof b.at === 'number' ? b.at : fallbackAt(bi));
+        lastAt = Math.max(lastAt, at);
+        tl.fromTo(itemEls[i].querySelector('.strike'), { scaleX: 0, transformOrigin: 'left center' }, { scaleX: 1, duration: 0.32, ease: 'power3.out' }, at);
+        tl.to(itemEls[i].querySelector('.label'), { color: 'rgba(255,239,219,0.45)', duration: 0.3 }, at + 0.08);
+        tl.to(itemEls[i].querySelector('.icon'), { color: 'var(--negative)', duration: 0.3 }, at + 0.08);
+        tl.to(itemEls[i], { y: 2, duration: 0.18, ease: 'power2.out' }, at);
+      });
+
+      // The payoff: the marker word tints accent and its underline sweeps in
+      // after the last strike
+      if (mIdx !== -1) {
+        tl.to('.mk-text', { color: 'var(--accent)', duration: 0.3 }, lastAt + 0.7);
+        tl.fromTo('.mk-underline', { scaleX: 0, transformOrigin: 'left center' }, { scaleX: 1, duration: 0.35, ease: 'power2.out' }, lastAt + 0.75);
+      }
+
+      window.__timelines['strike-list'] = tl;
+    </script>
+  </body>
+</html>

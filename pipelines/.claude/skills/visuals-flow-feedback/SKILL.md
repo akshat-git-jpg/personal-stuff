@@ -27,19 +27,28 @@ surface-routing table here — read it at execute time so the two cannot drift.
 4. **Never edit rule surfaces mid-run of another video.** Rule changes go through
    this fold, not through an operating session.
 
-## Phase 1 — Ingest (all four sources, always)
+## Phase 1 — Ingest (all five sources, always)
 
-Never work from the board alone; three of the four sources are silent.
+Never work from the board alone; four of the five sources are silent.
 
 | Source | How to read it | Notes |
 |---|---|---|
-| Board comments | `node lib/feedback-status.mjs` (exit 1 = pending items) | Primary. Items carry `t` (timestamp) and sometimes `image` (a pinned screenshot — **open it**, it usually names the card). |
+| Board comments | `node lib/feedback-status.mjs` (exit 1 = pending items) | Primary, and it counts EVERY board surface: Final Cut (`t`-keyed), storyboard and card-plan boxes (cue-keyed `c05` / `z03`), and the 037 gate's `card-body:N` / `zone-intro:N` items. Any of them may carry an `image` (an attached screenshot — **open it**, it usually names the card). |
 | Template notes | `../card-library/card-notes.json` | The gallery's per-card Notes queue. Only act on notes with `done: false`. |
 | Chat feedback | this conversation | Anything the owner said directly instead of typing on the board. Easy to lose — write it into the Phase 4 summary like any other item. |
 | Implicit edits | `node lib/edit-delta.mjs <slug>` | 130's rule: the SAME kind of hand-edit 3+ times is a feedback item worth folding; one-off edits are instance fixes needing no rule. |
+| Run ledger | `node lib/run-log.mjs <slug>` | Each step's `issues` field: what the session hit while running, recorded at the time. This is the source nobody thinks to open, and it holds problems the owner never saw a frame of — e.g. opusclip-vs-submagic's 010 entry logged four stray script notes read aloud, each needing an editorial decision rather than a pipeline fix. Triage them like any other item. |
 
-Then **map every item to what it actually points at**. Board comments are
-timestamp-keyed, not cue-keyed, so:
+Then **map every item to what it actually points at**. Which half of this you
+need depends on the key, so check the key first:
+
+- **Cue-keyed** (`c05`, `z03`) and **gate-keyed** (`card-body:2`, `zone-intro:1`)
+  items already name their target. They come from the storyboard tiles and the
+  037 card plan. Do NOT put them through the timestamp lookup below — read the
+  cue straight out of `cues.json`. The gate-keyed ones also carry a `context`
+  block with the cue and card they were written against.
+- **Timestamp-keyed** items (`t`, plus the `final-*` keys) come from the Final
+  Cut player and name nothing. Only these need mapping:
 
 ```bash
 node -e "

@@ -144,6 +144,23 @@ export function validateCues(cues, catalog, cardLibraryRoot, workdir) {
           errors.push(`${cue.id} beat ${i + 1}: values has ${r.values.length} entries but products has ${vars.products.length} — must match 1:1`);
         }
       });
+      // E12 (owner fold 2026-07-31, opusclip-vs-submagic z03): a beat that names
+      // an item the card never declared resolves to a timed no-op — the card
+      // cannot animate a plate it does not have. For beat_source:variables cards
+      // every reveal must reference a declared item by its identity field (the
+      // first field of item_shape, by authoring convention).
+      if (cat.beat_source === 'variables' && cat.beat_var && Array.isArray(vars[cat.beat_var])) {
+        const keyField = Object.keys(cat.variables?.[cat.beat_var]?.item_shape ?? {})[0];
+        if (keyField) {
+          const declared = new Set(vars[cat.beat_var].map((it) => it?.[keyField]));
+          beats.forEach((b, i) => {
+            const v = b.reveal?.[keyField];
+            if (v !== undefined && !declared.has(v)) {
+              errors.push(`${cue.id} beat ${i + 1}: reveal.${keyField} "${v}" matches no ${cat.beat_var} item — the card would silently drop this beat (E12)`);
+            }
+          });
+        }
+      }
     }
     for (const [k, spec] of Object.entries(cat.variables ?? {})) {
       const isRequired = spec.required !== false;

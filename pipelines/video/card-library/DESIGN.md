@@ -20,12 +20,26 @@ existing cards; when in doubt, open `pros-cons/pros-cons/index.html` and
 | `--text-dim` | `rgba(255, 239, 219, 0.55-0.65)` | secondary text (warm cream, NEVER pure grey) |
 | `--accent` | `#fb923c` | THE accent: eyebrows, highlights, active states |
 | positive | `#34d399` | pros, yes-marks, wins (green) |
-| negative | `#fb7185` | cons, no-marks (rose) — or `rgba(255,255,255,0.28)` for neutral "no" |
+| negative | `#ef4444` | STATIC no-marks only: cons rows, ✗ value pills, a "not for you" mark — or `rgba(255,255,255,0.28)` for neutral "no" |
 | gold | `#facc15` | top grades, trophies, "winner" moments only |
 
-Rules: dark warm background always; one orange accent; green/rose only for
-semantic good/bad; gold only for verdict-winner moments. No new hues without a
-deliberate reason.
+Rules: dark warm background always; one orange accent; green/red only for
+semantic good/bad; no new hues without a deliberate reason.
+
+**Rose is banned, and motion is never red or gold (owner, 2026-07-31).** The old
+negative `#fb7185` clashed with the orange family ("pink and orange don't go
+together") and is gone from every card; `#ef4444` replaced it for static
+no-marks (cons, ✗ pills). Two follow-up rulings from the same board review, made
+after seeing alternatives rendered:
+
+- **Connecting lines / track fills / sweeps stay `var(--accent)` orange in every
+  register.** A gold fill read as a stray yellow, not as energy.
+- **No red "fail finale" on enacted chains.** pipeline-flow used to tint its
+  final dark-register node red with an X badge and a judder; on the board it
+  read as "weird — shouldn't that be orange only". Every node now resolves
+  orange with a check in both registers. Red appears only where a mark is the
+  CONTENT (a cons list, a failed criterion), never as motion or as a chain
+  state.
 
 ## Typography
 
@@ -65,6 +79,15 @@ the original complaint.
 `hero ÷ 2.5`, whichever is smaller. So a 56px secondary requires a hero of at
 least 140px; a 120px hero allows a secondary of at most 48px. Pick the hero
 first, then derive the ceiling — do not set both from the bands independently.
+
+**The ratio has a ceiling too (owner, 2026-07-31).** The hero may be at most
+**4×** the card's smallest content text, and list/table row text on a fullframe
+card is never below **36px**. The 2.5× minimum alone produced compliant cards
+that still looked wrong — `pros-cons` ran a 150px hero over 28px rows (5.4×),
+which the owner read as "heading very big, rest all very small". Hierarchy is a
+*spread*, not a cliff: if the rows must be small to fit, bring the hero down
+(120–140px) rather than letting the gap widen. Both bounds are enforced by
+`check-type-scale.mjs` alongside the minimums.
 
 **One accented word per card.** Every fullframe card colours at least one text
 element `var(--accent)`. Colour marks meaning; a card where the accent only
@@ -129,6 +152,13 @@ These rules are enforced by `scripts/check-type-scale.mjs`.
   is not done. See "Big type means fewer words" above: capacity comes down to
   match the hero, never the other way around.
 - **Survives worst-case content**: layouts must hold at both the minimum and maximum item counts the catalog allows, and at every string's `max_words`. Grid ratios must be computed from item count, never hardcoded for one count.
+- **Meaningful strokes are ≥2px at ≥0.6 alpha (owner, 2026-07-31).** Any stroke
+  the viewer is meant to READ as a complete shape — an accent ring, a keyline
+  around a pill or lockup, an underline — must survive render + encode. A 1px
+  stroke at 0.42 alpha (`link-scrim`'s old border) partially vanished on video
+  and read as a broken, incomplete boundary. Hairlines are only acceptable on
+  decorative panel edges (the `rgba(255,255,255,0.1)` panel border above) where
+  a dropout is invisible.
 
 ## Declared capacity is the TIGHTEST variant's capacity
 
@@ -200,6 +230,23 @@ Every fullframe card must keep subtle continuous motion for its ENTIRE duration 
 - **float**: hero element translateY ±4px, 7s.
 
 Rules: motion must be seek-deterministic (pure function of t — CSS animations/GSAP timelines are; `Math.random()`/rAF-accumulators are not); never louder than the entrance; never on body text. Marker: the implementing style/timeline block carries the comment `/* hf-ambient */` exactly once per card (machine-checkable).
+
+### Long holds need a visible loop, not a breathe (owner, 2026-07-31)
+
+The treatments above are calibrated for short tails. A cue stretched well past
+the card's designed duration (the resolver holds a 6s card for a 17s narration
+span) turns "subtle" into "dead": a 1.2% breathe is imperceptible, and the owner
+reported 12 seconds of static screen on a card that technically complied with
+this section. So there is a second tier:
+
+- Any card that can hold **more than ~8s after its last beat** (in practice:
+  every fullframe beat card — cue duration is set by narration, not by the
+  card) must carry a **visible loop** for the hold: re-sweep the track fill,
+  cycle a soft pulse across the nodes/chips one at a time, or re-run the accent
+  underline — something with a discernible start and travel, on a 4–6s cycle.
+- The loop obeys the same rules: seek-deterministic, quieter than the entrance,
+  never on body text, inside the `/* hf-ambient */` block.
+- The breathe/drift treatments stay, as the base layer under the loop.
 
 ## A graphic carries a mark, not text alone
 

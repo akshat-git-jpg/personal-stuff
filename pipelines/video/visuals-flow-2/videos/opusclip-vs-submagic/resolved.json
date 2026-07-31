@@ -4,38 +4,42 @@
   "resolved": [
     {
       "id": "z01",
-      "card": "enacted/bad-clip-montage",
+      "card": "statement/strike-list",
       "placement": "fullframe",
       "start": 3.94,
       "duration": 13.76,
       "variables": {
-        "title": "Automated Then Fixed By Hand",
-        "marker": "Fixed",
-        "clips": [
+        "title": "Automating It Badly",
+        "marker": "Badly",
+        "items": [
           {
-            "label": "Captions need fixing"
+            "label": "Captions",
+            "icon": "doc"
           },
           {
-            "label": "Pacing needs fixing"
+            "label": "Pacing",
+            "icon": "clock"
           },
           {
-            "label": "Layouts need reworking"
+            "label": "Layouts",
+            "icon": "layers"
           }
         ],
         "beats": [
           {
-            "label": "Captions need fixing",
+            "label": "Captions",
             "at": 0.6
           },
           {
-            "label": "Pacing needs fixing",
+            "label": "Pacing",
             "at": 6.02
           },
           {
-            "label": "Layouts need reworking",
+            "label": "Layouts",
             "at": 8.44
           }
-        ]
+        ],
+        "register": "dark"
       }
     },
     {
@@ -55,7 +59,8 @@
           "name": "OpusClip",
           "logo": "opusclip",
           "verdict": "Speed at all costs"
-        }
+        },
+        "register": "dark"
       }
     },
     {
@@ -76,14 +81,15 @@
         ],
         "beats": [
           {
-            "label": "Worth using",
+            "label": "Speed first",
             "at": 0.6
           },
           {
-            "label": "Quietly creates more work",
+            "label": "Publish ready",
             "at": 3.12
           }
-        ]
+        ],
+        "register": "light"
       }
     },
     {
@@ -122,6 +128,7 @@
             "at": 4.02
           }
         ],
+        "register": "light",
         "variant": "a"
       }
     },
@@ -153,7 +160,8 @@
             "text": "No marketing promises",
             "at": 9.52
           }
-        ]
+        ],
+        "register": "light"
       }
     },
     {
@@ -186,6 +194,7 @@
             "at": 17.2
           }
         ],
+        "register": "light",
         "variant": "a"
       }
     },
@@ -195,7 +204,9 @@
       "placement": "overlay",
       "start": 109.64,
       "duration": 5,
-      "variables": {}
+      "variables": {
+        "register": "light"
+      }
     },
     {
       "id": "c01",
@@ -210,6 +221,7 @@
         "name": "OpusClip",
         "tagline": "Automation first clipping",
         "tag": "AI Clipping",
+        "register": "light",
         "variant": "a"
       },
       "structural": true
@@ -238,7 +250,8 @@
             "text": "Clips still need cleanup",
             "at": 10.24
           }
-        ]
+        ],
+        "register": "dark"
       }
     },
     {
@@ -254,6 +267,7 @@
         "name": "Submagic",
         "tagline": "Polish first editing",
         "tag": "Short Form Editor",
+        "register": "light",
         "variant": "a"
       },
       "structural": true
@@ -277,7 +291,8 @@
             "text": "Not fully hands off",
             "at": 4.6
           }
-        ]
+        ],
+        "register": "light"
       }
     },
     {
@@ -286,7 +301,9 @@
       "placement": "overlay",
       "start": 182.9,
       "duration": 4,
-      "variables": {}
+      "variables": {
+        "register": "light"
+      }
     },
     {
       "id": "c06",
@@ -299,6 +316,7 @@
         "label": "The Test",
         "text": "Same source video, same goal, both tools",
         "edge": "bottom",
+        "register": "light",
         "variant": "a"
       }
     },
@@ -310,7 +328,8 @@
       "duration": 5,
       "variables": {
         "name": "Submagic",
-        "subtitle": "Template Then AI Edit"
+        "subtitle": "Template Then AI Edit",
+        "register": "light"
       }
     },
     {
@@ -324,6 +343,7 @@
         "label": "Submagic",
         "text": "Multi speaker theme colors each voice separately",
         "edge": "top",
+        "register": "light",
         "variant": "a"
       }
     },
@@ -335,7 +355,8 @@
       "duration": 5,
       "variables": {
         "name": "OpusClip",
-        "subtitle": "Same Video Second Tool"
+        "subtitle": "Same Video Second Tool",
+        "register": "light"
       }
     },
     {
@@ -349,6 +370,7 @@
         "label": "OpusClip",
         "text": "Caption font and color are picked by hand here",
         "edge": "bottom",
+        "register": "light",
         "variant": "a"
       }
     },
@@ -363,6 +385,7 @@
         "label": "Rights",
         "text": "Only clip content you own or have permission to use",
         "edge": "top",
+        "register": "light",
         "variant": "a"
       }
     },
@@ -377,6 +400,7 @@
         "label": "OpusClip",
         "text": "Auto hook writes a text hook onto the top 10 clips",
         "edge": "bottom",
+        "register": "light",
         "variant": "a"
       }
     },
@@ -391,6 +415,7 @@
         "label": "OpusClip",
         "text": "You can force specific moments into the clip set",
         "edge": "top",
+        "register": "light",
         "variant": "a"
       }
     },
@@ -405,7 +430,8 @@
         "logo": "opusclip",
         "value": 5,
         "suffix": " min",
-        "context": "Quoted time to generate the clips"
+        "context": "Quoted time to generate the clips",
+        "register": "light"
       }
     },
     {
@@ -419,6 +445,7 @@
         "label": "Submagic",
         "text": "B roll, transitions and magic zooms are all editable",
         "edge": "bottom",
+        "register": "light",
         "variant": "a"
       }
     },
@@ -450,46 +477,67 @@
             "verdict": "yes",
             "at": 7.2
           }
-        ]
+        ],
+        "register": "light"
       }
     },
     {
       "id": "c17",
-      "card": "enacted/pipeline-flow",
+      "card": "enacted/race-bars",
       "placement": "fullframe",
       "start": 571.32,
       "duration": 10.9,
       "variables": {
         "title": "Straight To Posted",
-        "steps": [
+        "products": [
           {
-            "step": "Auto Edit",
-            "icon": "bolt"
+            "name": "Submagic"
           },
           {
-            "step": "Publish Ready",
-            "icon": "star"
-          },
-          {
-            "step": "Posted",
-            "icon": "rocket"
+            "name": "OpusClip"
           }
+        ],
+        "productLogos": [
+          "submagic",
+          "opusclip"
         ],
         "beats": [
           {
-            "step": "Auto Edit",
+            "values": [
+              {
+                "value": "40"
+              },
+              {
+                "value": "40"
+              }
+            ],
             "at": 0.6
           },
           {
-            "step": "Publish Ready",
+            "values": [
+              {
+                "value": "75"
+              },
+              {
+                "value": "55"
+              }
+            ],
             "at": 2.44
           },
           {
-            "step": "Posted",
+            "values": [
+              {
+                "value": "100"
+              },
+              {
+                "value": "65"
+              }
+            ],
             "at": 8.22
           }
         ],
-        "variant": "b"
+        "register": "light",
+        "variant": "a"
       }
     },
     {
@@ -520,7 +568,8 @@
             "verdict": "no",
             "at": 18.28
           }
-        ]
+        ],
+        "register": "dark"
       }
     },
     {
@@ -567,7 +616,8 @@
             "at": 5.76
           }
         ],
-        "variant": "a"
+        "register": "dark",
+        "variant": "b"
       }
     },
     {
@@ -575,10 +625,11 @@
       "card": "section/section-card-flip",
       "placement": "fullframe",
       "start": 645.9,
-      "duration": 12.32,
+      "duration": 5,
       "variables": {
         "number": "04",
-        "title": "Pricing And Value"
+        "title": "Pricing And Value",
+        "register": "dark"
       },
       "structural": true
     },
@@ -586,103 +637,39 @@
       "id": "c20",
       "card": "slate/kinetic-sentence",
       "placement": "fullframe",
-      "start": 662.22,
-      "duration": 10.24,
+      "start": 666.12,
+      "duration": 11.12,
       "variables": {
-        "text": "once you factor in the extra editing time needed to make clips usable, the value does significantly drop",
+        "text": "the value does significantly drop",
         "accent": "significantly drop",
         "beats": [
           {
-            "text": "once",
+            "text": "the",
             "accent": false,
             "at": 0.2
           },
           {
-            "text": "you",
-            "accent": false,
-            "at": 0.46
-          },
-          {
-            "text": "factor",
-            "accent": false,
-            "at": 0.6
-          },
-          {
-            "text": "in",
-            "accent": false,
-            "at": 0.96
-          },
-          {
-            "text": "the",
-            "accent": false,
-            "at": 1.18
-          },
-          {
-            "text": "extra",
-            "accent": false,
-            "at": 1.18
-          },
-          {
-            "text": "editing",
-            "accent": false,
-            "at": 1.72
-          },
-          {
-            "text": "time",
-            "accent": false,
-            "at": 2.06
-          },
-          {
-            "text": "needed",
-            "accent": false,
-            "at": 2.54
-          },
-          {
-            "text": "to",
-            "accent": false,
-            "at": 2.82
-          },
-          {
-            "text": "make",
-            "accent": false,
-            "at": 2.98
-          },
-          {
-            "text": "clips",
-            "accent": false,
-            "at": 3.2
-          },
-          {
-            "text": "usable,",
-            "accent": false,
-            "at": 3.46
-          },
-          {
-            "text": "the",
-            "accent": false,
-            "at": 4.1
-          },
-          {
             "text": "value",
             "accent": false,
-            "at": 4.22
+            "at": 0.32
           },
           {
             "text": "does",
             "accent": false,
-            "at": 4.54
+            "at": 0.64
           },
           {
             "text": "significantly",
             "accent": true,
-            "at": 4.94
+            "at": 1.04
           },
           {
             "text": "drop",
             "accent": true,
-            "at": 5.5
+            "at": 1.6
           }
-        ]
+        ],
+        "register": "dark"
       }
     },
     {
@@ -696,6 +683,7 @@
         "label": "Submagic",
         "text": "Not paying for more clips, paying for fewer fixes",
         "edge": "bottom",
+        "register": "dark",
         "variant": "a"
       }
     },
@@ -741,7 +729,8 @@
               "value": "41% off"
             }
           ]
-        }
+        },
+        "register": "light"
       }
     },
     {
@@ -755,7 +744,8 @@
         "logo": "opusclip",
         "score": 4,
         "max": 5,
-        "winner": false
+        "winner": false,
+        "register": "light"
       }
     },
     {
@@ -769,7 +759,8 @@
         "logo": "submagic",
         "score": 5,
         "max": 5,
-        "winner": false
+        "winner": false,
+        "register": "light"
       }
     },
     {
@@ -783,7 +774,8 @@
         "logo": "opusclip",
         "score": 3.5,
         "max": 5,
-        "winner": false
+        "winner": false,
+        "register": "light"
       }
     },
     {
@@ -807,7 +799,8 @@
             "logo": "submagic",
             "at": 7.78
           }
-        ]
+        ],
+        "register": "light"
       }
     },
     {
@@ -831,7 +824,8 @@
             "logo": "opusclip",
             "at": 6.26
           }
-        ]
+        ],
+        "register": "light"
       }
     },
     {
@@ -878,6 +872,7 @@
             "at": 7.3
           }
         ],
+        "register": "light",
         "variant": "a"
       }
     },
@@ -902,6 +897,7 @@
           "opusclip",
           "submagic"
         ],
+        "register": "light",
         "variant": "a"
       }
     },
@@ -911,7 +907,9 @@
       "placement": "overlay",
       "start": 1051.87,
       "duration": 4,
-      "variables": {}
+      "variables": {
+        "register": "light"
+      }
     },
     {
       "id": "z14",
@@ -919,7 +917,9 @@
       "placement": "overlay",
       "start": 1065.63,
       "duration": 5,
-      "variables": {}
+      "variables": {
+        "register": "light"
+      }
     }
   ]
 }

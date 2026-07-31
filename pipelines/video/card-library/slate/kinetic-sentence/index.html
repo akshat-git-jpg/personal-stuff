@@ -24,9 +24,13 @@
         --text: #ffffff;
         --accent: #fb923c;
         --font: 'Inter', system-ui, sans-serif;
-        --hero-size: 64px; /* prose hero: the card holds a whole sentence, not a headline. Hero SCALE (120px+) is
-                              calibrated for a short string — at 148px this ran three lines edge-to-edge with no
-                              margin. See DESIGN.md → Typography → "Hero scale assumes a short hero". */
+        --hero-size: 64px; /* base only — the script rescales by word count (owner fold 2026-07-31):
+                              <=8 words → 120px, 9-12 → 96px, >12 → this 64px legacy fallback.
+                              A statement must LOOK like a statement; the R_KINETIC word cap (<=12,
+                              core clause of a long sentence) is what makes the big buckets safe.
+                              History: 148px on an 18-word sentence ran three lines edge-to-edge
+                              (rejected 2026-07-25); 64px on the same length read as "a paragraph,
+                              not a statement" (rejected 2026-07-31). The variable is words x size. */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -71,13 +75,34 @@
         ]
       };
 
+      // Statement size buckets — see the --hero-size comment in :root.
+      const wordCount = (DATA.beats || []).length;
+      const bucket = wordCount <= 8 ? { size: 120, leading: 1.1 }
+                   : wordCount <= 12 ? { size: 96, leading: 1.15 }
+                   : { size: 64, leading: 1.25 };
+      document.documentElement.style.setProperty('--hero-size', bucket.size + 'px');
+
       /* ===== TIMELINE (LOCKED) ===== */
       const sentenceEl = document.getElementById('sentence');
+      sentenceEl.style.lineHeight = bucket.leading;
+      // Accent color is applied at BUILD time as an INLINE LITERAL, resolved
+      // from the live --accent token via getComputedStyle — never as a GSAP
+      // color tween and never as `var(--accent)` on the span. Verified
+      // 2026-07-31 against the render pipeline: in a --variables render the
+      // accent words came out white with (a) a color tween to var(--accent),
+      // (b) a static `.is-accent { color: var(--accent) }` class, and
+      // (c) inline `style.color = 'var(--accent)'` — while getComputedStyle
+      // resolved the token correctly and an inline literal rendered orange.
+      // The browser and the board show all four variants correctly, so only a
+      // rendered frame catches this. The word still reveals at its beat via
+      // its opacity tween, already colored.
+      const ACCENT = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#fb923c';
       const words = DATA.beats.map((b, i) => {
         const span = document.createElement('span');
-        span.className = 'word';
+        span.className = b.accent ? 'word is-accent' : 'word';
         span.textContent = b.text + (i < DATA.beats.length - 1 ? ' ' : '');
         span.style.opacity = 0;
+        if (b.accent) span.style.color = ACCENT;
         sentenceEl.appendChild(span);
         return { b, span };
       });
@@ -90,9 +115,6 @@
       words.forEach(({ b, span }) => {
         const at = Number(b.at);
         tl.to(span, { opacity: 1, duration: 0.1, ease: 'none' }, at);
-        if (b.accent) {
-          tl.to(span, { color: 'var(--accent)', duration: 0.1, ease: 'none' }, at);
-        }
       });
       
       window.__timelines['kineticsentence'] = tl;

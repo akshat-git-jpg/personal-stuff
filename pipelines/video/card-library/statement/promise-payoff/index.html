@@ -18,7 +18,7 @@
         --text-dim: rgba(255, 239, 219, 0.6);
         --accent: #fb923c;
         --positive: #34d399; 
-        --negative: #fb7185; 
+        --negative: #ef4444; 
         --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
         --hero-size: 130px;
@@ -200,45 +200,49 @@
       tl.from('.question', { opacity: 0, y: 30, duration: 0.6, ease: 'power3.out' }, 0.2);
       tl.from('.plate', { opacity: 0, y: 30, stagger: 0.2, duration: 0.6, ease: 'power3.out' }, 0.5);
 
-      const numOpts = (DATA.options || []).length;
-      let winnerIdx = DATA.winner;
-      if (winnerIdx === undefined) {
-        winnerIdx = numOpts - 1; // Default to last option winning if not specified
-      }
+      // Beats drive resolution (owner fold 2026-07-31): the resolver injects
+      // variables.beats as [{label, at}] where label names a declared option.
+      // Without beats (bare preview) fall back to a fixed cadence.
+      // `winner` is optional: absent = NEUTRAL — every resolved option lights
+      // accent, because a question card must not pre-answer itself. The old
+      // behavior (winner defaults to the LAST option) is exactly what left
+      // "Speed first" un-highlighted on opusclip-vs-submagic z03.
+      const winnerIdx = DATA.winner;
+      const fallbackAt = (idx) => 2.5 + idx * 2.0;
+      const beats = (Array.isArray(DATA.beats) && DATA.beats.length)
+        ? DATA.beats
+        : (DATA.options || []).map((o, i) => ({ label: o.label, at: fallbackAt(i) }));
 
-      // Timing for beat resolution
-      // 1.5s -> initial state
-      // 4.0s -> plate 0 resolved
-      // 6.0s -> plate 1 resolved and lit up
-      const resolveTime = (idx) => 2.5 + idx * 2.0; 
+      beats.forEach((b, bi) => {
+        const i = (DATA.options || []).findIndex((o) => o.label === b.label);
+        if (i === -1) return; // lint E12 rejects this upstream of any render
+        const rt = Math.max(1.3, typeof b.at === 'number' ? b.at : fallbackAt(bi));
 
-      (DATA.options || []).forEach((opt, i) => {
-        const rt = resolveTime(i);
-        
         // 1) Animate lock to check
         tl.to('#plate-' + i + ' .icon-lock', { opacity: 0, scale: 0.5, duration: 0.3, ease: 'power2.in' }, rt);
         tl.to('#plate-' + i + ' .icon-check', { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.5)' }, rt + 0.1);
-        
+
         // 2) Brighten text and border to indicate resolution
-        tl.to('#plate-' + i, { 
-          color: 'rgba(255,255,255,1)', 
-          borderColor: 'rgba(255,255,255,0.3)', 
-          backgroundColor: 'rgba(255,255,255,0.06)', 
-          duration: 0.4 
+        tl.to('#plate-' + i, {
+          color: 'rgba(255,255,255,1)',
+          borderColor: 'rgba(255,255,255,0.3)',
+          backgroundColor: 'rgba(255,255,255,0.06)',
+          duration: 0.4
         }, rt);
-        
-        // 3) Light up winner
-        if (i === winnerIdx) {
-           tl.to('#plate-' + i, { 
-             color: 'var(--accent)', 
-             borderColor: 'var(--accent)', 
-             backgroundColor: 'rgba(251,146,60,0.1)', 
-             duration: 0.5 
+
+        // 3) Accent: neutral mode lights every resolved option; an explicit
+        //    winner restricts it to that plate.
+        if (winnerIdx === undefined || i === winnerIdx) {
+           tl.to('#plate-' + i, {
+             color: 'var(--accent)',
+             borderColor: 'var(--accent)',
+             backgroundColor: 'rgba(251,146,60,0.1)',
+             duration: 0.5
            }, rt + 0.5);
-           
-           tl.to('#plate-' + i + ' .icon-check', { 
-             fill: 'var(--accent)', 
-             duration: 0.5 
+
+           tl.to('#plate-' + i + ' .icon-check', {
+             fill: 'var(--accent)',
+             duration: 0.5
            }, rt + 0.5);
         }
       });

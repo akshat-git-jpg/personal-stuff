@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "updated": "2026-07-30T06:59:23.282Z",
+  "updated": "2026-07-31T05:54:35.455Z",
   "steps": {
     "037-approve-card-plan-human": {
       "status": "done",
@@ -60,11 +60,11 @@
     },
     "040-sync-graphics-run": {
       "status": "done",
-      "started": "2026-07-30T06:59:23.118Z",
-      "issues": "W1 fullframe-cadence: c22 starts 11.1s after c20 (minimum gap 12s) W1 fullframe-cadence: z11 starts 11.7s after z10 (minimum gap 12s) W7 bare-stretch: 21.5s between z03 (starts 33.4s) and z05 (starts 54.9s) inside a narration segment — max 20s W7 bare-stretch: 25.2s between z07 (starts 84.4s) and z08 (starts 109.6s) inside a narration segment — max 20s W7 bare-stretch: 20.3s between c01 (starts 119.7s) and c02 (starts 140.0s) inside a narration segment — max 20s",
+      "started": "2026-07-31T05:21:53.507Z",
+      "issues": "W1 fullframe-cadence: c22 starts 7.2s after c20 (minimum gap 12s) W1 fullframe-cadence: z11 starts 11.7s after z10 (minimum gap 12s) W20 long-hold: z05 holds enacted/pipeline-flow for 17.2s, 2.9x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule) W20 long-hold: z07 holds enacted/timeline-scrub for 18.7s, 3.1x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule) W20 long-hold: c02 holds pros-cons/pros-cons",
       "did": "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint.",
       "output": "resolved.json",
-      "ended": "2026-07-30T06:59:23.282Z"
+      "ended": "2026-07-31T05:21:53.709Z"
     },
     "050-review-graphics-llm": {
       "status": "done",
@@ -84,11 +84,11 @@
     },
     "130-learn-from-feedback-opus": {
       "status": "done",
-      "ended": "2026-07-30T04:57:53.503Z",
-      "started": "2026-07-30T04:57:53.503Z",
-      "did": "Folded four feedback items via the visuals-flow-feedback skill: ingested all four sources (board, template notes, chat, implicit edits), root-caused each, applied three durable rule changes and one instance fix.",
-      "issues": "Two deliberate deviations, both flagged to the owner: zone-intro:1 routed to card-library/DESIGN.md rather than the zone rulebook the routing table prescribes, because the lesson is about card construction and the body pass proposes cards too; and 37 fullframe cards remain text-only after the logo rule, recorded as debt in DESIGN.md rather than swept now.",
-      "output": "DESIGN.md (2 sections + 2 checklist items), steps/130 README (traceability rule), lib/edit-delta.mjs (baseline guard + test), enacted/spotlight-focus + enacted/race-bars (productLogos), feedback.json 3 items folded, tests/TESTS.md 2 lines"
+      "started": "2026-07-31T04:52:53.053Z",
+      "did": "Folded the storyboard-review feedback: 7 board items + 1 live chat item, all root-caused, discussed, batch-approved, then applied. Durable rule changes: rose banned and red restricted to static no-marks with motion always orange (DESIGN.md + style guide, swept 16 cards, revised live by the owner from the approved gold-sweep proposal); keylines >=2px at >=0.6 alpha; type-scale ceiling (hero <=4x rows) and 36px row floor enforced by check-type-scale (caught 3 cards); long-hold visible-loop tier with pipeline-flow's track sheen as reference plus new W20 lint; R_KINETIC statement test with word cap 18->12 and size buckets; new E12 lint fails beats that name undeclared items. Card work: NEW statement/strike-list built for z01 (owner direction C), promise-payoff now consumes beats and defaults to neutral both-orange, pros-cons rescaled, link-scrim keyline thickened, bad-clip-montage caption unhard-coded, kinetic-sentence buckets. Cues z01/z03/c17/c20 re-authored, 27 register fields backfilled for E8 (first time it fired on this video), motif flags set on z05/c19. All seven changed cards frame-verified through the real render path.",
+      "issues": "Found a renderer bug while frame-verifying: --variables renders drop color:var(--accent) on kinetic-sentence's word spans (tween, class and inline all render white; browser/board look correct) — every kinetic render to date shipped white accents; fixed card-side by inlining the getComputedStyle-resolved literal. Pre-existing warnings left standing and recorded: W19 z14 zone field, W9 variant-rotation c11-c13, W10 legacy-card advisories. Four VO blemishes from the 010 ledger still await the owner's editorial call (Still-neutral-so-far 2:54, Clean-clear-done 17:50, would-catch stutter 6:40, BC-ratio garble 7:00). The headless per-cue frame gate is routed to a plan rather than fixed inline (2nd and 3rd occurrences of render-only defects this video).",
+      "output": "feedback.json 8/8 items applied/folded (feedback-status exit 0), claude_status.json 7 board check-offs, DESIGN.md 4 new rule sections, EDITOR-STYLE-GUIDE palette updated, cue-rules R_KINETIC + prompt regenerated (check-rulebook ok), resolve.mjs E12, lint-cues W20, check-type-scale ceiling+floor, statement/strike-list + catalog entry (lint 0 errors, card-qa clean), 16 cards de-rosed, cues.json 4 re-authored + registers, resolved.json clean re-resolve, TESTS.md 2 lessons + convergence line, scripts/check.sh 456/456 pass.",
+      "ended": "2026-07-31T05:54:35.455Z"
     }
   }
 }

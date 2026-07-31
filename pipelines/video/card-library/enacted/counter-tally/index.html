@@ -22,7 +22,7 @@
         --bg-from: #3a1f08; --bg-to: #0a0805;
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
         --accent: #fb923c;
-        --positive: #34d399; --negative: #fb7185; --gold: #facc15;
+        --positive: #34d399; --negative: #ef4444; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
         --hero-size: 280px;
       }
@@ -128,7 +128,7 @@
       const $ = (id) => document.getElementById(id);
       const fmt = (n) => Math.round(n).toLocaleString('en-US');
       const WHITE = '#ffffff';
-      const ROSE = '#fb7185';
+      const RED = '#ef4444';
 
       const title = $('title');
       title.textContent = DATA.title;
@@ -169,7 +169,7 @@
       DATA.beats.forEach((b) => {
         const val = parseFloat(b.value) || 0;
         const falling = val < prevVal;
-        tl.set(numberEl, { color: isDark && falling ? ROSE : WHITE }, b.at);
+        tl.set(numberEl, { color: isDark && falling ? RED : WHITE }, b.at);
         const counter = { v: prevVal };
         tl.to(counter, {
           v: val, duration: 0.6, ease: 'power2.out',

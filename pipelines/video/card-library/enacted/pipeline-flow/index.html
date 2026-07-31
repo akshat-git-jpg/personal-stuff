@@ -4,9 +4,9 @@
   A horizontal chain of node pills connected by track segments. Each node shows
   a stroke icon for its step; an accent fill wipes along the track and arrives
   at the named step on each beat, lighting that node (accent border+fill, icon
-  tints accent) while a small check badge pops at the node's corner. Dark
-  register = problem: the final beat's node tints rose, gets an X badge and
-  judders instead of succeeding. Light register = solution: every beat lands clean.
+  tints accent) while a small check badge pops at the node's corner. Every node
+  resolves orange with a check in BOTH registers (owner rule 2026-07-31 — the
+  old red fail-finale read as "weird"); registers differ in background tone only.
   1920x1080, 30fps, 6 seconds.
 
   EDITOR: change only the ===== CONTENT ===== block (title, steps[], beats[]) and
@@ -28,7 +28,7 @@
         --bg-from: #3a1f08; --bg-to: #0a0805;
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
         --accent: #fb923c;
-        --positive: #34d399; --negative: #fb7185; --gold: #facc15;
+        --positive: #34d399; --negative: #ef4444; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
         --hero-size: 150px;
       }
@@ -61,7 +61,6 @@
 
       .node .badge { position: absolute; top: -14px; right: -14px; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; line-height: 1; opacity: 0; z-index: 3; }
       .node .badge-ok { background: var(--accent); color: #1a0f05; }
-      .node .badge-fail { background: var(--negative); color: #1a0f05; }
 
       .node .label { font-size: 22px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; text-align: center; padding: 0 10px; line-height: 1.3; }
       body.variant-b .node .label { text-align: left; padding: 0; }
@@ -70,7 +69,14 @@
       body.variant-b .track { width: 8px; height: auto; min-height: 30px; min-width: 0; }
       .track .fill { position: absolute; inset: 0; background: var(--accent); transform: scaleX(0); transform-origin: left; }
       body.variant-b .track .fill { transform: scaleY(0); transform-origin: top; }
-      body.register-dark .track .fill { background: var(--negative); }
+
+      /* hold loop (DESIGN.md "Long holds need a visible loop"): a sheen keeps
+         travelling the tracks for the whole hold — the pipeline keeps running.
+         Seek-deterministic (pure CSS), quieter than the entrance. */
+      @keyframes hf-track-sheen { 0% { transform: translateX(-140%); } 55% { transform: translateX(340%); } 100% { transform: translateX(340%); } }
+      @keyframes hf-track-sheen-y { 0% { transform: translateY(-140%); } 55% { transform: translateY(340%); } 100% { transform: translateY(340%); } }
+      .track::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 36%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent); animation: hf-track-sheen 5s linear infinite; }
+      body.variant-b .track::after { top: 0; bottom: auto; right: 0; width: auto; height: 36%; background: linear-gradient(180deg, transparent, rgba(255,255,255,0.22), transparent); animation-name: hf-track-sheen-y; }
 
       @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
       #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
@@ -190,7 +196,7 @@
         const node = document.createElement('div');
         node.className = 'node';
         node.dataset.step = s.step;
-        node.innerHTML = `<div class="icon"></div><div class="badge badge-ok">&#10003;</div><div class="badge badge-fail">&#10005;</div><div class="label"></div>`;
+        node.innerHTML = `<div class="icon"></div><div class="badge badge-ok">&#10003;</div><div class="label"></div>`;
         node.querySelector('.icon').innerHTML = iconSvg(s.icon);
         node.querySelector('.label').textContent = s.step;
         chainEl.appendChild(node);
@@ -232,17 +238,12 @@
 
         const node = nodeEls[idx];
         const iconEl = node.querySelector('.icon');
-        const isFinal = i === beats.length - 1;
-        if (isDark && isFinal) {
-          tl.to(node, { borderColor: 'rgba(251,113,133,0.9)', backgroundColor: 'rgba(251,113,133,0.10)', duration: 0.3, ease: 'power2.out' }, arrive);
-          tl.to(iconEl, { color: '#fb7185', duration: 0.3, ease: 'power2.out' }, arrive);
-          tl.fromTo(node.querySelector('.badge-fail'), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)' }, arrive);
-          tl.to(node, { keyframes: [{ x: -8 }, { x: 8 }, { x: -6 }, { x: 6 }, { x: 0 }], duration: 0.4, ease: 'power1.inOut' }, arrive + 0.05);
-        } else {
-          tl.to(node, { borderColor: 'rgba(251,146,60,0.9)', backgroundColor: 'rgba(251,146,60,0.10)', duration: 0.3, ease: 'power2.out' }, arrive);
-          tl.to(iconEl, { color: '#fb923c', duration: 0.3, ease: 'power2.out' }, arrive);
-          tl.fromTo(node.querySelector('.badge-ok'), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)' }, arrive);
-        }
+        // Every node resolves ORANGE with a check — owner rule 2026-07-31:
+        // the old dark-register finale (red final node + X badge + judder)
+        // read as "weird" on the board; one accent, uniform chain.
+        tl.to(node, { borderColor: 'rgba(251,146,60,0.9)', backgroundColor: 'rgba(251,146,60,0.10)', duration: 0.3, ease: 'power2.out' }, arrive);
+        tl.to(iconEl, { color: '#fb923c', duration: 0.3, ease: 'power2.out' }, arrive);
+        tl.fromTo(node.querySelector('.badge-ok'), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)' }, arrive);
       });
 
       if (typeof DATA.marker === 'string' && DATA.marker.trim() && titleEl.querySelector('.mk-sweep')) {

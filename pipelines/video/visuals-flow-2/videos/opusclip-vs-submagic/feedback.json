@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "updated": "2026-07-30",
+  "updated": "2026-07-31",
   "items": {
     "zone-intro:1": {
       "zone": "intro",
@@ -44,7 +44,10 @@
         "card": "statement/promise-payoff",
         "anchor": "By the end of this video",
         "start": 33.42
-      }
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Answered: the card only ever gave orange to a winner defaulting to the LAST option, and it ignored authored beats entirely. Fixed the card: promise-payoff now consumes variables.beats and, with no winner set, lights EVERY resolved option in accent — a question card must not pre-answer itself. Durable: new E12 lint fails resolve when a beat reveal names an option/item the card never declared (z03s old beats did exactly that, silently). Frame-verified: both plates orange with checks."
     },
     "z05": {
       "text": "why from 05 to 017, screen is static with no motion. i thought we fixed such issues permanently. also pink color doesn't suit",
@@ -53,7 +56,10 @@
         "card": "enacted/pipeline-flow",
         "anchor": "Both of these platforms solve",
         "start": 54.9
-      }
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Two causes. Static screen: the ambient rule allowed a 1.2% breathe that is imperceptible over a 17s hold — DESIGN.md gains the long-hold tier (holds >8s need a VISIBLE loop) and pipeline-flow now carries a travelling track sheen; new W20 lint warns when a cue holds a card past 2x its designed duration. Pink: --negative rose #fb7185 swept out of all 16 cards. Owner refined the replacement live on the board: connecting lines stay ORANGE (gold read as stray yellow) and no red fail-finale — every node resolves orange with a check; red survives only as static no-marks. Frame-verified on The Cleanup Lap."
     },
     "c20": {
       "text": "Can we make better rule on when to use this motion graphic template. I dont think for this big of a text, we should have used this template. Also why everyhting is small. THis template is more imp sections, small letter looks very bad..",
@@ -62,7 +68,10 @@
         "card": "slate/kinetic-sentence",
         "anchor": "once you factor in the extra editing time",
         "start": 662.22
-      }
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Your rule, written: R_KINETIC now carries the STATEMENT TEST — kinetic type carries a declarative statement that could stand alone as a pull-quote, never instructions or on-screen actions — plus a word cap cut 18->12 with the core-clause escape hatch. The card sizes by length bucket (<=8 words 120px, 9-12 96px) so a statement LOOKS like one. c20 re-authored to the verbatim core clause. Bonus find while frame-verifying: the renderer drops var(--accent) colors on these spans in --variables renders (fine in browser/board) — every past kinetic render shipped white accents; card now resolves the token and inlines the literal. Frame-verified orange."
     },
     "c17": {
       "text": "this template doesn't fit. pls replace. Also pink and orange color dont go together, pls change wherever template we have done this",
@@ -71,7 +80,9 @@
         "card": "enacted/pipeline-flow",
         "anchor": "native to short-form platforms",
         "start": 571.32
-      }
+      },
+      "applied": true,
+      "resolution": "Instance fix: re-cued from enacted/pipeline-flow (3rd use in this video, and the moment is a pulling-ahead, not a pipeline) to enacted/race-bars with product logos — Submagic 100 vs OpusClip 65 on the final beat. Pink handled globally per z05. Frame-verified."
     },
     "c04": {
       "text": "in all of my templates, text size looks off. Like heading is very big, rest all are very small. Can we fix this. For context - previous we might have added some rule for text size. tell me what can we do to make it better.",
@@ -81,7 +92,10 @@
         "anchor": "like TikTok and Reels",
         "start": 166.7
       },
-      "image": "feedback-images/c04.png"
+      "image": "feedback-images/c04.png",
+      "applied": true,
+      "folded": true,
+      "resolution": "The rule you remembered (hero 120-200px, minimum 2.5x ratio) had no ceiling and no body floor — pros-cons was COMPLIANT at 150px over 28px rows (5.4x). DESIGN.md now caps hero at 4x the row text and floors fullframe rows at 36px; check-type-scale.mjs enforces both (it caught and fixed two more library cards). pros-cons is now 128px hero over 38px rows. Frame-verified with the real Submagic content."
     },
     "z08": {
       "text": "why orange boundary is not complete.. looks weird",
@@ -91,7 +105,10 @@
         "anchor": "you will find the links in the description",
         "start": 109.64
       },
-      "image": "feedback-images/z08.png"
+      "image": "feedback-images/z08.png",
+      "applied": true,
+      "folded": true,
+      "resolution": "The border was a 1px stroke at 0.42 alpha — a hairline that partially vanishes through encode and reads as a broken ring. DESIGN.md rule: any stroke meant to read as a complete shape is >=2px at >=0.6 alpha. link-scrim border is now 2.5px at 0.75. Frame-verified: complete ring."
     },
     "z01": {
       "text": "this is first template of intro which is ssupposed to be most imp. its such a bad motion grahic , texts are truncated.., motion graphic itslef is complicated and hard to follow.., how this got approved. what can we do to fix it. pls give solve so such issues doesn't happen again.",
@@ -101,7 +118,16 @@
         "anchor": "clips and still",
         "start": 3.94
       },
-      "image": "feedback-images/z01.png"
+      "image": "feedback-images/z01.png",
+      "applied": true,
+      "folded": true,
+      "resolution": "Redone per your direction C: new card statement/strike-list — the statement holds the frame, Captions/Pacing/Layouts (with concept icons) are struck out in red one per beat, and Badly takes the accent sweep on the final strike. Linted, card-qa contact-sheeted, frame-verified with real cue content. The old bad-clip-montage got its honest repairs (caption text now derives from the cue labels, no more mid-glyph clip) and stays in the catalog. How it got approved: the overflow probe is a badge, not a gate — the systemic fix (headless per-cue frame gate that fails 040/090) is routed to a plan this fold."
+    },
+    "_chat:orange-only-chain": {
+      "text": "Owner, live during the fold (chat): keep the connecting line orange only — the gold sweep reads wrong; and the last box of the chain should not be red, looks weird, should be orange only.",
+      "added": "2026-07-31",
+      "folded": true,
+      "resolution": "Applied over the batch-approved gold-sweep+red-fail split after seeing it rendered: pipeline-flow track fills stay accent orange in every register, the red fail-finale (red node + X badge + judder) is removed — every node resolves orange with a check. DESIGN.md and EDITOR-STYLE-GUIDE.md palette rules updated to match: red is only ever a static no-mark, never motion or a chain state; gold stays winner-only."
     }
   }
 }

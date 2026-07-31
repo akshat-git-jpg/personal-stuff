@@ -173,6 +173,19 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
+  // W20 long-hold (owner fold 2026-07-31, opusclip-vs-submagic z05): a cue held
+  // far past the card's designed duration turns "subtle ambient" into a static
+  // screen — 6s of choreography stretched over 17s showed 12 dead seconds. The
+  // card must carry a VISIBLE hold loop (DESIGN.md "Long holds need a visible
+  // loop"), and this warning is the prompt to verify it on a frame.
+  for (const r of sortedResolved) {
+    const cat = bySlug[r.card];
+    if (!cat || cat.placement !== 'fullframe' || !cat.default_duration) continue;
+    if (r.duration > 2 * cat.default_duration) {
+      warnings.push(`W20 long-hold: ${r.id} holds ${r.card} for ${r.duration.toFixed(1)}s, ${(r.duration / cat.default_duration).toFixed(1)}x its designed ${cat.default_duration}s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)`);
+    }
+  }
+
   // W2 overlay-density
   const overlays = sortedResolved.filter(r => {
     const cat = bySlug[r.card];

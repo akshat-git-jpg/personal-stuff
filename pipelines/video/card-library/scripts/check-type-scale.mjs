@@ -12,6 +12,11 @@ const catalog = JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog.json'), 'utf
 
 const HERO_MIN = 120;        // px on a 1080-tall canvas = 11.1% of frame height
 const HERO_RATIO = 2.5;      // hero must be >= 2.5x the next-largest text
+const HERO_RATIO_MAX = 4;    // ...and at most 4x it. Hierarchy is a spread, not a
+                             // cliff: pros-cons ran a compliant 150px hero over
+                             // 28px rows (5.4x) and the owner read it as "heading
+                             // very big, rest all very small" (2026-07-31).
+const ROW_MIN = 36;          // floor for list/table row text on a fullframe card
 const PROSE_MIN = 60;        // floor for a card whose hero is a whole sentence
 
 // Hero SCALE is calibrated for a SHORT hero — a title, a section name, a number.
@@ -84,6 +89,26 @@ for (const card of catalog.cards ?? []) {
           `${card.slug}: hero ${hero}px vs next-largest ${nextLargest}px = ${(hero / nextLargest).toFixed(2)}x, needs >= ${HERO_RATIO}x — the card reads flat`,
         );
       }
+      // The ceiling is scoped to ROW/ITEM content — the shape of the complaint
+      // ("heading very big, rest all very small"). Eyebrows and labels are a
+      // deliberate whisper band (22-28px) and don't cap the hero.
+      const rowSizes = [...css.matchAll(/(^|\})\s*[^{}]*\.(?:row|item)\b[^{}]*\{[^}]*?font-size:\s*(\d+)px/g)].map((m) => Number(m[2]));
+      const biggestRow = rowSizes.length ? Math.max(...rowSizes) : 0;
+      if (biggestRow > 0 && hero / biggestRow > HERO_RATIO_MAX) {
+        errors.push(
+          `${card.slug}: hero ${hero}px vs row text ${biggestRow}px = ${(hero / biggestRow).toFixed(2)}x, max ${HERO_RATIO_MAX}x — bring the hero down or the rows up (owner, 2026-07-31)`,
+        );
+      }
+    }
+  }
+
+  // Row floor: list/table row content on a fullframe card is never below ROW_MIN.
+  // Matches selectors that name a row/item, the shapes the 2026-07-31 complaint
+  // ("heading very big, rest all very small") was about.
+  for (const m of css.matchAll(/(^|\})\s*([^{}]*\.(?:row|item)\b[^{}]*)\{[^}]*?font-size:\s*(\d+)px/g)) {
+    const px = Number(m[3]);
+    if (px < ROW_MIN) {
+      errors.push(`${card.slug}: "${m[2].trim()}" row text is ${px}px, floor is ${ROW_MIN}px on a fullframe card (owner, 2026-07-31)`);
     }
   }
 

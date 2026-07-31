@@ -5,46 +5,51 @@
   "cues": [
     {
       "id": "z01",
-      "card": "enacted/bad-clip-montage",
+      "card": "statement/strike-list",
       "anchor": "clips and still",
       "hold": 2,
       "variables": {
-        "title": "Automated Then Fixed By Hand",
-        "marker": "Fixed",
-        "clips": [
+        "title": "Automating It Badly",
+        "marker": "Badly",
+        "items": [
           {
-            "label": "Captions need fixing"
+            "label": "Captions",
+            "icon": "doc"
           },
           {
-            "label": "Pacing needs fixing"
+            "label": "Pacing",
+            "icon": "clock"
           },
           {
-            "label": "Layouts need reworking"
+            "label": "Layouts",
+            "icon": "layers"
           }
         ]
       },
       "beats": [
         {
           "reveal": {
-            "label": "Captions need fixing"
+            "label": "Captions"
           },
           "anchor": "spending more time fixing captions"
         },
         {
           "reveal": {
-            "label": "Pacing needs fixing"
+            "label": "Pacing"
           },
           "anchor": "then you're not saving time"
         },
         {
           "reveal": {
-            "label": "Layouts need reworking"
+            "label": "Layouts"
           },
           "anchor": "automating and doing it badly"
         }
       ],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "dark",
+      "legacy_why": "owner-picked direction C (2026-07-31 fold): big-type strike statement replaces enacted/bad-clip-montage for the intro opener"
     },
     {
       "id": "z02",
@@ -66,7 +71,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "dark"
     },
     {
       "id": "z03",
@@ -87,19 +93,20 @@
       "beats": [
         {
           "reveal": {
-            "label": "Worth using"
+            "label": "Speed first"
           },
           "anchor": "which one is worth using"
         },
         {
           "reveal": {
-            "label": "Quietly creates more work"
+            "label": "Publish ready"
           },
           "anchor": "quietly creates more work"
         }
       ],
       "flagged": false,
-      "lead": 0
+      "lead": 0,
+      "register": "light"
     },
     {
       "id": "z05",
@@ -144,7 +151,9 @@
         }
       ],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "light",
+      "motif": true
     },
     {
       "id": "z06",
@@ -183,7 +192,8 @@
         }
       ],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "light"
     },
     {
       "id": "z07",
@@ -226,7 +236,8 @@
         }
       ],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "light"
     },
     {
       "id": "z08",
@@ -236,7 +247,8 @@
       "variables": {},
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c01",
@@ -253,7 +265,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "light"
     },
     {
       "id": "c02",
@@ -287,7 +300,8 @@
         }
       ],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "dark"
     },
     {
       "id": "c03",
@@ -304,7 +318,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0
+      "lead": 0,
+      "register": "light"
     },
     {
       "id": "c04",
@@ -331,7 +346,8 @@
         }
       ],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "light"
     },
     {
       "id": "c05",
@@ -341,7 +357,8 @@
       "variables": {},
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c06",
@@ -356,7 +373,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c07",
@@ -369,7 +387,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c08",
@@ -384,7 +403,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c09",
@@ -397,7 +417,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c10",
@@ -412,7 +433,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c11",
@@ -427,7 +449,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c12",
@@ -442,7 +465,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c13",
@@ -457,7 +481,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c14",
@@ -473,7 +498,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c15",
@@ -488,7 +514,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c16",
@@ -527,52 +554,73 @@
         }
       ],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c17",
-      "card": "enacted/pipeline-flow",
+      "card": "enacted/race-bars",
       "anchor": "native to short-form platforms",
       "hold": 2,
       "variables": {
         "title": "Straight To Posted",
-        "steps": [
+        "products": [
           {
-            "step": "Auto Edit",
-            "icon": "bolt"
+            "name": "Submagic"
           },
           {
-            "step": "Publish Ready",
-            "icon": "star"
-          },
-          {
-            "step": "Posted",
-            "icon": "rocket"
+            "name": "OpusClip"
           }
+        ],
+        "productLogos": [
+          "submagic",
+          "opusclip"
         ]
       },
       "beats": [
         {
           "reveal": {
-            "step": "Auto Edit"
+            "values": [
+              {
+                "value": "40"
+              },
+              {
+                "value": "40"
+              }
+            ]
           },
           "anchor": "That is the key difference"
         },
         {
           "reveal": {
-            "step": "Publish Ready"
+            "values": [
+              {
+                "value": "75"
+              },
+              {
+                "value": "55"
+              }
+            ]
           },
           "anchor": "clips feel publish-ready"
         },
         {
           "reveal": {
-            "step": "Posted"
+            "values": [
+              {
+                "value": "100"
+              },
+              {
+                "value": "65"
+              }
+            ]
           },
           "anchor": "clearly starts pulling ahead"
         }
       ],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "light"
     },
     {
       "id": "c18",
@@ -611,7 +659,8 @@
         }
       ],
       "flagged": false,
-      "lead": 0
+      "lead": 0,
+      "register": "dark"
     },
     {
       "id": "c19",
@@ -666,7 +715,9 @@
         }
       ],
       "flagged": false,
-      "lead": 0.4
+      "lead": 0.4,
+      "register": "dark",
+      "motif": true
     },
     {
       "id": "c26",
@@ -679,20 +730,22 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.4
+      "lead": 0.4,
+      "register": "dark"
     },
     {
       "id": "c20",
       "card": "slate/kinetic-sentence",
-      "anchor": "once you factor in the extra editing time",
+      "anchor": "the value does significantly drop",
       "hold": 2,
       "variables": {
-        "text": "once you factor in the extra editing time needed to make clips usable, the value does significantly drop",
+        "text": "the value does significantly drop",
         "accent": "significantly drop"
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.2
+      "lead": 0.2,
+      "register": "dark"
     },
     {
       "id": "c21",
@@ -707,7 +760,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "dark"
     },
     {
       "id": "c22",
@@ -754,7 +808,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0
+      "lead": 0,
+      "register": "light"
     },
     {
       "id": "c23",
@@ -770,7 +825,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c24",
@@ -786,7 +842,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "c25",
@@ -802,7 +859,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "z09",
@@ -831,7 +889,8 @@
         }
       ],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "light"
     },
     {
       "id": "z10",
@@ -860,7 +919,8 @@
         }
       ],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "light"
     },
     {
       "id": "z11",
@@ -911,7 +971,8 @@
         }
       ],
       "flagged": false,
-      "lead": 0.5
+      "lead": 0.5,
+      "register": "light"
     },
     {
       "id": "z12",
@@ -936,7 +997,8 @@
       },
       "beats": [],
       "flagged": false,
-      "lead": 0.4
+      "lead": 0.4,
+      "register": "light"
     },
     {
       "id": "z13",
@@ -946,7 +1008,8 @@
       "variables": {},
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     },
     {
       "id": "z14",
@@ -956,7 +1019,8 @@
       "variables": {},
       "beats": [],
       "flagged": false,
-      "lead": 0.3
+      "lead": 0.3,
+      "register": "light"
     }
   ]
 }

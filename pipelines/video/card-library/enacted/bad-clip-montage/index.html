@@ -14,7 +14,7 @@
         --bg-from: #3a1f08; --bg-to: #0a0805;
         --text: #ffffff;
         --accent: #fb923c;
-        --negative: #fb7185;
+        --negative: #ef4444;
         --font: 'Inter', system-ui, sans-serif;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -54,8 +54,11 @@
         overflow: hidden;
       }
       .caption-text {
+        /* Centered by the bar's flex; ellipsis instead of a mid-glyph chop —
+           the old absolute+x-offset marquee clipped the string's head and read
+           as a bug on the storyboard (owner, 2026-07-31). */
         font-size: 28px; font-weight: 600; color: white; white-space: nowrap;
-        position: absolute; max-width: 400px; overflow: hidden;
+        max-width: 92%; overflow: hidden; text-overflow: ellipsis;
       }
       .progress-marker {
         position: absolute; bottom: 0; left: 60%; width: 4px; height: 100%; background: var(--accent);
@@ -163,9 +166,23 @@
       tl.from('.device', { opacity: 0, y: 20, duration: 0.55, ease: 'power3.out' }, CHROME_IN + 0.15);
       tl.from('.label-row', { opacity: 0, x: 20, stagger: 0.1, duration: 0.4, ease: 'power2.out' }, CHROME_IN + 0.3);
 
-      const BEAT1 = 0;
-      const BEAT2 = 3;
-      const BEAT3 = 6;
+      // Beats: the resolver injects variables.beats as [{label, at}]; without
+      // them keep the demo cadence. Caption strings DERIVE from the clip labels
+      // — the old hardcoded strings kept showing default copy after a cue
+      // overrode the labels (owner, 2026-07-31).
+      const clipList = DATA.clips || [];
+      const injectedBeats = Array.isArray(DATA.beats) && DATA.beats.length ? DATA.beats : null;
+      const beatAt = (i, demo) => {
+        if (injectedBeats) {
+          const m = injectedBeats.find((b) => b.label === clipList[i]?.label);
+          if (m && typeof m.at === 'number') return Math.max(0.9, m.at);
+        }
+        return demo;
+      };
+      const cap = (i) => (clipList[i]?.label ?? '').toLowerCase();
+      const BEAT1 = beatAt(0, 0);
+      const BEAT2 = beatAt(1, 3);
+      const BEAT3 = beatAt(2, 6);
 
       // Reset states
       tl.set('.label-row', { color: 'rgba(255,255,255,0.28)' }, 0);
@@ -175,7 +192,7 @@
       tl.set('.label-1', { color: 'var(--negative)' }, BEAT1);
       tl.set('.label-1 .label-chip', { opacity: 1 }, BEAT1);
       tl.set('#progressMarker', { opacity: 1 }, BEAT1);
-      tl.set('#captionText', { textContent: 'captions land late', x: -80 }, BEAT1);
+      tl.set('#captionText', { textContent: cap(0) }, BEAT1);
       tl.set('#speaker', { x: 0 }, BEAT1);
       tl.set('#safeArea', { opacity: 0 }, BEAT1);
       tl.set('#cutLine', { opacity: 0 }, BEAT1);
@@ -187,7 +204,7 @@
       tl.set('.label-2 .label-chip', { opacity: 1 }, BEAT2);
       
       tl.set('#progressMarker', { opacity: 0 }, BEAT2);
-      tl.set('#captionText', { textContent: 'speaker out of frame', x: 0 }, BEAT2);
+      tl.set('#captionText', { textContent: cap(1) }, BEAT2);
       tl.set('#speaker', { x: -160 }, BEAT2);
       tl.set('#safeArea', { opacity: 1 }, BEAT2);
 
@@ -199,7 +216,7 @@
 
       tl.set('#speaker', { x: 0 }, BEAT3);
       tl.set('#safeArea', { opacity: 0 }, BEAT3);
-      tl.set('#captionText', { textContent: '...automat', x: 0 }, BEAT3);
+      tl.set('#captionText', { textContent: cap(2).slice(0, Math.max(4, Math.ceil(cap(2).length * 0.45))) + '—' }, BEAT3);
       tl.set('#cutLine', { opacity: 1 }, BEAT3);
 
       window.__timelines['bad-clip-montage'] = tl;
