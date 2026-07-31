@@ -21,6 +21,26 @@ export function savePayloadFeedback(state: State): { feedback: Record<string, st
   return out;
 }
 
+// Review rounds (owner report 2026-07-31): feedback used to be ONE slot per
+// cue, so a folded round-1 item closed the box forever and a second review
+// pass had nowhere to write. Folded rounds chain as `c20`, `c20#2`, `c20#3`…
+// — every folded round stays visible as history, and the box binds to the
+// first unfolded key. The server treats folded items as immutable and strips
+// the `#N` suffix when resolving cue context, so round keys flow end to end.
+export function feedbackRounds(refKey: string, items: Record<string, FeedbackItem>): {
+  folded: { key: string; item: FeedbackItem }[]; activeKey: string;
+} {
+  const folded: { key: string; item: FeedbackItem }[] = [];
+  let n = 1;
+  let key = refKey;
+  while (items[key]?.folded) {
+    folded.push({ key, item: items[key] });
+    n += 1;
+    key = `${refKey}#${n}`;
+  }
+  return { folded, activeKey: key };
+}
+
 type FeedbackContextType = State & {
   items: Record<string, FeedbackItem>;
   setText: (ref: string, v: string) => void;

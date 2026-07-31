@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateImageFile, savePayloadFeedback } from '../src/lib/feedback';
+import { validateImageFile, savePayloadFeedback, feedbackRounds } from '../src/lib/feedback';
 
 describe('feedback lib', () => {
   it('validateImageFile', () => {
@@ -17,5 +17,43 @@ describe('feedback lib', () => {
       feedback: { 'r1': 'foo' },
       feedbackImages: { 'r1': 'data:image/png;base64,...', 'r2': null }
     });
+  });
+});
+
+describe('feedbackRounds', () => {
+  it('no item yet: box binds to the base key', () => {
+    expect(feedbackRounds('c20', {})).toEqual({ folded: [], activeKey: 'c20' });
+  });
+
+  it('unfolded round 1: box keeps editing the base item', () => {
+    const items = { c20: { text: 'wip' } };
+    expect(feedbackRounds('c20', items)).toEqual({ folded: [], activeKey: 'c20' });
+  });
+
+  it('folded round 1: history shown, box binds to #2', () => {
+    const items = { c20: { text: 'old', folded: '2026-07-31' } };
+    const r = feedbackRounds('c20', items);
+    expect(r.activeKey).toBe('c20#2');
+    expect(r.folded.map((f) => f.key)).toEqual(['c20']);
+  });
+
+  it('two folded rounds: box binds to #3, both shown', () => {
+    const items = {
+      c20: { text: 'r1', folded: '2026-07-31' },
+      'c20#2': { text: 'r2', folded: '2026-08-02' },
+    };
+    const r = feedbackRounds('c20', items);
+    expect(r.activeKey).toBe('c20#3');
+    expect(r.folded.map((f) => f.key)).toEqual(['c20', 'c20#2']);
+  });
+
+  it('folded round 1 with unfolded round 2 in progress: box stays on #2', () => {
+    const items = {
+      c20: { text: 'r1', folded: '2026-07-31' },
+      'c20#2': { text: 'wip round 2' },
+    };
+    const r = feedbackRounds('c20', items);
+    expect(r.activeKey).toBe('c20#2');
+    expect(r.folded.map((f) => f.key)).toEqual(['c20']);
   });
 });

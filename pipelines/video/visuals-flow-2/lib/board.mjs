@@ -520,19 +520,23 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
       if (items[ref]?.text !== text) {
         if (!items[ref]) {
           const item = { text, added: today };
+          // Review rounds append a `#N` suffix (`c20#2`) so folded round-1
+          // items stay immutable history — context still resolves against the
+          // base cue/span id (owner report 2026-07-31).
+          const baseRef = ref.includes('#') ? ref.slice(0, ref.indexOf('#')) : ref;
           if (ref.startsWith('gap-')) {
-            const gap = gaps.find(g => `gap-${timecode(g.start)}` === ref);
+            const gap = gaps.find(g => `gap-${timecode(g.start)}` === baseRef);
             if (gap) {
               item.context = { start: gap.start, end: gap.end, excerpt: gap.words.slice(0, 8).map(w => w.text).join(' ') };
             }
-          } else if (ref !== '_global') {
-            const span = (mergedShots?.spans ?? []).find(s => s.id === ref);
-            const rSpan = (resolvedSpans ?? []).find(s => s.id === ref);
+          } else if (baseRef !== '_global') {
+            const span = (mergedShots?.spans ?? []).find(s => s.id === baseRef);
+            const rSpan = (resolvedSpans ?? []).find(s => s.id === baseRef);
             if (span && rSpan) {
               item.context = { start: rSpan.start, end: rSpan.end, note: span.note };
             } else {
-              const cue = (merged.cues ?? []).find(c => c.id === ref);
-              const r = resolved.find(c => c.id === ref);
+              const cue = (merged.cues ?? []).find(c => c.id === baseRef);
+              const r = resolved.find(c => c.id === baseRef);
               if (cue) {
                 item.context = { card: cue.card, anchor: cue.anchor };
                 if (r) item.context.start = r.start;

@@ -78,6 +78,15 @@ export function StoryboardTab({
   // it must read the CURRENT edits through refs, never the closure.
   const tileEditsRef = useRef(tileEdits); tileEditsRef.current = tileEdits;
   const spanEditsRef = useRef(spanEdits); spanEditsRef.current = spanEdits;
+
+  // Save UX (owner report 2026-07-31: "save button doesn't have any response —
+  // no idea whether my feedback got saved"). The button carries the state:
+  // unsaved-changes dot + chip while dirty, "Saving…" in flight, "✓ Saved"
+  // flash on success — and a clean save now banners instead of staying silent.
+  // These are booleans/enums, so the header effect re-wires on TRANSITIONS,
+  // not keystrokes (dirty flips once and stays).
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const hasUnsaved = fb.dirty || Object.keys(tileEdits).length > 0 || Object.keys(spanEdits).length > 0;
   const tilePropsFor = (cue: any) => ({
     frag: tileEdits[cue.id]?.fragJson ?? defaultFrag(cue),
     onEdit: (patch: { fragJson?: string }) => editTile(cue.id, patch),
@@ -87,6 +96,7 @@ export function StoryboardTab({
   // Expose meta & actions
   useEffect(() => {
     const handleSave = async () => {
+      if (saveState === 'saving') return;
       // Collect from the edit store over the FULL cue list — never from the
       // DOM. In timeline mode only the docked tile is mounted; a DOM scrape
       // would send that one cue and the server would rewrite cues.json to it.
@@ -131,9 +141,20 @@ export function StoryboardTab({
         effects: effectsPayload
       });
 
-      const res = await fetch('/save', { method: 'POST', body: JSON.stringify(payload) });
-      const data = await res.json();
+      setSaveState('saving');
+      let data: any;
+      try {
+        const res = await fetch('/save', { method: 'POST', body: JSON.stringify(payload) });
+        data = await res.json();
+      } catch (err: any) {
+        // A network failure used to reject silently — the worst "did it save?"
+        // outcome of all (owner report 2026-07-31).
+        setSaveState('idle');
+        addBanner(`save FAILED — nothing written: ${err?.message ?? err}`, 'err');
+        return;
+      }
       if (!data.ok) {
+        setSaveState('idle');
         addBanner(data.errors.join('<br>'), 'err');
       } else {
         fb.markSaved();
@@ -142,6 +163,8 @@ export function StoryboardTab({
         setTileEdits({});
         setSpanEdits({});
         onRefetch();
+        setSaveState('saved');
+        setTimeout(() => setSaveState('idle'), 2500);
         if ((data.warnings && data.warnings.length) || (data.errors && data.errors.length)) {
           const w = data.warnings || [];
           const e = data.errors || [];
@@ -150,6 +173,9 @@ export function StoryboardTab({
           for (const err of e) lines.push(`error: ${err}`);
           for (const warn of w) lines.push(warn);
           addBanner(html + lines.join('<br>'), e.length > 0 ? 'err' : 'ok');
+        } else {
+          // A clean save was previously SILENT — say so, plainly.
+          addBanner('saved ✓ — feedback and edits written', 'ok');
         }
       }
     };
@@ -201,7 +227,17 @@ export function StoryboardTab({
 
     const sec = (
       <>
-        <button id="saveBtn" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={handleSave}>Save</button>
+        <button id="saveBtn" disabled={saveState === 'saving'}
+          style={{
+            borderColor: saveState === 'saved' ? '#34d399' : 'var(--accent)',
+            color: saveState === 'saved' ? '#34d399' : 'var(--accent)',
+            opacity: saveState === 'saving' ? 0.6 : 1,
+          }}
+          onClick={handleSave}>
+          {saveState === 'saving' ? 'Saving…' : saveState === 'saved' ? '✓ Saved' : hasUnsaved ? 'Save •' : 'Save'}
+        </button>
+        {hasUnsaved && saveState === 'idle' &&
+          <span id="unsavedChip" style={{ marginLeft: 8, fontSize: 12, color: 'var(--accent)' }}>unsaved changes</span>}
         {revTotal > 0 && <span id="revCount" style={{ margin: '0 12px', fontSize: 13, color: 'var(--dim)' }}>{revCount} / {revTotal} reviewed</span>}
         {revTotal > 0 && <button className="fc-cbtn" onClick={() => markAllReviewed(cues.map((c: any) => `sb:${c.id}`), true)}>mark all reviewed</button>}
         {revTotal > 0 && <button className="fc-cbtn" onClick={() => markAllReviewed(cues.map((c: any) => `sb:${c.id}`), false)}>expand all</button>}
@@ -219,7 +255,7 @@ export function StoryboardTab({
     return () => { onMeta(null); onActions(null); onSecondary(null); };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [video, boardData, revCountGlobal, onMeta, onActions, onSecondary, onRefetch, viewMode]);
+  }, [video, boardData, revCountGlobal, onMeta, onActions, onSecondary, onRefetch, viewMode, saveState, hasUnsaved]);
 
   let blocks = useMemo(() => {
     let b = segments.map((seg: any) => ({
