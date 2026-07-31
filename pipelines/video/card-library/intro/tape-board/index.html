@@ -1,0 +1,173 @@
+<!doctype html>
+<!--
+  INTRO · Tape Board   (Hyperframes card)
+  Owner-commissioned full-screen intro (2026-07-31, opusclip-vs-submagic v8
+  fold — replaced intro/tape-board-side after the owner rejected the side-mode
+  intro). A tale-of-the-tape board owning the whole frame: the two brand logo
+  tiles face each other across a center seam up top, and three compact pain
+  panels (icon + word) pop in word-synced along the lower third. Approved from
+  a generated preview frame; built to match it, with the owner's three riders:
+  real logos in the tiles, an icon on every pain panel, and the pain panels
+  visibly SMALLER than the app titles. Motion deliberately toned down.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and the     │
+  │  :root colors. Do NOT touch the  ===== TIMELINE (LOCKED) =====  script.  │
+  └─────────────────────────────────────────────────────────────────────────┘
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Tape Board</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #0d0906;
+        --accent: #fb923c;
+        --text: #ffffff;
+        --dim: rgba(255, 255, 255, 0.62);
+        --panel: #17110b;
+        --keyline: rgba(251, 146, 60, 0.6);
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 1080px; overflow: hidden; font-family: var(--font); color: var(--text); background: var(--bg); }
+      #root { position: relative; width: 100%; height: 1080px; }
+      #bg { position: absolute; inset: 0; background:
+        radial-gradient(circle at 16% 18%, rgba(251,146,60,0.13) 0%, transparent 50%),
+        var(--bg); }
+
+      #marks { position: absolute; left: 0; right: 0; top: 130px;
+        display: flex; justify-content: center; align-items: flex-start; gap: 190px; }
+      .mark { display: flex; flex-direction: column; align-items: center; will-change: transform, opacity; opacity: 0; }
+      .tile { width: 270px; height: 270px; border-radius: 30px; background: rgba(255,255,255,0.045);
+        border: 2px solid var(--keyline); display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 14px 36px rgba(0,0,0,0.42); }
+      .tile img { width: 58%; height: 58%; object-fit: contain; }
+      .tile .fallback { font-size: 86px; font-weight: 800; color: var(--dim); }
+      .mark .name { margin-top: 26px; font-size: 52px; font-weight: 700; letter-spacing: -0.01em; }
+
+      #seam { position: absolute; left: 50%; top: 150px; width: 2px; height: 300px;
+        background: linear-gradient(180deg, transparent, var(--accent) 25%, var(--accent) 75%, transparent);
+        transform: translateX(-50%); opacity: 0; }
+
+      /* Pain panels: compact, deliberately quieter than the marks above —
+         smaller type, an icon carrying the meaning (owner riders, 2026-07-31). */
+      #panels { position: absolute; left: 0; right: 0; top: 700px;
+        display: flex; justify-content: center; gap: 56px; }
+      .panel { width: 380px; height: 210px; border-radius: 20px; background: var(--panel);
+        border: 2px solid var(--keyline); display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 22px;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.4);
+        opacity: 0; will-change: transform, opacity; }
+      .panel .icon { width: 58px; height: 58px; }
+      .panel .icon svg { width: 100%; height: 100%; }
+      .panel .label { font-size: 32px; font-weight: 800; letter-spacing: 0.1em;
+        text-transform: uppercase; color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="tape-board"
+      data-start="0"
+      data-duration="15"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"platforms":[{"name":"Submagic","logo":"submagic"},{"name":"OpusClip","logo":"opusclip"}],"pains":[{"label":"Captions","icon":"captions"},{"label":"Pacing","icon":"gauge"},{"label":"Layouts","icon":"grid"}],"beats":[{"label":"Captions","at":5.8},{"label":"Pacing","at":7.7},{"label":"Layouts","at":8.8}]}'
+    >
+      <div id="bg" class="clip" data-start="0" data-duration="15" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="15" data-track-index="1">
+        <div id="marks"></div>
+        <div id="seam"></div>
+        <div id="panels"></div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== (editor edits ONLY this) */
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const DATA = {
+        platforms: VARS.platforms ?? [
+          { name: 'Submagic', logo: 'submagic' },
+          { name: 'OpusClip', logo: 'opusclip' },
+        ],
+        pains: VARS.pains ?? [
+          { label: 'Captions', icon: 'captions' },
+          { label: 'Pacing', icon: 'gauge' },
+          { label: 'Layouts', icon: 'grid' },
+        ],
+        // Word-anchored beats [{label, at}] — each pain panel pops in as it is
+        // spoken. Without beats the panels cascade on a default cadence.
+        beats: Array.isArray(VARS.beats) ? VARS.beats : null,
+      };
+
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
+      const $ = (id) => document.getElementById(id);
+      const LOGOS = VARS.__logos ?? {};
+
+      // Concept icons, icon-pills style (stroke = currentColor).
+      const ICONS = {
+        captions: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="6" y1="14" x2="10" y2="14"/><line x1="13" y1="14" x2="18" y2="14"/></svg>',
+        gauge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>',
+        grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>',
+      };
+      const iconSvg = (name) => ICONS[name] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/></svg>';
+
+      // Renderer quirk (verified 2026-07-31): color: var(--accent) on text
+      // renders WHITE in every --variables render. The CSS rule stays for the
+      // browser/board; the render gets the token resolved to an inline literal.
+      const ACCENT = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#fb923c';
+
+      function build() {
+        $('marks').innerHTML = DATA.platforms.slice(0, 2).map((p) => {
+          const src = LOGOS[p.logo];
+          const logo = src
+            ? `<img src="${src}" alt="">`
+            : `<span class="fallback">${(p.name || '?')[0]}</span>`;
+          return `<div class="mark"><div class="tile">${logo}</div><div class="name">${p.name || ''}</div></div>`;
+        }).join('');
+        $('panels').innerHTML = DATA.pains.slice(0, 3).map((p) =>
+          `<div class="panel" data-pain="${p.label}"><div class="icon" style="color:${ACCENT}">${iconSvg(p.icon)}</div><div class="label" style="color:${ACCENT}">${p.label}</div></div>`).join('');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      const marks = gsap.utils.toArray('.mark');
+      const panels = gsap.utils.toArray('.panel');
+      const beats = DATA.beats ?? [];
+      const panelAt = (label, fallback) => beats.find((b) => b.label === label)?.at ?? fallback;
+
+      // The board sets: marks settle in, the seam draws between them. Toned
+      // down on owner instruction (2026-07-31): short travel, soft eases, no
+      // ambient float loops.
+      tl.fromTo(marks[0], { opacity: 0, x: -26 }, { opacity: 1, x: 0, duration: 0.8, ease: 'power2.out' }, 0.3);
+      tl.fromTo(marks[1], { opacity: 0, x: 26 }, { opacity: 1, x: 0, duration: 0.8, ease: 'power2.out' }, 0.45);
+      tl.fromTo('#seam', { opacity: 0, scaleY: 0.3 }, { opacity: 1, scaleY: 1, duration: 0.6, ease: 'power2.inOut' }, 0.85);
+
+      // Pain panels rise in word-synced, gently.
+      DATA.pains.slice(0, 3).forEach((p, i) => {
+        const at = panelAt(p.label, 4.5 + i * 1.5);
+        tl.fromTo(panels[i], { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, at);
+      });
+
+      // One whisper of life through the hold — the seam eases between 100% and
+      // 70% opacity. Bounded repeats: infinite tweens break the renderer.
+      tl.to('#seam', { opacity: 0.7, duration: 2.2, ease: 'sine.inOut', yoyo: true, repeat: 6 }, 2);
+
+      window.__timelines['tape-board'] = tl;
+    </script>
+  </body>
+</html>

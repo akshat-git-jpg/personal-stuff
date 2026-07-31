@@ -2,21 +2,19 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 BEAT_CARDS=$(node -e "require('./catalog.json').cards.filter(c=>c.kind==='beat').forEach(c=>console.log(c.slug))")
-[ "$(echo "$BEAT_CARDS" | wc -l | tr -d ' ')" = "15" ]
+[ "$(echo "$BEAT_CARDS" | wc -l | tr -d ' ')" = "28" ]
+# Per-field catalog rules live in check-catalog.mjs (single authority) — this
+# script's older inline copy predated beat_source "variables" and wrongly
+# required beat_shape/max_reveal_chars on every beat card (stale since 48
+# cards; found 2026-07-31 when the count gate finally tripped).
 node -e "
 const fs=require('fs');const c=require('./catalog.json');
-if(c.cards.length!==48)throw new Error('want 48 cards, got '+c.cards.length);
+if(c.cards.length!==66)throw new Error('want 66 cards, got '+c.cards.length);
 for(const card of c.cards){
   if(!fs.existsSync(card.slug+'/index.html'))throw new Error('missing dir: '+card.slug);
-  if(!['beat','single','word-sync'].includes(card.kind))throw new Error('bad kind: '+card.slug);
-  if(!['fullframe','overlay'].includes(card.placement))throw new Error('bad placement: '+card.slug);
-  if(card.kind==='beat'&&!card.beat_shape)throw new Error('beat card missing beat_shape: '+card.slug);
-  if(card.kind==='beat'&&!(card.max_beats>0))throw new Error('beat card missing max_beats: '+card.slug);
-  if(card.kind==='beat'&&!(card.max_reveal_chars>0))throw new Error('beat card missing max_reveal_chars: '+card.slug);
-  if(typeof card.default_duration!=='number')throw new Error('bad default_duration: '+card.slug);
 }
-console.log('catalog ok');
 "
+node scripts/check-catalog.mjs
 for c in $BEAT_CARDS; do npx hyperframes@latest lint "$c"; done
 TMP=$(mktemp -d)
 npx hyperframes@latest render pros-cons/pros-cons \

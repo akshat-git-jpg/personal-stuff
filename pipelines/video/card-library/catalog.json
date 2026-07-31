@@ -94,7 +94,8 @@
       "default_duration": 7,
       "register": [
         "dark"
-      ]
+      ],
+      "note": "max_reveal_chars set conservatively from the card CSS (gate backfill 2026-07-31)."
     },
     {
       "slug": "statement/strike-list",
@@ -147,7 +148,8 @@
       "default_duration": 8,
       "register": [
         "dark"
-      ]
+      ],
+      "note": "max_reveal_chars set conservatively from the card CSS (gate backfill 2026-07-31)."
     },
     {
       "slug": "statement/keyword-statement",
@@ -217,7 +219,8 @@
       "default_duration": 7,
       "register": [
         "dark"
-      ]
+      ],
+      "note": "max_reveal_chars set conservatively from the card CSS (gate backfill 2026-07-31)."
     },
     {
       "slug": "checklist/checklist",
@@ -1175,7 +1178,8 @@
       "default_duration": 8,
       "register": [
         "dark"
-      ]
+      ],
+      "note": "max_reveal_chars set conservatively from the card CSS (gate backfill 2026-07-31)."
     },
     {
       "slug": "section/bullet-points",
@@ -2297,7 +2301,8 @@
       "default_duration": 9,
       "register": [
         "dark"
-      ]
+      ],
+      "note": "max_reveal_chars set conservatively from the card CSS (gate backfill 2026-07-31)."
     },
     {
       "slug": "enacted/before-after",
@@ -2550,16 +2555,15 @@
       "anti_intent": "A passing mention of the link mid-demo where dimming the screen would hide something the viewer needs to see."
     },
     {
-      "slug": "intro/tape-board-side",
+      "slug": "intro/tape-board",
       "kind": "beat",
       "beat_source": "variables",
       "beat_var": "pains",
       "max_beats": 3,
       "placement": "fullframe",
-      "side": true,
       "entry_phase": true,
       "hero_shape": "none",
-      "purpose": "side-mode comparison intro: the full-height host talks in the right 720px while the left 1200px carries a tale-of-the-tape board — the two brand marks face each other and each spoken pain slides in as a board row, word-synced. For an intro hook naming 2-3 pains before introducing two tools",
+      "purpose": "full-screen tale-of-the-tape comparison intro: the two brand logo tiles face each other across a center seam up top, and each spoken pain pops in as a compact icon+word panel along the lower third, word-synced. For an intro hook naming 2-3 pains before introducing two tools",
       "variables": {
         "platforms": {
           "type": "array",
@@ -2590,6 +2594,13 @@
               "role": "label",
               "max_words": 2,
               "example": "Captions"
+            },
+            "icon": {
+              "type": "string",
+              "required": false,
+              "role": "icon_name",
+              "example": "captions",
+              "note": "one of: captions, gauge, grid (card-local icon set)"
             }
           }
         }
@@ -2599,9 +2610,10 @@
         "comparison-coldopen",
         "intro"
       ],
-      "intent": "The host carries the intro energy while the board quietly builds the matchup and the named pains beside them.",
-      "anti_intent": "Only for use UNDER a side-mode avatar span — its content deliberately occupies the left 1200px and the right 720px is background for the host. Never place it without the host span, and never with more than 3 pains.",
-      "note": "Owner-commissioned 2026-07-31 (v5 fold, side-mode intro). Content constrained to the left 1200px (SIDE_GRAPHICS_W); the side avatar covers the rest. Replaced intro/versus-cold-open, which the owner rejected on the v5 review (empty boxes, dead top half, slot collision)."
+      "intent": "The board carries the whole intro frame: the matchup lands first, then the named pains build beneath it as they are spoken.",
+      "anti_intent": "Full-frame graphics-only intro: never place an avatar span over it. Never with more than 3 pains, never for a single-tool video.",
+      "note": "Owner-commissioned 2026-07-31 (v8 fold, full-screen intro). Replaced intro/tape-board-side after the owner rejected the side-mode intro on the v8 review; layout approved from a generated preview frame with three riders: real logos in the tiles, an icon on every pain panel, pain panels smaller than the app titles. Motion toned down by owner instruction.",
+      "side": false
     }
   ]
 }

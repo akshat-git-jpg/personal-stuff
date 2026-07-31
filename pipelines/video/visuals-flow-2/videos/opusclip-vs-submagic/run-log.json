@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "updated": "2026-07-31T17:25:29.257Z",
+  "updated": "2026-07-31T18:10:17.744Z",
   "steps": {
     "037-approve-card-plan-human": {
       "status": "done",
@@ -60,11 +60,11 @@
     },
     "040-sync-graphics-run": {
       "status": "done",
-      "started": "2026-07-31T16:55:52.152Z",
+      "started": "2026-07-31T17:59:03.569Z",
       "issues": "W1 fullframe-cadence: c22 starts 7.2s after c20 (minimum gap 12s)  |  W1 fullframe-cadence: z11 starts 11.7s after z10 (minimum gap 12s)  |  W21 long-hold: z02 holds enacted/promise-split for 17.1s, 2.1x its designed 8s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W21 long-hold: z07 holds enacted/timeline-scrub for 18.7s, 3.1x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W21 long-hold: c02 holds pros-cons/pros-cons for 13.7s, 2.3x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W7 bare-stretch: 20.1s between z03 (starts 33.4s) and z05 (starts 53.5s) inside a narration segment — max 20s  |  W7 bare-stretch: 30.9s between z05 (starts 53.5s) and z07 (starts 84.4s) inside a narration segment — max 20s  |  W7 bare-stretch: 25.2s between z07 (starts 84.4s) and z08 (starts 109.6s) inside a narration segment — max 20s  |  (+22 more warning/error lines — re-run the verb to see all)",
       "did": "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint.",
       "output": "resolved.json",
-      "ended": "2026-07-31T16:55:52.314Z"
+      "ended": "2026-07-31T17:59:03.747Z"
     },
     "050-review-graphics-llm": {
       "status": "done",
@@ -85,10 +85,10 @@
     "130-learn-from-feedback-opus": {
       "status": "done",
       "started": "2026-07-31T06:56:42.191Z",
-      "did": "Rounds 3-6 of the feedback fold (full record in tests/TESTS.md). Round 6: the intro landed on its third design — owner-picked SIDE MODE: full-height host in the right 720px (new s00 span, free HeyGen clip) over the new intro/tape-board-side card (brand marks + word-synced pain rows in the left 1200px). versus-cold-open retired from the library. Side mode's first production use surfaced and fixed four latent defects: the E6 side-coverage field bug (its tests mirrored the bug), the missing catalog at avatar-render's lint call, the t=0 sentence-boundary edge in E7, and draft-canvas geometry hardcoded to 1920px (host composited as an 80px sliver in drafts).",
-      "issues": "Three intro designs were rejected on look before side mode won — the new-card preview gate (DESIGN.md item 0) exists precisely to move those rejections before the build; it was added mid-round.",
-      "output": "draft v8 on the Final Cut tab: side-mode intro 0-14.9s, board holds to z02 at 16.3s; card library pushed; all lint fixes + geometry fix + tests green",
-      "ended": "2026-07-31T17:25:29.257Z"
+      "did": "Round-7 fold (owner chat): rejected the side-mode intro, commissioned the full-screen tape board via preview gate. Built intro/tape-board (real logos, icon pain panels, quieter panels, toned-down motion), retired intro/tape-board-side, removed side span s00, re-cut as v10. Repaired the stale beat-smoke gate (counts 15/48 -> 28/66, catalog rules delegated to check-catalog).",
+      "issues": "avatar-jobs.json is only rewritten by the --submit flow, so the dead s00 job had to be removed surgically; v9 draft still composited the old side host and should be ignored.",
+      "output": "intro/tape-board card + catalog entry; cues.json z01 -> intro/tape-board; shots.json 10 spans; draft v10 on the Final Cut tab",
+      "ended": "2026-07-31T18:10:17.744Z"
     },
     "080-approve-storyboard-human": {
       "status": "done",
@@ -115,12 +115,12 @@
       "ended": "2026-07-31T17:15:46.610Z"
     },
     "110-build-video-run": {
-      "status": "done",
-      "started": "2026-07-31T17:16:49.881Z",
+      "status": "blocked",
+      "started": "2026-07-31T17:59:57.133Z",
       "did": "Assembled the screen recording, graphics, avatar clips and mastered audio into a draft cut.",
       "output": "final-draft.mp4 + assembly.md",
-      "issues": "none found",
-      "ended": "2026-07-31T17:18:33.805Z"
+      "issues": "exited 1, see terminal",
+      "ended": "2026-07-31T17:59:57.602Z"
     }
   }
 }

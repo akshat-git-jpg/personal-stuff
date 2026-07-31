@@ -4,18 +4,6 @@
   "engineMode": "test",
   "jobs": [
     {
-      "id": "s00",
-      "purpose": "avatar-side",
-      "start": 0,
-      "end": 14.88,
-      "duration": 14.88,
-      "audio": "slices-avatar/s00.mp3",
-      "video_id": "eafdf53dea4e40509378075594c23fb1",
-      "status": "submitted",
-      "submitted_at": "2026-07-31T17:01:35.584Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s00.mp4"
-    },
-    {
       "id": "s01",
       "start": 39.96,
       "end": 52.04,

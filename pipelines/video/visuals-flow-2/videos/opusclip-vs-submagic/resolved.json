@@ -4,7 +4,7 @@
   "resolved": [
     {
       "id": "z01",
-      "card": "intro/tape-board-side",
+      "card": "intro/tape-board",
       "placement": "fullframe",
       "start": 0,
       "duration": 16.34,
@@ -21,13 +21,16 @@
         ],
         "pains": [
           {
-            "label": "Captions"
+            "label": "Captions",
+            "icon": "captions"
           },
           {
-            "label": "Pacing"
+            "label": "Pacing",
+            "icon": "gauge"
           },
           {
-            "label": "Layouts"
+            "label": "Layouts",
+            "icon": "grid"
           }
         ],
         "beats": [

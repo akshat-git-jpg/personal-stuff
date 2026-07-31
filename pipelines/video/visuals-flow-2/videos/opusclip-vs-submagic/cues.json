@@ -5,7 +5,7 @@
   "cues": [
     {
       "id": "z01",
-      "card": "intro/tape-board-side",
+      "card": "intro/tape-board",
       "anchor": "If you're turning long videos",
       "hold": 3.6,
       "variables": {
@@ -21,13 +21,16 @@
         ],
         "pains": [
           {
-            "label": "Captions"
+            "label": "Captions",
+            "icon": "captions"
           },
           {
-            "label": "Pacing"
+            "label": "Pacing",
+            "icon": "gauge"
           },
           {
-            "label": "Layouts"
+            "label": "Layouts",
+            "icon": "grid"
           }
         ]
       },
@@ -54,7 +57,7 @@
       "flagged": false,
       "lead": 0,
       "register": "dark",
-      "legacy_why": "owner-picked direction C (2026-07-31 fold): big-type strike statement replaces enacted/bad-clip-montage for the intro opener",
+      "legacy_why": "owner-picked full-screen tape board (2026-07-31 v8 fold): replaced the side-mode intro; layout approved from a generated preview frame",
       "zone": "intro"
     },
     {

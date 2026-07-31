@@ -79,7 +79,6 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow-2/opusclip-vs-submagic/final-d
 | 15:54.0 | 15:58.0 | 1554-c25-score-pill.mov |
 | 17:31.9 | 17:35.9 | 1731-z13-link-in-description.mov |
 | 17:45.6 | 17:50.6 | 1745-z14-like-subscribe.mov |
-| 00:00.0 | 00:14.9 | s00.mp4 |
 
 ## Transitions
 
