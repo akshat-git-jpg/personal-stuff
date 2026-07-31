@@ -1,0 +1,4 @@
+# Generated from outline.md by render-outline.mjs — regenerate, don't commit.
+# House rule: generated output never lives in the repo (pipelines/CLAUDE.md).
+videos/*/outline.html
+videos/*/outline.pdf

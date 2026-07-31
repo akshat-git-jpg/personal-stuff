@@ -232,3 +232,41 @@ New `apps/timeblock`: personal time-blocking web app. Chose NO Google Calendar s
   neither script path — dormant since 2026-07-04, 3.8 MB, one niche. Kept, not
   deleted: its TS pipeline is the only working YouTube transcript+pricing scraper
   in the repo.
+
+- **2026-07-31 — `yt-script-2` outline format: lane blocks in markdown, delivered
+  as a dark PDF. Markdown is the source, never the deliverable.**
+  The owner supplied a real working outline (the HeyGen 5-tool avatar comparison)
+  and the problem with it: *"its currently very jumbled, not easy to grasp."*
+  Diagnosis held four findings — the same instruction appeared as `Notes`,
+  `Editor Notes`, `(Editor: …)` and a bare parenthetical; verbatim voiceover and
+  directions sat at the same indent with nothing distinguishing them; the rule
+  that breaks the video if missed ("never play a finished output in this
+  section") was an unlabelled paragraph; and that rule was then restated in all
+  five per-tool beats, where repetition turned it into wallpaper.
+  **The format:** every beat carries `SAY` / `SHOW` / `EDIT` in a fixed left
+  column; section-wide rules hoist into one red box; spoken copy is the only
+  blockquote in the document, so the indent itself says "read this aloud". Four
+  layouts were mocked up and compared; lane blocks won on the two criteria the
+  owner named — grasp speed, and holding up once beats grow long.
+  **Delivery — three formats were tried and two rejected by the owner.** Google
+  Docs twice: v1 flattened because paragraph-level labels collapse on HTML
+  import, v2 rebuilt with per-beat two-column tables and was still rejected
+  ("readability is very bad"). Raw markdown rejected as a deliverable — it reads
+  as markup to a non-technical freelancer. Settled on markdown as source →
+  `render-outline.mjs` → HTML → PDF, because the maker only *reads* the outline
+  (he copies the body into his own doc to draft script), so editability was never
+  a real constraint.
+  **Three print-CSS details are load-bearing and all fail silently.**
+  (1) `print-color-adjust: exact` — browsers strip backgrounds when printing, and
+  without it every lane chip and rules box prints as an identical grey rectangle;
+  the colour coding *is* the layout, so this is not cosmetic. (2) `@page{margin:0}`
+  with padding moved onto `.wrap` — a normal page margin stops the dark ground at
+  the text area and frames every page in white. (3) Parts deliberately do NOT
+  force a page break; they did, and it left pages ~70% empty in a document that
+  is scrolled rather than bound.
+  **The standing trap:** `render-outline.mjs` is a parser, not a formatter. A
+  lane label not alone on its own line, or spoken copy outside a blockquote,
+  renders as plain prose with no lane — no error, no warning, just a worse
+  outline that still looks fine at a glance. OUTLINE-INSTRUCTIONS.md carries the
+  exact recognised forms as a table. A lint for this was discussed and deferred.
+  Generated `outline.html` / `outline.pdf` are gitignored per the house rule.

@@ -4,7 +4,7 @@ description: Turn a knowledge base the owner supplies into a YouTube outline, th
 user-invocable: true
 metadata:
   author: kbtg
-  version: 1.0.0
+  version: 1.2.0
 ---
 
 # yt-script-2 — knowledge in, outline out, script on request
@@ -20,9 +20,12 @@ Working folder: `pipelines/youtube/yt-script-2/`
 yt-script-2/
 ├── OUTLINE-INSTRUCTIONS.md    how to write an outline  (owner-owned)
 ├── SCRIPT-INSTRUCTIONS.md     how to write a script    (owner-owned)
+├── render-outline.mjs         outline.md -> outline.html + outline.pdf
 └── videos/<slug>/
     ├── knowledge.md           step 1 — exactly what the owner gave
-    ├── outline.md             step 2
+    ├── outline.md             step 2 — the source of truth
+    ├── outline.html/.pdf      generated, gitignored — the PDF is what the
+    │                          tutorial maker receives
     └── script.md              step 3
 ```
 
@@ -58,7 +61,15 @@ Triggered by the owner asking for the outline.
    fall back to `yt-script/Guidelines/structure.md` — that file is a tier-list
    comparison format this skill deliberately left behind.
 3. Write `videos/<slug>/outline.md`. Every claim traces to `knowledge.md`.
-4. **Stop and wait for approval.** Do not start the script.
+   The outline has **two halves written to different standards**: intro and
+   conclusion are finished verbatim spoken copy, the body is lane blocks
+   (`**SAY**` / `**SHOW**` / `**EDIT**`) the maker walks while freestyling the
+   demo on screen. The markdown is **parsed**, so the exact forms in
+   OUTLINE-INSTRUCTIONS.md matter — an unrecognised form renders as plain prose
+   with no lane and nothing errors.
+4. Render it: `node render-outline.mjs <slug>` → `outline.html` + `outline.pdf`.
+   The PDF is what the tutorial maker receives. Both are gitignored.
+5. **Stop and wait for approval.** Do not start the script.
 
 ### Step 3 — the full script
 
