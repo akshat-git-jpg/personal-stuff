@@ -51,8 +51,8 @@ export const CUE_RULES = {
     why: 'owner fold 2026-07-24, test-01 Final Cut :2/:10 — callouts rendered on top of the title card and a tool-intro card',
   },
   R_STRUCTURAL: {
-    rule: 'Structural consistency (mandatory): a repeated semantic slot — e.g. the section opener for each compared tool — uses the SAME card every time; mixing cards across parallel items is a defect, not variety. Structural cards (catalog `structural: true`) are exempt from the repetition cap.',
-    why: 'owner fold 2026-07-18 — v2 swapped two of five tool openers to different section cards to dodge the repetition cap',
+    rule: 'Structural consistency (mandatory): a repeated semantic slot — e.g. the section opener for each compared tool — uses the SAME card every time; mixing cards across parallel items is a defect, not variety. Structural cards (catalog `structural: true`) are exempt from the repetition cap. SECTION CARDS ARE WANTED: the owner likes section openers at major section boundaries — place them freely. The only discipline is the NUMBERING: a numbered section card claims a series, so either number every major section 1..N consecutively or omit `number` entirely (unnumbered title-only mode). A partial series — one "04" with no 01-03 — reads as a bug on screen (lint W22). Never respond to the numbering constraint by dropping section cards; unnumbered is always available.',
+    why: 'owner fold 2026-07-18 — v2 swapped two of five tool openers to different section cards to dodge the repetition cap; numbering series + section-cards-are-wanted: owner fold 2026-07-31, opusclip-vs-submagic c26 ("why section 4 suddenly... not symmetrical" + "I like section cards — don\'t make the rule so we stop making them")',
   },
   R_REPETITION: {
     rule: "Repetition cap (non-structural cards): follow the caps above — for overlay/stat-hit, keep only the numbers the VO leans on most and drop the least impressive rather than exceed the cap. Other overlays: vary the corner (pos) and variant when repeating.",
@@ -79,7 +79,7 @@ export const CUE_RULES = {
     why: 'owner fold 2026-07-20, test-02 c24',
   },
   R_NO_IDLE: {
-    rule: 'Beat cards must not idle: anchor so the FIRST beat lands within ~8s of the card appearing — when the VO rambles before its first data point, anchor at the sentence right before the first beat, not the section opener.',
+    rule: 'Beat cards must not idle: anchor so the FIRST beat lands within ~8s of the card appearing — when the VO rambles before its first data point, anchor at the sentence right before the first beat, not the section opener. And every beat\'s anchor is the phrase that NAMES that reveal — never re-paced for visual rhythm: striking or lighting an item seconds before or after the VO actually says it reads as "total out of sync" (owner 2026-07-31, z01#2 — the VO named three items in 1.6s and the beats were spread over 8s).',
     why: 'owner fold 2026-07-20, test-02 c29 — 18.9s of empty table scaffold',
   },
   R_OPENING: {

@@ -73,17 +73,6 @@
       "folded": true,
       "resolution": "Your rule, written: R_KINETIC now carries the STATEMENT TEST — kinetic type carries a declarative statement that could stand alone as a pull-quote, never instructions or on-screen actions — plus a word cap cut 18->12 with the core-clause escape hatch. The card sizes by length bucket (<=8 words 120px, 9-12 96px) so a statement LOOKS like one. c20 re-authored to the verbatim core clause. Bonus find while frame-verifying: the renderer drops var(--accent) colors on these spans in --variables renders (fine in browser/board) — every past kinetic render shipped white accents; card now resolves the token and inlines the literal. Frame-verified orange."
     },
-    "c17": {
-      "text": "this template doesn't fit. pls replace. Also pink and orange color dont go together, pls change wherever template we have done this",
-      "added": "2026-07-30",
-      "context": {
-        "card": "enacted/pipeline-flow",
-        "anchor": "native to short-form platforms",
-        "start": 571.32
-      },
-      "applied": true,
-      "resolution": "Instance fix: re-cued from enacted/pipeline-flow (3rd use in this video, and the moment is a pulling-ahead, not a pipeline) to enacted/race-bars with product logos — Submagic 100 vs OpusClip 65 on the final beat. Pink handled globally per z05. Frame-verified."
-    },
     "c04": {
       "text": "in all of my templates, text size looks off. Like heading is very big, rest all are very small. Can we fix this. For context - previous we might have added some rule for text size. tell me what can we do to make it better.",
       "added": "2026-07-30",
@@ -128,6 +117,52 @@
       "added": "2026-07-31",
       "folded": true,
       "resolution": "Applied over the batch-approved gold-sweep+red-fail split after seeing it rendered: pipeline-flow track fills stay accent orange in every register, the red fail-finale (red node + X badge + judder) is removed — every node resolves orange with a check. DESIGN.md and EDITOR-STYLE-GUIDE.md palette rules updated to match: red is only ever a static no-mark, never motion or a chain state; gold stays winner-only."
+    },
+    "c26": {
+      "text": "why section 4 card suddently. It's not symmetrical, right? I think I'm I must have given this feedback earlier as well, and it must be baked in some rule or guidelines that I want things to be symmetrical. You added section 4, but there are no sections for 1, 2, 3. So how can you add section 4 directly? Was that not fixed permanently? Can we make this better?",
+      "added": "2026-07-31",
+      "context": {
+        "card": "section/section-card-flip",
+        "anchor": "Once we've gone and discussed",
+        "start": 645.9
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "The symmetry principle existed only as prose, so nothing caught a series-of-one. c26 is now an UNNUMBERED section card (\"Pricing And Value\", number chip hidden — the card gained a title-only mode). Durable: new lint W22 — numbered section cards must run 1..N consecutively or carry no numbers — worded per your instruction so it polices only numbering and never discourages section cards (R_STRUCTURAL now says outright: section cards are wanted, place them freely, unnumbered is always available). Numbered series stay available for future videos planned with them from the start."
+    },
+    "z05#2": {
+      "text": "still same feedback, screen is static for too long. Need a better solve here.",
+      "added": "2026-07-31",
+      "applied": true,
+      "folded": true,
+      "resolution": "Long-term solve, approved and shipped: a fullframe card now ends at the FIRST sentence boundary after its content completes (never mid-sentence — the earlier owner rule survives) and the vacated seconds return to the footage; GAP_ABSORB dropped 12s→4s because the 12s gap-absorption was re-inflating finished cards into exactly these static holds. z05: 17.2s → 6.3s. Reference cards the VO reads from (comparison family, hold_full flag) keep the long hold deliberately."
+    },
+    "c20#2": {
+      "text": "again after 02, screen is static. Lets discuss approaches and fix this long term",
+      "added": "2026-07-31",
+      "applied": true,
+      "folded": true,
+      "resolution": "Same hold-cap solve: c20 now ends at the sentence boundary right after its words land — 11.1s → 6.3s. The \"static after 0:02\" window is gone; the screen returns to footage."
+    },
+    "z14": {
+      "text": "can we add a like ans subscribe instead of just like. Make change in template. something like this but in our theme.",
+      "added": "2026-07-31",
+      "context": {
+        "card": "like-subscribe/like-subscribe",
+        "anchor": "turn on the bell icon and subscribe",
+        "start": 1065.63
+      },
+      "image": "feedback-images/z14.png",
+      "applied": true,
+      "folded": true,
+      "resolution": "like-subscribe rebuilt as the full lockup in our theme: dark glass bar with accent keyline, thumbs-up that pops and fills orange (the like), Subscribe pill with the click press, bell that rings and tints orange — the reference's shape, our palette. Copy stays constant per your CTA rule. Frame-verified through the render pipeline on alpha."
+    },
+    "z01#2": {
+      "text": "Extremely bad motion graphic. Total out of sync.., by this happened after having so many checks and giving same feedback again and again.",
+      "added": "2026-07-31",
+      "applied": true,
+      "folded": true,
+      "resolution": "You were right — the strikes were out of sync by my authoring error in round 1: the VO names captions/pacing/layouts within 1.6s but the beats were spread over 8s (Captions even struck BEFORE the word). Re-anchored: the three strikes now land as a burst tracking the spoken list (within ~1s), and the Badly marker sweep waits for its own beat at \"automating and doing it badly\" (new marker-beat support in the card + E12 accepts the marker word). Durable rule in R_NO_IDLE: a beat's anchor is the phrase that NAMES its reveal — never re-paced for visual rhythm. Frame-verified."
     }
   }
 }

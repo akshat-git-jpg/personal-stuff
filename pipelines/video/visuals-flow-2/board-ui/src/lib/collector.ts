@@ -5,6 +5,12 @@ export type TileModel = {
   fragJson: string;
   flagged: boolean;
   note: string;
+  // The ORIGINAL cue object. Save rebuilds every cue from its fragment, and
+  // the fragment deliberately shows only anchor/hold/variables/beats — every
+  // other field (register, motif, legacy_why, anything future) must round-trip
+  // from here or a Save silently deletes it. Found 2026-07-31: one owner Save
+  // wiped 27 register fields, 2 motif flags and a legacy_why.
+  base?: any;
 };
 
 export type CueOut = {
@@ -17,6 +23,7 @@ export type CueOut = {
   flagged: boolean;
   lead?: number;
   note?: string;
+  [key: string]: any;
 };
 
 export type CollectResult =
@@ -47,6 +54,7 @@ export function buildTileModels(cues: any[], edits: Record<string, TileEdit>): T
     fragJson: edits[cue.id]?.fragJson ?? defaultFrag(cue),
     flagged: edits[cue.id]?.flagged ?? (cue.flagged ?? false),
     note: edits[cue.id]?.note ?? (cue.note ?? ''),
+    base: cue,
   }));
 }
 
@@ -68,7 +76,11 @@ export function collectCues(tiles: TileModel[]): CollectResult {
       continue;
     }
 
+    // Base first, fragment fields over it: fields the fragment doesn't show
+    // (register, motif, legacy_why, …) survive the round-trip instead of
+    // being deleted by every Save (found 2026-07-31).
     const cue: CueOut = {
+      ...(tile.base ?? {}),
       id: tile.id,
       card: tile.card,
       anchor: fragment.anchor,
@@ -78,8 +90,8 @@ export function collectCues(tiles: TileModel[]): CollectResult {
       flagged: tile.flagged,
     };
 
-    if (tile.lead !== '') cue.lead = Number(tile.lead);
-    if (tile.note) cue.note = tile.note;
+    if (tile.lead !== '') cue.lead = Number(tile.lead); else delete cue.lead;
+    if (tile.note) cue.note = tile.note; else delete cue.note;
 
     cues.push(cue);
   }

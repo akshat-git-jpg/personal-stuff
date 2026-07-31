@@ -128,8 +128,14 @@
         (window.__hyperframes && window.__hyperframes.getVariables
           ? window.__hyperframes.getVariables()
           : null) || {};
+      // UNNUMBERED mode (owner fold 2026-07-31, c26 "why section 4 suddenly"):
+      // numbered section cards are a SERIES — when a video can't give every
+      // section a number, the card runs title-only. An injected variable set
+      // with no `number` means unnumbered; only the bare preview (no injected
+      // variables at all) shows the demo number.
+      const injected = !!(window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables());
       const DATA = {
-        number: VARS.number ?? '02', // the big section number on the card
+        number: injected ? (VARS.number ?? '') : (VARS.number ?? '02'),
         title: VARS.title ?? 'The Winners', // the section title
       };
 
@@ -141,7 +147,9 @@
       const $ = (id) => document.getElementById(id);
 
       function build() {
-        $('number').textContent = DATA.number;
+        const num = String(DATA.number ?? '').trim();
+        $('number').textContent = num;
+        if (!num) $('number').style.display = 'none';
         $('title').textContent = DATA.title;
       }
       build();

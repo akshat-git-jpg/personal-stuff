@@ -186,6 +186,30 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
     }
   }
 
+  // W22 section-numbering (owner fold 2026-07-31, c26 "why section 4 suddenly").
+  // Section cards are WANTED — the owner likes them; this polices only the
+  // NUMBERING: a numbered section card claims a series, so numbers must run
+  // 1..N consecutively. A lone "04" with no 01-03 reads as a bug on screen.
+  // Prefer unnumbered section cards over dropping section cards.
+  {
+    const numbered = [];
+    for (const r of sortedResolved) {
+      const cue = byId[r.id];
+      const num = cue?.variables?.number;
+      if (r.card.startsWith('section/') && typeof num === 'string' && num.trim()) {
+        const n = parseInt(num, 10);
+        if (Number.isFinite(n)) numbered.push(n);
+      }
+    }
+    if (numbered.length) {
+      const ns = [...numbered].sort((a, b) => a - b);
+      const consecutive = ns[0] === 1 && ns.every((v, i) => v === i + 1);
+      if (!consecutive) {
+        warnings.push(`W22 section-numbering: numbered section cards claim a series but the numbers present are [${ns.join(', ')}] — either number every major section 1..N or drop the number variable (unnumbered section cards are encouraged; never drop section cards over this)`);
+      }
+    }
+  }
+
   // W2 overlay-density
   const overlays = sortedResolved.filter(r => {
     const cat = bySlug[r.card];

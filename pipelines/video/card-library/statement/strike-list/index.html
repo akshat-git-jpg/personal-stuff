@@ -149,7 +149,15 @@
         : (DATA.items || []).map((it, i) => ({ label: it.label, at: fallbackAt(i) }));
 
       let lastAt = 0;
+      let markerAt = null;
       beats.forEach((b, bi) => {
+        // A beat naming the MARKER word times the payoff sweep to the
+        // narration (fold 2026-07-31, z01#2: a fixed offset after the last
+        // strike swept "Badly" seconds before the word was spoken).
+        if (marker && typeof b.label === 'string' && b.label.trim().toLowerCase() === marker.toLowerCase()) {
+          if (typeof b.at === 'number') markerAt = Math.max(1.3, b.at);
+          return;
+        }
         const i = (DATA.items || []).findIndex((it) => it.label === b.label);
         if (i === -1) return; // lint E12 rejects this upstream of any render
         const at = Math.max(1.3, typeof b.at === 'number' ? b.at : fallbackAt(bi));
@@ -160,11 +168,12 @@
         tl.to(itemEls[i], { y: 2, duration: 0.18, ease: 'power2.out' }, at);
       });
 
-      // The payoff: the marker word tints accent and its underline sweeps in
-      // after the last strike
+      // The payoff: the marker word tints accent and its underline sweeps in —
+      // on its own beat when one is authored, else shortly after the last strike
       if (mIdx !== -1) {
-        tl.to('.mk-text', { color: 'var(--accent)', duration: 0.3 }, lastAt + 0.7);
-        tl.fromTo('.mk-underline', { scaleX: 0, transformOrigin: 'left center' }, { scaleX: 1, duration: 0.35, ease: 'power2.out' }, lastAt + 0.75);
+        const at = markerAt ?? (lastAt + 0.7);
+        tl.to('.mk-text', { color: 'var(--accent)', duration: 0.3 }, at);
+        tl.fromTo('.mk-underline', { scaleX: 0, transformOrigin: 'left center' }, { scaleX: 1, duration: 0.35, ease: 'power2.out' }, at + 0.05);
       }
 
       window.__timelines['strike-list'] = tl;

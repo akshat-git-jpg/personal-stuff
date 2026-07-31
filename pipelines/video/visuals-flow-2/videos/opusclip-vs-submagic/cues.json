@@ -31,17 +31,23 @@
           "reveal": {
             "label": "Captions"
           },
-          "anchor": "spending more time fixing captions"
+          "anchor": "fixing captions, pacing"
         },
         {
           "reveal": {
             "label": "Pacing"
           },
-          "anchor": "then you're not saving time"
+          "anchor": "and layouts than"
         },
         {
           "reveal": {
             "label": "Layouts"
+          },
+          "anchor": "actually posting, then"
+        },
+        {
+          "reveal": {
+            "label": "Badly"
           },
           "anchor": "automating and doing it badly"
         }
@@ -725,7 +731,6 @@
       "anchor": "Once we've gone and discussed",
       "hold": 1.5,
       "variables": {
-        "number": "04",
         "title": "Pricing And Value"
       },
       "beats": [],

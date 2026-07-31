@@ -345,7 +345,8 @@
           }
         }
       },
-      "default_duration": 6
+      "default_duration": 6,
+      "hold_full": true
     },
     {
       "slug": "comparison/billing-discount",
@@ -385,7 +386,8 @@
           }
         }
       },
-      "default_duration": 7
+      "default_duration": 7,
+      "hold_full": true
     },
     {
       "slug": "comparison/checkout-summary",
@@ -437,7 +439,8 @@
           }
         }
       },
-      "default_duration": 7
+      "default_duration": 7,
+      "hold_full": true
     },
     {
       "slug": "comparison/comparison-storm-cascade",
@@ -477,7 +480,8 @@
           "type": "number"
         }
       },
-      "default_duration": 13
+      "default_duration": 13,
+      "hold_full": true
     },
     {
       "slug": "comparison/comparison-tier-list",
@@ -493,7 +497,8 @@
           "example": "Section Title"
         }
       },
-      "default_duration": 13
+      "default_duration": 13,
+      "hold_full": true
     },
     {
       "slug": "comparison/feature-matrix",
@@ -525,7 +530,8 @@
       "default_duration": 7,
       "max_beats": 6,
       "max_reveal_chars": 24,
-      "pre_beat_render": "frame"
+      "pre_beat_render": "frame",
+      "hold_full": true
     },
     {
       "slug": "comparison/head-to-head",
@@ -613,7 +619,8 @@
           }
         }
       },
-      "default_duration": 5.5
+      "default_duration": 5.5,
+      "hold_full": true
     },
     {
       "slug": "comparison/pricing-tiers",
@@ -685,7 +692,8 @@
           }
         }
       },
-      "default_duration": 8
+      "default_duration": 8,
+      "hold_full": true
     },
     {
       "slug": "comparison/savings-stacker",
@@ -735,7 +743,8 @@
           }
         }
       },
-      "default_duration": 8
+      "default_duration": 8,
+      "hold_full": true
     },
     {
       "slug": "comparison/summary-table",
@@ -777,7 +786,8 @@
       "default_duration": 7,
       "max_beats": 4,
       "max_reveal_chars": 28,
-      "pre_beat_render": "frame"
+      "pre_beat_render": "frame",
+      "hold_full": true
     },
     {
       "slug": "like-subscribe/like-subscribe",
@@ -1269,10 +1279,11 @@
       "purpose": "section divider where a glass card flips up from below and settles with a spring bounce",
       "variables": {
         "number": {
-          "required": true,
+          "required": false,
           "type": "string",
           "role": "free",
-          "example": "Example value"
+          "example": "Example value",
+          "note": "optional — omit for an UNNUMBERED section card (title only). Numbered section cards are a SERIES: use numbers only when every major section gets one, 01..0N consecutive (lint W22)."
         },
         "title": {
           "required": true,
@@ -1867,7 +1878,8 @@
       "default_duration": 7,
       "max_beats": 4,
       "max_reveal_chars": 40,
-      "pre_beat_render": "chrome"
+      "pre_beat_render": "chrome",
+      "hold_full": true
     },
     {
       "slug": "process/step-flow",
@@ -1934,7 +1946,8 @@
       "default_duration": 10,
       "max_beats": 5,
       "max_reveal_chars": 44,
-      "pre_beat_render": "frame"
+      "pre_beat_render": "frame",
+      "hold_full": true
     },
     {
       "slug": "slate/headline-chips",

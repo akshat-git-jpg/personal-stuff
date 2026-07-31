@@ -183,3 +183,38 @@ describe('buildSpanModels', () => {
     expect(JSON.parse(models[1].fragJson).start).toBe(10);
   });
 });
+
+describe('collector round-trip (fields the fragment hides)', () => {
+  test('register/motif/legacy_why survive an unedited Save', () => {
+    // One owner Save wiped 27 register fields, 2 motif flags and a legacy_why
+    // (2026-07-31): the fragment shows only anchor/hold/variables/beats, and
+    // collectCues rebuilt cues from it alone.
+    const cue = {
+      id: 'c19', card: 'enacted/pipeline-flow', anchor: 'Most of the time',
+      hold: 2, variables: { title: 'The Cleanup Lap' }, beats: [],
+      register: 'dark', motif: true, legacy_why: 'why-text', lead: 0.4,
+    };
+    const tiles = buildTileModels([cue], {});
+    const res = collectCues(tiles);
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect((res.cues[0] as any).register).toBe('dark');
+      expect((res.cues[0] as any).motif).toBe(true);
+      expect((res.cues[0] as any).legacy_why).toBe('why-text');
+      expect(res.cues[0].lead).toBe(0.4);
+    }
+  });
+
+  test('edited fragment fields still win over the base', () => {
+    const cue = { id: 'z01', card: 'statement/strike-list', anchor: 'old', hold: 2, variables: { a: 1 }, beats: [], register: 'dark' };
+    const edited = JSON.stringify({ anchor: 'new anchor', hold: 3, variables: { a: 2 }, beats: [] });
+    const tiles = buildTileModels([cue], { z01: { fragJson: edited } });
+    const res = collectCues(tiles);
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.cues[0].anchor).toBe('new anchor');
+      expect(res.cues[0].variables).toEqual({ a: 2 });
+      expect((res.cues[0] as any).register).toBe('dark');
+    }
+  });
+});

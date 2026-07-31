@@ -117,7 +117,7 @@ On-card copy style (mandatory): headings/titles read like real video headings �
 
 Overlays sit on FOOTAGE only (mandatory): an overlay cue must never overlap a fullframe card's on-screen span (including its extended exposure hold) — two graphics stacked on each other read as an editing bug. Anchor the overlay where screen/avatar footage is visible, or fold its content into the fullframe card itself. Enforced as lint error E9.
 
-Structural consistency (mandatory): a repeated semantic slot — e.g. the section opener for each compared tool — uses the SAME card every time; mixing cards across parallel items is a defect, not variety. Structural cards (catalog `structural: true`) are exempt from the repetition cap.
+Structural consistency (mandatory): a repeated semantic slot — e.g. the section opener for each compared tool — uses the SAME card every time; mixing cards across parallel items is a defect, not variety. Structural cards (catalog `structural: true`) are exempt from the repetition cap. SECTION CARDS ARE WANTED: the owner likes section openers at major section boundaries — place them freely. The only discipline is the NUMBERING: a numbered section card claims a series, so either number every major section 1..N consecutively or omit `number` entirely (unnumbered title-only mode). A partial series — one "04" with no 01-03 — reads as a bug on screen (lint W22). Never respond to the numbering constraint by dropping section cards; unnumbered is always available.
 
 Repetition cap (non-structural cards): follow the caps above — for overlay/stat-hit, keep only the numbers the VO leans on most and drop the least impressive rather than exceed the cap. Other overlays: vary the corner (pos) and variant when repeating.
 
@@ -131,7 +131,7 @@ Verdicts (mandatory): one winner per verdict card. Two favorites = two verdict c
 
 Units (mandatory): numeric values on cards carry their unit (prefix "$", suffix "ms"/"/mo") — never a bare number.
 
-Beat cards must not idle: anchor so the FIRST beat lands within ~8s of the card appearing — when the VO rambles before its first data point, anchor at the sentence right before the first beat, not the section opener.
+Beat cards must not idle: anchor so the FIRST beat lands within ~8s of the card appearing — when the VO rambles before its first data point, anchor at the sentence right before the first beat, not the section opener. And every beat's anchor is the phrase that NAMES that reveal — never re-paced for visual rhythm: striking or lighting an item seconds before or after the VO actually says it reads as "total out of sync" (owner 2026-07-31, z01#2 — the VO named three items in 1.6s and the beats were spread over 8s).
 
 The opening must breathe (mandatory): the presenter must be visible within the first 15s — do NOT cover the opening with back-to-back fullframe cards, and never let a fullframe card hold the screen past 12s with no beats. A card with no beats is a still image: if the point needs 20 seconds of screen time it needs beats or two cues, not one long hold. When the VO is doing the work and there is nothing to enact, place NO card and leave the presenter on screen. Enforced as lint warnings W12 (opening-host-coverage) and W13 (frozen-fullframe).
 

@@ -153,6 +153,10 @@ export function validateCues(cues, catalog, cardLibraryRoot, workdir) {
         const keyField = Object.keys(cat.variables?.[cat.beat_var]?.item_shape ?? {})[0];
         if (keyField) {
           const declared = new Set(vars[cat.beat_var].map((it) => it?.[keyField]));
+          // The marker word is also a legal beat target: a beat naming it
+          // times the marker sweep to the narration instead of firing on a
+          // fixed offset after the last strike (fold 2026-07-31, z01#2 sync).
+          if (typeof vars.marker === 'string' && vars.marker.trim()) declared.add(vars.marker.trim());
           beats.forEach((b, i) => {
             const v = b.reveal?.[keyField];
             if (v !== undefined && !declared.has(v)) {
@@ -235,6 +239,14 @@ export function lastSentenceBoundaryAtOrBefore(W, t) {
     if (/[.!?]["')\]]*$/.test(w.text)) best = w.end;
   }
   return best;
+}
+
+export function firstSentenceBoundaryAtOrAfter(W, t) {
+  for (const w of W) {
+    if (w.end < t) continue;
+    if (/[.!?]["')\]]*$/.test(w.text)) return w.end;
+  }
+  return null;
 }
 
 
@@ -362,10 +374,19 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
     // a 0.4s tail past the sentence end, which in contiguous speech lands
     // INSIDE the next sentence — the very defect the block existed to stop.
     //
-    // Now: hold the frame until the last sentence boundary that fits before
-    // the next cue and before MAX_FULLFRAME_ONSCREEN. Ending exactly on a
-    // boundary means the card can never cut a thought in half, and nothing
-    // about the card's own duration constant enters the result.
+    // Two owner instructions govern the exposure, in tension and BOTH honored
+    // (fold 2026-07-31 reconciled them — do not silently re-pick):
+    //   1. "card vanished mid-sentence" (v2:5) → a card always ends ON a
+    //      sentence boundary, never inside a thought.
+    //   2. "screen is static for too long… fix this long term" (2026-07-31,
+    //      z05#2/c20#2) → a card leaves when its point is made; the vacated
+    //      seconds return to the footage.
+    // So: the DEFAULT exposure ends at the FIRST sentence boundary after the
+    // card's own content (beats + hold) completes. Reference cards the VO
+    // keeps talking over (catalog `hold_full: true`, e.g. comparison tables,
+    // or cue-level `holdFull: true`) keep the old behavior — the LAST
+    // boundary before the next cue — because their content is what the
+    // narration is reading from.
     // Structural section openers stay exempt: their job is to announce and
     // hand over to footage of the tool (owner v2:4).
     if (cat.placement === 'fullframe' && !cat.structural) {
@@ -373,11 +394,29 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
         nextStart ?? Infinity,
         start + CUE_CONSTANTS.MAX_FULLFRAME_ONSCREEN.value,
       );
-      const boundary = lastSentenceBoundaryAtOrBefore(W, hardStop);
-      if (boundary !== null) {
-        const wanted = +(boundary - start).toFixed(2);
-        const capped = Math.min(wanted, duration + CUE_CONSTANTS.HOLD_EXTEND_CAP.value);
-        if (capped > duration) duration = capped;
+      const holdFull = cue.holdFull === true || cat.hold_full === true;
+      if (holdFull) {
+        const boundary = lastSentenceBoundaryAtOrBefore(W, hardStop);
+        if (boundary !== null) {
+          const wanted = +(boundary - start).toFixed(2);
+          const capped = Math.min(wanted, duration + CUE_CONSTANTS.HOLD_EXTEND_CAP.value);
+          if (capped > duration) duration = capped;
+        }
+      } else {
+        const boundary = firstSentenceBoundaryAtOrAfter(W, start + duration);
+        if (boundary !== null && boundary <= hardStop) {
+          const wanted = +(boundary - start).toFixed(2);
+          if (wanted > duration) duration = wanted;
+        } else {
+          // no boundary fits before the hard stop — extend to the stop, still
+          // capped, rather than cutting mid-sentence
+          const boundary2 = lastSentenceBoundaryAtOrBefore(W, hardStop);
+          if (boundary2 !== null) {
+            const wanted = +(boundary2 - start).toFixed(2);
+            const capped = Math.min(wanted, duration + CUE_CONSTANTS.HOLD_EXTEND_CAP.value);
+            if (capped > duration) duration = capped;
+          }
+        }
       }
     }
 

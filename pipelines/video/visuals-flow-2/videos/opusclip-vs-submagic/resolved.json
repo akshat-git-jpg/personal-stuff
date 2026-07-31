@@ -6,8 +6,8 @@
       "id": "z01",
       "card": "statement/strike-list",
       "placement": "fullframe",
-      "start": 3.94,
-      "duration": 13.76,
+      "start": 5.2,
+      "duration": 12.5,
       "variables": {
         "title": "Automating It Badly",
         "marker": "Badly",
@@ -32,11 +32,15 @@
           },
           {
             "label": "Pacing",
-            "at": 6.02
+            "at": 2.46
           },
           {
             "label": "Layouts",
-            "at": 8.44
+            "at": 3.56
+          },
+          {
+            "label": "Badly",
+            "at": 7.18
           }
         ],
         "register": "dark"
@@ -47,7 +51,7 @@
       "card": "enacted/promise-split",
       "placement": "fullframe",
       "start": 17.7,
-      "duration": 15.72,
+      "duration": 8,
       "variables": {
         "promise": "Both promise viral-ready shorts",
         "left": {
@@ -97,7 +101,7 @@
       "card": "enacted/pipeline-flow",
       "placement": "fullframe",
       "start": 54.9,
-      "duration": 17.16,
+      "duration": 6.3,
       "variables": {
         "title": "Both Tools Promise",
         "steps": [
@@ -259,7 +263,7 @@
       "card": "section/tool-intro",
       "placement": "fullframe",
       "start": 153.68,
-      "duration": 9.02,
+      "duration": 6,
       "variables": {
         "index": 2,
         "total": 2,
@@ -277,7 +281,7 @@
       "card": "pros-cons/pros-cons",
       "placement": "fullframe",
       "start": 166.7,
-      "duration": 9.58,
+      "duration": 6.94,
       "variables": {
         "title": "Submagic At A Glance",
         "beats": [
@@ -577,7 +581,7 @@
       "card": "enacted/pipeline-flow",
       "placement": "fullframe",
       "start": 632.04,
-      "duration": 13.86,
+      "duration": 7.76,
       "variables": {
         "title": "The Cleanup Lap",
         "steps": [
@@ -627,7 +631,6 @@
       "start": 645.9,
       "duration": 5,
       "variables": {
-        "number": "04",
         "title": "Pricing And Value",
         "register": "dark"
       },
@@ -638,7 +641,7 @@
       "card": "slate/kinetic-sentence",
       "placement": "fullframe",
       "start": 666.12,
-      "duration": 11.12,
+      "duration": 6.34,
       "variables": {
         "text": "the value does significantly drop",
         "accent": "significantly drop",
@@ -833,7 +836,7 @@
       "card": "enacted/race-bars",
       "placement": "fullframe",
       "start": 1027.45,
-      "duration": 15.24,
+      "duration": 10.36,
       "variables": {
         "title": "Generated Fast vs Actually Posted",
         "products": [
