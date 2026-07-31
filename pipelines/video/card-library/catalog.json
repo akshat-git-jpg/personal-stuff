@@ -144,7 +144,6 @@
         }
       },
       "max_beats": 4,
-      "max_reveal_chars": 18,
       "default_duration": 8,
       "register": [
         "dark"
