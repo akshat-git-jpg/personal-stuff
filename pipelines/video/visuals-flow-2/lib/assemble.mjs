@@ -684,15 +684,29 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
           const nextV = `b${j + 1}`;
           const adjustedAt = +(o.at - startTrim).toFixed(3);
           const adjustedUntil = +(o.until - startTrim).toFixed(3);
+          // Panel/side geometry is defined in full-res (1920x1080) pixels, but a
+          // --draft segment renders at 1280x720 — scale every coordinate to the
+          // ACTUAL canvas or the composite lands off-frame (found 2026-07-31,
+          // side mode's first draft: overlay x=1200 on a 1280-wide canvas left
+          // an 80px sliver of host at the right edge). Even-rounded for yuv420.
+          const gsx = w / CANVAS.w, gsy = h / CANVAS.h;
+          const even = (v) => Math.round(v / 2) * 2;
           if (o.isPanel) {
-            const g = planPanelGeometry({ canvas: CANVAS, constants: SHOT_CONSTANTS });
+            const gf = planPanelGeometry({ canvas: CANVAS, constants: SHOT_CONSTANTS });
+            const g = { w: even(gf.w * gsx), h: even(gf.h * gsy), x: Math.round(gf.x * gsx), y: Math.round(gf.y * gsy), radius: gf.radius * gsx };
             const r = g.radius;
             chain += `[${globalInputIdx}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${g.w}:${g.h},format=yuva444p,` +
               `geq=lum='lum(X,Y)':cb='cb(X,Y)':cr='cr(X,Y)':` +
               `a='if(lt(hypot(max(abs(X-W/2)-(W/2-${r}),0),max(abs(Y-H/2)-(H/2-${r}),0)),${r + 0.5}),255,0)'[${oj}];`;
             chain += `[${lastV}][${oj}]overlay=x=${g.x}:y=${g.y}:eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
           } else if (o.isSide) {
-            const g = planSideGeometry({ canvas: CANVAS, constants: SHOT_CONSTANTS });
+            const gf = planSideGeometry({ canvas: CANVAS, constants: SHOT_CONSTANTS });
+            const g = {
+              scaleW: even(gf.scaleW * gsx), scaleH: even(gf.scaleH * gsy),
+              cropW: even(gf.cropW * gsx), cropH: even(gf.cropH * gsy),
+              cropX: Math.round(gf.cropX * gsx), cropY: Math.round(gf.cropY * gsy),
+              x: Math.round(gf.x * gsx), y: Math.round(gf.y * gsy),
+            };
             chain += `[${globalInputIdx}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${g.scaleW}:${g.scaleH},crop=${g.cropW}:${g.cropH}:${g.cropX}:${g.cropY}[${oj}];`;
             chain += `[${lastV}][${oj}]overlay=x=${g.x}:y=${g.y}:eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
           } else {

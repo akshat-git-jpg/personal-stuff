@@ -41,14 +41,14 @@
     },
     {
       "id": "sfx-5",
-      "at": 12.38,
+      "at": 8.76,
       "sample": "pop",
-      "semi": 0,
-      "gainDb": -16.5
+      "semi": 7,
+      "gainDb": -15.5
     },
     {
       "id": "sfx-6",
-      "at": 17.7,
+      "at": 16.34,
       "sample": "whoosh-up",
       "semi": 0,
       "gainDb": -14

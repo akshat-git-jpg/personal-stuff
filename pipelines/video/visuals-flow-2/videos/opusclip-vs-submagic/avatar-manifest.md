@@ -4,6 +4,7 @@ Full-screen avatar clips only (corner track not rendered for this video).
 
 | place at | file | duration | purpose |
 |---|---|---|---|
+| 00:00.0 | s00.mp4 | 14.88s | avatar-side |
 | 00:40.0 | s01.mp4 | 12.08s | avatar-full |
 | 02:57.0 | s02.mp4 | 12.74s | avatar-full |
 | 04:28.5 | s03.mp4 | 18.49s | avatar-full |

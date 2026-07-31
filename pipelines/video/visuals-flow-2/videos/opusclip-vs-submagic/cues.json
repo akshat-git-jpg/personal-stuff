@@ -5,9 +5,9 @@
   "cues": [
     {
       "id": "z01",
-      "card": "intro/versus-cold-open",
+      "card": "intro/tape-board-side",
       "anchor": "If you're turning long videos",
-      "hold": 2.5,
+      "hold": 3.6,
       "variables": {
         "platforms": [
           {
@@ -29,8 +29,7 @@
           {
             "label": "Layouts"
           }
-        ],
-        "marker": "VS"
+        ]
       },
       "beats": [
         {
@@ -50,12 +49,6 @@
             "label": "Layouts"
           },
           "anchor": "actually posting, then"
-        },
-        {
-          "reveal": {
-            "label": "VS"
-          },
-          "anchor": "automating and doing it badly"
         }
       ],
       "flagged": false,
@@ -67,7 +60,7 @@
     {
       "id": "z02",
       "card": "enacted/promise-split",
-      "anchor": "both promise to turn long videos",
+      "anchor": "Submagic and OpusClip both promise",
       "hold": 0.5,
       "variables": {
         "promise": "Both promise viral-ready shorts",
@@ -1021,5 +1014,5 @@
       "zone": "conclusion"
     }
   ],
-  "approved_note": "owner chat approvals 2026-07-31: all approved (round-2), then v3 fold decisions applied as instructed (z01 -> title-versus option A, z06 removed)"
+  "approved_note": "owner chat approvals 2026-07-31: rounds folded as instructed; v5 fold: side-mode intro (tape-board-side left, host right) approved via preview prompt, \"go ahead\""
 }

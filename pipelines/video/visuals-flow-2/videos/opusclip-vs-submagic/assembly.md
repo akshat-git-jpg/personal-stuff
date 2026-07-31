@@ -8,8 +8,8 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow-2/opusclip-vs-submagic/final-d
 
 | from | to | source | id |
 |---|---|---|---|
-| 00:00.0 | 00:17.7 | graphic | z01 |
-| 00:17.7 | 00:33.4 | graphic | z02 |
+| 00:00.0 | 00:16.3 | graphic | z01 |
+| 00:16.3 | 00:33.4 | graphic | z02 |
 | 00:33.4 | 00:40.0 | graphic | z03 |
 | 00:40.0 | 00:52.0 | avatar | s01 |
 | 00:52.0 | 01:01.2 | graphic | z05 |
@@ -79,6 +79,7 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow-2/opusclip-vs-submagic/final-d
 | 15:54.0 | 15:58.0 | 1554-c25-score-pill.mov |
 | 17:31.9 | 17:35.9 | 1731-z13-link-in-description.mov |
 | 17:45.6 | 17:50.6 | 1745-z14-like-subscribe.mov |
+| 00:00.0 | 00:14.9 | s00.mp4 |
 
 ## Transitions
 

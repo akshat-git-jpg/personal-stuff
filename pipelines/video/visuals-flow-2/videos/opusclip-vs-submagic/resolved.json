@@ -4,10 +4,10 @@
   "resolved": [
     {
       "id": "z01",
-      "card": "intro/versus-cold-open",
+      "card": "intro/tape-board-side",
       "placement": "fullframe",
       "start": 0,
-      "duration": 17.7,
+      "duration": 16.34,
       "variables": {
         "platforms": [
           {
@@ -30,7 +30,6 @@
             "label": "Layouts"
           }
         ],
-        "marker": "VS",
         "beats": [
           {
             "label": "Captions",
@@ -43,10 +42,6 @@
           {
             "label": "Layouts",
             "at": 8.76
-          },
-          {
-            "label": "VS",
-            "at": 12.38
           }
         ],
         "register": "dark"
@@ -56,8 +51,8 @@
       "id": "z02",
       "card": "enacted/promise-split",
       "placement": "fullframe",
-      "start": 17.7,
-      "duration": 15.72,
+      "start": 16.34,
+      "duration": 17.08,
       "variables": {
         "promise": "Both promise viral-ready shorts",
         "sides": [
@@ -75,11 +70,11 @@
         "beats": [
           {
             "name": "OpusClip",
-            "at": 6.64
+            "at": 8
           },
           {
             "name": "Submagic",
-            "at": 12.02
+            "at": 13.38
           }
         ],
         "register": "dark"

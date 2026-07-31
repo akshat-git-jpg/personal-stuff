@@ -4,6 +4,15 @@
   "engineMode": "test",
   "spans": [
     {
+      "id": "s00",
+      "purpose": "avatar-full",
+      "mode": "side",
+      "from_anchor": "If you're turning long videos",
+      "to_anchor": "automating and doing it badly",
+      "note": "side-mode intro host (owner v5 fold): full-height host right 720px over the tape-board-side card; ends on \"badly.\" exactly with the card",
+      "flagged": false
+    },
+    {
       "id": "s01",
       "mode": "full",
       "from_anchor": "This video is going to be",
@@ -94,5 +103,5 @@
       "purpose": "avatar-full"
     }
   ],
-  "approved_note": "owner chat approval 2026-07-31: go ahead on avatar (engineMode test, Avatar III pre-authorized)"
+  "approved_note": "owner chat approval 2026-07-31: go ahead on avatar; s00 side-mode intro span added on owner instruction (v5 fold, \"go ahead\")"
 }
