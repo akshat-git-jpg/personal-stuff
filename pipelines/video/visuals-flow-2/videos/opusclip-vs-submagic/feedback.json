@@ -163,6 +163,64 @@
       "applied": true,
       "folded": true,
       "resolution": "You were right — the strikes were out of sync by my authoring error in round 1: the VO names captions/pacing/layouts within 1.6s but the beats were spread over 8s (Captions even struck BEFORE the word). Re-anchored: the three strikes now land as a burst tracking the spoken list (within ~1s), and the Badly marker sweep waits for its own beat at \"automating and doing it badly\" (new marker-beat support in the card + E12 accepts the marker word). Durable rule in R_NO_IDLE: a beat's anchor is the phrase that NAMES its reveal — never re-paced for visual rhythm. Frame-verified."
+    },
+    "final-v1:0": {
+      "text": "So the motion graphics starts from 5 seconds and before that we are showing screen recording. I want to make this as a rule. A video should either start only with full screen avtar or it should start with motion graphic. This kind of things are not good where we are starting with screen recording.",
+      "t": 11.723822,
+      "context": "final@00:11",
+      "x": 54.7,
+      "y": 14.5,
+      "applied": true,
+      "folded": true,
+      "resolution": "Durable: HEAD_COVER in resolve pulls the first fullframe cue to t=0 (beats shift with it) + lint E13 open-cover + zone rule R_ZONE_OPEN_COVER. Instance: z01 now runs 0-14.9s."
+    },
+    "final-v1:1": {
+      "text": "Now he's talking about speed at all cost and output quality, but the motion graphic went away too quickly. It was on the screen and before he could complete the entire concept he was trying to explain. The motion graphic went away. I'm assuming this happened because you don't want to keep the motion graphic static for too long. But I need a better solve on this. I have been repeating the same thing again and again. That the motion graphic should not be static, but at the same time, it should not be incomplete, it should not look like incomplete. At least cover the complete the part which you are trying to explain. If you are feeling that motion graphic is static, then make the motion graphic more dynamic somehow. Right? Maybe you can use some motion background and bring up the text when the actual text is being said in the motion graphic both the text came in the starting only and not when the actual text was set.",
+      "t": 26.336441,
+      "context": "final@00:26",
+      "x": 49.5,
+      "y": 27.4,
+      "applied": true,
+      "folded": true,
+      "resolution": "Durable: R_CONCEPT_PARTS (multi-part concepts need word-anchored beat cards) + promise-split converted to a beat card with an entry phase (entry_phase resolve/lint support). Instance: z02 re-authored — enters at the shared promise (17.7s), verdicts land at 'speed at all costs' and 'actually ready to publish', exposure covers the whole concept."
+    },
+    "final-v1:2": {
+      "text": "I think this is some sort of bug because if you see the current timestamp 3318 you can see that the speed first and publicity buttons are there on the screen, but the actual motion graphic comes afterwards, after the blip.",
+      "t": 38.214434,
+      "context": "final@00:38",
+      "x": 59.1,
+      "y": 37.5,
+      "image": "feedback-images/final-v1-2.png",
+      "applied": true,
+      "folded": true,
+      "resolution": "Bug in the flash transition: it sampled the incoming card's own first frames as the blurred lead-in, so full-layout cards ghosted before the blip. whip.mjs now carries the outgoing footage through the flash; the card's first visible frame is its real entrance."
+    },
+    "final-v1:3": {
+      "text": "So at fifty two zero eight the Avatar full screen stopped and we showed we started showing the screen recording, But at 55 eleven we again started with motion graphic. This is an extremely bad design. Think about this right What was the point of that small amount of time where you showed screen recording? It doesn't even make sense. We you did not we were not able even able to show anything meaningful in the screen recording. When screen recording is coming, it should be for a certain time. This is bad. Let us discuss more on this and let's fix on the long term solution.",
+      "t": 55.372695,
+      "context": "final@00:55",
+      "applied": true,
+      "folded": true,
+      "resolution": "Durable: minimum meaningful screen time raised to 6s — shorter slivers are absorbed by the neighbouring card (SLIVER_GRAPHIC 2.5->6) and a sliver between two avatars is now a hard plan error (MIN_SCREEN_ERROR 6). Instance: the 2.9s sliver at 52s is absorbed by z05."
+    },
+    "final-v1:4": {
+      "text": "Yeah of the video full screen or any type of should start with the new sentence. The second part is coming in the full screen which looks very weird. He said some sentence while showing the demo and while seging the seconds, it started its full screen with saying seconds So looks weird. Avdar should start full screen Avdar should start with the new sentence.",
+      "t": 276.90381,
+      "context": "final@04:36",
+      "x": 53.2,
+      "y": 58.2,
+      "applied": true,
+      "folded": true,
+      "resolution": "Durable: lint E7 — span boundaries must sit on sentence starts/ends — plus W7 flush-cut when the start has no audible breath before it. Instance: s03 re-anchored to the AI-edit verdict wrap (268.5s, 0.46s breath), s10 re-anchored to the comment CTA (1054.0s); both clips re-rendered on HeyGen."
+    },
+    "final-v1:5": {
+      "text": "I don't want motion graphic on top of my avtar. For some reason it looks very weird. Wherever we are showing the full screen avar, let's not show motion graphic on top of the avdar.",
+      "t": 626.79229,
+      "context": "final@10:26",
+      "x": 71.4,
+      "y": 24.8,
+      "deferred": true,
+      "deferred_note": "owner 2026-07-31: 'Ignore v1:5 for now' — no-graphics-over-avatar rule and the 7 overlay placements stay as-is until reopened"
     }
   }
 }

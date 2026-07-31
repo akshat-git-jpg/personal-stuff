@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-31T07:18:17.441Z",
+  "updated": "2026-07-31T11:34:31.738Z",
   "items": {
     "z03": {
       "status": "fixed",
@@ -48,6 +48,30 @@
     "z14": {
       "status": "fixed",
       "message": ""
+    },
+    "final-v1:0": {
+      "status": "fixed",
+      "message": "video now opens on the z01 card at 0:00 (head-cover rule + E13 lint)"
+    },
+    "final-v1:1": {
+      "status": "fixed",
+      "message": "z02 verdicts land when spoken and the card covers the whole concept (beat card + entry phase)"
+    },
+    "final-v1:2": {
+      "status": "fixed",
+      "message": "flash transition no longer previews the incoming card — ghost gone"
+    },
+    "final-v1:3": {
+      "status": "fixed",
+      "message": "screen slivers under 6s are absorbed; between-avatar slivers are a plan error"
+    },
+    "final-v1:4": {
+      "status": "fixed",
+      "message": "spans must start/end on sentence boundaries (E7); s03+s10 re-anchored and re-rendered"
+    },
+    "final-v1:5": {
+      "status": "skipped",
+      "message": "deferred by owner — ignore for now"
     }
   }
 }

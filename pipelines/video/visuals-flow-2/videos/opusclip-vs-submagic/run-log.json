@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "updated": "2026-07-31T09:46:21.625Z",
+  "updated": "2026-07-31T11:52:46.473Z",
   "steps": {
     "037-approve-card-plan-human": {
       "status": "done",
@@ -59,12 +59,12 @@
       "ended": "2026-07-31T07:48:26.772Z"
     },
     "040-sync-graphics-run": {
-      "status": "done",
-      "started": "2026-07-31T07:08:55.245Z",
-      "issues": "W1 fullframe-cadence: c22 starts 7.2s after c20 (minimum gap 12s) W1 fullframe-cadence: z11 starts 11.7s after z10 (minimum gap 12s) W21 long-hold: z07 holds enacted/timeline-scrub for 18.7s, 3.1x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule) W21 long-hold: c02 holds pros-cons/pros-cons for 13.7s, 2.3x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule) W7 bare-stretch: 21.5s between z03 (starts 33.",
+      "status": "blocked",
+      "started": "2026-07-31T11:48:41.291Z",
+      "issues": "W1 fullframe-cadence: c22 starts 7.2s after c20 (minimum gap 12s)  |  W1 fullframe-cadence: z11 starts 11.7s after z10 (minimum gap 12s)  |  W21 long-hold: z01 holds statement/strike-list for 17.7s, 2.2x its designed 8s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W21 long-hold: z07 holds enacted/timeline-scrub for 18.7s, 3.1x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W21 long-hold: c02 holds pros-cons/pros-cons for 13.7s, 2.3x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W7 bare-stretch: 20.1s between z03 (starts 33.4s) and z05 (starts 53.5s) inside a narration segment — max 20s  |  W7 bare-stretch: 25.2s between z07 (starts 84.4s) and z08 (starts 109.6s) inside a narration segment — max 20s  |  W7 bare-stretch: 20.3s between c01 (starts 119.7s) and c02 (starts 140.0s) inside a narration segment — max 20s  |  (+22 more warning/error lines — re-run the verb to see all)",
       "did": "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint.",
       "output": "resolved.json",
-      "ended": "2026-07-31T07:08:55.430Z"
+      "ended": "2026-07-31T11:48:41.479Z"
     },
     "050-review-graphics-llm": {
       "status": "done",
@@ -85,10 +85,10 @@
     "130-learn-from-feedback-opus": {
       "status": "done",
       "started": "2026-07-31T06:56:42.191Z",
-      "did": "Round-2 fold: 5 board items ingested, root-caused, discussed and applied after batch approval. z01 strikes re-anchored to the naming words with a marker beat (sync error was round-1 authoring, now guarded by an R_NO_IDLE clause). The long-static-holds class solved structurally: fullframe exposure now ends at the FIRST sentence boundary after the card's content (reconciling the never-cut-mid-sentence rule with the no-static-squat complaint), GAP_ABSORB 12->4s, comparison cards hold_full-exempt — z05 17.2->6.3s, c20 11.1->6.3s. c26 unnumbered + W22 consecutive-numbering lint worded to keep section cards encouraged per owner. like-subscribe rebuilt as the full thumb+Subscribe+bell lockup in-theme. Owner decisions recorded: keep all four VO blemishes as-is; c26 call delegated and taken as unnumbered.",
-      "issues": "Found and fixed a second board data-loss bug: Save wiped register/motif/legacy_why from every cue because collectCues rebuilt cues from the tile fragment alone; fields restored, round-trip fixed, regression-tested. Also self-inflicted and corrected: cat > clobbered the tracked plan-172 collector tests (restored from HEAD, my tests appended). W21 renumbered from W20 (collided with no-segment-map). z07 timeline-scrub keeps its 18.7s span deliberately — its beats genuinely cover the narration.",
-      "output": "cues.json (z01 beats, c26 unnumbered, registers/motif/legacy_why restored), resolved.json re-resolved 0 errors, lib/resolve.mjs first-boundary exposure + hold_full + marker in E12, lib/cue-constants.mjs GAP_ABSORB 4, lib/lint-cues.mjs W21+W22, lib/cue-rules.mjs R_STRUCTURAL+R_NO_IDLE clauses (prompt regenerated, rulebook ok), catalog hold_full x12 + section number optional, section-card-flip title-only mode, like-subscribe lockup rebuild, board-ui collector round-trip fix + errors-only banner, vitest 34/34, check.sh green, card check OK, feedback.json 5/5 folded (exit 0), claude_status.json check-offs.",
-      "ended": "2026-07-31T07:18:50.837Z"
+      "did": "Final-cut fold (round 3; earlier folds recorded in tests/TESTS.md): 6 board items + 3 chat items ingested, root-caused, discussed, applied after batch approval. Video now opens on a card (HEAD_COVER + E13), multi-part concepts get word-anchored beat cards (R_CONCEPT_PARTS + promise-split converted, entry_phase mechanism), the whip flash no longer previews the incoming card, screen slivers under 6s are absorbed asymmetrically (card holds 6s, head-pads only 2.5s), avatar spans must start/end on sentence boundaries (E7 + W7 flush-cut; s03 and s10 re-anchored and re-rendered), the corner bubble is off everywhere by owner decision, and like-subscribe was rebuilt compact.",
+      "issues": "v1:5 (no graphics over the host) deferred by the owner — recorded with the new deferred state so it neither blocks the gate nor reads as done. E7 caught s10 as a second latent mid-sentence start the moment the lint existed. A geometric sliver pull-back was tried and reverted twice (dragged cards across register/demo boundaries); the entry_phase anchor placement is the safe fix.",
+      "output": "cues.json (z02 beats+sides, zone fields), shots.json (s03/s10 re-anchored), resolved artifacts, lib rules + lints + whip fix, catalog promise-split/pipeline-flow, like-subscribe rebuild, feedback.json 5 folded + 1 deferred, TESTS.md fold + convergence lines, draft v3 on the Final Cut tab",
+      "ended": "2026-07-31T11:50:55.440Z"
     },
     "080-approve-storyboard-human": {
       "status": "done",
@@ -100,27 +100,27 @@
     },
     "100-render-avatar-run": {
       "status": "done",
-      "started": "2026-07-31T08:43:50.367Z",
-      "ended": "2026-07-31T09:42:18.349Z",
-      "did": "Submitted all 14 HeyGen Avatar III jobs (10 host spans + 4 corner-track chunks, engineMode test, template specs-man re-pointed to the live man template) and downloaded every clip. Three submit rounds were needed: two dead template ids, one transient network failure, and a zombie run whose stale manifest flush twice erased recorded video ids — all recovered from task logs.",
+      "started": "2026-07-31T11:06:29.522Z",
+      "did": "Submitted the HeyGen avatar clips for the approved shot spans.",
       "issues": "specs-man and specs-man-2 template ids were deleted from the HeyGen space (registry re-pointed); duplicate orphan renders exist on HeyGen from the retries, all free-tier, no cleanup needed.",
-      "output": "avatar-jobs.json 14/14 submitted; clips in ~/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/ (14 mp4)"
+      "output": "avatar-jobs.json + avatar clips in kb-scratch",
+      "ended": "2026-07-31T11:08:58.190Z"
     },
     "090-render-graphics-run": {
       "status": "done",
-      "started": "2026-07-31T09:42:38.217Z",
+      "started": "2026-07-31T11:50:05.113Z",
       "did": "Rendered every approved cue to a clip and wrote the editor manifest.",
       "issues": "The run itself was clean; record_step died on a zero-warning grep under pipefail AFTER the render succeeded, so this entry is written by hand and the guard is now fixed in run.sh.",
       "output": "renders/ + manifest.md",
-      "ended": "2026-07-31T09:42:39.305Z"
+      "ended": "2026-07-31T11:50:22.632Z"
     },
     "110-build-video-run": {
       "status": "done",
-      "started": "2026-07-31T09:43:47.243Z",
-      "ended": "2026-07-31T09:46:21.625Z",
+      "started": "2026-07-31T11:51:27.313Z",
       "did": "Assembled the screen recording, graphics, avatar clips and mastered audio into a draft cut.",
       "output": "final-draft.mp4 + assembly.md",
-      "issues": "none found"
+      "issues": "none found",
+      "ended": "2026-07-31T11:52:46.473Z"
     }
   }
 }

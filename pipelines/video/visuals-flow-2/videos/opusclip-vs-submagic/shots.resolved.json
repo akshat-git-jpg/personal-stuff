@@ -25,10 +25,10 @@
       "id": "s03",
       "purpose": "avatar-full",
       "mode": "full",
-      "start": 276.35,
+      "start": 268.5,
       "end": 286.99,
-      "duration": 10.64,
-      "note": "cadence beat at the Submagic -> OpusClip transition, before the hands-on upload"
+      "duration": 18.49,
+      "note": "cadence beat: the Submagic AI-edit verdict wrap into the OpusClip transition; re-anchored 2026-07-31 (final-v1:4 — the old start cut flush against 'seconds.'; this start opens after a real 0.46s breath)"
     },
     {
       "id": "s04",
@@ -88,10 +88,10 @@
       "id": "s10",
       "purpose": "avatar-full",
       "mode": "full",
-      "start": 1052.17,
+      "start": 1053.97,
       "end": 1074.83,
-      "duration": 22.66,
-      "note": "outro sign-off — CTA overlays (link, like+subscribe) composite over the host",
+      "duration": 20.86,
+      "note": "outro sign-off from the comment CTA; re-anchored 2026-07-31 (E7 mid-sentence start, then E2 against z12 when pulled to the CTA sentence — this start opens after a 0.58s breath, clear of z12).",
       "snapped": true
     }
   ]

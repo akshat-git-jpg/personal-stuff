@@ -29,15 +29,15 @@
     },
     {
       "id": "s03",
-      "start": 276.35,
+      "purpose": "avatar-full",
+      "start": 268.5,
       "end": 286.99,
-      "duration": 10.64,
+      "duration": 18.49,
       "audio": "slices-avatar/s03.mp3",
-      "video_id": "f81306a729f84f0a877c27dbab284583",
+      "video_id": "14ce0822ac1648bd890104e286ee6f21",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:17:41.202Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s03.mp4",
-      "purpose": "avatar-full"
+      "submitted_at": "2026-07-31T11:06:52.012Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s03.mp4"
     },
     {
       "id": "s04",
@@ -114,63 +114,15 @@
     },
     {
       "id": "s10",
-      "start": 1052.17,
+      "purpose": "avatar-full",
+      "start": 1053.97,
       "end": 1074.83,
-      "duration": 22.66,
+      "duration": 20.86,
       "audio": "slices-avatar/s10.mp3",
-      "video_id": "3bb39114f8fe48888080274e12956dd5",
+      "video_id": "3a67a4d7d4d24a2fb20f6a96df2a17ec",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:45:26.841Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s10.mp4",
-      "purpose": "avatar-full"
-    },
-    {
-      "id": "corner-01",
-      "start": 0,
-      "end": 300,
-      "duration": 300,
-      "audio": "slices-avatar/corner-01.mp3",
-      "video_id": "61062935a0d54f7a8f62016035f2cab3",
-      "status": "submitted",
-      "submitted_at": "2026-07-31T08:56:07.741Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/corner-01.mp4",
-      "purpose": "corner"
-    },
-    {
-      "id": "corner-02",
-      "start": 300,
-      "end": 600,
-      "duration": 300,
-      "audio": "slices-avatar/corner-02.mp3",
-      "video_id": "af3823d3b7a94683927c8304fa4a636c",
-      "status": "submitted",
-      "submitted_at": "2026-07-31T08:59:08.184Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/corner-02.mp4",
-      "purpose": "corner"
-    },
-    {
-      "id": "corner-03",
-      "start": 600,
-      "end": 900,
-      "duration": 300,
-      "audio": "slices-avatar/corner-03.mp3",
-      "video_id": "84df072449b74b97a1d1e59b514e2bf7",
-      "status": "submitted",
-      "submitted_at": "2026-07-31T09:01:24.875Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/corner-03.mp4",
-      "purpose": "corner"
-    },
-    {
-      "id": "corner-04",
-      "start": 900,
-      "end": 1074.83,
-      "duration": 174.83,
-      "audio": "slices-avatar/corner-04.mp3",
-      "video_id": "a71cb58a6abb43bf9c0068ca0631acab",
-      "status": "submitted",
-      "submitted_at": "2026-07-31T09:04:24.605Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/corner-04.mp4",
-      "purpose": "corner"
+      "submitted_at": "2026-07-31T11:08:58.115Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s10.mp4"
     }
   ]
 }

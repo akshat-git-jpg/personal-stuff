@@ -6,8 +6,8 @@
       "id": "z01",
       "card": "statement/strike-list",
       "placement": "fullframe",
-      "start": 5.2,
-      "duration": 12.5,
+      "start": 0,
+      "duration": 17.7,
       "variables": {
         "title": "Automating It Badly",
         "marker": "Badly",
@@ -28,19 +28,19 @@
         "beats": [
           {
             "label": "Captions",
-            "at": 0.6
+            "at": 5.8
           },
           {
             "label": "Pacing",
-            "at": 2.46
+            "at": 7.66
           },
           {
             "label": "Layouts",
-            "at": 3.56
+            "at": 8.76
           },
           {
             "label": "Badly",
-            "at": 7.18
+            "at": 12.38
           }
         ],
         "register": "dark"
@@ -51,19 +51,31 @@
       "card": "enacted/promise-split",
       "placement": "fullframe",
       "start": 17.7,
-      "duration": 8,
+      "duration": 15.72,
       "variables": {
         "promise": "Both promise viral-ready shorts",
-        "left": {
-          "name": "Submagic",
-          "logo": "submagic",
-          "verdict": "Output ready to publish"
-        },
-        "right": {
-          "name": "OpusClip",
-          "logo": "opusclip",
-          "verdict": "Speed at all costs"
-        },
+        "sides": [
+          {
+            "name": "Submagic",
+            "logo": "submagic",
+            "verdict": "Output ready to publish"
+          },
+          {
+            "name": "OpusClip",
+            "logo": "opusclip",
+            "verdict": "Speed at all costs"
+          }
+        ],
+        "beats": [
+          {
+            "name": "OpusClip",
+            "at": 6.64
+          },
+          {
+            "name": "Submagic",
+            "at": 12.02
+          }
+        ],
         "register": "dark"
       }
     },
@@ -100,8 +112,8 @@
       "id": "z05",
       "card": "enacted/pipeline-flow",
       "placement": "fullframe",
-      "start": 54.9,
-      "duration": 6.3,
+      "start": 53.5,
+      "duration": 7.7,
       "variables": {
         "title": "Both Tools Promise",
         "steps": [
@@ -121,15 +133,15 @@
         "beats": [
           {
             "step": "Long Video",
-            "at": 0.6
+            "at": 2
           },
           {
             "step": "Find Moments",
-            "at": 2.32
+            "at": 3.72
           },
           {
             "step": "Short Clips",
-            "at": 4.02
+            "at": 5.42
           }
         ],
         "register": "light",
@@ -580,8 +592,8 @@
       "id": "c19",
       "card": "enacted/pipeline-flow",
       "placement": "fullframe",
-      "start": 632.04,
-      "duration": 7.76,
+      "start": 631.46,
+      "duration": 8.34,
       "variables": {
         "title": "The Cleanup Lap",
         "steps": [
@@ -605,19 +617,19 @@
         "beats": [
           {
             "step": "Adjust Captions",
-            "at": 0.6
+            "at": 1.18
           },
           {
             "step": "Fix Emphasis",
-            "at": 3.42
+            "at": 4
           },
           {
             "step": "Clean Pacing",
-            "at": 4.42
+            "at": 5
           },
           {
             "step": "Rework Layout",
-            "at": 5.76
+            "at": 6.34
           }
         ],
         "register": "dark",

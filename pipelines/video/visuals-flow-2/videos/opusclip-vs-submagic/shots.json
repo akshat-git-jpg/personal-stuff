@@ -24,9 +24,9 @@
     {
       "id": "s03",
       "mode": "full",
-      "from_anchor": "So that's pretty cool",
+      "from_anchor": "What it does is it goes ahead",
       "to_anchor": "adding the same details",
-      "note": "cadence beat at the Submagic -> OpusClip transition, before the hands-on upload",
+      "note": "cadence beat: the Submagic AI-edit verdict wrap into the OpusClip transition; re-anchored 2026-07-31 (final-v1:4 — the old start cut flush against 'seconds.'; this start opens after a real 0.46s breath)",
       "flagged": false,
       "purpose": "avatar-full"
     },
@@ -87,9 +87,9 @@
     {
       "id": "s10",
       "mode": "full",
-      "from_anchor": "the links are in the description",
+      "from_anchor": "And if you've used either",
       "to_anchor": "Have a great day. Goodbye",
-      "note": "outro sign-off — CTA overlays (link, like+subscribe) composite over the host",
+      "note": "outro sign-off from the comment CTA; re-anchored 2026-07-31 (E7 mid-sentence start, then E2 against z12 when pulled to the CTA sentence — this start opens after a 0.58s breath, clear of z12).",
       "flagged": false,
       "purpose": "avatar-full"
     }

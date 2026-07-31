@@ -4,10 +4,10 @@ Timecodes assume the voiceover starts at 00:00.0 on the editor timeline. If an i
 
 | place at | file | duration | placement | card |
 |---|---|---|---|---|
-| 00:05.2 | 0005-z01-strike-list.mp4 | 12.5s | fullframe | statement/strike-list |
-| 00:17.7 | 0017-z02-promise-split.mp4 | 8s | fullframe | enacted/promise-split |
+| 00:00.0 | 0000-z01-strike-list.mp4 | 17.7s | fullframe | statement/strike-list |
+| 00:17.7 | 0017-z02-promise-split.mp4 | 15.72s | fullframe | enacted/promise-split |
 | 00:33.4 | 0033-z03-promise-payoff.mp4 | 5.38s | fullframe | statement/promise-payoff |
-| 00:54.9 | 0054-z05-pipeline-flow.mp4 | 6.3s | fullframe | enacted/pipeline-flow |
+| 00:53.5 | 0053-z05-pipeline-flow.mp4 | 7.7s | fullframe | enacted/pipeline-flow |
 | 01:12.1 | 0112-z06-icon-pills.mp4 | 12.36s | fullframe | checklist/icon-pills |
 | 01:24.4 | 0124-z07-timeline-scrub.mp4 | 18.7s | fullframe | enacted/timeline-scrub |
 | 01:49.6 | 0149-z08-link-scrim.mov | 5s | overlay | link-in-description/link-scrim |
@@ -29,7 +29,7 @@ Timecodes assume the voiceover starts at 00:00.0 on the editor timeline. If an i
 | 09:16.9 | 0916-c16-verdict-chips.mov | 8.2s | overlay | overlay/verdict-chips |
 | 09:31.3 | 0931-c17-race-bars.mp4 | 10.9s | fullframe | enacted/race-bars |
 | 10:11.6 | 1011-c18-verdict-chips.mov | 19.28s | overlay | overlay/verdict-chips |
-| 10:32.0 | 1032-c19-pipeline-flow.mp4 | 7.76s | fullframe | enacted/pipeline-flow |
+| 10:31.5 | 1031-c19-pipeline-flow.mp4 | 8.34s | fullframe | enacted/pipeline-flow |
 | 10:45.9 | 1045-c26-section-card-flip.mp4 | 5s | fullframe | section/section-card-flip |
 | 11:06.1 | 1106-c20-kinetic-sentence.mp4 | 6.34s | fullframe | slate/kinetic-sentence |
 | 12:24.3 | 1224-c21-tip-banner.mov | 5s | overlay | overlay/tip-banner |

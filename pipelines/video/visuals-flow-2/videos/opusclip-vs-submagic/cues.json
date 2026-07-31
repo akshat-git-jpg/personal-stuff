@@ -55,7 +55,8 @@
       "flagged": false,
       "lead": 0.5,
       "register": "dark",
-      "legacy_why": "owner-picked direction C (2026-07-31 fold): big-type strike statement replaces enacted/bad-clip-montage for the intro opener"
+      "legacy_why": "owner-picked direction C (2026-07-31 fold): big-type strike statement replaces enacted/bad-clip-montage for the intro opener",
+      "zone": "intro"
     },
     {
       "id": "z02",
@@ -64,21 +65,37 @@
       "hold": 0.5,
       "variables": {
         "promise": "Both promise viral-ready shorts",
-        "left": {
-          "name": "Submagic",
-          "logo": "submagic",
-          "verdict": "Output ready to publish"
-        },
-        "right": {
-          "name": "OpusClip",
-          "logo": "opusclip",
-          "verdict": "Speed at all costs"
-        }
+        "sides": [
+          {
+            "name": "Submagic",
+            "logo": "submagic",
+            "verdict": "Output ready to publish"
+          },
+          {
+            "name": "OpusClip",
+            "logo": "opusclip",
+            "verdict": "Speed at all costs"
+          }
+        ]
       },
-      "beats": [],
+      "beats": [
+        {
+          "reveal": {
+            "name": "OpusClip"
+          },
+          "anchor": "speed at all costs"
+        },
+        {
+          "reveal": {
+            "name": "Submagic"
+          },
+          "anchor": "actually ready to publish"
+        }
+      ],
       "flagged": false,
       "lead": 0.5,
-      "register": "dark"
+      "register": "dark",
+      "zone": "intro"
     },
     {
       "id": "z03",
@@ -112,7 +129,8 @@
       ],
       "flagged": false,
       "lead": 0,
-      "register": "light"
+      "register": "light",
+      "zone": "intro"
     },
     {
       "id": "z05",
@@ -159,7 +177,8 @@
       "flagged": false,
       "lead": 0.5,
       "register": "light",
-      "motif": true
+      "motif": true,
+      "zone": "intro"
     },
     {
       "id": "z06",
@@ -199,7 +218,8 @@
       ],
       "flagged": false,
       "lead": 0.5,
-      "register": "light"
+      "register": "light",
+      "zone": "intro"
     },
     {
       "id": "z07",
@@ -243,7 +263,8 @@
       ],
       "flagged": false,
       "lead": 0.5,
-      "register": "light"
+      "register": "light",
+      "zone": "intro"
     },
     {
       "id": "z08",
@@ -254,7 +275,8 @@
       "beats": [],
       "flagged": false,
       "lead": 0.3,
-      "register": "light"
+      "register": "light",
+      "zone": "intro"
     },
     {
       "id": "c01",
@@ -895,7 +917,8 @@
       ],
       "flagged": false,
       "lead": 0.5,
-      "register": "light"
+      "register": "light",
+      "zone": "conclusion"
     },
     {
       "id": "z10",
@@ -925,7 +948,8 @@
       ],
       "flagged": false,
       "lead": 0.5,
-      "register": "light"
+      "register": "light",
+      "zone": "conclusion"
     },
     {
       "id": "z11",
@@ -977,7 +1001,8 @@
       ],
       "flagged": false,
       "lead": 0.5,
-      "register": "light"
+      "register": "light",
+      "zone": "conclusion"
     },
     {
       "id": "z12",
@@ -1003,7 +1028,8 @@
       "beats": [],
       "flagged": false,
       "lead": 0.4,
-      "register": "light"
+      "register": "light",
+      "zone": "conclusion"
     },
     {
       "id": "z13",
@@ -1014,7 +1040,8 @@
       "beats": [],
       "flagged": false,
       "lead": 0.3,
-      "register": "light"
+      "register": "light",
+      "zone": "conclusion"
     },
     {
       "id": "z14",
@@ -1025,7 +1052,8 @@
       "beats": [],
       "flagged": false,
       "lead": 0.3,
-      "register": "light"
+      "register": "light",
+      "zone": "conclusion"
     }
   ],
   "approved_note": "owner chat approval 2026-07-31: all approved (round-2 storyboard re-approval)"
