@@ -19,7 +19,7 @@ export function DetailDock({
   onReviewedChange: (id: string, v: boolean) => void;
   // edit state lives in StoryboardTab's store — the dock unmounts blocks on
   // every reveal, so it must never own edits itself
-  tilePropsFor: (cue: any) => { frag: string; flagged: boolean; note: string; onEdit: (patch: any) => void };
+  tilePropsFor: (cue: any) => { frag: string; onEdit: (patch: any) => void };
   spanFragFor: (origSpan: any) => string;
   onSpanEdit: (id: string, fragJson: string) => void;
 }) {

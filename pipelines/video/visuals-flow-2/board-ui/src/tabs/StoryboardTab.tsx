@@ -37,7 +37,6 @@ export function StoryboardTab({
   const audit = boardData.audit;
   const sound = boardData.sound;
 
-  const flaggedCount = cues.filter((c: any) => c.flagged).length;
   
   const [banners, setBanners] = useState<{ id: string; html: string; kind: 'ok' | 'err' }[]>([]);
 
@@ -52,9 +51,14 @@ export function StoryboardTab({
   const { items: reviewed, has, toggle: setReviewed, setAll: markAllReviewed, count: revCountGlobal } = useReviewed(video);
   const fb = useFeedback();
 
-  const [viewMode, setViewMode] = useState<'timeline'|'list'>(
-    () => (localStorage.getItem('board:sb-view') as 'timeline'|'list') || 'timeline'
-  );
+  // List is the default (owner call 2026-07-31); ?view=timeline|list overrides
+  // both the default and the stored preference — used by deep links and the
+  // smoke's timeline-mode assertions.
+  const [viewMode, setViewMode] = useState<'timeline'|'list'>(() => {
+    const forced = new URLSearchParams(location.search).get('view');
+    if (forced === 'timeline' || forced === 'list') return forced;
+    return (localStorage.getItem('board:sb-view') as 'timeline'|'list') || 'list';
+  });
 
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -76,9 +80,7 @@ export function StoryboardTab({
   const spanEditsRef = useRef(spanEdits); spanEditsRef.current = spanEdits;
   const tilePropsFor = (cue: any) => ({
     frag: tileEdits[cue.id]?.fragJson ?? defaultFrag(cue),
-    flagged: tileEdits[cue.id]?.flagged ?? (cue.flagged ?? false),
-    note: tileEdits[cue.id]?.note ?? (cue.note ?? ''),
-    onEdit: (patch: { fragJson?: string; flagged?: boolean; note?: string }) => editTile(cue.id, patch),
+    onEdit: (patch: { fragJson?: string }) => editTile(cue.id, patch),
   });
   const spanFragFor = (origSpan: any) => spanEdits[origSpan.id] ?? JSON.stringify(origSpan, null, 2);
 
@@ -157,7 +159,9 @@ export function StoryboardTab({
       onRefetch();
     };
 
-    const m = `${cues.length} graphics · ${flaggedCount} flagged`;
+    // flagged/note have no UI anymore (owner 2026-07-31) — the count would
+    // always read a field nobody can set here.
+    const m = `${cues.length} graphics`;
     onMeta(m);
 
     const hasResolved = boardData.hasResolved;
@@ -192,8 +196,8 @@ export function StoryboardTab({
         {revTotal > 0 && <button className="fc-cbtn" onClick={() => markAllReviewed(cues.map((c: any) => `sb:${c.id}`), false)}>expand all</button>}
         <a href="#calibrate" style={{ color: 'var(--dim)', fontSize: 13, marginLeft: 12 }}>calibrate</a>
         <span className="view-toggle" style={{ marginLeft: 'auto' }}>
-          <button className={`tab-btn ${viewMode === 'timeline' ? 'active' : ''}`} onClick={() => setMode('timeline')}>Timeline</button>
           <button className={`tab-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setMode('list')}>List</button>
+          <button className={`tab-btn ${viewMode === 'timeline' ? 'active' : ''}`} onClick={() => setMode('timeline')}>Timeline</button>
         </span>
       </>
     );
@@ -204,7 +208,7 @@ export function StoryboardTab({
     return () => { onMeta(null); onActions(null); onSecondary(null); };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [video, boardData, flaggedCount, revCountGlobal, onMeta, onActions, onSecondary, onRefetch, viewMode]);
+  }, [video, boardData, revCountGlobal, onMeta, onActions, onSecondary, onRefetch, viewMode]);
 
   let blocks = useMemo(() => {
     let b = segments.map((seg: any) => ({

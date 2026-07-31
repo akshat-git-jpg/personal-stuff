@@ -8,7 +8,9 @@ const HASHES = ['', '#card-plan', '#storyboard', '#final-cut', '#calibrate'];
 
 // 30+ iframed tiles, measured ~20s+ on storyboard, plans 173/174 will add more.
 // Need 60s floor so it does not flake on a loaded machine.
-const CHROME_TIMEOUT_MS = Number(process.env.BOARD_UI_SMOKE_TIMEOUT_MS ?? 60000);
+// 120s: a parallel Chrome-heavy job on the same machine pushed a dump past
+// 60s and flaked the merge gate (2026-07-31) — the ceiling must absorb load.
+const CHROME_TIMEOUT_MS = Number(process.env.BOARD_UI_SMOKE_TIMEOUT_MS ?? 120000);
 
 if (!fs.existsSync(CHROME)) {
   console.log('SKIP board-ui smoke: no Chrome');
@@ -128,28 +130,31 @@ try {
       if (!dom.includes('NEW — to build')) throw new Error('NEW — to build chip not found on #card-plan');
     }
     if (hash === '#storyboard') {
-      if (!dom.includes('class="tl-ruler"')) throw new Error('tl-ruler not found');
-      const ticks = dom.match(/class="tl-tick"/g) || [];
-      if (ticks.length < 2) throw new Error(`Expected >=2 tl-tick, found ${ticks.length}`);
-      
-      const graphicsTrackIdx = dom.indexOf('id="tlGraphics"');
-      const graphicsTrackSlice = dom.slice(graphicsTrackIdx, graphicsTrackIdx + 1000);
-      const blocks = graphicsTrackSlice.match(/class="tl-block"/g) || [];
-      if (blocks.length < 1) throw new Error('Expected >=1 tl-block in graphics track');
-      
-      if (!dom.includes('id="detail-panel"')) throw new Error('detail-panel not found');
-      if (!dom.includes('click a block to preview')) throw new Error('detail dock placeholder not found');
-      
-      if (!dom.includes('Timeline</button>')) throw new Error('Timeline toggle not found');
-      if (!dom.includes('List</button>')) throw new Error('List toggle not found');
+      // LIST is the default view (owner call 2026-07-31) — assert tile anatomy.
+      // Timeline-mode anatomy is asserted below via the ?view=timeline override.
+      if (!dom.includes('timeline-block tile reviewable')) throw new Error('no cue tile in default (list) storyboard view');
+      if (!dom.includes('<mark>')) throw new Error('no highlighted anchor <mark> in a tile excerpt');
+      if (!dom.includes('class="fb-shot"')) throw new Error('no fb-shot attach row in list view');
+
+      // List must be the FIRST toggle button and active by default.
+      const iList = dom.indexOf('List</button>');
+      const iTimeline = dom.indexOf('Timeline</button>');
+      if (iList === -1 || iTimeline === -1) throw new Error('view toggle buttons not found');
+      if (iList > iTimeline) throw new Error('List must be the first view-toggle button');
+      const listBtnStart = dom.lastIndexOf('<button', iList);
+      if (!dom.slice(listBtnStart, iList).includes('active')) throw new Error('List must be the active default view');
 
       const idxSlot = dom.indexOf('<div class="action-slot">');
       const slotMatch = idxSlot > -1 ? dom.slice(idxSlot, idxSlot + 300) : '';
       if (!slotMatch.includes('Approve graphics')) throw new Error('Approve graphics not found inside .action-slot');
-      
+
       const idxRow2 = dom.indexOf('<div class="app-header-row2">');
       const row2Match = idxRow2 > -1 ? dom.slice(idxRow2, idxRow2 + 500) : '';
       if (!row2Match.includes('Save')) throw new Error('Save not found inside .app-header-row2');
+      // flagged/note controls were removed from everywhere (owner 2026-07-31)
+      if (dom.includes('flag: no card fits') || dom.includes('why no card fits')) {
+        throw new Error('removed flag/note controls are back in the storyboard');
+      }
     }
     if (hash === '#final-cut') {
       const idxSlot = dom.indexOf('<div class="action-slot">');
@@ -238,6 +243,52 @@ try {
     }
   }
 
+  // Timeline mode still works behind the ?view=timeline override (list is the
+  // default view since 2026-07-31).
+  {
+    const domTl = await new Promise((resolve, reject) => {
+      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
+      let child;
+      const timeout = setTimeout(() => {
+        if (child) child.kill('SIGKILL');
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(new Error('Chrome dump-dom timeout on ?view=timeline#storyboard'));
+      }, CHROME_TIMEOUT_MS);
+      child = spawn(CHROME, [
+        '--headless=new', '--no-sandbox', '--disable-background-networking',
+        `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
+        '--virtual-time-budget=8000', '--dump-dom',
+        `http://127.0.0.1:${port}/app/?video=${slug}&view=timeline#storyboard`
+      ]);
+      let out = '';
+      child.stdout.on('data', d => {
+        out += d;
+        if (out.includes('</html>')) {
+          clearTimeout(timeout);
+          child.kill('SIGKILL');
+          resolve(out);
+        }
+      });
+      child.on('close', () => {
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+      });
+      child.on('error', e => {
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(e);
+      });
+    });
+    if (!domTl.includes('class="tl-ruler"')) throw new Error('tl-ruler not found in ?view=timeline');
+    const ticks = domTl.match(/class="tl-tick"/g) || [];
+    if (ticks.length < 2) throw new Error(`Expected >=2 tl-tick in ?view=timeline, found ${ticks.length}`);
+    const graphicsTrackIdx = domTl.indexOf('id="tlGraphics"');
+    const graphicsTrackSlice = domTl.slice(graphicsTrackIdx, graphicsTrackIdx + 1000);
+    if (!(graphicsTrackSlice.match(/class="tl-block"/g) || []).length) throw new Error('Expected >=1 tl-block in ?view=timeline graphics track');
+    if (!domTl.includes('id="detail-panel"')) throw new Error('detail-panel not found in ?view=timeline');
+    if (!domTl.includes('click a block to preview')) throw new Error('detail dock placeholder not found in ?view=timeline');
+  }
+
   // 5. screenshots
   const distAssets = fs.readdirSync(path.join(process.cwd(), 'board-ui/dist/assets'));
   const cssFile = distAssets.find(f => f.endsWith('.css'));
@@ -246,6 +297,10 @@ try {
   for (const hash of ['#run', '#card-plan', '#storyboard', '#final-cut']) {
     const url = `http://127.0.0.1:${port}/app/?video=${slug}${hash}`;
     const outPath = path.join(workdir, `tab-${hash ? hash.slice(1) : 'run'}.png`);
+    // A leftover file from a previous run satisfies the poll below instantly
+    // and Chrome gets killed before rendering — screenshots would silently
+    // never refresh (found 2026-07-31, an hour-stale storyboard png).
+    fs.rmSync(outPath, { force: true });
     
     const domOut = await new Promise((resolve, reject) => {
       const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));

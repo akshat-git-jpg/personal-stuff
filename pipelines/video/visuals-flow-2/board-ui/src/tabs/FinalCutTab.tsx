@@ -64,8 +64,13 @@ export function FinalCutTab({
       </button>
     );
     onSecondary(
-      <select id="fc-version" value={version} onChange={e => setVersion(e.target.value)}>
-        {versions.map(v => <option key={v} value={v}>{v}</option>)}
+      // A video with no assembled versions yet must SAY so (legacy behavior) —
+      // an empty select reads as broken chrome, not as a degraded state.
+      <select id="fc-version" value={version} onChange={e => setVersion(e.target.value)}
+        disabled={versions.length === 0}>
+        {versions.length === 0
+          ? <option value="">No versions available</option>
+          : versions.map(v => <option key={v} value={v}>{v}</option>)}
       </select>
     );
     return () => {

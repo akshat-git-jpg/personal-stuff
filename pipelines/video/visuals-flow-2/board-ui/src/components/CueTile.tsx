@@ -17,7 +17,7 @@ function timecode(sec: number) {
 // edits (and Save must see EVERY cue, mounted or not).
 export function CueTile({
   seg, cue, resolved, audit, reviewed, onReviewedChange,
-  frag, flagged, note, onEdit
+  frag, onEdit
 }: {
   seg: any;
   cue: any;
@@ -26,9 +26,10 @@ export function CueTile({
   reviewed: boolean;
   onReviewedChange: (v: boolean) => void;
   frag: string;
-  flagged: boolean;
-  note: string;
-  onEdit: (patch: { fragJson?: string; flagged?: boolean; note?: string }) => void;
+  // flagged/note carry NO UI (owner removed the controls 2026-07-31); the
+  // fields still ride the save payload untouched via buildTileModels so a
+  // Save never strips them from cues that already have them.
+  onEdit: (patch: { fragJson?: string }) => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -87,7 +88,7 @@ export function CueTile({
 
   return (
     <div
-      className={`timeline-block tile reviewable ${flagged ? 'flagged' : ''} ${seg.inShot ? 'in-shot' : ''} ${reviewed ? 'is-reviewed' : ''}`}
+      className={`timeline-block tile reviewable ${cue?.flagged ? 'flagged' : ''} ${seg.inShot ? 'in-shot' : ''} ${reviewed ? 'is-reviewed' : ''}`}
       id={seg.id}
       data-id={cue.id}
       data-rid={`sb:${cue.id}`}
@@ -130,11 +131,6 @@ export function CueTile({
       ) : (
         <div className="unresolved-note">no resolved timing for this cue — fix the anchor and Save</div>
       )}
-
-      <label className="flag">
-        <input type="checkbox" className="flag-input" checked={flagged} onChange={e => onEdit({ flagged: e.target.checked })} /> flag: no card fits
-      </label>
-      <input className="note" type="text" placeholder="note (why no card fits)" value={note} onChange={e => onEdit({ note: e.target.value })} />
 
       <FeedbackBox refKey={cue.id} placeholder="feedback on this graphic — wrong card, wrong timing, wording… (read by the next Claude session)" />
 

@@ -49,6 +49,7 @@ npx ts-node run.ts --niche <slug>
 - **Python scripts** import `common.*` (e.g. `from common.sheets import ...`). The `common/` package side-effect-loads `.env` from the workspace root on import — you don't have to load it yourself.
 - **Node subprojects** (`youtube/yt-research/`) keep their own `package.json` + `node_modules/` because npm expects them there.
 - **No per-folder `.env`, `credentials.json`, `venv/`, or `requirements.txt`.** Ever.
+- **Browser UIs are component apps (root decisions.md 2026-07-31).** A pipeline tool's web UI with more than one view, saving state, or real growth is a Vite+React+TS app like `video/visuals-flow-2/board-ui/` (own `package.json`, `dist/` gitignored, served by its owning server) — never a new hand-rolled HTML-template-string server. Trivial single-view static reports are the only exception.
 - **Generated media never lives in the repo — it flows through the asset hubs.** Voiceovers and avatar renders go to `~/kb-scratch/video/{tts,heygen}/<your-pipeline>/` (`_test/` if tied to no pipeline) plus a manifest row in the hub (`video/tts/OUTPUTS.md` / `video/heygen/RENDERS.md`). Reference assets (ref voices, character images/ids) are owned by the hubs — resolve a slug from `video/heygen/registry.json` / `video/tts/REFERENCES.md`, never copy assets into your pipeline folder. Browse it all with the `media-board` skill. (decisions.md 2026-07-12)
 
 ## Folder map
