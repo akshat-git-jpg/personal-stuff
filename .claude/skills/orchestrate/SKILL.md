@@ -198,6 +198,38 @@ decide — only do and verify**. Self-check every plan:
      `tooling/boss/data/rules.md` defaults (below). secretary does NOT re-derive
      these; what you write is what boss dispatches.
    - **`deploy`** — the post-merge deploy command if the plan needs one, else blank.
+8. **Cross-plan invariants get a test in the plan that INTRODUCES them.** If
+   plan N+1 depends on a design property of plan N ("edit state lives in the
+   tab store", "this module is the single source of X"), plan N must land a
+   machine check for that property — prose in N+1's Current-state notes is
+   where executors punt. (Bitten 2026-07-31: the board-SPA save path silently
+   collected only mounted DOM tiles because the store requirement lived in the
+   NEXT plan's notes; one Save from timeline mode could wipe cues.json.)
+9. **Every degraded/empty state is enumerated per surface.** For each
+   view/tab/page: what renders when its backing file/data is absent, and what
+   its actions do then (usually: disabled + a why-title). An un-enumerated
+   empty state gets invented behavior — often an enabled button that 500s.
+10. **Stateful UI contracts specify the LIFECYCLE, not just the content.**
+   A shared slot/store/registry contract must say who resets it and when
+   (mount/unmount/route-change). Fresh-page-load checks (dump-dom smokes)
+   cannot see in-session transitions, so lifecycle bugs need either an
+   explicit unmount-cleanup instruction or an in-session probe.
+11. **Prose behavior is inventable behavior.** Any encoding an executor could
+   reinterpret (a color mapping, a label rule, a sort order) is inlined as a
+   snippet or table in the STEP, never described in Current-state prose —
+   and gets a Verify that would fail on a different encoding.
+12. **Gate-integrity STOP condition in every plan that touches tests/gates:**
+   "if a gate assertion fails, fix the code or the fixture; weakening,
+   swapping, or deleting the assertion is a STOP." Crews reliably soften
+   assertions to pass (LESSONS 2026-07-31, 2026-07-24).
+13. **Tests that open servers/processes must fail loudly, never hang.** Spec
+   guaranteed teardown (try/finally, or a suite-level `test.after` that
+   force-closes tracked handles) — an assertion that fires before cleanup
+   otherwise leaves the runner alive forever and the failure invisible.
+14. **The batch's LAST plan runs the gate on a FRESH checkout** (clean clone
+   or `git clean`-ed worktree scope) as a Done criterion. Crews verify in
+   worktrees carrying their own build artifacts, so build-order and
+   gitignored-artifact dependencies only surface on a pristine tree.
 
 Then grade each plan — `Difficulty: mechanical | standard | tricky`:
 
@@ -206,6 +238,16 @@ Then grade each plan — `Difficulty: mechanical | standard | tricky`:
 - **tricky** — still needs real judgment even with everything inlined (gnarly
   refactor, subtle concurrency, security-sensitive logic) — a cheap model here
   just buys fix-up rounds.
+
+Grading honesty rider: **"port lines X–Y by reference" is NOT fully inlined.**
+A large port (UI rewrite, framework migration) where the executor reads the
+old implementation and re-expresses it involves continuous judgment — that is
+rules.md's "can't be fully inlined" row (claude-p sonnet), not "standard/agy",
+even though the source is in-repo. If the user's explicit executor choice
+overrides this, say so in the plan's Summary and compensate with tighter
+verifies (items 8–14 above). (2026-07-31: the board-SPA port shipped a
+data-loss punt, an invented color scheme, and UA-default controls under
+green gates — all judgment-gap defects.)
 
 **Executor selection (boss taxonomy — this is what goes in the frontmatter).**
 boss runs two executors: `claude-p` (backgrounded `claude -p`; models `sonnet`
@@ -325,7 +367,12 @@ First run `scripts/runlog-status.sh <run-log>` — one line tells you done /
 blocked / dead-at-plan. Then a **scope check**: `git diff --stat <planned-at
 SHA>..HEAD` file names must be a subset of the batch's in-scope lists — catches
 an executor that "helpfully" touched out-of-scope files even when tests pass.
-Then verify by what each plan produces:
+Then a **punt-marker grep** over the landed diff: stream-of-consciousness
+comments ("wait", "actually,", "let's just", "we can't easily", "TODO/FIXME")
+mark exactly where the executor hit a requirement it couldn't satisfy and
+quietly downgraded it — read those sites before trusting any green gate
+(2026-07-31: a data-loss punt announced itself this way while 456 tests
+passed). Then verify by what each plan produces:
 
 1. **Code** → re-run the plan's own **Done criteria** commands; read only exit
    codes + the last error line. A cheerful `DONE` line can lie; the commands
