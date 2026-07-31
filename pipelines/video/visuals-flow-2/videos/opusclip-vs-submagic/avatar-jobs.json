@@ -12,7 +12,8 @@
       "audio": "slices-avatar/s01.mp3",
       "video_id": "d49aae2b81104b9cb65bf9755ec67b82",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:13:53.599Z"
+      "submitted_at": "2026-07-31T08:13:53.599Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s01.mp4"
     },
     {
       "id": "s02",
@@ -23,7 +24,8 @@
       "audio": "slices-avatar/s02.mp3",
       "video_id": "857c525c729f48eab0e20ad0834f59c1",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:15:44.814Z"
+      "submitted_at": "2026-07-31T08:15:44.814Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s02.mp4"
     },
     {
       "id": "s03",
@@ -34,7 +36,8 @@
       "audio": "slices-avatar/s03.mp3",
       "video_id": "f81306a729f84f0a877c27dbab284583",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:17:41.202Z"
+      "submitted_at": "2026-07-31T08:17:41.202Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s03.mp4"
     },
     {
       "id": "s04",
@@ -45,7 +48,9 @@
       "audio": "slices-avatar/s04.mp3",
       "video_id": "24e5de9b4e1b4e7a91e677368ee1d856",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:44:06.697Z"
+      "submitted_at": "2026-07-31T08:27:29.657Z",
+      "restored_note": "video_id recovered from the resubmit task log after a zombie run's stale final flush overwrote it",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s04.mp4"
     },
     {
       "id": "s05",
@@ -56,7 +61,8 @@
       "audio": "slices-avatar/s05.mp3",
       "video_id": "e99b97ffe5464e30986fdd0a07bbacb7",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:29:57.837Z"
+      "submitted_at": "2026-07-31T08:29:57.837Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s05.mp4"
     },
     {
       "id": "s06",
@@ -67,7 +73,8 @@
       "audio": "slices-avatar/s06.mp3",
       "video_id": "1a1a18ca3f20479e9d0e4946a38c41f9",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:40:16.255Z"
+      "submitted_at": "2026-07-31T08:40:16.255Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s06.mp4"
     },
     {
       "id": "s07",
@@ -78,7 +85,8 @@
       "audio": "slices-avatar/s07.mp3",
       "video_id": "2f196924335d4d3481e6d9953be0ddbb",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:41:42.374Z"
+      "submitted_at": "2026-07-31T08:41:42.374Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s07.mp4"
     },
     {
       "id": "s08",
@@ -89,7 +97,8 @@
       "audio": "slices-avatar/s08.mp3",
       "video_id": "96612b7891034830a593cb80f7c372f8",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:42:56.452Z"
+      "submitted_at": "2026-07-31T08:42:56.452Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s08.mp4"
     },
     {
       "id": "s09",
@@ -98,10 +107,10 @@
       "end": 995.83,
       "duration": 12.78,
       "audio": "slices-avatar/s09.mp3",
-      "video_id": "e9376881d375468a80e88c2626219611",
+      "video_id": "1fdc64c1866a45a6a9638c34bbc310ff",
       "status": "submitted",
-      "submitted_at": "2026-07-31T07:58:00.000Z",
-      "restored_note": "video_id recovered from the first submit run task log after the rerun truncated the manifest"
+      "submitted_at": "2026-07-31T08:44:16.251Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s09.mp4"
     },
     {
       "id": "s10",
@@ -110,22 +119,22 @@
       "end": 1074.83,
       "duration": 22.66,
       "audio": "slices-avatar/s10.mp3",
-      "video_id": "58c347604e444bbda0f8ecd02306b98b",
+      "video_id": "3bb39114f8fe48888080274e12956dd5",
       "status": "submitted",
-      "submitted_at": "2026-07-31T07:58:00.000Z",
-      "restored_note": "video_id recovered from the first submit run task log after the rerun truncated the manifest"
+      "submitted_at": "2026-07-31T08:45:26.841Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/s10.mp4"
     },
     {
       "id": "corner-01",
+      "kind": "corner",
       "start": 0,
       "end": 300,
-      "kind": "corner",
       "duration": 300,
       "audio": "slices-avatar/corner-01.mp3",
-      "video_id": "c227ca38aa2e443faf3450b8a2a7eddb",
+      "video_id": "61062935a0d54f7a8f62016035f2cab3",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:10:00.000Z",
-      "restored_note": "video_id recovered from the first submit run task log"
+      "submitted_at": "2026-07-31T08:56:07.741Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/corner-01.mp4"
     },
     {
       "id": "corner-02",
@@ -134,33 +143,34 @@
       "end": 600,
       "duration": 300,
       "audio": "slices-avatar/corner-02.mp3",
-      "video_id": "98b33718686247abb8ef30b074f184ed",
+      "video_id": "af3823d3b7a94683927c8304fa4a636c",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:46:22.029Z"
+      "submitted_at": "2026-07-31T08:59:08.184Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/corner-02.mp4"
     },
     {
       "id": "corner-03",
+      "kind": "corner",
       "start": 600,
       "end": 900,
-      "kind": "corner",
       "duration": 300,
       "audio": "slices-avatar/corner-03.mp3",
-      "video_id": "bab639600f754275bb86c0eefc2ff5be",
+      "video_id": "84df072449b74b97a1d1e59b514e2bf7",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:10:00.000Z",
-      "restored_note": "video_id recovered from the first submit run task log"
+      "submitted_at": "2026-07-31T09:01:24.875Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/corner-03.mp4"
     },
     {
       "id": "corner-04",
-      "start": 900,
-      "end": 1076.53,
       "kind": "corner",
-      "duration": 176.53,
+      "start": 900,
+      "end": 1074.83,
+      "duration": 174.83,
       "audio": "slices-avatar/corner-04.mp3",
-      "video_id": "f561a7287ab6485493796080533bbbf6",
+      "video_id": "a71cb58a6abb43bf9c0068ca0631acab",
       "status": "submitted",
-      "submitted_at": "2026-07-31T08:10:00.000Z",
-      "restored_note": "video_id recovered from the first submit run task log"
+      "submitted_at": "2026-07-31T09:04:24.605Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/corner-04.mp4"
     }
   ]
 }

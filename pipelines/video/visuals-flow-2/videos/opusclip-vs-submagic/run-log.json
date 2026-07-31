@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "updated": "2026-07-31T08:49:17.581Z",
+  "updated": "2026-07-31T09:46:21.625Z",
   "steps": {
     "037-approve-card-plan-human": {
       "status": "done",
@@ -99,16 +99,28 @@
       "issues": "none found"
     },
     "100-render-avatar-run": {
-      "status": "running",
-      "started": "2026-07-31T08:43:50.367Z"
+      "status": "done",
+      "started": "2026-07-31T08:43:50.367Z",
+      "ended": "2026-07-31T09:42:18.349Z",
+      "did": "Submitted all 14 HeyGen Avatar III jobs (10 host spans + 4 corner-track chunks, engineMode test, template specs-man re-pointed to the live man template) and downloaded every clip. Three submit rounds were needed: two dead template ids, one transient network failure, and a zombie run whose stale manifest flush twice erased recorded video ids — all recovered from task logs.",
+      "issues": "specs-man and specs-man-2 template ids were deleted from the HeyGen space (registry re-pointed); duplicate orphan renders exist on HeyGen from the retries, all free-tier, no cleanup needed.",
+      "output": "avatar-jobs.json 14/14 submitted; clips in ~/kb-scratch/video/heygen/visuals-flow-2/opusclip-vs-submagic/ (14 mp4)"
     },
     "090-render-graphics-run": {
       "status": "done",
-      "started": "2026-07-31T08:43:50.742Z",
-      "ended": "2026-07-31T08:49:17.581Z",
-      "did": "Rendered all 39 approved cues via the hyperframes renderer (5 unchanged cards reused from cache, 34 rendered fresh, 3 parallel jobs, 188.6s).",
+      "started": "2026-07-31T09:42:38.217Z",
+      "did": "Rendered every approved cue to a clip and wrote the editor manifest.",
       "issues": "The run itself was clean; record_step died on a zero-warning grep under pipefail AFTER the render succeeded, so this entry is written by hand and the guard is now fixed in run.sh.",
-      "output": "videos/opusclip-vs-submagic/renders/ — 39 segments (19 fullframe mp4, 20 alpha-overlay mov)"
+      "output": "renders/ + manifest.md",
+      "ended": "2026-07-31T09:42:39.305Z"
+    },
+    "110-build-video-run": {
+      "status": "done",
+      "started": "2026-07-31T09:43:47.243Z",
+      "ended": "2026-07-31T09:46:21.625Z",
+      "did": "Assembled the screen recording, graphics, avatar clips and mastered audio into a draft cut.",
+      "output": "final-draft.mp4 + assembly.md",
+      "issues": "none found"
     }
   }
 }
