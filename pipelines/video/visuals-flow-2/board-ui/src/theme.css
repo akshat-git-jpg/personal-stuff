@@ -5,3 +5,18 @@
 }
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:var(--font); background:var(--bg); color:var(--text); }
+
+/* ---- loading states (owner ask 2026-07-31: blank-while-loading reads as buggy) */
+.app-loading { display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 90px 0; color: var(--dim); font-size: 13px; }
+.spinner { width: 16px; height: 16px; flex: none; border: 2px solid var(--line);
+  border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.switch-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(15,11,7,0.78);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  color: var(--text); font-size: 14px; }
+.preview-loading { position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; color: var(--dim); font-size: 12px;
+  background: linear-gradient(100deg, #141017 40%, #1f1721 50%, #141017 60%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }

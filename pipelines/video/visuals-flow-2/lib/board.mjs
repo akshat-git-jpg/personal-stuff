@@ -229,6 +229,40 @@ function ensureSlices(workdir) {
   fs.writeFileSync(indexFile, JSON.stringify(newCache, null, 2));
 }
 
+// One slice, cut lazily at request time. The bulk ensureSlices used to run
+// synchronously BEFORE the page response whenever a video was opened or
+// switched — 30+ ffmpeg cuts of dead air with a blank browser ("Waiting for
+// localhost…", owner report 2026-07-31). Pages now respond instantly and a
+// slice is cut the moment its audio is actually requested (~100ms, and tile
+// audios use preload="none" so nothing stampedes). ensureSlices remains on
+// the SAVE path only, where its prune-stale-slices half matters.
+function ensureSlice(workdir, id) {
+  const resolvedPath = path.join(workdir, 'resolved.json');
+  if (!fs.existsSync(resolvedPath)) return null;
+  const { resolved } = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
+  const cue = resolved.find((c) => c.id === id);
+  if (!cue) return null;
+  const slicesDir = path.join(workdir, 'slices');
+  fs.mkdirSync(slicesDir, { recursive: true });
+  const slicePath = path.join(slicesDir, `${id}.mp3`);
+  const indexFile = path.join(slicesDir, '.index.json');
+  const cache = fs.existsSync(indexFile) ? JSON.parse(fs.readFileSync(indexFile, 'utf8')) : {};
+  const key = `${cue.start}:${cue.duration}`;
+  if (fs.existsSync(slicePath) && cache[id] === key) return slicePath;
+  const result = spawnSync('ffmpeg', [
+    '-y', '-ss', String(cue.start), '-t', String(cue.duration),
+    '-i', path.join(workdir, 'vo.mp3'), '-c:a', 'libmp3lame', '-q:a', '4',
+    slicePath,
+  ], { encoding: 'utf8' });
+  if (result.status !== 0) {
+    console.error(`slice failed for ${id}: ${result.stderr || result.error}`);
+    return null;
+  }
+  cache[id] = key;
+  fs.writeFileSync(indexFile, JSON.stringify(cache, null, 2));
+  return slicePath;
+}
+
 async function readBody(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
@@ -822,7 +856,9 @@ function serveCard(res, workdir, cardLibraryRoot, id) {
 }
 
 function serveSlice(res, workdir, id) {
-  const slicePath = path.join(workdir, 'slices', `${id}.mp3`);
+  // Cut lazily — see ensureSlice. Falls back to a pre-cut file so a slice
+  // from the save-path bulk refresh still serves if resolved.json vanished.
+  const slicePath = ensureSlice(workdir, id) ?? path.join(workdir, 'slices', `${id}.mp3`);
   if (!fs.existsSync(slicePath)) {
     res.statusCode = 404;
     return res.end('slice not found');
@@ -852,9 +888,8 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   res.setHeader('Connection', 'close');
   const workdir = requestedWorkdir(url, launchWorkdir);
-  // Slices are cut per video and only on demand, so a switched-to video gets
-  // them the first time it is opened rather than at server start.
-  if (workdir !== launchWorkdir) ensureSlices(workdir);
+  // No bulk slice-cutting here: it ran BEFORE the response and blanked the
+  // browser for seconds on every video switch. /slice/<id> cuts on demand.
 
   if (req.method === 'POST') {
     const host = req.headers.host || '';
@@ -1200,7 +1235,7 @@ export function createServer(workdir) {
     }
   }
 
-  ensureSlices(workdir);
+  // No bulk slice-cutting at boot — /slice/<id> cuts on demand (ensureSlice).
 
   return httpCreateServer((req, res) => {
     handleRequest(req, res, workdir, cardLibraryRoot).catch((err) => {

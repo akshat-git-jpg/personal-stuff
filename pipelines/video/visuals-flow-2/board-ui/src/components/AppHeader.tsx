@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Tab, TABS, urlForVideo } from '../lib/router';
 import './AppHeader.css';
 
@@ -9,8 +9,13 @@ export function AppHeader(props: {
   secondary?: ReactNode;       // row 2 — allowed to differ per tab
   onTab: (t: Tab) => void;
 }) {
+  // Video switch is a full navigation; the OLD page stays painted until the
+  // server answers, which used to look frozen. The overlay is the feedback
+  // for that in-between (owner report 2026-07-31).
+  const [switching, setSwitching] = useState<string | null>(null);
   const switchVideo = (slug: string) => {
     if (props.dirty && !confirm('You have unsaved feedback. Switch video and lose it?')) return;
+    setSwitching(slug);
     location.href = urlForVideo(slug, location);   // full navigation, like today
   };
   return (
@@ -32,6 +37,9 @@ export function AppHeader(props: {
         <div className="action-slot">{props.actions}</div>
       </div>
       <div className="app-header-row2">{props.secondary}</div>
+      {switching && (
+        <div className="switch-overlay"><span className="spinner" />opening {switching}…</div>
+      )}
     </header>
   );
 }

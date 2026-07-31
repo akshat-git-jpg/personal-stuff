@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useTileSync } from '../lib/tileSync';
 import { useOverflowBadge } from '../lib/overflow';
 import { FeedbackBox } from './FeedbackBox';
@@ -33,6 +33,7 @@ export function CueTile({
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [cardLoaded, setCardLoaded] = useState(false);
 
   useTileSync(audioRef, iframeRef);
   const overflow = useOverflowBadge(iframeRef, seg.probeTimes || []);
@@ -122,11 +123,18 @@ export function CueTile({
       {resolved ? (
         <>
           <div className="preview">
+            {/* shimmer until the card iframe fires load — a black box while a
+                card loads reads as broken (owner report 2026-07-31) */}
+            {!reviewed && !cardLoaded && <div className="preview-loading">loading card…</div>}
             {!reviewed && (
-              <iframe ref={iframeRef} loading="lazy" src={`/card/${encodeURIComponent(cue.id)}`} />
+              <iframe ref={iframeRef} loading="lazy" src={`/card/${encodeURIComponent(cue.id)}`}
+                onLoad={() => setCardLoaded(true)} />
             )}
           </div>
-          <audio ref={audioRef} className="scrub" controls src={`/slice/${encodeURIComponent(cue.id)}.mp3`} />
+          {/* preload="none": slices are cut server-side on first request —
+              30+ tiles preloading at once would queue 30+ ffmpeg cuts */}
+          <audio ref={audioRef} className="scrub" controls preload="none"
+            src={`/slice/${encodeURIComponent(cue.id)}.mp3`} />
         </>
       ) : (
         <div className="unresolved-note">no resolved timing for this cue — fix the anchor and Save</div>

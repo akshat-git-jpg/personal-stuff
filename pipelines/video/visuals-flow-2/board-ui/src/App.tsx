@@ -82,7 +82,19 @@ export function App() {
     setTab(t);
   };
 
-  if (!boardData) return <div style={{ padding: 24 }}>Loading...</div>;
+  if (!boardData) {
+    // Keep the chrome on screen while data loads — a vanishing header reads
+    // as a broken page, not a loading one (owner report 2026-07-31).
+    return (
+      <>
+        <AppHeader video={video} videos={[video]} tab={tab} dirty={false}
+          meta={null} actions={null} secondary={null} onTab={onTab} />
+        <main>
+          <div className="app-loading"><span className="spinner" />loading {video}…</div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <FeedbackProvider initialItems={boardData.feedback}>
