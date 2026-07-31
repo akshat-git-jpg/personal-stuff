@@ -2607,7 +2607,8 @@
       ],
       "intent": "The intro hook enacted: named pains pile up against a POSTED gate that never opens, and the video answer — the matchup — takes the frame.",
       "anti_intent": "Not for single-product videos, not for mid-video sections, and never without word-anchored beats — the stamps ARE the sync. Max 3 pains.",
-      "note": "Owner-commissioned intro template 2026-07-31 (final-v4:0). The beat whose label matches the marker variable times Act 2 (the sweep to the matchup); pain beats stamp their clip cards in word-sync. entry_phase: the strip entrance is real content, so the cue anchor places the card."
+      "note": "Owner-commissioned intro template 2026-07-31 (final-v4:0). The beat whose label matches the marker variable times Act 2 (the sweep to the matchup); pain beats stamp their clip cards in word-sync. entry_phase: the strip entrance is real content, so the cue anchor places the card.",
+      "hero_shape": "none"
     }
   ]
 }
