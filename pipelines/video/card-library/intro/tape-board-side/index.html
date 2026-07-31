@@ -114,6 +114,11 @@
       const $ = (id) => document.getElementById(id);
       const LOGOS = VARS.__logos ?? {};
 
+      // Renderer quirk (verified 2026-07-31): color: var(--accent) on text
+      // renders WHITE in every --variables render. The CSS rule stays for the
+      // browser/board; the render gets the token resolved to an inline literal.
+      const ACCENT = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#fb923c';
+
       function build() {
         $('marks').innerHTML = DATA.platforms.slice(0, 2).map((p) => {
           const src = LOGOS[p.logo];
@@ -123,7 +128,7 @@
           return `<div class="mark"><div class="tile">${logo}</div><div class="name">${p.name || ''}</div></div>`;
         }).join('');
         $('rows').innerHTML = DATA.pains.slice(0, 3).map((p) =>
-          `<div class="row" data-pain="${p.label}">${p.label}</div>`).join('');
+          `<div class="row" data-pain="${p.label}" style="color:${ACCENT}">${p.label}</div>`).join('');
       }
       build();
 
