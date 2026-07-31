@@ -2550,15 +2550,16 @@
       "anti_intent": "A passing mention of the link mid-demo where dimming the screen would hide something the viewer needs to see."
     },
     {
-      "slug": "intro/versus-cold-open",
+      "slug": "intro/tape-board-side",
       "kind": "beat",
       "beat_source": "variables",
       "beat_var": "pains",
-      "max_beats": 4,
+      "max_beats": 3,
       "placement": "fullframe",
-      "side": false,
+      "side": true,
       "entry_phase": true,
-      "purpose": "comparison video cold open, two acts: a film strip of clip cards drifts toward a closed POSTED slot while each spoken pain stamps its card in word-sync; then the strip sweeps out and the two products land as a VS matchup. For the sentence shape 'if you are still fixing A, B and C instead of posting, these two tools claim to fix it'",
+      "hero_shape": "none",
+      "purpose": "side-mode comparison intro: the full-height host talks in the right 720px while the left 1200px carries a tale-of-the-tape board — the two brand marks face each other and each spoken pain slides in as a board row, word-synced. For an intro hook naming 2-3 pains before introducing two tools",
       "variables": {
         "platforms": {
           "type": "array",
@@ -2591,24 +2592,16 @@
               "example": "Captions"
             }
           }
-        },
-        "marker": {
-          "type": "string",
-          "required": true,
-          "role": "label",
-          "max_words": 1,
-          "example": "VS"
         }
       },
-      "default_duration": 18,
+      "default_duration": 15,
       "roles": [
         "comparison-coldopen",
         "intro"
       ],
-      "intent": "The intro hook enacted: named pains pile up against a POSTED gate that never opens, and the video answer — the matchup — takes the frame.",
-      "anti_intent": "Not for single-product videos, not for mid-video sections, and never without word-anchored beats — the stamps ARE the sync. Max 3 pains.",
-      "note": "Owner-commissioned intro template 2026-07-31 (final-v4:0). The beat whose label matches the marker variable times Act 2 (the sweep to the matchup); pain beats stamp their clip cards in word-sync. entry_phase: the strip entrance is real content, so the cue anchor places the card.",
-      "hero_shape": "none"
+      "intent": "The host carries the intro energy while the board quietly builds the matchup and the named pains beside them.",
+      "anti_intent": "Only for use UNDER a side-mode avatar span — its content deliberately occupies the left 1200px and the right 720px is background for the host. Never place it without the host span, and never with more than 3 pains.",
+      "note": "Owner-commissioned 2026-07-31 (v5 fold, side-mode intro). Content constrained to the left 1200px (SIDE_GRAPHICS_W); the side avatar covers the rest. Replaced intro/versus-cold-open, which the owner rejected on the v5 review (empty boxes, dead top half, slot collision)."
     }
   ]
 }
