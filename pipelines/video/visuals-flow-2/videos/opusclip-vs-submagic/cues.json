@@ -5,9 +5,9 @@
   "cues": [
     {
       "id": "z01",
-      "card": "title/title-versus",
+      "card": "intro/versus-cold-open",
       "anchor": "If you're turning long videos",
-      "hold": 0.5,
+      "hold": 2.5,
       "variables": {
         "platforms": [
           {
@@ -18,9 +18,46 @@
             "name": "OpusClip",
             "logo": "opusclip"
           }
-        ]
+        ],
+        "pains": [
+          {
+            "label": "Captions"
+          },
+          {
+            "label": "Pacing"
+          },
+          {
+            "label": "Layouts"
+          }
+        ],
+        "marker": "VS"
       },
-      "beats": [],
+      "beats": [
+        {
+          "reveal": {
+            "label": "Captions"
+          },
+          "anchor": "fixing captions, pacing"
+        },
+        {
+          "reveal": {
+            "label": "Pacing"
+          },
+          "anchor": "and layouts than"
+        },
+        {
+          "reveal": {
+            "label": "Layouts"
+          },
+          "anchor": "actually posting, then"
+        },
+        {
+          "reveal": {
+            "label": "VS"
+          },
+          "anchor": "automating and doing it badly"
+        }
+      ],
       "flagged": false,
       "lead": 0,
       "register": "dark",

@@ -892,3 +892,18 @@ test('registerVersion records the placeholder flag', () => {
   const onDisk = JSON.parse(fs.readFileSync(path.join(dir, 'versions.json'), 'utf8'));
   assert.equal(onDisk.versions.find(v => v.label === e1.label).placeholder, true);
 });
+
+test('absorbSlivers never overrides a deliberate screen return (final-v4:0)', () => {
+  // The resolver returns to screen for gaps over GAP_ABSORB (4s) ON PURPOSE.
+  // Assembly froze a card's last frame over a 5.8s return once — silently,
+  // after every lint had already run. Absorption is glitch mop-up only.
+  const segments = [
+    { kind: 'graphic', start: 0, end: 11.9, id: 'z01' },
+    { kind: 'screen', start: 11.9, end: 17.7, id: 's1' },
+    { kind: 'graphic', start: 17.7, end: 30, id: 'z02' }
+  ];
+  const out = absorbSlivers(segments);
+  assert.equal(out.length, 3);
+  assert.equal(out[1].kind, 'screen');
+  assert.equal(out[0].padEnd, undefined);
+});

@@ -4,7 +4,7 @@ Timecodes assume the voiceover starts at 00:00.0 on the editor timeline. If an i
 
 | place at | file | duration | placement | card |
 |---|---|---|---|---|
-| 00:00.0 | 0000-z01-title-versus.mp4 | 11.9s | fullframe | title/title-versus |
+| 00:00.0 | 0000-z01-versus-cold-open.mp4 | 17.7s | fullframe | intro/versus-cold-open |
 | 00:17.7 | 0017-z02-promise-split.mp4 | 15.72s | fullframe | enacted/promise-split |
 | 00:33.4 | 0033-z03-promise-payoff.mp4 | 5.38s | fullframe | statement/promise-payoff |
 | 00:53.5 | 0053-z05-pipeline-flow.mp4 | 7.7s | fullframe | enacted/pipeline-flow |

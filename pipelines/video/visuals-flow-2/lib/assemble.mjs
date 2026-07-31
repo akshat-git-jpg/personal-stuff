@@ -177,18 +177,20 @@ export function planSegmentOverlays(segments, overlays) {
   });
 }
 
-// A screen appearance must be long enough to show something meaningful —
-// "what was the point of that small amount of time where you showed screen
-// recording?" (owner final-v1:3, 2026-07-31; a 2.9s sliver escaped the old
-// 2.5 cap by 0.4s). Absorption is ASYMMETRIC because the two directions look
-// completely different on screen: a card holding its FINISHED last frame for
-// up to 6s reads as a hold (padEnd), but padding a card's head clones its
-// pre-entrance frame — near-black background — so that stays glitch-length
-// only (2.5s; a 2.9s sliver padded this way shipped as a black hold in v2).
+// Assembly-level absorption is GLITCH MOP-UP ONLY — it runs after every lint,
+// so any decision it makes is invisible to the gates. The resolver owns the
+// intentional calls: GAP_ABSORB (4s) extends a card's exposure over short
+// gaps, and anything longer is a DELIBERATE return to screen recording that
+// assembly must never override. Both caps therefore sit BELOW GAP_ABSORB.
+// (Bitten 2026-07-31, final-v4:0: a 6s hold cap silently froze the intro
+// title card over its 5.8s screen return — the exact static-screen class the
+// owner keeps flagging — and no lint could see it because the absorption
+// happened after they all ran.) The head direction additionally clones the
+// card's pre-entrance frame (near-black), so it was already glitch-length.
 // Longer pre-card slivers are a planning problem: entry_phase cards anchor
 // flush to the avatar end, and lint W5/E5 flags what remains. Avatar clips
 // are fixed-length renders, so avatar absorption stays a brief 1s freeze.
-export const SLIVER_GRAPHIC_HOLD = 6;
+export const SLIVER_GRAPHIC_HOLD = 2.5;
 export const SLIVER_GRAPHIC_HEAD = 2.5;
 export const SLIVER_GRAPHIC = SLIVER_GRAPHIC_HOLD; // max reach, for lint mirrors
 export const SLIVER_AVATAR = 1.0;

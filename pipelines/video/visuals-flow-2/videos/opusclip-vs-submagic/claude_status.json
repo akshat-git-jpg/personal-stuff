@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-31T12:37:35.985Z",
+  "updated": "2026-07-31T14:34:54.159Z",
   "items": {
     "z03": {
       "status": "fixed",
@@ -80,6 +80,10 @@
     "final-v3:1": {
       "status": "fixed",
       "message": "z06 removed for this video"
+    },
+    "final-v4:0": {
+      "status": "fixed",
+      "message": "freeze bug fixed structurally + new commissioned intro template versus-cold-open covers the whole window with word-synced motion"
     }
   }
 }

@@ -4,10 +4,10 @@
   "resolved": [
     {
       "id": "z01",
-      "card": "title/title-versus",
+      "card": "intro/versus-cold-open",
       "placement": "fullframe",
       "start": 0,
-      "duration": 11.9,
+      "duration": 17.7,
       "variables": {
         "platforms": [
           {
@@ -17,6 +17,36 @@
           {
             "name": "OpusClip",
             "logo": "opusclip"
+          }
+        ],
+        "pains": [
+          {
+            "label": "Captions"
+          },
+          {
+            "label": "Pacing"
+          },
+          {
+            "label": "Layouts"
+          }
+        ],
+        "marker": "VS",
+        "beats": [
+          {
+            "label": "Captions",
+            "at": 5.8
+          },
+          {
+            "label": "Pacing",
+            "at": 7.66
+          },
+          {
+            "label": "Layouts",
+            "at": 8.76
+          },
+          {
+            "label": "VS",
+            "at": 12.38
           }
         ],
         "register": "dark"

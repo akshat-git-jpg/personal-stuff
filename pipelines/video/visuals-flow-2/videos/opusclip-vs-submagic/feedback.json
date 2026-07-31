@@ -237,6 +237,14 @@
       "applied": true,
       "folded": true,
       "resolution": "z06 (checklist/icon-pills, 72-84s) deleted for this video on owner instruction. The resulting 30.9s intro gap trips W15 by design — owner call, not an oversight. Instance-only."
+    },
+    "final-v4:0": {
+      "text": "till 17 sec same static screen. why it passed your rule.., same feedback has been given again and again",
+      "t": 17.649647,
+      "context": "final@00:17",
+      "applied": true,
+      "folded": true,
+      "resolution": "Root cause was a regression from this session's own sliver fix: assembly-level hold-absorption (6s) silently froze the intro card over the resolver's deliberate 5.8s screen return, after all lints had run. Durable: absorption caps dropped below GAP_ABSORB (2.5s, glitch mop-up only) + regression test — assembly can never override the plan again. The window itself got the owner-directed real fix: new commissioned template intro/versus-cold-open (two-act enacted hook: pain stamps in word-sync toward a closed POSTED slot, then the Submagic-vs-OpusClip matchup) covering 0:00-0:17.7 with authored motion."
     }
   }
 }
