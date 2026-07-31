@@ -9,6 +9,7 @@ import { spliceShotBlocks } from '../lib/splice';
 import './StoryboardTab.css';
 import { useReviewed } from '../lib/reviewed';
 import { useFeedback, savePayloadFeedback } from '../lib/feedback';
+import { defaultFrag, buildTileModels, buildSpanModels } from '../lib/collector';
 import { TimelineCanvas } from '../components/TimelineCanvas';
 import { DetailDock } from '../components/DetailDock';
 import { FxStage } from '../components/FxStage';
@@ -57,64 +58,59 @@ export function StoryboardTab({
 
   const [openId, setOpenId] = useState<string | null>(null);
 
+  // ---- tile/span edit store -------------------------------------------------
+  // Edits are keyed by cue/span id HERE, not in the components: tiles mount and
+  // unmount as the dock reveals blocks, so component-local state would discard
+  // edits on undock — and Save must send EVERY cue (the server replaces
+  // cues.json's list wholesale; sending only mounted tiles destroys the rest).
+  const [tileEdits, setTileEdits] = useState<Record<string, { fragJson?: string; flagged?: boolean; note?: string }>>({});
+  const [spanEdits, setSpanEdits] = useState<Record<string, string>>({});
+  const editTile = (id: string, patch: { fragJson?: string; flagged?: boolean; note?: string }) =>
+    setTileEdits(prev => ({ ...prev, [id]: { ...prev[id], ...patch } }));
+  const editSpan = (id: string, fragJson: string) =>
+    setSpanEdits(prev => ({ ...prev, [id]: fragJson }));
+  // handleSave lives inside the header-slot effect, whose deps deliberately
+  // exclude the edit maps (re-wiring the header per keystroke is waste) — so
+  // it must read the CURRENT edits through refs, never the closure.
+  const tileEditsRef = useRef(tileEdits); tileEditsRef.current = tileEdits;
+  const spanEditsRef = useRef(spanEdits); spanEditsRef.current = spanEdits;
+  const tilePropsFor = (cue: any) => ({
+    frag: tileEdits[cue.id]?.fragJson ?? defaultFrag(cue),
+    flagged: tileEdits[cue.id]?.flagged ?? (cue.flagged ?? false),
+    note: tileEdits[cue.id]?.note ?? (cue.note ?? ''),
+    onEdit: (patch: { fragJson?: string; flagged?: boolean; note?: string }) => editTile(cue.id, patch),
+  });
+  const spanFragFor = (origSpan: any) => spanEdits[origSpan.id] ?? JSON.stringify(origSpan, null, 2);
+
   // Expose meta & actions
   useEffect(() => {
     const handleSave = async () => {
-      const cueTiles = [...document.querySelectorAll('.tile')].map(tile => {
-        const id = (tile as HTMLElement).dataset.id!;
-        const card = (tile as HTMLElement).dataset.card!;
-        const lead = (tile as HTMLElement).dataset.lead || '';
-        const fragEl = tile.querySelector('.frag') as HTMLTextAreaElement;
-        const flagEl = tile.querySelector('.flag-input') as HTMLInputElement;
-        const noteEl = tile.querySelector('.note') as HTMLInputElement;
-        return {
-          id, card,
-          lead: (lead ? Number(lead) : '') as number | '',
-          fragJson: fragEl ? fragEl.value : '',
-          flagged: flagEl ? flagEl.checked : false,
-          note: noteEl ? noteEl.value : ''
-        };
-      }).filter(c => c.fragJson !== undefined && c.fragJson !== ''); // avoid empty if unmounted in timeline mode
-
-      // Wait, in timeline mode, tiles are unmounted! We must pull from boardData for unmounted ones.
-      // But we are keeping edits in tab-level store! Actually, CueTile uses local state for some edits...
-      // wait, plan 172: "Tile editor STATE (frag text, flag, note, feedback) lives in the tab-level store from plan 172, so docking/undocking never loses edits"
-      // If they live in the store (like fb), it's fine. But wait, `cues` edits are currently collected from the DOM in legacy code.
-      // We will only collect the mounted tiles' DOM state and merge it with boardData? No, let's just collect mounted. Wait, that loses edits!
-      // I will just use the original list code. In timeline mode, if you want to save everything, you must have the edits in a central store. But legacy DOM parser only sees mounted DOM.
-      // Since "do not invent" is the rule, I will just run the DOM parser.
-      // Actually, wait, the problem is in timeline mode, NOT ALL blocks are mounted.
-      // Let's implement the store-owns-state correctly if required, or just use what plan 172 had.
-      // Plan 172 didn't implement a central state for frags because "Tile editor STATE lives in the tab-level store from plan 172" - wait, plan 172 didn't actually create a store for fragments? No, it used DOM scraping!
-      // Let's just scrape whatever is mounted. If we need to preserve, well, we can't easily change plan 172 code. I'll just scrape DOM.
+      // Collect from the edit store over the FULL cue list — never from the
+      // DOM. In timeline mode only the docked tile is mounted; a DOM scrape
+      // would send that one cue and the server would rewrite cues.json to it.
+      const cueTiles = buildTileModels(boardData.cues || [], tileEditsRef.current);
 
       const { collectCues, collectSpans, buildSavePayload } = await import('../lib/collector');
-      
+
       const cuesRes = collectCues(cueTiles);
       if (!cuesRes.ok) {
         addBanner(`invalid fragment JSON — nothing saved:<br>${cuesRes.broken.join('<br>')}`, 'err');
         return;
       }
 
-      const shotBlocks = [...document.querySelectorAll('.shot-block')].map(b => ({
-        id: b.id.replace('shot-', ''),
-        fragJson: (b.querySelector('.shot-frag') as HTMLTextAreaElement).value
-      }));
-
+      const fileSpans = shots ? (shots.fileSpans || shots.spans || []) : [];
+      const shotModels = buildSpanModels(fileSpans, spanEditsRef.current);
       let spansRes: any = { ok: true, spans: [] };
-      if (shotBlocks.length > 0) {
-        spansRes = collectSpans(shotBlocks);
+      if (shotModels.length > 0) {
+        spansRes = collectSpans(shotModels);
         if (!spansRes.ok) {
           addBanner(`invalid fragment JSON — nothing saved:<br>${spansRes.broken.join('<br>')}`, 'err');
           return;
         }
       }
 
-      const feedback: Record<string, string> = {};
-      document.querySelectorAll('textarea.feedback').forEach(t => {
-        feedback[(t as HTMLElement).dataset.ref!] = (t as HTMLTextAreaElement).value;
-      });
-
+      // Feedback comes from the store alone — FeedbackBox is controlled by it,
+      // so mounted textareas can never disagree with it.
       const fbPayload = savePayloadFeedback(fb);
 
       const toggles = [...document.querySelectorAll('.fx-toggle')];
@@ -126,10 +122,10 @@ export function StoryboardTab({
       const payload = buildSavePayload({
         video,
         approved: boardData.approved?.cues || false,
-        cues: cuesRes.cues.length ? cuesRes.cues : boardData.cues, // fallback if empty
-        feedback: { ...feedback, ...fbPayload.feedback },
+        cues: cuesRes.cues,
+        feedback: fbPayload.feedback,
         feedbackImages: fbPayload.feedbackImages,
-        spans: shotBlocks.length > 0 ? spansRes.spans : (shots ? (shots.fileSpans || shots.spans) : undefined),
+        spans: shots ? spansRes.spans : undefined,
         effects: effectsPayload
       });
 
@@ -139,6 +135,10 @@ export function StoryboardTab({
         addBanner(data.errors.join('<br>'), 'err');
       } else {
         fb.markSaved();
+        // The refetched boardData now carries the saved values; stale edit
+        // overlays would mask any server-side normalization.
+        setTileEdits({});
+        setSpanEdits({});
         onRefetch();
         if ((data.warnings && data.warnings.length) || (data.errors && data.errors.length)) {
           const w = data.warnings || [];
@@ -198,6 +198,10 @@ export function StoryboardTab({
       </>
     );
     onSecondary(sec);
+
+    // Reset the header slots on unmount, like CardPlanTab/FinalCutTab — without
+    // this, switching Storyboard → Run leaves Approve/Save stuck in the header.
+    return () => { onMeta(null); onActions(null); onSecondary(null); };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [video, boardData, flaggedCount, revCountGlobal, onMeta, onActions, onSecondary, onRefetch, viewMode]);
@@ -312,20 +316,24 @@ export function StoryboardTab({
   // Timeline props
   const graphicsBlocksHtml = useMemo(() => {
     if (!boardData.resolved) return [];
-    return boardData.resolved.map((c: any) => {
-      const f = typeof c.flagged === 'boolean' ? c.flagged : Boolean(Number(c.flagged));
-      const h = (audit && audit.cues && audit.cues[c.id]?.accepted) ? 'var(--ok)' : (f ? 'var(--err)' : 'var(--line)');
-      const bg = c.placement === 'cut' ? '#2a1a11' : 'var(--panel)';
+    // Legacy color encoding (board.mjs renderTimelinePage): the block's FILL
+    // says what it is — flagged --err, fullframe --accent, overlay
+    // --overlay-seg — matching the minimap legend. Label is the card basename.
+    return boardData.resolved.map((r: any) => {
+      const cue = (boardData.cues || []).find((c: any) => c.id === r.id);
+      const flagged = Boolean(cue?.flagged);
+      const colorVar = flagged ? '--err' : (r.placement === 'fullframe' ? '--accent' : '--overlay-seg');
       return {
-        id: c.id,
-        start: c.start,
-        dur: c.duration,
-        bg,
-        border: h,
-        label: c.id.split('-').slice(1).join('-')
+        id: r.id,
+        start: r.start,
+        dur: r.duration,
+        bg: `var(${colorVar})`,
+        // green ring = audit-accepted (additive signal, on top of the legacy fill)
+        border: (audit?.cues?.[r.id]?.accepted) ? 'var(--ok)' : `var(${colorVar})`,
+        label: (r.card ?? '').split('/').pop() ?? r.id,
       };
     });
-  }, [boardData.resolved, audit]);
+  }, [boardData.resolved, boardData.cues, audit]);
 
   const avatarBlocksHtml = useMemo(() => {
     if (!shots?.spans) return [];
@@ -397,7 +405,8 @@ export function StoryboardTab({
 
           {blocks.map((block: any, i: number) => {
             if (block.isShot) {
-              return <ShotBlock key={`shot-${i}`} span={block.span} origSpan={block.origSpan} />;
+              return <ShotBlock key={`shot-${i}`} span={block.span} origSpan={block.origSpan}
+                fragJson={spanFragFor(block.origSpan)} onEdit={(v) => editSpan(block.origSpan.id, v)} />;
             } else {
               const seg = block.seg;
               if (seg.kind === 'gap') {
@@ -417,6 +426,7 @@ export function StoryboardTab({
                     onReviewedChange={(v) => {
                       setReviewed(`sb:${cue.id}`);
                     }}
+                    {...tilePropsFor(cue)}
                   />
                 );
               }
@@ -446,6 +456,9 @@ export function StoryboardTab({
             audit={audit}
             hasReviewed={(id) => has(id)}
             onReviewedChange={(id, v) => setReviewed(id)}
+            tilePropsFor={tilePropsFor}
+            spanFragFor={spanFragFor}
+            onSpanEdit={editSpan}
           />
           <FxStage
             masterTime={masterTime}

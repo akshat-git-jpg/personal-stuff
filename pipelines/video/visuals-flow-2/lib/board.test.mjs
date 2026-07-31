@@ -31,12 +31,25 @@ function makeWorkdir(withEffects = false) {
   return dir;
 }
 
+// Every server is tracked and force-closed when the file finishes. Without
+// this, a test that throws before its `server.close()` leaks a listener, the
+// process never exits, and the whole suite HANGS instead of reporting the
+// failure (bitten 2026-07-31: a dist-dependent test failed on a fresh checkout
+// and check.sh sat silent for 20+ minutes).
+const OPEN_SERVERS = new Set();
 async function startServer(workdir) {
   const server = createServer(workdir);
+  OPEN_SERVERS.add(server);
   await new Promise((resolve) => server.listen(0, resolve));
   const { port } = server.address();
   return { server, base: `http://localhost:${port}` };
 }
+
+test.after(() => {
+  for (const s of OPEN_SERVERS) {
+    try { s.closeAllConnections?.(); s.close(); } catch { /* already closed */ }
+  }
+});
 
 test.before(() => {
   if (fs.existsSync(TMP_ROOT)) {

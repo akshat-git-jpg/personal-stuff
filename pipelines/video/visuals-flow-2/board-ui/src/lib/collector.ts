@@ -23,6 +23,38 @@ export type CollectResult =
   | { ok: true; cues: CueOut[] }
   | { ok: false; broken: string[] };
 
+export type TileEdit = { fragJson?: string; flagged?: boolean; note?: string };
+
+// The board's default fragment serialization — the single source shared by the
+// tile textarea (via StoryboardTab's tilePropsFor) and the save path, so an
+// unedited cue round-trips byte-identical and a no-op Save never un-approves.
+export function defaultFrag(cue: any): string {
+  return JSON.stringify(
+    { anchor: cue?.anchor, hold: cue?.hold ?? 3.0, variables: cue?.variables ?? {}, beats: cue?.beats ?? [] },
+    null, 2,
+  );
+}
+
+// One model per cue in the source list, ALWAYS — edits overlay, they never
+// filter. Save must see every cue whether or not its tile is mounted: the
+// server replaces cues.json's list wholesale, so a partial list destroys the
+// cues it omits (the timeline-mode docked-tile bug, found 2026-07-31).
+export function buildTileModels(cues: any[], edits: Record<string, TileEdit>): TileModel[] {
+  return (cues || []).map((cue) => ({
+    id: cue.id,
+    card: cue.card,
+    lead: (cue.lead ?? '') as number | '',
+    fragJson: edits[cue.id]?.fragJson ?? defaultFrag(cue),
+    flagged: edits[cue.id]?.flagged ?? (cue.flagged ?? false),
+    note: edits[cue.id]?.note ?? (cue.note ?? ''),
+  }));
+}
+
+// Same rule for shot spans: one model per file span, edits overlay.
+export function buildSpanModels(fileSpans: any[], edits: Record<string, string>): { id: string; fragJson: string }[] {
+  return (fileSpans || []).map((s) => ({ id: s.id, fragJson: edits[s.id] ?? JSON.stringify(s, null, 2) }));
+}
+
 export function collectCues(tiles: TileModel[]): CollectResult {
   const broken: string[] = [];
   const cues: CueOut[] = [];

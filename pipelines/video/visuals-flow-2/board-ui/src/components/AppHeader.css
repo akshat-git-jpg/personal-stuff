@@ -18,3 +18,18 @@
 .action-slot button.approve { border-color: var(--ok); color: var(--ok); }
 .action-slot button:disabled { cursor: not-allowed; opacity: .38;
   border-color: var(--line) !important; color: var(--dim) !important; background: transparent; }
+
+/* Base style for secondary-row controls (Save, mark all reviewed, expand all)
+   — without it they render as UA-default buttons on the dark theme. */
+.app-header-row2 > button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+}
+.app-header-row2 > button:hover { border-color: var(--dim); }

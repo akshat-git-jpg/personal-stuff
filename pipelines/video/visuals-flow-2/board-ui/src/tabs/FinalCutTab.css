@@ -163,3 +163,20 @@
 .fc-chip.fixed { background: #1b5e20; color: #fff; }
 .fc-chip.question { background: #b71c1c; color: #fff; }
 .fc-chip.other { background: #424242; color: #fff; }
+
+/* The version picker lives in the shared header's row 2 (secondary slot),
+   outside .fc-transport — without its own rule it renders as a UA-default
+   white control on the dark theme (same bug class as the original
+   unstyled .fb-attach). */
+#fc-version {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 8px;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  outline: none;
+  min-width: 72px;
+}

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef } from 'react';
 import { useTileSync } from '../lib/tileSync';
 import { useOverflowBadge } from '../lib/overflow';
 import { FeedbackBox } from './FeedbackBox';
@@ -12,8 +12,12 @@ function timecode(sec: number) {
   return `${m}:${s < 10 ? '0' : ''}${s.toFixed(1)}`;
 }
 
+// Edits live in StoryboardTab's tileEdits store, NOT here — the tile mounts and
+// unmounts as the dock reveals blocks, and local state would silently discard
+// edits (and Save must see EVERY cue, mounted or not).
 export function CueTile({
-  seg, cue, resolved, audit, reviewed, onReviewedChange
+  seg, cue, resolved, audit, reviewed, onReviewedChange,
+  frag, flagged, note, onEdit
 }: {
   seg: any;
   cue: any;
@@ -21,6 +25,10 @@ export function CueTile({
   audit: any;
   reviewed: boolean;
   onReviewedChange: (v: boolean) => void;
+  frag: string;
+  flagged: boolean;
+  note: string;
+  onEdit: (patch: { fragJson?: string; flagged?: boolean; note?: string }) => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -28,19 +36,8 @@ export function CueTile({
   useTileSync(audioRef, iframeRef);
   const overflow = useOverflowBadge(iframeRef, seg.probeTimes || []);
 
-  const [flagged, setFlagged] = useState(cue?.flagged ?? false);
-  const [note, setNote] = useState(cue?.note ?? '');
-  
   const beats = cue?.beats ?? [];
-  const fragment = { anchor: cue?.anchor, hold: cue?.hold ?? 3.0, variables: cue?.variables ?? {}, beats };
-  const [fragJson, setFragJson] = useState(JSON.stringify(fragment, null, 2));
-
-  // Sync internal state if cue props change
-  useEffect(() => {
-    setFlagged(cue?.flagged ?? false);
-    setNote(cue?.note ?? '');
-    setFragJson(JSON.stringify({ anchor: cue?.anchor, hold: cue?.hold ?? 3.0, variables: cue?.variables ?? {}, beats: cue?.beats ?? [] }, null, 2));
-  }, [cue]);
+  const fragJson = frag;
 
   let auditHtml = null;
   if (audit) {
@@ -135,13 +132,13 @@ export function CueTile({
       )}
 
       <label className="flag">
-        <input type="checkbox" className="flag-input" checked={flagged} onChange={e => setFlagged(e.target.checked)} /> flag: no card fits
+        <input type="checkbox" className="flag-input" checked={flagged} onChange={e => onEdit({ flagged: e.target.checked })} /> flag: no card fits
       </label>
-      <input className="note" type="text" placeholder="note (why no card fits)" value={note} onChange={e => setNote(e.target.value)} />
-      
+      <input className="note" type="text" placeholder="note (why no card fits)" value={note} onChange={e => onEdit({ note: e.target.value })} />
+
       <FeedbackBox refKey={cue.id} placeholder="feedback on this graphic — wrong card, wrong timing, wording… (read by the next Claude session)" />
-      
-      <textarea className="frag" value={fragJson} onChange={e => setFragJson(e.target.value)} />
+
+      <textarea className="frag" value={fragJson} onChange={e => onEdit({ fragJson: e.target.value })} />
     </div>
   );
 }

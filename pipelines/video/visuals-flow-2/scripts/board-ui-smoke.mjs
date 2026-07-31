@@ -194,6 +194,50 @@ try {
     if (resBare.status !== 302) throw new Error('/ did not 302');
   }
 
+  // Approved card plan with NEW items must show the build-next-step banner
+  // (plan 174 disposition of the legacy banner test; the fixture has c02
+  // status:"new", so toBuild > 0).
+  {
+    const resApprove = await fetch(`http://127.0.0.1:${port}/approve-card-plan`, { method: 'POST' });
+    if (!resApprove.ok) throw new Error('POST /approve-card-plan failed in smoke');
+    const domApproved = await new Promise((resolve, reject) => {
+      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
+      let child;
+      const timeout = setTimeout(() => {
+        if (child) child.kill('SIGKILL');
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(new Error('Chrome dump-dom timeout on approved #card-plan'));
+      }, CHROME_TIMEOUT_MS);
+      child = spawn(CHROME, [
+        '--headless=new', '--no-sandbox', '--disable-background-networking',
+        `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
+        '--virtual-time-budget=8000', '--dump-dom',
+        `http://127.0.0.1:${port}/app/?video=${slug}#card-plan`
+      ]);
+      let out = '';
+      child.stdout.on('data', d => {
+        out += d;
+        if (out.includes('</html>')) {
+          clearTimeout(timeout);
+          child.kill('SIGKILL');
+          resolve(out);
+        }
+      });
+      child.on('close', () => {
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+      });
+      child.on('error', e => {
+        clearTimeout(timeout);
+        fs.rmSync(profileDir, { recursive: true, force: true });
+        reject(e);
+      });
+    });
+    if (!domApproved.includes('build the NEW cards')) {
+      throw new Error('approved card plan with NEW items must show the "build the NEW cards" banner');
+    }
+  }
+
   // 5. screenshots
   const distAssets = fs.readdirSync(path.join(process.cwd(), 'board-ui/dist/assets'));
   const cssFile = distAssets.find(f => f.endsWith('.css'));

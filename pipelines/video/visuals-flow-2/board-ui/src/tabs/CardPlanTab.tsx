@@ -43,8 +43,15 @@ export function CardPlanTab({ video, cardPlan, onMeta, onActions, onSecondary, o
       }
     };
     
+    // No card-plan.json (a video from before gate 037, or step 035 not run
+    // yet): the tab stays in the strip for chrome consistency, but approving
+    // a plan that does not exist must be impossible — the POST would 500 on
+    // the missing file.
     onActions(
-      <button className="approve plan-approve-btn" onClick={approveCardPlan} style={{ borderColor: 'var(--ok)', color: 'var(--ok)' }}>
+      <button className="approve plan-approve-btn" onClick={approveCardPlan}
+        disabled={!cardPlan}
+        title={!cardPlan ? 'no card plan yet — step 035 writes card-plan.json' : undefined}
+        style={{ borderColor: 'var(--ok)', color: 'var(--ok)' }}>
         Approve card plan
       </button>
     );
@@ -60,7 +67,7 @@ export function CardPlanTab({ video, cardPlan, onMeta, onActions, onSecondary, o
       onActions(null);
       onSecondary(null);
     };
-  }, [numItems, numExisting, numToBuild, reviewed.count, onMeta, onActions, onSecondary, onRefetch]);
+  }, [cardPlan, numItems, numExisting, numToBuild, reviewed.count, onMeta, onActions, onSecondary, onRefetch]);
 
   const saveFeedback = async (part: string, cue: string | null, card: string | null, text: string, key: string) => {
     if (!text.trim()) return;
@@ -84,7 +91,17 @@ export function CardPlanTab({ video, cardPlan, onMeta, onActions, onSecondary, o
 
   const rulebookOf = (part: string) => part === 'body' ? 'the body rulebook (030)' : 'the intro/outro rulebook (035)';
 
-  if (!cardPlan) return null;
+  if (!cardPlan) {
+    return (
+      <div className="card-plan-tab">
+        <div style={{ maxWidth: 800, margin: '24px auto', color: 'var(--dim)', fontSize: 13 }}>
+          no <code>card-plan.json</code> yet — it is written by step 035
+          (<code>pick-or-propose-intro-outro-llm</code>). This video either predates
+          Gate 1 or has not reached that step; check the <a href="#" onClick={(e) => { e.preventDefault(); location.hash = ''; }}>Run</a> tab.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="card-plan-tab">

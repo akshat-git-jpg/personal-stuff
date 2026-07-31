@@ -100,7 +100,7 @@ export function TimelineCanvas({
                 return (
                   <div key={b.id} className="tl-block" data-start={b.start} data-dur={b.dur}
                     onClick={() => onReveal(b.id)}
-                    style={{ position: 'absolute', top: 8, bottom: 8, left: rect.left, width: rect.width, background: b.bg || 'var(--panel)', border: '1px solid ' + (b.border || 'var(--line)'), borderRadius: 4, overflow: 'hidden', cursor: 'pointer', fontSize: 11, padding: '0 4px', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}
+                    style={{ position: 'absolute', top: 8, bottom: 8, left: rect.left, width: rect.width, background: b.bg || 'var(--panel)', border: '1px solid ' + (b.border || 'var(--line)'), borderRadius: 4, overflow: 'hidden', cursor: 'pointer', fontSize: 11, padding: '0 4px', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', color: '#0f0b07' }}
                   >
                     {b.label}
                   </div>
@@ -113,7 +113,7 @@ export function TimelineCanvas({
                 return (
                   <div key={b.id} className="tl-block" data-start={b.start} data-dur={b.dur}
                     onClick={() => onReveal(b.id)}
-                    style={{ position: 'absolute', top: 8, bottom: 8, left: rect.left, width: rect.width, background: b.bg || 'var(--panel)', border: '1px solid ' + (b.border || 'var(--line)'), borderRadius: 4, overflow: 'hidden', cursor: 'pointer', fontSize: 11, padding: '0 4px', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}
+                    style={{ position: 'absolute', top: 8, bottom: 8, left: rect.left, width: rect.width, background: b.bg || 'var(--panel)', border: '1px solid ' + (b.border || 'var(--line)'), borderRadius: 4, overflow: 'hidden', cursor: 'pointer', fontSize: 11, padding: '0 4px', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', color: '#0f0b07' }}
                   >
                     {b.label}
                   </div>

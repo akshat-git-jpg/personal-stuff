@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# board-ui FIRST: board.test.mjs's cutover tests fetch `/`, which serves
+# board-ui/dist — on a fresh checkout (dist is gitignored) the suite fails
+# without this build, so it must precede `node --test` (found 2026-07-31).
+( cd board-ui && { [ -d node_modules ] || npm ci --no-audit --no-fund; } && npx vitest run && npm run build )
 node --test lib/source-structure.test.mjs lib/brand-inline.test.mjs lib/video-manifest.test.mjs lib/resolve.test.mjs lib/render.test.mjs lib/board.test.mjs lib/board-api.test.mjs lib/logos.test.mjs lib/lint-cues.test.mjs lib/lint-concept.test.mjs lib/edit-delta.test.mjs lib/feedback-status.test.mjs lib/resolve-shots.test.mjs lib/lint-shots.test.mjs lib/avatar-render.test.mjs lib/assemble.test.mjs lib/transcript-text.test.mjs lib/transcript-quality.test.mjs lib/captions.test.mjs lib/reference-moments.test.mjs lib/whip.test.mjs lib/bubble.test.mjs lib/effects.test.mjs lib/kinetic-sentence.test.mjs lib/export-timeline.test.mjs lib/qc-plan.test.mjs lib/render-fx.test.mjs lib/card-plan.test.mjs lib/run-log.test.mjs lib/sound/sfx-plan.test.mjs lib/sound/build-mix.test.mjs lib/sound/sound-constants.test.mjs lib/audit-gate.test.mjs lib/final-cut.test.mjs lib/zone-lint.test.mjs
 node lib/check-rulebook.mjs
 node lib/check-shot-rulebook.mjs
 node lib/check-zone-rulebook.mjs
 bash scripts/test-run-sh.sh
-# board-ui (React SPA) — unit tests, type-checked build, rendered-app smoke (plan 170)
-( cd board-ui && { [ -d node_modules ] || npm ci; } && npx vitest run && npm run build )
 node scripts/board-ui-smoke.mjs
 echo "visuals-flow check OK"

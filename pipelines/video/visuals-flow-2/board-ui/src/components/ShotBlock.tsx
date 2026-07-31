@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { FeedbackBox } from './FeedbackBox';
 
 function timecode(sec: number) {
@@ -8,12 +7,11 @@ function timecode(sec: number) {
   return `${m}:${s < 10 ? '0' : ''}${s.toFixed(1)}`;
 }
 
-export function ShotBlock({ span, origSpan }: { span: any; origSpan: any }) {
-  const [fragJson, setFragJson] = useState(JSON.stringify(origSpan, null, 2));
-
-  useEffect(() => {
-    setFragJson(JSON.stringify(origSpan, null, 2));
-  }, [origSpan]);
+// Edits live in StoryboardTab's spanEdits store, NOT here — same reason as
+// CueTile: the block unmounts with the dock, and Save must see every span.
+export function ShotBlock({ span, origSpan, fragJson, onEdit }: {
+  span: any; origSpan: any; fragJson: string; onEdit: (fragJson: string) => void;
+}) {
 
   const label = origSpan.mode === 'panel' ? '[P]' : (origSpan.mode === 'side' ? '[S]' : '[A]');
   const noteHtml = span.note ? ` — ${span.note}` : '';
@@ -23,7 +21,7 @@ export function ShotBlock({ span, origSpan }: { span: any; origSpan: any }) {
       <div className="shot-header">
         🧍 <b>{span.id}</b> {label} &middot; {timecode(span.start)} &rarr; {timecode(span.start + span.duration)} &middot; {span.duration}s{noteHtml}
       </div>
-      <textarea className="shot-frag" value={fragJson} onChange={e => setFragJson(e.target.value)} />
+      <textarea className="shot-frag" value={fragJson} onChange={e => onEdit(e.target.value)} />
       <FeedbackBox refKey={span.id} placeholder="feedback on this shot span (read by the next Claude session)" />
     </div>
   );

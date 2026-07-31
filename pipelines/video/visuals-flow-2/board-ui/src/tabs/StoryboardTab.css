@@ -76,3 +76,13 @@ textarea.shot-frag { min-height:120px; margin-top:8px; }
 .banner-x:hover { opacity:1; }
 .banner.ok { background:rgba(52,211,153,0.12); border:1px solid var(--ok); color:var(--ok); }
 .banner.err { background:rgba(255,107,107,0.12); border:1px solid var(--err); color:var(--err); }
+
+/* Timeline/List mode toggle (header row 2). AppHeader.css scopes .tab-btn to
+   .app-tabs, so without these rules the toggle renders as UA-default white
+   buttons on the dark theme — ported from legacy BOARD_CSS's .view-toggle. */
+.view-toggle { display: inline-flex; align-items: center; gap: 2px;
+  border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
+.view-toggle .tab-btn { padding: 4px 11px; border-radius: 6px; font-size: 12px;
+  font-weight: 600; color: var(--dim); background: none; border: 0;
+  font-family: inherit; cursor: pointer; white-space: nowrap; line-height: 1.4; }
+.view-toggle .tab-btn.active { color: var(--accent); background: rgba(251,146,60,0.12); }

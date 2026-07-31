@@ -41,3 +41,19 @@
   was absorbed into 037 and deleted: it was this gate scoped to the zones only,
   which left the body's build-vs-reuse call unmade by anybody.
   See the root `decisions.md` entry of the same date for the full rationale.
+
+- **2026-07-31**: The review board UI is a **React/Vite SPA** (`board-ui/`,
+  plans 169–174), served as a locally-built bundle by the same
+  `lib/board.mjs` Node server — owner decision 2026-07-30, chosen over
+  componentizing the server-rendered template strings in place. One shared
+  sticky header owns tabs + the single video picker + a right-aligned action
+  slot holding every gate approve (Final Cut's approve moved there from the
+  Comments panel); secondary controls live in a second header row. The legacy
+  server-rendered pages are deleted: `/` serves the SPA, `/list` and
+  `/calibrate` 302 to `/#storyboard` / `/#calibrate`. Server data/gate/media
+  routes are unchanged (`/api/board-data` is the SPA's contract, plan 169).
+  Rendered-truth gate: `scripts/board-ui-smoke.mjs` (real server + headless
+  Chrome + a `probe=layout` meta) runs inside `scripts/check.sh` and asserts
+  the chrome's y-position is identical on every tab. `board-ui/dist` is
+  gitignored; `steps/080-approve-storyboard-human/run.sh` rebuilds it when
+  stale. Tab hash + `?video=` URL semantics are unchanged and regression-pinned.
