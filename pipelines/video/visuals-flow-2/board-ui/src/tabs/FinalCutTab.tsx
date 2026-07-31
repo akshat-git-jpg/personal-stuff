@@ -82,12 +82,16 @@ export function FinalCutTab({
 
   // Load versions
   useEffect(() => {
+    // The server returns { versions: [{ label, file, created, draft }] },
+    // oldest first — NOT a bare string[]. Treating it as an array made
+    // .reverse() throw and left the tab on "No versions available" forever
+    // (owner report 2026-07-31, draft v1 invisible).
     fetch('/versions?video=' + encodeURIComponent(video))
       .then(r => r.json())
-      .then((data: string[]) => {
-        data.reverse();
-        setVersions(data);
-        if (data.length) setVersion(data[0]);
+      .then((data: { versions?: { label: string }[] }) => {
+        const labels = (data.versions ?? []).map(v => v.label).reverse();
+        setVersions(labels);
+        if (labels.length) setVersion(labels[0]);
       });
   }, [video]);
 
@@ -98,21 +102,9 @@ export function FinalCutTab({
     }
   }, [boardData.feedback]);
 
-  // Load selected version
-  useEffect(() => {
-    if (!version) return;
-    let active = true;
-    const poll = async () => {
-      try {
-        const r = await fetch('/status?video=' + encodeURIComponent(version));
-        const d = await r.json();
-        if (active) setStatusMsg(`Status: ${d.status}`);
-      } catch (e) {}
-    };
-    poll();
-    const timer = setInterval(poll, 2500);
-    return () => { active = false; clearInterval(timer); };
-  }, [version]);
+  // No per-version status poll: the server's /status is the check-off store
+  // (claude_status.json) and carries no render status — polling it printed
+  // "Status: undefined" under the player.
 
   // Video listeners
   useEffect(() => {
