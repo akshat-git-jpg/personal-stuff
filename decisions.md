@@ -204,3 +204,31 @@ New `apps/timeblock`: personal time-blocking web app. Chose NO Google Calendar s
   hand-rolled tools (media-board, pinterest-board, card-library local gallery)
   are grandfathered — migrate opportunistically when next materially touched,
   not as a big-bang.
+
+- **2026-07-31 — `yt-script-2`: scripting from owner-supplied knowledge, built clean
+  rather than by reworking `yt-script`.**
+  Owner wants one simple path — he hands over a video title plus whatever knowledge
+  he has, gets an outline, approves it, and asks for the script if he wants one.
+  Three earlier shapes were considered in-session and rejected by him as too
+  complicated: extending `yt-script`, reusing its `Guidelines/voice.md`, and wiring
+  in `dossiers/`. His words: *"nah man too complicated... keep it simple. no
+  dossier/research/voice flow."*
+  **Why a second folder instead of fixing the first:** `yt-script/`'s
+  `structure.md` (234 lines) is a tier-list comparison format — four tiers,
+  ranked Winners, pricing from screenshots, a "link in the description" beat per
+  tool. That is a *format*, not a *framework*, so generalizing it would have meant
+  deleting most of it. It ran once (`scripts/n8n-hosting/`) and stays as-is for
+  comparison videos. The two share no files and neither replaces the other.
+  **The load-bearing constraint:** `OUTLINE-INSTRUCTIONS.md` and
+  `SCRIPT-INSTRUCTIONS.md` are owner-owned and start as explicit placeholders. The
+  skill must STOP and ask when it hits one — improvising a format produces output
+  that looks right and is wrong, which is the expensive failure here. Both the
+  SKILL.md and the folder CLAUDE.md name this as the trap.
+  **Context worth keeping:** `docs/yt-research-v2-brainstorm-handoff.md` (2026-07-07)
+  recorded the same complaints about the old pipeline — too much manual input,
+  weak output, cost-heavy. Its recommended approach #1 (persistent per-tool
+  dossiers) was built as `pipelines/youtube/dossiers/`; this decision covers the
+  *scripting* side, which nothing had replaced. `yt-research/` is now referenced by
+  neither script path — dormant since 2026-07-04, 3.8 MB, one niche. Kept, not
+  deleted: its TS pipeline is the only working YouTube transcript+pricing scraper
+  in the repo.

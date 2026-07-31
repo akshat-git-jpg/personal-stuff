@@ -60,7 +60,8 @@ npx ts-node run.ts --niche <slug>
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-analysis/`](youtube/yt-analysis/CLAUDE.md) | YT tracker sheet sync + LLM-driven affiliate-link workflow | Python |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/keyword-research/`](youtube/keyword-research/CLAUDE.md) | Scan competitor channels for affiliate opportunities | Python |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-research/`](youtube/yt-research/CLAUDE.md) | Niche → knowledge-base pipeline (Phase 1, Gemini) | TypeScript |
-| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-script/`](youtube/yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2) | Markdown workflow |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-script/`](youtube/yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2). Tier-list comparison format only, fed by yt-research; ran once | Markdown workflow |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/yt-script-2/`](youtube/yt-script-2/CLAUDE.md) | Owner-supplied knowledge → outline → optional script. Any topic, any format, no research step (2026-07-31). Driven by the `yt-script-2` skill | Markdown workflow |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/my-yt/`](youtube/my-yt/CLAUDE.md) | Personal channel notes (free-form) | Markdown |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/tutorial-pipeline-1/`](youtube/tutorial-pipeline-1/PIPELINE.md) | Drive-in → HeyGen spokesperson clips from an existing avatar → Drive-out. Standalone | Python + Claude steps |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`youtube/tutorial-pipeline-2/`](youtube/tutorial-pipeline-2/PIPELINE.md) | Tutorial recording prep steps (renamed from kushal-tutorial-pipeline-v2, 2026-07-07). Video-first + dub-sync — superseded by tutorial-pipeline-3's VO-first ordering (2026-07-23) | Python + Claude steps |
