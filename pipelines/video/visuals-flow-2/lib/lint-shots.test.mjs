@@ -202,7 +202,7 @@ test('panel span over a screen segment is clean', () => {
 
 test('valid side span inside a side-capable cue', () => {
   const shotsResolved = { spans: [{ id: 's1', mode: 'side', start: 10, end: 20, duration: 10 }] };
-  const res = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', slug: 'section/host-side', placement: 'fullframe', start: 5, duration: 20 }], words, catalog: mockCatalog });
+  const res = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', card: 'section/host-side', placement: 'fullframe', start: 5, duration: 20 }], words, catalog: mockCatalog });
   assert.ok(!res.errors.some(e => e.startsWith('E6')));
   assert.ok(!res.errors.some(e => e.startsWith('E2')));
 });
@@ -216,7 +216,7 @@ test('side span with no covering cue → error', () => {
 
 test('side span covered by a card that is not side-capable → error', () => {
   const shotsResolved = { spans: [{ id: 's1', mode: 'side', start: 10, end: 20, duration: 10 }] };
-  const res = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', slug: 'prompt/prompt-typing', placement: 'fullframe', start: 5, duration: 20 }], words, catalog: mockCatalog });
+  const res = lintShots({ shotsResolved, resolvedCues: [{ id: 'c1', card: 'prompt/prompt-typing', placement: 'fullframe', start: 5, duration: 20 }], words, catalog: mockCatalog });
   const e6 = res.errors.find(e => e.startsWith('E6'));
   assert.ok(e6 && e6.includes('is not side-capable'));
 });

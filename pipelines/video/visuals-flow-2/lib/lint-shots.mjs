@@ -47,7 +47,10 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
     // audible gap cuts flush against the previous word and still READS as
     // mid-sentence (owner final-v1:4 — s03 sat on a legal sentence start whose
     // preceding word ended the same instant).
-    const sentenceStarts = [{ t: words[0].start, gap: Infinity }];
+    // t=0 is a legal start: resolve-shots snaps a span beginning within
+    // SNAP_EDGE of the video edge to exactly 0, which can sit BEFORE the
+    // first word's start (s00, 2026-07-31).
+    const sentenceStarts = [{ t: 0, gap: Infinity }, { t: words[0].start, gap: Infinity }];
     const sentenceEnds = [T];
     for (let i = 0; i < words.length - 1; i++) {
       if (/[.!?]["')\]]?$/.test(wordText(words[i]).trim())) {
@@ -163,9 +166,12 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
       errors.push(`E6 side-coverage: side span ${s.id} crosses two cues`);
     } else {
       const c = overlappingCues[0];
-      const cardDef = catalog?.cards?.find(card => card.slug === c.slug);
+      // Resolved cues carry the slug in `card`, not `slug` — this gate had
+      // never fired before side mode's first production use (2026-07-31), so
+      // the wrong field sat here reporting "card undefined" for every span.
+      const cardDef = catalog?.cards?.find(card => card.slug === c.card);
       if (!cardDef?.side) {
-        errors.push(`E6 side-coverage: side span ${s.id} covering card ${c.slug} is not side-capable (catalog "side" is not true)`);
+        errors.push(`E6 side-coverage: side span ${s.id} covering card ${c.card} is not side-capable (catalog "side" is not true)`);
       } else {
         const cEnd = c.start + c.duration;
         if (s.start < c.start || s.end > cEnd) {

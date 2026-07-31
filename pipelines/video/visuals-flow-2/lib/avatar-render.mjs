@@ -134,7 +134,12 @@ async function main() {
       }
     }
 
-    const lintRes = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words });
+    // The catalog is REQUIRED: without it E6 side-coverage cannot see any
+    // card's `side` flag and rejects every side span (never fired until side
+    // mode's first production use, 2026-07-31).
+    const catalogPath = path.resolve(import.meta.dirname, '..', '..', 'card-library', 'catalog.json');
+    const catalog = fs.existsSync(catalogPath) ? JSON.parse(fs.readFileSync(catalogPath, 'utf8')) : null;
+    const lintRes = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog });
     if (lintRes.errors.length > 0) {
       for (const e of lintRes.errors) console.error(e);
       process.exit(1);
