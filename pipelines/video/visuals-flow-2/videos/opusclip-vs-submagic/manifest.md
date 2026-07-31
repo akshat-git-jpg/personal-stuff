@@ -4,11 +4,10 @@ Timecodes assume the voiceover starts at 00:00.0 on the editor timeline. If an i
 
 | place at | file | duration | placement | card |
 |---|---|---|---|---|
-| 00:00.0 | 0000-z01-strike-list.mp4 | 17.7s | fullframe | statement/strike-list |
+| 00:00.0 | 0000-z01-title-versus.mp4 | 11.9s | fullframe | title/title-versus |
 | 00:17.7 | 0017-z02-promise-split.mp4 | 15.72s | fullframe | enacted/promise-split |
 | 00:33.4 | 0033-z03-promise-payoff.mp4 | 5.38s | fullframe | statement/promise-payoff |
 | 00:53.5 | 0053-z05-pipeline-flow.mp4 | 7.7s | fullframe | enacted/pipeline-flow |
-| 01:12.1 | 0112-z06-icon-pills.mp4 | 12.36s | fullframe | checklist/icon-pills |
 | 01:24.4 | 0124-z07-timeline-scrub.mp4 | 18.7s | fullframe | enacted/timeline-scrub |
 | 01:49.6 | 0149-z08-link-scrim.mov | 5s | overlay | link-in-description/link-scrim |
 | 01:59.7 | 0159-c01-tool-intro.mp4 | 6s | fullframe | section/tool-intro |

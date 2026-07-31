@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "updated": "2026-07-31T11:52:46.473Z",
+  "updated": "2026-07-31T12:40:21.738Z",
   "steps": {
     "037-approve-card-plan-human": {
       "status": "done",
@@ -59,12 +59,12 @@
       "ended": "2026-07-31T07:48:26.772Z"
     },
     "040-sync-graphics-run": {
-      "status": "blocked",
-      "started": "2026-07-31T11:48:41.291Z",
-      "issues": "W1 fullframe-cadence: c22 starts 7.2s after c20 (minimum gap 12s)  |  W1 fullframe-cadence: z11 starts 11.7s after z10 (minimum gap 12s)  |  W21 long-hold: z01 holds statement/strike-list for 17.7s, 2.2x its designed 8s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W21 long-hold: z07 holds enacted/timeline-scrub for 18.7s, 3.1x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W21 long-hold: c02 holds pros-cons/pros-cons for 13.7s, 2.3x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W7 bare-stretch: 20.1s between z03 (starts 33.4s) and z05 (starts 53.5s) inside a narration segment — max 20s  |  W7 bare-stretch: 25.2s between z07 (starts 84.4s) and z08 (starts 109.6s) inside a narration segment — max 20s  |  W7 bare-stretch: 20.3s between c01 (starts 119.7s) and c02 (starts 140.0s) inside a narration segment — max 20s  |  (+22 more warning/error lines — re-run the verb to see all)",
+      "status": "done",
+      "started": "2026-07-31T12:36:40.481Z",
+      "issues": "W1 fullframe-cadence: c22 starts 7.2s after c20 (minimum gap 12s)  |  W1 fullframe-cadence: z11 starts 11.7s after z10 (minimum gap 12s)  |  W21 long-hold: z07 holds enacted/timeline-scrub for 18.7s, 3.1x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W21 long-hold: c02 holds pros-cons/pros-cons for 13.7s, 2.3x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W7 bare-stretch: 20.1s between z03 (starts 33.4s) and z05 (starts 53.5s) inside a narration segment — max 20s  |  W7 bare-stretch: 30.9s between z05 (starts 53.5s) and z07 (starts 84.4s) inside a narration segment — max 20s  |  W7 bare-stretch: 25.2s between z07 (starts 84.4s) and z08 (starts 109.6s) inside a narration segment — max 20s  |  W7 bare-stretch: 20.3s between c01 (starts 119.7s) and c02 (starts 140.0s) inside a narration segment — max 20s  |  (+21 more warning/error lines — re-run the verb to see all)",
       "did": "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint.",
       "output": "resolved.json",
-      "ended": "2026-07-31T11:48:41.479Z"
+      "ended": "2026-07-31T12:36:40.672Z"
     },
     "050-review-graphics-llm": {
       "status": "done",
@@ -85,10 +85,10 @@
     "130-learn-from-feedback-opus": {
       "status": "done",
       "started": "2026-07-31T06:56:42.191Z",
-      "did": "Final-cut fold (round 3; earlier folds recorded in tests/TESTS.md): 6 board items + 3 chat items ingested, root-caused, discussed, applied after batch approval. Video now opens on a card (HEAD_COVER + E13), multi-part concepts get word-anchored beat cards (R_CONCEPT_PARTS + promise-split converted, entry_phase mechanism), the whip flash no longer previews the incoming card, screen slivers under 6s are absorbed asymmetrically (card holds 6s, head-pads only 2.5s), avatar spans must start/end on sentence boundaries (E7 + W7 flush-cut; s03 and s10 re-anchored and re-rendered), the corner bubble is off everywhere by owner decision, and like-subscribe was rebuilt compact.",
-      "issues": "v1:5 (no graphics over the host) deferred by the owner — recorded with the new deferred state so it neither blocks the gate nor reads as done. E7 caught s10 as a second latent mid-sentence start the moment the lint existed. A geometric sliver pull-back was tried and reverted twice (dragged cards across register/demo boundaries); the entry_phase anchor placement is the safe fix.",
-      "output": "cues.json (z02 beats+sides, zone fields), shots.json (s03/s10 re-anchored), resolved artifacts, lib rules + lints + whip fix, catalog promise-split/pipeline-flow, like-subscribe rebuild, feedback.json 5 folded + 1 deferred, TESTS.md fold + convergence lines, draft v3 on the Final Cut tab",
-      "ended": "2026-07-31T11:50:55.440Z"
+      "did": "Rounds 3+4 of the feedback fold (full record per round in tests/TESTS.md). Round 3 (final-cut, 6 board + 3 chat): opening-cover rule, concept-parts beat rule + entry_phase, whip flash ghost fix, 6s sliver floor, sentence-boundary span lints, bubble removed, like-subscribe rebuilt, v1:5 deferred. Round 4 (v3, 2 items, instance-only): intro re-framed to the title-versus cold open on owner pick A, z06 removed for this video.",
+      "issues": "Round 4 was the first zero-durable-change round — the rulebooks held. The 30.9s intro gap left by z06's removal trips W15 deliberately (owner call).",
+      "output": "cues.json 38 cues (z01 title-versus, z06 removed), feedback.json all rounds folded (v1:5 deferred), draft v4 on the Final Cut tab",
+      "ended": "2026-07-31T12:37:55.362Z"
     },
     "080-approve-storyboard-human": {
       "status": "done",
@@ -108,19 +108,19 @@
     },
     "090-render-graphics-run": {
       "status": "done",
-      "started": "2026-07-31T11:50:05.113Z",
+      "started": "2026-07-31T12:37:16.891Z",
       "did": "Rendered every approved cue to a clip and wrote the editor manifest.",
       "issues": "The run itself was clean; record_step died on a zero-warning grep under pipefail AFTER the render succeeded, so this entry is written by hand and the guard is now fixed in run.sh.",
       "output": "renders/ + manifest.md",
-      "ended": "2026-07-31T11:50:22.632Z"
+      "ended": "2026-07-31T12:37:33.538Z"
     },
     "110-build-video-run": {
       "status": "done",
-      "started": "2026-07-31T11:51:27.313Z",
+      "started": "2026-07-31T12:38:38.607Z",
       "did": "Assembled the screen recording, graphics, avatar clips and mastered audio into a draft cut.",
       "output": "final-draft.mp4 + assembly.md",
       "issues": "none found",
-      "ended": "2026-07-31T11:52:46.473Z"
+      "ended": "2026-07-31T12:40:21.738Z"
     }
   }
 }

@@ -4,43 +4,19 @@
   "resolved": [
     {
       "id": "z01",
-      "card": "statement/strike-list",
+      "card": "title/title-versus",
       "placement": "fullframe",
       "start": 0,
-      "duration": 17.7,
+      "duration": 11.9,
       "variables": {
-        "title": "Automating It Badly",
-        "marker": "Badly",
-        "items": [
+        "platforms": [
           {
-            "label": "Captions",
-            "icon": "doc"
+            "name": "Submagic",
+            "logo": "submagic"
           },
           {
-            "label": "Pacing",
-            "icon": "clock"
-          },
-          {
-            "label": "Layouts",
-            "icon": "layers"
-          }
-        ],
-        "beats": [
-          {
-            "label": "Captions",
-            "at": 5.8
-          },
-          {
-            "label": "Pacing",
-            "at": 7.66
-          },
-          {
-            "label": "Layouts",
-            "at": 8.76
-          },
-          {
-            "label": "Badly",
-            "at": 12.38
+            "name": "OpusClip",
+            "logo": "opusclip"
           }
         ],
         "register": "dark"
@@ -146,38 +122,6 @@
         ],
         "register": "light",
         "variant": "a"
-      }
-    },
-    {
-      "id": "z06",
-      "card": "checklist/icon-pills",
-      "placement": "fullframe",
-      "start": 72.06,
-      "duration": 12.36,
-      "variables": {
-        "beats": [
-          {
-            "icon": "chat",
-            "text": "Caption quality",
-            "at": 0.6
-          },
-          {
-            "icon": "gear",
-            "text": "Pacing and customization",
-            "at": 4.16
-          },
-          {
-            "icon": "chart",
-            "text": "Value for money",
-            "at": 6.62
-          },
-          {
-            "icon": "shield",
-            "text": "No marketing promises",
-            "at": 9.52
-          }
-        ],
-        "register": "light"
       }
     },
     {

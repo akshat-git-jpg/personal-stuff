@@ -5,55 +5,24 @@
   "cues": [
     {
       "id": "z01",
-      "card": "statement/strike-list",
-      "anchor": "clips and still",
-      "hold": 2,
+      "card": "title/title-versus",
+      "anchor": "If you're turning long videos",
+      "hold": 0.5,
       "variables": {
-        "title": "Automating It Badly",
-        "marker": "Badly",
-        "items": [
+        "platforms": [
           {
-            "label": "Captions",
-            "icon": "doc"
+            "name": "Submagic",
+            "logo": "submagic"
           },
           {
-            "label": "Pacing",
-            "icon": "clock"
-          },
-          {
-            "label": "Layouts",
-            "icon": "layers"
+            "name": "OpusClip",
+            "logo": "opusclip"
           }
         ]
       },
-      "beats": [
-        {
-          "reveal": {
-            "label": "Captions"
-          },
-          "anchor": "fixing captions, pacing"
-        },
-        {
-          "reveal": {
-            "label": "Pacing"
-          },
-          "anchor": "and layouts than"
-        },
-        {
-          "reveal": {
-            "label": "Layouts"
-          },
-          "anchor": "actually posting, then"
-        },
-        {
-          "reveal": {
-            "label": "Badly"
-          },
-          "anchor": "automating and doing it badly"
-        }
-      ],
+      "beats": [],
       "flagged": false,
-      "lead": 0.5,
+      "lead": 0,
       "register": "dark",
       "legacy_why": "owner-picked direction C (2026-07-31 fold): big-type strike statement replaces enacted/bad-clip-montage for the intro opener",
       "zone": "intro"
@@ -178,47 +147,6 @@
       "lead": 0.5,
       "register": "light",
       "motif": true,
-      "zone": "intro"
-    },
-    {
-      "id": "z06",
-      "card": "checklist/icon-pills",
-      "anchor": "publish-ready short clips",
-      "hold": 1.5,
-      "variables": {},
-      "beats": [
-        {
-          "reveal": {
-            "icon": "chat",
-            "text": "Caption quality"
-          },
-          "anchor": "the same evaluation criteria"
-        },
-        {
-          "reveal": {
-            "icon": "gear",
-            "text": "Pacing and customization"
-          },
-          "anchor": "pacing, customization, time"
-        },
-        {
-          "reveal": {
-            "icon": "chart",
-            "text": "Value for money"
-          },
-          "anchor": "value for money"
-        },
-        {
-          "reveal": {
-            "icon": "shield",
-            "text": "No marketing promises"
-          },
-          "anchor": "just real outputs"
-        }
-      ],
-      "flagged": false,
-      "lead": 0.5,
-      "register": "light",
       "zone": "intro"
     },
     {
@@ -1056,5 +984,5 @@
       "zone": "conclusion"
     }
   ],
-  "approved_note": "owner chat approval 2026-07-31: all approved (round-2 storyboard re-approval)"
+  "approved_note": "owner chat approvals 2026-07-31: all approved (round-2), then v3 fold decisions applied as instructed (z01 -> title-versus option A, z06 removed)"
 }

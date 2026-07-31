@@ -221,6 +221,22 @@
       "y": 24.8,
       "deferred": true,
       "deferred_note": "owner 2026-07-31: 'Ignore v1:5 for now' — no-graphics-over-avatar rule and the 7 overlay placements stay as-is until reopened"
+    },
+    "final-v3:0": {
+      "text": "i dont like this intro motion graphic. You are starting with Automating it badly.. but its not the main focus.. lets discuss, give suggesation on what better we can do here",
+      "t": 4.878306,
+      "context": "final@00:04",
+      "applied": true,
+      "folded": true,
+      "resolution": "Owner picked option A: z01 is now title/title-versus (Submagic vs OpusClip cold open, both registry logos, no title line per the card's omit_unless) covering 0:00-0:12; the pain line plays over screen recording. strike-list stays in the library. Instance-only."
+    },
+    "final-v3:1": {
+      "text": "remove this motion graphic for this video",
+      "t": 82.334979,
+      "context": "final@01:22",
+      "applied": true,
+      "folded": true,
+      "resolution": "z06 (checklist/icon-pills, 72-84s) deleted for this video on owner instruction. The resulting 30.9s intro gap trips W15 by design — owner call, not an oversight. Instance-only."
     }
   }
 }
