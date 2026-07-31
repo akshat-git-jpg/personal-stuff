@@ -377,3 +377,30 @@ test('inferred steps are surfaced as a warning, not a footnote', () => {
   const cleanOut = renderTable(stepView(clean));
   assert.doesNotMatch(cleanOut, /no recorded summary/i);
 });
+
+test('a skipped step cannot carry did — work means done (owner report 2026-07-31)', () => {
+  let log = emptyLog('x');
+  assert.throws(
+    () => setStep(log, '038-build-cards-llm-and-review-human', 'skipped', { did: 'built a card' }),
+    /cannot carry --did/,
+  );
+  // the why-skipped belongs in issues, which stays legal
+  log = setStep(log, '038-build-cards-llm-and-review-human', 'skipped', { issues: 'nothing NEW to build' });
+  assert.equal(log.steps['038-build-cards-llm-and-review-human'].status, 'skipped');
+});
+
+test('090 infers done from media files only, never the bare renders dir (owner report 2026-07-31)', () => {
+  const dir = workdir('renders-proof');
+  fs.mkdirSync(path.join(dir, 'renders'), { recursive: true });
+  let s090 = stepView(dir).find((s) => s.number === '090');
+  assert.equal(s090.status, 'todo', 'an empty renders/ must not infer done');
+
+  fs.writeFileSync(path.join(dir, 'renders', 'probe.png'), '');
+  s090 = stepView(dir).find((s) => s.number === '090');
+  assert.equal(s090.status, 'todo', 'probe leftovers must not infer done');
+
+  fs.writeFileSync(path.join(dir, 'renders', '0001-c01-card.mp4'), '');
+  s090 = stepView(dir).find((s) => s.number === '090');
+  assert.equal(s090.status, 'done');
+  assert.ok(s090.derived, 'still marked inferred, never a recorded done');
+});

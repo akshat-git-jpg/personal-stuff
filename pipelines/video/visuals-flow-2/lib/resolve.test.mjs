@@ -540,10 +540,13 @@ test('exposure ends on a sentence boundary, never mid-sentence', () => {
   assert.equal(lastSentenceBoundaryAtOrBefore(W, 0.2), null);
 });
 
-test('exposure is independent of the card default_duration', () => {
-  // Same cue, same transcript, two different card default_durations.
-  // The resolved END must be identical — this is the regression that
-  // commit 6813379 introduced by changing before-after 8 -> 6.
+test('exposure ends at the FIRST sentence boundary after the card content (owner fold 2026-07-31)', () => {
+  // Supersedes "exposure is independent of the card default_duration": the old
+  // rule extended every fullframe card to the LAST boundary before the next
+  // cue, which is exactly the static-screen hold the owner kept flagging
+  // (z05#2/c20#2 — a 6s card squatting for 17s). The invariant that SURVIVES
+  // from commit 6813379's fix: a card never ends mid-sentence — a short
+  // default_duration still lands on a boundary, never on its raw value.
   const W = [
     { text: 'One', start: 0.0, end: 1.0 },
     { text: 'two.', start: 1.0, end: 2.0 },
@@ -552,13 +555,20 @@ test('exposure is independent of the card default_duration', () => {
     { text: 'Five', start: 4.0, end: 20.0 },
   ];
   const cues = [{ id: 'c1', card: 'x/y', anchor: 'One two. Three', lead: 0, hold: 0, beats: [], variables: {} }];
-  const mk = (dd) => ({ cards: [{ slug: 'x/y', kind: 'single', placement: 'fullframe', default_duration: dd, variables: {} }] });
+  const mk = (dd, extra = {}) => ({ cards: [{ slug: 'x/y', kind: 'single', placement: 'fullframe', default_duration: dd, variables: {}, ...extra }] });
+
+  // content end sits exactly on a boundary -> the card leaves right there
   const a = resolveCues(cues, W, mk(2));
-  const b = resolveCues(cues, W, mk(3));
-  const endA = a.resolved[0].start + a.resolved[0].duration;
-  const endB = b.resolved[0].start + b.resolved[0].duration;
-  assert.equal(+endA.toFixed(2), +endB.toFixed(2));
-  assert.equal(+endA.toFixed(2), 4.0); // the last boundary inside the 12s window
+  assert.equal(+(a.resolved[0].start + a.resolved[0].duration).toFixed(2), 2.0);
+
+  // content end mid-sentence -> extended to the NEXT boundary, never cut mid-thought
+  const b = resolveCues(cues, W, mk(2.5));
+  assert.equal(+(b.resolved[0].start + b.resolved[0].duration).toFixed(2), 4.0);
+
+  // hold_full reference cards (comparison tables the VO reads from) keep the
+  // old long hold: the LAST boundary in the window
+  const c = resolveCues(cues, W, mk(2, { hold_full: true }));
+  assert.equal(+(c.resolved[0].start + c.resolved[0].duration).toFixed(2), 4.0);
 });
 
 test('extendExposure: avatar-full span bounds absorption on base none', async () => {

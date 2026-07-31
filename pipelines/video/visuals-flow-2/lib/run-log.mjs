@@ -90,6 +90,15 @@ export function setStep(log, stepId, status, fields = {}, now = new Date()) {
   if (!STATUSES.includes(status)) {
     throw new Error(`unknown status "${status}" — must be one of: ${STATUSES.join(', ')}`);
   }
+  // A skipped step did no work by definition — a `did` on it is a
+  // contradiction the board then renders as "skipped" over a full work record
+  // (038, owner report 2026-07-31). If work happened, the step is done; the
+  // reason for skipping belongs in --issues.
+  if (status === 'skipped' && typeof fields.did === 'string' && fields.did.trim()) {
+    throw new Error(
+      `${stepId}: a skipped step cannot carry --did — if work happened, record it as done; put the why-skipped in --issues`,
+    );
+  }
   const iso = now.toISOString();
   const prev = log.steps[stepId] ?? {};
   const next = { ...prev, status };
@@ -144,7 +153,18 @@ const ARTIFACT_PROOF = {
   '080': (w) =>
     readJson(path.join(w, 'cues.json'))?.approved === true &&
     readJson(path.join(w, 'shots.json'))?.approved === true,
-  '090': (w) => fs.existsSync(path.join(w, 'renders')),
+  // Media files, not the directory: an empty renders/ (or one holding only
+  // probe leftovers) marked 090 done and painted a green tick for a render
+  // that never ran (owner report 2026-07-31).
+  '090': (w) => {
+    const d = path.join(w, 'renders');
+    if (!fs.existsSync(d)) return false;
+    try {
+      return fs.readdirSync(d).some((f) => /\.(mp4|mov)$/i.test(f));
+    } catch {
+      return false;
+    }
+  },
   '100': (w) => fs.existsSync(path.join(w, 'avatar-jobs.json')),
   '110': (w) => fs.existsSync(path.join(w, 'assembly.md')),
   '120': (w) => readJson(path.join(w, 'final-cut.json'))?.approved === true,

@@ -60,7 +60,12 @@ export function RunTab({ video, onMeta }: { video: string; onMeta: (meta: ReactN
       </div>
       <div className="run-steps">
         {log.steps.map((s: any) => {
-          const mark = RUN_MARK[s.status] || RUN_MARK.todo;
+          // An inferred status must never wear the same green tick as a
+          // recorded one — a false 090 tick from stray files read as "rendered"
+          // (owner report 2026-07-31).
+          const mark: [string, string] = s.derived
+            ? ['☑️', 'inferred from files on disk — no recorded summary']
+            : (RUN_MARK[s.status] || RUN_MARK.todo);
           const name = s.id.slice(4);
           return (
             <div key={s.id} className={`run-row is-${s.status}`}>

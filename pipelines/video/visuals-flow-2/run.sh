@@ -82,7 +82,17 @@ record_step() {
   rc="${PIPESTATUS[0]}"
   set -e
 
-  issues="$(grep -aiE '^[[:space:]]*(W[0-9]+|E[0-9]+|warn|warning|error)' "$logfile" | head -5 | tr '\n' ' ' | cut -c1-500)"
+  # Whole lines only, capped per line and counted — the old pipe joined every
+  # warning into one string and chopped it at 500 chars MID-WORD, so the board
+  # showed "…between z03 (starts 33." and silently hid the rest (owner report
+  # 2026-07-31). Now: first 8 warning lines (each trimmed to 220 chars), plus
+  # an explicit "+N more" so truncation is visible instead of silent.
+  local issue_total
+  issue_total="$(grep -aciE '^[[:space:]]*(W[0-9]+|E[0-9]+|warn|warning|error)' "$logfile" || true)"
+  issues="$(grep -aiE '^[[:space:]]*(W[0-9]+|E[0-9]+|warn|warning|error)' "$logfile" | head -8 | cut -c1-220 | paste -sd '|' - | sed 's/|/  |  /g')"
+  if [[ "${issue_total:-0}" -gt 8 ]]; then
+    issues="$issues  |  (+$((issue_total - 8)) more warning/error lines — re-run the verb to see all)"
+  fi
   if [[ "$rc" -eq 0 ]]; then
     if [[ -n "$issues" ]]; then
       record "$num" done --did "$did" --output "$out" --issues "$issues"
@@ -324,8 +334,11 @@ EOF
     ;;
 
   avatar)
-    record_step 100 "Submitted or downloaded the HeyGen avatar clips for the approved shot spans." \
-      "avatar-jobs.json + avatar clips in kb-scratch" -- bash steps/100-render-avatar-run/run.sh "$slug"
+    # --submit is mandatory: avatar-render.mjs exits with usage when called
+    # bare, so the verb as previously written always failed (found 2026-07-31).
+    # Download stays its own verb below.
+    record_step 100 "Submitted the HeyGen avatar clips for the approved shot spans." \
+      "avatar-jobs.json + avatar clips in kb-scratch" -- bash steps/100-render-avatar-run/run.sh "$slug" --submit --template "${AVATAR_TEMPLATE:-specs-man}"
     ;;
 
   cut)

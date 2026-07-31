@@ -78,7 +78,7 @@ A violation is a defect, not a stylistic choice. Budget against them BEFORE plac
 - Total cue count must be at most 4.0 per minute of video (lint W3). For a 20-minute video that is 30-80 cues in total — budget before you place.
 - Within demo segments (segments.json), no stretch longer than 50s may pass without a cue START (lint W6).
 - A fullframe card's exposure may auto-extend at most 20s past its computed end to reach the next base event (resolver post-pass).
-- On base:screen videos, a gap to the next base event of at most 12s is absorbed by extending the previous fullframe card; larger gaps intentionally show the screen recording.
+- On base:screen videos, a gap to the next base event of at most 4s is absorbed by extending the previous fullframe card (a sub-4s footage flash reads as a glitch); anything longer intentionally returns to the screen recording. Was 12 until 2026-07-31: a 12s absorption re-inflated finished cards into exactly the static-screen holds the owner kept flagging (z05#2).
 - Within narration segments (segments.json), no stretch longer than 20s may pass without a cue START (lint W7). Demo segments keep BARE_GAP_MAX.
 - If concept.json exists, at least 2 cues must carry `motif: true` (the through-line must recur) (lint W8).
 - A fullframe cue on a non-structural legacy (non-`enacted/`) card without `legacy_why` warns (lint W10).
