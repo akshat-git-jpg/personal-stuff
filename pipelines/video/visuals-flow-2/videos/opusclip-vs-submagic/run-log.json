@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "updated": "2026-07-31T12:40:21.738Z",
+  "updated": "2026-07-31T14:42:45.876Z",
   "steps": {
     "037-approve-card-plan-human": {
       "status": "done",
@@ -60,11 +60,11 @@
     },
     "040-sync-graphics-run": {
       "status": "done",
-      "started": "2026-07-31T12:36:40.481Z",
+      "started": "2026-07-31T14:31:04.386Z",
       "issues": "W1 fullframe-cadence: c22 starts 7.2s after c20 (minimum gap 12s)  |  W1 fullframe-cadence: z11 starts 11.7s after z10 (minimum gap 12s)  |  W21 long-hold: z07 holds enacted/timeline-scrub for 18.7s, 3.1x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W21 long-hold: c02 holds pros-cons/pros-cons for 13.7s, 2.3x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  W7 bare-stretch: 20.1s between z03 (starts 33.4s) and z05 (starts 53.5s) inside a narration segment — max 20s  |  W7 bare-stretch: 30.9s between z05 (starts 53.5s) and z07 (starts 84.4s) inside a narration segment — max 20s  |  W7 bare-stretch: 25.2s between z07 (starts 84.4s) and z08 (starts 109.6s) inside a narration segment — max 20s  |  W7 bare-stretch: 20.3s between c01 (starts 119.7s) and c02 (starts 140.0s) inside a narration segment — max 20s  |  (+21 more warning/error lines — re-run the verb to see all)",
       "did": "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint.",
       "output": "resolved.json",
-      "ended": "2026-07-31T12:36:40.672Z"
+      "ended": "2026-07-31T14:31:04.641Z"
     },
     "050-review-graphics-llm": {
       "status": "done",
@@ -85,10 +85,10 @@
     "130-learn-from-feedback-opus": {
       "status": "done",
       "started": "2026-07-31T06:56:42.191Z",
-      "did": "Rounds 3+4 of the feedback fold (full record per round in tests/TESTS.md). Round 3 (final-cut, 6 board + 3 chat): opening-cover rule, concept-parts beat rule + entry_phase, whip flash ghost fix, 6s sliver floor, sentence-boundary span lints, bubble removed, like-subscribe rebuilt, v1:5 deferred. Round 4 (v3, 2 items, instance-only): intro re-framed to the title-versus cold open on owner pick A, z06 removed for this video.",
-      "issues": "Round 4 was the first zero-durable-change round — the rulebooks held. The 30.9s intro gap left by z06's removal trips W15 deliberately (owner call).",
-      "output": "cues.json 38 cues (z01 title-versus, z06 removed), feedback.json all rounds folded (v1:5 deferred), draft v4 on the Final Cut tab",
-      "ended": "2026-07-31T12:37:55.362Z"
+      "did": "Rounds 3-5 of the feedback fold (full record per round in tests/TESTS.md). Round 5 (v4, 1 item + owner course-correction): the 0:17 static intro was a regression from round 3's own sliver fix — assembly hold-absorption froze the card over a deliberate screen return after all lints ran; absorption is now capped below GAP_ABSORB with a regression test, and the window got the real fix the owner directed: the new commissioned intro/versus-cold-open template (two-act enacted hook, look approved via Gemini previews before build).",
+      "issues": "Owner rejected the first proposed fix (footage return) as symptom-patching and set the standing rule: multi-second holes next to cards are DESIGN tasks; new intro/conclusion templates are always on the table over template-reuse patching.",
+      "output": "intro/versus-cold-open in the card library (pushed), z01 rewired with word-anchored stamps + marker beat, assemble freeze guard + test, feedback.json all rounds folded (v1:5 deferred), draft v5 on the Final Cut tab",
+      "ended": "2026-07-31T14:42:45.876Z"
     },
     "080-approve-storyboard-human": {
       "status": "done",
@@ -108,19 +108,19 @@
     },
     "090-render-graphics-run": {
       "status": "done",
-      "started": "2026-07-31T12:37:16.891Z",
+      "started": "2026-07-31T14:31:30.988Z",
       "did": "Rendered every approved cue to a clip and wrote the editor manifest.",
       "issues": "The run itself was clean; record_step died on a zero-warning grep under pipefail AFTER the render succeeded, so this entry is written by hand and the guard is now fixed in run.sh.",
       "output": "renders/ + manifest.md",
-      "ended": "2026-07-31T12:37:33.538Z"
+      "ended": "2026-07-31T14:31:54.630Z"
     },
     "110-build-video-run": {
       "status": "done",
-      "started": "2026-07-31T12:38:38.607Z",
+      "started": "2026-07-31T14:33:04.374Z",
       "did": "Assembled the screen recording, graphics, avatar clips and mastered audio into a draft cut.",
       "output": "final-draft.mp4 + assembly.md",
       "issues": "none found",
-      "ended": "2026-07-31T12:40:21.738Z"
+      "ended": "2026-07-31T14:34:52.478Z"
     }
   }
 }
