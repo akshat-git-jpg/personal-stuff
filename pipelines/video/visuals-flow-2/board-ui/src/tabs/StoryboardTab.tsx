@@ -165,16 +165,16 @@ export function StoryboardTab({
         onRefetch();
         setSaveState('saved');
         setTimeout(() => setSaveState('idle'), 2500);
-        if ((data.warnings && data.warnings.length) || (data.errors && data.errors.length)) {
-          const w = data.warnings || [];
-          const e = data.errors || [];
-          let html = `saved — ${w.length} lint warnings, ${e.length} errors<br><br>`;
-          const lines = [];
-          for (const err of e) lines.push(`error: ${err}`);
-          for (const warn of w) lines.push(warn);
-          addBanner(html + lines.join('<br>'), e.length > 0 ? 'err' : 'ok');
+        // Lint WARNINGS are pipeline diagnostics for the LLM passes and the
+        // operating sessions — the owner reviews composition, not lint
+        // compliance, and a 44-line dump buried the one thing that matters
+        // (owner, 2026-07-31). Only ERRORS surface here (an error means the
+        // edit didn't validate); warnings stay in the save response, `run.sh
+        // resolve`, and check.sh where the sessions read them.
+        const e = data.errors || [];
+        if (e.length > 0) {
+          addBanner(`saved with ${e.length} error(s):<br>` + e.map((x: string) => `error: ${x}`).join('<br>'), 'err');
         } else {
-          // A clean save was previously SILENT — say so, plainly.
           addBanner('saved ✓ — feedback and edits written', 'ok');
         }
       }
