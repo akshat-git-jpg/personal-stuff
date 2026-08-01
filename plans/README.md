@@ -1106,16 +1106,64 @@ vitest; the rendered app in `scripts/board-ui-smoke.mjs` (real server + headless
 Chrome + a `probe=layout` meta the app emits), which is part of `check.sh` and
 therefore of every plan's boss merge gate.
 
+## 180–182 — intro-studio: the intro becomes one authored film (2026-08-02)
+
+Owner brief: visuals-flow-2 builds its intro from ~6 independent catalog cards
+laid over the screen recording. A card is a sealed template that knows nothing
+about its neighbours, so nothing carries between beats and the intro reads as a
+slideshow — the owner's recorded complaints (`final-v3:0/:1/:2`) are all
+*selection* failures, which is the only move a catalog gives you. Loop Studio's
+intro, which the owner rates highly, is instead ONE authored screenplay: a
+continuous stage where an object introduced in beat 1 is demoted/promoted
+through later beats, the colour register crossfades dark→light on the turn word,
+and the face is composited INTO the design. Their own words: "continuity is the
+craft."
+
+Owner decisions (2026-08-02): full takeover of the intro span with the recorded
+VO fixed; the film is a per-video one-off, with reusable beats **harvested**
+into the catalog afterwards rather than composed from it; the 7-beat arc is an
+**adaptable default**, never a required formula (holds the 2026-07-28
+"its subjective. Pls dont make this hardcoded" decision); one self-critique
+round with a retry only on failure.
+
+**Built STANDALONE as a POC** (owner call): `pipelines/video/intro-studio/`
+touches nothing in visuals-flow-2 or card-library. The two systems meet at one
+file — intro-studio emits `out/intro.mp4` and the owner drops it into the edit
+by hand. Wiring it in is a later plan and is deliberately absent here, so a POC
+that disappoints costs a folder deletion and nothing else.
+
+| # | Plan | What it lands | Depends on |
+|---|---|---|---|
+| 180 | intro-studio-scaffold-and-materials | the standalone folder, `run.sh` driver + status table, `input/intro.mp4` → `vo.mp3`/`screen.mp4`/`transcript.json`, owner-run avatar step (ONE clip covering the whole intro), `scripts/check.sh` | none |
+| 181 | intro-studio-screenplay-pass | `screenplay.json` schema with `carries` as a first-class field, `lint-screenplay.mjs` (E1–E7 + W1–W4, W1 = the continuity rule), the authoring prompt + a structural gate keeping prompt and schema from drifting, owner approval gate | 180 |
+| 182 | intro-studio-compose-render-critique | authoring guide with the Hyperframes rules that silently render black, render against the pinned `hyperframes@0.7.62`, **pixel-level gate** (duration/freeze/luma + distinct-frame-hash), `INTRO-BAR.md` taste rubric, one-retry loop, delivery to `out/intro.mp4` | 181 |
+
+Strictly ordered. Verification story: pure functions in `node --test`; one real
+ffmpeg round trip on a generated fixture (180); every lint rule proven by a
+targeted bad fixture AND absence on the good one (181); a real Hyperframes
+render whose extracted frames must DIFFER, plus a deliberately-frozen negative
+control the gate must reject (182). That last one is deliberate — LESSONS
+2026-07-19 and 2026-07-24 record visually broken effects and twelve stub cards
+shipping through green gates, both because inspection trusted "render
+succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
+
 - 169-vf2-board-data-api — the board's data as JSON, the SPA contract — TODO
 - 170-vf2-board-ui-shell — React shell, one shared sticky header, Run tab, layout-stability smoke gate — TODO (needs 169)
 - 171-vf2-board-ui-feedback-and-card-plan — single FeedbackBox with reworked attach + Card Plan tab — TODO (needs 170)
 - 172-vf2-board-ui-storyboard-tiles — storyboard tiles/list/save/approve, tile look preserved — TODO (needs 171)
 - 173-vf2-board-ui-timeline-canvas — timeline lanes, detail dock, play-through, FX stage — TODO (needs 172)
 - 174-vf2-board-ui-final-cut-and-cutover — Final Cut + Calibrate in the SPA, `/` cutover, legacy deleted — TODO (needs 173)
+- 176-vf2-side-mode-render-join — side-mode cards render at 1920 then get cropped to 1200; `cue.sideMode` is read by render.mjs and written by nobody — TODO (renumbered from 175, which was already claimed below)
+- 177-vf2-transcript-derived-beats — beat reveals fire on the anchor's FIRST word and anchors need 3+ words, so a fast roll-call cannot be synced; derive beat times from the transcript like word-sync does — TODO
+- 178-card-library-type-and-variant-gates — the hero/body type ceiling only inspects `.row`/`.item` selectors, and card-qa never shoots the a/b variant, so both gates missed defects the owner found — TODO
+- 179-vf2-roster-symmetry-lint — "every compared item gets the same treatment" has failed twice as prose; give the concept a machine-readable roster and lint per-item completeness + card-role exclusivity — TODO
+- 180-intro-studio-scaffold-and-materials — intro-studio POC stage 1: standalone pipeline folder, `run.sh` driver, `intro.mp4` → vo/screen/transcript, owner-run avatar clip — TODO
+- 181-intro-studio-screenplay-pass — intro-studio POC stage 2: `screenplay.json` schema with `carries` (continuity as a lint rule), 7 errors + 4 warnings, authoring prompt, owner approval gate — TODO (needs 180)
+- 182-intro-studio-compose-render-critique — intro-studio POC stage 3: screenplay → one Hyperframes film → render → pixel-level gate + `INTRO-BAR.md` rubric (one retry) → `out/intro.mp4` — TODO (needs 181)
 - 169-vf2-board-data-api — PR#127 169-vf2-board-data-api: Board data API — everything the React board will render, as JSON — DONE
 - 170-vf2-board-ui-shell — PR#128 170-vf2-board-ui-shell: board-ui shell — Vite+React SPA, one shared sticky header, hash router, Run tab — DONE
 - 171-vf2-board-ui-feedback-and-card-plan — PR#129 171-vf2-board-ui-feedback-and-card-plan: FeedbackBox (attach affordance rework) + Card Plan tab — DONE
 - 172-vf2-board-ui-storyboard-tiles — PR#130 172-vf2-board-ui-storyboard-tiles: Storyboard part 1 — tiles, list mode, Save/Approve wiring — DONE
 - 173-vf2-board-ui-timeline-canvas — PR#131 173-vf2-board-ui-timeline-canvas: Storyboard part 2 — timeline canvas, detail dock, play-through, FX stage — DONE
 - 174-vf2-board-ui-final-cut-and-cutover — PR#132 174-vf2-board-ui-final-cut-and-cutover: Final Cut + Calibrate in the SPA, and the / cutover — DONE
-- 175-vf2-per-cue-frame-gate — overflow probe becomes a per-cue GATE: E13 at 040 (real variables, real beat times, headless) + accent-visibility pixel check at 090 (render-only color-loss class) — TODO
+- 175-vf2-per-cue-frame-gate — overflow probe becomes a per-cue GATE: E12 at 040 (real variables, real beat times, headless) + exposure/accent pixel check at 090 (render-only colour-loss class) — TODO (plan file written 2026-08-02; it had been registered without one for a round, during which the c27 overflow it describes shipped to the owner. E13 in the original line was wrong — that code is `open-cover`)
