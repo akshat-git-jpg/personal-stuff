@@ -1,7 +1,7 @@
 {
   "video": "opusclip-vs-submagic",
   "approved": true,
-  "engineMode": "test",
+  "engineMode": "production",
   "spans": [
     {
       "id": "s01",

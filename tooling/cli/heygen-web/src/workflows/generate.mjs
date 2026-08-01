@@ -43,12 +43,17 @@ export async function generateFromAudio(auth, args) {
 export async function generateFromTemplate(auth, args) {
   const templateId = resolveTemplate(arg(args, "--template")), audioPath = arg(args, "--audio");
   const title = arg(args, "--title");
+  // --engine heygen4 renders Avatar IV — METERED (monthly seconds pool), owner
+  // authorization required per submit batch (CLAUDE.md). Default stays the
+  // free unlimited Avatar III.
+  const engine = arg(args, "--engine") || "heygen3";
+  if (!["heygen3", "heygen4"].includes(engine)) die(`--engine must be heygen3 or heygen4, got: ${engine}`);
   if (!templateId || !audioPath)
-    die('generate-from-template needs --template <template_id> --audio <file> [--title T]');
+    die('generate-from-template needs --template <template_id> --audio <file> [--title T] [--engine heygen3|heygen4]');
   if (!existsSync(audioPath)) die(`no such audio file: ${audioPath}`);
   try {
     const { video_id } = await meterChecked(auth, args, () =>
-      submitFromTemplate(auth, { templateId, audioPath, title }));
+      submitFromTemplate(auth, { templateId, audioPath, title, iv: engine === "heygen4" }));
     console.log(JSON.stringify({ video_id }, null, 2));
   } catch (e) {
     console.error(String(e.message || e));

@@ -85,6 +85,13 @@ function parseArgs(argv) {
     else if (a === '--download') opts.download = true;
     else if (a === '--force') opts.force = true;
     else if (a === '--spans-only') opts.spansOnly = true;
+    else if (a === '--engine') {
+      // Per-run override of the shots.json engineMode mapping — the owner can
+      // ask for either engine mid-flow ("use heygen 3" / "use heygen 4",
+      // 2026-08-01). heygen4 is METERED: owner's explicit ask required.
+      opts.engine = rest.shift();
+      if (!['heygen3', 'heygen4'].includes(opts.engine)) throw new Error(`--engine must be heygen3 or heygen4, got: ${opts.engine}`);
+    }
     else if (a === '--corner-range') {
       const spec = rest.shift();
       const m = /^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$/.exec(spec || '');
@@ -145,10 +152,17 @@ async function main() {
       process.exit(1);
     }
 
-    if (shotsFile.engineMode !== 'test') {
-      console.error('engineMode "production" is not implemented yet — keep "test" (see docs/specs/2026-07-18-avatar-shot-plan-design.md)');
+    // engineMode "production" implemented 2026-08-01 (owner order, finalizing
+    // opusclip-vs-submagic): span jobs render Avatar IV (heygen4) — METERED
+    // against the monthly second-pool, so it needs the owner's explicit ask
+    // per video, never a default. Corner jobs stay Avatar III per the design
+    // (docs/specs/2026-07-18-avatar-shot-plan-design.md). "test" renders
+    // everything on free unlimited Avatar III, unchanged.
+    if (shotsFile.engineMode !== 'test' && shotsFile.engineMode !== 'production') {
+      console.error(`unknown engineMode "${shotsFile.engineMode}" — use "test" (Avatar III, free) or "production" (Avatar IV, metered, owner-authorized)`);
       process.exit(1);
     }
+    const engineMode = shotsFile.engineMode;
 
     if (!opts.template) {
       console.error('missing --template');
@@ -224,7 +238,9 @@ async function main() {
 
       const title = `${shotsResolved.video}__${job.id}`;
       const audioPath = path.join('slices-avatar', `${job.id}.mp3`);
-      const cmdArgs = [...pre, 'generate-from-template', '--template', opts.template, '--audio', audioPath, '--title', title];
+      const jobEngine = opts.engine
+        ?? ((engineMode === 'production' && jobPurpose(job) !== 'corner') ? 'heygen4' : 'heygen3');
+      const cmdArgs = [...pre, 'generate-from-template', '--template', opts.template, '--audio', audioPath, '--title', title, '--engine', jobEngine];
       const res = spawnSync(bin, cmdArgs, { encoding: 'utf8', cwd: workdir });
       let video_id = null;
       let status = 'failed';
@@ -249,15 +265,20 @@ async function main() {
         console.error(`${job.id}: submit FAILED — ${newJob.error}`);
       } else {
         const meter = cliSays.match(/UNLIMITED|NOT-free/)?.[0] ?? 'meter-check not seen';
-        console.error(`${job.id}: submitted ${video_id} [${meter}]`);
-        if (/NOT-free/.test(cliSays)) console.error(`${job.id}: ⚠️ meter says NOT-free — Avatar III unlimited assumption broken, investigate before submitting more`);
+        console.error(`${job.id}: submitted ${video_id} [${meter}] engine=${jobEngine}`);
+        // Avatar IV bills at render COMPLETION, not submission (verified
+        // 2026-08-01: submit-time meter said UNLIMITED, limits grew +15s only
+        // after the render finished) — so the submit-time verdict proves
+        // nothing for heygen4; verify the pool with `heygen-web limits` after
+        // the batch instead. The III free-pool tripwire stays.
+        if (jobEngine === 'heygen3' && /NOT-free/.test(cliSays)) console.error(`${job.id}: ⚠️ meter says NOT-free — Avatar III unlimited assumption broken, investigate before submitting more`);
       }
       outJobs.push(newJob);
 
       fs.writeFileSync(jobsPath, JSON.stringify({
         video: shotsResolved.video,
         template: opts.template,
-        engineMode: "test",
+        engineMode,
         jobs: outJobs
       }, null, 2));
 
@@ -274,7 +295,7 @@ async function main() {
     fs.writeFileSync(jobsPath, JSON.stringify({
       video: shotsResolved.video,
       template: opts.template,
-      engineMode: "test",
+      engineMode,
       jobs: outJobs
     }, null, 2));
     process.exit(exitCode);

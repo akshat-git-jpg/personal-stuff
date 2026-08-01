@@ -183,3 +183,24 @@ not a dormant code path.
   avatar-full is out of scope until a real video demands it).
 - Not final assembly — the editor still owns the timeline; every output is clips +
   manifest timecodes, same contract as graphics.
+
+## Addendum 2026-08-01 — production mode implemented (owner order)
+
+The owner asked to finalize opusclip-vs-submagic on HeyGen 4, which triggered
+the production flip this spec reserved. What landed:
+
+- `heygen-web generate-from-template --engine heygen3|heygen4` — the engine
+  choice lives on the avatar element inside the cloned template draft
+  (`engine: avatar_iii|avatar_iv|avatar_v`, `engine_settings.engine_type:
+  avatar_iv_quality|avatar_iv_turbo`, `model: '4.5_quality'` — enums learned
+  from the API's own validation 400s; no HAR capture was needed for the
+  template path). The CLI's Avatar III-only hard rule was amended to
+  "III by default; IV only on the owner's explicit per-batch ask".
+- `engineMode: "production"` in shots.json is now legal: avatar-render routes
+  span jobs to heygen4, corner jobs stay heygen3 (as specced). `--engine`
+  overrides one submit run, so the owner can ask for either engine mid-flow.
+- Metering fact the spec could not know: Avatar IV bills the monthly
+  second-pool at render COMPLETION, not submission (verified: submit-time
+  meter read UNLIMITED; `limits` grew +15s only after the render finished),
+  at ~1:1 seconds. The per-submit meter verdict therefore proves nothing for
+  IV — check `heygen-web limits` after the batch instead.

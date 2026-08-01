@@ -8,7 +8,7 @@ videos — the thing the official developer API meters and the official MCP can'
 | Path | Auth | Avatar III | Avatar IV |
 |------|------|-----------|-----------|
 | Official API / MCP | API key | ~3 credits/min (metered) | ~20 credits/min |
-| **Web app (this CLI)** | **session token** | **∞ unlimited / free** | n/a |
+| **Web app (this CLI)** | **session token** | **∞ unlimited / free** | metered vs the monthly `/1200` second-pool (`generate-from-template --engine heygen4`; owner-authorized batches only — see CLAUDE.md) |
 
 HeyGen ties "unlimited Avatar III" to the **subscription web session**, not the API key.
 This CLI replays the web app's *own internal request* using that session token, so

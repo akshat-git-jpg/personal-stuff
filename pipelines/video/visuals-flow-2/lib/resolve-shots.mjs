@@ -17,13 +17,11 @@ export function resolveShots(shotsFile, words) {
 
   if (!ENGINE_MODES.includes(shotsFile.engineMode)) {
     errors.push(`engineMode "${shotsFile.engineMode}" invalid — must be one of: ${ENGINE_MODES.join(', ')}`);
-  } else if (shotsFile.engineMode === 'production') {
-    // heygen-web is Avatar III-only and its heygen4 path is an unimplemented
-    // TODO (design doc 2026-07-18). The owner flips this explicitly, together
-    // with the heygen-web work — until then production is an error, not a
-    // dormant code path.
-    errors.push('engineMode "production" is not implemented yet — keep "test" (see docs/specs/2026-07-18-avatar-shot-plan-design.md)');
   }
+  // "production" (Avatar IV, metered) implemented 2026-08-01 on owner order —
+  // heygen-web's generate-from-template grew --engine heygen4 and
+  // avatar-render routes span jobs to it. It stays owner-flipped per video:
+  // the mode is never a default, because it spends the monthly second-pool.
 
   const seen = new Set();
   for (const span of shotsFile.spans ?? []) {

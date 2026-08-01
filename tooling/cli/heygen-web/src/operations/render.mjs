@@ -75,7 +75,35 @@ export async function getTemplate(auth, templateId) {
   return t;
 }
 
-export async function submitFromTemplate(auth, { templateId, audioPath, title }) {
+// Flip a cloned template draft from Avatar III to Avatar IV. The engine choice
+// lives on the avatar element's content (verified by dumping template 403f1f8c
+// 2026-08-01: engine:"avatar_iii", use_avatar_iv_model:false,
+// use_unlimited_mode:true) — the request shape is otherwise identical, so no
+// separate HAR capture is needed for the template path. Avatar IV is METERED
+// (draws the monthly seconds pool): the meter check printing ⚠️NOT-free is the
+// EXPECTED proof it took, and ✓UNLIMITED after an iv submit means HeyGen
+// silently fell back to Avatar III — treat that as a failure.
+function patchDraftToAvatarIV(textDraft) {
+  let patched = 0;
+  for (const el of Object.values(textDraft.visual?.elements ?? {})) {
+    const c = el.content;
+    if (!c || c.engine === undefined) continue;
+    // Real enums learned from the API's own 400s (2026-08-01): the outer
+    // `engine` accepts avatar_iii | avatar_iv | avatar_v; the engine_settings
+    // tagged union wants avatar_iv_quality | avatar_iv_turbo; and `model` is
+    // required with use_avatar_iv_model — legal values run '4.0'…'4.5_quality'.
+    // Quality tier throughout: this flag exists for finalize-grade renders.
+    c.engine = "avatar_iv";
+    if (c.engine_settings?.engine_type) c.engine_settings.engine_type = "avatar_iv_quality";
+    c.use_avatar_iv_model = true;
+    c.use_unlimited_mode = false;
+    c.model = "4.5_quality";
+    patched++;
+  }
+  if (!patched) die("--engine heygen4: no avatar element with an engine field found in the template draft");
+}
+
+export async function submitFromTemplate(auth, { templateId, audioPath, title, iv = false }) {
   const tmpl = await getTemplate(auth, templateId);
   const audio = await uploadAudio(auth, audioPath);
 
@@ -89,6 +117,7 @@ export async function submitFromTemplate(auth, { templateId, audioPath, title })
 
   const textDraft = JSON.parse(JSON.stringify(tmpl.text_draft));
   const metadata = JSON.parse(JSON.stringify(tmpl.metadata));
+  if (iv) patchDraftToAvatarIV(textDraft);
 
   const scriptElId = textDraft.script.timeline[0];
   const { voice_id, voice_settings } = textDraft.script.elements[scriptElId].attributes;

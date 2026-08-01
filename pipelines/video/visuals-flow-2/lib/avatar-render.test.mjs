@@ -112,15 +112,30 @@ test('CLI tests', (t) => {
   shotsJson.approved = true;
   fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify(shotsJson));
 
-  // Case 3: engineMode production
+  // Case 3: engineMode production submits span jobs as Avatar IV (heygen4) —
+  // implemented 2026-08-01 (owner order); an unknown mode still hard-errors.
   shotsJson.engineMode = 'production';
   fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify(shotsJson));
   res = runCLI([workdir, '--template', 't', '--submit', '--force']);
+  assert.strictEqual(res.status, 0, res.stderr);
+  const stubArgs = fs.readFileSync(path.join(workdir, 'stub-args.log'), 'utf8');
+  assert.ok(stubArgs.includes('--engine heygen4'), `span job in production mode must submit heygen4, got: ${stubArgs}`);
+  const prodJobs = JSON.parse(fs.readFileSync(path.join(workdir, 'avatar-jobs.json'), 'utf8'));
+  assert.strictEqual(prodJobs.engineMode, 'production');
+
+  shotsJson.engineMode = 'bogus';
+  fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify(shotsJson));
+  res = runCLI([workdir, '--template', 't', '--submit', '--force']);
   assert.strictEqual(res.status, 1);
-  assert.ok(res.stderr.includes('engineMode "production" is not implemented'));
-  
+  assert.ok(res.stderr.includes('unknown engineMode'));
+
   shotsJson.engineMode = 'test';
   fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify(shotsJson));
+  // Case 3 actually submitted — reset the submit state so later cases start
+  // from the same blank slate they always did.
+  fs.rmSync(path.join(workdir, 'avatar-jobs.json'), { force: true });
+  fs.rmSync(path.join(workdir, 'stub-counter.txt'), { force: true });
+  fs.rmSync(path.join(workdir, 'stub-args.log'), { force: true });
 
   // Case 4: Stale shots.resolved.json
   const resolvedShots = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.resolved.json')));

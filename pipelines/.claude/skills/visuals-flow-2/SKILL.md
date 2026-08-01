@@ -48,8 +48,16 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    (Avatar IV, generative credits) and production renders stay owner-run —
    explicit ask in THIS conversation. Never submit from a cron. Download is
    safe to re-run.
-5. **`engineMode` stays `"test"`.** Production (HeyGen 4) is a validation error
-   by design until the owner flips it.
+5. **`engineMode` defaults to `"test"` (Avatar III, free); `"production"`
+   (Avatar IV, METERED) is implemented (2026-08-01) but only ever set on the
+   owner's explicit ask, per video.** The owner may ask for either engine
+   mid-flow — "use heygen 3" / "use heygen 4": set `engineMode` in
+   `shots.json` (test|production), re-run `node lib/resolve-shots.mjs`, then
+   submit; or override one submit run with
+   `node lib/avatar-render.mjs <slug> --submit --engine heygen3|heygen4`.
+   Before any heygen4 batch: `heygen-web limits` must cover the total span
+   seconds, and note IV bills at render COMPLETION (submit-time meter always
+   reads UNLIMITED). Never flip to production yourself.
 6. **Snapshot before owner edits**: after a cue/shot pass converges, copy the
    final LLM output to `cues.llm.json` / `shots.llm.json` (committed, immutable).
 7. Never edit RULEBOOK/prompt/DESIGN/catalog/lint constants mid-run — rule

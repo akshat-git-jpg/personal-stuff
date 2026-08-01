@@ -16,6 +16,9 @@ function main() {
       n = parseInt(fs.readFileSync(counterFile, 'utf8'), 10) + 1;
     }
     fs.writeFileSync(counterFile, String(n));
+    // Record the full arg vector so tests can assert what the pipeline sent
+    // (e.g. --engine heygen4 in production mode).
+    fs.appendFileSync(path.join(process.cwd(), 'stub-args.log'), args.join(' ') + '\n');
     console.log(JSON.stringify({ video_id: `vid-${n}`, status: 'submitted' }));
     process.exit(0);
   }

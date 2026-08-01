@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "updated": "2026-07-31T18:10:17.744Z",
+  "updated": "2026-08-01T07:46:23.366Z",
   "steps": {
     "037-approve-card-plan-human": {
       "status": "done",
@@ -101,10 +101,10 @@
     "100-render-avatar-run": {
       "status": "done",
       "started": "2026-07-31T17:01:17.928Z",
-      "did": "Submitted the HeyGen avatar clips for the approved shot spans.",
-      "issues": "E6 side-coverage: side span s00 covering card intro/tape-board-side is not side-capable (catalog \"side\" is not true)",
-      "output": "avatar-jobs.json + avatar clips in kb-scratch",
-      "ended": "2026-07-31T17:01:35.678Z"
+      "did": "Avatar III -> Avatar IV swap (owner order, finalize): implemented heygen4 in heygen-web generate-from-template (engine enums learned from validation 400s, model 4.5_quality), engineMode production in resolve-shots/avatar-render with per-run --engine override, resubmitted all 10 spans as Avatar IV, downloaded, re-cut as v11.",
+      "issues": "A piped test-gate masked a failing exit and let an extra submit run start in parallel: 4 orphan IV renders, ~68s of metered pool wasted (lesson in TESTS.md). Pool after batch: 609s of 1200s remaining.",
+      "output": "10 Avatar IV clips in the media hub, avatar-jobs.json engineMode production, draft v11 on the Final Cut tab",
+      "ended": "2026-08-01T07:46:23.366Z"
     },
     "090-render-graphics-run": {
       "status": "done",

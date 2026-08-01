@@ -51,10 +51,9 @@ test('legacy "kind" field still resolves (renamed to "purpose" 2026-07-31)', () 
   assert.equal(spans[0].purpose, 'avatar-full');
 });
 
-test('engineMode: "production" → error containing not implemented; engineMode: "nope" → error containing invalid', () => {
+test('engineMode: "production" → legal (Avatar IV, implemented 2026-08-01); engineMode: "nope" → error containing invalid', () => {
   const res1 = resolveShots({ engineMode: 'production' }, words);
-  assert.equal(res1.errors.length, 1);
-  assert.ok(res1.errors[0].includes('not implemented'));
+  assert.equal(res1.errors.length, 0);
 
   const res2 = resolveShots({ engineMode: 'nope' }, words);
   assert.equal(res2.errors.length, 1);
