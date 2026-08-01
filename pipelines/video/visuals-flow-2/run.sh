@@ -5,7 +5,10 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 # Do NOT add an --all or all step. The chain has three human gates
 # (037 card plan, 080 storyboard, 120 final cut), an Opus-only fold at 130,
 # and live HeyGen at 100, and a driver that walks past them would be
-# actively dangerous.
+# actively dangerous. The ONLY sanctioned bypass is the owner's own kickoff
+# choice recorded by `configure` (run-config review=express) — it waives the
+# 037/080 board approvals, never the new-card look-preview or the 120 final
+# cut, and a session still runs the steps one at a time.
 
 usage() {
   cat <<EOF
@@ -13,6 +16,7 @@ Usage: run.sh <slug> <step>
 
 Steps:
   status
+  configure [--engine heygen3|heygen4] [--review full|express]
   transcribe
   segments
   concept-pass
@@ -36,6 +40,7 @@ Steps:
   avatar-download
   cut
   assemble
+  deliver
   export
   qc
 EOF
@@ -46,13 +51,16 @@ if [[ $# -eq 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
   exit 2
 fi
 
-if [[ $# -ne 2 ]]; then
+# `configure` takes extra flags (--engine/--review); every other step is
+# exactly two args.
+if [[ $# -lt 2 ]] || { [[ "$2" != "configure" ]] && [[ $# -ne 2 ]]; }; then
   usage
   exit 2
 fi
 
 slug="$1"
 step="$2"
+shift 2
 
 # Record a deterministic step into videos/<slug>/run-log.json as it runs, so the
 # board's Run tab and `status` can say what happened without anyone reading the
@@ -150,6 +158,20 @@ case "$step" in
       shots_approved=$(node -e "const s=require('./videos/$slug/shots.json');console.log(s.approved?'approved':'NOT approved')")
     fi
 
+    # Kickoff config (step 005): engine + review mode. Express waives the 037
+    # and 080 board gates in the next-hints below — the artifact table still
+    # shows the raw approved flags.
+    run_engine="heygen3"; run_review="full"
+    if [[ -f "videos/$slug/run-config.json" ]]; then
+      run_engine=$(node -e "console.log(require('./videos/$slug/run-config.json').engine||'heygen3')")
+      run_review=$(node -e "console.log(require('./videos/$slug/run-config.json').review||'full')")
+    fi
+    if [[ "$run_review" == "express" ]]; then
+      card_plan_gate="approved"; cues_gate="approved"; shots_gate="approved"
+    else
+      card_plan_gate="$card_plan_approved"; cues_gate="$cues_approved"; shots_gate="$shots_approved"
+    fi
+
     # The ledger first: what each step did, from run-log.json. Steps with no
     # entry fall back to probing the artifacts and are labelled as inferred, so
     # a video that ran before the ledger existed still reads correctly.
@@ -157,6 +179,7 @@ case "$step" in
     node lib/run-log.mjs "$slug"
     echo
 
+    echo "run-config        engine=$run_engine review=$run_review"
     echo "artifact          status"
     echo "--------          ------"
     echo "transcript.json   $transcript_present"
@@ -176,13 +199,13 @@ case "$step" in
       echo "next: run.sh $slug segments  (then set confirmed: true in segments.json)"
     elif [[ "$cues_present" == "missing" ]]; then
       echo "next: run.sh $slug cue-pass"
-    elif [[ "$card_plan_approved" == "NOT approved" ]]; then
+    elif [[ "$card_plan_gate" == "NOT approved" ]]; then
       echo "next: run.sh $slug validate, then outline + board  (HUMAN GATE 1 — 037 card plan)"
     elif [[ "$resolved_present" == "missing" ]]; then
       echo "next: run.sh $slug resolve  (build any NEW cards at step 038 first)"
     elif [[ "$shots_present" == "missing" ]]; then
       echo "next: run.sh $slug shot-pass  (before the storyboard gate)"
-    elif [[ "$cues_approved" == "NOT approved" || "$shots_approved" == "NOT approved" ]]; then
+    elif [[ "$cues_gate" == "NOT approved" || "$shots_gate" == "NOT approved" ]]; then
       echo "next: run.sh $slug board  (HUMAN GATE 2 — 080 storyboard: approve cues AND shots)"
     elif [[ "$renders_present" == "missing" ]]; then
       echo "next: run.sh $slug render"
@@ -194,6 +217,15 @@ case "$step" in
   transcribe)
     record_step 010 "Transcribed the voiceover to word-level timestamps and ran the quality pass." \
       "transcript.json" -- bash steps/010-transcribe-run/run.sh "$slug"
+    ;;
+
+  configure)
+    # Step 005 — the owner's kickoff choices for this video: which HeyGen
+    # engine (heygen3 free | heygen4 metered) and how much they review along
+    # the way (full = every gate | express = straight to final cut). See
+    # steps/005-configure-run-human/README.md — express NEVER skips the
+    # new-card look-preview or the 120 final-cut review.
+    node lib/run-config.mjs "$slug" "$@"
     ;;
 
   segments)
@@ -395,6 +427,11 @@ EOF
   assemble)
     record_step 110 "Assembled the screen recording, graphics, avatar clips and mastered audio into the cut." \
       "final.mp4 + assembly.md" -- bash steps/110-build-video-run/run.sh "$slug"
+    ;;
+
+  deliver)
+    record_step 150 "Uploaded the approved full-resolution final to the video's Drive Output folder." \
+      "Output/<slug>-final.mp4 on Drive" -- bash steps/150-deliver-drive-run/run.sh "$slug"
     ;;
 
   export)

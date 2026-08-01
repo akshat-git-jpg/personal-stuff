@@ -13,6 +13,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 
 | Step | Actor | In → Out |
 |---|---|---|
+| `005-configure-run-human` | [OWNER] | the owner's kickoff choices → `run-config.json` (engine heygen3\|heygen4, review full\|express, optional drive_folder/drive_account). No file = heygen3 + full review. Express waives the 037/080 board approvals ONLY — never the new-card look-preview, never 120 |
 | `010-transcribe-run` | [RUN] + quality pass [RUN/LLM] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) + optional `script.txt` → `transcript.json` (word timestamps, cleaned — never raw ASR punctuation; script-first alignment when `script.txt` exists, else an LLM cleanup pass, both gated by `checkTimingIntegrity()`) |
 | `015-map-segments-run` | [RUN] | `transcript.json` + `src/*.mp4` → `segments.json` (measured intro/body/conclusion `structure` + demo vs narration `segments`; owner sets `confirmed: true`, which promotes lint E5 from warning to error) |
 | `020-choose-concept-llm` | [LLM] | `transcript.json` + `segments.json` → `concept.json` (gate `lint-concept` — required fields, anchors resolving in forward order, and ≥80% **narration** coverage by the register map; `segments.json` is what narration time is measured from) |
@@ -34,6 +35,7 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `120-approve-final-cut-human` | [OWNER] | `final.mp4` → `final-cut.json` (**REVIEW 3: Final Cut**. Motion and sound review — effects, sound, pacing, captions; judged in motion) |
 | `130-learn-from-feedback-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
 | `140-davinci-export-run` | [RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)] | same inputs as 110 → layered FCPXML + music/sfx lanes + panel transforms |
+| `150-deliver-drive-run` | [RUN] | approved `final.mp4` (full-res, 120-gated) → `Output/<slug>-final.mp4` in the video's own Drive folder (`run-config.json` drive_folder/drive_account; `pp-drive` upload with --overwrite) |
 | qc (`scripts/qc-video.sh`) | [RUN] + [LLM read] | `final(-draft).mp4` + `assembly.md` + `effects.json` → kb-scratch `qc/` pack (checklist + event contact sheets) → session-read verdicts in committed `qc-report.md` |
 | **publish templates** | [RUN] | once the video is done: `cd ../card-library && npm run publish-check` → fails on any card built for this video that is uncommitted or unpushed. Cards only reach the editor's gallery at render2.agrolloo.com once pushed (VPS `repo-sync` cron, ~15 min). See `card-library/CLAUDE.md`. |
 
@@ -72,6 +74,7 @@ Each `steps/NNN-*/` folder has a `README.md` that remains the detailed reference
 ```
 videos/<slug>/
   video.json       # v2 manifest (aspect, brand, music mood, format) — committed
+  run-config.json  # step 005 owner kickoff choices (engine, review mode, drive folder) — committed
   vo.mp3           # input voiceover — gitignored (regenerable from the tts hub)
   script.txt       # optional input — when present, wins as the authoritative caption text (step 010 script-first mode)
   transcript.json  # step 010 output, cleaned (never raw ASR punctuation) — committed
@@ -237,6 +240,25 @@ somebody had already hand-built.
 - `sections`: one per `intro` / `body` / `conclusion` that has cues; empty ones are dropped. `start`/`end` appear only for the zones, which are the only parts measured from the source recordings — the body has no span.
 - `items`: `status` is `existing` (found in `catalog.json`) or `new` (to be built at 038). `anchor` rather than a timestamp: this gate runs before 040 puts the plan on a clock.
 - `proposal`: the structured spec of a NEW card (`does` / `kind` / `placement` / `beats` / `variables`), taken from the cue's `propose` field.
+
+## run-config.json schema
+
+Step 005 output — the owner's kickoff choices. Absent file = all defaults.
+
+```jsonc
+{
+  "engine": "heygen3",        // heygen3 (Avatar III, free; default) | heygen4 (Avatar IV, METERED — setting it IS the owner authorization for this video)
+  "review": "full",           // full (every gate; default) | express (unattended to final cut; waives 037/080 board approvals ONLY — never the new-card look-preview, never 120)
+  "drive_folder": "1x-…",     // optional — the video's own Drive folder (holds Input/ and Output/); step 150 delivers into its Output/
+  "drive_account": "a@b.com", // optional — pp-drive token account with write access
+  "decided_at": "2026-08-01T…"
+}
+```
+
+Read via `lib/run-config.mjs` (`loadRunConfig`/`gateWaived`); gates in
+render/avatar-render/assemble consult it. shots.json `engineMode` must agree
+with `engine` (`heygen3`⇔`test`, `heygen4`⇔`production`) — avatar-render
+refuses on mismatch.
 
 ## run-log.json schema
 

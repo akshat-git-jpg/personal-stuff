@@ -33,7 +33,8 @@ test('step ids come from the steps/ folders', async (t) => {
   await t.test('reads every NNN- folder, in number order', () => {
     const ids = stepIds();
     assert.ok(ids.length >= 15, `expected the real step folders, got ${ids.length}`);
-    assert.equal(ids[0], '010-transcribe-run');
+    assert.equal(ids[0], '005-configure-run-human');
+    assert.equal(ids[1], '010-transcribe-run');
     assert.deepEqual([...ids].sort(), ids, 'must come back in step order');
     for (const id of ids) assert.match(id, /^\d{3}-/);
   });

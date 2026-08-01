@@ -1,5 +1,9 @@
 # 120 · approve final cut · [HUMAN]
 
+**This gate is NEVER waived.** `run-config review=express` (step 005) exists to
+run the flow *to* this review, not past it — the full-resolution final refuses
+without this approval in every mode, by design.
+
 **What you judge**: motion, sound, pacing, and captions — evaluated in motion, not from stills.
 **How**: use the Final Cut tab on the board, leave timestamped and pinned comments, compare versions, and use live check-off.
 **What it blocks**: the full-resolution final render and the Resolve export. Note that `--draft` is always available beforehand for reviewing drafts.

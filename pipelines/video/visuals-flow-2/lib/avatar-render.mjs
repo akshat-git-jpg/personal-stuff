@@ -4,6 +4,7 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { resolveShots } from './resolve-shots.mjs';
 import { jobPurpose } from './shot-constants.mjs';
+import { gateWaived, loadRunConfig } from './run-config.mjs';
 import { lintShots } from './lint-shots.mjs';
 import { mmss } from './render.mjs';
 import { resolveWorkdir } from './workdir.mjs';
@@ -126,9 +127,22 @@ async function main() {
     const resolvedFile = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
     const words = JSON.parse(fs.readFileSync(transcriptPath, 'utf8'));
 
-    if (shotsFile.approved !== true && !opts.force) {
+    if (shotsFile.approved !== true && !opts.force && !gateWaived(workdir, 'shots/storyboard (080)')) {
       console.error('refusing to render: shots.json approved=false — review on the board or pass --force');
       process.exit(1);
+    }
+
+    // The kickoff engine choice and shots.json's engineMode are two spellings
+    // of one decision — a mismatch means someone changed one and not the
+    // other, and the wrong engine either wastes metered seconds or ships
+    // Avatar III into a finalize. Refuse rather than guess.
+    const runCfg = loadRunConfig(workdir);
+    if (runCfg.configured) {
+      const want = runCfg.engine === 'heygen4' ? 'production' : 'test';
+      if (shotsFile.engineMode !== want) {
+        console.error(`run-config engine=${runCfg.engine} expects engineMode "${want}" but shots.json says "${shotsFile.engineMode}" — align them (edit shots.json, re-run resolve-shots) before submitting`);
+        process.exit(1);
+      }
     }
 
     const recomputed = resolveShots(shotsFile, words);

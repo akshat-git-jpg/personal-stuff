@@ -1,6 +1,9 @@
 # 080 · approve storyboard · [HUMAN]
 
-**MANDATORY GATE 2 — never skipped, at any video length** (owner decision
+**MANDATORY GATE 2 — never skipped by a session's judgment; waivable ONLY by
+the owner's own kickoff choice** (step 005, `run-config review=express`, owner
+decision 2026-08-01 — express runs unattended to the final cut). In full-review
+mode this holds as written (owner decision
 2026-07-25, decisions.md; renumbered 2026-07-30 when the 037 card plan became
 gate 1). This is the COMPOSITION review — 037 already settled *which cards*, so
 this gate is about how the plan sits on the timeline: the owner finalises avatar

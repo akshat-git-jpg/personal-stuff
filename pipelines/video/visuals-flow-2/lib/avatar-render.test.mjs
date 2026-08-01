@@ -137,6 +137,30 @@ test('CLI tests', (t) => {
   fs.rmSync(path.join(workdir, 'stub-counter.txt'), { force: true });
   fs.rmSync(path.join(workdir, 'stub-args.log'), { force: true });
 
+  // Case 3b: run-config review=express waives the shots-approval gate (the
+  // owner's kickoff choice, 2026-08-01) — approved=false + express submits.
+  shotsJson.approved = false;
+  fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify(shotsJson));
+  fs.writeFileSync(path.join(workdir, 'run-config.json'), JSON.stringify({ engine: 'heygen3', review: 'express' }));
+  res = runCLI([workdir, '--template', 't', '--submit']);
+  assert.strictEqual(res.status, 0, res.stderr);
+  assert.ok(res.stderr.includes('review=express'), 'express waiver must be printed, not silent');
+
+  // Case 3c: run-config engine must agree with shots.json engineMode —
+  // heygen4 expects "production", so "test" refuses before any submit.
+  fs.writeFileSync(path.join(workdir, 'run-config.json'), JSON.stringify({ engine: 'heygen4', review: 'express' }));
+  fs.rmSync(path.join(workdir, 'avatar-jobs.json'), { force: true });
+  res = runCLI([workdir, '--template', 't', '--submit']);
+  assert.strictEqual(res.status, 1);
+  assert.ok(res.stderr.includes('expects engineMode'), res.stderr);
+
+  shotsJson.approved = true;
+  fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify(shotsJson));
+  fs.rmSync(path.join(workdir, 'run-config.json'), { force: true });
+  fs.rmSync(path.join(workdir, 'avatar-jobs.json'), { force: true });
+  fs.rmSync(path.join(workdir, 'stub-counter.txt'), { force: true });
+  fs.rmSync(path.join(workdir, 'stub-args.log'), { force: true });
+
   // Case 4: Stale shots.resolved.json
   const resolvedShots = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.resolved.json')));
   resolvedShots.spans[0].start = 99;

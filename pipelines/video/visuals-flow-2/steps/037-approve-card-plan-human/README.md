@@ -1,5 +1,11 @@
 # 037 · approve card plan · [HUMAN]
 
+**MANDATORY GATE 1 — waivable ONLY by the owner's own kickoff choice**
+(step 005, `run-config review=express`): in express mode the board approval is
+skipped and render proceeds. The new-card look-preview is NOT part of this
+waiver — even in express, `status: "new"` cards stop the flow for the owner's
+prompt verdict at 038 before any card is built.
+
 **MANDATORY GATE 1.** Every card the video will use — body, intro and conclusion
 — in one list, each marked EXISTING or NEW-to-build, with the spec of any
 proposed new card. You approve the plan here, before a single card is built and

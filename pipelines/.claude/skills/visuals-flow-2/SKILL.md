@@ -65,8 +65,27 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
 
 ## Verb Map
 
-**Review model (owner reaffirmed 2026-07-29 — see decisions.md):** three owner
-gates, and **none is skippable at any video length**.
+**Review model (owner reaffirmed 2026-07-29; express mode added 2026-08-01):**
+three owner gates. In the default **full** review mode none is skippable at any
+video length. The owner chooses the mode ONCE at kickoff (step 005):
+
+```bash
+bash run.sh <slug> configure --engine heygen3|heygen4 --review full|express
+```
+
+**Express mode** (`review=express`) runs the flow unattended to the final cut:
+the 037 and 080 board approvals are waived by the code gates themselves (they
+print a note and proceed). TWO things express NEVER skips: (1) the **new-card
+look-preview** — any `status: "new"` card still stops the flow for the owner's
+Gemini/Flow prompt verdict before a line of card code (owner: "even if I say
+run till final cut, if you are making new motion graphics I still want the
+prompt"); (2) **Gate 3 itself** — the full-res final refuses without 120
+approval in every mode. The engine choice (`heygen3` free | `heygen4` metered)
+recorded here IS the owner's authorization for this video's avatar batches;
+sessions set shots.json `engineMode` from it at 060 (`heygen3`⇔`test`,
+`heygen4`⇔`production` — avatar-render refuses on mismatch). At kickoff, if the
+owner's opening message doesn't state both choices, ASK — never assume express
+and never assume heygen4.
 
 **Gate 1 — Card Plan (step 037, comes first).** Every card the video will use —
 body, intro and conclusion — marked EXISTING or NEW-to-build, approved before
@@ -97,6 +116,7 @@ Between the gates the session runs unattended: render → avatar renders → cut
 | Phrase | `run.sh` verb / CLI | Owner Gate / Behavior |
 |---|---|---|
 | "where are we", "what's the status", "show me the run" | `bash run.sh <slug> status` (or the board's **Run** tab) | reads `run-log.json`; steps with no entry are labelled as inferred |
+| "run it till final cut", "express mode", "use heygen 3/4", "full review this time" | `bash run.sh <slug> configure --engine … --review …` | **005 kickoff config** — see Review model above |
 | "map the segments", "propose segments" | `bash run.sh <slug> segments` | writes `structure` + `segments`; owner then sets `confirmed: true`. 035 refuses without `structure` |
 | "run v2 graphics", "run the concept pass" | `bash run.sh <slug> concept-pass` | |
 | "run the cue pass" | `bash run.sh <slug> cue-pass` | authors the BODY only |
@@ -115,6 +135,7 @@ Between the gates the session runs unattended: render → avatar renders → cut
 | "mix the audio" | `bash run.sh <slug> mix` | |
 | "assemble the video" | `bash run.sh <slug> assemble` | Prints board URL for final cut |
 | "export the timeline", "resolve export" | `bash run.sh <slug> export` | **on-request only** |
+| "deliver the final", "upload to drive", "ship it to the output folder" | `bash run.sh <slug> deliver` | **150** — uploads the approved full-res final to the video's Drive `Output/` folder; needs `drive_folder`+`drive_account` in run-config (005); 120 approval re-checked, never waived |
 | "qc the video", "filmstrip qc" | `bash run.sh <slug> qc` | |
 | "fold the feedback", "feedback is done", "I'm done reviewing" | **invoke the `visuals-flow-feedback` skill** (it wraps `bash run.sh <slug> fold`) | **130 fold** |
 | "analyze reference <url>" | `bash scripts/analyze-reference.sh <url>` | |

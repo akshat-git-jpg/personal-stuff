@@ -136,6 +136,7 @@ export function setStep(log, stepId, status, fields = {}, now = new Date()) {
 // now — are not shown as a blank page. Entries produced this way are marked
 // `derived` and carry no summary, because none was ever written.
 const ARTIFACT_PROOF = {
+  '005': (w) => fs.existsSync(path.join(w, 'run-config.json')),
   '010': (w) => fs.existsSync(path.join(w, 'transcript.json')),
   '015': (w) => fs.existsSync(path.join(w, 'segments.json')),
   '020': (w) => fs.existsSync(path.join(w, 'concept.json')),

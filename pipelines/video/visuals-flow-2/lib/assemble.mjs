@@ -8,6 +8,7 @@ import { avatarFullSpans } from './lint-cues.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { EFFECT_MODULES } from './effects/registry.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
+import { gateWaived } from './run-config.mjs';
 import { registerVersion } from './versions.mjs';
 import { loadConceptSpans } from './concept-spans.mjs';
 import { SHOT_CONSTANTS, jobPurpose } from './shot-constants.mjs';
@@ -900,7 +901,10 @@ export async function loadAssemblyInputs(opts) {
   const cuesPath = path.join(workdir, 'cues.json');
   
   const cuesFile = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
-  if (cuesFile.approved !== true && !opts.force) {
+  // 037/080 board approvals are waivable by run-config review=express (owner
+  // kickoff choice). The 120 final-cut gate further down is NOT — express
+  // mode exists to run TO the final cut review, never past it.
+  if (cuesFile.approved !== true && !opts.force && !gateWaived(workdir, 'cues/storyboard (080)')) {
     console.error('refusing to render: cues.json approved=false — review on the board (node lib/board.mjs <slug>) or pass --force');
     process.exit(1);
   }
@@ -944,7 +948,7 @@ export async function loadAssemblyInputs(opts) {
   let cornerJobs = [];
   if (fs.existsSync(shotsPath)) {
     const shotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
-    if (shotsFile.approved !== true && !opts.force) {
+    if (shotsFile.approved !== true && !opts.force && !gateWaived(workdir, 'shots/storyboard (080)')) {
       console.error('shots.json approved=false');
       process.exit(1);
     }

@@ -48,7 +48,10 @@ What is specific to this step is only:
    one per key moment — hand them to the owner to run in Google Gemini/Flow,
    and wait for the verdict. The approved frames are the visual contract:
    build to match them. This applies to EVERY new card, including ones
-   commissioned mid-fold outside this step.
+   commissioned mid-fold outside this step — and it survives
+   `run-config review=express` (owner rule 2026-08-01: "even if I say run till
+   final cut, if you are making new motion graphics I still want the prompt").
+   Express waives the 037/080 board approvals, never this.
 
 ## The catalog entry
 
