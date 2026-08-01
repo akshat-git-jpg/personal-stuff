@@ -1,6 +1,6 @@
 {
   "video": "opusclip-vs-submagic",
-  "updated": "2026-08-01T07:46:23.366Z",
+  "updated": "2026-08-01T08:52:09.879Z",
   "steps": {
     "037-approve-card-plan-human": {
       "status": "done",
@@ -121,6 +121,22 @@
       "output": "final-draft.mp4 + assembly.md",
       "issues": "exited 1, see terminal",
       "ended": "2026-07-31T17:59:57.602Z"
+    },
+    "120-approve-final-cut-human": {
+      "status": "done",
+      "ended": "2026-08-01T08:36:03.623Z",
+      "started": "2026-08-01T08:36:03.623Z",
+      "did": "Owner approved the final cut (version v11) in chat: full-screen tape-board intro + all-Avatar-IV host clips.",
+      "issues": "none found",
+      "output": "final-cut.json approved=true, version v11"
+    },
+    "150-deliver-drive-run": {
+      "status": "done",
+      "started": "2026-08-01T08:39:42.595Z",
+      "ended": "2026-08-01T08:52:09.879Z",
+      "did": "Uploaded the approved full-resolution final to the video's Drive Output folder.",
+      "output": "Output/<slug>-final.mp4 on Drive",
+      "issues": "none found"
     }
   }
 }
