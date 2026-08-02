@@ -74,8 +74,14 @@
           radial-gradient(90% 70% at 50% 120%, rgba(255,255,255,0.03) 0%, transparent 60%),
           var(--room);
       }
+      /* The key light is OVERSIZED on purpose. The timeline pans it x: -22 -> 10,
+         and at inset:0 that slides a 22px strip of the frame out from under it —
+         which also voids the frame gate's full-bleed exemption (an element only
+         counts as a deliberate bleed while it reaches all four edges), so E12
+         flagged #key on every render. Bleeding 40px past each edge means the
+         light still covers the frame at both ends of its travel. */
       #key {
-        position: absolute; inset: 0; pointer-events: none; will-change: opacity, transform;
+        position: absolute; inset: -40px; pointer-events: none; will-change: opacity, transform;
         background: radial-gradient(46% 60% at 14% 2%, var(--key) 0%, transparent 62%);
       }
       #vignette {
