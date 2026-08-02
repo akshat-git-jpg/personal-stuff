@@ -4,9 +4,11 @@ cd "$(dirname "$0")/.."
 
 SLUG=".test-tmp/driver-smoke"
 mkdir -p "videos/$SLUG"
+mkdir -p "$SLUG"
 
 cleanup() {
   rm -rf "videos/$SLUG"
+  rm -rf "$SLUG"
 }
 trap cleanup EXIT
 
@@ -17,8 +19,20 @@ if bash run.sh "$SLUG" nonsense > /dev/null 2>&1; then
   exit 1
 fi
 
-render_out=$(bash run.sh "$SLUG" render 2>&1 || true)
+render_out=$(bash run.sh "$SLUG" author 2>&1 || true)
 if ! echo "$render_out" | grep -q "not built yet"; then
   echo "Expected 'not built yet' in output, got: $render_out"
+  exit 1
+fi
+
+cp lib/fixtures/transcript-good.json "$SLUG/transcript.json" || cp lib/fixtures/transcript-good.json "videos/$SLUG/transcript.json"
+echo '{"duration":8.4}' > "$SLUG/intake.json" || echo '{"duration":8.4}' > "videos/$SLUG/intake.json"
+screenplay_out=$(bash run.sh "$SLUG" screenplay 2>&1)
+if ! echo "$screenplay_out" | grep -q "## Your job"; then
+  echo "Expected '## Your job' in screenplay output, got $screenplay_out"
+  exit 1
+fi
+if echo "$screenplay_out" | grep -q "{{TRANSCRIPT}}"; then
+  echo "Expected {{TRANSCRIPT}} to be substituted"
   exit 1
 fi
