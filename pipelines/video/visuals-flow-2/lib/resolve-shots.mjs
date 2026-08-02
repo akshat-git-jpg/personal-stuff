@@ -84,6 +84,10 @@ async function main() {
       video: shotsFile.video,
       offset: shotsFile.offset ?? 0,
       engineMode: shotsFile.engineMode,
+      // Carried through so lint-shots' E8 intro-host gate can see it: the lint
+      // reads shots.resolved.json, and a waiver written in shots.json that was
+      // silently dropped here would look exactly like no waiver at all.
+      ...(shotsFile.intro_host_waived ? { intro_host_waived: shotsFile.intro_host_waived } : {}),
       spans,
     }, null, 2),
   );

@@ -54,11 +54,26 @@ PY
     # HEAD-advanced guard (shared via boss_head_advanced): agy can operate on the
     # wrong checkout; a SUCCESS with no new commit is NOT done (would make boss's
     # label state lie).
+    # agy emits a terminal ERROR for purely cosmetic scheduler faults (e.g.
+    # "another active schedule task has a conflicting early termination
+    # condition") AFTER the work is committed. On 2026-08-02 that reported PR#141
+    # as blocked while its branch was complete and clean, nearly triggering a
+    # pointless fix-up. Judge by the tree, not the envelope: HEAD advanced +
+    # clean worktree means the work landed regardless of how the CLI exited.
+    wt=$(meta_get "$id" worktree) || wt=""
+    dirty_n=0; [ -n "$wt" ] && dirty_n=$(git -C "$wt" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+    salvage=""
+    [ "${dirty_n:-0}" -gt 0 ] && salvage=" — WORK UNCOMMITTED in worktree ($dirty_n file(s)); salvage with a DIRECT executor fix-up, never boss-dispatch"
     case "$status" in
       SUCCESS)
         if boss_head_advanced "$id"; then echo "done agy completed, HEAD advanced"
-        else echo "blocked agy reported success but HEAD did not advance (wrong-checkout?)"; fi ;;
-      ERROR) echo "blocked agy error" ;;
+        else echo "blocked agy reported success but HEAD did not advance (wrong-checkout?)$salvage"; fi ;;
+      ERROR)
+        if boss_head_advanced "$id" && [ "${dirty_n:-0}" -eq 0 ]; then
+          echo "done agy reported an error but HEAD advanced and the worktree is clean (cosmetic CLI/scheduler fault — verify the branch, do not re-dispatch)"
+        else
+          echo "blocked agy error$salvage"
+        fi ;;
       PARSEFAIL) echo "dead unparseable output" ;;
       *) echo "dead no status in envelope" ;;
     esac ;;

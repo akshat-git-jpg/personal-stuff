@@ -35,6 +35,10 @@ if [ "$1" = "get" ]; then
   # Mock cloning repo
   cp -r "$3/"* "$GREENLIGHT_STATE_ROOT-test-wt/" 2>/dev/null || true
   cp -r "$3/.git" "$GREENLIGHT_STATE_ROOT-test-wt/"
+  # Real `wt` hands out a CLEAN pooled worktree. The naive copy above would drag
+  # the top-level's uncommitted changes along, which no real lease does and which
+  # makes a dirty-main test fail for the wrong reason.
+  git -C "$GREENLIGHT_STATE_ROOT-test-wt" reset --hard -q HEAD 2>/dev/null || true
   echo "$GREENLIGHT_STATE_ROOT-test-wt"
 elif [ "$1" = "return" ]; then
   rm -rf "$GREENLIGHT_STATE_ROOT-test-wt"
@@ -56,9 +60,15 @@ chmod +x "$STUB_DIR/claude"
 # Mock push
 cat > "$STUB_DIR/git" << 'EOF'
 #!/bin/bash
-if [[ "$*" == *"push origin main"* ]]; then
+# Landing pushes from inside the worktree as `push origin HEAD:main` since
+# 2026-08-02 (it no longer merges in the top-level checkout); match both forms
+# so the "did we push to main?" assertion keeps working either way.
+if [[ "$*" == *"push origin main"* ]] || [[ "$*" == *"push origin HEAD:main"* ]]; then
   touch "$HOME/kb-scratch/test-push.log"
-  exit 0
+  # Record the push, then LET IT HAPPEN against the real bare origin. Since
+  # 2026-08-02 greenlight lands from inside the worktree and only fast-forwards
+  # the top-level checkout afterwards, so swallowing the push would leave the
+  # test repo with nothing to fast-forward TO and hide whether landing worked.
 fi
 exec /usr/bin/git "$@"
 EOF
@@ -190,5 +200,50 @@ git checkout main >/dev/null 2>&1
 run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
 state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
 [ "$state" = "landed" ] || fail "(g) verify-pass state=$state, expected landed"
+
+# (h) DIRTY top-level checkout still lands (2026-08-02). This is the whole point
+# of landing from inside the worktree: an unrelated uncommitted file used to park
+# EVERY merge as "main checkout busy", which cost an entire batch's wall-clock
+# when a second session was editing the repo.
+git checkout main >/dev/null 2>&1
+git checkout -b dirty-main-branch >/dev/null 2>&1
+echo "dm" > file7.txt
+git add file7.txt
+git commit -m "dm" >/dev/null 2>&1
+git checkout main >/dev/null 2>&1
+echo "uncommitted junk from another session" > tracked-dirty.txt
+git add tracked-dirty.txt
+git commit -m "add tracked file" >/dev/null 2>&1
+git push -q origin main >/dev/null 2>&1 || true
+echo "MODIFIED by a concurrent session" > tracked-dirty.txt   # now dirty + tracked
+[ -n "$(git -C "$TEST_REPO" status --porcelain --untracked-files=no)" ] || fail "(h) setup: top-level should be dirty"
+"$GREENLIGHT_BIN" run --branch dirty-main-branch --repo "$TEST_REPO" --verify "true" >/dev/null 2>&1 || true
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
+reason=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/parked-reason" 2>/dev/null || echo "")
+[ "$state" = "landed" ] || fail "(h) dirty top-level state=$state reason='$reason', expected landed"
+git -C "$ORIGIN_REPO" log --oneline main | grep -q "greenlight: land dirty-main-branch" \
+  || fail "(h) merge commit not pushed to origin/main"
+# The concurrent session's uncommitted edit must survive untouched.
+grep -q "MODIFIED by a concurrent session" "$TEST_REPO/tracked-dirty.txt" \
+  || fail "(h) landing clobbered the dirty working file"
+git checkout -- tracked-dirty.txt >/dev/null 2>&1 || true
+
+# (i) top-level checked out on a NON-main branch still lands.
+git checkout main >/dev/null 2>&1
+git checkout -b sidebranch-parked >/dev/null 2>&1
+echo "sb" > file8.txt
+git add file8.txt
+git commit -m "sb" >/dev/null 2>&1
+git checkout -b other-work >/dev/null 2>&1   # leave top-level OFF main
+"$GREENLIGHT_BIN" run --branch sidebranch-parked --repo "$TEST_REPO" --verify "true" >/dev/null 2>&1 || true
+run_id=$(ls -t "$GREENLIGHT_STATE_ROOT" | head -n 1)
+state=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/state")
+reason=$(cat "$GREENLIGHT_STATE_ROOT/$run_id/parked-reason" 2>/dev/null || echo "")
+[ "$state" = "landed" ] || fail "(i) off-main top-level state=$state reason='$reason', expected landed"
+git -C "$ORIGIN_REPO" log --oneline main | grep -q "greenlight: land sidebranch-parked" \
+  || fail "(i) merge commit not pushed to origin/main"
+[ "$(git -C "$TEST_REPO" rev-parse --abbrev-ref HEAD)" = "other-work" ] \
+  || fail "(i) landing switched the top-level checkout's branch"
 
 echo "ALL TESTS PASSED"

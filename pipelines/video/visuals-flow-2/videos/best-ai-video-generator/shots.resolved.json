@@ -1,7 +1,8 @@
 {
   "video": "best-ai-video-generator",
   "offset": 0,
-  "engineMode": "test",
+  "engineMode": "production",
+  "intro_host_waived": "owner 2026-08-02: this cut was planned before the E8 intro-host gate existed and is shipping as-is (\"no need to make the changes in the video, the current video is fine for now\"). Its host arrives at 0:59 because the old rule only required a span before the intro ended, and side mode was broken when the shot plan was built (fixed same day by plan 176). The NEXT video must satisfy E8 properly.",
   "spans": [
     {
       "id": "s00",
