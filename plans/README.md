@@ -1169,3 +1169,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 174-vf2-board-ui-final-cut-and-cutover — PR#132 174-vf2-board-ui-final-cut-and-cutover: Final Cut + Calibrate in the SPA, and the / cutover — DONE
 - 175-vf2-per-cue-frame-gate — overflow probe becomes a per-cue GATE: E12 at 040 (real variables, real beat times, headless) + exposure/accent pixel check at 090 (render-only colour-loss class) — TODO (plan file written 2026-08-02; it had been registered without one for a round, during which the c27 overflow it describes shipped to the owner. E13 in the original line was wrong — that code is `open-cover`)
 - 175-vf2-per-cue-frame-gate — PR#133 175-vf2-per-cue-frame-gate: overflow probe becomes a per-cue frame gate (E12 at 040 + accent-visibility at 090) — DONE
+- 177-vf2-transcript-derived-beats — PR#135 177-vf2-transcript-derived-beats: vf2 transcript-derived beats — DONE
