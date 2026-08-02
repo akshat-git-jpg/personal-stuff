@@ -66,6 +66,33 @@ test('lintConcept', async (t) => {
     const errs = lintConcept(c, words);
     assert.ok(errs.some(e => e.includes('anchor not found') || e.includes('fewer than 3 words')));
   });
+
+  await t.test('stated count missing items errors', () => {
+    const c = { 
+      ...validConcept, 
+      throughline: { ...validConcept.throughline, description: 'A five-slot candidate roster' }
+    };
+    const errs = lintConcept(c, words);
+    assert.ok(errs.some(e => e.includes('missing required field: throughline.items')));
+  });
+
+  await t.test('stated count disagreeing with items.length errors', () => {
+    const c = { 
+      ...validConcept, 
+      throughline: { ...validConcept.throughline, description: 'A five-slot candidate roster', items: ['A', 'B'] }
+    };
+    const errs = lintConcept(c, words);
+    assert.ok(errs.some(e => e.includes('length must be 5')));
+  });
+
+  await t.test('stated count agreeing with items.length passes', () => {
+    const c = { 
+      ...validConcept, 
+      throughline: { ...validConcept.throughline, description: 'A five-slot candidate roster', items: ['A', 'B', 'C', 'D', 'E'] }
+    };
+    const errs = lintConcept(c, words);
+    assert.ok(!errs.some(e => e.includes('throughline.items')));
+  });
 });
 
 // Narration coverage (owner rule 2026-07-30): the dark/light map is what tells
