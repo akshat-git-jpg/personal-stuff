@@ -96,9 +96,76 @@ if [[ "$step" == "lint" ]]; then
   exit $?
 fi
 
-if [[ "$step" == "author" || "$step" == "render" || "$step" == "critique" || "$step" == "deliver" ]]; then
-  echo "not built yet — see plans/181, plans/182"
-  exit 1
+if [[ "$step" == "author" ]]; then
+  node -e "
+    import fs from 'node:fs';
+    import { resolveWorkdir } from './lib/workdir.mjs';
+    const workdir = resolveWorkdir('$slug');
+    const spPath = workdir + '/screenplay.json';
+    if (!fs.existsSync(spPath)) {
+      console.error('screenplay.json is missing');
+      process.exit(1);
+    }
+    const sp = JSON.parse(fs.readFileSync(spPath, 'utf8'));
+    if (sp.approved !== true) {
+      console.error('screenplay is not approved');
+      process.exit(1);
+    }
+    const txt = fs.readFileSync('steps/030-author-film-llm/AUTHORING.md', 'utf8');
+    console.log(txt.replace(/\{\{SLUG\}\}/g, '$slug'));
+  "
+  exit $?
+fi
+
+if [[ "$step" == "render" ]]; then
+  node -e "
+    import { renderFilm } from './lib/render-film.mjs';
+    const r = renderFilm('$slug');
+    console.log('rendered to', r.file, 'duration', r.duration, 's');
+  "
+  exit $?
+fi
+
+if [[ "$step" == "critique" ]]; then
+  node -e "
+    import { buildContactSheet } from './lib/contact-sheet.mjs';
+    import { runGate } from './lib/film-gate.mjs';
+    const sheet = buildContactSheet('$slug');
+    console.log('contact sheet:', sheet);
+    const res = runGate('$slug');
+    if (!res.pass) {
+      res.failures.forEach(f => console.error(f));
+      process.exit(1);
+    }
+    console.log('gate pass');
+  "
+  exit $?
+fi
+
+if [[ "$step" == "deliver" ]]; then
+  node -e "
+    import fs from 'node:fs';
+    import path from 'node:path';
+    import { resolveWorkdir } from './lib/workdir.mjs';
+    import { runGate } from './lib/film-gate.mjs';
+    const workdir = resolveWorkdir('$slug');
+    const render = path.join(workdir, 'renders', 'intro-film.mp4');
+    if (!fs.existsSync(render)) {
+      console.error('missing render');
+      process.exit(1);
+    }
+    const res = runGate('$slug');
+    if (!res.pass) {
+      console.error('gate failed, cannot deliver');
+      process.exit(1);
+    }
+    const outDir = path.join(workdir, 'out');
+    fs.mkdirSync(outDir, { recursive: true });
+    const outFile = path.join(outDir, 'intro.mp4');
+    fs.copyFileSync(render, outFile);
+    console.log(path.resolve(outFile));
+  "
+  exit $?
 fi
 
 echo "Unknown step: $step"

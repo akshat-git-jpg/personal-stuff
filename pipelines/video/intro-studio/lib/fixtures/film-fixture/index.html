@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { margin: 0; background: #000; overflow: hidden; width: 1920px; height: 1080px; }
+    #bg { position: absolute; inset: 0; background: linear-gradient(90deg, #000, #fff); animation: bg-shift 3s linear forwards; }
+    #bar { position: absolute; width: 200px; height: 1080px; background: red; top: 0; left: 0; animation: move 3s linear forwards; }
+    @keyframes move { from { left: 0px; } to { left: 1720px; } }
+    @keyframes bg-shift { from { opacity: 0; } to { opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div id="bg" class="clip" data-start="0" data-duration="3"></div>
+  <div id="bar" class="clip" data-start="0" data-duration="3"></div>
+</body>
+</html>
