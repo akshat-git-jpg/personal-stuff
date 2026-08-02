@@ -19,9 +19,15 @@ if bash run.sh "$SLUG" nonsense > /dev/null 2>&1; then
   exit 1
 fi
 
-render_out=$(bash run.sh "$SLUG" author 2>&1 || true)
-if ! echo "$render_out" | grep -q "not built yet"; then
-  echo "Expected 'not built yet' in output, got: $render_out"
+mkdir -p "videos/$SLUG"
+echo '{"approved": false}' > "videos/$SLUG/screenplay.json"
+if bash run.sh "$SLUG" author > /dev/null 2>&1; then
+  echo "Expected author to exit 1 for unapproved screenplay"
+  exit 1
+fi
+
+if bash run.sh "$SLUG" deliver > /dev/null 2>&1; then
+  echo "Expected deliver to exit 1 when missing render"
   exit 1
 fi
 
