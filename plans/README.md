@@ -1174,3 +1174,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 180-intro-studio-scaffold-and-materials — PR#138 180-intro-studio-scaffold-and-materials: intro-studio — scaffold and materials stage — DONE
 - 176-vf2-side-mode-render-join — PR#134 176-vf2-side-mode-render-join: vf2 side-mode render join — DONE
 - 183-vf2-board-static-tiles-and-liveness — PR#141 183-vf2-board-static-tiles-and-liveness: storyboard posters + backend liveness — DONE
+- 178-card-library-type-and-variant-gates — PR#136 178-card-library-type-and-variant-gates: card-library type-scale and variant QA gates — DONE
