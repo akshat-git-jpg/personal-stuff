@@ -1,6 +1,6 @@
 {
   "video": "best-ai-video-generator",
-  "updated": "2026-08-01T17:02:56.083Z",
+  "updated": "2026-08-02T01:28:04.445Z",
   "steps": {
     "010-transcribe-run": {
       "status": "done",
@@ -99,12 +99,12 @@
       "ended": "2026-08-01T17:02:56.083Z"
     },
     "110-build-video-run": {
-      "status": "done",
-      "ended": "2026-08-01T15:07:10.493Z",
-      "started": "2026-08-01T15:07:10.493Z",
+      "status": "blocked",
+      "started": "2026-08-02T01:28:04.057Z",
       "did": "Assembled the screen recording, 86 graphics clips, 6 avatar clips, effects and the mastered audio into a 32:07.7 draft, then fixed three defects QC caught in the first cut and re-cut twice. Draft v3 is the current version.",
-      "issues": "Three real defects were caught by QC, not by lint. First, every positive verdict chip rendered as a red cross: the card reads verdict yes/no but the plan was written pro/con, and the catalog declares that field as free text so nothing flagged it — 24 pro chips across all five tool verdicts were visually contradicting the narration. Second, the intro agenda card was clipped: sideMode is read by lib/render.mjs but never set by anything in the pipeline, so a side-mode card renders 1920 wide and assembly crops it — the side span was dropped rather than ship a clipped title. Third, dropping a span from shots.json does not remove it from avatar-jobs.json, which is what the assembler actually reads, so the dropped avatar kept compositing until that file was edited too. Also one effects instance with an unknown id (whip-62.1) is ignored at every assemble.",
-      "output": "final-draft.mp4 32:07.7 (v3) in kb-scratch/video/visuals-flow-2/best-ai-video-generator/ + assembly.md"
+      "issues": "exited 1, see terminal",
+      "output": "final-draft.mp4 32:07.7 (v3) in kb-scratch/video/visuals-flow-2/best-ai-video-generator/ + assembly.md",
+      "ended": "2026-08-02T01:28:04.445Z"
     },
     "005-configure-run-human": {
       "status": "done",

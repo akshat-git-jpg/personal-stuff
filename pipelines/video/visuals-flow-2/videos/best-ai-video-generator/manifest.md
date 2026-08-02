@@ -52,7 +52,7 @@ Timecodes assume the voiceover starts at 00:00.0 on the editor timeline. If an i
 | 18:42.3 | 1842-c41-verdict-chips.mov | 11.08s | overlay | overlay/verdict-chips |
 | 19:18.2 | 1918-c42-tip-banner.mov | 5s | overlay | overlay/tip-banner |
 | 19:29.0 | 1928-c43-verdict-chips.mov | 16.58s | overlay | overlay/verdict-chips |
-| 19:58.8 | 1958-c44-tool-intro.mp4 | 6s | fullframe | section/tool-intro |
+| 19:57.9 | 1957-c44-tool-intro.mp4 | 6s | fullframe | section/tool-intro |
 | 20:13.4 | 2013-c45-stat-hit.mov | 5s | overlay | overlay/stat-hit |
 | 20:19.9 | 2019-c46-verdict-chips.mov | 7.95s | overlay | overlay/verdict-chips |
 | 20:32.2 | 2032-c47-headline-chips.mp4 | 11.33s | fullframe | slate/headline-chips |

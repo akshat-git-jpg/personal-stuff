@@ -8,40 +8,41 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow-2/best-ai-video-generator/fina
 
 | from | to | source | id |
 |---|---|---|---|
-| 00:00.0 | 00:04.2 | graphic | z01 |
-| 00:04.2 | 00:14.2 | screen | screen-01 |
+| 00:00.0 | 00:14.2 | graphic | z01 |
 | 00:14.2 | 00:25.2 | graphic | z02 |
-| 00:25.2 | 00:32.5 | screen | screen-02 |
+| 00:25.2 | 00:32.5 | screen | screen-01 |
 | 00:32.5 | 00:46.2 | graphic | z03 |
 | 00:46.2 | 00:59.5 | graphic | z04 |
 | 00:59.5 | 01:22.7 | avatar | s00 |
-| 01:22.7 | 01:31.4 | screen | screen-04 |
+| 01:22.7 | 01:31.4 | screen | screen-03 |
 | 01:31.4 | 01:37.4 | graphic | c01 |
-| 01:37.4 | 01:45.2 | screen | screen-05 |
+| 01:37.4 | 01:45.2 | screen | screen-04 |
 | 01:45.2 | 01:57.3 | graphic | c02 |
 | 01:57.3 | 02:03.3 | graphic | c03 |
-| 02:03.3 | 02:11.6 | screen | screen-06 |
+| 02:03.3 | 02:11.6 | screen | screen-05 |
 | 02:11.6 | 02:27.8 | avatar | s02 |
-| 02:27.8 | 02:32.0 | screen | screen-07 |
+| 02:27.8 | 02:32.0 | screen | screen-06 |
 | 02:32.0 | 02:38.0 | graphic | c06 |
-| 02:38.0 | 02:56.4 | screen | screen-08 |
-| 02:56.4 | 03:01.4 | graphic | c08 |
-| 03:01.4 | 07:24.9 | screen | screen-09 |
+| 02:38.0 | 02:56.4 | screen | screen-07 |
+| 02:56.4 | 03:02.4 | graphic | c08 |
+| 03:02.4 | 07:24.9 | screen | screen-08 |
 | 07:24.9 | 07:31.8 | graphic | c16 |
-| 07:31.8 | 07:53.1 | screen | screen-10 |
+| 07:31.8 | 07:53.1 | screen | screen-09 |
 | 07:53.1 | 07:59.6 | graphic | c18 |
-| 07:59.6 | 08:12.4 | screen | screen-11 |
-| 08:12.4 | 08:17.4 | graphic | c20 |
-| 08:17.4 | 11:47.2 | screen | screen-12 |
+| 07:59.6 | 08:12.4 | screen | screen-10 |
+| 08:12.4 | 08:18.4 | graphic | c20 |
+| 08:18.4 | 11:47.2 | screen | screen-11 |
 | 11:47.2 | 11:59.5 | graphic | c27 |
-| 11:59.5 | 12:08.2 | screen | screen-13 |
+| 11:59.5 | 12:08.2 | screen | screen-12 |
 | 12:08.2 | 12:25.8 | avatar | s03 |
-| 12:25.8 | 12:28.7 | screen | screen-14 |
+| 12:25.8 | 12:28.7 | screen | screen-13 |
 | 12:28.7 | 12:38.2 | graphic | c29 |
-| 12:38.2 | 12:44.3 | screen | screen-15 |
-| 12:44.3 | 12:49.3 | graphic | c30 |
-| 12:49.3 | 19:58.8 | screen | screen-16 |
-| 19:58.8 | 20:04.4 | graphic | c44 |
+| 12:38.2 | 12:44.3 | screen | screen-14 |
+| 12:44.3 | 12:50.3 | graphic | c30 |
+| 12:50.3 | 16:35.3 | screen | screen-15 |
+| 16:35.3 | 16:41.3 | graphic | c37 |
+| 16:41.3 | 19:57.9 | screen | screen-16 |
+| 19:57.9 | 20:04.4 | graphic | c44 |
 | 20:04.4 | 20:22.7 | avatar | s04 |
 | 20:22.7 | 20:32.2 | screen | screen-18 |
 | 20:32.2 | 20:43.5 | graphic | c47 |
@@ -87,7 +88,7 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow-2/best-ai-video-generator/fina
 | 07:06.7 | 07:20.7 | 0706-c15-verdict-chips.mov |
 | 07:41.4 | 07:46.4 | 0741-c17-tip-banner.mov |
 | 07:59.8 | 08:10.7 | 0759-c19-verdict-chips.mov |
-| 08:17.9 | 08:22.9 | 0817-c21-tip-banner.mov |
+| 08:19.3 | 08:24.3 | 0819-c21-tip-banner.mov |
 | 08:39.1 | 08:44.1 | 0839-c22-lower-third.mov |
 | 08:56.5 | 09:01.5 | 0856-c23-tip-banner.mov |
 | 09:39.8 | 09:44.8 | 0939-c24-tip-banner.mov |
@@ -100,7 +101,6 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow-2/best-ai-video-generator/fina
 | 15:01.3 | 15:06.3 | 1501-c34-tip-banner.mov |
 | 15:34.0 | 15:51.6 | 1534-c35-verdict-chips.mov |
 | 16:12.5 | 16:32.1 | 1612-c36-verdict-chips.mov |
-| 16:35.3 | 16:40.3 | 1635-c37-lower-third.mov |
 | 17:04.8 | 17:09.8 | 1704-c38-tip-banner.mov |
 | 17:23.7 | 17:28.7 | 1723-c39-tip-banner.mov |
 | 17:57.0 | 18:02.0 | 1757-c40-tip-banner.mov |
@@ -136,21 +136,21 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow-2/best-ai-video-generator/fina
 
 | at | direction | from | to |
 |---|---|---|---|
-| 00:14.2 | right | screen-01 | z02 |
-| 00:32.5 | right | screen-02 | z03 |
-| 01:31.4 | right | screen-04 | c01 |
-| 01:45.2 | right | screen-05 | c02 |
-| 02:27.8 | right | s02 | screen-07 |
-| 02:32.0 | right | screen-07 | c06 |
-| 02:56.4 | right | screen-08 | c08 |
-| 07:24.9 | right | screen-09 | c16 |
-| 07:53.1 | right | screen-10 | c18 |
-| 08:12.4 | right | screen-11 | c20 |
-| 11:47.2 | right | screen-12 | c27 |
-| 12:25.8 | right | s03 | screen-14 |
-| 12:28.7 | right | screen-14 | c29 |
-| 12:44.3 | right | screen-15 | c30 |
-| 19:58.8 | right | screen-16 | c44 |
+| 00:32.5 | right | screen-01 | z03 |
+| 01:31.4 | right | screen-03 | c01 |
+| 01:45.2 | right | screen-04 | c02 |
+| 02:27.8 | right | s02 | screen-06 |
+| 02:32.0 | right | screen-06 | c06 |
+| 02:56.4 | right | screen-07 | c08 |
+| 07:24.9 | right | screen-08 | c16 |
+| 07:53.1 | right | screen-09 | c18 |
+| 08:12.4 | right | screen-10 | c20 |
+| 11:47.2 | right | screen-11 | c27 |
+| 12:25.8 | right | s03 | screen-13 |
+| 12:28.7 | right | screen-13 | c29 |
+| 12:44.3 | right | screen-14 | c30 |
+| 16:35.3 | right | screen-15 | c37 |
+| 19:57.9 | right | screen-16 | c44 |
 | 20:32.2 | right | screen-18 | c47 |
 | 21:59.1 | right | screen-19 | c49 |
 | 22:51.5 | right | s05 | screen-21 |
