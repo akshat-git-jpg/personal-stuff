@@ -242,3 +242,20 @@ test('Feedback: POST /save writes feedback, re-fetch exposes it', async () => {
     server.close();
   }
 });
+
+test('intro-data and intro-frame endpoints', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/api/intro-data`);
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.deepEqual(data, { present: false });
+    
+    const res2 = await fetch(`${base}/intro-frame?f=../../etc/passwd`);
+    assert.equal(res2.status, 400);
+  } finally {
+    server.close();
+  }
+});
+
