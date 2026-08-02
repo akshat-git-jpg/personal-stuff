@@ -21,7 +21,8 @@
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
         --left: #fb923c; --right: #38bdf8; --accent: #facc15;
         --font: 'Inter', system-ui, sans-serif;
-        --hero-size: 140px; /* hero = static headline above the arena */
+        --hero-size: 140px;
+        --body-size: 56px; /* hero = static headline above the arena */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -37,7 +38,7 @@
       .side.r { border-top: 5px solid var(--right); }
       .logoBox { width: 110px; height: 110px; margin: 0 auto 26px; background: #fff; border-radius: 22px; padding: 16px; display: flex; }
       .logoBox svg { width: 100%; height: 100%; }
-      .name { font-size: 56px; font-weight: 800; letter-spacing: -0.015em; margin-bottom: 30px; }
+      .name { font-size: var(--body-size); font-weight: 800; letter-spacing: -0.015em; margin-bottom: 30px; }
       .stat { display: flex; align-items: baseline; justify-content: space-between; padding: 16px 6px; border-bottom: 1px solid rgba(255,255,255,0.08); }
       .stat .k { font-size: 24px; color: var(--text-dim); }
       .stat .v { font-size: 32px; font-weight: 800; }

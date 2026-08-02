@@ -27,7 +27,8 @@
         --accent: #fb923c; --yes: #34d399;
         --card: rgba(255, 255, 255, 0.04); --card-line: rgba(255, 255, 255, 0.1);
         --font: 'Inter', system-ui, sans-serif;
-        --hero-size: 150px; /* hero = the heading; the per-plan price is secondary (repeated 2-3x) */
+        --hero-size: 150px;
+        --body-size: 56px; /* hero = the heading; the per-plan price is secondary (repeated 2-3x) */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -48,7 +49,7 @@
       .pname { font-size: 26px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
       .priceRow { display: flex; align-items: baseline; gap: 8px; will-change: transform, opacity; }
       .monthly-price { font-size: 32px; font-weight: 600; color: var(--text-dim); text-decoration: line-through; margin-right: 4px; }
-      .price { font-size: 56px; font-weight: 900; letter-spacing: -0.015em; line-height: 1; }
+      .price { font-size: var(--body-size); font-weight: 900; letter-spacing: -0.015em; line-height: 1; }
       .period { font-size: 28px; font-weight: 600; color: var(--text-dim); }
       .billing-note { font-size: 16px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: -12px; margin-bottom: 4px; }
       .tagline { font-size: 24px; color: var(--text-dim); line-height: 1.4; min-height: 34px; }

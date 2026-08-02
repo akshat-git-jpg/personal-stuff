@@ -42,7 +42,8 @@
         --grade-to:       #fb923c;             /* A+ gradient end   */
         --card-bg:        rgba(255, 255, 255, 0.05);
         --card-border:    rgba(255, 255, 255, 0.14);
-        --hero-size:      220px;               /* the letter GRADE is the hero — a "hero number" */
+        --hero-size:      220px;
+        --body-size: 56px;               /* the letter GRADE is the hero — a "hero number" */
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
       }
 
@@ -92,7 +93,7 @@
       }
       .logoBox svg { width: 100%; height: 100%; }
       .winnerName {
-        font-size: 48px; font-weight: 800; color: var(--text-primary);
+        font-size: var(--body-size); font-weight: 800; color: var(--text-primary);
         letter-spacing: -0.015em; line-height: 1;
       }
 

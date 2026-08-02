@@ -35,6 +35,7 @@
         --chip-border: rgba(255, 255, 255, 0.14);
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
         --hero-size: 200px;
+        --body-size: 56px;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -100,7 +101,7 @@
       }
 
       .product-name {
-        font-size: 56px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; color: var(--text);
+        font-size: var(--body-size); font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; color: var(--text);
         will-change: transform, opacity;
       }
 

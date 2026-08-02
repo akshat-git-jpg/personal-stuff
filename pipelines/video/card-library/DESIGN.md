@@ -45,6 +45,8 @@ after seeing alternatives rendered:
 
 - Font: `'Inter', system-ui, sans-serif` (Google Fonts link, weights 400–900). Every card.
 
+A fullframe card names its hero with `--hero-size` and its readable secondary line with `--body-size`; eyebrows, chips and badges are neither and stay undeclared; the gate enforces the spread between the two.
+
 **The canvas is video, not web.** Type that looks generous in a browser reads as
 timid at 1080p on a phone. Size against the FRAME, not against a document.
 
