@@ -26,6 +26,7 @@
         --box-line: rgba(255, 255, 255, 0.22);
         --font: 'Inter', system-ui, sans-serif;
         --hero-size: 150px; /* the section title is the hero */
+        --body-size: 40px; /* the checklist item label is the readable secondary line */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -39,7 +40,7 @@
         background: transparent; display: flex; align-items: center; justify-content: center; }
       .chk { width: 38px; height: 38px; }
       .chk path { fill: none; stroke: var(--check); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
-      .ilabel { font-size: 40px; font-weight: 700; line-height: 1.2; letter-spacing: -0.015em; }
+      .ilabel { font-size: var(--body-size); font-weight: 700; line-height: 1.2; letter-spacing: -0.015em; }
       /* last row carries the accent — the closing, strongest point in the list */
       .item:last-child .ilabel { color: var(--accent); }
     </style>

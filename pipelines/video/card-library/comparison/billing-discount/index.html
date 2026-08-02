@@ -26,6 +26,7 @@
         --accent: #fb923c; --card: rgba(255, 255, 255, 0.04); --card-line: rgba(255, 255, 255, 0.1);
         --font: 'Inter', system-ui, sans-serif;
         --hero-size: 140px; /* hero = the headline; prices are secondary (two repeated instances) */
+        --body-size: 56px; /* the plan price is the readable secondary line */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -42,7 +43,7 @@
       .plan { font-size: 28px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
       .card.best .plan { color: var(--accent); }
       .priceRow { display: flex; align-items: baseline; gap: 12px; will-change: transform, opacity; }
-      .price { font-size: 56px; font-weight: 900; letter-spacing: -0.015em; line-height: 1; }
+      .price { font-size: var(--body-size); font-weight: 900; letter-spacing: -0.015em; line-height: 1; }
       .per { font-size: 28px; font-weight: 600; color: var(--text-dim); }
       .was { font-size: 34px; font-weight: 700; color: var(--text-dim); text-decoration: line-through; }
       .note { font-size: 25px; font-weight: 500; color: var(--text-dim); margin-top: 4px; }
