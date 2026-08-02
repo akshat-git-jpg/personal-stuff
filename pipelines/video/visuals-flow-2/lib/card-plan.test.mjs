@@ -8,6 +8,8 @@ import {
   summarize,
   renderOutline,
 } from './card-plan.mjs';
+import { zonePartsFor } from './zone-constants.mjs';
+import fs from 'node:fs';
 
 const structure = [
   { part: 'intro', start: 0, end: 10 },
@@ -168,5 +170,26 @@ test('card-plan outline', async (t) => {
     assert.match(out, /→ bars race as cost climbs/);
     // an existing card is not marked NEW
     assert.doesNotMatch(out, /NEW c01/);
+  });
+});
+
+test('zonePartsFor', async (t) => {
+  const originalExistsSync = fs.existsSync;
+  const originalReadFileSync = fs.readFileSync;
+
+  t.afterEach(() => {
+    fs.existsSync = originalExistsSync;
+    fs.readFileSync = originalReadFileSync;
+  });
+
+  await t.test('returns both parts by default', () => {
+    fs.existsSync = () => false;
+    assert.deepStrictEqual(zonePartsFor('dummy'), ['intro', 'conclusion']);
+  });
+
+  await t.test('returns conclusion only when intro is film-owned', () => {
+    fs.existsSync = () => true;
+    fs.readFileSync = () => JSON.stringify({ intro: 'film' });
+    assert.deepStrictEqual(zonePartsFor('dummy'), ['conclusion']);
   });
 });
