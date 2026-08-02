@@ -1172,3 +1172,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 177-vf2-transcript-derived-beats — PR#135 177-vf2-transcript-derived-beats: vf2 transcript-derived beats — DONE
 - 180-intro-studio-scaffold-and-materials — PR#138 180-intro-studio-scaffold-and-materials: intro-studio — scaffold and materials stage — DONE
 - 180-intro-studio-scaffold-and-materials — PR#138 180-intro-studio-scaffold-and-materials: intro-studio — scaffold and materials stage — DONE
+- 176-vf2-side-mode-render-join — PR#134 176-vf2-side-mode-render-join: vf2 side-mode render join — DONE
