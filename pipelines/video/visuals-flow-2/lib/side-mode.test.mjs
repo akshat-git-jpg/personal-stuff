@@ -65,6 +65,11 @@ test('staged HTML: a side-covered cue stages at data-width="1200"', () => {
   assert.match(out, /data-width="1200"/);
 });
 
+test('render.mjs wire up: the sideMode assignment is present', () => {
+  const renderCode = fs.readFileSync(path.join(import.meta.dirname, 'render.mjs'), 'utf8');
+  assert.match(renderCode, /^\s*for \(const cue of resolved\) cue\.sideMode = sideIds\.has\(cue\.id\);/m, 'render.mjs must assign cue.sideMode from sideIds');
+});
+
 test('staged HTML: a cue with no covering side span stays at 1920', () => {
   const html = '<div id="root" data-width="1920" data-duration="6"></div>';
   const cues = [{ id: 'c1', placement: 'fullframe', start: 10, duration: 20 }];
