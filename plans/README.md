@@ -1171,3 +1171,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 175-vf2-per-cue-frame-gate — PR#133 175-vf2-per-cue-frame-gate: overflow probe becomes a per-cue frame gate (E12 at 040 + accent-visibility at 090) — DONE
 - 177-vf2-transcript-derived-beats — PR#135 177-vf2-transcript-derived-beats: vf2 transcript-derived beats — DONE
 - 180-intro-studio-scaffold-and-materials — PR#138 180-intro-studio-scaffold-and-materials: intro-studio — scaffold and materials stage — DONE
+- 180-intro-studio-scaffold-and-materials — PR#138 180-intro-studio-scaffold-and-materials: intro-studio — scaffold and materials stage — DONE
