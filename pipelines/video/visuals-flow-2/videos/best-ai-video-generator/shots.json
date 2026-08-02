@@ -1,7 +1,7 @@
 {
   "video": "best-ai-video-generator",
   "approved": false,
-  "engineMode": "test",
+  "engineMode": "production",
   "spans": [
     {
       "id": "s00",
