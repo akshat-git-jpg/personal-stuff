@@ -3,9 +3,10 @@
   PROMISE SHELF · five pedestals, five different promises, focus that never settles
   Deep charcoal room lit by a warm amber key from the upper left. Five identical
   matte-black plinths stand in a row, each holding a different glass object, each
-  object glowing at its own colour temperature. A shallow depth of field walks
-  the row: one plinth snaps sharp while the rest fall off. It never settles on a
-  winner, which is the whole point of the sentence it plays under.
+  object glowing at its own colour temperature, each plinth engraved with the
+  promise it stands for. The key light walks the row: one plinth lifts while the
+  rest fall back. It never settles on a winner, which is the whole point of the
+  sentence it plays under.
   1920x1080, 30fps.
 
   ┌─────────────────────────────────────────────────────────────────────────┐
@@ -22,8 +23,21 @@
      key light from the upper left. Five identical matte-black pedestals in a
      row, each holding a different abstract glass object... the third pedestal
      in sharp focus and the others falling off... no text anywhere."
-  Deliberately headline-less (hero_shape none) because the approved look has no
-  text in it; the voiceover carries the claim.
+
+  REVISED 2026-08-02 after the owner saw it MOVING. Two things a still preview
+  could not show, and both were rejected on sight:
+    1. "all gets blury" — the depth of field meant four of five plinths were
+       soft at any moment. Focus is now expressed with LIGHT (dim/lift), so the
+       eye still walks the row and nothing is ever out of focus.
+    2. "looks very weird with just icons and no info, no actual content" — the
+       plinths were empty black boxes. Each now carries an engraved placard
+       naming its PROMISE (not the product; z02 owns the tool roll-call).
+  The lesson, recorded in DESIGN.md: a still preview approves a LOOK. A card
+  whose device is motion, or whose defining property is absent content, is not
+  approved until someone watches it render.
+
+  Still headline-less (hero_shape none): the placards are per-item labels, not
+  a hero, and the voiceover carries the claim.
 
   Render it with
     npx hyperframes@latest render enacted/promise-shelf -o out.mp4 --fps 30
@@ -78,9 +92,12 @@
         gap: 74px; padding-bottom: 40px;
       }
 
-      /* one pedestal: object floating above a matte-black plinth */
+      /* one pedestal: object floating above a matte-black plinth that carries
+         its promise on an engraved placard. Widened from 218px when the
+         placard landed — "TALKING HEAD" needs two lines at a legible size, and
+         5 x 248 + 4 x 74 gap = 1536px still sits inside the 1920 frame. */
       .ped {
-        position: relative; width: 218px;
+        position: relative; width: 248px;
         display: flex; flex-direction: column; align-items: center; gap: 26px;
         will-change: transform, filter, opacity;
       }
@@ -99,11 +116,27 @@
       .obj svg .glass-line { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
 
       .plinth {
-        position: relative; width: 196px; height: 236px;
+        position: relative; width: 240px; height: 236px;
+        display: flex; align-items: center; justify-content: center;
         background: linear-gradient(180deg, var(--plinth-top) 0%, var(--plinth-face) 58%, #1a1715 100%);
         border-radius: 6px 6px 3px 3px;
         border-top: 1px solid var(--plinth-edge);
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 40px 60px rgba(0,0,0,0.55);
+      }
+
+      /* The promise, engraved on the plinth face. This is what the card was
+         missing: five lit objects over five EMPTY black boxes read as "icons
+         with no information" (owner z01, 2026-08-02, screenshot attached to the
+         board). The placard names the promise, NOT the product — the tool
+         roll-call is z02's job (tool-icon/roster-pop), and repeating it here
+         would say the same thing twice in the first 25 seconds. */
+      .placard {
+        position: relative; z-index: 1;
+        width: 100%; padding: 0 16px; text-align: center;
+        font-size: 36px; font-weight: 600; line-height: 1.12;
+        letter-spacing: 0.055em; text-transform: uppercase;
+        color: rgba(255, 243, 230, 0.9);
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
       }
       /* the lit left face — the key comes from upper left, so every plinth
          catches it on the same side. Uniformity is the point: identical
@@ -115,7 +148,7 @@
       /* contact shadow pooling on the floor */
       .plinth::after {
         content: ''; position: absolute; left: 50%; bottom: -26px; transform: translateX(-50%);
-        width: 250px; height: 42px; border-radius: 50%;
+        width: 296px; height: 42px; border-radius: 50%;
         background: radial-gradient(ellipse, var(--floor) 0%, transparent 70%);
       }
     </style>
@@ -128,7 +161,7 @@
       data-duration="12"
       data-width="1920"
       data-height="1080"
-      data-composition-variables='{"items":[{"object":"reel","tint":"#ffb066"},{"object":"lens","tint":"#9ad8ff"},{"object":"bubble","tint":"#c9a6ff"},{"object":"bust","tint":"#ffd08a"},{"object":"tag","tint":"#8affc4"}],"beats":[{"focus":2,"at":1.6},{"focus":4,"at":3.4},{"focus":1,"at":5.2},{"focus":5,"at":7.0},{"focus":3,"at":8.8}]}'
+      data-composition-variables='{"items":[{"object":"reel","tint":"#ffb066","label":"Cinematic"},{"object":"lens","tint":"#9ad8ff","label":"Art"},{"object":"bubble","tint":"#c9a6ff","label":"Talking Head"},{"object":"bust","tint":"#ffd08a","label":"Avatars"},{"object":"tag","tint":"#8affc4","label":"UGC Ads"}],"beats":[{"focus":2,"at":1.6},{"focus":4,"at":3.4},{"focus":1,"at":5.2},{"focus":5,"at":7.0},{"focus":3,"at":8.8}]}'
     >
       <!-- Track 0: the room -->
       <div id="roomTrack" class="clip" data-start="0" data-duration="12" data-track-index="0" style="position:absolute;inset:0;">
@@ -156,13 +189,15 @@
 
       const DATA = {
         // Five plinths, five objects. `object` picks a glyph from SHAPES below;
-        // `tint` is that object's colour temperature (the glass rim + its halo).
+        // `tint` is that object's colour temperature (the glass rim + its halo);
+        // `label` is the promise engraved on the plinth (1-2 words, and it is
+        // the PROMISE, never the product name — see the .placard note above).
         items: VARS.items ?? [
-          { object: 'reel', tint: '#ffb066' },
-          { object: 'lens', tint: '#9ad8ff' },
-          { object: 'bubble', tint: '#c9a6ff' },
-          { object: 'bust', tint: '#ffd08a' },
-          { object: 'tag', tint: '#8affc4' },
+          { object: 'reel', tint: '#ffb066', label: 'Cinematic' },
+          { object: 'lens', tint: '#9ad8ff', label: 'Art' },
+          { object: 'bubble', tint: '#c9a6ff', label: 'Talking Head' },
+          { object: 'bust', tint: '#ffd08a', label: 'Avatars' },
+          { object: 'tag', tint: '#8affc4', label: 'UGC Ads' },
         ],
         // Each beat pulls focus to ONE plinth (1-based). The resolver fills `at`.
         beats: VARS.beats ?? [
@@ -200,7 +235,9 @@
                   '<div class="halo" style="background:' + tint + '"></div>' +
                   '<svg viewBox="0 0 64 64" style="stroke:' + tint + '">' + glyph + '</svg>' +
                 '</div>' +
-                '<div class="plinth"></div>' +
+                '<div class="plinth">' +
+                  (it.label ? '<div class="placard">' + String(it.label) + '</div>' : '') +
+                '</div>' +
               '</div>'
             );
           })
@@ -214,8 +251,14 @@
 
       const peds = gsap.utils.toArray('#row .ped');
       const DURATION = Number($('root').dataset.duration) || 12;
-      const REST = { blur: 4.5, scale: 0.965, opacity: 0.74 }; // out of focus, still legible
-      const SHARP = { blur: 0, scale: 1.045, opacity: 1 };    // in focus
+      // Focus is expressed with LIGHT, not depth of field. This used to be
+      // `blur: 4.5` at rest and `blur: 0` in focus, which meant four of the five
+      // plinths were soft at any moment — the owner read the whole card as
+      // "everything gets blurry" (z01, 2026-08-02). Dimming and lifting the
+      // focused pedestal makes the same claim (the eye walks the row and never
+      // settles) with every placard readable the whole time.
+      const REST = { brightness: 0.5, scale: 0.965, opacity: 0.72 };  // lit low
+      const SHARP = { brightness: 1.16, scale: 1.045, opacity: 1 };   // keyed up
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
@@ -224,12 +267,12 @@
       tl.fromTo('#key', { opacity: 0.72, x: -22 }, { opacity: 1, x: 10, duration: DURATION / 2, ease: 'sine.inOut', yoyo: true, repeat: 1 }, 0);
 
       // 2) The shelf assembles: plinths rise, objects settle onto them. Everything
-      //    lands slightly soft, so the first focus pull has somewhere to go.
+      //    lands lit low, so the first focus pull has somewhere to go.
       tl.from('#row .ped', { y: 46, opacity: 0, duration: 0.9, ease: 'expo.out', stagger: 0.09 }, 0);
-      tl.set('#row .ped', { filter: 'blur(' + REST.blur + 'px)', scale: REST.scale, opacity: REST.opacity }, 0.9);
+      tl.set('#row .ped', { filter: 'brightness(' + REST.brightness + ')', scale: REST.scale, opacity: REST.opacity }, 0.9);
 
-      // 3) Depth of field walks the row. Each beat snaps ONE plinth sharp and
-      //    lets the rest fall off. It never rests on one, which is the claim:
+      // 3) The key light walks the row. Each beat lifts ONE plinth and lets the
+      //    rest fall back. It never rests on one, which is the claim:
       //    five different promises, none of them built for the same person.
       const beats = [...DATA.beats].sort((a, b) => (Number(a.at) || 0) - (Number(b.at) || 0));
       beats.forEach((b) => {
@@ -239,7 +282,7 @@
         peds.forEach((el, j) => {
           const target = j === i ? SHARP : REST;
           tl.to(el, {
-            filter: 'blur(' + target.blur + 'px)',
+            filter: 'brightness(' + target.brightness + ')',
             scale: target.scale,
             opacity: target.opacity,
             duration: 0.55,
