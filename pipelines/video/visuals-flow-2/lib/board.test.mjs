@@ -121,6 +121,28 @@ test('GET /slice/c01.mp3 serves a non-empty mp3 generated on start', async () =>
   }
 });
 
+test('GET /poster/c01.jpg returns an image and caches; an unknown cue id 404s', async () => {
+  const workdir = makeWorkdir();
+  const rendersDir = path.join(workdir, 'renders');
+  fs.mkdirSync(rendersDir);
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=black:s=128x128:d=2', '-c:v', 'libx264', path.join(rendersDir, 'c01.mp4')], { stdio: 'ignore' });
+
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/poster/c01.jpg`);
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('content-type'), 'image/jpeg');
+    const buf = Buffer.from(await res.arrayBuffer());
+    assert.ok(buf.length > 0);
+    assert.ok(fs.existsSync(path.join(workdir, '.posters', 'c01.jpg')));
+
+    const res2 = await fetch(`${base}/poster/c99.jpg`);
+    assert.equal(res2.status, 404);
+  } finally {
+    server.close();
+  }
+});
+
 test('POST /save with a valid edit updates cues.json and regenerates resolved.json', async () => {
   const workdir = makeWorkdir();
   const { server, base } = await startServer(workdir);

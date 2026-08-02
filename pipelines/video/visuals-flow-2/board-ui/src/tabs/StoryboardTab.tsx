@@ -61,6 +61,7 @@ export function StoryboardTab({
   });
 
   const [openId, setOpenId] = useState<string | null>(null);
+  const [liveTileId, setLiveTileId] = useState<string | null>(null);
 
   // ---- tile/span edit store -------------------------------------------------
   // Edits are keyed by cue/span id HERE, not in the components: tiles mount and
@@ -90,6 +91,8 @@ export function StoryboardTab({
   const tilePropsFor = (cue: any) => ({
     frag: tileEdits[cue.id]?.fragJson ?? defaultFrag(cue),
     onEdit: (patch: { fragJson?: string }) => editTile(cue.id, patch),
+    isLive: liveTileId === cue.id,
+    onMakeLive: () => setLiveTileId(cue.id),
   });
   const spanFragFor = (origSpan: any) => spanEdits[origSpan.id] ?? JSON.stringify(origSpan, null, 2);
 
