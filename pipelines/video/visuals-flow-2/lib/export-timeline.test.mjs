@@ -2,8 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { buildFcpxml, frames, rt, srtTime, srtFromCaptions, buildNativeFcpxml } from './export-timeline.mjs';
+import { buildFcpxml, frames, rt, srtTime, srtFromCaptions, buildNativeFcpxml, makeSrcUrl, sfxBakeName, bakeSfxClips, bakeVo } from './export-timeline.mjs';
+import { screenCaptionChunks, assFromCaptions } from './export-timeline.mjs';
+import { VO_CHAIN } from './sound/build-mix.mjs';
+import { planCaptions } from './captions.mjs';
 import { runAssembly } from './assemble.mjs';
 
 const testTmp = path.join(import.meta.dirname, '.test-tmp', 'export-it');
@@ -19,6 +23,227 @@ test('srt basics', () => {
   assert.equal(srtTime(3661.042), '01:01:01,042');
   const srt = srtFromCaptions([{start: 0, end: 1.2, text: 'hi'}, {start: 1.2, end: 2.5, text: 'there'}]);
   assert.ok(srt.includes('1\n00:00:00,000 --> 00:00:01,200\nhi\n\n2\n00:00:01,200 --> 00:00:02,500\nthere\n'));
+});
+
+// Regression: --bundle emitted "./media/x.mp4" and Resolve resolved NONE of
+// them ("97 of 97 clips were not yet found", best-ai-video-generator
+// 2026-08-02). src is a URL; a relative one is not importable.
+test('makeSrcUrl: bundled src is an absolute file:// URL into the bundle', () => {
+  const dir = path.join(testTmp, 'srcurl-bundle');
+  fs.rmSync(dir, { recursive: true, force: true });
+  const srcDir = path.join(dir, 'src');
+  fs.mkdirSync(srcDir, { recursive: true });
+  const a = path.join(srcDir, 'clip a.mp4');   // space: must be percent-encoded
+  fs.writeFileSync(a, 'AAA');
+  const exportDir = path.join(dir, 'export');
+
+  const url = makeSrcUrl({ exportDir, bundle: true })(a);
+
+  assert.ok(url.startsWith('file:///'), `expected an absolute file URL, got ${url}`);
+  assert.ok(!url.includes('./media'), 'must not emit a relative path');
+  assert.ok(url.endsWith('/media/clip%20a.mp4'), `expected a percent-encoded bundled path, got ${url}`);
+  // the URL must point at bytes that actually exist
+  assert.equal(fs.readFileSync(new URL(url), 'utf8'), 'AAA');
+});
+
+test('makeSrcUrl: unbundled src is the absolute URL of the original file', () => {
+  const dir = path.join(testTmp, 'srcurl-plain');
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(dir, { recursive: true });
+  const a = path.join(dir, 'clip.mp4');
+  fs.writeFileSync(a, 'BBB');
+  const url = makeSrcUrl({ exportDir: path.join(dir, 'export'), bundle: false })(a);
+  assert.equal(url, pathToFileURL(a).href);
+  assert.equal(fs.readFileSync(new URL(url), 'utf8'), 'BBB');
+});
+
+// The old code skipped the copy when the basename existed and handed both
+// assets the FIRST file's bytes — a silently wrong timeline.
+test('makeSrcUrl: a bundle basename collision throws instead of aliasing', () => {
+  const dir = path.join(testTmp, 'srcurl-collide');
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(path.join(dir, 'one'), { recursive: true });
+  fs.mkdirSync(path.join(dir, 'two'), { recursive: true });
+  const a = path.join(dir, 'one', 'same.mp4');
+  const b = path.join(dir, 'two', 'same.mp4');
+  fs.writeFileSync(a, 'AAA');
+  fs.writeFileSync(b, 'BBB');
+  const srcUrl = makeSrcUrl({ exportDir: path.join(dir, 'export'), bundle: true });
+  srcUrl(a);
+  assert.throws(() => srcUrl(b), /name collision/);
+  // the same file asked for twice is fine (baked mode does not dedupe assets)
+  assert.equal(srcUrl(a), srcUrl(a));
+});
+
+// Anything already inside the export folder is self-contained; copying it into
+// media/ would duplicate it, and vo-processed.wav is ~370 MB on its own.
+test('makeSrcUrl: files already inside the export dir are not re-copied', () => {
+  const dir = path.join(testTmp, 'srcurl-seg');
+  fs.rmSync(dir, { recursive: true, force: true });
+  const exportDir = path.join(dir, 'export');
+  const segDir = path.join(exportDir, 'segments');
+  fs.mkdirSync(segDir, { recursive: true });
+  fs.mkdirSync(path.join(exportDir, 'audio'), { recursive: true });
+  const seg = path.join(segDir, '0001.mp4');
+  const vo = path.join(exportDir, 'audio', 'vo-processed.wav');
+  fs.writeFileSync(seg, 'SEG');
+  fs.writeFileSync(vo, 'VO');
+  const srcUrl = makeSrcUrl({ exportDir, bundle: true });
+  assert.equal(srcUrl(seg), pathToFileURL(seg).href);
+  assert.equal(srcUrl(vo), pathToFileURL(vo).href);
+  assert.ok(!fs.existsSync(path.join(exportDir, 'media', '0001.mp4')), 'segment must not be duplicated into media/');
+  assert.ok(!fs.existsSync(path.join(exportDir, 'media', 'vo-processed.wav')), 'baked audio must not be duplicated into media/');
+});
+
+test('sfxBakeName: one file per distinct sample/pitch/gain/loop-length', () => {
+  const n = (o) => sfxBakeName(o);
+  assert.equal(n({ sample: 'pop', semi: 0, gainDb: -16 }), 'sfx-pop-s0-g-16.wav');
+  assert.equal(n({ sample: 'pop', semi: 4, gainDb: -16 }), 'sfx-pop-s4-g-16.wav');
+  assert.equal(n({ sample: 'pop', semi: 0, gainDb: -16.5 }), 'sfx-pop-s0-g-16.5.wav');
+  assert.equal(n({ sample: 'drone_low', semi: 0, gainDb: -30, loop: true, at: 0, end: 86.733 }),
+    'sfx-drone_low-s0-g-30-l86.733.wav');
+  // same sample, different loop length => different file
+  assert.notEqual(n({ sample: 'drone_low', semi: 0, gainDb: -30, loop: true, at: 0, end: 86.733 }),
+    n({ sample: 'drone_low', semi: 0, gainDb: -30, loop: true, at: 420, end: 500 }));
+});
+
+// Regression: the exporter dropped gainDb, semi and loop entirely, and
+// hardcoded a 2.0s duration. Owner heard a -30 dB bed playing at unity
+// (2026-08-02).
+test('bakeSfxClips: bakes gain, pitch and loop, and dedupes by variant', () => {
+  const dir = path.join(testTmp, 'sfx-bake');
+  fs.rmSync(dir, { recursive: true, force: true });
+  const outDir = path.join(dir, 'audio');
+  const calls = [];
+  const run = (bin, args) => {
+    calls.push({ bin, args });
+    fs.mkdirSync(outDir, { recursive: true });
+    fs.writeFileSync(args[args.length - 1], 'WAV');
+    return { status: 0 };
+  };
+  const instances = [
+    { id: 'a', sample: 'pop', semi: 0, gainDb: -16, at: 1 },
+    { id: 'b', sample: 'pop', semi: 0, gainDb: -16, at: 2 },     // same variant -> reuse
+    { id: 'c', sample: 'pop', semi: 4, gainDb: -16, at: 3 },     // pitched -> new file
+    { id: 'd', sample: 'drone_low', semi: 0, gainDb: -30, at: 0, loop: true, end: 86.733 },
+  ];
+  const clips = bakeSfxClips({ instances, outDir, sfxAssetDir: '/sfx', run, probe: () => 0.06 });
+
+  assert.equal(clips.length, 4, 'one clip per instance');
+  assert.equal(calls.length, 3, 'four instances collapse to three baked files');
+  assert.equal(clips[0].file, clips[1].file, 'identical variants share one file');
+  assert.notEqual(clips[0].file, clips[2].file, 'a pitch change is a different file');
+
+  const gainOf = (i) => calls[i].args[calls[i].args.indexOf('-af') + 1];
+  assert.ok(gainOf(0).includes('volume=-16dB'), `gain must be baked, got ${gainOf(0)}`);
+  assert.ok(!gainOf(0).includes('adelay'), 'offset is the clip position in an NLE, not silence padding');
+  assert.ok(gainOf(1).includes('asetrate='), 'pitch must be baked');
+  assert.ok(gainOf(2).includes('volume=-30dB') && gainOf(2).includes('atrim=0:86.733'), 'loop must be trimmed and gained');
+  // drone_low.wav is 8s of media behind an 86.7s clip: only -stream_loop fills it
+  assert.ok(calls[2].args.includes('-stream_loop'), 'a looped bed must actually loop');
+
+  // duration comes from the baked file, never the old hardcoded 2.0
+  assert.equal(clips[0].durationSec, 0.06);
+});
+
+test('bakeSfxClips: no instances means no ffmpeg and no clips', () => {
+  const run = () => { throw new Error('must not run ffmpeg'); };
+  assert.deepEqual(bakeSfxClips({ instances: [], outDir: '/nope', sfxAssetDir: '/sfx', run }), []);
+});
+
+test('bakeVo: the voiceover lane carries the same chain as the master', () => {
+  const dir = path.join(testTmp, 'vo-bake');
+  fs.rmSync(dir, { recursive: true, force: true });
+  let seen = null;
+  const run = (bin, args) => {
+    seen = args;
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(args[args.length - 1], 'WAV');
+    return { status: 0 };
+  };
+  const out = bakeVo({ voPath: '/vo.mp3', outDir: dir, run });
+  assert.equal(path.basename(out), 'vo-processed.wav');
+  assert.equal(seen[seen.indexOf('-af') + 1], VO_CHAIN);
+  assert.ok(VO_CHAIN.includes('acompressor') && VO_CHAIN.includes('alimiter'));
+});
+
+// Regression: the sidecar SRT shipped every caption chunk, so Resolve showed
+// captions over the intro motion graphics where the burned video has none.
+test('screenCaptionChunks: captions only over screen, never over cards or avatar', () => {
+  const words = [];
+  for (let i = 0; i < 40; i++) words.push({ text: `w${i}`, start: i, end: i + 0.9 });
+  const resolved = [
+    { id: 'z01', placement: 'fullframe', start: 0, duration: 10 },   // intro card
+    { id: 'c05', placement: 'overlay', start: 12, duration: 3 },     // overlay: screen still visible
+    { id: 'z09', placement: 'fullframe', start: 20, duration: 6 },
+  ];
+  const avatarJobs = [{ id: 'a1', purpose: 'avatar-full', start: 30, end: 36 }];
+  const chunks = screenCaptionChunks({ words, resolved, avatarJobs, total: 40 });
+
+  assert.ok(chunks.length > 0, 'screen stretches must still be captioned');
+  const covered = (t) => (t >= 0 && t < 10) || (t >= 20 && t < 26) || (t >= 30 && t < 36);
+  for (const c of chunks) {
+    const mid = (c.start + c.end) / 2;
+    assert.ok(!covered(mid), `chunk at ${mid}s sits under a card/avatar and must be dropped`);
+  }
+  // an overlay does NOT suppress captions — the screen is still what you see
+  assert.ok(chunks.some((c) => c.start < 15 && c.end > 12), 'overlay stretches keep their captions');
+  // and it really is a subset, not a pass-through
+  assert.ok(chunks.length < planCaptions(words).length, 'some chunks must actually be suppressed');
+});
+
+// Regression: Resolve anchors a subtitle clip to its first cue, so an SRT
+// starting at 25.61s played the whole track 25.61s early.
+test('srtFromCaptions: anchors at 00:00:00 so an NLE cannot shift the track', () => {
+  const srt = srtFromCaptions([
+    { start: 25.61, end: 26.67, text: 'are going to settle' },
+    { start: 26.67, end: 29.12, text: 'wins and for who' },
+  ]);
+  assert.ok(srt.startsWith('1\n00:00:00,000 --> '), `must start at zero, got: ${srt.slice(0, 40)}`);
+  // the real cues keep their absolute timecodes
+  assert.ok(srt.includes('00:00:25,610 --> 00:00:26,670'), 'real cue keeps its timecode');
+  assert.ok(srt.includes('00:00:26,670 --> 00:00:29,120'));
+  // anchor is invisible and does not eat into the first real caption
+  assert.ok(srt.includes('​'), 'anchor text must be a zero-width space');
+  assert.ok(!/00:00:00,000 --> 00:00:2/.test(srt), 'anchor must be short, not a 25s block');
+  assert.equal(srt.match(/-->/g).length, 3, 'anchor + 2 cues');
+});
+
+test('srtFromCaptions: no anchor when captions already start at zero', () => {
+  const srt = srtFromCaptions([{ start: 0, end: 1, text: 'hi' }]);
+  assert.equal(srt.match(/-->/g).length, 1, 'no spurious anchor');
+  assert.ok(!srt.includes('​'));
+  assert.ok(srt.startsWith('1\n00:00:00,000 --> 00:00:01,000\nhi'));
+});
+
+// SRT cannot express font, size, position or per-word colour, so the imported
+// captions came in as Resolve's oversized all-white default. The ASS twin
+// carries the burn's actual style.
+test('assFromCaptions: carries the burn style and per-word keyword colour', () => {
+  const chunks = [
+    { start: 25.61, end: 26.67, words: [{ text: 'costs', hl: false }, { text: '$49', hl: true }] },
+  ];
+  const ass = assFromCaptions({ chunks, w: 1920, h: 1080 });
+
+  assert.ok(ass.includes('PlayResX: 1920') && ass.includes('PlayResY: 1080'));
+  // same style line assemble builds: Helvetica 44, bold, outline 2, bottom-centre
+  assert.ok(/Style: Cap,Helvetica,44,&H00FFFFFF,&H00000000,&H00000000,1,2,0,2,40,40,140,1/.test(ass),
+    `style line mismatch:\n${ass.split('\n').find((l) => l.startsWith('Style:'))}`);
+  // ASS centiseconds, absolute timeline time. Centiseconds FLOOR, exactly as
+  // assemble's formatAssTime does — 25.61 lands on .60, and matching the burn
+  // matters more than rounding prettily.
+  assert.ok(ass.includes('Dialogue: 0,0:00:25.60,0:00:26.67,Cap,'), `absolute ASS timing:\n${ass}`);
+  // the highlighted word is orange; ASS colours are BGR, so #fb923c -> 3C92FB
+  assert.ok(ass.includes('{\\1c&H3C92FB&}$49{\\1c&HFFFFFF&}'), `keyword colour missing:\n${ass}`);
+  assert.ok(/,,costs \{/.test(ass), 'non-keyword stays plain');
+});
+
+test('assFromCaptions: margin follows yFrac, size follows canvas height', () => {
+  const chunks = [{ start: 0, end: 1, words: [{ text: 'x', hl: false }] }];
+  const ass = assFromCaptions({ chunks, w: 3840, h: 2160 });
+  // 44px scales with height, margin is (1 - 0.87) of height
+  assert.ok(ass.includes('Style: Cap,Helvetica,88,'), 'font scales to canvas');
+  assert.ok(/,40,40,281,1/.test(ass), `margin should be 2160-round(2160*0.87)=281:\n${ass}`);
 });
 
 test('buildNativeFcpxml: native generator layers', () => {

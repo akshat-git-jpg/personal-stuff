@@ -30,6 +30,12 @@ case "$verb" in
     # error_max_turns / error_during_execution outcome, so a bare grep for
     # "result" would mark a failed run "done". Parse the envelope: a run is a
     # real success only when is_error is false AND subtype == "success".
+    # Failure CLASSIFICATION, not just pass/fail (2026-08-02). Two crews were
+    # killed mid-flight by an API 429 ("You've hit your session limit") and this
+    # reported "blocked ... (max-turns or execution error)" — a wrong diagnosis
+    # that points at the plan when the cause was environmental and self-clearing.
+    # Distinguishing them matters because the one-fix-up-then-blocked policy must
+    # not spend its budget on a rate limit or a flake.
     verdict=$(python3 - "$out" <<'PY'
 import json,sys
 raw=open(sys.argv[1]).read().strip()
@@ -38,18 +44,39 @@ try:
 except Exception:
     try: d=json.loads(raw.splitlines()[-1])
     except Exception: print("PARSEFAIL"); raise SystemExit
-if d.get("is_error") or d.get("subtype")!="success":
-    print("ERROR")
-else:
-    print("SUCCESS")
+if not d.get("is_error") and d.get("subtype")=="success":
+    print("SUCCESS"); raise SystemExit
+status=d.get("api_error_status")
+reason=(d.get("terminal_reason") or "")
+result=(d.get("result") or "")
+if status==429 or "session limit" in result.lower() or "rate limit" in result.lower():
+    print("RATELIMIT|"+result.strip()[:120]); raise SystemExit
+if d.get("subtype")=="error_max_turns" or "max_turns" in reason:
+    print("MAXTURNS"); raise SystemExit
+if status or reason=="api_error":
+    print("APIERROR|"+(result.strip()[:120] or f"api_error_status={status}")); raise SystemExit
+print("ERROR")
 PY
 )
+    detail="${verdict#*|}"; verdict="${verdict%%|*}"
     # HEAD-advanced guard (shared with agy): a SUCCESS with no new commit is NOT done.
+    # A crew killed mid-flight often leaves finished-but-UNCOMMITTED work (PR#134
+    # held a complete implementation in its worktree). Surface that, so the
+    # salvage path is a direct fix-up on the existing branch and never a
+    # boss-dispatch (which force-resets the branch and would destroy it).
+    wt=$(meta_get "$id" worktree) || wt=""
+    salvage=""
+    if [ -n "$wt" ] && [ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ]; then
+      salvage=" — WORK UNCOMMITTED in worktree ($(git -C "$wt" status --porcelain 2>/dev/null | wc -l | tr -d ' ') file(s)); salvage with a DIRECT executor fix-up, never boss-dispatch"
+    fi
     case "$verdict" in
       SUCCESS)
         if boss_head_advanced "$id"; then echo "done headless run completed, HEAD advanced"
-        else echo "blocked claude reported success but HEAD did not advance (no work / wrong-checkout?)"; fi ;;
-      ERROR) echo "blocked claude run errored (max-turns or execution error)" ;;
+        else echo "blocked claude reported success but HEAD did not advance (no work / wrong-checkout?)$salvage"; fi ;;
+      RATELIMIT) echo "ratelimited claude hit an API rate/session limit ($detail) — environmental, retry when it clears; do NOT spend the fix-up budget$salvage" ;;
+      MAXTURNS)  echo "blocked claude hit max-turns (raise BOSS_MAX_TURNS or split the plan)$salvage" ;;
+      APIERROR)  echo "ratelimited claude API error ($detail) — environmental, retryable$salvage" ;;
+      ERROR)     echo "blocked claude run errored$salvage" ;;
       PARSEFAIL) echo "dead unparseable output" ;;
       *) echo "dead no verdict in envelope" ;;
     esac ;;

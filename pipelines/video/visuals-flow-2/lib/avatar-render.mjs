@@ -278,7 +278,15 @@ async function main() {
         newJob.error = cliSays.slice(-400) || `exit ${res.status} with empty output`;
         console.error(`${job.id}: submit FAILED — ${newJob.error}`);
       } else {
-        const meter = cliSays.match(/UNLIMITED|NOT-free/)?.[0] ?? 'meter-check not seen';
+        // Label by ENGINE, not by the scraped word. The CLI's meter line reports
+        // the Avatar III unlimited-mode flag; on a heygen4 submit it is not just
+        // uninformative but actively wrong, because Avatar IV bills at render
+        // COMPLETION (see the note below). Printing the bare "UNLIMITED" on a
+        // metered run told the owner heygen4 was free — they caught it, the log
+        // did not (2026-08-02). The scrape is kept as corroboration, never as
+        // the headline.
+        const cliMeter = cliSays.match(/UNLIMITED|NOT-free/)?.[0] ?? 'meter-check not seen';
+        const meter = jobEngine === 'heygen4' ? `METERED — Avatar IV bills the 1200s pool (cli:${cliMeter})` : cliMeter;
         console.error(`${job.id}: submitted ${video_id} [${meter}] engine=${jobEngine}`);
         // Avatar IV bills at render COMPLETION, not submission (verified
         // 2026-08-01: submit-time meter said UNLIMITED, limits grew +15s only

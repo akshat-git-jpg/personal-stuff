@@ -37,7 +37,29 @@ Landing does `git merge --no-ff <branch>` followed by `git push origin main`, th
 
 **Park**: if any land condition fails, state becomes `parked`, a `parked-reason` file is written, and `notify` is called.
 `risk_level: high` ALWAYS parks (under `--review`).
-If the main checkout is busy, it parks with `main checkout busy` (never stashes or switches).
+
+### Landing does not touch your checkout (changed 2026-08-02)
+
+Landing happens entirely inside the leased worktree: it detaches at a freshly
+fetched `origin/main`, merges the branch, and pushes `HEAD:main`. Your top-level
+checkout is then fast-forwarded **best-effort** and is never required to be clean
+or on main.
+
+There is no `main checkout busy` park any more. It used to be the most expensive
+failure mode in the tool: one unrelated uncommitted file anywhere in the repo
+parked every merge, so a second session editing the repo could stall a whole
+batch, and callers were pushed into auto-committing someone else's
+work-in-progress just to unblock themselves.
+
+If `origin/main` moves between the fetch and the push, the push is rejected and
+the land retries from the new `origin/main` (`GREENLIGHT_LAND_ATTEMPTS`, default
+3), then parks rather than forcing.
+
+Your checkout is left alone when it is dirty or on another branch — it simply
+ends up behind `origin/main`, and the run logs a NOTE saying so. **Callers that
+commit to main afterwards must `fetch` + `merge --ff-only` first** rather than
+assuming their checkout is current (`boss-merge` does this before writing its
+plan-registry row).
 
 Notifications go through tooling/cli/notify (Telegram-first, ntfy fallback).
 

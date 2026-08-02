@@ -1,11 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { loadAssemblyInputs, runAssembly, ASSEMBLE_MEDIA_ROOT, detectEncoder, planPanelGeometry, planSideGeometry } from './assemble.mjs';
+import { loadAssemblyInputs, runAssembly, ASSEMBLE_MEDIA_ROOT, detectEncoder, planPanelGeometry, planSideGeometry, planSegments, absorbSlivers } from './assemble.mjs';
 import { planRender } from './render.mjs';
-import { planCaptions } from './captions.mjs';
+import { planCaptions, formatAssText } from './captions.mjs';
+import * as captionsMod from './effects/captions.mjs';
 import { SHOT_CONSTANTS } from './shot-constants.mjs';
 import { readFinalCut } from './final-cut.mjs';
+import { VO_CHAIN, sfxInstanceChain } from './sound/build-mix.mjs';
+import { loadBrand } from './brand-inline.mjs';
 
 const FPS = 30;
 export const frames = (sec) => Math.round(sec * FPS);
@@ -14,6 +18,109 @@ export const rt = (fr) => `${fr * 100}/3000s`;
 const xmlEsc = (s) => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;')
   .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// Builds the `src` value written into every <asset>. FCPXML's src is a URL,
+// NOT a filesystem path — and DaVinci Resolve will not resolve a relative one.
+// `--bundle` used to emit "./media/clip.mp4", which looks right, imports
+// without an error, and leaves every single clip offline: the import reports
+// "97 of 97 clips were not yet found" (measured on best-ai-video-generator,
+// 2026-08-02 — the first bundled export ever run). The non-bundled branch was
+// always correct, which is why nothing caught it.
+//
+// Bundling and absolute URLs are not in tension. Copy the media in so the
+// folder is self-contained, AND point each asset at the absolute file:// URL
+// of its copy inside that folder. Move the folder later and Resolve's relink
+// still works by basename — a broken URL and a moved folder are not the same
+// failure, and only one of them is ours to prevent.
+//
+export function makeSrcUrl({ exportDir, bundle }) {
+  if (!bundle) return (file) => pathToFileURL(file).href;
+  const root = path.resolve(exportDir);
+  const mediaDir = path.join(root, 'media');
+  const takenBy = new Map();
+  // Anything the exporter itself wrote inside the export folder — baked
+  // segments, baked SFX, the processed VO — is already self-contained where it
+  // lies. Copying it into media/ would only duplicate it, and vo-processed.wav
+  // alone is ~370 MB on a 32-minute video.
+  const isInside = (f) => !path.relative(root, path.resolve(f)).startsWith('..');
+  return (file) => {
+    if (isInside(file)) return pathToFileURL(file).href;
+    const base = path.basename(file);
+    const prior = takenBy.get(base);
+    // Flattening many source dirs into one media/ can collide. The old code
+    // skipped the copy when the name existed and handed BOTH assets the first
+    // file's bytes — a silently wrong timeline. Refuse instead.
+    if (prior !== undefined && prior !== file) {
+      throw new Error(`bundle name collision: "${base}" is both ${prior} and ${file} — two different sources cannot share one bundled name`);
+    }
+    takenBy.set(base, file);
+    fs.mkdirSync(mediaDir, { recursive: true });
+    const dest = path.join(mediaDir, base);
+    if (!fs.existsSync(dest)) fs.copyFileSync(file, dest);
+    return pathToFileURL(dest).href;
+  };
+}
+
+export function ffprobeDuration(file) {
+  const p = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', file], { encoding: 'utf8' });
+  const d = parseFloat((p.stdout || '').trim());
+  if (!Number.isFinite(d)) throw new Error(`cannot read duration of ${file}: ${p.stderr || 'no output'}`);
+  return +d.toFixed(3);
+}
+
+// One file per DISTINCT (sample, semi, gain, loop-length). 108 instances on
+// best-ai-video-generator collapse to 17 files.
+export function sfxBakeName(inst) {
+  const len = inst.loop && inst.end ? `-l${(inst.end - inst.at).toFixed(3)}` : '';
+  return `sfx-${inst.sample}-s${inst.semi}-g${inst.gainDb}${len}.wav`.replace(/[^A-Za-z0-9_.-]/g, '_');
+}
+
+// Bakes each SFX instance through the SAME chain build-mix uses, so the Resolve
+// project carries the mix rather than 108 raw samples at unity gain.
+//
+// Three things were being dropped, and they compound:
+//   gainDb  — every instance played 14-30 dB hot
+//   semi    — 26 of 108 instances are pitch-shifted
+//   loop    — drone_low.wav is 8s of media behind an 86.7s clip; the mix fills
+//             that with `-stream_loop -1`, and a raw reference simply cannot.
+// Duration comes from the baked file, not a guess: the old code hardcoded 2.0s
+// for every non-loop clip against samples that run 0.05s to 0.886s.
+export function bakeSfxClips({ instances, outDir, sfxAssetDir, run = spawnSync, probe = ffprobeDuration }) {
+  if (!instances.length) return [];
+  fs.mkdirSync(outDir, { recursive: true });
+  const built = new Map();
+  return instances.map((inst) => {
+    const name = sfxBakeName(inst);
+    if (!built.has(name)) {
+      const dest = path.join(outDir, name);
+      if (!fs.existsSync(dest)) {
+        const args = ['-y', '-hide_banner', '-loglevel', 'error'];
+        if (inst.loop) args.push('-stream_loop', '-1');
+        args.push('-i', path.join(sfxAssetDir, `${inst.sample}.wav`),
+          '-af', sfxInstanceChain(inst, { delay: false }).join(','),
+          '-ar', '48000', '-ac', '2', dest);
+        const r = run('ffmpeg', args, { encoding: 'utf8' });
+        if (r.status !== 0) throw new Error(`sfx bake failed for ${name}: ${r.stderr || ''}`);
+      }
+      built.set(name, { file: dest, dur: probe(dest) });
+    }
+    const b = built.get(name);
+    return { id: inst.sample, offsetSec: inst.at, durationSec: b.dur, file: b.file };
+  });
+}
+
+// The voiceover lane shipped as a raw vo.mp3 — no highpass, no compressor, no
+// limiter — so it sat noticeably below the level it has in final.mp4.
+export function bakeVo({ voPath, outDir, run = spawnSync }) {
+  fs.mkdirSync(outDir, { recursive: true });
+  const dest = path.join(outDir, 'vo-processed.wav');
+  if (!fs.existsSync(dest)) {
+    const r = run('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-i', voPath,
+      '-af', VO_CHAIN, '-ar', '48000', '-ac', '2', dest], { encoding: 'utf8' });
+    if (r.status !== 0) throw new Error(`vo bake failed: ${r.stderr || ''}`);
+  }
+  return dest;
+}
 
 export function srtTime(sec) {
   const ms = Math.max(0, Math.round(sec * 1000));
@@ -25,8 +132,91 @@ export function srtTime(sec) {
   return `${p(h)}:${p(m)}:${p(s)},${p(mm, 3)}`;
 }
 
+// A subtitle clip in Resolve is anchored to its FIRST cue and lands wherever
+// you drop it — the leading gap is discarded, not preserved. So an SRT whose
+// first cue is at 25.61s, dropped at 00:00:00, plays every caption 25.61s
+// early. The old unfiltered SRT had the same bug and hid it: its first cue was
+// at 0.4s, so the whole track was silently 0.4s out. Suppressing the intro
+// captions turned that into a visible 25s slip (owner, 2026-08-02).
+//
+// A zero-duration-looking anchor at 00:00:00 makes the clip start at zero, so
+// every real cue lands on its true timecode no matter where it is dropped.
+// U+200B renders as nothing; a plain space risks being trimmed to an empty cue.
+const SRT_ANCHOR_TEXT = '​';
 export function srtFromCaptions(chunks) {
-  return chunks.map((c, i) => `${i + 1}\n${srtTime(c.start)} --> ${srtTime(c.end)}\n${c.text}\n`).join('\n') + '\n';
+  const all = chunks.length > 0 && chunks[0].start > 0
+    ? [{ start: 0, end: Math.min(1 / 30, chunks[0].start), text: SRT_ANCHOR_TEXT }, ...chunks]
+    : chunks;
+  return all.map((c, i) => `${i + 1}\n${srtTime(c.start)} --> ${srtTime(c.end)}\n${c.text}\n`).join('\n') + '\n';
+}
+
+// Captions are burned ONLY over the screen recording — assemble.mjs skips any
+// segment whose kind is not 'screen', so a fullframe card or a full-screen
+// avatar covers the frame caption-free and the card's own typography carries
+// the moment.
+//
+// The sidecar SRT ignored that and shipped every chunk, so in Resolve captions
+// appeared on top of the intro motion graphics where the shipped video has
+// none (owner, 2026-08-02). Same shape as the SFX bug: a rule enforced on one
+// surface and silently not on the next. Segments come from the same planner
+// assemble uses rather than being re-derived here.
+// A chunk that straddles a boundary is CLIPPED, not dropped and not passed
+// through whole: assemble renders each screen segment separately and lets the
+// segment's own end cut the caption off, so a chunk spanning card->screen only
+// ever shows for its screen half. An SRT has one time range per entry, so the
+// clip has to be done here or that chunk reappears over the card.
+const CAP_MIN_SEC = 1 / 30;
+export function assTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  const cs = Math.floor((sec % 1) * 100);
+  return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+}
+
+// SRT carries words and timecodes and NOTHING else — no font, no size, no
+// position, and no per-word colour. So an imported SRT lands in Resolve's own
+// default style: oversized, all white, no orange keywords (owner, 2026-08-02:
+// "no keywords highlighted coloured, all white and text size big").
+//
+// This writes the same ASS the burn uses, as one whole-timeline file: identical
+// style line, and formatAssText's per-word {\1c} keyword colour. If the editor
+// can read it, the captions match the video exactly instead of approximately.
+// Style values are mirrored from assemble.mjs's caption block; the numbers are
+// derived here the same way rather than restated as literals.
+export function assFromCaptions({ chunks, w = 1920, h = 1080, fontPx = captionsMod.CONSTANTS.CAP_FONT_PX, yFrac = captionsMod.CONSTANTS.CAP_Y_FRAC, keywordColor = '#fb923c' } = {}) {
+  const capFontPx = Math.round(fontPx * h / 1080);
+  const outline = Math.max(2, Math.floor(capFontPx / 16));
+  const marginV = h - Math.round(h * yFrac);
+  const head = `[Script Info]
+ScriptType: v4.00+
+PlayResX: ${w}
+PlayResY: ${h}
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, OutlineColour, BackColour, Bold, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Helvetica,${capFontPx},&H00FFFFFF,&H00000000,&H00000000,1,${outline},0,2,40,40,${marginV},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+`;
+  const body = chunks.map((c) =>
+    `Dialogue: 0,${assTime(c.start)},${assTime(c.end)},Cap,,0,0,0,,${formatAssText(c.words, keywordColor)}`).join('\n');
+  return head + body + '\n';
+}
+
+export function screenCaptionChunks({ words, resolved, avatarJobs, total }) {
+  const screen = absorbSlivers(planSegments({ resolved, avatarJobs, total })).filter((s) => s.kind === 'screen');
+  const out = [];
+  for (const c of planCaptions(words)) {
+    for (const s of screen) {
+      const start = Math.max(c.start, s.start);
+      const end = Math.min(c.end, s.end);
+      // sub-frame slivers are a flash in an NLE, not a caption
+      if (end - start >= CAP_MIN_SEC) out.push({ ...c, start: +start.toFixed(3), end: +end.toFixed(3) });
+    }
+  }
+  return out.sort((a, b) => a.start - b.start);
 }
 
 // Native layered project: ONE continuous screen clip on the spine; everything
@@ -200,7 +390,7 @@ Rules of thumb:
   desync everything after the edit point.
 `;
 
-const NATIVE_README = (video) => `# ${video} — native editor project (layered)
+export const NATIVE_README = (video) => `# ${video} — native editor project (layered)
 
 Import: DaVinci Resolve -> File -> Import -> Timeline -> timeline.fcpxml.
 Then captions: File -> Import -> Subtitle -> captions.srt (drops onto a
@@ -214,6 +404,46 @@ normal clip: copy it to another cut, slide it, delete it.
 Markers on the screen clip = effects the pipeline dropped from the editor
 version (punch-ins, Ken Burns, blur-whips) with a note saying what to use
 natively (Dynamic Zoom / a stock transition) if you want them.
+
+Audio: every clip arrives PRE-MIXED, so the balance already matches
+final.mp4 and you should not need to touch a fader to get there. The
+voiceover on lane -1 is vo-processed.wav (highpass + compressor + limiter,
+the same chain the master uses), and each SFX on lane -3 is baked at its
+planned gain and pitch. Leave the clip gains alone unless you want a
+different balance; they are not at unity by accident.
+
+The one thing NOT baked is the master loudness pass (loudnorm I=-14 LUFS),
+because it applies to the sum and not to any one clip. Everything is
+correct relative to everything else; the whole timeline just sits lower
+than final.mp4 in absolute terms (measured on best-ai-video-generator:
+the sum lands near -23 LUFS against the shipped -13.5).
+
+Do NOT close that gap with a fader. The voiceover already peaks at
+-1.4 dBFS, which is exactly where the shipped master peaks — loudnorm
+bought ~10 dB of average level dynamically while holding the same peak, so
+a flat +10 dB would clip by about 8 dB. Put a loudness normalize (or a
+compressor into a limiter) on the master bus targeting -14 LUFS instead.
+
+Captions: captions.srt holds ONLY the stretches that are captioned in
+final.mp4 — a fullframe card or a full-screen avatar plays caption-free,
+and the card's own typography carries the moment. It also opens with a
+33ms zero-width anchor cue at 00:00:00, because Resolve anchors a subtitle
+clip to its FIRST cue and drops it wherever you release it; without the
+anchor the whole track slides ~25s early.
+
+SRT carries words and timecodes and nothing else, so Resolve styles it
+with its own oversized white default. To match the burn, set the subtitle
+track style (Inspector -> Track Style) to Helvetica Bold, size 44, white
+with a 2px black border, no shadow, bottom-centre, bottom margin 140px
+(these are CAP_FONT_PX and CAP_Y_FRAC from lib/effects/captions.mjs at
+1080p — recompute if the canvas changes).
+
+The one thing a track style cannot do is the per-word orange keyword
+colour, since Resolve styles a track uniformly. captions.ass carries it
+(same style, same {\\1c} runs as the burn) but Resolve's subtitle importer
+REFUSES .ass — verified 2026-08-02, the file greys out in the dialog. Keep
+it for ffmpeg burn-in or a player that reads it; for Resolve the choice is
+white captions you can edit, or a pre-rendered caption overlay you cannot.
 
 Tips:
 - FX clips composite in Normal mode; for an exact match to the shipped
@@ -274,17 +504,7 @@ async function main() {
       jobsN: opts.jobs,
     });
 
-    const srcUrl = (file) => {
-      if (opts.bundle) {
-        if (path.dirname(file) === segDir) return `./segments/${path.basename(file)}`;
-        const mediaDir = path.join(exportDir, 'media');
-        fs.mkdirSync(mediaDir, { recursive: true });
-        const dest = path.join(mediaDir, path.basename(file));
-        if (!fs.existsSync(dest)) fs.copyFileSync(file, dest);
-        return `./media/${path.basename(file)}`;
-      }
-      return `file://${encodeURI(file)}`;
-    };
+    const srcUrl = makeSrcUrl({ exportDir, bundle: opts.bundle });
 
     const xml = buildFcpxml({
       video: inputs.video, clips: plan.clips, overlays: plan.overlays,
@@ -298,16 +518,7 @@ async function main() {
     fs.rmSync(exportDir, { recursive: true, force: true });
     fs.mkdirSync(exportDir, { recursive: true });
 
-    const srcUrl = (file) => {
-      if (opts.bundle) {
-        const mediaDir = path.join(exportDir, 'media');
-        fs.mkdirSync(mediaDir, { recursive: true });
-        const dest = path.join(mediaDir, path.basename(file));
-        if (!fs.existsSync(dest)) fs.copyFileSync(file, dest);
-        return `./media/${path.basename(file)}`;
-      }
-      return `file://${encodeURI(file)}`;
-    };
+    const srcUrl = makeSrcUrl({ exportDir, bundle: opts.bundle });
 
     const rfx = spawnSync(process.execPath, [path.join(import.meta.dirname, 'render-fx.mjs'), opts.workdir], { encoding: 'utf8', stdio: 'inherit' });
     if (rfx.status !== 0) process.exit(1);
@@ -332,25 +543,35 @@ async function main() {
       musicPath = duckedPath;
     }
     
+    const audioDir = path.join(exportDir, 'audio');
     let sfxClips = [];
     const soundPath = path.join(inputs.workdir, 'sound.json');
     if (fs.existsSync(soundPath)) {
       const soundData = JSON.parse(fs.readFileSync(soundPath, 'utf8'));
       if (soundData.approved && soundData.instances) {
-        sfxClips = soundData.instances
-          .filter(i => i.enabled !== false)
-          .map(i => ({
-            id: 'sfx',
-            offsetSec: i.at,
-            durationSec: (i.loop && i.end) ? (i.end - i.at) : 2.0,
-            file: path.resolve(import.meta.dirname, '../assets/sfx', `${i.sample}.wav`)
-          }));
+        sfxClips = bakeSfxClips({
+          instances: soundData.instances.filter((i) => i.enabled !== false),
+          outDir: audioDir,
+          sfxAssetDir: path.resolve(import.meta.dirname, '../assets/sfx'),
+        });
       }
     }
-    
-    const xml = buildNativeFcpxml({ video: inputs.video, screenPath: inputs.screen, voPath, musicPath, total: inputs.total, w: 1920, h: 1080, avatarClips, fullframes, overlayClips, fxClips, sfxClips, markers, srcUrl });
+    // The lane must carry the same processing the master does, or the levels in
+    // Resolve are not the levels the owner approved.
+    const voMixed = bakeVo({ voPath, outDir: audioDir });
+
+    const xml = buildNativeFcpxml({ video: inputs.video, screenPath: inputs.screen, voPath: voMixed, musicPath, total: inputs.total, w: 1920, h: 1080, avatarClips, fullframes, overlayClips, fxClips, sfxClips, markers, srcUrl });
     fs.writeFileSync(path.join(exportDir, 'timeline.fcpxml'), xml);
-    fs.writeFileSync(path.join(exportDir, 'captions.srt'), srtFromCaptions(planCaptions(inputs.words)));
+    const capChunks = screenCaptionChunks({
+      words: inputs.words, resolved: inputs.resolved, avatarJobs: inputs.avatarJobs, total: inputs.total,
+    });
+    fs.writeFileSync(path.join(exportDir, 'captions.srt'), srtFromCaptions(capChunks));
+    // Styled twin of the SRT: same words, plus the font/size/position and the
+    // per-word keyword colour that SRT cannot express.
+    const brandObj = loadBrand(path.resolve(import.meta.dirname, '..'), { brand: inputs.brand || 'default' });
+    fs.writeFileSync(path.join(exportDir, 'captions.ass'), assFromCaptions({
+      chunks: capChunks, w: 1920, h: 1080, keywordColor: brandObj?.caption?.keywordColor,
+    }));
     fs.writeFileSync(path.join(exportDir, 'README.md'), NATIVE_README(inputs.video));
     console.log(`exported (native): ${exportDir}`);
     console.log(`avatar: ${avatarClips.length}, graphics: ${fullframes.length}, overlays: ${overlayClips.length}, fx: ${fxClips.length}, sfx: ${sfxClips.length}, markers: ${markers.length}, captions: sidecar SRT`);

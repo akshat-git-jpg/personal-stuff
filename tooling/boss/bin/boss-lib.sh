@@ -51,12 +51,206 @@ boss_repo_dirty() { git -C "$REPO_ROOT" status --porcelain --untracked-files=no;
 
 slug_of()     { echo "${1#boss/}"; }
 boss_notify() { "$REPO_ROOT/tooling/cli/notify/notify" send "$1" || true; }
+
+# boss_free_branch_worktree <branch> — release ANY worktree currently holding
+# <branch> so a checkout of it can succeed. git refuses to check out a branch that
+# another worktree holds; three merges in the 2026-08-02 batch parked on
+# "fatal: '<branch>' is already used by worktree at ..." purely because a FINISHED
+# crew's worktree still held the ref. The crew's commits live on the branch ref and
+# survive the detach, so this is lossless — but refuse if that worktree is dirty
+# (uncommitted crew work would be stranded and invisible).
+boss_free_branch_worktree() {
+  local branch="$1" wt line
+  git -C "$REPO_ROOT" worktree list --porcelain 2>/dev/null \
+    | awk -v b="refs/heads/$branch" '
+        /^worktree /{w=$2} /^branch /{ if ($2==b) print w }' \
+    | while read -r wt; do
+        [ -n "$wt" ] && [ -d "$wt" ] || continue
+        if [ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ]; then
+          echo "boss: worktree $wt holds $branch and is DIRTY — not auto-freeing" >&2
+          continue
+        fi
+        git -C "$wt" checkout --detach -q 2>/dev/null \
+          && echo "boss: freed $branch from worktree $wt" >&2
+      done
+}
+
+# --- Chrome serialization (2026-08-02) ------------------------------------
+# Every vf2/card-library test_cmd drives headless Chrome (board-ui-smoke,
+# card-qa, frame-gate). Running a merge verify while crews render produced
+# "Chrome dump-dom timeout on #card-plan" and cost PR#134 a whole merge cycle
+# with 44 chrome processes live. A flock-style lock keeps browser-driving work
+# serialized without hard-coding which step owns the browser.
+BOSS_LOCK_DIR="${BOSS_LOCK_DIR:-$STATE_DIR/locks}"
+BOSS_CHROME_WAIT_MIN="${BOSS_CHROME_WAIT_MIN:-45}"
+boss_chrome_lock_acquire() {
+  local who="$1" lock="$BOSS_LOCK_DIR/chrome.lock" waited=0 owner
+  mkdir -p "$BOSS_LOCK_DIR"
+  while ! mkdir "$lock" 2>/dev/null; do
+    owner=$(cat "$lock/owner" 2>/dev/null || echo unknown)
+    # Stale-lock reaper: if the recorded pid is gone, the holder died mid-run.
+    if [ -f "$lock/pid" ] && ! kill -0 "$(cat "$lock/pid" 2>/dev/null)" 2>/dev/null; then
+      echo "boss: reaping stale chrome lock (owner=$owner)" >&2; rm -rf "$lock"; continue
+    fi
+    [ "$waited" -ge $((BOSS_CHROME_WAIT_MIN * 60)) ] && {
+      echo "boss: chrome lock held by $owner for >${BOSS_CHROME_WAIT_MIN}m — proceeding anyway" >&2
+      return 0; }
+    [ "$waited" = 0 ] && echo "boss: waiting for chrome lock (held by $owner)…" >&2
+    sleep 15; waited=$((waited + 15))
+  done
+  echo "$who" > "$lock/owner"; echo $$ > "$lock/pid"
+}
+boss_chrome_lock_release() { rm -rf "$BOSS_LOCK_DIR/chrome.lock" 2>/dev/null || true; }
+
+# boss_crews_running — echo "pr:executor" for every dispatched crew whose pid is
+# still alive. Used to keep merges off the browser while crews hold it.
+boss_crews_running() {
+  local f id pid
+  for f in "$STATE_DIR"/*.meta; do
+    [ -f "$f" ] || continue
+    id=$(basename "$f" .meta)
+    pid=$(meta_get "$id" pid) || continue
+    [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null && echo "$id:$(meta_get "$id" executor)"
+  done
+}
 boss_ensure_labels() {
   local l; for l in type:feature type:bug type:refactor type:chore \
                     boss:ready boss:in-progress boss:done boss:blocked \
                     gap:test-cmd gap:open-points; do
     gh label create "$l" >/dev/null 2>&1 || true
   done
+}
+
+# --- deterministic pre-merge hygiene gates (2026-08-02) --------------------
+# Each of these caught a real defect that shipped (or nearly shipped) in the
+# 2026-08-02 batch, and each is mechanically checkable with zero LLM involvement.
+# Prose in a crew brief is a suggestion; a gate is not — every rule below was
+# ALREADY in the brief and was violated anyway.
+#
+# boss_hygiene_gate <branch> — echo one reason per violation (empty = clean).
+boss_hygiene_gate() {
+  local branch="$1" files
+  files=$(git -C "$REPO_ROOT" diff --name-only "origin/main...$branch" 2>/dev/null)
+
+  # 1. Registry is boss-owned on main. PR#138 committed plans/README.md despite
+  #    the brief forbidding it, and dispatch force-resetting it.
+  echo "$files" | grep -qx 'plans/README.md' \
+    && echo "edits plans/README.md — registry is boss-owned on main"
+
+  # 2. Scratch/junk. PR#136's one-off scratch.mjs actually reached main; PR#141
+  #    left test.mp4, browser.pid, measure.sh, before-/after-rss.txt behind.
+  local junk
+  junk=$(echo "$files" | grep -E '(^|/)(scratch|tmp|measure)[^/]*\.(mjs|js|sh|py|ts)$|\.pid$|(^|/)(before|after)-[^/]*\.txt$|^[^/]*\.(mp4|mov)$' || true)
+  [ -n "$junk" ] && echo "adds scratch/junk file(s): $(echo "$junk" | tr '\n' ' ')"
+
+  # 3. Regenerated artifacts. run-log.json rode in on PR#133 and PR#137 and
+  #    caused two separate rebase conflicts; it is output, never intent.
+  local arts
+  arts=$(echo "$files" | grep -E '(^|/)run-log\.json$' || true)
+  [ -n "$arts" ] && echo "commits regenerated artifact(s): $(echo "$arts" | tr '\n' ' ')"
+  return 0
+}
+
+# boss_ui_gate <branch> <planfile> — plans declaring `ui: true` must ship a
+# committed image. REVERSAL of the 2026-07-18 removal (decisions.md): that gate
+# was only ever a crew-brief instruction nobody enforced or consumed, so it was
+# pure cost. On 2026-08-02 the owner DID consume it — rejecting PR#141 outright
+# for shipping without its screenshot. Re-added as a real gate, which is the
+# form the original lacked.
+boss_ui_gate() {
+  local branch="$1" plan="$2" ui
+  ui=$(fm_get ui "$plan" 2>/dev/null)
+  case "$ui" in true|yes|1) ;; *) return 0 ;; esac
+  git -C "$REPO_ROOT" diff --name-only "origin/main...$branch" 2>/dev/null \
+    | grep -qiE '\.(png|jpg|jpeg|webp|gif)$' && return 0
+  echo "plan is ui:true but the branch commits no image (screenshot evidence missing)"
+}
+
+# boss_mutation_gate <branch> <planfile> <worktree> — THE fix for the 2026-08-02
+# batch's worst finding: zero of nine crews produced mutation evidence unprompted,
+# and two gates were outright fake (PR#134 asserted on render.mjs SOURCE TEXT so
+# the mutation was circular; PR#137's E14 never fired at all). Both passed their
+# test_cmd. Prose asking for evidence is unenforceable; running the mutation is.
+#
+# Frontmatter contract (all three required to arm the gate):
+#   mutation_apply:   shell that introduces the defect (run in <worktree>)
+#   mutation_command: shell that MUST then fail
+#   mutation_expect:  string that MUST appear in that failure output
+# Optional: mutation_cwd (relative to repo root; default repo root)
+#
+# Sequence: clean-assert -> apply -> assert FAIL + expected string -> revert ->
+# assert clean again. Echoes one reason per violation (empty = gate proven).
+boss_mutation_gate() {
+  local branch="$1" plan="$2" wt="$3"
+  local apply cmd expect cwd tbin ttl out rc dirty
+  apply=$(fm_get mutation_apply "$plan" 2>/dev/null)
+  cmd=$(fm_get mutation_command "$plan" 2>/dev/null)
+  expect=$(fm_get mutation_expect "$plan" 2>/dev/null)
+  [ -n "$apply" ] || return 0            # not armed — plan declares no mutation
+  if [ -z "$cmd" ] || [ -z "$expect" ]; then
+    echo "mutation_apply set but mutation_command/mutation_expect missing — incomplete mutation contract"; return 0
+  fi
+  cwd=$(fm_get mutation_cwd "$plan" 2>/dev/null)
+  tbin=$(boss_timeout_bin) || { echo "mutation gate needs gtimeout (brew install coreutils)"; return 0; }
+  ttl=$(fm_get mutation_timeout "$plan" 2>/dev/null); ttl="${ttl:-600}"
+
+  # Refuse to run against a dirty tree — we must be able to restore by checkout.
+  dirty=$(git -C "$wt" status --porcelain 2>/dev/null)
+  [ -n "$dirty" ] && { echo "mutation gate cannot run: worktree dirty before mutation"; return 0; }
+
+  # 1. clean must PASS (else the mutation proves nothing) — and capture the
+  #    clean output, because "did the mutation change anything?" is a stronger
+  #    question than "did it exit non-zero?".
+  local clean_out clean_rc
+  clean_out=$(_boss_mut_run "$wt" "$cwd" "$ttl" "$cmd"); clean_rc=$?
+  if [ "$clean_rc" -ne 0 ]; then
+    echo "mutation gate: command already fails on CLEAN state — gate unprovable"; return 0
+  fi
+  # A clean run that ALREADY prints the expected marker makes the whole check
+  # vacuous (the marker would "appear" under mutation no matter what).
+  if printf '%s' "$clean_out" | grep -qF -- "$expect"; then
+    echo "mutation gate: '$expect' already present on CLEAN state — marker proves nothing"; return 0
+  fi
+  # 2. apply the mutation
+  if ! _boss_mut_run "$wt" "" 120 "$apply" >/dev/null 2>&1; then
+    git -C "$wt" checkout -- . 2>/dev/null
+    echo "mutation gate: mutation_apply failed to run (stale recipe? plan 175's own 14-word-title recipe was wrong and nobody noticed)"; return 0
+  fi
+  # The recipe must actually change something. A no-op mutation silently turns
+  # the whole gate green — the failure mode this check exists to prevent.
+  if [ -z "$(git -C "$wt" status --porcelain 2>/dev/null)" ]; then
+    echo "mutation gate: mutation_apply changed NOTHING (no-op recipe — the gate would pass vacuously)"; return 0
+  fi
+  # 3. it MUST now fail, and fail for the declared reason
+  out=$(_boss_mut_run "$wt" "$cwd" "$ttl" "$cmd"); rc=$?
+  git -C "$wt" checkout -- . 2>/dev/null   # 4. always revert
+  if [ "$rc" -eq 0 ]; then
+    echo "mutation gate FAILED: gate did not fire under its own mutation (dead gate — this is exactly PR#137's E14)"
+  elif ! printf '%s' "$out" | grep -qF -- "$expect"; then
+    echo "mutation gate FAILED: it failed, but '$expect' is absent from the output (wrong failure — the mutation broke something unrelated, or the assertion is circular)"
+  elif printf '%s' "$out" | grep -qE 'SyntaxError|ReferenceError|TypeError:|ERR_MODULE_NOT_FOUND|Cannot find (module|package)|Traceback \(most recent|command not found|No such file or directory'; then
+    # The marker being present is not enough. An interpreter that crashes often
+    # ECHOES the offending source line — which contains the marker — so a broken
+    # mutation can look like a firing gate. #133 shipped a real regression whose
+    # signature was exactly ERR_MODULE_NOT_FOUND, so treat crash shapes as a
+    # wrong failure even when the string matches.
+    echo "mutation gate FAILED: failure looks like a CRASH, not the gate firing ($(printf '%s' "$out" | grep -oE 'SyntaxError|ReferenceError|TypeError:|ERR_MODULE_NOT_FOUND|Cannot find (module|package)|Traceback \(most recent|command not found|No such file or directory' | head -1)) — '$expect' may only be echoed source text"
+  fi
+  # 5. clean again
+  if ! _boss_mut_run "$wt" "$cwd" "$ttl" "$cmd" >/dev/null 2>&1; then
+    echo "mutation gate: command still fails AFTER revert — the mutation left the tree broken"
+  fi
+  return 0
+}
+
+# _boss_mut_run <wt> <cwd> <ttl> <cmd> — run <cmd> under a timeout in
+# <wt>/<cwd>, merging stderr into stdout and preserving the exit code. A plain
+# subshell avoids eval, whose nested quoting mangled shell-metachar recipes.
+_boss_mut_run() {
+  local wt="$1" cwd="$2" ttl="$3" cmd="$4" tbin
+  tbin=$(boss_timeout_bin) || return 127
+  ( cd "$wt/${cwd:-.}" 2>/dev/null || exit 127
+    "$tbin" -k 30 "${ttl}s" bash -c "$cmd" ) 2>&1
 }
 
 # boss_timeout_bin — resolve a `timeout`-compatible binary. A hanging test_cmd

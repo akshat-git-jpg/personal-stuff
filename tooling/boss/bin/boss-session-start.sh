@@ -18,6 +18,21 @@ if [ -n "$dirty" ]; then
   echo "  → boss-dispatch auto-commits+pushes these before dispatch (git add -A, gitignore-respecting)."
   echo "     Run 'bin/boss-commit-main.sh [msg]' now to clear it, or set BOSS_NO_AUTO_COMMIT=1 to keep the old refuse."
 fi
+# Concurrent-session guard (2026-08-02). Another Claude/agy session working in
+# this repo re-dirties main under you: it parked merges repeatedly, re-created the
+# same rebase conflict three times on one file, and landed two main-breaking
+# regressions that blocked an unrelated PR for hours. boss cannot detect this from
+# git alone (the tree just looks dirty again), so name the actual cause up front.
+others=$(ps -eo pid=,args= 2>/dev/null \
+  | grep -E '(^| )(claude|agy)( |$)' | grep -v 'bg-spare\|bg-pty-host\|daemon run\|grep' \
+  | grep -vw "$$" | awk '{print $1}' | head -8)
+mine=$(ps -o ppid= -p $$ 2>/dev/null | tr -d ' ')
+others=$(echo "$others" | grep -vw "${mine:-0}" | tr '\n' ' ' | sed 's/ *$//')
+if [ -n "$others" ]; then
+  echo "== ⚠️  OTHER claude/agy SESSION(S) RUNNING (pids: $others) =="
+  echo "  If one is working in this repo it WILL re-dirty main and re-conflict your branches."
+  echo "  Confirm what it is before dispatching; merges park on a dirty main checkout."
+fi
 echo "== recently landed / blocked =="
 gh pr list --state all  --label boss:done    --limit 10 --json number,title -q '.[] | "  done    #\(.number) \(.title)"' 2>/dev/null
 gh pr list --state open --label boss:blocked --limit 20 --json number,title -q '.[] | "  BLOCKED #\(.number) \(.title)"' 2>/dev/null

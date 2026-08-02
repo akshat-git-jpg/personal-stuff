@@ -254,3 +254,44 @@ test('lint-shots CLI resolves the real catalog from a workdir', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// E8 intro-host (owner 2026-08-02). The rule lived in shot-constants — and so in
+// the shot-pass prompt — since 2026-08-01 with nothing checking it, which is how
+// a host at 0:59 shipped. These tests exist so it stays a gate.
+test('host span starting after INTRO_HOST_BY → E8', () => {
+  const shotsResolved = { spans: [{ id: 's00', start: 59.5, end: 82.7, duration: 23.2 }] };
+  const { errors } = lintShots({ shotsResolved, resolvedCues: [], words, catalog: mockCatalog });
+  assert.ok(errors.some((e) => e.startsWith('E8 intro-host')), 'a late host must error');
+});
+
+test('host span starting at or before INTRO_HOST_BY → no E8', () => {
+  const shotsResolved = { spans: [{ id: 's00', start: 12, end: 30, duration: 18 }] };
+  const { errors } = lintShots({ shotsResolved, resolvedCues: [], words, catalog: mockCatalog });
+  assert.ok(!errors.some((e) => e.startsWith('E8 intro-host')), 'an early host must pass');
+});
+
+test('a side span counts as the host being on screen', () => {
+  const shotsResolved = { spans: [{ id: 's00', start: 3, end: 20, duration: 17, mode: 'side' }] };
+  const { errors } = lintShots({ shotsResolved, resolvedCues: [], words, catalog: mockCatalog });
+  assert.ok(!errors.some((e) => e.startsWith('E8 intro-host')), 'side mode satisfies the rule');
+});
+
+test('an empty shot plan stays neutral — E8 is about a LATE host, not a missing one', () => {
+  const { errors } = lintShots({ shotsResolved: { spans: [] }, resolvedCues: [], words, catalog: mockCatalog });
+  assert.ok(!errors.some((e) => e.startsWith('E8 intro-host')), 'empty plans are someone else\'s contract');
+});
+
+test('intro_host_waived downgrades E8 to a loud W8 carrying the reason', () => {
+  const shotsResolved = { intro_host_waived: 'planned before the gate existed', spans: [{ id: 's00', start: 59.5, end: 82.7, duration: 23.2 }] };
+  const { errors, warnings } = lintShots({ shotsResolved, resolvedCues: [], words, catalog: mockCatalog });
+  assert.ok(!errors.some((e) => e.startsWith('E8 intro-host')), 'a waiver clears the error');
+  const w = warnings.find((x) => x.startsWith('W8 intro-host-waived'));
+  assert.ok(w, 'a waiver must still warn every run');
+  assert.match(w, /planned before the gate existed/, 'the reason must be echoed, not swallowed');
+});
+
+test('an empty waiver reason does NOT clear E8', () => {
+  const shotsResolved = { intro_host_waived: '   ', spans: [{ id: 's00', start: 59.5, end: 82.7, duration: 23.2 }] };
+  const { errors } = lintShots({ shotsResolved, resolvedCues: [], words, catalog: mockCatalog });
+  assert.ok(errors.some((e) => e.startsWith('E8 intro-host')), 'waiving must cost a sentence');
+});
