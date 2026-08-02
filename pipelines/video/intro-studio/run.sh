@@ -126,6 +126,40 @@ if [[ "$step" == "render" ]]; then
   exit $?
 fi
 
+# The PRE-RENDER review. Runs in ~2 minutes against the HTML, where a render
+# plus a look costs minutes and an encode. Nothing here needs the film rendered,
+# so this is the loop the author step iterates against; `render` is the last
+# step, not the review step.
+if [[ "$step" == "review" ]]; then
+  node -e "
+    import { runReview } from './lib/review-film.mjs';
+    import { checkFilmStyleFiles } from './lib/check-film-style.mjs';
+    import { resolveWorkdir } from './lib/workdir.mjs';
+
+    const workdir = resolveWorkdir('$slug');
+    const style = checkFilmStyleFiles(workdir + '/film/index.html', workdir + '/screenplay.json');
+    style.errors.forEach(e => console.error('STYLE ' + e));
+
+    const r = runReview('$slug');
+    if (r.media.missing.length) {
+      console.error('missing media (checks will be partial): ' + r.media.missing.join(', '));
+    }
+    for (const f of r.findings) {
+      console.error(\`\${f.severity.toUpperCase()} \${f.code ?? f.pass} @\${f.from}s \${f.selector ?? ''} \${f.text ? JSON.stringify(f.text) : ''}\`);
+    }
+    console.log('review: ' + r.reportFile);
+    r.sheetFiles.forEach(s => console.log('sheet: ' + r.reviewDir + '/' + s));
+
+    const blocking = r.findings.filter(f => f.severity === 'error').length + style.errors.length;
+    if (blocking) {
+      console.error(\`\n\${blocking} blocking finding(s)\`);
+      process.exit(1);
+    }
+    console.log('review clean');
+  "
+  exit $?
+fi
+
 if [[ "$step" == "critique" ]]; then
   node -e "
     import { buildContactSheet } from './lib/contact-sheet.mjs';
@@ -169,5 +203,5 @@ if [[ "$step" == "deliver" ]]; then
 fi
 
 echo "Unknown step: $step"
-echo "Known steps: status, intake, avatar-check, screenplay, lint, author, render, critique, deliver"
+echo "Known steps: status, intake, avatar-check, screenplay, lint, author, review, render, critique, deliver"
 exit 1

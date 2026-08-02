@@ -6,6 +6,7 @@ videos/*/avatar*.mov
 videos/*/renders/
 videos/*/out/
 videos/*/qc/
+videos/*/review/
 videos/*/film/assets/
 .test-tmp/
 node_modules/
