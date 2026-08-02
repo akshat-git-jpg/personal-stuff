@@ -5,7 +5,8 @@
   "throughline": {
     "name": "the-candidate-roster",
     "description": "A five-slot candidate roster: one card per tool (OpenArt, Higgsfield, Synthesia, HeyGen, Arcads), styled like a hiring shortlist.",
-    "evolution": "Opens as five blank, equal candidate cards in the intro roll call; after each tool's demo its card earns a specialty stamp (creative hub / cinematic director / corporate presenter / solo studio / ad factory); the pricing section pins a salary tag on every card; the summary table fills each card's scorecard row by row; in the conclusion no card is crowned — instead each card is handed to the persona it was hired for, ending as five filled offers to five different people."
+    "evolution": "Opens as five blank, equal candidate cards in the intro roll call; after each tool's demo its card earns a specialty stamp (creative hub / cinematic director / corporate presenter / solo studio / ad factory); the pricing section pins a salary tag on every card; the summary table fills each card's scorecard row by row; in the conclusion no card is crowned — instead each card is handed to the persona it was hired for, ending as five filled offers to five different people.",
+    "items": ["OpenArt", "Higgsfield", "Synthesia", "HeyGen", "Arcads"]
   },
   "registers": [
     { "from_anchor": "5 AI video tools, 5 very", "to_anchor": "built for the same person", "register": "dark" },

@@ -35,7 +35,8 @@ function createCues(cues) {
       beats: c.beats || [],
       register: c.register,
       register_why: c.register_why,
-      motif: c.motif
+      motif: c.motif,
+      variables: c.variables
     }))
   };
 }
@@ -694,6 +695,93 @@ test('E11 no-filler-slate: navigational sentence errors, substantive one passes'
   cuesFile.cues[0].variables = { text: 'The free tier burns credits in a week', accent: 'burns credits' };
   const clean = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
   assert(!clean.errors.some(e => e.includes('E11')));
+});
+
+test('E14 slot-incomplete and E15 slot-shared', () => {
+  const items = ['Alpha', 'Bravo', 'Charlie'];
+  const conceptData = { throughline: { items } };
+  
+  const myCatalog = {
+    cards: [
+      { slug: 'section/opener', placement: 'fullframe', structural: true },
+      { slug: 'overlay/plain', placement: 'overlay' }
+    ]
+  };
+
+  const words = createWords(100);
+
+  // 1. 3 of 3 passes (no errors)
+  const c1 = [
+    { id: 'c1', card: 'section/opener', start: 10, variables: { name: 'Alpha' } },
+    { id: 'c2', card: 'section/opener', start: 20, variables: { name: 'Bravo' } },
+    { id: 'c3', card: 'section/opener', start: 30, variables: { name: 'Charlie' } },
+  ];
+  const r1 = lintCues({
+    cuesFile: createCues(c1),
+    resolved: createResolved(c1),
+    words,
+    catalog: myCatalog,
+    conceptData
+  });
+  assert(!r1.errors.some(e => e.includes('E14')));
+  assert(!r1.errors.some(e => e.includes('E15')));
+
+  // 2. 2 of 3 fails E14 naming Charlie
+  const c2 = [
+    { id: 'c1', card: 'section/opener', start: 10, variables: { name: 'Alpha' } },
+    { id: 'c2', card: 'section/opener', start: 20, variables: { name: 'Bravo' } }
+  ];
+  const r2 = lintCues({
+    cuesFile: createCues(c2),
+    resolved: createResolved(c2),
+    words,
+    catalog: myCatalog,
+    conceptData
+  });
+  assert(r2.errors.some(e => e.includes('E14') && e.includes('Charlie')));
+
+  // 3. Card used once per item plus once for non-item fails E15
+  const c3 = [
+    { id: 'c1', card: 'section/opener', start: 10, variables: { name: 'Alpha' } },
+    { id: 'c2', card: 'section/opener', start: 20, variables: { name: 'Bravo' } },
+    { id: 'c3', card: 'section/opener', start: 30, variables: { name: 'Charlie' } },
+    { id: 'c4', card: 'section/opener', start: 40, variables: { name: 'Pricing' } }
+  ];
+  const r3 = lintCues({
+    cuesFile: createCues(c3),
+    resolved: createResolved(c3),
+    words,
+    catalog: myCatalog,
+    conceptData
+  });
+  assert(!r3.errors.some(e => e.includes('E14')));
+  assert(r3.errors.some(e => e.includes('E15') && e.includes('Pricing')));
+
+  // 4. Card used twice for SAME item does not make a slot (no E14/E15)
+  const c4 = [
+    { id: 'c1', card: 'section/opener', start: 10, variables: { name: 'Alpha' } },
+    { id: 'c2', card: 'section/opener', start: 20, variables: { name: 'Alpha' } }
+  ];
+  const r4 = lintCues({
+    cuesFile: createCues(c4),
+    resolved: createResolved(c4),
+    words,
+    catalog: myCatalog,
+    conceptData
+  });
+  assert(!r4.errors.some(e => e.includes('E14')));
+  assert(!r4.errors.some(e => e.includes('E15')));
+
+  // 5. Video with no items stays silent
+  const r5 = lintCues({
+    cuesFile: createCues(c2),
+    resolved: createResolved(c2),
+    words,
+    catalog: myCatalog,
+    conceptData: {}
+  });
+  assert(!r5.errors.some(e => e.includes('E14')));
+  assert(!r5.errors.some(e => e.includes('E15')));
 });
 
 test('W12 fires when fullframe cards cover the whole opening', () => {
