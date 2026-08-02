@@ -1,0 +1,11 @@
+videos/*/input/
+videos/*/vo.mp3
+videos/*/screen.mp4
+videos/*/avatar*.mp4
+videos/*/avatar*.mov
+videos/*/renders/
+videos/*/out/
+videos/*/qc/
+videos/*/film/assets/
+.test-tmp/
+node_modules/
