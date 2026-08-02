@@ -13,6 +13,7 @@ import { resolveWorkdir } from './workdir.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { loadBrand, injectBrand } from './brand-inline.mjs';
 import { SHOT_CONSTANTS } from './shot-constants.mjs';
+import { sideModeCueIds } from './side-mode.mjs';
 
 const HYPERFRAMES = process.env.HYPERFRAMES_VERSION ? `hyperframes@${process.env.HYPERFRAMES_VERSION}` : 'hyperframes@0.7.62';
 const DURATION_TOLERANCE = 0.15;
@@ -241,6 +242,15 @@ async function main() {
   }
 
   fs.mkdirSync(renderDir, { recursive: true });
+
+  // shots.resolved.json only exists for a video with an avatar plan (step 060
+  // runs after cues resolve at step 040), so a side span's cue can only be
+  // known here at render time — see lib/side-mode.mjs.
+  const shotsResolvedPath = path.join(workdir, 'shots.resolved.json');
+  const sideIds = fs.existsSync(shotsResolvedPath)
+    ? sideModeCueIds(resolved, JSON.parse(fs.readFileSync(shotsResolvedPath, 'utf8')).spans)
+    : new Set();
+  for (const cue of resolved) cue.sideMode = sideIds.has(cue.id);
 
   const cues = opts.only ? resolved.filter((c) => c.id === opts.only) : resolved;
 
