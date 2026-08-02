@@ -24,8 +24,9 @@ import { loadBrand, injectBrand } from './brand-inline.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { appendCardPlanFeedback, PLAN_PARTS } from './card-plan.mjs';
 import { MEASURE_OVERFLOW_SRC } from './overflow-measure.mjs';
-import { computeProbeTimes, loadBoardData, buildBoardData } from './board-data.mjs';
+import { computeProbeTimes, loadBoardData, buildBoardData, introData } from './board-data.mjs';
 import { stepView, summarize as summarizeRun, nextStep, readRunLog, writeRunLog, setStep, resolveStepId } from './run-log.mjs';
+import { approveIntro } from './intro-film/approve.mjs';
 
 // What the board needs to BOOT. resolved.json is deliberately not here: it is
 // produced by 040, and 040 refuses any cue naming a card that does not exist
@@ -1038,6 +1039,28 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     return res.end(JSON.stringify({ cards }));
   }
 
+  if (req.method === 'GET' && url.pathname === '/api/intro-data') {
+    res.setHeader('content-type', 'application/json; charset=utf-8');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(JSON.stringify(introData(workdir)));
+  }
+
+  if (req.method === 'GET' && url.pathname === '/intro-frame') {
+    const f = url.searchParams.get('f');
+    if (!f || f.includes('/') || f.includes('..')) {
+      res.statusCode = 400;
+      return res.end('invalid frame name');
+    }
+    const framePath = path.join(workdir, 'intro-film', 'review', f);
+    if (!fs.existsSync(framePath)) {
+      res.statusCode = 404;
+      return res.end('frame not found');
+    }
+    res.setHeader('content-type', f.endsWith('.jpg') || f.endsWith('.jpeg') ? 'image/jpeg' : 'image/png');
+    res.setHeader('cache-control', 'public, max-age=31536000');
+    return res.end(fs.readFileSync(framePath));
+  }
+
   if (req.method === 'GET' && url.pathname === '/list') {
     res.statusCode = 302;
     res.setHeader('location', `/${url.search}#storyboard`);
@@ -1085,6 +1108,14 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
 
   if (req.method === 'POST' && url.pathname === '/approve-card-plan') {
     return handleApproveCardPlan(req, res, workdir);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/approve-intro') {
+    await readBody(req);
+    approveIntro(workdir);
+    recordGate(workdir, '027', 'Owner approved the intro film.', 'intro-film/screenplay.json approved=true');
+    res.setHeader('content-type', 'application/json');
+    return res.end(JSON.stringify({ ok: true }));
   }
 
   if (req.method === 'POST' && url.pathname === '/card-feedback') {
