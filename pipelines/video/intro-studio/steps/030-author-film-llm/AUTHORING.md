@@ -4,6 +4,32 @@ Read the approved `screenplay.json` and write ONE Hyperframes composition at `vi
 ## The canvas
 1920x1080, 30fps, duration exactly `intake.json`'s `duration`.
 
+Declare it on the composition root — **CSS alone does not size the render.** A
+composition that sets `width: 1920px` on `<body>` and nothing else renders
+portrait 1080x1920, because Hyperframes reads the canvas from `data-width` /
+`data-height`, never from stylesheets:
+
+```html
+<div id="root" data-composition-id="intro" data-duration="34.2" data-fps="30"
+     data-width="1920" data-height="1080">
+  <!-- every clip is a DIRECT child of this root -->
+</div>
+```
+
+The root **must** carry `data-composition-id`, and you **must** register a
+timeline under that exact id:
+
+```js
+window.__timelines = window.__timelines || {};
+window.__timelines['intro'] = tl;   // the id from data-composition-id
+```
+
+Capture readiness polls `window.__timelines[<data-composition-id>]`. If the key
+is missing the render still succeeds but stalls 45s per worker first — a ~4s
+render becomes ~95s. If your motion is pure CSS rather than a GSAP timeline,
+register a stub that reports the real duration (`{ duration: () => 34.2, pause(){return this}, play(){return this}, seek(){return this}, totalTime(){return this}, kill(){} }`);
+the CSS adapter still drives the actual motion.
+
 ## Hard Hyperframes rules
 - **`<video>` and `<audio>` MUST be direct children of the host composition root (`index.html`).** Never inside a sub-composition `<template>` or a wrapper `<div>` — the runtime only registers and drives media at root level, and a nested `<video>` renders blank/black.
 - **Clips must also be direct children of the composition root.** A clip nested inside a wrapper `<div>` is not registered.

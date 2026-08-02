@@ -30,6 +30,14 @@ export function probeDuration(file) {
   return d;
 }
 
+export function probeDimensions(file) {
+  const r = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', file], { encoding: 'utf8' });
+  if (r.status !== 0) throw new Error(`ffprobe failed on ${file}: ${r.stderr}`);
+  const [width, height] = String(r.stdout).trim().split(',').map(Number);
+  if (!Number.isFinite(width) || !Number.isFinite(height)) throw new Error(`ffprobe gave no dimensions for ${file}`);
+  return { width, height };
+}
+
 export function runIntake(slug) {
   const workdir = resolveWorkdir(slug);
   const input = path.join(workdir, 'input', 'intro.mp4');

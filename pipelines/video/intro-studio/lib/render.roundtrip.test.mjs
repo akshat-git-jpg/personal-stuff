@@ -6,7 +6,8 @@ import crypto from 'node:crypto';
 import { spawnSync, execSync } from 'node:child_process';
 import { extractFrames, frameLuma, detectFreezes } from './frames.mjs';
 import { judge, GATE } from './film-gate.mjs';
-import { probeDuration } from './intake.mjs';
+import { probeDuration, probeDimensions } from './intake.mjs';
+import { renderArgs, renderEnv } from './render-film.mjs';
 
 const OUT_DIR = '.test-tmp/film';
 
@@ -32,7 +33,9 @@ test('render roundtrip and stillness detection', async (t) => {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   
   // 1. Render the fixture
-  const r = spawnSync('npx', ['-y', 'hyperframes@0.7.62', 'render', 'lib/fixtures/film-fixture', '--output', path.join(OUT_DIR, 'out.mp4')], { stdio: 'pipe', env: { ...process.env, PRODUCER_EXPERIMENTAL_FAST_CAPTURE: 'false' } });
+  // Render through the SAME argv and env the pipeline uses. Hand-rolling either
+  // here is how the gate once passed against a path production never took.
+  const r = spawnSync('npx', renderArgs('lib/fixtures/film-fixture', path.join(OUT_DIR, 'out.mp4')), { stdio: 'pipe', env: renderEnv() });
   if (r.status !== 0) {
     console.error(r.stderr?.toString());
     throw new Error('hyperframes render failed');
@@ -44,6 +47,12 @@ test('render roundtrip and stillness detection', async (t) => {
   // 2. Duration check
   const dur = probeDuration(mp4);
   assert.ok(Math.abs(dur - 3.0) <= 0.15, `duration ${dur} not ~3.0`);
+
+  // 2b. The fixture must come out landscape. Sizing a composition only in CSS
+  // makes Hyperframes fall back to portrait 1080x1920 — caught here, not by eye.
+  const dims = probeDimensions(mp4);
+  assert.strictEqual(dims.width, GATE.WIDTH, `width ${dims.width} != ${GATE.WIDTH}`);
+  assert.strictEqual(dims.height, GATE.HEIGHT, `height ${dims.height} != ${GATE.HEIGHT}`);
   
   // 3. Extract frames
   const framesDir = path.join(OUT_DIR, 'frames');
@@ -72,7 +81,7 @@ test('render roundtrip and stillness detection', async (t) => {
   
   const frozenFreezes = detectFreezes(frozenMp4, 5.0);
   const frozenLuma = frameLuma(frozenMp4);
-  const res = judge({ renderDuration: 5.0, introDuration: 5.0, luma: frozenLuma, freezes: frozenFreezes });
+  const res = judge({ renderDuration: 5.0, introDuration: 5.0, luma: frozenLuma, freezes: frozenFreezes, width: GATE.WIDTH, height: GATE.HEIGHT });
   
   assert.strictEqual(res.pass, false);
   assert.ok(res.failures.some(f => f.startsWith('G2')));
