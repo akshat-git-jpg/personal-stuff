@@ -2,8 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
-import { ZONE_CONSTANTS, ENACTED_PREFIX } from './zone-constants.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
+import { introOwnedByFilm } from './intro-film/owns-intro.mjs';
+import { ZONE_CONSTANTS, ENACTED_PREFIX, zonePartsFor } from './zone-constants.mjs';
 import { extendExposure, findPhrase, normWord } from './resolve.mjs';
 import { jobPurpose } from './shot-constants.mjs';
 
@@ -48,7 +49,7 @@ export function avatarFullSpans(avatarJobs) {
     .sort((a, b) => a[0] - b[0]);
 }
 
-export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, manifest, conceptData, avatarJobs = null }) {
+export function lintCues({ workdir, cuesFile, resolved, words, catalog, segmentsData, manifest, conceptData, avatarJobs = null }) {
   const errors = [];
   const warnings = [];
   
@@ -360,11 +361,24 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
   // resolve's head-cover pulls the first card to 0 when it can; this error is
   // the backstop for the plans it cannot fix (first card too far in, no span).
   {
-    const firstFull = sortedResolved.find((r) => r.placement === 'fullframe');
-    const firstSpanStart = avatarFullSpans(avatarJobs)[0]?.[0] ?? Infinity;
-    const firstCover = Math.min(firstFull ? firstFull.start : Infinity, firstSpanStart);
-    if (firstCover > 0.5) {
-      errors.push(`E13 open-cover: nothing covers the opening — the first fullframe card or avatar span starts at ${firstCover === Infinity ? 'never' : firstCover.toFixed(1) + 's'} (the video must open on a card or the host, not bare screen recording)`);
+    if (workdir && introOwnedByFilm(workdir)) {
+      // The film covers second zero; do not enforce E13.
+    } else {
+      const firstFull = sortedResolved.find((r) => r.placement === 'fullframe');
+      const firstSpanStart = avatarFullSpans(avatarJobs)[0]?.[0] ?? Infinity;
+      const firstCover = Math.min(firstFull ? firstFull.start : Infinity, firstSpanStart);
+      if (firstCover > 0.5) {
+        errors.push(`E13 open-cover: nothing covers the opening — the first fullframe card or avatar span starts at ${firstCover === Infinity ? 'never' : firstCover.toFixed(1) + 's'} (the video must open on a card or the host, not bare screen recording)`);
+      }
+    }
+  }
+
+  if (workdir && introOwnedByFilm(workdir)) {
+    const partAt = (t) => (segmentsData?.structure ?? []).find((s) => t >= s.start && t < s.end)?.part ?? null;
+    for (const r of sortedResolved) {
+      if (r.card === 'link-in-description/link-scrim' && partAt(r.start) === 'conclusion') {
+        errors.push(`E23 link-scrim: ${r.id} uses link-scrim in the conclusion, but the intro film owns the first description mention. Use link-in-description (pill) instead.`);
+      }
     }
   }
 
@@ -380,6 +394,7 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
   // it has to measure the footage rather than read resolved.json.
   for (const part of (segmentsData?.structure ?? [])) {
     if (part.part === 'body') continue;
+    if (workdir && !zonePartsFor(workdir).includes(part.part)) continue;
     const inZone = sortedResolved.filter((r) => r.start >= part.start && r.start < part.end);
     if (inZone.length === 0) continue; // already reported by W14
 
@@ -780,6 +795,7 @@ async function main() {
   }
 
   const { errors, warnings } = lintCues({
+    workdir,
     cuesFile,
     resolved: resolvedFile.resolved,
     words,
