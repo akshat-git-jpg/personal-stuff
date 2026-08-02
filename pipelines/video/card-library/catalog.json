@@ -797,7 +797,7 @@
       "slug": "like-subscribe/like-subscribe",
       "kind": "single",
       "placement": "overlay",
-      "purpose": "transparent subscribe button overlay that rings the bell and presses on click",
+      "purpose": "transparent like/subscribe CTA overlay on a dark glass bar: channel disc, thumbs-up fills accent, a cursor flies in and clicks the Subscribe pill so it flips to Subscribed, then the bell rings and tints",
       "variables": {},
       "default_duration": 5
     },

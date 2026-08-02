@@ -1,11 +1,25 @@
 <!doctype html>
 <!--
   OVERLAY · Like & Subscribe   (Hyperframes card)
-  The full CTA lockup on one dark glass bar (owner reference 2026-07-31,
-  z14 "like AND subscribe, in our theme"): a thumbs-up pops and fills accent,
-  the Subscribe pill gives one "click" press, the bell rings and tints. Slides
-  up on entry, breathes with a glowing border, fades out + slides down.
+
+  The full CTA lockup on one dark glass bar: the AR channel disc, a thumbs-up
+  that pops and fills accent, a Subscribe pill that a CURSOR flies in and
+  clicks — flipping it to SUBSCRIBED — and a bell that rings and tints.
+  Slides up on entry, breathes with a glowing keyline, fades out + slides down.
   1920x1080, 30fps, 5 seconds (150 frames).
+
+  WHY THE CURSOR AND THE STATE FLIP (owner z20, 2026-08-02): the card had all
+  three CTA beats but none of them showed the ACTION — the pill "pressed"
+  without anything pressing it, so it read as a static badge rather than a
+  subscribe. The owner asked for the standard YouTube subscribe animation
+  (cursor clicks, button flips to SUBSCRIBED) "but not looking out of place
+  from my theme", so the gesture is the reference's and every surface is this
+  library's: dark glass, one orange accent, no white plate, no green screen.
+
+  THE PILL IS FIXED-WIDTH ON PURPOSE. "Subscribe" and "Subscribed" are
+  different widths; letting the pill resize mid-click shifts the bell and the
+  bar's centre on a single frame. Both labels are stacked absolutely inside a
+  pill sized for the LONGER word and cross-faded, so geometry never moves.
 
   THIS IS AN OVERLAY — it has no real background of its own, and it does not
   need one: overlays render as .mov (ProRes yuva444p12le), which carries a real
@@ -33,7 +47,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Archivo+Black&display=swap"
       rel="stylesheet"
     />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
@@ -45,7 +59,13 @@
         --accent-deep: #ea7a22;
         --ink: #1a0f03; /* dark text/icon on the accent fill */
         --dim: rgba(255, 239, 219, 0.55);
+        /* the SUBSCRIBED (already-done) state — warm grey, not a new hue.
+           Text sits near-opaque against a quiet fill: at 0.72 on a 0.17 fill
+           the label was legible on a monitor and muddy in the encode. */
+        --done-fill: rgba(255, 239, 219, 0.14);
+        --done-text: rgba(255, 242, 228, 0.94);
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+        --mono-font: 'Archivo Black', 'Inter', system-ui, sans-serif;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -66,28 +86,83 @@
          encode). GSAP animates #bar, never the .clip. */
       #bar {
         position: relative;
-        display: flex; align-items: center; gap: 22px;
-        padding: 14px 28px; border-radius: 999px; white-space: nowrap;
+        display: flex; align-items: center; gap: 20px;
+        padding: 13px 26px; border-radius: 999px; white-space: nowrap;
         background: rgba(14, 9, 4, 0.9);
         border: 2px solid rgba(251, 146, 60, 0.65);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
         will-change: transform, opacity;
       }
 
+      /* Channel disc — the AR monogram from brand/avatar.html, rebuilt in CSS
+         rather than embedded as a PNG so it stays vector-crisp and the card
+         keeps zero external assets. */
+      #avatar {
+        position: relative; flex: 0 0 auto;
+        width: 52px; height: 52px; border-radius: 50%;
+        background: radial-gradient(circle at 50% 42%, rgba(251,146,60,0.22) 0%, #0a0805 62%);
+        border: 1.5px solid rgba(251, 146, 60, 0.42);
+        display: flex; align-items: center; justify-content: center;
+        will-change: transform;
+      }
+      #avatar .mono {
+        font-family: var(--mono-font); font-size: 21px; line-height: 1;
+        letter-spacing: -0.5px; display: flex;
+      }
+      #avatar .mono .a { color: #fff; }
+      #avatar .mono .r { color: var(--accent); }
+
       #thumb { width: 34px; height: 34px; color: var(--dim); will-change: transform; }
       #thumb svg { width: 34px; height: 34px; display: block; }
 
       .divider { width: 1.5px; height: 28px; border-radius: 1px; background: rgba(255,239,219,0.16); }
 
-      /* The Subscribe button — flat accent, no gradient, no sheen. */
+      /* The Subscribe button — flat accent, no gradient, no sheen.
+         min-width is measured for "Subscribed" (the longer label) so the
+         cross-fade never resizes the pill. */
       #subPill {
         position: relative;
-        display: flex; align-items: center;
-        padding: 11px 26px; border-radius: 999px;
+        display: flex; align-items: center; justify-content: center;
+        min-width: 208px; height: 50px;
+        padding: 0 26px; border-radius: 999px;
         background: var(--accent);
         will-change: transform;
       }
-      #subPill .label { font-size: 26px; font-weight: 700; letter-spacing: 0.2px; color: var(--ink); }
+      #subPill .label {
+        position: absolute; left: 0; right: 0; text-align: center;
+        font-size: 26px; font-weight: 700; letter-spacing: 0.2px; color: var(--ink);
+      }
+      /* Must out-specify `#subPill .label` above (1 id + 1 class). A bare
+         `#subDone` is only 1 id and LOSES, so the Subscribed label silently
+         kept the dark --ink meant for the accent fill and rendered darker than
+         its own pill. Measured at luma 16 vs a 60 fill before this was
+         qualified (2026-08-02) — it looked plausible on screen, which is why
+         it took a pixel probe rather than a glance to find. */
+      #subPill #subDone { opacity: 0; color: var(--done-text); }
+
+      /* Click ripple — expands out of the pill once, on the click frame.
+         `inset: 0` and NOT left/top 50% + negative percentage margins: a
+         percentage margin-top resolves against the containing block's WIDTH,
+         so `margin-top: -50%` on a 208x50 pill lifted the ring 104px and it
+         rendered as a stray hoop floating above the bar (caught in frames
+         2026-08-02). inset:0 needs no centring maths at all. */
+      #ripple {
+        position: absolute; inset: 0;
+        border-radius: 999px; border: 2px solid var(--accent);
+        opacity: 0; pointer-events: none; will-change: transform, opacity;
+      }
+
+      /* The cursor. White fill with a dark outline so it reads over ANY
+         footage — a plain white arrow disappears on a light demo screen.
+         Positioned in the pill's own coordinate space, so the fly-in is
+         independent of how wide the bar happens to be. */
+      #cursor {
+        position: absolute; left: 50%; top: 50%;
+        width: 40px; height: 40px; margin: -6px 0 0 -8px;
+        opacity: 0; pointer-events: none; will-change: transform, opacity;
+      }
+      #cursor svg { width: 40px; height: 40px; display: block;
+        filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.55)); }
 
       #bell { width: 30px; height: 30px; color: var(--dim); will-change: transform; transform-origin: 50% 18%; }
       #bell svg { width: 30px; height: 30px; display: block; }
@@ -113,6 +188,9 @@
       <!-- Track 1: lockup shell (static clip; GSAP animates the inner #bar, never the .clip itself) -->
       <div id="anchor" class="clip" data-start="0" data-duration="5" data-track-index="1">
         <div id="bar">
+          <span id="avatar">
+            <span class="mono"><span class="a">A</span><span class="r">R</span></span>
+          </span>
           <span id="thumb">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M7 10v12" />
@@ -121,7 +199,15 @@
           </span>
           <span class="divider"></span>
           <div id="subPill">
+            <span id="ripple"></span>
             <span class="label" id="subLabel"></span>
+            <span class="label" id="subDone"></span>
+            <span id="cursor">
+              <svg viewBox="0 0 24 24">
+                <path d="M5.5 2.8 L18.6 12.6 L12.2 13.2 L15.4 19.7 L12.6 21 L9.4 14.4 L5.5 18.4 Z"
+                      fill="#ffffff" stroke="#14100b" stroke-width="1.4" stroke-linejoin="round" />
+              </svg>
+            </span>
           </div>
           <span class="divider"></span>
           <span id="bell">
@@ -145,12 +231,13 @@
       // Owner rule 2026-07-30: CTA copy is CONSTANT, never authored per video.
       const DATA = {
         subscribeText: 'Subscribe',
+        subscribedText: 'Subscribed',
       };
 
       /* =====================================================
          ===== TIMELINE (LOCKED — do not edit) =====
          GSAP timeline: paused + registered + deterministic (frame-seekable).
-         Order tells the CTA story: like -> subscribe -> bell.
+         Order tells the CTA story: like -> cursor clicks subscribe -> bell.
          ===================================================== */
       const $ = (id) => document.getElementById(id);
       const FPS = 30;
@@ -158,32 +245,70 @@
 
       function build() {
         $('subLabel').textContent = DATA.subscribeText;
+        $('subDone').textContent = DATA.subscribedText;
       }
       build();
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       const bar = $('bar');
+      const avatar = $('avatar');
       const subPill = $('subPill');
+      const subLabel = $('subLabel');
+      const subDone = $('subDone');
+      const ripple = $('ripple');
+      const cursor = $('cursor');
       const thumb = $('thumb');
       const bell = $('bell');
+
+      // Color literals are resolved from the tokens at build time; a
+      // `var(--accent)` color tween renders white in --variables renders
+      // (renderer quirk, verified 2026-07-31).
+      const css = getComputedStyle(document.documentElement);
+      const tok = (name, fallback) => (css.getPropertyValue(name) || '').trim() || fallback;
+      const ACCENT = tok('--accent', '#fb923c');
+      const DONE_FILL = tok('--done-fill', 'rgba(255,239,219,0.14)');
 
       // Enter: slide up (26px) + fade in + scale 0.9 -> 1.0 over 0.55s.
       tl.set(bar, { opacity: 0, y: 26, scale: 0.9 }, 0);
       tl.to(bar, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'power4.out' }, 0);
 
-      // LIKE: the thumb pops and fills accent — the color literal is resolved
-      // from the token at build time; a `var(--accent)` color tween renders
-      // white in --variables renders (renderer quirk, verified 2026-07-31).
-      const ACCENT = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#fb923c';
+      // Channel disc pops in just behind the bar so the lockup reads as one
+      // object arriving, not two.
+      tl.set(avatar, { scale: 0.55, opacity: 0 }, 0);
+      tl.to(avatar, { scale: 1, opacity: 1, duration: 0.42, ease: 'back.out(3)' }, 0.34);
+
+      // LIKE: the thumb pops and fills accent.
       tl.to(thumb, { scale: 0.82, duration: 0.12, ease: 'power2.in' }, 1.0);
       tl.to(thumb, { scale: 1.22, color: ACCENT, duration: 0.2, ease: 'back.out(4)' }, 1.12);
       tl.to(thumb, { scale: 1.0, duration: 0.22, ease: 'power2.out' }, 1.32);
 
-      // SUBSCRIBE: click "press" — the pill dips then springs back once.
-      tl.to(subPill, { scale: 0.94, duration: 0.12, ease: 'power2.in', overwrite: 'auto' }, 2.2);
-      tl.to(subPill, { scale: 1.07, duration: 0.18, ease: 'back.out(4)', overwrite: 'auto' }, 2.32);
-      tl.to(subPill, { scale: 1.0, duration: 0.24, ease: 'power2.out', overwrite: 'auto' }, 2.5);
+      // CURSOR: flies in from the lower right and settles with its tip on the
+      // pill. Offsets are relative to the pill centre, so the travel is the
+      // same no matter how wide the bar renders.
+      tl.set(cursor, { x: 196, y: 152, opacity: 0, scale: 1 }, 0);
+      tl.to(cursor, { opacity: 1, duration: 0.16, ease: 'none' }, 1.62);
+      tl.to(cursor, { x: 4, y: 9, duration: 0.62, ease: 'power3.out' }, 1.62);
+
+      // CLICK: the cursor dips, the pill presses under it, and the pill flips
+      // to its Subscribed state on the way back up.
+      tl.to(cursor, { scale: 0.86, duration: 0.1, ease: 'power2.in', overwrite: 'auto' }, 2.3);
+      tl.to(cursor, { scale: 1, duration: 0.16, ease: 'power2.out', overwrite: 'auto' }, 2.4);
+
+      tl.to(subPill, { scale: 0.94, duration: 0.12, ease: 'power2.in', overwrite: 'auto' }, 2.32);
+      tl.to(subPill, { backgroundColor: DONE_FILL, duration: 0.18, ease: 'none', overwrite: 'auto' }, 2.44);
+      tl.to(subLabel, { opacity: 0, duration: 0.16, ease: 'none', overwrite: 'auto' }, 2.44);
+      tl.to(subDone, { opacity: 1, duration: 0.16, ease: 'none', overwrite: 'auto' }, 2.46);
+      tl.to(subPill, { scale: 1.07, duration: 0.18, ease: 'back.out(4)', overwrite: 'auto' }, 2.44);
+      tl.to(subPill, { scale: 1.0, duration: 0.24, ease: 'power2.out', overwrite: 'auto' }, 2.62);
+
+      // Ripple out of the pill on the click frame — one pass, then gone.
+      // Kept to 1.22 so the ring stays inside the bar: the pill is 50px tall
+      // in a 76px bar, and anything past ~1.3 pushes the ring out through the
+      // glass edge and reads as an artifact rather than a click.
+      tl.set(ripple, { scale: 0.94, opacity: 0 }, 0);
+      tl.to(ripple, { opacity: 0.5, duration: 0.08, ease: 'none', overwrite: 'auto' }, 2.42);
+      tl.to(ripple, { scale: 1.22, opacity: 0, duration: 0.46, ease: 'power2.out', overwrite: 'auto' }, 2.5);
 
       // BELL: rings (damped wiggle) and tints accent.
       tl.to(bell, { color: ACCENT, duration: 0.2, ease: 'none' }, 3.0);
@@ -193,9 +318,14 @@
       tl.to(bell, { rotation: -4, duration: 0.12, ease: 'power1.inOut', overwrite: 'auto' }, 3.33);
       tl.to(bell, { rotation: 0, duration: 0.14, ease: 'power2.out', overwrite: 'auto' }, 3.45);
 
+      // Cursor leaves once the click has landed, so it is not parked on the
+      // pill for the whole tail.
+      tl.to(cursor, { x: 176, y: 138, opacity: 0, duration: 0.5, ease: 'power2.in', overwrite: 'auto' }, 3.35);
+
       // Exit: fade out + slide down (12px) over the last 0.5s.
       tl.to(bar, { opacity: 0, y: 12, duration: 0.5, ease: 'power2.in', overwrite: 'auto' }, DURATION - 0.5);
 
+      /* hf-ambient */
       // Subtle keyline pulse: deterministic sine of the current frame, driven
       // by the timeline tick (NOT requestAnimationFrame) so it stays
       // frame-seekable. The old version was a 34-54px orange glow blob —
