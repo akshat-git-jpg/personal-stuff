@@ -210,3 +210,57 @@ test('E2 still fires on a first beat that is neither 0 nor the word time', () =>
   const res = lintScreenplay({ screenplay: sp, words, introDuration: 1.5 });
   assert.ok(res.errors.some(e => e.code === 'E2'));
 });
+
+// E2 is containment, not endpoint matching: speech pauses plus E3's gapless
+// tiling mean some beat must absorb each pause. A 0.72s pause between clauses
+// made the two rules jointly unsatisfiable on the first real corrected transcript.
+test('E2 allows a beat to absorb a pause before the next clause', () => {
+  const words = [
+    { text: 'alpha', start: 0.4, end: 1.0 },
+    { text: 'beta', start: 1.0, end: 1.4 },
+    { text: 'gamma', start: 2.9, end: 3.4 },   // 1.5s pause before this
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [
+      { id: 'b01', intent: 'hook', clause: 'alpha beta', t_start: 0, t_end: 2.9,
+        register: 'dark', face: 'full', stage: 's', carries: null, transition_out: 'cut', deviation_reason: null },
+      { id: 'b02', intent: 'turn', clause: 'gamma', t_start: 2.9, t_end: 3.5,
+        register: 'light', face: 'panel', stage: 's', carries: { from: 'b01', object: 'o', as: 'a' }, transition_out: 'cut', deviation_reason: null },
+    ],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 3.5 });
+  assert.deepStrictEqual(res.errors, []);
+});
+
+test('E2 still fires when a beat ends before its clause finishes', () => {
+  const words = [
+    { text: 'alpha', start: 0.4, end: 1.0 },
+    { text: 'beta', start: 1.0, end: 2.6 },
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [{ id: 'b01', intent: 'hook', clause: 'alpha beta', t_start: 0, t_end: 1.2,
+      register: 'dark', face: 'full', stage: 's', carries: null, transition_out: 'cut', deviation_reason: null }],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 1.2 });
+  assert.ok(res.errors.some(e => e.code === 'E2'), JSON.stringify(res.errors));
+});
+
+test('E2 still fires when a beat trails its clause by more than the lead bound', () => {
+  const words = [
+    { text: 'alpha', start: 0.4, end: 1.0 },
+    { text: 'beta', start: 1.0, end: 1.4 },
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [
+      { id: 'b01', intent: 'hook', clause: 'alpha', t_start: 0, t_end: 9.0,
+        register: 'dark', face: 'full', stage: 's', carries: null, transition_out: 'cut', deviation_reason: null },
+      { id: 'b02', intent: 'turn', clause: 'beta', t_start: 9.0, t_end: 9.5,
+        register: 'light', face: 'panel', stage: 's', carries: { from: 'b01', object: 'o', as: 'a' }, transition_out: 'cut', deviation_reason: null },
+    ],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 9.5 });
+  assert.ok(res.errors.some(e => e.code === 'E2'), JSON.stringify(res.errors));
+});

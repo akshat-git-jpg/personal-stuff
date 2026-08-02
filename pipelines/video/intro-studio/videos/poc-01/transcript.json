@@ -1,1377 +1,1347 @@
 [
-  {
-    "text": "Five",
-    "start": 0.43,
-    "end": 0.5
-  },
-  {
-    "text": "AI",
-    "start": 0.5,
-    "end": 0.77
-  },
-  {
-    "text": "video",
-    "start": 0.77,
-    "end": 1.37
-  },
-  {
-    "text": "tools,",
-    "start": 1.37,
-    "end": 2.18
-  },
-  {
-    "text": "five",
-    "start": 2.29,
-    "end": 2.47
-  },
-  {
-    "text": "very",
-    "start": 2.47,
-    "end": 2.68
-  },
-  {
-    "text": "different",
-    "start": 2.68,
-    "end": 3
-  },
-  {
-    "text": "promises,",
-    "start": 3,
-    "end": 3.77
-  },
-  {
-    "text": "and",
-    "start": 3.77,
-    "end": 3.84
-  },
-  {
-    "text": "if",
-    "start": 3.84,
-    "end": 3.86
-  },
-  {
-    "text": "you",
-    "start": 3.97,
-    "end": 4
-  },
-  {
-    "text": "are",
-    "start": 4,
-    "end": 4.08
-  },
-  {
-    "text": "trying",
-    "start": 4.08,
-    "end": 4.32
-  },
-  {
-    "text": "to",
-    "start": 4.32,
-    "end": 4.41
-  },
-  {
-    "text": "figure",
-    "start": 4.49,
-    "end": 4.68
-  },
-  {
-    "text": "out",
-    "start": 4.68,
-    "end": 4.81
-  },
-  {
-    "text": "which",
-    "start": 4.92,
-    "end": 5
-  },
-  {
-    "text": "one",
-    "start": 5,
-    "end": 5.3
-  },
-  {
-    "text": "is",
-    "start": 5.3,
-    "end": 5.41
-  },
-  {
-    "text": "actually",
-    "start": 5.48,
-    "end": 5.82
-  },
-  {
-    "text": "worth",
-    "start": 5.82,
-    "end": 6.05
-  },
-  {
-    "text": "your",
-    "start": 6.13,
-    "end": 6.24
-  },
-  {
-    "text": "money,",
-    "start": 6.24,
-    "end": 7.08
-  },
-  {
-    "text": "you",
-    "start": 7.08,
-    "end": 7.21
-  },
-  {
-    "text": "have",
-    "start": 7.21,
-    "end": 7.29
-  },
-  {
-    "text": "probably",
-    "start": 7.42,
-    "end": 7.76
-  },
-  {
-    "text": "already",
-    "start": 7.76,
-    "end": 8
-  },
-  {
-    "text": "noticed",
-    "start": 8,
-    "end": 8.52
-  },
-  {
-    "text": "that",
-    "start": 8.63,
-    "end": 8.67
-  },
-  {
-    "text": "comparing",
-    "start": 8.69,
-    "end": 9.05
-  },
-  {
-    "text": "them",
-    "start": 9.1,
-    "end": 9.35
-  },
-  {
-    "text": "is",
-    "start": 9.35,
-    "end": 9.47
-  },
-  {
-    "text": "not",
-    "start": 9.59,
-    "end": 9.72
-  },
-  {
-    "text": "straightforward",
-    "start": 9.72,
-    "end": 10
-  },
-  {
-    "text": "because",
-    "start": 10,
-    "end": 10.44
-  },
-  {
-    "text": "none",
-    "start": 10.44,
-    "end": 10.69
-  },
-  {
-    "text": "of",
-    "start": 10.69,
-    "end": 10.81
-  },
-  {
-    "text": "them",
-    "start": 10.81,
-    "end": 11.06
-  },
-  {
-    "text": "are",
-    "start": 11.06,
-    "end": 11.24
-  },
-  {
-    "text": "really",
-    "start": 11.24,
-    "end": 11.64
-  },
-  {
-    "text": "built",
-    "start": 11.64,
-    "end": 11.85
-  },
-  {
-    "text": "for",
-    "start": 11.98,
-    "end": 12.12
-  },
-  {
-    "text": "the",
-    "start": 12.23,
-    "end": 12.34
-  },
-  {
-    "text": "same",
-    "start": 12.34,
-    "end": 12.59
-  },
-  {
-    "text": "person.",
-    "start": 12.59,
-    "end": 13
-  },
-  {
-    "text": "So",
-    "start": 13.01,
-    "end": 13.08
-  },
-  {
-    "text": "today",
-    "start": 13.47,
-    "end": 13.55
-  },
-  {
-    "text": "we",
-    "start": 13.77,
-    "end": 13.85
-  },
-  {
-    "text": "are",
-    "start": 13.85,
-    "end": 14.13
-  },
-  {
-    "text": "looking",
-    "start": 14.13,
-    "end": 14.74
-  },
-  {
-    "text": "at",
-    "start": 14.82,
-    "end": 15
-  },
-  {
-    "text": "Open",
-    "start": 15,
-    "end": 15.47
-  },
-  {
-    "text": "Art,",
-    "start": 15.55,
-    "end": 16.07
-  },
-  {
-    "text": "Higgs",
-    "start": 16.18,
-    "end": 16.64
-  },
-  {
-    "text": "Field,",
-    "start": 16.72,
-    "end": 17.56
-  },
-  {
-    "text": "Synthesia,",
-    "start": 17.61,
-    "end": 19.19
-  },
-  {
-    "text": "Hejian,",
-    "start": 19.19,
-    "end": 20.29
-  },
-  {
-    "text": "and",
-    "start": 20.42,
-    "end": 20.78
-  },
-  {
-    "text": "Arcad.",
-    "start": 20.78,
-    "end": 22
-  },
-  {
-    "text": "And",
-    "start": 22.01,
-    "end": 22.08
-  },
-  {
-    "text": "in",
-    "start": 22.08,
-    "end": 22.425
-  },
-  {
-    "text": "this",
-    "start": 22.425,
-    "end": 22.77
-  },
-  {
-    "text": "video,",
-    "start": 22.77,
-    "end": 23.21
-  },
-  {
-    "text": "that",
-    "start": 23.21,
-    "end": 23.51
-  },
-  {
-    "text": "is",
-    "start": 23.51,
-    "end": 23.66
-  },
-  {
-    "text": "exactly",
-    "start": 23.66,
-    "end": 24.18
-  },
-  {
-    "text": "what",
-    "start": 24.29,
-    "end": 24.47
-  },
-  {
-    "text": "we",
-    "start": 24.55,
-    "end": 24.64
-  },
-  {
-    "text": "are",
-    "start": 24.64,
-    "end": 24.85
-  },
-  {
-    "text": "going",
-    "start": 24.96,
-    "end": 25.25
-  },
-  {
-    "text": "to",
-    "start": 25.25,
-    "end": 25.39
-  },
-  {
-    "text": "settle,",
-    "start": 25.48,
-    "end": 26.01
-  },
-  {
-    "text": "which",
-    "start": 26.01,
-    "end": 26.39
-  },
-  {
-    "text": "tool",
-    "start": 26.39,
-    "end": 26.69
-  },
-  {
-    "text": "wins",
-    "start": 26.69,
-    "end": 26.99
-  },
-  {
-    "text": "and",
-    "start": 26.99,
-    "end": 27.22
-  },
-  {
-    "text": "for",
-    "start": 27.22,
-    "end": 27.41
-  },
-  {
-    "text": "who.",
-    "start": 27.48,
-    "end": 28
-  },
-  {
-    "text": "Now",
-    "start": 28.01,
-    "end": 28.08
-  },
-  {
-    "text": "this",
-    "start": 28.43,
-    "end": 28.47
-  },
-  {
-    "text": "is",
-    "start": 28.47,
-    "end": 28.59
-  },
-  {
-    "text": "a",
-    "start": 28.59,
-    "end": 28.77
-  },
-  {
-    "text": "five-way",
-    "start": 28.77,
-    "end": 29.19
-  },
-  {
-    "text": "comparison",
-    "start": 29.19,
-    "end": 29.83
-  },
-  {
-    "text": "and",
-    "start": 29.89,
-    "end": 30.08
-  },
-  {
-    "text": "I",
-    "start": 30.08,
-    "end": 30.11
-  },
-  {
-    "text": "want",
-    "start": 30.17,
-    "end": 30.41
-  },
-  {
-    "text": "to",
-    "start": 30.41,
-    "end": 30.46
-  },
-  {
-    "text": "be",
-    "start": 30.55,
-    "end": 30.67
-  },
-  {
-    "text": "upfront",
-    "start": 30.67,
-    "end": 31.07
-  },
-  {
-    "text": "about",
-    "start": 31.18,
-    "end": 31.49
-  },
-  {
-    "text": "how",
-    "start": 31.49,
-    "end": 31.64
-  },
-  {
-    "text": "we",
-    "start": 31.72,
-    "end": 31.82
-  },
-  {
-    "text": "approached",
-    "start": 31.82,
-    "end": 32.51
-  },
-  {
-    "text": "it.",
-    "start": 32.51,
-    "end": 33
-  },
-  {
-    "text": "I",
-    "start": 33.01,
-    "end": 33.05
-  },
-  {
-    "text": "did",
-    "start": 33.05,
-    "end": 33.08
-  },
-  {
-    "text": "not",
-    "start": 33.08,
-    "end": 33.43
-  },
-  {
-    "text": "go",
-    "start": 33.43,
-    "end": 33.48
-  },
-  {
-    "text": "in",
-    "start": 33.48,
-    "end": 33.58
-  },
-  {
-    "text": "looking",
-    "start": 33.77,
-    "end": 33.97
-  },
-  {
-    "text": "for",
-    "start": 33.97,
-    "end": 34.13
-  },
-  {
-    "text": "one",
-    "start": 34.13,
-    "end": 34.29
-  },
-  {
-    "text": "overall",
-    "start": 34.29,
-    "end": 34.67
-  },
-  {
-    "text": "winner",
-    "start": 34.67,
-    "end": 35
-  },
-  {
-    "text": "because",
-    "start": 35,
-    "end": 35.38
-  },
-  {
-    "text": "honestly,",
-    "start": 35.38,
-    "end": 36
-  },
-  {
-    "text": "that",
-    "start": 36,
-    "end": 36.24
-  },
-  {
-    "text": "would",
-    "start": 36.24,
-    "end": 36.54
-  },
-  {
-    "text": "be",
-    "start": 36.54,
-    "end": 36.64
-  },
-  {
-    "text": "the",
-    "start": 36.72,
-    "end": 36.84
-  },
-  {
-    "text": "wrong",
-    "start": 36.84,
-    "end": 37.13
-  },
-  {
-    "text": "way",
-    "start": 37.2,
-    "end": 37.32
-  },
-  {
-    "text": "to",
-    "start": 37.32,
-    "end": 37.41
-  },
-  {
-    "text": "look",
-    "start": 37.49,
-    "end": 37.68
-  },
-  {
-    "text": "at",
-    "start": 37.68,
-    "end": 37.8
-  },
-  {
-    "text": "each",
-    "start": 37.8,
-    "end": 38.01
-  },
-  {
-    "text": "of",
-    "start": 38.05,
-    "end": 38.09
-  },
-  {
-    "text": "these",
-    "start": 38.17,
-    "end": 38.42
-  },
-  {
-    "text": "tools.",
-    "start": 38.48,
-    "end": 39
-  },
-  {
-    "text": "Each",
-    "start": 39.01,
-    "end": 39.08
-  },
-  {
-    "text": "of",
-    "start": 39.08,
-    "end": 39.45
-  },
-  {
-    "text": "them",
-    "start": 39.45,
-    "end": 39.58
-  },
-  {
-    "text": "is",
-    "start": 39.58,
-    "end": 39.77
-  },
-  {
-    "text": "built",
-    "start": 39.77,
-    "end": 39.99
-  },
-  {
-    "text": "around",
-    "start": 40.08,
-    "end": 40.4
-  },
-  {
-    "text": "a",
-    "start": 40.47,
-    "end": 40.48
-  },
-  {
-    "text": "different",
-    "start": 40.48,
-    "end": 41.04
-  },
-  {
-    "text": "core",
-    "start": 41.04,
-    "end": 41.18
-  },
-  {
-    "text": "use",
-    "start": 41.29,
-    "end": 41.47
-  },
-  {
-    "text": "case",
-    "start": 41.47,
-    "end": 41.71
-  },
-  {
-    "text": "and",
-    "start": 41.79,
-    "end": 41.85
-  },
-  {
-    "text": "the",
-    "start": 41.96,
-    "end": 42.07
-  },
-  {
-    "text": "real",
-    "start": 42.18,
-    "end": 42.33
-  },
-  {
-    "text": "question",
-    "start": 42.33,
-    "end": 42.82
-  },
-  {
-    "text": "is,",
-    "start": 42.82,
-    "end": 43.12
-  },
-  {
-    "text": "not",
-    "start": 43.12,
-    "end": 43.31
-  },
-  {
-    "text": "which",
-    "start": 43.31,
-    "end": 43.62
-  },
-  {
-    "text": "one",
-    "start": 43.62,
-    "end": 43.8
-  },
-  {
-    "text": "is",
-    "start": 43.81,
-    "end": 43.93
-  },
-  {
-    "text": "best,",
-    "start": 43.93,
-    "end": 44.3
-  },
-  {
-    "text": "but",
-    "start": 44.3,
-    "end": 44.41
-  },
-  {
-    "text": "which",
-    "start": 44.5,
-    "end": 44.8
-  },
-  {
-    "text": "one",
-    "start": 44.8,
-    "end": 44.99
-  },
-  {
-    "text": "is",
-    "start": 44.99,
-    "end": 45.05
-  },
-  {
-    "text": "best",
-    "start": 45.13,
-    "end": 45.36
-  },
-  {
-    "text": "for",
-    "start": 45.36,
-    "end": 45.55
-  },
-  {
-    "text": "you.",
-    "start": 45.55,
-    "end": 46
-  },
-  {
-    "text": "So",
-    "start": 46.01,
-    "end": 46.08
-  },
-  {
-    "text": "I",
-    "start": 46.08,
-    "end": 46.75
-  },
-  {
-    "text": "tested",
-    "start": 46.75,
-    "end": 46.81
-  },
-  {
-    "text": "all",
-    "start": 46.81,
-    "end": 46.99
-  },
-  {
-    "text": "five",
-    "start": 47.08,
-    "end": 47.4
-  },
-  {
-    "text": "across",
-    "start": 47.47,
-    "end": 47.98
-  },
-  {
-    "text": "the",
-    "start": 47.98,
-    "end": 48.18
-  },
-  {
-    "text": "same",
-    "start": 48.29,
-    "end": 48.61
-  },
-  {
-    "text": "areas",
-    "start": 48.61,
-    "end": 49.06
-  },
-  {
-    "text": "such",
-    "start": 49.06,
-    "end": 49.39
-  },
-  {
-    "text": "as",
-    "start": 49.48,
-    "end": 49.6
-  },
-  {
-    "text": "features,",
-    "start": 49.6,
-    "end": 50.5
-  },
-  {
-    "text": "output",
-    "start": 50.5,
-    "end": 51.01
-  },
-  {
-    "text": "quality,",
-    "start": 51.05,
-    "end": 51.85
-  },
-  {
-    "text": "workflow,",
-    "start": 51.85,
-    "end": 52.75
-  },
-  {
-    "text": "and",
-    "start": 52.96,
-    "end": 53.02
-  },
-  {
-    "text": "pricing.",
-    "start": 53.02,
-    "end": 54
-  },
-  {
-    "text": "Now",
-    "start": 54.01,
-    "end": 54.08
-  },
-  {
-    "text": "I",
-    "start": 54.08,
-    "end": 54.43
-  },
-  {
-    "text": "will",
-    "start": 54.43,
-    "end": 54.53
-  },
-  {
-    "text": "give",
-    "start": 54.77,
-    "end": 54.8
-  },
-  {
-    "text": "you",
-    "start": 54.8,
-    "end": 54.99
-  },
-  {
-    "text": "my",
-    "start": 55.08,
-    "end": 55.13
-  },
-  {
-    "text": "honest",
-    "start": 55.13,
-    "end": 55.53
-  },
-  {
-    "text": "take",
-    "start": 55.53,
-    "end": 55.74
-  },
-  {
-    "text": "on",
-    "start": 55.82,
-    "end": 55.93
-  },
-  {
-    "text": "where",
-    "start": 55.93,
-    "end": 56.18
-  },
-  {
-    "text": "each",
-    "start": 56.29,
-    "end": 56.47
-  },
-  {
-    "text": "one",
-    "start": 56.55,
-    "end": 56.71
-  },
-  {
-    "text": "earns",
-    "start": 56.79,
-    "end": 57.06
-  },
-  {
-    "text": "a",
-    "start": 57.06,
-    "end": 57.07
-  },
-  {
-    "text": "spot",
-    "start": 57.18,
-    "end": 57.39
-  },
-  {
-    "text": "and",
-    "start": 57.39,
-    "end": 57.59
-  },
-  {
-    "text": "where",
-    "start": 57.59,
-    "end": 57.86
-  },
-  {
-    "text": "it",
-    "start": 57.97,
-    "end": 58.05
-  },
-  {
-    "text": "falls",
-    "start": 58.05,
-    "end": 58.38
-  },
-  {
-    "text": "short.",
-    "start": 58.38,
-    "end": 59
-  },
-  {
-    "text": "Now",
-    "start": 59.01,
-    "end": 59.08
-  },
-  {
-    "text": "here",
-    "start": 59.08,
-    "end": 59.43
-  },
-  {
-    "text": "is",
-    "start": 59.43,
-    "end": 59.47
-  },
-  {
-    "text": "what",
-    "start": 59.47,
-    "end": 59.77
-  },
-  {
-    "text": "we",
-    "start": 59.77,
-    "end": 59.78
-  },
-  {
-    "text": "are",
-    "start": 59.78,
-    "end": 59.94
-  },
-  {
-    "text": "going",
-    "start": 59.94,
-    "end": 60.21
-  },
-  {
-    "text": "to",
-    "start": 60.21,
-    "end": 60.31
-  },
-  {
-    "text": "go",
-    "start": 60.31,
-    "end": 60.4
-  },
-  {
-    "text": "through.",
-    "start": 60.47,
-    "end": 61
-  },
-  {
-    "text": "So",
-    "start": 61.01,
-    "end": 61.08
-  },
-  {
-    "text": "first",
-    "start": 61.43,
-    "end": 61.55
-  },
-  {
-    "text": "one",
-    "start": 61.77,
-    "end": 61.79
-  },
-  {
-    "text": "is",
-    "start": 61.79,
-    "end": 61.95
-  },
-  {
-    "text": "the",
-    "start": 61.95,
-    "end": 62.19
-  },
-  {
-    "text": "quick",
-    "start": 62.19,
-    "end": 62.58
-  },
-  {
-    "text": "overviews",
-    "start": 62.58,
-    "end": 63.28
-  },
-  {
-    "text": "of",
-    "start": 63.29,
-    "end": 63.44
-  },
-  {
-    "text": "all",
-    "start": 63.44,
-    "end": 63.68
-  },
-  {
-    "text": "five",
-    "start": 63.68,
-    "end": 64
-  },
-  {
-    "text": "tools",
-    "start": 64,
-    "end": 64.39
-  },
-  {
-    "text": "and",
-    "start": 64.39,
-    "end": 64.63
-  },
-  {
-    "text": "who",
-    "start": 64.63,
-    "end": 64.86
-  },
-  {
-    "text": "they",
-    "start": 64.97,
-    "end": 65.13
-  },
-  {
-    "text": "are",
-    "start": 65.2,
-    "end": 65.41
-  },
-  {
-    "text": "actually",
-    "start": 65.49,
-    "end": 66.06
-  },
-  {
-    "text": "built",
-    "start": 66.06,
-    "end": 66.41
-  },
-  {
-    "text": "for.",
-    "start": 66.48,
-    "end": 67
-  },
-  {
-    "text": "A",
-    "start": 67.01,
-    "end": 67.05
-  },
-  {
-    "text": "live",
-    "start": 67.05,
-    "end": 67.08
-  },
-  {
-    "text": "demo",
-    "start": 67.43,
-    "end": 67.49
-  },
-  {
-    "text": "of",
-    "start": 67.49,
-    "end": 67.58
-  },
-  {
-    "text": "each",
-    "start": 67.77,
-    "end": 67.82
-  },
-  {
-    "text": "platform",
-    "start": 67.82,
-    "end": 68.26
-  },
-  {
-    "text": "covering",
-    "start": 68.26,
-    "end": 68.7
-  },
-  {
-    "text": "their",
-    "start": 68.7,
-    "end": 68.97
-  },
-  {
-    "text": "standout",
-    "start": 68.97,
-    "end": 69.41
-  },
-  {
-    "text": "features,",
-    "start": 69.41,
-    "end": 70
-  },
-  {
-    "text": "a",
-    "start": 70,
-    "end": 70.06
-  },
-  {
-    "text": "side-by-side",
-    "start": 70.06,
-    "end": 70.83
-  },
-  {
-    "text": "look",
-    "start": 70.83,
-    "end": 71.08
-  },
-  {
-    "text": "at",
-    "start": 71.12,
-    "end": 71.22
-  },
-  {
-    "text": "pricing",
-    "start": 71.22,
-    "end": 71.67
-  },
-  {
-    "text": "across",
-    "start": 71.67,
-    "end": 72.06
-  },
-  {
-    "text": "all",
-    "start": 72.06,
-    "end": 72.25
-  },
-  {
-    "text": "five",
-    "start": 72.25,
-    "end": 72.51
-  },
-  {
-    "text": "tools,",
-    "start": 72.51,
-    "end": 73
-  },
-  {
-    "text": "a",
-    "start": 73,
-    "end": 73.05
-  },
-  {
-    "text": "summary",
-    "start": 73.13,
-    "end": 73.58
-  },
-  {
-    "text": "table",
-    "start": 73.96,
-    "end": 74
-  },
-  {
-    "text": "breaking",
-    "start": 74,
-    "end": 74.57
-  },
-  {
-    "text": "down",
-    "start": 74.57,
-    "end": 74.85
-  },
-  {
-    "text": "how",
-    "start": 74.85,
-    "end": 75.06
-  },
-  {
-    "text": "they",
-    "start": 75.06,
-    "end": 75.34
-  },
-  {
-    "text": "all",
-    "start": 75.34,
-    "end": 75.52
-  },
-  {
-    "text": "score",
-    "start": 75.63,
-    "end": 75.86
-  },
-  {
-    "text": "across",
-    "start": 75.91,
-    "end": 76.32
-  },
-  {
-    "text": "the",
-    "start": 76.32,
-    "end": 76.47
-  },
-  {
-    "text": "most",
-    "start": 76.59,
-    "end": 76.73
-  },
-  {
-    "text": "important",
-    "start": 76.84,
-    "end": 77.45
-  },
-  {
-    "text": "factors,",
-    "start": 77.45,
-    "end": 78
-  },
-  {
-    "text": "and",
-    "start": 78.01,
-    "end": 78.08
-  },
-  {
-    "text": "my",
-    "start": 78.08,
-    "end": 78.77
-  },
-  {
-    "text": "honest",
-    "start": 78.77,
-    "end": 78.93
-  },
-  {
-    "text": "verdict",
-    "start": 78.93,
-    "end": 79.52
-  },
-  {
-    "text": "used",
-    "start": 79.52,
-    "end": 79.83
-  },
-  {
-    "text": "by",
-    "start": 79.89,
-    "end": 80.03
-  },
-  {
-    "text": "use",
-    "start": 80.03,
-    "end": 80.18
-  },
-  {
-    "text": "case",
-    "start": 80.29,
-    "end": 80.62
-  },
-  {
-    "text": "on",
-    "start": 80.62,
-    "end": 80.71
-  },
-  {
-    "text": "which",
-    "start": 80.79,
-    "end": 81.21
-  },
-  {
-    "text": "tool",
-    "start": 81.21,
-    "end": 81.55
-  },
-  {
-    "text": "deserves",
-    "start": 81.55,
-    "end": 82.23
-  },
-  {
-    "text": "their",
-    "start": 82.23,
-    "end": 82.65
-  },
-  {
-    "text": "subscription.",
-    "start": 82.65,
-    "end": 84
-  },
-  {
-    "text": "Links",
-    "start": 84,
-    "end": 84.05
-  },
-  {
-    "text": "to",
-    "start": 84.13,
-    "end": 84.15
-  },
-  {
-    "text": "all",
-    "start": 84.15,
-    "end": 84.21
-  },
-  {
-    "text": "five",
-    "start": 84.21,
-    "end": 84.3
-  },
-  {
-    "text": "platforms",
-    "start": 84.3,
-    "end": 84.5
-  },
-  {
-    "text": "in",
-    "start": 84.5,
-    "end": 84.54
-  },
-  {
-    "text": "the",
-    "start": 84.54,
-    "end": 84.58
-  },
-  {
-    "text": "description",
-    "start": 84.68,
-    "end": 84.8
-  },
-  {
-    "text": "below",
-    "start": 84.96,
-    "end": 85
-  },
-  {
-    "text": "and",
-    "start": 85,
-    "end": 85.13
-  },
-  {
-    "text": "now",
-    "start": 85.13,
-    "end": 85.26
-  },
-  {
-    "text": "let's",
-    "start": 85.26,
-    "end": 85.47
-  },
-  {
-    "text": "get",
-    "start": 85.47,
-    "end": 85.6
-  },
-  {
-    "text": "into",
-    "start": 85.6,
-    "end": 85.77
-  },
-  {
-    "text": "it.",
-    "start": 85.77,
-    "end": 86
-  }
+ {
+  "text": "5",
+  "start": 0.4,
+  "end": 0.48
+ },
+ {
+  "text": "AI",
+  "start": 0.48,
+  "end": 0.53
+ },
+ {
+  "text": "video",
+  "start": 0.77,
+  "end": 1.32
+ },
+ {
+  "text": "tools,",
+  "start": 1.32,
+  "end": 2.11
+ },
+ {
+  "text": "5",
+  "start": 2.17,
+  "end": 2.31
+ },
+ {
+  "text": "very",
+  "start": 2.31,
+  "end": 2.56
+ },
+ {
+  "text": "different",
+  "start": 2.56,
+  "end": 3.07
+ },
+ {
+  "text": "promises.",
+  "start": 3.18,
+  "end": 3.65
+ },
+ {
+  "text": "And",
+  "start": 3.72,
+  "end": 3.78
+ },
+ {
+  "text": "if",
+  "start": 3.78,
+  "end": 3.85
+ },
+ {
+  "text": "you",
+  "start": 3.85,
+  "end": 3.86
+ },
+ {
+  "text": "are",
+  "start": 3.97,
+  "end": 4.08
+ },
+ {
+  "text": "trying",
+  "start": 4.08,
+  "end": 4.31
+ },
+ {
+  "text": "to",
+  "start": 4.31,
+  "end": 4.39
+ },
+ {
+  "text": "figure",
+  "start": 4.39,
+  "end": 4.64
+ },
+ {
+  "text": "out",
+  "start": 4.64,
+  "end": 4.81
+ },
+ {
+  "text": "which",
+  "start": 4.92,
+  "end": 5.01
+ },
+ {
+  "text": "one",
+  "start": 5.03,
+  "end": 5.04
+ },
+ {
+  "text": "is",
+  "start": 5.19,
+  "end": 5.3
+ },
+ {
+  "text": "actually",
+  "start": 5.76,
+  "end": 5.77
+ },
+ {
+  "text": "worth",
+  "start": 5.79,
+  "end": 6.01
+ },
+ {
+  "text": "your",
+  "start": 6.1,
+  "end": 6.29
+ },
+ {
+  "text": "money,",
+  "start": 6.29,
+  "end": 6.69
+ },
+ {
+  "text": "you",
+  "start": 6.69,
+  "end": 6.86
+ },
+ {
+  "text": "have",
+  "start": 6.86,
+  "end": 7.09
+ },
+ {
+  "text": "probably",
+  "start": 7.09,
+  "end": 7.49
+ },
+ {
+  "text": "already",
+  "start": 7.57,
+  "end": 7.87
+ },
+ {
+  "text": "noticed",
+  "start": 7.98,
+  "end": 8.38
+ },
+ {
+  "text": "that",
+  "start": 8.38,
+  "end": 8.66
+ },
+ {
+  "text": "comparing",
+  "start": 8.74,
+  "end": 9.15
+ },
+ {
+  "text": "them",
+  "start": 9.22,
+  "end": 9.34
+ },
+ {
+  "text": "is",
+  "start": 9.37,
+  "end": 9.38
+ },
+ {
+  "text": "not",
+  "start": 9.38,
+  "end": 9.755
+ },
+ {
+  "text": "straightforward",
+  "start": 9.755,
+  "end": 10.5
+ },
+ {
+  "text": "because",
+  "start": 10.5,
+  "end": 10.9
+ },
+ {
+  "text": "none",
+  "start": 10.9,
+  "end": 11.1
+ },
+ {
+  "text": "of",
+  "start": 11.17,
+  "end": 11.2
+ },
+ {
+  "text": "them",
+  "start": 11.25,
+  "end": 11.47
+ },
+ {
+  "text": "are",
+  "start": 11.47,
+  "end": 11.54
+ },
+ {
+  "text": "really",
+  "start": 11.65,
+  "end": 11.98
+ },
+ {
+  "text": "built",
+  "start": 11.98,
+  "end": 12.21
+ },
+ {
+  "text": "for",
+  "start": 12.32,
+  "end": 12.43
+ },
+ {
+  "text": "the",
+  "start": 12.54,
+  "end": 12.61
+ },
+ {
+  "text": "same",
+  "start": 12.61,
+  "end": 12.75
+ },
+ {
+  "text": "person.",
+  "start": 12.84,
+  "end": 13.36
+ },
+ {
+  "text": "Today,",
+  "start": 14.08,
+  "end": 14.28
+ },
+ {
+  "text": "we",
+  "start": 14.28,
+  "end": 14.48
+ },
+ {
+  "text": "are",
+  "start": 14.48,
+  "end": 14.76
+ },
+ {
+  "text": "looking",
+  "start": 14.83,
+  "end": 15.47
+ },
+ {
+  "text": "at",
+  "start": 15.52,
+  "end": 15.76
+ },
+ {
+  "text": "OpenArt,",
+  "start": 15.76,
+  "end": 17.22
+ },
+ {
+  "text": "Higgsfield,",
+  "start": 17.33,
+  "end": 18.94
+ },
+ {
+  "text": "Synthesia,",
+  "start": 18.94,
+  "end": 20.49
+ },
+ {
+  "text": "HeyGen",
+  "start": 20.49,
+  "end": 21.19
+ },
+ {
+  "text": "and",
+  "start": 21.19,
+  "end": 21.61
+ },
+ {
+  "text": "Arcads.",
+  "start": 21.61,
+  "end": 22.82
+ },
+ {
+  "text": "And",
+  "start": 22.83,
+  "end": 22.84
+ },
+ {
+  "text": "in",
+  "start": 22.84,
+  "end": 23.25
+ },
+ {
+  "text": "this",
+  "start": 23.25,
+  "end": 23.38
+ },
+ {
+  "text": "video,",
+  "start": 23.59,
+  "end": 23.8
+ },
+ {
+  "text": "that",
+  "start": 23.9,
+  "end": 24.06
+ },
+ {
+  "text": "is",
+  "start": 24.06,
+  "end": 24.18
+ },
+ {
+  "text": "exactly",
+  "start": 24.18,
+  "end": 24.56
+ },
+ {
+  "text": "what",
+  "start": 24.63,
+  "end": 24.87
+ },
+ {
+  "text": "we",
+  "start": 24.87,
+  "end": 24.99
+ },
+ {
+  "text": "are",
+  "start": 24.99,
+  "end": 25.18
+ },
+ {
+  "text": "going",
+  "start": 25.18,
+  "end": 25.49
+ },
+ {
+  "text": "to",
+  "start": 25.49,
+  "end": 25.53
+ },
+ {
+  "text": "settle,",
+  "start": 25.61,
+  "end": 26.11
+ },
+ {
+  "text": "which",
+  "start": 26.11,
+  "end": 26.42
+ },
+ {
+  "text": "tool",
+  "start": 26.42,
+  "end": 26.67
+ },
+ {
+  "text": "wins",
+  "start": 26.67,
+  "end": 26.9
+ },
+ {
+  "text": "and",
+  "start": 26.94,
+  "end": 27.2
+ },
+ {
+  "text": "for",
+  "start": 27.2,
+  "end": 27.56
+ },
+ {
+  "text": "who.",
+  "start": 27.99,
+  "end": 28.56
+ },
+ {
+  "text": "This",
+  "start": 28.99,
+  "end": 29
+ },
+ {
+  "text": "is",
+  "start": 29,
+  "end": 29.12
+ },
+ {
+  "text": "a",
+  "start": 29.12,
+  "end": 29.13
+ },
+ {
+  "text": "5",
+  "start": 29.33,
+  "end": 29.37
+ },
+ {
+  "text": "way",
+  "start": 29.37,
+  "end": 29.55
+ },
+ {
+  "text": "comparison",
+  "start": 29.64,
+  "end": 30.2
+ },
+ {
+  "text": "and",
+  "start": 30.2,
+  "end": 30.39
+ },
+ {
+  "text": "I",
+  "start": 30.39,
+  "end": 30.41
+ },
+ {
+  "text": "want",
+  "start": 30.45,
+  "end": 30.67
+ },
+ {
+  "text": "to",
+  "start": 30.72,
+  "end": 30.74
+ },
+ {
+  "text": "be",
+  "start": 30.85,
+  "end": 30.94
+ },
+ {
+  "text": "upfront",
+  "start": 30.94,
+  "end": 31.39
+ },
+ {
+  "text": "about",
+  "start": 31.39,
+  "end": 31.63
+ },
+ {
+  "text": "how",
+  "start": 31.74,
+  "end": 31.9
+ },
+ {
+  "text": "we",
+  "start": 31.9,
+  "end": 31.95
+ },
+ {
+  "text": "approached",
+  "start": 32.04,
+  "end": 32.64
+ },
+ {
+  "text": "it.",
+  "start": 32.68,
+  "end": 33.08
+ },
+ {
+  "text": "I",
+  "start": 33.09,
+  "end": 33.1
+ },
+ {
+  "text": "did",
+  "start": 33.1,
+  "end": 33.305
+ },
+ {
+  "text": "not",
+  "start": 33.305,
+  "end": 33.51
+ },
+ {
+  "text": "go",
+  "start": 33.51,
+  "end": 33.56
+ },
+ {
+  "text": "in",
+  "start": 33.56,
+  "end": 33.67
+ },
+ {
+  "text": "looking",
+  "start": 33.85,
+  "end": 34.06
+ },
+ {
+  "text": "for",
+  "start": 34.06,
+  "end": 34.22
+ },
+ {
+  "text": "one",
+  "start": 34.22,
+  "end": 34.38
+ },
+ {
+  "text": "overall",
+  "start": 34.38,
+  "end": 34.77
+ },
+ {
+  "text": "winner",
+  "start": 34.77,
+  "end": 35.1
+ },
+ {
+  "text": "because",
+  "start": 35.1,
+  "end": 35.49
+ },
+ {
+  "text": "honestly,",
+  "start": 35.49,
+  "end": 36.05
+ },
+ {
+  "text": "that",
+  "start": 36.05,
+  "end": 36.27
+ },
+ {
+  "text": "would",
+  "start": 36.27,
+  "end": 36.47
+ },
+ {
+  "text": "be",
+  "start": 36.56,
+  "end": 36.66
+ },
+ {
+  "text": "the",
+  "start": 36.66,
+  "end": 36.81
+ },
+ {
+  "text": "wrong",
+  "start": 36.82,
+  "end": 37.2
+ },
+ {
+  "text": "way",
+  "start": 37.21,
+  "end": 37.22
+ },
+ {
+  "text": "to",
+  "start": 37.22,
+  "end": 37.595
+ },
+ {
+  "text": "look",
+  "start": 37.595,
+  "end": 37.97
+ },
+ {
+  "text": "at",
+  "start": 37.97,
+  "end": 38.03
+ },
+ {
+  "text": "each",
+  "start": 38.03,
+  "end": 38.33
+ },
+ {
+  "text": "of",
+  "start": 38.33,
+  "end": 38.48
+ },
+ {
+  "text": "these",
+  "start": 38.48,
+  "end": 38.86
+ },
+ {
+  "text": "tools.",
+  "start": 38.86,
+  "end": 39.52
+ },
+ {
+  "text": "Each",
+  "start": 39.53,
+  "end": 39.54
+ },
+ {
+  "text": "of",
+  "start": 39.72,
+  "end": 39.82
+ },
+ {
+  "text": "them",
+  "start": 39.95,
+  "end": 40.02
+ },
+ {
+  "text": "is",
+  "start": 40.02,
+  "end": 40.1
+ },
+ {
+  "text": "built",
+  "start": 40.29,
+  "end": 40.37
+ },
+ {
+  "text": "around",
+  "start": 40.37,
+  "end": 40.67
+ },
+ {
+  "text": "a",
+  "start": 40.67,
+  "end": 40.72
+ },
+ {
+  "text": "different",
+  "start": 40.72,
+  "end": 41.18
+ },
+ {
+  "text": "core",
+  "start": 41.18,
+  "end": 41.36
+ },
+ {
+  "text": "use",
+  "start": 41.42,
+  "end": 41.53
+ },
+ {
+  "text": "case",
+  "start": 41.53,
+  "end": 41.7
+ },
+ {
+  "text": "and",
+  "start": 41.81,
+  "end": 41.88
+ },
+ {
+  "text": "the",
+  "start": 41.88,
+  "end": 41.99
+ },
+ {
+  "text": "real",
+  "start": 42.07,
+  "end": 42.23
+ },
+ {
+  "text": "question",
+  "start": 42.23,
+  "end": 42.59
+ },
+ {
+  "text": "is",
+  "start": 42.7,
+  "end": 43.38
+ },
+ {
+  "text": "not",
+  "start": 43.49,
+  "end": 43.59
+ },
+ {
+  "text": "which",
+  "start": 43.59,
+  "end": 43.84
+ },
+ {
+  "text": "one",
+  "start": 43.85,
+  "end": 43.86
+ },
+ {
+  "text": "is",
+  "start": 43.86,
+  "end": 44.53
+ },
+ {
+  "text": "best,",
+  "start": 44.53,
+  "end": 44.68
+ },
+ {
+  "text": "but",
+  "start": 44.68,
+  "end": 44.83
+ },
+ {
+  "text": "which",
+  "start": 44.92,
+  "end": 45.24
+ },
+ {
+  "text": "one",
+  "start": 45.31,
+  "end": 45.52
+ },
+ {
+  "text": "is",
+  "start": 45.52,
+  "end": 45.67
+ },
+ {
+  "text": "best",
+  "start": 45.67,
+  "end": 45.95
+ },
+ {
+  "text": "for",
+  "start": 46,
+  "end": 46.21
+ },
+ {
+  "text": "you.",
+  "start": 46.21,
+  "end": 46.69
+ },
+ {
+  "text": "So",
+  "start": 46.73,
+  "end": 46.74
+ },
+ {
+  "text": "I",
+  "start": 46.89,
+  "end": 46.97
+ },
+ {
+  "text": "tested",
+  "start": 47.46,
+  "end": 47.5
+ },
+ {
+  "text": "all",
+  "start": 47.5,
+  "end": 47.71
+ },
+ {
+  "text": "5",
+  "start": 47.8,
+  "end": 48.02
+ },
+ {
+  "text": "across",
+  "start": 48.02,
+  "end": 48.55
+ },
+ {
+  "text": "the",
+  "start": 48.55,
+  "end": 48.81
+ },
+ {
+  "text": "same",
+  "start": 48.81,
+  "end": 49.16
+ },
+ {
+  "text": "areas",
+  "start": 49.16,
+  "end": 49.57
+ },
+ {
+  "text": "such",
+  "start": 49.68,
+  "end": 49.95
+ },
+ {
+  "text": "as",
+  "start": 49.95,
+  "end": 50.11
+ },
+ {
+  "text": "features,",
+  "start": 50.2,
+  "end": 51
+ },
+ {
+  "text": "output",
+  "start": 51,
+  "end": 51.52
+ },
+ {
+  "text": "quality,",
+  "start": 51.53,
+  "end": 52.32
+ },
+ {
+  "text": "workflow",
+  "start": 52.32,
+  "end": 53.03
+ },
+ {
+  "text": "and",
+  "start": 53.03,
+  "end": 53.3
+ },
+ {
+  "text": "pricing.",
+  "start": 54.1,
+  "end": 54.39
+ },
+ {
+  "text": "I",
+  "start": 54.58,
+  "end": 54.64
+ },
+ {
+  "text": "will",
+  "start": 54.83,
+  "end": 54.89
+ },
+ {
+  "text": "give",
+  "start": 54.89,
+  "end": 55.17
+ },
+ {
+  "text": "you",
+  "start": 55.17,
+  "end": 55.32
+ },
+ {
+  "text": "my",
+  "start": 55.32,
+  "end": 55.38
+ },
+ {
+  "text": "honest",
+  "start": 55.48,
+  "end": 55.8
+ },
+ {
+  "text": "take",
+  "start": 55.87,
+  "end": 56.06
+ },
+ {
+  "text": "on",
+  "start": 56.06,
+  "end": 56.14
+ },
+ {
+  "text": "where",
+  "start": 56.21,
+  "end": 56.49
+ },
+ {
+  "text": "each",
+  "start": 56.49,
+  "end": 56.74
+ },
+ {
+  "text": "one",
+  "start": 56.74,
+  "end": 56.87
+ },
+ {
+  "text": "earns",
+  "start": 56.95,
+  "end": 57.23
+ },
+ {
+  "text": "a",
+  "start": 57.23,
+  "end": 57.25
+ },
+ {
+  "text": "spot",
+  "start": 57.36,
+  "end": 57.47
+ },
+ {
+  "text": "and",
+  "start": 57.58,
+  "end": 57.72
+ },
+ {
+  "text": "where",
+  "start": 57.72,
+  "end": 58.03
+ },
+ {
+  "text": "it",
+  "start": 58.03,
+  "end": 58.15
+ },
+ {
+  "text": "falls",
+  "start": 58.15,
+  "end": 58.46
+ },
+ {
+  "text": "short.",
+  "start": 58.46,
+  "end": 59.08
+ },
+ {
+  "text": "Here",
+  "start": 59.51,
+  "end": 59.57
+ },
+ {
+  "text": "is",
+  "start": 59.57,
+  "end": 59.65
+ },
+ {
+  "text": "what",
+  "start": 59.85,
+  "end": 59.99
+ },
+ {
+  "text": "we",
+  "start": 59.99,
+  "end": 60.06
+ },
+ {
+  "text": "are",
+  "start": 60.16,
+  "end": 60.34
+ },
+ {
+  "text": "going",
+  "start": 60.34,
+  "end": 60.69
+ },
+ {
+  "text": "to",
+  "start": 60.69,
+  "end": 60.82
+ },
+ {
+  "text": "go",
+  "start": 60.89,
+  "end": 60.92
+ },
+ {
+  "text": "through.",
+  "start": 60.98,
+  "end": 61.7
+ },
+ {
+  "text": "First",
+  "start": 62.13,
+  "end": 62.26
+ },
+ {
+  "text": "one",
+  "start": 62.47,
+  "end": 62.5
+ },
+ {
+  "text": "is",
+  "start": 62.5,
+  "end": 62.66
+ },
+ {
+  "text": "the",
+  "start": 62.66,
+  "end": 62.9
+ },
+ {
+  "text": "quick",
+  "start": 62.9,
+  "end": 63.3
+ },
+ {
+  "text": "overviews",
+  "start": 63.3,
+  "end": 64.03
+ },
+ {
+  "text": "of",
+  "start": 64.03,
+  "end": 64.17
+ },
+ {
+  "text": "all",
+  "start": 64.25,
+  "end": 64.41
+ },
+ {
+  "text": "5",
+  "start": 64.49,
+  "end": 64.67
+ },
+ {
+  "text": "tools",
+  "start": 64.67,
+  "end": 65.07
+ },
+ {
+  "text": "and",
+  "start": 65.07,
+  "end": 65.31
+ },
+ {
+  "text": "who",
+  "start": 65.31,
+  "end": 65.55
+ },
+ {
+  "text": "they",
+  "start": 65.55,
+  "end": 65.83
+ },
+ {
+  "text": "are",
+  "start": 65.9,
+  "end": 66.11
+ },
+ {
+  "text": "actually",
+  "start": 66.11,
+  "end": 66.75
+ },
+ {
+  "text": "built",
+  "start": 66.76,
+  "end": 67.11
+ },
+ {
+  "text": "for.",
+  "start": 67.18,
+  "end": 67.5
+ },
+ {
+  "text": "A",
+  "start": 67.51,
+  "end": 67.52
+ },
+ {
+  "text": "live",
+  "start": 67.52,
+  "end": 67.93
+ },
+ {
+  "text": "demo",
+  "start": 67.93,
+  "end": 68.04
+ },
+ {
+  "text": "of",
+  "start": 68.04,
+  "end": 68.27
+ },
+ {
+  "text": "each",
+  "start": 68.27,
+  "end": 68.4
+ },
+ {
+  "text": "platform",
+  "start": 68.4,
+  "end": 68.89
+ },
+ {
+  "text": "covering",
+  "start": 68.89,
+  "end": 69.33
+ },
+ {
+  "text": "their",
+  "start": 69.39,
+  "end": 69.68
+ },
+ {
+  "text": "standout",
+  "start": 69.68,
+  "end": 70.17
+ },
+ {
+  "text": "features,",
+  "start": 70.17,
+  "end": 70.78
+ },
+ {
+  "text": "a",
+  "start": 70.78,
+  "end": 70.84
+ },
+ {
+  "text": "side",
+  "start": 70.84,
+  "end": 71.08
+ },
+ {
+  "text": "by",
+  "start": 71.08,
+  "end": 71.14
+ },
+ {
+  "text": "side",
+  "start": 71.22,
+  "end": 71.36
+ },
+ {
+  "text": "look",
+  "start": 71.47,
+  "end": 71.63
+ },
+ {
+  "text": "at",
+  "start": 71.7,
+  "end": 71.88
+ },
+ {
+  "text": "pricing",
+  "start": 71.88,
+  "end": 72.265
+ },
+ {
+  "text": "across",
+  "start": 72.265,
+  "end": 72.65
+ },
+ {
+  "text": "all",
+  "start": 72.65,
+  "end": 72.81
+ },
+ {
+  "text": "5",
+  "start": 72.81,
+  "end": 72.96
+ },
+ {
+  "text": "tools,",
+  "start": 72.99,
+  "end": 73.38
+ },
+ {
+  "text": "a",
+  "start": 73.38,
+  "end": 73.43
+ },
+ {
+  "text": "summary",
+  "start": 73.45,
+  "end": 73.85
+ },
+ {
+  "text": "table",
+  "start": 73.85,
+  "end": 74.06
+ },
+ {
+  "text": "breaking",
+  "start": 74.17,
+  "end": 74.59
+ },
+ {
+  "text": "down",
+  "start": 74.67,
+  "end": 74.73
+ },
+ {
+  "text": "how",
+  "start": 74.84,
+  "end": 75
+ },
+ {
+  "text": "they",
+  "start": 75.06,
+  "end": 75.24
+ },
+ {
+  "text": "all",
+  "start": 75.24,
+  "end": 75.41
+ },
+ {
+  "text": "score",
+  "start": 75.41,
+  "end": 75.7
+ },
+ {
+  "text": "across",
+  "start": 75.7,
+  "end": 76.01
+ },
+ {
+  "text": "the",
+  "start": 76.08,
+  "end": 76.29
+ },
+ {
+  "text": "most",
+  "start": 76.37,
+  "end": 76.38
+ },
+ {
+  "text": "important",
+  "start": 77.13,
+  "end": 77.29
+ },
+ {
+  "text": "factors",
+  "start": 77.29,
+  "end": 77.75
+ },
+ {
+  "text": "and",
+  "start": 77.83,
+  "end": 78
+ },
+ {
+  "text": "my",
+  "start": 78,
+  "end": 78.1
+ },
+ {
+  "text": "honest",
+  "start": 78.17,
+  "end": 78.54
+ },
+ {
+  "text": "verdict",
+  "start": 78.65,
+  "end": 79.07
+ },
+ {
+  "text": "used",
+  "start": 79.07,
+  "end": 79.35
+ },
+ {
+  "text": "by",
+  "start": 79.35,
+  "end": 79.48
+ },
+ {
+  "text": "use",
+  "start": 79.54,
+  "end": 79.7
+ },
+ {
+  "text": "case",
+  "start": 79.7,
+  "end": 79.98
+ },
+ {
+  "text": "on",
+  "start": 79.98,
+  "end": 80.12
+ },
+ {
+  "text": "which",
+  "start": 80.12,
+  "end": 80.48
+ },
+ {
+  "text": "tool",
+  "start": 80.48,
+  "end": 80.76
+ },
+ {
+  "text": "deserves",
+  "start": 80.76,
+  "end": 81.33
+ },
+ {
+  "text": "your",
+  "start": 81.33,
+  "end": 81.72
+ },
+ {
+  "text": "subscription.",
+  "start": 82.46,
+  "end": 82.71
+ },
+ {
+  "text": "All",
+  "start": 82.74,
+  "end": 83.15
+ },
+ {
+  "text": "5",
+  "start": 83.15,
+  "end": 83.25
+ },
+ {
+  "text": "platforms",
+  "start": 83.49,
+  "end": 83.85
+ },
+ {
+  "text": "in",
+  "start": 83.85,
+  "end": 83.98
+ },
+ {
+  "text": "the",
+  "start": 83.98,
+  "end": 84.11
+ },
+ {
+  "text": "description",
+  "start": 84.19,
+  "end": 84.9
+ },
+ {
+  "text": "below",
+  "start": 85.01,
+  "end": 85.19
+ },
+ {
+  "text": "and",
+  "start": 85.27,
+  "end": 85.43
+ },
+ {
+  "text": "now",
+  "start": 85.43,
+  "end": 85.57
+ },
+ {
+  "text": "let's",
+  "start": 85.68,
+  "end": 85.97
+ },
+ {
+  "text": "get",
+  "start": 85.97,
+  "end": 86.11
+ },
+ {
+  "text": "into",
+  "start": 86.2,
+  "end": 86.36
+ },
+ {
+  "text": "it.",
+  "start": 86.44,
+  "end": 86.8
+ }
 ]

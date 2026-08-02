@@ -88,22 +88,32 @@ export function lintScreenplay({ screenplay, words, introDuration }) {
       const expectedStart = words[foundStartIdx].start;
       const expectedEnd = words[foundEndIdx].end;
       
-      // Mirror of the E7 exemption below: E3 pins the FIRST beat to 0, but the
-      // first word rarely starts at 0 (silence, a breath). Honour E3 there.
+      // E2 is CONTAINMENT, not endpoint matching. Endpoint matching cannot be
+      // satisfied alongside E3: speech has pauses between clauses, and E3 makes
+      // beats tile without gaps, so one beat must absorb each pause. A 0.72s
+      // pause was enough to make the two rules jointly unsatisfiable.
+      // The beat must cover its clause, and may lead or trail it by at most
+      // LEAD_MAX so times still derive from word timings rather than estimation.
+      const LEAD_MAX = 1.5;
       const isFirstBeat = i === 0;
-      if (Math.abs(beat.t_start - expectedStart) > 0.25) {
+      const isLastBeat = i === beats.length - 1;
+
+      if (beat.t_start > expectedStart + 0.25) {
+        errors.push({ code: 'E2', beat: beatId, message: `t_start (${beat.t_start}) starts after its clause begins (${expectedStart})` });
+      } else if (beat.t_start < expectedStart - LEAD_MAX) {
+        // E3 pins the FIRST beat to 0 and no recording speaks at 0.000, so the
+        // lead bound cannot apply there.
         if (!(isFirstBeat && Math.abs(beat.t_start) <= 0.05)) {
-          errors.push({ code: 'E2', beat: beatId, message: `t_start (${beat.t_start}) does not match transcript word times bounding that clause (${expectedStart})` });
+          errors.push({ code: 'E2', beat: beatId, message: `t_start (${beat.t_start}) leads its clause (${expectedStart}) by more than ${LEAD_MAX}s` });
         }
       }
-      
-      // FIX for conflicting rules E2 and E7 on the last beat.
-      // E7 requires the final beat to stretch to introDuration.
-      // We must not strictly enforce expectedEnd on the last beat if it satisfies E7.
-      const isLastBeat = i === beats.length - 1;
-      if (Math.abs(beat.t_end - expectedEnd) > 0.25) {
+
+      if (beat.t_end < expectedEnd - 0.25) {
+        errors.push({ code: 'E2', beat: beatId, message: `t_end (${beat.t_end}) ends before its clause does (${expectedEnd})` });
+      } else if (beat.t_end > expectedEnd + LEAD_MAX) {
+        // E7 requires the final beat to stretch to introDuration.
         if (!(isLastBeat && Math.abs(beat.t_end - introDuration) <= 0.1)) {
-          errors.push({ code: 'E2', beat: beatId, message: `t_end (${beat.t_end}) does not match transcript word times bounding that clause (${expectedEnd})` });
+          errors.push({ code: 'E2', beat: beatId, message: `t_end (${beat.t_end}) trails its clause (${expectedEnd}) by more than ${LEAD_MAX}s` });
         }
       }
     }
