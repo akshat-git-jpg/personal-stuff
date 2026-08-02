@@ -11,32 +11,33 @@ while [ $# -gt 0 ]; do case "$1" in
 
 boss_assert_gh || exit 1
 
-# Dirty-main guard (enforced, not a reminder). greenlight refuses to land onto a
-# REPO_ROOT with any uncommitted tracked change and silently parks the merge as
-# "main checkout busy" — so a dirty main quietly swallows an entire dispatch
-# batch. Refuse HERE, before we flip labels or lease a worktree, so the failure
-# surfaces at the point of action regardless of whether the session ran
-# boss-session-start. --force overrides (rarely wanted). Recurred twice under a
-# docs-only control (2026-07-07, 2026-07-08); this moves it from "I remember" to
-# "the code refuses".
-if [ "$force" != "1" ]; then
-  dirty=$(boss_repo_dirty)
-  if [ -n "$dirty" ]; then
-    if [ "${BOSS_NO_AUTO_COMMIT:-0}" = "1" ]; then
-      echo "PR $pr: REFUSING to dispatch — main checkout ($REPO_ROOT) has uncommitted tracked changes:" >&2
-      echo "$dirty" | sed 's/^/  /' >&2
-      echo "  greenlight will park EVERY merge until this is clean. Commit/stash/revert in $REPO_ROOT, then re-dispatch (or pass --force to override)." >&2
-      exit 1
-    fi
-    # Auto-commit+push the dirty main so the merge isn't silently parked later.
-    # `git add -A` honors .gitignore, so generated media stays out. Set
-    # BOSS_NO_AUTO_COMMIT=1 to restore the old hard-refuse. --force skips entirely.
-    echo "PR $pr: main checkout dirty — auto-committing before dispatch (BOSS_NO_AUTO_COMMIT=1 to disable):" >&2
-    if ! "$BOSS_HOME/bin/boss-commit-main.sh"; then
-      echo "PR $pr: auto-commit failed — resolve $REPO_ROOT manually, then re-dispatch." >&2
-      exit 1
-    fi
-  fi
+# Checkout hygiene (WARN ONLY — never mutate the owner's checkout).
+#
+# History: this used to hard-refuse on a dirty REPO_ROOT, then auto-commit it,
+# because greenlight landed from the top-level checkout and parked every merge as
+# "main checkout busy". cbc9e6b7 (2026-08-02) moved landing INSIDE the leased
+# worktree, so greenlight no longer reads REPO_ROOT at all — it logs
+# "top-level checkout is not on main — left untouched" and lands fine. The guard
+# outlived its reason.
+#
+# Auto-commit then became actively harmful (2026-08-03): REPO_ROOT was parked on a
+# feature branch, so "commit dirty main" committed a concurrent session's
+# in-progress work into an unrelated OPEN PR (#143) — twice — including plan files
+# and plans/README.md, the one file the registry rule reserves to main. Stale
+# copies of files main had since advanced nearly reverted four commits on merge.
+#
+# A dispatch has no business writing to the owner's checkout. Warn and continue.
+dirty=$(boss_repo_dirty)
+onbranch=$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null)
+if [ "$onbranch" != "main" ]; then
+  echo "PR $pr: NOTE — $REPO_ROOT is on '$onbranch', not main." >&2
+  echo "  Merges are unaffected (greenlight lands from the worktree), but boss-merge will" >&2
+  echo "  skip the plans/README.md landing record. Reconcile the registry from main later." >&2
+fi
+if [ -n "$dirty" ]; then
+  echo "PR $pr: NOTE — $REPO_ROOT has uncommitted tracked changes (left untouched):" >&2
+  echo "$dirty" | sed 's/^/    /' >&2
+  echo "  This does NOT block the merge. If it is another session's work, leave it alone." >&2
 fi
 
 branch=$(gh pr view "$pr" --json headRefName -q .headRefName) || { echo "no such PR $pr" >&2; exit 1; }

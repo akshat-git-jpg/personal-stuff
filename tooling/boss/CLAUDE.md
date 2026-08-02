@@ -14,11 +14,17 @@ Full design + rationale: `docs/specs/2026-07-07-boss-design.md` (source of truth
 
 Run `bin/boss-session-start.sh`. It:
 1. Ensures all boss labels exist (`type:*`, `boss:*`).
-2. **Warns if the main checkout is dirty.** greenlight refuses to land onto a
-   `REPO_TOPLEVEL` with any uncommitted tracked change (it never stashes/switches),
-   so a dirty main silently parks EVERY merge as `main checkout busy`. Commit,
-   stash, or revert before dispatching. (Learned 2026-07-07: pre-existing
-   uncommitted README edits blocked the whole explainer-pipeline batch mid-land.)
+2. **Warns if the checkout is not on main, or is dirty — both informational.**
+   Neither blocks a merge: since cbc9e6b7 greenlight lands from inside the leased
+   worktree and never reads `REPO_TOPLEVEL`. A non-main checkout does make
+   `boss-merge` skip the `plans/README.md` landing record, so the registry drifts
+   until you reconcile it from main.
+   **boss NEVER writes to the owner's checkout.** It used to auto-commit a dirty
+   main; on 2026-08-03 that fired against a checkout parked on a feature branch and
+   committed a concurrent session's in-progress work into an unrelated open PR
+   (#143) — twice — carrying plan files, `plans/README.md`, and stale copies of
+   files main had since advanced, which nearly reverted four commits on merge.
+   If the checkout is dirty, leave it alone; it is probably not yours.
 3. Prints the ledger (recently landed + blocked PRs).
 4. Lists the `boss:ready` queue (oldest first, with age).
 5. Reconciles in-flight PRs from worktree state.

@@ -12,11 +12,17 @@ boss_ensure_labels
 # main silently blocks EVERY merge in a batch with a "main checkout busy" park.
 # Surface it up front so it's dealt with before dispatch, not discovered mid-land.
 dirty=$(boss_repo_dirty)
+onbranch=$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null)
+if [ "$onbranch" != "main" ]; then
+  echo "== ⚠️  CHECKOUT NOT ON MAIN (on '$onbranch') =="
+  echo "  Merges still work — greenlight lands from inside the worktree (cbc9e6b7)."
+  echo "  But boss-merge SKIPS the plans/README.md landing record, so the registry drifts."
+  echo "  Switch to main when the branch work is done, then reconcile the registry."
+fi
 if [ -n "$dirty" ]; then
-  echo "== ⚠️  MAIN CHECKOUT DIRTY (blocks greenlight land — clean before merging) =="
+  echo "== ℹ️  checkout has uncommitted tracked changes (informational) =="
   echo "$dirty" | sed 's/^/  /'
-  echo "  → boss-dispatch auto-commits+pushes these before dispatch (git add -A, gitignore-respecting)."
-  echo "     Run 'bin/boss-commit-main.sh [msg]' now to clear it, or set BOSS_NO_AUTO_COMMIT=1 to keep the old refuse."
+  echo "  This does NOT block merges. boss leaves it alone — it may be another session's work."
 fi
 # Concurrent-session guard (2026-08-02). Another Claude/agy session working in
 # this repo re-dirties main under you: it parked merges repeatedly, re-created the
@@ -31,7 +37,7 @@ others=$(echo "$others" | grep -vw "${mine:-0}" | tr '\n' ' ' | sed 's/ *$//')
 if [ -n "$others" ]; then
   echo "== ⚠️  OTHER claude/agy SESSION(S) RUNNING (pids: $others) =="
   echo "  If one is working in this repo it WILL re-dirty main and re-conflict your branches."
-  echo "  Confirm what it is before dispatching; merges park on a dirty main checkout."
+  echo "  Confirm what it is before dispatching; boss will not touch its uncommitted work."
 fi
 echo "== recently landed / blocked =="
 gh pr list --state all  --label boss:done    --limit 10 --json number,title -q '.[] | "  done    #\(.number) \(.title)"' 2>/dev/null
