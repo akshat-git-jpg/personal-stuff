@@ -1180,3 +1180,5 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 182-intro-studio-compose-render-critique — PR#140 182-intro-studio-compose-render-critique: intro-studio — compose, render, critique, deliver — DONE
 - 185-vf2-intro-film-step — PR#144 185-vf2-intro-film-step: vf2 — the bespoke intro film as a step that is OFF by default — DONE
 - 184-vf2-transcript-garble-gate — PR#142 184-vf2-transcript-garble-gate: catch ASR caption garbles at step 010, not at the final cut — DONE
+- 186-vf2-intro-review-on-board — PR#145 186-vf2-intro-review-on-board: vf2 — owner review of the intro film, on the board — DONE
+- 187-vf2-stand-down-on-intro — PR#146 187-vf2-stand-down-on-intro: vf2 — stand down on the intro when the film owns it — DONE
