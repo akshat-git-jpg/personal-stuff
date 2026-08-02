@@ -1,6 +1,6 @@
 {
   "video": "best-ai-video-generator",
-  "template": "specs-man",
+  "template": "girl-1",
   "engineMode": "test",
   "jobs": [
     {
@@ -10,10 +10,9 @@
       "end": 82.71,
       "duration": 23.2,
       "audio": "slices-avatar/s00.mp3",
-      "video_id": "c6c3b578937945c99aa62ea9f59f7652",
+      "video_id": "8a2d65d0a3ec49d78eb4cd7894c3387a",
       "status": "submitted",
-      "submitted_at": "2026-08-01T16:38:34.556Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/best-ai-video-generator/s00.mp4"
+      "submitted_at": "2026-08-02T08:04:57.580Z"
     },
     {
       "id": "s02",
@@ -22,10 +21,9 @@
       "end": 147.76,
       "duration": 16.19,
       "audio": "slices-avatar/s02.mp3",
-      "video_id": "01a2f6625f59489f85370b99b57c8dcb",
+      "video_id": "09ac80956a2f4780ac70b9fefb9eb2ef",
       "status": "submitted",
-      "submitted_at": "2026-08-01T14:18:15.872Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/best-ai-video-generator/s02.mp4"
+      "submitted_at": "2026-08-02T08:07:00.320Z"
     },
     {
       "id": "s03",
@@ -34,10 +32,9 @@
       "end": 745.8,
       "duration": 17.63,
       "audio": "slices-avatar/s03.mp3",
-      "video_id": "e7dfb0770358442199235094dfb07224",
+      "video_id": "4a7da634f0464ba3b3fabdaf9c1ed838",
       "status": "submitted",
-      "submitted_at": "2026-08-01T14:20:36.129Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/best-ai-video-generator/s03.mp4"
+      "submitted_at": "2026-08-02T08:08:18.071Z"
     },
     {
       "id": "s04",
@@ -46,10 +43,9 @@
       "end": 1222.68,
       "duration": 18.31,
       "audio": "slices-avatar/s04.mp3",
-      "video_id": "9ecb7c4677fa41388ad7efefdd47c9e8",
+      "video_id": "7b3f51dbba594b90bcfde50988b1025e",
       "status": "submitted",
-      "submitted_at": "2026-08-01T14:23:19.708Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/best-ai-video-generator/s04.mp4"
+      "submitted_at": "2026-08-02T08:09:45.458Z"
     },
     {
       "id": "s05",
@@ -58,34 +54,9 @@
       "end": 1371.47,
       "duration": 30.35,
       "audio": "slices-avatar/s05.mp3",
-      "video_id": "fac6e97f0c4d4d379b4220cbf5f679ff",
+      "video_id": "b9008f273c2e40e4950234d275fd444f",
       "status": "submitted",
-      "submitted_at": "2026-08-01T14:25:46.538Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/best-ai-video-generator/s05.mp4"
-    },
-    {
-      "id": "s06",
-      "purpose": "avatar-full",
-      "start": 1565.69,
-      "end": 1587.43,
-      "duration": 21.74,
-      "audio": "slices-avatar/s06.mp3",
-      "video_id": "1f316c079cb74e11a9a8b3f01ef55765",
-      "status": "submitted",
-      "submitted_at": "2026-08-01T14:36:34.382Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/best-ai-video-generator/s06.mp4"
-    },
-    {
-      "id": "s07",
-      "purpose": "avatar-full",
-      "start": 1903.13,
-      "end": 1927.48,
-      "duration": 24.35,
-      "audio": "slices-avatar/s07.mp3",
-      "video_id": "31787394f0d94071ad5148d5ca149737",
-      "status": "submitted",
-      "submitted_at": "2026-08-01T14:38:58.006Z",
-      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow-2/best-ai-video-generator/s07.mp4"
+      "submitted_at": "2026-08-02T08:11:50.970Z"
     }
   ]
 }
