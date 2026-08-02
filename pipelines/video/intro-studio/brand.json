@@ -1,0 +1,13 @@
+{
+  "name": "default",
+  "tokens": {
+    "--bg-from": "#3a1f08",
+    "--bg-to": "#0a0805",
+    "--text": "#ffffff",
+    "--text-dim": "rgba(255,239,219,0.6)",
+    "--accent": "#fb923c"
+  },
+  "caption": {
+    "keywordColor": "#fb923c"
+  }
+}
