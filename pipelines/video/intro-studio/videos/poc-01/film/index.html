@@ -119,10 +119,13 @@
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="intro" data-duration="86.677313" data-fps="30" data-width="1920" data-height="1080">
+<div id="root" data-composition-id="intro" data-start="0" data-duration="86.677313" data-fps="30" data-width="1920" data-height="1080">
 
-  <audio id="vo" data-start="0" src="../vo.mp3"></audio>
-  <video id="avatar" class="clip" data-start="0" data-duration="86.677313" src="../avatar.mp4" muted></video>
+  <!-- assets/, never ../ — a path above the project root is a lint ERROR, and a
+       lint error stops check's layout and contrast passes from sampling at all.
+       lib/film-assets.mjs links the workdir media in before every pass. -->
+  <audio id="vo" data-start="0" src="assets/vo.mp3"></audio>
+  <video id="avatar" class="clip" data-start="0" data-duration="86.677313" src="assets/avatar.mp4" muted></video>
 
   <div id="bg-dark"></div>
   <div id="bg-light"></div>

@@ -31,6 +31,11 @@ if bash run.sh "$SLUG" deliver > /dev/null 2>&1; then
   exit 1
 fi
 
+if bash run.sh "$SLUG" review > /dev/null 2>&1; then
+  echo "Expected review to exit 1 when film/index.html is missing"
+  exit 1
+fi
+
 cp lib/fixtures/transcript-good.json "$SLUG/transcript.json" || cp lib/fixtures/transcript-good.json "videos/$SLUG/transcript.json"
 echo '{"duration":8.4}' > "$SLUG/intake.json" || echo '{"duration":8.4}' > "videos/$SLUG/intake.json"
 screenplay_out=$(bash run.sh "$SLUG" screenplay 2>&1)
