@@ -5,6 +5,7 @@ import { wordSyncBeats } from './kinetic-sentence.mjs';
 import { CUE_CONSTANTS } from './cue-constants.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { avatarFullSpans } from './lint-cues.mjs';
+import { frameGate } from './frame-gate.mjs';
 
 export function normWord(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ''); }
 
@@ -645,6 +646,12 @@ async function main() {
 
   if (errors.length) {
     for (const e of errors) console.error(e);
+    process.exit(1);
+  }
+
+  const frameErrors = await frameGate(resolved, cardLibraryRoot);
+  if (frameErrors.length) {
+    for (const e of frameErrors) console.error(e);
     process.exit(1);
   }
 

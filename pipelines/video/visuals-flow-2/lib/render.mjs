@@ -7,6 +7,8 @@ import { enrichLogos } from './logos-inline.mjs';
 import { gateWaived } from './run-config.mjs';
 import { resolveCues, extendExposure } from './resolve.mjs';
 import { avatarFullSpans } from './lint-cues.mjs';
+import { checkAccentVisible } from './frame-gate.mjs';
+
 import { resolveWorkdir } from './workdir.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { loadBrand, injectBrand } from './brand-inline.mjs';
@@ -294,41 +296,45 @@ async function main() {
         const now = new Date();
         fs.utimesSync(cachePath, now, now);
         cacheHits++;
-        return;
+      } else {
+        const result = await new Promise((resolve) => {
+          const child = spawn('npx', spawnArgs, { cwd: stagedDir, stdio: ['ignore', 'pipe', 'pipe'] });
+          let out = ''; let err = '';
+          child.stdout.setEncoding('utf8');
+          child.stderr.setEncoding('utf8');
+          child.stdout.on('data', (d) => { out += d; });
+          child.stderr.on('data', (d) => { err += d; });
+          child.on('error', (e) => resolve({ status: -1, stdout: out, stderr: String(e) }));
+          child.on('close', (code) => resolve({ status: code, stdout: out, stderr: err }));
+        });
+        if (result.status !== 0) {
+          console.error(result.stdout ?? '');
+          console.error(result.stderr ?? '');
+          errors.push(`${cue.id}: render failed (exit ${result.status})`);
+          return;
+        }
+        cacheMisses++;
+
+        const probe = spawnSync(
+          'ffprobe',
+          ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', outPath],
+          { encoding: 'utf8' },
+        );
+        const actualDuration = parseFloat(probe.stdout);
+        if (!Number.isFinite(actualDuration) || Math.abs(actualDuration - cue.duration) > DURATION_TOLERANCE) {
+          errors.push(`${cue.id}: rendered duration ${actualDuration} != expected ${cue.duration}`);
+          return;
+        }
+
+        // Only a clip that passed the duration check earns a cache entry, so a
+        // bad render can never be served back on the next run.
+        fs.copyFileSync(outPath, cachePath);
       }
 
-      const result = await new Promise((resolve) => {
-        const child = spawn('npx', spawnArgs, { cwd: stagedDir, stdio: ['ignore', 'pipe', 'pipe'] });
-        let out = ''; let err = '';
-        child.stdout.setEncoding('utf8');
-        child.stderr.setEncoding('utf8');
-        child.stdout.on('data', (d) => { out += d; });
-        child.stderr.on('data', (d) => { err += d; });
-        child.on('error', (e) => resolve({ status: -1, stdout: out, stderr: String(e) }));
-        child.on('close', (code) => resolve({ status: code, stdout: out, stderr: err }));
-      });
-      if (result.status !== 0) {
-        console.error(result.stdout ?? '');
-        console.error(result.stderr ?? '');
-        errors.push(`${cue.id}: render failed (exit ${result.status})`);
-        return;
+      if (typeof cue.variables?.accent === 'string' && cue.variables.accent.trim()) {
+        const msg = checkAccentVisible(cue, outPath, (brand?.tokens?.['--accent'] ?? '#fb923c'));
+        if (msg) errors.push(`${cue.id}: ${msg}`);
       }
-      cacheMisses++;
-
-      const probe = spawnSync(
-        'ffprobe',
-        ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', outPath],
-        { encoding: 'utf8' },
-      );
-      const actualDuration = parseFloat(probe.stdout);
-      if (!Number.isFinite(actualDuration) || Math.abs(actualDuration - cue.duration) > DURATION_TOLERANCE) {
-        errors.push(`${cue.id}: rendered duration ${actualDuration} != expected ${cue.duration}`);
-        return;
-      }
-
-      // Only a clip that passed the duration check earns a cache entry, so a
-      // bad render can never be served back on the next run.
-      fs.copyFileSync(outPath, cachePath);
     } catch (e) {
       // One unrenderable cue must not take the other 22 down with it. Before
       // the pool this threw straight out of the loop and killed the whole run;
