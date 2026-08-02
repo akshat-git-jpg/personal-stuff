@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { wordSyncBeats } from './kinetic-sentence.mjs';
+import { transcriptBeats } from './transcript-beats.mjs';
 import { CUE_CONSTANTS } from './cue-constants.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { avatarFullSpans } from './lint-cues.mjs';
@@ -122,7 +123,7 @@ export function validateCues(cues, catalog, cardLibraryRoot, workdir) {
       errors.push(`${cue.id}: ${cue.card} is a single card — beats must be empty`);
     }
     if (cat.kind === 'beat') {
-      if (beats.length === 0) errors.push(`${cue.id}: ${cue.card} is a beat card — needs at least 1 beat`);
+      if ((!beats || beats.length === 0) && cat.beat_source !== 'transcript') errors.push(`${cue.id}: ${cue.card} is a beat card — needs at least 1 beat`);
       if (cat.max_beats && beats.length > cat.max_beats) {
         errors.push(`${cue.id}: ${beats.length} beats exceeds max_beats ${cat.max_beats} for ${cue.card} — split into two cues or trim`);
       }
@@ -316,6 +317,11 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
     let failed = false;
     if (cat.kind === 'word-sync') {
       const r = wordSyncBeats(cue, W, a.idx, start);
+      if (r.err) { errors.push(`${cue.id}: ${r.err}`); continue; }
+      beats.push(...r.beats);
+      cursor = r.cursor;
+    } else if (cat.beat_source === 'transcript') {
+      const r = transcriptBeats(cue, cat, W, a.idx, start);
       if (r.err) { errors.push(`${cue.id}: ${r.err}`); continue; }
       beats.push(...r.beats);
       cursor = r.cursor;

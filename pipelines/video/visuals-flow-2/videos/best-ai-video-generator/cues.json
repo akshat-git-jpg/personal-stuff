@@ -95,26 +95,6 @@
           }
         ]
       },
-      "beats": [
-        {
-          "reveal": {
-            "name": "OpenArt"
-          },
-          "anchor": "looking at OpenArt,"
-        },
-        {
-          "reveal": {
-            "name": "Higgsfield"
-          },
-          "anchor": "Higgsfield, Synthesia, HeyGen"
-        },
-        {
-          "reveal": {
-            "name": "Synthesia"
-          },
-          "anchor": "and Arcads. And"
-        }
-      ],
       "register": "light",
       "motif": true,
       "flagged": false

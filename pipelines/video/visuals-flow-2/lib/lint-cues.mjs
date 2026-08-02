@@ -336,7 +336,8 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
   for (const r of sortedResolved) {
     if (r.placement === 'fullframe' && r.duration > MAX_FULLFRAME_ONSCREEN) {
       const c = rawCues.find(cue => cue.id === r.id);
-      if (c && (!c.beats || c.beats.length === 0)) {
+      const cat = bySlug[r.card];
+      if (c && cat?.beat_source !== 'transcript' && (!c.beats || c.beats.length === 0)) {
         warnings.push(`W13 frozen-fullframe: ${r.id} holds the screen for ${r.duration.toFixed(1)}s without any beats (max ${MAX_FULLFRAME_ONSCREEN}s)`);
       }
     }
@@ -601,6 +602,10 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
       }
       if (c.beats && Array.isArray(c.beats) && c.beats.length > 0) {
         errors.push(`${c.id}: word-sync cards must not author beats — timings are derived from the transcript`);
+      }
+    } else if (cat && cat.beat_source === 'transcript') {
+      if (c.beats && Array.isArray(c.beats) && c.beats.length > 0) {
+        errors.push(`${c.id}: transcript-sourced cards must not author beats — timings are derived from the transcript`);
       }
     }
   }

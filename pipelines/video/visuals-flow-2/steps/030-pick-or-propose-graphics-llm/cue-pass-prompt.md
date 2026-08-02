@@ -143,6 +143,8 @@ The opening must breathe (mandatory): the presenter must be visible within the f
 You are authoring the BODY only. The video structure block names the exact intro, body and conclusion spans, measured from the source files. Do NOT place cues inside the intro or the conclusion — a separate pass (step 035) authors those against their own rulebook, and a body cue that anchors inside a zone is reported by lint W19. You are shown the whole transcript so you can carry continuity from what the intro promised to what the conclusion pays off; that is context, not licence to cue outside the body.
 
 Link CTA (mandatory): EVERY time the VO points the viewer to the description — "link/links in the description", "check the description", "linked below" — emit a CTA cue anchored at that phrase. Never leave a description mention uncovered. Which card is positional, not a judgment call: the FIRST mention in the video uses `link-in-description/link-scrim` (full-frame dim scrim — it takes the whole screen once, when the ask is new and deserves it); EVERY later mention uses `link-in-description/link-in-description` (transparent pill overlay), which rides on footage and never hides a demo. Use the scrim exactly once per video. Count mentions across the WHOLE script including the conclusion, not just the stretch you are cueing. CTA cards carry NO variables: the copy is baked into the card and is identical every time, so author `variables: {}` and never write a message, kicker or subscribe line.
+
+Transcript-derived beats (mandatory): a card declaring `beat_source: "transcript"` takes NO hand-written beats — supply the item list and let the resolver find each name in the voiceover.
 <!-- END GENERATED ROUTING RULES -->
 
 New cards (2026-07-21) — when to fire each:

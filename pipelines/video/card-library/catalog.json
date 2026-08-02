@@ -1499,13 +1499,14 @@
           }
         }
       },
-      "beat_source": "beat",
+      "beat_source": "transcript",
+      "beat_items": "platforms",
       "beat_shape": {
         "name": {
           "required": true,
           "type": "string",
           "role": "label",
-          "note": "must match one platforms[].name exactly; a beat naming a tool not on the roster is ignored",
+          "note": "must match one platforms[].name exactly; beats are derived, never authored",
           "example": "OpenArt"
         }
       },
