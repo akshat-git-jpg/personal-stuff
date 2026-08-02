@@ -672,12 +672,14 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
       for (const cue of rawCues) {
         const cat = bySlug[cue.card];
         if (cat && cat.placement === 'fullframe') {
-          if (!fullframeCuesByCard[cue.card]) fullframeCuesByCard[cue.card] = [];
-          fullframeCuesByCard[cue.card].push(cue);
+          const key = `${cue.card}|${cue.zone || 'body'}`;
+          if (!fullframeCuesByCard[key]) fullframeCuesByCard[key] = [];
+          fullframeCuesByCard[key].push(cue);
         }
       }
 
-      for (const [cardName, cues] of Object.entries(fullframeCuesByCard)) {
+      for (const [key, cues] of Object.entries(fullframeCuesByCard)) {
+        const cardName = key.split('|')[0];
         if (cues.length >= 2) {
           const itemMatches = [];
           for (const cue of cues) {
