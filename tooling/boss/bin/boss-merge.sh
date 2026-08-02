@@ -133,6 +133,13 @@ readme="$REPO_ROOT/plans/README.md"
 if [ "$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null)" != "main" ]; then
   echo "WARN: $REPO_ROOT not on main — skipping plans/README.md record for PR#$pr (landed, but bookkeeping deferred)" >&2
 elif ! grep -q "boss:$slug" "$readme" 2>/dev/null; then
+  # greenlight now lands from inside its own worktree and only best-effort
+  # fast-forwards this checkout (2026-08-02), so it can legitimately be behind
+  # origin/main here. Catch up before appending, or the registry push is
+  # rejected as non-fast-forward.
+  git -C "$REPO_ROOT" fetch -q origin main 2>/dev/null || true
+  git -C "$REPO_ROOT" merge --ff-only origin/main >/dev/null 2>&1 \
+    || echo "WARN: $REPO_ROOT could not fast-forward to origin/main (dirty?) — registry push may be rejected" >&2
   # Append a one-line record to a dedicated "boss-landed" list at end of file (idempotent).
   grep -q '^## boss-landed' "$readme" || printf '\n## boss-landed\n' >> "$readme"
   printf -- '- %s — PR#%s %s — DONE\n' "$slug" "$pr" "${title:-}" >> "$readme"
