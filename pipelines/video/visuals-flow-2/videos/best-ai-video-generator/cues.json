@@ -1138,7 +1138,7 @@
    "id": "c44",
    "card": "section/tool-intro",
    "anchor": "And now finally, Arcads",
-   "lead": 0.5,
+   "lead": 1.4,
    "hold": 4,
    "variables": {
     "index": 5,
