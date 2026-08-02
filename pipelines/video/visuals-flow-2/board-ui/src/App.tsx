@@ -4,6 +4,7 @@ import { fetchBoardData, BoardData } from './lib/api';
 import { AppHeader } from './components/AppHeader';
 import { RunTab } from './tabs/RunTab';
 import { CardPlanTab } from './tabs/CardPlanTab';
+import { IntroTab } from './tabs/IntroTab';
 import { StoryboardTab } from './tabs/StoryboardTab';
 import { FinalCutTab } from './tabs/FinalCutTab';
 import { CalibrateTab } from './tabs/CalibrateTab';
@@ -134,6 +135,15 @@ export function App() {
           <CardPlanTab
             video={boardData.video}
             cardPlan={boardData.cardPlan!}
+            onMeta={setMeta}
+            onActions={setActions}
+            onSecondary={setSecondary}
+            onRefetch={refetch}
+          />
+        )}
+        {tab === 'intro' && (
+          <IntroTab
+            video={boardData.video!}
             onMeta={setMeta}
             onActions={setActions}
             onSecondary={setSecondary}
