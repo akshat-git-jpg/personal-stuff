@@ -154,9 +154,10 @@ function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function injectShim(html, variables) {
+function injectShim(html, variables, isStatic) {
+  const staticCss = isStatic ? `<style>*, *::before, *::after { animation: none !important; transition: none !important; }</style>` : '';
   const varsJson = JSON.stringify(variables ?? {}).replace(/</g, '\\u003c');
-  const shim = `<script>
+  const shim = `${staticCss}<script>
   window.__hyperframes = { getVariables: () => (${varsJson}) };
   function __hfSeek(t) {
     const tls = Object.values(window.__timelines || {});
@@ -261,6 +262,40 @@ function ensureSlice(workdir, id) {
   cache[id] = key;
   fs.writeFileSync(indexFile, JSON.stringify(cache, null, 2));
   return slicePath;
+}
+
+function ensurePoster(workdir, id) {
+  const resolvedPath = path.join(workdir, 'resolved.json');
+  if (!fs.existsSync(resolvedPath)) return null;
+  const { resolved } = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
+  const cue = resolved.find((c) => c.id === id);
+  if (!cue) return null;
+
+  const rendersDir = path.join(workdir, 'renders');
+  const renderPath = path.join(rendersDir, `${id}.mp4`);
+  if (!fs.existsSync(renderPath)) return null;
+
+  const postersDir = path.join(workdir, '.posters');
+  if (!fs.existsSync(postersDir)) fs.mkdirSync(postersDir, { recursive: true });
+  const posterPath = path.join(postersDir, `${id}.jpg`);
+
+  if (fs.existsSync(posterPath)) return posterPath;
+
+  let frameTime = cue.duration * 0.6;
+  if (cue.beats && cue.beats.length > 0) {
+    frameTime = cue.beats[cue.beats.length - 1].at + 0.35;
+  }
+
+  const result = spawnSync('ffmpeg', [
+    '-y', '-ss', String(frameTime), '-i', renderPath,
+    '-vframes', '1', '-q:v', '2', posterPath
+  ], { encoding: 'utf8' });
+
+  if (result.status !== 0) {
+    console.error(`poster failed for ${id}: ${result.stderr || result.error}`);
+    return null;
+  }
+  return posterPath;
 }
 
 async function readBody(req) {
@@ -840,7 +875,7 @@ function serveCalibrateCard(res, cardLibraryRoot, catalog, slug) {
   res.end(injectShim(html, { ...variables, beats }));
 }
 
-function serveCard(res, workdir, cardLibraryRoot, id) {
+function serveCard(res, workdir, cardLibraryRoot, id, isStatic) {
   const { resolved } = JSON.parse(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'));
   const cue = resolved.find((c) => c.id === id);
   if (!cue) {
@@ -856,7 +891,7 @@ function serveCard(res, workdir, cardLibraryRoot, id) {
   const manifest = fs.existsSync(path.join(workdir, 'manifest.json')) ? loadVideoManifest(workdir) : {};
   const brand = loadBrand(root, manifest);
   const brandedHtml = injectBrand(html, brand);
-  res.end(injectShim(brandedHtml, enrichedVars));
+  res.end(injectShim(brandedHtml, enrichedVars, isStatic));
 }
 
 function serveSlice(res, workdir, id) {
@@ -870,6 +905,17 @@ function serveSlice(res, workdir, id) {
   res.setHeader('content-type', 'audio/mpeg');
   res.setHeader('cache-control', 'no-store');
   res.end(fs.readFileSync(slicePath));
+}
+
+function servePoster(res, workdir, id) {
+  const posterPath = ensurePoster(workdir, id);
+  if (!posterPath) {
+    res.statusCode = 404;
+    return res.end('poster not found');
+  }
+  res.setHeader('content-type', 'image/jpeg');
+  res.setHeader('cache-control', 'public, max-age=31536000');
+  res.end(fs.readFileSync(posterPath));
 }
 
 
@@ -1000,7 +1046,7 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
 
   const cardMatch = url.pathname.match(/^\/card\/([^/]+)$/);
   if (req.method === 'GET' && cardMatch) {
-    return serveCard(res, workdir, cardLibraryRoot, cardMatch[1]);
+    return serveCard(res, workdir, cardLibraryRoot, cardMatch[1], url.searchParams.get('static') === '1');
   }
 
   if (req.method === 'GET' && url.pathname === '/calibrate') {
@@ -1018,6 +1064,11 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
   const sliceMatch = url.pathname.match(/^\/slice\/([^/]+)\.mp3$/);
   if (req.method === 'GET' && sliceMatch) {
     return serveSlice(res, workdir, sliceMatch[1]);
+  }
+
+  const posterMatch = url.pathname.match(/^\/poster\/([^/]+)\.jpg$/);
+  if (req.method === 'GET' && posterMatch) {
+    return servePoster(res, workdir, posterMatch[1]);
   }
 
   if (req.method === 'POST' && url.pathname === '/save') {
@@ -1297,7 +1348,12 @@ function listenOnFreePort(server, startPort, attempts = 10) {
     const tryPort = (p, left) => {
       server.once('error', (err) => {
         if (err.code === 'EADDRINUSE' && left > 0) {
-          console.error(`port ${p} in use — trying ${p + 1}`);
+          console.error('\n' + '='.repeat(60));
+          console.error(`WARNING: port ${p} in use!`);
+          console.error(`A stale board process is probably still running on ${startPort}.`);
+          console.error(`The new board is falling back to ${p + 1}.`);
+          console.error(`If you don't see your changes, KILL THE OLD BOARD.`);
+          console.error('='.repeat(60) + '\n');
           tryPort(p + 1, left - 1);
         } else reject(err);
       });

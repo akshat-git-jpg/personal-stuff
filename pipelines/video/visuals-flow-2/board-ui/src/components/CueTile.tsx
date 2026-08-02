@@ -17,7 +17,7 @@ function timecode(sec: number) {
 // edits (and Save must see EVERY cue, mounted or not).
 export function CueTile({
   seg, cue, resolved, audit, reviewed, onReviewedChange,
-  frag, onEdit
+  frag, onEdit, isLive, onMakeLive
 }: {
   seg: any;
   cue: any;
@@ -30,6 +30,8 @@ export function CueTile({
   // fields still ride the save payload untouched via buildTileModels so a
   // Save never strips them from cues that already have them.
   onEdit: (patch: { fragJson?: string }) => void;
+  isLive?: boolean;
+  onMakeLive?: () => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -81,7 +83,9 @@ export function CueTile({
 
   // overflow badge
   let badgeHtml = null;
-  if (overflow.times.length > 0) {
+  if (!isLive) {
+    badgeHtml = <span className="overflow-badge" style={{ color: 'var(--dim)', borderColor: 'var(--dim)' }}>not measured</span>;
+  } else if (overflow.times.length > 0) {
     const label = overflow.times.map(x => x.t.toFixed(1) + 's').join(', ');
     const allOffenders = Array.from(new Set(overflow.times.flatMap(x => x.offenders))).slice(0, 5);
     badgeHtml = <span className="overflow-badge">OVERFLOW @ {label} ({allOffenders.join(' ')})</span>;
@@ -125,9 +129,18 @@ export function CueTile({
           <div className="preview">
             {/* shimmer until the card iframe fires load — a black box while a
                 card loads reads as broken (owner report 2026-07-31) */}
-            {!reviewed && !cardLoaded && <div className="preview-loading">loading card…</div>}
-            {!reviewed && (
-              <iframe ref={iframeRef} loading="lazy" src={`/card/${encodeURIComponent(cue.id)}`}
+            {!reviewed && !isLive && (
+              <img 
+                src={`/poster/${encodeURIComponent(cue.id)}.jpg`} 
+                loading="lazy" 
+                onClick={(e) => { e.stopPropagation(); onMakeLive?.(); }}
+                style={{ width: '100%', height: 'auto', cursor: 'pointer', display: 'block' }}
+                alt="poster"
+              />
+            )}
+            {!reviewed && isLive && !cardLoaded && <div className="preview-loading">loading card…</div>}
+            {!reviewed && isLive && (
+              <iframe ref={iframeRef} loading="lazy" src={`/card/${encodeURIComponent(cue.id)}?static=1`}
                 onLoad={() => setCardLoaded(true)} />
             )}
           </div>

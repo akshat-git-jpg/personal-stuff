@@ -19,6 +19,7 @@ export function App() {
   const [meta, setMeta] = useState<ReactNode>(null);
   const [actions, setActions] = useState<ReactNode>(null);
   const [secondary, setSecondary] = useState<ReactNode>(null);
+  const [backendDead, setBackendDead] = useState(false);
   
   const video = videoFromSearch(location.search) || '';
 
@@ -41,6 +42,19 @@ export function App() {
       window.removeEventListener('popstate', onHashChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (!video) return;
+    const timer = setInterval(async () => {
+      try {
+        await fetch(`/api/board-data?video=${encodeURIComponent(video)}`);
+        setBackendDead(false);
+      } catch (e) {
+        setBackendDead(true);
+      }
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [video]);
 
   useEffect(() => {
     Promise.all([
@@ -99,6 +113,11 @@ export function App() {
   return (
     <FeedbackProvider initialItems={boardData.feedback}>
       <FeedbackStateSync onDirty={setDirty} />
+      {backendDead && (
+        <div style={{ background: '#dc2626', color: 'white', padding: '12px 20px', fontWeight: 'bold', zIndex: 9999, position: 'relative' }}>
+          BACKEND DEAD — Restart the server to continue saving and editing.
+        </div>
+      )}
       <AppHeader
         video={boardData.video || video}
         videos={videos}
