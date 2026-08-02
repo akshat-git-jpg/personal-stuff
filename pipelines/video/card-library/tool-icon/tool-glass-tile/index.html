@@ -31,6 +31,7 @@
         --accent: #fb923c;
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
         --hero-size: 150px; /* the tool name is the hero — "this is the tool" is the whole point of the card */
+        --body-size: 52px; /* subtitle is the readable secondary line the ratio gate measures against */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -69,7 +70,7 @@
          what gets rejected twice.
 
          Do not shrink either number without re-checking the ratio. */
-      #subtitle { font-size: 52px; font-weight: 500; color: var(--accent); margin-top: 34px; will-change: opacity; }
+      #subtitle { font-size: var(--body-size); font-weight: 500; color: var(--accent); margin-top: 34px; will-change: opacity; }
     </style>
   </head>
   <body>

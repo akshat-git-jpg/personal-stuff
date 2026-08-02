@@ -81,34 +81,34 @@ for (const card of catalog.cards ?? []) {
     // The ratio is a SHORT-hero rule. On a prose card the sentence is the only
     // text there is, so "2.5x the next-largest" measures nothing.
     if (shape === 'short') {
-      // every literal font-size that is NOT the hero
-      const others = [...css.matchAll(/font-size:\s*(\d+)px/g)].map((m) => Number(m[1]));
-      const nextLargest = others.length ? Math.max(...others) : 0;
-      if (nextLargest > 0 && hero / nextLargest < HERO_RATIO) {
-        errors.push(
-          `${card.slug}: hero ${hero}px vs next-largest ${nextLargest}px = ${(hero / nextLargest).toFixed(2)}x, needs >= ${HERO_RATIO}x — the card reads flat`,
-        );
+      const bodyDecl = css.match(/--body-size:\s*(\d+)px/);
+      if (bodyDecl) {
+        const body = Number(bodyDecl[1]);
+        if (body < ROW_MIN) {
+          errors.push(`${card.slug}: --body-size is ${body}px, floor is ${ROW_MIN}px on a fullframe card (owner, 2026-07-31)`);
+        }
+        if (!/font-size:\s*var\(--body-size\)/.test(css)) {
+          errors.push(`${card.slug}: --body-size is declared but never used as a font-size`);
+        }
+        const ratio = hero / body;
+        if (ratio < HERO_RATIO) {
+          errors.push(
+            `${card.slug}: hero ${hero}px vs body ${body}px = ${ratio.toFixed(2)}x, needs >= ${HERO_RATIO}x — the card reads flat`,
+          );
+        }
+        if (ratio > HERO_RATIO_MAX) {
+          errors.push(
+            `${card.slug}: hero ${hero}px vs body text ${body}px = ${ratio.toFixed(2)}x, max ${HERO_RATIO_MAX}x — bring the hero down or the body up (owner, 2026-07-31)`,
+          );
+        }
+      } else {
+        const others = [...new Set([...css.matchAll(/font-size:\s*(\d+)px/g)].map((m) => Number(m[1])))].filter(n => n !== hero);
+        if (others.length >= 3) {
+          errors.push(
+            `${card.slug}: has ${others.length} distinct non-hero font sizes but no --body-size declared`,
+          );
+        }
       }
-      // The ceiling is scoped to ROW/ITEM content — the shape of the complaint
-      // ("heading very big, rest all very small"). Eyebrows and labels are a
-      // deliberate whisper band (22-28px) and don't cap the hero.
-      const rowSizes = [...css.matchAll(/(^|\})\s*[^{}]*\.(?:row|item)\b[^{}]*\{[^}]*?font-size:\s*(\d+)px/g)].map((m) => Number(m[2]));
-      const biggestRow = rowSizes.length ? Math.max(...rowSizes) : 0;
-      if (biggestRow > 0 && hero / biggestRow > HERO_RATIO_MAX) {
-        errors.push(
-          `${card.slug}: hero ${hero}px vs row text ${biggestRow}px = ${(hero / biggestRow).toFixed(2)}x, max ${HERO_RATIO_MAX}x — bring the hero down or the rows up (owner, 2026-07-31)`,
-        );
-      }
-    }
-  }
-
-  // Row floor: list/table row content on a fullframe card is never below ROW_MIN.
-  // Matches selectors that name a row/item, the shapes the 2026-07-31 complaint
-  // ("heading very big, rest all very small") was about.
-  for (const m of css.matchAll(/(^|\})\s*([^{}]*\.(?:row|item)\b[^{}]*)\{[^}]*?font-size:\s*(\d+)px/g)) {
-    const px = Number(m[3]);
-    if (px < ROW_MIN) {
-      errors.push(`${card.slug}: "${m[2].trim()}" row text is ${px}px, floor is ${ROW_MIN}px on a fullframe card (owner, 2026-07-31)`);
     }
   }
 

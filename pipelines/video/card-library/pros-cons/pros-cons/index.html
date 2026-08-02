@@ -23,7 +23,8 @@
         --pro: #34d399; --con: #ef4444;
         --accent: #fb923c;
         --font: 'Inter', system-ui, sans-serif;
-        --hero-size: 128px; /* the compared title (tool/topic name) is the hero */
+        --hero-size: 128px;
+        --body-size: 40px; /* the compared title (tool/topic name) is the hero */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -36,7 +37,7 @@
       .title { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; margin-bottom: 64px; }
       .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
       .col { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 40px 44px; }
-      .colHead { display: flex; align-items: center; gap: 16px; font-size: 40px; font-weight: 800; margin-bottom: 28px; }
+      .colHead { display: flex; align-items: center; gap: 16px; font-size: var(--body-size); font-weight: 800; margin-bottom: 28px; }
       .colHead .pill { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 900; }
       .pros .pill { background: rgba(52,211,153,0.16); color: var(--pro); }
       .cons .pill { background: rgba(239,68,68,0.16); color: var(--con); }

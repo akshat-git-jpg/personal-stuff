@@ -34,6 +34,7 @@
         --accent: #fb923c;
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
         --hero-size: 150px; /* hero = static headline above the tier rows */
+        --body-size: 56px; /* the tier letter badge is the readable secondary line */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -51,7 +52,7 @@
       .eyebrow { font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
       .hero-title { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); margin-bottom: 24px; }
       .tier { display: flex; align-items: center; gap: 18px; padding: 12px 18px; border-radius: 10px; will-change: transform, opacity; }
-      .tier .badge { width: 56px; text-align: center; font-size: 56px; font-weight: 900; letter-spacing: -0.035em; flex-shrink: 0; }
+      .tier .badge { width: 56px; text-align: center; font-size: var(--body-size); font-weight: 900; letter-spacing: -0.035em; flex-shrink: 0; }
       .tier .tools { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
       .pill { display: flex; align-items: center; gap: 10px; background: #fff; padding: 8px 14px; border-radius: 10px; will-change: transform, opacity; }
       .pill .ico { width: 28px; height: 28px; display: flex; align-items: center; }

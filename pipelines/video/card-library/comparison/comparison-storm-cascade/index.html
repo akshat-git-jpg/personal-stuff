@@ -39,6 +39,7 @@
         --divider: rgba(255, 200, 100, 0.1);
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
         --hero-size: 130px; /* hero = static headline above the grid (dense table, no single dominant cell) */
+        --body-size: 36px; /* the feature-name row cell is the readable secondary line */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -70,7 +71,7 @@
       #hairline { height: 1px; background: var(--divider); width: 100%; }
 
       .row { padding: 22px 0; border-bottom: 1px solid var(--divider); will-change: transform, opacity; }
-      .row .feature { font-size: 36px; font-weight: 500; color: var(--text-sec); }
+      .row .feature { font-size: var(--body-size); font-weight: 500; color: var(--text-sec); }
       .cell { text-align: center; font-size: 32px; font-weight: 500; font-variant-numeric: tabular-nums; will-change: opacity; }
       .cell.win { font-weight: 700; }
       .cell.check { color: var(--win); }

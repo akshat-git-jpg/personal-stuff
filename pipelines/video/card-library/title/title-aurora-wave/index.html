@@ -38,6 +38,7 @@
         --chip-border: rgba(255, 255, 255, 0.14);
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
         --hero-size: 144px;
+        --body-size: 36px;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -105,7 +106,7 @@
       /* text fallback: name rendered INSIDE the tile (no duplicate label below) —
          keeps the square 210px footprint so the row stays symmetric. */
       .chip.text {
-        padding: 20px; font-size: 30px; font-weight: 700; color: var(--text);
+        padding: 20px; font-size: var(--body-size); font-weight: 700; color: var(--text);
         text-align: center; line-height: 1.25; overflow-wrap: break-word;
       }
       /* dense mode (13+ platforms → 3 rows): smaller tiles so 3 rows + names fit */

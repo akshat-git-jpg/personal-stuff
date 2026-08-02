@@ -22,6 +22,7 @@
         --yes: #34d399; --no: rgba(255,255,255,0.28); --accent: #fb923c;
         --font: 'Inter', system-ui, sans-serif;
         --hero-size: 120px; /* dense grid card — hero is the static headline above the table, kept low-end per DESIGN.md */
+        --body-size: 36px; /* header/value cell text is the readable secondary line (bumped from 30px to clear the 36px row floor) */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -33,11 +34,11 @@
       #table { width: 100%; }
       .grid { display: grid; gap: 0; }
       .cell { padding: 24px 22px; display: flex; align-items: center; }
-      .hcell { font-size: 30px; font-weight: 800; justify-content: center; }
+      .hcell { font-size: var(--body-size); font-weight: 800; justify-content: center; }
       .hcell.feat { justify-content: flex-start; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; font-size: 22px; }
       .frow .cell { border-top: 1px solid rgba(255,255,255,0.08); }
       .feat { font-size: 26px; font-weight: 600; color: var(--text); }
-      .val { justify-content: center; font-size: 30px; font-weight: 800; }
+      .val { justify-content: center; font-size: var(--body-size); font-weight: 800; }
       .val.yes { color: var(--yes); }
       .val.no { color: var(--no); }
       .val.txt { color: var(--text-dim); font-size: 24px; font-weight: 600; }

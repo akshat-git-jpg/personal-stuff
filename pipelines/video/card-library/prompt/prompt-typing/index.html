@@ -36,6 +36,7 @@
         --accent: #fb923c;    /* title glow, timestamp tags, caret */
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
         --hero-size: 130px; /* the panel header is the only headline-like element; the typed body is a scrolling shot list, not a single idea, so it stays secondary */
+        --body-size: 36px; /* the typed body is the readable secondary line (bumped from 33px to clear the 36px row floor) */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -70,7 +71,7 @@
         -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 44px, #000 100%);
         mask-image: linear-gradient(to bottom, transparent 0, #000 44px, #000 100%); }
 
-      #body { font-size: 33px; line-height: 1.5; font-weight: 500; color: var(--text);
+      #body { font-size: var(--body-size); line-height: 1.5; font-weight: 500; color: var(--text);
         white-space: pre-wrap; word-break: normal; }
       #body .ts { color: var(--accent); font-weight: 700; }
 

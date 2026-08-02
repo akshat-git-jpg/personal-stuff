@@ -22,7 +22,8 @@
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.55);
         --accent: #fb923c;
         --font: 'Inter', system-ui, sans-serif;
-        --hero-size: 130px; /* dense grid card — hero is the slide title, kept low-end per DESIGN.md */
+        --hero-size: 130px;
+        --body-size: 36px; /* dense grid card — hero is the slide title, kept low-end per DESIGN.md */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -42,7 +43,7 @@
       .cell { padding: 22px 22px; display: flex; align-items: center; }
 
       /* header row: product names white/bold; label columns are orange eyebrows */
-      .hcell { font-size: 28px; font-weight: 800; justify-content: center; color: var(--text); }
+      .hcell { font-size: var(--body-size); font-weight: 800; justify-content: center; color: var(--text); }
       .hcell.feat, .hcell.reason { font-size: 24px; color: var(--accent); letter-spacing: 0.12em; justify-content: flex-start; text-transform: uppercase; }
 
       /* body rows: hairline top divider, transparent (no boxes, no striping) */

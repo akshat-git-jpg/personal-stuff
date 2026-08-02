@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { execSync } from 'node:child_process';
+import { probeCardVariant, probeTimes, closeBrowser } from './overflow-probe.mjs';
 
 const FILLER = ['publish', 'workflow', 'captions', 'rendering', 'automation', 'timeline', 'export', 'quality'];
 function fillString(spec) {
@@ -88,6 +89,7 @@ fs.mkdirSync(outDir, { recursive: true });
 const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
 
 const cliArgs = process.argv.slice(2);
+const checkMode = cliArgs.includes('--check');
 const sideMode = cliArgs.includes('--side');
 const targetCardSlug = cliArgs.find(a => !a.startsWith('--'));
 
@@ -115,15 +117,14 @@ const AMBIENT_REQUIRED = [
   'statement/keyword-statement', 'title/title-aurora-wave', 'checklist/icon-pills'
 ];
 
+let anyOverflow = false;
+
 for (const card of cards) {
   const minVars = generateVariables(card, 'min');
-  const maxVars = generateVariables(card, 'max');
+  const maxVarsTpl = generateVariables(card, 'max');
 
   const realCardPath = path.join(process.cwd(), card.slug);
 
-  // Side mode renders a throwaway copy so the real card file is never touched
-  // — the temp copy gets its data-width rewritten the same way the pipeline
-  // does it, and render points at that temp directory instead of the slug.
   let renderDir = realCardPath;
   let tempDir = null;
   if (sideMode) {
@@ -145,22 +146,36 @@ for (const card of cards) {
   const suffix = sideMode ? '-side' : '';
   const slugFile = card.slug.split('/').join('-');
 
-  const runVariant = (variant, vars) => {
+  const runVariant = async (sizeMode, vars, abVariant = null) => {
+    let finalVars = vars;
+    if (abVariant) {
+      finalVars = { ...vars, variant: abVariant };
+    }
     const newHtml = originalHtml.replace(
       /data-composition-variables='[^']*'/,
-      `data-composition-variables='${JSON.stringify(vars).replace(/'/g, "&apos;")}'`
+      `data-composition-variables='${JSON.stringify(finalVars).replace(/'/g, "&apos;")}'`
     );
     fs.writeFileSync(indexPath, newHtml);
 
+    let mp4Path, pngPath;
     try {
-      const mp4Path = `/tmp/${slugFile}${suffix}-${variant}.mp4`;
-      const pngPath = `/tmp/${slugFile}${suffix}-${variant}.png`;
+      mp4Path = `/tmp/${slugFile}${suffix}-${sizeMode}${abVariant ? '-' + abVariant : ''}.mp4`;
+      pngPath = `/tmp/${slugFile}${suffix}-${sizeMode}${abVariant ? '-' + abVariant : ''}.png`;
       execSync(`npx --yes hyperframes@0.7.62 render ${renderDir} -o ${mp4Path}`, { stdio: 'ignore' });
 
       const duration = card.default_duration || 5;
       const ss = duration * 0.8;
 
       execSync(`ffmpeg -v error -ss ${ss} -i ${mp4Path} -frames:v 1 ${pngPath} -y`, { stdio: 'ignore' });
+      
+      if (checkMode) {
+        const times = probeTimes(card, finalVars);
+        const res = await probeCardVariant(card.slug, abVariant || 'a', finalVars, times);
+        if (res.broken) {
+           console.error(`OVERFLOW ${card.slug} ${sizeMode}${abVariant ? '-' + abVariant : ''} @${res.t}s ${res.offenders.join(',')}`);
+           anyOverflow = true;
+        }
+      }
       return pngPath;
     } finally {
       fs.writeFileSync(indexPath, originalHtml);
@@ -168,18 +183,31 @@ for (const card of cards) {
   };
 
   console.log(`Processing ${card.slug}${sideMode ? ' (side)' : ''}...`);
-  const minPng = runVariant('min', minVars);
-  const maxPng = runVariant('max', maxVars);
-
-  const finalSheet = path.join(outDir, `${slugFile}${suffix}.png`);
-
+  
+  const cardVariants = (card.variants && card.variants.length > 0) ? card.variants : [null];
+  
   try {
-    const filter = `[0:v]drawtext=text='MIN':fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:x=10:y=10[v0];[1:v]drawtext=text='MAX':fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:x=10:y=10[v1];[v0][v1]vstack`;
-    execSync(`ffmpeg -v error -y -i ${minPng} -i ${maxPng} -filter_complex "${filter}" ${finalSheet}`, { stdio: 'ignore' });
-    console.log(`Wrote ${finalSheet}`);
+    for (const v of cardVariants) {
+      const minPng = await runVariant('min', minVars, v);
+      const maxPng = await runVariant('max', maxVarsTpl, v);
+      
+      const sheetSuffix = v ? `-${v}` : '';
+      const finalSheet = path.join(outDir, `${slugFile}${suffix}${sheetSuffix}.png`);
+      
+      const minText = v ? `MIN (${v})` : 'MIN';
+      const maxText = v ? `MAX (${v})` : 'MAX';
+      const filter = `[0:v]drawtext=text='${minText}':fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:x=10:y=10[v0];[1:v]drawtext=text='${maxText}':fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:x=10:y=10[v1];[v0][v1]vstack`;
+      execSync(`ffmpeg -v error -y -i ${minPng} -i ${maxPng} -filter_complex "${filter}" ${finalSheet}`, { stdio: 'ignore' });
+      console.log(`Wrote ${finalSheet}`);
+    }
   } catch (e) {
-    console.error(`Failed to stitch sheet for ${card.slug}`, e);
+    console.error(`Failed to process sheet for ${card.slug}`, e);
   } finally {
     if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
   }
+}
+
+if (checkMode) {
+  await closeBrowser();
+  if (anyOverflow) process.exit(1);
 }

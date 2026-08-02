@@ -25,6 +25,7 @@
         --positive: #34d399; --negative: #ef4444; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
         --hero-size: 150px;
+        --body-size: 42px;
       }
       body.register-light {
         --bg-from: #2b2416; --bg-to: #0a0805;
@@ -86,7 +87,7 @@
         font-size: 22px; font-weight: 700; color: var(--accent);
         text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px;
       }
-      .chip .value { font-size: 42px; font-weight: 800; letter-spacing: -0.015em; }
+      .chip .value { font-size: var(--body-size); font-weight: 800; letter-spacing: -0.015em; }
       .chip .value .unit { font-size: 24px; font-weight: 600; color: var(--text-dim); margin-left: 6px; }
 
       .mk { position: relative; display: inline-block; }

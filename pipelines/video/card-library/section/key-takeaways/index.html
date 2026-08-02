@@ -26,7 +26,8 @@
         --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.62);
         --accent: #fb923c; --check: #1a0d02; /* tick colour inside the accent badge */
         --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
-        --hero-size: 150px; /* #title ("Key takeaways") is the hero, distinct from the small eyebrow */
+        --hero-size: 150px;
+        --body-size: 48px; /* #title ("Key takeaways") is the hero, distinct from the small eyebrow */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
@@ -42,7 +43,7 @@
       .badge { flex: 0 0 auto; width: 66px; height: 66px; border-radius: 50%; background: var(--accent); color: var(--check);
         display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 900;
         box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 45%, transparent); will-change: transform, opacity; }
-      .label { font-size: 48px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.22; }
+      .label { font-size: var(--body-size); font-weight: 600; letter-spacing: -0.015em; line-height: 1.22; }
     </style>
   </head>
   <body>
