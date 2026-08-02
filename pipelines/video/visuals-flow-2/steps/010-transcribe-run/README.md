@@ -33,6 +33,9 @@ audio:
   Feed `cleanup-prompt.md` plus the transcript to your executor, save its
   cleaned word list as JSON, then apply it:
   `node lib/transcript-quality.mjs apply <slug> <cleaned.json>`.
+  Then run the suspect gate and second-opinion pass before the cue pass:
+  `node lib/transcript-suspect.mjs <slug>`
+  `node lib/transcript-second-opinion.mjs <slug>`
 
 Either mode **fails loudly and leaves `transcript.json` as the raw ASR
 output** if the result doesn't pass `checkTimingIntegrity()` — a cleanup that
