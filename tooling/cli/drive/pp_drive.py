@@ -62,22 +62,35 @@ def ensure_folder(s, name, parent):
     return s.files().create(body=meta, fields="id", supportsAllDrives=True).execute()["id"]
 
 
+# 8 MB chunks, not the library default of 100 MB. `resumable=True` alone is not
+# enough for a big file: googleapiclient still pushes one 100 MB chunk per
+# request, and a single chunk that outruns the socket timeout kills the whole
+# upload with `TimeoutError: The write operation timed out` and leaves nothing
+# behind. That is exactly how a 1.18 GB video final failed to deliver on
+# 2026-08-02. Smaller chunks each finish well inside the timeout, and
+# num_retries lets the client re-send a chunk instead of losing the transfer.
+UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024
+UPLOAD_RETRIES = 5
+
+
 def upload_file(s, path, parent, name=None, overwrite=False):
     path = Path(path)
     name = name or path.name
     existing = _find(s, name, parent, folder_only=False)
     media = MediaFileUpload(str(path), mimetype=mimetypes.guess_type(str(path))[0]
-                            or "application/octet-stream", resumable=True)
+                            or "application/octet-stream", resumable=True,
+                            chunksize=UPLOAD_CHUNK_BYTES)
     if existing:
         if not overwrite:
             return existing, False
-        s.files().update(fileId=existing, media_body=media, supportsAllDrives=True).execute()
+        s.files().update(fileId=existing, media_body=media,
+                         supportsAllDrives=True).execute(num_retries=UPLOAD_RETRIES)
         return existing, True
     meta = {"name": name}
     if parent and parent != "root":
         meta["parents"] = [parent]
     fid = s.files().create(body=meta, media_body=media, fields="id",
-                           supportsAllDrives=True).execute()["id"]
+                           supportsAllDrives=True).execute(num_retries=UPLOAD_RETRIES)["id"]
     return fid, True
 
 

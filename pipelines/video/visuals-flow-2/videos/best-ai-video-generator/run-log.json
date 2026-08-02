@@ -1,6 +1,6 @@
 {
   "video": "best-ai-video-generator",
-  "updated": "2026-08-02T10:42:02.847Z",
+  "updated": "2026-08-02T11:05:06.058Z",
   "steps": {
     "010-transcribe-run": {
       "status": "done",
@@ -131,8 +131,12 @@
       "output": "cues.json 84 cues, 4 rule surfaces updated, 1 card built, 1 card retired, plan 175 written, draft v4 assembled 32:07.7"
     },
     "150-deliver-drive-run": {
-      "status": "running",
-      "started": "2026-08-02T10:42:02.847Z"
+      "status": "done",
+      "started": "2026-08-02T10:50:00.145Z",
+      "issues": "exited 1, see terminal",
+      "ended": "2026-08-02T11:05:06.058Z",
+      "did": "Uploaded the approved full-resolution final to the video's Drive Output folder.",
+      "output": "Output/<slug>-final.mp4 on Drive"
     }
   }
 }
