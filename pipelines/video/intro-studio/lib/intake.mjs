@@ -30,6 +30,24 @@ export function probeDuration(file) {
   return d;
 }
 
+// The PICTURE's length. A container's duration is the longest stream, and the
+// audio encoder pads to its own packet size — so format duration overstates the
+// film by tens of milliseconds even when every rendered frame is correct.
+export function probeVideoDuration(file) {
+  const r = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=duration', '-of', 'csv=p=0', file], { encoding: 'utf8' });
+  const d = parseFloat(String(r.stdout).trim());
+  if (r.status === 0 && Number.isFinite(d)) return d;
+  return probeDuration(file); // some containers carry no per-stream duration
+}
+
+export function probeDimensions(file) {
+  const r = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', file], { encoding: 'utf8' });
+  if (r.status !== 0) throw new Error(`ffprobe failed on ${file}: ${r.stderr}`);
+  const [width, height] = String(r.stdout).trim().split(',').map(Number);
+  if (!Number.isFinite(width) || !Number.isFinite(height)) throw new Error(`ffprobe gave no dimensions for ${file}`);
+  return { width, height };
+}
+
 export function runIntake(slug) {
   const workdir = resolveWorkdir(slug);
   const input = path.join(workdir, 'input', 'intro.mp4');

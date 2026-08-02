@@ -3,15 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <style>
-    body { margin: 0; background: #000; overflow: hidden; width: 1920px; height: 1080px; }
-    #bg { position: absolute; inset: 0; background: linear-gradient(90deg, #000, #fff); animation: bg-shift 3s linear forwards; }
-    #bar { position: absolute; width: 200px; height: 1080px; background: red; top: 0; left: 0; animation: move 3s linear forwards; }
-    @keyframes move { from { left: 0px; } to { left: 1720px; } }
+    body { margin: 0; background: #000; overflow: hidden; }
+    /* The render canvas comes from #root's data-width/data-height. Hyperframes
+       does NOT read body CSS — sizing only in CSS renders portrait 1080x1920. */
+    #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+    #bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg, #000, #fff);
+      animation: bg-shift 3s linear 1 both;
+    }
+    #bar {
+      position: absolute; top: 0; left: 0; width: 200px; height: 1080px; background: red;
+      animation: bar-move 3s linear 1 both;
+    }
+    /* transform, not `left` — layout properties are not reliably seekable. */
+    @keyframes bar-move { from { transform: translateX(0); } to { transform: translateX(1720px); } }
     @keyframes bg-shift { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
 <body>
-  <div id="bg" class="clip" data-start="0" data-duration="3"></div>
-  <div id="bar" class="clip" data-start="0" data-duration="3"></div>
+  <div id="root" data-composition-id="film-fixture" data-duration="3" data-fps="30" data-width="1920" data-height="1080">
+    <div id="bg" class="clip" data-start="0" data-duration="3" data-track-index="0"></div>
+    <div id="bar" class="clip" data-start="0" data-duration="3" data-track-index="1"></div>
+  </div>
+  <script>
+    // Motion here is pure CSS — the runtime's `css` adapter seeks it directly.
+    // But capture readiness polls window.__timelines[<data-composition-id>] and
+    // stalls 45s per worker when the key is absent, so register a no-op timeline
+    // that reports the real duration. It drives nothing; the CSS adapter does.
+    window.__timelines = window.__timelines || {};
+    window.__timelines['film-fixture'] = {
+      duration: () => 3,
+      pause() { return this; },
+      play() { return this; },
+      seek() { return this; },
+      totalTime() { return this; },
+      kill() {},
+    };
+  </script>
 </body>
 </html>

@@ -149,3 +149,118 @@ test('W4: beat too long', () => {
   assert.ok(res.warnings.some(w => w.code === 'W4'), 'Expected W4 on mutated');
   assert.ok(!runLint(goodScreenplay).warnings.some(w => w.code === 'W4'), 'Expected no W4 on good');
 });
+
+// --- regressions found authoring the first real screenplay (poc-01) ---
+
+// A transcript token can normalise into several words. Matching token-to-word
+// made every clause containing "side-by-side", "five-way" or "let's" unmatchable.
+test('E1 matches clauses containing multi-word tokens', () => {
+  const words = [
+    { text: 'a', start: 0.0, end: 0.2 },
+    { text: 'side-by-side', start: 0.2, end: 0.9 },
+    { text: "let's", start: 0.9, end: 1.4 },
+    { text: 'go', start: 1.4, end: 1.8 },
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [{
+      id: 'b01', intent: 'hook', clause: "a side-by-side let's go",
+      t_start: 0, t_end: 1.8, register: 'dark', face: 'full',
+      stage: 's', carries: null, transition_out: 'cut', deviation_reason: null,
+    }],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 1.8 });
+  assert.ok(!res.errors.some(e => e.code === 'E1'), JSON.stringify(res.errors));
+  assert.ok(!res.errors.some(e => e.code === 'E2'), JSON.stringify(res.errors));
+});
+
+// E3 pins the first beat to 0; the first word almost never starts at 0. Both
+// rules must be satisfiable at once, exactly as they are for the last beat.
+test('E2 does not fire on a first beat pinned to 0 by E3', () => {
+  const words = [
+    { text: 'hello', start: 0.43, end: 0.9 },
+    { text: 'there', start: 0.9, end: 1.5 },
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [{
+      id: 'b01', intent: 'hook', clause: 'hello there',
+      t_start: 0, t_end: 1.5, register: 'dark', face: 'full',
+      stage: 's', carries: null, transition_out: 'cut', deviation_reason: null,
+    }],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 1.5 });
+  assert.deepStrictEqual(res.errors, []);
+});
+
+// ...but a first beat that is NOT pinned to 0 still gets checked against the words.
+test('E2 still fires on a first beat that is neither 0 nor the word time', () => {
+  const words = [
+    { text: 'hello', start: 0.43, end: 0.9 },
+    { text: 'there', start: 0.9, end: 1.5 },
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [{
+      id: 'b01', intent: 'hook', clause: 'hello there',
+      t_start: 3.0, t_end: 1.5, register: 'dark', face: 'full',
+      stage: 's', carries: null, transition_out: 'cut', deviation_reason: null,
+    }],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 1.5 });
+  assert.ok(res.errors.some(e => e.code === 'E2'));
+});
+
+// E2 is containment, not endpoint matching: speech pauses plus E3's gapless
+// tiling mean some beat must absorb each pause. A 0.72s pause between clauses
+// made the two rules jointly unsatisfiable on the first real corrected transcript.
+test('E2 allows a beat to absorb a pause before the next clause', () => {
+  const words = [
+    { text: 'alpha', start: 0.4, end: 1.0 },
+    { text: 'beta', start: 1.0, end: 1.4 },
+    { text: 'gamma', start: 2.9, end: 3.4 },   // 1.5s pause before this
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [
+      { id: 'b01', intent: 'hook', clause: 'alpha beta', t_start: 0, t_end: 2.9,
+        register: 'dark', face: 'full', stage: 's', carries: null, transition_out: 'cut', deviation_reason: null },
+      { id: 'b02', intent: 'turn', clause: 'gamma', t_start: 2.9, t_end: 3.5,
+        register: 'light', face: 'panel', stage: 's', carries: { from: 'b01', object: 'o', as: 'a' }, transition_out: 'cut', deviation_reason: null },
+    ],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 3.5 });
+  assert.deepStrictEqual(res.errors, []);
+});
+
+test('E2 still fires when a beat ends before its clause finishes', () => {
+  const words = [
+    { text: 'alpha', start: 0.4, end: 1.0 },
+    { text: 'beta', start: 1.0, end: 2.6 },
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [{ id: 'b01', intent: 'hook', clause: 'alpha beta', t_start: 0, t_end: 1.2,
+      register: 'dark', face: 'full', stage: 's', carries: null, transition_out: 'cut', deviation_reason: null }],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 1.2 });
+  assert.ok(res.errors.some(e => e.code === 'E2'), JSON.stringify(res.errors));
+});
+
+test('E2 still fires when a beat trails its clause by more than the lead bound', () => {
+  const words = [
+    { text: 'alpha', start: 0.4, end: 1.0 },
+    { text: 'beta', start: 1.0, end: 1.4 },
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [
+      { id: 'b01', intent: 'hook', clause: 'alpha', t_start: 0, t_end: 9.0,
+        register: 'dark', face: 'full', stage: 's', carries: null, transition_out: 'cut', deviation_reason: null },
+      { id: 'b02', intent: 'turn', clause: 'beta', t_start: 9.0, t_end: 9.5,
+        register: 'light', face: 'panel', stage: 's', carries: { from: 'b01', object: 'o', as: 'a' }, transition_out: 'cut', deviation_reason: null },
+    ],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 9.5 });
+  assert.ok(res.errors.some(e => e.code === 'E2'), JSON.stringify(res.errors));
+});

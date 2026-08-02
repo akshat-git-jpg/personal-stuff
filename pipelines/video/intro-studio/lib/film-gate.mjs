@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
-import { probeDuration } from './intake.mjs';
+import { probeDuration, probeDimensions, probeVideoDuration } from './intake.mjs';
 import { frameLuma, detectFreezes, longestFreeze } from './frames.mjs';
 
 export const GATE = {
@@ -9,11 +9,19 @@ export const GATE = {
   MAX_FREEZE: 3.0,            // seconds — no stretch this long may sit motionless
   MIN_MEAN_LUMA: 4,           // below this the picture is effectively black
   MIN_LUMA_RANGE: 6,          // the whole film at one luma means nothing is happening
+  WIDTH: 1920,                // the intro hands off to a landscape edit — a
+  HEIGHT: 1080,               // portrait render is unusable no matter how good
 };
 
 // Pure so it is unit-testable without ffmpeg. Callers gather the measurements.
-export function judge({ renderDuration, introDuration, luma, freezes }) {
+export function judge({ renderDuration, introDuration, luma, freezes, width, height }) {
   const failures = [];
+  // Required, not optional — an unmeasured frame size must fail rather than skip.
+  if (!Number.isFinite(width) || !Number.isFinite(height)) {
+    failures.push('G5 no frame size measured');
+  } else if (width !== GATE.WIDTH || height !== GATE.HEIGHT) {
+    failures.push(`G5 render is ${width}x${height} — the intro must be ${GATE.WIDTH}x${GATE.HEIGHT}`);
+  }
   if (Math.abs(renderDuration - introDuration) > GATE.DURATION_TOLERANCE) {
     failures.push(`G1 duration ${renderDuration.toFixed(2)}s != intro ${introDuration.toFixed(2)}s`);
   }
@@ -34,6 +42,7 @@ export function runGate(slug) {
   const video = path.join(workdir, 'renders', 'intro-film.mp4');
   if (!fs.existsSync(video)) throw new Error(`missing ${video} — run the render step first`);
   const introDuration = JSON.parse(fs.readFileSync(path.join(workdir, 'intake.json'), 'utf8')).duration;
-  const renderDuration = probeDuration(video);
-  return judge({ renderDuration, introDuration, luma: frameLuma(video), freezes: detectFreezes(video, renderDuration) });
+  const renderDuration = probeVideoDuration(video);
+  const { width, height } = probeDimensions(video);
+  return judge({ renderDuration, introDuration, luma: frameLuma(video), freezes: detectFreezes(video, renderDuration), width, height });
 }

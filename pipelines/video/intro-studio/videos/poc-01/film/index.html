@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<script src="assets/gsap.min.js"></script>
+<script src="assets/logos.js"></script>
+<style>
+  /* Palette, type scale and register values are DESIGN.md's, not invented here. */
+  :root {
+    --bg-from: #3a1f08; --bg-to: #0a0805;
+    --lift-from: #2b2416;
+    --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+    --accent: #fb923c;
+    --positive: #34d399; --negative: #ef4444; --gold: #facc15;
+    --font: 'Inter', system-ui, sans-serif;
+    --hero-size: 140px;
+    --body-size: 44px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #000; overflow: hidden; }
+  #root {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: var(--bg-to); font-family: var(--font); color: var(--text);
+  }
+
+  /* Registers: dark = problem, light = solution. BOTH are warm and dark. */
+  #bg-dark, #bg-light { position: absolute; inset: 0; }
+  #bg-dark  { background: radial-gradient(ellipse 120% 100% at 30% 20%, var(--bg-from) 0%, var(--bg-to) 72%); }
+  #bg-light { background: radial-gradient(ellipse 120% 100% at 30% 20%, var(--lift-from) 0%, var(--bg-to) 70%); }
+
+  /* hf-ambient */
+  #glow {
+    position: absolute; left: 50%; top: 50%; width: 2100px; height: 2100px;
+    margin: -1050px 0 0 -1050px; pointer-events: none;
+    background: radial-gradient(closest-side, rgba(251,146,60,0.20), rgba(251,146,60,0) 68%);
+  }
+
+  #avatar { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; z-index: 6; }
+
+  /* ---- the candidate roster: five nodes that live the whole film ---- */
+  .card-wrap { position: absolute; width: 300px; height: 400px; z-index: 7; }
+  .card {
+    position: absolute; left: 0; top: 0; width: 300px; height: 400px;
+    border-radius: 26px; background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+  .logo-tile {
+    position: absolute; left: 84px; top: 46px; width: 132px; height: 132px;
+    border-radius: 22px; overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+  }
+  .logo-tile img { width: 100%; height: 100%; display: block; }
+  .logo-well {
+    position: absolute; left: 84px; top: 46px; width: 132px; height: 132px;
+    border-radius: 22px; border: 2px dashed rgba(255,239,219,0.22);
+  }
+  .name-rule {
+    position: absolute; left: 84px; top: 200px; width: 132px; height: 3px;
+    border-radius: 2px; background: rgba(255,239,219,0.22);
+  }
+  .card-name {
+    position: absolute; left: 0; right: 0; top: 224px; text-align: center;
+    font-size: var(--body-size); font-weight: 700; letter-spacing: -0.015em;
+    line-height: 1.2; color: var(--text);
+  }
+  .stamp {
+    position: absolute; left: 70px; top: 300px; width: 160px; height: 56px;
+    border-radius: 12px; border: 2px dashed rgba(251,146,60,0.45);
+  }
+  .verdict-mark {
+    position: absolute; left: 126px; top: 308px; width: 48px; height: 48px;
+    border-radius: 50%; opacity: 0;
+  }
+
+  /* the viewer: the second axis the thesis turns on */
+  #viewer {
+    position: absolute; left: 810px; top: 800px; width: 300px; height: 92px;
+    border-radius: 18px; border: 2px solid var(--accent); z-index: 7;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--accent);
+  }
+
+  /* assessment rails */
+  .rail { position: absolute; left: 440px; width: 1400px; height: 2px; background: rgba(255,239,219,0.20); z-index: 5; }
+  .rail-label {
+    position: absolute; left: 130px; width: 290px; font-size: 24px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); z-index: 5;
+  }
+
+  /* the crown that gets refused. Gold appears here and nowhere else. */
+  #crown { position: absolute; left: 880px; top: 200px; width: 160px; text-align: center; z-index: 9; font-size: 92px; line-height: 1; }
+
+  /* agenda */
+  #eyebrow {
+    position: absolute; left: 200px; top: 330px; font-size: 26px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); z-index: 5;
+  }
+  #agenda { position: absolute; left: 200px; top: 392px; width: 1560px; z-index: 5; }
+  .agenda-item {
+    display: flex; align-items: baseline; gap: 26px; margin-bottom: 26px;
+    font-size: var(--body-size); font-weight: 700; letter-spacing: -0.015em; color: var(--text);
+  }
+  .agenda-num { font-size: 26px; font-weight: 700; color: var(--accent); letter-spacing: 0.12em; min-width: 52px; }
+
+  /* button: first link mention in the whole video gets the strong treatment */
+  #scrim { position: absolute; inset: 0; background: rgba(10,8,5,0.72); z-index: 8; }
+  #linkplate { position: absolute; left: 0; right: 0; top: 450px; text-align: center; z-index: 9; }
+  #linkplate .lp-main {
+    font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em;
+    line-height: 1.0; color: var(--text);
+  }
+  #linkplate .lp-sub {
+    margin-top: 22px; font-size: 26px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--accent);
+  }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="intro" data-duration="86.677313" data-fps="30" data-width="1920" data-height="1080">
+
+  <audio id="vo" data-start="0" src="../vo.mp3"></audio>
+  <video id="avatar" class="clip" data-start="0" data-duration="86.677313" src="../avatar.mp4" muted></video>
+
+  <div id="bg-dark"></div>
+  <div id="bg-light"></div>
+  <div id="glow"></div>
+
+  <div id="viewer">for who</div>
+  <div id="crown">&#128081;</div>
+  <div id="eyebrow">what&#8217;s coming</div>
+  <div id="agenda"></div>
+  <div id="scrim"></div>
+  <div id="linkplate">
+    <div class="lp-main">All 5 platforms</div>
+    <div class="lp-sub">links in the description</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const TOOLS = [
+    { slug: 'openart',    name: 'OpenArt' },
+    { slug: 'higgsfield', name: 'Higgsfield' },
+    { slug: 'synthesia',  name: 'Synthesia' },
+    { slug: 'heygen',     name: 'HeyGen' },
+    { slug: 'arcads',     name: 'Arcads' },
+  ];
+  const AREAS = [
+    { label: 'features',       t: 50.20 },
+    { label: 'output quality', t: 51.00 },
+    { label: 'workflow',       t: 52.32 },
+    { label: 'pricing',        t: 54.10 },
+  ];
+  const AGENDA = [
+    { text: 'Quick overviews, and who each tool is for', t: 62.13 },
+    { text: 'A live demo of every platform',             t: 67.60 },
+    { text: 'Side by side pricing across all five',      t: 70.84 },
+    { text: 'A summary table on every factor',           t: 73.45 },
+    { text: 'My honest verdict, by use case',            t: 78.65 },
+  ];
+  const NAME_T = [15.76, 17.33, 18.94, 20.49, 21.61];   // each tool's spoken word
+
+  const root = document.getElementById('root');
+  const L = window.__logos || {};
+
+  const HOME_X = i => 130 + i * 340;
+  const HOME_Y = 340;
+  const RAIL_X = i => 460 + i * 200;
+  const RAIL_Y = 90;
+  const railX = i => RAIL_X(i) - HOME_X(i);
+  const railY = RAIL_Y - HOME_Y;
+
+  const wraps = [], cards = [], names = [], rules = [], tiles = [], wells = [], stamps = [], marks = [];
+  TOOLS.forEach((t, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'card-wrap';
+    wrap.style.left = HOME_X(i) + 'px';
+    wrap.style.top = HOME_Y + 'px';
+    root.appendChild(wrap); wraps.push(wrap);
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+      '<div class="logo-well"></div>' +
+      '<div class="logo-tile"><img alt=""></div>' +
+      '<div class="name-rule"></div>' +
+      '<div class="card-name">' + t.name + '</div>' +
+      '<div class="stamp"></div>' +
+      '<div class="verdict-mark"></div>';
+    wrap.appendChild(card); cards.push(card);
+
+    const img = card.querySelector('.logo-tile img');
+    if (L[t.slug]) img.src = L[t.slug].uri;
+
+    tiles.push(card.querySelector('.logo-tile'));
+    wells.push(card.querySelector('.logo-well'));
+    names.push(card.querySelector('.card-name'));
+    rules.push(card.querySelector('.name-rule'));
+    stamps.push(card.querySelector('.stamp'));
+    marks.push(card.querySelector('.verdict-mark'));
+  });
+
+  const rails = [], railLabels = [];
+  AREAS.forEach((a, j) => {
+    const r = document.createElement('div');
+    r.className = 'rail';
+    r.style.top = (430 + j * 78) + 'px';
+    root.appendChild(r); rails.push(r);
+    const lab = document.createElement('div');
+    lab.className = 'rail-label';
+    lab.style.top = (398 + j * 78) + 'px';
+    lab.textContent = a.label;
+    root.appendChild(lab); railLabels.push(lab);
+  });
+
+  const agendaEl = document.getElementById('agenda');
+  const items = AGENDA.map((a, i) => {
+    const d = document.createElement('div');
+    d.className = 'agenda-item';
+    d.innerHTML = '<span class="agenda-num">0' + (i + 1) + '</span><span>' + a.text + '</span>';
+    agendaEl.appendChild(d);
+    return d;
+  });
+
+  const ARC = { dy: [250, 205, 180, 205, 250], rot: [-7, -3.5, 0, 3.5, 7], scale: 0.55 };
+  const LADDER = { dy: [-70, 46, -34, 78, -14], rot: [-2.5, 1.8, -1, 2.6, -1.8] };
+
+  // ---------- initial ----------
+  gsap.set('#bg-light', { opacity: 0 });
+  gsap.set('#avatar', { opacity: 0, transformOrigin: '50% 50%' });
+  gsap.set('#viewer', { opacity: 0, y: 26 });
+  gsap.set('#crown', { opacity: 0, y: -70, scale: 0.7 });
+  gsap.set('#eyebrow', { opacity: 0, y: 14 });
+  gsap.set('#scrim', { opacity: 0 });
+  gsap.set('#linkplate', { opacity: 0, y: 22 });
+  gsap.set(items, { opacity: 0, y: 24 });
+  gsap.set(rails, { opacity: 0, scaleX: 0, transformOrigin: '0% 50%' });
+  gsap.set(railLabels, { opacity: 0 });
+  gsap.set(tiles, { opacity: 0, scale: 0.6 });
+  gsap.set(names, { opacity: 0 });
+  gsap.set(stamps, { opacity: 0, scale: 0.9 });
+  gsap.set(marks, { opacity: 0, scale: 0.6 });
+  cards.forEach((c, i) => gsap.set(c, { opacity: 0, y: ARC.dy[i], rotation: ARC.rot[i], scale: 0.2, transformOrigin: '50% 50%' }));
+
+  const tl = gsap.timeline({ paused: true });
+
+  /* hf-ambient */
+  tl.to('#glow', { x: 380, y: -210, duration: 12, ease: 'sine.inOut', yoyo: true, repeat: 7 }, 0);
+  tl.to('#glow', { opacity: 0.7, duration: 4, ease: 'sine.inOut', yoyo: true, repeat: 21 }, 0);
+  wraps.forEach((w, i) => tl.to(w, { y: '-=10', duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: 36 }, i * 0.4));
+
+  // ---------- b01 | hook | dark | the shortlist is laid out ----------
+  tl.to('#avatar', { opacity: 1, duration: 0.6, ease: 'power2.out' }, 0);
+  cards.forEach((c, i) => tl.to(c, { opacity: 1, scale: ARC.scale, duration: 0.5, ease: 'back.out(2)' }, 0.45 + i * 0.09));
+
+  // ---------- b02 | hook | dark | the ranking will not hold ----------
+  tl.to('#avatar', { scale: 0.26, x: 660, y: 350, borderRadius: 70, duration: 0.9, ease: 'power3.inOut' }, 3.65);
+  cards.forEach((c, i) => tl.to(c, { scale: 1, rotation: LADDER.rot[i], y: LADDER.dy[i], duration: 1.2, ease: 'power2.out' }, 3.9 + i * 0.07));
+  [[6.6, [70, -50, 40, -66, 22]], [9.4, [-46, 62, -24, 40, -70]]].forEach(function (pair) {
+    cards.forEach((c, i) => tl.to(c, { y: pair[1][i], duration: 2.6, ease: 'sine.inOut' }, pair[0]));
+  });
+
+  // ---------- b03 | turn | REGISTER LIFTS | the roll call ----------
+  tl.to('#bg-light', { opacity: 1, duration: 0.7, ease: 'power2.inOut' }, 13.7);
+  tl.to('#avatar', { opacity: 0, duration: 0.5 }, 13.7);
+  TOOLS.forEach((t, i) => {
+    tl.to(cards[i], { y: 0, rotation: 0, duration: 0.85, ease: 'power3.out' }, NAME_T[i] - 0.35);
+    tl.to(wells[i], { opacity: 0, duration: 0.3 }, NAME_T[i]);
+    tl.to(tiles[i], { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.9)' }, NAME_T[i]);
+    tl.to(names[i], { opacity: 1, duration: 0.35 }, NAME_T[i] + 0.12);
+    tl.to(rules[i], { backgroundColor: 'rgba(251,146,60,0.85)', duration: 0.4 }, NAME_T[i] + 0.12);
+    tl.to(cards[i], { borderColor: 'rgba(255,255,255,0.18)', duration: 0.4 }, NAME_T[i]);
+  });
+
+  // ---------- b04 | turn | the second axis arrives ----------
+  tl.to('#avatar', { opacity: 1, duration: 0.5 }, 22.82);
+  cards.forEach((c, i) => tl.to(c, { y: 0, scale: 1, duration: 0.7, ease: 'power3.inOut' }, 23.0 + i * 0.05));
+  tl.to(cards, { y: -14, duration: 0.5, ease: 'power2.inOut', stagger: 0.04 }, 26.11);
+  tl.to(cards, { y: 0, duration: 0.6, ease: 'power2.inOut', stagger: 0.04 }, 26.9);
+  tl.to('#viewer', { opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.6)' }, 27.2);
+
+  // ---------- b05 | scope | the crown is offered and refused ----------
+  tl.to('#avatar', { opacity: 1, scale: 0.36, x: 0, y: -310, borderRadius: 34, duration: 1.0, ease: 'power3.inOut' }, 28.7);
+  tl.to(cards, { scale: 0.78, y: 150, duration: 1.0, ease: 'power3.inOut', stagger: 0.05 }, 28.9);
+  tl.to('#viewer', { y: 120, scale: 0.78, duration: 1.0, ease: 'power3.inOut' }, 28.9);
+  tl.to('#crown', { opacity: 1, y: 232, scale: 1, duration: 0.8, ease: 'back.out(1.5)' }, 34.22);
+  tl.to('#crown', { y: 258, duration: 1.6, ease: 'sine.inOut' }, 35.1);
+  tl.to('#crown', { opacity: 0, y: -40, scale: 0.75, duration: 0.9, ease: 'power3.in' }, 36.82);
+  tl.to(cards, { y: 150, duration: 0.7, ease: 'power2.out', stagger: 0.04 }, 37.6);
+
+  // ---------- b06 | mech | every card opens an empty specialty well ----------
+  tl.to('#avatar', { scale: 0.26, x: 660, y: 350, borderRadius: 70, duration: 0.9, ease: 'power3.inOut' }, 39.52);
+  tl.to(cards, { scale: 1, y: 0, duration: 0.9, ease: 'power3.inOut', stagger: 0.05 }, 39.7);
+  tl.to('#viewer', { y: 0, scale: 1, duration: 0.9, ease: 'power3.inOut' }, 39.7);
+  tl.to(stamps, { opacity: 1, scale: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.6)' }, 40.6);
+  tl.to('#viewer', { borderColor: 'rgba(251,146,60,1)', boxShadow: '0 0 44px rgba(251,146,60,0.55)', duration: 0.5 }, 44.92);
+  tl.to(cards, { y: -12, duration: 0.34, yoyo: true, repeat: 1, stagger: 0.09, ease: 'power2.out' }, 45.0);
+
+  // ---------- b07 | mech | four rails cross all five equally ----------
+  tl.to('#avatar', { opacity: 0, duration: 0.5 }, 46.69);
+  tl.to(stamps, { opacity: 0.35, duration: 0.4 }, 46.8);
+  // open a left gutter so the area labels never sit on top of a card
+  cards.forEach((c, i) => tl.to(c, { x: 283 - i * 52, scale: 0.82, duration: 0.9, ease: 'power3.inOut' }, 46.8 + i * 0.04));
+  tl.to('#viewer', { y: 30, duration: 0.9, ease: 'power3.inOut' }, 46.8);
+  AREAS.forEach((a, j) => {
+    tl.to(rails[j], { opacity: 1, scaleX: 1, duration: 0.55, ease: 'power2.out' }, a.t);
+    tl.to(railLabels[j], { opacity: 1, duration: 0.4 }, a.t + 0.06);
+  });
+
+  // ---------- b08 | stakes | earns a spot, falls short ----------
+  tl.to('#avatar', { opacity: 1, duration: 0.5 }, 54.39);
+  tl.to(cards[1], { y: -46, duration: 0.7, ease: 'power3.out' }, 56.95);
+  tl.to(marks[1], { opacity: 1, scale: 1, backgroundColor: '#34d399', duration: 0.5, ease: 'back.out(1.7)' }, 56.95);
+  tl.to(cards[4], { y: 40, duration: 0.7, ease: 'power3.out' }, 58.15);
+  tl.to(cards[4], { opacity: 0.42, duration: 0.6 }, 58.15);
+  tl.to(marks[4], { opacity: 1, scale: 1, backgroundColor: 'rgba(255,255,255,0.28)', duration: 0.5 }, 58.15);
+
+  // ---------- b09 | tease | the roster demotes to a logo rail ----------
+  tl.to(rails.concat(railLabels), { opacity: 0, duration: 0.45 }, 59.08);
+  tl.to('#viewer', { opacity: 0, duration: 0.45 }, 59.08);
+  tl.to(cards[4], { opacity: 1, duration: 0.5 }, 59.2);
+  tl.to(marks.concat(stamps), { opacity: 0, duration: 0.4 }, 59.2);
+  tl.to(names, { opacity: 0, duration: 0.4 }, 59.2);
+  cards.forEach((c, i) => tl.to(c, { x: railX(i), y: railY, scale: 0.5, duration: 1.1, ease: 'power3.inOut' }, 59.3 + i * 0.05));
+  tl.to('#eyebrow', { opacity: 1, y: 0, duration: 0.5 }, 60.5);
+  tl.to(items[0], { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, AGENDA[0].t);
+  tl.to(tiles, { scale: 1.18, duration: 0.3, yoyo: true, repeat: 1, stagger: 0.05, ease: 'power2.out' }, AGENDA[0].t + 0.3);
+
+  // ---------- b10 | tease | the rail answers the words ----------
+  tl.to('#avatar', { opacity: 0, duration: 0.4 }, 67.5);
+  tl.to(items[0], { opacity: 0.4, duration: 0.5 }, 67.6);
+  tl.to(items[1], { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, AGENDA[1].t);
+  tl.to(items[2], { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, AGENDA[2].t);
+  cards.forEach((c, i) => {
+    const dx = i < 2 ? -120 : (i > 2 ? 120 : 0);
+    tl.to(c, { x: railX(i) + dx, duration: 0.42, yoyo: true, repeat: 1, ease: 'power2.inOut' }, 70.84);
+  });
+
+  // ---------- b11 | tease | one second proving the rail is still the scorecard ----------
+  tl.to([items[1], items[2]], { opacity: 0.4, duration: 0.5 }, 73.38);
+  tl.to(items[3], { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, AGENDA[3].t);
+  cards.forEach((c, i) => {
+    tl.to(c, { x: 283 - i * 52, y: 0, scale: 0.82, duration: 0.7, ease: 'power3.inOut' }, 73.9 + i * 0.04);
+    tl.to(c, { x: railX(i), y: railY, scale: 0.5, duration: 0.7, ease: 'power3.inOut' }, 75.3 + i * 0.04);
+  });
+  tl.to(rails, { opacity: 0.9, scaleX: 1, duration: 0.4 }, 74.1);
+  tl.to(rails, { opacity: 0, duration: 0.4 }, 75.1);
+  tl.to(items[3], { opacity: 0.4, duration: 0.5 }, 78.5);
+  tl.to(items[4], { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, AGENDA[4].t);
+  tl.to(stamps, { opacity: 0.9, scale: 1, duration: 0.5, stagger: 0.06 }, 79.07);
+
+  // ---------- b12 | button | first link mention, then hand the roster over ----------
+  tl.to(items, { opacity: 0, y: -18, duration: 0.45, stagger: 0.04 }, 82.71);
+  tl.to('#eyebrow', { opacity: 0, duration: 0.4 }, 82.71);
+  tl.to('#scrim', { opacity: 1, duration: 0.5 }, 82.8);
+  tl.to('#avatar', { opacity: 1, scale: 0.30, x: 0, y: 340, borderRadius: 30, duration: 0.8, ease: 'power3.inOut' }, 82.9);
+  tl.to('#linkplate', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 83.1);
+  tl.to('#scrim', { opacity: 0, duration: 0.5 }, 85.5);
+  tl.to('#linkplate', { opacity: 0, y: -18, duration: 0.45 }, 85.5);
+  tl.to('#avatar', { opacity: 0, duration: 0.45 }, 85.5);
+  cards.forEach((c, i) => tl.to(c, { x: 0, y: 0, scale: 1, duration: 0.85, ease: 'power3.inOut' }, 85.55 + i * 0.04));
+  tl.to(names, { opacity: 1, duration: 0.4, stagger: 0.04 }, 85.9);
+  tl.to(stamps, { opacity: 0.5, duration: 0.4 }, 85.9);
+
+  window.__timelines = window.__timelines || {};
+  window.__timelines['intro'] = tl;
+})();
+</script>
+</body>
+</html>
