@@ -125,7 +125,7 @@ test('GET /poster/c01.jpg returns an image and caches; an unknown cue id 404s', 
   const workdir = makeWorkdir();
   const rendersDir = path.join(workdir, 'renders');
   fs.mkdirSync(rendersDir);
-  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=black:s=128x128:d=2', '-c:v', 'libx264', path.join(rendersDir, 'c01.mp4')], { stdio: 'ignore' });
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=black:s=128x128:d=10', '-c:v', 'libx264', path.join(rendersDir, 'c01.mp4')], { stdio: 'ignore' });
 
   const { server, base } = await startServer(workdir);
   try {
