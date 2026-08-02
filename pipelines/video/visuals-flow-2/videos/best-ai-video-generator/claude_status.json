@@ -1,0 +1,65 @@
+{
+  "updated": "2026-08-01T23:01:24.212Z",
+  "items": {
+    "final-v3:0": {
+      "status": "question",
+      "message": "Kept for now. Replacement needs a NEW card, so three look-preview prompts were sent for your verdict before any code is written."
+    },
+    "final-v3:1": {
+      "status": "fixed",
+      "message": "Built tool-icon/roster-pop — each tile pops as its tool is named. Verified at 0:17 and 0:20."
+    },
+    "final-v3:2": {
+      "status": "fixed",
+      "message": "The O/B tiles were intentional card fallback (no logo passed), not a bug. z03 is now promise-payoff; new rule bars logo-tile cards for abstract pairs."
+    },
+    "final-v3:3": {
+      "status": "fixed",
+      "message": "First mention now uses the full-screen scrim, later ones the pill. The rule existed but only in the body rulebook; the zone rulebook now carries it."
+    },
+    "final-v3:4": {
+      "status": "fixed",
+      "message": "Host now appears at 0:59 inside the intro, was 2:11. New constraint makes a host span in the intro mandatory."
+    },
+    "final-v3:5": {
+      "status": "fixed",
+      "message": "All five tools now share one card for their verdict slot (TOOL 1..5 OF 5)."
+    },
+    "final-v3:6": {
+      "status": "fixed",
+      "message": "Same cause: the repetition cap of 3 collided with the symmetry rule on a 5-tool video. The series now always beats the cap."
+    },
+    "final-v3:7": {
+      "status": "fixed",
+      "message": "enacted/before-after deleted from the card library entirely."
+    },
+    "final-v3:8": {
+      "status": "fixed",
+      "message": "The cue LLM was fine; the rulebook contradicted itself. Both devices stopped at exactly 3 uses because of the cap."
+    },
+    "z02": {
+      "status": "question",
+      "message": "Root-caused: beat anchors fire on their first word and need 3+ words, so a 7-word roll-call cannot carry 5 anchors. Needs a resolver change — plan 177. Cue left as-is meanwhile."
+    },
+    "c01": {
+      "status": "fixed",
+      "message": "Subtitle 32->40px, gap 18->34px. Type gate blind spot routed to plan 178."
+    },
+    "c20": {
+      "status": "fixed",
+      "message": "Plate padding now even both sides; this slot is the logo-carrying tool-intro card."
+    },
+    "c27": {
+      "status": "fixed",
+      "message": "Vertical chain sizes to its step count; overflow and long connectors gone. Verified at 3 and 6 steps."
+    },
+    "c53": {
+      "status": "fixed",
+      "message": "All 5 tools on section/tool-intro incl. HeyGen; Pricing keeps the plain section card."
+    },
+    "z20": {
+      "status": "question",
+      "message": "Deferred by owner — needs a direction before rebuilding."
+    }
+  }
+}

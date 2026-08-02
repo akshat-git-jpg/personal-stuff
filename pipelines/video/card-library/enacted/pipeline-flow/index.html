@@ -50,10 +50,23 @@
 
       /* chain */
       .chain { position: relative; width: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center; }
-      body.variant-b .chain { flex-direction: column; height: 760px; justify-content: center; }
+      /* The vertical chain sizes to its CONTENT. It used to be a flat 760px
+         whatever the step count, and because .track is a flex child it grew to
+         swallow the slack: 3 steps left 472px to split between 2 connectors, so
+         the card drew two ~236px bare lines. Worse, 150px title + 64px margin +
+         760px chain = 974px inside a 840px padding box, so the column overflowed
+         by 134px and the frame's centering stopped working — the heading jammed
+         against the top edge and the last node against the bottom. Owner c27
+         2026-08-02: "no padding in top/bottom ... overall content should be in
+         smaller space, maybe reduce connecting lines".
+         Node and connector heights now come from --vb-node-h / --vb-track-h,
+         which the chain builder sets from the step count so every count up to
+         max_beats (6) fits the 626px the title leaves behind. */
+      body.variant-b .chain { flex-direction: column; height: auto; justify-content: center; }
+      body.variant-b .title { margin-bottom: 48px; }
 
       .node { flex: 0 0 auto; width: 220px; height: 220px; border-radius: 32px; background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; position: relative; }
-      body.variant-b .node { width: 520px; height: 96px; flex-direction: row; justify-content: flex-start; padding: 0 28px; gap: 22px; border-radius: 22px; }
+      body.variant-b .node { width: 520px; height: var(--vb-node-h, 96px); flex: 0 0 var(--vb-node-h, 96px); flex-direction: row; justify-content: flex-start; padding: 0 28px; gap: 22px; border-radius: 22px; }
 
       .node .icon { flex: 0 0 auto; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.35); }
       .node .icon svg { width: 54px; height: 54px; }
@@ -66,7 +79,7 @@
       body.variant-b .node .label { text-align: left; padding: 0; }
 
       .track { flex: 1 1 60px; height: 8px; min-width: 40px; border-radius: 4px; background: rgba(255,255,255,0.08); position: relative; overflow: hidden; }
-      body.variant-b .track { width: 8px; height: auto; min-height: 30px; min-width: 0; }
+      body.variant-b .track { width: 8px; height: var(--vb-track-h, 56px); flex: 0 0 var(--vb-track-h, 56px); min-height: 0; min-width: 0; }
       .track .fill { position: absolute; inset: 0; background: var(--accent); transform: scaleX(0); transform-origin: left; }
       body.variant-b .track .fill { transform: scaleY(0); transform-origin: top; }
 
@@ -190,6 +203,20 @@
 
       /* build chain: node, track, node, track, ... */
       const chainEl = $('chain');
+
+      /* Vertical variant only: the frame's padding box is 840px tall and the
+         title plus its margin eats 198px, so the chain has 642px to live in.
+         Pick node and connector heights that keep N nodes + N-1 connectors
+         inside that budget, tightening as the chain grows. Heights only — the
+         22px label never shrinks, because unreadable text is a worse defect
+         than a short connector. */
+      const VB_SIZES = { 3: [104, 64], 4: [96, 52], 5: [88, 40], 6: [80, 28] };
+      if (DATA.variant === 'b') {
+        const [nodeH, trackH] = VB_SIZES[DATA.steps.length] ?? VB_SIZES[3];
+        chainEl.style.setProperty('--vb-node-h', nodeH + 'px');
+        chainEl.style.setProperty('--vb-track-h', trackH + 'px');
+      }
+
       const nodeEls = [];
       const trackFillEls = [];
       DATA.steps.forEach((s, i) => {

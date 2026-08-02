@@ -1,0 +1,819 @@
+{
+  "video": "best-ai-video-generator",
+  "approved": false,
+  "sections": [
+    {
+      "part": "intro",
+      "start": 0,
+      "end": 86.733,
+      "items": [
+        {
+          "id": "z01",
+          "card": "slate/kinetic-sentence",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "5 AI video tools",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z02",
+          "card": "title/title-cinematic-float",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "we are looking at OpenArt",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z03",
+          "card": "enacted/promise-split",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "I want to be upfront about how we approached it",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z04",
+          "card": "enacted/pipeline-flow",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "So I tested all 5 across the",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z05",
+          "card": "enacted/timeline-scrub",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "Here is what we are",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z06",
+          "card": "link-in-description/link-in-description",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "All 5 platforms in the description below",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    },
+    {
+      "part": "body",
+      "start": 86.733,
+      "end": 1769.695,
+      "items": [
+        {
+          "id": "c01",
+          "card": "tool-icon/tool-glass-tile",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "First up is the OpenArt",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c02",
+          "card": "checklist/icon-pills",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "It also covers",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c03",
+          "card": "tool-icon/tool-glass-tile",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "On the other hand, Higgsfield",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c04",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "premium video models like Sora",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c05",
+          "card": "overlay/stat-hit",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "with over 70 camera presets",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c06",
+          "card": "tool-icon/tool-glass-tile",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "Synthesia is an AI avatar",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c07",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "It is built for businesses, L&D teams",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c08",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "Let's start with OpenArt AI",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c09",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "whether you want to do frame",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c10",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "you can see all of the models",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c11",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "I would recommend VU Veo",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c12",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "You can also add reference images",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c13",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "Take note that in every tool",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c14",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "click on modify video",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c15",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "especially with most AIs",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c16",
+          "card": "enacted/spotlight-focus",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "And so I think on the creative workspace side",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c17",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "the editing layer as well",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c18",
+          "card": "checklist/icon-pills",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "You can see that we have more options",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c19",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "it gives you a level of creative control",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c20",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "let's now move over to Higgsfield AI",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c21",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "its strongest feature which is",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c22",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "you will immediately notice what sets this platform apart",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c23",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "print shots, crash zooms, dolly moves",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c24",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "we can do a directional decision",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c25",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "set the start frame and then the end frame",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c26",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "But actually the result",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c27",
+          "card": "enacted/pipeline-flow",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "What this does is that",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c28",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "Higgsfield I think is the strongest",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c29",
+          "card": "statement/strike-list",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "For everything else if you're a beginner",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c30",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "Let's move on to Synthesia",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c31",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "create a video from template or blank",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c32",
+          "card": "overlay/stat-hit",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "a library of over 240 options",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c33",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "the process is not difficult or complicated",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c34",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "option to change how he speaks",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c35",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "you will see that it has this",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c36",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "Synthesia is a clear winner",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c37",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "Let's move on to HeyGen",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c38",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "You can choose to clone yourself",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c39",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "really sets HeyGen apart",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c40",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "in just a minute or two of audio",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c41",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "From that point every video you generate",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c42",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "re-renders it with a synced lip",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c43",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "HeyGen is the strongest option",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c44",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "And now finally, Arcads",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c45",
+          "card": "overlay/stat-hit",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "has over 300 options",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c46",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "the output feels noticeably more",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c47",
+          "card": "slate/kinetic-sentence",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "UGC is an entirely different world",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c48",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "select your actor, paste in your ad scripts",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c49",
+          "card": "slate/headline-chips",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "is a feature that saves real hours",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c50",
+          "card": "slate/kinetic-sentence",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "you are iterating on ad concepts",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c51",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "Arcads wins for performance",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c52",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "without showing an actor for credibility",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c53",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "So now let's talk about pricing",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c54",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "free plan starts at 40 trial credits",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c55",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "climbs over 340 credits",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c56",
+          "card": "overlay/savings-badge",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "this one is actually priced at",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c57",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "A basic image costs roughly one credit",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c58",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "this only applies to image generation",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c59",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "cost 40 to 70 credits",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c60",
+          "card": "overlay/savings-badge",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "The starter plan comes in at",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c61",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "locked behind custom priced enterprise plans",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c62",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "A single 90 second video can consume",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c63",
+          "card": "overlay/savings-badge",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "you can just get this for",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c64",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "hiring a real UGC creator",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c65",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "On pricing, every tool sets",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c66",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "takes the top spot at five over five",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c67",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "Arcads scores at three",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c68",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "and Higgsfield at 4.5",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c69",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "OpenArt leads at 4.5",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    },
+    {
+      "part": "conclusion",
+      "start": 1769.695,
+      "end": 1927.695,
+      "items": [
+        {
+          "id": "z07",
+          "card": "statement/keyword-statement",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "After going through all five",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z08",
+          "card": "section/tool-intro",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "OpenArt is definitely your tool",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z19",
+          "card": "link-in-description/link-in-description",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "I have linked it in the description",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z09",
+          "card": "enacted/spotlight-focus",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "Let's say that cinematic video",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z10",
+          "card": "enacted/before-after",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "And if you are in a professional",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z11",
+          "card": "enacted/pipeline-flow",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "Synthesia is a clear choice",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z12",
+          "card": "verdict/verdict-trophy",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "if you were a solo creator",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z13",
+          "card": "enacted/spotlight-focus",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "if you are a marketer that is performing",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z14",
+          "card": "verdict/verdict-badges",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "Arcads is built for you",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z15",
+          "card": "section/key-takeaways",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "And whichever tool you decide to go",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z16",
+          "card": "enacted/promise-split",
+          "status": "existing",
+          "placement": "fullframe",
+          "anchor": "there is no single overall winner",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z17",
+          "card": "link-in-description/link-scrim",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "Links to all five tools are once again",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z20",
+          "card": "like-subscribe/like-subscribe",
+          "status": "existing",
+          "placement": "overlay",
+          "anchor": "hit subscribe for more honest comparisons",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,425 @@
+{
+ "video": "best-ai-video-generator",
+ "items": [
+  {
+   "id": "z01",
+   "verdict": "labelled",
+   "fix": {
+    "card": "new",
+    "how": "A kinetic sentence only prints the hook, so muted it reads as a caption rather than showing five different promises — the concept's candidate-roster through-line wants a roll-call card here: five equal, blank candidate tiles land and each stamps its own one-word promise (creative hub / cinematic / corporate / solo / ad factory), which no existing card does (title-aurora-wave and title-versus show products but no per-product promise, tape-board caps at two brands)."
+   },
+   "accepted": true,
+   "resolution": "accepted as-is: the suggested fix is a NEW card, and building one stops the flow for the owner look-preview. The word-synced hook already covers second zero and never freezes, and the roster motif lands 14s later on z02."
+  },
+  {
+   "id": "z02",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z03",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z04",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z05",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z06",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c01",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c02",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c03",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c04",
+   "verdict": "labelled",
+   "fix": {
+    "card": "new",
+    "how": "A lower-third just spells out \"Sora 2, Kling 3.0 and Veo 3.1\" while the clause is about aggregation — scattered third-party model chips flying in and docking into one platform frame would enact \"aggregates premium video models under one interface\", and it would also serve OpenArt's \"100+ models under one subscription\" clause; no listed card does many-into-one (pipeline-flow is a sequential chain, icon-pills is a list)."
+   }
+  },
+  {
+   "id": "c05",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c06",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c07",
+   "verdict": "labelled",
+   "fix": {
+    "card": "checklist/audience-fit",
+    "how": "The clause names an audience (businesses, L&D, HR, marketers) and a lower-third can only print it, while audience-fit exists precisely to land persona chips one per beat — and this is a narration span where segments.json says fullframe cards are wanted."
+   }
+  },
+  {
+   "id": "c08",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c09",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c10",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c11",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c12",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c13",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c14",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c15",
+   "verdict": "labelled",
+   "fix": {
+    "card": "enacted/before-after",
+    "how": "Fourteen seconds of green pro chips sit over an idle edit grid that even shows Generation Failed tiles, in a narration span flagged \"fullframe actively wanted\"; the clause is a straight contrast (\"you don't have to redo the prompt to change one element\"), so a before/after sweep from re-prompt-from-scratch to edit-in-place enacts it."
+   }
+  },
+  {
+   "id": "c16",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c17",
+   "verdict": "labelled",
+   "fix": {
+    "card": "checklist/icon-pills",
+    "how": "A one-line tip banner prints three separate strengths (100+ models, the editing layer, character consistency) as one sentence over dead footage in a fullframe-wanted narration span — icon-pills lands each strength on its own beat so the stack visibly accumulates."
+   }
+  },
+  {
+   "id": "c18",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c19",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c20",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c21",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c22",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c23",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c24",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c25",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c26",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c27",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c28",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c29",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c30",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c31",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c32",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c33",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c34",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c35",
+   "verdict": "labelled",
+   "fix": {
+    "card": "overlay/stat-hit",
+    "how": "The load-bearing beat is the spoken number \"140 languages and accents\" and this plan already uses stat-hit for every other spoken count (240+ avatars, 300+ actors, 70+ presets), so printing this one as a text chip is the odd one out — a count-up to 140 enacts the scale."
+   }
+  },
+  {
+   "id": "c36",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c37",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c38",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c39",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c40",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c41",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c42",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c43",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c44",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c45",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c46",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c47",
+   "verdict": "labelled",
+   "fix": {
+    "card": "enacted/before-after",
+    "how": "A kinetic sentence holds \"UGC is an entirely different world\" for 10.5s (the words finish in ~2.5s, then it just sits there) and muted it communicates only by being read — a before/after sweep from a polished studio-style AI avatar to a handheld UGC actor shows the difference instead of asserting it."
+   },
+   "accepted": true,
+   "resolution": "applied — now enacted/before-after (standard AI avatar vs handheld UGC actor)"
+  },
+  {
+   "id": "c48",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c49",
+   "verdict": "labelled",
+   "fix": {
+    "card": "enacted/counter-tally",
+    "how": "Bulk creation is the single most enactable claim in the Arcads section — one script attached to many actors producing dozens of variations at once — and headline-chips reduces it to three text pills; a tally that rolls up as variation marks pile up under one script does the argument (also fixes the broken beat spacing here, where beats 1 and 2 are 1.05s apart and beat 3 is 5.3s later)."
+   },
+   "accepted": true,
+   "resolution": "applied — now enacted/pipeline-flow (One Script -> Many Actors -> Many Videos)"
+  },
+  {
+   "id": "c50",
+   "verdict": "labelled",
+   "fix": {
+    "card": "statement/strike-list",
+    "how": "The clause is literally a removal list (\"you are not waiting on creators, not coordinating shoots\"), so striking those two out and letting the accent land on the speed line enacts it, whereas a kinetic sentence carrying only the trailing half of the sentence just prints a conclusion — and it currently butts straight against the c49 fullframe with zero gap."
+   },
+   "accepted": true,
+   "resolution": "applied — now statement/strike-list (casting calls / shoot days / reshoots struck out)"
+  },
+  {
+   "id": "c51",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c52",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c53",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c54",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c55",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c56",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c57",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c58",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c59",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c60",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c61",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c62",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c63",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c64",
+   "verdict": "labelled",
+   "fix": {
+    "card": "overlay/stat-hit",
+    "how": "The screen shows the Arcads pricing page, not real-creator rates, so the banner text is the only carrier of the \"$80 to $200 per video\" comparison — a count-up hero number against the monthly plan makes the math land instead of asking the viewer to read it."
+   }
+  },
+  {
+   "id": "c65",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c66",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c67",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c68",
+   "verdict": "enacted"
+  },
+  {
+   "id": "c69",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z07",
+   "verdict": "labelled",
+   "fix": {
+    "card": "verdict/persona-match",
+    "how": "The video's thesis beat (\"here's exactly where we land, use case by case\") is delivered as a word-by-word statement that prints the thesis; persona-match is the one card built to pair a persona with its winning tool, and pairing the five personas to the five tools enacts the whole conclusion instead of announcing it."
+   },
+   "accepted": true,
+   "resolution": "applied — now verdict/persona-match, pairing the creator persona with OpenArt"
+  },
+  {
+   "id": "z08",
+   "verdict": "labelled",
+   "fix": {
+    "card": "verdict/verdict-trophy",
+    "how": "OpenArt's verdict is being delivered by section/tool-intro, a section OPENER that reads \"TOOL 1 OF 5\" — muted it says a new section is starting, not that OpenArt wins for creators and digital artists; give it the same trophy treatment HeyGen gets at z12 so all five verdicts read as verdicts."
+   },
+   "accepted": true,
+   "resolution": "applied — now verdict/verdict-trophy, matching how HeyGen is treated at z12"
+  },
+  {
+   "id": "z19",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z09",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z10",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z11",
+   "verdict": "enacted",
+   "accepted": true,
+   "resolution": "cue dropped in the audit pass (redundant device / duplicate CTA)"
+  },
+  {
+   "id": "z12",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z13",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z14",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z15",
+   "verdict": "labelled",
+   "fix": {
+    "card": "link-in-description/link-scrim",
+    "how": "key-takeaways is an end-of-video recap card but all three \"takeaways\" here are the same affiliate CTA (\"link in the description\", \"best available discount\", \"never pay full price\"), so muted it reads as a checklist of nothing; link-scrim is the sanctioned high-salience call-out for exactly this clause — and the CTA already fires at z19 and again at z17 eleven seconds later, so one of the three should be cut rather than restated."
+   },
+   "accepted": true,
+   "resolution": "cue dropped in the audit pass (redundant device / duplicate CTA)"
+  },
+  {
+   "id": "z16",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z17",
+   "verdict": "enacted"
+  },
+  {
+   "id": "z20",
+   "verdict": "enacted"
+  }
+ ]
+}

@@ -1,0 +1,251 @@
+<!doctype html>
+<!--
+  ROSTER POP · the full line-up, one tile lighting up as its tool is named
+  All tiles are on screen from frame 0 (dimmed). Each beat pops ONE tile: it
+  scales up, desaturation lifts, an accent ring draws, and the previously lit
+  tile settles back down. 1920x1080, 30fps.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change title / platforms / colors there.       │
+  │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
+  │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Built 2026-08-01 from the owner fold on best-ai-video-generator final-v3:1:
+  "Whenever a name is coming up, let's say open art, that specific logo or that
+  specific section of card can come out basically pop up." title-cinematic-float
+  is the same look but is a single-shot card, so its tiles all cascade at once
+  and cannot follow the voiceover. This is its beat-driven sibling.
+
+  Render it with
+    npx hyperframes@latest render tool-icon/roster-pop -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --bg-from: #3a1f08;
+        --bg-to: #0a0805;
+        --text: #ffffff;
+        --accent: #fb923c;
+        --accent-to: #c2410c;
+        --chip-bg: rgba(255, 255, 255, 0.05);
+        --chip-border: rgba(255, 255, 255, 0.14);
+        --font: 'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif;
+        --hero-size: 144px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: #000; font-family: var(--font); color: var(--text);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; background: #0a0805; }
+
+      #bg {
+        position: absolute; inset: 0; transform-origin: center; will-change: transform;
+        background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%);
+      }
+      #vignette {
+        position: absolute; inset: 0; pointer-events: none;
+        background: radial-gradient(ellipse at center, transparent 35%, rgba(0, 0, 0, 0.45) 100%);
+      }
+
+      #frame {
+        position: absolute; inset: 0; padding: 140px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      #content {
+        display: flex; flex-direction: column; align-items: center; gap: 56px;
+        max-width: 1700px; width: 100%;
+      }
+      #title {
+        font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0;
+        text-align: center; color: var(--text); will-change: transform, opacity;
+      }
+      #chips {
+        display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+        gap: 28px; row-gap: 32px; margin-top: 8px; position: relative;
+      }
+      /* uniform glass tile — identical footprint per brand so the row reads
+         symmetrical however many tools the video compares. */
+      .chip {
+        position: relative;
+        width: 196px; height: 218px; border-radius: 32px; background: var(--chip-bg);
+        border: 1px solid var(--chip-border);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 16px; padding: 26px 14px; flex-shrink: 0;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 22px 50px rgba(0, 0, 0, 0.38);
+        will-change: transform, opacity;
+      }
+      /* the ring that draws around the tile currently being named */
+      .chip .ring {
+        position: absolute; inset: -3px; border-radius: 35px; pointer-events: none;
+        border: 3px solid var(--accent);
+        box-shadow: 0 0 34px rgba(251, 146, 60, 0.45);
+        opacity: 0;
+      }
+      .chip .logoBox {
+        position: relative; width: 100%; height: 100px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .chip .logoBox::before {
+        content: ''; position: absolute; inset: 8% 26%; border-radius: 18px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.10) 0%, transparent 70%);
+      }
+      .chip .logoBox svg, .chip .logoBox img {
+        max-width: 86px; max-height: 86px; object-fit: contain; position: relative;
+      }
+      .chip .label {
+        font-size: 26px; font-weight: 700; letter-spacing: -0.4px; color: var(--accent);
+        line-height: 1; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+      }
+      .chip .logoBox .initial { font-size: 52px; font-weight: 900; color: var(--text); opacity: 0.92; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="roster-pop"
+      data-start="0"
+      data-duration="10"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"title":"The Five Contenders","platforms":[{"name":"OpenArt","logo":"openart"},{"name":"Higgsfield","logo":"higgsfield"},{"name":"Synthesia","logo":"synthesia"},{"name":"HeyGen","logo":"heygen"},{"name":"Arcads","logo":"arcads"}],"beats":[{"name":"OpenArt","at":1.2},{"name":"Higgsfield","at":2.6},{"name":"Synthesia","at":4.0},{"name":"HeyGen","at":5.4},{"name":"Arcads","at":6.8}]}'
+    >
+      <!-- Track 0: breathing background -->
+      <div id="bgTrack" class="clip" data-start="0" data-duration="10" data-track-index="0" style="position:absolute;inset:0;">
+        <div id="bg"></div>
+      </div>
+
+      <!-- Track 1: lens vignette -->
+      <div id="vignette" class="clip" data-start="0" data-duration="10" data-track-index="1"></div>
+
+      <!-- Track 2: content — title + roster -->
+      <div id="frame" class="clip" data-start="0" data-duration="10" data-track-index="2">
+        <div id="content">
+          <div id="title"></div>
+          <div id="chips"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+      const PLATFORMS = [
+        { name: 'OpenArt', logo: 'openart' },
+        { name: 'Higgsfield', logo: 'higgsfield' },
+        { name: 'Synthesia', logo: 'synthesia' },
+        { name: 'HeyGen', logo: 'heygen' },
+        { name: 'Arcads', logo: 'arcads' },
+      ];
+      const DATA = {
+        title: VARS.title ?? 'The Five Contenders',
+        platforms: VARS.platforms ?? PLATFORMS,
+        // Each beat names ONE platform and carries its card-relative time in
+        // seconds. The resolver fills `at` from the cue's beat anchors.
+        beats: VARS.beats ?? [
+          { name: 'OpenArt', at: 1.2 },
+          { name: 'Higgsfield', at: 2.6 },
+          { name: 'Synthesia', at: 4.0 },
+          { name: 'HeyGen', at: 5.4 },
+          { name: 'Arcads', at: 6.8 },
+        ],
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED) =====  do not edit below
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         ===================================================== */
+      const $ = (id) => document.getElementById(id);
+
+      const LOGOS = VARS.__logos ?? {}; // registry logos inlined by resolve
+      function build() {
+        $('title').textContent = DATA.title;
+        $('chips').innerHTML = DATA.platforms
+          .map((p) => {
+            const name = p.name ?? '';
+            let mark;
+            if (p.logoSvg) mark = p.logoSvg;
+            else if (p.logo && LOGOS[p.logo]) mark = `<img src="${LOGOS[p.logo]}" alt="${name}">`;
+            else mark = `<span class="initial">${(name || '?').trim().charAt(0).toUpperCase()}</span>`;
+            return `<div class="chip" data-name="${name}"><div class="ring"></div><div class="logoBox">${mark}</div><div class="label">${name}</div></div>`;
+          })
+          .join('');
+      }
+      build();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // 1) Breathing backdrop.
+      tl.fromTo('#bg', { scale: 1 }, { scale: 1.06, duration: 3.93, ease: 'sine.inOut', yoyo: true, repeat: 1 }, 0);
+
+      // 2) Title scales in.
+      tl.from('#title', { opacity: 0, scale: 0.92, duration: 1, ease: 'expo.out' }, 0);
+
+      // 3) The whole roster arrives at once, dimmed — the line-up is established
+      //    before anybody is named, so the pops read as "this one" not "here's a new one".
+      tl.from('#chips .chip', { opacity: 0, scale: 0.86, duration: 20 / 30, ease: 'expo.out', stagger: 2 / 30 }, 8 / 30);
+      tl.set('#chips .chip', { filter: 'saturate(0.25) brightness(0.62)' }, 0);
+
+      // 4) One pop per beat. The named tile lifts, brightens and rings; the
+      //    tile lit by the PREVIOUS beat settles back to the dim resting state.
+      const chipEls = gsap.utils.toArray('#chips .chip');
+      const byName = (n) => chipEls.find((el) => el.dataset.name === n);
+
+      // A fast roll-call ("OpenArt, Higgsfield, Synthesia, HeyGen and Arcads")
+      // names five tools in one breath, and cue beat anchors need 3+ words, so
+      // the plan can rarely anchor every tool. Any platform the beats do not
+      // name still pops, evenly spaced after the last anchored beat — the row
+      // never ends with some tiles permanently dark, which would read as the
+      // asymmetry the owner keeps reporting. Deterministic: times come from the
+      // clip duration, never from wall-clock.
+      const DURATION = Number(document.getElementById('root').dataset.duration) || 10;
+      const named = new Set(DATA.beats.map((b) => b.name));
+      const unnamed = DATA.platforms.map((p) => p.name).filter((n) => !named.has(n));
+      const lastAt = DATA.beats.length ? Math.max(...DATA.beats.map((b) => Number(b.at) || 0)) : 0;
+      const tail = Math.max(0, DURATION - 0.8 - lastAt);
+      const step = unnamed.length ? tail / (unnamed.length + 1) : 0;
+      const BEATS = [
+        ...DATA.beats,
+        ...unnamed.map((name, i) => ({ name, at: lastAt + step * (i + 1) })),
+      ].sort((a, b) => (Number(a.at) || 0) - (Number(b.at) || 0));
+
+      BEATS.forEach((b, i) => {
+        const el = byName(b.name);
+        if (!el) return; // a beat naming a tool that is not on the roster is a no-op, never a crash
+        const at = Math.max(0, Number(b.at) || 0);
+
+        // settle the previous one first so two tiles are never lit at once
+        const prev = i > 0 ? byName(BEATS[i - 1].name) : null;
+        if (prev && prev !== el) {
+          tl.to(prev, { scale: 1, filter: 'saturate(0.25) brightness(0.62)', duration: 0.32, ease: 'sine.out' }, at);
+          tl.to(prev.querySelector('.ring'), { opacity: 0, duration: 0.32, ease: 'sine.out' }, at);
+        }
+
+        tl.to(el, { scale: 1.14, filter: 'saturate(1) brightness(1.06)', duration: 0.42, ease: 'back.out(2.2)' }, at);
+        tl.fromTo(el.querySelector('.ring'), { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.42, ease: 'back.out(2.2)' }, at);
+        tl.to(el.querySelector('.label'), { color: '#ffffff', duration: 0.42, ease: 'sine.out' }, at);
+      });
+
+      window.__timelines['roster-pop'] = tl;
+    </script>
+  </body>
+</html>

@@ -93,14 +93,31 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
   const sortedResolved = [...validResolved].sort((a, b) => a.start - b.start);
 
   // E5 demo-coverage
+  //
+  // A section opener is the one exception. The rule exists so a card never
+  // hides the thing being demonstrated, but a section BOUNDARY is by definition
+  // the moment nothing is being demonstrated — the presenter has finished one
+  // tool and is naming the next. Forbidding it there does not protect anything,
+  // it just deletes the opener: on best-ai-video-generator the line "let's move
+  // on to HeyGen" lands at 997s, inside the Synthesia screen recording, so
+  // HeyGen was the only one of five tools with no section card and the owner
+  // reported the asymmetry (c20/c53, 2026-08-02). Bounded to a short card so
+  // the carve-out can never be used to park a long graphic over a live demo.
+  const SECTION_OPENER_DEMO_MAX = 8;
   for (const r of sortedResolved) {
     const cat = bySlug[r.card];
     if (!cat || cat.placement !== 'fullframe') continue;
     const k = kindAt(r.start);
-    if (k === 'demo' || k === 'playback') {
-      const msg = `E5 demo-coverage: ${r.id} (${r.card}, fullframe, ${r.duration}s) starts at ${r.start.toFixed(1)}s inside a ${k} segment — a fullframe card replaces the screen recording. Use an overlay card, or move the cue into a narration stretch.`;
-      (confirmed ? errors : warnings).push(msg);
-    }
+    if (k !== 'demo' && k !== 'playback') continue;
+    const isOpener = Array.isArray(cat.roles) && cat.roles.includes('section-opener');
+    // `playback` is a sample clip playing — that IS the proof shot, and covering
+    // it is never right, opener or not.
+    if (isOpener && k === 'demo' && r.duration <= SECTION_OPENER_DEMO_MAX) continue;
+    const why = isOpener && k === 'demo'
+      ? ` — a section opener may cover demo footage, but only up to ${SECTION_OPENER_DEMO_MAX}s; this one runs ${r.duration}s`
+      : ' — a fullframe card replaces the screen recording. Use an overlay card, or move the cue into a narration stretch.';
+    const msg = `E5 demo-coverage: ${r.id} (${r.card}, fullframe, ${r.duration}s) starts at ${r.start.toFixed(1)}s inside a ${k} segment${why}`;
+    (confirmed ? errors : warnings).push(msg);
   }
 
 

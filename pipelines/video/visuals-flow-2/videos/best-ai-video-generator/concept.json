@@ -1,0 +1,23 @@
+{
+  "video": "best-ai-video-generator",
+  "thesis": "There is no best AI video generator — the five tools are specialists competing for five different creators, so the only comparison that matters is which one fits the job you need done.",
+  "frame": "This is a hiring decision, not a talent show: you are interviewing five specialist candidates against one job description — yours — so every demo is an interview task, the pricing section is the salary negotiation, and the summary table is the hiring scorecard.",
+  "throughline": {
+    "name": "the-candidate-roster",
+    "description": "A five-slot candidate roster: one card per tool (OpenArt, Higgsfield, Synthesia, HeyGen, Arcads), styled like a hiring shortlist.",
+    "evolution": "Opens as five blank, equal candidate cards in the intro roll call; after each tool's demo its card earns a specialty stamp (creative hub / cinematic director / corporate presenter / solo studio / ad factory); the pricing section pins a salary tag on every card; the summary table fills each card's scorecard row by row; in the conclusion no card is crowned — instead each card is handed to the persona it was hired for, ending as five filled offers to five different people."
+  },
+  "registers": [
+    { "from_anchor": "5 AI video tools, 5 very", "to_anchor": "built for the same person", "register": "dark" },
+    { "from_anchor": "Today, we are looking at OpenArt", "to_anchor": "now let's get into it", "register": "light" },
+    { "from_anchor": "Now before we get into the demo", "to_anchor": "Let's start with OpenArt", "register": "light" },
+    { "from_anchor": "that's basically how you're going to edit it", "to_anchor": "test out its strongest feature", "register": "light" },
+    { "from_anchor": "Higgsfield also has its Soul ID", "to_anchor": "Higgsfield earns its spot", "register": "light" },
+    { "from_anchor": "For everything else if you're a beginner", "to_anchor": "is actually quite limited", "register": "dark" },
+    { "from_anchor": "Let's move on to Synthesia", "to_anchor": "built around simplicity", "register": "light" },
+    { "from_anchor": "finally, Arcads. This one is different", "to_anchor": "meets the standard", "register": "light" },
+    { "from_anchor": "is a feature that saves real hours", "to_anchor": "the man actually works", "register": "light" },
+    { "from_anchor": "So now let's talk about pricing", "to_anchor": "looking at the headline", "register": "dark" },
+    { "from_anchor": "After going through all five", "to_anchor": "see you in the next video", "register": "light" }
+  ]
+}

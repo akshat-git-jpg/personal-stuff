@@ -57,8 +57,14 @@
       #logo { width: 150px; height: 150px; object-fit: contain; filter: saturate(0.5) brightness(0.95); opacity: 0.9; will-change: transform, opacity; }
 
       #name { font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); will-change: transform, opacity; }
-      /* subtitle carries the accent — the descriptor line under the hero name */
-      #subtitle { font-size: 32px; font-weight: 500; color: var(--accent); margin-top: 18px; will-change: opacity; }
+      /* subtitle carries the accent: the descriptor line under the hero name.
+         40px keeps the hero/descriptor spread at 3.75x, inside the 4x ceiling
+         DESIGN.md sets. It was 32px (4.69x) with an 18px gap, and against a
+         150px hero on line-height 1.0 that read as one crushed block — owner
+         c01 2026-08-02, "heading and small text below are too close ... pls
+         increase text size of 2nd line". Do not shrink either number without
+         re-checking the ratio. */
+      #subtitle { font-size: 40px; font-weight: 500; color: var(--accent); margin-top: 34px; will-change: opacity; }
     </style>
   </head>
   <body>

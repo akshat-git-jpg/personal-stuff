@@ -112,6 +112,13 @@ for (const card of catalog.cards ?? []) {
     }
   }
 
+  // Both remaining rules are about TEXT styling. A hero_shape "none" card has
+  // no text at all by design (enacted/promise-shelf is a lit product shot whose
+  // approved look is "no text anywhere"), so demanding an accented word and
+  // hero tracking on it is a false positive. The --hero-size guard above still
+  // stops "none" being used to smuggle a hero past the floor.
+  if (shape === 'none') continue;
+
   if (!/color:\s*var\(--accent\)/.test(css)) {
     errors.push(`${card.slug}: no text element uses color: var(--accent) — every fullframe card accents one word or label`);
   }

@@ -1,0 +1,131 @@
+{
+  "video": "best-ai-video-generator",
+  "confirmed": true,
+  "structure": [
+    {
+      "part": "intro",
+      "start": 0,
+      "end": 86.733
+    },
+    {
+      "part": "body",
+      "start": 86.733,
+      "end": 1769.695
+    },
+    {
+      "part": "conclusion",
+      "start": 1769.695,
+      "end": 1927.695
+    }
+  ],
+  "segments": [
+    {
+      "kind": "narration",
+      "start": 0,
+      "end": 86.733,
+      "note": "intro zone: hook, five-tool roll call, agenda — spoken over quick homepage flybys, nothing on screen is proof; fullframe cards wanted"
+    },
+    {
+      "kind": "narration",
+      "start": 86.733,
+      "end": 178,
+      "note": "spoken overview of each of the 5 tools over homepage/dashboard flybys (OpenArt, Higgsfield, Synthesia, HeyGen, Arcads) — screen is illustrative, not demonstrated; fullframe cards wanted"
+    },
+    {
+      "kind": "demo",
+      "start": 178,
+      "end": 362,
+      "note": "OpenArt hands-on: dashboard tour, model list (Veo 3.1/Kling/Seedance), text-to-video prompt setup and generation — overlay only"
+    },
+    {
+      "kind": "playback",
+      "start": 362,
+      "end": 384,
+      "note": "the OpenArt-generated clip plays in the player with its own sound (breakfast scene) — this IS the output being judged, never cover it"
+    },
+    {
+      "kind": "demo",
+      "start": 384,
+      "end": 420,
+      "note": "OpenArt edit-video workflow (Kling O1 modify) — overlay only"
+    },
+    {
+      "kind": "narration",
+      "start": 420,
+      "end": 500,
+      "note": "OpenArt verdict (very helpful, breadth none of the others match) spoken over an idle edit grid that even shows Generation Failed tiles — fullframe cards actively wanted here"
+    },
+    {
+      "kind": "demo",
+      "start": 500,
+      "end": 670,
+      "note": "Higgsfield hands-on: Cinema Studio, genre presets, camera movement/director panel, start+end frames, generate — overlay only"
+    },
+    {
+      "kind": "playback",
+      "start": 670,
+      "end": 697,
+      "note": "the Higgsfield-generated clip plays FULLSCREEN (kitchen scene) — the cinematic-quality proof, never cover it"
+    },
+    {
+      "kind": "narration",
+      "start": 697,
+      "end": 775,
+      "note": "Higgsfield verdict (camera intentionality unmatched; video-only, no image side) over UI/character-page flyby — fullframe ok"
+    },
+    {
+      "kind": "demo",
+      "start": 775,
+      "end": 1010,
+      "note": "Synthesia hands-on: template picker, scene editor, avatar voice/persona options, interactive quiz template preview — overlay only"
+    },
+    {
+      "kind": "demo",
+      "start": 1010,
+      "end": 1195,
+      "note": "HeyGen hands-on: avatar video from one-liner script, avatar picker, voice clone recording/upload, video dubbing/translate — overlay only"
+    },
+    {
+      "kind": "narration",
+      "start": 1195,
+      "end": 1255,
+      "note": "Arcads positioning: not a general creative tool, built for UGC ads — spoken over the Arcads landing page; fullframe ok"
+    },
+    {
+      "kind": "demo",
+      "start": 1255,
+      "end": 1295,
+      "note": "Arcads hands-on: sign in, create your AI ad flow — overlay only"
+    },
+    {
+      "kind": "playback",
+      "start": 1295,
+      "end": 1318,
+      "note": "an Arcads sample AI-actor ad plays (vertical UGC clip) — the realism proof, never cover it"
+    },
+    {
+      "kind": "narration",
+      "start": 1318,
+      "end": 1385,
+      "note": "Arcads verdict (real hours and budget saved, volume around one character) and the setup into the pricing section — fullframe ok"
+    },
+    {
+      "kind": "demo",
+      "start": 1385,
+      "end": 1635,
+      "note": "pricing pages of all 5 tools read off screen (Higgsfield tiers, Synthesia starter/creator/enterprise, Arcads plans, OpenArt, HeyGen) — overlay stat-hits over the real page, no fullframe price card duplicating it"
+    },
+    {
+      "kind": "demo",
+      "start": 1635,
+      "end": 1769.695,
+      "note": "the scored SUMMARY TABLE is on screen and read row by row (ease of use, features, output quality, use-case fit, pricing) — a fullframe comparison card would duplicate the screen; overlay score hits only"
+    },
+    {
+      "kind": "narration",
+      "start": 1769.695,
+      "end": 1927.695,
+      "note": "conclusion zone: per-use-case verdicts (cinematic=Higgsfield, breadth=OpenArt, corporate=Synthesia, solo=HeyGen, paid ads=Arcads) over homepage flybys, then CTA — fullframe cards wanted"
+    }
+  ]
+}

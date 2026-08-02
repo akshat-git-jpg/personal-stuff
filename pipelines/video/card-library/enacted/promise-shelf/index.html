@@ -1,0 +1,254 @@
+<!doctype html>
+<!--
+  PROMISE SHELF · five pedestals, five different promises, focus that never settles
+  Deep charcoal room lit by a warm amber key from the upper left. Five identical
+  matte-black plinths stand in a row, each holding a different glass object, each
+  object glowing at its own colour temperature. A shallow depth of field walks
+  the row: one plinth snaps sharp while the rest fall off. It never settles on a
+  winner, which is the whole point of the sentence it plays under.
+  1920x1080, 30fps.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  EDITOR: you ONLY ever touch the  ===== CONTENT =====  block and          │
+  │  the  :root  colors below. Change items / colors there.                   │
+  │  Do NOT touch the  ===== TIMELINE (LOCKED) =====  script — that's the     │
+  │  motion. Ask Gemini: "only change DATA and :root, never the timeline."    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Built 2026-08-01. The owner rejected the previous opener (a word-synced hook
+  sentence) on best-ai-video-generator final-v3:0 and approved this look from a
+  Gemini prompt preview before any code was written:
+    "A dark cinematic product shot, deep charcoal background with a warm amber
+     key light from the upper left. Five identical matte-black pedestals in a
+     row, each holding a different abstract glass object... the third pedestal
+     in sharp focus and the others falling off... no text anywhere."
+  Deliberately headline-less (hero_shape none) because the approved look has no
+  text in it; the voiceover carries the claim.
+
+  Render it with
+    npx hyperframes@latest render enacted/promise-shelf -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* ===== THEME (editor may change these colors) ===== */
+      :root {
+        --room: #131110;
+        --room-lift: #4a2b0d;
+        --key: rgba(251, 176, 96, 0.46);
+        --plinth-top: #4a443d;
+        --plinth-face: #2b2723;
+        --plinth-edge: rgba(255, 255, 255, 0.26);
+        --floor: rgba(0, 0, 0, 0.55);
+        --font: 'Helvetica Neue', Arial, system-ui, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: #000; font-family: var(--font);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; background: var(--room); }
+
+      /* the room: a deep charcoal field lifted by one warm key from upper left */
+      #room {
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(120% 90% at 18% 8%, var(--room-lift) 0%, transparent 55%),
+          radial-gradient(90% 70% at 50% 120%, rgba(255,255,255,0.03) 0%, transparent 60%),
+          var(--room);
+      }
+      #key {
+        position: absolute; inset: 0; pointer-events: none; will-change: opacity, transform;
+        background: radial-gradient(46% 60% at 14% 2%, var(--key) 0%, transparent 62%);
+      }
+      #vignette {
+        position: absolute; inset: 0; pointer-events: none;
+        background: radial-gradient(ellipse at center, transparent 32%, rgba(0,0,0,0.62) 100%);
+      }
+
+      #stage {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+      }
+      #row {
+        display: flex; align-items: flex-end; justify-content: center;
+        gap: 74px; padding-bottom: 40px;
+      }
+
+      /* one pedestal: object floating above a matte-black plinth */
+      .ped {
+        position: relative; width: 218px;
+        display: flex; flex-direction: column; align-items: center; gap: 26px;
+        will-change: transform, filter, opacity;
+      }
+      .obj {
+        position: relative; width: 150px; height: 150px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      /* the glow each object sits in — colour temperature varies per item */
+      .obj .halo {
+        position: absolute; width: 150px; height: 150px; border-radius: 50%;
+        filter: blur(20px); opacity: 0.38;
+      }
+      .obj svg { position: relative; width: 118px; height: 118px; overflow: visible; }
+      /* glass: a bright rim, a dim fill, and a soft inner sheen */
+      .obj svg .glass-fill { fill: rgba(255, 255, 255, 0.11); }
+      .obj svg .glass-line { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+
+      .plinth {
+        position: relative; width: 196px; height: 236px;
+        background: linear-gradient(180deg, var(--plinth-top) 0%, var(--plinth-face) 58%, #1a1715 100%);
+        border-radius: 6px 6px 3px 3px;
+        border-top: 1px solid var(--plinth-edge);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 40px 60px rgba(0,0,0,0.55);
+      }
+      /* the lit left face — the key comes from upper left, so every plinth
+         catches it on the same side. Uniformity is the point: identical
+         pedestals, different objects. */
+      .plinth::before {
+        content: ''; position: absolute; inset: 0; border-radius: inherit;
+        background: linear-gradient(100deg, rgba(255, 190, 122, 0.34) 0%, transparent 46%);
+      }
+      /* contact shadow pooling on the floor */
+      .plinth::after {
+        content: ''; position: absolute; left: 50%; bottom: -26px; transform: translateX(-50%);
+        width: 250px; height: 42px; border-radius: 50%;
+        background: radial-gradient(ellipse, var(--floor) 0%, transparent 70%);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="promise-shelf"
+      data-start="0"
+      data-duration="12"
+      data-width="1920"
+      data-height="1080"
+      data-composition-variables='{"items":[{"object":"reel","tint":"#ffb066"},{"object":"lens","tint":"#9ad8ff"},{"object":"bubble","tint":"#c9a6ff"},{"object":"bust","tint":"#ffd08a"},{"object":"tag","tint":"#8affc4"}],"beats":[{"focus":2,"at":1.6},{"focus":4,"at":3.4},{"focus":1,"at":5.2},{"focus":5,"at":7.0},{"focus":3,"at":8.8}]}'
+    >
+      <!-- Track 0: the room -->
+      <div id="roomTrack" class="clip" data-start="0" data-duration="12" data-track-index="0" style="position:absolute;inset:0;">
+        <div id="room"></div>
+        <div id="key"></div>
+      </div>
+
+      <!-- Track 1: the shelf -->
+      <div id="stage" class="clip" data-start="0" data-duration="12" data-track-index="1">
+        <div id="row"></div>
+      </div>
+
+      <!-- Track 2: lens vignette -->
+      <div id="vignette" class="clip" data-start="0" data-duration="12" data-track-index="2"></div>
+    </div>
+
+    <script>
+      /* =====================================================
+         ===== CONTENT =====  (editor / Gemini edits ONLY this)
+         ===================================================== */
+      const VARS =
+        (window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : null) || {};
+
+      const DATA = {
+        // Five plinths, five objects. `object` picks a glyph from SHAPES below;
+        // `tint` is that object's colour temperature (the glass rim + its halo).
+        items: VARS.items ?? [
+          { object: 'reel', tint: '#ffb066' },
+          { object: 'lens', tint: '#9ad8ff' },
+          { object: 'bubble', tint: '#c9a6ff' },
+          { object: 'bust', tint: '#ffd08a' },
+          { object: 'tag', tint: '#8affc4' },
+        ],
+        // Each beat pulls focus to ONE plinth (1-based). The resolver fills `at`.
+        beats: VARS.beats ?? [
+          { focus: 2, at: 1.6 },
+          { focus: 4, at: 3.4 },
+          { focus: 1, at: 5.2 },
+          { focus: 5, at: 7.0 },
+          { focus: 3, at: 8.8 },
+        ],
+      };
+
+      /* =====================================================
+         ===== TIMELINE (LOCKED) =====  do not edit below
+         GSAP timeline: paused + registered + deterministic (frame-seekable).
+         ===================================================== */
+      const SHAPES = {
+        // abstract glass objects, one per promise the tools make
+        reel:   '<circle cx="32" cy="32" r="25" class="glass-fill"/><circle cx="32" cy="32" r="25" class="glass-line"/><circle cx="32" cy="32" r="6" class="glass-line"/><circle cx="32" cy="17" r="5" class="glass-line"/><circle cx="32" cy="47" r="5" class="glass-line"/><circle cx="17" cy="32" r="5" class="glass-line"/><circle cx="47" cy="32" r="5" class="glass-line"/>',
+        lens:   '<circle cx="32" cy="32" r="25" class="glass-fill"/><circle cx="32" cy="32" r="25" class="glass-line"/><circle cx="32" cy="32" r="14" class="glass-line"/><path d="M32 7 L32 18 M57 32 L46 32 M32 57 L32 46 M7 32 L18 32" class="glass-line"/>',
+        bubble: '<path d="M10 20 q0-8 8-8 h28 q8 0 8 8 v18 q0 8-8 8 h-18 l-12 10 v-10 h2 q-8 0-8-8 z" class="glass-fill"/><path d="M10 20 q0-8 8-8 h28 q8 0 8 8 v18 q0 8-8 8 h-18 l-12 10 v-10 h2 q-8 0-8-8 z" class="glass-line"/>',
+        bust:   '<circle cx="32" cy="21" r="11" class="glass-fill"/><circle cx="32" cy="21" r="11" class="glass-line"/><path d="M12 56 q0-18 20-18 q20 0 20 18" class="glass-fill"/><path d="M12 56 q0-18 20-18 q20 0 20 18" class="glass-line"/>',
+        tag:    '<path d="M34 8 h18 q4 0 4 4 v18 l-26 26 q-3 3-6 0 L8 40 q-3-3 0-6 z" class="glass-fill"/><path d="M34 8 h18 q4 0 4 4 v18 l-26 26 q-3 3-6 0 L8 40 q-3-3 0-6 z" class="glass-line"/><circle cx="46" cy="18" r="4" class="glass-line"/>',
+      };
+
+      const $ = (id) => document.getElementById(id);
+
+      function build() {
+        $('row').innerHTML = DATA.items
+          .map((it) => {
+            const tint = it.tint || '#ffb066';
+            const glyph = SHAPES[it.object] || SHAPES.lens;
+            return (
+              '<div class="ped">' +
+                '<div class="obj">' +
+                  '<div class="halo" style="background:' + tint + '"></div>' +
+                  '<svg viewBox="0 0 64 64" style="stroke:' + tint + '">' + glyph + '</svg>' +
+                '</div>' +
+                '<div class="plinth"></div>' +
+              '</div>'
+            );
+          })
+          .join('');
+        // stroke colour rides on the svg element; the class only sets geometry
+        document.querySelectorAll('.obj svg .glass-line').forEach((el) => {
+          el.setAttribute('stroke', el.closest('svg').style.stroke);
+        });
+      }
+      build();
+
+      const peds = gsap.utils.toArray('#row .ped');
+      const DURATION = Number($('root').dataset.duration) || 12;
+      const REST = { blur: 4.5, scale: 0.965, opacity: 0.74 }; // out of focus, still legible
+      const SHARP = { blur: 0, scale: 1.045, opacity: 1 };    // in focus
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // 1) The key light breathes once across the clip — a lamp, not a strobe.
+      tl.fromTo('#key', { opacity: 0.72, x: -22 }, { opacity: 1, x: 10, duration: DURATION / 2, ease: 'sine.inOut', yoyo: true, repeat: 1 }, 0);
+
+      // 2) The shelf assembles: plinths rise, objects settle onto them. Everything
+      //    lands slightly soft, so the first focus pull has somewhere to go.
+      tl.from('#row .ped', { y: 46, opacity: 0, duration: 0.9, ease: 'expo.out', stagger: 0.09 }, 0);
+      tl.set('#row .ped', { filter: 'blur(' + REST.blur + 'px)', scale: REST.scale, opacity: REST.opacity }, 0.9);
+
+      // 3) Depth of field walks the row. Each beat snaps ONE plinth sharp and
+      //    lets the rest fall off. It never rests on one, which is the claim:
+      //    five different promises, none of them built for the same person.
+      const beats = [...DATA.beats].sort((a, b) => (Number(a.at) || 0) - (Number(b.at) || 0));
+      beats.forEach((b) => {
+        const i = Math.round(Number(b.focus)) - 1;
+        if (!(i >= 0 && i < peds.length)) return; // a beat naming a missing plinth is a no-op
+        const at = Math.max(0, Number(b.at) || 0);
+        peds.forEach((el, j) => {
+          const target = j === i ? SHARP : REST;
+          tl.to(el, {
+            filter: 'blur(' + target.blur + 'px)',
+            scale: target.scale,
+            opacity: target.opacity,
+            duration: 0.55,
+            ease: 'sine.inOut',
+          }, at);
+        });
+      });
+
+      window.__timelines['promise-shelf'] = tl;
+    </script>
+  </body>
+</html>

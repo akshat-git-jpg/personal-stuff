@@ -71,8 +71,15 @@
         -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
         font-feature-settings: 'tnum';
       }
+      /* padding-right mirrors padding-left so the text block sits evenly inside
+         the plate. Without it the accent rule's 28px inset only applied on the
+         left, so the title sat 92px from the left edge and 64px from the right
+         and the plate looked lopsided — owner c20 2026-08-02, "right side
+         spacing looks off, pls think long term and permanent fix". Keep the two
+         values equal; that IS the fix. */
       #meta {
-        display: flex; flex-direction: column; gap: 6px; padding-left: 28px;
+        display: flex; flex-direction: column; gap: 6px;
+        padding-left: 28px; padding-right: 28px;
         border-left: 1px solid rgba(255, 255, 255, 0.18);
       }
       #meta .label {

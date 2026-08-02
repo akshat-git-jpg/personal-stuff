@@ -1,0 +1,1800 @@
+{
+ "video": "best-ai-video-generator",
+ "approved": false,
+ "cues": [
+  {
+   "id": "z01",
+   "zone": "intro",
+   "card": "slate/kinetic-sentence",
+   "anchor": "5 AI video tools",
+   "lead": 0,
+   "hold": 1,
+   "variables": {
+    "text": "5 AI video tools, 5 very different promises",
+    "accent": "5 very different promises"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false,
+   "legacy_why": "covers second zero and stays word-synced so the opening frame is never static. The owner disliked this card (final-v3:0); its replacement is pending a look-preview verdict, so it stays until then"
+  },
+  {
+   "id": "z02",
+   "zone": "intro",
+   "card": "tool-icon/roster-pop",
+   "anchor": "Today, we are",
+   "lead": 0.3,
+   "hold": 4,
+   "variables": {
+    "title": "The Five Contenders",
+    "platforms": [
+     {
+      "name": "OpenArt",
+      "logo": "openart"
+     },
+     {
+      "name": "Higgsfield",
+      "logo": "higgsfield"
+     },
+     {
+      "name": "Synthesia",
+      "logo": "synthesia"
+     },
+     {
+      "name": "HeyGen",
+      "logo": "heygen"
+     },
+     {
+      "name": "Arcads",
+      "logo": "arcads"
+     }
+    ]
+   },
+   "beats": [
+    {
+     "reveal": {
+      "name": "OpenArt"
+     },
+     "anchor": "looking at OpenArt,"
+    },
+    {
+     "reveal": {
+      "name": "Higgsfield"
+     },
+     "anchor": "Higgsfield, Synthesia, HeyGen"
+    },
+    {
+     "reveal": {
+      "name": "Synthesia"
+     },
+     "anchor": "and Arcads. And"
+    }
+   ],
+   "register": "light",
+   "motif": true,
+   "flagged": false
+  },
+  {
+   "id": "z03",
+   "zone": "intro",
+   "card": "statement/promise-payoff",
+   "anchor": "I want to be upfront about how we approached it",
+   "lead": 0.5,
+   "hold": 2,
+   "variables": {
+    "question": "One overall winner?",
+    "options": [
+     {
+      "label": "Best overall"
+     },
+     {
+      "label": "Best for you"
+     }
+    ]
+   },
+   "beats": [
+    {
+     "reveal": {
+      "label": "Best overall"
+     },
+     "anchor": "I did not go in looking"
+    },
+    {
+     "reveal": {
+      "label": "Best for you"
+     },
+     "anchor": "is not which one is best"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "z04",
+   "zone": "intro",
+   "card": "enacted/pipeline-flow",
+   "anchor": "So I tested all 5 across the",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "title": "How I Tested",
+    "steps": [
+     {
+      "step": "Features",
+      "icon": "list"
+     },
+     {
+      "step": "Quality & Workflow",
+      "icon": "video"
+     },
+     {
+      "step": "Pricing",
+      "icon": "wallet"
+     }
+    ]
+   },
+   "beats": [
+    {
+     "reveal": {
+      "step": "Features"
+     },
+     "anchor": "such as features"
+    },
+    {
+     "reveal": {
+      "step": "Quality & Workflow"
+     },
+     "anchor": "output quality, workflow"
+    },
+    {
+     "reveal": {
+      "step": "Pricing"
+     },
+     "anchor": "and pricing. I will"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "z06",
+   "zone": "intro",
+   "card": "link-in-description/link-scrim",
+   "anchor": "All 5 platforms in the description below",
+   "lead": 0.3,
+   "hold": 3,
+   "variables": {},
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c01",
+   "card": "tool-icon/tool-glass-tile",
+   "anchor": "First up is the OpenArt",
+   "lead": 0.5,
+   "hold": 5,
+   "variables": {
+    "logo": "openart",
+    "name": "OpenArt",
+    "subtitle": "Full creative workspace"
+   },
+   "beats": [],
+   "register": "light",
+   "motif": true,
+   "legacy_why": "single-tool hero moment; no enacted device introduces a tool",
+   "flagged": false
+  },
+  {
+   "id": "c02",
+   "card": "checklist/icon-pills",
+   "anchor": "It also covers",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "icon": "star",
+      "text": "Image generation"
+     },
+     "anchor": "image generation, video creation"
+    },
+    {
+     "reveal": {
+      "icon": "person",
+      "text": "Character consistency"
+     },
+     "anchor": "character consistency, custom"
+    },
+    {
+     "reveal": {
+      "icon": "brain",
+      "text": "Custom model training"
+     },
+     "anchor": "model training, storytelling"
+    },
+    {
+     "reveal": {
+      "icon": "chat",
+      "text": "Storytelling and audio"
+     },
+     "anchor": "workflows and audio"
+    }
+   ],
+   "register": "light",
+   "legacy_why": "spoken capability list; checklist family is the routed device and no enacted card enumerates",
+   "flagged": false
+  },
+  {
+   "id": "c03",
+   "card": "tool-icon/tool-glass-tile",
+   "anchor": "On the other hand, Higgsfield",
+   "lead": 0.5,
+   "hold": 5,
+   "variables": {
+    "logo": "higgsfield",
+    "name": "Higgsfield",
+    "subtitle": "Director level camera control"
+   },
+   "beats": [],
+   "register": "light",
+   "motif": true,
+   "legacy_why": "single-tool hero moment; no enacted device introduces a tool",
+   "flagged": false
+  },
+  {
+   "id": "c04",
+   "card": "overlay/lower-third",
+   "anchor": "premium video models like Sora",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "name": "Premium Models",
+    "subtitle": "Sora 2, Kling 3.0 and Veo 3.1"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c05",
+   "card": "overlay/stat-hit",
+   "anchor": "with over 70 camera presets",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "eyebrow": "Cinema Studio",
+    "logo": "higgsfield",
+    "value": 70,
+    "suffix": "+",
+    "context": "Camera presets built into one panel"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c06",
+   "card": "tool-icon/tool-glass-tile",
+   "anchor": "Synthesia is an AI avatar",
+   "lead": 0.5,
+   "hold": 5,
+   "variables": {
+    "logo": "synthesia",
+    "name": "Synthesia",
+    "subtitle": "AI avatars for corporate video"
+   },
+   "beats": [],
+   "register": "light",
+   "motif": true,
+   "legacy_why": "single-tool hero moment; no enacted device introduces a tool",
+   "flagged": false
+  },
+  {
+   "id": "c07",
+   "card": "overlay/lower-third",
+   "anchor": "It is built for businesses, L&D teams",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "name": "Synthesia",
+    "subtitle": "Built for L&D, HR and Marketing"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c08",
+   "card": "section/section-card-flip",
+   "anchor": "Let's start with OpenArt AI",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "title": "OpenArt"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c09",
+   "card": "overlay/tip-banner",
+   "anchor": "whether you want to do frame",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "info",
+    "label": "Creation Modes",
+    "text": "Frame to video, text to video, or edit video",
+    "edge": "bottom",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c10",
+   "card": "overlay/tip-banner",
+   "anchor": "you can see all of the models",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "info",
+    "label": "Model Selector",
+    "text": "Every major model lives on one platform",
+    "edge": "bottom",
+    "variant": "b"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c11",
+   "card": "overlay/tip-banner",
+   "anchor": "I would recommend VU Veo",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "4K Output",
+    "text": "Veo generates high fidelity 4K with audio",
+    "edge": "top",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c12",
+   "card": "overlay/tip-banner",
+   "anchor": "You can also add reference images",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "Consistency",
+    "text": "Reference images keep subjects consistent",
+    "edge": "bottom",
+    "variant": "b"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c13",
+   "card": "overlay/tip-banner",
+   "anchor": "Take note that in every tool",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "warning",
+    "label": "Credits",
+    "text": "Every setting you change moves the credit cost",
+    "edge": "top",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c14",
+   "card": "overlay/tip-banner",
+   "anchor": "click on modify video",
+   "lead": 0,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "Edit Layer",
+    "text": "Change elements without regenerating the video",
+    "edge": "bottom",
+    "variant": "b"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c15",
+   "card": "overlay/verdict-chips",
+   "anchor": "especially with most AIs",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "text": "Most AI tools skip editing",
+      "verdict": "yes"
+     },
+     "anchor": "not offering this feature"
+    },
+    {
+     "reveal": {
+      "text": "No re-prompting to edit",
+      "verdict": "yes"
+     },
+     "anchor": "you don't have to redo the pump"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c16",
+   "card": "statement/keyword-statement",
+   "anchor": "And so I think on the creative workspace side",
+   "lead": 1,
+   "hold": 3,
+   "variables": {
+    "text": "On creative breadth, OpenArt is in a category of its own",
+    "keyword": "a category of its own"
+   },
+   "beats": [],
+   "register": "light",
+   "motif": false,
+   "flagged": false,
+   "legacy_why": "a single spoken claim about one tool; every roster-showing device is barred here because showing all five and lighting one implies the same treatment for the other four"
+  },
+  {
+   "id": "c17",
+   "card": "overlay/tip-banner",
+   "anchor": "the editing layer as well",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "info",
+    "label": "Under the Hood",
+    "text": "Over 100 models, editing, character consistency",
+    "edge": "bottom",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c18",
+   "card": "checklist/icon-pills",
+   "anchor": "You can see that we have more options",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "icon": "bolt",
+      "text": "Videos and images"
+     },
+     "anchor": "create videos, images"
+    },
+    {
+     "reveal": {
+      "icon": "cloud",
+      "text": "Worlds and audio"
+     },
+     "anchor": "worlds, audio as well"
+    },
+    {
+     "reveal": {
+      "icon": "person",
+      "text": "Consistent characters"
+     },
+     "anchor": "as character. And aside"
+    }
+   ],
+   "register": "light",
+   "legacy_why": "spoken capability list; checklist family is the routed device and no enacted card enumerates",
+   "flagged": false
+  },
+  {
+   "id": "c19",
+   "card": "overlay/verdict-chips",
+   "anchor": "it gives you a level of creative control",
+   "lead": 0.2,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "text": "Control others can't match",
+      "verdict": "yes"
+     },
+     "anchor": "none of the others come close"
+    },
+    {
+     "reveal": {
+      "text": "The full workflow home",
+      "verdict": "yes"
+     },
+     "anchor": "this is definitely where you should come"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c20",
+   "card": "section/section-card-flip",
+   "anchor": "let's now move over to Higgsfield AI",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "title": "Higgsfield"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c21",
+   "card": "overlay/tip-banner",
+   "anchor": "its strongest feature which is",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "info",
+    "label": "Cinema Studio",
+    "text": "Higgsfield strongest feature, tested first",
+    "edge": "bottom",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c22",
+   "card": "overlay/lower-third",
+   "anchor": "you will immediately notice what sets this platform apart",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "name": "Director Panel",
+    "subtitle": "What Sets Higgsfield Apart"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c23",
+   "card": "overlay/tip-banner",
+   "anchor": "print shots, crash zooms, dolly moves",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "info",
+    "label": "Camera Moves",
+    "text": "Crash zooms, dolly moves, rack focus built in",
+    "edge": "bottom",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c24",
+   "card": "overlay/tip-banner",
+   "anchor": "we can do a directional decision",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "Direct First",
+    "text": "You direct the scene before you generate it",
+    "edge": "top",
+    "variant": "b"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c25",
+   "card": "overlay/tip-banner",
+   "anchor": "set the start frame and then the end frame",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "Keyframes",
+    "text": "Start and end frames steer the whole shot",
+    "edge": "bottom",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c26",
+   "card": "overlay/verdict-chips",
+   "anchor": "But actually the result",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "text": "Cinematic results deliver",
+      "verdict": "yes"
+     },
+     "anchor": "speaks for itself"
+    },
+    {
+     "reveal": {
+      "text": "Long generation waits",
+      "verdict": "no"
+     },
+     "anchor": "you may have to wait for a long time"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c27",
+   "card": "enacted/pipeline-flow",
+   "anchor": "What this does is that",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {
+    "title": "Soul ID",
+    "steps": [
+     {
+      "step": "Upload Reference",
+      "icon": "image"
+     },
+     {
+      "step": "Face Locks",
+      "icon": "lock"
+     },
+     {
+      "step": "Every Clip",
+      "icon": "video"
+     }
+    ]
+   },
+   "beats": [
+    {
+     "reveal": {
+      "step": "Upload Reference"
+     },
+     "anchor": "you can just upload a reference"
+    },
+    {
+     "reveal": {
+      "step": "Face Locks"
+     },
+     "anchor": "locks in the face for use across"
+    },
+    {
+     "reveal": {
+      "step": "Every Clip"
+     },
+     "anchor": "works well for video focused"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c28",
+   "card": "overlay/verdict-chips",
+   "anchor": "Higgsfield I think is the strongest",
+   "lead": 1.2,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "text": "Strongest cinematic tool here",
+      "verdict": "yes"
+     },
+     "anchor": "cinematic video tool in this"
+    },
+    {
+     "reveal": {
+      "text": "Motion in its own league",
+      "verdict": "yes"
+     },
+     "anchor": "camera control and motion quality are in the league"
+    },
+    {
+     "reveal": {
+      "text": "Narrow outside video",
+      "verdict": "no"
+     },
+     "anchor": "outside of video the toolkit"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c29",
+   "card": "statement/strike-list",
+   "anchor": "For everything else if you're a beginner",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {
+    "title": "Where Higgsfield Falls Short",
+    "marker": "Short",
+    "items": [
+     {
+      "label": "Free credits",
+      "icon": "bolt"
+     },
+     {
+      "label": "Standalone use",
+      "icon": "layers"
+     }
+    ]
+   },
+   "beats": [
+    {
+     "reveal": {
+      "label": "Free credits",
+      "icon": "bolt"
+     },
+     "anchor": "you will only get limited credits"
+    },
+    {
+     "reveal": {
+      "label": "Standalone use",
+      "icon": "layers"
+     },
+     "anchor": "you will need additional tools"
+    }
+   ],
+   "register": "dark",
+   "legacy_why": "spoken shortfalls being rejected; strike-list is the designated rejection device",
+   "flagged": false
+  },
+  {
+   "id": "c30",
+   "card": "section/section-card-flip",
+   "anchor": "Let's move on to Synthesia",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "title": "Synthesia"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false,
+   "register_why": "opener starts 0.5s early on the dark-to-light boundary; the Synthesia section it opens is light"
+  },
+  {
+   "id": "c31",
+   "card": "overlay/lower-third",
+   "anchor": "create a video from template or blank",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "name": "Create Video",
+    "subtitle": "From Template, Prompt or PowerPoint"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c32",
+   "card": "overlay/stat-hit",
+   "anchor": "a library of over 240 options",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "eyebrow": "Avatar Library",
+    "logo": "synthesia",
+    "value": 240,
+    "suffix": "+",
+    "context": "Lifelike AI presenters to pick from"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c33",
+   "card": "overlay/tip-banner",
+   "anchor": "the process is not difficult or complicated",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "No Learning Curve",
+    "text": "The flow is template, avatar, script, voice",
+    "edge": "bottom",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c34",
+   "card": "overlay/tip-banner",
+   "anchor": "option to change how he speaks",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "info",
+    "label": "Voice Styles",
+    "text": "Warm, confident, or instructional reads",
+    "edge": "top",
+    "variant": "b"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c35",
+   "card": "overlay/verdict-chips",
+   "anchor": "you will see that it has this",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "text": "140 languages and accents",
+      "verdict": "yes"
+     },
+     "anchor": "one hundred and forty languages"
+    },
+    {
+     "reveal": {
+      "text": "Massive operational saving",
+      "verdict": "yes"
+     },
+     "anchor": "That is actually a massive operational saving"
+    },
+    {
+     "reveal": {
+      "text": "One script, dozens of markets",
+      "verdict": "yes"
+     },
+     "anchor": "One script, one recording session"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c36",
+   "card": "overlay/verdict-chips",
+   "anchor": "Synthesia is a clear winner",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "text": "Clear corporate winner",
+      "verdict": "yes"
+     },
+     "anchor": "for professional and for corporate"
+    },
+    {
+     "reveal": {
+      "text": "Built for L&D and HR",
+      "verdict": "yes"
+     },
+     "anchor": "If you are in LND, HR"
+    },
+    {
+     "reveal": {
+      "text": "A professional production tool",
+      "verdict": "yes"
+     },
+     "anchor": "it is a professional production tool"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c37",
+   "card": "overlay/lower-third",
+   "anchor": "Let's move on to HeyGen",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "name": "HeyGen",
+    "subtitle": "Avatar Videos in Minutes"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c38",
+   "card": "overlay/tip-banner",
+   "anchor": "You can choose to clone yourself",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "Your Avatar",
+    "text": "Clone yourself, use a photo, or pick stock",
+    "edge": "bottom",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c39",
+   "card": "overlay/tip-banner",
+   "anchor": "really sets HeyGen apart",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "Killer Feature",
+    "text": "Voice cloning, made for solo creators",
+    "edge": "top",
+    "variant": "b"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c40",
+   "card": "overlay/tip-banner",
+   "anchor": "in just a minute or two of audio",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "kind": "info",
+    "label": "Voice Clone",
+    "text": "A minute of audio builds your digital voice",
+    "edge": "bottom",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c41",
+   "card": "overlay/verdict-chips",
+   "anchor": "From that point every video you generate",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "text": "Sounds like you, zero retakes",
+      "verdict": "yes"
+     },
+     "anchor": "sounds like you without you having"
+    },
+    {
+     "reveal": {
+      "text": "On brand across every video",
+      "verdict": "yes"
+     },
+     "anchor": "stay on brand across multiple"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c42",
+   "card": "overlay/tip-banner",
+   "anchor": "re-renders it with a synced lip",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "Translate Mode",
+    "text": "Any video re-rendered with synced lips",
+    "edge": "top",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c43",
+   "card": "overlay/verdict-chips",
+   "anchor": "HeyGen is the strongest option",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "text": "Best for solo creators",
+      "verdict": "yes"
+     },
+     "anchor": "for solo creators and small teams"
+    },
+    {
+     "reveal": {
+      "text": "Personal branding at scale",
+      "verdict": "yes"
+     },
+     "anchor": "level of personal branding and reach"
+    },
+    {
+     "reveal": {
+      "text": "My personal favorite",
+      "verdict": "yes"
+     },
+     "anchor": "this is my personal favorite tool"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c44",
+   "card": "section/section-card-flip",
+   "anchor": "And now finally, Arcads",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "title": "Arcads"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c45",
+   "card": "overlay/stat-hit",
+   "anchor": "has over 300 options",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "eyebrow": "Actor Library",
+    "logo": "arcads",
+    "value": 300,
+    "suffix": "+",
+    "context": "AI actors built from real human footage"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c46",
+   "card": "overlay/verdict-chips",
+   "anchor": "the output feels noticeably more",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "text": "More authentic than avatars",
+      "verdict": "yes"
+     },
+     "anchor": "authentic than standard AI avatars"
+    },
+    {
+     "reveal": {
+      "text": "Clever, focused design",
+      "verdict": "yes"
+     },
+     "anchor": "I think it is clever"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c47",
+   "card": "slate/headline-chips",
+   "anchor": "UGC is an entirely different world",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {
+    "headline": "UGC Is a Different World"
+   },
+   "beats": [
+    {
+     "reveal": {
+      "text": "Built only for UGC ads"
+     },
+     "anchor": "built around it specifically"
+    },
+    {
+     "reveal": {
+      "text": "More control per generation"
+     },
+     "anchor": "give us more control"
+    },
+    {
+     "reveal": {
+      "text": "Higher hit rate"
+     },
+     "anchor": "rate of satisfaction with"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c48",
+   "card": "overlay/tip-banner",
+   "anchor": "select your actor, paste in your ad scripts",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "The Whole Flow",
+    "text": "Pick an actor, paste the script, generate",
+    "edge": "bottom",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c49",
+   "card": "enacted/pipeline-flow",
+   "anchor": "is a feature that saves real hours",
+   "lead": 0.5,
+   "hold": 1.5,
+   "variables": {
+    "title": "Bulk Creation",
+    "steps": [
+     {
+      "step": "One Script",
+      "icon": "doc"
+     },
+     {
+      "step": "Many Actors",
+      "icon": "person"
+     },
+     {
+      "step": "Many Videos",
+      "icon": "video"
+     }
+    ]
+   },
+   "beats": [
+    {
+     "reveal": {
+      "step": "One Script"
+     },
+     "anchor": "and real budget"
+    },
+    {
+     "reveal": {
+      "step": "Many Actors"
+     },
+     "anchor": "You will have a lot of videos"
+    },
+    {
+     "reveal": {
+      "step": "Many Videos"
+     },
+     "anchor": "makes it a lot believable"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c50",
+   "card": "statement/strike-list",
+   "anchor": "and you are not waiting",
+   "lead": 0,
+   "hold": 3,
+   "variables": {
+    "title": "What You Stop Doing",
+    "marker": "Stop",
+    "items": [
+     {
+      "label": "Creator waits",
+      "icon": "clock"
+     },
+     {
+      "label": "Shoot days",
+      "icon": "video"
+     },
+     {
+      "label": "Slow cycles",
+      "icon": "gear"
+     }
+    ]
+   },
+   "beats": [
+    {
+     "reveal": {
+      "label": "Creator waits"
+     },
+     "anchor": "on creators, not coordinating"
+    },
+    {
+     "reveal": {
+      "label": "Shoot days"
+     },
+     "anchor": "shows, you are iterating"
+    },
+    {
+     "reveal": {
+      "label": "Slow cycles"
+     },
+     "anchor": "at the speed that platform allows"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c51",
+   "card": "overlay/verdict-chips",
+   "anchor": "Arcads wins for performance",
+   "lead": 0.2,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "text": "Wins for performance marketers",
+      "verdict": "yes"
+     },
+     "anchor": "marketers, full stop"
+    },
+    {
+     "reveal": {
+      "text": "High volume UGC on tap",
+      "verdict": "yes"
+     },
+     "anchor": "high volume authentic looking UGC creatives"
+    }
+   ],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c52",
+   "card": "overlay/tip-banner",
+   "anchor": "without showing an actor for credibility",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "kind": "info",
+    "label": "Why UGC Works",
+    "text": "Products need a real face for credibility",
+    "edge": "top",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "c53",
+   "card": "section/section-card-flip",
+   "anchor": "So now let's talk about pricing",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "title": "Pricing"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false,
+   "register_why": "opener starts 0.5s early on the light-to-dark boundary; it opens the dark pricing span"
+  },
+  {
+   "id": "c54",
+   "card": "overlay/tip-banner",
+   "anchor": "free plan starts at 40 trial credits",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "info",
+    "label": "Free Plan",
+    "text": "40 trial credits before any quests",
+    "edge": "top",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c55",
+   "card": "overlay/tip-banner",
+   "anchor": "climbs over 340 credits",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "Free Credits",
+    "text": "Platform quests push the balance past 340",
+    "edge": "bottom",
+    "variant": "b"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c56",
+   "card": "overlay/savings-badge",
+   "anchor": "this one is actually priced at",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "eyebrow": "OpenArt Infinite",
+    "save": "50%",
+    "amount": "$28",
+    "per": "/mo billed annually",
+    "sub": "24,000 credits included",
+    "seal": "SAVE",
+    "pos": "bottom-right"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c57",
+   "card": "overlay/tip-banner",
+   "anchor": "A basic image costs roughly one credit",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "warning",
+    "label": "Credit Costs",
+    "text": "One credit per image, up to 1,500 per video clip",
+    "edge": "top",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c58",
+   "card": "overlay/tip-banner",
+   "anchor": "this only applies to image generation",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "warning",
+    "label": "Free Tier",
+    "text": "Trial credits cover images, not cinematic video",
+    "edge": "bottom",
+    "variant": "b"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c59",
+   "card": "overlay/tip-banner",
+   "anchor": "cost 40 to 70 credits",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "warning",
+    "label": "Credit Burn",
+    "text": "Premium models eat 40 to 70 credits per run",
+    "edge": "top",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c60",
+   "card": "overlay/savings-badge",
+   "anchor": "The starter plan comes in at",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "eyebrow": "Synthesia Starter",
+    "save": "$11",
+    "amount": "$18",
+    "per": "/mo billed annually",
+    "sub": "10 video minutes a month",
+    "seal": "DEAL",
+    "pos": "top-right"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c61",
+   "card": "overlay/tip-banner",
+   "anchor": "locked behind custom priced enterprise plans",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "warning",
+    "label": "Enterprise Gate",
+    "text": "SCORM export and translation are priced custom",
+    "edge": "bottom",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c62",
+   "card": "overlay/tip-banner",
+   "anchor": "A single 90 second video can consume",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "warning",
+    "label": "Credit Alert",
+    "text": "One 90 second video can eat a month of credits",
+    "edge": "top",
+    "variant": "b"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c63",
+   "card": "overlay/savings-badge",
+   "anchor": "you can just get this for",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "eyebrow": "Arcads Creator",
+    "save": "$70",
+    "amount": "$150",
+    "per": "/mo",
+    "sub": "Down from $220 a month",
+    "seal": "DEAL",
+    "pos": "bottom-left"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c64",
+   "card": "overlay/tip-banner",
+   "anchor": "hiring a real UGC creator",
+   "lead": 0.2,
+   "hold": 4,
+   "variables": {
+    "kind": "tip",
+    "label": "The Math",
+    "text": "Real UGC creators charge $80 to $200 per video",
+    "edge": "bottom",
+    "variant": "a"
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c65",
+   "card": "overlay/verdict-chips",
+   "anchor": "On pricing, every tool sets",
+   "lead": 0.2,
+   "hold": 3,
+   "variables": {},
+   "beats": [
+    {
+     "reveal": {
+      "text": "OpenArt: most per dollar",
+      "verdict": "yes"
+     },
+     "anchor": "broadest creative toolkit for the money"
+    },
+    {
+     "reveal": {
+      "text": "Arcads: priciest per month",
+      "verdict": "no"
+     },
+     "anchor": "Arcads, I think, is the most expensive"
+    },
+    {
+     "reveal": {
+      "text": "Higgsfield: solid middle value",
+      "verdict": "yes"
+     },
+     "anchor": "Higgsfield right here says in the middle"
+    }
+   ],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c66",
+   "card": "overlay/score-pill",
+   "anchor": "takes the top spot at five over five",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {
+    "label": "Synthesia",
+    "score": 5,
+    "max": 5,
+    "logo": "synthesia",
+    "winner": false
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c67",
+   "card": "overlay/score-pill",
+   "anchor": "Arcads scores at three",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {
+    "label": "Arcads",
+    "score": 3,
+    "max": 5,
+    "logo": "arcads",
+    "winner": false
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c68",
+   "card": "overlay/score-pill",
+   "anchor": "and Higgsfield at 4.5",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {
+    "label": "Higgsfield",
+    "score": 4.5,
+    "max": 5,
+    "logo": "higgsfield",
+    "winner": false
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "c69",
+   "card": "overlay/score-pill",
+   "anchor": "OpenArt leads at 4.5",
+   "lead": 0.5,
+   "hold": 3,
+   "variables": {
+    "label": "OpenArt",
+    "score": 4.5,
+    "max": 5,
+    "logo": "openart",
+    "winner": false
+   },
+   "beats": [],
+   "register": "dark",
+   "flagged": false
+  },
+  {
+   "id": "z07",
+   "zone": "conclusion",
+   "card": "verdict/persona-match",
+   "anchor": "After going through all five",
+   "lead": 0,
+   "hold": 3,
+   "variables": {
+    "title": "Use Case By Use Case"
+   },
+   "beats": [
+    {
+     "reveal": {
+      "persona": "Creator, artist or marketer",
+      "winner": "OpenArt",
+      "logo": "openart"
+     },
+     "anchor": "a content creator, digital artist"
+    }
+   ],
+   "register": "light",
+   "motif": true,
+   "flagged": false,
+   "legacy_why": "opens the verdict run with the first persona-to-tool pair; the five per-tool verdicts that follow all use one structural card"
+  },
+  {
+   "id": "z08",
+   "zone": "conclusion",
+   "card": "section/tool-intro",
+   "anchor": "OpenArt is definitely your tool",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "index": 1,
+    "total": 5,
+    "logo": "openart",
+    "name": "OpenArt",
+    "tagline": "Widest creative toolkit per dollar",
+    "tag": "Creators & Artists"
+   },
+   "beats": [],
+   "register": "light",
+   "motif": true,
+   "flagged": false,
+   "legacy_why": "per-tool verdict slot: one structural, cap-exempt card for all five tools (R_ZONE_STRUCTURAL, owner fold 2026-08-01)"
+  },
+  {
+   "id": "z19",
+   "zone": "conclusion",
+   "card": "link-in-description/link-in-description",
+   "anchor": "I have linked it in the description",
+   "lead": 0.3,
+   "hold": 4,
+   "variables": {},
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "z09",
+   "zone": "conclusion",
+   "card": "section/tool-intro",
+   "anchor": "Let's say that cinematic video",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "index": 2,
+    "total": 5,
+    "logo": "higgsfield",
+    "name": "Higgsfield",
+    "tagline": "Director level camera control",
+    "tag": "Cinematic Video"
+   },
+   "beats": [],
+   "register": "light",
+   "motif": true,
+   "flagged": false,
+   "legacy_why": "per-tool verdict slot: one structural, cap-exempt card for all five tools (R_ZONE_STRUCTURAL, owner fold 2026-08-01)"
+  },
+  {
+   "id": "z10",
+   "zone": "conclusion",
+   "card": "section/tool-intro",
+   "anchor": "And if you are in a professional",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "index": 3,
+    "total": 5,
+    "logo": "synthesia",
+    "name": "Synthesia",
+    "tagline": "140+ languages, corporate polish",
+    "tag": "Training and L&D"
+   },
+   "beats": [],
+   "register": "light",
+   "motif": true,
+   "flagged": false,
+   "legacy_why": "per-tool verdict slot: one structural, cap-exempt card for all five tools (R_ZONE_STRUCTURAL, owner fold 2026-08-01)"
+  },
+  {
+   "id": "z12",
+   "zone": "conclusion",
+   "card": "section/tool-intro",
+   "anchor": "if you were a solo creator",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "index": 4,
+    "total": 5,
+    "logo": "heygen",
+    "name": "HeyGen",
+    "tagline": "Avatar video without a camera",
+    "tag": "Solo Creators"
+   },
+   "beats": [],
+   "register": "light",
+   "motif": true,
+   "flagged": false,
+   "legacy_why": "per-tool verdict slot: one structural, cap-exempt card for all five tools (R_ZONE_STRUCTURAL, owner fold 2026-08-01)"
+  },
+  {
+   "id": "z13",
+   "zone": "conclusion",
+   "card": "section/tool-intro",
+   "anchor": "if you are a marketer that is performing",
+   "lead": 0.5,
+   "hold": 4,
+   "variables": {
+    "index": 5,
+    "total": 5,
+    "logo": "arcads",
+    "name": "Arcads",
+    "tagline": "High volume UGC ad creatives",
+    "tag": "Performance Marketers"
+   },
+   "beats": [],
+   "register": "light",
+   "motif": true,
+   "flagged": false,
+   "legacy_why": "per-tool verdict slot: one structural, cap-exempt card for all five tools (R_ZONE_STRUCTURAL, owner fold 2026-08-01)"
+  },
+  {
+   "id": "z16",
+   "zone": "conclusion",
+   "card": "statement/keyword-statement",
+   "anchor": "there is no single overall winner",
+   "lead": 0,
+   "hold": 3,
+   "variables": {
+    "text": "No single winner, only the one that fits how you work",
+    "keyword": "fits how you work"
+   },
+   "beats": [],
+   "register": "light",
+   "flagged": false,
+   "legacy_why": "the thesis bookend; promise-split is barred here by R_LOGO_TILES because this split is rhetorical and carries no product logos"
+  },
+  {
+   "id": "z17",
+   "zone": "conclusion",
+   "card": "link-in-description/link-in-description",
+   "anchor": "Links to all five tools are once again",
+   "lead": 0,
+   "hold": 4,
+   "variables": {},
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  },
+  {
+   "id": "z20",
+   "zone": "conclusion",
+   "card": "like-subscribe/like-subscribe",
+   "anchor": "hit subscribe for more honest comparisons",
+   "lead": 0.3,
+   "hold": 4,
+   "variables": {},
+   "beats": [],
+   "register": "light",
+   "flagged": false
+  }
+ ]
+}

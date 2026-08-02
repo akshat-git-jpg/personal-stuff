@@ -10,6 +10,7 @@ export const SHOT_CONSTANTS = {
   SPAN_MAX_MID:       { value: 45,  rule: 'A mid-video avatar span longer than 45s drags (lint warning); mid-video bridges should run 10s to 30s.' },
   SPAN_MAX_ZONE:      { value: 120, rule: 'Even an intro or outro host stretch drags past 120s (lint warning).' },
   FRONT_ZONE:         { value: 0.15, rule: 'Expect one avatar span starting within the first 15% of the voiceover (U-curve shape).' },
+  INTRO_HOST:         { value: 1,    rule: 'The host MUST appear inside the intro zone (mandatory): at least one avatar span has to start before the intro ends, so the viewer sees the face before the content starts. The first-15% rule above is NOT sufficient on a long video — 15% of a 32-minute video is 4:49, which let the first host moment land 2:11 in and read as a surprise arrival. If every intro window is occupied by fullframe cards, take one of them in `side` mode rather than pushing the host past the intro; if no card there is side-capable, shorten a card rather than skip the host.' },
   BACK_ZONE:          { value: 0.15, rule: 'Expect one avatar span starting within the last 15% of the voiceover (U-curve shape).' },
   GAP_AVATAR_MAX:     { value: 180, rule: 'Consecutive avatar spans must start no more than 180s apart (lint warning) — host and content cycle tighter than the old 300s.' },
   PANEL_WIDTH_FRAC:   { value: 0.28, rule: 'A panel-mode avatar occupies 28% of canvas width, inset bottom-right, preserving the source clip aspect ratio.' },

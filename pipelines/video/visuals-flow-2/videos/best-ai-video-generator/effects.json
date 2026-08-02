@@ -1,0 +1,318 @@
+{
+  "video": "best-ai-video-generator",
+  "approved": false,
+  "instances": [
+    {
+      "id": "whip-14.2",
+      "type": "whip",
+      "at": 14.23,
+      "direction": "right",
+      "fromIdx": 1,
+      "toIdx": 2,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-32.5",
+      "type": "whip",
+      "at": 32.49,
+      "direction": "right",
+      "fromIdx": 3,
+      "toIdx": 4,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-91.4",
+      "type": "whip",
+      "at": 91.41,
+      "direction": "right",
+      "fromIdx": 7,
+      "toIdx": 8,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-105.2",
+      "type": "whip",
+      "at": 105.22,
+      "direction": "right",
+      "fromIdx": 9,
+      "toIdx": 10,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-147.8",
+      "type": "whip",
+      "at": 147.76,
+      "direction": "right",
+      "fromIdx": 13,
+      "toIdx": 14,
+      "style": "blur",
+      "enabled": true
+    },
+    {
+      "id": "whip-152.0",
+      "type": "whip",
+      "at": 152.03,
+      "direction": "right",
+      "fromIdx": 14,
+      "toIdx": 15,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-176.4",
+      "type": "whip",
+      "at": 176.39,
+      "direction": "right",
+      "fromIdx": 16,
+      "toIdx": 17,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-444.9",
+      "type": "whip",
+      "at": 444.93,
+      "direction": "right",
+      "fromIdx": 18,
+      "toIdx": 19,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-473.1",
+      "type": "whip",
+      "at": 473.07,
+      "direction": "right",
+      "fromIdx": 20,
+      "toIdx": 21,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-492.4",
+      "type": "whip",
+      "at": 492.38,
+      "direction": "right",
+      "fromIdx": 22,
+      "toIdx": 23,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-707.2",
+      "type": "whip",
+      "at": 707.24,
+      "direction": "right",
+      "fromIdx": 24,
+      "toIdx": 25,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-745.8",
+      "type": "whip",
+      "at": 745.8,
+      "direction": "right",
+      "fromIdx": 27,
+      "toIdx": 28,
+      "style": "blur",
+      "enabled": true
+    },
+    {
+      "id": "whip-748.7",
+      "type": "whip",
+      "at": 748.72,
+      "direction": "right",
+      "fromIdx": 28,
+      "toIdx": 29,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-764.3",
+      "type": "whip",
+      "at": 764.33,
+      "direction": "right",
+      "fromIdx": 30,
+      "toIdx": 31,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1198.8",
+      "type": "whip",
+      "at": 1198.83,
+      "direction": "right",
+      "fromIdx": 32,
+      "toIdx": 33,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1232.2",
+      "type": "whip",
+      "at": 1232.2,
+      "direction": "right",
+      "fromIdx": 35,
+      "toIdx": 36,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1319.1",
+      "type": "whip",
+      "at": 1319.14,
+      "direction": "right",
+      "fromIdx": 37,
+      "toIdx": 38,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1371.5",
+      "type": "whip",
+      "at": 1371.47,
+      "direction": "right",
+      "fromIdx": 41,
+      "toIdx": 42,
+      "style": "blur",
+      "enabled": true
+    },
+    {
+      "id": "whip-1375.9",
+      "type": "whip",
+      "at": 1375.93,
+      "direction": "right",
+      "fromIdx": 42,
+      "toIdx": 43,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1587.4",
+      "type": "whip",
+      "at": 1587.43,
+      "direction": "right",
+      "fromIdx": 45,
+      "toIdx": 46,
+      "style": "blur",
+      "enabled": true
+    },
+    {
+      "id": "whip-1774.8",
+      "type": "whip",
+      "at": 1774.84,
+      "direction": "right",
+      "fromIdx": 46,
+      "toIdx": 47,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1804.4",
+      "type": "whip",
+      "at": 1804.39,
+      "direction": "right",
+      "fromIdx": 49,
+      "toIdx": 50,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1823.1",
+      "type": "whip",
+      "at": 1823.11,
+      "direction": "right",
+      "fromIdx": 51,
+      "toIdx": 52,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1841.1",
+      "type": "whip",
+      "at": 1841.08,
+      "direction": "right",
+      "fromIdx": 53,
+      "toIdx": 54,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1858.4",
+      "type": "whip",
+      "at": 1858.41,
+      "direction": "right",
+      "fromIdx": 55,
+      "toIdx": 56,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-1891.9",
+      "type": "whip",
+      "at": 1891.9,
+      "direction": "right",
+      "fromIdx": 57,
+      "toIdx": 58,
+      "style": "flash",
+      "enabled": true
+    },
+    {
+      "id": "whip-reg-13.0",
+      "type": "whip",
+      "at": 12.98,
+      "direction": "lift",
+      "style": "register",
+      "enabled": true
+    },
+    {
+      "id": "whip-reg-745.1",
+      "type": "whip",
+      "at": 745.14,
+      "direction": "drop",
+      "style": "register",
+      "enabled": true
+    },
+    {
+      "id": "whip-reg-763.5",
+      "type": "whip",
+      "at": 763.55,
+      "direction": "lift",
+      "style": "register",
+      "enabled": true
+    },
+    {
+      "id": "whip-reg-1375.5",
+      "type": "whip",
+      "at": 1375.47,
+      "direction": "drop",
+      "style": "register",
+      "enabled": true
+    },
+    {
+      "id": "whip-reg-1385.3",
+      "type": "whip",
+      "at": 1385.28,
+      "direction": "lift",
+      "style": "register",
+      "enabled": true
+    },
+    {
+      "id": "captions",
+      "type": "captions",
+      "enabled": true,
+      "fontPx": 44,
+      "yFrac": 0.87
+    },
+    {
+      "id": "bubble",
+      "type": "bubble",
+      "enabled": true
+    }
+  ]
+}

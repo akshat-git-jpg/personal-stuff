@@ -1,0 +1,71 @@
+{
+  "video": "best-ai-video-generator",
+  "offset": 0,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s00",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 59.51,
+      "end": 82.71,
+      "duration": 23.2,
+      "note": "the host reads the agenda. Owner fold final-v3:4: the avatar arriving 2:11 into the video read as a surprise, so it now has to appear inside the intro. This 62.1-82.4 window is the only sentence-bounded intro stretch long enough for a span, which is why the agenda card that used to sit here was dropped"
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 131.57,
+      "end": 147.76,
+      "duration": 16.19,
+      "note": "spoken Higgsfield overview — nothing is being demonstrated, the screen is an idle dashboard flyby, so the host owns the frame"
+    },
+    {
+      "id": "s03",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 728.17,
+      "end": 745.8,
+      "duration": 17.63,
+      "note": "the Higgsfield verdict, spoken over an idle UI — the strongest-tool call lands from a person, not from the recording"
+    },
+    {
+      "id": "s04",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 1204.37,
+      "end": 1222.68,
+      "duration": 18.31,
+      "note": "Arcads positioning — the one tool that needs explaining before it is shown; this narration is argument, not action"
+    },
+    {
+      "id": "s05",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 1341.12,
+      "end": 1371.47,
+      "duration": 30.35,
+      "note": "the Arcads verdict and the honest price caveat — the last per-tool judgment before the pricing section"
+    },
+    {
+      "id": "s06",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 1565.69,
+      "end": 1587.43,
+      "duration": 21.74,
+      "note": "a warning to the viewer rather than a page being read — breaks up the long pricing stretch at a natural commentary beat"
+    },
+    {
+      "id": "s07",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 1903.13,
+      "end": 1927.48,
+      "duration": 24.35,
+      "note": "the sign-off — the last 24s carries no fullframe card because the end zone forbids one, so without the host this stretch is a frozen frame (W18). The zone rulebook wants the payoff delivered by a person",
+      "snapped": true
+    }
+  ]
+}

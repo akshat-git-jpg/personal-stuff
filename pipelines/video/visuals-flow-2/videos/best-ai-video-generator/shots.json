@@ -1,0 +1,70 @@
+{
+  "video": "best-ai-video-generator",
+  "approved": false,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s00",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "Here is what we are",
+      "to_anchor": "on which tool deserves your subscription",
+      "note": "the host reads the agenda. Owner fold final-v3:4: the avatar arriving 2:11 into the video read as a surprise, so it now has to appear inside the intro. This 62.1-82.4 window is the only sentence-bounded intro stretch long enough for a span, which is why the agenda card that used to sit here was dropped",
+      "flagged": false
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "It aggregates premium video models",
+      "to_anchor": "a character consistency system called Soul ID",
+      "note": "spoken Higgsfield overview — nothing is being demonstrated, the screen is an idle dashboard flyby, so the host owns the frame",
+      "flagged": false
+    },
+    {
+      "id": "s03",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "Higgsfield I think is the strongest cinematic",
+      "to_anchor": "Higgsfield earns its spot",
+      "note": "the Higgsfield verdict, spoken over an idle UI — the strongest-tool call lands from a person, not from the recording",
+      "flagged": false
+    },
+    {
+      "id": "s04",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "It is not trying to be a general creative tool",
+      "to_anchor": "than standard AI avatars",
+      "note": "Arcads positioning — the one tool that needs explaining before it is shown; this narration is argument, not action",
+      "flagged": false
+    },
+    {
+      "id": "s05",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "If you are running a paid ads",
+      "to_anchor": "the price point is higher than the others",
+      "note": "the Arcads verdict and the honest price caveat — the last per-tool judgment before the pricing section",
+      "flagged": false
+    },
+    {
+      "id": "s06",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "One thing worth flagging is that the credit system",
+      "to_anchor": "the creator or the pro ones",
+      "note": "a warning to the viewer rather than a page being read — breaks up the long pricing stretch at a natural commentary beat",
+      "flagged": false
+    },
+    {
+      "id": "s07",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "Links to all five tools are once again",
+      "to_anchor": "see you in the next video",
+      "note": "the sign-off — the last 24s carries no fullframe card because the end zone forbids one, so without the host this stretch is a frozen frame (W18). The zone rulebook wants the payoff delivered by a person",
+      "flagged": false
+    }
+  ]
+}

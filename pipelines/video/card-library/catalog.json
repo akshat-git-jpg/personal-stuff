@@ -51,7 +51,8 @@
           "example": "Caption-first short-form editor"
         }
       },
-      "default_duration": 6
+      "default_duration": 6,
+      "structural": true
     },
     {
       "slug": "statement/promise-payoff",
@@ -1280,6 +1281,9 @@
       "kind": "single",
       "placement": "fullframe",
       "side": true,
+      "roles": [
+        "section-opener"
+      ],
       "purpose": "section divider where a glass card flips up from below and settles with a spring bounce",
       "variables": {
         "number": {
@@ -1458,6 +1462,59 @@
         }
       },
       "default_duration": 10
+    },
+    {
+      "slug": "tool-icon/roster-pop",
+      "kind": "beat",
+      "placement": "fullframe",
+      "side": false,
+      "roles": [
+        "title",
+        "comparison-coldopen"
+      ],
+      "purpose": "the full line-up on screen from frame 0, dimmed; each beat POPS one tool tile (scale + ring + desaturation lift) as the voiceover names it, settling the previous one back down. The roll-call card for a comparison intro, and the beat-driven sibling of title-cinematic-float",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "example": "The Five Contenders"
+        },
+        "platforms": {
+          "required": true,
+          "type": "array",
+          "item_shape": {
+            "name": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "example": "OpenArt"
+            },
+            "logo": {
+              "type": "string",
+              "required": true,
+              "role": "logo_slug",
+              "example": "openart"
+            }
+          }
+        }
+      },
+      "beat_source": "beat",
+      "beat_shape": {
+        "name": {
+          "required": true,
+          "type": "string",
+          "role": "label",
+          "note": "must match one platforms[].name exactly; a beat naming a tool not on the roster is ignored",
+          "example": "OpenArt"
+        }
+      },
+      "max_beats": 6,
+      "default_duration": 10,
+      "intent": "A comparison roll-call where the script names each tool in turn, so the graphic follows the voiceover instead of dumping the whole lineup at once.",
+      "anti_intent": "A lineup the script does not enumerate one by one (use title-cinematic-float), or any set whose items have no logo (this card is a logo-tile card — see R_LOGO_TILES).",
+      "note": "Built 2026-08-01 from owner fold best-ai-video-generator final-v3:1. Every platform MUST carry a logo slug; the letter fallback exists only so a missing asset does not crash the render.",
+      "max_reveal_chars": 18
     },
     {
       "slug": "title/title-versus",
@@ -1711,6 +1768,9 @@
       "kind": "single",
       "placement": "fullframe",
       "side": true,
+      "roles": [
+        "section-opener"
+      ],
       "purpose": "section opener for one tool/product: TOOL N OF M progress, huge name, positioning line, category chip",
       "variables": {
         "index": {
@@ -2305,67 +2365,6 @@
       "note": "max_reveal_chars set conservatively from the card CSS (gate backfill 2026-07-31)."
     },
     {
-      "slug": "enacted/before-after",
-      "kind": "single",
-      "placement": "fullframe",
-      "side": true,
-      "purpose": "Split panel; an accent slider sweeps left->right revealing AFTER over BEFORE",
-      "variables": {
-        "title": {
-          "required": true,
-          "type": "string",
-          "role": "heading",
-          "example": "Migration"
-        },
-        "before_label": {
-          "required": true,
-          "type": "string",
-          "role": "label",
-          "example": "Old"
-        },
-        "after_label": {
-          "required": true,
-          "type": "string",
-          "role": "label",
-          "example": "New"
-        },
-        "before_lines": {
-          "required": true,
-          "type": "array",
-          "item_shape": {
-            "line": {
-              "type": "string",
-              "role": "sentence",
-              "example": "Slow"
-            }
-          }
-        },
-        "after_lines": {
-          "required": true,
-          "type": "array",
-          "item_shape": {
-            "line": {
-              "type": "string",
-              "role": "sentence",
-              "example": "Fast"
-            }
-          }
-        }
-      },
-      "default_duration": 6,
-      "register": [
-        "dark",
-        "light"
-      ],
-      "marker": true,
-      "intent": "Directly compare an old state versus a new state.",
-      "anti_intent": "Comparing two current alternatives or competitors.",
-      "variants": [
-        "a",
-        "b"
-      ]
-    },
-    {
       "slug": "enacted/spotlight-focus",
       "kind": "single",
       "placement": "fullframe",
@@ -2414,6 +2413,62 @@
         "a",
         "b"
       ]
+    },
+    {
+      "slug": "enacted/promise-shelf",
+      "kind": "beat",
+      "placement": "fullframe",
+      "side": false,
+      "hero_shape": "none",
+      "entry_phase": true,
+      "roles": [
+        "comparison-coldopen"
+      ],
+      "purpose": "five identical matte-black pedestals under one warm key light, each holding a different glass object at its own colour temperature; a shallow depth of field walks the row, snapping one sharp and letting the rest fall off, and never settles on a winner",
+      "variables": {
+        "items": {
+          "required": true,
+          "type": "array",
+          "item_shape": {
+            "object": {
+              "type": "string",
+              "required": true,
+              "role": "free",
+              "enum": [
+                "reel",
+                "lens",
+                "bubble",
+                "bust",
+                "tag"
+              ],
+              "example": "lens"
+            },
+            "tint": {
+              "type": "string",
+              "required": true,
+              "role": "free",
+              "note": "hex colour temperature for that object glass + halo",
+              "example": "#9ad8ff"
+            }
+          }
+        }
+      },
+      "beat_source": "beat",
+      "beat_shape": {
+        "focus": {
+          "required": true,
+          "type": "number",
+          "role": "free",
+          "note": "1-based index of the pedestal to pull focus to; a beat naming a missing pedestal is ignored",
+          "example": 3
+        }
+      },
+      "max_beats": 6,
+      "default_duration": 12,
+      "intent": "The cold open of a comparison whose thesis is that the products are NOT interchangeable: the frame shows five different promises and refuses to pick one.",
+      "anti_intent": "Any moment with a winner, a ranking, or a claim about ONE product. This card carries no text at all, so never use it where the point needs words on screen.",
+      "note": "Headless by design (hero_shape none). Built 2026-08-01 after the owner rejected a word-synced hook on best-ai-video-generator final-v3:0 and approved this look from a Gemini prompt preview.",
+      "max_reveal_chars": 2
     },
     {
       "slug": "enacted/timeline-scrub",

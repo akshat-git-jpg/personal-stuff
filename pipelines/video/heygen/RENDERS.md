@@ -138,3 +138,13 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/opusclip-vs-submagic-s08-iv--0a938e67254d46a697903fde57eea8c0) | 403f1f8c49d64c58bd3168f99a58bb0a | s08.mp3 | `0a938e67254d46a697903fde57eea8c0` |
 | [heygen link](https://app.heygen.com/videos/opusclip-vs-submagic-s09-iv--d51b1d422fe54c329a4e865dddb4426b) | 403f1f8c49d64c58bd3168f99a58bb0a | s09.mp3 | `d51b1d422fe54c329a4e865dddb4426b` |
 | [heygen link](https://app.heygen.com/videos/opusclip-vs-submagic-s10-iv--f4c84c9a07b64c59a838b3c9642828fb) | 403f1f8c49d64c58bd3168f99a58bb0a | s10.mp3 | `f4c84c9a07b64c59a838b3c9642828fb` |
+| [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s01--504dadaa98004fbaa5a6ceab7e9f2dcf) | 403f1f8c49d64c58bd3168f99a58bb0a | s01.mp3 | `504dadaa98004fbaa5a6ceab7e9f2dcf` |
+| [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s02--01a2f6625f59489f85370b99b57c8dcb) | 403f1f8c49d64c58bd3168f99a58bb0a | s02.mp3 | `01a2f6625f59489f85370b99b57c8dcb` |
+| [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s03--e7dfb0770358442199235094dfb07224) | 403f1f8c49d64c58bd3168f99a58bb0a | s03.mp3 | `e7dfb0770358442199235094dfb07224` |
+| [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s04--9ecb7c4677fa41388ad7efefdd47c9e8) | 403f1f8c49d64c58bd3168f99a58bb0a | s04.mp3 | `9ecb7c4677fa41388ad7efefdd47c9e8` |
+| [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s05--fac6e97f0c4d4d379b4220cbf5f679ff) | 403f1f8c49d64c58bd3168f99a58bb0a | s05.mp3 | `fac6e97f0c4d4d379b4220cbf5f679ff` |
+| [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s06--d0c0930377c242d884baaf881e9369e8) | 403f1f8c49d64c58bd3168f99a58bb0a | s06.mp3 | `d0c0930377c242d884baaf881e9369e8` |
+| [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s07--e546d172eb0a49a4b1a7af294c89d811) | 403f1f8c49d64c58bd3168f99a58bb0a | s07.mp3 | `e546d172eb0a49a4b1a7af294c89d811` |
+| [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s06--1f316c079cb74e11a9a8b3f01ef55765) | 403f1f8c49d64c58bd3168f99a58bb0a | s06.mp3 | `1f316c079cb74e11a9a8b3f01ef55765` |
+| [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s07--31787394f0d94071ad5148d5ca149737) | 403f1f8c49d64c58bd3168f99a58bb0a | s07.mp3 | `31787394f0d94071ad5148d5ca149737` |
+| [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s00--c6c3b578937945c99aa62ea9f59f7652) | 403f1f8c49d64c58bd3168f99a58bb0a | s00.mp3 | `c6c3b578937945c99aa62ea9f59f7652` |

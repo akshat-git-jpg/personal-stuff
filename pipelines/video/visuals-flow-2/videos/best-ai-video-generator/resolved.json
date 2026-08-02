@@ -1,0 +1,1605 @@
+{
+  "video": "best-ai-video-generator",
+  "offset": 0,
+  "resolved": [
+    {
+      "id": "z01",
+      "card": "enacted/promise-shelf",
+      "placement": "fullframe",
+      "start": 0,
+      "duration": 14.23,
+      "variables": {
+        "items": [
+          {
+            "object": "lens",
+            "tint": "#9ad8ff"
+          },
+          {
+            "object": "reel",
+            "tint": "#ffb066"
+          },
+          {
+            "object": "bubble",
+            "tint": "#c9a6ff"
+          },
+          {
+            "object": "bust",
+            "tint": "#ffd08a"
+          },
+          {
+            "object": "tag",
+            "tint": "#8affc4"
+          }
+        ],
+        "beats": [
+          {
+            "focus": 2,
+            "at": 2.17
+          },
+          {
+            "focus": 4,
+            "at": 5.76
+          },
+          {
+            "focus": 1,
+            "at": 9.37
+          },
+          {
+            "focus": 5,
+            "at": 11.98
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "z02",
+      "card": "tool-icon/roster-pop",
+      "placement": "fullframe",
+      "start": 14.23,
+      "duration": 10.96,
+      "variables": {
+        "title": "The Five Contenders",
+        "platforms": [
+          {
+            "name": "OpenArt",
+            "logo": "openart"
+          },
+          {
+            "name": "Higgsfield",
+            "logo": "higgsfield"
+          },
+          {
+            "name": "Synthesia",
+            "logo": "synthesia"
+          },
+          {
+            "name": "HeyGen",
+            "logo": "heygen"
+          },
+          {
+            "name": "Arcads",
+            "logo": "arcads"
+          }
+        ],
+        "beats": [
+          {
+            "name": "OpenArt",
+            "at": 0.6
+          },
+          {
+            "name": "Higgsfield",
+            "at": 3.1
+          },
+          {
+            "name": "Synthesia",
+            "at": 6.96
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z03",
+      "card": "statement/promise-payoff",
+      "placement": "fullframe",
+      "start": 32.49,
+      "duration": 13.74,
+      "variables": {
+        "question": "One overall winner?",
+        "options": [
+          {
+            "label": "Best overall"
+          },
+          {
+            "label": "Best for you"
+          }
+        ],
+        "beats": [
+          {
+            "label": "Best overall",
+            "at": 0.6
+          },
+          {
+            "label": "Best for you",
+            "at": 10.21
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z04",
+      "card": "enacted/pipeline-flow",
+      "placement": "fullframe",
+      "start": 46.23,
+      "duration": 10.8,
+      "variables": {
+        "title": "How I Tested",
+        "steps": [
+          {
+            "step": "Features",
+            "icon": "list"
+          },
+          {
+            "step": "Quality & Workflow",
+            "icon": "video"
+          },
+          {
+            "step": "Pricing",
+            "icon": "wallet"
+          }
+        ],
+        "beats": [
+          {
+            "step": "Features",
+            "at": 3.45
+          },
+          {
+            "step": "Quality & Workflow",
+            "at": 4.77
+          },
+          {
+            "step": "Pricing",
+            "at": 6.8
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z06",
+      "card": "link-in-description/link-scrim",
+      "placement": "overlay",
+      "start": 82.44,
+      "duration": 5,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "c01",
+      "card": "tool-icon/tool-glass-tile",
+      "placement": "fullframe",
+      "start": 91.41,
+      "duration": 6,
+      "variables": {
+        "logo": "openart",
+        "name": "OpenArt",
+        "subtitle": "Full creative workspace",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c02",
+      "card": "checklist/icon-pills",
+      "placement": "fullframe",
+      "start": 105.22,
+      "duration": 12.1,
+      "variables": {
+        "beats": [
+          {
+            "icon": "star",
+            "text": "Image generation",
+            "at": 0.6
+          },
+          {
+            "icon": "person",
+            "text": "Character consistency",
+            "at": 2.78
+          },
+          {
+            "icon": "brain",
+            "text": "Custom model training",
+            "at": 4.54
+          },
+          {
+            "icon": "chat",
+            "text": "Storytelling and audio",
+            "at": 6.51
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c03",
+      "card": "tool-icon/tool-glass-tile",
+      "placement": "fullframe",
+      "start": 117.32,
+      "duration": 6,
+      "variables": {
+        "logo": "higgsfield",
+        "name": "Higgsfield",
+        "subtitle": "Director level camera control",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c04",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 132.28,
+      "duration": 5,
+      "variables": {
+        "name": "Premium Models",
+        "subtitle": "Sora 2, Kling 3.0 and Veo 3.1",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c05",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 142.47,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Cinema Studio",
+        "logo": "higgsfield",
+        "value": 70,
+        "suffix": "+",
+        "context": "Camera presets built into one panel",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c06",
+      "card": "tool-icon/tool-glass-tile",
+      "placement": "fullframe",
+      "start": 152.03,
+      "duration": 6,
+      "variables": {
+        "logo": "synthesia",
+        "name": "Synthesia",
+        "subtitle": "AI avatars for corporate video",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c07",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 167.45,
+      "duration": 5,
+      "variables": {
+        "name": "Synthesia",
+        "subtitle": "Built for L&D, HR and Marketing",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c08",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 176.39,
+      "duration": 6,
+      "variables": {
+        "index": 1,
+        "total": 5,
+        "logo": "openart",
+        "name": "OpenArt",
+        "tagline": "Hub for 100+ AI models",
+        "tag": "Creative Suite",
+        "register": "light",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c09",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 194.63,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Creation Modes",
+        "text": "Frame to video, text to video, or edit video",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c10",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 211.93,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Model Selector",
+        "text": "Every major model lives on one platform",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c11",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 260.08,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "4K Output",
+        "text": "Veo generates high fidelity 4K with audio",
+        "edge": "top",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c12",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 292.65,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Consistency",
+        "text": "Reference images keep subjects consistent",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c13",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 338.78,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Credits",
+        "text": "Every setting you change moves the credit cost",
+        "edge": "top",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c14",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 384.05,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Edit Layer",
+        "text": "Change elements without regenerating the video",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c15",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 426.72,
+      "duration": 14,
+      "variables": {
+        "beats": [
+          {
+            "text": "Most AI tools skip editing",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "No re-prompting to edit",
+            "verdict": "yes",
+            "at": 11
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c16",
+      "card": "statement/keyword-statement",
+      "placement": "fullframe",
+      "start": 444.93,
+      "duration": 6.88,
+      "variables": {
+        "text": "On creative breadth, OpenArt is in a category of its own",
+        "keyword": "a category of its own",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c17",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 461.37,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Under the Hood",
+        "text": "Over 100 models, editing, character consistency",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c18",
+      "card": "checklist/icon-pills",
+      "placement": "fullframe",
+      "start": 473.07,
+      "duration": 6.48,
+      "variables": {
+        "beats": [
+          {
+            "icon": "bolt",
+            "text": "Videos and images",
+            "at": 0.6
+          },
+          {
+            "icon": "cloud",
+            "text": "Worlds and audio",
+            "at": 2.11
+          },
+          {
+            "icon": "person",
+            "text": "Consistent characters",
+            "at": 3.48
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c19",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 479.81,
+      "duration": 10.93,
+      "variables": {
+        "beats": [
+          {
+            "text": "Control others can't match",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "The full workflow home",
+            "verdict": "yes",
+            "at": 7.93
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c20",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 492.38,
+      "duration": 6,
+      "variables": {
+        "index": 2,
+        "total": 5,
+        "logo": "higgsfield",
+        "name": "Higgsfield",
+        "tagline": "Video first, camera control led",
+        "tag": "Cinematic Video",
+        "register": "light",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c21",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 499.25,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Cinema Studio",
+        "text": "Higgsfield strongest feature, tested first",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c22",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 519.06,
+      "duration": 5,
+      "variables": {
+        "name": "Director Panel",
+        "subtitle": "What Sets Higgsfield Apart",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c23",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 536.48,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Camera Moves",
+        "text": "Crash zooms, dolly moves, rack focus built in",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c24",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 579.84,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Direct First",
+        "text": "You direct the scene before you generate it",
+        "edge": "top",
+        "variant": "b",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c25",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 602.57,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Keyframes",
+        "text": "Start and end frames steer the whole shot",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c26",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 643.63,
+      "duration": 5.68,
+      "variables": {
+        "beats": [
+          {
+            "text": "Cinematic results deliver",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Long generation waits",
+            "verdict": "no",
+            "at": 2.68
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c27",
+      "card": "enacted/pipeline-flow",
+      "placement": "fullframe",
+      "start": 707.24,
+      "duration": 12.21,
+      "variables": {
+        "title": "Soul ID",
+        "steps": [
+          {
+            "step": "Upload Reference",
+            "icon": "image"
+          },
+          {
+            "step": "Face Locks",
+            "icon": "lock"
+          },
+          {
+            "step": "Every Clip",
+            "icon": "video"
+          }
+        ],
+        "beats": [
+          {
+            "step": "Upload Reference",
+            "at": 2.86
+          },
+          {
+            "step": "Face Locks",
+            "at": 5.12
+          },
+          {
+            "step": "Every Clip",
+            "at": 9.21
+          }
+        ],
+        "register": "light",
+        "variant": "b"
+      }
+    },
+    {
+      "id": "c28",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 729.65,
+      "duration": 11.28,
+      "variables": {
+        "beats": [
+          {
+            "text": "Strongest cinematic tool here",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Motion in its own league",
+            "verdict": "yes",
+            "at": 3.66
+          },
+          {
+            "text": "Narrow outside video",
+            "verdict": "no",
+            "at": 8.28
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c29",
+      "card": "statement/strike-list",
+      "placement": "fullframe",
+      "start": 748.72,
+      "duration": 9.51,
+      "variables": {
+        "title": "Where Higgsfield Falls Short",
+        "marker": "Short",
+        "items": [
+          {
+            "label": "Free credits",
+            "icon": "bolt"
+          },
+          {
+            "label": "Standalone use",
+            "icon": "layers"
+          }
+        ],
+        "beats": [
+          {
+            "label": "Free credits",
+            "icon": "bolt",
+            "at": 0.6
+          },
+          {
+            "label": "Standalone use",
+            "icon": "layers",
+            "at": 6.51
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c30",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 764.33,
+      "duration": 6,
+      "variables": {
+        "index": 3,
+        "total": 5,
+        "logo": "synthesia",
+        "name": "Synthesia",
+        "tagline": "Corporate avatar video at scale",
+        "tag": "Enterprise Video",
+        "register": "light",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c31",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 782.47,
+      "duration": 5,
+      "variables": {
+        "name": "Create Video",
+        "subtitle": "From Template, Prompt or PowerPoint",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c32",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 831.84,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Avatar Library",
+        "logo": "synthesia",
+        "value": 240,
+        "suffix": "+",
+        "context": "Lifelike AI presenters to pick from",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c33",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 868.26,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "No Learning Curve",
+        "text": "The flow is template, avatar, script, voice",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c34",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 901.28,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Voice Styles",
+        "text": "Warm, confident, or instructional reads",
+        "edge": "top",
+        "variant": "b",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c35",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 934.05,
+      "duration": 17.56,
+      "variables": {
+        "beats": [
+          {
+            "text": "140 languages and accents",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Massive operational saving",
+            "verdict": "yes",
+            "at": 11.6
+          },
+          {
+            "text": "One script, dozens of markets",
+            "verdict": "yes",
+            "at": 14.56
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c36",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 972.52,
+      "duration": 19.54,
+      "variables": {
+        "beats": [
+          {
+            "text": "Clear corporate winner",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Built for L&D and HR",
+            "verdict": "yes",
+            "at": 3.22
+          },
+          {
+            "text": "A professional production tool",
+            "verdict": "yes",
+            "at": 16.54
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c37",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 995.25,
+      "duration": 6,
+      "variables": {
+        "index": 4,
+        "total": 5,
+        "logo": "heygen",
+        "name": "HeyGen",
+        "tagline": "Avatars, voice clones and dubbing",
+        "tag": "Solo Creators",
+        "register": "light",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c38",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1024.77,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Your Avatar",
+        "text": "Clone yourself, use a photo, or pick stock",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c39",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1043.71,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Killer Feature",
+        "text": "Voice cloning, made for solo creators",
+        "edge": "top",
+        "variant": "b",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c40",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1077.01,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Voice Clone",
+        "text": "A minute of audio builds your digital voice",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c41",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1122.34,
+      "duration": 11.08,
+      "variables": {
+        "beats": [
+          {
+            "text": "Sounds like you, zero retakes",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "On brand across every video",
+            "verdict": "yes",
+            "at": 8.08
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c42",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1158.19,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Translate Mode",
+        "text": "Any video re-rendered with synced lips",
+        "edge": "top",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c43",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1168.98,
+      "duration": 16.58,
+      "variables": {
+        "beats": [
+          {
+            "text": "Best for solo creators",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Personal branding at scale",
+            "verdict": "yes",
+            "at": 8.49
+          },
+          {
+            "text": "My personal favorite",
+            "verdict": "yes",
+            "at": 13.58
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c44",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 1198.83,
+      "duration": 6,
+      "variables": {
+        "index": 5,
+        "total": 5,
+        "logo": "arcads",
+        "name": "Arcads",
+        "tagline": "AI actors for UGC ads",
+        "tag": "UGC Ads",
+        "register": "light",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c45",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 1213.38,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Actor Library",
+        "logo": "arcads",
+        "value": 300,
+        "suffix": "+",
+        "context": "AI actors built from real human footage",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c46",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1219.93,
+      "duration": 7.95,
+      "variables": {
+        "beats": [
+          {
+            "text": "More authentic than avatars",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Clever, focused design",
+            "verdict": "yes",
+            "at": 4.95
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c47",
+      "card": "slate/headline-chips",
+      "placement": "fullframe",
+      "start": 1232.2,
+      "duration": 11.33,
+      "variables": {
+        "headline": "UGC Is a Different World",
+        "beats": [
+          {
+            "text": "Built only for UGC ads",
+            "at": 0.6
+          },
+          {
+            "text": "More control per generation",
+            "at": 2.7
+          },
+          {
+            "text": "Higher hit rate",
+            "at": 4.36
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c48",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1266.93,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "The Whole Flow",
+        "text": "Pick an actor, paste the script, generate",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c49",
+      "card": "enacted/pipeline-flow",
+      "placement": "fullframe",
+      "start": 1319.14,
+      "duration": 10.82,
+      "variables": {
+        "title": "Bulk Creation",
+        "steps": [
+          {
+            "step": "One Script",
+            "icon": "doc"
+          },
+          {
+            "step": "Many Actors",
+            "icon": "person"
+          },
+          {
+            "step": "Many Videos",
+            "icon": "video"
+          }
+        ],
+        "beats": [
+          {
+            "step": "One Script",
+            "at": 2.19
+          },
+          {
+            "step": "Many Actors",
+            "at": 3.24
+          },
+          {
+            "step": "Many Videos",
+            "at": 8.55
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c50",
+      "card": "statement/strike-list",
+      "placement": "fullframe",
+      "start": 1329.96,
+      "duration": 8.02,
+      "variables": {
+        "title": "What You Stop Doing",
+        "marker": "Stop",
+        "items": [
+          {
+            "label": "Creator waits",
+            "icon": "clock"
+          },
+          {
+            "label": "Shoot days",
+            "icon": "video"
+          },
+          {
+            "label": "Slow cycles",
+            "icon": "gear"
+          }
+        ],
+        "beats": [
+          {
+            "label": "Creator waits",
+            "at": 0.6
+          },
+          {
+            "label": "Shoot days",
+            "at": 2.44
+          },
+          {
+            "label": "Slow cycles",
+            "at": 5.02
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c51",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1339.17,
+      "duration": 7.28,
+      "variables": {
+        "beats": [
+          {
+            "text": "Wins for performance marketers",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "High volume UGC on tap",
+            "verdict": "yes",
+            "at": 4.28
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c52",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1356.63,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Why UGC Works",
+        "text": "Products need a real face for credibility",
+        "edge": "top",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c53",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 1375.93,
+      "duration": 5,
+      "variables": {
+        "title": "Pricing",
+        "register": "dark"
+      },
+      "structural": true
+    },
+    {
+      "id": "c54",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1388.64,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Free Plan",
+        "text": "40 trial credits before any quests",
+        "edge": "top",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c55",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1408.84,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Free Credits",
+        "text": "Platform quests push the balance past 340",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c56",
+      "card": "overlay/savings-badge",
+      "placement": "overlay",
+      "start": 1426.85,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "OpenArt Infinite",
+        "save": "50%",
+        "amount": "$28",
+        "per": "/mo billed annually",
+        "sub": "24,000 credits included",
+        "seal": "SAVE",
+        "pos": "bottom-right",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c57",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1441.65,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Credit Costs",
+        "text": "One credit per image, up to 1,500 per video clip",
+        "edge": "top",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c58",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1458.05,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Free Tier",
+        "text": "Trial credits cover images, not cinematic video",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c59",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1484.89,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Credit Burn",
+        "text": "Premium models eat 40 to 70 credits per run",
+        "edge": "top",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c60",
+      "card": "overlay/savings-badge",
+      "placement": "overlay",
+      "start": 1501.99,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Synthesia Starter",
+        "save": "$11",
+        "amount": "$18",
+        "per": "/mo billed annually",
+        "sub": "10 video minutes a month",
+        "seal": "DEAL",
+        "pos": "top-right",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c61",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1521.87,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Enterprise Gate",
+        "text": "SCORM export and translation are priced custom",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c62",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1569.1,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Credit Alert",
+        "text": "One 90 second video can eat a month of credits",
+        "edge": "top",
+        "variant": "b",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c63",
+      "card": "overlay/savings-badge",
+      "placement": "overlay",
+      "start": 1601.25,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Arcads Creator",
+        "save": "$70",
+        "amount": "$150",
+        "per": "/mo",
+        "sub": "Down from $220 a month",
+        "seal": "DEAL",
+        "pos": "bottom-left",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c64",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1607.35,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "The Math",
+        "text": "Real UGC creators charge $80 to $200 per video",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c65",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1624.69,
+      "duration": 19.43,
+      "variables": {
+        "beats": [
+          {
+            "text": "OpenArt: most per dollar",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Arcads: priciest per month",
+            "verdict": "no",
+            "at": 9.6
+          },
+          {
+            "text": "Higgsfield: solid middle value",
+            "verdict": "yes",
+            "at": 16.43
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c66",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 1653.2,
+      "duration": 4,
+      "variables": {
+        "label": "Synthesia",
+        "score": 5,
+        "max": 5,
+        "logo": "synthesia",
+        "winner": false,
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c67",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 1682.05,
+      "duration": 4,
+      "variables": {
+        "label": "Arcads",
+        "score": 3,
+        "max": 5,
+        "logo": "arcads",
+        "winner": false,
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c68",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 1697.28,
+      "duration": 4,
+      "variables": {
+        "label": "Higgsfield",
+        "score": 4.5,
+        "max": 5,
+        "logo": "higgsfield",
+        "winner": false,
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c69",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 1738.11,
+      "duration": 4,
+      "variables": {
+        "label": "OpenArt",
+        "score": 4.5,
+        "max": 5,
+        "logo": "openart",
+        "winner": false,
+        "register": "dark"
+      }
+    },
+    {
+      "id": "z07",
+      "card": "verdict/persona-match",
+      "placement": "fullframe",
+      "start": 1774.84,
+      "duration": 10.58,
+      "variables": {
+        "title": "Use Case By Use Case",
+        "beats": [
+          {
+            "persona": "Creator, artist or marketer",
+            "winner": "OpenArt",
+            "logo": "openart",
+            "at": 0.6
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z08",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 1785.42,
+      "duration": 6,
+      "variables": {
+        "index": 1,
+        "total": 5,
+        "logo": "openart",
+        "name": "OpenArt",
+        "tagline": "Widest creative toolkit per dollar",
+        "tag": "Creators & Artists",
+        "register": "light",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "z19",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 1797.48,
+      "duration": 4,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "z09",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 1804.39,
+      "duration": 6,
+      "variables": {
+        "index": 2,
+        "total": 5,
+        "logo": "higgsfield",
+        "name": "Higgsfield",
+        "tagline": "Director level camera control",
+        "tag": "Cinematic Video",
+        "register": "light",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "z10",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 1823.11,
+      "duration": 6,
+      "variables": {
+        "index": 3,
+        "total": 5,
+        "logo": "synthesia",
+        "name": "Synthesia",
+        "tagline": "140+ languages, corporate polish",
+        "tag": "Training and L&D",
+        "register": "light",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "z12",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 1841.08,
+      "duration": 6,
+      "variables": {
+        "index": 4,
+        "total": 5,
+        "logo": "heygen",
+        "name": "HeyGen",
+        "tagline": "Avatar video without a camera",
+        "tag": "Solo Creators",
+        "register": "light",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "z13",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 1858.41,
+      "duration": 6,
+      "variables": {
+        "index": 5,
+        "total": 5,
+        "logo": "arcads",
+        "name": "Arcads",
+        "tagline": "High volume UGC ad creatives",
+        "tag": "Performance Marketers",
+        "register": "light",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "z16",
+      "card": "statement/keyword-statement",
+      "placement": "fullframe",
+      "start": 1891.9,
+      "duration": 5.01,
+      "variables": {
+        "text": "No single winner, only the one that fits how you work",
+        "keyword": "fits how you work",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z17",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 1903.13,
+      "duration": 4,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "z20",
+      "card": "like-subscribe/like-subscribe",
+      "placement": "overlay",
+      "start": 1922.39,
+      "duration": 5,
+      "variables": {
+        "register": "light"
+      }
+    }
+  ]
+}

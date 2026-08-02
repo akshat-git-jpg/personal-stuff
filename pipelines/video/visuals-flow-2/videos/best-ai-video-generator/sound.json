@@ -1,0 +1,776 @@
+{
+  "video": "best-ai-video-generator",
+  "approved": true,
+  "instances": [
+    {
+      "id": "sfx-2",
+      "at": 0,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-177",
+      "at": 0,
+      "sample": "drone_low",
+      "semi": 0,
+      "gainDb": -30,
+      "loop": true,
+      "end": 86.733
+    },
+    {
+      "id": "sfx-3",
+      "at": 0.4,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-5",
+      "at": 3.18,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-172",
+      "at": 12.98,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-6",
+      "at": 14.23,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-7",
+      "at": 14.83,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-8",
+      "at": 17.330000000000002,
+      "sample": "blip",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-9",
+      "at": 21.19,
+      "sample": "blip",
+      "semi": 7,
+      "gainDb": -15.5
+    },
+    {
+      "id": "sfx-10",
+      "at": 32.49,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-11",
+      "at": 33.09,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-12",
+      "at": 42.7,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-13",
+      "at": 46.23,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-14",
+      "at": 49.68,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-15",
+      "at": 51,
+      "sample": "blip",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-16",
+      "at": 53.029999999999994,
+      "sample": "blip",
+      "semi": 7,
+      "gainDb": -15.5
+    },
+    {
+      "id": "sfx-17",
+      "at": 82.44,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-178",
+      "at": 86.733,
+      "sample": "drone_low",
+      "semi": 0,
+      "gainDb": -30,
+      "loop": true,
+      "end": 178
+    },
+    {
+      "id": "sfx-18",
+      "at": 91.41,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-19",
+      "at": 105.22,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-20",
+      "at": 105.82,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-21",
+      "at": 108,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-22",
+      "at": 111.73,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-23",
+      "at": 117.32,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-150",
+      "at": 147.76,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-26",
+      "at": 152.03,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-28",
+      "at": 176.39,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-179",
+      "at": 420,
+      "sample": "drone_low",
+      "semi": 0,
+      "gainDb": -30,
+      "loop": true,
+      "end": 500
+    },
+    {
+      "id": "sfx-35",
+      "at": 426.72,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-36",
+      "at": 427.32000000000005,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-38",
+      "at": 444.93,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-40",
+      "at": 473.07,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-41",
+      "at": 473.67,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-42",
+      "at": 475.18,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-43",
+      "at": 476.55,
+      "sample": "pop",
+      "semi": 7,
+      "gainDb": -15.5
+    },
+    {
+      "id": "sfx-44",
+      "at": 479.81,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-45",
+      "at": 480.41,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-46",
+      "at": 487.74,
+      "sample": "blip",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-47",
+      "at": 492.38,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-53",
+      "at": 643.63,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-54",
+      "at": 644.23,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-55",
+      "at": 646.31,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-180",
+      "at": 697,
+      "sample": "drone_low",
+      "semi": 0,
+      "gainDb": -30,
+      "loop": true,
+      "end": 775
+    },
+    {
+      "id": "sfx-56",
+      "at": 707.24,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-57",
+      "at": 710.1,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-58",
+      "at": 712.36,
+      "sample": "blip",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-59",
+      "at": 716.45,
+      "sample": "blip",
+      "semi": 7,
+      "gainDb": -15.5
+    },
+    {
+      "id": "sfx-60",
+      "at": 729.65,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-61",
+      "at": 730.25,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-62",
+      "at": 733.31,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-63",
+      "at": 737.93,
+      "sample": "pop",
+      "semi": 7,
+      "gainDb": -15.5
+    },
+    {
+      "id": "sfx-173",
+      "at": 745.14,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-157",
+      "at": 745.8,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-64",
+      "at": 748.72,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-65",
+      "at": 749.32,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-174",
+      "at": 763.55,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-67",
+      "at": 764.33,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-72",
+      "at": 934.05,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-73",
+      "at": 934.65,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-74",
+      "at": 945.65,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-75",
+      "at": 948.6099999999999,
+      "sample": "pop",
+      "semi": 7,
+      "gainDb": -15.5
+    },
+    {
+      "id": "sfx-76",
+      "at": 972.52,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-77",
+      "at": 973.12,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-78",
+      "at": 975.74,
+      "sample": "blip",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-84",
+      "at": 1122.34,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-85",
+      "at": 1122.9399999999998,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-88",
+      "at": 1168.98,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-89",
+      "at": 1169.58,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-181",
+      "at": 1195,
+      "sample": "drone_low",
+      "semi": 0,
+      "gainDb": -30,
+      "loop": true,
+      "end": 1255
+    },
+    {
+      "id": "sfx-92",
+      "at": 1198.83,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-94",
+      "at": 1219.93,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-95",
+      "at": 1220.53,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-96",
+      "at": 1224.88,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-97",
+      "at": 1232.2,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-98",
+      "at": 1232.8,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-99",
+      "at": 1234.9,
+      "sample": "blip",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-100",
+      "at": 1236.56,
+      "sample": "blip",
+      "semi": 7,
+      "gainDb": -15.5
+    },
+    {
+      "id": "sfx-182",
+      "at": 1318,
+      "sample": "drone_low",
+      "semi": 0,
+      "gainDb": -30,
+      "loop": true,
+      "end": 1385
+    },
+    {
+      "id": "sfx-102",
+      "at": 1319.14,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-103",
+      "at": 1321.3300000000002,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-104",
+      "at": 1322.38,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-105",
+      "at": 1327.69,
+      "sample": "pop",
+      "semi": 7,
+      "gainDb": -15.5
+    },
+    {
+      "id": "sfx-106",
+      "at": 1329.96,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-107",
+      "at": 1330.56,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-108",
+      "at": 1332.4,
+      "sample": "blip",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-109",
+      "at": 1334.98,
+      "sample": "blip",
+      "semi": 7,
+      "gainDb": -15.5
+    },
+    {
+      "id": "sfx-110",
+      "at": 1339.17,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-111",
+      "at": 1339.77,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-112",
+      "at": 1343.45,
+      "sample": "pop",
+      "semi": 4,
+      "gainDb": -16
+    },
+    {
+      "id": "sfx-163",
+      "at": 1371.47,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-175",
+      "at": 1375.47,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-114",
+      "at": 1375.93,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-176",
+      "at": 1385.28,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-115",
+      "at": 1388.64,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-165",
+      "at": 1587.43,
+      "sample": "swipe",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-126",
+      "at": 1624.69,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-127",
+      "at": 1625.29,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-183",
+      "at": 1769.695,
+      "sample": "drone_low",
+      "semi": 0,
+      "gainDb": -30,
+      "loop": true,
+      "end": 1927.695
+    },
+    {
+      "id": "sfx-134",
+      "at": 1774.84,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-135",
+      "at": 1775.4399999999998,
+      "sample": "pop",
+      "semi": 0,
+      "gainDb": -16.5
+    },
+    {
+      "id": "sfx-136",
+      "at": 1785.42,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-138",
+      "at": 1804.39,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-139",
+      "at": 1823.11,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-140",
+      "at": 1841.08,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-141",
+      "at": 1858.41,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-142",
+      "at": 1891.9,
+      "sample": "whoosh-up",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-144",
+      "at": 1922.39,
+      "sample": "blip",
+      "semi": 0,
+      "gainDb": -14
+    },
+    {
+      "id": "sfx-145",
+      "at": 1927.39,
+      "sample": "success",
+      "semi": 0,
+      "gainDb": -14
+    }
+  ]
+}
