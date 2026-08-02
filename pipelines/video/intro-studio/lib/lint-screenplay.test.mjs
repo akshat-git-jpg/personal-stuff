@@ -149,3 +149,64 @@ test('W4: beat too long', () => {
   assert.ok(res.warnings.some(w => w.code === 'W4'), 'Expected W4 on mutated');
   assert.ok(!runLint(goodScreenplay).warnings.some(w => w.code === 'W4'), 'Expected no W4 on good');
 });
+
+// --- regressions found authoring the first real screenplay (poc-01) ---
+
+// A transcript token can normalise into several words. Matching token-to-word
+// made every clause containing "side-by-side", "five-way" or "let's" unmatchable.
+test('E1 matches clauses containing multi-word tokens', () => {
+  const words = [
+    { text: 'a', start: 0.0, end: 0.2 },
+    { text: 'side-by-side', start: 0.2, end: 0.9 },
+    { text: "let's", start: 0.9, end: 1.4 },
+    { text: 'go', start: 1.4, end: 1.8 },
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [{
+      id: 'b01', intent: 'hook', clause: "a side-by-side let's go",
+      t_start: 0, t_end: 1.8, register: 'dark', face: 'full',
+      stage: 's', carries: null, transition_out: 'cut', deviation_reason: null,
+    }],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 1.8 });
+  assert.ok(!res.errors.some(e => e.code === 'E1'), JSON.stringify(res.errors));
+  assert.ok(!res.errors.some(e => e.code === 'E2'), JSON.stringify(res.errors));
+});
+
+// E3 pins the first beat to 0; the first word almost never starts at 0. Both
+// rules must be satisfiable at once, exactly as they are for the last beat.
+test('E2 does not fire on a first beat pinned to 0 by E3', () => {
+  const words = [
+    { text: 'hello', start: 0.43, end: 0.9 },
+    { text: 'there', start: 0.9, end: 1.5 },
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [{
+      id: 'b01', intent: 'hook', clause: 'hello there',
+      t_start: 0, t_end: 1.5, register: 'dark', face: 'full',
+      stage: 's', carries: null, transition_out: 'cut', deviation_reason: null,
+    }],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 1.5 });
+  assert.deepStrictEqual(res.errors, []);
+});
+
+// ...but a first beat that is NOT pinned to 0 still gets checked against the words.
+test('E2 still fires on a first beat that is neither 0 nor the word time', () => {
+  const words = [
+    { text: 'hello', start: 0.43, end: 0.9 },
+    { text: 'there', start: 0.9, end: 1.5 },
+  ];
+  const sp = {
+    slug: 'x',
+    beats: [{
+      id: 'b01', intent: 'hook', clause: 'hello there',
+      t_start: 3.0, t_end: 1.5, register: 'dark', face: 'full',
+      stage: 's', carries: null, transition_out: 'cut', deviation_reason: null,
+    }],
+  };
+  const res = lintScreenplay({ screenplay: sp, words, introDuration: 1.5 });
+  assert.ok(res.errors.some(e => e.code === 'E2'));
+});

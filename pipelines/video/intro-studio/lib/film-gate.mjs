@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
-import { probeDuration, probeDimensions } from './intake.mjs';
+import { probeDuration, probeDimensions, probeVideoDuration } from './intake.mjs';
 import { frameLuma, detectFreezes, longestFreeze } from './frames.mjs';
 
 export const GATE = {
@@ -42,7 +42,7 @@ export function runGate(slug) {
   const video = path.join(workdir, 'renders', 'intro-film.mp4');
   if (!fs.existsSync(video)) throw new Error(`missing ${video} — run the render step first`);
   const introDuration = JSON.parse(fs.readFileSync(path.join(workdir, 'intake.json'), 'utf8')).duration;
-  const renderDuration = probeDuration(video);
+  const renderDuration = probeVideoDuration(video);
   const { width, height } = probeDimensions(video);
   return judge({ renderDuration, introDuration, luma: frameLuma(video), freezes: detectFreezes(video, renderDuration), width, height });
 }

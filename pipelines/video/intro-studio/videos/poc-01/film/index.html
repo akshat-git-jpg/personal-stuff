@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="assets/gsap.min.js"></script>
+<style>
+  :root {
+    --accent: #fb923c;
+    --ink-dark: #ffffff;
+    --ink-light: #14100a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #000; overflow: hidden; }
+  #root {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: #0a0805; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  /* ---- registers: two full-bleed fields, the light one fades over the dark ---- */
+  #bg-dark, #bg-light { position: absolute; inset: 0; }
+  #bg-dark  { background: radial-gradient(120% 100% at 50% 12%, #3a1f08 0%, #17100a 45%, #0a0805 100%); }
+  #bg-light { background: radial-gradient(120% 100% at 50% 12%, #fffaf3 0%, #f6ece0 48%, #ece0d0 100%); }
+
+  /* Two drifting glows. They must TRANSLATE — a rotating radial gradient is
+     radially symmetric, so it changes no pixels and the frame reads as frozen. */
+  #glow, #glow2 {
+    position: absolute; left: 50%; top: 50%; width: 2200px; height: 2200px;
+    margin: -1100px 0 0 -1100px; pointer-events: none;
+  }
+  #glow  { background: radial-gradient(closest-side, rgba(251,146,60,0.30), rgba(251,146,60,0) 68%); }
+  #glow2 { background: radial-gradient(closest-side, rgba(96,165,250,0.20), rgba(96,165,250,0) 66%); }
+
+  /* ---- the presenter ---- */
+  #avatar {
+    position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+    object-fit: cover; z-index: 6;
+  }
+
+  /* ---- the five tiles: ONE set of elements for the whole film ---- */
+  /* The wrap carries the continuous breathing; the tile carries the beat moves,
+     so the two never fight over the same transform. */
+  .tile-wrap { position: absolute; width: 260px; height: 340px; z-index: 7; }
+  .tile {
+    position: absolute; left: 0; top: 0; width: 260px; height: 340px;
+    border-radius: 22px; overflow: hidden;
+  }
+  .tile-fill { position: absolute; inset: 0; opacity: 0.92; }
+  .tile-name {
+    position: absolute; left: 20px; top: 18px; right: 14px;
+    font-size: 27px; font-weight: 700; letter-spacing: -0.4px;
+    color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,0.45);
+  }
+  .tile-cap {
+    position: absolute; left: 0; top: 356px; width: 260px;
+    font-size: 20px; font-weight: 500; color: var(--ink-light);
+    text-align: center; z-index: 7;
+  }
+
+  /* ---- the test grid that the tiles become ---- */
+  .col { position: absolute; top: 286px; width: 159px; height: 590px; z-index: 4;
+         border-left: 2px solid rgba(20,16,10,0.18); }
+  .col-h { position: absolute; top: 246px; width: 159px; text-align: center;
+           font-size: 19px; font-weight: 600; color: var(--ink-light); z-index: 5; }
+  .cell { position: absolute; height: 10px; border-radius: 6px; z-index: 8; }
+
+  /* ---- trophy struck through in the scope beat ---- */
+  #trophy { position: absolute; left: 860px; top: 596px; width: 200px; text-align: center; z-index: 9; }
+  #trophy-cup { font-size: 64px; line-height: 1; }
+  #trophy-label { font-size: 20px; font-weight: 600; color: var(--ink-light); margin-top: 6px; }
+  #trophy-strike {
+    position: absolute; left: 18px; top: 46px; width: 164px; height: 6px;
+    background: #d93025; border-radius: 3px; transform-origin: left center;
+  }
+
+  /* ---- agenda ---- */
+  #agenda { position: absolute; left: 300px; top: 250px; width: 1420px; z-index: 5; }
+  .agenda-item {
+    display: flex; align-items: baseline; gap: 22px; margin-bottom: 30px;
+    font-size: 41px; font-weight: 600; color: var(--ink-light); letter-spacing: -0.5px;
+  }
+  .agenda-num { font-size: 25px; font-weight: 700; color: var(--accent); min-width: 44px; }
+
+  /* ---- button ---- */
+  #linkplate {
+    position: absolute; left: 0; right: 0; top: 720px; text-align: center; z-index: 9;
+  }
+  #linkplate .lp-main { font-size: 54px; font-weight: 700; color: var(--ink-light); letter-spacing: -0.8px; }
+  #linkplate .lp-sub  { font-size: 26px; font-weight: 500; color: rgba(20,16,10,0.62); margin-top: 10px; }
+
+  #flash { position: absolute; inset: 0; background: #fff; z-index: 20; }
+  #wipe  { position: absolute; inset: 0; background: #fff; z-index: 21; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="intro" data-duration="86.677313" data-fps="30" data-width="1920" data-height="1080">
+
+  <audio id="vo" data-start="0" src="../vo.mp3"></audio>
+  <video id="avatar" class="clip" data-start="0" data-duration="86.677313" src="../avatar.mp4" muted></video>
+
+  <div id="bg-dark"></div>
+  <div id="bg-light"></div>
+  <div id="glow"></div>
+  <div id="glow2"></div>
+
+  <div id="agenda"></div>
+  <div id="trophy"><div id="trophy-cup">🏆</div><div id="trophy-label">one overall winner</div><div id="trophy-strike"></div></div>
+  <div id="linkplate"><div class="lp-main">All five platforms</div><div class="lp-sub">links in the description</div></div>
+
+  <div id="flash"></div>
+  <div id="wipe"></div>
+</div>
+
+<script>
+(function () {
+  const TOOLS = [
+    { name: 'Open Art',    color: '#fb923c', cap: 'solo creators' },
+    { name: 'Higgs Field', color: '#60a5fa', cap: 'cinematic b-roll' },
+    { name: 'Synthesia',   color: '#34d399', cap: 'corporate training' },
+    { name: 'Hejian',      color: '#f472b6', cap: 'social shorts' },
+    { name: 'Arcad',       color: '#a78bfa', cap: 'ad creative' },
+  ];
+  const COLS = ['features', 'output quality', 'workflow', 'pricing'];
+  const AGENDA = [
+    'Quick overviews — who each tool is for',
+    'A live demo of every platform',
+    'Side-by-side pricing across all five',
+    'A summary table on every factor',
+    'My honest verdict, by use case',
+  ];
+  // which cells rise (earns a spot) and which fall short
+  const SCORE = [
+    [1, 1, 0, 1],
+    [1, 1, 1, 0],
+    [0, 1, 1, 0],
+    [1, 0, 1, 1],
+    [0, 1, 0, 1],
+  ];
+
+  const root = document.getElementById('root');
+  const HOME_X = i => 230 + i * 300;      // tile left at home
+  const HOME_CX = i => 360 + i * 300;     // tile centre x at home
+  const HOME_Y = 370;
+
+  // ---- build the five tiles once. Every later state is these same nodes. ----
+  const tiles = [], names = [], caps = [], wraps = [];
+  TOOLS.forEach((t, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'tile-wrap';
+    wrap.id = 'wrap-' + i;
+    wrap.style.left = HOME_X(i) + 'px';
+    wrap.style.top = HOME_Y + 'px';
+    root.appendChild(wrap);
+    wraps.push(wrap);
+
+    const el = document.createElement('div');
+    el.className = 'tile';
+    el.id = 'tile-' + i;
+    el.innerHTML = '<div class="tile-fill"></div><div class="tile-name">' + t.name + '</div>';
+    el.querySelector('.tile-fill').style.background =
+      'linear-gradient(160deg, ' + t.color + ' 0%, ' + t.color + 'bb 55%, ' + t.color + '77 100%)';
+    wrap.appendChild(el);
+    tiles.push(el);
+    names.push(el.querySelector('.tile-name'));
+
+    const cap = document.createElement('div');
+    cap.className = 'tile-cap';
+    cap.style.left = HOME_X(i) + 'px';
+    cap.style.top = (HOME_Y + 356) + 'px';
+    cap.textContent = t.cap;
+    root.appendChild(cap);
+    caps.push(cap);
+  });
+
+  // ---- grid columns + headers ----
+  // Grid stops short of the docked presenter panel so rows never run under it.
+  const GRID_L = 300, GRID_W = 1060, COL_W = 159;
+  const COL_X = j => GRID_L + 0.4 * GRID_W + j * COL_W;
+  const cols = [], colHs = [];
+  COLS.forEach((c, j) => {
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.style.left = COL_X(j) + 'px';
+    root.appendChild(col); cols.push(col);
+    const h = document.createElement('div');
+    h.className = 'col-h';
+    h.style.left = COL_X(j) + 'px';
+    h.textContent = c;
+    root.appendChild(h); colHs.push(h);
+  });
+
+  // ---- verdict cells, one per row/column ----
+  const cells = [];
+  for (let i = 0; i < 5; i++) {
+    for (let j = 0; j < 4; j++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.style.left = (COL_X(j) + 20) + 'px';
+      cell.style.top = (300 + i * 115 + 40) + 'px';
+      cell.style.width = '119px';
+      cell.style.background = SCORE[i][j] ? TOOLS[i].color : 'rgba(20,16,10,0.25)';
+      root.appendChild(cell);
+      cells.push({ el: cell, up: SCORE[i][j], i, j });
+    }
+  }
+
+  // ---- agenda items ----
+  const agenda = document.getElementById('agenda');
+  const items = AGENDA.map((text, i) => {
+    const d = document.createElement('div');
+    d.className = 'agenda-item';
+    d.innerHTML = '<span class="agenda-num">0' + (i + 1) + '</span><span>' + text + '</span>';
+    agenda.appendChild(d);
+    return d;
+  });
+
+  // ================= geometry for each state =================
+  // Docked-presenter panel: clear of the grid's right edge (1360) at x 1395+.
+  const PANEL = { scale: 0.25, x: 675, y: 360, borderRadius: 78 };
+  // "full" never means full-bleed in the LIGHT register — a 1920x1080 video
+  // covers the paper field and the register turn becomes invisible. Inset it.
+  const PORTRAIT_SCOPE = { scale: 0.48, x: 0, y: -232, borderRadius: 40 };
+  const PORTRAIT_BUTTON = { scale: 0.5, x: 0, y: -150, borderRadius: 40 };
+
+  const ARC = { dy: [240, 190, 165, 190, 240], rot: [-8, -4, 0, 4, 8], scale: 0.5 };
+  const MISALIGN = { dy: [-60, 40, -30, 70, -10], scale: [0.95, 0.8, 1.05, 0.85, 0.92], rot: [-3, 2, -1, 3, -2] };
+  const SORTED = [2, 4, 0, 3, 1];               // re-sorted slot for each tile
+  const ROW_B05 = { scale: 0.62, y: 352, cx: i => 960 + (i - 2) * 230 };
+
+  const gridX = i => GRID_L - HOME_X(i);
+  const gridY = i => (300 + i * 115) - HOME_Y;
+  const railX = i => 120 - HOME_X(i);
+  const railY = i => (275 + i * 110) - HOME_Y;
+  const plateX = i => (440 + i * 210) - HOME_X(i);
+  const plateY = 900 - HOME_Y;
+
+  // ================= initial state =================
+  gsap.set('#bg-light', { opacity: 0 });
+  gsap.set('#flash', { opacity: 0 });
+  gsap.set('#wipe', { xPercent: -100 });
+  gsap.set('#avatar', { opacity: 0, transformOrigin: '50% 50%' });
+  gsap.set('#trophy', { opacity: 0, scale: 0.7, y: 20 });
+  gsap.set('#trophy-strike', { scaleX: 0 });
+  gsap.set('#linkplate', { opacity: 0, y: 24 });
+  gsap.set(names, { opacity: 0 });
+  gsap.set(cols, { opacity: 0, scaleY: 0, transformOrigin: '50% 0%' });
+  gsap.set(colHs, { opacity: 0 });
+  gsap.set(cells.map(c => c.el), { opacity: 0, scaleX: 0.2, transformOrigin: '0% 50%' });
+  gsap.set(caps, { opacity: 0, y: 10 });
+  gsap.set(items, { opacity: 0, y: 26 });
+  tiles.forEach((el, i) => {
+    gsap.set(el, { opacity: 0, y: ARC.dy[i], rotation: ARC.rot[i], scale: 0.18, transformOrigin: '50% 50%' });
+  });
+
+  const tl = gsap.timeline({ paused: true });
+
+  // ---- continuous life ----
+  // Nothing here is decoration: without it the held frames between beat moves
+  // read as frozen, which is the slideshow failure this whole system targets.
+  tl.to('#glow',  { x: 430, y: -230, duration: 11, ease: 'sine.inOut', yoyo: true, repeat: 8 }, 0);
+  tl.to('#glow2', { x: -390, y: 250, duration: 13, ease: 'sine.inOut', yoyo: true, repeat: 7 }, 0);
+  // every tile breathes for the whole film, on the wrap so beat moves are free
+  wraps.forEach((w, i) => {
+    tl.to(w, { y: -11, duration: 2.3, ease: 'sine.inOut', yoyo: true, repeat: 38 }, i * 0.37);
+  });
+  // the agenda block drifts while items hold
+  tl.to('#agenda', { y: -16, duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: 6 }, 59.0);
+
+  // ---------- b01 0 → 3.77  hook · dark · face full ----------
+  tl.to('#avatar', { opacity: 1, duration: 0.6, ease: 'power2.out' }, 0);
+  tiles.forEach((el, i) => {
+    tl.to(el, { opacity: 1, scale: ARC.scale, duration: 0.55, ease: 'back.out(2.2)' }, 0.5 + i * 0.09);
+  });
+
+  // ---------- b02 3.77 → 13.0  hook · dark · face docks ----------
+  tl.to('#avatar', { scale: PANEL.scale, x: PANEL.x, y: PANEL.y, borderRadius: PANEL.borderRadius, duration: 0.9, ease: 'power3.inOut' }, 3.77);
+  tiles.forEach((el, i) => {
+    tl.to(el, {
+      y: MISALIGN.dy[i], scale: MISALIGN.scale[i], rotation: MISALIGN.rot[i],
+      duration: 1.3, ease: 'power2.out',
+    }, 3.95 + i * 0.07);
+  });
+  // they keep failing to settle, slowly, right through the clause
+  tiles.forEach((el, i) => {
+    tl.to(el, { y: MISALIGN.dy[i] + (i % 2 ? -26 : 30), duration: 5.4, ease: 'sine.inOut' }, 6.6);
+  });
+
+  // ---------- b03 13.0 → 22.0  turn · dark · face out · names land ----------
+  tl.to('#avatar', { opacity: 0, duration: 0.5 }, 13.0);
+  const NAME_T = [15.0, 16.18, 17.61, 19.19, 20.42];
+  tiles.forEach((el, i) => {
+    tl.to(el, { y: 0, scale: 1, rotation: 0, duration: 0.95, ease: 'power3.out' }, NAME_T[i] - 0.4);
+    tl.to(names[i], { opacity: 1, duration: 0.3 }, NAME_T[i]);
+    tl.to(el, { scale: 1.09, duration: 0.17, yoyo: true, repeat: 1, ease: 'power2.out' }, NAME_T[i]);
+  });
+
+  // ---------- b04 22.0 → 28.0  turn · dark · face panel · compress ----------
+  tl.to('#avatar', { opacity: 1, duration: 0.5 }, 22.0);
+  tiles.forEach((el, i) => {
+    tl.to(el, {
+      x: 960 - HOME_CX(i), y: (i - 2) * 16, scale: 0.9, rotation: (i - 2) * 1.4,
+      duration: 1.5, ease: 'power3.inOut',
+    }, 22.3 + i * 0.05);
+  });
+  tl.to(tiles, { boxShadow: '0 0 70px rgba(251,146,60,0.85)', duration: 0.5 }, 26.0);
+  tiles.forEach((el, i) => {
+    tl.to(el, { x: (960 - HOME_CX(i)) + (i - 2) * 15, duration: 0.7, ease: 'power2.out' }, 27.22);
+  });
+  tl.to('#flash', { opacity: 1, duration: 0.12, ease: 'power2.in' }, 27.88);
+  tl.to('#flash', { opacity: 0, duration: 0.55, ease: 'power2.out' }, 28.04);
+
+  // ---------- b05 28.0 → 39.0  scope · REGISTER TURNS LIGHT · face full ----------
+  tl.to('#bg-light', { opacity: 1, duration: 0.2 }, 27.95);
+  tl.to(names, { color: '#ffffff', duration: 0.2 }, 27.95);
+  tl.to('#avatar', { opacity: 1, scale: PORTRAIT_SCOPE.scale, x: PORTRAIT_SCOPE.x, y: PORTRAIT_SCOPE.y, borderRadius: PORTRAIT_SCOPE.borderRadius, duration: 1.0, ease: 'power3.inOut' }, 28.1);
+  tl.to(tiles, { boxShadow: '0 18px 50px rgba(20,16,10,0.18)', duration: 0.6 }, 28.2);
+  tiles.forEach((el, i) => {
+    tl.to(el, {
+      x: ROW_B05.cx(i) - HOME_CX(i), y: ROW_B05.y, scale: ROW_B05.scale, rotation: 0,
+      duration: 1.4, ease: 'power3.inOut',
+    }, 28.3 + i * 0.07);
+  });
+  // nothing holds still: the row breathes while he talks
+  tl.to(tiles, { y: ROW_B05.y - 16, duration: 3.6, ease: 'sine.inOut', stagger: 0.08 }, 30.2);
+  tl.to(tiles, { y: ROW_B05.y, duration: 3.4, ease: 'sine.inOut', stagger: 0.08 }, 34.0);
+  tl.to('#trophy', { opacity: 1, scale: 1, y: -30, duration: 0.7, ease: 'back.out(1.8)' }, 34.05);
+  tl.to('#trophy-strike', { scaleX: 1, duration: 0.38, ease: 'power3.in' }, 36.84);
+  tl.to('#trophy', { opacity: 0.28, duration: 0.6 }, 37.35);
+
+  // ---------- b06 39.0 → 46.0  mech · light · face panel · captions + re-sort ----------
+  tl.to('#trophy', { opacity: 0, duration: 0.4 }, 38.9);
+  tl.to('#avatar', { scale: PANEL.scale, x: PANEL.x, y: PANEL.y, borderRadius: PANEL.borderRadius, duration: 0.9, ease: 'power3.inOut' }, 39.0);
+  tiles.forEach((el, i) => {
+    tl.to(el, { x: 0, y: 0, scale: 1, duration: 1.2, ease: 'power3.inOut' }, 39.2 + i * 0.06);
+  });
+  tl.to(caps, { opacity: 1, y: 0, duration: 0.5, stagger: 0.12 }, 40.4);
+  // the sort IS the argument
+  tiles.forEach((el, i) => {
+    const dx = (SORTED[i] - i) * 300;
+    tl.to(el, { x: dx, duration: 1.3, ease: 'power3.inOut' }, 44.5);
+    tl.to(caps[i], { x: dx, duration: 1.3, ease: 'power3.inOut' }, 44.5);
+  });
+
+  // ---------- b07 46.0 → 54.0  mech · light · face out · tiles BECOME the grid ----------
+  tl.to('#avatar', { opacity: 0, duration: 0.5 }, 46.0);
+  tl.to(caps, { opacity: 0, duration: 0.4 }, 46.05);
+  tiles.forEach((el, i) => {
+    tl.to(el, {
+      x: gridX(i), y: gridY(i), width: GRID_W, height: 90, scale: 1, borderRadius: 12,
+      duration: 1.3, ease: 'power3.inOut',
+    }, 46.3 + i * 0.08);
+    tl.to(names[i], { fontSize: '23px', top: 30, duration: 1.3 }, 46.3 + i * 0.08);
+  });
+  const COL_T = [49.6, 50.5, 51.85, 53.02];
+  COL_T.forEach((t, j) => {
+    tl.to(cols[j], { opacity: 1, scaleY: 1, duration: 0.5, ease: 'power2.out' }, t);
+    tl.to(colHs[j], { opacity: 1, duration: 0.4 }, t + 0.05);
+  });
+
+  // ---------- b08 54.0 → 59.0  stakes · light · face panel · verdicts resolve ----------
+  tl.to('#avatar', { opacity: 1, duration: 0.5 }, 54.0);
+  cells.forEach((c, n) => {
+    tl.to(c.el, {
+      opacity: c.up ? 1 : 0.3, scaleX: 1, y: c.up ? -14 : 14,
+      duration: 0.5, ease: 'power2.out',
+    }, 54.3 + n * 0.16);
+  });
+
+  // ---------- b09 59.0 → 61.0  tease · light · the grid DEMOTES to a rail ----------
+  tl.to(cols.concat(colHs).concat(cells.map(c => c.el)), { opacity: 0, duration: 0.5 }, 59.0);
+  tl.to(names, { opacity: 0, duration: 0.4 }, 59.15);
+  tiles.forEach((el, i) => {
+    tl.to(el, { x: railX(i), y: railY(i), width: 60, height: 90, borderRadius: 8, duration: 1.15, ease: 'power3.inOut' }, 59.2 + i * 0.05);
+  });
+
+  // ---------- b10 61.0 → 67.0  tease · agenda begins, rail answers ----------
+  tl.to('#avatar', { opacity: 0, duration: 0.4 }, 61.0);
+  tl.to(items[0], { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 61.4);
+  tl.to(tiles, { scaleX: 1.4, duration: 0.28, yoyo: true, repeat: 1, stagger: 0.04, ease: 'power2.out' }, 61.7);
+
+  // ---------- b11 67.0 → 73.0  tease · items two and three ----------
+  tl.to(items[0], { opacity: 0.38, duration: 0.5 }, 67.2);
+  tl.to(items[1], { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 67.3);
+  tl.to(items[2], { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 70.15);
+  // the rail splays on "side-by-side" and snaps back
+  tiles.forEach((el, i) => {
+    tl.to(el, { x: railX(i) + (i - 2) * 26, duration: 0.32, yoyo: true, repeat: 1, ease: 'power2.inOut' }, 70.06);
+  });
+
+  // ---------- b12 73.0 → 84.0  tease · items four and five · the grid callback ----------
+  tl.to([items[1], items[2]], { opacity: 0.38, duration: 0.5 }, 73.1);
+  tl.to(items[3], { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 73.3);
+  // one-second proof that the rail is still the grid
+  tiles.forEach((el, i) => {
+    tl.to(el, { x: gridX(i), y: gridY(i), width: GRID_W, duration: 0.65, ease: 'power3.inOut' }, 73.45 + i * 0.04);
+    tl.to(el, { x: railX(i), y: railY(i), width: 60, duration: 0.7, ease: 'power3.inOut' }, 74.75 + i * 0.04);
+  });
+  tl.to(items[3], { opacity: 0.38, duration: 0.5 }, 78.8);
+  tl.to(items[4], { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 78.95);
+  // five become one
+  tl.to(tiles, { opacity: 0.22, duration: 0.6 }, 79.1);
+  tl.to(tiles[4], { opacity: 1, scaleX: 1.75, duration: 0.6, ease: 'power2.out' }, 79.1);
+  // slow drift so the long tail never freezes
+  tl.to(tiles, { y: i => railY(i) - 14, duration: 2.2, ease: 'sine.inOut', stagger: 0.05 }, 80.4);
+  tl.to(tiles, { y: i => railY(i), duration: 2.0, ease: 'sine.inOut', stagger: 0.05 }, 82.0);
+
+  // ---------- b13 84.0 → 86.68  button · face returns · link plate · wipe ----------
+  tl.to(items, { opacity: 0, y: -22, duration: 0.5, stagger: 0.05 }, 84.0);
+  tl.to('#avatar', { opacity: 1, scale: PORTRAIT_BUTTON.scale, x: PORTRAIT_BUTTON.x, y: PORTRAIT_BUTTON.y, borderRadius: PORTRAIT_BUTTON.borderRadius, duration: 0.8, ease: 'power3.inOut' }, 84.25);
+  tiles.forEach((el, i) => {
+    tl.to(el, {
+      opacity: 1, x: plateX(i), y: plateY, width: 200, height: 14, scaleX: 1, borderRadius: 7,
+      duration: 0.85, ease: 'power3.inOut',
+    }, 84.2 + i * 0.05);
+  });
+  tl.to('#linkplate', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 84.5);
+  tl.to('#wipe', { xPercent: 0, duration: 0.55, ease: 'power3.in' }, 85.85);
+
+  window.__timelines = window.__timelines || {};
+  window.__timelines['intro'] = tl;
+})();
+</script>
+</body>
+</html>

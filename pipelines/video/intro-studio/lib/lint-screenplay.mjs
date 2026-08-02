@@ -53,7 +53,16 @@ export function lintScreenplay({ screenplay, words, introDuration }) {
     const clauseNorm = normaliseClause(beat.clause);
     const clauseWords = clauseNorm.split(' ').filter(w => w);
     
-    const normWords = words.map(w => normaliseClause(w.text)).map((text, idx) => ({ text, idx })).filter(w => w.text);
+    // One transcript token can normalise to SEVERAL words ("side-by-side" ->
+    // "side by side", "let's" -> "let s"). Flatten to one entry per word while
+    // keeping the owning token's index, so timings still resolve to real words.
+    // Comparing token-to-word instead made every hyphenated clause unmatchable.
+    const normWords = [];
+    words.forEach((w, idx) => {
+      for (const piece of normaliseClause(w.text).split(' ')) {
+        if (piece) normWords.push({ text: piece, idx });
+      }
+    });
 
     let foundStartIdx = -1;
     let foundEndIdx = -1;
@@ -79,8 +88,13 @@ export function lintScreenplay({ screenplay, words, introDuration }) {
       const expectedStart = words[foundStartIdx].start;
       const expectedEnd = words[foundEndIdx].end;
       
+      // Mirror of the E7 exemption below: E3 pins the FIRST beat to 0, but the
+      // first word rarely starts at 0 (silence, a breath). Honour E3 there.
+      const isFirstBeat = i === 0;
       if (Math.abs(beat.t_start - expectedStart) > 0.25) {
-        errors.push({ code: 'E2', beat: beatId, message: `t_start (${beat.t_start}) does not match transcript word times bounding that clause (${expectedStart})` });
+        if (!(isFirstBeat && Math.abs(beat.t_start) <= 0.05)) {
+          errors.push({ code: 'E2', beat: beatId, message: `t_start (${beat.t_start}) does not match transcript word times bounding that clause (${expectedStart})` });
+        }
       }
       
       // FIX for conflicting rules E2 and E7 on the last beat.
