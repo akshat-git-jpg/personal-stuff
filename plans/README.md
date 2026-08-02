@@ -1178,3 +1178,5 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 179-vf2-roster-symmetry-lint — PR#137 179-vf2-roster-symmetry-lint: vf2 roster symmetry lint — DONE
 - 181-intro-studio-screenplay-pass — PR#139 181-intro-studio-screenplay-pass: intro-studio — the screenplay pass — DONE
 - 182-intro-studio-compose-render-critique — PR#140 182-intro-studio-compose-render-critique: intro-studio — compose, render, critique, deliver — DONE
+- 185-vf2-intro-film-step — PR#144 185-vf2-intro-film-step: vf2 — the bespoke intro film as a step that is OFF by default — DONE
+- 184-vf2-transcript-garble-gate — PR#142 184-vf2-transcript-garble-gate: catch ASR caption garbles at step 010, not at the final cut — DONE
