@@ -145,11 +145,9 @@
         "anchor": "hit subscribe for more honest comparisons",
         "start": 1922.39
       },
-      "applied": false,
-      "folded": false,
-      "note": "OPEN — owner deferred: \"will discuss z20 later\". Agreed the template is weak (generic subscribe pill, no variables, lands over a frozen end frame). Needs a direction before anything is built.",
-      "deferred": true,
-      "deferred_note": "owner 2026-08-02: 'will discuss z20 later' — like-subscribe/like-subscribe stays as-is until a direction is agreed. Diagnosis stands: generic subscribe pill, zero variables, and it lands at 32:02 over a frozen end frame (W18 flagged 21.4s of stillness there)"
+      "applied": "2026-08-02 — z20 re-rendered against the rebuilt card; cue unchanged.",
+      "folded": "2026-08-02 — like-subscribe/like-subscribe rebuilt to the owner direction (2026-08-02, reference images): AR channel disc, cursor flies in and clicks, pill flips Subscribe -> Subscribed, bell rings, all in the library palette. Catalog purpose updated.",
+      "note": "Resolved. Owner gave the direction on 2026-08-02 (standard YouTube subscribe gesture, in our theme) and the card was rebuilt and verified in frames from the cut."
     },
     "z01": {
       "text": "all are clear visible in start. then all gets blury . Lets remove blurry effect. Secondly most imp - this motion graphic looks very weird with just icons and no info, no actual content..",
@@ -159,7 +157,9 @@
         "anchor": "5 AI video tools",
         "start": 0
       },
-      "image": "feedback-images/z01.png"
+      "image": "feedback-images/z01.png",
+      "applied": "2026-08-02 — cues.json z01: each item gained a promise label (Art / Cinematic / Talking Head / Avatars / UGC Ads).",
+      "folded": "2026-08-02 — enacted/promise-shelf: focus pull moved from depth-of-field to light (dim/lift), plinths gained engraved placards. Rules: DESIGN.md \"Never express focus with blur\" + catalog anti_intent (promise, never product). Approval-process rule in steps/037 README: a still preview approves a LOOK only."
     },
     "c01#2": {
       "text": "increase second line text size little more in template. this still looks small",
@@ -168,7 +168,9 @@
         "card": "tool-icon/tool-glass-tile",
         "anchor": "First up is the OpenArt",
         "start": 91.41
-      }
+      },
+      "applied": "2026-08-02 — not needed (template change only, no cue edit).",
+      "folded": "2026-08-02 — tool-icon/tool-glass-tile subtitle 40px -> 52px (2.88x, mid-band). Rule: DESIGN.md \"A ratio rule gives you a BAND — land in the middle of it\", because 40px was legal at 3.75x and still read small."
     }
   }
 }

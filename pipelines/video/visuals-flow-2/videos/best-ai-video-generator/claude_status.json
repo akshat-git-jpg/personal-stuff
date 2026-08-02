@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-01T23:01:24.212Z",
+  "updated": "2026-08-02T07:13:56.434Z",
   "items": {
     "final-v3:0": {
       "status": "question",
@@ -58,8 +58,16 @@
       "message": "All 5 tools on section/tool-intro incl. HeyGen; Pricing keeps the plain section card."
     },
     "z20": {
-      "status": "question",
-      "message": "Deferred by owner — needs a direction before rebuilding."
+      "status": "fixed",
+      "message": ""
+    },
+    "z01": {
+      "status": "fixed",
+      "message": ""
+    },
+    "c01#2": {
+      "status": "fixed",
+      "message": ""
     }
   }
 }

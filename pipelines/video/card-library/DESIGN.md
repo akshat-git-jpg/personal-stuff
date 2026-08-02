@@ -139,6 +139,20 @@ one lever that overshot when all five moved together.
 
 These rules are enforced by `scripts/check-type-scale.mjs`.
 
+### A ratio rule gives you a BAND — land in the middle of it (owner, 2026-08-02)
+
+The hero ratio is bounded at both ends: at least 2.5× the next-largest text, at
+most 4×. On a 150px hero that is a legal band of 37.5px to 60px for the line
+underneath. Both edges pass the gate. Only one of them looks right.
+
+`tool-icon/tool-glass-tile` was rejected twice for the same line. It went 32px
+(4.69×, outside the band) to 40px (3.75×, one notch off the floor), and the owner
+came straight back with "this still looks small". It is now 52px, at 2.88×.
+
+So: when a fix is "make it bigger" and a ratio bounds it, compute the band and
+land mid-band. Landing on the edge satisfies the checker and gets rejected by
+the person, and you spend a second review round on a number you already touched.
+
 ## Layout
 
 - Canvas 1920x1080, content in a centered `#frame` with ~120px padding; content
@@ -220,6 +234,23 @@ Verify with `node scripts/card-qa.mjs <slug> --side` and LOOK at the sheet.
 - Containers reveal ~0.3s before their first item; items reveal on their beats
   (beat cards) — never all at once.
 - No infinite loops, no randomness, no `Date.now()` — renders must be deterministic.
+
+### Never express focus with blur (owner, 2026-08-02)
+
+To single one element out of a set, change **light, scale or colour**. Never
+defocus the others. A depth-of-field pull is cinematic in a still frame and
+reads as a fault in motion: whatever is not the subject is soft for the whole
+shot, so the viewer sees a broken render, not an emphasis.
+
+`enacted/promise-shelf` was built with exactly this device — five pedestals
+resting at `blur(4.5px)` while the focused one sat at 0, so four of five were
+soft at any moment. The owner's verdict on the first cut it appeared in was
+"all are clear visible in start. then all gets blury. Lets remove blurry
+effect." It now dims and lifts instead: same walk across the row, nothing ever
+out of focus, every label readable for the card's whole life.
+
+Blur remains fine where it is not carrying meaning — a glow halo, a backdrop
+scrim, a soft shadow.
 
 ## Ambient motion — never dead on screen
 

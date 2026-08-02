@@ -85,3 +85,26 @@ comes back on the next video. That was the actual behaviour until 2026-07-29.
 **Not a checklist.** What belongs in an intro is a judgment call about that
 script; this gate checks that cards were *chosen deliberately*, not that
 particular slots are filled (owner ruling, `decisions.md` 2026-07-28).
+
+## A still preview approves a LOOK, and only a look (owner fold, 2026-08-02)
+
+When a NEW card is approved from an image — a Gemini/Flow prompt preview, a
+mockup, a reference screenshot — that approval covers its palette, its
+composition and its mood. It does **not** cover anything a still cannot show:
+
+- **The motion device.** A still cannot show what moves, or what the motion
+  costs the rest of the frame.
+- **The absence of content.** A still of an empty frame and a still of a frame
+  whose content has not been written look identical.
+
+So a card whose whole device is motion, or whose defining property is that it
+carries no text, is **not approved until someone watches it render**. Build it,
+render it, and put the clip in front of the owner before it ships in a cut.
+
+`enacted/promise-shelf` is the case that produced this rule. The owner approved
+a Gemini still on 2026-08-01 — five lit pedestals, one in sharp focus, "no text
+anywhere" — and the card was built exactly to it. Seeing it move, the owner
+rejected both of the things the still could not convey: the depth-of-field pull
+("all gets blury") and the empty plinths ("just icons and no info, no actual
+content"). Nobody was wrong at any step; the approval simply never covered what
+was being approved.
