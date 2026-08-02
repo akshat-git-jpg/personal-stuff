@@ -1,155 +1,174 @@
 {
- "video": "best-ai-video-generator",
- "updated": "2026-08-02",
- "items": {
-  "final-v3:0": {
-   "text": "did not like this motion graphic",
-   "t": 3.816417,
-   "context": "final@00:03",
-   "applied": false,
-   "folded": true,
-   "note": "Card kept for now. The audit asked for a NEW roll-call card here and the replacement needs a look-preview verdict before any code is written; three Gemini/Flow prompts were sent to the owner 2026-08-01. Fold lesson recorded: an audit finding whose fix is a new card must NOT be self-accepted to keep express mode moving."
-  },
-  "final-v3:1": {
-   "text": "We could have modified the same motion graphic or maybe we could have created a new template. Whenever a name is coming up, let's say open art, that o that specific logo or that speci specific section of card can come out basically pop up.",
-   "t": 17.092748,
-   "context": "final@00:17",
-   "applied": true,
-   "folded": true,
-   "note": "Built tool-icon/roster-pop: the full line-up sits dimmed from frame 0 and each tile pops (scale + accent ring + desaturation lift) as its tool is named, settling the previous one back. z02 now uses it. Verified in pixels at 17s and 20s of draft v4."
-  },
-  "final-v3:2": {
-   "text": "Okay, two feedbacks here. First of all, this motion graphic decision itself was bad. This is not the correct motion graphic to be used at this place. We can discuss more on this. Secondly, this motion graphic has O and B written as logo, which is very bad. I have already told you I prefer logo or icon. Node this text like fields. Is this a bug or was that intentional?",
-   "t": 45.951021,
-   "context": "final@00:45",
-   "applied": true,
-   "folded": true,
-   "note": "Answered: the O/B tiles were intentional card fallback, not a bug — promise-split prints name[0] when no logo is passed, and a rhetorical split has no products to pass. z03 is now statement/promise-payoff. New rule R_LOGO_TILES bars logo-tile cards for abstract pairs."
-  },
-  "final-v3:3": {
-   "text": "I must have said this earlier that the first link in description I want to use that template which covers the entire screen and the background screen gets dull. I don't remember the name, you can figure out. And this specific overlay should be used later for later phases. Why did we use this at the first place? I did mention this earlier for some video feedback",
-   "t": 88.299683,
-   "context": "final@01:28",
-   "applied": true,
-   "folded": true,
-   "note": "Swapped: z06 (first mention, intro) is now link-scrim and z17/z19 are pills. Root cause was that the positional rule existed only in the BODY rulebook while both mentions here were zone-authored; added R_ZONE_LINK_CTA to lib/zone-rules.mjs."
-  },
-  "final-v3:4": {
-   "text": "So I want to give this feedback. This avtar came very late and it's kind of surprising for the viewer that for two minutes no, one no avtar came, and suddenly the avta came. Let's discuss more on this, but ideally, the avtar should be coming at the starting of the video so that people are familiar with the face.",
-   "t": 138.561719,
-   "context": "final@02:18",
-   "applied": true,
-   "folded": true,
-   "note": "Added avatar span s00 at 59.5-82.7s, inside the intro (was 131.6s). New constraint INTRO_HOST makes a host span in the intro mandatory rather than the looser first-15% rule. The agenda card that occupied that window was dropped; side mode would have let both share the frame and is fixed by plan 175."
-  },
-  "final-v3:5": {
-   "text": "So here you used a different template to show synthesia. But for later tools, I think you use the section card. Why is that? I think I was very clear and I have said this multiple times that I want symmetry I want to understand what is the gap gap",
-   "t": 153.75,
-   "context": "final@02:33",
-   "applied": true,
-   "folded": true,
-   "note": "Symmetry: all five tools now share ONE structural card for their verdict slot (section/tool-intro, TOOL 1..5 OF 5). Root cause was CAP_FULLFRAME=3 colliding with R_STRUCTURAL on a 5-tool comparison."
-  },
-  "final-v3:6": {
-   "text": "Basically here, see you have used section card here but for synthesia use you used some other card. Why this happened? I have said this multiple times and it again happened.",
-   "t": 178,
-   "context": "final@02:58",
-   "applied": true,
-   "folded": true,
-   "note": "Same root cause as :5. R_STRUCTURAL now states the series always beats the cap and that per-item slots must use a structural, cap-exempt card; tool-glass-tile was made structural."
-  },
-  "final-v3:7": {
-   "text": "I don't like this template. Can we please remove this template only? It's too complicated to understand.",
-   "t": 1825.334672,
-   "context": "final@30:25",
-   "applied": true,
-   "folded": true,
-   "note": "enacted/before-after deleted from the card library (card directory removed, catalog entry removed). c47 became slate/headline-chips and z10 became the shared tool-intro verdict card."
-  },
-  "final-v3:8": {
-   "text": "If you have shown this template for open art, I think you should have shown this template for everything else. Right? It's not symmetrical. This you tick mark open art in this template, and if you're not going to show this for every tool then it will look bad bad. Why is this happening? I want to understand. Is the Q decider LLM badly working? Is it not able to understand the script properly and understand the symmetrical sections?",
-   "t": 448.536681,
-   "context": "final@07:28",
-   "applied": true,
-   "folded": true,
-   "note": "Answered: the cue LLM was not malfunctioning — the rulebook contradicted itself. spotlight-focus and tool-glass-tile each stopped at exactly 3 uses (the cap) on a 5-tool video while the cap-exempt section card stayed symmetric. c16 no longer uses a roster-showing device for a single tool."
-  },
-  "z02": {
-   "text": "voice not syncing with beats.. Why this happened?",
-   "added": "2026-08-01",
-   "context": {
-    "card": "tool-icon/roster-pop",
-    "anchor": "Today, we are",
-    "start": 14.23
-   },
-   "applied": false,
-   "folded": true,
-   "note": "Root-caused, not fixed. A beat fires on the FIRST word of its anchor and anchors need 3+ words; the five names span 7 words, so five non-overlapping anchors cannot exist and two tools fell into the evenly-spaced fallback (Synthesia popped while the VO said \"Arcads\"). Unfixable with the current resolver — routed to plan 177 (derive beat times from the transcript, as word-sync already does). The cue is left as-is rather than swapping out the card the owner asked for one round earlier; owner told 2026-08-02."
-  },
-  "c01": {
-   "text": "OpenArt heading and small text below are too close, can we add some space between. Aslo pls increase text size of 2nd line text. Its currently too small compared to heading(OperArt)",
-   "added": "2026-08-01",
-   "context": {
-    "card": "tool-icon/tool-glass-tile",
-    "anchor": "First up is the OpenArt",
-    "start": 91.41
-   },
-   "image": "feedback-images/c01.png",
-   "applied": true,
-   "folded": true,
-   "note": "tool-glass-tile subtitle 32px->40px, gap 18px->34px (hero spread 4.69x -> 3.75x, inside the 4x ceiling). The ceiling for this exact complaint existed since 2026-07-31 but only inspects .row/.item selectors, and this descriptor is #subtitle — gate blind spot routed to plan 178."
-  },
-  "c20": {
-   "text": "Right side spacing looks off. Pls think long term and permanent fix , also why no logo..",
-   "added": "2026-08-01",
-   "context": {
-    "card": "section/section-card-flip",
-    "anchor": "let's now move over to Higgsfield AI",
-    "start": 492.38
-   },
-   "image": "feedback-images/c20.png",
-   "applied": true,
-   "folded": true,
-   "note": "Two things. Spacing: section-card-flip #meta had padding-left 28px and no padding-right, so text sat 92px from the left edge and 64px from the right; both are 28px now and the plate is even. Logo: this slot is now the tool-branded section/tool-intro, which carries the logo — see c53."
-  },
-  "c27": {
-   "text": "something feels wrong with this card template , its vertical and spacing looks off, last box is too bottom, heading text is too top. basically no padding in top/bottom. OVerall content should be in smaller space. may be reduce connecting lines, etc.",
-   "added": "2026-08-01",
-   "context": {
-    "card": "enacted/pipeline-flow",
-    "anchor": "What this does is that",
-    "start": 707.24
-   },
-   "image": "feedback-images/c27.png",
-   "applied": true,
-   "folded": true,
-   "note": "pipeline-flow variant-b hardcoded a 760px chain whatever the step count, so flex connectors absorbed 472px of slack (two ~236px bare lines) and the column overflowed its 840px padding box by 134px, killing the frame centering. Node/connector heights now come from step count via --vb-node-h/--vb-track-h; verified at 3 and 6 steps. card-qa never shot variant-b — gate gap routed to plan 178."
-  },
-  "c53": {
-   "text": "i was wondering. We could have kept section card for main overview points and each tool section cards could be different template. Currently you used same card for a specific tool like 'OpenArt' as well as category like ' Pricing'",
-   "added": "2026-08-01",
-   "context": {
-    "card": "section/section-card-flip",
-    "anchor": "So now let's talk about pricing",
-    "start": 1375.93
-   },
-   "applied": true,
-   "folded": true,
-   "note": "Owner was right and it went further than the frame they flagged: the body per-tool opener was section-card-flip on 4 of 5 tools (HeyGen skipped, its boundary sits inside the Synthesia demo) while the SAME card also divided Pricing. All five tools now use section/tool-intro (TOOL 1..5 OF 5, with logos); Pricing keeps the plain section card. HeyGen unblocked by a new E5 carve-out letting a section-opener cover up to 8s of demo. R_STRUCTURAL gained cover-every-item + one-card-one-meaning; R_ZONE_STRUCTURAL gained count-the-roster. Lint enforcement routed to plan 179."
-  },
-  "z20": {
-   "text": "lets disucss on this. this is a very bad template. Need to change",
-   "added": "2026-08-01",
-   "context": {
-    "card": "like-subscribe/like-subscribe",
-    "anchor": "hit subscribe for more honest comparisons",
-    "start": 1922.39
-   },
-   "applied": false,
-   "folded": false,
-   "note": "OPEN — owner deferred: \"will discuss z20 later\". Agreed the template is weak (generic subscribe pill, no variables, lands over a frozen end frame). Needs a direction before anything is built.",
-   "deferred": true,
-   "deferred_note": "owner 2026-08-02: 'will discuss z20 later' — like-subscribe/like-subscribe stays as-is until a direction is agreed. Diagnosis stands: generic subscribe pill, zero variables, and it lands at 32:02 over a frozen end frame (W18 flagged 21.4s of stillness there)"
+  "video": "best-ai-video-generator",
+  "updated": "2026-08-02",
+  "items": {
+    "final-v3:0": {
+      "text": "did not like this motion graphic",
+      "t": 3.816417,
+      "context": "final@00:03",
+      "applied": false,
+      "folded": true,
+      "note": "Card kept for now. The audit asked for a NEW roll-call card here and the replacement needs a look-preview verdict before any code is written; three Gemini/Flow prompts were sent to the owner 2026-08-01. Fold lesson recorded: an audit finding whose fix is a new card must NOT be self-accepted to keep express mode moving."
+    },
+    "final-v3:1": {
+      "text": "We could have modified the same motion graphic or maybe we could have created a new template. Whenever a name is coming up, let's say open art, that o that specific logo or that speci specific section of card can come out basically pop up.",
+      "t": 17.092748,
+      "context": "final@00:17",
+      "applied": true,
+      "folded": true,
+      "note": "Built tool-icon/roster-pop: the full line-up sits dimmed from frame 0 and each tile pops (scale + accent ring + desaturation lift) as its tool is named, settling the previous one back. z02 now uses it. Verified in pixels at 17s and 20s of draft v4."
+    },
+    "final-v3:2": {
+      "text": "Okay, two feedbacks here. First of all, this motion graphic decision itself was bad. This is not the correct motion graphic to be used at this place. We can discuss more on this. Secondly, this motion graphic has O and B written as logo, which is very bad. I have already told you I prefer logo or icon. Node this text like fields. Is this a bug or was that intentional?",
+      "t": 45.951021,
+      "context": "final@00:45",
+      "applied": true,
+      "folded": true,
+      "note": "Answered: the O/B tiles were intentional card fallback, not a bug — promise-split prints name[0] when no logo is passed, and a rhetorical split has no products to pass. z03 is now statement/promise-payoff. New rule R_LOGO_TILES bars logo-tile cards for abstract pairs."
+    },
+    "final-v3:3": {
+      "text": "I must have said this earlier that the first link in description I want to use that template which covers the entire screen and the background screen gets dull. I don't remember the name, you can figure out. And this specific overlay should be used later for later phases. Why did we use this at the first place? I did mention this earlier for some video feedback",
+      "t": 88.299683,
+      "context": "final@01:28",
+      "applied": true,
+      "folded": true,
+      "note": "Swapped: z06 (first mention, intro) is now link-scrim and z17/z19 are pills. Root cause was that the positional rule existed only in the BODY rulebook while both mentions here were zone-authored; added R_ZONE_LINK_CTA to lib/zone-rules.mjs."
+    },
+    "final-v3:4": {
+      "text": "So I want to give this feedback. This avtar came very late and it's kind of surprising for the viewer that for two minutes no, one no avtar came, and suddenly the avta came. Let's discuss more on this, but ideally, the avtar should be coming at the starting of the video so that people are familiar with the face.",
+      "t": 138.561719,
+      "context": "final@02:18",
+      "applied": true,
+      "folded": true,
+      "note": "Added avatar span s00 at 59.5-82.7s, inside the intro (was 131.6s). New constraint INTRO_HOST makes a host span in the intro mandatory rather than the looser first-15% rule. The agenda card that occupied that window was dropped; side mode would have let both share the frame and is fixed by plan 175."
+    },
+    "final-v3:5": {
+      "text": "So here you used a different template to show synthesia. But for later tools, I think you use the section card. Why is that? I think I was very clear and I have said this multiple times that I want symmetry I want to understand what is the gap gap",
+      "t": 153.75,
+      "context": "final@02:33",
+      "applied": true,
+      "folded": true,
+      "note": "Symmetry: all five tools now share ONE structural card for their verdict slot (section/tool-intro, TOOL 1..5 OF 5). Root cause was CAP_FULLFRAME=3 colliding with R_STRUCTURAL on a 5-tool comparison."
+    },
+    "final-v3:6": {
+      "text": "Basically here, see you have used section card here but for synthesia use you used some other card. Why this happened? I have said this multiple times and it again happened.",
+      "t": 178,
+      "context": "final@02:58",
+      "applied": true,
+      "folded": true,
+      "note": "Same root cause as :5. R_STRUCTURAL now states the series always beats the cap and that per-item slots must use a structural, cap-exempt card; tool-glass-tile was made structural."
+    },
+    "final-v3:7": {
+      "text": "I don't like this template. Can we please remove this template only? It's too complicated to understand.",
+      "t": 1825.334672,
+      "context": "final@30:25",
+      "applied": true,
+      "folded": true,
+      "note": "enacted/before-after deleted from the card library (card directory removed, catalog entry removed). c47 became slate/headline-chips and z10 became the shared tool-intro verdict card."
+    },
+    "final-v3:8": {
+      "text": "If you have shown this template for open art, I think you should have shown this template for everything else. Right? It's not symmetrical. This you tick mark open art in this template, and if you're not going to show this for every tool then it will look bad bad. Why is this happening? I want to understand. Is the Q decider LLM badly working? Is it not able to understand the script properly and understand the symmetrical sections?",
+      "t": 448.536681,
+      "context": "final@07:28",
+      "applied": true,
+      "folded": true,
+      "note": "Answered: the cue LLM was not malfunctioning — the rulebook contradicted itself. spotlight-focus and tool-glass-tile each stopped at exactly 3 uses (the cap) on a 5-tool video while the cap-exempt section card stayed symmetric. c16 no longer uses a roster-showing device for a single tool."
+    },
+    "z02": {
+      "text": "voice not syncing with beats.. Why this happened?",
+      "added": "2026-08-01",
+      "context": {
+        "card": "tool-icon/roster-pop",
+        "anchor": "Today, we are",
+        "start": 14.23
+      },
+      "applied": false,
+      "folded": true,
+      "note": "Root-caused, not fixed. A beat fires on the FIRST word of its anchor and anchors need 3+ words; the five names span 7 words, so five non-overlapping anchors cannot exist and two tools fell into the evenly-spaced fallback (Synthesia popped while the VO said \"Arcads\"). Unfixable with the current resolver — routed to plan 177 (derive beat times from the transcript, as word-sync already does). The cue is left as-is rather than swapping out the card the owner asked for one round earlier; owner told 2026-08-02."
+    },
+    "c01": {
+      "text": "OpenArt heading and small text below are too close, can we add some space between. Aslo pls increase text size of 2nd line text. Its currently too small compared to heading(OperArt)",
+      "added": "2026-08-01",
+      "context": {
+        "card": "tool-icon/tool-glass-tile",
+        "anchor": "First up is the OpenArt",
+        "start": 91.41
+      },
+      "image": "feedback-images/c01.png",
+      "applied": true,
+      "folded": true,
+      "note": "tool-glass-tile subtitle 32px->40px, gap 18px->34px (hero spread 4.69x -> 3.75x, inside the 4x ceiling). The ceiling for this exact complaint existed since 2026-07-31 but only inspects .row/.item selectors, and this descriptor is #subtitle — gate blind spot routed to plan 178."
+    },
+    "c20": {
+      "text": "Right side spacing looks off. Pls think long term and permanent fix , also why no logo..",
+      "added": "2026-08-01",
+      "context": {
+        "card": "section/section-card-flip",
+        "anchor": "let's now move over to Higgsfield AI",
+        "start": 492.38
+      },
+      "image": "feedback-images/c20.png",
+      "applied": true,
+      "folded": true,
+      "note": "Two things. Spacing: section-card-flip #meta had padding-left 28px and no padding-right, so text sat 92px from the left edge and 64px from the right; both are 28px now and the plate is even. Logo: this slot is now the tool-branded section/tool-intro, which carries the logo — see c53."
+    },
+    "c27": {
+      "text": "something feels wrong with this card template , its vertical and spacing looks off, last box is too bottom, heading text is too top. basically no padding in top/bottom. OVerall content should be in smaller space. may be reduce connecting lines, etc.",
+      "added": "2026-08-01",
+      "context": {
+        "card": "enacted/pipeline-flow",
+        "anchor": "What this does is that",
+        "start": 707.24
+      },
+      "image": "feedback-images/c27.png",
+      "applied": true,
+      "folded": true,
+      "note": "pipeline-flow variant-b hardcoded a 760px chain whatever the step count, so flex connectors absorbed 472px of slack (two ~236px bare lines) and the column overflowed its 840px padding box by 134px, killing the frame centering. Node/connector heights now come from step count via --vb-node-h/--vb-track-h; verified at 3 and 6 steps. card-qa never shot variant-b — gate gap routed to plan 178."
+    },
+    "c53": {
+      "text": "i was wondering. We could have kept section card for main overview points and each tool section cards could be different template. Currently you used same card for a specific tool like 'OpenArt' as well as category like ' Pricing'",
+      "added": "2026-08-01",
+      "context": {
+        "card": "section/section-card-flip",
+        "anchor": "So now let's talk about pricing",
+        "start": 1375.93
+      },
+      "applied": true,
+      "folded": true,
+      "note": "Owner was right and it went further than the frame they flagged: the body per-tool opener was section-card-flip on 4 of 5 tools (HeyGen skipped, its boundary sits inside the Synthesia demo) while the SAME card also divided Pricing. All five tools now use section/tool-intro (TOOL 1..5 OF 5, with logos); Pricing keeps the plain section card. HeyGen unblocked by a new E5 carve-out letting a section-opener cover up to 8s of demo. R_STRUCTURAL gained cover-every-item + one-card-one-meaning; R_ZONE_STRUCTURAL gained count-the-roster. Lint enforcement routed to plan 179."
+    },
+    "z20": {
+      "text": "lets disucss on this. this is a very bad template. Need to change",
+      "added": "2026-08-01",
+      "context": {
+        "card": "like-subscribe/like-subscribe",
+        "anchor": "hit subscribe for more honest comparisons",
+        "start": 1922.39
+      },
+      "applied": false,
+      "folded": false,
+      "note": "OPEN — owner deferred: \"will discuss z20 later\". Agreed the template is weak (generic subscribe pill, no variables, lands over a frozen end frame). Needs a direction before anything is built.",
+      "deferred": true,
+      "deferred_note": "owner 2026-08-02: 'will discuss z20 later' — like-subscribe/like-subscribe stays as-is until a direction is agreed. Diagnosis stands: generic subscribe pill, zero variables, and it lands at 32:02 over a frozen end frame (W18 flagged 21.4s of stillness there)"
+    },
+    "z01": {
+      "text": "all are clear visible in start. then all gets blury . Lets remove blurry effect. Secondly most imp - this motion graphic looks very weird with just icons and no info, no actual content..",
+      "added": "2026-08-02",
+      "context": {
+        "card": "enacted/promise-shelf",
+        "anchor": "5 AI video tools",
+        "start": 0
+      },
+      "image": "feedback-images/z01.png"
+    },
+    "c01#2": {
+      "text": "increase second line text size little more in template. this still looks small",
+      "added": "2026-08-02",
+      "context": {
+        "card": "tool-icon/tool-glass-tile",
+        "anchor": "First up is the OpenArt",
+        "start": 91.41
+      }
+    }
   }
- }
 }
