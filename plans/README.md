@@ -129,6 +129,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 112 | Native layered FCPXML export (new default) — continuous screen spine + avatar/graphics/overlays/FX lanes + markers + captions.srt; `--baked` keeps the 109 WYSIWYG mode (spec docs/specs/2026-07-21-native-editor-export-design.md) | P1 | M | 111 | DONE (landed PR#69; verified on test-01 in Resolve 2026-07-21) |
 | 113 | visuals-flow review board — horizontal timeline overview view (new default `/`): shared time ruler + SCREEN/GRAPHICS/AVATAR/EFFECTS lanes aligned, on-demand card previews in a docked panel, detail list kept at `/list` via header toggle; master playhead delivers GFX-08. board.mjs only, temp-fixture tests | P2 | M | none | DONE (landed PR#70) |
 | 114 | visuals-flow card pack — 4 new card-library cards in brand theme: prompt/prompt-typing (typewriter+auto-scroll, authored), tool-icon/tool-glass-tile (glass app-icon hero), statement/keyword-statement (kinetic statement + keyword highlight), checklist/icon-pills (icon+pill list rows) + a reusable inline-SVG icon set; all token-themeable, catalog + gallery registered | P2 | L | none | TODO |
+| 185 | vf2 — the bespoke intro film as a step that is OFF by default | P2 | L | — | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
