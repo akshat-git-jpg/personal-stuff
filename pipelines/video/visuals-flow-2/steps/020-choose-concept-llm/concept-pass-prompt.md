@@ -10,7 +10,8 @@ Output ONLY a JSON object that strictly matches this `concept.json` schema:
   "throughline": {
     "name": "short id, e.g. the-race-track",
     "description": "the recurring visual object/motif",
-    "evolution": "how it changes from first to last appearance"
+    "evolution": "how it changes from first to last appearance",
+    "items": ["(optional) the items being compared, required if the description names a count"]
   },
   "registers": [
     { "from_anchor": "verbatim >=3 words", "to_anchor": "verbatim >=3 words", "register": "dark" }

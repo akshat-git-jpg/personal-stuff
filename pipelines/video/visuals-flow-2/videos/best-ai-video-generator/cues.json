@@ -208,7 +208,7 @@
       "register": "light",
       "motif": true,
       "legacy_why": "single-tool hero moment; no enacted device introduces a tool",
-      "flagged": false
+      "flagged": true
     },
     {
       "id": "c02",
@@ -266,7 +266,7 @@
       "register": "light",
       "motif": true,
       "legacy_why": "single-tool hero moment; no enacted device introduces a tool",
-      "flagged": false
+      "flagged": true
     },
     {
       "id": "c04",
@@ -314,7 +314,7 @@
       "register": "light",
       "motif": true,
       "legacy_why": "single-tool hero moment; no enacted device introduces a tool",
-      "flagged": false
+      "flagged": true
     },
     {
       "id": "c07",

@@ -664,6 +664,62 @@ export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, man
       }
     }
     
+    // E14 and E15: Roster Symmetry Lint
+    if (Array.isArray(conceptData.throughline?.items) && conceptData.throughline.items.length > 0) {
+      const rosterItems = conceptData.throughline.items;
+      
+      const fullframeCuesByCard = {};
+      for (const cue of rawCues) {
+        const cat = bySlug[cue.card];
+        if (cat && cat.placement === 'fullframe') {
+          if (!fullframeCuesByCard[cue.card]) fullframeCuesByCard[cue.card] = [];
+          fullframeCuesByCard[cue.card].push(cue);
+        }
+      }
+
+      for (const [cardName, cues] of Object.entries(fullframeCuesByCard)) {
+        if (cues.length >= 2) {
+          const itemMatches = [];
+          for (const cue of cues) {
+            let matchedItem = null;
+            let nonItemValue = null;
+            if (cue.variables) {
+              const allStrings = Object.values(cue.variables).filter(v => typeof v === 'string');
+              const matchFields = [...new Set([cue.variables.name, cue.variables.title, ...allStrings].filter(Boolean))];
+              
+              for (const item of rosterItems) {
+                const lowerItem = item.toLowerCase();
+                if (matchFields.some(f => f.toLowerCase() === lowerItem || f.toLowerCase().includes(lowerItem))) {
+                  matchedItem = item;
+                  break;
+                }
+              }
+              if (!matchedItem) {
+                nonItemValue = cue.variables.title || cue.variables.name || matchFields[0];
+              }
+            }
+            itemMatches.push({ cue, matchedItem, nonItemValue });
+          }
+          
+          const distinctItems = new Set(itemMatches.map(m => m.matchedItem).filter(Boolean));
+          if (distinctItems.size >= 2) {
+            // It is a per-item slot
+            const covered = Array.from(distinctItems);
+            const missing = rosterItems.filter(i => !distinctItems.has(i));
+            
+            if (missing.length > 0) {
+              errors.push(`E14 slot-incomplete: ${cardName} fills a per-item slot for ${covered.length} of ${rosterItems.length} roster items (${covered.join(', ')}) — ${missing[0]} has none. A per-item slot is complete or absent, never partial. A section-opener card may cover up to 8s of demo footage (E5 exempts it), so a boundary inside a screen recording is not a reason to skip an item.`);
+            }
+            
+            const nonItemCues = itemMatches.filter(m => !m.matchedItem);
+            for (const non of nonItemCues) {
+              errors.push(`E15 slot-shared: ${cardName} fills a per-item slot (${covered.join(', ')}) AND is used for "${non.nonItemValue || 'something else'}", which is not a roster item — a viewer cannot tell a tool from a category. Give the per-item slot the tool-branded card and leave the plain one for categories.`);
+            }
+          }
+        }
+      }
+    }
+    
     if (motifCount < CUE_CONSTANTS.MOTIF_MIN.value) {
       warnings.push(`W8 motif: concept.json exists but fewer than 2 cues carry motif: true (the through-line never recurs) (min ${CUE_CONSTANTS.MOTIF_MIN.value})`);
     }

@@ -64,6 +64,26 @@ export function lintConcept(concept, words, segments) {
     if (!concept.throughline.name) errors.push('missing required field: throughline.name');
     if (!concept.throughline.description) errors.push('missing required field: throughline.description');
     if (!concept.throughline.evolution) errors.push('missing required field: throughline.evolution');
+
+    const matchCount = (text) => {
+      if (!text) return null;
+      const m = text.match(/(?:^|\b)(two|three|four|five|six|seven|eight|nine|ten|\d+)(?:-slot|\s+way\s+comparison)/i);
+      if (m) {
+        const val = m[1].toLowerCase();
+        const map = { two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+        return map[val] || parseInt(val, 10);
+      }
+      return null;
+    };
+    
+    const expectedCount = matchCount(concept.throughline.description) || matchCount(concept.thesis);
+    if (expectedCount !== null) {
+      if (!concept.throughline.items) {
+        errors.push(`missing required field: throughline.items (expected ${expectedCount} items)`);
+      } else if (!Array.isArray(concept.throughline.items) || concept.throughline.items.length !== expectedCount) {
+        errors.push(`throughline.items length must be ${expectedCount}, got ${Array.isArray(concept.throughline.items) ? concept.throughline.items.length : 'non-array'}`);
+      }
+    }
   }
 
   if (!concept.registers || !Array.isArray(concept.registers)) {
