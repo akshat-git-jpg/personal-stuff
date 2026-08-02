@@ -61,6 +61,27 @@ if [ -z "$engine" ]; then
   engine="whisper"
 fi
 
+# The transcript is a render-critical artifact: step 090 burns its words onto
+# screen as captions verbatim. Record which engine produced it so a later step
+# (and a human reading the run-log) can see when caption quality was degraded.
+cat > "$workdir/transcript-meta.json" <<META
+{"engine":"$engine","model":"$([ "$engine" = groq ] && echo whisper-large-v3-turbo || echo small.en)","createdAt":"$(date -u +%Y-%m-%dT%H:%M:%SZ)"}
+META
+
+if [ "$engine" != "groq" ]; then
+  cat >&2 <<'WARN'
+================================================================================
+ CAPTION QUALITY DEGRADED — transcript came from local whisper small.en
+ Groq whisper-large-v3-turbo was unavailable or rejected, so this transcript is
+ from the weaker local model. small.en mis-transcribes spec tokens and product
+ names, and those words get BURNED ONTO THE VIDEO as captions.
+ Run the suspect gate and the second-opinion pass before the cue pass:
+   node lib/transcript-suspect.mjs <slug>
+   node lib/transcript-second-opinion.mjs <slug>
+================================================================================
+WARN
+fi
+
 # Transcript quality pass (plan 149) — step 090 burns captions from transcript
 # words VERBATIM, so raw ASR punctuation ships unedited unless fixed here,
 # BEFORE the cue pass reads transcript.json (anchors quote it verbatim; a
