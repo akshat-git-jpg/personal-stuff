@@ -4,8 +4,8 @@ Timecodes assume the voiceover starts at 00:00.0 on the editor timeline. If an i
 
 | place at | file | duration | placement | card |
 |---|---|---|---|---|
-| 00:00.0 | 0000-z01-promise-shelf.mp4 | 14.23s | fullframe | enacted/promise-shelf |
-| 00:14.2 | 0014-z02-roster-pop.mp4 | 10.96s | fullframe | tool-icon/roster-pop |
+| 00:00.0 | 0000-z01-promise-shelf.mp4 | 14.08s | fullframe | enacted/promise-shelf |
+| 00:14.1 | 0014-z02-roster-pop.mp4 | 11.53s | fullframe | tool-icon/roster-pop |
 | 00:32.5 | 0032-z03-promise-payoff.mp4 | 13.74s | fullframe | statement/promise-payoff |
 | 00:46.2 | 0046-z04-pipeline-flow.mp4 | 10.8s | fullframe | enacted/pipeline-flow |
 | 01:22.4 | 0122-z06-link-scrim.mov | 5s | overlay | link-in-description/link-scrim |
