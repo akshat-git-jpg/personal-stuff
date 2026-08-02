@@ -7,7 +7,7 @@
       "card": "enacted/promise-shelf",
       "placement": "fullframe",
       "start": 0,
-      "duration": 14.08,
+      "duration": 14.83,
       "variables": {
         "items": [
           {
@@ -61,8 +61,8 @@
       "id": "z02",
       "card": "tool-icon/roster-pop",
       "placement": "fullframe",
-      "start": 14.08,
-      "duration": 11.53,
+      "start": 14.83,
+      "duration": 10.78,
       "variables": {
         "title": "The Five Contenders",
         "platforms": [
@@ -90,23 +90,23 @@
         "beats": [
           {
             "name": "OpenArt",
-            "at": 1.68
+            "at": 0.93
           },
           {
             "name": "Higgsfield",
-            "at": 3.25
+            "at": 2.5
           },
           {
             "name": "Synthesia",
-            "at": 4.86
+            "at": 4.11
           },
           {
             "name": "HeyGen",
-            "at": 6.41
+            "at": 5.66
           },
           {
             "name": "Arcads",
-            "at": 7.53
+            "at": 6.78
           }
         ],
         "register": "light"

@@ -72,7 +72,7 @@
       "id": "z02",
       "zone": "intro",
       "card": "tool-icon/roster-pop",
-      "anchor": "Today, we are",
+      "anchor": "looking at OpenArt",
       "lead": 0,
       "hold": 4,
       "variables": {
@@ -101,7 +101,6 @@
         ]
       },
       "register": "light",
-      "register_why": "z02 opens the light span - its anchor \"Today, we are\" is that span's own from_anchor. Anchor resolution places the cue a fraction before the span's computed start, so the preceding dark span technically covers it; the card is intentionally light.",
       "motif": true,
       "flagged": false
     },
