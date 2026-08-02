@@ -10,7 +10,7 @@ touches: [pipelines/video/visuals-flow-2/lib/run-config.mjs, pipelines/video/vis
 
 mutation_apply: cd pipelines/video/visuals-flow-2 && sed -i '' "s/intro: 'cards'/intro: 'film'/" lib/run-config.mjs
 mutation_command: cd pipelines/video/visuals-flow-2 && node --test lib/run-config.test.mjs
-mutation_expect: intro must default to cards
+mutation_expect: not ok 7 - intro must default to cards
 mutation_timeout: 300
 ---
 
