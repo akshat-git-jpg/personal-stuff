@@ -119,6 +119,14 @@ export function rewriteCanvas(html, width) {
   return { html: newHtml, error: null };
 }
 
+export function applySideMode(resolved, workdir) {
+  const shotsResolvedPath = path.join(workdir, 'shots.resolved.json');
+  const sideIds = fs.existsSync(shotsResolvedPath)
+    ? sideModeCueIds(resolved, JSON.parse(fs.readFileSync(shotsResolvedPath, 'utf8')).spans)
+    : new Set();
+  for (const cue of resolved) cue.sideMode = sideIds.has(cue.id);
+}
+
 export function planRender(cue, quality = 'standard') {
   const format = cue.placement === 'overlay' ? 'mov' : 'mp4';
   const cardBase = path.basename(cue.card);
@@ -246,11 +254,7 @@ async function main() {
   // shots.resolved.json only exists for a video with an avatar plan (step 060
   // runs after cues resolve at step 040), so a side span's cue can only be
   // known here at render time — see lib/side-mode.mjs.
-  const shotsResolvedPath = path.join(workdir, 'shots.resolved.json');
-  const sideIds = fs.existsSync(shotsResolvedPath)
-    ? sideModeCueIds(resolved, JSON.parse(fs.readFileSync(shotsResolvedPath, 'utf8')).spans)
-    : new Set();
-  for (const cue of resolved) cue.sideMode = sideIds.has(cue.id);
+  applySideMode(resolved, workdir);
 
   const cues = opts.only ? resolved.filter((c) => c.id === opts.only) : resolved;
 

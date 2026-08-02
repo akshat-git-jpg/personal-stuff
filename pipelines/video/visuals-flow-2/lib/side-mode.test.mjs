@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { sideModeCueIds } from './side-mode.mjs';
-import { rewriteCanvas, hashRenderInputs } from './render.mjs';
+import { rewriteCanvas, hashRenderInputs, applySideMode } from './render.mjs';
 import { SHOT_CONSTANTS } from './shot-constants.mjs';
 
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'side-mode');
@@ -53,34 +53,45 @@ test('sideModeCueIds: an overlay cue is not eligible to cover a side span', () =
 });
 
 test('staged HTML: a side-covered cue stages at data-width="1200"', () => {
+  const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'side-covered-'));
   const html = '<div id="root" data-width="1920" data-duration="6"></div>';
-  const cues = [{ id: 'c1', placement: 'fullframe', start: 10, duration: 20 }];
+  const resolved = [{ id: 'c1', placement: 'fullframe', start: 10, duration: 20 }];
   const spans = [{ id: 's1', mode: 'side', start: 12, end: 25 }];
-  const ids = sideModeCueIds(cues, spans);
-  const cue = { ...cues[0], sideMode: ids.has('c1') };
-  assert.equal(cue.sideMode, true);
-
-  const { html: out, error } = rewriteCanvas(html, SHOT_CONSTANTS.SIDE_GRAPHICS_W.value);
-  assert.equal(error, null);
-  assert.match(out, /data-width="1200"/);
-});
-
-test('render.mjs wire up: the sideMode assignment is present', () => {
-  const renderCode = fs.readFileSync(path.join(import.meta.dirname, 'render.mjs'), 'utf8');
-  assert.match(renderCode, /^\s*for \(const cue of resolved\) cue\.sideMode = sideIds\.has\(cue\.id\);/m, 'render.mjs must assign cue.sideMode from sideIds');
+  
+  fs.writeFileSync(path.join(workdir, 'shots.resolved.json'), JSON.stringify({ spans }));
+  
+  applySideMode(resolved, workdir);
+  const cue = resolved[0];
+  let finalHtml = html;
+  
+  if (cue.sideMode) {
+    const { html: out, error } = rewriteCanvas(html, SHOT_CONSTANTS.SIDE_GRAPHICS_W.value);
+    assert.equal(error, null);
+    finalHtml = out;
+  }
+  assert.match(finalHtml, /data-width="1200"/);
 });
 
 test('staged HTML: a cue with no covering side span stays at 1920', () => {
+  const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'side-not-covered-'));
   const html = '<div id="root" data-width="1920" data-duration="6"></div>';
-  const cues = [{ id: 'c1', placement: 'fullframe', start: 10, duration: 20 }];
+  const resolved = [{ id: 'c1', placement: 'fullframe', start: 10, duration: 20 }];
   const spans = [];
-  const ids = sideModeCueIds(cues, spans);
-  const cue = { ...cues[0], sideMode: ids.has('c1') };
-  assert.equal(cue.sideMode, false);
-
+  
+  fs.writeFileSync(path.join(workdir, 'shots.resolved.json'), JSON.stringify({ spans }));
+  
+  applySideMode(resolved, workdir);
+  const cue = resolved[0];
+  let finalHtml = html;
+  
+  if (cue.sideMode) {
+    const { html: out, error } = rewriteCanvas(html, SHOT_CONSTANTS.SIDE_GRAPHICS_W.value);
+    assert.equal(error, null);
+    finalHtml = out;
+  }
   // render.mjs only calls rewriteCanvas when cue.sideMode is truthy, so the
   // staged html for this cue is never touched and keeps its original width.
-  assert.match(html, /data-width="1920"/);
+  assert.match(finalHtml, /data-width="1920"/);
 });
 
 test('hashRenderInputs: rewriting data-width for side mode changes the render cache key', () => {
