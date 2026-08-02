@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 const CHROME = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const HASHES = ['', '#card-plan', '#storyboard', '#final-cut', '#calibrate'];
+const HASHES = ['', '#card-plan', '#intro', '#storyboard', '#final-cut', '#calibrate'];
 
 // 30+ iframed tiles, measured ~20s+ on storyboard, plans 173/174 will add more.
 // Need 60s floor so it does not flake on a loaded machine.
@@ -128,6 +128,9 @@ try {
       if (!dom.includes('data-rid="cp:c01"')) throw new Error('data-rid="cp:c01" not found on #card-plan');
       if (!dom.includes('plan-note"')) throw new Error('plan-note not found on #card-plan');
       if (!dom.includes('NEW — to build')) throw new Error('NEW — to build chip not found on #card-plan');
+    }
+    if (hash === '#intro') {
+      if (!dom.includes('This video does not use the bespoke intro film.')) throw new Error('intro missing-film text not found on #intro');
     }
     if (hash === '#storyboard') {
       // LIST is the default view (owner call 2026-07-31) — assert tile anatomy.
@@ -298,7 +301,7 @@ try {
   const cssFile = distAssets.find(f => f.endsWith('.css'));
   const cssContent = fs.readFileSync(path.join(process.cwd(), 'board-ui/dist/assets', cssFile), 'utf8');
 
-  for (const hash of ['#run', '#card-plan', '#storyboard', '#final-cut']) {
+  for (const hash of ['#run', '#card-plan', '#intro', '#storyboard', '#final-cut']) {
     const url = `http://127.0.0.1:${port}/app/?video=${slug}${hash}`;
     const outPath = path.join(workdir, `tab-${hash ? hash.slice(1) : 'run'}.png`);
     // A leftover file from a previous run satisfies the poll below instantly
