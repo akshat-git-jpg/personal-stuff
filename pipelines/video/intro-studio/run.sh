@@ -73,11 +73,34 @@ if [[ "$step" == "avatar-check" ]]; then
   exit 0
 fi
 
-if [[ "$step" == "screenplay" || "$step" == "author" || "$step" == "render" || "$step" == "critique" || "$step" == "deliver" ]]; then
+if [[ "$step" == "screenplay" ]]; then
+  node -e "
+    import fs from 'node:fs';
+    import { transcriptText } from './lib/transcript.mjs';
+    import { resolveWorkdir } from './lib/workdir.mjs';
+    const workdir = resolveWorkdir('$slug');
+    const transcript = JSON.parse(fs.readFileSync(workdir + '/transcript.json', 'utf8'));
+    const intake = JSON.parse(fs.readFileSync(workdir + '/intake.json', 'utf8'));
+    const text = transcriptText(transcript);
+    let prompt = fs.readFileSync('steps/020-write-screenplay-llm/screenplay-prompt.md', 'utf8');
+    prompt = prompt.replace('{{TRANSCRIPT}}', text);
+    prompt = prompt.replace('{{INTRO_DURATION}}', intake.duration);
+    prompt = prompt.replace(/\{\{SLUG\}\}/g, '$slug');
+    console.log(prompt);
+  "
+  exit 0
+fi
+
+if [[ "$step" == "lint" ]]; then
+  node lib/lint-screenplay.mjs "$slug"
+  exit $?
+fi
+
+if [[ "$step" == "author" || "$step" == "render" || "$step" == "critique" || "$step" == "deliver" ]]; then
   echo "not built yet — see plans/181, plans/182"
   exit 1
 fi
 
 echo "Unknown step: $step"
-echo "Known steps: status, intake, avatar-check, screenplay, author, render, critique, deliver"
+echo "Known steps: status, intake, avatar-check, screenplay, lint, author, render, critique, deliver"
 exit 1
