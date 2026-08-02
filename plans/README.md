@@ -1176,3 +1176,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 183-vf2-board-static-tiles-and-liveness — PR#141 183-vf2-board-static-tiles-and-liveness: storyboard posters + backend liveness — DONE
 - 178-card-library-type-and-variant-gates — PR#136 178-card-library-type-and-variant-gates: card-library type-scale and variant QA gates — DONE
 - 179-vf2-roster-symmetry-lint — PR#137 179-vf2-roster-symmetry-lint: vf2 roster symmetry lint — DONE
+- 181-intro-studio-screenplay-pass — PR#139 181-intro-studio-screenplay-pass: intro-studio — the screenplay pass — DONE
