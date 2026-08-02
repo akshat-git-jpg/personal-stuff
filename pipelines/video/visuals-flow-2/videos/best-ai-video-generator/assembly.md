@@ -8,9 +8,9 @@ Output: /Users/kbtg/kb-scratch/video/visuals-flow-2/best-ai-video-generator/fina
 
 | from | to | source | id |
 |---|---|---|---|
-| 00:00.0 | 00:14.2 | graphic | z01 |
-| 00:14.2 | 00:25.2 | graphic | z02 |
-| 00:25.2 | 00:32.5 | screen | screen-01 |
+| 00:00.0 | 00:14.1 | graphic | z01 |
+| 00:14.1 | 00:25.6 | graphic | z02 |
+| 00:25.6 | 00:32.5 | screen | screen-01 |
 | 00:32.5 | 00:46.2 | graphic | z03 |
 | 00:46.2 | 00:59.5 | graphic | z04 |
 | 00:59.5 | 01:22.7 | avatar | s00 |
