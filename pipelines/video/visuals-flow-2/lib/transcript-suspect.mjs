@@ -91,6 +91,10 @@ export function findSuspects(words, lexicon) {
   return suspects.sort((a, b) => a.at - b.at);
 }
 
+export function isAcknowledged(suspect, reviewedList) {
+  return reviewedList.some(r => r.at === suspect.at && r.why && String(r.why).trim().length > 0);
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const arg = process.argv[2];
   if (!arg) {
@@ -131,8 +135,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   let failed = false;
   for (const s of suspects) {
-    const isAck = reviewedList.some(r => r.at === s.at && r.why && String(r.why).trim().length > 0);
-    if (!isAck) failed = true;
+    if (!isAcknowledged(s, reviewedList)) failed = true;
     console.log(`${s.kind}  t=${s.at}s  "${s.text}"  -> ${s.suggestion || '?'}  (${s.reason})`);
   }
 
