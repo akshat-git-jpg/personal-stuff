@@ -11,13 +11,25 @@ const screenplay = {
   ],
 };
 
-test('samples the midpoint of each beat, not its boundaries', () => {
+test('samples three phases of each beat, avoiding the transition edges', () => {
   const s = beatSampleTimes(screenplay);
-  // Rounded to 2dp. Sub-frame precision is meaningless at 30fps (33ms/frame),
-  // so binary-float rounding down on an exact .x25 is not worth defending against.
-  assert.deepEqual(s.map((x) => x.t), [1.82, 8.67]);
-  assert.deepEqual(s.map((x) => x.id), ['b01', 'b02']);
-  assert.equal(s[1].stage, 'Roll call.');
+  assert.equal(s.length, 6, 'three frames per beat');
+  assert.deepEqual(s.map((x) => x.t), [0.91, 2.01, 3.1, 6.16, 9.18, 12.19]);
+  assert.deepEqual(s.map((x) => x.id), ['b01', 'b01', 'b01', 'b02', 'b02', 'b02']);
+  assert.equal(s[3].stage, 'Roll call.');
+  for (const x of s) {
+    const b = screenplay.beats.find((y) => y.id === x.id);
+    assert.ok(x.t > b.t_start && x.t < b.t_end, `${x.t} sits inside ${x.id}, not on its edge`);
+  }
+});
+
+test('a beat whose content fires late is still sampled after it fires', () => {
+  // The real regression: poc-01 b08 spans 54.39-59.08 and its verdict marks fire
+  // at 56.95 and 58.15. A single midpoint sampled 56.73 and saw neither.
+  const late = { beats: [{ id: 'b08', t_start: 54.39, t_end: 59.08, clause: 'c', stage: 's' }] };
+  const times = beatSampleTimes(late).map((x) => x.t);
+  assert.ok(times.some((t) => t > 56.95), `${times} must include a frame after the first mark`);
+  assert.ok(times.some((t) => t > 58.15), `${times} must include a frame after the second mark`);
 });
 
 test('an empty screenplay samples nothing rather than throwing', () => {
@@ -100,7 +112,8 @@ test('the report pairs every beat frame with the stage line it must satisfy', ()
     screenplay,
     sheetFiles: ['contact-sheet-1.jpg'],
   });
-  assert.match(md, /b01 · hook · dark · face:full · 1\.82s/);
+  assert.match(md, /b01 · hook · dark · face:full/);
+  assert.match(md, /25% through the beat/);
   assert.match(md, /Roll call\./);
   assert.match(md, /covered by `img`/);
   assert.match(md, /\(b02 turn\)/, 'the finding names its beat, not just a timestamp');

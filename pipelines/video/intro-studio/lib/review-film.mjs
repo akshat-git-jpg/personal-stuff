@@ -23,20 +23,39 @@ import { linkFilmMedia } from './film-assets.mjs';
 
 const HYPERFRAMES = 'hyperframes@0.7.88';
 
-// Midpoint, not the boundary: a beat's transition_out is still resolving at its
-// edges, so a boundary frame shows a cross-fade rather than the beat's held
-// composition. The midpoint is what a viewer actually reads.
-export function beatSampleTimes(screenplay) {
+// THREE samples per beat, not one.
+//
+// A single midpoint frame systematically misses any beat whose content fires
+// late. On poc-01 that was three beats out of twelve — the verdict marks
+// (56.95s, sampled at 56.73), the scorecard callback (74.1s) and the closing
+// roster re-form (85.55s) were all invisible to the review that was supposed to
+// catch them, which made the film look cleaner than it was.
+//
+// Boundaries are still avoided: a beat's transition is resolving at its edges,
+// so an edge frame shows a cross-fade rather than a held composition. These sit
+// at 25%, 55% and 85% through the beat.
+export const BEAT_PHASES = [0.25, 0.55, 0.85];
+
+export function beatSampleTimes(screenplay, { phases = BEAT_PHASES } = {}) {
   const beats = screenplay?.beats ?? [];
-  return beats.map((b) => ({
-    t: Number((((b.t_start ?? 0) + (b.t_end ?? 0)) / 2).toFixed(2)),
-    id: b.id,
-    intent: b.intent,
-    register: b.register,
-    face: b.face,
-    clause: b.clause,
-    stage: b.stage,
-  }));
+  const out = [];
+  for (const b of beats) {
+    const start = b.t_start ?? 0;
+    const span = (b.t_end ?? 0) - start;
+    for (const p of phases) {
+      out.push({
+        t: Number((start + span * p).toFixed(2)),
+        phase: p,
+        id: b.id,
+        intent: b.intent,
+        register: b.register,
+        face: b.face,
+        clause: b.clause,
+        stage: b.stage,
+      });
+    }
+  }
+  return out;
 }
 
 export function snapshotArgs(filmDir, times, outDir) {
@@ -134,11 +153,19 @@ export function renderReport({ slug, samples, findings, screenplay, sheetFiles }
   lines.push('## Beat frames — does the picture do what the beat says?', '');
   for (const sheet of sheetFiles) lines.push(`Contact sheet: \`${sheet}\``);
   lines.push('');
+  // Grouped by beat: the three phase frames of one beat must be read together,
+  // against the single stage line all three have to satisfy between them.
+  let lastId = null;
   samples.forEach((s, i) => {
-    lines.push(`### ${i + 1}. ${s.id} · ${s.intent} · ${s.register} · face:${s.face} · ${s.t}s`);
-    lines.push(`> ${s.clause}`, '');
-    lines.push(s.stage, '');
+    if (s.id !== lastId) {
+      lines.push(`### ${s.id} · ${s.intent} · ${s.register} · face:${s.face}`);
+      lines.push(`> ${s.clause}`, '');
+      lines.push(s.stage, '');
+      lastId = s.id;
+    }
+    lines.push(`- frame ${i + 1} — ${s.t}s (${Math.round(s.phase * 100)}% through the beat)`);
   });
+  lines.push('');
   return lines.join('\n');
 }
 

@@ -124,6 +124,40 @@ A rail either passes between objects or stops at them.
 **Enforced by:** partially. `text_occluded` catches the label collision. Nothing
 catches a line crossing a shape.
 
+## T9 — A device has to be visible at viewing scale, not just present in the DOM.
+
+**From:** poc-01 v3, 2026-08-02, found by reading beat frames against their stage
+lines.
+
+The four assessment rails were 2px at 20% opacity. They were in the composition,
+they animated correctly, they passed every mechanical check, and on screen they
+were not there. An entire beat's device was missing and three review passes had
+not noticed, because nothing that measures a DOM can tell you a line is too
+faint to see.
+
+Same class: the viewer marker started as a 38px triangle and read as a speck.
+
+Before shipping a device, look at the frame and ask whether you can see it
+without knowing where to look.
+
+**Enforced by:** author judgement, and only the beat-frame read will catch it.
+
+## T10 — Review every beat at more than one moment.
+
+**From:** poc-01 v3, 2026-08-02.
+
+The review sampled one frame at each beat's midpoint. Three beats out of twelve
+put their content in the last third — the verdict marks at 56.95s and 58.15s in
+a beat sampled at 56.73s, the scorecard callback, the closing roster re-form.
+All three were invisible to the pass built to catch them, which is why the film
+reviewed cleaner than it was.
+
+`beatSampleTimes` now takes three frames per beat at 25%, 55% and 85%. Edges are
+still avoided because a beat's transition is resolving there.
+
+**Enforced by:** `lib/review-film.mjs`, with a regression test pinned to the
+b08 case.
+
 ## T8 — Fill the frame. The middle 50% is not the frame.
 
 **From:** poc-01 v2, 2026-08-02, found in review.

@@ -15,8 +15,13 @@
     --accent: #fb923c;
     --positive: #34d399; --negative: #ef4444; --gold: #facc15;
     --font: 'Inter', system-ui, sans-serif;
-    --hero-size: 140px;
-    --body-size: 44px;
+    /* DESIGN.md allows hero 120-200 and secondary 40-56. Both sat at the bottom
+       of their ranges AND the hero appeared in one beat out of twelve, which is
+       how a technically compliant scale still read as "very small letters"
+       (TASTE.md T4). */
+    --hero-size: 168px;
+    --body-size: 56px;
+    --card-name-size: 44px;   /* lives inside a 330px card, so it scales to the card */
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: #000; overflow: hidden; }
@@ -40,53 +45,64 @@
   #avatar { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; z-index: 6; }
 
   /* ---- the candidate roster: five nodes that live the whole film ---- */
-  .card-wrap { position: absolute; width: 300px; height: 400px; z-index: 7; }
+  /* Wider and taller: the old 300x400 row spanned 130-1600 and left a third of
+     the frame dead (TASTE.md T8). */
+  .card-wrap { position: absolute; width: 330px; height: 440px; z-index: 7; }
   .card {
-    position: absolute; left: 0; top: 0; width: 300px; height: 400px;
-    border-radius: 26px; background: rgba(255,255,255,0.045);
-    border: 1px solid rgba(255,255,255,0.10);
+    position: absolute; left: 0; top: 0; width: 330px; height: 440px;
+    border-radius: 28px; background: rgba(10,8,5,0.34);
+    /* A dark backing and a real border, because in b01 these sit OVER a lit
+       full-frame avatar. At rgba(255,255,255,0.045) they read as smudges and
+       the opening beat looked like nothing was happening (TASTE.md T5). */
+    border: 1.5px solid rgba(255,239,219,0.26);
   }
   .logo-tile {
-    position: absolute; left: 84px; top: 46px; width: 132px; height: 132px;
-    border-radius: 22px; overflow: hidden;
+    position: absolute; left: 92px; top: 50px; width: 146px; height: 146px;
+    border-radius: 24px; overflow: hidden;
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
   }
   .logo-tile img { width: 100%; height: 100%; display: block; }
   .logo-well {
-    position: absolute; left: 84px; top: 46px; width: 132px; height: 132px;
-    border-radius: 22px; border: 2px dashed rgba(255,239,219,0.22);
+    position: absolute; left: 92px; top: 50px; width: 146px; height: 146px;
+    border-radius: 24px; border: 2px dashed rgba(255,239,219,0.30);
   }
   .name-rule {
-    position: absolute; left: 84px; top: 200px; width: 132px; height: 3px;
-    border-radius: 2px; background: rgba(255,239,219,0.22);
+    position: absolute; left: 92px; top: 218px; width: 146px; height: 3px;
+    border-radius: 2px; background: rgba(255,239,219,0.28);
   }
   .card-name {
-    position: absolute; left: 0; right: 0; top: 224px; text-align: center;
-    font-size: var(--body-size); font-weight: 700; letter-spacing: -0.015em;
+    position: absolute; left: 0; right: 0; top: 244px; text-align: center;
+    font-size: var(--card-name-size); font-weight: 700; letter-spacing: -0.015em;
     line-height: 1.2; color: var(--text);
   }
   .stamp {
-    position: absolute; left: 70px; top: 300px; width: 160px; height: 56px;
+    position: absolute; left: 85px; top: 336px; width: 160px; height: 56px;
     border-radius: 12px; border: 2px dashed rgba(251,146,60,0.45);
   }
   .verdict-mark {
-    position: absolute; left: 126px; top: 308px; width: 48px; height: 48px;
+    position: absolute; left: 141px; top: 344px; width: 48px; height: 48px;
     border-radius: 50%; opacity: 0;
   }
 
-  /* the viewer: the second axis the thesis turns on */
+  /* The viewer axis. A marker that POINTS at a card, never a word in a box —
+     the FOR WHO pill was a label doing a graphic's job and the only floating
+     pill in the film (TASTE.md T1). Pure CSS triangle so it carries no text. */
   #viewer {
-    position: absolute; left: 810px; top: 800px; width: 300px; height: 92px;
-    border-radius: 18px; border: 2px solid var(--accent); z-index: 7;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.12em; color: var(--accent);
+    position: absolute; left: 930px; top: 812px; width: 0; height: 0; z-index: 7;
+    border-left: 30px solid transparent; border-right: 30px solid transparent;
+    border-bottom: 40px solid var(--accent);
+    filter: drop-shadow(0 0 26px rgba(251,146,60,0.55));
   }
 
   /* assessment rails */
-  .rail { position: absolute; left: 440px; width: 1400px; height: 2px; background: rgba(255,239,219,0.20); z-index: 5; }
+  .rail {
+    position: absolute; left: 430px; width: 1420px; height: 3px;
+    /* was rgba(...,0.20) at 2px and did not read at all on screen — an entire
+       beat's device was invisible in review */
+    background: rgba(255,239,219,0.42); z-index: 5;
+  }
   .rail-label {
-    position: absolute; left: 130px; width: 290px; font-size: 24px; font-weight: 700;
+    position: absolute; left: 120px; width: 290px; font-size: 26px; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); z-index: 5;
   }
 
@@ -95,19 +111,21 @@
 
   /* agenda */
   #eyebrow {
-    position: absolute; left: 200px; top: 330px; font-size: 26px; font-weight: 700;
+    position: absolute; left: 200px; top: 300px; font-size: 28px; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); z-index: 5;
   }
-  #agenda { position: absolute; left: 200px; top: 392px; width: 1560px; z-index: 5; }
+  /* The agenda holds the frame for 23 of the film's 87 seconds — a quarter of
+     the runtime at 44px was the single biggest contributor to "small letters". */
+  #agenda { position: absolute; left: 200px; top: 366px; width: 1560px; z-index: 5; }
   .agenda-item {
-    display: flex; align-items: baseline; gap: 26px; margin-bottom: 26px;
+    display: flex; align-items: baseline; gap: 30px; margin-bottom: 34px;
     font-size: var(--body-size); font-weight: 700; letter-spacing: -0.015em; color: var(--text);
   }
-  .agenda-num { font-size: 26px; font-weight: 700; color: var(--accent); letter-spacing: 0.12em; min-width: 52px; }
+  .agenda-num { font-size: 28px; font-weight: 700; color: var(--accent); letter-spacing: 0.12em; min-width: 58px; }
 
   /* button: first link mention in the whole video gets the strong treatment */
   #scrim { position: absolute; inset: 0; background: rgba(10,8,5,0.72); z-index: 8; }
-  #linkplate { position: absolute; left: 0; right: 0; top: 450px; text-align: center; z-index: 9; }
+  #linkplate { position: absolute; left: 0; right: 0; top: 380px; text-align: center; z-index: 9; }
   #linkplate .lp-main {
     font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em;
     line-height: 1.0; color: var(--text);
@@ -131,10 +149,14 @@
   <div id="bg-light"></div>
   <div id="glow"></div>
 
-  <div id="viewer">for who</div>
+  <div id="viewer"></div>
   <div id="crown">&#128081;</div>
   <div id="eyebrow">what&#8217;s coming</div>
-  <div id="agenda"></div>
+  <!-- The scrim covering the agenda on the button beat is the WHOLE POINT of a
+       scrim. This is the layout checker's own escape hatch for intentional
+       layering, not a silenced check: the six occlusions it reported at 74.3s
+       were real and are fixed in the timeline, not marked away. -->
+  <div id="agenda" data-layout-allow-occlusion></div>
   <div id="scrim"></div>
   <div id="linkplate">
     <div class="lp-main">All 5 platforms</div>
@@ -169,12 +191,25 @@
   const root = document.getElementById('root');
   const L = window.__logos || {};
 
-  const HOME_X = i => 130 + i * 340;
+  const CARD_W = 330, CARD_H = 440;
+  const HOME_X = i => 108 + i * 352;          // row spans 108-1846 of 1920
   const HOME_Y = 340;
-  const RAIL_X = i => 460 + i * 200;
-  const RAIL_Y = 90;
-  const railX = i => RAIL_X(i) - HOME_X(i);
-  const railY = RAIL_Y - HOME_Y;
+  const cardCx = i => HOME_X(i) + CARD_W / 2; // 273 + i*352
+  const homeCy = HOME_Y + CARD_H / 2;         // 560
+
+  // The demoted logo rail, as a target CENTRE rather than a corner, so the
+  // scale is free to change without the row drifting off-centre.
+  const RAIL_SCALE = 0.42;
+  const railX = i => (300 + i * 250) - HOME_X(i);
+  const railY = 152 - homeCy;
+
+  // Centre any 960-centred overlay (the crown, the viewer caret) on card i.
+  const overCard = i => cardCx(i) - 960;      // i*352 - 687
+
+  // b07 scorecard: the row lifts and shrinks so the four rails rule the empty
+  // space BENEATH it. Rails used to cut straight through the card faces
+  // (TASTE.md T7), and at 2px/20% they did not read at all anyway.
+  const SCORE = { x: i => 270 - i * 40, y: -230, scale: 0.62 };
 
   const wraps = [], cards = [], names = [], rules = [], tiles = [], wells = [], stamps = [], marks = [];
   TOOLS.forEach((t, i) => {
@@ -206,15 +241,16 @@
     marks.push(card.querySelector('.verdict-mark'));
   });
 
+  const RAIL_TOP = j => 500 + j * 74;   // clear of the lifted card row (ends 467)
   const rails = [], railLabels = [];
   AREAS.forEach((a, j) => {
     const r = document.createElement('div');
     r.className = 'rail';
-    r.style.top = (430 + j * 78) + 'px';
+    r.style.top = RAIL_TOP(j) + 'px';
     root.appendChild(r); rails.push(r);
     const lab = document.createElement('div');
     lab.className = 'rail-label';
-    lab.style.top = (398 + j * 78) + 'px';
+    lab.style.top = (RAIL_TOP(j) - 14) + 'px';
     lab.textContent = a.label;
     root.appendChild(lab); railLabels.push(lab);
   });
@@ -256,12 +292,18 @@
   wraps.forEach((w, i) => tl.to(w, { y: '-=10', duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: 36 }, i * 0.4));
 
   // ---------- b01 | hook | dark | the shortlist is laid out ----------
+  // face:"full" means the presenter LEADS the frame, not that the presenter
+  // covers it. Full-bleed for the first second, then inset to the upper third
+  // so the shortlist has somewhere to deal into (TASTE.md T5).
   tl.to('#avatar', { opacity: 1, duration: 0.6, ease: 'power2.out' }, 0);
-  cards.forEach((c, i) => tl.to(c, { opacity: 1, scale: ARC.scale, duration: 0.5, ease: 'back.out(2)' }, 0.45 + i * 0.09));
+  tl.to('#avatar', { scale: 0.58, y: -190, borderRadius: 40, duration: 0.9, ease: 'power3.inOut' }, 1.0);
+  cards.forEach((c, i) => tl.to(c, { opacity: 1, scale: ARC.scale, duration: 0.55, ease: 'back.out(2)' }, 1.7 + i * 0.16));
 
   // ---------- b02 | hook | dark | the ranking will not hold ----------
   tl.to('#avatar', { scale: 0.26, x: 660, y: 350, borderRadius: 70, duration: 0.9, ease: 'power3.inOut' }, 3.65);
-  cards.forEach((c, i) => tl.to(c, { scale: 1, rotation: LADDER.rot[i], y: LADDER.dy[i], duration: 1.2, ease: 'power2.out' }, 3.9 + i * 0.07));
+  // 0.86, not 1: at full size the 330px cards nearly touch across a 352px pitch
+  // and the rotated ladder read as a cluttered pile rather than a ranking.
+  cards.forEach((c, i) => tl.to(c, { scale: 0.86, rotation: LADDER.rot[i], y: LADDER.dy[i], duration: 1.2, ease: 'power2.out' }, 3.9 + i * 0.07));
   [[6.6, [70, -50, 40, -66, 22]], [9.4, [-46, 62, -24, 40, -70]]].forEach(function (pair) {
     cards.forEach((c, i) => tl.to(c, { y: pair[1][i], duration: 2.6, ease: 'sine.inOut' }, pair[0]));
   });
@@ -269,13 +311,18 @@
   // ---------- b03 | turn | REGISTER LIFTS | the roll call ----------
   tl.to('#bg-light', { opacity: 1, duration: 0.7, ease: 'power2.inOut' }, 13.7);
   tl.to('#avatar', { opacity: 0, duration: 0.5 }, 13.7);
+  // The whole shortlist levels FIRST, then each slot is cast on its spoken word.
+  // Settling them one at a time left the uncast cards tilted at random heights
+  // beside the cast ones, which reads as a broken layout rather than as "not
+  // yet cast" (TASTE.md T6). Difference of state is carried by opacity and the
+  // dashed well, never by position noise.
+  tl.to(cards, { y: 0, rotation: 0, scale: 1, opacity: 0.42, duration: 0.9, ease: 'power3.out', stagger: 0.05 }, 13.75);
   TOOLS.forEach((t, i) => {
-    tl.to(cards[i], { y: 0, rotation: 0, duration: 0.85, ease: 'power3.out' }, NAME_T[i] - 0.35);
+    tl.to(cards[i], { opacity: 1, borderColor: 'rgba(255,255,255,0.18)', duration: 0.4 }, NAME_T[i]);
     tl.to(wells[i], { opacity: 0, duration: 0.3 }, NAME_T[i]);
     tl.to(tiles[i], { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.9)' }, NAME_T[i]);
     tl.to(names[i], { opacity: 1, duration: 0.35 }, NAME_T[i] + 0.12);
     tl.to(rules[i], { backgroundColor: 'rgba(251,146,60,0.85)', duration: 0.4 }, NAME_T[i] + 0.12);
-    tl.to(cards[i], { borderColor: 'rgba(255,255,255,0.18)', duration: 0.4 }, NAME_T[i]);
   });
 
   // ---------- b04 | turn | the second axis arrives ----------
@@ -285,29 +332,44 @@
   tl.to(cards, { y: 0, duration: 0.6, ease: 'power2.inOut', stagger: 0.04 }, 26.9);
   tl.to('#viewer', { opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.6)' }, 27.2);
 
-  // ---------- b05 | scope | the crown is offered and refused ----------
-  tl.to('#avatar', { opacity: 1, scale: 0.36, x: 0, y: -310, borderRadius: 34, duration: 1.0, ease: 'power3.inOut' }, 28.7);
+  // ---------- b05 | scope | the crown is offered to EVERY card and refused ----------
+  tl.to('#avatar', { opacity: 1, scale: 0.36, x: 0, y: -330, borderRadius: 34, duration: 1.0, ease: 'power3.inOut' }, 28.7);
   tl.to(cards, { scale: 0.78, y: 150, duration: 1.0, ease: 'power3.inOut', stagger: 0.05 }, 28.9);
   tl.to('#viewer', { y: 120, scale: 0.78, duration: 1.0, ease: 'power3.inOut' }, 28.9);
-  tl.to('#crown', { opacity: 1, y: 232, scale: 1, duration: 0.8, ease: 'back.out(1.5)' }, 34.22);
-  tl.to('#crown', { y: 258, duration: 1.6, ease: 'sine.inOut' }, 35.1);
-  tl.to('#crown', { opacity: 0, y: -40, scale: 0.75, duration: 0.9, ease: 'power3.in' }, 36.82);
-  tl.to(cards, { y: 150, duration: 0.7, ease: 'power2.out', stagger: 0.04 }, 37.6);
+
+  // One refusal reads as "Synthesia did not win". The narration makes a claim
+  // about the whole set — there is no overall winner — so the device has to
+  // touch the whole set (owner, 2026-08-02; TASTE.md T2).
+  tl.to('#crown', { opacity: 1, y: 232, x: overCard(0), scale: 1, duration: 0.5, ease: 'back.out(1.5)' }, 34.22);
+  TOOLS.forEach((t, i) => {
+    const at = 34.62 + i * 0.6;
+    if (i > 0) tl.to('#crown', { x: overCard(i), duration: 0.4, ease: 'power2.inOut' }, at);
+    tl.to(cards[i], { y: 176, duration: 0.22, ease: 'power2.out' }, at + 0.2);   // the card ducks away
+    tl.to(cards[i], { y: 150, duration: 0.42, ease: 'power2.inOut' }, at + 0.44);
+  });
+  tl.to('#crown', { opacity: 0, y: -40, scale: 0.75, duration: 0.8, ease: 'power3.in' }, 37.75);
+  tl.to(cards, { y: 150, duration: 0.7, ease: 'power2.out', stagger: 0.04 }, 38.4);
 
   // ---------- b06 | mech | every card opens an empty specialty well ----------
   tl.to('#avatar', { scale: 0.26, x: 660, y: 350, borderRadius: 70, duration: 0.9, ease: 'power3.inOut' }, 39.52);
   tl.to(cards, { scale: 1, y: 0, duration: 0.9, ease: 'power3.inOut', stagger: 0.05 }, 39.7);
   tl.to('#viewer', { y: 0, scale: 1, duration: 0.9, ease: 'power3.inOut' }, 39.7);
   tl.to(stamps, { opacity: 1, scale: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.6)' }, 40.6);
-  tl.to('#viewer', { borderColor: 'rgba(251,146,60,1)', boxShadow: '0 0 44px rgba(251,146,60,0.55)', duration: 0.5 }, 44.92);
-  tl.to(cards, { y: -12, duration: 0.34, yoyo: true, repeat: 1, stagger: 0.09, ease: 'power2.out' }, 45.0);
+  // "which one is best FOR YOU" — the caret walks the row and each card answers.
+  // The old version glowed a static pill and threaded nothing, so the beat's
+  // whole device was missing from the screen.
+  TOOLS.forEach((t, i) => {
+    tl.to('#viewer', { x: overCard(i), duration: 0.34, ease: 'power2.inOut' }, 44.0 + i * 0.5);
+    tl.to(cards[i], { y: -14, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.out' }, 44.14 + i * 0.5);
+  });
 
-  // ---------- b07 | mech | four rails cross all five equally ----------
+  // ---------- b07 | mech | four rails rule the scorecard beneath the row ----------
   tl.to('#avatar', { opacity: 0, duration: 0.5 }, 46.69);
   tl.to(stamps, { opacity: 0.35, duration: 0.4 }, 46.8);
-  // open a left gutter so the area labels never sit on top of a card
-  cards.forEach((c, i) => tl.to(c, { x: 283 - i * 52, scale: 0.82, duration: 0.9, ease: 'power3.inOut' }, 46.8 + i * 0.04));
-  tl.to('#viewer', { y: 30, duration: 0.9, ease: 'power3.inOut' }, 46.8);
+  // The row lifts and shrinks; the rails then rule the empty space below it,
+  // crossing no card face and leaving a left gutter for the labels.
+  cards.forEach((c, i) => tl.to(c, { x: SCORE.x(i), y: SCORE.y, scale: SCORE.scale, duration: 0.9, ease: 'power3.inOut' }, 46.8 + i * 0.04));
+  tl.to('#viewer', { opacity: 0, duration: 0.4 }, 46.8);
   AREAS.forEach((a, j) => {
     tl.to(rails[j], { opacity: 1, scaleX: 1, duration: 0.55, ease: 'power2.out' }, a.t);
     tl.to(railLabels[j], { opacity: 1, duration: 0.4 }, a.t + 0.06);
@@ -315,9 +377,11 @@
 
   // ---------- b08 | stakes | earns a spot, falls short ----------
   tl.to('#avatar', { opacity: 1, duration: 0.5 }, 54.39);
-  tl.to(cards[1], { y: -46, duration: 0.7, ease: 'power3.out' }, 56.95);
+  // y is absolute, so these must be relative to the b07 lift (SCORE.y), or both
+  // cards drop back down out of the scorecard the moment a mark lands.
+  tl.to(cards[1], { y: SCORE.y - 52, duration: 0.7, ease: 'power3.out' }, 56.95);
   tl.to(marks[1], { opacity: 1, scale: 1, backgroundColor: '#34d399', duration: 0.5, ease: 'back.out(1.7)' }, 56.95);
-  tl.to(cards[4], { y: 40, duration: 0.7, ease: 'power3.out' }, 58.15);
+  tl.to(cards[4], { y: SCORE.y + 44, duration: 0.7, ease: 'power3.out' }, 58.15);
   tl.to(cards[4], { opacity: 0.42, duration: 0.6 }, 58.15);
   tl.to(marks[4], { opacity: 1, scale: 1, backgroundColor: 'rgba(255,255,255,0.28)', duration: 0.5 }, 58.15);
 
@@ -327,7 +391,7 @@
   tl.to(cards[4], { opacity: 1, duration: 0.5 }, 59.2);
   tl.to(marks.concat(stamps), { opacity: 0, duration: 0.4 }, 59.2);
   tl.to(names, { opacity: 0, duration: 0.4 }, 59.2);
-  cards.forEach((c, i) => tl.to(c, { x: railX(i), y: railY, scale: 0.5, duration: 1.1, ease: 'power3.inOut' }, 59.3 + i * 0.05));
+  cards.forEach((c, i) => tl.to(c, { x: railX(i), y: railY, scale: RAIL_SCALE, duration: 1.1, ease: 'power3.inOut' }, 59.3 + i * 0.05));
   tl.to('#eyebrow', { opacity: 1, y: 0, duration: 0.5 }, 60.5);
   tl.to(items[0], { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, AGENDA[0].t);
   tl.to(tiles, { scale: 1.18, duration: 0.3, yoyo: true, repeat: 1, stagger: 0.05, ease: 'power2.out' }, AGENDA[0].t + 0.3);
@@ -345,12 +409,24 @@
   // ---------- b11 | tease | one second proving the rail is still the scorecard ----------
   tl.to([items[1], items[2]], { opacity: 0.4, duration: 0.5 }, 73.38);
   tl.to(items[3], { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, AGENDA[3].t);
-  cards.forEach((c, i) => {
-    tl.to(c, { x: 283 - i * 52, y: 0, scale: 0.82, duration: 0.7, ease: 'power3.inOut' }, 73.9 + i * 0.04);
-    tl.to(c, { x: railX(i), y: railY, scale: 0.5, duration: 0.7, ease: 'power3.inOut' }, 75.3 + i * 0.04);
+  // The scorecard callback WITHOUT moving the roster. Flying the cards back
+  // down landed them on the agenda column: six occluded lines, which is exactly
+  // the owner's "text overlapping a motion graphic". The four area labels
+  // return to the gutter above the agenda and the rail answers with one pulse,
+  // which proves the same object without drawing a line across anything.
+  // Placed while hidden, then faded up. Tweening the position instead made the
+  // labels travel THROUGH the agenda column to reach the gutter, which the
+  // layout checker caught as a transient collision with the eyebrow and the
+  // first two item numbers — invisible on a midpoint frame, real on screen.
+  railLabels.forEach((lab, j) => {
+    // x:80 puts them on the agenda's left edge (200) rather than the scorecard
+    // gutter's (120); the gutter position is what b07 needs to clear the cards.
+    tl.set(lab, { x: 80, y: (116 + j * 42) - (RAIL_TOP(j) - 14) }, 74.05);
+    tl.to(lab, { opacity: 0.8, duration: 0.35, ease: 'power2.out' }, 74.1 + j * 0.07);
   });
-  tl.to(rails, { opacity: 0.9, scaleX: 1, duration: 0.4 }, 74.1);
-  tl.to(rails, { opacity: 0, duration: 0.4 }, 75.1);
+  tl.to(tiles, { scale: 1.16, duration: 0.26, yoyo: true, repeat: 1, stagger: 0.05, ease: 'power2.out' }, 74.5);
+  tl.to(railLabels, { opacity: 0, duration: 0.4 }, 75.7);
+  tl.set(railLabels, { x: 0, y: 0 }, 76.2);   // back to the scorecard gutter
   tl.to(items[3], { opacity: 0.4, duration: 0.5 }, 78.5);
   tl.to(items[4], { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, AGENDA[4].t);
   tl.to(stamps, { opacity: 0.9, scale: 1, duration: 0.5, stagger: 0.06 }, 79.07);

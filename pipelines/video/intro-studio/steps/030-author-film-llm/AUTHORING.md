@@ -68,9 +68,9 @@ Run `bash run.sh <slug> review` and fix everything it reports. It takes about tw
 
 - `check` reports occluded text, overflow, contrast and runtime errors, sampled densely including transition seams
 - `check-film-style` enforces the DESIGN.md type contract and flags any beat with no motion of its own
-- a frame is captured at the MIDPOINT of every beat, and `review/REVIEW.md` pairs each one with the `stage` line it is supposed to satisfy
+- three frames are captured per beat (25%, 55%, 85% through it) and `review/REVIEW.md` groups them under the `stage` line all three must satisfy between them. One midpoint frame is not enough: any beat whose content fires late reviews as empty
 
-Read those frames against their stage lines. That is the only pass that catches a beat which renders cleanly and still argues the wrong thing — a crown landing on the presenter is a green frame and a broken film.
+Read those frames against their stage lines. **Actually look at them.** That is the only pass that catches a beat which renders cleanly and still argues the wrong thing — a crown landing on the presenter is a green frame and a broken film, and four rails at 2px/20% opacity are a green frame with nothing on it.
 
 `render` is the LAST step, not the review step.
 
