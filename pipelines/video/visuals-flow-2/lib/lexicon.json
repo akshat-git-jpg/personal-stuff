@@ -1,0 +1,21 @@
+{
+  "_comment": "Domain vocabulary for the ASR cleanup pass and the suspect gate. `terms` are known-good tokens (never flag them). `confusables` are observed mis-transcriptions mapped to the correct form; keys are lower-cased and whitespace-normalised. Append to this file whenever a fold finds a new garble — that is how this gate gets better.",
+  "terms": [
+    "1080p", "4K", "8K", "720p", "60fps", "30fps",
+    "SCORM", "SSO", "SAML", "API", "SDK", "CSV", "JSON", "MP4", "GIF",
+    "one-click", "text-to-video", "text-to-speech", "lip-sync", "voice cloning",
+    "HeyGen", "Synthesia", "Higgsfield", "Arcads", "OpenArt", "OpusClip",
+    "Submagic", "Zapier", "Make", "n8n", "LangChain", "Flowise"
+  ],
+  "confusables": {
+    "10 atp": "1080p",
+    "ten atp": "1080p",
+    "one clip": "one-click",
+    "won click": "one-click",
+    "straight forward": "straightforward",
+    "squirm": "SCORM",
+    "score m": "SCORM",
+    "for k": "4K",
+    "single sign on": "SSO"
+  }
+}

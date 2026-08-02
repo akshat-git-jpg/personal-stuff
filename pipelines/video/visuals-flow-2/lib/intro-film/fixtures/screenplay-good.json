@@ -1,0 +1,44 @@
+{
+  "slug": "fixture",
+  "beats": [
+    {
+      "id": "b01",
+      "intent": "hook",
+      "clause": "five AI video tools, five very different promises",
+      "t_start": 0.0,
+      "t_end": 2.8,
+      "register": "dark",
+      "face": "full",
+      "stage": "Face full-screen in a dark room. Five unlabelled tiles fade up behind the head, staggered, then hold.",
+      "carries": null,
+      "transition_out": "crossfade",
+      "deviation_reason": null
+    },
+    {
+      "id": "b02",
+      "intent": "turn",
+      "clause": "I tested all five across the same brief",
+      "t_start": 2.8,
+      "t_end": 5.6,
+      "register": "light",
+      "face": "panel",
+      "stage": "Room lifts to light on the word tested. The five tiles shrink into a left rail and gain names; the face docks to a panel bottom-right.",
+      "carries": { "from": "b01", "object": "five tiles", "as": "shrunk into a named left rail" },
+      "transition_out": "push",
+      "deviation_reason": null
+    },
+    {
+      "id": "b03",
+      "intent": "stakes",
+      "clause": "and one of them was not close",
+      "t_start": 5.6,
+      "t_end": 8.4,
+      "register": "light",
+      "face": "none",
+      "stage": "Four rail tiles dim to 20%; the fifth scales up centre-frame and holds. Cut to white on the final word.",
+      "carries": { "from": "b02", "object": "left rail", "as": "four dimmed, one promoted centre-frame" },
+      "transition_out": "flash",
+      "deviation_reason": null
+    }
+  ]
+}

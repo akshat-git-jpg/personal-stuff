@@ -18,6 +18,7 @@ const SPAN_MAX_ZONE = SC.SPAN_MAX_ZONE.value;
 const FRONT_ZONE = SC.FRONT_ZONE.value;
 const BACK_ZONE = SC.BACK_ZONE.value;
 const GAP_AVATAR_MAX = SC.GAP_AVATAR_MAX.value;
+const INTRO_HOST_BY = SC.INTRO_HOST.value;
 
 // Raised 2.5→6 / 5→8 with SLIVER_GRAPHIC (owner final-v1:3, 2026-07-31):
 // screen time under 6s shows nothing meaningful. Graphic-adjacent slivers are
@@ -33,6 +34,47 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
   const warnings = [];
   if (!words || words.length === 0) return { errors, warnings };
   const T = words[words.length - 1].end;
+
+  // E8 intro-host: the host must be ON SCREEN by INTRO_HOST_BY seconds.
+  //
+  // This rule existed in shot-constants (and therefore in the shot-pass prompt)
+  // since 2026-08-01 with NOTHING enforcing it — the model was asked and simply
+  // not checked, which is the "advisory doctrine gets ignored" failure recorded
+  // in plans/runs/LESSONS.md (2026-07-24). It also expressed the bound as "before
+  // the intro ends", so on an 86.7s intro the host could land at 0:59 and pass.
+  // The owner rejected exactly that on 2026-08-02. Hence: an absolute second
+  // mark, and a real gate.
+  //
+  // A SIDE span counts as on-screen because the host is beside the card, not
+  // hidden behind it — that is the shape the rule actively prefers.
+  //
+  // Scoped to plans that HAVE spans. An empty shot plan is neutral by an
+  // existing tested invariant ("empty spans array → no errors, no warnings"),
+  // and a plan with no host at all is a different defect from a host that is
+  // merely late — firing here would redefine someone else's contract to suit
+  // this rule.
+  {
+    const spans = [...(shotsResolved?.spans ?? [])].sort((a, b) => a.start - b.start);
+    const onScreenBy = spans.find((s) => s.start <= INTRO_HOST_BY);
+    if (spans.length > 0 && !onScreenBy) {
+      const first = spans[0];
+      const detail = `first host span ${first.id} starts at ${first.start.toFixed(1)}s`;
+      const msg =
+        `E8 intro-host: the host must be on screen by ${INTRO_HOST_BY}s — ${detail}. ` +
+        `Put a side-mode span over the opening card, or start a full-screen span at or before ${INTRO_HOST_BY}s ` +
+        `(an opening motion graphic before the host is fine; a late host is not).`;
+      // A per-video waiver exists ONLY so a cut planned before this gate can
+      // still ship. It must carry a reason, and it is reported as a warning
+      // every run rather than passing silently — an escape hatch nobody sees is
+      // how a gate quietly stops being a gate (LESSONS 2026-07-21).
+      const waiver = shotsResolved?.intro_host_waived;
+      if (typeof waiver === 'string' && waiver.trim()) {
+        warnings.push(`W8 intro-host-waived: ${msg} WAIVED: ${waiver.trim()}`);
+      } else {
+        errors.push(msg);
+      }
+    }
+  }
 
   // E7 sentence-cut: a full-screen host span must start on a sentence START
   // and end on a sentence END — a mid-sentence camera cut reads as a jump and

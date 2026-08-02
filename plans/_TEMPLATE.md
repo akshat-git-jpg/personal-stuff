@@ -9,9 +9,25 @@ test_cmd:                # REQUIRED for boss: one command, exit 0 = pass (this i
                          # it produced failed its own lint (2026-07-28). If the deliverable is a
                          # video workdir, chain the per-video check:
                          #   cd <dir> && bash scripts/check.sh && node lib/lint-cues.mjs <slug>
-ui:                      # true if this plan touches user-facing UI — crew must attach a screenshot to the PR (test_cmd alone can't judge how it looks)
+ui:                      # true if this plan touches user-facing UI. ENFORCED (2026-08-02): boss-merge
+                         # REJECTS the branch unless it commits an image. PR#141 shipped without one.
 deploy:                  # blank = no deploy; else the deploy command boss runs after merge
-needs: []                # optional notes (shared target, ordering)
+needs: []                # free prose for humans — boss CANNOT act on this
+needs_prs: []            # STRUCTURED: e.g. [138] — boss refuses to dispatch until each PR is closed.
+                         # The 180->181->182 chain was sequenced by hand because `needs` is only prose.
+touches: []              # files this plan edits, e.g. [lib/lint-cues.mjs] — boss warns when an
+                         # in-flight PR shares one (three plans collided on lint-cues.mjs in one batch)
+
+# --- Mutation gate. ARM THIS ON EVERY PLAN THAT ADDS A GATE (lint code, check, assertion).
+# A gate that never fires is worse than none: it reads as coverage. On 2026-08-02 two plans
+# shipped gates that could not fire — one asserted on SOURCE TEXT so its mutation was circular,
+# the other's code never fired at all — and BOTH passed test_cmd. boss now proves it itself:
+# clean must pass -> apply -> must FAIL printing mutation_expect -> revert -> must pass again.
+mutation_apply:          # shell that reintroduces the real defect (run at repo root)
+mutation_command:        # the command that must then fail
+mutation_expect:         # string that must appear in that failure (e.g. the lint code)
+mutation_cwd:            # optional: dir to run mutation_command in, relative to repo root
+mutation_timeout:        # optional seconds, default 600
 ---
 
 # Plan <NNN>: <Title>

@@ -192,25 +192,11 @@
       }
     },
     {
-      "id": "c01",
-      "card": "tool-icon/tool-glass-tile",
-      "placement": "fullframe",
-      "start": 91.41,
-      "duration": 6,
-      "variables": {
-        "logo": "openart",
-        "name": "OpenArt",
-        "subtitle": "Full creative workspace",
-        "register": "light"
-      },
-      "structural": true
-    },
-    {
       "id": "c02",
       "card": "checklist/icon-pills",
       "placement": "fullframe",
       "start": 105.22,
-      "duration": 12.1,
+      "duration": 9.51,
       "variables": {
         "beats": [
           {
@@ -238,20 +224,6 @@
       }
     },
     {
-      "id": "c03",
-      "card": "tool-icon/tool-glass-tile",
-      "placement": "fullframe",
-      "start": 117.32,
-      "duration": 6,
-      "variables": {
-        "logo": "higgsfield",
-        "name": "Higgsfield",
-        "subtitle": "Director level camera control",
-        "register": "light"
-      },
-      "structural": true
-    },
-    {
       "id": "c04",
       "card": "overlay/lower-third",
       "placement": "overlay",
@@ -277,20 +249,6 @@
         "context": "Camera presets built into one panel",
         "register": "light"
       }
-    },
-    {
-      "id": "c06",
-      "card": "tool-icon/tool-glass-tile",
-      "placement": "fullframe",
-      "start": 152.03,
-      "duration": 6,
-      "variables": {
-        "logo": "synthesia",
-        "name": "Synthesia",
-        "subtitle": "AI avatars for corporate video",
-        "register": "light"
-      },
-      "structural": true
     },
     {
       "id": "c07",

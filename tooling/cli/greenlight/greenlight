@@ -362,16 +362,53 @@ if [ "$NO_LAND" -eq 1 ]; then
   park "--no-land"
 fi
 
-if [ -n "$(git -C "$REPO_TOPLEVEL" status --porcelain --untracked-files=no)" ]; then
-  park "main checkout busy"
+# Land from INSIDE the leased worktree — never touch REPO_TOPLEVEL (2026-08-02).
+#
+# Landing used to merge+push in the top-level checkout, which required it to be
+# clean and on main. That made an unrelated dirty file anywhere in the repo park
+# EVERY merge as "main checkout busy". In practice it was the single largest
+# source of lost time: a second session editing the repo parked merges all
+# afternoon, and it pushed boss into auto-committing that session's
+# work-in-progress just to unblock itself. The worktree is already checked out,
+# rebased and verified, so it can do the merge and the push by itself.
+#
+# Sequence per attempt: detach at freshly-fetched origin/main, merge the branch,
+# push HEAD to main. If someone else pushed in between, the push is rejected and
+# we retry from a new origin/main (bounded, so a busy remote can't spin forever).
+LAND_ATTEMPTS="${GREENLIGHT_LAND_ATTEMPTS:-3}"
+landed=0
+for attempt in $(seq 1 "$LAND_ATTEMPTS"); do
+  git -C "$WT_PATH" fetch origin main >&2 || true
+  if ! git -C "$WT_PATH" checkout --detach origin/main >&2; then
+    park "cannot detach at origin/main in worktree"
+  fi
+  if ! git -C "$WT_PATH" merge --no-ff "$BRANCH" -m "greenlight: land $BRANCH ($RUN_ID)" >&2; then
+    git -C "$WT_PATH" merge --abort >&2 || true
+    park "land merge conflict against origin/main"
+  fi
+  if git -C "$WT_PATH" push origin HEAD:main >&2; then
+    landed=1; break
+  fi
+  log "land push rejected (attempt $attempt/$LAND_ATTEMPTS) — origin/main moved; retrying"
+done
+if [ "$landed" -ne 1 ]; then
+  park "land push rejected after $LAND_ATTEMPTS attempts (origin/main kept moving)"
 fi
 
-main_branch=$(git -C "$REPO_TOPLEVEL" rev-parse --abbrev-ref HEAD)
-if [ "$main_branch" != "main" ]; then
-  park "main checkout busy"
+# Best-effort: fast-forward the top-level checkout so it isn't left stale.
+# Advisory only — a dirty or branched checkout no longer blocks anything, it just
+# doesn't get updated. Callers that commit to main afterwards (e.g. boss-merge's
+# registry row) must pull --ff-only rather than assume this succeeded.
+git -C "$REPO_TOPLEVEL" fetch origin main >&2 || true
+if [ "$(git -C "$REPO_TOPLEVEL" rev-parse --abbrev-ref HEAD 2>/dev/null)" = "main" ]; then
+  if git -C "$REPO_TOPLEVEL" merge --ff-only origin/main >&2 2>/dev/null; then
+    log "top-level checkout fast-forwarded to landed main"
+  else
+    log "NOTE: top-level checkout NOT updated (dirty or diverged) — it is behind origin/main"
+  fi
+else
+  log "NOTE: top-level checkout is not on main — left untouched"
 fi
 
-git -C "$REPO_TOPLEVEL" merge --no-ff "$BRANCH" -m "greenlight: land $BRANCH ($RUN_ID)" >&2
-git -C "$REPO_TOPLEVEL" push origin main >&2
 echo "landed" > "$STATE_DIR/state"
 "$NOTIFY_BIN" send "greenlight: $BRANCH landed on main (risk $risk_level)" || true

@@ -3,6 +3,39 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveWorkdir } from '../workdir.mjs';
 
+// The voiceover chain, applied before the master sum. Exported so the Resolve
+// export can bake the same processing instead of shipping a raw vo.mp3.
+export const VO_CHAIN = 'highpass=f=80, acompressor=threshold=-18dB:ratio=3:attack=15:release=200, alimiter=limit=0.95';
+
+// The per-instance SFX processing chain. Exported because TWO surfaces need it:
+// this file bakes it into master.wav / sfx-bus.wav, and lib/export-timeline.mjs
+// bakes it into the per-clip files the Resolve project references.
+//
+// They were separate once, and the exporter simply omitted gain and pitch —
+// every SFX landed in Resolve at unity, so the -30 dB drone bed played 30 dB
+// hot under an unprocessed voiceover (owner, 2026-08-02: "bg sound is too loud
+// in start compared to voice over ... voice over overall looks low volume").
+// One builder, two consumers, so the two can no longer drift.
+//
+// `delay` is the only difference between the consumers: in the ffmpeg mix a
+// clip is placed by padding it with silence, while in an NLE it is placed by
+// its timeline offset — so the export bakes the same audio WITHOUT the delay.
+export function sfxInstanceChain(inst, { delay = true } = {}) {
+  const chain = [];
+  if (delay) chain.push(`adelay=delays=${Math.floor(inst.at * 1000)}:all=1`);
+  if (inst.semi !== 0) {
+    const rate = Math.round(48000 * Math.pow(2, inst.semi / 12));
+    const tempo = Math.pow(2, -inst.semi / 12);
+    chain.push(`asetrate=${rate},aresample=48000,atempo=${tempo.toFixed(4)}`);
+  }
+  if (inst.loop && inst.end) {
+    const len = inst.end - inst.at;
+    chain.push(`atrim=0:${len},afade=t=in:d=0.5,afade=t=out:st=${Math.max(0, len - 0.5)}:d=0.5`);
+  }
+  chain.push(`volume=${inst.gainDb}dB`);
+  return chain;
+}
+
 export function buildMixArgs({ voPath, instances, musicPath, total, outPath, workdir }) {
   let args = ['-y', '-hide_banner', '-loglevel', 'error'];
   
@@ -27,7 +60,7 @@ export function buildMixArgs({ voPath, instances, musicPath, total, outPath, wor
   let fg = [];
 
   // 1. VO
-  fg.push(`[0:a] highpass=f=80, acompressor=threshold=-18dB:ratio=3:attack=15:release=200, alimiter=limit=0.95 [vob_raw]`);
+  fg.push(`[0:a] ${VO_CHAIN} [vob_raw]`);
   
   let voMixPad = '[vob_raw]';
   if (hasMusic) {
@@ -43,24 +76,8 @@ export function buildMixArgs({ voPath, instances, musicPath, total, outPath, wor
   let sfxOuts = [];
   instances.forEach((inst, i) => {
     let pad = `[${sfxStartIndex + i}:a]`;
-    let chain = [];
-    
-    let ms = Math.floor(inst.at * 1000);
-    chain.push(`adelay=delays=${ms}:all=1`);
-    
-    if (inst.semi !== 0) {
-      const rate = Math.round(48000 * Math.pow(2, inst.semi / 12));
-      const tempo = Math.pow(2, -inst.semi / 12);
-      chain.push(`asetrate=${rate},aresample=48000,atempo=${tempo.toFixed(4)}`);
-    }
+    const chain = sfxInstanceChain(inst);
 
-    if (inst.loop && inst.end) {
-      const len = inst.end - inst.at;
-      chain.push(`atrim=0:${len},afade=t=in:d=0.5,afade=t=out:st=${Math.max(0, len - 0.5)}:d=0.5`);
-    }
-    
-    chain.push(`volume=${inst.gainDb}dB`);
-    
     fg.push(`${pad} ${chain.join(', ')} [sfx_${i}]`);
     sfxOuts.push(`[sfx_${i}]`);
   });
