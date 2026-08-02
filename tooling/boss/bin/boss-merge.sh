@@ -14,6 +14,11 @@ test_cmd=$(meta_get "$pr" test_cmd); wt=$(meta_get "$pr" worktree)
 if [ -n "$wt" ] && [ -d "$wt" ]; then
   wt return "$wt" 2>/dev/null || true
 fi
+# ...and free ANY other worktree still holding the branch. Returning only the
+# dispatch worktree was not enough: three merges in the 2026-08-02 batch parked on
+# "already used by worktree" because a finished crew's (or a diagnostic) worktree
+# still held the ref. Lossless — refuses to touch a dirty worktree.
+boss_free_branch_worktree "$branch"
 
 # Fence-leak gate. The 2026-07-08 hang was markdown fence markers (```bash / ```)
 # copied verbatim into real source files — a class of failure that is mechanically
@@ -27,6 +32,47 @@ if [ "${leak:-0}" -gt 0 ]; then
   gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:blocked
   boss_notify "boss:blocked PR#$pr — $leak markdown fence line(s) leaked into non-md source"
   echo "PR#$pr blocked — $leak leaked markdown fence line(s) in non-markdown source (see git diff origin/main...$branch)"; exit 2
+fi
+
+# --- deterministic gates (2026-08-02). Each rule below was already in the crew
+# brief and was violated anyway; prose is a suggestion, a gate is not. Collect
+# every violation before blocking so one fix-up can address them all at once.
+plan_file="$STATE_DIR/$pr.plan"
+violations=$(boss_hygiene_gate "$branch")
+if [ -f "$plan_file" ]; then
+  ui_v=$(boss_ui_gate "$branch" "$plan_file"); [ -n "$ui_v" ] && violations="$violations
+$ui_v"
+fi
+violations=$(printf '%s\n' "$violations" | sed '/^$/d')
+if [ -n "$violations" ]; then
+  gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:blocked
+  boss_notify "boss:blocked PR#$pr — pre-merge gate: $(printf '%s' "$violations" | head -1)"
+  echo "PR#$pr blocked — pre-merge gate violations:"; printf '%s\n' "$violations" | sed 's/^/  - /'
+  exit 2
+fi
+
+# Mutation gate. The 2026-08-02 batch's core lesson: a gate that never fires is
+# worse than no gate because it reads as coverage. Runs only when the plan arms
+# it via mutation_apply/_command/_expect frontmatter. Needs a worktree holding
+# the branch, so re-lease one briefly (greenlight has not run yet).
+if [ -f "$plan_file" ] && [ -n "$(fm_get mutation_apply "$plan_file" 2>/dev/null)" ]; then
+  mwt=$(wt get --holder "boss-mut-$pr" 2>/dev/null)
+  if [ -n "$mwt" ] && git -C "$mwt" fetch -q origin "$branch" 2>/dev/null \
+     && git -C "$mwt" checkout -q --detach "origin/$branch" 2>/dev/null; then
+    echo "PR#$pr: running mutation gate…"
+    mut=$(boss_mutation_gate "$branch" "$plan_file" "$mwt")
+    wt return "$mwt" 2>/dev/null || true
+    if [ -n "$mut" ]; then
+      gh pr edit "$pr" --remove-label boss:in-progress --add-label boss:blocked
+      boss_notify "boss:blocked PR#$pr — $(printf '%s' "$mut" | head -1)"
+      echo "PR#$pr blocked — mutation gate:"; printf '%s\n' "$mut" | sed 's/^/  - /'
+      exit 2
+    fi
+    echo "PR#$pr: mutation gate PROVEN (gate fires under its own mutation)"
+  else
+    [ -n "$mwt" ] && wt return "$mwt" 2>/dev/null || true
+    echo "WARN: PR#$pr mutation gate skipped — could not lease/checkout a worktree" >&2
+  fi
 fi
 
 # greenlight exits 0 on BOTH land and park (park() writes state=parked, exit 0),
@@ -43,7 +89,21 @@ branch_slug=$(echo "$branch" | tr '/' '-' | tr -cd 'a-zA-Z0-9-')
 ttl=$(meta_get "$pr" test_timeout); ttl="${ttl:-600}"
 tbin=$(boss_timeout_bin) || { echo "FATAL: no gtimeout/timeout on PATH — brew install coreutils" >&2; exit 1; }
 verify="$tbin -k 30 ${ttl}s bash -c $(printf '%q' "$test_cmd")"
+# Serialize browser-driving work. Every vf2/card-library test_cmd launches
+# headless Chrome; PR#134 lost a merge cycle to "Chrome dump-dom timeout on
+# #card-plan" with 44 chrome processes live because a crew was rendering at the
+# same time. Wait for live crews to finish, then hold the lock across the verify.
+crews=$(boss_crews_running)
+if [ -n "$crews" ]; then
+  echo "boss: crews still running ($(echo "$crews" | tr '\n' ' ')) — waiting before verify to avoid Chrome contention" >&2
+  for _ in $(seq 1 "${BOSS_CHROME_WAIT_MIN:-45}"); do
+    [ -z "$(boss_crews_running)" ] && break; sleep 60
+  done
+fi
+boss_chrome_lock_acquire "merge-$pr"
+trap 'boss_chrome_lock_release' EXIT
 "$REPO_ROOT/tooling/cli/greenlight/greenlight" run --branch "$branch" --verify "$verify" || true
+boss_chrome_lock_release; trap - EXIT
 run_dir=$(ls -dt "$gl_root"/*-"$branch_slug" 2>/dev/null | head -1)
 gl_state=$(cat "$run_dir/state" 2>/dev/null || echo unknown)
 gl_reason=$(cat "$run_dir/parked-reason" 2>/dev/null || echo "")
