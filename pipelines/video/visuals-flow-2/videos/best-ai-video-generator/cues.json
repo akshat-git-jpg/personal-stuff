@@ -101,6 +101,7 @@
         ]
       },
       "register": "light",
+      "register_why": "z02 opens the light span - its anchor \"Today, we are\" is that span's own from_anchor. Anchor resolution places the cue a fraction before the span's computed start, so the preceding dark span technically covers it; the card is intentionally light.",
       "motif": true,
       "flagged": false
     },
