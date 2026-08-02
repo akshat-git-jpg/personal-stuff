@@ -19,9 +19,10 @@ import { resolveWorkdir } from './workdir.mjs';
 //
 // No run-config.json means the safe defaults: heygen3 + full review — an
 // unconfigured video behaves exactly like every video before this existed.
-const DEFAULTS = { engine: 'heygen3', review: 'full' };
+const DEFAULTS = { engine: 'heygen3', review: 'full', intro: 'cards' };
 const ENGINES = ['heygen3', 'heygen4'];
 const REVIEWS = ['full', 'express'];
+const INTROS = ['cards', 'film'];
 
 export function loadRunConfig(workdir) {
   const p = path.join(workdir, 'run-config.json');
@@ -30,6 +31,7 @@ export function loadRunConfig(workdir) {
   const cfg = { ...DEFAULTS, ...raw, configured: true };
   if (!ENGINES.includes(cfg.engine)) throw new Error(`run-config.json: engine must be one of ${ENGINES.join('|')}, got "${cfg.engine}"`);
   if (!REVIEWS.includes(cfg.review)) throw new Error(`run-config.json: review must be one of ${REVIEWS.join('|')}, got "${cfg.review}"`);
+  if (!INTROS.includes(cfg.intro)) throw new Error(`run-config.json: intro must be one of ${INTROS.join('|')}, got "${cfg.intro}"`);
   return cfg;
 }
 
@@ -47,7 +49,7 @@ export function gateWaived(workdir, gateName) {
 function main() {
   const [arg, ...rest] = process.argv.slice(2);
   if (!arg) {
-    console.error('usage: node lib/run-config.mjs <slug> [--engine heygen3|heygen4] [--review full|express]');
+    console.error('usage: node lib/run-config.mjs <slug> [--engine heygen3|heygen4] [--review full|express] [--intro cards|film]');
     process.exit(1);
   }
   const workdir = resolveWorkdir(arg);
@@ -65,6 +67,7 @@ function main() {
     const a = rest.shift();
     if (a === '--engine') cfg.engine = rest.shift();
     else if (a === '--review') cfg.review = rest.shift();
+    else if (a === '--intro') cfg.intro = rest.shift();
     // Delivery (step 150): the video's own Drive folder (the one holding its
     // Input/Output subfolders) and which token account uploads there.
     else if (a === '--drive-folder') cfg.drive_folder = rest.shift();
@@ -73,9 +76,10 @@ function main() {
   }
   if (!ENGINES.includes(cfg.engine)) { console.error(`engine must be ${ENGINES.join('|')}`); process.exit(1); }
   if (!REVIEWS.includes(cfg.review)) { console.error(`review must be ${REVIEWS.join('|')}`); process.exit(1); }
+  if (!INTROS.includes(cfg.intro)) { console.error(`intro must be ${INTROS.join('|')}`); process.exit(1); }
   cfg.decided_at = new Date().toISOString();
   fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n');
-  console.log(`run-config: engine=${cfg.engine} review=${cfg.review}`);
+  console.log(`run-config: engine=${cfg.engine} review=${cfg.review} intro=${cfg.intro}`);
   if (cfg.engine === 'heygen4') console.error('note: heygen4 is METERED — this setting is the owner authorization for this video; check `heygen-web limits` covers the span total before submitting');
   if (cfg.review === 'express') console.error('note: express skips the 037/080 board approvals. The new-card look-preview (prompts to the owner before building any card) and the 120 final-cut review are NEVER skipped.');
 }

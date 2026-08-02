@@ -31,3 +31,7 @@ board-ui/dist/
 .test-tmp/
 debug-*.mjs
 test-*.mjs
+videos/*/intro-film/film/assets/
+videos/*/intro-film/review/
+videos/*/intro-film/renders/
+videos/*/intro-film/out/

@@ -40,6 +40,35 @@ test('invalid engine or review throws instead of silently defaulting', () => {
   fs.rmSync(w, { recursive: true, force: true });
 });
 
+test('intro defaults to cards when run-config.json is absent', () => {
+  const w = tmpWorkdir();
+  const cfg = loadRunConfig(w);
+  assert.equal(cfg.intro, 'cards');
+  fs.rmSync(w, { recursive: true, force: true });
+});
+
+test('intro defaults to cards when run-config.json exists without the key', () => {
+  const w = tmpWorkdir();
+  fs.writeFileSync(path.join(w, 'run-config.json'), JSON.stringify({ engine: 'heygen4', review: 'express' }));
+  const cfg = loadRunConfig(w);
+  assert.equal(cfg.intro, 'cards');
+  fs.rmSync(w, { recursive: true, force: true });
+});
+
+test('an unknown intro value throws', () => {
+  const w = tmpWorkdir();
+  fs.writeFileSync(path.join(w, 'run-config.json'), JSON.stringify({ intro: 'yolo' }));
+  assert.throws(() => loadRunConfig(w), /intro must be one of/);
+  fs.rmSync(w, { recursive: true, force: true });
+});
+
+test('intro must default to cards', () => {
+  const w = tmpWorkdir();
+  const cfg = loadRunConfig(w);
+  assert.equal(cfg.intro, 'cards', 'intro must default to cards');
+  fs.rmSync(w, { recursive: true, force: true });
+});
+
 test('gateWaived: false in full mode and when unconfigured, true in express', () => {
   const w = tmpWorkdir();
   assert.equal(gateWaived(w, 'test-gate'), false);                       // no file
