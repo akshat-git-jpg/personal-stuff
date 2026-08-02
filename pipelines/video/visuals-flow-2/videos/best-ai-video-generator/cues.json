@@ -13,23 +13,28 @@
         "items": [
           {
             "object": "lens",
-            "tint": "#9ad8ff"
+            "tint": "#9ad8ff",
+            "label": "Art"
           },
           {
             "object": "reel",
-            "tint": "#ffb066"
+            "tint": "#ffb066",
+            "label": "Cinematic"
           },
           {
             "object": "bubble",
-            "tint": "#c9a6ff"
+            "tint": "#c9a6ff",
+            "label": "Talking Head"
           },
           {
             "object": "bust",
-            "tint": "#ffd08a"
+            "tint": "#ffd08a",
+            "label": "Avatars"
           },
           {
             "object": "tag",
-            "tint": "#8affc4"
+            "tint": "#8affc4",
+            "label": "UGC Ads"
           }
         ]
       },

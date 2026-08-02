@@ -257,8 +257,12 @@
       // "everything gets blurry" (z01, 2026-08-02). Dimming and lifting the
       // focused pedestal makes the same claim (the eye walks the row and never
       // settles) with every placard readable the whole time.
-      const REST = { brightness: 0.5, scale: 0.965, opacity: 0.72 };  // lit low
-      const SHARP = { brightness: 1.16, scale: 1.045, opacity: 1 };   // keyed up
+      // The rest state stays READABLE, not dark. The owner's complaint was that
+      // the opening was clear and then stopped being ("all are clear visible in
+      // start. then all gets blury"), so an unfocused plinth is merely cooler
+      // than the keyed one — its promise is legible for the card's whole life.
+      const REST = { brightness: 0.64, scale: 0.965, opacity: 0.84 }; // lit low
+      const SHARP = { brightness: 1.2, scale: 1.045, opacity: 1 };    // keyed up
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });

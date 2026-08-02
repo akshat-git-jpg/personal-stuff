@@ -58,12 +58,17 @@
 
       #name { font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); will-change: transform, opacity; }
       /* subtitle carries the accent: the descriptor line under the hero name.
-         40px keeps the hero/descriptor spread at 3.75x, inside the 4x ceiling
-         DESIGN.md sets. It was 32px (4.69x) with an 18px gap, and against a
-         150px hero on line-height 1.0 that read as one crushed block — owner
-         c01 2026-08-02, "heading and small text below are too close ... pls
-         increase text size of 2nd line". Do not shrink either number without
-         re-checking the ratio. */
+         At a 150px hero the type-scale gate allows 37.5px (the 4x ceiling) to
+         60px (the 2.5x floor). 52px sits mid-band at 2.88x.
+
+         It went 32px -> 40px on the first pass and the owner came back with
+         "this still looks small" (c01#2, 2026-08-02). 40px was 3.75x: legal,
+         but one notch off the FLOOR of the band, so it passed the gate and
+         still read small. That is the lesson now in DESIGN.md — when a ratio
+         rule gives you a band, land in the middle of it, because the edge is
+         what gets rejected twice.
+
+         Do not shrink either number without re-checking the ratio. */
       #subtitle { font-size: 52px; font-weight: 500; color: var(--accent); margin-top: 34px; will-change: opacity; }
     </style>
   </head>

@@ -74,8 +74,28 @@ for (const card of catalog.cards) {
     if (typeof card.max_beats !== 'number' || card.max_beats < 1) {
       err(`FAIL: ${card.slug}.max_beats must be a number >= 1 on a ${card.kind} card — visuals-flow-2 synthesizes 0 beats without it`);
     }
-    if (card.beat_source !== 'beat' && card.beat_source !== 'variables') {
-      err(`FAIL: ${card.slug}.beat_source must be "beat" or "variables"`);
+    // "transcript" landed with plan 177 (PR #135, 2026-08-02): the resolver
+    // derives beat times from the transcript instead of the cue author writing
+    // them, reading the item list named by `beat_items`
+    // (visuals-flow-2/lib/transcript-beats.mjs:4). The plan added the catalog
+    // entry and the resolver but never taught THIS validator the new value, so
+    // `tool-icon/roster-pop` landed on main failing check-cards while the
+    // plan's own gate stayed green — its test_cmd ran only inside
+    // visuals-flow-2, and the catalog it edited lives here. Same shape as
+    // LESSONS 2026-07-21.
+    if (!['beat', 'variables', 'transcript'].includes(card.beat_source)) {
+      err(`FAIL: ${card.slug}.beat_source must be "beat", "variables" or "transcript"`);
+    } else if (card.beat_source === 'transcript') {
+      if (!card.beat_items) err(`FAIL: ${card.slug} has beat_source "transcript" but missing beat_items`);
+      else if (!card.variables || !card.variables[card.beat_items] || card.variables[card.beat_items].type !== 'array') {
+        err(`FAIL: ${card.slug} beat_items "${card.beat_items}" must exist in variables with type "array"`);
+      }
+      // Beats are derived, so the card still needs a beat_shape to describe what
+      // each derived beat carries, and a reveal budget to size it against.
+      if (!card.beat_shape) err(`FAIL: ${card.slug} has beat_source "transcript" but missing beat_shape`);
+      if (typeof card.max_reveal_chars !== 'number' || card.max_reveal_chars < 1) {
+        err(`FAIL: ${card.slug}.max_reveal_chars must be a number >= 1 for beat_source "transcript"`);
+      }
     } else if (card.beat_source === 'beat') {
       if (!card.beat_shape) err(`FAIL: ${card.slug} has beat_source "beat" but missing beat_shape`);
       if (typeof card.max_reveal_chars !== 'number' || card.max_reveal_chars < 1) {

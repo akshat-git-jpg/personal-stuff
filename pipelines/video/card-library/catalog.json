@@ -2425,7 +2425,7 @@
       "roles": [
         "comparison-coldopen"
       ],
-      "purpose": "five identical matte-black pedestals under one warm key light, each holding a different glass object at its own colour temperature; a shallow depth of field walks the row, snapping one sharp and letting the rest fall off, and never settles on a winner",
+      "purpose": "five identical matte-black pedestals under one warm key light, each holding a different glass object at its own colour temperature and engraved with the promise it stands for; the key light walks the row, lifting one plinth and letting the rest fall back, and never settles on a winner",
       "variables": {
         "items": {
           "required": true,
@@ -2450,6 +2450,14 @@
               "role": "free",
               "note": "hex colour temperature for that object glass + halo",
               "example": "#9ad8ff"
+            },
+            "label": {
+              "type": "string",
+              "required": true,
+              "role": "label",
+              "max_words": 2,
+              "note": "the promise engraved on that plinth — a CATEGORY the tool competes in, never the tool's name",
+              "example": "Talking Head"
             }
           }
         }
@@ -2467,8 +2475,8 @@
       "max_beats": 6,
       "default_duration": 12,
       "intent": "The cold open of a comparison whose thesis is that the products are NOT interchangeable: the frame shows five different promises and refuses to pick one.",
-      "anti_intent": "Any moment with a winner, a ranking, or a claim about ONE product. This card carries no text at all, so never use it where the point needs words on screen.",
-      "note": "Headless by design (hero_shape none). Built 2026-08-01 after the owner rejected a word-synced hook on best-ai-video-generator final-v3:0 and approved this look from a Gemini prompt preview.",
+      "anti_intent": "Any moment with a winner, a ranking, or a claim about ONE product. The placards name the PROMISE each pedestal stands for, never the product — a roll-call of tool names belongs on tool-icon/roster-pop, and putting them here says the same thing twice.",
+      "note": "Headless by design (hero_shape none) — the placards are per-item labels, not a hero. Built 2026-08-01 after the owner rejected a word-synced hook on best-ai-video-generator final-v3:0 and approved this look from a Gemini prompt preview. REVISED 2026-08-02 once the owner saw it move: the depth-of-field focus pull became a light-based one (\"all gets blury\") and the empty plinths gained engraved promise labels (\"just icons and no info, no actual content\"). Both were properties a still preview could not show.",
       "max_reveal_chars": 2
     },
     {
