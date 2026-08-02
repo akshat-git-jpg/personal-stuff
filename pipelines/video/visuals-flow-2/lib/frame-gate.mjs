@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { execSync } from 'node:child_process';
@@ -8,6 +9,11 @@ import { execSync } from 'node:child_process';
 // probe machinery from card-library. DOM overflow only — the accent check
 // lives in render.mjs because the browser cannot reproduce render-only bugs.
 async function loadProbe(cardLibraryRoot) {
+  const nm = path.join(cardLibraryRoot, 'node_modules');
+  if (!fs.existsSync(nm)) {
+    console.log(`frame-gate: card-library dependencies not found, installing...`);
+    execSync('npm ci --no-audit --no-fund', { cwd: cardLibraryRoot, stdio: 'inherit' });
+  }
   const mod = path.join(cardLibraryRoot, 'scripts', 'overflow-probe.mjs');
   return import(pathToFileURL(mod).href);
 }
