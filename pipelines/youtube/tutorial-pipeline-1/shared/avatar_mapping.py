@@ -1,14 +1,22 @@
 # Avatar mapping for tutorial-pipeline-1.
 # The HeyGen ids now live in the shared registry (single source of truth):
 #   pipelines/video/heygen/registry.json   (slug -> {avatar_id?/template_id?/description})
-# This file only maps the Drive folder suffix (" @ g1" / " @ g2") to a registry SLUG and
+# This file only maps the Drive folder suffix (" @ g1") to a registry SLUG and
 # resolves its template_id from that shared file, so an id is defined in exactly one place.
 # To add a new type: add the slug+id to registry.json, then map the suffix here.
 import json
 import pathlib
 
 # Drive folder suffix -> slug in registry.json
-SLUGS = {"g1": "girl-1", "g2": "girl-2"}
+#
+# " @ g2" is GONE (2026-08-02): the owner culled every avatar/look/template id
+# except the girl template (girl-1) and the man template (specs-man), so the
+# girl-2 slug no longer exists. It is dropped here rather than left pointing at
+# a missing slug — _build_types() skips a slug with no template_id, so a stale
+# entry would have made a " @ g2" folder silently produce nothing instead of
+# failing. The man template has no Drive suffix yet; add one here if you want
+# this pipeline to route to it.
+SLUGS = {"g1": "girl-1"}
 
 _REGISTRY = pathlib.Path(__file__).resolve().parents[3] / "video/heygen/registry.json"
 

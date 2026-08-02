@@ -111,9 +111,15 @@ test("6. Avatar registry: slug resolves, raw id passes through", async () => {
   assert.ok(reg["girl-1"] && reg["girl-1"].template_id, "girl-1 seeded with a template_id");
   assert.ok(reg["girl-1"].description, "entries carry a description");
 
-  // known slug → mapped id
+  // known slug → mapped id. These are the only two template ids the registry
+  // carries: the owner culled every other avatar/look/template id on
+  // 2026-08-02, so this pair IS the allowlist. The second assertion used to be
+  // "girl-2" (887ad69c…), which no longer exists.
   assert.strictEqual(resolveTemplate("girl-1"), "7629dffbebe141eb8f701630948bd707");
-  assert.strictEqual(resolveTemplate("girl-2"), "887ad69c743d4740a0174eecb3198ef4");
+  assert.strictEqual(resolveTemplate("specs-man"), "403f1f8c49d64c58bd3168f99a58bb0a");
+  // and nothing else resolves — a culled slug must fall through as a raw value,
+  // not quietly map to a dead id
+  assert.strictEqual(resolveTemplate("girl-2"), "girl-2");
   // unknown value → passthrough (raw ids keep working)
   assert.strictEqual(resolveTemplate("some-raw-id-123"), "some-raw-id-123");
   assert.strictEqual(resolveAvatar("another-raw-id"), "another-raw-id");

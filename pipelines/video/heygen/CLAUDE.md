@@ -32,7 +32,7 @@ Browse everything visually with the media-board skill ("open my media board" →
 ## How to generate
 
 - **HeyGen (today's path):** `tooling/cli/heygen-web` — read its CLAUDE.md first (auth via
-  captured cURLs, Avatar III only, anti-ban rules). Template renders for girl-1/girl-2;
+  captured cURLs, Avatar III only, anti-ban rules). Template renders for girl-1/specs-man (the only two template ids left after the 2026-08-02 cull);
   photo-avatar renders for the `avatar_id` characters.
 - **fal-lipsync (validated replacement, not yet productized):** see `fal-lipsync/README.md` —
   next step is the owner's verdict on the base clip, then a thin `tooling/cli/` avatar CLI
