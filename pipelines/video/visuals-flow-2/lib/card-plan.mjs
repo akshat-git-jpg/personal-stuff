@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
-import { ZONE_PARTS } from './zone-constants.mjs';
+import { ZONE_PARTS, zonePartsFor } from './zone-constants.mjs';
 
 // The whole video's card plan gets approved in one place, before anything is
 // built or rendered (owner 2026-07-30). This replaces the zone-only 070 gate:
@@ -19,9 +19,10 @@ export const PLAN_PARTS = ['intro', 'body', 'conclusion'];
 // the body pass (030) does not. No times exist at this stage, so the cue's own
 // declaration is the only signal — W19 cross-checks it against the measured
 // span later, once resolve has run.
-export function partOf(cue) {
+export function partOf(cue, workdir) {
   const zone = cue?.zone;
-  return ZONE_PARTS.includes(zone) ? zone : 'body';
+  const validZones = workdir ? zonePartsFor(workdir) : ZONE_PARTS;
+  return validZones.includes(zone) ? zone : 'body';
 }
 
 // A proposed card carries a structured spec (`propose`). Older cues put a
@@ -33,13 +34,17 @@ function proposalOf(cue) {
   return null;
 }
 
-export function buildCardPlan({ structure, cues, catalogCards }) {
+export function buildCardPlan({ workdir, structure, cues, catalogCards }) {
   const bySlug = new Map((catalogCards ?? []).map((c) => [c.slug, c]));
-  const byPart = new Map(PLAN_PARTS.map((p) => [p, []]));
+  const activeZones = workdir ? zonePartsFor(workdir) : ZONE_PARTS;
+  const activePlanParts = PLAN_PARTS.filter((p) => p === 'body' || activeZones.includes(p));
+  const byPart = new Map(activePlanParts.map((p) => [p, []]));
 
   for (const cue of cues ?? []) {
     const cat = bySlug.get(cue.card);
-    byPart.get(partOf(cue)).push({
+    const part = partOf(cue, workdir);
+    if (!byPart.has(part)) continue;
+    byPart.get(part).push({
       id: cue.id,
       card: cue.card ?? null,
       status: cat ? 'existing' : 'new',
@@ -57,7 +62,7 @@ export function buildCardPlan({ structure, cues, catalogCards }) {
     });
   }
 
-  return PLAN_PARTS.map((part) => {
+  return activePlanParts.map((part) => {
     const span = (structure ?? []).find((s) => s.part === part);
     return {
       part,
@@ -155,7 +160,7 @@ function main() {
   const cat = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
   const catalogCards = cat.cards ?? cat;
 
-  const sections = buildCardPlan({ structure, cues: cuesFile.cues, catalogCards });
+  const sections = buildCardPlan({ workdir, structure, cues: cuesFile.cues, catalogCards });
 
   const outPath = path.join(workdir, 'card-plan.json');
   const prev = fs.existsSync(outPath) ? JSON.parse(fs.readFileSync(outPath, 'utf8')) : {};

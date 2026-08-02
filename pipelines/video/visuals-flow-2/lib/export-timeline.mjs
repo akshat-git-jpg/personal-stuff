@@ -222,7 +222,7 @@ export function screenCaptionChunks({ words, resolved, avatarJobs, total }) {
 // Native layered project: ONE continuous screen clip on the spine; everything
 // else is a connected clip on its own lane; markers record dropped effects.
 // avatarClips/fullframes/overlayClips/fxClips/sfxClips: [{ id, offsetSec, durationSec, file }]
-export function buildNativeFcpxml({ video, screenPath, voPath, musicPath, total, w, h, avatarClips, fullframes, overlayClips, fxClips, sfxClips, markers, srcUrl }) {
+export function buildNativeFcpxml({ video, screenPath, voPath, musicPath, total, w, h, avatarClips, fullframes, overlayClips, fxClips, sfxClips, markers, srcUrl, filmSpan, workdir }) {
   const totalF = frames(total);
   const assets = [];
   let nextId = 2;
@@ -284,6 +284,22 @@ export function buildNativeFcpxml({ video, screenPath, voPath, musicPath, total,
       `        <marker start="${rt(frames(m.at))}" duration="100/3000s" value="${xmlEsc(m.note)}"/>`),
   ].join('\n');
 
+  let spineXml = '';
+  if (filmSpan) {
+    const introDurF = frames(filmSpan.end);
+    const screenDurF = totalF - introDurF;
+    const introPath = path.join(workdir, 'intro-film', 'out', 'intro.mp4');
+    const introRef = assetFor(introPath, { durF: introDurF });
+    spineXml = `            <asset-clip ref="${introRef}" offset="${rt(0)}" duration="${rt(introDurF)}" start="0s" name="intro">
+${children}
+            </asset-clip>
+            <asset-clip ref="${screenRef}" offset="${rt(introDurF)}" duration="${rt(screenDurF)}" start="${rt(introDurF)}" name="screen"/>`;
+  } else {
+    spineXml = `            <asset-clip ref="${screenRef}" offset="${rt(0)}" duration="${rt(totalF)}" start="0s" name="screen">
+${children}
+            </asset-clip>`;
+  }
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE fcpxml>
 <fcpxml version="1.9">
@@ -296,9 +312,7 @@ ${assets.join('\n')}
       <project name="${xmlEsc(video)}">
         <sequence format="r1" duration="${rt(totalF)}" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
           <spine>
-            <asset-clip ref="${screenRef}" offset="${rt(0)}" duration="${rt(totalF)}" start="0s" name="screen">
-${children}
-            </asset-clip>
+${spineXml}
           </spine>
         </sequence>
       </project>
@@ -560,7 +574,7 @@ async function main() {
     // Resolve are not the levels the owner approved.
     const voMixed = bakeVo({ voPath, outDir: audioDir });
 
-    const xml = buildNativeFcpxml({ video: inputs.video, screenPath: inputs.screen, voPath: voMixed, musicPath, total: inputs.total, w: 1920, h: 1080, avatarClips, fullframes, overlayClips, fxClips, sfxClips, markers, srcUrl });
+    const xml = buildNativeFcpxml({ video: inputs.video, screenPath: inputs.screen, voPath: voMixed, musicPath, total: inputs.total, w: 1920, h: 1080, avatarClips, fullframes, overlayClips, fxClips, sfxClips, markers, srcUrl, filmSpan: inputs.filmSpan, workdir: inputs.workdir });
     fs.writeFileSync(path.join(exportDir, 'timeline.fcpxml'), xml);
     const capChunks = screenCaptionChunks({
       words: inputs.words, resolved: inputs.resolved, avatarJobs: inputs.avatarJobs, total: inputs.total,

@@ -4,8 +4,9 @@
 // rule can never reach the zone model or the reverse.
 import fs from 'node:fs';
 import path from 'node:path';
-import { ZONE_CONSTANTS } from './zone-constants.mjs';
+import { ZONE_CONSTANTS, zonePartsFor } from './zone-constants.mjs';
 import { ZONE_RULES } from './zone-rules.mjs';
+import { resolveWorkdir } from './workdir.mjs';
 
 export const BEGIN_MARKER = '<!-- BEGIN GENERATED ZONE CONSTRAINTS — edit lib/zone-constants.mjs, then run node lib/build-zone-prompt.mjs -->';
 export const END_MARKER = '<!-- END GENERATED ZONE CONSTRAINTS -->';
@@ -35,12 +36,19 @@ export function renderConstraintsBlock(zoneConstants = ZONE_CONSTANTS) {
   return [...header, ...lines].join('\n');
 }
 
-export function renderRuleLines(zoneRules = ZONE_RULES) {
-  return Object.entries(zoneRules).map(([key, r]) => ({ key, text: r.rule }));
+export function renderRuleLines(zoneRules = ZONE_RULES, workdir = null) {
+  const rules = { ...zoneRules };
+  if (workdir && !zonePartsFor(workdir).includes('intro')) {
+    rules.R_ZONE_SCOPE = {
+      ...rules.R_ZONE_SCOPE,
+      rule: 'The INTRO of this video is authored as a bespoke film (step 025) and is NOT yours. Author the CONCLUSION only. Do not emit any cue with `zone: "intro"`.',
+    };
+  }
+  return Object.entries(rules).map(([key, r]) => ({ key, text: r.rule }));
 }
 
-export function renderRulesBlock(zoneRules = ZONE_RULES) {
-  return renderRuleLines(zoneRules).map((l) => l.text).join('\n\n');
+export function renderRulesBlock(zoneRules = ZONE_RULES, workdir = null) {
+  return renderRuleLines(zoneRules, workdir).map((l) => l.text).join('\n\n');
 }
 
 function withGeneratedBlock(promptText, block, beginMarker, endMarker) {
@@ -56,9 +64,16 @@ function withGeneratedBlock(promptText, block, beginMarker, endMarker) {
 
 function main() {
   const check = process.argv.includes('--check');
+  const slug = process.argv.find((a, i) => i > 1 && !a.startsWith('--'));
+  const workdir = slug ? resolveWorkdir(slug) : null;
   const current = fs.readFileSync(PROMPT_PATH, 'utf8');
   const withConstraints = withGeneratedBlock(current, renderConstraintsBlock(), BEGIN_MARKER, END_MARKER);
-  const rendered = withGeneratedBlock(withConstraints, renderRulesBlock(), RULES_BEGIN_MARKER, RULES_END_MARKER);
+  const rendered = withGeneratedBlock(withConstraints, renderRulesBlock(ZONE_RULES, workdir), RULES_BEGIN_MARKER, RULES_END_MARKER);
+
+  if (slug) {
+    console.log(rendered);
+    return;
+  }
 
   if (check) {
     if (rendered !== current) {
