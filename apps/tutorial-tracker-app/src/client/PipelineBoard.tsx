@@ -98,13 +98,27 @@ export function PipelineBoard({ rows, pipeline, names, filters, onOpen, canDelet
   const ariaSort = (col: string): "ascending" | "descending" | "none" =>
     sort?.col === col ? (sort.dir === "asc" ? "ascending" : "descending") : "none";
 
-  const thCls = "select-none whitespace-nowrap border-b border-border bg-muted/50 px-3 py-2 text-left text-xs font-semibold text-muted-foreground hover:text-foreground";
+  // Column headers pin under the app header while the page scrolls.
+  // Sticky lives on the <th> (Safari ignores it on <thead>/<tr>); the bottom rule
+  // is an inset shadow because border-collapse drops borders off a stuck cell;
+  // and the background must be opaque — the flat blend of the old bg-muted/50 —
+  // so rows don't show through as they pass underneath.
+  const thCls = cn(
+    "sticky top-[var(--app-header-h)] z-20 select-none whitespace-nowrap px-3 py-2",
+    "bg-[color-mix(in_oklab,var(--muted)_50%,var(--background))]",
+    "shadow-[inset_0_-1px_0_var(--border)]",
+    "text-left text-xs font-semibold text-muted-foreground hover:text-foreground",
+  );
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border">
+    // overflow-x-auto would make THIS div the sticky scrollport and un-pin the
+    // header, so it's dropped once the table fits: min-content is 732px + the
+    // board's padding/border, hence 790px. Below that, narrow screens keep the
+    // horizontal scroll and the header doesn't pin.
+    <div className="overflow-x-auto rounded-xl border border-border min-[790px]:overflow-x-visible">
       <table className="w-full text-sm">
-        <thead className="sticky top-0 z-10">
-          <tr>
+        <thead>
+          <tr className="[&>th:first-child]:rounded-tl-xl [&>th:last-child]:rounded-tr-xl">
             <th className={cn(thCls, "cursor-pointer")} role="columnheader"
               aria-sort={ariaSort(TOPIC_COL)} tabIndex={0} onClick={() => toggleSort(TOPIC_COL)}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleSort(TOPIC_COL); } }}>
