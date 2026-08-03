@@ -38,8 +38,12 @@ or dbt test failures — those are code/infra, not data.
 ## Step 0 — Get the dbt log from an Argo link (skip if a log is already pasted)
 
 Prod be-dbt runs execute in Argo Workflows. When the user shares an Argo link (or
-just an id) instead of pasting a log, pull the log yourself with the bundled helper —
-**no manual auth setup, the prod token is stored in `references/prod-argo.env`.**
+just an id) instead of pasting a log, pull the log yourself with the bundled helper.
+
+**One-time setup, per machine.** The token is NOT in the repo, and must not be added to it:
+this repo is public. Copy `references/prod-argo.env.example` to
+`references/prod-argo.env` and fill in a current token from the cluster. The file is
+gitignored. If it is missing, `argo-logs.sh` exits 1 and tells you this.
 
 ```bash
 scripts/argo-logs.sh <argo-url-or-id> [--list] [--grep PAT] [--all] [--tail N]

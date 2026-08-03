@@ -28,8 +28,21 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$HERE/../references/prod-argo.env"
+if [ ! -f "$ENV_FILE" ]; then
+  cat >&2 <<EOF
+argo-logs.sh: missing $ENV_FILE
+
+This file is gitignored and is deliberately NOT in the repo: this repo is public.
+
+To set it up:
+  cp "$ENV_FILE.example" "$ENV_FILE"
+then fill in ARGO_BASE, ARGO_NS and a CURRENT ARGO_TOKEN from the cluster.
+EOF
+  exit 1
+fi
 # shellcheck source=/dev/null
-source "$HERE/../references/prod-argo.env"
+source "$ENV_FILE"
 
 MODE="tail"; TAILN=60; PATTERN=""; INPUT=""
 while [ $# -gt 0 ]; do
