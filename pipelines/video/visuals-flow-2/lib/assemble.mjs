@@ -13,7 +13,7 @@ import { registerVersion } from './versions.mjs';
 import { loadConceptSpans } from './concept-spans.mjs';
 import { SHOT_CONSTANTS, jobPurpose } from './shot-constants.mjs';
 import { readFinalCut } from './final-cut.mjs';
-import { introOwnedByFilm } from './intro-film/owns-intro.mjs';
+import { introOwnedByFilm, filmSpanFor } from './intro-film/owns-intro.mjs';
 
 import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
@@ -999,16 +999,11 @@ export async function loadAssemblyInputs(opts) {
     }
   }
 
-  let filmSpan = null;
+  // Derived from the shared helper, not privately: this was computed inline
+  // here, which meant lint-shots could not see it and E8 kept demanding a host
+  // inside the span the film owns. One derivation, every surface.
+  const filmSpan = filmSpanFor(workdir);
   if (introOwnedByFilm(workdir)) {
-    const segmentsFile = path.join(workdir, 'segments.json');
-    if (fs.existsSync(segmentsFile)) {
-      const segData = JSON.parse(fs.readFileSync(segmentsFile, 'utf8'));
-      const introPart = segData.structure?.find(p => p.part === 'intro');
-      if (introPart) {
-        filmSpan = { start: introPart.start, end: introPart.end };
-      }
-    }
     const introFile = path.join(workdir, 'intro-film', 'out', 'intro.mp4');
     if (!fs.existsSync(introFile)) {
       throw new Error(`missing intro film: ${introFile} — run.sh ${video} intro-render`);

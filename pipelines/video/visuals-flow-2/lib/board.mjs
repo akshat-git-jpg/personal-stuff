@@ -638,7 +638,8 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
         JSON.stringify({ video: mergedShots.video, offset: mergedShots.offset ?? 0, engineMode: mergedShots.engineMode ?? 'test', spans: resolvedSpans }, null, 2)
       );
       const { lintShots } = await import('./lint-shots.mjs');
-      const { errors: sErrors, warnings: sWarnings } = lintShots({ shotsResolved: resolvedSpans, resolvedCues: resolved, words });
+      const { filmSpanFor: filmSpanForBoard } = await import('./intro-film/owns-intro.mjs');
+      const { errors: sErrors, warnings: sWarnings } = lintShots({ shotsResolved: resolvedSpans, resolvedCues: resolved, words, filmSpan: filmSpanForBoard(workdir) });
       if (sErrors) resErrors.push(...sErrors.map(e => `shots: ${e}`));
       if (sWarnings) resWarnings.push(...sWarnings.map(w => `shots: ${w}`));
     }
