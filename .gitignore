@@ -71,3 +71,8 @@ node_modules/
 infra/escrow/*.gpg
 infra/escrow/*.tar.gz
 infra/escrow/out/
+
+# work credentials — this repo is PUBLIC. Skills must ship a *.env.example only,
+# never a real *.env (see decisions.md 2026-08-03).
+tooling/claude-skills/*/references/*.env
+!tooling/claude-skills/*/references/*.env.example
