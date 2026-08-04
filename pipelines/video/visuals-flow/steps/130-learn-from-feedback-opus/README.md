@@ -46,6 +46,7 @@ So, before a lesson is written to any surface:
    - **Explicit (typed)**: pending items from `node lib/feedback-status.mjs`.
    - **Implicit (edits)**: run `node lib/edit-delta.mjs <slug>` for each video reviewed since the last fold. Treat systematic edits (the same kind of change 3+ times, e.g. reveals consistently shortened, holds consistently raised) as feedback items to fold. Treat one-off edits as already-applied instance fixes needing no rule.
 2. For each item, decide WHERE the lesson lives, and edit that surface:
+   - **intro items** (`intro:*`) route to `TASTE-INTRO.md` or the 025 authoring contract. Body items never do. See `pipelines/.claude/skills/visuals-flow-feedback/SKILL.md` for the full intro routing rule.
    - **any item keyed `zone-intro:*` / `zone-conclusion:*` (raised at the 037
      card-plan gate, or anywhere else about a zone) →
      `steps/035-pick-or-propose-intro-outro-llm/RULEBOOK.md` and

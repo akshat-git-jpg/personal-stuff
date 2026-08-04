@@ -38,6 +38,7 @@ Never work from the board alone; four of the five sources are silent.
 | Chat feedback | this conversation | Anything the owner said directly instead of typing on the board. Easy to lose — write it into the Phase 4 summary like any other item. |
 | Implicit edits | `node lib/edit-delta.mjs <slug>` | 130's rule: the SAME kind of hand-edit 3+ times is a feedback item worth folding; one-off edits are instance fixes needing no rule. |
 | Run ledger | `node lib/run-log.mjs <slug>` | Each step's `issues` field: what the session hit while running, recorded at the time. This is the source nobody thinks to open, and it holds problems the owner never saw a frame of — e.g. opusclip-vs-submagic's 010 entry logged four stray script notes read aloud, each needing an editorial decision rather than a pipeline fix. Triage them like any other item. |
+| Intro film review (027) | `videos/<slug>/feedback.json` → `items` keys prefixed `intro:`; each carries `t` and `context: 'intro@MM:SS'` | The owner's timestamped notes on the intro film, watched in motion. Distinct from `final-*` items: an intro note is about the authored film, not the assembled cut, and it routes to a different rulebook (below). |
 
 Then **map every item to what it actually points at**. Which half of this you
 need depends on the key, so check the key first:
@@ -154,6 +155,21 @@ test-01 round 1 — and because the handoff said "all comments fixed", ten later
 comments sat untriaged behind a green-looking board.
 
 ### Architectural items → a plan, not a heroic inline fix
+
+**Intro items route to intro-owned rules.** A durable fix for an `intro:*` item
+is written to `TASTE-INTRO.md` (a new numbered `T<N>` rule) or to
+`steps/025-author-intro-film-llm/AUTHORING.md` when it changes the authoring
+contract itself. It is **never** written to `lib/cue-rules.mjs`,
+`lib/zone-rules.mjs`, `lib/zone-constants.mjs`, or `../card-library/DESIGN.md`.
+Those govern the body and the shared brand; an intro lesson landing there
+changes what every non-intro video renders, which is the same wall
+`no-template-contamination.test.mjs` defends from the other side.
+
+**And the reverse:** body or final-cut items never edit `TASTE-INTRO.md`.
+
+**If an intro item genuinely implies a brand change** (a palette or type-scale
+rule in `DESIGN.md`), that is not an intro fold — surface it to the owner as its
+own decision, because it changes every card in the library.
 
 If the honest fix is structural, do not half-build it in-session. Route it:
 `orchestrate` writes a self-contained plan into `plans/`, then `/secretary raise`
