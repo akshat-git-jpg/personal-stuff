@@ -55,10 +55,19 @@ fi
 # worse than no gate because it reads as coverage. Runs only when the plan arms
 # it via mutation_apply/_command/_expect frontmatter. Needs a worktree holding
 # the branch, so re-lease one briefly (greenlight has not run yet).
+#
+# Check out the LOCAL $branch, never origin/$branch. The crew commits into its
+# leased worktree and NOTHING in boss or the executors ever pushes that branch —
+# greenlight lands the local ref straight into main. So origin/$branch is still
+# the plan-file-only commit secretary raised, where the implementation does not
+# exist and every mutation_apply matches nothing. That is not a no-op recipe, it
+# is the gate aiming at the wrong tree, and it fired on PR#148 (2026-08-04) as a
+# bogus "mutation_apply changed NOTHING". The fence-leak gate above and
+# greenlight below both already use the local $branch — this now matches them,
+# so the mutation gate tests the tree that actually lands.
 if [ -f "$plan_file" ] && [ -n "$(fm_get mutation_apply "$plan_file" 2>/dev/null)" ]; then
   mwt=$(wt get --holder "boss-mut-$pr" 2>/dev/null)
-  if [ -n "$mwt" ] && git -C "$mwt" fetch -q origin "$branch" 2>/dev/null \
-     && git -C "$mwt" checkout -q --detach "origin/$branch" 2>/dev/null; then
+  if [ -n "$mwt" ] && git -C "$mwt" checkout -q --detach "$branch" 2>/dev/null; then
     echo "PR#$pr: running mutation gate…"
     mut=$(boss_mutation_gate "$branch" "$plan_file" "$mwt")
     wt return "$mwt" 2>/dev/null || true
