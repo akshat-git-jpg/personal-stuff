@@ -171,3 +171,4 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s05--337535d4501f4660b06bd4fa11f41ce2) | 7629dffbebe141eb8f701630948bd707 | s05.mp3 | `337535d4501f4660b06bd4fa11f41ce2` |
 | [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s06--7fb71f8d86294c7a91300550875cc449) | 7629dffbebe141eb8f701630948bd707 | s06.mp3 | `7fb71f8d86294c7a91300550875cc449` |
 | [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s07--e0ead54a9f9a463295bd0a9b5e9b77d1) | 7629dffbebe141eb8f701630948bd707 | s07.mp3 | `e0ead54a9f9a463295bd0a9b5e9b77d1` |
+| [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-intro-film--40069c1150fc4791bc5aa7117d2c40c0) | 7629dffbebe141eb8f701630948bd707 | intro-vo.mp3 | `40069c1150fc4791bc5aa7117d2c40c0` |

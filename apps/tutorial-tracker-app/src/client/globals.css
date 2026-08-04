@@ -18,6 +18,10 @@ summary {
   --radius: 0.625rem;
   color-scheme: light;
 
+  /* Height of the sticky app header. Anything that pins below it (the pipeline
+     table's column headers) offsets by this, so the two never overlap. */
+  --app-header-h: 3.25rem;
+
   --background: oklch(0.975 0.005 80);   /* was oklch(1 0 0) — warm paper, not pure white */
   --foreground: oklch(0.205 0 0);
 
