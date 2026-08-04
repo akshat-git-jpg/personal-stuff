@@ -10,6 +10,7 @@ Each tool lives in its own folder with the executable and (mostly) a README.
 - `hostinger/` — Hostinger VPS and hosting API.
 - `ntfy/` — send push notifications through the self-hosted ntfy server.
 - `rapidapi/` — RapidAPI calls.
+- `flights/` — `pp-flights`, flight search with live prices via Skyscanner's public web API. No key, no browser, no login.
 - `yt-claude/` — userscript + localhost relay that opens a Claude session per YouTube thumbnail.
 - `ccusage-dashboard/` — Claude Code usage dashboard.
 - `cf-email/` — sets up Cloudflare Email Routing (catch-all → hub inbox) for a niche domain in one command.
