@@ -11,14 +11,14 @@ needs: ["first of the 180-182 intro-studio batch; 181 and 182 depend on this sca
 
 ## Summary
 
-- **Problem statement**: visuals-flow-2 builds its intro by placing 6 independent pre-made catalog cards over the screen recording. Because each card is a sealed template that knows nothing about its neighbours, the intro reads as a slideshow — no object persists across beats, no tonal arc, and the presenter's face cannot be composed into the design. The owner wants intros authored as ONE bespoke composition instead, proven first as a standalone tool that does not touch visuals-flow-2.
+- **Problem statement**: visuals-flow builds its intro by placing 6 independent pre-made catalog cards over the screen recording. Because each card is a sealed template that knows nothing about its neighbours, the intro reads as a slideshow — no object persists across beats, no tonal arc, and the presenter's face cannot be composed into the design. The owner wants intros authored as ONE bespoke composition instead, proven first as a standalone tool that does not touch visuals-flow.
 - **Goals**:
-  - Create `pipelines/video/intro-studio/` as a self-contained pipeline with a `run.sh` driver, mirroring visuals-flow-2's shape (steps folders, `lib/`, `scripts/check.sh`).
+  - Create `pipelines/video/intro-studio/` as a self-contained pipeline with a `run.sh` driver, mirroring visuals-flow's shape (steps folders, `lib/`, `scripts/check.sh`).
   - Land the materials stage: take one recorded `input/intro.mp4`, split it into `vo.mp3` + `screen.mp4`, produce `transcript.json` with word timestamps, and accept an avatar clip.
-  - Change ZERO files under `pipelines/video/visuals-flow-2/` or `pipelines/video/card-library/`.
+  - Change ZERO files under `pipelines/video/visuals-flow/` or `pipelines/video/card-library/`.
 - **Executor proposed**: `agy` / Gemini 3.1 Pro (High) — owner's explicit choice, and this plan is mechanical file/CLI plumbing that matches the agy sweet spot.
-- **Done criteria** (terse — full list below): `bash scripts/check.sh` exits 0; `run.sh <slug> status` prints the artifact table; intake produces vo/screen/transcript from a fixture mp4; `git diff --stat` touches nothing under visuals-flow-2 or card-library.
-- **Stop conditions** (terse — full list below): any need to edit visuals-flow-2 or card-library; any live HeyGen network call; missing `GROQ_API_KEY` handled by fallback, never by inventing a transcript.
+- **Done criteria** (terse — full list below): `bash scripts/check.sh` exits 0; `run.sh <slug> status` prints the artifact table; intake produces vo/screen/transcript from a fixture mp4; `git diff --stat` touches nothing under visuals-flow or card-library.
+- **Stop conditions** (terse — full list below): any need to edit visuals-flow or card-library; any live HeyGen network call; missing `GROQ_API_KEY` handled by fallback, never by inventing a transcript.
 - **Test / verification for success**: `node --test` unit tests over the pure functions (intake arg building, workdir resolution, transcript shape validation) plus a real ffmpeg round-trip on a generated 6-second fixture mp4.
 - **Open points for plan readiness**: none.
 
@@ -27,7 +27,7 @@ needs: ["first of the 180-182 intro-studio batch; 181 and 182 depend on this sca
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/intro-studio pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/intro-studio pipelines/video/visuals-flow`
 
 ## Status
 
@@ -43,22 +43,22 @@ needs: ["first of the 180-182 intro-studio batch; 181 and 182 depend on this sca
 
 The owner bought Loop Studio and found its intro genuinely good. Reading Loop Studio's `editors/intro.md`, its intro is one authored screenplay — a continuous stage where an object introduced in beat 1 is demoted/promoted through later beats, the colour register crossfades dark→light on the turn word, and the face is composited INTO the design (full-screen, then docked to a panel). Their own line is "continuity is the craft."
 
-visuals-flow-2 structurally cannot express that: its largest unit of authorship is a single catalog card, and a card cannot know what preceded it. The fix is not better cards, it is a bigger unit — one composition per intro.
+visuals-flow structurally cannot express that: its largest unit of authorship is a single catalog card, and a card cannot know what preceded it. The fix is not better cards, it is a bigger unit — one composition per intro.
 
-This is a proof of concept. The owner's explicit constraint: build it standalone so nothing in the working visuals-flow-2 pipeline is at risk until they have seen an intro they like. The handoff between the two systems is deliberately the dumbest possible thing — this tool emits an `intro.mp4` file, and the owner drops it into their video by hand. Wiring it into visuals-flow-2 is a separate future plan and is explicitly NOT in this batch.
+This is a proof of concept. The owner's explicit constraint: build it standalone so nothing in the working visuals-flow pipeline is at risk until they have seen an intro they like. The handoff between the two systems is deliberately the dumbest possible thing — this tool emits an `intro.mp4` file, and the owner drops it into their video by hand. Wiring it into visuals-flow is a separate future plan and is explicitly NOT in this batch.
 
 This plan is stage one of three: get the raw materials into a predictable shape. Plan 181 writes the screenplay pass, plan 182 composes, renders and critiques.
 
 ## Current state
 
-`pipelines/video/visuals-flow-2/` is the pipeline this one mirrors in shape but must not touch. The conventions to copy:
+`pipelines/video/visuals-flow/` is the pipeline this one mirrors in shape but must not touch. The conventions to copy:
 
-- **Driver**: `run.sh <slug> <step>` is the single entry point; `run.sh <slug> status` prints an artifact table naming the next step. See `pipelines/video/visuals-flow-2/run.sh`.
+- **Driver**: `run.sh <slug> <step>` is the single entry point; `run.sh <slug> status` prints an artifact table naming the next step. See `pipelines/video/visuals-flow/run.sh`.
 - **Per-video workdir**: `videos/<slug>/` holds every artifact for one video. Media inside it is gitignored.
 - **Steps**: `steps/NNN-name-actor/README.md` — actor suffix is one of `-run` (scripted), `-llm` (a Claude session does it), `-human` (owner).
 - **Test gate**: `scripts/check.sh` runs an EXPLICIT list of test files. It must not use `node --test <dir>` — that form fails on node 22.14 with "Cannot find module '.../test'" (LESSONS 2026-07-09). Working forms: explicit files, a glob, or bare `node --test` from the package dir.
 
-Existing `pipelines/video/visuals-flow-2/scripts/check.sh` (the shape to copy):
+Existing `pipelines/video/visuals-flow/scripts/check.sh` (the shape to copy):
 
 ```bash
 #!/usr/bin/env bash
@@ -69,7 +69,7 @@ node lib/check-rulebook.mjs
 echo "visuals-flow check OK"
 ```
 
-Transcription already has a proven fast path at `pipelines/video/visuals-flow-2/lib/transcribe-groq.mjs`. Its contract, read from the file:
+Transcription already has a proven fast path at `pipelines/video/visuals-flow/lib/transcribe-groq.mjs`. Its contract, read from the file:
 
 ```
 // Groq fast-path transcription: vo.mp3 -> transcript.json (word-level timestamps)
@@ -81,9 +81,9 @@ const MODEL = 'whisper-large-v3-turbo';
 // exits 2 when GROQ_API_KEY is not set
 ```
 
-**You will NOT import from visuals-flow-2.** intro-studio is standalone; it shells out to `npx hyperframes transcribe` and implements its own Groq fast path only if trivially, which this plan does NOT ask for. Use `npx hyperframes transcribe` as the single transcription path (see Step 5).
+**You will NOT import from visuals-flow.** intro-studio is standalone; it shells out to `npx hyperframes transcribe` and implements its own Groq fast path only if trivially, which this plan does NOT ask for. Use `npx hyperframes transcribe` as the single transcription path (see Step 5).
 
-Hyperframes version is pinned in this repo. From `pipelines/video/visuals-flow-2/lib/render.mjs`:
+Hyperframes version is pinned in this repo. From `pipelines/video/visuals-flow/lib/render.mjs`:
 
 ```js
 const HYPERFRAMES = process.env.HYPERFRAMES_VERSION ? `hyperframes@${process.env.HYPERFRAMES_VERSION}` : 'hyperframes@0.7.62';
@@ -91,7 +91,7 @@ const HYPERFRAMES = process.env.HYPERFRAMES_VERSION ? `hyperframes@${process.env
 
 Use the same pin (`hyperframes@0.7.62`, overridable by `HYPERFRAMES_VERSION`) so the POC renders against the version the rest of the repo is proven on.
 
-`pipelines/video/visuals-flow-2/brand.json` is 241 bytes of brand tokens. Copy it into intro-studio rather than importing it — standalone means standalone, and a POC diverging its palette is acceptable.
+`pipelines/video/visuals-flow/brand.json` is 241 bytes of brand tokens. Copy it into intro-studio rather than importing it — standalone means standalone, and a POC diverging its palette is acceptable.
 
 ## Commands you will need
 
@@ -103,7 +103,7 @@ Use the same pin (`hyperframes@0.7.62`, overridable by `HYPERFRAMES_VERSION`) so
 | ffmpeg present | `ffmpeg -version` | prints a version banner, exit 0 |
 | ffprobe duration | `ffprobe -v error -show_entries format=duration -of csv=p=0 <file>` | a float |
 | Driver status | `cd pipelines/video/intro-studio && bash run.sh demo status` | artifact table, exit 0 |
-| Scope check | `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow-2 pipelines/video/card-library` | EMPTY output |
+| Scope check | `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow pipelines/video/card-library` | EMPTY output |
 
 ## Scope
 
@@ -112,7 +112,7 @@ Use the same pin (`hyperframes@0.7.62`, overridable by `HYPERFRAMES_VERSION`) so
 - `plans/README.md` — status row for this plan only.
 
 **Out of scope** (looks related, do NOT touch):
-- `pipelines/video/visuals-flow-2/**` — the working pipeline. The entire point of this POC is that it stays untouched. Editing it is a STOP.
+- `pipelines/video/visuals-flow/**` — the working pipeline. The entire point of this POC is that it stays untouched. Editing it is a STOP.
 - `pipelines/video/card-library/**` — the shared card catalog. intro-studio does not use cards at all.
 - `pipelines/CLAUDE.md` — the folder map gets its intro-studio row in plan 182's final step, not here (avoids three plans fighting over one table).
 - `tooling/cli/heygen-web/**` — the avatar CLI is invoked, never modified.
@@ -144,10 +144,10 @@ videos/*/film/assets/
 node_modules/
 ```
 
-`pipelines/video/intro-studio/brand.json` — copy verbatim from `pipelines/video/visuals-flow-2/brand.json`:
+`pipelines/video/intro-studio/brand.json` — copy verbatim from `pipelines/video/visuals-flow/brand.json`:
 
 ```bash
-cp pipelines/video/visuals-flow-2/brand.json pipelines/video/intro-studio/brand.json
+cp pipelines/video/visuals-flow/brand.json pipelines/video/intro-studio/brand.json
 ```
 
 `pipelines/video/intro-studio/README.md`:
@@ -162,7 +162,7 @@ In: one recorded `videos/<slug>/input/intro.mp4` (screen recording + voice).
 Out: `videos/<slug>/out/intro.mp4`.
 
 Standalone by design — it does not read or write anything in
-`visuals-flow-2`. The handoff is the mp4 file; drop it into your edit by hand.
+`visuals-flow`. The handoff is the mp4 file; drop it into your edit by hand.
 
 Operating guide: [CLAUDE.md](CLAUDE.md). Stage-by-stage reference: [PIPELINE.md](PIPELINE.md).
 ```
@@ -181,7 +181,7 @@ presenter's face composed INTO the design rather than laid over footage.
 
 ## The one hard rule
 
-**Never edit `../visuals-flow-2/` or `../card-library/` from here.** This
+**Never edit `../visuals-flow/` or `../card-library/` from here.** This
 pipeline exists so the owner can evaluate a new intro approach with zero risk
 to the working pipeline. The two systems meet at exactly one place: this one
 emits `videos/<slug>/out/intro.mp4`, and the owner drops that file into their
@@ -442,7 +442,7 @@ Write `lib/avatar.test.mjs` for the missing-file branch only (the duration branc
 
 ### Step 7: `run.sh` driver
 
-Write `pipelines/video/intro-studio/run.sh`, modelled on visuals-flow-2's driver but far smaller. It must support:
+Write `pipelines/video/intro-studio/run.sh`, modelled on visuals-flow's driver but far smaller. It must support:
 
 - `bash run.sh <slug> status` — print an artifact table: for each of `input/intro.mp4`, `vo.mp3`, `screen.mp4`, `transcript.json`, `avatar.mp4`, `screenplay.json`, `film/index.html`, `renders/intro-film.mp4`, `out/intro.mp4` print present/missing, then name the next step to run.
 - `bash run.sh <slug> intake` — `node -e` into `runIntake` then `runTranscribe`.
@@ -492,13 +492,13 @@ Add the row for plan 180 to `plans/README.md` following the existing table forma
 - [ ] `bash run.sh demo status` exits 0 and prints the artifact table
 - [ ] `bash run.sh demo render` exits 1 with `not built yet`
 - [ ] The round-trip test produces a 1920x1080 `screen.mp4` (`ffprobe … -of csv=p=0` → `1920,1080`)
-- [ ] `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow-2 pipelines/video/card-library` prints NOTHING
-- [ ] `grep -rn "heygen.com\|api.heygen\|visuals-flow-2" pipelines/video/intro-studio/lib/ pipelines/video/intro-studio/scripts/` returns no matches
+- [ ] `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow pipelines/video/card-library` prints NOTHING
+- [ ] `grep -rn "heygen.com\|api.heygen\|visuals-flow" pipelines/video/intro-studio/lib/ pipelines/video/intro-studio/scripts/` returns no matches
 - [ ] `plans/README.md` carries the 176 row
 
 ## STOP conditions
 
-- **Any change to a file under `pipelines/video/visuals-flow-2/` or `pipelines/video/card-library/`.** This is the plan's central constraint. Stop and report rather than "just fixing" something there.
+- **Any change to a file under `pipelines/video/visuals-flow/` or `pipelines/video/card-library/`.** This is the plan's central constraint. Stop and report rather than "just fixing" something there.
 - **Any code path that calls the HeyGen API**, in library code or a test. Avatar generation is owner-run through the existing CLI.
 - `npx hyperframes transcribe` does not exist or its flags differ so much the Step 5 shape does not fit — stop and report the real `--help` output rather than substituting a different tool.
 - A gate assertion fails and the tempting fix is to weaken, swap or delete the assertion. Fix the code or the fixture instead; softening an assertion is a STOP.
@@ -508,4 +508,4 @@ Add the row for plan 180 to `plans/README.md` following the existing table forma
 
 - The `intake.json` `duration` field is the intro's authoritative length. Plans 181 and 182 both key off it (the screenplay must span it exactly; the render must match it frame-for-frame).
 - The one-clip-for-the-whole-intro avatar decision is what keeps this system simple. If a future change slices the avatar per beat, span negotiation and lip-sync drift both come back — reconsider hard before doing it.
-- The hyperframes pin (`0.7.62`) is duplicated from visuals-flow-2 rather than imported, on purpose. If the repo upgrades, this POC does not have to move in lockstep.
+- The hyperframes pin (`0.7.62`) is duplicated from visuals-flow rather than imported, on purpose. If the repo upgrades, this POC does not have to move in lockstep.

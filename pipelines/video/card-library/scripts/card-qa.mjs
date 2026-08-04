@@ -98,7 +98,7 @@ const cards = targetCardSlug
   : catalog.cards;
 
 // Side mode: the renderer bakes the 1200px side-cue canvas by rewriting only
-// data-width on #root (see visuals-flow-2/lib/render.mjs rewriteCanvas) — it
+// data-width on #root (see visuals-flow/lib/render.mjs rewriteCanvas) — it
 // never touches CSS. Mirror exactly that single-attribute rewrite here, on a
 // throwaway copy of the card, so QA renders what the pipeline will actually
 // produce.

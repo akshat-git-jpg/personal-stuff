@@ -18,8 +18,8 @@ needs: ["depends on 180 (scaffold + transcript). 182 depends on this."]
   - Land the authoring prompt at `steps/020-write-screenplay-llm/screenplay-prompt.md` and the owner review step `025-approve-screenplay-human`.
   - Encode the 7-beat arc as an **adaptable default**, not a rule — deviation is allowed and must be justified in the file.
 - **Executor proposed**: `agy` / Gemini 3.1 Pro (High) — **owner's explicit choice, overriding the routing default.** `tooling/boss/data/rules.md` routes "quality-setting CONTENT the owner judges by taste — rulebooks, prompts, prose" to `claude-p`/`sonnet`, and `screenplay-prompt.md` is exactly that. Compensations applied: the prompt's required sections are asserted by a structural gate (`lib/check-prompt.mjs`), every lint rule ships with a unit test that fails on a hand-built bad screenplay, and a worked example screenplay is inlined in this plan so the executor transcribes rather than invents.
-- **Done criteria** (terse — full list below): `bash scripts/check.sh` exits 0; the lint rejects each of 11 hand-built bad screenplays and accepts the inlined good one; `check-prompt.mjs` passes; nothing under visuals-flow-2 changes.
-- **Stop conditions** (terse — full list below): editing visuals-flow-2 or card-library; weakening a lint assertion to get green; adding a required intro formula.
+- **Done criteria** (terse — full list below): `bash scripts/check.sh` exits 0; the lint rejects each of 11 hand-built bad screenplays and accepts the inlined good one; `check-prompt.mjs` passes; nothing under visuals-flow changes.
+- **Stop conditions** (terse — full list below): editing visuals-flow or card-library; weakening a lint assertion to get green; adding a required intro formula.
 - **Test / verification for success**: `node --test lib/lint-screenplay.test.mjs` — one test per lint rule, each asserting the rule fires on a targeted bad fixture AND stays silent on the good one; plus a structural gate over the prompt file.
 - **Open points for plan readiness**: none.
 
@@ -28,7 +28,7 @@ needs: ["depends on 180 (scaffold + transcript). 182 depends on this."]
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/intro-studio pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/intro-studio pipelines/video/visuals-flow`
 
 ## Status
 
@@ -44,7 +44,7 @@ needs: ["depends on 180 (scaffold + transcript). 182 depends on this."]
 
 Loop Studio's intro works because it is one continuous stage: an object introduced in beat 1 does not vanish, it shrinks and moves and stays, and the colour register crossfades dark→light on the turn word. Their `editors/intro.md` names it directly — "continuity is the craft."
 
-visuals-flow-2's intro cannot do that, and the reason is architectural rather than aesthetic: its unit of authorship is a sealed card that knows nothing about its neighbours. The owner's recorded feedback bears this out — `final-v3:0` "did not like this motion graphic", `final-v3:1` "we could have modified the same motion graphic", `final-v3:2` "this motion graphic decision itself was bad. This is not the correct motion graphic to be used at this place." All three are *selection* failures, which is what you get when the only move available is picking a template.
+visuals-flow's intro cannot do that, and the reason is architectural rather than aesthetic: its unit of authorship is a sealed card that knows nothing about its neighbours. The owner's recorded feedback bears this out — `final-v3:0` "did not like this motion graphic", `final-v3:1` "we could have modified the same motion graphic", `final-v3:2` "this motion graphic decision itself was bad. This is not the correct motion graphic to be used at this place." All three are *selection* failures, which is what you get when the only move available is picking a template.
 
 The screenplay is the artifact that makes the alternative real, and reviewable before anything expensive happens. It is deliberately written and approved BEFORE any HTML exists, because reading a beat sheet costs the owner two minutes and re-rendering a wrong 45-second composition costs far more.
 
@@ -63,7 +63,7 @@ After plan 180, `pipelines/video/intro-studio/` contains:
 
 **Do NOT use `node --test <dir>`** — it fails on node 22.14 (LESSONS 2026-07-09). Add new test files to the explicit list in `scripts/check.sh`.
 
-The owner's standing decision on intro structure, from `pipelines/video/visuals-flow-2/lib/zone-rules.mjs` (`R_ZONE_NO_FORMULA`):
+The owner's standing decision on intro structure, from `pipelines/video/visuals-flow/lib/zone-rules.mjs` (`R_ZONE_NO_FORMULA`):
 
 > 'There is deliberately NO required structure for either zone — no mandatory hook slot, no mandatory agenda card, no fixed running order. What an intro needs is a judgment call about THIS script.'
 > why: owner 2026-07-28, on encoding a required intro formula: "its subjective. Pls dont make this hardcoded"
@@ -78,7 +78,7 @@ The owner reaffirmed on 2026-08-02 that the 7-beat arc is wanted as an **adaptab
 | Lint tests | `cd pipelines/video/intro-studio && node --test lib/lint-screenplay.test.mjs` | exit 0 |
 | Prompt gate | `cd pipelines/video/intro-studio && node lib/check-prompt.mjs` | exit 0, `prompt OK` |
 | Lint a real screenplay | `cd pipelines/video/intro-studio && node lib/lint-screenplay.mjs <slug>` | exit 0 clean, exit 1 with `E<n>` lines on error |
-| Scope check | `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow-2 pipelines/video/card-library` | EMPTY |
+| Scope check | `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow pipelines/video/card-library` | EMPTY |
 
 ## Scope
 
@@ -90,7 +90,7 @@ The owner reaffirmed on 2026-08-02 that the 7-beat arc is wanted as an **adaptab
 - `plans/README.md` — the 181 row
 
 **Out of scope** (looks related, do NOT touch):
-- `pipelines/video/visuals-flow-2/**` — including `lib/zone-rules.mjs`, which this plan quotes but must not edit
+- `pipelines/video/visuals-flow/**` — including `lib/zone-rules.mjs`, which this plan quotes but must not edit
 - `pipelines/video/card-library/**`
 - Composition authoring, rendering, the critique rubric — all plan 182
 - `lib/intake.mjs`, `lib/transcript.mjs` — landed and tested by 176; do not refactor
@@ -360,7 +360,7 @@ Write the owner review step. It must say: the owner reads `screenplay.json` and 
 
 In `run.sh`, replace the `not built yet` stubs for these two steps:
 
-- `bash run.sh <slug> screenplay` — print the rendered prompt (substituting `{{TRANSCRIPT}}` with the transcript text from `transcript.json`, `{{INTRO_DURATION}}` with `intake.json`'s `duration`, `{{SLUG}}` with the slug) to stdout, so the driving session can read it. This step does NOT call an LLM API — a Claude session reads the prompt and writes the file, exactly as visuals-flow-2's `-llm` steps work.
+- `bash run.sh <slug> screenplay` — print the rendered prompt (substituting `{{TRANSCRIPT}}` with the transcript text from `transcript.json`, `{{INTRO_DURATION}}` with `intake.json`'s `duration`, `{{SLUG}}` with the slug) to stdout, so the driving session can read it. This step does NOT call an LLM API — a Claude session reads the prompt and writes the file, exactly as visuals-flow's `-llm` steps work.
 - `bash run.sh <slug> lint` — `node lib/lint-screenplay.mjs <slug>`, propagating the exit code.
 
 Add to `scripts/check.sh`'s explicit test list: `lib/screenplay-schema.test.mjs lib/lint-screenplay.test.mjs`. Add `node lib/check-prompt.mjs` as a line after the tests.
@@ -390,12 +390,12 @@ Add the 181 row to `plans/README.md`, status `DONE`.
 - [ ] `node lib/check-prompt.mjs` exits 0
 - [ ] `bash run.sh demo lint` on a workdir with the good fixture exits 0 with no `E` lines
 - [ ] Deleting any `## ` heading from `screenplay-prompt.md` makes `check-prompt.mjs` exit 1 (verify once by hand, then restore)
-- [ ] `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow-2 pipelines/video/card-library` prints NOTHING
+- [ ] `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow pipelines/video/card-library` prints NOTHING
 - [ ] `plans/README.md` carries the 181 row
 
 ## STOP conditions
 
-- **Any change to a file under `pipelines/video/visuals-flow-2/` or `pipelines/video/card-library/`** — including `lib/zone-rules.mjs`, which this plan quotes as reference only.
+- **Any change to a file under `pipelines/video/visuals-flow/` or `pipelines/video/card-library/`** — including `lib/zone-rules.mjs`, which this plan quotes as reference only.
 - **Adding a lint rule that REQUIRES the default arc.** The owner decided on 2026-07-28 that intro structure is subjective and must not be hardcoded; `E6` checks only that a deviation is explained. A rule forcing the arc contradicts a standing decision and the executor cannot know better — stop and report.
 - **A gate assertion fails and the tempting fix is to weaken, swap or delete it.** Fix the code or the fixture. Softening an assertion is a STOP.
 - The good fixture cannot be made to lint clean — this means a rule is wrong, not that the fixture should be bent to fit. Stop and report which rule and why.
@@ -405,4 +405,4 @@ Add the 181 row to `plans/README.md`, status `DONE`.
 
 - `check-prompt.mjs` is the anti-drift device: it fails when the schema grows an enum the prompt never mentions. If you add a field to the schema, the gate will tell you to document it. Do not delete it to move faster.
 - `W1` (continuity) is the single rule most worth watching over the first few real videos. If real intros routinely warn on W1 while still looking good, the threshold is wrong and should be revisited from evidence — but only after the owner has judged real output, never from theory.
-- The lint deliberately has no rule about beat COUNT or cue rate. visuals-flow-2 learned that lesson the hard way: test-03's rejected intro measured 3.57 cues/min against a 2.30/min body — denser than the body and still rejected. Density was never the problem.
+- The lint deliberately has no rule about beat COUNT or cue rate. visuals-flow learned that lesson the hard way: test-03's rejected intro measured 3.57 cues/min against a 2.30/min body — denser than the body and still rejected. Density was never the problem.

@@ -2,9 +2,9 @@
 ---
 executor: agy
 model:                   # blank = agy default (Gemini 3.1 Pro High)
-test_cmd: cd pipelines/video/card-library && node --test scripts/overflow-probe.test.mjs && bash scripts/check-cards.sh && cd ../visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/card-library && node --test scripts/overflow-probe.test.mjs && bash scripts/check-cards.sh && cd ../visuals-flow && bash scripts/check.sh
                          # Covers BOTH directories this plan writes to (card-library/ AND
-                         # visuals-flow-2/lib/). LESSONS 2026-07-21: a gate that cannot see
+                         # visuals-flow/lib/). LESSONS 2026-07-21: a gate that cannot see
                          # half the work lands half-finished work marked done. The first
                          # command is also the fail-proof — overflow-probe.test.mjs contains
                          # the real c17 input and must report overflow.
@@ -34,7 +34,7 @@ needs: []
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 035f967..HEAD -- pipelines/video/card-library/ pipelines/video/visuals-flow-2/lib/board.mjs`
+> **Drift check (run first)**: `git diff --stat 035f967..HEAD -- pipelines/video/card-library/ pipelines/video/visuals-flow/lib/board.mjs`
 
 ## Status
 
@@ -67,12 +67,12 @@ There is a second reason to put the gate here rather than in the video pipeline.
 ### Why nothing caught it (all three verified by hand, 2026-07-30)
 
 1. **`pipelines/video/card-library/scripts/card-qa.mjs` never tests layout variants.** Its `variant` parameter means min/max **content fill**, not the card's `variants`. Confirmed: the file never reads `card.variants` and never sets `variant: 'b'`. Its output is a PNG contact sheet for a human to look at; it measures nothing.
-2. **`pipelines/video/visuals-flow-2/lib/board.mjs` has the correct detector, with zero consumers.** `__measureOverflow()` (line ~164) measures every element against the canvas and posts a message that paints a red badge. Grep for consumers found none outside `board.test.mjs`.
+2. **`pipelines/video/visuals-flow/lib/board.mjs` has the correct detector, with zero consumers.** `__measureOverflow()` (line ~164) measures every element against the canvas and posts a message that paints a red badge. Grep for consumers found none outside `board.test.mjs`.
 3. **`hyperframes check` does NOT catch this class.** Verified: on a fixture restored to the exact broken input (`title: "Submagic: Straight To Posted"`, `variant: "b"`), `npx hyperframes@latest check <dir> --at 1.2,3.0` reports `Layout: 0 issues across 2 sample(s)` and exits 0. Its layout check finds **text overflowing its container**; c17's elements sit fine inside their own boxes and the whole stack leaves the **canvas**. Different check. Do not assume `hyperframes check` covers this.
 
 ### The measurement to reuse (copy this exactly)
 
-From `pipelines/video/visuals-flow-2/lib/board.mjs`, the function to extract. It runs **inside** the page:
+From `pipelines/video/visuals-flow/lib/board.mjs`, the function to extract. It runs **inside** the page:
 
 ```js
 function __measureOverflow() {
@@ -118,7 +118,7 @@ So the dependency is **`puppeteer-core`** (no bundled browser download), launche
 | Catalog contract | `cd pipelines/video/card-library && node scripts/check-catalog.mjs` | prints `catalog ok`, exit 0 |
 | Card gate (the merge gate) | `cd pipelines/video/card-library && bash scripts/check-cards.sh` | ends `card check OK`, exit 0 |
 | New unit tests | `cd pipelines/video/card-library && node --test scripts/overflow-probe.test.mjs` | all pass, exit 0 |
-| Pipeline suite (must stay green) | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | ends `visuals-flow check OK` |
+| Pipeline suite (must stay green) | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | ends `visuals-flow check OK` |
 
 ## Scope
 
@@ -130,12 +130,12 @@ So the dependency is **`puppeteer-core`** (no bundled browser download), launche
 - `pipelines/video/card-library/package.json` (add `puppeteer-core` dependency)
 - `pipelines/video/card-library/catalog.json` (write derived caps only)
 - `pipelines/video/card-library/DESIGN.md` (document the measured-capacity contract)
-- `pipelines/video/visuals-flow-2/lib/overflow-measure.mjs` (new — the shared measurement source)
-- `pipelines/video/visuals-flow-2/lib/board.mjs` (import the shared module instead of its inline copy)
+- `pipelines/video/visuals-flow/lib/overflow-measure.mjs` (new — the shared measurement source)
+- `pipelines/video/visuals-flow/lib/board.mjs` (import the shared module instead of its inline copy)
 
 **Out of scope — looks related, do not touch:**
 
-- `pipelines/video/visuals-flow-2/lib/resolve.mjs` — the rotation guard (`lacksExplicitTextCap`) already landed and is tested. Once caps are derived, cards will start rotating again on their own; that is the intended effect, not a change to make.
+- `pipelines/video/visuals-flow/lib/resolve.mjs` — the rotation guard (`lacksExplicitTextCap`) already landed and is tested. Once caps are derived, cards will start rotating again on their own; that is the intended effect, not a change to make.
 - Any card's `index.html` visual design. This plan measures cards; it does not redesign them. If a card's true capacity is absurdly small, STOP and report — do not "fix" the card.
 - `scripts/card-qa.mjs` — leave it as the human contact-sheet tool. The new probe is a separate, machine-checkable script. Merging them is a later cleanup.
 - `scripts/beat-smoke.sh` — it is stale (asserts 48 total / 15 beat cards against 64 / 25) and fails before reaching any card. Known, unrelated, do not fix here.
@@ -144,7 +144,7 @@ So the dependency is **`puppeteer-core`** (no bundled browser download), launche
 
 ### Step 1 — Extract the measurement into one shared module
 
-Create `pipelines/video/visuals-flow-2/lib/overflow-measure.mjs` exporting the function **as a string** (it must be injected into a page, so it cannot be a normal import at the call site) plus the constants:
+Create `pipelines/video/visuals-flow/lib/overflow-measure.mjs` exporting the function **as a string** (it must be injected into a page, so it cannot be a normal import at the call site) plus the constants:
 
 ```js
 // The canvas-bounds overflow measurement, in ONE place. board.mjs injects it into
@@ -175,7 +175,7 @@ function __measureOverflow() {
 
 Then edit `board.mjs` to import `MEASURE_OVERFLOW_SRC` and interpolate it where its inline `function __measureOverflow() {...}` currently sits, deleting the inline copy. The injected script text must remain byte-identical in behaviour.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/board.test.mjs` → passes, and `grep -c "function __measureOverflow" lib/board.mjs` → `0`.
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/board.test.mjs` → passes, and `grep -c "function __measureOverflow" lib/board.mjs` → `0`.
 
 ### Step 2 — Add `puppeteer-core`
 
@@ -296,7 +296,7 @@ Add to `pipelines/video/card-library/DESIGN.md`, near the existing "Declared cap
 | Probe accepts the fixed 3-word title | same | guards against a probe that fails everything |
 | `fillToCapacity` respects `max_words` / `max_chars` | same | pure, no browser |
 | `probeTimes` includes every beat `at` | same | pure, no browser |
-| Board still injects a working probe | `visuals-flow-2/lib/board.test.mjs` (existing) | must stay green after Step 1 |
+| Board still injects a working probe | `visuals-flow/lib/board.test.mjs` (existing) | must stay green after Step 1 |
 
 ## Done criteria
 
@@ -304,8 +304,8 @@ Add to `pipelines/video/card-library/DESIGN.md`, near the existing "Declared cap
 2. `cd pipelines/video/card-library && node scripts/overflow-probe.mjs` → exit 0, one `ok` line per card per variant.
 3. `cd pipelines/video/card-library && bash scripts/check-cards.sh` → ends `card check OK`, exit 0.
 4. `cd pipelines/video/card-library && node scripts/check-catalog.mjs` → `catalog ok`.
-5. `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` → ends `visuals-flow check OK`.
-6. `grep -c "function __measureOverflow" pipelines/video/visuals-flow-2/lib/board.mjs` → `0` (the inline copy is gone).
+5. `cd pipelines/video/visuals-flow && bash scripts/check.sh` → ends `visuals-flow check OK`.
+6. `grep -c "function __measureOverflow" pipelines/video/visuals-flow/lib/board.mjs` → `0` (the inline copy is gone).
 7. `node -e "const c=require('./pipelines/video/card-library/catalog.json');const v=c.cards.filter(x=>x.variants&&!x.structural);const bad=v.filter(x=>!Object.values(x.variables||{}).some(s=>s&&(s.max_words!==undefined||s.max_chars!==undefined))&&x.max_reveal_chars===undefined);if(bad.length)throw new Error('uncapped: '+bad.map(x=>x.slug));console.log('all variant cards capped')"` → prints `all variant cards capped`.
 8. `git diff --stat pipelines/video/card-library/catalog.json` → fewer than 40 changed lines (proves no JSON re-encoding).
 
@@ -315,7 +315,7 @@ Add to `pipelines/video/card-library/DESIGN.md`, near the existing "Declared cap
 - **More than 6 cards need caps that look wrong** (absurdly small, or a field that should be a sentence capped at 2 words). Stop and report rather than writing bad caps into the catalog.
 - **`npx hyperframes@latest browser path` prints nothing or a missing file.** Stop — do not `npm install puppeteer` or any browser-bundling package to work around it. Report so the owner can run `npx hyperframes browser ensure`.
 - **The `catalog.json` diff exceeds 40 lines.** The JSON was round-tripped and the `-` escapes were destroyed. Revert the file and switch to targeted text surgery.
-- **`bash scripts/check.sh` in `visuals-flow-2` goes red** after Step 1. The shared-module extraction changed board behaviour; revert Step 1 and report.
+- **`bash scripts/check.sh` in `visuals-flow` goes red** after Step 1. The shared-module extraction changed board behaviour; revert Step 1 and report.
 - **Any temptation to shrink a font, reduce a hero size, or truncate text with an ellipsis to make a card fit.** `DESIGN.md` forbids it ("never shrink a font to make a layout fit"; "capacity comes down to match the hero, never the other way around"). The output of this plan is smaller CAPS, never smaller type.
 
 ## Maintenance notes

@@ -654,25 +654,25 @@ d1/r2/secrets/deploy) — documented in each plan.
 - 132-tutorial-vo-worker-ui — PR#90 132-tutorial-vo-worker-ui: tutorial-vo — the tutorial maker's self-serve TTS Worker UI (v1) — DONE
 - 133-tp3-intake-qc-handoff — PR#91 133-tp3-intake-qc-handoff: tutorial-pipeline-3 intake QC + handoff to visuals-flow — DONE
 
-### visuals-flow-2 — Loop-Studio-informed v2 build (2026-07-24)
+### visuals-flow — Loop-Studio-informed v2 build (2026-07-24)
 
 Implements `docs/specs/2026-07-24-visuals-flow-v2-design.md` (decisions.md
 2026-07-24: new folder, template-first + bespoke flywheel, layered FCPXML
 deliverable, longform-only). Executor: agy for all eight (owner call,
 2026-07-24 — overrides the rules.md prompt-content→claude-p default).
-No deploys. 137's test_cmd runs in BOTH card-library and visuals-flow-2
+No deploys. 137's test_cmd runs in BOTH card-library and visuals-flow
 (the 2026-07-21 every-directory lesson).
 
 | # | Plan | What it lands | Depends on |
 |---|---|---|---|
-| 134 | vf2-scaffold | Copy v1 spine to pipelines/video/visuals-flow-2, empty videos/, kb-scratch retarget, gate green | — |
+| 134 | vf2-scaffold | Copy v1 spine to pipelines/video/visuals-flow, empty videos/, kb-scratch retarget, gate green | — |
 | 135 | vf2-coverage-density-headmodes | video.json manifest, hold-until-next + freeze gap-filler (orange-screen fix), E7/W7 lints, shots mode full/panel | 134 |
 | 136 | vf2-concept-doctrine | 018 concept pass (concept.json + lint), register/motif cue fields + E8/W8, 035 mute-test audit | 134 |
 | 137 | vf2-enacted-cards | 12 enacted cards + label-plate, catalog metadata (register/marker/intent/anti_intent/variants), bespoke cues + promote script | 134, 136 |
 | 138 | vf2-effects-brand-variants | register transitions, brand.json injection, variant rotation + W9, motif lane, captions default-on | 135, 136, 137 |
 | 139 | vf2-sound-mix | synthesized SFX kit, semantic sfx-plan → sound.json, ducked-music mix → master.wav −14 LUFS, FCPXML audio lanes | 135 |
 | 140 | vf2-board-two-tabs | Storyboard play-through + audit/sound/brand preview; Final Cut tab (versions, pinned comments, live check-off, Gates A/B) | 136, 138, 139 |
-| 141 | vf2-docs-registration | v2 PIPELINE/README, visuals-flow-2 skill + symlink, pipelines/CLAUDE.md row, v1 fallback banner | 134–140 |
+| 141 | vf2-docs-registration | v2 PIPELINE/README, visuals-flow skill + symlink, pipelines/CLAUDE.md row, v1 fallback banner | 134–140 |
 
 - 134-vf2-scaffold — copy spine, retarget kb-scratch, prove check.sh in place — TODO
 - 135-vf2-coverage-density-headmodes — extendExposure + freeze filler + narration density + panel mode — TODO
@@ -682,7 +682,7 @@ No deploys. 137's test_cmd runs in BOTH card-library and visuals-flow-2
 - 139-vf2-sound-mix — SFX planner, mix/master, audio lanes — TODO
 - 140-vf2-board-two-tabs — two-tab review dashboard — TODO
 - 141-vf2-docs-registration — docs + skill + map rows — TODO
-- 134-vf2-scaffold — PR#92 134-vf2-scaffold: visuals-flow-2 scaffold — copy the v1 spine, prove parity — DONE
+- 134-vf2-scaffold — PR#92 134-vf2-scaffold: visuals-flow scaffold — copy the v1 spine, prove parity — DONE
 - 135-vf2-coverage-density-headmodes — PR#93 135-vf2-coverage-density-headmodes: v2 coverage fix (orange screen), motion density, head layout modes — DONE
 - 136-vf2-concept-doctrine — PR#94 136-vf2-concept-doctrine: v2 concept/through-line pre-pass + doctrine rules + storyboard self-audit — DONE
 - 137-vf2-enacted-cards — PR#95 137-vf2-enacted-cards: enacted-device card family (12 cards) + catalog metadata + bespoke flywheel — DONE
@@ -691,7 +691,7 @@ No deploys. 137's test_cmd runs in BOTH card-library and visuals-flow-2
 - 140-vf2-board-two-tabs — PR#98 140-vf2-board-two-tabs: v2 board — two-tab review dashboard (storyboard + Final Cut) — DONE
 - 141-vf2-docs-registration — PR#99 141-vf2-docs-registration: v2 docs, skill, and repo registration — DONE
 
-### visuals-flow-2 — first-run fix batch (2026-07-24, after test-01 review)
+### visuals-flow — first-run fix batch (2026-07-24, after test-01 review)
 
 Owner reviewed the first v2 run (test-01, 5-min slice) and judged it v1-like:
 18/19 legacy cards, audit ignored, static card tails, choppy density, board
@@ -712,7 +712,7 @@ Independent of each other — raised together.
 - 143-cards-ambient-motion-variants — PR#101 143-cards-ambient-motion-variants: living cards — ambient-motion contract + variants for the overused four — DONE
 - 144-vf2-board-playthrough-fidelity — PR#102 144-vf2-board-playthrough-fidelity: v2 board play-through fidelity + handleSave extendExposure fix — DONE
 
-### visuals-flow-2 — avatar parity + review split (2026-07-24, owner review session)
+### visuals-flow — avatar parity + review split (2026-07-24, owner review session)
 
 Owner decisions during the test-01 Final Cut review (decisions.md 2026-07-24):
 avatar modes to Loop Studio parity, and storyboard review = composition only
@@ -1094,11 +1094,11 @@ never break mid-migration.
 | # | Plan | What it lands | Depends on |
 |---|---|---|---|
 | 169 | vf2-board-data-api | `lib/board-data.mjs` + `GET /api/board-data` / `/api/calibrate-data` — the SPA's whole data contract as JSON; legacy pages untouched | none |
-| 170 | vf2-board-ui-shell | `board-ui/` (Vite+React+TS, no tailwind), ONE sticky AppHeader (tabs + single picker + action slot), hash router with the two URL-preservation contracts, Run tab, served at `/app`, headless-Chrome smoke gate proving the chrome's y-position is identical on all four tabs | 169 |
-| 171 | vf2-board-ui-feedback-and-card-plan | the ONE `FeedbackBox` (attach affordance reworked: styled chip, fixed-height thumb slot, always-visible remove), FeedbackProvider (dirty + pending images), Card Plan tab with approve in the action slot | 170 |
-| 172 | vf2-board-ui-storyboard-tiles | CueTile/GapBlock/ShotBlock ported pixel-faithful, list mode, reviewed-collapse with iframe unload, full Save collector + Approve graphics/shots/effects in the slot, pre-040 degraded board | 171 |
-| 173 | vf2-board-ui-timeline-canvas | timeline lanes + zoom/ruler/playhead, detail dock reusing CueTile (edits survive undocking), master play-through, FX sim stage, derivatives fold, live Timeline/List toggle | 172 |
-| 174 | vf2-board-ui-final-cut-and-cutover | Final Cut tab (approve moves to the slot, picker arrives via the shared header) + Calibrate route, `/` serves the SPA, legacy render functions deleted, board.test.mjs re-pointed per an explicit disposition table, steps/080 builds the UI if stale | 173 |
+| 170 | visuals-flow-board-ui-shell | `board-ui/` (Vite+React+TS, no tailwind), ONE sticky AppHeader (tabs + single picker + action slot), hash router with the two URL-preservation contracts, Run tab, served at `/app`, headless-Chrome smoke gate proving the chrome's y-position is identical on all four tabs | 169 |
+| 171 | visuals-flow-board-ui-feedback-and-card-plan | the ONE `FeedbackBox` (attach affordance reworked: styled chip, fixed-height thumb slot, always-visible remove), FeedbackProvider (dirty + pending images), Card Plan tab with approve in the action slot | 170 |
+| 172 | visuals-flow-board-ui-storyboard-tiles | CueTile/GapBlock/ShotBlock ported pixel-faithful, list mode, reviewed-collapse with iframe unload, full Save collector + Approve graphics/shots/effects in the slot, pre-040 degraded board | 171 |
+| 173 | visuals-flow-board-ui-timeline-canvas | timeline lanes + zoom/ruler/playhead, detail dock reusing CueTile (edits survive undocking), master play-through, FX sim stage, derivatives fold, live Timeline/List toggle | 172 |
+| 174 | visuals-flow-board-ui-final-cut-and-cutover | Final Cut tab (approve moves to the slot, picker arrives via the shared header) + Calibrate route, `/` serves the SPA, legacy render functions deleted, board.test.mjs re-pointed per an explicit disposition table, steps/080 builds the UI if stale | 173 |
 
 Strictly ordered — dispatch one at a time; each leaves the board fully usable.
 Verification story: server contracts stay in node --test; pure client logic in
@@ -1108,7 +1108,7 @@ therefore of every plan's boss merge gate.
 
 ## 180–182 — intro-studio: the intro becomes one authored film (2026-08-02)
 
-Owner brief: visuals-flow-2 builds its intro from ~6 independent catalog cards
+Owner brief: visuals-flow builds its intro from ~6 independent catalog cards
 laid over the screen recording. A card is a sealed template that knows nothing
 about its neighbours, so nothing carries between beats and the intro reads as a
 slideshow — the owner's recorded complaints (`final-v3:0/:1/:2`) are all
@@ -1127,7 +1127,7 @@ into the catalog afterwards rather than composed from it; the 7-beat arc is an
 round with a retry only on failure.
 
 **Built STANDALONE as a POC** (owner call): `pipelines/video/intro-studio/`
-touches nothing in visuals-flow-2 or card-library. The two systems meet at one
+touches nothing in visuals-flow or card-library. The two systems meet at one
 file — intro-studio emits `out/intro.mp4` and the owner drops it into the edit
 by hand. Wiring it in is a later plan and is deliberately absent here, so a POC
 that disappoints costs a folder deletion and nothing else.
@@ -1148,11 +1148,11 @@ shipping through green gates, both because inspection trusted "render
 succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 
 - 169-vf2-board-data-api — the board's data as JSON, the SPA contract — TODO
-- 170-vf2-board-ui-shell — React shell, one shared sticky header, Run tab, layout-stability smoke gate — TODO (needs 169)
-- 171-vf2-board-ui-feedback-and-card-plan — single FeedbackBox with reworked attach + Card Plan tab — TODO (needs 170)
-- 172-vf2-board-ui-storyboard-tiles — storyboard tiles/list/save/approve, tile look preserved — TODO (needs 171)
-- 173-vf2-board-ui-timeline-canvas — timeline lanes, detail dock, play-through, FX stage — TODO (needs 172)
-- 174-vf2-board-ui-final-cut-and-cutover — Final Cut + Calibrate in the SPA, `/` cutover, legacy deleted — TODO (needs 173)
+- 170-visuals-flow-board-ui-shell — React shell, one shared sticky header, Run tab, layout-stability smoke gate — TODO (needs 169)
+- 171-visuals-flow-board-ui-feedback-and-card-plan — single FeedbackBox with reworked attach + Card Plan tab — TODO (needs 170)
+- 172-visuals-flow-board-ui-storyboard-tiles — storyboard tiles/list/save/approve, tile look preserved — TODO (needs 171)
+- 173-visuals-flow-board-ui-timeline-canvas — timeline lanes, detail dock, play-through, FX stage — TODO (needs 172)
+- 174-visuals-flow-board-ui-final-cut-and-cutover — Final Cut + Calibrate in the SPA, `/` cutover, legacy deleted — TODO (needs 173)
 - 176-vf2-side-mode-render-join — side-mode cards render at 1920 then get cropped to 1200; `cue.sideMode` is read by render.mjs and written by nobody — TODO (renumbered from 175, which was already claimed below)
 - 177-vf2-transcript-derived-beats — beat reveals fire on the anchor's FIRST word and anchors need 3+ words, so a fast roll-call cannot be synced; derive beat times from the transcript like word-sync does — TODO
 - 178-card-library-type-and-variant-gates — the hero/body type ceiling only inspects `.row`/`.item` selectors, and card-qa never shoots the a/b variant, so both gates missed defects the owner found — TODO
@@ -1162,22 +1162,22 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 181-intro-studio-screenplay-pass — intro-studio POC stage 2: `screenplay.json` schema with `carries` (continuity as a lint rule), 7 errors + 4 warnings, authoring prompt, owner approval gate — TODO (needs 180)
 - 182-intro-studio-compose-render-critique — intro-studio POC stage 3: screenplay → one Hyperframes film → render → pixel-level gate + `INTRO-BAR.md` rubric (one retry) → `out/intro.mp4` — TODO (needs 181)
 - 169-vf2-board-data-api — PR#127 169-vf2-board-data-api: Board data API — everything the React board will render, as JSON — DONE
-- 170-vf2-board-ui-shell — PR#128 170-vf2-board-ui-shell: board-ui shell — Vite+React SPA, one shared sticky header, hash router, Run tab — DONE
-- 171-vf2-board-ui-feedback-and-card-plan — PR#129 171-vf2-board-ui-feedback-and-card-plan: FeedbackBox (attach affordance rework) + Card Plan tab — DONE
-- 172-vf2-board-ui-storyboard-tiles — PR#130 172-vf2-board-ui-storyboard-tiles: Storyboard part 1 — tiles, list mode, Save/Approve wiring — DONE
-- 173-vf2-board-ui-timeline-canvas — PR#131 173-vf2-board-ui-timeline-canvas: Storyboard part 2 — timeline canvas, detail dock, play-through, FX stage — DONE
-- 174-vf2-board-ui-final-cut-and-cutover — PR#132 174-vf2-board-ui-final-cut-and-cutover: Final Cut + Calibrate in the SPA, and the / cutover — DONE
+- 170-visuals-flow-board-ui-shell — PR#128 170-visuals-flow-board-ui-shell: board-ui shell — Vite+React SPA, one shared sticky header, hash router, Run tab — DONE
+- 171-visuals-flow-board-ui-feedback-and-card-plan — PR#129 171-visuals-flow-board-ui-feedback-and-card-plan: FeedbackBox (attach affordance rework) + Card Plan tab — DONE
+- 172-visuals-flow-board-ui-storyboard-tiles — PR#130 172-visuals-flow-board-ui-storyboard-tiles: Storyboard part 1 — tiles, list mode, Save/Approve wiring — DONE
+- 173-visuals-flow-board-ui-timeline-canvas — PR#131 173-visuals-flow-board-ui-timeline-canvas: Storyboard part 2 — timeline canvas, detail dock, play-through, FX stage — DONE
+- 174-visuals-flow-board-ui-final-cut-and-cutover — PR#132 174-visuals-flow-board-ui-final-cut-and-cutover: Final Cut + Calibrate in the SPA, and the / cutover — DONE
 - 175-vf2-per-cue-frame-gate — overflow probe becomes a per-cue GATE: E12 at 040 (real variables, real beat times, headless) + exposure/accent pixel check at 090 (render-only colour-loss class) — TODO (plan file written 2026-08-02; it had been registered without one for a round, during which the c27 overflow it describes shipped to the owner. E13 in the original line was wrong — that code is `open-cover`)
 - 175-vf2-per-cue-frame-gate — PR#133 175-vf2-per-cue-frame-gate: overflow probe becomes a per-cue frame gate (E12 at 040 + accent-visibility at 090) — DONE
-- 177-vf2-transcript-derived-beats — PR#135 177-vf2-transcript-derived-beats: vf2 transcript-derived beats — DONE
+- 177-vf2-transcript-derived-beats — PR#135 177-vf2-transcript-derived-beats: visuals-flow transcript-derived beats — DONE
 - 180-intro-studio-scaffold-and-materials — PR#138 180-intro-studio-scaffold-and-materials: intro-studio — scaffold and materials stage — DONE
 - 180-intro-studio-scaffold-and-materials — PR#138 180-intro-studio-scaffold-and-materials: intro-studio — scaffold and materials stage — DONE
-- 176-vf2-side-mode-render-join — PR#134 176-vf2-side-mode-render-join: vf2 side-mode render join — DONE
+- 176-vf2-side-mode-render-join — PR#134 176-vf2-side-mode-render-join: visuals-flow side-mode render join — DONE
 - 183-vf2-board-static-tiles-and-liveness — PR#141 183-vf2-board-static-tiles-and-liveness: storyboard posters + backend liveness — DONE
 - 178-card-library-type-and-variant-gates — PR#136 178-card-library-type-and-variant-gates: card-library type-scale and variant QA gates — DONE
-- 179-vf2-roster-symmetry-lint — PR#137 179-vf2-roster-symmetry-lint: vf2 roster symmetry lint — DONE
+- 179-vf2-roster-symmetry-lint — PR#137 179-vf2-roster-symmetry-lint: visuals-flow roster symmetry lint — DONE
 - 181-intro-studio-screenplay-pass — PR#139 181-intro-studio-screenplay-pass: intro-studio — the screenplay pass — DONE
 - 182-intro-studio-compose-render-critique — PR#140 182-intro-studio-compose-render-critique: intro-studio — compose, render, critique, deliver — DONE
-- 185-vf2-intro-film-step — the bespoke intro film as a vf2 step, OFF by default: `intro: "cards"|"film"` on the step-005 kickoff config, the intro-studio libs ported to `lib/intro-film/`, step `025-author-intro-film-llm` reading vf2's own transcript/segments/concept plus `card-library/DESIGN.md` and the logo registry but NEVER `catalog.json`. Produces `intro-film/out/intro.mp4` and nothing consumes it yet. Two follow-ups are named in its Maintenance notes and must stay separate: (a) vf2 standing down on the intro when `intro: "film"` — 035 conclusion-only, the positional link-CTA recount, zone lint W15/E13, `lint-shots` E8 INTRO_HOST, assemble/export splice — BLOCKED until branch `chore/boss-hardening-2026-08-02` merges, because it holds `lint-shots.mjs` and `export-timeline.mjs`; (b) the owner's intro review on the board (`board-ui/src/tabs/`, `ui: true`) — TODO
+- 185-vf2-intro-film-step — the bespoke intro film as a visuals-flow step, OFF by default: `intro: "cards"|"film"` on the step-005 kickoff config, the intro-studio libs ported to `lib/intro-film/`, step `025-author-intro-film-llm` reading visuals-flow's own transcript/segments/concept plus `card-library/DESIGN.md` and the logo registry but NEVER `catalog.json`. Produces `intro-film/out/intro.mp4` and nothing consumes it yet. Two follow-ups are named in its Maintenance notes and must stay separate: (a) visuals-flow standing down on the intro when `intro: "film"` — 035 conclusion-only, the positional link-CTA recount, zone lint W15/E13, `lint-shots` E8 INTRO_HOST, assemble/export splice — BLOCKED until branch `chore/boss-hardening-2026-08-02` merges, because it holds `lint-shots.mjs` and `export-timeline.mjs`; (b) the owner's intro review on the board (`board-ui/src/tabs/`, `ui: true`) — TODO
 - 186-vf2-intro-review-on-board — owner review of the intro film on the board: an Intro tab in `board-ui/src/tabs/` pairing each beat's frames with the `stage` line it must satisfy, the mechanical findings, and gate `027-approve-intro-film-human` (waivable by `review: express` via `gateWaived`, like 037/080). `ui: true`, so boss requires a committed screenshot. Depends on 185 (PR#144) — TODO
-- 187-vf2-stand-down-on-intro — vf2 stops processing the intro when `intro: "film"`: ONE predicate `introOwnedByFilm()` routed through 035 (conclusion-only), the positional link-CTA recount (the conclusion flips scrim→pill), zone lint E13/W15, `lint-shots` E8 re-anchored to the body start, and the assemble/export splice. **BLOCKED** until branch `chore/boss-hardening-2026-08-02` merges — it holds `lint-shots.mjs` and `export-timeline.mjs`, including the very commit that made E8 a real gate. Step 0 of the plan is a blocker check that STOPs. Depends on 185, 186 — TODO
+- 187-vf2-stand-down-on-intro — visuals-flow stops processing the intro when `intro: "film"`: ONE predicate `introOwnedByFilm()` routed through 035 (conclusion-only), the positional link-CTA recount (the conclusion flips scrim→pill), zone lint E13/W15, `lint-shots` E8 re-anchored to the body start, and the assemble/export splice. **BLOCKED** until branch `chore/boss-hardening-2026-08-02` merges — it holds `lint-shots.mjs` and `export-timeline.mjs`, including the very commit that made E8 a real gate. Step 0 of the plan is a blocker check that STOPs. Depends on 185, 186 — TODO

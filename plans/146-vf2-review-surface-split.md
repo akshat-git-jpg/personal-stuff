@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: []
@@ -21,7 +21,7 @@ needs: []
 
 > **Executor instructions**: Follow this plan step by step; run every verification. If a STOP condition occurs, stop and report. Do NOT edit `plans/README.md`. `videos/test-01/` may exist untracked (live review) — never stage/edit/delete anything under `videos/`.
 >
-> **Drift check (run first)**: `git diff --stat 49ce96d..HEAD -- pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 49ce96d..HEAD -- pipelines/video/visuals-flow`
 
 ## Status
 
@@ -37,28 +37,28 @@ needs: []
 
 The owner reviews twice: a fast structural pass on the storyboard, then the real review on the assembled draft. Effects and sound are deterministic derivatives that can only be judged in motion — forcing a pre-render approval on them adds a gate the owner doesn't want and clutters the composition review. Removing it also makes the short-video "straight-to-draft" path fully unattended after cue/shot approval.
 
-## Current state (paths in `pipelines/video/visuals-flow-2/`)
+## Current state (paths in `pipelines/video/visuals-flow/`)
 
 - `lib/effects-plan.mjs`: writes `{video, approved: existing.approved === true && unchanged, instances}` — a fresh plan is `approved:false`; `lib/assemble.mjs` (`loadAssemblyInputs`) refuses an unapproved effects.json without `--force`.
 - `lib/sound/sfx-plan.mjs`: same preserve/approve pattern; `run.sh` `mix)` refuses unless sound.json `approved:true`.
 - Board storyboard tab (`lib/board.mjs`, `renderTimelinePage`): five equal lanes SCREEN/GRAPHICS/AVATAR/EFFECTS/SOUND (`tl-track` rows, ~line 1130 region); avatar blocks (`avatarBlocksHtml`) carry no mode labels. The `/list` page has the fold precedent: `overviewToggle` + `overviewBlock` + `localStorage['board:list-overview']` (search `fold-toggle`).
 - Approve buttons: `Approve graphics` (cues) / `Approve effects` on the board topbar; the effects one becomes redundant — keep the endpoint (fixes may re-gate manually) but demote the button.
-- Docs: `PIPELINE.md` flow rows for effects-plan/sound/mix mention the approval gates; skill `pipelines/.claude/skills/visuals-flow-2/SKILL.md` "Review model" paragraph (added 2026-07-24) and the verb table row "mix ... sound.json approval before mix".
+- Docs: `PIPELINE.md` flow rows for effects-plan/sound/mix mention the approval gates; skill `pipelines/.claude/skills/visuals-flow/SKILL.md` "Review model" paragraph (added 2026-07-24) and the verb table row "mix ... sound.json approval before mix".
 
 ## Commands you will need
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| Gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | Serve | `node lib/board.mjs <slug>` | URL printed |
 
 ## Scope
 
-**In scope** (all in `pipelines/video/visuals-flow-2/` plus the skill file):
+**In scope** (all in `pipelines/video/visuals-flow/` plus the skill file):
 - `lib/effects-plan.mjs`, `lib/sound/sfx-plan.mjs` + tests (approved-by-default)
 - `lib/assemble.mjs` (drop the effects-approval refusal; keep `--force` semantics for cues), `run.sh` (`mix` no longer checks sound approval; new `cut` verb), `scripts/test-run-sh.sh`
 - `lib/board.mjs` + `lib/board.test.mjs` (lane fold, avatar mode labels, demote Approve-effects button to the folded section)
-- `PIPELINE.md`, `steps/090-assemble-run/README.md` if it names the gate, `pipelines/.claude/skills/visuals-flow-2/SKILL.md`
+- `PIPELINE.md`, `steps/090-assemble-run/README.md` if it names the gate, `pipelines/.claude/skills/visuals-flow/SKILL.md`
 
 **Out of scope**: v1; the CUES approval gate (unchanged — composition is still owner-gated); shots gate (unchanged); Final Cut tab; `videos/**`.
 
@@ -99,9 +99,9 @@ The authority is decisions.md 2026-07-24 (two entries: "Review split refined" + 
 4. **DaVinci** — `run.sh <slug> export` only on explicit owner request; not a stage.
 
 - `PIPELINE.md`: effects-plan/sound/mix rows say "auto-approved — reviewed on Final Cut"; rewrite the 040 row's review-model note to the three-stage text above. Do NOT touch the 095 row (already marked OPTIONAL on main — avoid a rebase conflict).
-- Skill (`pipelines/.claude/skills/visuals-flow-2/SKILL.md`): rewrite the Review model paragraph to the three stages; add `"make the cut", "cut the video"` → `bash run.sh <slug> cut` to the verb table; remove "sound.json approval before mix" from the mix row; note export = on-request only.
+- Skill (`pipelines/.claude/skills/visuals-flow/SKILL.md`): rewrite the Review model paragraph to the three stages; add `"make the cut", "cut the video"` → `bash run.sh <slug> cut` to the verb table; remove "sound.json approval before mix" from the mix row; note export = on-request only.
 
-**Verify**: `grep -n "auto-approved" PIPELINE.md` → present; `grep -n "cut" run.sh pipelines/.claude/skills/visuals-flow-2/SKILL.md` → verb present in both; `bash scripts/check.sh` exit 0.
+**Verify**: `grep -n "auto-approved" PIPELINE.md` → present; `grep -n "cut" run.sh pipelines/.claude/skills/visuals-flow/SKILL.md` → verb present in both; `bash scripts/check.sh` exit 0.
 
 ### Step 5: screenshots (ui:true)
 

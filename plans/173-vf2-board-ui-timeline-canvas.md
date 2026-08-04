@@ -2,7 +2,7 @@
 ---
 executor: agy
 model:                   # blank = agy default (Gemini 3.1 Pro High)
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
                          # smoke gains timeline-mode assertions this plan (lanes render,
                          # dock reveals a tile with an inert-then-loaded iframe, zoom row).
 ui: true                 # user-facing — crew must attach screenshots (timeline mode, docked detail, FX stage)
@@ -29,7 +29,7 @@ needs: ["172"]
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow-2/board-ui/ pipelines/video/visuals-flow-2/scripts/board-ui-smoke.mjs`
+> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow/board-ui/ pipelines/video/visuals-flow/scripts/board-ui-smoke.mjs`
 > Plans 169–172 must be merged. If not, STOP.
 
 ## Status
@@ -58,7 +58,7 @@ The timeline view is how the owner scans a whole video's composition at a glance
 ## Commands you will need
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 (cd board-ui && npx vitest run) && (cd board-ui && npm run build)
 node scripts/board-ui-smoke.mjs
 bash scripts/check.sh
@@ -99,7 +99,7 @@ Vitest on the three pure libs (with legacy-identical cases); smoke assertions; l
 ## Done criteria (machine-checkable)
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 bash scripts/check.sh              # exit 0
 node scripts/board-ui-smoke.mjs    # 'board-ui smoke OK' — includes timeline assertions
 ```

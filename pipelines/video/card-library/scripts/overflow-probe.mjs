@@ -4,8 +4,8 @@ import os from 'node:os';
 import { execSync } from 'node:child_process';
 import puppeteer from 'puppeteer-core';
 
-// Ensure MEASURE_OVERFLOW_SRC is loaded from the shared module in visuals-flow-2
-const visualsFlowDir = path.join(process.cwd(), '../visuals-flow-2');
+// Ensure MEASURE_OVERFLOW_SRC is loaded from the shared module in visuals-flow
+const visualsFlowDir = path.join(process.cwd(), '../visuals-flow');
 const sharedModulePath = path.join(visualsFlowDir, 'lib/overflow-measure.mjs');
 let MEASURE_OVERFLOW_SRC;
 try {
@@ -13,7 +13,7 @@ try {
   MEASURE_OVERFLOW_SRC = src;
 } catch (e) {
   // If run from a different CWD (e.g., test vs root), try a different path resolution
-  const altPath = path.resolve(import.meta.dirname, '../../visuals-flow-2/lib/overflow-measure.mjs');
+  const altPath = path.resolve(import.meta.dirname, '../../visuals-flow/lib/overflow-measure.mjs');
   const { MEASURE_OVERFLOW_SRC: src } = await import(altPath);
   MEASURE_OVERFLOW_SRC = src;
 }

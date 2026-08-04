@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/card-library && npm run check && cd ../visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/card-library && npm run check && cd ../visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: [after 136-vf2-concept-doctrine]
@@ -14,7 +14,7 @@ needs: [after 136-vf2-concept-doctrine]
 - **Problem statement**: v1's 53 cards mostly REVEAL content (chips, tables, stat hits) — closer to labelling than to Loop Studio's "a picture that DOES the idea" (spec delta B). There is also no path from "no card fits" to a permanent new template — bespoke work evaporates instead of compounding.
 - **Goals**: (1) 12 enacted-device cards + 1 overlay plate card in `card-library/enacted/` & `overlay/`, each with dark/light register variants, marker-word support, and 2 rotation variants; (2) catalog metadata additions (`register`, `marker`, `intent`, `anti_intent`, `variants`, `continuity`); (3) bespoke cue support in v2 + a promotion script that turns an approved bespoke composition into a library card (the flywheel).
 - **Executor proposed**: agy (Gemini 3.1 Pro High) — owner directive 2026-07-24; visual output passes the render+inspect gate before landing (rules.md rider — the verifier renders and LOOKS, agy never self-certifies visuals).
-- **Done criteria**: `npm run check` green in card-library (covers the 13 new cards + catalog), check.sh green in visuals-flow-2, every new card renders via hyperframes.
+- **Done criteria**: `npm run check` green in card-library (covers the 13 new cards + catalog), check.sh green in visuals-flow, every new card renders via hyperframes.
 - **Stop conditions**: check-cards.sh rejects the metadata fields; any change to existing cards' behavior.
 - **Test / verification for success**: card-library's own gate (`scripts/check-cards.sh` incl. catalog + card QA) + v2 unit tests for bespoke resolution; final verification renders 2 sample cards and inspects frames.
 - **Open points for plan readiness**: none.
@@ -24,7 +24,7 @@ needs: [after 136-vf2-concept-doctrine]
 > anything in the "STOP conditions" section occurs, stop and report. Do NOT
 > edit `plans/README.md`; report status in your run summary.
 >
-> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/card-library pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/card-library pipelines/video/visuals-flow`
 
 ## Status
 
@@ -62,14 +62,14 @@ Loop Studio's most visible quality driver is enactment: a database is a cylinder
 |---|---|---|
 | Card gate | `cd pipelines/video/card-library && npm run check` | exit 0 |
 | Render one card | `cd pipelines/video/card-library && npx --yes hyperframes@0.7.62 render enacted/fill-gauge/index.html /tmp/fill-gauge.mp4` | mp4 produced |
-| v2 gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| v2 gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 
 ## Scope
 
 **In scope**:
 - `pipelines/video/card-library/enacted/*` (12 new card folders), `pipelines/video/card-library/overlay/label-plate/` (new)
 - `pipelines/video/card-library/catalog.json` (13 new entries + metadata fields), `card-library/DESIGN.md` (new "Enacted device rules" section), `card-library/README.md` (metadata field docs), `card-library/scripts/check-catalog.mjs` (accept+validate new fields)
-- `pipelines/video/visuals-flow-2/`: `lib/resolve.mjs` (+test) bespoke support, `lib/render.mjs` (+test) bespoke staging, `scripts/promote-bespoke.mjs` (new) + test, `steps/020-cue-pass-llm/cue-pass-prompt.md` (bespoke + intent/anti-intent selection rules), `PIPELINE.md` (bespoke cue schema)
+- `pipelines/video/visuals-flow/`: `lib/resolve.mjs` (+test) bespoke support, `lib/render.mjs` (+test) bespoke staging, `scripts/promote-bespoke.mjs` (new) + test, `steps/020-cue-pass-llm/cue-pass-prompt.md` (bespoke + intent/anti-intent selection rules), `PIPELINE.md` (bespoke cue schema)
 
 **Out of scope**:
 - Existing 53 cards' HTML/behavior (metadata-only catalog additions are allowed ONLY for the new fields' absence — do not add fields to old entries in this plan)
@@ -137,7 +137,7 @@ Tests: `lib/resolve.test.mjs` — bespoke cue with existing dir resolves; missin
 
 ### Step 5: the promotion script (flywheel)
 
-New `pipelines/video/visuals-flow-2/scripts/promote-bespoke.mjs`:
+New `pipelines/video/visuals-flow/scripts/promote-bespoke.mjs`:
 `node scripts/promote-bespoke.mjs <slug-or-path> <bespoke-dirname> <family/card-name>` —
 1. copies `videos/<slug>/bespoke/<dirname>/` → `../card-library/<family/card-name>/` (refuse if target exists);
 2. prints a catalog.json entry STUB (slug, kind guessed from beats usage, placement, empty purpose/intent/anti_intent to fill) to stdout;
@@ -150,7 +150,7 @@ Test `scripts/promote-bespoke.test.mjs` (register in check.sh): tmpdir fixture �
 
 ### Step 6: full gates
 
-**Verify**: `cd pipelines/video/card-library && npm run check && cd ../visuals-flow-2 && bash scripts/check.sh` → exit 0 (this is the merge test_cmd; it must pass in BOTH directories the plan writes to).
+**Verify**: `cd pipelines/video/card-library && npm run check && cd ../visuals-flow && bash scripts/check.sh` → exit 0 (this is the merge test_cmd; it must pass in BOTH directories the plan writes to).
 
 ## Test plan
 
@@ -162,7 +162,7 @@ card-library's own gate covers catalog + card QA for the 13 new cards; hyperfram
 - [ ] `ls pipelines/video/card-library/enacted | wc -l` → 12; `ls pipelines/video/card-library/overlay/label-plate` → index.html present
 - [ ] `python3 -c "import json;c=json.load(open('pipelines/video/card-library/catalog.json'));e=[x for x in c['cards'] if x['slug'].startswith('enacted/')];assert len(e)==12 and all('intent' in x and 'anti_intent' in x for x in e);print('ok')"` → ok
 - [ ] Two sample renders exist and open (verifier inspects frames)
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` → exit 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` → exit 0
 
 ## STOP conditions
 

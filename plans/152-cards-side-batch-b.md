@@ -18,7 +18,7 @@ needs: ["151 must land first — it defines the contract, the gate and card-qa -
   - Leave the count of side-incapable cards visible and justified.
 - **Executor proposed**: `claude-p` / `sonnet` — per-card reflow is visual judgment that cannot be fully inlined (`tooling/boss/data/rules.md`).
 - **Done criteria** (terse — full list below): all three gate commands exit 0; every one of the 27 cards has an inspected `--side` contact sheet; every remaining `side: false` card carries a written reason in the PR body.
-- **Stop conditions** (terse — full list below): do not touch `visuals-flow-2/`; never shrink type to fit; no `side: true` without a rendered frame.
+- **Stop conditions** (terse — full list below): do not touch `visuals-flow/`; never shrink type to fit; no `side: true` without a rendered frame.
 - **Test / verification for success**: `scripts/check-side.mjs` plus a render-and-inspect pass per card against plan 151's 6-point rubric.
 - **Open points for plan readiness**: none.
 
@@ -93,7 +93,7 @@ Re-read the contract in `DESIGN.md` before starting; do not re-derive it from th
 - `pipelines/video/card-library/DESIGN.md` — ONLY to append per-family notes if a family needs a documented pattern
 
 **Out of scope**:
-- `pipelines/video/visuals-flow-2/**` — plan 150 owns the pipeline
+- `pipelines/video/visuals-flow/**` — plan 150 owns the pipeline
 - `scripts/check-side.mjs`, `scripts/card-qa.mjs`, `scripts/check-catalog.mjs` — plan 151 owns them; if one needs a change, that is a STOP condition
 - The 21 batch-A cards — already converted
 - Overlay-placement cards — side mode is fullframe-only
@@ -181,7 +181,7 @@ For every card left at `side: false`, write one line naming the specific rubric 
 
 ## STOP conditions
 
-- **Any file under `pipelines/video/visuals-flow-2/` needs editing.** Plan 150 owns the pipeline. Stop and report.
+- **Any file under `pipelines/video/visuals-flow/` needs editing.** Plan 150 owns the pipeline. Stop and report.
 - **`check-side.mjs`, `card-qa.mjs` or `check-catalog.mjs` appears to need a change.** Plan 151 owns those. If the gate is genuinely wrong, stop and report rather than editing it to pass — a gate edited to accommodate the work it gates is worthless.
 - **A card only fits by reducing a font-size, dropping a column, or truncating a label.** That is the quality loss the owner explicitly refused. Set `side: false` and move on.
 - **`card-qa --side` cannot render.** Never mark a card `side: true` from reading its CSS. Without a rendered frame there is no evidence — stop and report.

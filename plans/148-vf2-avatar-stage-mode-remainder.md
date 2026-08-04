@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/card-library && npm run check && cd ../visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/card-library && npm run check && cd ../visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: ["147 — per-span mode enum and the assemble overlay path this builds on"]
@@ -21,7 +21,7 @@ needs: ["147 — per-span mode enum and the assemble overlay path this builds on
 
 > **Executor instructions**: Follow this plan step by step. Run every verification command and confirm the expected result before moving on. If anything in "STOP conditions" occurs, stop and report. Do NOT edit `plans/README.md`. Never stage, edit, or delete anything under `videos/**`.
 >
-> **Drift check (run first)**: `git diff --stat 39100b9..HEAD -- pipelines/video/visuals-flow-2 pipelines/video/card-library`
+> **Drift check (run first)**: `git diff --stat 39100b9..HEAD -- pipelines/video/visuals-flow pipelines/video/card-library`
 
 ## Status
 
@@ -56,7 +56,7 @@ Verified at commit `39100b9`.
 
 **Not landed (this plan's work):**
 - `section/host-stage/` does not exist (`ls card-library/section/ | grep -i stage` → nothing).
-- `grep -c stage` → `0` in `visuals-flow-2/lib/resolve-shots.mjs`, `lib/lint-shots.mjs`, `lib/assemble.mjs`, `lib/export-timeline.mjs`.
+- `grep -c stage` → `0` in `visuals-flow/lib/resolve-shots.mjs`, `lib/lint-shots.mjs`, `lib/assemble.mjs`, `lib/export-timeline.mjs`.
 
 **Card conventions to imitate** — exemplar: `card-library/section/tool-intro/index.html` (a `single`/`fullframe` section card that already declares a `head_zone`). Copy its scaffolding: the `VARS` block reading `window.__hyperframes.getVariables()`, the LOCKED GSAP timeline registered on `window.__timelines`, and the `data-duration` attribute. Per `card-library/CLAUDE.md`, a card is real only once it is shaped `<type>/<card-name>/index.html`, has a `catalog.json` entry, and is committed **and pushed**.
 
@@ -65,7 +65,7 @@ Verified at commit `39100b9`.
 | Purpose | Command | Expected |
 |---|---|---|
 | Card gate | `cd pipelines/video/card-library && npm run check` | exit 0 |
-| v2 gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| v2 gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | Card lint | `cd pipelines/video/card-library && npx hyperframes@latest lint section/host-stage` | clean (the "Studio can't drag-edit" and "Google Fonts" warnings are expected) |
 | Card QA contact sheet | `cd pipelines/video/card-library && node scripts/card-qa.mjs section/host-stage` | exit 0, contact sheet written |
 | Render a frame to LOOK at | `cd pipelines/video/card-library && npx hyperframes@latest render section/host-stage -o /tmp/host-stage.mp4 --fps 30 && ffmpeg -y -ss 3 -i /tmp/host-stage.mp4 -frames:v 1 /tmp/host-stage.png` | png written |
@@ -74,7 +74,7 @@ Verified at commit `39100b9`.
 
 **In scope**:
 - `card-library/`: `section/host-stage/index.html` (new), `catalog.json` (the new card's entry), `gallery-order.json` (optional pin)
-- `visuals-flow-2/`: `PIPELINE.md`, `lib/shot-constants.mjs`, `lib/resolve-shots.mjs`, `lib/lint-shots.mjs`, `lib/assemble.mjs`, `lib/export-timeline.mjs`, `steps/070-shot-pass-llm/shot-pass-prompt.md`, `steps/070-shot-pass-llm/RULEBOOK.md`, and matching `*.test.mjs`
+- `visuals-flow/`: `PIPELINE.md`, `lib/shot-constants.mjs`, `lib/resolve-shots.mjs`, `lib/lint-shots.mjs`, `lib/assemble.mjs`, `lib/export-timeline.mjs`, `steps/070-shot-pass-llm/shot-pass-prompt.md`, `steps/070-shot-pass-llm/RULEBOOK.md`, and matching `*.test.mjs`
 
 **Out of scope**:
 - The `head_zone` contract, its validation, and the `tool-intro` retrofit — already landed; changing them is out of scope.
@@ -203,7 +203,7 @@ Regenerate if generated (`node lib/build-shot-prompt.mjs`), then `node lib/check
 ## Done criteria
 
 - [ ] `cd pipelines/video/card-library && npm run check` exits 0
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 - [ ] `grep -n "stage" lib/resolve-shots.mjs lib/lint-shots.mjs lib/assemble.mjs lib/export-timeline.mjs` shows a real reference in **all four**
 - [ ] `catalog.json` — `section/host-stage` exists with a valid `head_zone`, and `check-catalog.mjs` passes it
 - [ ] **Pixel proof.** A committed test composites a solid-lime host clip into `tool-intro`'s zone `{x:0.6,y:0.28,w:0.3,h:0.53}` over a solid-red base and asserts by sampling: pixel `(100,100)` is RED (card still visible — the host did not replace the frame) and the zone centre `(1440,864)` is LIME (host landed inside the declared zone). Existence checks do not satisfy this.

@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh && node lib/lint-cues.mjs test-03-conclusion
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh && node lib/lint-cues.mjs test-03-conclusion
 ui: true
 deploy:
 needs: [plan 162 MUST land first — E7 and exposure absorption are avatar-blind until it does. 155/156/159/160 already landed.]
@@ -27,7 +27,7 @@ needs: [plan 162 MUST land first — E7 and exposure absorption are avatar-blind
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 64a151b..HEAD -- pipelines/video/visuals-flow-2/lib pipelines/video/card-library/catalog.json`
+> **Drift check (run first)**: `git diff --stat 64a151b..HEAD -- pipelines/video/visuals-flow/lib pipelines/video/card-library/catalog.json`
 
 ## Status
 
@@ -99,26 +99,26 @@ On `base: "none"` a fullframe card absorbs the *whole* gap to the next fullframe
 
 **Pipeline verbs** (`run.sh`): `concept-pass`, `cue-pass`, `audit`, `board`, `render`, `sound`, `mix`, `assemble`, `cut`, `qc`, `export`. `bash run.sh <slug> status` prints where a workdir stands.
 
-**Hard guardrail** (`.claude/skills/visuals-flow-2`): before ANY LLM pass, `node lib/feedback-status.mjs` must exit 0. It currently does.
+**Hard guardrail** (`.claude/skills/visuals-flow`): before ANY LLM pass, `node lib/feedback-status.mjs` must exit 0. It currently does.
 
 ## Commands you will need
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Pre-flight | `cd pipelines/video/visuals-flow-2 && node lib/feedback-status.mjs` | exit 0 |
-| Workdir status | `cd pipelines/video/visuals-flow-2 && bash run.sh test-03-conclusion status` | prints stage state |
+| Pre-flight | `cd pipelines/video/visuals-flow && node lib/feedback-status.mjs` | exit 0 |
+| Workdir status | `cd pipelines/video/visuals-flow && bash run.sh test-03-conclusion status` | prints stage state |
 | Transcribe | see Step 3 | writes `transcript.json` |
-| Concept pass | `cd pipelines/video/visuals-flow-2 && bash run.sh test-03-conclusion concept-pass` | writes `concept.json` |
-| Cue pass | `cd pipelines/video/visuals-flow-2 && bash run.sh test-03-conclusion cue-pass` | writes `cues.json` |
-| Resolve + lint | `cd pipelines/video/visuals-flow-2 && node lib/resolve.mjs test-03-conclusion && node lib/lint-cues.mjs test-03-conclusion` | exit 0 |
-| Render | `cd pipelines/video/visuals-flow-2 && node lib/render.mjs test-03-conclusion` | mov/mp4 per cue |
-| Assemble | `cd pipelines/video/visuals-flow-2 && bash run.sh test-03-conclusion assemble` | registers a version |
-| Full gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| Concept pass | `cd pipelines/video/visuals-flow && bash run.sh test-03-conclusion concept-pass` | writes `concept.json` |
+| Cue pass | `cd pipelines/video/visuals-flow && bash run.sh test-03-conclusion cue-pass` | writes `cues.json` |
+| Resolve + lint | `cd pipelines/video/visuals-flow && node lib/resolve.mjs test-03-conclusion && node lib/lint-cues.mjs test-03-conclusion` | exit 0 |
+| Render | `cd pipelines/video/visuals-flow && node lib/render.mjs test-03-conclusion` | mov/mp4 per cue |
+| Assemble | `cd pipelines/video/visuals-flow && bash run.sh test-03-conclusion assemble` | registers a version |
+| Full gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 
 ## Scope
 
 **In scope**:
-- `pipelines/video/visuals-flow-2/videos/test-03-conclusion/**` (new workdir; text artifacts only — media goes to `~/kb-scratch/`)
+- `pipelines/video/visuals-flow/videos/test-03-conclusion/**` (new workdir; text artifacts only — media goes to `~/kb-scratch/`)
 
 **Out of scope**:
 - `videos/test-03/**` — do not extend or re-cut the existing 5-minute slice. It is a deliberate test slice and re-cutting it is a separate decision.
@@ -129,42 +129,42 @@ On `base: "none"` a fullframe card absorbs the *whole* gap to the next fullframe
 ## Git workflow
 
 - Branch: `advisor/158-vf2-cut-the-conclusion`
-- Commit: `feat(vf2): cut and cue the test-03 conclusion` — no AI footers. Do NOT push.
+- Commit: `feat(visuals-flow): cut and cue the test-03 conclusion` — no AI footers. Do NOT push.
 
 ## Steps
 
 ### Step 1: Pre-flight
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/feedback-status.mjs; echo "exit=$?"` -> `exit=0`. If non-zero, STOP — there is unfolded owner feedback and no LLM pass may run.
+**Verify**: `cd pipelines/video/visuals-flow && node lib/feedback-status.mjs; echo "exit=$?"` -> `exit=0`. If non-zero, STOP — there is unfolded owner feedback and no LLM pass may run.
 
 ### Step 2: Create the workdir and its media
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 mkdir -p videos/test-03-conclusion/src
 cp videos/test-03/src/conclusion.mp4 videos/test-03-conclusion/src/body.mp4
 ffmpeg -v error -y -ss 997.119 -i videos/test-03/vo.full.mp3 -c copy videos/test-03-conclusion/vo.mp3
 printf '%s\n' '{"base":"none","aspect":"16:9","brand":"default","music":""}' > videos/test-03-conclusion/video.json
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && ffprobe -v error -show_entries format=duration -of csv=p=0 videos/test-03-conclusion/vo.mp3` -> a value between `78.5` and `80.0`. If it is far off, the tail offset is wrong — recompute as `(duration of vo.full.mp3) - 79.233` and redo.
+**Verify**: `cd pipelines/video/visuals-flow && ffprobe -v error -show_entries format=duration -of csv=p=0 videos/test-03-conclusion/vo.mp3` -> a value between `78.5` and `80.0`. If it is far off, the tail offset is wrong — recompute as `(duration of vo.full.mp3) - 79.233` and redo.
 
 ### Step 3: Transcribe
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 node lib/transcribe-groq.mjs test-03-conclusion
 ```
 
 If that script takes different arguments, read its usage line and call it correctly — do not hand-write `transcript.json`.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node -e "const w=require('./videos/test-03-conclusion/transcript.json');console.log(w.length, w[w.length-1].end)"` -> a word count over 150 and a final `end` between `78` and `80`.
+**Verify**: `cd pipelines/video/visuals-flow && node -e "const w=require('./videos/test-03-conclusion/transcript.json');console.log(w.length, w[w.length-1].end)"` -> a word count over 150 and a final `end` between `78` and `80`.
 
 Then confirm the words are the right ones: `node -e "const w=require('./videos/test-03-conclusion/transcript.json');console.log(w.map(x=>x.text).join(' ').slice(0,80))"` -> begins with text about giving an individual conclusion on both tools.
 
 ### Step 4: Concept pass
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash run.sh test-03-conclusion concept-pass && node -e "console.log(Object.keys(require('./videos/test-03-conclusion/concept.json')))"` -> includes `thesis` and `throughline`.
+**Verify**: `cd pipelines/video/visuals-flow && bash run.sh test-03-conclusion concept-pass && node -e "console.log(Object.keys(require('./videos/test-03-conclusion/concept.json')))"` -> includes `thesis` and `throughline`.
 
 ### Step 5: Cue pass
 
@@ -175,7 +175,7 @@ Run the cue pass, then apply these THREE decisions, which are made here and are 
 3. **One winner per verdict card** (`R_VERDICTS`). The narration gives a choose/avoid pair for each tool and then a single overall winner. Route the per-tool pairs to `verdict/persona-match` and the overall verdict to ONE `verdict/verdict-report-card` or `verdict/verdict-trophy` anchored at "Submagic is the better tool overall" — never two trophies.
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 bash run.sh test-03-conclusion cue-pass
 node lib/resolve.mjs test-03-conclusion
 node lib/lint-cues.mjs test-03-conclusion; echo "exit=$?"
@@ -190,7 +190,7 @@ node lib/lint-cues.mjs test-03-conclusion; echo "exit=$?"
 **This step is why the first attempt failed and must not be skipped.** Without avatar spans the conclusion has no footage at all, every second must be a card, and E4/E9 become unsatisfiable.
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 bash run.sh test-03-conclusion shot-pass
 ```
 
@@ -207,7 +207,7 @@ bash run.sh test-03-conclusion avatar
 
 **Verify**:
 ```bash
-cd pipelines/video/visuals-flow-2 && node -e "
+cd pipelines/video/visuals-flow && node -e "
 const j=require('./videos/test-03-conclusion/avatar-jobs.json').jobs;
 const full=j.filter(x=>x.kind==='avatar-full');
 console.log('avatar-full spans:', full.length);
@@ -218,23 +218,23 @@ console.log('covers to:', Math.max(...full.map(x=>x.end)).toFixed(1), 's of ~79.
 
 Then re-run the lint now that footage exists:
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03-conclusion; echo "exit=$?"` -> `exit=0`, with **no E4, E7 or E9 errors**. If E7 still reports uncovered seconds where an avatar span exists, plan 162 has not landed — STOP and report.
+**Verify**: `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03-conclusion; echo "exit=$?"` -> `exit=0`, with **no E4, E7 or E9 errors**. If E7 still reports uncovered seconds where an avatar span exists, plan 162 has not landed — STOP and report.
 
 ### Step 6: Render
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/render.mjs test-03-conclusion && ls videos/test-03-conclusion/renders/ | wc -l` -> equals the cue count from Step 5.
+**Verify**: `cd pipelines/video/visuals-flow && node lib/render.mjs test-03-conclusion && ls videos/test-03-conclusion/renders/ | wc -l` -> equals the cue count from Step 5.
 
 ### Step 7: Assemble
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash run.sh test-03-conclusion assemble 2>&1 | tail -3` -> prints `assembled:` with a duration near `01:19` and `registered version: v1`.
+**Verify**: `cd pipelines/video/visuals-flow && bash run.sh test-03-conclusion assemble 2>&1 | tail -3` -> prints `assembled:` with a duration near `01:19` and `registered version: v1`.
 
 ### Step 8: MANDATORY frame check — the subscribe CTA must not be green
 
 This is the reason the plan exists in this order. Extract a frame at the subscribe cue's midpoint (read its `start`/`duration` from `resolved.json`) and one at a verdict cue's midpoint:
 
 ```bash
-cd pipelines/video/visuals-flow-2
-V=~/kb-scratch/video/visuals-flow-2/test-03-conclusion/versions/v1.mp4
+cd pipelines/video/visuals-flow
+V=~/kb-scratch/video/visuals-flow/test-03-conclusion/versions/v1.mp4
 node -e "
 const r=require('./videos/test-03-conclusion/resolved.json').resolved;
 for (const q of r) console.log(q.id, q.card, (q.start+q.duration/2).toFixed(2));
@@ -265,7 +265,7 @@ Then **open `/tmp/concl-sub.png` and look**: the subscribe pill must sit over th
 
 ### Step 9: Full gate
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` -> exit 0, ends `visuals-flow check OK`
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh` -> exit 0, ends `visuals-flow check OK`
 
 ## Test plan
 
@@ -281,7 +281,7 @@ There are no unit tests to add — this plan produces a video, and the repo's ow
 - [ ] cues include a `verdict/*` card, `like-subscribe/like-subscribe`, and the link PILL (not the scrim)
 - [ ] `bash run.sh test-03-conclusion assemble` registers a version ~79s long
 - [ ] the subscribe frame's green fraction is under 2% and the presenter is visible behind the pill
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 
 ## STOP conditions
 

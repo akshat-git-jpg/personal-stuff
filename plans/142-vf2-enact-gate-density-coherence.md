@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
 needs: []
@@ -24,8 +24,8 @@ needs: []
 > anything in the "STOP conditions" section occurs, stop and report. Do NOT
 > edit `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat cbb1cbb..HEAD -- pipelines/video/visuals-flow-2/lib pipelines/video/visuals-flow-2/steps pipelines/video/visuals-flow-2/run.sh`
-> NOTE: `pipelines/video/visuals-flow-2/videos/test-01/` may exist UNTRACKED in the tree (a live run) — never stage, edit, or delete anything under `videos/`.
+> **Drift check (run first)**: `git diff --stat cbb1cbb..HEAD -- pipelines/video/visuals-flow/lib pipelines/video/visuals-flow/steps pipelines/video/visuals-flow/run.sh`
+> NOTE: `pipelines/video/visuals-flow/videos/test-01/` may exist UNTRACKED in the tree (a live run) — never stage, edit, or delete anything under `videos/`.
 
 ## Status
 
@@ -41,7 +41,7 @@ needs: []
 
 Loop Studio's discipline works because its self-audit FAILS a video that labels instead of enacting; the v2 port (plan 136) made the audit advisory and the first real run proved advisory ≈ ignored. Same run proved the density constants incoherent: W7 (≤20s narration bar, plan 135) forces ~4 cues/min while W1/W3 still encode v1's 0.55–1.9/min world — the model satisfied W7 with many short static pops and collected W1/W2/W3 warnings it was told to treat as advisory. Owner verdict on the output: "looks bad, similar to visuals-flow 1."
 
-## Current state (paths in `pipelines/video/visuals-flow-2/`)
+## Current state (paths in `pipelines/video/visuals-flow/`)
 
 - `lib/cue-constants.mjs` values today: `CAP_FULLFRAME 3`, `CAP_STAT_HIT 3`, `SPACING_STAT_HIT 90`, `ZONE_END 20`, `GAP_FULLFRAME_MIN 35`, `GAP_FULLFRAME_MAX 60`, `DENSITY_OVERLAY_MAX 3`/`60s window`, `TARGET_RATE_MIN 1.0`, `TARGET_RATE_MAX 1.9`, `BARE_GAP_MAX 50`, plus plan-135/136/138 additions `HOLD_EXTEND_CAP 20`, `GAP_ABSORB 4`, `NARRATION_BARE_GAP_MAX 20`, `MOTIF_MIN 2`, `VARIANT_REPEAT_WINDOW 1`. The header rule: "Never restate a number in prose — add it here and regenerate" (`node lib/build-prompt.mjs`; `lib/check-rulebook.mjs` gates the sync).
 - `steps/035-cue-audit-llm/audit-prompt.md` (plan 136): asks for `verdict: "enacted"|"labelled"` + `fix` per cue; today `fix` is free text — the first run's audit invented `overlay/spotlight-click` (no such card).
@@ -54,12 +54,12 @@ Loop Studio's discipline works because its self-audit FAILS a video that labels 
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| Gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | Rulebook sync | `node lib/build-prompt.mjs && node lib/check-rulebook.mjs` | exit 0 |
 
 ## Scope
 
-**In scope** (all in `pipelines/video/visuals-flow-2/`):
+**In scope** (all in `pipelines/video/visuals-flow/`):
 - `lib/audit-gate.mjs` (new) + `lib/audit-gate.test.mjs` (new)
 - `lib/cue-constants.mjs`, `lib/lint-cues.mjs`, `lib/lint.test.mjs`
 - `steps/035-cue-audit-llm/audit-prompt.md` + README, `steps/020-cue-pass-llm/cue-pass-prompt.md` + `RULEBOOK.md`

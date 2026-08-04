@@ -35,11 +35,11 @@ The bodies of his videos are fine. The intros are not.
 Two things to hold onto. He suspects the template architecture is the cause, and
 he is willing to spend more money per intro to fix it.
 
-## 2. What visuals-flow-2 is
+## 2. What visuals-flow is
 
-`pipelines/video/visuals-flow-2/` (vf2 from here on) is a Node plus LLM pipeline
+`pipelines/video/visuals-flow/` (visuals-flow from here on) is a Node plus LLM pipeline
 that turns a recorded voiceover and screen capture into a finished video. Read
-`pipelines/video/visuals-flow-2/PIPELINE.md` for the step table. The short
+`pipelines/video/visuals-flow/PIPELINE.md` for the step table. The short
 version of the ordering that matters:
 
 - `010-transcribe-run`: audio to `transcript.json`, with a quality pass that
@@ -71,13 +71,13 @@ next card starts from nothing. An intro built this way is a sequence of unrelate
 full-screen graphics, which is what "not impressive" means in practice.
 
 The evidence that this is structural rather than a density problem is in
-`pipelines/video/visuals-flow-2/lib/zone-constants.mjs`. The comment there
+`pipelines/video/visuals-flow/lib/zone-constants.mjs`. The comment there
 records that the rejected test-03 intro was measurably **denser** than the body
 it preceded, at 3.57 cues per minute against the body's 2.30. Adding more
 graphics was already tried. It did not help.
 
 The owner's own feedback file for the last video
-(`pipelines/video/visuals-flow-2/videos/best-ai-video-generator/feedback.json`)
+(`pipelines/video/visuals-flow/videos/best-ai-video-generator/feedback.json`)
 backs this up. His intro complaints are all about *selection*, not quantity:
 "this motion graphic decision itself was bad, this is not the correct motion
 graphic to be used at this place", "we could have modified the same motion
@@ -114,7 +114,7 @@ Decisions the owner made when we designed it:
   2026-07-28: "its subjective. Pls dont make this hardcoded."
 - **Build it standalone first**, and do not touch the working pipeline until he
   is satisfied. This became a hard stop rule in all three implementation plans:
-  no reads or writes of `visuals-flow-2/` or `card-library/`.
+  no reads or writes of `visuals-flow/` or `card-library/`.
 - **The face is required.** He was explicit that the presenter being in the
   composition is the point, not optional decoration.
 
@@ -148,7 +148,7 @@ turns from dark to light on his actual pivot line, "I did not go in looking for
 one overall winner", with a trophy that rises and gets struck through.
 
 The avatar is a grey placeholder box. HeyGen renders are owner-run, and the
-existing avatar clips from the vf2 run of this same video do not cover the intro:
+existing avatar clips from the visuals-flow run of this same video do not cover the intro:
 `avatar-jobs.json` shows the first clip starting at 59.5 seconds of the assembled
 video, which is literally the "no avatar for two minutes" complaint.
 
@@ -173,14 +173,14 @@ same sentence three ways:
 | Source | Text |
 |---|---|
 | Raw whisper | "Open Art, Higgs Field, Synthesia, **Cajun** and **Arcad**" |
-| vf2 after its 010 quality pass | "OpenArt, Higgsfield, Synthesia, **HeyGen** and **Arcads**" |
+| visuals-flow after its 010 quality pass | "OpenArt, Higgsfield, Synthesia, **HeyGen** and **Arcads**" |
 | intro-studio, on its own | "Open Art, Higgs Field, Synthesia, **Hejian**, and **Arcad**" |
 
-Check `pipelines/video/visuals-flow-2/videos/best-ai-video-generator/transcript.json`
+Check `pipelines/video/visuals-flow/videos/best-ai-video-generator/transcript.json`
 against `transcript.whisper-raw.bak.json` in the same folder.
 
 The film puts five tool names on screen and four of them are wrong. Only
-Synthesia is correct. vf2 already solved this in step 010, and the isolation rule
+Synthesia is correct. visuals-flow already solved this in step 010, and the isolation rule
 meant intro-studio re-made a mistake the pipeline had fixed months ago. All five
 tools also have real logos sitting in `card-library/logos/registry.json`.
 
@@ -272,7 +272,7 @@ passing tests, and this is the third.
 
 ## 9. What I am proposing
 
-Move the intro film into vf2 as a step, rather than keeping intro-studio
+Move the intro film into visuals-flow as a step, rather than keeping intro-studio
 standalone. The owner asked for this and gave a constraint:
 
 > "Just make sure that it's not using templatized things for intro and those
@@ -304,7 +304,7 @@ The design:
    HeyGen at 100.
 7. When the POC flag is on, the existing `035` step authors the conclusion only,
    so two steps do not both claim the intro.
-8. The film is exempt from vf2's cue-shaped gates (`lib/zone-rules.mjs`,
+8. The film is exempt from visuals-flow's cue-shaped gates (`lib/zone-rules.mjs`,
    `lib/lint-cues.mjs`, the zone bar warnings) rather than translated into them,
    because translating a film into cues would quietly recreate the card model.
 9. No card harvest. The owner may revisit this but has no plan to: "I might
@@ -318,7 +318,7 @@ it as a Sonnet review. Its findings held up when I spot-checked them.
 
 **Two things the design misses outright.**
 
-*The avatar models do not compose.* vf2's avatar pipeline is a discrete-span
+*The avatar models do not compose.* visuals-flow's avatar pipeline is a discrete-span
 system: `060-place-avatar-llm` produces `shots.json` spans, and
 `100-render-avatar-run` turns those into separate HeyGen jobs. The film needs one
 continuous clip covering the whole intro, repositioned per beat by its own CSS.
@@ -403,11 +403,11 @@ else, and that is a workflow question as much as an engineering one.
 - The design system in question: `pipelines/video/card-library/DESIGN.md` and
   `scripts/check-type-scale.mjs`
 - The logo registry: `pipelines/video/card-library/logos/registry.json`
-- The pipeline it would move into: `pipelines/video/visuals-flow-2/PIPELINE.md`
-- The rules that constrain zone authoring: `visuals-flow-2/lib/zone-rules.mjs`
+- The pipeline it would move into: `pipelines/video/visuals-flow/PIPELINE.md`
+- The rules that constrain zone authoring: `visuals-flow/lib/zone-rules.mjs`
   and `lib/zone-constants.mjs`
 - Implementation plans that built the POC: 180, 181 and 182 in `plans/`, landed
   via PRs 138, 139 and 140
 
 Nothing in section 9 has been implemented. intro-studio is still standalone and
-still walled off from vf2 and card-library.
+still walled off from visuals-flow and card-library.

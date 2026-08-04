@@ -105,7 +105,7 @@ Before writing steps, learn what the executor must match:
   UI architecture comes from the repo's browser-UI standard (decisions.md
   2026-07-31 + architecture-contract invariant): multi-view / saving / growing
   UIs are Vite+React+TS component apps (exemplars: `apps/tutorial-tracker-app`,
-  `pipelines/video/visuals-flow-2/board-ui`); template strings only for
+  `pipelines/video/visuals-flow/board-ui`); template strings only for
   trivial single-view reports. "Match the surrounding code" is how the 2900-line
   template-string board happened — 15 plans each correctly imitating the wrong
   baseline.

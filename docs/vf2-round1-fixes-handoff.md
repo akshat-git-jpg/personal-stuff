@@ -1,12 +1,12 @@
-# visuals-flow-2 — Final Cut round-1 fixes, handoff (2026-07-24)
+# visuals-flow — Final Cut round-1 fixes, handoff (2026-07-24)
 
 Owner tests in a fresh session from here. Everything below is committed and
-pushed to `main`. Working dir for all commands: `pipelines/video/visuals-flow-2/`.
+pushed to `main`. Working dir for all commands: `pipelines/video/visuals-flow/`.
 
 ## Where things stand
 
 - **test-01 draft versions** (board → Final Cut tab → version picker, all at
-  `~/kb-scratch/video/visuals-flow-2/test-01/versions/`):
+  `~/kb-scratch/video/visuals-flow/test-01/versions/`):
   - v1: the original round-1 draft the owner reviewed (17 comments)
   - v2: all 17 v1 comments fixed (new cards, remaps, no Ken Burns)
   - v3: v2 comments fixed (heading style, em dashes stripped, statement card motion)
@@ -85,7 +85,7 @@ cell pills), `checklist/icon-pills` (rows left-aligned), `title/title-cinematic-
 
 ## Avatar layer — not run yet, and now cheaper to test
 
-Owner rule recorded (decisions.md + the vf2 skill guardrail): **HeyGen
+Owner rule recorded (decisions.md + the visuals-flow skill guardrail): **HeyGen
 Avatar III is free (unlimited mode) — sessions may submit it for TEST renders
 without per-run approval.** Metered features (Avatar IV, generative credits)
 and production renders remain owner-gated.

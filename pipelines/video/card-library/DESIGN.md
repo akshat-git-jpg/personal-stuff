@@ -1,6 +1,6 @@
 # Card design system
 
-> This file owns the palette. `../visuals-flow-2/EDITOR-STYLE-GUIDE.md` is the
+> This file owns the palette. `../visuals-flow/EDITOR-STYLE-GUIDE.md` is the
 > human-editor version (plain style guide, no code) and is checked against it:
 > `check-cards.sh` fails if that file names a colour this one does not.
 

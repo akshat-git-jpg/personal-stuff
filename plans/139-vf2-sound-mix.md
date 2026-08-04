@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
 needs: [after 135-vf2-coverage-density-headmodes]
@@ -24,7 +24,7 @@ needs: [after 135-vf2-coverage-density-headmodes]
 > anything in the "STOP conditions" section occurs, stop and report. Do NOT
 > edit `plans/README.md`; report status in your run summary.
 >
-> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow`
 
 ## Status
 
@@ -40,26 +40,26 @@ needs: [after 135-vf2-coverage-density-headmodes]
 
 Loop Studio's sound stage is a whole missing layer in v1, and its design is directly portable: sample-based SFX placed by MEANING (timbre per event kind, pitch rising across an accumulation run, steady ticks for counters, a low drone bed), music sidechain-ducked under the voice, everything mastered to −14 LUFS with frame-exact A/V. Their samples were licensed and never shipped — the placement logic is the IP, reimplemented here. One structural improvement over their approach: they frame-diff the rendered video to FIND events; v2 already knows every event's exact time from `resolved.json` (cue starts + `beats[].at`) and `effects.json` (transition/punch instances) — zero detection cost, frame-accurate placement. Owner decisions: music beds are downloaded/royalty-free and swappable later on the timeline; the primary deliverable is the layered FCPXML, so audio must land as LANES, not only a baked master.
 
-## Current state (paths in `pipelines/video/visuals-flow-2/`)
+## Current state (paths in `pipelines/video/visuals-flow/`)
 
 - `resolved.json`: `{video, offset, resolved:[{id, card, placement, start, duration, variables:{..., beats?:[{...,at}]}}]}` — `start` absolute seconds, `beats[].at` relative to start. Cue + beat absolute times = the reveal-event list.
 - `effects.json`: `{video, approved, instances:[{id, type, at?/start?/end?, ...}]}` — whip transitions carry `at`; beats (punch-ins) carry `at`; see `lib/effects/*.mjs` `plan()` outputs.
 - `segments.json`: demo vs narration spans. `video.json` (plan 135): `music` field = mood string, empty = no music.
 - Assemble muxes `vo.mp3` as the sole audio track (`lib/assemble.mjs`; locate with `grep -n "vo.mp3" lib/assemble.mjs`). `lib/export-timeline.mjs` writes the layered FCPXML with VO as the master audio track.
 - Approval-gate pattern to copy: `lib/effects-plan.mjs` — regenerates defaults, preserves `enabled` overrides, resets `approved` when canonical content changes.
-- kb-scratch root for generated media (never in git): `~/kb-scratch/video/visuals-flow-2/<slug>/`.
+- kb-scratch root for generated media (never in git): `~/kb-scratch/video/visuals-flow/<slug>/`.
 
 ## Commands you will need
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| Gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | ffmpeg has the filters | `ffmpeg -hide_banner -filters 2>/dev/null \| grep -cE "sidechaincompress\|loudnorm\|adelay\|atempo"` | `4` |
 | Loudness measure | `ffmpeg -i <wav> -af loudnorm=I=-14:TP=-1.5:LRA=11:print_format=summary -f null - 2>&1 \| grep "Input Integrated"` | prints a LUFS number |
 
 ## Scope
 
-**In scope** (all in `pipelines/video/visuals-flow-2/`):
+**In scope** (all in `pipelines/video/visuals-flow/`):
 - `assets/sfx/` (generated kit + README), `assets/music/README.md`, `scripts/gen-sfx-kit.sh` (new)
 - `lib/sound/sfx-plan.mjs`, `lib/sound/build-mix.mjs`, `lib/sound/sound-constants.mjs` (all new) + tests
 - `lib/assemble.mjs` (master.wav preference), `lib/export-timeline.mjs` (audio lanes) + tests
@@ -154,7 +154,7 @@ Pure planner + argv-builder units (deterministic, no media, no network); one lav
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` → exit 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` → exit 0
 - [ ] `bash scripts/gen-sfx-kit.sh` produces 12 wavs; `git status` shows them ignored
 - [ ] Smoke mix measured at −14 ±1 LUFS; duration Δ ≤ 0.05s
 - [ ] `grep -n "master.wav" lib/assemble.mjs` → preference wired; `grep -n "sfx" lib/export-timeline.mjs` → lane present

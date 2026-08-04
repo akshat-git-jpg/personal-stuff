@@ -76,7 +76,7 @@ boss_free_branch_worktree() {
 }
 
 # --- Chrome serialization (2026-08-02) ------------------------------------
-# Every vf2/card-library test_cmd drives headless Chrome (board-ui-smoke,
+# Every visuals-flow/card-library test_cmd drives headless Chrome (board-ui-smoke,
 # card-qa, frame-gate). Running a merge verify while crews render produced
 # "Chrome dump-dom timeout on #card-plan" and cost PR#134 a whole merge cycle
 # with 44 chrome processes live. A flock-style lock keeps browser-driving work

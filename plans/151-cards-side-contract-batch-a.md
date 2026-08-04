@@ -19,7 +19,7 @@ needs: ["150 must land first — it defines the side geometry and consumes the c
   - Convert **batch A** — the 21 cards whose layouts reflow cleanly (title, section, statement, slate, tool-icon, prompt, checklist, table-of-contents, process).
 - **Executor proposed**: `claude-p` / `sonnet` — per-card reflow is a visual judgment that cannot be fully inlined (`tooling/boss/data/rules.md`, "plan can't be fully inlined" row).
 - **Done criteria** (terse — full list below): all three gate commands exit 0; every fullframe card has an explicit `side` boolean; all 21 batch-A cards render at 1200×1080 with a frame extracted and inspected for clipping/overlap.
-- **Stop conditions** (terse — full list below): do not touch `visuals-flow-2/`; do not shrink type to make a card fit; do not mark a card `side: true` without a rendered frame proving it.
+- **Stop conditions** (terse — full list below): do not touch `visuals-flow/`; do not shrink type to make a card fit; do not mark a card `side: true` without a rendered frame proving it.
 - **Test / verification for success**: `scripts/check-side.mjs` (new, structural), plus a render-and-inspect pass per card via `card-qa.mjs --side` with a written rubric.
 - **Open points for plan readiness**: none.
 
@@ -133,7 +133,7 @@ Every fullframe card hardcodes the canvas. From `section/tool-intro/index.html`:
 - `pipelines/video/card-library/gallery-order.json` — only if it references host-stage
 
 **Out of scope**:
-- `pipelines/video/visuals-flow-2/**` — plan 150 owns every pipeline surface. This plan must not edit it.
+- `pipelines/video/visuals-flow/**` — plan 150 owns every pipeline surface. This plan must not edit it.
 - The 27 batch-B cards — plan 152. Give them `side: false` in the catalog for now so the gate passes; 152 revisits each.
 - `overlay`-placement cards (12 of them) — side mode only applies to fullframe. They get no `side` key.
 - `brand/`, `logos/` — not cards.
@@ -324,7 +324,7 @@ If a card cannot pass without shrinking type, leave it `side: false`, revert its
 
 ## STOP conditions
 
-- **Any file under `pipelines/video/visuals-flow-2/` needs editing.** Plan 150 owns every pipeline surface. Stop and report.
+- **Any file under `pipelines/video/visuals-flow/` needs editing.** Plan 150 owns every pipeline surface. Stop and report.
 - **A card only fits by reducing a font-size.** That is the exact quality loss the owner refused. Set `side: false` and move on — do not shrink type.
 - **More than 8 of the 21 batch-A cards end up `side: false`.** That means the batch was mis-scoped or the contract is wrong. Stop and report rather than converting the rest on a bad premise.
 - **`card-qa --side` cannot render** (hyperframes CLI failure, ffmpeg missing). Do NOT mark any card `side: true` on the strength of reading its CSS. Without a rendered frame there is no evidence — stop and report.

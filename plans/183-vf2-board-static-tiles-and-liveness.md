@@ -1,13 +1,13 @@
 ---
 executor: claude-p
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && node --test lib/board.test.mjs && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && node --test lib/board.test.mjs && bash scripts/check.sh
 ui: true
 deploy:
 needs: ["depends on 175 (PR #133) for the server-side overflow verdict — the storyboard's overflow badge currently reads the LIVE iframe via useOverflowBadge, and this plan removes that iframe. Land 175 first, or implement Step 3's fallback. Also touches lib/board.mjs, which no other open plan edits."]
 ---
 
-# Plan 183: vf2 board — static storyboard tiles and backend liveness
+# Plan 183: visuals-flow board — static storyboard tiles and backend liveness
 
 ## Summary
 
@@ -24,7 +24,7 @@ needs: ["depends on 175 (PR #133) for the server-side overflow verdict — the s
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow-2/lib/board.mjs pipelines/video/visuals-flow-2/board-ui/src`
+> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow/lib/board.mjs pipelines/video/visuals-flow/board-ui/src`
 
 ## Status
 
@@ -101,7 +101,7 @@ The nine-hour survival is a separate, smaller failure. `listenOnFreePort` walks 
 ## Git workflow
 
 - Branch: `advisor/183-vf2-board-static-tiles-and-liveness`
-- Commit: `fix(vf2): storyboard tiles render posters, not live card iframes` — no AI footers. Do NOT push.
+- Commit: `fix(visuals-flow): storyboard tiles render posters, not live card iframes` — no AI footers. Do NOT push.
 
 ## Steps
 

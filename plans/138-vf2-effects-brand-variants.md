@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: [after 137-vf2-enacted-cards]
@@ -24,7 +24,7 @@ needs: [after 137-vf2-enacted-cards]
 > anything in the "STOP conditions" section occurs, stop and report. Do NOT
 > edit `plans/README.md`; report status in your run summary.
 >
-> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow`
 
 ## Status
 
@@ -40,7 +40,7 @@ needs: [after 137-vf2-enacted-cards]
 
 Richness must come from deterministic machinery, not per-video LLM spend (owner constraint). Loop Studio derives every scene's look from one `brand.json` and keeps its motif alive as ONE persistent keyframed element; template systems additionally need anti-samey rotation, which bespoke never worries about. Everything here is zero tokens per video.
 
-## Current state (paths in `pipelines/video/visuals-flow-2/`)
+## Current state (paths in `pipelines/video/visuals-flow/`)
 
 - Effects are pluggable modules: `lib/effects/registry.mjs`:
   ```js
@@ -60,12 +60,12 @@ Richness must come from deterministic machinery, not per-video LLM spend (owner 
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| Gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | Transition smoke | `ffmpeg -f lavfi -i testsrc=d=2:s=320x180:r=30 -vf "fade=t=out:st=0.8:d=0.2:c=black,fade=t=in:st=1.0:d=0.2" -f null - 2>&1 \| tail -1` | exit 0 |
 
 ## Scope
 
-**In scope** (all in `pipelines/video/visuals-flow-2/`):
+**In scope** (all in `pipelines/video/visuals-flow/`):
 - `lib/effects/whip.mjs` (register style), `lib/effects/motif.mjs` (new), `lib/effects/registry.mjs`
 - `brand.json` (new, folder root), `lib/brand-inline.mjs` (new) + test, `lib/render.mjs`, `lib/render-fx.mjs`
 - `lib/resolve.mjs` (variant rotation) + test, `lib/cue-constants.mjs`, `lib/lint-cues.mjs`, `lib/lint.test.mjs`
@@ -147,7 +147,7 @@ Pure planning tests per module (drift.mjs pattern), staged-HTML string assertion
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` → exit 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` → exit 0
 - [ ] `grep -n "brand-tokens" lib/brand-inline.mjs` → present; wired into render + render-fx
 - [ ] `grep -n "W9" lib/lint-cues.mjs` → present; `node lib/check-rulebook.mjs` → exit 0
 - [ ] `grep -n "register" lib/effects/whip.mjs` → style implemented; `ls lib/effects/motif.mjs` → exists

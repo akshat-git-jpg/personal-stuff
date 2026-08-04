@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/card-library && bash scripts/check-cards.sh && cd ../visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/card-library && bash scripts/check-cards.sh && cd ../visuals-flow && bash scripts/check.sh
 ui: false
 deploy:
 needs: []
@@ -28,7 +28,7 @@ needs: []
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 5db6772..HEAD -- pipelines/video/card-library/catalog.json pipelines/video/card-library/scripts/check-catalog.mjs pipelines/video/visuals-flow-2/lib/board.mjs`
+> **Drift check (run first)**: `git diff --stat 5db6772..HEAD -- pipelines/video/card-library/catalog.json pipelines/video/card-library/scripts/check-catalog.mjs pipelines/video/visuals-flow/lib/board.mjs`
 
 ## Status
 
@@ -70,7 +70,7 @@ Owner decision (2026-07-28): **ratify the array-driven pattern rather than rewri
 
 In each, the second variable is the array that drives the beats.
 
-**`pipelines/video/visuals-flow-2/lib/board.mjs`**, `synthCalibrationVars` (line 1879), verbatim opening:
+**`pipelines/video/visuals-flow/lib/board.mjs`**, `synthCalibrationVars` (line 1879), verbatim opening:
 
 ```js
 export function synthCalibrationVars(card) {
@@ -103,9 +103,9 @@ Note it already fills array variables with three placeholder strings — but it 
 | Purpose | Command | Expected |
 |---|---|---|
 | Card gate | `cd pipelines/video/card-library && bash scripts/check-cards.sh` | exit 0, `card check OK` |
-| vf2 gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| visuals-flow gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | Catalog check alone | `cd pipelines/video/card-library && node scripts/check-catalog.mjs` | `catalog ok` |
-| Board tests | `cd pipelines/video/visuals-flow-2 && node --test lib/board.test.mjs` | `# fail 0` |
+| Board tests | `cd pipelines/video/visuals-flow && node --test lib/board.test.mjs` | `# fail 0` |
 | Census | `cd pipelines/video/card-library && node -e "const d=require('./catalog.json');const c=d.cards\|\|d;console.log(c.filter(x=>['beat','word-sync'].includes(x.kind)).length)"` | `26` |
 
 ## Scope
@@ -113,8 +113,8 @@ Note it already fills array variables with three placeholder strings — but it 
 **In scope**:
 - `pipelines/video/card-library/catalog.json`
 - `pipelines/video/card-library/scripts/check-catalog.mjs`
-- `pipelines/video/visuals-flow-2/lib/board.mjs` (`synthCalibrationVars` only)
-- `pipelines/video/visuals-flow-2/lib/board.test.mjs`
+- `pipelines/video/visuals-flow/lib/board.mjs` (`synthCalibrationVars` only)
+- `pipelines/video/visuals-flow/lib/board.test.mjs`
 
 **Out of scope**:
 - **Any card's `index.html`.** The whole point of this plan is to avoid rewriting four cards that were frame-verified on landing. No rendered output may change.
@@ -195,7 +195,7 @@ Leave the `beat_source: 'beat'` path exactly as it is.
 
 **Verify**:
 ```bash
-cd pipelines/video/visuals-flow-2 && node -e "
+cd pipelines/video/visuals-flow && node -e "
 import('./lib/board.mjs').then(m=>{
   const d=require('../card-library/catalog.json');const c=(d.cards||d).find(x=>x.slug==='checklist/audience-fit');
   const r=m.synthCalibrationVars(c);
@@ -214,13 +214,13 @@ Append to `lib/board.test.mjs`:
 
 Add tests for `check-catalog.mjs` if that script has a test file; if it does not, the Step 2 fail-proof is the coverage and no test file is created.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/board.test.mjs 2>&1 | tail -4` -> `# fail 0`
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/board.test.mjs 2>&1 | tail -4` -> `# fail 0`
 
 ### Step 5: Both gates
 
 **Verify**:
 ```bash
-cd pipelines/video/card-library && bash scripts/check-cards.sh && cd ../visuals-flow-2 && bash scripts/check.sh
+cd pipelines/video/card-library && bash scripts/check-cards.sh && cd ../visuals-flow && bash scripts/check.sh
 ```
 -> both exit 0, ending `card check OK` and `visuals-flow check OK`
 
@@ -243,7 +243,7 @@ Three board tests plus the Step 2 fail-proof. The fail-proof matters most: `plan
 ## Done criteria
 
 - [ ] `cd pipelines/video/card-library && bash scripts/check-cards.sh` exits 0
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 - [ ] all 26 `beat`/`word-sync` cards declare `beat_source`; none of the four declares `max_reveal_chars`
 - [ ] `check-catalog.mjs` exits non-zero when a `variables` card is given a `max_reveal_chars` (Step 2 fail-proof)
 - [ ] `synthCalibrationVars` fills `beat_var` with `max_beats` entries for an array-driven card

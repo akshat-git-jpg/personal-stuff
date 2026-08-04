@@ -46,7 +46,7 @@ screen recording, and where none exists the card stage's burnt-amber background
 | Token budget | Still token-lean. Adds ~2 cheap LLM passes (concept pre-pass, storyboard self-audit) on top of the existing cue pass; bespoke costs tokens only when triggered |
 | Primary deliverable | **Layered Resolve/FCPXML timeline with everything** — graphics, effects, and the new audio lanes (SFX clips, ducked music, VO) — plus a mastered `final.mp4` for preview/QC |
 | v2.0 must-haves | Sound + mix stage; storyboard board upgrade; enacted graphics + through-line. (Orange-screen fix and selection quality in scope regardless) |
-| Where v2 lives | **New folder `pipelines/video/visuals-flow-2/`** — spine copied from visuals-flow; v1 frozen as fallback. `card-library/` stays the shared card source for both |
+| Where v2 lives | **New folder `pipelines/video/visuals-flow/`** — spine copied from visuals-flow; v1 frozen as fallback. `card-library/` stays the shared card source for both |
 | Music | Pipeline downloads royalty-free beds and picks by mood; owner swaps the track later on the timeline (music is its own lane, so swap is trivial) |
 | Enacted-device cards at launch | ~12 core devices; the promotion flywheel grows the rest |
 | Formats | **Longform 16:9 only** — no format routing, no shorts rules or vertical card variants. `video.json` still records aspect/format so a future shorts add-on has a slot, but nothing is built for it |
@@ -54,7 +54,7 @@ screen recording, and where none exists the card stage's burnt-amber background
 
 ## Architecture
 
-`pipelines/video/visuals-flow-2/` keeps the proven deterministic spine — transcribe →
+`pipelines/video/visuals-flow/` keeps the proven deterministic spine — transcribe →
 cue pass → resolve/lint → board → render (Hyperframes) → shot pass → HeyGen → assemble
 (ffmpeg) → layered FCPXML export → feedback fold — and adds six deltas:
 
@@ -253,7 +253,7 @@ faithfully into our stack. Port, never copy source (license).
 
 ## Plan decomposition (orchestrate; ordered)
 
-1. **Scaffold visuals-flow-2** — copy spine, wire `run.sh`, prove v1 parity on test-01.
+1. **Scaffold visuals-flow** — copy spine, wire `run.sh`, prove v1 parity on test-01.
 2. **Coverage fix + motion density + head layout modes** (C, H).
 3. **Concept pre-pass + doctrine lint rules** (A).
 4. **Enacted card family (~12, with variants) + catalog metadata + flywheel promotion

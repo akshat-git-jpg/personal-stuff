@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh && node lib/lint-cues.mjs test-03
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh && node lib/lint-cues.mjs test-03
 ui: true
 deploy:
 needs: [plan 164 / PR#122 adds the zone-plan verb and board tab this renumbers — land 164 first]
@@ -27,7 +27,7 @@ needs: [plan 164 / PR#122 adds the zone-plan verb and board tab this renumbers �
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 2350a33..HEAD -- pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 2350a33..HEAD -- pipelines/video/visuals-flow`
 
 ## Status
 
@@ -101,21 +101,21 @@ So `--draft` is the review copy and a bare run is the deliverable. That is exact
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Full gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
-| run.sh smoke | `cd pipelines/video/visuals-flow-2 && bash scripts/test-run-sh.sh` | `run.sh test OK` |
-| Regenerate prompts | `cd pipelines/video/visuals-flow-2 && node lib/build-prompt.mjs && node lib/check-rulebook.mjs` | `rulebook ok` |
-| History check | `git log --oneline --follow pipelines/video/visuals-flow-2/steps/030-cue-pass-llm/README.md \| head -3` | shows pre-rename commits |
+| Full gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
+| run.sh smoke | `cd pipelines/video/visuals-flow && bash scripts/test-run-sh.sh` | `run.sh test OK` |
+| Regenerate prompts | `cd pipelines/video/visuals-flow && node lib/build-prompt.mjs && node lib/check-rulebook.mjs` | `rulebook ok` |
+| History check | `git log --oneline --follow pipelines/video/visuals-flow/steps/030-cue-pass-llm/README.md \| head -3` | shows pre-rename commits |
 
 ## Scope
 
 **In scope**:
-- every folder under `pipelines/video/visuals-flow-2/steps/` (renames via `git mv`)
+- every folder under `pipelines/video/visuals-flow/steps/` (renames via `git mv`)
 - two new step folders with READMEs
 - `lib/build-prompt.mjs`, `lib/build-shot-prompt.mjs`, `lib/check-rulebook.mjs`, `lib/check-shot-rulebook.mjs`
 - `lib/assemble.mjs` (the REVIEW 3 refusal), `lib/board.mjs` (the approve control)
 - `lib/final-cut.mjs` (new, tiny) + `lib/final-cut.test.mjs`
 - `run.sh`, `scripts/test-run-sh.sh`, `scripts/check.sh`
-- `PIPELINE.md`, `README.md`, `pipelines/.claude/skills/visuals-flow-2/SKILL.md`
+- `PIPELINE.md`, `README.md`, `pipelines/.claude/skills/visuals-flow/SKILL.md`
 
 **Out of scope**:
 - **`decisions.md`, `plans/*`, `docs/specs/*`, `tests/TESTS.md`.** These are historical records written when the old numbers were current; rewriting them falsifies the record. A note in `PIPELINE.md` carrying the old→new map is how a reader connects them.
@@ -126,7 +126,7 @@ So `--draft` is the review copy and a bare run is the deliverable. That is exact
 ## Git workflow
 
 - Branch: `advisor/167-vf2-renumber-steps-and-three-reviews`
-- Commit: `refactor(vf2): renumber steps to run order; add the three owner review steps` — no AI footers. Do NOT push.
+- Commit: `refactor(visuals-flow): renumber steps to run order; add the three owner review steps` — no AI footers. Do NOT push.
 
 ## Steps
 
@@ -135,7 +135,7 @@ So `--draft` is the review copy and a bare run is the deliverable. That is exact
 Renaming low-to-high collides (e.g. `018`→`020` while `020` still exists). Go **highest to lowest**, using `git mv` so history follows:
 
 ```bash
-cd pipelines/video/visuals-flow-2/steps
+cd pipelines/video/visuals-flow/steps
 git mv 095-resolve-export-run       140-resolve-export-run
 git mv 090-assemble-run             110-assemble-run
 git mv 080-avatar-render-run        100-avatar-render-run
@@ -153,7 +153,7 @@ git mv 018-concept-pass-llm         020-concept-pass-llm
 
 **Verify**: `ls -d */ | sort` -> exactly `010-transcribe-run 020-concept-pass-llm 030-cue-pass-llm 040-resolve-run 050-cue-audit-llm 060-shot-pass-llm 080-storyboard-review-owner 090-render-run 100-avatar-render-run 110-assemble-run 130-feedback-fold-opus 140-resolve-export-run`
 
-And history survived: `git log --oneline --follow pipelines/video/visuals-flow-2/steps/030-cue-pass-llm/README.md | head -3` -> shows commits from before the rename.
+And history survived: `git log --oneline --follow pipelines/video/visuals-flow/steps/030-cue-pass-llm/README.md | head -3` -> shows commits from before the rename.
 
 ### Step 2: Repoint the code paths
 
@@ -168,7 +168,7 @@ Update every path listed in "Current state":
 
 **Verify**:
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 grep -rn "steps/0[0-9][0-9]-\|steps/1[0-9][0-9]-" lib/*.mjs run.sh scripts/*.sh | grep -vE "010-transcribe-run|020-concept-pass-llm|030-cue-pass-llm|040-resolve-run|050-cue-audit-llm|060-shot-pass-llm|070-zone-review-owner|080-storyboard-review-owner|090-render-run|100-avatar-render-run|110-assemble-run|120-final-cut-review-owner|130-feedback-fold-opus|140-resolve-export-run"
 ```
 -> no output, and `node lib/build-prompt.mjs && node lib/check-rulebook.mjs` -> `rulebook ok`
@@ -234,7 +234,7 @@ In `lib/board.mjs`, add an **Approve final cut** control on the Final Cut tab th
 
 **Verify**:
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 node lib/assemble.mjs test-03 2>&1 | tail -2; echo "exit=$? (expect non-zero)"
 node lib/assemble.mjs test-03 --draft --help >/dev/null 2>&1; echo "draft path ungated"
 ```
@@ -250,13 +250,13 @@ README stating: what you judge (motion, sound, pacing, captions — in motion, n
 
 - add `lib/final-cut.test.mjs` (cases: no file → not approved; `approved:true` with a matching version → approved; `approved:true` with a *different* version → NOT approved) and register it in `scripts/check.sh`
 - `PIPELINE.md`: the fourteen-step sequence, the three reviews called out, and an **old→new number map** so historical plans and `decisions.md` remain readable
-- `README.md` and `pipelines/.claude/skills/visuals-flow-2/SKILL.md`: update the verb/step table
+- `README.md` and `pipelines/.claude/skills/visuals-flow/SKILL.md`: update the verb/step table
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/final-cut.test.mjs 2>&1 | tail -4` -> `# fail 0`, and `grep -c "final-cut.test.mjs" scripts/check.sh` -> `1`, and `grep -c "018-concept-pass-llm" PIPELINE.md` -> at least `1` (the old→new map mentions it)
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/final-cut.test.mjs 2>&1 | tail -4` -> `# fail 0`, and `grep -c "final-cut.test.mjs" scripts/check.sh` -> `1`, and `grep -c "018-concept-pass-llm" PIPELINE.md` -> at least `1` (the old→new map mentions it)
 
 ### Step 7: Full gate
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh && node lib/lint-cues.mjs test-03` -> both exit 0
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh && node lib/lint-cues.mjs test-03` -> both exit 0
 
 ## Test plan
 

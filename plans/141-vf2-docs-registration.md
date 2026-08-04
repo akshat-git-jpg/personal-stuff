@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: test -L .claude/skills/visuals-flow-2 && cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: test -L .claude/skills/visuals-flow && cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
 needs: [after 140-vf2-board-two-tabs]
@@ -11,8 +11,8 @@ needs: [after 140-vf2-board-two-tabs]
 
 ## Summary
 
-- **Problem statement**: after plans 134–140 land, visuals-flow-2 works but is invisible: its PIPELINE.md still describes v1's flow, no skill routes its verbs, and the repo maps don't list it.
-- **Goals**: (1) rewrite v2's `PIPELINE.md` flow table + folder layout for the full v2 chain; (2) create the `visuals-flow-2` operating skill (source in `pipelines/.claude/skills/`, symlink at root `.claude/skills/`); (3) register the folder in `pipelines/CLAUDE.md`'s map; (4) mark v1 as superseded-fallback in its own README header.
+- **Problem statement**: after plans 134–140 land, visuals-flow works but is invisible: its PIPELINE.md still describes v1's flow, no skill routes its verbs, and the repo maps don't list it.
+- **Goals**: (1) rewrite v2's `PIPELINE.md` flow table + folder layout for the full v2 chain; (2) create the `visuals-flow` operating skill (source in `pipelines/.claude/skills/`, symlink at root `.claude/skills/`); (3) register the folder in `pipelines/CLAUDE.md`'s map; (4) mark v1 as superseded-fallback in its own README header.
 - **Executor proposed**: agy (Gemini 3.1 Pro High) — mechanical/docs.
 - **Done criteria**: check.sh green; skill resolves through the symlink; both CLAUDE-map rows present.
 - **Stop conditions**: any content conflict with a doc edited by an in-flight plan branch.
@@ -24,8 +24,8 @@ needs: [after 140-vf2-board-two-tabs]
 > anything in the "STOP conditions" section occurs, stop and report. Do NOT
 > edit `plans/README.md` or `decisions.md` (both are main-owned).
 >
-> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow-2 pipelines/.claude/skills pipelines/CLAUDE.md`
-> (Plans 134–140 will have landed — large diffs in visuals-flow-2 are EXPECTED; drift only matters for the skill dir + CLAUDE.md.)
+> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow pipelines/.claude/skills pipelines/CLAUDE.md`
+> (Plans 134–140 will have landed — large diffs in visuals-flow are EXPECTED; drift only matters for the skill dir + CLAUDE.md.)
 
 ## Status
 
@@ -43,7 +43,7 @@ The repo routes by docs: sub-folder CLAUDE/README files are the operating contra
 
 ## Current state
 
-- `pipelines/video/visuals-flow-2/PIPELINE.md` — still the v1 copy (flow table of steps 010→095 + qc + 060; cues.json/shots.json schemas with plan-135/136/139 additions appended by those plans).
+- `pipelines/video/visuals-flow/PIPELINE.md` — still the v1 copy (flow table of steps 010→095 + qc + 060; cues.json/shots.json schemas with plan-135/136/139 additions appended by those plans).
 - Skill precedent: source `pipelines/.claude/skills/visuals-flow/SKILL.md` (verb router: "run graphics for <video>", "open my storyboard", "assemble the video", etc.); root symlink `​.claude/skills/visuals-flow -> ../../pipelines/.claude/skills/visuals-flow`.
 - `pipelines/CLAUDE.md` folder map row for v1: `video/visuals-flow/` "Beat-synced motion-graphics pipeline — VO mp3 → cues → storyboard review → rendered clips + manifest (uses card-library cards)".
 - Spec: `docs/specs/2026-07-24-visuals-flow-v2-design.md` (deltas A–I + coverage matrix) — the authority for what to describe.
@@ -52,16 +52,16 @@ The repo routes by docs: sub-folder CLAUDE/README files are the operating contra
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
-| Symlink check | `readlink .claude/skills/visuals-flow-2` (repo root) | `../../pipelines/.claude/skills/visuals-flow-2` |
+| Gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
+| Symlink check | `readlink .claude/skills/visuals-flow` (repo root) | `../../pipelines/.claude/skills/visuals-flow` |
 
 ## Scope
 
 **In scope**:
-- `pipelines/video/visuals-flow-2/PIPELINE.md`, `README.md` (new, 5-line orientation), `INTEGRATION.md` (v2 caller contract note)
-- `pipelines/.claude/skills/visuals-flow-2/SKILL.md` (new) + root symlink `.claude/skills/visuals-flow-2`
+- `pipelines/video/visuals-flow/PIPELINE.md`, `README.md` (new, 5-line orientation), `INTEGRATION.md` (v2 caller contract note)
+- `pipelines/.claude/skills/visuals-flow/SKILL.md` (new) + root symlink `.claude/skills/visuals-flow`
 - `pipelines/CLAUDE.md` (one map row under video/)
-- `pipelines/video/visuals-flow/README.md` — header banner only ("v1 — superseded by ../visuals-flow-2 (2026-07-24); kept as working fallback; no new work here")
+- `pipelines/video/visuals-flow/README.md` — header banner only ("v1 — superseded by ../visuals-flow (2026-07-24); kept as working fallback; no new work here")
 
 **Out of scope**: `decisions.md`, `plans/README.md`, `my-hosted-sites.md`, `INFRA.md` (nothing hosted changed), root README, any code.
 
@@ -78,24 +78,24 @@ Rewrite the flow table to the v2 chain (keep the v1 doc's table format and tone)
 Folder-layout block: add `video.json`, `concept.json`, `audit.json`, `sound.json`, `bespoke/`, `motif/`, and the kb-scratch `versions/` note. Add a "What v2 adds over v1" 9-line list (deltas A–I, one line each, linking the spec).
 New `README.md`: what this folder is, spec link, v1-fallback note, `run.sh` as entry point.
 
-**Verify**: `grep -c "018\|035\|sound\|mix" pipelines/video/visuals-flow-2/PIPELINE.md` ≥ 4; README exists.
+**Verify**: `grep -c "018\|035\|sound\|mix" pipelines/video/visuals-flow/PIPELINE.md` ≥ 4; README exists.
 
 ### Step 2: the skill
 
-`pipelines/.claude/skills/visuals-flow-2/SKILL.md` — copy the v1 skill's structure/frontmatter style and adapt: name `visuals-flow-2`, description triggers ("visuals-flow-2", "run v2 graphics for <video>", "run the concept pass", "audit the cues", "make the sound plan", "mix the audio", "open my v2 board", "final cut review", plus the v1 verb set). Verb table maps each phrase to the `run.sh` verb or lib CLI, marks the owner gates (040 board approval, sound.json approval before mix, 060 fold, 080 live HeyGen) and Gate A/B behaviors. Then from the REPO ROOT: `ln -s ../../pipelines/.claude/skills/visuals-flow-2 .claude/skills/visuals-flow-2`.
+`pipelines/.claude/skills/visuals-flow/SKILL.md` — copy the v1 skill's structure/frontmatter style and adapt: name `visuals-flow`, description triggers ("visuals-flow", "run v2 graphics for <video>", "run the concept pass", "audit the cues", "make the sound plan", "mix the audio", "open my v2 board", "final cut review", plus the v1 verb set). Verb table maps each phrase to the `run.sh` verb or lib CLI, marks the owner gates (040 board approval, sound.json approval before mix, 060 fold, 080 live HeyGen) and Gate A/B behaviors. Then from the REPO ROOT: `ln -s ../../pipelines/.claude/skills/visuals-flow .claude/skills/visuals-flow`.
 
-**Verify**: symlink-check command → expected target; `head -5 .claude/skills/visuals-flow-2/SKILL.md` shows the frontmatter.
+**Verify**: symlink-check command → expected target; `head -5 .claude/skills/visuals-flow/SKILL.md` shows the frontmatter.
 
 ### Step 3: map rows + v1 banner
 
-- `pipelines/CLAUDE.md`: insert directly under the v1 row: `video/visuals-flow-2/` — "v2 of the motion-graphics pipeline — adds concept/through-line pass, enacted cards, coverage+density fixes, head panel mode, sound+mix stage, two-tab review board (spec docs/specs/2026-07-24-visuals-flow-v2-design.md)" | Node + Claude steps.
+- `pipelines/CLAUDE.md`: insert directly under the v1 row: `video/visuals-flow/` — "v2 of the motion-graphics pipeline — adds concept/through-line pass, enacted cards, coverage+density fixes, head panel mode, sound+mix stage, two-tab review board (spec docs/specs/2026-07-24-visuals-flow-v2-design.md)" | Node + Claude steps.
 - v1 `README.md`: prepend the superseded-fallback banner (2 lines, keep the rest untouched). Do NOT touch v1's PIPELINE.md or code.
 
-**Verify**: `grep -n "visuals-flow-2" pipelines/CLAUDE.md` → 1 row; `head -3 pipelines/video/visuals-flow/README.md` shows the banner.
+**Verify**: `grep -n "visuals-flow" pipelines/CLAUDE.md` → 1 row; `head -3 pipelines/video/visuals-flow/README.md` shows the banner.
 
 ### Step 4: gate
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` → exit 0 (docs must not have broken the rulebook checks — if PIPELINE.md prose restates a constant, use the constant's rule text verbatim from `lib/cue-constants.mjs`).
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh` → exit 0 (docs must not have broken the rulebook checks — if PIPELINE.md prose restates a constant, use the constant's rule text verbatim from `lib/cue-constants.mjs`).
 
 ## Test plan
 

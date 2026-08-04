@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: false
 deploy:
 needs: []
@@ -28,7 +28,7 @@ needs: []
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 64a151b..HEAD -- pipelines/video/visuals-flow-2/lib/resolve.mjs pipelines/video/visuals-flow-2/lib/cue-constants.mjs`
+> **Drift check (run first)**: `git diff --stat 64a151b..HEAD -- pipelines/video/visuals-flow/lib/resolve.mjs pipelines/video/visuals-flow/lib/cue-constants.mjs`
 
 ## Status
 
@@ -48,7 +48,7 @@ That is the "better solve" the owner asked for: exposure must be a function of t
 
 ## Current state
 
-**`pipelines/video/visuals-flow-2/lib/resolve.mjs`** — resolves anchors to times and computes each cue's duration. The relevant block, verbatim (lines 287–310):
+**`pipelines/video/visuals-flow/lib/resolve.mjs`** — resolves anchors to times and computes each cue's duration. The relevant block, verbatim (lines 287–310):
 
 ```js
     let duration = beats.length ? +(beats[beats.length - 1].at + hold).toFixed(2) : cat.default_duration;
@@ -78,7 +78,7 @@ export function sentenceEndIfMidSentence(W, t) {
 
 `W` is the word-level transcript: an array of `{ text, start, end }`. A sentence ends on a word whose `text` ends with `.`, `?` or `!` — read `sentenceEndAfter` before writing the new helper and reuse its terminator logic rather than inventing a second one.
 
-**`pipelines/video/visuals-flow-2/lib/cue-constants.mjs`** — every tunable lives here as `{ value, rule }`. Existing keys include `EXPOSURE_TAIL` (0.4), `HOLD_EXTEND_CAP` (20), `GAP_ABSORB` (12), `SECTION_FOOTAGE_MIN` (4).
+**`pipelines/video/visuals-flow/lib/cue-constants.mjs`** — every tunable lives here as `{ value, rule }`. Existing keys include `EXPOSURE_TAIL` (0.4), `HOLD_EXTEND_CAP` (20), `GAP_ABSORB` (12), `SECTION_FOOTAGE_MIN` (4).
 
 **The measured defect** (test-03, transcript word times):
 
@@ -101,18 +101,18 @@ With `default_duration: 8` the natural end was 174.07, landing inside the *next*
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Full gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0, `visuals-flow check OK` |
-| Just resolve tests | `cd pipelines/video/visuals-flow-2 && node --test lib/resolve.test.mjs` | all pass |
-| Re-resolve test-03 | `cd pipelines/video/visuals-flow-2 && node lib/resolve.mjs test-03` | writes `videos/test-03/resolved.json` |
-| Inspect a cue | `cd pipelines/video/visuals-flow-2 && node -e "const r=require('./videos/test-03/resolved.json').resolved;const c=r.find(q=>q.id==='c10');console.log(c.start, c.duration, c.start+c.duration)"` | see Step 5 |
+| Full gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0, `visuals-flow check OK` |
+| Just resolve tests | `cd pipelines/video/visuals-flow && node --test lib/resolve.test.mjs` | all pass |
+| Re-resolve test-03 | `cd pipelines/video/visuals-flow && node lib/resolve.mjs test-03` | writes `videos/test-03/resolved.json` |
+| Inspect a cue | `cd pipelines/video/visuals-flow && node -e "const r=require('./videos/test-03/resolved.json').resolved;const c=r.find(q=>q.id==='c10');console.log(c.start, c.duration, c.start+c.duration)"` | see Step 5 |
 
 ## Scope
 
 **In scope**:
-- `pipelines/video/visuals-flow-2/lib/resolve.mjs`
-- `pipelines/video/visuals-flow-2/lib/cue-constants.mjs`
-- `pipelines/video/visuals-flow-2/lib/resolve.test.mjs`
-- `pipelines/video/visuals-flow-2/videos/test-03/resolved.json` (regenerated output only)
+- `pipelines/video/visuals-flow/lib/resolve.mjs`
+- `pipelines/video/visuals-flow/lib/cue-constants.mjs`
+- `pipelines/video/visuals-flow/lib/resolve.test.mjs`
+- `pipelines/video/visuals-flow/videos/test-03/resolved.json` (regenerated output only)
 
 **Out of scope**:
 - `lib/lint-cues.mjs` — the static-hold cap is plan 156's job; do not add lint here.
@@ -123,7 +123,7 @@ With `default_duration: 8` the natural end was 174.07, landing inside the *next*
 ## Git workflow
 
 - Branch: `advisor/155-vf2-exposure-follows-narration`
-- Commit: `fix(vf2): exposure follows sentence boundaries and the next cue, not default_duration` — no AI footers. Do NOT push.
+- Commit: `fix(visuals-flow): exposure follows sentence boundaries and the next cue, not default_duration` — no AI footers. Do NOT push.
 
 ## Steps
 
@@ -138,7 +138,7 @@ In `lib/cue-constants.mjs`, add a new entry alongside the others (match the exis
   },
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node -e "import('./lib/cue-constants.mjs').then(m=>console.log(m.CUE_CONSTANTS.MAX_FULLFRAME_ONSCREEN.value))"` -> `12`
+**Verify**: `cd pipelines/video/visuals-flow && node -e "import('./lib/cue-constants.mjs').then(m=>console.log(m.CUE_CONSTANTS.MAX_FULLFRAME_ONSCREEN.value))"` -> `12`
 
 ### Step 2: Add the `lastSentenceBoundaryAtOrBefore` helper
 
@@ -158,7 +158,7 @@ export function lastSentenceBoundaryAtOrBefore(W, t) {
 }
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node -e "
+**Verify**: `cd pipelines/video/visuals-flow && node -e "
 import('./lib/resolve.mjs').then(async m=>{
   const fs=await import('node:fs');
   const W=JSON.parse(fs.readFileSync('videos/test-03/transcript.json','utf8'));
@@ -177,7 +177,7 @@ const nextStart = allStarts.find((s) => s > start + 0.001) ?? null;
 
 Do not change how starts themselves are computed. If the existing code resolves anchors inside the same loop, hoist ONLY the anchor→time resolution into a first pass and keep the rest of the loop intact.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/resolve.mjs test-03 && node -e "const r=require('./videos/test-03/resolved.json').resolved;console.log(r.length)"` -> `14`
+**Verify**: `cd pipelines/video/visuals-flow && node lib/resolve.mjs test-03 && node -e "const r=require('./videos/test-03/resolved.json').resolved;console.log(r.length)"` -> `14`
 
 ### Step 4: Replace the exposure block
 
@@ -215,12 +215,12 @@ Replace the block quoted in "Current state" with exactly this:
 
 Note `EXPOSURE_TAIL` is deliberately no longer used here — ending ON the boundary is the fix. Leave the constant defined (other code may read it); do not delete it.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --check lib/resolve.mjs && echo SYNTAX_OK` -> `SYNTAX_OK`
+**Verify**: `cd pipelines/video/visuals-flow && node --check lib/resolve.mjs && echo SYNTAX_OK` -> `SYNTAX_OK`
 
 ### Step 5: Re-resolve test-03 and confirm the owner's item is covered
 
 ```bash
-cd pipelines/video/visuals-flow-2 && node lib/resolve.mjs test-03
+cd pipelines/video/visuals-flow && node lib/resolve.mjs test-03
 node -e "const r=require('./videos/test-03/resolved.json').resolved;const c=r.find(q=>q.id==='c10');console.log(JSON.stringify({start:c.start,duration:c.duration,end:+(c.start+c.duration).toFixed(2)}))"
 ```
 
@@ -270,11 +270,11 @@ test('exposure is independent of the card default_duration', () => {
 
 Import `lastSentenceBoundaryAtOrBefore` and `resolveCues` at the top of the test file if not already imported. If `resolveCues`'s signature differs from the call above, adapt the CALL to the real signature — read it first. Do not change the function to fit the test.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/resolve.test.mjs 2>&1 | tail -5` -> `# fail 0`
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/resolve.test.mjs 2>&1 | tail -5` -> `# fail 0`
 
 ### Step 7: Full gate
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` -> exit 0, ends `visuals-flow check OK`
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh` -> exit 0, ends `visuals-flow check OK`
 
 ## Test plan
 
@@ -284,7 +284,7 @@ Plus the live check in Step 5 against the real test-03 transcript, which is the 
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 - [ ] `node --test lib/resolve.test.mjs` reports `# fail 0`
 - [ ] c10 in `videos/test-03/resolved.json` ends at exactly `176.23`
 - [ ] `grep -c "EXPOSURE_TAIL" lib/resolve.mjs` shows the constant is no longer used in the exposure block (0 occurrences inside it)

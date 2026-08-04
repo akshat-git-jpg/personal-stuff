@@ -1,24 +1,24 @@
 ---
 executor: claude-p
 model: sonnet
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: ["185 must land first — this tab reads the review artifacts 185 produces"]
 needs_prs: [144]
-touches: [pipelines/video/visuals-flow-2/lib/board.mjs, pipelines/video/visuals-flow-2/lib/board-data.mjs, pipelines/video/visuals-flow-2/board-ui/src/lib/router.ts, pipelines/video/visuals-flow-2/board-ui/src/App.tsx, pipelines/video/visuals-flow-2/run.sh, pipelines/video/visuals-flow-2/scripts/check.sh, pipelines/video/visuals-flow-2/PIPELINE.md]
+touches: [pipelines/video/visuals-flow/lib/board.mjs, pipelines/video/visuals-flow/lib/board-data.mjs, pipelines/video/visuals-flow/board-ui/src/lib/router.ts, pipelines/video/visuals-flow/board-ui/src/App.tsx, pipelines/video/visuals-flow/run.sh, pipelines/video/visuals-flow/scripts/check.sh, pipelines/video/visuals-flow/PIPELINE.md]
 
-mutation_apply: cd pipelines/video/visuals-flow-2 && sed -i '' "s/if (!intro.approved)/if (false \&\& !intro.approved)/" lib/intro-film/approve.mjs
-mutation_command: cd pipelines/video/visuals-flow-2 && node --test lib/intro-film/approve.test.mjs
+mutation_apply: cd pipelines/video/visuals-flow && sed -i '' "s/if (!intro.approved)/if (false \&\& !intro.approved)/" lib/intro-film/approve.mjs
+mutation_command: cd pipelines/video/visuals-flow && node --test lib/intro-film/approve.test.mjs
 mutation_expect: intro film must not render before the owner approves
 mutation_timeout: 300
 ---
 
-# Plan 186: vf2 — owner review of the intro film, on the board
+# Plan 186: visuals-flow — owner review of the intro film, on the board
 
 ## Summary
 
-- **Problem statement**: Plan 185 makes vf2 produce a bespoke intro film and a pre-render review pack (beat frames, contact sheets, `REVIEW.md`), but the owner can only see it by opening PNGs on disk. Every other owner gate in vf2 — the card plan (037), the storyboard (080), the final cut (120) — is reviewed on the board. The intro has no such gate, so the one artifact whose quality is entirely a matter of the owner's taste is the one he cannot review where he reviews everything else.
+- **Problem statement**: Plan 185 makes visuals-flow produce a bespoke intro film and a pre-render review pack (beat frames, contact sheets, `REVIEW.md`), but the owner can only see it by opening PNGs on disk. Every other owner gate in visuals-flow — the card plan (037), the storyboard (080), the final cut (120) — is reviewed on the board. The intro has no such gate, so the one artifact whose quality is entirely a matter of the owner's taste is the one he cannot review where he reviews everything else.
 - **Goals**:
   - Add an **Intro** tab to `board-ui` following the existing tab pattern, showing the beat frames grouped by beat, each paired with the `stage` line it is supposed to satisfy, plus the mechanical findings from the review pass.
   - Add gate step `027-approve-intro-film-human`: `intro-film/screenplay.json` carries `approved: true`, written by the board, and the render refuses without it.
@@ -34,7 +34,7 @@ mutation_timeout: 300
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 6817afed..HEAD -- pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 6817afed..HEAD -- pipelines/video/visuals-flow`
 
 ## Status
 
@@ -140,11 +140,11 @@ videos/<slug>/intro-film/
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Repo gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0, `visuals-flow check OK` |
-| Board UI unit tests | `cd pipelines/video/visuals-flow-2/board-ui && npx vitest run` | exit 0 |
-| Build the board UI | `cd pipelines/video/visuals-flow-2/board-ui && npm run build` | exit 0, writes `dist/` |
-| Board smoke | `cd pipelines/video/visuals-flow-2 && node scripts/board-ui-smoke.mjs` | exit 0 |
-| Serve the board | `cd pipelines/video/visuals-flow-2 && bash run.sh <slug> board` | server URL printed |
+| Repo gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0, `visuals-flow check OK` |
+| Board UI unit tests | `cd pipelines/video/visuals-flow/board-ui && npx vitest run` | exit 0 |
+| Build the board UI | `cd pipelines/video/visuals-flow/board-ui && npm run build` | exit 0, writes `dist/` |
+| Board smoke | `cd pipelines/video/visuals-flow && node scripts/board-ui-smoke.mjs` | exit 0 |
+| Serve the board | `cd pipelines/video/visuals-flow && bash run.sh <slug> board` | server URL printed |
 
 ## Scope
 
@@ -168,7 +168,7 @@ videos/<slug>/intro-film/
 ## Git workflow
 
 - Branch: `advisor/186-vf2-intro-review-on-board`
-- Commit per step: `feat(vf2): <step summary>` — no AI footers. Do NOT push.
+- Commit per step: `feat(visuals-flow): <step summary>` — no AI footers. Do NOT push.
 
 ## Steps
 
@@ -218,7 +218,7 @@ Create `lib/intro-film/approve.test.mjs` covering: refusal with the exact messag
 `intro film must not render before the owner approves`; pass after `approveIntro`;
 waiver under `review: express`; a clear error when `screenplay.json` is missing.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/intro-film/approve.test.mjs` → exit 0.
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/intro-film/approve.test.mjs` → exit 0.
 
 **Verify the gate fires**: `sed -i '' "s/if (!intro.approved)/if (false \&\& !intro.approved)/" lib/intro-film/approve.mjs && node --test lib/intro-film/approve.test.mjs; git checkout lib/intro-film/approve.mjs` → must FAIL printing `intro film must not render before the owner approves`.
 
@@ -253,7 +253,7 @@ In `lib/board.mjs`, add three routes beside the existing ones:
 **Verify**: add a case to `lib/board-api.test.mjs` asserting `/api/intro-data`
 returns `{present:false}` for a video with no intro-film dir, and that
 `/intro-frame?f=../../etc/passwd` returns 400.
-`cd pipelines/video/visuals-flow-2 && node --test lib/board-api.test.mjs` → exit 0.
+`cd pipelines/video/visuals-flow && node --test lib/board-api.test.mjs` → exit 0.
 
 ### Step 3: The Intro tab
 
@@ -283,7 +283,7 @@ the board's theme, not white-on-dark.
 
 Register the tab in `App.tsx` alongside the others.
 
-**Verify**: `cd pipelines/video/visuals-flow-2/board-ui && npx vitest run && npm run build` → exit 0. Then `cd .. && node scripts/board-ui-smoke.mjs` → exit 0.
+**Verify**: `cd pipelines/video/visuals-flow/board-ui && npx vitest run && npm run build` → exit 0. Then `cd .. && node scripts/board-ui-smoke.mjs` → exit 0.
 
 ### Step 4: Step folder, driver, docs
 
@@ -295,7 +295,7 @@ Register the tab in `App.tsx` alongside the others.
   `*.test.mjs`, so `approve.test.mjs` is picked up. **Confirm this rather than
   assuming** — if 185 landed an explicit file list instead, add the new file.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh 2>&1 | grep -c "approve.test"` → at least 1.
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh 2>&1 | grep -c "approve.test"` → at least 1.
 
 ### Step 5: The screenshot (required to merge)
 
@@ -318,7 +318,7 @@ not the feature.
 ```sh
 cd "$(git rev-parse --show-toplevel)"
 git worktree add --detach /tmp/186-fresh HEAD
-cd /tmp/186-fresh/pipelines/video/visuals-flow-2 && bash scripts/check.sh
+cd /tmp/186-fresh/pipelines/video/visuals-flow && bash scripts/check.sh
 git worktree remove --force /tmp/186-fresh
 ```
 
@@ -339,7 +339,7 @@ Any test that starts the board server MUST have a `test.after` force-closing it.
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 - [ ] `node --test lib/intro-film/approve.test.mjs` exits 0, and the mutation in Step 1 makes it FAIL with `intro film must not render before the owner approves`
 - [ ] `/intro-frame?f=../../etc/passwd` returns 400
 - [ ] `/api/intro-data` returns `{present:false}` for a video with no intro film, and the tab renders the opt-in line with no Approve button
@@ -369,5 +369,5 @@ its output shape (frame naming, `check.json` structure), `introData` must change
 with it — they are coupled by filename convention, which is the weakest part of
 this design and the first place to look when frames stop grouping.
 
-Plan 187 (vf2 standing down on the intro) is independent of this one and remains
+Plan 187 (visuals-flow standing down on the intro) is independent of this one and remains
 blocked on branch `chore/boss-hardening-2026-08-02` merging.

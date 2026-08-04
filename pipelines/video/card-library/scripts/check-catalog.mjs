@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { validateVariable } from '../../visuals-flow-2/lib/resolve.mjs';
+import { validateVariable } from '../../visuals-flow/lib/resolve.mjs';
 
 const ROLES = ['heading', 'sentence', 'label', 'descriptor', 'value', 'logo_slug', 'icon_name', 'free'];
 const catalog = JSON.parse(fs.readFileSync('catalog.json', 'utf8'));
@@ -65,23 +65,23 @@ for (const card of catalog.cards) {
   }
   if (card.continuity !== undefined && typeof card.continuity !== 'boolean') err(`FAIL: ${card.slug}.continuity must be boolean`);
   // A beat/word-sync card MUST declare max_beats / max_reveal_chars.
-  // visuals-flow-2's synthCalibrationVars reads `max_beats ?? 0`, so a card
+  // visuals-flow's synthCalibrationVars reads `max_beats ?? 0`, so a card
   // without it silently synthesizes ZERO beats — the calibrate page renders an
   // empty card and board.test.mjs fails, in a package this gate does not run.
   // That is how `enacted/bad-clip-montage` landed green here and left main red
   // (2026-07-28).
   if (card.kind === 'beat' || card.kind === 'word-sync') {
     if (typeof card.max_beats !== 'number' || card.max_beats < 1) {
-      err(`FAIL: ${card.slug}.max_beats must be a number >= 1 on a ${card.kind} card — visuals-flow-2 synthesizes 0 beats without it`);
+      err(`FAIL: ${card.slug}.max_beats must be a number >= 1 on a ${card.kind} card — visuals-flow synthesizes 0 beats without it`);
     }
     // "transcript" landed with plan 177 (PR #135, 2026-08-02): the resolver
     // derives beat times from the transcript instead of the cue author writing
     // them, reading the item list named by `beat_items`
-    // (visuals-flow-2/lib/transcript-beats.mjs:4). The plan added the catalog
+    // (visuals-flow/lib/transcript-beats.mjs:4). The plan added the catalog
     // entry and the resolver but never taught THIS validator the new value, so
     // `tool-icon/roster-pop` landed on main failing check-cards while the
     // plan's own gate stayed green — its test_cmd ran only inside
-    // visuals-flow-2, and the catalog it edited lives here. Same shape as
+    // visuals-flow, and the catalog it edited lives here. Same shape as
     // LESSONS 2026-07-21.
     if (!['beat', 'variables', 'transcript'].includes(card.beat_source)) {
       err(`FAIL: ${card.slug}.beat_source must be "beat", "variables" or "transcript"`);

@@ -2,7 +2,7 @@
 ---
 executor: agy
 model:                   # blank = agy default (Gemini 3.1 Pro High)
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
                          # smoke gains storyboard-tile assertions this plan (tile anatomy,
                          # approve-disabled pre-040, save round-trip via the real server).
 ui: true                 # user-facing — crew must attach screenshots (storyboard tiles, reviewed-collapse, pre-040 degraded state)
@@ -31,7 +31,7 @@ needs: ["171"]
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow-2/board-ui/ pipelines/video/visuals-flow-2/scripts/board-ui-smoke.mjs`
+> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow/board-ui/ pipelines/video/visuals-flow/scripts/board-ui-smoke.mjs`
 > Plans 169–171 must be merged. If not, STOP.
 
 ## Status
@@ -70,7 +70,7 @@ This is Gate 2 (080) — where the owner approves what the video will actually l
 ## Commands you will need
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 (cd board-ui && npx vitest run) && (cd board-ui && npm run build)
 node scripts/board-ui-smoke.mjs
 bash scripts/check.sh
@@ -132,7 +132,7 @@ Vitest on collector + splice helper; smoke assertions (step 7); legacy suites gr
 ## Done criteria (machine-checkable)
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 bash scripts/check.sh              # exit 0
 node scripts/board-ui-smoke.mjs    # 'board-ui smoke OK' — includes storyboard + pre-040 assertions
 ```

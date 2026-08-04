@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh && node lib/lint-cues.mjs test-03
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh && node lib/lint-cues.mjs test-03
 ui: false
 deploy:
 needs: [unblocks plan 158 / PR#116 — land this first]
@@ -27,7 +27,7 @@ needs: [unblocks plan 158 / PR#116 — land this first]
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 1c28cdc..HEAD -- pipelines/video/visuals-flow-2/lib/lint-cues.mjs pipelines/video/visuals-flow-2/lib/resolve.mjs`
+> **Drift check (run first)**: `git diff --stat 1c28cdc..HEAD -- pipelines/video/visuals-flow/lib/lint-cues.mjs pipelines/video/visuals-flow/lib/resolve.mjs`
 
 ## Status
 
@@ -113,18 +113,18 @@ Only `kind === 'avatar-full'` replaces the base. `panel`, `side` and corner-bubb
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Full gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0, `visuals-flow check OK` |
-| Per-video lint | `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03` | exit 0 |
-| Lint tests | `cd pipelines/video/visuals-flow-2 && node --test lib/lint-cues.test.mjs` | `# fail 0` |
-| Resolve tests | `cd pipelines/video/visuals-flow-2 && node --test lib/resolve.test.mjs` | `# fail 0` |
+| Full gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0, `visuals-flow check OK` |
+| Per-video lint | `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03` | exit 0 |
+| Lint tests | `cd pipelines/video/visuals-flow && node --test lib/lint-cues.test.mjs` | `# fail 0` |
+| Resolve tests | `cd pipelines/video/visuals-flow && node --test lib/resolve.test.mjs` | `# fail 0` |
 
 ## Scope
 
 **In scope**:
-- `pipelines/video/visuals-flow-2/lib/lint-cues.mjs`
-- `pipelines/video/visuals-flow-2/lib/resolve.mjs`
-- `pipelines/video/visuals-flow-2/lib/lint-cues.test.mjs`
-- `pipelines/video/visuals-flow-2/lib/resolve.test.mjs`
+- `pipelines/video/visuals-flow/lib/lint-cues.mjs`
+- `pipelines/video/visuals-flow/lib/resolve.mjs`
+- `pipelines/video/visuals-flow/lib/lint-cues.test.mjs`
+- `pipelines/video/visuals-flow/lib/resolve.test.mjs`
 
 **Out of scope**:
 - **E4 / `ZONE_END` / `ENDCARD_SLUG_PREFIXES`** — the exclusion zone stays exactly as it is. Owner-adjacent ruling in `decisions.md` 2026-07-28: it is not to be weakened or exempted for `base:"none"`.
@@ -136,7 +136,7 @@ Only `kind === 'avatar-full'` replaces the base. `panel`, `side` and corner-bubb
 ## Git workflow
 
 - Branch: `advisor/162-vf2-avatar-aware-coverage`
-- Commit: `fix(vf2): E7 and exposure absorption account for avatar-full spans` — no AI footers. Do NOT push.
+- Commit: `fix(visuals-flow): E7 and exposure absorption account for avatar-full spans` — no AI footers. Do NOT push.
 
 ## Steps
 
@@ -156,13 +156,13 @@ export function avatarFullSpans(avatarJobs) {
 }
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --check lib/lint-cues.mjs && echo SYNTAX_OK` -> `SYNTAX_OK`
+**Verify**: `cd pipelines/video/visuals-flow && node --check lib/lint-cues.mjs && echo SYNTAX_OK` -> `SYNTAX_OK`
 
 ### Step 2: Pass `avatarJobs` into `lintCues`
 
 Add `avatarJobs` to the destructured argument object in `lintCues({ ... })`, defaulting to `null`. Update the CLI entry point in the same file to read `videos/<slug>/avatar-jobs.json` when it exists and pass it. **Do not change the order or names of existing keys** — several tests build this object literally.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03; echo "exit=$?"` -> `exit=0`
+**Verify**: `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03; echo "exit=$?"` -> `exit=0`
 
 ### Step 3: Make E7 avatar-aware
 
@@ -200,7 +200,7 @@ Replace the E7 block's coverage walk so an avatar-full span counts as covered. B
   }
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03; echo "exit=$?"` -> `exit=0` and output byte-identical to before this plan (test-03 is `base:"screen"`, so E7 never runs for it).
+**Verify**: `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03; echo "exit=$?"` -> `exit=0` and output byte-identical to before this plan (test-03 is `base:"screen"`, so E7 never runs for it).
 
 ### Step 4: Stop absorption swallowing the presenter
 
@@ -223,7 +223,7 @@ and inside the loop, after `nextStart` is computed and before `gap`:
 
 Remove the old `const gap = +(nextStart - end).toFixed(2);` line. Then update `resolve.mjs`'s own call site (line ~447) and `lib/board.mjs` (line 37) and the E7 call in `lint-cues.mjs` to pass `avatarSpans` where available; passing nothing keeps today's behaviour, so a caller that has no avatar data is unaffected.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --check lib/resolve.mjs && node lib/resolve.mjs test-03 && node -e "const r=require('./videos/test-03/resolved.json').resolved;const c=r.find(q=>q.id==='c10');console.log(+(c.start+c.duration).toFixed(2))"` -> `176.23` (unchanged from plan 155 — test-03 is `base:"screen"` so absorption is already bounded)
+**Verify**: `cd pipelines/video/visuals-flow && node --check lib/resolve.mjs && node lib/resolve.mjs test-03 && node -e "const r=require('./videos/test-03/resolved.json').resolved;const c=r.find(q=>q.id==='c10');console.log(+(c.start+c.duration).toFixed(2))"` -> `176.23` (unchanged from plan 155 — test-03 is `base:"screen"` so absorption is already bounded)
 
 ### Step 5: Tests
 
@@ -239,11 +239,11 @@ Append to `lib/resolve.test.mjs`:
 5. `extendExposure` on `base:'none'` with a card ending at 10s, next fullframe at 60s, and an avatar-full span starting at 20s -> the card's duration extends to at most 20s, not 60s
 6. the same call with `avatarSpans` omitted -> today's behaviour (extends toward 60s, capped by `HOLD_EXTEND_CAP`)
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/lint-cues.test.mjs lib/resolve.test.mjs 2>&1 | tail -4` -> `# fail 0`
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/lint-cues.test.mjs lib/resolve.test.mjs 2>&1 | tail -4` -> `# fail 0`
 
 ### Step 6: Full gate
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh && node lib/lint-cues.mjs test-03` -> both exit 0
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh && node lib/lint-cues.mjs test-03` -> both exit 0
 
 ## Test plan
 
@@ -253,7 +253,7 @@ test-03 itself is the regression control: it is `base:"screen"`, so its lint out
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 - [ ] `node lib/lint-cues.mjs test-03` exits 0 with output unchanged from before the plan
 - [ ] `node --test lib/lint-cues.test.mjs lib/resolve.test.mjs` reports `# fail 0`
 - [ ] `grep -c avatar lib/lint-cues.mjs` is greater than 0

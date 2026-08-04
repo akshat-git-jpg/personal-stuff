@@ -1,11 +1,11 @@
 ---
 name: visuals-flow-feedback
-description: Close the loop on owner feedback for a visuals-flow-2 video — ingest every feedback source, root-cause each item, answer the owner's questions, discuss the solve, then present ONE summary for approval; only after approval apply durable fixes and re-cut. Wraps the 130 feedback-fold step. Triggers on "feedback is done", "I'm done with feedback", "I've finished reviewing", "fold my feedback", "process my feedback", "done with the final cut review", "/visuals-flow-feedback".
+description: Close the loop on owner feedback for a visuals-flow video — ingest every feedback source, root-cause each item, answer the owner's questions, discuss the solve, then present ONE summary for approval; only after approval apply durable fixes and re-cut. Wraps the 130 feedback-fold step. Triggers on "feedback is done", "I'm done with feedback", "I've finished reviewing", "fold my feedback", "process my feedback", "done with the final cut review", "/visuals-flow-feedback".
 ---
 
 # visuals-flow-feedback — the feedback conversation
 
-Run everything from `pipelines/video/visuals-flow-2/`.
+Run everything from `pipelines/video/visuals-flow/`.
 
 The owner reviews a cut and leaves comments. This skill turns those comments into
 **durable rule changes plus a new cut**, through a conversation rather than a
@@ -63,7 +63,7 @@ were remapped since that render, `resolved.json` lies to you. Check what the cue
 was at that version:
 
 ```bash
-git show <commit-of-that-version>:pipelines/video/visuals-flow-2/videos/<slug>/cues.json
+git show <commit-of-that-version>:pipelines/video/visuals-flow/videos/<slug>/cues.json
 ```
 
 This is not hypothetical: on test-01, three "remove this template" comments looked
@@ -191,7 +191,7 @@ and costs a near-full re-assemble.
 ```bash
 node lib/check-rulebook.mjs          # generated prompt matches its source
 node lib/feedback-status.mjs         # exit 0 — every item marked
-bash scripts/check.sh                # the v2 gate
+bash scripts/check.sh                # the visuals-flow gate
 ```
 
 Then append to `tests/TESTS.md`: one dated line per lesson under **Folded

@@ -1,13 +1,13 @@
 ---
 executor: claude-p
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && node --test lib/lint-cues.test.mjs lib/lint-concept.test.mjs && node lib/check-rulebook.mjs && bash scripts/check.sh && node lib/lint-cues.mjs best-ai-video-generator
+test_cmd: cd pipelines/video/visuals-flow && node --test lib/lint-cues.test.mjs lib/lint-concept.test.mjs && node lib/check-rulebook.mjs && bash scripts/check.sh && node lib/lint-cues.mjs best-ai-video-generator
 ui:
 deploy:
 needs: ["shares lib/lint-cues.mjs with 175 and 177, and lib/cue-rules.mjs with 177. Claims E-codes E14 and E15 — 175 claims E12, so the codes do not collide, only the file regions do. Boss resolves the concat."]
 ---
 
-# Plan 179: vf2 roster symmetry lint
+# Plan 179: visuals-flow roster symmetry lint
 
 ## Summary
 
@@ -24,7 +24,7 @@ needs: ["shares lib/lint-cues.mjs with 175 and 177, and lib/cue-rules.mjs with 1
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow-2/lib/lint-cues.mjs pipelines/video/visuals-flow-2/lib/cue-rules.mjs`
+> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow/lib/lint-cues.mjs pipelines/video/visuals-flow/lib/cue-rules.mjs`
 
 ## Status
 
@@ -86,7 +86,7 @@ Prose cannot count. A lint can. The blocker is that the roster exists only insid
 ## Git workflow
 
 - Branch: `advisor/179-vf2-roster-symmetry-lint`
-- Commit: `feat(vf2): lint per-item slot completeness and card-role exclusivity` — no AI footers. Do NOT push.
+- Commit: `feat(visuals-flow): lint per-item slot completeness and card-role exclusivity` — no AI footers. Do NOT push.
 
 ## Steps
 

@@ -1,30 +1,30 @@
 ---
 executor: claude-p
 model: sonnet
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
 needs: []
 needs_prs: []
-touches: [pipelines/video/visuals-flow-2/lib/run-config.mjs, pipelines/video/visuals-flow-2/lib/run-config.test.mjs, pipelines/video/visuals-flow-2/run.sh, pipelines/video/visuals-flow-2/scripts/check.sh, pipelines/video/visuals-flow-2/PIPELINE.md, pipelines/video/visuals-flow-2/CLAUDE.md]
+touches: [pipelines/video/visuals-flow/lib/run-config.mjs, pipelines/video/visuals-flow/lib/run-config.test.mjs, pipelines/video/visuals-flow/run.sh, pipelines/video/visuals-flow/scripts/check.sh, pipelines/video/visuals-flow/PIPELINE.md, pipelines/video/visuals-flow/CLAUDE.md]
 
-mutation_apply: cd pipelines/video/visuals-flow-2 && sed -i '' "s/intro: 'cards'/intro: 'film'/" lib/run-config.mjs
-mutation_command: cd pipelines/video/visuals-flow-2 && node --test lib/run-config.test.mjs
+mutation_apply: cd pipelines/video/visuals-flow && sed -i '' "s/intro: 'cards'/intro: 'film'/" lib/run-config.mjs
+mutation_command: cd pipelines/video/visuals-flow && node --test lib/run-config.test.mjs
 mutation_expect: intro must default to cards
 mutation_timeout: 300
 ---
 
-# Plan 185: vf2 — the bespoke intro film as a step that is OFF by default
+# Plan 185: visuals-flow — the bespoke intro film as a step that is OFF by default
 
 ## Summary
 
-- **Problem statement**: `pipelines/video/intro-studio` builds a video's intro as one bespoke authored composition and it now works, but it lives outside `visuals-flow-2` and re-derives its own inputs. It re-transcribes the intro and put four of five tool names wrong on screen ("Hejian", "Arcad", "Open Art", "Higgs Field") when vf2's `010-transcribe-run` quality pass already had them right. It also invents its own visual motif, while vf2's `concept.json` throughline already says the roster "opens as five blank, equal candidate cards in the intro roll call".
+- **Problem statement**: `pipelines/video/intro-studio` builds a video's intro as one bespoke authored composition and it now works, but it lives outside `visuals-flow` and re-derives its own inputs. It re-transcribes the intro and put four of five tool names wrong on screen ("Hejian", "Arcad", "Open Art", "Higgs Field") when visuals-flow's `010-transcribe-run` quality pass already had them right. It also invents its own visual motif, while visuals-flow's `concept.json` throughline already says the roster "opens as five blank, equal candidate cards in the intro roll call".
 - **Goals**:
   - Add `intro: "cards" | "film"` to the existing step-005 kickoff config, defaulting to `"cards"`.
-  - Add step `025-author-intro-film-llm` between `020-choose-concept-llm` and `030-pick-or-propose-graphics-llm`, producing `videos/<slug>/intro-film/out/intro.mp4` from vf2's own `transcript.json`, `segments.json` and `concept.json`.
+  - Add step `025-author-intro-film-llm` between `020-choose-concept-llm` and `030-pick-or-propose-graphics-llm`, producing `videos/<slug>/intro-film/out/intro.mp4` from visuals-flow's own `transcript.json`, `segments.json` and `concept.json`.
   - Port the proven intro-studio libraries (screenplay lint, pre-render review, style gate, film gate, asset linking) into `lib/intro-film/`.
   - Guarantee **no template contamination**: the step reads `card-library/DESIGN.md` and `card-library/logos/registry.json`, and never `catalog.json` or any card template.
-  - Guarantee **inertness**: with the default `intro: "cards"`, vf2 behaves exactly as it does today, proven by a test rather than assumed.
+  - Guarantee **inertness**: with the default `intro: "cards"`, visuals-flow behaves exactly as it does today, proven by a test rather than assumed.
 - **Executor proposed**: `claude-p` / `sonnet` — this is a multi-file port the executor re-expresses rather than places, plus two taste-judged content files (AUTHORING.md, TASTE.md). Per `tooling/boss/data/rules.md` both of those rows route to sonnet, not the agy default.
 - **Done criteria** (terse — full list below): `bash scripts/check.sh` green with the new test files registered in it; a default-config video's step list is byte-identical to today's; the contamination test proves the step never names `catalog.json`.
 - **Stop conditions** (terse — full list below): any live HeyGen call; any write under `card-library/`; any edit to the six files the concurrent branch holds; weakening a gate assertion to get green.
@@ -36,7 +36,7 @@ mutation_timeout: 300
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 6817afed..HEAD -- pipelines/video/visuals-flow-2 pipelines/video/intro-studio`
+> **Drift check (run first)**: `git diff --stat 6817afed..HEAD -- pipelines/video/visuals-flow pipelines/video/intro-studio`
 
 ## Status
 
@@ -58,7 +58,7 @@ typography) and shipped with a largest-text of 54px in Helvetica; it
 re-transcribed its own audio and got four of five product names wrong; it
 invented a motif that would have broken the seam into the body.
 
-Every one of those inputs already exists, correct, inside `visuals-flow-2`. That
+Every one of those inputs already exists, correct, inside `visuals-flow`. That
 is the whole reason to move the step here.
 
 The owner's constraint is equally specific and is the thing most likely to be
@@ -71,13 +71,13 @@ direction fails the plan: reading the catalog contaminates the creative freedom,
 and not reading DESIGN.md reproduces the 54px Helvetica film.
 
 This plan deliberately stops short of letting the film reach the cut. Nothing in
-vf2 consumes `intro-film/out/intro.mp4` yet — see Maintenance notes.
+visuals-flow consumes `intro-film/out/intro.mp4` yet — see Maintenance notes.
 
 ## Current state
 
 ### The kickoff config this hooks into
 
-`pipelines/video/visuals-flow-2/lib/run-config.mjs` already carries the owner's
+`pipelines/video/visuals-flow/lib/run-config.mjs` already carries the owner's
 per-video choices and already has the exact "safe default" shape this plan
 needs. Current head of the file:
 
@@ -170,7 +170,7 @@ verbatim; each was a real failure:
 
 ### The conventions to match
 
-- **Exemplar for a lib + test pair**: `pipelines/video/visuals-flow-2/lib/run-config.mjs`
+- **Exemplar for a lib + test pair**: `pipelines/video/visuals-flow/lib/run-config.mjs`
   and `lib/run-config.test.mjs`. Match its comment density: this repo explains
   *why* a value exists and cites the owner decision that set it.
 - **Exemplar for a step folder**: `steps/005-configure-run-human/README.md`.
@@ -184,24 +184,24 @@ verbatim; each was a real failure:
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Repo gate (the merge gate) | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0, final line `visuals-flow check OK` |
-| Run one test file | `cd pipelines/video/visuals-flow-2 && node --test lib/run-config.test.mjs` | exit 0 |
-| Run the new intro-film tests | `cd pipelines/video/visuals-flow-2 && node --test "lib/intro-film/*.test.mjs"` | exit 0 |
-| Inspect config for a slug | `cd pipelines/video/visuals-flow-2 && node lib/run-config.mjs best-ai-video-generator` | JSON incl. `"intro": "cards"` |
-| Driver usage | `cd pipelines/video/visuals-flow-2 && bash run.sh` | exit 2, usage listing `intro-film` |
+| Repo gate (the merge gate) | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0, final line `visuals-flow check OK` |
+| Run one test file | `cd pipelines/video/visuals-flow && node --test lib/run-config.test.mjs` | exit 0 |
+| Run the new intro-film tests | `cd pipelines/video/visuals-flow && node --test "lib/intro-film/*.test.mjs"` | exit 0 |
+| Inspect config for a slug | `cd pipelines/video/visuals-flow && node lib/run-config.mjs best-ai-video-generator` | JSON incl. `"intro": "cards"` |
+| Driver usage | `cd pipelines/video/visuals-flow && bash run.sh` | exit 2, usage listing `intro-film` |
 | Source of the port | `ls pipelines/video/intro-studio/lib/` | the files in the port table |
 
 ## Scope
 
 **In scope** (the only files to create or edit):
 
-- `pipelines/video/visuals-flow-2/lib/run-config.mjs` (+ `.test.mjs`)
-- `pipelines/video/visuals-flow-2/lib/intro-film/` — NEW directory, all ported libs and their tests
-- `pipelines/video/visuals-flow-2/steps/025-author-intro-film-llm/` — NEW (`README.md`, `AUTHORING.md`)
-- `pipelines/video/visuals-flow-2/TASTE-INTRO.md` — NEW
-- `pipelines/video/visuals-flow-2/run.sh`
-- `pipelines/video/visuals-flow-2/scripts/check.sh`
-- `pipelines/video/visuals-flow-2/PIPELINE.md`, `CLAUDE.md`, `.gitignore`
+- `pipelines/video/visuals-flow/lib/run-config.mjs` (+ `.test.mjs`)
+- `pipelines/video/visuals-flow/lib/intro-film/` — NEW directory, all ported libs and their tests
+- `pipelines/video/visuals-flow/steps/025-author-intro-film-llm/` — NEW (`README.md`, `AUTHORING.md`)
+- `pipelines/video/visuals-flow/TASTE-INTRO.md` — NEW
+- `pipelines/video/visuals-flow/run.sh`
+- `pipelines/video/visuals-flow/scripts/check.sh`
+- `pipelines/video/visuals-flow/PIPELINE.md`, `CLAUDE.md`, `.gitignore`
 - `plans/README.md` (status row only)
 
 **Out of scope** — looks related, do NOT touch:
@@ -213,7 +213,7 @@ verbatim; each was a real failure:
   (branch `chore/boss-hardening-2026-08-02`). Editing them creates a merge conflict
   with live work.
 - `lib/zone-rules.mjs`, `lib/zone-constants.mjs`, `lib/assemble.mjs`, `lib/lint-cues.mjs`
-  — these make vf2 stand down on the intro. That is the FOLLOW-UP plan, not this one.
+  — these make visuals-flow stand down on the intro. That is the FOLLOW-UP plan, not this one.
   This plan's film is produced and then sits there; nothing consumes it.
 - `pipelines/video/card-library/**` — READ-ONLY, always.
 - `pipelines/video/intro-studio/**` — the source of the port. Copy from it; do not
@@ -222,7 +222,7 @@ verbatim; each was a real failure:
 ## Git workflow
 
 - Branch: `advisor/185-vf2-intro-film-step`
-- Commit per step: `feat(vf2): <step summary>` — no AI footers. Do NOT push.
+- Commit per step: `feat(visuals-flow): <step summary>` — no AI footers. Do NOT push.
 
 ## Steps
 
@@ -251,7 +251,7 @@ Edit `lib/run-config.mjs`:
 Write the doc comment above `DEFAULTS` in the file's existing voice, stating
 that `cards` is every video before this existed and that `film` is a POC.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/run-config.mjs best-ai-video-generator` → JSON containing `"intro": "cards"` (that video's `run-config.json` has no `intro` key, so this proves the default applies to existing videos).
+**Verify**: `cd pipelines/video/visuals-flow && node lib/run-config.mjs best-ai-video-generator` → JSON containing `"intro": "cards"` (that video's `run-config.json` has no `intro` key, so this proves the default applies to existing videos).
 
 ### Step 2: Test the flag, including the default-off invariant
 
@@ -266,7 +266,7 @@ Add to `lib/run-config.test.mjs`, following the file's existing test style:
   the exact string `intro must default to cards`** — the merge-time mutation gate
   flips the default and requires that string in the failure output.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/run-config.test.mjs` → exit 0.
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/run-config.test.mjs` → exit 0.
 
 **Verify the gate actually fires** (do this yourself, do not assume):
 `sed -i '' "s/intro: 'cards'/intro: 'film'/" lib/run-config.mjs && node --test lib/run-config.test.mjs; git checkout lib/run-config.mjs`
@@ -275,13 +275,13 @@ test is not gating anything — fix the test, do not proceed.
 
 ### Step 3: Port the libraries into `lib/intro-film/`
 
-Create `pipelines/video/visuals-flow-2/lib/intro-film/` and copy each file from
+Create `pipelines/video/visuals-flow/lib/intro-film/` and copy each file from
 the port table in Current state, WITH its tests. For each file:
 
 - Keep every explanatory comment. They encode failures that cost real debugging
   time; a port that strips them re-opens those bugs.
 - Change only what the new location requires: import paths, and
-  `workdir.mjs`'s `ROOT` so it resolves `visuals-flow-2/videos/<slug>`.
+  `workdir.mjs`'s `ROOT` so it resolves `visuals-flow/videos/<slug>`.
 - The film's working directory is `videos/<slug>/intro-film/`. Inside it the
   layout matches intro-studio: `screenplay.json`, `film/index.html`,
   `film/assets/`, `review/`, `renders/`, `out/`.
@@ -295,7 +295,7 @@ Two adaptations are required and are the only behavioural changes:
    `lib/intro-film/inputs.mjs`:
 
    ```js
-   // The whole reason this step moved into vf2. intro-studio transcribed the
+   // The whole reason this step moved into visuals-flow. intro-studio transcribed the
    // intro itself and put four of five product names wrong on screen; 010's
    // quality pass already has them right, and 015 already measured where the
    // intro ends. Deriving either one again here would re-open both bugs.
@@ -322,7 +322,7 @@ Two adaptations are required and are the only behavioural changes:
 2. **`film-gate.mjs` G1 compares against `introSpan().duration`**, not an
    `intake.json`. Everything else about the gate is unchanged.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test "lib/intro-film/*.test.mjs"` → exit 0, and the test count is at least the 80 that pass in intro-studio today (`cd pipelines/video/intro-studio && node --test "lib/*.test.mjs"` reports `# pass 80`). A materially lower number means tests were dropped in the port.
+**Verify**: `cd pipelines/video/visuals-flow && node --test "lib/intro-film/*.test.mjs"` → exit 0, and the test count is at least the 80 that pass in intro-studio today (`cd pipelines/video/intro-studio && node --test "lib/*.test.mjs"` reports `# pass 80`). A materially lower number means tests were dropped in the port.
 
 ### Step 4: Register the new tests in the repo gate
 
@@ -334,7 +334,7 @@ existing `node --test lib/...` line:
 node --test "lib/intro-film/"*.test.mjs
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh 2>&1 | grep -c "intro-film"` → at least 1, proving the new tests are actually inside the gate.
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh 2>&1 | grep -c "intro-film"` → at least 1, proving the new tests are actually inside the gate.
 
 ### Step 5: The step folder and the authoring contract
 
@@ -349,7 +349,7 @@ downstream consumes that file yet.
 **`AUTHORING.md`** — port `pipelines/video/intro-studio/steps/030-author-film-llm/AUTHORING.md`
 wholesale, then make these changes:
 
-- Materials become `assets/vo.mp3` / `assets/avatar.mp4` from the vf2 workdir;
+- Materials become `assets/vo.mp3` / `assets/avatar.mp4` from the visuals-flow workdir;
   keep the existing warning that a `../` path is a lint error that silently
   disables the layout pass.
 - Add a **"What you may and may not read"** section, stated this plainly:
@@ -376,10 +376,10 @@ wholesale, then make these changes:
   `window.__timelines[<id>]` must be registered or every worker stalls 45s.
 
 Copy `pipelines/video/intro-studio/TASTE.md` to
-`pipelines/video/visuals-flow-2/TASTE-INTRO.md` unchanged apart from any path
+`pipelines/video/visuals-flow/TASTE-INTRO.md` unchanged apart from any path
 references.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && test -f steps/025-author-intro-film-llm/AUTHORING.md && grep -q "Never read" steps/025-author-intro-film-llm/AUTHORING.md && echo ok` → `ok`
+**Verify**: `cd pipelines/video/visuals-flow && test -f steps/025-author-intro-film-llm/AUTHORING.md && grep -q "Never read" steps/025-author-intro-film-llm/AUTHORING.md && echo ok` → `ok`
 
 ### Step 6: The contamination invariant, as a test
 
@@ -432,7 +432,7 @@ test('no intro-film library imports the catalog', () => {
 });
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/intro-film/no-template-contamination.test.mjs` → exit 0.
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/intro-film/no-template-contamination.test.mjs` → exit 0.
 
 **Verify the gate fires**: add the line `Consult catalog.json for ideas.` to
 `steps/025-author-intro-film-llm/AUTHORING.md`, re-run → must FAIL with
@@ -468,13 +468,13 @@ in, using this exact guard so the message is identical across all three:
 - `intro-review` runs the ported review pass over `videos/<slug>/intro-film/film/index.html`.
 - `intro-render` runs the ported render + gate.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash run.sh 2>&1 | grep -c "intro-film"` → 1.
+**Verify**: `cd pipelines/video/visuals-flow && bash run.sh 2>&1 | grep -c "intro-film"` → 1.
 
-**Verify the guard**: `cd pipelines/video/visuals-flow-2 && bash run.sh best-ai-video-generator intro-film; echo "exit=$?"` → prints `intro=cards — this video does not use the bespoke intro film.` and `exit=1`. That video is configured `review: express` with no `intro` key, so this proves an existing video cannot accidentally enter the new path.
+**Verify the guard**: `cd pipelines/video/visuals-flow && bash run.sh best-ai-video-generator intro-film; echo "exit=$?"` → prints `intro=cards — this video does not use the bespoke intro film.` and `exit=1`. That video is configured `review: express` with no `intro` key, so this proves an existing video cannot accidentally enter the new path.
 
 ### Step 8: Ignore generated film artifacts
 
-Add to `pipelines/video/visuals-flow-2/.gitignore`, following the file's
+Add to `pipelines/video/visuals-flow/.gitignore`, following the file's
 existing per-video pattern:
 
 ```
@@ -486,7 +486,7 @@ videos/*/intro-film/out/
 
 `screenplay.json` and `film/index.html` are authored content and stay tracked.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && git check-ignore -q videos/x/intro-film/renders/a.mp4 && echo ignored` → `ignored`
+**Verify**: `cd pipelines/video/visuals-flow && git check-ignore -q videos/x/intro-film/renders/a.mp4 && echo ignored` → `ignored`
 
 ### Step 9: Documentation
 
@@ -498,7 +498,7 @@ videos/*/intro-film/out/
 - `CLAUDE.md`: add a short section stating that the intro film step exists, is
   off by default, and that its one hard rule is no catalog in scope.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && grep -c "025-author-intro-film-llm" PIPELINE.md` → at least 1.
+**Verify**: `cd pipelines/video/visuals-flow && grep -c "025-author-intro-film-llm" PIPELINE.md` → at least 1.
 
 ### Step 10: Prove inertness on a fresh checkout
 
@@ -508,13 +508,13 @@ worktrees carrying their own build artifacts (LESSONS 2026-07-31).
 ```sh
 cd "$(git rev-parse --show-toplevel)"
 git worktree add --detach /tmp/185-fresh HEAD
-cd /tmp/185-fresh/pipelines/video/visuals-flow-2 && bash scripts/check.sh
+cd /tmp/185-fresh/pipelines/video/visuals-flow && bash scripts/check.sh
 ```
 
 Then prove the default path is unchanged:
 
 ```sh
-cd /tmp/185-fresh/pipelines/video/visuals-flow-2
+cd /tmp/185-fresh/pipelines/video/visuals-flow
 node -e "import('./lib/run-config.mjs').then(m=>{const c=m.loadRunConfig('videos/best-ai-video-generator');if(c.intro!=='cards')throw new Error('not inert: '+c.intro);console.log('inert')})"
 ```
 
@@ -524,7 +524,7 @@ Clean up: `git worktree remove --force /tmp/185-fresh`
 
 ## Test plan
 
-New tests, all under `pipelines/video/visuals-flow-2/`:
+New tests, all under `pipelines/video/visuals-flow/`:
 
 - `lib/run-config.test.mjs` — four new cases (Step 2), including the
   mutation-gated default-off assertion.
@@ -541,7 +541,7 @@ which is owner-run.
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0 and prints `visuals-flow check OK`
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0 and prints `visuals-flow check OK`
 - [ ] `bash scripts/check.sh 2>&1 | grep -c "intro-film"` ≥ 1 — the new tests are inside the gate
 - [ ] `node lib/run-config.mjs best-ai-video-generator` reports `"intro": "cards"`
 - [ ] `bash run.sh best-ai-video-generator intro-film` exits 1 with the opt-in message
@@ -577,7 +577,7 @@ edit by hand, exactly as with standalone intro-studio.
 
 Two follow-up plans complete the feature and must NOT be folded into this one:
 
-1. **vf2 stands down on the intro when `intro: "film"`.** Five surfaces currently
+1. **visuals-flow stands down on the intro when `intro: "film"`.** Five surfaces currently
    process the intro span and would double-treat it:
    - `035-pick-or-propose-intro-outro-llm` must author the CONCLUSION ONLY
      (`ZONE_PARTS = ['intro','conclusion']` in `lib/zone-constants.mjs`).

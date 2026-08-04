@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh && node lib/zone-plan.mjs test-03
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh && node lib/zone-plan.mjs test-03
 ui: true
 deploy:
 needs: [plan 159 landed the `structure` field this reads]
@@ -27,7 +27,7 @@ needs: [plan 159 landed the `structure` field this reads]
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat c37f2aa..HEAD -- pipelines/video/visuals-flow-2/lib pipelines/video/visuals-flow-2/run.sh`
+> **Drift check (run first)**: `git diff --stat c37f2aa..HEAD -- pipelines/video/visuals-flow/lib pipelines/video/visuals-flow/run.sh`
 
 ## Status
 
@@ -97,21 +97,21 @@ Tabs are plain divs toggled by `switchTab`, with a hash (`#final-cut`) for deep 
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Full gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
-| Build the zone plan | `cd pipelines/video/visuals-flow-2 && node lib/zone-plan.mjs test-03` | writes `videos/test-03/zone-plan.json` |
-| Board | `cd pipelines/video/visuals-flow-2 && node lib/board.mjs test-03` | serves on 4322 |
-| Tests | `cd pipelines/video/visuals-flow-2 && node --test lib/zone-plan.test.mjs` | `# fail 0` |
+| Full gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
+| Build the zone plan | `cd pipelines/video/visuals-flow && node lib/zone-plan.mjs test-03` | writes `videos/test-03/zone-plan.json` |
+| Board | `cd pipelines/video/visuals-flow && node lib/board.mjs test-03` | serves on 4322 |
+| Tests | `cd pipelines/video/visuals-flow && node --test lib/zone-plan.test.mjs` | `# fail 0` |
 
 ## Scope
 
 **In scope**:
-- `pipelines/video/visuals-flow-2/lib/zone-plan.mjs` (new)
-- `pipelines/video/visuals-flow-2/lib/zone-plan.test.mjs` (new)
-- `pipelines/video/visuals-flow-2/lib/board.mjs` (third tab + approve handler)
-- `pipelines/video/visuals-flow-2/lib/render.mjs` (the refusal)
-- `pipelines/video/visuals-flow-2/run.sh` (new `zone-plan` verb; `status` line)
-- `pipelines/video/visuals-flow-2/scripts/check.sh` (register the new test file)
-- `pipelines/video/visuals-flow-2/PIPELINE.md` (document the stage)
+- `pipelines/video/visuals-flow/lib/zone-plan.mjs` (new)
+- `pipelines/video/visuals-flow/lib/zone-plan.test.mjs` (new)
+- `pipelines/video/visuals-flow/lib/board.mjs` (third tab + approve handler)
+- `pipelines/video/visuals-flow/lib/render.mjs` (the refusal)
+- `pipelines/video/visuals-flow/run.sh` (new `zone-plan` verb; `status` line)
+- `pipelines/video/visuals-flow/scripts/check.sh` (register the new test file)
+- `pipelines/video/visuals-flow/PIPELINE.md` (document the stage)
 
 **Out of scope**:
 - `lib/cue-rules.mjs` — this plan adds a review surface, not a rule. It does not change what the cue pass chooses.
@@ -122,7 +122,7 @@ Tabs are plain divs toggled by `switchTab`, with a hash (`#final-cut`) for deep 
 ## Git workflow
 
 - Branch: `advisor/164-vf2-zone-plan-gate`
-- Commit: `feat(vf2): Zone Plan gate — approve intro/conclusion cards before render` — no AI footers. Do NOT push.
+- Commit: `feat(visuals-flow): Zone Plan gate — approve intro/conclusion cards before render` — no AI footers. Do NOT push.
 
 ## Steps
 
@@ -221,7 +221,7 @@ function main() {
 if (import.meta.url === `file://${process.argv[1]}`) main();
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/zone-plan.mjs test-03` -> prints a summary line and writes `videos/test-03/zone-plan.json` with `approved: false`.
+**Verify**: `cd pipelines/video/visuals-flow && node lib/zone-plan.mjs test-03` -> prints a summary line and writes `videos/test-03/zone-plan.json` with `approved: false`.
 
 (test-03's conclusion is outside its 300s cut, so expect the intro zone populated and the conclusion zone empty. That is correct and is itself useful signal.)
 
@@ -229,7 +229,7 @@ if (import.meta.url === `file://${process.argv[1]}`) main();
 
 Add a `zone-plan)` case between `audit)` and `board)` that runs `node lib/zone-plan.mjs "$slug"`, and add a `zone-plan.json` line to the `status)` output showing `approved` state.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash run.sh test-03 zone-plan && bash run.sh test-03 status | grep -i zone` -> the verb runs and status shows the zone-plan state.
+**Verify**: `cd pipelines/video/visuals-flow && bash run.sh test-03 zone-plan && bash run.sh test-03 status | grep -i zone` -> the verb runs and status shows the zone-plan state.
 
 ### Step 3: Board tab
 
@@ -272,7 +272,7 @@ At the top of `render.mjs`'s main flow, refuse when the zone plan is unapproved 
 
 **Verify**:
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 node -e "const f='videos/test-03/zone-plan.json';const d=require('./'+f);d.approved=false;require('fs').writeFileSync(f,JSON.stringify(d,null,2))"
 node lib/render.mjs test-03 --only c01; echo "exit=$? (expect non-zero)"
 node lib/render.mjs test-03 --only c01 --force >/dev/null 2>&1; echo "force exit=$? (expect 0)"
@@ -290,17 +290,17 @@ Create `lib/zone-plan.test.mjs`:
 
 **`scripts/check.sh` enumerates its test files explicitly** — add `lib/zone-plan.test.mjs` or it never runs.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/zone-plan.test.mjs 2>&1 | tail -4` -> `# fail 0`, and `grep -c "zone-plan.test.mjs" scripts/check.sh` -> `1`
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/zone-plan.test.mjs 2>&1 | tail -4` -> `# fail 0`, and `grep -c "zone-plan.test.mjs" scripts/check.sh` -> `1`
 
 ### Step 6: Document the stage
 
 In `PIPELINE.md`, record the review model as four stages — **Zone Plan → Storyboard → Unattended Cut → Final Cut** — and note that re-running `zone-plan` after a cue change resets `approved` to false.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && grep -c "Zone Plan" PIPELINE.md` -> at least `1`
+**Verify**: `cd pipelines/video/visuals-flow && grep -c "Zone Plan" PIPELINE.md` -> at least `1`
 
 ### Step 7: Full gate
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh && node lib/zone-plan.mjs test-03` -> both exit 0
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh && node lib/zone-plan.mjs test-03` -> both exit 0
 
 ## Test plan
 
@@ -308,7 +308,7 @@ Five unit tests on the pure builder (Step 5) plus the live board check in Step 3
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 - [ ] `node lib/zone-plan.mjs test-03` writes `zone-plan.json` with both zones present
 - [ ] `node --test lib/zone-plan.test.mjs` reports `# fail 0`; `scripts/check.sh` lists it
 - [ ] the board serves a Zone Plan tab at `#zone-plan` with EXISTING / NEW badges — screenshot attached to the PR

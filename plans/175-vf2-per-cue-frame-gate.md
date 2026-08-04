@@ -2,13 +2,13 @@
 ---
 executor: agy
 model:                   # blank = agy default (Gemini 3.1 Pro High)
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh && node --test lib/frame-gate.test.mjs
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh && node --test lib/frame-gate.test.mjs
 ui: false
 deploy:
 needs: ["shares lib/lint-cues.mjs with plans 177 and 179 — expect append-region conflicts, boss resolves the concat. Plan 179 claims E-codes E14 and E15; this plan claims E12. Plan 178 covers the card-library side (card-qa variant coverage) and is complementary, not overlapping."]
 ---
 
-# Plan 175: vf2 per-cue frame gate — overflow + accent-visibility, wired into 040/090
+# Plan 175: visuals-flow per-cue frame gate — overflow + accent-visibility, wired into 040/090
 
 ## Summary
 
@@ -29,7 +29,7 @@ needs: ["shares lib/lint-cues.mjs with plans 177 and 179 — expect append-regio
 > done, update the status row in `plans/README.md`.
 >
 > **Drift check (run first)**:
-> `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow-2/lib pipelines/video/visuals-flow-2/run.sh pipelines/video/visuals-flow-2/scripts pipelines/video/card-library/scripts/overflow-probe.mjs`
+> `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow/lib pipelines/video/visuals-flow/run.sh pipelines/video/visuals-flow/scripts pipelines/video/card-library/scripts/overflow-probe.mjs`
 > If `lib/resolve.mjs`, `lib/render.mjs`, `run.sh`, or `overflow-probe.mjs` changed since 802e7078 in ways that contradict the excerpts below, STOP and report.
 
 ## Status
@@ -83,23 +83,23 @@ must pass the cue's `variables` through UNCHANGED, including the resolved `varia
 
 All paths relative to `pipelines/video/` unless noted.
 
-- `visuals-flow-2/lib/overflow-measure.mjs` — the single-source DOM overflow measurement. Exports `CANVAS = { W: 1920, H: 1080, TOL: 2 }` and `MEASURE_OVERFLOW_SRC` (stringified ES5 function `__measureOverflow()` returning `{ broken, offenders }`).
+- `visuals-flow/lib/overflow-measure.mjs` — the single-source DOM overflow measurement. Exports `CANVAS = { W: 1920, H: 1080, TOL: 2 }` and `MEASURE_OVERFLOW_SRC` (stringified ES5 function `__measureOverflow()` returning `{ broken, offenders }`).
 - `card-library/scripts/overflow-probe.mjs` — plan 168's machinery. Relevant exports:
-  - `probeCardVariant(cardSlug, variant, variables, times)` — copies the card dir to a temp dir, rewrites `data-composition-variables`, injects `window.__hyperframes.getVariables`, loads in cached puppeteer-core Chrome (via `resolveChrome()` → `npx hyperframes@latest browser path`), seeks `window.__timelines[0]` to each `t`, runs `__measureOverflow()`. Returns `{ broken, t?, offenders }`. `cardSlug` goes through `path.resolve(cardSlug)` — **absolute paths work**; that is how the new gate must call it (its cwd is visuals-flow-2, not card-library).
+  - `probeCardVariant(cardSlug, variant, variables, times)` — copies the card dir to a temp dir, rewrites `data-composition-variables`, injects `window.__hyperframes.getVariables`, loads in cached puppeteer-core Chrome (via `resolveChrome()` → `npx hyperframes@latest browser path`), seeks `window.__timelines[0]` to each `t`, runs `__measureOverflow()`. Returns `{ broken, t?, offenders }`. `cardSlug` goes through `path.resolve(cardSlug)` — **absolute paths work**; that is how the new gate must call it (its cwd is visuals-flow, not card-library).
   - `closeBrowser()` — idempotent; the module caches the browser and anything importing it MUST call this when done or `node --test` hangs forever after printing all oks (bitten 2026-07-30; comment in the file).
   - `probeTimes(card, vars)` — beat `at`s + midpoint + duration−1.
-- `visuals-flow-2/lib/resolve.mjs` — 040. `validateCues(cues, catalog, cardLibraryRoot, workdir)` collects `errors` (E-codes fail the step). Beats are resolved to absolute times and merged into card variables at ~line 372: `let vars = { ...cue.variables, ...(beats.length ? { beats } : {}) };` where each beat is `{ ...reveal, at }` with `at` **card-local seconds**.
-- `visuals-flow-2/lib/render.mjs` — 090. Per-cue `renderOne(cue)` stages the card into a temp dir, rewrites duration, `injectBrand()`, writes `vars.json`, spawns `npx hyperframes@0.7.62 render … -o outPath`, then caches via `hashRenderInputs`. Errors are pushed to an `errors` array that fails the run.
-- `visuals-flow-2/run.sh` — `resolve)` case at ~line 246 runs the resolve/lint; `render)` at ~line 288.
+- `visuals-flow/lib/resolve.mjs` — 040. `validateCues(cues, catalog, cardLibraryRoot, workdir)` collects `errors` (E-codes fail the step). Beats are resolved to absolute times and merged into card variables at ~line 372: `let vars = { ...cue.variables, ...(beats.length ? { beats } : {}) };` where each beat is `{ ...reveal, at }` with `at` **card-local seconds**.
+- `visuals-flow/lib/render.mjs` — 090. Per-cue `renderOne(cue)` stages the card into a temp dir, rewrites duration, `injectBrand()`, writes `vars.json`, spawns `npx hyperframes@0.7.62 render … -o outPath`, then caches via `hashRenderInputs`. Errors are pushed to an `errors` array that fails the run.
+- `visuals-flow/run.sh` — `resolve)` case at ~line 246 runs the resolve/lint; `render)` at ~line 288.
 - The **resolved artifact** is `videos/<slug>/resolved.json`: `{ resolved: [ { id, card, start, duration, variables, placement?, sideMode?, … } ] }`. `variables.beats[].at` are card-local. `variables.accent` is a plain string on kinetic-sentence-family cues.
 - Renders land in `videos/<slug>/renders/<mmss>-<id>-<cardbase>.<mp4|mov>` (gitignored).
 - **Why the accent check must read RENDERED frames, not puppeteer DOM** (verified experimentally 2026-07-31): the c20 accent bug does NOT reproduce in a browser page — puppeteer shows orange; only `hyperframes render --variables` output is white. A DOM probe would green-light exactly the bug class it exists to catch. The check therefore runs at 090 on the actual output file via ffmpeg.
-- `ffmpeg`/`ffprobe` are on PATH (used throughout this repo). `puppeteer-core` is a dependency of `card-library` (plan 168); visuals-flow-2 does NOT depend on it directly — the gate imports card-library's probe module by relative path, same pattern (reversed) as overflow-probe.mjs importing overflow-measure.mjs.
+- `ffmpeg`/`ffprobe` are on PATH (used throughout this repo). `puppeteer-core` is a dependency of `card-library` (plan 168); visuals-flow does NOT depend on it directly — the gate imports card-library's probe module by relative path, same pattern (reversed) as overflow-probe.mjs importing overflow-measure.mjs.
 - Exemplar test file for teardown-safe suites: `card-library/scripts/overflow-probe.test.mjs` (uses `after(closeBrowser)`).
 
 ## Commands you will need
 
-Run from `pipelines/video/visuals-flow-2/` unless noted:
+Run from `pipelines/video/visuals-flow/` unless noted:
 
 - `bash scripts/check.sh` — the v2 gate. Expected now: green (456 node-test passes + rulebook/run.sh/board checks).
 - `node --test lib/frame-gate.test.mjs` — the new suite (created by this plan). Must exit; a hang is a failure.
@@ -110,13 +110,13 @@ Run from `pipelines/video/visuals-flow-2/` unless noted:
 ## Scope
 
 **In scope (the only files to touch):**
-- `pipelines/video/visuals-flow-2/lib/frame-gate.mjs` (new)
-- `pipelines/video/visuals-flow-2/lib/frame-gate.test.mjs` (new)
-- `pipelines/video/visuals-flow-2/lib/resolve.mjs` (wire E12)
-- `pipelines/video/visuals-flow-2/lib/render.mjs` (wire accent check)
-- `pipelines/video/visuals-flow-2/run.sh` (pass-through only if needed; prefer zero changes)
-- `pipelines/video/visuals-flow-2/scripts/check.sh` (add the new test file to the existing `node --test` list — one line)
-- `pipelines/video/visuals-flow-2/tests/TESTS.md` (one dated line)
+- `pipelines/video/visuals-flow/lib/frame-gate.mjs` (new)
+- `pipelines/video/visuals-flow/lib/frame-gate.test.mjs` (new)
+- `pipelines/video/visuals-flow/lib/resolve.mjs` (wire E12)
+- `pipelines/video/visuals-flow/lib/render.mjs` (wire accent check)
+- `pipelines/video/visuals-flow/run.sh` (pass-through only if needed; prefer zero changes)
+- `pipelines/video/visuals-flow/scripts/check.sh` (add the new test file to the existing `node --test` list — one line)
+- `pipelines/video/visuals-flow/tests/TESTS.md` (one dated line)
 
 **Out of scope (do NOT touch):**
 - `card-library/scripts/overflow-probe.mjs` — consumed as-is; if its API seems wrong, STOP.
@@ -128,7 +128,7 @@ Run from `pipelines/video/visuals-flow-2/` unless noted:
 
 ### Step 1 — `lib/frame-gate.mjs`: per-cue overflow probe over resolved.json
 
-Create `pipelines/video/visuals-flow-2/lib/frame-gate.mjs` with exactly this content (adjust only if an import path fails at verify):
+Create `pipelines/video/visuals-flow/lib/frame-gate.mjs` with exactly this content (adjust only if an import path fails at verify):
 
 ```js
 import path from 'node:path';
@@ -275,7 +275,7 @@ Add the file to the `node --test` invocation in `scripts/check.sh` next to the e
 ### Step 5 — record + fresh-checkout gate
 
 - Append one dated line to `tests/TESTS.md` under **Folded lessons**: `- 2026-07-31 — plan 175: the overflow probe became a per-cue GATE (E12 at 040, real variables at real beat times) and 090 gained the accent-visibility frame check (render-only color loss class). Badge → gate, per owner RCA 2026-07-30.`
-- **Fresh-checkout run** (this is the batch's last plan): from a clean worktree of the repo (`git worktree add /tmp/wt-175 HEAD` or equivalent), run `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` and confirm green with zero manually-built artifacts. Remove the worktree after.
+- **Fresh-checkout run** (this is the batch's last plan): from a clean worktree of the repo (`git worktree add /tmp/wt-175 HEAD` or equivalent), run `cd pipelines/video/visuals-flow && bash scripts/check.sh` and confirm green with zero manually-built artifacts. Remove the worktree after.
 
 **Verify:** both commands above; check.sh green on the fresh tree.
 
@@ -285,7 +285,7 @@ Covered in Step 4 (three tests + teardown). The can-fail verifies in Steps 2–3
 
 ## Done criteria (machine-checkable)
 
-1. `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` → exit 0, output includes the frame-gate test file's passes.
+1. `cd pipelines/video/visuals-flow && bash scripts/check.sh` → exit 0, output includes the frame-gate test file's passes.
 2. `timeout 300 node --test lib/frame-gate.test.mjs; echo exit=$?` → `exit=0` (proves no hang).
 3. Step 2's can-fail experiment produced an `E12 frame-gate: c04` error before the file was restored (paste the line into the run log), and `git status --porcelain videos/` is empty afterward.
 4. `bash run.sh opusclip-vs-submagic resolve` → exit 0, no E12 lines.

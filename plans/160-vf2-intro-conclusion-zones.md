@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: false
 deploy:
 needs: [plan 159 writes the `structure` field this reads; plan 156 owns W12/W13 which this retargets]
@@ -28,7 +28,7 @@ needs: [plan 159 writes the `structure` field this reads; plan 156 owns W12/W13 
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 12646f6..HEAD -- pipelines/video/visuals-flow-2/lib/lint-cues.mjs pipelines/video/visuals-flow-2/lib/cue-rules.mjs`
+> **Drift check (run first)**: `git diff --stat 12646f6..HEAD -- pipelines/video/visuals-flow/lib/lint-cues.mjs pipelines/video/visuals-flow/lib/cue-rules.mjs`
 
 ## Status
 
@@ -89,19 +89,19 @@ That fixed 15s was a stand-in precisely because the real intro bounds were unkno
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Full gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
-| Lint tests | `cd pipelines/video/visuals-flow-2 && node --test lib/lint-cues.test.mjs` | all pass |
-| Lint test-03 | `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03` | warnings, exit 0 |
-| Rebuild prompt | `cd pipelines/video/visuals-flow-2 && node lib/build-prompt.mjs && node lib/check-rulebook.mjs` | `rulebook ok` |
+| Full gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
+| Lint tests | `cd pipelines/video/visuals-flow && node --test lib/lint-cues.test.mjs` | all pass |
+| Lint test-03 | `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03` | warnings, exit 0 |
+| Rebuild prompt | `cd pipelines/video/visuals-flow && node lib/build-prompt.mjs && node lib/check-rulebook.mjs` | `rulebook ok` |
 
 ## Scope
 
 **In scope**:
-- `pipelines/video/visuals-flow-2/lib/lint-cues.mjs`
-- `pipelines/video/visuals-flow-2/lib/cue-rules.mjs`
-- `pipelines/video/visuals-flow-2/lib/lint-cues.test.mjs`
-- `pipelines/video/visuals-flow-2/steps/020-cue-pass-llm/cue-pass-prompt.md` (regenerated only)
-- `pipelines/video/visuals-flow-2/lib/build-prompt.mjs` (only if the structure must be surfaced to the prompt — see Step 1)
+- `pipelines/video/visuals-flow/lib/lint-cues.mjs`
+- `pipelines/video/visuals-flow/lib/cue-rules.mjs`
+- `pipelines/video/visuals-flow/lib/lint-cues.test.mjs`
+- `pipelines/video/visuals-flow/steps/020-cue-pass-llm/cue-pass-prompt.md` (regenerated only)
+- `pipelines/video/visuals-flow/lib/build-prompt.mjs` (only if the structure must be surfaced to the prompt — see Step 1)
 
 **Out of scope**:
 - **Any required slot / formula for the intro.** Explicitly forbidden by the owner. No rule may say "the intro must contain a hook card", "must contain a promise card", or enumerate required card types for a zone.
@@ -112,7 +112,7 @@ That fixed 15s was a stand-in precisely because the real intro bounds were unkno
 ## Git workflow
 
 - Branch: `advisor/160-vf2-intro-conclusion-zones`
-- Commit: `feat(vf2): intro and conclusion become high-stakes zones for cueing and lint` — no AI footers. Do NOT push.
+- Commit: `feat(visuals-flow): intro and conclusion become high-stakes zones for cueing and lint` — no AI footers. Do NOT push.
 
 ## Steps
 
@@ -144,7 +144,7 @@ In `lib/cue-rules.mjs`, after `R_OPENING` (added by plan 156), add:
 
 Then regenerate.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/build-prompt.mjs && node lib/check-rulebook.mjs && grep -c "carry the most weight" steps/020-cue-pass-llm/cue-pass-prompt.md` -> `rulebook ok` then `1`
+**Verify**: `cd pipelines/video/visuals-flow && node lib/build-prompt.mjs && node lib/check-rulebook.mjs && grep -c "carry the most weight" steps/020-cue-pass-llm/cue-pass-prompt.md` -> `rulebook ok` then `1`
 
 ### Step 3: Retarget W12 to the measured intro
 
@@ -157,7 +157,7 @@ In `lib/lint-cues.mjs`, change plan 156's W12 so its window is the intro span fr
 
 Keep the rest of the W12 block as plan 156 wrote it, and keep `OPENING_HOST_MIN` as the minimum free time. Update the warning text to say `the intro` rather than `the first Ns` when the measured span was used.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03 2>&1 | grep "W12"` -> one line referring to the intro
+**Verify**: `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03 2>&1 | grep "W12"` -> one line referring to the intro
 
 ### Step 4: Add W14 zone-underserved
 
@@ -177,7 +177,7 @@ After the W13 block, add:
   }
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03 2>&1 | grep -c "W14 zone-underserved"` -> `1` (test-03's conclusion is outside its 300s cut, so it has no cues)
+**Verify**: `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03 2>&1 | grep -c "W14 zone-underserved"` -> `1` (test-03's conclusion is outside its 300s cut, so it has no cues)
 
 ### Step 5: Tests
 
@@ -189,11 +189,11 @@ Append to `lib/lint-cues.test.mjs`, reusing the file's existing argument-buildin
 4. W12 uses the measured intro end when `structure` is present (a cue covering 0–100s of a 117s intro leaves under `OPENING_HOST_MIN` free -> fires)
 5. W12 falls back to `HOST_VISIBLE_BY` when `structure` is absent (no crash, previous behaviour)
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/lint-cues.test.mjs 2>&1 | tail -4` -> `# fail 0`
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/lint-cues.test.mjs 2>&1 | tail -4` -> `# fail 0`
 
 ### Step 6: Full gate
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` -> exit 0, ends `visuals-flow check OK`
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh` -> exit 0, ends `visuals-flow check OK`
 
 ## Test plan
 
@@ -201,7 +201,7 @@ Five unit tests (Step 5), weighted toward the negative cases — a lint that fir
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 - [ ] `node --test lib/lint-cues.test.mjs` reports `# fail 0`
 - [ ] the rendered cue-pass prompt contains `VIDEO STRUCTURE` and the `R_ZONES` rule text
 - [ ] `node lib/lint-cues.mjs test-03` prints one `W14` line naming the conclusion

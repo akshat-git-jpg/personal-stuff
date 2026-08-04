@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
 needs: [after 134-vf2-scaffold]
@@ -24,7 +24,7 @@ needs: [after 134-vf2-scaffold]
 > anything in the "STOP conditions" section occurs, stop and report. Do NOT
 > edit `plans/README.md`; report status in your run summary.
 >
-> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow-2/steps pipelines/video/visuals-flow-2/lib`
+> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow/steps pipelines/video/visuals-flow/lib`
 
 ## Status
 
@@ -40,7 +40,7 @@ needs: [after 134-vf2-scaffold]
 
 Loop Studio's craft comes from front-loading judgment: name the ONE core idea + a recurring motif BEFORE authoring, then make every graphic DO the idea (creative-standard "Law 0" + the 10 laws), gated by a falsifiable self-audit ("mute the audio, hide captions — do the moving objects still communicate?"). visuals-flow's advantage is that its rules are machine-enforced. This plan ports the doctrine INTO that enforcement: the concept is a linted artifact, registers are validated data, and the audit is a cheap LLM pass whose output the board surfaces. Reference for the plan author was `~/.claude-personal/skills/loop-studio/editors/creative-standard.md` (proprietary — ideas ported, no text copied).
 
-## Current state (paths in `pipelines/video/visuals-flow-2/`)
+## Current state (paths in `pipelines/video/visuals-flow/`)
 
 - LLM steps are prompt files the session fills and pastes: `steps/020-cue-pass-llm/cue-pass-prompt.md` opens with a schema block, then `<!-- BEGIN GENERATED CONSTRAINTS ... -->` rendered by `node lib/build-prompt.mjs` from `lib/cue-constants.mjs`; `lib/check-rulebook.mjs` fails when they drift. `run.sh cue-pass` prints prompt-assembly instructions (see the `cue-pass)` case in run.sh — mirror that pattern for new verbs).
 - `cues.json` schema is owned by `PIPELINE.md` ("change it in one place only"). Cue fields today: id, card, anchor, lead, hold, variables, beats[], flagged.
@@ -51,13 +51,13 @@ Loop Studio's craft comes from front-loading judgment: name the ONE core idea + 
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| Gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | Rulebook sync | `node lib/build-prompt.mjs && node lib/check-rulebook.mjs` | exit 0 |
 | Verb smoke | `bash run.sh test concept-pass` | prints prompt-assembly instructions, exit 0 |
 
 ## Scope
 
-**In scope** (all in `pipelines/video/visuals-flow-2/`):
+**In scope** (all in `pipelines/video/visuals-flow/`):
 - `steps/018-concept-pass-llm/` (new: README.md + concept-pass-prompt.md)
 - `steps/035-cue-audit-llm/` (new: README.md + audit-prompt.md)
 - `lib/lint-concept.mjs` + test (new); `lib/lint-cues.mjs`, `lib/cue-constants.mjs`, `lib/lint.test.mjs`
@@ -161,7 +161,7 @@ Fixture-driven `node --test` for lint-concept and the new E8/W8 rules; run.sh sm
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` → exit 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` → exit 0
 - [ ] `ls steps/018-concept-pass-llm steps/035-cue-audit-llm` → prompt + README each
 - [ ] `bash run.sh x concept-pass; bash run.sh x audit` → both print instructions, exit 0
 - [ ] `grep -n "E8\|W8" lib/lint-cues.mjs` → both present; `node lib/check-rulebook.mjs` → exit 0

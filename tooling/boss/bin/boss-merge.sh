@@ -89,7 +89,7 @@ branch_slug=$(echo "$branch" | tr '/' '-' | tr -cd 'a-zA-Z0-9-')
 ttl=$(meta_get "$pr" test_timeout); ttl="${ttl:-600}"
 tbin=$(boss_timeout_bin) || { echo "FATAL: no gtimeout/timeout on PATH — brew install coreutils" >&2; exit 1; }
 verify="$tbin -k 30 ${ttl}s bash -c $(printf '%q' "$test_cmd")"
-# Serialize browser-driving work. Every vf2/card-library test_cmd launches
+# Serialize browser-driving work. Every visuals-flow/card-library test_cmd launches
 # headless Chrome; PR#134 lost a merge cycle to "Chrome dump-dom timeout on
 # #card-plan" with 44 chrome processes live because a crew was rendering at the
 # same time. Wait for live crews to finish, then hold the lock across the verify.

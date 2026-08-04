@@ -1,18 +1,18 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
 needs: []
 ---
 
-# Plan 134: visuals-flow-2 scaffold — copy the v1 spine, prove parity
+# Plan 134: visuals-flow scaffold — copy the v1 spine, prove parity
 
 ## Summary
 
-- **Problem statement**: visuals-flow v2 (spec `docs/specs/2026-07-24-visuals-flow-v2-design.md`) lives in a NEW folder `pipelines/video/visuals-flow-2/` per owner decision (decisions.md 2026-07-24), but that folder doesn't exist. Every later v2 plan (135–141) depends on this scaffold.
-- **Goals**: copy the tracked v1 machinery into `visuals-flow-2/`, empty the `videos/` workdirs, retarget kb-scratch output paths to `visuals-flow-2`, and prove the copy is healthy by its own test gate.
+- **Problem statement**: visuals-flow v2 (spec `docs/specs/2026-07-24-visuals-flow-v2-design.md`) lives in a NEW folder `pipelines/video/visuals-flow/` per owner decision (decisions.md 2026-07-24), but that folder doesn't exist. Every later v2 plan (135–141) depends on this scaffold.
+- **Goals**: copy the tracked v1 machinery into `visuals-flow/`, empty the `videos/` workdirs, retarget kb-scratch output paths to `visuals-flow`, and prove the copy is healthy by its own test gate.
 - **Executor proposed**: agy (Gemini 3.1 Pro High, agy default) — mechanical.
 - **Done criteria**: `bash scripts/check.sh` exits 0 inside the new folder; no `kb-scratch/video/visuals-flow` (without `-2`) path string remains; `videos/` contains only `.gitkeep`.
 - **Stop conditions**: v1's own check.sh already red before copying; any file needing changes outside the two in-scope roots.
@@ -25,7 +25,7 @@ needs: []
 > done, update the status row in `plans/README.md` — NO: plan branches never
 > edit `plans/README.md` (boss rule); report status in your run summary instead.
 >
-> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow pipelines/video/visuals-flow`
 
 ## Status
 
@@ -49,7 +49,7 @@ Owner decision (decisions.md 2026-07-24): v2 evolves in a new folder so v1 stays
   ```js
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
   ```
-  `visuals-flow-2/` sits at the same depth, so relative paths keep working unchanged.
+  `visuals-flow/` sits at the same depth, so relative paths keep working unchanged.
 - Generated media goes to kb-scratch; `lib/assemble.mjs` (near line 39) roots it at:
   ```js
   ?? path.join(os.homedir(), 'kb-scratch', 'video', 'visuals-flow');
@@ -62,12 +62,12 @@ Owner decision (decisions.md 2026-07-24): v2 evolves in a new folder so v1 stays
 |---|---|---|
 | Baseline gate (v1) | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0, `visuals-flow check OK` |
 | List tracked v1 files | `git -C pipelines/video/visuals-flow ls-files` | file list |
-| New gate (v2) | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| New gate (v2) | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 
 ## Scope
 
 **In scope**:
-- `pipelines/video/visuals-flow-2/**` (new)
+- `pipelines/video/visuals-flow/**` (new)
 - reading `pipelines/video/visuals-flow/**` (never modified)
 
 **Out of scope**:
@@ -92,24 +92,24 @@ Owner decision (decisions.md 2026-07-24): v2 evolves in a new folder so v1 stays
 From `pipelines/video/`:
 
 ```bash
-mkdir -p visuals-flow-2
+mkdir -p visuals-flow
 git -C visuals-flow ls-files | grep -v '^videos/' | while IFS= read -r f; do
-  mkdir -p "visuals-flow-2/$(dirname "$f")"; cp "visuals-flow/$f" "visuals-flow-2/$f";
+  mkdir -p "visuals-flow/$(dirname "$f")"; cp "visuals-flow/$f" "visuals-flow/$f";
 done
-mkdir -p visuals-flow-2/videos && touch visuals-flow-2/videos/.gitkeep
+mkdir -p visuals-flow/videos && touch visuals-flow/videos/.gitkeep
 ```
 
-**Verify**: `diff <(git -C visuals-flow ls-files | grep -v '^videos/') <(cd visuals-flow-2 && find . -type f ! -path './videos/*' | sed 's|^\./||' | sort)` → empty output (plus `videos/.gitkeep` existing).
+**Verify**: `diff <(git -C visuals-flow ls-files | grep -v '^videos/') <(cd visuals-flow && find . -type f ! -path './videos/*' | sed 's|^\./||' | sort)` → empty output (plus `videos/.gitkeep` existing).
 
-### Step 3: Retarget kb-scratch paths to visuals-flow-2
+### Step 3: Retarget kb-scratch paths to visuals-flow
 
-In `visuals-flow-2/` only: `grep -rn "kb-scratch" lib scripts steps *.md run.sh` and change every path whose subfolder is `video/visuals-flow` to `video/visuals-flow-2` (e.g. the `lib/assemble.mjs` OUT_ROOT line quoted above). Leave `video/heygen/visuals-flow/...` avatar-clip paths AS-IS in this plan only if they appear — actually change those too, to `video/heygen/visuals-flow-2/`, so v2 avatar clips are also separated. Do NOT touch `../card-library` relative imports.
+In `visuals-flow/` only: `grep -rn "kb-scratch" lib scripts steps *.md run.sh` and change every path whose subfolder is `video/visuals-flow` to `video/visuals-flow` (e.g. the `lib/assemble.mjs` OUT_ROOT line quoted above). Leave `video/heygen/visuals-flow/...` avatar-clip paths AS-IS in this plan only if they appear — actually change those too, to `video/heygen/visuals-flow/`, so v2 avatar clips are also separated. Do NOT touch `../card-library` relative imports.
 
-**Verify**: `grep -rn "video/visuals-flow'" visuals-flow-2/lib | grep -v "visuals-flow-2"` → no output; same grep for `"video/visuals-flow\"` and `video/visuals-flow/` → no v1-pathed hits.
+**Verify**: `grep -rn "video/visuals-flow'" visuals-flow/lib | grep -v "visuals-flow"` → no output; same grep for `"video/visuals-flow\"` and `video/visuals-flow/` → no v1-pathed hits.
 
 ### Step 4: Run the v2 gate
 
-`cd pipelines/video/visuals-flow-2 && bash scripts/check.sh`
+`cd pipelines/video/visuals-flow && bash scripts/check.sh`
 
 **Verify**: exit 0, `visuals-flow check OK`. Also `bash run.sh nosuchslug status` → prints `no workdir: videos/nosuchslug`, exit 1.
 
@@ -119,15 +119,15 @@ No new tests — the copied suite IS the test. The gate proves lib integrity, ru
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` → exit 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` → exit 0
 - [ ] `git status --short pipelines/video/visuals-flow` → empty (v1 untouched)
-- [ ] `ls pipelines/video/visuals-flow-2/videos/` → only `.gitkeep`
+- [ ] `ls pipelines/video/visuals-flow/videos/` → only `.gitkeep`
 - [ ] Step 3's greps show no un-suffixed kb-scratch visuals-flow paths
 
 ## STOP conditions
 
 - v1's `scripts/check.sh` fails at Step 1 (pre-existing red — not yours to fix).
-- Any needed edit outside `pipelines/video/visuals-flow-2/`.
+- Any needed edit outside `pipelines/video/visuals-flow/`.
 - A copied test fails and the fix would change test semantics rather than a path string.
 
 ## Maintenance notes

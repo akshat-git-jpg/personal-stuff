@@ -9,7 +9,7 @@ presenter's face composed INTO the design rather than laid over footage.
 
 ## The one hard rule
 
-**Never edit `../visuals-flow-2/` or `../card-library/` from here.** This
+**Never edit `../visuals-flow/` or `../card-library/` from here.** This
 pipeline exists so the owner can evaluate a new intro approach with zero risk
 to the working pipeline. The two systems meet at exactly one place: this one
 emits `videos/<slug>/out/intro.mp4`, and the owner drops that file into their

@@ -2,7 +2,7 @@
 ---
 executor: agy
 model:                   # blank = agy default (Gemini 3.1 Pro High)
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
                          # after this plan, check.sh's board suite asserts the SPA-served /
                          # (redirect, title, API) and the smoke asserts all four tabs of the
                          # final board — the gate fails on a broken cutover.
@@ -32,7 +32,7 @@ needs: ["173"]
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow-2/`
+> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow/`
 > Plans 169–173 must be merged. If not, STOP.
 
 ## Status
@@ -60,7 +60,7 @@ This plan delivers the owner's problems #1 and #2 end-to-end: after it, every ta
 ## Commands you will need
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 (cd board-ui && npx vitest run) && (cd board-ui && npm run build)
 node scripts/board-ui-smoke.mjs
 node --test lib/board.test.mjs
@@ -76,7 +76,7 @@ node lib/board.mjs test-01     # manual: http://localhost:4322/?video=test-01#fi
 - `lib/board.test.mjs` (disposition table below)
 - `scripts/board-ui-smoke.mjs` (final-cut + calibrate + post-cutover `/` assertions)
 - `steps/080-approve-storyboard-human/run.sh` (build-if-stale)
-- `decisions.md` (visuals-flow-2's — append the cutover entry), `PIPELINE.md` + `README.md` (board references)
+- `decisions.md` (visuals-flow's — append the cutover entry), `PIPELINE.md` + `README.md` (board references)
 - `board-ui/test/fcTransport.test.ts` (new)
 
 **Out of scope (do NOT touch):** every server data endpoint's request/response shape; `lib/board-data.mjs`; `lib/board-api.test.mjs`; `scripts/check.sh`; `videos/**`; `card-library/**`.
@@ -120,7 +120,7 @@ node lib/board.mjs test-01     # manual: http://localhost:4322/?video=test-01#fi
    | 1611 reviewed ticks | REWRITE into smoke: `data-rid="sb:` and `data-rid="cp:` present; localStorage key literal `board:reviewed:` appears in the bundle is NOT assertable — instead vitest `reviewed.ts` already pins the key (plan 171) |
    | 1640/1669/1688 picker/URL family | REWRITE: 302 redirect test stays (server); "both pickers navigate" becomes ONE picker — smoke asserts exactly one `#videoPicker` across all tabs; URL-wins is vitest on `videoFromSearch` + smoke fixture (`?video=` renders that video's name in the header) |
 6. **Smoke additions**: `#final-cut` — `Approve final cut` INSIDE `.action-slot`; `#videoPicker` present; `#fc-transport` and `#fc-scrub` present; comments panel does NOT contain an approve button. `#calibrate` — ≥1 calibrate tile. Post-cutover `/`: `curl` 302 without `?video=`, 200 with, body contains `id="root"`; `/list?video=x` → 302 Location `/?video=x#storyboard`.
-7. **Docs**: vf2 `decisions.md` — dated entry: board UI rewritten as React/Vite SPA (`board-ui/`), owner decision 2026-07-30, one shared header/action-slot, legacy server-rendered pages deleted, server API unchanged. `PIPELINE.md`/`README.md`: any `/list` or board-usage references updated (grep `rg -n "board|/list" PIPELINE.md README.md` and fix what's stale).
+7. **Docs**: visuals-flow `decisions.md` — dated entry: board UI rewritten as React/Vite SPA (`board-ui/`), owner decision 2026-07-30, one shared header/action-slot, legacy server-rendered pages deleted, server API unchanged. `PIPELINE.md`/`README.md`: any `/list` or board-usage references updated (grep `rg -n "board|/list" PIPELINE.md README.md` and fix what's stale).
 8. **Full verification**: `bash scripts/check.sh` → exit 0. Screenshot ALL FOUR tabs at 1400×1000 on test-01 into `.test-tmp/board-ui-smoke/` and attach to the PR; the smoke's y-stability assertion output (tabs.y/slot.y identical) quoted in the PR body — this is the redesign's acceptance proof.
 
 ## Test plan
@@ -130,7 +130,7 @@ Disposition table (step 5) + smoke extensions (step 6) + `fcTransport.test.ts`. 
 ## Done criteria (machine-checkable)
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 bash scripts/check.sh                                     # exit 0
 node scripts/board-ui-smoke.mjs                           # 'board-ui smoke OK' — all four tabs + cutover
 rtk proxy grep -c "renderTimelinePage\|renderBoardPage\|SAVE_ACTIONS_JS" lib/board.mjs   # 0 (or grep exits 1)
@@ -147,6 +147,6 @@ Plus the four-tab screenshot set + y-stability numbers in the PR.
 
 ## Maintenance notes
 
-- After this plan the legacy board is GONE — a future "why does /list 302" question is answered by the vf2 decisions.md entry this plan writes.
+- After this plan the legacy board is GONE — a future "why does /list 302" question is answered by the visuals-flow decisions.md entry this plan writes.
 - The smoke script is now the board's rendered-truth gate; when adding a tab or control, add its assertion there in the same PR.
 - `board-ui/dist` is build output: gitignored, rebuilt by steps/080 on staleness. If the board looks stale after a pull, `cd board-ui && npm run build`.

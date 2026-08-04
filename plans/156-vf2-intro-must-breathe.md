@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: false
 deploy:
 needs: [plan 155 introduces MAX_FULLFRAME_ONSCREEN which W13 reads — land 155 first]
@@ -27,7 +27,7 @@ needs: [plan 155 introduces MAX_FULLFRAME_ONSCREEN which W13 reads — land 155 
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 64a151b..HEAD -- pipelines/video/visuals-flow-2/lib/lint-cues.mjs pipelines/video/visuals-flow-2/lib/cue-constants.mjs pipelines/video/visuals-flow-2/lib/cue-rules.mjs`
+> **Drift check (run first)**: `git diff --stat 64a151b..HEAD -- pipelines/video/visuals-flow/lib/lint-cues.mjs pipelines/video/visuals-flow/lib/cue-constants.mjs pipelines/video/visuals-flow/lib/cue-rules.mjs`
 
 ## Status
 
@@ -43,7 +43,7 @@ needs: [plan 155 introduces MAX_FULLFRAME_ONSCREEN which W13 reads — land 155 
 
 The intro is the part of a tutorial that decides whether anyone watches the rest, and right now it is the weakest-directed stretch in the video. The owner's ask was to make the intro "literally the best". The measurement says the problem is not the card designs — it is that nothing changes on screen and the human never appears.
 
-Measured on `~/kb-scratch/video/visuals-flow-2/test-03/versions/v3.mp4`, mean frame-to-frame delta per second over the opening:
+Measured on `~/kb-scratch/video/visuals-flow/test-03/versions/v3.mp4`, mean frame-to-frame delta per second over the opening:
 
 | Window | Card | Mean delta | Reality |
 |---|---|---|---|
@@ -57,7 +57,7 @@ These are gates, not hints, for the reason recorded in `plans/runs/LESSONS.md` (
 
 ## Current state
 
-**`pipelines/video/visuals-flow-2/lib/lint-cues.mjs`** — the cue linter. Signature (line 30):
+**`pipelines/video/visuals-flow/lib/lint-cues.mjs`** — the cue linter. Signature (line 30):
 
 ```js
 export function lintCues({ cuesFile, resolved, words, catalog, segmentsData, manifest, conceptData }) {
@@ -75,9 +75,9 @@ An existing warning, verbatim, as the shape to imitate (line 216):
 
 `resolved` entries carry `{ id, card, start, duration, placement }`. The per-cue authored fields (including `beats`) live in `cuesFile.cues`; the linter already builds a lookup — read how `byId` is constructed near line 62 and reuse it rather than building a second map.
 
-**`pipelines/video/visuals-flow-2/lib/cue-constants.mjs`** — `{ value, rule }` entries. Existing relevant values: `BEAT_GAP_MAX` 15, `GAP_FULLFRAME_MIN` 12, `NARRATION_BARE_GAP_MAX` 20, `ZONE_END` 20. Plan 155 adds `MAX_FULLFRAME_ONSCREEN` 12.
+**`pipelines/video/visuals-flow/lib/cue-constants.mjs`** — `{ value, rule }` entries. Existing relevant values: `BEAT_GAP_MAX` 15, `GAP_FULLFRAME_MIN` 12, `NARRATION_BARE_GAP_MAX` 20, `ZONE_END` 20. Plan 155 adds `MAX_FULLFRAME_ONSCREEN` 12.
 
-**`pipelines/video/visuals-flow-2/lib/cue-rules.mjs`** — routing rules as `{ rule, why }`. `lib/build-prompt.mjs` renders `r.rule` (not the key) into `steps/020-cue-pass-llm/cue-pass-prompt.md` between generated markers; `lib/check-rulebook.mjs` fails if the prompt is stale. There is already an `R_COLD_OPEN_ZONE` entry reading *"Cold-open beat allowed in the first 15s (this zone stays sparse — W6 does not police it)"* — the new rule complements it and must not contradict it.
+**`pipelines/video/visuals-flow/lib/cue-rules.mjs`** — routing rules as `{ rule, why }`. `lib/build-prompt.mjs` renders `r.rule` (not the key) into `steps/020-cue-pass-llm/cue-pass-prompt.md` between generated markers; `lib/check-rulebook.mjs` fails if the prompt is stale. There is already an `R_COLD_OPEN_ZONE` entry reading *"Cold-open beat allowed in the first 15s (this zone stays sparse — W6 does not police it)"* — the new rule complements it and must not contradict it.
 
 **The two real offenders in `videos/test-03`** (current `resolved.json` + `cues.json`):
 
@@ -94,20 +94,20 @@ Both exceed 12s with no beats. c01 also covers the whole opening, leaving 0.6s o
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Full gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0, `visuals-flow check OK` |
-| Lint tests only | `cd pipelines/video/visuals-flow-2 && node --test lib/lint-cues.test.mjs` | all pass |
-| Lint test-03 | `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03` | warnings printed, exit 0 |
-| Rebuild prompt | `cd pipelines/video/visuals-flow-2 && node lib/build-prompt.mjs` | `prompt constraints up to date` |
-| Rulebook gate | `cd pipelines/video/visuals-flow-2 && node lib/check-rulebook.mjs` | `rulebook ok` |
+| Full gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0, `visuals-flow check OK` |
+| Lint tests only | `cd pipelines/video/visuals-flow && node --test lib/lint-cues.test.mjs` | all pass |
+| Lint test-03 | `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03` | warnings printed, exit 0 |
+| Rebuild prompt | `cd pipelines/video/visuals-flow && node lib/build-prompt.mjs` | `prompt constraints up to date` |
+| Rulebook gate | `cd pipelines/video/visuals-flow && node lib/check-rulebook.mjs` | `rulebook ok` |
 
 ## Scope
 
 **In scope**:
-- `pipelines/video/visuals-flow-2/lib/cue-constants.mjs`
-- `pipelines/video/visuals-flow-2/lib/lint-cues.mjs`
-- `pipelines/video/visuals-flow-2/lib/cue-rules.mjs`
-- `pipelines/video/visuals-flow-2/lib/lint-cues.test.mjs`
-- `pipelines/video/visuals-flow-2/steps/020-cue-pass-llm/cue-pass-prompt.md` (regenerated only, never hand-edited)
+- `pipelines/video/visuals-flow/lib/cue-constants.mjs`
+- `pipelines/video/visuals-flow/lib/lint-cues.mjs`
+- `pipelines/video/visuals-flow/lib/cue-rules.mjs`
+- `pipelines/video/visuals-flow/lib/lint-cues.test.mjs`
+- `pipelines/video/visuals-flow/steps/020-cue-pass-llm/cue-pass-prompt.md` (regenerated only, never hand-edited)
 
 **Out of scope**:
 - `lib/resolve.mjs` — plan 155 owns exposure. This plan only *observes* durations.
@@ -118,7 +118,7 @@ Both exceed 12s with no beats. c01 also covers the whole opening, leaving 0.6s o
 ## Git workflow
 
 - Branch: `advisor/156-vf2-intro-must-breathe`
-- Commit: `feat(vf2): W12 opening-host-coverage + W13 frozen-fullframe lints` — no AI footers. Do NOT push.
+- Commit: `feat(visuals-flow): W12 opening-host-coverage + W13 frozen-fullframe lints` — no AI footers. Do NOT push.
 
 ## Steps
 
@@ -137,7 +137,7 @@ In `lib/cue-constants.mjs`, add (match the existing `{ value, rule }` shape):
   },
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node -e "import('./lib/cue-constants.mjs').then(m=>console.log(m.CUE_CONSTANTS.HOST_VISIBLE_BY.value, m.CUE_CONSTANTS.OPENING_HOST_MIN.value))"` -> `15 3`
+**Verify**: `cd pipelines/video/visuals-flow && node -e "import('./lib/cue-constants.mjs').then(m=>console.log(m.CUE_CONSTANTS.HOST_VISIBLE_BY.value, m.CUE_CONSTANTS.OPENING_HOST_MIN.value))"` -> `15 3`
 
 ### Step 2: Add W12 opening-host-coverage
 
@@ -173,7 +173,7 @@ In `lib/lint-cues.mjs`, after the `W11 section-footage` block, add:
   }
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03 2>&1 | grep -c "W12 opening-host-coverage"` -> `1`
+**Verify**: `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03 2>&1 | grep -c "W12 opening-host-coverage"` -> `1`
 
 ### Step 3: Add W13 frozen-fullframe
 
@@ -201,7 +201,7 @@ Immediately after the W12 block, add:
 
 If the linter's existing lookup is not named `byId`, use whatever it is called — read lines ~60–70 first. Do not build a second map.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03 2>&1 | grep "W13 frozen-fullframe"` -> two lines, naming `c01` and `c02`
+**Verify**: `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03 2>&1 | grep "W13 frozen-fullframe"` -> two lines, naming `c01` and `c02`
 
 ### Step 4: Add the rulebook entry
 
@@ -216,7 +216,7 @@ In `lib/cue-rules.mjs`, add after `R_NO_IDLE`:
 
 Then regenerate the prompt.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/build-prompt.mjs && node lib/check-rulebook.mjs && grep -c "The opening must breathe" steps/020-cue-pass-llm/cue-pass-prompt.md` -> `rulebook ok` then `1`
+**Verify**: `cd pipelines/video/visuals-flow && node lib/build-prompt.mjs && node lib/check-rulebook.mjs && grep -c "The opening must breathe" steps/020-cue-pass-llm/cue-pass-prompt.md` -> `rulebook ok` then `1`
 
 (Note: the generated prompt contains the rule TEXT, not the key `R_OPENING`. Grep for the text, never the id.)
 
@@ -264,19 +264,19 @@ test('W13 stays silent when a long fullframe carries beats', () => {
 
 `mkArgs` stands for whatever the existing tests use to assemble `lintCues`'s argument object — **read the file and reuse its real helper or literal shape**; if there is no helper, inline the same full argument object the neighbouring tests build (including `words`, `catalog`, `segmentsData`, `manifest`, `conceptData`). Do not change `lintCues`'s signature to make testing easier.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/lint-cues.test.mjs 2>&1 | tail -5` -> `# fail 0`
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/lint-cues.test.mjs 2>&1 | tail -5` -> `# fail 0`
 
 ### Step 6: Confirm both lints fire on the real video and nothing became an error
 
 ```bash
-cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03; echo "exit=$?"
+cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03; echo "exit=$?"
 ```
 
 **Verify**: exit `0` (warnings only), output contains one `W12 opening-host-coverage` line and two `W13 frozen-fullframe` lines naming `c01` and `c02`.
 
 ### Step 7: Full gate
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` -> exit 0, ends `visuals-flow check OK`
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh` -> exit 0, ends `visuals-flow check OK`
 
 ## Test plan
 
@@ -286,7 +286,7 @@ Plus Step 6's run against the real test-03 cues, which is the case the owner act
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 - [ ] `node --test lib/lint-cues.test.mjs` reports `# fail 0`
 - [ ] `node lib/lint-cues.mjs test-03` exits 0 and prints exactly one `W12` line
 - [ ] the same run prints exactly two `W13` lines, naming `c01` and `c02`

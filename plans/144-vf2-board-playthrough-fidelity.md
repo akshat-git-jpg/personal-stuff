@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: []
@@ -21,7 +21,7 @@ needs: []
 
 > **Executor instructions**: **Read `lib/board.mjs` fully before coding** — all line references below are against the plan-140 state at commit `cbb1cbb`; verify each anchor with grep before editing. Follow this plan step by step; run every verification. If a STOP condition occurs, stop and report. Do NOT edit `plans/README.md`. `videos/test-01/` may exist untracked (live run) — never stage/edit/delete anything under `videos/`.
 >
-> **Drift check (run first)**: `git diff --stat cbb1cbb..HEAD -- pipelines/video/visuals-flow-2/lib/board.mjs pipelines/video/visuals-flow-2/lib/resolve.mjs`
+> **Drift check (run first)**: `git diff --stat cbb1cbb..HEAD -- pipelines/video/visuals-flow/lib/board.mjs pipelines/video/visuals-flow/lib/resolve.mjs`
 
 ## Status
 
@@ -37,26 +37,26 @@ needs: []
 
 The board is the owner's judging surface; when it can't show captions, effects, sound, or true exposure, v2 output is judged as bare v1 cards — which is exactly what happened on test-01's first run (2026-07-24). And the save bug quietly regresses the pipeline's headline fix (background exposure) the moment the owner edits anything on the board.
 
-## Current state (all in `pipelines/video/visuals-flow-2/`; line anchors from the 2026-07-24 board review — re-verify with grep)
+## Current state (all in `pipelines/video/visuals-flow/`; line anchors from the 2026-07-24 board review — re-verify with grep)
 
 - **Save bug**: `handleSave` recomputes cues via `resolveCues(...)` and rewrites `resolved.json` (board.mjs ~1357, ~1471-1474) but never calls `extendExposure`; `resolve.mjs` applies it only in its own `main()` (~318). `extendExposure(resolved, {base, total})` is exported (resolve.mjs ~276-292); `base` comes from `loadVideoManifest(workdir)` (lib/video-manifest.mjs), `total` = last transcript word end + 1.0.
 - **Play-through**: one continuous `<audio id="master" src="/vo.mp3">` (board.mjs ~1033) + a `timeupdate` handler picking the active block from `BLOCK_TIMES` (~1155-1174): gap blocks (kind `gap`, built at ~606-620, ~685) become active and `reveal()` swaps the TEXT panel in, parking the card iframe; for cue tiles it posts `{t: t - start}` into the iframe — clock model is consistent (slices cut at cue.start for cue.duration, `ensureSlices` ~156-187; `beats[].at` relative to cue.start).
 - **FX/caption simulator** exists ONLY on the `/list` page: `#fxStage` markup ~843-851 + animation loop ~873-930 (context tinting, `fx-flash`/`fx-whipblur`/`fx-punch`, live caption text, bubble). The storyboard tab renders effects as static lane chips only (~981-986, ~1056).
 - **SFX preview**: `<input type="checkbox" id="sfxToggle" checked>` (~1036) is wired to NOTHING; sound-lane markers at ~1057-1062. `sound.json` instances: `{id, at, sample, semi, gainDb, enabled}` (plan 139); samples at `assets/sfx/<sample>.wav`.
 - **Audit chips** render per cue (~631-637). `audit.json` items: `{id, verdict, fix}` (+ optional `accepted` after plan 142).
-- Mix artifacts (plan 139, when present): `<kb-workdir>/master.wav`; kb workdir root `~/kb-scratch/video/visuals-flow-2/<slug>/`.
+- Mix artifacts (plan 139, when present): `<kb-workdir>/master.wav`; kb workdir root `~/kb-scratch/video/visuals-flow/<slug>/`.
 
 ## Commands you will need
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| Gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | Serve | `node lib/board.mjs test-01` (or any fixture workdir) | URL printed |
 | SFX route smoke | `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4322/sfx/pop.wav` | `200` |
 
 ## Scope
 
-**In scope** (all in `pipelines/video/visuals-flow-2/`):
+**In scope** (all in `pipelines/video/visuals-flow/`):
 - `lib/board.mjs`, `lib/board.test.mjs`
 - `steps/040-storyboard-review-owner/README.md`, `PIPELINE.md` (behavior notes)
 - `scripts/check.sh` only if a new test file is added (prefer extending board.test.mjs)

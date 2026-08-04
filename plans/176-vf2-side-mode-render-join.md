@@ -2,13 +2,13 @@
 ---
 executor: claude-p
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && node --test lib/render.test.mjs lib/side-mode.test.mjs && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && node --test lib/render.test.mjs lib/side-mode.test.mjs && bash scripts/check.sh
 ui:
 deploy:
 needs: ["shares lib/render.mjs and scripts/check.sh with 175, and lib/resolve.mjs with 177. No E-code and no rulebook overlap. Smallest of the five — landing it first keeps the others' rebases cheap."]
 ---
 
-# Plan 176: vf2 side-mode render join
+# Plan 176: visuals-flow side-mode render join
 
 ## Summary
 
@@ -84,8 +84,8 @@ runs after both, which makes render the correct place to compute the join.
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Unit tests | `cd pipelines/video/visuals-flow-2 && node --test lib/render.test.mjs lib/side-mode.test.mjs` | exit 0 |
-| Repo gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| Unit tests | `cd pipelines/video/visuals-flow && node --test lib/render.test.mjs lib/side-mode.test.mjs` | exit 0 |
+| Repo gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | Inspect a rendered clip's width | `ffprobe -v error -show_entries stream=width,height -of csv=p=0 <clip>.mp4` | `1200,1080` for a side cue |
 
 ## Scope
@@ -105,7 +105,7 @@ runs after both, which makes render the correct place to compute the join.
 ## Git workflow
 
 - Branch: `advisor/176-vf2-side-mode-render-join`
-- Commit: `fix(vf2): render side-mode cards at side width` — no AI footers. Do NOT push.
+- Commit: `fix(visuals-flow): render side-mode cards at side width` — no AI footers. Do NOT push.
 
 ## Steps
 

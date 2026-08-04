@@ -1,7 +1,7 @@
 ---
 executor: claude-p
 model: sonnet
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
 needs: []
@@ -21,7 +21,7 @@ needs: []
 
 > **Executor instructions**: Follow this plan step by step. Run every verification command and confirm the expected result before moving on. If anything in "STOP conditions" occurs, stop and report. Do NOT edit `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 39100b9..HEAD -- pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 39100b9..HEAD -- pipelines/video/visuals-flow`
 
 ## Status
 
@@ -62,8 +62,8 @@ Verified at commit `39100b9`.
 
 | Purpose | Command | Expected |
 |---|---|---|
-| v2 gate (merge gate) | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
-| Focused tests | `cd pipelines/video/visuals-flow-2 && node --test lib/transcript-quality.test.mjs` | pass |
+| v2 gate (merge gate) | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
+| Focused tests | `cd pipelines/video/visuals-flow && node --test lib/transcript-quality.test.mjs` | pass |
 | Comma density before/after | `node -e "const t=require('./videos/test-03/transcript.json');const s=t.map(w=>w.text).join(' ');console.log('commas',(s.match(/,/g)||[]).length,'words',t.length)"` | commas fall |
 
 ## Scope

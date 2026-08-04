@@ -2,7 +2,7 @@
 ---
 executor: agy
 model:                   # blank = agy default (Gemini 3.1 Pro High)
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
                          # check.sh gains the board-ui block in this plan (vitest + build +
                          # rendered-app smoke), so the gate fails on a header that moves,
                          # a missing picker, or a broken build — not just on unit tests.
@@ -34,7 +34,7 @@ needs: ["169"]           # consumes GET /api/board-data
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow-2/`
+> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow/`
 > Plan 169 must already be merged (lib/board-data.mjs exists). If it is not, STOP.
 
 ## Status
@@ -52,7 +52,7 @@ This plan is the fix for the owner's #1 complaint: chrome that teleports between
 
 ## Current state (facts, verified at adda9be)
 
-All paths relative to `pipelines/video/visuals-flow-2/` unless noted.
+All paths relative to `pipelines/video/visuals-flow/` unless noted.
 
 - Tab routing today (`lib/board.mjs` lines ~1532–1554, emitted client JS): `HASH_TAB` maps `#card-plan/#storyboard/#final-cut` to tab divs; **no hash = Run** (owner decision 2026-07-24: Run is the landing tab). `applyTab` uses `history.pushState(null, '', location.pathname + location.search + wantHash)` — `?video=` survives tab switch. The video pickers navigate with `location.href = location.pathname + '?video=' + encodeURIComponent(v) + location.hash` — hash survives video switch. **Both behaviors are owner-reported regressions when broken; the SPA must keep both.**
 - The server 302s bare `/` (no `?video=`) to `/?video=<launch-slug>` (lines ~2759–2764) — the URL must always name the video.
@@ -62,14 +62,14 @@ All paths relative to `pipelines/video/visuals-flow-2/` unless noted.
 - `GET /api/board-data` (plan 169) → schema in `plans/169-vf2-board-data-api.md`.
 - Exemplar app: `apps/tutorial-tracker-app` (React 19, Vite 8, vitest 4, TS ~6, components one-per-file in `src/client/`). We copy the discipline, NOT tailwind/shadcn/playwright — the board keeps its bespoke CSS vars and stays dependency-light.
 - Workspace rule (`pipelines/CLAUDE.md`): Node subprojects keep their own `package.json` + `node_modules/` — `board-ui/` follows `youtube/yt-research/`'s precedent.
-- `pipelines/.npmrc` and `pipelines/video/visuals-flow-2/.npmrc` force the public npm registry (avoids CodeArtifact 401s).
+- `pipelines/.npmrc` and `pipelines/video/visuals-flow/.npmrc` force the public npm registry (avoids CodeArtifact 401s).
 - Headless Chrome is available at `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` (used by card-library's overflow probe; env override `CHROME_BIN`).
 - Fixtures for the smoke: `lib/fixtures/board/{cues,resolved,transcript}.json`; `vo.mp3` generated via `ffmpeg -y -f lavfi -i sine=frequency=440:duration=30 -c:a libmp3lame <out>` (board.test.mjs lines 14–21).
 
 ## Commands you will need
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 (cd board-ui && npm ci)                        # after package-lock.json exists: npm install first time
 (cd board-ui && npx vitest run)                # unit tests
 (cd board-ui && npm run build)                 # tsc + vite build → dist/
@@ -81,11 +81,11 @@ node lib/board.mjs test-01                     # manual: open http://localhost:4
 ## Scope
 
 **In scope:**
-- `pipelines/video/visuals-flow-2/board-ui/**` (new app: package.json, package-lock.json, vite.config.ts, tsconfig.json, index.html, src/**, test/**)
-- `pipelines/video/visuals-flow-2/lib/board.mjs` (add `/app` static serving + extend the bare-URL redirect; nothing else)
-- `pipelines/video/visuals-flow-2/scripts/board-ui-smoke.mjs` (new)
-- `pipelines/video/visuals-flow-2/scripts/check.sh` (append the board-ui block)
-- `pipelines/video/visuals-flow-2/.gitignore` (add `board-ui/node_modules/`, `board-ui/dist/`)
+- `pipelines/video/visuals-flow/board-ui/**` (new app: package.json, package-lock.json, vite.config.ts, tsconfig.json, index.html, src/**, test/**)
+- `pipelines/video/visuals-flow/lib/board.mjs` (add `/app` static serving + extend the bare-URL redirect; nothing else)
+- `pipelines/video/visuals-flow/scripts/board-ui-smoke.mjs` (new)
+- `pipelines/video/visuals-flow/scripts/check.sh` (append the board-ui block)
+- `pipelines/video/visuals-flow/.gitignore` (add `board-ui/node_modules/`, `board-ui/dist/`)
 
 **Out of scope (do NOT touch):** legacy render functions and their emitted JS/CSS; `lib/board.test.mjs`; `lib/board-data.mjs`; `videos/**`; `card-library/**`; `steps/**`; `run.sh`.
 
@@ -105,7 +105,7 @@ node lib/board.mjs test-01                     # manual: open http://localhost:4
    `board-ui/package.json`:
    ```json
    {
-     "name": "vf2-board-ui",
+     "name": "visuals-flow-board-ui",
      "private": true,
      "version": "0.0.0",
      "type": "module",
@@ -402,7 +402,7 @@ node lib/board.mjs test-01                     # manual: open http://localhost:4
 ## Done criteria (machine-checkable)
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 bash scripts/check.sh                          # exit 0 — includes vitest + build + smoke
 node scripts/board-ui-smoke.mjs                # 'board-ui smoke OK'
 git status --short board-ui | grep -v '^??'    # package-lock.json committed; node_modules/, dist/ ignored

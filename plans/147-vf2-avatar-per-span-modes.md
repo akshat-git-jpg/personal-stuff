@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: []
@@ -21,7 +21,7 @@ needs: []
 
 > **Executor instructions**: Follow this plan step by step. Run every verification command and confirm the expected result before moving on. If anything in "STOP conditions" occurs, stop and report. Do NOT edit `plans/README.md`. `videos/**` may contain untracked live-review data — never stage, edit, or delete anything under `videos/`.
 >
-> **Drift check (run first)**: `git diff --stat 39100b9..HEAD -- pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 39100b9..HEAD -- pipelines/video/visuals-flow`
 
 ## Status
 
@@ -78,13 +78,13 @@ Facts below were read directly from the files at commit `39100b9`.
 
 | Purpose | Command | Expected |
 |---|---|---|
-| v2 gate (merge gate) | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
-| Focused tests | `cd pipelines/video/visuals-flow-2 && node --test lib/resolve-shots.test.mjs lib/lint-shots.test.mjs lib/assemble.test.mjs lib/export-timeline.test.mjs` | all pass |
+| v2 gate (merge gate) | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
+| Focused tests | `cd pipelines/video/visuals-flow && node --test lib/resolve-shots.test.mjs lib/lint-shots.test.mjs lib/assemble.test.mjs lib/export-timeline.test.mjs` | all pass |
 | Composite smoke (rounded-rect alpha) | `ffmpeg -f lavfi -i color=c=red:s=1920x1080:d=2 -f lavfi -i color=c=blue:s=538x302:d=2 -filter_complex "[1]format=yuva444p,geq=lum='lum(X,Y)':cb='cb(X,Y)':cr='cr(X,Y)':a='if(lt(hypot(max(abs(X-W/2)-(W/2-24),0),max(abs(Y-H/2)-(H/2-24),0)),24.5),255,0)'[a];[0][a]overlay=x=1350:y=746" -frames:v 1 -y /tmp/panel-smoke.png` | exit 0, file written |
 
 ## Scope
 
-**In scope** (`pipelines/video/visuals-flow-2/`):
+**In scope** (`pipelines/video/visuals-flow/`):
 `PIPELINE.md`, `lib/shot-constants.mjs`, `lib/resolve-shots.mjs`, `lib/lint-shots.mjs`, `lib/avatar-render.mjs`, `lib/assemble.mjs`, `lib/export-timeline.mjs`, `lib/board.mjs`, `steps/070-shot-pass-llm/shot-pass-prompt.md`, `steps/070-shot-pass-llm/RULEBOOK.md`, and the matching `*.test.mjs` files.
 
 **Out of scope** (looks related — do not touch):

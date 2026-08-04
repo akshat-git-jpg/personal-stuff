@@ -19,8 +19,8 @@ needs: ["depends on 180 and 181. LAST plan of the batch — runs the gate on a f
   - Land the taste rubric `INTRO-BAR.md`, the one-retry-on-failure critique loop, and delivery to `out/intro.mp4`.
   - Register intro-studio in `pipelines/CLAUDE.md`.
 - **Executor proposed**: `agy` / Gemini 3.1 Pro (High) — owner's explicit choice. `INTRO-BAR.md` is taste content that `tooling/boss/data/rules.md` would route to `claude-p`/`sonnet`; compensations are a structural gate over the rubric file and a fully-inlined rubric body in this plan, so the executor transcribes rather than composes.
-- **Done criteria** (terse — full list below): `bash scripts/check.sh` exits 0 on a **fresh checkout**; a fixture composition renders to a real mp4 whose extracted frames prove motion; the film gate rejects a deliberately frozen video; nothing under visuals-flow-2 changes.
-- **Stop conditions** (terse — full list below): editing visuals-flow-2 or card-library; weakening a gate assertion; accepting "file exists / mp4 > 0 bytes" as proof; a critique loop that runs more than one retry.
+- **Done criteria** (terse — full list below): `bash scripts/check.sh` exits 0 on a **fresh checkout**; a fixture composition renders to a real mp4 whose extracted frames prove motion; the film gate rejects a deliberately frozen video; nothing under visuals-flow changes.
+- **Stop conditions** (terse — full list below): editing visuals-flow or card-library; weakening a gate assertion; accepting "file exists / mp4 > 0 bytes" as proof; a critique loop that runs more than one retry.
 - **Test / verification for success**: a real Hyperframes render of a committed 3-second fixture composition, then ffmpeg frame extraction with assertions that consecutive frames DIFFER (motion) and are not uniformly black — the exact check that would have caught the 2026-07-24 card-stub batch.
 - **Open points for plan readiness**: none.
 
@@ -29,7 +29,7 @@ needs: ["depends on 180 and 181. LAST plan of the batch — runs the gate on a f
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/intro-studio pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/intro-studio pipelines/video/visuals-flow`
 
 ## Status
 
@@ -75,13 +75,13 @@ After plans 180 and 181, `pipelines/video/intro-studio/` has:
 - `data-start`, `data-duration`, `data-track-index` drive timing; `data-media-start` is an offset INTO the source media (this is how the film shows a later part of the avatar clip without trimming the file).
 - `<video>` may omit `data-duration` to use the media's intrinsic length.
 
-Version pin, matching `pipelines/video/visuals-flow-2/lib/render.mjs`:
+Version pin, matching `pipelines/video/visuals-flow/lib/render.mjs`:
 
 ```js
 const HYPERFRAMES = process.env.HYPERFRAMES_VERSION ? `hyperframes@${process.env.HYPERFRAMES_VERSION}` : 'hyperframes@0.7.62';
 ```
 
-Stillness detection technique, proven in `pipelines/video/visuals-flow-2/lib/stillness.mjs` — **read that file for reference, do not import or edit it**:
+Stillness detection technique, proven in `pipelines/video/visuals-flow/lib/stillness.mjs` — **read that file for reference, do not import or edit it**:
 
 > Method: ffmpeg's `freezedetect` over the span. `freeze_start` and `freeze_end` arrive on separate stderr lines; an unterminated freeze runs to the end.
 
@@ -95,7 +95,7 @@ Stillness detection technique, proven in `pipelines/video/visuals-flow-2/lib/sti
 | Frame mean luma | `ffprobe -v error -f lavfi -i "movie=<mp4>,signalstats" -show_entries frame_tags=lavfi.signalstats.YAVG -of csv=p=0` | one float per frame |
 | Freeze detect | `ffmpeg -i <mp4> -vf freezedetect=n=0.003:d=2 -map 0:v -f null - 2>&1` | `freeze_start`/`freeze_end` lines |
 | Fresh-checkout gate | see Step 9 | exit 0 |
-| Scope check | `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow-2 pipelines/video/card-library` | EMPTY |
+| Scope check | `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow pipelines/video/card-library` | EMPTY |
 
 **If `npx hyperframes render` flags differ from `--output`**, run `npx -y hyperframes@0.7.62 render --help`, use the real flags, and record them in `steps/040-render-run/README.md`. Do not substitute another renderer.
 
@@ -110,9 +110,9 @@ Stillness detection technique, proven in `pipelines/video/visuals-flow-2/lib/sti
 - `plans/README.md` — the 182 row
 
 **Out of scope** (looks related, do NOT touch):
-- `pipelines/video/visuals-flow-2/**` — including `lib/stillness.mjs` and `lib/render.mjs`, both of which this plan reads as reference only
+- `pipelines/video/visuals-flow/**` — including `lib/stillness.mjs` and `lib/render.mjs`, both of which this plan reads as reference only
 - `pipelines/video/card-library/**`
-- Any wiring of intro-studio's output INTO visuals-flow-2. The handoff is a file the owner moves by hand; automating it is a future plan and doing it here breaks the POC's central constraint.
+- Any wiring of intro-studio's output INTO visuals-flow. The handoff is a file the owner moves by hand; automating it is a future plan and doing it here breaks the POC's central constraint.
 - `lib/lint-screenplay.mjs`, `lib/screenplay-schema.mjs` — landed by 177, do not refactor
 
 ## Git workflow
@@ -338,7 +338,7 @@ Write the step READMEs:
 
 - `steps/040-render-run/README.md` — the render command, where output lands, the real `hyperframes render` flags as confirmed in Step 2.
 - `steps/050-critique-llm/README.md` — build the contact sheet, run `node lib/film-gate.mjs <slug>` for the machine checks, then score `INTRO-BAR.md` against the sheet. **State the loop cap explicitly: one retry on failure, then it goes to the owner regardless.**
-- `steps/060-deliver-run/README.md` — copy the passing render to `out/intro.mp4` and print the absolute path. This is the handoff: the owner drops that file into their edit by hand. No code writes into visuals-flow-2.
+- `steps/060-deliver-run/README.md` — copy the passing render to `out/intro.mp4` and print the absolute path. This is the handoff: the owner drops that file into their edit by hand. No code writes into visuals-flow.
 
 **Verify**: `cd pipelines/video/intro-studio && node --test lib/contact-sheet.test.mjs && ls steps/ | wc -l` → exit 0 and `8`
 
@@ -355,10 +355,10 @@ Add to `scripts/check.sh`'s explicit test list: `lib/render-film.test.mjs lib/fr
 
 Extend `scripts/test-run-sh.sh`: `run.sh <slug> author` exits 1 when the screenplay is unapproved; `run.sh <slug> deliver` exits 1 when there is no render.
 
-Add ONE row to `pipelines/CLAUDE.md`'s folder map, immediately after the `video/visuals-flow-2/` row, matching the existing format:
+Add ONE row to `pipelines/CLAUDE.md`'s folder map, immediately after the `video/visuals-flow/` row, matching the existing format:
 
 ```
-| &nbsp;&nbsp;&nbsp;&nbsp;[`video/intro-studio/`](video/intro-studio/CLAUDE.md) | Intro POC — builds a video's intro as ONE bespoke authored composition (screenplay → single Hyperframes film → mp4) instead of a card sequence. Standalone: hands off an mp4, touches nothing in visuals-flow-2 | Node + Claude steps |
+| &nbsp;&nbsp;&nbsp;&nbsp;[`video/intro-studio/`](video/intro-studio/CLAUDE.md) | Intro POC — builds a video's intro as ONE bespoke authored composition (screenplay → single Hyperframes film → mp4) instead of a card sequence. Standalone: hands off an mp4, touches nothing in visuals-flow | Node + Claude steps |
 ```
 
 **Verify**: `cd pipelines/video/intro-studio && bash scripts/check.sh` → exit 0; `grep -c "video/intro-studio/" pipelines/CLAUDE.md` → `1`
@@ -400,14 +400,14 @@ Add the 182 row to `plans/README.md`, status `DONE`.
 - [ ] `node lib/check-rubric.mjs` exits 0
 - [ ] `bash run.sh demo author` exits 1 when `screenplay.json` is missing or unapproved
 - [ ] `bash run.sh demo deliver` exits 1 when there is no render
-- [ ] `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow-2 pipelines/video/card-library` prints NOTHING
+- [ ] `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow pipelines/video/card-library` prints NOTHING
 - [ ] `pipelines/CLAUDE.md` carries exactly one `video/intro-studio/` row
 - [ ] `plans/README.md` carries the 182 row
 
 ## STOP conditions
 
-- **Any change to a file under `pipelines/video/visuals-flow-2/` or `pipelines/video/card-library/`** — `lib/stillness.mjs` and `lib/render.mjs` are read as reference only.
-- **Any code that writes into visuals-flow-2's tree**, including "helpfully" copying `out/intro.mp4` into a `videos/<slug>/` there. The handoff is manual by design.
+- **Any change to a file under `pipelines/video/visuals-flow/` or `pipelines/video/card-library/`** — `lib/stillness.mjs` and `lib/render.mjs` are read as reference only.
+- **Any code that writes into visuals-flow's tree**, including "helpfully" copying `out/intro.mp4` into a `videos/<slug>/` there. The handoff is manual by design.
 - **A gate assertion fails and the tempting fix is to weaken, swap or delete it** — including lowering `MAX_FREEZE`, raising `DURATION_TOLERANCE`, or dropping the distinct-frame-hash check to get the round trip green. Fix the code or the fixture. Softening an assertion is a STOP.
 - **Accepting "the file exists" or "the mp4 is larger than 0 bytes" as proof the render is correct.** That exact reasoning shipped twelve stub cards through green gates on 2026-07-24.
 - The critique loop is specified at ONE retry. Implementing an unbounded or multi-round loop is a STOP — it is an owner cost decision, not a tuning parameter.
@@ -418,4 +418,4 @@ Add the 182 row to `plans/README.md`, status `DONE`.
 - `GATE`'s four thresholds are first guesses calibrated on nothing but reasoning. Expect to move them once real intros exist — but move them from measured output the owner has judged, never to make a red test green.
 - The distinct-frame-hash assertion in the round trip is the highest-value test in this pipeline. It is the one check that would have caught both recorded failure classes (blank renders, stub compositions). Do not weaken it for speed.
 - The rubric's "Not a slideshow" line is the closing of the loop back to why this pipeline exists. If real intros start passing every other line and failing that one, the screenplay pass (plan 181) is where the fix belongs, not here.
-- When the owner is satisfied with the POC, wiring the film into visuals-flow-2 is a small separate plan: emit one cue with `kind: "film"` spanning the intro, since assemble already treats a fullframe graphic segment as the base layer. Nothing in this batch anticipates that work.
+- When the owner is satisfied with the POC, wiring the film into visuals-flow is a small separate plan: emit one cue with `kind: "film"` spanning the intro, since assemble already treats a fullframe graphic segment as the base layer. Nothing in this batch anticipates that work.

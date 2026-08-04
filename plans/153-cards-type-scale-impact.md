@@ -20,7 +20,7 @@ needs: ["152 must land first — it is the last plan that rewrites card CSS; run
   - Apply across all 49 fullframe cards.
 - **Executor proposed**: `claude-p` / `sonnet` — `DESIGN.md` is quality-setting content the owner judges by taste, and per-card type decisions need visual judgment (`tooling/boss/data/rules.md`).
 - **Done criteria** (terse — full list below): all four gate commands exit 0; every fullframe card declares `--hero-size` ≥ 120px with a ≥2.5× ratio to its next-largest text and em-based tracking; every card render-inspected at both full and side width.
-- **Stop conditions** (terse — full list below): do not touch `visuals-flow-2/`; never let a card overflow to keep type large; do not edit or delete an owner note except to mark it done.
+- **Stop conditions** (terse — full list below): do not touch `visuals-flow/`; never let a card overflow to keep type large; do not edit or delete an owner note except to mark it done.
 - **Test / verification for success**: `check-type-scale.mjs` (new, mechanical) plus a render-and-inspect pass per card against a written rubric.
 - **Open points for plan readiness**: none.
 
@@ -125,7 +125,7 @@ The owner will review every template in the local gallery (`npm run serve`) once
 - `pipelines/video/card-library/catalog.json` — `max_reveal_chars` / `max_beats` reductions only
 
 **Out of scope**:
-- `pipelines/video/visuals-flow-2/**` — no pipeline surface changes at all
+- `pipelines/video/visuals-flow/**` — no pipeline surface changes at all
 - The 12 overlay-placement cards — lower-thirds and tip banners are subordinate by design; the hero rule does not apply and they get no `--hero-size`
 - `brand.json` and the accent colour itself — a brand/colour change is separate work the owner has not commissioned; this plan uses `var(--accent)` as it stands
 - `scripts/check-side.mjs`, `scripts/card-qa.mjs` — owned by plan 151; if one needs changing, that is a STOP condition
@@ -370,7 +370,7 @@ Re-run the Step 0 measurement command. The median largest font-size must now be 
 
 ## STOP conditions
 
-- **Any file under `pipelines/video/visuals-flow-2/` needs editing.** This is a card-library-only plan. Stop and report.
+- **Any file under `pipelines/video/visuals-flow/` needs editing.** This is a card-library-only plan. Stop and report.
 - **A card can only pass the gate by letting content overflow.** The rule is cut the words (lower `max_reveal_chars`), never shrink the hero — but if a card cannot hold its required content at 120px hero, that card needs a redesign, not a fudge. Stop and report it rather than shipping a clipped card.
 - **`check-side.mjs` starts failing.** This sweep must not regress plan 151/152's side contract. Stop and report — do not edit `check-side.mjs` to make it pass.
 - **`scripts/card-qa.mjs` or `scripts/check-side.mjs` appears to need a change.** Plan 151 owns them. Stop and report.

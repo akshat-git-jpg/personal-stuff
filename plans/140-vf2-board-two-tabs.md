@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: [after 139-vf2-sound-mix]
@@ -21,7 +21,7 @@ needs: [after 139-vf2-sound-mix]
 
 > **Executor instructions**: Follow this plan step by step. **Before writing any code, read `lib/board.mjs` end to end** — it is the single server this plan extends, and its existing patterns (route table, module caching, save/approve semantics, unsaved-changes guard) are the conventions to match. Run every verification command. If anything in the "STOP conditions" section occurs, stop and report. Do NOT edit `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow-2/lib/board.mjs pipelines/video/visuals-flow-2/lib/assemble.mjs`
+> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow/lib/board.mjs pipelines/video/visuals-flow/lib/assemble.mjs`
 
 ## Status
 
@@ -37,11 +37,11 @@ needs: [after 139-vf2-sound-mix]
 
 Review is where the owner's time goes, and it was a top pain point ("storyboard not that good to review"). Loop Studio's `video-feedback` tool proved the interaction that works: type while paused → note pinned to the exact timestamp (optionally to an x/y spot), every render is a version with its own notes, and a status file polled every ~2.5s lets the owner watch to-dos tick off live while the session fixes them. v2 folds that INTO the existing board (one dashboard, two tabs) instead of a second tool, and keeps v1's pre-render storyboard advantage (preview-is-render-input — decisions.md 2026-07-17). Reference studied: `~/.claude-personal/skills/video-feedback/` (proprietary — behaviors ported, no code copied).
 
-## Current state (paths in `pipelines/video/visuals-flow-2/`)
+## Current state (paths in `pipelines/video/visuals-flow/`)
 
 - `lib/board.mjs` (~1600 lines): Node http server on 127.0.0.1:4322 (walks ports). Serves the full-script timeline with live card-iframe previews, per-cue VO slices from `videos/<slug>/slices/`, minimap lanes (graphics/avatar/effects), per-block feedback boxes, `/approve`, `/approve-shots`, `/approve-effects` gates; Save writes `feedback.json` and any real edit resets `approved`. Long-running: caches lib modules at startup (restart after lib edits — keep that documented).
 - `feedback.json`: `{items: {"<cueId>"|"gap-<mm:ss>"|"_global": [{text, added, context, applied?, folded?}]}}` — the 060 fold consumes it; folded items are read-only history.
-- Assembled outputs live OUTSIDE the repo: `~/kb-scratch/video/visuals-flow-2/<slug>/final.mp4` (and `final-draft.mp4`); `master.wav`, bounces (plan 139) beside them.
+- Assembled outputs live OUTSIDE the repo: `~/kb-scratch/video/visuals-flow/<slug>/final.mp4` (and `final-draft.mp4`); `master.wav`, bounces (plan 139) beside them.
 - `resolved.json`, `effects.json`, `sound.json`, `audit.json`, `concept.json` — all in `videos/<slug>/` (each may be absent on older/partial workdirs).
 - `lib/brand-inline.mjs` (plan 138) — inject brand tokens into preview iframes' staged HTML the same way render does.
 - Gate A precedent: steps print next-step hints today; render/assemble must end by printing the board URL.
@@ -50,13 +50,13 @@ Review is where the owner's time goes, and it was a top pain point ("storyboard 
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| Gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | Serve | `node lib/board.mjs <slug>` | prints `http://127.0.0.1:4322/...` |
 | Range smoke | `curl -s -o /dev/null -w "%{http_code}" -H "Range: bytes=0-99" http://127.0.0.1:4322/video/current` | `206` |
 
 ## Scope
 
-**In scope** (all in `pipelines/video/visuals-flow-2/`):
+**In scope** (all in `pipelines/video/visuals-flow/`):
 - `lib/board.mjs`, `lib/board.test.mjs`
 - `lib/versions.mjs` (new) + test, `lib/post-status.mjs` (new) + test
 - `lib/assemble.mjs` (version registration + Gate A print), `lib/render.mjs` (Gate A print)
@@ -138,7 +138,7 @@ Every JSON contract (versions, final feedback, status merge, pin math) is a pure
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` → exit 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` → exit 0
 - [ ] Range smoke → 206; `/versions`, `/status` respond on a fixture workdir
 - [ ] `feedback.json` gains `final-<label>` items with `t`/`x`/`y`; 060-fold consumer (`lib/feedback-status.mjs`) still exits 0 on a fixture containing them
 - [ ] `node lib/post-status.mjs` merges and the tab reflects it after ≤2.5s (manual smoke)

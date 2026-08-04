@@ -2,7 +2,7 @@
 ---
 executor: agy
 model:                   # blank = agy default (Gemini 3.1 Pro High)
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
                          # the smoke gate gains card-plan assertions in this plan (attach
                          # affordance markup, approve button inside the action slot), so the
                          # gate can fail on this plan's own deliverable.
@@ -31,7 +31,7 @@ needs: ["170"]
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow-2/board-ui/ pipelines/video/visuals-flow-2/scripts/board-ui-smoke.mjs`
+> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow/board-ui/ pipelines/video/visuals-flow/scripts/board-ui-smoke.mjs`
 > Plans 169 and 170 must be merged (`board-ui/src/App.tsx` exists). If not, STOP.
 
 ## Status
@@ -49,7 +49,7 @@ Feedback is the board's product — every comment and screenshot the owner leave
 
 ## Current state (facts, verified at adda9be)
 
-All paths relative to `pipelines/video/visuals-flow-2/`.
+All paths relative to `pipelines/video/visuals-flow/`.
 
 - Legacy `fbBox` (one of the 3 copies, board.mjs lines ~1070–1085): a `textarea.feedback[data-ref]` + `.fb-shot` row with `.fb-attach` button (`&#128206; screenshot`, title `attach a screenshot — or just paste one into the box above`), hidden `.fb-file` input, `.fb-thumb` span that gains an `<img>` + `.fb-clear` × only when an image exists. Folded items render `✓ folded <step> — "<text>"` and are immutable.
 - Legacy client behaviors to preserve (SAVE_ACTIONS_JS, lines ~596–671): attach via button OR paste into the textarea; images >6MB rejected with `alert('image too large (max 6MB)')`; non-image files ignored; attaching sets dirty; `FB_IMAGES[ref] = null` marks "remove on next save"; existing saved images render from `/feedback-image/<ref>` and clear the same way; `beforeunload` guards dirty state.
@@ -63,7 +63,7 @@ All paths relative to `pipelines/video/visuals-flow-2/`.
 ## Commands you will need
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 (cd board-ui && npx vitest run)
 (cd board-ui && npm run build)
 node scripts/board-ui-smoke.mjs
@@ -218,7 +218,7 @@ Vitest (step 5) + smoke assertions (step 6). Legacy suites untouched and green v
 ## Done criteria (machine-checkable)
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 bash scripts/check.sh                          # exit 0 (vitest + build + extended smoke)
 node scripts/board-ui-smoke.mjs                # 'board-ui smoke OK' — includes card-plan assertions
 ```

@@ -112,7 +112,7 @@ Rules from `DESIGN.md`: dark warm background always; ONE orange accent; green/ro
 **Out of scope**:
 - `pipelines/video/card-library/gallery-order.json` — ordering only, not a whitelist; the card appears without it.
 - Any existing card. Copy `enacted/before-after` as a starting skeleton but **do not modify it**.
-- `pipelines/video/visuals-flow-2/**` — cueing this card into a video is a separate operating step. Do not touch `cue-rules.mjs`; `R_CHOOSING` already routes to `enacted/` first.
+- `pipelines/video/visuals-flow/**` — cueing this card into a video is a separate operating step. Do not touch `cue-rules.mjs`; `R_CHOOSING` already routes to `enacted/` first.
 - `DESIGN.md` — this card follows the palette, it does not extend it.
 
 ## Git workflow

@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: [after 134-vf2-scaffold]
@@ -24,7 +24,7 @@ needs: [after 134-vf2-scaffold]
 > anything in the "STOP conditions" section occurs, stop and report. Do NOT
 > edit `plans/README.md` (boss owns it on main); report status in your run summary.
 >
-> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 3bbaa6c..HEAD -- pipelines/video/visuals-flow`
 > (expect only plan-134 scaffold commits; if lib files differ beyond 134's path retarget, report drift.)
 
 ## Status
@@ -41,7 +41,7 @@ needs: [after 134-vf2-scaffold]
 
 The owner's #1 perceived "sync" defect is actually exposure: `lib/resolve.mjs` computes `duration = lastBeat.at + hold` (hold default 3.0s), and `lib/assemble.mjs#planSegments` fills inter-graphic gaps with `screen.mp4`; when a video has no screen layer (explainer cuts, the board preview), the exposed frames are the stage background `--bg-from #3a1f08` (card-library `DESIGN.md`). Loop Studio never shows this class of gap because durations are locked to the voiceover and every clause has a beat. This plan makes background exposure structurally impossible and adopts the per-clause density bar + head-as-layout-element (spec §C, §H).
 
-## Current state (all paths inside `pipelines/video/visuals-flow-2/` after plan 134)
+## Current state (all paths inside `pipelines/video/visuals-flow/` after plan 134)
 
 `lib/resolve.mjs` — the timing core. Relevant excerpt (v1 lines 219–236):
 
@@ -75,13 +75,13 @@ The owner's #1 perceived "sync" defect is actually exposure: `lib/resolve.mjs` c
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| Gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | One test file | `node --test lib/resolve.test.mjs` (from folder root) | pass — NEVER `node --test <dir>` (broken on node 22) |
 | ffmpeg freeze-frame smoke | `ffmpeg -f lavfi -i testsrc=d=2:s=320x180:r=30 -vf "tpad=stop_mode=clone:stop_duration=1.5" -f null - 2>&1 \| tail -1` | exits 0 |
 
 ## Scope
 
-**In scope** (all in `pipelines/video/visuals-flow-2/`):
+**In scope** (all in `pipelines/video/visuals-flow/`):
 - `lib/video-manifest.mjs` (new) + `lib/video-manifest.test.mjs` (new)
 - `lib/resolve.mjs`, `lib/resolve.test.mjs`
 - `lib/cue-constants.mjs`, `lib/lint-cues.mjs`, `lib/lint.test.mjs`
@@ -219,7 +219,7 @@ All new behavior lands as pure functions with fixture-driven `node --test` suite
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` → exit 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` → exit 0
 - [ ] `grep -n "extendExposure" lib/resolve.mjs lib/lint-cues.mjs` → present in both
 - [ ] `grep -n "HOLD_EXTEND_CAP\|GAP_ABSORB\|NARRATION_BARE_GAP_MAX" lib/cue-constants.mjs` → 3 hits
 - [ ] `grep -n "mode" lib/resolve-shots.mjs` → passthrough present; `grep -n "adjust-transform" lib/export-timeline.mjs` → present

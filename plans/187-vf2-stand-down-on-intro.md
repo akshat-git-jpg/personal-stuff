@@ -1,24 +1,24 @@
 ---
 executor: claude-p
 model: opus
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
 needs: ["BLOCKED: branch chore/boss-hardening-2026-08-02 must merge first — it holds lint-shots.mjs and export-timeline.mjs, which this plan edits", "185 must land (PR #144)"]
-needs_prs: [144]
-touches: [pipelines/video/visuals-flow-2/lib/zone-constants.mjs, pipelines/video/visuals-flow-2/lib/zone-rules.mjs, pipelines/video/visuals-flow-2/lib/lint-cues.mjs, pipelines/video/visuals-flow-2/lib/lint-shots.mjs, pipelines/video/visuals-flow-2/lib/assemble.mjs, pipelines/video/visuals-flow-2/lib/export-timeline.mjs, pipelines/video/visuals-flow-2/lib/build-zone-prompt.mjs]
+needs_prs: [144, 145]
+touches: [pipelines/video/visuals-flow/lib/zone-constants.mjs, pipelines/video/visuals-flow/lib/zone-rules.mjs, pipelines/video/visuals-flow/lib/lint-cues.mjs, pipelines/video/visuals-flow/lib/lint-shots.mjs, pipelines/video/visuals-flow/lib/assemble.mjs, pipelines/video/visuals-flow/lib/export-timeline.mjs, pipelines/video/visuals-flow/lib/build-zone-prompt.mjs]
 
-mutation_apply: cd pipelines/video/visuals-flow-2 && sed -i '' "s/introOwnedByFilm(workdir)/false/" lib/lint-cues.mjs
-mutation_command: cd pipelines/video/visuals-flow-2 && node --test lib/lint-cues.test.mjs
+mutation_apply: cd pipelines/video/visuals-flow && sed -i '' "s/introOwnedByFilm(workdir)/false/" lib/lint-cues.mjs
+mutation_command: cd pipelines/video/visuals-flow && node --test lib/lint-cues.test.mjs
 mutation_expect: E13 must not fire when the intro film owns the opening
 mutation_timeout: 600
 ---
 
-# Plan 187: vf2 — stand down on the intro when the film owns it
+# Plan 187: visuals-flow — stand down on the intro when the film owns it
 
 ## Summary
 
-- **Problem statement**: With plans 185 and 186 landed, a video configured `intro: "film"` has a bespoke authored intro film — and vf2 still authors cards, lints, and assembles that same span as if nothing had changed. Five surfaces double-treat the intro. One of them is worse than redundant: `R_ZONE_LINK_CTA` picks the link-CTA card *positionally across the whole video*, so if the film owns the first "link in the description" mention, the conclusion silently gets the wrong card.
+- **Problem statement**: With plans 185 and 186 landed, a video configured `intro: "film"` has a bespoke authored intro film — and visuals-flow still authors cards, lints, and assembles that same span as if nothing had changed. Five surfaces double-treat the intro. One of them is worse than redundant: `R_ZONE_LINK_CTA` picks the link-CTA card *positionally across the whole video*, so if the film owns the first "link in the description" mention, the conclusion silently gets the wrong card.
 - **Goals**:
   - Introduce ONE predicate, `introOwnedByFilm(workdir)`, and route every intro-owning surface through it. No surface may test `run-config` directly.
   - `035` authors the CONCLUSION ONLY when the film owns the intro.
@@ -36,7 +36,7 @@ mutation_timeout: 600
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 6817afed..HEAD -- pipelines/video/visuals-flow-2`
+> **Drift check (run first)**: `git diff --stat 6817afed..HEAD -- pipelines/video/visuals-flow`
 > **This plan expects significant drift** — the concurrent branch must have merged.
 > If `lib/lint-shots.mjs` and `lib/export-timeline.mjs` are unchanged since
 > 6817afed, that branch has NOT merged: STOP and report.
@@ -109,7 +109,7 @@ Both fire when the intro legitimately has no cues because the film covers it.
 **4. `lib/lint-shots.mjs` E8** — `const INTRO_HOST_BY = SC.INTRO_HOST.value;` (15s).
 `lib/shot-constants.mjs` states the rule: *"The host must be ON SCREEN within the
 first 15 seconds (mandatory, lint E8)."* The film contains the host, but it is
-not a vf2 avatar span, so E8 sees nothing and fails.
+not a visuals-flow avatar span, so E8 sees nothing and fails.
 
 **5. `lib/assemble.mjs` / `lib/export-timeline.mjs`** — build the cut and the
 Resolve export over the intro span.
@@ -118,7 +118,7 @@ Resolve export over the intro span.
 
 Branch `chore/boss-hardening-2026-08-02` holds unmerged commits on
 `lib/lint-shots.mjs` (+test) and `lib/export-timeline.mjs` (+test) — including
-`35648954 feat(vf2): host must be on screen by 15s — INTRO_HOST becomes a real gate (E8)`,
+`35648954 feat(visuals-flow): host must be on screen by 15s — INTRO_HOST becomes a real gate (E8)`,
 which is precisely the rule this plan modifies. Starting before that merges
 guarantees a conflict on the exact lines in play.
 
@@ -126,8 +126,8 @@ guarantees a conflict on the exact lines in play.
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Repo gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
-| Lint one video's cues | `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs <slug>` | exit 0 |
+| Repo gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
+| Lint one video's cues | `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs <slug>` | exit 0 |
 | Confirm the blocker cleared | `git log --oneline origin/main \| grep -c "INTRO_HOST becomes a real gate"` | 1 (0 → STOP) |
 
 ## Scope
@@ -179,7 +179,7 @@ export function introOwnedByFilm(workdir) {
 Add `lib/intro-film/owns-intro.test.mjs`: true only for `intro: 'film'`; false
 for absent config, for `{}`, and for `intro: 'cards'`.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/intro-film/owns-intro.test.mjs` → exit 0.
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/intro-film/owns-intro.test.mjs` → exit 0.
 
 ### Step 2: 035 authors the conclusion only
 
@@ -258,7 +258,7 @@ In `lib/assemble.mjs`, when `introOwnedByFilm(workdir)`:
   produce a video that looks fine and is not what was configured.
 
 Mirror the same in `lib/export-timeline.mjs` so the Resolve export matches the
-assembly. These two have diverged before — commit `5cdbf0ea fix(vf2): the Resolve
+assembly. These two have diverged before — commit `5cdbf0ea fix(visuals-flow): the Resolve
 export had diverged from assemble in four places` is on the branch this plan
 waits for. Add a test asserting both produce the same intro-span treatment.
 
@@ -280,7 +280,7 @@ Prove it with a paired fixture rather than by inspection:
 ```sh
 cd "$(git rev-parse --show-toplevel)"
 git worktree add --detach /tmp/187-fresh HEAD
-cd /tmp/187-fresh/pipelines/video/visuals-flow-2 && bash scripts/check.sh
+cd /tmp/187-fresh/pipelines/video/visuals-flow && bash scripts/check.sh
 git worktree remove --force /tmp/187-fresh
 ```
 

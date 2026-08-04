@@ -124,7 +124,7 @@ Rules: dark warm background always; ONE orange accent per card; green/rose reser
 **Out of scope**:
 - `enacted/bad-clip-montage` — plan 157 owns it.
 - Any existing card, including `statement/keyword-statement`. It stays; these are additions, not replacements.
-- `pipelines/video/visuals-flow-2/**` — no cue rules here. Plan 160 handles zone guidance, and per the owner no rule may require a particular card in the intro.
+- `pipelines/video/visuals-flow/**` — no cue rules here. Plan 160 handles zone guidance, and per the owner no rule may require a particular card in the intro.
 - `gallery-order.json` — ordering only, not a whitelist.
 
 ## Git workflow

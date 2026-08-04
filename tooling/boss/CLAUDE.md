@@ -88,7 +88,7 @@ Asking for evidence in prose is unenforceable. So boss runs the mutation itself:
 mutation_apply:   perl -i -pe 's/"card": "section\/tool-intro"/"card": "overlay\/lower-third"/' videos/x/cues.json
 mutation_command: node lib/lint-cues.mjs x
 mutation_expect:  E14
-mutation_cwd:     pipelines/video/visuals-flow-2
+mutation_cwd:     pipelines/video/visuals-flow
 ```
 
 `boss-merge` then: assert clean PASSES → apply → assert it FAILS **and** prints
@@ -138,7 +138,7 @@ marker already present when clean, and a crash-shaped failure (`SyntaxError`,
 
 ### Contention protection (added 2026-08-02)
 
-- **Chrome is serialized.** Every vf2/card-library `test_cmd` drives headless
+- **Chrome is serialized.** Every visuals-flow/card-library `test_cmd` drives headless
   Chrome. `boss-merge` waits for live crews, then holds `state/locks/chrome.lock`
   across the verify. PR#134 lost a merge cycle to `Chrome dump-dom timeout` with 44
   chrome processes live. Tune with `BOSS_CHROME_WAIT_MIN` (default 45).

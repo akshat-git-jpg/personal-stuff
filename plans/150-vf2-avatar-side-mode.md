@@ -1,13 +1,13 @@
 ---
 executor: claude-p
 model: sonnet
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: []
 ---
 
-# Plan 150: vf2 avatar side mode — delete stage, add side-by-side
+# Plan 150: visuals-flow avatar side mode — delete stage, add side-by-side
 
 ## Summary
 
@@ -29,7 +29,7 @@ needs: []
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 525d5ba..HEAD -- pipelines/video/visuals-flow-2/`
+> **Drift check (run first)**: `git diff --stat 525d5ba..HEAD -- pipelines/video/visuals-flow/`
 
 ## Status
 
@@ -184,27 +184,27 @@ Follow this exemplar exactly for `rewriteCanvas`.
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Full gate (merge gate) | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0, final line `visuals-flow check OK` |
-| One test file | `cd pipelines/video/visuals-flow-2 && node --test lib/assemble.test.mjs` | exit 0 |
-| Rulebook sync | `cd pipelines/video/visuals-flow-2 && node lib/check-shot-rulebook.mjs` | exit 0 |
-| Regenerate prompt from constants | `cd pipelines/video/visuals-flow-2 && node lib/build-shot-prompt.mjs` | rewrites the generated block in the prompt |
+| Full gate (merge gate) | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0, final line `visuals-flow check OK` |
+| One test file | `cd pipelines/video/visuals-flow && node --test lib/assemble.test.mjs` | exit 0 |
+| Rulebook sync | `cd pipelines/video/visuals-flow && node lib/check-shot-rulebook.mjs` | exit 0 |
+| Regenerate prompt from constants | `cd pipelines/video/visuals-flow && node lib/build-shot-prompt.mjs` | rewrites the generated block in the prompt |
 
 **Never** author a test command as `node --test <dir>/` — it fails on node 22.14 (LESSONS 2026-07-09). Use explicit files, as `scripts/check.sh` already does.
 
 ## Scope
 
 **In scope** (only these paths):
-- `pipelines/video/visuals-flow-2/lib/shot-constants.mjs`
-- `pipelines/video/visuals-flow-2/lib/resolve-shots.mjs` + `.test.mjs`
-- `pipelines/video/visuals-flow-2/lib/lint-shots.mjs` + `.test.mjs`
-- `pipelines/video/visuals-flow-2/lib/avatar-render.mjs` + `.test.mjs`
-- `pipelines/video/visuals-flow-2/lib/assemble.mjs` + `.test.mjs`
-- `pipelines/video/visuals-flow-2/lib/export-timeline.mjs` + `.test.mjs`
-- `pipelines/video/visuals-flow-2/lib/render.mjs` + `.test.mjs`
-- `pipelines/video/visuals-flow-2/lib/check-shot-rulebook.mjs`
-- `pipelines/video/visuals-flow-2/lib/board.mjs` + `.test.mjs`
-- `pipelines/video/visuals-flow-2/steps/070-shot-pass-llm/shot-pass-prompt.md`
-- `pipelines/video/visuals-flow-2/steps/070-shot-pass-llm/README.md`
+- `pipelines/video/visuals-flow/lib/shot-constants.mjs`
+- `pipelines/video/visuals-flow/lib/resolve-shots.mjs` + `.test.mjs`
+- `pipelines/video/visuals-flow/lib/lint-shots.mjs` + `.test.mjs`
+- `pipelines/video/visuals-flow/lib/avatar-render.mjs` + `.test.mjs`
+- `pipelines/video/visuals-flow/lib/assemble.mjs` + `.test.mjs`
+- `pipelines/video/visuals-flow/lib/export-timeline.mjs` + `.test.mjs`
+- `pipelines/video/visuals-flow/lib/render.mjs` + `.test.mjs`
+- `pipelines/video/visuals-flow/lib/check-shot-rulebook.mjs`
+- `pipelines/video/visuals-flow/lib/board.mjs` + `.test.mjs`
+- `pipelines/video/visuals-flow/steps/070-shot-pass-llm/shot-pass-prompt.md`
+- `pipelines/video/visuals-flow/steps/070-shot-pass-llm/README.md`
 
 **Out of scope** (looks related — do NOT touch):
 - `pipelines/video/card-library/**` — the `side` catalog field, `DESIGN.md`, the `host-stage` card and `tool-intro`'s `head_zone` all belong to plan 151. This plan must not edit any card or the catalog.
@@ -215,7 +215,7 @@ Follow this exemplar exactly for `rewriteCanvas`.
 ## Git workflow
 
 - Branch: `advisor/150-vf2-avatar-side-mode`
-- Commit per step: `vf2: <step summary>` — no AI footers. Do NOT push.
+- Commit per step: `visuals-flow: <step summary>` — no AI footers. Do NOT push.
 
 ## Steps
 
@@ -230,7 +230,7 @@ In `lib/shot-constants.mjs`, **remove** `STAGE_HEAD_RADIUS_PX` and **add**:
 
 Keep every other constant unchanged.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node -e "import('./lib/shot-constants.mjs').then(m=>{const c=m.SHOT_CONSTANTS;console.log(c.STAGE_HEAD_RADIUS_PX===undefined&&c.SIDE_GRAPHICS_W.value===1200&&c.SIDE_AVATAR_W.value===720?'OK':'FAIL')})"` -> `OK`
+**Verify**: `cd pipelines/video/visuals-flow && node -e "import('./lib/shot-constants.mjs').then(m=>{const c=m.SHOT_CONSTANTS;console.log(c.STAGE_HEAD_RADIUS_PX===undefined&&c.SIDE_GRAPHICS_W.value===1200&&c.SIDE_AVATAR_W.value===720?'OK':'FAIL')})"` -> `OK`
 
 ### Step 2: Resolver — modes become full|panel|side, and mode is REQUIRED
 
@@ -246,7 +246,7 @@ Note the deliberate change: an omitted `mode` is now an **error**, not a silent 
 
 Update `lib/resolve-shots.test.mjs`: any fixture span missing `mode` must gain one; add a test asserting a span with no `mode` produces an error containing `mode is required`, and a test that `mode: "stage"` is now rejected.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/resolve-shots.test.mjs` -> exit 0
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/resolve-shots.test.mjs` -> exit 0
 
 ### Step 3: Job kinds — `avatar-stage` becomes `avatar-side`
 
@@ -258,7 +258,7 @@ In `lib/avatar-render.mjs:43`:
 
 Update `lib/avatar-render.test.mjs` fixtures accordingly.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/avatar-render.test.mjs` -> exit 0
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/avatar-render.test.mjs` -> exit 0
 
 ### Step 4: Geometry — `planStageGeometry` becomes `planSideGeometry`
 
@@ -297,7 +297,7 @@ At canvas 1920×1080 this returns **exactly**:
 
 Add that as a unit test in `lib/assemble.test.mjs`, following the existing `planPanelGeometry returns exact integers, both dimensions even` test (line ~658) as the exemplar.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node -e "Promise.all([import('./lib/assemble.mjs'),import('./lib/shot-constants.mjs')]).then(([a,s])=>console.log(JSON.stringify(a.planSideGeometry({canvas:{w:1920,h:1080},constants:s.SHOT_CONSTANTS}))))"` -> `{"scaleW":1920,"scaleH":1080,"cropW":720,"cropH":1080,"cropX":600,"cropY":0,"x":1200,"y":0,"radius":0}`
+**Verify**: `cd pipelines/video/visuals-flow && node -e "Promise.all([import('./lib/assemble.mjs'),import('./lib/shot-constants.mjs')]).then(([a,s])=>console.log(JSON.stringify(a.planSideGeometry({canvas:{w:1920,h:1080},constants:s.SHOT_CONSTANTS}))))"` -> `{"scaleW":1920,"scaleH":1080,"cropW":720,"cropH":1080,"cropX":600,"cropY":0,"x":1200,"y":0,"radius":0}`
 
 ### Step 5: Assemble — side overlays and the filter chain
 
@@ -325,7 +325,7 @@ In `lib/assemble.mjs`:
 
 4. Remove the now-unused `catalog?.cards?.find(...)` lookup that only served stage. Leave the `catalog` parameter itself in place — other code paths use it.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/assemble.test.mjs` -> exit 0
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/assemble.test.mjs` -> exit 0
 
 ### Step 6: Card renders at 1200px for side cues — `rewriteCanvas`
 
@@ -358,7 +358,7 @@ Wire it in the render loop (around line 166) so that when a cue carries `sideMod
 
 Add unit tests to `lib/render.test.mjs` for: no `data-width` → error; mixed values → error; single value → rewritten to 1200.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/render.test.mjs` -> exit 0
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/render.test.mjs` -> exit 0
 
 ### Step 7: Lint — repurpose E6/W6, fix E2, count side against the cap
 
@@ -384,7 +384,7 @@ In `lib/lint-shots.mjs`:
 
 Update `lib/lint-shots.test.mjs`: rename the stage cases to side, and add a case where a side span covers a card with `side: false` → expect the E6 error.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/lint-shots.test.mjs` -> exit 0
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/lint-shots.test.mjs` -> exit 0
 
 ### Step 8: Export timeline — side FCPXML branch
 
@@ -392,7 +392,7 @@ In `lib/export-timeline.mjs`, replace the `c.isStage` branch with `c.isSide`, ca
 
 Update `lib/export-timeline.test.mjs` fixtures from stage to side.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/export-timeline.test.mjs` -> exit 0
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/export-timeline.test.mjs` -> exit 0
 
 ### Step 9: The rulebook — make mode a real decision
 
@@ -457,7 +457,7 @@ Run that command yourself now and confirm it prints `(none yet — no side spans
 
 **9e.** Run `node lib/build-shot-prompt.mjs` to regenerate the constants block, and update `lib/check-shot-rulebook.mjs` so it no longer asserts the removed `STAGE_HEAD_RADIUS_PX` line and does assert the two new SIDE constants.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/check-shot-rulebook.mjs && grep -c "stage" steps/070-shot-pass-llm/shot-pass-prompt.md` -> exit 0 from the first command, and `0` from the grep
+**Verify**: `cd pipelines/video/visuals-flow && node lib/check-shot-rulebook.mjs && grep -c "stage" steps/070-shot-pass-llm/shot-pass-prompt.md` -> exit 0 from the first command, and `0` from the grep
 
 ### Step 10: Board — make `side` visible on the storyboard
 
@@ -483,7 +483,7 @@ A `side` span falls through to `[A]` — identical to full. That is the same "co
 
 Add a test to `lib/board.test.mjs` asserting a `side` span renders `[S]` and a `full` span renders `[A]` — following whatever existing board test covers span labels.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/board.test.mjs && grep -c "\[S\]" lib/board.mjs` -> exit 0 and `2`
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/board.test.mjs && grep -c "\[S\]" lib/board.mjs` -> exit 0 and `2`
 
 ### Step 11: Prove the pixels
 
@@ -496,11 +496,11 @@ Add an integration test to `lib/assemble.test.mjs` following the existing `Integ
 
 The outside assertion is the one that matters: it proves the avatar did **not** take the full frame. A test that only samples inside would pass even if side silently degraded to full-screen — the exact failure this plan exists to fix.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/assemble.test.mjs` -> exit 0, and the new test name appears in the pass list
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/assemble.test.mjs` -> exit 0, and the new test name appears in the pass list
 
 ### Step 12: Full gate
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` -> exit 0, final line `visuals-flow check OK`
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh` -> exit 0, final line `visuals-flow check OK`
 
 ## Test plan
 
@@ -511,7 +511,7 @@ The outside assertion is the one that matters: it proves the avatar did **not** 
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 - [ ] `grep -ric "stage" lib/*.mjs steps/070-shot-pass-llm/shot-pass-prompt.md | grep -v ':0$'` returns nothing (zero stage references outside of unrelated words — verify any hit is a false positive like "stagedDir" and rename the check accordingly; `stagedDir` in `render.mjs` is legitimate and must be excluded by using `grep -o "\bstage\b"`)
 - [ ] `node -e "…planSideGeometry…"` prints exactly `{"scaleW":1920,"scaleH":1080,"cropW":720,"cropH":1080,"cropX":600,"cropY":0,"x":1200,"y":0,"radius":0}`
 - [ ] `node lib/check-shot-rulebook.mjs` exits 0

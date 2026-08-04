@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/card-library && npm run check && cd ../visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/card-library && npm run check && cd ../visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: []
@@ -21,7 +21,7 @@ needs: []
 
 > **Executor instructions**: Follow this plan step by step; run every verification. If a STOP condition occurs, stop and report. Do NOT edit `plans/README.md`. `videos/test-01/` may exist untracked (live review) — never stage/edit/delete anything under `videos/`.
 >
-> **Drift check (run first)**: `git diff --stat 49ce96d..HEAD -- pipelines/video/visuals-flow-2 pipelines/video/card-library`
+> **Drift check (run first)**: `git diff --stat 49ce96d..HEAD -- pipelines/video/visuals-flow pipelines/video/card-library`
 
 ## Status
 
@@ -39,7 +39,7 @@ Panel/bubble put the host ON TOP of content as a floating sticker; Loop Studio's
 
 ## Current state
 
-- Shots schema (`pipelines/video/visuals-flow-2/PIPELINE.md`): spans `{id, kind:"avatar-full", mode: "full"|"panel", from_anchor, to_anchor, note, flagged}`; `lib/resolve-shots.mjs` validates/passes `mode`; `lib/lint-shots.mjs` exempts panel from the full-screen budget and blocks avatar-span overlaps; `lib/shot-constants.mjs` holds `PANEL_WIDTH_FRAC 0.28`, `PANEL_INSET_PX 32`, `PANEL_RADIUS_PX 24`.
+- Shots schema (`pipelines/video/visuals-flow/PIPELINE.md`): spans `{id, kind:"avatar-full", mode: "full"|"panel", from_anchor, to_anchor, note, flagged}`; `lib/resolve-shots.mjs` validates/passes `mode`; `lib/lint-shots.mjs` exempts panel from the full-screen budget and blocks avatar-span overlaps; `lib/shot-constants.mjs` holds `PANEL_WIDTH_FRAC 0.28`, `PANEL_INSET_PX 32`, `PANEL_RADIUS_PX 24`.
 - Panel compositing precedent in `lib/assemble.mjs`: panel spans skip `planSegments`' base replacement and join the overlay path — scaled, rounded-rect alpha via `geq`, overlaid bottom-right with an enable window. The rounded-rect alpha expression and the overlay wiring are the exemplar for stage mode (read the panel branch before coding).
 - FCPXML: `lib/export-timeline.mjs` writes panel clips on the avatar lane with `<adjust-transform scale=... position=.../>` — reuse for stage.
 - Catalog metadata precedent (`card-library/scripts/check-catalog.mjs`): optional per-card fields validated when present (`register`, `variants`, `continuity`, ...). `continuity` already reserves a documented zone — `head_zone` follows the same pattern but with explicit geometry.
@@ -51,14 +51,14 @@ Panel/bubble put the host ON TOP of content as a floating sticker; Loop Studio's
 | Purpose | Command | Expected |
 |---|---|---|
 | Card gate | `cd pipelines/video/card-library && npm run check` | exit 0 |
-| v2 gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
+| v2 gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
 | Composite smoke | `ffmpeg -f lavfi -i color=c=black:s=1920x1080:d=2 -f lavfi -i testsrc=s=480x480:d=2 -filter_complex "[1]format=yuva444p,geq=lum='lum(X,Y)':cb='cb(X,Y)':cr='cr(X,Y)':a='if(lt(hypot(max(abs(X-W/2)-(W/2-24),0),max(abs(Y-H/2)-(H/2-24),0)),24.5),255,0)'[a];[0][a]overlay=x=100:y=100" -f null - 2>&1 \| tail -1` | exit 0 |
 
 ## Scope
 
 **In scope**:
 - `card-library/`: `scripts/check-catalog.mjs` (head_zone validation), `catalog.json` (head_zone on `section/tool-intro` + the new card), `section/host-stage/` (new card), `README.md` (head_zone contract docs)
-- `visuals-flow-2/`: `PIPELINE.md` (schema), `lib/resolve-shots.mjs`, `lib/lint-shots.mjs`, `lib/shot-constants.mjs`, `lib/assemble.mjs`, `lib/export-timeline.mjs` + their tests, `steps/070-shot-pass-llm/shot-pass-prompt.md` + `RULEBOOK.md`, `scripts/check.sh` if a test file is added
+- `visuals-flow/`: `PIPELINE.md` (schema), `lib/resolve-shots.mjs`, `lib/lint-shots.mjs`, `lib/shot-constants.mjs`, `lib/assemble.mjs`, `lib/export-timeline.mjs` + their tests, `steps/070-shot-pass-llm/shot-pass-prompt.md` + `RULEBOOK.md`, `scripts/check.sh` if a test file is added
 
 **Out of scope**: v1; board display of stage spans (existing avatar lane suffices); HeyGen render mechanics (stage reuses the same clips); `videos/**`.
 

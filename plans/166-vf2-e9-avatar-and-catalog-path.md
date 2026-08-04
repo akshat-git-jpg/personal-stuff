@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh && node lib/lint-shots.mjs test-03
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh && node lib/lint-shots.mjs test-03
 ui: false
 deploy:
 needs: [unblocks PR#116 / plan 158 — land this first]
@@ -24,7 +24,7 @@ needs: [unblocks PR#116 / plan 158 — land this first]
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat bb53892..HEAD -- pipelines/video/visuals-flow-2/lib/lint-cues.mjs pipelines/video/visuals-flow-2/lib/lint-shots.mjs`
+> **Drift check (run first)**: `git diff --stat bb53892..HEAD -- pipelines/video/visuals-flow/lib/lint-cues.mjs pipelines/video/visuals-flow/lib/lint-shots.mjs`
 
 ## Status
 
@@ -48,7 +48,7 @@ Bug 2 is worse in reach: it breaks the `shots` verb for every video, and has pre
 
 ### Bug 1 — E9 is avatar-blind
 
-`pipelines/video/visuals-flow-2/lib/lint-cues.mjs`. The E7 call (line 313), **correct**:
+`pipelines/video/visuals-flow/lib/lint-cues.mjs`. The E7 call (line 313), **correct**:
 
 ```js
   if (manifest?.base === 'none') {
@@ -80,7 +80,7 @@ Both CTAs actually sit over an `avatar-full` span that clamps `c03`.
 
 ### Bug 2 — wrong catalog path
 
-`pipelines/video/visuals-flow-2/lib/lint-shots.mjs`, line 154, verbatim:
+`pipelines/video/visuals-flow/lib/lint-shots.mjs`, line 154, verbatim:
 
 ```js
   const catalog = JSON.parse(fs.readFileSync(path.join(workdir, '../../../../card-library/catalog.json'), 'utf8'));
@@ -118,18 +118,18 @@ That anchors to the module, not the caller's argument. `lint-shots.mjs:154` is t
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Full gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0 |
-| lint-shots CLI | `cd pipelines/video/visuals-flow-2 && node lib/lint-shots.mjs test-03` | runs, no ENOENT |
-| lint-cues CLI | `cd pipelines/video/visuals-flow-2 && node lib/lint-cues.mjs test-03` | exit 0, output unchanged |
-| Targeted tests | `cd pipelines/video/visuals-flow-2 && node --test lib/lint-cues.test.mjs lib/lint-shots.test.mjs` | `# fail 0` |
+| Full gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0 |
+| lint-shots CLI | `cd pipelines/video/visuals-flow && node lib/lint-shots.mjs test-03` | runs, no ENOENT |
+| lint-cues CLI | `cd pipelines/video/visuals-flow && node lib/lint-cues.mjs test-03` | exit 0, output unchanged |
+| Targeted tests | `cd pipelines/video/visuals-flow && node --test lib/lint-cues.test.mjs lib/lint-shots.test.mjs` | `# fail 0` |
 
 ## Scope
 
 **In scope**:
-- `pipelines/video/visuals-flow-2/lib/lint-cues.mjs` (the E9 `extendExposure` call, one argument)
-- `pipelines/video/visuals-flow-2/lib/lint-shots.mjs` (the catalog path)
-- `pipelines/video/visuals-flow-2/lib/lint-cues.test.mjs`
-- `pipelines/video/visuals-flow-2/lib/lint-shots.test.mjs`
+- `pipelines/video/visuals-flow/lib/lint-cues.mjs` (the E9 `extendExposure` call, one argument)
+- `pipelines/video/visuals-flow/lib/lint-shots.mjs` (the catalog path)
+- `pipelines/video/visuals-flow/lib/lint-cues.test.mjs`
+- `pipelines/video/visuals-flow/lib/lint-shots.test.mjs`
 
 **Out of scope**:
 - **`plans/158-vf2-cut-the-conclusion.md`** — do not touch it. Its STOP condition forbidding `lib/*.mjs` edits is why these bugs were reported rather than patched, and it worked.
@@ -141,7 +141,7 @@ That anchors to the module, not the caller's argument. `lint-shots.mjs:154` is t
 ## Git workflow
 
 - Branch: `advisor/166-vf2-e9-avatar-and-catalog-path`
-- Commit: `fix(vf2): E9 honours avatar spans; lint-shots anchors the catalog path` — no AI footers. Do NOT push.
+- Commit: `fix(visuals-flow): E9 honours avatar spans; lint-shots anchors the catalog path` — no AI footers. Do NOT push.
 
 ## Steps
 
@@ -192,7 +192,7 @@ test('lint-shots CLI resolves the real catalog from a workdir', () => {
 
 Import `spawnSync` from `node:child_process` and `path` from `node:path` if not already imported. If `videos/test-03/shots.resolved.json` is absent the CLI may exit non-zero for an unrelated reason — this test asserts only that it does not throw **ENOENT**, which is exactly the bug.
 
-**Verify (these MUST fail now)**: `cd pipelines/video/visuals-flow-2 && node --test lib/lint-cues.test.mjs lib/lint-shots.test.mjs 2>&1 | tail -6` -> at least 2 failures. Record which. If they pass before any fix, the tests do not reproduce the bugs — STOP and report.
+**Verify (these MUST fail now)**: `cd pipelines/video/visuals-flow && node --test lib/lint-cues.test.mjs lib/lint-shots.test.mjs 2>&1 | tail -6` -> at least 2 failures. Record which. If they pass before any fix, the tests do not reproduce the bugs — STOP and report.
 
 ### Step 2: Fix bug 1
 
@@ -209,7 +209,7 @@ In `lib/lint-cues.mjs`, change the E9 block's call to pass the same spans E7 use
     });
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/lint-cues.test.mjs 2>&1 | tail -4` -> `# fail 0`
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/lint-cues.test.mjs 2>&1 | tail -4` -> `# fail 0`
 
 ### Step 3: Fix bug 2
 
@@ -220,20 +220,20 @@ In `lib/lint-shots.mjs`, replace the workdir-relative path with the module-ancho
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node lib/lint-shots.mjs test-03 2>&1 | tail -3` -> runs without `ENOENT`, and `node --test lib/lint-shots.test.mjs 2>&1 | tail -4` -> `# fail 0`
+**Verify**: `cd pipelines/video/visuals-flow && node lib/lint-shots.mjs test-03 2>&1 | tail -3` -> runs without `ENOENT`, and `node --test lib/lint-shots.test.mjs 2>&1 | tail -4` -> `# fail 0`
 
 ### Step 4: Confirm nothing else moved
 
 **Verify**:
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 node lib/lint-cues.mjs test-03; echo "exit=$?"
 ```
 -> `exit=0`, output **identical** to before this plan. test-03 is `base:"screen"` with avatar jobs, so E9's result must not change for it — if it does, report the diff rather than accepting it.
 
 ### Step 5: Full gate
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh && node lib/lint-shots.mjs test-03` -> both exit 0
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh && node lib/lint-shots.mjs test-03` -> both exit 0
 
 ## Test plan
 
@@ -248,7 +248,7 @@ Step 1 requires watching all of them fail first. A regression test that was neve
 ## Done criteria
 
 - [ ] the three new tests failed before the fixes and pass after (state which failed, in the run log)
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 - [ ] `node lib/lint-shots.mjs test-03` runs with no ENOENT
 - [ ] `node lib/lint-cues.mjs test-03` exits 0 with output unchanged
 - [ ] `grep -c "avatarSpans" lib/lint-cues.mjs` is `2` (E7 and E9)

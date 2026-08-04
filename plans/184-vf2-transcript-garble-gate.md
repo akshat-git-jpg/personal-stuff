@@ -1,10 +1,10 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
-needs: ["touches scripts/check.sh — the vf2 serial-collision hotspot; rebase-resolve the node --test concat rather than dropping either side"]
+needs: ["touches scripts/check.sh — the visuals-flow serial-collision hotspot; rebase-resolve the node --test concat rather than dropping either side"]
 ---
 
 # Plan 184: catch ASR caption garbles at step 010, not at the final cut
@@ -29,7 +29,7 @@ needs: ["touches scripts/check.sh — the vf2 serial-collision hotspot; rebase-r
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 592b0ae5..HEAD -- pipelines/video/visuals-flow-2/lib pipelines/video/visuals-flow-2/steps/010-transcribe-run pipelines/video/visuals-flow-2/scripts/check.sh`
+> **Drift check (run first)**: `git diff --stat 592b0ae5..HEAD -- pipelines/video/visuals-flow/lib pipelines/video/visuals-flow/steps/010-transcribe-run pipelines/video/visuals-flow/scripts/check.sh`
 
 ## Status
 
@@ -79,10 +79,10 @@ run confirmed all four corrections and cost four API calls on a 32-minute video.
 
 | File | Role |
 |---|---|
-| `pipelines/video/visuals-flow-2/lib/transcribe-groq.mjs` | Groq fast path; owns the clamp and the poison guard |
-| `pipelines/video/visuals-flow-2/steps/010-transcribe-run/run.sh` | orchestrates groq → whisper fallback → cleanup pass |
-| `pipelines/video/visuals-flow-2/steps/010-transcribe-run/cleanup-prompt.md` | the ASR cleanup pass's rulebook |
-| `pipelines/video/visuals-flow-2/scripts/check.sh` | the repo gate; `node --test` file list lives here |
+| `pipelines/video/visuals-flow/lib/transcribe-groq.mjs` | Groq fast path; owns the clamp and the poison guard |
+| `pipelines/video/visuals-flow/steps/010-transcribe-run/run.sh` | orchestrates groq → whisper fallback → cleanup pass |
+| `pipelines/video/visuals-flow/steps/010-transcribe-run/cleanup-prompt.md` | the ASR cleanup pass's rulebook |
+| `pipelines/video/visuals-flow/scripts/check.sh` | the repo gate; `node --test` file list lives here |
 
 ### The poison guard as it stands
 
@@ -168,25 +168,25 @@ same category of error as a mangled brand, which already has a carve-out.
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Full gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0, prints `visuals-flow check OK` |
-| One test file | `cd pipelines/video/visuals-flow-2 && node --test lib/transcript-suspect.test.mjs` | exit 0 |
-| Suspect gate on a video | `cd pipelines/video/visuals-flow-2 && node lib/transcript-suspect.mjs best-ai-video-generator` | exit 0 (that video is already corrected) |
-| Second opinion | `cd pipelines/video/visuals-flow-2 && node lib/transcript-second-opinion.mjs <slug>` | prints a diff table |
+| Full gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0, prints `visuals-flow check OK` |
+| One test file | `cd pipelines/video/visuals-flow && node --test lib/transcript-suspect.test.mjs` | exit 0 |
+| Suspect gate on a video | `cd pipelines/video/visuals-flow && node lib/transcript-suspect.mjs best-ai-video-generator` | exit 0 (that video is already corrected) |
+| Second opinion | `cd pipelines/video/visuals-flow && node lib/transcript-second-opinion.mjs <slug>` | prints a diff table |
 
 ## Scope
 
 **In scope** (the only files to create or modify):
 
-- `pipelines/video/visuals-flow-2/lib/transcribe-groq.mjs`
-- `pipelines/video/visuals-flow-2/lib/transcribe-groq.test.mjs` (new)
-- `pipelines/video/visuals-flow-2/lib/lexicon.json` (new)
-- `pipelines/video/visuals-flow-2/lib/transcript-suspect.mjs` (new)
-- `pipelines/video/visuals-flow-2/lib/transcript-suspect.test.mjs` (new)
-- `pipelines/video/visuals-flow-2/lib/transcript-second-opinion.mjs` (new)
-- `pipelines/video/visuals-flow-2/steps/010-transcribe-run/run.sh`
-- `pipelines/video/visuals-flow-2/steps/010-transcribe-run/cleanup-prompt.md`
-- `pipelines/video/visuals-flow-2/steps/010-transcribe-run/README.md`
-- `pipelines/video/visuals-flow-2/scripts/check.sh`
+- `pipelines/video/visuals-flow/lib/transcribe-groq.mjs`
+- `pipelines/video/visuals-flow/lib/transcribe-groq.test.mjs` (new)
+- `pipelines/video/visuals-flow/lib/lexicon.json` (new)
+- `pipelines/video/visuals-flow/lib/transcript-suspect.mjs` (new)
+- `pipelines/video/visuals-flow/lib/transcript-suspect.test.mjs` (new)
+- `pipelines/video/visuals-flow/lib/transcript-second-opinion.mjs` (new)
+- `pipelines/video/visuals-flow/steps/010-transcribe-run/run.sh`
+- `pipelines/video/visuals-flow/steps/010-transcribe-run/cleanup-prompt.md`
+- `pipelines/video/visuals-flow/steps/010-transcribe-run/README.md`
+- `pipelines/video/visuals-flow/scripts/check.sh`
 
 **Out of scope — looks related, do not touch:**
 
@@ -288,7 +288,7 @@ The CLI block then calls `clampAndJudge(words)` and exits 1 with the message
 above when `poisoned` is true. Keep the per-word NaN/negative validation loop
 that follows it exactly as it is.
 
-**Verify:** `cd pipelines/video/visuals-flow-2 && node -e "import('./lib/transcribe-groq.mjs').then(m=>{const w=[];for(let i=0;i<5974;i++)w.push({text:'x',start:i*0.32,end:i*0.32+0.3});for(let i=1;i<130;i++)w[i*40].start=w[i*40-1].start-0.2;console.log(m.clampAndJudge(w))})"`
+**Verify:** `cd pipelines/video/visuals-flow && node -e "import('./lib/transcribe-groq.mjs').then(m=>{const w=[];for(let i=0;i<5974;i++)w.push({text:'x',start:i*0.32,end:i*0.32+0.3});for(let i=1;i<130;i++)w[i*40].start=w[i*40-1].start-0.2;console.log(m.clampAndJudge(w))})"`
 → prints `clamped: 129` and `poisoned: false`.
 
 ### Step 2 — Record the engine and make a downgrade loud
@@ -320,7 +320,7 @@ WARN
 fi
 ```
 
-**Verify:** `cd pipelines/video/visuals-flow-2 && bash -n steps/010-transcribe-run/run.sh && echo "syntax ok"` → prints `syntax ok`.
+**Verify:** `cd pipelines/video/visuals-flow && bash -n steps/010-transcribe-run/run.sh && echo "syntax ok"` → prints `syntax ok`.
 
 ### Step 3 — Add the domain lexicon
 
@@ -352,7 +352,7 @@ whitespace-normalised) to its correction.
 }
 ```
 
-**Verify:** `cd pipelines/video/visuals-flow-2 && node -e "const l=require('./lib/lexicon.json');console.log(l.terms.length,'terms',Object.keys(l.confusables).length,'confusables')"` → prints `31 terms 9 confusables`.
+**Verify:** `cd pipelines/video/visuals-flow && node -e "const l=require('./lib/lexicon.json');console.log(l.terms.length,'terms',Object.keys(l.confusables).length,'confusables')"` → prints `31 terms 9 confusables`.
 
 ### Step 4 — Build the suspect gate
 
@@ -396,7 +396,7 @@ the transcript (it was corrected), or its `at` timestamp is listed in
 A `reviewed` entry with a missing or empty `why` does NOT clear the suspect —
 acknowledging must cost a sentence, or it becomes a rubber stamp.
 
-**Verify:** `cd pipelines/video/visuals-flow-2 && node lib/transcript-suspect.mjs best-ai-video-generator; echo "exit=$?"` → exit 0 (that transcript was corrected on 2026-08-02, so nothing should fire).
+**Verify:** `cd pipelines/video/visuals-flow && node lib/transcript-suspect.mjs best-ai-video-generator; echo "exit=$?"` → exit 0 (that transcript was corrected on 2026-08-02, so nothing should fire).
 
 ### Step 5 — Build the second-opinion pass
 
@@ -418,7 +418,7 @@ always unless `GROQ_API_KEY` is missing (exit 2) or ffmpeg is absent (exit 2).
 Deduplicate overlapping windows before calling the API so three suspects two
 seconds apart cost one request, not three.
 
-**Verify:** `cd pipelines/video/visuals-flow-2 && node lib/transcript-second-opinion.mjs 2>&1 | head -2` → prints a usage line and exits non-zero (no slug given).
+**Verify:** `cd pipelines/video/visuals-flow && node lib/transcript-second-opinion.mjs 2>&1 | head -2` → prints a usage line and exits non-zero (no slug given).
 
 ### Step 6 — Give the cleanup pass a spec-term carve-out
 
@@ -445,7 +445,7 @@ the new paragraph is scoped narrowly enough not to contradict it.
 Then in `steps/010-transcribe-run/README.md`, add the two new commands to the
 step's documented flow, after the cleanup-pass instructions.
 
-**Verify:** `cd pipelines/video/visuals-flow-2 && grep -c 'Fix spec and product terms' steps/010-transcribe-run/cleanup-prompt.md` → prints `1`.
+**Verify:** `cd pipelines/video/visuals-flow && grep -c 'Fix spec and product terms' steps/010-transcribe-run/cleanup-prompt.md` → prints `1`.
 
 ### Step 7 — Tests and gate wiring
 
@@ -488,7 +488,7 @@ Create `lib/transcribe-groq.test.mjs` asserting `clampAndJudge`:
 Finally add both new test files to the `node --test` list in `scripts/check.sh`,
 appended to the existing single-line list (do not reorder or drop any existing entry).
 
-**Verify:** `cd pipelines/video/visuals-flow-2 && node --test lib/transcript-suspect.test.mjs lib/transcribe-groq.test.mjs` → exit 0, all assertions pass.
+**Verify:** `cd pipelines/video/visuals-flow && node --test lib/transcript-suspect.test.mjs lib/transcribe-groq.test.mjs` → exit 0, all assertions pass.
 
 ## Test plan
 
@@ -502,7 +502,7 @@ without `GROQ_API_KEY` set — keep the API call behind the CLI block.
 
 ## Done criteria
 
-Every one of these must pass, run from `pipelines/video/visuals-flow-2/`:
+Every one of these must pass, run from `pipelines/video/visuals-flow/`:
 
 1. `bash scripts/check.sh` → exit 0, prints `visuals-flow check OK`.
 2. `node --test lib/transcript-suspect.test.mjs lib/transcribe-groq.test.mjs` → exit 0.
@@ -517,7 +517,7 @@ Every one of these must pass, run from `pipelines/video/visuals-flow-2/`:
 - **Gate integrity**: if a gate assertion fails, fix the code or the fixture. Weakening, swapping, or deleting the assertion is a STOP — report instead. (Crews reliably soften assertions to pass: LESSONS 2026-07-31, 2026-07-24.)
 - **Do not rewrite any existing `videos/*/transcript.json`.** Cue anchors quote the transcript verbatim, so a text edit silently breaks every anchor in that video. `best-ai-video-generator` was corrected and re-resolved by hand on 2026-08-02; if the suspect gate fires on it, report what it found — do not "fix" the transcript.
 - If the suspect gate's `once-only-proper-noun` rule fires on more than ~15 tokens for `best-ai-video-generator`, it is too loose to be a gate. Stop and report the count and a sample rather than padding `lexicon.terms` until it goes quiet.
-- If `scripts/check.sh` has been changed on `main` since the drift check, rebase and **resolve the `node --test` list by concatenation** — this file is a known serial-collision point across vf2 plans. Never resolve it by taking one side.
+- If `scripts/check.sh` has been changed on `main` since the drift check, rebase and **resolve the `node --test` list by concatenation** — this file is a known serial-collision point across visuals-flow plans. Never resolve it by taking one side.
 
 ## Maintenance notes
 

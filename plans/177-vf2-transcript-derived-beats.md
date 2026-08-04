@@ -1,13 +1,13 @@
 ---
 executor: claude-p
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && node --test lib/resolve.test.mjs lib/transcript-beats.test.mjs && node lib/check-rulebook.mjs && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && node --test lib/resolve.test.mjs lib/transcript-beats.test.mjs && node lib/check-rulebook.mjs && bash scripts/check.sh
 ui:
 deploy:
 needs: ["shares lib/lint-cues.mjs with 175 and 179, lib/cue-rules.mjs with 179, lib/resolve.mjs with 176, and card-library/catalog.json with nobody else. Expect append-region conflicts on lint-cues.mjs; boss resolves the concat."]
 ---
 
-# Plan 177: vf2 transcript-derived beats for enumeration cards
+# Plan 177: visuals-flow transcript-derived beats for enumeration cards
 
 ## Summary
 
@@ -24,7 +24,7 @@ needs: ["shares lib/lint-cues.mjs with 175 and 179, lib/cue-rules.mjs with 179, 
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow-2/lib/resolve.mjs pipelines/video/card-library/catalog.json`
+> **Drift check (run first)**: `git diff --stat 802e7078..HEAD -- pipelines/video/visuals-flow/lib/resolve.mjs pipelines/video/card-library/catalog.json`
 
 ## Status
 
@@ -72,7 +72,7 @@ The precedent for the fix is already in the codebase. `lib/kinetic-sentence.mjs`
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Unit tests | `cd pipelines/video/visuals-flow-2 && node --test lib/resolve.test.mjs lib/transcript-beats.test.mjs` | exit 0 |
+| Unit tests | `cd pipelines/video/visuals-flow && node --test lib/resolve.test.mjs lib/transcript-beats.test.mjs` | exit 0 |
 | Re-resolve the fixture video | `node lib/resolve.mjs best-ai-video-generator` | exit 0 |
 | Inspect z02's beat times | `node -e "console.log(JSON.stringify(require('./videos/best-ai-video-generator/resolved.json').resolved.find(q=>q.id==='z02').variables.beats))"` | five beats |
 | Rulebook | `node lib/check-rulebook.mjs` | `rulebook ok` |
@@ -94,7 +94,7 @@ The precedent for the fix is already in the codebase. `lib/kinetic-sentence.mjs`
 ## Git workflow
 
 - Branch: `advisor/177-vf2-transcript-derived-beats`
-- Commit: `feat(vf2): derive beat times from the transcript for enumeration cards` — no AI footers. Do NOT push.
+- Commit: `feat(visuals-flow): derive beat times from the transcript for enumeration cards` — no AI footers. Do NOT push.
 
 ## Steps
 

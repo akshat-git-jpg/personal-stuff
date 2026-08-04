@@ -1,0 +1,91 @@
+{
+  "video": "best-ai-video-generator",
+  "template": "girl-1",
+  "engineMode": "production",
+  "jobs": [
+    {
+      "id": "s00",
+      "purpose": "avatar-full",
+      "start": 59.51,
+      "end": 82.71,
+      "duration": 23.2,
+      "audio": "slices-avatar/s00.mp3",
+      "video_id": "42f2196d6464444684b4a3d85be34d3a",
+      "status": "submitted",
+      "submitted_at": "2026-08-02T09:48:44.218Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/best-ai-video-generator/s00.mp4"
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "start": 131.57,
+      "end": 147.76,
+      "duration": 16.19,
+      "audio": "slices-avatar/s02.mp3",
+      "video_id": "a8b54f3365eb4d82a5b5eefea3f6030c",
+      "status": "submitted",
+      "submitted_at": "2026-08-02T09:50:05.157Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/best-ai-video-generator/s02.mp4"
+    },
+    {
+      "id": "s03",
+      "purpose": "avatar-full",
+      "start": 728.17,
+      "end": 745.8,
+      "duration": 17.63,
+      "audio": "slices-avatar/s03.mp3",
+      "video_id": "3fa7e69648914e4b948b7870f36a25c4",
+      "status": "submitted",
+      "submitted_at": "2026-08-02T09:51:43.543Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/best-ai-video-generator/s03.mp4"
+    },
+    {
+      "id": "s04",
+      "purpose": "avatar-full",
+      "start": 1204.37,
+      "end": 1222.68,
+      "duration": 18.31,
+      "audio": "slices-avatar/s04.mp3",
+      "video_id": "41b764107e624c5ab8edb2cfc1ecc799",
+      "status": "submitted",
+      "submitted_at": "2026-08-02T09:53:52.615Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/best-ai-video-generator/s04.mp4"
+    },
+    {
+      "id": "s05",
+      "purpose": "avatar-full",
+      "start": 1341.12,
+      "end": 1371.47,
+      "duration": 30.35,
+      "audio": "slices-avatar/s05.mp3",
+      "video_id": "337535d4501f4660b06bd4fa11f41ce2",
+      "status": "submitted",
+      "submitted_at": "2026-08-02T09:55:24.709Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/best-ai-video-generator/s05.mp4"
+    },
+    {
+      "id": "s06",
+      "purpose": "avatar-full",
+      "start": 1565.69,
+      "end": 1587.43,
+      "duration": 21.74,
+      "audio": "slices-avatar/s06.mp3",
+      "video_id": "7fb71f8d86294c7a91300550875cc449",
+      "status": "submitted",
+      "submitted_at": "2026-08-02T10:05:42.182Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/best-ai-video-generator/s06.mp4"
+    },
+    {
+      "id": "s07",
+      "purpose": "avatar-full",
+      "start": 1903.13,
+      "end": 1927.48,
+      "duration": 24.35,
+      "audio": "slices-avatar/s07.mp3",
+      "video_id": "e0ead54a9f9a463295bd0a9b5e9b77d1",
+      "status": "submitted",
+      "submitted_at": "2026-08-02T10:07:03.801Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/best-ai-video-generator/s07.mp4"
+    }
+  ]
+}

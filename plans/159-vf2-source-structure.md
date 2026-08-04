@@ -1,7 +1,7 @@
 ---
 executor: agy
 model:
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: false
 deploy:
 needs: []
@@ -27,7 +27,7 @@ needs: []
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 12646f6..HEAD -- pipelines/video/visuals-flow-2/lib/segments.mjs pipelines/video/visuals-flow-2/lib/video-manifest.mjs`
+> **Drift check (run first)**: `git diff --stat 12646f6..HEAD -- pipelines/video/visuals-flow/lib/segments.mjs pipelines/video/visuals-flow/lib/video-manifest.mjs`
 
 ## Status
 
@@ -54,9 +54,9 @@ The gate is on **inputs**, not on editorial structure (owner, 2026-07-28: *"bloc
 **`videos/test-03/concat.txt`**, verbatim — the structure the owner already provides:
 
 ```
-file '/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow-2/videos/test-03/src/intro.mp4'
-file '/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow-2/videos/test-03/src/body.mp4'
-file '/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow-2/videos/test-03/src/conclusion.mp4'
+file '/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow/videos/test-03/src/intro.mp4'
+file '/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow/videos/test-03/src/body.mp4'
+file '/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow/videos/test-03/src/conclusion.mp4'
 ```
 
 Measured durations (`ffprobe -v error -show_entries format=duration -of csv=p=0`):
@@ -110,20 +110,20 @@ Every non-demo kind falls through to narration handling. Introducing `kind: 'int
 
 | Purpose | Command | Expected |
 |---|---|---|
-| Full gate | `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` | exit 0, `visuals-flow check OK` |
-| Segments tests | `cd pipelines/video/visuals-flow-2 && node --test lib/segments.test.mjs` | all pass |
+| Full gate | `cd pipelines/video/visuals-flow && bash scripts/check.sh` | exit 0, `visuals-flow check OK` |
+| Segments tests | `cd pipelines/video/visuals-flow && node --test lib/segments.test.mjs` | all pass |
 | Probe a duration | `ffprobe -v error -show_entries format=duration -of csv=p=0 <file>` | seconds as a float |
-| Inspect structure | `cd pipelines/video/visuals-flow-2 && node -e "console.log(JSON.stringify(require('./videos/test-03/segments.json').structure,null,2))"` | see Step 5 |
+| Inspect structure | `cd pipelines/video/visuals-flow && node -e "console.log(JSON.stringify(require('./videos/test-03/segments.json').structure,null,2))"` | see Step 5 |
 
 ## Scope
 
 **In scope**:
-- `pipelines/video/visuals-flow-2/lib/source-structure.mjs` (new)
-- `pipelines/video/visuals-flow-2/lib/source-structure.test.mjs` (new)
-- `pipelines/video/visuals-flow-2/lib/segments.mjs` (write `structure` into `segments.json`)
-- `pipelines/video/visuals-flow-2/scripts/check.sh` (register the new test file — see Step 6)
-- `pipelines/video/visuals-flow-2/videos/test-03/segments.json` (regenerated output)
-- `pipelines/video/visuals-flow-2/PIPELINE.md` (document the three-file convention + the `structure` field)
+- `pipelines/video/visuals-flow/lib/source-structure.mjs` (new)
+- `pipelines/video/visuals-flow/lib/source-structure.test.mjs` (new)
+- `pipelines/video/visuals-flow/lib/segments.mjs` (write `structure` into `segments.json`)
+- `pipelines/video/visuals-flow/scripts/check.sh` (register the new test file — see Step 6)
+- `pipelines/video/visuals-flow/videos/test-03/segments.json` (regenerated output)
+- `pipelines/video/visuals-flow/PIPELINE.md` (document the three-file convention + the `structure` field)
 
 **Out of scope**:
 - `lib/lint-cues.mjs` — no rule may change behaviour in this plan. Rules that USE `structure` are plan 160.
@@ -135,7 +135,7 @@ Every non-demo kind falls through to narration handling. Introducing `kind: 'int
 ## Git workflow
 
 - Branch: `advisor/159-vf2-source-structure`
-- Commit: `feat(vf2): derive intro/body/conclusion structure from the source files` — no AI footers. Do NOT push.
+- Commit: `feat(visuals-flow): derive intro/body/conclusion structure from the source files` — no AI footers. Do NOT push.
 
 ## Steps
 
@@ -220,12 +220,12 @@ export function sourceStructure(workdir, { total = null, probe = probeDuration }
 }
 ```
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --check lib/source-structure.mjs && echo SYNTAX_OK` -> `SYNTAX_OK`
+**Verify**: `cd pipelines/video/visuals-flow && node --check lib/source-structure.mjs && echo SYNTAX_OK` -> `SYNTAX_OK`
 
 ### Step 2: Prove it against the real workdir
 
 ```bash
-cd pipelines/video/visuals-flow-2 && node -e "
+cd pipelines/video/visuals-flow && node -e "
 import('./lib/source-structure.mjs').then(m=>{
   const r = m.sourceStructure('videos/test-03', { total: 300.23 });
   console.log(JSON.stringify(r, null, 2));
@@ -237,7 +237,7 @@ import('./lib/source-structure.mjs').then(m=>{
 ### Step 3: Prove the gate fires
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 mkdir -p .test-tmp/nogate/src && : > .test-tmp/nogate/src/intro.mp4 && : > .test-tmp/nogate/src/body.mp4
 node -e "
 import('./lib/source-structure.mjs').then(m=>{
@@ -266,7 +266,7 @@ The written shape becomes:
 
 Do NOT alter the `segments` array or `proposeSegments`. `structure` is additive.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --check lib/segments.mjs && echo SYNTAX_OK` -> `SYNTAX_OK`
+**Verify**: `cd pipelines/video/visuals-flow && node --check lib/segments.mjs && echo SYNTAX_OK` -> `SYNTAX_OK`
 
 ### Step 5: Regenerate test-03's segments.json
 
@@ -274,7 +274,7 @@ Run whatever `segments.mjs` entry point writes the file for an existing workdir 
 
 **Verify**:
 ```bash
-cd pipelines/video/visuals-flow-2 && node -e "
+cd pipelines/video/visuals-flow && node -e "
 const s=require('./videos/test-03/segments.json');
 console.log('parts:', s.structure.map(x=>x.part).join(','));
 console.log('segments unchanged:', JSON.stringify(s.segments)==='[{\"kind\":\"narration\",\"start\":0,\"end\":190},{\"kind\":\"demo\",\"start\":190,\"end\":300.23}]');
@@ -294,17 +294,17 @@ Create `lib/source-structure.test.mjs` with at least these cases, using a fake `
 
 **`scripts/check.sh` enumerates its test files explicitly** — a new test file that is not added there never runs. Add `lib/source-structure.test.mjs` to that list.
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && node --test lib/source-structure.test.mjs 2>&1 | tail -4` -> `# fail 0`, and `grep -c "source-structure.test.mjs" scripts/check.sh` -> `1`
+**Verify**: `cd pipelines/video/visuals-flow && node --test lib/source-structure.test.mjs 2>&1 | tail -4` -> `# fail 0`, and `grep -c "source-structure.test.mjs" scripts/check.sh` -> `1`
 
 ### Step 7: Document the convention
 
 In `PIPELINE.md`, add a short section stating: every video's `src/` must contain `intro.mp4`, `body.mp4` and `conclusion.mp4`; `intro` and `conclusion` are required and their absence is a hard error; `structure` in `segments.json` is derived by measuring those files and is distinct from `segments` (which describes demo vs narration on screen).
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && grep -c "conclusion.mp4" PIPELINE.md` -> at least `1`
+**Verify**: `cd pipelines/video/visuals-flow && grep -c "conclusion.mp4" PIPELINE.md` -> at least `1`
 
 ### Step 8: Full gate
 
-**Verify**: `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` -> exit 0, ends `visuals-flow check OK`
+**Verify**: `cd pipelines/video/visuals-flow && bash scripts/check.sh` -> exit 0, ends `visuals-flow check OK`
 
 ## Test plan
 
@@ -314,7 +314,7 @@ No test asserts anything about lint behaviour, because this plan must not change
 
 ## Done criteria
 
-- [ ] `cd pipelines/video/visuals-flow-2 && bash scripts/check.sh` exits 0
+- [ ] `cd pipelines/video/visuals-flow && bash scripts/check.sh` exits 0
 - [ ] `node --test lib/source-structure.test.mjs` reports `# fail 0`
 - [ ] `scripts/check.sh` contains `lib/source-structure.test.mjs`
 - [ ] `videos/test-03/segments.json` has a `structure` array of three parts and a byte-identical `segments` array

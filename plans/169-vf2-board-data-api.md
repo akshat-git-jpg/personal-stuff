@@ -2,7 +2,7 @@
 ---
 executor: agy
 model:                   # blank = agy default (Gemini 3.1 Pro High)
-test_cmd: cd pipelines/video/visuals-flow-2 && bash scripts/check.sh
+test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
                          # check.sh gains lib/board-api.test.mjs in this plan, so the gate
                          # can fail on this plan's own deliverable (the API contract).
 ui:                      # server-only — no user-facing view changes
@@ -30,7 +30,7 @@ needs: []                # first plan of the board React-rewrite batch (169→17
 > anything in the "STOP conditions" section occurs, stop and report. When
 > done, update the status row in `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow-2/lib/board.mjs pipelines/video/visuals-flow-2/lib/board-data.mjs pipelines/video/visuals-flow-2/scripts/check.sh`
+> **Drift check (run first)**: `git diff --stat adda9be..HEAD -- pipelines/video/visuals-flow/lib/board.mjs pipelines/video/visuals-flow/lib/board-data.mjs pipelines/video/visuals-flow/scripts/check.sh`
 > If `board.mjs` has drifted, re-read the drifted regions before editing; the line numbers below were taken at `adda9be`.
 
 ## Status
@@ -48,7 +48,7 @@ The owner is replacing the board's server-rendered HTML with a React SPA (owner 
 
 ## Current state (facts, verified at adda9be)
 
-All paths relative to `pipelines/video/visuals-flow-2/`.
+All paths relative to `pipelines/video/visuals-flow/`.
 
 - `lib/board.mjs` — the whole board: server + 3 render functions. Relevant internals:
   - `loadBoardData(workdir)` (line ~2704) reads cues/resolved/transcript/feedback/shots/effects/sound/audit/card-plan and returns `{ cuesFile, resolved, words, feedbackItems, shots, effects, sound, audit, cardPlan, hasResolved }`.
@@ -66,7 +66,7 @@ All paths relative to `pipelines/video/visuals-flow-2/`.
 ## Commands you will need
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 bash scripts/check.sh                      # full gate — expect "visuals-flow check OK"
 node --test lib/board-api.test.mjs         # just the new file
 node --test lib/board.test.mjs             # legacy suite must stay green UNMODIFIED
@@ -75,10 +75,10 @@ node --test lib/board.test.mjs             # legacy suite must stay green UNMODI
 ## Scope
 
 **In scope (the only files to touch):**
-- `pipelines/video/visuals-flow-2/lib/board-data.mjs` (new)
-- `pipelines/video/visuals-flow-2/lib/board-api.test.mjs` (new)
-- `pipelines/video/visuals-flow-2/lib/board.mjs` (add the two routes + import; extract-and-delegate only, no behavior change)
-- `pipelines/video/visuals-flow-2/scripts/check.sh` (add `lib/board-api.test.mjs` to the node --test list)
+- `pipelines/video/visuals-flow/lib/board-data.mjs` (new)
+- `pipelines/video/visuals-flow/lib/board-api.test.mjs` (new)
+- `pipelines/video/visuals-flow/lib/board.mjs` (add the two routes + import; extract-and-delegate only, no behavior change)
+- `pipelines/video/visuals-flow/scripts/check.sh` (add `lib/board-api.test.mjs` to the node --test list)
 
 **Out of scope (do NOT touch):**
 - `lib/board.test.mjs` — the legacy suite is the no-regression proof; it must pass unmodified.
@@ -242,11 +242,11 @@ Covered in step 3 — 9 contract tests in `lib/board-api.test.mjs`, node:test, f
 ## Done criteria (machine-checkable)
 
 ```bash
-cd pipelines/video/visuals-flow-2
+cd pipelines/video/visuals-flow
 node --test lib/board-api.test.mjs        # ≥9 tests, all pass
 node --test lib/board.test.mjs            # 81 tests, all pass, file UNMODIFIED (git diff --stat shows no change)
 bash scripts/check.sh                      # exit 0
-git diff adda9be..HEAD --stat -- pipelines/video/visuals-flow-2/lib/board.test.mjs   # empty
+git diff adda9be..HEAD --stat -- pipelines/video/visuals-flow/lib/board.test.mjs   # empty
 ```
 
 ## STOP conditions
