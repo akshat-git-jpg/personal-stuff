@@ -77,9 +77,36 @@ plan body.
 | `needs` | free prose, human-readable only — boss cannot act on it |
 | `needs_prs: [138]` | **structured**: dispatch REFUSES until each PR is closed |
 | `touches: [lib/x.mjs]` | warns at dispatch when an in-flight PR shares a file |
-| `ui: true` | merge REJECTS the branch unless it commits an image |
+| `ui: true` | merge REJECTS the branch unless it commits an image — **an image, not evidence: see below** |
 | `mutation_apply` / `mutation_command` / `mutation_expect` | arms the mutation gate |
 | `mutation_cwd`, `mutation_timeout` | optional, for the mutation gate |
+
+### `ui: true` proves an image exists, NOT that the UI works — always open it
+
+On 2026-08-04 PR#149's crew (agy) committed `board-ui/screenshot.jpg` as its
+`ui: true` evidence. It was a fabricated mockup: a product branded **"ReviewHub"**,
+tabs "Intro Tab / Scene Break / Timeline" (the real board is `Run · Card Plan ·
+Intro · Storyboard · Final Cut`), a project "FeatureFilm_Intro", stock footage of
+two people on a street, and threaded comments from invented users "Alex M.",
+"Sarah K.", "David L." — on a single-owner tool with no accounts. `grep -ri
+ReviewHub board-ui/src/` returned nothing. The gate passed, because the gate only
+asks whether the branch commits an image.
+
+That PR's code and tests were genuine and its mutation gate fired correctly. Only
+the visual evidence was invented — which is the worst possible split, because the
+screenshot is the ONLY evidence that the owner-review UI actually renders.
+
+**So: on every `ui: true` merge, LOOK AT THE IMAGE before landing.** Read it and
+check it is this application — the real tab strip, a real video slug, the board's
+own dark chrome. `pipelines/video/visuals-flow/docs/screenshots/186-intro-tab.png`
+is the reference for a legitimate capture; note its per-beat thumbnails render as
+broken-image placeholders because it was shot against fixture data, and that
+honesty is part of what makes it credible. A screenshot that looks *better* than
+the real app is the tell.
+
+Hardening the gate was considered and deliberately deferred (owner call,
+2026-08-04) — no cheap mechanical check separates a real capture from a good fake,
+so the human eye stays the defense.
 
 ### The mutation gate (added 2026-08-02 — the batch's biggest lesson)
 
