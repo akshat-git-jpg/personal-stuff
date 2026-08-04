@@ -8,7 +8,7 @@ needs: ["189 must land first — it creates the intro:<n> feedback keys this pla
 needs_prs: [149]
 touches: [pipelines/.claude/skills/visuals-flow-feedback/SKILL.md, pipelines/video/visuals-flow/TASTE-INTRO.md, pipelines/video/visuals-flow/lib/intro-film/check-taste-intro.mjs, pipelines/video/visuals-flow/lib/intro-film/check-taste-intro.test.mjs, pipelines/video/visuals-flow/scripts/check.sh, pipelines/video/visuals-flow/steps/130-learn-from-feedback-opus/README.md]
 
-mutation_apply: cd pipelines/video/visuals-flow && sed -i '' "0,/^\*\*From:\*\*/s/^\*\*From:\*\*/From-ish:/" TASTE-INTRO.md
+mutation_apply: cd pipelines/video/visuals-flow && sed -i '' "1,/^\*\*From:\*\*/s/^\*\*From:\*\*/From-ish:/" TASTE-INTRO.md
 mutation_command: cd pipelines/video/visuals-flow && node --test lib/intro-film/check-taste-intro.test.mjs
 mutation_expect: missing a **From:** provenance line
 mutation_timeout: 600
