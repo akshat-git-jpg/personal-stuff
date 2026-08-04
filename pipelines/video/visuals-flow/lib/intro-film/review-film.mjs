@@ -209,3 +209,26 @@ export function runReview(slug, { check = true, snapshot = true } = {}) {
 
   return { reportFile, reviewDir, findings, samples, media, sheetFiles };
 }
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const slug = process.argv[2];
+  if (!slug) {
+    console.error('usage: node lib/intro-film/review-film.mjs <slug-or-path>');
+    process.exit(1);
+  }
+  try {
+    const r = runReview(slug);
+    const errors = r.findings.filter((f) => f.severity === 'error');
+    for (const f of r.findings) {
+      console.error(`${f.severity.toUpperCase()} ${f.code} ${f.selector ?? ''} ${f.message ?? ''}`.trim());
+    }
+    console.log(`review: ${r.samples.length} frames, ${r.findings.length} findings (${errors.length} errors) -> ${r.reportFile}`);
+    // A lint error makes hyperframes skip the layout and contrast passes
+    // entirely — they then report ok against ZERO samples. Exiting non-zero is
+    // what stops a session reading that vacuous green as a real pass.
+    process.exit(errors.length ? 1 : 0);
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
+}
