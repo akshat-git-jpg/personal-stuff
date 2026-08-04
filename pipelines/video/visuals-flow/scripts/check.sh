@@ -16,6 +16,7 @@ node --test "lib/intro-film/"*.test.mjs
 node lib/check-rulebook.mjs
 node lib/check-shot-rulebook.mjs
 node lib/check-zone-rulebook.mjs
+node lib/intro-film/check-taste-intro.mjs
 bash scripts/test-run-sh.sh
 node scripts/board-ui-smoke.mjs
 echo "visuals-flow check OK"

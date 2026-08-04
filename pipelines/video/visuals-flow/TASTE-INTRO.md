@@ -1,4 +1,4 @@
-# TASTE.md
+# TASTE-INTRO.md
 
 Owner feedback, turned into rules. The author step reads this alongside
 `card-library/DESIGN.md`. DESIGN.md is the brand contract and applies to
@@ -18,6 +18,8 @@ Owner watches a cut and reacts. Each reaction becomes one numbered rule. If a
 machine can state the rule, it also becomes a check in `run.sh <slug> intro-review`
 and the rule records which one. If it cannot, it stays here as judgement, which
 is still better than living only in a chat log.
+
+A folded rule is appended by the 130 fold. It keeps the `From:` / `Enforced by:` shape, and cites the video and date it came from.
 
 ---
 
@@ -124,6 +126,16 @@ A rail either passes between objects or stops at them.
 **Enforced by:** partially. `text_occluded` catches the label collision. Nothing
 catches a line crossing a shape.
 
+## T8 — Fill the frame. The middle 50% is not the frame.
+
+**From:** poc-01 v2, 2026-08-02, found in review.
+
+Almost every beat puts its content in a band across the centre with large dead
+margins above and below. Combined with T4 this is most of why the film reads
+small even at a compliant type scale.
+
+**Enforced by:** author judgement.
+
 ## T9 — A device has to be visible at viewing scale, not just present in the DOM.
 
 **From:** poc-01 v3, 2026-08-02, found by reading beat frames against their stage
@@ -157,13 +169,3 @@ still avoided because a beat's transition is resolving there.
 
 **Enforced by:** `lib/intro-film/review-film.mjs`, with a regression test pinned to the
 b08 case.
-
-## T8 — Fill the frame. The middle 50% is not the frame.
-
-**From:** poc-01 v2, 2026-08-02, found in review.
-
-Almost every beat puts its content in a band across the centre with large dead
-margins above and below. Combined with T4 this is most of why the film reads
-small even at a compliant type scale.
-
-**Enforced by:** author judgement.
