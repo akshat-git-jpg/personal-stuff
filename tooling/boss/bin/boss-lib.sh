@@ -104,13 +104,38 @@ boss_chrome_lock_release() { rm -rf "$BOSS_LOCK_DIR/chrome.lock" 2>/dev/null || 
 
 # boss_crews_running — echo "pr:executor" for every dispatched crew whose pid is
 # still alive. Used to keep merges off the browser while crews hold it.
+#
+# PID-REUSE GUARD (2026-08-04). A .meta outlives its crew by design, but the OS
+# recycles pids. state/20.meta (PR#20, closed weeks earlier) still recorded
+# pid=92224, which the OS had since handed to a long-lived VS Code helper — so
+# every merge saw a phantom live crew and burned the FULL BOSS_CHROME_WAIT_MIN
+# (45m) before it would even start its verify. PR#148 sat in that wait for 36
+# minutes with no subprocess running.
+#
+# `kill -0` only proves SOMETHING holds the pid. A real crew is started BY
+# dispatch, so its process start time sits within moments of dispatched_at;
+# the imposter here started 16.7 days later. Anything outside that window is a
+# recycled pid, not our crew. Unparseable start time or missing dispatched_at
+# falls through to the old behaviour — over-reporting a crew only costs a wait,
+# while under-reporting would put a merge on the browser next to a live crew.
 boss_crews_running() {
-  local f id pid
+  local f id pid started dispatched
   for f in "$STATE_DIR"/*.meta; do
     [ -f "$f" ] || continue
     id=$(basename "$f" .meta)
     pid=$(meta_get "$id" pid) || continue
-    [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null && echo "$id:$(meta_get "$id" executor)"
+    [ -n "$pid" ] || continue
+    kill -0 "$pid" 2>/dev/null || continue
+    dispatched=$(meta_get "$id" dispatched_at)
+    started=$(ps -o lstart= -p "$pid" 2>/dev/null)
+    if [ -n "$dispatched" ] && [ -n "$started" ]; then
+      started=$(date -j -f '%a %b %e %T %Y' "$started" +%s 2>/dev/null || echo '')
+      if [ -n "$started" ] \
+         && { [ "$started" -gt $((dispatched + 3600)) ] || [ "$started" -lt $((dispatched - 300)) ]; }; then
+        continue
+      fi
+    fi
+    echo "$id:$(meta_get "$id" executor)"
   done
 }
 boss_ensure_labels() {

@@ -104,6 +104,29 @@ marker already present when clean, and a crash-shaped failure (`SyntaxError`,
 
 **Arm this on every gate plan.** Without it you are trusting a crew's prose.
 
+#### It was aimed at the wrong tree until 2026-08-04 — do not trust old "proven" claims
+
+The gate checked out `origin/$branch`. **Nothing in boss or any executor ever
+pushes a crew branch** — the crew commits into its leased worktree and greenlight
+lands that local ref straight into main. So `origin/$branch` was permanently the
+plan-file-only commit secretary raised, with no implementation in it, and every
+`mutation_apply` matched nothing. On PR#148 that read out as a bogus
+`mutation_apply changed NOTHING (no-op recipe)` against a recipe that was
+correct. Fixed to check out the local `$branch`, matching the fence-leak gate
+above it and greenlight below it.
+
+Consequence for the record above: between 2026-08-02 and 2026-08-04 the gate
+never once ran against real crew work, so **no plan's gate was actually proven by
+boss in that window.** Treat any "mutation gate PROVEN" from those runs as
+unverified.
+
+**When it matters, verify by hand.** `boss-merge` exits 0 both when the gate
+passes and when it silently skips (it warns to stderr, which a `| tail` on a long
+greenlight run will discard). Exit code alone is not evidence. The manual check is
+four commands: run `mutation_command` clean (must pass) → apply `mutation_apply`
+→ confirm `git diff --stat` is non-empty **and** the run now fails printing
+`mutation_expect` → `git checkout --` the file and re-confirm clean.
+
 ## Failure policy
 
 - Crew reports blocked, or test_cmd fails at merge, or merge conflicts →
