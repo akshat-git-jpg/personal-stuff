@@ -1,6 +1,6 @@
 ---
-executor: claude-p
-model: sonnet
+executor: agy
+model:
 test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
@@ -23,7 +23,7 @@ mutation_timeout: 600
   - Add the Intro tab to the fold's ingest table so intro feedback is a first-class source, triaged like every other item.
   - Write the routing rule down: an intro-originated item's durable fix lands in `TASTE-INTRO.md` or the 025 `AUTHORING.md`, **never** in the body cue/zone rulebooks or `card-library/DESIGN.md`. And the reverse — body and final-cut feedback never edits `TASTE-INTRO.md`.
   - Make the intro rule file machine-checked, so a rule added during a fold is guaranteed to be well-formed and actually reachable by the author step.
-- **Executor proposed**: `claude-p` / `sonnet` — this is quality-setting rulebook and skill prose that the owner judges by taste, which is exactly the `rules.md` row for claude-p/sonnet.
+- **Executor proposed**: `agy` / Gemini 3.1 Pro (High) — owner override on 2026-08-04 ("can we do all with agy"), applied to the whole 188–190 chain. The original proposal was `claude-p` / `sonnet`, on the reasoning that this is quality-setting rulebook and skill prose the owner judges by taste, which is exactly the `rules.md` row for claude-p/sonnet. That risk stands; what holds the line mechanically is `check-taste-intro.mjs` inside `scripts/check.sh` plus the armed mutation gate, both executor-independent.
 - **Done criteria** (terse): fold skill lists the Intro tab as a source with its routing rule; `check-taste-intro.mjs` runs inside `scripts/check.sh` and enforces the T-rule shape; the separation rule is stated in both directions.
 - **Stop conditions** (terse): editing `lib/cue-rules.mjs`, `lib/zone-rules.mjs`, `lib/zone-constants.mjs` or `card-library/DESIGN.md`; weakening a check to make it pass.
 - **Test / verification for success**: unit tests over the new checker, armed with the mutation recipe above.
