@@ -907,3 +907,20 @@ test('absorbSlivers never overrides a deliberate screen return (final-v4:0)', ()
   assert.equal(out[1].kind, 'screen');
   assert.equal(out[0].padEnd, undefined);
 });
+
+test('loadAssemblyInputs: throws with actionable message if film is missing', async () => {
+  const { loadAssemblyInputs } = await import('./assemble.mjs');
+  const dir = path.join(testTmp, 'film-err');
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'run-config.json'), JSON.stringify({ intro: 'film' }));
+  fs.writeFileSync(path.join(dir, 'cues.json'), JSON.stringify({ approved: true, cues: [] }));
+  fs.writeFileSync(path.join(dir, 'resolved.json'), JSON.stringify({ video: 'film-err', resolved: [] }));
+  fs.writeFileSync(path.join(dir, 'transcript.json'), JSON.stringify([]));
+  fs.writeFileSync(path.join(dir, 'video-manifest.json'), JSON.stringify({ base: 'screen' }));
+  
+  await assert.rejects(
+    loadAssemblyInputs({ workdir: dir, force: true }),
+    /missing intro film.*run\.sh film-err intro-render/
+  );
+});

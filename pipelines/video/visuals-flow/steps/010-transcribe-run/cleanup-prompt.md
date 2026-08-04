@@ -18,6 +18,17 @@ word's `start` and whose `end` is the second word's `end`.
 "So,", "Right,", "Okay,"). Drop the filler word entirely — never leave an
 empty string in its place.
 
+**Fix spec and product terms** to their real form, using `lib/lexicon.json`.
+This is the same class of fix as a brand name, not a grammar rewrite: when the
+ASR renders "1080p" as "10 ATP" or "one-click" as "one clip", the caption is
+not showing what the speaker said — it is showing a mis-hearing of it. Correct
+these the same way you correct brands, merging split words into ONE output word
+that spans both timings. The `confusables` map in the lexicon lists the ones
+already seen; apply the same judgment to spec tokens it does not yet list
+(resolutions, frame rates, file formats, plan tiers, feature names). When you
+are unsure whether a token is a mis-hearing or genuinely what was said, LEAVE
+IT and note it — the suspect gate will surface it for a second opinion.
+
 **Change nothing else.** Do not rewrite grammar, reorder words, or tighten
 phrasing. The caption must still read as what the speaker said — a caption
 that visibly differs from the audio reads as a subtitling error, which is a

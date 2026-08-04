@@ -20,6 +20,9 @@ Steps:
   transcribe
   segments
   concept-pass
+  intro-film
+  intro-review
+  intro-render
   cue-pass
   validate
   resolve
@@ -246,6 +249,26 @@ case "$step" in
 After the concept pass: node lib/lint-concept.mjs $slug
 EOF
     exit 0
+    ;;
+
+  intro-film|intro-review|intro-render)
+    intro_mode=$(node -e "import('./lib/run-config.mjs').then(m=>console.log(m.loadRunConfig('videos/$slug').intro))")
+    if [[ "$intro_mode" != "film" ]]; then
+      echo "intro=$intro_mode — this video does not use the bespoke intro film."
+      echo "Opt in with: bash run.sh $slug configure --intro film"
+      exit 1
+    fi
+    if [[ "$step" == "intro-film" ]]; then
+      cat steps/025-author-intro-film-llm/AUTHORING.md | sed "s/<slug>/$slug/g"
+      exit 0
+    elif [[ "$step" == "intro-review" ]]; then
+      node lib/intro-film/review-film.mjs "$slug"
+      exit 0
+    elif [[ "$step" == "intro-render" ]]; then
+      node -e "import('./lib/intro-film/approve.mjs').then(m=>m.requireIntroApproved(process.cwd()+'/videos/$slug')).catch(e=>{console.error(e.message);process.exit(1)})"
+      node lib/intro-film/film-gate.mjs "$slug"
+      exit 0
+    fi
     ;;
 
   cue-pass)

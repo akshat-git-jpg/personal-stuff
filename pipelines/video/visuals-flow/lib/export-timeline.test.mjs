@@ -497,3 +497,22 @@ test('buildNativeFcpxml: side clips receive adjust-crop and adjust-transform', a
   assert.match(xml, /<adjust-transform position="[^"]+" scale="[^"]+"\/>/);
   assert.match(xml, /name="side:s1"/);
 });
+
+test('buildNativeFcpxml: filmSpan splits the spine into intro film and screen (cross-check)', async () => {
+  const { buildNativeFcpxml } = await import('./export-timeline.mjs');
+  const xml = buildNativeFcpxml({
+    video: 't', screenPath: 'screen.mp4', voPath: 'vo.mp3', total: 30, w: 1920, h: 1080,
+    avatarClips: [], fullframes: [], overlayClips: [], fxClips: [], sfxClips: [], markers: [],
+    srcUrl: (f) => f,
+    filmSpan: { start: 0, end: 10 },
+    workdir: testTmp
+  });
+
+  const spineRe = /<spine>([\s\S]*?)<\/spine>/;
+  const spineStr = xml.match(spineRe)[1];
+  
+  assert.match(spineStr, /name="intro"/);
+  assert.match(spineStr, /name="screen"/);
+  assert.match(spineStr, /duration="30000\/3000s"/);
+  assert.match(spineStr, /offset="30000\/3000s".*start="30000\/3000s".*name="screen"/);
+});

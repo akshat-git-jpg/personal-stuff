@@ -13,6 +13,7 @@ import { registerVersion } from './versions.mjs';
 import { loadConceptSpans } from './concept-spans.mjs';
 import { SHOT_CONSTANTS, jobPurpose } from './shot-constants.mjs';
 import { readFinalCut } from './final-cut.mjs';
+import { introOwnedByFilm, filmSpanFor } from './intro-film/owns-intro.mjs';
 
 import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
@@ -96,14 +97,19 @@ export const FLASH_BAND_OPACITIES = beatsMod.CONSTANTS.FLASH_BAND_OPACITIES;
 export const PUNCH_SCALE = beatsMod.CONSTANTS.PUNCH_SCALE;
 
 
-export function planSegments({ resolved, avatarJobs, total }) {
+export function planSegments({ resolved, avatarJobs, total, filmSpan }) {
   const repl = [];
+  if (filmSpan) {
+    repl.push({ kind: 'film', id: 'intro-film', start: 0, end: filmSpan.end });
+  }
   for (const c of resolved.filter((c) => c.placement === 'fullframe')) {
+    if (filmSpan && c.start < filmSpan.end - EPS) continue;
     repl.push({ kind: 'graphic', id: c.id, start: c.start,
       end: Math.min(+(c.start + c.duration).toFixed(3), total) });
   }
   // Base selection must stay full-only — a panel must not replace the base.
   for (const j of avatarJobs.filter((j) => jobPurpose(j) === 'avatar-full')) {
+    if (filmSpan && j.start < filmSpan.end - EPS) continue;
     repl.push({ kind: 'avatar', id: j.id, start: j.start,
       end: Math.min(j.end, total) });
   }
@@ -388,9 +394,9 @@ function parseArgs(argv) {
   return opts;
 }
 
-export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], sideJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'off', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} }, catalog }) {
+export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs = [], panelJobs = [], sideJobs = [], cornerJobs = [], total, screen, screenOffset = 0, out, draft = false, encoder = detectEncoder(), keepTemp = false, transitions = 'whip', beats = 'on', captions = 'on', effects = 'on', bubble = 'off', words = [], jobsN = 3, noCache = false, overlayComposite = true, segmentsOutDir = null, brand = { caption: {} }, catalog, filmSpan }) {
   const videoManifest = loadVideoManifest(workdir);
-  let segments = planSegments({ resolved, avatarJobs, total });
+  let segments = planSegments({ resolved, avatarJobs, total, filmSpan });
   segments = absorbSlivers(segments);
   segments = fillGapsWithFreeze(segments, { base: videoManifest.base });
 
@@ -620,6 +626,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     } else if (seg.kind === 'graphic') {
       const cue = resolved.find(c => c.id === seg.id);
       src = path.join(renderDir, planRender(cue).outFile);
+    } else if (seg.kind === 'film') {
+      src = path.join(workdir, 'intro-film', 'out', 'intro.mp4');
+      const contentStartTrim = Math.max(0, startTrim - pStart);
+      seekArgs = ['-ss', String(contentStartTrim)];
     }
     
     let punchVF = VF;
@@ -989,6 +999,16 @@ export async function loadAssemblyInputs(opts) {
     }
   }
 
+  // Derived from the shared helper, not privately: this was computed inline
+  // here, which meant lint-shots could not see it and E8 kept demanding a host
+  // inside the span the film owns. One derivation, every surface.
+  const filmSpan = filmSpanFor(workdir);
+  if (introOwnedByFilm(workdir)) {
+    const introFile = path.join(workdir, 'intro-film', 'out', 'intro.mp4');
+    if (!fs.existsSync(introFile)) {
+      throw new Error(`missing intro film: ${introFile} — run.sh ${video} intro-render`);
+    }
+  }
 
   const voPath = path.join(workdir, 'vo.mp3');
   const screen = opts.screen ?? path.join(workdir, 'screen.mp4');
@@ -1018,13 +1038,13 @@ export async function loadAssemblyInputs(opts) {
 
   const probeScreen = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', screen], { encoding: 'utf8' });
   const screenDuration = parseFloat(probeScreen.stdout);
-  const segments = planSegments({ resolved, avatarJobs, total });
+  const segments = planSegments({ resolved, avatarJobs, total, filmSpan });
   const lastScreen = segments.findLast(s => s.kind === 'screen');
   if (lastScreen && screenDuration + opts.screenOffset < lastScreen.end - 2.0) {
     console.warn('warning: screen source duration + offset is more than 2s short of the last screen segment end');
   }
   
-  return { workdir, video, resolved, avatarJobs, panelJobs, sideJobs, cornerJobs, words, total, screen, catalog };
+  return { workdir, video, resolved, avatarJobs, panelJobs, sideJobs, cornerJobs, words, total, screen, catalog, filmSpan };
 }
 
 async function main() {

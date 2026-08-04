@@ -1,7 +1,7 @@
 # Putting a portrait avatar clip into a landscape video
 
 Date: 2026-08-03
-Pipeline: `pipelines/video/visuals-flow-2/`
+Pipeline: `pipelines/video/visuals-flow/`
 Status: look approved by owner, not yet implemented in code
 
 ## Why this came up

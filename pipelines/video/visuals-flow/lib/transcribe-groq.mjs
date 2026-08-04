@@ -8,6 +8,29 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { resolveWorkdir } from './workdir.mjs';
 
+// Exported so the guard is unit-testable without an API call. Mutates `words`
+// in place (clamping) and returns the verdict.
+export function clampAndJudge(words) {
+  let clamped = 0;
+  let displaced = 0;
+  let worstOverlap = 0;
+  for (let i = 1; i < words.length; i++) {
+    const overlap = words[i - 1].start - words[i].start;
+    if (overlap <= 0) continue;
+    if (overlap > worstOverlap) worstOverlap = overlap;
+    if (overlap <= 1.0) {
+      words[i].start = words[i - 1].start;
+      if (words[i].end < words[i].start) words[i].end = words[i].start;
+      clamped++;
+      displaced += overlap;
+    }
+  }
+  const runtime = words.length ? words[words.length - 1].end - words[0].start : 0;
+  const displacedShare = runtime > 0 ? displaced / runtime : 0;
+  const poisoned = worstOverlap > 1.0 || displacedShare > 0.02;
+  return { clamped, displaced, worstOverlap, displacedShare, poisoned };
+}
+
 const MODEL = 'whisper-large-v3-turbo';
 
 
@@ -63,24 +86,24 @@ async function main() {
   }));
   // whisper-large-v3-turbo word timestamps carry occasional small jitter: a word
   // starting slightly BEFORE its predecessor (test-02: 61 of 5543 words, all
-  // ≤0.52s). That is noise, not poison — clamp it. Rejecting the transcript
-  // for it forces the garbled local-whisper fallback (and wastes an hour of
-  // Groq audio quota per retry). Fold 2026-07-20.
-  let clamped = 0;
-  for (let i = 1; i < words.length; i++) {
-    const overlap = words[i - 1].start - words[i].start;
-    if (overlap > 0 && overlap <= 1.0) {
-      words[i].start = words[i - 1].start;
-      if (words[i].end < words[i].start) words[i].end = words[i].start;
-      clamped++;
-    }
-  }
-  // A genuinely garbage response (NaN/negative/large-backwards timestamps, or
-  // jitter beyond ~2% of words) would poison every downstream anchor — refuse
-  // to write transcript.json (GFX-04).
-  const clampCap = Math.ceil(words.length * 0.02);
-  if (clamped > clampCap) {
-    console.error(`transcript rejected: ${clamped} non-monotonic word starts (cap ${clampCap}) — timestamps look poisoned`);
+  // ≤0.52s). That is noise, not poison — clamp it.
+  //
+  // Poison is a timeline that cannot be TRUSTED, which is a question of
+  // magnitude, not of how many small jitters occurred. The old guard capped the
+  // COUNT at 2% of words and rejected a good transcript at 129/5974 = 2.16% —
+  // by nine words. The fallback to local small.en then burned four wrong words
+  // onto screen as captions (best-ai-video-generator, 2026-08-02). Every one of
+  // those 129 was inside the ≤1.0s window this loop already absorbs.
+  //
+  // So measure the damage instead: the worst single backwards jump, and the
+  // share of total runtime displaced by all of them.
+  const { clamped, displaced, worstOverlap, displacedShare, poisoned } = clampAndJudge(words);
+  if (poisoned) {
+    console.error(
+      `transcript rejected: worst backwards jump ${worstOverlap.toFixed(2)}s, ` +
+      `${(displacedShare * 100).toFixed(2)}% of runtime displaced across ${clamped} clamped word(s) ` +
+      `— timestamps look poisoned`
+    );
     process.exit(1);
   }
   let prevStart = -Infinity;
@@ -97,7 +120,9 @@ async function main() {
     prevStart = w.start;
   }
   fs.writeFileSync(outPath, JSON.stringify(words));
-  console.log(JSON.stringify({ ok: true, engine: 'groq', model: MODEL, wordCount: words.length, clampedWords: clamped, durationSeconds: words[words.length - 1].end, transcriptPath: outPath }));
+  console.log(JSON.stringify({ ok: true, engine: 'groq', model: MODEL, wordCount: words.length, clampedWords: clamped, displacedShare: +displacedShare.toFixed(5), worstOverlap: +worstOverlap.toFixed(3), durationSeconds: words[words.length - 1].end, transcriptPath: outPath }));
 }
 
-main();
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main();
+}

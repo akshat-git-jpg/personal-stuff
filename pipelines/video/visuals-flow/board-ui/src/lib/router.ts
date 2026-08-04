@@ -1,15 +1,16 @@
-export type Tab = 'run' | 'card-plan' | 'storyboard' | 'final-cut' | 'calibrate';
+export type Tab = 'run' | 'card-plan' | 'intro' | 'storyboard' | 'final-cut' | 'calibrate';
 export const TABS: { id: Tab; label: string }[] = [
   { id: 'run', label: 'Run' },
   { id: 'card-plan', label: 'Card Plan' },
+  { id: 'intro', label: 'Intro' },
   { id: 'storyboard', label: 'Storyboard' },
   { id: 'final-cut', label: 'Final Cut' },
 ];
 const HASH_TAB: Record<string, Tab> = {
-  '#card-plan': 'card-plan', '#storyboard': 'storyboard', '#final-cut': 'final-cut', '#calibrate': 'calibrate'
+  '#card-plan': 'card-plan', '#intro': 'intro', '#storyboard': 'storyboard', '#final-cut': 'final-cut', '#calibrate': 'calibrate'
 };
 export const TAB_HASH: Record<Tab, string> = {
-  run: '', 'card-plan': '#card-plan', storyboard: '#storyboard', 'final-cut': '#final-cut', calibrate: '#calibrate'
+  run: '', 'card-plan': '#card-plan', intro: '#intro', storyboard: '#storyboard', 'final-cut': '#final-cut', calibrate: '#calibrate'
 };
 // No hash lands on Run — owner decision 2026-07-24; the Run tab exists so
 // someone who has not watched the terminal can open one URL and see status.

@@ -10,11 +10,14 @@ portrait 1080x1920, because Hyperframes reads the canvas from `data-width` /
 `data-height`, never from stylesheets:
 
 ```html
-<div id="root" data-composition-id="intro" data-duration="34.2" data-fps="30"
-     data-width="1920" data-height="1080">
+<div id="root" data-composition-id="intro" data-start="0" data-duration="34.2"
+     data-fps="30" data-width="1920" data-height="1080">
   <!-- every clip is a DIRECT child of this root -->
 </div>
 ```
+
+`data-start="0"` on the root is required — the runtime needs it to begin
+playback, and lint errors without it.
 
 The root **must** carry `data-composition-id`, and you **must** register a
 timeline under that exact id:
@@ -40,15 +43,36 @@ the CSS adapter still drives the actual motion.
 - `<video>` may omit `data-duration` to use the media's intrinsic length.
 
 ## The materials
-- `../vo.mp3` (the voice, on a root `<audio>`)
-- `../screen.mp4` (the recording, available as a framed element when a beat wants it, not as a default backdrop)
-- `../avatar.mp4` (ONE clip covering the whole intro, muted, positioned by the beat's `face` value: `full` = full-frame, `panel` = docked, `none` = hidden). Because the avatar clip runs the full length, `data-media-start` is never needed to keep lip-sync — show it at its natural time offset.
+
+Reference them as **`assets/<name>`, never `../<name>`.** A path above the project root is a hyperframes lint ERROR, and a lint error stops `check` from sampling layout or contrast at all — it reports `layout: ok` against zero samples. `lib/film-assets.mjs` links the workdir media into `film/assets/` before every review and render, so the files are there.
+
+- `assets/vo.mp3` (the voice, on a root `<audio>`)
+- `../screen.mp4` (the recording, available as a framed element when a beat wants it, not as a default backdrop — add it to `FILM_MEDIA` in `lib/film-assets.mjs` if a film uses it)
+- `assets/avatar.mp4` (ONE clip covering the whole intro, muted, positioned by the beat's `face` value: `full` = full-frame, `panel` = docked, `none` = hidden). Because the avatar clip runs the full length, `data-media-start` is never needed to keep lip-sync — show it at its natural time offset. `full` means the presenter LEADS the frame, not that the presenter covers it: see TASTE.md T5.
 
 ## Beat by beat
 For each screenplay beat, honour `t_start`/`t_end` exactly, put the beat's `stage` on screen, respect its `register` as the colour world, and **implement `carries` literally**: the named object from the named earlier beat must be the SAME element, transformed — not a new element that resembles it. Recreating the object instead of transforming it is the defect this whole system exists to prevent.
 
 ## Brand
-Read `brand.json` from the pipeline root for palette and type tokens.
+Read **`pipelines/video/card-library/DESIGN.md` in full** — palette, type scale, register definitions, the "enact, don't label" rule, the mute test, and what each colour is allowed to mean. It is the brand contract for everything in this repo and it is ~400 enforced lines. `brand.json` is five colour tokens with no typography at all; authoring against it is what produced the first poc-01 film, whose largest text was 54px in Helvetica with invented colours.
+
+Read `card-library/logos/registry.json` for real product logos. Do not draw a coloured rectangle where a logo belongs.
+
+DESIGN.md and the card library are **read-only from here.** Never edit either.
+
+## Taste
+Read `TASTE.md` at the intro-studio root. It is the accumulated record of what the owner has rejected on screen, as numbered rules. Some are enforced by the review pass; the rest will only be caught by you reading them.
+
+## Review before you render
+Run `bash run.sh <slug> review` and fix everything it reports. It takes about two minutes against the HTML and needs no encode:
+
+- `check` reports occluded text, overflow, contrast and runtime errors, sampled densely including transition seams
+- `check-film-style` enforces the DESIGN.md type contract and flags any beat with no motion of its own
+- three frames are captured per beat (25%, 55%, 85% through it) and `review/REVIEW.md` groups them under the `stage` line all three must satisfy between them. One midpoint frame is not enough: any beat whose content fires late reviews as empty
+
+Read those frames against their stage lines. **Actually look at them.** That is the only pass that catches a beat which renders cleanly and still argues the wrong thing — a crown landing on the presenter is a green frame and a broken film, and four rails at 2px/20% opacity are a green frame with nothing on it.
+
+`render` is the LAST step, not the review step.
 
 ## What good looks like
 Something is moving at every second; the register visibly changes at the turn; the final beat resolves into a clean hand-off rather than fading out to nothing.

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { planSegments } from './assemble.mjs';
 import { SHOT_CONSTANTS as SC } from './shot-constants.mjs';
+import { filmSpanFor } from './intro-film/owns-intro.mjs';
 
 // Budget + shape rules for full-screen avatar spans. Seeded from
 // tutorial-pipeline-2's 060 rulebook knobs (U-curve, ~5:00 total cap from the
@@ -29,7 +30,7 @@ const MIN_SCREEN_WARN = 8;
 
                                     //     presence mid-video, not just the U-curve ends)
 
-export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
+export function lintShots({ shotsResolved, resolvedCues, words, catalog, filmSpan = null }) {
   const errors = [];
   const warnings = [];
   if (!words || words.length === 0) return { errors, warnings };
@@ -54,14 +55,26 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
   // merely late — firing here would redefine someone else's contract to suit
   // this rule.
   {
+    // When the bespoke intro film owns the opening, vf2 places no avatar span
+    // there — the host is INSIDE the film. Measuring from t=0 then demands a
+    // span in a region vf2 deliberately does not touch, so E8 fired on every
+    // film-owned video and blocked the shot pass outright.
+    //
+    // The rule is not waived, it is re-anchored: the owner's reason for E8
+    // ("I don't want to put a hard rule that avatar should be the first thing,
+    // but it should be in the starting") applies just as much to the body's
+    // opening as to the video's. The deadline becomes 15s into the BODY.
+    const deadline = filmSpan ? filmSpan.end + INTRO_HOST_BY : INTRO_HOST_BY;
+    const anchor = filmSpan ? `${deadline.toFixed(1)}s (${INTRO_HOST_BY}s into the body — the intro film owns 0–${filmSpan.end.toFixed(1)}s)` : `${INTRO_HOST_BY}s`;
+
     const spans = [...(shotsResolved?.spans ?? [])].sort((a, b) => a.start - b.start);
-    const onScreenBy = spans.find((s) => s.start <= INTRO_HOST_BY);
+    const onScreenBy = spans.find((s) => s.start <= deadline);
     if (spans.length > 0 && !onScreenBy) {
       const first = spans[0];
       const detail = `first host span ${first.id} starts at ${first.start.toFixed(1)}s`;
       const msg =
-        `E8 intro-host: the host must be on screen by ${INTRO_HOST_BY}s — ${detail}. ` +
-        `Put a side-mode span over the opening card, or start a full-screen span at or before ${INTRO_HOST_BY}s ` +
+        `E8 intro-host: the host must be on screen by ${anchor} — ${detail}. ` +
+        `Put a side-mode span over the opening card, or start a full-screen span at or before ${deadline.toFixed(1)}s ` +
         `(an opening motion graphic before the host is fine; a late host is not).`;
       // A per-video waiver exists ONLY so a cut planned before this gate can
       // still ship. It must carry a reason, and it is reported as a warning
@@ -117,7 +130,7 @@ export function lintShots({ shotsResolved, resolvedCues, words, catalog }) {
   // E5 orphan-screen / W5 short-screen
   try {
     const avatarJobs = spans.map(s => ({ purpose: 'avatar-full', id: s.id, start: s.start, end: s.end }));
-    const baseSegments = planSegments({ resolved: resolvedCues || [], avatarJobs, total: T });
+    const baseSegments = planSegments({ resolved: resolvedCues || [], avatarJobs, total: T, filmSpan });
     for (let i = 0; i < baseSegments.length; i++) {
       const seg = baseSegments[i];
       if (seg.kind !== 'screen') continue;
@@ -240,7 +253,7 @@ async function main() {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
 
-  const { errors, warnings } = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog });
+  const { errors, warnings } = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog, filmSpan: filmSpanFor(workdir) });
   for (const w of warnings) console.log(w);
   if (errors.length) {
     for (const e of errors) console.error(e);

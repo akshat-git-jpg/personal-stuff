@@ -1,3 +1,5 @@
+import { introOwnedByFilm } from './intro-film/owns-intro.mjs';
+
 // Single source of truth for INTRO/CONCLUSION constraints.
 //
 // These are deliberately SEPARATE from lib/cue-constants.mjs. The body and the
@@ -53,3 +55,7 @@ export const ZONE_CONSTANTS = {
 export const ENACTED_PREFIX = 'enacted/';
 
 export const ZONE_PARTS = ['intro', 'conclusion'];
+
+export function zonePartsFor(workdir) {
+  return introOwnedByFilm(workdir) ? ['conclusion'] : ZONE_PARTS;
+}

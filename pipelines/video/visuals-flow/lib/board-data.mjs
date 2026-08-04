@@ -165,3 +165,63 @@ export function buildBoardData(workdir, cardLibraryRoot, { buildSegments }) {
     }
   };
 }
+
+export function introData(workdir) {
+  const introDir = path.join(workdir, 'intro-film');
+  if (!fs.existsSync(introDir)) {
+    return { present: false };
+  }
+  
+  let approved = false;
+  let beats = [];
+  let findings = [];
+  let sheets = [];
+  
+  try {
+    const sp = JSON.parse(fs.readFileSync(path.join(introDir, 'screenplay.json'), 'utf8'));
+    approved = sp.approved === true;
+    beats = sp.beats || [];
+  } catch (e) {
+    // ignore
+  }
+
+  const reviewDir = path.join(introDir, 'review');
+  if (fs.existsSync(reviewDir)) {
+    try {
+      const checkData = JSON.parse(fs.readFileSync(path.join(reviewDir, 'check.json'), 'utf8'));
+      findings = checkData.findings || checkData || []; // handle if check.json is array or object
+      if (!Array.isArray(findings)) findings = []; // just in case
+    } catch (e) {
+      // ignore
+    }
+
+    try {
+      const files = fs.readdirSync(reviewDir);
+      
+      const frames = files.filter(f => /^frame-.*\.png$/.test(f) || /^frame-.*\.jpg$/.test(f));
+      beats.forEach(b => {
+        b.frames = frames.filter(f => {
+          const m = f.match(/at-([0-9.]+)s/);
+          if (m) {
+            const t = parseFloat(m[1]);
+            return t >= b.t_start && t < b.t_end;
+          }
+          return false;
+        });
+      });
+      
+      sheets = files.filter(f => /^contact-sheet-.*\.jpg$/.test(f));
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  return {
+    present: true,
+    approved,
+    beats,
+    findings,
+    sheets
+  };
+}
+

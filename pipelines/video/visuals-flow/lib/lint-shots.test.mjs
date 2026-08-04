@@ -295,3 +295,39 @@ test('an empty waiver reason does NOT clear E8', () => {
   const { errors } = lintShots({ shotsResolved, resolvedCues: [], words, catalog: mockCatalog });
   assert.ok(errors.some((e) => e.startsWith('E8 intro-host')), 'waiving must cost a sentence');
 });
+
+// E8 under a film-owned intro (owner 2026-08-03). Plan 187 required E8 to be
+// re-anchored and it shipped unmet: lint-shots never imported the predicate, so
+// on `intro: "film"` the rule demanded a host span inside the span vf2
+// deliberately places no avatars in, and blocked the shot pass on every
+// film-owned video. The rule is NOT waived here — the owner's reason for it
+// ("it should be in the starting") applies to the body's opening too — it is
+// measured from the end of the film instead of from t=0.
+const FILM = { start: 0, end: 86.733 };
+
+test('E8 does not fire when the host lands early in the BODY of a film-owned video', () => {
+  // The film owns 0-86.7s and contains the host; vf2's first span is at 90s.
+  const shotsResolved = { spans: [{ id: 's00', start: 90, end: 140, duration: 50 }] };
+  const { errors } = lintShots({ shotsResolved, resolvedCues: [], words, catalog: mockCatalog, filmSpan: FILM });
+  assert.ok(
+    !errors.some((e) => e.startsWith('E8 intro-host')),
+    'a host 3.3s into the body must pass — the film owns everything before it',
+  );
+});
+
+test('E8 still fires when the host is late INSIDE the body of a film-owned video', () => {
+  // Deadline is 86.733 + 15 = 101.7s. A span at 140s is genuinely late.
+  const shotsResolved = { spans: [{ id: 's00', start: 140, end: 200, duration: 60 }] };
+  const { errors } = lintShots({ shotsResolved, resolvedCues: [], words, catalog: mockCatalog, filmSpan: FILM });
+  const e8 = errors.filter((e) => e.startsWith('E8 intro-host'));
+  assert.equal(e8.length, 1, 'the rule is re-anchored, not disabled');
+  assert.match(e8[0], /into the body/, 'the message must explain the new anchor');
+  assert.match(e8[0], /101\.7s/, 'the deadline is the film end plus the 15s bound');
+});
+
+test('without a filmSpan E8 behaves exactly as before — the default path is untouched', () => {
+  const late = { spans: [{ id: 's00', start: 59.5, end: 82.7, duration: 23.2 }] };
+  const early = { spans: [{ id: 's00', start: 12, end: 30, duration: 18 }] };
+  assert.ok(lintShots({ shotsResolved: late, resolvedCues: [], words, catalog: mockCatalog }).errors.some((e) => e.startsWith('E8')));
+  assert.ok(!lintShots({ shotsResolved: early, resolvedCues: [], words, catalog: mockCatalog }).errors.some((e) => e.startsWith('E8')));
+});

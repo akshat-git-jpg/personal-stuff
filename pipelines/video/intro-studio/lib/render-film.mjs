@@ -3,6 +3,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveWorkdir } from './workdir.mjs';
 import { probeDuration } from './intake.mjs';
+import { linkFilmMedia } from './film-assets.mjs';
 
 const HYPERFRAMES = process.env.HYPERFRAMES_VERSION ? `hyperframes@${process.env.HYPERFRAMES_VERSION}` : 'hyperframes@0.7.62';
 
@@ -23,6 +24,11 @@ export function renderFilm(slug) {
   const filmDir = path.join(workdir, 'film');
   const index = path.join(filmDir, 'index.html');
   if (!fs.existsSync(index)) throw new Error(`missing ${index} — run the author step first`);
+  // The composition references its media as assets/<name>. film/assets/ is
+  // gitignored, so on a fresh checkout those links do not exist yet and the
+  // render would silently produce a silent, avatar-less film.
+  const media = linkFilmMedia(slug);
+  if (media.missing.length) throw new Error(`missing media: ${media.missing.join(', ')}`);
   const outDir = path.join(workdir, 'renders');
   fs.mkdirSync(outDir, { recursive: true });
   const out = path.join(outDir, 'intro-film.mp4');

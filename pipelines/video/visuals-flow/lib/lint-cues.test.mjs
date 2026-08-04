@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
+import fs from 'node:fs';
 import { lintCues } from './lint-cues.mjs';
 
 const catalog = {
@@ -949,5 +950,68 @@ test('E9 still fires when an overlay genuinely overlaps a fullframe card', () =>
     avatarJobs: null
   });
   assert.ok(errors.some((e) => e.startsWith('E9 overlay-over-graphic')));
+});
+
+test('intro: film skips E13 open-cover and errors on conclusion link-scrim', (t) => {
+  const originalExistsSync = fs.existsSync;
+  const originalReadFileSync = fs.readFileSync;
+
+  t.afterEach(() => {
+    fs.existsSync = originalExistsSync;
+    fs.readFileSync = originalReadFileSync;
+  });
+
+  const resolved = [
+    { id: 'c1', card: 'link-in-description/link-scrim', start: 80, duration: 5, placement: 'overlay' }
+  ];
+  const augmentedCatalog = { cards: [...catalog.cards, { slug: 'link-in-description/link-scrim', placement: 'overlay' }] };
+  const segmentsData = { structure: [{ part: 'conclusion', start: 70, end: 100 }] };
+
+  fs.existsSync = () => true;
+  fs.readFileSync = () => JSON.stringify({ intro: 'film' });
+
+  const { errors, warnings } = lintCues({
+    workdir: 'dummy',
+    cuesFile: createCues(resolved),
+    resolved: resolved,
+    words: createWords(100),
+    catalog: augmentedCatalog,
+    segmentsData
+  });
+
+  assert.ok(!errors.some(e => e.includes('E13 open-cover')), 'E13 must not fire when the intro film owns the opening');
+  assert.ok(errors.some(e => e.includes('link-scrim')), 'Expected link-scrim error for conclusion');
+  assert.ok(!warnings.some(w => w.includes('W15 zone-gap')), 'W15 should not fire for intro zone when intro is film');
+});
+
+test('intro: cards applies E13 open-cover and no link-scrim error in conclusion', (t) => {
+  const originalExistsSync = fs.existsSync;
+  const originalReadFileSync = fs.readFileSync;
+
+  t.afterEach(() => {
+    fs.existsSync = originalExistsSync;
+    fs.readFileSync = originalReadFileSync;
+  });
+
+  const resolved = [
+    { id: 'c1', card: 'link-in-description/link-scrim', start: 80, duration: 5, placement: 'overlay' }
+  ];
+  const augmentedCatalog = { cards: [...catalog.cards, { slug: 'link-in-description/link-scrim', placement: 'overlay' }] };
+  const segmentsData = { structure: [{ part: 'conclusion', start: 70, end: 100 }] };
+
+  fs.existsSync = () => true;
+  fs.readFileSync = () => JSON.stringify({ intro: 'cards' });
+
+  const { errors } = lintCues({
+    workdir: 'dummy',
+    cuesFile: createCues(resolved),
+    resolved: resolved,
+    words: createWords(100),
+    catalog: augmentedCatalog,
+    segmentsData
+  });
+
+  assert.ok(errors.some(e => e.includes('E13 open-cover')), 'E13 should fire for cards intro with no opening cover');
+  assert.ok(!errors.some(e => e.includes('link-scrim')), 'Expected no link-scrim error for conclusion when intro is cards');
 });
 

@@ -10,7 +10,7 @@ touches: [pipelines/video/visuals-flow/lib/board.mjs, pipelines/video/visuals-fl
 
 mutation_apply: cd pipelines/video/visuals-flow && sed -i '' "s/if (!intro.approved)/if (false \&\& !intro.approved)/" lib/intro-film/approve.mjs
 mutation_command: cd pipelines/video/visuals-flow && node --test lib/intro-film/approve.test.mjs
-mutation_expect: intro film must not render before the owner approves
+mutation_expect: not ok 1 - intro approval gate
 mutation_timeout: 300
 ---
 
