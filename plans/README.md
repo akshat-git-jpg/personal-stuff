@@ -1187,3 +1187,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 190-vf2-intro-feedback-fold-separation — teach the 130 fold to ingest `intro:*` items and pin down where an intro lesson may be written: `TASTE-INTRO.md` / the 025 authoring contract, NEVER the body cue/zone rulebooks or the shared `card-library/DESIGN.md` (and the reverse). Adds `check-taste-intro.mjs` to the gate — TODO (needs 189)
 - 188-vf2-intro-film-render-glue — PR#148 188-vf2-intro-film-render-glue: visuals-flow — the intro film's missing render glue — DONE
 - 189-vf2-intro-review-in-motion — PR#149 189-vf2-intro-review-in-motion: visuals-flow — review the intro film in motion, not as a contact sheet — DONE
+- 190-vf2-intro-feedback-fold-separation — PR#150 190-vf2-intro-feedback-fold-separation: visuals-flow — fold intro feedback into intro-owned rules — DONE
