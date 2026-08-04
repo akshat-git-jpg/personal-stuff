@@ -131,6 +131,21 @@ marker already present when clean, and a crash-shaped failure (`SyntaxError`,
 
 **Arm this on every gate plan.** Without it you are trusting a crew's prose.
 
+**Write the recipe in BSD sed — this is macOS.** Plan 190's `mutation_apply` used
+`sed -i '' "0,/re/s/…/"`. The `0` start address is a **GNU extension**; BSD sed
+takes it, **exits 0, and changes nothing**, so the gate could never fire. `1,/re/`
+is the portable form and made it fire correctly. Any GNU-ism silently no-ops the
+same way (`0,/re/`, `\+`, `\|`, `\d`, `-i` with no arg). boss now reports these as
+`mutation_apply changed NOTHING` — trust that message and check the recipe's
+portability before blaming the crew.
+
+**Also check for uncommitted work before merging, even when collect says `done`.**
+Plan 190's crew wrote the fold skill's ingest table — the plan's PRIMARY goal —
+and never committed it. `check.sh` was green without it, so the merge would have
+landed the plan missing the thing it exists to do. `git status --porcelain` in the
+worktree before every merge; if the leftover is complete crew-authored work that
+the plan calls for, commit it on the branch rather than spending a fix-up round.
+
 #### It was aimed at the wrong tree until 2026-08-04 — do not trust old "proven" claims
 
 The gate checked out `origin/$branch`. **Nothing in boss or any executor ever
