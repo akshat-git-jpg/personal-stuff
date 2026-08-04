@@ -263,11 +263,11 @@ EOF
       exit 0
     elif [[ "$step" == "intro-review" ]]; then
       node lib/intro-film/review-film.mjs "$slug"
-      exit 0
+      exit $?
     elif [[ "$step" == "intro-render" ]]; then
-      node -e "import('./lib/intro-film/approve.mjs').then(m=>m.requireIntroApproved(process.cwd()+'/videos/$slug')).catch(e=>{console.error(e.message);process.exit(1)})"
-      node lib/intro-film/film-gate.mjs "$slug"
-      exit 0
+      node -e "import('./lib/intro-film/approve.mjs').then(m=>m.requireIntroApproved(process.cwd()+'/videos/$slug')).catch(e=>{console.error(e.message);process.exit(1)})" || exit 1
+      node lib/intro-film/render-film.mjs "$slug"
+      exit $?
     fi
     ;;
 

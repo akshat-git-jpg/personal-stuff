@@ -39,7 +39,7 @@ enforced by a test.
 |---|---|
 | `run.sh <slug> intro-film` | prints the authoring prompt |
 | `run.sh <slug> intro-review` | pre-render review: layout/contrast check + 3 frames per beat + `REVIEW.md` |
-| `run.sh <slug> intro-render` | renders and gates. The LAST step, not the review step |
+| `run.sh <slug> intro-render` | renders, gates and delivers, and fails non-zero when the gate refuses. |
 
 ## Why it lives here rather than standalone
 
@@ -50,7 +50,4 @@ exist, correct, in this pipeline. That is the whole reason for the move.
 
 ## What consumes the output
 
-Nothing yet. The owner drops `intro-film/out/intro.mp4` into the edit by hand,
-exactly as with the standalone POC. Making the pipeline consume it — and making
-the zone pass, the cue lints and the assembler stand down on the intro span — is
-a separate plan, because it changes what a normal video produces.
+`assemble.mjs` and `export-timeline.mjs` splice `intro-film/out/intro.mp4` over the intro span automatically when `introOwnedByFilm()` is true, and `run.sh <slug> intro-render` is what produces that file.

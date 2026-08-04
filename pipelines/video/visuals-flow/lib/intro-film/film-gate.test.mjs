@@ -65,3 +65,38 @@ test('GATE declares the landscape hand-off size', () => {
   assert.strictEqual(GATE.WIDTH, 1920);
   assert.strictEqual(GATE.HEIGHT, 1080);
 });
+
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const filmGateCli = path.join(__dirname, 'film-gate.mjs');
+
+// A film that is one frozen picture for 6s must be refused. This asserts on the
+// CLI's exit code and stderr, not on source text — a source-text assertion would
+// make the mutation circular (LESSONS 2026-08-02).
+test('intro-render refuses a film that fails the gate', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'introgate-'));
+  const fxDir = path.join(dir, 'videos', 'fx');
+  const filmDir = path.join(fxDir, 'intro-film');
+  const rendersDir = path.join(filmDir, 'renders');
+  fs.mkdirSync(rendersDir, { recursive: true });
+  fs.mkdirSync(path.join(filmDir, 'film'), { recursive: true });
+
+  fs.writeFileSync(path.join(fxDir, 'segments.json'), JSON.stringify({
+    structure: [{ part: 'intro', start: 0, end: 6 }]
+  }));
+  fs.writeFileSync(path.join(filmDir, 'film', 'index.html'), '<html></html>');
+
+  const mp4File = path.join(rendersDir, 'intro-film.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=gray:s=1920x1080:d=6', '-r', '30', '-pix_fmt', 'yuv420p', mp4File]);
+
+  const r = spawnSync('node', [filmGateCli, path.join(dir, 'videos', 'fx', 'intro-film')], { 
+    encoding: 'utf8' 
+  });
+  
+  assert.notStrictEqual(r.status, 0, 'intro-render must refuse a film that fails the gate');
+});

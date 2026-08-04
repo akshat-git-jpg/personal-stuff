@@ -47,3 +47,24 @@ export function runGate(slug) {
   const { width, height } = probeDimensions(video);
   return judge({ renderDuration, introDuration, luma: frameLuma(video), freezes: detectFreezes(video, renderDuration), width, height });
 }
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const slug = process.argv[2];
+  if (!slug) {
+    console.error('usage: node lib/intro-film/film-gate.mjs <slug-or-path>');
+    process.exit(1);
+  }
+  try {
+    const verdict = runGate(slug);
+    if (verdict.pass) {
+      console.log('film gate: pass');
+      process.exit(0);
+    }
+    for (const f of verdict.failures) console.error(`film gate: ${f}`);
+    process.exit(1);
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
+}
+
