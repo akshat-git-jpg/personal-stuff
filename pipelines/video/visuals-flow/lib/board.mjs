@@ -91,6 +91,25 @@ export function appendFinalFeedback(feedback, label, item) {
   return updated;
 }
 
+// The intro has ONE deliverable (out/intro.mp4), so unlike final-cut there is no
+// version axis and no label in the key. Same feedback.json, so the 130 fold sees
+// intro notes and final-cut notes in one place with no extra plumbing.
+export function appendIntroFeedback(feedback, item) {
+  const updated = { ...feedback };
+  if (!updated.items) updated.items = {};
+  const prefix = 'intro:';
+  let maxIdx = -1;
+  for (const k of Object.keys(updated.items)) {
+    if (k.startsWith(prefix)) {
+      const idx = parseInt(k.slice(prefix.length), 10);
+      if (Number.isFinite(idx) && idx > maxIdx) maxIdx = idx;
+    }
+  }
+  const nextKey = `${prefix}${maxIdx + 1}`;
+  updated.items[nextKey] = { ...item };
+  return updated;
+}
+
 export function pinFromClick(clientX, clientY, rect) {
   const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
   const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
@@ -1062,6 +1081,40 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     return res.end(fs.readFileSync(framePath));
   }
 
+  if (req.method === 'GET' && url.pathname === '/intro-video') {
+    const videoPath = path.join(workdir, 'intro-film', 'out', 'intro.mp4');
+    if (!fs.existsSync(videoPath)) {
+      res.statusCode = 404;
+      res.setHeader('content-type', 'application/json');
+      return res.end('{"ok":false,"error":"not rendered"}');
+    }
+    
+    const stat = fs.statSync(videoPath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunksize = (end - start) + 1;
+      const file = fs.createReadStream(videoPath, { start, end });
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': 'video/mp4',
+      });
+      file.pipe(res);
+    } else {
+      res.writeHead(200, {
+        'Content-Length': fileSize,
+        'Content-Type': 'video/mp4',
+      });
+      fs.createReadStream(videoPath).pipe(res);
+    }
+    return;
+  }
+
   if (req.method === 'GET' && url.pathname === '/list') {
     res.statusCode = 302;
     res.setHeader('location', `/${url.search}#storyboard`);
@@ -1239,7 +1292,10 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     let payload;
     try { payload = JSON.parse(body); } catch (e) { res.statusCode = 400; return res.end('{"ok":false}'); }
     const key = String(payload.key ?? '');
-    if (!key.startsWith('final-')) { res.statusCode = 400; return res.end('{"ok":false,"error":"final-* keys only"}'); }
+    if (!key.startsWith('final-') && !key.startsWith('intro:')) {
+      res.statusCode = 400;
+      return res.end('{"ok":false,"error":"final-* or intro:* keys only"}');
+    }
     const fbPath = path.join(workdir, 'feedback.json');
     const fb = fs.existsSync(fbPath) ? JSON.parse(fs.readFileSync(fbPath, 'utf8')) : { items: {} };
     const item = fb.items?.[key];
@@ -1283,6 +1339,27 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     res.setHeader('content-type', 'application/json');
     return res.end(JSON.stringify({ ok: true, key, item: fb.items[key] }));
   }
+
+  if (req.method === 'POST' && url.pathname === '/feedback-intro') {
+    const body = await readBody(req);
+    let payload;
+    try { payload = JSON.parse(body); } catch(e) { res.statusCode = 400; return res.end('{"ok":false}'); }
+    const fbPath = path.join(workdir, 'feedback.json');
+    let fb = fs.existsSync(fbPath) ? JSON.parse(fs.readFileSync(fbPath, 'utf8')) : {};
+    fb = appendIntroFeedback(fb, payload.item);
+    const prefix = 'intro:';
+    const key = Object.keys(fb.items)
+      .filter((k) => k.startsWith(prefix))
+      .sort((a, b) => parseInt(a.slice(prefix.length), 10) - parseInt(b.slice(prefix.length), 10))
+      .pop();
+    const savedImage = saveFeedbackImage(workdir, key, payload.image);
+    if (savedImage) fb.items[key].image = savedImage;
+    fb.updated = new Date().toISOString().slice(0, 10);
+    fs.writeFileSync(fbPath, JSON.stringify(fb, null, 2));
+    res.setHeader('content-type', 'application/json');
+    return res.end(JSON.stringify({ ok: true, key, item: fb.items[key] }));
+  }
+
 
   if (req.method === 'GET' && (url.pathname === '/app' || url.pathname.startsWith('/app/') || url.pathname.startsWith('/assets/'))) {
     return serveUi(res, url.pathname);

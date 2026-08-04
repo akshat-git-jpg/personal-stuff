@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer, latestWorkdir, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, appendFinalFeedback, pinFromClick, resolveAndExtend, playthroughView, toggleAuditAccepted } from './board.mjs';
+import { createServer, latestWorkdir, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, appendFinalFeedback, appendIntroFeedback, pinFromClick, resolveAndExtend, playthroughView, toggleAuditAccepted } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'board');
@@ -1336,5 +1336,64 @@ test('requestedWorkdir only accepts a bootable video under videos/', async () =>
     );
   }
 });
+
+test('appendIntroFeedback allocates intro:0, intro:1; ignores final-* keys', () => {
+  const fb = { items: { 'final-v1:0': { text: 'old' } } };
+  const f2 = appendIntroFeedback(fb, { text: 'my feedback', context: 'intro@00:01.2', t: 1.2, x: 50, y: 50 });
+  assert.ok(f2.items['intro:0'], 'starts at intro:0');
+  assert.equal(f2.items['intro:0'].text, 'my feedback');
+  assert.equal(f2.items['intro:0'].t, 1.2);
+  
+  const f3 = appendIntroFeedback(f2, { text: 'more feedback' });
+  assert.ok(f3.items['intro:1'], 'increments to intro:1');
+  assert.equal(f3.items['intro:1'].text, 'more feedback');
+  assert.equal(f3.items['final-v1:0'].text, 'old', 'does not touch final-* keys');
+});
+
+test('/intro-video returns 206 for a Range request, 404 JSON when unrendered', async () => {
+  const workdir = makeWorkdir();
+  const outDir = path.join(workdir, 'intro-film', 'out');
+  fs.mkdirSync(outDir, { recursive: true });
+  
+  const { server, base } = await startServer(workdir);
+  try {
+    let res = await fetch(`${base}/intro-video`);
+    assert.equal(res.status, 404);
+    assert.equal((await res.json()).ok, false);
+
+    const videoPath = path.join(outDir, 'intro.mp4');
+    fs.writeFileSync(videoPath, Buffer.alloc(100));
+    
+    res = await fetch(`${base}/intro-video`, { headers: { 'Range': 'bytes=0-49' } });
+    assert.equal(res.status, 206);
+    assert.equal(res.headers.get('content-range'), 'bytes 0-49/100');
+    assert.equal(res.headers.get('content-length'), '50');
+    await res.arrayBuffer();
+  } finally {
+    server.close();
+  }
+});
+
+test('edit/delete guard accepts intro:0, rejects cue:7', async () => {
+  const workdir = makeWorkdir();
+  fs.writeFileSync(path.join(workdir, 'feedback.json'), JSON.stringify({
+    items: {
+      'intro:0': { text: 'intro' },
+      'cue:7': { text: 'cue' }
+    }
+  }));
+  const { server, base } = await startServer(workdir);
+  try {
+    let res = await fetch(`${base}/feedback-final-delete`, { method: 'POST', body: JSON.stringify({ key: 'cue:7' }) });
+    assert.equal(res.status, 400);
+
+    res = await fetch(`${base}/feedback-final-delete`, { method: 'POST', body: JSON.stringify({ key: 'intro:0' }) });
+    assert.equal(res.status, 200, 'intro: keys must be editable');
+    assert.equal((await res.json()).ok, true);
+  } finally {
+    server.close();
+  }
+});
+
 
 
