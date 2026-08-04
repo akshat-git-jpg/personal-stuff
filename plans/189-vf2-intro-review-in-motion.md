@@ -1,6 +1,6 @@
 ---
-executor: claude-p
-model: sonnet
+executor: agy
+model:
 test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
@@ -26,7 +26,7 @@ mutation_timeout: 900
   - Pin timestamped comments to the current moment, and optionally to a clicked point on the frame, exactly as Final Cut does.
   - Persist them into the same `feedback.json` the 130 fold already reads, under an `intro:` key namespace, so the fold picks up intro notes with no extra plumbing.
   - Keep the per-beat stage lines and frames **below** the player — they are what a beat is judged *against*, and losing them would remove the only place the intent is written down.
-- **Executor proposed**: `claude-p` / `sonnet`. This is a UI port: the executor reads `FinalCutTab.tsx` and re-expresses its player and comment machinery for a simpler single-file case. Per the orchestrate grading rider, "port by reference" is continuous judgment, not fully-inlined work — the 2026-07-31 board-SPA port shipped a data-loss punt and an invented colour scheme under green gates.
+- **Executor proposed**: `agy` / Gemini 3.1 Pro (High) — owner override on 2026-08-04 ("can we do all with agy"), applied to the whole 188–190 chain. The original proposal was `claude-p` / `sonnet` on the following reasoning, which still stands as a risk note: this is a UI port, where the executor reads `FinalCutTab.tsx` and re-expresses its player and comment machinery for a simpler single-file case. Per the orchestrate grading rider, "port by reference" is continuous judgment, not fully-inlined work — the 2026-07-31 board-SPA port shipped a data-loss punt and an invented colour scheme under green gates. The mutation gate, `check.sh` and the `ui: true` screenshot requirement are what actually hold that line, and they are executor-independent.
 - **Done criteria** (terse): `scripts/check.sh` green; `/intro-video` serves the mp4 with Range support; a comment posted from the tab lands in `feedback.json` as an `intro:<n>` item carrying `t`; the tab degrades cleanly when the film is not rendered; screenshot committed.
 - **Stop conditions** (terse): deleting the beat list; inventing a second feedback store; changing the Final Cut tab; changing `approve.mjs` or gate semantics.
 - **Test / verification for success**: `lib/board.test.mjs` cases over the new endpoints and the key-prefix guard, plus a committed screenshot of the tab with the player and one pinned comment.
