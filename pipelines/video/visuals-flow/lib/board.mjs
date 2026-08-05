@@ -25,6 +25,7 @@ import { loadVideoManifest } from './video-manifest.mjs';
 import { appendCardPlanFeedback, PLAN_PARTS } from './card-plan.mjs';
 import { MEASURE_OVERFLOW_SRC } from './overflow-measure.mjs';
 import { computeProbeTimes, loadBoardData, buildBoardData, introData } from './board-data.mjs';
+import { introOwnedByFilm } from './intro-film/owns-intro.mjs';
 import { stepView, summarize as summarizeRun, nextStep, readRunLog, writeRunLog, setStep, resolveStepId } from './run-log.mjs';
 import { approveIntro } from './intro-film/approve.mjs';
 
@@ -1393,7 +1394,13 @@ function serveUi(res, pathname) {
 
 export function createServer(workdir) {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
-  for (const name of BOOT_FILES) {
+  // An intro-film video is reviewed at gate 027, before 030 authors a single cue,
+  // so cues.json cannot be a precondition for OPENING the board — that locked the
+  // Intro tab behind the body pass and made 027 unreachable in flow order.
+  const bootFiles = introOwnedByFilm(workdir)
+    ? BOOT_FILES.filter((n) => n !== 'cues.json')
+    : BOOT_FILES;
+  for (const name of bootFiles) {
     if (!fs.existsSync(path.join(workdir, name))) {
       throw new Error(`workdir missing ${name}: ${path.join(workdir, name)}`);
     }

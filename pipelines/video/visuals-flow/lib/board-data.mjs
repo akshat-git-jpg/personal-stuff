@@ -24,7 +24,15 @@ export function computeProbeTimes(beats, duration) {
 }
 
 export function loadBoardData(workdir) {
-  const cuesFile = JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'));
+  // cues.json is absent until the body pass (030/035) has run. An intro-film
+  // video is reviewed at gate 027, which comes BEFORE 030, so demanding cues.json
+  // just to read board data made the Intro tab unreachable at exactly the point
+  // in the flow it exists for. The cue-driven tabs render their own empty states
+  // off an empty cue list.
+  const cuesPath = path.join(workdir, 'cues.json');
+  const cuesFile = fs.existsSync(cuesPath)
+    ? JSON.parse(fs.readFileSync(cuesPath, 'utf8'))
+    : { cues: [] };
   const resolvedPath = path.join(workdir, 'resolved.json');
   const hasResolved = fs.existsSync(resolvedPath);
   const resolved = hasResolved ? JSON.parse(fs.readFileSync(resolvedPath, 'utf8')).resolved : [];

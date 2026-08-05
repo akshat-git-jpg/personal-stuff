@@ -1395,5 +1395,34 @@ test('edit/delete guard accepts intro:0, rejects cue:7', async () => {
   }
 });
 
+// Gate 027 reviews the intro film BEFORE 030 authors any cue, so the board has
+// to open on a workdir with no cues.json at all. It used to throw at boot, which
+// made the Intro tab unreachable at the only point in the flow it exists for.
+test('createServer boots an intro-film workdir that has no cues.json', () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'board-nocues-'));
+  for (const f of ['transcript.json', 'vo.mp3']) {
+    fs.copyFileSync(path.join(FIXTURE_DIR, f), path.join(dir, f));
+  }
+  // intro: film is what marks the intro as film-owned (lib/intro-film/owns-intro.mjs)
+  fs.writeFileSync(path.join(dir, 'run-config.json'),
+    JSON.stringify({ engine: 'heygen3', review: 'full', intro: 'film' }));
+  assert.ok(!fs.existsSync(path.join(dir, 'cues.json')), 'fixture must have no cues.json');
+  const server = createServer(dir);          // must not throw
+  OPEN_SERVERS.add(server);
+  assert.ok(server, 'board must open for an intro-film video before the cue pass');
+});
 
+// The complement: a cards-intro video still requires cues.json, so this fix did
+// not quietly weaken the boot contract for every other video.
+test('createServer still refuses a cards-intro workdir with no cues.json', () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'board-cards-'));
+  for (const f of ['transcript.json', 'vo.mp3']) {
+    fs.copyFileSync(path.join(FIXTURE_DIR, f), path.join(dir, f));
+  }
+  fs.writeFileSync(path.join(dir, 'run-config.json'),
+    JSON.stringify({ engine: 'heygen3', review: 'full', intro: 'cards' }));
+  assert.throws(() => createServer(dir), /missing cues\.json/);
+});
 
