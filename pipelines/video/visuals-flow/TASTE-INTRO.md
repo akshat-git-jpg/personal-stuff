@@ -169,3 +169,31 @@ still avoided because a beat's transition is resolving there.
 
 **Enforced by:** `lib/intro-film/review-film.mjs`, with a regression test pinned to the
 b08 case.
+
+## T11 — A device belongs to its beat. Dimming is not leaving.
+
+**From:** consistent-ai-influencer, 2026-08-04. Owner, on a b05 frame: *"why this
+overlapping are there"*.
+
+Beat 4's rail and three dashed sponsor slots were dimmed to 30% opacity when beat
+5 began, rather than removed. Beat 5's row of four cards spans x120-1680 and its
+fourth slot sits exactly on the mark column at x1420-1572, so for twelve seconds
+the dashed slots read straight through a card whose fill is only 8.5% white.
+
+Two lessons, and the second is the general one:
+
+- **Space could not fix it.** The row occupies 81% of the canvas; there is no
+  horizontal band free in both beats. Devices that cannot be separated in space
+  must be mutually exclusive in TIME.
+- **A dimmed element is still a drawn element.** `opacity: 0.3` on a stroke over a
+  translucent surface is clearly visible. When a device's beat ends, it leaves —
+  `autoAlpha: 0`, which also sets `visibility: hidden`. Keep a device alive across
+  beats only when it is deliberately carried, and then it is a `carries` object
+  with a stated transform, not a leftover.
+
+**Enforced by:** the device-overlap audit in the film composition — at each beat
+midpoint it compares the bounding boxes of every visible top-level device and
+reports intersections as runtime errors, which `run.sh <slug> intro-review`
+surfaces. This is the half of T7 that nothing used to catch. It found a second
+defect on the same pass: the beat-11 score column used a 76px pitch on 78px rows.
+

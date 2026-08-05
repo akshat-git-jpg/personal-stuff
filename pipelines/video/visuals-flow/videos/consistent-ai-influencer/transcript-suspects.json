@@ -1,0 +1,107 @@
+[
+  {
+    "kind": "once-only-proper-noun",
+    "at": 126.46,
+    "text": "Angelica.",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 141.34,
+    "text": "Describe",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 141.82,
+    "text": "Your",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 171.22,
+    "text": "Filipina",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 187.5,
+    "text": "Nano",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 187.68,
+    "text": "Banana",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 260.14,
+    "text": "More",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 448.4,
+    "text": "Flux",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 556.08,
+    "text": "Annotate,",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 595.9,
+    "text": "Shorts,",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 640.57,
+    "text": "Grok",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 640.83,
+    "text": "Imagine.",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 859.47,
+    "text": "Media",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 907.87,
+    "text": "Area",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 1104.57,
+    "text": "LoRA",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  }
+]

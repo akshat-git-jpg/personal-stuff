@@ -1,0 +1,102 @@
+{
+  "video": "consistent-ai-influencer",
+  "confirmed": true,
+  "structure": [
+    {
+      "part": "intro",
+      "start": 0,
+      "end": 90.7
+    },
+    {
+      "part": "body",
+      "start": 90.7,
+      "end": 1171.133
+    },
+    {
+      "part": "conclusion",
+      "start": 1171.133,
+      "end": 1230.4
+    }
+  ],
+  "segments": [
+    {
+      "kind": "narration",
+      "start": 0,
+      "end": 95
+    },
+    {
+      "kind": "demo",
+      "start": 95,
+      "end": 165,
+      "note": "check for sample-clip playback inside this range"
+    },
+    {
+      "kind": "narration",
+      "start": 165,
+      "end": 185
+    },
+    {
+      "kind": "demo",
+      "start": 185,
+      "end": 305,
+      "note": "check for sample-clip playback inside this range"
+    },
+    {
+      "kind": "narration",
+      "start": 305,
+      "end": 395
+    },
+    {
+      "kind": "demo",
+      "start": 395,
+      "end": 415
+    },
+    {
+      "kind": "narration",
+      "start": 415,
+      "end": 510
+    },
+    {
+      "kind": "demo",
+      "start": 510,
+      "end": 555,
+      "note": "check for sample-clip playback inside this range"
+    },
+    {
+      "kind": "narration",
+      "start": 555,
+      "end": 585
+    },
+    {
+      "kind": "demo",
+      "start": 585,
+      "end": 620
+    },
+    {
+      "kind": "narration",
+      "start": 620,
+      "end": 680
+    },
+    {
+      "kind": "demo",
+      "start": 680,
+      "end": 755,
+      "note": "check for sample-clip playback inside this range"
+    },
+    {
+      "kind": "narration",
+      "start": 755,
+      "end": 845
+    },
+    {
+      "kind": "demo",
+      "start": 845,
+      "end": 1000
+    },
+    {
+      "kind": "narration",
+      "start": 1000,
+      "end": 1229.61
+    }
+  ]
+}

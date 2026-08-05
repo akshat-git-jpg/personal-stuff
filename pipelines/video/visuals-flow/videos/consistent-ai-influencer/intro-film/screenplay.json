@@ -1,0 +1,205 @@
+{
+  "slug": "consistent-ai-influencer",
+  "beats": [
+    {
+      "id": "b01",
+      "intent": "hook",
+      "clause": "Most people trying to build an AI influencer get stuck on one thing: consistency. The face changes, the style drifts, and it never looks like one person.",
+      "t_start": 0.0,
+      "t_end": 11.36,
+      "register": "dark",
+      "face": "full",
+      "stage": "Dark room. The presenter leads the frame from the left third. An empty portrait frame stands centre-right — thin rule, nothing inside it. Faces flicker through the frame one after another and none of them settles; each swap knocks the frame's rotation a degree off true, so by the end of the beat it is visibly crooked. The frame is the only lit object besides the presenter.",
+      "carries": null,
+      "transition_out": "cut",
+      "deviation_reason": "The intro states the stakes before it states the fix, so the beat order is hook then stakes then turn, and the stakes return once more as a threat just before the mechanism. The default arc puts stakes after mech, which would mean showing the tool before establishing why a sponsor would care."
+    },
+    {
+      "id": "b02",
+      "intent": "stakes",
+      "clause": "That's exactly what kills any chance of landing a sponsor.",
+      "t_start": 11.36,
+      "t_end": 15.1,
+      "register": "dark",
+      "face": "panel",
+      "stage": "The flickering stops on a half-formed face. The same crooked portrait frame hardens into a contract sheet, a DECLINED rule strikes across it, and it slides out of frame to the right leaving empty dark space. The presenter docks to a small panel bottom-right as the frame leaves.",
+      "carries": {
+        "from": "b01",
+        "object": "portrait frame",
+        "as": "hardened into a declined contract sheet and pushed out of frame"
+      },
+      "transition_out": "flash",
+      "deviation_reason": "Stakes are stated before the turn, which departs from the default arc order."
+    },
+    {
+      "id": "b03",
+      "intent": "turn",
+      "clause": "Today, I'm going to show you step-by-step how to fix that using one tool that makes the whole process surprisingly simple.",
+      "t_start": 15.1,
+      "t_end": 22.9,
+      "register": "light",
+      "face": "panel",
+      "stage": "The room lifts to light on the word fix. The same sheet returns from the left, wiped clean, the DECLINED rule gone and the rotation corrected to true — an empty card waiting to be filled rather than a rejection. It settles centre and holds, breathing very slightly. Presenter stays docked bottom-right.",
+      "carries": {
+        "from": "b02",
+        "object": "contract sheet",
+        "as": "returned wiped clean and straightened into an empty character card"
+      },
+      "transition_out": "dock",
+      "deviation_reason": "The turn arrives after the stakes rather than before them, which departs from the default arc order."
+    },
+    {
+      "id": "b04",
+      "intent": "stakes",
+      "clause": "Building a brand around an AI influencer isn't just a trend anymore.",
+      "t_start": 22.9,
+      "t_end": 27.48,
+      "register": "light",
+      "face": "none",
+      "stage": "The empty card slides left and docks against a vertical rail. The presenter panel clears. Three brand marks arrive on the rail from the right at a steady beat, stacking under one another — real logos from the registry, not coloured blocks — as if requests are arriving at the card.",
+      "carries": {
+        "from": "b03",
+        "object": "empty character card",
+        "as": "docked to a left rail with brand marks arriving beside it"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "This is a second stakes beat, and repeating an intent departs from the default arc."
+    },
+    {
+      "id": "b05",
+      "intent": "stakes",
+      "clause": "Brands are actively looking for these accounts to sponsor, but there's one non-negotiable: your influencer has to look like the same person every single post.",
+      "t_start": 27.48,
+      "t_end": 36.52,
+      "register": "light",
+      "face": "panel",
+      "stage": "The card undocks and multiplies into a row of four identical cards across the frame, each holding the same face, locked to a shared baseline. The rail and its sponsor slots clear as the row takes the full width — they belong to the previous beat and the row occupies their space. On the words every single post the row pulses once as a unit to make the sameness the point. Presenter re-docks bottom-right.",
+      "carries": {
+        "from": "b04",
+        "object": "character card",
+        "as": "multiplied into a row of four identical cards sharing one baseline"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "This is a third stakes beat, and repeating an intent departs from the default arc."
+    },
+    {
+      "id": "b06",
+      "intent": "stakes",
+      "clause": "Same face, same vibe, same aesthetic. And if it doesn't, no sponsor will take you seriously.",
+      "t_start": 36.52,
+      "t_end": 42.26,
+      "register": "dark",
+      "face": "panel",
+      "stage": "The room drops back to dark. The row of four cards drifts out of alignment — each one rotating and sliding off the shared baseline by a different amount — and the faces inside them desaturate to grey and dim together. This is the failure state, shown rather than labelled.",
+      "carries": {
+        "from": "b05",
+        "object": "row of four cards",
+        "as": "drifted out of alignment and desaturated as the brand marks leave"
+      },
+      "transition_out": "flash",
+      "deviation_reason": "The stakes return a fourth time as a threat immediately before the mechanism, which departs from the default arc."
+    },
+    {
+      "id": "b07",
+      "intent": "mech",
+      "clause": "What I'm going to walk you through today is the exact process of flooding that consistency from scratch,",
+      "t_start": 42.26,
+      "t_end": 49.08,
+      "register": "light",
+      "face": "panel",
+      "stage": "Light returns hard. The four drifted cards sweep back into register and collapse into ONE card centre frame, colour restored, sitting dead straight. A seal begins to draw itself onto the card's lower corner — an arc that is clearly incomplete by the end of the beat, so the next beat has something to finish.",
+      "carries": {
+        "from": "b06",
+        "object": "row of four cards",
+        "as": "swept back into register and collapsed into one straight card with a seal starting to draw"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "The mechanism follows a run of stakes beats rather than following the turn directly, which departs from the default arc."
+    },
+    {
+      "id": "b08",
+      "intent": "mech",
+      "clause": "like character creation, style locking, content generation, all inside OpenArt.",
+      "t_start": 49.08,
+      "t_end": 54.3,
+      "register": "light",
+      "face": "panel",
+      "stage": "Three short labels strike onto the card in sequence as they are named — character creation, style locking, content generation — each one landing as a line inside the card rather than floating beside it. On the word OpenArt the half-drawn seal completes and the OpenArt logo from the registry sets into it. The card is now sealed.",
+      "carries": {
+        "from": "b07",
+        "object": "character card and its half-drawn seal",
+        "as": "the seal completed with the OpenArt mark set into it"
+      },
+      "transition_out": "dock",
+      "deviation_reason": "This is a second mech beat, and repeating an intent departs from the default arc."
+    },
+    {
+      "id": "b09",
+      "intent": "scope",
+      "clause": "Here's what this video will cover. Step 1 is to create your base character. Step 2 is to lock into face with a custom-trained model. Step 3 is to generate consistent content across scenarios.",
+      "t_start": 54.3,
+      "t_end": 65.42,
+      "register": "light",
+      "face": "panel",
+      "stage": "The sealed card shrinks and docks to the left rail, staying visible for the whole scope run — everything that follows is measured against it. Numbered step rows build to its right, one arriving as each step is spoken, each row a rule and a short line of type. Three rows are present by the end of the beat.",
+      "carries": {
+        "from": "b08",
+        "object": "sealed character card",
+        "as": "shrunk and docked to the left rail as the step rows build beside it"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "Scope arrives after the mechanism rather than before it, which departs from the default arc."
+    },
+    {
+      "id": "b10",
+      "intent": "scope",
+      "clause": "Step 4 is to generate video content with your influencer. Step 5, build your content bank. Step 6, set up for sponsor-ready content. Step 7, how to pitch sponsors with this setup.",
+      "t_start": 65.42,
+      "t_end": 77.12,
+      "register": "light",
+      "face": "panel",
+      "stage": "The step rows keep arriving on the same rhythm until all seven are stacked, the earlier three sliding up to make room rather than being replaced. The sealed card holds on the left rail throughout. By the last row the stack is full and the frame is dense but still aligned to one grid.",
+      "carries": {
+        "from": "b09",
+        "object": "step rows",
+        "as": "extended from three to all seven, the earlier rows sliding up to make room"
+      },
+      "transition_out": "push",
+      "deviation_reason": "This is a second scope beat, and repeating an intent departs from the default arc."
+    },
+    {
+      "id": "b11",
+      "intent": "tease",
+      "clause": "And finally, the summary table, the scores across key factors, and the final verdict: is OpenArt the right tool for this?",
+      "t_start": 77.12,
+      "t_end": 84.18,
+      "register": "light",
+      "face": "panel",
+      "stage": "The seven step rows compress into a short scored column — the same rows, now each carrying a value on the right edge rather than a step number on the left. The sealed card stays on the rail. On the question the column holds and the verdict slot is deliberately left blank, so the film poses the question without answering it.",
+      "carries": {
+        "from": "b10",
+        "object": "step rows",
+        "as": "compressed into a scored column with a blank verdict slot"
+      },
+      "transition_out": "crossfade",
+      "deviation_reason": "The tease follows a repeated scope beat, which departs from the default arc."
+    },
+    {
+      "id": "b12",
+      "intent": "button",
+      "clause": "The link to get started with OpenArt is in the description below, so go ahead and open it up so you can follow along.",
+      "t_start": 84.18,
+      "t_end": 90.7,
+      "register": "light",
+      "face": "full",
+      "stage": "The scored column clears. The sealed card returns from the rail to centre frame at full size and resolves into one clean plate carrying the OpenArt mark and a single line pointing down to the description. The presenter comes back up to lead the frame. The plate holds steady to the last frame — a clean hand-off into the body, not a fade to nothing.",
+      "carries": {
+        "from": "b11",
+        "object": "sealed character card",
+        "as": "returned from the rail to centre and resolved into a clean closing plate"
+      },
+      "transition_out": "cut",
+      "deviation_reason": "The button closes a run that reordered stakes, mech and scope, which departs from the default arc."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "video": "consistent-ai-influencer",
+  "updated": "2026-08-04T04:53:28.741Z",
+  "steps": {
+    "010-transcribe-run": {
+      "status": "done",
+      "started": "2026-08-03T15:26:15.699Z",
+      "ended": "2026-08-03T15:32:38.048Z",
+      "did": "Transcribed the 20:30 voiceover with Groq whisper-large-v3-turbo (4062 words), then ran the cleanup pass by hand: re-punctuated the whole unpunctuated middle section, fixed the brand and feature garbles, and trimmed sentence-opening discourse fillers. Verified every one of the 141 token-level changes against a word-by-word diff before applying, so nothing was silently dropped.",
+      "output": "transcript.json — 4005 words after cleanup (from 4062), raw ASR kept as transcript.groq-raw.bak.json and the cleaned word list as transcript.cleaned.json",
+      "issues": "Whisper turned punctuation off for most of the body — roughly 3500 words came back as one lowercase run-on, so this was a heavy pass rather than a light proofread. Real mis-hearings that would have been burned into the captions: 'open art'/'open orange' for OpenArt, 'seed dream' for Seedream, 'the lower training' for LoRA, 'once that model is strange' for trained, 'content back' for content bank, 'the same space/phase' for face (3 places), 'enhanced pumps' for enhanced prompts, 'in painting' for inpainting, 'copy cup' for coffee cup, 'a status character' for the Set as Character button, and 'you can turn a custom model' for train. The second-opinion re-transcription independently confirmed LoRA ('laura'), Seedream ('z-dream'), Flux ('flunks') and Happy Horse. Four phrases stay as spoken because a fix would be a guess, and the owner may want to see them: 'the exact process of flooding that consistency' (~42s), 'when a font or a sponsor comes on board, the workflow is passed' (~995s), 'whatever poor mental campaign it needs' (~1045s), and 'in just as a pound of one minute to two minutes' (~1055s)."
+    },
+    "005-configure-run-human": {
+      "status": "done",
+      "ended": "2026-08-03T15:32:37.996Z",
+      "started": "2026-08-03T15:32:37.996Z",
+      "did": "Recorded the owner's kickoff choices for this video: HeyGen 3 (Avatar III, free) as the avatar engine, express review so the flow runs unattended to the final cut, and the NEW intro flow (intro: film) so the intro is one authored film instead of a card sequence. Also pulled the three source recordings from the owner's Drive folder and built the combined screen.mp4 + vo.mp3.",
+      "issues": "The owner's Drive Output/ folder was empty, so this is a first run for this video. Source is 20:30 total — intro 90.7s, body 1080.4s, conclusion 59.3s.",
+      "output": "run-config.json (engine=heygen3, review=express, intro=film, drive folder + account), src/{intro,body,conclusion}.mp4, screen.mp4 and vo.mp3 both measuring 1230.4s"
+    },
+    "015-map-segments-run": {
+      "status": "done",
+      "started": "2026-08-03T15:32:49.668Z",
+      "ended": "2026-08-03T15:33:34.309Z",
+      "did": "Measured the three source recordings into the intro/body/conclusion structure, took the proposed demo-vs-narration split, corrected one boundary by reading the transcript, and confirmed the file so the E5 lint becomes a hard error rather than a warning.",
+      "output": "segments.json — confirmed, structure intro 0-90.7s / body 90.7-1171.1s / conclusion 1171.1-1230.4s, and 15 demo-vs-narration blocks",
+      "issues": "The keyword heuristic ended the step-6 demo at 905s, but the product-swap demonstration actually runs to about 1000s — everything up to 'we landed a deal with Sunshine Coffee' is on-screen work, and the sponsor pitch after it is pure talk. Merged that stretch into one demo block so graphics do not get placed over live demo footage. Also a harmless note from the measurer: the conclusion's last spoken word lands 0.8s before the file ends."
+    },
+    "020-choose-concept-llm": {
+      "status": "done",
+      "started": "2026-08-03T15:33:34.364Z",
+      "ended": "2026-08-03T15:35:02.444Z",
+      "did": "Wrote the concept document that sets the visual strategy for the whole video. The argument is that an AI influencer only becomes sponsorable when the same face survives every post, so the real work is locking one character model rather than generating more images. The frame is casting versus contracting — most people re-cast their influencer on every generate, you audition once and sign that face to a contract. The recurring object is a single character card holding the anchor portrait, which starts as an empty frame with faces flickering through it, gets sealed when the model trains, is stamped out into every scenario, and ends up as the asset a brand is actually buying.",
+      "issues": "Two of the five register spans are both light and sit next to each other, separated only by a demo stretch. That is deliberate rather than padding — the video has one genuine problem-to-solution turn plus a short tension pocket where he says you need a content bank before approaching anyone, so there are three real dark-to-light flips in twenty minutes, not a flip every minute. The intro span is covered by a register even though the intro film now owns that stretch and will not carry cards.",
+      "output": "concept.json — thesis, frame, the-character-card through-line, and 5 register spans covering 99.3% of narration time (704.6s of 709.6s), lint green"
+    },
+    "025-author-intro-film-llm": {
+      "status": "done",
+      "ended": "2026-08-04T04:53:28.741Z",
+      "started": "2026-08-03T16:41:44.574Z",
+      "did": "Authored and delivered the intro as ONE bespoke film (the new intro flow), then fixed an owner-reported overlap and hardened against its whole class. The film: 12 beats over the measured 90.7s intro, every clause verbatim, one character card born in beat 1 and carried as the SAME element to the last frame. Presenter is one girl-1 Avatar III clip, free at credits +0 seconds +0.",
+      "issues": "Owner spotted beat 4's rail and three dashed sponsor slots showing through the fourth card of beat 5's row for twelve seconds. Root cause was two beats claiming the same pixels while measuring in different frames of reference — beat 4 placed its mark column at x1420-1572 relative to the card at x820-1300 with the right third free, and beat 5 spread its row across the full canvas with slot four at x1380-1680. Space could not fix it: the row covers 81% of the canvas, so no band is free in both beats. The devices now LEAVE at 27.48s with autoAlpha rather than dimming to 30% — a dimmed stroke reads clean through a card whose fill is 8.5% white. Nothing mechanical had caught it because text_occluded is text-only, which is exactly the unenforced half of TASTE T7. Added a device-overlap audit to the composition that compares visible device bounding boxes at each beat midpoint; on its first run it confirmed the fix AND found a second defect nobody had seen, the beat-11 score column using a 76px pitch on 78px-tall rows. Recorded the lesson as TASTE-INTRO T11. Earlier in the same step: 7 lint errors were masking 19 layout errors, GSAP fromTo's immediateRender default parked the card half off-frame for the opening, and the gate caught 5.7s of frozen picture that every still frame passed.",
+      "output": "intro-film/out/intro.mp4 — 90.700s, 1920x1080, h264+aac, film gate pass, zero frozen stretches, zero device overlaps. Plus screenplay.json (12 beats, lint clean, mutation-tested), film/index.html with a declared LAYOUT grid and the overlap audit, and TASTE-INTRO.md T11."
+    }
+  }
+}

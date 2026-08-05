@@ -1,0 +1,37 @@
+{
+  "video": "consistent-ai-influencer",
+  "thesis": "An AI influencer only becomes sponsorable when the same face survives every single post, so the work that actually matters is locking one character model down — not generating more images.",
+  "frame": "Casting versus contracting: most people re-cast their influencer every time they hit generate, which is why nobody recognises her. You audition once, sign that one face to a contract, and every shoot after that is the same actor showing up on set.",
+  "throughline": {
+    "name": "the-character-card",
+    "description": "One portrait card of the influencer — the anchor image held in a frame — that every later image, video and sponsor deliverable is stamped out of.",
+    "evolution": "It opens as an empty frame with faces flickering through it and never settling, which is the consistency problem made literal. At character creation one face finally fills the frame. When the model is trained a seal stamps onto the card and the flicker stops for good. Through the scenario section the same card is duplicated into kitchen, travel and product frames that all carry an identical face. In the sponsor section a product pack slots into the card beside her. By the summary the card is no longer a portrait — it is the asset a brand is paying for."
+  },
+  "registers": [
+    {
+      "from_anchor": "Most people trying to build",
+      "to_anchor": "no sponsor will take you seriously",
+      "register": "dark"
+    },
+    {
+      "from_anchor": "What I'm going to walk you through today",
+      "to_anchor": "so you can follow along",
+      "register": "light"
+    },
+    {
+      "from_anchor": "The first thing that you need to do",
+      "to_anchor": "which is what I've been talking about",
+      "register": "light"
+    },
+    {
+      "from_anchor": "Before you approach a single sponsor",
+      "to_anchor": "in different situations",
+      "register": "dark"
+    },
+    {
+      "from_anchor": "So this does two things",
+      "to_anchor": "I will see you there",
+      "register": "light"
+    }
+  ]
+}

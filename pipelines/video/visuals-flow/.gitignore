@@ -1,5 +1,11 @@
 # per-video media is regenerable / hub-bound — text artifacts ARE committed
 videos/*/vo.mp3
+# the intro-only cut of vo.mp3, fed to the avatar render for an intro film
+videos/*/intro-vo.mp3
+# the ONE avatar clip an intro film composes against. It is a HeyGen render, so
+# it is generated media like every other render and never belongs in the repo —
+# 24MB of it was committed by mistake on 2026-08-03 before this line existed.
+videos/*/avatar.mp4
 videos/*/renders/
 videos/*/renders.run*/
 videos/*/renders-fx/
