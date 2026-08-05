@@ -442,6 +442,93 @@ try {
     serverPre.close();
   }
 
+  // ---- Intro player transport is wired ------------------------------------
+  // The <video> mounts only AFTER /api/intro-data answers, so a listener effect
+  // that reads the ref on first render sees null and never subscribes. Nothing
+  // throws and the film still paints its first frame, so this is invisible to a
+  // build, a typecheck and every unit test — the only symptom is a dead
+  // transport: duration stuck at 00:00, clock stuck at 00:00:00, and a Play
+  // button that can never pause (owner report 2026-08-06). Assert the rendered
+  // duration, which is exactly the bit that was wrong.
+  const introSlug = 'smoke-intro';
+  const introWorkdir = path.join(tmpDir, introSlug);
+  fs.mkdirSync(path.join(introWorkdir, 'intro-film', 'out'), { recursive: true });
+  fs.writeFileSync(path.join(introWorkdir, 'run-config.json'),
+    JSON.stringify({ engine: 'heygen3', review: 'full', intro: 'film' }));
+  fs.copyFileSync(path.join(workdir, 'vo.mp3'), path.join(introWorkdir, 'vo.mp3'));
+  // The real transcript fixture, not a {} stub: board-data builds segments from
+  // its words and 500s without them, and the Intro tab loads board-data too.
+  fs.copyFileSync(path.join(workdir, 'transcript.json'), path.join(introWorkdir, 'transcript.json'));
+  fs.writeFileSync(path.join(introWorkdir, 'intro-film', 'screenplay.json'), JSON.stringify({
+    approved: false,
+    beats: [
+      { id: 'b01', intent: 'hook', register: 'dark', face: 'full', t_start: 0, t_end: 4, clause: 'a', stage: 'b' },
+      { id: 'b02', intent: 'stakes', register: 'dark', face: 'panel', t_start: 4, t_end: 7, clause: 'c', stage: 'd' },
+    ],
+  }));
+  // 7s so the rendered duration is unambiguous — and +faststart, because a moov
+  // atom at the tail is its own way to make duration never arrive.
+  const introMp4 = path.join(introWorkdir, 'intro-film', 'out', 'intro.mp4');
+  const enc = spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'testsrc=size=320x180:rate=30:duration=7',
+    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', introMp4]);
+  if (enc.status !== 0 || !fs.existsSync(introMp4)) {
+    console.log('SKIP intro player check: ffmpeg could not build the fixture clip');
+  } else {
+    const serverIntro = boardMod.createServer(introWorkdir);
+    const portIntro = await new Promise((resolve) => {
+      serverIntro.listen(0, '127.0.0.1', () => resolve(serverIntro.address().port));
+    });
+    try {
+      const urlIntro = `http://127.0.0.1:${portIntro}/app/?video=${introSlug}#intro`;
+      const domIntro = await new Promise((resolve, reject) => {
+        const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
+        let child;
+        const timeout = setTimeout(() => {
+          if (child) child.kill('SIGKILL');
+          fs.rmSync(profileDir, { recursive: true, force: true });
+          reject(new Error('Chrome dump-dom timeout on #intro player'));
+        }, CHROME_TIMEOUT_MS);
+        child = spawn(CHROME, [
+          '--headless=new', '--no-sandbox', '--disable-background-networking',
+          `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
+          '--virtual-time-budget=8000', '--dump-dom', urlIntro
+        ]);
+        let out = '';
+        child.stdout.on('data', d => {
+          out += d;
+          if (out.includes('</html>')) {
+            clearTimeout(timeout);
+            child.kill('SIGKILL');
+            resolve(out);
+          }
+        });
+        child.on('close', () => {
+          clearTimeout(timeout);
+          fs.rmSync(profileDir, { recursive: true, force: true });
+        });
+        child.on('error', e => {
+          clearTimeout(timeout);
+          fs.rmSync(profileDir, { recursive: true, force: true });
+          reject(e);
+        });
+      });
+
+      if (!domIntro.includes('class="intro-video"')) {
+        throw new Error('intro player: no <video> rendered for an intro-film video');
+      }
+      const clock = domIntro.match(/<span class="intro-clock">.*?<span class="cur">([^<]*)<\/span>[^<]*<span>([^<]*)<\/span>/);
+      if (!clock) throw new Error('intro player: transport clock not found');
+      if (clock[2] === '00:00') {
+        throw new Error(
+          'intro player: duration reads 00:00 — the media listeners never attached, '
+          + 'so the transport is dead (clock frozen, Play cannot pause)');
+      }
+    } finally {
+      if (serverIntro.closeAllConnections) serverIntro.closeAllConnections();
+      serverIntro.close();
+    }
+  }
+
   console.log('board-ui smoke OK');
   process.exit(0);
 } finally {

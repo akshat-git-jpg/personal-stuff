@@ -1,4 +1,4 @@
-import React, { useEffect, useState, ReactNode, useRef } from 'react';
+import React, { useEffect, useState, ReactNode, useRef, useCallback } from 'react';
 import './IntroTab.css';
 import { fmtClock, fmtClockFrames, clampSeek, frameStep } from '../lib/fcTransport';
 
@@ -13,29 +13,52 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
   const [fcItems, setFcItems] = useState<Record<string, any>>({});
   const [videoMissing, setVideoMissing] = useState(false);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  // The <video> mounts LATE — the component returns "loading..." until
+  // /api/intro-data answers, so an effect that reads videoRef on first render
+  // sees null. Tracking the node in state re-runs the listener effect at the
+  // moment the element actually exists (see the effect below).
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
+  const attachVideo = useCallback((node: HTMLVideoElement | null) => {
+    videoRef.current = node;
+    setVideoEl(node);
+  }, []);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [paused, setPaused] = useState(true);
-  const [scrubbing, setScrubbing] = useState(false);
+  // A ref, not state: the timeupdate handler only READS this, and holding it in
+  // state forced the listener effect to re-subscribe on every scrub.
+  const scrubbingRef = useRef(false);
   const [inputText, setInputText] = useState('');
   const [currentPin, setCurrentPin] = useState<{x: number, y: number} | null>(null);
 
   const loadData = async () => {
+    // Each fetch gets its own failure. Chained in one try, a board-data 500 both
+    // skipped the render probe below AND landed in a catch that set
+    // videoMissing — so the tab claimed "Intro film not rendered yet" about a
+    // film sitting on disk, and hid the player that would have shown it.
     try {
       const res = await fetch(`/api/intro-data?video=${encodeURIComponent(video)}`);
       setData(await res.json());
+    } catch (e) {
+      console.error(e);
+    }
 
+    try {
       const resBd = await fetch(`/api/board-data?video=${encodeURIComponent(video)}`);
       const bd = await resBd.json();
       if (bd.feedback) setFcItems(bd.feedback);
+    } catch (e) {
+      console.error(e);   // comments are lost, the player is not
+    }
 
+    // The only thing that can prove the film is unrendered.
+    try {
       const resVid = await fetch(`/intro-video?video=${encodeURIComponent(video)}`, { headers: { Range: 'bytes=0-0' } });
       setVideoMissing(resVid.status === 404);
     } catch (e) {
       console.error(e);
-      setVideoMissing(true);
     }
   };
 
@@ -43,29 +66,48 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
     loadData();
   }, [video]);
 
-  // Video listeners
+  // Video listeners. Keyed on the ELEMENT, not on [scrubbing]: the old deps
+  // never changed between "no <video> yet" and "<video> mounted", so the effect
+  // bailed on a null ref and no listener was ever attached. The player then read
+  // as broken in a specific way — the film played, but the clock stayed at
+  // 00:00:00, the duration stayed 00:00, and `paused` never flipped, so the
+  // button called play() forever and could not pause (owner report 2026-08-06).
   useEffect(() => {
-    const v = videoRef.current;
+    const v = videoEl;
     if (!v) return;
-    const updateTime = () => { if (!scrubbing) setCurrentTime(v.currentTime); };
+    const updateTime = () => { if (!scrubbingRef.current) setCurrentTime(v.currentTime); };
     const onLoadedMetadata = () => {
       setDuration(v.duration);
       updateTime();
     };
+    const onDurationChange = () => setDuration(v.duration);
+    const onPlay = () => setPaused(false);
+    const onPause = () => { setPaused(true); updateTime(); };
+
+    // Metadata can land BEFORE this runs (a cached video is ready immediately),
+    // and then loadedmetadata never fires again. Seed from the element itself.
+    if (Number.isFinite(v.duration) && v.duration > 0) setDuration(v.duration);
+    setPaused(v.paused);
+    updateTime();
+
     v.addEventListener('loadedmetadata', onLoadedMetadata);
+    v.addEventListener('durationchange', onDurationChange);
     v.addEventListener('timeupdate', updateTime);
     v.addEventListener('seeked', updateTime);
-    v.addEventListener('play', () => setPaused(false));
-    v.addEventListener('pause', () => { setPaused(true); updateTime(); });
-    
+    v.addEventListener('play', onPlay);
+    v.addEventListener('pause', onPause);
+
     return () => {
       v.removeEventListener('loadedmetadata', onLoadedMetadata);
+      v.removeEventListener('durationchange', onDurationChange);
       v.removeEventListener('timeupdate', updateTime);
       v.removeEventListener('seeked', updateTime);
-      v.removeEventListener('play', () => setPaused(false));
-      v.removeEventListener('pause', () => setPaused(true));
+      // Named handlers, so these actually detach. The old code passed fresh
+      // arrow functions to removeEventListener, which match nothing.
+      v.removeEventListener('play', onPlay);
+      v.removeEventListener('pause', onPause);
     };
-  }, [scrubbing]);
+  }, [videoEl]);
 
   const seek = (d: number) => {
     if (videoRef.current) videoRef.current.currentTime = clampSeek(videoRef.current.currentTime, duration, d);
@@ -221,12 +263,12 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
                 value={currentTime}
                 style={{ '--fc-prog': scrubProg + '%' } as any}
                 onInput={e => {
-                  setScrubbing(true);
+                  scrubbingRef.current = true;
                   const val = +(e.target as HTMLInputElement).value;
                   setCurrentTime(val);
                   if (videoRef.current) videoRef.current.currentTime = val;
                 }}
-                onChange={() => setScrubbing(false)}
+                onChange={() => { scrubbingRef.current = false; }}
               />
               <div className="intro-transport">
                 <button onClick={() => paused ? videoRef.current?.play() : videoRef.current?.pause()}>
@@ -244,7 +286,7 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
               <div className="intro-video-container">
                 <video 
                   className="intro-video"
-                  ref={videoRef}
+                  ref={attachVideo}
                   src={`/intro-video?video=${encodeURIComponent(video)}`}
                   onClick={(e) => {
                     if (!paused) {
