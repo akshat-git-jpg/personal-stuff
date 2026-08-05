@@ -119,6 +119,16 @@ export function App() {
           BACKEND DEAD — Restart the server to continue saving and editing.
         </div>
       )}
+      {/* The server ignores a ?video= it cannot open and falls back to the one it
+          launched with. Silently, that means the URL names one video while the
+          page shows another — and the owner reviews the wrong video believing the
+          URL (owner report 2026-08-06). Say so instead of hiding it. */}
+      {boardData.video && video && boardData.video !== video && (
+        <div style={{ background: '#b45309', color: 'white', padding: '12px 20px', fontWeight: 'bold', zIndex: 9999, position: 'relative' }}>
+          Showing <code>{boardData.video}</code>, not <code>{video}</code> — this board could not open that
+          video (it is missing a file the board needs, or the name is wrong). Everything below is {boardData.video}.
+        </div>
+      )}
       <AppHeader
         video={boardData.video || video}
         videos={videos}

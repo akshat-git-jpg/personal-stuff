@@ -36,6 +36,20 @@ import { approveIntro } from './intro-film/approve.mjs';
 // to start made Gate 1 unreachable on exactly the videos it exists for.
 // resolved.json is a requirement of the Storyboard tab, not of the board.
 const BOOT_FILES = ['cues.json', 'vo.mp3'];
+
+// What a given workdir must have before the board can open on it. An intro-film
+// video is reviewed at gate 027, which runs BEFORE 030 authors a single cue, so
+// cues.json cannot be a precondition there — that locked the Intro tab behind
+// the body pass and made 027 unreachable in flow order.
+//
+// This is a function and not three inline filters because it WAS three: the
+// 2026-08-06 fix exempted createServer and loadBoardData but missed
+// requestedWorkdir, so the board booted on an intro-film video yet silently
+// refused to SWITCH to one — ?video=<slug> fell through to the launch workdir
+// and the owner reviewed the wrong video with the right URL in the bar.
+export function bootFilesFor(workdir) {
+  return introOwnedByFilm(workdir) ? BOOT_FILES.filter((n) => n !== 'cues.json') : BOOT_FILES;
+}
 // One definition, used by the storyboard tiles and the card plan rows alike.
 // fbBox taught us what three drifting copies of the same control costs.
 
@@ -952,7 +966,9 @@ export function requestedWorkdir(url, launchWorkdir) {
   const videosDir = videosRoot();
   const target = path.join(videosDir, want);
   if (path.dirname(target) !== videosDir || !fs.existsSync(target)) return launchWorkdir;
-  for (const f of BOOT_FILES) if (!fs.existsSync(path.join(target, f))) return launchWorkdir;
+  // bootFilesFor(TARGET), not the launch workdir: what the requested video needs
+  // depends on how THAT video is configured, not on how the board was started.
+  for (const f of bootFilesFor(target)) if (!fs.existsSync(path.join(target, f))) return launchWorkdir;
   return target;
 }
 
@@ -1394,13 +1410,7 @@ function serveUi(res, pathname) {
 
 export function createServer(workdir) {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
-  // An intro-film video is reviewed at gate 027, before 030 authors a single cue,
-  // so cues.json cannot be a precondition for OPENING the board — that locked the
-  // Intro tab behind the body pass and made 027 unreachable in flow order.
-  const bootFiles = introOwnedByFilm(workdir)
-    ? BOOT_FILES.filter((n) => n !== 'cues.json')
-    : BOOT_FILES;
-  for (const name of bootFiles) {
+  for (const name of bootFilesFor(workdir)) {
     if (!fs.existsSync(path.join(workdir, name))) {
       throw new Error(`workdir missing ${name}: ${path.join(workdir, name)}`);
     }
@@ -1424,18 +1434,28 @@ export function createServer(workdir) {
 // in REQUIRED_FILES, not just cues.json. Sorting on cues.json alone made the
 // dashboard fail the moment a new video was started: a fresh workdir gets
 // cues.json long before resolved.json, so it won the sort and then threw.
+// An intro-film video has no cues.json at gate 027, so keying candidacy on that
+// file made the newest video INVISIBLE to the dashboard — it silently opened on
+// whatever older video still had cues, and the owner reviewed that one instead.
+// Candidacy is "the board could open it", which is exactly bootFilesFor.
 export function latestWorkdir(videosDir = path.join(path.resolve(import.meta.dirname, '..'), 'videos')) {
   if (!fs.existsSync(videosDir)) return null;
   const dirs = fs
     .readdirSync(videosDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && fs.existsSync(path.join(videosDir, d.name, 'cues.json')))
+    .filter((d) => d.isDirectory())
     .map((d) => {
       const dir = path.join(videosDir, d.name);
+      // Rank on cues.json where there is one so the ordering of cue-driven
+      // videos is unchanged; an intro-film video ranks on run-log.json, which
+      // every step appends to and is therefore the truer "recently touched".
+      const stamp = ['cues.json', 'run-log.json']
+        .map((f) => path.join(dir, f))
+        .find((p) => fs.existsSync(p));
       return {
         name: d.name,
         dir,
-        mtime: fs.statSync(path.join(dir, 'cues.json')).mtimeMs,
-        missing: BOOT_FILES.filter((f) => !fs.existsSync(path.join(dir, f))),
+        mtime: stamp ? fs.statSync(stamp).mtimeMs : 0,
+        missing: stamp ? bootFilesFor(dir).filter((f) => !fs.existsSync(path.join(dir, f))) : ['cues.json'],
       };
     })
     .sort((a, b) => b.mtime - a.mtime);

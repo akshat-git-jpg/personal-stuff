@@ -1426,3 +1426,64 @@ test('createServer still refuses a cards-intro workdir with no cues.json', () =>
   assert.throws(() => createServer(dir), /missing cues\.json/);
 });
 
+// Booting on an intro-film video is not enough — the board must also SWITCH to
+// one. requestedWorkdir kept its own copy of the cues.json precondition, so
+// ?video=<intro-film-slug> silently fell back to the launch workdir: the URL
+// named the new video while the page showed the old one (owner report
+// 2026-08-06). requestedWorkdir resolves against the real videos/ root, so the
+// fixture has to live there.
+test('requestedWorkdir switches to an intro-film video that has no cues.json', async () => {
+  const { requestedWorkdir } = await import('./board.mjs');
+  const videosDir = path.join(path.resolve(import.meta.dirname, '..'), 'videos');
+  const slug = `.test-intro-film-${process.pid}`;
+  const target = path.join(videosDir, slug);
+  fs.mkdirSync(target, { recursive: true });
+  try {
+    fs.copyFileSync(path.join(FIXTURE_DIR, 'vo.mp3'), path.join(target, 'vo.mp3'));
+    fs.writeFileSync(path.join(target, 'run-config.json'),
+      JSON.stringify({ engine: 'heygen3', review: 'full', intro: 'film' }));
+    const launch = makeWorkdir();
+    const url = new URL(`http://x/?video=${encodeURIComponent(slug)}`);
+    assert.equal(requestedWorkdir(url, launch), target,
+      'an intro-film video must be reachable by ?video= before the cue pass exists');
+
+    // Same directory, cards intro: cues.json is still required, so it falls back.
+    fs.writeFileSync(path.join(target, 'run-config.json'),
+      JSON.stringify({ engine: 'heygen3', review: 'full', intro: 'cards' }));
+    assert.equal(requestedWorkdir(url, launch), launch,
+      'a cards video with no cues.json must still fall back');
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+// The dashboard starts the board with NO slug, so latestWorkdir decides what the
+// owner sees. Keying candidacy on cues.json made an intro-film video invisible:
+// the dashboard opened an older cue-driven video instead, which is how the wrong
+// video ended up on screen with the right URL in the bar.
+test('latestWorkdir picks an intro-film video that has no cues.json', () => {
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  const videos = fs.mkdtempSync(path.join(TMP_ROOT, 'videos-introfilm-'));
+
+  const older = path.join(videos, 'older-cards');
+  fs.mkdirSync(older);
+  for (const f of ['cues.json', 'vo.mp3']) fs.copyFileSync(path.join(FIXTURE_DIR, f), path.join(older, f));
+
+  const film = path.join(videos, 'newer-film');
+  fs.mkdirSync(film);
+  fs.copyFileSync(path.join(FIXTURE_DIR, 'vo.mp3'), path.join(film, 'vo.mp3'));
+  fs.writeFileSync(path.join(film, 'run-config.json'),
+    JSON.stringify({ engine: 'heygen3', review: 'full', intro: 'film' }));
+  fs.writeFileSync(path.join(film, 'run-log.json'), JSON.stringify({ steps: [] }));
+
+  // Make the film video unambiguously the most recently touched one.
+  const past = new Date(Date.now() - 60_000);
+  fs.utimesSync(path.join(older, 'cues.json'), past, past);
+
+  assert.equal(latestWorkdir(videos), film, 'newest bootable video wins, cues or no cues');
+
+  // And an intro-film video still has to be bootable to be picked.
+  fs.rmSync(path.join(film, 'vo.mp3'));
+  assert.equal(latestWorkdir(videos), older, 'no vo.mp3 means not board-ready, so fall back');
+});
+

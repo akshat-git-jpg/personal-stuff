@@ -16,7 +16,13 @@ export function AppHeader(props: {
   const switchVideo = (slug: string) => {
     if (props.dirty && !confirm('You have unsaved feedback. Switch video and lose it?')) return;
     setSwitching(slug);
-    location.href = urlForVideo(slug, location);   // full navigation, like today
+    const target = urlForVideo(slug, location);
+    // Assigning location.href a URL identical to the current one is a no-op, so
+    // the overlay used to spin forever. That is reachable whenever the picker
+    // disagrees with ?video= — e.g. the server ignored the param and fell back,
+    // leaving the URL already naming the slug you are trying to select.
+    if (target === location.pathname + location.search + location.hash) location.reload();
+    else location.href = target;                   // full navigation, like today
   };
   return (
     <header className="app-header">
