@@ -14,8 +14,9 @@ import { loadVideoManifest } from './video-manifest.mjs';
 import { loadBrand, injectBrand } from './brand-inline.mjs';
 import { SHOT_CONSTANTS } from './shot-constants.mjs';
 import { sideModeCueIds } from './side-mode.mjs';
+import { CARD_RENDERER } from './renderer-constants.mjs';
 
-const HYPERFRAMES = process.env.HYPERFRAMES_VERSION ? `hyperframes@${process.env.HYPERFRAMES_VERSION}` : 'hyperframes@0.7.62';
+const HYPERFRAMES = CARD_RENDERER;
 const DURATION_TOLERANCE = 0.15;
 
 const CACHE_TTL_MS = 14 * 24 * 60 * 60 * 1000;

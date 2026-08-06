@@ -20,8 +20,9 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveWorkdir } from './workdir.mjs';
 import { linkFilmMedia } from './film-assets.mjs';
+import { FILM_RENDERER } from '../renderer-constants.mjs';
 
-const HYPERFRAMES = 'hyperframes@0.7.88';
+const HYPERFRAMES = FILM_RENDERER;
 
 // THREE samples per beat, not one.
 //

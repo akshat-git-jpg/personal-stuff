@@ -45,6 +45,42 @@ function jobKey(args) {
 const EPS = 0.05;
 export const CANVAS = { w: 1920, h: 1080, fps: 30 };
 
+// The source clip's real aspect ratio, probed from the file.
+//
+// planPanelGeometry/planSideGeometry have accepted `srcAspect` since they were
+// written, but NO caller ever passed it, so every composite silently took the
+// 16/9 default (found 2026-08-06). A portrait 9:16 HeyGen render was therefore
+// stretched 3.16x wide before cropping — and decisions.md 2026-08-03 makes a
+// portrait render a FIRST-CLASS avatar source, naming this the blocking
+// prerequisite. It stayed unfixed because the integration fixtures are
+// solid-colour clips: a blue rectangle stretched 3.16x is still a blue
+// rectangle, so no test could see it (the fixture-blindness lesson of
+// decisions.md 2026-07-19).
+//
+// Memoised per file: the overlay loop asks once per segment per overlay, and
+// spawning ffprobe for each would add a process per composite.
+// Falls back to 16/9 on any probe failure — a missing or unreadable clip must
+// not take down an assembly that would otherwise succeed, and 16/9 is what the
+// code did before this existed.
+const SRC_ASPECT_CACHE = new Map();
+export function probeSrcAspect(file, { run = spawnSync, cache = SRC_ASPECT_CACHE } = {}) {
+  if (cache.has(file)) return cache.get(file);
+  let aspect = 16 / 9;
+  try {
+    const p = run('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries',
+      'stream=width,height', '-of', 'csv=p=0:s=x', file], { encoding: 'utf8' });
+    const m = /^(\d+)x(\d+)/.exec(String(p.stdout ?? '').trim());
+    if (m) {
+      const w = Number(m[1]), h = Number(m[2]);
+      if (w > 0 && h > 0) aspect = w / h;
+    }
+  } catch {
+    // fall through to the 16/9 default
+  }
+  cache.set(file, aspect);
+  return aspect;
+}
+
 // Panel geometry: an inset rounded-rect PIP, bottom-right, preserving the
 // source clip's aspect. Dimensions are forced EVEN because yuv420p encoding
 // rejects odd width/height.
@@ -703,7 +739,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
           const gsx = w / CANVAS.w, gsy = h / CANVAS.h;
           const even = (v) => Math.round(v / 2) * 2;
           if (o.isPanel) {
-            const gf = planPanelGeometry({ canvas: CANVAS, constants: SHOT_CONSTANTS });
+            const gf = planPanelGeometry({ canvas: CANVAS, constants: SHOT_CONSTANTS, srcAspect: probeSrcAspect(o.file) });
             const g = { w: even(gf.w * gsx), h: even(gf.h * gsy), x: Math.round(gf.x * gsx), y: Math.round(gf.y * gsy), radius: gf.radius * gsx };
             const r = g.radius;
             chain += `[${globalInputIdx}:v]trim=start=${o.trimStart},setpts=PTS-STARTPTS+${adjustedAt}/TB,scale=${g.w}:${g.h},format=yuva444p,` +
@@ -711,7 +747,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
               `a='if(lt(hypot(max(abs(X-W/2)-(W/2-${r}),0),max(abs(Y-H/2)-(H/2-${r}),0)),${r + 0.5}),255,0)'[${oj}];`;
             chain += `[${lastV}][${oj}]overlay=x=${g.x}:y=${g.y}:eof_action=pass:enable='between(t,${adjustedAt},${adjustedUntil})'[${nextV}];`;
           } else if (o.isSide) {
-            const gf = planSideGeometry({ canvas: CANVAS, constants: SHOT_CONSTANTS });
+            const gf = planSideGeometry({ canvas: CANVAS, constants: SHOT_CONSTANTS, srcAspect: probeSrcAspect(o.file) });
             const g = {
               scaleW: even(gf.scaleW * gsx), scaleH: even(gf.scaleH * gsy),
               cropW: even(gf.cropW * gsx), cropH: even(gf.cropH * gsy),

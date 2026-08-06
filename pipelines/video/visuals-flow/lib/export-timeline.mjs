@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { loadAssemblyInputs, runAssembly, ASSEMBLE_MEDIA_ROOT, detectEncoder, planPanelGeometry, planSideGeometry, planSegments, absorbSlivers } from './assemble.mjs';
+import { loadAssemblyInputs, runAssembly, ASSEMBLE_MEDIA_ROOT, detectEncoder, planPanelGeometry, planSideGeometry, planSegments, absorbSlivers, probeSrcAspect } from './assemble.mjs';
 import { planRender } from './render.mjs';
 import { planCaptions, formatAssText } from './captions.mjs';
 import * as captionsMod from './effects/captions.mjs';
@@ -247,7 +247,7 @@ export function buildNativeFcpxml({ video, screenPath, voPath, musicPath, total,
     const durF = Math.max(1, frames(c.offsetSec + c.durationSec) - frames(c.offsetSec));
     const ref = assetFor(c.file, { audio: isAudio, durF });
     if (c.isPanel) {
-      const g = planPanelGeometry({ canvas: { w, h }, constants: SHOT_CONSTANTS });
+      const g = planPanelGeometry({ canvas: { w, h }, constants: SHOT_CONSTANTS, srcAspect: probeSrcAspect(c.file) });
       const px = g.x + g.w / 2 - w / 2;
       const py = h / 2 - (g.y + g.h / 2);
       const s = g.w / w;
@@ -256,7 +256,7 @@ export function buildNativeFcpxml({ video, screenPath, voPath, musicPath, total,
         </asset-clip>`;
     }
     if (c.isSide) {
-      const g = planSideGeometry({ canvas: { w, h }, constants: SHOT_CONSTANTS });
+      const g = planSideGeometry({ canvas: { w, h }, constants: SHOT_CONSTANTS, srcAspect: probeSrcAspect(c.file) });
       const px = g.x + g.cropW / 2 - w / 2;
       const py = h / 2 - (g.y + g.cropH / 2);
       const s = g.scaleW / w;

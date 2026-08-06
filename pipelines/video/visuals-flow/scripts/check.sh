@@ -11,8 +11,16 @@ cd "$(dirname "$0")/.."
 # everything else passes — it reads as a flaky test rather than a missing
 # install, and cost three gate runs to pin down (2026-08-03).
 ( cd ../card-library && { [ -d node_modules/puppeteer-core ] || npm ci --no-audit --no-fund; } )
-node --test lib/source-structure.test.mjs lib/brand-inline.test.mjs lib/video-manifest.test.mjs lib/resolve.test.mjs lib/render.test.mjs lib/board.test.mjs lib/board-api.test.mjs lib/logos.test.mjs lib/lint-cues.test.mjs lib/lint-concept.test.mjs lib/edit-delta.test.mjs lib/feedback-status.test.mjs lib/resolve-shots.test.mjs lib/lint-shots.test.mjs lib/avatar-render.test.mjs lib/assemble.test.mjs lib/transcript-text.test.mjs lib/transcript-quality.test.mjs lib/captions.test.mjs lib/reference-moments.test.mjs lib/whip.test.mjs lib/bubble.test.mjs lib/effects.test.mjs lib/kinetic-sentence.test.mjs lib/export-timeline.test.mjs lib/qc-plan.test.mjs lib/render-fx.test.mjs lib/card-plan.test.mjs lib/run-log.test.mjs lib/sound/sfx-plan.test.mjs lib/sound/build-mix.test.mjs lib/sound/sound-constants.test.mjs lib/audit-gate.test.mjs lib/final-cut.test.mjs lib/zone-lint.test.mjs lib/frame-gate.test.mjs lib/run-config.test.mjs lib/transcript-suspect.test.mjs lib/transcribe-groq.test.mjs
-node --test "lib/intro-film/"*.test.mjs
+# Every test under lib/, FOUND rather than enumerated. The hand-typed list this
+# replaces had drifted to 39 of 50 lib/ files: segments, plan-skeleton,
+# cue-rules, side-mode, versions, motif, transcript-beats, post-status,
+# regression-cards and both rulebook checkers were on disk, passing, and never
+# run by the gate (found 2026-08-06). regression-cards is the one that stings —
+# it asserts the intro:"cards" default path is untouched, which is exactly the
+# guard you want running on every change.
+# A new test file now joins the gate by existing. Do not reintroduce a list.
+# -not -path .test-tmp: test working dirs are gitignored scratch, not sources.
+find lib -name '*.test.mjs' -not -path '*/.test-tmp/*' -print0 | sort -z | xargs -0 node --test
 node lib/check-rulebook.mjs
 node lib/check-shot-rulebook.mjs
 node lib/check-zone-rulebook.mjs

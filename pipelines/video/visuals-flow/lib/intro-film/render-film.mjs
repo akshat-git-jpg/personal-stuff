@@ -9,10 +9,13 @@ import { spawnSync } from 'node:child_process';
 import { resolveWorkdir } from './workdir.mjs';
 import { linkFilmMedia } from './film-assets.mjs';
 import { runGate } from './film-gate.mjs';
+import { FILM_RENDERER } from '../renderer-constants.mjs';
 
-// Same pin as review-film.mjs. Keep the two in lockstep: reviewing on one
-// renderer and shipping on another is how a green review ships a broken film.
-const HYPERFRAMES = 'hyperframes@0.7.88';
+// Same pin as review-film.mjs, now enforced rather than remembered: both import
+// FILM_RENDERER from lib/renderer-constants.mjs, so they cannot drift apart.
+// Reviewing on one renderer and shipping on another is how a green review ships
+// a broken film.
+const HYPERFRAMES = FILM_RENDERER;
 
 // `-o` MUST be a filename. `-o renders` is read as an extensionless output file
 // and the run dies at the audio mux with "Unable to choose an output format".
