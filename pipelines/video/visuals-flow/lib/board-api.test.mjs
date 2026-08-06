@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createServer } from './board.mjs';
+import { applicableTabs } from './board-data.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'board-api');
@@ -238,6 +239,51 @@ test('Feedback: POST /save writes feedback, re-fetch exposes it', async () => {
     const data = await res.json();
     
     assert.equal(data.feedback['gap-test'].text, 'my feedback text');
+  } finally {
+    server.close();
+  }
+});
+
+// Plan 193: /api/board-data now carries runConfig and the applicable tab list,
+// so the client has a way to know which tabs this video's flow actually uses.
+test('GET /api/board-data carries runConfig and tabs; an intro:"cards" video has no intro tab', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/api/board-data`);
+    const data = await res.json();
+    assert.ok(data.runConfig);
+    assert.equal(data.runConfig.intro, 'cards');
+    assert.deepEqual(data.tabs, applicableTabs(workdir));
+    assert.ok(!data.tabs.includes('intro'));
+    assert.ok(data.tabs.includes('run'));
+    assert.ok(data.tabs.includes('calibrate'));
+  } finally {
+    server.close();
+  }
+});
+
+test('an intro:"film" run-config includes the intro tab; run-config.json intro="cards" does not', async () => {
+  const filmDir = makeWorkdir();
+  fs.writeFileSync(path.join(filmDir, 'run-config.json'), JSON.stringify({ intro: 'film', review: 'full', engine: 'heygen3' }));
+  const cardsDir = makeWorkdir();
+  fs.writeFileSync(path.join(cardsDir, 'run-config.json'), JSON.stringify({ intro: 'cards', review: 'full', engine: 'heygen3' }));
+
+  assert.ok(applicableTabs(filmDir).includes('intro'));
+  assert.ok(!applicableTabs(cardsDir).includes('intro'));
+});
+
+// Touches no filesystem: deleting the workdir out from under an already-booted
+// server must not make /health fail — proof it reads nothing off disk, unlike
+// the /api/board-data poll it replaces (plan 193).
+test('GET /health returns 200 with no filesystem dependency on the workdir', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    fs.rmSync(workdir, { recursive: true, force: true });
+    const res = await fetch(`${base}/health`);
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), { ok: true });
   } finally {
     server.close();
   }
