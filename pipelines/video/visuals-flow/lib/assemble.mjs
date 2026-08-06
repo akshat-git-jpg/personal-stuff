@@ -14,6 +14,7 @@ import { loadConceptSpans } from './concept-spans.mjs';
 import { SHOT_CONSTANTS, jobPurpose } from './shot-constants.mjs';
 import { readFinalCut } from './final-cut.mjs';
 import { ownsIntroSpan, introSpanFor } from './intro-modes.mjs';
+import { requireIntroApproved } from './intro-film/approve.mjs';
 
 import * as whipMod from './effects/whip.mjs';
 import * as beatsMod from './effects/beats.mjs';
@@ -1044,6 +1045,10 @@ export async function loadAssemblyInputs(opts) {
     if (!fs.existsSync(introFile)) {
       throw new Error(`missing intro film: ${introFile} — run.sh ${video} intro-render`);
     }
+    // THIS is the door gate 027 guards. It used to sit on intro-render, which
+    // both deadlocked the review and left this path — the one that puts the
+    // film in front of an audience — completely unguarded.
+    requireIntroApproved(workdir);
   }
 
   const voPath = path.join(workdir, 'vo.mp3');

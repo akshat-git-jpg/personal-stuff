@@ -256,8 +256,10 @@ EOF
       node lib/intro-film/review-film.mjs "$slug"
       exit $?
     elif [[ "$step" == "intro-render" ]]; then
-      dry "requireIntroApproved + node lib/intro-film/render-film.mjs $slug" && exit 0
-      node -e "import('./lib/intro-film/approve.mjs').then(m=>m.requireIntroApproved(process.cwd()+'/videos/$slug')).catch(e=>{console.error(e.message);process.exit(1)})" || exit 1
+      # No approval check here on purpose. Rendering is how the owner GETS a
+      # film to watch — gating it behind approval deadlocked the review (see
+      # lib/intro-film/approve.mjs). Approval guards assembly instead.
+      dry "node lib/intro-film/render-film.mjs $slug" && exit 0
       node lib/intro-film/render-film.mjs "$slug"
       exit $?
     fi

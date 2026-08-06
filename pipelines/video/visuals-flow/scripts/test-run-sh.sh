@@ -91,7 +91,10 @@ expect_dry transcribe "record_step 010 -- bash steps/010-transcribe-run/run.sh $
 expect_dry segments "record_step 015 -- node lib/segments.mjs $FIX --propose"
 expect_dry intro-film "cat steps/025-author-intro-film-llm/AUTHORING.md | sed s/<slug>/$FIX/g"
 expect_dry intro-review "node lib/intro-film/review-film.mjs $FIX"
-expect_dry intro-render "requireIntroApproved + node lib/intro-film/render-film.mjs $FIX"
+# No requireIntroApproved here: rendering is how the owner gets a film to
+# watch, so gating it on approval deadlocked the review. Approval guards
+# assembly instead (lib/assemble.mjs, owner report 2026-08-06).
+expect_dry intro-render "node lib/intro-film/render-film.mjs $FIX"
 expect_dry validate "node lib/resolve.mjs $FIX --validate-only"
 expect_dry resolve "record_step 040 -- node lib/resolve.mjs $FIX && node lib/lint-cues.mjs $FIX"
 expect_dry stillness "node lib/stillness.mjs $FIX"

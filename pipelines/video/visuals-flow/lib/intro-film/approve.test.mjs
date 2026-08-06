@@ -19,7 +19,22 @@ test('intro approval gate', async (t) => {
 
   await t.test('refuses when not approved', () => {
     fs.writeFileSync(screenplayPath, JSON.stringify({ approved: false }));
-    assert.throws(() => requireIntroApproved(d), /intro film must not render before the owner approves/);
+    assert.throws(() => requireIntroApproved(d), /intro film is not approved/);
+  });
+
+  // The gate guards assembly, not rendering. When it sat on intro-render the
+  // owner could not render the film they had to watch in order to approve it,
+  // and re-rendering after their own feedback was refused (report 2026-08-06).
+  // Pin the message so it cannot drift back to render-blocking language.
+  await t.test('says approval blocks the CUT, not the render', () => {
+    fs.writeFileSync(screenplayPath, JSON.stringify({ approved: false }));
+    assert.throws(() => requireIntroApproved(d), (err) => {
+      assert.match(err.message, /must not go into the cut/);
+      assert.match(err.message, /Re-rendering after feedback needs no approval/);
+      assert.doesNotMatch(err.message, /must not render/,
+        'the gate must never again tell the owner they cannot render');
+      return true;
+    });
   });
 
   await t.test('passes when approved via approveIntro', () => {

@@ -9,6 +9,16 @@ import { gateWaived } from '../run-config.mjs';
 //
 // This is a REVIEW gate, in the same class as 037 and 080, so express waives it.
 // The 120 final-cut gate is the one that never routes through gateWaived.
+//
+// It guards ASSEMBLY, not rendering. It used to block intro-render, which was
+// coherent while the Intro tab was a contact sheet of stills — you could review
+// without a render. Plan 189 made the review surface a video PLAYER, and the
+// gate became a deadlock: you cannot approve a film you have not watched, and
+// you could not render the film you needed in order to watch it. Worse, it
+// guarded the wrong door — assemble consumed intro.mp4 with no approval check
+// at all, so the gate blocked the harmless step and let the consequential one
+// through. Rendering is how the owner GETS something to judge; approval is what
+// lets that judged film into the cut (owner report 2026-08-06).
 export function requireIntroApproved(workdir) {
   if (gateWaived(workdir, '027 intro film')) return;
   const p = path.join(workdir, 'intro-film', 'screenplay.json');
@@ -16,8 +26,9 @@ export function requireIntroApproved(workdir) {
   const intro = JSON.parse(fs.readFileSync(p, 'utf8'));
   if (!intro.approved) {
     throw new Error(
-      'intro film must not render before the owner approves it — open the board, ' +
-      'read the Intro tab, and approve there (step 027)'
+      'intro film is not approved — it must not go into the cut until the owner ' +
+      'has watched it. Open the board, play it on the Intro tab, and approve ' +
+      'there (step 027). Re-rendering after feedback needs no approval.'
     );
   }
 }
