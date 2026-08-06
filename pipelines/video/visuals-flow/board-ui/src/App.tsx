@@ -1,5 +1,5 @@
 import { useState, useEffect, ReactNode } from 'react';
-import { Tab, tabForHash, urlForTab, videoFromSearch } from './lib/router';
+import { Tab, TABS, tabForHash, urlForTab, videoFromSearch, visibleTabs } from './lib/router';
 import { fetchBoardData, BoardData } from './lib/api';
 import { AppHeader } from './components/AppHeader';
 import { RunTab } from './tabs/RunTab';
@@ -44,16 +44,20 @@ export function App() {
     };
   }, []);
 
+  // A liveness probe, not a data fetch — /health touches no filesystem and
+  // the response is discarded either way. Before this, the interval hit
+  // /api/board-data every 2s purely to detect a dead backend, doing real fs
+  // work on every tick for a payload nothing used (plan 193).
   useEffect(() => {
     if (!video) return;
     const timer = setInterval(async () => {
       try {
-        await fetch(`/api/board-data?video=${encodeURIComponent(video)}`);
+        await fetch('/health');
         setBackendDead(false);
       } catch (e) {
         setBackendDead(true);
       }
-    }, 2000);
+    }, 5000);
     return () => clearInterval(timer);
   }, [video]);
 
@@ -87,6 +91,9 @@ export function App() {
         slot: r('.action-slot'),
         row2: r('.app-header-row2'),
         headerCount: document.querySelectorAll('.app-header').length,
+        // The rendered tab ids, so the smoke can assert tab visibility
+        // without scraping button text (plan 193).
+        tabIds: [...document.querySelectorAll('.app-tabs .tab-btn')].map((el) => el.getAttribute('data-tab-id')),
       });
       document.head.appendChild(m);
     }, 100);
@@ -99,10 +106,12 @@ export function App() {
 
   if (!boardData) {
     // Keep the chrome on screen while data loads — a vanishing header reads
-    // as a broken page, not a loading one (owner report 2026-07-31).
+    // as a broken page, not a loading one (owner report 2026-07-31). The
+    // applicable tab list is not known yet, so only the always-on Run tab
+    // shows until board-data answers.
     return (
       <>
-        <AppHeader video={video} videos={[video]} tab={tab} dirty={false}
+        <AppHeader video={video} videos={[video]} tab={tab} dirty={false} tabs={visibleTabs(TABS, ['run'])}
           meta={null} actions={null} secondary={null} onTab={onTab} />
         <main>
           <div className="app-loading"><span className="spinner" />loading {video}…</div>
@@ -110,6 +119,18 @@ export function App() {
       </>
     );
   }
+
+  const tabs = visibleTabs(TABS, boardData.tabs);
+  // The URL hash can name a tab that does not apply to this video's flow —
+  // e.g. a deep link to #intro on an intro:"cards" video, or a stale
+  // bookmark from before this video's run-config changed. Fall back to Run
+  // rather than rendering a tab whose data contract this video never fills
+  // (an un-enumerated empty state gets invented behaviour, usually a control
+  // that 500s — plan 193).
+  const tabApplicable = boardData.tabs.includes(tab);
+  const activeTab: Tab = tabApplicable ? tab : 'run';
+  const tabNotice = tabApplicable ? null
+    : `The "${TABS.find((t) => t.id === tab)?.label ?? tab}" tab isn't part of this video's flow — showing Run instead.`;
 
   return (
     <FeedbackProvider initialItems={boardData.feedback}>
@@ -129,19 +150,25 @@ export function App() {
           video (it is missing a file the board needs, or the name is wrong). Everything below is {boardData.video}.
         </div>
       )}
+      {tabNotice && (
+        <div style={{ background: '#1d4ed8', color: 'white', padding: '12px 20px', fontWeight: 'bold', zIndex: 9999, position: 'relative' }}>
+          {tabNotice}
+        </div>
+      )}
       <AppHeader
         video={boardData.video || video}
         videos={videos}
-        tab={tab}
+        tab={activeTab}
         dirty={dirty}
+        tabs={tabs}
         meta={meta}
         actions={actions}
         secondary={secondary}
         onTab={onTab}
       />
       <main>
-        {tab === 'run' && <RunTab video={boardData.video} onMeta={setMeta} />}
-        {tab === 'card-plan' && (
+        {activeTab === 'run' && <RunTab video={boardData.video} onMeta={setMeta} />}
+        {activeTab === 'card-plan' && (
           <CardPlanTab
             video={boardData.video}
             cardPlan={boardData.cardPlan!}
@@ -151,7 +178,7 @@ export function App() {
             onRefetch={refetch}
           />
         )}
-        {tab === 'intro' && (
+        {activeTab === 'intro' && (
           <IntroTab
             video={boardData.video!}
             onMeta={setMeta}
@@ -160,7 +187,7 @@ export function App() {
             onRefetch={refetch}
           />
         )}
-        {tab === 'storyboard' && (
+        {activeTab === 'storyboard' && (
           <StoryboardTab
             video={boardData.video!}
             boardData={boardData}
@@ -170,7 +197,7 @@ export function App() {
             onRefetch={refetch}
           />
         )}
-        {tab === 'final-cut' && (
+        {activeTab === 'final-cut' && (
           <FinalCutTab
             video={boardData.video!}
             boardData={boardData}
@@ -180,7 +207,7 @@ export function App() {
             onRefetch={refetch}
           />
         )}
-        {tab === 'calibrate' && <CalibrateTab onMeta={setMeta} />}
+        {activeTab === 'calibrate' && <CalibrateTab onMeta={setMeta} />}
       </main>
     </FeedbackProvider>
   );
