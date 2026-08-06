@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { SHOT_BEGIN_MARKER, SHOT_END_MARKER, renderShotConstraintsBlock, renderShotConstraintLines } from './build-shot-prompt.mjs';
 import { SHOT_CONSTANTS } from './shot-constants.mjs';
+import { stepDir } from './steps.mjs';
 
 // Governed units/phrases the generated constraints block already states.
 // Any bare occurrence of these OUTSIDE the generated block is a hand-written
@@ -29,7 +30,7 @@ export function checkShotRulebook({
   promptPath,
   shotConstants = SHOT_CONSTANTS,
 } = {}) {
-  const shotPassStepDir = path.resolve(import.meta.dirname, '..', 'steps', '060-place-avatar-llm');
+  const shotPassStepDir = stepDir('060');
   rulebookPath ??= path.join(shotPassStepDir, 'RULEBOOK.md');
   promptPath ??= path.join(shotPassStepDir, 'shot-pass-prompt.md');
 

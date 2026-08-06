@@ -7,6 +7,7 @@ import path from 'node:path';
 import { ZONE_CONSTANTS, zonePartsFor } from './zone-constants.mjs';
 import { ZONE_RULES } from './zone-rules.mjs';
 import { resolveWorkdir } from './workdir.mjs';
+import { stepDir } from './steps.mjs';
 
 export const BEGIN_MARKER = '<!-- BEGIN GENERATED ZONE CONSTRAINTS — edit lib/zone-constants.mjs, then run node lib/build-zone-prompt.mjs -->';
 export const END_MARKER = '<!-- END GENERATED ZONE CONSTRAINTS -->';
@@ -14,7 +15,7 @@ export const END_MARKER = '<!-- END GENERATED ZONE CONSTRAINTS -->';
 export const RULES_BEGIN_MARKER = '<!-- BEGIN GENERATED ZONE RULES — edit lib/zone-rules.mjs, then run node lib/build-zone-prompt.mjs -->';
 export const RULES_END_MARKER = '<!-- END GENERATED ZONE RULES -->';
 
-export const PROMPT_PATH = path.resolve(import.meta.dirname, '..', 'steps', '035-pick-or-propose-intro-outro-llm', 'zone-pass-prompt.md');
+export const PROMPT_PATH = path.join(stepDir('035'), 'zone-pass-prompt.md');
 
 export function renderConstraintLines(zoneConstants = ZONE_CONSTANTS) {
   const lines = [];
