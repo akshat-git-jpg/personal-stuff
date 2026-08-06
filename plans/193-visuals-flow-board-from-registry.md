@@ -5,7 +5,7 @@ test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: []
-needs_prs: [191]
+needs_prs: [151]
 touches: [pipelines/video/visuals-flow/lib/board.mjs, pipelines/video/visuals-flow/lib/board-data.mjs, pipelines/video/visuals-flow/board-ui/src/lib/router.ts, pipelines/video/visuals-flow/board-ui/src/components/AppHeader.tsx, pipelines/video/visuals-flow/board-ui/src/App.tsx, pipelines/video/visuals-flow/scripts/board-ui-smoke.mjs]
 
 mutation_apply: cd pipelines/video/visuals-flow && python3 -c "import json; p='steps/027-approve-intro-film-human/step.json'; d=json.load(open(p)); d['tab']=None; d['gate']=None; json.dump(d,open(p,'w'),indent=2)"
