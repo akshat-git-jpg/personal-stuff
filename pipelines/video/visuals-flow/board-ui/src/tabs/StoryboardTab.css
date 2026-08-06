@@ -71,11 +71,10 @@ textarea.shot-frag { min-height:120px; margin-top:8px; }
 .fx-off { opacity:0.25; }
 
 /* Banner */
-.banner { margin-bottom:16px; padding:10px 36px 10px 14px; border-radius:9px; font-size:13px; position:relative; }
-.banner-x { position:absolute; top:6px; right:8px; background:none; border:none; color:inherit; cursor:pointer; font-size:15px; line-height:1; padding:4px; opacity:0.7; }
-.banner-x:hover { opacity:1; }
-.banner.ok { background:rgba(52,211,153,0.12); border:1px solid var(--ok); color:var(--ok); }
-.banner.err { background:rgba(255,107,107,0.12); border:1px solid var(--err); color:var(--err); }
+
+/* Banner styles moved to components/Banner.css — one owner, because an
+   unscoped copy in CardPlanTab.css was silently restyling this tab's
+   banners into a flex row (owner report 2026-08-06). */
 
 /* Timeline/List mode toggle (header row 2). AppHeader.css scopes .tab-btn to
    .app-tabs, so without these rules the toggle renders as UA-default white

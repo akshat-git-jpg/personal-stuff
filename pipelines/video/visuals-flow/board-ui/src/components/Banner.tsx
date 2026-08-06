@@ -1,4 +1,5 @@
 import React from 'react';
+import './Banner.css';
 
 export function Banner({ html, kind, onDismiss }: { html: string; kind: 'ok' | 'err'; onDismiss: () => void }) {
   return (

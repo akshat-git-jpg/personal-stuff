@@ -109,21 +109,4 @@
   color: var(--dim);
   font-size: 13px;
 }
-.banner {
-  padding: 8px 12px;
-  background: rgba(34, 197, 94, 0.1);
-  color: var(--ok);
-  border-bottom: 1px solid rgba(34, 197, 94, 0.2);
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-}
-.banner-x {
-  background: none;
-  border: none;
-  color: inherit;
-  font-size: 16px;
-  line-height: 1;
-  padding: 0 8px 0 0;
-  cursor: pointer;
-}
+/* .banner lives in components/Banner.css — this tab renders none. */

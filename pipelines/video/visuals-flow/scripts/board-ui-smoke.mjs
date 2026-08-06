@@ -324,6 +324,29 @@ try {
   const cssFile = distAssets.find(f => f.endsWith('.css'));
   const cssContent = fs.readFileSync(path.join(process.cwd(), 'board-ui/dist/assets', cssFile), 'utf8');
 
+  // Vite bundles every imported stylesheet into ONE file, so an unscoped class
+  // in any tab restyles that class everywhere. CardPlanTab.css declared
+  // `.banner{display:flex}` — while rendering no banner at all — which turned
+  // the Storyboard's pre-040 notice into a flex ROW: each run of text became an
+  // anonymous flex item, the whitespace between items was dropped ("no" +
+  // "resolved.json" fused), and one sentence rendered as three columns (owner
+  // report 2026-08-06).
+  //
+  // A banner is prose. Assert at the STYLESHEET level rather than the DOM,
+  // because the fixture has resolved.json and so renders no banner to inspect —
+  // the declaration is the defect, whether or not this run paints one.
+  for (const m of cssContent.matchAll(/\.banner(?![-\w])[^{}]*\{([^}]*)\}/g)) {
+    if (/display\s*:\s*(inline-)?flex/.test(m[1])) {
+      throw new Error(
+        'a .banner rule declares display:flex — flex reflows inline text into '
+        + 'items and eats the spaces between them, which mangles banner prose. '
+        + `Offending rule: {${m[1].trim()}}`);
+    }
+  }
+  // And exactly one owner, so the rules cannot drift apart again.
+  const bannerOwners = (cssContent.match(/\.banner(?![-\w])[^{}]*\{[^}]*\}/g) || []).length;
+  if (bannerOwners === 0) throw new Error('no .banner rule survived the bundle — banners are unstyled');
+
   const domByHash = {};
   for (const hash of ['#run', '#card-plan', '#intro', '#storyboard', '#final-cut']) {
     const url = `http://127.0.0.1:${port}/app/?video=${slug}${hash}`;

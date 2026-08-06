@@ -1,0 +1,45 @@
+/* The ONE definition of a board banner. It lived in TWO tab stylesheets, and
+   because Vite bundles every imported stylesheet into one file, an unscoped
+   `.banner` in one tab silently restyled every other tab's banners.
+   CardPlanTab.css declared `display: flex` on it — while using no banner at
+   all — which turned the Storyboard's pre-040 notice into a flex ROW. Each run
+   of text became its own anonymous flex item, so the whitespace between them
+   was dropped ("no" + "resolved.json" fused into "noresolved.json") and one
+   sentence laid itself out as three columns (owner report 2026-08-06).
+
+   A banner is a block of prose. It must never be a flex container: flex
+   reflows inline text into items and eats the spaces between them. */
+
+.banner {
+  margin-bottom: 16px;
+  padding: 10px 36px 10px 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.banner code {
+  /* Breathing room the surrounding text nodes cannot provide on their own. */
+  padding: 0 2px;
+  font-size: 0.95em;
+}
+
+.banner-x {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 4px;
+  opacity: 0.7;
+}
+
+.banner-x:hover { opacity: 1; }
+
+.banner.ok  { background: rgba(52, 211, 153, 0.12); border: 1px solid var(--ok);  color: var(--ok); }
+.banner.err { background: rgba(255, 107, 107, 0.12); border: 1px solid var(--err); color: var(--err); }
