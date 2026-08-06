@@ -107,7 +107,7 @@
       "t_end": 49.08,
       "register": "light",
       "face": "panel",
-      "stage": "Light returns hard. The four drifted cards sweep back into register and collapse into ONE card centre frame, colour restored, sitting dead straight. A seal begins to draw itself onto the card's lower corner — an arc that is clearly incomplete by the end of the beat, so the next beat has something to finish.",
+      "stage": "Light returns hard. The four drifted cards sweep back into register and collapse into ONE card centre frame, colour restored, sitting dead straight. The card's own frame takes the accent for a moment as it locks into register — the beat completes on its own terms and plants nothing half-finished.",
       "carries": {
         "from": "b06",
         "object": "row of four cards",
@@ -124,7 +124,7 @@
       "t_end": 54.3,
       "register": "light",
       "face": "panel",
-      "stage": "Three short labels strike onto the card in sequence as they are named — character creation, style locking, content generation — each one landing as a line inside the card rather than floating beside it. On the word OpenArt the half-drawn seal completes and the OpenArt logo from the registry sets into it. The card is now sealed.",
+      "stage": "Three short labels strike onto the card in sequence as they are named — character creation, style locking, content generation — each one landing as a line inside the card rather than floating beside it. On the word OpenArt an OpenArt badge STAMPS into the card's lower-left corner at full size, mark and name together, and the card's frame flashes once as it takes it. The card is now sealed. Nothing draws or fills progressively: a partially-drawn arc is the universal loading indicator and reads as the film waiting, not as a seal arriving (owner 2026-08-07).",
       "carries": {
         "from": "b07",
         "object": "character card and its half-drawn seal",
@@ -192,7 +192,7 @@
       "t_end": 90.7,
       "register": "light",
       "face": "full",
-      "stage": "The scored column clears. The sealed card returns from the rail to centre frame at full size and resolves into one clean plate carrying the OpenArt mark and a single line pointing down to the description. The presenter comes back up to lead the frame. The plate holds steady to the last frame — a clean hand-off into the body, not a fade to nothing.",
+      "stage": "The scored column clears. The presenter comes back full-bleed to LEAD the frame — she is the subject of the closing address, so nothing sits on her. The sealed card yields: it drifts off to frame right and goes, having handed its mark forward. What remains is one clean plate down the left of the frame, inside the scrim — the OpenArt mark, LINK BELOW, and a single line pointing down to the description, stacked as one lockup. It holds steady to the last frame — a clean hand-off into the body, not a fade to nothing.",
       "carries": {
         "from": "b11",
         "object": "sealed character card",
