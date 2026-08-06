@@ -11,15 +11,15 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 
 ## The flow (run top to bottom)
 
+<!-- BEGIN GENERATED STEP TABLE — edit steps/*/step.json, then run: node scripts/gen-pipeline-table.mjs -->
 | Step | Actor | In → Out |
 |---|---|---|
 | `005-configure-run-human` | [OWNER] | the owner's kickoff choices → `run-config.json` (engine heygen3\|heygen4, review full\|express, optional drive_folder/drive_account). No file = heygen3 + full review. Express waives the 037/080 board approvals ONLY — never the new-card look-preview, never 120 |
 | `010-transcribe-run` | [RUN] + quality pass [RUN/LLM] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) + optional `script.txt` → `transcript.json` (word timestamps, cleaned — never raw ASR punctuation; script-first alignment when `script.txt` exists, else an LLM cleanup pass, both gated by `checkTimingIntegrity()`) |
 | `015-map-segments-run` | [RUN] | `transcript.json` + `src/*.mp4` → `segments.json` (measured intro/body/conclusion `structure` + demo vs narration `segments`; owner sets `confirmed: true`, which promotes lint E5 from warning to error) |
 | `020-choose-concept-llm` | [LLM] | `transcript.json` + `segments.json` → `concept.json` (gate `lint-concept` — required fields, anchors resolving in forward order, and ≥80% **narration** coverage by the register map; `segments.json` is what narration time is measured from) |
-| `025-author-intro-film-llm` | [LLM] (OFF by default) | `transcript.json` + `segments.json` + `concept.json` + `card-library/DESIGN.md` → `intro-film/out/intro.mp4`. Runs only when `run-config.json` has `intro: "film"`. Reads the design system and the logo registry, NEVER `catalog.json` — the intro keeps full creative freedom. Nothing consumes the output yet |
+| `025-author-intro-film-llm` | [LLM] (OFF by default) | `transcript.json` + `segments.json` + `concept.json` + `card-library/DESIGN.md` → `intro-film/out/intro.mp4`. Runs only when `run-config.json` has `intro: "film"`. Reads the design system and the logo registry, and must not read `catalog.json` — the intro keeps full creative freedom. Nothing consumes the output yet |
 | `027-approve-intro-film-human` | [OWNER] | `intro-film/screenplay.json` + `intro-film/review/` → `approved: true` in `screenplay.json` (HUMAN GATE: Intro Film). Reviewed on the Intro tab of the board. |
-| `plan-skeleton` | [RUN] | `transcript.json` + `segments.json` → deterministic placement grid (the `{{SKELETON}}` prompt variable) |
 | `030-pick-or-propose-graphics-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json`, **BODY ONLY**. Picks from the catalog OR proposes a card that should exist (approved at 037, built at 038) |
 | `035-pick-or-propose-intro-outro-llm` | [LLM] (pluggable) | `transcript.json` + `catalog.json` + `segments.json`'s `structure` → zone cues in `cues.json`, each carrying a `zone` field. Own rulebook (`lib/zone-rules.mjs`) and own numbers (`lib/zone-constants.mjs`) — nothing shared with the body pass |
 | `037-approve-card-plan-human` | [OWNER] | `cues.json` + `catalog.json` → `card-plan.json` (**REVIEW 1: Card Plan**. Every card the video uses — body AND zones — marked EXISTING or NEW-to-build, approved before anything is built or rendered. Reads `cues.json`, not `resolved.json`, so an unbuilt card is visible. Per-card and per-section notes write `zone-*` / `card-body:*` items into `feedback.json`, routed to the matching rulebook and never across) |
@@ -30,14 +30,21 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 | `080-approve-storyboard-human` | [OWNER] | `resolved.json` → approved `cues.json` + `shots.json` (**REVIEW 2: Storyboard**. Composition only — screen vs graphics vs avatar+mode, skippable on short videos. Localhost:4322 board; audit-gate blocks labelled fullframes) |
 | `090-render-graphics-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` (brand-inline; variant rotation) |
 | `100-render-avatar-run` | [OWNER live HeyGen] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
-| `effects-plan` | [RUN] | `resolved.json` → `effects.json` (auto-approved — reviewed on Final Cut; register transitions, motif lane, captions default-on) |
-| `sound` | [RUN] | `resolved.json` + `effects.json` → `sound.json` (auto-approved — reviewed on Final Cut) |
-| `mix` | [RUN] | `vo.mp3` + `sound.json` → `master.wav` (auto-approved — reviewed on Final Cut; −14 LUFS, frame-exact) + bounces |
 | `110-build-video-run` | [RUN] | `screen.mp4` + `master.wav` + `renders/` + avatar clips → `final.mp4` (freeze gap-filler, version registry) + `assembly.md` |
 | `120-approve-final-cut-human` | [OWNER] | `final.mp4` → `final-cut.json` (**REVIEW 3: Final Cut**. Motion and sound review — effects, sound, pacing, captions; judged in motion) |
 | `130-learn-from-feedback-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
 | `140-davinci-export-run` | [RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)] | same inputs as 110 → layered FCPXML + music/sfx lanes + panel transforms |
 | `150-deliver-drive-run` | [RUN] | approved `final.mp4` (full-res, 120-gated) → `Output/<slug>-final.mp4` in the video's own Drive folder (`run-config.json` drive_folder/drive_account; `pp-drive` upload with --overwrite) |
+<!-- END GENERATED STEP TABLE -->
+
+Not steps — helper commands and always-on stages that run between them, in the order they fit the flow above:
+
+| Stage | Actor | In → Out |
+|---|---|---|
+| `plan-skeleton` | [RUN] | `transcript.json` + `segments.json` → deterministic placement grid (the `{{SKELETON}}` prompt variable) |
+| `effects-plan` | [RUN] | `resolved.json` → `effects.json` (auto-approved — reviewed on Final Cut; register transitions, motif lane, captions default-on) |
+| `sound` | [RUN] | `resolved.json` + `effects.json` → `sound.json` (auto-approved — reviewed on Final Cut) |
+| `mix` | [RUN] | `vo.mp3` + `sound.json` → `master.wav` (auto-approved — reviewed on Final Cut; −14 LUFS, frame-exact) + bounces |
 | qc (`scripts/qc-video.sh`) | [RUN] + [LLM read] | `final(-draft).mp4` + `assembly.md` + `effects.json` → kb-scratch `qc/` pack (checklist + event contact sheets) → session-read verdicts in committed `qc-report.md` |
 | **publish templates** | [RUN] | once the video is done: `cd ../card-library && npm run publish-check` → fails on any card built for this video that is uncommitted or unpushed. Cards only reach the editor's gallery at render2.agrolloo.com once pushed (VPS `repo-sync` cron, ~15 min). See `card-library/CLAUDE.md`. |
 
@@ -49,6 +56,15 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 (The previous old→new mapping table lived here and was destroyed by two rounds of
 automated renaming rewriting both of its columns; git history is the reliable
 record. Do not reintroduce a table that a path-rename sweep will silently corrupt.)
+
+The step table above is GENERATED from the registry — `steps/<slug>/step.json`,
+one per step — by `node scripts/gen-pipeline-table.mjs`. Edit a step.json and
+regenerate; do not hand-edit between the sentinel comments, because
+`scripts/check.sh` runs the generator with `--check` and fails on drift. That
+same registry is what `run.sh` derives its verb list, its step folder paths and
+its `status` next-hint from, and what `lib/run-log.mjs` accepts as a ledger key.
+**A new step adds no code** — create the folder, write its `step.json`,
+regenerate this table.
 
 ### The entry point
 

@@ -35,7 +35,14 @@ fm_get() {
       # with --model "# blank = agy default ...", which agy rejected in ~1s).
       if ($0 !~ /^["'\''].*["'\''][[:space:]]*$/) { sub(/[[:space:]]+#.*$/,""); sub(/^#.*$/,"") }
       sub(/[[:space:]]+$/,"")
-      gsub(/^"|"$/,""); gsub(/^'\''|'\''$/,"")
+      # Unwrap only a FULLY quoted scalar. This was gsub(/^"|"$/,""), which
+      # stripped a lone TRAILING quote off any value that merely ended with one
+      # — silently truncating shell recipes that close on a quote. Plan 191s
+      # mutation_apply ended `...indent=2)"`, reached the gate unterminated, and
+      # died on a syntax error that boss reported as "mutation_apply failed to
+      # run (stale recipe?)" — blaming the plan for a parser bug (2026-08-06).
+      if ($0 ~ /^".*"$/)        { sub(/^"/,"");   sub(/"$/,"") }
+      else if ($0 ~ /^'\''.*'\''$/) { sub(/^'\''/,""); sub(/'\''$/,"") }
       print; exit
     }
   ' "$2"

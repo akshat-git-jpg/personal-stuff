@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stepDir } from '../steps.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const STEP = path.join(ROOT, 'steps', '025-author-intro-film-llm');
@@ -61,13 +62,16 @@ test('run.sh can actually find the authoring prompt it cats', () => {
   // `cat steps/025-author-intro-film-llm/AUTHORING.md` and every opted-in video
   // failed on its first step, while the repo gate stayed green because nothing
   // asserted the file existed.
-  const runSh = fs.readFileSync(path.join(ROOT, 'run.sh'), 'utf8');
-  for (const m of runSh.matchAll(/steps\/025-author-intro-film-llm\/([A-Za-z0-9_.-]+)/g)) {
-    assert.ok(
-      fs.existsSync(path.join(STEP, m[1])),
-      `run.sh reads steps/025-author-intro-film-llm/${m[1]} but that file does not exist`,
-    );
-  }
+  //
+  // run.sh no longer names the folder — it resolves it through the registry
+  // (plan 191) — so the assertion follows the same resolution the driver uses.
+  // Reading run.sh's source for a literal path would now match nothing and pass
+  // vacuously, which is exactly the failure mode this test was written against.
+  assert.equal(stepDir('025'), STEP, 'the registry must resolve 025 to this folder');
+  assert.ok(
+    fs.existsSync(path.join(stepDir('intro-film'), 'AUTHORING.md')),
+    'run.sh cats AUTHORING.md from the folder the registry resolves for the intro-film verb',
+  );
 });
 
 test('no intro-film library reads the catalog', () => {

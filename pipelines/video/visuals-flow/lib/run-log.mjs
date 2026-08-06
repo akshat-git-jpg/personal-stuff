@@ -6,25 +6,23 @@
 // down. The terminal scrollback was the only record, which is why following a
 // run meant watching a terminal.
 //
-// Step ids are read from the steps/ folders, never from a list kept in here.
+// Step ids are read from the step registry, never from a list kept in here.
 // One source of truth means a session cannot record work under an invented name
 // ("body cue pass" one video, "body graphics LLM" the next).
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
+import { loadSteps, STEPS_DIR } from './steps.mjs';
 
 export const STATUSES = ['todo', 'running', 'done', 'blocked', 'skipped'];
 
-const STEPS_DIR = path.join(import.meta.dirname, '..', 'steps');
-
+// The registry, not a second directory read. A folder with no step.json is not
+// a step, so the ledger and lib/steps.mjs cannot disagree about what exists —
+// which is the whole reason the ledger validates ids at all.
 export function stepIds(stepsDir = STEPS_DIR) {
   if (!fs.existsSync(stepsDir)) return [];
-  return fs
-    .readdirSync(stepsDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && /^\d{3}-/.test(d.name))
-    .map((d) => d.name)
-    .sort();
+  return loadSteps({ dir: stepsDir }).map((s) => s.slug);
 }
 
 // -run is a script, -llm/-opus is a model session, -human is an owner gate.
