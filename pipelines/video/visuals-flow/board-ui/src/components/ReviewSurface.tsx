@@ -30,6 +30,19 @@ export type ReviewComment = {
   images?: string[];   // canonical: a comment may carry several
 };
 
+// What a step's own chrome can do to the player. A slot may be plain nodes, or
+// a function that receives this — so a beat list, a shot list or a chapter
+// index can drive the transport WITHOUT this component knowing what a beat is.
+// Without it the Intro tab's beat sheet was inert: the owner could see that b04
+// changed but had no way to get the playhead there except hunting with the
+// scrubber, and kept landing back on b01 (owner report 2026-08-06).
+export type PlayerApi = {
+  seekTo: (t: number) => void;   // pauses, so the moment holds still
+  pause: () => void;
+};
+
+type Slot = ReactNode | ((api: PlayerApi) => ReactNode);
+
 export type ReviewSurfaceProps = {
   /** Video URL. Empty string means there is nothing to play yet. */
   src: string;
@@ -54,9 +67,9 @@ export type ReviewSurfaceProps = {
   /** Sidebar heading. */
   panelTitle?: string;
   /** Slots for step-specific chrome. */
-  belowPlayer?: ReactNode;
-  panelTop?: ReactNode;
-  panelBottom?: ReactNode;
+  belowPlayer?: Slot;
+  panelTop?: Slot;
+  panelBottom?: Slot;
   /** Status line under the player. */
   message?: ReactNode;
 };
@@ -264,6 +277,18 @@ export function ReviewSurface({
   // exist yet lands under a key nothing will ever show it under.
   const canComment = !!src && paused && !sending;
 
+  const playerApi: PlayerApi = {
+    seekTo: (t) => {
+      const v = videoRef.current;
+      if (!v) return;
+      v.pause();
+      v.currentTime = t;
+      setCurrentTime(t);
+    },
+    pause: () => videoRef.current?.pause(),
+  };
+  const slot = (s: Slot) => (typeof s === 'function' ? s(playerApi) : s);
+
   const comments = Object.entries(items)
     .filter(([k]) => k.startsWith(`${namespace}:`))
     .sort(([a], [b]) => {
@@ -352,12 +377,12 @@ export function ReviewSurface({
             {message && <div className="rs-msg">{message}</div>}
           </>
         )}
-        {belowPlayer}
+        {slot(belowPlayer)}
       </div>
 
       <div className="rs-panel">
         <h3 className="rs-panel-title">{panelTitle}</h3>
-        {panelTop}
+        {slot(panelTop)}
 
         <div className="rs-comments">
           {comments.map(([k, it]) => {
@@ -467,7 +492,7 @@ export function ReviewSurface({
             onChange={(e) => { Array.from(e.target.files ?? []).forEach(addImageFile); e.target.value = ''; }}
           />
         </div>
-        {panelBottom}
+        {slot(panelBottom)}
       </div>
 
       {lightbox && (

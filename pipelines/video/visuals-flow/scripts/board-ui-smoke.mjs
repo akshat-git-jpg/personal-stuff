@@ -588,6 +588,21 @@ try {
           + 'so the transport is dead (clock frozen, Play cannot pause)');
       }
 
+      // The two halves of the readout sit side by side and MUST NOT look like
+      // the same format. Current time carries frames; when it was mm:ss:ff the
+      // pair rendered as "00:01:12 / 01:30", read as "1m12s of 1m30s", and the
+      // owner scrubbed to what they thought was the end of a 90s film while
+      // actually sitting at 1.4 SECONDS (report 2026-08-06). A dot before the
+      // frames is what makes the two unmistakable.
+      if (!/^\d{2}:\d{2}\.\d{2}$/.test(clock[1])) {
+        throw new Error(
+          `intro player: current time is "${clock[1]}" — expected mm:ss.ff. A third `
+          + 'colon makes the frame count read as a seconds field next to the mm:ss duration');
+      }
+      if (!/^\d{2}:\d{2}$/.test(clock[2])) {
+        throw new Error(`intro player: duration is "${clock[2]}" — expected mm:ss`);
+      }
+
       // Review-surface parity. Intro and Final Cut are the SAME component now
       // (components/ReviewSurface.tsx); they used to be two near-copies, and the
       // copy that was not Final Cut shipped without attach and without edit

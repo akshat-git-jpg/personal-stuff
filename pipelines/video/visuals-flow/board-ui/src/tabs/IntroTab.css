@@ -120,3 +120,19 @@
   opacity: 1;
 }
 
+
+/* Jump-to-beat. The beat sheet used to be inert: it showed which beat a
+   change landed in but offered no way to move the playhead there. */
+.intro-beat-jump {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 1px 8px;
+  margin-right: 10px;
+  font: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.intro-beat-jump:hover { border-color: var(--accent); background: rgba(251,146,60,0.12); }

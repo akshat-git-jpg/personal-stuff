@@ -1,6 +1,7 @@
 import { useEffect, useState, ReactNode } from 'react';
 import './IntroTab.css';
-import { ReviewSurface, ReviewComment } from '../components/ReviewSurface';
+import { ReviewSurface, ReviewComment, PlayerApi } from '../components/ReviewSurface';
+import { fmtClock } from '../lib/fcTransport';
 
 // Gate 027. The player, comment list and composer come from <ReviewSurface>,
 // shared with Final Cut — this file owns only what is specific to reviewing a
@@ -102,11 +103,22 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
   // two against each other is the review: if the text promises the frame goes
   // visibly crooked and the last frame is straight, the film did not do what
   // the screenplay said.
-  const beatSheet = (
+  const beatSheet = (api: PlayerApi) => (
     <>
       {data.beats?.map((b: any, i: number) => (
         <div key={i} className="intro-beat">
           <div className="intro-beat-header">
+            {/* Clicking a beat parks the playhead on it. Without this the sheet
+                showed WHICH beat changed but gave no way to get there, so the
+                owner hunted with the scrubber and kept landing on b01. */}
+            <button
+              type="button"
+              className="intro-beat-jump"
+              title={`jump the player to ${b.id}`}
+              onClick={() => api.seekTo((b.t_start ?? 0) + 0.4)}
+            >
+              ▶ {fmtClock(b.t_start ?? 0)}
+            </button>
             <strong>{b.id}</strong> · {b.intent} · {b.register} · {b.face}
           </div>
           <div className="intro-beat-clause">“{b.clause}”</div>
