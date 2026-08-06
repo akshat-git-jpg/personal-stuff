@@ -10,44 +10,21 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 # 037/080 board approvals, never the new-card look-preview or the 120 final
 # cut, and a session still runs the steps one at a time.
 
+# The verb list, the step folder names and the status next-hint all come from
+# the registry (steps/*/step.json + steps/_verbs.json, read by lib/steps.mjs).
+# They used to be hand-typed here, which meant renumbering a step silently
+# broke this file. A NEW STEP ADDS NO CODE HERE — write its step.json.
 usage() {
-  cat <<EOF
-Usage: run.sh <slug> <step>
-
-Steps:
-  status
-  configure [--engine heygen3|heygen4] [--review full|express]
-  transcribe
-  segments
-  concept-pass
-  intro-film
-  intro-review
-  intro-render
-  cue-pass
-  validate
-  resolve
-  zone-pass
-  stillness
-  audit
-  audit-gate
-  card-plan
-  outline
-  board
-  render
-  fold
-  sound
-  mix
-  shot-pass
-  shots
-  avatar
-  avatar-download
-  cut
-  assemble
-  deliver
-  export
-  qc
-EOF
+  echo "Usage: run.sh <slug> <step>"
+  echo
+  echo "Steps:"
+  node lib/steps.mjs usage
 }
+
+# The step FOLDER for a number/verb/slug, e.g. step_slug 010 ->
+# "010-transcribe-run". Every literal steps/<folder> path in this file used to
+# be typed out, so a renumber broke the driver with nothing to catch it.
+step_slug() { node lib/steps.mjs slug "$1"; }
 
 if [[ $# -eq 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
   usage
@@ -64,6 +41,20 @@ fi
 slug="$1"
 step="$2"
 shift 2
+
+# A verb the registry does not know never reaches the case below, so the two
+# lists cannot drift into "declared but undispatchable" without the behaviour
+# test (scripts/test-run-sh.sh) seeing it.
+# Read into a variable first: a registry that fails to load must take the whole
+# driver down with its E-REG message, not quietly turn every verb into
+# "unknown step".
+known_verbs="$(node lib/steps.mjs verbs)"
+if ! grep -qxF -- "$step" <<<"$known_verbs"; then
+  echo "unknown step: $step"
+  node lib/steps.mjs suggest "$step" || true
+  usage
+  exit 2
+fi
 
 # Record a deterministic step into videos/<slug>/run-log.json as it runs, so the
 # board's Run tab and `status` can say what happened without anyone reading the
@@ -121,39 +112,53 @@ record_step() {
   return "$rc"
 }
 
+# VF_DRY_RUN=1 prints the command a verb WOULD run, one line per command, and
+# exits 0 without running it. This is what lets scripts/test-run-sh.sh assert
+# dispatch BEHAVIOUR instead of grepping this file's source text — the old
+# grep-pins failed on any correct rename while catching nothing, and had already
+# bent production code into "reading literally" for their benefit.
+dry() {
+  if [[ -n "${VF_DRY_RUN:-}" ]]; then
+    local c
+    for c in "$@"; do echo "DRY: $c"; done
+    return 0
+  fi
+  return 1
+}
+
 case "$step" in
   status)
     if [[ ! -d "videos/$slug" ]]; then
       echo "no workdir: videos/$slug"
       exit 1
     fi
-    
+
     transcript_present="missing"
     [[ -f "videos/$slug/transcript.json" ]] && transcript_present="present"
-    
+
     segments_present="missing"
     [[ -f "videos/$slug/segments.json" ]] && segments_present="present"
-    
+
     cues_present="missing"
     cues_approved="NOT approved"
     if [[ -f "videos/$slug/cues.json" ]]; then
       cues_present="present"
       cues_approved=$(node -e "const c=require('./videos/$slug/cues.json');console.log(c.approved?'approved':'NOT approved')")
     fi
-    
+
     resolved_present="missing"
     [[ -f "videos/$slug/resolved.json" ]] && resolved_present="present"
-    
+
     card_plan_present="missing"
     card_plan_approved="NOT approved"
     if [[ -f "videos/$slug/card-plan.json" ]]; then
       card_plan_present="present"
       card_plan_approved=$(node -e "const z=require('./videos/$slug/card-plan.json');console.log(z.approved?'approved':'NOT approved')")
     fi
-    
+
     renders_present="missing"
     [[ -d "videos/$slug/renders/" ]] && renders_present="present"
-    
+
     shots_present="missing"
     shots_approved="NOT approved"
     if [[ -f "videos/$slug/shots.json" ]]; then
@@ -161,18 +166,14 @@ case "$step" in
       shots_approved=$(node -e "const s=require('./videos/$slug/shots.json');console.log(s.approved?'approved':'NOT approved')")
     fi
 
-    # Kickoff config (step 005): engine + review mode. Express waives the 037
-    # and 080 board gates in the next-hints below — the artifact table still
-    # shows the raw approved flags.
-    run_engine="heygen3"; run_review="full"
+    # Kickoff config (step 005): engine + review mode + intro mode. Express
+    # waives the waivable board gates in the next-hint below — the artifact
+    # table still shows the raw approved flags.
+    run_engine="heygen3"; run_review="full"; run_intro="cards"
     if [[ -f "videos/$slug/run-config.json" ]]; then
       run_engine=$(node -e "console.log(require('./videos/$slug/run-config.json').engine||'heygen3')")
       run_review=$(node -e "console.log(require('./videos/$slug/run-config.json').review||'full')")
-    fi
-    if [[ "$run_review" == "express" ]]; then
-      card_plan_gate="approved"; cues_gate="approved"; shots_gate="approved"
-    else
-      card_plan_gate="$card_plan_approved"; cues_gate="$cues_approved"; shots_gate="$shots_approved"
+      run_intro=$(node -e "console.log(require('./videos/$slug/run-config.json').intro||'cards')")
     fi
 
     # The ledger first: what each step did, from run-log.json. Steps with no
@@ -182,7 +183,7 @@ case "$step" in
     node lib/run-log.mjs "$slug"
     echo
 
-    echo "run-config        engine=$run_engine review=$run_review"
+    echo "run-config        engine=$run_engine review=$run_review intro=$run_intro"
     echo "artifact          status"
     echo "--------          ------"
     echo "transcript.json   $transcript_present"
@@ -193,33 +194,18 @@ case "$step" in
     echo "renders/          $renders_present"
     echo "shots.json        $shots_present ($shots_approved)"
 
-    # Order follows the 2026-07-25 review model (decisions.md): shot-pass runs
-    # BEFORE the storyboard gate, and that single gate approves cues AND shots.
-    # Nothing renders until both are approved.
-    if [[ "$transcript_present" == "missing" ]]; then
-      echo "next: run.sh $slug transcribe"
-    elif [[ "$segments_present" == "missing" ]]; then
-      echo "next: run.sh $slug segments  (then set confirmed: true in segments.json)"
-    elif [[ "$cues_present" == "missing" ]]; then
-      echo "next: run.sh $slug cue-pass"
-    elif [[ "$card_plan_gate" == "NOT approved" ]]; then
-      echo "next: run.sh $slug validate, then outline + board  (HUMAN GATE 1 — 037 card plan)"
-    elif [[ "$resolved_present" == "missing" ]]; then
-      echo "next: run.sh $slug resolve  (build any NEW cards at step 038 first)"
-    elif [[ "$shots_present" == "missing" ]]; then
-      echo "next: run.sh $slug shot-pass  (before the storyboard gate)"
-    elif [[ "$cues_gate" == "NOT approved" || "$shots_gate" == "NOT approved" ]]; then
-      echo "next: run.sh $slug board  (HUMAN GATE 2 — 080 storyboard: approve cues AND shots)"
-    elif [[ "$renders_present" == "missing" ]]; then
-      echo "next: run.sh $slug render"
-    else
-      echo "next: run.sh $slug cut  (then HUMAN GATE 3 — 120 final cut)"
-    fi
+    # The next-hint walks the registry (consumes/produces/gate/requires.intro)
+    # rather than a fixed if/elif chain. That chain knew nothing about the intro
+    # film, so on an intro:"film" video the next: line never once named 025 or
+    # 027 — the driver grew a branch and its own guidance did not.
+    node lib/steps.mjs next "$slug" "$run_intro" "$run_review"
     ;;
 
   transcribe)
+    d="$(step_slug 010)"
+    dry "record_step 010 -- bash steps/$d/run.sh $slug" && exit 0
     record_step 010 "Transcribed the voiceover to word-level timestamps and ran the quality pass." \
-      "transcript.json" -- bash steps/010-transcribe-run/run.sh "$slug"
+      "transcript.json" -- bash "steps/$d/run.sh" "$slug"
     ;;
 
   configure)
@@ -228,6 +214,7 @@ case "$step" in
     # the way (full = every gate | express = straight to final cut). See
     # steps/005-configure-run-human/README.md — express NEVER skips the
     # new-card look-preview or the 120 final-cut review.
+    dry "node lib/run-config.mjs $slug${*:+ $*}" && exit 0
     node lib/run-config.mjs "$slug" "$@"
     ;;
 
@@ -235,6 +222,7 @@ case "$step" in
     # Writes segments.json INCLUDING the measured intro/body/conclusion spans
     # (`structure`), read from src/. Without those the zone pass at 035 has
     # nothing to author against. Set `confirmed: true` in the file afterwards.
+    dry "record_step 015 -- node lib/segments.mjs $slug --propose" && exit 0
     record_step 015 "Measured the intro/body/conclusion spans from src/ and proposed the demo vs narration split." \
       "segments.json (still needs confirmed: true)" -- node lib/segments.mjs "$slug" --propose
     ;;
@@ -243,7 +231,7 @@ case "$step" in
     record 020 running
     cat <<EOF
 020 is an LLM step, not a command. Assemble the prompt:
-  1. steps/020-choose-concept-llm/concept-pass-prompt.md   (the prompt; fill its placeholders)
+  1. steps/$(step_slug 020)/concept-pass-prompt.md   (the prompt; fill its placeholders)
   2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   3. cat videos/$slug/segments.json             -> {{SEGMENTS}}
 After the concept pass: node lib/lint-concept.mjs $slug
@@ -259,12 +247,16 @@ EOF
       exit 1
     fi
     if [[ "$step" == "intro-film" ]]; then
-      cat steps/025-author-intro-film-llm/AUTHORING.md | sed "s/<slug>/$slug/g"
+      d="$(step_slug 025)"
+      dry "cat steps/$d/AUTHORING.md | sed s/<slug>/$slug/g" && exit 0
+      cat "steps/$d/AUTHORING.md" | sed "s/<slug>/$slug/g"
       exit 0
     elif [[ "$step" == "intro-review" ]]; then
+      dry "node lib/intro-film/review-film.mjs $slug" && exit 0
       node lib/intro-film/review-film.mjs "$slug"
       exit $?
     elif [[ "$step" == "intro-render" ]]; then
+      dry "requireIntroApproved + node lib/intro-film/render-film.mjs $slug" && exit 0
       node -e "import('./lib/intro-film/approve.mjs').then(m=>m.requireIntroApproved(process.cwd()+'/videos/$slug')).catch(e=>{console.error(e.message);process.exit(1)})" || exit 1
       node lib/intro-film/render-film.mjs "$slug"
       exit $?
@@ -276,7 +268,7 @@ EOF
     cat <<EOF
 030 is an LLM step, not a command. It authors the BODY only.
 Assemble the prompt:
-  1. steps/030-pick-or-propose-graphics-llm/cue-pass-prompt.md   (the prompt; fill its placeholders)
+  1. steps/$(step_slug 030)/cue-pass-prompt.md   (the prompt; fill its placeholders)
   2. node lib/plan-skeleton.mjs $slug           -> {{SKELETON}}
   3. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   4. ../card-library/catalog.json                -> {{CATALOG}}
@@ -294,7 +286,7 @@ EOF
 035 is an LLM step, not a command. It authors the INTRO and CONCLUSION only,
 against their own rulebook (lib/zone-rules.mjs + lib/zone-constants.mjs).
 Assemble the prompt:
-  1. steps/035-pick-or-propose-intro-outro-llm/zone-pass-prompt.md  (the prompt; fill its placeholders)
+  1. steps/$(step_slug 035)/zone-pass-prompt.md  (the prompt; fill its placeholders)
   2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   3. ../card-library/catalog.json                -> {{CATALOG}}
   4. the "structure" array in videos/$slug/segments.json -> {{STRUCTURE}}
@@ -309,18 +301,19 @@ EOF
 
   validate)
     # Pre-037: everything checkable before the cards exist. Writes nothing.
+    dry "node lib/resolve.mjs $slug --validate-only" && exit 0
     node lib/resolve.mjs "$slug" --validate-only
     ;;
 
   resolve)
-    # Kept as a function so the command reads literally, both here and to the
-    # grep in scripts/test-run-sh.sh that pins it.
+    dry "record_step 040 -- node lib/resolve.mjs $slug && node lib/lint-cues.mjs $slug" && exit 0
     do_resolve() { node lib/resolve.mjs "$slug" && node lib/lint-cues.mjs "$slug"; }
     record_step 040 "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint." \
       "resolved.json" -- do_resolve
     ;;
 
   stillness)
+    dry "node lib/stillness.mjs $slug" && exit 0
     node lib/stillness.mjs "$slug"
     ;;
 
@@ -328,7 +321,7 @@ EOF
     record 050 running
     cat <<EOF
 050 is an LLM step, not a command. Assemble the prompt:
-  1. steps/050-review-graphics-llm/audit-prompt.md     (the prompt; fill its placeholders)
+  1. steps/$(step_slug 050)/audit-prompt.md     (the prompt; fill its placeholders)
   2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   3. cat videos/$slug/resolved.json             -> {{CUES}}
   4. node -e "const c=require('../card-library/catalog.json'); c.cards.forEach(card => console.log(card.slug + ': ' + card.purpose));" -> {{CATALOG_PURPOSES}}
@@ -339,27 +332,35 @@ EOF
     ;;
 
   audit-gate)
+    dry "node lib/audit-gate.mjs $slug" && exit 0
     node lib/audit-gate.mjs "$slug"
     ;;
 
   card-plan)
+    dry "node lib/card-plan.mjs $slug" && exit 0
     node lib/card-plan.mjs "$slug"
     ;;
 
   outline)
+    dry "node lib/card-plan.mjs $slug --outline" && exit 0
     node lib/card-plan.mjs "$slug" --outline
     ;;
 
   board)
-    bash steps/080-approve-storyboard-human/run.sh "$slug"
+    d="$(step_slug 080)"
+    dry "bash steps/$d/run.sh $slug" && exit 0
+    bash "steps/$d/run.sh" "$slug"
     ;;
 
   render)
+    d="$(step_slug 090)"
+    dry "record_step 090 -- bash steps/$d/run.sh $slug" && exit 0
     record_step 090 "Rendered every approved cue to a clip and wrote the editor manifest." \
-      "renders/ + manifest.md" -- bash steps/090-render-graphics-run/run.sh "$slug"
+      "renders/ + manifest.md" -- bash "steps/$d/run.sh" "$slug"
     ;;
 
   fold)
+    dry "record 130 running + node lib/feedback-status.mjs" && exit 0
     record 130 running
     node lib/feedback-status.mjs
     echo "130 is an Opus-class step. Proceed manually."
@@ -367,10 +368,12 @@ EOF
     ;;
 
   sound)
+    dry "node lib/sound/sfx-plan.mjs $slug" && exit 0
     node lib/sound/sfx-plan.mjs "$slug"
     ;;
 
   mix)
+    dry "node lib/sound/build-mix.mjs $slug" && exit 0
     node lib/sound/build-mix.mjs "$slug"
     ;;
 
@@ -378,7 +381,7 @@ EOF
     record 060 running
     cat <<EOF
 060 is an LLM step, not a command. Assemble the prompt:
-  1. steps/060-place-avatar-llm/shot-pass-prompt.md (the prompt; fill its placeholders)
+  1. steps/$(step_slug 060)/shot-pass-prompt.md (the prompt; fill its placeholders)
   2. node lib/plan-skeleton.mjs $slug           -> {{SKELETON}}
   3. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   4. ../card-library/catalog.json                -> {{CATALOG}}
@@ -389,6 +392,7 @@ EOF
     ;;
 
   shots)
+    dry "node lib/resolve-shots.mjs $slug && node lib/lint-shots.mjs $slug" && exit 0
     node lib/resolve-shots.mjs "$slug" && node lib/lint-shots.mjs "$slug"
     ;;
 
@@ -398,8 +402,10 @@ EOF
     # Download stays its own verb below.
     # --spans-only: the owner rejected the corner-bubble baseline on the first
     # assembled cut (2026-07-31) — only the planned host spans render now.
+    d="$(step_slug 100)"
+    dry "record_step 100 -- bash steps/$d/run.sh $slug --submit --spans-only --template ${AVATAR_TEMPLATE:-specs-man}" && exit 0
     record_step 100 "Submitted the HeyGen avatar clips for the approved shot spans." \
-      "avatar-jobs.json + avatar clips in kb-scratch" -- bash steps/100-render-avatar-run/run.sh "$slug" --submit --spans-only --template "${AVATAR_TEMPLATE:-specs-man}"
+      "avatar-jobs.json + avatar clips in kb-scratch" -- bash "steps/$d/run.sh" "$slug" --submit --spans-only --template "${AVATAR_TEMPLATE:-specs-man}"
     ;;
 
   cut)
@@ -412,6 +418,15 @@ EOF
     if [[ -f "videos/$slug/shots.json" ]] && [[ ! -f "videos/$slug/avatar-jobs.json" ]]; then
       echo "shots approved but avatars not rendered — cutting without avatar"
     fi
+    render_dir="$(step_slug 090)"
+    avatar_dir="$(step_slug 100)"
+    build_dir="$(step_slug 110)"
+    dry "record_step 090 -- bash steps/$render_dir/run.sh $slug" \
+        "node lib/effects-plan.mjs $slug" \
+        "node lib/sound/sfx-plan.mjs $slug" \
+        "node lib/sound/build-mix.mjs $slug" \
+        "if avatar-jobs.json: bash steps/$avatar_dir/run.sh $slug --download" \
+        "record_step 110 -- bash steps/$build_dir/run.sh $slug --draft" && exit 0
     echo "Running cut..."
     # Graphics render FIRST, on purpose. If avatar jobs are already submitted,
     # HeyGen is rendering them server-side this whole time, so the local CPU
@@ -419,7 +434,7 @@ EOF
     # Submitting stays an explicit owner action (`run.sh <slug> avatar --submit`);
     # this only stops you idling while it happens.
     record_step 090 "Rendered every approved cue to a clip and wrote the editor manifest." \
-      "renders/ + manifest.md" -- bash steps/090-render-graphics-run/run.sh "$slug" \
+      "renders/ + manifest.md" -- bash "steps/$render_dir/run.sh" "$slug" \
       || { echo "render failed"; exit 1; }
     node lib/effects-plan.mjs "$slug" || { echo "effects-plan failed"; exit 1; }
     node lib/sound/sfx-plan.mjs "$slug" || { echo "sfx-plan failed"; exit 1; }
@@ -429,12 +444,12 @@ EOF
     # Downloading is idempotent and free, so a re-run is always safe.
     if [[ -f "videos/$slug/avatar-jobs.json" ]]; then
       echo "collecting avatar clips (HeyGen rendered these while the graphics did)..."
-      bash steps/100-render-avatar-run/run.sh "$slug" --download || \
+      bash "steps/$avatar_dir/run.sh" "$slug" --download || \
         echo "warning: some avatar clips are still pending — re-run: run.sh $slug avatar-download"
     fi
 
     record_step 110 "Assembled the screen recording, graphics, avatar clips and mastered audio into a draft cut." \
-      "final-draft.mp4 + assembly.md" -- bash steps/110-build-video-run/run.sh "$slug" --draft \
+      "final-draft.mp4 + assembly.md" -- bash "steps/$build_dir/run.sh" "$slug" --draft \
       || { echo "assemble failed"; exit 1; }
     echo "Final Cut URL: http://localhost:8080/ (or equivalent board URL) - Check the Final Cut tab!"
     ;;
@@ -442,33 +457,46 @@ EOF
   avatar-download)
     # Split out so the overlap is a named thing: submit, go do other work, then
     # collect. Safe to re-run until nothing is pending.
+    d="$(step_slug 100)"
+    dry "record_step 100 -- bash steps/$d/run.sh $slug --download" && exit 0
     record_step 100 "Downloaded the finished HeyGen avatar clips." \
       "avatar clips in kb-scratch + avatar-manifest.md" \
-      -- bash steps/100-render-avatar-run/run.sh "$slug" --download
+      -- bash "steps/$d/run.sh" "$slug" --download
     ;;
 
   assemble)
+    d="$(step_slug 110)"
+    dry "record_step 110 -- bash steps/$d/run.sh $slug" && exit 0
     record_step 110 "Assembled the screen recording, graphics, avatar clips and mastered audio into the cut." \
-      "final.mp4 + assembly.md" -- bash steps/110-build-video-run/run.sh "$slug"
+      "final.mp4 + assembly.md" -- bash "steps/$d/run.sh" "$slug"
     ;;
 
   deliver)
+    d="$(step_slug 150)"
+    dry "record_step 150 -- bash steps/$d/run.sh $slug" && exit 0
     record_step 150 "Uploaded the approved full-resolution final to the video's Drive Output folder." \
-      "Output/<slug>-final.mp4 on Drive" -- bash steps/150-deliver-drive-run/run.sh "$slug"
+      "Output/<slug>-final.mp4 on Drive" -- bash "steps/$d/run.sh" "$slug"
     ;;
 
   export)
+    d="$(step_slug 140)"
+    dry "record_step 140 -- bash steps/$d/run.sh $slug" && exit 0
     record_step 140 "Exported the layered timeline for DaVinci." \
-      "FCPXML timeline" -- bash steps/140-davinci-export-run/run.sh "$slug"
+      "FCPXML timeline" -- bash "steps/$d/run.sh" "$slug"
     ;;
 
   qc)
+    dry "bash scripts/qc-video.sh $slug" && exit 0
     bash scripts/qc-video.sh "$slug"
     ;;
 
   *)
+    # Unreachable for a registry verb — the pre-case check above already
+    # rejected anything the registry does not declare. A verb that lands here
+    # is declared in step.json/_verbs.json with no branch to run it, and the
+    # behaviour test dispatches every registry verb precisely to catch that.
     echo "unknown step: $step"
-    usage
+    echo "$step is declared in the registry but has no branch in run.sh — add one, or remove it from steps/*/step.json"
     exit 2
     ;;
 esac

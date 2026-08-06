@@ -205,6 +205,21 @@ export function usageEntries({ dir = STEPS_DIR } = {}) {
   return out;
 }
 
+// Near-matches for a verb run.sh did not recognise. Cheap and deliberately
+// dumb: shared prefix, containment, or one edit away. The point is to name the
+// verb the typist meant, not to be clever about it.
+export function suggestVerbs(input, { dir = STEPS_DIR, verbs = null } = {}) {
+  const all = verbs ?? allVerbs({ dir });
+  const q = String(input ?? '').toLowerCase();
+  if (!q) return [];
+  return all.filter((v) => {
+    const w = v.toLowerCase();
+    if (w.includes(q) || q.includes(w)) return true;
+    const shared = [...w].findIndex((c, i) => c !== q[i]);
+    return (shared === -1 ? Math.min(w.length, q.length) : shared) >= 3;
+  });
+}
+
 // The next step to run, derived from the registry rather than a fixed if/elif
 // chain. The old chain had no awareness of the intro film, so on a video with
 // run-config intro:"film" the "next:" line never mentioned 025 or 027 — the
@@ -261,6 +276,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       for (const v of allVerbs()) console.log(v);
     } else if (cmd === 'usage') {
       for (const e of usageEntries()) console.log(`  ${e.verb}${e.usageArgs ? ` ${e.usageArgs}` : ''}`);
+    } else if (cmd === 'suggest') {
+      const near = suggestVerbs(rest[0]);
+      if (near.length) console.log(`did you mean: ${near.join(', ')}`);
     } else if (cmd === 'slug') {
       console.log(stepSlug(rest[0]));
     } else if (cmd === 'next') {
