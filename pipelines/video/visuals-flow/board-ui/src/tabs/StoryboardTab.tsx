@@ -242,8 +242,8 @@ export function StoryboardTab({
         {hasUnsaved && saveState === 'idle' &&
           <span id="unsavedChip" style={{ marginLeft: 8, fontSize: 12, color: 'var(--accent)' }}>unsaved changes</span>}
         {revTotal > 0 && <span id="revCount" style={{ margin: '0 12px', fontSize: 13, color: 'var(--dim)' }}>{revCount} / {revTotal} reviewed</span>}
-        {revTotal > 0 && <button className="fc-cbtn" onClick={() => markAllReviewed(cues.map((c: any) => `sb:${c.id}`), true)}>mark all reviewed</button>}
-        {revTotal > 0 && <button className="fc-cbtn" onClick={() => markAllReviewed(cues.map((c: any) => `sb:${c.id}`), false)}>expand all</button>}
+        {revTotal > 0 && <button className="rs-cbtn" onClick={() => markAllReviewed(cues.map((c: any) => `sb:${c.id}`), true)}>mark all reviewed</button>}
+        {revTotal > 0 && <button className="rs-cbtn" onClick={() => markAllReviewed(cues.map((c: any) => `sb:${c.id}`), false)}>expand all</button>}
         <a href="#calibrate" style={{ color: 'var(--dim)', fontSize: 13, marginLeft: 12 }}>calibrate</a>
         <span className="view-toggle" style={{ marginLeft: 'auto' }}>
           <button className={`tab-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setMode('list')}>List</button>

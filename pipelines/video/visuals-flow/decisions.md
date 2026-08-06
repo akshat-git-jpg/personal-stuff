@@ -58,6 +58,27 @@
   gitignored; `steps/080-approve-storyboard-human/run.sh` rebuilds it when
   stale. Tab hash + `?video=` URL semantics are unchanged and regression-pinned.
 
+- **2026-08-06**: **Every "watch it, pause, comment on a moment" review step
+  mounts ONE component** — `board-ui/src/components/ReviewSurface.tsx`, styled
+  by `ReviewSurface.css`. Final Cut (gate 120) and Intro (gate 027) were two
+  ~400-line near-copies sharing only `lib/fcTransport`'s time math, and the cost
+  was exactly what duplication predicts: the copy that was not Final Cut shipped
+  with no screenshot attach and no comment edit, its media listeners never
+  attached (dead transport, clock frozen at 00:00:00), and the two tabs drifted
+  apart visually — while Final Cut's own edit/delete POSTed `{items}` to `/save`,
+  which writes `cues.json`, so every Final Cut comment edit was silently
+  discarded and polluted `cues.json` with an `items` key.
+  A NEW STEP ADDS NO CODE HERE: mount `<ReviewSurface>` with your `namespace`,
+  `postUrl` and slots (`belowPlayer`, `panelTop`, `panelBottom`), and add the
+  namespace to `REVIEW_NAMESPACES` in `lib/board.mjs` to get edit + delete.
+  Nothing in the component may branch on which step is using it. Server routes
+  are step-agnostic: `/feedback-edit` and `/feedback-delete` (the `-final-`
+  spellings remain as aliases). A comment carries **several** screenshots —
+  `item.images[]`, served at `/feedback-image/<key>/<n>`; the pre-2026-08-06
+  scalar `item.image` stays readable forever via `itemImages()`, because a
+  review comment is a record, not a cache. Pinned by `board-ui-smoke.mjs`,
+  which asserts both tabs render the same surface markers.
+
 - **2026-08-03**: A **portrait (9:16) HeyGen render is a first-class avatar
   source**, not a file to be rescued. HeyGen can render landscape but frames it
   worse (camera further back, flatter angle), so the owner keeps the portrait

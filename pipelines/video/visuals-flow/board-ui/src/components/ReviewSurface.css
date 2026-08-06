@@ -1,0 +1,264 @@
+/* The ONE stylesheet for every timestamped-comment review surface on this
+   board. Final Cut and Intro used to carry separate .fc-* and .intro-* copies
+   of these same rules, which is why the two tabs drifted apart visually while
+   claiming to be the same thing (owner report 2026-08-06). A new review step
+   mounts <ReviewSurface> and inherits this look — it must not add its own copy
+   of these rules. Step-specific chrome goes in the step's own stylesheet. */
+
+.rs-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.rs-main {
+  flex: 1;
+  min-width: 0;   /* a flex child will not shrink below content width without this */
+}
+
+.rs-panel {
+  width: 400px;
+  flex: none;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.rs-panel-title {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+}
+
+.rs-transport {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.rs-transport button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--fg);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.rs-transport button:hover { background: var(--hover); }
+
+.rs-transport select {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--fg);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.rs-video-container {
+  position: relative;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rs-video {
+  width: 100%;
+  display: block;
+  cursor: crosshair;
+}
+
+.rs-scrub { width: 100%; margin-top: 8px; }
+
+.rs-kbd-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--dim);
+}
+
+.rs-msg {
+  margin-top: 6px;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.rs-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--dim);
+  font-size: 13px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+.rs-comments {
+  margin: 16px 0;
+  max-height: 400px;
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+.rs-comment-item {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.rs-comment-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.rs-comment-head { margin-bottom: 4px; }
+
+.rs-comment-jump {
+  font-weight: bold;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.rs-comment-text { white-space: pre-wrap; }
+
+.rs-comment-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+/* Several screenshots on one comment: a strip, so the second one is visibly
+   THERE rather than appearing to have replaced the first. */
+.rs-shots {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rs-shot {
+  max-width: 100%;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  cursor: zoom-in;
+}
+
+.rs-shot-full { max-width: 100%; }
+
+.rs-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--fg);
+  padding: 8px;
+  resize: vertical;
+}
+
+.rs-input:disabled { opacity: 0.5; }
+
+.rs-compose-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+/* The pending-attachment tray. Each thumb carries its own remove control, so
+   attaching a second screenshot cannot read as having replaced the first. */
+.rs-pending {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.rs-pending-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+.rs-pending-item img {
+  height: 34px;
+  border-radius: 4px;
+  display: block;
+}
+
+.rs-cbtn {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--fg);
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.rs-cbtn:hover { background: var(--hover); }
+
+.rs-cbtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.rs-pin-marker {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--err);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.rs-clock {
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.rs-chip {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  margin-left: 6px;
+}
+
+.rs-chip.fixed { background: #1b5e20; color: #fff; }
+.rs-chip.question { background: #b71c1c; color: #fff; }
+.rs-chip.other { background: #424242; color: #fff; }
+
+/* Click a thumbnail to see it full size. A screenshot cropped to 34px tall is
+   evidence you cannot actually read. */
+.rs-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: zoom-out;
+  padding: 24px;
+}
+
+.rs-lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 6px;
+}

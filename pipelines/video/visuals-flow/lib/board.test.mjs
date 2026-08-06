@@ -1487,3 +1487,84 @@ test('latestWorkdir picks an intro-film video that has no cues.json', () => {
   assert.equal(latestWorkdir(videos), older, 'no vo.mp3 means not board-ready, so fall back');
 });
 
+
+// ---- several screenshots on one comment ------------------------------------
+// One frame rarely shows a whole problem. Before this, `image` was a single
+// string and a second paste silently replaced the first client-side, so the
+// owner saw the older screenshot vanish with no sign why (report 2026-08-06).
+test('a review comment carries several screenshots, each served by index', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/feedback-intro`, {
+      method: 'POST',
+      body: JSON.stringify({ item: { text: 'three frames', t: 4 }, images: [PNG_1PX, PNG_1PX, PNG_1PX] }),
+    });
+    assert.equal(res.status, 200);
+    const { key, item } = await res.json();
+
+    assert.deepEqual(item.images, [
+      'feedback-images/intro-0-0.png',
+      'feedback-images/intro-0-1.png',
+      'feedback-images/intro-0-2.png',
+    ], 'indexed names, so a second screenshot cannot land on the first one\'s path');
+    for (const rel of item.images) assert.ok(fs.existsSync(path.join(workdir, rel)), `${rel} on disk`);
+
+    // /<key> is the first one (what every pre-existing link means), /<key>/<n> the nth.
+    for (const [suffix, expect] of [['', 200], ['/0', 200], ['/2', 200], ['/3', 404]]) {
+      const img = await fetch(`${base}/feedback-image/${key}${suffix}`);
+      assert.equal(img.status, expect, `/feedback-image/${key}${suffix}`);
+    }
+
+    // Deleting the comment takes EVERY screenshot with it, not just the first.
+    const del = await fetch(`${base}/feedback-delete`, { method: 'POST', body: JSON.stringify({ key }) });
+    assert.equal(del.status, 200);
+    for (const rel of item.images) {
+      assert.ok(!fs.existsSync(path.join(workdir, rel)), `${rel} must be removed with its comment`);
+    }
+  } finally {
+    server.close();
+  }
+});
+
+// feedback.json files already on disk carry the pre-2026-08-06 single `image`
+// string. A review comment is a record, not a cache — it must keep rendering.
+test('itemImages reads the legacy single image and the new array alike', async () => {
+  const { itemImages } = await import('./board.mjs');
+  assert.deepEqual(itemImages({ image: 'feedback-images/intro-0.png' }), ['feedback-images/intro-0.png']);
+  assert.deepEqual(itemImages({ images: ['a.png', 'b.png'] }), ['a.png', 'b.png']);
+  assert.deepEqual(itemImages({ images: ['a.png'], image: 'legacy.png' }), ['a.png'], 'array wins when both are present');
+  assert.deepEqual(itemImages({}), []);
+  assert.deepEqual(itemImages(undefined), []);
+});
+
+test('a legacy single-image comment still serves at /feedback-image/<key>', async () => {
+  const workdir = makeWorkdir();
+  fs.mkdirSync(path.join(workdir, 'feedback-images'), { recursive: true });
+  fs.writeFileSync(path.join(workdir, 'feedback-images', 'intro-0.png'),
+    Buffer.from(PNG_1PX.split(',')[1], 'base64'));
+  fs.writeFileSync(path.join(workdir, 'feedback.json'), JSON.stringify({
+    items: { 'intro:0': { text: 'old shape', t: 1, image: 'feedback-images/intro-0.png' } },
+  }));
+  const { server, base } = await startServer(workdir);
+  try {
+    const img = await fetch(`${base}/feedback-image/intro:0`);
+    assert.equal(img.status, 200);
+    assert.equal(img.headers.get('content-type'), 'image/png');
+  } finally {
+    server.close();
+  }
+});
+
+// The extension point for a future review step: add a namespace, get edit and
+// delete. A permissive "anything:<n>" rule would also hand this endpoint the
+// storyboard's cue notes, which another surface owns.
+test('isEditableKey admits review namespaces and refuses everything else', async () => {
+  const { isEditableKey } = await import('./board.mjs');
+  for (const ok of ['intro:0', 'intro:12', 'final-v1:0', 'final-v2:31']) {
+    assert.equal(isEditableKey(ok), true, `${ok} must be editable`);
+  }
+  for (const no of ['cue:7', 'sb:c01', 'c01', 'intro', 'intro:', ':0', '', undefined, '../etc:0']) {
+    assert.equal(isEditableKey(no), false, `${no} must be refused`);
+  }
+});

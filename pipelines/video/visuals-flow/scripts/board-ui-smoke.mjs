@@ -163,9 +163,15 @@ try {
       const idxSlot = dom.indexOf('<div class="action-slot">');
       const slotMatch = idxSlot > -1 ? dom.slice(idxSlot, idxSlot + 300) : '';
       if (!slotMatch.includes('Approve final cut')) throw new Error('Approve final cut not found inside .action-slot on #final-cut');
-      if (!dom.includes('id="fc-transport"')) throw new Error('#fc-transport not found on #final-cut');
-      if (!dom.includes('id="fc-scrub"')) throw new Error('#fc-scrub not found on #final-cut');
-      const idxPanel = dom.indexOf('class="fc-panel"');
+      // This fixture has no assembled cut, so the surface must SAY so rather
+      // than show a transport wired to nothing. The transport itself is one
+      // shared component and is covered by the intro fixture below, which has
+      // a real clip.
+      if (!dom.includes('rs-empty')) throw new Error('#final-cut with no versions must render the empty state');
+      if (!dom.includes('No assembled cut to review yet')) {
+        throw new Error('#final-cut empty state must say there is no cut yet');
+      }
+      const idxPanel = dom.indexOf('class="rs-panel"');
       const panelMatch = idxPanel > -1 ? dom.slice(idxPanel, idxPanel + 1000) : '';
       if (panelMatch.includes('Approve final cut')) throw new Error('Approve final cut found inside comments panel on #final-cut');
     }
@@ -301,6 +307,7 @@ try {
   const cssFile = distAssets.find(f => f.endsWith('.css'));
   const cssContent = fs.readFileSync(path.join(process.cwd(), 'board-ui/dist/assets', cssFile), 'utf8');
 
+  const domByHash = {};
   for (const hash of ['#run', '#card-plan', '#intro', '#storyboard', '#final-cut']) {
     const url = `http://127.0.0.1:${port}/app/?video=${slug}${hash}`;
     const outPath = path.join(workdir, `tab-${hash ? hash.slice(1) : 'run'}.png`);
@@ -341,6 +348,8 @@ try {
         reject(e);
       });
     });
+
+    domByHash[hash] = domOut;
 
     const injectedHtml = domOut.replace(/<link[^>]+rel="stylesheet"[^>]+>/, `<style>${cssContent}</style>`);
     const staticHtmlPath = path.resolve(process.cwd(), tmpDir, `shot-${hash ? hash.slice(1) : 'run'}.html`);
@@ -518,10 +527,10 @@ try {
         });
       });
 
-      if (!domIntro.includes('class="intro-video"')) {
+      if (!domIntro.includes('class="rs-video"')) {
         throw new Error('intro player: no <video> rendered for an intro-film video');
       }
-      const clock = domIntro.match(/<span class="intro-clock">.*?<span class="cur">([^<]*)<\/span>[^<]*<span>([^<]*)<\/span>/);
+      const clock = domIntro.match(/<span class="rs-clock">.*?<span class="cur">([^<]*)<\/span>[^<]*<span>([^<]*)<\/span>/);
       if (!clock) throw new Error('intro player: transport clock not found');
       if (clock[2] === '00:00') {
         throw new Error(
@@ -529,15 +538,27 @@ try {
           + 'so the transport is dead (clock frozen, Play cannot pause)');
       }
 
-      // Review-surface parity with Final Cut. The server has always accepted a
-      // screenshot on /feedback-intro and an intro:* key on /feedback-final-edit;
-      // only the UI half was missing, so the owner could neither attach nor edit
-      // (owner report 2026-08-06). Assert the controls exist.
-      for (const [needle, what] of [
+      // Review-surface parity. Intro and Final Cut are the SAME component now
+      // (components/ReviewSurface.tsx); they used to be two near-copies, and the
+      // copy that was not Final Cut shipped without attach and without edit
+      // (owner report 2026-08-06). Assert both render the same surface, so a
+      // future step that mounts ReviewSurface cannot quietly lose half of it.
+      const SURFACE_MARKERS = [
+        ['rs-container', 'the shared review surface'],
+        ['rs-panel', 'the comment panel'],
+        ['rs-input', 'the comment composer'],
         ['📎 image', 'attach a screenshot'],
-        ['✎ Edit', 'edit an existing comment'],
-        ['✕ Delete', 'delete a comment'],
-      ]) {
+      ];
+      for (const [dom, where] of [[domIntro, '#intro'], [domByHash['#final-cut'], '#final-cut']]) {
+        for (const [needle, what] of SURFACE_MARKERS) {
+          if (!dom.includes(needle)) {
+            throw new Error(`${where} is missing ${what} ("${needle}") — the two review tabs have diverged again`);
+          }
+        }
+      }
+      // Per-comment controls need a comment to exist, which only the intro
+      // fixture has.
+      for (const [needle, what] of [['✎ Edit', 'edit a comment'], ['✕ Delete', 'delete a comment']]) {
         if (!domIntro.includes(needle)) {
           throw new Error(`intro review: no way to ${what} — "${needle}" control is missing`);
         }

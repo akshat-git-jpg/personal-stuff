@@ -506,12 +506,53 @@ export function saveFeedbackImage(workdir, key, dataUrl) {
   return 'feedback-images/' + fname;
 }
 
-// Deleting a comment must take its screenshot with it, or feedback-images/
+// THE EXTENSION POINT for a new review step. A step names its comments
+// "<namespace>:<n>" (intro:0) or "<namespace>-<variant>:<n>" (final-v1:0); add
+// the namespace here and that step gets edit and delete with no route change.
+//
+// Deliberately a list and not a permissive "anything:<n>" pattern: cue:7 is a
+// storyboard cue note owned by a different surface with its own lifecycle, and
+// letting this endpoint delete one is how a comment disappears from a tab that
+// never offered to delete it.
+export const REVIEW_NAMESPACES = ['intro', 'final'];
+
+export function isEditableKey(key) {
+  const m = /^([a-z0-9][a-z0-9-]*):\d+$/i.exec(String(key ?? ''));
+  if (!m) return false;
+  const ns = m[1].toLowerCase();
+  return REVIEW_NAMESPACES.some((n) => ns === n || ns.startsWith(`${n}-`));
+}
+
+// A comment can carry SEVERAL screenshots — one frame rarely shows a whole
+// problem. `images` is the canonical field; `image` is the pre-2026-08-06
+// single-shot form and stays readable forever, because feedback.json files
+// already on disk carry it and a review comment is a record, not a cache.
+// Every reader goes through here so the two shapes cannot drift.
+export function itemImages(item) {
+  if (Array.isArray(item?.images)) return item.images.filter((p) => typeof p === 'string');
+  return typeof item?.image === 'string' ? [item.image] : [];
+}
+
+// Indexed names, so a second screenshot cannot land on the first one's path.
+// The legacy single-image name is `<key>.<ext>`; these are `<key>-<n>.<ext>`,
+// which cannot collide with it.
+export function saveFeedbackImages(workdir, key, dataUrls) {
+  const list = Array.isArray(dataUrls) ? dataUrls : (typeof dataUrls === 'string' ? [dataUrls] : []);
+  const out = [];
+  for (const [i, url] of list.entries()) {
+    const saved = saveFeedbackImage(workdir, `${key}-${i}`, url);
+    if (saved) out.push(saved);
+  }
+  return out;
+}
+
+// Deleting a comment must take its screenshots with it, or feedback-images/
 // fills with orphans nothing references.
 export function dropFeedbackImage(workdir, item) {
-  if (!item?.image) return;
-  const p = path.join(workdir, item.image);
-  if (p.startsWith(path.join(workdir, 'feedback-images'))) fs.rmSync(p, { force: true });
+  for (const rel of itemImages(item)) {
+    const p = path.join(workdir, rel);
+    if (p.startsWith(path.join(workdir, 'feedback-images'))) fs.rmSync(p, { force: true });
+  }
 }
 
 async function handleSave(req, res, workdir, cardLibraryRoot) {
@@ -1240,12 +1281,16 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     return res.end(fs.existsSync(p) ? fs.readFileSync(p) : '{"versions":[]}');
   }
 
-  const fbImgMatch = url.pathname.match(/^\/feedback-image\/(.+)$/);
+  // /feedback-image/<key> is the first screenshot (what every existing link
+  // means); /feedback-image/<key>/<n> is the nth. Keys never contain a slash,
+  // so a trailing /<digits> is unambiguous.
+  const fbImgMatch = url.pathname.match(/^\/feedback-image\/(.+?)(?:\/(\d+))?$/);
   if (req.method === 'GET' && fbImgMatch) {
     const key = decodeURIComponent(fbImgMatch[1]);
+    const idx = fbImgMatch[2] ? Number(fbImgMatch[2]) : 0;
     const fbPath = path.join(workdir, 'feedback.json');
     const fb = fs.existsSync(fbPath) ? JSON.parse(fs.readFileSync(fbPath, 'utf8')) : { items: {} };
-    const rel = fb.items?.[key]?.image;
+    const rel = itemImages(fb.items?.[key])[idx];
     const imgPath = rel ? path.join(workdir, rel) : null;
     if (!imgPath || !imgPath.startsWith(path.join(workdir, 'feedback-images')) || !fs.existsSync(imgPath)) {
       res.statusCode = 404; return res.end('no image');
@@ -1304,29 +1349,32 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     return;
   }
 
-  if (req.method === 'POST' && (url.pathname === '/feedback-final-edit' || url.pathname === '/feedback-final-delete')) {
+  // /feedback-edit and /feedback-delete are the names a new review step should
+  // use; the -final- spellings are the original ones and stay so existing
+  // clients keep working. Both have always served intro too — the name was the
+  // only thing that said "final".
+  const isEdit = url.pathname === '/feedback-edit' || url.pathname === '/feedback-final-edit';
+  const isDelete = url.pathname === '/feedback-delete' || url.pathname === '/feedback-final-delete';
+  if (req.method === 'POST' && (isEdit || isDelete)) {
     const body = await readBody(req);
     let payload;
     try { payload = JSON.parse(body); } catch (e) { res.statusCode = 400; return res.end('{"ok":false}'); }
     const key = String(payload.key ?? '');
-    if (!key.startsWith('final-') && !key.startsWith('intro:')) {
+    if (!isEditableKey(key)) {
       res.statusCode = 400;
-      return res.end('{"ok":false,"error":"final-* or intro:* keys only"}');
+      return res.end(JSON.stringify({ ok: false, error: `not an editable comment key: ${key}` }));
     }
     const fbPath = path.join(workdir, 'feedback.json');
     const fb = fs.existsSync(fbPath) ? JSON.parse(fs.readFileSync(fbPath, 'utf8')) : { items: {} };
     const item = fb.items?.[key];
     if (!item) { res.statusCode = 404; return res.end('{"ok":false,"error":"no such comment"}'); }
     if (item.folded) { res.statusCode = 409; return res.end('{"ok":false,"error":"folded items are read-only history"}'); }
-    if (url.pathname === '/feedback-final-edit') {
+    if (isEdit) {
       const text = String(payload.text ?? '').trim();
       if (!text) { res.statusCode = 400; return res.end('{"ok":false,"error":"empty text"}'); }
       item.text = text;
     } else {
-      if (item.image) {
-        const imgPath = path.join(workdir, item.image);
-        if (imgPath.startsWith(path.join(workdir, 'feedback-images'))) fs.rmSync(imgPath, { force: true });
-      }
+      dropFeedbackImage(workdir, item);   // every screenshot, not just the first
       delete fb.items[key];
     }
     fb.updated = new Date().toISOString().slice(0, 10);
@@ -1347,10 +1395,11 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
       .filter((k) => k.startsWith(prefix))
       .sort((a, b) => parseInt(a.slice(prefix.length), 10) - parseInt(b.slice(prefix.length), 10))
       .pop();
-    // Optional screenshot attachment (data URL): saved beside feedback.json so
-    // the fixing session can Read the image directly (gitignored — media).
-    const savedImage = saveFeedbackImage(workdir, key, payload.image);
-    if (savedImage) fb.items[key].image = savedImage;
+    // Optional screenshot attachments (data URLs): saved beside feedback.json so
+    // the fixing session can Read them directly (gitignored — media). `image`
+    // (singular) is still accepted so an older client keeps working.
+    const savedImages = saveFeedbackImages(workdir, key, payload.images ?? payload.image);
+    if (savedImages.length) fb.items[key].images = savedImages;
     fb.updated = new Date().toISOString().slice(0, 10);
     fs.writeFileSync(fbPath, JSON.stringify(fb, null, 2));
     res.setHeader('content-type', 'application/json');
@@ -1369,8 +1418,8 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
       .filter((k) => k.startsWith(prefix))
       .sort((a, b) => parseInt(a.slice(prefix.length), 10) - parseInt(b.slice(prefix.length), 10))
       .pop();
-    const savedImage = saveFeedbackImage(workdir, key, payload.image);
-    if (savedImage) fb.items[key].image = savedImage;
+    const savedImages = saveFeedbackImages(workdir, key, payload.images ?? payload.image);
+    if (savedImages.length) fb.items[key].images = savedImages;
     fb.updated = new Date().toISOString().slice(0, 10);
     fs.writeFileSync(fbPath, JSON.stringify(fb, null, 2));
     res.setHeader('content-type', 'application/json');
