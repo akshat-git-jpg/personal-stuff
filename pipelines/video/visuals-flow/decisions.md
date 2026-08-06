@@ -146,3 +146,31 @@
   untouched, the exact isolation property the owner asks for. Now
   `find lib -name '*.test.mjs'` (not a glob, so a new `lib/<subdir>/` cannot
   re-orphan anything); the gate went 649 → 665 tests. Do not reintroduce a list.
+
+- **2026-08-06**: **The step list is a REGISTRY, not six hand-kept copies.**
+  Every step now declares itself in `steps/<slug>/step.json` (number, title,
+  actor, verbs, consumes/produces, gate, tab, waivable, external, optional,
+  requires.intro); the non-step commands live in `steps/_verbs.json`.
+  `run.sh` derives its usage list, its step folder paths (`step_slug`) and its
+  `status` next-hint from it, `lib/run-log.mjs` takes its valid ledger keys from
+  it, and `PIPELINE.md`'s step table is generated from it by
+  `scripts/gen-pipeline-table.mjs` (`--check` runs first in `scripts/check.sh`).
+  **Why**: the list was encoded in six places that had to be edited in lockstep,
+  and two lib modules resolved step FOLDER NAMES at runtime
+  (`build-prompt.mjs`, `check-rulebook.mjs`, plus the shot/zone pair), so
+  renumbering a step to insert one before it broke running code with nothing to
+  catch it — the same failure mode that already destroyed this file's old→new
+  mapping table. The `status` next-hint was the live symptom: a fixed `if/elif`
+  over artifact probes with no awareness of the intro film, so on an
+  `intro: "film"` video the `next:` line never once named 025 or 027.
+  `steps/027-approve-intro-film-human/` was created here — the board had been
+  recording that gate (`lib/board.mjs` `recordGate(workdir, '027', …)`) against
+  a folder that did not exist.
+  This is decisions.md 2026-08-06's "A NEW STEP ADDS NO CODE HERE" applied to
+  the step list: create the folder, write `step.json`, regenerate the table.
+  `scripts/test-run-sh.sh` was rewritten to match — it drives every verb with
+  `VF_DRY_RUN=1` and compares the dispatched command to a table, replacing three
+  `grep '<literal>' run.sh` source-text pins that failed on any correct rename
+  while catching nothing (and had already bent `run.sh` into keeping a function
+  so "the command reads literally ... to the grep that pins it").
+  Mutation-verified: blanking one step's `produces` fails the gate with `E-REG`.

@@ -11,6 +11,7 @@ import {
 } from './build-zone-prompt.mjs';
 import { ZONE_CONSTANTS } from './zone-constants.mjs';
 import { ZONE_RULES } from './zone-rules.mjs';
+import { stepDir } from './steps.mjs';
 
 const REQUIRED_SECTIONS = [
   '## Inputs and outputs',
@@ -37,9 +38,9 @@ export function checkZoneRulebook({
   zoneConstants = ZONE_CONSTANTS,
   zoneRules = ZONE_RULES,
 } = {}) {
-  const stepDir = path.resolve(import.meta.dirname, '..', 'steps', '035-pick-or-propose-intro-outro-llm');
-  rulebookPath ??= path.join(stepDir, 'RULEBOOK.md');
-  promptPath ??= path.join(stepDir, 'zone-pass-prompt.md');
+  const zonePassStepDir = stepDir('035');
+  rulebookPath ??= path.join(zonePassStepDir, 'RULEBOOK.md');
+  promptPath ??= path.join(zonePassStepDir, 'zone-pass-prompt.md');
 
   if (!fs.existsSync(rulebookPath)) fail(`RULEBOOK.md missing: ${rulebookPath}`);
   if (!fs.existsSync(promptPath)) fail(`zone-pass-prompt.md missing: ${promptPath}`);

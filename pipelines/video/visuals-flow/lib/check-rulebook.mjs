@@ -6,6 +6,7 @@ import {
 } from './build-prompt.mjs';
 import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
 import { CUE_RULES } from './cue-rules.mjs';
+import { stepDir } from './steps.mjs';
 
 // Governed units/phrases the generated constraints block already states.
 // Any bare occurrence of these OUTSIDE the generated block is a hand-written
@@ -48,7 +49,7 @@ export function checkRulebook({
   cueRules = CUE_RULES,
 } = {}) {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
-  const cuePassStepDir = path.resolve(import.meta.dirname, '..', 'steps', '030-pick-or-propose-graphics-llm');
+  const cuePassStepDir = stepDir('030');
   rulebookPath ??= path.join(cuePassStepDir, 'RULEBOOK.md');
   promptPath ??= path.join(cuePassStepDir, 'cue-pass-prompt.md');
   catalogPath ??= path.join(cardLibraryRoot, 'catalog.json');

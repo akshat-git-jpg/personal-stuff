@@ -1,0 +1,17 @@
+{
+  "number": "130",
+  "slug": "130-learn-from-feedback-opus",
+  "title": "learn from the feedback",
+  "actor": "opus",
+  "actorLabel": "[OPUS]",
+  "verbs": ["fold"],
+  "consumes": ["feedback.json"],
+  "produces": [],
+  "gate": null,
+  "tab": null,
+  "waivable": false,
+  "external": true,
+  "optional": true,
+  "requires": { "intro": null },
+  "summary": "`videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step)"
+}

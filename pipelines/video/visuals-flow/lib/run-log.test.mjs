@@ -39,10 +39,32 @@ test('step ids come from the steps/ folders', async (t) => {
     for (const id of ids) assert.match(id, /^\d{3}-/);
   });
 
-  await t.test('ignores anything that is not a numbered folder', () => {
+  await t.test('ignores anything that is not a declared step', () => {
     const dir = workdir('steps');
     fs.mkdirSync(path.join(dir, '010-real-run'));
+    fs.writeFileSync(
+      path.join(dir, '010-real-run', 'step.json'),
+      JSON.stringify({
+        number: '010',
+        slug: '010-real-run',
+        title: 'real',
+        actor: 'run',
+        verbs: [],
+        consumes: [],
+        produces: ['real.json'],
+        gate: null,
+        tab: null,
+        waivable: false,
+        external: false,
+        optional: false,
+        requires: { intro: null },
+      }),
+    );
     fs.mkdirSync(path.join(dir, 'shared-notes'));
+    // A numbered folder with no step.json is NOT a step. It used to be one, by
+    // virtue of its name alone, which is how the ledger could accept a key the
+    // registry knew nothing about.
+    fs.mkdirSync(path.join(dir, '070-undeclared-run'));
     fs.writeFileSync(path.join(dir, '020-a-file.md'), 'x');
     assert.deepEqual(stepIds(dir), ['010-real-run']);
   });

@@ -1,0 +1,17 @@
+{
+  "number": "150",
+  "slug": "150-deliver-drive-run",
+  "title": "deliver to Drive",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": ["deliver"],
+  "consumes": ["run-config.json"],
+  "produces": [],
+  "gate": null,
+  "tab": null,
+  "waivable": false,
+  "external": true,
+  "optional": true,
+  "requires": { "intro": null },
+  "summary": "approved `final.mp4` (full-res, 120-gated) → `Output/<slug>-final.mp4` in the video's own Drive folder (`run-config.json` drive_folder/drive_account; `pp-drive` upload with --overwrite)"
+}
