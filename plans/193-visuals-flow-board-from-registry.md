@@ -10,7 +10,7 @@ touches: [pipelines/video/visuals-flow/lib/board.mjs, pipelines/video/visuals-fl
 
 mutation_apply: cd pipelines/video/visuals-flow && python3 -c "import json; p='steps/027-approve-intro-film-human/step.json'; d=json.load(open(p)); d['tab']=None; d['gate']=None; json.dump(d,open(p,'w'),indent=2)"
 mutation_command: bash scripts/check.sh
-mutation_expect: E-BOARD
+mutation_expect: E-REG
 mutation_cwd: pipelines/video/visuals-flow
 mutation_timeout: 900
 ---
@@ -42,8 +42,13 @@ mutation_timeout: 900
   history; it is not a place to take the cheap default.
 - **Done criteria** (terse — full list below): `check.sh` exits 0; an
   `intro: "cards"` video renders no Intro tab and an `intro: "film"` video does;
-  no hardcoded gate step numbers or tab list remain; `E-BOARD` fires when a
-  gate's `tab` is removed from the registry.
+  no hardcoded gate step numbers or tab list remain; a gate whose `file` no
+  step declares throws `E-BOARD` (board.mjs's own registry lookup); the
+  specific mutation the merge gate applies — nulling BOTH `tab` and `gate` on
+  027, whose only effect WAS its gate (`produces: []`, `external: false`) —
+  is instead caught earlier by plan 191's own registry validation (`E-REG
+  ... declares no effect`), which fires before board.mjs is ever reached
+  (see mutation_expect below).
 - **Stop conditions** (terse — full list below): a tab's data contract cannot be
   derived; any gate's approve behaviour would change; a server-opening test
   cannot be given guaranteed teardown.
@@ -474,7 +479,11 @@ dependencies only surface on a clean tree (LESSONS 2026-07-31).
 - [ ] `App.tsx`'s liveness interval hits `/health`, not `/api/board-data`
 - [ ] Every server-opening test file has a `test.after` force-close
 - [ ] A screenshot of both tab rows is committed under `docs/screenshots/`
-- [ ] Removing `tab`/`gate` from `steps/027-*/step.json` makes `check.sh` fail printing `E-BOARD` (mutation gate; boss runs it)
+- [ ] Removing `tab`/`gate` from `steps/027-*/step.json` makes `check.sh` fail (mutation gate; boss runs it). 027's only
+      effect was its gate (`produces: []`, `external: false`), so nulling both trips plan 191's own registry validation
+      first — `check.sh` fails printing `E-REG ... declares no effect`, before board.mjs is ever reached. board.mjs's
+      own `E-BOARD` throw (`gateNumberFor`) is real and unit-tested (a gate `file` no step declares), but this
+      particular mutation is caught one layer earlier by a stronger, already-landed guard — see `mutation_expect`.
 - [ ] `check.sh` exits 0 on a fresh clone of the branch
 
 ## STOP conditions
