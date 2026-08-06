@@ -100,3 +100,49 @@
   finding: side mode's 720x1080 column loses only 16% of a PORTRAIT source but
   62.5% of a landscape one, so portrait is the better input there too. Full
   write-up incl. ffmpeg gotchas: `docs/specs/2026-08-03-portrait-avatar-in-landscape-design.md`.
+
+- **2026-08-06**: **One renderer pin per role, single-sourced — and the two roles
+  are NOT unified.** `lib/renderer-constants.mjs` now owns both hyperframes pins;
+  four files used to hardcode their own and two of them disagreed by 26 patch
+  versions with nothing on screen to reveal it: `lib/render.mjs` (every graphics
+  card, step 090) and `steps/010-transcribe-run/run.sh` on `0.7.62`, the intro
+  film's render AND review pair on `0.7.88`, and step 038's README telling you to
+  lint a new card against `@latest`. So a card could be built and linted on one
+  renderer, rendered on a second, and sit in the same timeline as an intro
+  rendered on a third. `HYPERFRAMES_VERSION` now overrides BOTH pins together —
+  it previously moved only the card renderer, which is precisely the "green review
+  on one version, ship on another" failure `render-film.mjs`'s own comment warns
+  about. **The 0.7.62/0.7.88 split is deliberately PRESERVED, not tidied away**:
+  moving cards to 0.7.88 re-renders all 42 catalog cards on a renderer nobody has
+  frame-verified them against, and the house rule since 2026-07-19 is that a
+  visual change is verified by extracting and LOOKING at frames — a render+inspect
+  gate passed three visually-broken effects in one day. Unification is an owner
+  call with a frame-verification pass attached. `lib/renderer-constants.test.mjs`
+  fails if any `lib/` source hardcodes a pin again, and asserts step 010's bash
+  pin (which cannot import) still matches the card version.
+
+- **2026-08-06**: **`srcAspect` reaches the geometry planners; the fixtures that
+  hid it are the lesson.** `planPanelGeometry`/`planSideGeometry` accepted
+  `srcAspect` from the day they were written and no caller ever passed it, so
+  every panel/side composite took the 16/9 default and a portrait 9:16 HeyGen
+  render was stretched 3.16x wide before cropping. The 2026-08-03 entry above
+  made portrait a first-class source AND named this the blocking prerequisite; it
+  still shipped. It survived because the integration fixtures composite
+  solid-colour clips — a blue rectangle stretched 3.16x is still a blue
+  rectangle, so no test could see it (the fixture-blindness lesson of
+  2026-07-19). `probeSrcAspect(file)` (memoised, 16/9 fallback so an unreadable
+  clip cannot kill an assembly) now feeds all four call sites.
+  `lib/src-aspect.test.mjs` asserts shape RATIOS rather than pixel values, and —
+  because every planner-level test passes `srcAspect` explicitly and would stay
+  green while the real bug persisted — one test pins the CALL SITES as source.
+  Mutation-verified: dropping the argument fails it with the exact line.
+
+- **2026-08-06**: **`scripts/check.sh` FINDS its tests instead of listing them.**
+  The hand-typed list had drifted to 39 of 50 `lib/` test files: `segments`,
+  `plan-skeleton`, `cue-rules`, `side-mode`, `versions`, `motif`,
+  `transcript-beats`, `post-status`, `regression-cards` and both rulebook
+  checkers were on disk, passing, and never run by the gate. `regression-cards`
+  is the one that mattered — it asserts the `intro: "cards"` default path is
+  untouched, the exact isolation property the owner asks for. Now
+  `find lib -name '*.test.mjs'` (not a glob, so a new `lib/<subdir>/` cannot
+  re-orphan anything); the gate went 649 → 665 tests. Do not reintroduce a list.
