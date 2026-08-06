@@ -3,7 +3,7 @@ import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
-import { introOwnedByFilm } from './intro-film/owns-intro.mjs';
+import { ownsIntroSpan } from './intro-modes.mjs';
 import { ZONE_CONSTANTS, ENACTED_PREFIX, zonePartsFor } from './zone-constants.mjs';
 import { extendExposure, findPhrase, normWord } from './resolve.mjs';
 import { jobPurpose } from './shot-constants.mjs';
@@ -361,8 +361,8 @@ export function lintCues({ workdir, cuesFile, resolved, words, catalog, segments
   // resolve's head-cover pulls the first card to 0 when it can; this error is
   // the backstop for the plans it cannot fix (first card too far in, no span).
   {
-    if (workdir && introOwnedByFilm(workdir)) {
-      // The film covers second zero; do not enforce E13.
+    if (workdir && ownsIntroSpan(workdir)) {
+      // The active intro flow owns second zero; do not enforce E13.
     } else {
       const firstFull = sortedResolved.find((r) => r.placement === 'fullframe');
       const firstSpanStart = avatarFullSpans(avatarJobs)[0]?.[0] ?? Infinity;
@@ -373,11 +373,11 @@ export function lintCues({ workdir, cuesFile, resolved, words, catalog, segments
     }
   }
 
-  if (workdir && introOwnedByFilm(workdir)) {
+  if (workdir && ownsIntroSpan(workdir)) {
     const partAt = (t) => (segmentsData?.structure ?? []).find((s) => t >= s.start && t < s.end)?.part ?? null;
     for (const r of sortedResolved) {
       if (r.card === 'link-in-description/link-scrim' && partAt(r.start) === 'conclusion') {
-        errors.push(`E23 link-scrim: ${r.id} uses link-scrim in the conclusion, but the intro film owns the first description mention. Use link-in-description (pill) instead.`);
+        errors.push(`E23 link-scrim: ${r.id} uses link-scrim in the conclusion, but the active intro flow owns the first description mention. Use link-in-description (pill) instead.`);
       }
     }
   }

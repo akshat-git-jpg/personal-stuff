@@ -6,7 +6,7 @@ import { resolveShots } from './resolve-shots.mjs';
 import { jobPurpose } from './shot-constants.mjs';
 import { gateWaived, loadRunConfig } from './run-config.mjs';
 import { lintShots } from './lint-shots.mjs';
-import { filmSpanFor } from './intro-film/owns-intro.mjs';
+import { introSpanFor } from './intro-modes.mjs';
 import { mmss } from './render.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 
@@ -161,7 +161,7 @@ async function main() {
     // mode's first production use, 2026-07-31).
     const catalogPath = path.resolve(import.meta.dirname, '..', '..', 'card-library', 'catalog.json');
     const catalog = fs.existsSync(catalogPath) ? JSON.parse(fs.readFileSync(catalogPath, 'utf8')) : null;
-    const lintRes = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog, filmSpan: filmSpanFor(workdir) });
+    const lintRes = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog, filmSpan: introSpanFor(workdir) });
     if (lintRes.errors.length > 0) {
       for (const e of lintRes.errors) console.error(e);
       process.exit(1);
