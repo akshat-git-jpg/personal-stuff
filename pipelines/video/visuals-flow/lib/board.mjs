@@ -551,6 +551,36 @@ export function isEditableKey(key) {
   return REVIEW_NAMESPACES.some((n) => ns === n || ns.startsWith(`${n}-`));
 }
 
+// Re-rendered media MUST win over whatever the browser already has. Both the
+// intro film and its review frames keep the SAME path across re-renders, so a
+// cached copy is indistinguishable from the fresh one by URL alone — the owner
+// re-renders after giving feedback and is shown the film they just critiqued,
+// with nothing on screen to say so. /intro-frame made this certain by claiming
+// max-age=31536000: a year of immutability on a file that is rewritten by every
+// review pass. /intro-video claimed nothing at all, which leaves it to the
+// browser's heuristics (owner report 2026-08-06).
+//
+// no-cache is not no-store: the browser MAY keep the bytes, but must revalidate
+// before reusing them. With a validator derived from mtime+size that costs one
+// conditional request and a 304 when nothing changed — so the 36-frame beat
+// sheet stays fast — while a re-render always sends the new bytes.
+export function mediaValidator(stat) {
+  return `W/"${stat.size.toString(16)}-${Math.floor(stat.mtimeMs).toString(16)}"`;
+}
+
+export function serveRevalidating(req, res, stat) {
+  const etag = mediaValidator(stat);
+  res.setHeader('etag', etag);
+  res.setHeader('last-modified', new Date(stat.mtimeMs).toUTCString());
+  res.setHeader('cache-control', 'no-cache');
+  if (req.headers['if-none-match'] === etag) {
+    res.statusCode = 304;
+    res.end();
+    return true;      // caller must stop: 304 carries no body
+  }
+  return false;
+}
+
 // A comment can carry SEVERAL screenshots — one frame rarely shows a whole
 // problem. `images` is the canonical field; `image` is the pre-2026-08-06
 // single-shot form and stays readable forever, because feedback.json files
@@ -1173,7 +1203,9 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
       return res.end('frame not found');
     }
     res.setHeader('content-type', f.endsWith('.jpg') || f.endsWith('.jpeg') ? 'image/jpeg' : 'image/png');
-    res.setHeader('cache-control', 'public, max-age=31536000');
+    // Review frames are rewritten by every review pass under the SAME name, so
+    // they are never immutable — revalidate instead of trusting a cached copy.
+    if (serveRevalidating(req, res, fs.statSync(framePath))) return;
     return res.end(fs.readFileSync(framePath));
   }
 
@@ -1184,11 +1216,17 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
       res.setHeader('content-type', 'application/json');
       return res.end('{"ok":false,"error":"not rendered"}');
     }
-    
+
     const stat = fs.statSync(videoPath);
     const fileSize = stat.size;
     const range = req.headers.range;
     if (range) {
+      // Validators, but never a 304 on a Range: a media element that asks for
+      // bytes and gets a bodyless 304 just stalls. Revalidation happens on the
+      // element's first, non-Range request.
+      res.setHeader('etag', mediaValidator(stat));
+      res.setHeader('last-modified', new Date(stat.mtimeMs).toUTCString());
+      res.setHeader('cache-control', 'no-cache');
       const parts = range.replace(/bytes=/, "").split("-");
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
@@ -1202,6 +1240,9 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
       });
       file.pipe(res);
     } else {
+      // The element's opening request. A 304 here means "your copy is current";
+      // anything else and it re-reads a file a re-render may have replaced.
+      if (serveRevalidating(req, res, stat)) return;
       res.writeHead(200, {
         'Content-Length': fileSize,
         'Content-Type': 'video/mp4',
@@ -1360,11 +1401,17 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
 
     const videoPath = path.join(kbWorkdir, version.file);
     if (!fs.existsSync(videoPath)) { res.statusCode = 404; return res.end('video not found'); }
-    
+
     const stat = fs.statSync(videoPath);
     const fileSize = stat.size;
     const range = req.headers.range;
     if (range) {
+      // Same reasoning as /intro-video: validators yes, 304-on-Range no.
+      // "/video/current" in particular is one URL whose bytes change with every
+      // re-cut, so a cached copy is indistinguishable from a fresh one by URL.
+      res.setHeader('etag', mediaValidator(stat));
+      res.setHeader('last-modified', new Date(stat.mtimeMs).toUTCString());
+      res.setHeader('cache-control', 'no-cache');
       const parts = range.replace(/bytes=/, "").split("-");
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
@@ -1378,6 +1425,9 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
       });
       file.pipe(res);
     } else {
+      // The element's opening request. A 304 here means "your copy is current";
+      // anything else and it re-reads a file a re-render may have replaced.
+      if (serveRevalidating(req, res, stat)) return;
       res.writeHead(200, {
         'Content-Length': fileSize,
         'Content-Type': 'video/mp4',

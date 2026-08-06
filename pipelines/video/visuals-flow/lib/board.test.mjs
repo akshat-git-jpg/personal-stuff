@@ -1597,3 +1597,73 @@ test('gateNumberFor resolves the current step number for all three approvable ga
 test('gateNumberFor throws E-BOARD when no step declares the gate file', () => {
   assert.throws(() => gateNumberFor('no-such-gate.json'), /E-BOARD/);
 });
+
+// ---- re-rendered media must beat the browser cache -------------------------
+// The intro film and its review frames keep the SAME url across re-renders, so
+// a cached copy is indistinguishable from a fresh one by URL alone: the owner
+// re-renders after giving feedback and is served the film they just critiqued.
+// /intro-frame guaranteed it by claiming max-age=31536000 — a year of
+// immutability on a file every review pass rewrites (owner report 2026-08-06).
+test('a re-rendered intro film beats a cached copy, and 304s when unchanged', async () => {
+  const workdir = makeWorkdir();
+  const outDir = path.join(workdir, 'intro-film', 'out');
+  fs.mkdirSync(outDir, { recursive: true });
+  const mp4 = path.join(outDir, 'intro.mp4');
+  fs.writeFileSync(mp4, 'VERSION-ONE');
+
+  const { server, base } = await startServer(workdir);
+  try {
+    const first = await fetch(`${base}/intro-video`);
+    assert.equal(first.status, 200);
+    assert.equal(first.headers.get('cache-control'), 'no-cache',
+      'must revalidate — an unconditioned video url is how a stale render survives a re-render');
+    const etag = first.headers.get('etag');
+    assert.ok(etag, 'needs a validator or revalidation cannot work');
+
+    const unchanged = await fetch(`${base}/intro-video`, { headers: { 'if-none-match': etag } });
+    assert.equal(unchanged.status, 304, 'unchanged file must 304, or every load re-downloads the film');
+
+    // A Range must NEVER 304: a media element that asks for bytes and gets an
+    // empty 304 simply stalls.
+    const ranged = await fetch(`${base}/intro-video`, {
+      headers: { Range: 'bytes=0-3', 'if-none-match': etag },
+    });
+    assert.equal(ranged.status, 206, 'a Range request must be answered with bytes, never a 304');
+
+    // Re-render: same path, different content.
+    fs.writeFileSync(mp4, 'VERSION-TWO-IS-LONGER');
+    const after = await fetch(`${base}/intro-video`, { headers: { 'if-none-match': etag } });
+    assert.equal(after.status, 200, 'a re-render must not be answered with 304');
+    assert.equal(await after.text(), 'VERSION-TWO-IS-LONGER');
+  } finally {
+    server.close();
+  }
+});
+
+test('review frames revalidate instead of claiming a year of immutability', async () => {
+  const workdir = makeWorkdir();
+  const reviewDir = path.join(workdir, 'intro-film', 'review');
+  fs.mkdirSync(reviewDir, { recursive: true });
+  const frame = path.join(reviewDir, 'frame-00-at-1s.png');
+  fs.writeFileSync(frame, 'FRAME-V1');
+
+  const { server, base } = await startServer(workdir);
+  try {
+    const first = await fetch(`${base}/intro-frame?f=frame-00-at-1s.png`);
+    assert.equal(first.status, 200);
+    const cc = first.headers.get('cache-control') ?? '';
+    assert.doesNotMatch(cc, /max-age=\d{5,}/,
+      'review frames are rewritten under the same name by every review pass — they are never immutable');
+    const etag = first.headers.get('etag');
+
+    assert.equal((await fetch(`${base}/intro-frame?f=frame-00-at-1s.png`,
+      { headers: { 'if-none-match': etag } })).status, 304);
+
+    fs.writeFileSync(frame, 'FRAME-V2-AFTER-REVIEW');
+    const after = await fetch(`${base}/intro-frame?f=frame-00-at-1s.png`, { headers: { 'if-none-match': etag } });
+    assert.equal(after.status, 200, 're-reviewed frame must not be answered with 304');
+    assert.equal(await after.text(), 'FRAME-V2-AFTER-REVIEW');
+  } finally {
+    server.close();
+  }
+});
