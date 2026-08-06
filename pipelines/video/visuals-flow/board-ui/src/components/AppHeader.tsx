@@ -1,9 +1,10 @@
 import { ReactNode, useState } from 'react';
-import { Tab, TABS, urlForVideo } from '../lib/router';
+import { Tab, urlForVideo } from '../lib/router';
 import './AppHeader.css';
 
 export function AppHeader(props: {
   video: string; videos: string[]; tab: Tab; dirty: boolean;
+  tabs: { id: Tab; label: string }[];  // plan 193: caller passes the VISIBLE rows, filtered server-side
   meta?: ReactNode;            // tab-scoped info text (duration, counts…)
   actions?: ReactNode;         // right-aligned gate actions for the active tab
   secondary?: ReactNode;       // row 2 — allowed to differ per tab
@@ -28,8 +29,8 @@ export function AppHeader(props: {
     <header className="app-header">
       <div className="app-header-row1">
         <nav className="app-tabs">
-          {TABS.map((t) => (
-            <button key={t.id} className={'tab-btn' + (t.id === props.tab ? ' active' : '')}
+          {props.tabs.map((t) => (
+            <button key={t.id} data-tab-id={t.id} className={'tab-btn' + (t.id === props.tab ? ' active' : '')}
                     onClick={() => props.onTab(t.id)}>{t.label}</button>
           ))}
         </nav>

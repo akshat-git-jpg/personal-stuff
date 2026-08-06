@@ -6,6 +6,31 @@ import path from 'node:path';
 import { normWord } from './resolve.mjs';
 import { planCaptions } from './captions.mjs';
 import { loadShots, loadEffects } from './board.mjs';
+import { loadSteps } from './steps.mjs';
+import { loadRunConfig } from './run-config.mjs';
+
+// Which board tabs apply to THIS video, derived from the step registry plus
+// the video's run-config. Before this, board-ui rendered all five tabs for
+// every video because it had no way to know: board-data never exposed
+// run-config, so an intro:"cards" video showed an Intro tab that could only
+// render the "no intro film" empty state — a dead surface presented as a
+// live one.
+//
+// 'run' and 'calibrate' are ALWAYS applicable: they are not step reviews.
+// 'run' is the status view (owner decision 2026-07-24) and 'calibrate' is a
+// hash-only card-rendering page with no tab button.
+export const ALWAYS_TABS = ['run', 'calibrate'];
+
+export function applicableTabs(workdir, { steps = null } = {}) {
+  const cfg = loadRunConfig(workdir);
+  const tabs = new Set(ALWAYS_TABS);
+  for (const s of (steps ?? loadSteps())) {
+    if (!s.tab) continue;
+    if (s.requires.intro !== null && s.requires.intro !== cfg.intro) continue;
+    tabs.add(s.tab);
+  }
+  return [...tabs];
+}
 
 function normalizeFeedbackItems(raw) {
   const items = {};
@@ -136,6 +161,8 @@ export function buildBoardData(workdir, cardLibraryRoot, { buildSegments }) {
   return {
     video,
     hasResolved: d.hasResolved,
+    runConfig: loadRunConfig(workdir),
+    tabs: applicableTabs(workdir),
     totalDuration,
     approved: {
       cues: d.cuesFile.approved === true,

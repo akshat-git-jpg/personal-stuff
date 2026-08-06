@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer, latestWorkdir, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, appendFinalFeedback, appendIntroFeedback, pinFromClick, resolveAndExtend, playthroughView, toggleAuditAccepted } from './board.mjs';
+import { createServer, latestWorkdir, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, appendFinalFeedback, appendIntroFeedback, pinFromClick, resolveAndExtend, playthroughView, toggleAuditAccepted, REVIEW_NAMESPACES, TAB_NAMESPACE, reviewNamespacesFromRegistry, gateNumberFor } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'board');
@@ -1567,4 +1567,33 @@ test('isEditableKey admits review namespaces and refuses everything else', async
   for (const no of ['cue:7', 'sb:c01', 'c01', 'intro', 'intro:', ':0', '', undefined, '../etc:0']) {
     assert.equal(isEditableKey(no), false, `${no} must be refused`);
   }
+});
+
+// Plan 193: REVIEW_NAMESPACES and the gate step numbers are now derived from
+// the registry (plan 191) instead of hand-maintained literals. These tests
+// exercise the REAL steps/ folder on disk — not a fixture — because that is
+// the same registry boss's mutation gate edits, and a test running against a
+// stand-in fixture would never notice a mutation to the real files.
+test('REVIEW_NAMESPACES is derived from the registry and still equals [intro, final]', () => {
+  assert.deepEqual(REVIEW_NAMESPACES, ['intro', 'final']);
+  assert.deepEqual(reviewNamespacesFromRegistry(), ['intro', 'final']);
+});
+
+// TAB_NAMESPACE deliberately does NOT cover every gated tab: card-plan (037)
+// and storyboard (080) also hold gates, but their comments (zone-*,
+// card-body:*, cue:*) are owned by a different surface with its own
+// lifecycle — deleting one through this endpoint is exactly the bug the
+// closed-list comment on REVIEW_NAMESPACES warns about.
+test('TAB_NAMESPACE maps only the tabs that get edit + delete', () => {
+  assert.deepEqual(TAB_NAMESPACE, { intro: 'intro', 'final-cut': 'final' });
+});
+
+test('gateNumberFor resolves the current step number for all three approvable gates', () => {
+  assert.equal(gateNumberFor('card-plan.json'), '037');
+  assert.equal(gateNumberFor('final-cut.json'), '120');
+  assert.equal(gateNumberFor('intro-film/screenplay.json'), '027');
+});
+
+test('gateNumberFor throws E-BOARD when no step declares the gate file', () => {
+  assert.throws(() => gateNumberFor('no-such-gate.json'), /E-BOARD/);
 });

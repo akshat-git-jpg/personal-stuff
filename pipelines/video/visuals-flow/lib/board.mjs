@@ -28,6 +28,7 @@ import { computeProbeTimes, loadBoardData, buildBoardData, introData } from './b
 import { ownsIntroSpan } from './intro-modes.mjs';
 import { stepView, summarize as summarizeRun, nextStep, readRunLog, writeRunLog, setStep, resolveStepId } from './run-log.mjs';
 import { approveIntro } from './intro-film/approve.mjs';
+import { loadSteps } from './steps.mjs';
 
 // What the board needs to BOOT. resolved.json is deliberately not here: it is
 // produced by 040, and 040 refuses any cue naming a card that does not exist
@@ -506,15 +507,42 @@ export function saveFeedbackImage(workdir, key, dataUrl) {
   return 'feedback-images/' + fname;
 }
 
-// THE EXTENSION POINT for a new review step. A step names its comments
-// "<namespace>:<n>" (intro:0) or "<namespace>-<variant>:<n>" (final-v1:0); add
-// the namespace here and that step gets edit and delete with no route change.
+// The tab-id -> review-namespace relation is NOT derivable from the registry
+// alone (final-cut's namespace is "final", not "final-cut") — this is the one
+// remaining hand-maintained map (decisions.md 2026-08-06, plan 193). Adding a
+// row is a conscious act; guess a rule from these two data points and the next
+// tab breaks it.
+export const TAB_NAMESPACE = { intro: 'intro', 'final-cut': 'final' };
+
+// THE EXTENSION POINT for a new review step — now derived, not maintained. A
+// step declares `tab` and `gate` in its steps/<slug>/step.json; its review
+// namespace is its tab id looked up in TAB_NAMESPACE above. Add the step, get
+// edit + delete, change no code here (decisions.md 2026-08-06).
 //
-// Deliberately a list and not a permissive "anything:<n>" pattern: cue:7 is a
-// storyboard cue note owned by a different surface with its own lifecycle, and
-// letting this endpoint delete one is how a comment disappears from a tab that
-// never offered to delete it.
-export const REVIEW_NAMESPACES = ['intro', 'final'];
+// STILL deliberately a closed list and NOT a permissive "anything:<n>"
+// pattern: cue:7 is a storyboard cue note owned by a different surface with
+// its own lifecycle, and letting this endpoint delete one is how a comment
+// disappears from a tab that never offered to delete it.
+export function reviewNamespacesFromRegistry(steps = null) {
+  const namespaces = new Set();
+  for (const s of (steps ?? loadSteps())) {
+    if (!s.tab || !s.gate) continue;
+    const ns = TAB_NAMESPACE[s.tab];
+    if (ns) namespaces.add(ns);
+  }
+  return [...namespaces];
+}
+
+export const REVIEW_NAMESPACES = reviewNamespacesFromRegistry();
+
+// A renumber can no longer desync a gate from the step it approves: this
+// resolves the CURRENT number for the step that owns `gateFile`, keyed off
+// the registry rather than a literal string baked in at every call site.
+export function gateNumberFor(gateFile) {
+  const hit = loadSteps().find((s) => s.gate?.file === gateFile);
+  if (!hit) throw new Error(`E-BOARD no step declares a gate on "${gateFile}"`);
+  return hit.number;
+}
 
 export function isEditableKey(key) {
   const m = /^([a-z0-9][a-z0-9-]*):\d+$/i.exec(String(key ?? ''));
@@ -767,7 +795,7 @@ function recordStoryboardGate(workdir) {
   if (cues && (shots || !hasShots)) {
     recordGate(
       workdir,
-      '080',
+      gateNumberFor('cues.json'),
       hasShots
         ? 'Owner approved the storyboard composition: graphics and avatar shots.'
         : 'Owner approved the storyboard composition (graphics; this video has no avatar shots).',
@@ -805,7 +833,7 @@ async function handleApproveCardPlan(req, res, workdir) {
   const cardPlan = JSON.parse(fs.readFileSync(zpPath, 'utf8'));
   cardPlan.approved = true;
   fs.writeFileSync(zpPath, JSON.stringify(cardPlan, null, 2));
-  recordGate(workdir, '037', 'Owner approved the card plan — every card the video will use, body and zones.', 'card-plan.json approved=true');
+  recordGate(workdir, gateNumberFor('card-plan.json'), 'Owner approved the card plan — every card the video will use, body and zones.', 'card-plan.json approved=true');
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
 }
@@ -839,7 +867,7 @@ async function handleApproveFinalCut(req, res, workdir) {
   const fcPath = path.join(workdir, 'final-cut.json');
   const fc = { approved: true, version: payload.version };
   fs.writeFileSync(fcPath, JSON.stringify(fc, null, 2));
-  recordGate(workdir, '120', `Owner approved the final cut (version ${payload.version}).`, `final-cut.json approved=true, version ${payload.version}`);
+  recordGate(workdir, gateNumberFor('final-cut.json'), `Owner approved the final cut (version ${payload.version}).`, `final-cut.json approved=true, version ${payload.version}`);
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
 }
@@ -1016,6 +1044,16 @@ export function requestedWorkdir(url, launchWorkdir) {
 async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   res.setHeader('Connection', 'close');
+
+  // A cheap liveness probe that touches no filesystem — App.tsx's interval
+  // used to poll /api/board-data every 2s purely to detect a dead backend
+  // and discard the response, doing real fs work for nothing (plan 193).
+  if (req.method === 'GET' && url.pathname === '/health') {
+    res.setHeader('content-type', 'application/json; charset=utf-8');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(JSON.stringify({ ok: true }));
+  }
+
   const workdir = requestedWorkdir(url, launchWorkdir);
   // No bulk slice-cutting here: it ran BEFORE the response and blanked the
   // browser for seconds on every video switch. /slice/<id> cuts on demand.
@@ -1225,7 +1263,7 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
   if (req.method === 'POST' && url.pathname === '/approve-intro') {
     await readBody(req);
     approveIntro(workdir);
-    recordGate(workdir, '027', 'Owner approved the intro film.', 'intro-film/screenplay.json approved=true');
+    recordGate(workdir, gateNumberFor('intro-film/screenplay.json'), 'Owner approved the intro film.', 'intro-film/screenplay.json approved=true');
     res.setHeader('content-type', 'application/json');
     return res.end(JSON.stringify({ ok: true }));
   }

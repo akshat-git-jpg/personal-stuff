@@ -10,6 +10,11 @@ export interface BoardData {
     sections: any[];
     comments: Record<string, any[]>;
   };
+  // plan 193: the owner's kickoff choices for this video (step 005) and which
+  // board tabs this run actually reviews, both derived server-side from the
+  // step registry + run-config.json.
+  runConfig: { engine: string; review: string; intro: string; configured: boolean };
+  tabs: string[];
 }
 
 export async function fetchBoardData(video: string | null): Promise<BoardData> {
