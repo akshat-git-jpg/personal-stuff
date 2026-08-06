@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
-import { INTRO_MODE_NAMES } from './intro-modes.mjs';
+import { INTRO_MODE_NAMES } from './intro-mode-table.mjs';
 
 // The owner's kickoff choices for one video (step 005): which HeyGen engine
 // the avatar renders use, and how much they want to review along the way.

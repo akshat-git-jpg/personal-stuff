@@ -25,7 +25,7 @@ import { loadVideoManifest } from './video-manifest.mjs';
 import { appendCardPlanFeedback, PLAN_PARTS } from './card-plan.mjs';
 import { MEASURE_OVERFLOW_SRC } from './overflow-measure.mjs';
 import { computeProbeTimes, loadBoardData, buildBoardData, introData } from './board-data.mjs';
-import { introOwnedByFilm } from './intro-film/owns-intro.mjs';
+import { ownsIntroSpan } from './intro-modes.mjs';
 import { stepView, summarize as summarizeRun, nextStep, readRunLog, writeRunLog, setStep, resolveStepId } from './run-log.mjs';
 import { approveIntro } from './intro-film/approve.mjs';
 
@@ -48,7 +48,7 @@ const BOOT_FILES = ['cues.json', 'vo.mp3'];
 // refused to SWITCH to one — ?video=<slug> fell through to the launch workdir
 // and the owner reviewed the wrong video with the right URL in the bar.
 export function bootFilesFor(workdir) {
-  return introOwnedByFilm(workdir) ? BOOT_FILES.filter((n) => n !== 'cues.json') : BOOT_FILES;
+  return ownsIntroSpan(workdir) ? BOOT_FILES.filter((n) => n !== 'cues.json') : BOOT_FILES;
 }
 // One definition, used by the storyboard tiles and the card plan rows alike.
 // fbBox taught us what three drifting copies of the same control costs.
@@ -713,7 +713,7 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
         JSON.stringify({ video: mergedShots.video, offset: mergedShots.offset ?? 0, engineMode: mergedShots.engineMode ?? 'test', spans: resolvedSpans }, null, 2)
       );
       const { lintShots } = await import('./lint-shots.mjs');
-      const { filmSpanFor: filmSpanForBoard } = await import('./intro-film/owns-intro.mjs');
+      const { introSpanFor: filmSpanForBoard } = await import('./intro-modes.mjs');
       const { errors: sErrors, warnings: sWarnings } = lintShots({ shotsResolved: resolvedSpans, resolvedCues: resolved, words, filmSpan: filmSpanForBoard(workdir) });
       if (sErrors) resErrors.push(...sErrors.map(e => `shots: ${e}`));
       if (sWarnings) resWarnings.push(...sWarnings.map(w => `shots: ${w}`));

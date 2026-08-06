@@ -1,4 +1,4 @@
-import { introOwnedByFilm } from './intro-film/owns-intro.mjs';
+import { ownsIntroSpan } from './intro-modes.mjs';
 
 // Single source of truth for INTRO/CONCLUSION constraints.
 //
@@ -57,5 +57,5 @@ export const ENACTED_PREFIX = 'enacted/';
 export const ZONE_PARTS = ['intro', 'conclusion'];
 
 export function zonePartsFor(workdir) {
-  return introOwnedByFilm(workdir) ? ['conclusion'] : ZONE_PARTS;
+  return ownsIntroSpan(workdir) ? ['conclusion'] : ZONE_PARTS;
 }

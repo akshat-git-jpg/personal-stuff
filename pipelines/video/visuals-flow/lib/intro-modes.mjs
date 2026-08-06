@@ -1,35 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { loadRunConfig } from './run-config.mjs';
+import { INTRO_MODES, INTRO_MODE_NAMES } from './intro-mode-table.mjs';
 
-// Every intro flow the pipeline supports, declared. Adding a flow is a row here
-// plus its own step folders — NOT a hunt through consumers.
+// The capability every consumer actually needs is "does the active intro flow
+// own the intro span?", but it used to be spelled as an identity check against
+// ONE flow (is the mode "film"?). Three sites asked that question
+// (zone-constants' zonePartsFor, and lint-cues' E13 suppression and E23
+// activation), so a third flow meant widening all three and the old
+// predicate. Asked as a capability, a third flow changes only the table in
+// lib/intro-mode-table.mjs.
 //
-// Why this exists: the capability every consumer actually needs is "does the
-// active intro flow own the intro span?", but it used to be spelled
-// `introOwnedByFilm(workdir)` — an identity check against ONE flow. Three sites
-// asked that question (zone-constants' zonePartsFor, and lint-cues' E13
-// suppression and E23 activation), so a third flow meant widening all three and
-// the predicate. Asked as a capability, a third flow changes only this table.
-//
-//   ownsIntroSpan  the flow renders the intro itself, so the cue passes must
-//                  stand down over the intro span: zones drop "intro", E13
-//                  (open-cover) is suppressed, E23 (link-scrim) is enabled.
-//   spanFrom       where the owned span comes from, or null when it owns nothing.
-export const INTRO_MODES = {
-  cards: {
-    label: 'catalog cards',
-    ownsIntroSpan: false,
-    spanFrom: null,
-  },
-  film: {
-    label: 'bespoke intro film',
-    ownsIntroSpan: true,
-    spanFrom: 'segments.structure.intro',
-  },
-};
-
-export const INTRO_MODE_NAMES = Object.keys(INTRO_MODES);
+// The table itself lives in that leaf module rather than here to break the
+// import cycle: this file calls loadRunConfig from lib/run-config.mjs, and
+// run-config.mjs derives its accepted enum from the table — both import it
+// from the leaf instead of from each other.
+export { INTRO_MODES, INTRO_MODE_NAMES };
 
 export function introModeFor(workdir) {
   const name = loadRunConfig(workdir).intro;
