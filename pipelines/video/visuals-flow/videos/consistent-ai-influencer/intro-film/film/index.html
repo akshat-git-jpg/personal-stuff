@@ -139,14 +139,25 @@
     transform-origin: 50% 0; /* initial scaleY is set on the timeline, not here:
        a CSS transform plus a GSAP scaleY tween is a contract violation */
   }
-  /* A sponsor slot: an empty well waiting to be filled. Dashed at >=2px and
-     >=0.6 alpha so it survives encode (DESIGN.md meaningful strokes). */
+  /* A sponsor: a brand mark on a finished tile. This was a DASHED EMPTY WELL,
+     which is the exact visual language a designer uses for "content missing" —
+     so it read as an unfinished film rather than a design choice (owner
+     2026-08-06). A dashed outline is never final art.
+     The marks are invented, not real brands: claiming sponsors that do not
+     exist would be a lie, and real trade marks are not ours to place. Glyph
+     only, no wordmark — a 152px tile can only carry ~20px of text, which is
+     under the legibility floor, and a logo is a shape before it is a name. */
   .mark {
     position: absolute; left: 1420px; width: 152px; height: 152px;
     border-radius: 22px; opacity: 0; z-index: 6;
-    border: 3px dashed rgba(251,146,60,0.75);
-    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(251,146,60,0.42);
+    background: linear-gradient(160deg, rgba(255,239,219,0.10) 0%, rgba(255,239,219,0.035) 100%);
+    display: flex; align-items: center; justify-content: center;
   }
+  .mark svg { width: 78px; height: 78px; display: block; }
+  .mark .gl-s { fill: none; stroke: var(--accent); stroke-width: 7;
+                stroke-linecap: round; stroke-linejoin: round; }
+  .mark .gl-f { fill: var(--accent); }
   #m1 { top: 292px; } #m2 { top: 456px; } #m3 { top: 620px; }
 
   /* ---- the seven step rows, then the scored column ---- */
@@ -186,12 +197,30 @@
   <audio id="vo" src="assets/vo.mp3" data-start="0" data-duration="90.7"></audio>
 
   <div id="rail"></div>
-  <!-- Sponsor slots, not product logos: these stand for brands arriving, and
-       putting real unrelated tool marks here would claim sponsors that do not
-       exist. Difference is carried by the dashed well, not by position (T6). -->
-  <div id="m1" class="mark"></div>
-  <div id="m2" class="mark"></div>
-  <div id="m3" class="mark"></div>
+  <!-- Three invented brand marks. They must be visibly DIFFERENT from each other
+       (T6: difference is carried by the shape, not by position) and visibly
+       finished — see the .mark comment for why these are no longer empty wells. -->
+  <div id="m1" class="mark" aria-label="brand one">
+    <svg viewBox="0 0 100 100"><!-- bloom: three petals around a centre -->
+      <circle class="gl-f" cx="50" cy="50" r="9"/>
+      <path class="gl-s" d="M50 38 A22 22 0 0 1 71 57"/>
+      <path class="gl-s" d="M60 62 A22 22 0 0 1 33 66"/>
+      <path class="gl-s" d="M40 62 A22 22 0 0 1 33 36"/>
+    </svg>
+  </div>
+  <div id="m2" class="mark" aria-label="brand two">
+    <svg viewBox="0 0 100 100"><!-- peak: a chevron pair -->
+      <path class="gl-s" d="M22 68 L50 30 L78 68"/>
+      <path class="gl-s" d="M36 68 L50 49 L64 68"/>
+    </svg>
+  </div>
+  <div id="m3" class="mark" aria-label="brand three">
+    <svg viewBox="0 0 100 100"><!-- orbit: a ring cut by an arc, with a node -->
+      <circle class="gl-s" cx="50" cy="50" r="26"/>
+      <path class="gl-s" d="M28 36 A34 34 0 0 1 78 40"/>
+      <circle class="gl-f" cx="78" cy="40" r="8"/>
+    </svg>
+  </div>
 
   <div id="card">
     <div class="well">
