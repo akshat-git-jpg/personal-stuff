@@ -117,6 +117,14 @@ try {
     if (!dom.includes('id="videoPicker"')) throw new Error(`videoPicker not found on ${hash || 'run'}`);
     if (!dom.includes(`<title>${slug} — visuals-flow board</title>`)) throw new Error(`page title missing or wrong on ${hash || 'run'}`);
 
+    // 'smoke' has no run-config.json, so it defaults to intro:"cards" — the
+    // Intro tab's step (027) does not apply, and its button must not render
+    // for ANY hash of this fixture (plan 193: a tab whose step does not apply
+    // to this video is not rendered).
+    if ((probe.tabIds || []).includes('intro')) {
+      throw new Error(`intro tab button rendered on ${hash || 'run'} for an intro:"cards" video`);
+    }
+
     if (hash === '#card-plan') {
       
       const idx = dom.indexOf('<div class="action-slot">');
@@ -130,7 +138,16 @@ try {
       if (!dom.includes('NEW — to build')) throw new Error('NEW — to build chip not found on #card-plan');
     }
     if (hash === '#intro') {
-      if (!dom.includes('This video does not use the bespoke intro film.')) throw new Error('intro missing-film text not found on #intro');
+      // Plan 193: #intro on an intro:"cards" video is not a broken tab — the
+      // app falls back to Run and names the reason. This replaces the old
+      // "no intro film" empty-state assertion, which asserted the OLD bug's
+      // symptom: the tab rendering at all for a video that never uses it.
+      if (!dom.includes('does not apply to this video')) {
+        throw new Error('#intro on a cards video must show the tab-not-applicable notice');
+      }
+      if (!dom.includes('✅') && !dom.includes('❌') && !dom.includes('⏳')) {
+        throw new Error('#intro on a cards video must fall back to rendering the Run tab');
+      }
     }
     if (hash === '#storyboard') {
       // LIST is the default view (owner call 2026-07-31) — assert tile anatomy.
@@ -493,7 +510,7 @@ try {
       serverIntro.listen(0, '127.0.0.1', () => resolve(serverIntro.address().port));
     });
     try {
-      const urlIntro = `http://127.0.0.1:${portIntro}/app/?video=${introSlug}#intro`;
+      const urlIntro = `http://127.0.0.1:${portIntro}/app/?video=${introSlug}&probe=layout#intro`;
       const domIntro = await new Promise((resolve, reject) => {
         const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
         let child;
@@ -526,6 +543,16 @@ try {
           reject(e);
         });
       });
+
+      // Plan 193: intro:"film" is the one config where the Intro tab's step
+      // (027) applies, so its button must render — the mirror image of the
+      // cards-fixture check above.
+      const introMatch = domIntro.match(/<meta\s+name="layout-probe"\s+content="([^"]+)">/);
+      if (!introMatch) throw new Error('layout-probe meta not found on #intro (intro-film fixture)');
+      const introProbe = JSON.parse(introMatch[1].replace(/&quot;/g, '"'));
+      if (!(introProbe.tabIds || []).includes('intro')) {
+        throw new Error('intro tab button missing for an intro:"film" video');
+      }
 
       if (!domIntro.includes('class="rs-video"')) {
         throw new Error('intro player: no <video> rendered for an intro-film video');

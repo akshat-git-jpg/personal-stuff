@@ -130,7 +130,7 @@ export function App() {
   const tabApplicable = boardData.tabs.includes(tab);
   const activeTab: Tab = tabApplicable ? tab : 'run';
   const tabNotice = tabApplicable ? null
-    : `The "${TABS.find((t) => t.id === tab)?.label ?? tab}" tab isn't part of this video's flow — showing Run instead.`;
+    : `The ${TABS.find((t) => t.id === tab)?.label ?? tab} tab does not apply to this video — showing Run instead.`;
 
   return (
     <FeedbackProvider initialItems={boardData.feedback}>
@@ -150,11 +150,6 @@ export function App() {
           video (it is missing a file the board needs, or the name is wrong). Everything below is {boardData.video}.
         </div>
       )}
-      {tabNotice && (
-        <div style={{ background: '#1d4ed8', color: 'white', padding: '12px 20px', fontWeight: 'bold', zIndex: 9999, position: 'relative' }}>
-          {tabNotice}
-        </div>
-      )}
       <AppHeader
         video={boardData.video || video}
         videos={videos}
@@ -166,6 +161,14 @@ export function App() {
         secondary={secondary}
         onTab={onTab}
       />
+      {/* Below the header, not above it — decisions.md 2026-07-31 pins the
+          header at y=0 on every tab, and this notice fires on the very hash
+          the smoke gate probes, so it must never push the header down. */}
+      {tabNotice && (
+        <div style={{ background: '#1d4ed8', color: 'white', padding: '12px 20px', fontWeight: 'bold', zIndex: 9999, position: 'relative' }}>
+          {tabNotice}
+        </div>
+      )}
       <main>
         {activeTab === 'run' && <RunTab video={boardData.video} onMeta={setMeta} />}
         {activeTab === 'card-plan' && (
