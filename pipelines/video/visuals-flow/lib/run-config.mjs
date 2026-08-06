@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
+import { INTRO_MODE_NAMES } from './intro-modes.mjs';
 
 // The owner's kickoff choices for one video (step 005): which HeyGen engine
 // the avatar renders use, and how much they want to review along the way.
@@ -22,7 +23,9 @@ import { resolveWorkdir } from './workdir.mjs';
 const DEFAULTS = { engine: 'heygen3', review: 'full', intro: 'cards' };
 const ENGINES = ['heygen3', 'heygen4'];
 const REVIEWS = ['full', 'express'];
-const INTROS = ['cards', 'film'];
+// Derived from lib/intro-modes.mjs's declared table so the accepted enum can
+// never disagree with what a consumer can actually ask for.
+const INTROS = INTRO_MODE_NAMES;
 
 export function loadRunConfig(workdir) {
   const p = path.join(workdir, 'run-config.json');
