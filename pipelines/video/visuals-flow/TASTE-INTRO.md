@@ -197,3 +197,44 @@ reports intersections as runtime errors, which `run.sh <slug> intro-review`
 surfaces. This is the half of T7 that nothing used to catch. It found a second
 defect on the same pass: the beat-11 score column used a 76px pitch on 78px rows.
 
+
+## T12 — Never use system-UI vocabulary as final art.
+
+A dashed box means "drop content here". A grey circle-plus-blob means "no avatar
+set". An accent arc filling a ring means "loading". These are not neutral shapes
+that happen to be common — they are the agreed signs for *nothing is here yet*.
+Used as finished art they tell the viewer the film is unfinished, no matter what
+the author intended them to mean.
+
+**From:** the owner, three times on the same film — the dashed sponsor wells and
+the grey silhouettes ("they look like placeholder", 2026-08-06), then the seal
+("i dont like this orannge loading ui", 2026-08-07). Three separate defects, one
+cause: reaching into the design-system drawer for shapes that are by definition
+states of incompleteness.
+
+The 2026-08-07 case is the instructive one, because the screenplay authored it.
+Beat 7 asked for "an arc that is clearly incomplete by the end of the beat, so
+the next beat has something to finish" — a legitimate plant/payoff instinct
+across a beat boundary. But **every visual form of "incomplete" is a placeholder
+or a wait state**; that is what incomplete means. There is no way to draw
+half-done that does not read as not-done. So:
+
+- Do not write a stage direction that requires a half-finished object. Give the
+  payoff beat a NEW object to deliver instead. A stamp that lands is a payoff; an
+  arc that finishes filling is a progress bar completing.
+- Anything that holds mid-gesture for more than about a second is a wait state.
+  The arc sat 42% drawn for 6.2 seconds.
+- Position carries meaning too. The screenplay said *lower* corner; it was built
+  top-right, which is exactly where products park spinners and status badges. A
+  screenplay/implementation divergence in placement can create the misread on its
+  own.
+- A logo is a mark PLUS a name. A lone glyph reads as a UI affordance — the same
+  correction the sponsor tiles needed.
+
+**Enforced by:** nothing automatic, and that is the point — every other gate here
+is quantitative (duration, freeze, luma, contrast, occlusion, overlap) and all of
+them pass a frame that is numerically perfect and semantically wrong. The only
+check that catches this is a human reading the beat sheet on the intro board,
+where each stage direction sits beside the frames it produced. Author against
+this rule; do not expect `intro-review` to save you. When reviewing, read for
+"is this the FORM the line asked for", not "did the beat happen".
