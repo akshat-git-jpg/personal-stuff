@@ -8,9 +8,9 @@ needs: []
 needs_prs: [151]
 touches: [pipelines/video/visuals-flow/lib/intro-film/owns-intro.mjs, pipelines/video/visuals-flow/lib/intro-modes.mjs, pipelines/video/visuals-flow/lib/zone-constants.mjs, pipelines/video/visuals-flow/lib/lint-cues.mjs, pipelines/video/visuals-flow/lib/run-config.mjs]
 
-mutation_apply: cd pipelines/video/visuals-flow && perl -0pi -e "s/ownsIntroSpan\(workdir\) \? \['conclusion'\]/introOwnedByFilm(workdir) ? ['conclusion']/" lib/zone-constants.mjs
+mutation_apply: cd pipelines/video/visuals-flow && perl -0pi -e "s/ownsIntroSpan\(workdir\) \? \['conclusion'\]/false ? ['conclusion']/" lib/zone-constants.mjs
 mutation_command: bash scripts/check.sh
-mutation_expect: E-INTRO
+mutation_expect: ZONEPARTS-CAPABILITY-VIOLATION
 mutation_cwd: pipelines/video/visuals-flow
 mutation_timeout: 900
 ---
