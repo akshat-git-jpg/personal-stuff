@@ -46,9 +46,40 @@
     background: linear-gradient(90deg, rgba(251,146,60,0) 0%, rgba(251,146,60,0.075) 50%, rgba(251,146,60,0) 100%);
   }
 
+  /* The presenter. She used to be a hard-edged 780x700 rectangle jammed against
+     the left and bottom frame edges with no rounding, no border and no shadow —
+     a raw video pasted onto the graphics, which is exactly how it read (owner
+     report 2026-08-06). Two honest states now: full-bleed, where there IS no
+     edge to catch the eye, or a deliberately framed panel that floats.
+     The grade is the other half. Her room is bright daylight white; this field
+     is near-black warm brown. Un-graded, she is a bright rectangle on a dark
+     ground no border can rescue. This pulls her toward the palette — it cannot
+     fully replace re-shooting her on a dark set, which stays the honest fix. */
   #avatar {
-    position: absolute; left: 0; top: 380px; width: 780px; height: 700px;
-    object-fit: cover; z-index: 8;
+    position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+    object-fit: cover; z-index: 3;
+    border: 0 solid var(--accent);
+    box-shadow: 0 20px 64px rgba(0, 0, 0, 0.55);
+    filter: brightness(0.84) contrast(1.06) saturate(0.90) sepia(0.12);
+  }
+  /* z-index 3, not 8: at full-bleed she covers the whole frame, and above the
+     hero band (7) she would hide the very text the beat is built around. Below
+     the type, above the backgrounds — and the panel is placed to avoid the
+     cards anyway, so it loses nothing. */
+
+  /* Full-bleed puts white hero type straight onto her daylight-white room.
+     This darkens the band the type sits in and nothing else; it is off for
+     every panelled beat, where the type has the dark field to itself. */
+  /* A BOTTOM scrim, and the type rides down onto it. The first attempt darkened
+     the top band, which is precisely where her face is — it read as a shadow
+     swallowing her head. Full-bleed and a 120px hero cannot share the upper
+     frame: the reference the owner picked has no type over the presenter at
+     all. So on full-bleed beats the type drops to the lower third, over her
+     dark top, and this grounds it. */
+  #scrim {
+    position: absolute; left: 0; bottom: 0; width: 1920px; height: 620px;
+    z-index: 4; opacity: 0; pointer-events: none;
+    background: linear-gradient(0deg, rgba(10,8,5,0.94) 0%, rgba(10,8,5,0.74) 46%, rgba(10,8,5,0) 100%);
   }
 
   /* ---- hero band: top of frame, full width (TASTE T8 — fill the frame) ---- */
@@ -85,16 +116,30 @@
   }
   /* Five silhouettes of DIFFERENT build — the flicker is a different person
      every time, which is the problem the video opens on. No stock faces. */
-  .sil { position: absolute; inset: 0; opacity: 0; }
-  .sil i, .sil b { position: absolute; left: 50%; background: rgba(255,239,219,0.52); display: block; }
-  .sil i { width: 132px; height: 132px; margin-left: -66px; top: 18%; border-radius: 50%; }
-  .sil b { width: 300px; height: 190px; margin-left: -150px; bottom: -24px; border-radius: 46% 46% 0 0; }
-  #s-b i { width: 98px;  height: 98px;  margin-left: -76px; top: 27%; }
-  #s-b b { width: 226px; height: 152px; margin-left: -142px; }
-  #s-c i { width: 176px; height: 176px; margin-left: -60px; top: 9%; }
-  #s-c b { width: 368px; height: 226px; margin-left: -170px; }
-  #s-d i { width: 108px; height: 152px; margin-left: -34px; top: 21%; }
-  #s-d b { width: 252px; height: 200px; margin-left: -110px; }
+  /* Real faces, not grey silhouettes. A circle-plus-blob is the "no profile
+     picture" icon every product ships — used as final art it says the film is
+     unfinished, and it cannot carry b01's point at all: five DIFFERENT people
+     flickering past reads as one placeholder jiggling (owner report
+     2026-08-06). The portraits are generated and graded into this palette on
+     purpose; a stock photo lit for daylight would sit on this near-black field
+     as a bright rectangle, which is the same sticker problem the avatar has.
+     Same class/id names as the silhouettes they replace, so every timeline
+     selector below still points at the right element. */
+  .sil {
+    position: absolute; inset: 0; opacity: 0;
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  /* Framing varies per person so the flicker reads as a cut between different
+     photographs, not a crossfade between five versions of one. */
+  #s-a { object-position: 50% 28%; }
+  #s-b { object-position: 46% 22%; }
+  #s-c { object-position: 52% 30%; }
+  #s-d { object-position: 48% 24%; }
+  #s-e { object-position: 54% 26%; }
+  /* One person, four framings — see the c2/c3/c4 markup comment. */
+  #c2 .sib-face { object-position: 42% 24%; }
+  #c3 .sib-face { object-position: 58% 30%; }
+  #c4 .sib-face { object-position: 50% 20%; }
   #s-e i { width: 158px; height: 116px; margin-left: -94px; top: 25%; }
   #s-e b { width: 330px; height: 158px; margin-left: -178px; }
 
@@ -148,13 +193,25 @@
      only, no wordmark — a 152px tile can only carry ~20px of text, which is
      under the legibility floor, and a logo is a shape before it is a name. */
   .mark {
-    position: absolute; left: 1420px; width: 152px; height: 152px;
+    position: absolute; left: 1420px; width: 330px; height: 152px;
     border-radius: 22px; opacity: 0; z-index: 6;
     border: 2px solid rgba(251,146,60,0.42);
     background: linear-gradient(160deg, rgba(255,239,219,0.10) 0%, rgba(255,239,219,0.035) 100%);
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; gap: 20px; padding: 0 26px;
   }
-  .mark svg { width: 78px; height: 78px; display: block; }
+  .mark svg { width: 70px; height: 70px; display: block; flex: 0 0 70px; }
+  /* A glyph alone reads as a UI icon, not a brand — the owner called the first
+     pass "random logos" (2026-08-06). A logo is a mark PLUS a name. The tiles
+     were 152px square, which fits about 20px of text (under the legibility
+     floor), so the name had nowhere to go; widening into the 348px of empty
+     frame to their right buys a 40px wordmark, and the marks only exist during
+     b04, where nothing else occupies that space. */
+  .mark .wm {
+    font-size: 40px; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--text); white-space: nowrap;
+  }
+  .mark .wm span { display: block; font-size: 19px; font-weight: 600;
+    letter-spacing: 0.04em; color: var(--text-dim); }
   .mark .gl-s { fill: none; stroke: var(--accent); stroke-width: 7;
                 stroke-linecap: round; stroke-linejoin: round; }
   .mark .gl-f { fill: var(--accent); }
@@ -194,6 +251,7 @@
   <div id="sweep"></div>
 
   <video id="avatar" src="assets/avatar.mp4" muted data-start="0"></video>
+  <div id="scrim"></div>
   <audio id="vo" src="assets/vo.mp3" data-start="0" data-duration="90.7"></audio>
 
   <div id="rail"></div>
@@ -207,12 +265,14 @@
       <path class="gl-s" d="M60 62 A22 22 0 0 1 33 66"/>
       <path class="gl-s" d="M40 62 A22 22 0 0 1 33 36"/>
     </svg>
+  <div class="wm">VELORA<span>skincare</span></div>
   </div>
   <div id="m2" class="mark" aria-label="brand two">
     <svg viewBox="0 0 100 100"><!-- peak: a chevron pair -->
       <path class="gl-s" d="M22 68 L50 30 L78 68"/>
       <path class="gl-s" d="M36 68 L50 49 L64 68"/>
     </svg>
+  <div class="wm">NORDLY<span>apparel</span></div>
   </div>
   <div id="m3" class="mark" aria-label="brand three">
     <svg viewBox="0 0 100 100"><!-- orbit: a ring cut by an arc, with a node -->
@@ -220,15 +280,16 @@
       <path class="gl-s" d="M28 36 A34 34 0 0 1 78 40"/>
       <circle class="gl-f" cx="78" cy="40" r="8"/>
     </svg>
+  <div class="wm">AUREN<span>audio</span></div>
   </div>
 
   <div id="card">
     <div class="well">
-      <div class="sil" id="s-a"><i></i><b></b></div>
-      <div class="sil" id="s-b"><i></i><b></b></div>
-      <div class="sil" id="s-c"><i></i><b></b></div>
-      <div class="sil" id="s-d"><i></i><b></b></div>
-      <div class="sil" id="s-e"><i></i><b></b></div>
+      <img class="sil" id="s-a" src="faces/face-a.jpg" alt="">
+      <img class="sil" id="s-b" src="faces/face-b.jpg" alt="">
+      <img class="sil" id="s-c" src="faces/face-c.jpg" alt="">
+      <img class="sil" id="s-d" src="faces/face-d.jpg" alt="">
+      <img class="sil" id="s-e" src="faces/face-e.jpg" alt="">
     </div>
     <div class="plate"></div>
     <div id="lines">
@@ -243,9 +304,13 @@
     </div>
   </div>
 
-  <div id="c2" class="sib"><div class="well"><div class="sil sib-face"><i></i><b></b></div></div><div class="plate"></div></div>
-  <div id="c3" class="sib"><div class="well"><div class="sil sib-face"><i></i><b></b></div></div><div class="plate"></div></div>
-  <div id="c4" class="sib"><div class="well"><div class="sil sib-face"><i></i><b></b></div></div><div class="plate"></div></div>
+  <!-- b05: "the same person every single post". All four wells hold the SAME
+       photograph as the anchor card — that IS the claim — but each is framed
+       differently, so the row reads as four posts of one person rather than one
+       file pasted four times. -->
+  <div id="c2" class="sib"><div class="well"><img class="sil sib-face" src="faces/face-a.jpg" alt=""></div><div class="plate"></div></div>
+  <div id="c3" class="sib"><div class="well"><img class="sil sib-face" src="faces/face-a.jpg" alt=""></div><div class="plate"></div></div>
+  <div id="c4" class="sib"><div class="well"><img class="sil sib-face" src="faces/face-a.jpg" alt=""></div><div class="plate"></div></div>
 
   <div id="s1" class="step"><span class="n">01</span><span class="t">Base character</span><span class="v">4.5</span></div>
   <div id="s2" class="step"><span class="n">02</span><span class="t">Lock the face</span><span class="v">5.0</span></div>
@@ -301,7 +366,7 @@
     ROW_SLOTS:  [120, 540, 960, 1380],                // b05, b06 — full-canvas row
     ROW_Y_ABS:  330,
     RAIL_X:     1360,                                  // b04 only
-    MARK_COL:   { x: 1420, w: 152 },                   // b04 only
+    MARK_COL:   { x: 1420, w: 330 },                   // b04 only
     DOCK:       { x: 140, y: 372, w: 340 },            // b09-b11
     AVATAR_PANEL: { x: 1350, y: 746, w: 538, h: 302 },
   };
@@ -315,13 +380,34 @@
   const DOCK_S = 340 / CARD_W;         // 0.708
   const DOCK_X = SLOT(LAYOUT.DOCK.x), DOCK_Y = LAYOUT.DOCK.y - BASE_Y;
 
-  const AV_FULL  = { width: 780, height: 700, left: 0,    top: 380, borderRadius: 0,  opacity: 1 };
-  const AV_PANEL = { width: 538, height: 302, left: 1350, top: 746, borderRadius: 24, opacity: 1 };
+  // TWO honest presenter states, and nothing in between. The old "full" was a
+  // 780x700 box in a 1920x1080 frame flush to two edges — too big to be a neat
+  // panel, too small to be the picture, and touching the frame edge so it read
+  // as having slipped. Full-bleed has no edge to catch; a framed panel is
+  // visibly PLACED. The middle state is gone.
+  const AV_FULL = {
+    width: 1920, height: 1080, left: 0, top: 0,
+    borderRadius: 0, borderWidth: 0, opacity: 1,
+  };
+  // Where the panel may sit. It MOVES so it stays clear of whatever the beat's
+  // graphics are doing (owner call 2026-08-06) — #avatar is in AUDIT_DEVICES,
+  // so a placement that collides is caught by the overlap audit, not by eye.
+  const PANEL_BOX = { width: 470, height: 264, borderRadius: 22, borderWidth: 3, opacity: 1 };
+  const AV_AT = (left, top) => ({ ...PANEL_BOX, left, top });
+  const AV_BR = AV_AT(1386, 774);   // bottom-right: default, clear of the card zone
+  const AV_BL = AV_AT(64, 774);     // bottom-left: when the right side is busy
+  // b01 keeps a PANEL, not full-bleed. The beat needs a presenter AND the
+  // flickering card, and full-bleed put the card squarely over her face. The
+  // reference the owner approved for full-screen has no graphics on it at all —
+  // so full-bleed is for b12's closing address, where nothing competes.
+  const AV_HERO = { width: 700, height: 620, left: 96, top: 330,
+                    borderRadius: 26, borderWidth: 3, opacity: 1 };
+  const AV_PANEL = AV_BR;           // legacy name, kept for the calls below
 
   const tl = gsap.timeline({ paused: true });
 
   /* ---------- b01 hook 0 -> 11.36 : faces flicker, nothing settles ---------- */
-  tl.set('#avatar', AV_FULL, 0);
+  tl.set('#avatar', AV_HERO, 0);
   tl.set('#rail', { scaleY: 0 }, 0);
   // 6 passes x 15.1s = 90.6s, so the film is never motionless end to end.
   tl.fromTo('#sweep', { x: 0 }, { x: 2500, duration: 15.1, repeat: 5, ease: 'none', immediateRender: false }, 0);
@@ -366,7 +452,12 @@
   tl.to('#card', { y: -16, duration: 2.2, yoyo: true, repeat: 1, ease: 'sine.inOut' }, 18.6);
 
   /* ---------- b04 stakes 22.90 -> 27.48 : brands start arriving ------------- */
-  tl.to('#avatar', { opacity: 0, duration: 0.5, ease: 'power2.in' }, 22.90);
+  // She CROSSES to the left rather than vanishing. The right half is the rail
+  // and the sponsor tiles for this beat, so the bottom-right panel would sit on
+  // them — but a face blinking out mid-intro reads as a glitch, not a beat.
+  // Moving is the answer the owner asked for: the panel stays clear of whatever
+  // the graphics are doing that beat.
+  tl.to('#avatar', { ...AV_BL, duration: 0.6, ease: 'power2.inOut' }, 22.90);
   tl.to('#u3', { opacity: 0, duration: 0.3 }, 22.95);
   tl.to('#h3', { opacity: 0, duration: 0.35 }, 23.0);
   tl.to('#h4', { opacity: 1, duration: 0.4, ease: 'power2.out' }, 23.2);
@@ -386,7 +477,11 @@
   tl.to(['#m1', '#m2', '#m3', '#rail'], { autoAlpha: 0, duration: 0.45, ease: 'power2.in' }, 27.48);
   // the card shrinks into slot 1 of a four-up row sharing ONE baseline
   tl.to('#card', { x: ROW_X.card, y: ROW_Y, scale: ROW_S, duration: 1.0, ease: 'power3.inOut' }, 28.1);
-  tl.set('#s-a', { opacity: 1 }, 28.5);
+  // The card holds the settled face from b03 onward, not from b05. b03 is
+  // where the character stops drifting — leaving the well empty until b05
+  // meant three beats of a wireframe card standing in for the very thing
+  // the film says is now fixed (owner report 2026-08-06).
+  tl.to('#s-a', { opacity: 1, duration: 0.5, ease: 'power2.out' }, 16.6);
   tl.fromTo('#c2', { x: ROW_X.card, y: ROW_Y, scale: ROW_S, opacity: 0 },
                    { x: ROW_X.c2, y: ROW_Y, scale: ROW_S, opacity: 1, duration: 0.6, ease: 'power2.out', immediateRender: false }, 29.3);
   tl.fromTo('#c3', { x: ROW_X.card, y: ROW_Y, scale: ROW_S, opacity: 0 },
@@ -430,6 +525,12 @@
   tl.fromTo('#seal-logo', { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2)', immediateRender: false }, 53.5);
 
   /* ---------- b09 scope 54.30 -> 65.42 : card docks, steps build ------------ */
+  // She LEAVES for the mechanism. b09-b11 are the densest beats in the film —
+  // the seven-step build and the scored column — and there the graphics carry
+  // the whole idea, so a presenter panel is decoration competing for space.
+  // The owner's call: she does not have to be on screen every beat. She returns
+  // full-bleed for the closing address at 85.5, which the absence sets up.
+  tl.to('#avatar', { opacity: 0, duration: 0.6, ease: 'power2.in' }, 54.30);
   tl.to('#h8', { opacity: 0, duration: 0.3 }, 54.35);
   tl.to('#h9', { opacity: 1, duration: 0.4, ease: 'power2.out' }, 54.55);
   tl.to('#card', { x: DOCK_X, y: DOCK_Y, scale: DOCK_S, duration: 1.0, ease: 'power3.inOut' }, 54.6);
@@ -463,6 +564,8 @@
         { opacity: 0, duration: 0.55, ease: 'power2.in', stagger: 0.03 }, 84.4);
   tl.to('#card', { x: 0, y: 0, scale: 1, duration: 1.1, ease: 'power3.inOut' }, 85.3);
   tl.to('#avatar', { ...AV_FULL, duration: 1.0, ease: 'power2.inOut' }, 85.5);
+  tl.to('#scrim', { opacity: 1, duration: 1.0, ease: 'power2.inOut' }, 85.5);
+  tl.set('#h12', { y: 618 }, 85.5);
   tl.to('#u12', { opacity: 1, duration: 0.6, ease: 'power2.out' }, 86.9);
   tl.to('#seal', { scale: 1.08, duration: 1.3, ease: 'sine.inOut' }, 87.7);
   // holds to the last frame rather than fading out to nothing
@@ -494,7 +597,15 @@
     // callback many times per capture and forced layout would perturb it.
     if (AUDIT_DONE.has(label)) return;
     AUDIT_DONE.add(label);
-    const boxes = AUDIT_DEVICES.map(sel => [sel, auditVisibleRect(sel)]).filter(([, r]) => r);
+    // A device is something competing for SPACE. An element filling the whole
+    // frame is a backdrop, and everything necessarily sits on it — the film's
+    // full-bleed presenter beats (b01, b12) would report every card as an
+    // overlap and drown the real findings. Excluded by measured geometry, not
+    // by selector: the presenter is still audited the moment she is a panel,
+    // which is the state that can actually collide with a card.
+    const FULL_BLEED = (r) => r.width >= 1900 && r.height >= 1060;
+    const boxes = AUDIT_DEVICES.map(sel => [sel, auditVisibleRect(sel)])
+      .filter(([, r]) => r && !FULL_BLEED(r));
     for (let i = 0; i < boxes.length; i++) {
       for (let j = i + 1; j < boxes.length; j++) {
         const [sa, a] = boxes[i], [sb, b] = boxes[j];
