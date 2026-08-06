@@ -1,6 +1,7 @@
-import React, { useEffect, useState, ReactNode, useRef, useCallback } from 'react';
+import React, { useEffect, useState, ReactNode, useRef, useCallback, ClipboardEvent } from 'react';
 import './IntroTab.css';
 import { fmtClock, fmtClockFrames, clampSeek, frameStep } from '../lib/fcTransport';
+import { validateImageFile } from '../lib/feedback';
 
 export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
   video: string;
@@ -32,6 +33,11 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
   const scrubbingRef = useRef(false);
   const [inputText, setInputText] = useState('');
   const [currentPin, setCurrentPin] = useState<{x: number, y: number} | null>(null);
+  // Screenshot attach, same contract as Final Cut: a data: URL rides along on
+  // the POST and the server writes it under feedback-images/. /feedback-intro
+  // has always called saveFeedbackImage — only this UI half was missing.
+  const [pendingImage, setPendingImage] = useState<{ url: string; name: string } | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const loadData = async () => {
     // Each fetch gets its own failure. Chained in one try, a board-data 500 both
@@ -185,23 +191,60 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
     };
   }, [data, onActions, onMeta, onSecondary, videoMissing]);
 
+  const handleImageFile = (file?: File) => {
+    if (!file) return;
+    const err = validateImageFile(file);
+    if (err) { alert(err); return; }
+    const r = new FileReader();
+    r.onload = () => setPendingImage({ url: r.result as string, name: file.name });
+    r.readAsDataURL(file);
+  };
+
+  const onPasteInput = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    for (const it of Array.from(e.clipboardData?.items ?? [])) {
+      if (it.kind === 'file' && it.type.startsWith('image/')) {
+        e.preventDefault();
+        handleImageFile(it.getAsFile()!);
+        return;
+      }
+    }
+  };
+
   const submitComment = async () => {
     const text = inputText.trim();
-    if (!text) return;
+    // A screenshot on its own is a legitimate note — "look at this frame".
+    if (!text && !pendingImage) return;
     const t = currentTime;
     const item: any = { text, t, context: 'intro@' + fmtClock(t) };
     if (currentPin) { item.x = currentPin.x; item.y = currentPin.y; }
     const res = await fetch('/feedback-intro', {
       method: 'POST',
-      body: JSON.stringify({ item })
+      body: JSON.stringify({ item, image: pendingImage?.url })
     });
     if (res.ok) {
       const resp = await res.json();
       if (resp.key) setFcItems(prev => ({ ...prev, [resp.key]: resp.item }));
       setInputText('');
       setCurrentPin(null);
+      setPendingImage(null);
     } else {
       alert('failed to save');
+    }
+  };
+
+  const editComment = async (k: string, current: string) => {
+    const next = prompt('Edit comment:', current);
+    if (next === null) return;
+    if (!next.trim()) { alert('empty comment'); return; }
+    const res = await fetch('/feedback-final-edit', {
+      method: 'POST',
+      body: JSON.stringify({ key: k, text: next.trim() }),
+    });
+    if (res.ok) {
+      setFcItems(prev => ({ ...prev, [k]: { ...prev[k], text: next.trim() } }));
+    } else {
+      // Folded comments are read-only history, which the server enforces (409).
+      alert((await res.json().catch(() => ({}))).error ?? 'failed to edit');
     }
   };
 
@@ -338,7 +381,13 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
                         </a>
                       </div>
                       {it.text && <div style={{ whiteSpace: 'pre-wrap' }}>{it.text}</div>}
+                      {(it as any).image && (
+                        <div style={{ marginTop: 6 }}>
+                          <img src={`/feedback-image/${k}`} style={{ maxWidth: '100%', borderRadius: 4 }} alt="feedback" />
+                        </div>
+                      )}
                       <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                        <button className="intro-cbtn" onClick={() => editComment(k, it.text ?? '')}>✎ Edit</button>
                         <button className="intro-cbtn" onClick={() => deleteComment(k)}>✕ Delete</button>
                       </div>
                     </div>
@@ -350,10 +399,11 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
                 ref={inputRef}
                 className="intro-input"
                 rows={4} 
-                placeholder={paused ? "Pause video to type comment... (Enter to send · Shift+Enter for newline)" : "Pause video to type comment..."}
+                placeholder={paused ? "Pause video to type comment... (Enter to send · Shift+Enter for newline · paste a screenshot to attach)" : "Pause video to type comment..."}
                 disabled={!paused}
                 value={inputText}
                 onChange={e => setInputText(e.target.value)}
+                onPaste={onPasteInput}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -361,14 +411,32 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
                   }
                 }}
               />
-              
+
+              {pendingImage && (
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <img src={pendingImage.url} style={{ maxHeight: 64, borderRadius: 4 }} alt="attachment preview" />
+                  <span style={{ color: 'var(--dim)', fontSize: 12 }}>{pendingImage.name}</span>
+                  <button className="intro-cbtn" onClick={() => setPendingImage(null)}>✕ remove</button>
+                </div>
+              )}
+
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                <button 
-                  className="intro-cbtn" 
-                  disabled={!paused || !inputText.trim()}
+                <button
+                  className="intro-cbtn"
+                  disabled={!paused || (!inputText.trim() && !pendingImage)}
                   onClick={submitComment}
                 >
                   Send
+                </button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={e => { handleImageFile(e.target.files?.[0]); e.target.value = ''; }}
+                />
+                <button className="intro-cbtn" disabled={!paused} onClick={() => fileRef.current?.click()}>
+                  📎 image
                 </button>
               </div>
             </div>

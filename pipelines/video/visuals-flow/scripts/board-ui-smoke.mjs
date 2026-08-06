@@ -459,6 +459,11 @@ try {
   // The real transcript fixture, not a {} stub: board-data builds segments from
   // its words and 500s without them, and the Intro tab loads board-data too.
   fs.copyFileSync(path.join(workdir, 'transcript.json'), path.join(introWorkdir, 'transcript.json'));
+  // One existing comment, so the per-comment controls actually render.
+  fs.writeFileSync(path.join(introWorkdir, 'feedback.json'), JSON.stringify({
+    video: introSlug,
+    items: { 'intro:0': { text: 'an existing note', t: 2, context: 'intro@00:02' } },
+  }));
   fs.writeFileSync(path.join(introWorkdir, 'intro-film', 'screenplay.json'), JSON.stringify({
     approved: false,
     beats: [
@@ -522,6 +527,20 @@ try {
         throw new Error(
           'intro player: duration reads 00:00 — the media listeners never attached, '
           + 'so the transport is dead (clock frozen, Play cannot pause)');
+      }
+
+      // Review-surface parity with Final Cut. The server has always accepted a
+      // screenshot on /feedback-intro and an intro:* key on /feedback-final-edit;
+      // only the UI half was missing, so the owner could neither attach nor edit
+      // (owner report 2026-08-06). Assert the controls exist.
+      for (const [needle, what] of [
+        ['📎 image', 'attach a screenshot'],
+        ['✎ Edit', 'edit an existing comment'],
+        ['✕ Delete', 'delete a comment'],
+      ]) {
+        if (!domIntro.includes(needle)) {
+          throw new Error(`intro review: no way to ${what} — "${needle}" control is missing`);
+        }
       }
     } finally {
       if (serverIntro.closeAllConnections) serverIntro.closeAllConnections();
