@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# The step registry gates everything below it: run.sh's verb list and step
+# folders, lib/run-log.mjs's valid ledger keys and PIPELINE.md's table all
+# derive from steps/*/step.json. A malformed declaration must fail here (E-REG)
+# rather than at dispatch, and --check also fails a registry edit that never
+# regenerated the doc. It costs milliseconds, so it runs before the npm work.
+node scripts/gen-pipeline-table.mjs --check
 # board-ui FIRST: board.test.mjs's cutover tests fetch `/`, which serves
 # board-ui/dist — on a fresh checkout (dist is gitignored) the suite fails
 # without this build, so it must precede `node --test` (found 2026-07-31).
