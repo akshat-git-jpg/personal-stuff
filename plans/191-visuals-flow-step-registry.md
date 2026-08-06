@@ -10,7 +10,7 @@ touches: [pipelines/video/visuals-flow/run.sh, pipelines/video/visuals-flow/lib/
 
 mutation_apply: cd pipelines/video/visuals-flow && python3 -c "import json,io; p='steps/030-pick-or-propose-graphics-llm/step.json'; d=json.load(open(p)); d['produces']=[]; json.dump(d,open(p,'w'),indent=2)"
 mutation_command: bash scripts/check.sh
-mutation_expect: E-REG
+mutation_expect: E-REG 030-pick-or-propose-graphics-llm
 mutation_cwd: pipelines/video/visuals-flow
 mutation_timeout: 900
 ---
