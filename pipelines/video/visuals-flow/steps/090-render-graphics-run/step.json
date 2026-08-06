@@ -1,0 +1,17 @@
+{
+  "number": "090",
+  "slug": "090-render-graphics-run",
+  "title": "render the graphics",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": ["render"],
+  "consumes": ["resolved.json"],
+  "produces": ["renders", "manifest.md"],
+  "gate": null,
+  "tab": null,
+  "waivable": false,
+  "external": false,
+  "optional": false,
+  "requires": { "intro": null },
+  "summary": "approved `resolved.json` → `renders/*.mp4\\|mov` + `manifest.md` (brand-inline; variant rotation)"
+}

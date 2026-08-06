@@ -1,0 +1,17 @@
+{
+  "number": "025",
+  "slug": "025-author-intro-film-llm",
+  "title": "author the intro film",
+  "actor": "llm",
+  "actorLabel": "[LLM] (OFF by default)",
+  "verbs": ["intro-film"],
+  "consumes": ["transcript.json", "segments.json", "concept.json"],
+  "produces": ["intro-film/screenplay.json"],
+  "gate": null,
+  "tab": null,
+  "waivable": false,
+  "external": false,
+  "optional": false,
+  "requires": { "intro": "film" },
+  "summary": "`transcript.json` + `segments.json` + `concept.json` + `card-library/DESIGN.md` → `intro-film/out/intro.mp4`. Runs only when `run-config.json` has `intro: \"film\"`. Reads the design system and the logo registry, NEVER `catalog.json` — the intro keeps full creative freedom. Nothing consumes the output yet"
+}

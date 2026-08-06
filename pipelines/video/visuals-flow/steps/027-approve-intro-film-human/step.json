@@ -1,0 +1,18 @@
+{
+  "number": "027",
+  "slug": "027-approve-intro-film-human",
+  "title": "approve the intro film",
+  "actor": "human",
+  "actorLabel": "[OWNER]",
+  "verbs": ["intro-review", "intro-render"],
+  "consumes": ["intro-film/screenplay.json"],
+  "produces": [],
+  "gate": { "file": "intro-film/screenplay.json", "field": "approved", "label": "Intro Film" },
+  "tab": "intro",
+  "waivable": false,
+  "external": false,
+  "optional": false,
+  "requires": { "intro": "film" },
+  "nextHint": "run.sh <slug> intro-review, then approve on the board's Intro tab  (HUMAN GATE — 027 intro film)",
+  "summary": "`intro-film/screenplay.json` + `intro-film/review/` → `approved: true` in `screenplay.json` (HUMAN GATE: Intro Film). Reviewed on the Intro tab of the board."
+}
