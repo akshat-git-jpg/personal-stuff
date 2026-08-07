@@ -993,7 +993,7 @@ test('GET /run-log marks an inferred step and never invents a summary for it', a
   const { server, base } = await startServer(workdir);
   try {
     const data = await (await fetch(`${base}/run-log`)).json();
-    const resolved = data.steps.find((s) => s.number === '040');
+    const resolved = data.steps.find((s) => s.number === '310');
     assert.equal(resolved.status, 'done', 'resolved.json is staged by the fixture');
     assert.equal(resolved.derived, true);
     assert.equal(resolved.did, undefined, 'nothing was recorded, so nothing may be shown');
@@ -1008,13 +1008,13 @@ test('GET /run-log prefers a recorded entry over the artifact probe', async () =
     path.join(workdir, 'run-log.json'),
     JSON.stringify({
       video: 'x',
-      steps: { '040-sync-graphics-run': { status: 'blocked', issues: 'anchor c07 not found' } },
+      steps: { '310-sync-graphics-run': { status: 'blocked', issues: 'anchor c07 not found' } },
     }),
   );
   const { server, base } = await startServer(workdir);
   try {
     const data = await (await fetch(`${base}/run-log`)).json();
-    const s = data.steps.find((v) => v.number === '040');
+    const s = data.steps.find((v) => v.number === '310');
     assert.equal(s.status, 'blocked');
     assert.equal(s.issues, 'anchor c07 not found');
     assert.ok(!s.derived);
@@ -1064,14 +1064,14 @@ test('approving a gate records it in the ledger, with a real timestamp', async (
   const { server, base } = await startServer(workdir);
   try {
     const before = await (await fetch(`${base}/run-log`)).json();
-    assert.equal(before.steps.find((s) => s.number === '080').status, 'todo');
+    assert.equal(before.steps.find((s) => s.number === '340').status, 'todo');
 
     const res = await fetch(`${base}/approve`, { method: 'POST' });
     assert.equal(res.status, 200);
 
     // This fixture has no shots.json, so graphics alone completes the gate.
     const after = await (await fetch(`${base}/run-log`)).json();
-    const gate = after.steps.find((s) => s.number === '080');
+    const gate = after.steps.find((s) => s.number === '340');
     assert.equal(gate.status, 'done');
     assert.ok(!gate.derived, 'now a real record, not an inference');
     assert.match(gate.did, /Owner approved the storyboard/);
@@ -1097,7 +1097,7 @@ test('a broken ledger cannot block an approval', async () => {
   }
 });
 
-test('gate 080 stays running until BOTH halves are approved', async () => {
+test('gate 340 stays running until BOTH halves are approved', async () => {
   // Two clicks, one gate. Calling it done after the first would report a gate
   // passed that the owner is still halfway through.
   const workdir = makeWorkdir();
@@ -1108,12 +1108,12 @@ test('gate 080 stays running until BOTH halves are approved', async () => {
   const { server, base } = await startServer(workdir);
   try {
     await fetch(`${base}/approve`, { method: 'POST' });
-    let gate = (await (await fetch(`${base}/run-log`)).json()).steps.find((s) => s.number === '080');
+    let gate = (await (await fetch(`${base}/run-log`)).json()).steps.find((s) => s.number === '340');
     assert.equal(gate.status, 'running', 'graphics approved, shots not');
     assert.match(gate.issues, /waiting on the owner to approve the avatar shots/);
 
     await fetch(`${base}/approve-shots`, { method: 'POST' });
-    gate = (await (await fetch(`${base}/run-log`)).json()).steps.find((s) => s.number === '080');
+    gate = (await (await fetch(`${base}/run-log`)).json()).steps.find((s) => s.number === '340');
     assert.equal(gate.status, 'done');
     assert.match(gate.did, /graphics and avatar shots/);
   } finally {
@@ -1562,8 +1562,8 @@ test('REVIEW_NAMESPACES is derived from the registry and still equals [intro, fi
   assert.deepEqual(reviewNamespacesFromRegistry(), ['intro', 'final']);
 });
 
-// TAB_NAMESPACE deliberately does NOT cover every gated tab: card-plan (037)
-// and storyboard (080) also hold gates, but their comments (zone-*,
+// TAB_NAMESPACE deliberately does NOT cover every gated tab: card-plan (235)
+// and storyboard (340) also hold gates, but their comments (zone-*,
 // card-body:*, cue:*) are owned by a different surface with its own
 // lifecycle — deleting one through this endpoint is exactly the bug the
 // closed-list comment on REVIEW_NAMESPACES warns about.
@@ -1572,8 +1572,8 @@ test('TAB_NAMESPACE maps only the tabs that get edit + delete', () => {
 });
 
 test('gateNumberFor resolves the current step number for the approvable gates', () => {
-  assert.equal(gateNumberFor('final-cut.json'), '120');
-  assert.equal(gateNumberFor('intro-film/screenplay.json'), '027');
+  assert.equal(gateNumberFor('final-cut.json'), '530');
+  assert.equal(gateNumberFor('intro-film/screenplay.json'), '150');
 });
 
 test('gateNumberFor throws E-BOARD when no step declares the gate file', () => {
