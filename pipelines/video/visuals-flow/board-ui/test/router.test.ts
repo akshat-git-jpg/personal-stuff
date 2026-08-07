@@ -3,7 +3,7 @@ import { tabForHash, urlForTab, urlForVideo, videoFromSearch, visibleTabs, TABS 
 
 describe('router', () => {
   it('tabForHash returns correct tab for known hashes and run for unknown', () => {
-    expect(tabForHash('#card-plan')).toBe('card-plan');
+
     expect(tabForHash('#storyboard')).toBe('storyboard');
     expect(tabForHash('#final-cut')).toBe('final-cut');
     expect(tabForHash('')).toBe('run');
@@ -20,13 +20,13 @@ describe('router', () => {
   // The button row reads in the order the film plays: the intro is the first
   // thing on screen, so it sits second, right after Run (owner decision
   // 2026-08-07). Order is a product decision, not an accident of the table.
-  it('TABS renders Run, Intro, Card Plan, Storyboard, Final Cut in that order', () => {
-    expect(TABS.map((t) => t.id)).toEqual(['run', 'intro', 'card-plan', 'storyboard', 'final-cut']);
+  it('TABS renders Run, Intro, Storyboard, Final Cut in that order', () => {
+    expect(TABS.map((t) => t.id)).toEqual(['run', 'intro', 'storyboard', 'final-cut']);
   });
 
   it('urlForTab keeps ?video=x', () => {
-    expect(urlForTab('card-plan', { pathname: '/app/', search: '?video=test-01' }))
-      .toBe('/app/?video=test-01#card-plan');
+    expect(urlForTab('storyboard', { pathname: '/app/', search: '?video=test-01' }))
+      .toBe('/app/?video=test-01#storyboard');
   });
 
   it('urlForVideo keeps hash and encodes slugs', () => {
@@ -51,7 +51,7 @@ describe('router', () => {
   });
 
   it('visibleTabs drops intro when the applicable list omits it', () => {
-    const applicable = ['run', 'card-plan', 'storyboard', 'final-cut'];
+    const applicable = ['run', 'storyboard', 'final-cut'];
     expect(visibleTabs(TABS, applicable).some((t) => t.id === 'intro')).toBe(false);
   });
 });

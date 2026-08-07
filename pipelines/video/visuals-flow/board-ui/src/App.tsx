@@ -3,7 +3,7 @@ import { Tab, TABS, tabForHash, urlForTab, videoFromSearch, visibleTabs } from '
 import { fetchBoardData, BoardData } from './lib/api';
 import { AppHeader } from './components/AppHeader';
 import { RunTab } from './tabs/RunTab';
-import { CardPlanTab } from './tabs/CardPlanTab';
+
 import { IntroTab } from './tabs/IntroTab';
 import { StoryboardTab } from './tabs/StoryboardTab';
 import { FinalCutTab } from './tabs/FinalCutTab';
@@ -182,16 +182,7 @@ export function App() {
       )}
       <main>
         {activeTab === 'run' && <RunTab video={boardData.video} onMeta={setMeta} />}
-        {activeTab === 'card-plan' && (
-          <CardPlanTab
-            video={boardData.video}
-            cardPlan={boardData.cardPlan!}
-            onMeta={setMeta}
-            onActions={setActions}
-            onSecondary={setSecondary}
-            onRefetch={refetch}
-          />
-        )}
+
         {activeTab === 'intro' && (
           <IntroTab
             video={boardData.video!}

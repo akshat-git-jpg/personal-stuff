@@ -964,19 +964,7 @@ test('POST /card-feedback keys body and zone notes into different spaces', async
   }
 });
 
-test('POST /approve-card-plan flips approved', async () => {
-  const workdir = makeWorkdir();
-  fs.writeFileSync(path.join(workdir, 'card-plan.json'), JSON.stringify({
-    video: 'x',
-    approved: false,
-    sections: [{ part: 'body', items: [{ id: 'c01', card: 'race/cost-race', status: 'new', proposal: { does: 'bars race' } }] }],
-  }));
-  const { server, base } = await startServer(workdir);
-  const res = await fetch(`${base}/approve-card-plan`, { method: 'POST' });
-  assert.equal(res.status, 200);
-  assert.equal(JSON.parse(fs.readFileSync(path.join(workdir, 'card-plan.json'), 'utf8')).approved, true);
-  server.close();
-});
+
 
 // ---- Run tab -------------------------------------------------------------
 // The Run tab is the page a non-technical person opens instead of reading the
@@ -1583,8 +1571,7 @@ test('TAB_NAMESPACE maps only the tabs that get edit + delete', () => {
   assert.deepEqual(TAB_NAMESPACE, { intro: 'intro', 'final-cut': 'final' });
 });
 
-test('gateNumberFor resolves the current step number for all three approvable gates', () => {
-  assert.equal(gateNumberFor('card-plan.json'), '037');
+test('gateNumberFor resolves the current step number for the approvable gates', () => {
   assert.equal(gateNumberFor('final-cut.json'), '120');
   assert.equal(gateNumberFor('intro-film/screenplay.json'), '027');
 });

@@ -859,16 +859,7 @@ async function handleApprove(req, res, workdir) {
   res.end(JSON.stringify({ ok: true }));
 }
 
-async function handleApproveCardPlan(req, res, workdir) {
-  await readBody(req);
-  const zpPath = path.join(workdir, 'card-plan.json');
-  const cardPlan = JSON.parse(fs.readFileSync(zpPath, 'utf8'));
-  cardPlan.approved = true;
-  fs.writeFileSync(zpPath, JSON.stringify(cardPlan, null, 2));
-  recordGate(workdir, gateNumberFor('card-plan.json'), 'Owner approved the card plan — every card the video will use, body and zones.', 'card-plan.json approved=true');
-  res.setHeader('content-type', 'application/json');
-  res.end(JSON.stringify({ ok: true }));
-}
+
 
 async function handleApproveShots(req, res, workdir) {
   await readBody(req);
@@ -1299,9 +1290,7 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     return handleApproveShots(req, res, workdir);
   }
 
-  if (req.method === 'POST' && url.pathname === '/approve-card-plan') {
-    return handleApproveCardPlan(req, res, workdir);
-  }
+
 
   if (req.method === 'POST' && url.pathname === '/approve-intro') {
     await readBody(req);

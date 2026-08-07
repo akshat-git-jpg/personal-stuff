@@ -156,37 +156,6 @@ test('CLI: staleness gate exits 1 and mentions stale', () => {
   assert.match(result.stderr, /stale/);
 });
 
-test('render refuses while the 037 card plan is unapproved, and --force overrides', () => {
-  // Prove the gate can FAIL before trusting that it passed — a green gate is
-  // not evidence it works (plans/runs/LESSONS.md). The gate it replaced, on
-  // zone-plan.json, was never tested at all.
-  fs.mkdirSync(TMP_ROOT, { recursive: true });
-  const workdir = fs.mkdtempSync(path.join(TMP_ROOT, 'cardplan-gate-'));
-  fs.writeFileSync(path.join(workdir, 'cues.json'), JSON.stringify({ video: 'vid', approved: true, cues: [] }));
-  fs.writeFileSync(path.join(workdir, 'transcript.json'), JSON.stringify([{ text: 'x', start: 0, end: 1 }]));
-  fs.writeFileSync(
-    path.join(workdir, 'card-plan.json'),
-    JSON.stringify({ video: 'vid', approved: false, sections: [] }),
-  );
-
-  const blocked = spawnSync(process.execPath, [path.join(import.meta.dirname, 'render.mjs'), workdir], { encoding: 'utf8' });
-  assert.equal(blocked.status, 1, 'must refuse an unapproved card plan');
-  assert.match(blocked.stderr, /card-plan\.json approved=false/);
-
-  // --force and an approved plan both get PAST the gate. They then fail later
-  // for want of resolved.json, which this test does not stage — the assertion
-  // is only that the gate itself stopped objecting.
-  const forced = spawnSync(process.execPath, [path.join(import.meta.dirname, 'render.mjs'), workdir, '--force'], { encoding: 'utf8' });
-  assert.doesNotMatch(forced.stderr ?? '', /card-plan\.json approved=false/, '--force must get past the gate');
-
-  fs.writeFileSync(
-    path.join(workdir, 'card-plan.json'),
-    JSON.stringify({ video: 'vid', approved: true, sections: [] }),
-  );
-  const allowed = spawnSync(process.execPath, [path.join(import.meta.dirname, 'render.mjs'), workdir], { encoding: 'utf8' });
-  assert.doesNotMatch(allowed.stderr ?? '', /card-plan\.json approved=false/);
-});
-
 // ---- cache + pool ---------------------------------------------------------
 // 090 was a sequential loop with no cache at all: every `cut` re-rendered all
 // 39 cards even when one word of copy had changed. Measured on test-01's 14

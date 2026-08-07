@@ -73,7 +73,7 @@ test('step ids come from the steps/ folders', async (t) => {
     assert.equal(stepKind('040-sync-graphics-run'), 'script');
     assert.equal(stepKind('030-pick-or-propose-graphics-llm'), 'session');
     assert.equal(stepKind('130-learn-from-feedback-opus'), 'session');
-    assert.equal(stepKind('037-approve-card-plan-human'), 'gate');
+    assert.equal(stepKind('080-approve-storyboard-human'), 'gate');
   });
 
   await t.test('a step that is both a model pass and a gate reports as both', () => {
@@ -102,7 +102,7 @@ test('an invented step name cannot be recorded', async (t) => {
 
   await t.test('accepts the bare number and expands it', () => {
     assert.equal(resolveStepId('030'), '030-pick-or-propose-graphics-llm');
-    assert.equal(resolveStepId('037'), '037-approve-card-plan-human');
+    assert.equal(resolveStepId('080'), '080-approve-storyboard-human');
     assert.equal(resolveStepId('038'), '038-build-cards-llm-and-review-human');
   });
 

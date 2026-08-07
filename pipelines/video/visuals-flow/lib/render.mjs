@@ -195,18 +195,12 @@ async function main() {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
   const workdir = resolveWorkdir(opts.workdir);
 
-  // Both board gates here are waivable by the owner's kickoff choice
-  // (run-config review=express). The new-card look-preview is NOT: it is a
-  // conversation gate that happens before a card is ever built (DESIGN.md
-  // item 0), so nothing at render time can or should stand in for it.
-  const cardPlanPath = path.join(workdir, 'card-plan.json');
-  if (fs.existsSync(cardPlanPath)) {
-    const cardPlan = JSON.parse(fs.readFileSync(cardPlanPath, 'utf8'));
-    if (cardPlan.approved !== true && !opts.force) {
-      console.error('refusing to render: card-plan.json approved=false — review the Card Plan tab (node lib/board.mjs <slug>) or pass --force');
-      process.exit(1);
-    }
-  }
+  // The storyboard gate. The new-card look-preview is separate and earlier: it is a conversation gate before a card is ever built (DESIGN.md item 0), so nothing at render time stands in for it.
+  // The 037 card-plan gate was removed 2026-08-07 (plan 195): approving cards
+  // from a written description is the weaker of the two reviews, and the
+  // storyboard gate below judges the SAME cards built and in context. The
+  // safety property 037 carried — a card nobody looked at cannot reach render —
+  // now lives in card-plan.mjs's resetStoryboardApproval().
 
   const cuesPath = path.join(workdir, 'cues.json');
 
