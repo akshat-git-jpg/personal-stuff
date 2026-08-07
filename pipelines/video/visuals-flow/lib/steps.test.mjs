@@ -236,19 +236,30 @@ test('a fresh workdir parks on the first step', () => {
   assert.equal(s.number, '005');
 });
 
-test('a video reaches 025, then the 027 gate', () => {
+test('a video reaches 025, then (026/028 sorting after it) the idea pass, then the 027 gate', () => {
   const present = ['run-config.json', 'vo.mp3', 'transcript.json', 'transcript.diff.json', 'segments.json', 'concept.json'];
   const authoring = nextStep({ ...probes(present) });
   assert.equal(authoring.number, '025', 'the video must be sent to author the film');
 
-  const gate = nextStep({
-    ...probes([...present, 'intro-film/screenplay.json']),
-  });
-  assert.equal(gate.number, '027', 'with a screenplay on disk the video parks on its gate');
+  // 026 (propose the intro idea) and 028 (its gate) are temporary free slots
+  // that sort AFTER 025/027 in the registry — plan 197's numbering note: "free
+  // slots chosen only so they sort correctly [for the generated table]"; plan
+  // 198 renumbers everything into proper phase order. Until then, the idea
+  // pass's own contract (steps/025.../AUTHORING.md: "read idea.json first...
+  // if the chosen direction cannot carry a beat, say so and STOP") is what
+  // actually enforces idea-before-beats — nextStep's walk is not.
+  const idea = nextStep({ ...probes([...present, 'intro-film/screenplay.json']) });
+  assert.equal(idea.number, '026', 'without an approved idea, the video parks on the idea pass next');
+
+  const ideaApproved = [...present, 'intro-film/screenplay.json', 'intro-film/idea.json'];
+  const ideaApprovals = ['intro-film/idea.json:approved'];
+
+  const gate = nextStep({ ...probes(ideaApproved, ideaApprovals) });
+  assert.equal(gate.number, '027', 'with a screenplay and an approved idea, the video parks on the film gate');
   assert.equal(gate.gate.label, 'Intro Film');
 
   const past = nextStep({
-    ...probes([...present, 'intro-film/screenplay.json'], ['intro-film/screenplay.json:approved']),
+    ...probes(ideaApproved, [...ideaApprovals, 'intro-film/screenplay.json:approved']),
   });
   assert.equal(past.number, '030', 'an approved film moves on to the cue pass');
 });

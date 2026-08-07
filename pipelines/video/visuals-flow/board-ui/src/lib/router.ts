@@ -1,4 +1,4 @@
-export type Tab = 'run' | 'intro' | 'storyboard' | 'final-cut' | 'calibrate';
+export type Tab = 'run' | 'intro' | 'storyboard' | 'avatar' | 'final-cut' | 'calibrate';
 
 // ONE table, both hash maps computed from it (plan 193 — this used to be
 // three parallel structures listing the same five tabs).
@@ -16,6 +16,9 @@ const TAB_TABLE: TabRow[] = [
   { id: 'intro', label: 'Intro', hash: '#intro', button: true },
 
   { id: 'storyboard', label: 'Storyboard', hash: '#storyboard', button: true },
+  // The avatar spend gate (step 102): which character, which HeyGen model, how
+  // many clips and seconds — approved here before anything reaches HeyGen.
+  { id: 'avatar', label: 'Avatar', hash: '#avatar', button: true },
   { id: 'final-cut', label: 'Final Cut', hash: '#final-cut', button: true },
   { id: 'calibrate', label: 'Calibrate', hash: '#calibrate', button: false },
 ];

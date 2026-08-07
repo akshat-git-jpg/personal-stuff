@@ -20,8 +20,10 @@ describe('router', () => {
   // The button row reads in the order the film plays: the intro is the first
   // thing on screen, so it sits second, right after Run (owner decision
   // 2026-08-07). Order is a product decision, not an accident of the table.
-  it('TABS renders Run, Intro, Storyboard, Final Cut in that order', () => {
-    expect(TABS.map((t) => t.id)).toEqual(['run', 'intro', 'storyboard', 'final-cut']);
+  // Avatar sits after Storyboard (plan 197) — the spend gate needs
+  // shots.resolved.json, which the storyboard produces.
+  it('TABS renders Run, Intro, Storyboard, Avatar, Final Cut in that order', () => {
+    expect(TABS.map((t) => t.id)).toEqual(['run', 'intro', 'storyboard', 'avatar', 'final-cut']);
   });
 
   it('urlForTab keeps ?video=x', () => {
