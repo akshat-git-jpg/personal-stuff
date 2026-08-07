@@ -1,0 +1,22 @@
+{
+  "number": "040",
+  "slug": "040-split-narration-demo-run",
+  "title": "split narration from demo",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "segments"
+  ],
+  "consumes": [
+    "transcript.json"
+  ],
+  "produces": [
+    "segments.json"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "nextHint": "run.sh <slug> segments  (then set confirmed: true in segments.json)",
+  "summary": "`transcript.json` + `src/*.mp4` → `segments.json` (measured intro/body/conclusion `structure` + demo vs narration `segments`; owner sets `confirmed: true`, which promotes lint E5 from warning to error)"
+}

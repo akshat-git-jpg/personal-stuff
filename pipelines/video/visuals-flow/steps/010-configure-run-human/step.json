@@ -1,0 +1,20 @@
+{
+  "number": "010",
+  "slug": "010-configure-run-human",
+  "title": "configure the run",
+  "actor": "human",
+  "actorLabel": "[OWNER]",
+  "verbs": [
+    "configure"
+  ],
+  "usageArgs": "[--drive-folder <id>] [--drive-account <email>]",
+  "consumes": [],
+  "produces": [
+    "run-config.json"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "summary": "the owner's Drive delivery choices (drive_folder/drive_account) → `run-config.json`. No file = deliver step falls back to its own defaults. The HeyGen engine choice moved to the avatar spend gate (420) — it is no longer set here (plan 197)"
+}

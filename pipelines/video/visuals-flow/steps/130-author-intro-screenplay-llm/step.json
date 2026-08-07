@@ -1,0 +1,23 @@
+{
+  "number": "130",
+  "slug": "130-author-intro-screenplay-llm",
+  "title": "author the intro screenplay",
+  "actor": "llm",
+  "actorLabel": "[LLM] (OFF by default)",
+  "verbs": [
+    "intro-film"
+  ],
+  "consumes": [
+    "transcript.json",
+    "segments.json",
+    "concept.json"
+  ],
+  "produces": [
+    "intro-film/screenplay.json"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "summary": "`transcript.json` + `segments.json` + `concept.json` + `card-library/DESIGN.md` → `intro-film/screenplay.json`. Runs only when `run-config.json` has `intro: \"film\"`. Reads the design system and the logo registry, and must not read `catalog.json` — the intro keeps full creative freedom. Reviewed at 140, approved at 150, rendered at 160."
+}

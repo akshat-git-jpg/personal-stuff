@@ -1,0 +1,23 @@
+{
+  "number": "510",
+  "slug": "510-assemble-video-run",
+  "title": "build the video",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "assemble"
+  ],
+  "consumes": [
+    "renders",
+    "resolved.json"
+  ],
+  "produces": [
+    "assembly.md"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "nextHint": "run.sh <slug> cut  (then HUMAN GATE 3 — 530 final cut)",
+  "summary": "`screen.mp4` + `master.wav` + `renders/` + avatar clips → `final.mp4` (freeze gap-filler, version registry) + `assembly.md`"
+}

@@ -1,0 +1,23 @@
+{
+  "number": "320",
+  "slug": "320-place-avatar-llm",
+  "title": "place the avatar",
+  "actor": "llm",
+  "actorLabel": "[LLM] (Sonnet default, pluggable)",
+  "verbs": [
+    "shot-pass"
+  ],
+  "consumes": [
+    "resolved.json",
+    "transcript.json"
+  ],
+  "produces": [
+    "shots.json"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "nextHint": "run.sh <slug> shot-pass  (before the storyboard gate)",
+  "summary": "approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel)"
+}

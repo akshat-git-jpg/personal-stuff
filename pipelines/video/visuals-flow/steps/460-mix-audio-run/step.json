@@ -1,0 +1,22 @@
+{
+  "number": "460",
+  "slug": "460-mix-audio-run",
+  "title": "mix the audio",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "mix"
+  ],
+  "consumes": [
+    "sound.json",
+    "vo.mp3"
+  ],
+  "produces": [
+    "sfx-bus.wav"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": true,
+  "summary": "`sound.json` + `vo.mp3` -> the mastered -14 LUFS mix, frame-exact against the voiceover. Writes `sfx-bus.wav` (and `music-ducked.wav` when the plan carries music)."
+}

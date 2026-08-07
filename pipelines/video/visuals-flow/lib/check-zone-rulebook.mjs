@@ -38,7 +38,7 @@ export function checkZoneRulebook({
   zoneConstants = ZONE_CONSTANTS,
   zoneRules = ZONE_RULES,
 } = {}) {
-  const zonePassStepDir = stepDir('035');
+  const zonePassStepDir = stepDir('220');
   rulebookPath ??= path.join(zonePassStepDir, 'RULEBOOK.md');
   promptPath ??= path.join(zonePassStepDir, 'zone-pass-prompt.md');
 

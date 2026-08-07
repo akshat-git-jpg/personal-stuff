@@ -1,0 +1,22 @@
+{
+  "number": "410",
+  "slug": "410-render-graphics-run",
+  "title": "render the graphics",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "render"
+  ],
+  "consumes": [
+    "resolved.json"
+  ],
+  "produces": [
+    "renders",
+    "manifest.md"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "summary": "approved `resolved.json` → `renders/*.mp4\\|mov` + `manifest.md` (brand-inline; variant rotation)"
+}

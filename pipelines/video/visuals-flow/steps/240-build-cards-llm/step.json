@@ -1,0 +1,17 @@
+{
+  "number": "240",
+  "slug": "240-build-cards-llm",
+  "title": "build the new cards and review them",
+  "actor": "llm",
+  "actorLabel": "[LLM] (Sonnet) + [OWNER]",
+  "verbs": [],
+  "consumes": [
+    "card-plan.json"
+  ],
+  "produces": [],
+  "gate": null,
+  "tab": null,
+  "external": true,
+  "optional": true,
+  "summary": "approved NEW proposals → new cards in `card-library/<type>/<name>/` + `catalog.json` entries, committed and pushed. Skipped when nothing is NEW. **Then the owner reviews the built card**: landing it flips its plan item `new` → `existing`, which resets the 340 storyboard approval by design (plan 195), so a card nobody has looked at cannot reach 410. Procedure lives in `card-library/CLAUDE.md`"
+}

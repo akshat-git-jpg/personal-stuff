@@ -1,0 +1,24 @@
+{
+  "number": "430",
+  "slug": "430-render-avatar-run",
+  "title": "render the avatar clips",
+  "actor": "owner-live",
+  "actorLabel": "[OWNER live HeyGen]",
+  "verbs": [
+    "avatar",
+    "avatar-download"
+  ],
+  "consumes": [
+    "shots.json",
+    "vo.mp3"
+  ],
+  "produces": [
+    "avatar-jobs.json",
+    "avatar-manifest.md"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": true,
+  "summary": "approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md`"
+}

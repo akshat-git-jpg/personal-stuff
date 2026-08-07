@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { stepDir } from '../steps.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const STEP = path.join(ROOT, 'steps', '025-author-intro-film-llm');
+const STEP = path.join(ROOT, 'steps', '130-author-intro-screenplay-llm');
 
 // The owner's hard constraint on this step:
 //
@@ -29,7 +29,7 @@ const BANNED = ['catalog.json', 'card-plan.json', 'cues.json'];
 // forbids the file is the one legitimate mention.
 const IS_PROHIBITION = /never read|do not read|must not|never in scope|not in scope/i;
 
-test('the 025 authoring context never names the card catalog', () => {
+test('the 130 authoring context never names the card catalog', () => {
   assert.ok(fs.existsSync(STEP), `${STEP} must exist — run.sh cats AUTHORING.md from it`);
   const files = fs.readdirSync(STEP);
   assert.ok(files.length > 0, 'the step folder must not be empty');
@@ -51,7 +51,7 @@ test('the 025 authoring context never names the card catalog', () => {
   }
 });
 
-test('the 025 authoring context requires DESIGN.md and the real logo registry', () => {
+test('the 130 authoring context requires DESIGN.md and the real logo registry', () => {
   const a = fs.readFileSync(path.join(STEP, 'AUTHORING.md'), 'utf8');
   assert.match(a, /DESIGN\.md/, 'the brand contract is required reading, not optional');
   assert.match(a, /logos\/registry\.json/, 'real logos are required — no invented rectangles');
@@ -67,7 +67,7 @@ test('run.sh can actually find the authoring prompt it cats', () => {
   // (plan 191) — so the assertion follows the same resolution the driver uses.
   // Reading run.sh's source for a literal path would now match nothing and pass
   // vacuously, which is exactly the failure mode this test was written against.
-  assert.equal(stepDir('025'), STEP, 'the registry must resolve 025 to this folder');
+  assert.equal(stepDir('130'), STEP, 'the registry must resolve 130 to this folder');
   assert.ok(
     fs.existsSync(path.join(stepDir('intro-film'), 'AUTHORING.md')),
     'run.sh cats AUTHORING.md from the folder the registry resolves for the intro-film verb',

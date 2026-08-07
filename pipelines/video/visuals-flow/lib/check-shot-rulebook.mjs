@@ -30,7 +30,7 @@ export function checkShotRulebook({
   promptPath,
   shotConstants = SHOT_CONSTANTS,
 } = {}) {
-  const shotPassStepDir = stepDir('060');
+  const shotPassStepDir = stepDir('320');
   rulebookPath ??= path.join(shotPassStepDir, 'RULEBOOK.md');
   promptPath ??= path.join(shotPassStepDir, 'shot-pass-prompt.md');
 

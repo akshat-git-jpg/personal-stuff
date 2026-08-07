@@ -7,8 +7,8 @@ import { checkRulebook } from './check-rulebook.mjs';
 
 const REAL_CONSTANTS_PATH = path.join(import.meta.dirname, 'cue-constants.mjs');
 const REAL_RULES_PATH = path.join(import.meta.dirname, 'cue-rules.mjs');
-const REAL_PROMPT_PATH = path.join(import.meta.dirname, '..', 'steps', '030-pick-or-propose-graphics-llm', 'cue-pass-prompt.md');
-const REAL_RULEBOOK_PATH = path.join(import.meta.dirname, '..', 'steps', '030-pick-or-propose-graphics-llm', 'RULEBOOK.md');
+const REAL_PROMPT_PATH = path.join(import.meta.dirname, '..', 'steps', '210-author-body-cues-llm', 'cue-pass-prompt.md');
+const REAL_RULEBOOK_PATH = path.join(import.meta.dirname, '..', 'steps', '210-author-body-cues-llm', 'RULEBOOK.md');
 
 test('check-rulebook: baseline passes on the repo as committed', () => {
   assert.doesNotThrow(() => checkRulebook());

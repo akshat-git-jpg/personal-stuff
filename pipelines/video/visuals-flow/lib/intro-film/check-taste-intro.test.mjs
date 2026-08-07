@@ -69,7 +69,7 @@ test('authoring text lacking TASTE-INTRO.md fails', () => {
 test('the real repo files pass', () => {
   const root = path.resolve(fileURLToPath(import.meta.url), '../../..');
   const tastePath = path.join(root, 'TASTE-INTRO.md');
-  const authoringPath = path.join(root, 'steps/025-author-intro-film-llm/AUTHORING.md');
+  const authoringPath = path.join(root, 'steps/130-author-intro-screenplay-llm/AUTHORING.md');
   
   const taste = fs.readFileSync(tastePath, 'utf8');
   const authoring = fs.readFileSync(authoringPath, 'utf8');

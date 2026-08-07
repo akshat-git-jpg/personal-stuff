@@ -4,7 +4,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 # What this file asserts, and why it changed shape (plan 191):
 #
-# It used to pin dispatch with `grep -q 'bash steps/010-transcribe-run/run.sh
+# It used to pin dispatch with `grep -q 'bash steps/020-transcribe-run/run.sh
 # "$slug"' run.sh` — assertions on run.sh's SOURCE TEXT. Those failed on any
 # correct rename while catching nothing about whether the verb actually
 # dispatched, and they had already bent production code: run.sh carried a
@@ -87,39 +87,39 @@ expect_dry() {
 }
 
 expect_dry configure "node lib/run-config.mjs $FIX"
-expect_dry transcribe "record_step 010 -- bash steps/010-transcribe-run/run.sh $FIX"
-expect_dry segments "record_step 015 -- node lib/segments.mjs $FIX --propose"
-expect_dry intro-film "cat steps/025-author-intro-film-llm/AUTHORING.md | sed s/<slug>/$FIX/g"
+expect_dry transcribe "record_step 020 -- bash steps/020-transcribe-run/run.sh $FIX"
+expect_dry segments "record_step 040 -- node lib/segments.mjs $FIX --propose"
+expect_dry intro-film "cat steps/130-author-intro-screenplay-llm/AUTHORING.md | sed s/<slug>/$FIX/g"
 expect_dry intro-review "node lib/intro-film/review-film.mjs $FIX"
 # No requireIntroApproved here: rendering is how the owner gets a film to
 # watch, so gating it on approval deadlocked the review. Approval guards
 # assembly instead (lib/assemble.mjs, owner report 2026-08-06).
 expect_dry intro-render "node lib/intro-film/render-film.mjs $FIX"
 expect_dry validate "node lib/resolve.mjs $FIX --validate-only"
-expect_dry resolve "record_step 040 -- node lib/resolve.mjs $FIX && node lib/lint-cues.mjs $FIX"
+expect_dry resolve "record_step 310 -- node lib/resolve.mjs $FIX && node lib/lint-cues.mjs $FIX"
 expect_dry card-plan "node lib/card-plan.mjs $FIX"
 expect_dry outline "node lib/card-plan.mjs $FIX --outline"
-expect_dry board "bash steps/080-approve-storyboard-human/run.sh $FIX"
-expect_dry render "record_step 090 -- bash steps/090-render-graphics-run/run.sh $FIX"
-expect_dry fold "record 130 running + node lib/feedback-status.mjs"
+expect_dry board "bash steps/340-approve-storyboard-human/run.sh $FIX"
+expect_dry render "record_step 410 -- bash steps/410-render-graphics-run/run.sh $FIX"
+expect_dry fold "record 630 running + node lib/feedback-status.mjs"
 expect_dry sound "node lib/sound/sfx-plan.mjs $FIX"
 expect_dry mix "node lib/sound/build-mix.mjs $FIX"
 expect_dry storyboard-check "node lib/resolve-shots.mjs $FIX && node lib/lint-shots.mjs $FIX && node lib/stillness.mjs $FIX && node lib/audit-gate.mjs $FIX"
-expect_dry avatar "record_step 100 -- bash steps/100-render-avatar-run/run.sh $FIX --submit --spans-only --template specs-man"
-expect_dry avatar-download "record_step 100 -- bash steps/100-render-avatar-run/run.sh $FIX --download"
-expect_dry assemble "record_step 110 -- bash steps/110-build-video-run/run.sh $FIX"
-expect_dry deliver "record_step 150 -- bash steps/150-deliver-drive-run/run.sh $FIX"
-expect_dry export "record_step 140 -- bash steps/140-davinci-export-run/run.sh $FIX"
+expect_dry avatar "record_step 430 -- bash steps/430-render-avatar-run/run.sh $FIX --submit --spans-only --template specs-man"
+expect_dry avatar-download "record_step 430 -- bash steps/430-render-avatar-run/run.sh $FIX --download"
+expect_dry assemble "record_step 510 -- bash steps/510-assemble-video-run/run.sh $FIX"
+expect_dry deliver "record_step 620 -- bash steps/620-deliver-drive-run/run.sh $FIX"
+expect_dry export "record_step 610 -- bash steps/610-davinci-export-run/run.sh $FIX"
 expect_dry qc "bash scripts/qc-video.sh $FIX"
 
 # cut is a composite: the whole sequence, in order, is the contract.
 expect_dry cut \
-  "record_step 090 -- bash steps/090-render-graphics-run/run.sh $FIX" \
+  "record_step 410 -- bash steps/410-render-graphics-run/run.sh $FIX" \
   "node lib/effects-plan.mjs $FIX" \
   "node lib/sound/sfx-plan.mjs $FIX" \
   "node lib/sound/build-mix.mjs $FIX" \
-  "if avatar-jobs.json: bash steps/100-render-avatar-run/run.sh $FIX --download" \
-  "record_step 110 -- bash steps/110-build-video-run/run.sh $FIX --draft"
+  "if avatar-jobs.json: bash steps/430-render-avatar-run/run.sh $FIX --download" \
+  "record_step 510 -- bash steps/510-assemble-video-run/run.sh $FIX --draft"
 
 # The AVATAR_TEMPLATE override still reaches the command.
 out="$(AVATAR_TEMPLATE=other-face VF_DRY_RUN=1 bash run.sh "$FIX" avatar 2>&1)"
@@ -170,15 +170,15 @@ echo "run.sh test OK"
 # ended up with no ledger entry at all.
 tmpwd=$(mktemp -d)
 bash run.sh "$tmpwd" cue-pass >/dev/null
-grep -q '"030-pick-or-propose-graphics-llm"' "$tmpwd/run-log.json" \
-  || fail "cue-pass must record 030 in the ledger"
+grep -q '"210-author-body-cues-llm"' "$tmpwd/run-log.json" \
+  || fail "cue-pass must record 210 in the ledger"
 grep -q '"status": "running"' "$tmpwd/run-log.json" \
-  || fail "cue-pass must record 030 as running"
+  || fail "cue-pass must record 210 as running"
 rm -rf "$tmpwd"
 
 # The same, for every other verb that hands out a prompt instead of running a
 # command. Asserted through the ledger it writes, not through run.sh's source.
-for pair in "concept-pass 020" "zone-pass 035" "shot-pass 060"; do
+for pair in "concept-pass 050" "zone-pass 220" "shot-pass 320"; do
   set -- $pair
   tmpwd=$(mktemp -d)
   bash run.sh "$tmpwd" "$1" >/dev/null

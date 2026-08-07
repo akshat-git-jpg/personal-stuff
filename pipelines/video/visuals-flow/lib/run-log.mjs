@@ -134,28 +134,27 @@ export function setStep(log, stepId, status, fields = {}, now = new Date()) {
 // now — are not shown as a blank page. Entries produced this way are marked
 // `derived` and carry no summary, because none was ever written.
 const ARTIFACT_PROOF = {
-  '005': (w) => fs.existsSync(path.join(w, 'run-config.json')),
-  '010': (w) => fs.existsSync(path.join(w, 'transcript.json')),
-  '015': (w) => fs.existsSync(path.join(w, 'segments.json')),
-  '020': (w) => fs.existsSync(path.join(w, 'concept.json')),
-  '030': (w) => cuesHave(w, (c) => !c.zone),
-  '035': (w) => cuesHave(w, (c) => !!c.zone),
-  '037': (w) => readJson(path.join(w, 'card-plan.json'))?.approved === true,
-  '038': (w) => {
+  '010': (w) => fs.existsSync(path.join(w, 'run-config.json')),
+  '020': (w) => fs.existsSync(path.join(w, 'transcript.json')),
+  '040': (w) => fs.existsSync(path.join(w, 'segments.json')),
+  '050': (w) => fs.existsSync(path.join(w, 'concept.json')),
+  '210': (w) => cuesHave(w, (c) => !c.zone),
+  '220': (w) => cuesHave(w, (c) => !!c.zone),
+  '235': (w) => readJson(path.join(w, 'card-plan.json'))?.approved === true,
+  '240': (w) => {
     const plan = readJson(path.join(w, 'card-plan.json'));
     if (!plan?.sections) return false;
     return plan.sections.every((s) => (s.items ?? []).every((i) => i.status !== 'new'));
   },
-  '040': (w) => fs.existsSync(path.join(w, 'resolved.json')),
-  '050': (w) => fs.existsSync(path.join(w, 'audit.json')),
-  '060': (w) => fs.existsSync(path.join(w, 'shots.json')),
-  '080': (w) =>
+  '310': (w) => fs.existsSync(path.join(w, 'resolved.json')),
+  '320': (w) => fs.existsSync(path.join(w, 'shots.json')),
+  '340': (w) =>
     readJson(path.join(w, 'cues.json'))?.approved === true &&
     readJson(path.join(w, 'shots.json'))?.approved === true,
   // Media files, not the directory: an empty renders/ (or one holding only
-  // probe leftovers) marked 090 done and painted a green tick for a render
+  // probe leftovers) marked 410 done and painted a green tick for a render
   // that never ran (owner report 2026-07-31).
-  '090': (w) => {
+  '410': (w) => {
     const d = path.join(w, 'renders');
     if (!fs.existsSync(d)) return false;
     try {
@@ -164,9 +163,9 @@ const ARTIFACT_PROOF = {
       return false;
     }
   },
-  '100': (w) => fs.existsSync(path.join(w, 'avatar-jobs.json')),
-  '110': (w) => fs.existsSync(path.join(w, 'assembly.md')),
-  '120': (w) => readJson(path.join(w, 'final-cut.json'))?.approved === true,
+  '430': (w) => fs.existsSync(path.join(w, 'avatar-jobs.json')),
+  '510': (w) => fs.existsSync(path.join(w, 'assembly.md')),
+  '530': (w) => readJson(path.join(w, 'final-cut.json'))?.approved === true,
 };
 
 function readJson(file) {
