@@ -263,8 +263,15 @@ EOF
     exit 0
     ;;
 
-  intro-film|intro-review|intro-render)
-    if [[ "$step" == "intro-film" ]]; then
+  intro-idea|intro-film|intro-review|intro-render)
+    if [[ "$step" == "intro-idea" ]]; then
+      # 026 — the idea pass. Prose only, and its own gate (028) before 025
+      # writes a single beat. See steps/026-propose-intro-idea-llm/IDEA-PASS.md.
+      d="$(step_slug 026)"
+      dry "cat steps/$d/IDEA-PASS.md | sed s/<slug>/$slug/g" && exit 0
+      cat "steps/$d/IDEA-PASS.md" | sed "s/<slug>/$slug/g"
+      exit 0
+    elif [[ "$step" == "intro-film" ]]; then
       d="$(step_slug 025)"
       dry "cat steps/$d/AUTHORING.md | sed s/<slug>/$slug/g" && exit 0
       cat "steps/$d/AUTHORING.md" | sed "s/<slug>/$slug/g"
@@ -281,6 +288,28 @@ EOF
       node lib/intro-film/render-film.mjs "$slug"
       exit $?
     fi
+    ;;
+
+  intro-rerender)
+    # 108 — the intro was approved at 027 against a static avatar stand-in;
+    # this is the encode that swaps in the real avatar.mp4 and ships. Must
+    # fail before rendering anything if there is no real avatar yet, or a
+    # session could re-run this and call the stand-in done.
+    if [[ ! -f "videos/$slug/avatar.mp4" ]]; then
+      echo "no real avatar.mp4 for $slug yet — 108 re-renders against it; run.sh $slug avatar-download (or place it) first"
+      exit 1
+    fi
+    dry "node lib/intro-film/render-film.mjs $slug" && exit 0
+    node lib/intro-film/render-film.mjs "$slug"
+    exit $?
+    ;;
+
+  avatar-plan)
+    # 102 — the avatar spend gate. Computes clip/second totals and character
+    # candidates from shots.resolved.json; approval happens on the board's
+    # Avatar tab, never here.
+    dry "node lib/avatar-plan.mjs $slug" && exit 0
+    node lib/avatar-plan.mjs "$slug"
     ;;
 
   cue-pass)
