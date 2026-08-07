@@ -1,0 +1,16 @@
+{
+  "number": "070",
+  "slug": "070-review-storyboard-run",
+  "title": "review the storyboard",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": ["storyboard-check"],
+  "consumes": ["resolved.json", "shots.json", "transcript.json"],
+  "produces": ["shots.resolved.json", "checks/shots.json", "checks/stillness.json", "checks/audit-gate.json"],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "nextHint": "run.sh <slug> storyboard-check  (the last cheap check before rendering costs time)",
+  "summary": "`resolved.json` + `shots.json` -> `shots.resolved.json` + `checks/shots.json`, `checks/stillness.json`, `checks/audit-gate.json`. Resolves the shot spans and runs every pre-render check in one pass: shot lint, W18 stillness, and the audit gate. Replaces four separate commands (`shots`, `stillness`, `audit-gate`, and the optional 050 audit step), three of which wrote nothing and one of which was optional while a gate depended on it."
+}

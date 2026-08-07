@@ -299,9 +299,12 @@ EOF
       "resolved.json" -- do_resolve
     ;;
 
-  stillness)
-    dry "node lib/stillness.mjs $slug" && exit 0
-    node lib/stillness.mjs "$slug"
+  storyboard-check)
+    dry "node lib/resolve-shots.mjs $slug && node lib/lint-shots.mjs $slug && node lib/stillness.mjs $slug && node lib/audit-gate.mjs $slug" && exit 0
+    node lib/resolve-shots.mjs "$slug" \
+      && node lib/lint-shots.mjs "$slug" \
+      && node lib/stillness.mjs "$slug" \
+      && node lib/audit-gate.mjs "$slug"
     ;;
 
   audit)
@@ -318,10 +321,7 @@ EOF
     exit 0
     ;;
 
-  audit-gate)
-    dry "node lib/audit-gate.mjs $slug" && exit 0
-    node lib/audit-gate.mjs "$slug"
-    ;;
+
 
   card-plan)
     dry "node lib/card-plan.mjs $slug" && exit 0
@@ -378,10 +378,7 @@ EOF
     exit 0
     ;;
 
-  shots)
-    dry "node lib/resolve-shots.mjs $slug && node lib/lint-shots.mjs $slug" && exit 0
-    node lib/resolve-shots.mjs "$slug" && node lib/lint-shots.mjs "$slug"
-    ;;
+
 
   avatar)
     # --submit is mandatory: avatar-render.mjs exits with usage when called
