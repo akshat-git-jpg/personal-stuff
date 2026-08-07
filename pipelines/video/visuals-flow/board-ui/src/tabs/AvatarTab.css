@@ -1,0 +1,63 @@
+.avatar-tab h3 {
+  font-size: 13px;
+  color: var(--dim);
+  margin: 24px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.avatar-totals {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 16px;
+  max-width: 900px;
+}
+
+.avatar-candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.avatar-candidate-btn,
+.avatar-model-btn,
+.avatar-approve-btn {
+  background: transparent;
+  border: 1px solid var(--dim);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.avatar-candidate-btn:hover:not(:disabled),
+.avatar-model-btn:hover:not(:disabled),
+.avatar-approve-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.avatar-candidate-btn:disabled,
+.avatar-model-btn:disabled,
+.avatar-approve-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.avatar-candidate-btn.selected,
+.avatar-model-btn.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.avatar-model-btn.metered.selected {
+  border-color: var(--warn, #fbbf24);
+  color: var(--warn, #fbbf24);
+}
+.avatar-approve-btn.approved {
+  border-color: var(--ok);
+  color: var(--ok);
+  opacity: 1;
+}

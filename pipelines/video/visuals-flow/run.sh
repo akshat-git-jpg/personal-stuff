@@ -28,8 +28,8 @@ if [[ $# -eq 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
   exit 2
 fi
 
-# `configure` takes extra flags (--engine/--review); every other step is
-# exactly two args.
+# `configure` takes extra flags (--drive-folder/--drive-account); every other
+# step is exactly two args.
 if [[ $# -lt 2 ]] || { [[ "$2" != "configure" ]] && [[ $# -ne 2 ]]; }; then
   usage
   exit 2
@@ -163,10 +163,18 @@ case "$step" in
       shots_approved=$(node -e "const s=require('./videos/$slug/shots.json');console.log(s.approved?'approved':'NOT approved')")
     fi
 
-    # Kickoff config (step 005): engine.
-    run_engine="heygen3"
-    if [[ -f "videos/$slug/run-config.json" ]]; then
-      run_engine=$(node -e "console.log(require('./videos/$slug/run-config.json').engine||'heygen3')")
+    idea_present="missing"
+    idea_approved="NOT approved"
+    if [[ -f "videos/$slug/intro-film/idea.json" ]]; then
+      idea_present="present"
+      idea_approved=$(node -e "const i=require('./videos/$slug/intro-film/idea.json');console.log(i.approved?'approved':'NOT approved')")
+    fi
+
+    avatar_plan_present="missing"
+    avatar_plan_approved="NOT approved"
+    if [[ -f "videos/$slug/avatar-plan.json" ]]; then
+      avatar_plan_present="present"
+      avatar_plan_approved=$(node -e "const a=require('./videos/$slug/avatar-plan.json');console.log(a.approved?'approved':'NOT approved')")
     fi
 
     # The ledger first: what each step did, from run-log.json. Steps with no
@@ -176,16 +184,17 @@ case "$step" in
     node lib/run-log.mjs "$slug"
     echo
 
-    echo "run-config        engine=$run_engine"
     echo "artifact          status"
     echo "--------          ------"
     echo "transcript.json   $transcript_present"
     echo "segments.json     $segments_present"
+    echo "intro idea        $idea_present ($idea_approved)"
     echo "cues.json         $cues_present ($cues_approved)"
     echo "resolved.json     $resolved_present"
     echo "card-plan.json    $card_plan_present ($card_plan_approved)"
     echo "renders/          $renders_present"
     echo "shots.json        $shots_present ($shots_approved)"
+    echo "avatar-plan.json  $avatar_plan_present ($avatar_plan_approved)"
 
     # The next-hint walks the registry (consumes/produces/gate/requires.intro)
     # rather than a fixed if/elif chain. That chain knew nothing about the intro
@@ -226,8 +235,8 @@ case "$step" in
     ;;
 
   configure)
-    # Step 005 — the owner's kickoff choices for this video: which HeyGen
-    # engine (heygen3 free | heygen4 metered). See
+    # Step 005 — the owner's Drive delivery choices for this video. The
+    # HeyGen engine choice moved to the avatar spend gate (102, plan 197). See
     # steps/005-configure-run-human/README.md.
     dry "node lib/run-config.mjs $slug${*:+ $*}" && exit 0
     node lib/run-config.mjs "$slug" "$@"
@@ -254,8 +263,15 @@ EOF
     exit 0
     ;;
 
-  intro-film|intro-review|intro-render)
-    if [[ "$step" == "intro-film" ]]; then
+  intro-idea|intro-film|intro-review|intro-render)
+    if [[ "$step" == "intro-idea" ]]; then
+      # 026 — the idea pass. Prose only, and its own gate (028) before 025
+      # writes a single beat. See steps/026-propose-intro-idea-llm/IDEA-PASS.md.
+      d="$(step_slug 026)"
+      dry "cat steps/$d/IDEA-PASS.md | sed s/<slug>/$slug/g" && exit 0
+      cat "steps/$d/IDEA-PASS.md" | sed "s/<slug>/$slug/g"
+      exit 0
+    elif [[ "$step" == "intro-film" ]]; then
       d="$(step_slug 025)"
       dry "cat steps/$d/AUTHORING.md | sed s/<slug>/$slug/g" && exit 0
       cat "steps/$d/AUTHORING.md" | sed "s/<slug>/$slug/g"
@@ -272,6 +288,28 @@ EOF
       node lib/intro-film/render-film.mjs "$slug"
       exit $?
     fi
+    ;;
+
+  intro-rerender)
+    # 108 — the intro was approved at 027 against a static avatar stand-in;
+    # this is the encode that swaps in the real avatar.mp4 and ships. Must
+    # fail before rendering anything if there is no real avatar yet, or a
+    # session could re-run this and call the stand-in done.
+    if [[ ! -f "videos/$slug/avatar.mp4" ]]; then
+      echo "no real avatar.mp4 for $slug yet — 108 re-renders against it; run.sh $slug avatar-download (or place it) first"
+      exit 1
+    fi
+    dry "node lib/intro-film/render-film.mjs $slug" && exit 0
+    node lib/intro-film/render-film.mjs "$slug"
+    exit $?
+    ;;
+
+  avatar-plan)
+    # 102 — the avatar spend gate. Computes clip/second totals and character
+    # candidates from shots.resolved.json; approval happens on the board's
+    # Avatar tab, never here.
+    dry "node lib/avatar-plan.mjs $slug" && exit 0
+    node lib/avatar-plan.mjs "$slug"
     ;;
 
   cue-pass)

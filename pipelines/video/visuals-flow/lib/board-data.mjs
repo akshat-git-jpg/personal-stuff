@@ -8,6 +8,7 @@ import { planCaptions } from './captions.mjs';
 import { loadShots, loadEffects } from './board.mjs';
 import { loadSteps } from './steps.mjs';
 import { loadRunConfig } from './run-config.mjs';
+import { buildAvatarPlan, mergeAvatarPlan, avatarPlanPath, loadRegistry } from './avatar-plan.mjs';
 
 // Which board tabs apply to THIS video, derived from the step registry plus
 // the video's run-config. Before this, board-ui rendered all five tabs for
@@ -209,13 +210,29 @@ export function introData(workdir) {
   let beats = [];
   let findings = [];
   let sheets = [];
-  
+  let idea = null;
+
   try {
     const sp = JSON.parse(fs.readFileSync(path.join(introDir, 'screenplay.json'), 'utf8'));
     approved = sp.approved === true;
     beats = sp.beats || [];
   } catch (e) {
     // ignore
+  }
+
+  // The idea gate (028) reviews BEFORE a screenplay exists — idea.json can be
+  // present with no screenplay.json on disk yet. `idea` stays null when the
+  // idea pass has not run, so the tab can tell "no idea gate for this video"
+  // apart from "idea gate not yet approved".
+  try {
+    const ideaFile = JSON.parse(fs.readFileSync(path.join(introDir, 'idea.json'), 'utf8'));
+    idea = {
+      directions: ideaFile.directions || [],
+      chosen: ideaFile.chosen ?? null,
+      approved: ideaFile.approved === true,
+    };
+  } catch (e) {
+    // ignore — no idea pass yet
   }
 
   const reviewDir = path.join(introDir, 'review');
@@ -254,7 +271,26 @@ export function introData(workdir) {
     approved,
     beats,
     findings,
-    sheets
+    sheets,
+    idea
   };
+}
+
+// The avatar spend gate's board data (step 102). Degraded state is required:
+// before shots.resolved.json exists there is nothing real to propose against
+// (LESSONS 2026-07-24 — an enabled button over absent data is the recurring
+// board defect), so this returns present:false and the tab renders its own
+// "not resolved yet" state with every button disabled.
+export function avatarPlanData(workdir) {
+  const shotsResolvedPath = path.join(workdir, 'shots.resolved.json');
+  if (!fs.existsSync(shotsResolvedPath)) {
+    return { present: false };
+  }
+  const shotsResolved = JSON.parse(fs.readFileSync(shotsResolvedPath, 'utf8'));
+  const registry = loadRegistry();
+  const fresh = buildAvatarPlan({ workdir, shotsResolved, registry });
+  const p = avatarPlanPath(workdir);
+  const existing = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+  return { present: true, plan: mergeAvatarPlan(existing, fresh) };
 }
 

@@ -101,11 +101,28 @@ test('CLI tests', (t) => {
   const rs = spawnSync(process.execPath, [path.resolve(import.meta.dirname, 'resolve-shots.mjs'), workdir], { encoding: 'utf8' });
   if (rs.status !== 0) throw new Error(rs.stderr);
 
+  // Case 1: the avatar spend gate refuses before anything else — no
+  // avatar-plan.json on disk yet.
+  let res = runCLI([workdir, '--template', 't', '--submit']);
+  assert.strictEqual(res.status, 1);
+  assert.ok(res.stderr.includes('UNAPPROVED-AVATAR-SPEND'), res.stderr);
+
+  // Case 1b: --force exists for the storyboard gates and must NOT bypass the
+  // spend gate — metered spend is never a developer convenience (plan 197
+  // STOP condition 5).
+  res = runCLI([workdir, '--template', 't', '--submit', '--force']);
+  assert.strictEqual(res.status, 1);
+  assert.ok(res.stderr.includes('UNAPPROVED-AVATAR-SPEND'), res.stderr);
+
+  fs.writeFileSync(path.join(workdir, 'avatar-plan.json'), JSON.stringify({
+    character: 'girl-1', model: 'heygen3', approved: true,
+  }));
+
   // Case 2: Unapproved shots.json
   const shotsJson = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.json')));
   shotsJson.approved = false;
   fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify(shotsJson));
-  let res = runCLI([workdir, '--template', 't', '--submit']);
+  res = runCLI([workdir, '--template', 't', '--submit']);
   assert.strictEqual(res.status, 1);
   assert.ok(res.stderr.includes('approved=false'));
   
@@ -137,17 +154,8 @@ test('CLI tests', (t) => {
   fs.rmSync(path.join(workdir, 'stub-counter.txt'), { force: true });
   fs.rmSync(path.join(workdir, 'stub-args.log'), { force: true });
 
-  // Case 3c: run-config engine must agree with shots.json engineMode —
-  // heygen4 expects "production", so "test" refuses before any submit.
-  fs.writeFileSync(path.join(workdir, 'run-config.json'), JSON.stringify({ engine: 'heygen4' }));
-  fs.rmSync(path.join(workdir, 'avatar-jobs.json'), { force: true });
-  res = runCLI([workdir, '--template', 't', '--submit']);
-  assert.strictEqual(res.status, 1);
-  assert.ok(res.stderr.includes('expects engineMode'), res.stderr);
-
   shotsJson.approved = true;
   fs.writeFileSync(path.join(workdir, 'shots.json'), JSON.stringify(shotsJson));
-  fs.rmSync(path.join(workdir, 'run-config.json'), { force: true });
   fs.rmSync(path.join(workdir, 'avatar-jobs.json'), { force: true });
   fs.rmSync(path.join(workdir, 'stub-counter.txt'), { force: true });
   fs.rmSync(path.join(workdir, 'stub-args.log'), { force: true });
@@ -300,6 +308,9 @@ test('retry run flushes skipped jobs after the last submit (s03-retry incident)'
   spawnSync('ffmpeg', ['-f', 'lavfi', '-i', 'anullsrc', '-t', '65', '-q:a', '9', path.join(workdir, 'vo.mp3')]);
   const rs = spawnSync(process.execPath, [path.resolve(import.meta.dirname, 'resolve-shots.mjs'), workdir], { encoding: 'utf8' });
   if (rs.status !== 0) throw new Error(rs.stderr);
+  fs.writeFileSync(path.join(workdir, 'avatar-plan.json'), JSON.stringify({
+    character: 'girl-1', model: 'heygen3', approved: true,
+  }));
 
   // Pre-seed: s02 already submitted, s01 needs a submit → the skip comes AFTER the submit.
   const resolved = JSON.parse(fs.readFileSync(path.join(workdir, 'shots.resolved.json'), 'utf8'));

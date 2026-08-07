@@ -56,7 +56,11 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
     onMeta(null);
     onSecondary(null);
 
-    if (data?.present) {
+    // No film-approve action while the idea gate (028) is still open — there
+    // is no film to approve yet, and showing the button anyway would let the
+    // owner approve a film that has not been authored against the chosen idea.
+    const ideaOpen = !!(data?.idea && !data.idea.approved);
+    if (data?.present && !ideaOpen) {
       const isApproved = !!data.approved;
       onActions(
         <button
@@ -92,6 +96,48 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
       <div className="intro-tab">
         <div style={{ maxWidth: 800, margin: '24px auto', color: 'var(--dim)', fontSize: 13 }}>
           This video does not use the bespoke intro film. Opt in with <code>run.sh &lt;slug&gt; configure --intro film</code>.
+        </div>
+      </div>
+    );
+  }
+
+  // Gate 028 — the idea gate, reviewed BEFORE any beat exists. idea.json can
+  // be present with no screenplay.json on disk yet; once approved, the tab
+  // falls through to the normal film review below. A page of prose is the
+  // cheapest rejection in the pipeline (plan 197).
+  if (data.idea && !data.idea.approved) {
+    return (
+      <div className="intro-tab" style={{ padding: 24 }}>
+        <div className="intro-idea-directions">
+          {data.idea.directions?.map((d: any) => (
+            <div key={d.id} className="intro-idea-direction">
+              <h3>{d.id} — {d.name}</h3>
+              <div className="intro-idea-field"><strong>Central object:</strong> {d.central_object}</div>
+              <ul className="intro-idea-arc">
+                {d.arc?.map((clause: string, i: number) => <li key={i}>{clause}</li>)}
+              </ul>
+              <div className="intro-idea-field"><strong>Motifs:</strong> {d.motifs?.join(', ')}</div>
+              <div className="intro-idea-field"><strong>Enacts through-line:</strong> {d.enacts_throughline}</div>
+              <div className="intro-idea-field"><strong>Rejects:</strong> {d.rejects}</div>
+              <button
+                className="intro-idea-approve-btn"
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/approve-intro-idea', {
+                      method: 'POST',
+                      headers: { 'content-type': 'application/json' },
+                      body: JSON.stringify({ chosen: d.id }),
+                    });
+                    if (res.ok) await loadData();
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+              >
+                Approve direction {d.id}
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     );

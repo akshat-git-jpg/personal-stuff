@@ -4,7 +4,7 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { resolveShots } from './resolve-shots.mjs';
 import { jobPurpose } from './shot-constants.mjs';
-import { loadRunConfig } from './run-config.mjs';
+import { requireAvatarPlanApproved } from './avatar-plan.mjs';
 import { lintShots } from './lint-shots.mjs';
 import { introSpan } from './intro-modes.mjs';
 import { mmss } from './render.mjs';
@@ -123,6 +123,13 @@ async function main() {
   const transcriptPath = path.join(workdir, 'transcript.json');
 
   if (opts.submit) {
+    // The spend gate, first and unconditional — before shots.json is even
+    // read, let alone before any network call. heygen4 is METERED against the
+    // monthly second-pool; --force exists for the storyboard gates and must
+    // NEVER become a bypass for metered spend, so this ignores opts.force on
+    // purpose (plan 197 STOP condition 5).
+    requireAvatarPlanApproved(workdir);
+
     const shotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
     const shotsResolved = JSON.parse(fs.readFileSync(shotsResolvedPath, 'utf8'));
     const resolvedFile = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
@@ -131,19 +138,6 @@ async function main() {
     if (shotsFile.approved !== true && !opts.force) {
       console.error('refusing to render: shots.json approved=false — review on the board or pass --force');
       process.exit(1);
-    }
-
-    // The kickoff engine choice and shots.json's engineMode are two spellings
-    // of one decision — a mismatch means someone changed one and not the
-    // other, and the wrong engine either wastes metered seconds or ships
-    // Avatar III into a finalize. Refuse rather than guess.
-    const runCfg = loadRunConfig(workdir);
-    if (runCfg.configured) {
-      const want = runCfg.engine === 'heygen4' ? 'production' : 'test';
-      if (shotsFile.engineMode !== want) {
-        console.error(`run-config engine=${runCfg.engine} expects engineMode "${want}" but shots.json says "${shotsFile.engineMode}" — align them (edit shots.json, re-run resolve-shots) before submitting`);
-        process.exit(1);
-      }
     }
 
     const recomputed = resolveShots(shotsFile, words);
