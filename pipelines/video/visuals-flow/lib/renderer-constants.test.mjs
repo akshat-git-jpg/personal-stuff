@@ -39,19 +39,19 @@ test('no lib/ source hardcodes a hyperframes version', () => {
   );
 });
 
-// steps/010's local transcribe fallback is bash and cannot import the module, so
+// steps/020's local transcribe fallback is bash and cannot import the module, so
 // the coupling is asserted here instead. It transcribes rather than renders, but
 // it is still a hyperframes invocation and a silent divergence is still a
 // divergence.
-test('steps/010 transcribe pin matches the card renderer', () => {
-  const runSh = path.join(ROOT, 'steps', '010-transcribe-run', 'run.sh');
+test('steps/020 transcribe pin matches the card renderer', () => {
+  const runSh = path.join(ROOT, 'steps', '020-transcribe-run', 'run.sh');
   const src = fs.readFileSync(runSh, 'utf8');
   const found = [...src.matchAll(/hyperframes@(\d+\.\d+\.\d+)/g)].map((m) => m[1]);
   assert.ok(found.length > 0, `expected a pinned hyperframes version in ${path.relative(ROOT, runSh)}`);
   for (const v of found) {
     assert.strictEqual(
       v, CARD_RENDERER_VERSION,
-      `steps/010-transcribe-run/run.sh pins hyperframes@${v} but CARD_RENDERER_VERSION is ${CARD_RENDERER_VERSION} — bump both together`
+      `steps/020-transcribe-run/run.sh pins hyperframes@${v} but CARD_RENDERER_VERSION is ${CARD_RENDERER_VERSION} — bump both together`
     );
   }
 });

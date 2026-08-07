@@ -15,7 +15,7 @@ export const END_MARKER = '<!-- END GENERATED ZONE CONSTRAINTS -->';
 export const RULES_BEGIN_MARKER = '<!-- BEGIN GENERATED ZONE RULES — edit lib/zone-rules.mjs, then run node lib/build-zone-prompt.mjs -->';
 export const RULES_END_MARKER = '<!-- END GENERATED ZONE RULES -->';
 
-export const PROMPT_PATH = path.join(stepDir('035'), 'zone-pass-prompt.md');
+export const PROMPT_PATH = path.join(stepDir('220'), 'zone-pass-prompt.md');
 
 export function renderConstraintLines(zoneConstants = ZONE_CONSTANTS) {
   const lines = [];

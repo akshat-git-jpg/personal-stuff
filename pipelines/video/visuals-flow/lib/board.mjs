@@ -840,12 +840,12 @@ function recordStoryboardGate(workdir) {
     const waiting = !cues ? 'graphics' : 'avatar shots';
     writeRunLog(
       workdir,
-      setStep(readRunLog(workdir), resolveStepId('080'), 'running', {
+      setStep(readRunLog(workdir), resolveStepId('340'), 'running', {
         issues: `waiting on the owner to approve the ${waiting}`,
       }),
     );
   } catch (e) {
-    console.error(`run-log: could not record 080: ${e.message}`);
+    console.error(`run-log: could not record 340: ${e.message}`);
   }
 }
 

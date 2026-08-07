@@ -6,7 +6,7 @@ import { stepDir } from './steps.mjs';
 export const SHOT_BEGIN_MARKER = '<!-- BEGIN GENERATED SHOT CONSTRAINTS — edit lib/shot-constants.mjs, then run node lib/build-shot-prompt.mjs -->';
 export const SHOT_END_MARKER = '<!-- END GENERATED SHOT CONSTRAINTS -->';
 
-export const SHOT_PROMPT_PATH = path.join(stepDir('060'), 'shot-pass-prompt.md');
+export const SHOT_PROMPT_PATH = path.join(stepDir('320'), 'shot-pass-prompt.md');
 
 // Returns one entry per rendered bullet, tagged with the constant key that
 // produced it — lets check-shot-rulebook.mjs name the offending constant on

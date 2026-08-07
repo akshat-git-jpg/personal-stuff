@@ -98,10 +98,27 @@ test('every step declares an effect: an artifact, a gate, or external output', (
   }
 });
 
+test('every step declares a valid track', () => {
+  for (const s of STEPS) {
+    assert.match(s.track, /^(intro|main)$/, `${s.slug} has track "${s.track}"`);
+  }
+  // The intro track is exactly 110-160 — the bespoke intro film. Everything
+  // else, including 440 (which rejoins main with the real avatar clips), is main.
+  const introSlugs = STEPS.filter((s) => s.track === 'intro').map((s) => s.slug);
+  assert.deepEqual(introSlugs, [
+    '110-propose-intro-idea-llm',
+    '120-approve-intro-idea-human',
+    '130-author-intro-screenplay-llm',
+    '140-review-intro-frames-run',
+    '150-approve-intro-film-human',
+    '160-render-intro-film-run',
+  ]);
+});
+
 test('stepDir resolves a step by number, verb or slug — all to one folder', () => {
-  const byNumber = stepDir('030');
+  const byNumber = stepDir('210');
   const byVerb = stepDir('cue-pass');
-  const bySlug = stepDir('030-pick-or-propose-graphics-llm');
+  const bySlug = stepDir('210-author-body-cues-llm');
   assert.equal(byNumber, byVerb);
   assert.equal(byNumber, bySlug);
   assert.ok(fs.existsSync(byNumber), `${byNumber} must exist on disk`);
@@ -120,7 +137,7 @@ test('an unknown ref is refused with E-REG, not resolved to something near it', 
 });
 
 test('every required field is required — deleting any one of them throws E-REG', () => {
-  const good = STEPS.find((s) => s.slug === '030-pick-or-propose-graphics-llm');
+  const good = STEPS.find((s) => s.slug === '210-author-body-cues-llm');
   const required = [
     'slug',
     'number',
@@ -133,6 +150,7 @@ test('every required field is required — deleting any one of them throws E-REG
     'tab',
     'external',
     'optional',
+    'track',
   ];
   for (const field of required) {
     const broken = { ...good };
@@ -146,7 +164,7 @@ test('every required field is required — deleting any one of them throws E-REG
 });
 
 test('a malformed field value is refused too', () => {
-  const good = STEPS.find((s) => s.slug === '030-pick-or-propose-graphics-llm');
+  const good = STEPS.find((s) => s.slug === '210-author-body-cues-llm');
   const bad = [
     ['slug', 'something-else'],
     ['number', '30'],
@@ -158,6 +176,8 @@ test('a malformed field value is refused too', () => {
     ['consumes', ['../other/thing.json']],
     ['gate', { file: 'x.json', field: 'approved' }],
     ['summary', ''],
+    ['track', 'side'],
+    ['track', ''],
   ];
   for (const [field, value] of bad) {
     assert.throws(
@@ -217,9 +237,10 @@ test('a near-miss verb is named rather than just refused', () => {
 });
 
 // --------------------------------------------------------------------------
-// nextStep — the status next-hint. The if/elif chain it replaces had no
-// awareness of the intro film, so on an intro:"film" video the `next:` line
-// never once named 025 or 027.
+// nextStep — the status next-hint, one entry per track (plan 199). Before the
+// tracks existed, this returned a single first-unsatisfied step across the
+// whole registry, so an owner gate on the intro film stopped the walk before
+// it ever reached the card track.
 // --------------------------------------------------------------------------
 
 function probes(present = [], approved = []) {
@@ -231,57 +252,99 @@ function probes(present = [], approved = []) {
   };
 }
 
-test('a fresh workdir parks on the first step', () => {
-  const s = nextStep({ ...probes() });
-  assert.equal(s.number, '005');
+test('a fresh workdir parks on the first step of each track', () => {
+  const next = nextStep({ ...probes() });
+  assert.equal(next.main.number, '010');
+  assert.equal(next.intro.number, '110');
 });
 
-test('a video reaches 025, then (026/028 sorting after it) the idea pass, then the 027 gate', () => {
-  const present = ['run-config.json', 'vo.mp3', 'transcript.json', 'transcript.diff.json', 'segments.json', 'concept.json'];
-  const authoring = nextStep({ ...probes(present) });
-  assert.equal(authoring.number, '025', 'the video must be sent to author the film');
+test('the intro track walks 110 (idea) -> 120 (idea gate) -> 130 (screenplay) -> 140 (review) -> 150 (film gate) -> 160 (render), independent of main', () => {
+  const mainDone = ['run-config.json', 'vo.mp3', 'transcript.json', 'transcript.diff.json', 'segments.json', 'concept.json'];
 
-  // 026 (propose the intro idea) and 028 (its gate) are temporary free slots
-  // that sort AFTER 025/027 in the registry — plan 197's numbering note: "free
-  // slots chosen only so they sort correctly [for the generated table]"; plan
-  // 198 renumbers everything into proper phase order. Until then, the idea
-  // pass's own contract (steps/025.../AUTHORING.md: "read idea.json first...
-  // if the chosen direction cannot carry a beat, say so and STOP") is what
-  // actually enforces idea-before-beats — nextStep's walk is not.
-  const idea = nextStep({ ...probes([...present, 'intro-film/screenplay.json']) });
-  assert.equal(idea.number, '026', 'without an approved idea, the video parks on the idea pass next');
+  const idea = nextStep({ ...probes(mainDone) });
+  assert.equal(idea.intro.number, '110', 'without an idea proposal, the video parks on the idea pass');
 
-  const ideaApproved = [...present, 'intro-film/screenplay.json', 'intro-film/idea.json'];
+  const ideaGate = nextStep({ ...probes([...mainDone, 'intro-film/idea.json']) });
+  assert.equal(ideaGate.intro.number, '120', 'an unapproved idea parks on its own gate');
+
+  const ideaApproved = [...mainDone, 'intro-film/idea.json'];
   const ideaApprovals = ['intro-film/idea.json:approved'];
 
-  const gate = nextStep({ ...probes(ideaApproved, ideaApprovals) });
-  assert.equal(gate.number, '027', 'with a screenplay and an approved idea, the video parks on the film gate');
-  assert.equal(gate.gate.label, 'Intro Film');
+  const authoring = nextStep({ ...probes(ideaApproved, ideaApprovals) });
+  assert.equal(authoring.intro.number, '130', 'an approved idea moves on to authoring the screenplay');
 
-  const past = nextStep({
-    ...probes(ideaApproved, [...ideaApprovals, 'intro-film/screenplay.json:approved']),
+  const review = nextStep({ ...probes([...ideaApproved, 'intro-film/screenplay.json'], ideaApprovals) });
+  assert.equal(review.intro.number, '140', 'a screenplay with no review moves to the review pass');
+
+  const filmGate = nextStep({
+    ...probes([...ideaApproved, 'intro-film/screenplay.json', 'intro-film/review/REVIEW.md'], ideaApprovals),
   });
-  assert.equal(past.number, '030', 'an approved film moves on to the cue pass');
+  assert.equal(filmGate.intro.number, '150', 'a reviewed screenplay parks on the film gate');
+  assert.equal(filmGate.intro.gate.label, 'Intro Film');
+
+  const render = nextStep({
+    ...probes(
+      [...ideaApproved, 'intro-film/screenplay.json', 'intro-film/review/REVIEW.md'],
+      [...ideaApprovals, 'intro-film/screenplay.json:approved'],
+    ),
+  });
+  assert.equal(render.intro.number, '160', 'an approved film moves on to the render');
 });
 
+test('TRACKS-SERIALISED: an intro gate must not block the card track', () => {
+  // 120 (approve the intro idea) unapproved, main track fully satisfied up to
+  // the cue pass. The intro track must park on 120; the main hint must still
+  // advance to 210, not get stuck behind the intro gate.
+  const present = [
+    'run-config.json', 'vo.mp3', 'transcript.json', 'transcript.diff.json', 'segments.json', 'concept.json',
+    'intro-film/idea.json',
+  ];
+  const next = nextStep({ ...probes(present) });
+  assert.equal(next.intro.number, '120', 'TRACKS-SERIALISED: the intro track should park on its own gate');
+  assert.equal(next.main.number, '210', 'TRACKS-SERIALISED: an intro gate must not block the card track');
+});
 
-test('a finished video reports nothing left to do', () => {
+test('a finished video reports nothing left to do, on either track', () => {
   const everything = [];
   const approvals = [];
   for (const s of STEPS) {
     everything.push(...s.produces);
     if (s.gate) approvals.push(`${s.gate.file}:${s.gate.field}`);
   }
-  assert.equal(nextStep({ ...probes(everything, approvals) }), null);
+  const next = nextStep({ ...probes(everything, approvals) });
+  assert.equal(next.main, null);
+  assert.equal(next.intro, null);
+});
+
+test('nextHintLine prints one line per track that still has work', () => {
+  const cue = STEPS.find((s) => s.number === '210');
+  const idea = STEPS.find((s) => s.number === '110');
+  const out = nextHintLine('demo', { intro: idea, main: cue });
+  const lines = out.split('\n');
+  assert.equal(lines.length, 2, `expected two next: lines, got:\n${out}`);
+  assert.match(lines[0], /^next: .*110 propose the intro idea/);
+  assert.match(lines[1], /^next: run\.sh demo cue-pass  \(210 pick or propose graphics\)/);
+});
+
+test('nextHintLine drops a track once it is satisfied, and collapses to one line when both are', () => {
+  const cue = STEPS.find((s) => s.number === '210');
+  const introOnly = nextHintLine('demo', { intro: null, main: cue });
+  assert.equal(introOnly.split('\n').length, 1);
+  assert.match(introOnly, /210 pick or propose graphics/);
+
+  const done = nextHintLine('demo', { intro: null, main: null });
+  assert.match(done, /nothing/);
+  assert.equal(done.split('\n').length, 1);
 });
 
 test('the next: line names a verb, or the gate text the step carries', () => {
-  const cue = STEPS.find((s) => s.number === '030');
-  assert.equal(nextHintLine('demo', cue), 'next: run.sh demo cue-pass  (030 pick or propose graphics)');
-  const finalCut = STEPS.find((s) => s.number === '120');
-  assert.match(nextHintLine('demo', finalCut), /HUMAN GATE 3/);
-  assert.ok(!nextHintLine('demo', finalCut).includes('<slug>'), '<slug> must be substituted');
-  assert.match(nextHintLine('demo', null), /nothing/);
+  const cue = STEPS.find((s) => s.number === '210');
+  assert.equal(nextHintLine('demo', { main: cue, intro: null }), 'next: run.sh demo cue-pass  (210 pick or propose graphics)');
+  const finalCut = STEPS.find((s) => s.number === '530');
+  const out = nextHintLine('demo', { main: finalCut, intro: null });
+  assert.match(out, /HUMAN GATE 3/);
+  assert.ok(!out.includes('<slug>'), '<slug> must be substituted');
+  assert.match(nextHintLine('demo', { main: null, intro: null }), /nothing/);
 });
 
 // --------------------------------------------------------------------------

@@ -1,0 +1,24 @@
+{
+  "number": "210",
+  "slug": "210-author-body-cues-llm",
+  "title": "pick or propose graphics",
+  "actor": "llm",
+  "actorLabel": "[LLM] (pluggable)",
+  "verbs": [
+    "cue-pass"
+  ],
+  "consumes": [
+    "transcript.json",
+    "concept.json",
+    "segments.json"
+  ],
+  "produces": [
+    "cues.json"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "summary": "`transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json`, **BODY ONLY**. Picks from the catalog OR proposes a card that should exist (approved at 235, built at 240)",
+  "track": "main"
+}

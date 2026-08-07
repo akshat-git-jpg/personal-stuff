@@ -1,0 +1,23 @@
+{
+  "number": "440",
+  "slug": "440-rerender-intro-film-run",
+  "title": "re-render the intro film with the real avatar",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "intro-rerender"
+  ],
+  "consumes": [
+    "avatar.mp4",
+    "intro-film/screenplay.json"
+  ],
+  "produces": [
+    "intro-film/out/intro.mp4"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "summary": "the real `avatar.mp4` + the approved screenplay -> a final `intro-film/out/intro.mp4`. The intro approved at the 1xx gate was rendered against a static stand-in; this is the encode that ships. Fails if the workdir still has no real avatar.",
+  "track": "main"
+}

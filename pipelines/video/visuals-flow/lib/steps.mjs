@@ -17,6 +17,15 @@ export const STEPS_DIR = path.resolve(import.meta.dirname, '..', 'steps');
 const ACTORS = ['run', 'llm', 'human', 'opus', 'owner-live'];
 const VERB_KINDS = ['meta', 'helper', 'stage', 'composite'];
 
+// The two parallel tracks (plan 199). "intro" is 110-160 — the bespoke intro
+// film shares no artifact with the card plan (130's authoring contract
+// forbids reading catalog.json/cues.json/card-plan.json, and no 2xx step reads
+// the screenplay), so a gate on one must not park the status next-hint on the
+// other. They rejoin at 440-rerender-intro-film-run, which consumes both the
+// film and the avatar clips, so 440 and everything after it is "main". Order
+// here is print order in nextHintLine(): intro first, then main.
+const TRACKS = ['intro', 'main'];
+
 // Optional, human-facing, all strings:
 //   summary     the PIPELINE.md "In → Out" cell, verbatim
 //   actorLabel  the PIPELINE.md "Actor" cell
@@ -42,6 +51,9 @@ const OPTIONAL_STRINGS = ['summary', 'actorLabel', 'nextHint', 'usageArgs'];
 //                                         by omission
 //   optional  bool                      — the video can finish without it, so the
 //                                         status next-hint never parks on it
+//   track     one of TRACKS              — "intro" or "main" (plan 199); the
+//                                         status next-hint reports one step per
+//                                         track instead of a single serial walk
 export function loadSteps({ dir = STEPS_DIR } = {}) {
   const out = [];
   for (const name of fs.readdirSync(dir).sort()) {
@@ -93,6 +105,7 @@ export function validateStep(s, folderName) {
   for (const k of ['external', 'optional']) {
     if (typeof s[k] !== 'boolean') die(`${k} must be a boolean`);
   }
+  if (!TRACKS.includes(s.track)) die(`track must be one of ${TRACKS.join('|')}`);
   for (const k of OPTIONAL_STRINGS) {
     if (k in s && (typeof s[k] !== 'string' || !s[k].trim())) {
       die(`${k} is optional, but when present it must be a non-empty string`);
@@ -212,18 +225,29 @@ export function suggestVerbs(input, { dir = STEPS_DIR, verbs = null } = {}) {
   });
 }
 
-// The next step to run, derived from the registry rather than a fixed if/elif
-// chain. The old chain had no awareness of the intro film, so on a video with
-// run-config intro:"film" the "next:" line never mentioned 025 or 027 — the
-// driver grew a branch and its own guidance did not.
+// The next step to run PER TRACK, derived from the registry rather than a
+// fixed if/elif chain (plan 199). Before the tracks existed, this returned a
+// single first-unsatisfied step across the whole registry, so an owner gate
+// on the intro film stopped the walk before it ever reached the card track —
+// waiting on the intro idea blocked the body cue pass, even though the two
+// share no artifact.
 //
 // A step is SATISFIED when every artifact it produces exists AND, if it has a
-// gate, that gate's field is true (or the gate is waived by review=express).
-// The next step is the first unsatisfied one whose requires.intro matches this
-// video's mode. `optional` and `external` steps never park the hint: nothing
-// under videos/<slug>/ proves them either way.
+// gate, that gate's field is true. `optional` and `external` steps never park
+// the hint: nothing under videos/<slug>/ proves them either way.
+//
+// Returns { intro: stepOrNull, main: stepOrNull } — one entry per TRACKS.
 export function nextStep({ steps = null, exists, readFlag } = {}) {
-  for (const s of steps ?? loadSteps()) {
+  const all = steps ?? loadSteps();
+  const out = {};
+  for (const track of TRACKS) {
+    out[track] = firstUnsatisfied(all.filter((s) => s.track === track), exists, readFlag);
+  }
+  return out;
+}
+
+function firstUnsatisfied(steps, exists, readFlag) {
+  for (const s of steps) {
     if (s.optional) continue;
     if (!s.external && s.produces.length && !s.produces.every((f) => exists(f))) return s;
     if (s.gate && !readFlag(s.gate.file, s.gate.field)) return s;
@@ -231,11 +255,18 @@ export function nextStep({ steps = null, exists, readFlag } = {}) {
   return null;
 }
 
-// The `next:` line `run.sh <slug> status` prints. A step carries its own hint
-// text when the bare verb is not enough guidance (the gates, mostly); every
-// other step falls back to naming its verb.
-export function nextHintLine(slug, step) {
-  if (!step) return 'next: nothing — every step for this video is satisfied';
+// The `next:` line(s) `run.sh <slug> status` prints — one per track that
+// still has work, in TRACKS order (intro, then main), or a single "nothing"
+// line once both are satisfied. A step carries its own hint text when the
+// bare verb is not enough guidance (the gates, mostly); every other step
+// falls back to naming its verb.
+export function nextHintLine(slug, next) {
+  const lines = TRACKS.map((t) => next[t]).filter(Boolean).map((step) => hintLineForStep(slug, step));
+  if (!lines.length) return 'next: nothing — every step for this video is satisfied';
+  return lines.join('\n');
+}
+
+function hintLineForStep(slug, step) {
   if (step.nextHint) return `next: ${step.nextHint.replaceAll('<slug>', slug)}`;
   const verb = step.verbs[0];
   if (!verb) return `next: ${step.number} ${step.title}  (no verb — see steps/${step.slug}/README.md)`;

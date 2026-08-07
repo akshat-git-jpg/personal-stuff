@@ -49,7 +49,7 @@ export function checkRulebook({
   cueRules = CUE_RULES,
 } = {}) {
   const cardLibraryRoot = path.resolve(import.meta.dirname, '..', '..', 'card-library');
-  const cuePassStepDir = stepDir('030');
+  const cuePassStepDir = stepDir('210');
   rulebookPath ??= path.join(cuePassStepDir, 'RULEBOOK.md');
   promptPath ??= path.join(cuePassStepDir, 'cue-pass-prompt.md');
   catalogPath ??= path.join(cardLibraryRoot, 'catalog.json');

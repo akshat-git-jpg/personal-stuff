@@ -1,0 +1,21 @@
+{
+  "number": "610",
+  "slug": "610-davinci-export-run",
+  "title": "export the DaVinci timeline",
+  "actor": "run",
+  "actorLabel": "[RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)]",
+  "verbs": [
+    "export"
+  ],
+  "consumes": [
+    "resolved.json",
+    "assembly.md"
+  ],
+  "produces": [],
+  "gate": null,
+  "tab": null,
+  "external": true,
+  "optional": true,
+  "summary": "same inputs as 510 → layered FCPXML + music/sfx lanes + panel transforms",
+  "track": "main"
+}

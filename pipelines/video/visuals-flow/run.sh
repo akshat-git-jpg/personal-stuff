@@ -2,10 +2,11 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-# Do NOT add an --all or all step. The chain has three human gates
-# (037 card plan, 080 storyboard, 120 final cut), an Opus-only fold at 130,
-# and live HeyGen at 100, and a driver that walks past them would be
-# actively dangerous. A session runs the steps one at a time.
+# Do NOT add an --all or all step. The chain has several human gates
+# (120 intro idea, 150 intro film, 340 storyboard, 420 avatar spend, 530 final
+# cut), an Opus-only fold at 630, and live HeyGen at 430, and a driver that
+# walks past them would be actively dangerous. A session runs the steps one at
+# a time.
 
 # The verb list, the step folder names and the status next-hint all come from
 # the registry (steps/*/step.json + steps/_verbs.json, read by lib/steps.mjs).
@@ -18,8 +19,8 @@ usage() {
   node lib/steps.mjs usage
 }
 
-# The step FOLDER for a number/verb/slug, e.g. step_slug 010 ->
-# "010-transcribe-run". Every literal steps/<folder> path in this file used to
+# The step FOLDER for a number/verb/slug, e.g. step_slug 020 ->
+# "020-transcribe-run". Every literal steps/<folder> path in this file used to
 # be typed out, so a renumber broke the driver with nothing to catch it.
 step_slug() { node lib/steps.mjs slug "$1"; }
 
@@ -197,24 +198,24 @@ case "$step" in
     echo "avatar-plan.json  $avatar_plan_present ($avatar_plan_approved)"
 
     # The next-hint walks the registry (consumes/produces/gate/requires.intro)
-    # rather than a fixed if/elif chain. That chain knew nothing about the intro
-    # film, so on an intro:"film" video the next: line never once named 025 or
-    # 027 — the driver grew a branch and its own guidance did not.
+    # rather than a fixed if/elif chain, and returns one step per track (the
+    # intro film and the card plan share no artifact, so a gate on one must
+    # not park the hint on the other — plan 199).
     node lib/steps.mjs next "$slug"
     ;;
 
   transcribe)
-    d="$(step_slug 010)"
-    dry "record_step 010 -- bash steps/$d/run.sh $slug" && exit 0
-    record_step 010 "Transcribed the voiceover to word-level timestamps and ran the quality pass." \
+    d="$(step_slug 020)"
+    dry "record_step 020 -- bash steps/$d/run.sh $slug" && exit 0
+    record_step 020 "Transcribed the voiceover to word-level timestamps and ran the quality pass." \
       "transcript.json" -- bash "steps/$d/run.sh" "$slug"
     ;;
 
   clean-transcript)
-    d="$(step_slug 012)"
-    dry "record_step 012 -- clean-transcript" && exit 0
+    d="$(step_slug 030)"
+    dry "record_step 030 -- clean-transcript" && exit 0
     if [[ -f "videos/$slug/script.txt" ]]; then
-      record_step 012 "Aligned transcript to script.txt" \
+      record_step 030 "Aligned transcript to script.txt" \
         "transcript.json + transcript.diff.json" \
         -- node lib/transcript-quality.mjs align "$slug"
     elif [[ -f "videos/$slug/transcript.cleaned.json" ]]; then
@@ -223,7 +224,7 @@ case "$step" in
         node lib/transcript-suspect.mjs "$slug" && \
         node lib/transcript-second-opinion.mjs "$slug"
       }
-      record_step 012 "Cleaned transcript with LLM pass" \
+      record_step 030 "Cleaned transcript with LLM pass" \
         "transcript.json + transcript.diff.json + transcript-suspects.json" \
         -- do_clean
     else
@@ -235,27 +236,27 @@ case "$step" in
     ;;
 
   configure)
-    # Step 005 — the owner's Drive delivery choices for this video. The
-    # HeyGen engine choice moved to the avatar spend gate (102, plan 197). See
-    # steps/005-configure-run-human/README.md.
+    # Step 010 — the owner's Drive delivery choices for this video. The
+    # HeyGen engine choice moved to the avatar spend gate (420, plan 197). See
+    # steps/010-configure-run-human/README.md.
     dry "node lib/run-config.mjs $slug${*:+ $*}" && exit 0
     node lib/run-config.mjs "$slug" "$@"
     ;;
 
   segments)
     # Writes segments.json INCLUDING the measured intro/body/conclusion spans
-    # (`structure`), read from src/. Without those the zone pass at 035 has
+    # (`structure`), read from src/. Without those the zone pass at 220 has
     # nothing to author against. Set `confirmed: true` in the file afterwards.
-    dry "record_step 015 -- node lib/segments.mjs $slug --propose" && exit 0
-    record_step 015 "Measured the intro/body/conclusion spans from src/ and proposed the demo vs narration split." \
+    dry "record_step 040 -- node lib/segments.mjs $slug --propose" && exit 0
+    record_step 040 "Measured the intro/body/conclusion spans from src/ and proposed the demo vs narration split." \
       "segments.json (still needs confirmed: true)" -- node lib/segments.mjs "$slug" --propose
     ;;
 
   concept-pass)
-    record 020 running
+    record 050 running
     cat <<EOF
-020 is an LLM step, not a command. Assemble the prompt:
-  1. steps/$(step_slug 020)/concept-pass-prompt.md   (the prompt; fill its placeholders)
+050 is an LLM step, not a command. Assemble the prompt:
+  1. steps/$(step_slug 050)/concept-pass-prompt.md   (the prompt; fill its placeholders)
   2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   3. cat videos/$slug/segments.json             -> {{SEGMENTS}}
 After the concept pass: node lib/lint-concept.mjs $slug
@@ -265,14 +266,14 @@ EOF
 
   intro-idea|intro-film|intro-review|intro-render)
     if [[ "$step" == "intro-idea" ]]; then
-      # 026 — the idea pass. Prose only, and its own gate (028) before 025
-      # writes a single beat. See steps/026-propose-intro-idea-llm/IDEA-PASS.md.
-      d="$(step_slug 026)"
+      # 110 — the idea pass. Prose only, and its own gate (120) before 130
+      # writes a single beat. See steps/110-propose-intro-idea-llm/IDEA-PASS.md.
+      d="$(step_slug 110)"
       dry "cat steps/$d/IDEA-PASS.md | sed s/<slug>/$slug/g" && exit 0
       cat "steps/$d/IDEA-PASS.md" | sed "s/<slug>/$slug/g"
       exit 0
     elif [[ "$step" == "intro-film" ]]; then
-      d="$(step_slug 025)"
+      d="$(step_slug 130)"
       dry "cat steps/$d/AUTHORING.md | sed s/<slug>/$slug/g" && exit 0
       cat "steps/$d/AUTHORING.md" | sed "s/<slug>/$slug/g"
       exit 0
@@ -291,12 +292,12 @@ EOF
     ;;
 
   intro-rerender)
-    # 108 — the intro was approved at 027 against a static avatar stand-in;
+    # 440 — the intro was approved at 150 against a static avatar stand-in;
     # this is the encode that swaps in the real avatar.mp4 and ships. Must
     # fail before rendering anything if there is no real avatar yet, or a
     # session could re-run this and call the stand-in done.
     if [[ ! -f "videos/$slug/avatar.mp4" ]]; then
-      echo "no real avatar.mp4 for $slug yet — 108 re-renders against it; run.sh $slug avatar-download (or place it) first"
+      echo "no real avatar.mp4 for $slug yet — 440 re-renders against it; run.sh $slug avatar-download (or place it) first"
       exit 1
     fi
     dry "node lib/intro-film/render-film.mjs $slug" && exit 0
@@ -305,7 +306,7 @@ EOF
     ;;
 
   avatar-plan)
-    # 102 — the avatar spend gate. Computes clip/second totals and character
+    # 420 — the avatar spend gate. Computes clip/second totals and character
     # candidates from shots.resolved.json; approval happens on the board's
     # Avatar tab, never here.
     dry "node lib/avatar-plan.mjs $slug" && exit 0
@@ -313,51 +314,51 @@ EOF
     ;;
 
   cue-pass)
-    record 030 running
+    record 210 running
     cat <<EOF
-030 is an LLM step, not a command. It authors the BODY only.
+210 is an LLM step, not a command. It authors the BODY only.
 Assemble the prompt:
-  1. steps/$(step_slug 030)/cue-pass-prompt.md   (the prompt; fill its placeholders)
+  1. steps/$(step_slug 210)/cue-pass-prompt.md   (the prompt; fill its placeholders)
   2. node lib/plan-skeleton.mjs $slug           -> {{SKELETON}}
   3. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   4. ../card-library/catalog.json                -> {{CATALOG}}
   5. videos/$slug/concept.json                  -> {{CONCEPT}}
 Pre-flight: node lib/feedback-status.mjs and node lib/lint-concept.mjs $slug must exit 0.
 The intro and conclusion are authored separately: run.sh $slug zone-pass
-After both passes: run.sh $slug validate, then card-plan (HUMAN GATE 1 at 037)
+After both passes: run.sh $slug validate, then card-plan (235)
 EOF
     exit 0
     ;;
 
   zone-pass)
-    record 035 running
+    record 220 running
     cat <<EOF
-035 is an LLM step, not a command. It authors the INTRO and CONCLUSION only,
+220 is an LLM step, not a command. It authors the INTRO and CONCLUSION only,
 against their own rulebook (lib/zone-rules.mjs + lib/zone-constants.mjs).
 Assemble the prompt:
-  1. steps/$(step_slug 035)/zone-pass-prompt.md  (the prompt; fill its placeholders)
+  1. steps/$(step_slug 220)/zone-pass-prompt.md  (the prompt; fill its placeholders)
   2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   3. ../card-library/catalog.json                -> {{CATALOG}}
   4. the "structure" array in videos/$slug/segments.json -> {{STRUCTURE}}
 Pre-flight: node lib/feedback-status.mjs must exit 0, and segments.json must
 carry a "structure" block (no measured zones = nothing for this step to do).
 Every cue it emits must carry a "zone" field of "intro" or "conclusion".
-After the zone pass: run.sh $slug validate, then card-plan (HUMAN GATE 1 at 037).
-Stillness (W18) needs absolute times, so it runs after 040: node lib/stillness.mjs $slug
+After the zone pass: run.sh $slug validate, then card-plan (235).
+Stillness (W18) needs absolute times, so it runs after 310: node lib/stillness.mjs $slug
 EOF
     exit 0
     ;;
 
   validate)
-    # Pre-037: everything checkable before the cards exist. Writes nothing.
+    # Pre-235: everything checkable before the cards exist. Writes nothing.
     dry "node lib/resolve.mjs $slug --validate-only" && exit 0
     node lib/resolve.mjs "$slug" --validate-only
     ;;
 
   resolve)
-    dry "record_step 040 -- node lib/resolve.mjs $slug && node lib/lint-cues.mjs $slug" && exit 0
+    dry "record_step 310 -- node lib/resolve.mjs $slug && node lib/lint-cues.mjs $slug" && exit 0
     do_resolve() { node lib/resolve.mjs "$slug" && node lib/lint-cues.mjs "$slug"; }
-    record_step 040 "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint." \
+    record_step 310 "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint." \
       "resolved.json" -- do_resolve
     ;;
 
@@ -368,7 +369,6 @@ EOF
       && node lib/stillness.mjs "$slug" \
       && node lib/audit-gate.mjs "$slug"
     ;;
-
 
 
 
@@ -384,23 +384,23 @@ EOF
     ;;
 
   board)
-    d="$(step_slug 080)"
+    d="$(step_slug 340)"
     dry "bash steps/$d/run.sh $slug" && exit 0
     bash "steps/$d/run.sh" "$slug"
     ;;
 
   render)
-    d="$(step_slug 090)"
-    dry "record_step 090 -- bash steps/$d/run.sh $slug" && exit 0
-    record_step 090 "Rendered every approved cue to a clip and wrote the editor manifest." \
+    d="$(step_slug 410)"
+    dry "record_step 410 -- bash steps/$d/run.sh $slug" && exit 0
+    record_step 410 "Rendered every approved cue to a clip and wrote the editor manifest." \
       "renders/ + manifest.md" -- bash "steps/$d/run.sh" "$slug"
     ;;
 
   fold)
-    dry "record 130 running + node lib/feedback-status.mjs" && exit 0
-    record 130 running
+    dry "record 630 running + node lib/feedback-status.mjs" && exit 0
+    record 630 running
     node lib/feedback-status.mjs
-    echo "130 is an Opus-class step. Proceed manually."
+    echo "630 is an Opus-class step. Proceed manually."
     exit 0
     ;;
 
@@ -415,10 +415,10 @@ EOF
     ;;
 
   shot-pass)
-    record 060 running
+    record 320 running
     cat <<EOF
-060 is an LLM step, not a command. Assemble the prompt:
-  1. steps/$(step_slug 060)/shot-pass-prompt.md (the prompt; fill its placeholders)
+320 is an LLM step, not a command. Assemble the prompt:
+  1. steps/$(step_slug 320)/shot-pass-prompt.md (the prompt; fill its placeholders)
   2. node lib/plan-skeleton.mjs $slug           -> {{SKELETON}}
   3. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
   4. ../card-library/catalog.json                -> {{CATALOG}}
@@ -436,9 +436,9 @@ EOF
     # Download stays its own verb below.
     # --spans-only: the owner rejected the corner-bubble baseline on the first
     # assembled cut (2026-07-31) — only the planned host spans render now.
-    d="$(step_slug 100)"
-    dry "record_step 100 -- bash steps/$d/run.sh $slug --submit --spans-only --template ${AVATAR_TEMPLATE:-specs-man}" && exit 0
-    record_step 100 "Submitted the HeyGen avatar clips for the approved shot spans." \
+    d="$(step_slug 430)"
+    dry "record_step 430 -- bash steps/$d/run.sh $slug --submit --spans-only --template ${AVATAR_TEMPLATE:-specs-man}" && exit 0
+    record_step 430 "Submitted the HeyGen avatar clips for the approved shot spans." \
       "avatar-jobs.json + avatar clips in kb-scratch" -- bash "steps/$d/run.sh" "$slug" --submit --spans-only --template "${AVATAR_TEMPLATE:-specs-man}"
     ;;
 
@@ -452,22 +452,22 @@ EOF
     if [[ -f "videos/$slug/shots.json" ]] && [[ ! -f "videos/$slug/avatar-jobs.json" ]]; then
       echo "shots approved but avatars not rendered — cutting without avatar"
     fi
-    render_dir="$(step_slug 090)"
-    avatar_dir="$(step_slug 100)"
-    build_dir="$(step_slug 110)"
-    dry "record_step 090 -- bash steps/$render_dir/run.sh $slug" \
+    render_dir="$(step_slug 410)"
+    avatar_dir="$(step_slug 430)"
+    build_dir="$(step_slug 510)"
+    dry "record_step 410 -- bash steps/$render_dir/run.sh $slug" \
         "node lib/effects-plan.mjs $slug" \
         "node lib/sound/sfx-plan.mjs $slug" \
         "node lib/sound/build-mix.mjs $slug" \
         "if avatar-jobs.json: bash steps/$avatar_dir/run.sh $slug --download" \
-        "record_step 110 -- bash steps/$build_dir/run.sh $slug --draft" && exit 0
+        "record_step 510 -- bash steps/$build_dir/run.sh $slug --draft" && exit 0
     echo "Running cut..."
     # Graphics render FIRST, on purpose. If avatar jobs are already submitted,
     # HeyGen is rendering them server-side this whole time, so the local CPU
     # work and the remote wait overlap instead of running one after the other.
     # Submitting stays an explicit owner action (`run.sh <slug> avatar --submit`);
     # this only stops you idling while it happens.
-    record_step 090 "Rendered every approved cue to a clip and wrote the editor manifest." \
+    record_step 410 "Rendered every approved cue to a clip and wrote the editor manifest." \
       "renders/ + manifest.md" -- bash "steps/$render_dir/run.sh" "$slug" \
       || { echo "render failed"; exit 1; }
     node lib/effects-plan.mjs "$slug" || { echo "effects-plan failed"; exit 1; }
@@ -482,7 +482,7 @@ EOF
         echo "warning: some avatar clips are still pending — re-run: run.sh $slug avatar-download"
     fi
 
-    record_step 110 "Assembled the screen recording, graphics, avatar clips and mastered audio into a draft cut." \
+    record_step 510 "Assembled the screen recording, graphics, avatar clips and mastered audio into a draft cut." \
       "final-draft.mp4 + assembly.md" -- bash "steps/$build_dir/run.sh" "$slug" --draft \
       || { echo "assemble failed"; exit 1; }
     echo "Final Cut URL: http://localhost:8080/ (or equivalent board URL) - Check the Final Cut tab!"
@@ -491,31 +491,31 @@ EOF
   avatar-download)
     # Split out so the overlap is a named thing: submit, go do other work, then
     # collect. Safe to re-run until nothing is pending.
-    d="$(step_slug 100)"
-    dry "record_step 100 -- bash steps/$d/run.sh $slug --download" && exit 0
-    record_step 100 "Downloaded the finished HeyGen avatar clips." \
+    d="$(step_slug 430)"
+    dry "record_step 430 -- bash steps/$d/run.sh $slug --download" && exit 0
+    record_step 430 "Downloaded the finished HeyGen avatar clips." \
       "avatar clips in kb-scratch + avatar-manifest.md" \
       -- bash "steps/$d/run.sh" "$slug" --download
     ;;
 
   assemble)
-    d="$(step_slug 110)"
-    dry "record_step 110 -- bash steps/$d/run.sh $slug" && exit 0
-    record_step 110 "Assembled the screen recording, graphics, avatar clips and mastered audio into the cut." \
+    d="$(step_slug 510)"
+    dry "record_step 510 -- bash steps/$d/run.sh $slug" && exit 0
+    record_step 510 "Assembled the screen recording, graphics, avatar clips and mastered audio into the cut." \
       "final.mp4 + assembly.md" -- bash "steps/$d/run.sh" "$slug"
     ;;
 
   deliver)
-    d="$(step_slug 150)"
-    dry "record_step 150 -- bash steps/$d/run.sh $slug" && exit 0
-    record_step 150 "Uploaded the approved full-resolution final to the video's Drive Output folder." \
+    d="$(step_slug 620)"
+    dry "record_step 620 -- bash steps/$d/run.sh $slug" && exit 0
+    record_step 620 "Uploaded the approved full-resolution final to the video's Drive Output folder." \
       "Output/<slug>-final.mp4 on Drive" -- bash "steps/$d/run.sh" "$slug"
     ;;
 
   export)
-    d="$(step_slug 140)"
-    dry "record_step 140 -- bash steps/$d/run.sh $slug" && exit 0
-    record_step 140 "Exported the layered timeline for DaVinci." \
+    d="$(step_slug 610)"
+    dry "record_step 610 -- bash steps/$d/run.sh $slug" && exit 0
+    record_step 610 "Exported the layered timeline for DaVinci." \
       "FCPXML timeline" -- bash "steps/$d/run.sh" "$slug"
     ;;
 
