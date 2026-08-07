@@ -1,4 +1,4 @@
-# 028 · approve the intro idea · [OWNER]
+# 120 · approve the intro idea · [OWNER]
 
 Gate on `intro-film/idea.json`. Reviewed on the board's Intro tab, above the
 beat-level review that runs at 027 once a film actually exists.

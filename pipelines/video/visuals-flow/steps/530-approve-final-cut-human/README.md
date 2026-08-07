@@ -1,8 +1,8 @@
-# 120 · approve final cut · [HUMAN]
+# 530 · approve the final cut · [OWNER]
 
-**This gate is NEVER waived.** `run-config review=express` (step 005) exists to
-run the flow *to* this review, not past it — the full-resolution final refuses
-without this approval in every mode, by design.
+**This gate is NEVER waived.** It never was — and since plan 194 removed express
+review there is no waiver mechanism left anywhere. The full-resolution final
+refuses without this approval, by design.
 
 **What you judge**: motion, sound, pacing, and captions — evaluated in motion, not from stills.
 **How**: use the Final Cut tab on the board, leave timestamped and pinned comments, compare versions, and use live check-off.

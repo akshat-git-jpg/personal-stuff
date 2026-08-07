@@ -1,4 +1,4 @@
-# 130 · learn from feedback · [OPUS] (the learning step)
+# 630 · learn from the feedback · [OPUS] (the learning step)
 
 Owner feedback must never be applied ad-hoc and forgotten — this step is the
 guarantee that a correction given once is never needed twice.

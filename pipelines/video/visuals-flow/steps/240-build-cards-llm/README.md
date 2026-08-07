@@ -1,4 +1,4 @@
-# 038 · build cards, then the owner reviews them · [LLM] (Sonnet) + [OWNER]
+# 240 · build the new cards and review them · [LLM] (Sonnet) + [OWNER]
 
 Build every card the owner approved as NEW at step 037, into the **shared**
 card collection, **and then show it to them**. Then the video continues at 040
@@ -49,9 +49,10 @@ What is specific to this step is only:
    and wait for the verdict. The approved frames are the visual contract:
    build to match them. This applies to EVERY new card, including ones
    commissioned mid-fold outside this step — and it survives
-   `run-config review=express` (owner rule 2026-08-01: "even if I say run till
-   final cut, if you are making new motion graphics I still want the prompt").
-   Express waives the 037/080 board approvals, never this.
+   any "just run it through" instruction (owner rule 2026-08-01: "even if I say
+   run till final cut, if you are making new motion graphics I still want the
+   prompt"). It is a conversation gate before a card is ever built, so no board
+   approval stands in for it.
 
 ## The catalog entry
 

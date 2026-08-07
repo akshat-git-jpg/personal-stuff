@@ -1,4 +1,4 @@
-# 102 · propose the avatar and model · [OWNER]
+# 420 · propose the avatar and model · [OWNER]
 
 The avatar spend gate. Nothing reaches HeyGen — no submit, no auth-check —
 until this gate is approved. See `lib/avatar-plan.mjs`'s

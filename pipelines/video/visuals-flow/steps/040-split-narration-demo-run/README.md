@@ -1,4 +1,4 @@
-# 015 · map segments · [RUN]
+# 040 · split narration from demo · [RUN]
 
 - **In:** `videos/<slug>/transcript.json` (from 010) and `videos/<slug>/src/intro.mp4`,
   `body.mp4`, `conclusion.mp4` (the owner's three source recordings)

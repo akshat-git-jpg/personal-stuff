@@ -1,4 +1,4 @@
-# 026-propose-intro-idea-llm — the intro idea, before any beat exists
+# 110 · propose the intro idea · [LLM]
 
 Proposes 2-3 competing visual directions for the intro film, one prose page
 each — no beats, no timings, no code. Reviewed and approved at

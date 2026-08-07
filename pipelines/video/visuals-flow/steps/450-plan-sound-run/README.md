@@ -1,4 +1,4 @@
-# 105 plan sound
+# 450 · plan the sound · [RUN]
 
 Generates the semantic SFX placement plan (`sound.json`).
 

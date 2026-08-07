@@ -1,4 +1,4 @@
-# 070 review storyboard
+# 330 · review the storyboard · [RUN]
 
 Resolves shot spans and runs every pre-render check in one pass: shot lint, W18 stillness, and the audit gate.
 

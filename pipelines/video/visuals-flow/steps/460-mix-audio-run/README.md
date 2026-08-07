@@ -1,4 +1,4 @@
-# 107 mix audio
+# 460 · mix the audio · [RUN]
 
 Produces the final mastered audio mix (SFX bus and ducked music if applicable), frame-exact against the voiceover.
 

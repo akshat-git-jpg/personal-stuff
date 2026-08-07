@@ -1,4 +1,4 @@
-# 036 review cue plan
+# 230 · review the cue plan · [RUN]
 
 Checks `cues.json` against `transcript.json` and the card catalog. Run this to find unresolved anchors, missing cards, and timing collisions before actually building any cards.
 

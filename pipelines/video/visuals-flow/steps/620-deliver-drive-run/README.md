@@ -1,4 +1,4 @@
-# 150 · deliver the final to Drive · [RUN]
+# 620 · deliver to Drive · [RUN]
 
 Upload the **approved full-resolution final** back to the video's own Drive
 folder — the `Output/` subfolder of the folder that also holds `Input/`
@@ -20,9 +20,9 @@ bash run.sh <slug> deliver
 
 ## Ordering and gates
 
-1. **120 approval is checked here AGAIN and is never waived** — express mode
-   (`run-config review=express`) runs *to* the final cut, not past it. Delivery
-   without an approved `final-cut.json` exits 1.
+1. **The final-cut approval (530) is checked here AGAIN and is never waived** —
+   delivery without an approved `final-cut.json` exits 1. Plan 194 removed
+   express review, so no run-config setting can skip it.
 2. The uploaded file is the **full-resolution** `final.mp4`, never
    `final-draft.mp4` — drafts are review material, not deliverables. If the
    final is missing, build it first: `node lib/assemble.mjs <slug>` (no

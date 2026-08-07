@@ -1,4 +1,4 @@
-# 115 review cut
+# 520 · review the assembled cut · [RUN]
 
 Builds a QC filmstrip pack (event sheets, overviews, waveform, checklist) under `$MEDIA/qc`. This allows the cut to be scanned fast BEFORE the final 120 approval.
 

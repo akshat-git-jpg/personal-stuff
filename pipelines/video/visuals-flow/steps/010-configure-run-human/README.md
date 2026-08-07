@@ -1,4 +1,4 @@
-# 005 · configure the run · [OWNER]
+# 010 · configure the run · [OWNER]
 
 The owner's Drive delivery choices for this video, recorded in
 `videos/<slug>/run-config.json`.

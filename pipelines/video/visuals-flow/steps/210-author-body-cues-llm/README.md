@@ -1,4 +1,4 @@
-# 030 · pick or propose graphics · [LLM] (pluggable: Sonnet default; agy/Antigravity allowed as form-fillers)
+# 210 · pick or propose graphics · [LLM] (pluggable) (pluggable: Sonnet default; agy/Antigravity allowed as form-fillers)
 
 - **In:** `videos/<slug>/transcript.json`, `card-library/catalog.json`
 - **Out:** `videos/<slug>/cues.json`

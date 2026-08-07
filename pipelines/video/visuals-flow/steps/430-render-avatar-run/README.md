@@ -1,4 +1,4 @@
-# 100 · render avatar · [RUN]  (submit + download are separate invocations)
+# 430 · render the avatar clips · [OWNER live HeyGen] (submit + download are separate invocations)
 
 Turn the approved shot plan into avatar clips: one HeyGen 3 TEMPLATE render per
 full-screen span + contiguous corner chunks covering the whole VO. Test mode

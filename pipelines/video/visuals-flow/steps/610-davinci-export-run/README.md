@@ -1,4 +1,4 @@
-# 140 · davinci export · [RUN]
+# 610 · export the DaVinci timeline · [RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)]
 
 Same gates as assembly (the exporter enforces them itself: cues approved +
 rendered, shots approved with clips downloaded, screen.mp4 present).

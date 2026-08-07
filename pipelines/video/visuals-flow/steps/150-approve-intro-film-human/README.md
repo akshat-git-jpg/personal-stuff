@@ -1,4 +1,4 @@
-# 150 · approve intro film · [HUMAN]
+# 150 · approve the intro film · [OWNER]
 
 The owner's approval of the bespoke intro film authored at
 `130-author-intro-screenplay-llm` and reviewed at `140-review-intro-frames-run`.
@@ -15,9 +15,8 @@ approval (160).
   `videos/<slug>/intro-film/review/`
 - **Out:** `approved: true` in `intro-film/screenplay.json`
 - **Where:** the **Intro** tab of the board
-- **Waivable:** no. `run-config review=express` waives the storyboard and
-  final-cut board approvals only; a film nobody has watched must not be
-  rendered into a cut.
+- **Waivable:** no — and since plan 194 removed express review, no gate in this
+  pipeline is waivable at all. A film nobody has watched must not reach a cut.
 
 ## What you judge
 

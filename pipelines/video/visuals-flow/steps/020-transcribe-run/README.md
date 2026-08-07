@@ -1,4 +1,4 @@
-# 010 · transcribe · [RUN] (first step)
+# 020 · transcribe the voiceover · [RUN] + quality pass [RUN/LLM] (first step)
 
 - **In:** `videos/<slug>/vo.mp3` — or a video/audio file to extract it from
   (`vo.mp4`/`vo.mov`/`vo.mkv`/`vo.m4a`/`vo.wav`; run.sh ffmpeg-extracts `vo.mp3` first,

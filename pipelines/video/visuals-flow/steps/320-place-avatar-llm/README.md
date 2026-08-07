@@ -1,4 +1,4 @@
-# 060 · place avatar · [LLM] (Sonnet default; same pluggability as 030)
+# 320 · place the avatar · [LLM] (Sonnet default, pluggable) (Sonnet default; same pluggability as 030)
 
 Decide which stretches of the video the **full-screen avatar** speaks. Spans are
 planned around the RESOLVED fullframe cards. Corner avatar + screen recording is

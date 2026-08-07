@@ -1,14 +1,12 @@
-# 130-author-intro-screenplay-llm — the intro as one authored film
+# 130 · author the intro screenplay · [LLM]
 
-**OFF by default.** This step only runs when the video's `run-config.json` says
-`"intro": "film"`. Opt in with:
+**Always on.** Every video's intro is a bespoke film — there is no opt-in and no
+alternative (owner decision 2026-08-07, plan 194: *"i want film only.., basically
+intro is bespook"*). The `run-config.json` `intro` field, the `--intro` flag and
+the catalog-cards intro flow it selected are all gone.
 
-```
-bash run.sh <slug> configure --intro film
-```
-
-Every video that has not opted in behaves exactly as it did before this step
-existed. The `intro-*` verbs refuse with an opt-in message.
+Reads the direction approved at `120-approve-intro-idea-human` and writes the
+beats that enact it. The idea is already decided by the time you get here.
 
 ## What it does
 
@@ -56,4 +54,7 @@ exist, correct, in this pipeline. That is the whole reason for the move.
 for review, `150-approve-intro-film-human` is the owner's gate on it, and
 `160-render-intro-film-run` is what turns the approved screenplay into
 `intro-film/out/intro.mp4` — which `assemble.mjs` and `export-timeline.mjs`
-splice over the intro span automatically when `introOwnedByFilm()` is true.
+splice over the intro span automatically — the span comes from `introSpan()`
+(`lib/intro-modes.mjs`), which reads the measured intro part from
+`segments.json`. There is no longer a predicate to satisfy: the film owns the
+intro on every video.

@@ -1,4 +1,4 @@
-# 012 · clean the transcript · [LLM] + [RUN]
+# 030 · clean the transcript · [LLM] + [RUN]
 
 - **In:** `transcript.json` (raw from ASR)
 - **Out:** `transcript.json` (cleaned) + `transcript.diff.json`
