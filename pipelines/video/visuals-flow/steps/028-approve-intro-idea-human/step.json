@@ -1,0 +1,18 @@
+{
+  "number": "028",
+  "slug": "028-approve-intro-idea-human",
+  "title": "approve the intro idea",
+  "actor": "human",
+  "actorLabel": "[OWNER]",
+  "verbs": [],
+  "consumes": [
+    "intro-film/idea.json"
+  ],
+  "produces": [],
+  "gate": { "file": "intro-film/idea.json", "field": "approved", "label": "Intro Idea" },
+  "tab": "intro",
+  "external": false,
+  "optional": false,
+  "nextHint": "read intro-film/idea.json, then approve a direction on the board's Intro tab  (HUMAN GATE — 028 intro idea)",
+  "summary": "`intro-film/idea.json` -> `approved: true` plus `chosen: \"<id>\"` (HUMAN GATE: Intro Idea). Reject all three and the idea pass runs again. A page of prose is the cheapest rejection in the pipeline."
+}
