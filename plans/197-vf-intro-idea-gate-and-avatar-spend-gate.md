@@ -10,7 +10,7 @@ touches: [pipelines/video/visuals-flow/lib/intro-film/film-assets.mjs, pipelines
 
 mutation_apply: python3 -c "import base64;exec(base64.b64decode('cD0ncGlwZWxpbmVzL3ZpZGVvL3Zpc3VhbHMtZmxvdy9saWIvYXZhdGFyLXJlbmRlci5tanMnCnM9b3BlbihwKS5yZWFkKCkKbWFya2VyPSdyZXF1aXJlQXZhdGFyUGxhbkFwcHJvdmVkJwphc3NlcnQgbWFya2VyIGluIHMsICdtYXJrZXIgbWlzc2luZyDigJQgcGxhbiAxOTcgU3RlcCA2IGRpZCBub3QgbGFuZCcKcyA9IHMucmVwbGFjZSgncmVxdWlyZUF2YXRhclBsYW5BcHByb3ZlZCh3b3JrZGlyKTsnLCAnLy8gcmVxdWlyZUF2YXRhclBsYW5BcHByb3ZlZCh3b3JrZGlyKTsnKQpvcGVuKHAsJ3cnKS53cml0ZShzKQ=='))"
 mutation_command: cd pipelines/video/visuals-flow && node --test lib/avatar-plan.test.mjs
-mutation_expect: UNAPPROVED-AVATAR-SPEND
+mutation_expect: did not match the regular expression /UNAPPROVED-AVATAR-SPEND/
 mutation_cwd:
 mutation_timeout:
 ---
