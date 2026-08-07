@@ -117,12 +117,10 @@ try {
     if (!dom.includes('id="videoPicker"')) throw new Error(`videoPicker not found on ${hash || 'run'}`);
     if (!dom.includes(`<title>${slug} — visuals-flow board</title>`)) throw new Error(`page title missing or wrong on ${hash || 'run'}`);
 
-    // 'smoke' has no run-config.json, so it defaults to intro:"cards" — the
-    // Intro tab's step (027) does not apply, and its button must not render
-    // for ANY hash of this fixture (plan 193: a tab whose step does not apply
-    // to this video is not rendered).
-    if ((probe.tabIds || []).includes('intro')) {
-      throw new Error(`intro tab button rendered on ${hash || 'run'} for an intro:"cards" video`);
+    // 'smoke' has no run-config.json, so it defaults to intro:"film" now.
+    // The Intro tab's step (027) ALWAYS applies, and its button must render.
+    if (!(probe.tabIds || []).includes('intro')) {
+      throw new Error(`intro tab button not rendered on ${hash || 'run'}`);
     }
 
     if (hash === '#card-plan') {
@@ -137,18 +135,7 @@ try {
       if (!dom.includes('plan-note"')) throw new Error('plan-note not found on #card-plan');
       if (!dom.includes('NEW — to build')) throw new Error('NEW — to build chip not found on #card-plan');
     }
-    if (hash === '#intro') {
-      // Plan 193: #intro on an intro:"cards" video is not a broken tab — the
-      // app falls back to Run and names the reason. This replaces the old
-      // "no intro film" empty-state assertion, which asserted the OLD bug's
-      // symptom: the tab rendering at all for a video that never uses it.
-      if (!dom.includes('does not apply to this video')) {
-        throw new Error('#intro on a cards video must show the tab-not-applicable notice');
-      }
-      if (!dom.includes('✅') && !dom.includes('❌') && !dom.includes('⏳')) {
-        throw new Error('#intro on a cards video must fall back to rendering the Run tab');
-      }
-    }
+
     if (hash === '#storyboard') {
       // LIST is the default view (owner call 2026-07-31) — assert tile anatomy.
       // Timeline-mode anatomy is asserted below via the ?view=timeline override.

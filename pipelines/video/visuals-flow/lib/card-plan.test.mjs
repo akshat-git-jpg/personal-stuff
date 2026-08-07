@@ -20,19 +20,19 @@ const structure = [
 test('card-plan builder logic', async (t) => {
   await t.test('sections cues by their declared zone, body by default', () => {
     const cues = [
-      { id: 'c01', card: 'foo', zone: 'intro', anchor: 'welcome back' },
+      { id: 'c01', card: 'foo', anchor: 'welcome back' },
       { id: 'c02', card: 'bar', anchor: 'first up' },
       { id: 'c03', card: 'baz', zone: 'conclusion', anchor: 'so that is it' },
     ];
     const sections = buildCardPlan({ structure, cues, catalogCards: [{ slug: 'foo' }, { slug: 'bar' }, { slug: 'baz' }] });
 
-    assert.deepStrictEqual(sections.map((s) => s.part), ['intro', 'body', 'conclusion']);
+    assert.deepStrictEqual(sections.map((s) => s.part), ['body', 'conclusion']);
     assert.strictEqual(sections[0].items[0].id, 'c01');
-    assert.strictEqual(sections[1].items[0].id, 'c02');
-    assert.strictEqual(sections[2].items[0].id, 'c03');
+    assert.strictEqual(sections[0].items[1].id, 'c02');
+    assert.strictEqual(sections[1].items[0].id, 'c03');
     // spans come from `structure` when it is present
-    assert.strictEqual(sections[0].start, 0);
-    assert.strictEqual(sections[2].end, 310);
+    assert.strictEqual(sections[0].start, 10);
+    assert.strictEqual(sections[1].end, 310);
   });
 
   await t.test('a card missing from the catalog is reported NEW', () => {
@@ -76,20 +76,20 @@ test('card-plan builder logic', async (t) => {
   await t.test('empty sections are dropped', () => {
     const sections = buildCardPlan({
       structure,
-      cues: [{ id: 'c01', card: 'foo', zone: 'intro' }],
+      cues: [{ id: 'c01', card: 'foo', zone: 'conclusion' }],
       catalogCards: [{ slug: 'foo' }],
     });
-    assert.deepStrictEqual(sections.map((s) => s.part), ['intro']);
+    assert.deepStrictEqual(sections.map((s) => s.part), ['conclusion']);
   });
 
   await t.test('an unrecognised zone value falls back to body', () => {
     assert.strictEqual(partOf({ zone: 'outro' }), 'body');
     assert.strictEqual(partOf({}), 'body');
-    assert.strictEqual(partOf({ zone: 'intro' }), 'intro');
+    assert.strictEqual(partOf({ zone: 'intro' }), 'body');
   });
 
   await t.test('an identical rebuild does not invalidate approval', () => {
-    const cues = [{ id: 'c01', card: 'foo', zone: 'intro' }];
+    const cues = [{ id: 'c01', card: 'foo', zone: 'conclusion' }];
     const a = buildCardPlan({ structure, cues, catalogCards: [{ slug: 'foo' }] });
     const b = buildCardPlan({ structure, cues, catalogCards: [{ slug: 'foo' }] });
     assert.strictEqual(JSON.stringify(a) === JSON.stringify(b), true);
@@ -126,14 +126,14 @@ test('card-plan feedback capture', async (t) => {
 
   await t.test('appends with an incrementing key and snapshots cue context', () => {
     let fb = { items: {} };
-    fb = appendCardPlanFeedback(fb, 'intro', { text: 'too many text slates', cue: 'c01', card: 'slate/stat-hit' });
-    fb = appendCardPlanFeedback(fb, 'intro', { text: 'open on motion' });
+    fb = appendCardPlanFeedback(fb, 'conclusion', { text: 'too many text slates', cue: 'c01', card: 'slate/stat-hit' });
+    fb = appendCardPlanFeedback(fb, 'conclusion', { text: 'open on motion' });
     fb = appendCardPlanFeedback(fb, 'body', { text: 'wrong card for this clause', cue: 'c09', card: 'foo' });
 
-    assert.deepStrictEqual(Object.keys(fb.items), ['zone-intro:1', 'zone-intro:2', 'card-body:1']);
-    assert.strictEqual(fb.items['zone-intro:1'].zone, 'intro');
-    assert.deepStrictEqual(fb.items['zone-intro:1'].context, { cue: 'c01', card: 'slate/stat-hit' });
-    assert.strictEqual(fb.items['zone-intro:2'].context, undefined);
+    assert.deepStrictEqual(Object.keys(fb.items), ['zone-conclusion:1', 'zone-conclusion:2', 'card-body:1']);
+    assert.strictEqual(fb.items['zone-conclusion:1'].zone, 'conclusion');
+    assert.deepStrictEqual(fb.items['zone-conclusion:1'].context, { cue: 'c01', card: 'slate/stat-hit' });
+    assert.strictEqual(fb.items['zone-conclusion:2'].context, undefined);
     assert.strictEqual(fb.items['card-body:1'].part, 'body');
     assert.strictEqual(fb.items['card-body:1'].zone, undefined);
   });
@@ -157,14 +157,14 @@ test('card-plan outline', async (t) => {
     const sections = buildCardPlan({
       structure,
       cues: [
-        { id: 'c01', card: 'foo', zone: 'intro', anchor: 'welcome back', placement: 'fullframe' },
+        { id: 'c01', card: 'foo', zone: 'conclusion', anchor: 'welcome back', placement: 'fullframe' },
         { id: 'c02', card: 'race/cost-race', anchor: 'it adds up', placement: 'fullframe', propose: { does: 'bars race as cost climbs' } },
       ],
       catalogCards: [{ slug: 'foo' }],
     });
     const out = renderOutline(sections);
 
-    assert.match(out, /INTRO {2}0:00–0:10/);
+    assert.match(out, /CONCLUSION {2}3:20–5:10/);
     assert.match(out, /NEW c02/);
     assert.match(out, /@ "it adds up"/);
     assert.match(out, /→ bars race as cost climbs/);

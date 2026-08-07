@@ -246,16 +246,16 @@ test('Feedback: POST /save writes feedback, re-fetch exposes it', async () => {
 
 // Plan 193: /api/board-data now carries runConfig and the applicable tab list,
 // so the client has a way to know which tabs this video's flow actually uses.
-test('GET /api/board-data carries runConfig and tabs; an intro:"cards" video has no intro tab', async () => {
+test('GET /api/board-data carries runConfig and tabs; a video always has an intro tab', async () => {
   const workdir = makeWorkdir();
   const { server, base } = await startServer(workdir);
   try {
     const res = await fetch(`${base}/api/board-data`);
     const data = await res.json();
     assert.ok(data.runConfig);
-    assert.equal(data.runConfig.intro, 'cards');
+    assert.equal(data.runConfig.intro, undefined);
     assert.deepEqual(data.tabs, applicableTabs(workdir));
-    assert.ok(!data.tabs.includes('intro'));
+    assert.ok(data.tabs.includes('intro'));
     assert.ok(data.tabs.includes('run'));
     assert.ok(data.tabs.includes('calibrate'));
   } finally {
@@ -263,14 +263,16 @@ test('GET /api/board-data carries runConfig and tabs; an intro:"cards" video has
   }
 });
 
-test('an intro:"film" run-config includes the intro tab; run-config.json intro="cards" does not', async () => {
+test('every video includes the intro tab, regardless of run-config', async () => {
   const filmDir = makeWorkdir();
   fs.writeFileSync(path.join(filmDir, 'run-config.json'), JSON.stringify({ intro: 'film', review: 'full', engine: 'heygen3' }));
   const cardsDir = makeWorkdir();
   fs.writeFileSync(path.join(cardsDir, 'run-config.json'), JSON.stringify({ intro: 'cards', review: 'full', engine: 'heygen3' }));
+  const emptyDir = makeWorkdir();
 
   assert.ok(applicableTabs(filmDir).includes('intro'));
-  assert.ok(!applicableTabs(cardsDir).includes('intro'));
+  assert.ok(applicableTabs(cardsDir).includes('intro'));
+  assert.ok(applicableTabs(emptyDir).includes('intro'));
 });
 
 // Touches no filesystem: deleting the workdir out from under an already-booted
