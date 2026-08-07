@@ -8,17 +8,7 @@ needs: []
 needs_prs: [154, 155, 156, 157, 158]
 touches: [pipelines/video/visuals-flow/steps, pipelines/video/visuals-flow/lib/steps.mjs, pipelines/video/visuals-flow/lib/run-log.mjs, pipelines/video/visuals-flow/lib/ledger-migration.mjs, pipelines/video/visuals-flow/lib/ledger-migration.test.mjs, pipelines/video/visuals-flow/run.sh, pipelines/video/visuals-flow/PIPELINE.md, pipelines/video/visuals-flow/videos]
 
-mutation_apply: python3 - <<'PY'
-p='pipelines/video/visuals-flow/lib/ledger-migration.mjs'
-s=open(p).read()
-marker='SLUG_MIGRATION'
-assert marker in s, 'marker missing — plan 199 Step 3 did not land'
-# Drop one mapping. Every gate stays green while one video's history silently
-# stops resolving to a step — which is exactly the failure this plan must not ship.
-import re
-s = re.sub(r"\n\s*'010-transcribe-run':\s*'[^']*',", "\n", s, count=1)
-open(p,'w').write(s)
-PY
+mutation_apply: python3 -c "import base64;exec(base64.b64decode('cD0ncGlwZWxpbmVzL3ZpZGVvL3Zpc3VhbHMtZmxvdy9saWIvbGVkZ2VyLW1pZ3JhdGlvbi5tanMnCnM9b3BlbihwKS5yZWFkKCkKbWFya2VyPSdTTFVHX01JR1JBVElPTicKYXNzZXJ0IG1hcmtlciBpbiBzLCAnbWFya2VyIG1pc3Npbmcg4oCUIHBsYW4gMTk5IFN0ZXAgMyBkaWQgbm90IGxhbmQnCiMgRHJvcCBvbmUgbWFwcGluZy4gRXZlcnkgZ2F0ZSBzdGF5cyBncmVlbiB3aGlsZSBvbmUgdmlkZW8ncyBoaXN0b3J5IHNpbGVudGx5CiMgc3RvcHMgcmVzb2x2aW5nIHRvIGEgc3RlcCDigJQgd2hpY2ggaXMgZXhhY3RseSB0aGUgZmFpbHVyZSB0aGlzIHBsYW4gbXVzdCBub3Qgc2hpcC4KaW1wb3J0IHJlCnMgPSByZS5zdWIociJcblxzKicwMTAtdHJhbnNjcmliZS1ydW4nOlxzKidbXiddKicsIiwgIlxuIiwgcywgY291bnQ9MSkKb3BlbihwLCd3Jykud3JpdGUocyk='))"
 mutation_command: cd pipelines/video/visuals-flow && node --test lib/ledger-migration.test.mjs
 mutation_expect: LEDGER-KEY-ORPHANED
 mutation_cwd:
