@@ -1,3 +1,10 @@
+**Read `intro-film/idea.json` first and take the direction whose `id` equals
+`chosen`.** Its central object, arc and motif vocabulary are decided; you are
+writing beats that enact them, not choosing a new treatment. If the chosen
+direction cannot carry a beat, say so and STOP — do not quietly substitute
+another idea, which is how the idea and its execution collapsed into one
+unreviewable pass in the first place.
+
 ## Your job
 Read the approved `screenplay.json` and write ONE Hyperframes composition at `videos/<slug>/intro-film/film/index.html` covering the whole intro. One file, one continuous timeline. You are not assembling templates.
 
