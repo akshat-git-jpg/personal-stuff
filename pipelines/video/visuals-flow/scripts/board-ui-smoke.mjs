@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 const CHROME = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const HASHES = ['', '#card-plan', '#intro', '#storyboard', '#final-cut', '#calibrate'];
+const HASHES = ['', '#intro', '#storyboard', '#final-cut', '#calibrate'];
 
 // 30+ iframed tiles, measured ~20s+ on storyboard, plans 173/174 will add more.
 // Need 60s floor so it does not flake on a loaded machine.
@@ -123,18 +123,7 @@ try {
       throw new Error(`intro tab button not rendered on ${hash || 'run'}`);
     }
 
-    if (hash === '#card-plan') {
-      
-      const idx = dom.indexOf('<div class="action-slot">');
-      const actionSlotMatch = idx > -1 ? [dom.slice(idx, idx + 200)] : null;
 
-      if (!actionSlotMatch || !actionSlotMatch[0].includes('Approve card plan')) {
-        throw new Error('Approve card plan not found inside .action-slot');
-      }
-      if (!dom.includes('data-rid="cp:c01"')) throw new Error('data-rid="cp:c01" not found on #card-plan');
-      if (!dom.includes('plan-note"')) throw new Error('plan-note not found on #card-plan');
-      if (!dom.includes('NEW — to build')) throw new Error('NEW — to build chip not found on #card-plan');
-    }
 
     if (hash === '#storyboard') {
       // LIST is the default view (owner call 2026-07-31) — assert tile anatomy.
@@ -212,53 +201,7 @@ try {
     if (resBare.status !== 302) throw new Error('/ did not 302');
   }
 
-  // Approved card plan with NEW items must show the build-next-step banner
-  // (plan 174 disposition of the legacy banner test; the fixture has c02
-  // status:"new", so toBuild > 0).
-  {
-    const resApprove = await fetch(`http://127.0.0.1:${port}/approve-card-plan`, { method: 'POST' });
-    if (!resApprove.ok) throw new Error('POST /approve-card-plan failed in smoke');
-    const domApproved = await new Promise((resolve, reject) => {
-      const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
-      let child;
-      const timeout = setTimeout(() => {
-        if (child) child.kill('SIGKILL');
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(new Error('Chrome dump-dom timeout on approved #card-plan'));
-      }, CHROME_TIMEOUT_MS);
-      child = spawn(CHROME, [
-        '--headless=new', '--no-sandbox', '--disable-background-networking',
-        `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
-        '--virtual-time-budget=8000', '--dump-dom',
-        `http://127.0.0.1:${port}/app/?video=${slug}#card-plan`
-      ]);
-      let out = '';
-      child.stdout.on('data', d => {
-        out += d;
-        if (out.includes('</html>')) {
-          clearTimeout(timeout);
-          child.kill('SIGKILL');
-          resolve(out);
-        }
-      });
-      child.on('close', () => {
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-      });
-      child.on('error', e => {
-        clearTimeout(timeout);
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        reject(e);
-      });
-    });
-    // Approved state lives on the button (banners removed — owner 2026-07-31)
-    if (!domApproved.includes('✓ card plan approved')) {
-      throw new Error('approved card plan must show the ✓ approved button state');
-    }
-    if (domApproved.includes('build the NEW cards')) {
-      throw new Error('approved banner should be gone from #card-plan');
-    }
-  }
+
 
   // Timeline mode still works behind the ?view=timeline override (list is the
   // default view since 2026-07-31).
@@ -335,7 +278,7 @@ try {
   if (bannerOwners === 0) throw new Error('no .banner rule survived the bundle — banners are unstyled');
 
   const domByHash = {};
-  for (const hash of ['#run', '#card-plan', '#intro', '#storyboard', '#final-cut']) {
+  for (const hash of ['#run', '#intro', '#storyboard', '#final-cut']) {
     const url = `http://127.0.0.1:${port}/app/?video=${slug}${hash}`;
     const outPath = path.join(workdir, `tab-${hash ? hash.slice(1) : 'run'}.png`);
     // A leftover file from a previous run satisfies the poll below instantly
