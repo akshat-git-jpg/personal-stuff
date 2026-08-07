@@ -6,6 +6,7 @@ import { RunTab } from './tabs/RunTab';
 
 import { IntroTab } from './tabs/IntroTab';
 import { StoryboardTab } from './tabs/StoryboardTab';
+import { AvatarTab } from './tabs/AvatarTab';
 import { FinalCutTab } from './tabs/FinalCutTab';
 import { CalibrateTab } from './tabs/CalibrateTab';
 import { FeedbackProvider, useFeedback } from './lib/feedback';
@@ -200,6 +201,14 @@ export function App() {
             onActions={setActions}
             onSecondary={setSecondary}
             onRefetch={refetch}
+          />
+        )}
+        {activeTab === 'avatar' && (
+          <AvatarTab
+            video={boardData.video!}
+            onMeta={setMeta}
+            onActions={setActions}
+            onSecondary={setSecondary}
           />
         )}
         {activeTab === 'final-cut' && (

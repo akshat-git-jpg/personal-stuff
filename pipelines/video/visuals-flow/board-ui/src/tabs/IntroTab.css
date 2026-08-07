@@ -130,6 +130,54 @@
 }
 
 
+/* Gate 028 — the idea gate. One card per proposed direction, reviewed as
+   prose before any beat exists. */
+.intro-idea-directions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  max-width: 1400px;
+}
+
+.intro-idea-direction {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.intro-idea-direction h3 {
+  margin-top: 0;
+  color: var(--accent);
+}
+
+.intro-idea-field {
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.intro-idea-arc {
+  margin: 0 0 12px 20px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.intro-idea-approve-btn {
+  margin-top: 16px;
+  background: transparent;
+  border: 1px solid var(--ok);
+  color: var(--ok);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+.intro-idea-approve-btn:hover {
+  background: rgba(52, 211, 153, 0.12);
+}
+
 /* Jump-to-beat. The beat sheet used to be inert: it showed which beat a
    change landed in but offered no way to move the playhead there. */
 .intro-beat-jump {
