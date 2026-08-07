@@ -10,11 +10,15 @@ export function DetailDock({
   onReviewedChange,
   tilePropsFor,
   spanFragFor,
-  onSpanEdit
+  onSpanEdit,
+  hasResolved,
+  planById
 }: {
   activeBlock: any;
   cues: any[];
   audit: any;
+  hasResolved?: boolean;
+  planById?: Record<string, any>;
   hasReviewed: (id: string) => boolean;
   onReviewedChange: (id: string, v: boolean) => void;
   // edit state lives in StoryboardTab's store — the dock unmounts blocks on
@@ -41,6 +45,8 @@ export function DetailDock({
               cue={cues.find(c => c.id === activeBlock.seg.cueId)}
               resolved={activeBlock.resolved}
               audit={audit?.cues?.[activeBlock.seg.cueId]}
+              hasResolved={hasResolved}
+              planItem={planById?.[activeBlock.seg.cueId]}
               reviewed={hasReviewed(`sb:${activeBlock.seg.cueId}`)}
               onReviewedChange={(v) => onReviewedChange(`sb:${activeBlock.seg.cueId}`, v)}
               {...tilePropsFor(cues.find(c => c.id === activeBlock.seg.cueId))}

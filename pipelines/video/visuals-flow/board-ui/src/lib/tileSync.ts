@@ -1,6 +1,16 @@
 import { RefObject, useEffect } from 'react';
 
-export function useTileSync(audioRef: RefObject<HTMLAudioElement | null>, iframeRef: RefObject<HTMLIFrameElement | null>) {
+// `ready` MUST be passed and MUST change when the iframe appears. Refs are
+// stable objects, so with only [audioRef, iframeRef] as deps this effect ran
+// exactly once — at mount, when the tile is still a poster and there is no
+// iframe at all. It bailed on the null check and never re-ran, so audio
+// playback drove nothing and every card sat frozen on its first frame (a
+// count-up card rendered a literal "0"). Found 2026-08-07.
+export function useTileSync(
+  audioRef: RefObject<HTMLAudioElement | null>,
+  iframeRef: RefObject<HTMLIFrameElement | null>,
+  ready?: boolean,
+) {
   useEffect(() => {
     const audio = audioRef.current;
     const iframe = iframeRef.current;
@@ -52,5 +62,5 @@ export function useTileSync(audioRef: RefObject<HTMLAudioElement | null>, iframe
       audio.removeEventListener('play', onPlay);
       if (raf !== null) cancelAnimationFrame(raf);
     };
-  }, [audioRef, iframeRef]);
+  }, [audioRef, iframeRef, ready]);
 }

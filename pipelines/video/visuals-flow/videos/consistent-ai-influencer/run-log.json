@@ -1,6 +1,6 @@
 {
   "video": "consistent-ai-influencer",
-  "updated": "2026-08-04T04:53:28.741Z",
+  "updated": "2026-08-07T15:12:58.698Z",
   "steps": {
     "020-transcribe-run": {
       "status": "done",
@@ -41,6 +41,62 @@
       "did": "Authored and delivered the intro as ONE bespoke film (the new intro flow), then fixed an owner-reported overlap and hardened against its whole class. The film: 12 beats over the measured 90.7s intro, every clause verbatim, one character card born in beat 1 and carried as the SAME element to the last frame. Presenter is one girl-1 Avatar III clip, free at credits +0 seconds +0.",
       "issues": "Owner spotted beat 4's rail and three dashed sponsor slots showing through the fourth card of beat 5's row for twelve seconds. Root cause was two beats claiming the same pixels while measuring in different frames of reference — beat 4 placed its mark column at x1420-1572 relative to the card at x820-1300 with the right third free, and beat 5 spread its row across the full canvas with slot four at x1380-1680. Space could not fix it: the row covers 81% of the canvas, so no band is free in both beats. The devices now LEAVE at 27.48s with autoAlpha rather than dimming to 30% — a dimmed stroke reads clean through a card whose fill is 8.5% white. Nothing mechanical had caught it because text_occluded is text-only, which is exactly the unenforced half of TASTE T7. Added a device-overlap audit to the composition that compares visible device bounding boxes at each beat midpoint; on its first run it confirmed the fix AND found a second defect nobody had seen, the beat-11 score column using a 76px pitch on 78px-tall rows. Recorded the lesson as TASTE-INTRO T11. Earlier in the same step: 7 lint errors were masking 19 layout errors, GSAP fromTo's immediateRender default parked the card half off-frame for the opening, and the gate caught 5.7s of frozen picture that every still frame passed.",
       "output": "intro-film/out/intro.mp4 — 90.700s, 1920x1080, h264+aac, film gate pass, zero frozen stretches, zero device overlaps. Plus screenplay.json (12 beats, lint clean, mutation-tested), film/index.html with a declared LAYOUT grid and the overlap audit, and TASTE-INTRO.md T11."
+    },
+    "030-clean-transcript-llm": {
+      "status": "done",
+      "ended": "2026-08-07T13:30:54.990Z",
+      "started": "2026-08-07T13:30:54.990Z",
+      "did": "Produced the review artifact this step exists for. The cleanup itself had already been done by hand back at 020, so nothing about the words changed here — transcript.json is byte-identical to transcript.cleaned.json. What was missing was the diff: the only view in which a person can actually see what the machine altered about words that get burned into captions verbatim. Compared the raw Groq output against the cleaned words and wrote it out, carrying the 15 second-opinion suspects onto the same file so the doubtful-but-unchanged words are visible too. Skipped re-running the Groq second opinion because it already ran during 020 and re-transcribing the full 20:30 would cost an API call to learn nothing new.",
+      "issues": "This step could not complete at all until I fixed a bug in lib/transcript-diff.mjs. It compared raw and cleaned words BY INDEX and threw whenever the two lists differed in length, citing a guarantee from checkTimingIntegrity() that does not exist — that function only rejects a cleanup that INVENTS words, and explicitly permits one that merges or drops. This video merged 4062 raw words down to 4005, so the step threw on its first real use. The unit test had hidden it by spelling a merge as a same-length substitution, which no real cleanup produces. Rewrote the alignment to fall back to matching by word time when lengths differ, which also surfaced that Groq emits adjacent words with identical start times ('aesthetic' and 'and' both at 39.14s). Also worth an owner eye: the diff is 610 changes, far more than the 141 the 020 note mentions, because 020 was counting word fixes and this counts re-punctuation too.",
+      "output": "transcript.diff.json — 610 changes, 51 of them merges, plus the 15 carried suspects"
+    },
+    "210-author-body-cues-llm": {
+      "status": "done",
+      "ended": "2026-08-07T13:44:21.086Z",
+      "started": "2026-08-07T13:44:21.086Z",
+      "did": "Authored the body's graphics plan: 55 cues across the measured body span, 90.7s to 1171.1s. Structured it as the seven steps the intro film already promised the viewer, each opening on the same section card numbered 01 through 07, plus an unnumbered scores section at the end so the numbered run stays a clean consecutive series. The three moments where the presenter dictates a prompt out loud get the prompt-typing card with his words verbatim, the five spoken scores each get a score pill at the second the number is said, and the demo stretches carry only overlays so nothing ever covers the screen recording. Ran the resolve and lint fix-loop to zero errors.",
+      "issues": "One card does not exist yet and needs the owner's yes or no: enacted/character-card-stamp. The concept's whole through-line is a portrait card that gets stamped out into every scenario, and nothing in the catalog enacts that — without it the motif survives only as text labels saying 'same face', which is the 'accept labelled' outcome the rulebook tells you to refuse. Also worth knowing before review: the plan carries 8 cadence warnings and 11 bare-stretch warnings, and both come from the same cause. Seven demo stretches totalling about 520s only allow overlays, so fullframe cards get pushed into the narration islands between them and end up either bunched or far apart. I left them rather than inventing filler over settings screens the footage already shows. The intro and conclusion both report as having no cues, which is correct for now — the film owns the intro and 220 has not run yet.",
+      "output": "cues.json — 55 body cues, 18 fullframe and 37 overlay, 2.68 per minute against a 1.5 to 4.0 band, 9 carrying the motif, 1 proposing a new card; snapshot at cues.llm.json"
+    },
+    "220-author-conclusion-cues-llm": {
+      "status": "done",
+      "ended": "2026-08-07T13:49:50.106Z",
+      "started": "2026-08-07T13:49:50.106Z",
+      "did": "Authored the conclusion's graphics — 5 cues over its measured 59.3s, and the conclusion only. The closing argument is 'everything in one place', so the spine is a pipeline card whose three nodes light as he names character generation, model training and content, followed by the line 'It's all here, and it works' standing alone, then a spotlight card that dims the separate apps and locks onto OpenArt as he says it is the tool to use. The description mention and the subscribe ask close it out. Verified the whole plan resolves: all five land where intended between 1179.0s and 1225.7s, zero lint errors, and every zone rule passes — fullframe gaps of 10s against a 20s ceiling, two of three fullframes enacted against a floor of two, and 5.06 cues per minute against a floor of 3.0.",
+      "issues": "I deliberately did NOT author intro cues even though this step's prompt, its README and run.sh all still say it covers 'the INTRO and CONCLUSION'. That text is left over from before the intro became a bespoke film. The code already agrees with reality — lib/zone-constants.mjs sets ZONE_PARTS to conclusion alone — so only the prose is stale, but an executor following the prompt literally would author cards over the 0 to 90.7s the film owns. Worth folding at 630. Second thing the owner should know: I could not run the full resolve at the end because it refuses to write while c20 names a card that does not exist. I verified the conclusion by flagging c20, resolving clean, then restoring the proposal, and I deleted the resolved.json from that run so nothing downstream reads times that do not match the real plan. It regenerates properly once the card plan is settled.",
+      "output": "cues.json — 60 cues total, the 5 conclusion ones carrying zone: conclusion; snapshot at cues.zones.llm.json"
+    },
+    "230-review-cue-plan-run": {
+      "status": "done",
+      "ended": "2026-08-07T13:51:43.066Z",
+      "started": "2026-08-07T13:51:43.066Z",
+      "did": "Ran the pre-build check over the whole 60-cue plan — every anchor resolved against the transcript, every card variable checked against its catalog entry, and no timing collisions. Came back clean. Getting there took several rounds: the first draft had seven pieces of copy over their word limits, three cards whose opening beat re-used the cue's own anchor so the forward-only matcher could never find it, two fullframe cards sitting inside demo stretches where they would have replaced the screen recording, and three overlays landing on top of fullframe cards.",
+      "issues": "Two things about this step itself rather than the plan. It does not record itself in the ledger even though it is a -run step — run.sh's validate verb has no record_step wrapper, so I wrote this entry by hand; same for 235. Worth fixing so a run does not silently skip two rows. And the check still signs off with the words 'ready for the 037 card plan', naming a gate that plan 195 removed; the step it actually leads to is 235.",
+      "output": "checks/cue-plan.json — clean, 0 errors across 60 cues"
+    },
+    "235-build-card-plan-run": {
+      "status": "done",
+      "ended": "2026-08-07T13:51:43.118Z",
+      "started": "2026-08-07T13:51:43.118Z",
+      "did": "Rolled every card the video will use into one list the owner can read in a single pass: 60 entries, 55 in the body and 5 in the conclusion, 59 of them cards that already exist and 1 that would have to be built. Building the plan also reset the storyboard approval, which is the safety behaviour plan 195 moved here when the old gate was removed — the card list changed, so any earlier sign-off on the storyboard no longer means anything.",
+      "issues": "One card needs the owner's decision before anything can be built: enacted/character-card-stamp at c20, where the presenter says the same face is applied no matter how different the scenario. The whole concept rests on a portrait card being stamped out into every scenario, and no existing card does that, so without it the idea survives only as an overlay reading 'same face'. It is the one thing standing between this plan and the build step.",
+      "output": "card-plan.json — 60 items, 59 existing, 1 new, 0 flagged"
+    },
+    "310-sync-graphics-run": {
+      "status": "done",
+      "started": "2026-08-07T15:12:06.340Z",
+      "issues": "Nine bare-stretch warnings and one variant-rotation warning survive, all deliberate: the demo segments only allow overlays, so the gaps sit in settings talk the footage already shows and filling them would mean inventing decoration. The intro still reports as carrying no cues, which is correct — the film owns that span.",
+      "ended": "2026-08-07T15:12:58.698Z",
+      "did": "Resolved all 60 cues to absolute times and ran the cue lint. Everything the plan names now exists, so resolved.json finally writes — the Storyboard has real timings and live previews for the first time. Zero lint errors.",
+      "output": "resolved.json — 60 cues, 1179.0s to 1225.7s covered in the conclusion, 0 errors"
+    },
+    "240-build-cards-llm": {
+      "status": "done",
+      "ended": "2026-08-07T15:12:58.648Z",
+      "started": "2026-08-07T15:12:58.648Z",
+      "did": "Built enacted/character-card-stamp — the card the whole concept rests on. An anchor portrait card sits at the left; on each beat a duplicate stamps in to its right carrying the IDENTICAL portrait, differing only in a scenario tint, with a rail advancing and a solid mark landing where it meets each frame. The card renders the same image source in every frame by construction, because sameness is the entire argument. Registered it in catalog.json with an honest capacity, and rendered it three times over, fixing what the frames actually showed rather than what the code looked like.",
+      "issues": "Three defects only visible once rendered. The rail ran straight through the portraits like a strikethrough across the faces — the panels were translucent so the line read through them; they are opaque matte now and the rail shows only in the gaps. The stamp marks floated on the chins instead of where the rail meets each frame, now pinned to the left edge. And the labels shrink-wrapped to the card width, wrapped to three lines and climbed back over the portraits, fixed with an explicit label width and a taller slot. Two smaller things: the type-scale gate wanted a 120px hero rather than the 96px I picked, and I verified the declared max of 3 beats by actually rendering four frames rather than trusting the arithmetic. One knock-on: the real card runs 13.3s where the kinetic-sentence it replaced ran about 5, so it collided with the Step 4 section card — moved that anchor a few words later in the same sentence. The card is NOT pushed yet, and per card-library's rule an unpushed card stays invisible to the editor's Templates tab forever without erroring.",
+      "output": "card-library/enacted/character-card-stamp/index.html + catalog.json entry (68 cards); contact sheet at ~/kb-scratch/card-qa/enacted-character-card-stamp.png"
     }
   }
 }

@@ -14,6 +14,7 @@ import { TimelineCanvas } from '../components/TimelineCanvas';
 import { DetailDock } from '../components/DetailDock';
 import { FxStage } from '../components/FxStage';
 import { playthroughView } from '../lib/playthrough';
+import { buildPlanIndex } from '../lib/cardStatus';
 
 export function StoryboardTab({
   video,
@@ -32,6 +33,9 @@ export function StoryboardTab({
 }) {
   const cues = boardData.cues || [];
   const segments = boardData.segments || [];
+  // id -> card-plan row, so a tile can say whether its card exists yet. Built
+  // here rather than in the tile: the tile mounts and unmounts constantly.
+  const planById = useMemo(() => buildPlanIndex(boardData.cardPlan).byId, [boardData.cardPlan]);
   const shots = boardData.shots;
   const effects = boardData.effects;
   const audit = boardData.audit;
@@ -202,7 +206,7 @@ export function StoryboardTab({
     const acts = (
       <>
         <button id="approveBtn" className={cuesApproved ? 'approved' : ''} disabled={!hasResolved || cuesApproved}
-          title={!hasResolved ? 'nothing to approve until step 040 resolves the cues'
+          title={!hasResolved ? 'nothing to approve until step 310 resolves the cues'
             : cuesApproved ? 'approved — editing and saving cues re-opens this' : undefined}
           onClick={() => handleApprove('/approve')}>{cuesApproved ? '✓ graphics approved' : 'Approve graphics'}</button>
         {shots && (
@@ -360,10 +364,15 @@ export function StoryboardTab({
     return blocks.find((b: any) => b.id === openId) || null;
   }, [openId, blocks]);
 
-  // Pre-040 banner
-  const pre040Banner = !boardData.hasResolved ? (
+  // Pre-310 banner. It used to send the owner to a "#card-plan" tab and "step
+  // 040"; plan 195 deleted that tab and plan 199 renumbered the step, so the
+  // link was dead and the number was wrong — the one screen whose whole job is
+  // telling you what to do next was naming two things that no longer exist.
+  const pre310Banner = !boardData.hasResolved ? (
     <div className="banner err" style={{ marginBottom: 24 }}>
-      no <code>resolved.json</code> yet — you are viewing the raw pre-040 cues. Approve the <a href="/#card-plan" style={{ color: 'inherit', fontWeight: 'bold' }}>#card-plan</a> and run step 040 to generate timings and live previews.
+      no <code>resolved.json</code> yet — you are viewing the raw cues in script order, with no
+      timings and no previews. Build any card the plan marks <code>new</code> (step 240), then run
+      <code> run.sh &lt;video&gt; resolve</code> (step 310) to generate timings and live previews.
     </div>
   ) : null;
 
@@ -436,7 +445,7 @@ export function StoryboardTab({
           of approval (owner decluttering ask, 2026-07-31). */}
       {shots?.errors?.length > 0 && <Banner html={`shots: ${shots.errors.join('<br>')}`} kind="err" onDismiss={() => {}} />}
 
-      {pre040Banner}
+      {pre310Banner}
 
       {viewMode === 'timeline' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
@@ -477,6 +486,8 @@ export function StoryboardTab({
                     cue={cue}
                     resolved={resolved}
                     audit={aud}
+                    hasResolved={boardData.hasResolved}
+                    planItem={planById[cue.id]}
                     reviewed={has(`sb:${cue.id}`)}
                     onReviewedChange={(v) => {
                       setReviewed(`sb:${cue.id}`);
@@ -509,6 +520,8 @@ export function StoryboardTab({
             activeBlock={activeBlock}
             cues={cues}
             audit={audit}
+            hasResolved={boardData.hasResolved}
+            planById={planById}
             hasReviewed={(id) => has(id)}
             onReviewedChange={(id, v) => setReviewed(id)}
             tilePropsFor={tilePropsFor}

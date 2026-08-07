@@ -1,0 +1,1085 @@
+{
+  "video": "consistent-ai-influencer",
+  "approved": false,
+  "cues": [
+    {
+      "id": "c01",
+      "card": "section/section-card-flip",
+      "anchor": "The first thing that you need to do",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "number": "01",
+        "title": "Create Your Base Character"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c02",
+      "card": "overlay/lower-third",
+      "anchor": "you'll be able to see this Character and World option",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {
+        "name": "Character and World",
+        "subtitle": "Where every character you create is stored"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c03",
+      "card": "overlay/tip-banner",
+      "anchor": "Here you're going to think about what do they look like",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "tip",
+        "label": "Decide Her First",
+        "text": "Look, vibe and niche get decided before you generate a single image.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c04",
+      "card": "prompt/prompt-typing",
+      "anchor": "I am looking for a high quality",
+      "lead": 0.4,
+      "hold": 6.0,
+      "variables": {
+        "title": "Character Prompt",
+        "prompt": "A high quality, hyper realistic, candid portrait of a 22 year old Filipina AI influencer."
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false,
+      "legacy_why": "no enacted/ device types out a dictated prompt; this card IS the prompt-showing device"
+    },
+    {
+      "id": "c04b",
+      "card": "overlay/lower-third",
+      "anchor": "So let's say I'm going to use Nano Banana Pro",
+      "lead": 0.3,
+      "hold": 4.5,
+      "variables": {
+        "name": "Model Choice",
+        "subtitle": "Nano Banana Pro or Seedream 4.5"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c05",
+      "card": "overlay/tip-banner",
+      "anchor": "be as specific as possible",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "tip",
+        "label": "Detail Buys Consistency",
+        "text": "The more detail in the character prompt, the more consistent every later output.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c06",
+      "card": "overlay/stat-hit",
+      "anchor": "you can just click on More Like This for 20 credits",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {
+        "eyebrow": "More Like This",
+        "value": 20,
+        "suffix": " credits",
+        "context": "Generates four more variations of the same character."
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c07",
+      "card": "overlay/lower-third",
+      "anchor": "this will become the anchor image",
+      "lead": 0.3,
+      "hold": 4.5,
+      "variables": {
+        "name": "The Anchor Image",
+        "subtitle": "Everything else is built from this face"
+      },
+      "beats": [],
+      "register": "light",
+      "motif": true,
+      "flagged": false
+    },
+    {
+      "id": "c08",
+      "card": "section/section-card-flip",
+      "anchor": "if you are using the old version of OpenArt",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "number": "02",
+        "title": "Lock The Face"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c09",
+      "card": "process/step-flow",
+      "anchor": "you can train a custom model directly inside the platform",
+      "lead": 0.4,
+      "hold": 4.0,
+      "variables": {
+        "title": "Training A Custom Model"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "label": "Open the Train section"
+          },
+          "anchor": "by just going to the Train section"
+        },
+        {
+          "reveal": {
+            "label": "Upload your anchor image"
+          },
+          "anchor": "and upload your anchor image"
+        },
+        {
+          "reveal": {
+            "label": "Add 5 to 10 variations"
+          },
+          "anchor": "along with five to ten variations"
+        }
+      ],
+      "register": "light",
+      "motif": true,
+      "flagged": false,
+      "legacy_why": "the Train flow is never shown on screen and no enacted/ device walks an off-screen process"
+    },
+    {
+      "id": "c10",
+      "card": "slate/kinetic-sentence",
+      "anchor": "it is automatically in here already",
+      "lead": 0.2,
+      "hold": 2.5,
+      "variables": {
+        "text": "it is automatically in here already",
+        "accent": "automatically"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false,
+      "legacy_why": "a one-line spoken statement with no object to enact"
+    },
+    {
+      "id": "c11",
+      "card": "overlay/lower-third",
+      "anchor": "you can just have true consistency",
+      "lead": 0.3,
+      "hold": 4.5,
+      "variables": {
+        "name": "True Consistency",
+        "subtitle": "One face across every image and video"
+      },
+      "beats": [],
+      "register": "light",
+      "motif": true,
+      "flagged": false
+    },
+    {
+      "id": "c12",
+      "card": "section/section-card-flip",
+      "anchor": "we are now going to head over to Step 3",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "number": "03",
+        "title": "Content Across Scenarios"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c13",
+      "card": "checklist/icon-pills",
+      "anchor": "you can now start generating your influencer",
+      "lead": 0.4,
+      "hold": 3.5,
+      "variables": {},
+      "beats": [
+        {
+          "reveal": {
+            "icon": "person",
+            "text": "Character images",
+            "keyword": "images"
+          },
+          "anchor": "You can start with creating a character image"
+        },
+        {
+          "reveal": {
+            "icon": "chat",
+            "text": "Video and lip sync",
+            "keyword": "lip sync"
+          },
+          "anchor": "a video, lip sync"
+        },
+        {
+          "reveal": {
+            "icon": "clock",
+            "text": "Morning routine shots",
+            "keyword": "routine"
+          },
+          "anchor": "such as morning routine shots"
+        },
+        {
+          "reveal": {
+            "icon": "star",
+            "text": "Outfit of the day posts",
+            "keyword": "Outfit"
+          },
+          "anchor": "outfit-of-the-day post, such as"
+        }
+      ],
+      "register": "light",
+      "flagged": false,
+      "legacy_why": "a flat capability list; no enacted/ device enumerates unordered items"
+    },
+    {
+      "id": "c14",
+      "card": "overlay/tip-banner",
+      "anchor": "as well as product placement setups",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "tip",
+        "label": "Also Covered",
+        "text": "Travel content, open landscapes and product placement setups.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c15",
+      "card": "overlay/step-card",
+      "anchor": "we're going to start with creating a character image",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {
+        "step": 3,
+        "total": 7,
+        "label": "Generate content"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c15b",
+      "card": "overlay/lower-third",
+      "anchor": "This one, Flux 1.1 Pro",
+      "lead": 0.3,
+      "hold": 4.5,
+      "variables": {
+        "name": "Flux 1.1 Pro",
+        "subtitle": "The presenter’s own pick for images"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c16",
+      "card": "prompt/prompt-typing",
+      "anchor": "I want to see Lucy in a minimalist white kitchen",
+      "lead": 0.4,
+      "hold": 6.0,
+      "variables": {
+        "title": "Image Prompt",
+        "prompt": "Lucy in a minimalist white kitchen, holding a coffee cup, warm morning light, and a lifestyle photography style."
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false,
+      "legacy_why": "no enacted/ device types out a dictated prompt"
+    },
+    {
+      "id": "c17",
+      "card": "overlay/tip-banner",
+      "anchor": "you can do three-fourths or one by one",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "tip",
+        "label": "Output Presets",
+        "text": "3:4 or 1:1 for TikTok and Instagram; 1:1 when it is a profile image.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c18",
+      "card": "overlay/lower-third",
+      "anchor": "whether you want it in 2K or 4K",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {
+        "name": "2K or 4K",
+        "subtitle": "Trade resolution against speed and credits"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c18b",
+      "card": "overlay/lower-third",
+      "anchor": "you can see our influencer right here in the scenario",
+      "lead": 0.3,
+      "hold": 4.5,
+      "variables": {
+        "name": "Same Face, New Scenario",
+        "subtitle": "Minimalist white kitchen, warm morning light"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false,
+      "motif": true
+    },
+    {
+      "id": "c19",
+      "card": "overlay/lower-third",
+      "anchor": "we have our enhanced prompts as well",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {
+        "name": "Enhanced Prompt",
+        "subtitle": "OpenArt expands your prompt before generating"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c20",
+      "card": "enacted/character-card-stamp",
+      "anchor": "no matter how different the scenario is in here",
+      "lead": 0.4,
+      "hold": 4.0,
+      "variables": {
+        "title": "One Face, Every Scenario"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "label": "Same face applied"
+          },
+          "anchor": "the same face is applied"
+        },
+        {
+          "reveal": {
+            "label": "Very different scenario"
+          },
+          "anchor": "in just a very different scenario"
+        }
+      ],
+      "register": "light",
+      "motif": true,
+      "flagged": false,
+      "propose": {
+        "does": "One portrait card holds the anchor face; each beat stamps a duplicate of it into a new scenario frame and every duplicate keeps the identical face, so consistency is shown rather than claimed",
+        "kind": "beat",
+        "placement": "fullframe",
+        "beats": 2,
+        "variables": [
+          "anchor portrait image",
+          "one scenario label per beat"
+        ]
+      }
+    },
+    {
+      "id": "c21",
+      "card": "section/section-card-flip",
+      "anchor": "we can now move over to Step 4",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "number": "04",
+        "title": "Generate Video Content"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c22",
+      "card": "overlay/tip-banner",
+      "anchor": "that's where the audience is",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "tip",
+        "label": "Where The Audience Is",
+        "text": "Reels, TikTok and YouTube Shorts are what sponsors expect to see.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c23",
+      "card": "overlay/lower-third",
+      "anchor": "one example of that is the model Happy Horse",
+      "lead": 0.3,
+      "hold": 4.5,
+      "variables": {
+        "name": "No End Frame Needed",
+        "subtitle": "Happy Horse and Grok Imagine"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c23b",
+      "card": "overlay/tip-banner",
+      "anchor": "you only generate one image and you want to create a video",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "tip",
+        "label": "One Image Is Enough",
+        "text": "You can build a video from a single generated image.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c24",
+      "card": "prompt/prompt-typing",
+      "anchor": "I have my prompt here",
+      "lead": 0.4,
+      "hold": 6.0,
+      "variables": {
+        "title": "Video Prompt",
+        "prompt": "Lucy taking a sip from a coffee cup, showing a smile and visible satisfaction from the taste."
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false,
+      "legacy_why": "no enacted/ device types out a dictated prompt"
+    },
+    {
+      "id": "c25",
+      "card": "overlay/tip-banner",
+      "anchor": "These ones actually use a lot of credits",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "warning",
+        "label": "Credits Add Up",
+        "text": "Longer clips and 1080p burn noticeably more credits.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c26",
+      "card": "overlay/tip-banner",
+      "anchor": "is to apply motion to bring your character to life",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "tip",
+        "label": "Clip Tips",
+        "text": "Add motion, keep clips 5 to 15 seconds, and pick the smoothest variation.",
+        "edge": "top"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c27",
+      "card": "overlay/lower-third",
+      "anchor": "it always looks like the same person",
+      "lead": 0.3,
+      "hold": 4.5,
+      "variables": {
+        "name": "Same Person, Every Clip",
+        "subtitle": "From a 5 second clip upward"
+      },
+      "beats": [],
+      "register": "light",
+      "motif": true,
+      "flagged": false
+    },
+    {
+      "id": "c28",
+      "card": "overlay/verdict-chips",
+      "anchor": "Lucy is taking a sip from coffee cup in her hand",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {},
+      "beats": [
+        {
+          "reveal": {
+            "text": "Facial features hold",
+            "verdict": "pro"
+          },
+          "anchor": "her facial features do not change"
+        },
+        {
+          "reveal": {
+            "text": "Commercial worthy",
+            "verdict": "pro"
+          },
+          "anchor": "I think that it really is commercial worthy"
+        },
+        {
+          "reveal": {
+            "text": "Looks believable",
+            "verdict": "pro"
+          },
+          "anchor": "And it actually looks very believable"
+        }
+      ],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c28b",
+      "card": "overlay/lower-third",
+      "anchor": "we can apply this in several other scenarios",
+      "lead": 0.3,
+      "hold": 4.5,
+      "variables": {
+        "name": "Photo And Video",
+        "subtitle": "Same character, several other scenarios"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c29",
+      "card": "section/section-card-flip",
+      "anchor": "we can now start building our content bank",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "number": "05",
+        "title": "Build Your Content Bank"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c30",
+      "card": "overlay/stat-hit",
+      "anchor": "at least 20 to 30 images",
+      "lead": 0.3,
+      "hold": 4.5,
+      "variables": {
+        "eyebrow": "Before You Pitch",
+        "value": 30,
+        "suffix": " images",
+        "context": "Plus 5 to 10 second clips, all carrying the same face."
+      },
+      "beats": [],
+      "register": "dark",
+      "flagged": false
+    },
+    {
+      "id": "c31",
+      "card": "slate/headline-chips",
+      "anchor": "So this does two things",
+      "lead": 0.4,
+      "hold": 3.5,
+      "variables": {
+        "headline": "Your Content Bank Does Two Things"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "text": "Proves you deliver consistently"
+          },
+          "anchor": "It proves to sponsors that you can deliver"
+        },
+        {
+          "reveal": {
+            "text": "A real portfolio for the pitch"
+          },
+          "anchor": "It gives you a real portfolio to show"
+        }
+      ],
+      "register": "light",
+      "flagged": false,
+      "legacy_why": "a claim plus two consequences; no enacted/ device carries headline-plus-chips"
+    },
+    {
+      "id": "c32",
+      "card": "overlay/lower-third",
+      "anchor": "you can save and organize everything directly in your workspace",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {
+        "name": "Save It In Your Workspace",
+        "subtitle": "Star your best outputs and reuse them"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c32b",
+      "card": "overlay/tip-banner",
+      "anchor": "you can just click on the star button",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "tip",
+        "label": "Star Your Best",
+        "text": "Favorite your strongest outputs so you can reference them later.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c33",
+      "card": "section/section-card-flip",
+      "anchor": "we are now going to set up for sponsor-ready content",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "number": "06",
+        "title": "Sponsor-Ready Content"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c34",
+      "card": "overlay/tip-banner",
+      "anchor": "Sponsors don't just want a face",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "info",
+        "label": "What Sponsors Want",
+        "text": "Product integration that looks natural, in both images and video.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c35",
+      "card": "overlay/lower-third",
+      "anchor": "add a coffee products pack in here named Sunshine Coffee",
+      "lead": 0.3,
+      "hold": 4.5,
+      "variables": {
+        "name": "Area Edit",
+        "subtitle": "Drop a product into her existing frame"
+      },
+      "beats": [],
+      "register": "light",
+      "motif": true,
+      "flagged": false
+    },
+    {
+      "id": "c36",
+      "card": "overlay/tip-banner",
+      "anchor": "we're just basically adding in a placeholder object",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "tip",
+        "label": "Use A Placeholder",
+        "text": "Build the base prompt around a stand-in product: a bottle, a bag, or a device.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c37",
+      "card": "overlay/lower-third",
+      "anchor": "we landed a deal with Sunshine Coffee",
+      "lead": 0.3,
+      "hold": 4.5,
+      "variables": {
+        "name": "Base Prompt Becomes The Deal",
+        "subtitle": "Swap the placeholder, keep the face"
+      },
+      "beats": [],
+      "register": "light",
+      "motif": true,
+      "flagged": false
+    },
+    {
+      "id": "c38",
+      "card": "overlay/tip-banner",
+      "anchor": "Just keep the motion subtle and realistic",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "tip",
+        "label": "Keep It Organic",
+        "text": "Subtle, realistic motion so the placement feels organic and not staged.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c39",
+      "card": "link-in-description/link-in-description",
+      "anchor": "The link is once again in the description",
+      "lead": 0.3,
+      "hold": 2.2,
+      "variables": {},
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c40",
+      "card": "section/section-card-flip",
+      "anchor": "Once your influencer is built",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "number": "07",
+        "title": "Pitch Sponsors"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c41",
+      "card": "checklist/checklist",
+      "anchor": "you can just say 100% brand safe",
+      "lead": 0.4,
+      "hold": 3.5,
+      "variables": {
+        "title": "What Actually Lands With Brands"
+      },
+      "beats": [
+        {
+          "reveal": {
+            "text": "100% brand safe, zero controversy"
+          },
+          "anchor": "you can control everything"
+        },
+        {
+          "reveal": {
+            "text": "Infinitely scalable: 50 pieces a day"
+          },
+          "anchor": "Second is infinitely scalable"
+        },
+        {
+          "reveal": {
+            "text": "Face, style and aesthetic never change"
+          },
+          "anchor": "Fully consistent: the face, style and aesthetic"
+        },
+        {
+          "reveal": {
+            "text": "Fast turnaround, no shoot days"
+          },
+          "anchor": "you have a fast turnaround"
+        },
+        {
+          "reveal": {
+            "text": "Image and video ready"
+          },
+          "anchor": "you can do both image and video ready"
+        }
+      ],
+      "register": "light",
+      "flagged": false,
+      "legacy_why": "a five-item pitch list; no enacted/ device carries a plain enumerated list"
+    },
+    {
+      "id": "c42",
+      "card": "slate/kinetic-sentence",
+      "anchor": "These are real advantages over real human influencers",
+      "lead": 0.2,
+      "hold": 3.0,
+      "variables": {
+        "text": "These are real advantages over real human influencers",
+        "accent": "real advantages"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false,
+      "legacy_why": "a one-line spoken statement with no object to enact"
+    },
+    {
+      "id": "c43",
+      "card": "overlay/tip-banner",
+      "anchor": "back it up with your content bank",
+      "lead": 0.3,
+      "hold": 5.0,
+      "variables": {
+        "kind": "tip",
+        "label": "How To Open",
+        "text": "Lead with these points, then back them up with your content bank.",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c44",
+      "card": "section/section-card-flip",
+      "anchor": "And now to summarize everything",
+      "lead": 0.3,
+      "hold": 2.5,
+      "variables": {
+        "title": "The Scores"
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c45",
+      "card": "overlay/score-pill",
+      "anchor": "For ease of use, I gave it 4.5 out of 5",
+      "lead": 0.2,
+      "hold": 3.5,
+      "variables": {
+        "label": "Ease of Use",
+        "score": 4.5,
+        "max": 5,
+        "logo": "openart",
+        "winner": false
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c46",
+      "card": "overlay/score-pill",
+      "anchor": "For face consistency, it gets a full 5 out of 5",
+      "lead": 0.2,
+      "hold": 3.5,
+      "variables": {
+        "label": "Face Consistency",
+        "score": 5,
+        "max": 5,
+        "logo": "openart",
+        "winner": false
+      },
+      "beats": [],
+      "register": "light",
+      "motif": true,
+      "flagged": false
+    },
+    {
+      "id": "c47",
+      "card": "overlay/score-pill",
+      "anchor": "For content variety, it is a 4.5",
+      "lead": 0.2,
+      "hold": 3.5,
+      "variables": {
+        "label": "Content Variety",
+        "score": 4.5,
+        "max": 5,
+        "logo": "openart",
+        "winner": false
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c48",
+      "card": "overlay/score-pill",
+      "anchor": "Speed to result is another 4.5",
+      "lead": 0.2,
+      "hold": 3.5,
+      "variables": {
+        "label": "Speed to Result",
+        "score": 4.5,
+        "max": 5,
+        "logo": "openart",
+        "winner": false
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "c49",
+      "card": "overlay/score-pill",
+      "anchor": "sponsor readiness gets a 5 out of 5",
+      "lead": 0.2,
+      "hold": 3.5,
+      "variables": {
+        "label": "Sponsor Readiness",
+        "score": 5,
+        "max": 5,
+        "logo": "openart",
+        "winner": true
+      },
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "z01",
+      "card": "enacted/pipeline-flow",
+      "zone": "conclusion",
+      "anchor": "OpenArt gives you everything in one place",
+      "lead": 0.4,
+      "hold": 4.0,
+      "variables": {
+        "title": "All In One",
+        "steps": [
+          {
+            "step": "Character",
+            "icon": "person"
+          },
+          {
+            "step": "Training",
+            "icon": "brain"
+          },
+          {
+            "step": "Content",
+            "icon": "video"
+          }
+        ]
+      },
+      "beats": [
+        {
+          "reveal": {
+            "step": "Character"
+          },
+          "anchor": "such as character generation"
+        },
+        {
+          "reveal": {
+            "step": "Training"
+          },
+          "anchor": "model training, image creation"
+        },
+        {
+          "reveal": {
+            "step": "Content"
+          },
+          "anchor": "video generation, and editing tools"
+        }
+      ],
+      "register": "light",
+      "motif": true,
+      "flagged": false
+    },
+    {
+      "id": "z02",
+      "card": "statement/keyword-statement",
+      "zone": "conclusion",
+      "anchor": "It's all here, and it works",
+      "lead": 0.0,
+      "hold": 3.0,
+      "variables": {
+        "text": "It's all here, and it works.",
+        "keyword": "it works"
+      },
+      "beats": [],
+      "register": "light",
+      "legacy_why": "a single spoken assertion with no object to enact",
+      "flagged": false
+    },
+    {
+      "id": "z03",
+      "card": "enacted/spotlight-focus",
+      "zone": "conclusion",
+      "anchor": "For anyone serious about building a sponsor-ready AI influencer",
+      "lead": 0.4,
+      "hold": 4.5,
+      "variables": {
+        "title": "The Tool To Use",
+        "focus": "OpenArt",
+        "items": [
+          {
+            "item": "Separate image apps"
+          },
+          {
+            "item": "Separate video apps"
+          },
+          {
+            "item": "Third-party training"
+          },
+          {
+            "item": "OpenArt"
+          }
+        ]
+      },
+      "beats": [],
+      "register": "light",
+      "motif": true,
+      "flagged": false
+    },
+    {
+      "id": "z04",
+      "card": "link-in-description/link-in-description",
+      "zone": "conclusion",
+      "anchor": "my link to OpenArt is in the description",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {},
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    },
+    {
+      "id": "z05",
+      "card": "like-subscribe/like-subscribe",
+      "zone": "conclusion",
+      "anchor": "make sure you're subscribed",
+      "lead": 0.3,
+      "hold": 3.5,
+      "variables": {},
+      "beats": [],
+      "register": "light",
+      "flagged": false
+    }
+  ]
+}

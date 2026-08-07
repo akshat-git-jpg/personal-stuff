@@ -2678,6 +2678,65 @@
       "anti_intent": "Full-frame graphics-only intro: never place an avatar span over it. Never with more than 3 pains, never for a single-tool video.",
       "note": "Owner-commissioned 2026-07-31 (v8 fold, full-screen intro). Replaced intro/tape-board-side after the owner rejected the side-mode intro on the v8 review; layout approved from a generated preview frame with three riders: real logos in the tiles, an icon on every pain panel, pain panels smaller than the app titles. Motion toned down by owner instruction.",
       "side": false
+    },
+    {
+      "slug": "enacted/character-card-stamp",
+      "kind": "beat",
+      "placement": "fullframe",
+      "side": false,
+      "purpose": "one anchor portrait card holds a face; each beat stamps a duplicate into a new scenario frame carrying the IDENTICAL portrait, differing only in a scenario tint — the card PROVES character consistency instead of asserting it",
+      "intent": "The VO claims one character survives across different scenarios, and the screen is not already showing that comparison side by side.",
+      "anti_intent": "A lineup of DIFFERENT people, products or options — the duplicates here are deliberately identical, so difference reads as a bug. Also wrong when footage already shows the same-face comparison.",
+      "variables": {
+        "title": {
+          "required": true,
+          "type": "string",
+          "role": "heading",
+          "max_words": 5,
+          "example": "One Face, Every Scenario"
+        },
+        "marker": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "note": "one verbatim word inside title that gets the accent sweep",
+          "example": "One"
+        },
+        "anchorLabel": {
+          "required": false,
+          "type": "string",
+          "role": "label",
+          "max_words": 2,
+          "note": "uppercase label under the source card; defaults to \"Anchor\"",
+          "example": "Anchor"
+        },
+        "anchorImage": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "note": "the real anchor portrait, used in EVERY frame — sameness is the point, so this card must never vary it per beat. Omitted renders a flat vector stand-in.",
+          "example": "assets/anchor.png"
+        }
+      },
+      "beat_shape": {
+        "label": {
+          "required": true,
+          "type": "string",
+          "role": "sentence",
+          "example": "Same face applied"
+        },
+        "tint": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "note": "rgba wash for that scenario frame; the ONLY thing allowed to differ between duplicates",
+          "example": "rgba(154,216,255,0.55)"
+        }
+      },
+      "beat_source": "beat",
+      "max_beats": 3,
+      "max_reveal_chars": 24,
+      "default_duration": 6
     }
   ]
 }

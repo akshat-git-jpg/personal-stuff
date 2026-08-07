@@ -1,0 +1,271 @@
+<!doctype html>
+<!--
+  CHARACTER CARD STAMP   (Hyperframes enacted card, beat kind)
+  One anchor portrait card sits at the left. On each beat a duplicate frame
+  stamps in to its right, carrying the IDENTICAL portrait and differing only in
+  its scenario tint — a connecting rail advances and a solid stamp mark lands
+  where it meets each duplicate. Enacts: the same face surviving every scenario.
+  1920x1080, 30fps, 6 seconds.
+
+  The point is sameness, so every frame renders the SAME image source. Nothing
+  in this card may vary the portrait between frames.
+
+  EDITOR: change only the ===== CONTENT ===== defaults (title, anchorImage,
+  beats[]) and the :root colors. Do NOT touch ===== TIMELINE (LOCKED). Or:
+    --variables '{"title":"One Face, Every Scenario","beats":[{"label":"Same face applied"}, ...]}'
+  Render:  npx hyperframes@latest render enacted/character-card-stamp -o out.mp4 --fps 30
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-from: #3a1f08; --bg-to: #0a0805;
+        --text: #ffffff; --text-dim: rgba(255, 239, 219, 0.6);
+        --accent: #fb923c;
+        --positive: #34d399; --negative: #ef4444; --gold: #facc15;
+        --font: 'Inter', system-ui, sans-serif;
+        --hero-size: 120px;
+      }
+      body.register-light {
+        --bg-from: #2b2416; --bg-to: #0a0805;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
+      #root { position: relative; width: 100%; height: 1080px; }
+      #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 90px 120px; }
+      #card { position: relative; width: 100%; max-width: 1680px; height: 100%; display: flex; flex-direction: column; }
+
+      .title {
+        font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em;
+        line-height: 1.0; color: var(--text); text-align: center; flex: none;
+      }
+
+      /* The row is the card. Anchor on the left, duplicates stepping right. */
+      #row {
+        position: relative; flex: 1; display: flex; align-items: center;
+        justify-content: center; gap: 74px; margin-top: 54px;
+      }
+
+      /* Rail runs behind the frames and advances one segment per beat. */
+      #rail {
+        position: absolute; left: 0; width: 0; top: 50%; height: 3px;
+        background: rgba(255, 239, 219, 0.18); border-radius: 2px; z-index: 0;
+      }
+      #rail-fill {
+        position: absolute; left: 0; top: 0; height: 100%; width: 0;
+        background: var(--accent); border-radius: 2px;
+      }
+
+      .slot {
+        position: relative; z-index: 1; height: 620px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+      }
+
+      .portrait-card {
+        position: relative; overflow: hidden;
+        border-radius: 24px;
+        /* OPAQUE on purpose: the rail passes BEHIND these panels, and a
+           translucent panel let it read through as a line across the face. */
+        background: #17100a;
+        border: 2px solid rgba(251, 146, 60, 0.6);
+      }
+      #anchor .portrait-card { width: 320px; height: 426px; }
+      .dupe .portrait-card { width: 262px; height: 350px; border-color: rgba(255, 255, 255, 0.14); }
+
+      /* The SAME portrait in every frame — this is the whole argument. */
+      .portrait { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; }
+      .portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .portrait svg { width: 78%; height: 92%; display: block; }
+
+      /* Scenario tint: the ONLY thing allowed to differ between duplicates. */
+      .tint { position: absolute; inset: 0; mix-blend-mode: soft-light; opacity: 0.55; }
+
+      .slot-label {
+        position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+        width: 320px; font-size: 23px; font-weight: 700; letter-spacing: 0.01em;
+        color: var(--text); text-align: center; line-height: 1.28;
+      }
+      #anchor .slot-label {
+        color: var(--accent); font-size: 20px; font-weight: 800;
+        letter-spacing: 0.18em; text-transform: uppercase;
+      }
+
+      /* Solid stamp mark landing where the rail meets a duplicate. */
+      .stamp-mark {
+        position: absolute; top: 50%; left: 0; width: 26px; height: 26px;
+        margin: -13px 0 0 -13px; border-radius: 50%;
+        background: var(--accent); box-shadow: 0 0 0 7px rgba(251, 146, 60, 0.18);
+        z-index: 2;
+      }
+
+      .mk { position: relative; display: inline-block; }
+      .mk-sweep { position: absolute; left: -6px; right: -6px; bottom: 0; height: 45%; background: var(--accent); transform: scaleX(0); transform-origin: left; z-index: 0; }
+      .mk-text { position: relative; z-index: 1; }
+
+      @keyframes hf-ambient-breathe { from { transform: scale(1); } to { transform: scale(1.012); } }
+      #frame { animation: hf-ambient-breathe 6s ease-in-out alternate infinite; /* hf-ambient */ }
+    </style>
+  </head>
+  <body class="register-dark variant-a">
+    <div id="root" data-composition-id="character-card-stamp" data-start="0" data-duration="6" data-width="1920" data-height="1080"
+      data-composition-variables='{"title":"One Face, Every Scenario","marker":"One","anchorLabel":"Anchor","beats":[{"label":"Same face applied","at":1.4},{"label":"Very different scenario","at":3.2}]}'>
+      <div id="bg" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
+      <div id="frame" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div id="card">
+          <div class="title" id="title"></div>
+          <div id="row">
+            <div id="rail"><div id="rail-fill"></div></div>
+            <div class="slot" id="anchor">
+              <div class="portrait-card"><div class="portrait" id="anchor-portrait"></div></div>
+              <div class="slot-label" id="anchor-label"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ===== CONTENT ===== (editor / Gemini edits ONLY this) ===== */
+      const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
+      const DATA = {
+        ...JSON.parse('{"title":"One Face, Every Scenario","marker":"One","anchorLabel":"Anchor","beats":[{"label":"Same face applied","at":1.4},{"label":"Very different scenario","at":3.2}]}'),
+        ...VARS,
+        register: VARS.register ?? 'dark',
+        variant: VARS.variant ?? 'a',
+      };
+
+      if (DATA.register === 'light') document.body.classList.replace('register-dark', 'register-light');
+      if (DATA.variant === 'b') document.body.classList.replace('variant-a', 'variant-b');
+
+      /* ===== TIMELINE (LOCKED — do not edit) ===== */
+      const $ = (id) => document.getElementById(id);
+
+      const titleEl = $('title');
+      (function renderTitle() {
+        const word = typeof DATA.marker === 'string' ? DATA.marker.trim() : '';
+        if (!word) { titleEl.textContent = DATA.title; return; }
+        const re = new RegExp('(' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i');
+        if (!re.test(DATA.title)) { titleEl.textContent = DATA.title; return; }
+        titleEl.innerHTML = DATA.title.replace(re, '<span class="mk"><span class="mk-sweep"></span><span class="mk-text">$1</span></span>');
+      })();
+
+      // Flat vector stand-in when no anchor image is supplied. Deliberately
+      // featureless: the card argues SAMENESS, and an invented face would put a
+      // stranger on screen in a card whose whole job is identity.
+      const SILHOUETTE = '<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+        + '<circle cx="60" cy="46" r="27" fill="rgba(255,239,219,0.30)"/>'
+        + '<path d="M12 150 C12 106 32 84 60 84 C88 84 108 106 108 150 Z" fill="rgba(255,239,219,0.30)"/>'
+        + '</svg>';
+
+      function paintPortrait(el) {
+        if (DATA.anchorImage) {
+          const img = document.createElement('img');
+          img.src = DATA.anchorImage;
+          img.alt = '';
+          el.appendChild(img);
+        } else {
+          el.innerHTML = SILHOUETTE;
+        }
+      }
+      paintPortrait($('anchor-portrait'));
+      $('anchor-label').textContent = DATA.anchorLabel ?? 'Anchor';
+
+      const beats = DATA.beats || [];
+      const row = $('row');
+      const railFill = $('rail-fill');
+
+      // Tints are the ONLY per-duplicate difference. Cool wash, warm wash — both
+      // well inside the brand family, neither strong enough to recolour the face.
+      const TINTS = ['rgba(154,216,255,0.55)', 'rgba(251,146,60,0.55)', 'rgba(214,255,232,0.45)'];
+
+      const dupeEls = beats.map((b, i) => {
+        const slot = document.createElement('div');
+        slot.className = 'slot dupe';
+
+        const cardEl = document.createElement('div');
+        cardEl.className = 'portrait-card';
+
+        const portrait = document.createElement('div');
+        portrait.className = 'portrait';
+        paintPortrait(portrait);
+        cardEl.appendChild(portrait);
+
+        const tint = document.createElement('div');
+        tint.className = 'tint';
+        tint.style.background = b.tint || TINTS[i % TINTS.length];
+        cardEl.appendChild(tint);
+
+        const mark = document.createElement('div');
+        mark.className = 'stamp-mark';
+        cardEl.appendChild(mark);
+
+        const label = document.createElement('div');
+        label.className = 'slot-label';
+        label.textContent = b.label ?? '';
+
+        slot.appendChild(cardEl);
+        slot.appendChild(label);
+        row.appendChild(slot);
+        return { slot, cardEl, mark, label };
+      });
+
+      // Rail geometry is MEASURED after layout: it runs from the anchor's centre
+      // to the last duplicate's centre, passing behind the opaque panels so it
+      // shows only in the gaps. Hard-coded percentages trailed the line off both
+      // edges of the frame into empty space.
+      const railEl = $('rail');
+      const rowRect = row.getBoundingClientRect();
+      const centreOf = (el) => {
+        const r = el.getBoundingClientRect();
+        return r.left - rowRect.left + r.width / 2;
+      };
+      const anchorX = centreOf($('anchor'));
+      const dupeX = dupeEls.map(({ slot }) => centreOf(slot));
+      const lastX = dupeX.length ? dupeX[dupeX.length - 1] : anchorX;
+      railEl.style.left = anchorX + 'px';
+      railEl.style.width = Math.max(0, lastX - anchorX) + 'px';
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const CHROME_IN = 0.1;
+
+      tl.from(titleEl, { opacity: 0, y: 20, duration: 0.5, ease: 'power3.out' }, CHROME_IN);
+      if (typeof DATA.marker === 'string' && DATA.marker.trim() && document.querySelector('.mk-sweep')) {
+        tl.fromTo('.mk-sweep', { scaleX: 0 }, { scaleX: 1, transformOrigin: 'left', duration: 0.35, ease: 'power2.out' }, 0.9);
+      }
+      tl.from('#anchor', { opacity: 0, y: 24, scale: 0.94, duration: 0.55, ease: 'power3.out' }, CHROME_IN + 0.12);
+      tl.from('#rail', { opacity: 0, duration: 0.4, ease: 'power2.out' }, CHROME_IN + 0.3);
+
+      // Everything starts hidden, then each beat stamps one duplicate in. Set
+      // explicitly rather than with .from() so a seek-by-frame capture cannot
+      // render a duplicate that has not been stamped yet.
+      dupeEls.forEach(({ slot, mark }) => {
+        gsap.set(slot, { opacity: 0, scale: 0.86, y: 14 });
+        gsap.set(mark, { opacity: 0, scale: 0.4 });
+      });
+
+      beats.forEach((b, i) => {
+        const at = typeof b.at === 'number' ? b.at : 1.4 + i * 1.8;
+        // Rail reaches this duplicate, then the frame lands, then the mark hits.
+        tl.to(railFill, { width: Math.max(0, dupeX[i] - anchorX), duration: 0.4, ease: 'power2.out' }, at);
+        tl.to(dupeEls[i].slot, {
+          opacity: 1, scale: 1, y: 0, duration: 0.42, ease: 'back.out(1.9)', immediateRender: false,
+        }, at + 0.1);
+        tl.to(dupeEls[i].mark, {
+          opacity: 1, scale: 1, duration: 0.26, ease: 'back.out(2.6)', immediateRender: false,
+        }, at + 0.34);
+        tl.to(dupeEls[i].cardEl, {
+          borderColor: 'rgba(251,146,60,0.55)', duration: 0.3, ease: 'power2.out',
+        }, at + 0.34);
+      });
+
+      window.__timelines['character-card-stamp'] = tl;
+    </script>
+  </body>
+</html>

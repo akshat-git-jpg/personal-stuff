@@ -76,6 +76,13 @@ export function buildCardPlan({ workdir, structure, cues, catalogCards }) {
       // things the owner is judging here, so fall back to the catalog rather
       // than showing a shrug. A proposed card carries it on `propose`.
       placement: cue.placement ?? cat?.placement ?? cue.propose?.placement ?? null,
+      // Carried so the board can tell a card that is ACTUALLY over its
+      // repetition cap from one that simply appears a lot. E3 caps only
+      // non-structural fullframe cards, so without this the overview flagged
+      // every overlay and every section card as "hot" the moment it passed 3 —
+      // 14 lower-thirds and 8 section cards lit up red while the linter
+      // reported zero errors.
+      structural: cat?.structural === true,
       // Anchors, not timestamps — this gate runs before resolve puts the plan
       // on a clock, and "which clause does this card land on" is the question
       // being asked here anyway.

@@ -5,7 +5,12 @@
       "t": 0,
       "context": "final@00:00",
       "image": "feedback-images/final--0.png"
+    },
+    "intro:0": {
+      "text": "test",
+      "t": 8.90446,
+      "context": "intro@00:08"
     }
   },
-  "updated": "2026-08-06"
+  "updated": "2026-08-07"
 }

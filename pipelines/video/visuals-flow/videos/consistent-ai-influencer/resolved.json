@@ -1,0 +1,995 @@
+{
+  "video": "consistent-ai-influencer",
+  "offset": 0,
+  "resolved": [
+    {
+      "id": "c01",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 90.9,
+      "duration": 5,
+      "variables": {
+        "number": "01",
+        "title": "Create Your Base Character",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c02",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 114.34,
+      "duration": 5,
+      "variables": {
+        "name": "Character and World",
+        "subtitle": "Where every character you create is stored",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c03",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 143.02,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Decide Her First",
+        "text": "Look, vibe and niche get decided before you generate a single image.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c04",
+      "card": "prompt/prompt-typing",
+      "placement": "fullframe",
+      "start": 166.2,
+      "duration": 12,
+      "variables": {
+        "title": "Character Prompt",
+        "prompt": "A high quality, hyper realistic, candid portrait of a 22 year old Filipina AI influencer.",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c04b",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 185.84,
+      "duration": 5,
+      "variables": {
+        "name": "Model Choice",
+        "subtitle": "Nano Banana Pro or Seedream 4.5",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c05",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 217.6,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Detail Buys Consistency",
+        "text": "The more detail in the character prompt, the more consistent every later output.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c06",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 258.72,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "More Like This",
+        "value": 20,
+        "suffix": " credits",
+        "context": "Generates four more variations of the same character.",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c07",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 271.26,
+      "duration": 5,
+      "variables": {
+        "name": "The Anchor Image",
+        "subtitle": "Everything else is built from this face",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c08",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 315.28,
+      "duration": 5,
+      "variables": {
+        "number": "02",
+        "title": "Lock The Face",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c09",
+      "card": "process/step-flow",
+      "placement": "fullframe",
+      "start": 334.96,
+      "duration": 10.68,
+      "variables": {
+        "title": "Training A Custom Model",
+        "beats": [
+          {
+            "label": "Open the Train section",
+            "at": 0.6
+          },
+          {
+            "label": "Upload your anchor image",
+            "at": 2.64
+          },
+          {
+            "label": "Add 5 to 10 variations",
+            "at": 3.92
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c10",
+      "card": "slate/kinetic-sentence",
+      "placement": "fullframe",
+      "start": 345.64,
+      "duration": 4.82,
+      "variables": {
+        "text": "it is automatically in here already",
+        "accent": "automatically",
+        "beats": [
+          {
+            "text": "it",
+            "accent": false,
+            "at": 0.2
+          },
+          {
+            "text": "is",
+            "accent": false,
+            "at": 0.54
+          },
+          {
+            "text": "automatically",
+            "accent": true,
+            "at": 0.76
+          },
+          {
+            "text": "in",
+            "accent": false,
+            "at": 1.24
+          },
+          {
+            "text": "here",
+            "accent": false,
+            "at": 2.14
+          },
+          {
+            "text": "already",
+            "accent": false,
+            "at": 2.32
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c11",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 358.72,
+      "duration": 5,
+      "variables": {
+        "name": "True Consistency",
+        "subtitle": "One face across every image and video",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c12",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 370,
+      "duration": 5,
+      "variables": {
+        "number": "03",
+        "title": "Content Across Scenarios",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c13",
+      "card": "checklist/icon-pills",
+      "placement": "fullframe",
+      "start": 387.62,
+      "duration": 12.98,
+      "variables": {
+        "beats": [
+          {
+            "icon": "person",
+            "text": "Character images",
+            "keyword": "images",
+            "at": 0.6
+          },
+          {
+            "icon": "chat",
+            "text": "Video and lip sync",
+            "keyword": "lip sync",
+            "at": 2.64
+          },
+          {
+            "icon": "clock",
+            "text": "Morning routine shots",
+            "keyword": "routine",
+            "at": 5.48
+          },
+          {
+            "icon": "star",
+            "text": "Outfit of the day posts",
+            "keyword": "Outfit",
+            "at": 9.48
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c14",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 406.54,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Also Covered",
+        "text": "Travel content, open landscapes and product placement setups.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c15",
+      "card": "overlay/step-card",
+      "placement": "overlay",
+      "start": 417.82,
+      "duration": 5,
+      "variables": {
+        "step": 3,
+        "total": 7,
+        "label": "Generate content",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c15b",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 447.54,
+      "duration": 5,
+      "variables": {
+        "name": "Flux 1.1 Pro",
+        "subtitle": "The presenter’s own pick for images",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c16",
+      "card": "prompt/prompt-typing",
+      "placement": "fullframe",
+      "start": 466.44,
+      "duration": 12,
+      "variables": {
+        "title": "Image Prompt",
+        "prompt": "Lucy in a minimalist white kitchen, holding a coffee cup, warm morning light, and a lifestyle photography style.",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c17",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 487.16,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Output Presets",
+        "text": "3:4 or 1:1 for TikTok and Instagram; 1:1 when it is a profile image.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c18",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 499.82,
+      "duration": 5,
+      "variables": {
+        "name": "2K or 4K",
+        "subtitle": "Trade resolution against speed and credits",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c18b",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 522.98,
+      "duration": 5,
+      "variables": {
+        "name": "Same Face, New Scenario",
+        "subtitle": "Minimalist white kitchen, warm morning light",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c19",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 535.92,
+      "duration": 5,
+      "variables": {
+        "name": "Enhanced Prompt",
+        "subtitle": "OpenArt expands your prompt before generating",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c20",
+      "card": "enacted/character-card-stamp",
+      "placement": "fullframe",
+      "start": 567.32,
+      "duration": 13.3,
+      "variables": {
+        "title": "One Face, Every Scenario",
+        "beats": [
+          {
+            "label": "Same face applied",
+            "at": 0.6
+          },
+          {
+            "label": "Very different scenario",
+            "at": 7.22
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c21",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 580.62,
+      "duration": 5,
+      "variables": {
+        "number": "04",
+        "title": "Generate Video Content",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c22",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 596.08,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Where The Audience Is",
+        "text": "Reels, TikTok and YouTube Shorts are what sponsors expect to see.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c23",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 632.39,
+      "duration": 5,
+      "variables": {
+        "name": "No End Frame Needed",
+        "subtitle": "Happy Horse and Grok Imagine",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c23b",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 664.37,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "One Image Is Enough",
+        "text": "You can build a video from a single generated image.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c24",
+      "card": "prompt/prompt-typing",
+      "placement": "fullframe",
+      "start": 673.93,
+      "duration": 12,
+      "variables": {
+        "title": "Video Prompt",
+        "prompt": "Lucy taking a sip from a coffee cup, showing a smile and visible satisfaction from the taste.",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c25",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 696.03,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Credits Add Up",
+        "text": "Longer clips and 1080p burn noticeably more credits.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c26",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 715.03,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Clip Tips",
+        "text": "Add motion, keep clips 5 to 15 seconds, and pick the smoothest variation.",
+        "edge": "top",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c27",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 745.91,
+      "duration": 5,
+      "variables": {
+        "name": "Same Person, Every Clip",
+        "subtitle": "From a 5 second clip upward",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c28",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 760.83,
+      "duration": 20.4,
+      "variables": {
+        "beats": [
+          {
+            "text": "Facial features hold",
+            "verdict": "pro",
+            "at": 0.6
+          },
+          {
+            "text": "Commercial worthy",
+            "verdict": "pro",
+            "at": 10.04
+          },
+          {
+            "text": "Looks believable",
+            "verdict": "pro",
+            "at": 16.4
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c28b",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 784.77,
+      "duration": 5,
+      "variables": {
+        "name": "Photo And Video",
+        "subtitle": "Same character, several other scenarios",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c29",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 808.99,
+      "duration": 5,
+      "variables": {
+        "number": "05",
+        "title": "Build Your Content Bank",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c30",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 817.81,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Before You Pitch",
+        "value": 30,
+        "suffix": " images",
+        "context": "Plus 5 to 10 second clips, all carrying the same face.",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c31",
+      "card": "slate/headline-chips",
+      "placement": "fullframe",
+      "start": 826.87,
+      "duration": 9.98,
+      "variables": {
+        "headline": "Your Content Bank Does Two Things",
+        "beats": [
+          {
+            "text": "Proves you deliver consistently",
+            "at": 0.6
+          },
+          {
+            "text": "A real portfolio for the pitch",
+            "at": 6.48
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c32",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 840.63,
+      "duration": 5,
+      "variables": {
+        "name": "Save It In Your Workspace",
+        "subtitle": "Star your best outputs and reuse them",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c32b",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 868.77,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Star Your Best",
+        "text": "Favorite your strongest outputs so you can reference them later.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c33",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 877.83,
+      "duration": 5,
+      "variables": {
+        "number": "06",
+        "title": "Sponsor-Ready Content",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c34",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 884.93,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "What Sponsors Want",
+        "text": "Product integration that looks natural, in both images and video.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c35",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 921.67,
+      "duration": 5,
+      "variables": {
+        "name": "Area Edit",
+        "subtitle": "Drop a product into her existing frame",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c36",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 941.89,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Use A Placeholder",
+        "text": "Build the base prompt around a stand-in product: a bottle, a bag, or a device.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c37",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 966.93,
+      "duration": 5,
+      "variables": {
+        "name": "Base Prompt Becomes The Deal",
+        "subtitle": "Swap the placeholder, keep the face",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c38",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 987.39,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Keep It Organic",
+        "text": "Subtle, realistic motion so the placement feels organic and not staged.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c39",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 1010.71,
+      "duration": 4,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "c40",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 1016.69,
+      "duration": 5,
+      "variables": {
+        "number": "07",
+        "title": "Pitch Sponsors",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c41",
+      "card": "checklist/checklist",
+      "placement": "fullframe",
+      "start": 1026.45,
+      "duration": 21.16,
+      "variables": {
+        "title": "What Actually Lands With Brands",
+        "beats": [
+          {
+            "text": "100% brand safe, zero controversy",
+            "at": 0.6
+          },
+          {
+            "text": "Infinitely scalable: 50 pieces a day",
+            "at": 2.86
+          },
+          {
+            "text": "Face, style and aesthetic never change",
+            "at": 7.94
+          },
+          {
+            "text": "Fast turnaround, no shoot days",
+            "at": 12.82
+          },
+          {
+            "text": "Image and video ready",
+            "at": 17.66
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c42",
+      "card": "slate/kinetic-sentence",
+      "placement": "fullframe",
+      "start": 1058.79,
+      "duration": 6.34,
+      "variables": {
+        "text": "These are real advantages over real human influencers",
+        "accent": "real advantages",
+        "beats": [
+          {
+            "text": "These",
+            "accent": false,
+            "at": 0.2
+          },
+          {
+            "text": "are",
+            "accent": false,
+            "at": 0.92
+          },
+          {
+            "text": "real",
+            "accent": true,
+            "at": 1.14
+          },
+          {
+            "text": "advantages",
+            "accent": true,
+            "at": 1.38
+          },
+          {
+            "text": "over",
+            "accent": false,
+            "at": 1.84
+          },
+          {
+            "text": "real",
+            "accent": false,
+            "at": 2.34
+          },
+          {
+            "text": "human",
+            "accent": false,
+            "at": 2.86
+          },
+          {
+            "text": "influencers",
+            "accent": false,
+            "at": 3.34
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c43",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1066.93,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "How To Open",
+        "text": "Lead with these points, then back them up with your content bank.",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c44",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 1081.35,
+      "duration": 5,
+      "variables": {
+        "title": "The Scores",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c45",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 1086.51,
+      "duration": 4,
+      "variables": {
+        "label": "Ease of Use",
+        "score": 4.5,
+        "max": 5,
+        "logo": "openart",
+        "winner": false,
+        "register": "light"
+      }
+    },
+    {
+      "id": "c46",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 1098.71,
+      "duration": 4,
+      "variables": {
+        "label": "Face Consistency",
+        "score": 5,
+        "max": 5,
+        "logo": "openart",
+        "winner": false,
+        "register": "light"
+      }
+    },
+    {
+      "id": "c47",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 1119.71,
+      "duration": 4,
+      "variables": {
+        "label": "Content Variety",
+        "score": 4.5,
+        "max": 5,
+        "logo": "openart",
+        "winner": false,
+        "register": "light"
+      }
+    },
+    {
+      "id": "c48",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 1138.75,
+      "duration": 4,
+      "variables": {
+        "label": "Speed to Result",
+        "score": 4.5,
+        "max": 5,
+        "logo": "openart",
+        "winner": false,
+        "register": "light"
+      }
+    },
+    {
+      "id": "c49",
+      "card": "overlay/score-pill",
+      "placement": "overlay",
+      "start": 1152.93,
+      "duration": 4,
+      "variables": {
+        "label": "Sponsor Readiness",
+        "score": 5,
+        "max": 5,
+        "logo": "openart",
+        "winner": true,
+        "register": "light"
+      }
+    },
+    {
+      "id": "z01",
+      "card": "enacted/pipeline-flow",
+      "placement": "fullframe",
+      "start": 1179.01,
+      "duration": 10.02,
+      "variables": {
+        "title": "All In One",
+        "steps": [
+          {
+            "step": "Character",
+            "icon": "person"
+          },
+          {
+            "step": "Training",
+            "icon": "brain"
+          },
+          {
+            "step": "Content",
+            "icon": "video"
+          }
+        ],
+        "beats": [
+          {
+            "step": "Character",
+            "at": 2.4
+          },
+          {
+            "step": "Training",
+            "at": 3.86
+          },
+          {
+            "step": "Content",
+            "at": 5.8
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z02",
+      "card": "statement/keyword-statement",
+      "placement": "fullframe",
+      "start": 1189.03,
+      "duration": 5,
+      "variables": {
+        "text": "It's all here, and it works.",
+        "keyword": "it works",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z03",
+      "card": "enacted/spotlight-focus",
+      "placement": "fullframe",
+      "start": 1198.87,
+      "duration": 7,
+      "variables": {
+        "title": "The Tool To Use",
+        "focus": "OpenArt",
+        "items": [
+          {
+            "item": "Separate image apps"
+          },
+          {
+            "item": "Separate video apps"
+          },
+          {
+            "item": "Third-party training"
+          },
+          {
+            "item": "OpenArt"
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z04",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 1214.09,
+      "duration": 4,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "z05",
+      "card": "like-subscribe/like-subscribe",
+      "placement": "overlay",
+      "start": 1225.73,
+      "duration": 5,
+      "variables": {
+        "register": "light"
+      }
+    }
+  ]
+}

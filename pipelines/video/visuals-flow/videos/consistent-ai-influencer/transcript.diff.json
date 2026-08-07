@@ -1,0 +1,3824 @@
+{
+  "total": 610,
+  "changes": [
+    {
+      "i": 12,
+      "start": 4.78,
+      "before": "thing,",
+      "after": "thing:"
+    },
+    {
+      "i": 36,
+      "start": 13.98,
+      "before": "sponsor. So",
+      "after": "sponsor.",
+      "merged": 2
+    },
+    {
+      "i": 37,
+      "start": 15.1,
+      "before": "today,",
+      "after": "Today,"
+    },
+    {
+      "i": 70,
+      "start": 27.48,
+      "before": "brands",
+      "after": "Brands"
+    },
+    {
+      "i": 78,
+      "start": 29.94,
+      "before": "sponsor",
+      "after": "sponsor,"
+    },
+    {
+      "i": 82,
+      "start": 31.06,
+      "before": "non-negotiable",
+      "after": "non-negotiable:"
+    },
+    {
+      "i": 94,
+      "start": 35.96,
+      "before": "post",
+      "after": "post."
+    },
+    {
+      "i": 95,
+      "start": 36.52,
+      "before": "same",
+      "after": "Same"
+    },
+    {
+      "i": 96,
+      "start": 37.26,
+      "before": "face",
+      "after": "face,"
+    },
+    {
+      "i": 98,
+      "start": 38.24,
+      "before": "vibe",
+      "after": "vibe,"
+    },
+    {
+      "i": 100,
+      "start": 39.14,
+      "before": "aesthetic",
+      "after": "aesthetic."
+    },
+    {
+      "i": 101,
+      "start": 39.14,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 104,
+      "start": 40.18,
+      "before": "doesn't",
+      "after": "doesn't,"
+    },
+    {
+      "i": 110,
+      "start": 41.88,
+      "before": "seriously",
+      "after": "seriously."
+    },
+    {
+      "i": 111,
+      "start": 42.26,
+      "before": "so",
+      "after": "What"
+    },
+    {
+      "i": 112,
+      "start": 43.08,
+      "before": "i'm",
+      "after": "I'm"
+    },
+    {
+      "i": 128,
+      "start": 48.62,
+      "before": "scratch",
+      "after": "scratch,"
+    },
+    {
+      "i": 131,
+      "start": 49.78,
+      "before": "creation",
+      "after": "creation,"
+    },
+    {
+      "i": 214,
+      "start": 80.3,
+      "before": "factors",
+      "after": "factors,"
+    },
+    {
+      "i": 218,
+      "start": 81.42,
+      "before": "verdict",
+      "after": "verdict:"
+    },
+    {
+      "i": 220,
+      "start": 82.4,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 225,
+      "start": 83.88,
+      "before": "this",
+      "after": "this?"
+    },
+    {
+      "i": 226,
+      "start": 84.18,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 231,
+      "start": 85.54,
+      "before": "with open",
+      "after": "with",
+      "merged": 2
+    },
+    {
+      "i": 232,
+      "start": 86.06,
+      "before": "art",
+      "after": "OpenArt"
+    },
+    {
+      "i": 237,
+      "start": 86.98,
+      "before": "below",
+      "after": "below,"
+    },
+    {
+      "i": 249,
+      "start": 89.52,
+      "before": "along so",
+      "after": "along.",
+      "merged": 2
+    },
+    {
+      "i": 250,
+      "start": 91.2,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 264,
+      "start": 94,
+      "before": "ai",
+      "after": "AI"
+    },
+    {
+      "i": 271,
+      "start": 96.24,
+      "before": "character so",
+      "after": "character.",
+      "merged": 2
+    },
+    {
+      "i": 272,
+      "start": 97.56,
+      "before": "what",
+      "after": "What"
+    },
+    {
+      "i": 291,
+      "start": 102.3,
+      "before": "image so",
+      "after": "image.",
+      "merged": 2
+    },
+    {
+      "i": 292,
+      "start": 103.32,
+      "before": "this",
+      "after": "This"
+    },
+    {
+      "i": 299,
+      "start": 104.58,
+      "before": "skip",
+      "after": "skip,"
+    },
+    {
+      "i": 309,
+      "start": 106.62,
+      "before": "place",
+      "after": "place."
+    },
+    {
+      "i": 310,
+      "start": 106.9,
+      "before": "but",
+      "after": "But"
+    },
+    {
+      "i": 322,
+      "start": 109.82,
+      "before": "character",
+      "after": "character,"
+    },
+    {
+      "i": 331,
+      "start": 111.86,
+      "before": "open orange",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 332,
+      "start": 112.64,
+      "before": "interface",
+      "after": "interface."
+    },
+    {
+      "i": 333,
+      "start": 113.2,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 339,
+      "start": 114.32,
+      "before": "panel",
+      "after": "panel,"
+    },
+    {
+      "i": 346,
+      "start": 116.44,
+      "before": "character",
+      "after": "Character"
+    },
+    {
+      "i": 348,
+      "start": 117.4,
+      "before": "world",
+      "after": "World"
+    },
+    {
+      "i": 352,
+      "start": 118.96,
+      "before": "assets",
+      "after": "Assets"
+    },
+    {
+      "i": 353,
+      "start": 119.38,
+      "before": "section so",
+      "after": "section.",
+      "merged": 2
+    },
+    {
+      "i": 354,
+      "start": 120.4,
+      "before": "you're",
+      "after": "You're"
+    },
+    {
+      "i": 359,
+      "start": 121.28,
+      "before": "that",
+      "after": "that,"
+    },
+    {
+      "i": 371,
+      "start": 123.7,
+      "before": "here so",
+      "after": "here.",
+      "merged": 2
+    },
+    {
+      "i": 372,
+      "start": 124.04,
+      "before": "as",
+      "after": "As"
+    },
+    {
+      "i": 375,
+      "start": 124.38,
+      "before": "see",
+      "after": "see,"
+    },
+    {
+      "i": 376,
+      "start": 124.48,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 380,
+      "start": 125.66,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 383,
+      "start": 126.46,
+      "before": "angelica so",
+      "after": "Angelica.",
+      "merged": 2
+    },
+    {
+      "i": 384,
+      "start": 127.74,
+      "before": "to",
+      "after": "To"
+    },
+    {
+      "i": 391,
+      "start": 128.96,
+      "before": "character",
+      "after": "character,"
+    },
+    {
+      "i": 398,
+      "start": 130.72,
+      "before": "create",
+      "after": "Create"
+    },
+    {
+      "i": 399,
+      "start": 130.72,
+      "before": "character",
+      "after": "Character"
+    },
+    {
+      "i": 401,
+      "start": 131.66,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 409,
+      "start": 133.44,
+      "before": "options",
+      "after": "options:"
+    },
+    {
+      "i": 417,
+      "start": 135.58,
+      "before": "image",
+      "after": "image,"
+    },
+    {
+      "i": 421,
+      "start": 136.6,
+      "before": "character",
+      "after": "character,"
+    },
+    {
+      "i": 438,
+      "start": 141.34,
+      "before": "describe",
+      "after": "Describe"
+    },
+    {
+      "i": 439,
+      "start": 141.82,
+      "before": "your",
+      "after": "Your"
+    },
+    {
+      "i": 440,
+      "start": 142.12,
+      "before": "character. Now",
+      "after": "Character.",
+      "merged": 2
+    },
+    {
+      "i": 441,
+      "start": 143.32,
+      "before": "here",
+      "after": "Here"
+    },
+    {
+      "i": 463,
+      "start": 148.82,
+      "before": "structure,",
+      "after": "structure."
+    },
+    {
+      "i": 464,
+      "start": 149.3,
+      "before": "what's",
+      "after": "What's"
+    },
+    {
+      "i": 476,
+      "start": 154,
+      "before": "luxe,",
+      "after": "luxe."
+    },
+    {
+      "i": 477,
+      "start": 154.46,
+      "before": "what",
+      "after": "What"
+    },
+    {
+      "i": 481,
+      "start": 155.5,
+      "before": "in,",
+      "after": "in?"
+    },
+    {
+      "i": 482,
+      "start": 155.86,
+      "before": "are",
+      "after": "Are"
+    },
+    {
+      "i": 485,
+      "start": 156.32,
+      "before": "fitness,",
+      "after": "fitness?"
+    },
+    {
+      "i": 486,
+      "start": 157.08,
+      "before": "are",
+      "after": "Are"
+    },
+    {
+      "i": 492,
+      "start": 158.76,
+      "before": "lifestyle.",
+      "after": "lifestyle?"
+    },
+    {
+      "i": 505,
+      "start": 162.7,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 514,
+      "start": 164.94,
+      "before": "there so",
+      "after": "there.",
+      "merged": 2
+    },
+    {
+      "i": 515,
+      "start": 165.68,
+      "before": "as",
+      "after": "As"
+    },
+    {
+      "i": 519,
+      "start": 166.34,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 520,
+      "start": 166.6,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 526,
+      "start": 167.72,
+      "before": "quality",
+      "after": "quality,"
+    },
+    {
+      "i": 528,
+      "start": 168.62,
+      "before": "realistic",
+      "after": "realistic,"
+    },
+    {
+      "i": 536,
+      "start": 171.22,
+      "before": "filipina",
+      "after": "Filipina"
+    },
+    {
+      "i": 537,
+      "start": 171.98,
+      "before": "ai",
+      "after": "AI"
+    },
+    {
+      "i": 538,
+      "start": 172.24,
+      "before": "influencer",
+      "after": "influencer."
+    },
+    {
+      "i": 539,
+      "start": 172.8,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 540,
+      "start": 173.44,
+      "before": "i've",
+      "after": "I've"
+    },
+    {
+      "i": 545,
+      "start": 175.62,
+      "before": "palette",
+      "after": "palette,"
+    },
+    {
+      "i": 548,
+      "start": 177.28,
+      "before": "tone",
+      "after": "tone,"
+    },
+    {
+      "i": 549,
+      "start": 177.68,
+      "before": "makeup",
+      "after": "makeup,"
+    },
+    {
+      "i": 553,
+      "start": 179.46,
+      "before": "i'm",
+      "after": "I'm"
+    },
+    {
+      "i": 556,
+      "start": 180.48,
+      "before": "her",
+      "after": "her."
+    },
+    {
+      "i": 557,
+      "start": 180.66,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 559,
+      "start": 181.4,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 565,
+      "start": 183.68,
+      "before": "type",
+      "after": "type,"
+    },
+    {
+      "i": 571,
+      "start": 185.28,
+      "before": "i'm",
+      "after": "I'm"
+    },
+    {
+      "i": 576,
+      "start": 185.94,
+      "before": "this",
+      "after": "this."
+    },
+    {
+      "i": 577,
+      "start": 186.14,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 580,
+      "start": 186.84,
+      "before": "i'm",
+      "after": "I'm"
+    },
+    {
+      "i": 584,
+      "start": 187.5,
+      "before": "nano",
+      "after": "Nano"
+    },
+    {
+      "i": 585,
+      "start": 187.68,
+      "before": "banana",
+      "after": "Banana"
+    },
+    {
+      "i": 586,
+      "start": 188,
+      "before": "pro",
+      "after": "Pro,"
+    },
+    {
+      "i": 589,
+      "start": 189.06,
+      "before": "seed dream",
+      "after": "Seedream",
+      "merged": 2
+    },
+    {
+      "i": 590,
+      "start": 189.5,
+      "before": "4.5",
+      "after": "4.5,"
+    },
+    {
+      "i": 593,
+      "start": 191.22,
+      "before": "seed dream",
+      "after": "Seedream",
+      "merged": 2
+    },
+    {
+      "i": 594,
+      "start": 191.46,
+      "before": "4",
+      "after": "4."
+    },
+    {
+      "i": 595,
+      "start": 191.84,
+      "before": "it",
+      "after": "It"
+    },
+    {
+      "i": 599,
+      "start": 192.84,
+      "before": "you",
+      "after": "you."
+    },
+    {
+      "i": 600,
+      "start": 193.04,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 613,
+      "start": 195.74,
+      "before": "realistic",
+      "after": "realistic,"
+    },
+    {
+      "i": 615,
+      "start": 196.92,
+      "before": "art",
+      "after": "art,"
+    },
+    {
+      "i": 616,
+      "start": 197.4,
+      "before": "anime",
+      "after": "anime,"
+    },
+    {
+      "i": 620,
+      "start": 199.58,
+      "before": "prefer",
+      "after": "prefer."
+    },
+    {
+      "i": 621,
+      "start": 199.58,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 625,
+      "start": 201.2,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 636,
+      "start": 204.16,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 639,
+      "start": 204.46,
+      "before": "generate",
+      "after": "generate,"
+    },
+    {
+      "i": 647,
+      "start": 206.34,
+      "before": "character",
+      "after": "character."
+    },
+    {
+      "i": 648,
+      "start": 206.58,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 650,
+      "start": 207.36,
+      "before": "i'm",
+      "after": "I'm"
+    },
+    {
+      "i": 655,
+      "start": 208.14,
+      "before": "generate",
+      "after": "Generate"
+    },
+    {
+      "i": 657,
+      "start": 208.94,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 663,
+      "start": 210.64,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 669,
+      "start": 212.5,
+      "before": "character so",
+      "after": "character.",
+      "merged": 2
+    },
+    {
+      "i": 670,
+      "start": 213.78,
+      "before": "what",
+      "after": "What"
+    },
+    {
+      "i": 671,
+      "start": 214.42,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 692,
+      "start": 218.74,
+      "before": "possible",
+      "after": "possible,"
+    },
+    {
+      "i": 701,
+      "start": 221.28,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 709,
+      "start": 223.68,
+      "before": "later",
+      "after": "later."
+    },
+    {
+      "i": 710,
+      "start": 224.18,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 715,
+      "start": 225.7,
+      "before": "ai",
+      "after": "AI"
+    },
+    {
+      "i": 718,
+      "start": 227.56,
+      "before": "here",
+      "after": "here."
+    },
+    {
+      "i": 719,
+      "start": 227.96,
+      "before": "if",
+      "after": "If"
+    },
+    {
+      "i": 723,
+      "start": 229.54,
+      "before": "ai",
+      "after": "AI"
+    },
+    {
+      "i": 731,
+      "start": 232.56,
+      "before": "taste",
+      "after": "taste,"
+    },
+    {
+      "i": 737,
+      "start": 234.58,
+      "before": "character",
+      "after": "character,"
+    },
+    {
+      "i": 750,
+      "start": 237.34,
+      "before": "edit",
+      "after": "edit,"
+    },
+    {
+      "i": 757,
+      "start": 238.66,
+      "before": "edit",
+      "after": "Edit"
+    },
+    {
+      "i": 763,
+      "start": 239.7,
+      "before": "top",
+      "after": "top,"
+    },
+    {
+      "i": 778,
+      "start": 243.06,
+      "before": "character",
+      "after": "character."
+    },
+    {
+      "i": 779,
+      "start": 243.38,
+      "before": "but",
+      "after": "But"
+    },
+    {
+      "i": 793,
+      "start": 248,
+      "before": "here now",
+      "after": "here.",
+      "merged": 2
+    },
+    {
+      "i": 794,
+      "start": 248.66,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 798,
+      "start": 250.06,
+      "before": "it",
+      "after": "it,"
+    },
+    {
+      "i": 804,
+      "start": 251.24,
+      "before": "a",
+      "after": "Set"
+    },
+    {
+      "i": 805,
+      "start": 251.46,
+      "before": "status",
+      "after": "as"
+    },
+    {
+      "i": 806,
+      "start": 251.58,
+      "before": "character",
+      "after": "Character."
+    },
+    {
+      "i": 807,
+      "start": 251.58,
+      "before": "but",
+      "after": "But"
+    },
+    {
+      "i": 816,
+      "start": 255.44,
+      "before": "it",
+      "after": "it,"
+    },
+    {
+      "i": 833,
+      "start": 258.76,
+      "before": "for",
+      "after": "for,"
+    },
+    {
+      "i": 839,
+      "start": 260.14,
+      "before": "more",
+      "after": "More"
+    },
+    {
+      "i": 840,
+      "start": 260.32,
+      "before": "like",
+      "after": "Like"
+    },
+    {
+      "i": 841,
+      "start": 260.58,
+      "before": "this",
+      "after": "This"
+    },
+    {
+      "i": 844,
+      "start": 261.54,
+      "before": "credits",
+      "after": "credits,"
+    },
+    {
+      "i": 852,
+      "start": 264.96,
+      "before": "variations",
+      "after": "variations."
+    },
+    {
+      "i": 853,
+      "start": 266.7,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 873,
+      "start": 270.48,
+      "before": "character",
+      "after": "character,"
+    },
+    {
+      "i": 880,
+      "start": 272.9,
+      "before": "image",
+      "after": "image,"
+    },
+    {
+      "i": 887,
+      "start": 274.78,
+      "before": "it",
+      "after": "it."
+    },
+    {
+      "i": 888,
+      "start": 274.92,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 890,
+      "start": 275.52,
+      "before": "example",
+      "after": "example,"
+    },
+    {
+      "i": 891,
+      "start": 275.86,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 902,
+      "start": 278.78,
+      "before": "created",
+      "after": "created,"
+    },
+    {
+      "i": 904,
+      "start": 279.42,
+      "before": "i'm",
+      "after": "I'm"
+    },
+    {
+      "i": 910,
+      "start": 280.3,
+      "before": "set",
+      "after": "Set"
+    },
+    {
+      "i": 912,
+      "start": 281.18,
+      "before": "character",
+      "after": "Character."
+    },
+    {
+      "i": 913,
+      "start": 281.62,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 921,
+      "start": 283.74,
+      "before": "name",
+      "after": "name,"
+    },
+    {
+      "i": 923,
+      "start": 285.14,
+      "before": "i'm",
+      "after": "I'm"
+    },
+    {
+      "i": 928,
+      "start": 286.3,
+      "before": "lucy",
+      "after": "Lucy,"
+    },
+    {
+      "i": 931,
+      "start": 287.98,
+      "before": "i'm",
+      "after": "I'm"
+    },
+    {
+      "i": 937,
+      "start": 289.1,
+      "before": "create",
+      "after": "Create"
+    },
+    {
+      "i": 939,
+      "start": 289.52,
+      "before": "here",
+      "after": "here."
+    },
+    {
+      "i": 940,
+      "start": 289.66,
+      "before": "but",
+      "after": "But"
+    },
+    {
+      "i": 948,
+      "start": 290.92,
+      "before": "want",
+      "after": "want,"
+    },
+    {
+      "i": 958,
+      "start": 293.06,
+      "before": "on",
+      "after": "on,"
+    },
+    {
+      "i": 972,
+      "start": 296.42,
+      "before": "that",
+      "after": "that,"
+    },
+    {
+      "i": 982,
+      "start": 299.58,
+      "before": "ad",
+      "after": "AI"
+    },
+    {
+      "i": 985,
+      "start": 301.02,
+      "before": "thing",
+      "after": "thing."
+    },
+    {
+      "i": 986,
+      "start": 301.5,
+      "before": "now",
+      "after": "Now"
+    },
+    {
+      "i": 993,
+      "start": 303,
+      "before": "create",
+      "after": "Create"
+    },
+    {
+      "i": 995,
+      "start": 303.54,
+      "before": "here",
+      "after": "here."
+    },
+    {
+      "i": 996,
+      "start": 303.78,
+      "before": "these",
+      "after": "These"
+    },
+    {
+      "i": 999,
+      "start": 304.4,
+      "before": "optional",
+      "after": "optional,"
+    },
+    {
+      "i": 1007,
+      "start": 306.42,
+      "before": "on",
+      "after": "on."
+    },
+    {
+      "i": 1008,
+      "start": 306.7,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1015,
+      "start": 308.36,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 1020,
+      "start": 309.38,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 1038,
+      "start": 313.22,
+      "before": "version",
+      "after": "version."
+    },
+    {
+      "i": 1039,
+      "start": 313.68,
+      "before": "but",
+      "after": "But"
+    },
+    {
+      "i": 1042,
+      "start": 314.5,
+      "before": "looking",
+      "after": "looking,"
+    },
+    {
+      "i": 1052,
+      "start": 318.16,
+      "before": "open art",
+      "after": "OpenArt,",
+      "merged": 2
+    },
+    {
+      "i": 1060,
+      "start": 320.74,
+      "before": "model",
+      "after": "model,"
+    },
+    {
+      "i": 1070,
+      "start": 323.44,
+      "before": "it",
+      "after": "it."
+    },
+    {
+      "i": 1071,
+      "start": 323.62,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 1073,
+      "start": 324.5,
+      "before": "ai open open art",
+      "after": "OpenArt",
+      "merged": 4
+    },
+    {
+      "i": 1080,
+      "start": 328.14,
+      "before": "there",
+      "after": "there:"
+    },
+    {
+      "i": 1085,
+      "start": 329.62,
+      "before": "image",
+      "after": "image,"
+    },
+    {
+      "i": 1088,
+      "start": 330.54,
+      "before": "turn",
+      "after": "train"
+    },
+    {
+      "i": 1100,
+      "start": 333.46,
+      "before": "tools",
+      "after": "tools,"
+    },
+    {
+      "i": 1104,
+      "start": 335.02,
+      "before": "required",
+      "after": "required,"
+    },
+    {
+      "i": 1110,
+      "start": 336.88,
+      "before": "train",
+      "after": "Train"
+    },
+    {
+      "i": 1126,
+      "start": 341.14,
+      "before": "character",
+      "after": "character."
+    },
+    {
+      "i": 1127,
+      "start": 341.48,
+      "before": "but",
+      "after": "But"
+    },
+    {
+      "i": 1130,
+      "start": 342.56,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 1134,
+      "start": 343.16,
+      "before": "know",
+      "after": "know,"
+    },
+    {
+      "i": 1144,
+      "start": 345.12,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 1145,
+      "start": 345.62,
+      "before": "ai",
+      "after": "AI,"
+    },
+    {
+      "i": 1151,
+      "start": 347.96,
+      "before": "already",
+      "after": "already."
+    },
+    {
+      "i": 1152,
+      "start": 348.24,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 1158,
+      "start": 349.38,
+      "before": "train",
+      "after": "Train"
+    },
+    {
+      "i": 1160,
+      "start": 350.1,
+      "before": "manually",
+      "after": "manually,"
+    },
+    {
+      "i": 1163,
+      "start": 351.38,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 1164,
+      "start": 351.48,
+      "before": "said",
+      "after": "said,"
+    },
+    {
+      "i": 1167,
+      "start": 351.96,
+      "before": "character",
+      "after": "Character"
+    },
+    {
+      "i": 1169,
+      "start": 352.44,
+      "before": "world",
+      "after": "World"
+    },
+    {
+      "i": 1175,
+      "start": 354.94,
+      "before": "that",
+      "after": "that,"
+    },
+    {
+      "i": 1183,
+      "start": 356.38,
+      "before": "same",
+      "after": "same,"
+    },
+    {
+      "i": 1189,
+      "start": 358.34,
+      "before": "section",
+      "after": "section."
+    },
+    {
+      "i": 1190,
+      "start": 358.76,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1201,
+      "start": 363.78,
+      "before": "generation",
+      "after": "generation,"
+    },
+    {
+      "i": 1203,
+      "start": 364.82,
+      "before": "generation",
+      "after": "generation,"
+    },
+    {
+      "i": 1207,
+      "start": 366.74,
+      "before": "ai",
+      "after": "AI"
+    },
+    {
+      "i": 1209,
+      "start": 367.78,
+      "before": "creation so",
+      "after": "creation.",
+      "merged": 2
+    },
+    {
+      "i": 1210,
+      "start": 369.22,
+      "before": "with",
+      "after": "With"
+    },
+    {
+      "i": 1213,
+      "start": 370.1,
+      "before": "mind",
+      "after": "mind,"
+    },
+    {
+      "i": 1222,
+      "start": 371.92,
+      "before": "step",
+      "after": "Step"
+    },
+    {
+      "i": 1223,
+      "start": 372.06,
+      "before": "three",
+      "after": "3,"
+    },
+    {
+      "i": 1230,
+      "start": 374.86,
+      "before": "scenarios so now",
+      "after": "scenarios.",
+      "merged": 3
+    },
+    {
+      "i": 1231,
+      "start": 376.28,
+      "before": "this",
+      "after": "This"
+    },
+    {
+      "i": 1235,
+      "start": 377.04,
+      "before": "part",
+      "after": "part."
+    },
+    {
+      "i": 1236,
+      "start": 377.32,
+      "before": "with",
+      "after": "With"
+    },
+    {
+      "i": 1242,
+      "start": 379.72,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 1244,
+      "start": 380.2,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 1245,
+      "start": 380.32,
+      "before": "said",
+      "after": "said,"
+    },
+    {
+      "i": 1257,
+      "start": 383.72,
+      "before": "open art",
+      "after": "OpenArt,",
+      "merged": 2
+    },
+    {
+      "i": 1268,
+      "start": 387.14,
+      "before": "scenarios so",
+      "after": "scenarios.",
+      "merged": 2
+    },
+    {
+      "i": 1269,
+      "start": 388.22,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 1276,
+      "start": 389.84,
+      "before": "image",
+      "after": "image,"
+    },
+    {
+      "i": 1278,
+      "start": 390.62,
+      "before": "video",
+      "after": "video,"
+    },
+    {
+      "i": 1280,
+      "start": 391.66,
+      "before": "sync",
+      "after": "sync,"
+    },
+    {
+      "i": 1283,
+      "start": 392.78,
+      "before": "sync",
+      "after": "sync,"
+    },
+    {
+      "i": 1291,
+      "start": 395.5,
+      "before": "lighting",
+      "after": "lighting,"
+    },
+    {
+      "i": 1295,
+      "start": 396.64,
+      "before": "setting",
+      "after": "setting,"
+    },
+    {
+      "i": 1296,
+      "start": 397.1,
+      "before": "outfit of the day",
+      "after": "outfit-of-the-day",
+      "merged": 4
+    },
+    {
+      "i": 1297,
+      "start": 398.32,
+      "before": "post",
+      "after": "post,"
+    },
+    {
+      "i": 1305,
+      "start": 401.04,
+      "before": "setting",
+      "after": "setting."
+    },
+    {
+      "i": 1306,
+      "start": 401.48,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 1314,
+      "start": 404.42,
+      "before": "environments",
+      "after": "environments,"
+    },
+    {
+      "i": 1316,
+      "start": 405.76,
+      "before": "landscapes",
+      "after": "landscapes,"
+    },
+    {
+      "i": 1323,
+      "start": 408.62,
+      "before": "setups",
+      "after": "setups,"
+    },
+    {
+      "i": 1327,
+      "start": 409.92,
+      "before": "cup",
+      "after": "cup,"
+    },
+    {
+      "i": 1330,
+      "start": 410.7,
+      "before": "product",
+      "after": "product,"
+    },
+    {
+      "i": 1333,
+      "start": 411.74,
+      "before": "phone",
+      "after": "phone."
+    },
+    {
+      "i": 1334,
+      "start": 412,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1336,
+      "start": 412.64,
+      "before": "know",
+      "after": "know,"
+    },
+    {
+      "i": 1344,
+      "start": 414.38,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 1355,
+      "start": 416.82,
+      "before": "model",
+      "after": "model."
+    },
+    {
+      "i": 1356,
+      "start": 417.12,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1368,
+      "start": 419.8,
+      "before": "image",
+      "after": "image,"
+    },
+    {
+      "i": 1377,
+      "start": 421.72,
+      "before": "one",
+      "after": "one."
+    },
+    {
+      "i": 1378,
+      "start": 421.96,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1383,
+      "start": 422.94,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 1389,
+      "start": 424.8,
+      "before": "character so",
+      "after": "character.",
+      "merged": 2
+    },
+    {
+      "i": 1390,
+      "start": 425.92,
+      "before": "what",
+      "after": "What"
+    },
+    {
+      "i": 1402,
+      "start": 428.18,
+      "before": "model",
+      "after": "model."
+    },
+    {
+      "i": 1403,
+      "start": 428.4,
+      "before": "when",
+      "after": "When"
+    },
+    {
+      "i": 1407,
+      "start": 429.28,
+      "before": "image",
+      "after": "image,"
+    },
+    {
+      "i": 1416,
+      "start": 432.1,
+      "before": "first",
+      "after": "first,"
+    },
+    {
+      "i": 1421,
+      "start": 433.26,
+      "before": "for",
+      "after": "for,"
+    },
+    {
+      "i": 1425,
+      "start": 434.92,
+      "before": "Instagram",
+      "after": "Instagram,"
+    },
+    {
+      "i": 1471,
+      "start": 450.2,
+      "before": "favorites. Now,",
+      "after": "favorites.",
+      "merged": 2
+    },
+    {
+      "i": 1472,
+      "start": 451.72,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 1499,
+      "start": 459.78,
+      "before": "what",
+      "after": "What"
+    },
+    {
+      "i": 1514,
+      "start": 462.58,
+      "before": "want",
+      "after": "want,"
+    },
+    {
+      "i": 1524,
+      "start": 465.18,
+      "before": "lucy",
+      "after": "Lucy"
+    },
+    {
+      "i": 1525,
+      "start": 465.72,
+      "before": "in",
+      "after": "in."
+    },
+    {
+      "i": 1526,
+      "start": 466.08,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1528,
+      "start": 466.56,
+      "before": "mine",
+      "after": "mine,"
+    },
+    {
+      "i": 1529,
+      "start": 466.84,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 1533,
+      "start": 467.86,
+      "before": "lucy",
+      "after": "Lucy"
+    },
+    {
+      "i": 1538,
+      "start": 469.38,
+      "before": "kitchen",
+      "after": "kitchen,"
+    },
+    {
+      "i": 1542,
+      "start": 470.48,
+      "before": "cup",
+      "after": "cup,"
+    },
+    {
+      "i": 1545,
+      "start": 471.3,
+      "before": "light",
+      "after": "light,"
+    },
+    {
+      "i": 1550,
+      "start": 474.06,
+      "before": "style",
+      "after": "style."
+    },
+    {
+      "i": 1551,
+      "start": 474.76,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 1564,
+      "start": 478.26,
+      "before": "is so",
+      "after": "is.",
+      "merged": 2
+    },
+    {
+      "i": 1565,
+      "start": 479.08,
+      "before": "after",
+      "after": "After"
+    },
+    {
+      "i": 1574,
+      "start": 481.76,
+      "before": "here",
+      "after": "here."
+    },
+    {
+      "i": 1575,
+      "start": 481.92,
+      "before": "we",
+      "after": "We"
+    },
+    {
+      "i": 1579,
+      "start": 482.86,
+      "before": "output",
+      "after": "output,"
+    },
+    {
+      "i": 1589,
+      "start": 485.94,
+      "before": "tiktok",
+      "after": "TikTok"
+    },
+    {
+      "i": 1591,
+      "start": 487.08,
+      "before": "instagram",
+      "after": "Instagram,"
+    },
+    {
+      "i": 1599,
+      "start": 490.1,
+      "before": "one",
+      "after": "one,"
+    },
+    {
+      "i": 1602,
+      "start": 490.82,
+      "before": "you",
+      "after": "you."
+    },
+    {
+      "i": 1603,
+      "start": 490.96,
+      "before": "like",
+      "after": "Like"
+    },
+    {
+      "i": 1612,
+      "start": 492.94,
+      "before": "your um your",
+      "after": "your",
+      "merged": 3
+    },
+    {
+      "i": 1616,
+      "start": 496.16,
+      "before": "pfp",
+      "after": "PFP,"
+    },
+    {
+      "i": 1622,
+      "start": 498.22,
+      "before": "one",
+      "after": "one."
+    },
+    {
+      "i": 1623,
+      "start": 498.52,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1630,
+      "start": 500.12,
+      "before": "resolution",
+      "after": "resolution,"
+    },
+    {
+      "i": 1636,
+      "start": 501.46,
+      "before": "2k",
+      "after": "2K"
+    },
+    {
+      "i": 1638,
+      "start": 501.98,
+      "before": "4k",
+      "after": "4K."
+    },
+    {
+      "i": 1639,
+      "start": 502.44,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1658,
+      "start": 506.56,
+      "before": "quality",
+      "after": "quality,"
+    },
+    {
+      "i": 1665,
+      "start": 507.94,
+      "before": "fast",
+      "after": "fast,"
+    },
+    {
+      "i": 1670,
+      "start": 509.46,
+      "before": "you",
+      "after": "you."
+    },
+    {
+      "i": 1671,
+      "start": 509.62,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1674,
+      "start": 510.12,
+      "before": "again",
+      "after": "again,"
+    },
+    {
+      "i": 1687,
+      "start": 512.9,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 1689,
+      "start": 513.62,
+      "before": "i'm",
+      "after": "I'm"
+    },
+    {
+      "i": 1696,
+      "start": 514.86,
+      "before": "one",
+      "after": "one,"
+    },
+    {
+      "i": 1704,
+      "start": 516.38,
+      "before": "generate",
+      "after": "Generate"
+    },
+    {
+      "i": 1708,
+      "start": 518.08,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 1709,
+      "start": 519.04,
+      "before": "ai",
+      "after": "AI"
+    },
+    {
+      "i": 1718,
+      "start": 521.86,
+      "before": "character",
+      "after": "character."
+    },
+    {
+      "i": 1719,
+      "start": 522.38,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 1735,
+      "start": 527.78,
+      "before": "in",
+      "after": "in."
+    },
+    {
+      "i": 1736,
+      "start": 528.12,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 1740,
+      "start": 528.9,
+      "before": "lucy",
+      "after": "Lucy"
+    },
+    {
+      "i": 1745,
+      "start": 530.04,
+      "before": "kitchen",
+      "after": "kitchen,"
+    },
+    {
+      "i": 1749,
+      "start": 531.54,
+      "before": "cup",
+      "after": "cup,"
+    },
+    {
+      "i": 1752,
+      "start": 532.4,
+      "before": "light",
+      "after": "light,"
+    },
+    {
+      "i": 1757,
+      "start": 534.32,
+      "before": "style",
+      "after": "style."
+    },
+    {
+      "i": 1758,
+      "start": 534.84,
+      "before": "so",
+      "after": "And"
+    },
+    {
+      "i": 1763,
+      "start": 535.88,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 1768,
+      "start": 537.84,
+      "before": "pumps",
+      "after": "prompts"
+    },
+    {
+      "i": 1770,
+      "start": 539.14,
+      "before": "well",
+      "after": "well."
+    },
+    {
+      "i": 1776,
+      "start": 541.16,
+      "before": "example,",
+      "after": "example"
+    },
+    {
+      "i": 1799,
+      "start": 550.2,
+      "before": "edit",
+      "after": "Edit"
+    },
+    {
+      "i": 1800,
+      "start": 550.44,
+      "before": "image",
+      "after": "Image"
+    },
+    {
+      "i": 1824,
+      "start": 556.08,
+      "before": "annotate",
+      "after": "Annotate,"
+    },
+    {
+      "i": 1837,
+      "start": 558.46,
+      "before": "change",
+      "after": "change,"
+    },
+    {
+      "i": 1869,
+      "start": 568.72,
+      "before": "space",
+      "after": "face"
+    },
+    {
+      "i": 1875,
+      "start": 571.96,
+      "before": "her",
+      "after": "her,"
+    },
+    {
+      "i": 1885,
+      "start": 575.88,
+      "before": "scenario. So",
+      "after": "scenario.",
+      "merged": 2
+    },
+    {
+      "i": 1886,
+      "start": 577.16,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 1896,
+      "start": 580.08,
+      "before": "step",
+      "after": "Step"
+    },
+    {
+      "i": 1897,
+      "start": 580.4,
+      "before": "four,",
+      "after": "4,"
+    },
+    {
+      "i": 1905,
+      "start": 582.8,
+      "before": "influencer. So",
+      "after": "influencer.",
+      "merged": 2
+    },
+    {
+      "i": 1906,
+      "start": 584.04,
+      "before": "while",
+      "after": "While"
+    },
+    {
+      "i": 1983,
+      "start": 607.4,
+      "before": "it. So",
+      "after": "it.",
+      "merged": 2
+    },
+    {
+      "i": 1984,
+      "start": 608.12,
+      "before": "we're",
+      "after": "We're"
+    },
+    {
+      "i": 2003,
+      "start": 612.96,
+      "before": "image",
+      "after": "Image"
+    },
+    {
+      "i": 2005,
+      "start": 613.52,
+      "before": "video",
+      "after": "Video"
+    },
+    {
+      "i": 2006,
+      "start": 613.76,
+      "before": "button. So",
+      "after": "button.",
+      "merged": 2
+    },
+    {
+      "i": 2007,
+      "start": 614.86,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 2011,
+      "start": 615.75,
+      "before": "that",
+      "after": "that,"
+    },
+    {
+      "i": 2019,
+      "start": 618.17,
+      "before": "here",
+      "after": "here."
+    },
+    {
+      "i": 2020,
+      "start": 618.41,
+      "before": "of",
+      "after": "Of"
+    },
+    {
+      "i": 2021,
+      "start": 618.71,
+      "before": "course",
+      "after": "course,"
+    },
+    {
+      "i": 2035,
+      "start": 622.41,
+      "before": "frame",
+      "after": "frame."
+    },
+    {
+      "i": 2036,
+      "start": 622.65,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 2038,
+      "start": 623.23,
+      "before": "example",
+      "after": "example,"
+    },
+    {
+      "i": 2045,
+      "start": 625.03,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 2048,
+      "start": 625.55,
+      "before": "can't",
+      "after": "can't,"
+    },
+    {
+      "i": 2051,
+      "start": 626.47,
+      "before": "like",
+      "after": "like,"
+    },
+    {
+      "i": 2062,
+      "start": 629.09,
+      "before": "frame",
+      "after": "frame,"
+    },
+    {
+      "i": 2072,
+      "start": 631.71,
+      "before": "to",
+      "after": "to."
+    },
+    {
+      "i": 2073,
+      "start": 631.71,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 2081,
+      "start": 634.41,
+      "before": "happy",
+      "after": "Happy"
+    },
+    {
+      "i": 2082,
+      "start": 634.79,
+      "before": "horse",
+      "after": "Horse,"
+    },
+    {
+      "i": 2098,
+      "start": 640.57,
+      "before": "grok",
+      "after": "Grok"
+    },
+    {
+      "i": 2099,
+      "start": 640.83,
+      "before": "imagine",
+      "after": "Imagine."
+    },
+    {
+      "i": 2100,
+      "start": 641.25,
+      "before": "but",
+      "after": "But"
+    },
+    {
+      "i": 2102,
+      "start": 641.63,
+      "before": "course",
+      "after": "course,"
+    },
+    {
+      "i": 2108,
+      "start": 642.57,
+      "before": "specific",
+      "after": "specific,"
+    },
+    {
+      "i": 2110,
+      "start": 643.83,
+      "before": "know",
+      "after": "know,"
+    },
+    {
+      "i": 2111,
+      "start": 643.87,
+      "before": "scenario",
+      "after": "scenario,"
+    },
+    {
+      "i": 2120,
+      "start": 647.17,
+      "before": "like",
+      "after": "like,"
+    },
+    {
+      "i": 2141,
+      "start": 654.23,
+      "before": "showing",
+      "after": "showing,"
+    },
+    {
+      "i": 2146,
+      "start": 656.65,
+      "before": "pr",
+      "after": "pr,"
+    },
+    {
+      "i": 2156,
+      "start": 661.23,
+      "before": "this",
+      "after": "this,"
+    },
+    {
+      "i": 2166,
+      "start": 663.21,
+      "before": "go",
+      "after": "go."
+    },
+    {
+      "i": 2167,
+      "start": 663.51,
+      "before": "but",
+      "after": "But"
+    },
+    {
+      "i": 2185,
+      "start": 667.95,
+      "before": "it",
+      "after": "it,"
+    },
+    {
+      "i": 2190,
+      "start": 669.11,
+      "before": "do So",
+      "after": "do.",
+      "merged": 2
+    },
+    {
+      "i": 2191,
+      "start": 669.73,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 2208,
+      "start": 675.09,
+      "before": "here,",
+      "after": "here:"
+    },
+    {
+      "i": 2228,
+      "start": 680.37,
+      "before": "taste. Now",
+      "after": "taste.",
+      "merged": 2
+    },
+    {
+      "i": 2229,
+      "start": 681.21,
+      "before": "from",
+      "after": "From"
+    },
+    {
+      "i": 2238,
+      "start": 683.25,
+      "before": "enter",
+      "after": "enter,"
+    },
+    {
+      "i": 2289,
+      "start": 699.91,
+      "before": "it",
+      "after": "it,"
+    },
+    {
+      "i": 2315,
+      "start": 706.35,
+      "before": "use. Now,",
+      "after": "use.",
+      "merged": 2
+    },
+    {
+      "i": 2316,
+      "start": 707.03,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 2326,
+      "start": 708.81,
+      "before": "generate",
+      "after": "Generate"
+    },
+    {
+      "i": 2328,
+      "start": 709.47,
+      "before": "here.",
+      "after": "here,"
+    },
+    {
+      "i": 2329,
+      "start": 709.67,
+      "before": "And",
+      "after": "and"
+    },
+    {
+      "i": 2372,
+      "start": 720.91,
+      "before": "gestures",
+      "after": "gestures,"
+    },
+    {
+      "i": 2421,
+      "start": 734.27,
+      "before": "clip",
+      "after": "clip,"
+    },
+    {
+      "i": 2435,
+      "start": 738.51,
+      "before": "images.",
+      "after": "images:"
+    },
+    {
+      "i": 2436,
+      "start": 739.33,
+      "before": "Your",
+      "after": "your"
+    },
+    {
+      "i": 2454,
+      "start": 743.97,
+      "before": "5 second",
+      "after": "5-second",
+      "merged": 2
+    },
+    {
+      "i": 2458,
+      "start": 745.13,
+      "before": "30 second",
+      "after": "30-second",
+      "merged": 2
+    },
+    {
+      "i": 2475,
+      "start": 750.91,
+      "before": "here. So",
+      "after": "here.",
+      "merged": 2
+    },
+    {
+      "i": 2476,
+      "start": 751.37,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 2489,
+      "start": 754.07,
+      "before": "here. So",
+      "after": "here.",
+      "merged": 2
+    },
+    {
+      "i": 2490,
+      "start": 754.61,
+      "before": "as",
+      "after": "As"
+    },
+    {
+      "i": 2509,
+      "start": 758.95,
+      "before": "copy",
+      "after": "coffee"
+    },
+    {
+      "i": 2674,
+      "start": 810.85,
+      "before": "back,",
+      "after": "bank,"
+    },
+    {
+      "i": 2681,
+      "start": 812.23,
+      "before": "about. So",
+      "after": "about.",
+      "merged": 2
+    },
+    {
+      "i": 2682,
+      "start": 813.05,
+      "before": "before",
+      "after": "Before"
+    },
+    {
+      "i": 2692,
+      "start": 816.09,
+      "before": "back.",
+      "after": "bank."
+    },
+    {
+      "i": 2737,
+      "start": 829.25,
+      "before": "consistent",
+      "after": "consistent,"
+    },
+    {
+      "i": 2738,
+      "start": 829.85,
+      "before": "on brand",
+      "after": "on-brand",
+      "merged": 2
+    },
+    {
+      "i": 2743,
+      "start": 833.35,
+      "before": "it",
+      "after": "It"
+    },
+    {
+      "i": 2753,
+      "start": 835.99,
+      "before": "pitch",
+      "after": "pitch,"
+    },
+    {
+      "i": 2768,
+      "start": 838.89,
+      "before": "concept",
+      "after": "concept."
+    },
+    {
+      "i": 2769,
+      "start": 839.29,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 2771,
+      "start": 840.45,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 2781,
+      "start": 843.69,
+      "before": "workspace",
+      "after": "workspace,"
+    },
+    {
+      "i": 2797,
+      "start": 847.55,
+      "before": "grows so",
+      "after": "grows.",
+      "merged": 2
+    },
+    {
+      "i": 2798,
+      "start": 848.31,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 2809,
+      "start": 850.59,
+      "before": "assets",
+      "after": "Assets"
+    },
+    {
+      "i": 2811,
+      "start": 851.15,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 2812,
+      "start": 851.27,
+      "before": "character",
+      "after": "Character"
+    },
+    {
+      "i": 2814,
+      "start": 851.61,
+      "before": "world",
+      "after": "World."
+    },
+    {
+      "i": 2815,
+      "start": 852.27,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 2817,
+      "start": 852.99,
+      "before": "course",
+      "after": "course,"
+    },
+    {
+      "i": 2824,
+      "start": 855.61,
+      "before": "creation",
+      "after": "creation,"
+    },
+    {
+      "i": 2828,
+      "start": 857.97,
+      "before": "content",
+      "after": "content,"
+    },
+    {
+      "i": 2831,
+      "start": 859.47,
+      "before": "media",
+      "after": "Media"
+    },
+    {
+      "i": 2833,
+      "start": 860.31,
+      "before": "here",
+      "after": "here."
+    },
+    {
+      "i": 2834,
+      "start": 860.65,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 2844,
+      "start": 862.75,
+      "before": "generated",
+      "after": "generated."
+    },
+    {
+      "i": 2845,
+      "start": 863.13,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 2858,
+      "start": 868.81,
+      "before": "others",
+      "after": "others,"
+    },
+    {
+      "i": 2868,
+      "start": 871.15,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 2885,
+      "start": 875.33,
+      "before": "on",
+      "after": "on."
+    },
+    {
+      "i": 2886,
+      "start": 875.61,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 2889,
+      "start": 876.57,
+      "before": "that",
+      "after": "that,"
+    },
+    {
+      "i": 2891,
+      "start": 877.19,
+      "before": "course",
+      "after": "course,"
+    },
+    {
+      "i": 2893,
+      "start": 877.55,
+      "before": "step",
+      "after": "Step"
+    },
+    {
+      "i": 2894,
+      "start": 877.85,
+      "before": "six",
+      "after": "6,"
+    },
+    {
+      "i": 2903,
+      "start": 879.55,
+      "before": "sponsor ready",
+      "after": "sponsor-ready",
+      "merged": 2
+    },
+    {
+      "i": 2904,
+      "start": 880.25,
+      "before": "content",
+      "after": "content."
+    },
+    {
+      "i": 2905,
+      "start": 880.75,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 2917,
+      "start": 884.09,
+      "before": "asset",
+      "after": "asset."
+    },
+    {
+      "i": 2918,
+      "start": 885.23,
+      "before": "sponsors",
+      "after": "Sponsors"
+    },
+    {
+      "i": 2923,
+      "start": 887.17,
+      "before": "face",
+      "after": "face,"
+    },
+    {
+      "i": 2930,
+      "start": 889.13,
+      "before": "natural",
+      "after": "natural,"
+    },
+    {
+      "i": 2979,
+      "start": 903.43,
+      "before": "edit",
+      "after": "Edit"
+    },
+    {
+      "i": 2980,
+      "start": 903.71,
+      "before": "image",
+      "after": "Image"
+    },
+    {
+      "i": 2993,
+      "start": 907.87,
+      "before": "area",
+      "after": "Area"
+    },
+    {
+      "i": 2994,
+      "start": 908.33,
+      "before": "edit",
+      "after": "Edit"
+    },
+    {
+      "i": 3006,
+      "start": 912.11,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 3032,
+      "start": 921.37,
+      "before": "in",
+      "after": "in:"
+    },
+    {
+      "i": 3041,
+      "start": 929.03,
+      "before": "sunshine",
+      "after": "Sunshine"
+    },
+    {
+      "i": 3042,
+      "start": 930.45,
+      "before": "coffee",
+      "after": "Coffee."
+    },
+    {
+      "i": 3043,
+      "start": 931.43,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 3050,
+      "start": 933.33,
+      "before": "generate",
+      "after": "Generate"
+    },
+    {
+      "i": 3059,
+      "start": 935.97,
+      "before": "change",
+      "after": "change,"
+    },
+    {
+      "i": 3066,
+      "start": 938.33,
+      "before": "there",
+      "after": "there."
+    },
+    {
+      "i": 3067,
+      "start": 938.55,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 3073,
+      "start": 939.69,
+      "before": "that so",
+      "after": "that.",
+      "merged": 2
+    },
+    {
+      "i": 3074,
+      "start": 940.67,
+      "before": "what",
+      "after": "What"
+    },
+    {
+      "i": 3090,
+      "start": 946.15,
+      "before": "prompt",
+      "after": "prompt,"
+    },
+    {
+      "i": 3094,
+      "start": 947.01,
+      "before": "bottle",
+      "after": "bottle,"
+    },
+    {
+      "i": 3096,
+      "start": 947.85,
+      "before": "bag",
+      "after": "bag,"
+    },
+    {
+      "i": 3099,
+      "start": 948.61,
+      "before": "device",
+      "after": "device."
+    },
+    {
+      "i": 3100,
+      "start": 948.91,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 3106,
+      "start": 950.83,
+      "before": "prompt",
+      "after": "prompt,"
+    },
+    {
+      "i": 3115,
+      "start": 953.47,
+      "before": "go",
+      "after": "go."
+    },
+    {
+      "i": 3116,
+      "start": 953.77,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 3126,
+      "start": 956.17,
+      "before": "land",
+      "after": "land,"
+    },
+    {
+      "i": 3128,
+      "start": 957.31,
+      "before": "yeah",
+      "after": "yeah,"
+    },
+    {
+      "i": 3141,
+      "start": 962.49,
+      "before": "deal",
+      "after": "deal."
+    },
+    {
+      "i": 3142,
+      "start": 962.73,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 3144,
+      "start": 963.19,
+      "before": "example",
+      "after": "example,"
+    },
+    {
+      "i": 3148,
+      "start": 964.59,
+      "before": "it",
+      "after": "it,"
+    },
+    {
+      "i": 3150,
+      "start": 965.23,
+      "before": "one",
+      "after": "one."
+    },
+    {
+      "i": 3151,
+      "start": 965.51,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 3153,
+      "start": 966.97,
+      "before": "example",
+      "after": "example,"
+    },
+    {
+      "i": 3159,
+      "start": 968.55,
+      "before": "sunshine",
+      "after": "Sunshine"
+    },
+    {
+      "i": 3160,
+      "start": 968.95,
+      "before": "coffee",
+      "after": "Coffee,"
+    },
+    {
+      "i": 3164,
+      "start": 969.89,
+      "before": "see",
+      "after": "see,"
+    },
+    {
+      "i": 3168,
+      "start": 970.35,
+      "before": "here",
+      "after": "here."
+    },
+    {
+      "i": 3169,
+      "start": 970.47,
+      "before": "this",
+      "after": "This"
+    },
+    {
+      "i": 3174,
+      "start": 971.81,
+      "before": "prompt",
+      "after": "prompt,"
+    },
+    {
+      "i": 3179,
+      "start": 973.67,
+      "before": "deal",
+      "after": "deal."
+    },
+    {
+      "i": 3180,
+      "start": 974.17,
+      "before": "now",
+      "after": "Now"
+    },
+    {
+      "i": 3191,
+      "start": 977.45,
+      "before": "video",
+      "after": "video,"
+    },
+    {
+      "i": 3198,
+      "start": 979.37,
+      "before": "create",
+      "after": "Create"
+    },
+    {
+      "i": 3200,
+      "start": 980.33,
+      "before": "video",
+      "after": "Video"
+    },
+    {
+      "i": 3202,
+      "start": 981.21,
+      "before": "there",
+      "after": "there,"
+    },
+    {
+      "i": 3204,
+      "start": 982.09,
+      "before": "image",
+      "after": "Image"
+    },
+    {
+      "i": 3206,
+      "start": 982.91,
+      "before": "video",
+      "after": "Video,"
+    },
+    {
+      "i": 3220,
+      "start": 986.91,
+      "before": "tiktok",
+      "after": "TikTok"
+    },
+    {
+      "i": 3222,
+      "start": 987.49,
+      "before": "youtube",
+      "after": "YouTube."
+    },
+    {
+      "i": 3223,
+      "start": 987.69,
+      "before": "just",
+      "after": "Just"
+    },
+    {
+      "i": 3236,
+      "start": 990.73,
+      "before": "staged",
+      "after": "staged."
+    },
+    {
+      "i": 3237,
+      "start": 991.09,
+      "before": "now",
+      "after": "Now"
+    },
+    {
+      "i": 3246,
+      "start": 993.53,
+      "before": "board",
+      "after": "board,"
+    },
+    {
+      "i": 3250,
+      "start": 995.03,
+      "before": "passed",
+      "after": "passed."
+    },
+    {
+      "i": 3251,
+      "start": 995.49,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 3255,
+      "start": 996.97,
+      "before": "assets",
+      "after": "assets,"
+    },
+    {
+      "i": 3258,
+      "start": 997.89,
+      "before": "product",
+      "after": "product,"
+    },
+    {
+      "i": 3262,
+      "start": 998.95,
+      "before": "space",
+      "after": "face"
+    },
+    {
+      "i": 3265,
+      "start": 999.89,
+      "before": "identical",
+      "after": "identical,"
+    },
+    {
+      "i": 3272,
+      "start": 1002.07,
+      "before": "formats",
+      "after": "formats,"
+    },
+    {
+      "i": 3283,
+      "start": 1005.33,
+      "before": "posts",
+      "after": "posts."
+    },
+    {
+      "i": 3284,
+      "start": 1005.69,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 3293,
+      "start": 1008.11,
+      "before": "ai",
+      "after": "AI"
+    },
+    {
+      "i": 3294,
+      "start": 1008.51,
+      "before": "influencer",
+      "after": "influencer,"
+    },
+    {
+      "i": 3296,
+      "start": 1009.47,
+      "before": "i'm",
+      "after": "I'm"
+    },
+    {
+      "i": 3301,
+      "start": 1010.53,
+      "before": "open art",
+      "after": "OpenArt.",
+      "merged": 2
+    },
+    {
+      "i": 3302,
+      "start": 1011.01,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 3309,
+      "start": 1012.61,
+      "before": "description",
+      "after": "description."
+    },
+    {
+      "i": 3310,
+      "start": 1012.99,
+      "before": "now",
+      "after": "Now"
+    },
+    {
+      "i": 3312,
+      "start": 1014.09,
+      "before": "step",
+      "after": "Step"
+    },
+    {
+      "i": 3313,
+      "start": 1014.29,
+      "before": "seven",
+      "after": "7,"
+    },
+    {
+      "i": 3320,
+      "start": 1016.57,
+      "before": "setup",
+      "after": "setup."
+    },
+    {
+      "i": 3321,
+      "start": 1016.99,
+      "before": "once",
+      "after": "Once"
+    },
+    {
+      "i": 3325,
+      "start": 1018.89,
+      "before": "built",
+      "after": "built,"
+    },
+    {
+      "i": 3333,
+      "start": 1020.43,
+      "before": "it",
+      "after": "it,"
+    },
+    {
+      "i": 3342,
+      "start": 1023.65,
+      "before": "brands",
+      "after": "brands."
+    },
+    {
+      "i": 3343,
+      "start": 1023.97,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 3348,
+      "start": 1025.65,
+      "before": "100",
+      "after": "100%"
+    },
+    {
+      "i": 3350,
+      "start": 1026.79,
+      "before": "safe",
+      "after": "safe,"
+    },
+    {
+      "i": 3354,
+      "start": 1027.69,
+      "before": "everything",
+      "after": "everything,"
+    },
+    {
+      "i": 3357,
+      "start": 1028.89,
+      "before": "risk",
+      "after": "risk."
+    },
+    {
+      "i": 3358,
+      "start": 1029.31,
+      "before": "second",
+      "after": "Second"
+    },
+    {
+      "i": 3361,
+      "start": 1030.93,
+      "before": "scalable",
+      "after": "scalable,"
+    },
+    {
+      "i": 3371,
+      "start": 1034.13,
+      "before": "needed",
+      "after": "needed."
+    },
+    {
+      "i": 3372,
+      "start": 1034.39,
+      "before": "fully",
+      "after": "Fully"
+    },
+    {
+      "i": 3373,
+      "start": 1035.05,
+      "before": "consistent",
+      "after": "consistent:"
+    },
+    {
+      "i": 3375,
+      "start": 1036.11,
+      "before": "face",
+      "after": "face,"
+    },
+    {
+      "i": 3380,
+      "start": 1037.43,
+      "before": "changes",
+      "after": "changes."
+    },
+    {
+      "i": 3381,
+      "start": 1037.81,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 3391,
+      "start": 1040.11,
+      "before": "turnaround",
+      "after": "turnaround,"
+    },
+    {
+      "i": 3393,
+      "start": 1040.85,
+      "before": "scheduling",
+      "after": "scheduling,"
+    },
+    {
+      "i": 3396,
+      "start": 1042.15,
+      "before": "days",
+      "after": "days,"
+    },
+    {
+      "i": 3399,
+      "start": 1043.03,
+      "before": "revisions",
+      "after": "revisions."
+    },
+    {
+      "i": 3400,
+      "start": 1043.45,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 3408,
+      "start": 1045.97,
+      "before": "ready",
+      "after": "ready,"
+    },
+    {
+      "i": 3417,
+      "start": 1048.63,
+      "before": "needs",
+      "after": "needs,"
+    },
+    {
+      "i": 3421,
+      "start": 1049.85,
+      "before": "using",
+      "after": "using,"
+    },
+    {
+      "i": 3428,
+      "start": 1052.29,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 3429,
+      "start": 1052.81,
+      "before": "ai",
+      "after": "AI,"
+    },
+    {
+      "i": 3448,
+      "start": 1058.61,
+      "before": "done",
+      "after": "done."
+    },
+    {
+      "i": 3449,
+      "start": 1058.99,
+      "before": "these",
+      "after": "These"
+    },
+    {
+      "i": 3456,
+      "start": 1062.13,
+      "before": "influencers",
+      "after": "influencers,"
+    },
+    {
+      "i": 3463,
+      "start": 1064.33,
+      "before": "that",
+      "after": "that."
+    },
+    {
+      "i": 3464,
+      "start": 1064.81,
+      "before": "lead",
+      "after": "Lead"
+    },
+    {
+      "i": 3471,
+      "start": 1066.87,
+      "before": "out",
+      "after": "out,"
+    },
+    {
+      "i": 3479,
+      "start": 1068.27,
+      "before": "bank",
+      "after": "bank."
+    },
+    {
+      "i": 3480,
+      "start": 1068.53,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 3482,
+      "start": 1068.85,
+      "before": "course",
+      "after": "course,"
+    },
+    {
+      "i": 3489,
+      "start": 1071.11,
+      "before": "influencer",
+      "after": "influencer,"
+    },
+    {
+      "i": 3515,
+      "start": 1081.25,
+      "before": "content",
+      "after": "content."
+    },
+    {
+      "i": 3516,
+      "start": 1081.65,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 3520,
+      "start": 1083.43,
+      "before": "everything",
+      "after": "everything,"
+    },
+    {
+      "i": 3528,
+      "start": 1086.11,
+      "before": "quickly",
+      "after": "quickly."
+    },
+    {
+      "i": 3529,
+      "start": 1086.71,
+      "before": "for",
+      "after": "For"
+    },
+    {
+      "i": 3532,
+      "start": 1087.75,
+      "before": "use",
+      "after": "use,"
+    },
+    {
+      "i": 3533,
+      "start": 1087.91,
+      "before": "i",
+      "after": "I"
+    },
+    {
+      "i": 3539,
+      "start": 1089.41,
+      "before": "5",
+      "after": "5."
+    },
+    {
+      "i": 3540,
+      "start": 1089.55,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 3543,
+      "start": 1090.43,
+      "before": "clean",
+      "after": "clean,"
+    },
+    {
+      "i": 3544,
+      "start": 1090.69,
+      "before": "straightforward",
+      "after": "straightforward,"
+    },
+    {
+      "i": 3554,
+      "start": 1093.31,
+      "before": "started",
+      "after": "started."
+    },
+    {
+      "i": 3555,
+      "start": 1093.65,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 3579,
+      "start": 1098.69,
+      "before": "around",
+      "after": "around."
+    },
+    {
+      "i": 3580,
+      "start": 1098.91,
+      "before": "for",
+      "after": "For"
+    },
+    {
+      "i": 3582,
+      "start": 1099.89,
+      "before": "consistency",
+      "after": "consistency,"
+    },
+    {
+      "i": 3590,
+      "start": 1102.49,
+      "before": "5",
+      "after": "5,"
+    },
+    {
+      "i": 3595,
+      "start": 1103.97,
+      "before": "it",
+      "after": "it."
+    },
+    {
+      "i": 3596,
+      "start": 1104.17,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 3597,
+      "start": 1104.57,
+      "before": "lower",
+      "after": "LoRA"
+    },
+    {
+      "i": 3605,
+      "start": 1106.65,
+      "before": "viable",
+      "after": "viable,"
+    },
+    {
+      "i": 3612,
+      "start": 1108.45,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 3618,
+      "start": 1110.87,
+      "before": "automatic",
+      "after": "automatic."
+    },
+    {
+      "i": 3619,
+      "start": 1111.37,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 3624,
+      "start": 1112.83,
+      "before": "strange",
+      "after": "trained,"
+    },
+    {
+      "i": 3638,
+      "start": 1116.35,
+      "before": "face",
+      "after": "face."
+    },
+    {
+      "i": 3639,
+      "start": 1116.53,
+      "before": "that's",
+      "after": "That's"
+    },
+    {
+      "i": 3645,
+      "start": 1118.23,
+      "before": "ai",
+      "after": "AI"
+    },
+    {
+      "i": 3648,
+      "start": 1119.55,
+      "before": "work",
+      "after": "work."
+    },
+    {
+      "i": 3649,
+      "start": 1119.91,
+      "before": "for",
+      "after": "For"
+    },
+    {
+      "i": 3651,
+      "start": 1120.69,
+      "before": "variety",
+      "after": "variety,"
+    },
+    {
+      "i": 3655,
+      "start": 1121.79,
+      "before": "4.5",
+      "after": "4.5."
+    },
+    {
+      "i": 3656,
+      "start": 1122.59,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 3664,
+      "start": 1124.99,
+      "before": "well",
+      "after": "well,"
+    },
+    {
+      "i": 3670,
+      "start": 1127.43,
+      "before": "placements",
+      "after": "placements,"
+    },
+    {
+      "i": 3675,
+      "start": 1128.85,
+      "before": "clips",
+      "after": "clips."
+    },
+    {
+      "i": 3676,
+      "start": 1129.21,
+      "before": "it's",
+      "after": "It's"
+    },
+    {
+      "i": 3680,
+      "start": 1130.21,
+      "before": "five",
+      "after": "5"
+    },
+    {
+      "i": 3696,
+      "start": 1135.65,
+      "before": "right",
+      "after": "right,"
+    },
+    {
+      "i": 3705,
+      "start": 1137.79,
+      "before": "here",
+      "after": "here,"
+    },
+    {
+      "i": 3709,
+      "start": 1138.55,
+      "before": "capable",
+      "after": "capable."
+    },
+    {
+      "i": 3710,
+      "start": 1138.95,
+      "before": "speed",
+      "after": "Speed"
+    },
+    {
+      "i": 3715,
+      "start": 1141.01,
+      "before": "4.5",
+      "after": "4.5."
+    },
+    {
+      "i": 3716,
+      "start": 1141.71,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 3726,
+      "start": 1144.49,
+      "before": "front",
+      "after": "front,"
+    },
+    {
+      "i": 3730,
+      "start": 1145.55,
+      "before": "done",
+      "after": "done,"
+    },
+    {
+      "i": 3738,
+      "start": 1147.89,
+      "before": "fast",
+      "after": "fast."
+    },
+    {
+      "i": 3739,
+      "start": 1148.21,
+      "before": "you're",
+      "after": "You're"
+    },
+    {
+      "i": 3744,
+      "start": 1149.73,
+      "before": "outputs",
+      "after": "outputs,"
+    },
+    {
+      "i": 3746,
+      "start": 1150.45,
+      "before": "equality",
+      "after": "quality"
+    },
+    {
+      "i": 3749,
+      "start": 1151.41,
+      "before": "consistently",
+      "after": "consistently."
+    },
+    {
+      "i": 3750,
+      "start": 1151.99,
+      "before": "and",
+      "after": "And"
+    },
+    {
+      "i": 3751,
+      "start": 1152.75,
+      "before": "finally",
+      "after": "finally,"
+    },
+    {
+      "i": 3759,
+      "start": 1155.15,
+      "before": "5",
+      "after": "5."
+    },
+    {
+      "i": 3760,
+      "start": 1155.31,
+      "before": "the",
+      "after": "The"
+    },
+    {
+      "i": 3764,
+      "start": 1156.97,
+      "before": "phase",
+      "after": "face"
+    },
+    {
+      "i": 3765,
+      "start": 1157.51,
+      "before": "outputs",
+      "after": "outputs,"
+    },
+    {
+      "i": 3767,
+      "start": 1158.29,
+      "before": "in painting",
+      "after": "inpainting",
+      "merged": 2
+    },
+    {
+      "i": 3771,
+      "start": 1159.45,
+      "before": "swaps",
+      "after": "swaps,"
+    },
+    {
+      "i": 3789,
+      "start": 1164.95,
+      "before": "deals",
+      "after": "deals."
+    },
+    {
+      "i": 3983,
+      "start": 1224.55,
+      "before": "on",
+      "after": "on."
+    },
+    {
+      "i": 3984,
+      "start": 1224.81,
+      "before": "and",
+      "after": "And"
+    }
+  ],
+  "suspects": [
+    {
+      "kind": "once-only-proper-noun",
+      "at": 126.46,
+      "text": "Angelica.",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 141.34,
+      "text": "Describe",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 141.82,
+      "text": "Your",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 171.22,
+      "text": "Filipina",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 187.5,
+      "text": "Nano",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 187.68,
+      "text": "Banana",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 260.14,
+      "text": "More",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 448.4,
+      "text": "Flux",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 556.08,
+      "text": "Annotate,",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 595.9,
+      "text": "Shorts,",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 640.57,
+      "text": "Grok",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 640.83,
+      "text": "Imagine.",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 859.47,
+      "text": "Media",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 907.87,
+      "text": "Area",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    },
+    {
+      "kind": "once-only-proper-noun",
+      "at": 1104.57,
+      "text": "LoRA",
+      "suggestion": null,
+      "reason": "rare proper noun"
+    }
+  ],
+  "note": "changes[] is what the cleanup altered; suspects[] is what a second pass still doubts, including words it did not touch"
+}

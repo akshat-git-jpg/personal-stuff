@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { GraphicsMinimap, AvatarMinimap, EffectsMinimap, SoundMinimap } from './Minimap';
+import { buildPlanIndex, isOverCap, isNewCard } from '../lib/cardStatus';
 
 function timecode(sec: number) {
   if (typeof sec !== 'number' || isNaN(sec)) return '0:00.0';
@@ -33,6 +34,11 @@ export function OverviewBlock({ boardData, onEffectToggle }: { boardData: any; o
   }
   const usage = [...usageCounts.entries()].sort((a, b) => b[1] - a[1]);
 
+  // Both answers come from cardStatus.ts, which mirrors the linter and nothing
+  // else — see that file for why each of these used to be wrong.
+  const { byCard, newCards } = buildPlanIndex(boardData.cardPlan);
+  const overCap = (card: string, n: number) => isOverCap(card, n, byCard);
+
   const shots = boardData.shots;
   const effects = boardData.effects;
   const sound = boardData.sound;
@@ -46,12 +52,26 @@ export function OverviewBlock({ boardData, onEffectToggle }: { boardData: any; o
       {expanded && (
         <div id="overviewBlock">
           <div className="usage">
-            {usage.map(([card, n]) => (
-              <span key={card} className={`usage-chip ${n > 3 ? 'hot' : ''}`}>
-                {card.split('/').pop()} &times;{n}
-              </span>
-            ))}
+            {usage.map(([card, n]) => {
+              // A card that does not exist yet must never look like one that
+              // does — this is the marker plan 195 dropped when it deleted the
+              // Card Plan tab.
+              const isNew = isNewCard(card, byCard);
+              return (
+                <span key={card} className={`usage-chip ${overCap(card, n) ? 'hot' : ''}`}
+                  style={isNew ? { borderColor: 'var(--accent)', color: 'var(--accent)', fontWeight: 700 } : undefined}
+                  title={isNew ? 'this card does not exist yet — step 240 builds it' : undefined}>
+                  {card.split('/').pop()} &times;{n}{isNew ? ' · NEW' : ''}
+                </span>
+              );
+            })}
           </div>
+          {newCards.length > 0 && (
+            <div style={{ marginTop: 6, fontSize: 13, color: 'var(--accent)' }}>
+              {newCards.length} card{newCards.length > 1 ? 's' : ''} in this plan {newCards.length > 1 ? 'do' : 'does'} not exist yet
+              {' '}— {newCards.join(', ')}. Step 240 builds {newCards.length > 1 ? 'them' : 'it'} after you approve the look.
+            </div>
+          )}
 
           <div className="lane-row">
             <span className="lane-label">graphics</span>

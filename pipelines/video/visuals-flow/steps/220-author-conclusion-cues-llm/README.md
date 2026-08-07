@@ -1,4 +1,4 @@
-# 220 · pick or propose the intro and outro · [LLM] (pluggable) (Sonnet default; same pluggability as 030)
+# 220 · pick or propose the conclusion · [LLM] (pluggable: Sonnet default; same pluggability as 210)
 
 Author the graphics for the **intro and the conclusion only**. These two zones
 are the ones the owner judges hardest, so they get their own pass, their own

@@ -1,0 +1,628 @@
+{
+  "video": "consistent-ai-influencer",
+  "sections": [
+    {
+      "part": "body",
+      "start": 90.7,
+      "end": 1171.133,
+      "items": [
+        {
+          "id": "c01",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "The first thing that you need to do",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c02",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you'll be able to see this Character and World option",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c03",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Here you're going to think about what do they look like",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c04",
+          "card": "prompt/prompt-typing",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "I am looking for a high quality",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c04b",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "So let's say I'm going to use Nano Banana Pro",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c05",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "be as specific as possible",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c06",
+          "card": "overlay/stat-hit",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you can just click on More Like This for 20 credits",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c07",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "this will become the anchor image",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c08",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "if you are using the old version of OpenArt",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c09",
+          "card": "process/step-flow",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "you can train a custom model directly inside the platform",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c10",
+          "card": "slate/kinetic-sentence",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "it is automatically in here already",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c11",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you can just have true consistency",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c12",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "we are now going to head over to Step 3",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c13",
+          "card": "checklist/icon-pills",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "you can now start generating your influencer",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c14",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "as well as product placement setups",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c15",
+          "card": "overlay/step-card",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "we're going to start with creating a character image",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c15b",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "This one, Flux 1.1 Pro",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c16",
+          "card": "prompt/prompt-typing",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "I want to see Lucy in a minimalist white kitchen",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c17",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you can do three-fourths or one by one",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c18",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "whether you want it in 2K or 4K",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c18b",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you can see our influencer right here in the scenario",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c19",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "we have our enhanced prompts as well",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c20",
+          "card": "enacted/character-card-stamp",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "no matter how different the scenario is in here",
+          "flagged": false,
+          "proposal": {
+            "does": "One portrait card holds the anchor face; each beat stamps a duplicate of it into a new scenario frame and every duplicate keeps the identical face, so consistency is shown rather than claimed",
+            "kind": "beat",
+            "placement": "fullframe",
+            "beats": 2,
+            "variables": [
+              "anchor portrait image",
+              "one scenario label per beat"
+            ]
+          }
+        },
+        {
+          "id": "c21",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "we can now move over to Step 4",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c22",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "that's where the audience is",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c23",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "one example of that is the model Happy Horse",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c23b",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you only generate one image and you want to create a video",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c24",
+          "card": "prompt/prompt-typing",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "I have my prompt here",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c25",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "These ones actually use a lot of credits",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c26",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "is to apply motion to bring your character to life",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c27",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "it always looks like the same person",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c28",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Lucy is taking a sip from coffee cup in her hand",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c28b",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "we can apply this in several other scenarios",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c29",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "we can now start building our content bank",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c30",
+          "card": "overlay/stat-hit",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "at least 20 to 30 images",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c31",
+          "card": "slate/headline-chips",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "So this does two things",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c32",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you can save and organize everything directly in your workspace",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c32b",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you can just click on the star button",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c33",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "we are now going to set up for sponsor-ready content",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c34",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Sponsors don't just want a face",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c35",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "add a coffee products pack in here named Sunshine Coffee",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c36",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "we're just basically adding in a placeholder object",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c37",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "we landed a deal with Sunshine Coffee",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c38",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Just keep the motion subtle and realistic",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c39",
+          "card": "link-in-description/link-in-description",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "The link is once again in the description",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c40",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "Once your influencer is built",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c41",
+          "card": "checklist/checklist",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "you can just say 100% brand safe",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c42",
+          "card": "slate/kinetic-sentence",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "These are real advantages over real human influencers",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c43",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "back it up with your content bank",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c44",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "And now to summarize everything",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c45",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "For ease of use, I gave it 4.5 out of 5",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c46",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "For face consistency, it gets a full 5 out of 5",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c47",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "For content variety, it is a 4.5",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c48",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Speed to result is another 4.5",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c49",
+          "card": "overlay/score-pill",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "sponsor readiness gets a 5 out of 5",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    },
+    {
+      "part": "conclusion",
+      "start": 1171.133,
+      "end": 1230.4,
+      "items": [
+        {
+          "id": "z01",
+          "card": "enacted/pipeline-flow",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "OpenArt gives you everything in one place",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z02",
+          "card": "statement/keyword-statement",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "It's all here, and it works",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z03",
+          "card": "enacted/spotlight-focus",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "For anyone serious about building a sponsor-ready AI influencer",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z04",
+          "card": "link-in-description/link-in-description",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "my link to OpenArt is in the description",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z05",
+          "card": "like-subscribe/like-subscribe",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "make sure you're subscribed",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    }
+  ]
+}
