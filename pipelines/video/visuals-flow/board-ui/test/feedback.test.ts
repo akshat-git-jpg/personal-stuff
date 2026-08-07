@@ -9,10 +9,10 @@ describe('feedback lib', () => {
   });
 
   it('savePayloadFeedback', () => {
-    const state1 = { texts: { 'r1': 'foo' }, images: {}, dirty: false };
+    const state1 = { texts: { 'r1': 'foo' }, images: {}, dirty: false, version: 0 };
     expect(savePayloadFeedback(state1)).toEqual({ feedback: { 'r1': 'foo' } });
 
-    const state2 = { texts: { 'r1': 'foo' }, images: { 'r1': 'data:image/png;base64,...', 'r2': null }, dirty: true };
+    const state2 = { texts: { 'r1': 'foo' }, images: { 'r1': 'data:image/png;base64,...', 'r2': null }, dirty: true, version: 3 };
     expect(savePayloadFeedback(state2)).toEqual({
       feedback: { 'r1': 'foo' },
       feedbackImages: { 'r1': 'data:image/png;base64,...', 'r2': null }

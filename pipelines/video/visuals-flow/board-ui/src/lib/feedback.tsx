@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 
 export type FeedbackItem = { text?: string; added?: string; folded?: string; image?: string; context?: unknown };
 
@@ -6,6 +6,10 @@ type State = {
   texts: Record<string, string>;               // current box contents, seeded from BoardData.feedback
   images: Record<string, string | null>;       // ONLY refs touched this session (dataURL | null=clear)
   dirty: boolean;
+  // Bumped on every edit. An autosave captures it before the request and only
+  // clears `dirty` if it has not moved — otherwise a keystroke landing mid-flight
+  // would be marked saved and then dropped by the next markSaved().
+  version: number;
 };
 
 // pure — vitest these:
@@ -47,7 +51,13 @@ type FeedbackContextType = State & {
   attach: (ref: string, file: File) => void;
   clearImage: (ref: string) => void;
   markSaved: () => void;
+  autosave: { status: 'idle' | 'saving' | 'saved' | 'error'; error: string | null };
 };
+
+// How long the box stays quiet before a write. Long enough that normal typing
+// is one request rather than one per keystroke, short enough that a comment is
+// safe by the time you have moved to the next tile.
+export const AUTOSAVE_DEBOUNCE_MS = 800;
 
 const FeedbackContext = createContext<FeedbackContextType | null>(null);
 
@@ -71,8 +81,48 @@ export function FeedbackProvider({ children, initialItems }: { children: ReactNo
   const [state, setState] = useState<State>({
     texts: initialTexts,
     images: {},
-    dirty: false
+    dirty: false,
+    version: 0
   });
+  const [autosave, setAutosave] = useState<{ status: 'idle' | 'saving' | 'saved' | 'error'; error: string | null }>(
+    { status: 'idle', error: null }
+  );
+
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const timer = useRef<number | null>(null);
+
+  // Autosave (owner 2026-08-07: "whenever I'm giving feedback, I want
+  // everything to be autosaved"). Posts to /feedback, which writes
+  // feedback.json and feedback-images/ and nothing else — never cues.json, so
+  // it can never un-approve the storyboard or trip over a half-typed fragment.
+  useEffect(() => {
+    if (!state.dirty) return;
+    if (timer.current !== null) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(async () => {
+      timer.current = null;
+      const snapshot = stateRef.current;
+      const sentVersion = snapshot.version;
+      setAutosave({ status: 'saving', error: null });
+      try {
+        const res = await fetch('/feedback', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(savePayloadFeedback(snapshot)),
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error((data.errors ?? ['save refused']).join('; '));
+        setAutosave({ status: 'saved', error: null });
+        // Only settle if nothing was typed while the request was in flight.
+        setState(s => (s.version === sentVersion ? { ...s, images: {}, dirty: false } : s));
+      } catch (err: any) {
+        // Stay dirty on failure: the beforeunload guard below is then the last
+        // thing standing between a network blip and lost review notes.
+        setAutosave({ status: 'error', error: String(err?.message ?? err) });
+      }
+    }, AUTOSAVE_DEBOUNCE_MS);
+    return () => { if (timer.current !== null) window.clearTimeout(timer.current); };
+  }, [state.dirty, state.version]);
 
   useEffect(() => {
     if (!state.dirty) return;
@@ -88,7 +138,8 @@ export function FeedbackProvider({ children, initialItems }: { children: ReactNo
     setState(s => ({
       ...s,
       texts: { ...s.texts, [ref]: v },
-      dirty: true
+      dirty: true,
+      version: s.version + 1
     }));
   };
 
@@ -104,7 +155,8 @@ export function FeedbackProvider({ children, initialItems }: { children: ReactNo
         setState(s => ({
           ...s,
           images: { ...s.images, [ref]: reader.result as string },
-          dirty: true
+          dirty: true,
+          version: s.version + 1
         }));
       }
     };
@@ -115,7 +167,8 @@ export function FeedbackProvider({ children, initialItems }: { children: ReactNo
     setState(s => ({
       ...s,
       images: { ...s.images, [ref]: null },
-      dirty: true
+      dirty: true,
+      version: s.version + 1
     }));
   };
 
@@ -128,7 +181,7 @@ export function FeedbackProvider({ children, initialItems }: { children: ReactNo
   };
 
   return (
-    <FeedbackContext.Provider value={{ ...state, items, setText, attach, clearImage, markSaved }}>
+    <FeedbackContext.Provider value={{ ...state, items, setText, attach, clearImage, markSaved, autosave }}>
       {children}
     </FeedbackContext.Provider>
   );

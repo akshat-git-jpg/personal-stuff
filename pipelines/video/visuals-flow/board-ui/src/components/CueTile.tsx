@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTileSync } from '../lib/tileSync';
 import { useOverflowBadge } from '../lib/overflow';
 import { FeedbackBox } from './FeedbackBox';
@@ -52,8 +52,47 @@ export function CueTile({
   // third "not yet" state on this board dressed up as breakage. The live card
   // preview works the whole time; this just makes the affordance visible.
   const [posterFailed, setPosterFailed] = useState(false);
+  // Hover-to-play (owner 2026-08-07: "I dont want to click again and again to
+  // play motion graphc" / "along with audio obviously"). Pointing at a card
+  // plays it against its own slice of voiceover — that pairing IS the review,
+  // so hover drives the real audio element and useTileSync follows it, exactly
+  // as pressing play does. Only one tile can sound at a time: the audio's own
+  // onPlay pauses every other tile.
+  const [hoverPlay, setHoverPlay] = useState(false);
+  // Browsers refuse programmatic play() until the page has been interacted
+  // with. When that happens we still animate, silently, rather than leaving a
+  // hovered card dead on screen.
+  const [silentFallback, setSilentFallback] = useState(false);
+  const hoverTimer = useRef<number | null>(null);
 
   useTileSync(audioRef, iframeRef, isLive && cardLoaded);
+
+  // 200ms of intent before committing — a cursor crossing the list on its way
+  // somewhere else should not mount an iframe per tile it passes over.
+  const onPreviewEnter = () => {
+    if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current);
+    hoverTimer.current = window.setTimeout(() => {
+      hoverTimer.current = null;
+      setHoverPlay(true);
+      if (!isLive) onMakeLive?.();
+    }, 200);
+  };
+  const onPreviewLeave = () => {
+    if (hoverTimer.current !== null) {
+      window.clearTimeout(hoverTimer.current);
+      hoverTimer.current = null;
+    }
+    setHoverPlay(false);
+    setSilentFallback(false);
+    const audio = audioRef.current;
+    if (audio && !audio.paused) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  };
+  useEffect(() => () => {
+    if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current);
+  }, []);
   const overflow = useOverflowBadge(iframeRef, seg.probeTimes || []);
 
   const beats = cue?.beats ?? [];
@@ -78,6 +117,44 @@ export function CueTile({
     if (Array.isArray(b) && b.length) return b[b.length - 1].at + 0.35;
     return (resolved.duration ?? 5) * 0.6;
   })();
+
+  // Hover starts the slice from the top. useTileSync is already wired by the
+  // time the card has loaded, so the audio's clock drives the animation and
+  // nothing else has to.
+  useEffect(() => {
+    if (!hoverPlay || !isLive || !cardLoaded) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    let cancelled = false;
+    audio.currentTime = 0;
+    const p = audio.play();
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => { if (!cancelled) setSilentFallback(true); });
+    }
+    return () => { cancelled = true; };
+  }, [hoverPlay, isLive, cardLoaded]);
+
+  // Only runs when the browser refused the audio.
+  useEffect(() => {
+    if (!silentFallback || !hoverPlay || !isLive || !cardLoaded) return;
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const dur = resolved?.duration || 5;
+    let raf = 0;
+    const t0 = performance.now();
+    const post = (t: number) => {
+      try { iframe.contentWindow?.postMessage({ t }, '*'); } catch { /* unloading */ }
+    };
+    const loop = () => {
+      post(((performance.now() - t0) / 1000) % dur);
+      raf = requestAnimationFrame(loop);
+    };
+    loop();
+    return () => {
+      cancelAnimationFrame(raf);
+      post(previewTime); // settle back on the representative frame
+    };
+  }, [silentFallback, hoverPlay, isLive, cardLoaded, resolved, previewTime]);
 
   const isNew = planItem?.status === 'new';
   const proposal = planItem?.proposal ?? null;
@@ -179,7 +256,7 @@ export function CueTile({
 
       {resolved ? (
         <>
-          <div className="preview">
+          <div className="preview" onMouseEnter={onPreviewEnter} onMouseLeave={onPreviewLeave}>
             {/* shimmer until the card iframe fires load — a black box while a
                 card loads reads as broken (owner report 2026-07-31) */}
             {!reviewed && !isLive && !posterFailed && (
@@ -196,7 +273,7 @@ export function CueTile({
               <div
                 className="preview-placeholder"
                 onClick={(e) => { e.stopPropagation(); onMakeLive?.(); }}
-                title="render this cue at step 410 for a still, or click for the live card"
+                title="hover to play this card against its own slice of voiceover"
                 style={{
                   width: '100%', aspectRatio: '16 / 9', display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center', gap: 6, cursor: 'pointer',
@@ -204,7 +281,7 @@ export function CueTile({
                   fontSize: 14, textAlign: 'center', padding: 12,
                 }}
               >
-                <strong style={{ color: 'var(--accent)' }}>click to preview this card</strong>
+                <strong style={{ color: 'var(--accent)' }}>hover to play this card with its voiceover</strong>
                 <span>no still yet — stills are cut from the renders step 410 makes, which runs after you approve the storyboard</span>
               </div>
             )}
@@ -216,8 +293,10 @@ export function CueTile({
                   // Seek off frame 0 as soon as it loads, so a clicked card
                   // shows its content rather than its empty state.
                   try {
-                    (e.currentTarget as HTMLIFrameElement).contentWindow
-                      ?.postMessage({ t: previewTime }, '*');
+                    const el = e.currentTarget as HTMLIFrameElement;
+                    const audio = audioRef.current;
+                    const t = audio && !audio.paused ? audio.currentTime : previewTime;
+                    el.contentWindow?.postMessage({ t }, '*');
                   } catch { /* iframe unloading */ }
                 }} />
             )}
@@ -225,6 +304,7 @@ export function CueTile({
           {/* preload="none": slices are cut server-side on first request —
               30+ tiles preloading at once would queue 30+ ffmpeg cuts */}
           <audio ref={audioRef} className="scrub" controls preload="none"
+            onPlay={() => { if (!isLive) onMakeLive?.(); }}
             src={`/slice/${encodeURIComponent(cue.id)}.mp3`} />
         </>
       ) : (

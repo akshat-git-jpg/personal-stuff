@@ -7,7 +7,7 @@
       "card": "section/section-card-flip",
       "anchor": "The first thing that you need to do",
       "lead": 0.3,
-      "hold": 3.0,
+      "hold": 3,
       "variables": {
         "number": "01",
         "title": "Create Your Base Character"
@@ -21,7 +21,7 @@
       "card": "overlay/lower-third",
       "anchor": "you'll be able to see this Character and World option",
       "lead": 0.3,
-      "hold": 4.0,
+      "hold": 4,
       "variables": {
         "name": "Character and World",
         "subtitle": "Where every character you create is stored"
@@ -35,7 +35,7 @@
       "card": "overlay/tip-banner",
       "anchor": "Here you're going to think about what do they look like",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "tip",
         "label": "Decide Her First",
@@ -51,7 +51,7 @@
       "card": "prompt/prompt-typing",
       "anchor": "I am looking for a high quality",
       "lead": 0.4,
-      "hold": 6.0,
+      "hold": 6,
       "variables": {
         "title": "Character Prompt",
         "prompt": "A high quality, hyper realistic, candid portrait of a 22 year old Filipina AI influencer."
@@ -80,7 +80,7 @@
       "card": "overlay/tip-banner",
       "anchor": "be as specific as possible",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "tip",
         "label": "Detail Buys Consistency",
@@ -96,7 +96,7 @@
       "card": "overlay/stat-hit",
       "anchor": "you can just click on More Like This for 20 credits",
       "lead": 0.3,
-      "hold": 4.0,
+      "hold": 4,
       "variables": {
         "eyebrow": "More Like This",
         "value": 20,
@@ -127,7 +127,7 @@
       "card": "section/section-card-flip",
       "anchor": "if you are using the old version of OpenArt",
       "lead": 0.3,
-      "hold": 3.0,
+      "hold": 3,
       "variables": {
         "number": "02",
         "title": "Lock The Face"
@@ -141,7 +141,7 @@
       "card": "process/step-flow",
       "anchor": "you can train a custom model directly inside the platform",
       "lead": 0.4,
-      "hold": 4.0,
+      "hold": 4,
       "variables": {
         "title": "Training A Custom Model"
       },
@@ -205,7 +205,7 @@
       "card": "section/section-card-flip",
       "anchor": "we are now going to head over to Step 3",
       "lead": 0.3,
-      "hold": 3.0,
+      "hold": 3,
       "variables": {
         "number": "03",
         "title": "Content Across Scenarios"
@@ -264,7 +264,7 @@
       "card": "overlay/tip-banner",
       "anchor": "as well as product placement setups",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "tip",
         "label": "Also Covered",
@@ -280,7 +280,7 @@
       "card": "overlay/step-card",
       "anchor": "we're going to start with creating a character image",
       "lead": 0.3,
-      "hold": 4.0,
+      "hold": 4,
       "variables": {
         "step": 3,
         "total": 7,
@@ -309,7 +309,7 @@
       "card": "prompt/prompt-typing",
       "anchor": "I want to see Lucy in a minimalist white kitchen",
       "lead": 0.4,
-      "hold": 6.0,
+      "hold": 6,
       "variables": {
         "title": "Image Prompt",
         "prompt": "Lucy in a minimalist white kitchen, holding a coffee cup, warm morning light, and a lifestyle photography style."
@@ -324,7 +324,7 @@
       "card": "overlay/tip-banner",
       "anchor": "you can do three-fourths or one by one",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "tip",
         "label": "Output Presets",
@@ -340,7 +340,7 @@
       "card": "overlay/lower-third",
       "anchor": "whether you want it in 2K or 4K",
       "lead": 0.3,
-      "hold": 4.0,
+      "hold": 4,
       "variables": {
         "name": "2K or 4K",
         "subtitle": "Trade resolution against speed and credits"
@@ -369,7 +369,7 @@
       "card": "overlay/lower-third",
       "anchor": "we have our enhanced prompts as well",
       "lead": 0.3,
-      "hold": 4.0,
+      "hold": 4,
       "variables": {
         "name": "Enhanced Prompt",
         "subtitle": "OpenArt expands your prompt before generating"
@@ -383,7 +383,7 @@
       "card": "enacted/character-card-stamp",
       "anchor": "no matter how different the scenario is in here",
       "lead": 0.4,
-      "hold": 4.0,
+      "hold": 4,
       "variables": {
         "title": "One Face, Every Scenario"
       },
@@ -420,7 +420,7 @@
       "card": "section/section-card-flip",
       "anchor": "which is generating video content with our influencer",
       "lead": 0.3,
-      "hold": 3.0,
+      "hold": 3,
       "variables": {
         "number": "04",
         "title": "Generate Video Content"
@@ -434,7 +434,7 @@
       "card": "overlay/tip-banner",
       "anchor": "that's where the audience is",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "tip",
         "label": "Where The Audience Is",
@@ -464,7 +464,7 @@
       "card": "overlay/tip-banner",
       "anchor": "you only generate one image and you want to create a video",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "tip",
         "label": "One Image Is Enough",
@@ -480,7 +480,7 @@
       "card": "prompt/prompt-typing",
       "anchor": "I have my prompt here",
       "lead": 0.4,
-      "hold": 6.0,
+      "hold": 6,
       "variables": {
         "title": "Video Prompt",
         "prompt": "Lucy taking a sip from a coffee cup, showing a smile and visible satisfaction from the taste."
@@ -495,7 +495,7 @@
       "card": "overlay/tip-banner",
       "anchor": "These ones actually use a lot of credits",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "warning",
         "label": "Credits Add Up",
@@ -511,7 +511,7 @@
       "card": "overlay/tip-banner",
       "anchor": "is to apply motion to bring your character to life",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "tip",
         "label": "Clip Tips",
@@ -542,7 +542,7 @@
       "card": "overlay/verdict-chips",
       "anchor": "Lucy is taking a sip from coffee cup in her hand",
       "lead": 0.3,
-      "hold": 4.0,
+      "hold": 4,
       "variables": {},
       "beats": [
         {
@@ -589,7 +589,7 @@
       "card": "section/section-card-flip",
       "anchor": "we can now start building our content bank",
       "lead": 0.3,
-      "hold": 3.0,
+      "hold": 3,
       "variables": {
         "number": "05",
         "title": "Build Your Content Bank"
@@ -646,7 +646,7 @@
       "card": "overlay/lower-third",
       "anchor": "you can save and organize everything directly in your workspace",
       "lead": 0.3,
-      "hold": 4.0,
+      "hold": 4,
       "variables": {
         "name": "Save It In Your Workspace",
         "subtitle": "Star your best outputs and reuse them"
@@ -660,7 +660,7 @@
       "card": "overlay/tip-banner",
       "anchor": "you can just click on the star button",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "tip",
         "label": "Star Your Best",
@@ -676,7 +676,7 @@
       "card": "section/section-card-flip",
       "anchor": "we are now going to set up for sponsor-ready content",
       "lead": 0.3,
-      "hold": 3.0,
+      "hold": 3,
       "variables": {
         "number": "06",
         "title": "Sponsor-Ready Content"
@@ -690,7 +690,7 @@
       "card": "overlay/tip-banner",
       "anchor": "Sponsors don't just want a face",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "info",
         "label": "What Sponsors Want",
@@ -721,7 +721,7 @@
       "card": "overlay/tip-banner",
       "anchor": "we're just basically adding in a placeholder object",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "tip",
         "label": "Use A Placeholder",
@@ -752,7 +752,7 @@
       "card": "overlay/tip-banner",
       "anchor": "Just keep the motion subtle and realistic",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "tip",
         "label": "Keep It Organic",
@@ -779,7 +779,7 @@
       "card": "section/section-card-flip",
       "anchor": "Once your influencer is built",
       "lead": 0.3,
-      "hold": 3.0,
+      "hold": 3,
       "variables": {
         "number": "07",
         "title": "Pitch Sponsors"
@@ -838,7 +838,7 @@
       "card": "slate/kinetic-sentence",
       "anchor": "These are real advantages over real human influencers",
       "lead": 0.2,
-      "hold": 3.0,
+      "hold": 3,
       "variables": {
         "text": "These are real advantages over real human influencers",
         "accent": "real advantages"
@@ -853,7 +853,7 @@
       "card": "overlay/tip-banner",
       "anchor": "back it up with your content bank",
       "lead": 0.3,
-      "hold": 5.0,
+      "hold": 5,
       "variables": {
         "kind": "tip",
         "label": "How To Open",
@@ -969,7 +969,7 @@
       "zone": "conclusion",
       "anchor": "OpenArt gives you everything in one place",
       "lead": 0.4,
-      "hold": 4.0,
+      "hold": 4,
       "variables": {
         "title": "All In One",
         "steps": [
@@ -1016,8 +1016,8 @@
       "card": "statement/keyword-statement",
       "zone": "conclusion",
       "anchor": "It's all here, and it works",
-      "lead": 0.0,
-      "hold": 3.0,
+      "lead": 0,
+      "hold": 3,
       "variables": {
         "text": "It's all here, and it works.",
         "keyword": "it works"
@@ -1063,7 +1063,7 @@
       "zone": "conclusion",
       "anchor": "my link to OpenArt is in the description",
       "lead": 0.3,
-      "hold": 3.0,
+      "hold": 3,
       "variables": {},
       "beats": [],
       "register": "light",

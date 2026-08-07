@@ -44,6 +44,21 @@ export function FeedbackBox({ refKey, placeholder }: { refKey: string; placehold
         )}
         <input ref={fileRef} type="file" className="fb-file" accept="image/*" hidden
                onChange={(e) => { const f = e.target.files?.[0]; if (f) fb.attach(activeKey, f); e.target.value = ''; }} />
+        {/* Autosave is invisible when it works, which is exactly when a reviewer
+            starts wondering whether it did. A failure must be loud: the note is
+            still in the box and nowhere else. */}
+        {fb.autosave.status === 'saving' && (
+          <span className="fb-autosave" style={{ marginLeft: 10, fontSize: 12, opacity: 0.6 }}>saving…</span>
+        )}
+        {fb.autosave.status === 'saved' && !fb.dirty && (
+          <span className="fb-autosave" style={{ marginLeft: 10, fontSize: 12, color: 'var(--ok)' }}>✓ saved</span>
+        )}
+        {fb.autosave.status === 'error' && (
+          <span className="fb-autosave" style={{ marginLeft: 10, fontSize: 12, color: 'var(--err)', fontWeight: 700 }}
+                title={fb.autosave.error ?? ''}>
+            NOT saved — {fb.autosave.error}
+          </span>
+        )}
       </div>
     </div>
   );

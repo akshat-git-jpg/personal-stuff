@@ -616,6 +616,98 @@ export function dropFeedbackImage(workdir, item) {
   }
 }
 
+// The ONE place feedback.json is written. /save and /feedback both route here
+// so the two can never drift — the same rule the approve handlers already
+// follow. `ctx` supplies whatever is needed to stamp an item's context:
+// /save passes its in-flight state, /feedback reads it off disk.
+export function applyFeedback(workdir, { feedback, feedbackImages }, ctx) {
+  const fbPath = path.join(workdir, 'feedback.json');
+  const existing = fs.existsSync(fbPath)
+    ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items)
+    : {};
+  const items = { ...existing };
+  const today = new Date().toISOString().slice(0, 10);
+  const gaps = (ctx.words?.length && ctx.resolved)
+    ? buildSegments(ctx.words, ctx.resolved).filter(s => s.kind === 'gap')
+    : [];
+
+  for (const [ref, v] of Object.entries(feedback ?? {})) {
+    const text = String(v ?? '').trim();
+    if (items[ref]?.folded) continue;            // folded items are immutable here
+    if (!text) { dropFeedbackImage(workdir, items[ref]); delete items[ref]; continue; }
+    if (items[ref]?.text !== text) {
+      if (!items[ref]) {
+        const item = { text, added: today };
+        // Review rounds append a `#N` suffix (`c20#2`) so folded round-1
+        // items stay immutable history — context still resolves against the
+        // base cue/span id (owner report 2026-07-31).
+        const baseRef = ref.includes('#') ? ref.slice(0, ref.indexOf('#')) : ref;
+        if (ref.startsWith('gap-')) {
+          const gap = gaps.find(g => `gap-${timecode(g.start)}` === baseRef);
+          if (gap) {
+            item.context = { start: gap.start, end: gap.end, excerpt: gap.words.slice(0, 8).map(w => w.text).join(' ') };
+          }
+        } else if (baseRef !== '_global') {
+          const span = (ctx.spans ?? []).find(s => s.id === baseRef);
+          const rSpan = (ctx.resolvedSpans ?? []).find(s => s.id === baseRef);
+          if (span && rSpan) {
+            item.context = { start: rSpan.start, end: rSpan.end, note: span.note };
+          } else {
+            const cue = (ctx.cues ?? []).find(c => c.id === baseRef);
+            const r = (ctx.resolved ?? []).find(c => c.id === baseRef);
+            if (cue) {
+              item.context = { card: cue.card, anchor: cue.anchor };
+              if (r) item.context.start = r.start;
+            }
+          }
+        }
+        items[ref] = item;
+      } else {
+        items[ref] = { ...items[ref], text };
+      }
+    }
+  }
+
+  // Attach screenshots. Kept OUT of the text loop on purpose: that loop only
+  // fires when the text changed, and attaching a screenshot to a comment you
+  // already wrote is the common case. `null` clears an existing one.
+  for (const [ref, dataUrl] of Object.entries(feedbackImages ?? {})) {
+    if (!items[ref] || items[ref].folded) continue;
+    if (dataUrl === null) {
+      dropFeedbackImage(workdir, items[ref]);
+      const { image, ...rest } = items[ref];
+      items[ref] = rest;
+      continue;
+    }
+    const saved = saveFeedbackImage(workdir, ref, dataUrl);
+    if (saved) items[ref] = { ...items[ref], image: saved };
+  }
+
+  fs.writeFileSync(fbPath, JSON.stringify({ video: ctx.video, updated: today, items }, null, 2));
+  return items;
+}
+
+// Context for a standalone feedback write, read off disk. Everything here is
+// best-effort: context enriches an item, it never gates saving one, so a board
+// opened before 310 still records comments.
+export function feedbackContextFromDisk(workdir) {
+  const read = (f) => {
+    try { return JSON.parse(fs.readFileSync(path.join(workdir, f), 'utf8')); } catch { return null; }
+  };
+  const cuesFile = read('cues.json') ?? {};
+  const resolvedFile = read('resolved.json');
+  const shotsFile = read('shots.json');
+  const shotsResolved = read('shots.resolved.json');
+  return {
+    video: cuesFile.video,
+    cues: cuesFile.cues ?? [],
+    resolved: resolvedFile?.resolved ?? [],
+    words: read('transcript.json') ?? [],
+    spans: shotsFile?.spans ?? [],
+    resolvedSpans: shotsResolved?.spans ?? (Array.isArray(shotsResolved) ? shotsResolved : []),
+  };
+}
+
 async function handleSave(req, res, workdir, cardLibraryRoot) {
   const body = await readBody(req);
   let cuesFile;
@@ -676,68 +768,14 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
   }
 
   if (feedback && typeof feedback === 'object') {
-    const fbPath = path.join(workdir, 'feedback.json');
-    const existing = fs.existsSync(fbPath)
-      ? normalizeFeedbackItems(JSON.parse(fs.readFileSync(fbPath, 'utf8')).items)
-      : {};
-    const items = { ...existing };
-    const today = new Date().toISOString().slice(0, 10);
-    const segments = buildSegments(words, resolved);
-    const gaps = segments.filter(s => s.kind === 'gap');
-
-    for (const [ref, v] of Object.entries(feedback ?? {})) {
-      const text = String(v ?? '').trim();
-      if (items[ref]?.folded) continue;            // folded items are immutable here
-      if (!text) { dropFeedbackImage(workdir, items[ref]); delete items[ref]; continue; }
-      if (items[ref]?.text !== text) {
-        if (!items[ref]) {
-          const item = { text, added: today };
-          // Review rounds append a `#N` suffix (`c20#2`) so folded round-1
-          // items stay immutable history — context still resolves against the
-          // base cue/span id (owner report 2026-07-31).
-          const baseRef = ref.includes('#') ? ref.slice(0, ref.indexOf('#')) : ref;
-          if (ref.startsWith('gap-')) {
-            const gap = gaps.find(g => `gap-${timecode(g.start)}` === baseRef);
-            if (gap) {
-              item.context = { start: gap.start, end: gap.end, excerpt: gap.words.slice(0, 8).map(w => w.text).join(' ') };
-            }
-          } else if (baseRef !== '_global') {
-            const span = (mergedShots?.spans ?? []).find(s => s.id === baseRef);
-            const rSpan = (resolvedSpans ?? []).find(s => s.id === baseRef);
-            if (span && rSpan) {
-              item.context = { start: rSpan.start, end: rSpan.end, note: span.note };
-            } else {
-              const cue = (merged.cues ?? []).find(c => c.id === baseRef);
-              const r = resolved.find(c => c.id === baseRef);
-              if (cue) {
-                item.context = { card: cue.card, anchor: cue.anchor };
-                if (r) item.context.start = r.start;
-              }
-            }
-          }
-          items[ref] = item;
-        } else {
-          items[ref] = { ...items[ref], text };
-        }
-      }
-    }
-
-    // Attach screenshots. Kept OUT of the text loop on purpose: that loop only
-    // fires when the text changed, and attaching a screenshot to a comment you
-    // already wrote is the common case. `null` clears an existing one.
-    for (const [ref, dataUrl] of Object.entries(feedbackImages ?? {})) {
-      if (!items[ref] || items[ref].folded) continue;
-      if (dataUrl === null) {
-        dropFeedbackImage(workdir, items[ref]);
-        const { image, ...rest } = items[ref];
-        items[ref] = rest;
-        continue;
-      }
-      const saved = saveFeedbackImage(workdir, ref, dataUrl);
-      if (saved) items[ref] = { ...items[ref], image: saved };
-    }
-
-    fs.writeFileSync(fbPath, JSON.stringify({ video: merged.video, updated: today, items }, null, 2));
+    applyFeedback(workdir, { feedback, feedbackImages }, {
+      video: merged.video,
+      cues: merged.cues ?? [],
+      resolved,
+      words,
+      spans: mergedShots?.spans ?? [],
+      resolvedSpans: resolvedSpans ?? [],
+    });
   }
 
   res.setHeader('content-type', 'application/json');
@@ -1372,6 +1410,42 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
 
   if (req.method === 'POST' && url.pathname === '/approve-avatar-plan') {
     return handleApproveAvatarPlan(req, res, workdir);
+  }
+
+  // Autosave target for ALL feedback — text and screenshots alike (owner
+  // 2026-08-07). Deliberately narrow: it writes feedback.json and
+  // feedback-images/ and touches NOTHING else. /save re-resolves 60 cues,
+  // rewrites cues.json, and un-approves the storyboard when cues change, none
+  // of which may happen because somebody typed a comment. It also refuses the
+  // whole payload when any fragment textarea holds half-typed JSON, which on a
+  // debounce timer would mean feedback silently never saving.
+  if (req.method === 'POST' && url.pathname === '/feedback') {
+    const body = await readBody(req);
+    let payload;
+    try { payload = JSON.parse(body); } catch (err) {
+      res.statusCode = 400;
+      res.setHeader('content-type', 'application/json');
+      return res.end(JSON.stringify({ ok: false, errors: [`invalid JSON: ${err.message}`] }));
+    }
+    if (!payload || typeof payload !== 'object'
+        || (payload.feedback === undefined && payload.feedbackImages === undefined)) {
+      res.statusCode = 400;
+      res.setHeader('content-type', 'application/json');
+      return res.end(JSON.stringify({ ok: false, errors: ['expected { feedback, feedbackImages }'] }));
+    }
+    try {
+      const items = applyFeedback(
+        workdir,
+        { feedback: payload.feedback ?? {}, feedbackImages: payload.feedbackImages ?? {} },
+        feedbackContextFromDisk(workdir),
+      );
+      res.setHeader('content-type', 'application/json');
+      return res.end(JSON.stringify({ ok: true, count: Object.keys(items).length }));
+    } catch (err) {
+      res.statusCode = 500;
+      res.setHeader('content-type', 'application/json');
+      return res.end(JSON.stringify({ ok: false, errors: [String(err?.message ?? err)] }));
+    }
   }
 
   if (req.method === 'POST' && url.pathname === '/card-feedback') {

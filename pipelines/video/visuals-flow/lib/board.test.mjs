@@ -1649,3 +1649,113 @@ test('review frames revalidate instead of claiming a year of immutability', asyn
     server.close();
   }
 });
+
+// Autosave (owner 2026-08-07). The point of a separate endpoint is what it
+// must NOT touch: /save rewrites cues.json, re-resolves every cue and
+// un-approves the storyboard when cues change. None of that may happen because
+// somebody typed a comment, so these tests pin the blast radius, not just the
+// happy path.
+test('POST /feedback writes feedback.json and leaves cues.json untouched', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const cuesBefore = fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8');
+    const resolvedBefore = fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8');
+
+    const res = await fetch(`${base}/feedback`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ feedback: { c01: 'wrong card for this line' } }),
+    });
+    const data = await res.json();
+    assert.equal(data.ok, true);
+
+    const fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.equal(fb.items.c01.text, 'wrong card for this line');
+    assert.ok(fb.items.c01.added, 'an item must carry the date it was added');
+
+    assert.equal(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8'), cuesBefore,
+      'autosaving a comment must never rewrite cues.json');
+    assert.equal(fs.readFileSync(path.join(workdir, 'resolved.json'), 'utf8'), resolvedBefore,
+      'autosaving a comment must never re-resolve');
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /feedback cannot un-approve the storyboard', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    await fetch(`${base}/approve`, { method: 'POST' });
+    assert.equal(JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8')).approved, true);
+
+    await fetch(`${base}/feedback`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ feedback: { c01: 'a note typed after approving' } }),
+    });
+
+    assert.equal(JSON.parse(fs.readFileSync(path.join(workdir, 'cues.json'), 'utf8')).approved, true,
+      'typing feedback must not revoke an approval the owner already gave');
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /feedback attaches an image, and clearing it removes the file', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    await fetch(`${base}/feedback`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ feedback: { c01: 'see screenshot' }, feedbackImages: { c01: png } }),
+    });
+    let fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    const rel = fb.items.c01.image;
+    assert.ok(rel, 'the item must record its screenshot path');
+    assert.ok(fs.existsSync(path.join(workdir, rel)), 'the screenshot must be written to disk');
+
+    await fetch(`${base}/feedback`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ feedback: { c01: 'see screenshot' }, feedbackImages: { c01: null } }),
+    });
+    fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.equal(fb.items.c01.image, undefined);
+    assert.equal(fs.existsSync(path.join(workdir, rel)), false,
+      'clearing a screenshot must take the file with it, or feedback-images/ grows forever');
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /feedback with empty text deletes the comment', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const post = (feedback) => fetch(`${base}/feedback`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ feedback }),
+    });
+    await post({ c01: 'typed then thought better of it' });
+    await post({ c01: '   ' });
+    const fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.equal(fb.items.c01, undefined);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /feedback rejects a payload carrying neither feedback nor images', async () => {
+  const workdir = makeWorkdir();
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/feedback`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ cues: [] }),
+    });
+    assert.equal(res.status, 400);
+    assert.equal((await res.json()).ok, false);
+  } finally {
+    server.close();
+  }
+});

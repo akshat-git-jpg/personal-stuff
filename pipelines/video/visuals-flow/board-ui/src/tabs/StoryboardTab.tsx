@@ -52,7 +52,7 @@ export function StoryboardTab({
     setBanners(prev => prev.filter(b => b.id !== id));
   };
 
-  const { items: reviewed, has, toggle: setReviewed, setAll: markAllReviewed, count: revCountGlobal } = useReviewed(video);
+  const { items: reviewed, unreviewed, has, toggle: setReviewed, setAll: markAllReviewed, countFor } = useReviewed(video);
   const fb = useFeedback();
 
   // List is the default (owner call 2026-07-31); ?view=timeline|list overrides
@@ -225,7 +225,10 @@ export function StoryboardTab({
     onActions(acts);
 
     const revTotal = cues.length;
-    const revCount = Array.from(reviewed).filter(rid => rid.startsWith('sb:')).length;
+    // Same rule as the tiles: an auto-reviewed card shows ticked, so it has to
+    // COUNT as ticked. Counting raw set members would report 0/60 on a board
+    // where 27 tiles are visibly ticked.
+    const revCount = countFor(cues.map((c: any) => ({ rid: `sb:${c.id}`, card: c.card })));
 
     const setMode = (mode: 'timeline' | 'list') => {
       setViewMode(mode);
@@ -262,7 +265,7 @@ export function StoryboardTab({
     return () => { onMeta(null); onActions(null); onSecondary(null); };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [video, boardData, revCountGlobal, onMeta, onActions, onSecondary, onRefetch, viewMode, saveState, hasUnsaved]);
+  }, [video, boardData, reviewed, unreviewed, onMeta, onActions, onSecondary, onRefetch, viewMode, saveState, hasUnsaved]);
 
   let blocks = useMemo(() => {
     let b = segments.map((seg: any) => ({
@@ -488,9 +491,9 @@ export function StoryboardTab({
                     audit={aud}
                     hasResolved={boardData.hasResolved}
                     planItem={planById[cue.id]}
-                    reviewed={has(`sb:${cue.id}`)}
+                    reviewed={has(`sb:${cue.id}`, cue.card)}
                     onReviewedChange={(v) => {
-                      setReviewed(`sb:${cue.id}`);
+                      setReviewed(`sb:${cue.id}`, cue.card);
                     }}
                     {...tilePropsFor(cue)}
                   />
@@ -522,8 +525,8 @@ export function StoryboardTab({
             audit={audit}
             hasResolved={boardData.hasResolved}
             planById={planById}
-            hasReviewed={(id) => has(id)}
-            onReviewedChange={(id, v) => setReviewed(id)}
+            hasReviewed={(id) => has(id, cues.find((c: any) => `sb:${c.id}` === id)?.card)}
+            onReviewedChange={(id) => setReviewed(id, cues.find((c: any) => `sb:${c.id}` === id)?.card)}
             tilePropsFor={tilePropsFor}
             spanFragFor={spanFragFor}
             onSpanEdit={editSpan}

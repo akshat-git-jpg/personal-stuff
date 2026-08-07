@@ -1,4 +1,6 @@
 {
+  "video": "consistent-ai-influencer",
+  "updated": "2026-08-07",
   "items": {
     "final-:0": {
       "text": "test",
@@ -10,7 +12,69 @@
       "text": "test",
       "t": 8.90446,
       "context": "intro@00:08"
+    },
+    "c04": {
+      "text": "Audio is not syncing with the text being type. Text being typed is slow. Is it because we are in the storyboard and in the final cut it will be fixed? Or what is this a real issue?",
+      "added": "2026-08-07",
+      "context": {
+        "card": "prompt/prompt-typing",
+        "anchor": "I am looking for a high quality",
+        "start": 166.2
+      }
+    },
+    "c09": {
+      "text": "Why only the open, the train section is highlighted with orange and the other two are not highlighted, is above why",
+      "added": "2026-08-07",
+      "context": {
+        "card": "process/step-flow",
+        "anchor": "you can train a custom model directly inside the platform",
+        "start": 334.96
+      }
+    },
+    "c10": {
+      "text": "This is definitely a wrong way to show the kinetic this kinetic sentence motion graphic I think we have a rule on when to use kinetic sentence this doesn't look like the correct place can you please check why this happened",
+      "added": "2026-08-07",
+      "context": {
+        "card": "slate/kinetic-sentence",
+        "anchor": "it is automatically in here already",
+        "start": 345.64
+      }
+    },
+    "c16": {
+      "text": "Same feedback, this is not syncing up with the voice. The text is the text being typed on the screen is slow. Why is this happening? Is this going to happen only in this motion graphics storyboard or is this going to happen in file and cut as well? I need a concrete thing.",
+      "added": "2026-08-07",
+      "context": {
+        "card": "prompt/prompt-typing",
+        "anchor": "I want to see Lucy in a minimalist white kitchen",
+        "start": 466.44
+      }
+    },
+    "c20": {
+      "text": "No, can we use the actual phase generate one when poly pollination to the eye instead of making this placeholders also can you make this generic so that whenever I am saying generate something generate an image you can use pollination.ai",
+      "added": "2026-08-07",
+      "context": {
+        "card": "enacted/character-card-stamp",
+        "anchor": "no matter how different the scenario is in here",
+        "start": 567.32
+      }
+    },
+    "c24": {
+      "text": "Same feedback.",
+      "added": "2026-08-07",
+      "context": {
+        "card": "prompt/prompt-typing",
+        "anchor": "I have my prompt here",
+        "start": 673.93
+      }
+    },
+    "c28": {
+      "text": "Text on screen is coming only before the actual text is said in the audio. Why is this happening?",
+      "added": "2026-08-07",
+      "context": {
+        "card": "overlay/verdict-chips",
+        "anchor": "Lucy is taking a sip from coffee cup in her hand",
+        "start": 760.83
+      }
     }
-  },
-  "updated": "2026-08-07"
+  }
 }
