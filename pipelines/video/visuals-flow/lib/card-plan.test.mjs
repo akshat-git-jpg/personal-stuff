@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import {
   buildCardPlan,
   partOf,
@@ -203,5 +204,25 @@ test('resetStoryboardApproval is a no-op when nothing was approved', () => {
   fs.writeFileSync(path.join(w, 'cues.json'), JSON.stringify({ approved: false, cues: [] }) + '\n');
   assert.deepStrictEqual(resetStoryboardApproval(w, 'test'), [],
     'UNREVIEWED-CARD-REACHES-RENDER: an already-unapproved file must not be rewritten');
+  fs.rmSync(w, { recursive: true, force: true });
+});
+
+test('CLI: a changed card plan resets the storyboard approval', () => {
+  const w = fs.mkdtempSync(path.join(os.tmpdir(), 'card-plan-cli-'));
+  fs.writeFileSync(path.join(w, 'cues.json'), JSON.stringify({ approved: true, cues: [{ id: 'c01', card: 'foo' }] }) + '\n');
+  fs.writeFileSync(path.join(w, 'shots.json'), JSON.stringify({ approved: true, shots: [] }) + '\n');
+  fs.writeFileSync(path.join(w, 'card-plan.json'), JSON.stringify({ sections: [] }) + '\n');
+
+  const cli = path.join(import.meta.dirname, 'card-plan.mjs');
+  const result = spawnSync(process.execPath, [cli, w], { encoding: 'utf8' });
+  
+  assert.strictEqual(result.status, 0, `CLI failed: ${result.stderr}`);
+
+  for (const f of ['cues.json', 'shots.json']) {
+    const data = JSON.parse(fs.readFileSync(path.join(w, f), 'utf8'));
+    assert.strictEqual(data.approved, false,
+      `UNREVIEWED-CARD-REACHES-RENDER: CLI must reset ${f} to approved=false when the plan changes`);
+  }
+
   fs.rmSync(w, { recursive: true, force: true });
 });
