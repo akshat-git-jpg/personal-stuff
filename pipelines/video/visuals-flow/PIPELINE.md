@@ -14,36 +14,38 @@ Cards themselves (the Hyperframes compositions + `catalog.json`) live in
 <!-- BEGIN GENERATED STEP TABLE — edit steps/*/step.json, then run: node scripts/gen-pipeline-table.mjs -->
 | Step | Actor | In → Out |
 |---|---|---|
-| `005-configure-run-human` | [OWNER] | the owner's Drive delivery choices (drive_folder/drive_account) → `run-config.json`. No file = deliver step falls back to its own defaults. The HeyGen engine choice moved to the avatar spend gate (102) — it is no longer set here (plan 197) |
-| `010-transcribe-run` | [RUN] + quality pass [RUN/LLM] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) + optional `script.txt` → `transcript.json` (word timestamps, cleaned — never raw ASR punctuation; script-first alignment when `script.txt` exists, else an LLM cleanup pass, both gated by `checkTimingIntegrity()`) |
-| `012-clean-transcript-llm` | [LLM] + [RUN] | raw ASR `transcript.json` -> a corrected `transcript.json` + `transcript.diff.json`. Repunctuates, fixes brand and product names, trims discourse fillers — never grammar or phrasing. Machine-gated by `checkTimingIntegrity()`: a text edit that would desync captions from audio is refused and the raw ASR is kept. Assemble burns captions from these words VERBATIM, so a garble here ships on screen. |
-| `015-map-segments-run` | [RUN] | `transcript.json` + `src/*.mp4` → `segments.json` (measured intro/body/conclusion `structure` + demo vs narration `segments`; owner sets `confirmed: true`, which promotes lint E5 from warning to error) |
-| `020-choose-concept-llm` | [LLM] | `transcript.json` + `segments.json` → `concept.json` (gate `lint-concept` — required fields, anchors resolving in forward order, and ≥80% **narration** coverage by the register map; `segments.json` is what narration time is measured from) |
-| `025-author-intro-film-llm` | [LLM] (OFF by default) | `transcript.json` + `segments.json` + `concept.json` + `card-library/DESIGN.md` → `intro-film/out/intro.mp4`. Runs only when `run-config.json` has `intro: "film"`. Reads the design system and the logo registry, and must not read `catalog.json` — the intro keeps full creative freedom. Nothing consumes the output yet |
-| `026-propose-intro-idea-llm` | [LLM] | `transcript.json` + `segments.json` + `concept.json` -> `intro-film/idea.json`: 2-3 competing visual directions for the intro, one page each. Prose only — no beats, no timings, no code. The cheapest place to reject an intro. |
-| `027-approve-intro-film-human` | [OWNER] | `intro-film/screenplay.json` + `intro-film/review/` → `approved: true` in `screenplay.json` (HUMAN GATE: Intro Film). Reviewed on the Intro tab of the board. |
-| `028-approve-intro-idea-human` | [OWNER] | `intro-film/idea.json` -> `approved: true` plus `chosen: "<id>"` (HUMAN GATE: Intro Idea). Reject all three and the idea pass runs again. A page of prose is the cheapest rejection in the pipeline. |
-| `030-pick-or-propose-graphics-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json`, **BODY ONLY**. Picks from the catalog OR proposes a card that should exist (approved at 037, built at 038) |
-| `035-pick-or-propose-intro-outro-llm` | [LLM] (pluggable) | `transcript.json` + `catalog.json` + `segments.json`'s `structure` → zone cues in `cues.json`, each carrying a `zone` field. Own rulebook (`lib/zone-rules.mjs`) and own numbers (`lib/zone-constants.mjs`) — nothing shared with the body pass |
-| `036-review-cue-plan-run` | [RUN] | `cues.json` + `transcript.json` + `catalog.json` -> `checks/cue-plan.json`. Everything checkable BEFORE any card exists: anchors that do not resolve, cues naming a card that is not in the catalog, timing collisions. Cheap, writes no cue data. |
-| `037-approve-card-plan-human` | [RUN] | `cues.json` + `catalog.json` -> `card-plan.json`: every card the video will use, and which of them do not exist yet. A REPORT, not a gate (plan 195) — new cards are judged built and in context at the 080 storyboard. |
-| `038-build-cards-llm-and-review-human` | [LLM] (Sonnet) + [OWNER] | approved NEW proposals → new cards in `card-library/<type>/<name>/` + `catalog.json` entries, committed and pushed. Skipped when nothing is NEW. **Then the owner reviews the built card**: landing it flips its plan item `new` → `existing`, which resets the 080 storyboard approval by design (plan 195), so a card nobody has looked at cannot reach 090. Procedure lives in `card-library/CLAUDE.md` |
-| `040-sync-graphics-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9, and the zone bar W15/W16/W17/W19) |
-| `060-place-avatar-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel) |
-| `070-review-storyboard-run` | [RUN] | `resolved.json` + `shots.json` -> `shots.resolved.json` + `checks/shots.json`, `checks/stillness.json`, `checks/audit-gate.json`. Resolves the shot spans and runs every pre-render check in one pass: shot lint, W18 stillness, and the audit gate. Replaces four separate commands (`shots`, `stillness`, `audit-gate`, and the optional 050 audit step), three of which wrote nothing and one of which was optional while a gate depended on it. |
-| `080-approve-storyboard-human` | [OWNER] | `resolved.json` → approved `cues.json` + `shots.json` (**REVIEW 2: Storyboard**. Composition only — screen vs graphics vs avatar+mode, skippable on short videos. Localhost:4322 board; audit-gate blocks labelled fullframes) |
-| `090-render-graphics-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` (brand-inline; variant rotation) |
-| `100-render-avatar-run` | [OWNER live HeyGen] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
-| `102-propose-avatar-human` | [OWNER] | `shots.resolved.json` + the character registry -> `avatar-plan.json`: which character, which HeyGen model, how many clips and how many seconds. HARD STOP — nothing is submitted to HeyGen until this is approved. Avatar IV is metered against the monthly second-pool, and this is where that spend is authorised, against real numbers rather than at kickoff against none. |
-| `105-plan-sound-run` | [RUN] | `resolved.json` + `effects.json` + `segments.json` -> `sound.json`: the semantic SFX placement plan — sound tied to what is happening on screen rather than sprinkled. |
-| `107-mix-audio-run` | [RUN] | `sound.json` + `vo.mp3` -> the mastered -14 LUFS mix, frame-exact against the voiceover. Writes `sfx-bus.wav` (and `music-ducked.wav` when the plan carries music). |
-| `108-rerender-intro-film-run` | [RUN] | the real `avatar.mp4` + the approved screenplay -> a final `intro-film/out/intro.mp4`. The intro approved at the 1xx gate was rendered against a static stand-in; this is the encode that ships. Fails if the workdir still has no real avatar. |
-| `110-build-video-run` | [RUN] | `screen.mp4` + `master.wav` + `renders/` + avatar clips → `final.mp4` (freeze gap-filler, version registry) + `assembly.md` |
-| `115-review-cut-run` | [RUN] | the assembled cut -> a filmstrip QC pack (event sheets, overviews, waveform, checklist) under the media hub, so the cut can be scanned fast BEFORE the 120 approval. This ran `after: "deliver"` as a loose helper until plan 196 — the QC pack was built after the video shipped. |
-| `120-approve-final-cut-human` | [OWNER] | `final.mp4` → `final-cut.json` (**REVIEW 3: Final Cut**. Motion and sound review — effects, sound, pacing, captions; judged in motion) |
-| `130-learn-from-feedback-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
-| `140-davinci-export-run` | [RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)] | same inputs as 110 → layered FCPXML + music/sfx lanes + panel transforms |
-| `150-deliver-drive-run` | [RUN] | approved `final.mp4` (full-res, 120-gated) → `Output/<slug>-final.mp4` in the video's own Drive folder (`run-config.json` drive_folder/drive_account; `pp-drive` upload with --overwrite) |
+| `010-configure-run-human` | [OWNER] | the owner's Drive delivery choices (drive_folder/drive_account) → `run-config.json`. No file = deliver step falls back to its own defaults. The HeyGen engine choice moved to the avatar spend gate (420) — it is no longer set here (plan 197) |
+| `020-transcribe-run` | [RUN] + quality pass [RUN/LLM] | `vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) + optional `script.txt` → `transcript.json` (word timestamps, cleaned — never raw ASR punctuation; script-first alignment when `script.txt` exists, else an LLM cleanup pass, both gated by `checkTimingIntegrity()`) |
+| `030-clean-transcript-llm` | [LLM] + [RUN] | raw ASR `transcript.json` -> a corrected `transcript.json` + `transcript.diff.json`. Repunctuates, fixes brand and product names, trims discourse fillers — never grammar or phrasing. Machine-gated by `checkTimingIntegrity()`: a text edit that would desync captions from audio is refused and the raw ASR is kept. Assemble burns captions from these words VERBATIM, so a garble here ships on screen. |
+| `040-split-narration-demo-run` | [RUN] | `transcript.json` + `src/*.mp4` → `segments.json` (measured intro/body/conclusion `structure` + demo vs narration `segments`; owner sets `confirmed: true`, which promotes lint E5 from warning to error) |
+| `050-choose-concept-llm` | [LLM] | `transcript.json` + `segments.json` → `concept.json` (gate `lint-concept` — required fields, anchors resolving in forward order, and ≥80% **narration** coverage by the register map; `segments.json` is what narration time is measured from) |
+| `110-propose-intro-idea-llm` | [LLM] | `transcript.json` + `segments.json` + `concept.json` -> `intro-film/idea.json`: 2-3 competing visual directions for the intro, one page each. Prose only — no beats, no timings, no code. The cheapest place to reject an intro. |
+| `120-approve-intro-idea-human` | [OWNER] | `intro-film/idea.json` -> `approved: true` plus `chosen: "<id>"` (HUMAN GATE: Intro Idea). Reject all three and the idea pass runs again. A page of prose is the cheapest rejection in the pipeline. |
+| `130-author-intro-screenplay-llm` | [LLM] (OFF by default) | `transcript.json` + `segments.json` + `concept.json` + `card-library/DESIGN.md` → `intro-film/screenplay.json`. Runs only when `run-config.json` has `intro: "film"`. Reads the design system and the logo registry, and must not read `catalog.json` — the intro keeps full creative freedom. Reviewed at 140, approved at 150, rendered at 160. |
+| `140-review-intro-frames-run` | [RUN] | `intro-film/screenplay.json` → `intro-film/review/REVIEW.md` + stills: renders ~36 stills (three per beat) and runs the mechanical checks (occlusion, overflow, contrast, runtime errors) — ~15s against the ~67s film encode. The beat sheet where each stage direction sits beside the frames it produced, so an editorial issue is caught before a single frame is encoded. |
+| `150-approve-intro-film-human` | [OWNER] | `intro-film/screenplay.json` + `intro-film/review/` → `approved: true` in `screenplay.json` (HUMAN GATE: Intro Film). Reviewed on the Intro tab of the board. Rendering (160) is a separate step so nothing renders a film nobody reviewed. |
+| `160-render-intro-film-run` | [RUN] | `intro-film/screenplay.json` → `intro-film/out/intro.mp4`: the ~67-second encode. No approval check here on purpose — rendering is how the owner GETS a film to watch, and gating it behind approval deadlocked the review. The approval gate (150) is enforced in code at assembly (`requireIntroApproved()` in lib/assemble.mjs), not by refusing to render. |
+| `210-author-body-cues-llm` | [LLM] (pluggable) | `transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json`, **BODY ONLY**. Picks from the catalog OR proposes a card that should exist (approved at 235, built at 240) |
+| `220-author-conclusion-cues-llm` | [LLM] (pluggable) | `transcript.json` + `catalog.json` + `segments.json`'s `structure` → zone cues in `cues.json`, each carrying a `zone` field. Own rulebook (`lib/zone-rules.mjs`) and own numbers (`lib/zone-constants.mjs`) — nothing shared with the body pass |
+| `230-review-cue-plan-run` | [RUN] | `cues.json` + `transcript.json` + `catalog.json` -> `checks/cue-plan.json`. Everything checkable BEFORE any card exists: anchors that do not resolve, cues naming a card that is not in the catalog, timing collisions. Cheap, writes no cue data. |
+| `235-build-card-plan-run` | [RUN] | `cues.json` + `catalog.json` -> `card-plan.json`: every card the video will use, and which of them do not exist yet. A REPORT, not a gate (plan 195) — new cards are judged built and in context at the 340 storyboard. |
+| `240-build-cards-llm` | [LLM] (Sonnet) + [OWNER] | approved NEW proposals → new cards in `card-library/<type>/<name>/` + `catalog.json` entries, committed and pushed. Skipped when nothing is NEW. **Then the owner reviews the built card**: landing it flips its plan item `new` → `existing`, which resets the 340 storyboard approval by design (plan 195), so a card nobody has looked at cannot reach 410. Procedure lives in `card-library/CLAUDE.md` |
+| `310-sync-graphics-run` | [RUN] | `cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9, and the zone bar W15/W16/W17/W19) |
+| `320-place-avatar-llm` | [LLM] (Sonnet default, pluggable) | approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel) |
+| `330-review-storyboard-run` | [RUN] | `resolved.json` + `shots.json` -> `shots.resolved.json` + `checks/shots.json`, `checks/stillness.json`, `checks/audit-gate.json`. Resolves the shot spans and runs every pre-render check in one pass: shot lint, W18 stillness, and the audit gate. Replaces four separate commands (`shots`, `stillness`, `audit-gate`, and the optional review-graphics audit step this folded into, formerly numbered 050 and retired in plan 196), three of which wrote nothing and one of which was optional while a gate depended on it. |
+| `340-approve-storyboard-human` | [OWNER] | `resolved.json` → approved `cues.json` + `shots.json` (**REVIEW 2: Storyboard**. Composition only — screen vs graphics vs avatar+mode, skippable on short videos. Localhost:4322 board; audit-gate blocks labelled fullframes) |
+| `410-render-graphics-run` | [RUN] | approved `resolved.json` → `renders/*.mp4\|mov` + `manifest.md` (brand-inline; variant rotation) |
+| `420-propose-avatar-human` | [OWNER] | `shots.resolved.json` + the character registry -> `avatar-plan.json`: which character, which HeyGen model, how many clips and how many seconds. HARD STOP — nothing is submitted to HeyGen until this is approved. Avatar IV is metered against the monthly second-pool, and this is where that spend is authorised, against real numbers rather than at kickoff against none. |
+| `430-render-avatar-run` | [OWNER live HeyGen] | approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md` |
+| `440-rerender-intro-film-run` | [RUN] | the real `avatar.mp4` + the approved screenplay -> a final `intro-film/out/intro.mp4`. The intro approved at the 1xx gate was rendered against a static stand-in; this is the encode that ships. Fails if the workdir still has no real avatar. |
+| `450-plan-sound-run` | [RUN] | `resolved.json` + `effects.json` + `segments.json` -> `sound.json`: the semantic SFX placement plan — sound tied to what is happening on screen rather than sprinkled. |
+| `460-mix-audio-run` | [RUN] | `sound.json` + `vo.mp3` -> the mastered -14 LUFS mix, frame-exact against the voiceover. Writes `sfx-bus.wav` (and `music-ducked.wav` when the plan carries music). |
+| `510-assemble-video-run` | [RUN] | `screen.mp4` + `master.wav` + `renders/` + avatar clips → `final.mp4` (freeze gap-filler, version registry) + `assembly.md` |
+| `520-review-cut-run` | [RUN] | the assembled cut -> a filmstrip QC pack (event sheets, overviews, waveform, checklist) under the media hub, so the cut can be scanned fast BEFORE the 530 approval. This ran `after: "deliver"` as a loose helper until plan 196 — the QC pack was built after the video shipped. |
+| `530-approve-final-cut-human` | [OWNER] | `final.mp4` → `final-cut.json` (**REVIEW 3: Final Cut**. Motion and sound review — effects, sound, pacing, captions; judged in motion) |
+| `610-davinci-export-run` | [RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)] | same inputs as 510 → layered FCPXML + music/sfx lanes + panel transforms |
+| `620-deliver-drive-run` | [RUN] | approved `final.mp4` (full-res, 530-gated) → `Output/<slug>-final.mp4` in the video's own Drive folder (`run-config.json` drive_folder/drive_account; `pp-drive` upload with --overwrite) |
+| `630-learn-from-feedback-opus` | [OPUS] | `videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step) |
 <!-- END GENERATED STEP TABLE -->
 
 Not steps — helper commands and always-on stages that run between them, in the order they fit the flow above:
@@ -87,7 +89,7 @@ Each `steps/NNN-*/` folder has a `README.md` that remains the detailed reference
 ## What this pipeline adds over the retired v1
 
 - **A. Doctrine port + concept pre-pass**: core idea, motif, register map enforced by machine lint (spec [docs/specs/2026-07-24-visuals-flow-v2-design.md](../../../docs/specs/2026-07-24-visuals-flow-v2-design.md)).
-- **B. Enacted-device card family**: ~12 new cards that *do* ideas (fill, race, stack). The flywheel is steps 037→038: a pass proposes the card it wants, the owner approves it, it is built into the shared collection, and every later video can use it.
+- **B. Enacted-device card family**: ~12 new cards that *do* ideas (fill, race, stack). The flywheel is steps 235→240: a pass proposes the card it wants, the owner approves it, it is built into the shared collection, and every later video can use it.
 - **C. Coverage fix + motion density**: no more orange screen via `extendExposure` + gap filler; always-on karaoke captions and motif.
 - **D. Selection quality**: mute-test self-audit catches bad card picks before render.
 - **E. Sound + mix stage**: semantic SFX, ducked music, −14 LUFS master (frame-exact sync).
@@ -101,32 +103,32 @@ Each `steps/NNN-*/` folder has a `README.md` that remains the detailed reference
 ```
 videos/<slug>/
   video.json       # per-video manifest (aspect, brand, music mood, format) — committed
-  run-config.json  # step 005 owner kickoff choices (engine, review mode, drive folder) — committed
+  run-config.json  # step 010 owner kickoff choices (engine, review mode, drive folder) — committed
   vo.mp3           # input voiceover — gitignored (regenerable from the tts hub)
-  script.txt       # optional input — when present, wins as the authoritative caption text (step 010 script-first mode)
-  transcript.json  # step 010 output, cleaned (never raw ASR punctuation) — committed
-  transcript.<engine>-raw.bak.json  # step 010's raw ASR backup, pre-cleanup — committed
-  segments.json    # step 015 output — committed
-  concept.json     # step 020 output (core idea, motif, register map) — committed
-  cues.llm.json    # steps 030+035's final output, pre-owner-edits — committed, immutable
-  cues.json        # steps 030 (body) + 035 (zones) output, step 080 board edits — committed
-  card-plan.json   # step 037 gate output — committed
-  resolved.json    # step 040 output — committed
-  audit.json       # step 050 mute-test output — committed
-  shots.llm.json   # step 060's final output, pre-owner-edits — committed, immutable
-  shots.json       # step 060 output, board edits — committed
+  script.txt       # optional input — when present, wins as the authoritative caption text (step 020 script-first mode)
+  transcript.json  # step 020 output, cleaned (never raw ASR punctuation) — committed
+  transcript.<engine>-raw.bak.json  # step 020's raw ASR backup, pre-cleanup — committed
+  segments.json    # step 040 output — committed
+  concept.json     # step 050 output (core idea, motif, register map) — committed
+  cues.llm.json    # steps 210+220's final output, pre-owner-edits — committed, immutable
+  cues.json        # steps 210 (body) + 220 (zones) output, step 340 board edits — committed
+  card-plan.json   # step 235 output — committed
+  resolved.json    # step 310 output — committed
+  audit.json       # mute-test output, formerly step 050, folded into 330 (plan 196) — committed
+  shots.llm.json   # step 320's final output, pre-owner-edits — committed, immutable
+  shots.json       # step 320 output, board edits — committed
   shots.resolved.json  # resolve-shots output (absolute times) — committed
-  avatar-jobs.json     # step 100 HeyGen job tracking — committed
+  avatar-jobs.json     # step 430 HeyGen job tracking — committed
   effects.json         # per-instance assembly-effects manifest (node lib/effects-plan.mjs <slug>) — owner-editable, committed; see EFFECTS.md
   sound.json       # sound output, SFX placement plan — committed
   motif/               # per-video through-line assets — committed
-  slices/              # per-cue vo slices, the 080 board's — gitignored
-  slices-avatar/       # per-job vo slices, step 100 — gitignored
-  renders/             # step 090's clips — gitignored (regenerable)
-  manifest.md      # step 090 output, at the workdir root — committed
-  avatar-manifest.md   # step 100 output — committed
+  slices/              # per-cue vo slices, the 340 board's — gitignored
+  slices-avatar/       # per-job vo slices, step 430 — gitignored
+  renders/             # step 410's clips — gitignored (regenerable)
+  manifest.md      # step 410 output, at the workdir root — committed
+  avatar-manifest.md   # step 430 output — committed
   screen.mp4       # VO-aligned screen recording (owner-provided) — gitignored
-  assembly.md      # step 110 output, the assembly EDL — committed
+  assembly.md      # step 510 output, the assembly EDL — committed
   qc-report.md     # filmstrip QC verdict table (qc verb output) — committed
   feedback.json    # owner feedback typed on the board (per-cue, per-gap, global) — committed
   run-log.json     # the run ledger: what each step did — committed
@@ -213,7 +215,7 @@ Field semantics:
 - `legacy_why` (optional) — one-line reason if falling back to a legacy text/reveal card instead of the enacted family.
 - `motif` (optional) — boolean, true if the cue hosts the through-line motif.
 - `flagged: true` — no card fits, needs a novel card (plan 065 surfaces these).
-- `propose` (optional) — object, present when `card` names a card that does not exist yet. `{ does, kind, placement, beats, variables }` — what the card DOES, whether it is `single` or `beat`, how many beats, and what varies. The owner approves or kills it at 037; 038 builds what survives. A cue carrying `propose` is legal through `validateCues` but rejected by `resolveCues`, because by step 040 the card must exist.
+- `propose` (optional) — object, present when `card` names a card that does not exist yet. `{ does, kind, placement, beats, variables }` — what the card DOES, whether it is `single` or `beat`, how many beats, and what varies. The owner approves or kills it at 235; 240 builds what survives. A cue carrying `propose` is legal through `validateCues` but rejected by `resolveCues`, because by step 310 the card must exist.
 - `kind: "word-sync"` cards (catalog) take `variables.text` (the sentence, quoted verbatim from the voiceover) and optional `variables.accent` (a phrase appearing verbatim inside `text`, rendered in the brand accent). They author **no** `beats` — the resolver derives one beat per word from `transcript.json`, so the cue's `anchor` must be the opening words of the sentence itself.
 - Board feedback: every cue block, gap block, and the header carry a feedback box;
   Save writes non-empty entries to `feedback.json` (`items` keyed by cue id,
@@ -223,14 +225,14 @@ Field semantics:
   final timeline (e.g. 6.0 if a cold-open precedes it). All cue/beat times stay
   VO-relative; the offset is applied ONLY to manifest.md's "place at" column, so
   the editor always drops clips at real timeline timecodes. If the VO shifts after
-  rendering, update `offset` in cues.json, re-run step 040 then 090 (or shift the
+  rendering, update `offset` in cues.json, re-run step 310 then 410 (or shift the
   manifest timecodes by hand — the clips themselves don't change).
 
 Single-card cues (`kind: "single"`) have `beats: []` and use catalog `default_duration`.
 
 ## card-plan.json schema
 
-The 037 gate. Every card the video will use, body and zones alike, marked
+Written by 235. Every card the video will use, body and zones alike, marked
 EXISTING or NEW-to-build — approved before anything is built or rendered.
 
 Built from `cues.json`, **not** `resolved.json`: a cue naming a card that does
@@ -263,20 +265,20 @@ somebody had already hand-built.
   ]
 }
 ```
-- `approved`: boolean gate; `render.mjs` refuses while false (unless `--force`). Resets to false whenever the plan changes — including when 038 builds a card and its `status` flips `new` → `existing`, so the built card is looked at before it reaches a video.
+- `approved`: boolean gate; `render.mjs` refuses while false (unless `--force`). Resets to false whenever the plan changes — including when 240 builds a card and its `status` flips `new` → `existing`, so the built card is looked at before it reaches a video.
 - `sections`: one per `intro` / `body` / `conclusion` that has cues; empty ones are dropped. `start`/`end` appear only for the zones, which are the only parts measured from the source recordings — the body has no span.
-- `items`: `status` is `existing` (found in `catalog.json`) or `new` (to be built at 038). `anchor` rather than a timestamp: this gate runs before 040 puts the plan on a clock.
+- `items`: `status` is `existing` (found in `catalog.json`) or `new` (to be built at 240). `anchor` rather than a timestamp: this gate runs before 310 puts the plan on a clock.
 - `proposal`: the structured spec of a NEW card (`does` / `kind` / `placement` / `beats` / `variables`), taken from the cue's `propose` field.
 
 ## run-config.json schema
 
-Step 005 output — the owner's kickoff choices. Absent file = all defaults.
+Step 010 output — the owner's kickoff choices. Absent file = all defaults.
 
 ```jsonc
 {
   "engine": "heygen3",        // heygen3 (Avatar III, free; default) | heygen4 (Avatar IV, METERED — setting it IS the owner authorization for this video)
-  "review": "full",           // full (every gate; default) | express (unattended to final cut; waives 037/080 board approvals ONLY — never the new-card look-preview, never 120)
-  "drive_folder": "1x-…",     // optional — the video's own Drive folder (holds Input/ and Output/); step 150 delivers into its Output/
+  "review": "full",           // full (every gate; default) | express (unattended to final cut; waives 235/340 board approvals ONLY — never the new-card look-preview, never 530)
+  "drive_folder": "1x-…",     // optional — the video's own Drive folder (holds Input/ and Output/); step 620 delivers into its Output/
   "drive_account": "a@b.com", // optional — pp-drive token account with write access
   "decided_at": "2026-08-01T…"
 }
@@ -300,13 +302,13 @@ disagree.
   "video": "<slug>",
   "updated": "2026-07-30T09:19:41.204Z",
   "steps": {
-    "030-pick-or-propose-graphics-llm": {
+    "210-author-body-cues-llm": {
       "status": "done",
       "started": "2026-07-30T09:12:04.881Z",
       "ended": "2026-07-30T09:19:41.204Z",
       "did": "Placed 23 body cues from the catalog, proposed 2 cards that don't exist yet.",
       "issues": "2 W7 bare-stretch warnings in the 3-4 min talking-head stretch, left as-is.",
-      "output": "cues.json — 23 cues, 2 marked NEW for step 038"
+      "output": "cues.json — 23 cues, 2 marked NEW for step 240"
     }
   }
 }
