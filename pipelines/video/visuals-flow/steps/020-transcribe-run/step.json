@@ -17,5 +17,6 @@
   "tab": null,
   "external": false,
   "optional": false,
-  "summary": "`vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) + optional `script.txt` → `transcript.json` (word timestamps, cleaned — never raw ASR punctuation; script-first alignment when `script.txt` exists, else an LLM cleanup pass, both gated by `checkTimingIntegrity()`)"
+  "summary": "`vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) + optional `script.txt` → `transcript.json` (word timestamps, cleaned — never raw ASR punctuation; script-first alignment when `script.txt` exists, else an LLM cleanup pass, both gated by `checkTimingIntegrity()`)",
+  "track": "main"
 }

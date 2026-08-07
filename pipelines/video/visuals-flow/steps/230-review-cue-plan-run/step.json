@@ -18,5 +18,6 @@
   "tab": null,
   "external": false,
   "optional": false,
-  "summary": "`cues.json` + `transcript.json` + `catalog.json` -> `checks/cue-plan.json`. Everything checkable BEFORE any card exists: anchors that do not resolve, cues naming a card that is not in the catalog, timing collisions. Cheap, writes no cue data."
+  "summary": "`cues.json` + `transcript.json` + `catalog.json` -> `checks/cue-plan.json`. Everything checkable BEFORE any card exists: anchors that do not resolve, cues naming a card that is not in the catalog, timing collisions. Cheap, writes no cue data.",
+  "track": "main"
 }

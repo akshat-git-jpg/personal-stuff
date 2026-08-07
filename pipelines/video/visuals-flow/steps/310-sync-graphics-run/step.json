@@ -19,5 +19,6 @@
   "external": false,
   "optional": false,
   "nextHint": "run.sh <slug> resolve  (build any NEW cards at step 240 first)",
-  "summary": "`cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9, and the zone bar W15/W16/W17/W19)"
+  "summary": "`cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9, and the zone bar W15/W16/W17/W19)",
+  "track": "main"
 }

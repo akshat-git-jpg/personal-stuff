@@ -18,5 +18,6 @@
   "external": false,
   "optional": false,
   "nextHint": "run.sh <slug> clean-transcript  (before any anchor exists — anchors quote the transcript verbatim)",
-  "summary": "raw ASR `transcript.json` -> a corrected `transcript.json` + `transcript.diff.json`. Repunctuates, fixes brand and product names, trims discourse fillers — never grammar or phrasing. Machine-gated by `checkTimingIntegrity()`: a text edit that would desync captions from audio is refused and the raw ASR is kept. Assemble burns captions from these words VERBATIM, so a garble here ships on screen."
+  "summary": "raw ASR `transcript.json` -> a corrected `transcript.json` + `transcript.diff.json`. Repunctuates, fixes brand and product names, trims discourse fillers — never grammar or phrasing. Machine-gated by `checkTimingIntegrity()`: a text edit that would desync captions from audio is refused and the raw ASR is kept. Assemble burns captions from these words VERBATIM, so a garble here ships on screen.",
+  "track": "main"
 }

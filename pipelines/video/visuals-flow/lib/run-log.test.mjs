@@ -33,8 +33,8 @@ test('step ids come from the steps/ folders', async (t) => {
   await t.test('reads every NNN- folder, in number order', () => {
     const ids = stepIds();
     assert.ok(ids.length >= 15, `expected the real step folders, got ${ids.length}`);
-    assert.equal(ids[0], '005-configure-run-human');
-    assert.equal(ids[1], '010-transcribe-run');
+    assert.equal(ids[0], '010-configure-run-human');
+    assert.equal(ids[1], '020-transcribe-run');
     assert.deepEqual([...ids].sort(), ids, 'must come back in step order');
     for (const id of ids) assert.match(id, /^\d{3}-/);
   });
@@ -57,6 +57,7 @@ test('step ids come from the steps/ folders', async (t) => {
         waivable: false,
         external: false,
         optional: false,
+        track: 'main',
         requires: { intro: null },
       }),
     );
@@ -70,17 +71,17 @@ test('step ids come from the steps/ folders', async (t) => {
   });
 
   await t.test('the folder suffix is the cost signal', () => {
-    assert.equal(stepKind('040-sync-graphics-run'), 'script');
-    assert.equal(stepKind('030-pick-or-propose-graphics-llm'), 'session');
-    assert.equal(stepKind('130-learn-from-feedback-opus'), 'session');
-    assert.equal(stepKind('080-approve-storyboard-human'), 'gate');
+    assert.equal(stepKind('310-sync-graphics-run'), 'script');
+    assert.equal(stepKind('210-author-body-cues-llm'), 'session');
+    assert.equal(stepKind('630-learn-from-feedback-opus'), 'session');
+    assert.equal(stepKind('340-approve-storyboard-human'), 'gate');
   });
 
   await t.test('a step that is both a model pass and a gate reports as both', () => {
-    // 038 builds the card, then the owner re-approves it: landing the card
+    // 240 builds the card, then the owner re-approves it: landing the card
     // flips its plan item new -> existing, which resets card-plan approval.
-    assert.equal(stepKind('038-build-cards-llm-and-review-human'), 'session+gate');
-    assert.ok(stepIds().includes('038-build-cards-llm-and-review-human'), 'the folder must match the name');
+    // (its slug carries no -human suffix any more — see below.)
+    assert.ok(stepIds().includes('240-build-cards-llm'), 'the folder must match the name');
   });
 });
 
@@ -90,20 +91,20 @@ test('an invented step name cannot be recorded', async (t) => {
   // on the next, because the name only ever existed in the session's head.
   await t.test('rejects a made-up name and lists the real ones', () => {
     assert.throws(() => resolveStepId('body cue pass'), /unknown step "body cue pass"/);
-    assert.throws(() => resolveStepId('body cue pass'), /030-pick-or-propose-graphics-llm/);
+    assert.throws(() => resolveStepId('body cue pass'), /210-author-body-cues-llm/);
   });
 
   await t.test('accepts the canonical id', () => {
     assert.equal(
-      resolveStepId('030-pick-or-propose-graphics-llm'),
-      '030-pick-or-propose-graphics-llm',
+      resolveStepId('210-author-body-cues-llm'),
+      '210-author-body-cues-llm',
     );
   });
 
   await t.test('accepts the bare number and expands it', () => {
-    assert.equal(resolveStepId('030'), '030-pick-or-propose-graphics-llm');
-    assert.equal(resolveStepId('080'), '080-approve-storyboard-human');
-    assert.equal(resolveStepId('038'), '038-build-cards-llm-and-review-human');
+    assert.equal(resolveStepId('210'), '210-author-body-cues-llm');
+    assert.equal(resolveStepId('340'), '340-approve-storyboard-human');
+    assert.equal(resolveStepId('240'), '240-build-cards-llm');
   });
 
   await t.test('rejects an empty step', () => {
@@ -114,49 +115,49 @@ test('an invented step name cannot be recorded', async (t) => {
 
 test('recording a step', async (t) => {
   await t.test('rejects a status outside the enum', () => {
-    assert.throws(() => setStep(emptyLog('v'), '010-transcribe-run', 'finished'), /unknown status/);
+    assert.throws(() => setStep(emptyLog('v'), '020-transcribe-run', 'finished'), /unknown status/);
     for (const s of STATUSES) {
       const fields = s === 'done' ? { did: 'x', output: 'y' } : {};
-      assert.doesNotThrow(() => setStep(emptyLog('v'), '010-transcribe-run', s, fields));
+      assert.doesNotThrow(() => setStep(emptyLog('v'), '020-transcribe-run', s, fields));
     }
   });
 
   await t.test('a done step without a summary is refused, not written half-empty', () => {
     assert.throws(
-      () => setStep(emptyLog('v'), '030-pick-or-propose-graphics-llm', 'done', { did: 'placed cues' }),
+      () => setStep(emptyLog('v'), '210-author-body-cues-llm', 'done', { did: 'placed cues' }),
       /needs output/,
     );
     assert.throws(
-      () => setStep(emptyLog('v'), '030-pick-or-propose-graphics-llm', 'done', {}),
+      () => setStep(emptyLog('v'), '210-author-body-cues-llm', 'done', {}),
       /needs did and output/,
     );
   });
 
   await t.test('an absent issues field becomes an explicit "none found"', () => {
     // A blank must never read as "nobody checked".
-    const log = setStep(emptyLog('v'), '040-sync-graphics-run', 'done', {
+    const log = setStep(emptyLog('v'), '310-sync-graphics-run', 'done', {
       did: 'resolved anchors',
       output: 'resolved.json',
     });
-    assert.equal(log.steps['040-sync-graphics-run'].issues, 'none found');
+    assert.equal(log.steps['310-sync-graphics-run'].issues, 'none found');
   });
 
   await t.test('running stamps started and clears any old end time', () => {
-    let log = setStep(emptyLog('v'), '010-transcribe-run', 'done', { did: 'a', output: 'b' });
-    assert.ok(log.steps['010-transcribe-run'].ended);
-    log = setStep(log, '010-transcribe-run', 'running');
-    assert.ok(log.steps['010-transcribe-run'].started);
-    assert.equal(log.steps['010-transcribe-run'].ended, undefined);
+    let log = setStep(emptyLog('v'), '020-transcribe-run', 'done', { did: 'a', output: 'b' });
+    assert.ok(log.steps['020-transcribe-run'].ended);
+    log = setStep(log, '020-transcribe-run', 'running');
+    assert.ok(log.steps['020-transcribe-run'].started);
+    assert.equal(log.steps['020-transcribe-run'].ended, undefined);
   });
 
   await t.test('a re-run keeps the fields it is not given', () => {
-    let log = setStep(emptyLog('v'), '040-sync-graphics-run', 'done', {
+    let log = setStep(emptyLog('v'), '310-sync-graphics-run', 'done', {
       did: 'resolved 23 anchors',
       issues: '2 W7 warnings',
       output: 'resolved.json',
     });
-    log = setStep(log, '040-sync-graphics-run', 'done', { output: 'resolved.json (24 cues)' });
-    const e = log.steps['040-sync-graphics-run'];
+    log = setStep(log, '310-sync-graphics-run', 'done', { output: 'resolved.json (24 cues)' });
+    const e = log.steps['310-sync-graphics-run'];
     assert.equal(e.did, 'resolved 23 anchors');
     assert.equal(e.issues, '2 W7 warnings');
     assert.equal(e.output, 'resolved.json (24 cues)');
@@ -164,7 +165,7 @@ test('recording a step', async (t) => {
 
   await t.test('whitespace-only fields do not satisfy the done requirement', () => {
     assert.throws(
-      () => setStep(emptyLog('v'), '010-transcribe-run', 'done', { did: '   ', output: '  ' }),
+      () => setStep(emptyLog('v'), '020-transcribe-run', 'done', { did: '   ', output: '  ' }),
       /needs did and output/,
     );
   });
@@ -173,13 +174,13 @@ test('recording a step', async (t) => {
 test('the ledger round-trips through the workdir', () => {
   const dir = workdir('io');
   assert.deepEqual(readRunLog(dir).steps, {}, 'a missing file reads as an empty ledger');
-  const log = setStep(emptyLog(path.basename(dir)), '015-map-segments-run', 'done', {
+  const log = setStep(emptyLog(path.basename(dir)), '040-split-narration-demo-run', 'done', {
     did: 'measured the source spans',
     output: 'segments.json',
   });
   writeRunLog(dir, log);
   const back = readRunLog(dir);
-  assert.equal(back.steps['015-map-segments-run'].did, 'measured the source spans');
+  assert.equal(back.steps['040-split-narration-demo-run'].did, 'measured the source spans');
   assert.ok(back.updated);
 });
 
@@ -197,12 +198,12 @@ test('falling back to the artifacts', async (t) => {
     const view = stepView(dir);
     const byNum = Object.fromEntries(view.map((s) => [s.number, s]));
 
-    assert.equal(byNum['010'].status, 'done');
-    assert.equal(byNum['010'].derived, true, 'must be marked derived — no summary was ever written');
-    assert.equal(byNum['015'].status, 'done');
-    assert.equal(byNum['020'].status, 'todo');
-    assert.equal(byNum['010'].did, undefined, 'a derived entry must not invent a summary');
-    assert.equal(byNum['020'].derived, undefined, 'an unstarted step has nothing inferred about it');
+    assert.equal(byNum['020'].status, 'done');
+    assert.equal(byNum['020'].derived, true, 'must be marked derived — no summary was ever written');
+    assert.equal(byNum['040'].status, 'done');
+    assert.equal(byNum['050'].status, 'todo');
+    assert.equal(byNum['020'].did, undefined, 'a derived entry must not invent a summary');
+    assert.equal(byNum['050'].derived, undefined, 'an unstarted step has nothing inferred about it');
   });
 
   await t.test('a recorded entry beats the artifact probe', () => {
@@ -210,47 +211,47 @@ test('falling back to the artifacts', async (t) => {
     fs.writeFileSync(path.join(dir, 'transcript.json'), '[]');
     writeRunLog(
       dir,
-      setStep(emptyLog('v'), '010-transcribe-run', 'blocked', { issues: 'groq 401' }),
+      setStep(emptyLog('v'), '020-transcribe-run', 'blocked', { issues: 'groq 401' }),
     );
-    const s = stepView(dir).find((v) => v.number === '010');
+    const s = stepView(dir).find((v) => v.number === '020');
     assert.equal(s.status, 'blocked');
     assert.ok(!s.derived);
     assert.equal(s.issues, 'groq 401');
   });
 
-  await t.test('030 and 035 are told apart by whether a cue carries a zone', () => {
+  await t.test('210 and 220 are told apart by whether a cue carries a zone', () => {
     const dir = workdir('zones');
     fs.writeFileSync(
       path.join(dir, 'cues.json'),
       JSON.stringify({ cues: [{ id: 'c01', card: 'a' }] }),
     );
     let byNum = Object.fromEntries(stepView(dir).map((s) => [s.number, s]));
-    assert.equal(byNum['030'].status, 'done', 'a body cue proves the body pass ran');
-    assert.equal(byNum['035'].status, 'todo', 'no zone cue yet');
+    assert.equal(byNum['210'].status, 'done', 'a body cue proves the body pass ran');
+    assert.equal(byNum['220'].status, 'todo', 'no zone cue yet');
 
     fs.writeFileSync(
       path.join(dir, 'cues.json'),
       JSON.stringify({ cues: [{ id: 'c01', card: 'a' }, { id: 'c02', card: 'b', zone: 'intro' }] }),
     );
     byNum = Object.fromEntries(stepView(dir).map((s) => [s.number, s]));
-    assert.equal(byNum['035'].status, 'done');
+    assert.equal(byNum['220'].status, 'done');
   });
 
-  await t.test('037 needs approval, not just a file', () => {
+  await t.test('235 needs approval, not just a file', () => {
     const dir = workdir('gate');
     fs.writeFileSync(path.join(dir, 'card-plan.json'), JSON.stringify({ approved: false, sections: [] }));
-    assert.equal(stepView(dir).find((s) => s.number === '037').status, 'todo');
+    assert.equal(stepView(dir).find((s) => s.number === '235').status, 'todo');
     fs.writeFileSync(path.join(dir, 'card-plan.json'), JSON.stringify({ approved: true, sections: [] }));
-    assert.equal(stepView(dir).find((s) => s.number === '037').status, 'done');
+    assert.equal(stepView(dir).find((s) => s.number === '235').status, 'done');
   });
 
-  await t.test('038 is done when the plan has no NEW cards left', () => {
+  await t.test('240 is done when the plan has no NEW cards left', () => {
     const dir = workdir('build');
     const plan = (status) => JSON.stringify({ sections: [{ items: [{ id: 'c01', status }] }] });
     fs.writeFileSync(path.join(dir, 'card-plan.json'), plan('new'));
-    assert.equal(stepView(dir).find((s) => s.number === '038').status, 'todo');
+    assert.equal(stepView(dir).find((s) => s.number === '240').status, 'todo');
     fs.writeFileSync(path.join(dir, 'card-plan.json'), plan('existing'));
-    assert.equal(stepView(dir).find((s) => s.number === '038').status, 'done');
+    assert.equal(stepView(dir).find((s) => s.number === '240').status, 'done');
   });
 
   await t.test('unreadable artifacts read as not-done rather than throwing', () => {
@@ -258,7 +259,7 @@ test('falling back to the artifacts', async (t) => {
     fs.writeFileSync(path.join(dir, 'cues.json'), '{broken');
     fs.writeFileSync(path.join(dir, 'card-plan.json'), '{broken');
     assert.doesNotThrow(() => stepView(dir));
-    assert.equal(stepView(dir).find((s) => s.number === '030').status, 'todo');
+    assert.equal(stepView(dir).find((s) => s.number === '210').status, 'todo');
   });
 });
 
@@ -298,8 +299,8 @@ test('the rendered table', async (t) => {
   await t.test('shows all three fields for a recorded done step', () => {
     const out = renderTable([
       {
-        id: '030-pick-or-propose-graphics-llm',
-        number: '030',
+        id: '210-author-body-cues-llm',
+        number: '210',
         kind: 'session',
         status: 'done',
         did: 'placed 23 body cues',
@@ -307,7 +308,7 @@ test('the rendered table', async (t) => {
         output: 'cues.json',
       },
     ]);
-    assert.match(out, /\[x\] 030-pick-or-propose-graphics-llm/);
+    assert.match(out, /\[x\] 210-author-body-cues-llm/);
     assert.match(out, /did: {4}placed 23 body cues/);
     assert.match(out, /issues: 2 W7 warnings/);
     assert.match(out, /output: cues\.json/);
@@ -315,13 +316,13 @@ test('the rendered table', async (t) => {
 
   await t.test('says plainly when a step was only inferred', () => {
     const out = renderTable([
-      { id: '010-transcribe-run', number: '010', kind: 'script', status: 'done', derived: true },
+      { id: '020-transcribe-run', number: '020', kind: 'script', status: 'done', derived: true },
     ]);
     assert.match(out, /inferred from artifacts, no summary recorded/);
     // The count moved from a parenthetical on the total line into an explicit
     // WARNING naming the steps and the fix — see "inferred steps are surfaced as a
     // warning" below for why a footnote was not enough.
-    assert.match(out, /WARNING: 1 step\(s\) have no recorded summary \(010\)/);
+    assert.match(out, /WARNING: 1 step\(s\) have no recorded summary \(020\)/);
   });
 });
 
@@ -333,16 +334,16 @@ test('CLI: writes, reads back, and refuses an invented step', () => {
   assert.equal(bad.status, 1);
   assert.match(bad.stderr, /unknown step/);
 
-  const noSummary = spawnSync(process.execPath, [cli, dir, '030', 'done'], { encoding: 'utf8' });
+  const noSummary = spawnSync(process.execPath, [cli, dir, '210', 'done'], { encoding: 'utf8' });
   assert.equal(noSummary.status, 1, 'a done step with no summary must fail');
 
   const ok = spawnSync(
     process.execPath,
-    [cli, dir, '030', 'done', '--did', 'placed 23 cues', '--output', 'cues.json'],
+    [cli, dir, '210', 'done', '--did', 'placed 23 cues', '--output', 'cues.json'],
     { encoding: 'utf8' },
   );
   assert.equal(ok.status, 0, ok.stderr);
-  assert.match(ok.stdout, /030-pick-or-propose-graphics-llm: done/);
+  assert.match(ok.stdout, /210-author-body-cues-llm: done/);
 
   const shown = spawnSync(process.execPath, [cli, dir], { encoding: 'utf8' });
   assert.equal(shown.status, 0);
@@ -359,7 +360,7 @@ test('a write is refused when the target is the pipeline root', () => {
   const root = path.resolve(import.meta.dirname, '..');
   const before = fs.existsSync(path.join(root, 'run-log.json'));
 
-  const w = spawnSync(process.execPath, [cli, '.', '050', 'running'], {
+  const w = spawnSync(process.execPath, [cli, '.', '450', 'running'], {
     encoding: 'utf8',
     cwd: root,
   });
@@ -385,7 +386,7 @@ test('inferred steps are surfaced as a warning, not a footnote', () => {
 
   const view = stepView(dir);
   const inferred = view.filter((s) => s.derived);
-  assert.ok(inferred.length >= 1, 'transcript.json alone should infer 010 as done');
+  assert.ok(inferred.length >= 1, 'transcript.json alone should infer 020 as done');
 
   const out = renderTable(view);
   assert.match(out, /no recorded summary/i, 'the count must be stated, not just per-row');
@@ -395,7 +396,7 @@ test('inferred steps are surfaced as a warning, not a footnote', () => {
   const clean = workdir('clean');
   fs.writeFileSync(path.join(clean, 'transcript.json'), '[]');
   let log = readRunLog(clean);
-  log = setStep(log, '010-transcribe-run', 'done', { did: 'transcribed', output: 'transcript.json' });
+  log = setStep(log, '020-transcribe-run', 'done', { did: 'transcribed', output: 'transcript.json' });
   writeRunLog(clean, log);
   const cleanOut = renderTable(stepView(clean));
   assert.doesNotMatch(cleanOut, /no recorded summary/i);
@@ -404,26 +405,26 @@ test('inferred steps are surfaced as a warning, not a footnote', () => {
 test('a skipped step cannot carry did — work means done (owner report 2026-07-31)', () => {
   let log = emptyLog('x');
   assert.throws(
-    () => setStep(log, '038-build-cards-llm-and-review-human', 'skipped', { did: 'built a card' }),
+    () => setStep(log, '240-build-cards-llm', 'skipped', { did: 'built a card' }),
     /cannot carry --did/,
   );
   // the why-skipped belongs in issues, which stays legal
-  log = setStep(log, '038-build-cards-llm-and-review-human', 'skipped', { issues: 'nothing NEW to build' });
-  assert.equal(log.steps['038-build-cards-llm-and-review-human'].status, 'skipped');
+  log = setStep(log, '240-build-cards-llm', 'skipped', { issues: 'nothing NEW to build' });
+  assert.equal(log.steps['240-build-cards-llm'].status, 'skipped');
 });
 
-test('090 infers done from media files only, never the bare renders dir (owner report 2026-07-31)', () => {
+test('410 infers done from media files only, never the bare renders dir (owner report 2026-07-31)', () => {
   const dir = workdir('renders-proof');
   fs.mkdirSync(path.join(dir, 'renders'), { recursive: true });
-  let s090 = stepView(dir).find((s) => s.number === '090');
-  assert.equal(s090.status, 'todo', 'an empty renders/ must not infer done');
+  let s410 = stepView(dir).find((s) => s.number === '410');
+  assert.equal(s410.status, 'todo', 'an empty renders/ must not infer done');
 
   fs.writeFileSync(path.join(dir, 'renders', 'probe.png'), '');
-  s090 = stepView(dir).find((s) => s.number === '090');
-  assert.equal(s090.status, 'todo', 'probe leftovers must not infer done');
+  s410 = stepView(dir).find((s) => s.number === '410');
+  assert.equal(s410.status, 'todo', 'probe leftovers must not infer done');
 
   fs.writeFileSync(path.join(dir, 'renders', '0001-c01-card.mp4'), '');
-  s090 = stepView(dir).find((s) => s.number === '090');
-  assert.equal(s090.status, 'done');
-  assert.ok(s090.derived, 'still marked inferred, never a recorded done');
+  s410 = stepView(dir).find((s) => s.number === '410');
+  assert.equal(s410.status, 'done');
+  assert.ok(s410.derived, 'still marked inferred, never a recorded done');
 });

@@ -18,5 +18,6 @@
   "external": false,
   "optional": false,
   "nextHint": "review the Final Cut tab on the board  (HUMAN GATE 3 — 530 final cut)",
-  "summary": "`final.mp4` → `final-cut.json` (**REVIEW 3: Final Cut**. Motion and sound review — effects, sound, pacing, captions; judged in motion)"
+  "summary": "`final.mp4` → `final-cut.json` (**REVIEW 3: Final Cut**. Motion and sound review — effects, sound, pacing, captions; judged in motion)",
+  "track": "main"
 }

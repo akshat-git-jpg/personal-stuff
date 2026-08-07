@@ -22,5 +22,6 @@
   "external": false,
   "optional": false,
   "nextHint": "run.sh <slug> avatar-plan, then pick a character and model on the board's Avatar tab  (HUMAN GATE — 420 avatar spend)",
-  "summary": "`shots.resolved.json` + the character registry -> `avatar-plan.json`: which character, which HeyGen model, how many clips and how many seconds. HARD STOP — nothing is submitted to HeyGen until this is approved. Avatar IV is metered against the monthly second-pool, and this is where that spend is authorised, against real numbers rather than at kickoff against none."
+  "summary": "`shots.resolved.json` + the character registry -> `avatar-plan.json`: which character, which HeyGen model, how many clips and how many seconds. HARD STOP — nothing is submitted to HeyGen until this is approved. Avatar IV is metered against the monthly second-pool, and this is where that spend is authorised, against real numbers rather than at kickoff against none.",
+  "track": "main"
 }

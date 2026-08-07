@@ -21,5 +21,6 @@
   "external": false,
   "optional": false,
   "nextHint": "run.sh <slug> board  (HUMAN GATE 2 — 340 storyboard: approve cues AND shots)",
-  "summary": "`resolved.json` → approved `cues.json` + `shots.json` (**REVIEW 2: Storyboard**. Composition only — screen vs graphics vs avatar+mode, skippable on short videos. Localhost:4322 board; audit-gate blocks labelled fullframes)"
+  "summary": "`resolved.json` → approved `cues.json` + `shots.json` (**REVIEW 2: Storyboard**. Composition only — screen vs graphics vs avatar+mode, skippable on short videos. Localhost:4322 board; audit-gate blocks labelled fullframes)",
+  "track": "main"
 }

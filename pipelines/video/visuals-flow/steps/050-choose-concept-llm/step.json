@@ -18,5 +18,6 @@
   "tab": null,
   "external": false,
   "optional": false,
-  "summary": "`transcript.json` + `segments.json` → `concept.json` (gate `lint-concept` — required fields, anchors resolving in forward order, and ≥80% **narration** coverage by the register map; `segments.json` is what narration time is measured from)"
+  "summary": "`transcript.json` + `segments.json` → `concept.json` (gate `lint-concept` — required fields, anchors resolving in forward order, and ≥80% **narration** coverage by the register map; `segments.json` is what narration time is measured from)",
+  "track": "main"
 }

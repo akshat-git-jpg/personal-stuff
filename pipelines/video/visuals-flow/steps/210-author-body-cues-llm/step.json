@@ -19,5 +19,6 @@
   "tab": null,
   "external": false,
   "optional": false,
-  "summary": "`transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json`, **BODY ONLY**. Picks from the catalog OR proposes a card that should exist (approved at 235, built at 240)"
+  "summary": "`transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json`, **BODY ONLY**. Picks from the catalog OR proposes a card that should exist (approved at 235, built at 240)",
+  "track": "main"
 }

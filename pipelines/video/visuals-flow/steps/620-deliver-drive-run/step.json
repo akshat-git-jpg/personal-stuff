@@ -15,5 +15,6 @@
   "tab": null,
   "external": true,
   "optional": true,
-  "summary": "approved `final.mp4` (full-res, 530-gated) → `Output/<slug>-final.mp4` in the video's own Drive folder (`run-config.json` drive_folder/drive_account; `pp-drive` upload with --overwrite)"
+  "summary": "approved `final.mp4` (full-res, 530-gated) → `Output/<slug>-final.mp4` in the video's own Drive folder (`run-config.json` drive_folder/drive_account; `pp-drive` upload with --overwrite)",
+  "track": "main"
 }

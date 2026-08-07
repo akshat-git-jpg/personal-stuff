@@ -18,5 +18,6 @@
   "tab": null,
   "external": false,
   "optional": false,
-  "summary": "`transcript.json` + `catalog.json` + `segments.json`'s `structure` → zone cues in `cues.json`, each carrying a `zone` field. Own rulebook (`lib/zone-rules.mjs`) and own numbers (`lib/zone-constants.mjs`) — nothing shared with the body pass"
+  "summary": "`transcript.json` + `catalog.json` + `segments.json`'s `structure` → zone cues in `cues.json`, each carrying a `zone` field. Own rulebook (`lib/zone-rules.mjs`) and own numbers (`lib/zone-constants.mjs`) — nothing shared with the body pass",
+  "track": "main"
 }

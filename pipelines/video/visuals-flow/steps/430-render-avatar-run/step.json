@@ -20,5 +20,6 @@
   "tab": null,
   "external": false,
   "optional": true,
-  "summary": "approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md`"
+  "summary": "approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md`",
+  "track": "main"
 }

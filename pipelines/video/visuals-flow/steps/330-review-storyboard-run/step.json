@@ -23,5 +23,6 @@
   "external": false,
   "optional": false,
   "nextHint": "run.sh <slug> storyboard-check  (the last cheap check before rendering costs time)",
-  "summary": "`resolved.json` + `shots.json` -> `shots.resolved.json` + `checks/shots.json`, `checks/stillness.json`, `checks/audit-gate.json`. Resolves the shot spans and runs every pre-render check in one pass: shot lint, W18 stillness, and the audit gate. Replaces four separate commands (`shots`, `stillness`, `audit-gate`, and the optional review-graphics audit step this folded into, formerly numbered 050 and retired in plan 196), three of which wrote nothing and one of which was optional while a gate depended on it."
+  "summary": "`resolved.json` + `shots.json` -> `shots.resolved.json` + `checks/shots.json`, `checks/stillness.json`, `checks/audit-gate.json`. Resolves the shot spans and runs every pre-render check in one pass: shot lint, W18 stillness, and the audit gate. Replaces four separate commands (`shots`, `stillness`, `audit-gate`, and the optional review-graphics audit step this folded into, formerly numbered 050 and retired in plan 196), three of which wrote nothing and one of which was optional while a gate depended on it.",
+  "track": "main"
 }

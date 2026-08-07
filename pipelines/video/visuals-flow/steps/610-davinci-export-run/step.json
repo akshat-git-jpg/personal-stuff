@@ -16,5 +16,6 @@
   "tab": null,
   "external": true,
   "optional": true,
-  "summary": "same inputs as 510 → layered FCPXML + music/sfx lanes + panel transforms"
+  "summary": "same inputs as 510 → layered FCPXML + music/sfx lanes + panel transforms",
+  "track": "main"
 }

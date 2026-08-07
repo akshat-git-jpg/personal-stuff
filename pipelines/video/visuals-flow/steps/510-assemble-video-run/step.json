@@ -19,5 +19,6 @@
   "external": false,
   "optional": false,
   "nextHint": "run.sh <slug> cut  (then HUMAN GATE 3 — 530 final cut)",
-  "summary": "`screen.mp4` + `master.wav` + `renders/` + avatar clips → `final.mp4` (freeze gap-filler, version registry) + `assembly.md`"
+  "summary": "`screen.mp4` + `master.wav` + `renders/` + avatar clips → `final.mp4` (freeze gap-filler, version registry) + `assembly.md`",
+  "track": "main"
 }

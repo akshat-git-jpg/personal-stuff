@@ -16,5 +16,6 @@
   "tab": null,
   "external": false,
   "optional": false,
-  "summary": "`cues.json` + `catalog.json` -> `card-plan.json`: every card the video will use, and which of them do not exist yet. A REPORT, not a gate (plan 195) — new cards are judged built and in context at the 340 storyboard."
+  "summary": "`cues.json` + `catalog.json` -> `card-plan.json`: every card the video will use, and which of them do not exist yet. A REPORT, not a gate (plan 195) — new cards are judged built and in context at the 340 storyboard.",
+  "track": "main"
 }

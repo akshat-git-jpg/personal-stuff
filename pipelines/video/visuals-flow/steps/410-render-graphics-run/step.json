@@ -18,5 +18,6 @@
   "tab": null,
   "external": false,
   "optional": false,
-  "summary": "approved `resolved.json` → `renders/*.mp4\\|mov` + `manifest.md` (brand-inline; variant rotation)"
+  "summary": "approved `resolved.json` → `renders/*.mp4\\|mov` + `manifest.md` (brand-inline; variant rotation)",
+  "track": "main"
 }

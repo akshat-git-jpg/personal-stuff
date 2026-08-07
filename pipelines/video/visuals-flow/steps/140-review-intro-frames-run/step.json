@@ -17,5 +17,6 @@
   "tab": null,
   "external": false,
   "optional": false,
-  "summary": "`intro-film/screenplay.json` → `intro-film/review/REVIEW.md` + stills: renders ~36 stills (three per beat) and runs the mechanical checks (occlusion, overflow, contrast, runtime errors) — ~15s against the ~67s film encode. The beat sheet where each stage direction sits beside the frames it produced, so an editorial issue is caught before a single frame is encoded."
+  "summary": "`intro-film/screenplay.json` → `intro-film/review/REVIEW.md` + stills: renders ~36 stills (three per beat) and runs the mechanical checks (occlusion, overflow, contrast, runtime errors) — ~15s against the ~67s film encode. The beat sheet where each stage direction sits beside the frames it produced, so an editorial issue is caught before a single frame is encoded.",
+  "track": "intro"
 }

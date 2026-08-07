@@ -15,5 +15,6 @@
   "tab": null,
   "external": true,
   "optional": true,
-  "summary": "`videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step)"
+  "summary": "`videos/*/feedback.json` + chat feedback → durable edits to RULEBOOK/prompt/DESIGN.md/catalog, items marked folded (the never-repeat-a-mistake step)",
+  "track": "main"
 }

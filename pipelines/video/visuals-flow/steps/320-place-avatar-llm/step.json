@@ -19,5 +19,6 @@
   "external": false,
   "optional": false,
   "nextHint": "run.sh <slug> shot-pass  (before the storyboard gate)",
-  "summary": "approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel)"
+  "summary": "approved `resolved.json` + `transcript.json` → `shots.json` (modes full/panel)",
+  "track": "main"
 }
