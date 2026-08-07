@@ -8,26 +8,7 @@ needs: []
 needs_prs: []
 touches: [pipelines/video/visuals-flow/lib/intro-modes.mjs, pipelines/video/visuals-flow/lib/intro-mode-table.mjs, pipelines/video/visuals-flow/lib/intro-modes.test.mjs, pipelines/video/visuals-flow/lib/intro-film/owns-intro.mjs, pipelines/video/visuals-flow/lib/intro-film/owns-intro.test.mjs, pipelines/video/visuals-flow/lib/intro-film/approve.mjs, pipelines/video/visuals-flow/lib/run-config.mjs, pipelines/video/visuals-flow/lib/run-config.test.mjs, pipelines/video/visuals-flow/lib/zone-constants.mjs, pipelines/video/visuals-flow/lib/lint-cues.mjs, pipelines/video/visuals-flow/lib/build-zone-prompt.mjs, pipelines/video/visuals-flow/lib/card-plan.mjs, pipelines/video/visuals-flow/lib/card-plan.test.mjs, pipelines/video/visuals-flow/lib/assemble.mjs, pipelines/video/visuals-flow/lib/lint-shots.mjs, pipelines/video/visuals-flow/lib/avatar-render.mjs, pipelines/video/visuals-flow/lib/avatar-render.test.mjs, pipelines/video/visuals-flow/lib/render.mjs, pipelines/video/visuals-flow/lib/board.mjs, pipelines/video/visuals-flow/lib/board-data.mjs, pipelines/video/visuals-flow/lib/board.test.mjs, pipelines/video/visuals-flow/lib/steps.mjs, pipelines/video/visuals-flow/lib/regression-cards.test.mjs, pipelines/video/visuals-flow/lib/intro-invariants.test.mjs, pipelines/video/visuals-flow/run.sh, pipelines/video/visuals-flow/scripts/check.sh, pipelines/video/visuals-flow/steps]
 
-mutation_apply: python3 - <<'PY'
-import re,io
-p='pipelines/video/visuals-flow/lib/lint-cues.mjs'
-s=open(p).read()
-marker='// E13-REMOVED-INTRO-ALWAYS-FILM'
-assert marker in s, 'marker missing — plan 194 Step 5 did not land'
-inject = """
-  {
-    const firstFull = sortedResolved.find((r) => r.placement === 'fullframe');
-    const firstCover = firstFull ? firstFull.start : Infinity;
-    if (firstCover > 0.5) {
-      errors.push(`E13 open-cover: nothing covers the opening`);
-    }
-  }
-"""
-i = s.index(marker)
-eol = s.index('\n', s.index('\n', i)+1)
-s = s[:eol+1] + inject + s[eol+1:]
-open(p,'w').write(s)
-PY
+mutation_apply: python3 -c "p='pipelines/video/visuals-flow/lib/lint-cues.mjs';s=open(p).read();m='// E13-REMOVED-INTRO-ALWAYS-FILM';assert m in s;i=s.index(m);e=s.index(chr(10),i);inj='  { const ff = sortedResolved.find((r) => r.placement === \'fullframe\'); if ((ff ? ff.start : Infinity) > 0.5) errors.push(\'E13 open-cover: nothing covers the opening\'); }'+chr(10);open(p,'w').write(s[:e+1]+inj+s[e+1:])"
 mutation_command: cd pipelines/video/visuals-flow && node --test lib/intro-invariants.test.mjs
 mutation_expect: must never fire
 mutation_cwd:
