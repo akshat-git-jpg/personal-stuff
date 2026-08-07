@@ -97,8 +97,6 @@ expect_dry intro-review "node lib/intro-film/review-film.mjs $FIX"
 expect_dry intro-render "node lib/intro-film/render-film.mjs $FIX"
 expect_dry validate "node lib/resolve.mjs $FIX --validate-only"
 expect_dry resolve "record_step 040 -- node lib/resolve.mjs $FIX && node lib/lint-cues.mjs $FIX"
-expect_dry stillness "node lib/stillness.mjs $FIX"
-expect_dry audit-gate "node lib/audit-gate.mjs $FIX"
 expect_dry card-plan "node lib/card-plan.mjs $FIX"
 expect_dry outline "node lib/card-plan.mjs $FIX --outline"
 expect_dry board "bash steps/080-approve-storyboard-human/run.sh $FIX"
@@ -106,7 +104,7 @@ expect_dry render "record_step 090 -- bash steps/090-render-graphics-run/run.sh 
 expect_dry fold "record 130 running + node lib/feedback-status.mjs"
 expect_dry sound "node lib/sound/sfx-plan.mjs $FIX"
 expect_dry mix "node lib/sound/build-mix.mjs $FIX"
-expect_dry shots "node lib/resolve-shots.mjs $FIX && node lib/lint-shots.mjs $FIX"
+expect_dry storyboard-check "node lib/resolve-shots.mjs $FIX && node lib/lint-shots.mjs $FIX && node lib/stillness.mjs $FIX && node lib/audit-gate.mjs $FIX"
 expect_dry avatar "record_step 100 -- bash steps/100-render-avatar-run/run.sh $FIX --submit --spans-only --template specs-man"
 expect_dry avatar-download "record_step 100 -- bash steps/100-render-avatar-run/run.sh $FIX --download"
 expect_dry assemble "record_step 110 -- bash steps/110-build-video-run/run.sh $FIX"
@@ -180,7 +178,7 @@ rm -rf "$tmpwd"
 
 # The same, for every other verb that hands out a prompt instead of running a
 # command. Asserted through the ledger it writes, not through run.sh's source.
-for pair in "concept-pass 020" "zone-pass 035" "audit 050" "shot-pass 060"; do
+for pair in "concept-pass 020" "zone-pass 035" "shot-pass 060"; do
   set -- $pair
   tmpwd=$(mktemp -d)
   bash run.sh "$tmpwd" "$1" >/dev/null

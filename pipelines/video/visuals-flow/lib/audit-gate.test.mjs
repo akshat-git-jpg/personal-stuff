@@ -43,10 +43,10 @@ test('audit-gate: labelled overlay warns only', () => {
   assert.match(warnings[0], /c01: labelled overlay/);
 });
 
-test('audit-gate: missing audit errors', () => {
-  const { errors } = auditGate({ audit: null, resolved: {} });
-  assert.equal(errors.length, 1);
-  assert.match(errors[0], /run the 035 audit first/);
+test('audit-gate: missing audit is a note, not an error', () => {
+  const { errors, notes } = auditGate({ audit: null, resolved: {} });
+  assert.equal(errors.length, 0);
+  assert.match(notes.missing, /not applicable/);
 });
 
 // Regression: the gate read `resolved.cues`, but resolve.mjs writes the array

@@ -1,0 +1,16 @@
+{
+  "number": "115",
+  "slug": "115-review-cut-run",
+  "title": "review the assembled cut",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": ["qc"],
+  "consumes": ["assembly.md"],
+  "produces": [],
+  "gate": null,
+  "tab": null,
+  "external": true,
+  "optional": false,
+  "nextHint": "run.sh <slug> qc  (scan the cut before approving it at 120)",
+  "summary": "the assembled cut -> a filmstrip QC pack (event sheets, overviews, waveform, checklist) under the media hub, so the cut can be scanned fast BEFORE the 120 approval. This ran `after: \"deliver\"` as a loose helper until plan 196 — the QC pack was built after the video shipped."
+}

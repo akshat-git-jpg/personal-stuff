@@ -299,29 +299,17 @@ EOF
       "resolved.json" -- do_resolve
     ;;
 
-  stillness)
-    dry "node lib/stillness.mjs $slug" && exit 0
-    node lib/stillness.mjs "$slug"
+  storyboard-check)
+    dry "node lib/resolve-shots.mjs $slug && node lib/lint-shots.mjs $slug && node lib/stillness.mjs $slug && node lib/audit-gate.mjs $slug" && exit 0
+    node lib/resolve-shots.mjs "$slug" \
+      && node lib/lint-shots.mjs "$slug" \
+      && node lib/stillness.mjs "$slug" \
+      && node lib/audit-gate.mjs "$slug"
     ;;
 
-  audit)
-    record 050 running
-    cat <<EOF
-050 is an LLM step, not a command. Assemble the prompt:
-  1. steps/$(step_slug 050)/audit-prompt.md     (the prompt; fill its placeholders)
-  2. node lib/transcript-text.mjs $slug         -> {{TRANSCRIPT}}
-  3. cat videos/$slug/resolved.json             -> {{CUES}}
-  4. node -e "const c=require('../card-library/catalog.json'); c.cards.forEach(card => console.log(card.slug + ': ' + card.purpose));" -> {{CATALOG_PURPOSES}}
-  5. node -e "const c=require('../card-library/catalog.json'); c.cards.forEach(card => console.log(card.slug));" -> {{CATALOG_SLUGS}}
-After the audit pass: run.sh $slug audit-gate
-EOF
-    exit 0
-    ;;
 
-  audit-gate)
-    dry "node lib/audit-gate.mjs $slug" && exit 0
-    node lib/audit-gate.mjs "$slug"
-    ;;
+
+
 
   card-plan)
     dry "node lib/card-plan.mjs $slug" && exit 0
@@ -378,10 +366,7 @@ EOF
     exit 0
     ;;
 
-  shots)
-    dry "node lib/resolve-shots.mjs $slug && node lib/lint-shots.mjs $slug" && exit 0
-    node lib/resolve-shots.mjs "$slug" && node lib/lint-shots.mjs "$slug"
-    ;;
+
 
   avatar)
     # --submit is mandatory: avatar-render.mjs exits with usage when called

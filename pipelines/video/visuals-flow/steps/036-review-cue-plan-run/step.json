@@ -1,0 +1,15 @@
+{
+  "number": "036",
+  "slug": "036-review-cue-plan-run",
+  "title": "review the cue plan",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": ["validate"],
+  "consumes": ["cues.json", "transcript.json"],
+  "produces": ["checks/cue-plan.json"],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "summary": "`cues.json` + `transcript.json` + `catalog.json` -> `checks/cue-plan.json`. Everything checkable BEFORE any card exists: anchors that do not resolve, cues naming a card that is not in the catalog, timing collisions. Cheap, writes no cue data."
+}

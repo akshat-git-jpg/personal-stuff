@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { ZONE_CONSTANTS } from './zone-constants.mjs';
+import { writeCheckReport } from './checks.mjs';
 
 const ZONE_STILL_MAX = ZONE_CONSTANTS.ZONE_STILL_MAX.value;
 const ZONE_STILL_DELTA = ZONE_CONSTANTS.ZONE_STILL_DELTA.value;
@@ -141,9 +142,11 @@ function main() {
       footage: fs.existsSync(screen) ? screen : null,
     });
     if (!checked) {
+      writeCheckReport(workdir, 'stillness', { errors: [], warnings: [], notes: { missing: 'not applicable (no footage or no measured zones)' } });
       console.log('W18 zone-still: not applicable (no footage or no measured zones)');
       return;
     }
+    writeCheckReport(workdir, 'stillness', { errors: [], warnings, notes: {} });
     for (const w of warnings) console.warn(w);
     console.log(warnings.length ? `${warnings.length} warning(s)` : 'W18 zone-still: clean');
   });

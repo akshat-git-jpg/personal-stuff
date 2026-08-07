@@ -4,6 +4,7 @@ import { resolveWorkdir } from './workdir.mjs';
 import { planSegments } from './assemble.mjs';
 import { SHOT_CONSTANTS as SC } from './shot-constants.mjs';
 import { introSpan } from './intro-modes.mjs';
+import { writeCheckReport } from './checks.mjs';
 
 // Budget + shape rules for full-screen avatar spans. Seeded from
 // tutorial-pipeline-2's 060 rulebook knobs (U-curve, ~5:00 total cap from the
@@ -254,6 +255,9 @@ async function main() {
   const catalog = JSON.parse(fs.readFileSync(path.join(cardLibraryRoot, 'catalog.json'), 'utf8'));
 
   const { errors, warnings } = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog, filmSpan: introSpan(workdir) });
+  
+  writeCheckReport(workdir, 'shots', { errors, warnings });
+  
   for (const w of warnings) console.log(w);
   if (errors.length) {
     for (const e of errors) console.error(e);
