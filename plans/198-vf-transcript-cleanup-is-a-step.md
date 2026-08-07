@@ -8,16 +8,7 @@ needs: []
 needs_prs: [156]
 touches: [pipelines/video/visuals-flow/lib/transcript-quality.mjs, pipelines/video/visuals-flow/lib/transcript-suspect.mjs, pipelines/video/visuals-flow/lib/transcript-second-opinion.mjs, pipelines/video/visuals-flow/lib/transcript-diff.mjs, pipelines/video/visuals-flow/lib/transcript-diff.test.mjs, pipelines/video/visuals-flow/run.sh, pipelines/video/visuals-flow/steps, pipelines/video/visuals-flow/PIPELINE.md]
 
-mutation_apply: python3 - <<'PY'
-p='pipelines/video/visuals-flow/lib/transcript-diff.mjs'
-s=open(p).read()
-marker='transcriptDiff'
-assert marker in s, 'marker missing — plan 198 Step 2 did not land'
-# Report a clean diff regardless of what changed: the cleanup becomes unreviewable
-# while every gate stays green, which is the state this plan exists to end.
-s = s.replace('return { changes, total: changes.length };', 'return { changes: [], total: 0 };')
-open(p,'w').write(s)
-PY
+mutation_apply: python3 -c "import base64;exec(base64.b64decode('cD0ncGlwZWxpbmVzL3ZpZGVvL3Zpc3VhbHMtZmxvdy9saWIvdHJhbnNjcmlwdC1kaWZmLm1qcycKcz1vcGVuKHApLnJlYWQoKQptYXJrZXI9J3RyYW5zY3JpcHREaWZmJwphc3NlcnQgbWFya2VyIGluIHMsICdtYXJrZXIgbWlzc2luZyDigJQgcGxhbiAxOTggU3RlcCAyIGRpZCBub3QgbGFuZCcKIyBSZXBvcnQgYSBjbGVhbiBkaWZmIHJlZ2FyZGxlc3Mgb2Ygd2hhdCBjaGFuZ2VkOiB0aGUgY2xlYW51cCBiZWNvbWVzIHVucmV2aWV3YWJsZQojIHdoaWxlIGV2ZXJ5IGdhdGUgc3RheXMgZ3JlZW4sIHdoaWNoIGlzIHRoZSBzdGF0ZSB0aGlzIHBsYW4gZXhpc3RzIHRvIGVuZC4KcyA9IHMucmVwbGFjZSgncmV0dXJuIHsgY2hhbmdlcywgdG90YWw6IGNoYW5nZXMubGVuZ3RoIH07JywgJ3JldHVybiB7IGNoYW5nZXM6IFtdLCB0b3RhbDogMCB9OycpCm9wZW4ocCwndycpLndyaXRlKHMp'))"
 mutation_command: cd pipelines/video/visuals-flow && node --test lib/transcript-diff.test.mjs
 mutation_expect: TRANSCRIPT-DIFF-INVISIBLE
 mutation_cwd:
