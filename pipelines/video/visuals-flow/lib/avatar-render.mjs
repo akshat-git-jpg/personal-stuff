@@ -4,9 +4,9 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { resolveShots } from './resolve-shots.mjs';
 import { jobPurpose } from './shot-constants.mjs';
-import { gateWaived, loadRunConfig } from './run-config.mjs';
+import { loadRunConfig } from './run-config.mjs';
 import { lintShots } from './lint-shots.mjs';
-import { introSpanFor } from './intro-modes.mjs';
+import { introSpan } from './intro-modes.mjs';
 import { mmss } from './render.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 
@@ -128,7 +128,7 @@ async function main() {
     const resolvedFile = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
     const words = JSON.parse(fs.readFileSync(transcriptPath, 'utf8'));
 
-    if (shotsFile.approved !== true && !opts.force && !gateWaived(workdir, 'shots/storyboard (080)')) {
+    if (shotsFile.approved !== true && !opts.force) {
       console.error('refusing to render: shots.json approved=false — review on the board or pass --force');
       process.exit(1);
     }
@@ -161,7 +161,7 @@ async function main() {
     // mode's first production use, 2026-07-31).
     const catalogPath = path.resolve(import.meta.dirname, '..', '..', 'card-library', 'catalog.json');
     const catalog = fs.existsSync(catalogPath) ? JSON.parse(fs.readFileSync(catalogPath, 'utf8')) : null;
-    const lintRes = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog, filmSpan: introSpanFor(workdir) });
+    const lintRes = lintShots({ shotsResolved, resolvedCues: resolvedFile.resolved, words, catalog, filmSpan: introSpan(workdir) });
     if (lintRes.errors.length > 0) {
       for (const e of lintRes.errors) console.error(e);
       process.exit(1);

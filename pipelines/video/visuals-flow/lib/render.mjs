@@ -4,7 +4,7 @@ import os from 'node:os';
 import { spawnSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { enrichLogos } from './logos-inline.mjs';
-import { gateWaived } from './run-config.mjs';
+
 import { resolveCues, extendExposure } from './resolve.mjs';
 import { avatarFullSpans } from './lint-cues.mjs';
 import { checkAccentVisible } from './frame-gate.mjs';
@@ -200,7 +200,7 @@ async function main() {
   // conversation gate that happens before a card is ever built (DESIGN.md
   // item 0), so nothing at render time can or should stand in for it.
   const cardPlanPath = path.join(workdir, 'card-plan.json');
-  if (fs.existsSync(cardPlanPath) && !gateWaived(workdir, 'card-plan (037)')) {
+  if (fs.existsSync(cardPlanPath)) {
     const cardPlan = JSON.parse(fs.readFileSync(cardPlanPath, 'utf8'));
     if (cardPlan.approved !== true && !opts.force) {
       console.error('refusing to render: card-plan.json approved=false — review the Card Plan tab (node lib/board.mjs <slug>) or pass --force');
@@ -211,7 +211,7 @@ async function main() {
   const cuesPath = path.join(workdir, 'cues.json');
 
   const cuesFile = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
-  if (cuesFile.approved !== true && !opts.force && !gateWaived(workdir, 'cues/storyboard (080)')) {
+  if (cuesFile.approved !== true && !opts.force) {
     console.error('refusing to render: cues.json approved=false — review on the board (node lib/board.mjs <slug>) or pass --force');
     process.exit(1);
   }
