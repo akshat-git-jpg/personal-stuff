@@ -159,10 +159,18 @@ boss_ensure_labels() {
 # Prose in a crew brief is a suggestion; a gate is not — every rule below was
 # ALREADY in the brief and was violated anyway.
 #
-# boss_hygiene_gate <branch> — echo one reason per violation (empty = clean).
+# boss_hygiene_gate <branch> [planfile] — echo one reason per violation (empty = clean).
+#
+# The artifact rule (3) is opt-out-able via `allow_artifacts: true` in the plan's
+# frontmatter. It normally holds because run-log.json is OUTPUT — but plan 199
+# migrates the slug keys in all three ledgers, so there the ledger IS the intent
+# and a blanket ban makes the plan unmergeable. Opt-out is per-plan and explicit,
+# so the rule still binds everywhere it was written for (2026-08-07, PR#159).
 boss_hygiene_gate() {
-  local branch="$1" files
+  local branch="$1" planfile="${2:-}" files allow_artifacts=""
   files=$(git -C "$REPO_ROOT" diff --name-only "origin/main...$branch" 2>/dev/null)
+  [ -n "$planfile" ] && [ -f "$planfile" ] \
+    && allow_artifacts=$(fm_get allow_artifacts "$planfile" 2>/dev/null)
 
   # 1. Registry is boss-owned on main. PR#138 committed plans/README.md despite
   #    the brief forbidding it, and dispatch force-resetting it.
@@ -178,7 +186,10 @@ boss_hygiene_gate() {
   # 3. Regenerated artifacts. run-log.json rode in on PR#133 and PR#137 and
   #    caused two separate rebase conflicts; it is output, never intent.
   local arts
-  arts=$(echo "$files" | grep -E '(^|/)run-log\.json$' || true)
+  case "$allow_artifacts" in
+    true|yes|1) arts="" ;;
+    *) arts=$(echo "$files" | grep -E '(^|/)run-log\.json$' || true) ;;
+  esac
   [ -n "$arts" ] && echo "commits regenerated artifact(s): $(echo "$arts" | tr '\n' ' ')"
   return 0
 }

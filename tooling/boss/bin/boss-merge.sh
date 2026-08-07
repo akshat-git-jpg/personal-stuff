@@ -38,7 +38,7 @@ fi
 # brief and was violated anyway; prose is a suggestion, a gate is not. Collect
 # every violation before blocking so one fix-up can address them all at once.
 plan_file="$STATE_DIR/$pr.plan"
-violations=$(boss_hygiene_gate "$branch")
+violations=$(boss_hygiene_gate "$branch" "$plan_file")
 if [ -f "$plan_file" ]; then
   ui_v=$(boss_ui_gate "$branch" "$plan_file"); [ -n "$ui_v" ] && violations="$violations
 $ui_v"
