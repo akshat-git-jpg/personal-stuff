@@ -1203,3 +1203,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 196-vf-every-command-is-a-step — PR#156 196-vf-every-command-is-a-step: every command is a step, and every review leaves an artifact — DONE
 - 198-vf-transcript-cleanup-is-a-step — PR#158 198-vf-transcript-cleanup-is-a-step: the transcript cleanup is a step, not a paragraph in a README — DONE
 - 197-vf-intro-idea-gate-and-avatar-spend-gate — PR#157 197-vf-intro-idea-gate-and-avatar-spend-gate: gate the intro idea and the avatar spend; stand in a still until render — DONE
+- 199-vf-renumber-into-phases-and-migrate-ledgers — PR#159 199-vf-renumber-into-phases-and-migrate-ledgers: renumber into phase buckets and migrate the ledgers — DONE
