@@ -1,0 +1,15 @@
+{
+  "number": "105",
+  "slug": "105-plan-sound-run",
+  "title": "plan the sound",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": ["sound"],
+  "consumes": ["resolved.json", "segments.json"],
+  "produces": ["sound.json"],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": true,
+  "summary": "`resolved.json` + `effects.json` + `segments.json` -> `sound.json`: the semantic SFX placement plan — sound tied to what is happening on screen rather than sprinkled."
+}
