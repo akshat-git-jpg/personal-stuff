@@ -5,7 +5,7 @@ test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
 needs: []
-needs_prs: [196]
+needs_prs: [156]
 touches: [pipelines/video/visuals-flow/lib/transcript-quality.mjs, pipelines/video/visuals-flow/lib/transcript-suspect.mjs, pipelines/video/visuals-flow/lib/transcript-second-opinion.mjs, pipelines/video/visuals-flow/lib/transcript-diff.mjs, pipelines/video/visuals-flow/lib/transcript-diff.test.mjs, pipelines/video/visuals-flow/run.sh, pipelines/video/visuals-flow/steps, pipelines/video/visuals-flow/PIPELINE.md]
 
 mutation_apply: python3 - <<'PY'
