@@ -5,7 +5,7 @@ test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
 needs: []
-needs_prs: [194, 195]
+needs_prs: [154, 155]
 touches: [pipelines/video/visuals-flow/lib/resolve.mjs, pipelines/video/visuals-flow/lib/stillness.mjs, pipelines/video/visuals-flow/lib/audit-gate.mjs, pipelines/video/visuals-flow/lib/lint-shots.mjs, pipelines/video/visuals-flow/lib/checks.mjs, pipelines/video/visuals-flow/lib/checks.test.mjs, pipelines/video/visuals-flow/lib/steps.mjs, pipelines/video/visuals-flow/run.sh, pipelines/video/visuals-flow/steps/_verbs.json, pipelines/video/visuals-flow/steps, pipelines/video/visuals-flow/PIPELINE.md]
 
 mutation_apply: python3 - <<'PY'
