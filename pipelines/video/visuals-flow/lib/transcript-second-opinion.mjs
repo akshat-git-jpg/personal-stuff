@@ -21,6 +21,14 @@ async function main() {
   }
 
   const workdir = resolveWorkdir(arg);
+
+  const diffPath = path.join(workdir, 'transcript.diff.json');
+  if (!fs.existsSync(diffPath)) {
+    console.error('run.sh <slug> clean-transcript  (before any anchor exists — anchors quote the transcript verbatim)');
+    process.exit(1);
+  }
+  const diffData = JSON.parse(fs.readFileSync(diffPath, 'utf8'));
+
   const suspectsPath = path.join(workdir, 'transcript-suspects.json');
   if (!fs.existsSync(suspectsPath)) {
     process.exit(0);
@@ -77,8 +85,12 @@ async function main() {
       const localWords = words.filter(word => word.start >= w.start && word.end <= w.end).map(word => word.text).join(' ');
       const diff = localWords !== turboText ? 'YES' : 'NO';
       console.log(`${s.text} | Local: ${localWords} | Turbo: ${turboText} | Differs: ${diff}`);
+      s.secondOpinion = `${s.text} | Local: ${localWords} | Turbo: ${turboText} | Differs: ${diff}`;
     }
   }
+
+  diffData.suspects = suspects;
+  fs.writeFileSync(diffPath, JSON.stringify(diffData, null, 2) + '\n');
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
