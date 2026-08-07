@@ -131,10 +131,8 @@ test('every required field is required — deleting any one of them throws E-REG
     'produces',
     'gate',
     'tab',
-    'waivable',
     'external',
     'optional',
-    'requires',
   ];
   for (const field of required) {
     const broken = { ...good };
@@ -159,8 +157,6 @@ test('a malformed field value is refused too', () => {
     ['produces', ['/etc/passwd']],
     ['consumes', ['../other/thing.json']],
     ['gate', { file: 'x.json', field: 'approved' }],
-    ['waivable', 'yes'],
-    ['requires', { intro: 'movie' }],
     ['summary', ''],
   ];
   for (const [field, value] of bad) {
@@ -175,10 +171,6 @@ test('a malformed field value is refused too', () => {
   assert.throws(() => validateStep({ ...good, produces: [] }, good.slug), /E-REG/);
 });
 
-test('a waivable step without a gate is a declaration bug', () => {
-  const good = STEPS.find((s) => s.gate === null);
-  assert.throws(() => validateStep({ ...good, waivable: true }, good.slug), /E-REG/);
-});
 
 test('consumes/produces form a DAG — nothing consumes what a later step produces', () => {
   const producedBy = new Map();
@@ -240,72 +232,36 @@ function probes(present = [], approved = []) {
 }
 
 test('a fresh workdir parks on the first step', () => {
-  const s = nextStep({ ...probes(), introMode: 'cards' });
+  const s = nextStep({ ...probes() });
   assert.equal(s.number, '005');
 });
 
-test('an intro:"cards" video never reaches the intro-film steps', () => {
+test('a video reaches 025, then the 027 gate', () => {
   const present = ['run-config.json', 'vo.mp3', 'transcript.json', 'segments.json', 'concept.json'];
-  const s = nextStep({ ...probes(present), introMode: 'cards' });
-  assert.equal(s.number, '030', `expected the cue pass, got ${s.number}`);
-});
-
-test('an intro:"film" video reaches 025, then the 027 gate', () => {
-  const present = ['run-config.json', 'vo.mp3', 'transcript.json', 'segments.json', 'concept.json'];
-  const authoring = nextStep({ ...probes(present), introMode: 'film' });
-  assert.equal(authoring.number, '025', 'the film video must be sent to author the film');
+  const authoring = nextStep({ ...probes(present) });
+  assert.equal(authoring.number, '025', 'the video must be sent to author the film');
 
   const gate = nextStep({
     ...probes([...present, 'intro-film/screenplay.json']),
-    introMode: 'film',
   });
-  assert.equal(gate.number, '027', 'with a screenplay on disk the film video parks on its gate');
+  assert.equal(gate.number, '027', 'with a screenplay on disk the video parks on its gate');
   assert.equal(gate.gate.label, 'Intro Film');
 
   const past = nextStep({
     ...probes([...present, 'intro-film/screenplay.json'], ['intro-film/screenplay.json:approved']),
-    introMode: 'film',
   });
   assert.equal(past.number, '030', 'an approved film moves on to the cue pass');
 });
 
-test('express waives a waivable gate but never 027 or 120', () => {
-  const upToCardPlan = [
-    'run-config.json',
-    'vo.mp3',
-    'transcript.json',
-    'segments.json',
-    'concept.json',
-    'cues.json',
-    'card-plan.json',
-  ];
-  const full = nextStep({ ...probes(upToCardPlan), introMode: 'cards', express: false });
-  assert.equal(full.number, '037', 'in full review the card-plan gate holds');
-  const express = nextStep({ ...probes(upToCardPlan), introMode: 'cards', express: true });
-  assert.equal(express.number, '040', 'express waives 037');
-
-  // 027 and 120 are declared non-waivable, so express must not move past them.
-  for (const number of ['027', '120']) {
-    const step = STEPS.find((s) => s.number === number);
-    assert.equal(step.waivable, false, `${number} must never be waivable`);
-  }
-  const filmExpress = nextStep({
-    ...probes(['run-config.json', 'vo.mp3', 'transcript.json', 'segments.json', 'concept.json', 'intro-film/screenplay.json']),
-    introMode: 'film',
-    express: true,
-  });
-  assert.equal(filmExpress.number, '027', 'express must not waive the intro-film gate');
-});
 
 test('a finished video reports nothing left to do', () => {
   const everything = [];
   const approvals = [];
   for (const s of STEPS) {
-    if (s.requires.intro === 'film') continue;
     everything.push(...s.produces);
     if (s.gate) approvals.push(`${s.gate.file}:${s.gate.field}`);
   }
-  assert.equal(nextStep({ ...probes(everything, approvals), introMode: 'cards' }), null);
+  assert.equal(nextStep({ ...probes(everything, approvals) }), null);
 });
 
 test('the next: line names a verb, or the gate text the step carries', () => {

@@ -20,6 +20,8 @@ export function loadRunConfig(workdir) {
   if (!fs.existsSync(p)) return { ...DEFAULTS, configured: false };
   const raw = JSON.parse(fs.readFileSync(p, 'utf8'));
   const cfg = { ...DEFAULTS, ...raw, configured: true };
+  delete cfg.intro;
+  delete cfg.review;
   if (!ENGINES.includes(cfg.engine)) throw new Error(`run-config.json: engine must be one of ${ENGINES.join('|')}, got "${cfg.engine}"`);
   return cfg;
 }

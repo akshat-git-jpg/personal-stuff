@@ -22,11 +22,9 @@ import { loadRunConfig } from './run-config.mjs';
 export const ALWAYS_TABS = ['run', 'calibrate'];
 
 export function applicableTabs(workdir, { steps = null } = {}) {
-  const cfg = loadRunConfig(workdir);
   const tabs = new Set(ALWAYS_TABS);
   for (const s of (steps ?? loadSteps())) {
     if (!s.tab) continue;
-    if (s.requires.intro !== null && s.requires.intro !== cfg.intro) continue;
     tabs.add(s.tab);
   }
   return [...tabs];

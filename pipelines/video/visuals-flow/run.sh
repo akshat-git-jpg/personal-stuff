@@ -5,10 +5,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 # Do NOT add an --all or all step. The chain has three human gates
 # (037 card plan, 080 storyboard, 120 final cut), an Opus-only fold at 130,
 # and live HeyGen at 100, and a driver that walks past them would be
-# actively dangerous. The ONLY sanctioned bypass is the owner's own kickoff
-# choice recorded by `configure` (run-config review=express) — it waives the
-# 037/080 board approvals, never the new-card look-preview or the 120 final
-# cut, and a session still runs the steps one at a time.
+# actively dangerous. A session runs the steps one at a time.
 
 # The verb list, the step folder names and the status next-hint all come from
 # the registry (steps/*/step.json + steps/_verbs.json, read by lib/steps.mjs).
@@ -166,14 +163,10 @@ case "$step" in
       shots_approved=$(node -e "const s=require('./videos/$slug/shots.json');console.log(s.approved?'approved':'NOT approved')")
     fi
 
-    # Kickoff config (step 005): engine + review mode + intro mode. Express
-    # waives the waivable board gates in the next-hint below — the artifact
-    # table still shows the raw approved flags.
-    run_engine="heygen3"; run_review="full"; run_intro="cards"
+    # Kickoff config (step 005): engine.
+    run_engine="heygen3"
     if [[ -f "videos/$slug/run-config.json" ]]; then
       run_engine=$(node -e "console.log(require('./videos/$slug/run-config.json').engine||'heygen3')")
-      run_review=$(node -e "console.log(require('./videos/$slug/run-config.json').review||'full')")
-      run_intro=$(node -e "console.log(require('./videos/$slug/run-config.json').intro||'cards')")
     fi
 
     # The ledger first: what each step did, from run-log.json. Steps with no
@@ -183,7 +176,7 @@ case "$step" in
     node lib/run-log.mjs "$slug"
     echo
 
-    echo "run-config        engine=$run_engine review=$run_review intro=$run_intro"
+    echo "run-config        engine=$run_engine"
     echo "artifact          status"
     echo "--------          ------"
     echo "transcript.json   $transcript_present"
@@ -198,7 +191,7 @@ case "$step" in
     # rather than a fixed if/elif chain. That chain knew nothing about the intro
     # film, so on an intro:"film" video the next: line never once named 025 or
     # 027 — the driver grew a branch and its own guidance did not.
-    node lib/steps.mjs next "$slug" "$run_intro" "$run_review"
+    node lib/steps.mjs next "$slug"
     ;;
 
   transcribe)
@@ -210,10 +203,8 @@ case "$step" in
 
   configure)
     # Step 005 — the owner's kickoff choices for this video: which HeyGen
-    # engine (heygen3 free | heygen4 metered) and how much they review along
-    # the way (full = every gate | express = straight to final cut). See
-    # steps/005-configure-run-human/README.md — express NEVER skips the
-    # new-card look-preview or the 120 final-cut review.
+    # engine (heygen3 free | heygen4 metered). See
+    # steps/005-configure-run-human/README.md.
     dry "node lib/run-config.mjs $slug${*:+ $*}" && exit 0
     node lib/run-config.mjs "$slug" "$@"
     ;;
@@ -240,12 +231,6 @@ EOF
     ;;
 
   intro-film|intro-review|intro-render)
-    intro_mode=$(node -e "import('./lib/run-config.mjs').then(m=>console.log(m.loadRunConfig('videos/$slug').intro))")
-    if [[ "$intro_mode" != "film" ]]; then
-      echo "intro=$intro_mode — this video does not use the bespoke intro film."
-      echo "Opt in with: bash run.sh $slug configure --intro film"
-      exit 1
-    fi
     if [[ "$step" == "intro-film" ]]; then
       d="$(step_slug 025)"
       dry "cat steps/$d/AUTHORING.md | sed s/<slug>/$slug/g" && exit 0

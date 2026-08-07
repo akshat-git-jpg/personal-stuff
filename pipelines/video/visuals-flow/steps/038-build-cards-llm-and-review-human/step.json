@@ -5,13 +5,13 @@
   "actor": "llm",
   "actorLabel": "[LLM] (Sonnet) + [OWNER]",
   "verbs": [],
-  "consumes": ["card-plan.json"],
+  "consumes": [
+    "card-plan.json"
+  ],
   "produces": [],
   "gate": null,
   "tab": null,
-  "waivable": false,
   "external": true,
   "optional": true,
-  "requires": { "intro": null },
   "summary": "approved NEW proposals → new cards in `card-library/<type>/<name>/` + `catalog.json` entries, committed and pushed. Skipped when nothing is NEW. **Then the owner reviews the built card**: landing it flips its plan item `new` → `existing`, which resets the 037 approval by design, so a card nobody has looked at cannot reach 090. Procedure lives in `card-library/CLAUDE.md`"
 }

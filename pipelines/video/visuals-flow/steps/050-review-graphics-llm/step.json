@@ -4,14 +4,19 @@
   "title": "review the graphics",
   "actor": "llm",
   "actorLabel": "[LLM]",
-  "verbs": ["audit"],
-  "consumes": ["resolved.json", "transcript.json"],
-  "produces": ["audit.json"],
+  "verbs": [
+    "audit"
+  ],
+  "consumes": [
+    "resolved.json",
+    "transcript.json"
+  ],
+  "produces": [
+    "audit.json"
+  ],
   "gate": null,
   "tab": null,
-  "waivable": false,
   "external": false,
   "optional": true,
-  "requires": { "intro": null },
   "summary": "`resolved.json` → `audit.json` (mute test)"
 }

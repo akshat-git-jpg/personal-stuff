@@ -4,15 +4,19 @@
   "title": "map the segments",
   "actor": "run",
   "actorLabel": "[RUN]",
-  "verbs": ["segments"],
-  "consumes": ["transcript.json"],
-  "produces": ["segments.json"],
+  "verbs": [
+    "segments"
+  ],
+  "consumes": [
+    "transcript.json"
+  ],
+  "produces": [
+    "segments.json"
+  ],
   "gate": null,
   "tab": null,
-  "waivable": false,
   "external": false,
   "optional": false,
-  "requires": { "intro": null },
   "nextHint": "run.sh <slug> segments  (then set confirmed: true in segments.json)",
   "summary": "`transcript.json` + `src/*.mp4` → `segments.json` (measured intro/body/conclusion `structure` + demo vs narration `segments`; owner sets `confirmed: true`, which promotes lint E5 from warning to error)"
 }

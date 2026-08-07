@@ -1,0 +1,3652 @@
+PIPELINE.md step table up to date
+
+ RUN  v4.1.10 /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/3/personal-stuff/pipelines/video/visuals-flow/board-ui
+
+
+ Test Files  8 passed (8)
+      Tests  38 passed (38)
+   Start at  10:47:43
+   Duration  265ms (transform 229ms, setup 0ms, import 382ms, tests 29ms, environment 0ms)
+
+
+> visuals-flow-board-ui@0.0.0 build
+> tsc && vite build
+
+vite v8.2.0 building client environment for production...
+[2Ktransforming...✓ 58 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.41 kB │ gzip:  0.29 kB
+dist/assets/index-nCBRVNRA.css   17.61 kB │ gzip:  3.92 kB
+dist/assets/index-CG8ynadh.js   257.88 kB │ gzip: 79.94 kB
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/lib/collector.ts is dynamically imported by src/tabs/StoryboardTab.tsx but also statically imported by src/tabs/StoryboardTab.tsx, dynamic import will not move module into another chunk.
+
+✓ built in 96ms
+TAP version 13
+# Subtest: absorbSlivers: 1.4s sliver between avatar and graphic -> graphic absorbs with padStart
+ok 1 - absorbSlivers: 1.4s sliver between avatar and graphic -> graphic absorbs with padStart
+  ---
+  duration_ms: 4.85575
+  ...
+# Subtest: absorbSlivers: 0.4s sliver at t=0 before avatar -> avatar absorbs with padStart
+ok 2 - absorbSlivers: 0.4s sliver at t=0 before avatar -> avatar absorbs with padStart
+  ---
+  duration_ms: 2.97775
+  ...
+# Subtest: absorbSlivers: 2s sliver between two avatars -> NOT absorbed (over avatarMax)
+ok 3 - absorbSlivers: 2s sliver between two avatars -> NOT absorbed (over avatarMax)
+  ---
+  duration_ms: 0.297875
+  ...
+# Subtest: absorbSlivers: screen segment over the 6s cap untouched
+ok 4 - absorbSlivers: screen segment over the 6s cap untouched
+  ---
+  duration_ms: 0.228375
+  ...
+# Subtest: absorbSlivers: output remains contiguous 0->total
+ok 5 - absorbSlivers: output remains contiguous 0->total
+  ---
+  duration_ms: 0.220791
+  ...
+# Subtest: planSegments: contiguity and edge placement
+ok 6 - planSegments: contiguity and edge placement
+  ---
+  duration_ms: 5.329167
+  ...
+# Subtest: planSegments: replacement at t=0
+ok 7 - planSegments: replacement at t=0
+  ---
+  duration_ms: 0.526125
+  ...
+# Subtest: planSegments: replacement ending at total
+ok 8 - planSegments: replacement ending at total
+  ---
+  duration_ms: 0.072
+  ...
+# Subtest: planSegments: overlapping replacements throw
+ok 9 - planSegments: overlapping replacements throw
+  ---
+  duration_ms: 0.765
+  ...
+# Subtest: planSegments: sub-EPS underlap clamped
+ok 10 - planSegments: sub-EPS underlap clamped
+  ---
+  duration_ms: 0.405458
+  ...
+# Subtest: planSegments: empty avatar list and ignored corner jobs
+ok 11 - planSegments: empty avatar list and ignored corner jobs
+  ---
+  duration_ms: 0.156042
+  ...
+# Subtest: assemblyMd: format
+ok 12 - assemblyMd: format
+  ---
+  duration_ms: 0.307
+  ...
+# Subtest: assemblyMd: transitions table
+ok 13 - assemblyMd: transitions table
+  ---
+  duration_ms: 0.091917
+  ...
+# Subtest: planSegmentOverlays: pure mapping
+ok 14 - planSegmentOverlays: pure mapping
+  ---
+  duration_ms: 0.2535
+  ...
+# Subtest: planTransitions: avatar>screen direction
+ok 15 - planTransitions: avatar>screen direction
+  ---
+  duration_ms: 0.210125
+  ...
+# Subtest: planTransitions: graphic boundaries produce flash on in, nothing on out
+ok 16 - planTransitions: graphic boundaries produce flash on in, nothing on out
+  ---
+  duration_ms: 0.055875
+  ...
+# Subtest: planTransitions: short neighbor skipped
+ok 17 - planTransitions: short neighbor skipped
+  ---
+  duration_ms: 0.086
+  ...
+# Subtest: planTransitions: overlay straddle skipped
+ok 18 - planTransitions: overlay straddle skipped
+  ---
+  duration_ms: 0.065209
+  ...
+# Subtest: planTransitions: edge skip at t=0 and t=total
+ok 19 - planTransitions: edge skip at t=0 and t=total
+  ---
+  duration_ms: 0.047875
+  ...
+# Subtest: encoderArgs
+ok 20 - encoderArgs
+  ---
+  duration_ms: 434.10225
+  ...
+# Subtest: planAvatarBeats: 60s span snapped to seeded gaps
+ok 21 - planAvatarBeats: 60s span snapped to seeded gaps
+  ---
+  duration_ms: 1.402875
+  ...
+# Subtest: planAvatarBeats: beat moved to nearest gap, not raw target
+ok 22 - planAvatarBeats: beat moved to nearest gap, not raw target
+  ---
+  duration_ms: 0.178708
+  ...
+# Subtest: planAvatarBeats: no gap within +-3s -> beat dropped
+ok 23 - planAvatarBeats: no gap within +-3s -> beat dropped
+  ---
+  duration_ms: 0.069708
+  ...
+# Subtest: planAvatarBeats: short span (<45s) -> []
+ok 24 - planAvatarBeats: short span (<45s) -> []
+  ---
+  duration_ms: 0.03825
+  ...
+# Subtest: planAvatarBeats: beats respect the 8s edges
+ok 25 - planAvatarBeats: beats respect the 8s edges
+  ---
+  duration_ms: 0.035
+  ...
+# Subtest: planAvatarBeats: cue within window wins over closer gap
+ok 26 - planAvatarBeats: cue within window wins over closer gap
+  ---
+  duration_ms: 0.058209
+  ...
+# Subtest: planAvatarBeats: no in-window cue -> gap fallback unchanged
+ok 27 - planAvatarBeats: no in-window cue -> gap fallback unchanged
+  ---
+  duration_ms: 0.038292
+  ...
+# Subtest: planAvatarBeats: cue outside [lo, hi] is ignored
+ok 28 - planAvatarBeats: cue outside [lo, hi] is ignored
+  ---
+  duration_ms: 0.140458
+  ...
+# Subtest: splitAvatarSegments: alternating punch and passes others
+ok 29 - splitAvatarSegments: alternating punch and passes others
+  ---
+  duration_ms: 0.161
+  ...
+# segments: 0 cached, 10 encoded (jobs=3)
+# using vo.mp3 for audio
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/3/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final.mp4 (01:08.0)
+# Subtest: Integration: ffmpeg runAssembly
+ok 30 - Integration: ffmpeg runAssembly
+  ---
+  duration_ms: 57440.992833
+  ...
+# segments: 0 cached, 8 encoded (jobs=3)
+# using vo.mp3 for audio
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/3/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-draft.mp4 (01:08.0)
+# Subtest: Integration: ffmpeg draft runAssembly
+ok 31 - Integration: ffmpeg draft runAssembly
+  ---
+  duration_ms: 10933.66525
+  ...
+# segments: 0 cached, 6 encoded (jobs=3)
+# using vo.mp3 for audio
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/3/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-none.mp4 (01:08.0)
+# Subtest: Integration: ffmpeg runAssembly none transitions
+ok 32 - Integration: ffmpeg runAssembly none transitions
+  ---
+  duration_ms: 28566.105083
+  ...
+# segments: 1 cached, 2 encoded (jobs=3)
+# using vo.mp3 for audio
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/3/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-cap-off.mp4 (00:16.0)
+# Subtest: Integration: ffmpeg runAssembly captions off
+ok 33 - Integration: ffmpeg runAssembly captions off
+  ---
+  duration_ms: 2441.429208
+  ...
+# segments: 0 cached, 1 encoded (jobs=3)
+# using vo.mp3 for audio
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/3/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-static.mp4 (00:06.0)
+# Subtest: Integration: screen segments stay static (Ken Burns stays removed — owner rule 2026-07-24)
+ok 34 - Integration: screen segments stay static (Ken Burns stays removed — owner rule 2026-07-24)
+  ---
+  duration_ms: 3870.714417
+  ...
+# Subtest: fillGapsWithFreeze: base screen preserves screen segments
+ok 35 - fillGapsWithFreeze: base screen preserves screen segments
+  ---
+  duration_ms: 0.41975
+  ...
+# Subtest: planPanelGeometry returns exact integers, both dimensions even
+ok 36 - planPanelGeometry returns exact integers, both dimensions even
+  ---
+  duration_ms: 0.7555
+  ...
+# Subtest: planSideGeometry returns exact integers, both dimensions even
+ok 37 - planSideGeometry returns exact integers, both dimensions even
+  ---
+  duration_ms: 0.239625
+  ...
+# Subtest: fillGapsWithFreeze: base none converts screen to freeze
+ok 38 - fillGapsWithFreeze: base none converts screen to freeze
+  ---
+  duration_ms: 0.144416
+  ...
+# Subtest: assemblyMd tolerates register transitions with no segment indices
+ok 39 - assemblyMd tolerates register transitions with no segment indices
+  ---
+  duration_ms: 0.149291
+  ...
+# segments: 0 cached, 1 encoded (jobs=3)
+# using vo.mp3 for audio
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/3/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-panel.mp4 (00:05.0)
+# Subtest: Integration: ffmpeg runAssembly panel composite
+ok 40 - Integration: ffmpeg runAssembly panel composite
+  ---
+  duration_ms: 5315.294125
+  ...
+# segments: 0 cached, 1 encoded (jobs=3)
+# using vo.mp3 for audio
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/3/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-side.mp4 (00:05.0)
+# Subtest: Integration: ffmpeg runAssembly side composite
+ok 41 - Integration: ffmpeg runAssembly side composite
+  ---
+  duration_ms: 6054.637958
+  ...
+# segments: 0 cached, 3 encoded (jobs=3)
+# using vo.mp3 for audio
+# assembled: /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/3/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/assemble-it/final-placeholder.mp4 (00:30.0)
+# Subtest: Integration: placeholder still fills an undownloaded avatar span in a draft
+ok 42 - Integration: placeholder still fills an undownloaded avatar span in a draft
+  ---
+  duration_ms: 18035.5245
+  ...
+# Subtest: registerVersion records the placeholder flag
+ok 43 - registerVersion records the placeholder flag
+  ---
+  duration_ms: 14.885625
+  ...
+# Subtest: absorbSlivers never overrides a deliberate screen return (final-v4:0)
+ok 44 - absorbSlivers never overrides a deliberate screen return (final-v4:0)
+  ---
+  duration_ms: 0.154459
+  ...
+# Subtest: loadAssemblyInputs: throws with actionable message if film is missing
+ok 45 - loadAssemblyInputs: throws with actionable message if film is missing
+  ---
+  duration_ms: 24.433709
+  ...
+# Subtest: audit-gate: labelled fullframe blocks unless accepted
+ok 46 - audit-gate: labelled fullframe blocks unless accepted
+  ---
+  duration_ms: 0.462875
+  ...
+# Subtest: audit-gate: labelled overlay warns only
+ok 47 - audit-gate: labelled overlay warns only
+  ---
+  duration_ms: 0.114291
+  ...
+# Subtest: audit-gate: missing audit errors
+ok 48 - audit-gate: missing audit errors
+  ---
+  duration_ms: 0.052834
+  ...
+# Subtest: audit gate reads the real resolved.json shape and still blocks
+ok 49 - audit gate reads the real resolved.json shape and still blocks
+  ---
+  duration_ms: 0.071416
+  ...
+# Subtest: audit gate: accepted:true clears the block, overlays only warn
+ok 50 - audit gate: accepted:true clears the block, overlays only warn
+  ---
+  duration_ms: 0.841959
+  ...
+# Subtest: audit gate errors when resolved.json carries no cue array
+ok 51 - audit gate errors when resolved.json carries no cue array
+  ---
+  duration_ms: 0.131875
+  ...
+# Subtest: planCornerChunks
+ok 52 - planCornerChunks
+  ---
+  duration_ms: 1.052083
+  ...
+# Subtest: planCornerChunksRange → single sub-300s window is one chunk
+ok 53 - planCornerChunksRange → single sub-300s window is one chunk
+  ---
+  duration_ms: 0.261042
+  ...
+# Subtest: planJobs cornerRange → only the ranged corner chunk, no whole-VO track
+ok 54 - planJobs cornerRange → only the ranged corner chunk, no whole-VO track
+  ---
+  duration_ms: 0.27
+  ...
+# Subtest: avatarManifestMd
+ok 55 - avatarManifestMd
+  ---
+  duration_ms: 0.549458
+  ...
+# Subtest: CLI tests
+ok 56 - CLI tests
+  ---
+  duration_ms: 9700.983041
+  ...
+# Subtest: planJobs spansOnly → no corner jobs
+ok 57 - planJobs spansOnly → no corner jobs
+  ---
+  duration_ms: 1.538167
+  ...
+# Subtest: span mode dictates job purpose
+ok 58 - span mode dictates job purpose
+  ---
+  duration_ms: 0.362875
+  ...
+# Subtest: retry run flushes skipped jobs after the last submit (s03-retry incident)
+ok 59 - retry run flushes skipped jobs after the last submit (s03-retry incident)
+  ---
+  duration_ms: 2543.158583
+  ...
+# Subtest: GET /api/board-data returns 200 JSON matching the schema
+ok 60 - GET /api/board-data returns 200 JSON matching the schema
+  ---
+  duration_ms: 41.567041
+  ...
+# Subtest: Segment ids and order agree with the page contract
+ok 61 - Segment ids and order agree with the page contract
+  ---
+  duration_ms: 19.2135
+  ...
+# Subtest: A cue whose anchor matches fixture words yields non-empty highlights
+ok 62 - A cue whose anchor matches fixture words yields non-empty highlights
+  ---
+  duration_ms: 15.895042
+  ...
+# Subtest: approved block: after POST /approve, re-fetch → approved.cues === true
+ok 63 - approved block: after POST /approve, re-fetch → approved.cues === true
+  ---
+  duration_ms: 50.588208
+  ...
+# Subtest: Degraded pre-040 board: missing resolved.json
+ok 64 - Degraded pre-040 board: missing resolved.json
+  ---
+  duration_ms: 13.980875
+  ...
+# Subtest: shots/effects/sound/audit/cardPlan are null when absent; correct when effects.json present
+ok 65 - shots/effects/sound/audit/cardPlan are null when absent; correct when effects.json present
+  ---
+  duration_ms: 15.722416
+  ...
+# Subtest: ?video=<other-slug> resolves like pages do
+ok 66 - ?video=<other-slug> resolves like pages do
+  ---
+  duration_ms: 18.005417
+  ...
+# Subtest: GET /api/calibrate-data
+ok 67 - GET /api/calibrate-data
+  ---
+  duration_ms: 10.800791
+  ...
+# Subtest: Feedback: POST /save writes feedback, re-fetch exposes it
+ok 68 - Feedback: POST /save writes feedback, re-fetch exposes it
+  ---
+  duration_ms: 25.170542
+  ...
+# Subtest: GET /api/board-data carries runConfig and tabs; an intro:"cards" video has no intro tab
+ok 69 - GET /api/board-data carries runConfig and tabs; an intro:"cards" video has no intro tab
+  ---
+  duration_ms: 14.073708
+  ...
+# Subtest: an intro:"film" run-config includes the intro tab; run-config.json intro="cards" does not
+ok 70 - an intro:"film" run-config includes the intro tab; run-config.json intro="cards" does not
+  ---
+  duration_ms: 20.362
+  ...
+# Subtest: GET /health returns 200 with no filesystem dependency on the workdir
+ok 71 - GET /health returns 200 with no filesystem dependency on the workdir
+  ---
+  duration_ms: 9.049959
+  ...
+# Subtest: intro-data and intro-frame endpoints
+ok 72 - intro-data and intro-frame endpoints
+  ---
+  duration_ms: 7.436542
+  ...
+# Subtest: GET /list returns 302 to /\#storyboard preserving ?video=
+ok 73 - GET /list returns 302 to /\#storyboard preserving ?video=
+  ---
+  duration_ms: 30.863875
+  ...
+# Subtest: GET / with ?video= returns 200 containing id="root"
+ok 74 - GET / with ?video= returns 200 containing id="root"
+  ---
+  duration_ms: 16.657958
+  ...
+# Subtest: GET /card/c01 injects the getVariables shim before the card's first original script and includes resolved beat text
+ok 75 - GET /card/c01 injects the getVariables shim before the card's first original script and includes resolved beat text
+  ---
+  duration_ms: 11.150583
+  ...
+# Subtest: GET /card/c01 includes the overflow probe (__measureOverflow + probe message handler)
+ok 76 - GET /card/c01 includes the overflow probe (__measureOverflow + probe message handler)
+  ---
+  duration_ms: 10.700916
+  ...
+# Subtest: GET /slice/c01.mp3 serves a non-empty mp3 generated on start
+ok 77 - GET /slice/c01.mp3 serves a non-empty mp3 generated on start
+  ---
+  duration_ms: 193.091167
+  ...
+# Subtest: GET /poster/c01.jpg returns an image and caches; an unknown cue id 404s
+ok 78 - GET /poster/c01.jpg returns an image and caches; an unknown cue id 404s
+  ---
+  duration_ms: 622.031458
+  ...
+# Subtest: POST /save with a valid edit updates cues.json and regenerates resolved.json
+ok 79 - POST /save with a valid edit updates cues.json and regenerates resolved.json
+  ---
+  duration_ms: 797.211459
+  ...
+# Subtest: POST /save with a broken anchor keeps the edit, reports the resolver error, and leaves resolved.json untouched
+ok 80 - POST /save with a broken anchor keeps the edit, reports the resolver error, and leaves resolved.json untouched
+  ---
+  duration_ms: 38.790291
+  ...
+# Subtest: POST /approve sets cues.json approved: true
+ok 81 - POST /approve sets cues.json approved: true
+  ---
+  duration_ms: 57.272625
+  ...
+# Subtest: resolveAndExtend: applies the same post-pass as resolve.mjs main() — a save can't drop exposure
+ok 82 - resolveAndExtend: applies the same post-pass as resolve.mjs main() — a save can't drop exposure
+  ---
+  duration_ms: 2.140709
+  ...
+# Subtest: playthroughView: picks the active block and a gap carries the next cue's start
+ok 83 - playthroughView: picks the active block and a gap carries the next cue's start
+  ---
+  duration_ms: 0.458792
+  ...
+# Subtest: playthroughView: a trailing gap (no next cue) reports nextStart null
+ok 84 - playthroughView: a trailing gap (no next cue) reports nextStart null
+  ---
+  duration_ms: 0.120166
+  ...
+# Subtest: buildSegments: words fully covered, no duplication, contiguous order
+ok 85 - buildSegments: words fully covered, no duplication, contiguous order
+  ---
+  duration_ms: 0.676959
+  ...
+# Subtest: buildSegments: short gap folding
+ok 86 - buildSegments: short gap folding
+  ---
+  duration_ms: 0.3535
+  ...
+# Subtest: API board-data segments have order, gap ids, and highlights
+ok 87 - API board-data segments have order, gap ids, and highlights
+  ---
+  duration_ms: 17.6575
+  ...
+# Subtest: save: feedback goes to feedback.json; offset survives; page renders saved feedback
+ok 88 - save: feedback goes to feedback.json; offset survives; page renders saved feedback
+  ---
+  duration_ms: 957.824708
+  ...
+# Subtest: save: folded items survive save intact; other items update
+ok 89 - save: folded items survive save intact; other items update
+  ---
+  duration_ms: 454.891334
+  ...
+# Subtest: API returns folded items correctly
+ok 90 - API returns folded items correctly
+  ---
+  duration_ms: 17.332041
+  ...
+# Subtest: API and save: legacy string upgrade
+ok 91 - API and save: legacy string upgrade
+  ---
+  duration_ms: 10.216459
+  ...
+# Subtest: save: clearing a feedback box deletes the unfolded item
+ok 92 - save: clearing a feedback box deletes the unfolded item
+  ---
+  duration_ms: 623.241583
+  ...
+# Subtest: save: changing cues resets approved to false; identical save keeps it true
+ok 93 - save: changing cues resets approved to false; identical save keeps it true
+  ---
+  duration_ms: 1001.373292
+  ...
+# Subtest: save: incremental slices only re-encode changed cues
+ok 94 - save: incremental slices only re-encode changed cues
+  ---
+  duration_ms: 1957.2885
+  ...
+# Subtest: POST /save with invalid JSON body returns 400 and error
+ok 95 - POST /save with invalid JSON body returns 400 and error
+  ---
+  duration_ms: 30.157792
+  ...
+# Subtest: GET /calibrate returns 302 to /\#calibrate
+ok 96 - GET /calibrate returns 302 to /\#calibrate
+  ---
+  duration_ms: 28.99025
+  ...
+# Subtest: GET /calibrate-card/<slug> serves every beat card 200 with getVariables present
+ok 97 - GET /calibrate-card/<slug> serves every beat card 200 with getVariables present
+  ---
+  duration_ms: 348.594542
+  ...
+# Subtest: GET /calibrate-card/<unknown> returns 404
+ok 98 - GET /calibrate-card/<unknown> returns 404
+  ---
+  duration_ms: 8.890875
+  ...
+# Subtest: synthCalibrationVars: every beat card synthesizes exactly max_beats beats, filling the appropriate structure based on beat_source
+ok 99 - synthCalibrationVars: every beat card synthesizes exactly max_beats beats, filling the appropriate structure based on beat_source
+  ---
+  duration_ms: 2.069833
+  ...
+# Subtest: save: context snapshot on creation, preserved on edit
+ok 100 - save: context snapshot on creation, preserved on edit
+  ---
+  duration_ms: 1274.608167
+  ...
+# Subtest: mergeShots: staleness cascade and order-insensitive comparison
+ok 101 - mergeShots: staleness cascade and order-insensitive comparison
+  ---
+  duration_ms: 1.456083
+  ...
+# Subtest: loadShots: parses, handles missing/corrupt, resolves spans
+ok 102 - loadShots: parses, handles missing/corrupt, resolves spans
+  ---
+  duration_ms: 1.696875
+  ...
+# Subtest: save: cue change with approved shots un-approves shots and warns
+ok 103 - save: cue change with approved shots un-approves shots and warns
+  ---
+  duration_ms: 1423.51275
+  ...
+# Subtest: POST /save rejects non-localhost origin with 403
+ok 104 - POST /save rejects non-localhost origin with 403
+  ---
+  duration_ms: 12.164166
+  ...
+# Subtest: POST /save allows 127.0.0.1 origin
+ok 105 - POST /save allows 127.0.0.1 origin
+  ---
+  duration_ms: 633.990084
+  ...
+# Subtest: POST /save with an effects toggle writes enabled and resets approval
+ok 106 - POST /save with an effects toggle writes enabled and resets approval
+  ---
+  duration_ms: 423.42775
+  ...
+# Subtest: POST /save with unchanged toggles preserves approval
+ok 107 - POST /save with unchanged toggles preserves approval
+  ---
+  duration_ms: 581.305917
+  ...
+# Subtest: POST /approve-effects sets approved
+ok 108 - POST /approve-effects sets approved
+  ---
+  duration_ms: 6.808
+  ...
+# Subtest: mergeEffects only applies enabled
+ok 109 - mergeEffects only applies enabled
+  ---
+  duration_ms: 0.526833
+  ...
+# Subtest: toggleAuditAccepted: accepts a verdict, un-accepting drops the field, unknown id is a no-op
+ok 110 - toggleAuditAccepted: accepts a verdict, un-accepting drops the field, unknown id is a no-op
+  ---
+  duration_ms: 0.291
+  ...
+# Subtest: fxContext / fxEventsAt helpers
+ok 111 - fxContext / fxEventsAt helpers
+  ---
+  duration_ms: 0.268042
+  ...
+# Subtest: effects-plan approved carry
+ok 112 - effects-plan approved carry
+  ---
+  duration_ms: 703.551125
+  ...
+# Subtest: GET /vo.mp3 serves audio
+ok 113 - GET /vo.mp3 serves audio
+  ---
+  duration_ms: 11.594208
+  ...
+# Subtest: appendFinalFeedback key naming and shape, folded preserved
+ok 114 - appendFinalFeedback key naming and shape, folded preserved
+  ---
+  duration_ms: 0.186917
+  ...
+# Subtest: pinFromClick percentage math bounds
+ok 115 - pinFromClick percentage math bounds
+  ---
+  duration_ms: 0.088583
+  ...
+# Subtest: Card Plan tab API round-trips does text
+ok 116 - Card Plan tab API round-trips does text
+  ---
+  duration_ms: 36.0975
+  ...
+# Subtest: POST /card-feedback keys body and zone notes into different spaces
+ok 117 - POST /card-feedback keys body and zone notes into different spaces
+  ---
+  duration_ms: 35.784041
+  ...
+# Subtest: POST /approve-card-plan flips approved
+ok 118 - POST /approve-card-plan flips approved
+  ---
+  duration_ms: 70.169708
+  ...
+# Subtest: GET /run-log answers for the board's own workdir, even outside videos/
+ok 119 - GET /run-log answers for the board's own workdir, even outside videos/
+  ---
+  duration_ms: 64.396
+  ...
+# Subtest: GET /run-log marks an inferred step and never invents a summary for it
+ok 120 - GET /run-log marks an inferred step and never invents a summary for it
+  ---
+  duration_ms: 24.076875
+  ...
+# Subtest: GET /run-log prefers a recorded entry over the artifact probe
+ok 121 - GET /run-log prefers a recorded entry over the artifact probe
+  ---
+  duration_ms: 20.662125
+  ...
+# Subtest: GET /run-log refuses a video slug that escapes videos/
+ok 122 - GET /run-log refuses a video slug that escapes videos/
+  ---
+  duration_ms: 15.718458
+  ...
+# Subtest: GET /run-videos lists the real videos plus the current one
+ok 123 - GET /run-videos lists the real videos plus the current one
+  ---
+  duration_ms: 5.114792
+  ...
+# Subtest: Run tab serves 200
+ok 124 - Run tab serves 200
+  ---
+  duration_ms: 12.68175
+  ...
+# Subtest: approving a gate records it in the ledger, with a real timestamp
+ok 125 - approving a gate records it in the ledger, with a real timestamp
+  ---
+  duration_ms: 26.467209
+  ...
+# run-log: could not record 080: run-log.json is not readable JSON: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+# Subtest: a broken ledger cannot block an approval
+ok 126 - a broken ledger cannot block an approval
+  ---
+  duration_ms: 16.494708
+  ...
+# skipping videos/in-flight — not ready for the board yet (no vo.mp3)
+# no workdir given — using latest: videos/finished
+# no video is ready for the board yet:
+#   videos/just-started — missing vo.mp3
+# Subtest: gate 080 stays running until BOTH halves are approved
+ok 127 - gate 080 stays running until BOTH halves are approved
+  ---
+  duration_ms: 37.591959
+  ...
+# Subtest: latestWorkdir skips a video that is not board-ready yet
+ok 128 - latestWorkdir skips a video that is not board-ready yet
+  ---
+  duration_ms: 6.208041
+  ...
+# Subtest: latestWorkdir returns null when nothing is bootable, rather than a workdir that throws
+ok 129 - latestWorkdir returns null when nothing is bootable, rather than a workdir that throws
+  ---
+  duration_ms: 1.28025
+  ...
+# Subtest: the board opens a video that has not reached step 040 yet
+ok 130 - the board opens a video that has not reached step 040 yet
+  ---
+  duration_ms: 4.003583
+  ...
+# Subtest: a pre-040 board approves an empty storyboard
+ok 131 - a pre-040 board approves an empty storyboard
+  ---
+  duration_ms: 12.972542
+  ...
+# Subtest: latestWorkdir handles an empty or absent videos dir
+ok 132 - latestWorkdir handles an empty or absent videos dir
+  ---
+  duration_ms: 1.237958
+  ...
+# Subtest: a storyboard comment can carry a screenshot, and it serves back
+ok 133 - a storyboard comment can carry a screenshot, and it serves back
+  ---
+  duration_ms: 644.682959
+  ...
+# Subtest: a screenshot attaches to a comment whose text did NOT change
+ok 134 - a screenshot attaches to a comment whose text did NOT change
+  ---
+  duration_ms: 459.941834
+  ...
+# Subtest: clearing or deleting a comment takes its screenshot off disk
+ok 135 - clearing or deleting a comment takes its screenshot off disk
+  ---
+  duration_ms: 296.175459
+  ...
+# Subtest: a non-image payload is refused rather than written to disk
+ok 136 - a non-image payload is refused rather than written to disk
+  ---
+  duration_ms: 338.322459
+  ...
+# Subtest: a folded comment cannot have a screenshot attached
+ok 137 - a folded comment cannot have a screenshot attached
+  ---
+  duration_ms: 371.212333
+  ...
+# Subtest: ?video= redirect test stays
+ok 138 - ?video= redirect test stays
+  ---
+  duration_ms: 14.940541
+  ...
+# Subtest: requestedWorkdir only accepts a bootable video under videos/
+ok 139 - requestedWorkdir only accepts a bootable video under videos/
+  ---
+  duration_ms: 4.211875
+  ...
+# Subtest: appendIntroFeedback allocates intro:0, intro:1; ignores final-* keys
+ok 140 - appendIntroFeedback allocates intro:0, intro:1; ignores final-* keys
+  ---
+  duration_ms: 0.147625
+  ...
+# Subtest: /intro-video returns 206 for a Range request, 404 JSON when unrendered
+ok 141 - /intro-video returns 206 for a Range request, 404 JSON when unrendered
+  ---
+  duration_ms: 12.001333
+  ...
+# no workdir given — using latest: videos/newer-film
+# skipping videos/newer-film — not ready for the board yet (no vo.mp3)
+# no workdir given — using latest: videos/older-cards
+# Subtest: edit/delete guard accepts intro:0, rejects cue:7
+ok 142 - edit/delete guard accepts intro:0, rejects cue:7
+  ---
+  duration_ms: 11.272708
+  ...
+# Subtest: createServer boots an intro-film workdir that has no cues.json
+ok 143 - createServer boots an intro-film workdir that has no cues.json
+  ---
+  duration_ms: 2.472292
+  ...
+# Subtest: createServer still refuses a cards-intro workdir with no cues.json
+ok 144 - createServer still refuses a cards-intro workdir with no cues.json
+  ---
+  duration_ms: 1.854167
+  ...
+# Subtest: requestedWorkdir switches to an intro-film video that has no cues.json
+ok 145 - requestedWorkdir switches to an intro-film video that has no cues.json
+  ---
+  duration_ms: 8.529125
+  ...
+# Subtest: latestWorkdir picks an intro-film video that has no cues.json
+ok 146 - latestWorkdir picks an intro-film video that has no cues.json
+  ---
+  duration_ms: 4.30625
+  ...
+# Subtest: a review comment carries several screenshots, each served by index
+ok 147 - a review comment carries several screenshots, each served by index
+  ---
+  duration_ms: 22.626917
+  ...
+# Subtest: itemImages reads the legacy single image and the new array alike
+ok 148 - itemImages reads the legacy single image and the new array alike
+  ---
+  duration_ms: 0.202584
+  ...
+# Subtest: a legacy single-image comment still serves at /feedback-image/<key>
+ok 149 - a legacy single-image comment still serves at /feedback-image/<key>
+  ---
+  duration_ms: 14.69175
+  ...
+# Subtest: isEditableKey admits review namespaces and refuses everything else
+ok 150 - isEditableKey admits review namespaces and refuses everything else
+  ---
+  duration_ms: 0.391375
+  ...
+# Subtest: REVIEW_NAMESPACES is derived from the registry and still equals [intro, final]
+ok 151 - REVIEW_NAMESPACES is derived from the registry and still equals [intro, final]
+  ---
+  duration_ms: 1.580083
+  ...
+# Subtest: TAB_NAMESPACE maps only the tabs that get edit + delete
+ok 152 - TAB_NAMESPACE maps only the tabs that get edit + delete
+  ---
+  duration_ms: 0.087042
+  ...
+# Subtest: gateNumberFor resolves the current step number for all three approvable gates
+ok 153 - gateNumberFor resolves the current step number for all three approvable gates
+  ---
+  duration_ms: 45.618291
+  ...
+# Subtest: gateNumberFor throws E-BOARD when no step declares the gate file
+ok 154 - gateNumberFor throws E-BOARD when no step declares the gate file
+  ---
+  duration_ms: 1.640125
+  ...
+# Subtest: a re-rendered intro film beats a cached copy, and 304s when unchanged
+ok 155 - a re-rendered intro film beats a cached copy, and 304s when unchanged
+  ---
+  duration_ms: 13.10525
+  ...
+# Subtest: review frames revalidate instead of claiming a year of immutability
+ok 156 - review frames revalidate instead of claiming a year of immutability
+  ---
+  duration_ms: 10.215541
+  ...
+# Subtest: injectBrand inserts style before </head>
+ok 157 - injectBrand inserts style before </head>
+  ---
+  duration_ms: 0.393208
+  ...
+# Subtest: loadBrand loads default brand
+ok 158 - loadBrand loads default brand
+  ---
+  duration_ms: 0.525208
+  ...
+# Subtest: loadBrand errors on missing brand
+ok 159 - loadBrand errors on missing brand
+  ---
+  duration_ms: 0.732
+  ...
+# Subtest: plan emits one bubble instance
+ok 160 - plan emits one bubble instance
+  ---
+  duration_ms: 0.440167
+  ...
+# Subtest: bubbleGeometry values at 1080p and 720p
+ok 161 - bubbleGeometry values at 1080p and 720p
+  ---
+  duration_ms: 0.546791
+  ...
+# Subtest: gleam stays materially wider than the hairline at both resolutions
+ok 162 - gleam stays materially wider than the hairline at both resolutions
+  ---
+  duration_ms: 0.118917
+  ...
+# Subtest: band edges are centred on R and exactly the nominal width
+ok 163 - band edges are centred on R and exactly the nominal width
+  ---
+  duration_ms: 0.146666
+  ...
+# Subtest: ring canvas is padded so the glow is not clipped into a rectangle
+ok 164 - ring canvas is padded so the glow is not clipped into a rectangle
+  ---
+  duration_ms: 0.092209
+  ...
+# Subtest: contribute returns null for non-screen segments
+ok 165 - contribute returns null for non-screen segments
+  ---
+  duration_ms: 0.124625
+  ...
+# Subtest: contribute returns null when cornerJobs empty or filesless
+ok 166 - contribute returns null when cornerJobs empty or filesless
+  ---
+  duration_ms: 0.113041
+  ...
+# Subtest: contribute slice arithmetic across a chunk boundary
+ok 167 - contribute slice arithmetic across a chunk boundary
+  ---
+  duration_ms: 0.359
+  ...
+# Subtest: contribute assigns phase constants per segment
+ok 168 - contribute assigns phase constants per segment
+  ---
+  duration_ms: 0.309583
+  ...
+# Subtest: contribute honours startTrim in slice + local timing
+ok 169 - contribute honours startTrim in slice + local timing
+  ---
+  duration_ms: 0.326459
+  ...
+# Subtest: pixel proof: masked circle + ring composited at top-right
+ok 170 - pixel proof: masked circle + ring composited at top-right
+  ---
+  duration_ms: 1668.288083
+  ...
+# Subtest: pixel proof: arc position changes with phase
+ok 171 - pixel proof: arc position changes with phase
+  ---
+  duration_ms: 1279.070458
+  ...
+# Subtest: markKeyword rules
+ok 172 - markKeyword rules
+  ---
+  duration_ms: 0.540917
+  ...
+# Subtest: planCaptions empty
+ok 173 - planCaptions empty
+  ---
+  duration_ms: 0.353708
+  ...
+# Subtest: planCaptions chunking by word cap
+ok 174 - planCaptions chunking by word cap
+  ---
+  duration_ms: 0.627958
+  ...
+# Subtest: planCaptions chunking by char cap
+ok 175 - planCaptions chunking by char cap
+  ---
+  duration_ms: 0.187
+  ...
+# Subtest: planCaptions chunking by gap split
+ok 176 - planCaptions chunking by gap split
+  ---
+  duration_ms: 0.085417
+  ...
+# Subtest: planCaptions CAP_TAIL vs next-chunk clamp
+ok 177 - planCaptions CAP_TAIL vs next-chunk clamp
+  ---
+  duration_ms: 0.107916
+  ...
+# Subtest: assEscape
+ok 178 - assEscape
+  ---
+  duration_ms: 0.116083
+  ...
+# Subtest: ASS highlight pixel proof
+ok 179 - ASS highlight pixel proof
+  ---
+  duration_ms: 1008.166208
+  ...
+# Subtest: multi-word brands highlight every word, and stay separate words
+ok 180 - multi-word brands highlight every word, and stay separate words
+  ---
+  duration_ms: 0.649333
+  ...
+# Subtest: card-plan builder logic
+    # Subtest: sections cues by their declared zone, body by default
+    ok 1 - sections cues by their declared zone, body by default
+      ---
+      duration_ms: 0.711708
+      ...
+    # Subtest: a card missing from the catalog is reported NEW
+    ok 2 - a card missing from the catalog is reported NEW
+      ---
+      duration_ms: 0.286042
+      ...
+    # Subtest: a legacy one-line `fix` note still reads as a proposal
+    ok 3 - a legacy one-line `fix` note still reads as a proposal
+      ---
+      duration_ms: 0.341041
+      ...
+    # Subtest: works with no structure at all (body-only video)
+    ok 4 - works with no structure at all (body-only video)
+      ---
+      duration_ms: 0.277417
+      ...
+    # Subtest: empty sections are dropped
+    ok 5 - empty sections are dropped
+      ---
+      duration_ms: 0.154791
+      ...
+    # Subtest: an unrecognised zone value falls back to body
+    ok 6 - an unrecognised zone value falls back to body
+      ---
+      duration_ms: 0.701292
+      ...
+    # Subtest: an identical rebuild does not invalidate approval
+    ok 7 - an identical rebuild does not invalidate approval
+      ---
+      duration_ms: 0.183875
+      ...
+    # Subtest: adding a cue invalidates approval
+    ok 8 - adding a cue invalidates approval
+      ---
+      duration_ms: 0.266834
+      ...
+    # Subtest: building the proposed card invalidates approval
+    ok 9 - building the proposed card invalidates approval
+      ---
+      duration_ms: 0.196875
+      ...
+    1..9
+ok 181 - card-plan builder logic
+  ---
+  duration_ms: 4.827625
+  ...
+# Subtest: card-plan feedback capture
+    # Subtest: routes zone items and body items to different key spaces
+    ok 1 - routes zone items and body items to different key spaces
+      ---
+      duration_ms: 0.062958
+      ...
+    # Subtest: appends with an incrementing key and snapshots cue context
+    ok 2 - appends with an incrementing key and snapshots cue context
+      ---
+      duration_ms: 2.5915
+      ...
+    # Subtest: does not collide with storyboard or final-cut keys
+    ok 3 - does not collide with storyboard or final-cut keys
+      ---
+      duration_ms: 0.145042
+      ...
+    # Subtest: rejects an unknown part
+    ok 4 - rejects an unknown part
+      ---
+      duration_ms: 0.430875
+      ...
+    1..4
+ok 182 - card-plan feedback capture
+  ---
+  duration_ms: 3.680042
+  ...
+# Subtest: card-plan outline
+    # Subtest: marks NEW cards and shows the anchor and spec
+    ok 1 - marks NEW cards and shows the anchor and spec
+      ---
+      duration_ms: 0.244667
+      ...
+    1..1
+ok 183 - card-plan outline
+  ---
+  duration_ms: 0.338041
+  ...
+# Subtest: zonePartsFor
+    # Subtest: returns both parts by default
+    ok 1 - returns both parts by default
+      ---
+      duration_ms: 0.590916
+      ...
+    # Subtest: returns conclusion only when intro is film-owned
+    ok 2 - returns conclusion only when intro is film-owned
+      ---
+      duration_ms: 0.333708
+      ...
+    1..2
+ok 184 - zonePartsFor
+  ---
+  duration_ms: 1.495958
+  ...
+# Subtest: check-rulebook: baseline passes on the repo as committed
+ok 185 - check-rulebook: baseline passes on the repo as committed
+  ---
+  duration_ms: 7.253167
+  ...
+# Subtest: check-rulebook: mutating a constant makes the gate fail, naming the constant
+ok 186 - check-rulebook: mutating a constant makes the gate fail, naming the constant
+  ---
+  duration_ms: 9.959959
+  ...
+# Subtest: check-rulebook: a stray restatement of a governed number outside the generated block fails
+ok 187 - check-rulebook: a stray restatement of a governed number outside the generated block fails
+  ---
+  duration_ms: 6.616334
+  ...
+# Subtest: check-rulebook: mutating a CUE_RULES entry makes the gate fail, naming the rule id
+ok 188 - check-rulebook: mutating a CUE_RULES entry makes the gate fail, naming the rule id
+  ---
+  duration_ms: 7.038333
+  ...
+# Subtest: check-rulebook: RULEBOOK.md restating the first words of a governed rule fails
+ok 189 - check-rulebook: RULEBOOK.md restating the first words of a governed rule fails
+  ---
+  duration_ms: 6.202208
+  ...
+# Subtest: check-shot-rulebook: baseline passes on the repo as committed
+ok 190 - check-shot-rulebook: baseline passes on the repo as committed
+  ---
+  duration_ms: 5.947666
+  ...
+# Subtest: check-shot-rulebook: mutating a constant makes the gate fail, naming the constant
+ok 191 - check-shot-rulebook: mutating a constant makes the gate fail, naming the constant
+  ---
+  duration_ms: 8.673167
+  ...
+# Subtest: check-shot-rulebook: a stray restatement of a governed number outside the generated block fails
+ok 192 - check-shot-rulebook: a stray restatement of a governed number outside the generated block fails
+  ---
+  duration_ms: 5.6875
+  ...
+# Subtest: cue-rules: every entry has a non-empty rule and why
+ok 193 - cue-rules: every entry has a non-empty rule and why
+  ---
+  duration_ms: 0.679583
+  ...
+# Subtest: cue-rules: renderRulesBlock output contains every rule text
+ok 194 - cue-rules: renderRulesBlock output contains every rule text
+  ---
+  duration_ms: 0.241167
+  ...
+# Subtest: editDelta: identical files yield zero totals
+ok 195 - editDelta: identical files yield zero totals
+  ---
+  duration_ms: 1.040792
+  ...
+# Subtest: editDelta: detects changes correctly
+ok 196 - editDelta: detects changes correctly
+  ---
+  duration_ms: 0.460125
+  ...
+# Subtest: shotsDelta detects edited/added/removed spans
+ok 197 - shotsDelta detects edited/added/removed spans
+  ---
+  duration_ms: 0.137667
+  ...
+# Subtest: formatShotsDelta prints the totals line
+ok 198 - formatShotsDelta prints the totals line
+  ---
+  duration_ms: 0.104291
+  ...
+# Subtest: an overwritten baseline announces itself instead of reporting a clean zero
+ok 199 - an overwritten baseline announces itself instead of reporting a clean zero
+  ---
+  duration_ms: 140.781625
+  ...
+# Subtest: effects-plan writes default instances for a fresh workdir
+ok 200 - effects-plan writes default instances for a fresh workdir
+  ---
+  duration_ms: 125.10125
+  ...
+# Subtest: per-id overrides survive regeneration
+ok 201 - per-id overrides survive regeneration
+  ---
+  duration_ms: 292.136583
+  ...
+# Subtest: whip register transitions survive a plan/assemble round trip
+ok 202 - whip register transitions survive a plan/assemble round trip
+  ---
+  duration_ms: 4.77425
+  ...
+# Subtest: frames/rt basics
+ok 203 - frames/rt basics
+  ---
+  duration_ms: 0.572833
+  ...
+# Subtest: srt basics
+ok 204 - srt basics
+  ---
+  duration_ms: 0.151917
+  ...
+# Subtest: makeSrcUrl: bundled src is an absolute file:// URL into the bundle
+ok 205 - makeSrcUrl: bundled src is an absolute file:// URL into the bundle
+  ---
+  duration_ms: 5.645083
+  ...
+# Subtest: makeSrcUrl: unbundled src is the absolute URL of the original file
+ok 206 - makeSrcUrl: unbundled src is the absolute URL of the original file
+  ---
+  duration_ms: 1.694334
+  ...
+# Subtest: makeSrcUrl: a bundle basename collision throws instead of aliasing
+ok 207 - makeSrcUrl: a bundle basename collision throws instead of aliasing
+  ---
+  duration_ms: 9.757084
+  ...
+# Subtest: makeSrcUrl: files already inside the export dir are not re-copied
+ok 208 - makeSrcUrl: files already inside the export dir are not re-copied
+  ---
+  duration_ms: 3.426542
+  ...
+# Subtest: sfxBakeName: one file per distinct sample/pitch/gain/loop-length
+ok 209 - sfxBakeName: one file per distinct sample/pitch/gain/loop-length
+  ---
+  duration_ms: 0.553125
+  ...
+# Subtest: bakeSfxClips: bakes gain, pitch and loop, and dedupes by variant
+ok 210 - bakeSfxClips: bakes gain, pitch and loop, and dedupes by variant
+  ---
+  duration_ms: 3.824833
+  ...
+# Subtest: bakeSfxClips: no instances means no ffmpeg and no clips
+ok 211 - bakeSfxClips: no instances means no ffmpeg and no clips
+  ---
+  duration_ms: 0.540667
+  ...
+# Subtest: bakeVo: the voiceover lane carries the same chain as the master
+ok 212 - bakeVo: the voiceover lane carries the same chain as the master
+  ---
+  duration_ms: 1.953417
+  ...
+# Subtest: screenCaptionChunks: captions only over screen, never over cards or avatar
+ok 213 - screenCaptionChunks: captions only over screen, never over cards or avatar
+  ---
+  duration_ms: 4.368666
+  ...
+# Subtest: srtFromCaptions: anchors at 00:00:00 so an NLE cannot shift the track
+ok 214 - srtFromCaptions: anchors at 00:00:00 so an NLE cannot shift the track
+  ---
+  duration_ms: 0.183792
+  ...
+# Subtest: srtFromCaptions: no anchor when captions already start at zero
+ok 215 - srtFromCaptions: no anchor when captions already start at zero
+  ---
+  duration_ms: 0.048333
+  ...
+# Subtest: assFromCaptions: carries the burn style and per-word keyword colour
+ok 216 - assFromCaptions: carries the burn style and per-word keyword colour
+  ---
+  duration_ms: 0.188375
+  ...
+# Subtest: assFromCaptions: margin follows yFrac, size follows canvas height
+ok 217 - assFromCaptions: margin follows yFrac, size follows canvas height
+  ---
+  duration_ms: 0.050791
+  ...
+# Subtest: buildNativeFcpxml: native generator layers
+ok 218 - buildNativeFcpxml: native generator layers
+  ---
+  duration_ms: 0.757209
+  ...
+# Subtest: buildFcpxml: gapless spine under rounding drift
+ok 219 - buildFcpxml: gapless spine under rounding drift
+  ---
+  duration_ms: 0.367041
+  ...
+# Subtest: buildFcpxml: structure counts
+ok 220 - buildFcpxml: structure counts
+  ---
+  duration_ms: 0.159166
+  ...
+# Subtest: buildFcpxml: XML escaping
+ok 221 - buildFcpxml: XML escaping
+  ---
+  duration_ms: 0.051792
+  ...
+# segments: 0 cached, 10 encoded (jobs=3)
+# exported 10 segment clips to /Users/kbtg/kb-scratch/worktrees/personal-stuff-0fbb2c25/3/personal-stuff/pipelines/video/visuals-flow/lib/.test-tmp/export-it/segments
+# Subtest: Integration: export mode
+ok 222 - Integration: export mode
+  ---
+  duration_ms: 57579.085167
+  ...
+# Subtest: buildNativeFcpxml: panel clips receive adjust-transform
+ok 223 - buildNativeFcpxml: panel clips receive adjust-transform
+  ---
+  duration_ms: 114.393417
+  ...
+# Subtest: buildNativeFcpxml: side clips receive adjust-crop and adjust-transform
+ok 224 - buildNativeFcpxml: side clips receive adjust-crop and adjust-transform
+  ---
+  duration_ms: 96.823291
+  ...
+# Subtest: buildNativeFcpxml: filmSpan splits the spine into intro film and screen (cross-check)
+ok 225 - buildNativeFcpxml: filmSpan splits the spine into intro film and screen (cross-check)
+  ---
+  duration_ms: 0.241042
+  ...
+# Subtest: feedback-status: all folded/applied -> exit 0
+ok 226 - feedback-status: all folded/applied -> exit 0
+  ---
+  duration_ms: 2.250584
+  ...
+# Subtest: feedback-status: pending item -> exit 1 and logs item
+ok 227 - feedback-status: pending item -> exit 1 and logs item
+  ---
+  duration_ms: 3.851291
+  ...
+# Subtest: feedback-status: missing cues.llm.json -> stderr warning, exit unaffected
+ok 228 - feedback-status: missing cues.llm.json -> stderr warning, exit unaffected
+  ---
+  duration_ms: 1.16975
+  ...
+# Subtest: final cut review gate
+    # Subtest: no file → not approved
+    ok 1 - no file → not approved
+      ---
+      duration_ms: 0.639042
+      ...
+    # Subtest: approved:true with matching version → approved
+    ok 2 - approved:true with matching version → approved
+      ---
+      duration_ms: 1.050291
+      ...
+    # Subtest: approved:true with different version → NOT approved
+    ok 3 - approved:true with different version → NOT approved
+      ---
+      duration_ms: 1.150833
+      ...
+    1..3
+ok 229 - final cut review gate
+  ---
+  duration_ms: 5.999167
+  ...
+# Subtest: probeTimesForCue: beats + midpoint + tail, deduped sorted
+ok 230 - probeTimesForCue: beats + midpoint + tail, deduped sorted
+  ---
+  duration_ms: 0.68675
+  ...
+# Subtest: frameHasColor: false on all-white, true on accent swatch
+ok 231 - frameHasColor: false on all-white, true on accent swatch
+  ---
+  duration_ms: 1561.663125
+  ...
+# Subtest: frameGate flags an overflowing cue and passes a clean one
+ok 232 - frameGate flags an overflowing cue and passes a clean one
+  ---
+  duration_ms: 28843.678333
+  ...
+# note: 027 intro film approval skipped — run-config review=express (owner kickoff choice)
+# Subtest: intro approval gate
+    # Subtest: throws when screenplay.json is missing
+    ok 1 - throws when screenplay.json is missing
+      ---
+      duration_ms: 1.51625
+      ...
+    # Subtest: refuses when not approved
+    ok 2 - refuses when not approved
+      ---
+      duration_ms: 0.919417
+      ...
+    # Subtest: says approval blocks the CUT, not the render
+    ok 3 - says approval blocks the CUT, not the render
+      ---
+      duration_ms: 1.306125
+      ...
+    # Subtest: passes when approved via approveIntro
+    ok 4 - passes when approved via approveIntro
+      ---
+      duration_ms: 6.911125
+      ...
+    # Subtest: waives gate under review: express
+    ok 5 - waives gate under review: express
+      ---
+      duration_ms: 2.039125
+      ...
+    1..5
+ok 233 - intro approval gate
+  ---
+  duration_ms: 17.960042
+  ...
+# Subtest: a film meeting the DESIGN.md type contract passes
+ok 234 - a film meeting the DESIGN.md type contract passes
+  ---
+  duration_ms: 2.515458
+  ...
+# Subtest: the 54px-largest-text failure that shipped the first film is caught
+ok 235 - the 54px-largest-text failure that shipped the first film is caught
+  ---
+  duration_ms: 0.268708
+  ...
+# Subtest: a hero declared but never used as a font-size is caught
+ok 236 - a hero declared but never used as a font-size is caught
+  ---
+  duration_ms: 0.069917
+  ...
+# Subtest: a hero-to-body spread outside 2.5x-4x is caught at both ends
+ok 237 - a hero-to-body spread outside 2.5x-4x is caught at both ends
+  ---
+  duration_ms: 0.087292
+  ...
+# Subtest: px letter-spacing on hero type is rejected in favour of em
+ok 238 - px letter-spacing on hero type is rejected in favour of em
+  ---
+  duration_ms: 0.118583
+  ...
+# Subtest: a film that accents nothing is caught
+ok 239 - a film that accents nothing is caught
+  ---
+  duration_ms: 0.057083
+  ...
+# Subtest: prose in a CSS comment is not read as a live declaration
+ok 240 - prose in a CSS comment is not read as a live declaration
+  ---
+  duration_ms: 0.052083
+  ...
+# Subtest: timeline positions are read off the GSAP position argument
+ok 241 - timeline positions are read off the GSAP position argument
+  ---
+  duration_ms: 0.087792
+  ...
+# Subtest: a beat with no tween starting inside it is flagged as a hold
+ok 242 - a beat with no tween starting inside it is flagged as a hold
+  ---
+  duration_ms: 0.256875
+  ...
+# Subtest: a tween that merely spans a beat does not cover it
+ok 243 - a tween that merely spans a beat does not cover it
+  ---
+  duration_ms: 0.404833
+  ...
+# Subtest: a T-rule with no **From:** line fails with the expect string
+ok 244 - a T-rule with no **From:** line fails with the expect string
+  ---
+  duration_ms: 0.499917
+  ...
+# Subtest: a T-rule with no **Enforced by:** line fails
+ok 245 - a T-rule with no **Enforced by:** line fails
+  ---
+  duration_ms: 0.073375
+  ...
+# Subtest: out-of-order or duplicate rule numbers fail
+ok 246 - out-of-order or duplicate rule numbers fail
+  ---
+  duration_ms: 0.169708
+  ...
+# Subtest: authoring text lacking TASTE-INTRO.md fails
+ok 247 - authoring text lacking TASTE-INTRO.md fails
+  ---
+  duration_ms: 0.057417
+  ...
+# Subtest: the real repo files pass
+ok 248 - the real repo files pass
+  ---
+  duration_ms: 1.962041
+  ...
+# Subtest: links present media into film/assets and reports what is missing
+ok 249 - links present media into film/assets and reports what is missing
+  ---
+  duration_ms: 8.370667
+  ...
+# Subtest: re-linking picks up a replaced source instead of failing on EEXIST
+ok 250 - re-linking picks up a replaced source instead of failing on EEXIST
+  ---
+  duration_ms: 16.617208
+  ...
+# Subtest: a link left dangling by a deleted source is replaced, not thrown on
+ok 251 - a link left dangling by a deleted source is replaced, not thrown on
+  ---
+  duration_ms: 22.6505
+  ...
+# Subtest: FILM_MEDIA covers exactly the media the composition cannot inline
+ok 252 - FILM_MEDIA covers exactly the media the composition cannot inline
+  ---
+  duration_ms: 0.117583
+  ...
+# Subtest: clean input passes
+ok 253 - clean input passes
+  ---
+  duration_ms: 1.318791
+  ...
+# Subtest: G1 fires on duration mismatch
+ok 254 - G1 fires on duration mismatch
+  ---
+  duration_ms: 0.114583
+  ...
+# Subtest: G2 fires on frozen video
+ok 255 - G2 fires on frozen video
+  ---
+  duration_ms: 0.345042
+  ...
+# Subtest: G3 fires on black video
+ok 256 - G3 fires on black video
+  ---
+  duration_ms: 0.214
+  ...
+# Subtest: G3 fires on empty luma
+ok 257 - G3 fires on empty luma
+  ---
+  duration_ms: 0.061417
+  ...
+# Subtest: G4 fires on luma range too small
+ok 258 - G4 fires on luma range too small
+  ---
+  duration_ms: 0.051125
+  ...
+# Subtest: G5 fires on a portrait render
+ok 259 - G5 fires on a portrait render
+  ---
+  duration_ms: 1.302208
+  ...
+# Subtest: G5 fires on a correct aspect at the wrong scale
+ok 260 - G5 fires on a correct aspect at the wrong scale
+  ---
+  duration_ms: 0.124041
+  ...
+# Subtest: G5 fires when dimensions are not measured at all
+ok 261 - G5 fires when dimensions are not measured at all
+  ---
+  duration_ms: 0.690542
+  ...
+# Subtest: GATE declares the landscape hand-off size
+ok 262 - GATE declares the landscape hand-off size
+  ---
+  duration_ms: 0.63425
+  ...
+# Subtest: intro-render refuses a film that fails the gate
+ok 263 - intro-render refuses a film that fails the gate
+  ---
+  duration_ms: 9622.160375
+  ...
+# Subtest: parseFreezeLog handles no freezes
+ok 264 - parseFreezeLog handles no freezes
+  ---
+  duration_ms: 1.798709
+  ...
+# Subtest: parseFreezeLog handles paired lines
+ok 265 - parseFreezeLog handles paired lines
+  ---
+  duration_ms: 0.300667
+  ...
+# Subtest: parseFreezeLog handles multiple freezes
+ok 266 - parseFreezeLog handles multiple freezes
+  ---
+  duration_ms: 0.190333
+  ...
+# Subtest: parseFreezeLog handles an unterminated freeze
+ok 267 - parseFreezeLog handles an unterminated freeze
+  ---
+  duration_ms: 0.076292
+  ...
+# Subtest: longestFreeze picks max
+ok 268 - longestFreeze picks max
+  ---
+  duration_ms: 0.095125
+  ...
+# Subtest: introSpan throws when segments.json has no intro part
+ok 269 - introSpan throws when segments.json has no intro part
+  ---
+  duration_ms: 3.780834
+  ...
+# Subtest: introWords throws when transcript.json is not an array
+ok 270 - introWords throws when transcript.json is not an array
+  ---
+  duration_ms: 3.101125
+  ...
+# Subtest: introWords filters the flat word array to the span
+ok 271 - introWords filters the flat word array to the span
+  ---
+  duration_ms: 2.88725
+  ...
+# Subtest: good fixture is clean
+ok 272 - good fixture is clean
+  ---
+  duration_ms: 1.0735
+  ...
+# Subtest: E1: word not in transcript
+ok 273 - E1: word not in transcript
+  ---
+  duration_ms: 0.395375
+  ...
+# Subtest: E2: word time mismatch
+ok 274 - E2: word time mismatch
+  ---
+  duration_ms: 0.577334
+  ...
+# Subtest: E3: gap in beats
+ok 275 - E3: gap in beats
+  ---
+  duration_ms: 0.122667
+  ...
+# Subtest: E4: forward reference in carries
+ok 276 - E4: forward reference in carries
+  ---
+  duration_ms: 0.169459
+  ...
+# Subtest: E5: enum violation
+ok 277 - E5: enum violation
+  ---
+  duration_ms: 0.10425
+  ...
+# Subtest: E6: missing deviation reason
+ok 278 - E6: missing deviation reason
+  ---
+  duration_ms: 0.159334
+  ...
+# Subtest: E6: deviation with reason is allowed
+ok 279 - E6: deviation with reason is allowed
+  ---
+  duration_ms: 0.090041
+  ...
+# Subtest: E7: short intro duration match
+ok 280 - E7: short intro duration match
+  ---
+  duration_ms: 0.320958
+  ...
+# Subtest: W1: lack of carries
+ok 281 - W1: lack of carries
+  ---
+  duration_ms: 0.37575
+  ...
+# Subtest: W2: no register change
+ok 282 - W2: no register change
+  ---
+  duration_ms: 0.159791
+  ...
+# Subtest: W3: no face early
+ok 283 - W3: no face early
+  ---
+  duration_ms: 0.095875
+  ...
+# Subtest: W4: beat too long
+ok 284 - W4: beat too long
+  ---
+  duration_ms: 0.482083
+  ...
+# Subtest: E1 matches clauses containing multi-word tokens
+ok 285 - E1 matches clauses containing multi-word tokens
+  ---
+  duration_ms: 0.263708
+  ...
+# Subtest: E2 does not fire on a first beat pinned to 0 by E3
+ok 286 - E2 does not fire on a first beat pinned to 0 by E3
+  ---
+  duration_ms: 0.136458
+  ...
+# Subtest: E2 still fires on a first beat that is neither 0 nor the word time
+ok 287 - E2 still fires on a first beat that is neither 0 nor the word time
+  ---
+  duration_ms: 0.128791
+  ...
+# Subtest: E2 allows a beat to absorb a pause before the next clause
+ok 288 - E2 allows a beat to absorb a pause before the next clause
+  ---
+  duration_ms: 0.135458
+  ...
+# Subtest: E2 still fires when a beat ends before its clause finishes
+ok 289 - E2 still fires when a beat ends before its clause finishes
+  ---
+  duration_ms: 0.125375
+  ...
+# Subtest: E2 still fires when a beat trails its clause by more than the lead bound
+ok 290 - E2 still fires when a beat trails its clause by more than the lead bound
+  ---
+  duration_ms: 0.124209
+  ...
+# Subtest: the 025 authoring context never names the card catalog
+ok 291 - the 025 authoring context never names the card catalog
+  ---
+  duration_ms: 11.261459
+  ...
+# Subtest: the 025 authoring context requires DESIGN.md and the real logo registry
+ok 292 - the 025 authoring context requires DESIGN.md and the real logo registry
+  ---
+  duration_ms: 2.658834
+  ...
+# Subtest: run.sh can actually find the authoring prompt it cats
+ok 293 - run.sh can actually find the authoring prompt it cats
+  ---
+  duration_ms: 58.808209
+  ...
+# Subtest: no intro-film library reads the catalog
+ok 294 - no intro-film library reads the catalog
+  ---
+  duration_ms: 21.223083
+  ...
+# Subtest: introOwnedByFilm
+ok 295 - introOwnedByFilm
+  ---
+  duration_ms: 2.18175
+  ...
+# Subtest: renderArgs emits -o <file>.mp4, never a bare directory
+ok 296 - renderArgs emits -o <file>.mp4, never a bare directory
+  ---
+  duration_ms: 0.38225
+  ...
+# Subtest: renderFilm throws when film/index.html is absent
+ok 297 - renderFilm throws when film/index.html is absent
+  ---
+  duration_ms: 4.231333
+  ...
+# Subtest: renderAndDeliver does NOT write out/intro.mp4 when the verdict fails
+ok 298 - renderAndDeliver does NOT write out/intro.mp4 when the verdict fails
+  ---
+  duration_ms: 9768.832334
+  ...
+# Subtest: samples three phases of each beat, avoiding the transition edges
+ok 299 - samples three phases of each beat, avoiding the transition edges
+  ---
+  duration_ms: 3.695083
+  ...
+# Subtest: a beat whose content fires late is still sampled after it fires
+ok 300 - a beat whose content fires late is still sampled after it fires
+  ---
+  duration_ms: 0.106167
+  ...
+# Subtest: an empty screenplay samples nothing rather than throwing
+ok 301 - an empty screenplay samples nothing rather than throwing
+  ---
+  duration_ms: 0.133417
+  ...
+# Subtest: snapshot args pin the times and disable the paid describe pass
+ok 302 - snapshot args pin the times and disable the paid describe pass
+  ---
+  duration_ms: 0.065667
+  ...
+# Subtest: check args sample transition seams, where transient overlaps hide
+ok 303 - check args sample transition seams, where transient overlaps hide
+  ---
+  duration_ms: 0.101833
+  ...
+# Subtest: check output is parsed past the CLI progress preamble
+ok 304 - check output is parsed past the CLI progress preamble
+  ---
+  duration_ms: 0.1365
+  ...
+# Subtest: progress printed AFTER the JSON body does not break the parse
+ok 305 - progress printed AFTER the JSON body does not break the parse
+  ---
+  duration_ms: 0.057584
+  ...
+# Subtest: a brace inside a finding message does not terminate the scan early
+ok 306 - a brace inside a finding message does not terminate the scan early
+  ---
+  duration_ms: 0.047334
+  ...
+# Subtest: an escaped quote inside a message does not break string tracking
+ok 307 - an escaped quote inside a message does not break string tracking
+  ---
+  duration_ms: 0.231
+  ...
+# Subtest: output with no JSON body is an error, not a silent empty report
+ok 308 - output with no JSON body is an error, not a silent empty report
+  ---
+  duration_ms: 0.457417
+  ...
+# Subtest: a truncated JSON body is an error, not a partial parse
+ok 309 - a truncated JSON body is an error, not a partial parse
+  ---
+  duration_ms: 2.264042
+  ...
+# Subtest: findings are flattened, info dropped, and ordered error before warning
+ok 310 - findings are flattened, info dropped, and ordered error before warning
+  ---
+  duration_ms: 0.475958
+  ...
+# Subtest: a finding is attributed to the beat whose staging caused it
+ok 311 - a finding is attributed to the beat whose staging caused it
+  ---
+  duration_ms: 0.145667
+  ...
+# Subtest: the report pairs every beat frame with the stage line it must satisfy
+ok 312 - the report pairs every beat frame with the stage line it must satisfy
+  ---
+  duration_ms: 0.485583
+  ...
+# Subtest: followsDefaultArc
+ok 313 - followsDefaultArc
+  ---
+  duration_ms: 0.844625
+  ...
+# Subtest: normaliseClause
+ok 314 - normaliseClause
+  ---
+  duration_ms: 0.320875
+  ...
+# Subtest: resolveWorkdir
+    # Subtest: bare slug resolves under videos/ and intro-film
+    ok 1 - bare slug resolves under videos/ and intro-film
+      ---
+      duration_ms: 0.318083
+      ...
+    # Subtest: path with a slash is returned resolved
+    ok 2 - path with a slash is returned resolved
+      ---
+      duration_ms: 0.070958
+      ...
+    # Subtest: empty argument throws
+    ok 3 - empty argument throws
+      ---
+      duration_ms: 0.292625
+      ...
+    1..3
+ok 315 - resolveWorkdir
+  ---
+  duration_ms: 2.275125
+  ...
+# Subtest: every declared mode has well-formed capability fields
+ok 316 - every declared mode has well-formed capability fields
+  ---
+  duration_ms: 0.814083
+  ...
+# Subtest: at least one declared mode does not own the intro span
+ok 317 - at least one declared mode does not own the intro span
+  ---
+  duration_ms: 0.104291
+  ...
+# Subtest: introModeFor throws E-INTRO for a name accepted by run-config but absent from the table
+ok 318 - introModeFor throws E-INTRO for a name accepted by run-config but absent from the table
+  ---
+  duration_ms: 12.482
+  ...
+# Subtest: introSpanFor returns null for cards
+ok 319 - introSpanFor returns null for cards
+  ---
+  duration_ms: 6.439
+  ...
+# Subtest: introSpanFor returns the intro part for film, from segments.json
+ok 320 - introSpanFor returns the intro part for film, from segments.json
+  ---
+  duration_ms: 100.71225
+  ...
+# Subtest: introSpanFor returns null for film when segments.json is absent
+ok 321 - introSpanFor returns null for film when segments.json is absent
+  ---
+  duration_ms: 3.182125
+  ...
+# Subtest: introSpanFor throws E-INTRO for a mode declaring an unreadable spanFrom
+ok 322 - introSpanFor throws E-INTRO for a mode declaring an unreadable spanFrom
+  ---
+  duration_ms: 2.036625
+  ...
+# Subtest: ownsIntroSpan matches the table: false for cards, true for film
+ok 323 - ownsIntroSpan matches the table: false for cards, true for film
+  ---
+  duration_ms: 2.596542
+  ...
+# Subtest: INTRO_MODE_NAMES round-trips through run-config: every declared mode is accepted, an undeclared one is rejected
+ok 324 - INTRO_MODE_NAMES round-trips through run-config: every declared mode is accepted, an undeclared one is rejected
+  ---
+  duration_ms: 4.316459
+  ...
+# Subtest: no lib/ source outside the deprecated alias calls introOwnedByFilm/filmSpanFor or reads .intro directly
+ok 325 - no lib/ source outside the deprecated alias calls introOwnedByFilm/filmSpanFor or reads .intro directly
+  ---
+  duration_ms: 17.827666
+  ...
+# Subtest: wordSyncBeats derives one beat per word with transcript-relative times
+ok 326 - wordSyncBeats derives one beat per word with transcript-relative times
+  ---
+  duration_ms: 0.551792
+  ...
+# Subtest: wordSyncBeats marks exactly the accent span
+ok 327 - wordSyncBeats marks exactly the accent span
+  ---
+  duration_ms: 0.155583
+  ...
+# Subtest: wordSyncBeats rejects an accent phrase absent from the text
+ok 328 - wordSyncBeats rejects an accent phrase absent from the text
+  ---
+  duration_ms: 0.088167
+  ...
+# Subtest: wordSyncBeats rejects a word missing from the transcript
+ok 329 - wordSyncBeats rejects a word missing from the transcript
+  ---
+  duration_ms: 0.060875
+  ...
+# Subtest: lintConcept
+    # Subtest: clean pass
+    ok 1 - clean pass
+      ---
+      duration_ms: 1.137625
+      ...
+    # Subtest: missing throughline
+    ok 2 - missing throughline
+      ---
+      duration_ms: 0.156
+      ...
+    # Subtest: bad register
+    ok 3 - bad register
+      ---
+      duration_ms: 0.070625
+      ...
+    # Subtest: overlapping spans
+    ok 4 - overlapping spans
+      ---
+      duration_ms: 0.068583
+      ...
+    # Subtest: unresolvable anchor
+    ok 5 - unresolvable anchor
+      ---
+      duration_ms: 0.112334
+      ...
+    # Subtest: stated count missing items errors
+    ok 6 - stated count missing items errors
+      ---
+      duration_ms: 0.170375
+      ...
+    # Subtest: stated count disagreeing with items.length errors
+    ok 7 - stated count disagreeing with items.length errors
+      ---
+      duration_ms: 0.06675
+      ...
+    # Subtest: stated count agreeing with items.length passes
+    ok 8 - stated count agreeing with items.length passes
+      ---
+      duration_ms: 0.188708
+      ...
+    1..8
+ok 330 - lintConcept
+  ---
+  duration_ms: 2.978458
+  ...
+# Subtest: narration coverage gate
+    # Subtest: exactly at the floor passes
+    ok 1 - exactly at the floor passes
+      ---
+      duration_ms: 0.2935
+      ...
+    # Subtest: below the floor is an error
+    ok 2 - below the floor is an error
+      ---
+      duration_ms: 0.088
+      ...
+    # Subtest: the error names both the actual and the required figure
+    ok 3 - the error names both the actual and the required figure
+      ---
+      duration_ms: 0.123125
+      ...
+    # Subtest: demo time is excluded from the denominator
+    ok 4 - demo time is excluded from the denominator
+      ---
+      duration_ms: 10.410709
+      ...
+    # Subtest: skipped when segments are not supplied
+    ok 5 - skipped when segments are not supplied
+      ---
+      duration_ms: 0.077792
+      ...
+    # Subtest: skipped when there is no narration at all
+    ok 6 - skipped when there is no narration at all
+      ---
+      duration_ms: 0.050416
+      ...
+    # Subtest: narrationCoverage reports the ratio it gated on
+    ok 7 - narrationCoverage reports the ratio it gated on
+      ---
+      duration_ms: 0.070166
+      ...
+    # Subtest: coverage clips spans that overrun narration
+    ok 8 - coverage clips spans that overrun narration
+      ---
+      duration_ms: 0.111083
+      ...
+    # Subtest: the floor is 0.8
+    ok 9 - the floor is 0.8
+      ---
+      duration_ms: 0.027083
+      ...
+    1..9
+ok 331 - narration coverage gate
+  ---
+  duration_ms: 11.62725
+  ...
+# Subtest: E1 stat-hit-cap
+ok 332 - E1 stat-hit-cap
+  ---
+  duration_ms: 26.267042
+  ...
+# Subtest: E2 stat-hit-spacing
+ok 333 - E2 stat-hit-spacing
+  ---
+  duration_ms: 1.6895
+  ...
+# Subtest: E3 card-repetition
+ok 334 - E3 card-repetition
+  ---
+  duration_ms: 1.38125
+  ...
+# Subtest: E4 exclusion-zones
+ok 335 - E4 exclusion-zones
+  ---
+  duration_ms: 0.205458
+  ...
+# Subtest: W3 total-count scaling
+ok 336 - W3 total-count scaling
+  ---
+  duration_ms: 0.203625
+  ...
+# Subtest: W1 fullframe-cadence gap
+ok 337 - W1 fullframe-cadence gap
+  ---
+  duration_ms: 0.107583
+  ...
+# Subtest: W2 overlay-density
+ok 338 - W2 overlay-density
+  ---
+  duration_ms: 0.175833
+  ...
+# Subtest: W6 and W7 bare-stretch
+ok 339 - W6 and W7 bare-stretch
+  ---
+  duration_ms: 0.132375
+  ...
+# Subtest: W4 reveal-wordcount
+ok 340 - W4 reveal-wordcount
+  ---
+  duration_ms: 0.37725
+  ...
+# Subtest: flagged cues are ignored
+ok 341 - flagged cues are ignored
+  ---
+  duration_ms: 0.347875
+  ...
+# Subtest: E3 exemption: structural fullframe cards repeat freely (one per compared item)
+ok 342 - E3 exemption: structural fullframe cards repeat freely (one per compared item)
+  ---
+  duration_ms: 0.1435
+  ...
+# Subtest: E4 short-video guard
+ok 343 - E4 short-video guard
+  ---
+  duration_ms: 0.117
+  ...
+# Subtest: W5 first-beat-idle: fullframe card over threshold is an error
+ok 344 - W5 first-beat-idle: fullframe card over threshold is an error
+  ---
+  duration_ms: 0.111666
+  ...
+# Subtest: W5 first-beat-idle: overlay card over threshold is a warning
+ok 345 - W5 first-beat-idle: overlay card over threshold is a warning
+  ---
+  duration_ms: 0.062292
+  ...
+# Subtest: E5 demo-coverage: confirmed: true + fullframe inside demo -> error
+ok 346 - E5 demo-coverage: confirmed: true + fullframe inside demo -> error
+  ---
+  duration_ms: 0.06775
+  ...
+# Subtest: E5 demo-coverage: confirmed: false + fullframe inside demo -> warning
+ok 347 - E5 demo-coverage: confirmed: false + fullframe inside demo -> warning
+  ---
+  duration_ms: 0.055042
+  ...
+# Subtest: E5 demo-coverage: overlay inside demo -> neither
+ok 348 - E5 demo-coverage: overlay inside demo -> neither
+  ---
+  duration_ms: 0.049375
+  ...
+# Subtest: W1 fullframe-cadence: narration gap ignores demo segments
+ok 349 - W1 fullframe-cadence: narration gap ignores demo segments
+  ---
+  duration_ms: 0.132375
+  ...
+# Subtest: W1 fullframe-cadence: skip W1 when either endpoint sits in a demo/playback segment
+ok 350 - W1 fullframe-cadence: skip W1 when either endpoint sits in a demo/playback segment
+  ---
+  duration_ms: 0.060458
+  ...
+# Subtest: E9 overlay-over-graphic: overlay overlapping a fullframe span errors
+ok 351 - E9 overlay-over-graphic: overlay overlapping a fullframe span errors
+  ---
+  duration_ms: 0.067542
+  ...
+# Subtest: E9 overlay-over-graphic: overlay clipping the fullframe edge errors too
+ok 352 - E9 overlay-over-graphic: overlay clipping the fullframe edge errors too
+  ---
+  duration_ms: 0.050042
+  ...
+# Subtest: E10 no-dash-copy: em dash in rendered copy errors, metadata exempt
+ok 353 - E10 no-dash-copy: em dash in rendered copy errors, metadata exempt
+  ---
+  duration_ms: 0.090583
+  ...
+# Subtest: E7 uncovered-second on base:none
+ok 354 - E7 uncovered-second on base:none
+  ---
+  duration_ms: 0.090666
+  ...
+# Subtest: E8 concept-register and W8 motif
+ok 355 - E8 concept-register and W8 motif
+  ---
+  duration_ms: 0.2585
+  ...
+# Subtest: W9 variant-rotation warns on back-to-back same-card-same-variant
+ok 356 - W9 variant-rotation warns on back-to-back same-card-same-variant
+  ---
+  duration_ms: 0.130833
+  ...
+# Subtest: W10 enacted-first warns on non-enacted legacy fullframe without legacy_why
+ok 357 - W10 enacted-first warns on non-enacted legacy fullframe without legacy_why
+  ---
+  duration_ms: 0.13625
+  ...
+# Subtest: E11 no-filler-slate: navigational sentence errors, substantive one passes
+ok 358 - E11 no-filler-slate: navigational sentence errors, substantive one passes
+  ---
+  duration_ms: 0.388125
+  ...
+# Subtest: E14 slot-incomplete and E15 slot-shared
+ok 359 - E14 slot-incomplete and E15 slot-shared
+  ---
+  duration_ms: 0.286792
+  ...
+# Subtest: W12 fires when fullframe cards cover the whole opening
+ok 360 - W12 fires when fullframe cards cover the whole opening
+  ---
+  duration_ms: 0.088834
+  ...
+# Subtest: W12 stays silent when the opening leaves room for the host
+ok 361 - W12 stays silent when the opening leaves room for the host
+  ---
+  duration_ms: 0.123458
+  ...
+# Subtest: W13 fires on a long fullframe with no beats
+ok 362 - W13 fires on a long fullframe with no beats
+  ---
+  duration_ms: 0.054542
+  ...
+# Subtest: W13 stays silent when a long fullframe carries beats
+ok 363 - W13 stays silent when a long fullframe carries beats
+  ---
+  duration_ms: 0.049208
+  ...
+# Subtest: W14 fires for a conclusion zone with no cues in range
+ok 364 - W14 fires for a conclusion zone with no cues in range
+  ---
+  duration_ms: 0.109125
+  ...
+# Subtest: W14 stays silent when the conclusion zone contains at least one cue
+ok 365 - W14 stays silent when the conclusion zone contains at least one cue
+  ---
+  duration_ms: 0.065625
+  ...
+# Subtest: W14 never fires for body
+ok 366 - W14 never fires for body
+  ---
+  duration_ms: 0.064209
+  ...
+# Subtest: W12 uses the measured intro end when structure is present (fires)
+ok 367 - W12 uses the measured intro end when structure is present (fires)
+  ---
+  duration_ms: 0.057709
+  ...
+# Subtest: W12 falls back to HOST_VISIBLE_BY when structure is absent
+ok 368 - W12 falls back to HOST_VISIBLE_BY when structure is absent
+  ---
+  duration_ms: 0.050083
+  ...
+# Subtest: E7 avatar awareness
+ok 369 - E7 avatar awareness
+  ---
+  duration_ms: 0.188958
+  ...
+# Subtest: E9 does not fire when an overlay sits over an avatar span that clamps the card
+ok 370 - E9 does not fire when an overlay sits over an avatar span that clamps the card
+  ---
+  duration_ms: 3.469083
+  ...
+# Subtest: E9 still fires when an overlay genuinely overlaps a fullframe card
+ok 371 - E9 still fires when an overlay genuinely overlaps a fullframe card
+  ---
+  duration_ms: 0.346042
+  ...
+# Subtest: intro: film skips E13 open-cover and errors on conclusion link-scrim
+ok 372 - intro: film skips E13 open-cover and errors on conclusion link-scrim
+  ---
+  duration_ms: 1.199833
+  ...
+# Subtest: intro: cards applies E13 open-cover and no link-scrim error in conclusion
+ok 373 - intro: cards applies E13 open-cover and no link-scrim error in conclusion
+  ---
+  duration_ms: 0.356083
+  ...
+# Subtest: two overlapping spans → E1
+ok 374 - two overlapping spans → E1
+  ---
+  duration_ms: 2.52425
+  ...
+# Subtest: span overlapping a fullframe cue → E2; same span vs an overlay cue → no E2
+ok 375 - span overlapping a fullframe cue → E2; same span vs an overlay cue → no E2
+  ---
+  duration_ms: 0.637917
+  ...
+# Subtest: 8s span → E3; 200s span in front zone → W1
+ok 376 - 8s span → E3; 200s span in front zone → W1
+  ---
+  duration_ms: 0.24575
+  ...
+# Subtest: spans totalling 350s → E4
+ok 377 - spans totalling 350s → E4
+  ---
+  duration_ms: 0.151334
+  ...
+# Subtest: single mid-video span → W3 twice; spans at edges → no W3
+ok 378 - single mid-video span → W3 twice; spans at edges → no W3
+  ---
+  duration_ms: 1.708875
+  ...
+# Subtest: 400s gap between spans → W4; 150s gap → no W4
+ok 379 - 400s gap between spans → W4; 150s gap → no W4
+  ---
+  duration_ms: 0.6145
+  ...
+# Subtest: zone/mid span thresholds and Youri cadence gaps
+ok 380 - zone/mid span thresholds and Youri cadence gaps
+  ---
+  duration_ms: 2.674667
+  ...
+# Subtest: empty spans array → no errors, no warnings
+ok 381 - empty spans array → no errors, no warnings
+  ---
+  duration_ms: 0.142125
+  ...
+# Subtest: screen segment between avatars < 2.5s -> E5
+ok 382 - screen segment between avatars < 2.5s -> E5
+  ---
+  duration_ms: 8.441459
+  ...
+# Subtest: screen segment < 5s -> W5
+ok 383 - screen segment < 5s -> W5
+  ---
+  duration_ms: 1.737666
+  ...
+# Subtest: clean plan silent -> no E5/W5
+ok 384 - clean plan silent -> no E5/W5
+  ---
+  duration_ms: 0.262958
+  ...
+# Subtest: 200s panel span does not trip the 300s full cap
+ok 385 - 200s panel span does not trip the 300s full cap
+  ---
+  duration_ms: 0.138375
+  ...
+# Subtest: panel span overlapping a fullframe cue errors with specific message
+ok 386 - panel span overlapping a fullframe cue errors with specific message
+  ---
+  duration_ms: 0.151916
+  ...
+# Subtest: panel span over a screen segment is clean
+ok 387 - panel span over a screen segment is clean
+  ---
+  duration_ms: 0.108958
+  ...
+# Subtest: valid side span inside a side-capable cue
+ok 388 - valid side span inside a side-capable cue
+  ---
+  duration_ms: 0.144083
+  ...
+# Subtest: side span with no covering cue → error
+ok 389 - side span with no covering cue → error
+  ---
+  duration_ms: 0.107625
+  ...
+# Subtest: side span covered by a card that is not side-capable → error
+ok 390 - side span covered by a card that is not side-capable → error
+  ---
+  duration_ms: 0.118333
+  ...
+# Subtest: long side span DOES trip the full-screen cap
+ok 391 - long side span DOES trip the full-screen cap
+  ---
+  duration_ms: 0.127958
+  ...
+# Subtest: lint-shots CLI resolves the real catalog from a workdir
+ok 392 - lint-shots CLI resolves the real catalog from a workdir
+  ---
+  duration_ms: 178.505791
+  ...
+# Subtest: host span starting after INTRO_HOST_BY → E8
+ok 393 - host span starting after INTRO_HOST_BY → E8
+  ---
+  duration_ms: 0.17525
+  ...
+# Subtest: host span starting at or before INTRO_HOST_BY → no E8
+ok 394 - host span starting at or before INTRO_HOST_BY → no E8
+  ---
+  duration_ms: 0.548959
+  ...
+# Subtest: a side span counts as the host being on screen
+ok 395 - a side span counts as the host being on screen
+  ---
+  duration_ms: 0.420709
+  ...
+# Subtest: an empty shot plan stays neutral — E8 is about a LATE host, not a missing one
+ok 396 - an empty shot plan stays neutral — E8 is about a LATE host, not a missing one
+  ---
+  duration_ms: 0.298875
+  ...
+# Subtest: intro_host_waived downgrades E8 to a loud W8 carrying the reason
+ok 397 - intro_host_waived downgrades E8 to a loud W8 carrying the reason
+  ---
+  duration_ms: 0.428167
+  ...
+# Subtest: an empty waiver reason does NOT clear E8
+ok 398 - an empty waiver reason does NOT clear E8
+  ---
+  duration_ms: 0.276791
+  ...
+# Subtest: E8 does not fire when the host lands early in the BODY of a film-owned video
+ok 399 - E8 does not fire when the host lands early in the BODY of a film-owned video
+  ---
+  duration_ms: 0.292375
+  ...
+# Subtest: E8 still fires when the host is late INSIDE the body of a film-owned video
+ok 400 - E8 still fires when the host is late INSIDE the body of a film-owned video
+  ---
+  duration_ms: 0.290167
+  ...
+# Subtest: without a filmSpan E8 behaves exactly as before — the default path is untouched
+ok 401 - without a filmSpan E8 behaves exactly as before — the default path is untouched
+  ---
+  duration_ms: 0.434916
+  ...
+# Subtest: enrichLogos handles variables and missing
+ok 402 - enrichLogos handles variables and missing
+  ---
+  duration_ms: 19.899209
+  ...
+# Subtest: validateCues handles logo slugs
+ok 403 - validateCues handles logo slugs
+  ---
+  duration_ms: 8.49225
+  ...
+# Subtest: plan() produces no instances if zero motif cues
+ok 404 - plan() produces no instances if zero motif cues
+  ---
+  duration_ms: 0.865416
+  ...
+# Subtest: plan() produces ONE instance spanning from first to last motif cue
+ok 405 - plan() produces ONE instance spanning from first to last motif cue
+  ---
+  duration_ms: 0.190792
+  ...
+# Subtest: contribute() renders 3% white with 1s fades
+ok 406 - contribute() renders 3% white with 1s fades
+  ---
+  duration_ms: 0.33125
+  ...
+# Subtest: Workdir resolves under the visuals-flow root
+ok 407 - Workdir resolves under the visuals-flow root
+  ---
+  duration_ms: 1.239917
+  ...
+# Subtest: W1 holds by construction
+ok 408 - W1 holds by construction
+  ---
+  duration_ms: 4.445834
+  ...
+# Subtest: End zone respected
+ok 409 - End zone respected
+  ---
+  duration_ms: 0.09825
+  ...
+# Subtest: Demo skipped
+ok 410 - Demo skipped
+  ---
+  duration_ms: 0.157916
+  ...
+# Subtest: Count plausible
+ok 411 - Count plausible
+  ---
+  duration_ms: 0.088084
+  ...
+# Subtest: Degenerate input
+ok 412 - Degenerate input
+  ---
+  duration_ms: 0.300541
+  ...
+# Subtest: Short video still gets a fullframe slot
+ok 413 - Short video still gets a fullframe slot
+  ---
+  duration_ms: 0.116334
+  ...
+# Subtest: post-status merge semantics
+ok 414 - post-status merge semantics
+  ---
+  duration_ms: 8.264833
+  ...
+# Subtest: parseMmss
+ok 415 - parseMmss
+  ---
+  duration_ms: 0.651333
+  ...
+# Subtest: parseAssembly on the fixture
+ok 416 - parseAssembly on the fixture
+  ---
+  duration_ms: 2.380084
+  ...
+# Subtest: parseAssembly without transitions section
+ok 417 - parseAssembly without transitions section
+  ---
+  duration_ms: 0.341959
+  ...
+# Subtest: planQcEvents on the fixture with empty effects
+ok 418 - planQcEvents on the fixture with empty effects
+  ---
+  duration_ms: 2.662375
+  ...
+# Subtest: planQcEvents with beats
+ok 419 - planQcEvents with beats
+  ---
+  duration_ms: 0.653167
+  ...
+# Subtest: expectedForCut
+ok 420 - expectedForCut
+  ---
+  duration_ms: 0.204041
+  ...
+# Subtest: checklistMd
+ok 421 - checklistMd
+  ---
+  duration_ms: 0.664333
+  ...
+# Subtest: parseSceneLog parses ffmpeg metadata
+ok 422 - parseSceneLog parses ffmpeg metadata
+  ---
+  duration_ms: 1.31525
+  ...
+# Subtest: parseLumaCsv and lumaSpikes detect flashes
+ok 423 - parseLumaCsv and lumaSpikes detect flashes
+  ---
+  duration_ms: 0.402375
+  ...
+# Subtest: clusterMoments merges and ranks moments
+ok 424 - clusterMoments merges and ranks moments
+  ---
+  duration_ms: 0.708667
+  ...
+# Subtest: Step 6: default path is untouched (intro: "cards" vs unconfigured)
+ok 425 - Step 6: default path is untouched (intro: "cards" vs unconfigured)
+  ---
+  duration_ms: 29.787166
+  ...
+# Subtest: unconfigured behaves exactly like intro: "cards"; intro: "film" does not leak into it
+ok 426 - unconfigured behaves exactly like intro: "cards"; intro: "film" does not leak into it
+  ---
+  duration_ms: 74.490667
+  ...
+# Subtest: a hypothetical third mode, added to a copy of the table, changes neither "cards" nor "film"
+ok 427 - a hypothetical third mode, added to a copy of the table, changes neither "cards" nor "film"
+  ---
+  duration_ms: 45.548292
+  ...
+# Subtest: whipFlashEnvelope
+ok 428 - whipFlashEnvelope
+  ---
+  duration_ms: 1.182125
+  ...
+# Subtest: beatEnvelope
+ok 429 - beatEnvelope
+  ---
+  duration_ms: 0.893584
+  ...
+# Subtest: envelopeExpr
+ok 430 - envelopeExpr
+  ---
+  duration_ms: 0.184458
+  ...
+# Subtest: planFx
+ok 431 - planFx
+  ---
+  duration_ms: 0.457667
+  ...
+# Subtest: fxRenderArgs
+ok 432 - fxRenderArgs
+  ---
+  duration_ms: 0.388334
+  ...
+# Subtest: Integration: ffmpeg fx clip
+ok 433 - Integration: ffmpeg fx clip
+  ---
+  duration_ms: 3631.764375
+  ...
+# Subtest: rewriteDuration: uniform data-duration values all get replaced
+ok 434 - rewriteDuration: uniform data-duration values all get replaced
+  ---
+  duration_ms: 0.838958
+  ...
+# Subtest: rewriteDuration: mixed data-duration values error, html unchanged
+ok 435 - rewriteDuration: mixed data-duration values error, html unchanged
+  ---
+  duration_ms: 0.31925
+  ...
+# Subtest: rewriteCanvas: no data-width attribute errors
+ok 436 - rewriteCanvas: no data-width attribute errors
+  ---
+  duration_ms: 0.256375
+  ...
+# Subtest: rewriteCanvas: mixed data-width values error, html unchanged
+ok 437 - rewriteCanvas: mixed data-width values error, html unchanged
+  ---
+  duration_ms: 0.353208
+  ...
+# Subtest: rewriteCanvas: single data-width value is rewritten to 1200
+ok 438 - rewriteCanvas: single data-width value is rewritten to 1200
+  ---
+  duration_ms: 0.233875
+  ...
+# Subtest: mmss formats minutes:seconds.decisecond
+ok 439 - mmss formats minutes:seconds.decisecond
+  ---
+  duration_ms: 0.169084
+  ...
+# Subtest: manifestMd sorts cues by start and formats columns
+ok 440 - manifestMd sorts cues by start and formats columns
+  ---
+  duration_ms: 0.718875
+  ...
+# Subtest: planRender: overlay placement renders mov, fullframe renders mp4
+ok 441 - planRender: overlay placement renders mov, fullframe renders mp4
+  ---
+  duration_ms: 0.520458
+  ...
+# Subtest: manifestMd applies timeline offset to place-at column only
+ok 442 - manifestMd applies timeline offset to place-at column only
+  ---
+  duration_ms: 0.530042
+  ...
+# Subtest: manifestCues returns only cues whose outFile exists
+ok 443 - manifestCues returns only cues whose outFile exists
+  ---
+  duration_ms: 2.727666
+  ...
+# Subtest: CLI: approval gate exits 1 and mentions approved
+ok 444 - CLI: approval gate exits 1 and mentions approved
+  ---
+  duration_ms: 27442.910709
+  ...
+# Subtest: CLI: staleness gate exits 1 and mentions stale
+ok 445 - CLI: staleness gate exits 1 and mentions stale
+  ---
+  duration_ms: 19894.862125
+  ...
+# Subtest: render refuses while the 037 card plan is unapproved, and --force overrides
+ok 446 - render refuses while the 037 card plan is unapproved, and --force overrides
+  ---
+  duration_ms: 972.801834
+  ...
+# Subtest: hashRenderInputs changes when ANY staged input changes
+ok 447 - hashRenderInputs changes when ANY staged input changes
+  ---
+  duration_ms: 38.409542
+  ...
+# Subtest: hashRenderInputs separates quality and format
+ok 448 - hashRenderInputs separates quality and format
+  ---
+  duration_ms: 1.723875
+  ...
+# Subtest: pruneCache drops only entries past the TTL
+ok 449 - pruneCache drops only entries past the TTL
+  ---
+  duration_ms: 3.08375
+  ...
+# Subtest: runPool runs every item and bounds concurrency
+ok 450 - runPool runs every item and bounds concurrency
+  ---
+  duration_ms: 28.742917
+  ...
+# Subtest: runPool with one worker is plain sequential order
+ok 451 - runPool with one worker is plain sequential order
+  ---
+  duration_ms: 0.228167
+  ...
+# Subtest: no lib/ source hardcodes a hyperframes version
+ok 452 - no lib/ source hardcodes a hyperframes version
+  ---
+  duration_ms: 37.319041
+  ...
+# Subtest: steps/010 transcribe pin matches the card renderer
+ok 453 - steps/010 transcribe pin matches the card renderer
+  ---
+  duration_ms: 1.816875
+  ...
+# Subtest: both pins resolve to a concrete hyperframes spec
+ok 454 - both pins resolve to a concrete hyperframes spec
+  ---
+  duration_ms: 0.165083
+  ...
+# Subtest: render-film and review-film read the same pin
+ok 455 - render-film and review-film read the same pin
+  ---
+  duration_ms: 2.988542
+  ...
+# Subtest: HYPERFRAMES_VERSION overrides both pins together
+ok 456 - HYPERFRAMES_VERSION overrides both pins together
+  ---
+  duration_ms: 6.350583
+  ...
+# Subtest: happy path: span {id:"s01", kind:"avatar-full", from_anchor:"w10 w11 w12", to_anchor:"w20 w21 w22"}, engineMode "test" → one resolved span
+ok 457 - happy path: span {id:"s01", kind:"avatar-full", from_anchor:"w10 w11 w12", to_anchor:"w20 w21 w22"}, engineMode "test" → one resolved span
+  ---
+  duration_ms: 1.023333
+  ...
+# Subtest: to_anchor before from_anchor in the transcript → error mentioning to_anchor
+ok 458 - to_anchor before from_anchor in the transcript → error mentioning to_anchor
+  ---
+  duration_ms: 0.174917
+  ...
+# Subtest: unknown purpose → error; flagged: true span → skipped, no error
+ok 459 - unknown purpose → error; flagged: true span → skipped, no error
+  ---
+  duration_ms: 0.072209
+  ...
+# Subtest: legacy "kind" field still resolves (renamed to "purpose" 2026-07-31)
+ok 460 - legacy "kind" field still resolves (renamed to "purpose" 2026-07-31)
+  ---
+  duration_ms: 0.067042
+  ...
+# Subtest: engineMode: "production" → legal (Avatar IV, implemented 2026-08-01); engineMode: "nope" → error containing invalid
+ok 461 - engineMode: "production" → legal (Avatar IV, implemented 2026-08-01); engineMode: "nope" → error containing invalid
+  ---
+  duration_ms: 0.1835
+  ...
+# Subtest: duplicate span ids → error
+ok 462 - duplicate span ids → error
+  ---
+  duration_ms: 0.076583
+  ...
+# Subtest: anchor with < 3 words → error (via findPhrase)
+ok 463 - anchor with < 3 words → error (via findPhrase)
+  ---
+  duration_ms: 0.122458
+  ...
+# Subtest: snap at both edges
+ok 464 - snap at both edges
+  ---
+  duration_ms: 34.638125
+  ...
+# Subtest: snap at 1.4s, no snap at 1.6s, sets snapped flag
+ok 465 - snap at 1.4s, no snap at 1.6s, sets snapped flag
+  ---
+  duration_ms: 0.437042
+  ...
+# Subtest: absent mode → error mentioning mode is required
+ok 466 - absent mode → error mentioning mode is required
+  ---
+  duration_ms: 0.395666
+  ...
+# Subtest: mode: "panel" is carried through
+ok 467 - mode: "panel" is carried through
+  ---
+  duration_ms: 0.121625
+  ...
+# Subtest: mode: "side" is carried through
+ok 468 - mode: "side" is carried through
+  ---
+  duration_ms: 0.054958
+  ...
+# Subtest: mode: "stage" is rejected
+ok 469 - mode: "stage" is rejected
+  ---
+  duration_ms: 0.047417
+  ...
+# Subtest: mode: "bogus" -> error mentioning bogus
+ok 470 - mode: "bogus" -> error mentioning bogus
+  ---
+  duration_ms: 0.042958
+  ...
+# Subtest: beat cue resolves start relative to first beat, not cue anchor (BEAT_LEAD_IN clamp)
+ok 471 - beat cue resolves start relative to first beat, not cue anchor (BEAT_LEAD_IN clamp)
+  ---
+  duration_ms: 15.495958
+  ...
+# Subtest: anchor not in transcript produces an error and drops the cue
+ok 472 - anchor not in transcript produces an error and drops the cue
+  ---
+  duration_ms: 0.669
+  ...
+# Subtest: monotonicity: beat phrase only before the cue anchor is not found (forward search only)
+ok 473 - monotonicity: beat phrase only before the cue anchor is not found (forward search only)
+  ---
+  duration_ms: 0.374583
+  ...
+# Subtest: repeated phrase: second cue matches the second occurrence, forward of the first
+ok 474 - repeated phrase: second cue matches the second occurrence, forward of the first
+  ---
+  duration_ms: 21.7995
+  ...
+# Subtest: anchor with fewer than 3 words is an error
+ok 475 - anchor with fewer than 3 words is an error
+  ---
+  duration_ms: 1.64
+  ...
+# Subtest: flagged cue is skipped silently, no error
+ok 476 - flagged cue is skipped silently, no error
+  ---
+  duration_ms: 0.10675
+  ...
+# Subtest: overlapping fullframe cues error; overlay overlapping fullframe does not
+ok 477 - overlapping fullframe cues error; overlay overlapping fullframe does not
+  ---
+  duration_ms: 1.0435
+  ...
+# Subtest: sandwich overlap: overlay between fullframes tracks the last fullframe
+ok 478 - sandwich overlap: overlay between fullframes tracks the last fullframe
+  ---
+  duration_ms: 0.737291
+  ...
+# Subtest: beat anchor inside cue anchor phrase fails; immediately after resolves
+ok 479 - beat anchor inside cue anchor phrase fails; immediately after resolves
+  ---
+  duration_ms: 0.533834
+  ...
+# Subtest: consecutive cues sharing boundary words resolve correctly
+ok 480 - consecutive cues sharing boundary words resolve correctly
+  ---
+  duration_ms: 0.256959
+  ...
+# Subtest: beat-less single cue uses catalog default_duration
+ok 481 - beat-less single cue uses catalog default_duration
+  ---
+  duration_ms: 0.067917
+  ...
+# Subtest: normWord strips punctuation and lowercases (transcript "Pros," matches anchor "pros")
+ok 482 - normWord strips punctuation and lowercases (transcript "Pros," matches anchor "pros")
+  ---
+  duration_ms: 0.040416
+  ...
+# Subtest: CLI: resolves a fixture workdir to resolved.json and exits 0
+ok 483 - CLI: resolves a fixture workdir to resolved.json and exits 0
+  ---
+  duration_ms: 22271.589458
+  ...
+# Subtest: CLI: bad anchor exits 1 and writes no resolved.json
+ok 484 - CLI: bad anchor exits 1 and writes no resolved.json
+  ---
+  duration_ms: 473.6195
+  ...
+# Subtest: validateCues: catches the test-01 bug classes
+ok 485 - validateCues: catches the test-01 bug classes
+  ---
+  duration_ms: 1.436417
+  ...
+# Subtest: word-sync cue resolves start/at/duration
+ok 486 - word-sync cue resolves start/at/duration
+  ---
+  duration_ms: 0.253167
+  ...
+# Subtest: extendExposure: (a) base none, two fullframes 8s apart -> first extends to second start
+ok 487 - extendExposure: (a) base none, two fullframes 8s apart -> first extends to second start
+  ---
+  duration_ms: 0.799334
+  ...
+# Subtest: extendExposure: (b) gap 25s on base none -> extends exactly 20 (cap)
+ok 488 - extendExposure: (b) gap 25s on base none -> extends exactly 20 (cap)
+  ---
+  duration_ms: 0.323166
+  ...
+# Subtest: extendExposure: (c) base screen gap 3s -> absorbed
+ok 489 - extendExposure: (c) base screen gap 3s -> absorbed
+  ---
+  duration_ms: 0.396375
+  ...
+# Subtest: extendExposure: (d) base screen gap 15s -> unchanged
+ok 490 - extendExposure: (d) base screen gap 15s -> unchanged
+  ---
+  duration_ms: 0.19675
+  ...
+# Subtest: extendExposure: (e) overlays never modified
+ok 491 - extendExposure: (e) overlays never modified
+  ---
+  duration_ms: 0.1475
+  ...
+# Subtest: an unknown card errors at resolve — 038 should have built it
+ok 492 - an unknown card errors at resolve — 038 should have built it
+  ---
+  duration_ms: 0.264667
+  ...
+# Subtest: a FLAGGED cue naming an unknown card is parked, not an error
+ok 493 - a FLAGGED cue naming an unknown card is parked, not an error
+  ---
+  duration_ms: 0.391292
+  ...
+# Subtest: validateCues tolerates an unbuilt card — it runs before the 037 gate
+ok 494 - validateCues tolerates an unbuilt card — it runs before the 037 gate
+  ---
+  duration_ms: 0.166166
+  ...
+# Subtest: variant rotation
+ok 495 - variant rotation
+  ---
+  duration_ms: 0.325208
+  ...
+# Subtest: structural card pins its variant instead of rotating (owner v2:6)
+ok 496 - structural card pins its variant instead of rotating (owner v2:6)
+  ---
+  duration_ms: 0.410333
+  ...
+# Subtest: explicit variant still wins over the structural pin
+ok 497 - explicit variant still wins over the structural pin
+  ---
+  duration_ms: 0.121084
+  ...
+# Subtest: beat anchoring to a far repeat of the same words errors (owner v2:3)
+ok 498 - beat anchoring to a far repeat of the same words errors (owner v2:3)
+  ---
+  duration_ms: 0.488083
+  ...
+# Subtest: chroma-key cards carry their key colour into the resolved entry (owner v2:5)
+ok 499 - chroma-key cards carry their key colour into the resolved entry (owner v2:5)
+  ---
+  duration_ms: 0.184333
+  ...
+# Subtest: sentenceEndAfter finds the terminal punctuation of the current sentence
+ok 500 - sentenceEndAfter finds the terminal punctuation of the current sentence
+  ---
+  duration_ms: 0.3385
+  ...
+# Subtest: a fullframe card holds until its sentence finishes (owner v2:2/v2:5)
+ok 501 - a fullframe card holds until its sentence finishes (owner v2:2/v2:5)
+  ---
+  duration_ms: 0.201333
+  ...
+# Subtest: exposure ends on a sentence boundary, never mid-sentence
+ok 502 - exposure ends on a sentence boundary, never mid-sentence
+  ---
+  duration_ms: 0.113667
+  ...
+# Subtest: exposure ends at the FIRST sentence boundary after the card content (owner fold 2026-07-31)
+ok 503 - exposure ends at the FIRST sentence boundary after the card content (owner fold 2026-07-31)
+  ---
+  duration_ms: 0.258125
+  ...
+# Subtest: extendExposure: avatar-full span bounds absorption on base none
+ok 504 - extendExposure: avatar-full span bounds absorption on base none
+  ---
+  duration_ms: 0.380916
+  ...
+# Subtest: avatar clamp: span starts EXACTLY at the card end -> no extension
+ok 505 - avatar clamp: span starts EXACTLY at the card end -> no extension
+  ---
+  duration_ms: 0.226416
+  ...
+# Subtest: avatar clamp: span starts just after the card end -> clamps to the span
+ok 506 - avatar clamp: span starts just after the card end -> clamps to the span
+  ---
+  duration_ms: 0.149542
+  ...
+# Subtest: avatar clamp: span starts just BEFORE the card end -> no extension
+ok 507 - avatar clamp: span starts just BEFORE the card end -> no extension
+  ---
+  duration_ms: 1.114125
+  ...
+# Subtest: avatar clamp: span starts beyond the cap -> HOLD_EXTEND_CAP still binds
+ok 508 - avatar clamp: span starts beyond the cap -> HOLD_EXTEND_CAP still binds
+  ---
+  duration_ms: 0.159458
+  ...
+# Subtest: avatar clamp: no spans -> unchanged behaviour (cap only)
+ok 509 - avatar clamp: no spans -> unchanged behaviour (cap only)
+  ---
+  duration_ms: 0.076
+  ...
+# Subtest: avatar clamp: earlier spans are skipped, the first at-or-after wins
+ok 510 - avatar clamp: earlier spans are skipped, the first at-or-after wins
+  ---
+  duration_ms: 0.079375
+  ...
+# Subtest: every extendExposure call site passes avatarSpans
+ok 511 - every extendExposure call site passes avatarSpans
+  ---
+  duration_ms: 34.697834
+  ...
+# Subtest: variant rotation requires a card-specific text cap
+    # Subtest: a generic role default is not enough — the card is pinned
+    ok 1 - a generic role default is not enough — the card is pinned
+      ---
+      duration_ms: 0.086083
+      ...
+    # Subtest: an explicit cap releases the rotation
+    ok 2 - an explicit cap releases the rotation
+      ---
+      duration_ms: 0.042041
+      ...
+    # Subtest: max_reveal_chars counts as explicit for beat fields
+    ok 3 - max_reveal_chars counts as explicit for beat fields
+      ---
+      duration_ms: 0.046334
+      ...
+    # Subtest: non-text roles carry no length risk
+    ok 4 - non-text roles carry no length risk
+      ---
+      duration_ms: 0.039042
+      ...
+    # Subtest: the real catalog: only measured cards rotate
+    ok 5 - the real catalog: only measured cards rotate
+      ---
+      duration_ms: 1.062625
+      ...
+    1..5
+ok 512 - variant rotation requires a card-specific text cap
+  ---
+  duration_ms: 1.762416
+  ...
+# note: test-gate approval skipped — run-config review=express (owner kickoff choice)
+# Subtest: no run-config.json → safe defaults (heygen3 + full), configured=false
+ok 513 - no run-config.json → safe defaults (heygen3 + full), configured=false
+  ---
+  duration_ms: 4.411708
+  ...
+# Subtest: written config loads with configured=true and extra fields intact
+ok 514 - written config loads with configured=true and extra fields intact
+  ---
+  duration_ms: 2.563041
+  ...
+# Subtest: invalid engine or review throws instead of silently defaulting
+ok 515 - invalid engine or review throws instead of silently defaulting
+  ---
+  duration_ms: 2.793333
+  ...
+# Subtest: intro defaults to cards when run-config.json is absent
+ok 516 - intro defaults to cards when run-config.json is absent
+  ---
+  duration_ms: 1.765708
+  ...
+# Subtest: intro defaults to cards when run-config.json exists without the key
+ok 517 - intro defaults to cards when run-config.json exists without the key
+  ---
+  duration_ms: 4.624958
+  ...
+# Subtest: an unknown intro value throws
+ok 518 - an unknown intro value throws
+  ---
+  duration_ms: 2.981459
+  ...
+# Subtest: intro must default to cards
+ok 519 - intro must default to cards
+  ---
+  duration_ms: 1.340084
+  ...
+# Subtest: gateWaived: false in full mode and when unconfigured, true in express
+ok 520 - gateWaived: false in full mode and when unconfigured, true in express
+  ---
+  duration_ms: 5.084417
+  ...
+# Subtest: step ids come from the steps/ folders
+    # Subtest: reads every NNN- folder, in number order
+    ok 1 - reads every NNN- folder, in number order
+      ---
+      duration_ms: 8.508084
+      ...
+    # Subtest: ignores anything that is not a declared step
+    ok 2 - ignores anything that is not a declared step
+      ---
+      duration_ms: 1.393333
+      ...
+    # Subtest: the folder suffix is the cost signal
+    ok 3 - the folder suffix is the cost signal
+      ---
+      duration_ms: 0.233542
+      ...
+    # Subtest: a step that is both a model pass and a gate reports as both
+    ok 4 - a step that is both a model pass and a gate reports as both
+      ---
+      duration_ms: 1.781084
+      ...
+    1..4
+ok 521 - step ids come from the steps/ folders
+  ---
+  duration_ms: 12.733583
+  ...
+# Subtest: an invented step name cannot be recorded
+    # Subtest: rejects a made-up name and lists the real ones
+    ok 1 - rejects a made-up name and lists the real ones
+      ---
+      duration_ms: 4.530917
+      ...
+    # Subtest: accepts the canonical id
+    ok 2 - accepts the canonical id
+      ---
+      duration_ms: 2.523666
+      ...
+    # Subtest: accepts the bare number and expands it
+    ok 3 - accepts the bare number and expands it
+      ---
+      duration_ms: 5.879584
+      ...
+    # Subtest: rejects an empty step
+    ok 4 - rejects an empty step
+      ---
+      duration_ms: 6.833875
+      ...
+    1..4
+ok 522 - an invented step name cannot be recorded
+  ---
+  duration_ms: 20.380917
+  ...
+# Subtest: recording a step
+    # Subtest: rejects a status outside the enum
+    ok 1 - rejects a status outside the enum
+      ---
+      duration_ms: 3.336708
+      ...
+    # Subtest: a done step without a summary is refused, not written half-empty
+    ok 2 - a done step without a summary is refused, not written half-empty
+      ---
+      duration_ms: 0.235333
+      ...
+    # Subtest: an absent issues field becomes an explicit "none found"
+    ok 3 - an absent issues field becomes an explicit "none found"
+      ---
+      duration_ms: 0.310583
+      ...
+    # Subtest: running stamps started and clears any old end time
+    ok 4 - running stamps started and clears any old end time
+      ---
+      duration_ms: 0.148375
+      ...
+    # Subtest: a re-run keeps the fields it is not given
+    ok 5 - a re-run keeps the fields it is not given
+      ---
+      duration_ms: 0.131958
+      ...
+    # Subtest: whitespace-only fields do not satisfy the done requirement
+    ok 6 - whitespace-only fields do not satisfy the done requirement
+      ---
+      duration_ms: 0.12675
+      ...
+    1..6
+ok 523 - recording a step
+  ---
+  duration_ms: 4.935
+  ...
+# Subtest: the ledger round-trips through the workdir
+ok 524 - the ledger round-trips through the workdir
+  ---
+  duration_ms: 0.90775
+  ...
+# Subtest: a corrupt ledger says so instead of silently reading as empty
+ok 525 - a corrupt ledger says so instead of silently reading as empty
+  ---
+  duration_ms: 0.597917
+  ...
+# Subtest: falling back to the artifacts
+    # Subtest: a video that ran before the ledger is not shown as blank
+    ok 1 - a video that ran before the ledger is not shown as blank
+      ---
+      duration_ms: 4.316042
+      ...
+    # Subtest: a recorded entry beats the artifact probe
+    ok 2 - a recorded entry beats the artifact probe
+      ---
+      duration_ms: 4.503333
+      ...
+    # Subtest: 030 and 035 are told apart by whether a cue carries a zone
+    ok 3 - 030 and 035 are told apart by whether a cue carries a zone
+      ---
+      duration_ms: 25.114875
+      ...
+    # Subtest: 037 needs approval, not just a file
+    ok 4 - 037 needs approval, not just a file
+      ---
+      duration_ms: 5.795167
+      ...
+    # Subtest: 038 is done when the plan has no NEW cards left
+    ok 5 - 038 is done when the plan has no NEW cards left
+      ---
+      duration_ms: 6.223542
+      ...
+    # Subtest: unreadable artifacts read as not-done rather than throwing
+    ok 6 - unreadable artifacts read as not-done rather than throwing
+      ---
+      duration_ms: 4.137291
+      ...
+    1..6
+ok 526 - falling back to the artifacts
+  ---
+  duration_ms: 50.735208
+  ...
+# Subtest: the view answers "where are we"
+    # Subtest: nextStep is the first thing not done or skipped
+    ok 1 - nextStep is the first thing not done or skipped
+      ---
+      duration_ms: 0.079416
+      ...
+    # Subtest: summarize counts each bucket
+    ok 2 - summarize counts each bucket
+      ---
+      duration_ms: 0.092042
+      ...
+    1..2
+ok 527 - the view answers "where are we"
+  ---
+  duration_ms: 0.377042
+  ...
+# Subtest: the rendered table
+    # Subtest: shows all three fields for a recorded done step
+    ok 1 - shows all three fields for a recorded done step
+      ---
+      duration_ms: 0.203958
+      ...
+    # Subtest: says plainly when a step was only inferred
+    ok 2 - says plainly when a step was only inferred
+      ---
+      duration_ms: 0.056167
+      ...
+    1..2
+ok 528 - the rendered table
+  ---
+  duration_ms: 0.371291
+  ...
+# Subtest: CLI: writes, reads back, and refuses an invented step
+ok 529 - CLI: writes, reads back, and refuses an invented step
+  ---
+  duration_ms: 368.324083
+  ...
+# Subtest: a write is refused when the target is the pipeline root
+ok 530 - a write is refused when the target is the pipeline root
+  ---
+  duration_ms: 194.870709
+  ...
+# Subtest: inferred steps are surfaced as a warning, not a footnote
+ok 531 - inferred steps are surfaced as a warning, not a footnote
+  ---
+  duration_ms: 6.945042
+  ...
+# Subtest: a skipped step cannot carry did — work means done (owner report 2026-07-31)
+ok 532 - a skipped step cannot carry did — work means done (owner report 2026-07-31)
+  ---
+  duration_ms: 0.129458
+  ...
+# Subtest: 090 infers done from media files only, never the bare renders dir (owner report 2026-07-31)
+ok 533 - 090 infers done from media files only, never the bare renders dir (owner report 2026-07-31)
+  ---
+  duration_ms: 10.031625
+  ...
+# Subtest: segments: dense run of demo cues yields one demo run covering it
+ok 534 - segments: dense run of demo cues yields one demo run covering it
+  ---
+  duration_ms: 1.14175
+  ...
+# Subtest: segments: a run shorter than MIN_SEG is merged, not emitted
+ok 535 - segments: a run shorter than MIN_SEG is merged, not emitted
+  ---
+  duration_ms: 0.301125
+  ...
+# Subtest: sideModeCueIds: a side span covering one fullframe cue returns that cue id
+ok 536 - sideModeCueIds: a side span covering one fullframe cue returns that cue id
+  ---
+  duration_ms: 0.738583
+  ...
+# Subtest: sideModeCueIds: a full span contributes nothing
+ok 537 - sideModeCueIds: a full span contributes nothing
+  ---
+  duration_ms: 0.078375
+  ...
+# Subtest: sideModeCueIds: a side span covering zero fullframe cues throws with the span id
+ok 538 - sideModeCueIds: a side span covering zero fullframe cues throws with the span id
+  ---
+  duration_ms: 0.186125
+  ...
+# Subtest: sideModeCueIds: a side span covering two fullframe cues throws with the span id and cue ids
+ok 539 - sideModeCueIds: a side span covering two fullframe cues throws with the span id and cue ids
+  ---
+  duration_ms: 0.16425
+  ...
+# Subtest: sideModeCueIds: an overlay cue is not eligible to cover a side span
+ok 540 - sideModeCueIds: an overlay cue is not eligible to cover a side span
+  ---
+  duration_ms: 0.067583
+  ...
+# Subtest: staged HTML: a side-covered cue stages at data-width="1200"
+ok 541 - staged HTML: a side-covered cue stages at data-width="1200"
+  ---
+  duration_ms: 0.944041
+  ...
+# Subtest: staged HTML: a cue with no covering side span stays at 1920
+ok 542 - staged HTML: a cue with no covering side span stays at 1920
+  ---
+  duration_ms: 0.413834
+  ...
+# Subtest: hashRenderInputs: rewriting data-width for side mode changes the render cache key
+ok 543 - hashRenderInputs: rewriting data-width for side mode changes the render cache key
+  ---
+  duration_ms: 71.339208
+  ...
+# Subtest: buildMixArgs no music
+ok 544 - buildMixArgs no music
+  ---
+  duration_ms: 0.79925
+  ...
+# Subtest: buildMixArgs with music
+ok 545 - buildMixArgs with music
+  ---
+  duration_ms: 0.188666
+  ...
+# Subtest: sfx planner rules
+ok 546 - sfx planner rules
+  ---
+  duration_ms: 1.392667
+  ...
+# Subtest: constants
+ok 547 - constants
+  ---
+  duration_ms: 0.975334
+  ...
+# Subtest: source structure
+    # Subtest: three files present
+    ok 1 - three files present
+      ---
+      duration_ms: 23.916417
+      ...
+    # Subtest: conclusion.mp4 missing
+    ok 2 - conclusion.mp4 missing
+      ---
+      duration_ms: 25.767917
+      ...
+    # Subtest: intro.mp4 missing
+    ok 3 - intro.mp4 missing
+      ---
+      duration_ms: 3.581292
+      ...
+    # Subtest: no src/ directory
+    ok 4 - no src/ directory
+      ---
+      duration_ms: 1.924
+      ...
+    # Subtest: total shorter than the conclusion start -> never used
+    ok 5 - total shorter than the conclusion start -> never used
+      ---
+      duration_ms: 8.983458
+      ...
+    1..5
+ok 548 - source structure
+  ---
+  duration_ms: 68.55375
+  ...
+# Subtest: probeSrcAspect reads a PORTRAIT source as 9:16
+ok 549 - probeSrcAspect reads a PORTRAIT source as 9:16
+  ---
+  duration_ms: 838.579209
+  ...
+# Subtest: probeSrcAspect reads a LANDSCAPE source as 16:9
+ok 550 - probeSrcAspect reads a LANDSCAPE source as 16:9
+  ---
+  duration_ms: 778.939291
+  ...
+# Subtest: probeSrcAspect falls back to 16:9 on an unreadable file
+ok 551 - probeSrcAspect falls back to 16:9 on an unreadable file
+  ---
+  duration_ms: 309.662375
+  ...
+# Subtest: probeSrcAspect memoises per file — one probe for repeated asks
+ok 552 - probeSrcAspect memoises per file — one probe for repeated asks
+  ---
+  duration_ms: 0.269333
+  ...
+# Subtest: planPanelGeometry: a portrait source yields a portrait panel
+ok 553 - planPanelGeometry: a portrait source yields a portrait panel
+  ---
+  duration_ms: 0.183334
+  ...
+# Subtest: planPanelGeometry: panel aspect tracks the source aspect
+ok 554 - planPanelGeometry: panel aspect tracks the source aspect
+  ---
+  duration_ms: 0.151125
+  ...
+# Subtest: planPanelGeometry: the panel stays inside the canvas for a portrait source
+ok 555 - planPanelGeometry: the panel stays inside the canvas for a portrait source
+  ---
+  duration_ms: 0.07025
+  ...
+# Subtest: planPanelGeometry: both dimensions stay even for yuv420p
+ok 556 - planPanelGeometry: both dimensions stay even for yuv420p
+  ---
+  duration_ms: 0.239542
+  ...
+# Subtest: planSideGeometry: a portrait source is cropped far less than a landscape one
+ok 557 - planSideGeometry: a portrait source is cropped far less than a landscape one
+  ---
+  duration_ms: 0.345209
+  ...
+# Subtest: every planPanelGeometry/planSideGeometry call site passes srcAspect
+ok 558 - every planPanelGeometry/planSideGeometry call site passes srcAspect
+  ---
+  duration_ms: 3.524875
+  ...
+# Subtest: planSideGeometry: the crop always covers the column with no letterbox
+ok 559 - planSideGeometry: the crop always covers the column with no letterbox
+  ---
+  duration_ms: 0.11975
+  ...
+# Subtest: every numbered step folder declares a step.json
+ok 560 - every numbered step folder declares a step.json
+  ---
+  duration_ms: 2.566042
+  ...
+# Subtest: the whole registry loads and validates
+ok 561 - the whole registry loads and validates
+  ---
+  duration_ms: 1.444541
+  ...
+# Subtest: numbers are unique and sort the same way the folders do
+ok 562 - numbers are unique and sort the same way the folders do
+  ---
+  duration_ms: 0.585375
+  ...
+# Subtest: no two steps claim the same verb, and no step verb collides with a helper
+ok 563 - no two steps claim the same verb, and no step verb collides with a helper
+  ---
+  duration_ms: 1.487958
+  ...
+# Subtest: every declared artifact path is relative to videos/<slug>/
+ok 564 - every declared artifact path is relative to videos/<slug>/
+  ---
+  duration_ms: 0.328167
+  ...
+# Subtest: a gate and a board tab imply each other
+ok 565 - a gate and a board tab imply each other
+  ---
+  duration_ms: 0.240167
+  ...
+# Subtest: every step declares an effect: an artifact, a gate, or external output
+ok 566 - every step declares an effect: an artifact, a gate, or external output
+  ---
+  duration_ms: 0.290916
+  ...
+# Subtest: stepDir resolves a step by number, verb or slug — all to one folder
+ok 567 - stepDir resolves a step by number, verb or slug — all to one folder
+  ---
+  duration_ms: 401.009542
+  ...
+# Subtest: an unknown ref is refused with E-REG, not resolved to something near it
+ok 568 - an unknown ref is refused with E-REG, not resolved to something near it
+  ---
+  duration_ms: 20.035667
+  ...
+# Subtest: every required field is required — deleting any one of them throws E-REG
+ok 569 - every required field is required — deleting any one of them throws E-REG
+  ---
+  duration_ms: 0.576667
+  ...
+# Subtest: a malformed field value is refused too
+ok 570 - a malformed field value is refused too
+  ---
+  duration_ms: 0.332625
+  ...
+# Subtest: a waivable step without a gate is a declaration bug
+ok 571 - a waivable step without a gate is a declaration bug
+  ---
+  duration_ms: 0.063667
+  ...
+# Subtest: consumes/produces form a DAG — nothing consumes what a later step produces
+ok 572 - consumes/produces form a DAG — nothing consumes what a later step produces
+  ---
+  duration_ms: 0.177375
+  ...
+# Subtest: _verbs.json holds only non-step commands, each with a known kind
+ok 573 - _verbs.json holds only non-step commands, each with a known kind
+  ---
+  duration_ms: 0.503125
+  ...
+# Subtest: allVerbs is every step verb plus every helper, with no duplicates
+ok 574 - allVerbs is every step verb plus every helper, with no duplicates
+  ---
+  duration_ms: 6.110834
+  ...
+# Subtest: a near-miss verb is named rather than just refused
+ok 575 - a near-miss verb is named rather than just refused
+  ---
+  duration_ms: 6.806875
+  ...
+# Subtest: a fresh workdir parks on the first step
+ok 576 - a fresh workdir parks on the first step
+  ---
+  duration_ms: 4.049417
+  ...
+# Subtest: an intro:"cards" video never reaches the intro-film steps
+ok 577 - an intro:"cards" video never reaches the intro-film steps
+  ---
+  duration_ms: 3.627541
+  ...
+# Subtest: an intro:"film" video reaches 025, then the 027 gate
+ok 578 - an intro:"film" video reaches 025, then the 027 gate
+  ---
+  duration_ms: 24.751875
+  ...
+# Subtest: express waives a waivable gate but never 027 or 120
+ok 579 - express waives a waivable gate but never 027 or 120
+  ---
+  duration_ms: 54.107125
+  ...
+# Subtest: a finished video reports nothing left to do
+ok 580 - a finished video reports nothing left to do
+  ---
+  duration_ms: 6.63425
+  ...
+# Subtest: the next: line names a verb, or the gate text the step carries
+ok 581 - the next: line names a verb, or the gate text the step carries
+  ---
+  duration_ms: 0.147125
+  ...
+# Subtest: no lib/ source resolves a step folder by its literal name
+ok 582 - no lib/ source resolves a step folder by its literal name
+  ---
+  duration_ms: 84.850041
+  ...
+# Subtest: every board tab the registry names is a real board tab
+ok 583 - every board tab the registry names is a real board tab
+  ---
+  duration_ms: 0.518708
+  ...
+# Subtest: clampAndJudge
+ok 584 - clampAndJudge
+  ---
+  duration_ms: 4.608875
+  ...
+# Subtest: transcriptBeats - happy path
+ok 585 - transcriptBeats - happy path
+  ---
+  duration_ms: 0.563834
+  ...
+# Subtest: transcriptBeats - label never appears
+ok 586 - transcriptBeats - label never appears
+  ---
+  duration_ms: 0.17775
+  ...
+# Subtest: transcriptBeats - multi-word label
+ok 587 - transcriptBeats - multi-word label
+  ---
+  duration_ms: 0.073916
+  ...
+# Subtest: transcriptBeats - item appearing twice
+ok 588 - transcriptBeats - item appearing twice
+  ---
+  duration_ms: 0.064834
+  ...
+# Subtest: transcriptBeats - empty item list
+ok 589 - transcriptBeats - empty item list
+  ---
+  duration_ms: 0.110917
+  ...
+# Subtest: checkTimingIntegrity: identical input has no errors
+ok 590 - checkTimingIntegrity: identical input has no errors
+  ---
+  duration_ms: 2.228334
+  ...
+# Subtest: checkTimingIntegrity: empty text is an error
+ok 591 - checkTimingIntegrity: empty text is an error
+  ---
+  duration_ms: 0.244875
+  ...
+# Subtest: checkTimingIntegrity: backwards start names "timeline went backwards"
+ok 592 - checkTimingIntegrity: backwards start names "timeline went backwards"
+  ---
+  duration_ms: 0.203
+  ...
+# Subtest: checkTimingIntegrity: more words out than in is an error
+ok 593 - checkTimingIntegrity: more words out than in is an error
+  ---
+  duration_ms: 0.178833
+  ...
+# Subtest: checkTimingIntegrity: a span outside the source is an error
+ok 594 - checkTimingIntegrity: a span outside the source is an error
+  ---
+  duration_ms: 0.19125
+  ...
+# Subtest: applyCleanup: merges "Higgs"+"Field" and drops a leading "Now,"
+ok 595 - applyCleanup: merges "Higgs"+"Field" and drops a leading "Now,"
+  ---
+  duration_ms: 0.118042
+  ...
+# Subtest: applyCleanup: throws rather than write a desynced transcript
+ok 596 - applyCleanup: throws rather than write a desynced transcript
+  ---
+  duration_ms: 0.281917
+  ...
+# Subtest: alignScriptToWords: identical text produces identical timings
+ok 597 - alignScriptToWords: identical text produces identical timings
+  ---
+  duration_ms: 0.392
+  ...
+# Subtest: alignScriptToWords: a script with one extra word stays monotonic and in-span
+ok 598 - alignScriptToWords: a script with one extra word stays monotonic and in-span
+  ---
+  duration_ms: 0.372708
+  ...
+# Subtest: CLI align: writes the aligned transcript on success
+ok 599 - CLI align: writes the aligned transcript on success
+  ---
+  duration_ms: 134.433125
+  ...
+# Subtest: CLI apply: fails loudly and leaves transcript.json untouched on a desynced cleanup
+ok 600 - CLI apply: fails loudly and leaves transcript.json untouched on a desynced cleanup
+  ---
+  duration_ms: 79.626541
+  ...
+# Subtest: real cleanup run over test-03 raw transcript: comma count drops, zero integrity errors
+ok 601 - real cleanup run over test-03 raw transcript: comma count drops, zero integrity errors
+  ---
+  duration_ms: 3.61125
+  ...
+# Subtest: findSuspects
+ok 602 - findSuspects
+  ---
+  duration_ms: 1.8795
+  ...
+# Subtest: transcriptText unit test
+ok 603 - transcriptText unit test
+  ---
+  duration_ms: 0.33875
+  ...
+# Subtest: CLI smoke test
+ok 604 - CLI smoke test
+  ---
+  duration_ms: 102.232209
+  ...
+# Subtest: versions registry
+ok 605 - versions registry
+  ---
+  duration_ms: 36.831042
+  ...
+# Subtest: loadVideoManifest defaults when missing
+ok 606 - loadVideoManifest defaults when missing
+  ---
+  duration_ms: 5.732042
+  ...
+# Subtest: loadVideoManifest merges with raw file
+ok 607 - loadVideoManifest merges with raw file
+  ---
+  duration_ms: 10.259292
+  ...
+# Subtest: loadVideoManifest throws on bad base
+ok 608 - loadVideoManifest throws on bad base
+  ---
+  duration_ms: 10.375333
+  ...
+# Subtest: loadVideoManifest throws on bad aspect
+ok 609 - loadVideoManifest throws on bad aspect
+  ---
+  duration_ms: 11.629584
+  ...
+# Subtest: plan() emits style:blur for avatar>screen and style:flash for *>graphic, nothing for graphic>* or screen>avatar
+ok 610 - plan() emits style:blur for avatar>screen and style:flash for *>graphic, nothing for graphic>* or screen>avatar
+  ---
+  duration_ms: 1.084375
+  ...
+# Subtest: plan() skips boundaries with an overlapping overlay and <1s segments
+ok 611 - plan() skips boundaries with an overlapping overlay and <1s segments
+  ---
+  duration_ms: 0.1865
+  ...
+# Subtest: boundarySegments() flash chain shape
+ok 612 - boundarySegments() flash chain shape
+  ---
+  duration_ms: 0.273583
+  ...
+# Subtest: plan() emits style:register for concept span boundaries
+ok 613 - plan() emits style:register for concept span boundaries
+  ---
+  duration_ms: 90.558917
+  ...
+# Subtest: boundarySegments() register chain shape
+ok 614 - boundarySegments() register chain shape
+  ---
+  duration_ms: 0.578209
+  ...
+# Subtest: W15 zone-gap fires on the 45.7s hole that passed the body limit
+ok 615 - W15 zone-gap fires on the 45.7s hole that passed the body limit
+  ---
+  duration_ms: 1.872125
+  ...
+# Subtest: W15 zone-gap measures from the zone opening, not just card to card
+ok 616 - W15 zone-gap measures from the zone opening, not just card to card
+  ---
+  duration_ms: 0.674542
+  ...
+# Subtest: W16 zone-motion fires on test-03s 1-enacted-of-4 intro
+ok 617 - W16 zone-motion fires on test-03s 1-enacted-of-4 intro
+  ---
+  duration_ms: 0.274125
+  ...
+# Subtest: W16 zone-motion needs 2 enacted even when the fraction is satisfied
+ok 618 - W16 zone-motion needs 2 enacted even when the fraction is satisfied
+  ---
+  duration_ms: 0.987375
+  ...
+# Subtest: W16 zone-motion is silent when half are enacted and there are at least 2
+ok 619 - W16 zone-motion is silent when half are enacted and there are at least 2
+  ---
+  duration_ms: 0.437333
+  ...
+# Subtest: W17 zone-rate does NOT fire on test-03s intro, which was already dense
+ok 620 - W17 zone-rate does NOT fire on test-03s intro, which was already dense
+  ---
+  duration_ms: 0.151375
+  ...
+# Subtest: W17 zone-rate fires on a genuinely thin zone
+ok 621 - W17 zone-rate fires on a genuinely thin zone
+  ---
+  duration_ms: 0.136
+  ...
+# Subtest: W19 zone-authorship catches a body cue that wandered into the intro
+ok 622 - W19 zone-authorship catches a body cue that wandered into the intro
+  ---
+  duration_ms: 0.113708
+  ...
+# Subtest: W19 zone-authorship catches a zone cue whose anchor landed in the body
+ok 623 - W19 zone-authorship catches a zone cue whose anchor landed in the body
+  ---
+  duration_ms: 0.31575
+  ...
+# Subtest: W19 stays silent for a correctly tagged zone cue and an untagged body cue
+ok 624 - W19 stays silent for a correctly tagged zone cue and an untagged body cue
+  ---
+  duration_ms: 0.356625
+  ...
+# Subtest: zone lints never fire on a workdir with no measured structure
+ok 625 - zone lints never fire on a workdir with no measured structure
+  ---
+  duration_ms: 0.191333
+  ...
+# Subtest: subtractIntervals removes card and avatar coverage from a zone
+ok 626 - subtractIntervals removes card and avatar coverage from a zone
+  ---
+  duration_ms: 0.148042
+  ...
+# Subtest: mergeIntervals collapses an overlapping card and avatar span
+ok 627 - mergeIntervals collapses an overlapping card and avatar span
+  ---
+  duration_ms: 0.045083
+  ...
+# Subtest: parseFreezeLog reads ffmpeg freezedetect output and closes an open freeze
+ok 628 - parseFreezeLog reads ffmpeg freezedetect output and closes an open freeze
+  ---
+  duration_ms: 0.206417
+  ...
+# Subtest: W18 reports the 20s still run test-03 actually had
+ok 629 - W18 reports the 20s still run test-03 actually had
+  ---
+  duration_ms: 0.074125
+  ...
+# Subtest: W18 ignores a still stretch that a fullframe card is covering
+ok 630 - W18 ignores a still stretch that a fullframe card is covering
+  ---
+  duration_ms: 0.041875
+  ...
+# Subtest: W18 ignores a still stretch under an avatar span
+ok 631 - W18 ignores a still stretch under an avatar span
+  ---
+  duration_ms: 0.0385
+  ...
+# Subtest: W18 reports only the uncovered remainder of a partially covered freeze
+ok 632 - W18 reports only the uncovered remainder of a partially covered freeze
+  ---
+  duration_ms: 0.131167
+  ...
+# Subtest: checkZoneStillness reports not-applicable when there is no footage
+ok 633 - checkZoneStillness reports not-applicable when there is no footage
+  ---
+  duration_ms: 0.081041
+  ...
+1..633
+# tests 711
+# suites 0
+# pass 711
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 135192.804416
+rulebook ok
+shot rulebook ok
+zone rulebook ok
+intro taste ok — 12 rules
+Testing run.sh...
+run.sh test OK
+run.sh session-ledger tests OK
+board-ui smoke OK
+visuals-flow check OK

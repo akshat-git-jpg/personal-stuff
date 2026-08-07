@@ -4,14 +4,21 @@
   "title": "render the avatar clips",
   "actor": "owner-live",
   "actorLabel": "[OWNER live HeyGen]",
-  "verbs": ["avatar", "avatar-download"],
-  "consumes": ["shots.json", "vo.mp3"],
-  "produces": ["avatar-jobs.json", "avatar-manifest.md"],
+  "verbs": [
+    "avatar",
+    "avatar-download"
+  ],
+  "consumes": [
+    "shots.json",
+    "vo.mp3"
+  ],
+  "produces": [
+    "avatar-jobs.json",
+    "avatar-manifest.md"
+  ],
   "gate": null,
   "tab": null,
-  "waivable": false,
   "external": false,
   "optional": true,
-  "requires": { "intro": null },
   "summary": "approved `shots.resolved.json` + `vo.mp3` → HeyGen template jobs → `avatar-jobs.json` + clips (kb-scratch) + `avatar-manifest.md`"
 }
