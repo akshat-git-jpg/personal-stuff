@@ -2,7 +2,7 @@
   "video": "best-ai-video-generator",
   "updated": "2026-08-02T11:05:06.058Z",
   "steps": {
-    "010-transcribe-run": {
+    "020-transcribe-run": {
       "status": "done",
       "started": "2026-08-01T09:32:03.777Z",
       "ended": "2026-08-01T09:39:39.980Z",
@@ -10,7 +10,7 @@
       "output": "transcript.json 5974 words, transcript.whisper-raw.bak.json, vo.mp3, screen.mp4 1927.70s",
       "issues": "Non-brand ASR garbles preserved verbatim per the no-grammar-rewrite rule and may read oddly as captions: '10 ATP exports' (~1080p), 'one clip translation' (~one-click), 'squirm export' fixed to 'SCORM export', 'Harrison' (~5346s area, likely a tool name), 'straight forward'. These need an editorial decision if captions look wrong at final cut."
     },
-    "015-map-segments-run": {
+    "040-split-narration-demo-run": {
       "status": "done",
       "started": "2026-08-01T09:39:46.587Z",
       "ended": "2026-08-01T09:44:22.914Z",
@@ -18,7 +18,7 @@
       "output": "segments.json — 18 segments (11 with playback/table notes), structure intro 0-86.7 / body 86.7-1769.7 / conclusion 1769.7-1927.7, confirmed: true",
       "issues": "The auto-proposal had labelled all three sample-clip playbacks as plain demo and the final 1405-1927 stretch as one narration block — both would have allowed cards over the video's proof shots. Corrected from frames."
     },
-    "020-choose-concept-llm": {
+    "050-choose-concept-llm": {
       "status": "done",
       "started": "2026-08-01T09:44:33.276Z",
       "ended": "2026-08-01T09:46:21.817Z",
@@ -26,7 +26,7 @@
       "issues": "none found",
       "output": "concept.json — lint-concept passes, narration register coverage 94.8% (588.8s of 621.0s)"
     },
-    "030-pick-or-propose-graphics-llm": {
+    "210-author-body-cues-llm": {
       "status": "done",
       "started": "2026-08-01T09:46:30.001Z",
       "ended": "2026-08-01T13:06:09.205Z",
@@ -34,7 +34,7 @@
       "issues": "2 residual W6 bare-demo warnings both contain protected playback spans (real bare footage 26-28s); 3 residual W7s are 1-2s beat-clamp overshoot plus one deliberate bare bridge at the Arcads sign-in; HeyGen has no fullframe opener because its transition falls inside demo footage — substituted a lower-third; skeleton slot 15 (1349.5s) deliberately left empty.",
       "output": "cues.json — 69 body cues, 0 marked NEW; cues.llm.json baseline snapshot; resolved.json from the fix loop"
     },
-    "035-pick-or-propose-intro-outro-llm": {
+    "220-author-conclusion-cues-llm": {
       "status": "done",
       "started": "2026-08-01T13:06:10.002Z",
       "ended": "2026-08-01T14:09:18.135Z",
@@ -42,7 +42,7 @@
       "issues": "Four rounds of fixes were needed: overlapping beat anchors, three card overlaps, spotlight-focus over its 3-use cap, and two fullframes past the end-of-video exclusion zone (the aurora reprise became a link scrim and a closing statement card was dropped). W18 stillness flags 21.4s of static frame from 1906.3s to the end — no fullframe is legal there, so the outro needs an avatar span at step 060. Residual: 5 W1 cadence warnings (zone density demands tighter spacing than the body's 12s minimum), 2 W21 long-holds in the intro, and the body's pre-existing W6/W7 bare stretches.",
       "output": "cues.json — 88 cues (6 intro, 69 body, 13 conclusion), 0 marked NEW; cues.llm.json snapshot; resolved.json"
     },
-    "040-sync-graphics-run": {
+    "310-sync-graphics-run": {
       "status": "blocked",
       "started": "2026-08-01T14:28:16.036Z",
       "issues": "exited 1, see terminal",
@@ -50,7 +50,7 @@
       "output": "resolved.json",
       "ended": "2026-08-01T14:28:16.152Z"
     },
-    "037-approve-card-plan-human": {
+    "235-build-card-plan-run": {
       "status": "done",
       "ended": "2026-08-01T14:09:48.480Z",
       "started": "2026-08-01T14:09:48.480Z",
@@ -58,7 +58,7 @@
       "issues": "none found — 0 cards marked NEW, so no owner look-preview was required.",
       "output": "card-plan.json — 88 cues, 88 existing, 0 to build, 0 flagged; approval waived (run-config review=express)"
     },
-    "060-place-avatar-llm": {
+    "320-place-avatar-llm": {
       "status": "done",
       "ended": "2026-08-01T14:15:40.075Z",
       "started": "2026-08-01T14:15:40.075Z",
@@ -66,7 +66,7 @@
       "issues": "Three planned spans were dropped because no legal window existed — the Synthesia overview, the OpenArt verdict and an OpenArt closer all collided with fullframe cues or fell short of the 10s minimum once trimmed to sentence boundaries. Total host time is 149s against the ~257s aim, and four W4 cadence warnings remain (up to 580s without a host beat): the gaps all sit inside hands-on demo stretches where rule 7 keeps the screen recording on screen. Four W7 flush-cut warnings where a span starts with almost no breath before it.",
       "output": "shots.json — 7 spans (1 side, 6 full), 149.2s total, engineMode test; shots.resolved.json"
     },
-    "080-approve-storyboard-human": {
+    "340-approve-storyboard-human": {
       "status": "done",
       "ended": "2026-08-01T14:15:49.595Z",
       "started": "2026-08-01T14:15:49.595Z",
@@ -74,7 +74,7 @@
       "issues": "none found — the plan carries no errors; residual warnings are recorded on steps 030, 035 and 060.",
       "output": "cues.json 88 cues + shots.json 7 spans, both approved=false with the 080 gate waived by run-config review=express"
     },
-    "100-render-avatar-run": {
+    "430-render-avatar-run": {
       "status": "done",
       "started": "2026-08-01T14:16:02.149Z",
       "ended": "2026-08-01T14:45:37.960Z",
@@ -82,7 +82,7 @@
       "output": "avatar-jobs.json — 7 clips in kb-scratch/video/heygen/visuals-flow/best-ai-video-generator/ (s01-s07), avatar-manifest.md",
       "issues": "The first submit run was cut off by a timeout after 5 of 7 spans and had to be re-run for s06 and s07; the re-run picked up exactly the two missing spans. Note for the fold: the --download step only logs pending jobs, never successes, so a completed collection looks identical to a no-op."
     },
-    "050-review-graphics-llm": {
+    "retired/050-review-graphics-llm": {
       "status": "done",
       "ended": "2026-08-01T14:29:18.855Z",
       "started": "2026-08-01T14:29:18.855Z",
@@ -90,7 +90,7 @@
       "issues": "z01's suggested fix was a NEW card (five tiles each stamping a promise); accepted as-is instead, because building it would stop the flow for the owner look-preview and the word-synced hook already covers second zero without freezing. Six overlay warnings left unapplied: c04, c07, c15, c17 device choices, and c35/c64 which should be stat-hits like every other spoken number. Two coverage gaps worth the owner's eye at final cut: HeyGen never gets a score-pill in the summary table, and HeyGen's and Higgsfield's spoken discounts are un-badged in the pricing section.",
       "output": "audit.json — 88 items, 13 labelled, 7 fullframe fixes applied or accepted; cues.json now 86 cues, resolve and lint-shots both at zero errors"
     },
-    "090-render-graphics-run": {
+    "410-render-graphics-run": {
       "status": "done",
       "started": "2026-08-01T17:02:25.966Z",
       "issues": "The first render attempt refused on a stale resolve after the audit fixes; re-resolving fixed two knock-on collisions (c50's beat anchors ran backwards past its own anchor, and c49 overlapped c50) before the render went through cleanly.",
@@ -98,7 +98,7 @@
       "output": "renders/ + manifest.md",
       "ended": "2026-08-01T17:02:56.083Z"
     },
-    "110-build-video-run": {
+    "510-assemble-video-run": {
       "status": "blocked",
       "started": "2026-08-02T01:28:04.057Z",
       "did": "Assembled the screen recording, 86 graphics clips, 6 avatar clips, effects and the mastered audio into a 32:07.7 draft, then fixed three defects QC caught in the first cut and re-cut twice. Draft v3 is the current version.",
@@ -106,7 +106,7 @@
       "output": "final-draft.mp4 32:07.7 (v3) in kb-scratch/video/visuals-flow/best-ai-video-generator/ + assembly.md",
       "ended": "2026-08-02T01:28:04.445Z"
     },
-    "005-configure-run-human": {
+    "010-configure-run-human": {
       "status": "done",
       "ended": "2026-08-01T15:07:32.685Z",
       "started": "2026-08-01T15:07:32.685Z",
@@ -114,7 +114,7 @@
       "issues": "none found",
       "output": "run-config.json — engine=heygen3, review=express, drive_folder + drive_account set; src/intro.mp4 86.7s + src/body.mp4 1683.0s + src/conclusion.mp4 158.0s"
     },
-    "038-build-cards-llm-and-review-human": {
+    "240-build-cards-llm": {
       "status": "done",
       "ended": "2026-08-01T15:07:32.737Z",
       "started": "2026-08-01T15:07:32.737Z",
@@ -122,7 +122,7 @@
       "issues": "none found",
       "output": "no new cards; card-plan.json reports 0 to build, 0 flagged"
     },
-    "130-learn-from-feedback-opus": {
+    "630-learn-from-feedback-opus": {
       "status": "done",
       "ended": "2026-08-01T16:51:26.026Z",
       "started": "2026-08-01T16:51:26.026Z",
@@ -130,7 +130,7 @@
       "issues": "The headline root cause was a rulebook self-contradiction, not a model failure: CAP_FULLFRAME=3 and R_STRUCTURAL cannot both hold on a 5-tool comparison, and both asymmetries the owner reported landed exactly at the cap. One item is deliberately unfinished: the opening card the owner disliked needs a NEW card, so three look-preview prompts went to the owner and no code was written. The HeyGen section opener still cannot be added because every candidate window falls inside overlay-only demo footage, which is a script-structure limit needing an editorial decision. Convergence metrics for this video are unmeasurable because cues.llm.json was re-copied after every fix round during the original run. ROUND 2 issues: (1) z02 beat sync is NOT fixed and cannot be with the current resolver: beats fire on the anchor phrase's FIRST word and anchors need 3+ words, so a 7-word roll-call cannot carry 5 anchors. Routed to plan 177; the cue is left as authored rather than swapping out a card the owner asked for one round earlier. (2) z01 had silently reverted from the owner-approved enacted/promise-shelf back to slate/kinetic-sentence. A card can be built, approved, lint-clean, catalogued and rendered and still be absent from the video; only an orphaned render file gave it away. (3) 20 orphaned render files now sit in renders/ from two rounds of card remapping. They are inert (the manifest names exact files) but they are also the only signal that a cue silently changed, which argues for a gate rather than a cleanup. (4) effects.json still holds whip transitions keyed to the PREVIOUS cue geometry; c37 became a fullframe at 995s and has no transition. Effects must be regenerated at the next assemble. (5) plans/README.md registers 175-vf2-per-cue-frame-gate with no plan file behind it, and that is precisely the gate that would have caught the c27 overflow.",
       "output": "cues.json 84 cues, 4 rule surfaces updated, 1 card built, 1 card retired, plan 175 written, draft v4 assembled 32:07.7"
     },
-    "150-deliver-drive-run": {
+    "620-deliver-drive-run": {
       "status": "done",
       "started": "2026-08-02T10:50:00.145Z",
       "issues": "exited 1, see terminal",
