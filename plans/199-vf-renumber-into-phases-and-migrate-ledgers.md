@@ -1,6 +1,6 @@
 ---
-executor: agy
-model:
+executor: claude-p
+model: sonnet
 test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui:
 deploy:
@@ -46,8 +46,13 @@ mutation_timeout:
     map that is machine-checked for completeness.
   - Make the registry express the **two parallel tracks** so the next-hint stops
     serialising the intro film behind the card plan.
-- **Executor proposed**: `agy` / Gemini 3.1 Pro (High) — the full rename map and
-  the migration module are written out below; nothing is left to judgment.
+- **Executor proposed**: `claude-p` / sonnet. The map and the migration module
+  are fully inlined, so this is not the agy default's fault — but STOP condition 2
+  leaves one genuine judgment call mid-run (a ledger key absent from the map must
+  be *identified*, or the run stops), and unlike every other plan in this batch
+  the failure mode is unrecoverable: 39 entries of owner history with no second
+  copy, one video live. That is `rules.md`'s "plan can't be fully inlined — real
+  judgment expected mid-execution" row. Owner call, 2026-08-07.
 - **Done criteria** (terse — full list below): `check.sh` exits 0 **on a fresh
   checkout**; every ledger key resolves to a step; `PIPELINE.md` lists the phases.
 - **Stop conditions** (terse — full list below): any ledger entry lost; the map
