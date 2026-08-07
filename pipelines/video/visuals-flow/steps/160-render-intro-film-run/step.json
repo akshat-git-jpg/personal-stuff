@@ -1,0 +1,21 @@
+{
+  "number": "160",
+  "slug": "160-render-intro-film-run",
+  "title": "render the intro film",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "intro-render"
+  ],
+  "consumes": [
+    "intro-film/screenplay.json"
+  ],
+  "produces": [
+    "intro-film/out/intro.mp4"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "summary": "`intro-film/screenplay.json` → `intro-film/out/intro.mp4`: the ~67-second encode. No approval check here on purpose — rendering is how the owner GETS a film to watch, and gating it behind approval deadlocked the review. The approval gate (150) is enforced in code at assembly (`requireIntroApproved()` in lib/assemble.mjs), not by refusing to render."
+}

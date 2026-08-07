@@ -1,0 +1,21 @@
+{
+  "number": "140",
+  "slug": "140-review-intro-frames-run",
+  "title": "review intro frames",
+  "actor": "run",
+  "actorLabel": "[RUN]",
+  "verbs": [
+    "intro-review"
+  ],
+  "consumes": [
+    "intro-film/screenplay.json"
+  ],
+  "produces": [
+    "intro-film/review/REVIEW.md"
+  ],
+  "gate": null,
+  "tab": null,
+  "external": false,
+  "optional": false,
+  "summary": "`intro-film/screenplay.json` → `intro-film/review/REVIEW.md` + stills: renders ~36 stills (three per beat) and runs the mechanical checks (occlusion, overflow, contrast, runtime errors) — ~15s against the ~67s film encode. The beat sheet where each stage direction sits beside the frames it produced, so an editorial issue is caught before a single frame is encoded."
+}
