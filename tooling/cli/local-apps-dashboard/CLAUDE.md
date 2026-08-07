@@ -5,10 +5,16 @@ the registry the dashboard reads; the dashboard UI at :4321 is how the owner run
 them.
 
 **When you build a new local-only app or script the owner will want to run:**
-register it by adding one object to `apps.json` (`id`, `name`, `cwd` absolute,
-`start` shell command, `port`, `url`). That is the whole "document a local app"
-workflow — there is no separate doc to keep in sync. `apps/local-apps.md` is only
-a stub pointing here.
+register it by adding one object to `apps.json` (`id`, `name`, `cwd`
+**repo-relative**, `start` shell command, `port`, `url`). That is the whole
+"document a local app" workflow — there is no separate doc to keep in sync.
+`apps/local-apps.md` is only a stub pointing here.
+
+**`cwd` is repo-relative, never absolute** (e.g. `apps/lists-app`, not
+`/Users/…/apps/lists-app`). The dashboard resolves it against the repo root it
+computes from its own location, so the same `apps.json` works on every clone and
+every OS. Absolute paths still resolve, for legacy entries only — do not add new
+ones, they break the moment someone else clones the repo.
 
 **Every app gets its OWN ports so all can run at once — this is the scalable
 rule, not sibling-blocking.** Two apps must never share a port.
@@ -38,3 +44,12 @@ only, matching the sibling `ccusage-dashboard`.
 Lifecycle is deliberate: apps are spawned as detached process groups so Stop can
 kill the whole tree, and they are all reaped when the dashboard exits. There is no
 persistence and no auto-start on login — that was the owner's explicit choice.
+
+**Cross-platform (macOS/Linux/Windows).** Every OS-specific call sits between the
+`---- platform shims ----` markers in `dashboard.mjs`; nothing outside that block
+knows the OS. POSIX uses `lsof` + process groups, Windows uses `netstat -ano` +
+`taskkill /T` (plus a CIM parent-chain walk, since Windows has no process
+groups). Port lookups go through one cached snapshot for ALL ports — the 2s
+status poll must never fan out into one subprocess per port. If you add an
+OS-dependent call, put it in that block behind a shim; do not sprinkle
+`process.platform` checks through the logic.

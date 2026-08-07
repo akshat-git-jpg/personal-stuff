@@ -14,12 +14,16 @@ import http from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, isAbsolute, resolve } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REGISTRY = join(__dirname, 'apps.json');
+// tooling/cli/local-apps-dashboard -> repo root. Registry `cwd` values are
+// resolved against this, so a clone at any path (or on any OS) just works.
+const REPO_ROOT = resolve(__dirname, '..', '..', '..');
 const PORT = process.env.PORT || 4321;
 const LOG_LINES = 300;
+const IS_WIN = process.platform === 'win32';
 
 // id -> { child, pid, startedAt, log:[], alive:bool, exit:string|null }
 const procs = new Map();
@@ -40,19 +44,104 @@ function loadRegistry() {
 // Every port an app binds — primary plus any secondary (e.g. wrangler's 8787).
 const appPorts = (app) => (app.ports && app.ports.length ? app.ports : (app.port ? [app.port] : []));
 
-// PIDs currently LISTENing on a TCP port (macOS/Linux lsof).
-function pidsOnPort(port) {
-  const r = spawnSync('lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN', '-t'], { encoding: 'utf8' });
-  return (r.stdout || '').split('\n').map((s) => s.trim()).filter(Boolean).map(Number);
+// Registry `cwd` may be repo-relative (portable) or absolute (legacy). Both work.
+const appCwd = (app) => (isAbsolute(app.cwd) ? app.cwd : resolve(REPO_ROOT, app.cwd));
+
+// ---- platform shims ----------------------------------------------------------
+// Everything below has a POSIX path (lsof / ps / process groups) and a Windows
+// path (netstat / CIM / taskkill /T). Nothing above this line knows the OS.
+
+// One listening-socket snapshot for ALL ports, cached briefly — the 2s status
+// poll asks about every port of every app, and that must not be N subprocesses.
+let portCache = { at: 0, map: new Map() };
+function listeningMap() {
+  if (Date.now() - portCache.at < 1000) return portCache.map;
+  const map = new Map();
+  const add = (port, pid) => {
+    if (!Number.isFinite(port) || !Number.isFinite(pid) || pid <= 0) return;
+    if (!map.has(port)) map.set(port, new Set());
+    map.get(port).add(pid);
+  };
+  if (IS_WIN) {
+    // "  TCP    127.0.0.1:5173    0.0.0.0:0    LISTENING    1234"
+    const r = spawnSync('netstat', ['-ano', '-p', 'TCP'], { encoding: 'utf8', windowsHide: true });
+    for (const line of (r.stdout || '').split('\n')) {
+      const f = line.trim().split(/\s+/);
+      if (f.length < 5 || f[3] !== 'LISTENING') continue;
+      add(Number(f[1].slice(f[1].lastIndexOf(':') + 1)), Number(f[4]));
+    }
+  } else {
+    // -F pn emits alternating "p<pid>" then "n<addr>:<port>" records.
+    const r = spawnSync('lsof', ['-nP', '-iTCP', '-sTCP:LISTEN', '-F', 'pn'], { encoding: 'utf8' });
+    let pid = null;
+    for (const line of (r.stdout || '').split('\n')) {
+      if (line[0] === 'p') pid = Number(line.slice(1));
+      else if (line[0] === 'n') add(Number(line.slice(line.lastIndexOf(':') + 1)), pid);
+    }
+  }
+  portCache = { at: Date.now(), map };
+  return map;
 }
-// Process-group id of a pid (a detached leader has pgid === its own pid).
-function pgidOf(pid) {
-  const r = spawnSync('ps', ['-o', 'pgid=', '-p', String(pid)], { encoding: 'utf8' });
-  const n = Number((r.stdout || '').trim());
-  return Number.isFinite(n) && n > 0 ? n : null;
+const pidsOnPort = (port) => [...(listeningMap().get(Number(port)) || [])];
+const invalidatePortCache = () => { portCache.at = 0; };
+
+// Windows has no process groups, so sibling-ownership is answered by walking the
+// parent chain instead. One CIM snapshot per call; only Start needs this.
+function ppidMap() {
+  const m = new Map();
+  const r = spawnSync('powershell', ['-NoProfile', '-NonInteractive', '-Command',
+    '(Get-CimInstance Win32_Process | ForEach-Object { "$($_.ProcessId) $($_.ParentProcessId)" }) -join "`n"'],
+    { encoding: 'utf8', windowsHide: true });
+  for (const line of (r.stdout || '').split('\n')) {
+    const [p, pp] = line.trim().split(/\s+/).map(Number);
+    if (Number.isFinite(p) && Number.isFinite(pp)) m.set(p, pp);
+  }
+  return m;
 }
-// pgids of the apps THIS dashboard is currently running.
-const managedPgids = () => new Set([...procs.values()].filter((r) => r.alive).map((r) => r.pid));
+
+// Which managed root PID owns this pid, if any. POSIX answers with the pgid
+// directly; Windows walks up to the first ancestor we started.
+function ownerOf(pid, managed, tree) {
+  if (!IS_WIN) {
+    const r = spawnSync('ps', ['-o', 'pgid=', '-p', String(pid)], { encoding: 'utf8' });
+    const n = Number((r.stdout || '').trim());
+    return Number.isFinite(n) && n > 0 && managed.has(n) ? n : null;
+  }
+  for (let cur = pid, hops = 0; Number.isFinite(cur) && cur > 0 && hops < 24; hops++) {
+    if (managed.has(cur)) return cur;
+    cur = tree.get(cur);
+  }
+  return null;
+}
+
+// Kill a process AND its descendants. POSIX signals the detached group; Windows
+// uses taskkill /T, which is the only way to reach a shell's grandchildren.
+function killTree(pid, force = false) {
+  if (!Number.isFinite(pid)) return;
+  if (IS_WIN) {
+    const args = ['/PID', String(pid), '/T'];
+    if (force) args.push('/F');
+    try { spawnSync('taskkill', args, { stdio: 'ignore', windowsHide: true }); } catch {}
+  } else {
+    try { process.kill(-pid, force ? 'SIGKILL' : 'SIGTERM'); } catch {}
+  }
+}
+// Kill a single foreign pid squatting on a port (no group/tree semantics needed).
+function killPid(pid) {
+  if (IS_WIN) { try { spawnSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true }); } catch {} }
+  else { try { process.kill(pid, 'SIGKILL'); } catch {} }
+}
+
+function openBrowser(url) {
+  const [cmd, args] = IS_WIN ? ['cmd', ['/c', 'start', '', url]]
+    : process.platform === 'darwin' ? ['open', [url]]
+    : ['xdg-open', [url]];
+  try { spawn(cmd, args, { stdio: 'ignore', detached: true, windowsHide: true }).unref(); } catch {}
+}
+// ---- end platform shims ------------------------------------------------------
+
+// root pids of the apps THIS dashboard is currently running.
+const managedPids = () => new Set([...procs.values()].filter((r) => r.alive).map((r) => r.pid));
 
 const isPortReady = (port) => pidsOnPort(port).length > 0;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -61,20 +150,21 @@ function pushLog(rec, chunk) {
   for (const line of chunk.toString().split('\n')) rec.log.push(line);
   if (rec.log.length > LOG_LINES) rec.log.splice(0, rec.log.length - LOG_LINES);
 }
-function killGroup(pid, sig = 'SIGTERM') { try { process.kill(-pid, sig); } catch {} }
 
 async function startApp(app) {
   const cur = procs.get(app.id);
   if (cur && cur.alive) return { ok: false, error: 'already running' };
 
   const ports = appPorts(app);
-  const managed = managedPgids();
+  const managed = managedPids();
+  invalidatePortCache(); // Start must see live truth, not a 1s-old snapshot
+  const tree = IS_WIN && managed.size ? ppidMap() : new Map();
   // 1) refuse if a SIBLING app (one we manage) holds any of these ports
   for (const port of ports) {
     for (const pid of pidsOnPort(port)) {
-      const pg = pgidOf(pid);
-      if (pg && managed.has(pg)) {
-        const owner = [...procs.entries()].find(([, r]) => r.alive && r.pid === pg)?.[0];
+      const root = ownerOf(pid, managed, tree);
+      if (root) {
+        const owner = [...procs.entries()].find(([, r]) => r.alive && r.pid === root)?.[0];
         return { ok: false, error: `port ${port} is in use by "${owner || 'another app'}" — stop it first` };
       }
     }
@@ -82,12 +172,15 @@ async function startApp(app) {
   // 2) reclaim any zombie holders (leftovers we don't manage)
   let reclaimed = false;
   for (const port of ports) {
-    for (const pid of pidsOnPort(port)) { try { process.kill(pid, 'SIGKILL'); reclaimed = true; } catch {} }
+    for (const pid of pidsOnPort(port)) { killPid(pid); reclaimed = true; }
   }
-  if (reclaimed) await sleep(800); // let the OS release the sockets
+  if (reclaimed) { await sleep(800); invalidatePortCache(); } // let the OS release the sockets
 
   const child = spawn(app.start, {
-    cwd: app.cwd, shell: true, detached: true,
+    cwd: appCwd(app), shell: true,
+    // POSIX: detach so the whole group can be signalled. Windows: stay attached
+    // (taskkill /T reaches the tree) and hide the console window a detach spawns.
+    detached: !IS_WIN, windowsHide: true,
     stdio: ['ignore', 'pipe', 'pipe'],
     // app.env lets each app declare its own ports (WEB_PORT/API_PORT) etc. so
     // many apps run at once without colliding.
@@ -105,12 +198,13 @@ async function startApp(app) {
 function stopApp(id) {
   const rec = procs.get(id);
   if (!rec || !rec.alive) return { ok: false, error: 'not running' };
-  killGroup(rec.pid, 'SIGTERM');
-  setTimeout(() => killGroup(rec.pid, 'SIGKILL'), 3000);
+  killTree(rec.pid);
+  setTimeout(() => killTree(rec.pid, true), 3000);
   // belt-and-suspenders: free the app's ports so nothing lingers
   const app = loadRegistry().apps.find((a) => a.id === id);
   if (app) setTimeout(() => {
-    for (const port of appPorts(app)) for (const pid of pidsOnPort(port)) { try { process.kill(pid, 'SIGKILL'); } catch {} }
+    invalidatePortCache();
+    for (const port of appPorts(app)) for (const pid of pidsOnPort(port)) killPid(pid);
   }, 1200);
   rec.alive = false; rec.exit = 'stopped';
   return { ok: true };
@@ -138,16 +232,16 @@ let tearingDown = false;
 function teardown() {
   if (tearingDown) return;
   tearingDown = true;
-  for (const [, rec] of procs) if (rec.alive) killGroup(rec.pid, 'SIGTERM');
+  for (const [, rec] of procs) if (rec.alive) killTree(rec.pid);
   setTimeout(() => {
-    for (const [, rec] of procs) if (rec.alive) killGroup(rec.pid, 'SIGKILL');
+    for (const [, rec] of procs) if (rec.alive) killTree(rec.pid, true);
     process.exit(0);
   }, 800);
 }
 process.on('SIGINT', teardown);
 process.on('SIGTERM', teardown);
-process.on('SIGHUP', teardown);
-process.on('exit', () => { for (const [, rec] of procs) if (rec.alive) killGroup(rec.pid, 'SIGKILL'); });
+if (!IS_WIN) process.on('SIGHUP', teardown); // SIGHUP is not raised on Windows
+process.on('exit', () => { for (const [, rec] of procs) if (rec.alive) killTree(rec.pid, true); });
 
 // ---- HTTP -------------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
@@ -184,10 +278,8 @@ server.listen(PORT, () => {
   console.log(`\n  local-apps dashboard → http://localhost:${PORT}`);
   console.log(`  registry: ${REGISTRY}`);
   console.log(`  Apps run only while this dashboard is open. Ctrl-C stops everything.\n`);
-  // one-click: open the page in the default browser (macOS `open`). NO_OPEN=1 skips it.
-  if (!process.env.NO_OPEN) {
-    try { spawn('open', [`http://localhost:${PORT}`], { stdio: 'ignore', detached: true }).unref(); } catch {}
-  }
+  // one-click: open the page in the default browser. NO_OPEN=1 skips it.
+  if (!process.env.NO_OPEN) openBrowser(`http://localhost:${PORT}`);
 });
 
 // ---- Front-end ---------------------------------------------------------------

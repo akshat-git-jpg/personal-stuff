@@ -1,11 +1,11 @@
 {
   "port": 4321,
-  "_note": "Each app gets its OWN port pair so all can run at once. Vite web + wrangler API apps: give a unique WEB_PORT/API_PORT in env and mirror them in `ports`. Convention: web 5173,5273,5373… (+100) · api 8787,8887,8987… (+100). The app reads WEB_PORT/API_PORT from env (vite.config + dev:api); the dashboard injects them.",
+  "_note": "`cwd` is REPO-RELATIVE so every clone/OS works — never absolute. Each app gets its OWN port pair so all can run at once. Vite web + wrangler API apps: give a unique WEB_PORT/API_PORT in env and mirror them in `ports`. Convention: web 5173,5273,5373… (+100) · api 8787,8887,8987… (+100). The app reads WEB_PORT/API_PORT from env (vite.config + dev:api); the dashboard injects them.",
   "apps": [
     {
       "id": "ccusage",
       "name": "ccusage dashboard",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/tooling/cli/ccusage-dashboard",
+      "cwd": "tooling/cli/ccusage-dashboard",
       "start": "node dashboard.mjs",
       "port": 4319,
       "ports": [4319],
@@ -14,7 +14,7 @@
     {
       "id": "tracker",
       "name": "tutorials-tracker",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/apps/tutorial-tracker-app",
+      "cwd": "apps/tutorial-tracker-app",
       "start": "npm run seed:local && npm run dev:local",
       "env": { "WEB_PORT": "5173", "API_PORT": "8787" },
       "port": 5173,
@@ -24,7 +24,7 @@
     {
       "id": "lists",
       "name": "lists",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/apps/lists-app",
+      "cwd": "apps/lists-app",
       "start": "npm run db:local && npm run dev:local",
       "env": { "WEB_PORT": "5273", "API_PORT": "8887" },
       "port": 5273,
@@ -34,7 +34,7 @@
     {
       "id": "founders",
       "name": "founders-tracker",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/apps/founders-tracker",
+      "cwd": "apps/founders-tracker",
       "start": "npm run db:local && npm run dev",
       "env": { "WEB_PORT": "5373" },
       "port": 5373,
@@ -44,7 +44,7 @@
     {
       "id": "card-gallery",
       "name": "hyperframes card gallery",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/video/card-library",
+      "cwd": "pipelines/video/card-library",
       "start": "node serve.mjs",
       "env": { "PORT": "4331" },
       "port": 4331,
@@ -54,7 +54,7 @@
     {
       "id": "yt-workflow",
       "name": "yt-workflow preview",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/youtube",
+      "cwd": "pipelines/youtube",
       "start": "node serve.mjs",
       "env": { "PORT": "4341" },
       "port": 4341,
@@ -64,7 +64,7 @@
     {
       "id": "media-board",
       "name": "media board",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/.claude/skills/media-board",
+      "cwd": "pipelines/.claude/skills/media-board",
       "start": "node serve.mjs --port 4100",
       "port": 4100,
       "ports": [4100],
@@ -73,7 +73,7 @@
     {
       "id": "timeblock",
       "name": "timeblock",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/apps/timeblock",
+      "cwd": "apps/timeblock",
       "start": "npm run dev -- --port 4351 --ip 127.0.0.1",
       "port": 4351,
       "ports": [4351],
@@ -82,7 +82,7 @@
     {
       "id": "heygen-renders",
       "name": "heygen renders",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/video/heygen/renders-viewer",
+      "cwd": "pipelines/video/heygen/renders-viewer",
       "start": "node serve.mjs --port 4361",
       "port": 4361,
       "ports": [4361],
@@ -91,7 +91,7 @@
     {
       "id": "graphics-board",
       "name": "graphics storyboard",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/video/visuals-flow",
+      "cwd": "pipelines/video/visuals-flow",
       "start": "node lib/board.mjs",
       "port": 4322,
       "ports": [4322],
@@ -100,7 +100,7 @@
     {
       "id": "avatar-ui",
       "name": "avatar renderer",
-      "cwd": "/Users/kbtg/codebase/personal-stuff/pipelines/youtube/tutorial-pipeline-1/ui",
+      "cwd": "pipelines/youtube/tutorial-pipeline-1/ui",
       "start": "node serve.mjs --port 4371",
       "port": 4371,
       "ports": [4371],
