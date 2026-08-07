@@ -207,7 +207,7 @@ test('allVerbs is every step verb plus every helper, with no duplicates', () => 
   // usage() prints one line per entry, and only `configure` carries flags.
   const entries = usageEntries();
   assert.deepEqual(entries.map((e) => e.verb), verbs);
-  assert.ok(entries.find((e) => e.verb === 'configure').usageArgs.includes('--engine'));
+  assert.ok(entries.find((e) => e.verb === 'configure').usageArgs.includes('--drive-folder'));
 });
 
 test('a near-miss verb is named rather than just refused', () => {

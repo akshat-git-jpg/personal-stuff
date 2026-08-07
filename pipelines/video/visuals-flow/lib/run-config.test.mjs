@@ -9,30 +9,40 @@ function tmpWorkdir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'run-config-test-'));
 }
 
-test('no run-config.json → safe defaults (heygen3), configured=false', () => {
+test('no run-config.json → configured=false, no engine/review/intro key', () => {
   const w = tmpWorkdir();
   const cfg = loadRunConfig(w);
-  assert.equal(cfg.engine, 'heygen3');
   assert.equal(cfg.configured, false);
+  assert.equal('engine' in cfg, false);
+  assert.equal('review' in cfg, false);
+  assert.equal('intro' in cfg, false);
   fs.rmSync(w, { recursive: true, force: true });
 });
 
 test('written config loads with configured=true and extra fields intact', () => {
   const w = tmpWorkdir();
   fs.writeFileSync(path.join(w, 'run-config.json'), JSON.stringify({
-    engine: 'heygen4', drive_folder: 'abc', drive_account: 'a@b.com',
+    drive_folder: 'abc', drive_account: 'a@b.com',
   }));
   const cfg = loadRunConfig(w);
-  assert.equal(cfg.engine, 'heygen4');
   assert.equal(cfg.drive_folder, 'abc');
+  assert.equal(cfg.drive_account, 'a@b.com');
   assert.equal(cfg.configured, true);
   fs.rmSync(w, { recursive: true, force: true });
 });
 
-test('invalid engine throws instead of silently defaulting', () => {
+// The avatar spend gate (lib/avatar-plan.mjs, step 102) is the single
+// spelling of this decision now — a run-config.json left over from before
+// plan 197 must not resurrect the old kickoff engine choice.
+test('a stale engine/review/intro key on disk is stripped, not passed through', () => {
   const w = tmpWorkdir();
-  fs.writeFileSync(path.join(w, 'run-config.json'), JSON.stringify({ engine: 'heygen5' }));
-  assert.throws(() => loadRunConfig(w), /engine must be one of/);
+  fs.writeFileSync(path.join(w, 'run-config.json'), JSON.stringify({
+    engine: 'heygen4', review: 'express', intro: 'film', drive_folder: 'abc',
+  }));
+  const cfg = loadRunConfig(w);
+  assert.equal('engine' in cfg, false);
+  assert.equal('review' in cfg, false);
+  assert.equal('intro' in cfg, false);
+  assert.equal(cfg.drive_folder, 'abc');
   fs.rmSync(w, { recursive: true, force: true });
 });
-

@@ -7,7 +7,7 @@
   "verbs": [
     "configure"
   ],
-  "usageArgs": "[--engine heygen3|heygen4] [--review full|express]",
+  "usageArgs": "[--drive-folder <id>] [--drive-account <email>]",
   "consumes": [],
   "produces": [
     "run-config.json"
@@ -16,5 +16,5 @@
   "tab": null,
   "external": false,
   "optional": false,
-  "summary": "the owner's kickoff choices → `run-config.json` (engine heygen3\\|heygen4, review full\\|express, optional drive_folder/drive_account). No file = heygen3 + full review. Express waives the 037/080 board approvals ONLY — never the new-card look-preview, never 120"
+  "summary": "the owner's Drive delivery choices (drive_folder/drive_account) → `run-config.json`. No file = deliver step falls back to its own defaults. The HeyGen engine choice moved to the avatar spend gate (102) — it is no longer set here (plan 197)"
 }

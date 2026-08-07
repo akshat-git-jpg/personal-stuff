@@ -1,19 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
-// The owner's kickoff choices for one video (step 005): which HeyGen engine
-// the avatar renders use, and how much they want to review along the way.
+// The owner's kickoff choices for one video (step 005).
 //
-//   engine: "heygen3" (Avatar III, free unlimited — the default)
-//         | "heygen4" (Avatar IV, METERED vs the monthly second-pool; setting
-//           it here IS the owner's explicit authorization for this video)
+// `engine` lived here until plan 197 (2026-08-07): it pre-authorised metered
+// HeyGen spend at step 005, twenty steps before shots.json exists, against a
+// number nobody had computed. That decision now belongs to the avatar spend
+// gate (lib/avatar-plan.mjs, step 102), which asks against the REAL clip
+// count and is a hard gate rather than a kickoff flag — see
+// requireAvatarPlanApproved(). `engine` is stripped below even if an old
+// run-config.json still has it, so nothing downstream can read it back out.
 //
 // Express review and the intro-mode choice were removed 2026-08-07 (plan 194): every gate is real, and the intro is always the bespoke film.
 //
-// No run-config.json means the safe defaults: heygen3 + full review — an
-// unconfigured video behaves exactly like every video before this existed.
-const DEFAULTS = { engine: 'heygen3' };
-const ENGINES = ['heygen3', 'heygen4'];
+// No run-config.json means the safe defaults — an unconfigured video behaves
+// exactly like every video before either of these existed.
+const DEFAULTS = {};
 
 export function loadRunConfig(workdir) {
   const p = path.join(workdir, 'run-config.json');
@@ -22,7 +24,7 @@ export function loadRunConfig(workdir) {
   const cfg = { ...DEFAULTS, ...raw, configured: true };
   delete cfg.intro;
   delete cfg.review;
-  if (!ENGINES.includes(cfg.engine)) throw new Error(`run-config.json: engine must be one of ${ENGINES.join('|')}, got "${cfg.engine}"`);
+  delete cfg.engine;
   return cfg;
 }
 
@@ -30,7 +32,7 @@ export function loadRunConfig(workdir) {
 function main() {
   const [arg, ...rest] = process.argv.slice(2);
   if (!arg) {
-    console.error('usage: node lib/run-config.mjs <slug> [--engine heygen3|heygen4]');
+    console.error('usage: node lib/run-config.mjs <slug> [--drive-folder <id>] [--drive-account <email>]');
     process.exit(1);
   }
   const workdir = resolveWorkdir(arg);
@@ -46,18 +48,15 @@ function main() {
   const cfg = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : { ...DEFAULTS };
   while (rest.length) {
     const a = rest.shift();
-    if (a === '--engine') cfg.engine = rest.shift();
     // Delivery (step 150): the video's own Drive folder (the one holding its
     // Input/Output subfolders) and which token account uploads there.
-    else if (a === '--drive-folder') cfg.drive_folder = rest.shift();
+    if (a === '--drive-folder') cfg.drive_folder = rest.shift();
     else if (a === '--drive-account') cfg.drive_account = rest.shift();
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }
-  if (!ENGINES.includes(cfg.engine)) { console.error(`engine must be ${ENGINES.join('|')}`); process.exit(1); }
   cfg.decided_at = new Date().toISOString();
   fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n');
-  console.log(`run-config: engine=${cfg.engine}`);
-  if (cfg.engine === 'heygen4') console.error('note: heygen4 is METERED — this setting is the owner authorization for this video; check `heygen-web limits` covers the span total before submitting');
+  console.log('run-config: saved');
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
