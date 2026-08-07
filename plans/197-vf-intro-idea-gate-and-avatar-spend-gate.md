@@ -5,7 +5,7 @@ test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: []
-needs_prs: [194, 195, 196]
+needs_prs: [154, 155, 156]
 touches: [pipelines/video/visuals-flow/lib/intro-film/film-assets.mjs, pipelines/video/visuals-flow/lib/intro-film/film-assets.test.mjs, pipelines/video/visuals-flow/lib/intro-film/render-film.mjs, pipelines/video/visuals-flow/lib/avatar-plan.mjs, pipelines/video/visuals-flow/lib/avatar-plan.test.mjs, pipelines/video/visuals-flow/lib/avatar-render.mjs, pipelines/video/visuals-flow/lib/run-config.mjs, pipelines/video/visuals-flow/lib/board.mjs, pipelines/video/visuals-flow/board-ui/src/lib/router.ts, pipelines/video/visuals-flow/board-ui/src/tabs/AvatarTab.tsx, pipelines/video/visuals-flow/run.sh, pipelines/video/visuals-flow/steps]
 
 mutation_apply: python3 - <<'PY'
