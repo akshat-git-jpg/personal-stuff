@@ -201,6 +201,30 @@ case "$step" in
       "transcript.json" -- bash "steps/$d/run.sh" "$slug"
     ;;
 
+  clean-transcript)
+    d="$(step_slug 012)"
+    dry "record_step 012 -- clean-transcript" && exit 0
+    if [[ -f "videos/$slug/script.txt" ]]; then
+      record_step 012 "Aligned transcript to script.txt" \
+        "transcript.json + transcript.diff.json" \
+        -- node lib/transcript-quality.mjs align "$slug"
+    elif [[ -f "videos/$slug/transcript.cleaned.json" ]]; then
+      do_clean() {
+        node lib/transcript-quality.mjs apply "$slug" "videos/$slug/transcript.cleaned.json" && \
+        node lib/transcript-suspect.mjs "$slug" && \
+        node lib/transcript-second-opinion.mjs "$slug"
+      }
+      record_step 012 "Cleaned transcript with LLM pass" \
+        "transcript.json + transcript.diff.json + transcript-suspects.json" \
+        -- do_clean
+    else
+      cat "steps/$d/cleanup-prompt.md"
+      echo
+      echo "Feed the prompt to your LLM and save the output to videos/$slug/transcript.cleaned.json"
+      echo "Then run this command again to apply it."
+    fi
+    ;;
+
   configure)
     # Step 005 — the owner's kickoff choices for this video: which HeyGen
     # engine (heygen3 free | heygen4 metered). See

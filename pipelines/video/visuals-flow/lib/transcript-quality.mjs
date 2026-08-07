@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { resolveWorkdir } from './workdir.mjs';
+import { writeTranscriptDiff } from './transcript-diff.mjs';
 
 // A cleaned transcript is only valid if every word still has a usable time span
 // and the timeline never goes backwards. Captions are word-timed, so a cleanup
@@ -163,6 +164,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       process.exit(1);
     }
     fs.writeFileSync(transcriptPath, JSON.stringify(aligned));
+    const files = fs.readdirSync(workdir);
+    const rawFile = files.find(f => f.startsWith('transcript.') && f.endsWith('-raw.bak.json'));
+    if (rawFile) {
+      const rawWords = JSON.parse(fs.readFileSync(path.join(workdir, rawFile), 'utf8'));
+      writeTranscriptDiff(workdir, { rawWords, cleanWords: aligned, suspects: [] });
+    } else {
+      console.log('note: no raw backup found, skipping transcript.diff.json generation');
+    }
     console.log(JSON.stringify({ ok: true, mode: 'align', words: aligned.length }));
   } else if (mode === 'apply') {
     if (!cleanedArg) {
@@ -177,6 +186,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       process.exit(1);
     }
     fs.writeFileSync(transcriptPath, JSON.stringify(cleaned));
+    const files = fs.readdirSync(workdir);
+    const rawFile = files.find(f => f.startsWith('transcript.') && f.endsWith('-raw.bak.json'));
+    if (rawFile) {
+      const rawWords = JSON.parse(fs.readFileSync(path.join(workdir, rawFile), 'utf8'));
+      writeTranscriptDiff(workdir, { rawWords, cleanWords: cleaned, suspects: [] });
+    } else {
+      console.log('note: no raw backup found, skipping transcript.diff.json generation');
+    }
     console.log(JSON.stringify({ ok: true, mode: 'apply', words: cleaned.length }));
   } else {
     console.error(`unknown mode: ${mode}`);
