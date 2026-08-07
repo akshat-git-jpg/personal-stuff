@@ -29,7 +29,7 @@ s = s[:eol+1] + inject + s[eol+1:]
 open(p,'w').write(s)
 PY
 mutation_command: cd pipelines/video/visuals-flow && node --test lib/intro-invariants.test.mjs
-mutation_expect: INTRO-ALWAYS-FILM
+mutation_expect: must never fire
 mutation_cwd:
 mutation_timeout:
 ---
