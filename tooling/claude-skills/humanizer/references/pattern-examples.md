@@ -237,4 +237,66 @@
 >
 > When users hit a slow page, they leave.
 
+
+### 30. Binary Contrasts
+**Before:**
+> This isn't a productivity tool. It's a way of thinking. The question isn't whether the model is good enough, it's whether your evals are.
+
+**After:**
+> The tool changes how you think about the work, not just how fast you do it. Most teams are limited by their evals rather than by the model.
+
+
+### 31. Throat-Clearing Openers
+**Before:**
+> Here's the thing. Most migrations fail for boring reasons. And let me be clear, I'll be honest with you, this one was no different.
+
+**After:**
+> Most migrations fail for boring reasons, and this one was no different.
+
+
+### 32. Faux-Insight Setups
+**Before:**
+> Here's what nobody tells you about distribution: it's the real moat. This is the part everyone skips, and it's why most products die.
+
+**After:**
+> Distribution is the moat. Most products die with a working build and no way to reach anyone.
+
+
+### 33. Colon Reveals
+**Before:**
+> The detail that makes it work: a separate agent grades the output. The best part: it gets better every run.
+
+**After:**
+> A separate agent grades the output, which is what makes it work, and its accuracy improves with each run.
+
+
+### 34. Fake-Profound Kickers
+**Before:**
+> We cut the deploy time from 40 minutes to 4 by parallelizing the test suite.
+>
+> Sometimes the fix isn't a better engine. It's a lighter car.
+
+**After:**
+> We cut the deploy time from 40 minutes to 4 by parallelizing the test suite.
+
+Note: the kicker is deleted, not improved. The piece ends on the concrete sentence that was already there.
+
+
+### 35. Dramatic Fragmentation
+**Before:**
+> It runs locally. And it's free. And it takes about ten seconds.
+>
+> That's it. That's the whole setup.
+
+**After:**
+> It runs locally, it's free, and setup takes about ten seconds.
+
+
+### 36. Interpretive Metadiscourse
+**Before:**
+> The cache is invalidated on write. That last part matters more than it sounds. As you can see, this distinction is important for correctness. In other words, stale reads are impossible.
+
+**After:**
+> The cache is invalidated on write, so a read can never return a value that has already been overwritten.
+
 ---

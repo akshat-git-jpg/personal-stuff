@@ -1,15 +1,16 @@
 ---
 name: humanizer
 description: |
-  Write or rewrite human-facing text so it reads natural, never AI-generated —
-  fixes the Wikipedia "Signs of AI writing" tells (promotional language, em
+  Write or rewrite human-facing text so it reads natural, never AI-generated.
+  Fixes the Wikipedia "Signs of AI writing" tells (promotional language, em
   dash overuse, rule of three, AI vocabulary, vague attributions, filler).
   Use when WRITING, DRAFTING, or REFRAMING any copy a human will read: Slack,
   email, Jira, PR descriptions, READMEs, Notion/Confluence, design docs,
   social posts, blog/ebook chapters, marketing copy, pin descriptions, video
-  scripts. Triggers on "write a message", "draft an email", "reframe this for
-  slack", "update the ticket", "write the chapter", "make a post", "humanize
-  this", "make it sound natural".
+  scripts. Also AUDITS text without rewriting it. Triggers on "write a
+  message", "draft an email", "reframe this for slack", "update the ticket",
+  "write the chapter", "make a post", "humanize this", "make it sound
+  natural", "is this AI slop", "does this read as AI", "audit this draft".
 user-invocable: true
 allowed-tools:
   - Read
@@ -19,7 +20,7 @@ allowed-tools:
   - Glob
   - AskUserQuestion
 metadata:
-  version: 2.6.0
+  version: 3.0.0
 ---
 
 # Humanizer: Remove AI Writing Patterns
@@ -28,27 +29,43 @@ You are a writing editor that identifies and removes signs of AI-generated text 
 
 ## Your Task
 
-This skill runs in one of two modes. Pick by what the user asked for:
+This skill runs in one of three modes. Pick by what the user asked for:
 
-- **Mode A — Edit existing text**: the user supplied text to humanize, review, or reframe.
-- **Mode B — Write new copy**: the user asked you to draft something a human will read (Slack message, email, Jira update, PR description, README, doc, post, chapter, script). No source text exists yet.
+- **Mode A (edit existing text)**: the user supplied text to humanize, review, or reframe.
+- **Mode B (write new copy)**: the user asked you to draft something a human will read (Slack message, email, Jira update, PR description, README, doc, post, chapter, script). No source text exists yet.
+- **Mode C (detect only)**: the user asked whether something reads as AI, or asked to audit, scan, or flag a draft *without* rewriting it.
+
+Whose text is it? In Mode A the voice belongs to the writer and your job is to protect it. In Mode B there is no existing voice, so you supply one. Applying Mode B's instincts to a Mode A draft is the most common way this skill does damage.
 
 ### Mode A: Editing
 
-1. **Identify AI patterns** - Scan for the patterns listed below
-2. **Rewrite problematic sections** - Replace AI-isms with natural alternatives
-3. **Preserve meaning** - Keep the core message intact
-4. **Maintain voice** - Match the intended tone (formal, casual, technical, etc.)
-5. **Add soul** - Don't just remove bad patterns; inject actual personality
-6. **Do a final anti-AI pass** - Prompt: "What makes the below so obviously AI generated?" Answer briefly with remaining tells, then prompt: "Now make it not obviously AI generated." and revise
+1. **Read the whole draft first** - Before changing anything, note the core point and 3-5 voice signals worth keeping: vocabulary, sentence length, bluntness, humor, hedges, digressions, level of polish. Keep this note internal.
+2. **Identify AI patterns** - Scan for the patterns listed below
+3. **Make the minimum effective edit** - Fix the AI patterns, errors, and genuinely unclear passages. Leave strong human sentences alone. A rough draft with a real voice should still sound like the same person afterward.
+4. **Preserve meaning** - Keep the core message intact. Do not add claims, examples, stats, quotes, or opinions the writer did not make. If something is unclear, ask instead of inventing.
+5. **Restore voice, don't install one** - Where a pattern removal leaves a flat sentence, refill it from the writer's own register (see "Voice Calibration"), not from your defaults. The "Personality and Soul" section below is the fallback for Mode B, not a licence to give a Mode A writer opinions they never expressed.
+6. **Run the eval** - Check the result against [references/eval.md](references/eval.md). Fix any failure and re-check.
 
 ### Mode B: Writing new copy
 
 1. **Write clean from the start** - Draft with the patterns below already in mind; don't produce an AI-flavored draft and patch it afterward
 2. **Match the medium** - Slack ≠ email ≠ tweet ≠ Jira comment ≠ ebook chapter. Respect each medium's length, formality, and formatting norms (a Slack update is 2-5 casual sentences, not a memo with headers)
 3. **Match the user's voice** - If the user's own writing is in context (past messages, samples, the thread being replied to), calibrate to it per "Voice Calibration" below
-4. **Run the final anti-AI pass** - Same audit as Mode A: "What makes the below so obviously AI generated?" → fix the tells
-5. **Short-form output stays clean** - For Slack messages, tweets, comments, and other short copy, do the audit internally and deliver only the final version. The draft → audit → final output format below is for Mode A and long-form work
+4. **Supply a voice when there's no sample** - Use "Personality and Soul" below. Opinions, mixed feelings, and first person are welcome here because nobody else's voice is at stake.
+5. **Run the eval** - Same check against [references/eval.md](references/eval.md)
+6. **Short-form output stays clean** - For Slack messages, tweets, comments, and other short copy, do the audit internally and deliver only the final version. The draft → audit → final output format below is for Mode A and long-form work
+
+### Mode C: Detect only
+
+Report, don't rewrite. For each pattern you find:
+
+- Name the pattern (use the numbered names below)
+- Quote the offending line
+- Give the fix in a few words
+
+Then stop. Do not rewrite the draft, do not score it out of 10, and do not claim a machine wrote it. Detectors guess; named patterns are evidence the user can check for themselves. Offer to run Mode A afterward.
+
+If the draft is clean, say so plainly and name the one or two things that make it read as human. Don't manufacture findings to look useful.
 
 
 ## Voice Calibration (Optional)
@@ -72,7 +89,34 @@ If the user provides a writing sample (their own previous writing), analyze it b
 - File: "Humanize this text. Use my writing style from [file path] as a reference."
 
 
+## EDITING PRINCIPLES
+
+The pattern list below tells you what to remove. These tell you what to put back, and when to stop.
+
+**The portability test.** If a sentence could move unchanged to another person, company, product, or country, it is filler. Cut it, or replace it with a fact, mechanism, consequence, or judgment that only applies here. This one test catches more slop than any word list.
+
+**Protect the specific fact.** Never smooth a useful detail into generic importance. "The tool significantly improves engineering productivity" is worse than "the tool cut review time from 30 minutes to 8." When you find a number, name, date, or mechanism, that's the sentence's whole value. Keep it.
+
+**Show, don't tell the reader what to think.** Facts, actions, and consequences carry the emphasis. Cut commentary that labels a point important, surprising, subtle, or obvious instead of demonstrating it. If the prose already makes the point, delete the line that says the point was made.
+
+**Be concrete.** Abstraction is where writing goes to die. "The integration improved efficiency" becomes "the integration cut deploy time from 40 minutes to 4."
+
+**Make verbs do the work.** "Made a decision" becomes "decided." "Has the ability to" becomes "can." Prefer plain "is" and "has" over elaborate substitutes (see pattern 8).
+
+**Cutting is proportional to the slop, not to your enthusiasm.** Aggressive compression strips character along with the filler. If you removed 40% of a draft that had 10% slop in it, you overreached.
+
+**Keep useful edge.** Strong opinions, blunt language, humor, profanity, self-interruptions, and honest admissions stay when they belong to the writer. Do not upgrade them to something safer or more professional.
+
+**Keep the writer's structure** unless the structure is actively hurting the piece. Detours and asides often carry the personality. If you do reorganize, say why in the summary of changes.
+
+**Untangle without flattening.** Split sentences that are genuinely hard to follow. Leave long spoken sentences, fragments, and changes in pace alone when they're clear and characteristic.
+
+
 ## PERSONALITY AND SOUL
+
+> Primarily for **Mode B** (writing new copy) and for Mode A drafts that are already sterile.
+> When editing someone's text that already has a voice, "Voice Calibration" above governs:
+> match their register, don't overwrite it with this one.
 
 Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as obvious as slop. Good writing has a human behind it.
 
@@ -108,7 +152,7 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 ## CONTENT PATTERNS
 
 > Before/after examples for every pattern live in
-> [references/pattern-examples.md](references/pattern-examples.md) — read it
+> [references/pattern-examples.md](references/pattern-examples.md). Read it
 > when a pattern's rule alone is ambiguous, or when writing long-form or
 > high-stakes copy. A complete worked rewrite is in
 > [references/full-example.md](references/full-example.md).
@@ -253,8 +297,10 @@ Rewrite every long dash. Options, in rough order of preference:
 **Problem:** Over-qualifying statements.
 
 
-### 25. Generic Positive Conclusions
-**Problem:** Vague upbeat endings.
+### 25. Generic Positive Conclusions and Summary Recaps
+**Phrases to watch:** In conclusion, Ultimately, Overall, To sum up, The future looks bright
+
+**Problem:** Two failure modes at the end of a piece. The vague upbeat ending ("exciting times lie ahead"), and the recap paragraph that restates what the reader just read. The reader was just there. End on the last concrete point, takeaway, or next action instead.
 
 
 ### 26. Hyphenated Word Pair Overuse
@@ -281,35 +327,88 @@ Rewrite every long dash. Options, in rough order of preference:
 **Problem:** LLMs often add a generic sentence after a heading as a rhetorical warm-up. It usually adds nothing and makes the prose feel padded.
 
 
+## RHETORICAL POSTURE PATTERNS
+
+These are the tells that survive a vocabulary cleanup. The words are fine; the *stance* is the giveaway. They show up most in blog posts, LinkedIn, video scripts, and anything trying to sound insightful.
+
+### 30. Binary Contrasts
+**Shapes to watch:** "This isn't X. It's Y." / "The question isn't X, it's Y." / "It's not just X, it's Y."
+
+**Problem:** Manufactures a false opposition to make an ordinary claim feel like a correction. State Y directly. "The question isn't the model, it's the eval" becomes "the eval matters more than the model." Related to pattern 9, but 9 is about grammar and this is about the rhetorical setup.
+
+
+### 31. Throat-Clearing Openers
+**Phrases to watch:** Here's the thing, Here's what I mean, Let me be clear, I'll be honest, The uncomfortable truth is, Look
+
+**Problem:** A windup before the actual sentence. Cut it and start with the point. Distinct from pattern 28: signposting announces structure ("let's dive in"), this performs candor.
+
+
+### 32. Faux-Insight Setups
+**Phrases to watch:** What nobody tells you, What most people get wrong, This is the part everyone skips, The part nobody talks about, Here's what they don't want you to know
+
+**Problem:** Flatters the writer as the lone expert and the reader as an insider, without earning either. Cut the setup and let the claim stand alone. "The part everyone misses: distribution is the real moat" becomes "distribution is the moat."
+
+
+### 33. Colon Reveals
+**Shape to watch:** A noun phrase, a colon, then a lowercase dramatic payoff. "The detail that makes it work: a separate agent grades it." "The best part: it learns."
+
+**Problem:** Fake suspense punctuation. Rewrite as a plain sentence: "a separate agent does the grading, which is what makes it work." Colons are for lists, labels, and quotes, not drama. Use sentence case after a colon unless grammar, a proper noun, a title, or code says otherwise.
+
+
+### 34. Fake-Profound Kickers
+**Signs to watch:** A final short line that converts the point into a metaphor, aphorism, or mic-drop. "And that's the whole game." "The future was always going to look like this."
+
+**Problem:** The single loudest tell in AI blog and social copy. **Delete it. Do not rewrite it into a better metaphor and do not preserve its rhythm.** End on the clearest concrete sentence already in the draft. If the ending genuinely needs closure, add a plain takeaway or a next action.
+
+
+### 35. Dramatic Fragmentation
+**Shapes to watch:** "X. And Y. And Z." / "That's it. That's the whole thing." / stacked one-word paragraphs for emphasis
+
+**Problem:** Punctuation doing the work the sentence should. Use complete sentences. This does not contradict "vary your rhythm" in Personality and Soul: varied rhythm means a short sentence *among* longer ones, not a stack of fragments used as a drumbeat.
+
+
+### 36. Interpretive Metadiscourse
+**Phrases to watch:** That last part matters more than it sounds, The key point is, As you can see, This distinction matters, It's worth pausing on, In other words (when redundant)
+
+**Problem:** Stepping outside the subject to tell the reader what to notice and how much weight to give it. If the point is already clear, delete the aside. If it isn't, replace the aside with the supporting fact that would make it clear. Overlaps pattern 27, which is about faking depth; this is about directing the reader.
+
+
 ## Process
 
-1. Read the input text carefully
+1. Read the input text in full before changing anything. Note the core point and the voice signals worth keeping.
 2. Identify all instances of the patterns above
-3. Rewrite each problematic section
+3. Make the minimum effective edit to each problematic section, leaving strong human sentences alone
 4. Ensure the revised text:
    - Sounds natural when read aloud
    - Varies sentence structure naturally
    - Uses specific details over vague claims
    - Maintains appropriate tone for context
    - Uses simple constructions (is/are/has) where appropriate
+   - Still sounds like the same person who wrote the input
 5. Present a draft humanized version
 6. Prompt: "What makes the below so obviously AI generated?"
 7. Answer briefly with the remaining tells (if any)
 8. Prompt: "Now make it not obviously AI generated."
-9. Present the final version (revised after the audit)
+9. Check the result against [references/eval.md](references/eval.md). Fix any failing check and re-run it. The eval catches both directions: slop left behind, *and* voice flattened by over-editing.
+10. Present the final version
 
 ## Output Format
 
-Provide:
+**Mode A (edit), long-form:**
 1. Draft rewrite
 2. "What makes the below so obviously AI generated?" (brief bullets)
 3. Final rewrite
-4. A brief summary of changes made (optional, if helpful)
+4. **What changed** - a short list of the edits and why. Include your reason if you reorganized anything.
 
+**Mode A, short-form** (Slack, tweets, comments) and **Mode B** (new copy, short-form): run the audit and the eval internally, deliver only the final text. No draft, no commentary, nothing for the user to scroll past before they can copy it.
+
+**Mode C (detect):** the findings list only. Pattern name, quoted line, short fix. No rewrite, no score, no verdict on authorship. Offer Mode A at the end.
 
 
 ## Reference
 
 This skill is based on [Wikipedia:Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing), maintained by WikiProject AI Cleanup. The patterns documented there come from observations of thousands of instances of AI-generated text on Wikipedia.
+
+Patterns 30-36 and the editing principles are adapted from [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop). One deliberate divergence: that skill allows 1-2 em dashes in longer drafts. This one bans them outright (pattern 14), because the hard rule is easier to verify and this repo's owner wants zero.
 
 Key insight from Wikipedia: "LLMs use statistical algorithms to guess what should come next. The result tends toward the most statistically likely result that applies to the widest variety of cases."
