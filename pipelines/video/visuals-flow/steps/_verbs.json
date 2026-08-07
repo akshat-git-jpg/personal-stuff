@@ -4,49 +4,14 @@
     "after": null,
     "summary": "the ledger, the artifact table, and the next step to run"
   },
-  "validate": {
-    "kind": "helper",
-    "after": "cue-pass",
-    "summary": "everything checkable before the cards exist; writes nothing"
-  },
-  "stillness": {
-    "kind": "helper",
-    "after": "zone-pass",
-    "summary": "the W18 stillness check, which needs the absolute times 040 writes"
-  },
   "outline": {
     "kind": "helper",
     "after": "card-plan",
-    "summary": "the card plan as a terminal outline instead of a board page"
-  },
-  "audit-gate": {
-    "kind": "helper",
-    "after": "audit",
-    "summary": "blocks the storyboard on the audit's labelled fullframes"
-  },
-  "shots": {
-    "kind": "helper",
-    "after": "shot-pass",
-    "summary": "resolve the shot spans to absolute times and lint them"
-  },
-  "sound": {
-    "kind": "stage",
-    "after": "render",
-    "summary": "the semantic SFX placement plan"
-  },
-  "mix": {
-    "kind": "stage",
-    "after": "sound",
-    "summary": "the mastered −14 LUFS mix, frame-exact against the VO"
+    "summary": "prints the outline of the card plan to the terminal"
   },
   "cut": {
     "kind": "composite",
     "after": "avatar-download",
-    "summary": "render + effects + sound + mix + collect avatars + assemble a draft"
-  },
-  "qc": {
-    "kind": "helper",
-    "after": "deliver",
-    "summary": "the filmstrip QC pack for the assembled cut"
+    "summary": "render + effects + sound + mix + collect avatars + assemble a draft — a convenience that runs several steps back to back"
   }
 }
