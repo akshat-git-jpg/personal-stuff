@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
+import { writeCheckReport } from './checks.mjs';
 import { wordSyncBeats } from './kinetic-sentence.mjs';
 import { transcriptBeats } from './transcript-beats.mjs';
 import { CUE_CONSTANTS } from './cue-constants.mjs';
@@ -644,6 +645,11 @@ async function main() {
       console.log(`${unbuilt.length} cue(s) name a card that does not exist yet: ${unbuilt.map((c) => `${c.id}=${c.card}`).join(', ')}`);
       console.log('That is expected before step 038 — approve or kill each at the 037 gate.');
     }
+    writeCheckReport(workdir, 'cue-plan', {
+      errors: errs,
+      warnings: [],
+      notes: { unbuilt: unbuilt.map((c) => ({ id: c.id, card: c.card })) },
+    });
     console.log(errs.length ? `${errs.length} error(s)` : 'clean — ready for the 037 card plan');
     process.exit(errs.length ? 1 : 0);
   }

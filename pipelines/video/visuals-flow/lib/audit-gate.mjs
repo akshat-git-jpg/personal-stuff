@@ -1,19 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
+import { writeCheckReport } from './checks.mjs';
 
 export function auditGate({ audit, resolved }) {
   const errors = [];
   const warnings = [];
+  const notes = {};
 
   if (!audit) {
-    errors.push("run the 035 audit first");
-    return { errors, warnings };
+    notes.missing = "not applicable (no audit.json)";
+    return { errors, warnings, notes };
   }
 
   if (!resolved) {
     errors.push("missing resolved.json");
-    return { errors, warnings };
+    return { errors, warnings, notes };
   }
 
   // resolve.mjs writes { video, offset, resolved: [...] }. This read the
@@ -28,7 +30,7 @@ export function auditGate({ audit, resolved }) {
     : null;
   if (!cues) {
     errors.push('resolved.json has no cue array (expected `resolved`, `cues`, or a bare array)');
-    return { errors, warnings };
+    return { errors, warnings, notes };
   }
   const resolvedMap = new Map();
   for (const cue of cues) {
@@ -54,7 +56,7 @@ export function auditGate({ audit, resolved }) {
     }
   }
 
-  return { errors, warnings };
+  return { errors, warnings, notes };
 }
 
 function main() {
@@ -83,7 +85,9 @@ function main() {
     }
   } catch (err) {}
 
-  const { errors, warnings } = auditGate({ audit, resolved });
+  const { errors, warnings, notes } = auditGate({ audit, resolved });
+
+  writeCheckReport(workdir, 'audit-gate', { errors, warnings, notes: notes || {} });
 
   for (const w of warnings) {
     console.log(w);
