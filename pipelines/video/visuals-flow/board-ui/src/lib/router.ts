@@ -1,4 +1,4 @@
-export type Tab = 'run' | 'card-plan' | 'intro' | 'storyboard' | 'final-cut' | 'calibrate';
+export type Tab = 'run' | 'intro' | 'storyboard' | 'final-cut' | 'calibrate';
 
 // ONE table, both hash maps computed from it (plan 193 — this used to be
 // three parallel structures listing the same five tabs).
@@ -14,7 +14,7 @@ const TAB_TABLE: TabRow[] = [
   // intro is the first thing on screen (owner decision 2026-08-07). The button
   // row and the fall-back ordering both come from this table's order.
   { id: 'intro', label: 'Intro', hash: '#intro', button: true },
-  { id: 'card-plan', label: 'Card Plan', hash: '#card-plan', button: true },
+
   { id: 'storyboard', label: 'Storyboard', hash: '#storyboard', button: true },
   { id: 'final-cut', label: 'Final Cut', hash: '#final-cut', button: true },
   { id: 'calibrate', label: 'Calibrate', hash: '#calibrate', button: false },

@@ -34,6 +34,29 @@ function proposalOf(cue) {
   return null;
 }
 
+// The 037 gate used to hold this invariant: any change to the plan invalidated
+// the owner's approval, so a card that landed AFTER approval could not reach
+// render unseen (steps/038's summary states it outright). Plan 195 deleted that
+// gate, so the reset moves to the gate that survives — the 080 storyboard.
+// Deleting the reset instead of moving it is the silent-failure case: a card
+// gets built, lands, and renders with nobody ever having looked at it.
+export function resetStoryboardApproval(workdir, reason) {
+  const touched = [];
+  for (const name of ['cues.json', 'shots.json']) {
+    const p = path.join(workdir, name);
+    if (!fs.existsSync(p)) continue;
+    const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+    if (data.approved !== true) continue;
+    data.approved = false;
+    fs.writeFileSync(p, JSON.stringify(data, null, 2) + '\n');
+    touched.push(name);
+  }
+  if (touched.length) {
+    console.error(`storyboard approval reset (${touched.join(', ')}): ${reason}`);
+  }
+  return touched;
+}
+
 export function buildCardPlan({ workdir, structure, cues, catalogCards }) {
   const bySlug = new Map((catalogCards ?? []).map((c) => [c.slug, c]));
   const activeZones = ZONE_PARTS;
@@ -164,20 +187,18 @@ function main() {
 
   const outPath = path.join(workdir, 'card-plan.json');
   const prev = fs.existsSync(outPath) ? JSON.parse(fs.readFileSync(outPath, 'utf8')) : {};
-  // Any change to the plan invalidates a previous approval — the owner
-  // approved a specific set of cards, not the file's existence.
   const changed = JSON.stringify(prev.sections ?? null) !== JSON.stringify(sections);
   const out = {
     video: path.basename(workdir),
-    approved: changed ? false : (prev.approved === true),
     sections,
   };
   fs.writeFileSync(outPath, JSON.stringify(out, null, 2) + '\n');
+  if (changed) resetStoryboardApproval(workdir, 'the card plan changed — re-approve the storyboard');
 
   if (process.argv.includes('--outline')) console.log(renderOutline(sections));
   const s = summarize(sections);
   console.log(`card plan: ${s.cues} cues across ${sections.length} section${sections.length === 1 ? '' : 's'} — ${s.existing} existing, ${s.toBuild} to build, ${s.flagged} flagged`);
-  console.log(`approved: ${out.approved} -> ${outPath}`);
+  console.log(`card plan -> ${outPath}${changed ? '  (storyboard approval reset)' : ''}`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) main();

@@ -1,9 +1,8 @@
 {
   "number": "037",
   "slug": "037-approve-card-plan-human",
-  "title": "approve the card plan",
-  "actor": "human",
-  "actorLabel": "[OWNER]",
+  "title": "build the card plan",
+  "actor": "run",
   "verbs": [
     "card-plan"
   ],
@@ -13,14 +12,9 @@
   "produces": [
     "card-plan.json"
   ],
-  "gate": {
-    "file": "card-plan.json",
-    "field": "approved",
-    "label": "Card Plan"
-  },
-  "tab": "card-plan",
+  "gate": null,
+  "tab": null,
   "external": false,
   "optional": false,
-  "nextHint": "run.sh <slug> validate, then outline + board  (HUMAN GATE 1 — 037 card plan)",
-  "summary": "`cues.json` + `catalog.json` → `card-plan.json` (**REVIEW 1: Card Plan**. Every card the video uses — body AND zones — marked EXISTING or NEW-to-build, approved before anything is built or rendered. Reads `cues.json`, not `resolved.json`, so an unbuilt card is visible. Per-card and per-section notes write `zone-*` / `card-body:*` items into `feedback.json`, routed to the matching rulebook and never across)"
+  "summary": "`cues.json` + `catalog.json` -> `card-plan.json`: every card the video will use, and which of them do not exist yet. A REPORT, not a gate (plan 195) — new cards are judged built and in context at the 080 storyboard."
 }

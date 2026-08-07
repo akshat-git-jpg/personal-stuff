@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert';
+import os from 'node:os';
+import path from 'node:path';
 import {
   buildCardPlan,
   partOf,
@@ -7,6 +9,7 @@ import {
   feedbackKeyPrefix,
   summarize,
   renderOutline,
+  resetStoryboardApproval,
 } from './card-plan.mjs';
 import { ZONE_PARTS } from './zone-constants.mjs';
 import fs from 'node:fs';
@@ -176,4 +179,29 @@ test('card-plan outline', async (t) => {
 test('ZONE_PARTS is conclusion-only — the intro film owns the intro', () => {
   assert.deepStrictEqual(ZONE_PARTS, ['conclusion'],
     'ZONEPARTS-CAPABILITY-VIOLATION: the cue passes must never author the intro zone');
+});
+
+test('a changed card plan resets the storyboard approval', () => {
+  const w = fs.mkdtempSync(path.join(os.tmpdir(), 'card-plan-reset-'));
+  fs.writeFileSync(path.join(w, 'cues.json'), JSON.stringify({ approved: true, cues: [] }) + '\n');
+  fs.writeFileSync(path.join(w, 'shots.json'), JSON.stringify({ approved: true, shots: [] }) + '\n');
+
+  const touched = resetStoryboardApproval(w, 'test');
+
+  assert.deepStrictEqual(touched.sort(), ['cues.json', 'shots.json'],
+    'UNREVIEWED-CARD-REACHES-RENDER: a changed card plan must reset BOTH storyboard approvals');
+  for (const f of ['cues.json', 'shots.json']) {
+    const data = JSON.parse(fs.readFileSync(path.join(w, f), 'utf8'));
+    assert.strictEqual(data.approved, false,
+      `UNREVIEWED-CARD-REACHES-RENDER: ${f} must be back to approved=false — the 037 gate used to carry this, and losing it lets a card nobody looked at reach render`);
+  }
+  fs.rmSync(w, { recursive: true, force: true });
+});
+
+test('resetStoryboardApproval is a no-op when nothing was approved', () => {
+  const w = fs.mkdtempSync(path.join(os.tmpdir(), 'card-plan-reset-noop-'));
+  fs.writeFileSync(path.join(w, 'cues.json'), JSON.stringify({ approved: false, cues: [] }) + '\n');
+  assert.deepStrictEqual(resetStoryboardApproval(w, 'test'), [],
+    'UNREVIEWED-CARD-REACHES-RENDER: an already-unapproved file must not be rewritten');
+  fs.rmSync(w, { recursive: true, force: true });
 });
