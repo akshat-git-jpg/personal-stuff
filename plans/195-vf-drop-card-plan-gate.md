@@ -8,16 +8,7 @@ needs: []
 needs_prs: [154]
 touches: [pipelines/video/visuals-flow/lib/card-plan.mjs, pipelines/video/visuals-flow/lib/card-plan.test.mjs, pipelines/video/visuals-flow/lib/render.mjs, pipelines/video/visuals-flow/lib/board.mjs, pipelines/video/visuals-flow/lib/board.test.mjs, pipelines/video/visuals-flow/lib/board-api.test.mjs, pipelines/video/visuals-flow/steps/037-approve-card-plan-human/step.json, pipelines/video/visuals-flow/steps/037-approve-card-plan-human/README.md, pipelines/video/visuals-flow/steps/038-build-cards-llm-and-review-human/step.json, pipelines/video/visuals-flow/board-ui/src/lib/router.ts, pipelines/video/visuals-flow/board-ui/src/App.tsx, pipelines/video/visuals-flow/board-ui/src/tabs/CardPlanTab.tsx, pipelines/video/visuals-flow/board-ui/src/tabs/CardPlanTab.css, pipelines/video/visuals-flow/board-ui/test/router.test.ts, pipelines/video/visuals-flow/scripts/board-ui-smoke.mjs]
 
-mutation_apply: python3 - <<'PY'
-p='pipelines/video/visuals-flow/lib/card-plan.mjs'
-s=open(p).read()
-marker='resetStoryboardApproval'
-assert marker in s, 'marker missing — plan 195 Step 3 did not land'
-# Neuter the reset: a changed plan no longer invalidates the storyboard approval,
-# which is exactly the safety property the deleted 037 gate used to carry.
-s = s.replace('if (changed) resetStoryboardApproval(', 'if (false) resetStoryboardApproval(')
-open(p,'w').write(s)
-PY
+mutation_apply: python3 -c "import base64;exec(base64.b64decode('cD0ncGlwZWxpbmVzL3ZpZGVvL3Zpc3VhbHMtZmxvdy9saWIvY2FyZC1wbGFuLm1qcycKcz1vcGVuKHApLnJlYWQoKQptYXJrZXI9J3Jlc2V0U3Rvcnlib2FyZEFwcHJvdmFsJwphc3NlcnQgbWFya2VyIGluIHMsICdtYXJrZXIgbWlzc2luZyDigJQgcGxhbiAxOTUgU3RlcCAzIGRpZCBub3QgbGFuZCcKIyBOZXV0ZXIgdGhlIHJlc2V0OiBhIGNoYW5nZWQgcGxhbiBubyBsb25nZXIgaW52YWxpZGF0ZXMgdGhlIHN0b3J5Ym9hcmQgYXBwcm92YWwsCiMgd2hpY2ggaXMgZXhhY3RseSB0aGUgc2FmZXR5IHByb3BlcnR5IHRoZSBkZWxldGVkIDAzNyBnYXRlIHVzZWQgdG8gY2FycnkuCnMgPSBzLnJlcGxhY2UoJ2lmIChjaGFuZ2VkKSByZXNldFN0b3J5Ym9hcmRBcHByb3ZhbCgnLCAnaWYgKGZhbHNlKSByZXNldFN0b3J5Ym9hcmRBcHByb3ZhbCgnKQpvcGVuKHAsJ3cnKS53cml0ZShzKQ=='))"
 mutation_command: cd pipelines/video/visuals-flow && node --test lib/card-plan.test.mjs
 mutation_expect: UNREVIEWED-CARD-REACHES-RENDER
 mutation_cwd:
