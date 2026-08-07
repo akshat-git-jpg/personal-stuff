@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { buildAvatarPlan, mergeAvatarPlan, requireAvatarPlanApproved, avatarPlanPath } from './avatar-plan.mjs';
 
 function tmpWorkdir() {
@@ -97,4 +98,30 @@ test('requireAvatarPlanApproved passes and returns the plan when character, mode
   assert.equal(plan.character, 'girl-1');
   assert.equal(plan.model, 'heygen3');
   assert.equal(plan.approved, true);
+});
+
+// Integration, through the REAL production code path — not a source-text
+// assertion. lib/avatar-render.mjs's --submit case must call
+// requireAvatarPlanApproved() before it reads a single other file, let alone
+// before any network call to HeyGen. An unapproved (here: entirely absent)
+// avatar-plan.json must refuse the whole CLI, immediately, with the one
+// string that means "this refused": UNAPPROVED-AVATAR-SPEND.
+test('avatar-render.mjs --submit refuses immediately when no avatar-plan.json exists (integration)', () => {
+  const w = tmpWorkdir();
+  const res = spawnSync(process.execPath, [
+    path.resolve(import.meta.dirname, 'avatar-render.mjs'), w, '--template', 't', '--submit',
+  ], { encoding: 'utf8' });
+  assert.notEqual(res.status, 0, `expected a non-zero exit, got 0. stdout: ${res.stdout}`);
+  assert.match(res.stderr, /UNAPPROVED-AVATAR-SPEND/);
+});
+
+// --force exists for the storyboard gates (037/080) and must NEVER become a
+// bypass for metered HeyGen spend (plan 197 STOP condition 5).
+test('avatar-render.mjs --submit --force still refuses when no avatar-plan.json exists (integration)', () => {
+  const w = tmpWorkdir();
+  const res = spawnSync(process.execPath, [
+    path.resolve(import.meta.dirname, 'avatar-render.mjs'), w, '--template', 't', '--submit', '--force',
+  ], { encoding: 'utf8' });
+  assert.notEqual(res.status, 0, `expected a non-zero exit, got 0. stdout: ${res.stdout}`);
+  assert.match(res.stderr, /UNAPPROVED-AVATAR-SPEND/);
 });
