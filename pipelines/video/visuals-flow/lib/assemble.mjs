@@ -8,12 +8,11 @@ import { avatarFullSpans } from './lint-cues.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { EFFECT_MODULES } from './effects/registry.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
-import { gateWaived } from './run-config.mjs';
 import { registerVersion } from './versions.mjs';
 import { loadConceptSpans } from './concept-spans.mjs';
 import { SHOT_CONSTANTS, jobPurpose } from './shot-constants.mjs';
 import { readFinalCut } from './final-cut.mjs';
-import { ownsIntroSpan, introSpanFor } from './intro-modes.mjs';
+import { introSpan } from './intro-modes.mjs';
 import { requireIntroApproved } from './intro-film/approve.mjs';
 
 import * as whipMod from './effects/whip.mjs';
@@ -948,10 +947,8 @@ export async function loadAssemblyInputs(opts) {
   const cuesPath = path.join(workdir, 'cues.json');
   
   const cuesFile = JSON.parse(fs.readFileSync(cuesPath, 'utf8'));
-  // 037/080 board approvals are waivable by run-config review=express (owner
-  // kickoff choice). The 120 final-cut gate further down is NOT — express
-  // mode exists to run TO the final cut review, never past it.
-  if (cuesFile.approved !== true && !opts.force && !gateWaived(workdir, 'cues/storyboard (080)')) {
+  // 080 board approval. Express review was removed 2026-08-07 (plan 194): there is no waiver, only --force, which is a developer escape hatch and is never used in a real run.
+  if (cuesFile.approved !== true && !opts.force) {
     console.error('refusing to render: cues.json approved=false — review on the board (node lib/board.mjs <slug>) or pass --force');
     process.exit(1);
   }
@@ -995,7 +992,7 @@ export async function loadAssemblyInputs(opts) {
   let cornerJobs = [];
   if (fs.existsSync(shotsPath)) {
     const shotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
-    if (shotsFile.approved !== true && !opts.force && !gateWaived(workdir, 'shots/storyboard (080)')) {
+    if (shotsFile.approved !== true && !opts.force) {
       console.error('shots.json approved=false');
       process.exit(1);
     }
@@ -1039,17 +1036,15 @@ export async function loadAssemblyInputs(opts) {
   // Derived from the shared helper, not privately: this was computed inline
   // here, which meant lint-shots could not see it and E8 kept demanding a host
   // inside the span the film owns. One derivation, every surface.
-  const filmSpan = introSpanFor(workdir);
-  if (ownsIntroSpan(workdir)) {
-    const introFile = path.join(workdir, 'intro-film', 'out', 'intro.mp4');
-    if (!fs.existsSync(introFile)) {
-      throw new Error(`missing intro film: ${introFile} — run.sh ${video} intro-render`);
-    }
-    // THIS is the door gate 027 guards. It used to sit on intro-render, which
-    // both deadlocked the review and left this path — the one that puts the
-    // film in front of an audience — completely unguarded.
-    requireIntroApproved(workdir);
+  const filmSpan = introSpan(workdir);
+  const introFile = path.join(workdir, 'intro-film', 'out', 'intro.mp4');
+  if (!fs.existsSync(introFile)) {
+    throw new Error(`missing intro film: ${introFile} — run.sh ${video} intro-render`);
   }
+  // THIS is the door gate 027 guards. It used to sit on intro-render, which
+  // both deadlocked the review and left this path — the one that puts the
+  // film in front of an audience — completely unguarded.
+  requireIntroApproved(workdir);
 
   const voPath = path.join(workdir, 'vo.mp3');
   const screen = opts.screen ?? path.join(workdir, 'screen.mp4');

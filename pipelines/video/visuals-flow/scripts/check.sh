@@ -21,9 +21,10 @@ node scripts/gen-pipeline-table.mjs --check
 # replaces had drifted to 39 of 50 lib/ files: segments, plan-skeleton,
 # cue-rules, side-mode, versions, motif, transcript-beats, post-status,
 # regression-cards and both rulebook checkers were on disk, passing, and never
-# run by the gate (found 2026-08-06). regression-cards is the one that stings —
-# it asserts the intro:"cards" default path is untouched, which is exactly the
-# guard you want running on every change.
+# run by the gate (found 2026-08-06).
+# intro-invariants is the one that stings — it asserts the intro film owns the
+# intro on every video (plan 194 deleted the intro:"cards" flow it replaced),
+# which is exactly the guard you want running on every change.
 # A new test file now joins the gate by existing. Do not reintroduce a list.
 # -not -path .test-tmp: test working dirs are gitignored scratch, not sources.
 find lib -name '*.test.mjs' -not -path '*/.test-tmp/*' -print0 | sort -z | xargs -0 node --test

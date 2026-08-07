@@ -1,15 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { gateWaived } from '../run-config.mjs';
+
 
 // The intro film is judged almost entirely by eye. Across three review passes
 // the mechanical checker was clean while the film had a crown landing on the
 // presenter, rails invisible at 2px/20% opacity, and a label doing a graphic's
 // job. None of those is machine-detectable, so the owner gate is the real gate.
 //
-// This is a REVIEW gate, in the same class as 037 and 080, so express waives it.
-// The 120 final-cut gate is the one that never routes through gateWaived.
-//
+
 // It guards ASSEMBLY, not rendering. It used to block intro-render, which was
 // coherent while the Intro tab was a contact sheet of stills — you could review
 // without a render. Plan 189 made the review surface a video PLAYER, and the
@@ -20,7 +18,7 @@ import { gateWaived } from '../run-config.mjs';
 // through. Rendering is how the owner GETS something to judge; approval is what
 // lets that judged film into the cut (owner report 2026-08-06).
 export function requireIntroApproved(workdir) {
-  if (gateWaived(workdir, '027 intro film')) return;
+
   const p = path.join(workdir, 'intro-film', 'screenplay.json');
   if (!fs.existsSync(p)) throw new Error(`missing ${p} — author the intro film first`);
   const intro = JSON.parse(fs.readFileSync(p, 'utf8'));

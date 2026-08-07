@@ -45,9 +45,4 @@ test('intro approval gate', async (t) => {
     assert.ok(updated.approved_at);
   });
 
-  await t.test('waives gate under review: express', () => {
-    fs.writeFileSync(screenplayPath, JSON.stringify({ approved: false }));
-    fs.writeFileSync(path.join(d, 'run-config.json'), JSON.stringify({ review: 'express' }));
-    requireIntroApproved(d); // should not throw due to waiver
-  });
 });

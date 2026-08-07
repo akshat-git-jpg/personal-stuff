@@ -4,14 +4,20 @@
   "title": "pick or propose graphics",
   "actor": "llm",
   "actorLabel": "[LLM] (pluggable)",
-  "verbs": ["cue-pass"],
-  "consumes": ["transcript.json", "concept.json", "segments.json"],
-  "produces": ["cues.json"],
+  "verbs": [
+    "cue-pass"
+  ],
+  "consumes": [
+    "transcript.json",
+    "concept.json",
+    "segments.json"
+  ],
+  "produces": [
+    "cues.json"
+  ],
   "gate": null,
   "tab": null,
-  "waivable": false,
   "external": false,
   "optional": false,
-  "requires": { "intro": null },
   "summary": "`transcript.json` + `card-library/catalog.json` + `{{CONCEPT}}` → `cues.json`, **BODY ONLY**. Picks from the catalog OR proposes a card that should exist (approved at 037, built at 038)"
 }

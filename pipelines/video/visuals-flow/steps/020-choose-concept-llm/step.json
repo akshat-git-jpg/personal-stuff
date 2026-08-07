@@ -4,14 +4,19 @@
   "title": "choose the concept",
   "actor": "llm",
   "actorLabel": "[LLM]",
-  "verbs": ["concept-pass"],
-  "consumes": ["transcript.json", "segments.json"],
-  "produces": ["concept.json"],
+  "verbs": [
+    "concept-pass"
+  ],
+  "consumes": [
+    "transcript.json",
+    "segments.json"
+  ],
+  "produces": [
+    "concept.json"
+  ],
   "gate": null,
   "tab": null,
-  "waivable": false,
   "external": false,
   "optional": false,
-  "requires": { "intro": null },
   "summary": "`transcript.json` + `segments.json` → `concept.json` (gate `lint-concept` — required fields, anchors resolving in forward order, and ≥80% **narration** coverage by the register map; `segments.json` is what narration time is measured from)"
 }

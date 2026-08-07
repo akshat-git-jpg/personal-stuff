@@ -4,14 +4,17 @@
   "title": "export the DaVinci timeline",
   "actor": "run",
   "actorLabel": "[RUN, **OPTIONAL** — on owner request only, not a pipeline stage (decisions.md 2026-07-24)]",
-  "verbs": ["export"],
-  "consumes": ["resolved.json", "assembly.md"],
+  "verbs": [
+    "export"
+  ],
+  "consumes": [
+    "resolved.json",
+    "assembly.md"
+  ],
   "produces": [],
   "gate": null,
   "tab": null,
-  "waivable": false,
   "external": true,
   "optional": true,
-  "requires": { "intro": null },
   "summary": "same inputs as 110 → layered FCPXML + music/sfx lanes + panel transforms"
 }

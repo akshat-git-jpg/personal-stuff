@@ -4,14 +4,18 @@
   "title": "transcribe the voiceover",
   "actor": "run",
   "actorLabel": "[RUN] + quality pass [RUN/LLM]",
-  "verbs": ["transcribe"],
-  "consumes": ["vo.mp3"],
-  "produces": ["transcript.json"],
+  "verbs": [
+    "transcribe"
+  ],
+  "consumes": [
+    "vo.mp3"
+  ],
+  "produces": [
+    "transcript.json"
+  ],
   "gate": null,
   "tab": null,
-  "waivable": false,
   "external": false,
   "optional": false,
-  "requires": { "intro": null },
   "summary": "`vo.mp3` (or `vo.mp4`/`mov`/`mkv`/`m4a`/`wav` — audio auto-extracted to `vo.mp3`) + optional `script.txt` → `transcript.json` (word timestamps, cleaned — never raw ASR punctuation; script-first alignment when `script.txt` exists, else an LLM cleanup pass, both gated by `checkTimingIntegrity()`)"
 }

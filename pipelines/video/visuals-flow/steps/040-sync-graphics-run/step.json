@@ -4,15 +4,20 @@
   "title": "sync the graphics",
   "actor": "run",
   "actorLabel": "[RUN]",
-  "verbs": ["resolve"],
-  "consumes": ["cues.json", "transcript.json"],
-  "produces": ["resolved.json"],
+  "verbs": [
+    "resolve"
+  ],
+  "consumes": [
+    "cues.json",
+    "transcript.json"
+  ],
+  "produces": [
+    "resolved.json"
+  ],
   "gate": null,
   "tab": null,
-  "waivable": false,
   "external": false,
   "optional": false,
-  "requires": { "intro": null },
   "nextHint": "run.sh <slug> resolve  (build any NEW cards at step 038 first)",
   "summary": "`cues.json` → `resolved.json` (absolute times + merged variables + `extendExposure`) … (+ lint gate E7/W7/W8/W9, and the zone bar W15/W16/W17/W19)"
 }

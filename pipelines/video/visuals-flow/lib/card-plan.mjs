@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
-import { ZONE_PARTS, zonePartsFor } from './zone-constants.mjs';
+import { ZONE_PARTS } from './zone-constants.mjs';
 
 // The whole video's card plan gets approved in one place, before anything is
 // built or rendered (owner 2026-07-30). This replaces the zone-only 070 gate:
@@ -21,7 +21,7 @@ export const PLAN_PARTS = ['intro', 'body', 'conclusion'];
 // span later, once resolve has run.
 export function partOf(cue, workdir) {
   const zone = cue?.zone;
-  const validZones = workdir ? zonePartsFor(workdir) : ZONE_PARTS;
+  const validZones = ZONE_PARTS;
   return validZones.includes(zone) ? zone : 'body';
 }
 
@@ -36,7 +36,7 @@ function proposalOf(cue) {
 
 export function buildCardPlan({ workdir, structure, cues, catalogCards }) {
   const bySlug = new Map((catalogCards ?? []).map((c) => [c.slug, c]));
-  const activeZones = workdir ? zonePartsFor(workdir) : ZONE_PARTS;
+  const activeZones = ZONE_PARTS;
   const activePlanParts = PLAN_PARTS.filter((p) => p === 'body' || activeZones.includes(p));
   const byPart = new Map(activePlanParts.map((p) => [p, []]));
 

@@ -16,7 +16,6 @@ export const STEPS_DIR = path.resolve(import.meta.dirname, '..', 'steps');
 
 const ACTORS = ['run', 'llm', 'human', 'opus', 'owner-live'];
 const VERB_KINDS = ['meta', 'helper', 'stage', 'composite'];
-const INTRO_MODES = [null, 'cards', 'film'];
 
 // Optional, human-facing, all strings:
 //   summary     the PIPELINE.md "In → Out" cell, verbatim
@@ -37,14 +36,12 @@ const OPTIONAL_STRINGS = ['summary', 'actorLabel', 'nextHint', 'usageArgs'];
 //   produces  ["cues.json"]             — artifacts written, same base
 //   gate      null | {file, field, label} — a human approval gate
 //   tab       null | "storyboard"       — the board tab that reviews it (plan 193)
-//   waivable  bool                      — run-config review=express waives this gate
 //   external  bool                      — the real output lands OUTSIDE videos/<slug>/
 //                                         (card-library, a rulebook, Drive, kb-scratch),
 //                                         so `produces` is empty by design rather than
 //                                         by omission
 //   optional  bool                      — the video can finish without it, so the
 //                                         status next-hint never parks on it
-//   requires  { intro: null|"cards"|"film" } — step applies only for this intro mode
 export function loadSteps({ dir = STEPS_DIR } = {}) {
   const out = [];
   for (const name of fs.readdirSync(dir).sort()) {
@@ -93,7 +90,7 @@ export function validateStep(s, folderName) {
     }
   }
   if (s.tab !== null && (typeof s.tab !== 'string' || !s.tab)) die('tab must be null or a string');
-  for (const k of ['waivable', 'external', 'optional']) {
+  for (const k of ['external', 'optional']) {
     if (typeof s[k] !== 'boolean') die(`${k} must be a boolean`);
   }
   for (const k of OPTIONAL_STRINGS) {
@@ -101,13 +98,8 @@ export function validateStep(s, folderName) {
       die(`${k} is optional, but when present it must be a non-empty string`);
     }
   }
-  if (!s.requires || typeof s.requires !== 'object') die('requires is required');
-  if (!INTRO_MODES.includes(s.requires.intro ?? null)) {
-    die('requires.intro must be null, "cards" or "film"');
-  }
-  // A gate with no tab cannot be approved anywhere; a waivable non-gate is
-  // meaningless. Both are declaration bugs, not runtime conditions.
-  if (s.waivable && s.gate === null) die('waivable is set but there is no gate');
+  // A gate with no tab cannot be approved anywhere.
+  // It is a declaration bug, not a runtime condition.
   if (s.gate !== null && s.tab === null) die('a gate needs a board tab to be approved on');
   // A step must declare an EFFECT. A step that writes no artifact, holds no
   // gate, and is not marked external does nothing the rest of the pipeline can
@@ -230,12 +222,11 @@ export function suggestVerbs(input, { dir = STEPS_DIR, verbs = null } = {}) {
 // The next step is the first unsatisfied one whose requires.intro matches this
 // video's mode. `optional` and `external` steps never park the hint: nothing
 // under videos/<slug>/ proves them either way.
-export function nextStep({ steps = null, introMode = 'cards', express = false, exists, readFlag } = {}) {
+export function nextStep({ steps = null, exists, readFlag } = {}) {
   for (const s of steps ?? loadSteps()) {
-    if (s.requires.intro !== null && s.requires.intro !== introMode) continue;
     if (s.optional) continue;
     if (!s.external && s.produces.length && !s.produces.every((f) => exists(f))) return s;
-    if (s.gate && !(express && s.waivable) && !readFlag(s.gate.file, s.gate.field)) return s;
+    if (s.gate && !readFlag(s.gate.file, s.gate.field)) return s;
   }
   return null;
 }
@@ -282,12 +273,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     } else if (cmd === 'slug') {
       console.log(stepSlug(rest[0]));
     } else if (cmd === 'next') {
-      const [slugArg, introMode = 'cards', review = 'full'] = rest;
+      const [slugArg] = rest;
       const workdir = resolveWorkdir(slugArg);
       console.log(
         nextHintLine(
           slugArg,
-          nextStep({ introMode, express: review === 'express', ...workdirProbes(workdir) }),
+          nextStep({ ...workdirProbes(workdir) }),
         ),
       );
     } else {

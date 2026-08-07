@@ -1398,32 +1398,32 @@ test('edit/delete guard accepts intro:0, rejects cue:7', async () => {
 // Gate 027 reviews the intro film BEFORE 030 authors any cue, so the board has
 // to open on a workdir with no cues.json at all. It used to throw at boot, which
 // made the Intro tab unreachable at the only point in the flow it exists for.
-test('createServer boots an intro-film workdir that has no cues.json', () => {
+test('createServer boots a video that has no cues.json', () => {
   fs.mkdirSync(TMP_ROOT, { recursive: true });
   const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'board-nocues-'));
   for (const f of ['transcript.json', 'vo.mp3']) {
     fs.copyFileSync(path.join(FIXTURE_DIR, f), path.join(dir, f));
   }
-  // intro: film is what marks the intro as film-owned (lib/intro-film/owns-intro.mjs)
   fs.writeFileSync(path.join(dir, 'run-config.json'),
-    JSON.stringify({ engine: 'heygen3', review: 'full', intro: 'film' }));
+    JSON.stringify({ engine: 'heygen3' }));
   assert.ok(!fs.existsSync(path.join(dir, 'cues.json')), 'fixture must have no cues.json');
   const server = createServer(dir);          // must not throw
   OPEN_SERVERS.add(server);
-  assert.ok(server, 'board must open for an intro-film video before the cue pass');
+  assert.ok(server, 'board must open for a video before the cue pass');
 });
 
-// The complement: a cards-intro video still requires cues.json, so this fix did
-// not quietly weaken the boot contract for every other video.
-test('createServer still refuses a cards-intro workdir with no cues.json', () => {
+// Every video is an intro-film video now (plan 194), so an unconfigured video
+// also boots successfully without cues.json.
+test('createServer boots an unconfigured workdir with no cues.json', () => {
   fs.mkdirSync(TMP_ROOT, { recursive: true });
   const dir = fs.mkdtempSync(path.join(TMP_ROOT, 'board-cards-'));
   for (const f of ['transcript.json', 'vo.mp3']) {
     fs.copyFileSync(path.join(FIXTURE_DIR, f), path.join(dir, f));
   }
-  fs.writeFileSync(path.join(dir, 'run-config.json'),
-    JSON.stringify({ engine: 'heygen3', review: 'full', intro: 'cards' }));
-  assert.throws(() => createServer(dir), /missing cues\.json/);
+  assert.ok(!fs.existsSync(path.join(dir, 'run-config.json')), 'fixture must have no run-config.json');
+  const server = createServer(dir);
+  OPEN_SERVERS.add(server);
+  assert.ok(server, 'board must open for an unconfigured video before the cue pass');
 });
 
 // Booting on an intro-film video is not enough — the board must also SWITCH to
@@ -1447,11 +1447,6 @@ test('requestedWorkdir switches to an intro-film video that has no cues.json', a
     assert.equal(requestedWorkdir(url, launch), target,
       'an intro-film video must be reachable by ?video= before the cue pass exists');
 
-    // Same directory, cards intro: cues.json is still required, so it falls back.
-    fs.writeFileSync(path.join(target, 'run-config.json'),
-      JSON.stringify({ engine: 'heygen3', review: 'full', intro: 'cards' }));
-    assert.equal(requestedWorkdir(url, launch), launch,
-      'a cards video with no cues.json must still fall back');
   } finally {
     fs.rmSync(target, { recursive: true, force: true });
   }

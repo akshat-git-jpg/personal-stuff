@@ -133,13 +133,7 @@ out="$(VF_DRY_RUN=1 bash run.sh "$FIX" cut 2>&1 || true)"
 [[ "$out" == *"approve the storyboard first"* ]] || fail "cut must refuse unapproved cues, got: $out"
 printf '{"approved":true,"cues":[]}\n' > "$FIXDIR/cues.json"
 
-# The intro verbs are gated on run-config intro:"film" and say so.
-printf '{"engine":"heygen3","review":"full","intro":"cards"}\n' > "$FIXDIR/run-config.json"
-for v in intro-film intro-review intro-render; do
-  out="$(VF_DRY_RUN=1 bash run.sh "$FIX" "$v" 2>&1 || true)"
-  [[ "$out" == *"does not use the bespoke intro film"* ]] \
-    || fail "$v must refuse a non-film video, got: $out"
-done
+
 printf '{"engine":"heygen3","review":"full","intro":"film"}\n' > "$FIXDIR/run-config.json"
 
 # ---------------------------------------------------------------------------

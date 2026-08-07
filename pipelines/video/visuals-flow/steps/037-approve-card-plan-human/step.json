@@ -4,15 +4,23 @@
   "title": "approve the card plan",
   "actor": "human",
   "actorLabel": "[OWNER]",
-  "verbs": ["card-plan"],
-  "consumes": ["cues.json"],
-  "produces": ["card-plan.json"],
-  "gate": { "file": "card-plan.json", "field": "approved", "label": "Card Plan" },
+  "verbs": [
+    "card-plan"
+  ],
+  "consumes": [
+    "cues.json"
+  ],
+  "produces": [
+    "card-plan.json"
+  ],
+  "gate": {
+    "file": "card-plan.json",
+    "field": "approved",
+    "label": "Card Plan"
+  },
   "tab": "card-plan",
-  "waivable": true,
   "external": false,
   "optional": false,
-  "requires": { "intro": null },
   "nextHint": "run.sh <slug> validate, then outline + board  (HUMAN GATE 1 — 037 card plan)",
   "summary": "`cues.json` + `catalog.json` → `card-plan.json` (**REVIEW 1: Card Plan**. Every card the video uses — body AND zones — marked EXISTING or NEW-to-build, approved before anything is built or rendered. Reads `cues.json`, not `resolved.json`, so an unbuilt card is visible. Per-card and per-section notes write `zone-*` / `card-body:*` items into `feedback.json`, routed to the matching rulebook and never across)"
 }

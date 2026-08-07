@@ -1,4 +1,3 @@
-import { ownsIntroSpan } from './intro-modes.mjs';
 
 // Single source of truth for INTRO/CONCLUSION constraints.
 //
@@ -54,8 +53,7 @@ export const ZONE_CONSTANTS = {
 // so the zone rules and the linter can never disagree about what "motion" means.
 export const ENACTED_PREFIX = 'enacted/';
 
-export const ZONE_PARTS = ['intro', 'conclusion'];
-
-export function zonePartsFor(workdir) {
-  return ownsIntroSpan(workdir) ? ['conclusion'] : ZONE_PARTS;
-}
+// The intro film owns the intro on every video (plan 194), so the cue passes
+// author the CONCLUSION only. This was zonePartsFor(workdir), branching on the
+// intro mode; with one mode the branch was dead.
+export const ZONE_PARTS = ['conclusion'];
