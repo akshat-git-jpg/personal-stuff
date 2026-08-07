@@ -8,16 +8,7 @@ needs: []
 needs_prs: [154, 155]
 touches: [pipelines/video/visuals-flow/lib/resolve.mjs, pipelines/video/visuals-flow/lib/stillness.mjs, pipelines/video/visuals-flow/lib/audit-gate.mjs, pipelines/video/visuals-flow/lib/lint-shots.mjs, pipelines/video/visuals-flow/lib/checks.mjs, pipelines/video/visuals-flow/lib/checks.test.mjs, pipelines/video/visuals-flow/lib/steps.mjs, pipelines/video/visuals-flow/run.sh, pipelines/video/visuals-flow/steps/_verbs.json, pipelines/video/visuals-flow/steps, pipelines/video/visuals-flow/PIPELINE.md]
 
-mutation_apply: python3 - <<'PY'
-p='pipelines/video/visuals-flow/lib/checks.mjs'
-s=open(p).read()
-marker='writeCheckReport'
-assert marker in s, 'marker missing — plan 196 Step 2 did not land'
-# Make the report writer a no-op: the check still prints, but leaves no artifact,
-# which is exactly the invisible-review state this plan exists to end.
-s = s.replace('fs.writeFileSync(out, JSON.stringify(report, null, 2) + \'\\n\');', 'void report;')
-open(p,'w').write(s)
-PY
+mutation_apply: python3 -c "import base64;exec(base64.b64decode('cD0ncGlwZWxpbmVzL3ZpZGVvL3Zpc3VhbHMtZmxvdy9saWIvY2hlY2tzLm1qcycKcz1vcGVuKHApLnJlYWQoKQptYXJrZXI9J3dyaXRlQ2hlY2tSZXBvcnQnCmFzc2VydCBtYXJrZXIgaW4gcywgJ21hcmtlciBtaXNzaW5nIOKAlCBwbGFuIDE5NiBTdGVwIDIgZGlkIG5vdCBsYW5kJwojIE1ha2UgdGhlIHJlcG9ydCB3cml0ZXIgYSBuby1vcDogdGhlIGNoZWNrIHN0aWxsIHByaW50cywgYnV0IGxlYXZlcyBubyBhcnRpZmFjdCwKIyB3aGljaCBpcyBleGFjdGx5IHRoZSBpbnZpc2libGUtcmV2aWV3IHN0YXRlIHRoaXMgcGxhbiBleGlzdHMgdG8gZW5kLgpzID0gcy5yZXBsYWNlKCdmcy53cml0ZUZpbGVTeW5jKG91dCwgSlNPTi5zdHJpbmdpZnkocmVwb3J0LCBudWxsLCAyKSArIFwnXFxuXCcpOycsICd2b2lkIHJlcG9ydDsnKQpvcGVuKHAsJ3cnKS53cml0ZShzKQ=='))"
 mutation_command: cd pipelines/video/visuals-flow && node --test lib/checks.test.mjs
 mutation_expect: REVIEW-LEAVES-NO-ARTIFACT
 mutation_cwd:
