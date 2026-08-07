@@ -237,7 +237,7 @@ test('a fresh workdir parks on the first step', () => {
 });
 
 test('a video reaches 025, then the 027 gate', () => {
-  const present = ['run-config.json', 'vo.mp3', 'transcript.json', 'segments.json', 'concept.json'];
+  const present = ['run-config.json', 'vo.mp3', 'transcript.json', 'transcript.diff.json', 'segments.json', 'concept.json'];
   const authoring = nextStep({ ...probes(present) });
   assert.equal(authoring.number, '025', 'the video must be sent to author the film');
 
