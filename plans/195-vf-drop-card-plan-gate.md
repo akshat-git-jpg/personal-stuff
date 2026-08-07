@@ -5,7 +5,7 @@ test_cmd: cd pipelines/video/visuals-flow && bash scripts/check.sh
 ui: true
 deploy:
 needs: []
-needs_prs: [194]
+needs_prs: [154]
 touches: [pipelines/video/visuals-flow/lib/card-plan.mjs, pipelines/video/visuals-flow/lib/card-plan.test.mjs, pipelines/video/visuals-flow/lib/render.mjs, pipelines/video/visuals-flow/lib/board.mjs, pipelines/video/visuals-flow/lib/board.test.mjs, pipelines/video/visuals-flow/lib/board-api.test.mjs, pipelines/video/visuals-flow/steps/037-approve-card-plan-human/step.json, pipelines/video/visuals-flow/steps/037-approve-card-plan-human/README.md, pipelines/video/visuals-flow/steps/038-build-cards-llm-and-review-human/step.json, pipelines/video/visuals-flow/board-ui/src/lib/router.ts, pipelines/video/visuals-flow/board-ui/src/App.tsx, pipelines/video/visuals-flow/board-ui/src/tabs/CardPlanTab.tsx, pipelines/video/visuals-flow/board-ui/src/tabs/CardPlanTab.css, pipelines/video/visuals-flow/board-ui/test/router.test.ts, pipelines/video/visuals-flow/scripts/board-ui-smoke.mjs]
 
 mutation_apply: python3 - <<'PY'
