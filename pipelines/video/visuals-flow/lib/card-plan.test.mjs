@@ -8,7 +8,7 @@ import {
   summarize,
   renderOutline,
 } from './card-plan.mjs';
-import { zonePartsFor } from './zone-constants.mjs';
+import { ZONE_PARTS } from './zone-constants.mjs';
 import fs from 'node:fs';
 
 const structure = [
@@ -173,30 +173,7 @@ test('card-plan outline', async (t) => {
   });
 });
 
-test('zonePartsFor', async (t) => {
-  const originalExistsSync = fs.existsSync;
-  const originalReadFileSync = fs.readFileSync;
-
-  t.afterEach(() => {
-    fs.existsSync = originalExistsSync;
-    fs.readFileSync = originalReadFileSync;
-  });
-
-  // The messages carry a marker that appears ONLY when these assertions fail.
-  // Plan 192's mutation gate needs a string absent from a clean run, and the
-  // obvious candidate, "E-INTRO", is a substring of TASTE-INTRO.md — which the
-  // suite prints on every green run, so boss disarmed the gate as "marker
-  // proves nothing". A diagnostic the test emits itself cannot collide.
-  await t.test('returns both parts by default', () => {
-    fs.existsSync = () => false;
-    assert.deepStrictEqual(zonePartsFor('dummy'), ['intro', 'conclusion'],
-      'ZONEPARTS-CAPABILITY-VIOLATION: default must cover both zone parts');
-  });
-
-  await t.test('returns conclusion only when intro is film-owned', () => {
-    fs.existsSync = () => true;
-    fs.readFileSync = () => JSON.stringify({ intro: 'film' });
-    assert.deepStrictEqual(zonePartsFor('dummy'), ['conclusion'],
-      'ZONEPARTS-CAPABILITY-VIOLATION: zone parts must come from ownsIntroSpan, not an intro-flow identity check');
-  });
+test('ZONE_PARTS is conclusion-only — the intro film owns the intro', () => {
+  assert.deepStrictEqual(ZONE_PARTS, ['conclusion'],
+    'ZONEPARTS-CAPABILITY-VIOLATION: the cue passes must never author the intro zone');
 });

@@ -4,7 +4,7 @@
 // rule can never reach the zone model or the reverse.
 import fs from 'node:fs';
 import path from 'node:path';
-import { ZONE_CONSTANTS, zonePartsFor } from './zone-constants.mjs';
+import { ZONE_CONSTANTS, ZONE_PARTS } from './zone-constants.mjs';
 import { ZONE_RULES } from './zone-rules.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { stepDir } from './steps.mjs';
@@ -39,7 +39,7 @@ export function renderConstraintsBlock(zoneConstants = ZONE_CONSTANTS) {
 
 export function renderRuleLines(zoneRules = ZONE_RULES, workdir = null) {
   const rules = { ...zoneRules };
-  if (workdir && !zonePartsFor(workdir).includes('intro')) {
+  if (workdir && !ZONE_PARTS.includes('intro')) {
     rules.R_ZONE_SCOPE = {
       ...rules.R_ZONE_SCOPE,
       rule: 'The INTRO of this video is authored as a bespoke film (step 025) and is NOT yours. Author the CONCLUSION only. Do not emit any cue with `zone: "intro"`.',
