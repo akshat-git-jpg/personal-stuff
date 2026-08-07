@@ -28,8 +28,11 @@ function lintInputs(workdir) {
     workdir,
     cuesFile: { cues, approved: true },
     resolved: cues,
-    words: [],
-    catalog: { cards: {} },
+    words: [
+      { start: 0, end: 1, text: 'hello' },
+      { start: 59, end: 60, text: 'world' }
+    ],
+    catalog: { cards: [{ slug: 'body/thing', placement: 'fullframe' }] },
     segmentsData: { structure: STRUCTURE },
     manifest: { base: 'screen' },
     conceptData: null,
