@@ -36,3 +36,4 @@ fable-skill
 scout
 reddit-fetcher
 secretary
+i-have-adhd
