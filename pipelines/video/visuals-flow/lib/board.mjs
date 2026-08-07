@@ -24,7 +24,8 @@ import { loadBrand, injectBrand } from './brand-inline.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { appendCardPlanFeedback, PLAN_PARTS } from './card-plan.mjs';
 import { MEASURE_OVERFLOW_SRC } from './overflow-measure.mjs';
-import { computeProbeTimes, loadBoardData, buildBoardData, introData } from './board-data.mjs';
+import { computeProbeTimes, loadBoardData, buildBoardData, introData, avatarPlanData } from './board-data.mjs';
+import { buildAvatarPlan, mergeAvatarPlan, avatarPlanPath, loadRegistry } from './avatar-plan.mjs';
 
 import { stepView, summarize as summarizeRun, nextStep, readRunLog, writeRunLog, setStep, resolveStepId } from './run-log.mjs';
 import { approveIntro } from './intro-film/approve.mjs';
@@ -895,6 +896,65 @@ async function handleApproveFinalCut(req, res, workdir) {
   res.end(JSON.stringify({ ok: true }));
 }
 
+// Gate 028. Approving sets BOTH chosen and approved, in one write — an
+// approval with no chosen id is meaningless (plan 197).
+async function handleApproveIntroIdea(req, res, workdir) {
+  const body = await readBody(req);
+  let payload;
+  try { payload = JSON.parse(body); } catch (e) { res.statusCode = 400; return res.end('{"ok":false}'); }
+  const chosen = String(payload.chosen ?? '').trim();
+  if (!chosen) { res.statusCode = 400; return res.end(JSON.stringify({ ok: false, error: 'missing chosen direction id' })); }
+
+  const ideaPath = path.join(workdir, 'intro-film', 'idea.json');
+  if (!fs.existsSync(ideaPath)) { res.statusCode = 400; return res.end(JSON.stringify({ ok: false, error: 'intro-film/idea.json does not exist yet' })); }
+  const idea = JSON.parse(fs.readFileSync(ideaPath, 'utf8'));
+  if (!(idea.directions || []).some((d) => d.id === chosen)) {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({ ok: false, error: `unknown direction id "${chosen}"` }));
+  }
+  idea.chosen = chosen;
+  idea.approved = true;
+  fs.writeFileSync(ideaPath, JSON.stringify(idea, null, 2) + '\n');
+  recordGate(workdir, gateNumberFor('intro-film/idea.json'), `Owner approved the intro idea: direction "${chosen}".`, `intro-film/idea.json approved=true, chosen=${chosen}`);
+  res.setHeader('content-type', 'application/json');
+  res.end(JSON.stringify({ ok: true }));
+}
+
+// Gate 102 — the avatar spend gate. Approving writes character, model and
+// approved TOGETHER; a POST missing either is refused rather than leaving a
+// half-approved plan (plan 197 — an approval with no character/model
+// authorises spend against nothing in particular).
+async function handleApproveAvatarPlan(req, res, workdir) {
+  const body = await readBody(req);
+  let payload;
+  try { payload = JSON.parse(body); } catch (e) { res.statusCode = 400; return res.end('{"ok":false}'); }
+  const character = String(payload.character ?? '').trim();
+  const model = String(payload.model ?? '').trim();
+  if (!character || !model) {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({ ok: false, error: 'both character and model are required' }));
+  }
+
+  const shotsResolvedPath = path.join(workdir, 'shots.resolved.json');
+  if (!fs.existsSync(shotsResolvedPath)) {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({ ok: false, error: 'shots.resolved.json does not exist yet — run storyboard-check first' }));
+  }
+  const shotsResolved = JSON.parse(fs.readFileSync(shotsResolvedPath, 'utf8'));
+  const registry = loadRegistry();
+  const fresh = buildAvatarPlan({ workdir, shotsResolved, registry });
+  const plan = { ...fresh, character, model, approved: true };
+  fs.writeFileSync(avatarPlanPath(workdir), JSON.stringify(plan, null, 2) + '\n');
+  recordGate(
+    workdir,
+    gateNumberFor('avatar-plan.json'),
+    `Owner approved the avatar spend: ${character} on ${model} (${plan.clips} clips, ${plan.seconds}s).`,
+    `avatar-plan.json approved=true, character=${character}, model=${model}`,
+  );
+  res.setHeader('content-type', 'application/json');
+  res.end(JSON.stringify({ ok: true }));
+}
+
 function fillerText(chars) {
   if (chars <= 0) return '';
   let s = '';
@@ -1184,6 +1244,12 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     return res.end(JSON.stringify(introData(workdir)));
   }
 
+  if (req.method === 'GET' && url.pathname === '/api/avatar-data') {
+    res.setHeader('content-type', 'application/json; charset=utf-8');
+    res.setHeader('cache-control', 'no-store');
+    return res.end(JSON.stringify(avatarPlanData(workdir)));
+  }
+
   if (req.method === 'GET' && url.pathname === '/intro-frame') {
     const f = url.searchParams.get('f');
     if (!f || f.includes('/') || f.includes('..')) {
@@ -1298,6 +1364,14 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     recordGate(workdir, gateNumberFor('intro-film/screenplay.json'), 'Owner approved the intro film.', 'intro-film/screenplay.json approved=true');
     res.setHeader('content-type', 'application/json');
     return res.end(JSON.stringify({ ok: true }));
+  }
+
+  if (req.method === 'POST' && url.pathname === '/approve-intro-idea') {
+    return handleApproveIntroIdea(req, res, workdir);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/approve-avatar-plan') {
+    return handleApproveAvatarPlan(req, res, workdir);
   }
 
   if (req.method === 'POST' && url.pathname === '/card-feedback') {
