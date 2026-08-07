@@ -6,6 +6,11 @@
    of these rules. Step-specific chrome goes in the step's own stylesheet. */
 
 .rs-container {
+  /* The height budget for the frame: everything above it on screen (sticky
+     header ~99px, this padding, the scrubber and the transport row) plus a
+     sliver so the keyboard hint under the player still peeks into view. The
+     player sizes itself from this — see .rs-video-container. */
+  --rs-video-max-h: calc(100vh - 230px);
   display: flex;
   gap: 20px;
   align-items: flex-start;
@@ -62,15 +67,32 @@
   padding: 2px;
 }
 
+/* The frame is the point of this surface, so it takes every pixel the row can
+   spare and is bounded only by the viewport height. A tab that mounts
+   <ReviewSurface> must NOT cap its own width — the Intro tab used to sit in a
+   1000px box, which is why the same player rendered small there and large on
+   Final Cut (owner report 2026-08-07).
+
+   max-width is the height budget converted through the 16:9 frame, not a taste
+   number: it makes the width constraint bind first, so this box is always
+   exactly the film's aspect. Let it go wider than 16:9 and object-fit
+   pillarboxes the film inside it — and the pin marker, which is placed as a %
+   of THIS box, then lands offset from where the frame was clicked. */
 .rs-video-container {
   position: relative;
   background: #000;
   border-radius: 8px;
   overflow: hidden;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  max-width: calc(var(--rs-video-max-h) * 16 / 9);
+  margin: 0 auto;
 }
 
 .rs-video {
   width: 100%;
+  height: 100%;
+  object-fit: contain;
   display: block;
   cursor: crosshair;
 }

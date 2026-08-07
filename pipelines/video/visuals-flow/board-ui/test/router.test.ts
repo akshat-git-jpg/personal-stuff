@@ -17,6 +17,13 @@ describe('router', () => {
     expect(TABS.some((t) => t.id === 'calibrate')).toBe(false);
   });
 
+  // The button row reads in the order the film plays: the intro is the first
+  // thing on screen, so it sits second, right after Run (owner decision
+  // 2026-08-07). Order is a product decision, not an accident of the table.
+  it('TABS renders Run, Intro, Card Plan, Storyboard, Final Cut in that order', () => {
+    expect(TABS.map((t) => t.id)).toEqual(['run', 'intro', 'card-plan', 'storyboard', 'final-cut']);
+  });
+
   it('urlForTab keeps ?video=x', () => {
     expect(urlForTab('card-plan', { pathname: '/app/', search: '?video=test-01' }))
       .toBe('/app/?video=test-01#card-plan');

@@ -6,10 +6,19 @@
    Do not re-add review-surface rules here; change ReviewSurface.css so both
    tabs move together. */
 
+/* A pass-through, deliberately. This used to be a 1000px centred column, which
+   squeezed the shared review surface — same component, same stylesheet, but a
+   visibly smaller player than Final Cut, which mounts it bare (owner report
+   2026-08-07). Width and padding belong to .rs-container so both tabs move
+   together; anything added here must not reintroduce a cap. */
 .intro-tab {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 24px;
+  padding: 0;
+}
+
+/* The beat sheet rides under a now-full-width player, so give the prose its own
+   readable measure instead of letting it stretch the whole screen. */
+.intro-beat {
+  max-width: 1400px;
 }
 
 .intro-findings {

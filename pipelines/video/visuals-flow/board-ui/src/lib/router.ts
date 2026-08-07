@@ -10,8 +10,11 @@ export type Tab = 'run' | 'card-plan' | 'intro' | 'storyboard' | 'final-cut' | '
 interface TabRow { id: Tab; label: string; hash: string; button: boolean }
 const TAB_TABLE: TabRow[] = [
   { id: 'run', label: 'Run', hash: '', button: true },
-  { id: 'card-plan', label: 'Card Plan', hash: '#card-plan', button: true },
+  // Intro before Card Plan: the row reads in the order the film plays, and the
+  // intro is the first thing on screen (owner decision 2026-08-07). The button
+  // row and the fall-back ordering both come from this table's order.
   { id: 'intro', label: 'Intro', hash: '#intro', button: true },
+  { id: 'card-plan', label: 'Card Plan', hash: '#card-plan', button: true },
   { id: 'storyboard', label: 'Storyboard', hash: '#storyboard', button: true },
   { id: 'final-cut', label: 'Final Cut', hash: '#final-cut', button: true },
   { id: 'calibrate', label: 'Calibrate', hash: '#calibrate', button: false },

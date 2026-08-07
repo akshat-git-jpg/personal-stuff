@@ -545,6 +545,10 @@ try {
         child = spawn(CHROME, [
           '--headless=new', '--no-sandbox', '--disable-background-networking',
           `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
+          // A pinned window, because the player-size assertion below measures
+          // against it. The headless default (800px) is narrower than the
+          // wrappers this gate exists to catch, so the check would be blind.
+          '--window-size=1600,1000',
           '--virtual-time-budget=8000', '--dump-dom', urlIntro
         ]);
         let out = '';
@@ -579,6 +583,34 @@ try {
 
       if (!domIntro.includes('class="rs-video"')) {
         throw new Error('intro player: no <video> rendered for an intro-film video');
+      }
+
+      // The film takes the whole window it is given. Reviewing a cut in a
+      // postage stamp is reviewing nothing, and the regression is silent: the
+      // Intro tab sat in a 1000px wrapper for months while Final Cut mounted
+      // the same component full width (owner report 2026-08-07).
+      //
+      // The measurement is against the WINDOW, not against .rs-main. A wrapper
+      // that caps the tab shrinks the surface and its column together, so a
+      // player-vs-column check stays happily green while the film is half the
+      // size it should be — that is exactly how the first version of this gate
+      // passed with the 1000px cap put back. The chrome above therefore runs at
+      // a fixed 1600px width, wider than any wrapper anyone would write.
+      const { rsSurface, rsMain, rsPlayer, vw, vh } = introProbe;
+      if (!rsPlayer || rsPlayer.w <= 0) throw new Error('intro player: .rs-video-container not found in the layout probe');
+      if (rsSurface.w < vw - 4) {
+        throw new Error(
+          `intro player: the review surface is ${rsSurface.w}px wide in a ${vw}px window — a wrapper `
+          + 'around <ReviewSurface> is capping it, so this tab renders a smaller film than Final Cut');
+      }
+      // Within that surface, the player fills its column unless the
+      // viewport-height cap binds first — which still leaves a big frame.
+      const fillsColumn = rsPlayer.w >= rsMain.w - 1;
+      const heightBound = rsPlayer.h >= vh * 0.5;
+      if (!fillsColumn && !heightBound) {
+        throw new Error(
+          `intro player: ${rsPlayer.w}x${rsPlayer.h} inside a ${rsMain.w}px column (viewport ${vh}px tall) — `
+          + 'the player is neither filling its column nor viewport-height-bound, so something is capping its width');
       }
       const clock = domIntro.match(/<span class="rs-clock">.*?<span class="cur">([^<]*)<\/span>[^<]*<span>([^<]*)<\/span>/);
       if (!clock) throw new Error('intro player: transport clock not found');

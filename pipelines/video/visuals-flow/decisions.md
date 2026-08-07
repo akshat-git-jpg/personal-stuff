@@ -174,3 +174,24 @@
   while catching nothing (and had already bent `run.sh` into keeping a function
   so "the command reads literally ... to the grep that pins it").
   Mutation-verified: blanking one step's `produces` fails the gate with `E-REG`.
+
+- **2026-08-07**: The board's tab row reads in play order — **Run · Intro · Card
+  Plan · Storyboard · Final Cut** — and **no tab may cap the width of the review
+  surface it mounts**. Order comes only from `TAB_TABLE` in
+  `board-ui/src/lib/router.ts` (pinned by a router unit test); size comes only
+  from `.rs-container` / `.rs-video-container` in
+  `board-ui/src/components/ReviewSurface.css`. `.intro-tab`'s
+  `max-width: 1000px` was deleted; the player now spans the window and is
+  bounded by viewport height, with `.rs-video-container`'s `max-width` derived
+  from that height budget through the 16:9 frame so the box is always exactly
+  the film's aspect (let it go wider and `object-fit` pillarboxes the film, which
+  offsets the click-to-pin marker — the marker is placed as a % of that box).
+  **Why**: Intro and Final Cut mount the SAME `<ReviewSurface>` and share one
+  stylesheet, yet the owner saw a visibly smaller film on Intro — the wrapper,
+  not the component, was the difference. Same class of drift as the 2026-08-06
+  private `.intro-*` copies of the review-surface rules, one level up.
+  Gated in `scripts/board-ui-smoke.mjs`: the intro-film fixture renders at a
+  pinned 1600px window and the surface must span it. Measuring the player
+  against `.rs-main` is NOT enough — a wrapper shrinks the surface and its
+  column together, and the first version of this gate passed green with the
+  1000px cap put back. Mutation-verified against that exact regression.

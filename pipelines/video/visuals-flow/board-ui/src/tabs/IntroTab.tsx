@@ -83,7 +83,9 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
     return () => { onActions(null); };
   }, [data, onActions, onMeta, onSecondary, videoMissing]);
 
-  if (!data) return <div className="intro-tab">loading...</div>;
+  // The wrapper carries no padding any more (it must not squeeze the player),
+  // so text states bring their own rather than hugging the window edge.
+  if (!data) return <div className="intro-tab" style={{ padding: 24 }}>loading...</div>;
 
   if (!data.present) {
     return (

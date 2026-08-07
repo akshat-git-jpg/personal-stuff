@@ -80,7 +80,9 @@ export function App() {
     setTimeout(() => {
       const r = (sel: string) => {
         const el = document.querySelector(sel);
-        return el ? { y: Math.round(el.getBoundingClientRect().y), h: Math.round(el.getBoundingClientRect().height) } : { y: -1, h: -1 };
+        if (!el) return { y: -1, h: -1, w: -1 };
+        const b = el.getBoundingClientRect();
+        return { y: Math.round(b.y), h: Math.round(b.height), w: Math.round(b.width) };
       };
       const m = document.createElement('meta');
       m.name = 'layout-probe';
@@ -90,6 +92,15 @@ export function App() {
         tabs: r('.app-tabs'),
         slot: r('.action-slot'),
         row2: r('.app-header-row2'),
+        // The review player and the column it sits in. The smoke asserts the
+        // player actually fills that column — the Intro tab used to wrap the
+        // shared surface in a narrow box, so the same component rendered a
+        // visibly smaller film there than on Final Cut (owner report 2026-08-07).
+        rsSurface: r('.rs-container'),
+        rsMain: r('.rs-main'),
+        rsPlayer: r('.rs-video-container'),
+        vw: window.innerWidth,
+        vh: window.innerHeight,
         headerCount: document.querySelectorAll('.app-header').length,
         // The rendered tab ids, so the smoke can assert tab visibility
         // without scraping button text (plan 193).
