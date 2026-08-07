@@ -8,14 +8,7 @@ needs: []
 needs_prs: [154, 155, 156]
 touches: [pipelines/video/visuals-flow/lib/intro-film/film-assets.mjs, pipelines/video/visuals-flow/lib/intro-film/film-assets.test.mjs, pipelines/video/visuals-flow/lib/intro-film/render-film.mjs, pipelines/video/visuals-flow/lib/avatar-plan.mjs, pipelines/video/visuals-flow/lib/avatar-plan.test.mjs, pipelines/video/visuals-flow/lib/avatar-render.mjs, pipelines/video/visuals-flow/lib/run-config.mjs, pipelines/video/visuals-flow/lib/board.mjs, pipelines/video/visuals-flow/board-ui/src/lib/router.ts, pipelines/video/visuals-flow/board-ui/src/tabs/AvatarTab.tsx, pipelines/video/visuals-flow/run.sh, pipelines/video/visuals-flow/steps]
 
-mutation_apply: python3 - <<'PY'
-p='pipelines/video/visuals-flow/lib/avatar-render.mjs'
-s=open(p).read()
-marker='requireAvatarPlanApproved'
-assert marker in s, 'marker missing — plan 197 Step 6 did not land'
-s = s.replace('requireAvatarPlanApproved(workdir);', '// requireAvatarPlanApproved(workdir);')
-open(p,'w').write(s)
-PY
+mutation_apply: python3 -c "import base64;exec(base64.b64decode('cD0ncGlwZWxpbmVzL3ZpZGVvL3Zpc3VhbHMtZmxvdy9saWIvYXZhdGFyLXJlbmRlci5tanMnCnM9b3BlbihwKS5yZWFkKCkKbWFya2VyPSdyZXF1aXJlQXZhdGFyUGxhbkFwcHJvdmVkJwphc3NlcnQgbWFya2VyIGluIHMsICdtYXJrZXIgbWlzc2luZyDigJQgcGxhbiAxOTcgU3RlcCA2IGRpZCBub3QgbGFuZCcKcyA9IHMucmVwbGFjZSgncmVxdWlyZUF2YXRhclBsYW5BcHByb3ZlZCh3b3JrZGlyKTsnLCAnLy8gcmVxdWlyZUF2YXRhclBsYW5BcHByb3ZlZCh3b3JrZGlyKTsnKQpvcGVuKHAsJ3cnKS53cml0ZShzKQ=='))"
 mutation_command: cd pipelines/video/visuals-flow && node --test lib/avatar-plan.test.mjs
 mutation_expect: UNAPPROVED-AVATAR-SPEND
 mutation_cwd:
