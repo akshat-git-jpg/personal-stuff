@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 const CHROME = process.env.CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const HASHES = ['', '#intro', '#storyboard', '#final-cut', '#calibrate'];
+const HASHES = ['', '#intro', '#storyboard', '#avatar', '#final-cut', '#calibrate'];
 
 // 30+ iframed tiles, measured ~20s+ on storyboard, plans 173/174 will add more.
 // Need 60s floor so it does not flake on a loaded machine.
@@ -122,6 +122,10 @@ try {
     if (!(probe.tabIds || []).includes('intro')) {
       throw new Error(`intro tab button not rendered on ${hash || 'run'}`);
     }
+    // The Avatar tab's step (102) ALWAYS applies too (plan 197).
+    if (!(probe.tabIds || []).includes('avatar')) {
+      throw new Error(`avatar tab button not rendered on ${hash || 'run'}`);
+    }
 
 
 
@@ -167,6 +171,21 @@ try {
       const idxPanel = dom.indexOf('class="rs-panel"');
       const panelMatch = idxPanel > -1 ? dom.slice(idxPanel, idxPanel + 1000) : '';
       if (panelMatch.includes('Approve final cut')) throw new Error('Approve final cut found inside comments panel on #final-cut');
+    }
+    if (hash === '#avatar') {
+      // The 'smoke' fixture has no shots.resolved.json — the required
+      // degraded state (plan 197 step 102): a banner explaining why, and
+      // every button disabled with a title, not just hidden.
+      if (!dom.includes('the storyboard has not been resolved yet')) {
+        throw new Error('#avatar with no shots.resolved.json must render the degraded-state banner');
+      }
+      if (!dom.match(/disabled[^>]*>Approve avatar spend/)) {
+        throw new Error('Approve avatar spend should be disabled when shots.resolved.json is missing');
+      }
+      const modelBtnMatch = dom.match(/<button[^>]*class="avatar-model-btn"[^>]*>/);
+      if (!modelBtnMatch || !modelBtnMatch[0].includes('disabled')) {
+        throw new Error('avatar model buttons should be disabled when shots.resolved.json is missing');
+      }
     }
     if (hash === '#calibrate') {
       if (!dom.includes('class="timeline-block tile reviewable"')) throw new Error('no calibrate tile found on #calibrate');
