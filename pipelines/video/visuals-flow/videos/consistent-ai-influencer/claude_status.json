@@ -1,0 +1,73 @@
+{
+  "updated": "2026-08-07T18:48:34.184Z",
+  "items": {
+    "c04": {
+      "status": "fixed",
+      "message": "Real issue, not a storyboard artifact. Typing was paced off the clip length; it now follows the spoken span (5.4s) and holds the finished prompt. Verified on the rendered frame."
+    },
+    "c16": {
+      "status": "fixed",
+      "message": "Same fix as c04 — typing now spans 6.9s, matching the voice."
+    },
+    "c24": {
+      "status": "fixed",
+      "message": "Same fix as c04 — typing now spans 5.2s, matching the voice."
+    },
+    "c09": {
+      "status": "fixed",
+      "message": "Step 1 was accented by a static CSS rule. The accent now moves with your voice, step to step."
+    },
+    "c10": {
+      "status": "fixed",
+      "message": "Cue deleted. The statement test is now enforced in lint (E11 no-deictic-slate), so a sentence card pointing at the screen is a hard error."
+    },
+    "c20": {
+      "status": "fixed",
+      "message": "Real photorealistic portrait, identical in every frame, replacing the vector stand-in. DESIGN.md now states the preference."
+    },
+    "c28": {
+      "status": "fixed",
+      "message": "Chips now wait for the claim to finish instead of arriving 3.6s early. Also fixed: all three were rendering as red crosses instead of green checks."
+    },
+    "final-:0": {
+      "status": "skipped",
+      "message": "Feedback-box test. No final cut exists yet — this video is at step 310."
+    },
+    "intro:0": {
+      "status": "skipped",
+      "message": "Feedback-box test. The intro film review step has not run yet."
+    },
+    "c01": {
+      "status": "fixed",
+      "message": "The card now shrinks the title to fit and the box is wider. Two lines inside the plate instead of four words overflowing it."
+    },
+    "c12": {
+      "status": "fixed",
+      "message": "Same fix as c01 — two lines, inside the plate."
+    },
+    "c29": {
+      "status": "fixed",
+      "message": "Same fix as c01."
+    },
+    "c44": {
+      "status": "fixed",
+      "message": "Numbered 08. W22 now warns when any section card is numbered and another is not, which is why this slipped through."
+    },
+    "c15": {
+      "status": "fixed",
+      "message": "Deleted. Your section cards already number the same seven steps. New lint E16 rejects any card that states its own denominator without the full series."
+    },
+    "c04#2": {
+      "status": "fixed",
+      "message": "The card now leaves when the dictation ends. 12s down to 7.6s, verified on the rendered clip."
+    },
+    "c20#2": {
+      "status": "fixed",
+      "message": "You were right, and the card contradicted your concept doc. Each frame now carries its own scenario image, pulled from your own demo footage. Same face, three real settings."
+    },
+    "z02": {
+      "status": "fixed",
+      "message": "Deleted. My earlier rule was too narrow and whitelisted this exact line. It now bars here/there in any sentence card, kinetic-sentence and keyword-statement alike."
+    }
+  }
+}

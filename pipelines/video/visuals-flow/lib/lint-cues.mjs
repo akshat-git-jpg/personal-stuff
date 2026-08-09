@@ -211,12 +211,16 @@ export function lintCues({ workdir, cuesFile, resolved, words, catalog, segments
   // Prefer unnumbered section cards over dropping section cards.
   {
     const numbered = [];
+    const unnumbered = [];
     for (const r of sortedResolved) {
       const cue = byId[r.id];
       const num = cue?.variables?.number;
-      if (r.card.startsWith('section/') && typeof num === 'string' && num.trim()) {
+      if (!r.card.startsWith('section/')) continue;
+      if (typeof num === 'string' && num.trim()) {
         const n = parseInt(num, 10);
         if (Number.isFinite(n)) numbered.push(n);
+      } else {
+        unnumbered.push(r.id);
       }
     }
     if (numbered.length) {
@@ -224,6 +228,15 @@ export function lintCues({ workdir, cuesFile, resolved, words, catalog, segments
       const consecutive = ns[0] === 1 && ns.every((v, i) => v === i + 1);
       if (!consecutive) {
         warnings.push(`W22 section-numbering: numbered section cards claim a series but the numbers present are [${ns.join(', ')}] — either number every major section 1..N or drop the number variable (unnumbered section cards are encouraged; never drop section cards over this)`);
+      }
+      // The other half of the same rule, which the code did not implement
+      // until 2026-08-07. A consecutive 01..07 run followed by an unnumbered
+      // eighth card passed silently, and the owner read the bare card as a bug
+      // on screen (c44: "the earlier section had number right, the last
+      // section was section 7, but this card doesn't have any number, why").
+      // The rule text always said number EVERY major section or none.
+      if (unnumbered.length) {
+        warnings.push(`W22 section-numbering: ${numbered.length} section card(s) are numbered 01..${String(numbered.length).padStart(2, '0')} but ${unnumbered.join(', ')} carr${unnumbered.length === 1 ? 'ies' : 'y'} no number — a numbered run with a bare card at the end reads as a missing number, not as a deliberate exception. Number every section card or none of them`);
       }
     }
   }
@@ -547,6 +560,30 @@ export function lintCues({ workdir, cuesFile, resolved, words, catalog, segments
       if (typeof text === 'string' && FILLER_RE.test(text.trim())) {
         errors.push(`E11 no-filler-slate: ${c.id} (${c.card}) shows "${text}" — that is a navigational phrase, not a point. A full-frame sentence card must state a claim, consequence, or substance; route the transition to a section card or drop the cue`);
       }
+      // E11b: the STATEMENT TEST, enforced rather than merely written down.
+      // cue-rules has said since 2026-07-31 that a description of an on-screen
+      // action is never a sentence-card job, but the only machine check was
+      // the navigational-phrase regex above, so the rule reached the authoring
+      // model as advice and nothing verified it. c10 on
+      // consistent-ai-influencer shipped "it is automatically in here already"
+      // and the owner caught it on the board (2026-08-07: "we have a rule on
+      // when to use kinetic sentence, this doesn't look like the correct
+      // place"). A phrase pointing AT the screen cannot survive a card that
+      // replaces the screen: "here" has no referent once the footage is gone.
+      // WIDENED 2026-08-07, round 2. The first version only barred multi-word
+      // pointers and explicitly whitelisted "It's all here, and it works" as a
+      // standalone claim. The owner rejected that line the very next round
+      // (z02: "similar thing applies at keyword statement as well... a very bad
+      // use case of this template, doesn't fit"), so the whitelist was wrong:
+      // "here" is a screen pointer wherever it sits in the sentence, and a
+      // full-frame card is exactly where it has nothing left to point at.
+      // Checked against every sentence-card text in all four videos — none of
+      // the legitimate ones contain "here" or "there" at all.
+      const DEICTIC_RE = /\b(?:here|there)\b|\b(?:this|that)\s+one\b/i;
+      if (typeof text === 'string' && DEICTIC_RE.test(text.trim())) {
+        const hit = text.trim().match(DEICTIC_RE)[0];
+        errors.push(`E11 no-deictic-slate: ${c.id} (${c.card}) shows "${text}" — "${hit}" points at the screen, and this card REPLACES the screen, so the words lose their referent the moment it appears. That is the statement test in cue-rules: a description of what is on screen belongs to the footage. Drop the cue, or put the point on an overlay that leaves the footage visible`);
+      }
     }
   }
 
@@ -726,6 +763,35 @@ export function lintCues({ workdir, cuesFile, resolved, words, catalog, segments
     
     if (motifCount < CUE_CONSTANTS.MOTIF_MIN.value) {
       warnings.push(`W8 motif: concept.json exists but fewer than 2 cues carry motif: true (the through-line never recurs) (min ${CUE_CONSTANTS.MOTIF_MIN.value})`);
+    }
+  }
+
+  // E16 series-incomplete. A card that carries its own denominator states the
+  // size of a series out loud, so the series must exist. E14 cannot catch this:
+  // it needs a concept roster (this video's throughline has no `items`, so E14
+  // never ran at all) and it needs two or more uses of the card before it will
+  // look — which makes a series of ONE, the most obviously broken case,
+  // structurally invisible to it. Owner c15 on consistent-ai-influencer,
+  // 2026-08-07: a single "Step 3 of 7" overlay with no step 1 or 2, against
+  // symmetry feedback he had already given several times.
+  {
+    const byTotal = {};
+    for (const c of rawCues) {
+      const step = Number(c.variables?.step);
+      const total = Number(c.variables?.total);
+      if (!Number.isFinite(step) || !Number.isFinite(total) || total < 2) continue;
+      const key = `${c.card}|${c.zone || 'body'}|${total}`;
+      (byTotal[key] ??= []).push({ id: c.id, step });
+    }
+    for (const [key, members] of Object.entries(byTotal)) {
+      const [cardName, , totalStr] = key.split('|');
+      const total = Number(totalStr);
+      const present = [...new Set(members.map((m) => m.step))].sort((a, b) => a - b);
+      const missing = [];
+      for (let i = 1; i <= total; i++) if (!present.includes(i)) missing.push(i);
+      if (missing.length) {
+        errors.push(`E16 series-incomplete: ${cardName} declares "of ${total}" but only step${present.length === 1 ? '' : 's'} ${present.join(', ')} exist${present.length === 1 ? 's' : ''} (${members.map((m) => m.id).join(', ')}) — missing ${missing.join(', ')}. A card that states its own denominator promises the whole series: author all ${total}, or drop the cue and let the section cards carry the count`);
+      }
     }
   }
 

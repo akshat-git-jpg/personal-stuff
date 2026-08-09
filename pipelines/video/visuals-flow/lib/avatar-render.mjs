@@ -128,7 +128,7 @@ async function main() {
     // monthly second-pool; --force exists for the storyboard gates and must
     // NEVER become a bypass for metered spend, so this ignores opts.force on
     // purpose (plan 197 STOP condition 5).
-    requireAvatarPlanApproved(workdir);
+    const approvedPlan = requireAvatarPlanApproved(workdir);
 
     const shotsFile = JSON.parse(fs.readFileSync(shotsPath, 'utf8'));
     const shotsResolved = JSON.parse(fs.readFileSync(shotsResolvedPath, 'utf8'));
@@ -173,9 +173,16 @@ async function main() {
     }
     const engineMode = shotsFile.engineMode;
 
+    // The APPROVED character is the template. The owner picks a character on
+    // the board at the 420 spend gate, and until 2026-08-08 that pick was
+    // decorative: the submit path read only --template, which run.sh defaulted
+    // to "specs-man". On consistent-ai-influencer the owner approved girl-1 and
+    // the batch would have rendered a different presenter than the intro film,
+    // on the METERED engine, with every gate green. A gate whose answer is
+    // ignored is not a gate.
     if (!opts.template) {
-      console.error('missing --template');
-      process.exit(1);
+      opts.template = approvedPlan.character;
+      console.error(`template from the approved avatar plan: ${opts.template}`);
     }
 
     const SAFE = /^[A-Za-z0-9._-]+$/;
@@ -185,6 +192,18 @@ async function main() {
     }
     if (!SAFE.test(opts.template)) {
       console.error(`invalid template: ${opts.template}`);
+      process.exit(1);
+    }
+
+    // Shape first, THEN authority: a malformed template is reported as
+    // malformed, and only a well-formed one is checked against the approval.
+    if (opts.template !== approvedPlan.character) {
+      console.error(
+        `UNAPPROVED-AVATAR-SPEND: --template "${opts.template}" does not match the approved ` +
+        `character "${approvedPlan.character}" in avatar-plan.json. The board pick is what the ` +
+        'owner authorised; either drop --template so the approved character is used, or re-approve ' +
+        'the plan with the character you actually want.',
+      );
       process.exit(1);
     }
 

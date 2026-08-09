@@ -48,7 +48,7 @@ New folder? Route via the placement rule (apps/ = personal products incl. all de
 
 ## After a deploy-shaped change
 
-New Worker, domain, or hub card ⇒ the triple-update rule (all three inventory surfaces, same change) — home: **personal-stuff-hosting-inventory**. Human-facing prose goes through the humanizer skill (see **personal-stuff-docs-and-writing**).
+New Worker, domain, or hub card ⇒ the triple-update rule (all three inventory surfaces, same change) — home: **personal-stuff-hosting-inventory**. Prose a third party will read goes through the humanizer skill; prose the owner reads back in-session goes through i-have-adhd (see **personal-stuff-docs-and-writing**).
 
 ## Red flags — stop and re-read this skill
 

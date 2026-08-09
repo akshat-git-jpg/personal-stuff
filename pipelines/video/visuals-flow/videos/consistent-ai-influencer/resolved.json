@@ -47,10 +47,11 @@
       "card": "prompt/prompt-typing",
       "placement": "fullframe",
       "start": 166.2,
-      "duration": 12,
+      "duration": 7.6,
       "variables": {
         "title": "Character Prompt",
         "prompt": "A high quality, hyper realistic, candid portrait of a 22 year old Filipina AI influencer.",
+        "typeSeconds": 5.38,
         "register": "light"
       }
     },
@@ -125,7 +126,7 @@
       "card": "process/step-flow",
       "placement": "fullframe",
       "start": 334.96,
-      "duration": 10.68,
+      "duration": 7.92,
       "variables": {
         "title": "Training A Custom Model",
         "beats": [
@@ -140,50 +141,6 @@
           {
             "label": "Add 5 to 10 variations",
             "at": 3.92
-          }
-        ],
-        "register": "light"
-      }
-    },
-    {
-      "id": "c10",
-      "card": "slate/kinetic-sentence",
-      "placement": "fullframe",
-      "start": 345.64,
-      "duration": 4.82,
-      "variables": {
-        "text": "it is automatically in here already",
-        "accent": "automatically",
-        "beats": [
-          {
-            "text": "it",
-            "accent": false,
-            "at": 0.2
-          },
-          {
-            "text": "is",
-            "accent": false,
-            "at": 0.54
-          },
-          {
-            "text": "automatically",
-            "accent": true,
-            "at": 0.76
-          },
-          {
-            "text": "in",
-            "accent": false,
-            "at": 1.24
-          },
-          {
-            "text": "here",
-            "accent": false,
-            "at": 2.14
-          },
-          {
-            "text": "already",
-            "accent": false,
-            "at": 2.32
           }
         ],
         "register": "light"
@@ -266,19 +223,6 @@
       }
     },
     {
-      "id": "c15",
-      "card": "overlay/step-card",
-      "placement": "overlay",
-      "start": 417.82,
-      "duration": 5,
-      "variables": {
-        "step": 3,
-        "total": 7,
-        "label": "Generate content",
-        "register": "light"
-      }
-    },
-    {
       "id": "c15b",
       "card": "overlay/lower-third",
       "placement": "overlay",
@@ -295,10 +239,11 @@
       "card": "prompt/prompt-typing",
       "placement": "fullframe",
       "start": 466.44,
-      "duration": 12,
+      "duration": 9.32,
       "variables": {
         "title": "Image Prompt",
         "prompt": "Lucy in a minimalist white kitchen, holding a coffee cup, warm morning light, and a lifestyle photography style.",
+        "typeSeconds": 6.9,
         "register": "light"
       }
     },
@@ -361,13 +306,16 @@
       "duration": 13.3,
       "variables": {
         "title": "One Face, Every Scenario",
+        "anchorImage": "card-images/c20-anchor.jpg",
         "beats": [
           {
             "label": "Same face applied",
+            "image": "card-images/c20-scenario-kitchen.jpg",
             "at": 0.6
           },
           {
             "label": "Very different scenario",
+            "image": "card-images/c20-scenario-video.jpg",
             "at": 7.22
           }
         ],
@@ -434,10 +382,11 @@
       "card": "prompt/prompt-typing",
       "placement": "fullframe",
       "start": 673.93,
-      "duration": 12,
+      "duration": 7.8,
       "variables": {
         "title": "Video Prompt",
         "prompt": "Lucy taking a sip from a coffee cup, showing a smile and visible satisfaction from the taste.",
+        "typeSeconds": 5.16,
         "register": "light"
       }
     },
@@ -487,24 +436,24 @@
       "id": "c28",
       "card": "overlay/verdict-chips",
       "placement": "overlay",
-      "start": 760.83,
-      "duration": 20.4,
+      "start": 764.33,
+      "duration": 20.8,
       "variables": {
         "beats": [
           {
             "text": "Facial features hold",
-            "verdict": "pro",
+            "verdict": "yes",
             "at": 0.6
           },
           {
             "text": "Commercial worthy",
-            "verdict": "pro",
-            "at": 10.04
+            "verdict": "yes",
+            "at": 9.6
           },
           {
             "text": "Looks believable",
-            "verdict": "pro",
-            "at": 16.4
+            "verdict": "yes",
+            "at": 16.8
           }
         ],
         "register": "light"
@@ -812,6 +761,7 @@
       "duration": 5,
       "variables": {
         "title": "The Scores",
+        "number": "08",
         "register": "light"
       },
       "structural": true
@@ -927,19 +877,6 @@
             "at": 5.8
           }
         ],
-        "register": "light",
-        "variant": "a"
-      }
-    },
-    {
-      "id": "z02",
-      "card": "statement/keyword-statement",
-      "placement": "fullframe",
-      "start": 1189.03,
-      "duration": 5,
-      "variables": {
-        "text": "It's all here, and it works.",
-        "keyword": "it works",
         "register": "light",
         "variant": "a"
       }

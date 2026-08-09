@@ -25,6 +25,59 @@ h264_videotoolbox (Apple hardware) when available, libx264 otherwise;
 `--encoder` overrides. `--draft` renders a 1280x720 preview to
 `final-draft.mp4` (never clobbers `final.mp4`).
 
+## Timeline integrity (why the cut cannot drift out of sync)
+
+The cut is built as ~100 independently encoded pieces that are concatenated,
+then muxed against the voiceover. If the pieces do not add up to exactly the
+length of the audio, the picture slides against the voice, a little more with
+every piece, and the end of the video is the worst affected.
+
+That happened on consistent-ai-influencer (2026-08-07). Pieces were encoded
+with `-t <float seconds>`; ffmpeg turns that into `floor(dur * fps)` frames, so
+each piece quietly dropped its sub-frame remainder. Across 104 pieces the
+remainders came to 1.562s of missing video against a 1230.229s master, and the
+avatar read about 1.5s out of lip-sync by the last clip. The 25fps HeyGen
+clips were the obvious suspect and were nearly innocent: they accounted for
+0.24s. The rest came from ordinary graphic and screen segments.
+
+Three things now have to fail together for that to recur.
+
+1. **The remainder is carried, not dropped.** `framesUntil()` in `lib/assemble.mjs`
+   gives a piece the difference between the frame its end lands on and the frame
+   the previous piece ended on, anchored to the segment plan's absolute times.
+   Rounding is re-absorbed at every boundary, so it can never accumulate. Pieces
+   encode with `-frames:v N` rather than `-t`, so the frame count is stated
+   outright instead of inferred from a float.
+2. **A pre-encode invariant, exact.** Before anything is encoded, the pieces'
+   total frames must equal `round(total * fps)` exactly. It costs nothing and
+   fails in about two seconds instead of after a full encode. This is what
+   catches a segment plan that does not fill the timeline, or a new effect
+   module that appends a piece without walking the frame clock.
+3. **An A/V length gate after the mux.** The video stream is compared against
+   the audio stream, tolerance three frames (enough for the AAC encoder's tail
+   padding, far under the ~50ms where a viewer notices). The previous check read
+   `format=duration`, which is the container's length and therefore the longest
+   stream in it, so a short video stream under full-length audio passed it every
+   time. That is the specific reason the bug shipped unseen.
+
+One thing guard 2 deliberately does not catch: a single piece coming out a frame
+short. `framesUntil` re-anchors on the next boundary, so the following piece
+takes that frame back. That is the carry working, and a local wobble of one
+frame is both sub-perceptual and incapable of accumulating.
+
+**If you are adding a segment kind, effect module or transition:** append to
+`concatLines` and walk `framePos` in the same breath. Guard 2 will stop you if
+you forget, before you spend two minutes encoding.
+
+**Testing this needs off-grid fixtures.** `floor(dur * fps)` is exact when the
+boundary already sits on the frame grid, so a fixture built at whole seconds
+cannot tell a carried remainder from a dropped one. Every integration fixture
+here used round numbers, which is why the suite stayed green through the whole
+life of the defect. The fixture named "OFF-GRID spans" in `lib/assemble.test.mjs`
+exists for this: its spans are 1.07 to 4.43, 6.91 to 9.29 and 11.53 to 15.17 in
+an 18.37s timeline, and it asserts an exact packet count. Reintroducing the old
+truncation fails it. Keep new timing fixtures un-round.
+
 ## Transitions
 
 Whip-pan transitions (fast slide + motion blur) happen at screen↔avatar and avatar↔screen boundaries by default. Pass `--transitions none` for hard cuts everywhere.

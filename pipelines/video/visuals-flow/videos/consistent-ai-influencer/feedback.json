@@ -6,12 +6,18 @@
       "text": "test",
       "t": 0,
       "context": "final@00:00",
-      "image": "feedback-images/final--0.png"
+      "image": "feedback-images/final--0.png",
+      "applied": true,
+      "folded": false,
+      "resolution": "Feedback-box test (text \"test\", stock frame attached). No final cut exists yet: this video is at step 310 and 320-620 are still todo. No action."
     },
     "intro:0": {
       "text": "test",
       "t": 8.90446,
-      "context": "intro@00:08"
+      "context": "intro@00:08",
+      "applied": true,
+      "folded": false,
+      "resolution": "Feedback-box test (text \"test\"). The intro film review step (140/150) has not run. No action."
     },
     "c04": {
       "text": "Audio is not syncing with the text being type. Text being typed is slow. Is it because we are in the storyboard and in the final cut it will be fixed? Or what is this a real issue?",
@@ -20,7 +26,10 @@
         "card": "prompt/prompt-typing",
         "anchor": "I am looking for a high quality",
         "start": 166.2
-      }
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "REAL, not a preview artifact. prompt-typing paced its typing off the clip length (catalog default_duration 12), so 5.5s of speech was typed over 10.95s. Card now takes typeSeconds; resolve measures the spoken span from the transcript (lib/spoken-span.mjs) and holds the finished text for the rest of the clip. Verified on the rendered frame at t=6.0s."
     },
     "c09": {
       "text": "Why only the open, the train section is highlighted with orange and the other two are not highlighted, is above why",
@@ -29,7 +38,10 @@
         "card": "process/step-flow",
         "anchor": "you can train a custom model directly inside the platform",
         "start": 334.96
-      }
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "process/step-flow painted step 1 accent with a static .node-wrapper:first-child CSS rule, unrelated to beats. The accent now cross-fades onto whichever step the voice is on and hands off to the next. Verified across three rendered frames."
     },
     "c10": {
       "text": "This is definitely a wrong way to show the kinetic this kinetic sentence motion graphic I think we have a rule on when to use kinetic sentence this doesn't look like the correct place can you please check why this happened",
@@ -38,7 +50,10 @@
         "card": "slate/kinetic-sentence",
         "anchor": "it is automatically in here already",
         "start": 345.64
-      }
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Cue deleted (owner: no overlay). Root cause was that the STATEMENT TEST lived only in cue-rules prose while the only machine check, E11, was a navigational-phrase regex. Added E11 no-deictic-slate: a sentence card containing a screen pointer (in here / right here / over there / this one) is now a hard lint error. Mutation-tested."
     },
     "c16": {
       "text": "Same feedback, this is not syncing up with the voice. The text is the text being typed on the screen is slow. Why is this happening? Is this going to happen only in this motion graphics storyboard or is this going to happen in file and cut as well? I need a concrete thing.",
@@ -47,7 +62,10 @@
         "card": "prompt/prompt-typing",
         "anchor": "I want to see Lucy in a minimalist white kitchen",
         "start": 466.44
-      }
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Same root cause as c04. typeSeconds=6.9 (was typing over 10.95s)."
     },
     "c20": {
       "text": "No, can we use the actual phase generate one when poly pollination to the eye instead of making this placeholders also can you make this generic so that whenever I am saying generate something generate an image you can use pollination.ai",
@@ -56,7 +74,10 @@
         "card": "enacted/character-card-stamp",
         "anchor": "no matter how different the scenario is in here",
         "start": 567.32
-      }
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Card was falling back to its flat vector stand-in because nothing supplied anchorImage. Real photorealistic portrait generated from the presenter own dictated prompt (pollinations, seed pinned so re-renders keep the identical face) and inlined by the new lib/images-inline.mjs on BOTH the board and the renderer. DESIGN.md now carries the owner rule: real photos beat vector stand-ins. Generic pollinations layer deferred by owner."
     },
     "c24": {
       "text": "Same feedback.",
@@ -65,7 +86,10 @@
         "card": "prompt/prompt-typing",
         "anchor": "I have my prompt here",
         "start": 673.93
-      }
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Same root cause as c04. typeSeconds=5.16 (was typing over 10.95s)."
     },
     "c28": {
       "text": "Text on screen is coming only before the actual text is said in the audio. Why is this happening?",
@@ -74,7 +98,106 @@
         "card": "overlay/verdict-chips",
         "anchor": "Lucy is taking a sip from coffee cup in her hand",
         "start": 760.83
-      }
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Beats resolved to the FIRST word of their anchor, so the chip stated the verdict 3.6s before he finished making the claim (the phrase has a 1.9s pause in it). Added catalog beat_align:end, opted in for verdict-chips; every other card keeps landing on the first word. Separately, the pixel check caught that all three chips rendered as RED CROSSES: the card branches on verdict===yes but these cues said pro, and the catalog had no enum. Fixed the cues, added the enum, made the card accept both."
+    },
+    "c20#2": {
+      "text": "Doesn't look correct. So basically when you are saying scene different scenario you are just adding a effect on the same image right? It's not the person in a different scenario",
+      "added": "2026-08-07",
+      "context": {
+        "card": "enacted/character-card-stamp",
+        "anchor": "no matter how different the scenario is in here",
+        "start": 567.32
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "You were right and the card contradicted your own concept.json, which says it should carry \"kitchen, travel and product frames that all carry an identical face\". The build at step 240 narrowed that to one image plus a colour tint and wrote the narrowing into its header as a contract. The card now takes a per-beat image: the face is the constant, the scenario is the variable, and the tint drops to a whisper when a beat brings its own picture. Wired to three crops from your own demo footage (studio anchor, kitchen with the coffee cup, the generated video close-up) so the face is identical because OpenArt made it so. The pollinations portrait from round 1 is dropped; it was an invented person, not your character."
+    },
+    "z02": {
+      "text": "I already gave a feedback on kinetic keyword feedback, right? Motion graphic. Similar thing applies at keyword statement as well, right? This is a very bad use case of this key motion graphic template. Doesn't fit.",
+      "added": "2026-08-07",
+      "context": {
+        "card": "statement/keyword-statement",
+        "anchor": "It's all here, and it works",
+        "start": 1189.03
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Cue deleted. My round-1 rule was too narrow and I had explicitly whitelisted this line with a test asserting it stay legal, which was wrong. E11 now bars \"here\" and \"there\" anywhere in a sentence card, and the rule text says it applies identically to kinetic-sentence and keyword-statement. The old test is inverted and kept as the case worth remembering. Checked against every sentence-card text in all four videos: none of the legitimate ones contain either word."
+    },
+    "c01": {
+      "text": "This looks very bad, extremely bad. The text are so too big. Every word is in a new line. Doesn't look good at all. Let's paint some better fix for long term.",
+      "added": "2026-08-07",
+      "context": {
+        "card": "section/section-card-flip",
+        "anchor": "The first thing that you need to do",
+        "start": 90.9
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Confirmed on the frame: four words on four lines with \"Character\" past the plate edge. --hero-size was a fixed 160px against a 700px title box, about 8 characters per line, and the card own demo title (\"The Winners\") is short enough that the gallery never showed it. The card now measures and shrinks the hero from 160px to the 120px type-scale floor until the title takes at most two lines with no word overflowing, and the box widened 700 to 1180 (the plate shrink-wraps and #frame leaves 1640px, so it was narrow for no reason). catalog gained max_chars 26 on the title."
+    },
+    "c04#2": {
+      "text": "When she says influencer, you can stop there",
+      "added": "2026-08-07",
+      "context": {
+        "card": "prompt/prompt-typing",
+        "anchor": "I am looking for a high quality",
+        "start": 166.2
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Round 1 synced the typing to your voice but left the exposure on default_duration, so the card held a finished prompt for 5.3s of a 12s clip. A spoken_var card now ends when the dictation ends plus a 1.0s read tail, and is exempt from the sentence-boundary extension that would otherwise put the hold straight back. c04 is 12s to 7.6s (rendered length verified), c16 to 9.32s, c24 to 7.8s."
+    },
+    "c12": {
+      "text": "Same feedback as earlier, the text is too big compared to this motion graphic template. Looks very bad.",
+      "added": "2026-08-07",
+      "context": {
+        "card": "section/section-card-flip",
+        "anchor": "we are now going to head over to Step 3",
+        "start": 370
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Same root cause and same fix as c01. \"Content Across Scenarios\" now sets two lines inside the plate."
+    },
+    "c15": {
+      "text": "This shows a step 3, but tell me, did we show step 1, step 2? How did we come to step 3? Why is this motion graphic suddenly here? I think we have already discussed about symmetry, which we have to maintain throughout the video was I have given that feedback multiple times. Can you please check why this happened?",
+      "added": "2026-08-07",
+      "context": {
+        "card": "overlay/step-card",
+        "anchor": "we're going to start with creating a character image",
+        "start": 417.82
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Cue deleted. Your section cards already number the same seven steps as full-frame openers, so a \"Step 3 of 7\" overlay was duplicate signage as well as a series of one. Root cause: E14 needs concept.throughline.items, which this concept does not have (it is name/description/evolution), so the roster lint never ran at all for this video; and even with a roster E14 requires 2+ uses before it looks, which makes a one-member series structurally invisible. New lint E16 series-incomplete: a card carrying its own denominator (step/total) must have all N members. Mutation-tested."
+    },
+    "c29": {
+      "text": "Same feedback for all section card flip, same feedback",
+      "added": "2026-08-07",
+      "context": {
+        "card": "section/section-card-flip",
+        "anchor": "we can now start building our content bank",
+        "start": 808.99
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Same root cause and same fix as c01."
+    },
+    "c44": {
+      "text": "Can you tell me why this happened? The earlier section had number right the last section was section 7 but this card doesn't have any number why that happened",
+      "added": "2026-08-07",
+      "context": {
+        "card": "section/section-card-flip",
+        "anchor": "And now to summarize everything",
+        "start": 1081.35
+      },
+      "applied": true,
+      "folded": true,
+      "resolution": "Numbered 08. Root cause: W22 only checked that the numbers PRESENT run 1..N, so a clean 01..07 run plus one bare card passed silently, even though the rule text always said number every major section or none. W22 now warns when any section card is numbered and another is not; mutation-tested."
     }
   }
 }

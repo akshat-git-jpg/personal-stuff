@@ -123,6 +123,36 @@ for (const card of catalog.cards) {
   } else if (card.side !== undefined) {
     err(`FAIL: ${card.slug}.side only applies to fullframe cards`);
   }
+
+  // beat_align (2026-08-07): where in its anchor phrase a reveal lands. Default
+  // "start" suits a beat that MIRRORS the words as they are spoken; "end" suits
+  // one that draws a CONCLUSION about them, which otherwise states the point
+  // before the presenter finishes making it (owner c28). Validated here because
+  // a typo silently falls back to "start" and the defect is invisible in data —
+  // only a frame shows it.
+  if (card.beat_align !== undefined) {
+    if (!['start', 'end'].includes(card.beat_align)) {
+      err(`FAIL: ${card.slug}.beat_align must be "start" or "end" (got ${JSON.stringify(card.beat_align)}) — a typo silently reverts to "start"`);
+    }
+    if (card.kind !== 'beat') {
+      err(`FAIL: ${card.slug} declares beat_align but kind is "${card.kind}" — only beat cards place reveals`);
+    }
+  }
+
+  // spoken_var (2026-08-07): names the variable whose text the presenter says
+  // out loud, so visuals-flow can pace the animation and the exposure off the
+  // transcript instead of off `default_duration`. A card that animates copy over
+  // its clip length WITHOUT this drifts out of sync with the voice, which is
+  // what prompt-typing did (owner c04/c16/c24).
+  if (card.spoken_var !== undefined) {
+    if (typeof card.spoken_var !== 'string' || !card.spoken_var) {
+      err(`FAIL: ${card.slug}.spoken_var must be a non-empty variable name`);
+    } else if (!card.variables || !card.variables[card.spoken_var]) {
+      err(`FAIL: ${card.slug} spoken_var "${card.spoken_var}" is not a declared variable`);
+    } else if (card.variables[card.spoken_var].type !== 'string') {
+      err(`FAIL: ${card.slug} spoken_var "${card.spoken_var}" must be a string variable`);
+    }
+  }
 }
 
 if (failed) process.exit(1);

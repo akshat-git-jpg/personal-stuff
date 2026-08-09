@@ -1,0 +1,97 @@
+{
+  "video": "consistent-ai-influencer",
+  "approved": false,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "What you're going to do is you're going",
+      "to_anchor": "head over to the OpenArt interface",
+      "note": "Opens the body on the host. The intro film owns 0-90.7s and carries its own presenter, so this is the host's first appearance in the assembled body. It is the thesis of step 1 (decide who the influencer is before generating a single image, the step most people skip) and closes on the line that hands over to the interface, so the screen recording takes back over exactly where the clicking starts. Begins after the Step 01 section card clears, and 8.8s before the 105.7s intro-host deadline.",
+      "flagged": false
+    },
+    {
+      "id": "s01b",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "Here you're going to think about what do they look like",
+      "to_anchor": "a clean aesthetic, edgy, natural, or luxe",
+      "note": "Short host bridge inside the first demo stretch. He is not clicking here, he is telling the viewer HOW to define a character (look, vibe, niche) — that is host content and the screen has nothing to show for it.",
+      "flagged": false
+    },
+    {
+      "id": "s01c",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "But you can add a voice if you want",
+      "to_anchor": "throughout the whole AI influencer creator thing",
+      "note": "Short host bridge: the optional voice and backstory aside, which is a decision the viewer makes rather than a click to follow.",
+      "flagged": false
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "You don't have to do that Train section manually",
+      "to_anchor": "generally your AI influencer creation",
+      "note": "The payoff of the whole consistency argument, spoken with nothing on screen to show. Sits in the gap between the step-flow card and the Step 3 section card.",
+      "flagged": false
+    },
+    {
+      "id": "s02b",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "You can also create travel content within outdoor environments",
+      "to_anchor": "a skincare product, or a phone",
+      "note": "Short host bridge listing the scenarios the trained model unlocks (travel, outdoor, product placement). A menu of possibilities, not an on-screen action.",
+      "flagged": false
+    },
+    {
+      "id": "s03",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "So in Reels, TikToks, and YouTube Shorts",
+      "to_anchor": "how you're going to actually approach it",
+      "note": "Why video matters to sponsors. The segments file marks this stretch demo, but the presenter is arguing, not clicking: the on-screen work restarts at 'head over to this photo right here'.",
+      "flagged": false
+    },
+    {
+      "id": "s04",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "And now that we have her in video",
+      "to_anchor": "do a talking video if that's what you prefer",
+      "note": "The host summarising what the character can now be used for, after the video result has been shown. Overlaps only the verdict-chips overlay, which is legal.",
+      "flagged": false
+    },
+    {
+      "id": "s04b",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "You can get their assets, swap into product",
+      "to_anchor": "anyone only offering static posts",
+      "note": "Host bridge before the pitch section: the sponsor-deliverable argument (same face, both formats, standing out from static-only creators). Conceptual, nothing on screen to point at.",
+      "flagged": false
+    },
+    {
+      "id": "s06",
+      "purpose": "avatar-full",
+      "mode": "side",
+      "from_anchor": "Second is infinitely scalable",
+      "to_anchor": "no onset revisions",
+      "note": "Side mode over checklist/checklist: the pitch points are on the card and the host is delivering them. Contained inside the card window, so the graphic never runs empty behind the host.",
+      "flagged": false
+    },
+    {
+      "id": "s07",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "Once again, my link to OpenArt is in the description",
+      "to_anchor": "I will see you there",
+      "note": "Closing host stretch: link, comment ask and subscribe. Back of the U-curve, after the last conclusion card.",
+      "flagged": false
+    }
+  ]
+}

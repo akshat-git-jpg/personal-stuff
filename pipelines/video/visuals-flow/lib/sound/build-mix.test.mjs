@@ -54,3 +54,22 @@ test('buildMixArgs with music', () => {
   assert.ok(filterStr.includes('sidechaincompress'));
   assert.ok(args.includes('-stream_loop'));
 });
+
+test('the master is pinned to the voiceover length regardless of late effects', () => {
+  // amix defaults to duration=longest, so an effect whose tail runs past the
+  // VO used to lengthen the master and fail the frame-exact gate at 460.
+  const args = buildMixArgs({
+    voPath: 'vo.mp3',
+    instances: [{ at: 9.9, sample: 'success', semi: 0, gainDb: -14 }],
+    musicPath: null,
+    total: 10,
+    outPath: 'master.wav',
+    workdir: '/tmp',
+  });
+  const fc = args[args.indexOf('-filter_complex') + 1];
+  assert.match(fc, /atrim=0:10/, 'master is trimmed to the voiceover length');
+  assert.match(fc, /apad=whole_dur=10/, 'master is padded to the voiceover length');
+  const master = fc.split(';').find((c) => c.includes('[master]'));
+  assert.ok(master.indexOf('loudnorm') < master.indexOf('atrim'),
+    'the length pin runs AFTER loudnorm, which can itself shift duration');
+});

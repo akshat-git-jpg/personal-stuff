@@ -115,7 +115,7 @@ test('CLI tests', (t) => {
   assert.ok(res.stderr.includes('UNAPPROVED-AVATAR-SPEND'), res.stderr);
 
   fs.writeFileSync(path.join(workdir, 'avatar-plan.json'), JSON.stringify({
-    character: 'girl-1', model: 'heygen3', approved: true,
+    character: 't', model: 'heygen3', approved: true,
   }));
 
   // Case 2: Unapproved shots.json
@@ -218,6 +218,16 @@ test('CLI tests', (t) => {
   assert.strictEqual(res.status, 1);
   assert.ok(res.stderr.includes('invalid video slug'));
   fs.writeFileSync(path.join(workdir, 'shots.resolved.json'), JSON.stringify(origShotsResolved));
+
+  // The approved character IS the template. A --template that disagrees with
+  // the board pick is refused, because the pick is the owner's authorisation:
+  // run.sh used to default --template to "specs-man", which silently overrode
+  // an approved girl-1 and would have rendered the wrong presenter on the
+  // METERED engine (2026-08-08).
+  res = runCLI([workdir, '--template', 'someone-else', '--submit']);
+  assert.notEqual(res.status, 0, 'a template that contradicts the approved character must refuse');
+  assert.ok(res.stderr.includes('UNAPPROVED-AVATAR-SPEND'), res.stderr);
+  assert.ok(res.stderr.includes('does not match the approved character'), res.stderr);
 
   // Case 9: Bad template
   res = runCLI([workdir, '--template', 't; bad', '--submit']);

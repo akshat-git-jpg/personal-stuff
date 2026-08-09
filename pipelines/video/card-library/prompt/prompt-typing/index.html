@@ -105,6 +105,7 @@
          ===================================================== */
       const VARS = (window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : null) || {};
       const DATA = {
+        typeSeconds: VARS.typeSeconds,
         title: VARS.title ?? 'Prompt',
         prompt: VARS.prompt ?? 'Cinematic food film of a pasta dish being plated in a cozy home kitchen. No dialogue. No people. Photoreal.\n[0:00–0:02] Overhead wide. Rustic wooden table. Empty bowl centered. Hands enter frame from above, ladle pours pasta in a slow arc. Steam rises immediately.\n[0:02–0:05] Extreme close-up, side angle. Fork pierces the pasta and twirls slowly. Sauce clings and glistens. Depth of field razor thin, background blurs warm amber.\n[0:05–0:08] Slow motion, top-down. Thin stream of olive oil poured from above catches the kitchen light. It falls in a perfect golden thread across the pasta surface.\n[0:08–0:11] Macro close-up. Fresh basil leaves drop in slow motion onto the dish one by one. Each lands and settles. Steam curls around them.',
       };
@@ -136,7 +137,17 @@
       tl.from('#panel', { opacity: 0, y: 26, scale: 0.985, duration: 0.5, ease: 'power3.out', transformOrigin: '50% 50%' }, 0);
       tl.to('#caret', { opacity: 0, duration: 0.5, ease: 'steps(1)', yoyo: true, repeat: Math.max(1, Math.ceil(DURATION / 0.5)) }, 0);
       const START = 0.55, TAIL = 0.5;
-      const typeDur = Math.max(0.5, DURATION - START - TAIL);
+      // Type at the rate the prompt is SPOKEN, then hold it complete for the
+      // rest of the clip. Fitting the typing to the clip length instead made a
+      // 5.5s dictated prompt take 10.95s, so barely half the text was on
+      // screen by the time the voice had said all of it (owner c04/c16/c24 on
+      // consistent-ai-influencer, 2026-08-07: "text being typed is slow").
+      // visuals-flow supplies typeSeconds from the transcript (catalog
+      // `spoken_var`); standalone previews with no value keep the old fit.
+      const spoken = Number(DATA.typeSeconds);
+      const typeDur = Number.isFinite(spoken) && spoken > 0
+        ? Math.max(0.5, Math.min(spoken, DURATION - START))
+        : Math.max(0.5, DURATION - START - TAIL);
       const count = { v: 0 };
       tl.to(count, { v: FULL.length, duration: typeDur, ease: 'none', onUpdate: () => render(Math.round(count.v)) }, START);
       tl.set(count, { v: FULL.length, onComplete: () => render(FULL.length) }, START + typeDur);

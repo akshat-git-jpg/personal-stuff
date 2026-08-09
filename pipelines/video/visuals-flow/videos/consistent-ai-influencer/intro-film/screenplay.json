@@ -5,7 +5,7 @@
       "id": "b01",
       "intent": "hook",
       "clause": "Most people trying to build an AI influencer get stuck on one thing: consistency. The face changes, the style drifts, and it never looks like one person.",
-      "t_start": 0.0,
+      "t_start": 0,
       "t_end": 11.36,
       "register": "dark",
       "face": "full",
@@ -201,5 +201,7 @@
       "transition_out": "cut",
       "deviation_reason": "The button closes a run that reordered stakes, mech and scope, which departs from the default arc."
     }
-  ]
+  ],
+  "approved": true,
+  "approved_at": "2026-08-08T11:38:09.177Z"
 }

@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { lintCues } from './lint-cues.mjs';
 import { ZONE_CONSTANTS } from './zone-constants.mjs';
-import { mergeIntervals, subtractIntervals, parseFreezeLog, stillRuns, checkZoneStillness } from './stillness.mjs';
+import { mergeIntervals, subtractIntervals, parseFreezeLog, stillRuns, checkZoneStillness , avatarSpansFor } from './stillness.mjs';
 
 const INTRO_END = 117.6; // test-03's measured intro
 
@@ -224,4 +224,20 @@ test('checkZoneStillness reports not-applicable when there is no footage', () =>
   });
   assert.equal(checked, false);
   assert.deepEqual(warnings, []);
+});
+
+test('avatarSpansFor falls back to PLANNED spans before any avatar is rendered', () => {
+  const fromJobs = (j) => (j?.jobs ?? []).filter((x) => x.start != null).map((x) => [x.start, x.end]);
+  const shots = { spans: [{ id: 's07', start: 1213.8, end: 1229.6 }] };
+
+  // At step 330 there is no avatar-jobs.json at all. W18 used to see zero
+  // coverage and flag a host-only conclusion as static (2026-08-08).
+  assert.deepEqual(avatarSpansFor(null, shots, fromJobs), [[1213.8, 1229.6]]);
+
+  // Once 430 has rendered, the real jobs win over the plan.
+  const jobs = { jobs: [{ start: 100, end: 110 }] };
+  assert.deepEqual(avatarSpansFor(jobs, shots, fromJobs), [[100, 110]]);
+
+  // No plan and no jobs is still empty, not a crash.
+  assert.deepEqual(avatarSpansFor(null, null, fromJobs), []);
 });

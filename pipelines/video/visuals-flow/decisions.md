@@ -1,5 +1,14 @@
 # Decisions
 
+- **2026-08-08**: Eight defects found during the consistent-ai-influencer run were fixed at the mechanism rather than per-video. They share a shape: a gate whose answer nothing reads, a check that fires after the fact instead of preventing the defect, and a doc that undercounts the owner's gates are all the same bug — the owner ends up being the test harness.
+  - **The character approved at gate 420 is now the render template.** `run.sh` defaulted `--template` to `specs-man` and the submit path never read `avatar-plan.character`, so the board pick was decorative. `avatar-render` now refuses a `--template` that disagrees with the approval, and `run.sh` passes none. Caught one command before a metered Avatar IV batch would have rendered a different presenter than the intro film.
+  - **Five verbs did not record themselves** (230/330/440/450/460). Sessions hand-wrote ledger entries five separate times instead of fixing the wrapper, so the board told the owner steps were `todo` after they had run. All five wrapped, plus a `scripts/test-run-sh.sh` guard that fails when any step-backed verb does not dispatch through `record_step`.
+  - **410 inferred "done" from a single render file**, so a 5-card verification render painted the board green over a 57-card plan. It now requires every resolved cue to have a clip.
+  - **W18 zone-still read avatar coverage from `avatar-jobs.json`** (written at 430) while running at 330, so it reported planned host spans as static frame at the exact gate where the owner approves. It falls back to the planned spans now.
+  - **Sound could be scheduled into silence.** The planner placed the structural-end effect at the last CUE's end, and a cue can outlast the voiceover; `build-mix`'s final `amix` was unbounded, so that late effect lengthened the master and failed the frame-exact gate. The planner clamps to the measured VO, and the master is pinned with `atrim`+`apad`.
+  - **`checklist/checklist` declared `side: true` with capacity measured at 1920 only** and clipped its heading and last item at 1200. It auto-fits both widths now; the catalog records what was actually measured. Capacities on a side-capable card must be measured at BOTH widths.
+  - **The operating skill described "three owner gates" numbered 037/080/120** — stale numbers, one gate deleted by plan 195, three real gates missing. There are SIX human steps; the skill lists them and `ls steps/ | grep human` is the check. Stale step cross-references repointed across 10 step docs.
+
 - **2026-07-24**: Owner requested captions default-on; visuals-flow currently relies on sidecar .ass for web players or explicit `--captions` hardsubs. No muxed subtitle track is generated yet.
 
 - **2026-07-25**: Review model = TWO owner gates, neither skippable at any video

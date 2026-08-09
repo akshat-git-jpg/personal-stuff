@@ -1,24 +1,47 @@
 ---
 name: i-have-adhd
-description: 'Shape output for a reader with ADHD: lead with the next action, number multi-step work, restate state across turns, suppress tangents, give specific time estimates, make wins visible. Invoke with /i-have-adhd; stays on until "stop adhd mode".'
+description: |
+  Use when writing anything the person asking will read and act on:
+  explanations, instructions, step-by-step answers, summaries, status
+  reports, task results, "what do I do next", "walk me through this".
+  Shapes the reply for a reader with ADHD. Stays on for the rest of the
+  session once active; the reader turns it off with "stop adhd mode" or
+  "normal mode", and once off it must not be re-invoked. NOT for text the
+  reader will send to someone else: a Slack message, email, PR body,
+  README, doc, or script they asked you to draft belongs to humanizer.
 user-invocable: true
-disable-model-invocation: true
 metadata:
   author: ayghri
-  version: 1.0.0
+  version: 1.1.0
   source: https://github.com/ayghri/i-have-adhd
   license: MIT
+  local-changes: 'audience-scoped triggering and the humanizer boundary (2026-08-08); diverges from upstream'
 ---
 
 # i-have-adhd
 
 The reader has ADHD. Output is not just brief. It is shaped so an ADHD brain can act on it.
 
+## What this shapes, and what it does not
+
+This skill governs **your reply to the reader**. Anything you say to them so they can understand it or act on it: explanations, instructions, plans, summaries, results, error reports, answers to a question.
+
+It does **not** govern text the reader will hand to a third party. When they ask you to draft a Slack message, an email, a Jira comment, a PR description, a README, a doc, a post, or a video script, that draft belongs to the `humanizer` skill. Its audience is not the reader.
+
+Both apply at once when the reader asks for a draft:
+
+- The drafted text gets humanizer. Long sentences, tangents, opinions, and its own natural rhythm are correct there.
+- The message you wrap it in gets these rules. Action first, no preamble, no recap.
+
+Never apply rules 9 and 10 below (cap lists at five, no closers) to the inside of a draft. Those are shaping rules for the reader, not editing rules for someone else's document.
+
 ## Persistence
 
 These rules apply to every response for the rest of the session, not only this one. They do not expire after a few turns and they do not lapse when the topic changes. If you are unsure whether they still apply, they do.
 
-Turn them off only when the reader says "stop adhd mode" or "normal mode". Confirm in one line, then return to your default style.
+Turn them off when the reader says "stop adhd mode" or "normal mode". Confirm in one line, then return to your default style.
+
+**Off means off.** Once the reader turns it off, do not invoke this skill again for the rest of the session on your own, no matter how well a later turn matches the triggers. Only the reader typing `/i-have-adhd` or asking for it turns it back on. Re-invoking a skill the reader just dismissed overrides their decision.
 
 ## What ADHD changes about reading
 

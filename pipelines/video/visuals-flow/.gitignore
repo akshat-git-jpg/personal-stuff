@@ -32,6 +32,9 @@ videos/*/*.full.mp3
 videos/*/versions.run*/
 videos/*/versions.run*.json
 videos/*/feedback-images/
+# per-video generated card art (pollinations portraits and the like). Generated
+# media, so it follows the same rule as renders: regenerable, never committed.
+videos/*/card-images/
 board-ui/node_modules/
 board-ui/dist/
 .test-tmp/

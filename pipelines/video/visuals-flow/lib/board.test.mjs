@@ -96,6 +96,23 @@ test('GET /card/c01 injects the getVariables shim before the card\'s first origi
   }
 });
 
+test('GET /card/c01 serves the RESOLVED duration, not the card\'s hardcoded default', async () => {
+  // render.mjs rewrites data-duration to cue.duration before rendering; the
+  // board did not, so a card whose motion is paced by data-duration ran at a
+  // different speed in the preview than in the cut. c01 resolves to 8s while
+  // pros-cons hardcodes 6s, so the two numbers are distinguishable here.
+  const { server, base } = await startServer(makeWorkdir());
+  try {
+    const html = await (await fetch(`${base}/card/c01`)).text();
+    const values = [...html.matchAll(/data-duration="([0-9.]+)"/g)].map((m) => m[1]);
+    assert.ok(values.length > 0, 'card declares a duration');
+    assert.deepEqual([...new Set(values)], ['8'],
+      `every data-duration must be the resolved 8s, got ${[...new Set(values)].join(', ')}`);
+  } finally {
+    server.close();
+  }
+});
+
 test('GET /card/c01 includes the overflow probe (__measureOverflow + probe message handler)', async () => {
   const { server, base } = await startServer(makeWorkdir());
   try {

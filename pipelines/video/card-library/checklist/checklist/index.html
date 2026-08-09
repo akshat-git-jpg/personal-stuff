@@ -33,7 +33,14 @@
       #root { position: relative; width: 100%; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 28% 18%, var(--bg-from) 0%, var(--bg-to) 60%); }
       #frame { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 140px 220px; }
-      #title { font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); margin-bottom: 72px; will-change: transform, opacity; }
+      /* The hero is auto-fitted (see fitLayout below) because this card
+         declares side:true, i.e. it promises to render correctly at 1200px as
+         well as 1920. It did not: at side width a 30-char title wrapped to one
+         word per line, pushed off the top of the frame, and cut the last
+         checklist item off the bottom, while every gate stayed green because
+         the catalog capacity (6 items, 40 chars) was measured at 1920 only
+         (owner c41 on consistent-ai-influencer, 2026-08-08). */
+      #title { font-size: var(--hero-size); font-weight: 900; letter-spacing: -0.035em; line-height: 1.05; color: var(--text); margin-bottom: 56px; will-change: transform, opacity; }
       #list { display: flex; flex-direction: column; gap: 30px; }
       .item { display: flex; align-items: center; gap: 28px; will-change: transform, opacity; }
       .box { flex: 0 0 auto; width: 60px; height: 60px; border-radius: 16px; border: 3px solid var(--box-line);
@@ -71,6 +78,31 @@
 
       /* ===== TIMELINE (LOCKED) ===== */
       document.getElementById('title').textContent = DATA.title;
+
+      // Shrink the hero (and, if still needed, the item text) until the whole
+      // card fits the CURRENT canvas — which is 1200px wide in side mode and
+      // 1920 otherwise. Deterministic: the same content always measures the
+      // same, so renders stay reproducible. 100px is the type-scale floor for
+      // a hero_shape "short" card once the 1200px case is included.
+      function fitLayout() {
+        const frame = document.getElementById('frame');
+        const title = document.getElementById('title');
+        const list = document.getElementById('list');
+        const room = () => frame.clientHeight - parseFloat(getComputedStyle(frame).paddingTop) * 2;
+        for (let hero = 150; hero >= 100; hero -= 5) {
+          document.documentElement.style.setProperty('--hero-size', hero + 'px');
+          const titleLines = Math.round(title.scrollHeight / (hero * 1.05));
+          const fits = title.scrollWidth <= title.clientWidth + 1
+            && titleLines <= 2
+            && title.offsetHeight + list.offsetHeight <= room();
+          if (fits) return;
+        }
+        // Title alone cannot save it: step the item text down too.
+        for (let body = 40; body >= 30; body -= 2) {
+          document.documentElement.style.setProperty('--body-size', body + 'px');
+          if (title.offsetHeight + list.offsetHeight <= room()) return;
+        }
+      }
       const items = DATA.beats.map((b) => {
         const item = document.createElement('div');
         item.className = 'item';
@@ -86,6 +118,9 @@
         p.style.strokeDasharray = len;
         p.style.strokeDashoffset = len;
       });
+
+      fitLayout();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitLayout);
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });

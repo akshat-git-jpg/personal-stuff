@@ -5,7 +5,7 @@ The owner's approval of the bespoke intro film authored at
 It exists only for videos whose `run-config.json` carries `intro: "film"` — a
 `cards` video never reaches this gate.
 
-Split out of the old `027-approve-intro-film-human` folder (plan 199): that
+Split out of the old `140-review-intro-frames-run` folder (plan 199): that
 folder held a cheap review, this approval gate, and a 67-second render all as
 sibling verbs, so nothing stopped rendering a film nobody had reviewed. The
 review is now its own prior step (140) and the render is its own step after

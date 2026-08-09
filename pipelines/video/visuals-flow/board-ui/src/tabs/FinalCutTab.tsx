@@ -27,20 +27,31 @@ export function FinalCutTab({
   const [version, setVersion] = useState<string>('');
   const [fcItems, setFcItems] = useState<Record<string, ReviewComment>>({});
 
+  // Gate 120's approved state, mirroring the Storyboard tab: the ✓ and the
+  // disabled button ARE the confirmation. Without it this button wrote
+  // final-cut.json, changed nothing on screen, and read as broken — the owner
+  // reported it dead on 2026-08-09 when it had in fact approved v3 on the first
+  // click. Same shape as the frame-step buttons that were "dead" because the
+  // clock could not show a 1/30s step: ask whether the owner can SEE it work.
+  const finalApproved = !!boardData.approved?.finalCut;
+
   useEffect(() => {
     onMeta('final cut review');
     onActions(
       <button
-        className="approve rs-cbtn"
-        disabled={!version}
+        className={`approve rs-cbtn${finalApproved ? ' approved' : ''}`}
+        disabled={!version || finalApproved}
+        title={finalApproved
+          ? 'approved — assembling a new version re-opens this'
+          : !version ? 'nothing to approve until a cut is assembled' : undefined}
         style={{ borderColor: 'var(--ok)', color: 'var(--ok)' }}
         onClick={async () => {
           const res = await fetch('/approve-final-cut', { method: 'POST', body: JSON.stringify({ version }) });
           if (res.ok) onRefetch();
-          else alert('approve failed');
+          else alert(`approve failed: ${res.status} ${await res.text()}`);
         }}
       >
-        Approve final cut
+        {finalApproved ? `✓ final cut approved (${version})` : 'Approve final cut'}
       </button>
     );
     onSecondary(
@@ -62,7 +73,7 @@ export function FinalCutTab({
       onActions(null);
       onSecondary(null);
     };
-  }, [version, versions, onMeta, onActions, onSecondary, onRefetch]);
+  }, [version, versions, finalApproved, onMeta, onActions, onSecondary, onRefetch]);
 
   useEffect(() => {
     // The server returns { versions: [{ label, file, created, draft,

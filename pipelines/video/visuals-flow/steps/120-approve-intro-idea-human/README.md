@@ -3,11 +3,11 @@
 Gate on `intro-film/idea.json`. Reviewed on the board's Intro tab, above the
 beat-level review that runs at 027 once a film actually exists.
 
-- **In:** `intro-film/idea.json` — 2-3 directions from `026-propose-intro-idea-llm`
+- **In:** `intro-film/idea.json` — 2-3 directions from `110-propose-intro-idea-llm`
 - **Out:** `idea.json` gets both `chosen: "<id>"` and `approved: true`, written
   in one operation. An approval with no `chosen` is meaningless — the board
   refuses a POST with no id.
-- **Next:** `025-author-intro-film-llm`, which reads `chosen` and writes beats
+- **Next:** `130-author-intro-screenplay-llm`, which reads `chosen` and writes beats
   for that direction only.
 
 ## Why this is a separate gate from 027

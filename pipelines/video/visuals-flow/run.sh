@@ -300,8 +300,9 @@ EOF
       echo "no real avatar.mp4 for $slug yet — 440 re-renders against it; run.sh $slug avatar-download (or place it) first"
       exit 1
     fi
-    dry "node lib/intro-film/render-film.mjs $slug" && exit 0
-    node lib/intro-film/render-film.mjs "$slug"
+    dry "record_step 440 -- node lib/intro-film/render-film.mjs $slug" && exit 0
+    record_step 440 "Re-rendered the intro film against the real avatar clip." \
+      "intro-film/out/intro.mp4" -- node lib/intro-film/render-film.mjs "$slug"
     exit $?
     ;;
 
@@ -351,8 +352,9 @@ EOF
 
   validate)
     # Pre-235: everything checkable before the cards exist. Writes nothing.
-    dry "node lib/resolve.mjs $slug --validate-only" && exit 0
-    node lib/resolve.mjs "$slug" --validate-only
+    dry "record_step 230 -- node lib/resolve.mjs $slug --validate-only" && exit 0
+    record_step 230 "Ran the pre-build check over the whole cue plan: every anchor against the transcript, every card variable against its catalog entry, no timing collisions." \
+      "checks/cue-plan.json" -- node lib/resolve.mjs "$slug" --validate-only
     ;;
 
   resolve)
@@ -363,11 +365,15 @@ EOF
     ;;
 
   storyboard-check)
-    dry "node lib/resolve-shots.mjs $slug && node lib/lint-shots.mjs $slug && node lib/stillness.mjs $slug && node lib/audit-gate.mjs $slug" && exit 0
-    node lib/resolve-shots.mjs "$slug" \
-      && node lib/lint-shots.mjs "$slug" \
-      && node lib/stillness.mjs "$slug" \
-      && node lib/audit-gate.mjs "$slug"
+    dry "record_step 330 -- storyboard-check" && exit 0
+    do_storyboard_check() {
+      node lib/resolve-shots.mjs "$slug" \
+        && node lib/lint-shots.mjs "$slug" \
+        && node lib/stillness.mjs "$slug" \
+        && node lib/audit-gate.mjs "$slug"
+    }
+    record_step 330 "Ran the pre-render storyboard check: shot resolve, shot lint, zone stillness and the audit gate." \
+      "no artifact — check only" -- do_storyboard_check
     ;;
 
 
@@ -405,13 +411,15 @@ EOF
     ;;
 
   sound)
-    dry "node lib/sound/sfx-plan.mjs $slug" && exit 0
-    node lib/sound/sfx-plan.mjs "$slug"
+    dry "record_step 450 -- node lib/sound/sfx-plan.mjs $slug" && exit 0
+    record_step 450 "Planned the sound design from the resolved cues and effects." \
+      "sound.json" -- node lib/sound/sfx-plan.mjs "$slug"
     ;;
 
   mix)
-    dry "node lib/sound/build-mix.mjs $slug" && exit 0
-    node lib/sound/build-mix.mjs "$slug"
+    dry "record_step 460 -- node lib/sound/build-mix.mjs $slug" && exit 0
+    record_step 460 "Mixed the master: voiceover, planned effects and music, loudness-normalised and pinned to the voiceover length." \
+      "master.wav" -- node lib/sound/build-mix.mjs "$slug"
     ;;
 
   shot-pass)
@@ -437,9 +445,9 @@ EOF
     # --spans-only: the owner rejected the corner-bubble baseline on the first
     # assembled cut (2026-07-31) — only the planned host spans render now.
     d="$(step_slug 430)"
-    dry "record_step 430 -- bash steps/$d/run.sh $slug --submit --spans-only --template ${AVATAR_TEMPLATE:-specs-man}" && exit 0
+    dry "record_step 430 -- bash steps/$d/run.sh $slug --submit --spans-only${AVATAR_TEMPLATE:+ --template $AVATAR_TEMPLATE}" && exit 0
     record_step 430 "Submitted the HeyGen avatar clips for the approved shot spans." \
-      "avatar-jobs.json + avatar clips in kb-scratch" -- bash "steps/$d/run.sh" "$slug" --submit --spans-only --template "${AVATAR_TEMPLATE:-specs-man}"
+      "avatar-jobs.json + avatar clips in kb-scratch" -- bash "steps/$d/run.sh" "$slug" --submit --spans-only ${AVATAR_TEMPLATE:+--template "$AVATAR_TEMPLATE"}
     ;;
 
   cut)

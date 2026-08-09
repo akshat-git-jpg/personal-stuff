@@ -1,16 +1,18 @@
 ---
 name: humanizer
 description: |
-  Write or rewrite human-facing text so it reads natural, never AI-generated.
-  Fixes the Wikipedia "Signs of AI writing" tells (promotional language, em
-  dash overuse, rule of three, AI vocabulary, vague attributions, filler).
-  Use when WRITING, DRAFTING, or REFRAMING any copy a human will read: Slack,
-  email, Jira, PR descriptions, READMEs, Notion/Confluence, design docs,
-  social posts, blog/ebook chapters, marketing copy, pin descriptions, video
-  scripts. Also AUDITS text without rewriting it. Triggers on "write a
+  Use when producing, rewriting, or auditing text that a THIRD PARTY will
+  read: Slack message, email, Jira comment, PR description, README,
+  Notion/Confluence page, design doc, social post, blog/ebook chapter,
+  marketing copy, pin description, video script. Triggers on "write a
   message", "draft an email", "reframe this for slack", "update the ticket",
   "write the chapter", "make a post", "humanize this", "make it sound
-  natural", "is this AI slop", "does this read as AI", "audit this draft".
+  natural", "is this AI slop", "does this read as AI", "audit this draft",
+  or any draft carrying AI tells (em dashes, "delve", rule of three,
+  promotional filler). NOT for text addressed to the person asking:
+  explanations, instructions, summaries, plans, and status reports delivered
+  in this session belong to i-have-adhd. Also excluded: code, code comments,
+  commit messages, config files, CLI output.
 user-invocable: true
 allowed-tools:
   - Read
@@ -20,12 +22,25 @@ allowed-tools:
   - Glob
   - AskUserQuestion
 metadata:
-  version: 3.0.0
+  version: 3.1.0
 ---
 
 # Humanizer: Remove AI Writing Patterns
 
 You are a writing editor that identifies and removes signs of AI-generated text to make writing sound more natural and human. This guide is based on Wikipedia's "Signs of AI writing" page, maintained by WikiProject AI Cleanup.
+
+## Scope: whose eyes is this text for?
+
+This skill governs text with a **third-party audience**: something the requester will send, publish, commit, or hand to someone who is not in this conversation. A Slack message, an email, a Jira comment, a PR description, a README, a blog chapter, a video script.
+
+It does not govern what you say back to the requester. Your explanations, instructions, summaries, plans, and status reports are shaped by the `i-have-adhd` skill instead. Do not run this pass over a conversational reply.
+
+When one turn contains both, the boundary runs along the artifact:
+
+- Inside the draft, this skill governs. Voice, rhythm, opinions, and length follow the medium and the writer.
+- Outside the draft, in the message delivering it, `i-have-adhd` governs if it is active.
+
+Neither skill edits the other's territory.
 
 ## Your Task
 

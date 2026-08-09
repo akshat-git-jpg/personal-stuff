@@ -92,6 +92,138 @@ test('beat cue resolves start relative to first beat, not cue anchor (BEAT_LEAD_
   assert.ok(Math.abs(cue.duration - 5.6) < 0.05);
 });
 
+test('beat_align "end" lands a reveal after its phrase, default lands on the first word', () => {
+  const cues = [{
+    id: 'c01',
+    card: 'pros-cons/pros-cons',
+    anchor: "let's look at the",
+    variables: { title: 'Notion' },
+    beats: [{ reveal: { kind: 'pro', text: 'Free tier' }, anchor: "it's not all good" }],
+  }];
+
+  // Default: the chip appears on "it's", 1.5s before the claim finishes.
+  const base = resolveCues(cues, WORDS, CATALOG);
+  assert.deepEqual(base.errors, []);
+  const startAligned = base.resolved[0].start + base.resolved[0].variables.beats[0].at;
+  assert.ok(Math.abs(startAligned - 6.0) < 0.05, `expected 6.0, got ${startAligned}`);
+
+  // Opted in: it waits for "good" to finish at 7.9.
+  const endCatalog = {
+    cards: CATALOG.cards.map((c) => (
+      c.slug === 'pros-cons/pros-cons' ? { ...c, beat_align: 'end' } : c
+    )),
+  };
+  const ended = resolveCues(cues, WORDS, endCatalog);
+  assert.deepEqual(ended.errors, []);
+  const endAligned = ended.resolved[0].start + ended.resolved[0].variables.beats[0].at;
+  assert.ok(Math.abs(endAligned - 7.9) < 0.05, `expected 7.9, got ${endAligned}`);
+  assert.ok(endAligned > startAligned, 'end alignment must be later than start alignment');
+});
+
+test('spoken_var measures how long the copy takes to say and exposes it as typeSeconds', () => {
+  const cues = [{
+    id: 'c01',
+    card: 'prompt/typed',
+    anchor: "let's look at the",
+    variables: { prompt: 'free tier alone is great' },
+    beats: [],
+  }];
+  const catalog = {
+    cards: [
+      { slug: 'prompt/typed', kind: 'single', placement: 'fullframe', default_duration: 12, spoken_var: 'prompt' },
+    ],
+  };
+  const { resolved, errors } = resolveCues(cues, WORDS, catalog);
+  assert.deepEqual(errors, []);
+  // "free"(3.0) through "great"(ends 5.4) — 2.4s of speech, not the 12s clip.
+  assert.ok(Math.abs(resolved[0].variables.typeSeconds - 2.4) < 0.05,
+    `expected 2.4, got ${resolved[0].variables.typeSeconds}`);
+});
+
+test('spoken_var also ends the card when the dictation ends, not at default_duration', () => {
+  const cues = [{
+    id: 'c01',
+    card: 'prompt/typed',
+    anchor: "let's look at the",
+    variables: { prompt: 'free tier alone is great' },
+    beats: [],
+  }];
+  const catalog = {
+    cards: [
+      { slug: 'prompt/typed', kind: 'single', placement: 'fullframe', default_duration: 12, spoken_var: 'prompt' },
+    ],
+  };
+  const { resolved } = resolveCues(cues, WORDS, catalog);
+  // Card starts at 0 (anchor at 0, default lead clamped), speech ends 5.4,
+  // plus a 1.0s read tail. Nowhere near the 12s default.
+  assert.ok(resolved[0].duration < 7, `expected the card to leave soon after 5.4s, got ${resolved[0].duration}`);
+  assert.ok(resolved[0].duration > 6, `expected a short read tail, got ${resolved[0].duration}`);
+  assert.ok(resolved[0].duration < 12, 'must not fall back to default_duration');
+});
+
+test('an overlay tail is clamped so it never covers a following fullframe', () => {
+  // beat_align 'end' moves a card later, which pushes its TAIL later too. That
+  // gave two previously-clean videos an E9 overlap the moment verdict-chips
+  // opted in (2026-08-07). The resolver trims the tail instead.
+  const cues = [
+    {
+      id: 'c01',
+      card: 'overlay/chips',
+      anchor: "let's look at the",
+      // hold long enough that the untrimmed card would run well past c02's start
+      hold: 8,
+      variables: {},
+      beats: [{ reveal: { text: 'Pro' }, anchor: 'the free tier alone' }],
+    },
+    { id: 'c02', card: 'slate/plain', anchor: 'the mobile app crawls', variables: { title: 'X' }, beats: [] },
+  ];
+  const catalog = {
+    cards: [
+      { slug: 'overlay/chips', kind: 'beat', placement: 'overlay', default_duration: 8, hold: 6, beat_shape: { text: { type: 'string', required: true } } },
+      { slug: 'slate/plain', kind: 'single', placement: 'fullframe', default_duration: 6 },
+    ],
+  };
+  const { resolved, errors } = resolveCues(cues, WORDS, catalog);
+  assert.deepEqual(errors, []);
+  const overlay = resolved.find((c) => c.id === 'c01');
+  const fullframe = resolved.find((c) => c.id === 'c02');
+  assert.ok(overlay && fullframe);
+  assert.ok(
+    overlay.start + overlay.duration <= fullframe.start + 0.01,
+    `overlay ends ${(overlay.start + overlay.duration).toFixed(2)} but fullframe starts ${fullframe.start} — tail was not clamped`,
+  );
+  // The clamp must not cut a reveal that has not fired yet.
+  const lastBeat = Math.max(...overlay.variables.beats.map((b) => b.at));
+  assert.ok(overlay.duration > lastBeat, 'every chip must still get on screen');
+});
+
+test('a beatless card WITHOUT spoken_var still uses default_duration', () => {
+  const cues = [{ id: 'c01', card: 'overlay/simple-overlay', anchor: "let's look at the", variables: {}, beats: [] }];
+  const { resolved } = resolveCues(cues, WORDS, CATALOG);
+  assert.equal(resolved[0].duration, 4);
+});
+
+test('a card without spoken_var gets no typeSeconds', () => {
+  const cues = [{
+    id: 'c01', card: 'overlay/simple-overlay', anchor: "let's look at the",
+    variables: { prompt: 'free tier alone is great' }, beats: [],
+  }];
+  const { resolved } = resolveCues(cues, WORDS, CATALOG);
+  assert.equal(resolved[0].variables.typeSeconds, undefined);
+});
+
+test('spoken_var stays silent when the copy is not in the narration', () => {
+  const cues = [{
+    id: 'c01', card: 'prompt/typed', anchor: "let's look at the",
+    variables: { prompt: 'nothing anybody ever uttered aloud' }, beats: [],
+  }];
+  const catalog = {
+    cards: [{ slug: 'prompt/typed', kind: 'single', placement: 'fullframe', default_duration: 12, spoken_var: 'prompt' }],
+  };
+  const { resolved } = resolveCues(cues, WORDS, catalog);
+  assert.equal(resolved[0].variables.typeSeconds, undefined);
+});
+
 test('anchor not in transcript produces an error and drops the cue', () => {
   const cues = [
     { id: 'c02', card: 'pros-cons/pros-cons', anchor: 'completely nonexistent phrase words', beats: [] },

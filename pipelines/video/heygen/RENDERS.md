@@ -172,3 +172,13 @@ from the render title on submit. Open the link to view/download on HeyGen; no lo
 | [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s06--7fb71f8d86294c7a91300550875cc449) | 7629dffbebe141eb8f701630948bd707 | s06.mp3 | `7fb71f8d86294c7a91300550875cc449` |
 | [heygen link](https://app.heygen.com/videos/best-ai-video-generator-s07--e0ead54a9f9a463295bd0a9b5e9b77d1) | 7629dffbebe141eb8f701630948bd707 | s07.mp3 | `e0ead54a9f9a463295bd0a9b5e9b77d1` |
 | [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-intro-film--40069c1150fc4791bc5aa7117d2c40c0) | 7629dffbebe141eb8f701630948bd707 | intro-vo.mp3 | `40069c1150fc4791bc5aa7117d2c40c0` |
+| [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-s01--acd6f515ad5d48138887a497fbc3af28) | 7629dffbebe141eb8f701630948bd707 | s01.mp3 | `acd6f515ad5d48138887a497fbc3af28` |
+| [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-s01b--a111d68a480d45cf8216c464271ec1f6) | 7629dffbebe141eb8f701630948bd707 | s01b.mp3 | `a111d68a480d45cf8216c464271ec1f6` |
+| [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-s01c--c27495941f2a4835b01a9f9e73e8860b) | 7629dffbebe141eb8f701630948bd707 | s01c.mp3 | `c27495941f2a4835b01a9f9e73e8860b` |
+| [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-s02--3f3da4c62f8048189b14fc7f7f1ab239) | 7629dffbebe141eb8f701630948bd707 | s02.mp3 | `3f3da4c62f8048189b14fc7f7f1ab239` |
+| [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-s02b--87c516d8ce6f4f06856ec9e176398465) | 7629dffbebe141eb8f701630948bd707 | s02b.mp3 | `87c516d8ce6f4f06856ec9e176398465` |
+| [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-s03--0dfd35ce48024bbeb937250eea99e351) | 7629dffbebe141eb8f701630948bd707 | s03.mp3 | `0dfd35ce48024bbeb937250eea99e351` |
+| [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-s04--2cc94172021147baa3b5c38a76f4abec) | 7629dffbebe141eb8f701630948bd707 | s04.mp3 | `2cc94172021147baa3b5c38a76f4abec` |
+| [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-s04b--8607db24273d4dacacb7388ead190850) | 7629dffbebe141eb8f701630948bd707 | s04b.mp3 | `8607db24273d4dacacb7388ead190850` |
+| [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-s05--3dcdb022074c4512a74a11184b10ee4a) | 7629dffbebe141eb8f701630948bd707 | s05.mp3 | `3dcdb022074c4512a74a11184b10ee4a` |
+| [heygen link](https://app.heygen.com/videos/consistent-ai-influencer-s07--613fce861ea94d89a8ecab5be813eb19) | 7629dffbebe141eb8f701630948bd707 | s07.mp3 | `613fce861ea94d89a8ecab5be813eb19` |

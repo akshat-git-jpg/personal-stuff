@@ -423,8 +423,18 @@ test('410 infers done from media files only, never the bare renders dir (owner r
   s410 = stepView(dir).find((s) => s.number === '410');
   assert.equal(s410.status, 'todo', 'probe leftovers must not infer done');
 
+  // A clip alone is no longer enough: the render must cover the PLAN. A
+  // session that rendered a handful of cards to check a fix used to mark 410
+  // done and tell the owner the graphics were finished (2026-08-08).
   fs.writeFileSync(path.join(dir, 'renders', '0001-c01-card.mp4'), '');
+  fs.writeFileSync(path.join(dir, 'resolved.json'), JSON.stringify({
+    resolved: [{ id: 'c01' }, { id: 'c02' }],
+  }));
   s410 = stepView(dir).find((s) => s.number === '410');
-  assert.equal(s410.status, 'done');
+  assert.equal(s410.status, 'todo', 'a partial render must not infer done');
+
+  fs.writeFileSync(path.join(dir, 'renders', '0002-c02-card.mp4'), '');
+  s410 = stepView(dir).find((s) => s.number === '410');
+  assert.equal(s410.status, 'done', 'every resolved cue rendered = done');
   assert.ok(s410.derived, 'still marked inferred, never a recorded done');
 });

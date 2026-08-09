@@ -27,7 +27,7 @@ either decision had anything real to be judged against:
   belongs to the **avatar spend gate** (step 102, `lib/avatar-plan.mjs`), which
   proposes character + model + clip count + cost from `shots.resolved.json`'s
   real numbers, and gates every HeyGen submission on the owner's approval —
-  see `steps/102-propose-avatar-human/`.
+  see `steps/420-propose-avatar-human/`.
 
 `run-config.json` holds only source/delivery fields now
 (`drive_folder`/`drive_account`).

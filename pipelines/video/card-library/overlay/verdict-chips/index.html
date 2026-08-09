@@ -71,7 +71,15 @@
       const CROSS = '<svg class="mark" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>';
 
       const chips = DATA.beats.map((b) => {
-        const yes = b.verdict === 'yes';
+        // 'yes'/'no' is the contract (catalog enum). 'pro'/'con' is accepted
+        // because the cue rulebook talks about "a pro or con is spoken", and a
+        // model that follows that wording used to land here as a silent
+        // FAILURE: b.verdict === 'yes' was false, so every pro rendered as a
+        // red cross. consistent-ai-influencer c28 shipped three of them
+        // (caught 2026-08-07 by looking at the frame, not the data). The enum
+        // now rejects it upstream; this keeps a near-miss from inverting the
+        // meaning of the graphic if it ever slips through again.
+        const yes = b.verdict === 'yes' || b.verdict === 'pro' || b.verdict === true;
         const chip = document.createElement('div');
         chip.className = 'chip';
         chip.innerHTML =

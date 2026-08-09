@@ -1,0 +1,98 @@
+{
+  "video": "consistent-ai-influencer",
+  "offset": 0,
+  "engineMode": "production",
+  "spans": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 97.56,
+      "end": 113.2,
+      "duration": 15.64,
+      "note": "Opens the body on the host. The intro film owns 0-90.7s and carries its own presenter, so this is the host's first appearance in the assembled body. It is the thesis of step 1 (decide who the influencer is before generating a single image, the step most people skip) and closes on the line that hands over to the interface, so the screen recording takes back over exactly where the clicking starts. Begins after the Step 01 section card clears, and 8.8s before the 105.7s intro-host deadline."
+    },
+    {
+      "id": "s01b",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 143.32,
+      "end": 154.46,
+      "duration": 11.14,
+      "note": "Short host bridge inside the first demo stretch. He is not clicking here, he is telling the viewer HOW to define a character (look, vibe, niche) — that is host content and the screen has nothing to show for it."
+    },
+    {
+      "id": "s01c",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 289.66,
+      "end": 301.5,
+      "duration": 11.84,
+      "note": "Short host bridge: the optional voice and backstory aside, which is a decision the viewer makes rather than a click to follow."
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 348.24,
+      "end": 368.56,
+      "duration": 20.32,
+      "note": "The payoff of the whole consistency argument, spoken with nothing on screen to show. Sits in the gap between the step-flow card and the Step 3 section card."
+    },
+    {
+      "id": "s02b",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 401.48,
+      "end": 412,
+      "duration": 10.52,
+      "note": "Short host bridge listing the scenarios the trained model unlocks (travel, outdoor, product placement). A menu of possibilities, not an on-screen action."
+    },
+    {
+      "id": "s03",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 593.68,
+      "end": 607.64,
+      "duration": 13.96,
+      "note": "Why video matters to sponsors. The segments file marks this stretch demo, but the presenter is arguing, not clicking: the on-screen work restarts at 'head over to this photo right here'."
+    },
+    {
+      "id": "s04",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 781.53,
+      "end": 806.19,
+      "duration": 24.66,
+      "note": "The host summarising what the character can now be used for, after the video result has been shown. Overlaps only the verdict-chips overlay, which is legal."
+    },
+    {
+      "id": "s04b",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 995.49,
+      "end": 1005.69,
+      "duration": 10.2,
+      "note": "Host bridge before the pitch section: the sponsor-deliverable argument (same face, both formats, standing out from static-only creators). Conceptual, nothing on screen to point at."
+    },
+    {
+      "id": "s05",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 1089.55,
+      "end": 1104.17,
+      "duration": 14.62,
+      "note": "Host beat inside the scores summary: the ease-of-use caveat and the face-consistency verdict, delivered to camera. The only graphics here are score-pill overlays, which an avatar span may sit under. Replaces the side span dropped when checklist/checklist proved unable to hold its content at side-mode width."
+    },
+    {
+      "id": "s07",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 1213.77,
+      "end": 1229.61,
+      "duration": 15.84,
+      "note": "Closing host stretch: link, comment ask and subscribe. Back of the U-curve, after the last conclusion card.",
+      "snapped": true
+    }
+  ]
+}

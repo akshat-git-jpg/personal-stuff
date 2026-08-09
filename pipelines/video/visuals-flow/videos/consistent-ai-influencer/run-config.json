@@ -1,8 +1,9 @@
 {
-  "engine": "heygen3",
+  "engine": "heygen4",
   "review": "express",
   "intro": "film",
   "drive_folder": "1w2QOStUwCd0nBUsK8BsC8hFyieUH6Elw",
   "drive_account": "kushalbakliwal25@gmail.com",
-  "decided_at": "2026-08-03T15:25:57.963Z"
+  "decided_at": "2026-08-03T15:25:57.963Z",
+  "engine_changed": "2026-08-08: owner switched from heygen3 to heygen4 (METERED) at the 420 gate."
 }

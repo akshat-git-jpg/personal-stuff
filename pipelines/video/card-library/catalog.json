@@ -18,9 +18,16 @@
           "type": "string",
           "role": "sentence",
           "example": "This is an example sentence."
+        },
+        "typeSeconds": {
+          "required": false,
+          "type": "number",
+          "role": "free",
+          "example": 5.5
         }
       },
-      "default_duration": 12
+      "default_duration": 12,
+      "spoken_var": "prompt"
     },
     {
       "slug": "tool-icon/tool-glass-tile",
@@ -249,7 +256,8 @@
       "default_duration": 8,
       "max_beats": 6,
       "max_reveal_chars": 40,
-      "pre_beat_render": "chrome"
+      "pre_beat_render": "chrome",
+      "side_note": "side:true is now backed by an auto-fit (the card shrinks its hero 150->100px, then its item text 40->30px, until title and list both fit the current canvas). MEASURED at 1200x1080 with a 30-char title and 5 items up to 38 chars: everything visible, nothing clipped (2026-08-08). Before the auto-fit this card clipped its heading off the top of the frame and its last item off the bottom at side width, while max_beats/max_reveal_chars — measured at 1920 only — reported it as within capacity. Capacities on a side-capable card must be measured at BOTH widths."
     },
     {
       "slug": "checklist/icon-pills",
@@ -1092,13 +1100,19 @@
           "required": true,
           "type": "string",
           "role": "free",
-          "example": "Example value"
+          "example": "yes",
+          "enum": [
+            "yes",
+            "no"
+          ],
+          "note": "the card branches on this exact string. It had no enum until 2026-08-07, so consistent-ai-influencer c28 authored \"pro\" and every positive chip rendered as a red cross for the whole video with nothing erroring."
         }
       },
       "default_duration": 8,
       "max_beats": 4,
       "max_reveal_chars": 32,
-      "pre_beat_render": "chrome"
+      "pre_beat_render": "chrome",
+      "beat_align": "end"
     },
     {
       "slug": "pros-cons/pros-cons",
@@ -1297,7 +1311,9 @@
           "required": true,
           "type": "string",
           "role": "heading",
-          "example": "Section Title"
+          "example": "Lock The Face",
+          "max_chars": 26,
+          "note": "the card shrinks the hero to fit, but only down to the 120px floor. Past ~26 characters it needs a third line and stops reading as a section plate. \"Create Your Base Character\" is exactly 26 and is the practical ceiling."
         }
       },
       "default_duration": 5,
@@ -2714,7 +2730,7 @@
           "required": false,
           "type": "string",
           "role": "free",
-          "note": "the real anchor portrait, used in EVERY frame — sameness is the point, so this card must never vary it per beat. Omitted renders a flat vector stand-in.",
+          "note": "the real anchor portrait for the FIRST frame. Omitted renders a flat vector stand-in, which the owner rejects in a finished video (DESIGN.md, real photos beat vector stand-ins).",
           "example": "assets/anchor.png"
         }
       },
@@ -2729,8 +2745,15 @@
           "required": false,
           "type": "string",
           "role": "free",
-          "note": "rgba wash for that scenario frame; the ONLY thing allowed to differ between duplicates",
+          "note": "optional rgba wash that separates the frames. It is NOT what makes them different scenarios — beats[].image is. Auto-softened when the beat carries its own image.",
           "example": "rgba(154,216,255,0.55)"
+        },
+        "image": {
+          "required": false,
+          "type": "string",
+          "role": "free",
+          "note": "the SAME character in a DIFFERENT scenario for this frame. The face is the constant, the scenario is the variable — a shared image with a colour tint was rejected by the owner (2026-08-07). Falls back to anchorImage if omitted.",
+          "example": "card-images/c20-scenario-kitchen.jpg"
         }
       },
       "beat_source": "beat",

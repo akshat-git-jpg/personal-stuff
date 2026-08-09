@@ -4,6 +4,7 @@ import os from 'node:os';
 import { spawnSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { enrichLogos } from './logos-inline.mjs';
+import { enrichImages } from './images-inline.mjs';
 
 import { resolveCues, extendExposure } from './resolve.mjs';
 import { avatarFullSpans } from './lint-cues.mjs';
@@ -286,7 +287,12 @@ async function main() {
       }
       fs.writeFileSync(indexPath, injectBrand(newHtml, brand));
 
-      const { variables: enrichedVars, missing } = enrichLogos(cue.variables, cardLibraryRoot);
+      const { variables: withImages, missing: missingImages } = enrichImages(cue.variables, workdir);
+      if (missingImages.length > 0) {
+        errors.push(`${cue.id}: image not found in the video workdir: ${missingImages.join(', ')}`);
+        return;
+      }
+      const { variables: enrichedVars, missing } = enrichLogos(withImages, cardLibraryRoot);
       if (missing.length > 0) {
         errors.push(`${cue.id}: missing logo slugs in registry: ${missing.join(', ')}`);
         return;

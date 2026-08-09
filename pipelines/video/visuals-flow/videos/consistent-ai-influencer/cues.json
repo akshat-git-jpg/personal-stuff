@@ -1,6 +1,6 @@
 {
   "video": "consistent-ai-influencer",
-  "approved": false,
+  "approved": true,
   "cues": [
     {
       "id": "c01",
@@ -171,21 +171,6 @@
       "legacy_why": "the Train flow is never shown on screen and no enacted/ device walks an off-screen process"
     },
     {
-      "id": "c10",
-      "card": "slate/kinetic-sentence",
-      "anchor": "it is automatically in here already",
-      "lead": 0.2,
-      "hold": 2.5,
-      "variables": {
-        "text": "it is automatically in here already",
-        "accent": "automatically"
-      },
-      "beats": [],
-      "register": "light",
-      "flagged": false,
-      "legacy_why": "a one-line spoken statement with no object to enact"
-    },
-    {
       "id": "c11",
       "card": "overlay/lower-third",
       "anchor": "you can just have true consistency",
@@ -270,21 +255,6 @@
         "label": "Also Covered",
         "text": "Travel content, open landscapes and product placement setups.",
         "edge": "bottom"
-      },
-      "beats": [],
-      "register": "light",
-      "flagged": false
-    },
-    {
-      "id": "c15",
-      "card": "overlay/step-card",
-      "anchor": "we're going to start with creating a character image",
-      "lead": 0.3,
-      "hold": 4,
-      "variables": {
-        "step": 3,
-        "total": 7,
-        "label": "Generate content"
       },
       "beats": [],
       "register": "light",
@@ -385,18 +355,21 @@
       "lead": 0.4,
       "hold": 4,
       "variables": {
-        "title": "One Face, Every Scenario"
+        "title": "One Face, Every Scenario",
+        "anchorImage": "card-images/c20-anchor.jpg"
       },
       "beats": [
         {
           "reveal": {
-            "label": "Same face applied"
+            "label": "Same face applied",
+            "image": "card-images/c20-scenario-kitchen.jpg"
           },
           "anchor": "the same face is applied"
         },
         {
           "reveal": {
-            "label": "Very different scenario"
+            "label": "Very different scenario",
+            "image": "card-images/c20-scenario-video.jpg"
           },
           "anchor": "in just a very different scenario"
         }
@@ -548,21 +521,21 @@
         {
           "reveal": {
             "text": "Facial features hold",
-            "verdict": "pro"
+            "verdict": "yes"
           },
           "anchor": "her facial features do not change"
         },
         {
           "reveal": {
             "text": "Commercial worthy",
-            "verdict": "pro"
+            "verdict": "yes"
           },
           "anchor": "I think that it really is commercial worthy"
         },
         {
           "reveal": {
             "text": "Looks believable",
-            "verdict": "pro"
+            "verdict": "yes"
           },
           "anchor": "And it actually looks very believable"
         }
@@ -871,7 +844,8 @@
       "lead": 0.3,
       "hold": 2.5,
       "variables": {
-        "title": "The Scores"
+        "title": "The Scores",
+        "number": "08"
       },
       "beats": [],
       "register": "light",
@@ -1012,22 +986,6 @@
       "flagged": false
     },
     {
-      "id": "z02",
-      "card": "statement/keyword-statement",
-      "zone": "conclusion",
-      "anchor": "It's all here, and it works",
-      "lead": 0,
-      "hold": 3,
-      "variables": {
-        "text": "It's all here, and it works.",
-        "keyword": "it works"
-      },
-      "beats": [],
-      "register": "light",
-      "legacy_why": "a single spoken assertion with no object to enact",
-      "flagged": false
-    },
-    {
       "id": "z03",
       "card": "enacted/spotlight-focus",
       "zone": "conclusion",
@@ -1081,5 +1039,6 @@
       "register": "light",
       "flagged": false
     }
-  ]
+  ],
+  "approved_by": "owner, 2026-08-08 (\"Approved story board\") — after two storyboard feedback rounds, 17 items, all folded. Gate 340 stands as written; it was not waived or removed."
 }

@@ -301,6 +301,35 @@ marks and read as a wireframe.
   no `saturate()`/`brightness()`. Add the 1px inset only when `__logoDark[slug]`
   is true.
 
+### Real photos beat vector stand-ins
+
+**Owner rule, 2026-08-07.** Where a card depicts a PERSON, a generated result, or
+anything else the video is claiming to have produced, it takes a real image. A
+drawn vector silhouette is a placeholder, not a design choice, and the owner
+rejects it on sight: "I prefer actual images over such placeholders or vectors,
+I prefer photorealism compared to vector portraits" (raised against
+`enacted/character-card-stamp` on consistent-ai-influencer c20, which argued
+that one face survives every scenario while showing a flat vector head).
+
+- Cards may keep a vector fallback for their standalone gallery preview, but a
+  card used in a video must be handed the real thing.
+- Pass images as a workdir-relative path (`card-images/c20-anchor.jpg`).
+  `lib/images-inline.mjs` in visuals-flow inlines any `.jpg/.jpeg/.png/.webp`
+  variable as a data URI for BOTH the board preview and the renderer, the same
+  way `logos-inline.mjs` handles brand marks. A bare relative path would resolve
+  differently on each surface, so never hand a card a raw path expecting the
+  browser to fetch it.
+- Generated portraits come from pollinations.ai today, with the seed pinned per
+  cue so a re-render returns the identical face. On a card whose argument IS
+  sameness, an unpinned seed silently destroys the point.
+- Photorealism is the exception the flat-2D style guide above makes for depicted
+  people and generated results. It does not license photographic backgrounds,
+  gradients, or 3D chrome anywhere else.
+
+A generic pollinations layer (image prompts declared on the cue, fetched and
+cached by the pipeline) is deferred by owner decision, 2026-08-07: worth
+designing properly rather than growing out of one card.
+
 Known debt: 39 of 52 fullframe cards are text-only today. The two used as product
 verdicts (`spotlight-focus`, `race-bars`) were fixed when the rule landed; the rest
 are a sweep, not a blocker, and no NEW card may be added text-only.
@@ -373,6 +402,27 @@ touch, and never add a NEW card that the probe reports.
 3. `max_beats` + `max_reveal_chars` measured honestly (fill the card to the limit
    and look at it) and recorded in `catalog.json` with `kind`, `placement`,
    `purpose`, `variables`, `beat_shape`, `default_duration`.
+
+   Two more catalog keys exist because a card cannot ask for them at runtime,
+   and BOTH were added after the same defect shipped twice (2026-08-07). If your
+   card matches one of these descriptions and omits the key, the defect is
+   guaranteed, not likely. `check-catalog.mjs` validates the values.
+
+   - **`spoken_var: "<variable>"`** — set it when the card ANIMATES COPY THE
+     PRESENTER SAYS OUT LOUD (types it, reveals it word by word, counts it in).
+     visuals-flow then paces the animation and the card's exposure off the
+     transcript. Without it the card animates across `default_duration`, a
+     motion constant with no relation to speech: `prompt/prompt-typing` spread a
+     5.5s dictated prompt over 10.95s, so barely half the text was on screen by
+     the time the voice had said all of it, and then held the finished text for
+     another 5.3s.
+   - **`beat_align: "start" | "end"`** (default `"start"`) — where in its anchor
+     phrase each reveal lands. `"start"` is right when the reveal MIRRORS the
+     words as they are spoken ("Open the Train section" appears as he says it).
+     `"end"` is right when the reveal draws a CONCLUSION about them: a verdict
+     chip reading "Facial features hold" placed at the start of "her facial
+     features do not change" states the point 3.6s before the presenter
+     finishes making it. Ask which of the two your card is before shipping it.
 4. `npx hyperframes@latest lint <card>` passes (the 2 known warnings are OK).
 5. Before shipping: render once and LOOK at the midpoint frame — layout intact,
    text readable at YouTube compression sizes.

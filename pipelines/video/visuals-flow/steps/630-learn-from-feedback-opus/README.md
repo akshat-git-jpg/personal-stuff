@@ -49,7 +49,7 @@ So, before a lesson is written to any surface:
    - **intro items** (`intro:*`) route to `TASTE-INTRO.md` or the 025 authoring contract. Body items never do. See `pipelines/.claude/skills/visuals-flow-feedback/SKILL.md` for the full intro routing rule.
    - **any item keyed `zone-intro:*` / `zone-conclusion:*` (raised at the 037
      card-plan gate, or anywhere else about a zone) →
-     `steps/035-pick-or-propose-intro-outro-llm/RULEBOOK.md` and
+     `steps/220-author-conclusion-cues-llm/RULEBOOK.md` and
      `lib/zone-rules.mjs` / `lib/zone-constants.mjs`, then
      `node lib/build-zone-prompt.mjs`. NEVER into the body's rulebook.** The
      separation is the owner's explicit instruction (2026-07-29): intro and

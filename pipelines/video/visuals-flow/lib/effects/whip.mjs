@@ -137,8 +137,11 @@ export function boundarySegments(instance, ctx) {
   if (isRegister) {
     // 0.4s dip: fade out 0.2s to black (or lift) -> both directions implemented as dip to black for now
     // TODO: implement white-lift for dark->light if feasible, falling back to black dip.
-    chainOut = `[0:v]${VF},fade=t=out:st=0:d=${half},scale=${w}:${h},setsar=1[v]`;
-    chainIn = `[0:v]${VF},fade=t=in:st=0:d=${half},scale=${w}:${h},setsar=1[v]`;
+    // tpad matches the whip/flash branches below: assemble asks for an exact
+    // frame count, so a slice that ends a fraction of a frame short of `half`
+    // must be able to clone its last frame rather than come up short.
+    chainOut = `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,fade=t=out:st=0:d=${half},scale=${w}:${h},setsar=1[v]`;
+    chainIn = `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,fade=t=in:st=0:d=${half},scale=${w}:${h},setsar=1[v]`;
   } else {
     chainOut = isFlash ? chainOutFlash :
       `[0:v]${VF},tpad=stop_mode=clone:stop_duration=1,` +

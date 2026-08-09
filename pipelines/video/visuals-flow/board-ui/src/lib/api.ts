@@ -15,6 +15,17 @@ export interface BoardData {
   // step registry + run-config.json.
   runConfig: { engine: string; review: string; intro: string; configured: boolean };
   tabs: string[];
+  // Which gates the owner has already passed. The server has always sent this;
+  // it was untyped, so the Final Cut tab could not see its own approved state
+  // and its button looked dead after a successful click (owner report
+  // 2026-08-09). `effects` is null for a video with no effects plan.
+  approved?: {
+    cues: boolean;
+    shots: boolean;
+    effects: boolean | null;
+    cardPlan: boolean;
+    finalCut: boolean;
+  };
 }
 
 export async function fetchBoardData(video: string | null): Promise<BoardData> {

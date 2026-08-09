@@ -50,7 +50,7 @@ the body's rulebook, and the reverse:
 
 | Section | Feedback key | Folds into |
 |---|---|---|
-| intro | `zone-intro:<n>` | `steps/035-pick-or-propose-intro-outro-llm/RULEBOOK.md` |
+| intro | `zone-intro:<n>` | `steps/220-author-conclusion-cues-llm/RULEBOOK.md` |
 | conclusion | `zone-conclusion:<n>` | same — the zone rulebook |
 | body | `card-body:<n>` | `steps/030-pick-or-propose-graphics-llm/RULEBOOK.md` |
 

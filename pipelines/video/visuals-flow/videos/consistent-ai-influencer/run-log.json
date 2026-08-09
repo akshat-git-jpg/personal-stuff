@@ -1,6 +1,6 @@
 {
   "video": "consistent-ai-influencer",
-  "updated": "2026-08-07T15:12:58.698Z",
+  "updated": "2026-08-09T03:48:28.144Z",
   "steps": {
     "020-transcribe-run": {
       "status": "done",
@@ -84,11 +84,11 @@
     },
     "310-sync-graphics-run": {
       "status": "done",
-      "started": "2026-08-07T15:12:06.340Z",
-      "issues": "Nine bare-stretch warnings and one variant-rotation warning survive, all deliberate: the demo segments only allow overlays, so the gaps sit in settings talk the footage already shows and filling them would mean inventing decoration. The intro still reports as carrying no cues, which is correct — the film owns that span.",
-      "ended": "2026-08-07T15:12:58.698Z",
-      "did": "Resolved all 60 cues to absolute times and ran the cue lint. Everything the plan names now exists, so resolved.json finally writes — the Storyboard has real timings and live previews for the first time. Zero lint errors.",
-      "output": "resolved.json — 60 cues, 1179.0s to 1225.7s covered in the conclusion, 0 errors"
+      "started": "2026-08-07T20:44:30.785Z",
+      "issues": "W1 fullframe-cadence: c04 starts 5.3s after c01 (minimum gap 12s)  |  W1 fullframe-cadence: c16 starts 58.8s after c13 (maximum gap 45s)  |  W1 fullframe-cadence: c20 starts 55.9s after c16 (maximum gap 45s)  |  W1 fullframe-cadence: c24 starts 58.3s after c21 (maximum gap 45s)  |  W1 fullframe-cadence: c29 starts 60.1s after c24 (maximum gap 45s)  |  W1 fullframe-cadence: c41 starts 9.8s after c40 (minimum gap 12s)  |  W1 fullframe-cadence: z01 starts 97.7s after c44 (maximum gap 45s)  |  W21 long-hold: c20 holds enacted/character-card-stamp for 13.3s, 2.2x its designed 6s — confirm the card's hold loop is visible for the tail (DESIGN.md long-hold rule)  |  (+15 more warning/error lines — re-run the verb to see all)",
+      "did": "Resolved every cue anchor to an absolute time, merged card variables, and ran the cue lint.",
+      "output": "resolved.json",
+      "ended": "2026-08-07T20:44:46.470Z"
     },
     "240-build-cards-llm": {
       "status": "done",
@@ -97,6 +97,102 @@
       "did": "Built enacted/character-card-stamp — the card the whole concept rests on. An anchor portrait card sits at the left; on each beat a duplicate stamps in to its right carrying the IDENTICAL portrait, differing only in a scenario tint, with a rail advancing and a solid mark landing where it meets each frame. The card renders the same image source in every frame by construction, because sameness is the entire argument. Registered it in catalog.json with an honest capacity, and rendered it three times over, fixing what the frames actually showed rather than what the code looked like.",
       "issues": "Three defects only visible once rendered. The rail ran straight through the portraits like a strikethrough across the faces — the panels were translucent so the line read through them; they are opaque matte now and the rail shows only in the gaps. The stamp marks floated on the chins instead of where the rail meets each frame, now pinned to the left edge. And the labels shrink-wrapped to the card width, wrapped to three lines and climbed back over the portraits, fixed with an explicit label width and a taller slot. Two smaller things: the type-scale gate wanted a 120px hero rather than the 96px I picked, and I verified the declared max of 3 beats by actually rendering four frames rather than trusting the arithmetic. One knock-on: the real card runs 13.3s where the kinetic-sentence it replaced ran about 5, so it collided with the Step 4 section card — moved that anchor a few words later in the same sentence. The card is NOT pushed yet, and per card-library's rule an unpushed card stays invisible to the editor's Templates tab forever without erroring.",
       "output": "card-library/enacted/character-card-stamp/index.html + catalog.json entry (68 cards); contact sheet at ~/kb-scratch/card-qa/enacted-character-card-stamp.png"
+    },
+    "320-place-avatar-llm": {
+      "status": "done",
+      "started": "2026-08-07T19:48:45.500Z",
+      "ended": "2026-08-07T20:43:27.835Z",
+      "did": "Planned the full-screen host moments: 10 spans, 148.7s of host time across the 20:30 video (12%), against a 300s cap and an 82s floor. All full-screen. U-curve as the rulebook asks: the host opens the body 6.9s after the intro film hands over (deadline was 105.7s, he lands at 97.6), runs 10-25s bridges through the hands-on middle, and closes on the link, comment ask and subscribe. Every span starts and ends on a sentence boundary and none covers a fullframe graphic.",
+      "issues": "Originally planned one side-mode span over the pitch checklist (c41). Rendering proved that card cannot hold its content at side-mode width: the catalog marks checklist/checklist side:true and caps it at 6 items, but with a 30-char title and 5 items the 1200px render clipped the heading off the top of the frame and cut the last item off the bottom. Same content renders perfectly at 1920. Dropped the side span, replaced it with a full-screen beat in the scores summary, and c41 now renders full width. The card's side:true capacity is dishonest and belongs in the fold, not in this run. Two span-cadence warnings survive (182s and 189s against a 180s guideline), both across this video's longest demo stretches; I enumerated every legal window in those gaps and each remaining one is the presenter narrating an on-screen action, which rule 7 assigns to the recording.",
+      "output": "shots.json — 10 spans, all full mode, engineMode test (heygen3, matching run-config); shots.resolved.json resolves with 0 lint errors; snapshot at shots.llm.json"
+    },
+    "410-render-graphics-run": {
+      "status": "done",
+      "started": "2026-08-07T20:22:44.498Z",
+      "ended": "2026-08-07T20:34:35.274Z",
+      "did": "Rendered every approved cue to a clip and wrote the editor manifest.",
+      "output": "renders/ + manifest.md",
+      "issues": "none found"
+    },
+    "330-review-storyboard-run": {
+      "status": "done",
+      "ended": "2026-08-07T20:44:03.417Z",
+      "started": "2026-08-07T20:44:03.417Z",
+      "did": "Ran the pre-render storyboard check over the 57-cue plan and the shot plan. Zero hard errors on both. Wrote this entry by hand because run.sh's storyboard-check verb has no record_step wrapper, so the step does not record itself even though it is a -run step (same gap the 230 entry notes for validate).",
+      "issues": "W18 zone-still reported 16.2s of static frame in the conclusion with 'no card, no avatar'. It is a false positive by construction at this point in the flow: W18 reads avatar coverage from avatar-jobs.json, which step 430 produces, so at 330 it cannot see the spans step 320 just planned. s07 covers 15.8s of the 16.2s it flagged and the genuinely uncovered tail is 0.8s, well inside the 8s threshold. It will fire on every video whose conclusion is host-only, at the exact gate where the owner is asked to approve. Left alone per the operating guardrail that rule changes go through the 130 fold, not an operating session.",
+      "output": "no artifact — check only; 0 errors, warnings triaged above"
+    },
+    "420-propose-avatar-human": {
+      "status": "done",
+      "ended": "2026-08-07T22:18:13.802Z",
+      "started": "2026-08-07T22:01:31.268Z",
+      "did": "Owner approved the avatar plan on the board: character girl-1, model heygen4. 10 clips, 148.74s.",
+      "output": "avatar-plan.json approved (girl-1 / heygen4); auth-check live; limits show 438s of generative credit against a 148.7s batch",
+      "issues": "The board pick (heygen4, METERED) contradicted the kickoff config (heygen3, free), and avatar-render refuses to submit on that mismatch. Held the batch and asked; owner confirmed heygen4 explicitly in conversation. Set shots.json engineMode=production and run-config engine=heygen4, recording the authorization in both files. Separately the HeyGen session token had expired (HTTP 401 on limits); owner supplied a fresh capture and it was substituted into infra/secrets/heygen-web-curls.txt with a .bak of the old one, both gitignored. First capture the owner sent was for consumer.cloud.gist.build (the in-app messaging widget) and carried no HeyGen session, so it was rejected."
+    },
+    "430-render-avatar-run": {
+      "status": "done",
+      "started": "2026-08-08T11:21:14.746Z",
+      "did": "Downloaded the finished HeyGen avatar clips.",
+      "output": "avatar clips in kb-scratch + avatar-manifest.md",
+      "issues": "exited 1, see terminal",
+      "ended": "2026-08-08T11:22:10.739Z"
+    },
+    "450-plan-sound-run": {
+      "status": "done",
+      "ended": "2026-08-08T07:33:14.666Z",
+      "started": "2026-08-08T07:33:14.666Z",
+      "did": "Planned the sound design: 48 effect instances across the 20:30 video.",
+      "issues": "Wrote this entry by hand — run.sh's sound verb has no record_step wrapper, same gap as storyboard-check and validate. The planner also placed one instance past the end of the voiceover (see 460).",
+      "output": "sound.json — 48 instances"
+    },
+    "460-mix-audio-run": {
+      "status": "done",
+      "ended": "2026-08-08T07:33:14.731Z",
+      "started": "2026-08-08T07:33:14.731Z",
+      "did": "Mixed the master: voiceover, 48 sound effects, loudnorm to -14 LUFS. master.wav is frame-exact against vo.mp3 (1230.229333s, delta 0.0000s).",
+      "issues": "The first mix attempt FAILED the frame-exact gate at mix=1230.98 vs vo=1230.229. Cause: step 450 planned a 'success' effect at 1230.73s, which is 0.5s AFTER the voiceover ends, and the 0.25s sample pushed the master to exactly 1230.98. Two defects behind one symptom, both for the fold: (1) 450's planner does not clamp instance times to the voiceover duration, so it can schedule audio into silence; (2) lib/sound/build-mix.mjs's final amix has no duration bound, so it defaults to 'longest' and a late effect silently lengthens the master instead of being clipped — the frame-exact check catches it after the render rather than the mix preventing it. Fixed for this video only by moving the instance to 1229.9, which lands it just after the last spoken word at 1229.61. Re-running 450 would regenerate the bad placement.",
+      "output": "master.wav — 1230.229333s, frame-exact, sfx bus audible"
+    },
+    "440-rerender-intro-film-run": {
+      "status": "done",
+      "ended": "2026-08-08T07:36:27.988Z",
+      "started": "2026-08-08T07:36:27.988Z",
+      "did": "Re-rendered the intro film against the real avatar clip. 90.7s, 2721 frames, film gate pass, written to intro-film/out/intro.mp4.",
+      "issues": "Wrote this entry by hand — run.sh's intro-rerender verb has no record_step wrapper either, the fourth step in this run with that gap (330, 450, 460, 440). Worth folding as one fix rather than four. Note also that the intro film's presenter is an Avatar III clip while the body spans are Avatar IV; I compared frames from both and they are visibly the same person, same set and same wardrobe, so the engine difference does not show.",
+      "output": "intro-film/out/intro.mp4 — 90.7s, film gate pass"
+    },
+    "510-assemble-video-run": {
+      "status": "done",
+      "started": "2026-08-08T11:39:48.520Z",
+      "issues": "Ran the 510 step runner directly with --draft rather than through run.sh. The 'assemble' verb builds the FULL-RESOLUTION final and refuses without the 530 approval, which cannot exist before there is a draft to review; the only run.sh path that passes --draft is the 'cut' composite, which would have re-run render, sound and mix unnecessarily. So the draft assemble is not reachable through a recording verb on its own, and this ledger entry was written by hand. Worth a --draft flag on the assemble verb.",
+      "ended": "2026-08-08T11:44:51.649Z",
+      "did": "Assembled the draft cut: intro film, screen recording, 57 graphics, 10 avatar spans and the mastered audio. 20:30.2 (1230.229s, exact against vo.mp3), 1280x720 draft resolution, h264+aac, registered as v1. Spot-checked eight frames across the whole timeline: the intro film, an avatar span, prompt-typing mid-type, step-flow with the accent on step 3, the character-card stamp with its three real photos, a verdict chip over live footage, the pitch checklist at full width, and the outro host. Audio measures mean -17.1 dB / peak -1.3 dB against the -14 LUFS / -1.5 TP target.",
+      "output": "~/kb-scratch/video/visuals-flow/consistent-ai-influencer/final-draft.mp4 — 20:30.2, v1; assembly.md"
+    },
+    "150-approve-intro-film-human": {
+      "status": "done",
+      "ended": "2026-08-08T11:38:09.184Z",
+      "started": "2026-08-08T11:38:09.184Z",
+      "did": "Owner approved the intro film.",
+      "output": "intro-film/screenplay.json approved=true",
+      "issues": "none found"
+    },
+    "620-deliver-drive-run": {
+      "status": "done",
+      "started": "2026-08-09T03:25:45.065Z",
+      "issues": "exited 1, see terminal",
+      "ended": "2026-08-09T03:48:28.144Z",
+      "did": "Uploaded the approved full-resolution final to the video's Drive Output folder.",
+      "output": "Output/<slug>-final.mp4 on Drive"
+    },
+    "530-approve-final-cut-human": {
+      "status": "done",
+      "ended": "2026-08-09T03:04:27.513Z",
+      "started": "2026-08-09T03:04:01.492Z",
+      "did": "Owner approved the final cut (version v3).",
+      "output": "final-cut.json approved=true, version v3",
+      "issues": "none found"
     }
   }
 }

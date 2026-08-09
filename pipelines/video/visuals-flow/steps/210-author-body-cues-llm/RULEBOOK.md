@@ -313,7 +313,7 @@ contract (`card-library/README.md`) for timing mechanics and the design system
 (`card-library/DESIGN.md`) for palette, typography, layout and motion, including
 honestly measured `max_beats`/`max_reveal_chars` — plus a matching
 `catalog.json` entry. That procedure lives in `card-library/CLAUDE.md`; step
-`038-build-cards-llm-and-review-human` points at it rather than restating it.
+`240-build-cards-llm` points at it rather than restating it.
 
 This is what grows the catalog, so later videos need fewer proposals. Card
 authoring is occasional library growth rather than the per-video loop, so it

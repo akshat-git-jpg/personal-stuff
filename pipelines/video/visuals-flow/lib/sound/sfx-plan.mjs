@@ -1,14 +1,29 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { resolveWorkdir } from '../workdir.mjs';
 import { SOUND_CONSTANTS } from './sound-constants.mjs';
+
+// Longest sample in assets/sfx. An effect must START early enough that its
+// tail still lands inside the voiceover, so the clamp reserves this much.
+export const SFX_MAX_SAMPLE_S = 0.5;
 
 export function planSfx({ resolved, effects, segments, total }) {
   let rawInstances = [];
   let idCounter = 1;
 
+  // Nothing may be scheduled into the silence after the voiceover ends. The
+  // planner used to place the structural-end effect at the LAST CUE's end, and
+  // a cue can outlast the VO: on consistent-ai-influencer the final cue ran to
+  // 1230.73s against a 1230.229s voiceover, so a "success" hit was scheduled
+  // 0.5s past the end of the audio (2026-08-08). It was inaudible AND it
+  // lengthened the master, failing the frame-exact gate at 460.
+  // `total` is the voiceover duration; 0 or missing means "not measured",
+  // in which case we clamp nothing rather than clamp to zero.
+  const latest = Number.isFinite(total) && total > 0 ? total - SFX_MAX_SAMPLE_S : null;
   const pushSfx = (at, sample, semi, gainDb, extra = {}) => {
-    rawInstances.push({ id: `sfx-${idCounter++}`, at, sample, semi, gainDb, ...extra });
+    const clamped = latest === null ? at : Math.min(at, latest);
+    rawInstances.push({ id: `sfx-${idCounter++}`, at: +clamped.toFixed(2), sample, semi, gainDb, ...extra });
   };
 
   // Structural start
@@ -173,8 +188,19 @@ function main() {
     segments = Array.isArray(raw) ? raw : (raw.segments ?? []);
   }
   
-  const manifestPath = path.join(workdir, 'video.json');
-  let total = 0; // If total is needed outside of segments, though we mostly use resolved cues
+  // The voiceover length, measured — not inferred from cues. A cue can outlast
+  // the VO, and until 2026-08-08 this was hardcoded to 0, which disabled the
+  // end-clamp in planSfx entirely.
+  const voPath = path.join(workdir, 'vo.mp3');
+  let total = 0;
+  if (fs.existsSync(voPath)) {
+    const probe = spawnSync('ffprobe',
+      ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', voPath],
+      { encoding: 'utf8' });
+    const parsed = parseFloat((probe.stdout || '').trim());
+    if (Number.isFinite(parsed)) total = parsed;
+  }
+  if (!total) console.error('warning: could not measure vo.mp3 — effects will not be clamped to the voiceover end');
 
   const newInstances = planSfx({ resolved, effects, segments, total });
 

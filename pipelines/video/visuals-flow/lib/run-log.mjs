@@ -154,11 +154,24 @@ const ARTIFACT_PROOF = {
   // Media files, not the directory: an empty renders/ (or one holding only
   // probe leftovers) marked 410 done and painted a green tick for a render
   // that never ran (owner report 2026-07-31).
+  // 410 is done when EVERY resolved cue has a clip, not when one file exists.
+  // "some file present" was already the second version of this rule (an empty
+  // renders/ used to count), and it still painted a green tick from partial
+  // output: a session rendering 5 of 57 cards to verify a fix marked the step
+  // done, and the board told the owner the graphics were finished (2026-08-08).
+  // Counting against the plan is the only version that cannot be faked by
+  // probe leftovers.
   '410': (w) => {
     const d = path.join(w, 'renders');
     if (!fs.existsSync(d)) return false;
     try {
-      return fs.readdirSync(d).some((f) => /\.(mp4|mov)$/i.test(f));
+      const clips = fs.readdirSync(d).filter((f) => /\.(mp4|mov)$/i.test(f));
+      if (clips.length === 0) return false;
+      const resolved = readJson(path.join(w, 'resolved.json'))?.resolved;
+      if (!Array.isArray(resolved) || resolved.length === 0) return false;
+      // Render filenames carry the cue id: NNNN-<id>-<card>.mp4
+      const rendered = new Set(clips.map((f) => (f.match(/^\d+-([A-Za-z0-9]+)-/) || [])[1]).filter(Boolean));
+      return resolved.every((c) => rendered.has(c.id));
     } catch {
       return false;
     }

@@ -1,7 +1,7 @@
 # 140 · review intro frames · [RUN]
 
 The pre-render review pass for the bespoke intro film, split out of the old
-`027-approve-intro-film-human` folder (plan 199) so a review always happens
+`140-review-intro-frames-run` folder (plan 199) so a review always happens
 before the approval gate (150) rather than as a sibling verb rendering could
 skip.
 

@@ -95,17 +95,21 @@ expect_dry intro-review "node lib/intro-film/review-film.mjs $FIX"
 # watch, so gating it on approval deadlocked the review. Approval guards
 # assembly instead (lib/assemble.mjs, owner report 2026-08-06).
 expect_dry intro-render "node lib/intro-film/render-film.mjs $FIX"
-expect_dry validate "node lib/resolve.mjs $FIX --validate-only"
+expect_dry validate "record_step 230 -- node lib/resolve.mjs $FIX --validate-only"
 expect_dry resolve "record_step 310 -- node lib/resolve.mjs $FIX && node lib/lint-cues.mjs $FIX"
 expect_dry card-plan "node lib/card-plan.mjs $FIX"
 expect_dry outline "node lib/card-plan.mjs $FIX --outline"
 expect_dry board "bash steps/340-approve-storyboard-human/run.sh $FIX"
 expect_dry render "record_step 410 -- bash steps/410-render-graphics-run/run.sh $FIX"
 expect_dry fold "record 630 running + node lib/feedback-status.mjs"
-expect_dry sound "node lib/sound/sfx-plan.mjs $FIX"
-expect_dry mix "node lib/sound/build-mix.mjs $FIX"
-expect_dry storyboard-check "node lib/resolve-shots.mjs $FIX && node lib/lint-shots.mjs $FIX && node lib/stillness.mjs $FIX && node lib/audit-gate.mjs $FIX"
-expect_dry avatar "record_step 430 -- bash steps/430-render-avatar-run/run.sh $FIX --submit --spans-only --template specs-man"
+expect_dry sound "record_step 450 -- node lib/sound/sfx-plan.mjs $FIX"
+expect_dry mix "record_step 460 -- node lib/sound/build-mix.mjs $FIX"
+expect_dry storyboard-check "record_step 330 -- storyboard-check"
+# No default template. The approved character in avatar-plan.json is the
+# template; run.sh used to hardcode "specs-man", which silently overrode the
+# owner's board pick and would have rendered the wrong presenter on the METERED
+# engine (2026-08-08).
+expect_dry avatar "record_step 430 -- bash steps/430-render-avatar-run/run.sh $FIX --submit --spans-only"
 expect_dry avatar-download "record_step 430 -- bash steps/430-render-avatar-run/run.sh $FIX --download"
 expect_dry assemble "record_step 510 -- bash steps/510-assemble-video-run/run.sh $FIX"
 expect_dry deliver "record_step 620 -- bash steps/620-deliver-drive-run/run.sh $FIX"
@@ -196,5 +200,30 @@ done
 rm -f run-log.json
 bash run.sh . cue-pass >/dev/null
 [[ -f run-log.json ]] && { rm -f run-log.json; fail "run.sh . cue-pass must not write run-log.json into the pipeline root"; }
+
+
+# EVERY step-backed verb must record itself in the ledger.
+#
+# Five verbs shipped without a record_step wrapper (validate/230,
+# storyboard-check/330, intro-rerender/440, sound/450, mix/460). Each one ran
+# fine and then showed "todo" in the ledger afterwards, so the owner — who
+# follows a run from the board's Run tab, not the terminal — could not tell the
+# step had happened. Sessions papered over it by hand-writing entries, which is
+# how the same gap survived five times. A wrapper is now a test failure, not a
+# convention (2026-08-08).
+echo "Checking every step-backed verb records itself..."
+# intro-rerender refuses before it dispatches unless a real avatar exists, so
+# the fixture needs one for the wrapper to be observable at all.
+touch "$FIXDIR/avatar.mp4"
+for pair in \
+  "validate:230" "resolve:310" "storyboard-check:330" "render:410" \
+  "avatar:430" "avatar-download:430" "intro-rerender:440" \
+  "sound:450" "mix:460" "assemble:510" "transcribe:020" "segments:040"; do
+  verb="${pair%%:*}"; num="${pair##*:}"
+  out="$(VF_DRY_RUN=1 bash run.sh "$FIX" "$verb" 2>&1 || true)"
+  [[ "$out" == *"record_step $num"* ]] \
+    || fail "verb '$verb' must dispatch through record_step $num so the ledger shows it ran; got: $out"
+done
+echo "run.sh record_step coverage OK"
 
 echo "run.sh session-ledger tests OK"

@@ -3,7 +3,7 @@
 Propose 2-3 competing visual DIRECTIONS for `<slug>`'s intro film, one page
 each, and write them to `videos/<slug>/intro-film/idea.json`. You are choosing
 and rejecting an IDEA here — not writing beats, not deciding timings, not
-touching code. That happens at `025-author-intro-film-llm`, and only after the
+touching code. That happens at `130-author-intro-screenplay-llm`, and only after the
 owner has approved one of the directions you propose.
 
 **Why this step exists**: the intro's visual idea used to be invented inside
@@ -74,7 +74,7 @@ this pipeline.
 
 Write 2 or 3 `directions`, each genuinely different — not the same idea in
 different colours. `chosen` and `approved` are set by the owner at the next
-step (`028-approve-intro-idea-human`), never by you.
+step (`120-approve-intro-idea-human`), never by you.
 
 ## Never in scope here
 

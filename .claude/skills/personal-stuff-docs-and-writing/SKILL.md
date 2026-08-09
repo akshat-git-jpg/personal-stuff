@@ -1,6 +1,6 @@
 ---
 name: personal-stuff-docs-and-writing
-description: Use when writing or updating any documentation in personal-stuff — appending to decisions.md, registering a plan, closing a runs ledger, refreshing INFRA.md / VPS-CRONS.md / my-hosted-sites.md, or adding a README or CLAUDE.md to a new folder. Also use when unsure which doc of record a fact belongs in. (Rewriting prose to sound natural stays with humanizer.)
+description: Use when writing or updating any documentation in personal-stuff — appending to decisions.md, registering a plan, closing a runs ledger, refreshing INFRA.md / VPS-CRONS.md / my-hosted-sites.md, or adding a README or CLAUDE.md to a new folder. Also use when unsure which doc of record a fact belongs in. (Prose for a third party stays with humanizer; prose the owner reads back stays with i-have-adhd.)
 ---
 
 # Docs and writing
@@ -36,9 +36,13 @@ Every fact has exactly ONE home; everything else links to it. A doc that drifts 
 
 Mechanical drift in the root "Find it fast" table, dead links, missing READMEs → run the existing `audit-repo-route` skill (personal account) rather than hand-auditing; review its fixes via `git diff`.
 
-## Human-facing prose → humanizer
+## Prose → humanizer or i-have-adhd, by audience
 
-Any prose a human will read — README content, PR descriptions, Slack/email/Jira text, docs pages, landing/marketing copy, scripts for videos — goes through the existing `humanizer` skill before delivery. Exclusions: code, code comments, commit messages, config files, CLI output, machine-read files. (Global rule from the user's CLAUDE.md; it applies when drafting AND when rewriting.)
+Prose a **third party** will read (README content, PR descriptions, Slack/email/Jira text, docs pages, landing/marketing copy, video scripts) goes through the `humanizer` skill before delivery, when drafting and when rewriting.
+
+Prose the **owner** reads back in the session (explanations, instructions, summaries, status reports) goes through `i-have-adhd` instead. It auto-fires and persists once active; after "stop adhd mode" it must not be re-invoked.
+
+Excluded from both: code, code comments, commit messages, config files, CLI output, machine-read files. (Global rule from the user's CLAUDE.md; see decisions.md 2026-08-08 for why the split is by audience.)
 
 ## Where does this fact go? (quick disambiguator)
 

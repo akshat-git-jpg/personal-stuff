@@ -73,14 +73,23 @@ export const RETIRED_SLUGS = {
   '050-review-graphics-llm':        'retired/050-review-graphics-llm',        // folded into 330 (plan 196)
 };
 
-export function migrateLedger(ledger) {
-  const known = new Set(Object.values(SLUG_MIGRATION));
+export function migrateLedger(ledger, { steps = null } = {}) {
+  // A key passes through untouched when it already names a LIVE step folder.
+  //
+  // This used to test only the map's own right-hand destinations, which made a
+  // silent orphan of every folder plan 199 created fresh rather than renamed —
+  // 140-review-intro-frames-run, 150-approve-intro-film-human and
+  // 160-render-intro-film-run, the intro-film trio, are in no rename pair and so
+  // matched nothing. Nothing tripped while no ledger had reached those steps;
+  // the first real run to record one (consistent-ai-influencer's 150 approval,
+  // 2026-08-07) turned the gate red on a ledger that was entirely correct.
+  // The map exists to RENAME old slugs. A key already naming a step needs no
+  // rename, whether or not it was ever the right-hand side of one.
+  const live = new Set((steps ?? loadSteps()).map((s) => s.slug));
   const out = { ...ledger, steps: {} };
   const unmapped = [];
   for (const [key, value] of Object.entries(ledger.steps ?? {})) {
-    // Idempotency: a key that is already a migrated (or already-retired)
-    // destination passes through untouched rather than landing in `unmapped`.
-    if (known.has(key) || key.startsWith('retired/')) {
+    if (live.has(key) || key.startsWith('retired/')) {
       out.steps[key] = value;
       continue;
     }
@@ -94,14 +103,15 @@ export function migrateLedger(ledger) {
 // Every RIGHT-hand slug must be a real step folder, and nothing may be dropped.
 export function checkMigration({ steps = null, ledgers = [] } = {}) {
   const errors = [];
-  const known = new Set((steps ?? loadSteps()).map((s) => s.slug));
+  const live = steps ?? loadSteps();
+  const known = new Set(live.map((s) => s.slug));
   for (const [from, to] of Object.entries(SLUG_MIGRATION)) {
     if (!known.has(to)) {
       errors.push(`LEDGER-KEY-ORPHANED: ${from} maps to ${to}, which is not a step folder`);
     }
   }
   for (const { video, ledger } of ledgers) {
-    const { ledger: next, unmapped } = migrateLedger(ledger);
+    const { ledger: next, unmapped } = migrateLedger(ledger, { steps: live });
     for (const key of unmapped) {
       errors.push(`LEDGER-KEY-ORPHANED: ${video}'s ledger has "${key}", which the migration map does not cover — that video's history would stop resolving to a step`);
     }

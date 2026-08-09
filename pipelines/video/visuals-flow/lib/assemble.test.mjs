@@ -3,10 +3,55 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions, planAvatarBeats, splitAvatarSegments, absorbSlivers } from './assemble.mjs';
+import { planSegments, assemblyMd, runAssembly, planSegmentOverlays, encoderArgs, detectEncoder, planTransitions, planAvatarBeats, splitAvatarSegments, absorbSlivers, framesUntil, CANVAS } from './assemble.mjs';
 import { registerVersion } from './versions.mjs';
 
 const testTmp = path.resolve(import.meta.dirname, '.test-tmp', 'assemble-it');
+
+// The bug this defends: every piece encoded to floor(dur * fps) frames and threw
+// its remainder away, so a 104-piece concat came out 1.562s shorter than its
+// audio and the avatar drifted out of lip-sync (consistent-ai-influencer,
+// 2026-08-07). Cue times are authored to 0.01s, so most boundaries do NOT land
+// on a 30fps frame; the carry is what keeps the total honest anyway.
+test('framesUntil carries the sub-frame remainder instead of dropping it', () => {
+  // Boundaries deliberately off the frame grid, the way real cue times are.
+  const bounds = [15.64, 27.53, 41.117, 58.02, 73.99, 91.333, 110.01, 128.87];
+  let framePos = 0;
+  const counts = [];
+  for (const end of bounds) {
+    const n = framesUntil(end, framePos);
+    counts.push(n);
+    framePos += n;
+  }
+
+  // Zero accumulated loss: the concat lands on the frame the master clock does.
+  assert.equal(framePos, Math.round(bounds.at(-1) * CANVAS.fps));
+
+  // No individual piece is off by more than a frame from its ideal length.
+  let prev = 0;
+  bounds.forEach((end, i) => {
+    const ideal = (end - prev) * CANVAS.fps;
+    assert.ok(Math.abs(counts[i] - ideal) < 1,
+      `piece ${i}: ${counts[i]} frames vs ideal ${ideal.toFixed(3)}`);
+    prev = end;
+  });
+
+  // Truncating each piece independently — what the code used to do — loses real
+  // time on this same input. If that stops being true the test is not proving
+  // anything and the fixture needs harder boundaries.
+  const naive = bounds.reduce((sum, end, i) =>
+    sum + Math.floor((end - (bounds[i - 1] ?? 0)) * CANVAS.fps), 0);
+  assert.ok(framePos - naive >= 3,
+    `fixture too easy: naive truncation only loses ${framePos - naive} frames`);
+});
+
+test('framesUntil never emits a zero-length piece', () => {
+  // A segment plan can hand over a span shorter than a frame (sliver absorption
+  // leaves these behind). Zero frames would make ffmpeg write an empty piece and
+  // the concat would silently skip it.
+  assert.equal(framesUntil(10.0, 300), 1);
+  assert.equal(framesUntil(9.0, 300), 1);
+});
 
 
 test('absorbSlivers: 1.4s sliver between avatar and graphic -> graphic absorbs with padStart', () => {
@@ -847,6 +892,14 @@ test('Integration: placeholder still fills an undownloaded avatar span in a draf
     { purpose: 'avatar-full', id: 's01', start: 8, end: 20, placeholder: true, placeholderFile: still }
   ];
 
+  // This timeline is 30s and the shared vo fixture is 5s. runAssembly's A/V
+  // length gate compares the assembled video against its own audio, so the
+  // fixture has to cover the span it is asked to score — otherwise the test
+  // trips a guard that is doing its job. Longer is harmless for the earlier
+  // 5s cases: the final mux trims audio to `total`.
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono',
+    '-t', '30', '-q:a', '9', path.join(testTmp, 'vo.mp3')]);
+
   await runAssembly({
     workdir: testTmp,
     video: 'it',
@@ -879,6 +932,50 @@ test('Integration: placeholder still fills an undownloaded avatar span in a draf
   // darker than the raw still (red Y ~76 dimmed under a black@0.55 band).
   const yBand = stat('crop=1280:36:0:684', 'YAVG');
   assert.ok(yBand < 55, `label band should darken the bottom (YAVG<55), got ${yBand}`);
+});
+
+test('Integration: a timeline of OFF-GRID spans still lands on an exact frame count',
+  { skip: spawnSync('ffmpeg', ['-version']).error ? 'ffmpeg not found' : false }, async () => {
+  // Every other integration fixture here uses round-numbered times (total 5,
+  // total 30, spans at whole seconds), where floor(dur * fps) happens to be
+  // exact — so all of them stayed green while assemble was losing 1.562s on a
+  // real video. Cue and avatar times are authored to 0.01s and almost never land
+  // on a 30fps frame; this fixture uses times that don't, which is the only way
+  // a test can see the difference between carrying the remainder and dropping it.
+  const outOdd = path.join(testTmp, 'final-offgrid.mp4');
+  if (fs.existsSync(outOdd)) fs.unlinkSync(outOdd);
+
+  const total = 18.37;
+  const screenOdd = path.join(testTmp, 'screen-offgrid.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'testsrc=s=1920x1080:r=30',
+    '-t', String(total + 1), '-pix_fmt', 'yuv420p', screenOdd]);
+  const clipOdd = path.join(testTmp, 'avatar-offgrid.mp4');
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=c=green:s=1920x1080:r=30',
+    '-t', '20', '-pix_fmt', 'yuv420p', clipOdd]);
+  spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono',
+    '-t', String(total), '-q:a', '9', path.join(testTmp, 'vo.mp3')]);
+
+  // Six boundaries, none of them a whole number of 30fps frames.
+  const avatarJobs = [
+    { purpose: 'avatar-full', id: 's01', start: 1.07, end: 4.43, file: clipOdd },
+    { purpose: 'avatar-full', id: 's02', start: 6.91, end: 9.29, file: clipOdd },
+    { purpose: 'avatar-full', id: 's03', start: 11.53, end: 15.17, file: clipOdd },
+  ];
+
+  await runAssembly({
+    workdir: testTmp, video: 'it', resolved: [], avatarJobs, total,
+    screen: screenOdd, out: outOdd, encoder: 'x264', keepTemp: false,
+    beats: 'off', transitions: 'none', captions: 'off',
+  });
+
+  // Exact, not approximate. A tolerance here would re-admit the original bug:
+  // its per-piece loss was a fraction of a frame and only became visible once
+  // summed over a hundred pieces.
+  const packets = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0',
+    '-count_packets', '-show_entries', 'stream=nb_read_packets', '-of', 'csv=p=0', outOdd],
+    { encoding: 'utf8' }).stdout.trim();
+  assert.equal(Number(packets), Math.round(total * 30),
+    `off-grid timeline lost video frames: ${packets} encoded vs ${Math.round(total * 30)} on the master clock`);
 });
 
 test('registerVersion records the placeholder flag', () => {

@@ -1,0 +1,127 @@
+{
+  "video": "consistent-ai-influencer",
+  "template": "girl-1",
+  "engineMode": "production",
+  "jobs": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "start": 97.56,
+      "end": 113.2,
+      "duration": 15.64,
+      "audio": "slices-avatar/s01.mp3",
+      "video_id": "acd6f515ad5d48138887a497fbc3af28",
+      "status": "submitted",
+      "submitted_at": "2026-08-07T22:20:35.177Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-ai-influencer/s01.mp4"
+    },
+    {
+      "id": "s01b",
+      "purpose": "avatar-full",
+      "start": 143.32,
+      "end": 154.46,
+      "duration": 11.14,
+      "audio": "slices-avatar/s01b.mp3",
+      "video_id": "a111d68a480d45cf8216c464271ec1f6",
+      "status": "submitted",
+      "submitted_at": "2026-08-07T22:22:11.128Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-ai-influencer/s01b.mp4"
+    },
+    {
+      "id": "s01c",
+      "purpose": "avatar-full",
+      "start": 289.66,
+      "end": 301.5,
+      "duration": 11.84,
+      "audio": "slices-avatar/s01c.mp3",
+      "video_id": "c27495941f2a4835b01a9f9e73e8860b",
+      "status": "submitted",
+      "submitted_at": "2026-08-07T22:23:52.968Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-ai-influencer/s01c.mp4"
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "start": 348.24,
+      "end": 368.56,
+      "duration": 20.32,
+      "audio": "slices-avatar/s02.mp3",
+      "video_id": "3f3da4c62f8048189b14fc7f7f1ab239",
+      "status": "submitted",
+      "submitted_at": "2026-08-07T22:26:36.697Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-ai-influencer/s02.mp4"
+    },
+    {
+      "id": "s02b",
+      "purpose": "avatar-full",
+      "start": 401.48,
+      "end": 412,
+      "duration": 10.52,
+      "audio": "slices-avatar/s02b.mp3",
+      "video_id": "87c516d8ce6f4f06856ec9e176398465",
+      "status": "submitted",
+      "submitted_at": "2026-08-07T22:28:29.606Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-ai-influencer/s02b.mp4"
+    },
+    {
+      "id": "s03",
+      "purpose": "avatar-full",
+      "start": 593.68,
+      "end": 607.64,
+      "duration": 13.96,
+      "audio": "slices-avatar/s03.mp3",
+      "video_id": "0dfd35ce48024bbeb937250eea99e351",
+      "status": "submitted",
+      "submitted_at": "2026-08-07T22:38:47.333Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-ai-influencer/s03.mp4"
+    },
+    {
+      "id": "s04",
+      "purpose": "avatar-full",
+      "start": 781.53,
+      "end": 806.19,
+      "duration": 24.66,
+      "audio": "slices-avatar/s04.mp3",
+      "video_id": "2cc94172021147baa3b5c38a76f4abec",
+      "status": "submitted",
+      "submitted_at": "2026-08-07T22:40:51.238Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-ai-influencer/s04.mp4"
+    },
+    {
+      "id": "s04b",
+      "purpose": "avatar-full",
+      "start": 995.49,
+      "end": 1005.69,
+      "duration": 10.2,
+      "audio": "slices-avatar/s04b.mp3",
+      "video_id": "8607db24273d4dacacb7388ead190850",
+      "status": "submitted",
+      "submitted_at": "2026-08-08T07:01:51.830Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-ai-influencer/s04b.mp4"
+    },
+    {
+      "id": "s05",
+      "purpose": "avatar-full",
+      "start": 1089.55,
+      "end": 1104.17,
+      "duration": 14.62,
+      "audio": "slices-avatar/s05.mp3",
+      "video_id": "3dcdb022074c4512a74a11184b10ee4a",
+      "status": "submitted",
+      "submitted_at": "2026-08-08T07:04:14.075Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-ai-influencer/s05.mp4"
+    },
+    {
+      "id": "s07",
+      "purpose": "avatar-full",
+      "start": 1213.77,
+      "end": 1229.61,
+      "duration": 15.84,
+      "audio": "slices-avatar/s07.mp3",
+      "video_id": "613fce861ea94d89a8ecab5be813eb19",
+      "status": "submitted",
+      "submitted_at": "2026-08-08T07:05:38.054Z",
+      "file": "/Users/kbtg/kb-scratch/video/heygen/visuals-flow/consistent-ai-influencer/s07.mp4"
+    }
+  ]
+}

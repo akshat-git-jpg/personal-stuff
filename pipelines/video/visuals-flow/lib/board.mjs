@@ -15,8 +15,9 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveCues, normWord, extendExposure } from './resolve.mjs';
 import { lintCues, avatarFullSpans } from './lint-cues.mjs';
-import { mmss } from './render.mjs';
+import { mmss, rewriteDuration } from './render.mjs';
 import { enrichLogos } from './logos-inline.mjs';
+import { enrichImages } from './images-inline.mjs';
 import { resolveShots } from './resolve-shots.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { planCaptions } from './captions.mjs';
@@ -1109,10 +1110,24 @@ function serveCard(res, workdir, cardLibraryRoot, id, isStatic) {
     return res.end('cue has no resolved timing');
   }
   const indexPath = path.join(cardLibraryRoot, cue.card, 'index.html');
-  const html = fs.readFileSync(indexPath, 'utf8');
+  const rawHtml = fs.readFileSync(indexPath, 'utf8');
+  // The preview has to run the clip length the RENDER will use. render.mjs
+  // rewrites data-duration to cue.duration before rendering; this served the
+  // card's hardcoded default instead, so any card whose motion is paced by
+  // data-duration animated at one speed on the board and another in the cut,
+  // from a single plan. Three cards read dataset.duration for motion today
+  // (prompt/prompt-typing, tool-icon/roster-pop, enacted/promise-shelf) and
+  // prompt-typing's default happened to equal its resolved duration, which is
+  // the only reason the storyboard looked honest. Found while answering the
+  // owner's "is this a storyboard artifact or a real issue?" (2026-08-07).
+  // A card with no attribute, or with mixed values, is served untouched
+  // rather than failing the preview.
+  const { html: rewritten } = rewriteDuration(rawHtml, cue.duration);
+  const html = rewritten;
   res.setHeader('content-type', 'text/html; charset=utf-8');
   res.setHeader('cache-control', 'no-store');
-  const { variables: enrichedVars } = enrichLogos(cue.variables, cardLibraryRoot);
+  const { variables: withImages } = enrichImages(cue.variables, workdir);
+  const { variables: enrichedVars } = enrichLogos(withImages, cardLibraryRoot);
   const root = path.resolve(import.meta.dirname, '..');
   const manifest = fs.existsSync(path.join(workdir, 'manifest.json')) ? loadVideoManifest(workdir) : {};
   const brand = loadBrand(root, manifest);

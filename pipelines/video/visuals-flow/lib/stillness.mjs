@@ -90,6 +90,18 @@ export function probeFreezes(file, { start, duration, delta = ZONE_STILL_DELTA, 
   return parseFreezeLog(res.stderr ?? '', duration).map(([s, e]) => [s + start, e + start]);
 }
 
+// Avatar coverage for the stillness check: rendered jobs if they exist, else
+// the planned shot spans. Exported so the fallback is testable without a
+// workdir — it is the whole point of the rule at step 330.
+export function avatarSpansFor(avatarJobs, shotsResolved, fromJobs) {
+  const rendered = fromJobs(avatarJobs);
+  if (rendered.length > 0) return rendered;
+  return (shotsResolved?.spans ?? [])
+    .filter((s) => Number.isFinite(s.start) && Number.isFinite(s.end))
+    .map((s) => [s.start, s.end])
+    .sort((a, b) => a[0] - b[0]);
+}
+
 // Returns { warnings, checked }. `checked` is false when there is nothing to
 // measure (base:"none" has no footage at all), so callers can tell "clean" from
 // "not applicable" instead of reporting a silent pass.
@@ -138,7 +150,16 @@ function main() {
       workdir,
       structure: segments?.structure ?? [],
       resolved: resolvedFile?.resolved ?? [],
-      avatarSpans: avatarFullSpans(read('avatar-jobs.json')),
+      // PLANNED spans count as avatar coverage, not only RENDERED ones.
+      // This read avatar-jobs.json alone, which step 430 writes — but the
+      // stillness check runs at 330, before any avatar exists. So it reported
+      // "no card, no avatar" over stretches the shot plan had already given to
+      // the host, on every video with a host-only conclusion, at the exact gate
+      // where the owner is asked to approve. On consistent-ai-influencer it
+      // flagged 16.2s of which 15.8s was a planned span (2026-08-08).
+      // Rendered jobs still win once they exist; before that the plan is the
+      // best available truth, and a plan is what 330 is checking.
+      avatarSpans: avatarSpansFor(read('avatar-jobs.json'), read('shots.resolved.json'), avatarFullSpans),
       footage: fs.existsSync(screen) ? screen : null,
     });
     if (!checked) {

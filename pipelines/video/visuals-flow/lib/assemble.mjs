@@ -45,6 +45,27 @@ function jobKey(args) {
 const EPS = 0.05;
 export const CANVAS = { w: 1920, h: 1080, fps: 30 };
 
+// How many frames a concat piece gets, given where it ENDS on the master clock
+// and how many frames the concat has already committed.
+//
+// Pieces used to be encoded with `-t <float seconds>`, and ffmpeg emits
+// floor(dur * fps) frames from that — so every piece silently dropped its
+// sub-frame remainder and the concat lost the sum of all of them. On
+// consistent-ai-influencer that came to 1.562s across 104 pieces against a
+// 1230.229s master: the video stream ran short while the audio did not, so the
+// avatar read ~1.5s out of lip-sync by the last clip, which is what the owner
+// reported on 2026-08-07. Only ~0.24s of the loss came from the 25fps HeyGen
+// clips; the rest was ordinary graphic and screen segments, so re-rendering the
+// avatars at 30fps would not have fixed it.
+//
+// Measuring against `framePos` re-absorbs the rounding at every boundary rather
+// than letting it accumulate, so the concat lands on round(total * fps) frames
+// however the segment plan's floats fall. Callers encode with `-frames:v`, not
+// `-t`: the count is then what ffmpeg is told, not what it infers from a float.
+export function framesUntil(endTime, framePos, fps = CANVAS.fps) {
+  return Math.max(1, Math.round(endTime * fps) - framePos);
+}
+
 // The source clip's real aspect ratio, probed from the file.
 //
 // planPanelGeometry/planSideGeometry have accepted `srcAspect` since they were
@@ -584,6 +605,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   let segIndex = 1;
   const jobs = [];
 
+  // Frames already committed to the concat. Every piece's length is measured
+  // against this counter rather than computed on its own, so the sub-frame
+  // remainder is CARRIED instead of discarded — see the note at the `segFrames`
+  // computation below for the incident this fixes.
+  let framePos = 0;
+
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     const L = segOverlays[i];
@@ -616,7 +643,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     if (tOut) endTrim = TRANSITION_DUR / 2;
     if (tIn) startTrim = TRANSITION_DUR / 2;
 
-    const dur = seg.end - seg.start - startTrim - endTrim;
+    // Frame-exact piece length, with the sub-frame remainder CARRIED — see
+    // framesUntil for why this is not simply (end - start).
+    const segFrames = framesUntil(seg.end - endTrim, framePos);
+    framePos += segFrames;
+    const dur = segFrames / CANVAS.fps;
     let src = '';
     let seekArgs = [];
 
@@ -790,13 +821,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       spawnArgs = [
         '-y', ...seekArgs, '-i', src, ...allInputs,
         '-filter_complex', chain, '-map', `[${lastV}]`,
-        '-t', String(dur), '-an', ...ENC, '-f', 'mpegts', segFile
+        '-frames:v', String(segFrames), '-an', ...ENC, '-f', 'mpegts', segFile
       ];
     } else {
       spawnArgs = [
         '-y', ...seekArgs, '-i', src,
         '-vf', `${punchVF}${actualPadStart > 0 ? ',tpad=start_mode=clone:start_duration=' + actualPadStart : ''},tpad=stop_mode=clone:stop_duration=30`,
-        '-t', String(dur), '-an', ...ENC, '-f', 'mpegts', segFile
+        '-frames:v', String(segFrames), '-an', ...ENC, '-f', 'mpegts', segFile
       ];
     }
 
@@ -814,21 +845,55 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         graphicFile: (cue) => path.join(renderDir, planRender(cue).outFile)
       });
       if (bSegsRes && bSegsRes.extraSegments) {
+        // Transition halves sit on the same frame clock as the segments they
+        // join, walking forward from where this segment's content ended.
+        let exEnd = seg.end - endTrim;
         for (const ex of bSegsRes.extraSegments) {
           const transStr = `seg-${String(segIndex).padStart(3, '0')}-${ex.fileTag}.ts`;
           const transFile = path.join(tmpDir, transStr);
           concatLines.push(`file '${transStr}'`);
           segIndex++;
-          
+
+          exEnd += ex.dur;
+          const exFrames = framesUntil(exEnd, framePos);
+          framePos += exFrames;
+
           const spawnArgsEx = ['-y', ...ex.sliceArgs,
             '-filter_complex', ex.chain, '-map', '[v]',
-            '-t', String(ex.dur), '-an', ...ENC, '-f', 'mpegts', transFile];
-          
+            '-frames:v', String(exFrames), '-an', ...ENC, '-f', 'mpegts', transFile];
+
           jobs.push({ outFile: transFile, args: spawnArgsEx, label: `transition ${ex.fileTag}` });
-          timelineClips.push({ file: transStr, kind: 'transition', id: ex.fileTag, dur: ex.dur });
+          timelineClips.push({ file: transStr, kind: 'transition', id: ex.fileTag, dur: exFrames / CANVAS.fps });
         }
       }
     }
+  }
+
+  // Fail BEFORE encoding anything, and fail EXACTLY.
+  //
+  // The A/V gate after the mux is the outer net; this is the cheap inner one.
+  // Being pure arithmetic over the plan it can demand an exact match instead of
+  // the three-frame tolerance the muxed check needs, and it costs nothing —
+  // where the outer gate only speaks after a full encode (two minutes on a
+  // 20-minute video).
+  //
+  // What it actually catches: a segment plan that does not reach `total`, and a
+  // future segment kind, effect module or transition that appends to
+  // `concatLines` without walking `framePos` — real frames the clock never
+  // accounted for, which would slide everything after them.
+  //
+  // What it does NOT catch, deliberately: one piece coming out a frame short.
+  // framesUntil re-anchors on the next boundary, so the following piece takes
+  // that frame back and the total still lands. That is the carry working as
+  // designed — a local rounding wobble is sub-perceptual and, unlike the bug
+  // this replaced, can never accumulate.
+  const expectedFrames = Math.round(total * CANVAS.fps);
+  if (framePos !== expectedFrames) {
+    console.error(`segment plan does not fill the timeline: pieces total ${framePos} frames`
+      + ` (${(framePos / CANVAS.fps).toFixed(3)}s) but the master clock is ${expectedFrames} frames`
+      + ` (${total.toFixed(3)}s), a gap of ${((framePos - expectedFrames) / CANVAS.fps).toFixed(3)}s.`
+      + ` Assembling would hand back a cut that drifts out of sync — refusing before encoding.`);
+    process.exit(1);
   }
 
   let cacheHits = 0;
@@ -910,6 +975,28 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   const actualTotal = parseFloat(probeRes.stdout);
   if (Math.abs(actualTotal - total) > 0.5) {
     console.error(`mismatched duration: ${actualTotal} != ${total}`);
+    process.exit(1);
+  }
+
+  // A/V length gate. The check above reads format=duration, which is the
+  // CONTAINER's length — the longest stream in it. A short VIDEO stream under a
+  // full-length audio stream sails straight through it, which is exactly how
+  // 1.562s of missing video shipped on consistent-ai-influencer with nobody
+  // noticing until the avatar was visibly ~1.5s out of lip-sync by the last
+  // clip (2026-08-07). The mix stage has had a frame-exact length check since
+  // it was written; the video side had none. Tolerance is three frames, which
+  // covers the AAC encoder's tail padding and still sits far under the ~50ms
+  // where a viewer starts to see the mismatch.
+  const streamDur = (kind) => parseFloat(spawnSync('ffprobe', ['-v', 'error',
+    '-select_streams', kind, '-show_entries', 'stream=duration', '-of', 'csv=p=0', out],
+    { encoding: 'utf8' }).stdout);
+  const vDur = streamDur('v:0');
+  const aDur = streamDur('a:0');
+  const avTol = 3 / CANVAS.fps;
+  if (Number.isFinite(vDur) && Number.isFinite(aDur) && Math.abs(vDur - aDur) > avTol) {
+    console.error(`A/V length drift: video ${vDur.toFixed(3)}s vs audio ${aDur.toFixed(3)}s`
+      + ` (${(aDur - vDur).toFixed(3)}s apart, tolerance ${avTol.toFixed(3)}s).`
+      + ` The cut plays progressively out of sync — refusing to hand it over.`);
     process.exit(1);
   }
 

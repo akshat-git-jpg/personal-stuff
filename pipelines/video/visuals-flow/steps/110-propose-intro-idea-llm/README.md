@@ -2,7 +2,7 @@
 
 Proposes 2-3 competing visual directions for the intro film, one prose page
 each — no beats, no timings, no code. Reviewed and approved at
-`028-approve-intro-idea-human` before `025-author-intro-film-llm` writes a
+`120-approve-intro-idea-human` before `130-author-intro-screenplay-llm` writes a
 single beat.
 
 ## Why it lives before 025
@@ -30,6 +30,6 @@ Out: `videos/<slug>/intro-film/idea.json`
 
 ## What consumes the output
 
-`028-approve-intro-idea-human` is the owner gate on `idea.json`. Once approved,
-`025-author-intro-film-llm` reads `chosen` and authors beats for that
+`120-approve-intro-idea-human` is the owner gate on `idea.json`. Once approved,
+`130-author-intro-screenplay-llm` reads `chosen` and authors beats for that
 direction only — see the note added near the top of its `AUTHORING.md`.

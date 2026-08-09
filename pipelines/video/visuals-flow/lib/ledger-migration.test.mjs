@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { SLUG_MIGRATION, migrateLedger, checkMigration } from './ledger-migration.mjs';
+import { loadSteps } from './steps.mjs';
 
 function realLedgers() {
   const dir = path.join(import.meta.dirname, '..', 'videos');
@@ -29,6 +30,21 @@ test('migrating twice is a no-op — the map is idempotent on migrated keys', ()
     assert.deepEqual(Object.keys(twice.ledger.steps).sort(), Object.keys(once.steps).sort(),
       `LEDGER-KEY-ORPHANED: re-running the migration on ${video} changed the keys — it must be safe to run twice`);
   }
+});
+
+test('a ledger entry under any live step survives migration', () => {
+  // The map only renames OLD slugs. A step folder that was created fresh rather
+  // than renamed appears on neither side of it, so before this was fixed every
+  // such step orphaned any ledger that reached it — 140/150/160 sat unnoticed
+  // until consistent-ai-influencer actually recorded its 150 approval
+  // (2026-08-07). Looping over every live step means the next new folder cannot
+  // repeat it: adding one to steps/ without touching this file stays green.
+  const slugs = loadSteps().map((s) => s.slug);
+  const ledger = { steps: Object.fromEntries(slugs.map((s) => [s, { status: 'done' }])) };
+  const { ledger: next, unmapped } = migrateLedger(ledger);
+  assert.deepEqual(unmapped, [],
+    `LEDGER-KEY-ORPHANED: live step(s) ${unmapped.join(', ')} would orphan a ledger entry`);
+  assert.deepEqual(Object.keys(next.steps).sort(), [...slugs].sort());
 });
 
 test('the map has no duplicate destinations', () => {

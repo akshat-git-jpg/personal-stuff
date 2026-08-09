@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { planSfx } from './sfx-plan.mjs';
+import { planSfx, SFX_MAX_SAMPLE_S } from './sfx-plan.mjs';
 import { SOUND_CONSTANTS } from './sound-constants.mjs';
 
 test('sfx planner rules', () => {
@@ -81,4 +81,32 @@ test('sfx planner rules', () => {
   assert.strictEqual(c2Beats.length, 2);
   assert.strictEqual(c2Beats[0].semi, 0, 'tick semi 0');
   assert.strictEqual(c2Beats[1].semi, 0, 'tick semi 0');
+});
+
+test('no effect is scheduled past the end of the voiceover', () => {
+  // The real shape from consistent-ai-influencer: the final cue outlasts the
+  // VO, so the structural-end hit used to land in silence AND lengthen the
+  // master (2026-08-08).
+  const VO = 1230.23;
+  const resolved = [
+    { id: 'z05', card: 'like-subscribe/like-subscribe', placement: 'fullframe',
+      start: 1225.0, duration: 5.73, register: 'light', variables: {} },
+  ];
+  const out = planSfx({ resolved, effects: null, segments: [], total: VO });
+  assert.ok(out.length > 0, 'planner produced effects');
+  for (const i of out) {
+    assert.ok(i.at + SFX_MAX_SAMPLE_S <= VO + 1e-6,
+      `${i.id} (${i.sample}) at ${i.at} would end past the ${VO}s voiceover`);
+  }
+  // and the end hit is still present, just pulled inside
+  assert.ok(out.some((i) => i.sample === 'success'), 'structural-end hit survives the clamp');
+});
+
+test('an unmeasured voiceover clamps nothing rather than clamping to zero', () => {
+  const resolved = [
+    { id: 'c1', card: 'overlay/tip-banner', placement: 'overlay',
+      start: 40, duration: 5, register: 'light', variables: {} },
+  ];
+  const out = planSfx({ resolved, effects: null, segments: [], total: 0 });
+  assert.ok(out.some((i) => i.at >= 40), 'times survive when total is unknown');
 });

@@ -86,9 +86,17 @@
         font-size: 24px; font-weight: 600; letter-spacing: 0.12em; color: var(--accent);
         text-transform: uppercase;
       }
+      /* The title box was 700px against a fixed 160px hero, which fits about
+         eight characters per line. "Create Your Base Character" therefore put
+         every word on its own line and pushed "Character" past the plate edge
+         (owner c01/c12/c29, 2026-08-07: "extremely bad, every word is in a new
+         line"). The card's own demo title is "The Winners", short enough that
+         the gallery never showed the problem. The plate shrink-wraps its
+         content and #frame leaves 1640px of usable canvas, so the box was
+         narrow for no reason. fitTitle() below picks the size. */
       #meta .title {
         font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; color: var(--text);
-        line-height: 1.0; max-width: 700px;
+        line-height: 1.05; max-width: 1180px;
       }
     </style>
   </head>
@@ -153,13 +161,34 @@
          ===================================================== */
       const $ = (id) => document.getElementById(id);
 
+      // Shrink the hero until the title actually fits, instead of trusting the
+      // author to pick a short one. 160px is the look; 120px is the floor
+      // check-type-scale enforces for hero_shape "short". A title is "fitting"
+      // when it takes at most two lines and no single word overflows the box.
+      // Deterministic: the same string always measures the same, so renders
+      // stay reproducible. Measured again after the webfont resolves, because
+      // measuring Inter against a fallback picks the wrong bucket.
+      const HERO_MAX = 160, HERO_MIN = 120, HERO_STEP = 4, MAX_LINES = 2;
+      function fitTitle() {
+        const el = $('title');
+        for (let size = HERO_MAX; size >= HERO_MIN; size -= HERO_STEP) {
+          el.style.fontSize = size + 'px';
+          const lines = Math.round(el.scrollHeight / (size * 1.05));
+          const wordFits = el.scrollWidth <= el.clientWidth + 1;
+          if (lines <= MAX_LINES && wordFits) return;
+        }
+        el.style.fontSize = HERO_MIN + 'px';
+      }
+
       function build() {
         const num = String(DATA.number ?? '').trim();
         $('number').textContent = num;
         if (!num) $('number').style.display = 'none';
         $('title').textContent = DATA.title;
+        fitTitle();
       }
       build();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitTitle);
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });

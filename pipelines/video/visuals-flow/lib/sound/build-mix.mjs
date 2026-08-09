@@ -94,7 +94,15 @@ export function buildMixArgs({ voPath, instances, musicPath, total, outPath, wor
   let mixInputs = [voMixPad, '[sfxb_mix]'];
   if (hasMusic) mixInputs.push('[musb_mix]');
   
-  fg.push(`${mixInputs.join('')} amix=inputs=${mixInputs.length}:normalize=0, loudnorm=I=-14:TP=-1.5:LRA=11 [master]`);
+  // atrim+apad pins the master to the voiceover length. amix defaults to
+  // duration=longest, so ANY effect whose tail runs past the end of the VO
+  // silently lengthened the master: on consistent-ai-influencer a 0.25s
+  // "success" sample planned at 1230.73s against a 1230.229s VO produced a
+  // 1230.98s master (2026-08-08). The frame-exact check below caught it, but
+  // only after a full mix — and a check that fires after the fact is a worse
+  // control than a mix that cannot produce the defect. apad covers the other
+  // direction too, so a short bus can never leave the master under-length.
+  fg.push(`${mixInputs.join('')} amix=inputs=${mixInputs.length}:normalize=0, loudnorm=I=-14:TP=-1.5:LRA=11, atrim=0:${total}, apad=whole_dur=${total} [master]`);
 
   args.push('-filter_complex', fg.join('; '));
   

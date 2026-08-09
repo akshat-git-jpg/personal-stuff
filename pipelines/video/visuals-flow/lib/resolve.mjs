@@ -8,6 +8,7 @@ import { CUE_CONSTANTS } from './cue-constants.mjs';
 import { loadVideoManifest } from './video-manifest.mjs';
 import { avatarFullSpans } from './lint-cues.mjs';
 import { frameGate } from './frame-gate.mjs';
+import { spokenSpan } from './spoken-span.mjs';
 
 export function normWord(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ''); }
 
@@ -137,6 +138,16 @@ export function validateCues(cues, catalog, cardLibraryRoot, workdir) {
         }
         if (cat.max_reveal_chars) {
           for (const [k, v] of Object.entries(r)) {
+            // The cap is about how much TEXT fits on screen, so it only applies
+            // to fields the viewer reads. An asset reference is not copy: a beat
+            // image path ("card-images/c20-scenario-kitchen.jpg") tripped a
+            // 24-char label cap and told the author to "summarize harder"
+            // (2026-08-07). Asset fields are identified from the catalog, so a
+            // card opts a field out by declaring it, not by naming it luckily.
+            const spec = shape[k];
+            const isAsset = spec?.role === 'logo_slug' || spec?.role === 'icon_name'
+              || /^(image|logo|icon|src|asset)$/i.test(k);
+            if (isAsset) continue;
             if (typeof v === 'string' && v.length > cat.max_reveal_chars) {
               errors.push(`${cue.id} beat ${i + 1}: reveal.${k} is ${v.length} chars, max ${cat.max_reveal_chars} — summarize harder`);
             }
@@ -336,6 +347,19 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
         const m = findFrom(b.anchor, cursor);
         if (m.err) { errors.push(`${cue.id} beat: ${m.err}`); failed = true; break; }
         cursor = m.idx + m.len;
+        // Where in its anchor phrase a reveal lands. Most beats MIRROR the
+        // words as they are spoken, so they belong on the first word:
+        // step-flow's "Open the Train section" should appear as the presenter
+        // says it. A beat that draws a CONCLUSION about the phrase has to wait
+        // for the phrase to finish, or the graphic states the point before the
+        // presenter does. verdict-chips did exactly that on
+        // consistent-ai-influencer c28 (owner 2026-08-07: "text on screen is
+        // coming only before the actual text is said in the audio") — the chip
+        // "Facial features hold" was readable 3.6s before he finished saying
+        // "her facial features do not change", which has a 1.9s pause in it.
+        // Catalog opt-in, so every other card keeps landing on the first word.
+        const endWord = W[m.idx + m.len - 1];
+        const at = cat.beat_align === 'end' ? (endWord.end ?? endWord.start) : m.start;
         // findFrom only ever searches FORWARD, so an anchor phrase that also
         // occurs later in the script silently matches the later copy and the
         // reveal fires against the wrong sentence — owner v2:3 2026-07-24,
@@ -343,13 +367,13 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
         // fix". Beats of one cue narrate one continuous passage, so a large
         // jump between them is the signature of that mis-match.
         const prev = abs[abs.length - 1];
-        if (prev && m.start - prev.at > BEAT_GAP_MAX) {
-          errors.push(`${cue.id} beat "${b.anchor}": resolves ${(m.start - prev.at).toFixed(1)}s after the previous beat (max ${BEAT_GAP_MAX}s) — the anchor almost certainly matched a later repeat of the same words; quote a longer, unique phrase from the sentence this reveal belongs to`);
+        if (prev && at - prev.at > BEAT_GAP_MAX) {
+          errors.push(`${cue.id} beat "${b.anchor}": resolves ${(at - prev.at).toFixed(1)}s after the previous beat (max ${BEAT_GAP_MAX}s) — the anchor almost certainly matched a later repeat of the same words; quote a longer, unique phrase from the sentence this reveal belongs to`);
           failed = true;
           break;
         }
         lastAnchorIdx = m.idx + m.len - 1;
-        abs.push({ reveal: b.reveal, at: m.start });
+        abs.push({ reveal: b.reveal, at });
       }
       if (!failed) {
         if (abs.length) {
@@ -370,10 +394,18 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
       }
     }
     if (failed) continue;
-    resolvedAnchors.push({ cue, cat, start, hold, beats });
+    // anchorIdx rides along for pass 2: a card whose motion is paced by speech
+    // (catalog `spoken_var`) has to measure that speech from where this cue
+    // was anchored, and pass 2 is where variables are assembled.
+    resolvedAnchors.push({ cue, cat, start, hold, beats, anchorIdx: a.idx });
   }
 
   const allStarts = resolvedAnchors.map((r) => r.start).sort((a, b) => a - b);
+  // Fullframe starts, for the overlay tail clamp in pass 2.
+  const fullframeStarts = resolvedAnchors
+    .filter((r) => r.cat.placement === 'fullframe')
+    .map((r) => r.start)
+    .sort((a, b) => a - b);
 
   // Pass 2: compute durations and build output
   const out = [];
@@ -384,7 +416,24 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
     const { cue, cat, beats, hold } = r;
     let { start } = r;
     const nextStart = allStarts.find((s) => s > start + 0.001) ?? null;
-    let duration = beats.length ? +(beats[beats.length - 1].at + hold).toFixed(2) : cat.default_duration;
+
+    // Speech-paced copy (catalog `spoken_var`) sets BOTH the animation rate and
+    // the exposure. Round 1 of the 2026-08-07 fold synced the typing to the
+    // voice but left duration on `default_duration`, so c04 finished typing at
+    // 5.9s and then held a completed prompt for another 5.3s of a 12s clip.
+    // Owner, round 2: "when she says influencer, you can stop there". The
+    // card's content ends when the dictation ends, so the card does too, after
+    // a short beat to read the last words. `hold` is not used here: it is the
+    // author's guess (6s on all three prompt cues) and the transcript is
+    // measured fact.
+    const SPOKEN_TAIL = 1.0;
+    const spoken = cat.spoken_var && typeof cue.variables?.[cat.spoken_var] === 'string'
+      ? spokenSpan(W, r.anchorIdx, cue.variables[cat.spoken_var])
+      : null;
+
+    let duration = beats.length
+      ? +(beats[beats.length - 1].at + hold).toFixed(2)
+      : (spoken ? +(spoken.end - start + SPOKEN_TAIL).toFixed(2) : cat.default_duration);
 
     // Exposure follows the NARRATION, not `default_duration` (owner v2:5,
     // "need a better solve here"). The old rule looked up the sentence in
@@ -410,7 +459,11 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
     // narration is reading from.
     // Structural section openers stay exempt: their job is to announce and
     // hand over to footage of the tool (owner v2:4).
-    if (cat.placement === 'fullframe' && !cat.structural) {
+    // A spoken_var card is exempt from the exposure extension below: its
+    // content boundary IS the end of the dictated passage, and extending to the
+    // next sentence boundary would put the 5.3s hold straight back (c04's next
+    // boundary is 8s later, which is how it reached 12s in the first place).
+    if (cat.placement === 'fullframe' && !cat.structural && !spoken) {
       const hardStop = Math.min(
         nextStart ?? Infinity,
         start + CUE_CONSTANTS.MAX_FULLFRAME_ONSCREEN.value,
@@ -441,12 +494,41 @@ export function resolveCues(cues, words, catalog, cardLibraryRoot, workdir) {
       }
     }
 
+    // Overlay tail clamp. "Overlays sit on footage only" is already the rule
+    // (lint E9); the resolver may as well honour it instead of producing a
+    // layout it knows is illegal and reporting it afterwards. This matters
+    // because `beat_align: 'end'` moves a card later by the length of its first
+    // anchor phrase, which pushes its TAIL later by the same amount: adding the
+    // flag to verdict-chips gave best-ai-video-generator c19 a 0.90s overhang
+    // into c20 and opusclip-vs-submagic c18 a 0.50s overhang into c19, in two
+    // videos that had zero errors before (found 2026-08-07 while auditing the
+    // fold, not by either video's own gate). Trimming the tail is harmless: the
+    // chips have all appeared by then, they just leave a beat earlier.
+    // If trimming would cut a reveal that has not fired yet, leave the overlap
+    // alone so E9 still reports it as the authoring error it would then be.
+    if (cat.placement === 'overlay') {
+      const nextFullframe = fullframeStarts.find((s) => s > start + 0.001);
+      if (nextFullframe !== undefined && start + duration > nextFullframe + 0.001) {
+        const room = +(nextFullframe - start).toFixed(2);
+        const lastBeatAt = beats.length ? Math.max(...beats.map((b) => Number(b.at) || 0)) : 0;
+        if (room > lastBeatAt) duration = room;
+      }
+    }
+
     if (cat.placement === 'fullframe' && lastFullframe && start < lastFullframe.start + lastFullframe.duration) {
       errors.push(`${cue.id}: overlaps previous fullframe cue ${lastFullframe.id} (${start} < ${(lastFullframe.start + lastFullframe.duration).toFixed(2)})`);
       continue;
     }
     
     let vars = { ...cue.variables, ...(beats.length ? { beats } : {}) };
+    // Speech-paced copy: a card that animates its text (typing it out, say)
+    // must do it at the rate the presenter speaks, not at a rate derived from
+    // the clip length. The clip length comes from `default_duration`, a motion
+    // constant, so on consistent-ai-influencer prompt-typing spread a 5.5s
+    // dictated prompt over 10.95s and finished 4.8s after the voice had moved
+    // on (owner c04/c16/c24, 2026-08-07). The card holds the completed text
+    // for whatever is left of the clip.
+    if (spoken) vars.typeSeconds = spoken.seconds;
     // Cue-level register must reach the card as a variable — cards skin
     // themselves off VARS.register (found 2026-07-24: every card rendered its
     // dark default because this merge was missing).

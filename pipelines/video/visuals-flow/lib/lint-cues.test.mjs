@@ -698,6 +698,103 @@ test('E11 no-filler-slate: navigational sentence errors, substantive one passes'
   assert(!clean.errors.some(e => e.includes('E11')));
 });
 
+test('E11 no-deictic-slate: screen-pointing text errors, standalone claims pass', () => {
+  const c = [{ id: 'c1', card: 'slate/kinetic-sentence', start: 40, duration: 5 }];
+  const cuesFile = createCues(c);
+
+  // The exact line the owner flagged on consistent-ai-influencer (c10).
+  cuesFile.cues[0].variables = { text: 'it is automatically in here already', accent: 'automatically' };
+  const res = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+  const hits = res.errors.filter(e => e.includes('E11 no-deictic-slate'));
+  assert.equal(hits.length, 1);
+  assert(hits[0].includes('c1'));
+  assert(hits[0].includes('in here'));
+
+  // Every other screen pointer the rule is meant to catch.
+  for (const text of [
+    'the setting sits right here in the sidebar',
+    'you can see it over there on the left',
+    'this one costs half as much',
+  ]) {
+    cuesFile.cues[0].variables = { text, accent: 'costs half' };
+    const r = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+    assert(r.errors.some(e => e.includes('E11 no-deictic-slate')), `should flag: ${text}`);
+  }
+
+  // INVERTED 2026-08-07 round 2. This test used to assert "It's all here, and
+  // it works" stayed legal. The owner rejected that exact line the next round
+  // (z02), so the rule widened to bar "here"/"there" anywhere in a sentence
+  // card and the assertion flipped. Kept as one case rather than deleted,
+  // because the whitelist is the mistake worth remembering.
+  for (const text of [
+    "It's all here, and it works.",
+    'Everything you need is right there',
+  ]) {
+    cuesFile.cues[0].variables = { text };
+    const r = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+    assert(r.errors.some(e => e.includes('E11 no-deictic-slate')), `should now flag: ${text}`);
+  }
+
+  // Claims with no screen pointer stay legal. These are the real sentence-card
+  // texts from the other three videos; the rule must not touch them.
+  for (const text of [
+    'These are real advantages over real human influencers',
+    'No single winner, only the one that fits how you work',
+    'Not one winner. Which one is best for you',
+    'On creative breadth, OpenArt is in a category of its own',
+    'the value does significantly drop',
+  ]) {
+    cuesFile.cues[0].variables = { text };
+    const r = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog });
+    assert(!r.errors.some(e => e.includes('E11 no-deictic-slate')), `must not flag: ${text}`);
+  }
+});
+
+test('E16 series-incomplete: a card declaring "of N" must have all N members', () => {
+  const c = [{ id: 'c1', card: 'overlay/step-card', start: 40, duration: 5 }];
+  const cuesFile = createCues(c);
+  cuesFile.cues[0].card = 'overlay/step-card';
+  cuesFile.cues[0].variables = { step: 3, total: 7, label: 'Generate content' };
+  const cat = { cards: [...catalog.cards, { slug: 'overlay/step-card', kind: 'single', placement: 'overlay', default_duration: 5 }] };
+  const res = lintCues({ cuesFile, resolved: createResolved(c), words: createWords(900), catalog: cat });
+  const hits = res.errors.filter(e => e.includes('E16 series-incomplete'));
+  assert.equal(hits.length, 1, 'a lone "step 3 of 7" must error');
+  assert(hits[0].includes('missing 1, 2, 4, 5, 6, 7'));
+
+  // A complete series passes.
+  const full = Array.from({ length: 3 }, (_, i) => ({ id: `c${i + 1}`, card: 'overlay/step-card', start: 40 + i * 10, duration: 5 }));
+  const fullCues = createCues(full);
+  fullCues.cues.forEach((q, i) => { q.card = 'overlay/step-card'; q.variables = { step: i + 1, total: 3, label: `Step ${i + 1}` }; });
+  const ok = lintCues({ cuesFile: fullCues, resolved: createResolved(full), words: createWords(900), catalog: cat });
+  assert(!ok.errors.some(e => e.includes('E16')), 'a complete 1..3 series must pass');
+});
+
+test('W22 section-numbering: a numbered run with a bare card at the end warns', () => {
+  const rows = [
+    { id: 'c1', card: 'section/section-card-flip', start: 40, duration: 5 },
+    { id: 'c2', card: 'section/section-card-flip', start: 60, duration: 5 },
+    { id: 'c3', card: 'section/section-card-flip', start: 80, duration: 5 },
+  ];
+  const cuesFile = createCues(rows);
+  cuesFile.cues.forEach((q, i) => { q.card = 'section/section-card-flip'; q.variables = { number: `0${i + 1}`, title: 'T' }; });
+  // Third card loses its number: the exact c44 shape.
+  delete cuesFile.cues[2].variables.number;
+  const res = lintCues({ cuesFile, resolved: createResolved(rows), words: createWords(900), catalog });
+  const hits = res.warnings.filter(w => w.includes('W22') && w.includes('no number'));
+  assert.equal(hits.length, 1);
+  assert(hits[0].includes('c3'));
+
+  // All numbered: silent.
+  cuesFile.cues[2].variables.number = '03';
+  const ok = lintCues({ cuesFile, resolved: createResolved(rows), words: createWords(900), catalog });
+  assert(!ok.warnings.some(w => w.includes('W22')));
+
+  // None numbered: also silent, unnumbered section cards stay encouraged.
+  cuesFile.cues.forEach(q => delete q.variables.number);
+  const none = lintCues({ cuesFile, resolved: createResolved(rows), words: createWords(900), catalog });
+  assert(!none.warnings.some(w => w.includes('W22')));
+});
+
 test('E14 slot-incomplete and E15 slot-shared', () => {
   const items = ['Alpha', 'Bravo', 'Charlie'];
   const conceptData = { throughline: { items } };

@@ -2,13 +2,24 @@
 <!--
   CHARACTER CARD STAMP   (Hyperframes enacted card, beat kind)
   One anchor portrait card sits at the left. On each beat a duplicate frame
-  stamps in to its right, carrying the IDENTICAL portrait and differing only in
-  its scenario tint — a connecting rail advances and a solid stamp mark lands
-  where it meets each duplicate. Enacts: the same face surviving every scenario.
+  stamps in to its right carrying the SAME PERSON IN A DIFFERENT SCENARIO — a
+  connecting rail advances and a solid stamp mark lands where it meets each
+  duplicate. Enacts: the same face surviving every scenario.
   1920x1080, 30fps, 6 seconds.
 
-  The point is sameness, so every frame renders the SAME image source. Nothing
-  in this card may vary the portrait between frames.
+  WHAT MUST VARY AND WHAT MUST NOT (owner c20 round 2, 2026-08-07). The face is
+  the constant; the SCENARIO is the variable. Give each beat its own `image` of
+  the same character in a different setting. This card originally reused one
+  image in every frame and separated them with a colour tint, which the owner
+  rejected on sight: "you are just adding an effect on the same image, it's not
+  the person in a different scenario". concept.json for that video had said all
+  along that the card should carry "kitchen, travel and product frames that all
+  carry an identical face" — the build narrowed it and the tint stood in for
+  work the card was supposed to do.
+
+  A beat with no `image` falls back to the anchor, so a standalone preview and
+  any older caller still render. That fallback is a courtesy, not the design:
+  in a video, author one image per beat.
 
   EDITOR: change only the ===== CONTENT ===== defaults (title, anchorImage,
   beats[]) and the :root colors. Do NOT touch ===== TIMELINE (LOCKED). Or:
@@ -163,26 +174,33 @@
         + '<path d="M12 150 C12 106 32 84 60 84 C88 84 108 106 108 150 Z" fill="rgba(255,239,219,0.30)"/>'
         + '</svg>';
 
-      function paintPortrait(el) {
-        if (DATA.anchorImage) {
+      // `src` is the scenario image for THIS frame; it falls back to the anchor
+      // so a beat authored without one still renders the character.
+      function paintPortrait(el, src) {
+        const use = src || DATA.anchorImage;
+        if (use) {
           const img = document.createElement('img');
-          img.src = DATA.anchorImage;
+          img.src = use;
           img.alt = '';
           el.appendChild(img);
         } else {
           el.innerHTML = SILHOUETTE;
         }
       }
-      paintPortrait($('anchor-portrait'));
+      paintPortrait($('anchor-portrait'), DATA.anchorImage);
       $('anchor-label').textContent = DATA.anchorLabel ?? 'Anchor';
 
       const beats = DATA.beats || [];
       const row = $('row');
       const railFill = $('rail-fill');
 
-      // Tints are the ONLY per-duplicate difference. Cool wash, warm wash — both
-      // well inside the brand family, neither strong enough to recolour the face.
+      // The tint is a light brand wash that separates the frames, NOT the thing
+      // that makes them different scenarios — that is beats[].image. It drops to
+      // a whisper when a beat brings its own picture, because washing a real
+      // scenario in orange is what made the old version look like one photo with
+      // a filter on it.
       const TINTS = ['rgba(154,216,255,0.55)', 'rgba(251,146,60,0.55)', 'rgba(214,255,232,0.45)'];
+      const TINTS_WITH_IMAGE = ['rgba(154,216,255,0.14)', 'rgba(251,146,60,0.14)', 'rgba(214,255,232,0.12)'];
 
       const dupeEls = beats.map((b, i) => {
         const slot = document.createElement('div');
@@ -193,12 +211,13 @@
 
         const portrait = document.createElement('div');
         portrait.className = 'portrait';
-        paintPortrait(portrait);
+        paintPortrait(portrait, b.image);
         cardEl.appendChild(portrait);
 
         const tint = document.createElement('div');
         tint.className = 'tint';
-        tint.style.background = b.tint || TINTS[i % TINTS.length];
+        const palette = b.image ? TINTS_WITH_IMAGE : TINTS;
+        tint.style.background = b.tint || palette[i % palette.length];
         cardEl.appendChild(tint);
 
         const mark = document.createElement('div');
