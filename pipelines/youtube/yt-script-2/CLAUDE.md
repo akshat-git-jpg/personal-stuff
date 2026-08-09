@@ -8,14 +8,18 @@ anything in this folder.
 ## What this folder is
 
 Owner-supplied knowledge → outline → (optionally) full script. Three steps, each
-gated on the owner asking for the next one. No research happens here: no
-transcript fetching, no `dossiers/` reads, no `yt-research/`. The knowledge the
-owner pastes in is the whole input.
+gated on the owner asking for the next one.
+
+**No research happens here.** The line is ingestion vs. discovery: opening exactly
+what the owner handed over (a link, a screenshot, a YouTube URL) is step 1's job;
+going and finding more is not. No `dossiers/` reads, no `yt-research/`, no
+searching, no following a link discovered inside a source. What the owner handed
+over is the whole input.
 
 The outline is written as markdown, then rendered into the PDF the tutorial
 maker actually receives.
 
-The `<slug>` in `videos/<slug>/` is **not** picked here. It is minted once in
+The `<key>` in `videos/<key>/` is **not** picked here. It is minted once in
 [`pipelines/video-registry/`](../../video-registry/CLAUDE.md) via `vreg ensure`,
 and is the same string `visuals-flow` uses for the same video. If a video was
 already started on the edit side, `ensure` hands back that key instead of minting
@@ -27,19 +31,40 @@ a second identity — so never slugify the title and use it directly.
 OUTLINE-INSTRUCTIONS.md    owner-owned — the only authority on outline format
 SCRIPT-INSTRUCTIONS.md     owner-owned — the only authority on script format
 render-outline.mjs         outline.md -> outline.html + outline.pdf
-videos/<slug>/
-├── knowledge.md           what the owner gave, verbatim (+ fetched link content)
+videos/<key>/
+├── knowledge.md           every source as TEXT — the only input steps 2/3 read
+├── sources/               the originals: screenshots, fetched pages, transcripts
 ├── outline.md             step 2 — the source of truth
 ├── outline.html           generated, gitignored
 ├── outline.pdf            generated, gitignored — this is what the maker gets
 └── script.md              step 3
 ```
 
+## The four source types
+
+Knowledge arrives in four shapes and all four land as text in `knowledge.md`:
+
+| Shape | How it is ingested |
+|---|---|
+| Plain-text brain-dump | Pasted verbatim under `## Owner brain-dump`. Never tidied — the mess is signal. |
+| Screenshots | Read as an image, transcribed to text (every number exactly as shown). File kept in `sources/`. |
+| Website links | Fetched, fact-bearing content kept under `## Source: <url> (fetched <date>)`. |
+| YouTube URLs | Transcribed via the `transcribe` skill (`python3 -m common.transcribe fetch`), timestamps kept. |
+
+Full recipes, including what to do when a fetch fails or a price is illegible,
+are in the skill. Two rules matter most:
+
+- **Ingestion is not discovery.** Open exactly what the owner handed over.
+  Following a link found inside a fetched page, searching, or opening a "related"
+  video is out of bounds — `dossiers/` is the discovery library and stays out.
+- **A source left as a URL, an image or a path was not ingested.** Steps 2 and 3
+  read `knowledge.md` and nothing else.
+
 ## Rendering
 
 ```bash
-node render-outline.mjs <slug>            # writes outline.html + outline.pdf
-node render-outline.mjs <slug> --no-pdf   # HTML only
+node render-outline.mjs <key>            # writes outline.html + outline.pdf
+node render-outline.mjs <key> --no-pdf   # HTML only
 ```
 
 No dependencies. PDF export shells out to headless Chrome (falls back to

@@ -1,18 +1,25 @@
 ---
 name: yt-script-2
-description: Turn a knowledge base the owner supplies into a YouTube outline, then optionally a full script. Owner gives topic + knowledge; writes the outline per pipelines/youtube/yt-script-2/OUTLINE-INSTRUCTIONS.md and stops for approval; writes the full script only when asked. Triggers on "yt-script-2", "outline for <video>", "write the outline", "now write the script", "script from this knowledge", "here's the knowledge base for <video>".
+description: Turn a knowledge base the owner supplies into a YouTube outline, then optionally a full script. Ingests four source types into one knowledge.md — a plain-text brain-dump, screenshots, website links, and YouTube URLs (transcribed via the transcribe skill) — then writes the outline per pipelines/youtube/yt-script-2/OUTLINE-INSTRUCTIONS.md and stops for approval; writes the full script only when asked. Triggers on "yt-script-2", "outline for <video>", "write the outline", "now write the script", "script from this knowledge", "here's the knowledge base for <video>", "here are the screenshots/links/videos for <video>".
 user-invocable: true
 metadata:
   author: kbtg
-  version: 1.3.0
+  version: 1.4.0
 ---
 
 # yt-script-2 — knowledge in, outline out, script on request
 
-Owner-supplied knowledge is the ONLY input. This skill does no research: it does
-not fetch transcripts, does not read `dossiers/`, does not touch `yt-research/`,
-and does not consult the old `yt-script/Guidelines/`. If the knowledge is thin,
-say so and ask — never fill the gap by inventing or by going and researching.
+Owner-supplied knowledge is the ONLY input. This skill does no research.
+
+The line is **ingestion vs. discovery**, not fetching vs. not fetching. Opening
+exactly what the owner handed over — a link, a screenshot, a YouTube URL — is
+ingestion, and step 1 does it. Going and *finding* more is discovery, and this
+skill never does it: it does not read `dossiers/`, does not touch `yt-research/`,
+does not consult the old `yt-script/Guidelines/`, does not search, and does not
+follow a link it discovers inside a source it was given.
+
+If the knowledge is thin, say so and ask — never fill the gap by inventing, and
+never by going and researching.
 
 Working folder: `pipelines/youtube/yt-script-2/`
 
@@ -21,8 +28,11 @@ yt-script-2/
 ├── OUTLINE-INSTRUCTIONS.md    how to write an outline  (owner-owned)
 ├── SCRIPT-INSTRUCTIONS.md     how to write a script    (owner-owned)
 ├── render-outline.mjs         outline.md -> outline.html + outline.pdf
-└── videos/<slug>/
-    ├── knowledge.md           step 1 — exactly what the owner gave
+└── videos/<key>/
+    ├── knowledge.md           step 1 — every source, as TEXT. The only input
+    │                          steps 2 and 3 read
+    ├── sources/               step 1 — the originals: screenshots, fetched
+    │                          pages, YouTube transcripts. Provenance, tracked
     ├── outline.md             step 2 — the source of truth
     ├── outline.html/.pdf      generated, gitignored — the PDF is what the
     │                          tutorial maker receives
@@ -35,8 +45,10 @@ The owner drives every transition. Never advance a step on your own.
 
 ### Step 1 — take the knowledge
 
-Triggered by the owner handing over a video title plus knowledge (pasted text,
-links, a file path, or several of these).
+Triggered by the owner handing over a video title plus knowledge. That knowledge
+arrives in four shapes — **a plain-text brain-dump, screenshots, website links,
+and YouTube video URLs** — usually several of them in one message. All four are
+handled below; all four end up as text in `knowledge.md`.
 
 1. **Get the key from the registry — never slugify a title and use it directly.**
    Propose a `<name>` from the title (kebab-case, short: `n8n-hosting`,
@@ -55,15 +67,144 @@ links, a file path, or several of these).
    it. This key is the video's identity everywhere downstream: it becomes
    `visuals-flow/videos/<key>/` and the Drive filename `<key>-final.mp4`. It is
    minted ONCE and never re-derived from a later wording of the title.
-2. `mkdir -p videos/<slug>/`
-3. Write everything the owner gave into `videos/<slug>/knowledge.md`, **verbatim**.
-   Do not summarize, reorder, or clean it up — this file is the record of what
-   you were given. If the owner supplied links, fetch each one and append its
-   content under a `## Source: <url>` heading, keeping the owner's own text on top.
+2. `mkdir -p videos/<key>/sources/`
+3. **Ingest every source the owner gave** into `videos/<key>/knowledge.md`,
+   following the four recipes below. The owner's own words always go on top,
+   verbatim; each fetched source follows under its own `## Source:` heading.
 4. Read it and report back in **5 lines or fewer**: what the video is about, and
    the 2–3 things the knowledge is strongest on.
 5. Name any gap you noticed in one line, then **stop**. Do not write an outline
    unless the owner asks.
+
+#### The four source types
+
+The owner hands over knowledge in four shapes, usually mixed in one message.
+Every one of them ends up as **text inside `knowledge.md`** — that file is the
+only thing steps 2 and 3 read, so a source that stays a URL, an image path or a
+file reference is a source the outline writer cannot see.
+
+Two rules hold across all four:
+
+- **Fetching a source the owner handed you is ingestion, not research.** You may
+  open exactly what was given and nothing else. Never follow a link found inside
+  a fetched page, never search for more, never open a related video. If a source
+  is thin, that is a gap to report at step 5 — not a licence to go looking.
+- **Keep the original.** Raw files (screenshots, saved pages, transcripts) go in
+  `videos/<key>/sources/`. `knowledge.md` carries the text; `sources/` carries
+  the provenance.
+
+##### 1 · Plain text — the owner braindumping
+
+The default, and the most valuable. The owner rambles: opinions, prices, gotchas,
+"the thing nobody mentions is…", half-finished thoughts, things in no order.
+
+**Paste it in verbatim, at the very top, under `## Owner brain-dump`.** Do not
+tidy it, reorder it, split it into bullets, or turn its fragments into sentences.
+Its messiness carries information — a thing said twice is a thing that matters, an
+aside is often the real hook, and a sentence trailing off marks where the owner
+themselves was unsure. Rewriting it destroys all three signals, and the outline
+then reads like a spec sheet instead of like a person who has used the tools.
+
+If a fragment is genuinely unparseable, keep it verbatim anyway and flag it at
+step 5. Never delete or guess.
+
+##### 2 · Screenshots — pricing pages, dashboards, UI, chat
+
+Read the image with the Read tool. **A path in `knowledge.md` is worthless** — the
+outline writer never sees the pixels — so transcribe what is in it into text.
+
+1. Save the file into `videos/<key>/sources/` with a descriptive name
+   (`heygen-pricing-2026-08.png`, not `Screenshot 2026-08-09 at 14.02.11.png`).
+2. Read it and write, under `## Source: screenshot — <filename>`:
+   - every **number** exactly as shown: prices, limits, tiers, credits, dates,
+     percentages, plan names. These are the claims the outline will make on
+     camera, and a misread price is the most expensive kind of error this
+     pipeline can ship.
+   - what the screen **is** (which product, which page, what state)
+   - anything visible that is not text and would not survive transcription: a
+     greyed-out button, a "most popular" badge, a warning banner, a struck-through
+     price.
+3. If a number is genuinely illegible, write `[illegible]` — never infer it from
+   what the price "should" be, and raise it at step 5.
+
+##### 3 · Website links
+
+Fetch each URL and append its content under `## Source: <url>`.
+
+Record the fetch date on the heading line — pricing and feature pages go stale,
+and an outline written six weeks later needs to know how old its facts are:
+
+```
+## Source: https://www.heygen.com/pricing  (fetched 2026-08-09)
+```
+
+Keep the parts that carry facts — pricing tables, feature lists, limits, the
+product's own description of what it does. Drop nav chrome, cookie banners,
+footers and unrelated marketing. If a page is JS-rendered and comes back empty or
+as a shell, say so in the heading (`(fetch failed — JS-rendered)`), leave it
+empty, and raise it at step 5 rather than substituting what you know about the
+product from memory.
+
+##### 4 · YouTube video URLs
+
+Use the **`transcribe` skill** (`pipelines/.claude/skills/transcribe/`). It runs a
+fallback chain — native captions, then Groq Whisper, then local Whisper — so you
+never pick a method by hand:
+
+```bash
+cd /Users/kbtg/codebase/personal-stuff/pipelines
+python3 -m common.transcribe fetch "<youtube-url-or-id>" \
+  --out-dir youtube/yt-script-2/videos/<key>/sources/<video-id>
+```
+
+It prints `{"video_id", "path", "method"}` and writes `transcript.md` at that
+path. Lines are timestamped:
+
+```
+[00:04] This is a 3.
+[00:06] It's sloppily written and rendered at an extremely low resolution
+```
+
+Then append the transcript into `knowledge.md` under
+`## Source: youtube — <url>  (via <method>)`, **keeping the timestamps**. They are
+what lets a later outline point at the exact moment a claim came from, and they
+cost nothing to keep.
+
+Notes:
+
+- `method: captions` is free and instant. `groq` needs `GROQ_API_KEY` (from
+  `~/.zshenv`) and downloads the audio; `local` is slowest. The chain falls
+  through automatically — a result under 300 words is treated as a failure and
+  the next method is tried, so a thin caption track will not silently win.
+- Force one method with `--method captions|groq|local` when you already know
+  captions are missing, or to retry only the leg that failed.
+- **Transcribe only the videos the owner listed.** Do not touch `dossiers/` — it
+  has its own per-video-id store and its own skill, and this pipeline was built
+  deliberately without it.
+- A long transcript is fine in `knowledge.md`. Do not summarise it to save room:
+  the exact phrasing a competitor used is often the most useful thing in it.
+
+#### `knowledge.md` shape
+
+```markdown
+# <video working title>
+
+## Owner brain-dump
+
+<pasted verbatim, untouched>
+
+## Source: screenshot — heygen-pricing-2026-08.png
+
+<transcribed: every number, what the screen is, non-text detail>
+
+## Source: https://www.heygen.com/pricing  (fetched 2026-08-09)
+
+<fact-bearing content>
+
+## Source: youtube — https://youtube.com/watch?v=abc123  (via captions)
+
+[00:04] …
+```
 
 ### Step 2 — the outline
 
@@ -75,14 +216,14 @@ Triggered by the owner asking for the outline.
    the owner for the outline instructions. Do not improvise a format, and do not
    fall back to `yt-script/Guidelines/structure.md` — that file is a tier-list
    comparison format this skill deliberately left behind.
-3. Write `videos/<slug>/outline.md`. Every claim traces to `knowledge.md`.
+3. Write `videos/<key>/outline.md`. Every claim traces to `knowledge.md`.
    The outline has **two halves written to different standards**: intro and
    conclusion are finished verbatim spoken copy, the body is lane blocks
    (`**SAY**` / `**SHOW**` / `**EDIT**`) the maker walks while freestyling the
    demo on screen. The markdown is **parsed**, so the exact forms in
    OUTLINE-INSTRUCTIONS.md matter — an unrecognised form renders as plain prose
    with no lane and nothing errors.
-4. Render it: `node render-outline.mjs <slug>` → `outline.html` + `outline.pdf`.
+4. Render it: `node render-outline.mjs <key>` → `outline.html` + `outline.pdf`.
    The PDF is what the tutorial maker receives. Both are gitignored.
 5. **Stop and wait for approval.** Do not start the script.
 
@@ -94,7 +235,7 @@ approving the outline.
 1. Read `SCRIPT-INSTRUCTIONS.md` in full and follow it exactly. Same placeholder
    rule as step 2 — if it is not filled in, stop and ask.
 2. Read the approved `outline.md` and `knowledge.md`.
-3. Write `videos/<slug>/script.md`, following the approved outline's structure.
+3. Write `videos/<key>/script.md`, following the approved outline's structure.
    Departing from the outline requires flagging it to the owner.
 
 ## Hard rules
@@ -107,9 +248,19 @@ approving the outline.
   one video became two folders.
 - **Never invent facts.** Numbers, prices, names, and claims come from
   `knowledge.md`. Anything you cannot source, raise as a gap — don't fill it.
+  This binds hardest on a source that failed to ingest: an empty fetch or an
+  illegible screenshot is a GAP, never a cue to write the price you happen to
+  know. `[illegible]` in `knowledge.md` is a correct answer.
+- **Ingest what you were given; never go find more.** Open the owner's links,
+  screenshots and videos — that is step 1's job. Do not follow a link found
+  inside one of them, do not search, do not open a "related" video. If a source
+  turns out to be thin, that is a gap to report.
+- **A source that stays a URL, an image or a file path was not ingested.**
+  Steps 2 and 3 read `knowledge.md` and nothing else, so every source has to land
+  there as text. Originals go in `sources/` as provenance, not as the record.
 - **Never guess a format.** Both instruction files are owner-owned. Empty means
   ask, not improvise.
-- **Write nothing outside `videos/<slug>/`.** The two instruction files are edited
+- **Write nothing outside `videos/<key>/`.** The two instruction files are edited
   by the owner, not by you.
 - Re-running a step overwrites that step's file. Say so before overwriting an
   approved `outline.md`.
@@ -119,3 +270,10 @@ approving the outline.
 `yt-script/` (comparison videos from a Gemini-built KB), `yt-research/` (legacy
 Phase 1), and `dossiers/` (persistent per-tool research library) are separate
 systems. This skill was built deliberately without them. Don't reach for them.
+
+`dossiers/` is the tempting one, because it also transcribes YouTube videos and
+would happily tell you more about a tool the owner mentioned. That is exactly why
+it stays out: it is a *discovery* library, and this skill's knowledge base is
+whatever the owner handed over and nothing else. The shared piece is one level
+lower — both use the `transcribe` skill, which is a mechanical fetcher and holds
+no opinions about which videos matter.
