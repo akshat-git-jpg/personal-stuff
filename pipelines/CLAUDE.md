@@ -75,6 +75,7 @@ npx ts-node run.ts --niche <slug>
 | [`fb-ads/`](fb-ads/fb-ads-notes.md) | Facebook ads playbook notes (page warm-up, ABO→CBO budget ladder) | Markdown |
 | [`income-analysis/`](income-analysis/README.md) | Gumroad/Skool income snapshot retrieval CLIs | Python |
 | [`common/`](common/CLAUDE.md) | Shared Python helpers (sheets, gemini, llm, affiliate, cloudflare). Imported by every Python script. | Python |
+| [`video-registry/`](video-registry/CLAUDE.md) | The shared video key — mints a video's kebab slug ONCE and resolves old/alternate names to it, so `yt-script-2` and `visuals-flow` agree on what a video is called. Both call `vreg ensure`; neither owns naming | Node |
 | [`video/`](#) | Video production and rendering assets | mixed |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/tts/`](video/tts/CLAUDE.md) | TTS asset hub — reference voices, engines (IndexTTS-2 on Modal), voiceover manifest; consumed by the youtube pipelines | Python |
 | &nbsp;&nbsp;&nbsp;&nbsp;[`video/heygen/`](video/heygen/CLAUDE.md) | Avatar asset hub — character registry + reference images, render manifest, HeyGen + fal-lipsync flows | Python + JSON |

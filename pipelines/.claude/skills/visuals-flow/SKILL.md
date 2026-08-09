@@ -11,10 +11,28 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
 
 ## Guardrails (check BEFORE any verb, never skip)
 
-1. **Pre-flight for ANY LLM pass** (concept, cue, audit or shot): `node lib/feedback-status.mjs`
+1. **A workdir's name comes from the registry, never from slugifying a title.**
+   Before creating `videos/<slug>/` for a video this pipeline has not seen, run
+   from `pipelines/video-registry/`:
+
+   ```bash
+   KEY=$(node bin/vreg.mjs ensure <name> --title "<the video's working title>")
+   node bin/vreg.mjs where "$KEY"
+   ```
+
+   `ensure` MINTS when the video is new and returns the EXISTING key when another
+   pipeline (usually `yt-script-2`) already started it. **Use `$KEY` as the
+   workdir name — it may differ from the name you proposed.** If `where` shows
+   `[x]` beside `script`, the outline and script for this video already exist;
+   read them before the concept pass.
+
+   An *existing* workdir needs nothing — `resolveWorkdir` already resolves a
+   registered alias to the canonical folder. This guardrail is about NAMING a new
+   one. See `pipelines/video-registry/CLAUDE.md`.
+2. **Pre-flight for ANY LLM pass** (concept, cue, audit or shot): `node lib/feedback-status.mjs`
    must exit 0. Non-zero = unfolded owner feedback = unapplied lessons — run the
    fold first or stop and tell the owner.
-2. **Close every step in the run ledger, and name steps ONLY by their folder id.**
+3. **Close every step in the run ledger, and name steps ONLY by their folder id.**
    The owner follows a run from the board's Run tab, not the terminal, so a step
    that is not recorded did not visibly happen. Two rules, both non-negotiable:
 
@@ -40,15 +58,15 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    are recorded by the board when the owner approves. You are responsible only
    for the model-run steps.
 
-3. **130 feedback-fold is Opus-class ONLY.** If the current session is not
+4. **130 feedback-fold is Opus-class ONLY.** If the current session is not
    Opus-class, refuse the fold verb and say why.
-4. **Live HeyGen: Avatar III test renders are pre-authorized** (owner rule
+5. **Live HeyGen: Avatar III test renders are pre-authorized** (owner rule
    2026-07-24 — Avatar III unlimited mode is free): sessions may submit
    Avatar III for TESTING without asking each time. Anything metered
    (Avatar IV, generative credits) and production renders stay owner-run —
    explicit ask in THIS conversation. Never submit from a cron. Download is
    safe to re-run.
-5. **`engineMode` defaults to `"test"` (Avatar III, free); `"production"`
+6. **`engineMode` defaults to `"test"` (Avatar III, free); `"production"`
    (Avatar IV, METERED) is implemented (2026-08-01) but only ever set on the
    owner's explicit ask, per video.** The owner may ask for either engine
    mid-flow — "use heygen 3" / "use heygen 4": set `engineMode` in
@@ -58,55 +76,60 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    Before any heygen4 batch: `heygen-web limits` must cover the total span
    seconds, and note IV bills at render COMPLETION (submit-time meter always
    reads UNLIMITED). Never flip to production yourself.
-6. **Snapshot before owner edits**: after a cue/shot pass converges, copy the
+7. **Snapshot before owner edits**: after a cue/shot pass converges, copy the
    final LLM output to `cues.llm.json` / `shots.llm.json` (committed, immutable).
-7. Never edit RULEBOOK/prompt/DESIGN/catalog/lint constants mid-run — rule
+8. Never edit RULEBOOK/prompt/DESIGN/catalog/lint constants mid-run — rule
    changes go through the 130 fold, not through operating sessions.
 
 ## Verb Map
 
-**Review model (owner reaffirmed 2026-07-29; express mode added 2026-08-01):**
-three owner gates. In the default **full** review mode none is skippable at any
-video length. The owner chooses the mode ONCE at kickoff (step 005):
+**Review model — SIX human steps. Verified against `run.sh` and `steps/` on
+2026-08-08.** This section used to say "three owner gates" numbered 037 / 080 /
+120. All three numbers predate the phase renumber, the card-plan gate it called
+Gate 1 was deleted by plan 195, and three real gates were missing entirely. The
+owner noticed before the doc did: a session working from this list looks like it
+is asking for the same review over and over, because it cannot name the gate it
+is actually at. The table below IS the contract, and `ls steps/ | grep human` is
+the check that keeps it honest.
 
-```bash
-bash run.sh <slug> configure --engine heygen3|heygen4 --review full|express
-```
+| Step | What the owner does | Kind |
+|---|---|---|
+| `010-configure-run-human` | Engine + Drive folder at kickoff | setup, not a review |
+| `120-approve-intro-idea-human` | Picks one proposed intro direction | review |
+| `150-approve-intro-film-human` | Approves the built intro film | review |
+| `340-approve-storyboard-human` | Cards, on-card text, avatar placement | review |
+| `420-propose-avatar-human` | Picks character + model | **spend gate** |
+| `530-approve-final-cut-human` | The assembled cut, judged in motion | review |
 
-**Express mode** (`review=express`) runs the flow unattended to the final cut:
-the 037 and 080 board approvals are waived by the code gates themselves (they
-print a note and proceed). TWO things express NEVER skips: (1) the **new-card
-look-preview** — any `status: "new"` card still stops the flow for the owner's
-Gemini/Flow prompt verdict before a line of card code (owner: "even if I say
-run till final cut, if you are making new motion graphics I still want the
-prompt"); (2) **Gate 3 itself** — the full-res final refuses without 120
-approval in every mode. The engine choice (`heygen3` free | `heygen4` metered)
-recorded here IS the owner's authorization for this video's avatar batches;
-sessions set shots.json `engineMode` from it at 060 (`heygen3`⇔`test`,
-`heygen4`⇔`production` — avatar-render refuses on mismatch). At kickoff, if the
-owner's opening message doesn't state both choices, ASK — never assume express
-and never assume heygen4.
+None is skippable. **Express review no longer exists** — `--review full|express`
+was removed by plan 194 (2026-08-07) and `configure` takes `--engine` only. Any
+memory of a mode that waives 340 is stale; 340's own README says MANDATORY GATE,
+never skipped, never waived, because skipping it pushes card-choice errors into
+the final cut where each one costs a full re-render.
 
-**Gate 1 — Card Plan (step 037, comes first).** Every card the video will use —
-body, intro and conclusion — marked EXISTING or NEW-to-build, approved before
-anything is built or rendered. `bash run.sh <slug> outline` reads it as text;
-the Card Plan tab on the board is where it is approved. A NEW card goes to step
-038, which builds it into the shared collection. This replaced the zone-only
-070 gate on 2026-07-30 — the body's build-vs-reuse call was previously made by
-nobody.
+**The engine choice at 010 authorises the avatar spend.** `heygen3` is free
+(Avatar III unlimited); `heygen4` is METERED. Sessions set shots.json
+`engineMode` from it (`heygen3`⇔`test`, `heygen4`⇔`production`) and
+avatar-render refuses on mismatch. **The character approved at 420 IS the render
+template** — never pass `--template` to override it; avatar-render now refuses a
+`--template` that disagrees with the approved plan.
 
-**Gate 2 — Storyboard (COMPOSITION review).** The owner reviews and
+**Which cards get built is no longer a gate.** `235-build-card-plan-run` is a
+machine step. A NEW card still stops the flow for the owner's look-preview
+before any card code is written, but there is no separate card-plan approval.
+
+**340 — Storyboard (COMPOSITION review).** The owner reviews and
 finalises the whole plan before ANY render:
 - where an avatar appears, and **which avatar variation** each span uses
   (full screen / bubble / panel / side view / avatar with motion graphics)
 - where motion graphics appear, and **which card** each one uses
 - the **text on every card**
 
-The shot pass (060) therefore runs BEFORE this gate, not after — avatar spans
+The shot pass (320) therefore runs BEFORE this gate, not after — avatar spans
 must be on the board when the owner reviews. Nothing renders until the owner
 approves both `cues.json` and `shots.json`.
 
-**Gate 3 — Final Cut (OUTPUT review).** The assembled draft, which must contain
+**530 — Final Cut (OUTPUT review).** The assembled draft, which must contain
 **everything the final video will have** — graphics, avatar layer, effects,
 sound, captions. Judged in motion, timestamped comments, versions, live
 check-off. It is not a plan review: plan-class defects should already be gone.
@@ -116,7 +139,7 @@ Between the gates the session runs unattended: render → avatar renders → cut
 | Phrase | `run.sh` verb / CLI | Owner Gate / Behavior |
 |---|---|---|
 | "where are we", "what's the status", "show me the run" | `bash run.sh <slug> status` (or the board's **Run** tab) | reads `run-log.json`; steps with no entry are labelled as inferred |
-| "run it till final cut", "express mode", "use heygen 3/4", "full review this time" | `bash run.sh <slug> configure --engine … --review …` | **005 kickoff config** — see Review model above |
+| "use heygen 3/4", "set up the run" | `bash run.sh <slug> configure --engine heygen3\|heygen4` | **010 kickoff config** — see Review model above. There is no `--review` flag; express was removed by plan 194 |
 | "map the segments", "propose segments" | `bash run.sh <slug> segments` | writes `structure` + `segments`; owner then sets `confirmed: true`. 035 refuses without `structure` |
 | "run graphics", "run the concept pass" | `bash run.sh <slug> concept-pass` | |
 | "run the cue pass" | `bash run.sh <slug> cue-pass` | authors the BODY only |

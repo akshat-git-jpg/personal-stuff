@@ -15,6 +15,12 @@ owner pastes in is the whole input.
 The outline is written as markdown, then rendered into the PDF the tutorial
 maker actually receives.
 
+The `<slug>` in `videos/<slug>/` is **not** picked here. It is minted once in
+[`pipelines/video-registry/`](../../video-registry/CLAUDE.md) via `vreg ensure`,
+and is the same string `visuals-flow` uses for the same video. If a video was
+already started on the edit side, `ensure` hands back that key instead of minting
+a second identity — so never slugify the title and use it directly.
+
 ## Layout
 
 ```

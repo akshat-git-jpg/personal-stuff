@@ -4,7 +4,7 @@ description: Turn a knowledge base the owner supplies into a YouTube outline, th
 user-invocable: true
 metadata:
   author: kbtg
-  version: 1.2.0
+  version: 1.3.0
 ---
 
 # yt-script-2 — knowledge in, outline out, script on request
@@ -38,8 +38,23 @@ The owner drives every transition. Never advance a step on your own.
 Triggered by the owner handing over a video title plus knowledge (pasted text,
 links, a file path, or several of these).
 
-1. Pick a `<slug>` from the title — kebab-case, short (`n8n-hosting`,
-   `best-ai-video-tools`). Confirm it with the owner in one line if ambiguous.
+1. **Get the key from the registry — never slugify a title and use it directly.**
+   Propose a `<name>` from the title (kebab-case, short: `n8n-hosting`,
+   `best-ai-video-tools`), confirm it with the owner in one line, then from
+   `pipelines/video-registry/`:
+
+   ```bash
+   KEY=$(node bin/vreg.mjs ensure <name> --title "<the video's working title>")
+   node bin/vreg.mjs where "$KEY"
+   ```
+
+   `ensure` is idempotent: it mints when the video is new, and returns the key
+   another pipeline already minted when it is not. **Use whatever `$KEY` comes
+   back — it may differ from the name you proposed**, which means this video is
+   already in flight elsewhere; `where` shows which pipelines have a folder for
+   it. This key is the video's identity everywhere downstream: it becomes
+   `visuals-flow/videos/<key>/` and the Drive filename `<key>-final.mp4`. It is
+   minted ONCE and never re-derived from a later wording of the title.
 2. `mkdir -p videos/<slug>/`
 3. Write everything the owner gave into `videos/<slug>/knowledge.md`, **verbatim**.
    Do not summarize, reorder, or clean it up — this file is the record of what
@@ -86,6 +101,10 @@ approving the outline.
 
 - **Never skip a gate.** Knowledge → stop. Outline → stop. Script only on request.
   "The outline is obviously fine" is not approval.
+- **Never invent a key.** The video's key comes from `pipelines/video-registry/`
+  (`vreg ensure`), never from re-slugifying whatever the title happens to say
+  today. A key derived twice from two wordings of the same title is exactly how
+  one video became two folders.
 - **Never invent facts.** Numbers, prices, names, and claims come from
   `knowledge.md`. Anything you cannot source, raise as a gap — don't fill it.
 - **Never guess a format.** Both instruction files are owner-owned. Empty means

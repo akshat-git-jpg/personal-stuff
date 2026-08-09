@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "videos": {
+    "ai-avatar-generators": {
+      "title": "Best Realistic AI Avatar Generator for YouTube Videos",
+      "minted": "2026-07-31",
+      "aliases": []
+    },
+    "best-ai-video-generator": {
+      "title": "Best AI Video Software — Pictory vs InVideo vs Fliki vs Synthesia vs Lumen5",
+      "minted": "2026-07-31",
+      "aliases": [
+        "ai-video-tools-comparison"
+      ]
+    },
+    "consistent-ai-influencer": {
+      "title": "Consistent AI influencer",
+      "minted": "2026-08-05",
+      "aliases": []
+    },
+    "opusclip-vs-submagic": {
+      "title": "OpusClip vs Submagic",
+      "minted": "2026-08-04",
+      "aliases": []
+    },
+    "test-01": {
+      "title": "Pipeline test fixture",
+      "minted": "2026-07-18",
+      "aliases": []
+    }
+  }
+}
