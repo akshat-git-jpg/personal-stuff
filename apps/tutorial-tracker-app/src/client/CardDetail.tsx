@@ -203,8 +203,10 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
   const [formError, setFormError] = useState<string | null>(null);
 
   // "Request changes" note (the box is always shown for a reviewer; the button
-  // commits the send-back and is enabled once a note is typed).
-  const [feedbackText, setFeedbackText] = useState("");
+  // commits the send-back and is enabled once a note is typed). Keyed by stage:
+  // "Show all fields" can put more than one send-back box on screen, and a single
+  // shared string would mirror the same text into every one of them.
+  const [feedbackTexts, setFeedbackTexts] = useState<Record<string, string>>({});
   const [actingId, setActingId] = useState<string | null>(null);
 
   // Link generation (admin).
@@ -472,32 +474,38 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
     );
   }
 
-  // ── Action area (scoped to the context stage + the viewer's perspective) ─────
-  function renderActions() {
-    const inPerspective = (t: Transition) => perspective === "all" || t.by === perspective;
-    const groups = (showAll ? actionGroups : actionGroups.filter((g) => g.stageId === contextStage.id))
-      .map((g) => ({ ...g, transitions: g.transitions.filter(inPerspective) }))
-      .filter((g) => g.transitions.length > 0);
-    if (readOnly || groups.length === 0) return null;
+  // ── Action area (per stage + the viewer's perspective) ──────────────────────
+  // The footer carries ONLY the context stage's group — it is the single CTA and
+  // it does NOT scroll. When an admin expands to all fields, every other stage's
+  // group renders inline under its own fields instead of piling into the footer;
+  // otherwise the footer grows past the dialog height and squeezes the scrollable
+  // body down to a sliver (the "can't scroll" bug).
+  const inPerspective = (t: Transition) => perspective === "all" || t.by === perspective;
+  const visibleGroups = readOnly
+    ? []
+    : actionGroups
+        .map((g) => ({ ...g, transitions: g.transitions.filter(inPerspective) }))
+        .filter((g) => g.transitions.length > 0);
+
+  function renderStageActions(stageId: string) {
+    const g = visibleGroups.find((x) => x.stageId === stageId);
+    const stage = g ? stageByIdIn(pipeline, g.stageId) : undefined;
+    if (!g || !stage) return null;
+    const status = statusOf(stage, row);
+    // Raw stored value for the optimistic-lock check (blank stays blank).
+    const rawStatus = (row[g.statusCol as Column] as string) ?? "";
+    const feedback = feedbackTexts[g.stageId] ?? "";
+    const blockReason = (t: Transition): string | undefined => {
+      let cols: string[];
+      if (t.kind === "approve") cols = requiredToApprove(pipeline, stage);
+      else if (t.kind === "submit" || t.kind === "advance") cols = requiredToSubmitFrom(pipeline, stage, status);
+      else if (t.kind === "start" && status === "To Do") cols = requiredToSubmitFrom(pipeline, stage, "To Do");
+      else return undefined;
+      const missing = missingColumns(cols, effectiveRow as Record<string, unknown>);
+      return missing.length ? `Add the ${missing.map(fieldLabel).join(", ")} first.` : undefined;
+    };
+    const hint = g.transitions.map(blockReason).find(Boolean);
     return (
-      <div className="space-y-4">
-        {groups.map((g) => {
-          const stage = stageByIdIn(pipeline, g.stageId);
-          if (!stage) return null;
-          const status = statusOf(stage, row);
-          // Raw stored value for the optimistic-lock check (blank stays blank).
-          const rawStatus = (row[g.statusCol as Column] as string) ?? "";
-          const blockReason = (t: Transition): string | undefined => {
-            let cols: string[];
-            if (t.kind === "approve") cols = requiredToApprove(pipeline, stage);
-            else if (t.kind === "submit" || t.kind === "advance") cols = requiredToSubmitFrom(pipeline, stage, status);
-            else if (t.kind === "start" && status === "To Do") cols = requiredToSubmitFrom(pipeline, stage, "To Do");
-            else return undefined;
-            const missing = missingColumns(cols, effectiveRow as Record<string, unknown>);
-            return missing.length ? `Add the ${missing.map(fieldLabel).join(", ")} first.` : undefined;
-          };
-          const hint = g.transitions.map(blockReason).find(Boolean);
-          return (
             <div key={g.stageId} className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
                 <strong className="font-semibold">{stage.label}</strong> <StatusPill status={status} />
@@ -527,16 +535,13 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
                 <div key={"fb" + t.to} className="space-y-1.5 rounded-lg border border-border bg-muted/40 p-3">
                   <label className="text-xs font-medium text-foreground/80">Or send it back — say what to change:</label>
                   <textarea className={cn(inputCls, "h-auto min-h-16 py-2")} rows={3} placeholder="What needs to change?"
-                    value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} />
+                    value={feedback} onChange={(e) => setFeedbackTexts((m) => ({ ...m, [g.stageId]: e.target.value }))} />
                   <Button size="sm" variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    disabled={actingId !== null || !feedbackText.trim()}
-                    onClick={() => void runTransition(t, rawStatus, feedbackText.trim())}>{t.label}</Button>
+                    disabled={actingId !== null || !feedback.trim()}
+                    onClick={() => void runTransition(t, rawStatus, feedback.trim())}>{t.label}</Button>
                 </div>
               ))}
             </div>
-          );
-        })}
-      </div>
     );
   }
 
@@ -557,7 +562,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
     : [{ id: contextStage.id, label: isBrief(contextStage) ? "Brief & assignments" : contextStage.label, cols: contextCols }]
         .filter((sec) => sec.cols.length > 0);
 
-  const actions = renderActions();
+  const actions = renderStageActions(contextStage.id);
 
   return (
     <Dialog open onOpenChange={(o) => { if (!o) closeCard(); }}>
@@ -569,7 +574,9 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
+        {/* min-h-0 so this flex child can actually shrink and scroll; without it a
+            tall footer pushes the body past the dialog instead of scrolling it. */}
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
           {/* Stage status overview - Journey Rail */}
           <div className="flex flex-col gap-2">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{perspective === "doer" ? "Your part in this video" : "Pipeline progress"}</h3>
@@ -742,6 +749,9 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
               <div key={sec.id} className="space-y-3">
                 <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sec.label}</div>
                 <div className="space-y-3">{sec.cols.map((c) => renderField(c as Column))}</div>
+                {/* The context stage's actions live in the footer; every other
+                    expanded stage keeps its actions here, inside the scroll area. */}
+                {sec.id !== contextStage.id && renderStageActions(sec.id)}
               </div>
             ))}
           </div>
@@ -811,7 +821,7 @@ export function CardDetail({ row, columns, roles, names, memberRoles = {}, membe
 
         {/* Single action footer — fields above auto-save; this is the one CTA. */}
         {(actions || formError) && (
-          <div className="space-y-2 border-t border-border bg-muted/20 px-5 py-4">
+          <div className="max-h-[40vh] shrink-0 space-y-2 overflow-y-auto border-t border-border bg-muted/20 px-5 py-4">
             {formError && <div className="text-xs font-medium text-destructive">{formError}</div>}
             {actions}
           </div>
