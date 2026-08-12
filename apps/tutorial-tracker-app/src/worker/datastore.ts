@@ -72,7 +72,10 @@ class D1Store implements DataStore {
   // --- read: assemble flat Rows from the two tables ------------------------
   async readRows(): Promise<Row[]> {
     const [cardsRes, stagesRes] = await Promise.all([
-      this.db.prepare(`SELECT * FROM cards ORDER BY id`).all<CardDB>(),
+      // Newest video first. Card ids are zero-padded and monotonic (r0027 …
+      // r0114), so id DESC IS creation order reversed — the board's default
+      // (unsorted) view puts the most recently added video at the top.
+      this.db.prepare(`SELECT * FROM cards ORDER BY id DESC`).all<CardDB>(),
       this.db.prepare(`SELECT * FROM card_stages`).all<StageDB>(),
     ]);
     const byCard = new Map<string, StageRecord[]>();
