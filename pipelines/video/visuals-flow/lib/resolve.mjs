@@ -9,6 +9,7 @@ import { loadVideoManifest } from './video-manifest.mjs';
 import { avatarFullSpans } from './lint-cues.mjs';
 import { frameGate } from './frame-gate.mjs';
 import { spokenSpan } from './spoken-span.mjs';
+import { pathToFileURL } from 'node:url';
 
 export function normWord(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ''); }
 
@@ -769,6 +770,8 @@ async function main() {
   );
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

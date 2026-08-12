@@ -5,6 +5,7 @@
 // warns about.
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import {
   BEGIN_MARKER, END_MARKER, renderConstraintsBlock, renderConstraintLines,
   RULES_BEGIN_MARKER, RULES_END_MARKER, renderRulesBlock, renderRuleLines,
@@ -119,6 +120,8 @@ function main() {
   console.log('zone rulebook ok');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

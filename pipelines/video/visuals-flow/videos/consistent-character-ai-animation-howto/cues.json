@@ -1,0 +1,437 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "approved": false,
+  "cues": [
+    {
+      "id": "z01",
+      "zone": "intro",
+      "card": "enacted/character-card-stamp",
+      "anchor": "What you're watching right now",
+      "lead": 0.0,
+      "hold": 2.0,
+      "variables": {
+        "title": "Same Character, Every Scene",
+        "marker": "Same",
+        "anchorLabel": "Character"
+      },
+      "beats": [
+        { "reveal": { "label": "Scene one" }, "anchor": "was made entirely with AI" }
+      ],
+      "flagged": false,
+      "register": "dark",
+      "motif": true
+    },
+    {
+      "id": "z02",
+      "zone": "intro",
+      "card": "enacted/fill-gauge",
+      "anchor": "you already know what the biggest problem",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {
+        "title": "What Breaks"
+      },
+      "beats": [
+        { "reveal": { "label": "Face", "value": "1" }, "anchor": "changes, the proportions" },
+        { "reveal": { "label": "Proportions", "value": "2" }, "anchor": "shift, the whole" },
+        { "reveal": { "label": "Consistency", "value": "3" }, "anchor": "visual consistency falls apart" }
+      ],
+      "flagged": false,
+      "register": "dark"
+    },
+    {
+      "id": "z03",
+      "zone": "intro",
+      "card": "enacted/character-card-stamp",
+      "anchor": "But OpenArt has a workflow",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {
+        "title": "One Face, Solved",
+        "marker": "Solved",
+        "anchorLabel": "Character"
+      },
+      "beats": [
+        { "reveal": { "label": "Same face, scene A" }, "anchor": "that genuinely solves this" },
+        { "reveal": { "label": "Same face, scene B" }, "anchor": "I mean building a full animated video" }
+      ],
+      "flagged": false,
+      "register": "light",
+      "motif": true
+    },
+    {
+      "id": "z04",
+      "zone": "intro",
+      "card": "tool-icon/tool-glass-tile",
+      "anchor": "here's exactly what we are going to go through",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "logo": "openart",
+        "name": "OpenArt",
+        "subtitle": "One platform, every step"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "z05",
+      "zone": "intro",
+      "card": "table-of-contents/table-of-contents",
+      "anchor": "and then we're going to move on to the steps",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": { "eyebrow": "What You'll Build" },
+      "beats": [
+        { "reveal": { "label": "Lock In Your Character" }, "anchor": "step one is to create" },
+        { "reveal": { "label": "Place It Across Scenes" }, "anchor": "step two is to place" },
+        { "reveal": { "label": "Animate Into Video Clips" }, "anchor": "step three is to animate those scenes" },
+        { "reveal": { "label": "String It All Together" }, "anchor": "step four is to string" }
+      ],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "z07",
+      "zone": "intro",
+      "card": "link-in-description/link-scrim",
+      "anchor": "my link to OpenArt is in the description",
+      "lead": 0.2,
+      "hold": 2.5,
+      "variables": {},
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c03",
+      "card": "tool-icon/tool-glass-tile",
+      "anchor": "here's a quick look at",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "logo": "openart",
+        "name": "OpenArt",
+        "subtitle": "One platform, every step"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c04",
+      "card": "checklist/icon-pills",
+      "anchor": "over 100 models including",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {},
+      "beats": [
+        { "reveal": { "icon": "star", "text": "Nano Banana 2" }, "anchor": "Nano Banana 2, Flux" },
+        { "reveal": { "icon": "bolt", "text": "Flux 1.1" }, "anchor": "1.1, Kling, and" },
+        { "reveal": { "icon": "gear", "text": "Kling" }, "anchor": "more all under one" }
+      ],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c05",
+      "card": "slate/kinetic-sentence",
+      "anchor": "now is a great time",
+      "lead": 0.2,
+      "hold": 2.0,
+      "variables": {
+        "text": "now is a great time to sign up",
+        "accent": "great time to sign up"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c06",
+      "card": "link-in-description/link-in-description",
+      "anchor": "so you are starting off on the right foot",
+      "lead": 0.2,
+      "hold": 2.5,
+      "variables": {},
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c07",
+      "card": "overlay/stat-hit",
+      "anchor": "you only need one reference image",
+      "lead": 0.3,
+      "hold": 3.5,
+      "variables": {
+        "eyebrow": "Reference Images Needed",
+        "value": 1,
+        "suffix": "Photo",
+        "context": "vs dozens for most platforms"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c09",
+      "card": "enacted/character-card-stamp",
+      "anchor": "put lucy in japan street",
+      "lead": 0.5,
+      "hold": 4.0,
+      "variables": {
+        "title": "One Face, Every Scenario",
+        "marker": "One",
+        "anchorLabel": "Lucy"
+      },
+      "beats": [
+        { "reveal": { "label": "Same face lands in Japan" }, "anchor": "eating street food so this" },
+        { "reveal": { "label": "Same face, new country" }, "anchor": "one is more like a challenge" }
+      ],
+      "flagged": false,
+      "register": "light",
+      "motif": true
+    },
+    {
+      "id": "c10",
+      "card": "statement/keyword-statement",
+      "anchor": "This is the identity locking system",
+      "lead": 0.2,
+      "hold": 2.5,
+      "variables": {
+        "text": "This is the identity locking system at work",
+        "keyword": "identity locking system"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light",
+      "motif": true
+    },
+    {
+      "id": "c12",
+      "card": "overlay/lower-third",
+      "anchor": "use the inpaint tool",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "name": "Inpaint Tool",
+        "subtitle": "Fix just the part that's wrong"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c13",
+      "card": "statement/keyword-statement",
+      "anchor": "Kling because of its motion quality",
+      "lead": 0.2,
+      "hold": 2.5,
+      "variables": {
+        "text": "Kling is generally the best when it comes to video",
+        "keyword": "generally the best"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c14",
+      "card": "overlay/tip-banner",
+      "anchor": "set the output to only 3 seconds",
+      "lead": 0.3,
+      "hold": 3.5,
+      "variables": {
+        "kind": "tip",
+        "label": "Cost Tip",
+        "text": "Shorter clips and lower resolution cost fewer credits",
+        "edge": "bottom"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c15",
+      "card": "overlay/tip-banner",
+      "anchor": "keep your motion prompt specific",
+      "lead": 0.3,
+      "hold": 3.5,
+      "variables": {
+        "kind": "tip",
+        "label": "Motion Prompt Tip",
+        "text": "Vague prompts produce vague motion",
+        "edge": "top"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c16",
+      "card": "overlay/lower-third",
+      "anchor": "the character identity carries through",
+      "lead": 0.3,
+      "hold": 3.0,
+      "variables": {
+        "name": "Same Source Images",
+        "subtitle": "Identity carries through into every clip"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c17",
+      "card": "overlay/tip-banner",
+      "anchor": "there used to be a story tab",
+      "lead": 0.3,
+      "hold": 3.5,
+      "variables": {
+        "kind": "info",
+        "label": "Editor Update",
+        "text": "The Story tab is retired, use Edit Video instead",
+        "edge": "top"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c20",
+      "card": "overlay/stat-hit",
+      "anchor": "OpenArt Free Plan gives you 40 trial credits",
+      "lead": 0.3,
+      "hold": 3.5,
+      "variables": {
+        "eyebrow": "Free Plan Starts You With",
+        "value": 40,
+        "suffix": "Credits",
+        "context": "climbs past 340 once you complete the onboarding prompts"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c21",
+      "card": "comparison/billing-discount",
+      "anchor": "the infinite plan is definitely the sweet spot",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {
+        "title": "Infinite Plan",
+        "monthly": { "price": "$56" },
+        "yearly": { "price": "$28" }
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c22",
+      "card": "statement/keyword-statement",
+      "anchor": "You're getting a full animation pipeline inside one subscription",
+      "lead": 0.2,
+      "hold": 2.5,
+      "variables": {
+        "text": "a full animation pipeline inside one subscription",
+        "keyword": "one subscription"
+      },
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "c23",
+      "card": "verdict/verdict-report-card",
+      "anchor": "Walking through this",
+      "lead": 0.3,
+      "hold": 6.0,
+      "variables": {
+        "eyebrow": "Scorecard",
+        "winner": "OpenArt",
+        "grade": "4.6",
+        "reason": "Best-in-class consistency inside one platform"
+      },
+      "beats": [
+        { "reveal": { "subject": "Character Consistency", "grade": "5", "color": "green" }, "anchor": "OpenArt scores a 5 on character" },
+        { "reveal": { "subject": "Workflow Depth", "grade": "5", "color": "green" }, "anchor": "consistency and workflow depth" },
+        { "reveal": { "subject": "Ease of Use", "grade": "4", "color": "amber" }, "anchor": "Easy views sits at a 4" },
+        { "reveal": { "subject": "Animation Quality", "grade": "4.5", "color": "green" }, "anchor": "Animation quality sitting at 4.5" },
+        { "reveal": { "subject": "Pricing & Value", "grade": "4.5", "color": "green" }, "anchor": "pricing and value of 4.5" }
+      ],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "z08",
+      "zone": "conclusion",
+      "card": "enacted/pipeline-flow",
+      "anchor": "here's the full workflow in four steps",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {
+        "title": "4-Step Workflow",
+        "steps": [
+          { "step": "Character", "icon": "person" },
+          { "step": "Scenes", "icon": "image" },
+          { "step": "Animate", "icon": "play" },
+          { "step": "Assemble", "icon": "layers" }
+        ]
+      },
+      "beats": [
+        { "reveal": { "step": "Character" }, "anchor": "step one is to create your character" },
+        { "reveal": { "step": "Scenes" }, "anchor": "step two generate your individual scenes" },
+        { "reveal": { "step": "Animate" }, "anchor": "step three is to animate each scene" },
+        { "reveal": { "step": "Assemble" }, "anchor": "step four is to drag everything" }
+      ],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "z09",
+      "zone": "conclusion",
+      "card": "enacted/fill-gauge",
+      "anchor": "the whole thing lives inside OpenArt",
+      "lead": 0.3,
+      "hold": 4.0,
+      "variables": {
+        "title": "Stays Inside OpenArt"
+      },
+      "beats": [
+        { "reveal": { "label": "No Export", "value": "1" }, "anchor": "no external tools no exporting" },
+        { "reveal": { "label": "No Switching", "value": "2" }, "anchor": "between platforms no starting" },
+        { "reveal": { "label": "No Starting Over", "value": "3" }, "anchor": "over because your character" }
+      ],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "z10",
+      "zone": "conclusion",
+      "card": "link-in-description/link-in-description",
+      "anchor": "gets you the best discount available on any OpenArt",
+      "lead": 0.2,
+      "hold": 2.5,
+      "variables": {},
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    },
+    {
+      "id": "z11",
+      "zone": "conclusion",
+      "card": "like-subscribe/like-subscribe",
+      "anchor": "And if you have not already, hit subscribe",
+      "lead": 0.2,
+      "hold": 4.0,
+      "variables": {},
+      "beats": [],
+      "flagged": false,
+      "register": "light"
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { SHOT_BEGIN_MARKER, SHOT_END_MARKER, renderShotConstraintsBlock, renderShotConstraintLines } from './build-shot-prompt.mjs';
 import { SHOT_CONSTANTS } from './shot-constants.mjs';
 import { stepDir } from './steps.mjs';
+import { pathToFileURL } from 'node:url';
 
 // Governed units/phrases the generated constraints block already states.
 // Any bare occurrence of these OUTSIDE the generated block is a hand-written
@@ -108,6 +109,8 @@ function main() {
   console.log('shot rulebook ok');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

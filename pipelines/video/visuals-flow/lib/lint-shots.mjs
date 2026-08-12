@@ -5,6 +5,7 @@ import { planSegments } from './assemble.mjs';
 import { SHOT_CONSTANTS as SC } from './shot-constants.mjs';
 import { introSpan } from './intro-modes.mjs';
 import { writeCheckReport } from './checks.mjs';
+import { pathToFileURL } from 'node:url';
 
 // Budget + shape rules for full-screen avatar spans. Seeded from
 // tutorial-pipeline-2's 060 rulebook knobs (U-curve, ~5:00 total cap from the
@@ -265,6 +266,8 @@ async function main() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

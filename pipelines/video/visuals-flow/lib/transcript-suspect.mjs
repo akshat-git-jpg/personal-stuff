@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
+import { pathToFileURL } from 'node:url';
 
 export function findSuspects(words, lexicon) {
   const suspects = [];
@@ -95,7 +96,9 @@ export function isAcknowledged(suspect, reviewedList) {
   return reviewedList.some(r => r.at === suspect.at && r.why && String(r.why).trim().length > 0);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const arg = process.argv[2];
   if (!arg) {
     console.error('usage: node lib/transcript-suspect.mjs <slug-or-path>');

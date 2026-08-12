@@ -4,6 +4,7 @@ import { resolveWorkdir } from './workdir.mjs';
 import { introSpan } from './inputs.mjs';
 import { probeDuration, probeDimensions, probeVideoDuration } from './intake.mjs';
 import { frameLuma, detectFreezes, longestFreeze } from './frames.mjs';
+import { pathToFileURL } from 'node:url';
 
 export const GATE = {
   DURATION_TOLERANCE: 0.05,   // seconds — the render must match the intro to ~a frame
@@ -48,7 +49,9 @@ export function runGate(slug) {
   return judge({ renderDuration, introDuration, luma: frameLuma(video), freezes: detectFreezes(video, renderDuration), width, height });
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const slug = process.argv[2];
   if (!slug) {
     console.error('usage: node lib/intro-film/film-gate.mjs <slug-or-path>');

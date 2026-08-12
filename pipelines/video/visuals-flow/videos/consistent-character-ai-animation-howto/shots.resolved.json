@@ -1,0 +1,70 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "offset": 0,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 4.22,
+      "end": 16.26,
+      "duration": 12.04,
+      "note": "host picks up right after the opening card's now-single beat (z01 dropped its 2nd beat to free this window) to deliver the video's promise — satisfies host-on-screen-within-15s"
+    },
+    {
+      "id": "s03",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 151.2,
+      "end": 161.86,
+      "duration": 10.66,
+      "note": "section-opener transition into step one, host-heavy per U-curve open"
+    },
+    {
+      "id": "s06",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 492.32,
+      "end": 505.9,
+      "duration": 13.58,
+      "note": "host aside right after c10's identity-locking statement card; this narration lost its graphic when c11 was deleted in the lint fix pass, so it now belongs to the host"
+    },
+    {
+      "id": "s07",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 666.22,
+      "end": 677.8,
+      "duration": 11.58,
+      "note": "host talks to camera while a render is in progress — natural waiting beat"
+    },
+    {
+      "id": "s08",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 702.76,
+      "end": 714.98,
+      "duration": 12.22,
+      "note": "host reaction to the generated clip"
+    },
+    {
+      "id": "s09",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 827.48,
+      "end": 839.98,
+      "duration": 12.5,
+      "note": "wrap-up payoff line for step four, right after the export description — ends before a stray food-tangent sentence in the transcript (\"This is so delicious...\") that reads like a misplaced clip, flagged separately"
+    },
+    {
+      "id": "s11",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 855.52,
+      "end": 891.74,
+      "duration": 36.22,
+      "note": "reaction to the editor's freedom + payoff statement, into the pricing-wrap; overlaps c20 (an overlay stat card, fine per rule 5) but clears c21's fullframe window; skips the stray food-tangent sentence just before it"
+    }
+  ]
+}

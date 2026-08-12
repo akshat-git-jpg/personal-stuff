@@ -1,0 +1,339 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "sections": [
+    {
+      "part": "body",
+      "start": 106.333,
+      "end": 1101.821,
+      "items": [
+        {
+          "id": "z01",
+          "card": "enacted/character-card-stamp",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "What you're watching right now",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z02",
+          "card": "enacted/fill-gauge",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "you already know what the biggest problem",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z03",
+          "card": "enacted/character-card-stamp",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "But OpenArt has a workflow",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z04",
+          "card": "tool-icon/tool-glass-tile",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "here's exactly what we are going to go through",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z05",
+          "card": "table-of-contents/table-of-contents",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "and then we're going to move on to the steps",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z06",
+          "card": "statement/keyword-statement",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "and finally a breakdown of the pricing",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z07",
+          "card": "link-in-description/link-scrim",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "my link to OpenArt is in the description",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c03",
+          "card": "tool-icon/tool-glass-tile",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "here's a quick look at",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c04",
+          "card": "checklist/icon-pills",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "over 100 models including",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c05",
+          "card": "slate/kinetic-sentence",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "now is a great time",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c06",
+          "card": "link-in-description/link-in-description",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "My link is in the description",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c07",
+          "card": "overlay/stat-hit",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you only need one reference image",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c08",
+          "card": "overlay/stat-hit",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "most platforms ask for dozens",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c09",
+          "card": "enacted/character-card-stamp",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "put lucy in japan street",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c10",
+          "card": "statement/keyword-statement",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "This is the identity locking system",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c11",
+          "card": "checklist/icon-pills",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "Vary your prompts meaningfully",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c12",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "use the inpaint tool",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c13",
+          "card": "statement/keyword-statement",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "Kling because of its motion quality",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c14",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "set the output to only 3 seconds",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c15",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "keep your motion prompt specific",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c16",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "the character identity carries through",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c17",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "there used to be a story tab",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c18",
+          "card": "statement/keyword-statement",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "And once you're happy with the sequence",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c19",
+          "card": "statement/keyword-statement",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "OpenArt has genuinely built a complete pipeline",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c20",
+          "card": "overlay/stat-hit",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "OpenArt Free Plan gives you 40 trial credits",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c21",
+          "card": "comparison/billing-discount",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "the infinite plan is definitely the sweet spot",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c22",
+          "card": "statement/keyword-statement",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "You're getting a full animation pipeline inside one subscription",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c23",
+          "card": "verdict/verdict-report-card",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "Walking through this",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    },
+    {
+      "part": "conclusion",
+      "start": 1101.821,
+      "end": 1175.738,
+      "items": [
+        {
+          "id": "z08",
+          "card": "enacted/pipeline-flow",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "here's the full workflow in four steps",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z09",
+          "card": "enacted/fill-gauge",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "the whole thing lives inside OpenArt",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z10",
+          "card": "link-in-description/link-in-description",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "if you want to try this yourself my link",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z11",
+          "card": "like-subscribe/like-subscribe",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "And if you have not already, hit subscribe",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    }
+  ]
+}

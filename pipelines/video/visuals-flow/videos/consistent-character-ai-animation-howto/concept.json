@@ -1,0 +1,22 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "thesis": "Character drift isn't fixed with better prompts -- it's fixed by locking identity once, from one reference image, inside a platform that carries it through every scene and clip.",
+  "frame": "It's like casting the same actor for every scene of a movie instead of hiring a new lookalike for each one and hoping nobody notices the difference.",
+  "throughline": {
+    "name": "lucy-identity-card",
+    "description": "the single character reference photo that gets stamped, unchanged, onto every new scene, background, and clip",
+    "evolution": "starts as one uploaded portrait with a name attached, survives a variation pass into a new background, then a completely different scene (Japan street food), then gets animated into a moving video clip -- the same face, hair, and outfit recurring at every stage despite the setting changing completely each time"
+  },
+  "registers": [
+    {
+      "from_anchor": "What you're watching right now",
+      "to_anchor": "most frustrating things about working",
+      "register": "dark"
+    },
+    {
+      "from_anchor": "But OpenArt has a workflow",
+      "to_anchor": "I will see you in the next video",
+      "register": "light"
+    }
+  ]
+}

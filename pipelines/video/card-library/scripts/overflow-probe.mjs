@@ -2,19 +2,23 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { execSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer-core';
 
-// Ensure MEASURE_OVERFLOW_SRC is loaded from the shared module in visuals-flow
+// Ensure MEASURE_OVERFLOW_SRC is loaded from the shared module in visuals-flow.
+// pathToFileURL, not a raw resolved path: on Windows a bare "C:\..." path is
+// rejected by the ESM loader (ERR_UNSUPPORTED_ESM_URL_SCHEME) — import() needs
+// a real file:// URL, same class of bug as the CLI entrypoint fix.
 const visualsFlowDir = path.join(process.cwd(), '../visuals-flow');
 const sharedModulePath = path.join(visualsFlowDir, 'lib/overflow-measure.mjs');
 let MEASURE_OVERFLOW_SRC;
 try {
-  const { MEASURE_OVERFLOW_SRC: src } = await import(path.resolve(sharedModulePath));
+  const { MEASURE_OVERFLOW_SRC: src } = await import(pathToFileURL(path.resolve(sharedModulePath)).href);
   MEASURE_OVERFLOW_SRC = src;
 } catch (e) {
   // If run from a different CWD (e.g., test vs root), try a different path resolution
   const altPath = path.resolve(import.meta.dirname, '../../visuals-flow/lib/overflow-measure.mjs');
-  const { MEASURE_OVERFLOW_SRC: src } = await import(altPath);
+  const { MEASURE_OVERFLOW_SRC: src } = await import(pathToFileURL(altPath).href);
   MEASURE_OVERFLOW_SRC = src;
 }
 

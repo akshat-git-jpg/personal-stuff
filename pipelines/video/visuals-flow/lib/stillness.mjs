@@ -16,6 +16,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { ZONE_CONSTANTS } from './zone-constants.mjs';
 import { writeCheckReport } from './checks.mjs';
+import { pathToFileURL } from 'node:url';
 
 const ZONE_STILL_MAX = ZONE_CONSTANTS.ZONE_STILL_MAX.value;
 const ZONE_STILL_DELTA = ZONE_CONSTANTS.ZONE_STILL_DELTA.value;
@@ -173,6 +174,8 @@ function main() {
   });
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

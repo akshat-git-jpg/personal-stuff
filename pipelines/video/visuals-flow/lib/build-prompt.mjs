@@ -3,6 +3,7 @@ import path from 'node:path';
 import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
 import { CUE_RULES } from './cue-rules.mjs';
 import { stepDir } from './steps.mjs';
+import { pathToFileURL } from 'node:url';
 
 export const BEGIN_MARKER = '<!-- BEGIN GENERATED CONSTRAINTS — edit lib/cue-constants.mjs, then run node lib/build-prompt.mjs -->';
 export const END_MARKER = '<!-- END GENERATED CONSTRAINTS -->';
@@ -84,6 +85,8 @@ function main() {
   console.log('prompt constraints up to date');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import { resolveCues, normWord, extendExposure } from './resolve.mjs';
 import { lintCues, avatarFullSpans } from './lint-cues.mjs';
 import { mmss, rewriteDuration } from './render.mjs';
@@ -1817,6 +1818,9 @@ async function main() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path (C:\…) and never equals import.meta.url's file:///C:/… form, so the
+// naive compare silently no-ops and the board exits 0 without listening.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

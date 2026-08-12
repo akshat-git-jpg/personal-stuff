@@ -6,6 +6,7 @@ import { loadVideoManifest } from './video-manifest.mjs';
 import { ZONE_CONSTANTS, ENACTED_PREFIX, ZONE_PARTS } from './zone-constants.mjs';
 import { extendExposure, findPhrase, normWord } from './resolve.mjs';
 import { jobPurpose } from './shot-constants.mjs';
+import { pathToFileURL } from 'node:url';
 
 const CAP_STAT_HIT = CUE_CONSTANTS.CAP_STAT_HIT.value;
 const SPACING_STAT_HIT = CUE_CONSTANTS.SPACING_STAT_HIT.value;
@@ -871,6 +872,8 @@ async function main() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

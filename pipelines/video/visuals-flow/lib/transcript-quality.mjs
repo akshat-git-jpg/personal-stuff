@@ -5,6 +5,7 @@
 // so a later text edit would silently break every anchor.
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { resolveWorkdir } from './workdir.mjs';
 import { writeTranscriptDiff } from './transcript-diff.mjs';
@@ -139,7 +140,9 @@ function usage() {
   console.error('usage: node lib/transcript-quality.mjs <align|apply> <slug-or-path> [cleanedFile]');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [mode, workdirArg, cleanedArg] = process.argv.slice(2);
   if (!mode || !workdirArg) {
     usage();

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
+import { pathToFileURL } from 'node:url';
 
 export function mergeStatus(prev, updates) {
   const allowedStatuses = ['fixed', 'skipped', 'question'];
@@ -68,6 +69,8 @@ async function main() {
   console.log(`Updated ${statusPath}`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

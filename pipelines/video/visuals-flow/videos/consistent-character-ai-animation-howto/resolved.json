@@ -1,0 +1,554 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "offset": 0,
+  "resolved": [
+    {
+      "id": "z01",
+      "card": "enacted/character-card-stamp",
+      "placement": "fullframe",
+      "start": 0,
+      "duration": 4.04,
+      "variables": {
+        "title": "Same Character, Every Scene",
+        "marker": "Same",
+        "anchorLabel": "Character",
+        "beats": [
+          {
+            "label": "Scene one",
+            "at": 1.82
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "z02",
+      "card": "enacted/fill-gauge",
+      "placement": "fullframe",
+      "start": 26.78,
+      "duration": 8.12,
+      "variables": {
+        "title": "What Breaks",
+        "beats": [
+          {
+            "label": "Face",
+            "value": "1",
+            "at": 0.6
+          },
+          {
+            "label": "Proportions",
+            "value": "2",
+            "at": 2.22
+          },
+          {
+            "label": "Consistency",
+            "value": "3",
+            "at": 3.38
+          }
+        ],
+        "register": "dark",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z03",
+      "card": "enacted/character-card-stamp",
+      "placement": "fullframe",
+      "start": 40.7,
+      "duration": 9.24,
+      "variables": {
+        "title": "One Face, Solved",
+        "marker": "Solved",
+        "anchorLabel": "Character",
+        "beats": [
+          {
+            "label": "Same face, scene A",
+            "at": 0.6
+          },
+          {
+            "label": "Same face, scene B",
+            "at": 5.24
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z04",
+      "card": "tool-icon/tool-glass-tile",
+      "placement": "fullframe",
+      "start": 58.24,
+      "duration": 6,
+      "variables": {
+        "logo": "openart",
+        "name": "OpenArt",
+        "subtitle": "One platform, every step",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "z05",
+      "card": "table-of-contents/table-of-contents",
+      "placement": "fullframe",
+      "start": 70.72,
+      "duration": 15.5,
+      "variables": {
+        "eyebrow": "What You'll Build",
+        "beats": [
+          {
+            "label": "Lock In Your Character",
+            "at": 0.6
+          },
+          {
+            "label": "Place It Across Scenes",
+            "at": 5.06
+          },
+          {
+            "label": "Animate Into Video Clips",
+            "at": 9.82
+          },
+          {
+            "label": "String It All Together",
+            "at": 12.5
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z07",
+      "card": "link-in-description/link-scrim",
+      "placement": "overlay",
+      "start": 101.64,
+      "duration": 5,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "c03",
+      "card": "tool-icon/tool-glass-tile",
+      "placement": "fullframe",
+      "start": 108.28,
+      "duration": 6,
+      "variables": {
+        "logo": "openart",
+        "name": "OpenArt",
+        "subtitle": "One platform, every step",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c04",
+      "card": "checklist/icon-pills",
+      "placement": "fullframe",
+      "start": 116.46,
+      "duration": 6.78,
+      "variables": {
+        "beats": [
+          {
+            "icon": "star",
+            "text": "Nano Banana 2",
+            "at": 0.6
+          },
+          {
+            "icon": "bolt",
+            "text": "Flux 1.1",
+            "at": 2.38
+          },
+          {
+            "icon": "gear",
+            "text": "Kling",
+            "at": 3.78
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c05",
+      "card": "slate/kinetic-sentence",
+      "placement": "fullframe",
+      "start": 143.66,
+      "duration": 3.5,
+      "variables": {
+        "text": "now is a great time to sign up",
+        "accent": "great time to sign up",
+        "beats": [
+          {
+            "text": "now",
+            "accent": false,
+            "at": 0.2
+          },
+          {
+            "text": "is",
+            "accent": false,
+            "at": 0.48
+          },
+          {
+            "text": "a",
+            "accent": false,
+            "at": 0.68
+          },
+          {
+            "text": "great",
+            "accent": true,
+            "at": 0.76
+          },
+          {
+            "text": "time",
+            "accent": true,
+            "at": 0.94
+          },
+          {
+            "text": "to",
+            "accent": true,
+            "at": 1.16
+          },
+          {
+            "text": "sign",
+            "accent": true,
+            "at": 1.34
+          },
+          {
+            "text": "up",
+            "accent": true,
+            "at": 1.5
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c06",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 149.12,
+      "duration": 4,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "c07",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 218.84,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Reference Images Needed",
+        "value": 1,
+        "suffix": "Photo",
+        "context": "vs dozens for most platforms",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c09",
+      "card": "enacted/character-card-stamp",
+      "placement": "fullframe",
+      "start": 426.42,
+      "duration": 7.88,
+      "variables": {
+        "title": "One Face, Every Scenario",
+        "marker": "One",
+        "anchorLabel": "Lucy",
+        "beats": [
+          {
+            "label": "Same face lands in Japan",
+            "at": 0.6
+          },
+          {
+            "label": "Same face, new country",
+            "at": 3.88
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c10",
+      "card": "statement/keyword-statement",
+      "placement": "fullframe",
+      "start": 483.58,
+      "duration": 8.26,
+      "variables": {
+        "text": "This is the identity locking system at work",
+        "keyword": "identity locking system",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c12",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 508.46,
+      "duration": 5,
+      "variables": {
+        "name": "Inpaint Tool",
+        "subtitle": "Fix just the part that's wrong",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c13",
+      "card": "statement/keyword-statement",
+      "placement": "fullframe",
+      "start": 608.54,
+      "duration": 5,
+      "variables": {
+        "text": "Kling is generally the best when it comes to video",
+        "keyword": "generally the best",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c14",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 646.9,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Cost Tip",
+        "text": "Shorter clips and lower resolution cost fewer credits",
+        "edge": "bottom",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c15",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 678.22,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Motion Prompt Tip",
+        "text": "Vague prompts produce vague motion",
+        "edge": "top",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c16",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 723.78,
+      "duration": 5,
+      "variables": {
+        "name": "Same Source Images",
+        "subtitle": "Identity carries through into every clip",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c17",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 768.04,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Editor Update",
+        "text": "The Story tab is retired, use Edit Video instead",
+        "edge": "top",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c20",
+      "card": "overlay/stat-hit",
+      "placement": "overlay",
+      "start": 888.34,
+      "duration": 5,
+      "variables": {
+        "eyebrow": "Free Plan Starts You With",
+        "value": 40,
+        "suffix": "Credits",
+        "context": "climbs past 340 once you complete the onboarding prompts",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c21",
+      "card": "comparison/billing-discount",
+      "placement": "fullframe",
+      "start": 905.96,
+      "duration": 7,
+      "variables": {
+        "title": "Infinite Plan",
+        "monthly": {
+          "price": "$56"
+        },
+        "yearly": {
+          "price": "$28"
+        },
+        "register": "light"
+      }
+    },
+    {
+      "id": "c22",
+      "card": "statement/keyword-statement",
+      "placement": "fullframe",
+      "start": 964.3,
+      "duration": 9.82,
+      "variables": {
+        "text": "a full animation pipeline inside one subscription",
+        "keyword": "one subscription",
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c23",
+      "card": "verdict/verdict-report-card",
+      "placement": "fullframe",
+      "start": 985.34,
+      "duration": 28.56,
+      "variables": {
+        "eyebrow": "Scorecard",
+        "winner": "OpenArt",
+        "grade": "4.6",
+        "reason": "Best-in-class consistency inside one platform",
+        "beats": [
+          {
+            "subject": "Character Consistency",
+            "grade": "5",
+            "color": "green",
+            "at": 0.6
+          },
+          {
+            "subject": "Workflow Depth",
+            "grade": "5",
+            "color": "green",
+            "at": 2.78
+          },
+          {
+            "subject": "Ease of Use",
+            "grade": "4",
+            "color": "amber",
+            "at": 8.52
+          },
+          {
+            "subject": "Animation Quality",
+            "grade": "4.5",
+            "color": "green",
+            "at": 17.56
+          },
+          {
+            "subject": "Pricing & Value",
+            "grade": "4.5",
+            "color": "green",
+            "at": 22.56
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z08",
+      "card": "enacted/pipeline-flow",
+      "placement": "fullframe",
+      "start": 1103.32,
+      "duration": 28.1,
+      "variables": {
+        "title": "4-Step Workflow",
+        "steps": [
+          {
+            "step": "Character",
+            "icon": "person"
+          },
+          {
+            "step": "Scenes",
+            "icon": "image"
+          },
+          {
+            "step": "Animate",
+            "icon": "play"
+          },
+          {
+            "step": "Assemble",
+            "icon": "layers"
+          }
+        ],
+        "beats": [
+          {
+            "step": "Character",
+            "at": 3.06
+          },
+          {
+            "step": "Scenes",
+            "at": 9.78
+          },
+          {
+            "step": "Animate",
+            "at": 17.64
+          },
+          {
+            "step": "Assemble",
+            "at": 24.1
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z09",
+      "card": "enacted/fill-gauge",
+      "placement": "fullframe",
+      "start": 1143.72,
+      "duration": 8.1,
+      "variables": {
+        "title": "Stays Inside OpenArt",
+        "beats": [
+          {
+            "label": "No Export",
+            "value": "1",
+            "at": 0.6
+          },
+          {
+            "label": "No Switching",
+            "value": "2",
+            "at": 2.38
+          },
+          {
+            "label": "No Starting Over",
+            "value": "3",
+            "at": 4.1
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z10",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 1152.92,
+      "duration": 4,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "z11",
+      "card": "like-subscribe/like-subscribe",
+      "placement": "overlay",
+      "start": 1169.36,
+      "duration": 5,
+      "variables": {
+        "register": "light"
+      }
+    }
+  ]
+}

@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
 import { resolveWorkdir } from './workdir.mjs';
 import { linkFilmMedia, STAND_IN_IMAGE } from './film-assets.mjs';
@@ -80,7 +81,9 @@ export function renderAndDeliver(slug) {
   return { rendered: rendered.path, standIn: rendered.standIn, verdict, delivered };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const slug = process.argv[2];
   if (!slug || slug.startsWith('--')) {
     console.error('usage: node lib/intro-film/render-film.mjs <slug-or-path> [--skip-render]');

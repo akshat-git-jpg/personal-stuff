@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { CUE_CONSTANTS, ENDCARD_SLUG_PREFIXES } from './cue-constants.mjs';
+import { pathToFileURL } from 'node:url';
 
 // A fullframe "slot" is a window in which placing exactly one fullframe cue
 // keeps W1 satisfied. Slots are laid only across narration time, because a
@@ -170,7 +171,9 @@ function renderMarkdown(skeleton, total) {
   return md.join('\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   const slug = args[0];
   const isJson = args[1] === '--json';

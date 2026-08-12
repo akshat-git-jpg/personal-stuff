@@ -1,0 +1,79 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "approved": false,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "Same character, multiple scenes",
+      "to_anchor": "yourself from scratch using OpenArt",
+      "note": "host picks up right after the opening card's now-single beat (z01 dropped its 2nd beat to free this window) to deliver the video's promise — satisfies host-on-screen-within-15s",
+      "flagged": false
+    },
+    {
+      "id": "s03",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "Go ahead and open it up and let's get into it",
+      "to_anchor": "which is to create your consistent character",
+      "note": "section-opener transition into step one, host-heavy per U-curve open",
+      "flagged": false
+    },
+    {
+      "id": "s06",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "A few things worth noting as you generate scenes",
+      "to_anchor": "because visual variety is what makes a long animation feel cinematic rather than repetitive",
+      "note": "host aside right after c10's identity-locking statement card; this narration lost its graphic when c11 was deleted in the lint fix pass, so it now belongs to the host",
+      "flagged": false
+    },
+    {
+      "id": "s07",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "Usually this one takes a little bit from 1 to 30 minutes, really depending on how long your video is going to be",
+      "to_anchor": "I'm just going to give you a few tips for this tab while we are waiting",
+      "note": "host talks to camera while a render is in progress — natural waiting beat",
+      "flagged": false
+    },
+    {
+      "id": "s08",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "If you don't know how to create it yet, you can also try something like this",
+      "to_anchor": "you can see that it's very natural",
+      "note": "host reaction to the generated clip",
+      "flagged": false
+    },
+    {
+      "id": "s09",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "And once you're happy with the sequence, you can just preview to watch the full animation playthrough",
+      "to_anchor": "The whole pop-line from character creation to final exported video never left OpenArt",
+      "note": "wrap-up payoff line for step four, right after the export description — ends before a stray food-tangent sentence in the transcript (\"This is so delicious...\") that reads like a misplaced clip, flagged separately",
+      "flagged": false
+    },
+    {
+      "id": "s11",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "You can just edit your animation the way you want to with all the freedom that you need",
+      "to_anchor": "OpenArt Free Plan gives you 40 trial credits to start",
+      "note": "reaction to the editor's freedom + payoff statement, into the pricing-wrap; overlaps c20 (an overlay stat card, fine per rule 5) but clears c21's fullframe window; skips the stray food-tangent sentence just before it",
+      "flagged": false
+    },
+    {
+      "id": "s10",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "from_anchor": "And if you have not already, hit subscribe for more tutorials like this one",
+      "to_anchor": "I will see you in the next video",
+      "note": "closing sign-off is the only clean sentence-bounded material left after c23 — the transcript between c23's end (1013.9s) and here is mostly dead air (two isolated \"Thank you.\" fragments separated by ~30s+37s silences) with no >=10s sentence-aligned stretch, so this span is only 5.6s and flagged rather than forced past the E3 minimum. Real content: the last-15% U-curve rule is advisory (W3), not a hard gate, so this is a proposal for owner review, not a defect.",
+      "flagged": true
+    }
+  ]
+}

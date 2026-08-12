@@ -1,0 +1,72 @@
+[
+  {
+    "kind": "once-only-proper-noun",
+    "at": 117.06,
+    "text": "Nano",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 117.5,
+    "text": "Banana",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 274.98,
+    "text": "Grok",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 275.32,
+    "text": "Imagine.",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 634.44,
+    "text": "Lucy",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 638.7,
+    "text": "Japan.",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 773.86,
+    "text": "OpenArt's",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 889.08,
+    "text": "Free",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 889.32,
+    "text": "Plan",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  },
+  {
+    "kind": "once-only-proper-noun",
+    "at": 894.06,
+    "text": "Discord",
+    "suggestion": null,
+    "reason": "rare proper noun"
+  }
+]

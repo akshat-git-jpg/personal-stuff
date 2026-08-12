@@ -5,6 +5,7 @@ import { spawnSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { enrichLogos } from './logos-inline.mjs';
 import { enrichImages } from './images-inline.mjs';
+import { pathToFileURL } from 'node:url';
 
 import { resolveCues, extendExposure } from './resolve.mjs';
 import { avatarFullSpans } from './lint-cues.mjs';
@@ -383,6 +384,8 @@ async function main() {
   console.log(`board: node lib/board.mjs ${video}  →  http://127.0.0.1:4322/`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

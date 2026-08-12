@@ -21,6 +21,7 @@ import { spawnSync } from 'node:child_process';
 import { resolveWorkdir } from './workdir.mjs';
 import { linkFilmMedia } from './film-assets.mjs';
 import { FILM_RENDERER } from '../renderer-constants.mjs';
+import { pathToFileURL } from 'node:url';
 
 const HYPERFRAMES = FILM_RENDERER;
 
@@ -211,7 +212,9 @@ export function runReview(slug, { check = true, snapshot = true } = {}) {
   return { reportFile, reviewDir, findings, samples, media, sheetFiles };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const slug = process.argv[2];
   if (!slug) {
     console.error('usage: node lib/intro-film/review-film.mjs <slug-or-path>');

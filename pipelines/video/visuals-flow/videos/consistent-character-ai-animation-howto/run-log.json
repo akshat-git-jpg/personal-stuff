@@ -1,0 +1,86 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "updated": "2026-08-12T07:50:08.164Z",
+  "steps": {
+    "020-transcribe-run": {
+      "status": "done",
+      "started": "2026-08-11T18:10:22.972Z",
+      "issues": "exited 1, see terminal",
+      "ended": "2026-08-11T18:10:31.681Z",
+      "did": "Transcribed the voiceover to word-level timestamps and ran the quality pass.",
+      "output": "transcript.json"
+    },
+    "030-clean-transcript-llm": {
+      "status": "done",
+      "started": "2026-08-11T18:16:37.461Z",
+      "ended": "2026-08-11T18:17:10.540Z",
+      "issues": "Suspect gate flagged 10 once-only proper nouns (Nano, Banana, Grok, Imagine, Lucy, Japan, OpenArt's, Free, Plan, Discord) -- reviewed manually, all are genuine content (character name Lucy, real product names) not transcription errors, left as-is. Two anomalies NOT touched (outside this pass's authorized fix categories, flagging for owner): a duplicated 'praying for or paying for' phrase at ~4.5s and an out-of-place 'This is so delicious...' food-description tangent at ~48:26 that reads like a stray audio artifact in body.mp4 -- worth an ear-check.",
+      "did": "Cleaned the raw ASR transcript: merged 15 split brand-name tokens into OpenArt/OpenArt's, fixed Ana Banana 2 -> Nano Banana 2 and cling -> Kling (x4) capitalization, and trimmed 22 sentence-initial discourse fillers (Now,/So,/Okay,) with re-capitalization of the following word.",
+      "output": "transcript.json -- 3704 words (from 3741), transcript.diff.json, transcript-suspects.json"
+    },
+    "040-split-narration-demo-run": {
+      "status": "done",
+      "started": "2026-08-11T18:17:31.474Z",
+      "issues": "First attempt failed on Windows (ffprobe not on PATH in this shell, same class of issue as ffmpeg earlier); retried after adding the winget Links dir to PATH and succeeded. Wrote-side note only: conclusion is truncated by 0.5s versus the source (source ends 1175.7s, cut ends 1175.2s) -- cosmetic, well within rounding. confirmed:true NOT set -- the demo-vs-narration segment boundaries are a heuristic proposal I have not visually verified against the actual recording; left for a quick sanity check before or at 340.",
+      "ended": "2026-08-11T18:18:38.706Z",
+      "did": "Measured the intro/body/conclusion spans from src/ and proposed the demo vs narration split.",
+      "output": "segments.json (still needs confirmed: true)"
+    },
+    "050-choose-concept-llm": {
+      "status": "done",
+      "started": "2026-08-11T18:18:48.058Z",
+      "ended": "2026-08-11T18:20:03.814Z",
+      "did": "Authored the concept doc: thesis is that identity locks once from a single reference image and survives inside one platform rather than being patched together across tools; frame is 'casting the same actor in every scene'; throughline is the character reference card (Lucy) recurring unchanged across background swap, scene swap, and animation. Two dark/light registers span the problem framing (dark) and the OpenArt solution+tutorial (light).",
+      "issues": "none found",
+      "output": "concept.json -- lint-concept passes, 99.5% narration coverage (855.7s of 860.2s)"
+    },
+    "210-author-body-cues-llm": {
+      "status": "done",
+      "started": "2026-08-11T18:20:19.024Z",
+      "ended": "2026-08-11T18:33:40.427Z",
+      "did": "Authored 22 body cues across the 1175s video (106.3s-1101.8s): OpenArt hero tile, models checklist, description-link CTA pill, reference-image stat-hits, two character-card-stamp cues carrying the throughline motif (Lucy's face recurring across scene swaps), tip/lower-third overlays through the demo-heavy stretches, a billing-discount card, and a 5-criteria scorecard.",
+      "issues": "Caught and fixed my own zone-boundary bug before validating: my first draft had two cues (the dark-open problem statement and the 4-step TOC) anchored at t=27s/71s, which is inside the INTRO zone (0-106.3s), not the body -- moved that content to the 220 zone pass instead of leaving a body cue anchored in someone else's zone. Also caught a similar bug in a 'full workflow recap' cue whose beats resolved past 1101.8s into the CONCLUSION zone -- dropped it for the same reason, zone pass will cover the recap. Verified every remaining cue+beat anchor resolves to an in-body, forward-ordered timestamp before validating. Skipped a couple of nominal skeleton slots where the narration was pure on-screen-action description with nothing a card could add. Skipped the ~1021-1069s duplicated-retake stretch entirely (flagged at 030) rather than authoring cues over duplicate footage.",
+      "output": "cues.json -- 22 body cues, validated clean (node lib/resolve.mjs --validate-only)"
+    },
+    "230-review-cue-plan-run": {
+      "status": "done",
+      "started": "2026-08-11T18:46:01.001Z",
+      "did": "Ran the pre-build check over the whole cue plan: every anchor against the transcript, every card variable against its catalog entry, no timing collisions.",
+      "output": "checks/cue-plan.json",
+      "issues": "none found",
+      "ended": "2026-08-11T18:46:01.761Z"
+    },
+    "220-author-conclusion-cues-llm": {
+      "status": "done",
+      "started": "2026-08-11T18:32:08.219Z",
+      "ended": "2026-08-11T18:46:00.239Z",
+      "did": "Authored 11 zone cues: 7 in the intro (0-106.3s) covering the thesis cold-open, the problem statement, the OpenArt-solves-it pivot, a tool hero tile, the 4-step TOC, a pricing bridge, and the description-link scrim -- the FIRST description mention in the whole script, so it correctly owns the scrim while the body's later mention gets the pill; 4 in the conclusion (1101.8-1175.7s) covering a 4-step workflow recap, an 'all inside OpenArt' close, the second description-link pill, and the subscribe overlay. 3 enacted/ cards in the intro (character-card-stamp x2 + fill-gauge) and 2 in the conclusion (pipeline-flow + fill-gauge) satisfy the enacted-share floor in both zones. Character-card-stamp used exactly 3x across the whole video (body + 2x intro), at its per-video cap.",
+      "issues": "Iterated through several rounds of anchor-overlap errors from node lib/resolve.mjs --validate-only (a beat anchor duplicating its own cue's anchor, or two consecutive beats sharing words) before reaching clean -- all fixed, documented in the cue authoring itself via distinct non-overlapping anchor text. Did NOT run the full node lib/resolve.mjs (non-validate-only): it invokes card-library's browser frame-gate probe, which hit a SEPARATE Windows ESM bug (ERR_UNSUPPORTED_ESM_URL_SCHEME) somewhere inside card-library/scripts/overflow-probe.mjs's own dynamic imports -- not blocking now since that's step 310's concern, but worth knowing before we reach it. Did not verify the W15 (20s fullframe gap) constraint by hand for the multi-beat TOC/pipeline-flow cards, since a beat card's own span naturally exceeds 20s -- leaving for 330's lint pass to confirm or flag.",
+      "output": "cues.json -- 11 zone cues added (7 intro + 4 conclusion), validated clean (node lib/resolve.mjs --validate-only)"
+    },
+    "310-sync-graphics-run": {
+      "status": "done",
+      "ended": "2026-08-12T06:22:58.475Z",
+      "started": "2026-08-11T18:51:51.116Z",
+      "issues": "handoff's suggested c06 anchor still overlapped c05 by 0.6s, needed a different anchor; z01's first-beat-idle error wasn't in the handoff's list of 7 and wasn't fixable via cue anchors (head-cover pull-back at t=0 neutralizes any anchor shift) -- fixed at the catalog level instead",
+      "output": "resolved.json + lint-cues clean (0 errors, warnings only)",
+      "did": "Applied the 5 handoff-diagnosed cue fixes (deleted c11/c08/z06/c18/c19, re-anchored c06/z10, folded c07 context); found + fixed an 8th pre-existing lint failure (z01 first-beat-idle, escalated to hard-error for fullframe cards) by relaxing enacted/character-card-stamp's pre_beat_render to 'frame' in card-library/catalog.json"
+    },
+    "320-place-avatar-llm": {
+      "status": "done",
+      "started": "2026-08-12T07:16:03.145Z",
+      "ended": "2026-08-12T07:50:08.164Z",
+      "did": "Authored shots.json (avatar full-screen spans) via the shot-pass prompt; iterated resolve-shots/lint-shots to convergence (0 errors). Discovered the transcript has extensive punctuation-dead stretches (161.9-482.6s and 715-826s have zero sentence-ending periods), which forced dropping 2 originally-planned spans and relocating others; also closed a genuine E8 host-within-15s gap by trimming z01's card to 1 beat (owner-delegated call) and nudging z02's beat1 anchor 3 words later",
+      "issues": "the video's actual VO pacing makes a mid-video host-cadence <=180s target unreachable in the 161.9-482.6s stretch (330s gap, W4 warning, left as-is -- no natural host moments exist there, all step-by-step click narration); no span reaches the last 15% with >=10s duration (W3 warning) -- material there is mostly dead air (two isolated \"Thank you.\" fragments with ~30-37s silences); added a flagged 5.6s closing span as a proposal since real content exists but is short; found a stray food-tangent sentence (\"This is so delicious...\") around 840-850s that reads like a misplaced clip, not addressed (footage issue, not mine to fix)",
+      "output": "shots.json (7 real spans + 1 flagged closing proposal, 108.8s total avatar time vs ~157s target), shots.resolved.json, shots.llm.json snapshot; storyboard-check clean (0 errors)"
+    },
+    "330-review-storyboard-run": {
+      "status": "done",
+      "started": "2026-08-12T07:49:53.547Z",
+      "did": "Ran the pre-render storyboard check: shot resolve, shot lint, zone stillness and the audit gate.",
+      "issues": "W7 flush-cut: span s07 starts at a sentence start with only 0.02s of silence before it — the cut reads as mid-sentence; prefer the neighbouring sentence with a real breath before it  |  W7 flush-cut: span s09 starts at a sentence start with only -0.04s of silence before it — the cut reads as mid-sentence; prefer the neighbouring sentence with a real breath before it  |  W5 short-screen: 1.9s of screen (segment screen-01) is short — consider absorbing or extending it  |  W5 short-screen: 2.2s of screen (segment screen-02) is short — consider absorbing or extending it  |  W5 short-screen: 4.0s of screen (segment screen-04) is short — consider absorbing or extending it  |  W5 short-screen: 0.5s of screen (segment screen-07) is short — consider absorbing or extending it  |  W3 u-curve: no span reaches the last 15% of the video — land on the host  |  W4 span-cadence: 330s without full-screen host between s03 and s06 (max 180s) — add a short mid-video host beat  |  (+1 more warning/error lines — re-run the verb to see all)",
+      "output": "no artifact — check only",
+      "ended": "2026-08-12T07:49:54.831Z"
+    }
+  }
+}

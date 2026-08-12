@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { loadSteps } from './steps.mjs';
+import { pathToFileURL } from 'node:url';
 
 // Renaming a step folder orphans every ledger entry filed under the old name:
 // lib/run-log.mjs derives its valid keys from step slugs. Three videos carry 39
@@ -132,7 +133,9 @@ function loadRealLedgers() {
     .map(({ video, p }) => ({ video, p, ledger: JSON.parse(fs.readFileSync(p, 'utf8')) }));
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const mode = process.argv[2];
   if (mode !== '--dry-run' && mode !== '--apply') {
     console.error(

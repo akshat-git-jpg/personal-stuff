@@ -8,6 +8,7 @@ import { ZONE_CONSTANTS, ZONE_PARTS } from './zone-constants.mjs';
 import { ZONE_RULES } from './zone-rules.mjs';
 import { resolveWorkdir } from './workdir.mjs';
 import { stepDir } from './steps.mjs';
+import { pathToFileURL } from 'node:url';
 
 export const BEGIN_MARKER = '<!-- BEGIN GENERATED ZONE CONSTRAINTS — edit lib/zone-constants.mjs, then run node lib/build-zone-prompt.mjs -->';
 export const END_MARKER = '<!-- END GENERATED ZONE CONSTRAINTS -->';
@@ -89,6 +90,8 @@ function main() {
   console.log('zone prompt up to date');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

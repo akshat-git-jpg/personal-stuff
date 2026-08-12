@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveWorkdir } from './workdir.mjs';
+import { pathToFileURL } from 'node:url';
 
 const MODEL = 'whisper-large-v3-turbo';
 
@@ -93,6 +94,8 @@ async function main() {
   fs.writeFileSync(diffPath, JSON.stringify(diffData, null, 2) + '\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

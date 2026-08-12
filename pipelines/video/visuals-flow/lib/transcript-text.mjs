@@ -3,6 +3,7 @@
 // raw on a 32-min VO) — resolve.mjs re-derives timing from anchors afterward.
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { resolveWorkdir } from './workdir.mjs';
 
@@ -10,7 +11,9 @@ export function transcriptText(words) {
   return words.map((w) => w.text).join(' ');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   const workdirArg = args[0];
   if (!workdirArg) {

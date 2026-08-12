@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { SHOT_CONSTANTS } from './shot-constants.mjs';
 import { stepDir } from './steps.mjs';
+import { pathToFileURL } from 'node:url';
 
 export const SHOT_BEGIN_MARKER = '<!-- BEGIN GENERATED SHOT CONSTRAINTS — edit lib/shot-constants.mjs, then run node lib/build-shot-prompt.mjs -->';
 export const SHOT_END_MARKER = '<!-- END GENERATED SHOT CONSTRAINTS -->';
@@ -64,6 +65,8 @@ function main() {
   console.log('shot prompt constraints up to date');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

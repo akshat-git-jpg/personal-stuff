@@ -3,6 +3,7 @@ import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { introSpan, introWords } from './inputs.mjs';
 import { INTENTS, REGISTERS, FACE_MODES, TRANSITIONS, followsDefaultArc, normaliseClause } from './screenplay-schema.mjs';
+import { pathToFileURL } from 'node:url';
 
 export function lintScreenplay({ screenplay, words, introDuration }) {
   const errors = [];
@@ -189,7 +190,9 @@ export function lintScreenplay({ screenplay, words, introDuration }) {
   return { errors, warnings };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const slug = process.argv[2];
   if (!slug) {
     console.error('Usage: node lint-screenplay.mjs <slug>');

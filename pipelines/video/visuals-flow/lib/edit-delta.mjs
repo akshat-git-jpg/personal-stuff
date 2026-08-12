@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
+import { pathToFileURL } from 'node:url';
 
 
 export function editDelta(llmCues, approvedCues) {
@@ -205,7 +206,9 @@ export function formatShotsDelta(summary) {
   return out.trim();
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   if (args.length === 0 || args.length > 2) {
     console.error('usage: node lib/edit-delta.mjs <slug-or-path>');

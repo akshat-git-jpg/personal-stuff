@@ -1,0 +1,81 @@
+{
+  "video": "consistent-character-ai-animation-howto",
+  "confirmed": false,
+  "structure": [
+    {
+      "part": "intro",
+      "start": 0,
+      "end": 106.333
+    },
+    {
+      "part": "body",
+      "start": 106.333,
+      "end": 1101.821
+    },
+    {
+      "part": "conclusion",
+      "start": 1101.821,
+      "end": 1175.738
+    }
+  ],
+  "segments": [
+    {
+      "kind": "narration",
+      "start": 0,
+      "end": 170
+    },
+    {
+      "kind": "demo",
+      "start": 170,
+      "end": 260,
+      "note": "check for sample-clip playback inside this range"
+    },
+    {
+      "kind": "narration",
+      "start": 260,
+      "end": 335
+    },
+    {
+      "kind": "demo",
+      "start": 335,
+      "end": 355
+    },
+    {
+      "kind": "narration",
+      "start": 355,
+      "end": 485
+    },
+    {
+      "kind": "demo",
+      "start": 485,
+      "end": 515
+    },
+    {
+      "kind": "narration",
+      "start": 515,
+      "end": 555
+    },
+    {
+      "kind": "demo",
+      "start": 555,
+      "end": 600,
+      "note": "check for sample-clip playback inside this range"
+    },
+    {
+      "kind": "narration",
+      "start": 600,
+      "end": 685
+    },
+    {
+      "kind": "demo",
+      "start": 685,
+      "end": 815,
+      "note": "check for sample-clip playback inside this range"
+    },
+    {
+      "kind": "narration",
+      "start": 815,
+      "end": 1175.18
+    }
+  ]
+}

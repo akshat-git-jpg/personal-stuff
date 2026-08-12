@@ -3,6 +3,7 @@ import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { findPhrase, normWord } from './resolve.mjs';
 import { spansFromRegisters } from './concept-spans.mjs';
+import { pathToFileURL } from 'node:url';
 
 // The register map must cover at least this share of NARRATION time. Demo and
 // playback stretches are excluded: only overlay pills are legal there and a pill
@@ -180,6 +181,8 @@ async function main() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

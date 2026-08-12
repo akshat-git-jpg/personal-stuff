@@ -1,0 +1,416 @@
+{
+  "total": 62,
+  "changes": [
+    {
+      "i": 45,
+      "start": 15.68,
+      "before": "OpenArt. Now,",
+      "after": "OpenArt.",
+      "merged": 2
+    },
+    {
+      "i": 46,
+      "start": 17.4,
+      "before": "if",
+      "after": "If"
+    },
+    {
+      "i": 171,
+      "start": 62.82,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 252,
+      "start": 87.32,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 302,
+      "start": 102.5,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 355,
+      "start": 117.06,
+      "before": "Ana",
+      "after": "Nano"
+    },
+    {
+      "i": 422,
+      "start": 140.12,
+      "before": "here. So",
+      "after": "here.",
+      "merged": 2
+    },
+    {
+      "i": 423,
+      "start": 140.9,
+      "before": "before",
+      "after": "Before"
+    },
+    {
+      "i": 480,
+      "start": 153.2,
+      "before": "it. Okay,",
+      "after": "it.",
+      "merged": 2
+    },
+    {
+      "i": 481,
+      "start": 154.42,
+      "before": "so",
+      "after": "So"
+    },
+    {
+      "i": 506,
+      "start": 161.14,
+      "before": "character. so",
+      "after": "character.",
+      "merged": 2
+    },
+    {
+      "i": 507,
+      "start": 162.2,
+      "before": "what",
+      "after": "What"
+    },
+    {
+      "i": 739,
+      "start": 221.86,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 751,
+      "start": 226.14,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 796,
+      "start": 238.78,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 969,
+      "start": 287.48,
+      "before": "reference. Now,",
+      "after": "reference.",
+      "merged": 2
+    },
+    {
+      "i": 970,
+      "start": 288.86,
+      "before": "what",
+      "after": "What"
+    },
+    {
+      "i": 980,
+      "start": 290.76,
+      "before": "variation. So",
+      "after": "variation.",
+      "merged": 2
+    },
+    {
+      "i": 981,
+      "start": 291.94,
+      "before": "for",
+      "after": "For"
+    },
+    {
+      "i": 1100,
+      "start": 326.52,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 1241,
+      "start": 365.06,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 1413,
+      "start": 413.04,
+      "before": "flux",
+      "after": "Flux"
+    },
+    {
+      "i": 1626,
+      "start": 482.56,
+      "before": "proportions. So",
+      "after": "proportions.",
+      "merged": 2
+    },
+    {
+      "i": 1627,
+      "start": 483.78,
+      "before": "this",
+      "after": "This"
+    },
+    {
+      "i": 1656,
+      "start": 491.64,
+      "before": "them. So",
+      "after": "them.",
+      "merged": 2
+    },
+    {
+      "i": 1657,
+      "start": 492.32,
+      "before": "a",
+      "after": "A"
+    },
+    {
+      "i": 1832,
+      "start": 542.82,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 2078,
+      "start": 608.74,
+      "before": "cling",
+      "after": "Kling"
+    },
+    {
+      "i": 2103,
+      "start": 615.3,
+      "before": "cling",
+      "after": "Kling"
+    },
+    {
+      "i": 2138,
+      "start": 626.28,
+      "before": "cling",
+      "after": "Kling"
+    },
+    {
+      "i": 2169,
+      "start": 638.7,
+      "before": "Japan. Now",
+      "after": "Japan.",
+      "merged": 2
+    },
+    {
+      "i": 2170,
+      "start": 640.12,
+      "before": "for",
+      "after": "For"
+    },
+    {
+      "i": 2205,
+      "start": 649.52,
+      "before": "720p. So",
+      "after": "720p.",
+      "merged": 2
+    },
+    {
+      "i": 2206,
+      "start": 654.06,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 2246,
+      "start": 661.74,
+      "before": "4K. Now",
+      "after": "4K.",
+      "merged": 2
+    },
+    {
+      "i": 2247,
+      "start": 662.76,
+      "before": "we're",
+      "after": "We're"
+    },
+    {
+      "i": 2262,
+      "start": 665.58,
+      "before": "generate. So",
+      "after": "generate.",
+      "merged": 2
+    },
+    {
+      "i": 2263,
+      "start": 666.22,
+      "before": "usually",
+      "after": "Usually"
+    },
+    {
+      "i": 2285,
+      "start": 673.88,
+      "before": "be. So",
+      "after": "be.",
+      "merged": 2
+    },
+    {
+      "i": 2301,
+      "start": 677.46,
+      "before": "waiting. So",
+      "after": "waiting.",
+      "merged": 2
+    },
+    {
+      "i": 2302,
+      "start": 678.36,
+      "before": "just",
+      "after": "Just"
+    },
+    {
+      "i": 2359,
+      "start": 697.18,
+      "before": "again. So",
+      "after": "again.",
+      "merged": 2
+    },
+    {
+      "i": 2360,
+      "start": 698.14,
+      "before": "literally",
+      "after": "Literally"
+    },
+    {
+      "i": 2369,
+      "start": 702.04,
+      "before": "friend. So",
+      "after": "friend.",
+      "merged": 2
+    },
+    {
+      "i": 2370,
+      "start": 702.76,
+      "before": "if",
+      "after": "If"
+    },
+    {
+      "i": 2416,
+      "start": 714.28,
+      "before": "natural. so",
+      "after": "natural.",
+      "merged": 2
+    },
+    {
+      "i": 2417,
+      "start": 715.66,
+      "before": "animating",
+      "after": "Animating"
+    },
+    {
+      "i": 2616,
+      "start": 771.4,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 2625,
+      "start": 773.86,
+      "before": "open arts",
+      "after": "OpenArt's",
+      "merged": 2
+    },
+    {
+      "i": 2878,
+      "start": 838.96,
+      "before": "open art.",
+      "after": "OpenArt.",
+      "merged": 2
+    },
+    {
+      "i": 2901,
+      "start": 849.82,
+      "before": "spot. so",
+      "after": "spot.",
+      "merged": 2
+    },
+    {
+      "i": 2902,
+      "start": 855.52,
+      "before": "you",
+      "after": "You"
+    },
+    {
+      "i": 2977,
+      "start": 874.08,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 3020,
+      "start": 887.64,
+      "before": "matters. So",
+      "after": "matters.",
+      "merged": 2
+    },
+    {
+      "i": 3203,
+      "start": 947.04,
+      "before": "cling",
+      "after": "Kling"
+    },
+    {
+      "i": 3310,
+      "start": 977.96,
+      "before": "say. Now",
+      "after": "say.",
+      "merged": 2
+    },
+    {
+      "i": 3311,
+      "start": 978.98,
+      "before": "let's",
+      "after": "Let's"
+    },
+    {
+      "i": 3318,
+      "start": 981.56,
+      "before": "So this",
+      "after": "This",
+      "merged": 2
+    },
+    {
+      "i": 3331,
+      "start": 984.68,
+      "before": "about. So",
+      "after": "about.",
+      "merged": 2
+    },
+    {
+      "i": 3332,
+      "start": 985.46,
+      "before": "walking",
+      "after": "Walking"
+    },
+    {
+      "i": 3580,
+      "start": 1143.58,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    },
+    {
+      "i": 3624,
+      "start": 1155.66,
+      "before": "open art",
+      "after": "OpenArt",
+      "merged": 2
+    }
+  ],
+  "suspects": [],
+  "note": "changes[] is what the cleanup altered; suspects[] is what a second pass still doubts, including words it did not touch"
+}

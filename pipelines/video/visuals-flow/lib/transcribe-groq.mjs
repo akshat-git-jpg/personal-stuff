@@ -7,6 +7,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { resolveWorkdir } from './workdir.mjs';
+import { pathToFileURL } from 'node:url';
 
 // Exported so the guard is unit-testable without an API call. Mutates `words`
 // in place (clamping) and returns the verdict.
@@ -123,6 +124,8 @@ async function main() {
   console.log(JSON.stringify({ ok: true, engine: 'groq', model: MODEL, wordCount: words.length, clampedWords: clamped, displacedShare: +displacedShare.toFixed(5), worstOverlap: +worstOverlap.toFixed(3), durationSeconds: words[words.length - 1].end, transcriptPath: outPath }));
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

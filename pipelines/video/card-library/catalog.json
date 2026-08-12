@@ -2759,7 +2759,8 @@
       "beat_source": "beat",
       "max_beats": 3,
       "max_reveal_chars": 24,
-      "default_duration": 6
+      "default_duration": 6,
+      "pre_beat_render": "frame"
     }
   ]
 }

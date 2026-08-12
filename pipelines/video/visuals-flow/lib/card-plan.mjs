@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { resolveWorkdir } from './workdir.mjs';
 import { ZONE_PARTS } from './zone-constants.mjs';
+import { pathToFileURL } from 'node:url';
 
 // The whole video's card plan gets approved in one place, before anything is
 // built or rendered (owner 2026-07-30). This replaces the zone-only 070 gate:
@@ -208,4 +209,6 @@ function main() {
   console.log(`card plan -> ${outPath}${changed ? '  (storyboard approval reset)' : ''}`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+// pathToFileURL, not `file://${argv[1]}`: on Windows argv[1] is a backslash
+// path, so naive string concatenation never matches import.meta.url.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) main();
