@@ -4,22 +4,25 @@ description: Turn a knowledge base the owner supplies into a YouTube outline, th
 user-invocable: true
 metadata:
   author: kbtg
-  version: 1.4.0
+  version: 1.6.0
 ---
 
 # yt-script-2 — knowledge in, outline out, script on request
 
-Owner-supplied knowledge is the ONLY input. This skill does no research.
+Owner-supplied knowledge is the starting input, always ingested first and in full.
+The line for **ingestion** (step 1's core job) is still ingestion vs. discovery:
+opening exactly what the owner handed over — a link, a screenshot, a YouTube URL —
+is ingestion; going and *finding more of the same kind* while transcribing a
+source is discovery, and ingestion never does that. It does not read `dossiers/`,
+does not touch `yt-research/`, and does not consult the old
+`yt-script/Guidelines/` — those are separate systems with their own owners.
 
-The line is **ingestion vs. discovery**, not fetching vs. not fetching. Opening
-exactly what the owner handed over — a link, a screenshot, a YouTube URL — is
-ingestion, and step 1 does it. Going and *finding* more is discovery, and this
-skill never does it: it does not read `dossiers/`, does not touch `yt-research/`,
-does not consult the old `yt-script/Guidelines/`, does not search, and does not
-follow a link it discovers inside a source it was given.
-
-If the knowledge is thin, say so and ask — never fill the gap by inventing, and
-never by going and researching.
+**This skill does no research** (owner re-confirmed 2026-08-12, reversing a
+short-lived 2026-08-11 rule that allowed a research pass). The owner's knowledge
+base is the entire input. You may not search online to fill a gap, and you may
+not fact-check a claim already in `knowledge.md` against the web. **If something
+is missing or looks wrong, ask the owner** — he will supply it. A gap is a
+question for him, never a cue to go find the answer.
 
 Working folder: `pipelines/youtube/yt-script-2/`
 
@@ -71,10 +74,11 @@ handled below; all four end up as text in `knowledge.md`.
 3. **Ingest every source the owner gave** into `videos/<key>/knowledge.md`,
    following the four recipes below. The owner's own words always go on top,
    verbatim; each fetched source follows under its own `## Source:` heading.
-4. Read it and report back in **5 lines or fewer**: what the video is about, and
+4. Read it and report back in **5 lines or fewer**: what the video is about and
    the 2–3 things the knowledge is strongest on.
-5. Name any gap you noticed in one line, then **stop**. Do not write an outline
-   unless the owner asks.
+5. **Name every gap you can see, as a question to the owner**, then **stop**.
+   Look for gaps actively — don't wait for him to spot them — but put them to
+   him rather than resolving them. Do not write an outline unless he asks.
 
 #### The four source types
 
@@ -83,12 +87,13 @@ Every one of them ends up as **text inside `knowledge.md`** — that file is the
 only thing steps 2 and 3 read, so a source that stays a URL, an image path or a
 file reference is a source the outline writer cannot see.
 
-Two rules hold across all four:
+Two rules hold across all four, during ingestion:
 
 - **Fetching a source the owner handed you is ingestion, not research.** You may
-  open exactly what was given and nothing else. Never follow a link found inside
-  a fetched page, never search for more, never open a related video. If a source
-  is thin, that is a gap to report at step 5 — not a licence to go looking.
+  open exactly what was given and nothing else — never follow a link found inside
+  a fetched page, never open a "related" video, never search. Filling a gap or
+  cross-checking a stale claim is nobody's job here; it is a question for the
+  owner at step 5.
 - **Keep the original.** Raw files (screenshots, saved pages, transcripts) go in
   `videos/<key>/sources/`. `knowledge.md` carries the text; `sources/` carries
   the provenance.
@@ -216,11 +221,17 @@ Triggered by the owner asking for the outline.
    the owner for the outline instructions. Do not improvise a format, and do not
    fall back to `yt-script/Guidelines/structure.md` — that file is a tier-list
    comparison format this skill deliberately left behind.
-3. Write `videos/<key>/outline.md`. Every claim traces to `knowledge.md`.
+3. Write `videos/<key>/outline.md`. Every claim traces to `knowledge.md` —
+   there is no other source.
    The outline has **two halves written to different standards**: intro and
-   conclusion are finished verbatim spoken copy, the body is lane blocks
+   conclusion are finished verbatim spoken copy — full, final, the same words
+   that will end up in the script. The body is lane blocks
    (`**SAY**` / `**SHOW**` / `**EDIT**`) the maker walks while freestyling the
-   demo on screen. The markdown is **parsed**, so the exact forms in
+   demo on screen, and **`SAY` here stays short — a draft prompt, not a
+   finished sentence.** Writing the body as full polished prose collapses the
+   outline into a duplicate of the script and defeats the point of having two
+   documents (a session did exactly this on 2026-08-11 and the owner caught
+   it). The markdown is **parsed**, so the exact forms in
    OUTLINE-INSTRUCTIONS.md matter — an unrecognised form renders as plain prose
    with no lane and nothing errors.
 4. Render it: `node render-outline.mjs <key>` → `outline.html` + `outline.pdf`.
@@ -246,15 +257,18 @@ approving the outline.
   (`vreg ensure`), never from re-slugifying whatever the title happens to say
   today. A key derived twice from two wordings of the same title is exactly how
   one video became two folders.
-- **Never invent facts.** Numbers, prices, names, and claims come from
-  `knowledge.md`. Anything you cannot source, raise as a gap — don't fill it.
-  This binds hardest on a source that failed to ingest: an empty fetch or an
-  illegible screenshot is a GAP, never a cue to write the price you happen to
-  know. `[illegible]` in `knowledge.md` is a correct answer.
-- **Ingest what you were given; never go find more.** Open the owner's links,
-  screenshots and videos — that is step 1's job. Do not follow a link found
-  inside one of them, do not search, do not open a "related" video. If a source
-  turns out to be thin, that is a gap to report.
+- **Never invent facts, and never research them either.** Numbers, prices, names
+  and claims come from `knowledge.md` and nowhere else. Anything you can't source
+  there, **ask the owner** — don't fill it and don't go look it up. This binds
+  hardest on a source that failed to ingest: an empty fetch or an illegible
+  screenshot is a GAP, never a cue to write the price you happen to know.
+  `[illegible]` in `knowledge.md` is a correct answer. Volatile facts (live
+  pricing, free-tier limits) are better left as a `[PLACEHOLDER]` for the
+  owner's team to confirm on recording day than stated as fact that will go
+  stale.
+- **Open only what you were given.** Step 1 opens the owner's links, screenshots
+  and videos and nothing else — no following a link found inside one, no opening
+  a "related" video, no web search at any point in any step.
 - **A source that stays a URL, an image or a file path was not ingested.**
   Steps 2 and 3 read `knowledge.md` and nothing else, so every source has to land
   there as text. Originals go in `sources/` as provenance, not as the record.
@@ -269,11 +283,12 @@ approving the outline.
 
 `yt-script/` (comparison videos from a Gemini-built KB), `yt-research/` (legacy
 Phase 1), and `dossiers/` (persistent per-tool research library) are separate
-systems. This skill was built deliberately without them. Don't reach for them.
+systems. This skill was built deliberately without them — don't read from them,
+don't write to them.
 
 `dossiers/` is the tempting one, because it also transcribes YouTube videos and
 would happily tell you more about a tool the owner mentioned. That is exactly why
-it stays out: it is a *discovery* library, and this skill's knowledge base is
-whatever the owner handed over and nothing else. The shared piece is one level
-lower — both use the `transcribe` skill, which is a mechanical fetcher and holds
+it stays out: it is a *discovery* library with its own accumulation and its own
+skill, and this skill's knowledge base is the owner's material and only that.
+The shared piece is one level lower — both use the `transcribe` skill, which is a mechanical fetcher and holds
 no opinions about which videos matter.
