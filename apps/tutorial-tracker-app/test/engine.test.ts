@@ -2,7 +2,9 @@ import { describe, it, expect } from "vitest";
 import { validatePipelines, getPipeline, allRoles, pipelineIds, rolesForSystem } from "../src/shared/engine/registry";
 import { assembleRow, decomposeRow, routeWrite, type StageRecord, type CardRecord } from "../src/shared/engine/card";
 import { effectiveRoles, holdsRoleInSystem, systemsForRole } from "../src/shared/engine/memberships";
-import { workerStagesForMemberships, reviewQueueForMemberships, type Row, cardStagesForUser, upcomingStagesForUser, canSeeRow } from "../src/shared/engine/rbac";
+import { workerStagesForMemberships, reviewQueueForMemberships, type Row, cardStagesForUser, upcomingStagesForUser, canSeeRow, visibleColsForRoles, canEditForRoles } from "../src/shared/engine/rbac";
+import { showColumns } from "../src/shared/engine/control";
+import { lifecycle } from "../src/shared/engine/lifecycle";
 import { createFieldsOf, type PipelineDef, colOf, stageHasReviewerSlot } from "../src/shared/engine/types";
 
 describe("pipeline definitions", () => {
@@ -173,6 +175,53 @@ describe("up next / upcoming work visibility", () => {
     expect(upcomingStagesForUser(roles, "sam@x.com", row)).toEqual(["tutorial_status"]);
     // A pure Recorder can see the row even though their gate is closed.
     expect(canSeeRow(["Recorder"], "sam@x.com", row)).toBe(true);
+  });
+});
+
+describe("the control grid never shows a column RBAC withholds", () => {
+  // The bug this pins: control.ts showed each doer the upstream deliverable it
+  // works from (a Video Editor needs the Recording link), but derive.ts never
+  // granted view access to it — so the worker stripped the column and the
+  // detail card silently rendered without it.
+  for (const pid of pipelineIds()) {
+    const P = getPipeline(pid);
+    for (const stage of P.stages) {
+      const doerCols = new Set(visibleColsForRoles([stage.role], P));
+      const reviewerCols = new Set(visibleColsForRoles(["Reviewer"], P));
+      for (const status of lifecycle(stage.lifecycle).statuses) {
+        it(`[${pid}] ${stage.role} can see every column the ${stage.label} stage shows at "${status}"`, () => {
+          const missing = showColumns(P, stage, "worker", status).filter((c) => !doerCols.has(c));
+          expect(missing).toEqual([]);
+        });
+        it(`[${pid}] a Reviewer can see every column the ${stage.label} review view shows at "${status}"`, () => {
+          const missing = showColumns(P, stage, "reviewer", status).filter((c) => !reviewerCols.has(c));
+          expect(missing).toEqual([]);
+        });
+      }
+    }
+  }
+
+  it("a doer sees the brief, the upstream deliverable and its own fields at EVERY status", () => {
+    const P = getPipeline("standard");
+    const editing = P.stages.find((s) => s.id === "editing")!;
+    for (const status of lifecycle(editing.lifecycle).statuses) {
+      const shown = showColumns(P, editing, "worker", status);
+      expect(shown, status).toContain("video_title");
+      expect(shown, status).toContain("video_notes");
+      expect(shown, status).toContain("tutorial_link");          // the recording it edits
+      expect(shown, status).toContain("video_editor_instruction");
+      expect(shown, status).toContain("video_editor_eta");
+      expect(shown, status).toContain("video_editor_link");
+    }
+  });
+
+  it("owning two stages never downgrades your own deliverable to read-only", () => {
+    // Recording's link is upstream context FOR Editing. Someone holding both
+    // roles must keep edit rights on the recording they produce.
+    const P = getPipeline("standard");
+    expect(canEditForRoles(["Recorder", "Video Editor"], P, "tutorial_link")).toBe(true);
+    expect(canEditForRoles(["Video Editor"], P, "tutorial_link")).toBe(false);
+    expect(visibleColsForRoles(["Video Editor"], P)).toContain("tutorial_link");
   });
 });
 

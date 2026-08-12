@@ -25,6 +25,17 @@ function HelpBanner({ text }: { text: string }) {
   );
 }
 
+/** Which stage of the video this row is about. Without it, two stages of the
+ *  same video render as two identical titles and read as a duplicate. */
+function StageChip({ stage, pipeline, showSystem }: { stage: StageDef; pipeline: PipelineDef; showSystem?: boolean }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{stage.label}</span>
+      {showSystem && <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground/70">{pipeline.name}</span>}
+    </div>
+  );
+}
+
 interface WorkItem {
   row: BoardRow;
   statusCol: string;
@@ -125,6 +136,25 @@ export function MyWork({
     return etaA.localeCompare(etaB);
   });
 
+  // A person who owns two stages on the same video (e.g. Video Editor AND
+  // Thumbnail Maker) used to see that video twice — once as live work and again,
+  // title-only, under "Up next" — which reads as a duplicate. The later stage is
+  // now folded into the live card as a "then …" line, and "Up next" keeps only
+  // videos that need nothing from this person right now.
+  const activeRowIds = new Set([...needsAction, ...waitingOnReview].map((i) => i.row.row_id));
+  const laterStages = new Map<string, string[]>();
+  for (const item of upNext) {
+    if (!activeRowIds.has(item.row.row_id)) continue;
+    const labels = laterStages.get(item.row.row_id) ?? [];
+    if (!labels.includes(item.stage.label)) labels.push(item.stage.label);
+    laterStages.set(item.row.row_id, labels);
+  }
+  const thenNote = (rowId: string) => {
+    const labels = laterStages.get(rowId);
+    return labels?.length ? `Then yours: ${labels.join(" · ")}` : undefined;
+  };
+  const pendingUpNext = upNext.filter((i) => !activeRowIds.has(i.row.row_id));
+
   const isEmpty = queueItems.length === 0 && allItems.length === 0;
 
   const [showDone, setShowDone] = useState(false);
@@ -175,6 +205,7 @@ export function MyWork({
                 showStage={true}
                 showSystem={multiSystem}
                 canDelete={isAdmin && !readOnly}
+                footNote={thenNote(item.row.row_id)}
                 onDelete={() => handleDelete(item.row.row_id, item.row.video_title ?? "")}
                 transitions={transitionsForStageCol(item.row, item.statusCol).filter((t) => t.by === "doer")}
                 onOpen={() => openDetail(item.row, item.stage.id, "doer")}
@@ -199,10 +230,13 @@ export function MyWork({
               const days = daysSince(sinceOf(item.row as Record<string, unknown>, item.statusCol));
               const who = holder.kind === "reviewer" && holder.email ? displayName(holder.email, names) : "reviewer";
               const dayLabel = days === null ? "" : ` · ${days}d`;
+              const note = thenNote(item.row.row_id);
               return (
                 <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-card p-3 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                  <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
                   <div className="text-sm font-semibold">{item.row.video_title || "(no title)"}</div>
                   <div className="text-xs text-muted-foreground">With {who}{dayLabel}</div>
+                  {note && <div className="text-[11px] text-muted-foreground/70">{note}</div>}
                 </div>
               );
             })}
@@ -211,15 +245,15 @@ export function MyWork({
       )}
 
       {/* 4. Up next */}
-      {upNext.length > 0 && (
+      {pendingUpNext.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
             <div className="size-1.5 shrink-0 rounded-full bg-muted-foreground/40" />
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Up next</h2>
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{upNext.length}</span>
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">{pendingUpNext.length}</span>
           </div>
           <div className="flex flex-col gap-3">
-            {upNext.map((item) => {
+            {pendingUpNext.map((item) => {
               const gateStage = item.stage.gate ? stageByIdIn(item.pipeline, item.stage.gate) : undefined;
               const gateLabel = gateStage?.label ?? "previous stage";
               const gateStatusCol = gateStage ? colOf(gateStage, "status") : undefined;
@@ -230,6 +264,7 @@ export function MyWork({
                 : `Opens after ${gateLabel} is approved`;
               return (
                 <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-muted/30 p-3 text-left shadow-xs transition-all hover:border-foreground/15 opacity-70" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                  <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
                   <div className="text-sm font-semibold">{item.row.video_title || "(no title)"}</div>
                   <div className="text-xs text-muted-foreground">{waitText}</div>
                 </div>
@@ -252,6 +287,7 @@ export function MyWork({
             <div className="flex flex-col gap-3">
               {done.map((item) => (
                 <div key={`${item.row.row_id}-${item.statusCol}`} className="group relative flex cursor-pointer flex-col gap-2 rounded-[10px] border border-border bg-card p-3 text-left shadow-xs transition-all hover:border-foreground/15 hover:shadow-md" onClick={() => openDetail(item.row, item.stage.id, "doer")}>
+                  <StageChip stage={item.stage} pipeline={item.pipeline} showSystem={multiSystem} />
                   <div className="text-sm font-semibold">{item.row.video_title || "(no title)"}</div>
                   <div className="text-xs text-muted-foreground">Completed</div>
                 </div>

@@ -18,6 +18,7 @@ interface CardProps {
   showStage?: boolean;           // show stage chip
   showSystem?: boolean;          // show system chip
   canDelete?: boolean;           // admin: show the delete affordance
+  footNote?: string;             // e.g. "Then yours: Thumbnail" — the same card's later stage
   onDelete?: () => void;
   onOpen: () => void;
   onAction?: (t: Transition) => void;
@@ -34,7 +35,7 @@ export function StatusPill({ status, className }: { status: string; className?: 
   );
 }
 
-export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, showDwell, showStage, showSystem, canDelete, onDelete, onOpen, onAction }: CardProps) {
+export function Card({ row, statusCol, transitions = [], names = {}, readOnly, showAssignee, showDwell, showStage, showSystem, canDelete, footNote, onDelete, onOpen, onAction }: CardProps) {
   const p = pipeOf(row as Record<string, unknown>);
   const stage = stageByStatusColIn(p, statusCol);
   const status = stage ? normalizeStatusIn(stage, row[statusCol as keyof Row] as string) : "To Do";
@@ -132,6 +133,8 @@ export function Card({ row, statusCol, transitions = [], names = {}, readOnly, s
           <Hourglass className="size-3" /> Waiting for review
         </div>
       )}
+
+      {footNote && <div className="text-[11px] text-muted-foreground/70">{footNote}</div>}
     </article>
   );
 }

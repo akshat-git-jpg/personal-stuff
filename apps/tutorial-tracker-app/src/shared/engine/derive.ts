@@ -5,9 +5,9 @@
 // per pipeline id.
 // ===========================================================================
 import type { PipelineDef, StageDef } from "./types";
-import { colOf, stageHasEta, stageHasInstruction, stageHasReviewerSlot, workField } from "./types";
+import { colOf, contextFieldsOf, stageHasEta, stageHasInstruction, stageHasReviewerSlot, workField } from "./types";
 import { lifecycle } from "./lifecycle";
-import { prevStage } from "./registry";
+import { prevStage, stageById } from "./registry";
 
 export type Access = "view" | "edit";
 type Row = Record<string, string | undefined>;
@@ -70,14 +70,43 @@ function editCols(s: StageDef): string[] {
   return out;
 }
 
-function producerAccess(s: StageDef): Partial<Record<string, Access>> {
-  const acc: Partial<Record<string, Access>> = { video_title: "view" };
+/** The upstream deliverables a stage's doer works FROM (e.g. the Video Editor
+ *  reads the Recording link). Must mirror control.ts's `needsCols` — otherwise
+ *  the control grid shows a column the server never sends. */
+function needsCols(p: PipelineDef, s: StageDef): string[] {
+  const ids = s.needs ?? (s.gate ? [s.gate] : []);
+  return ids
+    .map((id) => stageById(p, id))
+    .filter((up): up is StageDef => !!up && !!workField(up))
+    .map((up) => colOf(up, "work_link"));
+}
+
+function producerAccess(p: PipelineDef, s: StageDef): Partial<Record<string, Access>> {
+  const acc: Partial<Record<string, Access>> = {};
+  // Context uses the RESOLVED defaults (video_title + video_notes), not the raw
+  // optional field — the control grid shows those, so access must grant them.
+  for (const c of contextFieldsOf(s)) acc[c] = "view";
+  for (const c of needsCols(p, s)) acc[c] = "view";
   for (const c of editCols(s)) acc[c] = "edit";
   acc[colOf(s, "status")] = "edit";
   if (stageHasInstruction(s)) acc[colOf(s, "instruction")] = "view";
   if (s.lifecycle === "review") acc[colOf(s, "feedback")] = "view"; // reads send-back notes
-  for (const c of s.contextFields ?? []) acc[c] = "view";
   return acc;
+}
+
+/** Merge stage access into a role's grid, keeping the STRONGER right. A role
+ *  that owns two stages must not have its own "edit" on stage A's deliverable
+ *  downgraded to "view" by stage B listing it as upstream context. */
+function mergeAccess(
+  into: Partial<Record<string, Access>>,
+  add: Partial<Record<string, Access>>,
+): Partial<Record<string, Access>> {
+  const out = { ...into };
+  for (const [col, access] of Object.entries(add) as [string, Access][]) {
+    if (out[col] === "edit") continue;
+    out[col] = access;
+  }
+  return out;
 }
 
 export function derive(p: PipelineDef): Derived {
@@ -111,10 +140,10 @@ export function derive(p: PipelineDef): Derived {
     if (s.lifecycle === "review") { byFeedbackCol.set(colOf(s, "feedback"), s); allCols.add(colOf(s, "feedback")); }
     if (stageHasReviewerSlot(s)) { reviewerCols.push(colOf(s, "reviewer")); allCols.add(colOf(s, "reviewer")); }
     for (const c of s.briefFields ?? []) allCols.add(c);
-    for (const c of s.contextFields ?? []) allCols.add(c);
+    for (const c of contextFieldsOf(s)) allCols.add(c);
 
     // producer column access + lane (Admin/Reviewer handled in rbac directly)
-    roleAccess[s.role] = { ...roleAccess[s.role], ...producerAccess(s) };
+    roleAccess[s.role] = mergeAccess(roleAccess[s.role] ?? {}, producerAccess(p, s));
     if (!(s.role in laneOf)) laneOf[s.role] = statusCol;
   }
 

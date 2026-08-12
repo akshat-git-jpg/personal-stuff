@@ -43,7 +43,10 @@ const NINA = "nina@dev.local";
 // (Outline → Screen recording), the "same person, reviewed per part" flow.
 const EMPLOYEES: { email: string; name: string; memberships: Record<string, string[]> }[] = [
   { email: SEAN, name: "Sean", memberships: { "*": ["Admin"], "standard": ["Reviewer"], "tut-2": ["Reviewer"] } },
-  { email: JOHN, name: "John", memberships: { "standard": ["Video Editor"], "tut-2": ["Processor", "Video Editor"] } },
+  // John mirrors the real owner setup: ONE person owning two stages of the same
+  // video (Editing then Thumbnail) — the case that used to render each video
+  // twice in My work, once live and once title-only under "Up next".
+  { email: JOHN, name: "John", memberships: { "standard": ["Video Editor", "Thumbnail Maker"], "tut-2": ["Processor", "Video Editor"] } },
   { email: SAM, name: "Sam", memberships: { "standard": ["Scriptwriter", "Recorder"] } },
   { email: ANUSHA, name: "Anusha", memberships: { "standard": ["Recorder"] } },
   { email: TARA, name: "Tara", memberships: { "standard": ["Thumbnail Maker"], "tut-2": ["Thumbnail Maker"] } },
@@ -100,6 +103,32 @@ const CARDS: CardSpec[] = [
   { pipeline: "standard", title: "Color matching multi-cam footage", category: "Editing", subcategory: "Color", daysAgo: 0,
     notes: "Match shots across two cameras before grading.",
     stages: { topic: D(SEAN), script: D(SAM), recording: D(ANUSHA), editing: { status: "In Review", assignee: JOHN, reviewer: SEAN, link: "https://drive.example.com/final-multicam" } } },
+
+  // ── Two fixtures for the "same video, two of my stages" case ──────────────
+  // A: John owns Editing (live) AND Thumbnail (gated) on one video. This used to
+  //    render the title twice — once actionable, once bare under "Up next".
+  //    Upstream links are filled so the editor's detail card has a real Recording
+  //    link to read (the column RBAC used to withhold).
+  { pipeline: "standard", title: "Two of my stages — editing now, thumbnail after", category: "Editing", subcategory: "Color", daysAgo: 2,
+    notes: "One person owns both the edit and the thumbnail on this video.",
+    stages: {
+      topic: D(SEAN),
+      script: { status: "Done", assignee: SAM, link: "https://docs.example.com/script-two-stages" },
+      recording: { status: "Done", assignee: ANUSHA, link: "https://drive.example.com/screen-recording-raw" },
+      editing: { status: "Need Changes", assignee: JOHN, reviewer: SEAN, feedback: "audio drifts after 4:10", link: "https://drive.example.com/cut-v1" },
+      thumbnail: { status: "To Do", assignee: JOHN, reviewer: SEAN },
+    } },
+  // B: Tara owns only the gated Thumbnail — a genuine "Up next" entry, since she
+  //    has nothing actionable on this video yet.
+  { pipeline: "standard", title: "Waiting on someone else's edit", category: "Editing", subcategory: "Color", daysAgo: 4,
+    notes: "Thumbnail can't start until the edit is approved.",
+    stages: {
+      topic: D(SEAN),
+      script: { status: "Done", assignee: SAM, link: "https://docs.example.com/script-waiting" },
+      recording: { status: "Done", assignee: ANUSHA, link: "https://drive.example.com/recording-waiting" },
+      editing: { status: "In Progress", assignee: JOHN, reviewer: SEAN },
+      thumbnail: { status: "To Do", assignee: TARA, reviewer: SEAN },
+    } },
 ];
 
 function getAssignee(sys: string, role: string) {

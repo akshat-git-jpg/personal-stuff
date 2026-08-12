@@ -4,24 +4,31 @@
 // control.ts: instead of spelling out every (stage × status × role) cell, we
 // encode the regular pattern once and let every pipeline inherit it.
 //
-// The pattern (mirrors the old tables):
-//   worker, work stage:
-//     To Do        → context + ETA; edit ETA            (ETA gates "Start")
-//     In Progress  → + work link;   edit link (+extras)  (link gates "Submit")
-//     In Review    → read-only
+// The pattern:
+//   worker, work stage — EVERY column the role needs is visible at EVERY status
+//   (the brief, the upstream deliverable it works from, its instruction, ETA and
+//   its own output). Only EDITABILITY moves with the status:
+//     To Do        → edit ETA                            (ETA gates "Start")
+//     In Progress  → edit link (+extras)                 (link gates "Submit")
 //     Need Changes → like In Progress
-//     Done/Uploaded→ minimal, read-only
+//     In Review    → read-only
+//     Done/Uploaded→ read-only
 //   worker, brief stage (Topic):
 //     shows brief meta + the whole assignee/reviewer block + downstream
 //     instructions; edits all but the fixed founding-admin slot; submitting
 //     requires the brief + every DOER assignee (reviewers stay optional).
 //   reviewer (reviewed stages):
-//     sees context + ALL instruction boxes (edit them) + the work link;
+//     sees context + ALL instruction boxes (edit them) + the ETA + the work link;
 //     approving requires the NEXT stage's instruction; sending back requires
 //     this stage's feedback.
 //
 // Genuinely unusual stages use sparse `overrides` on the def. Everything here
 // returns flat-Row COLUMN KEYS, so downstream consumers are unchanged.
+//
+// ⚠️ INVARIANT: what this file SHOWS must be a subset of what derive.ts grants
+// the role. The server strips every column outside the role's access, so a
+// column shown here but withheld there just vanishes from the card, silently.
+// test/engine.test.ts pins that invariant for every (pipeline × stage × status).
 // ===========================================================================
 import type { PipelineDef, StageDef, FieldDef } from "./types";
 import {
@@ -99,16 +106,18 @@ function workerView(p: PipelineDef, s: StageDef, status: string): FieldView {
   const extras = extraCols(s);
   if (instr) ctx.push(instr);
 
+  // Every column the role needs for this stage stays VISIBLE at every status —
+  // the brief, the upstream deliverable it works from, the ETA and its own
+  // output. Only EDITABILITY moves with the status (To Do commits an ETA;
+  // In Progress / Need Changes fills the deliverable; In Review + Done freeze).
+  const all = [...ctx, eta, link, ...extras];
+
   const isStart = status === lc.statuses[0];                  // To Do
   const isWorking = status === "In Progress" || status === "Need Changes";
-  const isReview = status === "In Review";
-  const isDone = status === lc.done;
 
-  if (isStart) return view([...ctx, eta], [eta]);
-  if (isWorking) return view([...ctx, eta, link, ...extras], [link, ...extras]);
-  if (isReview) return view([...ctx, eta, link, ...extras], []);
-  if (isDone) return view(["video_title", eta, link, ...extras], []);
-  return view(ctx, []);
+  if (isStart) return view(all, [eta]);
+  if (isWorking) return view(all, [link, ...extras]);
+  return view(all, []);                                       // In Review / Done
 }
 
 function briefWorkerView(p: PipelineDef, s: StageDef, status: string): FieldView {
@@ -137,10 +146,12 @@ function reviewerView(p: PipelineDef, s: StageDef, status: string): FieldView {
     : [...contextFieldsOf(s), ...needsCols(p, s)];
   const instr = allInstructionCols(p);
   const link = workLinkCol(s);
-  const showLink = link && status !== "To Do";       // the deliverable appears once work starts
+  const eta = etaCol(s);
   const isDone = status === lc.done;
 
-  const show = [...ctx, ...instr, ...(showLink ? [link] : [])];
+  // Same rule as the worker grid: the reviewer always sees the whole picture
+  // (context, every brief box, the committed ETA and the deliverable slot).
+  const show = [...ctx, ...instr, eta, link];
   const edit = isDone ? [] : instr;                  // reviewer edits the instruction boxes until approved
   return view(show, edit);
 }
