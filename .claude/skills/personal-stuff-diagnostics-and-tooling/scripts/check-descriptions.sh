@@ -28,7 +28,7 @@ for d in sorted(os.listdir(skills)):
         dups += 1
         continue
     seen[real] = d
-    m = re.match(r"^---\n(.*?)\n---", open(f).read(), re.S)
+    m = re.match(r"^---\n(.*?)\n---", open(f, encoding="utf-8").read(), re.S)
     if not m:
         rows.append(("-", "NONE", d + " (no frontmatter)")); continue
     dm = re.search(r"^description:\s*(.*?)(?=^\w[\w-]*:|\Z)", m.group(1), re.S | re.M)

@@ -14,7 +14,7 @@ for d in sorted(os.listdir(store)):
     f = os.path.join(store, d, "SKILL.md")
     if not os.path.isfile(f):
         continue
-    m = re.match(r"^---\n(.*?)\n---", open(f).read(), re.S)
+    m = re.match(r"^---\n(.*?)\n---", open(f, encoding="utf-8").read(), re.S)
     if not m:
         continue
     dm = re.search(r"^description:\s*(.*?)(?=^\w[\w-]*:|\Z)", m.group(1), re.S | re.M)

@@ -10,6 +10,12 @@
 #   tooling/claude-skills/manifest/personal.txt -> ~/.claude-personal/skills/
 #   a name in both = shared; in one = exclusive to that account.
 #
+# Machines NOT running the Mac dual-account scheme (no ~/.claude-work or
+# ~/.claude-personal, e.g. a bare `claude` launch on Windows/Linux) instead get
+# personal.txt linked straight into the default ~/.claude/skills — see the
+# "default" sync below. This is what keeps a machine like that from silently
+# missing every store skill (decisions.md 2026-08-11).
+#
 # Each skill's SOURCE is auto-resolved: the repo store if present, else
 # ~/.agents/skills (printing-press pp-* skills). The manifest is the source of
 # truth — a managed symlink (pointing into the store or ~/.agents/skills) that
@@ -40,10 +46,31 @@ WORK_DIR="${CLAUDE_WORK_CONFIG_DIR:-$HOME/.claude-work}/skills"
 PERS_DIR="${CLAUDE_PERSONAL_CONFIG_DIR:-$HOME/.claude-personal}/skills"
 AGENTS_DIR="$HOME/.agents/skills"   # printing-press pp-* skills
 
+# Snapshot BEFORE either sync runs — sync_skills_dir mkdir -p's its target
+# dir as a side effect, so checking this after the work/personal syncs would
+# always see the dirs it just created and never detect a non-dual-account
+# machine correctly.
+USING_DUAL_ACCOUNT=1
+if [[ -z "${CLAUDE_WORK_CONFIG_DIR:-}" && -z "${CLAUDE_PERSONAL_CONFIG_DIR:-}" \
+      && ! -d "$HOME/.claude-work" && ! -d "$HOME/.claude-personal" ]]; then
+  USING_DUAL_ACCOUNT=0
+fi
+
 echo "store:  $STORE"
 echo "agents: $AGENTS_DIR"
 status=0
-sync_skills_dir work     "$WORK_DIR" "$STORE/manifest/work.txt"     "$STORE" "$AGENTS_DIR" || status=$?
-sync_skills_dir personal "$PERS_DIR" "$STORE/manifest/personal.txt" "$STORE" "$AGENTS_DIR" || status=$?
-echo "done. Restart any running claude-work / claude-personal session to pick up changes."
+
+if [[ "$USING_DUAL_ACCOUNT" -eq 1 ]]; then
+  sync_skills_dir work     "$WORK_DIR" "$STORE/manifest/work.txt"     "$STORE" "$AGENTS_DIR" || status=$?
+  sync_skills_dir personal "$PERS_DIR" "$STORE/manifest/personal.txt" "$STORE" "$AGENTS_DIR" || status=$?
+else
+  # Fallback for a machine not using the dual-account scheme at all (e.g. a
+  # bare `claude` launch on Windows/Linux, which reads plain ~/.claude): link
+  # personal.txt's skills straight in there instead of creating unused
+  # ~/.claude-work and ~/.claude-personal dirs this machine will never read.
+  DEFAULT_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills"
+  sync_skills_dir default "$DEFAULT_DIR" "$STORE/manifest/personal.txt" "$STORE" "$AGENTS_DIR" || status=$?
+fi
+
+echo "done. Restart any running claude-work / claude-personal / default session to pick up changes."
 exit "$status"

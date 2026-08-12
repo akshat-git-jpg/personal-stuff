@@ -28,6 +28,10 @@ claude-personal() { CLAUDE_CONFIG_DIR="$CLAUDE_PERSONAL_CONFIG_DIR" command clau
 
 Each account has independent plugins, auth, history, MCP, and settings. **Plugins are NOT shared** — they're per-account `/plugin install` (symlinking/path-rewriting plugin state proved unreliable).
 
+### A machine NOT running this dual-account scheme (e.g. Windows, bare `claude`)
+
+If `CLAUDE_WORK_CONFIG_DIR`/`CLAUDE_PERSONAL_CONFIG_DIR` are unset and neither `~/.claude-work` nor `~/.claude-personal` exists, `relink.sh` links `manifest/personal.txt` straight into the default `~/.claude/skills` instead (decisions.md 2026-08-11) — that machine only ever gets one flat skill set, sourced from `personal.txt`. `skills-status.sh` reports this as a fourth "Default link" column. On Windows without admin/Developer Mode privilege, `ln -s` on a directory silently creates an NTFS junction rather than a true symlink — fully functional, but MSYS's `-L` test doesn't recognize it, so both scripts check "does this path contain a `SKILL.md`" as a fallback and label it `ok(junction)`.
+
 ### Skills are a single git-backed store, symlinked into both accounts
 
 As of 2026-06-02 skills are **no longer copied** into each account. They live once in a

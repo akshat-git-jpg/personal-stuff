@@ -12,6 +12,16 @@ AGENTS_DIR="$HOME/.agents/skills"
 MANIFEST_WORK="$STORE/manifest/work.txt"
 MANIFEST_PERS="$STORE/manifest/personal.txt"
 
+# Same fallback condition as relink.sh: a machine with neither dual-account
+# dir (e.g. a bare `claude` launch on Windows) links personal.txt into plain
+# ~/.claude/skills instead — check that target here too.
+USING_DEFAULT=0
+if [[ -z "${CLAUDE_WORK_CONFIG_DIR:-}" && -z "${CLAUDE_PERSONAL_CONFIG_DIR:-}" \
+      && ! -d "$HOME/.claude-work" && ! -d "$HOME/.claude-personal" ]]; then
+  USING_DEFAULT=1
+fi
+DEFAULT_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills"
+
 resolve_src() {
   local name="$1"
   if   [ -d "$STORE/$name" ];      then echo "$STORE/$name"
@@ -25,8 +35,31 @@ is_managed() {
   target="$(readlink "$link" 2>/dev/null || echo "")"
   case "$target" in
     "$STORE"/*|"$AGENTS_DIR"/*) return 0 ;;
-    *) return 1 ;;
+    *)
+      # readlink returns nothing for a Windows junction (MSYS doesn't surface
+      # IO_REPARSE_TAG_MOUNT_POINT via readlink the way it does true
+      # symlinks) — a non-admin `ln -s` on a directory falls back to a
+      # junction, so presence of the skill's own file is the best signal we
+      # have that this is the store-managed link, not a stray real folder.
+      [ -f "$link/SKILL.md" ]
+      ;;
   esac
+}
+
+# Reports "ok" / "ok(junction)" / "DANGLING" / "MISSING" for name under dir.
+# Windows without symlink privilege makes `ln -s` on a directory create an
+# NTFS junction instead of a true symlink; MSYS's `-L` test does not
+# recognize junctions, so a plain existence + SKILL.md check is the fallback.
+link_state() {
+  local dir="$1" name="$2" path
+  path="$dir/$name"
+  if [ -L "$path" ]; then
+    if [ -e "$path" ]; then echo "ok"; else echo "DANGLING"; fi
+  elif [ -d "$path" ] && [ -f "$path/SKILL.md" ]; then
+    echo "ok(junction)"
+  else
+    echo "MISSING"
+  fi
 }
 
 in_manifest() {
@@ -53,8 +86,8 @@ if [ -n "$ALL_SKILLS_RAW" ]; then
   unset IFS
 fi
 
-echo "| Skill | Accounts | Work link | Personal link | Source |"
-echo "|---|---|---|---|---|"
+echo "| Skill | Accounts | Work link | Personal link | Default link | Source |"
+echo "|---|---|---|---|---|---|"
 
 count_both=0
 count_work=0
@@ -89,39 +122,35 @@ for name in "${SORTED_SKILLS[@]:-}"; do
   fi
 
   w_link="-"
-  if [ "$has_w" -eq 1 ]; then
-    if [ ! -L "$WORK_DIR/$name" ]; then
-      w_link="MISSING"
-      problems=$((problems + 1))
-    elif [ ! -e "$WORK_DIR/$name" ]; then
-      w_link="DANGLING"
-      problems=$((problems + 1))
-    else
-      w_link="ok"
-    fi
+  if [ "$has_w" -eq 1 ] && [ "$USING_DEFAULT" -eq 0 ]; then
+    w_link="$(link_state "$WORK_DIR" "$name")"
+    case "$w_link" in MISSING|DANGLING) problems=$((problems + 1)) ;; esac
+  elif [ "$has_w" -eq 1 ]; then
+    w_link="n/a"
   fi
 
   p_link="-"
-  if [ "$has_p" -eq 1 ]; then
-    if [ ! -L "$PERS_DIR/$name" ]; then
-      p_link="MISSING"
-      problems=$((problems + 1))
-    elif [ ! -e "$PERS_DIR/$name" ]; then
-      p_link="DANGLING"
-      problems=$((problems + 1))
-    else
-      p_link="ok"
-    fi
+  if [ "$has_p" -eq 1 ] && [ "$USING_DEFAULT" -eq 0 ]; then
+    p_link="$(link_state "$PERS_DIR" "$name")"
+    case "$p_link" in MISSING|DANGLING) problems=$((problems + 1)) ;; esac
+  elif [ "$has_p" -eq 1 ]; then
+    p_link="n/a"
   fi
 
-  echo "| $name | $acc | $w_link | $p_link | $src_txt |"
+  d_link="-"
+  if [ "$USING_DEFAULT" -eq 1 ] && [ "$has_p" -eq 1 ]; then
+    d_link="$(link_state "$DEFAULT_DIR" "$name")"
+    case "$d_link" in MISSING|DANGLING) problems=$((problems + 1)) ;; esac
+  fi
+
+  echo "| $name | $acc | $w_link | $p_link | $d_link | $src_txt |"
 done
 
 total=${#SORTED_SKILLS[@]}
 echo ""
 echo "$total skills — $count_both both / $count_work work-only / $count_pers personal-only; problems: $problems"
 
-declare -a STRAYS
+STRAYS=()
 
 check_strays() {
   local dir="$1"
@@ -149,8 +178,12 @@ check_strays() {
   done
 }
 
-check_strays "$WORK_DIR" "$MANIFEST_WORK"
-check_strays "$PERS_DIR" "$MANIFEST_PERS"
+if [ "$USING_DEFAULT" -eq 1 ]; then
+  check_strays "$DEFAULT_DIR" "$MANIFEST_PERS"
+else
+  check_strays "$WORK_DIR" "$MANIFEST_WORK"
+  check_strays "$PERS_DIR" "$MANIFEST_PERS"
+fi
 
 if [ "${#STRAYS[@]}" -gt 0 ]; then
   echo ""
