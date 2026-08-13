@@ -29,9 +29,9 @@ if [[ $# -eq 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
   exit 2
 fi
 
-# `configure` takes extra flags (--drive-folder/--drive-account); every other
-# step is exactly two args.
-if [[ $# -lt 2 ]] || { [[ "$2" != "configure" ]] && [[ $# -ne 2 ]]; }; then
+# `configure` takes extra flags (--drive-folder/--drive-account) and `status`
+# takes --track; every other step is exactly two args.
+if [[ $# -lt 2 ]] || { [[ "$2" != "configure" ]] && [[ "$2" != "status" ]] && [[ $# -ne 2 ]]; }; then
   usage
   exit 2
 fi
@@ -201,7 +201,12 @@ case "$step" in
     # rather than a fixed if/elif chain, and returns one step per track (the
     # intro film and the card plan share no artifact, so a gate on one must
     # not park the hint on the other — plan 199).
-    node lib/steps.mjs next "$slug"
+    #
+    # `--track intro|main` narrows it to one lane. When the two tracks are run
+    # as two sessions, each session should pass its own track: an unfiltered
+    # hint tempts a session into running the OTHER track's next step, which is
+    # how two sessions end up both writing cues.json.
+    node lib/steps.mjs next "$slug" "$@"
     ;;
 
   transcribe)
@@ -387,6 +392,14 @@ EOF
   outline)
     dry "node lib/card-plan.mjs $slug --outline" && exit 0
     node lib/card-plan.mjs "$slug" --outline
+    ;;
+
+  previews)
+    # The two look-approval gates (110 intro ideas, 240 new-card looks) as a
+    # queue instead of a copy-paste loop. This only REPORTS; the extension polls
+    # the board's /api/card-previews and fills its own queue.
+    dry "node lib/flow-previews.mjs $slug" && exit 0
+    node lib/flow-previews.mjs "$slug"
     ;;
 
   board)

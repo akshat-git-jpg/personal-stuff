@@ -15,6 +15,7 @@ import {
   nextStep,
   summarize,
   renderTable,
+  updateRunLog,
   STATUSES,
 } from './run-log.mjs';
 
@@ -437,4 +438,61 @@ test('410 infers done from media files only, never the bare renders dir (owner r
   s410 = stepView(dir).find((s) => s.number === '410');
   assert.equal(s410.status, 'done', 'every resolved cue rendered = done');
   assert.ok(s410.derived, 'still marked inferred, never a recorded done');
+});
+
+// TWO-SESSION LEDGER (plan 199 tracks). The intro track and the main track run
+// as two sessions on one video and both close steps into one run-log.json.
+// Before updateRunLog, whichever session wrote second wrote back the `steps`
+// map as it looked before the other session existed, silently deleting the
+// other track's entry — a step with no record, which is the one thing this
+// file exists to prevent.
+test('updateRunLog keeps a step another session wrote between our read and our write', () => {
+  const dir = workdir('two-session');
+  writeRunLog(dir, emptyLog('vid'));
+
+  // The intro session reads the ledger...
+  const introView = readRunLog(dir);
+
+  // ...and while it is thinking, the main session lands 210.
+  writeRunLog(
+    dir,
+    setStep(readRunLog(dir), '210-author-body-cues-llm', 'done', {
+      did: 'Placed 23 body cues.',
+      output: 'cues.json',
+    }),
+  );
+
+  // Now the intro session writes 110 from its STALE read.
+  updateRunLog(dir, () =>
+    setStep(introView, '110-propose-intro-idea-llm', 'done', {
+      did: 'Proposed 3 intro directions.',
+      output: 'intro-film/idea.json',
+    }),
+  );
+
+  const after = readRunLog(dir);
+  assert.equal(after.steps['110-propose-intro-idea-llm']?.status, 'done', 'our own step must land');
+  assert.equal(
+    after.steps['210-author-body-cues-llm']?.status,
+    'done',
+    'the other track\'s step must survive — this is the regression',
+  );
+  assert.equal(after.steps['210-author-body-cues-llm'].did, 'Placed 23 body cues.');
+});
+
+test('updateRunLog still refuses a done step with no summary, and writes nothing', () => {
+  const dir = workdir('two-session-guard');
+  writeRunLog(dir, emptyLog('vid'));
+  assert.throws(
+    () => updateRunLog(dir, (log) => setStep(log, '110-propose-intro-idea-llm', 'done', {})),
+    /needs did and output/,
+  );
+  assert.deepEqual(readRunLog(dir).steps, {}, 'a refused write must not touch the file');
+});
+
+test('writeRunLog leaves no tmp file behind', () => {
+  const dir = workdir('atomic');
+  writeRunLog(dir, emptyLog('vid'));
+  const strays = fs.readdirSync(dir).filter((f) => f.includes('.tmp'));
+  assert.deepEqual(strays, [], `write-then-rename must clean up, found ${strays.join(', ')}`);
 });

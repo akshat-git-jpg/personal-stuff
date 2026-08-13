@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kushal.flow-queue</string>
+
+  <!-- The prompt relay the ZAPI FLOW extension polls. Edit the path if you
+       move the repo. Optional: `pp-flow-queue push` starts the relay itself
+       when it is not running, so this agent only removes the cold-start pause
+       on the first push after a reboot. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Users/kbtg/codebase/personal-stuff/tooling/cli/flow-queue/flow-queue.mjs</string>
+    <string>serve</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- launchd has a bare PATH otherwise -->
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/Users/kbtg/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/flow-queue.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/flow-queue.log</string>
+</dict>
+</plist>

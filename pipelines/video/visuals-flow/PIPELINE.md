@@ -86,6 +86,70 @@ The driver script is the single entry point for the whole chain:
 
 Each `steps/NNN-*/` folder has a `README.md` that remains the detailed reference for what that step does, its exact inputs, and its exact outputs.
 
+### The two tracks, run as two sessions
+
+Every step declares a `track` in its `step.json` — `intro` (110-160, the bespoke
+intro film) or `main` (everything else). The two share no artifact: 130's
+authoring contract forbids reading `catalog.json`/`cues.json`/`card-plan.json`,
+and no 2xx step reads the screenplay. So after **050** they can be run by two
+Claude sessions at once, and `run.sh <slug> status` already prints one `next:`
+line per track.
+
+```
+session A (intro):  110 → 120 → 130 → 140 → 150 → 160   then STOP
+session B (main):   210 → 220 → 230 → 235 → 240 → 310 → … → 630
+```
+
+**Do not split three ways.** `210` (body) and `220` (conclusion) both write
+`cues.json`. They must stay serial, in one session.
+
+**Where they rejoin — both joins are already enforced in code:**
+
+- `160` renders the film against a **stand-in avatar**. The shipping encode is
+  `440`, which consumes the real `avatar.mp4` from `430`. That is why `440` is
+  track `main`: **session A's job ends at 160.**
+- `510` calls `requireIntroApproved()`, so session B physically cannot finish
+  the cut until session A's `150` gate is approved.
+
+**The ownership contract.** Two sessions on one workdir need these four rules;
+none is enforced by the code, so they belong here:
+
+1. **One committer: session B.** A `git add -A` from either session sweeps the
+   other's in-flight files, and concurrent commits race on `index.lock` (`240`
+   also commits and pushes `card-library`). Everything session A writes lives
+   under `videos/<slug>/intro-film/`, so session B picks it up. **Session A
+   never runs git.**
+2. **One board.** Launch it once; `lib/board.mjs` now detects a board already on
+   4322 and reuses it rather than forking to 4323 under a "KILL THE OLD BOARD"
+   banner. Both gates are tabs on that one board. Never launch a second.
+3. **Never write a file while your own gate is open on the board.** The board
+   writes approvals back into `cues.json` / `shots.json` /
+   `intro-film/screenplay.json`; a session rewriting the same file mid-review
+   clobbers the owner's approval. The gates are designed for an idle session —
+   keep them that way.
+4. **Mint the slug once, before the split.** `vreg ensure` (skill guardrail 1)
+   is a write to the shared registry. Run it once and hand BOTH sessions the
+   exact slug; never let a session mint its own.
+
+Each session should pass its own lane so it is never tempted to run the other
+track's next step:
+
+```bash
+bash run.sh <slug> status --track intro   # session A
+bash run.sh <slug> status --track main    # session B
+```
+
+`run-log.json` is shared and safe: writes go through `updateRunLog()`, which
+re-reads and merges immediately before writing, so one track closing a step can
+no longer erase the other track's entry.
+
+**Order the gates, or you get no speedup.** The bottleneck is the owner, not
+compute. `120` (intro idea) is a page of prose — clear it first, then session B
+runs unattended through `210 → 330` while session A does `130`/`140`, so `150`
+and `340` land together.
+
+Copy-paste kickoff prompts: [docs/two-session-kickoff.md](docs/two-session-kickoff.md).
+
 ## What this pipeline adds over the retired v1
 
 - **A. Doctrine port + concept pre-pass**: core idea, motif, register map enforced by machine lint (spec [docs/specs/2026-07-24-visuals-flow-v2-design.md](../../../docs/specs/2026-07-24-visuals-flow-v2-design.md)).

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# pp-flow-queue — wrapper, mirroring cli/ntfy/pp-ntfy so both Mac and VPS work
+# with no per-machine config. Node stdlib only: no install step, no deps.
+set -euo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec node "$DIR/flow-queue.mjs" "$@"

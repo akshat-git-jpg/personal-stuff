@@ -22,6 +22,33 @@ catch.
 
 Out: `videos/<slug>/intro-film/idea.json`
 
+## Give the owner a FRAME per direction, not just a page (owner ask 2026-08-13)
+
+A page of prose is the cheapest possible rejection, which is why this step is
+prose-only — but prose is a poor way to judge a **look**, and the owner is
+choosing between directions on exactly that. So alongside `idea.json`, write one
+image-generation prompt file per competing direction:
+
+```
+videos/<slug>/intro-film/idea-previews/<idea-id>.md
+```
+
+Use the same format as the new-card look preview: `---` on its own line between
+key moments, a `##` heading as a label for the owner (never sent to the
+generator), and the prompt body built from the template in
+`card-library/DESIGN.md` ("New-card checklist", item 0). Then:
+
+```bash
+bash run.sh <slug> previews
+```
+
+That pushes them to the `flow-queue` relay; the ZAPI FLOW extension loads them
+into its Google Flow queue by itself, so the owner opens Flow and hits generate
+with nothing to copy. Format + rules: `tooling/cli/flow-queue/README.md`.
+
+This does not change the gate. `120` still approves `idea.json` — the frames are
+there so the owner can SEE each direction before picking one.
+
 ## Verbs
 
 | Verb | Does |

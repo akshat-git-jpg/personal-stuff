@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ZAPI FLOW</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <header class="hero">
+        <div class="hero-brand">
+          <img class="hero-logo" src="../icons/icon-128.png" width="44" height="44" alt="" decoding="async" />
+          <div class="hero-titles">
+            <h1>ZAPI FLOW</h1>
+            <div class="version-row">
+              <span class="version-tag" id="versionTag">v1.2.0</span>
+              <span class="version-sep">·</span>
+              <span class="brand-by">by</span><a href="https://www.youtube.com/@zapiwala" target="_blank" rel="noopener noreferrer" class="brand-link">Zapiwala AI</a>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <select id="channelSelect" class="lang-select channel-select" title="Version channel">
+              <option value="stable">v1.2.3 · Stable</option>
+              <option value="beta-settings">v1.2.4 · Beta — generation settings</option>
+            </select>
+            <select id="langSelect" class="lang-select" title="Language">
+              <option value="en">🌐 EN</option>
+              <option value="vi">VI</option>
+              <option value="zh">中文</option>
+              <option value="ko">한국어</option>
+              <option value="es">ES</option>
+              <option value="ja">日本語</option>
+            </select>
+            <button type="button" class="hero-help" id="helpOpen" aria-haspopup="dialog" aria-controls="helpDialog">
+              <svg class="hero-help__icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M13 9h-2V7h2m0 10h-2v-6h2m-1-9A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Help dialog -->
+      <dialog class="help-dialog" id="helpDialog" aria-labelledby="helpDialogTitle">
+        <div class="help-dialog__inner">
+          <h2 id="helpDialogTitle" class="help-dialog__title" data-i18n="helpTitle">Getting Started</h2>
+          <div class="help-dialog__copy" id="helpBody"></div>
+          <section class="help-dialog__advanced">
+            <h3 class="help-dialog__advanced-label" data-i18n="helpDelayTitle">Random delay</h3>
+            <p class="help-dialog__advanced-body" data-i18n="helpDelayBody">After each generation, ZAPI FLOW waits a random number of seconds within your set range before starting the next prompt.</p>
+          </section>
+          <button type="button" class="btn btn-primary help-dialog__close" id="helpClose" data-i18n="helpClose">Got it</button>
+        </div>
+      </dialog>
+
+      <!-- Update banner -->
+      <div class="update-bar" id="updateBar" style="display:none">
+        <span class="update-icon">🔔</span>
+        <div class="update-text">
+          <span class="update-title">New version available!</span>
+          <span class="update-body">Open a new tab → type <strong>chrome://extensions</strong> → enable Developer Mode → click <strong>Update</strong></span>
+        </div>
+        <button type="button" class="update-dismiss" id="updateDismiss" title="Dismiss">✕</button>
+      </div>
+
+      <!-- Connection status -->
+      <div class="conn-bar" id="connBar">
+        <span class="conn-dot" id="connDot"></span>
+        <span class="conn-msg" id="connMsg">Checking…</span>
+        <a class="conn-link" id="connLink" href="#" style="display:none" target="_blank"></a>
+      </div>
+
+      <!-- Agent mode -->
+      <div class="agent-bar" id="agentBar" style="display:none">
+        <span class="agent-icon">🤖</span>
+        <span class="agent-msg" id="agentMsg"></span>
+        <span class="agent-badge" id="agentBadge"></span>
+      </div>
+
+      <!-- visuals-flow look-preview bridge (auto-loaded, no click) -->
+      <div class="agent-bar vf-bar" id="vfBar" style="display:none">
+        <span class="agent-icon">🎬</span>
+        <span class="agent-msg" id="vfMsg"></span>
+      </div>
+
+      <!-- Character Consistency toggle -->
+      <div class="toggle-row cc-toggle-row">
+        <div class="cc-toggle-label">
+          <span class="timing-label">Character Consistency</span>
+          <span class="cc-hint">Auto-adds project assets matching names in prompt</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="charConsistencyToggle" />
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </div>
+
+      <!-- Generation Settings -->
+      <div class="gen-card" id="genCard">
+        <div class="toggle-row gen-header-row">
+          <div class="cc-toggle-label">
+            <span class="timing-label">Generation Settings</span>
+            <span class="cc-hint">Auto-applies in Flow before starting the queue</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="genSyncToggle" />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="gen-body" id="genBody" style="display:none">
+          <!-- Mode -->
+          <div class="gen-row">
+            <span class="gen-row-label">Mode</span>
+            <div class="seg-group" id="genModeGroup">
+              <button type="button" class="seg-btn is-active" data-val="image">🖼 Image</button>
+              <button type="button" class="seg-btn" data-val="video">🎬 Video</button>
+            </div>
+          </div>
+
+          <!-- IMAGE settings -->
+          <div id="genImageBlock">
+            <div class="gen-row">
+              <span class="gen-row-label">Aspect ratio</span>
+              <div class="seg-group" id="genAspectImageGroup">
+                <button type="button" class="seg-btn is-active" data-val="16:9">16:9</button>
+                <button type="button" class="seg-btn" data-val="4:3">4:3</button>
+                <button type="button" class="seg-btn" data-val="1:1">1:1</button>
+                <button type="button" class="seg-btn" data-val="3:4">3:4</button>
+                <button type="button" class="seg-btn" data-val="9:16">9:16</button>
+              </div>
+            </div>
+            <div class="gen-row">
+              <span class="gen-row-label">Outputs per prompt</span>
+              <div class="seg-group" id="genOutputsImageGroup">
+                <button type="button" class="seg-btn is-active" data-val="1x">1x</button>
+                <button type="button" class="seg-btn" data-val="2x">2x</button>
+                <button type="button" class="seg-btn" data-val="3x">3x</button>
+                <button type="button" class="seg-btn" data-val="4x">4x</button>
+              </div>
+            </div>
+            <div class="gen-row">
+              <span class="gen-row-label">Model</span>
+              <select class="gen-select" id="genModelImage">
+                <option value="">Use Flow's current</option>
+                <option value="Nano Banana Pro">Nano Banana Pro</option>
+                <option value="Nano Banana 2">Nano Banana 2</option>
+                <option value="Nano Banana 2 Lite">Nano Banana 2 Lite</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- VIDEO settings -->
+          <div id="genVideoBlock" style="display:none">
+            <div class="gen-row">
+              <span class="gen-row-label">Type</span>
+              <div class="seg-group" id="genVideoTypeGroup">
+                <button type="button" class="seg-btn is-active" data-val="Frames">Frames</button>
+                <button type="button" class="seg-btn" data-val="Ingredients">Ingredients</button>
+              </div>
+            </div>
+            <div class="gen-row">
+              <span class="gen-row-label">Aspect ratio</span>
+              <div class="seg-group" id="genAspectVideoGroup">
+                <button type="button" class="seg-btn is-active" data-val="16:9">16:9</button>
+                <button type="button" class="seg-btn" data-val="9:16">9:16</button>
+              </div>
+            </div>
+            <div class="gen-row">
+              <span class="gen-row-label">Outputs per prompt</span>
+              <div class="seg-group" id="genOutputsVideoGroup">
+                <button type="button" class="seg-btn is-active" data-val="1x">1x</button>
+                <button type="button" class="seg-btn" data-val="2x">2x</button>
+                <button type="button" class="seg-btn" data-val="3x">3x</button>
+                <button type="button" class="seg-btn" data-val="4x">4x</button>
+              </div>
+            </div>
+            <div class="gen-row">
+              <span class="gen-row-label">Model</span>
+              <select class="gen-select" id="genModelVideo">
+                <option value="">Use Flow's current</option>
+                <option value="Omni Flash">Omni Flash</option>
+                <option value="Veo 3.1 - Lite">Veo 3.1 - Lite</option>
+                <option value="Veo 3.1 - Fast">Veo 3.1 - Fast</option>
+                <option value="Veo 3.1 - Quality">Veo 3.1 - Quality</option>
+              </select>
+            </div>
+            <div class="gen-row">
+              <span class="gen-row-label">Duration</span>
+              <div class="seg-group" id="genDurationGroup">
+                <button type="button" class="seg-btn" data-val="4s">4s</button>
+                <button type="button" class="seg-btn is-active" data-val="6s">6s</button>
+                <button type="button" class="seg-btn" data-val="8s">8s</button>
+                <button type="button" class="seg-btn" data-val="10s">10s</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prompt input -->
+      <div class="field">
+        <label for="prompts" class="field-label" data-i18n="promptQueueLabel">Prompt queue</label>
+        <span class="field-hint" data-i18n="promptQueueHint">One prompt per line · list updates as you type</span>
+        <textarea id="prompts" rows="5" spellcheck="true" placeholder="Enter one prompt per line&#10;Use a line break between each prompt&#10;&#10;A red bicycle on a rainy street&#10;&#10;A watercolor fox in a forest&#10;&#10;Neon alley at dusk, cinematic"></textarea>
+        <div class="upload-row">
+          <label for="txtUpload" class="btn-txt-upload">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM12 17v-4l-2 2-1.4-1.4L12 10l3.4 3.6L14 15l-2-2v4h-2z"/></svg>
+            Upload .txt file
+          </label>
+          <input type="file" id="txtUpload" accept=".txt" style="display:none" />
+          <span class="upload-hint">Each line = one prompt</span>
+        </div>
+      </div>
+
+      <!-- Sponsored -->
+      <div class="sponsored-bar">
+        <span class="sponsored-label">✦ Sponsored</span>
+        <a href="https://youtu.be/WVT2FCjhDDY" target="_blank" rel="noopener noreferrer" class="sponsored-img-link">
+          <img src="sponsor.png" alt="FoziScribe - Magical AI WorkFlow" class="sponsored-img" />
+        </a>
+      </div>
+
+      <!-- Status -->
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+
+      <!-- Live prompt list -->
+      <div class="prompt-list-section" id="listSection" style="display:none">
+        <div class="list-header">
+          <span class="field-label" data-i18n="queueTitle">Queue</span>
+          <span class="list-count" id="listCount"></span>
+        </div>
+        <div class="prompt-list" id="promptList"></div>
+      </div>
+
+      <!-- Auto download toggle -->
+      <div class="toggle-row">
+        <span class="timing-label">Auto download generated images</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="autoDownloadToggle" checked />
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </div>
+
+      <!-- Serial number toggle -->
+      <div class="toggle-row">
+        <span class="timing-label">Include serial number in filename</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="serialToggle" checked />
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </div>
+
+      <!-- Download folder -->
+      <div class="folder-row">
+        <span class="timing-label" data-i18n="downloadFolderLabel">Download folder</span>
+        <div class="input-wrap folder-input-wrap">
+          <svg viewBox="0 0 24 24" class="folder-icon" fill="currentColor" aria-hidden="true">
+            <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+          </svg>
+          <input type="text" id="downloadFolder" value="zapi-img" placeholder="zapi-img" spellcheck="false" />
+        </div>
+        <button type="button" class="btn-auto-dl" id="openDlSettings" title="Open Chrome download settings">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          <span data-i18n="autoDownload">Auto-save</span>
+        </button>
+      </div>
+
+      <!-- Timing -->
+      <div class="timing-row">
+        <span class="timing-label" data-i18n="delayFrom">Random delay from</span>
+        <div class="input-wrap timing-input-wrap">
+          <input type="number" id="waitMin" min="0" step="1" value="5" />
+          <span class="suffix" data-i18n="delaySec">sec</span>
+        </div>
+        <span class="timing-label" data-i18n="delayTo">To</span>
+        <div class="input-wrap timing-input-wrap">
+          <input type="number" id="waitMax" min="0" step="1" value="15" />
+          <span class="suffix" data-i18n="delaySec">sec</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="run"      class="btn btn-primary" data-i18n="runQueue" disabled>Start Generation</button>
+        <button type="button" id="continueBtn" class="btn btn-continue" style="display:none">▶ Continue</button>
+        <button type="button" id="stop"     class="btn btn-quiet"   data-i18n="stop">Stop</button>
+      </div>
+    </div>
+    <script src="sidepanel.js" defer></script>
+  </body>
+</html>

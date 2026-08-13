@@ -25,7 +25,10 @@ const VERB_KINDS = ['meta', 'helper', 'stage', 'composite'];
 // other. They rejoin at 440-rerender-intro-film-run, which consumes both the
 // film and the avatar clips, so 440 and everything after it is "main". Order
 // here is print order in nextHintLine(): intro first, then main.
-const TRACKS = ['intro', 'main'];
+// Exported because the two tracks are now an OPERATING unit, not just a
+// next-hint detail: `run.sh <slug> status --track intro` is how a session that
+// owns one track sees only its own lane.
+export const TRACKS = ['intro', 'main'];
 
 // Optional, human-facing, all strings:
 //   summary     the PIPELINE.md "In → Out" cell, verbatim
@@ -261,9 +264,20 @@ function firstUnsatisfied(steps, exists, readFlag) {
 // line once both are satisfied. A step carries its own hint text when the
 // bare verb is not enough guidance (the gates, mostly); every other step
 // falls back to naming its verb.
-export function nextHintLine(slug, next) {
-  const lines = TRACKS.map((t) => next[t]).filter(Boolean).map((step) => hintLineForStep(slug, step));
-  if (!lines.length) return 'next: nothing — every step for this video is satisfied';
+// `track` narrows the output to one lane, for a session that owns only that
+// lane. Unfiltered (the default) still prints both, because the owner reading
+// `status` wants the whole video.
+export function nextHintLine(slug, next, { track = null } = {}) {
+  if (track && !TRACKS.includes(track)) {
+    throw new Error(`unknown track "${track}" — must be one of: ${TRACKS.join(', ')}`);
+  }
+  const want = track ? [track] : TRACKS;
+  const lines = want.map((t) => next[t]).filter(Boolean).map((step) => hintLineForStep(slug, step));
+  if (!lines.length) {
+    return track
+      ? `next: nothing — the ${track} track is satisfied`
+      : 'next: nothing — every step for this video is satisfied';
+  }
   return lines.join('\n');
 }
 
@@ -307,12 +321,16 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     } else if (cmd === 'slug') {
       console.log(stepSlug(rest[0]));
     } else if (cmd === 'next') {
-      const [slugArg] = rest;
+      const [slugArg, ...flags] = rest;
+      const i = flags.indexOf('--track');
+      const track = i === -1 ? null : flags[i + 1];
+      if (i !== -1 && !track) throw new Error(`--track needs a value — one of: ${TRACKS.join(', ')}`);
       const workdir = resolveWorkdir(slugArg);
       console.log(
         nextHintLine(
           slugArg,
           nextStep({ ...workdirProbes(workdir) }),
+          { track },
         ),
       );
     } else {
@@ -321,7 +339,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
           '  node lib/steps.mjs verbs                         every verb run.sh accepts\n' +
           '  node lib/steps.mjs usage                         the same list, formatted for run.sh usage()\n' +
           '  node lib/steps.mjs slug <number|verb|slug>       the step folder name\n' +
-          '  node lib/steps.mjs next <slug> [intro] [review]  the status next-hint line',
+          '  node lib/steps.mjs next <slug> [--track intro|main]  the status next-hint line',
       );
       process.exit(1);
     }

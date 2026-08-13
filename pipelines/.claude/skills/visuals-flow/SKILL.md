@@ -78,8 +78,36 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    reads UNLIMITED). Never flip to production yourself.
 7. **Snapshot before owner edits**: after a cue/shot pass converges, copy the
    final LLM output to `cues.llm.json` / `shots.llm.json` (committed, immutable).
+7b. **Look-preview prompts go to a FILE, never into the chat.** Both gates that
+   approve a look from generated frames — 110 (competing intro directions) and
+   240 (new-card look, owner rule 2026-07-31) — author their prompts as markdown:
+   `videos/<slug>/intro-film/idea-previews/<idea-id>.md` and
+   `videos/<slug>/card-previews/<card-slug>.md`. Then run
+   `bash run.sh <slug> previews`, which pushes them to the `flow-queue` relay so
+   the ZAPI FLOW extension loads them into Google Flow with nothing to copy.
+   Format: `tooling/cli/flow-queue/README.md`. **This removes the copy-paste,
+   not the gate — you still WAIT for the owner's verdict.**
 8. Never edit RULEBOOK/prompt/DESIGN/catalog/lint constants mid-run — rule
    changes go through the 130 fold, not through operating sessions.
+9. **If the owner says this session owns ONE track, obey the track boundary.**
+   After 050 the flow splits into two tracks that share no artifact — `intro`
+   (110-160, the bespoke film) and `main` (everything else) — and they are
+   meant to be run by two sessions at once. Every `step.json` declares its
+   `track`; see your own lane with `bash run.sh <slug> status --track
+   intro|main`. Four rules, none of them enforced by code:
+   - **Only the MAIN session runs git.** A `git add -A` from the intro session
+     sweeps the other's in-flight files and races `index.lock`. The intro
+     session writes only under `videos/<slug>/intro-film/`; main commits it.
+   - **Never launch a second board.** One board serves both tracks (it reads
+     from disk per request and `?video=` re-points it). `lib/board.mjs` now
+     reuses a live board on 4322 — do not work around that.
+   - **Never write a file while your own gate is open on the board**, which
+     writes approvals into `cues.json`/`shots.json`/`screenplay.json`.
+   - **The intro session STOPS AT 160.** 440 (the shipping encode with the
+     real avatar) is `main`, because it needs 430's output.
+
+   Full contract + copy-paste kickoff prompts:
+   `pipelines/video/visuals-flow/docs/two-session-kickoff.md`.
 
 ## Verb Map
 
@@ -161,4 +189,5 @@ Between the gates the session runs unattended: render → avatar renders → cut
 | "deliver the final", "upload to drive", "ship it to the output folder" | `bash run.sh <slug> deliver` | **150** — uploads the approved full-res final to the video's Drive `Output/` folder; needs `drive_folder`+`drive_account` in run-config (005); 120 approval re-checked, never waived |
 | "qc the video", "filmstrip qc" | `bash run.sh <slug> qc` | |
 | "fold the feedback", "feedback is done", "I'm done reviewing" | **invoke the `visuals-flow-feedback` skill** (it wraps `bash run.sh <slug> fold`) | **130 fold** |
+| "queue the previews", "send the prompts to flow" | `bash run.sh <slug> previews` | pushes the 110 intro-idea and 240 new-card look prompts to the `flow-queue` relay; the ZAPI FLOW extension loads them into Google Flow by itself |
 | "analyze reference <url>" | `bash scripts/analyze-reference.sh <url>` | |

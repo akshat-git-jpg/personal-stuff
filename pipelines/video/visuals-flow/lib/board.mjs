@@ -1794,6 +1794,42 @@ function listenOnFreePort(server, startPort, attempts = 10) {
   });
 }
 
+// ONE BOARD PER MACHINE, not one per session.
+//
+// The two tracks (intro 110-160 and main — plan 199) are meant to run as two
+// sessions on ONE video, and both of them have a gate on this board: the intro
+// tab at 120/150, the storyboard tab at 340. They do not need two servers.
+// createServer() binds a launch workdir, but every data route reads from disk
+// per request and ?video=<slug> re-points the whole board (requestedWorkdir),
+// so a board that is already up serves this video too — and it serves the
+// other session's writes, because nothing is cached at boot.
+//
+// Without this check the second session falls into listenOnFreePort, binds
+// 4323, and prints a DIFFERENT url under a banner reading "KILL THE OLD
+// BOARD" — advice that is right for a stale board and actively wrong here,
+// because the old board is where the other session's gate is open.
+//
+// /health is the existing liveness route: no filesystem work, so probing it
+// costs a running board nothing.
+async function boardAlreadyUp(port) {
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(1500) });
+    if (!res.ok) return false;
+    return (await res.json())?.ok === true;
+  } catch {
+    return false;
+  }
+}
+
+// ?video= only resolves a DIRECT CHILD of videos/ (requestedWorkdir), so an
+// out-of-tree workdir — the path-argument mode other flows call this with,
+// see INTEGRATION.md — cannot be handed to a running board. Starting our own
+// is the only correct answer there.
+function reusableSlug(workdir) {
+  const resolved = path.resolve(workdir);
+  return path.dirname(resolved) === path.resolve(videosRoot()) ? path.basename(resolved) : null;
+}
+
 async function main() {
   const arg = process.argv[2];
   const resolvedWorkdir = arg ? resolveWorkdir(arg) : latestWorkdir();
@@ -1801,6 +1837,18 @@ async function main() {
     console.error('usage: node lib/board.mjs <slug-or-path>  (no videos/*/cues.json found for no-arg mode)');
     process.exit(1);
   }
+  const port = Number(process.env.BOARD_PORT) || 4322;
+
+  // BOARD_FORCE_NEW is the escape hatch for working ON the board itself, where
+  // reusing a server running the previous build is exactly wrong.
+  const slug = reusableSlug(resolvedWorkdir);
+  if (slug && !process.env.BOARD_FORCE_NEW && (await boardAlreadyUp(port))) {
+    console.log(`a board is already running on ${port} — reusing it rather than starting a second one.`);
+    console.log(`board at http://localhost:${port}/?video=${slug}`);
+    console.log(`(set BOARD_FORCE_NEW=1 to start your own anyway — only needed when developing the board)`);
+    return;
+  }
+
   let server;
   try {
     server = createServer(resolvedWorkdir);
@@ -1808,7 +1856,6 @@ async function main() {
     console.error(err.message);
     process.exit(1);
   }
-  const port = Number(process.env.BOARD_PORT) || 4322;
   try {
     const finalPort = await listenOnFreePort(server, port);
     console.log(`board at http://localhost:${finalPort}`);

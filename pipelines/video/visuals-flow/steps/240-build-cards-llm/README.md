@@ -54,6 +54,29 @@ What is specific to this step is only:
    prompt"). It is a conversation gate before a card is ever built, so no board
    approval stands in for it.
 
+   **Write the prompts to a file, do not paste them into the chat.** One
+   markdown file per card:
+
+   ```
+   videos/<slug>/card-previews/<card-slug>.md
+   ```
+
+   Separate each key moment with a `---` rule on its own line and give it a `##`
+   heading as a label (the heading is for the owner; it is never sent to the
+   generator). Then:
+
+   ```bash
+   bash run.sh <slug> previews
+   ```
+
+   That pushes them to the `flow-queue` relay, and the ZAPI FLOW extension loads
+   them into its Google Flow queue on its own — the owner opens Flow and hits
+   generate, with nothing to copy. Full format + rules:
+   `tooling/cli/flow-queue/README.md`.
+
+   You still WAIT for the verdict. The queue removes the copy-paste, not the
+   gate.
+
 ## The catalog entry
 
 The card is invisible to the cue passes until `catalog.json` has it. Minimum

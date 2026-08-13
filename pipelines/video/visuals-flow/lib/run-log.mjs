@@ -77,8 +77,40 @@ export function readRunLog(workdir) {
   }
 }
 
+// write-then-rename, not a plain write: the board's Run tab polls this file
+// while sessions write it, and a reader must never catch it half-written. A
+// rename is atomic, so a reader sees either the old file or the new one.
 export function writeRunLog(workdir, log) {
-  fs.writeFileSync(path.join(workdir, 'run-log.json'), JSON.stringify(log, null, 2) + '\n');
+  const file = path.join(workdir, 'run-log.json');
+  const tmp = `${file}.${process.pid}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(log, null, 2) + '\n');
+  fs.renameSync(tmp, file);
+}
+
+// Read-modify-write that survives a SECOND session writing a different step
+// between our read and our write.
+//
+// The two tracks (intro 110-160, main everything else — plan 199) are built to
+// run as two sessions at once, on one video, and both close their steps into
+// this one file. A plain readRunLog -> setStep -> writeRunLog loses whichever
+// write lands second: that session's `log` object still holds the `steps` map
+// as it looked BEFORE the other session's entry existed, and writes it back
+// wholesale. The other track's step silently vanishes from the ledger — and a
+// step with no record is the exact failure this file exists to prevent.
+//
+// So re-read immediately before writing and keep every step we did not touch
+// from the on-disk copy; ours wins only on the keys we actually changed. Two
+// sessions writing the SAME step id is not arbitrated, because it cannot
+// legitimately happen: a step belongs to exactly one track.
+export function updateRunLog(workdir, mutate) {
+  const before = readRunLog(workdir);
+  const next = mutate(before);
+  const touched = Object.keys(next.steps).filter((id) => next.steps[id] !== before.steps[id]);
+  const disk = readRunLog(workdir);
+  const merged = { ...next, steps: { ...disk.steps } };
+  for (const id of touched) merged.steps[id] = next.steps[id];
+  writeRunLog(workdir, merged);
+  return merged;
 }
 
 // A `done` entry with no summary is the failure this whole file exists to
@@ -330,8 +362,11 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 
   try {
     const id = resolveStepId(stepArg);
-    const log = setStep(readRunLog(workdir), id, statusArg, parseFlags(rest));
-    writeRunLog(workdir, log);
+    const flags = parseFlags(rest);
+    // updateRunLog, not readRunLog + writeRunLog: the other track's session may
+    // be closing its own step right now. setStep still validates first, so a bad
+    // status or a `done` with no summary throws before anything is written.
+    updateRunLog(workdir, (log) => setStep(log, id, statusArg, flags));
     console.log(`${id}: ${statusArg}`);
   } catch (e) {
     console.error(e.message);
