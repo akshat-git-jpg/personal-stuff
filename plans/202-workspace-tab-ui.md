@@ -8,9 +8,9 @@ needs: ["PR #160 (plan 201) must land first — this plan imports workspace.mjs"
 needs_prs: [160]
 touches: [tooling/cli/ccusage-dashboard/dashboard.mjs, tooling/cli/ccusage-dashboard/test/tabs.test.mjs, tooling/cli/ccusage-dashboard/README.md]
 
-mutation_apply: node -e "const f='tooling/cli/ccusage-dashboard/dashboard.mjs';let s=require('fs').readFileSync(f,'utf8');s=s.replace(\"'/api/workspace'\",\"'/api/workspace-DISABLED'\");require('fs').writeFileSync(f,s)"
+mutation_apply: node -e "const f='tooling/cli/ccusage-dashboard/dashboard.mjs';let s=require('fs').readFileSync(f,'utf8');s=s.replace('id=\"ws-app\"','id=\"ws-app-DISABLED\"');require('fs').writeFileSync(f,s)"
 mutation_command: node --test tooling/cli/ccusage-dashboard/test/tabs.test.mjs
-mutation_expect: not ok 1 - 1. /api/workspace returns the four layers
+mutation_expect: not ok 3 - 3. page mounts both panes
 mutation_timeout: 300
 ---
 
