@@ -4,8 +4,8 @@ model: sonnet
 test_cmd: node --test tooling/cli/ccusage-dashboard/test/
 ui: true
 deploy:
-needs: ["201 must land first — this plan imports workspace.mjs"]
-needs_prs: [201]
+needs: ["PR #160 (plan 201) must land first — this plan imports workspace.mjs"]
+needs_prs: [160]
 touches: [tooling/cli/ccusage-dashboard/dashboard.mjs, tooling/cli/ccusage-dashboard/test/tabs.test.mjs, tooling/cli/ccusage-dashboard/README.md]
 
 mutation_apply: node -e "const f='tooling/cli/ccusage-dashboard/dashboard.mjs';let s=require('fs').readFileSync(f,'utf8');s=s.replace(\"'/api/workspace'\",\"'/api/workspace-DISABLED'\");require('fs').writeFileSync(f,s)"
