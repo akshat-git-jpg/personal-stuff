@@ -10,7 +10,7 @@ touches: [tooling/cli/ccusage-dashboard/workspace.mjs, tooling/cli/ccusage-dashb
 
 mutation_apply: node -e "const f='tooling/cli/ccusage-dashboard/test/fixtures/acct-work/settings.json';const j=JSON.parse(require('fs').readFileSync(f,'utf8'));delete j.skillOverrides;require('fs').writeFileSync(f,JSON.stringify(j,null,2)+'\n')"
 mutation_command: node --test tooling/cli/ccusage-dashboard/test/workspace.test.mjs
-mutation_expect: disabled skills are flagged
+mutation_expect: not ok 5 - disabled skills are flagged
 mutation_timeout: 300
 ---
 
