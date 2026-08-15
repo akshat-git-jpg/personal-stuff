@@ -9,6 +9,9 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 
+import { getWorkspace } from './workspace.mjs';
+import { WORKSPACE_CSS, WORKSPACE_JS } from './workspace-view.mjs';
+
 const execFileP = promisify(execFile);
 
 const PORT = process.env.PORT || 4319;
@@ -270,6 +273,17 @@ async function getData() {
 
 // ---- HTTP -------------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
+  if (req.url.startsWith('/api/workspace')) {
+    try {
+      const data = await getWorkspace();
+      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      res.end(JSON.stringify(data));
+    } catch (err) {
+      res.writeHead(500, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
   if (req.url.startsWith('/api/usage')) {
     try {
       res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
@@ -375,12 +389,17 @@ const HTML = `<!doctype html><html lang="en"><head>
   .refreshbtn:hover { background:#2a2f37; }
   .refreshbtn:disabled { opacity:.6; cursor:default; }
   .lstamp { font-size:10.5px; color:#7b828c; margin-left:10px; text-transform:none; letter-spacing:0; font-weight:400; }
-</style></head><body>
+${WORKSPACE_CSS}</style></head><body>
 <header>
-  <h1>Claude usage</h1>
+  <h1>Claude workspace</h1>
+  <nav class="tabs">
+    <button class="tab on" data-tab="usage">Usage</button>
+    <button class="tab" data-tab="workspace">Workspace</button>
+  </nav>
   <div class="meta"><span id="updated">loading…</span> · auto-refresh 15s</div>
 </header>
 <div class="wrap" id="app"></div>
+<div class="wrap" id="ws-app" hidden></div>
 <script>
 const fmtC = n => '$' + (n||0).toFixed(2);
 const fmtC0 = n => '$' + Math.round(n||0);
@@ -540,5 +559,5 @@ async function load(){
 }
 load();
 setInterval(load, 15000);
-</script>
+${WORKSPACE_JS}</script>
 </body></html>`;
