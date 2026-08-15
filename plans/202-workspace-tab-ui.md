@@ -1,7 +1,7 @@
 ---
 executor: claude-p
 model: sonnet
-test_cmd: node --test tooling/cli/ccusage-dashboard/test/
+test_cmd: node --test tooling/cli/ccusage-dashboard/test/*.test.mjs
 ui: true
 deploy:
 needs: ["PR #160 (plan 201) must land first — this plan imports workspace.mjs"]
