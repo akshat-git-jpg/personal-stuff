@@ -14,6 +14,9 @@
 # committing would break other clones. Each machine generates its own
 # from ~/.claude-personal/.claude.json's mcpServers block.
 .mcp.json
+# ...except test fixtures, which are tiny, path-free, and required by the
+# ccusage-dashboard workspace scanner tests.
+!tooling/cli/ccusage-dashboard/test/fixtures/**/.mcp.json
 
 # Python
 __pycache__/
