@@ -10,7 +10,7 @@ touches: [tooling/cli/ccusage-dashboard/dashboard.mjs, tooling/cli/ccusage-dashb
 
 mutation_apply: node -e "const f='tooling/cli/ccusage-dashboard/dashboard.mjs';let s=require('fs').readFileSync(f,'utf8');s=s.replace(\"'/api/workspace'\",\"'/api/workspace-DISABLED'\");require('fs').writeFileSync(f,s)"
 mutation_command: node --test tooling/cli/ccusage-dashboard/test/tabs.test.mjs
-mutation_expect: /api/workspace returns the four layers
+mutation_expect: not ok 1 - 1. /api/workspace returns the four layers
 mutation_timeout: 300
 ---
 
