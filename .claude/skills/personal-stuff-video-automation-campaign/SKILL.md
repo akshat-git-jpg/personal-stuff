@@ -1,6 +1,7 @@
 ---
 name: personal-stuff-video-automation-campaign
-description: Use when working on the multi-channel VO-first video factory — pipelines/youtube/final-workflow/ scale-up: productizing the processor (one-command TTS, script-fix stage, thumbnails), the title/thumbnail CTR loop, final-video QC, topic-selection wiring, analytics feedback, affiliate-link step, or the step-135 motion-graphics rulebook. Also before touching pipelines/video/tts or pipelines/video/heygen flows, or proposing any TTS/sync/avatar/graphics approach for YouTube production.
+description: >-
+  Use when working on the multi-channel VO-first video factory — pipelines/youtube/final-workflow/ scale-up: productizing the processor (one-command TTS, script-fix stage, thumbnails), the title/thumbnail CTR loop, final-video QC, topic-selection wiring, analytics feedback, affiliate-link step, or the step-135 motion-graphics rulebook. Also before touching pipelines/video/tts or pipelines/video/heygen flows, or proposing any TTS/sync/avatar/graphics approach for YouTube production.
 ---
 
 # Video-factory campaign — scale the VO-first final workflow

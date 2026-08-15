@@ -1,4 +1,5 @@
 {
+  "outputStyle": "ELI5",
   "worktree": {
     "bgIsolation": "none"
   },

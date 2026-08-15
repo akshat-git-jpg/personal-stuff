@@ -129,6 +129,8 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 112 | Native layered FCPXML export (new default) — continuous screen spine + avatar/graphics/overlays/FX lanes + markers + captions.srt; `--baked` keeps the 109 WYSIWYG mode (spec docs/specs/2026-07-21-native-editor-export-design.md) | P1 | M | 111 | DONE (landed PR#69; verified on test-01 in Resolve 2026-07-21) |
 | 113 | visuals-flow review board — horizontal timeline overview view (new default `/`): shared time ruler + SCREEN/GRAPHICS/AVATAR/EFFECTS lanes aligned, on-demand card previews in a docked panel, detail list kept at `/list` via header toggle; master playhead delivers GFX-08. board.mjs only, temp-fixture tests | P2 | M | none | DONE (landed PR#70) |
 | 114 | visuals-flow card pack — 4 new card-library cards in brand theme: prompt/prompt-typing (typewriter+auto-scroll, authored), tool-icon/tool-glass-tile (glass app-icon hero), statement/keyword-statement (kinetic statement + keyword highlight), checklist/icon-pills (icon+pill list rows) + a reusable inline-SVG icon set; all token-themeable, catalog + gallery registered | P2 | L | none | TODO |
+| 201 | Workspace scanner module for the ccusage dashboard — `workspace.mjs` scans four layers (apps/MCP/CLIs, VPS crons, memory docs, skills) across both Claude accounts + the repo and attaches usage counters so dead entries are a field; fixture-backed tests, no UI | P3 | M | none | TODO |
+| 202 | Workspace tab in the ccusage dashboard — two-tab header (Usage \| Workspace), `/api/workspace` route, four sortable tables with a "show dead only" toggle; renders 201's payload | P3 | M | 201 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
