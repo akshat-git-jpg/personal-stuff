@@ -1,0 +1,9 @@
+{
+  "mcpServers": { "mongo-app-dev": {}, "postgres-app-dev": {} },
+  "skillUsage": {
+    "live-skill": { "usageCount": 12, "lastUsedAt": 1786350580715 }
+  },
+  "projects": {
+    "__REPO__": { "disabledMcpServers": ["postgres-app-dev"] }
+  }
+}
