@@ -1,5 +1,36 @@
 # Decisions
 
+- **2026-08-17**: Gate 120 (approve the intro idea) now judges 6-second MOVING
+  teasers, not a page of prose. Prose was the cheapest thing to reject, but it
+  is a poor way to judge a **look**: three directions described in words all
+  sound reasonable, so the owner was approving words and then rejecting the
+  finished 130 build — "i dont like the entire intro. i need to do entire
+  intro again from scratch." Every direction 110 proposes now ships a real
+  Hyperframes teaser (real DESIGN.md tokens, real logos, real renderer, real
+  motion — `lib/intro-film/teasers.mjs`), and `handleApproveIntroIdea` refuses
+  to approve a direction whose teaser was never rendered.
+  - **The teaser compresses the ARC, not beat one.** Three directions' opening
+    beats can look nearly identical while their arcs differ completely, and the
+    arc IS the direction (`idea.json`'s own framing: "everything else is
+    decoration"). One visual moment per arc clause, each opened by a
+    `/* --- mN : <clause> --- */` banner in order; banner count must equal arc
+    clause count.
+  - **The fixed 6 seconds is not a knob.** The whole value of the gate is that
+    every direction is judged on identical terms — a direction allowed more
+    screen time than its rivals would win on runtime rather than on merit.
+  - **Rejecting all directions is now a first-class round, not silence.**
+    `/reject-intro-idea` moves the rejected directions into `idea.json`'s
+    `rejected` array with the owner's own words (quoted, never paraphrased) and
+    bumps `round`; 110 reads it back so round 2 cannot re-propose what round 1
+    was rejected for. Capped at `MAX_IDEA_ROUNDS = 3` as a backstop — the board
+    reports `exhausted: true` past that, and 110's contract is what STOPs.
+  - **The Google Flow image-preview path was removed from 110** (an
+    AI-generated still, added 2026-08-13, was the right instinct with the
+    wrong artifact — neither the brand, the renderer, nor the motion) but
+    **deliberately kept for 240's new-card gate**, where approving a still IS
+    the right artifact: the frames themselves become the visual contract the
+    card is built to match, not a preview of motion the card doesn't have.
+
 - **2026-08-17**: `screenplay.json` and `film/index.html` are now machine-checked against each other, and the per-beat banner comment is the contract that makes it possible. Nothing tied the two files together: `lint-screenplay.mjs` validates the screenplay against itself and the transcript and never opens the composition, while `review-film.mjs` and `render-film.mjs` only assert `index.html` exists. That gap is dangerous specifically because 140 reads beat times from the screenplay and screenshots the composition — a timing changed in one file and not the other does not yield a visibly broken film, it yields a review that samples the wrong moments, prints each frame under a stage line it never covered, and provokes fixes to frames that were never wrong. `lib/intro-film/check-film-sync.mjs` compares the root's `data-duration` against the screenplay span and every beat banner's id/intent/t_start/t_end against its beat, positionally so a reorder cannot pass; `runReview` fails on it BEFORE sampling. The banner convention was already being followed by the authored films, so this promoted an existing habit to an enforced contract at zero authoring cost (documented in the 130 AUTHORING.md).
   - **Fixed alongside**: the 150 README claimed 160 renders "once approved". The code says the opposite and does so on purpose — `render-film.mjs` carries no approval check because rendering is how the owner gets a film to watch, and approval is enforced downstream by `requireIntroApproved()` in `assemble.mjs`. The README now documents 160-then-gate, and that the Intro tab serves the stills and the mp4 side by side because they answer different questions (design vs motion).
 

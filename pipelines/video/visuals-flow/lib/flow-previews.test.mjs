@@ -47,16 +47,16 @@ test('the group id carries the kind', () => {
   assert.deepEqual(groups, ['card-alpha']);
 });
 
-// A deliberate behaviour change, not an oversight: a leftover
-// intro-film/idea-previews directory (from before 2026-08-17, or authored by
-// habit) must be silently ignored, not picked up as a source.
-test('intro-film/idea-previews is no longer a source', () => {
+// A deliberate behaviour change, not an oversight: a leftover intro-film
+// preview directory (from before 2026-08-17, or authored by habit) must be
+// silently ignored, not picked up as a source — the intro no longer has one.
+test('a leftover intro-film preview directory is no longer a source', () => {
   const dir = workdir('intro-ignored', {
-    'intro-film/idea-previews/idea-a.md': '## m1\nA frame.',
+    'intro-film/old-look-previews/idea-a.md': '## m1\nA frame.',
     'card-previews/alpha.md': '## m1\nY.',
   });
   const groups = findPreviewFiles(dir).map((f) => f.group).sort();
-  assert.deepEqual(groups, ['card-alpha'], 'the intro-film idea-previews file must be ignored');
+  assert.deepEqual(groups, ['card-alpha'], 'a directory under intro-film is not in SOURCES and must be ignored');
 });
 
 // THE STALENESS REGRESSION. The relay de-dupes per (source, group) only, so a
