@@ -9,6 +9,7 @@ import { loadShots, loadEffects } from './board.mjs';
 import { loadSteps } from './steps.mjs';
 import { loadRunConfig } from './run-config.mjs';
 import { buildAvatarPlan, mergeAvatarPlan, avatarPlanPath, loadRegistry } from './avatar-plan.mjs';
+import { playableIds } from './intro-film/teasers.mjs';
 
 // Which board tabs apply to THIS video, derived from the step registry plus
 // the video's run-config. Before this, board-ui rendered all five tabs for
@@ -230,6 +231,11 @@ export function introData(workdir) {
       directions: ideaFile.directions || [],
       chosen: ideaFile.chosen ?? null,
       approved: ideaFile.approved === true,
+      round: Number.isFinite(ideaFile.round) ? ideaFile.round : 1,
+      rejected: ideaFile.rejected || [],
+      // Which ids have an mp4 on disk. The tab disables approval on the rest
+      // rather than letting the owner approve something they cannot watch.
+      playable: playableIds(workdir, ideaFile),
     };
   } catch (e) {
     // ignore — no idea pass yet
