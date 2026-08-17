@@ -131,8 +131,22 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 114 | visuals-flow card pack — 4 new card-library cards in brand theme: prompt/prompt-typing (typewriter+auto-scroll, authored), tool-icon/tool-glass-tile (glass app-icon hero), statement/keyword-statement (kinetic statement + keyword highlight), checklist/icon-pills (icon+pill list rows) + a reusable inline-SVG icon set; all token-themeable, catalog + gallery registered | P2 | L | none | TODO |
 | 201 | Workspace scanner module for the ccusage dashboard — `workspace.mjs` scans four layers (apps/MCP/CLIs, VPS crons, memory docs, skills) across both Claude accounts + the repo and attaches usage counters so dead entries are a field; fixture-backed tests, no UI | P3 | M | none | TODO |
 | 202 | Workspace tab in the ccusage dashboard — two-tab header (Usage \| Workspace), `/api/workspace` route, four sortable tables with a "show dead only" toggle; renders 201's payload | P3 | M | 201 | TODO |
+| 203 | closet-app backend — new `apps/closet-app` scaffolded from lists-app: D1 schema (clothes/looks/tags/item_tags/events), Hono Worker API (cloth+look CRUD, R2 photo store, wear/wash/undo), `scripts/smoke.sh` merge gate against a throwaway local D1+R2. No UI | P3 | L | none | TODO |
+| 204 | closet-app SPA — two-tab mobile PWA: Clothes grid (photo=+1 wear, name=edit, ↺=wash-to-zero, 10s Undo) and Looks gallery; multi-tag with one shared autocompleting vocabulary, AND-semantics chip filter, on-device photo downscale, home-screen icons | P3 | L | 203 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
+
+> **203–204 (2026-08-17, closet tracker)**: owner-brainstormed on 2026-08-17 —
+> track wears-since-wash per garment, plus a tagged outfit gallery. Run **203 → 204**;
+> 204 consumes 203's API surface and must not edit `src/worker/**`. Three owner
+> decisions are load-bearing and must not be re-litigated by either executor:
+> **(a)** no wash limit and no threshold colour — a raw count, sorted
+> highest-first, and the owner judges when to wash; **(b)** Looks are a plain
+> tagged gallery with **no** link to clothes and no "I wore this look" action;
+> **(c)** multi-tag on every photo from one shared, normalised vocabulary.
+> Both plans keep every check local — remote D1/R2 creation, secrets and the
+> `closet.agrolloo.com` deploy are the owner's gate, documented in the app README.
+> **Before raising 204**, fill its `needs_prs` with 203's PR number.
 
 > **069–075 (2026-07-18, graphics-flow quality audit)**: from an `improve` audit
 > of `pipelines/video/graphics-flow` at commit `8e48c2f` (goal: long-term quality;
