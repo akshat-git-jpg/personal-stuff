@@ -72,7 +72,10 @@ test('a valid two-direction idea lints clean against inline teasers', () => {
   assert.deepEqual(lintTeasers({ idea, read }).errors, []);
 });
 
-test('IDEA-PREVIEW-MISSING when a direction has no teaser on disk — the mutation gate', () => {
+// The title must NOT contain the gate's marker code: node --test echoes subtest
+// titles on a PASSING run, which makes boss's clean-state check vacuous and the
+// whole gate unprovable. The marker belongs in the assertion message only.
+test('every direction needs an on-disk teaser — the mutation gate', () => {
   // Reads the ON-DISK fixture tree via fs, exactly as runLintTeasers does. This
   // is deliberate: `rm lib/intro-film/fixtures/teasers/b/index.html` must make
   // THIS assertion fail, printing IDEA-PREVIEW-MISSING, through the real lint
