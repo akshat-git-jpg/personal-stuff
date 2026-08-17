@@ -18,6 +18,7 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
   const [data, setData] = useState<any>(null);
   const [fcItems, setFcItems] = useState<Record<string, ReviewComment>>({});
   const [videoMissing, setVideoMissing] = useState(false);
+  const [rejectNote, setRejectNote] = useState('');
 
   const loadData = async () => {
     // Each fetch gets its own failure. Chained in one try, a board-data 500 both
@@ -106,38 +107,120 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
   // falls through to the normal film review below. A page of prose is the
   // cheapest rejection in the pipeline (plan 197).
   if (data.idea && !data.idea.approved) {
+    const directions = data.idea.directions || [];
+    const rejected = data.idea.rejected || [];
+
+    // Round rejected, 110 has not re-run yet: nothing to approve or compare,
+    // so no player grid and no approve controls — just what happened and what
+    // to run next.
+    if (directions.length === 0 && rejected.length > 0) {
+      return (
+        <div className="intro-tab" style={{ padding: 24 }}>
+          <h3>Round {data.idea.round - 1} rejected</h3>
+          {rejected.map((r: any, i: number) => (
+            <blockquote key={i} className="intro-idea-rejected-note">{r.note}</blockquote>
+          ))}
+          {data.idea.round > 3 ? (
+            <p>Three rounds is the cap. Describe the direction you want directly instead of asking for a fourth set.</p>
+          ) : (
+            <p>Run <code>bash run.sh {video} intro-idea</code></p>
+          )}
+        </div>
+      );
+    }
+
+    // No idea pass output at all yet.
+    if (directions.length === 0) {
+      return (
+        <div className="intro-tab" style={{ padding: 24 }}>
+          <p>Run <code>bash run.sh {video} intro-idea</code></p>
+        </div>
+      );
+    }
+
+    const playable = new Set(data.idea.playable || []);
+
     return (
       <div className="intro-tab" style={{ padding: 24 }}>
         <div className="intro-idea-directions">
-          {data.idea.directions?.map((d: any) => (
-            <div key={d.id} className="intro-idea-direction">
-              <h3>{d.id} — {d.name}</h3>
-              <div className="intro-idea-field"><strong>Central object:</strong> {d.central_object}</div>
-              <ul className="intro-idea-arc">
-                {d.arc?.map((clause: string, i: number) => <li key={i}>{clause}</li>)}
-              </ul>
-              <div className="intro-idea-field"><strong>Motifs:</strong> {d.motifs?.join(', ')}</div>
-              <div className="intro-idea-field"><strong>Enacts through-line:</strong> {d.enacts_throughline}</div>
-              <div className="intro-idea-field"><strong>Rejects:</strong> {d.rejects}</div>
-              <button
-                className="intro-idea-approve-btn"
-                onClick={async () => {
-                  try {
-                    const res = await fetch('/approve-intro-idea', {
-                      method: 'POST',
-                      headers: { 'content-type': 'application/json' },
-                      body: JSON.stringify({ chosen: d.id }),
-                    });
-                    if (res.ok) await loadData();
-                  } catch (e) {
-                    console.error(e);
-                  }
-                }}
-              >
-                Approve direction {d.id}
-              </button>
-            </div>
-          ))}
+          {directions.map((d: any) => {
+            const isPlayable = playable.has(d.id);
+            return (
+              <div key={d.id} className="intro-idea-direction">
+                <h3>{d.id} — {d.name}</h3>
+                {isPlayable ? (
+                  <video
+                    className="intro-idea-teaser"
+                    src={`/intro-teaser?id=${encodeURIComponent(d.id)}&video=${encodeURIComponent(video)}`}
+                    controls
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
+                ) : (
+                  <div className="intro-idea-teaser-missing">
+                    IDEA-TEASER-NOT-RENDERED — run <code>bash run.sh {video} intro-teasers</code>
+                  </div>
+                )}
+                <div className="intro-idea-field"><strong>Central object:</strong> {d.central_object}</div>
+                <ul className="intro-idea-arc">
+                  {d.arc?.map((clause: string, i: number) => <li key={i}>{clause}</li>)}
+                </ul>
+                <div className="intro-idea-field"><strong>Motifs:</strong> {d.motifs?.join(', ')}</div>
+                <div className="intro-idea-field"><strong>Enacts through-line:</strong> {d.enacts_throughline}</div>
+                <div className="intro-idea-field"><strong>Rejects:</strong> {d.rejects}</div>
+                <button
+                  className="intro-idea-approve-btn"
+                  disabled={!isPlayable}
+                  title={!isPlayable ? 'render the teaser first' : undefined}
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/approve-intro-idea', {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify({ chosen: d.id }),
+                      });
+                      if (res.ok) await loadData();
+                    } catch (e) {
+                      console.error(e);
+                    }
+                  }}
+                >
+                  Approve direction {d.id}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        <div className="intro-idea-reject">
+          <textarea
+            className="intro-idea-reject-note"
+            placeholder="What is wrong with all three? Your words go to the next round."
+            value={rejectNote}
+            onChange={(e) => setRejectNote(e.target.value)}
+          />
+          <button
+            className="intro-idea-reject-btn"
+            disabled={rejectNote.trim().length === 0}
+            onClick={async () => {
+              try {
+                const res = await fetch('/reject-intro-idea', {
+                  method: 'POST',
+                  headers: { 'content-type': 'application/json' },
+                  body: JSON.stringify({ note: rejectNote }),
+                });
+                if (res.ok) {
+                  await loadData();
+                  setRejectNote('');
+                }
+              } catch (e) {
+                console.error(e);
+              }
+            }}
+          >
+            Reject all directions
+          </button>
         </div>
       </div>
     );
