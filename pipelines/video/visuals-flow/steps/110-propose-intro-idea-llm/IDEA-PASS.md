@@ -57,7 +57,9 @@ this pipeline.
 ```json
 {
   "video": "<slug>",
+  "round": 1,
   "chosen": null,
+  "approved": false,
   "directions": [
     {
       "id": "a",
@@ -68,13 +70,71 @@ this pipeline.
       "enacts_throughline": "<how, quoting concept.json>",
       "rejects": "<the obvious treatment this refuses, and why>"
     }
+  ],
+  "rejected": [
+    { "round": 1, "note": "<owner's words>", "directions": [ "...the round-1 directions..." ] }
   ]
 }
 ```
 
 Write 2 or 3 `directions`, each genuinely different — not the same idea in
 different colours. `chosen` and `approved` are set by the owner at the next
-step (`120-approve-intro-idea-human`), never by you.
+step (`120-approve-intro-idea-human`), never by you. `round` starts at 1 and
+`rejected` starts empty; both are only ever advanced by the board's
+`/reject-intro-idea` handler (`lib/board.mjs`) — never hand-edit them.
+
+## Every direction ships a teaser
+
+A page of prose is the cheapest thing to reject in this pipeline — and also the
+least the owner can judge a LOOK by. Three directions described in words all
+sound reasonable; the same three as moving pictures are instantly
+distinguishable. So every direction you propose ships a real six-second
+Hyperframes teaser, and that teaser — not the prose — is what gate 120 judges.
+
+For each direction `<id>`, author `intro-film/teasers/<id>/index.html`:
+
+- Exactly `6` seconds, `1920x1080`, 30fps: `data-composition-id="teaser-<id>"`,
+  `data-start="0"`, `data-duration="6"`, `data-width="1920"`,
+  `data-height="1080"` on the composition root. Not a knob — every direction is
+  judged on identical terms, and a longer teaser wins on runtime, not merit.
+- A `window.__timelines['teaser-<id>']` registration. Without it the render
+  still succeeds but stalls 45s per worker (same contract as `AUTHORING.md`'s
+  full film).
+- It compresses the **arc**, not beat one. Three directions' opening beats can
+  look nearly identical while their arcs differ completely, and the arc IS the
+  direction. One visual moment per arc clause, evenly spaced across the 6
+  seconds, each opened by a banner comment in order:
+
+  ```
+  /* ---------- m1 : <the clause, verbatim> ---------- */
+  ```
+
+  Banner count must equal arc clause count — `lib/intro-film/teasers.mjs`
+  enforces it and refuses to let the gate approve a direction it doesn't hold.
+- Real `card-library/DESIGN.md` tokens and real logos from
+  `card-library/logos/registry.json`. No invented palette, no placeholder art
+  — this is the same brand-first requirement as the full film.
+- No presenter/avatar and no audio. This gate judges the look and the arc, not
+  the delivery.
+
+Then run `bash run.sh <slug> intro-teasers` to lint and render every
+direction's teaser. It refuses to render (and spend nothing) on a teaser at the
+wrong length, canvas or arc coverage — fix the composition, not the check.
+
+## If the owner rejects every direction
+
+Rejecting every proposed direction is a normal outcome, not a failure — the
+board's `/reject-intro-idea` records it and hands you the next round. Before
+proposing anything, read `rejected` in `idea.json`:
+
+- Every entry's `note` is the owner's own words. **Quote it, do not
+  paraphrase** — a session's paraphrase is not the same information (630's
+  "Quote, do not paraphrase" rule).
+- Do not re-propose a direction the note rules out, even restyled. If the note
+  says "not that", a recoloured version of the same central object and arc is
+  still "that".
+- If `round` is greater than 3, STOP. Do not propose a fourth set blind — ask
+  the owner to describe the direction they want directly.
 
 ## Never in scope here
 

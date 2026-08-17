@@ -20,43 +20,51 @@ catch.
 | `segments.json` | `015-map-segments-run` — the measured intro span |
 | `concept.json` | `020-choose-concept-llm` — the through-line to enact |
 
-Out: `videos/<slug>/intro-film/idea.json`
+Out: `videos/<slug>/intro-film/idea.json` +
+`videos/<slug>/intro-film/teasers/<id>/index.html` + `<id>.mp4` per direction
 
-## Give the owner a FRAME per direction, not just a page (owner ask 2026-08-13)
+## Every direction ships a moving teaser, not a still (2026-08-17)
 
-A page of prose is the cheapest possible rejection, which is why this step is
-prose-only — but prose is a poor way to judge a **look**, and the owner is
-choosing between directions on exactly that. So alongside `idea.json`, write one
-image-generation prompt file per competing direction:
+A page of prose is the cheapest possible rejection, but prose cannot show a
+look — three directions described in words all sound reasonable, and the owner
+was approving words, then rejecting the finished film ("i dont like the entire
+intro. i need to do entire intro again from scratch."). An AI-generated still
+(owner ask, 2026-08-13) was the right instinct but the wrong artifact: it is
+neither the brand nor the renderer nor the motion.
+
+So alongside `idea.json`, author one real six-second Hyperframes teaser per
+direction — the film in miniature, in the REAL composition system:
 
 ```
-videos/<slug>/intro-film/idea-previews/<idea-id>.md
+videos/<slug>/intro-film/teasers/<id>/index.html
 ```
 
-Use the same format as the new-card look preview: `---` on its own line between
-key moments, a `##` heading as a label for the owner (never sent to the
-generator), and the prompt body built from the template in
-`card-library/DESIGN.md` ("New-card checklist", item 0). Then:
+See `IDEA-PASS.md`'s "Every direction ships a teaser" section for the exact
+contract (canvas, duration, arc-banner requirement). Then:
 
 ```bash
-bash run.sh <slug> previews
+bash run.sh <slug> intro-teasers
 ```
 
-That pushes them to the `flow-queue` relay; the ZAPI FLOW extension loads them
-into its Google Flow queue by itself, so the owner opens Flow and hits generate
-with nothing to copy. Format + rules: `tooling/cli/flow-queue/README.md`.
+That lints every direction (refusing to render one at the wrong length, canvas
+or arc coverage) and renders each to `<id>.mp4`. `120` cannot approve a
+direction whose teaser was never rendered — see `lib/board.mjs`'s
+`handleApproveIntroIdea`.
 
-This does not change the gate. `120` still approves `idea.json` — the frames are
-there so the owner can SEE each direction before picking one.
+If the owner rejects every direction, the board's `/reject-intro-idea` moves
+them into `idea.json`'s `rejected` array with the owner's own note and bumps
+`round`. See `IDEA-PASS.md`'s "If the owner rejects every direction" section.
 
 ## Verbs
 
 | Verb | Does |
 |---|---|
 | `run.sh <slug> intro-idea` | prints the authoring contract (`IDEA-PASS.md`) |
+| `run.sh <slug> intro-teasers` | lints + renders one 6s teaser per proposed direction |
 
 ## What consumes the output
 
-`120-approve-intro-idea-human` is the owner gate on `idea.json`. Once approved,
-`130-author-intro-screenplay-llm` reads `chosen` and authors beats for that
-direction only — see the note added near the top of its `AUTHORING.md`.
+`120-approve-intro-idea-human` is the owner gate on `idea.json`, judged by
+watching each direction's teaser. Once approved, `130-author-intro-screenplay-llm`
+reads `chosen` and authors beats for that direction only — see the note added
+near the top of its `AUTHORING.md`.
