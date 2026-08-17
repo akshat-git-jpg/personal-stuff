@@ -8,13 +8,12 @@ compatibility_flags = ["nodejs_compat"]
 directory = "./dist"
 binding = "ASSETS"
 
-# Clothes, looks, tags, events. The owner replaces database_id with the real one
-# from `npx wrangler d1 create closet-db` before the first remote deploy;
-# a placeholder is correct for `--local` dev and for the smoke gate.
+# Clothes, looks, tags, events. Real id from `npx wrangler d1 create closet-db`
+# (provisioned 2026-08-17, region APAC).
 [[d1_databases]]
 binding = "DB"
 database_name = "closet-db"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "f454ff38-7ed8-4903-923e-bab70a96d54a"
 
 # Garment + outfit thumbnails. Owner creates with
 # `npx wrangler r2 bucket create closet-photos`.
