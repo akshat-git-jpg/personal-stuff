@@ -1,0 +1,3 @@
+# Copy to .dev(dot)vars (gitignored) for local dev. Never commit it.
+APP_PASSWORD=change-me
+SESSION_SECRET=at-least-32-random-characters-goes-here

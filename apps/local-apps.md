@@ -55,3 +55,18 @@ npm run dev:local       # Vite :5173 (UI) + wrangler :8787 (API). Use :5173.
 ```
 
 Local password is in `.dev.vars` (`APP_PASSWORD`). Deploy: `npm run deploy` (build + wrangler deploy → lists.agrolloo.com). Secrets `APP_PASSWORD` + `SESSION_SECRET` are set via `wrangler secret put`. Schema changes: `npm run db:remote`.
+
+## closet (apps/closet-app)
+
+Wear counter + tagged outfit gallery. Password-gated, single user.
+
+```bash
+cd /Users/kbtg/codebase/personal-stuff/apps/closet-app
+npm install
+npm run db:local        # apply schema to local D1 (once)
+npm run dev:local       # Vite :5173 (UI) + wrangler :8787 (API). Use :5173.
+bash scripts/smoke.sh   # full API smoke against a throwaway local D1 + R2
+```
+
+Local password is in the dev vars file (`APP_PASSWORD`). Deploy: `npm run deploy` →
+closet.agrolloo.com. See the app README for first-time remote provisioning.

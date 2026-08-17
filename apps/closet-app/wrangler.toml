@@ -1,0 +1,31 @@
+name = "closet-app"
+main = "src/worker/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# SPA built into dist/, served by the Worker via the ASSETS binding.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+# Clothes, looks, tags, events. The owner replaces database_id with the real one
+# from `npx wrangler d1 create closet-db` before the first remote deploy;
+# a placeholder is correct for `--local` dev and for the smoke gate.
+[[d1_databases]]
+binding = "DB"
+database_name = "closet-db"
+database_id = "00000000-0000-0000-0000-000000000000"
+
+# Garment + outfit thumbnails. Owner creates with
+# `npx wrangler r2 bucket create closet-photos`.
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "closet-photos"
+
+[[routes]]
+pattern = "closet.agrolloo.com"
+custom_domain = true
+
+# APP_PASSWORD + SESSION_SECRET are secrets (never committed):
+#   npx wrangler secret put APP_PASSWORD
+#   npx wrangler secret put SESSION_SECRET
