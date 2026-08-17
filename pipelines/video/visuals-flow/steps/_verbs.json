@@ -18,5 +18,10 @@
     "kind": "composite",
     "after": "avatar-download",
     "summary": "render + effects + sound + mix + collect avatars + assemble a draft — a convenience that runs several steps back to back"
+  },
+  "intro-teasers": {
+    "kind": "helper",
+    "after": "intro-idea",
+    "summary": "renders one 6-second teaser per proposed intro direction, so gate 120 judges moving pictures instead of prose"
   }
 }

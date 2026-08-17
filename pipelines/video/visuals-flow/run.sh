@@ -296,6 +296,14 @@ EOF
     fi
     ;;
 
+  intro-teasers)
+    # Renders one 6s teaser per proposed direction so gate 120 judges MOVING
+    # pictures. Lints first — a teaser at the wrong length renders fine and
+    # misleads the gate, which is worse than not rendering.
+    dry "node lib/intro-film/teasers.mjs $slug" && exit 0
+    node lib/intro-film/teasers.mjs "$slug"
+    ;;
+
   intro-rerender)
     # 440 — the intro was approved at 150 against a static avatar stand-in;
     # this is the encode that swaps in the real avatar.mp4 and ships. Must
