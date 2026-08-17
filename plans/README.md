@@ -1225,3 +1225,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 199-vf-renumber-into-phases-and-migrate-ledgers — PR#159 199-vf-renumber-into-phases-and-migrate-ledgers: renumber into phase buckets and migrate the ledgers — DONE
 - 201-workspace-scanner-module — PR#160 201-workspace-scanner-module: Workspace scanner module for the ccusage dashboard — DONE
 - 202-workspace-tab-ui — PR#161 202-workspace-tab-ui: Workspace tab in the ccusage dashboard — DONE
+- 203-closet-app-backend — PR#162 203-closet-app-backend: closet-app backend — schema, Worker API, photo store, smoke gate — DONE
