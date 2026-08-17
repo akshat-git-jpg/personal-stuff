@@ -130,12 +130,16 @@
 }
 
 
-/* Gate 028 — the idea gate. One card per proposed direction, reviewed as
-   prose before any beat exists. */
+/* Gate 028/120 — the idea gate. One card per proposed direction, teaser first,
+   prose demoted to a caption beneath it (plan 206). The grid is
+   minmax(360px, 1fr) so two or three directions sit side by side and are
+   compared, not scrolled between — that comparison is the entire purpose of
+   this surface. A future layout change that stacks them vertically removes
+   the reason this surface exists. */
 .intro-idea-directions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 20px;
   max-width: 1400px;
 }
 
@@ -149,6 +153,36 @@
 .intro-idea-direction h3 {
   margin-top: 0;
   color: var(--accent);
+}
+
+/* The teaser is the artifact now — it renders above the prose caption. */
+.intro-idea-teaser {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  margin-bottom: 16px;
+  background: #000;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+/* Fills the same 16/9 box a player would, so a missing teaser does not
+   collapse the card and misalign the row of directions. */
+.intro-idea-teaser-missing {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: var(--bg);
+  border: 1px dashed var(--line);
+  border-radius: 4px;
+  color: var(--dim);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .intro-idea-field {
@@ -174,8 +208,70 @@
   font-size: 13px;
   font-weight: 500;
 }
-.intro-idea-approve-btn:hover {
+.intro-idea-approve-btn:hover:not(:disabled) {
   background: rgba(52, 211, 153, 0.12);
+}
+/* Visibly disabled, never merely inert — this exact regression (a UA-default
+   control left unstyled) has shipped three times on this board
+   (plans/runs/LESSONS.md, 2026-07-31). */
+.intro-idea-approve-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--dim);
+  color: var(--dim);
+}
+
+.intro-idea-rejected-note {
+  margin: 0 0 12px 0;
+  padding: 12px 16px;
+  background: var(--panel);
+  border-left: 3px solid var(--line);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.intro-idea-reject {
+  margin-top: 24px;
+  max-width: 1400px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.intro-idea-reject-note {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 80px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 8px;
+  resize: vertical;
+}
+
+.intro-idea-reject-btn {
+  background: transparent;
+  border: 1px solid var(--err);
+  color: var(--err);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+.intro-idea-reject-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.12);
+}
+.intro-idea-reject-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--dim);
+  color: var(--dim);
 }
 
 /* Jump-to-beat. The beat sheet used to be inert: it showed which beat a
