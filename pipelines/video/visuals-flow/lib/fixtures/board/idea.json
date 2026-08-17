@@ -1,0 +1,33 @@
+{
+  "approved": false,
+  "round": 1,
+  "rejected": [],
+  "directions": [
+    {
+      "id": "a",
+      "name": "The unopened box",
+      "central_object": "a sealed cardboard box on a desk",
+      "arc": [
+        "the box sits closed, unremarkable",
+        "a hand reaches for it but hesitates",
+        "the box finally opens, light spilling out"
+      ],
+      "motifs": ["cardboard", "tape", "light"],
+      "enacts_throughline": "curiosity withheld, then rewarded",
+      "rejects": "a direction that shows the contents up front"
+    },
+    {
+      "id": "b",
+      "name": "The widening crack",
+      "central_object": "a hairline crack in a ceramic mug",
+      "arc": [
+        "the crack is a single thin line",
+        "steam finds the crack and escapes",
+        "the mug splits cleanly along the line"
+      ],
+      "motifs": ["ceramic", "steam", "fracture"],
+      "enacts_throughline": "small pressure, inevitable break",
+      "rejects": "a direction where the mug never actually breaks"
+    }
+  ]
+}
