@@ -1229,3 +1229,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 202-workspace-tab-ui — PR#161 202-workspace-tab-ui: Workspace tab in the ccusage dashboard — DONE
 - 203-closet-app-backend — PR#162 203-closet-app-backend: closet-app backend — schema, Worker API, photo store, smoke gate — DONE
 - 204-closet-app-spa — PR#163 204-closet-app-spa: closet-app SPA — Clothes tab, Looks tab, tags, undo, PWA — DONE
+- 205-vf-intro-idea-moving-teasers — PR#164 205-vf-intro-idea-moving-teasers: the intro idea gate judges moving teasers, not prose — DONE
