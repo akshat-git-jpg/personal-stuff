@@ -615,6 +615,100 @@ try {
     }
   }
 
+  // ---- Idea gate plays teasers, not prose (plan 206) ----------------------
+  // Direction 'a' has a rendered teaser, direction 'b' deliberately does not,
+  // so one pass exercises the player, the honest missing-teaser state, the
+  // disabled approve button and the reject-all composer together.
+  const ideaSlug = 'smoke-idea';
+  const ideaWorkdir = path.join(tmpDir, ideaSlug);
+  fs.mkdirSync(path.join(ideaWorkdir, 'intro-film', 'teasers'), { recursive: true });
+  fs.copyFileSync(path.join(fixturesDir, 'idea.json'), path.join(ideaWorkdir, 'intro-film', 'idea.json'));
+  // board-data needs these to answer at all; the idea gate itself does not
+  // read them, but /api/board-data 500s without them and the tab's own
+  // posture (each fetch in its own try) must not be relied on to hide that.
+  fs.copyFileSync(path.join(workdir, 'vo.mp3'), path.join(ideaWorkdir, 'vo.mp3'));
+  fs.copyFileSync(path.join(workdir, 'transcript.json'), path.join(ideaWorkdir, 'transcript.json'));
+
+  // Only 'a' gets a teaser file. 'b' stays missing on purpose — a zero-byte
+  // stub would make <video> render an error state and the assertion below
+  // would pass for the wrong reason, so this SKIPs like the intro player
+  // check above rather than faking the file.
+  const ideaMp4 = path.join(ideaWorkdir, 'intro-film', 'teasers', 'a.mp4');
+  const encIdea = spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'testsrc=size=320x180:rate=30:duration=2',
+    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', ideaMp4]);
+  if (encIdea.status !== 0 || !fs.existsSync(ideaMp4)) {
+    console.log('SKIP idea-gate teaser check: ffmpeg could not build the fixture clip');
+  } else {
+    const serverIdea = boardMod.createServer(ideaWorkdir);
+    const portIdea = await new Promise((resolve) => {
+      serverIdea.listen(0, '127.0.0.1', () => resolve(serverIdea.address().port));
+    });
+    try {
+      const urlIdea = `http://127.0.0.1:${portIdea}/app/?video=${ideaSlug}#intro`;
+      const domIdea = await new Promise((resolve, reject) => {
+        const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'board-ui-smoke-'));
+        let child;
+        const timeout = setTimeout(() => {
+          if (child) child.kill('SIGKILL');
+          fs.rmSync(profileDir, { recursive: true, force: true });
+          reject(new Error('Chrome dump-dom timeout on #intro (idea gate)'));
+        }, CHROME_TIMEOUT_MS);
+        child = spawn(CHROME, [
+          '--headless=new', '--no-sandbox', '--disable-background-networking',
+          `--user-data-dir=${profileDir}`, '--disable-gpu', '--hide-scrollbars',
+          '--virtual-time-budget=8000', '--dump-dom', urlIdea
+        ]);
+        let out = '';
+        child.stdout.on('data', d => {
+          out += d;
+          if (out.includes('</html>')) {
+            clearTimeout(timeout);
+            child.kill('SIGKILL');
+            resolve(out);
+          }
+        });
+        child.on('close', () => {
+          clearTimeout(timeout);
+          fs.rmSync(profileDir, { recursive: true, force: true });
+        });
+        child.on('error', e => {
+          clearTimeout(timeout);
+          fs.rmSync(profileDir, { recursive: true, force: true });
+          reject(e);
+        });
+      });
+
+      const playerCount = (domIdea.match(/class="intro-idea-teaser"/g) || []).length;
+      if (playerCount !== 1) {
+        throw new Error(`idea gate: expected exactly 1 intro-idea-teaser <video> (direction a), found ${playerCount}`);
+      }
+
+      // The literal is both the mutation marker AND the message: the merge
+      // gate rewrites it in IntroTab.tsx and requires it to appear in this
+      // pass's FAILURE OUTPUT, so it has to live in the thrown message, not
+      // only in the markup being searched for.
+      const missingCount = (domIdea.match(/IDEA-TEASER-NOT-RENDERED/g) || []).length;
+      if (missingCount !== 1) {
+        throw new Error(`IDEA-TEASER-NOT-RENDERED assertion failed on #intro: expected 1 missing-teaser box (direction b), found ${missingCount}`);
+      }
+
+      const approveButtons = domIdea.match(/<button class="intro-idea-approve-btn"[^>]*>/g) || [];
+      if (approveButtons.length !== 2) {
+        throw new Error(`idea gate: expected 2 approve buttons, found ${approveButtons.length}`);
+      }
+      if (!approveButtons.some(b => b.includes('disabled'))) {
+        throw new Error('idea gate: expected a disabled approve button for the direction with no rendered teaser');
+      }
+
+      if (!domIdea.includes('intro-idea-reject-note')) {
+        throw new Error('idea gate: reject-all composer (intro-idea-reject-note) not found');
+      }
+    } finally {
+      if (serverIdea.closeAllConnections) serverIdea.closeAllConnections();
+      serverIdea.close();
+    }
+  }
+
   console.log('board-ui smoke OK');
   process.exit(0);
 } finally {
