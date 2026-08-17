@@ -7,7 +7,6 @@
 CREATE TABLE IF NOT EXISTS clothes (
   id             TEXT    PRIMARY KEY,
   name           TEXT    NOT NULL,
-  photo_key      TEXT,                       -- R2 object key, NULL until a photo is set
   wears          INTEGER NOT NULL DEFAULT 0, -- wears since the last wash
   last_worn_at   INTEGER,                    -- ms epoch, NULL if never worn
   last_washed_at INTEGER,                    -- ms epoch, NULL if never washed
@@ -16,10 +15,26 @@ CREATE TABLE IF NOT EXISTS clothes (
 
 CREATE TABLE IF NOT EXISTS looks (
   id         TEXT    PRIMARY KEY,
-  name       TEXT,                           -- optional; a look may be photo + tags only
-  photo_key  TEXT,
+  name       TEXT,                           -- optional; a look may be photos + tags only
   created_at INTEGER NOT NULL
 );
+
+-- Every cloth and every look is a CATALOGUE: it holds any number of photos
+-- (front, back, worn, different angles). `position` orders them and position 0
+-- is the cover shown on the grid tile — "cover" is not a separate flag, so the
+-- two can never disagree (owner decision, 2026-08-17).
+--
+-- Replaced the single `photo_key` column that clothes/looks used to carry;
+-- see migrations/2026-08-17-photos.sql for the one-off column drop.
+CREATE TABLE IF NOT EXISTS photos (
+  id         TEXT    PRIMARY KEY,
+  item_type  TEXT    NOT NULL,               -- 'cloth' | 'look'
+  item_id    TEXT    NOT NULL,
+  r2_key     TEXT    NOT NULL,               -- object key in the closet-photos bucket
+  position   INTEGER NOT NULL,               -- 0 = cover
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_photos_item ON photos(item_type, item_id, position);
 
 -- One shared tag vocabulary across BOTH tabs. `name` is normalised
 -- (trimmed, lowercased, inner whitespace collapsed) before it is stored.

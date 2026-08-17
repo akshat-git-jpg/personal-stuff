@@ -41,9 +41,11 @@ export const api = {
     return (await res.json()) as { key: string }
   },
 
-  createCloth: (body: { name: string; tags: string[]; photo_key: string | null }) =>
+  // `photo_keys` is always the item's WHOLE ordered photo set, cover first —
+  // adding, removing, reordering and changing the cover are all this one field.
+  createCloth: (body: { name: string; tags: string[]; photo_keys: string[] }) =>
     req<Cloth>('/api/clothes', { method: 'POST', body: JSON.stringify(body) }),
-  updateCloth: (id: string, body: { name?: string; tags?: string[]; photo_key?: string | null }) =>
+  updateCloth: (id: string, body: { name?: string; tags?: string[]; photo_keys?: string[] }) =>
     req<Cloth>(`/api/clothes/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteCloth: (id: string) => req<{ ok: true }>(`/api/clothes/${id}`, { method: 'DELETE' }),
 
@@ -51,9 +53,9 @@ export const api = {
   wash: (id: string) => req<{ cloth: Cloth; event_id: string }>(`/api/clothes/${id}/wash`, { method: 'POST' }),
   undo: (eventId: string) => req<{ cloth: Cloth }>(`/api/events/${eventId}/undo`, { method: 'POST' }),
 
-  createLook: (body: { name: string | null; tags: string[]; photo_key: string }) =>
+  createLook: (body: { name: string | null; tags: string[]; photo_keys: string[] }) =>
     req<Look>('/api/looks', { method: 'POST', body: JSON.stringify(body) }),
-  updateLook: (id: string, body: { name?: string | null; tags?: string[]; photo_key?: string }) =>
+  updateLook: (id: string, body: { name?: string | null; tags?: string[]; photo_keys?: string[] }) =>
     req<Look>(`/api/looks/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteLook: (id: string) => req<{ ok: true }>(`/api/looks/${id}`, { method: 'DELETE' }),
 }

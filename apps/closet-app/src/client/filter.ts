@@ -3,7 +3,25 @@
  * Kept free of React and of `fetch` so vitest can pin the behaviour directly.
  */
 
-import type { ItemTag } from './types'
+import type { ItemTag, Photo } from './types'
+
+/**
+ * item id → its photo keys, cover first.
+ *
+ * `/api/state` already returns `photos` ordered by position, so this only has
+ * to group; it deliberately does NOT re-sort, because position is the single
+ * source of truth for which picture is the cover.
+ */
+export function photoIndex(photos: Photo[], itemType: 'cloth' | 'look'): Map<string, string[]> {
+  const index = new Map<string, string[]>()
+  for (const p of photos) {
+    if (p.item_type !== itemType) continue
+    const list = index.get(p.item_id)
+    if (list) list.push(p.r2_key)
+    else index.set(p.item_id, [p.r2_key])
+  }
+  return index
+}
 
 /** item id → the set of tag ids it carries, for one tab's item type. */
 export function tagIndex(itemTags: ItemTag[], itemType: 'cloth' | 'look'): Map<string, Set<string>> {

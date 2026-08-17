@@ -9,19 +9,22 @@ import type { Cloth } from './types'
  */
 export default function ClothesTab({
   clothes,
+  photosByCloth,
   hasAny,
   hasSelection,
+  onOpen,
   onWear,
-  onEditName,
   onWash,
   onClearTags,
   onAddFirst,
 }: {
   clothes: Cloth[]
+  /** cloth id → its photo keys, cover first. */
+  photosByCloth: Map<string, string[]>
   hasAny: boolean
   hasSelection: boolean
+  onOpen: (cloth: Cloth) => void
   onWear: (cloth: Cloth) => void
-  onEditName: (cloth: Cloth) => void
   onWash: (cloth: Cloth) => void
   onClearTags: () => void
   onAddFirst: () => void
@@ -58,9 +61,10 @@ export default function ClothesTab({
         <ClothTile
           key={cloth.id}
           cloth={cloth}
+          photoKeys={photosByCloth.get(cloth.id) ?? []}
           wornLabel={lastWornLabel(cloth.last_worn_at, now)}
+          onOpen={onOpen}
           onWear={onWear}
-          onEditName={onEditName}
           onWash={onWash}
         />
       ))}

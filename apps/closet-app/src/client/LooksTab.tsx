@@ -1,19 +1,28 @@
 import { useState } from 'react'
 import type { Look } from './types'
 
-/** A photo-only tile — no name, no count. Tapping opens the full viewer. */
-function LookTile({ look, onOpen }: { look: Look; onOpen: (look: Look) => void }) {
+/** A photo-only tile — no name, no count. Tapping opens the full catalogue. */
+function LookTile({
+  look,
+  photoKeys,
+  onOpen,
+}: {
+  look: Look
+  photoKeys: string[]
+  onOpen: (look: Look) => void
+}) {
   const [imgError, setImgError] = useState(false)
-  const showPhoto = Boolean(look.photo_key) && !imgError
+  const cover = photoKeys[0]
+  const showPhoto = Boolean(cover) && !imgError
 
   return (
-    <button type="button" className="block aspect-square overflow-hidden rounded-xl"
+    <button type="button" className="relative block aspect-square overflow-hidden rounded-xl"
       onClick={() => onOpen(look)}
       aria-label={look.name ? `Open ${look.name}` : 'Open look'}
     >
       {showPhoto ? (
         <img
-          src={`/api/photos/${look.photo_key}`}
+          src={`/api/photos/${cover}`}
           alt=""
           loading="lazy"
           className="h-full w-full object-cover"
@@ -27,6 +36,15 @@ function LookTile({ look, onOpen }: { look: Look; onOpen: (look: Look) => void }
           photo missing
         </span>
       )}
+
+      {photoKeys.length > 1 && (
+        <span
+          className="absolute right-2 bottom-2 rounded-full px-2 py-0.5 text-xs tabular-nums"
+          style={{ background: 'rgba(0,0,0,0.65)', color: 'var(--text)' }}
+        >
+          {photoKeys.length} photos
+        </span>
+      )}
     </button>
   )
 }
@@ -37,6 +55,7 @@ function LookTile({ look, onOpen }: { look: Look; onOpen: (look: Look) => void }
  */
 export default function LooksTab({
   looks,
+  photosByLook,
   hasAny,
   hasSelection,
   onOpen,
@@ -44,6 +63,8 @@ export default function LooksTab({
   onAddFirst,
 }: {
   looks: Look[]
+  /** look id → its photo keys, cover first. */
+  photosByLook: Map<string, string[]>
   hasAny: boolean
   hasSelection: boolean
   onOpen: (look: Look) => void
@@ -75,7 +96,12 @@ export default function LooksTab({
   return (
     <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3">
       {looks.map((look) => (
-        <LookTile key={look.id} look={look} onOpen={onOpen} />
+        <LookTile
+          key={look.id}
+          look={look}
+          photoKeys={photosByLook.get(look.id) ?? []}
+          onOpen={onOpen}
+        />
       ))}
     </div>
   )

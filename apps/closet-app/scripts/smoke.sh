@@ -110,16 +110,21 @@ CODE="$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' -X POST "${BASE}/ap
   -H 'Content-Type: application/json' -d '{}')"
 [ "$CODE" = "415" ] || fail "non-image photo upload was not rejected (got ${CODE})"
 
-# A second key, so the cloth and the look never share one R2 object. Sharing a
-# key would make the "delete removed the photo" assertion below ambiguous.
+# Distinct keys so each item owns its own R2 objects — sharing one would make
+# the "delete removed the photo" assertions below ambiguous.
 KEY2="$(curl -sS "${AUTH[@]}" -X POST "${BASE}/api/photos" \
   -H 'Content-Type: image/jpeg' --data-binary "@${IMG}" | jget key)"
 [ -n "$KEY2" ] || fail "second photo upload returned no key"
 [ "$KEY2" != "$KEY" ] || fail "two uploads returned the same key — keys must be unique"
 
+KEY3="$(curl -sS "${AUTH[@]}" -X POST "${BASE}/api/photos" \
+  -H 'Content-Type: image/jpeg' --data-binary "@${IMG}" | jget key)"
+[ -n "$KEY3" ] || fail "third photo upload returned no key"
+
 # ── Cloth CRUD ─────────────────────────────────────────────────────────────
+# Two photos at once: an item is a CATALOGUE, not a single picture.
 CLOTH="$(curl -sS "${AUTH[@]}" -X POST "${BASE}/api/clothes" -H 'Content-Type: application/json' \
-  -d "{\"name\":\"Blue jeans\",\"tags\":[\"Jeans\",\" casual \"],\"photo_key\":\"${KEY}\"}")"
+  -d "{\"name\":\"Blue jeans\",\"tags\":[\"Jeans\",\" casual \"],\"photo_keys\":[\"${KEY}\",\"${KEY3}\"]}")"
 CID="$(printf '%s' "$CLOTH" | jget id)"
 [ -n "$CID" ] || fail "cloth create returned no id"
 [ "$(printf '%s' "$CLOTH" | jget wears)" = "0" ] || fail "a new cloth should start at 0 wears"
@@ -127,6 +132,70 @@ CID="$(printf '%s' "$CLOTH" | jget id)"
 CODE="$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' -X POST "${BASE}/api/clothes" \
   -H 'Content-Type: application/json' -d '{"name":"   "}')"
 [ "$CODE" = "400" ] || fail "a blank cloth name was accepted (got ${CODE})"
+
+# ── The catalogue: order, cover, add, remove ───────────────────────────────
+# A tiny helper: print one item's photo keys in position order, comma-joined.
+photos_of() {
+  curl -sS "${AUTH[@]}" "${BASE}/api/state" | node -e '
+    let s = ""
+    process.stdin.on("data", (d) => (s += d)).on("end", () => {
+      const st = JSON.parse(s)
+      const rows = st.photos
+        .filter((p) => p.item_type === process.argv[1] && p.item_id === process.argv[2])
+        .sort((a, b) => a.position - b.position)
+      process.stdout.write(rows.map((p) => p.r2_key).join(","))
+    })
+  ' "$1" "$2"
+}
+
+[ "$(photos_of cloth "$CID")" = "${KEY},${KEY3}" ] \
+  || fail "cloth catalogue is not [KEY,KEY3] in order (got $(photos_of cloth "$CID"))"
+
+# position must start at 0 and be dense — the client treats index 0 as the cover.
+POS="$(curl -sS "${AUTH[@]}" "${BASE}/api/state" | node -e '
+  let s = ""
+  process.stdin.on("data", (d) => (s += d)).on("end", () => {
+    const st = JSON.parse(s)
+    const rows = st.photos.filter((p) => p.item_id === process.argv[1]).map((p) => p.position).sort()
+    process.stdout.write(rows.join(","))
+  })
+' "$CID")"
+[ "$POS" = "0,1" ] || fail "photo positions should be 0,1 (got ${POS})"
+
+# "Make cover" is just reordering: send the whole list with the new first key.
+curl -fsS "${AUTH[@]}" -X PATCH "${BASE}/api/clothes/${CID}" -H 'Content-Type: application/json' \
+  -d "{\"photo_keys\":[\"${KEY3}\",\"${KEY}\"]}" >/dev/null
+[ "$(photos_of cloth "$CID")" = "${KEY3},${KEY}" ] \
+  || fail "make-cover did not reorder the catalogue (got $(photos_of cloth "$CID"))"
+
+# Reordering must NOT delete either object — both keys are still referenced.
+[ "$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' "${BASE}/api/photos/${KEY}")" = "200" ] \
+  || fail "reordering deleted a photo that is still in the catalogue"
+[ "$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' "${BASE}/api/photos/${KEY3}")" = "200" ] \
+  || fail "reordering deleted the new cover object"
+
+# Dropping one key from the list must delete THAT object and keep the other.
+curl -fsS "${AUTH[@]}" -X PATCH "${BASE}/api/clothes/${CID}" -H 'Content-Type: application/json' \
+  -d "{\"photo_keys\":[\"${KEY3}\"]}" >/dev/null
+[ "$(photos_of cloth "$CID")" = "${KEY3}" ] \
+  || fail "removing a photo left the catalogue wrong (got $(photos_of cloth "$CID"))"
+[ "$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' "${BASE}/api/photos/${KEY}")" = "404" ] \
+  || fail "removing a photo from an item did not delete its R2 object"
+[ "$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' "${BASE}/api/photos/${KEY3}")" = "200" ] \
+  || fail "removing one photo also deleted the one that stayed"
+
+# A cloth may legitimately have zero photos (the tile falls back to a letter).
+curl -fsS "${AUTH[@]}" -X PATCH "${BASE}/api/clothes/${CID}" -H 'Content-Type: application/json' \
+  -d '{"photo_keys":[]}' >/dev/null
+[ -z "$(photos_of cloth "$CID")" ] || fail "clearing a cloth's photos left rows behind"
+[ "$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' "${BASE}/api/photos/${KEY3}")" = "404" ] \
+  || fail "clearing a cloth's photos did not delete the object"
+
+# Put one back so the delete-cascade assertion at the end has something to check.
+KEY4="$(curl -sS "${AUTH[@]}" -X POST "${BASE}/api/photos" \
+  -H 'Content-Type: image/jpeg' --data-binary "@${IMG}" | jget key)"
+curl -fsS "${AUTH[@]}" -X PATCH "${BASE}/api/clothes/${CID}" -H 'Content-Type: application/json' \
+  -d "{\"photo_keys\":[\"${KEY4}\"]}" >/dev/null
 
 # ── Wear, then undo the wear ───────────────────────────────────────────────
 W1="$(curl -sS "${AUTH[@]}" -X POST "${BASE}/api/clothes/${CID}/wear")"
@@ -166,13 +235,44 @@ UW="$(curl -sS "${AUTH[@]}" -X POST "${BASE}/api/events/${EVW}/undo")"
 
 # ── Looks + the shared tag vocabulary ──────────────────────────────────────
 LOOK="$(curl -sS "${AUTH[@]}" -X POST "${BASE}/api/looks" -H 'Content-Type: application/json' \
-  -d "{\"name\":\"Friday office\",\"tags\":[\"Office\",\"CASUAL\",\"winter\"],\"photo_key\":\"${KEY2}\"}")"
+  -d "{\"name\":\"Friday office\",\"tags\":[\"Office\",\"CASUAL\",\"winter\"],\"photo_keys\":[\"${KEY2}\"]}")"
 LID="$(printf '%s' "$LOOK" | jget id)"
 [ -n "$LID" ] || fail "look create returned no id"
 
 CODE="$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' -X POST "${BASE}/api/looks" \
   -H 'Content-Type: application/json' -d '{"name":"no photo"}')"
-[ "$CODE" = "400" ] || fail "a look without photo_key was accepted (got ${CODE})"
+[ "$CODE" = "400" ] || fail "a look without photo_keys was accepted (got ${CODE})"
+
+CODE="$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' -X POST "${BASE}/api/looks" \
+  -H 'Content-Type: application/json' -d '{"name":"empty list","photo_keys":[]}')"
+[ "$CODE" = "400" ] || fail "a look with an empty photo_keys list was accepted (got ${CODE})"
+
+# A look must never be editable down to zero photos — a look IS its pictures.
+CODE="$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' -X PATCH "${BASE}/api/looks/${LID}" \
+  -H 'Content-Type: application/json' -d '{"photo_keys":[]}')"
+[ "$CODE" = "400" ] || fail "a look was allowed to drop to zero photos (got ${CODE})"
+[ "$(photos_of look "$LID")" = "${KEY2}" ] \
+  || fail "the rejected empty-photo edit still mutated the look's catalogue"
+
+# A look can hold several photos too (different angles of one outfit).
+KEY5="$(curl -sS "${AUTH[@]}" -X POST "${BASE}/api/photos" \
+  -H 'Content-Type: image/jpeg' --data-binary "@${IMG}" | jget key)"
+curl -fsS "${AUTH[@]}" -X PATCH "${BASE}/api/looks/${LID}" -H 'Content-Type: application/json' \
+  -d "{\"photo_keys\":[\"${KEY2}\",\"${KEY5}\"]}" >/dev/null
+[ "$(photos_of look "$LID")" = "${KEY2},${KEY5}" ] \
+  || fail "look catalogue did not take two photos (got $(photos_of look "$LID"))"
+
+# The 12-photo cap must clamp rather than 500 or store everything. Done on a
+# throwaway cloth: running it on $CID would drop KEY4 and delete that object,
+# which would make the delete-cascade assertion at the end pass for free.
+MANY="$(node -e 'process.stdout.write(JSON.stringify(Array.from({length:20},(_,i)=>`cap-${i}.jpg`)))')"
+CAPID="$(curl -sS "${AUTH[@]}" -X POST "${BASE}/api/clothes" -H 'Content-Type: application/json' \
+  -d "{\"name\":\"Cap probe\",\"photo_keys\":${MANY}}" | jget id)"
+[ -n "$CAPID" ] || fail "cap-probe cloth was not created"
+CAPPED="$(photos_of cloth "$CAPID" | tr ',' '\n' | grep -c .)"
+[ "$CAPPED" = "12" ] || fail "photo cap should clamp 20 keys to 12 (kept ${CAPPED})"
+curl -fsS "${AUTH[@]}" -X DELETE "${BASE}/api/clothes/${CAPID}" >/dev/null
+[ -z "$(photos_of cloth "$CAPID")" ] || fail "deleting a cloth left its photo rows behind"
 
 STATE_JSON="$(curl -sS "${AUTH[@]}" "${BASE}/api/state")"
 
@@ -244,20 +344,27 @@ curl -fsS "${AUTH[@]}" -X DELETE "${BASE}/api/clothes/${CID}" >/dev/null
 CODE="$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' -X POST "${BASE}/api/clothes/${CID}/wear")"
 [ "$CODE" = "404" ] || fail "a deleted cloth still accepts a wear (got ${CODE})"
 
-CODE="$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' "${BASE}/api/photos/${KEY}")"
+CODE="$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' "${BASE}/api/photos/${KEY4}")"
 [ "$CODE" = "404" ] || fail "deleting a cloth left its R2 photo behind (got ${CODE})"
+[ -z "$(photos_of cloth "$CID")" ] || fail "deleting a cloth left its photo rows behind"
 
+# Deleting a look must remove BOTH of its objects, not just the cover.
 curl -fsS "${AUTH[@]}" -X DELETE "${BASE}/api/looks/${LID}" >/dev/null
 CODE="$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' "${BASE}/api/photos/${KEY2}")"
-[ "$CODE" = "404" ] || fail "deleting a look left its R2 photo behind (got ${CODE})"
+[ "$CODE" = "404" ] || fail "deleting a look left its cover photo behind (got ${CODE})"
+CODE="$(curl -sS "${AUTH[@]}" -o /dev/null -w '%{http_code}' "${BASE}/api/photos/${KEY5}")"
+[ "$CODE" = "404" ] || fail "deleting a look left its SECOND photo behind (got ${CODE})"
+[ -z "$(photos_of look "$LID")" ] || fail "deleting a look left its photo rows behind"
 
 FINAL="$(curl -sS "${AUTH[@]}" "${BASE}/api/state" | node -e '
   let s = ""
   process.stdin.on("data", (d) => (s += d)).on("end", () => {
     const st = JSON.parse(s)
-    process.stdout.write(`${st.clothes.length}/${st.looks.length}/${st.tags.length}`)
+    process.stdout.write(`${st.clothes.length}/${st.looks.length}/${st.tags.length}/${st.photos.length}`)
   })
 ')"
-[ "$FINAL" = "1/0/1" ] || fail "final state should be 1 cloth, 0 looks, 1 tag; got ${FINAL}"
+# Only "Grey hoodie" survives, it has one tag and no photos.
+[ "$FINAL" = "1/0/1/0" ] \
+  || fail "final state should be 1 cloth, 0 looks, 1 tag, 0 photos; got ${FINAL}"
 
 echo "SMOKE OK"

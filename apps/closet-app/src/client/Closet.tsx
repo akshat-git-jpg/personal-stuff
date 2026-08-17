@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from './api'
-import { filterByTags, tagIndex } from './filter'
+import { filterByTags, photoIndex, tagIndex } from './filter'
 import ClothesTab from './ClothesTab'
 import LooksTab from './LooksTab'
 import EditSheet from './EditSheet'
-import LookViewer from './LookViewer'
+import ItemViewer from './ItemViewer'
 import UndoBar from './UndoBar'
-import type { AppState, Cloth, TabKey } from './types'
+import type { AppState, Cloth, TabKey, ViewingItem } from './types'
 
 type SheetState =
   | { kind: 'closed' }
@@ -27,7 +27,9 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
   const [tab, setTab] = useState<TabKey>('clothes')
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [sheet, setSheet] = useState<SheetState>({ kind: 'closed' })
-  const [viewingLookId, setViewingLookId] = useState<string | null>(null)
+  // One viewer for both tabs — clothes and looks open the identical catalogue
+  // view (owner decision, 2026-08-17).
+  const [viewing, setViewing] = useState<ViewingItem | null>(null)
   const [undo, setUndo] = useState<{ label: string; eventId: string } | null>(null)
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -152,11 +154,35 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
 
   const editingCloth = sheet.kind === 'edit-cloth' ? (state.clothes.find((c) => c.id === sheet.id) ?? null) : null
   const editingLook = sheet.kind === 'edit-look' ? (state.looks.find((l) => l.id === sheet.id) ?? null) : null
-  const viewingLook = viewingLookId ? (state.looks.find((l) => l.id === viewingLookId) ?? null) : null
 
   const lookIndex = tagIndex(state.item_tags, 'look')
   const clothIndex = tagIndex(state.item_tags, 'cloth')
+  const clothPhotos = photoIndex(state.photos, 'cloth')
+  const lookPhotos = photoIndex(state.photos, 'look')
   const tagName = (id: string) => state.tags.find((t) => t.id === id)?.name ?? ''
+
+  const photosFor = (v: ViewingItem) =>
+    (v.type === 'cloth' ? clothPhotos : lookPhotos).get(v.id) ?? []
+  const tagsFor = (v: ViewingItem) =>
+    [...((v.type === 'cloth' ? clothIndex : lookIndex).get(v.id) ?? [])].map(tagName)
+
+  // Resolve the viewed item every render rather than storing the row: after an
+  // edit reloads state, a stored copy would keep showing the OLD photos.
+  const viewingCloth = viewing?.type === 'cloth' ? (state.clothes.find((c) => c.id === viewing.id) ?? null) : null
+  const viewingLook = viewing?.type === 'look' ? (state.looks.find((l) => l.id === viewing.id) ?? null) : null
+  const viewingExists = Boolean(viewingCloth || viewingLook)
+
+  async function deleteViewed() {
+    if (!viewing) return
+    try {
+      if (viewing.type === 'cloth') await api.deleteCloth(viewing.id)
+      else await api.deleteLook(viewing.id)
+      setViewing(null)
+      loadState()
+    } catch (err) {
+      handleApiError(err)
+    }
+  }
 
   const sheetMode: 'cloth' | 'look' = sheet.kind === 'add-look' || sheet.kind === 'edit-look' ? 'look' : 'cloth'
   const sheetItemId = sheet.kind === 'edit-cloth' || sheet.kind === 'edit-look' ? sheet.id : null
@@ -167,6 +193,14 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
         : []
       : editingLook
         ? [...(lookIndex.get(editingLook.id) ?? [])].map(tagName)
+        : []
+  const sheetInitialPhotoKeys =
+    sheetMode === 'cloth'
+      ? editingCloth
+        ? (clothPhotos.get(editingCloth.id) ?? [])
+        : []
+      : editingLook
+        ? (lookPhotos.get(editingLook.id) ?? [])
         : []
 
   return (
@@ -199,10 +233,11 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
         {tab === 'clothes' ? (
           <ClothesTab
             clothes={filteredClothes}
+            photosByCloth={clothPhotos}
             hasAny={state.clothes.length > 0}
             hasSelection={selectedTagIds.length > 0}
+            onOpen={(cloth) => setViewing({ type: 'cloth', id: cloth.id })}
             onWear={handleWear}
-            onEditName={(cloth) => setSheet({ kind: 'edit-cloth', id: cloth.id })}
             onWash={handleWash}
             onClearTags={() => setSelectedTagIds([])}
             onAddFirst={() => setSheet({ kind: 'add-cloth' })}
@@ -210,9 +245,10 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
         ) : (
           <LooksTab
             looks={filteredLooks}
+            photosByLook={lookPhotos}
             hasAny={state.looks.length > 0}
             hasSelection={selectedTagIds.length > 0}
-            onOpen={(look) => setViewingLookId(look.id)}
+            onOpen={(look) => setViewing({ type: 'look', id: look.id })}
             onClearTags={() => setSelectedTagIds([])}
             onAddFirst={() => setSheet({ kind: 'add-look' })}
           />
@@ -234,7 +270,7 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
           mode={sheetMode}
           itemId={sheetItemId}
           initialName={sheetMode === 'cloth' ? (editingCloth?.name ?? '') : (editingLook?.name ?? '')}
-          initialPhotoKey={sheetMode === 'cloth' ? (editingCloth?.photo_key ?? null) : (editingLook?.photo_key ?? null)}
+          initialPhotoKeys={sheetInitialPhotoKeys}
           initialTags={sheetInitialTags}
           allTags={state.tags}
           onClose={() => setSheet({ kind: 'closed' })}
@@ -245,19 +281,21 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
         />
       )}
 
-      {viewingLook && (
-        <LookViewer
-          look={viewingLook}
-          tagNames={[...(lookIndex.get(viewingLook.id) ?? [])].map(tagName)}
-          onClose={() => setViewingLookId(null)}
-          onEdit={() => {
-            setViewingLookId(null)
-            setSheet({ kind: 'edit-look', id: viewingLook.id })
-          }}
-          onDeleted={() => {
-            setViewingLookId(null)
-            loadState()
-          }}
+      {viewing && viewingExists && (
+        <ItemViewer
+          item={viewing}
+          title={viewing.type === 'cloth' ? (viewingCloth?.name ?? null) : (viewingLook?.name ?? null)}
+          photoKeys={photosFor(viewing)}
+          tagNames={tagsFor(viewing)}
+          onClose={() => setViewing(null)}
+          onEdit={() =>
+            setSheet(
+              viewing.type === 'cloth'
+                ? { kind: 'edit-cloth', id: viewing.id }
+                : { kind: 'edit-look', id: viewing.id },
+            )
+          }
+          onDelete={deleteViewed}
         />
       )}
     </div>

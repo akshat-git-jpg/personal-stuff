@@ -5,8 +5,28 @@
 - **Design guardrails**: no wash limit / no threshold colour; looks are a plain gallery with no link to clothes. Both were owner decisions on 2026-08-17.
 - **Gotchas**: `bash scripts/smoke.sh` is the merge gate and unit tests cannot replace it; `c.req.param()` is undefined in wildcard middleware; tags are normalised lowercase and pruned when orphaned; `--var` beats the dev vars file.
 
-## UI guardrails (SPA, plan 204)
+## Catalogue model (2026-08-17)
 
+- **Photos live in the `photos` table, never a column.** `photos(item_type, item_id, r2_key, position)`; `position 0` **is** the cover, so there is no separate cover flag to fall out of sync. The old `clothes.photo_key` / `looks.photo_key` columns were dropped — see `migrations/2026-08-17-photos.sql`.
+- **`photo_keys` in a request is the WHOLE ordered set.** Add / remove / reorder / change-cover are all that one field. Do NOT add per-photo endpoints; the Worker diffs the list.
+- **`src/worker/db.ts` never touches R2.** Functions that stop referencing a key RETURN the now-unreferenced keys and `src/worker/index.ts` deletes those objects. Keep bucket writes in that one place.
+- **Only delete an R2 object when NO photo row references the key** (`unreferenced()` in `db.ts`). The same object could be attached twice; deleting on the first removal would blank the other item.
+- **Uploads happen on pick, before Save.** An abandoned sheet can leak an orphan object. That is the deliberate trade: holding blobs until Save loses the photo if the tab dies, which is worse on a phone.
+- **A look must have ≥1 photo (server-enforced on create AND patch); a cloth may have 0** and falls back to its initial letter.
+
+## UI guardrails (SPA, plan 204 + the 2026-08-17 catalogue rework)
+
+- **Tapping a tile's photo OPENS the item. It must never log a wear.** Logging
+  is the labelled `+ wear` button. This was reversed on 2026-08-17 at the
+  owner's request: a stray tap on a picture silently inflating a count is the
+  exact failure the counter exists to avoid. Guarded by
+  `test/ui.test.tsx` → "tapping the photo opens the catalogue and does NOT log
+  a wear" — do not delete that test.
+- **The catalogue viewer is identical for clothes and looks** (`ItemViewer`),
+  and carries **no wear action**, so browsing can never change a count.
+- **`ItemViewer` is z-30, `EditSheet` is z-40.** The viewer deliberately stays
+  open behind the sheet so saving returns you to the catalogue. Raising the
+  viewer's z-index hides the sheet entirely.
 - **No wash limit and no threshold colour** — a cloth tile shows a bare wear
   count, sorted highest-first. Do not add a "needs wash" badge or a colour
   ramp; the owner rejected both on 2026-08-17.

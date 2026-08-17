@@ -1,18 +1,21 @@
 import { useState } from 'react'
 import { api } from './api'
-import PhotoPicker from './PhotoPicker'
+import PhotoStrip from './PhotoStrip'
 import TagInput from './TagInput'
 import type { Tag } from './types'
 
 /**
  * EditSheet — one bottom sheet serving four cases: add-cloth, edit-cloth,
  * add-look, edit-look. `itemId` null means "add"; otherwise "edit".
+ *
+ * Since 2026-08-17 an item is a catalogue, so the sheet holds an ORDERED list
+ * of photo keys rather than one. Index 0 is the cover.
  */
 export default function EditSheet({
   mode,
   itemId,
   initialName,
-  initialPhotoKey,
+  initialPhotoKeys,
   initialTags,
   allTags,
   onClose,
@@ -21,32 +24,35 @@ export default function EditSheet({
   mode: 'cloth' | 'look'
   itemId: string | null
   initialName: string | null
-  initialPhotoKey: string | null
+  initialPhotoKeys: string[]
   initialTags: string[]
   allTags: Tag[]
   onClose: () => void
   onSaved: () => void
 }) {
   const [name, setName] = useState(initialName ?? '')
-  const [photoKey, setPhotoKey] = useState<string | null>(initialPhotoKey)
+  const [photoKeys, setPhotoKeys] = useState<string[]>(initialPhotoKeys)
   const [tags, setTags] = useState<string[]>(initialTags)
   const [saving, setSaving] = useState(false)
   const [photoBusy, setPhotoBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const canSave = !saving && !photoBusy && (mode === 'cloth' ? name.trim().length > 0 : photoKey !== null)
+  // A cloth needs a name (its tile is a named counter); a look needs at least
+  // one photo (a look IS its pictures). The server enforces both too.
+  const canSave =
+    !saving && !photoBusy && (mode === 'cloth' ? name.trim().length > 0 : photoKeys.length > 0)
 
   async function handleSave() {
     setSaving(true)
     setError(null)
     try {
       if (mode === 'cloth') {
-        const body = { name: name.trim(), tags, photo_key: photoKey }
+        const body = { name: name.trim(), tags, photo_keys: photoKeys }
         if (itemId) await api.updateCloth(itemId, body)
         else await api.createCloth(body)
       } else {
-        if (!photoKey) return
-        const body = { name: name.trim() || null, tags, photo_key: photoKey }
+        if (photoKeys.length === 0) return
+        const body = { name: name.trim() || null, tags, photo_keys: photoKeys }
         if (itemId) await api.updateLook(itemId, body)
         else await api.createLook(body)
       }
@@ -85,7 +91,12 @@ export default function EditSheet({
         <h2 className="mb-4 text-base font-semibold">{itemId ? `Edit ${mode}` : `Add ${mode}`}</h2>
 
         <div className="mb-4">
-          <PhotoPicker photoKey={photoKey} onPhotoKey={setPhotoKey} onBusyChange={setPhotoBusy} onError={setError} />
+          <PhotoStrip
+            keys={photoKeys}
+            onChange={setPhotoKeys}
+            onBusyChange={setPhotoBusy}
+            onError={setError}
+          />
         </div>
 
         <input type="text" className="field mb-4"
