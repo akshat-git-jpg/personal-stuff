@@ -12,7 +12,7 @@
   "previews": {
     "kind": "helper",
     "after": "concept-pass",
-    "summary": "lists the Google Flow preview prompts the board is serving — intro-idea frames (110) and new-card look frames (240); the ZAPI FLOW extension loads them into its queue by itself"
+    "summary": "lists the Google Flow preview prompts the board is serving — new-card look frames (240); the ZAPI FLOW extension loads them into its queue by itself"
   },
   "cut": {
     "kind": "composite",

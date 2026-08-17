@@ -2,16 +2,23 @@
 // flow-queue relay (tooling/cli/flow-queue), which the ZAPI FLOW browser
 // extension polls and loads into its Google Flow queue with no click.
 //
-// Two gates in this pipeline approve a LOOK from generated frames:
+// One gate in this pipeline approves a LOOK from generated frames:
 //
-//   110  propose the intro idea — 2-3 competing visual directions. Prose is the
-//        cheapest rejection in the pipeline, but a page of prose is a poor way
-//        to judge a look, so each direction gets frames before gate 120.
 //   240  build the new cards — owner rule 2026-07-31: before ANY code is
 //        written for a new card, 1-2 prompts (one per key moment) go to the
 //        owner and the flow WAITS for a verdict. The approved frames are the
 //        visual contract the card is built to match.
 //        (card-library/DESIGN.md, "New-card checklist" item 0.)
+//
+// 110 (propose the intro idea) used to have a row here too — an AI-generated
+// still "so the owner can SEE each direction" (owner ask, 2026-08-13). It was
+// removed 2026-08-17: a still is neither the brand nor the renderer nor the
+// motion, so approving one still told the owner very little about the film
+// they'd get. 110 now ships a real 6-second Hyperframes teaser per direction
+// (lib/intro-film/teasers.mjs) — the film in miniature, not a picture of it.
+// 240 keeps this path on purpose: approving a still IS the right artifact
+// there, because the frames themselves become the visual contract the card is
+// built to match, not a preview of motion the card doesn't have.
 //
 // Nothing about the prompt FORMAT lives here — the `---` separator, the `##`
 // label heading and the flattening are the relay's contract, shared by every
@@ -30,7 +37,6 @@ export const SOURCE = 'visuals-flow';
 // the human surface and the machine input: the owner can read and edit a prompt
 // before a single generation is spent on it.
 export const SOURCES = [
-  { kind: 'intro', dir: 'intro-film/idea-previews', label: 'intro idea (110)' },
   { kind: 'card', dir: 'card-previews', label: 'new-card look (240)' },
 ];
 
@@ -96,7 +102,6 @@ const HINT = `No preview prompts yet.
 
 Write one markdown file per thing the owner should SEE before approving it:
 
-  110 intro ideas   videos/<slug>/intro-film/idea-previews/<idea-id>.md
   240 new cards     videos/<slug>/card-previews/<card-slug>.md
 
 Separate each key moment with a --- rule on its own line and give it a ##

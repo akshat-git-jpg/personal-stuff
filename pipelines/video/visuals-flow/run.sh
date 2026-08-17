@@ -403,9 +403,11 @@ EOF
     ;;
 
   previews)
-    # The two look-approval gates (110 intro ideas, 240 new-card looks) as a
-    # queue instead of a copy-paste loop. This only REPORTS; the extension polls
-    # the board's /api/card-previews and fills its own queue.
+    # The 240 new-card look-approval gate as a queue instead of a copy-paste
+    # loop. This only REPORTS; the extension polls the board's
+    # /api/card-previews and fills its own queue. 110 (intro ideas) used to be
+    # a second source here; it was removed 2026-08-17 in favour of real
+    # Hyperframes teasers (lib/intro-film/teasers.mjs, run.sh intro-teasers).
     dry "node lib/flow-previews.mjs $slug" && exit 0
     node lib/flow-previews.mjs "$slug"
     ;;
