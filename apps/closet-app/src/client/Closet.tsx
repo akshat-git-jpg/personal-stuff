@@ -184,9 +184,7 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
         {tabTags.length > 0 && (
           <div className="flex gap-2 overflow-x-auto px-3 pb-3">
             {tabTags.map((t) => (
-              <button
-                key={t.id}
-                type="button" className="chip"
+              <button key={t.id} type="button" className="chip"
                 data-active={selectedTagIds.includes(t.id)}
                 onClick={() => toggleTag(t.id)}
               >
@@ -221,8 +219,7 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
         )}
       </main>
 
-      <button
-        type="button" className="btn-primary fixed right-4 flex h-14 w-14 items-center justify-center rounded-full p-0 text-2xl"
+      <button type="button" className="btn-primary fixed right-4 flex h-14 w-14 items-center justify-center rounded-full p-0 text-2xl"
         style={{ bottom: `calc(${undo ? '88px' : '24px'} + env(safe-area-inset-bottom))`, zIndex: 20 }}
         onClick={() => setSheet({ kind: tab === 'clothes' ? 'add-cloth' : 'add-look' })}
         aria-label={tab === 'clothes' ? 'Add a cloth' : 'Add a look'}

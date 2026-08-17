@@ -57,8 +57,7 @@ export default function PhotoPicker({
 
   return (
     <div>
-      <button
-        type="button" className="btn-ghost relative flex aspect-square w-28 items-center justify-center overflow-hidden rounded-xl p-0"
+      <button type="button" className="btn-ghost relative flex aspect-square w-28 items-center justify-center overflow-hidden rounded-xl p-0"
         onClick={() => inputRef.current?.click()}
         aria-label="Choose a photo"
         disabled={busy}
@@ -76,8 +75,7 @@ export default function PhotoPicker({
           </span>
         )}
       </button>
-      <input
-        type="file" className="hidden"
+      <input type="file" className="hidden"
         accept="image/*"
         capture="environment"
         ref={inputRef}

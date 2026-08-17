@@ -9,6 +9,29 @@ Track how many times a garment has been worn since its last wash, plus a tagged 
 - `npm run dev:local`
 - use **:5173** for UI work
 
+## Screens
+
+Two tabs, mobile-first, one thumb.
+
+| Clothes | Looks |
+|---|---|
+| ![Clothes tab](docs/screenshots/clothes.png) | ![Looks tab](docs/screenshots/looks.png) |
+
+- **Clothes** — a photo grid, sorted highest-wear-first. Each tile has three
+  separate tap targets: the **photo** logs a wear (+1), the **name** opens the
+  edit sheet, and **↺ washed** confirms then resets the count to 0. A missing
+  or failed photo falls back to a letter placeholder, and the photo button
+  stays enabled either way — a missing picture must never block logging a wear.
+- **Looks** — a plain tagged gallery of outfit photos. Tapping a tile opens a
+  full-screen viewer with its tags, Edit and Delete. Looks never link to
+  clothes and there is no "I wore this look" action (owner decision,
+  2026-08-17).
+- **Undo** — every wear or wash shows a 10-second Undo bar so a one-handed
+  mis-tap costs one tap to fix.
+- **Tags** — one shared, autocompleting vocabulary across both tabs. The chip
+  row filters with **AND** semantics: stacking chips narrows the grid, never
+  widens it. The tag selection clears whenever you switch tabs.
+
 ## Endpoints
 
 | Method | Path | Auth | Body → Response |

@@ -36,8 +36,7 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
         <label htmlFor="password" className="mb-1.5 block text-sm font-medium">
           Password
         </label>
-        <input
-          id="password" type="password" className="field"
+        <input id="password" type="password" className="field"
           autoFocus
           value={password}
           onChange={(e) => setPassword(e.target.value)}

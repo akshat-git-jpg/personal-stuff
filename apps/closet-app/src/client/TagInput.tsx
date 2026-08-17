@@ -60,8 +60,7 @@ export default function TagInput({
         </div>
       )}
 
-      <input
-        type="text" className="field"
+      <input type="text" className="field"
         placeholder="Add a tag, then Enter"
         value={typed}
         onChange={(e) => setTyped(e.target.value)}

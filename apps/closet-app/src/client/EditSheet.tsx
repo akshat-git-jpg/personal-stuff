@@ -88,8 +88,7 @@ export default function EditSheet({
           <PhotoPicker photoKey={photoKey} onPhotoKey={setPhotoKey} onBusyChange={setPhotoBusy} onError={setError} />
         </div>
 
-        <input
-          type="text" className="field mb-4"
+        <input type="text" className="field mb-4"
           placeholder={mode === 'cloth' ? 'Name' : 'Name (optional)'}
           value={name}
           onChange={(e) => setName(e.target.value)}

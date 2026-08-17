@@ -30,8 +30,7 @@ export default function ClothTile({
 
   return (
     <div className="overflow-hidden rounded-xl" style={{ background: 'var(--surface)' }}>
-      <button
-        type="button" className="block aspect-square w-full"
+      <button type="button" className="block aspect-square w-full"
         onClick={() => onWear(cloth)}
         aria-label={`Add a wear to ${cloth.name}`}
       >
@@ -54,8 +53,7 @@ export default function ClothTile({
       </button>
 
       <div className="p-3">
-        <button
-          type="button" className="block w-full text-left"
+        <button type="button" className="block w-full text-left"
           onClick={() => onEditName(cloth)}
           aria-label={`Edit ${cloth.name}`}
         >
@@ -66,8 +64,7 @@ export default function ClothTile({
           </p>
         </button>
 
-        <button
-          type="button" className="btn-ghost mt-2 w-full text-xs"
+        <button type="button" className="btn-ghost mt-2 w-full text-xs"
           onClick={washClick}
           aria-label={`Mark ${cloth.name} as washed`}
         >

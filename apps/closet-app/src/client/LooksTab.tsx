@@ -7,8 +7,7 @@ function LookTile({ look, onOpen }: { look: Look; onOpen: (look: Look) => void }
   const showPhoto = Boolean(look.photo_key) && !imgError
 
   return (
-    <button
-      type="button" className="block aspect-square overflow-hidden rounded-xl"
+    <button type="button" className="block aspect-square overflow-hidden rounded-xl"
       onClick={() => onOpen(look)}
       aria-label={look.name ? `Open ${look.name}` : 'Open look'}
     >
