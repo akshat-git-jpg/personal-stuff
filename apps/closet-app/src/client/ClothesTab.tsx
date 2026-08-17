@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import ClothTile from './ClothTile'
 import { lastWornLabel } from './filter'
 import type { Cloth } from './types'
@@ -25,7 +26,9 @@ export default function ClothesTab({
   onClearTags: () => void
   onAddFirst: () => void
 }) {
-  const now = Date.now()
+  // Date.now() is impure during render (react-hooks/purity); a lazy initial
+  // state pins it once per mount, which is plenty stable for a "days ago" label.
+  const [now] = useState(() => Date.now())
 
   if (!hasAny) {
     return (

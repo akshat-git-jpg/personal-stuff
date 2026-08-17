@@ -32,10 +32,16 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function loadState() {
-    setError(null)
     api
       .state()
-      .then(setState)
+      .then((data) => {
+        // Clear a stale error only once the refetch actually succeeds — the
+        // error screen must stay up through the request, not blink away
+        // before there is fresh state to show instead (react-hooks/set-state-in-effect
+        // otherwise flags a setState that runs synchronously before the fetch starts).
+        setError(null)
+        setState(data)
+      })
       .catch((err) => {
         if (err instanceof Error && err.message === 'Unauthorized') return onLogout()
         setError(err instanceof Error ? err.message : 'Could not load your closet')
@@ -46,9 +52,13 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
 
   // A tag that exists on clothes may match no looks (or vice versa); carrying
   // the selection across tabs leaves the user on a mysteriously empty grid.
-  useEffect(() => {
+  // Adjusted during render (the pattern React recommends for "reset state when
+  // a prop/state changes") instead of an effect, so no cascading extra render.
+  const [prevTab, setPrevTab] = useState(tab)
+  if (tab !== prevTab) {
+    setPrevTab(tab)
     setSelectedTagIds([])
-  }, [tab])
+  }
 
   useEffect(() => {
     return () => {
