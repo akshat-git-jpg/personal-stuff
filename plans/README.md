@@ -146,7 +146,8 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED 
 > **(c)** multi-tag on every photo from one shared, normalised vocabulary.
 > Both plans keep every check local — remote D1/R2 creation, secrets and the
 > `closet.agrolloo.com` deploy are the owner's gate, documented in the app README.
-> **Before raising 204**, fill its `needs_prs` with 203's PR number.
+> Raised 2026-08-17 as **PR#162 (203)** and **PR#163 (204)**, both `boss:ready`;
+> 204 carries `needs_prs: [162]`, so boss holds it until 203 lands.
 
 > **069–075 (2026-07-18, graphics-flow quality audit)**: from an `improve` audit
 > of `pipelines/video/graphics-flow` at commit `8e48c2f` (goal: long-term quality;
