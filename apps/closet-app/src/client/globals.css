@@ -1,2 +1,45 @@
 /* src/client/globals.css */
 @import 'tailwindcss';
+
+:root {
+  --bg: #0b0b0c;
+  --surface: #17171a;
+  --surface-2: #1f1f24;
+  --border: #2a2a31;
+  --text: #f4f4f5;
+  --muted: #8b8b93;
+  --accent: #4f8cff;
+  --danger: #ef4444;
+}
+
+html, body { background: var(--bg); color: var(--text); }
+body { -webkit-tap-highlight-color: transparent; }
+
+/* Base classes for interactive controls. Every button/input in this app uses
+   one of these — nothing relies on user-agent styling (LESSONS 2026-07-31).
+   `btn` is registered via @utility (Tailwind v4) so `@apply btn` below is
+   applying a real utility, not an unknown component class. */
+@utility btn {
+  @apply min-h-11 rounded-xl px-4 text-sm font-medium transition-opacity active:opacity-70;
+}
+.btn-primary { @apply btn; background: var(--accent); color: #06122b; }
+.btn-ghost { @apply btn; background: var(--surface-2); color: var(--text); }
+.btn-danger { @apply btn; background: var(--danger); color: #fff; }
+.field {
+  @apply min-h-11 w-full rounded-xl px-3 text-base outline-none;
+  background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+}
+.field:focus { border-color: var(--accent); }
+.field::placeholder { color: var(--muted); }
+
+.chip {
+  @apply inline-flex min-h-11 items-center rounded-full px-4 text-sm whitespace-nowrap transition-opacity active:opacity-70;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+}
+.chip[data-active='true'] { background: var(--accent); color: #06122b; border-color: var(--accent); }
+
+.tab-btn {
+  @apply flex-1 min-h-11 text-sm font-medium transition-opacity active:opacity-70;
+  color: var(--muted); border-bottom: 2px solid transparent;
+}
+.tab-btn[data-active='true'] { color: var(--text); border-color: var(--accent); }
