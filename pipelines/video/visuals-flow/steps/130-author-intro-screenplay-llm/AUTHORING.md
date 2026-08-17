@@ -98,6 +98,29 @@ Reference them as **`assets/<name>`, never `../<name>`.** A path above the proje
 ## Beat by beat
 For each screenplay beat, honour `t_start`/`t_end` exactly, put the beat's `stage` on screen, respect its `register` as the colour world, and **implement `carries` literally**: the named object from the named earlier beat must be the SAME element, transformed — not a new element that resembles it. Recreating the object instead of transforming it is the defect this whole system exists to prevent.
 
+### Every beat gets a banner comment — this one is machine-checked
+
+Open each beat's block in `film/index.html` with a banner naming the beat, its
+intent and both timestamps, in screenplay order:
+
+```js
+/* ---------- b01 hook 0 -> 11.36 : faces flicker, nothing settles ---------- */
+```
+
+The prose after the `:` is yours. The four fields before it are a contract:
+`lib/intro-film/check-film-sync.mjs` compares them against `screenplay.json`,
+along with the root's `data-duration`, and `intro-review` (140) refuses to run
+if they disagree.
+
+This is the only thing tying the two files together. The review pass reads beat
+times from `screenplay.json` and screenshots `film/index.html` — so a timing
+changed in one file and not the other does not produce a visibly broken film,
+it produces a review that photographs the wrong moments and reads as if the
+film is broken when it is only mis-sampled.
+
+**Change a timing and you change it in BOTH files.** `screenplay.json` is the
+source of truth; the banner is how the composition proves it still agrees.
+
 ## Brand
 `DESIGN.md` is required reading and the rule is stated once, at the top of this
 file under "What you may and may not read". What it covers: palette, type scale,

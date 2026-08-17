@@ -20,6 +20,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveWorkdir } from './workdir.mjs';
 import { linkFilmMedia } from './film-assets.mjs';
+import { checkFilmSync } from './check-film-sync.mjs';
 import { FILM_RENDERER } from '../renderer-constants.mjs';
 import { pathToFileURL } from 'node:url';
 
@@ -178,6 +179,17 @@ export function runReview(slug, { check = true, snapshot = true } = {}) {
     throw new Error(`missing ${filmDir}/index.html — run the author step first`);
   }
   const screenplay = JSON.parse(fs.readFileSync(path.join(workdir, 'screenplay.json'), 'utf8'));
+
+  // BEFORE anything is sampled. Every time below is read from the screenplay
+  // and applied to the composition, so if the two have drifted the whole pass
+  // photographs the wrong moments and reports a working film as broken. Failing
+  // here costs a second; failing silently costs a review and the fixes it
+  // provokes.
+  const sync = checkFilmSync({ screenplay, html: fs.readFileSync(path.join(filmDir, 'index.html'), 'utf8') });
+  if (sync.errors.length) {
+    const lines = sync.errors.map((e) => `  ${e.code} ${e.message}`).join('\n');
+    throw new Error(`screenplay.json and film/index.html disagree — review would sample the wrong times:\n${lines}`);
+  }
 
   // Without this the composition lints with "../" errors and check's layout
   // pass silently samples nothing.
