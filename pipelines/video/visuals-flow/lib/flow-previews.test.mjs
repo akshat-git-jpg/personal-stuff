@@ -30,24 +30,33 @@ function spy(status = 0) {
   return { calls, run };
 }
 
-test('both gates are picked up: 110 intro ideas and 240 new-card looks', () => {
-  const dir = workdir('both', {
-    'intro-film/idea-previews/idea-a.md': '## m1\nA frame.',
-    'card-previews/promise-shelf.md': '## m1\nAnother frame.',
-  });
+// Only one gate approves a look from generated frames now: 240 new-card looks.
+// 110 (propose the intro idea) was removed 2026-08-17 — real Hyperframes
+// teasers (lib/intro-film/teasers.mjs) superseded the AI-generated still.
+test('the only source picked up is the 240 new-card look queue', () => {
+  const dir = workdir('card-only', { 'card-previews/promise-shelf.md': '## m1\nA frame.' });
   const found = findPreviewFiles(dir);
-  assert.deepEqual(found.map((f) => f.group).sort(), ['card-promise-shelf', 'intro-idea-a']);
+  assert.deepEqual(found.map((f) => f.group), ['card-promise-shelf']);
 });
 
-// The group id becomes the download filename (<group>_m1), and intro frames and
-// card frames land in the SAME downloads folder — so the kind has to be in it.
-test('the group id carries the kind, so intro and card frames cannot collide', () => {
-  const dir = workdir('kind', {
-    'intro-film/idea-previews/alpha.md': '## m1\nX.',
+// The group id still carries the kind (the download filename is <group>_m1)
+// even with one source — a real requirement, not a leftover from two.
+test('the group id carries the kind', () => {
+  const dir = workdir('kind', { 'card-previews/alpha.md': '## m1\nY.' });
+  const groups = findPreviewFiles(dir).map((f) => f.group);
+  assert.deepEqual(groups, ['card-alpha']);
+});
+
+// A deliberate behaviour change, not an oversight: a leftover intro-film
+// preview directory (from before 2026-08-17, or authored by habit) must be
+// silently ignored, not picked up as a source — the intro no longer has one.
+test('a leftover intro-film preview directory is no longer a source', () => {
+  const dir = workdir('intro-ignored', {
+    'intro-film/old-look-previews/idea-a.md': '## m1\nA frame.',
     'card-previews/alpha.md': '## m1\nY.',
   });
   const groups = findPreviewFiles(dir).map((f) => f.group).sort();
-  assert.deepEqual(groups, ['card-alpha', 'intro-alpha'], 'same basename, different group');
+  assert.deepEqual(groups, ['card-alpha'], 'a directory under intro-film is not in SOURCES and must be ignored');
 });
 
 // THE STALENESS REGRESSION. The relay de-dupes per (source, group) only, so a

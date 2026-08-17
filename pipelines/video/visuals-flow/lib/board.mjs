@@ -31,6 +31,7 @@ import { buildAvatarPlan, mergeAvatarPlan, avatarPlanPath, loadRegistry } from '
 
 import { stepView, summarize as summarizeRun, nextStep, readRunLog, writeRunLog, setStep, resolveStepId } from './run-log.mjs';
 import { approveIntro } from './intro-film/approve.mjs';
+import { teaserMp4 } from './intro-film/teasers.mjs';
 import { loadSteps } from './steps.mjs';
 
 // What the board needs to BOOT. resolved.json is deliberately not here: it is
@@ -952,12 +953,61 @@ async function handleApproveIntroIdea(req, res, workdir) {
     res.statusCode = 400;
     return res.end(JSON.stringify({ ok: false, error: `unknown direction id "${chosen}"` }));
   }
+  // The whole point of this gate is that the owner WATCHED the direction. A
+  // chosen id whose teaser was never rendered means they approved prose again,
+  // which is the failure mode this plan exists to end.
+  if (!fs.existsSync(teaserMp4(workdir, chosen))) {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({
+      ok: false,
+      error: `direction '${chosen}' has no rendered teaser — run: bash run.sh <slug> intro-teasers`,
+    }));
+  }
   idea.chosen = chosen;
   idea.approved = true;
   fs.writeFileSync(ideaPath, JSON.stringify(idea, null, 2) + '\n');
   recordGate(workdir, gateNumberFor('intro-film/idea.json'), `Owner approved the intro idea: direction "${chosen}".`, `intro-film/idea.json approved=true, chosen=${chosen}`);
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify({ ok: true }));
+}
+
+// Rejecting ALL directions is a first-class outcome, not an absence of approval.
+// Without it the owner's only move was to say nothing, 110 re-ran blind, and
+// round 2 proposed a near-copy of what round 1 was rejected for.
+//
+// The rejected directions are MOVED, not deleted: 110 reads them back so it can
+// be told what not to do again, and the note is the owner's own words (never a
+// session's paraphrase — see 630's "Quote, do not paraphrase" rule).
+export const MAX_IDEA_ROUNDS = 3;
+
+async function handleRejectIntroIdea(req, res, workdir) {
+  const rawBody = await readBody(req);
+  let body;
+  try { body = JSON.parse(rawBody); } catch (e) { res.statusCode = 400; return res.end('{"ok":false}'); }
+  const note = typeof body?.note === 'string' ? body.note.trim() : '';
+  if (!note) {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({ ok: false, error: 'a note is required — a rejection with no reason cannot steer the next round' }));
+  }
+  const ideaPath = path.join(workdir, 'intro-film', 'idea.json');
+  if (!fs.existsSync(ideaPath)) {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({ ok: false, error: 'intro-film/idea.json does not exist yet' }));
+  }
+  const idea = JSON.parse(fs.readFileSync(ideaPath, 'utf8'));
+  if (idea.approved === true) {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({ ok: false, error: 'this idea gate is already approved' }));
+  }
+  const round = Number.isFinite(idea.round) ? idea.round : 1;
+  idea.rejected = [...(idea.rejected || []), { round, note, directions: idea.directions || [] }];
+  idea.directions = [];
+  idea.chosen = null;
+  idea.approved = false;
+  idea.round = round + 1;
+  fs.writeFileSync(ideaPath, JSON.stringify(idea, null, 2) + '\n');
+  res.setHeader('content-type', 'application/json');
+  return res.end(JSON.stringify({ ok: true, round: idea.round, exhausted: idea.round > MAX_IDEA_ROUNDS }));
 }
 
 // Gate 102 — the avatar spend gate. Approving writes character, model and
@@ -1365,6 +1415,55 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     return;
   }
 
+  if (req.method === 'GET' && url.pathname === '/intro-teaser') {
+    const id = url.searchParams.get('id');
+    if (!id || !/^[A-Za-z0-9_-]+$/.test(id)) {
+      res.statusCode = 400;
+      return res.end('invalid direction id');
+    }
+    const videoPath = teaserMp4(workdir, id);
+    if (!fs.existsSync(videoPath)) {
+      res.statusCode = 404;
+      res.setHeader('content-type', 'application/json');
+      return res.end('{"ok":false,"error":"not rendered"}');
+    }
+
+    const stat = fs.statSync(videoPath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+    if (range) {
+      // Validators, but never a 304 on a Range: a media element that asks for
+      // bytes and gets a bodyless 304 just stalls. Revalidation happens on the
+      // element's first, non-Range request. Same posture as /intro-video: a
+      // teaser is rewritten under the same name by every round.
+      res.setHeader('etag', mediaValidator(stat));
+      res.setHeader('last-modified', new Date(stat.mtimeMs).toUTCString());
+      res.setHeader('cache-control', 'no-cache');
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunksize = (end - start) + 1;
+      const file = fs.createReadStream(videoPath, { start, end });
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': 'video/mp4',
+      });
+      file.pipe(res);
+    } else {
+      // The element's opening request. A 304 here means "your copy is current";
+      // anything else and it re-reads a file a re-render may have replaced.
+      if (serveRevalidating(req, res, stat)) return;
+      res.writeHead(200, {
+        'Content-Length': fileSize,
+        'Content-Type': 'video/mp4',
+      });
+      fs.createReadStream(videoPath).pipe(res);
+    }
+    return;
+  }
+
   if (req.method === 'GET' && url.pathname === '/list') {
     res.statusCode = 302;
     res.setHeader('location', `/${url.search}#storyboard`);
@@ -1422,6 +1521,10 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
 
   if (req.method === 'POST' && url.pathname === '/approve-intro-idea') {
     return handleApproveIntroIdea(req, res, workdir);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/reject-intro-idea') {
+    return handleRejectIntroIdea(req, res, workdir);
   }
 
   if (req.method === 'POST' && url.pathname === '/approve-avatar-plan') {

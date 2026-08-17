@@ -296,6 +296,14 @@ EOF
     fi
     ;;
 
+  intro-teasers)
+    # Renders one 6s teaser per proposed direction so gate 120 judges MOVING
+    # pictures. Lints first — a teaser at the wrong length renders fine and
+    # misleads the gate, which is worse than not rendering.
+    dry "node lib/intro-film/teasers.mjs $slug" && exit 0
+    node lib/intro-film/teasers.mjs "$slug"
+    ;;
+
   intro-rerender)
     # 440 — the intro was approved at 150 against a static avatar stand-in;
     # this is the encode that swaps in the real avatar.mp4 and ships. Must
@@ -395,9 +403,11 @@ EOF
     ;;
 
   previews)
-    # The two look-approval gates (110 intro ideas, 240 new-card looks) as a
-    # queue instead of a copy-paste loop. This only REPORTS; the extension polls
-    # the board's /api/card-previews and fills its own queue.
+    # The 240 new-card look-approval gate as a queue instead of a copy-paste
+    # loop. This only REPORTS; the extension polls the board's
+    # /api/card-previews and fills its own queue. 110 (intro ideas) used to be
+    # a second source here; it was removed 2026-08-17 in favour of real
+    # Hyperframes teasers (lib/intro-film/teasers.mjs, run.sh intro-teasers).
     dry "node lib/flow-previews.mjs $slug" && exit 0
     node lib/flow-previews.mjs "$slug"
     ;;
