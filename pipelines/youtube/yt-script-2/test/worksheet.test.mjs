@@ -127,3 +127,50 @@ test('every body slot carries a facts block and a bare word target', () => {
   assert.match(ws, /<details><summary>Facts for this beat<\/summary>/)
   assert.ok(ws.includes('target — words'), 'generator emits the target unstamped for the session')
 })
+
+// Every pre-filled block in the worksheet must be BYTE-IDENTICAL to the outline's.
+// A retyped intro can drop a word and that word goes to camera.
+function prefilledQuoteBlocks(worksheet) {
+  const out = []
+  const lines = worksheet.split('\n')
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].includes('✎ pre-filled')) continue
+    if (lines[i].startsWith('> **VERDICT**')) continue // verdict text is re-flowed by design
+    let j = i + 1
+    while (j < lines.length && lines[j].trim() === '') j++
+    const blk = []
+    while (j < lines.length && /^>/.test(lines[j])) blk.push(lines[j]), j++
+    if (blk.length) out.push(blk.join('\n'))
+  }
+  return out
+}
+
+function outlineQuoteBlocks(md) {
+  return parse(md)
+    .filter((b) => b.t === 'lane' && b.kind === 'SAY' && b.spoken)
+    .map((b) => b.raw.map((l) => (l ? '> ' + l : '>')).join('\n'))
+}
+
+for (const key of REAL) {
+  test(`PREFILLED_DRIFT check — ${key}`, () => {
+    const md = readFileSync(join(VIDEOS, key, 'outline.md'), 'utf8')
+    const got = prefilledQuoteBlocks(buildWorksheet(md))
+    const want = outlineQuoteBlocks(md)
+    assert.ok(got.length > 0, `${key}: no pre-filled blocks found at all`)
+    for (const block of got) {
+      assert.ok(
+        want.includes(block),
+        `PREFILLED_DRIFT in ${key}: a pre-filled block is not byte-identical to outline.md.\n--- worksheet ---\n${block}\n`
+      )
+    }
+  })
+}
+
+test('PREFILLED_DRIFT check covers a real intro end to end', () => {
+  const md = readFileSync(join(VIDEOS, 'character-consistency-ai', 'outline.md'), 'utf8')
+  const ws = buildWorksheet(md)
+  assert.ok(
+    ws.includes('> "Perfect face. Perfect outfit. Exactly the character you wanted.'),
+    'PREFILLED_DRIFT: the real cold-open line did not survive verbatim'
+  )
+})
