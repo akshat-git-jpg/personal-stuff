@@ -4,8 +4,11 @@ How to turn the **team member's completed draft** into `script.md` + `script.vo.
 — the final script an AI voiceover engine reads correctly on the first take.
 
 ```
-outline.pdf  →  [ team member records + writes the demo lines ]  →  script-draft.md
-script-draft.md  →  [ this file ]  →  script.md  +  script.vo.txt
+outline.md   →  outline.pdf            the READ file: show, edit, rules
+     └──────→  script-worksheet.md     the WRITE file: voiceover only,
+                                       pre-filled copy + empty slots + facts
+script-worksheet.md  →  [ he fills the slots ]  →  script-draft.md
+script-draft.md      →  [ this file ]           →  script.md + script.vo.txt
 ```
 
 **You are not writing the script.** The maker already did, working from the
@@ -40,6 +43,8 @@ The draft's words are the maker's. The line is **sound, not substance**.
 - Fix a typo, a tense slip, or a doubled word.
 - Move a stray production instruction out of Voiceover and into Notes.
 - Tighten filler that reads as dictation ("so basically what I did here was").
+- Fold the beat's `SHOW`/`EDIT` lanes from `outline.md` into its `Notes` block —
+  he no longer writes Notes at all.
 
 **Never change silently** — flag these to the owner instead:
 
@@ -319,3 +324,11 @@ Step 3 ends with a report to the owner, not with a file. It lists:
 
 The owner is reviewing changes to his team member's words. A silent improvement is
 the failure mode this report exists to prevent.
+
+## 7 · Word targets
+
+`script-worksheet.md` carries a `target <n>–<n> words` marker on each body beat,
+stamped by the step-2 session from the budgets above. Check his draft against it
+and flag a beat that missed by more than ~40%: a 200-word answer to a 50–90-word
+slot is a beat that will not cut, and it is cheaper to say so now than after the
+voiceover is rendered.

@@ -32,6 +32,7 @@ yt-script-2/
 ├── SCRIPT-INSTRUCTIONS.md     how to finalise a script   (owner-owned)
 ├── render-outline.mjs         outline.md -> outline.html + outline.pdf
 ├── render-script.mjs          script.md  -> script.html  + script.pdf
+├── render-worksheet.mjs       outline.md -> script-worksheet.md (the write file)
 └── videos/<key>/
     ├── knowledge.md           step 1 — every source, as TEXT. The only input
     │                          steps 2 and 3 read
@@ -40,6 +41,8 @@ yt-script-2/
     ├── outline.md             step 2 — the source of truth
     ├── outline.html/.pdf      generated, gitignored — the PDF is what the
     │                          tutorial maker receives
+    ├── script-worksheet.md    step 2 — the WRITE artifact sent to the maker.
+    │                          Voiceover only; pre-filled copy + empty slots
     ├── script-draft.md        step 3 INPUT — the team member's completed
     │                          draft, stored verbatim. Provenance, tracked
     ├── script.md              step 3 — the final VO script, human-readable
@@ -55,7 +58,7 @@ The owner drives every transition. Never advance a step on your own.
 | Step | Input | Output | Whose words |
 |---|---|---|---|
 | 1 | the owner's knowledge (4 shapes) | `knowledge.md` | the owner's |
-| 2 | `knowledge.md` | `outline.md` + PDF | yours |
+| 2 | `knowledge.md` | `outline.md` + PDF (read) + `script-worksheet.md` (write) | yours |
 | 3 | the team member's completed draft | `script.md` + `script.vo.txt` | his — you finalise them |
 | 4 | `script.vo.txt` | voiceover audio | **not wired yet** |
 
@@ -255,7 +258,20 @@ Triggered by the owner asking for the outline.
    with no lane and nothing errors.
 4. Render it: `node render-outline.mjs <key>` → `outline.html` + `outline.pdf`.
    The PDF is what the tutorial maker receives. Both are gitignored.
-5. **Stop and wait for approval.** Do not start the script.
+5. Generate the write artifact: `node render-worksheet.mjs <key>` →
+   `script-worksheet.md`. It is voiceover only — pre-filled copy for every
+   finished beat, an empty slot for every body beat. The generator emits each
+   body beat with a bare `target — words` marker and an empty
+   `Facts for this beat` block.
+6. **Fill both, per body beat**: the word target from `SCRIPT-INSTRUCTIONS.md`'s
+   budgets, and the facts from `knowledge.md` that back that beat, each with a
+   `src:` line naming its `knowledge.md` heading. A beat with no supporting facts
+   gets `- none — this beat is his screen time`; an empty block is a bug. Facts
+   are **copied**, never restated from memory — the no-research rule binds here
+   exactly as at step 1.
+7. The owner sends the maker **both** files: `outline.pdf` to read, and
+   `script-worksheet.md` to fill.
+8. **Stop and wait for approval.** Do not start the script.
 
 ### Step 3 — the final AI-VO script
 
@@ -270,30 +286,39 @@ between the words that are spoken and the words that are not.
 
 1. **Store the draft verbatim first** as `videos/<key>/script-draft.md`, before
    changing a single character. Never edit it in place, then or later — it is the
-   record of what the team member actually wrote, and the diff you report at step
-   7 is measured against it. If it arrived as a link or an attachment, keep the
-   original in `sources/` as well.
-2. Read `SCRIPT-INSTRUCTIONS.md` in full and follow it exactly. It is the only
+   record of what the team member actually wrote. If it arrived as a link or an
+   attachment, keep the original in `sources/` as well.
+2. **Diff it against what was sent**: `diff script-worksheet.md script-draft.md`.
+   This splits his return into two piles — empty slots he filled (expected) and
+   pre-filled text he changed (the owner must see every one of these). Pre-filled
+   copy is his to change if his screen time showed it wrong, so a change here is
+   legitimate, not a violation; it just may never pass silently. Every one becomes
+   its own line in the step-7 change report.
+3. Read `SCRIPT-INSTRUCTIONS.md` in full and follow it exactly. It is the only
    authority on voice, structure, the Voiceover/Notes split, and the VO polish
    rules. If it is a placeholder, stop and ask — same rule as step 2.
-3. Read the approved `outline.md` and `knowledge.md`. **Every claim in the draft
+4. Read the approved `outline.md` and `knowledge.md`. **Every claim in the draft
    must still trace to `knowledge.md`.** The maker will have added specifics from
    his own screen time — a UI label, a step order, a render time. Those are
    welcome. A new *number, price, or product claim* that `knowledge.md` does not
    support is a **GAP**: flag it to the owner. The no-research rule binds here
    exactly as hard as at step 1 — you may not go verify it, and you may not
    quietly correct it from memory.
-4. Write `videos/<key>/script.md` — the final, human-readable script. Voiceover
+5. Write `videos/<key>/script.md` — the final, human-readable script. Voiceover
    and Notes labelled and separated, the pronunciation lexicon at the top, pacing
    punctuation applied, parts and sections clearly headed.
-5. Write `videos/<key>/script.vo.txt` — the **engine feed**. Spoken lines only,
+   The maker no longer writes `Notes`: pull the matching beat's `SHOW` and `EDIT`
+   lanes out of `outline.md` and fold them into `script.md`'s `Notes` blocks
+   yourself. That is mechanical — every `Notes` block in the two existing scripts
+   is a reworded SHOW/EDIT pair — so it never needed his keyboard.
+6. Write `videos/<key>/script.vo.txt` — the **engine feed**. Spoken lines only,
    pronunciation already substituted in, no Notes, no headings, no brackets, no
    stage directions. **Anything left in this file WILL be spoken out loud.** It is
    a separate file precisely so step 4 never has to parse spoken text back out of
    a document that also contains instructions.
-6. Render: `node render-script.mjs <key>` → `script.html` + `script.pdf`. Both
+7. Render: `node render-script.mjs <key>` → `script.html` + `script.pdf`. Both
    gitignored.
-7. **Report the diff and stop.** List every line you reworded, respelled, or
+8. **Report the diff and stop.** List every line you reworded, respelled, or
    repunctuated, plus every gap from step 3. The owner needs to see what changed
    in his team member's words — silently improving them is how a claim shifts
    meaning with nobody noticing.

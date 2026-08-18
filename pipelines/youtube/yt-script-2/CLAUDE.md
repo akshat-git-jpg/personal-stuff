@@ -14,7 +14,7 @@ steps**, each gated on the owner asking for the next one.
 | Step | In | Out |
 |---|---|---|
 | 1 | the owner's knowledge (4 shapes) | `knowledge.md` |
-| 2 | `knowledge.md` | `outline.md` → the PDF the tutorial maker gets |
+| 2 | `knowledge.md` | `outline.md` → `outline.pdf` (he reads) + `script-worksheet.md` (he fills) |
 | 3 | the maker's completed draft back | `script.md` + `script.vo.txt` |
 | 4 | `script.vo.txt` | voiceover audio — **not wired yet** |
 
@@ -52,12 +52,14 @@ OUTLINE-INSTRUCTIONS.md    owner-owned — the only authority on outline format
 SCRIPT-INSTRUCTIONS.md     owner-owned — the only authority on script format
 render-outline.mjs         outline.md -> outline.html + outline.pdf
 render-script.mjs          script.md  -> script.html  + script.pdf
+render-worksheet.mjs       outline.md -> script-worksheet.md (voiceover only)
 videos/<key>/
 ├── knowledge.md           every source as TEXT — the only input steps 2/3 read
 ├── sources/               the originals: screenshots, fetched pages, transcripts
 ├── outline.md             step 2 — the source of truth
 ├── outline.html           generated, gitignored
 ├── outline.pdf            generated, gitignored — this is what the maker gets
+├── script-worksheet.md    step 2 — the write file. Pre-filled copy + empty slots
 ├── script-draft.md        step 3 INPUT — the maker's draft, stored untouched
 ├── script.md              step 3 — the final VO script, human-readable
 ├── script.vo.txt          step 3 — the engine feed. Step 4's only input.
@@ -94,6 +96,8 @@ node render-outline.mjs <key> --no-pdf   # HTML only
 
 node render-script.mjs  <key>            # writes script.html  + script.pdf
 node render-script.mjs  <key> --no-pdf   # HTML only
+node render-worksheet.mjs <key>           # writes script-worksheet.md
+node render-worksheet.mjs <key> --force   # overwrite (loses hand-written fact packs)
 ```
 
 Two renderers, not one. `script.md` uses a different grammar from `outline.md`
@@ -149,3 +153,14 @@ supplying the knowledge directly. The two share no files.
   gitignored, regenerate them. (`script.html`/`script.pdf` were tracked by mistake
   until 2026-08-18, because `render-script.mjs` shipped without a matching ignore
   rule.)
+- **The worksheet is voiceover only.** No `SHOW`, no `EDIT`, no rules boxes, no
+  tables. Those are in `outline.pdf`, which he reads beside it. Repeating them in
+  the worksheet is the exact mistake the format exists to prevent, and a test
+  asserts they are absent.
+- **Pre-filled copy is copied, never retyped.** `render-worksheet.mjs` reproduces
+  the outline's blockquote lines byte for byte, so a word cannot drift on its way
+  to camera. Do not route spoken copy through a paragraph-joining helper —
+  `render-outline.mjs`'s `splitParas` joins lines with a space, which is correct
+  for HTML and fatal here. The `PREFILLED_DRIFT` test is the guard.
+- **`--force` loses work.** The fact packs in a worksheet are hand-written by the
+  step-2 session and are not regenerable.
