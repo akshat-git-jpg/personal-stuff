@@ -174,3 +174,19 @@ test('PREFILLED_DRIFT check covers a real intro end to end', () => {
     'PREFILLED_DRIFT: the real cold-open line did not survive verbatim'
   )
 })
+
+const DOC_CHECKS = [
+  ['../../../.claude/skills/yt-script-2/SKILL.md', ['render-worksheet.mjs', 'script-worksheet.md', 'diff script-worksheet.md script-draft.md', 'target — words']],
+  ['../CLAUDE.md', ['render-worksheet.mjs', 'voiceover only', 'PREFILLED_DRIFT']],
+  ['../SCRIPT-INSTRUCTIONS.md', ['script-worksheet.md', 'Word targets']],
+  ['../.gitignore', ['script-worksheet.md']],
+]
+
+for (const [rel, needles] of DOC_CHECKS) {
+  test(`docs updated — ${rel.split('/').pop()}`, () => {
+    const p = join(HERE, rel)
+    assert.ok(existsSync(p), `missing ${p}`)
+    const txt = readFileSync(p, 'utf8')
+    for (const n of needles) assert.ok(txt.includes(n), `${rel} must mention "${n}"`)
+  })
+}
