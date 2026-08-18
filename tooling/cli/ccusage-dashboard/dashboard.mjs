@@ -309,7 +309,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`\n  ccusage dashboard → http://localhost:${PORT}`);
+  console.log(`\n  local-stats → http://localhost:${PORT}`);
   console.log(`  reads: work (~/.claude-work) · personal (~/.claude-personal)`);
   console.log(`  Ctrl-C to stop.\n`);
 });
@@ -317,7 +317,7 @@ server.listen(PORT, () => {
 // ---- Front-end --------------------------------------------------------------
 const HTML = `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Claude usage</title>
+<title>local-stats</title>
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
@@ -391,7 +391,7 @@ const HTML = `<!doctype html><html lang="en"><head>
   .lstamp { font-size:10.5px; color:#7b828c; margin-left:10px; text-transform:none; letter-spacing:0; font-weight:400; }
 ${WORKSPACE_CSS}</style></head><body>
 <header>
-  <h1>Claude workspace</h1>
+  <h1>local-stats</h1>
   <nav class="tabs">
     <button class="tab on" data-tab="usage">Usage</button>
     <button class="tab" data-tab="workspace">Workspace</button>

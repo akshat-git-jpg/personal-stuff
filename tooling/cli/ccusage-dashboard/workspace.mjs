@@ -274,7 +274,10 @@ export async function scanWorkspace(opts = {}) {
         }
         const parts = line.split('|').map(s => s.trim());
         if (parts.length >= 6) {
-          const id = parts[1];
+          // the Job cell is a markdown link — `[my-planner](./my-planner/)` — so
+          // pull the label out; a bare id still works.
+          const linked = parts[1].match(/^\[([^\]]+)\]/);
+          const id = linked ? linked[1].trim() : parts[1];
           const schedule = parts[2];
           const cronUtc = parts[3].replace(/`/g, '');
           const codePath = parts[4].replace(/`/g, '');
