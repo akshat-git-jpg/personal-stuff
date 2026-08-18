@@ -232,9 +232,65 @@ for the cart call; never hardcode them. Add `fields[seller]=1` and
 headless ordering out on 2026-08-18.** Holding the recipe is not permission to use it.
 Referencing either endpoint fails this plan's grep gate, and that is the intent.
 
-**Session lifetime is unknown and is measured in production, not planned.** The job detects
-expiry (HTTP 401 or `AMUL_SESSION_UNAUTHENTICATED`), messages the owner, and waits for a
-fresh OTP. If re-login proves frequent enough to be annoying, record that in `decisions.md`.
+### Session lifetime — measured, and why OTP is the only door
+
+Measured against the live site on 2026-08-18, and this settles a question the owner asked
+directly ("is there another way to log in?"). There is not. Four checks:
+
+1. **The session cookie lasts 7 days.** A fresh `jsessionid` came back as
+   `Expires=Tue, 25 Aug 2026 15:11:55 GMT`, issued at `15:11:55` — exactly 168 hours. The
+   other two cookies are Cloudflare's: `__cf_bm` (30 min, auto-refreshed) and `_cfuvid`
+   (browser-session). Only `jsessionid` carries identity.
+2. **The expiry does not slide.** Re-requesting with an existing jar returned **no**
+   `set-cookie` for `jsessionid` at all — the server accepts the old one without extending
+   it. Keeping the session warm with traffic therefore does **not** buy more time.
+3. **There is no second login method.** `storeinfo.js` reports `login_field: "phone"`,
+   `login_with_otp: "1"`, `login_providers: []`, and an empty `password_page`. No email
+   login, no social login, no account password. `login_using_firebase: 1` is set but the
+   owner's real login made **zero** calls to any Firebase, identitytoolkit, or securetoken
+   host — so there is no Firebase refresh token to ride either.
+4. **There is no refresh, renew, keepalive, or remember-me endpoint** anywhere in the
+   storefront bundle; the only `ms.users` method beyond login is `adminLogin`.
+
+So: **one OTP per 7 days is the floor, and it is not reducible by anything this codebase can
+do.** Design around it rather than fighting it — the next two subsections are how.
+
+### Login expiry must never cost the owner an alert
+
+**This is a hard requirement, not a nicety.** The Amul login exists only to prepare a cart.
+Stock alerts do not need it and must never depend on it.
+
+When the session is missing or expired at the moment a restock fires, the job must still:
+
+- send the normal restock alert with photo, price and the product link (208's behaviour), and
+- replace the **Add to cart** button with a disabled-style one whose caption says the session
+  needs a fresh OTP, and
+- send the re-login prompt as a **separate** message, so the alert itself stays readable.
+
+It must **not** swallow the alert, block on the OTP before alerting, or delay the alert while
+attempting a login. The owner can always fall back to tapping the product link. A test asserts
+this: with `amul-session.json` absent, `--assist` still produces exactly one restock alert.
+
+### Re-login proactively, never mid-restock
+
+Being asked for an OTP while a product is draining is the worst possible moment. So the job
+tracks the login timestamp in `amul-session.json` and, once the session is older than
+`relogin_after_days` (default `6` — one day of margin under the observed 7), sends the
+re-login prompt on an ordinary quiet tick, unrelated to any restock.
+
+Add to `assist.example.json`: `"relogin_after_days": 6`.
+
+Refreshing early is free: a new login simply issues a new 7-day cookie.
+
+### OTP intake is a seam, not a hardcoded path
+
+`amul_login.py` reads the OTP through one function, `get_otp(reason: str) -> str`, with two
+implementations selected by config (`otp_source`): `"stdin"` and `"telegram"` (default).
+
+Keep that indirection even though only two exist today. The owner may later wire a phone
+automation (e.g. an iOS Shortcut on SMS receipt) that POSTs the code to a small endpoint,
+making login fully hands-free; that would be a third implementation of `get_otp` and nothing
+else. **Do not build that now** — just do not hardcode Telegram into the login flow.
 
 ## Commands you will need
 
@@ -297,6 +353,8 @@ Reject an OTP that is not exactly 6 digits before sending it anywhere.
 {
   "enabled": false,
   "phone": "",
+  "otp_source": "telegram",
+  "relogin_after_days": 6,
   "allowlist": ["HPMCP01_08"],
   "max_price_inr": 900,
   "max_carts_per_day": 3,
@@ -445,6 +503,14 @@ with the right address. Nothing is paid.
     `apps/amul-watch/*.py` returns nothing. Fail message must mention `payment`.
 12. A 401 / `AMUL_SESSION_UNAUTHENTICATED` sends a "session expired, reply with a fresh OTP"
     message and does **not** retry.
+16. **Alerts survive a dead session.** With `amul-session.json` absent and `enabled: true`,
+    a restock edge still produces exactly one restock alert, and the cart button is replaced
+    rather than the alert suppressed. Fail message **must be exactly**:
+    `FAIL: alert must survive a dead session`
+17. A session older than `relogin_after_days` triggers the re-login prompt on a tick with
+    **no** restock edge, and does not trigger it when the session is younger.
+18. `get_otp` is selected by `otp_source`; an unknown value fails closed rather than
+    defaulting to a live prompt.
 14. An OTP that is not exactly 6 digits is rejected before any request is sent.
 15. `amul_login.py` never prints a cookie value or the phone number, even at its most
     verbose. Fail message must mention `redact`.
@@ -464,6 +530,8 @@ with the right address. Nothing is paid.
       must not reappear
 - [ ] Running with `--assist` absent behaves exactly as 208 did (a diff of notification
       behaviour shows no change)
+- [ ] With no session file at all, `--assist` still emits the restock alert — the gate's
+      `FAIL: alert must survive a dead session` assertion covers this
 
 ## STOP conditions
 
