@@ -24,8 +24,8 @@ export function SortPill<T extends string>({
       onClick={onOpen}
       aria-label={`Sort by ${current}. Change sorting.`}
     >
-      <span aria-hidden="true" style={{ color: 'var(--muted)' }}>
-        ⇅{' '}
+      <span aria-hidden="true" className="mr-1.5" style={{ color: 'var(--muted)' }}>
+        ⇅
       </span>
       {current}
     </button>

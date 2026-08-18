@@ -13,6 +13,9 @@
 - **Only delete an R2 object when NO photo row references the key** (`unreferenced()` in `db.ts`). The same object could be attached twice; deleting on the first removal would blank the other item.
 - **Uploads happen on pick, before Save.** An abandoned sheet can leak an orphan object. That is the deliberate trade: holding blobs until Save loses the photo if the tab dies, which is worse on a phone.
 - **A look must have ≥1 photo (server-enforced on create AND patch); a cloth may have 0** and falls back to its initial letter.
+- **Reordering is drag-and-drop** (`PhotoGrid.tsx`, `@dnd-kit` — the same library `lists-app` uses). The thumbnail itself is the drag handle and needs `touch-none`, or the browser claims the gesture for scrolling and the drag silently never starts. Touch drag activates after a 180ms hold so a plain tap still reaches the `×`.
+- **Sorting is client-side only** (`sort.ts`). The server still returns clothes wears-DESC / looks created_at-DESC; the client re-orders. Sort functions must COPY before `.sort()` — the arrays come from component state.
+- **Sort preference is per tab in `localStorage`** (`closet.sort.clothes` / `closet.sort.looks`), read via a lazy `useState` initialiser. Reading storage during render trips `react-hooks/purity`; every access is try/caught because private mode throws.
 
 ## UI guardrails (SPA, plan 204 + the 2026-08-17 catalogue rework)
 

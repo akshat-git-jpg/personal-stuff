@@ -17,9 +17,9 @@ Two tabs, mobile-first, one thumb.
 |---|---|
 | ![Clothes tab](docs/screenshots/clothes.png) | ![Looks tab](docs/screenshots/looks.png) |
 
-| Catalogue viewer | Editing the catalogue |
-|---|---|
-| ![Cloth catalogue](docs/screenshots/cloth-catalog.png) | ![Photo strip](docs/screenshots/edit-catalog.png) |
+| Catalogue viewer | Editing the catalogue | Sorting |
+|---|---|---|
+| ![Cloth catalogue](docs/screenshots/cloth-catalog.png) | ![Photo grid](docs/screenshots/edit-catalog.png) | ![Sort sheet](docs/screenshots/sort-sheet.png) |
 
 **Every cloth and every look is a catalogue** — it holds any number of photos
 (front, back, worn, different angles), up to 12. The first photo is the cover
@@ -38,10 +38,26 @@ and is what the grid tile shows.
   momentum and rubber-banding are the browser's own. Dots show the position.
   Buttons: Close, Edit, Delete. There is deliberately **no wear button here**,
   so browsing a catalogue can never change a count.
-- **Editing photos** — the edit sheet holds the ordered strip: `×` removes a
-  photo, **make cover** moves one to the front, `+ photo` adds (multi-select
-  supported). The viewer stays open behind the sheet, so saving drops you back
-  into the catalogue showing the new photos.
+- **Editing photos** — the edit sheet holds a drag-to-reorder grid: **hold and
+  drag** a thumbnail to rearrange, `×` removes one, `+` adds (multi-select
+  supported). The first tile is badged **Cover**, so "make this the cover" is
+  just "drag it to the front" — there is no separate cover control to disagree
+  with the order. The viewer stays open behind the sheet, so saving drops you
+  back into the catalogue showing the new photos.
+- **Sorting** — the pill on the right of the chip row shows the current
+  ordering and opens a sheet of options with a tick on the active one. It never
+  scrolls away with the chips, and the choice is remembered per tab in
+  `localStorage`.
+
+  | Tab | Options (default first) |
+  |---|---|
+  | Clothes | Most worn · Last worn · A → Z · Newest |
+  | Looks | Newest · Oldest · A → Z |
+
+  "Most worn" stays the default because that ordering *is* the wash cue — it is
+  why the app needs no wash limit. Ties break by name so the grid does not
+  reshuffle between loads. Never-worn items sort to the bottom of "Last worn",
+  and unnamed looks to the bottom of "A → Z".
 - **Undo** — every wear or wash shows a 10-second Undo bar so a one-handed
   mis-tap costs one tap to fix.
 - **Tags** — one shared, autocompleting vocabulary across both tabs. The chip

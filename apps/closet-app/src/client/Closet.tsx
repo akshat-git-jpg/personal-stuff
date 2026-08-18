@@ -267,11 +267,21 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
             ))}
           </div>
 
-          {tab === 'clothes' ? (
-            <SortPill value={clothSort} options={CLOTH_SORTS} onOpen={() => setSortOpen(true)} />
-          ) : (
-            <SortPill value={lookSort} options={LOOK_SORTS} onOpen={() => setSortOpen(true)} />
-          )}
+          {/*
+            A rule between the two zones. Without it the chip row just appears
+            to run out mid-word behind the pill, which reads as a broken layout
+            rather than as "this scrolls, that does not".
+          */}
+          <div
+            className="shrink-0 self-stretch pl-2"
+            style={{ borderLeft: tabTags.length > 0 ? '1px solid var(--border)' : 'none' }}
+          >
+            {tab === 'clothes' ? (
+              <SortPill value={clothSort} options={CLOTH_SORTS} onOpen={() => setSortOpen(true)} />
+            ) : (
+              <SortPill value={lookSort} options={LOOK_SORTS} onOpen={() => setSortOpen(true)} />
+            )}
+          </div>
         </div>
       </header>
 
