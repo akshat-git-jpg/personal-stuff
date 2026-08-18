@@ -133,6 +133,8 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 202 | Workspace tab in the ccusage dashboard — two-tab header (Usage \| Workspace), `/api/workspace` route, four sortable tables with a "show dead only" toggle; renders 201's payload | P3 | M | 201 | TODO |
 | 203 | closet-app backend — new `apps/closet-app` scaffolded from lists-app: D1 schema (clothes/looks/tags/item_tags/events), Hono Worker API (cloth+look CRUD, R2 photo store, wear/wash/undo), `scripts/smoke.sh` merge gate against a throwaway local D1+R2. No UI | P3 | L | none | TODO |
 | 204 | closet-app SPA — two-tab mobile PWA: Clothes grid (photo=+1 wear, name=edit, ↺=wash-to-zero, 10s Undo) and Looks gallery; multi-tag with one shared autocompleting vocabulary, AND-semantics chip filter, on-device photo downscale, home-screen icons | P3 | L | 203 | TODO |
+| 208 | amul-watch — self-hosted Amul stock notifier: `apps/amul-watch/` polls shop.amul.com's StoreHippo product API for one pincode (6-step session bootstrap + per-request SHA-256 TID header, bracket-literal query), edge-triggers on out-of-stock→in-stock for tracked SKUs and pings Telegram via `tooling/cli/notify`. Stdlib-only Python + curl subprocess; stubbed-curl gate with a mutation on the edge-trigger | P2 | M | none | TODO |
+| 209 | amul-watch auto-order — reuses a browser-captured Amul session (phone-OTP, no password) to add-to-cart → set-address → place-order on a restock edge, behind four tested rails (dry-run default, allowlist separate from the watch list, max unit price, per-day cap). **NOT handoff-ready**: the checkout request shapes need a one-time HAR capture from the owner first | P3 | L | 208 | BLOCKED (needs owner HAR capture — see plan's "Human precondition") |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -1233,3 +1235,13 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 205-vf-intro-idea-moving-teasers — PR#164 205-vf-intro-idea-moving-teasers: the intro idea gate judges moving teasers, not prose — DONE
 - 206-vf-intro-idea-teaser-gate-ui — PR#165 206-vf-intro-idea-teaser-gate-ui: the board's idea gate plays the teasers — DONE
 - 207-yt-script-2-write-surface — PR#166 207-yt-script-2-write-surface: the step-2 write surface (render-worksheet.mjs) — DONE
+
+> **208-209 (2026-08-18, Amul stock watcher)**: owner asked for a self-hosted
+> replacement for the public `SwapnilSoni1999/amul-notify` bot after learning its
+> auto-order is a closed paid proxy (`ORDER_SERVER_API_URL`), not open source.
+> The read API was verified live during planning (pincode 400001 -> substore
+> `mumbai-br`, 23 protein SKUs). **208 ships alone and is useful alone** - dispatch
+> it now. **209 stays BLOCKED** until the owner captures one manual checkout as a
+> HAR; without it the order request bodies are unknowable from public sources, and
+> if checkout turns out to need an interactive payment redirect, 209 reduces to a
+> one-tap-link fallback rather than headless ordering.
