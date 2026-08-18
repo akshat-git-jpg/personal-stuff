@@ -70,3 +70,6 @@ bash scripts/smoke.sh   # full API smoke against a throwaway local D1 + R2
 
 Local password is in the dev vars file (`APP_PASSWORD`). Deploy: `npm run deploy` →
 closet.agrolloo.com. See the app README for first-time remote provisioning.
+
+## amul-watch (apps/amul-watch)
+Self-hosted Amul stock notifier with Telegram alerts.

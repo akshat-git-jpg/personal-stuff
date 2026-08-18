@@ -1,0 +1,5 @@
+config.json
+state.json
+cookies.txt
+__pycache__/
+*.pyc
