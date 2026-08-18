@@ -1,0 +1,10 @@
+{
+  "pincode": "400001",
+  "poll_jitter_seconds": 30,
+  "track": [
+    "HPMCP01_08",
+    "HPPCP01_02",
+    "DBDCP41_30"
+  ],
+  "track_all_available": false
+}
