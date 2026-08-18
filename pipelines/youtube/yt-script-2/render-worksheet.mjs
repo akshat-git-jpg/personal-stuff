@@ -1,7 +1,13 @@
 #!/usr/bin/env node
 // Render an outline.md into script-worksheet.md — the WRITE artifact the remote
-// tutorial maker fills in. Voiceover only: no SHOW, no EDIT, no rules boxes.
-// Those live in outline.pdf, which he reads beside this file.
+// tutorial maker fills in. SCRIPT ONLY: the spoken copy that is already final,
+// plus an empty slot per beat he has to write. No SHOW, no EDIT, no rules boxes,
+// no reference drafts and no fact packs — all of that is in outline.pdf, which he
+// keeps open beside this file.
+//
+// The reference/facts blocks were built and then removed on owner instruction
+// (2026-08-18): reprinting the outline's draft here made it read as finished copy
+// he could paste, which defeats the point of asking him to write from screen time.
 //
 //   node render-worksheet.mjs <slug>          # videos/<slug>/outline.md -> script-worksheet.md
 //   node render-worksheet.mjs path/to/outline.md
@@ -162,8 +168,10 @@ export function buildWorksheet(md) {
   out.push('')
   out.push('Fill the empty **Voiceover** slots. Everything else is already done.')
   out.push('')
-  out.push('Open `outline.pdf` beside this file — the demo, the screen actions and')
-  out.push('the section rules live there. They are deliberately not repeated here.')
+  out.push('**Keep `outline.pdf` open beside this file.** Everything you need to write')
+  out.push('a beat is in it — what to demo, the angle to hit, and every number and')
+  out.push('price. None of it is repeated here, so this file stays pure script: your')
+  out.push('words and the words already final. Beat numbers match the PDF in order.')
   out.push('')
   out.push('Beats marked pre-filled are final. Change one only if your screen time')
   out.push("showed it to be wrong; anything you change is flagged for Kushal's review.")
@@ -218,17 +226,12 @@ export function buildWorksheet(md) {
         out.push(requote(b.raw))
         out.push('')
       } else {
+        // Script only. No REFERENCE block and no facts block — the draft's angle
+        // and every supporting number are in outline.pdf, which he reads beside
+        // this file (owner decision 2026-08-18, reversing the fact-pack design).
+        // Duplicating them here made the reference read as finished copy he could
+        // paste, which is the exact failure this whole surface exists to remove.
         out.push(`#### ${id} · ${text}    target — words`)
-        out.push('')
-        out.push('> REFERENCE — the angle to hit. Do not ship these words.')
-        out.push('>') // bare separator: without it the label and the draft render
-        out.push(requote(b.raw)) // as ONE markdown paragraph inside the blockquote
-        out.push('')
-        out.push('<details><summary>Facts for this beat</summary>')
-        out.push('')
-        out.push('- ')
-        out.push('')
-        out.push('</details>')
         out.push('')
         out.push('**Voiceover**')
         out.push('>')

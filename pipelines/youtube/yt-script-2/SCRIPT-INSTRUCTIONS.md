@@ -5,8 +5,8 @@ How to turn the **team member's completed draft** into `script.md` + `script.vo.
 
 ```
 outline.md   →  outline.pdf            the READ file: show, edit, rules
-     └──────→  script-worksheet.md     the WRITE file: voiceover only,
-                                       pre-filled copy + empty slots + facts
+     └──────→  script-worksheet.md     the WRITE file: script only —
+                                       pre-filled copy + empty slots
 script-worksheet.md  →  [ he fills the slots ]  →  script-draft.md
 script-draft.md      →  [ this file ]           →  script.md + script.vo.txt
 ```

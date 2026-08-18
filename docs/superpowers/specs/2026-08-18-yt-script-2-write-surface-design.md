@@ -1,8 +1,35 @@
 # yt-script-2 — the write surface (step 2's second output)
 
 **Date:** 2026-08-18
-**Status:** design approved, not yet planned
+**Status:** built and landed (plan 207, PR#166) — **then amended, see below**
 **Owner decision log:** decisions.md 2026-08-18 (four-step restructure)
+
+## Amendment — 2026-08-18, after the owner reviewed the first real worksheet
+
+**Decisions 4 and 5 below are REVERSED.** The worksheet is now **script only**: the
+pre-filled spoken copy plus an empty `**Voiceover**` slot per body beat, and
+nothing else. No `REFERENCE` block, no `Facts for this beat` block.
+
+Both were built, shipped and used to generate a real worksheet for
+`character-consistency-ai` (460 lines, 54 fact bullets). Reviewing it, the owner
+called it: the reference block reprints the outline's body SAY draft, and in these
+outlines that draft is *finished polished prose*, not the short prompt
+`OUTLINE-INSTRUCTIONS.md` asks for. So the maker's most likely move was to paste
+it — which defeats the entire point of asking him to write from his screen time.
+The facts block had the same problem one level down: it put the answer in the
+writing surface.
+
+The fix is separation, not more content. `outline.pdf` is where the angle and the
+numbers live; he keeps it open beside the worksheet. The worksheet holds only words
+that will be spoken.
+
+Result: 460 lines → **220**, 23 KB → 8 KB, 18 pre-filled beats and 14 empty slots
+unchanged. Tests now assert the absence of `REFERENCE`, `Facts for this beat`,
+`<details>` and the body draft text (20 tests, up from 17).
+
+Everything else in this spec still holds — the two-artifact split, byte-identical
+pre-filled copy, the positional BODY rule, the `final` note, step 3's diff and
+Notes fold. Read the sections below with decisions 4 and 5 struck.
 
 ## The problem
 
@@ -53,14 +80,14 @@ that a machine can copy or derive should reach his keyboard.
 3. **The write file is voiceover only.** No `Notes`, no `SHOW`, no `EDIT`. The
    maker refers to the PDF to understand what to capture; the worksheet is purely
    where words go.
-4. **Body slots show the draft as reference, above an empty slot.** The outline's
+4. ~~**Body slots show the draft as reference, above an empty slot.**~~ **REVERSED — see Amendment.** The outline's
    SAY draft sits in a `REFERENCE` block marked *do not ship these words*, and the
    maker writes on a clean line underneath it. Chosen over seeding the slot with
    the draft, because the data shows he rewrites ~80% of body drafts and
    half-edited seed text tends to ship. (Markdown enforces nothing — this is a
    convention the layout makes obvious, not a lock.)
-5. **Each body beat carries its supporting facts** from `knowledge.md`, so he
-   writes without searching a 27K-word file.
+5. ~~**Each body beat carries its supporting facts** from `knowledge.md`.~~
+   **REVERSED — see Amendment.** The facts live in `outline.pdf` only.
 6. **Pre-filled text is editable.** Originally specced as locked. The owner
    amended this: the maker may change a pre-filled intro or verdict if his screen
    time showed it to be wrong. He simply never *has* to.

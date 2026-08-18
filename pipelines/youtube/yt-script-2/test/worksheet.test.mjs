@@ -122,10 +122,35 @@ test('SHOW, EDIT and RULES never reach the worksheet', () => {
   }
 })
 
-test('every body slot carries a facts block and a bare word target', () => {
+test('every body slot is a bare word target and nothing else', () => {
   const ws = buildWorksheet(FIXTURE)
-  assert.match(ws, /<details><summary>Facts for this beat<\/summary>/)
   assert.ok(ws.includes('target — words'), 'generator emits the target unstamped for the session')
+})
+
+// Owner decision 2026-08-18: the worksheet is SCRIPT ONLY. Reference drafts and
+// fact packs were built, shipped, and then removed — reprinting the outline's
+// draft made it read as finished copy he could paste, which defeats asking him to
+// write from screen time. He reads outline.pdf for the angle and the numbers.
+test('no reference draft and no facts block reach the worksheet', () => {
+  const ws = buildWorksheet(FIXTURE)
+  for (const banned of ['REFERENCE', 'Facts for this beat', '<details>', '</details>', 'Do not ship these words']) {
+    assert.ok(!ws.includes(banned), `worksheet must not contain ${banned}`)
+  }
+})
+
+test('a body beat is exactly heading + empty Voiceover slot', () => {
+  const ws = buildWorksheet(FIXTURE)
+  assert.match(ws, /#### B1 · Meet the five {4}target — words\n\n\*\*Voiceover\*\*\n>\n>\n>\n/)
+})
+
+// The body draft must NOT be duplicated into the worksheet — that text lives only
+// in outline.md / outline.pdf now.
+test('a body SAY draft never appears in the worksheet', () => {
+  const ws = buildWorksheet(FIXTURE)
+  assert.ok(
+    !ws.includes('Quick intros. OpenArt, InVideo, Higgsfield.'),
+    'the body draft leaked into the worksheet; it belongs only in outline.pdf'
+  )
 })
 
 // Every pre-filled block in the worksheet must be BYTE-IDENTICAL to the outline's.

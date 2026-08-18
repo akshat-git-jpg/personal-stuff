@@ -259,19 +259,23 @@ Triggered by the owner asking for the outline.
 4. Render it: `node render-outline.mjs <key>` → `outline.html` + `outline.pdf`.
    The PDF is what the tutorial maker receives. Both are gitignored.
 5. Generate the write artifact: `node render-worksheet.mjs <key>` →
-   `script-worksheet.md`. It is voiceover only — pre-filled copy for every
-   finished beat, an empty slot for every body beat. The generator emits each
-   body beat with a bare `target — words` marker and an empty
-   `Facts for this beat` block.
-6. **Fill both, per body beat**: the word target from `SCRIPT-INSTRUCTIONS.md`'s
-   budgets, and the facts from `knowledge.md` that back that beat, each with a
-   `src:` line naming its `knowledge.md` heading. A beat with no supporting facts
-   gets `- none — this beat is his screen time`; an empty block is a bug. Facts
-   are **copied**, never restated from memory — the no-research rule binds here
-   exactly as at step 1.
+   `script-worksheet.md`. It is **script only**: pre-filled spoken copy for every
+   finished beat, and for every body beat a heading with a bare `target — words`
+   marker plus an empty `**Voiceover**` slot. Nothing else.
+6. **Stamp each body beat's word target** from `SCRIPT-INSTRUCTIONS.md`'s budgets
+   — the generator cannot, because those budgets are per *kind* of beat and a
+   parser cannot tell what kind `B4` is. A shipped worksheet still carrying
+   `target — words` is a bug.
 7. The owner sends the maker **both** files: `outline.pdf` to read, and
    `script-worksheet.md` to fill.
 8. **Stop and wait for approval.** Do not start the script.
+
+**The worksheet carries no reference draft and no facts** (owner decision
+2026-08-18, reversing the original design). Both were built and removed: printing
+the outline's body SAY draft into the worksheet made it read as finished copy the
+maker could paste, which defeats the point of asking him to write from his screen
+time. He reads `outline.pdf` for the angle to hit and for every number. Do not
+re-add them, and do not "helpfully" paste knowledge into a slot.
 
 ### Step 3 — the final AI-VO script
 

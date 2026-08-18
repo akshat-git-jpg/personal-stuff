@@ -97,7 +97,7 @@ node render-outline.mjs <key> --no-pdf   # HTML only
 node render-script.mjs  <key>            # writes script.html  + script.pdf
 node render-script.mjs  <key> --no-pdf   # HTML only
 node render-worksheet.mjs <key>           # writes script-worksheet.md
-node render-worksheet.mjs <key> --force   # overwrite (loses hand-written fact packs)
+node render-worksheet.mjs <key> --force   # overwrite (loses stamped word targets)
 ```
 
 Two renderers, not one. `script.md` uses a different grammar from `outline.md`
@@ -162,5 +162,10 @@ supplying the knowledge directly. The two share no files.
   to camera. Do not route spoken copy through a paragraph-joining helper —
   `render-outline.mjs`'s `splitParas` joins lines with a space, which is correct
   for HTML and fatal here. The `PREFILLED_DRIFT` test is the guard.
-- **`--force` loses work.** The fact packs in a worksheet are hand-written by the
-  step-2 session and are not regenerable.
+- **The worksheet is SCRIPT ONLY** (owner decision 2026-08-18). No SHOW, no EDIT,
+  no rules boxes, no reference draft, no facts. Reference and facts were built and
+  then removed: reprinting the outline's draft made it read as finished copy the
+  maker could paste, defeating the point of asking him to write from screen time.
+  He reads `outline.pdf` for the angle and the numbers. Tests assert their absence.
+- **`--force` loses work.** The word targets in a worksheet are stamped by hand by
+  the step-2 session and are not regenerable.
