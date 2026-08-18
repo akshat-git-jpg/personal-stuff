@@ -1,14 +1,34 @@
 # yt-script-2 — how to operate here
 
 The operating contract lives in the skill:
-`pipelines/.claude/skills/yt-script-2/SKILL.md`. The outline format is defined
-in [OUTLINE-INSTRUCTIONS.md](OUTLINE-INSTRUCTIONS.md). Read both before doing
-anything in this folder.
+`pipelines/.claude/skills/yt-script-2/SKILL.md`. The outline format is defined in
+[OUTLINE-INSTRUCTIONS.md](OUTLINE-INSTRUCTIONS.md), the script format in
+[SCRIPT-INSTRUCTIONS.md](SCRIPT-INSTRUCTIONS.md). Read the skill plus whichever
+format file your step needs before doing anything in this folder.
 
 ## What this folder is
 
-Owner-supplied knowledge → outline → (optionally) full script. Three steps, each
-gated on the owner asking for the next one.
+Owner-supplied knowledge → outline → final AI-VO script → voiceover. **Four
+steps**, each gated on the owner asking for the next one.
+
+| Step | In | Out |
+|---|---|---|
+| 1 | the owner's knowledge (4 shapes) | `knowledge.md` |
+| 2 | `knowledge.md` | `outline.md` → the PDF the tutorial maker gets |
+| 3 | the maker's completed draft back | `script.md` + `script.vo.txt` |
+| 4 | `script.vo.txt` | voiceover audio — **not wired yet** |
+
+The hinge is step 3. The outline PDF goes out to a remote tutorial maker, who
+records his screen and writes the demo-specific lines the outline could not know.
+What comes back is **his draft**. Step 3 does not write a script — it finalises
+his, for an AI voiceover engine: pronunciation, spelling, pacing punctuation,
+clear headings, and a hard split between spoken words and production notes. The
+incoming draft is stored untouched as `script-draft.md`; every edit lands in
+`script.md`.
+
+Step 4 is deliberately open (2026-08-18) — the owner supplies the VO API. Until
+then, stop after step 3 and say so. Do not pick an engine, and do not reach for
+`../../video/tts/` on your own judgement.
 
 **No research happens here.** The line is ingestion vs. discovery: opening exactly
 what the owner handed over (a link, a screenshot, a YouTube URL) is step 1's job;
@@ -31,13 +51,19 @@ a second identity — so never slugify the title and use it directly.
 OUTLINE-INSTRUCTIONS.md    owner-owned — the only authority on outline format
 SCRIPT-INSTRUCTIONS.md     owner-owned — the only authority on script format
 render-outline.mjs         outline.md -> outline.html + outline.pdf
+render-script.mjs          script.md  -> script.html  + script.pdf
 videos/<key>/
 ├── knowledge.md           every source as TEXT — the only input steps 2/3 read
 ├── sources/               the originals: screenshots, fetched pages, transcripts
 ├── outline.md             step 2 — the source of truth
 ├── outline.html           generated, gitignored
 ├── outline.pdf            generated, gitignored — this is what the maker gets
-└── script.md              step 3
+├── script-draft.md        step 3 INPUT — the maker's draft, stored untouched
+├── script.md              step 3 — the final VO script, human-readable
+├── script.vo.txt          step 3 — the engine feed. Step 4's only input.
+│                          Anything in here WILL be spoken out loud
+├── script.html            generated, gitignored
+└── script.pdf             generated, gitignored
 ```
 
 ## The four source types
@@ -65,7 +91,15 @@ are in the skill. Two rules matter most:
 ```bash
 node render-outline.mjs <key>            # writes outline.html + outline.pdf
 node render-outline.mjs <key> --no-pdf   # HTML only
+
+node render-script.mjs  <key>            # writes script.html  + script.pdf
+node render-script.mjs  <key> --no-pdf   # HTML only
 ```
+
+Two renderers, not one. `script.md` uses a different grammar from `outline.md`
+(Voiceover/Notes instead of SAY/SHOW/EDIT lanes, numbered sections instead of
+`SECTION:`/beat headings), so `render-script.mjs` is a separate, simpler parser
+styled to match. Both take a `<key>` or a direct path to a `.md` file.
 
 No dependencies. PDF export shells out to headless Chrome (falls back to
 Edge/Chromium, and prints a "use Cmd-P" message if none is installed).
@@ -99,11 +133,19 @@ supplying the knowledge directly. The two share no files.
 
 ## The traps
 
-- **`SCRIPT-INSTRUCTIONS.md` is still a placeholder.** A session that improvises
-  a script format instead of stopping to ask has broken the one rule this folder
-  has — the format is the owner's to define.
+- **Step 3 is not a writing step.** It finalises the maker's returned draft. A
+  session that writes a script straight from the outline has skipped the person
+  whose screen time the demo lines come from. No draft back = nothing to do.
+- **Both format files are owner-owned, and empty means ask.** Neither is a
+  placeholder any more (`SCRIPT-INSTRUCTIONS.md` was filled in 2026-08-11), but if
+  either ever reverts to one, stop and ask instead of improvising a format.
 - **The markdown is parsed, not just rendered.** `render-outline.mjs` recognises
   specific forms (`**SAY**` alone on its line, spoken copy in a blockquote). An
   unrecognised form falls through to plain prose with no lane, silently. See
   OUTLINE-INSTRUCTIONS.md for the full table.
-- **Never commit `outline.html` or `outline.pdf`** — gitignored, regenerate them.
+- **Anything left in `script.vo.txt` gets spoken.** A stray Note, heading, or
+  bracketed pronunciation hint in that file is a line the engine reads out loud.
+- **Never commit `outline.html/.pdf` or `script.html/.pdf`** — all four are
+  gitignored, regenerate them. (`script.html`/`script.pdf` were tracked by mistake
+  until 2026-08-18, because `render-script.mjs` shipped without a matching ignore
+  rule.)

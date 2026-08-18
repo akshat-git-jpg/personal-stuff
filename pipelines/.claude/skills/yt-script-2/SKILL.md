@@ -1,13 +1,13 @@
 ---
 name: yt-script-2
-description: Turn a knowledge base the owner supplies into a YouTube outline, then optionally a full script. Ingests four source types into one knowledge.md — a plain-text brain-dump, screenshots, website links, and YouTube URLs (transcribed via the transcribe skill) — then writes the outline per pipelines/youtube/yt-script-2/OUTLINE-INSTRUCTIONS.md and stops for approval; writes the full script only when asked. Triggers on "yt-script-2", "outline for <video>", "write the outline", "now write the script", "script from this knowledge", "here's the knowledge base for <video>", "here are the screenshots/links/videos for <video>".
+description: Turn owner-supplied knowledge into a YouTube outline, then a final AI-voiceover script. Step 1 ingests brain-dump, screenshots, links and YouTube URLs (via transcribe) into knowledge.md; step 2 writes the outline and stops for approval; step 3 takes the team member's completed draft back and makes it VO-ready (pronunciation lexicon, pacing punctuation, Voiceover/Notes split); step 4 (VO generation) is unwired. Triggers on "yt-script-2", "outline for <video>", "write the outline", "here's the completed draft", "finalise the script", "make it VO-ready".
 user-invocable: true
 metadata:
   author: kbtg
-  version: 1.6.0
+  version: 2.0.0
 ---
 
-# yt-script-2 — knowledge in, outline out, script on request
+# yt-script-2 — knowledge in, outline out, VO-ready script back
 
 Owner-supplied knowledge is the starting input, always ingested first and in full.
 The line for **ingestion** (step 1's core job) is still ingestion vs. discovery:
@@ -28,9 +28,10 @@ Working folder: `pipelines/youtube/yt-script-2/`
 
 ```
 yt-script-2/
-├── OUTLINE-INSTRUCTIONS.md    how to write an outline  (owner-owned)
-├── SCRIPT-INSTRUCTIONS.md     how to write a script    (owner-owned)
+├── OUTLINE-INSTRUCTIONS.md    how to write an outline    (owner-owned)
+├── SCRIPT-INSTRUCTIONS.md     how to finalise a script   (owner-owned)
 ├── render-outline.mjs         outline.md -> outline.html + outline.pdf
+├── render-script.mjs          script.md  -> script.html  + script.pdf
 └── videos/<key>/
     ├── knowledge.md           step 1 — every source, as TEXT. The only input
     │                          steps 2 and 3 read
@@ -39,12 +40,30 @@ yt-script-2/
     ├── outline.md             step 2 — the source of truth
     ├── outline.html/.pdf      generated, gitignored — the PDF is what the
     │                          tutorial maker receives
-    └── script.md              step 3
+    ├── script-draft.md        step 3 INPUT — the team member's completed
+    │                          draft, stored verbatim. Provenance, tracked
+    ├── script.md              step 3 — the final VO script, human-readable
+    ├── script.vo.txt          step 3 — the flattened engine feed. Step 4's
+    │                          only input
+    └── script.html/.pdf       generated, gitignored
 ```
 
-## The three steps
+## The four steps
 
 The owner drives every transition. Never advance a step on your own.
+
+| Step | Input | Output | Whose words |
+|---|---|---|---|
+| 1 | the owner's knowledge (4 shapes) | `knowledge.md` | the owner's |
+| 2 | `knowledge.md` | `outline.md` + PDF | yours |
+| 3 | the team member's completed draft | `script.md` + `script.vo.txt` | his — you finalise them |
+| 4 | `script.vo.txt` | voiceover audio | **not wired yet** |
+
+Step 2's PDF leaves the building: the owner sends it to a remote tutorial maker,
+who records his screen and writes the demo-specific lines the outline could not
+know. **What comes back at step 3 is his draft, not yours.** Step 3 is a finalise
+pass over someone else's words, not a fresh write — that is the one big change
+from how this skill worked before v2.0.0.
 
 ### Step 1 — take the knowledge
 
@@ -238,21 +257,88 @@ Triggered by the owner asking for the outline.
    The PDF is what the tutorial maker receives. Both are gitignored.
 5. **Stop and wait for approval.** Do not start the script.
 
-### Step 3 — the full script
+### Step 3 — the final AI-VO script
 
-Optional. Runs only when the owner explicitly asks for the script after
-approving the outline.
+Triggered by the owner handing back the **team member's completed draft** — the
+outline plus the demo-specific lines the maker could only write after actually
+using the tool on screen. It may arrive as a file, a paste, or a link to a doc.
 
-1. Read `SCRIPT-INSTRUCTIONS.md` in full and follow it exactly. Same placeholder
-   rule as step 2 — if it is not filled in, stop and ask.
-2. Read the approved `outline.md` and `knowledge.md`.
-3. Write `videos/<key>/script.md`, following the approved outline's structure.
-   Departing from the outline requires flagging it to the owner.
+Your job is **not to write the script**. It is to take a human draft and make it
+a script an AI voiceover engine reads correctly on the first take: pronunciation,
+spelling, punctuation that paces the delivery, clean headings, and a hard split
+between the words that are spoken and the words that are not.
+
+1. **Store the draft verbatim first** as `videos/<key>/script-draft.md`, before
+   changing a single character. Never edit it in place, then or later — it is the
+   record of what the team member actually wrote, and the diff you report at step
+   7 is measured against it. If it arrived as a link or an attachment, keep the
+   original in `sources/` as well.
+2. Read `SCRIPT-INSTRUCTIONS.md` in full and follow it exactly. It is the only
+   authority on voice, structure, the Voiceover/Notes split, and the VO polish
+   rules. If it is a placeholder, stop and ask — same rule as step 2.
+3. Read the approved `outline.md` and `knowledge.md`. **Every claim in the draft
+   must still trace to `knowledge.md`.** The maker will have added specifics from
+   his own screen time — a UI label, a step order, a render time. Those are
+   welcome. A new *number, price, or product claim* that `knowledge.md` does not
+   support is a **GAP**: flag it to the owner. The no-research rule binds here
+   exactly as hard as at step 1 — you may not go verify it, and you may not
+   quietly correct it from memory.
+4. Write `videos/<key>/script.md` — the final, human-readable script. Voiceover
+   and Notes labelled and separated, the pronunciation lexicon at the top, pacing
+   punctuation applied, parts and sections clearly headed.
+5. Write `videos/<key>/script.vo.txt` — the **engine feed**. Spoken lines only,
+   pronunciation already substituted in, no Notes, no headings, no brackets, no
+   stage directions. **Anything left in this file WILL be spoken out loud.** It is
+   a separate file precisely so step 4 never has to parse spoken text back out of
+   a document that also contains instructions.
+6. Render: `node render-script.mjs <key>` → `script.html` + `script.pdf`. Both
+   gitignored.
+7. **Report the diff and stop.** List every line you reworded, respelled, or
+   repunctuated, plus every gap from step 3. The owner needs to see what changed
+   in his team member's words — silently improving them is how a claim shifts
+   meaning with nobody noticing.
+
+Rules specific to this step:
+
+- **Rewording for the mouth is the job; changing the meaning is not.** Splitting a
+  40-word sentence, respelling a product name, or turning a semicolon into a full
+  stop is expected. Changing a number, a verdict, a recommendation, or the order
+  of an argument is not — flag it instead.
+- **Never delete a Note to tidy the file.** A recording instruction the maker
+  wrote is his, and dropping it loses something the camera needed.
+- **`script.vo.txt` is written by step 3 and read by step 4. Nothing else touches
+  it.**
+
+### Step 4 — the voiceover  (NOT WIRED)
+
+**Deliberately left open on 2026-08-18.** The owner will supply the VO API
+details. Until he does:
+
+- Stop after step 3 and say plainly that step 4 is not wired.
+- **Do not improvise an engine or a call.** In particular, do not reach for
+  `pipelines/video/tts/` on your own judgement — it is the likely home, but the
+  owner has not chosen it, and picking a TTS engine is an owner-level decision
+  (the `video-and-tts-reference` skill covers why that choice is load-bearing).
+
+Three things are already fixed, whatever the API turns out to be:
+
+- **Input:** `videos/<key>/script.vo.txt`, and nothing else.
+- **Output placement:** generated audio is media, so it obeys the repo media
+  policy — it lands in `~/kb-scratch/video/tts/<pipeline>/` with a manifest row in
+  the `pipelines/video/tts` hub's `OUTPUTS.md`. Never inside this folder, never
+  committed.
+- **The `<key>`** stays the one minted at step 1.
 
 ## Hard rules
 
-- **Never skip a gate.** Knowledge → stop. Outline → stop. Script only on request.
+- **Never skip a gate.** Knowledge → stop. Outline → stop. Final script only once
+  the team member's draft is back. Step 4 only once the owner has wired it.
   "The outline is obviously fine" is not approval.
+- **Step 3 finalises someone else's draft.** You no longer write the script from
+  the outline. If no draft has come back, there is nothing to do at step 3 — say
+  so instead of writing one yourself.
+- **`script-draft.md` is never edited.** It is the team member's words, kept as
+  provenance. Every change of yours goes into `script.md`.
 - **Never invent a key.** The video's key comes from `pipelines/video-registry/`
   (`vreg ensure`), never from re-slugifying whatever the title happens to say
   today. A key derived twice from two wordings of the same title is exactly how

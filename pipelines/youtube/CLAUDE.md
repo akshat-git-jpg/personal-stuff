@@ -9,7 +9,8 @@ Wrapper for everything that directly produces or operates on YouTube channel con
 | [`yt-analysis/`](yt-analysis/CLAUDE.md) | YT tracker sheet sync + LLM-driven affiliate-link workflow | Python |
 | [`keyword-research/`](keyword-research/CLAUDE.md) | Scan competitor channels for affiliate opportunities | Python |
 | [`yt-research/`](yt-research/CLAUDE.md) | Niche → knowledge-base pipeline (Phase 1, Gemini) | TypeScript |
-| [`yt-script/`](yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2) | Markdown workflow |
+| [`yt-script/`](yt-script/CLAUDE.md) | Knowledge-base → final video script (Phase 2). Tier-list comparison format only; ran once | Markdown workflow |
+| [`yt-script-2/`](yt-script-2/CLAUDE.md) | Owner's knowledge → outline → team member's draft back → final AI-VO script → voiceover (step 4 unwired). Any topic, no research step | Markdown workflow |
 | [`my-yt/`](my-yt/CLAUDE.md) | Personal channel notes (free-form) | Markdown |
 | [`competitor-styles/`](competitor-styles/CLAUDE.md) | Competitor style packs — transcript/video ingestion + Style DNA for the yt-style-copy skill | Python + Claude skill |
 | [`dossiers/`](dossiers/CLAUDE.md) | Persistent per-software research library — one dossier per tool, accumulated from every fetched video transcript | Python + Claude skill |
