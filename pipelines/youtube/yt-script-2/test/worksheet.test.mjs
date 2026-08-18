@@ -152,7 +152,7 @@ function outlineQuoteBlocks(md) {
 }
 
 for (const key of REAL) {
-  test(`PREFILLED_DRIFT check — ${key}`, () => {
+  test(`byte identity — ${key}`, () => {
     const md = readFileSync(join(VIDEOS, key, 'outline.md'), 'utf8')
     const got = prefilledQuoteBlocks(buildWorksheet(md))
     const want = outlineQuoteBlocks(md)
@@ -166,7 +166,7 @@ for (const key of REAL) {
   })
 }
 
-test('PREFILLED_DRIFT check covers a real intro end to end', () => {
+test('byte identity covers a real intro end to end', () => {
   const md = readFileSync(join(VIDEOS, 'character-consistency-ai', 'outline.md'), 'utf8')
   const ws = buildWorksheet(md)
   assert.ok(
