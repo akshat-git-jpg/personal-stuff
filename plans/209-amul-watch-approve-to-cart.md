@@ -4,9 +4,9 @@ model: sonnet
 test_cmd: bash apps/amul-watch/test-amul-assist.sh
 ui:
 deploy:
-needs: ["Owner must complete the cart capture in the 'Human precondition' section before this plan can be dispatched. No purchase is required for the capture."]
+needs: []
 needs_prs: [208]
-touches: [apps/amul-watch/amul_cart.py, apps/amul-watch/telegram.py, apps/amul-watch/har2session.py, apps/amul-watch/watch.py, apps/amul-watch/test-amul-assist.sh, apps/amul-watch/assist.example.json, apps/amul-watch/README.md, apps/amul-watch/CLAUDE.md]
+touches: [apps/amul-watch/amul_cart.py, apps/amul-watch/telegram.py, apps/amul-watch/amul_login.py, apps/amul-watch/watch.py, apps/amul-watch/test-amul-assist.sh, apps/amul-watch/assist.example.json, apps/amul-watch/README.md, apps/amul-watch/CLAUDE.md]
 
 mutation_apply: sed -i.bak 's/if not approved:/if False:/' apps/amul-watch/amul_cart.py && rm -f apps/amul-watch/amul_cart.py.bak
 mutation_command: bash apps/amul-watch/test-amul-assist.sh
@@ -34,8 +34,8 @@ mutation_timeout:
   - Approval is answered in seconds, not at the next cron tick — the run stays alive briefly
     and polls for the button press.
 - **Executor proposed**: `claude-p` / Sonnet — the cart and address requests must be
-  re-expressed from a captured session rather than copied from a spec, which is continuous
-  judgment (`tooling/boss/data/rules.md`: "can't be fully inlined").
+  wired against a real session and a real Telegram approval loop. Every request shape is
+  inlined below, so this is placement plus careful sequencing, not open design.
 - **Done criteria** (terse — full list below): `test-amul-assist.sh` exits 0; the
   no-approval mutation fails the gate; a grep proves no payment/order endpoint is referenced;
   one supervised live run produces a checkout link with the right item and address.
@@ -44,14 +44,13 @@ mutation_timeout:
 - **Test / verification for success**: `apps/amul-watch/test-amul-assist.sh` — stubbed-curl
   suite asserting approval-gating, allowlist, daily cap, timeout behaviour, and the
   no-payment-endpoint grep. Plus one owner-supervised live run.
-- **Open points for plan readiness**: **NOT HANDOFF-READY.** Two unknowns block dispatch,
-  both resolved by the capture below: the add-to-cart request shape and the set-address
-  request shape. Do not `/secretary raise` until the "Human precondition" section is done
-  and Steps 3–4 carry real request shapes instead of `TBD`.
+- **Open points for plan readiness**: none. The owner's browser capture was taken on
+  2026-08-18 and every previously-unknown request shape (login, add-to-cart, set-address)
+  is now inlined verbatim below and cross-checked against a live API call.
 
-> **Executor instructions**: Do not begin until the "Human precondition" section is marked
-> complete and Steps 3–4 carry captured request shapes instead of `TBD`. If they still say
-> `TBD`, stop and report.
+> **Executor instructions**: Follow this plan step by step. Run every verification command
+> and confirm the expected result before moving on. If anything in the "STOP conditions"
+> section occurs, stop and report. When done, update the status row in `plans/README.md`.
 >
 > **Drift check (run first)**: `git diff --stat 17d3d58c..HEAD -- apps/amul-watch`
 
@@ -62,7 +61,7 @@ mutation_timeout:
 - **Risk**: MED
 - **Depends on**: plan 208 (must land first — imports `amul_api` and hooks `transitions()`)
 - **Category**: feature
-- **Difficulty**: tricky
+- **Difficulty**: standard
 - **Planned at**: commit `17d3d58c`, 2026-08-18
 
 ## Why this matters
@@ -74,26 +73,25 @@ almost the entire risk surface while keeping nearly all of the speed benefit —
 was never the payment tap, it was finding the product and re-entering the address while the
 stock drained.
 
-It also makes the one-time capture dramatically cheaper: the owner adds an item to a cart
-and stops. **No purchase is needed to capture the flow**, unlike the rejected plan.
+The owner's browser capture on 2026-08-18 also removed the last unknown: it exposed Amul's
+OTP login endpoints, so the session no longer has to be smuggled out of a browser. The job
+logs itself in and asks the owner for the six digits over Telegram.
 
 The load-bearing safety property is that nothing touches the cart without a recorded
 approval. That is why it is a mutation gate rather than a comment.
 
-## Human precondition — the owner does this once, before dispatch
+## No browser capture is needed — do not reintroduce one
 
-1. Open Chrome, go to `https://shop.amul.com`, log in with your phone number + OTP.
-2. DevTools → **Network** tab → tick **Preserve log** → Clear.
-3. **Add any one in-stock item to your cart**, then open the cart and make sure your
-   delivery address is selected. **Stop there. Do not pay.**
-4. Right-click in the Network panel → **Save all as HAR with content**.
-5. Save to `~/kb-scratch/amul/cart.har` — **outside the repo**. It holds your live session
-   cookie and address. Never commit it.
-6. Tell Claude it exists. Claude extracts the request chain and replaces every `TBD` below.
+An earlier draft of this plan asked the owner to export a HAR so the session could be lifted
+out of Chrome. That is **no longer necessary and must not be reintroduced.** The 2026-08-18
+capture proved two things: Chrome strips every `cookie` and `set-cookie` header from a saved
+HAR (so a HAR cannot carry a session at all), and Amul's OTP login endpoints are
+straightforward to call directly.
 
-Claude will extract exactly: the add-to-cart endpoint + body, the set-address endpoint +
-body, the checkout page URL, your `amulUserId`, `amulCartId`, address `_id`, and the session
-cookie names. Nothing else.
+So the job logs itself in. The owner puts a phone number in config once; when the session
+expires the job requests an OTP, Telegrams the owner "reply with the 6 digits", and completes
+the login. Nothing is exported, nothing is pasted from DevTools, and no capture file exists
+to leak.
 
 ## Current state
 
@@ -113,7 +111,7 @@ editing the notify CLI is not.
 ### Learned from `github.com/Nishu0/amul-backend` (checked 2026-08-18)
 
 143 stars, TypeScript, notification-only, **last pushed 2025-06-11** — over a year stale. It
-has no cart or ordering code, so it does not shortcut the capture. Four concrete findings,
+has no cart or ordering code, so nothing here comes from it. Four concrete findings,
 all verified live during planning:
 
 1. **Its stock fetch no longer works — do not copy it.** It GETs the product URL with a
@@ -172,14 +170,71 @@ open port. Two consequences to handle:
 - `getUpdates` offset: always acknowledge consumed updates by passing
   `offset = last_update_id + 1`, or the same press replays on the next run.
 
-### To be filled from the capture — currently unknown
+### The captured flow — from the owner's own session, 2026-08-18
 
-| Unknown | Why it matters | Status |
+Every request below came from the owner's real browser session and was cross-checked against
+a live API call during planning. All are `PUT` (StoreHippo convention) and all carry the
+headers 208 already builds: `content-type: application/json`, `frontend: 1`, a freshly
+computed `tid`, plus `base_url`/`referer`.
+
+**The `q=` query parameter.** Cart endpoints repeat the cart id in a JSON `q` param. The
+browser percent-encodes braces and quotes but leaves the colon literal — e.g.
+`?q=%7B%22_id%22:%2266cd...97%22%7D`. Reproduce exactly:
+
+```python
+from urllib.parse import quote
+qparam = quote(json.dumps({"_id": cart_id}, separators=(",", ":")), safe=":")
+```
+
+**Login** — three calls; the OTP arrives as an SMS on the owner's phone:
+
+| # | Request | Body |
 |---|---|---|
-| Add-to-cart request (method, path, body) | The core action | `TBD` |
-| Set-address request | Whether address must be re-applied per cart | `TBD` |
-| Checkout page URL to hand back | The deliverable link | `TBD` |
-| Session lifetime | How often the owner re-captures | `TBD` |
+| 1 | `PUT /entity/ms.users/_/isUserRegistered` | `{"data":{"phone":"<10-digit>"}}` |
+| 2 | `PUT /api/1/entity/ms.users/_/sendOtp?new_otp_flow=1` | `{"data":{"phone":"<10-digit>"}}` |
+| 3 | `PUT /api/1/entity/ms.users/_/login?new_login_flow=1` | `{"data":{"username":"+91<10-digit>","password":"<the 6-digit OTP>"}}` |
+
+Note call 3: **the OTP travels in the `password` field**, and `username` is the phone with a
+`+91` prefix. There is no account password — do not invent one, do not store one.
+
+**Session → cart → address → handoff:**
+
+| # | Request | Body / note |
+|---|---|---|
+| 4 | `PUT /entity/ms.carts/_/getUserCart` | `{"data":{"_id":null,"user_id":"<user_id>"}}` — returns the cart. **The cart id is discovered at runtime, never hardcoded.** |
+| 5 | `PUT /entity/ms.carts/<cart_id>/_/addItem?q=<qparam>` | `{"data":{"product_id":"<product._id>","seller_id":"<product.seller>","selected_options":{},"variant_id":null,"quantity":1,"linked_product_id":"<product.linked_product_id>","sku":"<sku>"}}` |
+| 6 | `GET /api/1/entity/ms.user_addresses?q=<quote of {"user_id": user_id}>` | returns the saved address objects |
+| 7 | `PUT /entity/ms.carts/<cart_id>/_/updateAddresses?q=<qparam>` | `{"data":{"shipping_address":<the address object from call 6, verbatim>,"billing_address":<the same object>}}` |
+| 8 | — | Reply to the owner with `https://shop.amul.com/en/checkout` |
+
+**Why the handoff works at all:** the cart is server-side and keyed to `user_id` (call 4).
+When the owner opens the checkout URL on a phone where he is already logged in, he sees the
+cart this job just filled. No token passing, no deep link, no shared browser state.
+
+**Privacy consequence, and it is load-bearing:** the address object in call 7 is echoed back
+verbatim from call 6, fetched live every run. So **no name, phone, or street address is ever
+written to disk by this job.** Config holds a phone number (for login) and an address `_id`;
+everything else is transient. Keep it that way.
+
+**The `seller_id` / `linked_product_id` trap — verified, and it will bite.** These are not
+stable constants. The same SKU `DBDCP41_30` returned `seller = 650006e7bad4464748be31d4` and
+`linked_product_id = 67f5d9659e1a8f00323dc504` in the owner's authenticated session, but
+`seller = 6500299751e16335cb316786` and `linked_product_id = 67f5d8b84a391300256d9c33` in an
+anonymous session on the *same* pincode and substore. Therefore: read `product._id`,
+`product.seller` and `product.linked_product_id` from a products fetch made with **the same
+authenticated session that will call `addItem`**. Never reuse 208's anonymous watcher values
+for the cart call; never hardcode them. Add `fields[seller]=1` and
+`fields[linked_product_id]=1` to that authenticated fetch.
+
+**Captured deliberately, and deliberately NOT implemented.** The capture also contains
+`PUT /entity/ms.carts/<cart_id>/_/updatePaymentMethod` (gateways seen: `ccavenueMulti`,
+`phonepe-v2`) and `PUT /api/1/entity/ms.carts/_/placeOrder?q=<qparam>`. **The owner ruled
+headless ordering out on 2026-08-18.** Holding the recipe is not permission to use it.
+Referencing either endpoint fails this plan's grep gate, and that is the intent.
+
+**Session lifetime is unknown and is measured in production, not planned.** The job detects
+expiry (HTTP 401 or `AMUL_SESSION_UNAUTHENTICATED`), messages the owner, and waits for a
+fresh OTP. If re-login proves frequent enough to be annoying, record that in `decisions.md`.
 
 ## Commands you will need
 
@@ -187,7 +242,7 @@ open port. Two consequences to handle:
 |---|---|---|
 | Run the new gate | `bash apps/amul-watch/test-amul-assist.sh` | exit 0, `ALL TESTS PASSED` |
 | 208's gate must stay green | `bash apps/amul-watch/test-amul-watch.sh` | exit 0 |
-| Import the capture | `python3 apps/amul-watch/har2session.py ~/kb-scratch/amul/cart.har` | writes `infra/secrets/amul-session.json`, prints a redacted summary |
+| Log in (one-time / on expiry) | `python3 apps/amul-watch/amul_login.py` | sends an OTP, prompts for it, writes `infra/secrets/amul-session.json`, prints a redacted summary |
 | Dry run the assist path | `python3 apps/amul-watch/watch.py --once --assist --dry-run` | prints the intended chain, sends nothing, writes nothing |
 | No-payment proof | `grep -rniE '(place.?order\|processPayment\|razorpay\|payment)' apps/amul-watch/*.py` | no matches |
 
@@ -197,7 +252,7 @@ open port. Two consequences to handle:
 - `apps/amul-watch/telegram.py` — thin Bot API client: `send_photo_with_buttons`,
   `wait_for_callback`, `answer_callback`, `edit_message`
 - `apps/amul-watch/amul_cart.py` — approval gate, add-to-cart, set-address, checkout link
-- `apps/amul-watch/har2session.py` — capture → `infra/secrets/amul-session.json`
+- `apps/amul-watch/amul_login.py` — OTP login → `infra/secrets/amul-session.json`
 - `apps/amul-watch/assist.example.json` — config template
 - `--assist` flag on `watch.py`, off by default
 - `apps/amul-watch/test-amul-assist.sh`
@@ -218,20 +273,30 @@ open port. Two consequences to handle:
 
 ## Steps
 
-*(Steps 3–4 finalise only after the capture lands. Steps 1, 2, 5, 6, 7 are fixed now.)*
+### Step 1: Login and session storage
 
-### Step 1: Session storage and config
+`amul_login.py` performs the three captured login calls on a fresh cookie jar, then persists
+the session. Two modes:
 
-`har2session.py` parses the HAR, extracts session cookies + `amulUserId` + `amulCartId` +
-address id, and writes `infra/secrets/amul-session.json`. Confirm the path is ignored before
-writing: `git check-ignore -q infra/secrets/amul-session.json`. Print a **redacted** summary
-only — cookie names and value lengths, never values.
+- **Interactive** (`python3 apps/amul-watch/amul_login.py`) — prompts on stdin for the OTP.
+  This is how the owner does the first login.
+- **Telegram** (`--via-telegram`) — sends "reply with your 6-digit Amul OTP" and reads the
+  reply with the same `getUpdates` polling `telegram.py` uses. This is how an expired session
+  is renewed without the owner touching a terminal.
+
+It writes `infra/secrets/amul-session.json` holding **only**: the session cookies, `user_id`,
+and the timestamp. Confirm the path is ignored *before* writing:
+`git check-ignore -q infra/secrets/amul-session.json`. Print a **redacted** summary only —
+cookie names and value lengths, never values, and never the phone number.
+
+Reject an OTP that is not exactly 6 digits before sending it anywhere.
 
 `assist.example.json` (copied to `assist.json`, gitignored):
 
 ```json
 {
   "enabled": false,
+  "phone": "",
   "allowlist": ["HPMCP01_08"],
   "max_price_inr": 900,
   "max_carts_per_day": 3,
@@ -239,6 +304,9 @@ only — cookie names and value lengths, never values.
   "address_id": ""
 }
 ```
+
+`phone` is the 10-digit number, no country code — `amul_login.py` adds the `+91` prefix for
+the `username` field itself.
 
 `allowlist` is deliberately **separate** from 208's `track` list — watching must never imply
 carting. `enabled` defaults `false`; a missing or malformed config fails **closed**.
@@ -270,9 +338,43 @@ days later.
 
 **Verify**: `python3 -m py_compile apps/amul-watch/telegram.py` → exit 0
 
-### Step 3: Add to cart — `TBD, from capture`
+### Step 3: Add to cart
 
-### Step 4: Set address and build the checkout link — `TBD, from capture`
+In `amul_cart.py`, build an authenticated client that loads the cookies from
+`infra/secrets/amul-session.json` into the same curl cookie jar `amul_api.py` already uses,
+then:
+
+1. **Re-fetch the product authenticated.** Run 208's product query again on *this* session,
+   with `fields[seller]=1` and `fields[linked_product_id]=1` added, and pick the row whose
+   `sku` matches. Do **not** reuse the watcher's anonymous product dict — see the
+   `seller_id` trap in Current state. If the SKU is missing from the authenticated fetch, or
+   is no longer available, abort and tell the owner "sold out before I could add it".
+2. `PUT /entity/ms.carts/_/getUserCart` with `{"data":{"_id":null,"user_id":<user_id>}}` to
+   discover the cart id.
+3. `PUT /entity/ms.carts/<cart_id>/_/addItem?q=<qparam>` with the body from the Current-state
+   table, `quantity` hardcoded to `1`.
+
+Treat HTTP 401 or a body containing `AMUL_SESSION_UNAUTHENTICATED` as session death: message
+the owner to re-login and stop. No retry loop.
+
+**Verify**: `python3 -m py_compile apps/amul-watch/amul_cart.py` → exit 0
+
+### Step 4: Set address and hand off the checkout link
+
+1. `GET /api/1/entity/ms.user_addresses?q=<quote of {"user_id": user_id}>`.
+2. Select the record whose `_id` equals `assist.json`'s `address_id`. If `address_id` is
+   empty and exactly one address exists, use it and log which one. If it is empty and
+   several exist, **abort** and message the owner with the available ids — never guess an
+   address.
+3. `PUT /entity/ms.carts/<cart_id>/_/updateAddresses?q=<qparam>` sending that object verbatim
+   as **both** `shipping_address` and `billing_address`.
+4. Reply on Telegram: the product name, price, and the link
+   `https://shop.amul.com/en/checkout`, with a line stating plainly that payment has **not**
+   been made and the cart will not be ordered by the bot.
+
+Never write the fetched address object to disk or into a log line.
+
+**Verify**: `grep -c 'en/checkout' apps/amul-watch/amul_cart.py` → `1` or more
 
 ### Step 5: The approval gate — write this exactly
 
@@ -341,8 +443,11 @@ with the right address. Nothing is paid.
 10. The lockfile prevents a second concurrent run; the second exits 0 silently.
 11. **No-payment grep**: `grep -rniE '(place.?order|processPayment|razorpay|payment)'` over
     `apps/amul-watch/*.py` returns nothing. Fail message must mention `payment`.
-12. A 401 / `AMUL_SESSION_UNAUTHENTICATED` sends a "session expired, re-capture" message and
-    does **not** retry.
+12. A 401 / `AMUL_SESSION_UNAUTHENTICATED` sends a "session expired, reply with a fresh OTP"
+    message and does **not** retry.
+14. An OTP that is not exactly 6 digits is rejected before any request is sent.
+15. `amul_login.py` never prints a cookie value or the phone number, even at its most
+    verbose. Fail message must mention `redact`.
 13. 208's gate still passes unchanged.
 
 ## Done criteria
@@ -354,7 +459,9 @@ with the right address. Nothing is paid.
 - [ ] `python3 apps/amul-watch/watch.py --once --assist --dry-run` issues zero POSTs and writes no state
 - [ ] `git status --porcelain` shows no `assist.json`, `carts.json`, `amul-session.json`, `.lock`, or `*.har`
 - [ ] `grep -rn 'password' apps/amul-watch/` returns nothing
-- [ ] README documents the re-capture procedure for when the session expires
+- [ ] README documents the re-login procedure for when the session expires
+- [ ] `grep -rn 'har\|HAR' apps/amul-watch/*.py` returns nothing — the HAR route is dead and
+      must not reappear
 - [ ] Running with `--assist` absent behaves exactly as 208 did (a diff of notification
       behaviour shows no change)
 
@@ -364,11 +471,14 @@ with the right address. Nothing is paid.
   This plan's entire justification is that it stops at the cart.
 - **Any cart mutation reached without a recorded approval** during development. Stop and
   report; the safety property is broken.
-- **A HAR, cookie, or session value written anywhere inside the repo**, including fixtures.
-  Fixtures use synthetic values only.
-- **The capture shows the cart cannot be pre-filled server-side** (e.g. the cart is
-  client-side only until checkout). Stop and report; the fallback is a deep link to the
-  product page with the address pre-selected, which is still a win but is a different plan.
+- **A cookie, phone number, address, or session value written anywhere inside the repo**,
+  including fixtures and log lines. Fixtures use synthetic values only.
+- **Any reintroduction of a HAR-import path.** Chrome strips cookies from saved HARs, so it
+  cannot work; `amul_login.py` is the only session mechanism.
+- **`getUserCart` returns no cart, or `addItem` succeeds but the cart stays empty** — i.e.
+  the cart turns out not to be server-side after all. Stop and report; the fallback is a deep
+  link to the product page, which is still a win but is a different plan.
+- **More than one saved address exists and `address_id` is unset.** Never guess an address.
 - **Gate integrity**: weakening, skipping, or deleting any assertion is a STOP. Fix the code.
 - Any retry loop around a 401. Session death is a human event.
 - Any change that makes 208's watcher depend on this module. The notifier must keep working
@@ -377,7 +487,7 @@ with the right address. Nothing is paid.
 
 ## Maintenance notes
 
-- Session lifetime is the operational cost. If re-capture turns out to be needed weekly, the
+- Session lifetime is the operational cost. If re-login turns out to be needed weekly, the
   honest verdict may be that the notifier alone is the product — record either outcome in
   `decisions.md`.
 - The `getUpdates` approach conflicts with any *other* consumer of the same bot token: two
@@ -385,6 +495,6 @@ with the right address. Nothing is paid.
   conflict — but if a second polling consumer is ever added to this bot, this design breaks
   and needs a dedicated bot token. Note this in CLAUDE.md.
 - Amul's cart flow will change without notice; the captured request shapes are a snapshot.
-  The README's re-capture procedure is the maintenance path, not a rewrite.
+  The README's re-login procedure is the maintenance path, not a rewrite.
 - A reviewer should scrutinise exactly two things: that `prepare_cart` still returns early on
   `not approved`, and that no payment endpoint has crept in. Everything else is replaceable.

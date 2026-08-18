@@ -134,7 +134,7 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 203 | closet-app backend — new `apps/closet-app` scaffolded from lists-app: D1 schema (clothes/looks/tags/item_tags/events), Hono Worker API (cloth+look CRUD, R2 photo store, wear/wash/undo), `scripts/smoke.sh` merge gate against a throwaway local D1+R2. No UI | P3 | L | none | TODO |
 | 204 | closet-app SPA — two-tab mobile PWA: Clothes grid (photo=+1 wear, name=edit, ↺=wash-to-zero, 10s Undo) and Looks gallery; multi-tag with one shared autocompleting vocabulary, AND-semantics chip filter, on-device photo downscale, home-screen icons | P3 | L | 203 | TODO |
 | 208 | amul-watch — self-hosted Amul stock notifier: `apps/amul-watch/` polls shop.amul.com's StoreHippo product API for one pincode (6-step session bootstrap + per-request SHA-256 TID header, bracket-literal query), edge-triggers on out-of-stock→in-stock for tracked SKUs and pings Telegram via `tooling/cli/notify`. Stdlib-only Python + curl subprocess; stubbed-curl gate with a mutation on the edge-trigger | P2 | M | none | TODO |
-| 209 | amul-watch approve-to-cart assist — restock alert carries photo+price and two inline Telegram buttons; on **Add to cart** the same cron run reuses a captured Amul session to add the SKU and apply the saved address, then replies with a checkout link the owner pays on. Never touches a payment or place-order endpoint (grep-gated). Rails: allowlist separate from the watch list, price ceiling, daily cart cap, all fail-closed. **NOT handoff-ready**: cart/address request shapes need a one-time browser capture (no purchase required) | P2 | M | 208 | BLOCKED (needs owner cart capture — see plan's "Human precondition") |
+| 209 | amul-watch approve-to-cart assist — restock alert carries photo+price and two inline Telegram buttons; on **Add to cart** the same cron run logs in (phone OTP, owner replies in Telegram), adds the SKU, applies the saved address, and returns a checkout link the owner pays on. Never touches a payment or place-order endpoint (grep-gated). Rails: allowlist separate from the watch list, price ceiling, daily cart cap, all fail-closed | P2 | M | 208 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -1241,10 +1241,10 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 > auto-order is a closed paid proxy (`ORDER_SERVER_API_URL`), not open source.
 > The read API was verified live during planning (pincode 400001 -> substore
 > `mumbai-br`, 23 protein SKUs). **208 ships alone and is useful alone** - dispatch
-> it now. **209 stays BLOCKED** until the owner captures one add-to-cart session as
-> a HAR; the capture needs no purchase. Headless auto-ordering was scoped out by the
-> owner on 2026-08-18 in favour of approve-to-cart: the bot preps the cart, the owner
-> pays. `Nishu0/amul-backend` was evaluated as a second reference and contributed the
+> it now. **209 is now ready too** — the owner's 2026-08-18 browser capture supplied every
+> request shape (login/addItem/updateAddresses), so it carries no open points. Headless
+> auto-ordering was scoped out by the owner on 2026-08-18 in favour of approve-to-cart:
+> the bot preps the cart, the owner pays. `Nishu0/amul-backend` was evaluated as a second reference and contributed the
 > image-URL pattern and the inline-keyboard approval pattern, but its own stock fetch
 > is dead (HTTP 401 - no cookies/TID) and its restock rule false-fires; do not copy it.
 - 208-amul-watch-stock-notifier — PR#167 208-amul-watch-stock-notifier: amul-watch — self-hosted Amul stock notifier — DONE
