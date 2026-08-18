@@ -3,3 +3,8 @@ state.json
 cookies.txt
 __pycache__/
 *.pyc
+assist.json
+carts.json
+.lock
+.tg_offset.json
+.amul-session.jar
