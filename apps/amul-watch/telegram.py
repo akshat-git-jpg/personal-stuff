@@ -17,6 +17,10 @@ REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."))
 
 TG_BASE = os.environ.get("AMUL_WATCH_TG_BASE", "https://api.telegram.org")
 
+# Production polls every 2s; the test suite shrinks this so a timeout assertion
+# does not have to burn real wall-clock seconds per case.
+DEFAULT_POLL_INTERVAL_S = float(os.environ.get("AMUL_WATCH_TG_POLL_INTERVAL", "2"))
+
 
 class TelegramError(RuntimeError):
     pass
@@ -138,7 +142,7 @@ def send_photo_with_buttons(photo_url, caption, token, cart_label="🛒 Add to c
     raise TelegramError("failed to send alert via sendPhoto and sendMessage")
 
 
-def wait_for_callback(token, timeout_s, offset_file, poll_interval_s=2):
+def wait_for_callback(token, timeout_s, offset_file, poll_interval_s=None):
     """Poll getUpdates for a callback_query matching `token`.
 
     Returns "add", "skip", or None on timeout. A callback_data whose token
@@ -146,6 +150,8 @@ def wait_for_callback(token, timeout_s, offset_file, poll_interval_s=2):
     message from carting something days later. The offset always advances
     past every update seen, matched or not, so nothing replays on the next run.
     """
+    if poll_interval_s is None:
+        poll_interval_s = DEFAULT_POLL_INTERVAL_S
     creds = _load_creds()
     offset = _read_offset(offset_file)
     start = time.time()
@@ -174,8 +180,10 @@ def wait_for_callback(token, timeout_s, offset_file, poll_interval_s=2):
         time.sleep(poll_interval_s)
 
 
-def wait_for_text_reply(timeout_s, offset_file, poll_interval_s=2):
+def wait_for_text_reply(timeout_s, offset_file, poll_interval_s=None):
     """Poll getUpdates for a plain text reply — used for OTP intake, never for cart approval."""
+    if poll_interval_s is None:
+        poll_interval_s = DEFAULT_POLL_INTERVAL_S
     creds = _load_creds()
     offset = _read_offset(offset_file)
     start = time.time()
