@@ -21,6 +21,9 @@
     "icons": "node scripts/make-icons.mjs"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@fontsource-variable/inter": "^5.2.5",
     "clsx": "^2.1.1",
     "hono": "^4.12.23",

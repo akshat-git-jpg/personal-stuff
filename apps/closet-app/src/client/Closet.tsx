@@ -5,7 +5,18 @@ import ClothesTab from './ClothesTab'
 import LooksTab from './LooksTab'
 import EditSheet from './EditSheet'
 import ItemViewer from './ItemViewer'
+import { SortPill, SortSheet } from './SortSheet'
 import UndoBar from './UndoBar'
+import {
+  CLOTH_SORTS,
+  LOOK_SORTS,
+  loadSort,
+  saveSort,
+  sortClothes,
+  sortLooks,
+  type ClothSort,
+  type LookSort,
+} from './sort'
 import type { AppState, Cloth, TabKey, ViewingItem } from './types'
 
 type SheetState =
@@ -31,6 +42,15 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
   // view (owner decision, 2026-08-17).
   const [viewing, setViewing] = useState<ViewingItem | null>(null)
   const [undo, setUndo] = useState<{ label: string; eventId: string } | null>(null)
+  // Read once on mount (lazy initialiser): localStorage is impure, so touching
+  // it during render would trip react-hooks/purity.
+  const [clothSort, setClothSort] = useState<ClothSort>(() =>
+    loadSort('clothes', 'most-worn', CLOTH_SORTS.map((o) => o.value)),
+  )
+  const [lookSort, setLookSort] = useState<LookSort>(() =>
+    loadSort('looks', 'newest', LOOK_SORTS.map((o) => o.value)),
+  )
+  const [sortOpen, setSortOpen] = useState(false)
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function loadState() {
@@ -119,6 +139,18 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
     }
   }
 
+  function pickClothSort(value: ClothSort) {
+    setClothSort(value)
+    saveSort('clothes', value)
+    setSortOpen(false)
+  }
+
+  function pickLookSort(value: LookSort) {
+    setLookSort(value)
+    saveSort('looks', value)
+    setSortOpen(false)
+  }
+
   function toggleTag(id: string) {
     setSelectedTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]))
   }
@@ -149,8 +181,12 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
   const relevantTagIds = new Set(state.item_tags.filter((it) => it.item_type === itemType).map((it) => it.tag_id))
   const tabTags = state.tags.filter((t) => relevantTagIds.has(t.id)).sort((a, b) => a.name.localeCompare(b.name))
 
-  const filteredClothes = tab === 'clothes' ? filterByTags(state.clothes, index, selectedTagIds) : []
-  const filteredLooks = tab === 'looks' ? filterByTags(state.looks, index, selectedTagIds) : []
+  // Filter first, then order — sorting the whole set and filtering after would
+  // do the same work on rows about to be thrown away.
+  const filteredClothes =
+    tab === 'clothes' ? sortClothes(filterByTags(state.clothes, index, selectedTagIds), clothSort) : []
+  const filteredLooks =
+    tab === 'looks' ? sortLooks(filterByTags(state.looks, index, selectedTagIds), lookSort) : []
 
   const editingCloth = sheet.kind === 'edit-cloth' ? (state.clothes.find((c) => c.id === sheet.id) ?? null) : null
   const editingLook = sheet.kind === 'edit-look' ? (state.looks.find((l) => l.id === sheet.id) ?? null) : null
@@ -215,8 +251,12 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
           </button>
         </div>
 
-        {tabTags.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto px-3 pb-3">
+        {/*
+          Sort sits OUTSIDE the scrolling chip row and never scrolls away —
+          a control the user must hunt for by swiping is not a control.
+        */}
+        <div className="flex items-center gap-2 px-3 pb-3">
+          <div className="flex flex-1 gap-2 overflow-x-auto">
             {tabTags.map((t) => (
               <button key={t.id} type="button" className="chip"
                 data-active={selectedTagIds.includes(t.id)}
@@ -226,7 +266,13 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
               </button>
             ))}
           </div>
-        )}
+
+          {tab === 'clothes' ? (
+            <SortPill value={clothSort} options={CLOTH_SORTS} onOpen={() => setSortOpen(true)} />
+          ) : (
+            <SortPill value={lookSort} options={LOOK_SORTS} onOpen={() => setSortOpen(true)} />
+          )}
+        </div>
       </header>
 
       <main className="flex-1 pb-28">
@@ -264,6 +310,23 @@ export default function Closet({ onLogout }: { onLogout: () => void }) {
       </button>
 
       {undo && <UndoBar label={undo.label} onUndo={handleUndo} />}
+
+      {sortOpen &&
+        (tab === 'clothes' ? (
+          <SortSheet
+            value={clothSort}
+            options={CLOTH_SORTS}
+            onPick={pickClothSort}
+            onClose={() => setSortOpen(false)}
+          />
+        ) : (
+          <SortSheet
+            value={lookSort}
+            options={LOOK_SORTS}
+            onPick={pickLookSort}
+            onClose={() => setSortOpen(false)}
+          />
+        ))}
 
       {sheet.kind !== 'closed' && (
         <EditSheet

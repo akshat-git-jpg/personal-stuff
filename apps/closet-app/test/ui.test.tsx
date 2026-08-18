@@ -12,7 +12,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import ClothTile from '../src/client/ClothTile'
 import ItemViewer from '../src/client/ItemViewer'
-import PhotoStrip from '../src/client/PhotoStrip'
+import PhotoGrid from '../src/client/PhotoGrid'
+import { SortPill, SortSheet } from '../src/client/SortSheet'
 import type { Cloth } from '../src/client/types'
 
 afterEach(() => {
@@ -172,42 +173,91 @@ describe('ItemViewer', () => {
   })
 })
 
-function strip(keys: string[]) {
+function grid(keys: string[]) {
   const onChange = vi.fn()
-  render(
-    <PhotoStrip keys={keys} onChange={onChange} onBusyChange={vi.fn()} onError={vi.fn()} />,
-  )
+  render(<PhotoGrid keys={keys} onChange={onChange} onBusyChange={vi.fn()} onError={vi.fn()} />)
   return { onChange }
 }
 
-describe('PhotoStrip', () => {
-  it('labels the first photo as the cover and offers "make cover" on the rest', () => {
-    strip(['a.jpg', 'b.jpg', 'c.jpg'])
-    expect(screen.getByText('cover')).toBeTruthy()
-    expect(screen.getAllByLabelText(/^Make photo \d+ the cover$/)).toHaveLength(2)
+describe('PhotoGrid', () => {
+  it('badges only the first photo as the cover', () => {
+    grid(['a.jpg', 'b.jpg', 'c.jpg'])
+    expect(screen.getAllByText('Cover')).toHaveLength(1)
   })
 
-  it('"make cover" moves that key to the front and keeps the others', () => {
-    const { onChange } = strip(['a.jpg', 'b.jpg', 'c.jpg'])
-    fireEvent.click(screen.getByLabelText('Make photo 3 the cover'))
-    expect(onChange).toHaveBeenCalledWith(['c.jpg', 'a.jpg', 'b.jpg'])
+  it('renders every photo plus the add tile, in order', () => {
+    grid(['a.jpg', 'b.jpg'])
+    const srcs = Array.from(screen.getByTestId('photo-grid').querySelectorAll('img')).map((i) =>
+      i.getAttribute('src'),
+    )
+    expect(srcs).toEqual(['/api/photos/a.jpg', '/api/photos/b.jpg'])
+    expect(screen.getByLabelText('Add a photo')).toBeTruthy()
+  })
+
+  it('exposes each photo as a drag handle so reordering is discoverable', () => {
+    grid(['a.jpg', 'b.jpg', 'c.jpg'])
+    expect(screen.getAllByLabelText(/Press and hold, then drag to reorder/)).toHaveLength(3)
   })
 
   it('removing a photo drops just that one', () => {
-    const { onChange } = strip(['a.jpg', 'b.jpg', 'c.jpg'])
+    const { onChange } = grid(['a.jpg', 'b.jpg', 'c.jpg'])
     fireEvent.click(screen.getByLabelText('Remove photo 2'))
     expect(onChange).toHaveBeenCalledWith(['a.jpg', 'c.jpg'])
   })
 
   it('disables adding once the 12-photo cap is reached', () => {
-    strip(Array.from({ length: 12 }, (_, i) => `p${i}.jpg`))
-    const add = screen.getByLabelText('Add a photo')
-    expect(add.hasAttribute('disabled')).toBe(true)
+    grid(Array.from({ length: 12 }, (_, i) => `p${i}.jpg`))
+    expect(screen.getByLabelText('Add a photo').hasAttribute('disabled')).toBe(true)
     expect(screen.getByText('max 12')).toBeTruthy()
   })
 
-  it('allows adding while under the cap', () => {
-    strip(['a.jpg'])
-    expect(screen.getByLabelText('Add a photo').hasAttribute('disabled')).toBe(false)
+  it('tells the user how to reorder only when there is more than one photo', () => {
+    grid(['a.jpg', 'b.jpg'])
+    expect(screen.getByText(/Hold and drag to reorder/)).toBeTruthy()
+    cleanup()
+    grid(['a.jpg'])
+    expect(screen.queryByText(/Hold and drag to reorder/)).toBeNull()
+  })
+})
+
+const SORTS = [
+  { value: 'most-worn' as const, label: 'Most worn' },
+  { value: 'name' as const, label: 'A → Z' },
+  { value: 'newest' as const, label: 'Newest' },
+]
+
+describe('SortPill / SortSheet', () => {
+  it('the pill names the CURRENT ordering, so it is readable without opening', () => {
+    render(<SortPill value="name" options={SORTS} onOpen={vi.fn()} />)
+    expect(screen.getByText('A → Z')).toBeTruthy()
+  })
+
+  it('tapping the pill opens the sheet', () => {
+    const onOpen = vi.fn()
+    render(<SortPill value="most-worn" options={SORTS} onOpen={onOpen} />)
+    fireEvent.click(screen.getByRole('button'))
+    expect(onOpen).toHaveBeenCalledTimes(1)
+  })
+
+  it('ticks the active option and only that one', () => {
+    render(<SortSheet value="newest" options={SORTS} onPick={vi.fn()} onClose={vi.fn()} />)
+    const ticked = SORTS.filter((o) => screen.getByText(o.label).closest('button')?.textContent?.includes('✓'))
+    expect(ticked.map((o) => o.value)).toEqual(['newest'])
+  })
+
+  it('picking an option reports the new value', () => {
+    const onPick = vi.fn()
+    render(<SortSheet value="most-worn" options={SORTS} onPick={onPick} onClose={vi.fn()} />)
+    fireEvent.click(screen.getByText('A → Z'))
+    expect(onPick).toHaveBeenCalledWith('name')
+  })
+
+  it('Cancel closes without changing the ordering', () => {
+    const onPick = vi.fn()
+    const onClose = vi.fn()
+    render(<SortSheet value="most-worn" options={SORTS} onPick={onPick} onClose={onClose} />)
+    fireEvent.click(screen.getByText('Cancel'))
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(onPick).not.toHaveBeenCalled()
   })
 })

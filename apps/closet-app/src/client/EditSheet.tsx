@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { api } from './api'
-import PhotoStrip from './PhotoStrip'
+import PhotoGrid from './PhotoGrid'
 import TagInput from './TagInput'
 import type { Tag } from './types'
 
@@ -91,7 +91,7 @@ export default function EditSheet({
         <h2 className="mb-4 text-base font-semibold">{itemId ? `Edit ${mode}` : `Add ${mode}`}</h2>
 
         <div className="mb-4">
-          <PhotoStrip
+          <PhotoGrid
             keys={photoKeys}
             onChange={setPhotoKeys}
             onBusyChange={setPhotoBusy}
