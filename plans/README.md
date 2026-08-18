@@ -1247,3 +1247,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 > pays. `Nishu0/amul-backend` was evaluated as a second reference and contributed the
 > image-URL pattern and the inline-keyboard approval pattern, but its own stock fetch
 > is dead (HTTP 401 - no cookies/TID) and its restock rule false-fires; do not copy it.
+- 208-amul-watch-stock-notifier — PR#167 208-amul-watch-stock-notifier: amul-watch — self-hosted Amul stock notifier — DONE
