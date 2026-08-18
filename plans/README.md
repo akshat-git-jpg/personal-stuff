@@ -1232,3 +1232,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 - 204-closet-app-spa — PR#163 204-closet-app-spa: closet-app SPA — Clothes tab, Looks tab, tags, undo, PWA — DONE
 - 205-vf-intro-idea-moving-teasers — PR#164 205-vf-intro-idea-moving-teasers: the intro idea gate judges moving teasers, not prose — DONE
 - 206-vf-intro-idea-teaser-gate-ui — PR#165 206-vf-intro-idea-teaser-gate-ui: the board's idea gate plays the teasers — DONE
+- 207-yt-script-2-write-surface — PR#166 207-yt-script-2-write-surface: the step-2 write surface (render-worksheet.mjs) — DONE
