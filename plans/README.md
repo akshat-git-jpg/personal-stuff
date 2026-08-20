@@ -135,6 +135,8 @@ executor needs only the plan file and the repo, not the audit conversation.
 | 204 | closet-app SPA — two-tab mobile PWA: Clothes grid (photo=+1 wear, name=edit, ↺=wash-to-zero, 10s Undo) and Looks gallery; multi-tag with one shared autocompleting vocabulary, AND-semantics chip filter, on-device photo downscale, home-screen icons | P3 | L | 203 | TODO |
 | 208 | amul-watch — self-hosted Amul stock notifier: `apps/amul-watch/` polls shop.amul.com's StoreHippo product API for one pincode (6-step session bootstrap + per-request SHA-256 TID header, bracket-literal query), edge-triggers on out-of-stock→in-stock for tracked SKUs and pings Telegram via `tooling/cli/notify`. Stdlib-only Python + curl subprocess; stubbed-curl gate with a mutation on the edge-trigger | P2 | M | none | TODO |
 | 209 | amul-watch approve-to-cart assist — restock alert carries photo+price and two inline Telegram buttons; on **Add to cart** the same cron run logs in (phone OTP, owner replies in Telegram), adds the SKU, applies the saved address, and returns a checkout link the owner pays on. Never touches a payment or place-order endpoint (grep-gated). Rails: allowlist separate from the watch list, price ceiling, daily cart cap, all fail-closed | P2 | M | 208 | TODO |
+| 210 | gym-app: move the backend from Google Sheets to Cloudflare D1 — `tab`/`exercise`/`log` schema, `repo.ts` rewritten against D1 with the `/api` surface byte-identical (zero client files change), read-only sheet export into `seed.sql`, the app's first 12 automated tests, and a weekly one-way mirror from D1 into `Mirror: *` tabs. Kills the whole-tab-rewrite writes and the single-refresh-token failure mode | P1 | M | — | TODO |
+| 211 | gym-app: put the approved week plan on D1 and retire the review scaffolding — `plan` table + three `/api/plan/*` routes, `plan.ts` rewired from localStorage to the store with every export unchanged (so no approved pixel moves), `gym` becomes a real column (main/anu/home) replacing tab-name and ID-prefix guessing, and `REVIEW_MODE`/`HOME_DEMO` deleted | P1 | M | 210 | TODO |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale).
 
@@ -659,18 +661,18 @@ d1/r2/secrets/deploy) — documented in each plan.
 | 129 | tp3-skeleton-script-contract | Pipeline skeleton, script.json contract + lint, script-gen rulebook | — |
 | 130 | tp3-state-machine-polish-gate | Lock/invalidate state machine, script.md render, respell, polish gate | 129 |
 | 131 | tts-modal-web-endpoint | Token-authed per-section synth endpoint on the Modal app | — |
-| 132 | tutorial-vo-worker-ui | apps/tutorial-vo Worker (vo.agrolloo.com): freelancer TTS UI + admin API + publish/pull CLIs | 129, 130, 131 |
+| 132 | tutorial-vo-worker-ui | **RETIRED 2026-08-20** — app + Worker/D1/R2/DNS deleted; VO moved local via the `yt-vo` skill | 129, 130, 131 |
 | 133 | tp3-intake-qc-handoff | Drive intake, QC gate 1 + filmstrips, vo.mp3/screen.mp4 handoff to visuals-flow | 129, 130, 132 |
 
 - 129-tp3-skeleton-script-contract — skeleton, script.json schema/lint, step 010/020 + rulebook — TODO
 - 130-tp3-state-machine-polish-gate — state machine (edit⇒invalidate, lock rules), render, spoken/respell, polish gate — TODO
 - 131-tts-modal-web-endpoint — synth_section fastapi endpoint + upload_ref on indextts2_app.py — TODO
-- 132-tutorial-vo-worker-ui — Worker UI (hono + D1 + R2, takes cap 4, Telegram alert) + publish-ui/pull-ui — TODO
+- 132-tutorial-vo-worker-ui — RETIRED 2026-08-20 (superseded by the `yt-vo` skill; Worker UI deleted)
 - 133-tp3-intake-qc-handoff — pull-audio/recordings, intake QC, filmstrips, concat handoff to visuals-flow — TODO
 - 131-tts-modal-web-endpoint — PR#89 131-tts-modal-web-endpoint: Modal web endpoint for per-section TTS synthesis — DONE
 - 129-tp3-skeleton-script-contract — PR#87 129-tp3-skeleton-script-contract: tutorial-pipeline-3 skeleton, script contract, and script-generation step — DONE
 - 130-tp3-state-machine-polish-gate — PR#88 130-tp3-state-machine-polish-gate: tutorial-pipeline-3 section state machine + polish/lint gate — DONE
-- 132-tutorial-vo-worker-ui — PR#90 132-tutorial-vo-worker-ui: tutorial-vo — the tutorial maker's self-serve TTS Worker UI (v1) — DONE
+- 132-tutorial-vo-worker-ui — PR#90 — DONE, then RETIRED 2026-08-20 (app removed; VO is local via the `yt-vo` skill)
 - 133-tp3-intake-qc-handoff — PR#91 133-tp3-intake-qc-handoff: tutorial-pipeline-3 intake QC + handoff to visuals-flow — DONE
 
 ### visuals-flow — Loop-Studio-informed v2 build (2026-07-24)
@@ -1249,3 +1251,4 @@ succeeded". Plan 182 also runs the gate on a fresh clone (LESSONS 2026-07-31).
 > is dead (HTTP 401 - no cookies/TID) and its restock rule false-fires; do not copy it.
 - 208-amul-watch-stock-notifier — PR#167 208-amul-watch-stock-notifier: amul-watch — self-hosted Amul stock notifier — DONE
 - 209-amul-watch-approve-to-cart — PR#168 209-amul-watch-approve-to-cart: amul-watch — approve-to-cart checkout assist — DONE
+- 210-gym-app-sheets-to-d1 — PR#169 210-gym-app-sheets-to-d1: gym-app — move the backend from Google Sheets to Cloudflare D1 — DONE
