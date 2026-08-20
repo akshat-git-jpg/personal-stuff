@@ -2,8 +2,6 @@
 
 This CLI has been refactored into a layered architecture to make APIs safe to update and workflows easy to compose.
 
-> **Sibling:** `tooling/cli/heygen-api/` drives HeyGen's *official* API (`api.heygen.com`) with an API key. It is **metered** — this CLI is the free path and stays the pipeline default. Reach for the sibling only when no web session can be captured on the machine. Do not merge the two (decisions.md 2026-08-16).
-
 ## Layout
 
 - **`src/client/endpoints.mjs`** (source of truth): Every API endpoint is defined exactly once. To change an API path or query string, edit it here.
