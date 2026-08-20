@@ -1,0 +1,39 @@
+-- gym-app D1 schema. Replaces the "Exercises - AppSheet" Google Sheet.
+--
+-- `tab` exists so a group keeps its display order and can be EMPTY (deriving
+-- groups from the exercise table would make an emptied group vanish).
+-- `exercise.tab` is kept as the group key so the /api surface is unchanged.
+
+CREATE TABLE IF NOT EXISTS tab (
+  name     TEXT PRIMARY KEY,
+  position INTEGER NOT NULL DEFAULT 0,
+  is_mixed INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS exercise (
+  id           TEXT PRIMARY KEY,
+  tab          TEXT NOT NULL REFERENCES tab(name),
+  name         TEXT NOT NULL DEFAULT '',
+  setting      TEXT NOT NULL DEFAULT '',
+  sets_reps    TEXT NOT NULL DEFAULT '',
+  notes        TEXT NOT NULL DEFAULT '',
+  muscle_group TEXT,
+  position     INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_exercise_tab_pos ON exercise(tab, position);
+
+-- One row per logged set. `id` is the real key: editing one set no longer
+-- rewrites the whole history, which is what the sheet had to do.
+CREATE TABLE IF NOT EXISTS log (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts           TEXT NOT NULL,
+  exercise_id  TEXT NOT NULL,
+  exercise     TEXT NOT NULL DEFAULT '',
+  muscle_group TEXT NOT NULL DEFAULT '',
+  set_no       INTEGER NOT NULL DEFAULT 0,
+  weight       REAL NOT NULL DEFAULT 0,
+  reps         INTEGER NOT NULL DEFAULT 0,
+  notes        TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_log_ts ON log(ts DESC);
+CREATE INDEX IF NOT EXISTS idx_log_exercise ON log(exercise_id, ts DESC);
