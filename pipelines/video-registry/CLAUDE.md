@@ -5,11 +5,11 @@ shared by every pipeline that touches it.
 
 ## What problem this solves
 
-A video passes through at least two pipelines — `youtube/yt-script-2/` writes the
+A video passes through at least two pipelines — `youtube/yt-script/` writes the
 outline and script, `video/visuals-flow/` builds the edit. Before this existed,
 each one derived a folder name from whatever title string it was handed, weeks
 apart. The same video ended up as
-`yt-script-2/videos/ai-video-tools-comparison/` and
+`yt-script/videos/ai-video-tools-comparison/` and
 `visuals-flow/videos/best-ai-video-generator/`, and nothing recorded that they
 were one video.
 
@@ -24,7 +24,7 @@ Nothing about paths changed. The key is the same readable kebab-case string the
 folders always used:
 
 ```
-youtube/yt-script-2/videos/<key>/
+youtube/yt-script/videos/<key>/
 video/visuals-flow/videos/<key>/
 Drive: Output/<key>-final.mp4
 ```
@@ -68,7 +68,7 @@ other starts re-slugifying, which is the bug this folder exists to kill.
 ```
 $ node bin/vreg.mjs where ai-video-tools-comparison
 best-ai-video-generator
-  [x] script   …/yt-script-2/videos/ai-video-tools-comparison  (folder named "ai-video-tools-comparison")
+  [x] script   …/yt-script/videos/ai-video-tools-comparison  (folder named "ai-video-tools-comparison")
   [x] visuals  …/visuals-flow/videos/best-ai-video-generator
 ```
 

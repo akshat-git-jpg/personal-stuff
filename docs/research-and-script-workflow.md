@@ -1,5 +1,13 @@
 # Research & Script Workflow
 
+> **RETIRED (2026-08-20) — the script half of this flow no longer exists.**
+> `pipelines/youtube/yt-script/` (v1) was deleted and its name was taken over by the
+> former `yt-script-2`, which is a different pipeline: owner-supplied knowledge in, no
+> research step, and a `videos/<key>/` layout instead of `scripts/<slug>/`. Every
+> `youtube/yt-script/scripts/...` path below is therefore dead — do NOT read it as
+> current. `yt-research/` (Phase 1) still exists. For scripting today, use the
+> `yt-script` skill.
+
 This file is the master guide for running the full YouTube research → script pipeline. Read it at the start of every session. The two sub-workflows (`youtube/yt-research/CLAUDE.md` and `youtube/yt-script/CLAUDE.md`) handle the detailed steps — this file is the entry point that coordinates everything.
 
 ---

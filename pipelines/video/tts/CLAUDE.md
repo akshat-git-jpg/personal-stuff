@@ -161,8 +161,14 @@ references → plain output; a livelier reference is the lever for more energy (
   run on Modal GPU via `modal/indextts2_app.py` (per-segment `{id,text}` contract; supports
   `interval_silence` and `emo_text`).
 
-### Web endpoint (tutorial-pipeline-3 UI)
-endpoint = `synth_section` in `modal/indextts2_app.py`, POST `{id, text, interval_silence?, emo_text?}` with `Authorization: Bearer $TTS_WEB_TOKEN` → `audio/wav`; owner one-time setup: `modal secret create tts-web-secret TTS_WEB_TOKEN=<long-random>`, then `modal run modal/indextts2_app.py::upload_ref --ref references/jamila-walking-30s.wav`, then `modal deploy modal/indextts2_app.py`; the deployed URL is printed by `modal deploy` and goes into the Worker secret `MODAL_TTS_URL` (plan 132). Note the caller owns regen caps; the endpoint is deliberately policy-free.
+### Web endpoint (per-section synth)
+endpoint = `synth_section` in `modal/indextts2_app.py`, POST `{id, text, interval_silence?, emo_text?}` with `Authorization: Bearer $TTS_WEB_TOKEN` → `audio/wav`; owner one-time setup: `modal secret create tts-web-secret TTS_WEB_TOKEN=<long-random>`, then `modal run modal/indextts2_app.py::upload_ref --ref references/jamila-walking-30s.wav`, then `modal deploy modal/indextts2_app.py`; the deployed URL is printed by `modal deploy` and goes into `pipelines/.env` as `MODAL_TTS_URL` (+ `MODAL_TTS_TOKEN`). Note the caller owns regen caps; the endpoint is deliberately policy-free.
+
+**Operate this via the `yt-vo` skill** — it owns the verbs (setup / synth / respell /
+review / lock / batch) for every consuming pipeline. Callers were originally the
+`apps/tutorial-vo` Worker UI (plan 132); that app was **retired 2026-08-20** (Worker,
+D1, R2 and DNS deleted) and voiceover is now an owner-run local step. tutorial-pipeline-3
+calls this endpoint directly from `lib/vo-synth.mjs`.
 
 All set MPS-off-by-fallback / device auto. HF auth: token stored globally
 (`~/.cache/huggingface/token`) — downloads are fast.

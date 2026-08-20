@@ -85,7 +85,7 @@ cell pills), `checklist/icon-pills` (rows left-aligned), `title/title-cinematic-
 
 ## Avatar layer — not run yet, and now cheaper to test
 
-Owner rule recorded (decisions.md + the visuals-flow skill guardrail): **HeyGen
+Owner rule recorded (decisions.md + the yt-video-edit skill guardrail): **HeyGen
 Avatar III is free (unlimited mode) — sessions may submit it for TEST renders
 without per-run approval.** Metered features (Avatar IV, generative credits)
 and production renders remain owner-gated.

@@ -22,7 +22,7 @@ boss_head_advanced() {
 }
 
 # YAML frontmatter reader: fm_get <key> <plan-file>  (first --- ... --- block)
-fm_get() {
+_fm_scalar() {
   awk -v k="$1" '
     /^---[[:space:]]*$/ { n++; next }
     n==1 && $0 ~ "^"k":" {
@@ -46,6 +46,59 @@ fm_get() {
       print; exit
     }
   ' "$2"
+}
+
+# _fm_rawline <key> <plan-file> — the raw text after `key:` on the key's line,
+# with no cleanup. Used only to sniff a YAML block-scalar indicator.
+_fm_rawline() {
+  awk -v k="$1" '
+    /^---[[:space:]]*$/ { n++; if (n>=2) exit; next }
+    n==1 && $0 ~ "^"k":" { sub("^"k":[[:space:]]*",""); print; exit }
+  ' "$2"
+}
+
+# _fm_block <key> <plan-file> <indicator> — body of a YAML block scalar
+# (`key: |`). Reads the indented lines under the key and dedents them by the
+# first body line's indent. `|` keeps newlines; `>` folds them to spaces.
+# Trailing-newline chomping (`-`/`+`) is moot: every caller uses $(...), which
+# strips trailing newlines regardless.
+_fm_block() {
+  awk -v k="$1" -v ind="$3" '
+    BEGIN { bi = -1; fold = (substr(ind,1,1) == ">") }
+    /^---[[:space:]]*$/ { if (inb) exit; n++; next }
+    n==1 && !inb && $0 ~ "^"k":" { inb = 1; next }
+    inb {
+      if ($0 ~ /^[[:space:]]*$/) { pend = pend "\n"; next }
+      m = match($0, /[^ \t]/) - 1
+      if (bi < 0) bi = m
+      if (m < bi) exit
+      if (pend != "") { printf "%s", pend; pend = "" }
+      line = substr($0, bi + 1)
+      if (fold) { printf "%s%s", (first++ ? " " : ""), line }
+      else print line
+    }
+    END { if (fold && first) print "" }
+  ' "$2"
+}
+
+# YAML frontmatter reader: fm_get <key> <plan-file>  (first --- ... --- block)
+#
+# Handles single-line scalars (_fm_scalar, unchanged) AND `key: |` block
+# scalars. Before 2026-08-20 a block scalar returned the literal "|", so the
+# mutation gate ran `bash -c "|"`, died on a syntax error, and boss reported
+# "mutation_apply failed to run (stale recipe?)" — blaming the plan for a
+# parser gap. Same misdiagnosis shape as the plan-191 trailing-quote bug
+# documented in _fm_scalar; it blocked PR#169 (plan 210), whose recipe was
+# correct and verified by hand.
+fm_get() {
+  local raw probe
+  raw=$(_fm_rawline "$1" "$2")
+  probe=${raw%%#*}
+  probe=${probe%"${probe##*[![:space:]]}"}
+  case "$probe" in
+    '|'|'|-'|'|+'|'>'|'>-'|'>+') _fm_block "$1" "$2" "$probe"; return ;;
+  esac
+  _fm_scalar "$1" "$2"
 }
 
 # boss_repo_dirty — echo the main checkout's uncommitted TRACKED changes (empty =

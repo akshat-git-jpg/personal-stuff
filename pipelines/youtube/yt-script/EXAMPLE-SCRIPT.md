@@ -11,7 +11,7 @@ cold open ("remember this moment" → "That wasn't a real person") and the owner
 rejected it as identical to his example. Write fresh copy for each video's
 topic.
 
-Read alongside `SCRIPT-INSTRUCTIONS.md` and the `yt-script-2` skill.
+Read alongside `SCRIPT-INSTRUCTIONS.md` and the `yt-script` skill.
 
 ## What to copy from it
 

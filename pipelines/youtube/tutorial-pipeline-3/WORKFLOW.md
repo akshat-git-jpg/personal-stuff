@@ -62,9 +62,9 @@ cleans them.
 tutorial maker's notes into script voice, checks Style DNA consistency, and hard-fails
 if any flag is unresolved. Nothing reaches TTS with a `[VERIFY:...]` still in it.
 
-**5. TTS (tutorial maker, self-serve UI).** Every section gets TTS here, demo or not —
-the whole voiceover comes from this step. Details in "The TTS flow" below. The step
-ends with every section locked.
+**5. Voiceover (owner-run, local).** Every section gets TTS here, demo or not — the
+whole voiceover comes from this step. Run through the `yt-vo` skill; details in "The
+TTS flow" below. The step ends with every section locked.
 
 **6. Recording (tutorial maker) — in parallel with visuals-flow planning.** The
 recording list is simply the demo sections, known the moment TTS locks. For each one:
@@ -118,11 +118,11 @@ Each section moves through a state machine:
     drafted → flags resolved → polished → TTS generated → TTS LOCKED → recorded → QC passed
 
 - **Generate.** Spoken text goes to IndexTTS-2 on Modal with the locked production
-  reference voice and house defaults. No knobs in the UI. Same text = cached; nothing
-  is synthesized twice.
-- **Regenerate.** TTS is stochastic, so a regen button re-rolls the take. Capped at 3
-  per section; hitting the cap notifies the owner (Telegram) instead of silently
-  spending more Modal money. Pronunciation problems are fixed in the respell box (per
+  reference voice and house defaults. No knobs. Re-running skips locked sections, so
+  nothing already approved is synthesized twice.
+- **Regenerate.** TTS is stochastic, so re-running a section re-rolls the take
+  (`vo --only s03`). `regens_used` counts the rolls, so Modal spend stays visible.
+  Pronunciation problems are fixed in `respell.json` (per
   section spoken-text overrides for names like HeyGen), not by burning regens.
 - **Lock.** The tutorial maker accepts the take — they listen before recording to it
   anyway, and they catch pronunciation in context. Locking freezes the section's audio
@@ -150,21 +150,27 @@ the rest.
 **Backstop.** Owner watches the assembled draft before upload (first videos; then
 delegated). Also the answer, for now, to final-workflow's open problem #3.
 
-## The tutorial maker UI
+## Voiceover: owner-run and local (revised 2026-08-20)
 
-The single biggest build in this pipeline, and the thing that removes the owner from
-the per-video loop (final-workflow's open problem #1: the processor is the throughput
-cap). Two phases:
+The original design put voiceover behind a self-serve web UI for the tutorial maker
+(`apps/tutorial-vo` at `vo.agrolloo.com`, plan 132). **That app is retired** — the
+Worker, its D1 database, its R2 bucket and its DNS record were deleted on 2026-08-20.
+It only ever held smoke-test data; no real video ran through it.
 
-- **v1 (minimum useful):** token-link auth; script displayed in sections; per-section
-  TTS generate / play / regen (capped) / respell / lock; link to the video's Drive
-  upload folder; section checklist showing state. Server-side proxy holds the Modal
-  secret; the freelancer never sees credentials.
-- **v2 (cockpit):** flag editing inline (step 3 happens in the UI too), per-section
-  upload with instant Gate-1 feedback, progress visible to the owner.
+Voiceover is now an owner-run local step, driven by the `yt-vo` skill:
 
-v1 is enough to run the first videos. Don't build v2 until v1 has survived a real
-freelancer.
+    bash run.sh <slug> vo               # synth every unlocked section via Modal
+    bash run.sh <slug> vo --only s03    # re-roll one take
+    bash run.sh <slug> vo-lock          # approve the takes
+
+Why: the UI existed to keep the owner out of the per-video loop, but VO is the one
+step where the owner's ear is the quality gate. A browser round-trip, a takes cap and
+a Telegram alert were machinery around a decision the owner still had to make. The
+freelancer's real bottleneck is recording, not narration, and that stays on Drive.
+
+The cost is that the tutorial maker cannot self-serve narration. If that becomes the
+throughput cap again, rebuild the UI thin — a form over the same Modal endpoint — and
+keep the lock semantics that already live in `lib/state.mjs`.
 
 ## Roles
 
@@ -193,9 +199,9 @@ Drops entirely: the segment map (`segments.json`), the retime arithmetic (step 1
 the ffmpeg stretch-assembly (step 162), and the script rulebook's no-reorder /
 no-add / no-cut constraints. All of it existed only to glue new audio onto old footage.
 
-New here: the sectioned script contract with the demo flag, the tutorial maker's
-self-serve TTS UI with lock semantics, and the automated polish/lint and intake QC
-gates that keep humans out of the per-video loop.
+New here: the sectioned script contract with the demo flag, the local VO step with
+lock semantics, and the automated polish/lint and intake QC gates that keep humans
+out of the per-video loop.
 
 ## What this cannot do
 
@@ -215,16 +221,18 @@ not to add pipeline machinery.
 
 - Coverage split: script marks `demo: yes/no` only; visuals-flow's shot pass owns
   avatar-vs-graphics and all overlays, running in parallel with recording.
-- TTS lock is the tutorial maker's call.
+- TTS lock is the tutorial maker's call. (Revised 2026-08-20: the lock is the
+  owner's call, taken locally — see "Voiceover: owner-run and local".)
 - Backstop: owner watches the draft render of early videos, then delegates.
 - No reviewer; the script rulebook + self-check is the script quality gate.
 - No scratch-walkthrough step or fallback.
 - Deliverable is per-section clips, never a tutorial-maker-assembled video.
 - Regeneration cap: 3 per section. Section length target: 20 to 60 seconds.
+  (Revised 2026-08-20: no hard cap now that the owner runs synth; `regens_used`
+  records the count.)
 
 ## Deliberately undecided
 
 Step numbering and folder layout, the exact section schema, which t-p-2 steps port
-verbatim, where the UI is hosted (VPS vs Worker) and its auth details, and how the
-recording list and shot pass hand off to visuals-flow in code. All of that belongs to
+verbatim, and how the recording list and shot pass hand off to visuals-flow in code. All of that belongs to
 the implementation plan, not this doc.

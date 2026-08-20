@@ -2,7 +2,7 @@
 
 One key per video, minted once, shared by every pipeline that touches it.
 
-A video passes through `youtube/yt-script-2/` (outline + script) and
+A video passes through `youtube/yt-script/` (outline + script) and
 `video/visuals-flow/` (the edit). Each used to invent its own folder name from
 whatever wording of the title it happened to get, so the same video existed twice
 under two names with nothing connecting them. This is the single place a video's

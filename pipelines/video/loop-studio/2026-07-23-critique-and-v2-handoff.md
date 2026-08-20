@@ -100,7 +100,7 @@ Read `pipelines/video/visuals-flow/PIPELINE.md` + `HANDOFF.md` for the real deta
   RULEBOOK.md, shot-pass+lint-shots). Machine-enforced by a linter + convergence metrics + edit-delta.
 - Effects layer: pluggable `lib/effects/*.mjs`, per-video `effects.json`, `EFFECTS.md` rulebook, and
   an `analyze reference <url>` verb that reverse-engineers effect moments from any YouTube video.
-- Proven end-to-end on test-01 (32-min video). Operated via the `visuals-flow` skill (verb router).
+- Proven end-to-end on test-01 (32-min video). Operated via the `yt-video-edit` skill (verb router).
 
 ---
 

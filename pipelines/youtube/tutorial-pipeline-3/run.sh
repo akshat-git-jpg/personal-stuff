@@ -32,14 +32,11 @@ case "$verb" in
   render)
     node lib/render-script-md.mjs "$slug" --root "$TP3_ROOT"
     ;;
-  publish)
-    node lib/publish-ui.mjs "$slug" --root "$TP3_ROOT" ${3:+--drive-url "$3"}
+  vo)
+    node lib/vo-synth.mjs "$slug" --root "$TP3_ROOT" "${@:3}"
     ;;
-  pull)
-    node lib/pull-ui.mjs "$slug" --root "$TP3_ROOT"
-    ;;
-  pull-audio)
-    node lib/pull-audio.mjs "$slug" --root "$TP3_ROOT"
+  vo-lock)
+    node lib/vo-lock.mjs "$slug" --root "$TP3_ROOT" "${@:3}"
     ;;
   pull-recordings)
     node lib/drive-pull.mjs "$slug" --root "$TP3_ROOT"
@@ -56,7 +53,7 @@ case "$verb" in
     ;;
   *)
     echo "Unknown verb: $verb"
-    echo "usage: bash run.sh <slug> <status|010|lint|render|publish|pull|pull-audio|pull-recordings|qc|handoff|gate>"
+    echo "usage: bash run.sh <slug> <status|010|lint|render|vo|vo-lock|pull-recordings|qc|handoff|gate>"
     exit 2
     ;;
 esac

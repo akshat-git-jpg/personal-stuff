@@ -29,7 +29,7 @@ So this run lives in a second checkout of `main`, created with plain
 Two consequences for whoever picks this up:
 
 1. The pipeline folder is still called `visuals-flow` here, because the rename
-   has not landed on `main`. The `visuals-flow` skill text refers to
+   has not landed on `main`. The `yt-video-edit` skill text refers to
    `visuals-flow/`; on `main` that path does not exist yet.
 2. When the boss-hardening rename eventually lands, this video's folder moves
    with it. Nothing in the artifacts hardcodes the pipeline path.

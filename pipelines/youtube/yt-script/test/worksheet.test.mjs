@@ -201,7 +201,7 @@ test('byte identity covers a real intro end to end', () => {
 })
 
 const DOC_CHECKS = [
-  ['../../../.claude/skills/yt-script-2/SKILL.md', ['render-worksheet.mjs', 'script-worksheet.md', 'diff script-worksheet.md script-draft.md', 'target — words']],
+  ['../../../.claude/skills/yt-script/SKILL.md', ['render-worksheet.mjs', 'script-worksheet.md', 'diff script-worksheet.md script-draft.md', 'target — words']],
   ['../CLAUDE.md', ['render-worksheet.mjs', 'voiceover only', 'PREFILLED_DRIFT']],
   ['../SCRIPT-INSTRUCTIONS.md', ['script-worksheet.md', 'Word targets']],
   ['../.gitignore', ['script-worksheet.md']],

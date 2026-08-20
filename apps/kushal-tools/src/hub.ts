@@ -29,7 +29,6 @@ const APPS: App[] = [
   { name: "Keto Kitchen", host: "keto-kitchen.agrolloo.com", url: "https://keto-kitchen.agrolloo.com", kind: "page" },
   { name: "Lists", host: "lists.agrolloo.com", url: "https://lists.agrolloo.com", kind: "app" },
   { name: "Closet", host: "closet.agrolloo.com", url: "https://closet.agrolloo.com", kind: "app" },
-  { name: "Tutorial VO Studio", host: "vo.agrolloo.com", url: "https://vo.agrolloo.com", kind: "infra" },
 ];
 
 const FAVICON =

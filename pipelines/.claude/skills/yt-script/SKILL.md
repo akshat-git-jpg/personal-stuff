@@ -1,21 +1,25 @@
 ---
-name: yt-script-2
-description: Turn owner-supplied knowledge into a YouTube outline, then a final AI-voiceover script. Step 1 ingests brain-dump, screenshots, links and YouTube URLs (via transcribe) into knowledge.md; step 2 writes the outline and stops for approval; step 3 takes the team member's completed draft back and makes it VO-ready (pronunciation lexicon, pacing punctuation, Voiceover/Notes split); step 4 (VO generation) is unwired. Triggers on "yt-script-2", "outline for <video>", "write the outline", "here's the completed draft", "finalise the script", "make it VO-ready".
+name: yt-script
+description: Turn owner-supplied knowledge into a YouTube outline, then a final AI-voiceover script. Step 1 ingests brain-dump, screenshots, links and YouTube URLs (via transcribe) into knowledge.md; step 2 writes the outline and stops for approval; step 3 takes the team member's completed draft back and makes it VO-ready (pronunciation lexicon, pacing punctuation, Voiceover/Notes split); step 4 (VO generation) is unwired. Triggers on "yt-script", "yt-script-2" (the old name, still accepted), "outline for <video>", "write the outline", "here's the completed draft", "finalise the script", "make it VO-ready".
 user-invocable: true
 metadata:
   author: kbtg
   version: 2.0.0
 ---
 
-# yt-script-2 — knowledge in, outline out, VO-ready script back
+# yt-script — knowledge in, outline out, VO-ready script back
+
+Renamed from `yt-script-2` on 2026-08-20, when the original `yt-script` (v1,
+tier-list comparison scripts from a Gemini-built KB) was deleted and this pipeline
+took its name. There is no v1 any more; it survives only in git history.
 
 Owner-supplied knowledge is the starting input, always ingested first and in full.
 The line for **ingestion** (step 1's core job) is still ingestion vs. discovery:
 opening exactly what the owner handed over — a link, a screenshot, a YouTube URL —
 is ingestion; going and *finding more of the same kind* while transcribing a
 source is discovery, and ingestion never does that. It does not read `dossiers/`,
-does not touch `yt-research/`, and does not consult the old
-`yt-script/Guidelines/` — those are separate systems with their own owners.
+and does not touch `yt-research/`. (The old `yt-script/Guidelines/` it used to
+warn about was deleted on 2026-08-20 along with v1 — nothing to consult.)
 
 **This skill does no research** (owner re-confirmed 2026-08-12, reversing a
 short-lived 2026-08-11 rule that allowed a research pass). The owner's knowledge
@@ -24,10 +28,10 @@ not fact-check a claim already in `knowledge.md` against the web. **If something
 is missing or looks wrong, ask the owner** — he will supply it. A gap is a
 question for him, never a cue to go find the answer.
 
-Working folder: `pipelines/youtube/yt-script-2/`
+Working folder: `pipelines/youtube/yt-script/`
 
 ```
-yt-script-2/
+yt-script/
 ├── OUTLINE-INSTRUCTIONS.md    how to write an outline    (owner-owned)
 ├── SCRIPT-INSTRUCTIONS.md     how to finalise a script   (owner-owned)
 ├── render-outline.mjs         outline.md -> outline.html + outline.pdf
@@ -181,7 +185,7 @@ never pick a method by hand:
 ```bash
 cd /Users/kbtg/codebase/personal-stuff/pipelines
 python3 -m common.transcribe fetch "<youtube-url-or-id>" \
-  --out-dir youtube/yt-script-2/videos/<key>/sources/<video-id>
+  --out-dir youtube/yt-script/videos/<key>/sources/<video-id>
 ```
 
 It prints `{"video_id", "path", "method"}` and writes `transcript.md` at that
@@ -240,9 +244,9 @@ Triggered by the owner asking for the outline.
 1. Read `OUTLINE-INSTRUCTIONS.md` in full and follow it exactly. It is the only
    authority on outline format, length, and section shape.
 2. **If that file is still the placeholder** (it says so at the top), stop and ask
-   the owner for the outline instructions. Do not improvise a format, and do not
-   fall back to `yt-script/Guidelines/structure.md` — that file is a tier-list
-   comparison format this skill deliberately left behind.
+   the owner for the outline instructions. Do not improvise a format. (The old
+   v1 fallback `yt-script/Guidelines/structure.md` no longer exists — v1 was
+   deleted on 2026-08-20 — so there is nothing to fall back to by design.)
 3. Write `videos/<key>/outline.md`. Every claim traces to `knowledge.md` —
    there is no other source.
    The outline has **two halves written to different standards**: intro and
@@ -396,10 +400,11 @@ Three things are already fixed, whatever the API turns out to be:
 
 ## Not this skill's job
 
-`yt-script/` (comparison videos from a Gemini-built KB), `yt-research/` (legacy
-Phase 1), and `dossiers/` (persistent per-tool research library) are separate
-systems. This skill was built deliberately without them — don't read from them,
-don't write to them.
+`yt-research/` (legacy Phase 1) and `dossiers/` (persistent per-tool research
+library) are separate systems. This skill was built deliberately without them —
+don't read from them, don't write to them. (The old v1 `yt-script/`, comparison
+videos from a Gemini-built KB, was deleted on 2026-08-20; this folder is now the
+only `yt-script/`.)
 
 `dossiers/` is the tempting one, because it also transcribes YouTube videos and
 would happily tell you more about a tool the owner mentioned. That is exactly why

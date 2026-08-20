@@ -317,3 +317,82 @@ New `apps/timeblock`: personal time-blocking web app. Chose NO Google Calendar s
 - 2026-08-18 — **Amul session comes from the OTP login endpoints, not a HAR export.** The owner's checkout capture settled two things. (1) **A saved Chrome HAR carries no session**: Chrome strips every `cookie`/`set-cookie` header, so the originally-planned `har2session.py` could never have worked — do not reintroduce a HAR-import path. (2) Amul's login is three plain calls (`ms.users/_/isUserRegistered`, `ms.users/_/sendOtp?new_otp_flow=1`, `ms.users/_/login?new_login_flow=1`) where **the OTP is passed in the `password` field** and `username` is the phone with a `+91` prefix; there is no account password. So plan 209 logs itself in and asks for the six digits over Telegram. Two further traps recorded there: cart `q=` params encode braces/quotes but leave the colon literal, and **`seller_id`/`linked_product_id` differ between an anonymous and an authenticated session for the same SKU and substore** — they must be read from the same authenticated fetch that calls `addItem`, never from the watcher's anonymous fetch. `placeOrder` and `updatePaymentMethod` were also captured and are deliberately NOT implemented; a grep gate fails the build if either is referenced.
 - 2026-08-18 — **Amul login: phone OTP is the only door, and the session is a flat 7 days.** Investigated after the owner asked whether login could be avoided. Measured live: a fresh `jsessionid` is issued with `Expires` exactly 168 hours out, and **the expiry does not slide** — re-requesting with an existing jar returns no `set-cookie` at all, so keeping the session warm with traffic buys nothing. `storeinfo.js` reports `login_field: "phone"`, `login_with_otp: "1"`, `login_providers: []`, and an empty `password_page`: no email login, no social login, no account password. `login_using_firebase: 1` is set but the owner's real login made **zero** calls to any Firebase/identitytoolkit/securetoken host, so there is no refresh token to ride. No refresh/renew/keepalive/remember-me endpoint exists in the storefront bundle (only `adminLogin`). Conclusion: **one OTP per 7 days is the floor and is not reducible in code.** Design consequences, now encoded in plan 209: (1) stock alerts must NEVER depend on the login — with no session, the alert still fires and only the cart button degrades (gate-asserted); (2) re-login proactively at 6 days on a quiet tick, never mid-restock; (3) OTP intake is a `get_otp()` seam with stdin/telegram implementations, so a future phone automation can be added without touching the login flow.
 - 2026-08-18 — **A Pattern-B cron's `git pull` must never be fatal.** amul-watch's first scheduled run died before polling: `error: cannot lock ref 'refs/remotes/origin/main'` (the ref existed both loose in `.git/refs/remotes/origin/main` AND in `.git/packed-refs`; `git pack-refs --all` repairs it). The ref was only the trigger — the real defect was `run.sh` doing a bare `git pull` under `set -euo pipefail`, so any transient git or network failure silently stops the job. For a stock watcher this is the worst failure mode available: a watcher that says nothing looks exactly like a watcher with nothing to say. Fixed to `git pull --ff-only --quiet || echo "WARN: ... polling with the code already on disk" >&2`, verified by shimming a always-failing `git` onto `PATH` and confirming the poll still exits 0. **`/srv/crons/site-probe/run.sh` already had this idiom** (`git -C … pull … || echo "git pull: failed; using existing checkout"`) — amul-watch was the outlier, so future cron plans should name site-probe as the wrapper exemplar rather than letting an executor invent one. Also fixed in the same pass: `run.sh` shipped mode 644 (the documented crontab line could not execute it) and an unquieted pull that wrote 288 useless log lines a day, burying real errors.
+
+## 2026-08-20 — tutorial-vo retired; voiceover is a local step behind the `yt-vo` skill
+
+**Decision.** Deleted `apps/tutorial-vo` (the freelancer self-serve TTS Worker UI at
+`vo.agrolloo.com`, plan 132) along with its Cloudflare Worker, D1 database
+`tutorial-vo-db`, R2 bucket `tutorial-vo-audio`, DNS record and secrets. Voiceover is
+now an owner-run local step in tutorial-pipeline-3 (`050-voiceover`), calling the same
+Modal `synth_section` endpoint directly from `lib/vo-synth.mjs`. The operating layer is
+the new **`yt-vo`** skill (`pipelines/.claude/skills/yt-vo`, symlinked into
+`.claude/skills/`).
+
+**Why.** The UI existed to keep the owner out of the per-video loop, but VO is the one
+step where the owner's ear IS the quality gate — a browser round-trip, a 4-takes cap
+and a Telegram alert were machinery wrapped around a decision the owner still had to
+make. The freelancer's actual bottleneck is recording, which stays on Drive. The app
+had never run a real video: its D1 held one `smoke-test` row and its R2 one wav.
+
+**Kept deliberately.** `pipelines/video/tts/` stays the engine + reference-voice hub
+(no new folder, no rename — consuming pipelines still pass text and collect wavs), and
+`modal/indextts2_app.py` is unchanged, including the `synth_section` web endpoint from
+plan 131. The lock semantics in `lib/state.mjs` survive intact, so rebuilding a thin UI
+over the same endpoint later is a small job.
+
+**Cost accepted.** The tutorial maker cannot self-serve narration. If that becomes the
+throughput cap again, rebuild the UI thin rather than re-deriving the lock rules.
+
+**Env change.** `VO_UI_URL` / `VO_UI_ADMIN_TOKEN` are gone from `pipelines/.env`,
+replaced by `MODAL_TTS_URL` / `MODAL_TTS_TOKEN`. Escrow moved from
+`infra/secrets/tutorial-vo.env` to `infra/secrets/tts-modal.env` (Worker-only
+`ADMIN_TOKEN` and `LINK_SECRET` dropped).
+
+## 2026-08-20 — `visuals-flow` / `visuals-flow-feedback` skills renamed to `yt-video-edit` / `yt-video-edit-feedback`
+
+**Decision.** Renamed both operating skills to the `yt-` family
+(`pipelines/.claude/skills/yt-video-edit`, `…/yt-video-edit-feedback`, symlinked into
+`.claude/skills/` as usual). The old trigger phrases `"visuals-flow"` and
+`"/visuals-flow-feedback"` are kept as accepted aliases in the descriptions.
+
+**The pipeline folder was deliberately NOT renamed.** `pipelines/video/visuals-flow/`
+keeps its name, so every path, `test_cmd`, plan file and boss run record stays valid.
+Only the skill identity moved. This means the skill name and its pipeline folder name
+now differ — intentional, and stated at the top of both SKILL.md files.
+
+**Why the `yt-` prefix.** It groups the YouTube-video operating skills together
+(`yt-script-2`, `yt-style-copy`, `yt-vo`, now `yt-video-edit`), so the skill list reads
+as a pipeline order rather than an alphabetical accident.
+
+**Not touched.** `plans/077-visuals-flow-rename.md`, `plans/081-…`, `plans/082-…`,
+`tooling/boss/state/*.brief.md`, and dated entries in this file and in
+`pipelines/video/visuals-flow/tests/TESTS.md` — all historical records that describe
+what was true when written.
+
+## 2026-08-20 — `yt-script` v1 deleted; `yt-script-2` promoted into its name
+
+**Decision.** Deleted `pipelines/youtube/yt-script/` (v1) and renamed
+`pipelines/youtube/yt-script-2/` → `pipelines/youtube/yt-script/`. The operating skill
+moved with it: `pipelines/.claude/skills/yt-script-2` → `…/yt-script`, resymlinked into
+`.claude/skills/`. `"yt-script-2"` is kept as an accepted trigger alias.
+
+**Why deleting v1 was safe.** v1 was 10 files — `CLAUDE.md`, `Guidelines/` (4),
+`example-script/` (2), and one produced script (`scripts/n8n-hosting/`). It ran exactly
+once. Every reference to it from the v2 skill was a **negative** guardrail ("do not
+consult `yt-script/Guidelines/`", "do not fall back to
+`yt-script/Guidelines/structure.md`", "`yt-script/` is not this skill's job"), so
+nothing depended on it. It stays recoverable from git history.
+
+**The trap this created.** Because v2 took v1's name, those three negative guardrails
+would have silently become self-references — a skill telling itself not to read itself.
+All three were rewritten to say v1 is gone. Anyone doing a rename-into-a-freed-name
+should check for exactly this.
+
+**Live references updated** (not just docs): `pipelines/video-registry/lib/registry.mjs`
+hardcoded the `yt-script-2/videos` path, and
+`pipelines/youtube/yt-script/test/worksheet.test.mjs` asserted the skill's path. Both
+would have broken silently at runtime rather than at review.
+
+**Not touched.** `decisions.md` entries above this one, `plans/200-shared-video-registry.md`,
+and `docs/superpowers/specs/2026-08-18-yt-script-2-write-surface-design.md` — historical
+records that were accurate when written.

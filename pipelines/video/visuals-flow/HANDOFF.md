@@ -27,7 +27,7 @@ tests only) until the owner approves it.
 For the next session picking this up. Everything below was true and verified on
 2026-07-19. Read PIPELINE.md first if you have never seen this pipeline; read
 this doc for where things actually stand and what is open. **Operate this flow
-via the `visuals-flow` skill (verb router).**
+via the `yt-video-edit` skill (verb router).**
 **The POC is COMPLETE end to end** (2026-07-18: test-01 VO → cues → renders →
 avatar clips → assembled final.mp4, plans 082+083). **2026-07-19 added the
 assembly EFFECTS layer** (plans 084–094, PRs #41–#51): whip blur-cuts at
@@ -178,7 +178,7 @@ control lives in `videos/<slug>/effects.json` (regenerate:
 
 - 030 cue pass (body) and 035 zone pass: Sonnet (agy/Gemini approved as a free
   alternate to trial).
-- 060 shot pass: Sonnet-class or better, run in-session via the `visuals-flow`
+- 060 shot pass: Sonnet-class or better, run in-session via the `yt-video-edit`
   skill (pilot ran on Fable 2026-07-18; it's form-filling like 030).
 - 100 avatar submits: LIVE HeyGen, owner-run only, owner names the template
   slug (pilot: `girl-1`). HeyGen 3 only — the heygen-web hard rule.

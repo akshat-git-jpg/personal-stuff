@@ -6,7 +6,7 @@
 | `020-script-gen` | [LLM: Claude session, Sonnet default] | inputs + dossier + style DNA → `script.json` + `script.md` |
 | `030-verify-tm` | [HUMAN: tutorial maker] | script.md → flag resolutions (applied back into script.json) — plan 130 |
 | `040-polish-lint` | [LLM + RUN] | verified script.json → polished script.json (zero flags) — plan 130 |
-| `050-publish-ui` | [RUN] | polished script.json → UI store (Worker) — plan 132 |
+| `050-voiceover` | [RUN + owner review] | polished script.json → `audio/<id>.wav` via Modal IndexTTS-2, then locked — the `yt-vo` skill |
 | `060-intake-qc` | [RUN] | Drive recordings → intake-report.md — plan 133 |
 | `070-handoff-visuals` | [RUN] | locked audio + recordings → visuals-flow `videos/<slug>/{vo.mp3,screen.mp4}` — plan 133 |
 
@@ -120,5 +120,9 @@ Per-section invariants:
 ## Environment
 
 The pipeline looks for a `.env` file at `pipelines/.env`. Step 050 requires:
-- `VO_UI_URL`: URL of the tutorial-vo worker
-- `VO_UI_ADMIN_TOKEN`: Admin token for the worker
+- `MODAL_TTS_URL`: deployed URL of the `synth_section` endpoint in
+  `pipelines/video/tts/modal/indextts2_app.py`
+- `MODAL_TTS_TOKEN`: the `TTS_WEB_TOKEN` value that endpoint checks
+
+Step 050 is driven by the `yt-vo` skill. The voice, engine and reference clip are
+owned by `pipelines/video/tts/` — this pipeline only passes text and collects wavs.

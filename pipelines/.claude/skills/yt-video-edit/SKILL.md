@@ -1,10 +1,14 @@
 ---
-name: visuals-flow
+name: yt-video-edit
 description: >-
-  Operate the visuals-flow pipeline (pipelines/video/visuals-flow) by verb — the session runs the steps, the owner only reviews the board and green-lights live HeyGen. Verbs: run graphics for <video>, run the concept pass, audit the cues, make the sound plan, mix the audio, final cut review, run the shot pass for <video>, open my storyboard/board, render the graphics, make the avatar videos, download the avatar videos, assemble the video, export the timeline / open it in resolve, qc the video, analyze reference <url>, fold the feedback. Triggers on those phrases plus "visuals-flow", "run the cue pass", "approve flow for <video>", "avatar clips for <video>", "resolve export", "filmstrip qc".
+  Operate the visuals-flow pipeline (pipelines/video/visuals-flow) by verb — the session runs the steps, the owner only reviews the board and green-lights live HeyGen. Verbs: run graphics for <video>, run the concept pass, audit the cues, make the sound plan, mix the audio, final cut review, run the shot pass for <video>, open my storyboard/board, render the graphics, make the avatar videos, download the avatar videos, assemble the video, export the timeline / open it in resolve, qc the video, analyze reference <url>, fold the feedback. Triggers on those phrases plus "yt-video-edit", "visuals-flow" (the old name, still accepted), "run the cue pass", "approve flow for <video>", "avatar clips for <video>", "resolve export", "filmstrip qc".
 ---
 
-# visuals-flow — operating skill (verb router)
+# yt-video-edit — operating skill (verb router)
+
+Renamed from `visuals-flow` on 2026-08-20. The **pipeline folder is still**
+`pipelines/video/visuals-flow/` — only the skill was renamed, so every path below
+is unchanged.
 
 Run everything from `pipelines/video/visuals-flow/`. This skill routes verbs to
 step procedures; judgment content lives in the step rulebooks and stays there.
@@ -22,7 +26,7 @@ State of the pipeline + full command list: `README.md` and `run.sh <slug> status
    ```
 
    `ensure` MINTS when the video is new and returns the EXISTING key when another
-   pipeline (usually `yt-script-2`) already started it. **Use `$KEY` as the
+   pipeline (usually `yt-script`) already started it. **Use `$KEY` as the
    workdir name — it may differ from the name you proposed.** If `where` shows
    `[x]` beside `script`, the outline and script for this video already exist;
    read them before the concept pass.
@@ -189,6 +193,6 @@ Between the gates the session runs unattended: render → avatar renders → cut
 | "export the timeline", "resolve export" | `bash run.sh <slug> export` | **on-request only** |
 | "deliver the final", "upload to drive", "ship it to the output folder" | `bash run.sh <slug> deliver` | **150** — uploads the approved full-res final to the video's Drive `Output/` folder; needs `drive_folder`+`drive_account` in run-config (005); 120 approval re-checked, never waived |
 | "qc the video", "filmstrip qc" | `bash run.sh <slug> qc` | |
-| "fold the feedback", "feedback is done", "I'm done reviewing" | **invoke the `visuals-flow-feedback` skill** (it wraps `bash run.sh <slug> fold`) | **130 fold** |
+| "fold the feedback", "feedback is done", "I'm done reviewing" | **invoke the `yt-video-edit-feedback` skill** (it wraps `bash run.sh <slug> fold`) | **130 fold** |
 | "queue the previews", "send the prompts to flow" | `bash run.sh <slug> previews` | pushes the 110 intro-idea and 240 new-card look prompts to the `flow-queue` relay; the ZAPI FLOW extension loads them into Google Flow by itself |
 | "analyze reference <url>" | `bash scripts/analyze-reference.sh <url>` | |

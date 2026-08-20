@@ -1,9 +1,12 @@
 ---
-name: visuals-flow-feedback
-description: Close the loop on owner feedback for a visuals-flow video — ingest every feedback source, root-cause each item, answer the owner's questions, discuss the solve, then present ONE summary for approval; only after approval apply durable fixes and re-cut. Wraps the 130 feedback-fold step. Triggers on "feedback is done", "I'm done with feedback", "I've finished reviewing", "fold my feedback", "process my feedback", "done with the final cut review", "/visuals-flow-feedback".
+name: yt-video-edit-feedback
+description: Close the loop on owner feedback for a yt-video-edit (visuals-flow pipeline) video — ingest every feedback source, root-cause each item, answer the owner's questions, discuss the solve, then present ONE summary for approval; only after approval apply durable fixes and re-cut. Wraps the 130 feedback-fold step. Triggers on "feedback is done", "I'm done with feedback", "I've finished reviewing", "fold my feedback", "process my feedback", "done with the final cut review", "/yt-video-edit-feedback", "/visuals-flow-feedback" (the old name, still accepted).
 ---
 
-# visuals-flow-feedback — the feedback conversation
+# yt-video-edit-feedback — the feedback conversation
+
+Renamed from `visuals-flow-feedback` on 2026-08-20. The pipeline folder is still
+`pipelines/video/visuals-flow/`.
 
 Run everything from `pipelines/video/visuals-flow/`.
 

@@ -1,7 +1,7 @@
-# yt-script-2 — how to operate here
+# yt-script — how to operate here
 
 The operating contract lives in the skill:
-`pipelines/.claude/skills/yt-script-2/SKILL.md`. The outline format is defined in
+`pipelines/.claude/skills/yt-script/SKILL.md`. The outline format is defined in
 [OUTLINE-INSTRUCTIONS.md](OUTLINE-INSTRUCTIONS.md), the script format in
 [SCRIPT-INSTRUCTIONS.md](SCRIPT-INSTRUCTIONS.md). Read the skill plus whichever
 format file your step needs before doing anything in this folder.
@@ -127,11 +127,12 @@ in the print CSS keep it working, both of which fail silently if removed:
 Parts deliberately do **not** force a page break. They used to, which left pages
 ~70% empty in a document that's scrolled rather than bound.
 
-## Why it exists separately from yt-script/
+## Why it replaced the original yt-script/ (deleted 2026-08-20)
 
-`yt-script/` is hardwired to tier-list comparison videos built from a
+The original `yt-script/` (v1) was hardwired to tier-list comparison videos built from a
 Gemini-generated knowledge base — four tiers, pricing screenshots, ranked
-Winners, affiliate-link mentions. It ran once. `yt-script-2` was built
+Winners, affiliate-link mentions. It ran once, and was deleted on 2026-08-20
+(recoverable from git history). This pipeline was built
 deliberately clean (2026-07-31) for any topic, any format, with the owner
 supplying the knowledge directly. The two share no files.
 

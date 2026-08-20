@@ -8,7 +8,7 @@ const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** Where each pipeline keeps its per-video workdirs, relative to the repo root. */
 export const PIPELINE_VIDEO_ROOTS = {
-  script: path.join('pipelines', 'youtube', 'yt-script-2', 'videos'),
+  script: path.join('pipelines', 'youtube', 'yt-script', 'videos'),
   visuals: path.join('pipelines', 'video', 'visuals-flow', 'videos'),
 };
 

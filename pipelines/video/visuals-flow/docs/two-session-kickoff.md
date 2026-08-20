@@ -30,7 +30,7 @@ Then open two Claude sessions and paste one prompt into each.
 ## Session A — the intro track
 
 ```
-Use the visuals-flow skill. Work on <slug>, INTRO TRACK ONLY.
+Use the yt-video-edit skill. Work on <slug>, INTRO TRACK ONLY.
 
 Run steps 110 → 160 (intro idea, gate, screenplay, frame review, gate, render).
 Check your lane with:  bash run.sh <slug> status --track intro
@@ -59,7 +59,7 @@ Close every -llm step in the ledger as you go (node lib/run-log.mjs <slug>
 ## Session B — the main track (body + conclusion)
 
 ```
-Use the visuals-flow skill. Work on <slug>, MAIN TRACK.
+Use the yt-video-edit skill. Work on <slug>, MAIN TRACK.
 
 Run steps 210 onward (body cues, conclusion cues, cue-plan review, card plan,
 build cards, sync, shot pass, storyboard, render, avatar, cut, deliver).
