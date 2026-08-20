@@ -587,6 +587,109 @@ export function serveRevalidating(req, res, stat) {
   return false;
 }
 
+// A Range header, or null when there is none. Returns { unsatisfiable: true }
+// rather than throwing, because fs.createReadStream({ start }) throws
+// SYNCHRONOUSLY when start is past EOF — and a media element asks for bytes
+// past EOF as a matter of course while it hunts for the end of a file. That
+// throw used to surface as a 500 on a perfectly ordinary request.
+export function parseRange(rangeHeader, fileSize) {
+  if (!rangeHeader) return null;
+  const m = /^bytes=(\d*)-(\d*)$/.exec(String(rangeHeader).trim());
+  if (!m) return { unsatisfiable: true };
+  const [, rawStart, rawEnd] = m;
+  if (rawStart === '' && rawEnd === '') return { unsatisfiable: true };
+  let start, end;
+  if (rawStart === '') {
+    // Suffix form (`bytes=-N`): the LAST n bytes. Chrome uses it to find a
+    // trailing moov atom, so it is not a theoretical case.
+    const n = parseInt(rawEnd, 10);
+    if (!Number.isFinite(n) || n <= 0) return { unsatisfiable: true };
+    start = Math.max(0, fileSize - n);
+    end = fileSize - 1;
+  } else {
+    start = parseInt(rawStart, 10);
+    end = rawEnd === '' ? fileSize - 1 : Math.min(parseInt(rawEnd, 10), fileSize - 1);
+  }
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start > end || start >= fileSize) {
+    return { unsatisfiable: true };
+  }
+  return { start, end };
+}
+
+// THE one way this server hands an mp4 to a media element. /intro-video,
+// /intro-teaser and /video/<label> carried three near-identical copies of this,
+// so a fix to one never reached the other two.
+//
+// The happy path was never the problem. The UNHAPPY path is: a <video> aborts
+// every range request it still has open whenever the owner seeks, pauses or
+// resumes, and one review session cancels dozens of them (measured: 11 requests
+// to /video/v2 in eight seek-and-resume cycles, all ending net::ERR_ABORTED).
+// Node's stream.pipe() does NOT destroy the source when the destination dies,
+// so each abort stranded an open fs.ReadStream on a 160MB file — 210 aborted
+// requests leaked 125 OS handles that were never released — and an 'error'
+// arriving on a stream nobody listens to is an unhandled 'error' event, which
+// takes the whole board down.
+//
+// A dead board is exactly what the owner sees as "the video is stuck at 04:08
+// and Play does nothing however many times I press it" (report 2026-08-20):
+// the element is not broken, the bytes behind it have no server any more.
+export function serveMediaFile(req, res, filePath, stat) {
+  const fileSize = stat.size;
+
+  // pipe() plus the teardown pipe() does not do: close the file handle when the
+  // client goes away, and swallow the ECONNRESET/EPIPE that follows an abort
+  // instead of letting it reach the process as an uncaught 'error'.
+  const pipeStream = (stream) => {
+    const shutdown = () => stream.destroy();
+    stream.on('error', (err) => {
+      const code = err && err.code;
+      if (code !== 'ERR_STREAM_PREMATURE_CLOSE' && code !== 'ECONNRESET' && code !== 'EPIPE') {
+        console.error(`media read failed for ${filePath}: ${(err && err.stack) || err}`);
+      }
+      res.destroy();
+    });
+    res.on('close', shutdown);
+    res.on('error', shutdown);
+    stream.pipe(res);
+  };
+
+  const range = parseRange(req.headers.range, fileSize);
+  if (range && range.unsatisfiable) {
+    res.writeHead(416, { 'Content-Range': `bytes */${fileSize}`, 'Accept-Ranges': 'bytes' });
+    return res.end();
+  }
+
+  if (range) {
+    // Validators, but never a 304 on a Range: a media element that asks for
+    // bytes and gets a bodyless 304 just stalls. Revalidation happens on the
+    // element's first, non-Range request. "/video/current" in particular is one
+    // URL whose bytes change with every re-cut, so a cached copy is
+    // indistinguishable from a fresh one by URL alone.
+    res.setHeader('etag', mediaValidator(stat));
+    res.setHeader('last-modified', new Date(stat.mtimeMs).toUTCString());
+    res.setHeader('cache-control', 'no-cache');
+    res.writeHead(206, {
+      'Content-Range': `bytes ${range.start}-${range.end}/${fileSize}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': (range.end - range.start) + 1,
+      'Content-Type': 'video/mp4',
+    });
+    return pipeStream(fs.createReadStream(filePath, { start: range.start, end: range.end }));
+  }
+
+  // The element's opening request. A 304 here means "your copy is current";
+  // anything else and it re-reads a file a re-render may have replaced.
+  if (serveRevalidating(req, res, stat)) return;
+  res.writeHead(200, {
+    'Content-Length': fileSize,
+    // Advertise range support on the FIRST response, so the element knows it
+    // may seek before it has ever sent a Range of its own.
+    'Accept-Ranges': 'bytes',
+    'Content-Type': 'video/mp4',
+  });
+  return pipeStream(fs.createReadStream(filePath));
+}
+
 // A comment can carry SEVERAL screenshots — one frame rarely shows a whole
 // problem. `images` is the canonical field; `image` is the pre-2026-08-06
 // single-shot form and stays readable forever, because feedback.json files
@@ -650,6 +753,13 @@ export function applyFeedback(workdir, { feedback, feedbackImages }, ctx) {
           if (gap) {
             item.context = { start: gap.start, end: gap.end, excerpt: gap.words.slice(0, 8).map(w => w.text).join(' ') };
           }
+        } else if (baseRef.startsWith('intro-')) {
+          // Intro-tab boxes (gate 027). `intro-<beatId>` is a note on one beat,
+          // `intro-global` is the whole film — neither is a cue or a shot span,
+          // so the cue lookup below would find nothing and file the note with
+          // no context at all. Stamp the beat the note is actually about.
+          const beat = (ctx.beats ?? []).find((b) => `intro-${b.id}` === baseRef);
+          if (beat) item.context = { beat: beat.id, start: beat.t_start, clause: beat.clause };
         } else if (baseRef !== '_global') {
           const span = (ctx.spans ?? []).find(s => s.id === baseRef);
           const rSpan = (ctx.resolvedSpans ?? []).find(s => s.id === baseRef);
@@ -701,6 +811,7 @@ export function feedbackContextFromDisk(workdir) {
   const resolvedFile = read('resolved.json');
   const shotsFile = read('shots.json');
   const shotsResolved = read('shots.resolved.json');
+  const screenplay = read(path.join('intro-film', 'screenplay.json'));
   return {
     video: cuesFile.video,
     cues: cuesFile.cues ?? [],
@@ -708,6 +819,9 @@ export function feedbackContextFromDisk(workdir) {
     words: read('transcript.json') ?? [],
     spans: shotsFile?.spans ?? [],
     resolvedSpans: shotsResolved?.spans ?? (Array.isArray(shotsResolved) ? shotsResolved : []),
+    // An intro-film video reaches gate 027 with no cues.json at all, so this is
+    // often the ONLY context a note on that board can carry.
+    beats: screenplay?.beats ?? [],
   };
 }
 
@@ -778,6 +892,11 @@ async function handleSave(req, res, workdir, cardLibraryRoot) {
       words,
       spans: mergedShots?.spans ?? [],
       resolvedSpans: resolvedSpans ?? [],
+      // The texts map a /save posts is the WHOLE feedback store, intro notes
+      // included — so this path has to be able to stamp beat context too, or
+      // whichever of /save and /feedback happens to create the item first
+      // decides whether it has any.
+      beats: feedbackContextFromDisk(workdir).beats,
     });
   }
 
@@ -1380,39 +1499,7 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
       return res.end('{"ok":false,"error":"not rendered"}');
     }
 
-    const stat = fs.statSync(videoPath);
-    const fileSize = stat.size;
-    const range = req.headers.range;
-    if (range) {
-      // Validators, but never a 304 on a Range: a media element that asks for
-      // bytes and gets a bodyless 304 just stalls. Revalidation happens on the
-      // element's first, non-Range request.
-      res.setHeader('etag', mediaValidator(stat));
-      res.setHeader('last-modified', new Date(stat.mtimeMs).toUTCString());
-      res.setHeader('cache-control', 'no-cache');
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-      const chunksize = (end - start) + 1;
-      const file = fs.createReadStream(videoPath, { start, end });
-      res.writeHead(206, {
-        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': chunksize,
-        'Content-Type': 'video/mp4',
-      });
-      file.pipe(res);
-    } else {
-      // The element's opening request. A 304 here means "your copy is current";
-      // anything else and it re-reads a file a re-render may have replaced.
-      if (serveRevalidating(req, res, stat)) return;
-      res.writeHead(200, {
-        'Content-Length': fileSize,
-        'Content-Type': 'video/mp4',
-      });
-      fs.createReadStream(videoPath).pipe(res);
-    }
-    return;
+    return serveMediaFile(req, res, videoPath, fs.statSync(videoPath));
   }
 
   if (req.method === 'GET' && url.pathname === '/intro-teaser') {
@@ -1428,40 +1515,7 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
       return res.end('{"ok":false,"error":"not rendered"}');
     }
 
-    const stat = fs.statSync(videoPath);
-    const fileSize = stat.size;
-    const range = req.headers.range;
-    if (range) {
-      // Validators, but never a 304 on a Range: a media element that asks for
-      // bytes and gets a bodyless 304 just stalls. Revalidation happens on the
-      // element's first, non-Range request. Same posture as /intro-video: a
-      // teaser is rewritten under the same name by every round.
-      res.setHeader('etag', mediaValidator(stat));
-      res.setHeader('last-modified', new Date(stat.mtimeMs).toUTCString());
-      res.setHeader('cache-control', 'no-cache');
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-      const chunksize = (end - start) + 1;
-      const file = fs.createReadStream(videoPath, { start, end });
-      res.writeHead(206, {
-        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': chunksize,
-        'Content-Type': 'video/mp4',
-      });
-      file.pipe(res);
-    } else {
-      // The element's opening request. A 304 here means "your copy is current";
-      // anything else and it re-reads a file a re-render may have replaced.
-      if (serveRevalidating(req, res, stat)) return;
-      res.writeHead(200, {
-        'Content-Length': fileSize,
-        'Content-Type': 'video/mp4',
-      });
-      fs.createReadStream(videoPath).pipe(res);
-    }
-    return;
+    return serveMediaFile(req, res, videoPath, fs.statSync(videoPath));
   }
 
   if (req.method === 'GET' && url.pathname === '/list') {
@@ -1638,6 +1692,33 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     return res.end(fs.readFileSync(imgPath));
   }
 
+  // The review player's flight recorder lands here. "The video is stuck" has
+  // been three different faults in one day and they are indistinguishable on
+  // screen, so the player records what happened and this writes it down next to
+  // the video's other artifacts. Read it with:
+  //   tail -n 80 videos/<slug>/player-diag.log
+  if (req.method === 'POST' && url.pathname === '/diag') {
+    const body = await readBody(req);
+    let payload;
+    try { payload = JSON.parse(body); } catch (e) { res.statusCode = 400; return res.end('{"ok":false}'); }
+    const entries = Array.isArray(payload.entries) ? payload.entries : [];
+    const logPath = path.join(workdir, 'player-diag.log');
+    // Truncate a log that has grown past a megabyte rather than letting a
+    // diagnostic quietly become the biggest file in the workdir.
+    try {
+      if (fs.existsSync(logPath) && fs.statSync(logPath).size > 1_000_000) {
+        const keep = fs.readFileSync(logPath, 'utf8').split('\n').slice(-2000).join('\n');
+        fs.writeFileSync(logPath, keep);
+      }
+      const lines = entries.map((e) => JSON.stringify({ ctx: payload.context ?? '', ...e })).join('\n');
+      if (lines) fs.appendFileSync(logPath, lines + '\n');
+    } catch (e) {
+      console.error('diag write failed:', e && e.message);
+    }
+    res.setHeader('content-type', 'application/json');
+    return res.end('{"ok":true}');
+  }
+
   if (req.method === 'GET' && url.pathname === '/status') {
     const p = path.join(workdir, 'claude_status.json');
     res.setHeader('content-type', 'application/json');
@@ -1660,39 +1741,7 @@ async function handleRequest(req, res, launchWorkdir, cardLibraryRoot) {
     const videoPath = path.join(kbWorkdir, version.file);
     if (!fs.existsSync(videoPath)) { res.statusCode = 404; return res.end('video not found'); }
 
-    const stat = fs.statSync(videoPath);
-    const fileSize = stat.size;
-    const range = req.headers.range;
-    if (range) {
-      // Same reasoning as /intro-video: validators yes, 304-on-Range no.
-      // "/video/current" in particular is one URL whose bytes change with every
-      // re-cut, so a cached copy is indistinguishable from a fresh one by URL.
-      res.setHeader('etag', mediaValidator(stat));
-      res.setHeader('last-modified', new Date(stat.mtimeMs).toUTCString());
-      res.setHeader('cache-control', 'no-cache');
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-      const chunksize = (end - start) + 1;
-      const file = fs.createReadStream(videoPath, { start, end });
-      res.writeHead(206, {
-        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': chunksize,
-        'Content-Type': 'video/mp4',
-      });
-      file.pipe(res);
-    } else {
-      // The element's opening request. A 304 here means "your copy is current";
-      // anything else and it re-reads a file a re-render may have replaced.
-      if (serveRevalidating(req, res, stat)) return;
-      res.writeHead(200, {
-        'Content-Length': fileSize,
-        'Content-Type': 'video/mp4',
-      });
-      fs.createReadStream(videoPath).pipe(res);
-    }
-    return;
+    return serveMediaFile(req, res, videoPath, fs.statSync(videoPath));
   }
 
   // /feedback-edit and /feedback-delete are the names a new review step should
@@ -1816,8 +1865,18 @@ export function createServer(workdir) {
   return httpCreateServer((req, res) => {
     handleRequest(req, res, workdir, cardLibraryRoot).catch((err) => {
       console.error(err && err.stack ? err.stack : err);
-      res.statusCode = 500;
-      res.end('internal error');
+      // Headers may already be on the wire — a media pipe that failed halfway
+      // through its body has long since sent a 206. Setting a status and
+      // calling end() THEN throws, inside this catch, which is an unhandled
+      // rejection, which ends the process. The board vanishing mid-review is a
+      // far worse outcome than one truncated response (owner report 2026-08-20).
+      try {
+        if (res.headersSent) { res.destroy(); return; }
+        res.statusCode = 500;
+        res.end('internal error');
+      } catch (e) {
+        try { res.destroy(); } catch {}
+      }
     });
   });
 }
@@ -1941,6 +2000,18 @@ async function main() {
     process.exit(1);
   }
   const port = Number(process.env.BOARD_PORT) || 4322;
+
+  // A local review tool must not vanish mid-review. One unhandled 'error' from
+  // an aborted media stream used to take the process with it, and because the
+  // board is the only thing serving the video's bytes, the owner sees a player
+  // frozen on a frame with Play doing nothing at all — no error, no clue that
+  // the server is gone (report 2026-08-20). Log loudly, stay up.
+  process.on('uncaughtException', (err) => {
+    console.error('uncaught exception — board stays up:', (err && err.stack) || err);
+  });
+  process.on('unhandledRejection', (err) => {
+    console.error('unhandled rejection — board stays up:', (err && err.stack) || err);
+  });
 
   // BOARD_FORCE_NEW is the escape hatch for working ON the board itself, where
   // reusing a server running the previous build is exactly wrong.

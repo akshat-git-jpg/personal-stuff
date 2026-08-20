@@ -1,0 +1,769 @@
+{
+  "video": "best-no-code-automation-tool",
+  "sections": [
+    {
+      "part": "body",
+      "start": 113.667,
+      "end": 2040.167,
+      "items": [
+        {
+          "id": "c01",
+          "card": "tool-icon/tool-glass-tile",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "First of all, we have n8n",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c02",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Its core strengths is",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c03",
+          "card": "tool-icon/tool-glass-tile",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "Flowise, on the other hand, is a visual",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c04",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Its biggest strength is",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c05",
+          "card": "tool-icon/tool-glass-tile",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "Zapier is a no-code automation tool",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c06",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Its biggest strength is",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c07",
+          "card": "tool-icon/tool-glass-tile",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "Moving over to Make",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c08",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Its strength is",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c09",
+          "card": "tool-icon/tool-glass-tile",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "And then finally, we move over to LangChain",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c10",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Its strength is",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c11",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "Once we've gotten an idea of what all",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c12",
+          "card": "link-in-description/link-in-description",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "check the sign up or download links in the description",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c13",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "I'm going to be using the same output logic",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c14",
+          "card": "enacted/pipeline-flow",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "The demo scenario is going",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c15",
+          "card": "section/tool-intro",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "we're going to come over to n8n",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c16",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "a webhook is any random test URL",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c17",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "add AI right here and let's go with OpenAI",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c18",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "The most important thing is to have an API key",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c19",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "we're going to want to use this API key for all of our automation platforms",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c20",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you can choose any model for yourself",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c21",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "We're simply going to add an external node",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c22",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Once we add our Gmail, go ahead and allow the access",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c23",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "automation done and dusted",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c24",
+          "card": "section/tool-intro",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "let's move over to Flowise",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c25",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you can simply add in your OpenAI credentials",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c26",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "it will say that the Model 4 does not exist",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c27",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Then there is the tools that you can select",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c28",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you add a chat input node, the prompt template node",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c29",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "It's visually clean",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c30",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "you can simply add in a prompt like how are you",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c31",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "You can choose whichever one you want a CSV output",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c32",
+          "card": "section/tool-intro",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "let's go over to Zapier",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c33",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "without connecting your account, you will not be able to fully access",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c34",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "The action is going to be something related to OpenAI",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c35",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "test trigger to make sure",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c36",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "generate a preview for yourself",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c37",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "we're going to move on to the next steps",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c38",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "click on publish and this will go ahead and prepare your Zap",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c39",
+          "card": "section/tool-intro",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "let's move over to make",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c40",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "when we get an email or we receive a specific email",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c41",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "That module obviously needs to be AI",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c42",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Go to Gmail, and it says send an email",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c43",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "makes automation has been created as well",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c44",
+          "card": "section/tool-intro",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "Finally, let's move over to LangSmith",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c45",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "LangChain, again, a lot like Flowise",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c46",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "add proper input nodes with LLMs on your prompts",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c47",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "use an open API key that has the recurring plans",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c48",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "input handler, prompt template, LLM chain, output parser",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c49",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "It's raw power",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c50",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "which are obviously agents that don't really create an automation",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c51",
+          "card": "comparison/table-rows",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "the executions were successful",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c52",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "clearly feel more purpose-built",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c53",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "pricing realities of these softwares",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c54",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Self-hosting alone makes it",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c55",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Flowise is also a pretty excellent value",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c56",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "You get LangChain or LangSmith-level capability",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c57",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "It gets expensive fast",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c58",
+          "card": "overlay/verdict-chips",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Make offers better value than Zapier",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c59",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "the pricings are quite expensive",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c60",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "The real cost here is engineering effort",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c61",
+          "card": "link-in-description/link-in-description",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "given the link for each of these in the description below",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c62",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "I have created a summary table",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c63",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Zapier will give you a no-code automation tool",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c64",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Because n8n is low code, but it offers you self-hosting",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c65",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "And Flowise, of course, is the most consistent",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c66",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Zapier was the best, but obviously following Zapier",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c67",
+          "card": "overlay/tip-banner",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "we move over to pricing and value where n8n and Flowise definitely take the win",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "c68",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "Flowise was consistently good in all of the use cases",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    },
+    {
+      "part": "conclusion",
+      "start": 2040.167,
+      "end": 2169.2,
+      "items": [
+        {
+          "id": "z01",
+          "card": "section/section-card-flip",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": true,
+          "anchor": "If you want to go ahead and choose a software",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z02x",
+          "card": "overlay/lower-third",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "I have the individual conclusions for you",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z03",
+          "card": "verdict/persona-match",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "First of all, choose n8n",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z04",
+          "card": "enacted/promise-split",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "my personal favorite were n8n and Flowise",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z05",
+          "card": "enacted/fill-gauge",
+          "status": "existing",
+          "placement": "fullframe",
+          "structural": false,
+          "anchor": "These wins aren't hype",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z06",
+          "card": "link-in-description/link-in-description",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "check the links in the description below",
+          "flagged": false,
+          "proposal": null
+        },
+        {
+          "id": "z07",
+          "card": "like-subscribe/like-subscribe",
+          "status": "existing",
+          "placement": "overlay",
+          "structural": false,
+          "anchor": "do make sure to subscribe for more honest decision driven comparisons",
+          "flagged": false,
+          "proposal": null
+        }
+      ]
+    }
+  ]
+}

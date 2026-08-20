@@ -1,0 +1,381 @@
+<title>Intro Motion Preview</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;600;800&display=swap">
+<style>
+  :root{
+    --paper:#f6f3ee;--ink:#1b1713;--ink-2:#5d5348;--ink-3:#8b8073;
+    --rule:#e2dbd1;--mark:#b4470d;--mark-soft:#f3e3d6;
+    --film-bg-a:#3a1f08;--film-bg-b:#0a0805;
+    --film-accent:#fb923c;--film-text:#ffffff;--film-dim:#8d8279;
+    --shell:min(1400px,100%);
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --paper:#141110;--ink:#f2ece4;--ink-2:#b3a89b;--ink-3:#877c6f;
+    --rule:#2e2924;--mark:#f0873a;--mark-soft:#33241a;
+  }}
+  :root[data-theme="dark"]{
+    --paper:#141110;--ink:#f2ece4;--ink-2:#b3a89b;--ink-3:#877c6f;
+    --rule:#2e2924;--mark:#f0873a;--mark-soft:#33241a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Archivo','Helvetica Neue',Arial,system-ui,sans-serif;
+    font-size:clamp(.82rem,.78rem + .2vw,.95rem);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{width:var(--shell);margin:0 auto;padding:clamp(1.75rem,4vw,3.5rem) clamp(1rem,3vw,2rem) 5rem}
+
+  .mast{display:flex;flex-direction:column;gap:1.15rem;padding-bottom:1.5rem;border-bottom:2px solid var(--ink)}
+  .kicker{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--mark);font-weight:500}
+  h1{margin:0;font-size:clamp(2rem,1.3rem + 3.2vw,3.6rem);font-weight:800;letter-spacing:-.035em;line-height:.98;text-wrap:balance}
+  .standfirst{margin:0;max-width:64ch;color:var(--ink-2);font-size:clamp(.95rem,.9rem + .3vw,1.1rem);line-height:1.6}
+  .facts{display:flex;flex-wrap:wrap;gap:.5rem 2.25rem;margin-top:.4rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.75rem;color:var(--ink-3)}
+  .facts b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+
+  .note{margin:2.25rem 0;padding:1.15rem 1.35rem;background:var(--mark-soft);border-left:3px solid var(--mark);border-radius:0 6px 6px 0}
+  .note p{margin:0;max-width:68ch}
+  .note p + p{margin-top:.55rem}
+
+  h2{margin:2.5rem 0 .35rem;font-size:1.5rem;font-weight:700;letter-spacing:-.02em}
+  .sectnote{margin:0 0 1.75rem;color:var(--ink-2);max-width:66ch}
+
+  .sheet{display:grid;gap:2.5rem 1.75rem;grid-template-columns:repeat(auto-fill,minmax(370px,1fr))}
+  .beat{display:flex;flex-direction:column}
+  .slug{display:flex;align-items:baseline;gap:.7rem;padding-bottom:.5rem;font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .bid{font-size:.9rem;font-weight:600;color:var(--mark);letter-spacing:.04em}
+  .btime,.bdur{font-size:.74rem;color:var(--ink-3)}
+  .bdur{margin-left:auto}
+
+  .frame{position:relative;aspect-ratio:16/9;width:100%;overflow:hidden;border-radius:5px;
+    border:1px solid var(--rule);
+    background:radial-gradient(ellipse at 26% 18%,var(--film-bg-a) 0%,var(--film-bg-b) 62%);
+    font-family:'Inter','Helvetica Neue',Arial,sans-serif;container-type:inline-size}
+  .hl{position:absolute;left:6.4%;top:9.5%;font-size:7.4cqw;font-weight:800;letter-spacing:-.035em;line-height:1;color:var(--film-text);white-space:nowrap}
+  .hl em{font-style:normal;color:var(--film-accent)}
+  .stage{position:absolute;left:6%;top:33%;width:52%;height:58%}
+  .stage svg{width:100%;height:100%;overflow:visible}
+  .pres{position:absolute;right:-1.5%;bottom:0;width:30%;height:74%;border-radius:3px;
+    background:linear-gradient(168deg,#4a2c14 0%,#25150a 55%,#150c05 100%)}
+  .pres::before{content:"";position:absolute;top:16%;left:50%;transform:translateX(-50%);width:34%;aspect-ratio:1;border-radius:50%;background:#6b4526;opacity:.55}
+  .pres::after{content:"";position:absolute;top:52%;left:50%;transform:translateX(-50%);width:62%;height:48%;border-radius:44% 44% 0 0;background:#6b4526;opacity:.4}
+
+  /* ---------- shared stroke vocabulary ---------- */
+  .g{fill:none;stroke:#8d8279;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+  .g-hot{fill:none;stroke:var(--film-accent);stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round}
+  .fill-hot{fill:var(--film-accent)}
+  .fill-dim{fill:#5f564f}
+
+  @media (prefers-reduced-motion:reduce){
+    .frame *{animation:none !important}
+  }
+
+  /* b01 — pulse travels through three nodes */
+  @keyframes n1{0%,8%{opacity:.25}14%,100%{opacity:1}}
+  @keyframes n2{0%,30%{opacity:.25}36%,100%{opacity:1}}
+  @keyframes n3{0%,52%{opacity:.25}58%,100%{opacity:1}}
+  @keyframes travel{0%{transform:translateX(0);opacity:0}10%{opacity:1}60%{transform:translateX(120px);opacity:1}70%,100%{opacity:0;transform:translateX(120px)}}
+  .b01 .n1{animation:n1 4.3s infinite}
+  .b01 .n2{animation:n2 4.3s infinite}
+  .b01 .n3{animation:n3 4.3s infinite}
+  .b01 .pulse{animation:travel 4.3s infinite}
+
+  /* b02 — five logos pop in, one per name */
+  @keyframes pop{0%,var(--d){transform:scale(.4);opacity:0}calc(var(--d) + 6%){transform:scale(1.12);opacity:1}calc(var(--d) + 11%),100%{transform:scale(1);opacity:1}}
+  .b02 .lg{transform-box:fill-box;transform-origin:center;animation:pop 7.9s infinite}
+
+  /* b03 — clock hand sweeps fast then settles */
+  @keyframes sweep{0%{transform:rotate(0deg)}62%{transform:rotate(1080deg)}72%,100%{transform:rotate(1055deg)}}
+  @keyframes fadein{0%,60%{opacity:0}72%,100%{opacity:1}}
+  .b03 .hand{transform-box:fill-box;transform-origin:bottom center;animation:sweep 3.4s infinite cubic-bezier(.3,0,.2,1)}
+
+  /* b04 — one gear spins strong, two more pile on, it jams */
+  @keyframes spinfast{0%{transform:rotate(0)}40%{transform:rotate(300deg)}100%{transform:rotate(330deg)}}
+  @keyframes dropin{0%,42%{opacity:0;transform:translateY(-14px)}56%,100%{opacity:1;transform:translateY(0)}}
+  .b04 .gear-a{transform-box:fill-box;transform-origin:center;animation:spinfast 3.8s infinite cubic-bezier(.1,.7,.9,.2)}
+  .b04 .gear-b{animation:dropin 3.8s infinite}
+  .b04 .gear-c{animation:dropin 3.8s infinite .5s}
+
+  /* b05 — dot glides then stops dead at a wall */
+  @keyframes glide{0%{transform:translateX(0)}46%{transform:translateX(118px)}52%{transform:translateX(112px)}100%{transform:translateX(112px)}}
+  @keyframes wallhit{0%,44%{opacity:.35}50%{opacity:1;stroke-width:9}60%,100%{opacity:1;stroke-width:6}}
+  .b05 .ball{animation:glide 2.9s infinite cubic-bezier(.2,.6,.6,1)}
+  .b05 .wall{animation:wallhit 2.9s infinite}
+
+  /* b06 — padlock clicks open */
+  @keyframes unlock{0%,30%{transform:rotate(0) translateY(0)}46%,100%{transform:rotate(38deg) translateY(-4px)}}
+  @keyframes glow{0%,30%{stroke:#8d8279}46%,100%{stroke:var(--film-accent)}}
+  .b06 .shackle{transform-box:fill-box;transform-origin:right bottom;animation:unlock 6.5s infinite cubic-bezier(.3,1.6,.5,1),glow 6.5s infinite}
+
+  /* b07 — five options, one gets picked */
+  @keyframes dim{0%,34%{opacity:1}50%,100%{opacity:.22}}
+  @keyframes chosen{0%,34%{transform:translateY(0) scale(1)}50%,100%{transform:translateY(-12px) scale(1.16)}}
+  @keyframes tickin{0%,52%{opacity:0;stroke-dashoffset:40}66%,100%{opacity:1;stroke-dashoffset:0}}
+  .b07 .opt{animation:dim 8s infinite}
+  .b07 .pick{transform-box:fill-box;transform-origin:center;animation:chosen 8s infinite cubic-bezier(.3,1.5,.5,1)}
+  .b07 .tick{stroke-dasharray:40;animation:tickin 8s infinite}
+
+  /* b08 — people appear one at a time */
+  @keyframes rise{0%,var(--d){opacity:0;transform:translateY(12px)}calc(var(--d) + 8%),100%{opacity:1;transform:translateY(0)}}
+  .b08 .who{transform-box:fill-box;animation:rise 11.1s infinite}
+
+  /* b13 — cross out, then tick in */
+  @keyframes crossout{0%,20%{opacity:0}30%{opacity:1}52%{opacity:1}62%,100%{opacity:0}}
+  @keyframes tick13{0%,58%{opacity:0;stroke-dashoffset:44}74%,100%{opacity:1;stroke-dashoffset:0}}
+  .b13 .cross{animation:crossout 4.2s infinite}
+  .b13 .tick2{stroke-dasharray:44;animation:tick13 4.2s infinite}
+
+  /* b14 — five tiles, then press play */
+  @keyframes tilein{0%,var(--d){opacity:0;transform:scale(.6)}calc(var(--d) + 7%),100%{opacity:1;transform:scale(1)}}
+  @keyframes playin{0%,58%{opacity:0;transform:scale(.5)}70%{opacity:1;transform:scale(1.15)}76%,100%{opacity:1;transform:scale(1)}}
+  .b14 .tile{transform-box:fill-box;transform-origin:center;animation:tilein 9.8s infinite}
+  .b14 .play{transform-box:fill-box;transform-origin:center;animation:playin 9.8s infinite}
+
+  .cap{padding-top:.85rem;margin-top:.85rem;border-top:1px solid var(--rule);display:flex;flex-direction:column;gap:.6rem}
+  .said,.seen{margin:0;line-height:1.5}
+  .said{font-size:.92rem;color:var(--ink)}
+  .seen{font-size:.88rem;color:var(--ink-2)}
+  .said::before,.seen::before{display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.63rem;letter-spacing:.16em;color:var(--ink-3);margin-bottom:.2rem}
+  .said::before{content:"HEARD"}
+  .seen::before{content:"MOTION"}
+
+  .tail{margin-top:3.5rem;padding-top:1.5rem;border-top:2px solid var(--ink);display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .tail h3{margin:0 0 .4rem;font-size:.78rem;font-family:'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mark);font-weight:500}
+  .tail p{margin:0;color:var(--ink-2);font-size:.88rem}
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="kicker">visuals-flow · best-no-code-automation-tool · intro film · v3</div>
+    <h1>Intro Motion Preview</h1>
+    <p class="standfirst">These frames are <em>animating right now</em>, looping at the real beat length. One familiar icon, one movement, per beat. No paragraphs on screen, no invented objects, nothing to decode &mdash; the movement itself carries the meaning.</p>
+    <div class="facts">
+      <span>Beats <b>10</b></span>
+      <span>Words on screen <b>headline only</b></span>
+      <span>Icons used <b>all familiar</b></span>
+      <span>Image generations <b>0</b></span>
+    </div>
+  </header>
+
+  <div class="note">
+    <p><strong>What changed.</strong> v1 was illustrated scenes &mdash; an engine buried in cables, a maze, a peeled poster. Those are pictures you have to read. v2 replaced them with text, which put paragraphs on screen. Both were wrong.</p>
+    <p><strong>v3 is movement.</strong> A clock that spins. A lock that clicks open. A ball that rolls and hits a wall. A tick that draws itself. Everyone already knows these &mdash; there is no second meaning to work out, and each one starts on the word it belongs to.</p>
+  </div>
+
+  <h2>The ten beats, moving</h2>
+  <p class="sectnote">Watch each frame for a few seconds. If you understand it without reading the caption, it works. If you have to think, tell me and I&rsquo;ll change it.</p>
+
+  <div class="sheet">
+
+    <!-- b01 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b01</span><span class="btime">00:00.0</span><span class="bdur">4.3s</span></div>
+      <div class="frame b01">
+        <div class="hl">ONE <em>WORKFLOW</em></div>
+        <div class="stage"><svg viewBox="0 0 200 100" role="img" aria-label="Three steps light up left to right as a pulse travels through them">
+          <path class="g" d="M40 50h60"/><path class="g" d="M100 50h60"/>
+          <circle class="g n1" cx="30" cy="50" r="17"/>
+          <circle class="g n2" cx="100" cy="50" r="17"/>
+          <circle class="g n3" cx="170" cy="50" r="17"/>
+          <circle class="fill-hot pulse" cx="48" cy="50" r="6"/>
+        </svg></div>
+        <div class="pres"></div>
+      </div>
+      <div class="cap">
+        <p class="said">&ldquo;If you&rsquo;re trying to automate workflows or build AI agents&rdquo;</p>
+        <p class="seen">Three steps light up left to right as a spark runs through them. That is a workflow, shown by moving, not explained.</p>
+      </div>
+    </article>
+
+    <!-- b02 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b02</span><span class="btime">00:04.3</span><span class="bdur">7.9s</span></div>
+      <div class="frame b02">
+        <div class="hl">FIVE WAYS IN</div>
+        <div class="stage"><svg viewBox="0 0 200 100" role="img" aria-label="Five tool logos pop in one at a time as each is named">
+          <rect class="lg" style="--d:6%;fill:#ea4b71" x="6"   y="34" width="32" height="32" rx="8"/>
+          <rect class="lg" style="--d:22%;fill:#6d00cc" x="46"  y="34" width="32" height="32" rx="8"/>
+          <rect class="lg" style="--d:38%;fill:#ff4f00" x="86"  y="34" width="32" height="32" rx="8"/>
+          <rect class="lg" style="--d:54%;fill:#1c9c7c" x="126" y="34" width="32" height="32" rx="8"/>
+          <rect class="lg" style="--d:70%;fill:#3b82f6" x="166" y="34" width="32" height="32" rx="8"/>
+        </svg></div>
+        <div class="pres"></div>
+      </div>
+      <div class="cap">
+        <p class="said">&ldquo;stuck between tools like n8n, Make, Zapier, LangChain or Flowise&rdquo;</p>
+        <p class="seen">Each real logo pops in the instant its name is said. Coloured squares stand in for the real marks here.</p>
+      </div>
+    </article>
+
+    <!-- b03 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b03</span><span class="btime">00:12.2</span><span class="bdur">3.4s</span></div>
+      <div class="frame b03">
+        <div class="hl">NO <em>GUESSWORK</em></div>
+        <div class="stage"><svg viewBox="0 0 200 100" role="img" aria-label="A clock hand spins fast then settles">
+          <circle class="g" cx="100" cy="50" r="36"/>
+          <path class="g-hot hand" d="M100 50V22"/>
+          <circle class="fill-hot" cx="100" cy="50" r="4.5"/>
+          <path class="g" d="M100 8v6M142 50h-6M100 92v-6M58 50h6" stroke-width="4"/>
+        </svg></div>
+        <div class="pres"></div>
+      </div>
+      <div class="cap">
+        <p class="said">&ldquo;this video will save you hours of trial and error&rdquo;</p>
+        <p class="seen">A clock hand races round and then stops. Hours, gone. Nobody needs that explained.</p>
+      </div>
+    </article>
+
+    <!-- b04 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b04</span><span class="btime">00:15.7</span><span class="bdur">3.8s</span></div>
+      <div class="frame b04">
+        <div class="hl">POWER, THEN <em>PAIN</em></div>
+        <div class="stage"><svg viewBox="0 0 200 100" role="img" aria-label="A gear spins fast, then two more drop in and it grinds to a crawl">
+          <g class="gear-a">
+            <circle class="g-hot" cx="70" cy="50" r="26"/>
+            <path class="g-hot" d="M70 18v-8M70 90v-8M102 50h8M30 50h-8M93 27l6-6M41 73l-6 6M93 73l6 6M41 27l-6-6"/>
+          </g>
+          <g class="gear-b"><circle class="g" cx="126" cy="34" r="17"/>
+            <path class="g" d="M126 13v-6M126 61v-6M147 34h6M99 34h6"/></g>
+          <g class="gear-c"><circle class="g" cx="134" cy="72" r="14"/>
+            <path class="g" d="M134 54v-5M134 95v-5M152 72h5M111 72h5"/></g>
+        </svg></div>
+        <div class="pres"></div>
+      </div>
+      <div class="cap">
+        <p class="said">&ldquo;Some of these tools are pretty powerful but painfully complex&rdquo;</p>
+        <p class="seen">One gear spins strong, then more gears pile on and it grinds almost to a stop. Power, then pain, in one movement.</p>
+      </div>
+    </article>
+
+    <!-- b05 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b05</span><span class="btime">00:19.5</span><span class="bdur">2.9s</span></div>
+      <div class="frame b05">
+        <div class="hl">EASY, THEN <em>STUCK</em></div>
+        <div class="stage"><svg viewBox="0 0 200 100" role="img" aria-label="A ball rolls smoothly then stops dead against a wall">
+          <path class="g" d="M14 74h150" stroke-width="4"/>
+          <circle class="fill-hot ball" cx="30" cy="60" r="12"/>
+          <path class="g wall" d="M168 74V22" stroke-width="6"/>
+        </svg></div>
+        <div class="pres"></div>
+      </div>
+      <div class="cap">
+        <p class="said">&ldquo;Others are easy but hit a wall fast&rdquo;</p>
+        <p class="seen">A ball rolls easily, then stops dead against a wall. The whole sentence is the movement.</p>
+      </div>
+    </article>
+
+    <!-- b06 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b06</span><span class="btime">00:22.3</span><span class="bdur">6.5s</span></div>
+      <div class="frame b06">
+        <div class="hl">ACTUALLY <em>FLEXIBLE</em></div>
+        <div class="stage"><svg viewBox="0 0 200 100" role="img" aria-label="A padlock clicks open">
+          <rect class="g" x="70" y="48" width="60" height="44" rx="9"/>
+          <circle class="g" cx="100" cy="66" r="6"/>
+          <path class="g" d="M100 72v9"/>
+          <path class="g shackle" d="M82 48V34a18 18 0 0 1 36 0v14"/>
+        </svg></div>
+        <div class="pres"></div>
+      </div>
+      <div class="cap">
+        <p class="said">&ldquo;a few actually give you real flexibility without locking you into crazy pricing&rdquo;</p>
+        <p class="seen">The lock clicks open. One movement, and it turns orange as it opens.</p>
+      </div>
+    </article>
+
+    <!-- b07 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b07</span><span class="btime">00:28.8</span><span class="bdur">8.0s</span></div>
+      <div class="frame b07">
+        <div class="hl">YOUR CALL</div>
+        <div class="stage"><svg viewBox="0 0 200 100" role="img" aria-label="Five options, one lifts up and gets a tick while the rest fade back">
+          <rect class="opt fill-dim" x="8"   y="44" width="30" height="30" rx="7"/>
+          <rect class="opt fill-dim" x="46"  y="44" width="30" height="30" rx="7"/>
+          <rect class="pick fill-hot" x="84" y="44" width="30" height="30" rx="7"/>
+          <rect class="opt fill-dim" x="122" y="44" width="30" height="30" rx="7"/>
+          <rect class="opt fill-dim" x="160" y="44" width="30" height="30" rx="7"/>
+          <path class="g-hot tick" d="m88 42 8 9 15-19"/>
+        </svg></div>
+        <div class="pres"></div>
+      </div>
+      <div class="cap">
+        <p class="said">&ldquo;you will know exactly which tool makes sense for your use case and which ones you should avoid&rdquo;</p>
+        <p class="seen">One option lifts up and gets a tick. The other four fade back. Picking, shown as picking.</p>
+      </div>
+    </article>
+
+    <!-- b08 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b08</span><span class="btime">00:36.9</span><span class="bdur">11.1s</span></div>
+      <div class="frame b08">
+        <div class="hl">FOR BUILDERS</div>
+        <div class="stage"><svg viewBox="0 0 200 100" role="img" aria-label="Four person icons appear one at a time as each group is named">
+          <g class="who" style="--d:4%"><circle class="fill-hot" cx="30" cy="40" r="12"/><path class="g-hot" d="M12 84c0-11 8-19 18-19s18 8 18 19"/></g>
+          <g class="who" style="--d:18%"><circle class="fill-dim" cx="76" cy="40" r="12"/><path class="g" d="M58 84c0-11 8-19 18-19s18 8 18 19"/></g>
+          <g class="who" style="--d:32%"><circle class="fill-dim" cx="122" cy="40" r="12"/><path class="g" d="M104 84c0-11 8-19 18-19s18 8 18 19"/></g>
+          <g class="who" style="--d:50%"><circle class="fill-dim" cx="168" cy="40" r="12"/><path class="g" d="M150 84c0-11 8-19 18-19s18 8 18 19"/></g>
+        </svg></div>
+        <div class="pres"></div>
+      </div>
+      <div class="cap">
+        <p class="said">&ldquo;This video is for all you creators, developers, automation builders, and anyone experimenting with AI workflows&rdquo;</p>
+        <p class="seen">A person appears for each group as he names them. Four names, four people.</p>
+      </div>
+    </article>
+
+    <!-- b13 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b13</span><span class="btime">01:17.7</span><span class="bdur">4.2s</span></div>
+      <div class="frame b13">
+        <div class="hl">NO CLAIMS</div>
+        <div class="stage"><svg viewBox="0 0 200 100" role="img" aria-label="A cross appears and disappears, then a tick draws itself">
+          <g class="cross"><path class="g" d="m76 26 48 48M124 26l-48 48" stroke-width="9" stroke="#8d8279"/></g>
+          <path class="g-hot tick2" d="m70 52 20 22 42-48" stroke-width="9"/>
+        </svg></div>
+        <div class="pres"></div>
+      </div>
+      <div class="cap">
+        <p class="said">&ldquo;No marketing claims, just real workflows and real outputs&rdquo;</p>
+        <p class="seen">A cross for the claims, then a tick for the real thing. Two symbols everyone reads instantly.</p>
+      </div>
+    </article>
+
+    <!-- b14 -->
+    <article class="beat">
+      <div class="slug"><span class="bid">b14</span><span class="btime">01:21.9</span><span class="bdur">9.8s</span></div>
+      <div class="frame b14">
+        <div class="hl">WHAT&rsquo;S COMING</div>
+        <div class="stage"><svg viewBox="0 0 200 100" role="img" aria-label="Five tiles appear, then a play button">
+          <rect class="tile fill-dim" style="--d:4%"  x="6"   y="16" width="26" height="26" rx="6"/>
+          <rect class="tile fill-dim" style="--d:12%" x="40"  y="16" width="26" height="26" rx="6"/>
+          <rect class="tile fill-dim" style="--d:20%" x="74"  y="16" width="26" height="26" rx="6"/>
+          <rect class="tile fill-dim" style="--d:28%" x="108" y="16" width="26" height="26" rx="6"/>
+          <rect class="tile fill-dim" style="--d:36%" x="142" y="16" width="26" height="26" rx="6"/>
+          <g class="play"><circle class="g-hot" cx="88" cy="74" r="20"/><path class="fill-hot" d="m82 64 16 10-16 10z"/></g>
+        </svg></div>
+        <div class="pres"></div>
+      </div>
+      <div class="cap">
+        <p class="said">&ldquo;a quick overview of all of these five tools, a live demo using the same workflow idea&rdquo;</p>
+        <p class="seen">Five tiles for the five tools, then a play button for the demo. Headline changed from FIVE&nbsp;CROSSINGS &mdash; that word was itself a puzzle.</p>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="tail">
+    <div>
+      <h3>Why these icons</h3>
+      <p>Clock, gear, lock, tick, cross, person, play. Every one is understood without being taught. No invented objects, no gates, no chains, no queues.</p>
+    </div>
+    <div>
+      <h3>What it costs</h3>
+      <p>About two hours, and zero image generations. These are drawn in code, so they animate exactly on the timings and can be adjusted in seconds.</p>
+    </div>
+    <div>
+      <h3>If one does not read</h3>
+      <p>Name the beat. If you had to think about it for even a second, it fails the test and I will replace it.</p>
+    </div>
+  </div>
+
+</div>

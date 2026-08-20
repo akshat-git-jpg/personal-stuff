@@ -33,7 +33,16 @@ export function contribute(seg, instances, ctx) {
   const assFile = `${capDir}/seg-${seg.id}.ass`;
   if (!fs.existsSync(assFile)) return null;
 
-  const escapedAssPath = assFile.replace(/:/g, '\\:').replace(/'/g, "'\\''");
+  // Separators FIRST, then the colon. A filtergraph treats backslash as an
+  // escape character, so a Windows path passed through as C:\Users\... has every
+  // \U and \k eaten by the parser and libass is handed "C:Userskushi..." — a
+  // path with no separators left in it, which fails as "No such file". ffmpeg
+  // accepts forward slashes on Windows, so normalising the separators sidesteps
+  // the escaping instead of trying to out-escape a parser that runs twice.
+  const escapedAssPath = assFile
+    .replace(/\\/g, '/')
+    .replace(/:/g, '\\:')
+    .replace(/'/g, "'\\''");
 
   return {
     vfSuffix: `,subtitles=filename='${escapedAssPath}'`

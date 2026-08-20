@@ -1,12 +1,34 @@
 import { useEffect, useState, ReactNode } from 'react';
 import './IntroTab.css';
 import { ReviewSurface, ReviewComment, PlayerApi } from '../components/ReviewSurface';
+import { FeedbackBox } from '../components/FeedbackBox';
 import { fmtClock } from '../lib/fcTransport';
+import { DEFAULT_FRAME_ZOOM, canZoom, stepZoom, zoomLabel, zoomSpan } from '../lib/frameZoom';
 
 // Gate 027. The player, comment list and composer come from <ReviewSurface>,
 // shared with Final Cut — this file owns only what is specific to reviewing a
 // bespoke intro film: the approve action, the check findings, and the beat
 // sheet (each beat's stage direction beside the frames it actually produced).
+
+// One frame of the beat sheet, with its own zoom bar directly beneath it. The
+// stepping rules live in lib/frameZoom.ts so they are unit-testable — this file
+// only wires them.
+function BeatFrame({ file, zoom, onZoom }: { file: string; zoom: number; onZoom: (z: number) => void }) {
+  return (
+    <div className="intro-frame" style={{ gridColumn: `span ${zoomSpan(zoom)}` }}>
+      <img
+        src={`/intro-frame?f=${encodeURIComponent(file)}`}
+        alt={file}
+        style={zoom < 1 ? { width: '50%' } : undefined}
+      />
+      <div className="intro-frame-zoom">
+        <button type="button" title="zoom out" disabled={!canZoom(zoom, -1)} onClick={() => onZoom(stepZoom(zoom, -1))}>−</button>
+        <span className="intro-frame-zoom-level">{zoomLabel(zoom)}</span>
+        <button type="button" title="zoom in" disabled={!canZoom(zoom, 1)} onClick={() => onZoom(stepZoom(zoom, 1))}>+</button>
+      </div>
+    </div>
+  );
+}
 
 export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
   video: string;
@@ -19,6 +41,10 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
   const [fcItems, setFcItems] = useState<Record<string, ReviewComment>>({});
   const [videoMissing, setVideoMissing] = useState(false);
   const [rejectNote, setRejectNote] = useState('');
+  // Zoom level per frame FILE, not per index: a beat's frame list is rebuilt on
+  // every poll, so an index-keyed map would move a reader's zoom onto whatever
+  // frame slid into that slot. File names are unique across the review dir.
+  const [frameZoom, setFrameZoom] = useState<Record<string, number>>({});
 
   const loadData = async () => {
     // Each fetch gets its own failure. Chained in one try, a board-data 500 both
@@ -222,6 +248,14 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
             Reject all directions
           </button>
         </div>
+        {/* The idea gate is a review too, and rejecting a direction is worth a
+            sentence saying why — same autosaved box the film review uses. */}
+        <div className="intro-global-feedback" style={{ maxWidth: 800, marginTop: 24 }}>
+          <FeedbackBox
+            refKey="intro-global"
+            placeholder="feedback on these directions (read by the next Claude session)"
+          />
+        </div>
       </div>
     );
   }
@@ -256,10 +290,25 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
           <div className="intro-beat-content">
             <div className="intro-beat-stage">{b.stage}</div>
             <div className="intro-beat-frames">
-              {b.frames?.map((f: string, j: number) => (
-                <img key={j} src={`/intro-frame?f=${encodeURIComponent(f)}`} alt={f} />
+              {b.frames?.map((f: string) => (
+                <BeatFrame
+                  key={f}
+                  file={f}
+                  zoom={frameZoom[f] ?? DEFAULT_FRAME_ZOOM}
+                  onZoom={(z) => setFrameZoom((prev) => ({ ...prev, [f]: z }))}
+                />
               ))}
             </div>
+          </div>
+          {/* Per-beat notes, exactly like a storyboard cue tile: autosaved to
+              feedback.json, no player involved. The beat sheet is the only part
+              of this tab that works before the film is rendered, so it is where
+              the review actually happens on a fresh intro. */}
+          <div className="intro-beat-feedback">
+            <FeedbackBox
+              refKey={`intro-${b.id}`}
+              placeholder={`feedback on ${b.id} — staging, timing, wording… (read by the next Claude session)`}
+            />
           </div>
         </div>
       ))}
@@ -277,6 +326,29 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
     </div>
   ) : null;
 
+  // The collective box. The comment composer below it is timestamped, so it is
+  // dead until out/intro.mp4 exists — which is most of gate 027, and left the
+  // owner with a review surface that took no feedback at all (owner report
+  // 2026-08-13). This one is the storyboard's autosaved box: no player, no
+  // timestamp, works from the moment the screenplay does.
+  const panelTop = (
+    <>
+      <div className="intro-global-feedback">
+        <FeedbackBox
+          refKey="intro-global"
+          placeholder="overall feedback on the intro film (read by the next Claude session)"
+        />
+        {videoMissing && (
+          <div className="intro-feedback-hint">
+            Not rendered yet — timestamped comments need the film. Use this box and the
+            per-beat boxes under the beat sheet; both autosave.
+          </div>
+        )}
+      </div>
+      {findingsPanel}
+    </>
+  );
+
   return (
     <div className="intro-tab">
       <ReviewSurface
@@ -287,7 +359,7 @@ export function IntroTab({ video, onMeta, onActions, onSecondary, onRefetch }: {
         contextPrefix="intro"
         items={fcItems}
         onItemsChange={setFcItems}
-        panelTop={findingsPanel}
+        panelTop={panelTop}
         belowPlayer={beatSheet}
       />
     </div>

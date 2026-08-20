@@ -1,0 +1,1129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>best-no-code-automation-tool — intro film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<style>
+:root{
+  /* DESIGN.md palette. Dark register is the default world; #bg-light carries
+     the light register on top of it so the turn is a crossfade, not a repaint. */
+  --bg-from:#3a1f08; --bg-to:#0a0805;
+  --lt-from:#2b2416; --lt-to:#0a0805;
+  --text:#ffffff;
+  --text-dim:rgba(255,239,219,0.62);
+  --accent:#fb923c;
+  --positive:#34d399;
+  /* Hero 150 over body 52 = 2.88x — mid-band of the 2.5x-4x rule rather than
+     on either edge (DESIGN.md, "land in the middle of it"). */
+  --hero-size:150px;
+  --body-size:52px;
+  --steel:#2a2620;
+  --steel-edge:rgba(255,239,219,0.30);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#000}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--text)}
+#root{position:relative;width:1920px;height:1080px;overflow:hidden;background:#000}
+
+#bg-dark,#bg-light{position:absolute;inset:0}
+#bg-dark{background:radial-gradient(ellipse at 30% 20%,var(--bg-from),var(--bg-to) 62%)}
+#bg-light{background:radial-gradient(ellipse at 30% 20%,var(--lt-from),var(--lt-to) 62%);opacity:0}
+#glow{position:absolute;left:-8%;top:-14%;width:64%;height:64%;
+  background:radial-gradient(circle,rgba(251,146,60,0.20),transparent 66%);filter:blur(38px)}
+
+/* hf-ambient — never dead on screen. Both loops are pure functions of t, so a
+   seek lands on the same frame the encoder does. */
+/* 6%/4% over 8s, not 2.2%/1.4% over 12s. The old values moved ~7px a second on
+   a soft gradient, which is below freezedetect's noise floor (n=0.003) — ten
+   stretches of this film were reported frozen while every one of them had
+   tweens running. Ambient is the FLOOR under every beat: if it does not move
+   the frame on its own, every beat has to, and a small icon cannot. */
+@keyframes drift{0%{transform:translate(0,0)}50%{transform:translate(6%,4%)}100%{transform:translate(0,0)}}
+@keyframes breathe{0%{transform:scale(1)}50%{transform:scale(1.012)}100%{transform:scale(1)}}
+#glow{animation:drift 8s ease-in-out infinite}
+#stage-shift{position:absolute;inset:0}
+#stage-ambient{position:absolute;inset:0;animation:breathe 6s ease-in-out infinite;transform-origin:50% 58%}
+
+/* ---- avatar -------------------------------------------------------------
+   T5: `full` means the presenter LEADS the frame, never covers it. The full
+   pose is an inset portrait on the right two-fifths with the stage still
+   readable beside it; `panel` docks the same element smaller. */
+/* right:-40 — he bleeds off the frame edge rather than floating 96px inside it.
+   The mask fades the bottom of the shot but the RIGHT edge was hard, so a docked portrait
+   read as a rectangle pasted on the stage. Bleeding also buys the content column
+   40px it did not have. None of this was visible until 2026-08-16: the <video>
+   carried no data-duration, so hyperframes never gave the clip a window and the
+   presenter was absent from every review frame ever taken of this film. */
+#avatar{position:absolute;right:-40px;bottom:0;width:660px;height:900px;
+  object-fit:cover;object-position:50% 12%;opacity:0;
+  transform-origin:100% 100%;
+  -webkit-mask-image:linear-gradient(to bottom,#000 78%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 78%,transparent 100%)}
+/* ---- the round treatment (T30) -------------------------------------------
+   Owner, 2026-08-20: "it's not necessary to show the avatar of the same size.
+   You can sometimes show the avatar on big screen, sometimes on small circle,
+   sometimes the thing like you are showing now ... I am leaving this completely
+   upon you."
+   Worth reading against what came before: on 2026-08-18 he rejected an enlarged
+   presenter, I settled on ONE size for the whole film, and wrote that down as
+   the lesson. It was the wrong lesson. The complaint then was that a size was
+   INCONSISTENT WITHIN a beat's needs, not that variety is bad -- and answering
+   it with a single constant traded one flaw for a flatter film.
+   So the film now has three treatments, chosen by what the beat is doing:
+   full (he leads the frame), panel (he sits beside the graphic), and round
+   (a close aside, where he is the whole point and there is no device to clear).
+   b13 -- "no marketing claims, just real workflows" -- is him speaking plainly
+   to camera, which is exactly the round one. */
+#avatar.round{width:520px;height:520px;right:150px;bottom:200px;
+  border-radius:50%;object-position:50% 18%;
+  -webkit-mask-image:none;mask-image:none;
+  box-shadow:0 0 0 3px rgba(255,239,219,0.10),0 40px 90px rgba(0,0,0,0.55)}
+
+#scrim{position:absolute;right:0;bottom:0;width:900px;height:1080px;opacity:0;
+  background:linear-gradient(to left,rgba(10,8,5,0.72),transparent 72%)}
+
+/* ---- type --------------------------------------------------------------- */
+/* nowrap, not a wrap-friendly box: a hero that wraps to a second line lands on
+   the sub beneath it, which is what content_overlap caught on h01 and h03. */
+.hero{position:absolute;left:120px;top:104px;width:1600px;white-space:nowrap;
+  font-size:var(--hero-size);font-weight:900;line-height:1.0;
+  letter-spacing:-0.035em;color:var(--text);opacity:0;visibility:hidden}
+.hero em{font-style:normal;color:var(--accent)}
+/* The sub survives only on the beats that were NOT rebuilt under T21. On a T21
+   beat the movement is the explanation, and a line of prose under the hero is
+   the "too much text on screen" the owner rejected on 2026-08-18. */
+.sub{position:absolute;left:124px;top:268px;width:1120px;
+  font-size:var(--body-size);font-weight:600;line-height:1.2;
+  letter-spacing:-0.015em;color:var(--text-dim);opacity:0;visibility:hidden}
+.eyebrow{position:absolute;left:124px;top:60px;font-size:26px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);
+  opacity:0;visibility:hidden}
+
+/* ---- T21 device stage ---------------------------------------------------
+   Every rebuilt beat draws ONE familiar icon here and animates ONE property of
+   it. The box is shared on purpose: only one device is ever visible, so a
+   single reserved lane makes clearance a property of the layout rather than
+   something each beat has to re-derive.
+   top:430 sits 176px below the hero's ink (which ends ~254) and the right edge
+   at x1150 clears the presenter, whose left edge is x1419 at his one size of
+   0.82. That is 269px — far more than T13's 40 — and deliberately so: full size
+   was tried and the owner rejected it on sight as crowding the graphics, even
+   though the boxes cleared by 150px. A shot of a person reads wider than its
+   rectangle. The lane is sized for the picture, not for the geometry. */
+.dev{position:absolute;left:150px;top:430px;width:1000px;height:460px;
+  opacity:0;visibility:hidden}
+.dev svg{width:1000px;height:460px;overflow:visible}
+/* One stroke vocabulary for every device, so eleven icons read as one hand.
+   Dim is the object at rest; accent is the part the beat is about. */
+.gs{fill:none;stroke:rgba(255,239,219,0.50);stroke-width:17;stroke-linecap:round;stroke-linejoin:round}
+.ga{fill:none;stroke:var(--accent);stroke-width:19;stroke-linecap:round;stroke-linejoin:round}
+.fa{fill:var(--accent)}
+.fd{fill:rgba(255,239,219,0.26)}
+/* fill-box for SCALE, which has no user-space equivalent — a scaled SVG child
+   without it pivots on the viewport origin and leaves the frame (T16).
+   ROTATION is deliberately excluded: .hand, .gear and .shk are rotated with
+   GSAP's `svgOrigin`, which addresses viewBox coordinates, and fill-box
+   overrides it. With both set the clock hand pivoted on its own box instead of
+   the clock face and swung clear outside the dial — visible at 14.13s in the
+   review, and reported as rotation_pivot_drift 1058px. One or the other, never
+   both: scale gets fill-box, rotation gets svgOrigin. */
+.dev [class*="sp"]{transform-box:fill-box}
+
+/* b02/b14 use the REAL tool marks. A logo is the one picture that needs no
+   decoding at all — it is the thing itself, not a stand-in for it. */
+.row{position:absolute;left:0;top:120px;display:flex;align-items:center;gap:62px}
+.row img{width:150px;height:150px;border-radius:30px;
+  border:1px solid rgba(255,255,255,0.10);flex:0 0 150px;opacity:0}
+.row.sm{top:40px;gap:44px}
+.row.sm img{width:118px;height:118px;border-radius:24px;flex:0 0 118px}
+
+/* ---- the queue of five (b09-b12, not a T21 rebuild) --------------------- */
+#queue{position:absolute;left:120px;top:404px;display:flex;flex-direction:column;gap:20px;opacity:0;visibility:hidden}
+.qc{display:flex;align-items:center;gap:18px;height:96px}
+.qc .tile{width:76px;height:76px;border-radius:16px;border:1px solid rgba(255,255,255,0.10);flex:0 0 76px}
+/* 250px, sized against the LONGEST label, not the first. At 186px every name
+   fit except "LangChain", which renders 188px and overflowed its box: its gap
+   to the bar collapsed to 16px while every other row had 113-140px. A fixed
+   column is right (a ragged left edge on the bars would break T6) — it just has
+   to be measured against the worst case. T13. */
+.qc .qname{width:250px;font-size:38px;font-weight:700;letter-spacing:-0.015em;color:var(--text)}
+.qc .qbar{height:26px;border-radius:13px;background:rgba(255,255,255,0.07);
+  border:2px solid rgba(255,239,219,0.26)}
+/* display:block is load-bearing, not tidiness. `.qload` is an <i> inside `.qbar`,
+   and `.qbar` is a plain block — so the <i> stays INLINE, where width and height
+   are simply ignored. GSAP tweened `width` on all five of these for two whole
+   beats and painted nothing. Only the frame showed it. T9/T16. */
+.qc .qload{display:block;height:26px;border-radius:13px;background:var(--accent);opacity:0.55;width:0}
+
+/* ---- the measuring rule (b12) ------------------------------------------- */
+/* top:424, not 352. At 352 the rule ran THROUGH the sub's text band (330-392) —
+   the owner saw the subtitle struck out by the line. The marks hang 16px above
+   the bar, so the real top of this group is 408, clearing the sub by 58px. */
+#rule{position:absolute;left:120px;top:424px;width:1160px;height:6px;border-radius:3px;
+  background:var(--accent);opacity:0;visibility:hidden;transform-origin:0 50%}
+.mark{position:absolute;top:-16px;width:6px;height:38px;border-radius:3px;background:var(--accent);opacity:0}
+/* the labels live in their own box, not inside the 6px-tall rule — text whose
+   nearest container is a hairline always reads as overflowing it.
+   top:448, not 462: at 462 the label box ended at 502 and b12's scaled queue
+   starts at 548, which the audit measured as 35px — under T13's 40. Moving the
+   labels UP costs nothing, because rule-and-labels is an allowed pair that reads
+   as one object, while moving the queue DOWN would push it toward the frame edge. */
+#rlabs{position:absolute;left:120px;top:448px;width:1160px;height:40px;opacity:0;visibility:hidden}
+.mlab{position:absolute;top:0;font-size:24px;font-weight:700;letter-spacing:0.10em;
+  text-transform:uppercase;color:var(--text-dim);opacity:0;white-space:nowrap;
+  transform:translateX(-50%)}
+
+/* ---- b08's changing headline -------------------------------------------
+   The clause names four audiences -- creators, developers, automation builders,
+   anyone -- and the headline named one of them for all 11.1s. Owner, 2026-08-18:
+   "there are so many names but you only gave the name of builder ... whenever
+   the other names appear you should change the name". "FOR" is set once and
+   never moves; only the group swaps, on the same word the person appears on.
+   The headline is the group name alone -- no standing "FOR". "FOR AUTOMATION
+   BUILDERS" at the hero size is 1925px of glyphs and the reviewer caught it
+   running off a 1920 frame; dropping the preposition buys back the room, and
+   reads like every other hero in this film (NO CLAIMS, SAME TEST, LINKS BELOW).
+   The size is MEASURED so the longest name fits, never typed -- see below. */
+#h08w{position:absolute;left:120px;top:104px;width:1700px;height:150px;
+  opacity:0;visibility:hidden}
+.h8w{position:absolute;left:0;top:0;white-space:nowrap;font-style:normal;
+  font-size:var(--hero-size);font-weight:900;line-height:1.0;
+  letter-spacing:-0.035em;color:var(--text);opacity:0}
+
+/* ---- what we'll cover: one line at a time ---------------------------------
+   NOT a list. The seven-row numbered card was tried on 2026-08-18 and withdrawn
+   the same day: "I was wrong to decide that use the template. It's not looking
+   good like this." Seven 52px rows standing for twenty-one seconds is exactly
+   the wall of text T21 exists to prevent, and a visible numbered list invites
+   the eye to read AHEAD of the voice instead of with it.
+   So: one line, large, arriving on its own word and leaving on the next one's.
+   The only thing the list carried that a single line cannot -- "there are seven
+   of these, we are on the third" -- is carried by a rail of seven marks, which
+   is read at a glance and is never read as text. T21, T23. */
+/* 556, not 378: every other beat puts its device in the .dev lane (top 430,
+   optical centre ~625) and the agenda is this beat's device. Sitting it just
+   under the hero made b14/b15 the only pair in the film with all its content in
+   the top third and 600px of dead frame below -- judged on the rendered frame,
+   not on a spacing token. */
+#cover{position:absolute;left:124px;top:556px;width:1300px;height:120px;
+  opacity:0;visibility:hidden}
+/* every line occupies the same box; only one is ever above opacity 0, so they
+   stack rather than flow and nothing reflows when the text length changes */
+.cvl{position:absolute;left:0;top:0;width:100%;white-space:nowrap;
+  font-size:84px;font-weight:600;line-height:1.1;letter-spacing:-0.02em;
+  color:var(--text);opacity:0}
+/* Seven marks, not seven sentences. Same left margin as the hero and the line,
+   so hero -> rail -> line is one column the eye reads top to bottom once.
+   Colour carries state: pending is dim neutral, spoken is accent, done is
+   accent at half. Width carries "this one, now". */
+#covrail{position:absolute;left:124px;top:486px;height:12px;
+  display:flex;gap:18px;opacity:0;visibility:hidden}
+.cvp{width:46px;height:12px;border-radius:6px;background:var(--text-dim);
+  opacity:0;flex:none}
+
+/* ---- b16's arrow --------------------------------------------------------
+   #winners is gone. The owner, twice on 2026-08-18: "you showed n8n and flowise
+   only ... because of this our video looks biased. It feels like we only
+   promote these two tools", and "it's better to don't show any icon when links
+   below kind things are appeared on the audio." Naming two of five tools at the
+   moment the film says "links in the description" is an endorsement the video
+   has not earned. The honest device for "links below" is the direction itself. */
+#i16 svg{overflow:visible}
+</style>
+</head>
+<body>
+
+<div id="root" data-composition-id="intro" data-start="0" data-duration="113.667"
+     data-fps="30" data-width="1920" data-height="1080">
+
+  <div id="bg-dark"></div>
+  <div id="bg-light"></div>
+  <div id="glow"></div>
+
+  <video id="avatar" src="assets/avatar.mp4" muted data-start="0" data-duration="113.667"></video>
+  <div id="scrim"></div>
+  <audio id="vo" src="assets/vo.mp3" data-start="0" data-duration="113.667"></audio>
+
+  <!-- stage-shift wraps stage-ambient because #stage-ambient carries a CSS
+       animation on transform (breathe), and a CSS animation BEATS an inline
+       transform -- so every GSAP tween ever written against #stage-ambient
+       was silently discarded, including the two y-nudges at b16/b17 that had
+       looked fine in review for weeks. The ambient breath and the authored
+       movement need separate elements or one of them is a no-op. T28. -->
+  <div id="stage-shift">
+  <div id="stage-ambient">
+
+    <!-- ============ T21 devices: one familiar icon, one movement ============
+         Nothing here is invented. Every shape is one a viewer already owns —
+         a workflow of three steps, a clock, gears, a ball and a wall, a
+         padlock, a tick, a person, a play button, an arrow. The gate, the
+         chain, the queue of miniatures, the hourglass, the coins, the shards
+         and the wall slab are all deleted: each of them had to be TAUGHT, and
+         the owner rejected the film on exactly that ground four times. -->
+
+    <!-- b01 — three steps light up, a spark runs through them. -->
+    <div class="dev" id="i01">
+      <svg viewBox="80 38 840 384" fill="none">
+        <path class="gs" d="M212 230h226M562 230h226"/>
+        <circle class="gs sp1" cx="150" cy="230" r="62"/>
+        <circle class="gs sp2" cx="500" cy="230" r="62"/>
+        <circle class="gs sp3" cx="850" cy="230" r="62"/>
+        <circle class="fa spark" cx="150" cy="230" r="21"/>
+      </svg>
+    </div>
+
+    <!-- b02 — the five real marks, one per name spoken. -->
+    <div class="dev" id="i02">
+      <div class="row">
+        <img class="lg" data-slug="n8n" alt="">
+        <img class="lg" data-slug="make" alt="">
+        <img class="lg" data-slug="zapier" alt="">
+        <img class="lg" data-slug="langchain" alt="">
+        <img class="lg" data-slug="flowise" alt="">
+      </div>
+    </div>
+
+    <!-- b03 — a clock hand races round and stops. Hours, gone. -->
+    <div class="dev" id="i03">
+      <svg viewBox="80 38 840 384" fill="none">
+        <circle class="gs" cx="500" cy="230" r="150"/>
+        <path class="gs" d="M500 58v26M672 230h-26M500 402v-26M328 230h26"/>
+        <path class="ga hand" d="M500 230V116"/>
+        <circle class="fa" cx="500" cy="230" r="16"/>
+      </svg>
+    </div>
+
+    <!-- b04 — one gear spins strong, two more pile on, it grinds.
+         The teeth STRADDLE the rim (r96 to r130 across a r112 circle). Drawn as
+         detached rays outside the circle they read as a sun, which is what the
+         first cut of this icon did — a circle with rays around it is the one
+         symbol everyone already owns for something else. A gear is teeth on a
+         rim plus a hub; all three parts are needed for the read. -->
+    <div class="dev" id="i04">
+      <svg viewBox="80 38 840 384" fill="none">
+        <g class="g-a">
+          <path class="ga" d="M426 230L460 230M398 298L422 322M330 326L330 360M262 298L238 322M234 230L200 230M262 162L238 138M330 134L330 100M398 162L422 138" stroke-width="26" stroke-linecap="butt"/>
+          <circle class="ga" cx="330" cy="230" r="112" stroke-width="12"/>
+          <circle class="ga" cx="330" cy="230" r="34" stroke-width="10"/>
+        </g>
+        <g class="g-b">
+          <path class="gs" d="M706 150L732 150M673 207L686 230M607 207L594 230M574 150L548 150M607 93L594 70M673 93L686 70" stroke-width="20" stroke-linecap="butt"/>
+          <circle class="gs" cx="640" cy="150" r="78" stroke-width="10"/>
+          <circle class="gs" cx="640" cy="150" r="24" stroke-width="8"/>
+        </g>
+        <g class="g-c">
+          <path class="gs" d="M754 352L778 352M727 399L739 420M673 399L661 420M646 352L622 352M673 305L661 284M727 305L739 284" stroke-width="18" stroke-linecap="butt"/>
+          <circle class="gs" cx="700" cy="352" r="64" stroke-width="10"/>
+          <circle class="gs" cx="700" cy="352" r="20" stroke-width="8"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- b05 — a ball rolls easily and stops dead. -->
+    <div class="dev" id="i05">
+      <svg viewBox="80 38 840 384" fill="none">
+        <path class="gs" d="M60 340h760" stroke-width="7"/>
+        <circle class="fa ball" cx="120" cy="292" r="48"/>
+        <path class="gs wall" d="M866 340V96" stroke-width="14"/>
+      </svg>
+    </div>
+
+    <!-- b06 — the padlock clicks open. -->
+    <div class="dev" id="i06">
+      <svg viewBox="80 38 840 384" fill="none">
+        <rect class="gs" x="378" y="222" width="244" height="186" rx="34"/>
+        <circle class="gs" cx="500" cy="296" r="24"/>
+        <path class="gs" d="M500 320v34"/>
+        <path class="gs shk" d="M424 222v-58a76 76 0 0 1 152 0v58"/>
+      </svg>
+    </div>
+
+    <!-- b07 — one of five lifts out and takes a tick.
+         The tick lives INSIDE the chosen tile and inside the same <g>, so it
+         cannot drift out of it. Drawn as a separate sibling it was authored in
+         viewBox coordinates while the tile was lifted -34 and scaled 1.16 by the
+         timeline, so the two ended up in different places and the tick read as a
+         hook snagged on the tile's corner. Registration between two shapes that
+         must stay together is a grouping problem, not a coordinate problem.
+         Dark stroke, because a tick on an accent-filled tile has to read against
+         the fill, not against the background. -->
+    <div class="dev" id="i07">
+      <svg viewBox="80 38 840 384" fill="none">
+        <rect class="fd opt" x="30"  y="196" width="130" height="130" rx="28"/>
+        <rect class="fd opt" x="220" y="196" width="130" height="130" rx="28"/>
+        <g class="pick">
+          <rect class="fa" x="410" y="196" width="130" height="130" rx="28"/>
+          <path class="tick" d="m440 262 26 26 46-56" stroke="#1a1008" stroke-width="17"
+                stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </g>
+        <rect class="fd opt" x="600" y="196" width="130" height="130" rx="28"/>
+        <rect class="fd opt" x="790" y="196" width="130" height="130" rx="28"/>
+      </svg>
+    </div>
+
+    <!-- b08 — a person appears for each group he names. -->
+    <div class="dev" id="i08">
+      <svg viewBox="80 38 840 384" fill="none">
+        <g class="who w1"><circle class="fd" cx="140" cy="176" r="50"/>
+          <path class="gs" d="M64 356c0-46 34-80 76-80s76 34 76 80"/></g>
+        <g class="who w2"><circle class="fd" cx="380" cy="176" r="50"/>
+          <path class="gs" d="M304 356c0-46 34-80 76-80s76 34 76 80"/></g>
+        <g class="who w3"><circle class="fd" cx="620" cy="176" r="50"/>
+          <path class="gs" d="M544 356c0-46 34-80 76-80s76 34 76 80"/></g>
+        <g class="who w4"><circle class="fd" cx="860" cy="176" r="50"/>
+          <path class="gs" d="M784 356c0-46 34-80 76-80s76 34 76 80"/></g>
+      </svg>
+    </div>
+
+    <!-- b13 — a cross for the claims, then a tick for the real thing. -->
+    <div class="dev" id="i13">
+      <svg viewBox="80 38 840 384" fill="none">
+        <g class="cross"><path class="gs" d="m410 140 180 180M590 140 410 320" stroke-width="20"/></g>
+        <path class="ga tick2" d="m392 236 74 82 156-178" stroke-width="22"/>
+      </svg>
+    </div>
+
+    <!-- b14 has NO device of its own. It used to carry five tool tiles and a
+         play button, which said "five tools, and a demo" — the exact two lines
+         rows 1 and 2 of the agenda now say, because the owner asked for those
+         two points to be added to the list. A beat whose content the agenda
+         already lists cannot also have a device for it without duplicating it.
+         b14 and b15 are one promise spoken as two sentences, so they are one
+         card: the agenda opens here and completes in b15. T22. -->
+
+    <!-- b16 — the links are below. The device is the direction itself. -->
+    <div class="dev" id="i16">
+      <svg viewBox="80 38 840 384" fill="none">
+        <path class="ga arw" d="M420 90v230" stroke-width="16"/>
+        <path class="ga arw" d="m352 258 68 68 68-68" stroke-width="16"/>
+        <path class="gs" d="M250 402h340" stroke-width="9"/>
+      </svg>
+    </div>
+
+    <!-- ---- b09-b12: the five measured. Not a T21 rebuild — the owner never
+         called these complicated; his notes here were a stray rule line and
+         uneven mark spacing, both fixed in the timeline and the geometry. -->
+    <div id="queue">
+      <div class="qc"><img class="tile lg" data-slug="n8n" alt=""><span class="qname">n8n</span><span class="qbar" style="width:520px"><i class="qload"></i></span></div>
+      <div class="qc"><img class="tile lg" data-slug="flowise" alt=""><span class="qname">Flowise</span><span class="qbar" style="width:520px"><i class="qload"></i></span></div>
+      <div class="qc"><img class="tile lg" data-slug="zapier" alt=""><span class="qname">Zapier</span><span class="qbar" style="width:520px"><i class="qload"></i></span></div>
+      <div class="qc"><img class="tile lg" data-slug="make" alt=""><span class="qname">Make</span><span class="qbar" style="width:520px"><i class="qload"></i></span></div>
+      <div class="qc"><img class="tile lg" data-slug="langchain" alt=""><span class="qname">LangChain</span><span class="qbar" style="width:520px"><i class="qload"></i></span></div>
+    </div>
+
+    <!-- Empty on purpose. The marks and their labels are GENERATED from one
+         array in the timeline, with each position computed as
+         width * (i+1)/(n+1). They used to be typed as pixel literals —
+         96/372/648/924 inside a 1160px rule, which left 96px of margin on the
+         left and 236px on the right: "look at the left side of the ease and the
+         right side of the value, their gaps are very uneven" (owner,
+         2026-08-18). Retyping better literals would have fixed this film and
+         nothing else, because the defect is that a distribution was authored by
+         hand at all. T24. -->
+    <div id="rule"></div>
+    <div id="rlabs"></div>
+
+    <!-- Seven points, not five. The owner on 2026-08-18: "two points are
+         already covered in the sentence above, that points are missing". The
+         sentence above is b14's — "a quick overview of all of these five tools,
+         a live demo using the same workflow idea" — and neither had a row here.
+         They lead the list now, in the order he says them. -->
+    <div id="covrail">
+      <span class="cvp"></span>
+      <span class="cvp"></span>
+      <span class="cvp"></span>
+      <span class="cvp"></span>
+      <span class="cvp"></span>
+      <span class="cvp"></span>
+      <span class="cvp"></span>
+    </div>
+    <div id="cover">
+      <div class="cvl">Overview of all five tools</div>
+      <div class="cvl">A live demo</div>
+      <div class="cvl">Ease of use</div>
+      <div class="cvl">Customization</div>
+      <div class="cvl">AI flexibility</div>
+      <div class="cvl">Pricing</div>
+      <div class="cvl">My honest verdict</div>
+    </div>
+  </div>
+  </div>
+
+  <!-- e01 "The workflow", e04 "The toll" and e16 "Every link" are gone. The
+       first two captioned devices that no longer exist; the third the owner
+       asked about directly — "why there is 'every link' above the 'links
+       below'?" — and the honest answer was that it repeated the hero. -->
+  <!-- e11 "The same test" is deleted. It sat directly above the hero SAME TEST
+       and said the same two words. Owner, 2026-08-19, on the frame: "there is
+       two same test on screen". Nothing replaces it: the hero already names the
+       beat and #u11 already says what is the same. T26, and auditEcho below now
+       fails the render if any beat puts one line's words on screen twice. -->
+
+  <div class="hero" id="h01">ONE <em>WORKFLOW</em></div>
+  <!-- FIVE WAYS, not FIVE WAYS IN. Owner, 2026-08-19: "the five ways in looks
+       super odd as a main heading ... think about it when you give the main
+       heading on any clip." A hero is a title, and a title does not end on a
+       preposition left hanging with nothing after it. T26. -->
+  <div class="hero" id="h02">FIVE WAYS</div>
+  <div class="hero" id="h03">NO <em>GUESSWORK</em></div>
+  <div class="hero" id="h04">POWER, THEN <em>PAIN</em></div>
+  <div class="hero" id="h05">EASY, THEN <em>STUCK</em></div>
+  <div class="hero" id="h06">ACTUALLY <em>FLEXIBLE</em></div>
+  <div class="hero" id="h07">YOUR CALL</div>
+  <div id="h08w">
+    <em class="h8w">CREATORS</em>
+    <em class="h8w">DEVELOPERS</em>
+    <em class="h8w">AUTOMATION BUILDERS</em>
+    <!-- ANYONE CURIOUS, not ANYONE. Owner, 2026-08-19: "why is this headline of
+         'anyone'? isn't it seems inappropriate". Alone it reads as a shrug, and
+         it broke the pattern the other three set: each names a kind of person.
+         The clause is "anyone experimenting with AI workflows". T26. -->
+    <em class="h8w">ANYONE CURIOUS</em>
+  </div>
+  <div class="hero" id="h09">SAME JOB</div>
+  <div class="hero" id="h10">CODE OR <em>NO CODE</em></div>
+  <div class="hero" id="h11">SAME TEST</div>
+  <div class="hero" id="h12">FOUR MEASURES</div>
+  <div class="hero" id="h13">NO CLAIMS</div>
+  <!-- h14 is gone. It was FIVE CROSSINGS, then briefly WHAT'S COMING; with b14
+       and b15 merged into one agenda card, h15 heads both beats and a second
+       hero in the middle of one list would break it in two. -->
+  <div class="hero" id="h15">WHAT WE'LL COVER</div>
+  <div class="hero" id="h16">LINKS BELOW</div>
+  <div class="hero" id="h17">LET'S <em>BUILD</em></div>
+
+  <!-- Only the two beats that are not T21 rebuilds keep a sub. On every rebuilt
+       beat the movement is the explanation and the line under the hero was the
+       "too much text on the screen" the owner rejected. -->
+  <div class="sub" id="u11">same use case, same prompt, same criteria</div>
+</div>
+
+<script>
+const LOGOS = {"n8n":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAAACXBIWXMAAAABAAAAAQBPJcTWAAAQAElEQVR4nO2dCXAc15mY3/QcPTfmwGBwnwQGxDUAwRMECR6SKMmS6LUOW+sktZtK4jiJq3YTr1O214krqYo3teUku4mzyTqbXTmu9cpeWzRFrLQiRQkULxAkSNznACCuATCYGWDunqM71d0yBBEzjRlgcAzf/5WKpWL3NBrD973zf/8T6YyFCABwRbLXLwAAewkIAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABgDQgAYA0IAGANCABsi6xwFCF00BvMN+bXS7VGo/HZogMikYi/GpQSIyMjXUG33W5/EPMhhMZ0coQQ/en1vQcEALaF0Wg0mUxfKbTodLoiP40QEnnD62+wWCwKrSwSiVik0ampqamxvkgkgvYNIACQMsoIW9Bf8YktFstrRRaJRCIKIbQQ2ningrvT4mQv1SER0pS9edC4uLj4v+1j7hX3gJFtDfYWEADYClVVVV+pOkIQhMQVp9wLoON488zhjz/+eGBpAu01IACQAoYQ2+P/pjT/TOEhg/tzXZ0k0VJsm3B+avV8aVNOhOkd771l0OzhqAAEAFJAJpMdP378rLwIpYPW1tYDBw50990MBoNojwABgKTQUVGSJH9a2ZojzpFx7cD2aVoMIJFW3nT2b6/87YdGZVqemSogAJAsVqs1R5mD0o3RaGysbvzQMYr2AhAA2AR5lO21/z5hPqetkHE9eGE8JIEQConZP41cWyEW/FDDUqChrH5aFB0cGtz9eSEQANic4uLiZypPcv+7uQB+v396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","flowise":"data:image/png;base64,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","zapier":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAAACXBIWXMAAAABAAAAAQBPJcTWAAAQAElEQVR4nO19eYxcR3pfVb2r+/V9zH3P8BySEnVwda32kHZ9rnd9/GM4DuzANgJjnSBxguSvAEGA/BEYQYAARhzDTmAEiONkkezaSlayd7UraSFSBynxvocczj090z19H++ofF+9npmeme4ZrkgNKb36iRoOX7+uV9fvu+qretT9JpGQ8C3UR10BCYlHCUkACV9DEkDC15AEkPA1JAEkfA1JAAlfQxJAwteQBJDwNSQBJHwNSQAJX0MSQMLXkASQ8DUkASR8DUkACV9DEkDC15AEkPA1JAEkfA1JAAlfQxJAwteQBJDwNSQBJHwNSQAJX0MSQMLXkASQ8DUkASR8DUkACV9DEkDC15AEkPA1JAEkfA1JAAlfQxJAwteQBJDwNSQBJHwNSQAJX0MSQMLXkASQ8DUkASR8DUkACV9DEkDC15AEkPA1JAEkfA1JAAlfQxJAwteQBJDwNSQBJHwNSQAJX0MSQMLXkASQ8DUkASR8DUkACV9DEkDC15AEkPA1JAEkfA1JAAlfQxJAwteQBJDwNSQBJHwNSQAJX0MSQMLXkASQ8DUkASR8DUkACV9DEkDC15AEkPA1JAEkfA1JAAlfQxJAwteQBJDwNSQBJHwNSQAJX0MSQMLXkASQ8DUkASR8DUkACV9DEkDC15AEkPA1JAEkfA1JAAlfQxJAwteQBJDwNSQBJHwNSQAJX0MSQMLXkASQ8DUkASR8DUkACV9DEkDC15AEkPA1JAEkfA1JAAlfQxJAwteQBJDwNSQBJHwNSQAJX0MSQMLX2GcCUPGTt/xOdly5/08fVjn785QHL8e7oFNNI1VuVatrtC8cDucmj0ejUWKTfD4fvT1VrVYS1k3NUIlm883vPW5taf2U7Lhz/yA1wGcMHNBoMK5qoVBX1zDp6w8eOkpCJnFouFIhphnJZMjyIi+XbYtoBiUu5/s9qT5LeCQE2Ml++ok+fVjl7M9THrwcnMjMskidzHVP9PX23vn5P5g4cqTSM2gYBuGqZdv68p1709Ojb8RuXrkytnKdqFGi5InjPn5t6YQdGu9ThtQAnyWALKcOadRJPB5nzzwzcfQoSSZNI4zzhjJFU+Gfo6ZJFp8YqZS1ygyxLJc7lO4+53wNSYDPBFAiUvjhEtfVqObcPPELJ7/8S3xo0sEhtInrePfVgj2BICEv/Po9e+Dg0lRlZSVgFanKOZMcaA9JgM8SXJcous5SkZ6eHhIMUmSEuLoNlMZiMRIO8UyG7/hQohWSAJ8dOAprOGXtYCjUb8cOEH1AXN1iLiv4T0qYSoIhYih1ZgeaumH32It/IQnwWQJ4s7bjENt2bLuN4N8A5y58KqM/9wFJANIu5rCfkvK+n85cGK6Yc4PkF9T8LeKOERLddrNDqCaKZNUaqVPNDRCaf4Ca7FqfzwUkAT5LUGF2c2avrWVWVgbX1uykuMpYqzZAG6gM3u9Kd6nEAJ/n2fsQ8EgI8Gmr5p9ybdW7yvE6p6Ttp51Lvp+27JyDO55OmLjq7vh087suzGZdATPILdjDF75PokUlmFS7ujDYz5r3BIhNSkXywV+n3/oBmbkSCqjc8IrbvU82n0Ux1Ap/d6pPp3b9tGP6yXry4eMREODTjkrfj+nr1cG7E37ioLv4D87IJ5aZndq1Z31QfIu1KvF0LAf+dPwWpapK1tbWYpcuXe29NDExYaeHDcNwFeo4Ls1lZmdnD1+5Ahog3iB6kO5W1Hq1N25wXU6bvoOY+kqzMmRrj+2OT9wPe1b108B+EwAHhMXwt0+jrVSBYinJibLbyyec6PAJTeDvIB7hM7du2zZ3LLyi6SpVvW5RYBJwl9DsZim0QyyFa1RRCDE9JokrQiYzLmZ3YXs1vWJ4klBmU7dhW6RcxCuGBlOZKSGoL2UrwIrWJ2JWg+0SnZMUmVibIhfvHl1bVoeHyZO/TFAPBEipRK783/Fbt8jts5PwhW4VnOGtgnVT1jYLZiYOCQ9DzW3agF4gdhGqw2yoAKGGoes6JSHx1ar4fh71AvNasbM3qFh0iwkSOC39w8RnRZGVsXm9WQeviiwsalLFZA/a8t1PGftKAGygSGXBfsIZ89CxG6k8yeSKVSPFsKmiorzVdWaYBm2G1HHYYZAcSmyYCjVerzsNvMBU+AqljOIU3PlUGDKc6C0GA2/52VIBLBsG18JfFM1lZlCNmCrUxG007XjMdKDwk1sY6VENQlXG7S3lQK2hLKfRyGQy4Wp1qnI6GAzaWrBer4/OfZzP5wcqFWASUTtKVKrAI2AcCFMaqq7jJV1ToxEVlItbwU6wm4/CWtUYqdeJbVuNBlQebmcm9hJ3OvR2U6XyLVewMOzljRoJqqDYgRFBPaNaCk4JKNbZz1m5rwRwHRXs2Fx0DORcIxAhpGl4PISSxeTWQIw5diL3gWvbrMW+RKGM/woTRanoYejoXHI0EAiUg5Mh06x3O/A7NxwYU1ZXYBqppWCj0TCLq4VCIZx707asBIg/RyN8FSrMWevQajCQxdAEtKhixvj6h159gq4FpcXzH7uui4YVzApLB7Fc0IOqoix0/1w6nS5NRGOxmB3G3lCzFbBtgrPFSrWSWvhhuVKJWzniKkStIsc29JpL8sl+MxQKuelqrTb80Y+gtmC5KYpaj0aTZjcZVNbK5XhlGinX6tV4xgzQG2Y2TSmqvRofCIfDeeMY/KxPGKFQuGGENE0jiuo4jlYolMqlwDyHfoiuvV8qleO5OZsrulUVDK6Jgnmzhymta92gMbKREaYorSPLGQq+ZH4ResNw54SIZwSne4pSuxxx4f5auB/60CjloC2R2tRDmRX3g30lQKnUiA50JZ94iiTioWAU++4hEQCkS1O65rLk4yvWSt7Qmp+g2nF4DQbLLQVhnEcGycBAsOsA1CESeQIEWiRaJipMMjSBiKWFoZBqGIsq50L5PFmukWKR3F2q3roFMjmcZGhnCeEHwtF1bC0cjvYPkKEho7tfXOKb9WlUgrOz5NJFXkfpXqsSxWloYTM6PEKGh4fHvk5SSbOLQh0MI4DfKjs9IJZXrChU91YpfusWv7JQrZJgH2Oqyi1RQ45KIhaPkxMntMBw1BLmky1sBoWRoElMkxSm4tevk7l73OJARcY2+8kBcdvgtuUYUapMTHSPHcdsovizJByOdDWIpgW1oHBEhCasVgKWTdYCYdAAq9Ew9O3CFLl9u3gniwomvmnuQ7uhm1VVof19qcnnSDBILHvzqdC90J8X31fv3kXuOQ6I+UbVYnpDGxqKj3RBnaOpMQKFTt8KrKzw659TAjRWGOkfyL/yD2N9fU40ytHEfTjWnmdcKbXcyt3p9JX/Z9lNAlC0WGESGIZJZwZeHBgYWH7+V/uHhyvpbjMaJXp011KdhlVVl79SLBZjH71zN/Xx6LUfO7quWIvcsRmrMYfUqxEt1jN/7Bv9J55wnzhpWZaKJg7KPJD6+trSwuXLfdfetct5hVZ1RuZGTg2Njs69+OsDoyPW+JNah/6HIpTbR2du3OjX/xy82pHSLbxqoP1IbUdpkFujTx547uv2oa+D26psmNKcW4yhF/HRO9PWT0Zm73K7RpUSTmbMB+KspquM5rr6wqHw7ZPfnDhwoHjouUgs5iR697ZHG1+pFArmvenbFy/0vfEfSrVakiziCFLcdcAaOLGzxlhXz/HiN74dicedam3jqyygg1w3Sn+2mD07sFKg9XqFBc105NaTv3rg4MHS8WeDZtDtBpYryvuvrc3Oxq7/6L5G/WFgXwlQq4pkLjA0TVMxQ+hiPiQCrEcQarqwaD1zWhiZpIHBEB0k9MgLXyFHj/YPPwsfmOEo/BQSlbAdhXm2vAZGj6bSRCKWSBD69NHRUfKuSy5fJivznkmDCgyexBQT5G7IZAHT0C1h4xPU77hkGzZBHoN9lcvBY1gqOnTiBHnuuYHjp9ZDLc2gY2sg0Hu6kk4PhcMknBu5cIH8n2vVkhUcNNAKsrB8hSkgL1UQtPi1TbdEhTYrBny0JQMULWwFtAToK2ZGEhMT5JlnJp75JvRAJNEN8t4VHcZaemJnfTTGzFiMDA9NxGPEvGteukRurlEQ89DMdWcAHoB9C002Qkqr3tF0AwY9HAJfxfMl9GiMnDx54JvfgpkQTg+CwlSgD0E96VooZP6UY/9A2FcCgOgiltHQDVPTiWI+xDBQc7R1sN+DGKRwhA9mE4tqejhw59SvjJ14Yu3l34lH4sSTr+J2DVzPtvUUPzn4vFTjZjfy6HA3zAMl2n+37/zod/9dfW5OjYLBAQ5cmLixqmHGMSfZcJjhjTv61DChQlYtmo6Fuxp6NRvu7T92fOHn/7Dv0CF4MjxYxyxOq93T0QLhsT4aI6TndxcHb/ZePFuZmQnWZ4V/ibElmwWJGnKUsFfbDXdHFAvFBywK7qwOaoiqOlSFZwk1QkuTr/aOjM5+9dcGjxwhwaQthp8j1XdLrPB6w1XD2N50hKYJ7f0Xc4dvDfzNv126fq1r/iYzaZM7XCVUq+qxMNG5prcOja0G1XSgkjYSNzXNNG+++lsHn3+eH3uJCwEkEpiIo2iKFra08n5Oyn2OAuFPjoay2/RLH1IwVJhARHGb25+oGA/bxrEFi3/s+HEyOQmz3wHrF6OcMIe2B0rbgoOtI+73xol0d48+8QR5t9uansaaqwoTtjI8FkPoXoTPaxHFeDo8BR1KMwT/aWC1HzzYNzICIrOuaO2zODcf7FqiDTrhcdA/J59MKYzfmUFjY0Ow8nXJ39KHDkXiU7dFr4ovVCq1UCzWK/ph8NhxqF7Fm3biu8p9pIxi1AfEFwUPCDwFbeDAAfLEidDsLKpAJpSH1xxXpCHh35u1YlTEhsEODYVQF3V3H3z2GdLfV2vSD+9UhSMNI+i6+xcDJfu9DiBCGFTE10WUBuSZveeX7q9k3TMlNiM0LsrD2+mhI099pfCV3wOrV8wcJbBT6jN9+xVxDxXTQuP4u9AGCukaqyUHA1/4Vs7tid/+O16oulB/xhk+DAM/FCcTCvUmYQzdDRgkNuiMRBcPf3Hs2HPcCMPHRgfN01J1onv3MJ3F0uTrv3svdW54ZcGqVnVnXsgOmCWuJ5sZ31QjCtUoWjy2+IPLWuAGMF1bGxkPTU5mf+4fJPv7iaJDCWabflDb24MujpHXLgUbxmwtqmiEnvqtXPCZodf+JDc9Ha/coDr1+kFt3tmi3KiuAB+ifXbPeO7Ay4n+/tKxL4ejiSDSxPX6GVvaXEXZ1wTufSUACgVKMewNYkAsR4EBff/f3k1krsOzfbnoRtUg6VSajI5EQ3GMEO3UNkI6cpE7abkYBlUpOGJo22xLsBG3gXhVAzDyo6NjYNPPvVPLVbjaUYNRipE+dHg0zejtHQPLO4o+t8gzaBpZ3o27tA6mOcxo0tc7ODhIurr0pSVS3rMPtgCsdMNUB8bHwf9JDgwQplne1sod/QCi13EsNB7R18bLmhD2orYt1UMHSFA9Gh16q2xEGAAAEABJREFU5hly55ixuOg1eI+q6Ho8HteHhkhvL/oJ+KAdwp7Sfd6/tq8EwEUklanRMAmF16/9NMthaFZ00hhClsCkwxAeBy1asTSzr6/43N9LDz5HcOlJ0fmmzGtKdE9rFOaUYlHJLBDbIokUAZMjNdL0CddH3ZNSLhWsPfjsIo/0fvjD2rKj8t0X34KOYpZjQ6FUqnTk2XAiTsWsWm+15emM5r2sqXm2ANoL9TR7lntGewfGVmtuavUOLtPe1yxBMdCo9xisZ+5Lvz1w/JjDNDRgtjkeOPuFWViaZbmctrQogpoYrLR7MWRMjIS4zUF7UDwXtRNjltmrmIQdfnl+wTlQnOH2bsocv2ik63G3/kQqkko5VBMMdFFMULZx03006iFjXwkQjWJ4eGrqTjybKxgildHd2wRCeURpKhFLJpKKSnfKZgGGXVmrFQqFhG2LBQZOUimUu6bp7FCrMPtB2pUKxcWFRXv6cqlUDueWbdsphyOJRCIwafX29gYCAVwtbjFJvdmuhMyuri5ojK7r3No9f4UbhgGzn/T0hJMJEKW5YmlpedmuZDm4DI06weW1cDQaTaVS4XBYgccRd7vmwbUsN5VMEWjL7duFJRKJ3CcB4IHMDAahHwZAgYAybAkArN+BnVmqlDKZjHXzLGYQreWgHxRKQR2Ueue6u7vJ2DF4eixkMFXb7A3webywUTyB2ulKxMlkHKe9im52kGFEQAeC+ItExKIvWgPrzoVYDPZu3t98oH0lgDleJezakb/8l/B7j7XD8t4BBeQf5+WAHgqFZn/hD5QTx53kAZEttkWWk6YZwcnNj6KXz5NCyXTJfCQRHhgpTDwbjceEmOV8XdIgVYhby2Vjb/557dy51Af/mzQHg1hlG+Z95hf/UfDpp62XfklT9NbcFcWT0OFUKWHFkuPFaCGam2tbc8qbto5qRkqTz4Psh8lol0qJH/5F7b33uqfOoNfu5mGwSzwWHxktf+PbCriVI6c4tm5zGqF7Cg4xWPHxLjL5a1NvZyavvk9HCUdBsJdBiDE3ujox3n1kcq3vSNzsUdr4Ho5dr4Tf+V7t44/Tb/3XoUIhENBtxwHfAXSpq9qM0ewLv5546qnqV38nGE9i9ACtdlE3r4D+ocIJK/CTrnJlhSIB2jCTeoZ+ImkFTYeKlQoi7qzniW3Tah05Hwzi8JRXjUp2ZwmfHvaVAGBQcpHB4kJPOUan27xVLRsMknq1YVmxibHQ0aN9fb1E0yldn1oCqBzQQgVx1bh3byby0UfXrl39YrkSCBMU0v390a4eIowLJoLhG98jVn1+fr7r8mX4GbXE0idGUNCCgrrduXsnFA7Vn/xqwmgXk6YUVxvC4ZBpuqsu8VT/TpEsBLkRDBi9PZgIlslcvHRx7L33Fubn9bU1YeqWQNiVoWrTd8+9997Jep3ExiORiAbScWskhHtxwmAQdEUo6rF5jwxPRVXcUmlltWKeCJHx8ZC5oyEio8iq5Ofm5mIXL12/fiNSKsFlG30l9IqggpYFjeM3btywbbs6+Ytj8cSW9qFqoixkdoMGIGRpqaqnqu3NGM/N1XUNoUPtq9UKTIPq/J1arabU6g48VVPhiYPT10rl8uhubXvI2F8n2AHjhHeV2kvNVjAbcx/rqqFoyp2nfzb9tVfp4RfwekvEGmQJTFjq1l1Q2R+8Hr94IfGDP35icdUKEC2q1RJDET1BCrPow2F8monMMuoaIctyjekLocvvx9/7X0/VbRIXxbnCwIlqMNMmL54xCwuNL/4MCXBuplFjtJpqIM0USnqdUo8dm80TbjYptgMOJYoWIMmh0tJi5G//aOzMmfTFM30BwrXNe5JOwckWTr75x8m5w6tmRDt8hPQdazBF3yKtxawyK+5QkBwWC1v2ek5mW6iuq3E2b4RmKnd/66ljk1+jgQDfSAsSsAm450S7+VHo448Tp//L0ws5Iy6mw2YmphN08b7nbp5VFs7Ov/iLJKW4yXHGNCIiPE1fIthvBXs1a9RZOU8a8JC2Tp0YMlNkATdKVn4t+PHrqamp0LUPnXpdqRdcEYEQ7aykP8dOMPG8fGUP6eU0MNOQRkPG2CFy4MDBL30ZtKeXrsm22sdghVr1+rlz55I/enN+bv7lUikcNphSBwduNbvKzp372P6+GTIDZiKIeZcJEIRm14DrugbI4fmFVB69BSGSmkKKMhzUSrkczueXlpbi6TQNdW9X6570NQwwlpT7imLRO3fupM+cWVld7dNExLt16lKMLapMrc/OXrxw8Sv9A6SvwwKFpkUjUdwFWcJdwbs9EIPpDlGUUJjg8RBmkDFlGwGav2cyV69c6SoUdM/W41uJ7G0KUPAXENj9S4tObHTnfgkVvhOLg8pt6PquHhEDRV2eXwBNGPzh98FbO1qYJ7h8WN5QaAqrgXuwn0vB+0wAsfaltN8h5eVf0SpXbLIaG04dOZr95X+eBM8vPSYsAJtuyn5NEUGcusuNd/+y78c/Hv7JX01YxAkTLSjSf1z30PyHbJF88eYZmKck3COyeAcJ/H54AFO15leOLs6pPd1IyJAm8hNF4RifJWGzSrrshF0ktZy7JZdMgMK014mZrAZiQWFnd2qtSzGiStemjKmPei+c6QNFEgGFBOY7FUO+PldUEq3VnNVa9+W/JUci/NDzKHhbfP3mA4yok+oj6WTDziqWs1u43NWJpZJ0gYRJvStJIiGKXkm7qak0BmO6depVVVWtVtHr7WdQq2hz1qswKQfCAVKv8C0k8naNIXHU4bXiREWY8Y22ytAD6N7o+38z+v77/W9/F/qbdgmLqeV2Krbg8M667aHj8doTjJn6DYwUplJpMjmZnJyEeeDFcLQdkR/49+3bt4c+Pg9W7BBMmDBjOrgWOEYYUlAwPtNoNOr1emHNsmw7V1oAWzM/3dXT03PIiIRANJ44gbeqInm5uUEEBLJiVhogOdGLCATI+kJ9CxSMjqsKTOJatRZotEln8ACehcVdvVCAOuBmdSZmf9tAh+JNeJfk1vLlPIbJ6Y5ZwDnoHBIKU5p1d18SQSueY3Il5pm297W8lXh1cHD8lVdIaRyXLLaU4BFAJLQ5GPRMpycJxqm2azzu6Qnoe13fMzZlWVZgeblYLNIIwQhys2pb0pbWS90nPJLToVshZL8XSyxiPm9h6NnoyEj21d9OHjhAIv0iX8VW1sfbZTrD2WIVFxcjb/95361bkfOvP7225gSJqqOwbplb+GukgutGRiRlpGMDPU/o4XC9WzcikUbXQRhON9SDGsDdTPriMENFBBDmuNU9qpsmayNpmYt2cIi7pmYZxA54EfedrYXJ4lg2yUxH1+a4g+KNMN6ShNE68BgLDJXzpJDVyiVdV4kWcihfT1IQ3cDClhYjan+VF8GbIrxNKnmzEpZCa5yHg9QMuTGDBMjm/q11NPOgRp/nwy4hHeKqLaKYe0GCllPomjPfk+B63Q5YWkcCeOXUnWKG3H27Z+EmiYjDK1hH2bFveCw0gLeFyLGIGteiMO+feSb53HMwm5tu4FZpZ7suLRfAjgy9+WY+nz+VzWJYDfQE3y5Z8Rw1kFjJhDF2lIyP6cdfJb19RgwtJN3ogbuZKvzf5oKsmAdiqBRRJ12PY7Sbe9e3VZg3N4LsIvOay6suqddBEWFldpVr3Ks/6Cpn17UR3oRXq/ZFcg6yFuNj4BJ10AAblcQtxh2f1ZIfCvQVoaGddzXj97gy0KGFaN2CcnYq5Uq8UMAD3IEAuFjjewI0+7OCi7CFyEBq4lDuV/5pYnycB9PuRj6MB5GxA/K4ml0Ovf6fxy5e7Lv5DobiglBIbavsF+FRcAmKZKane/QLL9e/8a+MSLjaM2yI4DkXzd4zrQIGnLP1TJXt9Xabf/YGGOu27th0jzVjdFENi5Ny3a1UcYOLJqrQoZoUpuYulrIDZh1pqGld63KJTlyVdjLMlaaN1x7bbBMUDN6O541L6/+3zyPaVis7ANyuF0KNGqHR/bRzdsEjJoBIDEXPU4sHU6OT5NixxOgYmLmeZNi0N4U0BcsktzBz/dq10fPnFxcW+kQmoVhM3C77ubBM9SQZPXgQfAljYhz3IeC2DbREyNYsnJ3wJOunsWd5/8Gb25CFstox5bx+c8Ra++7lrM9uoQ+9Dc/eBarujM51At04ZOKxObXuUZ4LhL1RJW6drB55MXXsWO1nvx0YGLDCcfAVt8p+r5JWbXU5/Rd/WLt8eSB3ZwB6MCR2fG2soa+XDHIZDKLlQHf3U09Vf+NfB3v7bGq6wDFuK+tZPaJYtlfzqbCIHjg5seNgb6EhPglc8KChgKf7UE4MAAPDrotTMDrIZrB/6kXSaKjNGPCupTUn7maVm15FMKIAwSxL6WAgtZQA+pSt743vdNN+E+PRaABc7ndJrUaCnKg9Zmpykjz5ZGBoiKDTiRuUWmS/KuSLtTY3c/Xa1SNTU9lstteyVE1t7qTYCRfdzVQqSYaHgyOjGK7ZNoubU9+pNoR13i6DhTKq49qlrmqsQ/bRXsBMeZF2YRiKwsB17GQieOcjNJ+AO8M7WO3r04uup0x2nCyMapqG7kelXK/X21RetMixrNXZ2ZmZGZi7CvQSbb/AvL4wDwrY5raLy48qQGGeWtZN+PTppSX22TyG7hGsAxAhE0FIGw5ZHXkSZH/xF/5xBOx+JWQTrrnWxuwXOYOUlldq2dXka386fOFCaulSCixcPKjGbrulRbiRRI9FMsd+rnfiWW70ihBqY0uMDw+OrdRzueDtD7RqlVoVujUc7TiuZhiV/kk1mSTpEXFt9wz+ju2FiULiaSsS91bMOPW2oXifrsf88MQH3OdV14MkEmORKMekP84205DEl12LOQ3i1hi1RCZrG04226BzJ6gEyrOk6DiFHHEabsunmAkr9I1t290ffLf43nt9+TmgurVjwWOzwzhn6Me73u5HynCjD1fF7lOv1KWbXbXaWlDpqG3uF62bMfcD+78SjD9LJYL5AwcHU6deIhMTkf5+srPRDGd/tVZbvHLl7Nmzz547VwOVgfu+WCfvc/PgHcPAE/RjsTY3Ma1WKS7evnH58mVy/kcw9aMBnF7wLdw2jhuzWbFYTKVSXS+lR6O775rfA5w7iqKTeCyRSLIIBjNtu4N1w/E6bpmNJzQjRNzGtlx5pI1tl6DjKuU9FgGIyOzT1AaeEErwK5q2zejAhDamGEGTqCqoiHweD9B1RSB/pxLAvCDGorrI5YQurdYqq8u5XK7cwMQWsSGM9dVKIpX1s4f93RLJhRNaJ2GHLBx+qe+ll+1f+mcqTlMN/DDFbTSlBxPnIMPfi9cq9+6N/9W/Uc6d66lVA7H1+nrpZ81SWwaMomKpO2BIh9dGjyZ6x9pFP2ijWhv93n8kH3zYfeWqphHeK6x0u3kAFqC0QpLDXUunXvG2MNC9zONOsKlYXUodrU5U4geeqszOBtcy1CCugZ5L05J20VanGBcJNI5+iQyehCkVv1wAABAASURBVIs1pm/duSbkhrVCCzMkeysM9+PCdmeDQ2u4uqUvx2Iz+dVslRQtHmgpS1j8NtWxrYn+SHqo7+YP3LJDYth8d/1IO8xDFVxlBezE/NO/TA4cIBNfAMvVvP6Gms11L9x2azVWXsWMOcel3HI75ET9NPh8+wAUjxhjJaKPxfqePUUOHVRBqIDBsXUV0jPS86Vi+dat06dPv3z1Kihog1eJ5R2J0BEwI1xHZGdSipa02j7yDnZ/Y34eJJ/ZL1REQBwgznVhGde4RaJRlXR1YSp8JIIS8QE2KYkdum4fqLgjR41MplgkoAlcbYseAMXmFkl4vGfs2DFcnus0C1S1Wq264pzFnSuy258L1Q4EQvEi+gCZjJXoM9StS71eblUiMTQ+Ts4ZleVKINI8mdTD+n4hrB48LQa9ceQoGTmAciJZ0G2HZO6yTIbM3SXZLJ29SyqVz+L7KPf3ZLgGCUS00pNf1ycna1/7/QD0KdUthWtbYz7gnrHlG9Ub1/vf+PdfvXMn6WRJQCchPEhL272HuavYFq03CDUa4ZQZxPTdlkSGpnBSFaqHCz2BVeIUMAnUW3eiFlroKFzV8pd+I3b8eG3ocDAUV1zrE0sllVvoBGtBq2dAe/nv583JpPFnYMOopSxprJ/cwhQzqq8df4E8/bT1zJe0SISiDb/lkY63j6xGG/M5d4qoKWAr220/AG5fd0kXIWawa+4cuaBafSNGIt16S3N6TzxbNQeCi1fo9Wvq6iWnUlMs0U+CXyL1nCrxuNbTvfriN1InTpDoKH4w+gTWvJrja3m6MGWvrqp/+keZ6xdtsyZ8gAeJm32ufQAQRsGJ/vArr5CRkUAfnqO2fXKJJHU8nHBlZWpqKra0mOztIUlDWCciNtKpZzzzH9R2uWTUMqKkTrpYZNQcORKvVvnlS47t5b8JP4+Iw9VS6dipL5DJSUz4adSJqnUo577gOLZlObh/oKcn+dJLhN4m166SGU7KlaY/A97x+Hj8pVfJ0JAG1iCYfzvkKPN2cpVL2Vw2t0a6YnvpJDxg08VcIIWtra2lbt/GMx4Tqa234GOUQCA4NES++FIIhNHpjDI721SyihgL6BJF1UYnyLFjqdFRUCkiL4s387LABkuniUnxiHZNW162jNH6I9nW+CDYVwKUu0aDgycrL/+mGQHZrDs7T+bB3ahEAx8uqHzhwIga/T086887RLETvE8UscJilZ2lJeOv/xNRwe6wd5y65UkmqkGZL/5+bWA60PcdFSZUJQNmE4sN4BnLXUdIMmG//GtqMGjN3GGGwYaPiq9+kigQphWB0bI8x8Iht/cp0ktYKNk4vqDfu4nnddli+5eO5pb11CtaOMTVICbUtyQIiMQ+3JZWKhXCVy4MVwpQRxg0Z/ezQ1ymgC0fpLxBxu5NhZ16cfkuSQZ4uFtkNGye2sCNKDUo+cJvNA7k9O4jYCyRlUVhp9aRP6F+mPT20WNqb6/TexgcevDTUFwoGEW1jSTOHr0xX8z0O2pP2qzrxkM763K/sM97gqNg46IAFgYHabva6roqmpwxNR4nY0Jrq7vmh3MR+9RESXZFCYUUkKOuWyqV4rUaDe+433XQgO7pCYTDRJ8jKyskO4t+Q2oEN4D3Hye6DrN/LZNZuncvlUqlhz9pa70tV5a1tpar1qpKoCsSCZNkUofnpiMiXCVu0xjulBPhJpd0nNaZTCZ46xaqtX5KGvy+rG3UA6CAbFIsTk9Px2KxwIGubarDFTJCUVQdiHX8OE797BJqJ7eMSeMRTCBXB4bQ51BUPEG9+TWROCj0Un5h/uKFi/2lUrq7OxsMkA7bgh9b7CsB1tTebtrdcFhAU7efTbAB3MDL3OQEhuTo0fv1q8S4KlZhtZJIhfp4uczmpknUJOnx9vcnht2YwxJD4jjyPI5oIAoyzzETMKj61PnG3emuq+eTIyPuyZceIK6BUZGB0oybbay5XAGCJQYtk7DYcOsdpLlNmSg7jwigOsbH8jPq9BXlxt8N5PMkxfEAc3fXrPnmodA1RmpxWgSzsOuH/93M36gfegrtSKo2z41ZPxLLFVtQ6MgpDAQ3asQ76h2MMT2AybK4JIj7oTd3ooozNVSnXqvVkmf/x9i77/DaeWoSWxkUIu1BAkGf6yiQ97qSjVPhdgET60Z893TLFmwpTlEajcby8nI/WLed7ucuw3eJBvEsZUdF/ihB9KGFVFuZmbl582ZvNpvs67ufp+8C3DLG2Opq9l71bjyeYAkRVG1ZLVo/CqFNzql3BbpLWV1dXFyMrWZBn/y0u6UYHvnvggLpmp5enJ4eGRkxmieRbG4u9aQMw2lNxc4htp7qrHmrhmSrrhb1xxUDUCxDU1O5XA4Murbbpx9/7G8YFCxXmGRN8eNNgg4a0/UG4L4tb+a9DcUrXKlXG4k7H5OegPPM1+l6knPrs0RupuMI2eaKpGjGm/mOtlVNn/lu/fJlkpgg1fJeEmn3k8zwyHBszPJCOHuFxW0yeJBv5iNtZlbuwnKrXteuvNt763y0fNf14kG0o1zYWhXUP1xbowo7WcgGbl5dfvO7xpMn+dNfFU/EFns12TjNTlRFEe8G83Jv0UDS+PZzhOoiIsGWr7pnfxD66J0nSyVD5K26D8EB/lxHgRC41Kp6pzQgHlrMgHpiFWdGIMBdjjt6r16dPXptfHw8iIv2HQ+W86ri7dMs1cu3b98en5kBBcKc2ECxaDkWbpbaGlPazGrcC+KgLloqlmZmZrovXcqNzQ0NDogjWFy++4mcrBl9unfvHjt9enZ2dkhRGGtpxQYJWurW7NaWulFP48A3S6Ub12+A0VKiodHRsd5EGqtBhSV/n5lOqJbxWXWHTC8s6u+dnpqaGisW8SDonc7clh4TC5LrtXqsVgv291QIoXwtPBtRbGAhD4/qYpwVsI3BsDGJpTaO3TkdWr08H+0PPv+8/fTPuviqoeaOgo0vieNFXC8Qyp16pVIJv/9W9MqVyNSHhzLZJTpPcm6j9k8CIc0VO/i8c+mAKjaeM7drRv5mkzEPntarz156O565vpQY0158wRk+7hCme8e07Ejr8LJroPRqtRK89aFy9uzo698ZACPjsHgHWbXMmvdQu9kKtsElp5lrhBmxRLymCF+QQR3dmHMt+8tns/pF/dadG73PPpP/8rfAKefBOJqMYgF8/TwioRNa3XFRT1dsZlM4bmqJXntr8fz5wR//SRxkv1vaklYLDxOlbXl/kpAXCmVOU0jt1mF7dunDxb5rgPVMRqXZDQ+1AqqGEtd2GKOBQKBWKd8SkZOaOXLw4EG9uXq6TZY3Je1qNnv27Nn0B+9mV1fHCAlFAmgZQ1GUbX5n/WQhVGKK0sycuY+jlTUN36RUyGSuXbtqmkFqdPf2dK+Xup1F3r/z+SzoInbmnbt37hyMRnHfvo0v0tucPEKTUu8b605Fc3lr/YBTd+N9W+DdKkzjmmM7q6srVz88e4smhoaG+g9OdqfSW5/cntUM19bc1cwyqBH1zJtLy8vd4hyh5rEYrifiwZVSzQC+tUChO0ZWUTG+1zw//lG8EbId9vf9ALUVsnCz8PYbdcOw271t7hMDpqnLXZPXymu52MqMYpUULQ9S7OUrr8UXkrezNTYwMH/kQDQadUJJzGRkJrh8ql2plMvu2oLVsHrO/3ji+o3R6++Do0lCDRJhsYZLlpZLP3mNh0IWrk+73skRTCSQ9d48T9bm8bRAPbBr1XDIqabF3CoojhfPfq97/v07mQwZHFw59BTWB6P86+YMmkUuKy/l1/Jd599OTk8Pf/DGgXKZJL3N6TWvPHAD9Mw9cvad1YwQJdCV6yS0GYPWJW99oCzNEFqlaqN5aB7FjUC6uswd/sLMW3SWJjI3urq6Zk/8TK2npzTQhy8cCyRVVeVKsLX2QCHmVMBw0lfmstnVwZvnKtN3B86+Yzu2YeSZin4yJosI5ilOhazMZs68DtLHKbSc4quisAhBb2cyyXpJw1CU00HYf659AOjH2evXv1/4Hr6WlD80838DJqkpTPnGIp42g/mVBtGp3qjVLlw4//rrry9PoB4ID4zH43Gi4qvgFKu8tLi4eudKJpM5tXwjHk8oQlQTB2WbGQyWZ2dfe+01x3EaVKz/eFab8EG/lD0PregzDOIdurarPHO95aEQAXN5aX7+rbfeMgxDeT43NjpGjCAuOXu32U6j0SjMXgPZPzH1EVwZdBwzFCJ2AVVNM2KKbw1YWFyYX5j/KDoHtFRbLHhbZOWfzE+DBhiBuQsuuFJvrQkeWa2poCqBw/CUH8+/gYbN5BHQBnq8H88nNSJ001jHYzXschbUY/H6eeilJ3PTuq6PBgIa7m9Amd9st1hOB9mxePPmd77zHaCH3tislSPKi/AayKnfLBbxrcbiOL3HYdV4XwkwULoCOvn3Zq9hxvKn8RoEfLth8+wdLpyuAMmAQ/wrV4qNVfhzLjxFVgdPBk2zRtKgjgNstlAopO9er5fx8LhAOc5DBWHr4qiavO7a7u+e/W9QWybM7Y0oB6pxscRWDvSHjb0POSUiAQ6MrZQ1b9frv331DlxZLt1JJpM5rQ9fTqpz13GVKgcTJbly5tTaWqySAevCiepM0cDw3th86yqYSfri3Fmr7r5Y/XCb++rZF7ZJQMryLftqxAYasWmdkwKYQyP5IrDt0K1L4AMVVt+JxWKr4UmYmpae2mip6oDV4wZrc+CNJGfOWVULXxcb0HhU2bY/mCv4e1/jgmOTb7/7sXj1d0utxD2ujqPjxNDnWHda2p8Ssp/Y72xQxaAkHhG99ynQX8FeZ0rFk8fidQTCuogn9HRa1xdIo1Eql4sAuw7Xw9oC+ADpADGi0A8JIk5u3CwN7GZdIfGQ2C6wGSlq2q9qidQdtD3uz5ZtHoTFmBoIYH4RxZSn6enpZVLGAJZBQWpqVfEUng+ZIaaDCYcnkYCw3CYp0eTQVC0A7r548cQ2UDC4KuK9kR1ljIPnP2sK6JbeINiOuk5AECwUF6H5VYZn0zZfOysW5uJ8Bc2qYFCLRLxXf3NeIx3kN+b1wvjilr/WY7bER6q36vx4JY3ucxQIV3e5IcTpp3H8lxdRcfiGZPE0tJOexVCdHXBVMlKfEi8wbe6xwkNxTXx7MWVrLia1txwtQcVij95h843D3T1Skrfe75Wp4YG4XAvAE4fqV2CaTlg38YOaIJIt1iWCDMxurtlchc6qt3zba5EoB9fu3GZPboHYJwr/qYw2CdA6Tz094uD8VOqMWU4IW2c2LM6dE41rYhOA9+Y+ul4a8MCGwbIDqsJcQtHfYM3MqNaShcQR33L1ZuRgRxd4o9NJ9m/ppw6fPnzsdxSIiwQV79dPoXgvhNfmobbjKEKgEsWLQgj7QGmeCYVGT7skFvE69PZy9EE6zusEfKMj7mz23ucqFptU9KeZ4hC+R7YPb9a4vQnB7q9vgfBe9hF6sGDEU1GTLUEt77VSzYiNeAnk3pYF6t0qAAADQElEQVRr505rPzqPFo9gT7BC6nve92DYvsamNF9eXSUbtFOslrtbR2v7lFJI9cEqs2UqeKcDeT3QPEdZac39tMi6jN+2b3hbDanYxKCQ3Q+W2k3Keq1WRevWa1Jv/yXPgGn5vVOt1sd39x57DDzfFnwm93E+jqAbR0RtX2d44H3iEp8iHvnZoB5aT8jZ/dCq+/l0552dog3385T7i1R4bjdZD42sZyRgtLfNSln7ltItBXdqy97ltKvtzjs7tKtjePqTPeWTlbN/kBrgk0I4il4IH19mU6tWRPK97XivVcVbFEUvl8uBWg1frKg8bspfAvGYEGB7pOL+7tyfcjp8ikf5EK5XiFbW60VSzRvFZcWxVaflnWKKapVKpF407Aoa0eJFZZ+oDp+RPnlo5Xx+o0CfJ4Btr+u6nV09ffo0OX36cqKXiLcTbbvt5Qyu6fYF25Qg8cjxaE6G+xxg3chZgJ/fWvyf4ueu9zfTHT4/PfD5gNQAEr6GJICEryEJIOFrSAJI+BqSABK+hiSAhK8hCSDha0gCSPgakgASvoYkgISvIQkg4WtIAkj4GpIAEr6GJICEryEJIOFrSAJI+BqSABK+hiSAhK8hCSDha0gCSPgakgASvoYkgISvIQkg4WtIAkj4GpIAEr6GJICEryEJIOFrSAJI+BqSABK+hiSAhK8hCSDha0gCSPgakgASvoYkgISvIQkg4WtIAkj4GpIAEr6GJICEryEJIOFrSAJI+BqSABK+hiSAhK8hCSDha0gCSPgakgASvoYkgISvIQkg4WtIAkj4GpIAEr6GJICEryEJIOFrSAJI+BqSABK+hiSAhK8hCSDha0gCSPgakgASvoYkgISvIQkg4WtIAkj4GpIAEr6GJICEryEJIOFrSAJI+BqSABK+hiSAhK8hCSDha0gCSPgakgASvoYkgISvIQkg4WtIAkj4GpIAEr6GJICEryEJIOFrSAJI+BqSABK+hiSAhK8hCSDha0gCSPgakgASvoYkgISvIQkg4WtIAkj4GpIAEr6GJICEryEJIOFrSAJI+BqSABK+hiSAhK8hCSDha0gCSPgakgASvoYkgISvIQkg4WtIAkj4GpIAEr7G/wcfaOTtdBZThQAAAABJRU5ErkJggg==","make":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAAACXBIWXMAAAABAAAAAQBPJcTWAAAQAElEQVR4nO2daXAcx3XHe869gT0B8CaIgwBBELxkSpQUmjp9iFScyod8SiWV+JLtJIpd9rccrnLKZStJxSrHx4eUXU7lm53DlbgslW3JtmTq4IGLIEASALGLGwT23p2dKz0zIAQSIM7d6Vn0+5VqtFzMTvfszr/7dfd7r5lQdB8CAFrhSVcAAEgCAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSCA++A1ER89+SZ8VIW0pulFz4TNdWB140dpvPtnncc6w/qRYrE4qb47MTk5pb2N38+7xq264aPGKPbUyKwVW9Ey7LqXBwEB3AfLso2NjR27nnO5XEV9bnh4+PrkrCzLNlejvb392dAFVVPd+Sj+Z9if6zx2LO1uyGQy8/rN4eGRhYJWKpWKsh0PDc9zgiAwWmUFIGuS/d8zAgEsYbX9f1L3er23Xp11I7Pd6/SiZ9on+/v738p/TVXUvG/Uhpo0pz710bqL4tQR/FpjNXysmT+Dj379tHXCuQakMgg/LQvqUDwen1V7M9nMhPKWoqqyZxqfoPJZVI42tf7uRzo6Ok4FPosFgBBjvqdv85qrYVy5yM6NjI68nv48loHkmqtAKasDAviAQ4cONfgb8GO09I6mIoZhuo53RaIXb968eWUsrijqGlcoC8c6j0mSJD78hFIJWc1xIBA4evRo0evHr1Oe+lQqNSsNptPpW/FeRcFPv4pNuC1Xg+PYp556KhKJcBO8eZ3KCoDl2dbWVjby/GuvvSZVoIyHAQJYJDb/sXOPvaCkXcZvzRnvaOb7YrEBHw9kXm4U0BNHEr29vZfkb+BWqugZq0AtjOe6jjnjzQTuWRzG/zTr2WMePFvM7cJHf6beOOpn9ljvcohvR/lcIa3Gp6enb+V+lS/kU0y/WWdjPLOR/sElRbEZ1lT8Iy2B7rd9KmUIiVIYSehw9qsu1yf/o/R4hUpZCQhgkcaDjR6PR0s99AQsDDxCOHnyZF39xYGBgZ74eCV6A9zu+n3+bV6kVFJ4Qajx1QRDwQMhVlO1ort1bm5uvNBn9BLpMXxc9yKxWAwlt1mRrbBr1250x77iQACIV92iKD4a+ax70q0xVrv/QTu3vPUVC7vxsTH7cqOIfq9tFI8NLsmvlLE34FVvNBR1IRe2wrQV7f1K7jtn+WtzHsnqu/zZOnysQU82MKgTd25epNUiqU66Kw9ms7kbC6/fvXt3qvZ/jauxpQ8uprldXGBln1M5lr5nwcPZVyoIwKK5udnLujVtQydbdjXP8ydOnKhruNjX29s/WbbeIBwO65Uws60ezLyyqmo8L4T84VAo3ND1Ydw/XEpOXL16tSKlOh4QAIomn300elFbnHhYy8a9vzfYi48Hbr3c5Efn2kbwEPk3ma/hAfR2egNPIdwgHizXOHPlyGGxdzNn9N1m/d0J4/i07/iB2ls/yfzhsrNoAQRgNP+4Od/yx3HTz7uEjo6OYOwCNoquT22rN6irq0PTW/70FsGdQEtLi2/Qm8vl7S6bNFQLAFv/giA8GvkMPyNs9rPL21erNW3MfqklgM6HzLFB8etmb5DY1DVDpa469KFFS6xi9vfykYPV34lSWNBQjSsipTWFo0sDVAsAc+TIEU4p25eAm37BI+CxQSx64fr16/2Tk5vqDTxeL8dWdsF1DRjGxjGvY6BaALHMhzt9z3MLRvO/nZX++8YGOWM6vjHz5WYfOt8x2tvT8470zQ32Bj6+kVV22Tn3YqGxisby+VJSY4t2l00aqgXQ1NTk8/rQQkUurmrGusGpU6fqIhcGh4Z64uv3BpFwBJvjFanNmrAMI0mlbC5rf9HEoVQAvCZi6//JyFeYiW21/Su5b2yQ34+PTZkvN4noyfbh3t7ed+VvYBms5mGKxcI0153lsr5y1mZjyK6Z6elpRVPs73yIQ6kAMG1tbfZ44FrrBhzPnz59uiF2sa+vr39iSl3R0nMc73F77KjQamxkbXhHQqkA6hc+dtL7EZSubCmr9AbprzR70cljP3vt9dcmoj9eOpNXRYET/Wy0VCJgAhX8t6b1K/aX6wQoFQC2/j0eT6UFsBJdN/7z+/3PPvPsj3p+stxbc8+ePWrFPU1Xh+O5RCKBwmRKJwt1ArDm/s/EPsfN8BvxtykXVlma6ecSnHqywY3C/vrkQlLhjIkXvhTdE+pg8vj3YBU7fWFMAd5lr6TEHhtLdRDUCQDTeKhRFHlSza0F7gdE8T6f/0AggAitQWVzOa1CHkiOhzoBRJPPPl53QZ8zFkErHOW3Doqm3HM+Ra7C7jqx3c4eaQmWQdP5GyX3DIGyHQB1AmhpaTED/AijaahY/GDVKRQO84RqJYhoeHiYSNFOgCIBLHr+BF8SpkRSbb8Z4ouysSvxeDydn1/yPa1nO725g0SqhKVY0BesMDEKoUgAyHT8dPMiWevfoqe3BwU/+GdNTQ2pmsgykiQ7o3CdBUUCqEs++0Tdi6pl69pubVvBKFa515kfjPreWP7Xg95z7nTUzlpZ9ZFqR2dnZyWlQOEasAVFAmhqauI58vcriui999+//x0xHA5rmmZrLKAJwzAzM5QOfy3IPxA2wGpG1O+ZyF/y05yVaady2Q3WJh/u6R8dWZAS6N6Il9dEL+/3ajXYFLF/BaDoHZ1Ve20s1XFQIQBMa2srT6CFfRCWYwcGBpZb/xiXy0UuCgCl02nkIlY6cagQQH3yuUdDF1gz6ldjCD1rRlYVdE35zojvN8vf5qVo657TkrKhNBDlrQ8m4xqYKL0LAtjhYOvfCXP/DINWTb4QDIY0QnY4tU6gS+xwAWDrHz/6j9V9gZ0mZmRY8y25cPfk1ORy69/CXdoVEZrtrxVn1mq+OKqI8/aX7hx2uACQ6ffP4Z97G1kyywIv8FeuXFnpcYkHAATDADKZDKmiHcIOF0Asdf5k7cfZOcZIdkaqD9ARx6J38/9yJ3Bp5R9bfR93zXfaPw2v8iWe58buDFhbDVDLDhdAS0uL2+0mXQuD/v7+Vd8nuAZcKsnZLKUeEEvsWAFY1v/jkS8xEwTWfe/VwThmwu9NT0/PF+NotXF4ndDhztfbWivTGJTdc9lMRmaKGkupI7TFjhUAslK+cYhEmoX74Dn+8vuXUWSVP3EcayRhJgHLMEYYAOmhEXF2rADqk8+djbyg3zX9/sk5unAcer/4nbGaVax/XnXX+Go8TK1cWvnHiqPUTFy/8gahBXEHsWMF0N7eznHkl35xFR5m/SMjFZyHVDo2Xdfz+Tza7lYEVc8OFIDl+fNI4NM2R/3eV4fFuf/eofHxh1n/nBwMefZboYi21tMsMe8au6sP2liqQ9mBAkDm5I/IEI76tbjWfW2NbAuNBxtVEmvALGusAZdKJGwvh7EDBVCfeuZs9KJqJRkn0AOYg26dxQ9ZL/runcBvHnaeT2oO6UcqnQt6FcyyEqV3Cv5bNpbqUHagALD174RExzyPrly+vMYJHMf6fF7b6vMAC8nKpEStNnaUAKzdvk76P2Xk+ydm/RsTK/notf6RkaQ8sar1b7HLfcxKJU0ABqVKUzLda8AWO0oAmNbDrSISiU9v4y7o+vXrKLTWOXv37lUVW7KTrkBV9anpKSJFO40dJYBY+qlHoy+iKYYl6vmDuSZ/d9T/1tonRvl2sRCzv6eSxaSxBqwVYBEA7TABNDc3O2HuH1v/G9l0MRAg5gWUzeVIFe00dogAeA0b/+Lj4S+x5c73v3GW/P7vjN1Z2/pnNdHr80aYJiVv6/yPVcNiYDg+fM2+Up3NDhEAMid/WAfMa3M819fXt26m5VAwRCob52Iu6DXHJ/SwQwQQS37kVM0FNEe4GhyLLhdfvRP43dqnCXJNxLOXNVOlK3b2V6bkUq6etJvqTBDL2SECOHz4sBOifvED3dO7oWcrGo3qhMJxSyaIWBSas6h6AVhz/2din0Xk8jtZtnUm2D05sUrU70q80sH9/tNKksBCNe6jRlNXCu5xuwt2KlUvAGQt/eqMTjrDPe6CjMmf6PpnulwuXiDzzTMMmp2dJVK0M6l6AUSzHz4efIGdMWY/CeZ8Zll0KfPKWO3765+NUEBt8clNla7VSnBPxehooZSQhaT9pTuTqhcAbv6dYP3jlvXG4Ea9iw8ePCjLMikjHDJBLKeKBcBrIrYlHgu8jEhH/aZilxOJxMP8/leynz/nSUbs7K8WVwB8E4VCIVdMwRrwElUsAGQt/TLIEX7/19by+18OyzIeLzEnUEgF9wBVLIBo+rkzsYuq6dNFzPOHMfbYuiZ9L7Fazp+VsJrIsVyQ36WVCESBFT3xqRJEgd1HFQugo6PDCX7/HI96ezaxx2g0GjVqTWLKiuP5yYkJ5Ig8SU6hKgXAmp4/j3g/x04R9vzJh/tGRtfx+1+OIAd317YYE7Y6gXFL3n1rsnQFBLCcqhQA5nDbYUEln/NH13Uj6cNm9lg3UsER8sXM53PEV0ucRlUKoC793KORF9VJ8x+kjCDzQepWv30n8PbGPxTM7WsUuwwBkKh2UhsuiLAGfB9VKQAz6pf8TB7Pm5M/m8Htdvv9Po1EQnJBQMMjIwQKdjZVJgBedbtcrtO1n2RnWHJRv8YxH+m5ffv2xq1/iyBzUiy0Vahiq2LVVuMUnefnpFsl1107S3c+VSYAZKV808nn+zd2+7oxsCnrH+P3E0vFho3/QrFAqnTHUmUCiOXOn4pcZCeMVpdg1C+7Mb//lbTVP8lnYvbnq9OFXLZUykspynNBr6TKBNDS0so5YK9fTUPd3d2b/RTHsbgH0HXdftuNYZjp6WniyTIcCPmHaYNYc/9nQ19E46SjfiNX4/H4Zq1/VucFVnTxMaQyrO35QCVPYqbUZ1951UPVCABztPMocoARy3GcMfmzAb//lR/EI3hSGTkzmSz4wK2kagTQkH7+pO8FNm+8Jpnvn0Xv5L4Vr313sx8USjX79jQyEs+pBL7zgv/GSO4NFLC/ZKdTNQJoa2sTePJ+/5j+vi3aEvv27VMIBaLkC3nIBb0qVSAAy+//8fAX1Eling9LUb/jifHNWv8WfKkuKDRa8QOKncm7zJrPqn1F75iNpVYNVSAAZDb/yAFO/yzDGpM/m7f+LQwvoOmyVmhjsCxKJiEMYHWqQACx7NOnwhdMzx+W4PwPa+z1+09jtWtlPF+DA/4z7nwjkdGLIKDB4fcUEXJBr0IVCODIKvfQmQAADP1JREFUkSMsSz7jJ8OggYGBLX+8tra2jJXZFIqCSkQ24qsGHC2Ae1G/f6FN6GQ9fzKRq6Ojo1uz/i1iXKc7f7B89dooKl+SNa2oZRTOAUak83C0ADCtra1GrnPSS5iqqhoZP1fb63eDGKngSPjisxw7MzOjKPD0r46jBRBNP3Om7hOK4cFOzPq3PH+61e+vutfvRmB1Hvdju7lTWtrWNWxrxqkQ6rl5e0PZiujE0QI42tlJugoGWAA9m/f8WY7b7eZ4pMnlqtHmyGVhDfihOFQArGn9n3Z/jni+/3yk59atWyllcsvWP6e6fXwt/qJVDWm2D+Ylz9hd9ToI4GE4VADISvkmOyLq15j82ercv0XjoUMlEpOQuO8q5AvpdHo7o5edjUMF0JB+/rHwJ9QJ8x9EU59clv51rOad7VzBXdzX4O5U03bfiJEJVEOT6rWCb9TWgqsKhwrgcOth0lVYpLd3Ezl/VoVhiKWC03VkNP/Aw3GcAKx8/49EPs3MMISjfsN9t2/fTinjSNzW1WrV1qDWav9eYHjsxLFo4u5NFfYDfjiOEwCm81gnI5FP+YZb7v7r/du0/jH7D+wn5YnJcmhycpJI0dWC4wQQy507XntRGDdaXVu9JpfBaogx/P7/Mb6xfP9rs1s/F0gf3P51NkvJPZOTZYUrqIj0TIKDcZwA2traHBH1qyIj5du20XU9GAxu/zpbI5eDVHDrQP5RW8Ka+38i+EU1QXjuPxm5PDY2tp25/3tXYzmei3gakVSW2m0Uy+dU42ezpQlNAyeItXCQAJAZ9as7IOqX5bjunp7tW//IjAEQBB5bImW41iYRRREP4hGxrQiqAwcJoCHz9En/BS1rvCbm+WNG/b6b/tZEzZUyXErxB90Nxg5iGm9nJIDlBZT2355hYT/gdXCQAI52HOUc4PeP2Y7f/wP4/QFSRriiqMViEZKhr40jBICtf7fH/UjtF9QpjbDff7B7dGR0+3P/FmJx9+GGs4oVBmnzMjCLJnM9We6OraVWIY4QADJSvrUQ2TTlAYx8/+WY+7cQBAEP68tzrU1i7Ac8N0ek6OrCEQKozz79WOz39XHEkvb7vyJ9qyxz/xaBUktQay/X1TaB2dtMl/okb4JA6VWFIwTQ1dWl6+QXa7AAyjL3vwTBOGBk7AeTJ1h6tUBYADy2/t3u4+4/N/KFELX+c5GrpufPduf+l9MafYJL7bL/vlS+KGvabHoC4oDXhXwP0N7ezmsc8aBVVVWvX79eLuvfwkgERIh0Ok38K60KCAugLvf06ciLWoJjEUfQ+kfGbl/fj9duMep3Jaxu3ExEbOIlAt+w5JqZl7H1T96qdD6EBdDe3uYEZxUj7H2Tu32tS22wVhRFjURIG8swczAFtDGICcDKlXDG9zJyQNTv4NBgWp0qo/XPKf5YYD8v1ajYDLEzE4R5R6Vw/1D6/xCx3ZiqCZI9wNGjR9mCsdsKWXAXNDg4WF7rH1kDAEK3JkmSohBKQVFtEBPA7sxHP1T7ouX5QzDql2XQe4VX4zVlzpwjlMJ1/iaUNFp/xc67M3uAFHczKw7bWGoVQ0wAra2tDEM+7Espk9//A3A8F4vG9IWyX3gDRZtRYE4YWVUFBARg+f2fjX1emVQJz/2HessS9buSsHbMJ7XZnwsa3xfPoHiyu+Sesrvs6oRMD9DV1aXkyM9SG1G/A2Xz/FmOkQqOJebSncvlSBVddRAQQEP+fJf/BT5FOOqX5dCl7CuJ2jL4/a/kUPAsn95nfyYIhdN0hk1L8wpnbxBa1UJAAO1tbSxH3u9fVdDArbL5/T9AfX09kVhElmUWFpKSBE//RrFVAJbf/9nwX8sTMtm5/1TkvZHhkfJ6/iyVwHFsTD4tpHmNseZB7bvVfE3fxN0RWAPeOHb3AO1t7ZpK3vovr9//A3Ac73bzpLKaZjIZMgVXJ7YKoD779OnQRX2CZ0lH/V7KvJqo3VbG84chKN6WxpZFjTM23qTZs0neybHMNUTewKwabBXA8ePH7SxuDYYGByt3ca/PxypkVrhx7zq/sFChnm1HYqsAjjB/KkyJZK3/XKh76OZQeT1/liNI0Zi3GdmejdO6u1mtt+gdsbvsasZWATgh5ZssyzcGb1SujWRYJhgMaoR2hC8Wizrp/dSqC1ufyHllqKamRizutbPQ5bAMuip/O7HVvX43Qp1yJlp6hEguaEFAQ+OXZNeMfWVXP7YKoLv72vnz5+0scSW9fX0VvT7BKDCGQQsLhLqeqsVWAVz1fnV+6od/sPd7mqa5UofQvSyWlcZqI7ORnsHBG1ltukLWv0WUOeLO7a9gAQ9B5bH1w+TRvCwU7S+9erHbKL9z585Pr/2040jH0bpDqmLrgo2qKjcq4Pf/APv379dITAAxDCOZ2F90VWOrABTOSNRxI/rNGzPozfn2EydOHEOfUTXVm21Cle8NrhRenaik9W/lgq4Tm7m8rZlALWTP5PD4LcgFvVmITctkMplf//rXidz+rq6uw6Em/MNVdPZC15GR9KHCCCak9rWH7cC2ADEBSB4jadmA5+sD46hurgNzWvgrWZa9uUZUvt5gce4/fHmbe/1uqCxNdLE+TvApkrI4M2NjP1D0JmbVSvn27WDIT8xjUsnU22+9PZVrPnXyVKOvEbfW5TWiNV3rG+izYX20vqFeVYhNwxuZIGANeJM4QgD3eoN/GBhDu1zHOo8d62JfUlXVnTmAtteO4s+yLLqU/vZETZmznqyEU8Vad5iRGAHxsu3eOLPMuylXxe9x5+EIASxnIZnEY4N4bv+J4yeaaw5sP7uZLCuV8/t/AGxoXWhFRGZiUqmUE2Ksqw7HCaDoGUNWb5BADWLXyZMnj6if0nXdlTHWjzfbGxRqrt4eHs7qk2WP+l2JJKalUrq/8LOGhgbP7AnjrWW1reB4wLS57krDsguSYW0axwlgOclk6pe//FW8eKDj6NG2yN6tbbbbf8MO63+J377z2xOdJ46HTmDTq2RXbh6XC90eum1TYTsLRwug6B3Fx17v3/VOoIa5rlOnTh0pGb2BmNuD1mtTWc1IEPJ6+pVEra37ZMWjP4pP/ujN2X8OBAIdu875A4E67rjAC2LWWB4Wiw2api9ugmDt5bjtnkFjtYKMCtqcypdxO24NMVSElTlaAMvBvcEvfvHLROFgV1fXodAeRV5/pkiW0c2Rm3ZUbgX5fAH/lxr9HX7tlm8FXIGDgUdra2tjLj4Wi/Gc4bej6Ugp0+aRRio4tcwbUUoSmd3tjX3NbKRqBGD1Bt3ev+lOoN2zp7AMutBLpVLJXXhwbGDNwafDl2/evFk5v/+1kcW5pWMGXZtFaBj9EKWM2olJMcju83g8+2pO7d27J6x04tdMOoZ7BrG4G93LLG2xTi9nZYLwzUzPJxRNKaMLqiLOT6YGNUE3F/XsCOC4t3KiTU2N21DcElUjgOXMLyz86o03xvMHsFG0z7fXWDdYMfmuqKoNnj9bAIs2JaUw8yPdvb09vtIwh9iW6GO4Z4gI/mCwdukn0bQNrYfwPB+Px1G59yIbujm0sCsZiYTK1U2tC8+jVLZwLdFt569WlQIoeo3Elz3ev+25g/Z6P9TR0XGcfwmbAe6C0YIW3VMej/u/b31xOjxNuqYrMR5pyXTZt44pZLgnxdG/o1lsdXPsBLsr0IbHDxHhcENDwy7+tMDzYuEAlo1QMp4LTjV+MivfhGbGHM/U/Vcf+5/lraXCGXbID8af6wgePRn+Y6wxXvUZf6jMwACP63Li6MjI6NuJf5PDtqb1rUoBLGdubu7NN98cL+w/fvx4vRhlGGY+d/fq1avTIQc+/euAK48fhVmTRLHY3d0dUhKiIAZRW0tLS8jlwsLA44flayO49/v5z39uOIFWwNJTFBXXIZH+H0EQOMXccr5iI+OsMCJjgnYnta56AVi9QZ/37/viSNCMTelkNoMiqBpz42iMYW1IZlpP65hBi4nr3p/Bd2e0wVG26+CBA3uVj+KHclL77dDg0LjnnQptBWCNYaaiP67I1Z1B1QtgOYvhsOQSrlQUK+FzOp3u6e29Uwrg13nGjG7zkK1XdbOjBKDwO9kf2IqmUGqMhz6HKhvYSQ87SgAAsFlAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCoBgQAUA0IAKAaEABANSAAgGpAAADVgAAAqgEBAFQDAgCo5v8BICR88rDm3MUAAAAASUVORK5CYII=","langchain":"data:image/png;base64,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"};
+document.querySelectorAll('img.lg').forEach((el) => { el.src = LOGOS[el.dataset.slug]; });
+
+/* The measuring rule's marks and labels are DERIVED, never typed. Position is
+   width * (i+1)/(n+1), which is the only distribution with an equal gap
+   everywhere including both ends — 232px each here. Adding or removing a
+   measure re-spaces the row automatically; there is no literal to get wrong,
+   and no way for a longer word to shift a neighbour, because each label is
+   centred on its own mark by transform. T24. */
+const MEASURES = ['Ease', 'Flexibility', 'Output', 'Value'];
+{
+  const W = 1160, n = MEASURES.length;
+  const rule = document.getElementById('rule'), labs = document.getElementById('rlabs');
+  MEASURES.forEach((name, i) => {
+    const x = W * (i + 1) / (n + 1);
+    const m = document.createElement('i');
+    m.className = 'mark'; m.style.left = `${x}px`;
+    rule.appendChild(m);
+    const l = document.createElement('span');
+    l.className = 'mlab'; l.style.left = `${x}px`; l.textContent = name;
+    labs.appendChild(l);
+  });
+}
+
+const q = (s) => document.querySelector(s);
+const qa = (s) => Array.from(document.querySelectorAll(s));
+gsap.defaults({ ease: 'power3.out' });
+const tl = gsap.timeline({ paused: true });
+
+// A device belongs to its beat (T11). `leave` is autoAlpha, which also sets
+// visibility:hidden — a dimmed element is still a drawn element.
+const show = (sel, at, vars = {}) => tl.to(sel, { autoAlpha: 1, duration: 0.5, ...vars }, at);
+const leave = (sel, at) => tl.to(sel, { autoAlpha: 0, duration: 0.32 }, at);
+const heroIn = (id, at) => {
+  tl.fromTo(id, { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.55 }, at);
+};
+/* ONE presenter size for the whole film. He was 0.82/0.72/0.72/1.0 and the
+   owner asked at b07 "why you chose the size this much only for the avatar" —
+   every shrink was clearing a device that no longer exists, so the answer was
+   to pick one number, not to keep re-deriving it per beat.
+   That number is 0.82, NOT 1.0. Full size was tried on 2026-08-18 and rejected
+   on sight: "you have increased the size of avatar, which makes it overlapped
+   to the graphics, which looks really bad." The arithmetic had said it was
+   fine — at scale 1 his box starts at x1300 and every device ends at x1150, so
+   150px of clearance, nearly 4x the T13 minimum. The arithmetic was answering
+   the wrong question. A device box is a hard edge; a person is a shot, with
+   shoulders, a lit background and a scrim that all read as his presence
+   spreading left. Clearance between rectangles is not visual comfort, and only
+   the frame can settle which is which.
+   0.82 puts his left edge at x1419 — 269px from the device lane — and it is the
+   size that carried most of this film without ever drawing a size complaint. */
+/* ---- the voiceover's own clock (T27) -------------------------------------
+   Every reveal in this film used to carry a hand-typed second, estimated by ear
+   from where a word "probably" falls. Measured against the transcript on
+   2026-08-20 the estimates were out by 1.4 to 3.1 seconds -- the n8n mark
+   landed 1.7s before he says "n8n", and "anyone" landed 3.1s after he says it.
+   Owner, repeatedly: "these are not synced with the audio ... this is not the
+   first time this happened many times."
+   The exact time of every word was in transcript.json the whole time and
+   nothing read it. WORDS is that table, sliced to the intro, baked in so the
+   composition stays self-contained for the renderer. Reveals now say WHICH WORD
+   they belong to and the number comes from the recording.
+   Never type a reveal time again. check-film-timing.mjs re-derives every at()
+   call against transcript.json and fails the review if one drifts. */
+const WORDS = [["If", 0.02], ["you're", 0.94], ["trying", 1.18], ["to", 1.52], ["automate", 1.76], ["workflows", 2.18], ["or", 2.72], ["build", 3.14], ["AI", 3.58], ["agents", 3.9], ["and", 4.32], ["you're", 4.58], ["stick", 4.72], ["or", 5.14], ["stuck", 5.58], ["between", 5.98], ["tools", 6.32], ["like", 6.92], ["n8n,", 7.58], ["Make,", 8.82], ["Zapier,", 9.4], ["LangChain", 10.66], ["or", 11.08], ["Flowise,", 11.4], ["this", 12.24], ["video", 12.58], ["will", 12.86], ["save", 13.14], ["you", 13.38], ["hours", 13.54], ["of", 13.96], ["trial", 14.34], ["and", 14.56], ["error.", 14.98], ["Some", 16.06], ["of", 16.28], ["these", 16.42], ["tools", 16.54], ["are", 16.74], ["pretty", 17.0], ["powerful", 17.32], ["but", 17.72], ["painfully", 18.0], ["complex.", 18.66], ["Others", 19.86], ["are", 20.06], ["easy", 20.26], ["but", 20.62], ["hit", 20.9], ["a", 21.18], ["wall", 21.46], ["fast", 21.74], ["and", 22.34], ["a", 22.76], ["few", 23.06], ["actually", 23.58], ["give", 24.28], ["you", 24.66], ["real", 24.76], ["flexibility", 25.04], ["without", 25.5], ["locking", 26.32], ["you", 26.82], ["into", 27.04], ["crazy", 27.3], ["pricing.", 27.7], ["By", 29.38], ["the", 29.52], ["end", 29.7], ["of", 30.04], ["this", 30.42], ["video,", 30.76], ["you", 31.18], ["will", 31.26], ["know", 31.42], ["exactly", 31.56], ["which", 32.1], ["tool", 32.5], ["makes", 32.78], ["sense", 33.06], ["for", 33.26], ["your", 33.5], ["use", 33.94], ["case", 34.4], ["and", 34.7], ["which", 34.94], ["ones", 35.16], ["you", 35.42], ["should", 35.78], ["avoid.", 35.98], ["This", 37.24], ["video", 37.4], ["is", 37.66], ["for", 38.06], ["all", 38.58], ["you", 38.86], ["creators,", 39.02], ["developers,", 39.74], ["automation", 40.38], ["builders,", 40.82], ["and", 41.2], ["anyone", 41.52], ["experimenting", 42.0], ["with", 42.66], ["AI", 43.1], ["workflows", 43.38], ["who", 43.86], ["wants", 44.48], ["control", 44.88], ["without", 45.4], ["unnecessary", 45.8], ["complexity.", 46.5], ["All", 48.42], ["five", 48.62], ["tools", 48.84], ["here", 49.18], ["solve", 49.46], ["automations", 49.86], ["or", 50.44], ["AI", 50.68], ["workflow", 50.94], ["problems,", 51.34], ["but", 51.88], ["they", 52.18], ["do", 52.3], ["it", 52.52], ["in", 52.64], ["a", 52.86], ["very", 53.06], ["different", 53.42], ["way.", 53.9], ["Some", 55.06], ["are", 55.16], ["no", 55.48], ["code,", 55.72], ["some", 56.32], ["are", 56.46], ["extremely", 56.84], ["low", 57.44], ["code,", 57.82], ["some", 58.3], ["are", 58.44], ["developer", 58.68], ["first,", 59.02], ["and", 59.6], ["some", 59.64], ["are", 59.8], ["frankly", 60.04], ["overpriced", 60.04], ["for", 61.22], ["what", 61.42], ["they", 61.6], ["offer.", 61.76], ["To", 62.96], ["keep", 63.22], ["this", 63.4], ["fair,", 63.62], ["I'm", 64.0], ["testing", 64.18], ["all", 64.52], ["tools", 64.96], ["using", 65.36], ["the", 65.96], ["same", 66.36], ["automation", 66.66], ["use", 67.24], ["case,", 67.66], ["the", 68.18], ["same", 68.26], ["AI", 68.28], ["prompt", 69.12], ["logic,", 69.64], ["and", 70.24], ["the", 70.34], ["same", 70.46], ["evaluation", 70.7], ["criteria,", 71.32], ["including", 72.24], ["ease", 72.84], ["of", 73.22], ["use,", 73.32], ["flexibility,", 73.74], ["output", 75.48], ["quality,", 75.48], ["and", 76.36], ["value", 76.52], ["for", 76.86], ["money.", 77.06], ["No", 78.0], ["marketing", 78.18], ["claims,", 78.56], ["just", 79.44], ["real", 79.6], ["workflows", 79.92], ["and", 80.38], ["real", 80.72], ["outputs.", 80.92], ["In", 82.34], ["this", 82.56], ["video,", 82.68], ["again,", 83.2], ["I'll", 83.42], ["be", 83.58], ["covering", 83.7], ["a", 84.06], ["quick", 84.34], ["overview", 84.64], ["of", 85.2], ["all", 85.56], ["of", 85.94], ["these", 86.22], ["five", 86.54], ["tools,", 87.02], ["a", 88.04], ["live", 88.2], ["demo", 88.64], ["using", 89.3], ["the", 89.84], ["same", 90.04], ["workflow", 90.3], ["idea,", 90.7], ["a", 91.68], ["breakdown", 92.08], ["of", 92.52], ["ease", 93.0], ["of", 93.28], ["use,", 93.4], ["customization,", 93.82], ["AI", 94.62], ["flexibility,", 94.88], ["and", 95.64], ["pricing,", 95.68], ["and", 96.3], ["finally,", 96.72], ["my", 97.16], ["honest", 97.76], ["verdict", 98.14], ["on", 98.46], ["which", 98.82], ["tools", 99.06], ["are", 99.36], ["worth", 99.64], ["your", 99.64], ["time", 100.26], ["and", 100.52], ["which", 100.84], ["ones", 101.08], ["actually", 101.36], ["fall", 101.86], ["short.", 102.22], ["And", 103.14], ["if", 103.32], ["you", 103.6], ["actually", 103.72], ["want", 104.04], ["to", 104.28], ["go", 104.34], ["ahead", 104.5], ["and", 104.74], ["try", 104.96], ["any", 105.2], ["of", 105.46], ["these", 105.62], ["tools", 105.76], ["yourself,", 106.02], ["you", 106.42], ["will", 106.86], ["find", 107.0], ["the", 107.0], ["relevant", 107.6], ["links", 107.98], ["in", 108.44], ["the", 108.7], ["description.", 108.8], ["Without", 109.94], ["further", 110.18], ["ado,", 110.5], ["let's", 111.22], ["jump", 111.4], ["straight", 111.68], ["in.", 112.1]];
+const WNORM = (s) => String(s).toLowerCase().replace(/[^a-z0-9']/g, '');
+/* The instant the word is spoken. nth picks a repeat ("same" occurs 4x). */
+function at(needle, nth = 1, offset = 0) {
+  /* 'flexibility#3' is the array spelling of on('flexibility', 3). The checker
+     understood it before the composition did, so the film threw at render time
+     while the gate said fine -- the two must parse the same string the same
+     way. Suffix wins over the argument when both are given. */
+  const hash = String(needle).indexOf('#');
+  if (hash > -1) {
+    nth = Number(needle.slice(hash + 1)) || 1;
+    needle = needle.slice(0, hash);
+  }
+  const n = WNORM(needle);
+  let k = 0;
+  for (let i = 0; i < WORDS.length; i++) {
+    if (WNORM(WORDS[i][0]) === n && ++k === nth) return WORDS[i][1] + offset;
+  }
+  throw new Error(`at(): "${needle}" #${nth} is not spoken in the intro`);
+}
+/* Motion STARTS a breath before the syllable so the shape is arriving as the
+   word lands, rather than beginning after it. 0.10 is one frame at 30fps plus
+   change -- enough to feel simultaneous, small enough that it never reads as
+   early the way 1.7 seconds did. */
+const LEAD = 0.10;
+const on = (needle, nth = 1) => at(needle, nth) - LEAD;
+
+const ACCENT_HEX = getComputedStyle(document.documentElement)
+  .getPropertyValue('--accent').trim();
+const AV = 0.82;
+/* ---- the stage centres itself when the presenter is not on it (T28) ------
+   The device lane sits at left:150 and the wide blocks at left:120 because the
+   presenter is docked on the right two-fifths and the content has to clear him.
+   On the twelve beats where he is ABSENT nothing moved, so the graphic sat
+   ~300px left of centre with the whole right half of the frame black. Owner,
+   2026-08-20: "even though there is no avatar shown at the right or anywhere,
+   the graphic is not in the center ... not only these graphic but ALL the
+   graphics that shown on the screen that does not contain the avatar video".
+   He is describing a layout that only ever made sense with him in it.
+   The offset belongs to exactly one fact -- is he on screen -- so it is
+   expressed exactly once, here, rather than per beat where it would drift.
+   +310 centres the 1000px device lane in a 1920 frame; the wider blocks land a
+   little right of true centre, which reads as centred and keeps the left
+   margin honest against the headline above them. The headline does NOT move:
+   it is a title, it is anchored top-left by design, and he has never called it
+   off-centre. */
+const STAGE_SOLO_X = 310;
+const faceIn = (at, s = AV) => {
+  tl.to('#avatar', { autoAlpha: 1, scale: s, duration: 0.6 }, at);
+  tl.to('#scrim', { autoAlpha: 1, duration: 0.6 }, at);
+  tl.to('#stage-shift', { x: 0, duration: 0.6, ease: 'power2.inOut' }, at);
+};
+/* The round treatment is a different SHAPE, not a different scale, so it is a
+   class rather than a number -- and it is cleared on the way out so the next
+   beat gets the docked panel back without having to remember to ask. */
+const faceRound = (at) => {
+  tl.set('#avatar', { attr: { class: 'round' } }, at - 0.01);
+  tl.fromTo('#avatar', { autoAlpha: 0, scale: 0.86 },
+    { autoAlpha: 1, scale: 1, duration: 0.6, ease: 'power3.out' }, at);
+  tl.to('#scrim', { autoAlpha: 0, duration: 0.4 }, at);
+  /* x:0, not the solo shift. The round portrait still sits on the right of the
+     frame -- it is smaller, not absent -- so the stage must keep clearing it.
+     Centring here drove #i13 straight into him, which the clearance audit caught
+     the moment the shift started working at all. T28 is about his ABSENCE. */
+  tl.to('#stage-shift', { x: 0, duration: 0.6, ease: 'power2.inOut' }, at);
+};
+const faceOut = (at) => {
+  tl.set('#avatar', { attr: { class: '' } }, at + 0.42);
+  tl.to('#avatar', { autoAlpha: 0, duration: 0.4 }, at);
+  tl.to('#scrim', { autoAlpha: 0, duration: 0.4 }, at);
+  tl.to('#stage-shift', { x: STAGE_SOLO_X, duration: 0.6, ease: 'power2.inOut' }, at);
+};
+
+/* b01 hook 0 -> 4.32 : three steps light up left to right as a spark runs through.
+   A workflow, shown by moving rather than by being labelled Trigger/AI/Send. */
+faceIn(0.1);
+heroIn('#h01', 0.35);
+show('#i01', 0.6);
+tl.fromTo('#i01 .sp1', { opacity: 0.25 }, { opacity: 1, duration: 0.4 }, 0.9);
+tl.fromTo('#i01 .sp2', { opacity: 0.25 }, { opacity: 1, duration: 0.4 }, 1.85);
+tl.fromTo('#i01 .sp3', { opacity: 0.25 }, { opacity: 1, duration: 0.4 }, 2.8);
+tl.fromTo('#i01 .spark', { x: 0, opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.9);
+tl.to('#i01 .spark', { x: 700, duration: 2.3, ease: 'none' }, 1.0);
+tl.to('#i01', { scale: 1.06, duration: 2.0, ease: 'sine.inOut', transformOrigin: '0 50%' }, 1.6);
+tl.to('#i01 .spark', { opacity: 0, duration: 0.35 }, 3.35);
+
+/* b02 hook 4.32 -> 12.24 : the five real marks, one per name spoken.
+   A logo is the one picture that needs no decoding — it is the thing itself. */
+leave('#i01', 4.4); leave('#h01', 4.4); faceOut(4.4);
+heroIn('#h02', 4.7);
+show('#i02', 5.0);
+/* One mark per name, each on its own name. A 1.02s stagger from 5.9 put n8n on
+   screen 1.7s before he says it and Flowise 1.4s early -- the stagger was
+   guessing an even rhythm the voice does not have (Make and Zapier are 0.6s
+   apart; Zapier and LangChain 1.3s). T27. */
+['n8n', 'Make', 'Zapier', 'LangChain', 'Flowise'].forEach((tool, i) => {
+  tl.fromTo(`#i02 .row img:nth-child(${i + 1})`, { opacity: 0, scale: 0.45 },
+    { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(2.2)' }, on(tool));
+});
+/* The row breathes outward once every mark has landed, so the last 1.2s of an
+   eight-second beat is not a still frame. */
+tl.to('#i02 .row', { scale: 1.05, duration: 1.1, ease: 'sine.inOut', transformOrigin: '0 50%' }, 10.7);
+
+/* b03 turn 12.24 -> 15.68 : a clock hand races round and stops. Hours, gone. */
+leave('#i02', 12.32); leave('#h02', 12.32);
+heroIn('#h03', 12.6);
+show('#i03', 12.85);
+tl.fromTo('#i03 .hand', { rotate: 0 }, { rotate: 1080, duration: 1.9, ease: 'power2.inOut',
+  svgOrigin: '500 230' }, 13.15);
+tl.to('#i03 .hand', { rotate: 1055, duration: 0.45, ease: 'back.out(2.6)',
+  svgOrigin: '500 230' }, 15.05);
+
+/* b04 turn 15.68 -> 19.48 : one gear spins strong, two more pile on, it grinds.
+   Power and pain in a single movement — nothing to read, only speed to watch. */
+leave('#i03', 15.76); leave('#h03', 15.76);
+heroIn('#h04', 15.95);
+show('#i04', 16.2);
+tl.fromTo('#i04 .g-a', { rotate: 0 }, { rotate: 300, duration: 1.55, ease: 'power1.in',
+  svgOrigin: '330 230' }, 16.35);
+tl.fromTo('#i04 .g-b', { opacity: 0, y: -34 }, { opacity: 1, y: 0, duration: 0.5 }, 17.5);
+tl.fromTo('#i04 .g-c', { opacity: 0, y: -34 }, { opacity: 1, y: 0, duration: 0.5 }, 18.0);
+/* 30 more degrees over 1.4s after 300 in 1.55s — the gear does not stop, it
+   labours. A hard stop would read as broken rather than as expensive. */
+tl.to('#i04 .g-a', { rotate: 330, duration: 1.4, ease: 'none', svgOrigin: '330 230' }, 17.92);
+
+/* b05 turn 19.48 -> 22.34 : a ball rolls easily, then stops dead at a wall. */
+leave('#i04', 19.56); leave('#h04', 19.56);
+heroIn('#h05', 19.72);
+show('#i05', 19.92, { duration: 0.35 });
+tl.fromTo('#i05 .ball', { x: 0 }, { x: 690, duration: 1.15, ease: 'power1.in' }, 20.15);
+tl.to('#i05 .ball', { x: 676, duration: 0.22, ease: 'power2.out' }, 21.3);
+tl.fromTo('#i05 .wall', { opacity: 0.5 }, { opacity: 1, strokeWidth: 22, duration: 0.18 }, 21.3);
+tl.to('#i05 .wall', { strokeWidth: 14, duration: 0.5 }, 21.5);
+
+/* b06 turn 22.34 -> 28.84 : the padlock clicks open, and turns accent as it does. */
+leave('#i05', 22.42); leave('#h05', 22.42);
+heroIn('#h06', 22.6);
+show('#i06', 22.9);
+tl.to('#i06 .shk', { rotate: 38, y: -10, duration: 0.75, ease: 'back.out(2.2)',
+  svgOrigin: '576 222' }, 24.6);
+tl.to('#i06 .shk', { stroke: '#fb923c', duration: 0.5 }, 24.6);
+tl.to('#i06', { y: -26, duration: 1.2, ease: 'power2.out' }, 26.4);
+tl.to('#i06 .shk', { rotate: 46, duration: 1.0, ease: 'sine.inOut',
+  svgOrigin: '576 222' }, 27.7);
+
+/* b07 scope 28.84 -> 36.86 : one option of five lifts out and takes a tick.
+   Choosing, shown as choosing. The register turns light on the promise. */
+leave('#i06', 28.92); leave('#h06', 28.92);
+tl.to('#bg-light', { opacity: 1, duration: 0.8 }, 28.92);
+faceIn(29.0);
+heroIn('#h07', 29.2);
+show('#i07', 29.5);
+tl.to('#i07 .pick', { y: -34, scale: 1.16, duration: 0.7, ease: 'back.out(2)',
+  svgOrigin: '475 261' }, 31.0);
+tl.fromTo('#i07 .tick', { strokeDasharray: 180, strokeDashoffset: 180, opacity: 0 },
+  { strokeDashoffset: 0, opacity: 1, duration: 0.7 }, 32.2);
+tl.to('#i07 .opt', { opacity: 0.22, duration: 0.8, stagger: 0.12 }, on('sense'));
+/* "...and which ones you should avoid." Owner, 2026-08-20: "when he said about
+   avoid it, you had said nothing". The clause names a choice AND its opposite,
+   and only the choice had a picture -- the four dimmed tiles just sat there.
+   They now drop and grey out on the word, so the beat shows both halves. T29. */
+tl.to('#i07 .opt', { y: 26, opacity: 0.10, duration: 0.55, ease: 'power2.in',
+  stagger: 0.05 }, on('avoid'));
+tl.to('#i07 .pick', { scale: 1.24, duration: 1.1, ease: 'sine.inOut', svgOrigin: '475 261' }, 34.8);
+
+/* b08 scope 36.86 -> 47.97 : a person appears for each group he names.
+   Four names in the clause, four people, each on its own word. */
+leave('#i07', 36.94); leave('#h07', 36.94);
+/* One size for all four names, chosen so the LONGEST of them fits the frame,
+   measured at build time -- not inside a tl.call, which the renderer re-fires
+   in its own seek order. Typing a size per name is how "FOR AUTOMATION
+   BUILDERS" got to 1925px on a 1920 frame: nobody types a font metric
+   correctly, and the layout engine is the only thing that knows it. */
+{
+  const w = document.getElementById('h08w');
+  const LEFT = parseFloat(getComputedStyle(w).left), MARGIN = 100;
+  const avail = 1920 - LEFT - MARGIN;
+  const base = parseFloat(getComputedStyle(document.documentElement)
+    .getPropertyValue('--hero-size'));
+  const kids = [...w.children];
+  const widest = Math.max(...kids.map((el) => el.getBoundingClientRect().width));
+  const size = Math.min(base, Math.floor(base * avail / widest));
+  kids.forEach((el) => { el.style.fontSize = `${size}px`; });
+}
+tl.fromTo('#h08w', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.55 }, 37.2);
+/* One group name per person, on the same word. The last one is NOT swapped out
+   -- it holds until the hero itself leaves at b09, so the headline never sits
+   as a bare "FOR". */
+/* Spoken at 39.02 / 39.74 / 40.82 / 41.52 -- four names inside 2.5s, not the
+   6.4s the typed values spread them over. "anyone" was 3.1s late. T27. */
+const H08 = ['creators', 'developers', 'builders', 'anyone'].map((w) => on(w));
+const DIM_FILL = 'rgba(255,239,219,0.26)', DIM_STROKE = 'rgba(255,239,219,0.50)';
+H08.forEach((at, i) => {
+  const w = `#h08w .h8w:nth-child(${i + 1})`;
+  const who = `#i08 .w${i + 1}`;
+  tl.fromTo(w, { opacity: 0, y: 34 },
+    { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, at);
+  /* The lit person and the headline are the SAME fact, so they run off the same
+     table. They were two hand-written blocks and drifted: the accent sat on
+     person 1 while the headline had reached "AUTOMATION BUILDERS", which is the
+     mismatch the owner raised about the headline itself, one row lower. */
+  tl.to(`${who} circle`, { fill: ACCENT_HEX, duration: 0.4 }, at);
+  tl.to(`${who} path`, { stroke: ACCENT_HEX, duration: 0.4 }, at);
+  if (i + 1 < H08.length) {
+    tl.to(w, { opacity: 0, y: -30, duration: 0.30, ease: 'power2.in' }, H08[i + 1] - 0.30);
+    tl.to(`${who} circle`, { fill: DIM_FILL, duration: 0.4 }, H08[i + 1] - 0.30);
+    tl.to(`${who} path`, { stroke: DIM_STROKE, duration: 0.4 }, H08[i + 1] - 0.30);
+  }
+});
+show('#i08', 37.5);
+tl.fromTo('#i08 .w1', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5 }, 38.2);
+tl.fromTo('#i08 .w2', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5 }, 40.3);
+tl.fromTo('#i08 .w3', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5 }, 42.4);
+tl.fromTo('#i08 .w4', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5 }, 44.6);
+/* The tail walk is gone: the accent now arrives on person 4 with the word
+   "anyone" at 44.6, so a second hand-off at 46.1 was moving a highlight that
+   was already there. */
+tl.to('#i08', { scale: 1.04, duration: 1.2, ease: 'sine.inOut', transformOrigin: '0 50%' }, 46.4);
+
+/* b09 mech 47.97 -> 54.7 : same job, five approaches. Register drops back to dark. */
+leave('#h08w', 48.05);
+tl.to('#bg-light', { opacity: 0, duration: 0.7 }, 48.05);
+faceOut(48.05);
+leave('#i08', 48.05);
+heroIn('#h09', 48.5);
+tl.fromTo('#queue', { autoAlpha: 0, x: -60 }, { autoAlpha: 1, x: 0, duration: 0.7 }, 48.2);
+tl.fromTo('#queue .qc', { autoAlpha: 0, x: -70 }, { autoAlpha: 1, x: 0, duration: 0.55, stagger: 0.34 }, 48.5);
+tl.to('#queue .tile', { scale: 1.14, duration: 0.45, stagger: 0.22, ease: 'back.out(2)' }, 51.2);
+tl.to('#queue .tile', { scale: 1, duration: 0.4, stagger: 0.22 }, 52.9);
+
+/* b10 mech 54.7 -> 62.62 : the five spread out by how much machinery each drags. */
+leave('#h09', 54.78);
+heroIn('#h10', 55.1);
+tl.to('#queue .qc:nth-child(1) .qload', { width: 190, duration: 0.9 }, 56.0);
+tl.to('#queue .qc:nth-child(2) .qload', { width: 120, duration: 0.9 }, 56.4);
+tl.to('#queue .qc:nth-child(3) .qload', { width: 60, duration: 0.9 }, 56.8);
+tl.to('#queue .qc:nth-child(4) .qload', { width: 150, duration: 0.9 }, 57.2);
+tl.to('#queue .qc:nth-child(5) .qload', { width: 500, duration: 1.2 }, 57.6);
+/* The owner asked at 1:07 why LangChain "moves forward"; displacement along an
+   axis nothing else uses is not a statement. The bar already carries the beat —
+   so the card recedes and dims while its bar keeps running. */
+tl.to('#queue .qc:nth-child(5)', { opacity: 0.55, scale: 0.94, duration: 1.0, transformOrigin: '0 50%' }, 59.4);
+tl.to('#queue .qc:nth-child(5) .qload', { width: 620, duration: 1.6 }, 60.4);
+
+/* b11 mech 62.62 -> 72.24 : the fair test. All five reset to identical.
+   The measuring rule does NOT appear here. It used to fade in at 68.4, 3.8s
+   before b12 owns it, so it sat alone with no marks and no labels through the
+   tail of this beat — which is exactly what the owner saw: "why is there the
+   orange line after same use case, same prompt, same criteria". A device
+   belongs to its beat (T11); it now enters in b12 with the marks it annotates. */
+leave('#h10', 62.7);
+tl.to('#bg-light', { opacity: 1, duration: 0.8 }, 62.7);
+heroIn('#h11', 63.2); show('#u11', 64.0);
+tl.to('#queue .qload', { width: 240, duration: 1.1, stagger: 0.08 }, 64.6);
+tl.to('#queue .qc', { x: 0, opacity: 1, scale: 1, duration: 0.8, stagger: 0.06 }, 65.6);
+tl.to('#queue', { y: 116, scale: 0.9, duration: 0.9, transformOrigin: '0 50%' }, 67.0);
+/* The beat's own claim, carried through its tail rather than by the rule that
+   used to arrive early: all five bars pulse together, identically. */
+tl.to('#queue .qload', { opacity: 0.95, duration: 0.55, ease: 'sine.inOut',
+  yoyo: true, repeat: 1 }, 68.6);
+tl.to('#queue .qload', { opacity: 0.95, duration: 0.55, ease: 'sine.inOut',
+  yoyo: true, repeat: 1 }, 70.2);
+tl.to('#queue', { scale: 0.94, duration: 1.2, ease: 'sine.inOut', transformOrigin: '0 50%' }, 70.4);
+
+/* b12 mech 72.24 -> 77.65 : four marks travel down the rule and stop.
+   Marks and labels are generated above, not authored here — see MEASURES. */
+leave('#h11', 72.3); leave('#u11', 72.3);
+heroIn('#h12', 72.6);
+tl.fromTo('#rule', { autoAlpha: 0, scaleX: 0 }, { autoAlpha: 1, scaleX: 1, duration: 0.9 }, 72.9);
+show('#rlabs', 73.7);
+/* Spoken at 72.84 / 73.74 / 75.48 / 76.52 -- an even 0.42s stagger from 73.9
+   drifted a full second by the fourth. Each mark lands on its own measure. The
+   MEASURES table already computes WHERE they sit (T24); this is the same idea
+   for WHEN. T27. */
+['ease', 'flexibility#2', 'output', 'value'].forEach((w, i) => {
+  const t = on(w);
+  tl.to(`#rule .mark:nth-child(${i + 1})`, { opacity: 1, duration: 0.4 }, t);
+  tl.to(`#rlabs .mlab:nth-child(${i + 1})`, { opacity: 1, duration: 0.4 }, t + 0.1);
+});
+tl.to('#queue .qload', { width: 300, duration: 1.2, stagger: 0.09 }, 75.8);
+
+/* b13 stakes 77.65 -> 81.87 : a cross for the claims, then a tick for the real thing.
+   Two symbols nobody has to be taught, in the order the clause states them. */
+leave('#queue', 77.72); leave('#rule', 77.72); leave('#rlabs', 77.72);
+leave('#h12', 77.72);
+/* b13 is him talking straight to camera with no device beside him, so he gets
+   the round close treatment instead of the docked panel. T30. */
+faceRound(77.8);
+heroIn('#h13', 78.1);
+show('#i13', 78.3, { duration: 0.35 });
+tl.fromTo('#i13 .cross', { opacity: 0, scale: 0.7 },
+  { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(2.4)', transformOrigin: 'center' }, 78.6);
+tl.to('#i13 .cross', { opacity: 0, duration: 0.35 }, 79.9);
+tl.fromTo('#i13 .tick2', { strokeDasharray: 300, strokeDashoffset: 300, opacity: 0 },
+  { strokeDashoffset: 0, opacity: 1, duration: 0.85 }, 80.2);
+tl.to('#i13 .tick2', { scale: 1.08, duration: 0.8, ease: 'sine.inOut', transformOrigin: 'center' }, 81.0);
+
+/* b14 tease 81.87 -> 91.68 : the agenda opens. Points 1 and 2 land on their words.
+   There is no separate device here any more. The old five-tiles-and-a-play-button
+   said "five tools, and a demo" -- which is what points 1 and 2 now say. The
+   owner caught the duplication immediately: "if in what we will cover the above
+   template is going to use then what's the significance of this motion graphic".
+   b14 and b15 are one promise spoken as two sentences, so they are one device
+   running 81.9 -> 102.9 under a single hero. h14 "WHAT'S COMING" is deleted with
+   the device; h15 "WHAT WE'LL COVER" now heads both beats. T22. */
+leave('#i13', 81.95); leave('#h13', 81.95);
+tl.to('#bg-light', { opacity: 0, duration: 0.6 }, 81.95);
+faceOut(81.95);
+heroIn('#h15', 82.1);
+tl.fromTo('#covrail', { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.5 }, 82.4);
+tl.set('#cover', { autoAlpha: 1 }, 82.6);
+/* Marks 1 and 2 stand empty from the start so the rail is a rail and not a
+   single dot. The other five arrive later, in the dead air -- see 88.8. */
+tl.to('#covrail .cvp:nth-child(-n+2)', { opacity: 0.18, duration: 0.4 }, 82.6);
+
+/* One table drives the whole agenda. The two b14 points and the five b15 points
+   are the same device saying the same kind of thing, so they are one loop --
+   two hand-written blocks would drift apart the first time a timing moved. Each
+   point rises in on its word and leaves 0.35s before the next one arrives, so
+   there is a short crossfade rather than a cut, and never two lines to read. */
+/* Each point lands on the word that names it. The typed values had points 2
+   and 3 arriving 1.7s early and "pricing" 3.0s late -- and they assumed an even
+   spacing the sentence does not have: ease/customization/flexibility/pricing
+   are spoken inside 2.7 seconds, then the verdict holds for four. T27. */
+/* spans: b14-b15 — one agenda card under one hero, so its words run past the
+   b14 banner this declaration sits under. Occurrence numbers matter here:
+   "ease", "flexibility" and "pricing" are all said earlier in the script. */
+const COVER_AT = ['overview', 'demo', 'ease#2', 'customization', 'flexibility#3',
+  'pricing#2', 'verdict'].map((w) => on(w));
+const COVER_OUT = 102.70;
+COVER_AT.forEach((at, i) => {
+  const line = `#cover .cvl:nth-child(${i + 1})`;
+  const pip  = `#covrail .cvp:nth-child(${i + 1})`;
+  const out  = (i + 1 < COVER_AT.length ? COVER_AT[i + 1] : COVER_OUT) - 0.35;
+  tl.fromTo(line, { opacity: 0, y: 46 },
+    { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, at);
+  /* 0.30, so the outgoing line is gone at exactly the instant the next one
+     starts rising. 0.45 left them co-visible for 3 frames and the reviewer saw
+     it as a double exposure of two texts in the same box -- a crossfade is fine
+     for pictures and never fine for words. */
+  tl.to(line, { opacity: 0, y: -40, duration: 0.30, ease: 'power2.in' }, out);
+  /* the mark lights and widens while its point is being spoken, then holds
+     accent at half -- so the rail reads done / now / still to come without a
+     number and without anything to decode */
+  tl.to(pip, { backgroundColor: ACCENT_HEX, width: 78, opacity: 1,
+    duration: 0.45, ease: 'power3.out' }, at);
+  tl.to(pip, { width: 46, opacity: 0.5, duration: 0.4 }, out);
+});
+
+/* 88.8-92.5 is dead air: b14's clause has named everything it is going to name
+   and b15's first point is 4.4s away. The remaining five marks arrive here,
+   still empty -- motion that is also information ("five more coming"), which is
+   what the old dim numbered rows were for, without putting five more lines of
+   text on the screen. */
+tl.to('#covrail .cvp:nth-child(n+3)', { opacity: 0.18, duration: 0.4, stagger: 0.5 }, 88.8);
+
+/* b15 tease 91.68 -> 102.86 : the agenda completes. Points 3-7 land on their
+   words, driven by the same COVER_AT loop above. Nothing beat-specific happens
+   here, which is the point -- the owner withdrew the seven-row card because the
+   list read as one wall the moment it was on screen, and one line at a time is
+   the same promise paced by the voice instead of by the layout. T23. */
+tl.to('#covrail', { y: -10, duration: 2.0, ease: 'sine.inOut' }, 100.9);
+
+/* b16 tease 102.86 -> 109.54 : the links are below. The device is the direction.
+   No tool marks here at all. The owner, twice on 2026-08-18: "you showed n8n
+   and flowise only ... because of this our video looks biased. It feels like we
+   only promote these two tools", and "it's better to don't show any icon when
+   links below kind things are appeared on the audio". Showing all five would
+   also be wrong — the clause is about the description, not about the tools. */
+leave('#h15', 102.94); leave('#cover', 102.96); leave('#covrail', 102.96);
+tl.to('#bg-light', { opacity: 1, duration: 0.7 }, 102.94);
+heroIn('#h16', 103.4);
+show('#i16', 103.8);
+tl.fromTo('#i16 .arw', { opacity: 0, y: -60 }, { opacity: 1, y: 0, duration: 0.6 }, 104.2);
+/* 92px of travel on a 0.62s cycle, not 26px on 0.85s. The arrow is a stroke on a
+   near-black frame, so its pixel budget is small even when it is moving — the
+   distance has to do the work. */
+tl.to('#i16 .arw', { y: 92, duration: 0.62, ease: 'sine.inOut', yoyo: true, repeat: 7 }, 105.0);
+tl.fromTo('#i16 path:last-child', { scaleX: 0 },
+  { scaleX: 1, duration: 0.7, transformOrigin: '50% 50%' }, 105.6);
+tl.to('#stage-shift', { y: 34, duration: 1.4, ease: 'power2.inOut' }, 107.4);
+
+/* b17 button 109.54 -> 113.667 : the stage clears; the presenter returns into it. */
+leave('#h16', 109.62); leave('#i16', 109.62);
+tl.to('#stage-shift', { y: 0, duration: 0.6 }, 109.62);
+faceIn(109.9);
+heroIn('#h17', 110.3);
+tl.to('#glow', { scale: 1.18, duration: 2.4, ease: 'sine.inOut', transformOrigin: '30% 20%' }, 111.1);
+
+/* ---- device-overlap + clearance audit (T11, T13) -------------------------
+   This film shipped without the audit and paid for it twice in one review: the
+   sub sat 8px off the gate lintel and the measuring rule ran through the
+   subtitle band, and BOTH passed every mechanical gate. hyperframes'
+   text_occluded only fires on text that is COVERED, so `#rule` — which paints
+   behind `.sub` — could never trip it, and nothing anywhere measures a gap.
+   The audit existed in consistent-ai-influencer and did not carry across,
+   because it is per-film boilerplate rather than a shared snippet. Extracting
+   it is plans/-work; until then it is copied, with the clearance band added.
+
+   Clearance, not intersection (T13): a pair that misses by 8px reads as
+   touching, so a positive gap under MIN_CLEARANCE is reported too. That is the
+   half of T13 nothing could enforce when it was folded as author judgement. */
+const MIN_CLEARANCE = 40;   // the number T13 states; kept identical on purpose
+
+/* Every T21 device shares one reserved lane, so most of what this audit used to
+   catch is now impossible by construction. It stays because "impossible by
+   construction" is a claim about the current layout, and an absent check looks
+   exactly like a passing one. */
+const AUDIT_DEVICES = ['#i01', '#i02', '#i03', '#i04', '#i05', '#i06', '#i07', '#i08',
+  '#i13', '#i16',
+  '#queue', '#rule', '#rlabs', '#cover', '#covrail',
+  /* #avatar is audited like any other device — he is excluded only while
+     FULL_BLEED (below). Docked as a panel he is the thing most likely to be
+     collided with, and T5 is the rule about exactly that. */
+  '#avatar'];
+
+/* Pairs that are deliberate, each with the reason. Anything not listed here and
+   reported below is a defect, not a false positive — resolve it in the layout,
+   don't widen this set to make the log quiet. */
+const AUDIT_ALLOWED = new Set([
+  '#rule|#rlabs',    // the labels are the rule's own annotation, read as one object
+]);
+
+function auditVisibleRect(sel) {
+  const el = document.querySelector(sel);
+  if (!el) return null;
+  const cs = getComputedStyle(el);
+  if (cs.display === 'none' || cs.visibility === 'hidden') return null;
+  if (parseFloat(cs.opacity) < 0.06) return null;   // below this it reads as absent
+  // A .hero is a 1600px-wide nowrap box holding maybe 800px of glyphs. Its
+  // element rect would collide with half the frame and report nothing true, so
+  // text is measured by its INK, via a range over the text node.
+  if (el.classList.contains('hero') || el.classList.contains('sub') || el.classList.contains('eyebrow')) {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const t = range.getBoundingClientRect();
+    if (!(t.width > 1 && t.height > 1)) return null;
+    // Horizontally the range is right — it is the only thing that knows a
+    // 1600px nowrap box holds 800px of glyphs. VERTICALLY it is wrong: a Range
+    // rect is built from the font's ascent+descent, not the line box, so a
+    // 150px hero with line-height:1.0 reports ~180px tall and hangs 15px above
+    // and below the box the author actually positioned. Clamp to the element
+    // box, which for these single-line blocks IS the line box.
+    const b = el.getBoundingClientRect();
+    const top = Math.max(t.top, b.top), bottom = Math.min(t.bottom, b.bottom);
+    return (bottom - top > 1) ? { left: t.left, right: t.right, top, bottom } : null;
+  }
+  const r = el.getBoundingClientRect();
+  return (r.width > 1 && r.height > 1) ? r : null;
+}
+const IS_TEXT = (sel) => {
+  const el = document.querySelector(sel);
+  return !!el && /\b(hero|sub|eyebrow)\b/.test(el.className);
+};
+
+const AUDIT_SEEN = new Set();
+const AUDIT_DONE = new Set();
+function auditOverlaps(label) {
+  // Measure once per beat, not once per seek: the renderer crosses this
+  // callback many times per capture and forced layout would perturb it.
+  if (AUDIT_DONE.has(label)) return;
+  AUDIT_DONE.add(label);
+  // A device is something competing for SPACE. An element filling the frame is
+  // a backdrop and everything necessarily sits on it, so the full-bleed
+  // presenter beats would report every device and drown the real findings.
+  const FULL_BLEED = (r) => r.width >= 1900 && r.height >= 1060;
+  // Text is audited by id so the message names the element the author edits.
+  const textSels = [...document.querySelectorAll('.hero, .sub, .eyebrow')]
+    .filter((el) => el.id).map((el) => `#${el.id}`);
+  const boxes = [...AUDIT_DEVICES, ...textSels]
+    .map((sel) => [sel, auditVisibleRect(sel)])
+    .filter(([, r]) => r && !FULL_BLEED(r));
+  for (let i = 0; i < boxes.length; i++) {
+    for (let j = i + 1; j < boxes.length; j++) {
+      const [sa, a] = boxes[i], [sb, b] = boxes[j];
+      if (AUDIT_ALLOWED.has(`${sa}|${sb}`) || AUDIT_ALLOWED.has(`${sb}|${sa}`)) continue;
+      // Signed gap on each axis: negative means the spans overlap there. Two
+      // boxes intersect only when BOTH axes overlap; otherwise the separation
+      // is the larger gap, which is the one the eye reads.
+      const gx = Math.max(b.left - a.right, a.left - b.right);
+      const gy = Math.max(b.top - a.bottom, a.top - b.bottom);
+      const gap = Math.max(gx, gy);
+      // The clearance minimum is about DEVICES that read as touching. An
+      // eyebrow, its hero and its sub are one title block on a designed
+      // vertical rhythm, so text against text is checked for intersection only.
+      const limit = (IS_TEXT(sa) && IS_TEXT(sb)) ? 0 : MIN_CLEARANCE;
+      if (gap >= limit) continue;
+      const key = `${label}|${sa}|${sb}`;
+      if (AUDIT_SEEN.has(key)) continue;
+      AUDIT_SEEN.add(key);
+      if (gap < 0) console.error(`device-overlap at ${label}: ${sa} intersects ${sb}`);
+      else console.error(`clearance at ${label}: ${sa} and ${sb} are ${gap.toFixed(0)}px apart, under the ${MIN_CLEARANCE}px minimum (T13)`);
+    }
+  }
+}
+
+/* ---- echo audit (T26) ---------------------------------------------------
+   The owner has now caught the same class of defect three times in one film:
+   an eyebrow reading "The same test" above a hero reading SAME TEST, a sub
+   reading "let's jump straight in" under a hero reading LET'S BUILD, and an
+   agenda restating a promise the beat above had just made. His question was the
+   right one -- "don't you have any criteria to judge the things? you have put
+   many times the same words repeatedly on screen".
+   There was no criterion, only care, and care does not survive a rebuild. So:
+   at each beat, every line of text that is on screen AT THE SAME TIME is
+   compared word-for-word. If one line's content words are ALL present in
+   another's, the shorter line is saying nothing the longer one did not already
+   say, and this fails the review.
+   What it CANNOT catch is synonymy -- "LET'S BUILD" and "let's jump straight
+   in" share no words at all. That half stays a judgement, written down as T26,
+   and this gate is the half a machine can hold. Do not read a green audit as
+   proof that nothing is repeated. */
+const ECHO_STOP = new Set(['the','a','an','and','or','of','to','in','on','at','for','with','from',
+  'your','my','our','this','that','these','those','it','is','are','be','all','you','we','i',
+  'no','not','s','t','ll','re','ve']);
+const echoWords = (t) => t.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/)
+  .filter((w) => w && !ECHO_STOP.has(w));
+
+function auditEcho(label) {
+  const seen = [];
+  ['.hero', '.sub', '.eyebrow', '#h08w .h8w', '#cover .cvl'].forEach((sel) => {
+    document.querySelectorAll(sel).forEach((el) => {
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden') return;
+      if (parseFloat(cs.opacity) < 0.25) return;   // below this it is on its way out
+      const text = (el.textContent || '').trim();
+      const w = echoWords(text);
+      if (w.length) seen.push({ id: el.id || el.className, text, set: new Set(w) });
+    });
+  });
+  for (let i = 0; i < seen.length; i++) {
+    for (let j = i + 1; j < seen.length; j++) {
+      const a = seen[i], b = seen[j];
+      const small = a.set.size <= b.set.size ? a : b;
+      const big = small === a ? b : a;
+      let hit = 0;
+      small.set.forEach((w) => { if (big.set.has(w)) hit++; });
+      if (hit === small.set.size) {
+        console.error(`echo at ${label}: "${small.text}" (${small.id}) repeats every word of `
+          + `"${big.text}" (${big.id}) while both are on screen. Cut one or say something new (T26).`);
+      }
+    }
+  }
+}
+
+const AUDIT_BEATS = [[0,4.32],[4.32,12.24],[12.24,15.68],[15.68,19.48],[19.48,22.34],
+  [22.34,28.84],[28.84,36.86],[36.86,47.97],[47.97,54.7],[54.7,62.62],[62.62,72.24],
+  [72.24,77.65],[77.65,81.87],[81.87,91.68],[91.68,102.86],[102.86,109.54],[109.54,113.667]];
+AUDIT_BEATS.forEach(([a, b], i) => {
+  const mid = a + (b - a) * 0.55;
+  const at = `b${String(i + 1).padStart(2, '0')}@${mid.toFixed(2)}s`;
+  tl.call(auditOverlaps, [at], mid);
+  tl.call(auditEcho, [at], mid);
+});
+
+tl.pause(0);
+window.__timelines = window.__timelines || {};
+window.__timelines['intro'] = tl;
+</script>
+</body>
+</html>

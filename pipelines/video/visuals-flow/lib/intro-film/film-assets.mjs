@@ -40,17 +40,92 @@ export function filmAssetsDir(slug) {
 //
 // It is encoded to mp4 rather than linked as an image ON PURPOSE: the
 // composition references `assets/avatar.mp4` in a <video> element, and that
-// contract is authored per video. A 1-second still video keeps every
-// composition, every hyperframes check and every selector working unchanged.
-export function buildAvatarStandIn(slug, imagePath) {
+// contract is authored per video. A still video keeps every composition, every
+// hyperframes check and every selector working unchanged.
+//
+// It has to be LONGER THAN THE FILM, which the first version was not. At one
+// second against a 113s intro the stand-in painted the presenter for frame 0
+// and nothing after: every face:panel and face:full beat reviewed as an empty
+// right-hand panel. That is the exact opposite of what the stand-in is for —
+// the reviewer judges composition against a frame the film will never produce,
+// and the space the presenter occupies looks free for a device to move into.
+// Cheap to be generous: the content is one repeated still, so 1fps for five
+// minutes is a handful of KB and covers any intro this pipeline will make.
+const STAND_IN_SECONDS = 300;
+
+export function buildAvatarStandIn(slug, imagePath, { seconds = STAND_IN_SECONDS } = {}) {
   const dest = path.join(filmAssetsDir(slug), 'avatar.mp4');
   fs.mkdirSync(path.dirname(dest), { recursive: true });
-  if (fs.lstatSync(dest, { throwIfNoEntry: false })) fs.rmSync(dest);
-  execFileSync('ffmpeg', [
-    '-loop', '1', '-i', imagePath, '-t', '1', '-r', '30',
-    '-vf', 'scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080',
-    '-pix_fmt', 'yuv420p', '-y', dest,
-  ], { stdio: 'pipe' });
+
+  // Rebuilding is both wasteful and, on Windows, the thing that breaks the run.
+  // The stand-in is a pure function of (image, seconds), so an existing one
+  // built from the same inputs is already correct — re-encoding 300s of a still
+  // on every review pass only creates a window for someone else to be holding
+  // the file. The board server streams film/assets to the UI and holds exactly
+  // this file open, which is not a fault to fix but a reader doing its job.
+  // The marker records the inputs, so changing either still forces a rebuild.
+  const marker = path.join(path.dirname(dest), '.avatar-standin.json');
+  const want = { image: imagePath, seconds, mtime: fs.statSync(imagePath).mtimeMs };
+  if (fs.existsSync(dest)) {
+    try {
+      const have = JSON.parse(fs.readFileSync(marker, 'utf8'));
+      if (have.image === want.image && have.seconds === want.seconds && have.mtime === want.mtime) return dest;
+    } catch { /* no marker or unreadable — fall through and rebuild */ }
+  }
+
+  // Windows keeps a handle on this file for a beat after the ffmpeg that wrote
+  // it exits, and holds it for the whole run when a review pass is building its
+  // own stand-in at the same time — so a bare rmSync throws EPERM and takes the
+  // render down before hyperframes ever starts. `force` does not help: it only
+  // swallows ENOENT. Retry the unlock race; if it is still held after a second
+  // the holder is another run rather than a lingering handle, so say so instead
+  // of surfacing a bare EPERM path with no cause attached.
+  if (fs.lstatSync(dest, { throwIfNoEntry: false })) {
+    try {
+      fs.rmSync(dest, { maxRetries: 10, retryDelay: 100 });
+    } catch (e) {
+      throw new Error(
+        `cannot replace ${dest} (${e.code}) — another intro render or review is ` +
+        'running for this video. Wait for it to finish, then re-run.',
+      );
+    }
+  }
+  // Encode to a temp name and rename into place. A killed ffmpeg — a timeout, a
+  // Ctrl-C, a crashed parent — leaves an mp4 with no moov atom, and a truncated
+  // mp4 is not a loud failure: the <video> element simply never paints, so the
+  // presenter silently disappears from every frame and the film reviews as if
+  // she were not in it. Writing straight to `dest` means any interruption
+  // publishes that corruption under the real name, and the marker above would
+  // then vouch for it on every later run. The destination now only ever holds a
+  // file ffmpeg finished writing.
+  // The temp name keeps the .mp4 extension: ffmpeg picks its muxer from the
+  // output extension, and `avatar.mp4.tmp-1234` makes it bail with "unable to
+  // choose an output format" before it writes a byte.
+  const tmp = path.join(path.dirname(dest), `avatar.tmp-${process.pid}.mp4`);
+  try {
+    execFileSync('ffmpeg', [
+      // -framerate BEFORE -i, not just -r after it. The image demuxer defaults
+      // to 25fps, so `-r 1` alone is an OUTPUT rate that throws away 24 of every
+      // 25 frames — on this ffmpeg build that degenerates to `frame=0` with a
+      // climbing `drop=` and the encode never emits anything. It does not fail:
+      // it spins until something kills it and leaves a moov-less mp4 behind,
+      // which is how a "hung stand-in" wedged four intro renders on 2026-08-16.
+      '-framerate', '1', '-loop', '1', '-i', imagePath, '-t', String(seconds), '-r', '1',
+      '-vf', 'scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080',
+      '-pix_fmt', 'yuv420p', '-y', tmp,
+      // stdio 'ignore', not 'pipe'. Nothing reads ffmpeg's output, and a piped
+      // child that fills the OS pipe buffer blocks on write forever while the
+      // parent sits in execFileSync — which is exactly the symptom seen here
+      // twice: an ffmpeg alive for minutes with its output file at 0 bytes and
+      // the review step frozen with nothing printed. Discarding the stream
+      // removes the deadlock rather than tuning maxBuffer around it.
+    ], { stdio: 'ignore' });
+    fs.renameSync(tmp, dest);
+  } catch (e) {
+    fs.rmSync(tmp, { force: true });
+    throw e;
+  }
+  fs.writeFileSync(marker, JSON.stringify(want));
   return dest;
 }
 

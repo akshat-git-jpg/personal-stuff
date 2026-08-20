@@ -53,7 +53,9 @@ echo "Normalizing to -3 dBFS peak..."
 for f in assets/sfx/*.wav; do
   peak=$(ffmpeg -i "$f" -af volumedetect -f null - 2>&1 | sed -n 's/.*max_volume: \(-*[0-9.]*\) dB/\1/p')
   [ -z "$peak" ] && { echo "  $f: no peak reading, skipping"; continue; }
-  gain=$(echo "-3 - ($peak)" | bc)
+  # awk, not bc: bc is absent on Windows/git-bash boxes, where this failed
+  # silently enough to leave a full unnormalised kit on disk (2026-08-18).
+  gain=$(awk -v p="$peak" 'BEGIN{printf "%.2f", -3 - p}')
   ffmpeg -hide_banner -loglevel error -y -i "$f" -af "volume=${gain}dB" -ar 48000 -ac 1 "$f.norm.wav"
   mv "$f.norm.wav" "$f"
   echo "  $f: ${peak} dB -> -3 dBFS (${gain} dB makeup)"

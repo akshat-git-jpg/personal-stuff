@@ -196,6 +196,34 @@ export function planSegments({ resolved, avatarJobs, total, filmSpan }) {
   return segments;
 }
 
+/* The LAST segment is special, whatever the base is.
+ *
+ * A voiceover stops on its final word, but the master carries a couple of
+ * seconds of room tone after it. With base:"screen" that tail is handed back to
+ * the screen recording, so the video's closing frame is whatever happened to be
+ * on the desktop — on best-no-code-automation-tool that was a raw browser
+ * window with the taskbar, the open tabs and an email address legible in one of
+ * them. Owner, 2026-08-20: "why the end screen is like this".
+ *
+ * That is not a taste problem. A video's last frame is the one that sits on the
+ * thumbnail rail, gets screenshotted and stays on screen while the viewer
+ * decides what to watch next, and unauthored desktop footage there can leak
+ * whatever the recording happened to contain. So the tail after the final
+ * authored segment always freezes that segment instead — the film ends on the
+ * presenter or on a card, held, which is what a sign-off should do anyway.
+ */
+export function freezeTrailingGap(segments) {
+  if (segments.length === 0) return segments;
+  const last = segments[segments.length - 1];
+  if (last.kind !== 'screen') return segments;
+  let from = null;
+  for (let j = segments.length - 2; j >= 0; j--) {
+    if (segments[j].kind !== 'screen') { from = segments[j].id; break; }
+  }
+  if (!from) return segments;   // nothing authored to hold; leave it alone
+  return [...segments.slice(0, -1), { ...last, kind: 'freeze', from }];
+}
+
 export function fillGapsWithFreeze(segments, { base }) {
   if (base !== 'none') return segments;
   const out = [];
@@ -457,6 +485,8 @@ export async function runAssembly({ workdir, video = 'it', resolved, avatarJobs 
   let segments = planSegments({ resolved, avatarJobs, total, filmSpan });
   segments = absorbSlivers(segments);
   segments = fillGapsWithFreeze(segments, { base: videoManifest.base });
+  // Always, not only for base:'none' — see freezeTrailingGap.
+  segments = freezeTrailingGap(segments);
 
   const renderDir = path.join(workdir, 'renders');
   const overlays = resolved.filter(c => c.placement === 'overlay').map(c => {
@@ -701,6 +731,23 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     }
     
     let punchVF = VF;
+    // A side-mode card is rendered NARROWER than the canvas on purpose: it owns
+    // the left 1200 of 1920 and the host takes the right 720. The shared VF
+    // centre-pads every segment, so that card lands 360px right of where it
+    // belongs (240 at draft scale) — its last column sits UNDER the host and a
+    // black bar opens on the left. Worse, it is silent: the frame looks
+    // deliberately letterboxed rather than misplaced, and the column that goes
+    // missing is the one carrying the verdict. Left-align the pad for any
+    // graphic whose render is narrower than the canvas. Aspect is the honest
+    // signal here — rendering narrow IS the renderer's side contract, so this
+    // reads the same fact rather than re-deriving it from the span table and
+    // risking the two disagreeing.
+    if (seg.kind === 'graphic') {
+      const srcAspect = probeSrcAspect(src);
+      if (Number.isFinite(srcAspect) && srcAspect < (CANVAS.w / CANVAS.h) - 0.01) {
+        punchVF = `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:0:(oh-ih)/2,fps=30,format=yuv420p`;
+      }
+    }
     // Placeholder spans are visually marked so a reviewer never mistakes the
     // still for the final look: slight dim + a labelled band along the bottom.
     if (segAvatarJob?.placeholder) {

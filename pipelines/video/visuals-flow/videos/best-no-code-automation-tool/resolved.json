@@ -1,0 +1,1221 @@
+{
+  "video": "best-no-code-automation-tool",
+  "offset": 0,
+  "resolved": [
+    {
+      "id": "c01",
+      "card": "tool-icon/tool-glass-tile",
+      "placement": "fullframe",
+      "start": 113.86,
+      "duration": 6,
+      "variables": {
+        "logo": "n8n",
+        "name": "n8n",
+        "subtitle": "Low code automation for power users",
+        "register": "dark"
+      },
+      "structural": true
+    },
+    {
+      "id": "c02",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 129.6,
+      "duration": 4.98,
+      "variables": {
+        "beats": [
+          {
+            "text": "Control and extensibility",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Higher learning curve",
+            "verdict": "no",
+            "at": 2.98
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c03",
+      "card": "tool-icon/tool-glass-tile",
+      "placement": "fullframe",
+      "start": 135.16,
+      "duration": 6,
+      "variables": {
+        "logo": "flowise",
+        "name": "Flowise",
+        "subtitle": "Visual AI agent builder",
+        "register": "dark"
+      },
+      "structural": true
+    },
+    {
+      "id": "c04",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 152.62,
+      "duration": 8.62,
+      "variables": {
+        "beats": [
+          {
+            "text": "Easy entry to AI workflows",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "AI only, not general automation",
+            "verdict": "no",
+            "at": 6.8
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c05",
+      "card": "tool-icon/tool-glass-tile",
+      "placement": "fullframe",
+      "start": 161.24,
+      "duration": 6,
+      "variables": {
+        "logo": "zapier",
+        "name": "Zapier",
+        "subtitle": "No code automation for speed",
+        "register": "dark"
+      },
+      "structural": true
+    },
+    {
+      "id": "c06",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 172.42,
+      "duration": 6.72,
+      "variables": {
+        "beats": [
+          {
+            "text": "Fastest setup of the five",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Costly and rigid logic",
+            "verdict": "no",
+            "at": 6.24
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c07",
+      "card": "tool-icon/tool-glass-tile",
+      "placement": "fullframe",
+      "start": 179.14,
+      "duration": 6,
+      "variables": {
+        "logo": "make",
+        "name": "Make",
+        "subtitle": "Visual automation with logic branching",
+        "register": "dark"
+      },
+      "structural": true
+    },
+    {
+      "id": "c08",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 191.96,
+      "duration": 6.52,
+      "variables": {
+        "beats": [
+          {
+            "text": "Visual logic branching",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Debugging gets messy",
+            "verdict": "no",
+            "at": 4.52
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c09",
+      "card": "tool-icon/tool-glass-tile",
+      "placement": "fullframe",
+      "start": 198.84,
+      "duration": 6,
+      "variables": {
+        "logo": "langchain",
+        "name": "LangChain",
+        "subtitle": "Developer first AI agent framework",
+        "register": "dark"
+      },
+      "structural": true
+    },
+    {
+      "id": "c10",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 213.8,
+      "duration": 6.78,
+      "variables": {
+        "beats": [
+          {
+            "text": "Total control in code",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Needs real programming",
+            "verdict": "no",
+            "at": 5.78
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c11",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 221.2,
+      "duration": 5,
+      "variables": {
+        "title": "The Live Demo",
+        "register": "dark"
+      },
+      "structural": true
+    },
+    {
+      "id": "c12",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 232.84,
+      "duration": 4,
+      "variables": {
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c13",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 243.48,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Fair Test",
+        "text": "Same workflow, same prompt, same criteria for all five tools.",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c14",
+      "card": "enacted/pipeline-flow",
+      "placement": "fullframe",
+      "start": 248.82,
+      "duration": 19.16,
+      "variables": {
+        "title": "The Workflow",
+        "steps": [
+          {
+            "step": "Trigger",
+            "icon": "bolt"
+          },
+          {
+            "step": "AI Summary",
+            "icon": "brain"
+          },
+          {
+            "step": "Send",
+            "icon": "chat"
+          }
+        ],
+        "beats": [
+          {
+            "step": "Trigger",
+            "at": 2.84
+          },
+          {
+            "step": "AI Summary",
+            "at": 9.62
+          },
+          {
+            "step": "Send",
+            "at": 13.88
+          }
+        ],
+        "register": "dark",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "c15",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 267.98,
+      "duration": 6,
+      "variables": {
+        "index": 1,
+        "total": 5,
+        "logo": "n8n",
+        "name": "n8n",
+        "tagline": "Low code for power users",
+        "tag": "Automation",
+        "register": "dark",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c16",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 299.64,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Webhook",
+        "text": "A test URL that fires the workflow the moment someone hits it.",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c17",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 346.86,
+      "duration": 5,
+      "variables": {
+        "name": "AI Step",
+        "subtitle": "OpenAI summarizes the incoming text",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c18",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 392.66,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "API Key",
+        "text": "Nothing in this build runs without an OpenAI key.",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c19",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 439.48,
+      "duration": 5,
+      "variables": {
+        "name": "One Key, Five Tools",
+        "subtitle": "One key powers every build",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c20",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 484.08,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Model Choice",
+        "text": "Any OpenAI model works. 3.5 Turbo is enough for a summary.",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c21",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 524.72,
+      "duration": 5,
+      "variables": {
+        "name": "Send Step",
+        "subtitle": "Gmail delivers the finished summary",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c22",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 555.96,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Credentials",
+        "text": "Every tool in this comparison needs its own Gmail permission grant.",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c23",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 603.08,
+      "duration": 5,
+      "variables": {
+        "name": "Chain One Built",
+        "subtitle": "Trigger, AI and send wired",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c24",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 609.96,
+      "duration": 6,
+      "variables": {
+        "index": 2,
+        "total": 5,
+        "logo": "flowise",
+        "name": "Flowise",
+        "tagline": "Visual AI agent builder",
+        "tag": "AI Agents",
+        "register": "dark",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c25",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 651.72,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Same Key Again",
+        "text": "Flowise reuses the exact OpenAI credential from the n8n build.",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c26",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 676.68,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Model Access",
+        "text": "GPT 4 may not be enabled on your account. Drop to 3.5 Turbo.",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c27",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 697.88,
+      "duration": 5,
+      "variables": {
+        "name": "Tools",
+        "subtitle": "Assistants can call utility tools",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c28",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 733.42,
+      "duration": 5,
+      "variables": {
+        "name": "The Same Chain",
+        "subtitle": "Chat input to prompt to output",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c29",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 740.58,
+      "duration": 9.04,
+      "variables": {
+        "beats": [
+          {
+            "text": "AI first, beginner friendly",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "No general automations",
+            "verdict": "no",
+            "at": 7.04
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c30",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 778.54,
+      "duration": 5,
+      "variables": {
+        "name": "Prompt Node",
+        "subtitle": "The prompt template drives the agent",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c31",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 824.4,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Output Parser",
+        "text": "Flowise can hand the answer back as CSV or plain text.",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c32",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 838.96,
+      "duration": 6,
+      "variables": {
+        "index": 3,
+        "total": 5,
+        "logo": "zapier",
+        "name": "Zapier",
+        "tagline": "No code automation for speed",
+        "tag": "Automation",
+        "register": "dark",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c33",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 877.98,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Connect First",
+        "text": "Zapier blocks the build until the account is linked.",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c34",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 907.48,
+      "duration": 5,
+      "variables": {
+        "name": "AI Step",
+        "subtitle": "The same summarize step, as a Zap",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c35",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 935.34,
+      "duration": 5,
+      "variables": {
+        "kind": "tip",
+        "label": "Test Trigger",
+        "text": "Run a test before wiring the next step or it fails silently.",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c36",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 984.98,
+      "duration": 5,
+      "variables": {
+        "name": "Preview",
+        "subtitle": "See the AI output before publishing",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c37",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1025.66,
+      "duration": 5,
+      "variables": {
+        "name": "Send Step",
+        "subtitle": "The Zap emails the summary out",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c38",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1062.62,
+      "duration": 5,
+      "variables": {
+        "name": "Chain Three Built",
+        "subtitle": "Same three steps, fewer choices",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c39",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 1074.56,
+      "duration": 6,
+      "variables": {
+        "index": 4,
+        "total": 5,
+        "logo": "make",
+        "name": "Make",
+        "tagline": "Visual automation with logic branching",
+        "tag": "Automation",
+        "register": "dark",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c40",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1092.85,
+      "duration": 5,
+      "variables": {
+        "name": "Trigger Step",
+        "subtitle": "A new Gmail message starts the scenario",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c41",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1135.73,
+      "duration": 5,
+      "variables": {
+        "name": "AI Step",
+        "subtitle": "An AI module processes the text",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c42",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1168.99,
+      "duration": 5,
+      "variables": {
+        "name": "Send Step",
+        "subtitle": "The scenario emails the processed result",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c43",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1218.55,
+      "duration": 3.68,
+      "variables": {
+        "kind": "info",
+        "label": "Scenario Live",
+        "text": "Four builds in, the same three step chain keeps working.",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c44",
+      "card": "section/tool-intro",
+      "placement": "fullframe",
+      "start": 1222.23,
+      "duration": 6,
+      "variables": {
+        "index": 5,
+        "total": 5,
+        "logo": "langchain",
+        "name": "LangChain",
+        "tagline": "Developer first AI framework",
+        "tag": "Framework",
+        "register": "dark",
+        "variant": "a"
+      },
+      "structural": true
+    },
+    {
+      "id": "c45",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1242.17,
+      "duration": 7.36,
+      "variables": {
+        "beats": [
+          {
+            "text": "Strong prompt handling",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Not an automation builder",
+            "verdict": "no",
+            "at": 5.36
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c46",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1279.45,
+      "duration": 5,
+      "variables": {
+        "name": "Playground",
+        "subtitle": "Input nodes and LLMs, assembled in code",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c47",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1312.17,
+      "duration": 5,
+      "variables": {
+        "kind": "warning",
+        "label": "Paid Quota",
+        "text": "This step needs an API key with paid quota left on it.",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c48",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1321.43,
+      "duration": 5,
+      "variables": {
+        "name": "The Same Chain",
+        "subtitle": "Handler to prompt to LLM to output",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c49",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1328.31,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "The Trade",
+        "text": "All the power, but you write every line of it yourself.",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c50",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1376.81,
+      "duration": 5,
+      "variables": {
+        "name": "The Results",
+        "subtitle": "Only three produced a live automation",
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c51",
+      "card": "comparison/table-rows",
+      "placement": "fullframe",
+      "start": 1411.99,
+      "duration": 52.5,
+      "variables": {
+        "title": "Where Each One Lands",
+        "columns": [
+          "Tool",
+          "Strength",
+          "Trade Off"
+        ],
+        "beats": [
+          {
+            "text": "Zapier|Fast trigger|!Boxed in",
+            "logo": "zapier",
+            "at": 0.6
+          },
+          {
+            "text": "Make|Better branching|!Hard to scale",
+            "logo": "make",
+            "at": 14.84
+          },
+          {
+            "text": "n8n|*Clean end to end|*Scalable",
+            "logo": "n8n",
+            "at": 26.04
+          },
+          {
+            "text": "LangChain|Max control|!Code required",
+            "logo": "langchain",
+            "at": 39.28
+          },
+          {
+            "text": "Flowise|*Visual agents|*Low setup",
+            "logo": "flowise",
+            "at": 50.5
+          }
+        ],
+        "register": "dark"
+      }
+    },
+    {
+      "id": "c52",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1477.73,
+      "duration": 5,
+      "variables": {
+        "name": "Purpose Built",
+        "subtitle": "n8n and Flowise, not retrofitted",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c53",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 1484.55,
+      "duration": 5,
+      "variables": {
+        "title": "Pricing Reality",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c54",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1509.93,
+      "duration": 11.42,
+      "variables": {
+        "beats": [
+          {
+            "text": "Self hosting costs nothing",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Quality justifies the price",
+            "verdict": "yes",
+            "at": 9.42
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c55",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1544.13,
+      "duration": 5,
+      "variables": {
+        "name": "Flowise",
+        "subtitle": "Strong value per unit of real work",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c56",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1601.35,
+      "duration": 8.58,
+      "variables": {
+        "beats": [
+          {
+            "text": "LangChain power, no pain",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Pricing lands quickly",
+            "verdict": "yes",
+            "at": 6.58
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c57",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1638.03,
+      "duration": 8.72,
+      "variables": {
+        "beats": [
+          {
+            "text": "Fine for simple automations",
+            "verdict": "yes",
+            "at": 0.6
+          },
+          {
+            "text": "Hard to justify for AI",
+            "verdict": "no",
+            "at": 6.72
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c58",
+      "card": "overlay/verdict-chips",
+      "placement": "overlay",
+      "start": 1689.19,
+      "duration": 7.58,
+      "variables": {
+        "beats": [
+          {
+            "text": "Usage costs can spike",
+            "verdict": "no",
+            "at": 0.6
+          },
+          {
+            "text": "Not cheap long term",
+            "verdict": "no",
+            "at": 5.58
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "c59",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1710.77,
+      "duration": 5,
+      "variables": {
+        "name": "LangChain",
+        "subtitle": "Cheap to license, expensive to build",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c60",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1734.65,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "The Real Cost",
+        "text": "LangChain does not bill you in money. It bills you in engineering hours.",
+        "edge": "bottom",
+        "variant": "b",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c61",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 1769.57,
+      "duration": 4,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "c62",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 1781.55,
+      "duration": 5,
+      "variables": {
+        "title": "Summary Scorecard",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "c63",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1815.29,
+      "duration": 5,
+      "variables": {
+        "name": "Why Zapier Leads",
+        "subtitle": "Shortest path to a working automation",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c64",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1854.79,
+      "duration": 5,
+      "variables": {
+        "name": "Why n8n Leads",
+        "subtitle": "Self hosting, deep logic and real extensibility",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c65",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1896.91,
+      "duration": 5,
+      "variables": {
+        "name": "Why Flowise Holds Up",
+        "subtitle": "Never drops a single category",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c66",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 1941.89,
+      "duration": 5,
+      "variables": {
+        "name": "Time To Result",
+        "subtitle": "Everything except LangChain finished quickly",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c67",
+      "card": "overlay/tip-banner",
+      "placement": "overlay",
+      "start": 1971.99,
+      "duration": 5,
+      "variables": {
+        "kind": "info",
+        "label": "Pricing And Value",
+        "text": "Two chains reach the end without paying a toll in money or in hours.",
+        "edge": "bottom",
+        "variant": "a",
+        "register": "light"
+      }
+    },
+    {
+      "id": "c68",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 2010.97,
+      "duration": 5,
+      "variables": {
+        "name": "The Pattern",
+        "subtitle": "Two tools stayed strong in every column",
+        "register": "light"
+      }
+    },
+    {
+      "id": "z01",
+      "card": "section/section-card-flip",
+      "placement": "fullframe",
+      "start": 2040.65,
+      "duration": 5,
+      "variables": {
+        "title": "Final Verdict",
+        "register": "light"
+      },
+      "structural": true
+    },
+    {
+      "id": "z02x",
+      "card": "overlay/lower-third",
+      "placement": "overlay",
+      "start": 2046.97,
+      "duration": 5,
+      "variables": {
+        "name": "Per Tool Verdict",
+        "subtitle": "Who each tool is actually for",
+        "register": "light"
+      }
+    },
+    {
+      "id": "z03",
+      "card": "verdict/persona-match",
+      "placement": "fullframe",
+      "start": 2055.07,
+      "duration": 45.78,
+      "variables": {
+        "title": "Who Each Tool Is For",
+        "beats": [
+          {
+            "persona": "Maximum control and scale",
+            "winner": "n8n",
+            "logo": "n8n",
+            "at": 0.6
+          },
+          {
+            "persona": "Visual AI agents, no code",
+            "winner": "Flowise",
+            "logo": "flowise",
+            "at": 13.04
+          },
+          {
+            "persona": "Fast, simple automations",
+            "winner": "Zapier",
+            "logo": "zapier",
+            "at": 21.9
+          },
+          {
+            "persona": "Visual logic, no coding",
+            "winner": "Make",
+            "logo": "make",
+            "at": 34.58
+          },
+          {
+            "persona": "Developers building AI systems",
+            "winner": "LangChain",
+            "logo": "langchain",
+            "at": 44.28
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z04",
+      "card": "enacted/promise-split",
+      "placement": "fullframe",
+      "start": 2112.31,
+      "duration": 12.32,
+      "variables": {
+        "promise": "Both win without charging a toll",
+        "sides": [
+          {
+            "name": "n8n",
+            "logo": "n8n",
+            "verdict": "Power and scale"
+          },
+          {
+            "name": "Flowise",
+            "logo": "flowise",
+            "verdict": "Visual AI with real depth"
+          }
+        ],
+        "beats": [
+          {
+            "name": "n8n",
+            "at": 5.04
+          },
+          {
+            "name": "Flowise",
+            "at": 11.82
+          }
+        ],
+        "register": "light"
+      }
+    },
+    {
+      "id": "z05",
+      "card": "enacted/fill-gauge",
+      "placement": "fullframe",
+      "start": 2130.99,
+      "duration": 9.38,
+      "variables": {
+        "title": "Why They Win",
+        "beats": [
+          {
+            "label": "Flexibility",
+            "value": "33",
+            "at": 0.6
+          },
+          {
+            "label": "Output Quality",
+            "value": "66",
+            "at": 2.04
+          },
+          {
+            "label": "Value",
+            "value": "100",
+            "at": 2.64
+          }
+        ],
+        "register": "light",
+        "variant": "a"
+      }
+    },
+    {
+      "id": "z06",
+      "card": "link-in-description/link-in-description",
+      "placement": "overlay",
+      "start": 2143.57,
+      "duration": 4,
+      "variables": {
+        "register": "light"
+      }
+    },
+    {
+      "id": "z07",
+      "card": "like-subscribe/like-subscribe",
+      "placement": "overlay",
+      "start": 2156.03,
+      "duration": 5,
+      "variables": {
+        "register": "light"
+      }
+    }
+  ]
+}

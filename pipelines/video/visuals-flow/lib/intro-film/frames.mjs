@@ -11,10 +11,29 @@ export function extractFrames(video, dir, fps = 2) {
   return fs.readdirSync(dir).filter((f) => f.startsWith('f_')).sort();
 }
 
+// A path inside a lavfi filtergraph is NOT a plain argument. lavfi parses ':'
+// as an option separator and '\' as an escape, so a Windows absolute path is
+// read as the filename "C" plus junk options and every call dies with
+// "Failed to avformat_open_input 'C'". The escaping is two-level (filter
+// argument, then filtergraph), hence the DOUBLE backslash before the colon.
+//
+// This silently killed frameLuma on Windows: the caller catches the throw and
+// downgrades it to a warning, so a check that exists to catch an all-black
+// render has never once run on this machine. Surfaced 2026-08-15 by the first
+// successful intro-render on Windows.
+//
+// Same defect still lives at 5 sites in lib/assemble.test.mjs and 1 in
+// lib/render-fx.test.mjs (which is why "Integration: ffmpeg fx clip" fails
+// here). Those are on the body/assembly track and are recorded debt, not fixed
+// from an intro fold.
+export function lavfiPath(p) {
+  return String(p).replace(/\\/g, '/').replace(/^([A-Za-z]):/, '$1\\\\:');
+}
+
 // Per-frame average luma. A composition that renders black gives ~0 for every
 // frame — the exact signature of the "<video> nested in a wrapper" bug.
 export function frameLuma(video) {
-  const r = spawnSync('ffprobe', ['-v', 'error', '-f', 'lavfi', '-i', `movie=${video},signalstats`,
+  const r = spawnSync('ffprobe', ['-v', 'error', '-f', 'lavfi', '-i', `movie=${lavfiPath(video)},signalstats`,
     '-show_entries', 'frame_tags=lavfi.signalstats.YAVG', '-of', 'csv=p=0'], { encoding: 'utf8' });
   if (r.status !== 0) throw new Error(`signalstats failed: ${r.stderr}`);
   return String(r.stdout).trim().split('\n').map(Number).filter(Number.isFinite);

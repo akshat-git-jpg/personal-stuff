@@ -99,7 +99,11 @@ export function FinalCutTab({
 
   return (
     <ReviewSurface
-      src={version ? `/video/${version}` : ''}
+      // ?video=, like every other media URL on this board (IntroTab has always
+      // sent it): without it the server falls back to the workdir it LAUNCHED
+      // with, so switching video in the picker showed this video's version
+      // labels playing the launch video's bytes.
+      src={version ? `/video/${version}?video=${encodeURIComponent(video)}` : ''}
       notReady="No assembled cut to review yet."
       namespace={version ? `final-${version}` : 'final-'}
       postUrl="/feedback-final"

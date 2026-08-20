@@ -4,6 +4,7 @@ import {
 import './ReviewSurface.css';
 import { fmtClock, fmtClockFrames, clampSeek, frameStep } from '../lib/fcTransport';
 import { validateImageFile } from '../lib/feedback';
+import { installPlayerDiag } from '../lib/playerDiag';
 
 // THE review surface for any step that wants "watch it, pause, comment on a
 // moment". Final Cut (gate 120) and Intro (gate 027) both mount this.
@@ -113,12 +114,39 @@ export function ReviewSurface({
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Set when a keystroke has been diverted into the composer. The composer is
+  // disabled until `paused` is true, and at the instant that keystroke is
+  // handled it is still false — so focus() lands on a disabled element and
+  // silently does nothing. The film stopped, the character vanished into a box
+  // on the other side of the screen, and nothing had focus: the owner read that
+  // as the video pausing on its own (report 2026-08-20). Focus it once it is
+  // really enabled, so a diverted keystroke is always VISIBLE where it went.
+  const wantComposerFocus = useRef(false);
 
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [paused, setPaused] = useState(true);
   const [muted, setMuted] = useState(false);
   const [speed, setSpeed] = useState(1);
+  // A media element that runs out of bytes just stops, silently, on whatever
+  // frame it reached — no error, no spinner, and the Pause button still reads
+  // "Pause" because the element believes it is playing. That is precisely what
+  // the owner saw when the board server died underneath it (report 2026-08-20):
+  // a cut frozen at 04:08 and a Play button that did nothing, with nothing on
+  // screen to say the video was waiting rather than broken.
+  const [stalled, setStalled] = useState(false);
+  // Chrome's HARDWARE decoder can give up mid-file (MEDIA_ERR_DECODE). When it
+  // does, the browser pauses the film itself — no app code called pause() — and
+  // the element is then dead: play() resolves, 'playing' fires, and the clock
+  // never moves. Reloading the page was the only cure, which is exactly what the
+  // owner was doing all afternoon (report 2026-08-20, decoder died at t=2111.8
+  // on every approach to that frame). Reproduced only with the GPU enabled —
+  // every headless repro passed because --disable-gpu decodes in software.
+  const [decodeLost, setDecodeLost] = useState(false);
+  const [decodeGaveUp, setDecodeGaveUp] = useState(false);
+  const wasPlayingRef = useRef(false);
+  const decodeRetriesRef = useRef(0);
+  const decodeDiedAtRef = useRef(-Infinity);
   // A ref, not state: the timeupdate handler only reads it, and holding it in
   // state made every scrub tear down and re-attach the media listeners.
   const scrubbingRef = useRef(false);
@@ -132,11 +160,51 @@ export function ReviewSurface({
   useEffect(() => {
     const v = videoEl;
     if (!v) return;
-    const updateTime = () => { if (!scrubbingRef.current) setCurrentTime(v.currentTime); };
+    const updateTime = () => {
+      if (!scrubbingRef.current) setCurrentTime(v.currentTime);
+      // Getting CLEAR of the bad frame is what proves the decoder recovered.
+      // 'playing' does not: a reloaded element fires it and then dies again on
+      // the same frame, which turned the retry budget into an infinite loop.
+      if (v.currentTime > decodeDiedAtRef.current + 2) {
+        decodeRetriesRef.current = 0;
+        decodeDiedAtRef.current = -Infinity;
+        setDecodeGaveUp(false);
+      }
+    };
     const onLoadedMetadata = () => { setDuration(v.duration); v.playbackRate = speed; updateTime(); };
     const onDurationChange = () => setDuration(v.duration);
-    const onPlay = () => setPaused(false);
-    const onPause = () => { setPaused(true); updateTime(); };
+    const onPlay = () => { setPaused(false); wasPlayingRef.current = true; };
+    const onWaiting = () => setStalled(true);
+    const onFlowing = () => setStalled(false);
+    const onPause = () => {
+      setPaused(true);
+      // Do NOT clear the play intent when the browser paused us because the
+      // decoder died — that intent is what tells recovery to resume.
+      if (!v.error) wasPlayingRef.current = false;
+      updateTime();
+    };
+
+    const onDecodeError = () => {
+      const err = v.error;
+      if (!err || err.code !== 3 /* MEDIA_ERR_DECODE */) return;
+      // Three strikes, then stop and SAY so. Never silently seek past the bad
+      // frame: this is a review surface, and skipping footage without telling
+      // the reviewer is worse than stopping.
+      if (decodeRetriesRef.current >= 3) { setDecodeLost(false); setDecodeGaveUp(true); return; }
+      decodeRetriesRef.current += 1;
+      decodeDiedAtRef.current = v.currentTime;
+      const at = v.currentTime;
+      const resume = wasPlayingRef.current;
+      setDecodeLost(true);
+      const onReady = () => {
+        v.removeEventListener('loadedmetadata', onReady);
+        try { v.currentTime = at; } catch { /* a reloaded element may refuse a seek */ }
+        setDecodeLost(false);
+        if (resume) v.play().catch(() => { /* recovery is best-effort */ });
+      };
+      v.addEventListener('loadedmetadata', onReady);
+      v.load();   // rebuild the decode pipeline the GPU just killed
+    };
 
     // Metadata can already be there when this runs (a cached video is ready
     // immediately) and loadedmetadata will not fire again. Seed from the element.
@@ -144,19 +212,34 @@ export function ReviewSurface({
     setPaused(v.paused);
     updateTime();
 
+    // Flight recorder. Keyed on the same node as the listeners below, so it
+    // lives exactly as long as the element does.
+    const stopDiag = installPlayerDiag(v, namespace);
+
     v.addEventListener('loadedmetadata', onLoadedMetadata);
     v.addEventListener('durationchange', onDurationChange);
     v.addEventListener('timeupdate', updateTime);
     v.addEventListener('seeked', updateTime);
+    v.addEventListener('error', onDecodeError);
+    v.addEventListener('waiting', onWaiting);
+    v.addEventListener('stalled', onWaiting);
+    v.addEventListener('playing', onFlowing);
+    v.addEventListener('canplay', onFlowing);
     v.addEventListener('play', onPlay);
     v.addEventListener('pause', onPause);
     return () => {
+      stopDiag();
       v.removeEventListener('loadedmetadata', onLoadedMetadata);
       v.removeEventListener('durationchange', onDurationChange);
       v.removeEventListener('timeupdate', updateTime);
       v.removeEventListener('seeked', updateTime);
       // Named handlers, so these actually detach — arrow functions passed
       // straight to removeEventListener match nothing and leak on every re-run.
+      v.removeEventListener('error', onDecodeError);
+      v.removeEventListener('waiting', onWaiting);
+      v.removeEventListener('stalled', onWaiting);
+      v.removeEventListener('playing', onFlowing);
+      v.removeEventListener('canplay', onFlowing);
       v.removeEventListener('play', onPlay);
       v.removeEventListener('pause', onPause);
     };
@@ -187,8 +270,24 @@ export function ReviewSurface({
         return false;
       };
 
+      // Escape is the way back to the player. Without it a composer holding text
+      // is a ONE-WAY DOOR: Space types into it instead of resuming, and clicking
+      // the frame pins instead of resuming, so the only ways out are the Play
+      // button or reloading the whole page — which is what the owner was reduced
+      // to doing (report 2026-08-20).
+      if (e.key === 'Escape' && inField && t === inputRef.current) {
+        e.preventDefault();
+        if (inputText.trim() === '') setInputText('');
+        inputRef.current?.blur();
+        return;
+      }
+
       if (inField) {
-        if (t === inputRef.current && inputText === '') doTransport();
+        // trim(), not === '': a box holding only spaces is not a note. Pressing
+        // Space against one used to add ANOTHER space, so the owner could press
+        // it four times, watch the film stay frozen, and never suspect his
+        // keystrokes were being eaten by a text box he had not chosen to enter.
+        if (t === inputRef.current && inputText.trim() === '') doTransport();
         return;
       }
       if (doTransport()) return;
@@ -196,6 +295,7 @@ export function ReviewSurface({
       if (e.key.length === 1) {
         e.preventDefault();
         if (!paused) videoRef.current?.pause();
+        wantComposerFocus.current = true;
         inputRef.current?.focus();
         setInputText((prev) => prev + e.key);
       }
@@ -276,6 +376,17 @@ export function ReviewSurface({
   // timestamp to carry, and a note filed at t=0 against a cut that does not
   // exist yet lands under a key nothing will ever show it under.
   const canComment = !!src && paused && !sending;
+
+  // Deliver the focus the keydown handler could not. It fires while the composer
+  // is still disabled (`paused` has not landed yet), so its focus() is a no-op —
+  // which left the film stopped, nothing focused, and the diverted character
+  // sitting unseen in a box across the screen.
+  useEffect(() => {
+    if (wantComposerFocus.current && canComment) {
+      inputRef.current?.focus();
+      wantComposerFocus.current = false;
+    }
+  }, [canComment]);
 
   const playerApi: PlayerApi = {
     seekTo: (t) => {
@@ -370,10 +481,28 @@ export function ReviewSurface({
             </div>
 
             <div className="rs-kbd-hint">
-              <kbd>Space</kbd> play/pause · <kbd>←</kbd> <kbd>→</kbd> ±5s · <kbd>⇧</kbd>+<kbd>←</kbd> <kbd>→</kbd> step a frame
+              <kbd>Space</kbd> play/pause · <kbd>Esc</kbd> back to the player · <kbd>←</kbd> <kbd>→</kbd> ±5s · <kbd>⇧</kbd>+<kbd>←</kbd> <kbd>→</kbd> step a frame
               · <strong>just start typing</strong> to note the current moment · <strong>click the frame</strong> to pin a note
               to that exact spot · <strong>paste screenshots</strong> to attach them
             </div>
+            {decodeLost && (
+              <div className="rs-stall">Video decoder dropped out — restoring your place…</div>
+            )}
+            {decodeGaveUp && (
+              <div className="rs-decode-dead">
+                Chrome's video decoder keeps failing at this point. This is a graphics-driver
+                fault, not the cut. Turn off <strong>Settings → System → “Use graphics
+                acceleration when available”</strong> in Chrome and reload.
+              </div>
+            )}
+            {stalled && !paused && (
+              // Only while it BELIEVES it is playing. A paused player is not
+              // waiting for anything, and a badge that shows whenever bytes are
+              // in flight is noise the owner learns to ignore. If the server is
+              // gone the red banner above already says so — this line must not
+              // repeat it, it only says the frame is waiting, not broken.
+              <div className="rs-stall">Waiting for video data…</div>
+            )}
             {message && <div className="rs-msg">{message}</div>}
           </>
         )}

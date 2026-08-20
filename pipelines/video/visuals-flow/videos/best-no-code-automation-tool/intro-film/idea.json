@@ -1,0 +1,64 @@
+{
+  "video": "best-no-code-automation-tool",
+  "chosen": "b",
+  "directions": [
+    {
+      "id": "a",
+      "name": "One chain, five hands",
+      "central_object": "chain",
+      "arc": [
+        "A single workflow chain snaps together on an empty stage — trigger block, AI block, send block, locked in that order and held long enough to read as the thing the whole video builds.",
+        "The chain splits into five identical copies that fan across the stage, each copy taking on one platform's surface without changing its geometry.",
+        "Each copy is then loaded with what its platform charges: a price weight that drags one chain's blocks apart, a stack of config panels that buries another, a block that turns into a wall of code.",
+        "The five loaded copies snap back into a single row, side by side, so the damage reads comparatively in one frame.",
+        "Two copies shed their load and hold at full brightness while the other three settle back dimmed."
+      ],
+      "motifs": [
+        "re-skin — same geometry, new surface, so the eye tracks one object across five identities",
+        "load-drop — a weight, a panel stack or a code slab landing ON a block and deforming it",
+        "row-snap — scattered copies pulling into one aligned row"
+      ],
+      "enacts_throughline": "It is the throughline played at speed before the video plays it slowly: concept.json's chain is 'a trigger block, an AI block, and a send block' that 're-skins into each platform's own look as that tool is visited', ending with 'the n8n and Flowise chains stay whole and lit while the other three dim'. The intro shows that whole journey in miniature so the body's five builds land as the payoff of a promise already made.",
+      "rejects": "The five-logo grid — product marks laid out in a row with names under them. It is the obvious opener for any comparison video, and it states the topic ('five automation tools') rather than the argument ('each one charges you something different'). It also gives the eye five new objects instead of one object seen five ways, which is exactly the recognition the throughline depends on."
+    },
+    {
+      "id": "b",
+      "name": "The toll gate",
+      "central_object": "gate",
+      "arc": [
+        "A workflow chain travels across the stage and meets a gate that will not open for free.",
+        "The gate takes a different currency each time the chain passes: coins stack up at one crossing, a clock face spins down hours at the next, and at a third the chain is allowed through only after two of its three blocks are shaved off to fit.",
+        "Each toll paid leaves the chain visibly poorer on the far side — lighter by coins, older by hours, shorter by a block.",
+        "One crossing finally lets a whole chain through with nothing taken, and the gate itself reads as the thing that was wrong, not the chain.",
+        "The gate withdraws and two intact chains stand where five arrived."
+      ],
+      "motifs": [
+        "toll-take — the gate physically removing something from the chain as it passes",
+        "currency-swap — the same transaction paid in coins, then hours, then capability",
+        "pass-through — the chain crossing the gate plane, used as the film's only forward motion"
+      ],
+      "enacts_throughline": "The chain is still the object being tracked, but the intro dramatises the thesis rather than the tour: 'Every one of these tools charges a toll for automation power — Zapier in money and rigidity, LangChain in engineering hours — and only n8n and Flowise hand you real control without the bill.' The chain that arrives at the gate is concept.json's 'trigger block, an AI block, and a send block'; what the gate takes is the toll the body spends thirty minutes proving.",
+      "rejects": "The versus-bracket — two logos facing off across a lightning bolt, then the winner enlarging. It frames the video as a fight with one champion, when the actual finding is two winners and three different prices. It also has no way to show a cost that is not money, which is the half of the thesis that matters most."
+    },
+    {
+      "id": "c",
+      "name": "The dial that lies",
+      "central_object": "dial",
+      "arc": [
+        "A single dial fills the stage, labelled easy at one end and powerful at the other — the mental model the viewer walks in with.",
+        "Five markers slide onto the dial and settle where common sense puts them, clustered so that picking a tool looks like picking a point on one line.",
+        "The dial pulls apart into two crossed axes, and the markers scatter off the line they were sitting on — the one-dimensional trade-off was never true.",
+        "In the new space two markers land in a quadrant the old dial could not describe: powerful AND workable.",
+        "The two markers resolve into two intact workflow chains, which is what those two quadrant positions actually mean in practice."
+      ],
+      "motifs": [
+        "marker-settle — a token finding its position with weight, never drifting",
+        "axis-break — one line separating into two, carrying its markers with it",
+        "quadrant-land — a token arriving in a region the previous frame had no room for"
+      ],
+      "enacts_throughline": "It earns the throughline instead of previewing it: the film argues in the abstract and only converts to concept.json's chain — 'a trigger block, an AI block, and a send block' — in the final beat, so the object the body builds five times arrives as the answer to the question the intro just asked. The two chains that appear are the same two the concept ends on, 'whole and lit while the other three dim'.",
+      "rejects": "The scorecard-table cold open — showing the /5 ratings up front. The recording already ends on that exact table at 1786s, so opening with it spends the payoff before the demo earns it, and a table of numbers cannot show WHY the easy-versus-powerful framing is wrong, which is the one idea this intro needs to land."
+    }
+  ],
+  "approved": true
+}

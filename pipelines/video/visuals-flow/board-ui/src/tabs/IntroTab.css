@@ -103,6 +103,52 @@
   width: 100%;
   border-radius: 4px;
   border: 1px solid var(--line);
+  display: block;
+}
+
+/* Per-frame zoom (owner ask 2026-08-13). A frame spans 1 to 3 of the strip's
+   columns; the control sits BELOW its own frame (owner ask 2026-08-13, second
+   pass) rather than floating over the top-right corner — a review frame is
+   judged corner to corner, so nothing may sit on the picture, and a bar under
+   the image is where a reader looks for it without hovering to find it. */
+.intro-frame {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;   /* bar stays under the image's left edge at ½× too */
+  gap: 6px;
+}
+
+.intro-frame-zoom {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--line);
+}
+
+.intro-frame-zoom button {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 9px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.intro-frame-zoom button:hover:not(:disabled) { background: rgba(251, 146, 60, 0.25); }
+.intro-frame-zoom button:disabled { opacity: 0.35; cursor: default; }
+
+.intro-frame-zoom-level {
+  font-size: 11px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+  min-width: 20px;
+  text-align: center;
 }
 
 .intro-approve-btn {
@@ -289,3 +335,22 @@
   cursor: pointer;
 }
 .intro-beat-jump:hover { border-color: var(--accent); background: rgba(251,146,60,0.12); }
+
+/* Feedback boxes (owner report 2026-08-13). The shared composer is timestamped
+   and therefore dead until the film renders; these are the storyboard's
+   autosaved boxes — one collective, one per beat. Layout only: the box itself
+   is styled by components/FeedbackBox.css so all three tabs move together. */
+.intro-global-feedback {
+  margin-bottom: 20px;
+}
+
+.intro-feedback-hint {
+  font-size: 12px;
+  color: var(--dim);
+  line-height: 1.45;
+}
+
+.intro-beat-feedback {
+  margin-top: 16px;
+  max-width: 800px;
+}

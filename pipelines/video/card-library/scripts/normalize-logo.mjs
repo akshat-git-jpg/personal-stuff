@@ -31,6 +31,28 @@ export function markBBox(pngPath, tmpRaw) {
   return { W, H, x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1, hasAlpha, bg: [corner[0], corner[1], corner[2]] };
 }
 
+/* Edge sharpness, as the 99th percentile of the central-difference luma
+   gradient. A mark authored at 256 or larger crosses its own edge in about one
+   pixel; a mark upscaled from a 128px favicon spreads the same contrast over
+   two or three and the figure collapses. Lives here because this is the module
+   that already owns raw-pixel work; check-logos.mjs gates on it and
+   fetch-logo.mjs refuses a fetch that lands under it. See SHARPNESS_MIN. */
+export const SHARPNESS_MIN = 70;
+
+export function sharpness(pngPath, tmpRaw) {
+  execFileSync('ffmpeg', ['-v', 'error', '-i', pngPath, '-f', 'rawvideo', '-pix_fmt', 'rgba', tmpRaw, '-y']);
+  const b = fs.readFileSync(tmpRaw);
+  const n = Math.round(Math.sqrt(b.length / 4));
+  if (n * n * 4 !== b.length) throw new Error(`${pngPath}: not square`);
+  const L = (x, y) => { const i = (y * n + x) * 4; return 0.30 * b[i] + 0.59 * b[i + 1] + 0.11 * b[i + 2]; };
+  const g = [];
+  for (let y = 1; y < n - 1; y++) for (let x = 1; x < n - 1; x++) {
+    g.push(Math.max(Math.abs(L(x + 1, y) - L(x - 1, y)), Math.abs(L(x, y + 1) - L(x, y - 1))));
+  }
+  g.sort((a, b) => a - b);
+  return g[Math.floor(g.length * 0.99)];
+}
+
 export function normalizeFile(pngPath, tmpRaw, tmpOut) {
   const box = markBBox(pngPath, tmpRaw);
   

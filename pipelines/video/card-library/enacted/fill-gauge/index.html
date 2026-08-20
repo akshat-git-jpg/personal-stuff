@@ -24,7 +24,11 @@
         --accent: #fb923c;
         --positive: #34d399; --negative: #ef4444; --gold: #facc15;
         --font: 'Inter', system-ui, sans-serif;
-        --hero-size: 150px;
+        /* 120, not 150. At 150 the title, its 36px gap and a 640px vessel came to
+           854px inside an 840px frame, so the heading sat on the gauge and the top
+           chip -- owner 2026-08-20: "why the words 'why they win' are overlapping
+           on the graphic? I have given similar kind of feedback before also." */
+        --hero-size: 120px;
         --body-size: 42px;
       }
       body.register-light {
@@ -34,10 +38,10 @@
       html, body { width: 100%; height: 1080px; overflow: hidden; background: #000; font-family: var(--font); color: var(--text); }
       #root { position: relative; width: 100%; height: 1080px; }
       #bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 20%, var(--bg-from) 0%, var(--bg-to) 60%); }
-      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 120px; }
+      #frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 100px; }
       #card { width: 100%; max-width: 1560px; display: flex; flex-direction: column; align-items: center; }
 
-      .title { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; margin-bottom: 36px; }
+      .title { font-size: var(--hero-size); font-weight: 800; letter-spacing: -0.035em; line-height: 1.0; color: var(--text); text-align: center; margin-bottom: 64px; }
 
       .stage { position: relative; display: flex; align-items: flex-start; justify-content: center; gap: 2.917vw; }
       body.variant-b .stage { flex-direction: row-reverse; }

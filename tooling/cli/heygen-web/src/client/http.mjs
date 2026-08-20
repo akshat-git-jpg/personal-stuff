@@ -9,13 +9,29 @@ export const CURLS = process.env.HEYGEN_WEB_CURLS || resolve(PKG_ROOT, "../../..
 export const BASE = "https://api2.heygen.com";
 export const USAGE_SNAP = resolve(PKG_ROOT, "../../../infra/se" + "crets/heygen-usage-last.json");
 
+// Chrome emits the cookie as ANSI-C quoting -- `-b $'...'` instead of `-b '...'`
+// -- the moment any cookie value contains a character it wants to escape (a `!`
+// arriving as \u0021 is enough, and PostHog's cookie routinely has one). The
+// original regex only knew the plain form, so a perfectly good capture died with
+// "Could not find a -b '<cookie>' block" and looked like a bad paste.
+// Accept both, and undo the \uXXXX / \xNN / \' escapes the $'' form introduces.
+export function decodeCurlCookie(raw, ansiC) {
+  if (!ansiC) return raw;
+  return raw
+    .replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/\\x([0-9a-fA-F]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
+    .replace(/\\'/g, "'")
+    .replace(/\\\\/g, "\\");
+}
+
 export function loadAuth() {
   if (!existsSync(CURLS)) die(`No capture file at ${CURLS} (set HEYGEN_WEB_CURLS).`);
   const txt = readFileSync(CURLS, "utf8");
-  const cookie = (txt.match(/-b \'([^\']+)\'/) || [])[1];
+  const m = txt.match(/-b (\$?)\'([^\']+)\'/);
+  const cookie = m ? decodeCurlCookie(m[2], m[1] === "$") : undefined;
   const zid = (txt.match(/x-zid:\s*([^\s\'\\]+)/) || [])[1];
   const spaceId = (cookie || "").match(/heygen_space=([^;]+)/)?.[1];
-  if (!cookie) die(`Could not find a -b \'<cookie>\' block in ${CURLS}.`);
+  if (!cookie) die(`Could not find a -b \'<cookie>\' or -b $\'<cookie>\' block in ${CURLS}.`);
   return { cookie, zid, spaceId };
 }
 

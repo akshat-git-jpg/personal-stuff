@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer, latestWorkdir, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, appendFinalFeedback, appendIntroFeedback, pinFromClick, resolveAndExtend, playthroughView, toggleAuditAccepted, REVIEW_NAMESPACES, TAB_NAMESPACE, reviewNamespacesFromRegistry, gateNumberFor } from './board.mjs';
+import { createServer, latestWorkdir, buildSegments, synthCalibrationVars, loadShots, mergeShots, loadEffects, mergeEffects, fxContext, fxEventsAt, appendFinalFeedback, appendIntroFeedback, pinFromClick, resolveAndExtend, playthroughView, toggleAuditAccepted, parseRange, REVIEW_NAMESPACES, TAB_NAMESPACE, reviewNamespacesFromRegistry, gateNumberFor } from './board.mjs';
 
 const FIXTURE_DIR = path.join(import.meta.dirname, 'fixtures', 'board');
 const TMP_ROOT = path.join(import.meta.dirname, '.test-tmp', 'board');
@@ -1763,6 +1763,43 @@ test('POST /feedback with empty text deletes the comment', async () => {
   }
 });
 
+// The Intro tab's boxes (owner report 2026-08-13). Its shared composer is
+// timestamped and dead until out/intro.mp4 exists, so the autosaved boxes are
+// the ONLY way to file a note through most of gate 027 — and a note that lands
+// with no context tells the fixing session nothing about which beat it means.
+test('POST /feedback on an intro beat carries the beat as context', async () => {
+  const workdir = makeWorkdir();
+  fs.mkdirSync(path.join(workdir, 'intro-film'), { recursive: true });
+  fs.writeFileSync(path.join(workdir, 'intro-film', 'screenplay.json'), JSON.stringify({
+    video: 'fixture',
+    beats: [
+      { id: 'b01', clause: 'the chain forms', t_start: 0, t_end: 4 },
+      { id: 'b02', clause: 'the gate takes its toll', t_start: 4, t_end: 9.5 },
+    ],
+  }));
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/feedback`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ feedback: { 'intro-b02': 'the clock reads as a logo', 'intro-global': 'too dark overall' } }),
+    });
+    assert.equal((await res.json()).ok, true);
+
+    const fb = JSON.parse(fs.readFileSync(path.join(workdir, 'feedback.json'), 'utf8'));
+    assert.equal(fb.items['intro-b02'].text, 'the clock reads as a logo');
+    assert.deepEqual(fb.items['intro-b02'].context,
+      { beat: 'b02', start: 4, clause: 'the gate takes its toll' });
+
+    // The collective box names no beat, so it must save with no context at all
+    // rather than borrowing a cue's — same contract as the storyboard's _global.
+    assert.equal(fb.items['intro-global'].text, 'too dark overall');
+    assert.equal(fb.items['intro-global'].context, undefined);
+  } finally {
+    server.close();
+  }
+});
+
 test('POST /feedback rejects a payload carrying neither feedback nor images', async () => {
   const workdir = makeWorkdir();
   const { server, base } = await startServer(workdir);
@@ -1772,6 +1809,92 @@ test('POST /feedback rejects a payload carrying neither feedback nor images', as
     });
     assert.equal(res.status, 400);
     assert.equal((await res.json()).ok, false);
+  } finally {
+    server.close();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Serving an mp4 to a media element (owner report 2026-08-20: the Final Cut
+// player froze at 04:08 and Play did nothing however many times it was pressed
+// — because the board process had died underneath it, so the bytes behind the
+// element had no server any more).
+// ---------------------------------------------------------------------------
+
+test('parseRange answers every form a media element sends, and refuses the rest', () => {
+  const size = 1000;
+  assert.equal(parseRange(undefined, size), null, 'no header is not a range request');
+  assert.deepEqual(parseRange('bytes=0-99', size), { start: 0, end: 99 });
+  assert.deepEqual(parseRange('bytes=500-', size), { start: 500, end: 999 },
+    'open-ended is what a <video> sends to start streaming');
+  assert.deepEqual(parseRange('bytes=-100', size), { start: 900, end: 999 },
+    'the suffix form is how Chrome hunts for a trailing moov atom');
+  assert.deepEqual(parseRange('bytes=0-99999', size), { start: 0, end: 999 },
+    'an end past EOF clamps — it is satisfiable, not an error');
+
+  // Each of these used to reach fs.createReadStream and throw a RangeError
+  // SYNCHRONOUSLY, which surfaced as a 500 on an ordinary request.
+  assert.equal(parseRange('bytes=1000-', size).unsatisfiable, true, 'start at EOF');
+  assert.equal(parseRange('bytes=99999-', size).unsatisfiable, true, 'start past EOF');
+  assert.equal(parseRange('bytes=abc', size).unsatisfiable, true, 'garbage');
+  assert.equal(parseRange('bytes=-', size).unsatisfiable, true, 'no numbers at all');
+  assert.equal(parseRange('bytes=900-100', size).unsatisfiable, true, 'inverted');
+});
+
+test('a range past the end of a cut is a 416, never a 500', async () => {
+  const workdir = makeWorkdir();
+  const outDir = path.join(workdir, 'intro-film', 'out');
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.writeFileSync(path.join(outDir, 'intro.mp4'), 'TEN-BYTES!');
+
+  const { server, base } = await startServer(workdir);
+  try {
+    const res = await fetch(`${base}/intro-video`, { headers: { Range: 'bytes=99999-' } });
+    assert.equal(res.status, 416, 'a start past EOF must be answered, not thrown on');
+    assert.equal(res.headers.get('content-range'), 'bytes */10',
+      '416 must say how long the file actually is, or the element cannot recover');
+    await res.arrayBuffer();
+
+    // Still alive and still correct afterwards — the point of the whole fix.
+    const ok = await fetch(`${base}/intro-video`, { headers: { Range: 'bytes=0-3' } });
+    assert.equal(ok.status, 206);
+    assert.equal(await ok.text(), 'TEN-');
+  } finally {
+    server.close();
+  }
+});
+
+test('aborting range requests mid-body leaves the board serving, and leaks nothing', async () => {
+  const workdir = makeWorkdir();
+  const outDir = path.join(workdir, 'intro-film', 'out');
+  fs.mkdirSync(outDir, { recursive: true });
+  // Big enough that the response cannot land in one chunk, so an abort really
+  // does interrupt a body in flight.
+  fs.writeFileSync(path.join(outDir, 'intro.mp4'), Buffer.alloc(8 * 1024 * 1024, 7));
+
+  const { server, base } = await startServer(workdir);
+  try {
+    // A <video> aborts every open range request on each seek, pause and resume;
+    // one review session cancels dozens. stream.pipe() does not destroy the
+    // source when the destination dies, so each of these used to strand an open
+    // fs.ReadStream, and an 'error' on a stream nobody listens to is an
+    // unhandled 'error' event — which took the whole board down mid-review.
+    for (let i = 0; i < 40; i++) {
+      const ac = new AbortController();
+      const res = await fetch(`${base}/intro-video`, {
+        headers: { Range: `bytes=${i * 1000}-` },
+        signal: ac.signal,
+      });
+      assert.equal(res.status, 206);
+      const reader = res.body.getReader();
+      await reader.read();          // take one chunk, then walk away
+      ac.abort();
+      await reader.cancel().catch(() => {});
+    }
+
+    const after = await fetch(`${base}/intro-video`, { headers: { Range: 'bytes=0-7' } });
+    assert.equal(after.status, 206, 'the board must still be serving after 40 aborted streams');
+    assert.equal((await after.arrayBuffer()).byteLength, 8);
   } finally {
     server.close();
   }

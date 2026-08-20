@@ -1,0 +1,134 @@
+{
+  "video": "best-no-code-automation-tool",
+  "offset": 0,
+  "engineMode": "test",
+  "spans": [
+    {
+      "id": "s01",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 122.04,
+      "end": 134.12,
+      "duration": 12.08,
+      "note": "First host moment, and the one that satisfies the on-screen-by rule now that the intro film owns 0 to 113.7s. The speaker is characterising n8n rather than showing anything, so the idle screen has nothing to protect."
+    },
+    {
+      "id": "s02",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 144.7,
+      "end": 159.42,
+      "duration": 14.72,
+      "note": "Flowise positioning, spoken over an idle screen. Sits in the gap between the Flowise and Zapier hero tiles."
+    },
+    {
+      "id": "s03",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 186.32,
+      "end": 198.38,
+      "duration": 12.06,
+      "note": "Make positioning, same shape as the other overview beats."
+    },
+    {
+      "id": "s04",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 208.82,
+      "end": 220.52,
+      "duration": 11.7,
+      "note": "LangChain positioning, closing the overview roll-call on the host."
+    },
+    {
+      "id": "s05",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 235.98,
+      "end": 248.68,
+      "duration": 12.7,
+      "note": "The fair-test promise. This is the host setting the terms of the comparison, which is the last thing they say before the screen takes over for the builds."
+    },
+    {
+      "id": "s06",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 436.1,
+      "end": 450.84,
+      "duration": 14.74,
+      "note": "Direct address to the viewer explaining why the API key matters for all five builds. Nothing is being clicked here."
+    },
+    {
+      "id": "s07",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 730.82,
+      "end": 754.46,
+      "duration": 23.64,
+      "note": "The Flowise verdict, spoken as reflection rather than walkthrough. The strongest host beat in the demo half."
+    },
+    {
+      "id": "s08",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 873.22,
+      "end": 888.42,
+      "duration": 15.2,
+      "note": "A warning aimed at the viewer, not a description of a click."
+    },
+    {
+      "id": "s09",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 1057.76,
+      "end": 1070.16,
+      "duration": 12.4,
+      "note": "Zapier build completes. A short host beat to close the section before Make."
+    },
+    {
+      "id": "s10",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 1086.71,
+      "end": 1102.63,
+      "duration": 15.92,
+      "note": "The speaker naming the repetition out loud, which is the throughline: the same chain being built a fourth time."
+    },
+    {
+      "id": "s11",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 1238.19,
+      "end": 1252.51,
+      "duration": 14.32,
+      "note": "Framing LangChain against Flowise before the playground demo starts."
+    },
+    {
+      "id": "s12",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 1319.45,
+      "end": 1332.99,
+      "duration": 13.54,
+      "note": "The raw-power verdict and the last host beat before the results check."
+    },
+    {
+      "id": "s14",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 1468.25,
+      "end": 1482.31,
+      "duration": 14.06,
+      "note": "The purpose-built payoff line, the last full-screen host moment before the pricing walkthrough takes the screen back."
+    },
+    {
+      "id": "s17",
+      "purpose": "avatar-full",
+      "mode": "full",
+      "start": 2141.19,
+      "end": 2166.69,
+      "duration": 25.5,
+      "note": "The sign-off. The video lands on the host, per the U-curve. Anchored to the LAST spoken words, not to \"in the very next video\": ending 2.3s early handed the final frame back to the screen recording, so the video closed on a raw browser window showing the taskbar, open tabs and an email address. Owner, 2026-08-20: \"why the end screen is like this\". A video must end on something authored -- see check-ending.mjs.",
+      "snapped": true
+    }
+  ]
+}

@@ -50,7 +50,10 @@ export function App() {
   // /api/board-data every 2s purely to detect a dead backend, doing real fs
   // work on every tick for a payload nothing used (plan 193).
   useEffect(() => {
-    if (!video) return;
+    // NOT gated on `video`: the board is reachable at / with no query string at
+    // all, and gating the probe on a slug meant that on exactly those URLs a
+    // dead server showed no banner — the player just froze on a frame with no
+    // explanation anywhere on the page (owner report 2026-08-20).
     const timer = setInterval(async () => {
       try {
         await fetch('/health');
@@ -60,7 +63,7 @@ export function App() {
       }
     }, 5000);
     return () => clearInterval(timer);
-  }, [video]);
+  }, []);
 
   useEffect(() => {
     Promise.all([

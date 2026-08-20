@@ -238,3 +238,99 @@
   against `.rs-main` is NOT enough — a wrapper shrinks the surface and its
   column together, and the first version of this gate passed green with the
   1000px cap put back. Mutation-verified against that exact regression.
+
+- **2026-08-20**: **Every mp4 this board serves goes through one function,
+  `serveMediaFile()` in `lib/board.mjs`, and that function's contract is
+  surviving an aborted request — not serving a happy one.** `/intro-video`,
+  `/intro-teaser` and `/video/<label>` carried three near-identical copies of
+  the range logic; they are now one call each. The helper destroys its
+  `fs.ReadStream` when the response closes, listens for `error` on both ends,
+  and answers an unsatisfiable range with **416, never a `RangeError`**.
+  `main()` also installs `uncaughtException` / `unhandledRejection` handlers
+  that log and stay up, and the per-request `.catch()` checks `res.headersSent`
+  before writing (setting a status after a 206 throws INSIDE the catch, which
+  is an unhandled rejection, which ends the process).
+  **Why**: the owner reported the Final Cut player frozen at 04:08 with Play
+  doing nothing however many times he pressed it. The element was fine — the
+  board process had **died**, so the bytes behind it had no server. A `<video>`
+  aborts every open range request on each seek, pause and resume (measured: 11
+  requests to `/video/v2` in eight cycles, all `net::ERR_ABORTED`), and
+  `stream.pipe()` does not destroy the source when the destination dies, so
+  each abort stranded an open handle on a 160MB file — 210 aborted requests
+  leaked 125 OS handles, 307 → 432, never released. After the fix the same load
+  moves the count 242 → 241. Gated in `lib/board.test.mjs`: `parseRange` covers
+  open-ended, suffix and past-EOF forms, and one test aborts 40 range requests
+  mid-body then asserts the board still serves.
+  **The lesson worth keeping**: a local tool that dies is indistinguishable from
+  a frozen UI, so the board now also SAYS when it is gone — `App.tsx`'s liveness
+  probe no longer gates itself on a `?video=` the URL need not carry (on those
+  URLs a dead server showed no banner at all), and `<ReviewSurface>` shows
+  "Waiting for video data…" when the element is playing but starved.
+
+- **2026-08-20**: **`:root` declares `color-scheme: dark`** in
+  `board-ui/src/theme.css`. **Why**: native controls are painted by the
+  platform, not by our stylesheet. With no `color-scheme`, Chrome paints a
+  `<select>`'s popup WHITE while the options inherit the page's near-white
+  `--text`, so the playback-speed picker's numbers were invisible (owner report).
+  Declared once at the root rather than on the one select, because the video
+  picker and the version picker are the same control with the same failure.
+  Found alongside it: `--fg` and `--hover` were used by `ReviewSurface.css` but
+  **never defined anywhere**, so five colour rules and both hover states were
+  inert. `--fg` is now spelled `--text` at its call sites; `--hover` has a value.
+
+- **2026-08-20 (second report, same day)**: **The Final Cut player's "it pauses
+  by itself and then will not resume" was a KEYBOARD dead end, not a media or
+  server fault.** Three things compounded in
+  `board-ui/src/components/ReviewSurface.tsx`:
+  (1) the type-to-comment feature fires on **any** single character anywhere on
+  the page, so a stray keystroke stops the film;
+  (2) the `focus()` it then calls lands on a composer that is still `disabled`
+  (`canComment` needs `paused`, which has not flushed yet), so the keystroke
+  disappears into an unfocused box on the far side of the screen and the pause
+  has **no visible cause**;
+  (3) once that box holds text, `Space` types into it instead of driving the
+  transport, and clicking the frame pins instead of resuming — leaving the Play
+  button as the only exit, which is why the owner was reloading the page.
+  Fixed: `Escape` blurs the composer and returns control to the player; the
+  in-composer transport check is `inputText.trim() === ''`, not `=== ''`, so a
+  box holding only spaces never swallows `Space` again; and a `wantComposerFocus`
+  ref re-fires the focus once the composer is genuinely enabled.
+  **Why it matters beyond this bug**: the first fix that day was real (the board
+  process was crashing on aborted range requests) but it was **not this**. Both
+  failures present identically — a frame frozen mid-play with an inert Play
+  button — so "the video is stuck" is never enough to act on. Ask which of the
+  three it is: server gone (red banner), starved of bytes ("Waiting for video
+  data…"), or **keystrokes going somewhere else** (composer focused). Each now
+  says so on screen.
+  **Still open, owner's call**: clicking a PAUSED frame pins a note rather than
+  resuming, which is what a person instinctively tries first. Left as-is because
+  click-to-pin is a documented, deliberate feature — changing it needs a decision,
+  not a patch.
+
+- **2026-08-20 (third and actual root cause)**: **The Final Cut player stopping
+  "by itself" was Chrome's HARDWARE H.264 decoder failing —
+  `PIPELINE_ERROR_DECODE` — not the board, not the server, not the file.**
+  Proven by the player's flight recorder (`board-ui/src/lib/playerDiag.ts`,
+  `POST /diag` → `videos/<slug>/player-diag.log`): the `pause` event arrives with
+  **no `pause() CALLED` stack before it**, so no app code paused it, and
+  `MediaError.code === 3` is set. Afterwards `play()` resolves and even fires
+  `playing` while `currentTime` never moves — which is exactly "I press play and
+  nothing happens" — and only reloading the page rebuilds the pipeline.
+  Deterministic at t≈2111.8s of `v2.mp4`; A/B settled it: with hardware decoding
+  the decoder dies every approach, with `--disable-accelerated-video-decode` the
+  same seeks play through cleanly. The stream is not at fault — Constrained
+  Baseline, 720p, no B-frames, keyframes every 8.3s, monotonic timestamps,
+  `ffmpeg -err_detect +explode` decodes it silently — and the server is not at
+  fault either: 48 sampled ranges plus the whole tail are byte-exact.
+  **Why it took three attempts**: every headless repro passed `--disable-gpu`,
+  which forces SOFTWARE decoding, so the harness could never hit the bug the
+  owner was hitting on every session. **A repro harness that disables the
+  subsystem under suspicion cannot exonerate it.** Drop `--disable-gpu` when
+  reproducing anything about media playback.
+  The player now recovers by itself: on `MEDIA_ERR_DECODE` it reloads the element
+  and restores the position, and the retry budget is spent by REAL PROGRESS
+  (`currentTime` clearing the bad frame by 2s), never by the `playing` event — a
+  reloaded element fires `playing` and then dies on the same frame, which made
+  the first version loop forever. After three failures it stops and names the
+  cause on screen rather than silently seeking past the frame, because skipping
+  footage without telling the reviewer is worse than stopping.
